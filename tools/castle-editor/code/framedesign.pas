@@ -55,6 +55,7 @@ type
 
   { Frame to visually design component hierarchy. }
   TDesignFrame = class(TFrame)
+    ActionChangeHeightMapSize: TAction;
     ActionSaveTerrainAs: TAction;
     ActionSaveTerrain: TAction;
     ActionChooseLevelTerrainTool: TAction;
@@ -66,6 +67,7 @@ type
     ActionSimulationPauseUnpause: TAction;
     ActionSimulationPlayStop: TAction;
     ActionListDesign: TActionList;
+    ButtonHeightMapChangeSize: TButton;
     ButtonSaveTerrain: TButton;
     ButtonSaveTerrainAs: TButton;
     ButtonStartFinishEditMode: TButton;
@@ -76,12 +78,15 @@ type
     FloatSpinRaiseRingThickness: TFloatSpinEdit;
     FloatSpinLowerRingThickness: TFloatSpinEdit;
     FloatSpinLevelRingThickness: TFloatSpinEdit;
+    GroupBoxHeightMapSize: TGroupBox;
     GroupBoxRaiseTerrainSettings: TGroupBox;
     GroupBoxLowerTerrainSettings: TGroupBox;
     GroupBoxLevelTerrainSettings: TGroupBox;
     Label1: TLabel;
     Label2: TLabel;
     Label3: TLabel;
+    Label4: TLabel;
+    Label5: TLabel;
     LabelMaxHeight1: TLabel;
     LabelRaiseRingThickness: TLabel;
     LabelLowerRingThickness: TLabel;
@@ -170,6 +175,8 @@ type
     SpeedButtonRaiseCone: TSpeedButton;
     SpeedButtonRaiseRing: TSpeedButton;
     SpeedButtonRaiseCylinder: TSpeedButton;
+    SpinEditHeightMapWidth: TSpinEdit;
+    SpinEditHeightMapHeight: TSpinEdit;
     SpinEditLowerBrushRotation: TSpinEdit;
     SpinEditLowerBrushSize: TSpinEdit;
     SpinEditLevelBrushRotation: TSpinEdit;
@@ -193,6 +200,8 @@ type
     TabInfo: TTabSheet;
     UpdateObjectInspector: TTimer;
     procedure ActionApiReferenceOfCurrentExecute(Sender: TObject);
+    procedure ActionChangeHeightMapSizeExecute(Sender: TObject);
+    procedure ActionChangeHeightMapSizeUpdate(Sender: TObject);
     procedure ActionChooseLevelTerrainToolExecute(Sender: TObject);
     procedure ActionChooseLowerTerrainToolExecute(Sender: TObject);
     procedure ActionChooseRaiseTerrainToolExecute(Sender: TObject);
@@ -6081,6 +6090,39 @@ end;
 procedure TDesignFrame.ActionApiReferenceOfCurrentExecute(Sender: TObject);
 begin
   OnApiReferenceOfCurrent(Self);
+end;
+
+procedure TDesignFrame.ActionChangeHeightMapSizeExecute(Sender: TObject);
+var
+  Terrain: TCastleTerrain;
+begin
+  Terrain := CurrentTransform as TCastleTerrain;
+
+  Terrain.EditMode.SetEditModeHeightMapSize(Vector2Integer(
+    SpinEditHeightMapWidth.Value, SpinEditHeightMapHeight.Value));
+end;
+
+procedure TDesignFrame.ActionChangeHeightMapSizeUpdate(Sender: TObject);
+var
+  Terrain: TCastleTerrain;
+begin
+  if not FIsEditingTerrain then
+  begin
+    ActionChangeHeightMapSize.Enabled := false;
+    Exit;
+  end;
+
+  if (CurrentTransform = nil) or (not (CurrentTransform is TCastleTerrain)) then
+  begin
+    ActionChangeHeightMapSize.Enabled := false;
+    Exit;
+  end;
+
+  Terrain := CurrentTransform as TCastleTerrain;
+
+  ActionChangeHeightMapSize.Enabled := FIsEditingTerrain and (
+  (SpinEditHeightMapHeight.Value <> Terrain.EditMode.GetEditModeHeightMapSize.Y) or
+  (SpinEditHeightMapWidth.Value <> Terrain.EditMode.GetEditModeHeightMapSize.X));
 end;
 
 procedure TDesignFrame.ActionChooseLevelTerrainToolExecute(Sender: TObject);

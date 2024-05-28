@@ -1191,26 +1191,115 @@ object DesignFrame: TDesignFrame
             TabOrder = 1
           end
         end
+        object GroupBoxHeightMapSize: TGroupBox
+          AnchorSideLeft.Control = PanelEditTerrain
+          AnchorSideTop.Control = PanelEditTerrainSave
+          AnchorSideTop.Side = asrBottom
+          AnchorSideRight.Control = PanelEditTerrain
+          AnchorSideRight.Side = asrBottom
+          Left = 0
+          Height = 135
+          Top = 330
+          Width = 316
+          Anchors = [akTop, akLeft, akRight]
+          AutoSize = True
+          Caption = 'Height Map Size'
+          ClientHeight = 114
+          ClientWidth = 314
+          TabOrder = 4
+          object SpinEditHeightMapWidth: TSpinEdit
+            AnchorSideTop.Control = GroupBoxHeightMapSize
+            AnchorSideRight.Control = GroupBoxHeightMapSize
+            AnchorSideRight.Side = asrBottom
+            Left = 194
+            Height = 32
+            Top = 1
+            Width = 115
+            Anchors = [akTop, akRight]
+            BorderSpacing.Top = 1
+            BorderSpacing.Right = 5
+            MinValue = 1
+            TabOrder = 0
+            Value = 64
+          end
+          object SpinEditHeightMapHeight: TSpinEdit
+            AnchorSideTop.Control = SpinEditHeightMapWidth
+            AnchorSideTop.Side = asrBottom
+            AnchorSideRight.Control = GroupBoxHeightMapSize
+            AnchorSideRight.Side = asrBottom
+            Left = 194
+            Height = 32
+            Top = 38
+            Width = 115
+            Anchors = [akTop, akRight]
+            BorderSpacing.Top = 5
+            BorderSpacing.Right = 5
+            MinValue = 1
+            TabOrder = 1
+            Value = 64
+          end
+          object Label4: TLabel
+            AnchorSideTop.Control = SpinEditHeightMapWidth
+            AnchorSideTop.Side = asrCenter
+            AnchorSideRight.Control = SpinEditHeightMapWidth
+            Left = 143
+            Height = 20
+            Top = 7
+            Width = 46
+            Anchors = [akTop, akRight]
+            BorderSpacing.Right = 5
+            Caption = 'Width'
+          end
+          object Label5: TLabel
+            AnchorSideTop.Control = SpinEditHeightMapHeight
+            AnchorSideTop.Side = asrCenter
+            AnchorSideRight.Control = SpinEditHeightMapHeight
+            Left = 137
+            Height = 20
+            Top = 44
+            Width = 52
+            Anchors = [akTop, akRight]
+            BorderSpacing.Right = 5
+            Caption = 'Height'
+          end
+          object ButtonHeightMapChangeSize: TButton
+            AnchorSideTop.Control = SpinEditHeightMapHeight
+            AnchorSideTop.Side = asrBottom
+            AnchorSideRight.Control = GroupBoxHeightMapSize
+            AnchorSideRight.Side = asrBottom
+            Left = 203
+            Height = 34
+            Top = 75
+            Width = 106
+            Action = ActionChangeHeightMapSize
+            Anchors = [akTop, akRight]
+            AutoSize = True
+            BorderSpacing.Top = 5
+            BorderSpacing.Right = 5
+            BorderSpacing.Bottom = 5
+            TabOrder = 2
+          end
+        end
       end
     end
   end
   object PanelLeft: TPanel
     Left = 0
-    Height = 522
+    Height = 881
     Top = 0
-    Width = 255
+    Width = 266
     Align = alLeft
     BevelOuter = bvNone
-    ClientHeight = 522
-    ClientWidth = 255
+    ClientHeight = 881
+    ClientWidth = 266
     ParentFont = False
     TabOrder = 3
     object ControlsTree: TTreeView
       Left = 0
-      Height = 491
+      Height = 851
       Hint = 'Select a component.'#10'Hold "Ctrl" or "Shift" to select multiple components.'#10#10'Drag the component to move it to the front, back or change the parent.'#10'Hold "Ctrl" when dropping to not preserve the world transformation when changing parent.'
-      Top = 31
-      Width = 255
+      Top = 30
+      Width = 266
       Align = alClient
       DragMode = dmAutomatic
       MultiSelect = True
@@ -2289,6 +2378,12 @@ object DesignFrame: TDesignFrame
       Category = 'Terrain'
       Caption = 'Save Terrain As...'
       OnExecute = ActionSaveTerrainAsExecute
+    end
+    object ActionChangeHeightMapSize: TAction
+      Category = 'Terrain'
+      Caption = 'Change Size'
+      OnExecute = ActionChangeHeightMapSizeExecute
+      OnUpdate = ActionChangeHeightMapSizeUpdate
     end
   end
 end
