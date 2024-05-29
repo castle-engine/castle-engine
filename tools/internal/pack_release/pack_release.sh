@@ -68,13 +68,13 @@ ORIGINAL_CASTLE_ENGINE_PATH="${CASTLE_ENGINE_PATH}"
 #   To clean it up, we use bash trap.
 TEMP_PARENT="/tmp/castle-engine-release-$$/"
 
-cleanup ()
+cleanup_temp ()
 {
   echo "Cleaning up temporary dir ${TEMP_PARENT}"
   rm -Rf "${TEMP_PARENT}"
 }
 
-trap cleanup EXIT
+trap cleanup_temp EXIT
 
 # ----------------------------------------------------------------------------
 # Define functions
@@ -261,6 +261,8 @@ add_external_tool ()
 # Followup to "make clean" that cleans even more stuff,
 # good to really have 100% clean state for packing.
 # Deletes files in current working directory (and doesn't change current working directory).
+#
+# Note: It doesn't delete bin-to-keep, created and used in this script.
 cge_clean_all ()
 {
   # Delete
@@ -473,7 +475,8 @@ pack_platform_dir ()
   esac
 
   # Make sure no leftovers from tools compilation remain
-  "${MAKE}" cleanmore ${MAKE_OPTIONS}
+  "${MAKE}" clean ${MAKE_OPTIONS}
+  cge_clean_all
 
   # After make clean, make sure bin/ exists and is filled with what we need
   mv "${TEMP_PATH_CGE}"bin-to-keep "${TEMP_PATH_CGE}"bin
