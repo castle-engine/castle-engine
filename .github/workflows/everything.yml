@@ -29,6 +29,7 @@ jobs:
   release:
     name: Release
     needs: [quick_test, test_and_pack_docker, delphi, test_and_pack_runner_native, test_shell, check_dependencies]
+    if: ${{ github.ref == 'refs/heads/master' }}
     runs-on: ubuntu-latest
     steps:
 
@@ -45,6 +46,8 @@ jobs:
 
     - name: Download packaged releases
       uses: actions/download-artifact@v4
+      with:
+        merge-multiple: true
     - name: List downloaded files
       run: ls -R
 
@@ -59,6 +62,6 @@ jobs:
     - name: GH CLI test
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: gh release list --repo castle-engine/castle-engine
+      run: gh release list --repo ${{ github.repository }}
 
 # TODO: Finish uploading release

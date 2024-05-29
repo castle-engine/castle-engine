@@ -66,8 +66,10 @@ pipeline {
                 /* remove previous artifacts */
                 sh 'rm -f castle-engine*.zip'
 
-                /* build for all targets supported in Docker (Linux and Windows) */
-                sh './tools/internal/pack_release/pack_release.sh'
+                /* build for all targets supported in Docker */
+                sh './tools/internal/pack_release/pack_release.sh win64 x86_64'
+                sh './tools/internal/pack_release/pack_release.sh win32 i386'
+                sh './tools/internal/pack_release/pack_release.sh linux x86_64'
 
                 /* build a "bundle" version (with FPC) */
                 copyArtifacts(projectName: 'castle_game_engine_organization/cge-fpc/master', filter: 'fpc-*.zip')

@@ -234,6 +234,41 @@ jobs:
         rm -f castle-engine*.zip # remove previous artifacts
         ./tools/internal/pack_release/pack_release.sh ${FPC_OS} ${FPC_CPU}
     - name: Archive Artifacts (zip)
+      # We don't archive build on:
+      #
+      # - macos-12, because build on macos_x64 is already good for us.
+      #   Testing, both these runners produce the functionally equivalent zip
+      #   (there are small differences in binaries, though both use the same FPC version
+      #   but e.g. FPC puts absolute paths in some binaries, so they differ).
+      #   We choose to use macos_x64 as the primary runner for the release,
+      #   since this is our own machine (self hosted), we have more control over it.
+      #
+      # - windows-latest, because the test-and-pack-docker.yml is also doing
+      #   equivalent build (castle-engine-7.0-alpha.snapshot-win64-x86_64.zip).
+      #   Moreover that Docker job is also doing version bundled
+      #   with FPC (castle-engine-7.0-alpha.snapshot-win64-x86_64-bundle.zip)
+      #   and win32 (castle-engine-7.0-alpha.snapshot-win32-i386.zip).
+      #   OTOH, windows-latest is doing castle-engine-setup-7.0-alpha.snapshot.exe,
+      #   as it has to be done on Windows (with InnoSetup).
+      #
+      #   The differences between doing a job in Docker and windows-latest are
+      #   ignorable:
+      #   - From Docker, we get Unix line endings even for Windows build
+      #     since its a checkout on Linux.
+      #     (disadvantage but ignorable, nothing seems to complain?),
+      #   - PasDoc version from Docker is slightly different (advantage,
+      #     we control PasDoc version in Docker better, consistent with others).
+      #   - Docker build is a bit safer, as packing is a separate job,
+      #     not depending that cge_clean_all in pack_release.sh
+      #     cleans everything.
+      #
+      # - ubuntu-latest, because the test-and-pack-docker.yml is also doing
+      #   equivalent build (castle-engine-7.0-alpha.snapshot-linux-x86_64.zip).
+      #   The Docker job is a bit better, see above about windows-latest:
+      #   PasDoc version in Docker is more consistent,
+      #   and the build does not rely on cge_clean_all.
+      #
+      if: ${{ matrix.runner != 'macos-12' && matrix.runner != 'windows-latest' && matrix.runner != 'ubuntu-latest' }}
       uses: actions/upload-artifact@v4
       with:
         name: ${{ matrix.runner }}-release

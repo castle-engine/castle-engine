@@ -14,11 +14,6 @@ set -euxo pipefail
 #     ./pack_release.sh darwin x86_64
 #     ./pack_release.sh freebsd x86_64
 #
-# - no arguments, to pack for "default" platforms.
-#   "Default" are desktop target platforms possible thanks to Docker image
-#   https://hub.docker.com/r/kambi/castle-engine-cloud-builds-tools/
-#   -- right now this means Linux and Windows.
-#
 # - 1 argument 'windows_installer' to build a Windows installer.
 #   This requires InnoSetup installed.
 #
@@ -34,14 +29,16 @@ set -euxo pipefail
 # - and fpc, lazbuild on $PATH
 #
 # Works on
-# - Linux,
-# - Windows (with Cygwin),
-#   Note: It assumes that Cygwin tools, like cp, are first on $PATH, before equivalent from MinGW in FPC.
+# - Linux
+# - Windows (with Cygwin, MSYS2, Git Bash...)
+#   Note: We assume that tools that understand Unix paths
+#   (like "cp" from Cygwin, MSYS2, Git Bash) are first on $PATH,
+#   before equivalent tools in FPC (from old MinGW version).
 #   A simple solution to make sure it's true is to execute
 #     export PATH="/bin:$PATH"
-#   in Cygwin shell right before this script.
-# - FreeBSD (install GNU make and sed),
-# - macOS (install GNU sed from Homebrew).
+#   in shell right before this script.
+# - FreeBSD (install GNU make and GNU sed)
+# - macOS (install GNU sed from Homebrew)
 # ----------------------------------------------------------------------------
 
 # ----------------------------------------------------------------------------
@@ -56,20 +53,25 @@ VERBOSE=true
 
 ORIGINAL_CASTLE_ENGINE_PATH="${CASTLE_ENGINE_PATH}"
 
+# Deal with temporary dir -------------------------------------------------
+
 # Calculate temporary directory, where we will put all the temporary files
 # during packing.
 #
-# Note: The temporary directory is a subdirectory of CI (GitHub Actions)
-# working directory, if running inside CI. This means it will be naturally
-# cleaned along with the workspace, e.g. when GH Actions cleans
-# the working directory at job start.
-if [ -n "${GITHUB_WORKSPACE:-}" ]; then
-  TEMP_PARENT="${GITHUB_WORKSPACE}/"
-else
-  TEMP_PARENT="/tmp/"
-fi
-# make temp unique, using process ID, just in case multiple jobs run in parallel
-TEMP_PARENT="${TEMP_PARENT}castle-engine-release-$$/"
+# Notes:
+# - We make it unique, using process ID, just in case multiple jobs run in parallel.
+# - This cannot be subdirectory of CI workspace (like ${GITHUB_WORKSPACE})
+#   as then we'll have "cp -R ..." fail "we cannot copy directory into itself".
+#   To clean it up, we use bash trap.
+TEMP_PARENT="/tmp/castle-engine-release-$$/"
+
+cleanup_temp ()
+{
+  echo "Cleaning up temporary dir ${TEMP_PARENT}"
+  rm -Rf "${TEMP_PARENT}"
+}
+
+trap cleanup_temp EXIT
 
 # ----------------------------------------------------------------------------
 # Define functions
@@ -102,8 +104,8 @@ detect_platform ()
 
   if which cygpath.exe > /dev/null; then
 
-    # If we're inside Cygwin/MinGW (despite the name, cygpath also is in MinGW,
-    # and this is the case on GH hosted runner), then we want to use Cygwin/MinGW
+    # If we're inside Cygwin/MSYS2 (despite the name, cygpath also is in MSYS2,
+    # and this is the case on GH hosted runner), then we want to use Cygwin/MSYS2
     # tools. They will call bash properly, and our "make" must be able to call
     # e.g. "tools/build-tool/castle-engine_compile.sh".
     #
@@ -120,7 +122,7 @@ detect_platform ()
       fi
     fi
 
-    # On Cygwin/MinGW, make sure to use Cygwin/MinGW's find, not the one from Windows
+    # On Cygwin/MSYS2, make sure to use Cygwin/MSYS2's find, not the one from Windows
     FIND='/bin/find'
   fi
 
@@ -253,6 +255,68 @@ add_external_tool ()
   fi
 }
 
+# Followup to "make clean" that cleans even more stuff,
+# good to really have 100% clean state for packing.
+# Deletes files in current working directory (and doesn't change current working directory).
+#
+# Note: It doesn't delete bin-to-keep, created and used in this script.
+cge_clean_all ()
+{
+  # Delete
+  # - backup files from
+  #     Emacs (*~),
+  #     Lazarus (backup),
+  #     Delphi (*.~???),
+  #     Blender (*.blend?),
+  #     QtCreator (*.pro.user).
+  # - macOS app bundles (made by "make examples-laz", not cleaned up by "make clean").
+	"${FIND}" . -type f '(' \
+      -iname '*~' -or \
+      -iname '*.bak' -or \
+      -iname '*.~???' -or \
+      -iname '*.pro.user' -or \
+      -iname '*.blend?' \
+    ')' -exec rm -f '{}' ';'
+	"${FIND}" . -type d '(' \
+    -iname 'backup' \
+    -iname '*.app' \
+		')' -exec rm -Rf '{}' ';' -prune
+
+  # Delete pasdoc generated documentation in doc/pasdoc/ and doc/reference/
+	"${MAKE}" -C doc/pasdoc/ clean
+
+  # Delete closed-source libs you may have left in tools/build-tool/data
+  # (as some past instructions recommended to copy them into CGE tree).
+	rm -Rf tools/build-tool/data/android/integrated-services/chartboost/app/libs/*.jar \
+	       tools/build-tool/data/android/integrated-services/startapp/app/libs/*.jar \
+	       tools/build-tool/data/ios/services/game_analytics/cge_project_name/game_analytics/GameAnalytics.h \
+	       tools/build-tool/data/ios/services/game_analytics/cge_project_name/game_analytics/libGameAnalytics.a
+
+  # Delete previous pack_release.sh leftovers
+	rm -f castle-engine*.zip tools/internal/pack_release/castle-engine*.zip
+
+  # Delete bundled FPC leftovers
+	rm -Rf fpc-*.zip tools/contrib/fpc/
+
+  # Cleanup .exe more brutally.
+  # TODO: This should not be needed "castle-engine clean" done by "make clean"
+  # should clean all relevant exes, cross-platform.
+  # This is just a temporary workaround of the fact that our Delphi projects right now
+  # sometimes leave artifacts -- xxx_standalone.exe, base_tests/Win32/Debug/xxx.exe .
+  "${FIND}" examples/ -iname '*.exe' -execdir rm -f '{}' ';'
+
+  # Delete installed subdir (in case you did
+  # "make install PREFIX=${CASTLE_ENGINE_PATH}/installed/", as some CI jobs do)
+  rm -Rf installed/
+
+  # Remove Vampyre Demos - take up 60 MB space, and are not necessary for users of CGE.
+  rm -Rf src/vampyre_imaginglib/src/Demos/
+
+  # Made by "make examples-laz", not cleaned up by "make clean".
+  rm -f examples/audio/test_sound_source_allocator/mainf.lrs \
+        examples/lazarus/model_3d_with_2d_controls/model_3d_with_2d_controls.obj
+}
+
 # Prepare directory with precompiled CGE.
 #
 # Parameters:
@@ -332,18 +396,10 @@ pack_platform_dir ()
   lazbuild_twice $CASTLE_LAZBUILD_OPTIONS packages/castle_components.lpk
   lazbuild_twice $CASTLE_LAZBUILD_OPTIONS packages/castle_editor_components.lpk
 
-  # Make sure no leftovers from previous compilations remain, to not affect tools, to not pack them in release
-  "${MAKE}" cleanmore ${MAKE_OPTIONS}
-
-  # Cleanup .exe more brutally.
-  # TODO: This should not be needed "castle-engine clean" done by "make clean"
-  # should clean all relevant exes, cross-platform.
-  # This is just a temporary workaround of the fact that our Delphi projects right now
-  # sometimes leave artifacts -- xxx_standalone.exe, base_tests/Win32/Debug/xxx.exe .
-  "${FIND}" examples/ -iname '*.exe' -execdir rm -f '{}' ';'
-
-  # Remove Vampyre Demos - take up 60 MB space, and are not necessary for users of CGE.
-  rm -Rf src/vampyre_imaginglib/src/Demos/
+  # Make sure no leftovers from previous compilations remain,
+  # to not pack them in release.
+  "${MAKE}" clean ${MAKE_OPTIONS}
+  cge_clean_all
 
   # Compile tools (except editor) with just FPC
   "${MAKE}" tools ${MAKE_OPTIONS} BUILD_TOOL="castle-engine ${CASTLE_BUILD_TOOL_OPTIONS}"
@@ -416,7 +472,8 @@ pack_platform_dir ()
   esac
 
   # Make sure no leftovers from tools compilation remain
-  "${MAKE}" cleanmore ${MAKE_OPTIONS}
+  "${MAKE}" clean ${MAKE_OPTIONS}
+  cge_clean_all
 
   # After make clean, make sure bin/ exists and is filled with what we need
   mv "${TEMP_PATH_CGE}"bin-to-keep "${TEMP_PATH_CGE}"bin
@@ -519,8 +576,6 @@ if [ -n "${1:-}" ]; then
     pack_platform_zip "${1}" "${2}"
   fi
 else
-  # build for default platforms (expected by Jenkinsfile)
-  pack_platform_zip win64 x86_64
-  pack_platform_zip win32 i386
-  pack_platform_zip linux x86_64
+  echo 'pack_release: Requires 2 arguments, OS and CPU, or 1 argument "windows_installer"'
+  exit 1
 fi
