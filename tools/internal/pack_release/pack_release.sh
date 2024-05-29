@@ -14,11 +14,6 @@ set -euxo pipefail
 #     ./pack_release.sh darwin x86_64
 #     ./pack_release.sh freebsd x86_64
 #
-# - no arguments, to pack for "default" platforms.
-#   "Default" are desktop target platforms possible thanks to Docker image
-#   https://hub.docker.com/r/kambi/castle-engine-cloud-builds-tools/
-#   -- right now this means Linux and Windows.
-#
 # - 1 argument 'windows_installer' to build a Windows installer.
 #   This requires InnoSetup installed.
 #
@@ -34,14 +29,16 @@ set -euxo pipefail
 # - and fpc, lazbuild on $PATH
 #
 # Works on
-# - Linux,
-# - Windows (with Cygwin),
-#   Note: It assumes that Cygwin tools, like cp, are first on $PATH, before equivalent from MinGW in FPC.
+# - Linux
+# - Windows (with Cygwin, MSYS2, Git Bash...)
+#   Note: We assume that tools that understand Unix paths
+#   (like "cp" from Cygwin, MSYS2, Git Bash) are first on $PATH,
+#   before equivalent tools in FPC (from old MinGW version).
 #   A simple solution to make sure it's true is to execute
 #     export PATH="/bin:$PATH"
-#   in Cygwin shell right before this script.
-# - FreeBSD (install GNU make and sed),
-# - macOS (install GNU sed from Homebrew).
+#   in shell right before this script.
+# - FreeBSD (install GNU make and GNU sed)
+# - macOS (install GNU sed from Homebrew)
 # ----------------------------------------------------------------------------
 
 # ----------------------------------------------------------------------------
@@ -107,8 +104,8 @@ detect_platform ()
 
   if which cygpath.exe > /dev/null; then
 
-    # If we're inside Cygwin/MinGW (despite the name, cygpath also is in MinGW,
-    # and this is the case on GH hosted runner), then we want to use Cygwin/MinGW
+    # If we're inside Cygwin/MSYS2 (despite the name, cygpath also is in MSYS2,
+    # and this is the case on GH hosted runner), then we want to use Cygwin/MSYS2
     # tools. They will call bash properly, and our "make" must be able to call
     # e.g. "tools/build-tool/castle-engine_compile.sh".
     #
@@ -125,7 +122,7 @@ detect_platform ()
       fi
     fi
 
-    # On Cygwin/MinGW, make sure to use Cygwin/MinGW's find, not the one from Windows
+    # On Cygwin/MSYS2, make sure to use Cygwin/MSYS2's find, not the one from Windows
     FIND='/bin/find'
   fi
 
@@ -579,8 +576,6 @@ if [ -n "${1:-}" ]; then
     pack_platform_zip "${1}" "${2}"
   fi
 else
-  # build for default platforms (expected by Jenkinsfile)
-  pack_platform_zip win64 x86_64
-  pack_platform_zip win32 i386
-  pack_platform_zip linux x86_64
+  echo 'pack_release: Requires 2 arguments, OS and CPU, or 1 argument "windows_installer"'
+  exit 1
 fi
