@@ -1,5 +1,5 @@
 ﻿{
-  Copyright 2021-2021 Andrzej Kilijański, Michalis Kamburelis.
+  Copyright 2021-2024 Andrzej Kilijański, Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -652,10 +652,10 @@ begin
   ConfigurePlayerAbilities(ScenePlayer);
 
   { Add player after update listener to set animations and sounds }
-  ScenePlayer.AddAfterUpdateListener(@AfterPlayerMovementUpdate);
+  ScenePlayer.AddAfterUpdateListener({$ifdef FPC}@{$endif} AfterPlayerMovementUpdate);
   { Support for touch screen by TCastleInputAxis and TInputShortcut callbacks }
-  PlayerModularMovement.SidewayInputAxis.OnUpdate := @TouchScreenMove;
-  PlayerModularMovement.InputJump.OnIsPressedCheck := @TouchScreenJump;
+  PlayerModularMovement.SidewayInputAxis.OnUpdate := {$ifdef FPC}@{$endif} TouchScreenMove;
+  PlayerModularMovement.InputJump.OnIsPressedCheck := {$ifdef FPC}@{$endif} TouchScreenJump;
 
   { Preparation of bullet scene }
   ConfigureBulletSpriteScene;
