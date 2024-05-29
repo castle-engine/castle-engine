@@ -18,7 +18,7 @@
   {$warn SYMBOL_PLATFORM off}
   {$warn IMPLICIT_STRING_CAST off}
   {$warn COMBINING_SIGNED_UNSIGNED off}
-  {$if CompilerVersion >= 32} {$warn COMBINING_SIGNED_UNSIGNED64 off} {$endif} // only since Delphi 10.2
+  {$if CompilerVersion >= 32} {$warn COMBINING_SIGNED_UNSIGNED64 off} {$ifend} // only since Delphi 10.2
   {$warn DUPLICATE_CTOR_DTOR off}
   { Kraft.pas(14909) Warning: W1036 Variable 'baba' might not have been initialized
     Kraft.pas(22769) Warning: W1036 Variable 'Distance' might not have been initialized
