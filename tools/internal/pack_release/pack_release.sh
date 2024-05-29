@@ -314,7 +314,8 @@ cge_clean_all ()
   rm -Rf src/vampyre_imaginglib/src/Demos/
 
   # Made by "make examples-laz", not cleaned up by "make clean".
-  rm -f examples/audio/test_sound_source_allocator/mainf.lrs
+  rm -f examples/audio/test_sound_source_allocator/mainf.lrs \
+        examples/lazarus/model_3d_with_2d_controls/model_3d_with_2d_controls.obj
 }
 
 # Prepare directory with precompiled CGE.
