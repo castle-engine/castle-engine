@@ -14980,6 +14980,8 @@ function SweepSphereCapsule(const aSphereCenter:TKraftVector3;const aSphereRadiu
 var RadiusSum,Distance,Time:TKraftScalar;
     TimeDirection,CapsuleP0,CapsuleP1,IntersectionPoint,Normal:TKraftVector3;
 begin
+ result:=false; // CGE fix to Kraft, following Delphi 11.3 warning Return value of function 'SweepSphereCapsule' might be undefined
+
  RadiusSum:=aSphereRadius+aCapsuleRadius;
  if SegmentSqrDistance(aCapsuleP0,aCapsuleP1,aSphereCenter)<sqr(RadiusSum) then begin
   aTime:=0.0;
@@ -24157,9 +24159,12 @@ begin
  if fSmoothSphereCastNormals then begin
   Flags:=Flags or 2;
  end;
+
+ {$ifdef FPC} {$push} {$warnings off} {$endif} // CGE: avoid Warning: unreachable code
  if KraftSIMD then begin
   Flags:=Flags or 4;
  end;
+ {$ifdef FPC} {$pop} {$endif}
 
  AStream.WriteBuffer(Flags,SizeOf(TKraftUInt32));
 

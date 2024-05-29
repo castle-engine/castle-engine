@@ -274,7 +274,8 @@ var
   ColliderHeight: Single;
   ColliderRadius: Single;
   SphereCastOrigin: TVector3;
-  { Needed when casted sphere is bigger or equal than ColliderHeight / 2 because kraft
+  { Needed to be non-zero when casted sphere is bigger or equal than
+    ColliderHeight / 2 because kraft
     do not see any bodies that it hit while casting. This can happen when our
     player gently digs into the ground. }
   SphereCastOriginUpAdjustment: Single;
@@ -293,6 +294,7 @@ begin
     We multiply it by 0.999 becouse it should be a little smaller than collider }
   ColliderRadius := ((ColliderBoundingBox.SizeX + ColliderBoundingBox.SizeZ) / 4) * 0.999;
   SphereCastOrigin := PlayerCollider.Middle;
+  SphereCastOriginUpAdjustment := 0;
 
   { Another approach: When casting sphere is equal or bigger than ColliderHeight / 2
     we need move it up or reduce sphere size }
