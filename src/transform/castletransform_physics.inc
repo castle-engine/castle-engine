@@ -1,6 +1,6 @@
 {%MainUnit castletransform.pas}
 {
-  Copyright 2017-2023 Michalis Kamburelis.
+  Copyright 2017-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -1895,10 +1895,7 @@ procedure TCastleCollider.WorldBeforeDetach;
 var
   CastleRBody: TCastleRigidBody;
 begin
-  { TODO: this fixes test in console mode, it looks like the rigid body
-    cache may fail in this case }
-  //CastleRBody := Parent.RigidBody;
-  CastleRBody := Parent.FindBehavior(TCastleRigidBody) as TCastleRigidBody;
+  CastleRBody := Parent.RigidBody;
   if CastleRBody <> nil then
   begin
     // deinitialize collider

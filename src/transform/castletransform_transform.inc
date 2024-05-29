@@ -1,6 +1,6 @@
 {%MainUnit castletransform.pas}
 {
-  Copyright 2017-2023 Michalis Kamburelis.
+  Copyright 2017-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -3108,6 +3108,18 @@ begin
     // Behavior.ParentChanged;
 
     RemoveWorldChangeNotification(Behavior);
+
+    { In case TCastleBehavior is freed, clear the associated FCachedXxx
+      value.
+
+      This is important in case the TCastleBehavior is freed
+      but the RemoveBehavior was not called explicitly (because RemoveBehavior
+      already does UpdateCachedBehaviors).
+      E.g. when you free the whole design, testcase TestPhysicsMeshResolving. }
+    if FCachedCollider = Behavior then
+      FCachedCollider := nil;
+    if FCachedRigidBody = Behavior then
+      FCachedRigidBody := nil;
   end;
 end;
 
