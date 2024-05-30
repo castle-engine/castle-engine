@@ -65,6 +65,14 @@ implementation
 uses
   CastleInternalSteamApi;
 
+{$define STEAM_CALLBACKS_ASM}
+{$if defined(LINUX) and defined(CPUAARCH64)}
+  {$undef STEAM_CALLBACKS_ASM}
+{$endif}
+{$if defined(LINUX) and defined(CPUARM)}
+  {$undef STEAM_CALLBACKS_ASM}
+{$endif}
+
 var
   MyCallbackVTable: TCCallbackBaseVTable;
 
@@ -97,6 +105,7 @@ procedure MySteamCallback_Run_2(pvParam: PCCallbackInt); Pascal;
 var
   Myself: PCCallbackInt;
 begin
+  {$ifdef STEAM_CALLBACKS_ASM}
   asm
     {$IfDef FPC} // FPC uses AT&T syntax
     mov Myself, %ECX;
@@ -104,6 +113,9 @@ begin
     mov Myself, ECX
     {$endif}
   end;
+  {$else}
+  raise Exception.Create('MySteamCallback_Run_2 not implemented');
+  {$endif}
   Myself^._Dispatcher._Callback(Pointer(pvParam));
 end;
 
@@ -111,6 +123,7 @@ function MySteamCallback_GetCallbackSizeBytes: Integer; Pascal;
 var
   Myself: PCCallbackInt;
 begin
+  {$ifdef STEAM_CALLBACKS_ASM}
   asm
     {$IfDef FPC} // FPC uses AT&T syntax
     mov Myself, %ECX;
@@ -118,6 +131,9 @@ begin
     mov Myself, ECX
     {$endif}
   end;
+  {$else}
+  raise Exception.Create('MySteamCallback_GetCallbackSizeBytes not implemented');
+  {$endif}
   Result := Myself^._Dispatcher._PropSize;
 end;
 {$ENDIF}

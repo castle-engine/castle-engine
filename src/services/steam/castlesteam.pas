@@ -19,12 +19,17 @@
   Note: Current calls to Steam API require a specific version of SteamWorks: 1.57
   You can download the corresponding dynamic library from
   https://partner.steamgames.com/downloads/list
-  Currently supported OS:
-   * Windows 32 - functional
-   * Windows 64 - functional
-   * Linux 64 - not tested, should be working
-   * Linux 32 - not tested, has a chance to work out of the box
-   * Mac OS X - failing
+
+  Notes about supported platforms (OS / CPU):
+  * Windows / x86_64 - functional
+  * Windows / i386 - functional
+  * Linux / x86_64 - TODO: not tested, should be working
+  * Linux / i386 - TODO: not tested, has a chance to work out of the box
+  * Linux / Arm, Linux / Aarch64 - cannot work
+    (2 critical "asm" sections in CastleInternalSteamCallback
+    not ported to this CPU, but also Steam doesn't support this platform
+    from what we know)
+  * macOS - failing
 }
 unit CastleSteam;
 
