@@ -191,7 +191,7 @@ begin
 
   Col := TCastleSphereCollider.Create(Self);
   { We don't set the Radius becouse we simply use Autosize }
-  // Collider.Radius :=  BulletSpriteScene.BoundingBox.Size.X / 2;
+  // Col.Radius :=  BulletSpriteScene.BoundingBox.Size.X / 2;
   { Make bullet more bouncy }
   Col.Restitution := 0.6;
   Col.Mass := 1;

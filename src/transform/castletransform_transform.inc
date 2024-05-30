@@ -1970,7 +1970,7 @@
       @seealso BehaviorsEnumerate }
     //procedure InsertBehavior(const Index: Integer; const Behavior: TCastleBehavior);
 
-    { Returns behavior index on internal list, -1 means not found. }
+    { Returns behavior index, -1 means not found. }
     function BehaviorIndex(const Behavior: TCastleBehavior): Integer;
 
     { Remove TCastleBehavior from this TCastleTransform.
