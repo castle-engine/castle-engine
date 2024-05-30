@@ -184,7 +184,7 @@ uses
 
 constructor TBullet.Create(AOwner: TComponent; const BulletSpriteScene: TCastleScene);
 var
-  Collider: TCastleSphereCollider;
+  Col: TCastleSphereCollider;
 begin
   inherited Create(AOwner);
 
@@ -202,14 +202,14 @@ begin
   RBody.MaxLinearVelocity := 0;
   RBody.Layer := 3;
 
-  Collider := TCastleSphereCollider.Create(Self);
+  Col := TCastleSphereCollider.Create(Self);
   { We don't set the Radius becouse we simply use Autosize }
-  // Collider.Radius :=  BulletSpriteScene.BoundingBox.Size.X / 2;
+  // Col.Radius :=  BulletSpriteScene.BoundingBox.Size.X / 2;
   { Make bullet more bouncy }
-  Collider.Restitution := 0.6;
-  Collider.Mass := 1;
+  Col.Restitution := 0.6;
+  Col.Mass := 1;
 
-  AddBehavior(Collider);
+  AddBehavior(Col);
   AddBehavior(RBody);
 end;
 

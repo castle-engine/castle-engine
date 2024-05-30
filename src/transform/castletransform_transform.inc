@@ -1,6 +1,6 @@
 {%MainUnit castletransform.pas}
 {
-  Copyright 2017-2023 Michalis Kamburelis.
+  Copyright 2017-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -130,9 +130,12 @@
 
       FOnAddedBehaviorNotification: TCastleComponentNotification;
       FBeforeRemoveBehaviorNotification: TCastleComponentNotification;
+      FAfterUpdate: TNotifyEventList;
 
       // Always equal to FindBehaviors(TCastleRigidBody)
       FCachedRigidBody: TCastleRigidBody;
+      // Always equal to FindBehaviors(TCastleCollider)
+      FCachedCollider: TCastleCollider;
 
     procedure SerializeChildrenAdd(const C: TComponent);
     procedure SerializeChildrenClear;
@@ -1052,6 +1055,11 @@
       ) }
     procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); virtual;
 
+    { Called on update.
+      Update listeners fire after all behaviors have been processed. }
+    procedure AddAfterUpdateListener(const UpdateListener: TNotifyEvent);
+    procedure RemoveAfterUpdateListener(const UpdateListener: TNotifyEvent);
+
     { Something visible changed inside @italic(this) object.
       This is usually called by implementation of this object,
       to notify others that it changed.
@@ -1726,6 +1734,33 @@
       @link(EMultipleReferencesInWorld) exception at an undefined time. }
     property RigidBody: TCastleRigidBody read FCachedRigidBody;
 
+    { Current TCastleCollider behavior that determines what is
+      the shape of this object when it participates in the physics simulation.
+
+      This property is always exactly equivalent to using
+      @code(FindBehavior(TCastleCollider) as TCastleCollider).
+      It is just a more convenient (and marginally faster) way to access this
+      common behavior.
+
+      See @url(https://castle-engine.io/physics physics manual)
+      for an overview of using physics. You need to add both
+      TCastleRigidBody and TCastleCollider to make physics work.
+      Then this object is collidable with other rigid bodies,
+      it can move and rotate because of gravity
+      or because of collisions with other objects
+      (if @link(TCastleRigidBody.Dynamic) is @true).
+
+      It is not possible to set this property.
+      Instead use @link(AddBehavior)
+      to add an instance of TCastleCollider to the behaviors list.
+      If there was a previous TCastleCollider instance, you can decide what
+      to do with it, e.g. you can remove it using @link(RemoveBehavior).
+
+      Note that an object can only be present once in the @link(World)
+      to be a rigid body. Breaking this rule will cause the
+      @link(EMultipleReferencesInWorld) exception at an undefined time. }
+    property Collider: TCastleCollider read FCachedCollider;
+
     { @deprecated Deprecated name for Translation. }
     property Position: TVector3 read FTranslation write SetTranslation;
       {$ifdef FPC}deprecated 'use Translation';{$endif}
@@ -1924,6 +1959,19 @@
       @seealso FindBehavior
       @seealso BehaviorsEnumerate }
     procedure AddBehavior(const Behavior: TCastleBehavior);
+
+    { Insert a TCastleBehavior to this TCastleTransform at specified index
+      In effect, the virtual methods of TCastleBehavior, like @link(TCastleBehavior.Update),
+      will be automatically called.
+      Also the @link(TCastleBehavior.Parent) gets assigned.
+      If the TCastleBehavior was part of another TCastleTransform, it is removed from it.
+
+      @seealso FindBehavior
+      @seealso BehaviorsEnumerate }
+    //procedure InsertBehavior(const Index: Integer; const Behavior: TCastleBehavior);
+
+    { Returns behavior index, -1 means not found. }
+    function BehaviorIndex(const Behavior: TCastleBehavior): Integer;
 
     { Remove TCastleBehavior from this TCastleTransform.
       In effect, the virtual methods of TCastleBehavior, like @link(TCastleBehavior.Update),
@@ -2147,6 +2195,7 @@ begin
   end;
   GLContextClose;
 
+  FreeAndNil(FAfterUpdate);
   FreeAndNil(FList);
   FreeAndNil(FBehaviors);
   FreeAndNil(FBehaviorsWorldChangeNotificationList);
@@ -2812,11 +2861,32 @@ begin
   UpdateBehaviors;
   UpdateChildren;
 
+  if FAfterUpdate <> nil then
+    FAfterUpdate.ExecuteAll(Self);
+
   { Disable physics and gravity in design mode (in the future we may add optional way to enable them) }
   if not CastleDesignMode then
   begin
     UpdateSimpleGravity(SecondsPassed);
   end;
+end;
+
+procedure TCastleTransform.AddAfterUpdateListener(
+  const UpdateListener: TNotifyEvent);
+begin
+  if FAfterUpdate = nil then
+    FAfterUpdate := TNotifyEventList.Create;
+
+  FAfterUpdate.Add(UpdateListener);
+end;
+
+procedure TCastleTransform.RemoveAfterUpdateListener(
+  const UpdateListener: TNotifyEvent);
+begin
+  if FAfterUpdate = nil then
+    Exit;
+
+  FAfterUpdate.Remove(UpdateListener);
 end;
 
 procedure TCastleTransform.GLContextClose;
@@ -3038,15 +3108,25 @@ begin
     // Behavior.ParentChanged;
 
     RemoveWorldChangeNotification(Behavior);
+
+    { In case TCastleBehavior is freed, clear the associated FCachedXxx
+      value.
+
+      This is important in case the TCastleBehavior is freed
+      but the RemoveBehavior was not called explicitly (because RemoveBehavior
+      already does UpdateCachedBehaviors).
+      E.g. when you free the whole design, testcase TestPhysicsMeshResolving. }
+    if FCachedCollider = Behavior then
+      FCachedCollider := nil;
+    if FCachedRigidBody = Behavior then
+      FCachedRigidBody := nil;
   end;
 end;
 
 procedure TCastleTransform.UpdateCollidersWorldScale;
 var
-  Collider: TCastleCollider;
   T: TCastleTransform;
 begin
-  Collider := FindBehavior(TCastleCollider) as TCastleCollider;
   if Collider <> nil then
     Collider.UpdateWorldScale;
 
@@ -4127,6 +4207,7 @@ end;
 procedure TCastleTransform.UpdateCachedBehaviors;
 begin
   FCachedRigidBody := FindBehavior(TCastleRigidBody) as TCastleRigidBody;
+  FCachedCollider := FindBehavior(TCastleCollider) as TCastleCollider;
 end;
 
 procedure TCastleTransform.AddBehavior(const Behavior: TCastleBehavior);
@@ -4172,6 +4253,68 @@ begin
     UpdateBehaviorsNeedBeforeRender;
     UpdateCachedBehaviors;
   end;
+end;
+
+(*
+This is only for unused MoveBehaviorBeforeAfterAnotherBehavior now.
+TODO: Cannot be implemented like this, as copy-paste of AddBehavior -- to easy
+to introduce mistakes when maintaining (it already happened at merge).
+Should be implemented by adjusting AddBehavior, and then
+AddBehavior should jus call InsertBehavior.
+
+procedure TCastleTransform.InsertBehavior(const Index: Integer;
+  const Behavior: TCastleBehavior);
+var
+  ReasonWhyCannot: String;
+begin
+  // TODO: A lot of code copied form AddBehavior()
+  // TODO: What to do when Behavior.FParent = Self only move on list or? remove and insert?
+  // TODO:  maybe should be Internal
+  if Behavior.FParent <> Self then
+  begin
+    if not Behavior.CanAttachToParent(Self, ReasonWhyCannot) then
+      raise Exception.CreateFmt('Cannot add behavior %s (%s) to %s (%s) because: %s', [
+        Behavior.Name,
+        Behavior.ClassName,
+        Name,
+        ClassName,
+        ReasonWhyCannot
+      ]);
+
+    { As a first action (after the check CanAttachToParent has passed) remove
+      from previous parent. This will also cause necessary virtual method calls,
+      like ParentBeforeDetach, WorldBeforeDetach. }
+    if Behavior.FParent <> nil then
+      Behavior.FParent.RemoveBehavior(Behavior);
+    Assert(Behavior.FParent = nil);
+
+    { Inseert to new parent }
+    FBehaviors.Insert(Index, Behavior);
+    Behavior.FParent := Self;
+    Behavior.ParentAfterAttach;
+    {$warnings off}
+    Behavior.ParentChanged; // call at end, when state is consistent
+    {$warnings on}
+
+    { Call WorldAfterAttach }
+    if Behavior.ListenWorldChange then
+    begin
+      AddWorldChangeNotification(Behavior);
+      if FWorld <> nil then
+        Behavior.WorldAfterAttach;
+    end;
+    NotifyBehaviorAdded(Behavior);
+
+    UpdateBehaviorsNeedBeforeRender;
+    UpdateCachedBehaviors;
+  end;
+end;
+*)
+
+function TCastleTransform.BehaviorIndex(const Behavior: TCastleBehavior
+  ): Integer;
+begin
+  Result := FBehaviors.IndexOf(Behavior);
 end;
 
 procedure TCastleTransform.RemoveBehaviorIndex(const BehaviorIndex: Integer);
