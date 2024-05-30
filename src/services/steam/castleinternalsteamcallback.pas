@@ -62,7 +62,8 @@ type
 
 
 implementation
-uses
+
+uses SysUtils,
   CastleInternalSteamApi;
 
 {$define STEAM_CALLBACKS_ASM}
@@ -113,10 +114,10 @@ begin
     mov Myself, ECX
     {$endif}
   end;
+  Myself^._Dispatcher._Callback(Pointer(pvParam));
   {$else}
   raise Exception.Create('MySteamCallback_Run_2 not implemented');
   {$endif}
-  Myself^._Dispatcher._Callback(Pointer(pvParam));
 end;
 
 function MySteamCallback_GetCallbackSizeBytes: Integer; Pascal;
@@ -131,10 +132,10 @@ begin
     mov Myself, ECX
     {$endif}
   end;
+  Result := Myself^._Dispatcher._PropSize;
   {$else}
   raise Exception.Create('MySteamCallback_GetCallbackSizeBytes not implemented');
   {$endif}
-  Result := Myself^._Dispatcher._PropSize;
 end;
 {$ENDIF}
 
