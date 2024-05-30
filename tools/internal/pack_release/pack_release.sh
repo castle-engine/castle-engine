@@ -278,7 +278,7 @@ cge_clean_all ()
       -iname '*.blend?' \
     ')' -exec rm -f '{}' ';'
 	"${FIND}" . -type d '(' \
-    -iname 'backup' \
+    -iname 'backup' -or \
     -iname '*.app' \
 		')' -exec rm -Rf '{}' ';' -prune
 
