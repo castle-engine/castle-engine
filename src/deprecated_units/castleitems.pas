@@ -84,7 +84,7 @@ type
 
       If you're wondering how to generate such image:
       one option is to open the item 3D model in
-      [https://castle-engine.io/view3dscene.php]
+      [https://castle-engine.io/castle-model-viewer]
       and use "Display -> Screenshot ..." menu option (maybe the one
       that makes transparent background).
       It is usually a good idea to also remember the camera used for such

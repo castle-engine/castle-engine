@@ -500,7 +500,7 @@ var
         operations (they read color values that can be modified by operations
         of the same shader, so it's undefined (depends on how shaders are
         executed in parallel) which one is first) then the artifacts are
-        visible. For example, use view3dscene "Edge Detect" effect +
+        visible. For example, use castle-model-viewer "Edge Detect" effect +
         any other effect. }
       ScreenEffectTextureDest := CreateScreenEffectTexture(false);
       ScreenEffectTextureSrc := CreateScreenEffectTexture(false);

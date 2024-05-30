@@ -22,22 +22,11 @@ unit X3DLoadInternalSTL;
 
 interface
 
-uses SysUtils, Classes,
-  X3DNodes;
-
-{ Load model in the STL format, converting it to an X3D nodes graph.
-  This is used by @link(LoadNode) when the file format is STL. }
-function LoadSTL(const Stream: TStream; const BaseUrl: String): TX3DRootNode;
-
-{ Save model to STL format.
-  This is used by @link(SaveNode) when the file format is STL. }
-procedure SaveSTL(const Node: TX3DRootNode; const Stream: TStream;
-  const Generator: String; const Source: String);
-
 implementation
 
-uses CastleClassUtils, CastleVectors, CastleUtils, CastleDownload, CastleTriangles,
-  CastleLog, CastleStreamUtils,
+uses SysUtils, Classes,
+  X3DNodes, X3DLoad, CastleClassUtils, CastleVectors, CastleUtils, CastleDownload,
+  CastleTriangles, CastleLog, CastleStreamUtils,
   CastleShapes, CastleSceneCore;
 
 { Load STL text (ASCII) variation. }
@@ -225,6 +214,8 @@ begin
   Stream.Position := 0;
 end;
 
+{ Load model in the STL format, converting it to an X3D nodes graph.
+  This is used by @link(LoadNode) when the file format is STL. }
 function LoadSTL(const Stream: TStream; const BaseUrl: String): TX3DRootNode;
 var
   Material: TMaterialNode;
@@ -313,6 +304,8 @@ begin
   Stream.WriteLE(0);
 end;
 
+{ Save model to STL format.
+  This is used by @link(SaveNode) when the file format is STL. }
 procedure SaveSTL(const Node: TX3DRootNode; const Stream: TStream;
   const Generator: String; const Source: String);
 var
@@ -336,10 +329,24 @@ begin
 
   Scene := TCastleSceneCore.Create(nil);
   try
-    {$warnings off} // we know that Scene.Static is deprecated, but useful here
-    Scene.Static := true; // do not set nodes Scene field
-    {$warnings on}
-    Scene.Load(Node, false);
+    if Node.Scene <> nil then
+    begin
+      { Do DeepCopy, to not change nodes (Scene, associated nodes in shapes...).
+
+        Testcase: in castle-model-viewer,
+        - open water_final_using_noise_from_shaders.x3dv
+        - note that water animates (time sensor is associated with Scene),
+        - save to STL,
+        - should be no crash, and water should animate.
+
+        If we would not do DeepCopy, then above would crash, as FreeAndNil(Scene)
+        would clear time sensor scene. }
+      Scene.Load(Node.DeepCopy as TX3DRootNode, true);
+    end else
+    begin
+      // more efficient: use Node directly, we will unassociate from it later
+      Scene.Load(Node, false);
+    end;
 
     Helper := TSaveStlHelper.Create;
     try
@@ -354,4 +361,19 @@ begin
   Stream.WriteLE(TriangleCount); // write TriangleCount correctly now
 end;
 
+var
+  ModelFormat: TModelFormat;
+initialization
+  ModelFormat := TModelFormat.Create;
+  ModelFormat.OnLoad := {$ifdef FPC}@{$endif} LoadSTL;
+  ModelFormat.OnLoadForceMemoryStream := true;
+  ModelFormat.OnSave := {$ifdef FPC}@{$endif} SaveSTL;
+  ModelFormat.MimeTypes.Add('application/x-stl');
+  // other STL mime types
+  ModelFormat.MimeTypes.Add('application/wavefront-stl');
+  ModelFormat.MimeTypes.Add('application/vnd.ms-pki.stl');
+  ModelFormat.MimeTypes.Add('application/x-navistyle');
+  ModelFormat.FileFilterName := 'STereo Lithography (*.stl)';
+  ModelFormat.Extensions.Add('.stl');
+  RegisterModelFormat(ModelFormat);
 end.

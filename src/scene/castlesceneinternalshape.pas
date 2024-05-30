@@ -198,7 +198,7 @@ begin
     TTextureResources.Unprepare(State.MainTexture);
     { Make next PrepareResources prepare all textures.
       Testcase:
-      - view3dscene
+      - castle-model-viewer
       - open demo-models/rendered_texture/rendered_texture_tweak_size.x3dv
       - use s / S
       - without this fix, texture would change to none, and never again

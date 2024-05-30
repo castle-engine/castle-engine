@@ -420,7 +420,7 @@ type
   public
     const
       DefaultRotationAccelerationSpeed = 5.0;
-      DefaultRotationSpeed = 2.0;
+      DefaultRotationSpeed = 1.0;
       DefaultZoomSpeed = 1.0;
 
     constructor Create(AOwner: TComponent); override;
@@ -3429,11 +3429,11 @@ procedure TCastleWalkNavigation.Update(const SecondsPassed: Single;
                since last Update. This means that it's common that at the same moment
                when Falling changed suddenly to @true, SecondsPassed may be large
                and we're better not using this too much... A practical bug demo:
-               open in view3dscene (it does progress bar in OpenGL, so will cause
+               open in castle-model-viewer (it does progress bar in OpenGL, so will cause
                large SecondsPassed) any model with gravity on and camera slightly
                higher then PreferredHeight (we want to trigger Falling
                right when the model is loaded). E.g. run
-               "view3dscene demo_models/navigation/speed_2.wrl".
+               "castle-model-viewer demo_models/navigation/speed_2.wrl".
                If FallSpeedIncrease will be done before FallingEffect,
                then you'll see that at the very first frame FFallSpeed
                was increased so much (because SecondsPassed was large) that it triggered
@@ -3871,7 +3871,7 @@ begin
        { Enable dragging only when no modifiers (except Input_Run,
          which must be allowed to enable running) are pressed.
          This allows application to handle e.g. ctrl + dragging
-         in some custom ways (like view3dscene selecting a triangle). }
+         in some custom ways (like castle-model-viewer selecting a triangle). }
        (Container.Pressed.Modifiers - Input_Run.Modifiers = []) and
        (MouseDragMode = mdWalk) then
     begin
@@ -3937,7 +3937,7 @@ function TCastleWalkNavigation.Press(const Event: TInputPressRelease): boolean;
         in this case.
 
         Yes, this situation can happen: for example open a model with
-        no viewpoint in VRML in view3dscene (so default viewpoint,
+        no viewpoint in VRML in castle-model-viewer (so default viewpoint,
         both gravity and Up = +Y is used). Then change GravityUp
         by menu and press Home (Input_GravityUp). }
 

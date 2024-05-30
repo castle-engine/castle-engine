@@ -1208,7 +1208,7 @@ type
 
     { Protect from falling down because of gravity when position is outside
       of world bounding box.
-      This is a nice thing for general model viewers (like view3dscene),
+      This is a nice thing for general model viewers (like castle-model-viewer),
       to prevent from accidentally falling down when using "Walk" mode.
 
       This is only used by navigations performing gravity internally,
@@ -2119,7 +2119,7 @@ begin
 
     Testcase:
     - (only reproducible on Windows for some reason, but in theory problem is cross-platform)
-    - open in view3dscene anchor_test.x3dv
+    - open in castle-model-viewer anchor_test.x3dv
     - click on something, like "Key Sensor"
     - without this fix, the next EventMotion causes crash as
       TCastleSceneCore.PointingDeviceMove is run with TRayCollisionNode
@@ -2132,7 +2132,7 @@ begin
   ClearMouseRayHit;
 
   { Signal to PointingDevicePressCore to not process further collision list.
-    TODO: why is this necessary? But anchor_test on view3dscene otherwise crashes. }
+    TODO: why is this necessary? But anchor_test on castle-model-viewer otherwise crashes. }
   ItemsNodesFreeOccurred := true;
 end;
 

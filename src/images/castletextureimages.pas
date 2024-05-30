@@ -272,7 +272,7 @@ begin
 
       Testcase:
       - fps_game on GPU supporting ASTC (michalis: worm-linux)
-      - view3dscene on demo-models/texturing_advanced/astc_compressed/textures_astc_compressed.x3dv
+      - castle-model-viewer on demo-models/texturing_advanced/astc_compressed/textures_astc_compressed.x3dv
 
       Loading through TCompositeImage also allows them.
     }

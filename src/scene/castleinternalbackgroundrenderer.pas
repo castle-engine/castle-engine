@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2023 Michalis Kamburelis.
+  Copyright 2002-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -172,8 +172,12 @@ begin
     in previous frame). }
   Scene.RenderOptions.DepthTest := false;
   { We may share some nodes with the main scene.
-    And both scenes must have Static=false (as we will change them,
-    e.g. in TBackground3D.UpdateRotation or TBackground2D.Render (UpdateProperties)).
+
+    And both scenes must be associated with nodes,
+    so we cannot use hacks (like no longer available Static
+    or InternalNodesReadOnly). Because we will change them,
+    e.g. in TBackground3D.UpdateRotation or TBackground2D.Render (UpdateProperties).
+
     So, for now, just hide the warning about
     "You cannot use the same X3D node in multiple instances of TCastleScene".
     Testcase: demo-models/background/ with ImageBackground or TextureBackground }

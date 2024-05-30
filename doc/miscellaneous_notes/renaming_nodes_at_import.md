@@ -2,7 +2,7 @@
 
 ## Information
 
-Various model formats (this document focuses on glTF, X3D, VRML) allow (optionally) to assing string names to various things in models. Like transformations, meshes, materials, animations. The name can be set in 3D authoring tools like Blender.
+Various model formats (this document focuses on glTF, X3D, VRML) allow (optionally) to assign string names to various things in models. Like transformations, meshes, materials, animations. The name can be set in 3D authoring tools like Blender.
 
 These names are very useful in certain use-cases. They allow to find (from code) a particular thing present in the model, by name. E.g.
 
@@ -28,6 +28,8 @@ These names are very useful in certain use-cases. They allow to find (from code)
     And across types (e.g. between materials and textures), names are definitely not unique, and it is commonly used. E.g. Blender exporter can easily just set equal name for glTF node, mesh, material, image... Causing name clashes.
 
     So "non-unique names" are not only valid, but even common situation in glTF. Materials, meshes easily have non-unique names.
+
+    Note that non-unique names are also OK in Blender (e.g. you can have in Blender mesh called `Plane`, and Blender object called `Plane` etc.). glTF and Blender don't use these names as "references" so it's OK for them.
 
 - In case of X3D: Spec says that node names should be unique in their namespace.
 
@@ -67,6 +69,8 @@ These names are very useful in certain use-cases. They allow to find (from code)
 
       From POV of someone doing conversion to X3D, using castle-model-converter or online version on https://castle-engine.io/convert.php : Also having unreliable suffixes like `_2`, `_3` is better than nothing. Valid input (valid glTF with non-unique names) should result in valid output (valid X3D with unique names).
 
+      From POV of being able to save to X3D: while CGE tolerates non-unique X3D names, but not for ROUTEs. For ROUTEs, we must have unique names, having non-unique names referred by ROUTEs would be just impossible to later correctly read.
+
       For Pascal author: More flexible API like `Scene.Node(TAbstractMaterialNode, 'Foo')` is the future. Name clashes can happen anyway, glTF and X3D and CGE allow them in various situations. Better to accept them. Accepting this allows to have name clash in glTF, and from Pascal still access both versions:
 
       ```delphi
@@ -74,29 +78,46 @@ These names are very useful in certain use-cases. They allow to find (from code)
       MeshFoo := Scene.Node(TGroupNode, 'Foo');
       ```
 
-      Decision: Don't do this. Unreliable suffixes `_2`, `_3` are not that helpful.
+      Decision:
+
+      - For a while it was:
+        Don't do this. Unreliable suffixes `_2`, `_3` are not that helpful.
+
+      - On 2024-05-18, after many tests, I changed my mind.
+
+        Suffixes `_2`, `_3` (even when their order is undefined!) make the X3D content valid,
+        and we have to do "valid glTF -> results in valid X3D"
+        to have a good conversion tool (castle-model-converter, online converter).
+
+        And the "search based on types in Pascal" didn't get much traction.
+        In practice, people search only when names are really unique.
+        Nobody (that I know of) relied on having e.g. material and mesh name
+        equal, and doing
+
+        ```
+        MyMaterial := Scene.Node(TPhysicalMaterialNode, 'MyName');
+        MyShape := Scene.Node(TShapeNode, 'MyName');
+        ```
 
 ## Decision
 
-- Do not rename at all. Do not add prefixes like `Mesh_`, `Material_` . Do not add suffixes like `_2`, `_3`.
+- Do minimal rename, adding suffixes `_2`, `_3`.
 
-- `TX3DRootNode.InternalFixNodeNames` no longer renames nodes (it only fixes nodes referenced in ROUTEs now, since having non-unique names referred by ROUTEs would be just impossible to later correctly read).
+    Do not encourage users to rely on these suffixes. They are unreliable (order is undefined). They are only there to make the X3D content valid. Users should make names unique, to query for them uniquely.
 
-**User should guarantee node name is unique (if user wants to later find it), or use node-searching criteria that make it unique, like Pascal API `Scene.Node(TAbstractMaterialNode, 'Foo')` that limit search to specific type.**
+    Do not add prefixes like `Mesh_`, `Material_` .
 
-## Known issue
+- `TX3DRootNode.InternalFixNodeNames` renames nodes to have suffixes.
 
-- This decision implies we have a known issue when converting other formats (like glTF) to X3D:
+    Regardless of whether they are in ROUTE or not.
 
-    Namely, when the input (like glTF) has non-unique names then output X3D will also have non-unique names.
+- This means that we can guarantee that "valid input" (like valid glTF, which can have non-unique names) results in "valid output" (valid X3D, with unique names).
 
-    And remember that non-unique names are OK in glTF. They are also OK in Blender (e.g. you can have in Blender mesh called `Plane`, and Blender object called `Plane` etc.). glTF and Blender don't use these names as "references".
+- **User should guarantee node name is unique if user wants to later find it by e.g. `Scene.Node`.** We also encourage to search from Pascal by adding a type, to make it safer, e.g. `Scene.Node(TAbstractMaterialNode, 'Foo')` that limit search to specific type.
 
-    This means that converting (using CGE) valid glTF to X3D, can result in invalid X3D. CGE accepts this invalid X3D, only makes a warning, but not all X3D browsers have to be as forgiving.
+- Note that we make names unique at loading.
 
-    In light of the above argumentation, for now we just "live with this problem". It's more important to have a good Pascal API to access stuff, that allows to use in CGE the same names as you set in Blender (and if you make non-unique names, you can deal with them by searching for name+type, or of course by correcting the input model to have unique names).
-
-    Adding prefixes/suffixes wasn't a satisfactory solution, since users didn't know about these prefixes/suffixes (and for users, the order in which we added `_2`, `_3`... was also unclear). Even adding them only at saving was problematic -- because then "load glTF" resulted in different in-memory graph than "load glTF, save to X3D, load X3D".
+    Not at saving. Adding suffixes `_2`, `_3` only at saving was problematic -- because then "load glTF" resulted in different in-memory graph than "load glTF, save to X3D, load X3D".
 
 ## We still "invent" names if none provided on input
 

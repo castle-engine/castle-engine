@@ -1660,6 +1660,14 @@ function VectorRGBETo3Single(const v: TVector4Byte): TVector3; deprecated 'RGBE 
 function IsImageMimeType(const MimeType: string;
   const OnlyLoadable, OnlySaveable: boolean): boolean;
 
+{ Add all image MIME types to the list (unless they are already there). }
+procedure AddImageMimeTypes(const MimeTypes: TStrings;
+  const OnlyLoadable, OnlySaveable: boolean);
+
+{ Add all image extensions (with leading dots) (unless they are already there). }
+procedure AddImageExtensions(const Extensions: TStrings;
+  const OnlyLoadable, OnlySaveable: boolean);
+
 { List available image file formats.
 
   This is basically for debug/info purposes, you can show this to user
@@ -4530,7 +4538,7 @@ function LoadEncodedImage(Stream: TStream; const StreamFormat: TImageFormat;
       begin
         ImageDecompressVar(Result);
         if ClassAllowed(TEncodedImageClass(Result.ClassType)) then
-          Exit; // ClassAllowed was fixed by just decompressing GPU image, testcase: castle-view-image
+          Exit; // ClassAllowed was fixed by just decompressing GPU image, testcase: castle-image-viewer
       end;
 
       { For each possible Result class,

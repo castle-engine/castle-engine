@@ -123,8 +123,13 @@ jobs:
         run: echo "CASTLE_ENGINE_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
       - name: Remove previous artifacts
         run: rm -f castle-engine*.zip
-      - name: Pack
-        run: ./tools/internal/pack_release/pack_release.sh
+
+      - name: Pack Win64/x86_64
+        run: ./tools/internal/pack_release/pack_release.sh win64 x86_64
+      - name: Pack Win32/i386
+        run: ./tools/internal/pack_release/pack_release.sh win32 i386
+      - name: Pack Linux/x86_64
+        run: ./tools/internal/pack_release/pack_release.sh linux x86_64
 
       - name: Download bundled FPC
         uses: robinraju/release-downloader@v1.10
