@@ -91,24 +91,16 @@ procedure InitializeSteamLibrary;
 begin
   FinalizeSteamLibrary; // TODO
 
-  {$ifdef MSWINDOWS}
-  {$ifdef CPU64}
+  {$if defined(DARWIN)} // macOS
+  SteamLibrary := TDynLib.Load('libsteam_api.dylib', false);
+  {$elseif defined(UNIX)}
+  SteamLibrary := TDynLib.Load('libsteam_api.so', false);
+  {$elseif defined(MSWINDOWS) and defined(CPUX64)}
   SteamLibrary := TDynLib.Load('steam_api64.dll', false);
-  {$else}
+  {$elseif defined(MSWINDOWS) and defined(CPUX86)}
   SteamLibrary := TDynLib.Load('steam_api.dll', false);
-  {$endif}
-  {$endif}
-
-  {$ifdef UNIX}
-  {$ifdef CPU64}
-  SteamLibrary := TDynLib.Load('libsteam_api.so', false); // Not tested!
   {$else}
-  SteamLibrary := TDynLib.Load('libsteam_api.so', false); // Not tested!
-  {$endif}
-  {$endif}
-
-  {$ifdef darwin} // OSX
-  SteamLibrary := TDynLib.Load('libsteam_api.dylib', false); // Not tested! (failing)
+  // Steam library not known on this platform
   {$endif}
 
   if SteamLibrary <> nil then
