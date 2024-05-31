@@ -35,6 +35,7 @@ type
     procedure TestInternalAssignUsingSerialization;
     procedure TestViewportCameraReferencesReading;
     procedure TestToleratingInvalidReferences;
+    procedure TestPastePreserveReferences;
   end;
 
 implementation
@@ -693,6 +694,59 @@ begin
     Viewport1 := UiOwner.FindRequiredComponent('Viewport1') as TCastleViewport;
     AssertTrue(Viewport1.Camera = nil);
   finally FreeAndNil(UiOwner) end;
+end;
+
+procedure TTestCastleComponentSerialize.TestPastePreserveReferences;
+var
+  Viewport1, Viewport2: TCastleViewport;
+  Camera1, Camera2: TCastleCamera;
+  Background1, Background2: TCastleBackground;
+  DesignOwner: TComponent;
+begin
+  DesignOwner := TComponent.Create(nil);
+  try
+    Viewport1 := TCastleViewport.Create(DesignOwner);
+    Viewport1.Name := 'Viewport1';
+    Viewport1.Camera.Free; // remove camera auto-created by TCastleViewport.Create
+
+    Camera1 := TCastleCamera.Create(DesignOwner);
+    Camera1.Name := 'Camera1';
+    Viewport1.Items.Add(Camera1);
+
+    Background1 := TCastleBackground.Create(DesignOwner);
+    Background1.Name := 'Background1';
+    Viewport1.AddNonVisualComponent(Background1);
+
+    Viewport1.Camera := Camera1;
+    Viewport1.Background := Background1;
+
+    AssertTrue(Viewport1.Items.Count = 1);
+    AssertTrue(Viewport1.Items[0] = Camera1);
+    AssertTrue(Viewport1.NonVisualComponentsCount = 1);
+    AssertTrue(Viewport1.NonVisualComponents[0] = Background1);
+
+    AssertTrue(Viewport1.Camera = Camera1);
+    AssertTrue(Viewport1.Background = Background1);
+
+    // copy Viewport1 into *same* owner,
+    // we should make new references good.
+    Viewport2 := StringToComponent(ComponentToString(Viewport1), DesignOwner)
+      as TCastleViewport;
+
+    AssertTrue(Viewport2.Items.Count = 1);
+    Camera2 := Viewport2.Items[0] as TCastleCamera;
+    AssertTrue(Viewport2.NonVisualComponentsCount = 1);
+    Background2 := Viewport2.NonVisualComponents[0] as TCastleBackground;
+
+    // new names should be OK
+    AssertEquals('Viewport2', Viewport2.Name);
+    AssertEquals('Camera2', Camera2.Name);
+    AssertEquals('Background2', Background2.Name);
+
+    // new references should be inter-connected OK
+    AssertTrue(Viewport2.Camera = Camera2);
+    AssertTrue(Viewport2.Background = Background2);
+  finally FreeAndNil(DesignOwner) end;
 end;
 
 initialization
