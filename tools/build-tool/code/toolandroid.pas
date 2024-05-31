@@ -145,13 +145,24 @@ function AdbExe(const Required: boolean = true): string;
 const
   ExeName = 'adb';
   BundleName = 'SDK';
-  EnvVarName1 = 'ANDROID_SDK_ROOT';
-  EnvVarName2 = 'ANDROID_HOME';
+  EnvVarName1 = 'ANDROID_HOME';
+  EnvVarName2 = 'ANDROID_SDK_ROOT';
 var
   Env: string;
 begin
   Result := '';
-  { try to find in $ANDROID_SDK_ROOT or (deprecated) $ANDROID_HOME }
+  { Try to find in $ANDROID_SDK_ROOT or $ANDROID_HOME.
+    Note: For a while, ANDROID_HOME for deprecated and ANDROID_SDK_ROOT
+    recommended.
+    Then, ANDROID_SDK_ROOT was deprecated and now ANDROID_HOME is recommended.
+    See
+    - official docs:
+      https://developer.android.com/tools/variables?hl=en
+      https://developer.android.com/tools?hl=en
+    - other software also adjusting:
+      https://github.com/apache/cordova-android/issues/1425
+      https://github.com/bazelbuild/bazel/issues/13612
+  }
   Env := GetEnvironmentVariable(EnvVarName1);
   if Env = '' then
     GetEnvironmentVariable(EnvVarName2);
