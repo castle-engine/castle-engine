@@ -1,7 +1,7 @@
 object PreferencesForm: TPreferencesForm
-  Left = 437
+  Left = 666
   Height = 761
-  Top = 137
+  Top = 225
   Width = 1083
   Caption = 'Preferences'
   ClientHeight = 761
@@ -699,6 +699,125 @@ object PreferencesForm: TPreferencesForm
       Caption = 'Auto-detecting...'
       Font.Style = [fsItalic]
       ParentFont = False
+    end
+  end
+  object PanelAndroid: TPanel
+    Left = 184
+    Height = 699
+    Top = 0
+    Width = 899
+    Align = alClient
+    BevelOuter = bvNone
+    ClientHeight = 699
+    ClientWidth = 899
+    TabOrder = 7
+    object LabelAndroidHome: TLabel
+      AnchorSideTop.Side = asrBottom
+      Left = 8
+      Height = 22
+      Top = 16
+      Width = 182
+      BorderSpacing.Top = 27
+      Caption = 'Android SDK Location:'
+      ParentFont = False
+    end
+    object DirectoryEditAndroidHome: TDirectoryEdit
+      AnchorSideLeft.Control = LabelAndroidHome
+      AnchorSideTop.Control = LabelAndroidHome
+      AnchorSideTop.Side = asrBottom
+      Left = 8
+      Height = 39
+      Top = 38
+      Width = 860
+      OnAcceptDirectory = DirectoryEditAndroidHomeAcceptDirectory
+      ShowHidden = False
+      ButtonWidth = 29
+      NumGlyphs = 1
+      Anchors = [akTop, akLeft, akRight]
+      MaxLength = 0
+      ParentFont = False
+      TabOrder = 0
+      OnChange = DirectoryEditCgePathChange
+    end
+    object LabelAndroidHomeHint: TLabel
+      AnchorSideTop.Control = DirectoryEditAndroidHome
+      AnchorSideTop.Side = asrBottom
+      Left = 8
+      Height = 66
+      Top = 77
+      Width = 569
+      Caption = 'Should contain subdirectories like "tools" and "platform-tools".'#10'Leave empty to auto-detect.'#10'Alternative to this, you can set ANDROID_HOME environment variable.'
+      Font.Style = [fsItalic]
+      ParentFont = False
+    end
+    object LabelJavaHome: TLabel
+      AnchorSideLeft.Control = LabelAndroidHome
+      AnchorSideTop.Control = LabelAndroidHomeHint
+      AnchorSideTop.Side = asrBottom
+      Left = 8
+      Height = 22
+      Top = 163
+      Width = 114
+      BorderSpacing.Top = 20
+      Caption = 'Java Location:'
+      ParentFont = False
+    end
+    object DirectoryEditJavaHome: TDirectoryEdit
+      AnchorSideLeft.Control = LabelJavaHome
+      AnchorSideTop.Control = LabelJavaHome
+      AnchorSideTop.Side = asrBottom
+      Left = 8
+      Height = 39
+      Top = 185
+      Width = 859
+      ShowHidden = False
+      ButtonWidth = 29
+      NumGlyphs = 1
+      Anchors = [akTop, akLeft, akRight]
+      MaxLength = 0
+      ParentFont = False
+      TabOrder = 1
+      OnChange = DirectoryEditCgePathChange
+    end
+    object LabelJavaHomeHint: TLabel
+      AnchorSideLeft.Control = LabelJavaHome
+      AnchorSideTop.Control = DirectoryEditJavaHome
+      AnchorSideTop.Side = asrBottom
+      Left = 8
+      Height = 44
+      Top = 224
+      Width = 530
+      Caption = 'Leave empty to auto-detect.'#10'Alternative to this, you can set JAVA_HOME environment variable.'
+      Font.Style = [fsItalic]
+      ParentFont = False
+    end
+    object LabelAndroidDocsWwwCaption: TLabel
+      AnchorSideLeft.Control = LabelJavaHome
+      AnchorSideTop.Control = LabelJavaHomeHint
+      AnchorSideTop.Side = asrBottom
+      Left = 8
+      Height = 22
+      Top = 288
+      Width = 226
+      BorderSpacing.Top = 20
+      Caption = 'See Android documentation:'
+      Font.Style = [fsItalic]
+      ParentFont = False
+    end
+    object LabelAndroidDocsWww: TLabel
+      AnchorSideLeft.Control = LabelJavaHome
+      AnchorSideTop.Control = LabelAndroidDocsWwwCaption
+      AnchorSideTop.Side = asrBottom
+      Cursor = crHandPoint
+      Left = 8
+      Height = 22
+      Top = 310
+      Width = 258
+      Caption = 'https://castle-engine.io/android'
+      Font.Color = clBlue
+      Font.Style = [fsUnderline]
+      ParentFont = False
+      OnClick = LabelAndroidDocsWwwClick
     end
   end
 end
