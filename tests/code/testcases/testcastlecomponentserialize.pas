@@ -36,6 +36,7 @@ type
     procedure TestViewportCameraReferencesReading;
     procedure TestToleratingInvalidReferences;
     procedure TestPastePreserveReferences;
+    procedure TestPastePreserveReferencesOutsideCopied;
   end;
 
 implementation
@@ -43,6 +44,7 @@ implementation
 uses CastleFilesUtils, CastleComponentSerialize, CastleVectors,
   CastleUIControls, CastleControls, CastleUtils, CastleSceneManager,
   CastleScene, CastleClassUtils, CastleColors, CastleStringUtils, CastleTransform,
+  CastleFonts,
   { needed to deserialize castle-data:/designs/test_object_references.castle-user-interface }
   Castle2DSceneManager;
 
@@ -746,6 +748,38 @@ begin
     // new references should be inter-connected OK
     AssertTrue(Viewport2.Camera = Camera2);
     AssertTrue(Viewport2.Background = Background2);
+  finally FreeAndNil(DesignOwner) end;
+end;
+
+procedure TTestCastleComponentSerialize.TestPastePreserveReferencesOutsideCopied;
+
+{ Differently than in TTestCastleComponentSerialize.TestPastePreserveReferences,
+  we test copying of hierarchy that has a reference to an object outside of
+  this hierarchy. In particular, you copy TCastleLabel that has some CustomFont
+  assigned, abd this CustomFont is not copied, but it is reachable in the owner.
+}
+
+var
+  Label1, Label2: TCastleLabel;
+  MyFont: TCastleFont;
+  DesignOwner: TComponent;
+begin
+  DesignOwner := TComponent.Create(nil);
+  try
+    MyFont := TCastleFont.Create(DesignOwner);
+    MyFont.Name := 'MyFont';
+
+    Label1 := TCastleLabel.Create(DesignOwner);
+    Label1.Name := 'Label1';
+    Label1.CustomFont := MyFont;
+    Label1.Caption := 'blablabla';
+
+    Label2 := StringToComponent(ComponentToString(Label1), DesignOwner)
+      as TCastleLabel;
+
+    AssertEquals('Label2', Label2.Name);
+    AssertEquals('blablabla', Label2.Caption);
+    AssertTrue(Label2.CustomFont = MyFont);
   finally FreeAndNil(DesignOwner) end;
 end;
 

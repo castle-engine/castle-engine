@@ -891,6 +891,13 @@ begin
   for R in ResolveObjectProperties do
   begin
     PropertyValueAsObject := FindComponentName(R.PropertyValue);
+    { As a fallback, try to resolve using Owner, in case serialized
+      hierarchy references components that were not serialized,
+      but exist in Owner.
+      See TTestCastleComponentSerialize.TestPastePreserveReferencesOutsideCopied
+      for example. }
+    if PropertyValueAsObject = nil then
+      PropertyValueAsObject := Owner.FindComponent(R.PropertyValue);
     if PropertyValueAsObject = nil then
     begin
       { In case we cannot resolve the component name, it is better to set
