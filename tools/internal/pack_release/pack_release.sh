@@ -100,7 +100,11 @@ check_lazarus_version ()
   local LAZARUS_VERSION=`lazbuild --version | tr -d '\r'`
   echo "Lazarus version: ${LAZARUS_VERSION}"
 
-  if [ "${LAZARUS_VERSION}" '!=' '3.2' -a \
+  # Note that we have to support Lazarus 3.0,
+  # since it's the last supported by https://github.com/gcarreno/setup-lazarus for now,
+  # see https://github.com/gcarreno/setup-lazarus/issues/30 .
+  if [ "${LAZARUS_VERSION}" '!=' '3.0' -a \
+       "${LAZARUS_VERSION}" '!=' '3.2' -a \
        "${LAZARUS_VERSION}" '!=' '3.4' -a \
        "${LAZARUS_VERSION}" '!=' '3.5' ]; then
     echo "pack_release: Incorrect Lazarus version to pack release, see ${LAZARUS_VERSION}"
