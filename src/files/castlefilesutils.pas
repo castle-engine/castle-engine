@@ -525,65 +525,6 @@ begin
   Result := FilenameToUriSafe(ConfigDir + Path);
 end;
 
-{ If Path ends with <platform>/<config>/,
-  return @true and put in StrippedPath the Path with the last 2 path components
-  removed.
-  Otherwise return @false.
-
-  Path must end with path delimiter.
-
-  When returns @true, StrippedPath is also guaranteed to end with path delimiter.
-}
-function StripExePathFromPlatformConfig(const Path: String;
-  out StrippedPath: String): Boolean;
-
-  { Platform name, like 'Win32', as used by Delphi in $(Platform) subdirectory
-    name, corresponding to this process OS / CPU.
-    Always lowercase.
-
-    This is made to also compile and work with FPC, for testing,
-    so it doesn't use TOSVersion. }
-  function DelphiPlatformName: String;
-  begin
-    Result :=
-      {$if defined(MSWINDOWS)} 'win'
-      {$elseif defined(LINUX)} 'linux'
-      {$elseif defined(DARWIN)} 'macos' // TODO: not yet confirmed by testing, just guessing
-      {$elseif defined(ANDROID)} 'android' // TODO: not yet confirmed by testing, just guessing
-      {$elseif defined(IOS)} 'ios' // TODO: not yet confirmed by testing, just guessing
-      {$else} ''
-      {$endif};
-
-    Result := Result +
-      {$if defined(CPU32)} '32'
-      {$elseif defined(CPU64)} '64'
-      {$else} ''
-      {$endif};
-  end;
-
-var
-  Dir: String;
-  ParentName: String;
-begin
-  Result := false;
-
-  Dir := ExclPathDelim(Path);
-  // LowerCase, to detect <config> case-insensitively
-  ParentName := LowerCase(ExtractFileName(Dir));
-  if (ParentName = 'debug') or
-     (ParentName = 'release') then
-  begin
-    Dir := ExtractFileDir(Dir);
-    // LowerCase, to detect <platform> case-insensitively
-    ParentName := LowerCase(ExtractFileName(Dir));
-    if ParentName = DelphiPlatformName then
-    begin
-      StrippedPath := ExtractFilePath(Dir);
-      Result := true;
-    end;
-  end;
-end;
-
 function ApplicationData(const Path: String): String;
 begin
   Result := 'castle-data:/' + Path;
