@@ -100,8 +100,8 @@ check_lazarus_version ()
   local LAZARUS_VERSION=`lazbuild --version | tr -d '\r'`
   echo "Lazarus version: ${LAZARUS_VERSION}"
 
-  if [ "${LAZARUS_VERSION}" '!=' '3.2' -o \
-       "${LAZARUS_VERSION}" '!=' '3.4' -o \
+  if [ "${LAZARUS_VERSION}" '!=' '3.2' -a \
+       "${LAZARUS_VERSION}" '!=' '3.4' -a \
        "${LAZARUS_VERSION}" '!=' '3.5' ]; then
     echo "pack_release: Incorrect Lazarus version to pack release, see ${LAZARUS_VERSION}"
     exit 1
