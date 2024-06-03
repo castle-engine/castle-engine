@@ -370,13 +370,13 @@ function UriCurrentPath: string;
   returning a URL that does not use "castle-data:..." protocol any more.
   For example may resolve "castle-data:/xxx" into
   "file:///home/michalis/my-application/data/xxx".
-  See https://castle-engine.io/manual_data_directory.php
+  See https://castle-engine.io/data
   for documentation how our "data directory" works.
 
   If the URL has a different protocol, it is returned unchanged. }
 function ResolveCastleDataUrl(const Url: String): String;
 
-{ If this URL indicates something inside the @url(https://castle-engine.io/manual_data_directory.php
+{ If this URL indicates something inside the @url(https://castle-engine.io/data
   CGE data directory) then return URL relative to this data directory.
   E.g. for "castle-data:/foo/bar.txt" it returns "foo/bar.txt".
 
@@ -1416,9 +1416,6 @@ function ApplicationDataCore(const Path: string): string;
     {$endif DARWIN}
 
     Result := HomePath + '.local/share/' + ApplicationName + '/';
-    if DirectoryExists(Result) then Exit;
-
-    Result := HomePath + '.' + ApplicationName + '.data/';
     if DirectoryExists(Result) then Exit;
 
     Result := '/usr/local/share/' + ApplicationName + '/';

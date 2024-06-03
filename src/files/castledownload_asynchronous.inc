@@ -469,7 +469,7 @@ begin
   end;
 
   { Handle early castle-data:, protocol to access application data,
-    https://castle-engine.io/manual_data_directory.php . }
+    https://castle-engine.io/data . }
   if P = 'castle-data' then
   begin
     FFinalUrl := ResolveCastleDataURL(Url);

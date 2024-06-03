@@ -43,7 +43,7 @@
 
     @item(
       Use "castle-data:/xxx" URLs to refer to the data directory of your project.
-      See https://castle-engine.io/manual_data_directory.php .
+      See https://castle-engine.io/data .
       For example:
       @longCode(#
         MyImage := LoadImage('castle-data:/gui/my_image.png');
@@ -209,7 +209,7 @@ function ApplicationData(const Path: String): String; deprecated 'use ''castle-d
 var
   { URL used as the base application data directory.
     Overrides the platform-specific autodetection of this directory.
-    See @url(https://castle-engine.io/manual_data_directory.php data directory
+    See @url(https://castle-engine.io/data data directory
     documentation).
 
     If it's not empty, this must always end with a slash.
