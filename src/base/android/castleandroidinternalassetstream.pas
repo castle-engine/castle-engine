@@ -1,5 +1,5 @@
 {
-  Copyright 2013-2018 Michalis Kamburelis.
+  Copyright 2013-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -152,7 +152,7 @@ begin
     // Try to work (but with warning) even in case of some invalid URI
     if IsPrefix('castle-android-assets://', URI, true) then
     begin
-      WritelnWarning('Too many / at the beginning of URL "%s". This usually means you used ApplicationData(''/xxx'') or ''castle-data://xxx'', while you should use ApplicationData(''xxx'') or ''castle-data:/xxx''.',
+      WritelnWarning('Too many / at the beginning of URL "%s". This usually means you used ''castle-data://xxx'', while you should use ''castle-data:/xxx''.',
         [URI]);
       FixedURI := 'castle-android-assets:/' + PrefixRemove('castle-android-assets://', URI, true);
       U := ParseURI(FixedURI);

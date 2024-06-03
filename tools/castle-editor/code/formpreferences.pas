@@ -121,7 +121,7 @@ var
 implementation
 
 uses CastleOpenDocument, CastleUtils, CastleLog, CastleSoundEngine,
-  CastleStringUtils, CastleFilesUtils,
+  CastleStringUtils, CastleFilesUtils, CastleUriUtils,
   ToolCompilerInfo, ToolFpcVersion, ToolCommonUtils, ToolManifest,
   EditorUtils, ProjectUtils;
 
@@ -332,7 +332,7 @@ procedure TPreferencesForm.FormClose(Sender: TObject;
     }
     OldApplicationDataOverride := ApplicationDataOverride;
     UseEditorApplicationData;
-    InternalCastleDesignData := ApplicationData('');
+    InternalCastleDesignData := ResolveCastleDataUrl('castle-data:/');
     ApplicationDataOverride := OldApplicationDataOverride;
   end;
 

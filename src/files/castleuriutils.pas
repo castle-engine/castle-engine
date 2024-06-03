@@ -366,7 +366,14 @@ function UriExists(Url: String): TUriExists;
   including always final slash at the end. }
 function UriCurrentPath: string;
 
-{ If this is castle-data:... URL, resolve it using ApplicationData. }
+{ If the given URL uses "castle-data:..." protocol, resolve it,
+  returning a URL that does not use "castle-data:..." protocol any more.
+  For example may resolve "castle-data:/xxx" into
+  "file:///home/michalis/my-application/data/xxx".
+  See https://castle-engine.io/manual_data_directory.php
+  for documentation how our "data directory" works.
+
+  If the URL has a different protocol, it is returned unchanged. }
 function ResolveCastleDataUrl(const Url: String): String;
 
 { If this URL indicates something inside the @url(https://castle-engine.io/manual_data_directory.php
@@ -1352,6 +1359,117 @@ begin
   end;
 end;
 
+var
+  ApplicationDataIsCache: Boolean = false;
+  ApplicationDataCache: string;
+
+function ApplicationDataCore(const Path: string): string;
+
+  {$ifndef ANDROID}
+  function GetApplicationDataPath: string;
+  {$ifdef MSWINDOWS}
+  var
+    ExePath, StrippedExePath: string;
+  begin
+    {$warnings off}
+    // knowingly using deprecated; ExeName should be undeprecated but internal one day
+    ExePath := ExtractFilePath(ExeName);
+    {$warnings on}
+
+    Result := ExePath + 'data' + PathDelim;
+    if DirectoryExists(Result) then Exit;
+
+    if StripExePathFromPlatformConfig(ExePath, StrippedExePath) then
+    begin
+      Result := StrippedExePath + 'data' + PathDelim;
+      if DirectoryExists(Result) then Exit;
+    end;
+
+    Result := ExePath;
+  {$endif MSWINDOWS}
+  {$ifdef UNIX}
+  var
+    CurPath: string;
+  begin
+    {$ifdef DARWIN}
+    if BundlePath <> '' then
+    begin
+      {$ifdef CASTLE_IOS}
+      Result := BundlePath + 'data/';
+      {$else}
+      Result := BundlePath + 'Contents/Resources/data/';
+      {$endif}
+      if DirectoryExists(Result) then Exit;
+
+      {$ifndef IOS}
+      Result := BundlePath + '../data/';
+      if DirectoryExists(Result) then
+      begin
+        WritelnLog('"Contents/Resources/data/" subdirectory not found inside the macOS application bundle: ' + BundlePath + NL +
+          '  Using instead "data/" directory that is sibling to the application bundle.' + NL +
+          '  This makes sense only for debug.' + NL +
+          '  The released application version should instead include the data inside the bundle.');
+        Exit;
+      end;
+      {$endif}
+    end;
+    {$endif DARWIN}
+
+    Result := HomePath + '.local/share/' + ApplicationName + '/';
+    if DirectoryExists(Result) then Exit;
+
+    Result := HomePath + '.' + ApplicationName + '.data/';
+    if DirectoryExists(Result) then Exit;
+
+    Result := '/usr/local/share/' + ApplicationName + '/';
+    if DirectoryExists(Result) then Exit;
+
+    Result := '/usr/share/' + ApplicationName + '/';
+    if DirectoryExists(Result) then Exit;
+
+    CurPath := InclPathDelim(GetCurrentDir);
+
+    Result := CurPath + 'data/';
+    if DirectoryExists(Result) then Exit;
+
+    Result := CurPath;
+  {$endif UNIX}
+  end;
+  {$endif not ANDROID}
+
+begin
+  if ApplicationDataOverride <> '' then
+    Exit(ApplicationDataOverride + Path);
+
+  if Pos('\', Path) <> 0 then
+    WritelnWarning('ResolveCastleDataUrl', 'Do not use backslashes (or a PathDelim constant) in the ApplicationDataCore parameter. The ApplicationDataCore parameter should be a relative URL, with components separated by slash ("/"), regardless of the OS. Path given was: ' + Path);
+
+  { Cache directory returned by ApplicationDataCore. This has two reasons:
+    1. On Unix GetApplicationDataPath makes three DirectoryExists calls,
+       so it's not too fast, avoid calling it often.
+    2. It would be strange if ApplicationDataCore results
+       suddenly changed in the middle of the program (e.g. because user just
+       made appropriate symlink or such).
+       The only case where we allow it is by ApplicationDataOverride. }
+
+  if not ApplicationDataIsCache then
+  begin
+    ApplicationDataCache :=
+      {$if defined(CASTLE_NINTENDO_SWITCH)}
+        'castle-nx-contents:/'
+      {$elseif defined(ANDROID)}
+        'castle-android-assets:/'
+      {$else}
+        FilenameToUriSafe(GetApplicationDataPath)
+      {$endif}
+    ;
+    WritelnLog('Path', Format('Program data path detected as "%s"', [ApplicationDataCache]));
+    ApplicationDataIsCache := true;
+  end;
+
+  Result := ApplicationDataCache + Path;
+end;
+
 function ResolveCastleDataUrl(const Url: String): String;
 
   { Fix case for the Url relative to data. }
@@ -1362,7 +1480,7 @@ function ResolveCastleDataUrl(const Url: String): String;
     ParentUrl: String;
     I: Integer;
   begin
-    ParentUrl := UriIncludeSlash(ApplicationData(''));
+    ParentUrl := UriIncludeSlash(ApplicationDataCore(''));
     Result := '';
 
     H := TFixCaseHandler.Create;
@@ -1402,7 +1520,7 @@ begin
     if CastleDataIgnoreCase and FileNameCaseSensitive then
     {$warnings on}
       RelativeToData := FixCase(RelativeToData);
-    Result := ApplicationData(RelativeToData);
+    Result := ApplicationDataCore(RelativeToData);
   end else
     Result := Url;
 end;

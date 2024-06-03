@@ -308,7 +308,7 @@ procedure ExternalLibraries(const OS: TOS; const CPU: TCPU;
   var
     LibraryUrl: String;
   begin
-    LibraryUrl := ApplicationData(LibraryName);
+    LibraryUrl := 'castle-data:/' + LibraryName;
     Result := UriToFilenameSafe(LibraryUrl);
     if CheckFilesExistence and (not RegularFileExists(Result)) then
       raise Exception.Create('Cannot find dependency library in "' + Result + '". ' + SErrDataDir);
@@ -1067,7 +1067,7 @@ begin
   AbsoluteResult := TempOutputPath(Path, CreateIfNecessary) + TargetRelativePath;
   if CreateIfNecessary then
   begin
-    TemplateFile := UriToFilenameSafe(ApplicationData(TemplateRelativeUrl));
+    TemplateFile := UriToFilenameSafe('castle-data:/' +TemplateRelativeUrl);
     if Manifest.GameUnits = '' then
       raise Exception.Create(ErrorMessageMissingGameUnits);
     ExtractTemplateFile(TemplateFile, AbsoluteResult, TemplateRelativeUrl, true);
@@ -1369,7 +1369,7 @@ procedure TCastleProject.DoGenerateProgram(const GuidFromName: Boolean);
   var
     TemplateFile, TargetFile: string;
   begin
-    TemplateFile := UriToFilenameSafe(ApplicationData(TemplateRelativePath));
+    TemplateFile := UriToFilenameSafe('castle-data:/' +TemplateRelativePath);
     TargetFile := Path + TargeRelativePath;
     ExtractTemplateFile(TemplateFile, TargetFile, TemplateRelativePath, true);
     Writeln('Generated ', ExtractRelativePath(Path, TargetFile));
@@ -2220,7 +2220,7 @@ var
 begin
   ExtractTemplateOverrideExisting := OverrideExisting;
   ExtractTemplateDestinationPath := InclPathDelim(DestinationPath);
-  ExtractTemplateDir := ExclPathDelim(UriToFilenameSafe(ApplicationData(TemplatePath)));
+  ExtractTemplateDir := ExclPathDelim(UriToFilenameSafe('castle-data:/' +TemplatePath));
   if not DirectoryExists(ExtractTemplateDir) then
     raise Exception.Create('Cannot find template in "' + ExtractTemplateDir + '". ' + SErrDataDir);
 

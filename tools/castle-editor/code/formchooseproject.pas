@@ -265,7 +265,7 @@ begin
   ConfigLoad;
 
   UseEditorApplicationData;
-  InternalCastleDesignData := ApplicationData('');
+  InternalCastleDesignData := ResolveCastleDataUrl('castle-data:/');
 end;
 
 procedure TChooseProjectForm.FormDestroy(Sender: TObject);
