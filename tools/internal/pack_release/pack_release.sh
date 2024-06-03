@@ -81,10 +81,39 @@ trap cleanup_temp EXIT
 check_fpc_version ()
 {
   local FPC_VERSION=`fpc -iV | tr -d '\r'`
+  echo "FPC version: ${FPC_VERSION}"
+
   local REQUIRED_FPC_VERSION='3.2.2'
-  if [ "${FPC_VERSION}" '!=' "${REQUIRED_FPC_VERSION}" ]; then
-    echo "pack_release: Expected FPC version ${REQUIRED_FPC_VERSION}, but got ${FPC_VERSION}"
+
+  if [ "${CASTLE_PACK_DISABLE_FPC_VERSION_CHECK:-}" '!=' 'true' ]; then
+    if [ "${FPC_VERSION}" '!=' "${REQUIRED_FPC_VERSION}" ]; then
+      echo "pack_release: Expected FPC version ${REQUIRED_FPC_VERSION}, but got ${FPC_VERSION}"
+      exit 1
+    fi
+  fi
+}
+
+# Require building release with a supported Lazarus (also LCL, lazbuild) version.
+# See https://castle-engine.io/supported_compilers.php .
+check_lazarus_version ()
+{
+  local LAZARUS_VERSION=`lazbuild --version | tr -d '\r'`
+  echo "Lazarus version: ${LAZARUS_VERSION}"
+
+  if [ "${LAZARUS_VERSION}" '!=' '3.2' -o \
+       "${LAZARUS_VERSION}" '!=' '3.4' -o \
+       "${LAZARUS_VERSION}" '!=' '3.5' ]; then
+    echo "pack_release: Incorrect Lazarus version to pack release, see ${LAZARUS_VERSION}"
     exit 1
+  fi
+
+  # To avoid https://gitlab.com/freepascal.org/lazarus/lazarus/-/merge_requests/291
+  # we need Lazarus 3.5 on macOS.
+  if [ "`uname -s`" '=' 'Darwin' ]; then
+    if [ "${LAZARUS_VERSION}" '!=' '3.5' ]; then
+      echo "pack_release: macOS: Incorrect Lazarus version to pack release, see ${LAZARUS_VERSION}"
+      exit 1
+    fi
   fi
 }
 
@@ -564,9 +593,8 @@ pack_windows_installer ()
 # Main body
 
 detect_platform
-if [ "${CASTLE_PACK_DISABLE_FPC_VERSION_CHECK:-}" '!=' 'true' ]; then
-  check_fpc_version
-fi
+check_fpc_version
+check_lazarus_version
 prepare_build_tool
 calculate_cge_version
 if [ -n "${1:-}" ]; then
