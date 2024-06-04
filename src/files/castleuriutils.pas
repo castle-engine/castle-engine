@@ -25,19 +25,11 @@ uses SysUtils, Classes,
 
 { Extracts #anchor from URI. On input, URI contains full URI.
   On output, Anchor is removed from URI and saved in Anchor.
-  If no #anchor existed, Anchor is set to ''.
-
-  When RecognizeEvenEscapedHash, we also recognize as a delimiter
-  escaped hash, %23. This is a hack and should not be used (prevents
-  from using actual filename with hash, thus making the escaping process
-  useless). Unless there's no other sensible way --- e.g. specify
-  Spine skin name when opening Spine json file... }
-procedure UriExtractAnchor(var Uri: String; out Anchor: string;
-  const RecognizeEvenEscapedHash: boolean = false);
+  If no #anchor existed, Anchor is set to ''. }
+procedure UriExtractAnchor(var Uri: String; out Anchor: string);
 
 { Like UriExtractAnchor, but URI remains unchanged. }
-procedure UriGetAnchor(const Uri: String; out Anchor: string;
-  const RecognizeEvenEscapedHash: boolean = false);
+procedure UriGetAnchor(const Uri: String; out Anchor: string);
 
 { Calculate #anchor from an URI, and split it into a key-value map.
 
@@ -53,8 +45,7 @@ procedure UriGetSettingsFromAnchor(const Uri: String;
   const SettingsFromAnchor: TStringStringMap);
 
 { Return URI with anchor (if was any) stripped. }
-function UriDeleteAnchor(const Uri: String;
-  const RecognizeEvenEscapedHash: boolean = false): string;
+function UriDeleteAnchor(const Uri: String): string;
 
 { Replace all sequences like %xx with their actual 8-bit characters.
 
@@ -591,17 +582,15 @@ end;
 
 { other routines ------------------------------------------------------------- }
 
-procedure UriGetAnchor(const Uri: String; out Anchor: string;
-  const RecognizeEvenEscapedHash: boolean = false);
+procedure UriGetAnchor(const Uri: String; out Anchor: string);
 var
   U: String;
 begin
   U := Uri;
-  UriExtractAnchor(U, Anchor, RecognizeEvenEscapedHash);
+  UriExtractAnchor(U, Anchor);
 end;
 
-procedure UriExtractAnchor(var Uri: String; out Anchor: string;
-  const RecognizeEvenEscapedHash: boolean);
+procedure UriExtractAnchor(var Uri: String; out Anchor: string);
 var
   HashPos: Integer;
 begin
@@ -621,15 +610,6 @@ begin
   begin
     Anchor := SEnding(Uri, HashPos + 1);
     SetLength(Uri, HashPos - 1);
-  end else
-  if RecognizeEvenEscapedHash then
-  begin
-    HashPos := BackPos('%23', Uri);
-    if HashPos <> 0 then
-    begin
-      Anchor := SEnding(Uri, HashPos + 3);
-      SetLength(Uri, HashPos - 1);
-    end;
   end;
 end;
 
@@ -665,7 +645,7 @@ begin
 
   { We need recognize escaped hash because GTK2 open dialog returns %23
     in # position }
-  UriGetAnchor(Uri, Anchor, true);
+  UriGetAnchor(Uri, Anchor);
   SettingsFromAnchor.Clear;
 
   if Anchor = '' then
@@ -680,13 +660,12 @@ begin
   until false;
 end;
 
-function UriDeleteAnchor(const Uri: String;
-  const RecognizeEvenEscapedHash: boolean): string;
+function UriDeleteAnchor(const Uri: String): string;
 var
   Anchor: string;
 begin
   Result := Uri;
-  UriExtractAnchor(Result, Anchor, RecognizeEvenEscapedHash);
+  UriExtractAnchor(Result, Anchor);
 end;
 
 function RawUriDecode(const S: string): string;
@@ -1115,10 +1094,6 @@ begin
     Result := UriDisplay(AbsoluteUri(Uri), true);
 end;
 
-const
-  { RecognizeEvenEscapedHash value for URI extracting functions below. }
-  DefaultRecognizeEvenEscapedHash = true;
-
 function ChangeUriExt(const Url, Extension: string): string;
 
   {$ifndef FPC}
@@ -1156,7 +1131,7 @@ var
   UrlWithoutAnchor, Anchor: String;
 begin
   UrlWithoutAnchor := Url;
-  UriExtractAnchor(UrlWithoutAnchor, Anchor, DefaultRecognizeEvenEscapedHash);
+  UriExtractAnchor(UrlWithoutAnchor, Anchor);
   Result := ChangeFileExt(UrlWithoutAnchor, Extension);
   if Anchor <> '' then
     Result := Result + '#' + Anchor;
@@ -1172,7 +1147,7 @@ var
   UrlWithoutAnchor: String;
   {$ifndef FPC} I: Integer; {$endif}
 begin
-  UrlWithoutAnchor := UriDeleteAnchor(Url, DefaultRecognizeEvenEscapedHash);
+  UrlWithoutAnchor := UriDeleteAnchor(Url);
   {$ifdef FPC}
   Result := ExtractFileName(UrlWithoutAnchor);
   {$else}
@@ -1198,7 +1173,7 @@ begin
     "castle-data:/starling/character_zombie_atlas.starling-xml#fps:8,anim-naming:strict-underscore")
     would cause trouble: it would be considered a drive letter separator,
     and change the result. }
-  UrlWithoutAnchor := UriDeleteAnchor(Url, DefaultRecognizeEvenEscapedHash);
+  UrlWithoutAnchor := UriDeleteAnchor(Url);
   {$ifdef FPC}
   Result := ExtractFilePath(UrlWithoutAnchor);
   {$else}
