@@ -171,6 +171,7 @@ detect_platform ()
 
   if [ "`uname -s`" '=' 'Darwin' ]; then
     SED='gsed'
+    FIND='gfind'
   fi
 
   # for debugging, output versions of tools
