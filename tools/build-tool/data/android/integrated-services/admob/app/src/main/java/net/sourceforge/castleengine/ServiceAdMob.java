@@ -14,7 +14,7 @@
 
   ----------------------------------------------------------------------------
 */
-package net.sourceforge.castleengine;
+package io.castleengine;
 
 import android.util.Log;
 import android.view.View;
@@ -333,11 +333,11 @@ public class ServiceAdMob extends ServiceAbstract
                 rewardedIsLoading = false;
                 rewardedLastErroCode = loadAdError.getCode();
                 if (rewardedOpenWhenLoaded) {
-                    // this is correct only when we waited for ad and now need return 
+                    // this is correct only when we waited for ad and now need return
                     fullScreenAdClosedWithError(loadAdError.getCode());
                 }
                 rewardedOpenWhenLoaded = false;
-                
+
                 logInfo(CATEGORY, loadAdError.toString());
                 rewarded = null;
             }
@@ -358,7 +358,7 @@ public class ServiceAdMob extends ServiceAbstract
                         public void onUserEarnedReward(@NonNull RewardItem rewardItem) {
                             if (debug) {
                                 logInfo(CATEGORY, "onUserEarnedReward");
-                            }   
+                            }
                             rewardedWatched = true;
                         }
                     });
@@ -392,7 +392,7 @@ public class ServiceAdMob extends ServiceAbstract
                 logInfo(CATEGORY, "getCurrentOrientationAnchoredAdaptiveBannerAdSize - succeed");
             }
         }
-        
+
         adView.setAdSize(size);
 
         adPopup = new ActivityPopup(this, gravity, adView);
@@ -421,7 +421,7 @@ public class ServiceAdMob extends ServiceAbstract
     /*
      * Invoke this when you are ready to display an interstitial.
      *
-     * If waitUntilLoaded == true, we will set interstitialOpenWhenLoaded to true 
+     * If waitUntilLoaded == true, we will set interstitialOpenWhenLoaded to true
      * to show ad when it will be ready
      *
      * If waitUntilLoaded == false, we will ignore the request is the ad
@@ -463,7 +463,7 @@ public class ServiceAdMob extends ServiceAbstract
     /*
      * Invoke this when you are ready to display an rewarded ad.
      *
-     * If waitUntilLoaded == true, we will set rewardedOpenWhenLoaded to true 
+     * If waitUntilLoaded == true, we will set rewardedOpenWhenLoaded to true
      * to show ad when it will be ready
      *
      * If waitUntilLoaded == false, we will ignore the request if the ad
@@ -487,7 +487,7 @@ public class ServiceAdMob extends ServiceAbstract
                         public void onUserEarnedReward(@NonNull RewardItem rewardItem) {
                             if (debug) {
                                 logInfo(CATEGORY, "onUserEarnedReward");
-                            }   
+                            }
                             rewardedWatched = true;
                         }
                     });
@@ -534,7 +534,7 @@ public class ServiceAdMob extends ServiceAbstract
         if (parts.length == 2 && parts[0].equals("ads-admob-show-interstitial") && parts[1].equals("no-wait")) {
             interstitialDisplay(false);
             return true;
-        } else 
+        } else
         if (parts.length == 2 && parts[0].equals("ads-admob-show-reward") && parts[1].equals("wait-until-loaded")) {
             rewardedDisplay(true);
             return true;

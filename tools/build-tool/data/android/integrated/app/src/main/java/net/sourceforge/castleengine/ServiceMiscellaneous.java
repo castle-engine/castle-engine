@@ -1,5 +1,5 @@
 /* -*- tab-width: 4 -*- */
-package net.sourceforge.castleengine;
+package io.castleengine;
 
 import android.view.View;
 import android.os.Build;

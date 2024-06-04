@@ -15,7 +15,7 @@
   ----------------------------------------------------------------------------
 */
 
-package net.sourceforge.castleengine;
+package io.castleengine;
 
 /**
  * Integration of FMOD with Castle Game Engine on Android.

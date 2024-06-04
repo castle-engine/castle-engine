@@ -15,7 +15,7 @@
   ----------------------------------------------------------------------------
 */
 
-package net.sourceforge.castleengine;
+package io.castleengine;
 
 import android.content.ContentResolver;
 import android.content.Context;

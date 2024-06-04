@@ -15,7 +15,7 @@
   ----------------------------------------------------------------------------
 */
 
-package net.sourceforge.castleengine;
+package io.castleengine;
 
 import android.util.Log;
 

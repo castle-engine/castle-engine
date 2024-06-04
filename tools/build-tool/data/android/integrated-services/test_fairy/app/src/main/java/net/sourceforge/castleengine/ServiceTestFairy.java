@@ -15,7 +15,7 @@
   ----------------------------------------------------------------------------
 */
 
-package net.sourceforge.castleengine;
+package io.castleengine;
 
 import android.app.Activity;
 import android.os.Bundle;

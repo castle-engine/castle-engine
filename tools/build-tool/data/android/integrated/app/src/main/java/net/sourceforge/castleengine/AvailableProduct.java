@@ -1,5 +1,5 @@
 /* -*- tab-width: 4 -*- */
-package net.sourceforge.castleengine;
+package io.castleengine;
 
 /* Information about the product available for purchase.
    Used by in-app purchases and analytics services.

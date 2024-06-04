@@ -631,7 +631,7 @@ procedure RunAndroid(const Project: TCastleProject);
 var
   ActivityName, LogTag: string;
 begin
-  ActivityName := 'net.sourceforge.castleengine.MainActivity';
+  ActivityName := 'io.castleengine.MainActivity';
   RunCommandSimple(AdbExe, ['shell', 'am', 'start',
     '-a', 'android.intent.action.MAIN',
     '-n', Project.QualifiedName + '/' + ActivityName ]);

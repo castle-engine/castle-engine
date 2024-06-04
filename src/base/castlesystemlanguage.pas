@@ -1,5 +1,5 @@
 {
-  Copyright 2018 Benedikt Magnus.
+  Copyright 2018-2024 Benedikt Magnus, Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -39,7 +39,7 @@ function SystemLocale(const ADefaultLocale: String = SystemDefaultLocale): Strin
 {$ifdef ANDROID}
 { The CGE build tool will make sure to export this function from Android library.
   @exclude }
-procedure Java_net_sourceforge_castleengine_MainActivity_jniLanguage(Env: PJNIEnv; This: jobject; JavaLanguageCode: jstring); cdecl;
+procedure Java_io_castleengine_MainActivity_jniLanguage(Env: PJNIEnv; This: jobject; JavaLanguageCode: jstring); cdecl;
 {$endif}
 
 implementation
@@ -50,7 +50,7 @@ var
 {$endif}
 
 {$ifdef ANDROID}
-procedure Java_net_sourceforge_castleengine_MainActivity_jniLanguage(Env: PJNIEnv; This: jobject; JavaLanguageCode: jstring); cdecl;
+procedure Java_io_castleengine_MainActivity_jniLanguage(Env: PJNIEnv; This: jobject; JavaLanguageCode: jstring); cdecl;
 var
   JavaLanguageCodeStr: PChar;
   Dummy: JBoolean;

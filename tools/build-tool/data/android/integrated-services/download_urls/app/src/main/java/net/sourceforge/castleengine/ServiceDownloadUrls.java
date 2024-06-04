@@ -15,7 +15,7 @@
   ----------------------------------------------------------------------------
 */
 
-package net.sourceforge.castleengine;
+package io.castleengine;
 
 import android.util.Log;
 import android.content.Context;
@@ -136,8 +136,8 @@ public class ServiceDownloadUrls extends ServiceAbstract
                     }
 
                     // not necessary, as Response/Stream methods call it internally, just to separate set up from parse
-                    connection.connect(); 
-                    
+                    connection.connect();
+
                     int responseCode = connection.getResponseCode();
                     messageSendFromThread(new String[]{"download-response-code", downloadIdStr,
                         Integer.toString(responseCode), connection.getResponseMessage()
@@ -148,7 +148,7 @@ public class ServiceDownloadUrls extends ServiceAbstract
                         inStream = connection.getInputStream();
                     else
                         inStream = connection.getErrorStream();
-                    
+
                     Map<String,List<String>> httpResponseHeaders = connection.getHeaderFields();
                     sendResponseHeaders(httpResponseHeaders, downloadIdStr);
 
@@ -186,7 +186,7 @@ public class ServiceDownloadUrls extends ServiceAbstract
         });
         thread.start();
     }
-    
+
     private String PrintStackTrace(Exception ex)
     {
         StringWriter errors = new StringWriter();

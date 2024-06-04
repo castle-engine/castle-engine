@@ -1,5 +1,5 @@
 /* -*- tab-width: 4 -*- */
-package net.sourceforge.castleengine;
+package io.castleengine;
 
 import java.util.regex.Pattern;
 

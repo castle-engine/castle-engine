@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 */
 
-package net.sourceforge.castleengine;
+package io.castleengine;
 
 import android.os.Handler;
 import android.os.Looper;

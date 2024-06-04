@@ -15,7 +15,7 @@
   ----------------------------------------------------------------------------
 */
 
-package net.sourceforge.castleengine;
+package io.castleengine;
 
 import android.Manifest;
 import android.view.View;
@@ -26,7 +26,7 @@ import android.content.Intent;
 import android.net.Uri;
 
 import android.view.Window;
-import android.app.Activity; 
+import android.app.Activity;
 import android.view.WindowManager;
 import android.util.Log;
 import android.view.inputmethod.EditorInfo;
@@ -39,13 +39,13 @@ import android.view.inputmethod.ExtractedText;
 
 import android.view.inputmethod.InputMethodManager;
 
-class CastleInputConnection extends BaseInputConnection 
+class CastleInputConnection extends BaseInputConnection
 {
-    ServiceKeyboard serviceKeyboard; 
+    ServiceKeyboard serviceKeyboard;
     String sentButNotCommited; // chars that was sent but are still in composing mode
     String fullText; // full text in the edit
 
-    CastleInputConnection(ServiceKeyboard service, View targetView, boolean fullEditor) 
+    CastleInputConnection(ServiceKeyboard service, View targetView, boolean fullEditor)
     {
         super(targetView, fullEditor);
         serviceKeyboard = service;
@@ -53,18 +53,18 @@ class CastleInputConnection extends BaseInputConnection
         fullText = "";
     }
 
-    /* Support for soft keyboard key events 
+    /* Support for soft keyboard key events
        https://developer.android.com/reference/android/view/inputmethod/InputConnection#sendKeyEvent(android.view.KeyEvent)
        https://developer.android.com/reference/android/view/KeyEvent */
     @Override
-    public boolean sendKeyEvent(KeyEvent event) 
+    public boolean sendKeyEvent(KeyEvent event)
     {
         // it seems that this function is called only by the backspace key - and only when there is no composing text
         serviceKeyboard.logInfoInDebugMode("CastleInputConnection", "------- call sendKeyEvent()");
         serviceKeyboard.logInfoInDebugMode("CastleInputConnection", "sendKeyEvent - code " + Integer.toString(event.getKeyCode()));
 
-        // use enter to hide keyboard - only works when EditorInfo.inputType = InputType.TYPE_NULL; 
-        if (event.getKeyCode() == KeyEvent.KEYCODE_ENTER) 
+        // use enter to hide keyboard - only works when EditorInfo.inputType = InputType.TYPE_NULL;
+        if (event.getKeyCode() == KeyEvent.KEYCODE_ENTER)
         {
             serviceKeyboard.logInfoInDebugMode("CastleInputConnection", "sendKeyEvent - hide kyeboard");
             serviceKeyboard.hideKeyboard();
@@ -112,7 +112,7 @@ class CastleInputConnection extends BaseInputConnection
 
     /* Called when user end composing some text part */
     @Override
-    public boolean commitText(CharSequence text, int newCursorPosition) 
+    public boolean commitText(CharSequence text, int newCursorPosition)
     {
         serviceKeyboard.logInfoInDebugMode("CastleInputConnection", "------- call commitText()");
         serviceKeyboard.logInfoInDebugMode("CastleInputConnection", "commitText - " + text.toString());
@@ -121,7 +121,7 @@ class CastleInputConnection extends BaseInputConnection
 
         serviceKeyboard.logInfoInDebugMode("CastleInputConnection", "sent text: - " + sentButNotCommited);
         serviceKeyboard.logInfoInDebugMode("CastleInputConnection", "text to commit: - " + text.toString());
-        
+
         String textToCommit = text.toString();
 
         if (sentButNotCommited.equals(textToCommit))
@@ -129,7 +129,7 @@ class CastleInputConnection extends BaseInputConnection
             serviceKeyboard.logInfoInDebugMode("CastleInputConnection", "the same text sent - " + text.toString());
             sentButNotCommited = "";
             return true;
-        }    
+        }
 
         if ((textToCommit.length() > 0) && (sentButNotCommited.equals(textToCommit.substring(0, textToCommit.length()-1))))
         {
@@ -154,7 +154,7 @@ class CastleInputConnection extends BaseInputConnection
 
     /* Called when composing text changed */
     @Override
-    public boolean setComposingText(CharSequence text, int newCursorPosition) 
+    public boolean setComposingText(CharSequence text, int newCursorPosition)
     {
         serviceKeyboard.logInfoInDebugMode("CastleInputConnection", "------- call setComposingText()");
         serviceKeyboard.logInfoInDebugMode("CastleInputConnection", "composingText - " + text.toString());
@@ -187,7 +187,7 @@ class CastleInputConnection extends BaseInputConnection
                 sentButNotCommited = "";
 
         }
-        
+
         int backSpaceCountToSend = 0;
 
         if (fullText.length() >= beforeLength)
@@ -232,7 +232,7 @@ class CastleInputConnection extends BaseInputConnection
         serviceKeyboard.logInfoInDebugMode("CastleInputConnection", "------- call setComposingRegion()");
         serviceKeyboard.logInfoInDebugMode("CastleInputConnection", "setComposingRegion start: " + Integer.toString(start));
         serviceKeyboard.logInfoInDebugMode("CastleInputConnection", "setComposingRegion stop: " + Integer.toString(end));
-        
+
         serviceKeyboard.logInfoInDebugMode("CastleInputConnection", "setComposingRegion fullText: " + fullText);
         serviceKeyboard.logInfoInDebugMode("CastleInputConnection", "setComposingRegion old sentButNotCommited: '" + sentButNotCommited + "'");
         sentButNotCommited = fullText.substring(start, end);
@@ -269,9 +269,9 @@ class CastleInputConnection extends BaseInputConnection
                 {
                     serviceKeyboard.logInfoInDebugMode("CastleInputConnection", "updateText - send backkey skip surrogate.");
                     i--;
-                    continue; 
+                    continue;
                 }
-                
+
                 serviceKeyboard.messageSend(new String[]{"castle-key-down", "67", ""});
                 serviceKeyboard.messageSend(new String[]{"castle-key-up", "67", ""});
                 i--;
@@ -304,9 +304,9 @@ class CastleInputConnection extends BaseInputConnection
             serviceKeyboard.logInfoInDebugMode("CastleInputConnection", "updateText - check3.1 ");
             if (sentButNotCommited.charAt(i) != newText.charAt(i))
                 break;
-            
+
             matchingCharacters = i + 1;
-        } 
+        }
         serviceKeyboard.logInfoInDebugMode("CastleInputConnection", "updateText - matchingCharacters - " + Integer.toString(matchingCharacters));
 
         serviceKeyboard.logInfoInDebugMode("CastleInputConnection", "updateText - check4 ");
@@ -325,9 +325,9 @@ class CastleInputConnection extends BaseInputConnection
                 {
                     serviceKeyboard.logInfoInDebugMode("CastleInputConnection", "updateText - send backspace skip surrogate.");
                     i++;
-                    continue; 
+                    continue;
                 }
-                
+
                 serviceKeyboard.messageSend(new String[]{"castle-key-down", "67", ""});
                 serviceKeyboard.messageSend(new String[]{"castle-key-up", "67", ""});
                 i++;
@@ -378,7 +378,7 @@ class CastleInputConnection extends BaseInputConnection
             i++;
         }
     }
-    
+
     /* Called when user tap Enter key */
     @Override
     public boolean performEditorAction (int editorAction)
@@ -404,7 +404,7 @@ class CastleInputConnection extends BaseInputConnection
         sentButNotCommited = "";
         return true;
     }
-    
+
     @Override
     public ExtractedText getExtractedText (ExtractedTextRequest request, int flags)
     {
@@ -426,7 +426,7 @@ class CastleInputConnection extends BaseInputConnection
     }
 
     /* This method is called by keyboard to show dictionary hints */
-    @Override    
+    @Override
     public CharSequence getTextBeforeCursor (int n, int flags)
     {
         serviceKeyboard.logInfoInDebugMode("CastleInputConnection", "getTextBeforeCursor - number of chars to get: " + Integer.toString(n));
@@ -434,13 +434,13 @@ class CastleInputConnection extends BaseInputConnection
             serviceKeyboard.logInfoInDebugMode("CastleInputConnection", "getTextBeforeCursor - returns: '" + fullText + "'");
             return fullText;
         }
-        
+
         // Checking is n surrogate (second byte of 4byte character)
         int index = fullText.length() - n - 1;
         if (Character.isLowSurrogate(fullText.charAt(index)))
         {
             index++;
-            serviceKeyboard.logInfoInDebugMode("CastleInputConnection", "getTextBeforeCursor - returns one char less because it's low surrogate: '" + fullText.substring(index) + "'");    
+            serviceKeyboard.logInfoInDebugMode("CastleInputConnection", "getTextBeforeCursor - returns one char less because it's low surrogate: '" + fullText.substring(index) + "'");
         }
         serviceKeyboard.logInfoInDebugMode("CastleInputConnection", "getTextBeforeCursor - returns: '" + fullText.substring(index) + "'");
         return fullText.substring(index);
@@ -470,7 +470,7 @@ class CastleKeyboardInputView extends View
     String initText;
     boolean passMode;
 
-    public CastleKeyboardInputView(ServiceKeyboard service, Context context) 
+    public CastleKeyboardInputView(ServiceKeyboard service, Context context)
     {
         super(context);
         serviceKeyboard = service;
@@ -478,11 +478,11 @@ class CastleKeyboardInputView extends View
         setFocusableInTouchMode(true); // without this line we can't show keyboard by ServiceKeyboard.showKeyboard()
         initText = "";
         passMode = false;
-    }    
+    }
 
     /* See: https://stackoverflow.com/questions/5419766/how-to-capture-soft-keyboard-input-in-a-view */
     @Override
-    public InputConnection onCreateInputConnection(EditorInfo outAttrs) 
+    public InputConnection onCreateInputConnection(EditorInfo outAttrs)
     {
         inputConnection = new CastleInputConnection(serviceKeyboard, this, false);
 
@@ -491,7 +491,7 @@ class CastleKeyboardInputView extends View
         // outAttrs.inputType = InputType.TYPE_NULL; // only soft key events - when this is set keyboard returns key events but only ASCI characters are available
         // Because InputType.TYPE_NULL don't support some characters we need change to InputType.TYPE_CLASS_TEXT
         // but then key events are not sent, so we need use commitText() and create them our self
-        outAttrs.inputType = InputType.TYPE_CLASS_TEXT; 
+        outAttrs.inputType = InputType.TYPE_CLASS_TEXT;
 
         // We use here EditorInfo.IME_ACTION_DONE that is used to close keyboard in CastleInputConnection.PerformAction() to close on screen keyboard
         outAttrs.imeOptions = EditorInfo.IME_FLAG_NO_FULLSCREEN | EditorInfo.IME_FLAG_NO_EXTRACT_UI | EditorInfo.IME_ACTION_DONE;
@@ -502,7 +502,7 @@ class CastleKeyboardInputView extends View
             outAttrs.imeOptions = outAttrs.imeOptions | EditorInfo.IME_FLAG_NO_PERSONALIZED_LEARNING; /* | EditorInfo.IME_FLAG_FORCE_ASCII; // perhaps too restrictive */
             outAttrs.inputType = outAttrs.inputType | InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD;
         }
-        
+
         serviceKeyboard.logInfoInDebugMode("CastleInputConnection", "onCreateInputConnection - outAttrs.initialSelEnd/Start: " + Integer.toString(initText.length()));
         outAttrs.initialSelEnd = initText.length();
         outAttrs.initialSelStart = initText.length();
@@ -521,13 +521,13 @@ class CastleKeyboardInputView extends View
 
     public void setPasswordMode(boolean passMode)
     {
-        this.passMode = passMode;    
+        this.passMode = passMode;
     }
 
     /* This callback is used when user uses navigation back button to hide keyboard.
        We need then hide focus */
     @Override
-    public boolean onKeyPreIme (int keyCode, KeyEvent event) 
+    public boolean onKeyPreIme (int keyCode, KeyEvent event)
     {
         serviceKeyboard.logInfoInDebugMode("CastleInputConnection", "onKeyPreIme: " + Integer.toString(keyCode));
 
@@ -613,7 +613,7 @@ public class ServiceKeyboard extends ServiceAbstract
             logInfoInDebugMode("keyboard", "show keyboard '" + parts[1] +"' password mode: '" + parts[2] + "'");
             showKeyboard(parts[1], parts[2].equals("true"));
             return true;
-        } else if (parts.length == 1 && parts[0].equals("castle-hide-keyboard")) 
+        } else if (parts.length == 1 && parts[0].equals("castle-hide-keyboard"))
         {
             hideKeyboard();
             return true;
@@ -622,6 +622,6 @@ public class ServiceKeyboard extends ServiceAbstract
         }
     }
 
-    
+
 }
 

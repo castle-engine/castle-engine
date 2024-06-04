@@ -31,8 +31,8 @@ EXTERNPROTO KambiNavigationInfo [
   field SFNode  octreeDynamicCollisions
   field SFNode  octreeVisibleTriangles
   field SFNode  octreeStaticCollisions
-] [ "urn:castle-engine.sourceforge.net:node:KambiNavigationInfo",
-    "http://castle-engine.sourceforge.net/fallback_prototypes.wrl#KambiNavigationInfo"
+] [ "urn:castle-engine.io:node:KambiNavigationInfo",
+    "http://castle-engine.io/fallback_prototypes.wrl#KambiNavigationInfo"
 ]
 
 KambiNavigationInfo {
@@ -59,8 +59,7 @@ KambiInline {
 
       # PNG version gives best quality video, loaded from a sequence of PNG images.
       # It also has alpha channel (which is kinda essential in this case.)
-      # But this will be handled only by Castle Game Engine,
-      # [http://castle-engine.sourceforge.net/].
+      # But this will be handled only by Castle Game Engine ( http://castle-engine.io/ ).
       #
       # For general compatibility, there's an AVI version.
 

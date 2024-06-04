@@ -1,5 +1,5 @@
 {
-  Copyright 2015-2018 Michalis Kamburelis.
+  Copyright 2015-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -117,7 +117,7 @@ type
 
 {$ifdef ANDROID}
 { Export this function from your Android library. }
-function Java_net_sourceforge_castleengine_MainActivity_jniMessage(
+function Java_io_castleengine_MainActivity_jniMessage(
   Env: PJNIEnv; This: jobject;
   MessageToPascal: jstring;
   MessageToPascalStream: jbyteArray): jstring; cdecl;
@@ -355,7 +355,7 @@ end;
 { Android specific ----------------------------------------------------------- }
 
 {$ifdef ANDROID}
-function Java_net_sourceforge_castleengine_MainActivity_jniMessage(
+function Java_io_castleengine_MainActivity_jniMessage(
   Env: PJNIEnv; This: jobject;
   MessageToPascal: jstring;
   MessageToPascalStream: jbyteArray): jstring; cdecl;

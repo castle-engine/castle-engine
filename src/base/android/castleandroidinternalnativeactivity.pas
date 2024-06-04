@@ -267,6 +267,10 @@ procedure ANativeActivity_hideSoftInput(activity: PANativeActivity; flags: cuint
 
 implementation
 
+{ CGE fix:
+  Without this linklib, running the project fails, with messages in logcat:
+  java.lang.RuntimeException: Unable to start activity ComponentInfo{....cgeandroidtest/android.app.NativeActivity}: java.lang.IllegalArgumentException: Unable to load native library: /data/data/....castleengine.cgeandroidtest/lib/libcge_android_lib.so
+}
 {$linklib android}
 
 end.

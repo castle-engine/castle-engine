@@ -15,7 +15,7 @@
   ----------------------------------------------------------------------------
 */
 
-package net.sourceforge.castleengine;
+package io.castleengine;
 
 /**
  * Integration of Tremolo (OggVorbis) with Castle Game Engine on Android.

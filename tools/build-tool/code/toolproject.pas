@@ -1129,7 +1129,7 @@ begin
     AndroidSourceContents := FileToString(AbsoluteResult);
     if Pos('ANativeActivity_onCreate', AndroidSourceContents) = 0 then
       InvalidAndroidSource(AbsoluteResult);
-    if Pos('Java_net_sourceforge_castleengine_MainActivity_jniMessage', AndroidSourceContents) = 0 then
+    if Pos('Java_io_castleengine_MainActivity_jniMessage', AndroidSourceContents) = 0 then
       InvalidAndroidSource(AbsoluteResult);
   end;
 
@@ -2295,7 +2295,7 @@ begin
     if SameText(DestinationRelativeFileNameSlashes, 'app/src/main/res/values/strings.xml') then
       MergeStringsXml(SourceFileName, DestinationFileName, @ReplaceMacros)
     else
-    if SameText(DestinationRelativeFileNameSlashes, 'app/src/main/java/net/sourceforge/castleengine/MainActivity.java') then
+    if SameText(DestinationRelativeFileNameSlashes, 'app/src/main/java/io/castleengine/MainActivity.java') then
       MergeAndroidMainActivity(SourceFileName, DestinationFileName, @ReplaceMacros)
     else
     if SameText(DestinationRelativeFileNameSlashes, 'app/src/main/jni/Android.mk') or
