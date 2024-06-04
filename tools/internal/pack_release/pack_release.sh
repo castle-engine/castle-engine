@@ -97,7 +97,12 @@ check_fpc_version ()
 # See https://castle-engine.io/supported_compilers.php .
 check_lazarus_version ()
 {
-  local LAZARUS_VERSION=`lazbuild --version | tr -d '\r'`
+  # Note that we have to remove lines "using config file", since "lazbuild --version"
+  # can answer something like
+  #   using config file /Users/jenkins/installed/fpclazarus/fpc322-lazfixes30/lazarus/lazarus.cfg
+  #   3.5
+
+  local LAZARUS_VERSION=`lazbuild --version | grep --invert-match 'using config file' | tr -d '\r'`
   echo "Lazarus version: ${LAZARUS_VERSION}"
 
   # Note that we have to support Lazarus 3.0,
