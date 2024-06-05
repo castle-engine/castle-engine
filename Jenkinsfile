@@ -40,6 +40,7 @@ pipeline {
                According to https://github.com/jenkinsci/pipeline-model-definition-plugin/pull/110
                this should be supported. */
             CASTLE_ENGINE_PATH = "${WORKSPACE}"
+            LD_LIBRARY_PATH = "${LD_LIBRARY_PATH}:${WORKSPACE}/steamworks_sdk/redistributable_bin/linux64"
           }
           stages {
             stage('(Docker) Cleanup') {

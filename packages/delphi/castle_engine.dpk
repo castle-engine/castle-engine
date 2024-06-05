@@ -322,7 +322,11 @@ contains
   castleinternalegl in '..\..\src\base_rendering\castleinternalegl.pas',
   castlegl in '..\..\src\base_rendering\dglopengl\castlegl.pas',
   castleinternalurlutils in '..\..\src\files\castleinternalurlutils.pas',
-  castleinternaltools in '..\..\src\files\castleinternaltools.pas';
+  castleinternaltools in '..\..\src\files\castleinternaltools.pas',
+  castleinternalsteamapi in '..\..\src\services\steam\castleinternalsteamapi.pas',
+  castleinternalsteamcallback in '..\..\src\services\steam\castleinternalsteamcallback.pas',
+  castleinternalsteamconstantsandtypes in '..\..\src\services\steam\castleinternalsteamconstantsandtypes.pas',
+  castlesteam in '..\..\src\services\steam\castlesteam.pas';
 
 end.
 
