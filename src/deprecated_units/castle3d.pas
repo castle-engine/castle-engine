@@ -63,9 +63,6 @@ type
   TVisibleChange              = CastleTransform.TVisibleChange;
   TVisibleChanges             = CastleTransform.TVisibleChanges;
   TRenderStatistics           = CastleTransform.TRenderStatistics;
-  TSphereCollider             = CastleTransform.TSphereCollider;
-  TBoxCollider                = CastleTransform.TBoxCollider;
-  TPlaneCollider              = CastleTransform.TPlaneCollider;
 
   T3DMoving       = CastleTransformExtra.TCastleMoving deprecated 'use TCastleMoving';
   T3DLinearMoving = CastleTransformExtra.TCastleLinearMoving deprecated 'use TCastleLinearMoving';
