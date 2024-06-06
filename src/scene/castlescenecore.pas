@@ -2539,10 +2539,6 @@ type
     property Cache: Boolean read FCache write FCache default false;
   end;
 
-  {$define read_interface}
-  {$I castlescenecore_physics_deprecated.inc}
-  {$undef read_interface}
-
 var
   { Log changes to fields.
     This debugs what and why happens through TCastleSceneCore.InternalChangedField method
@@ -2584,7 +2580,6 @@ uses Math, DateUtils,
   X3DLoad, CastleUriUtils, CastleQuaternions;
 
 {$define read_implementation}
-{$I castlescenecore_physics_deprecated.inc}
 {$I castlescenecore_collisions.inc}
 {$undef read_implementation}
 
