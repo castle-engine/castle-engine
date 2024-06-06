@@ -15,6 +15,12 @@ on:
     branches:
       - '**'
 
+env:
+  # To which GitHub release tag should we upload artifacts.
+  # Can be "snapshot" or "vX.Y.Z" (latter when we make stable release).
+  release_tag: snapshot
+  #release_tag: vX.Y.Z
+
 defaults:
   run:
     shell: bash
@@ -71,4 +77,23 @@ jobs:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: gh release list --repo ${{ github.repository }}
 
-# TODO: Finish uploading release
+    # Releases files in the GitHub release.
+    - name: Release Artifacts
+      if: ${{ github.ref == 'refs/heads/master' }}
+      run: gh release --repo ${{ github.repository }} upload ${{ env.release_tag }} --clobber castle-engine*.zip castle-engine-setup-*.exe
+      env:
+        GH_TOKEN: ${{ github.token }}
+
+  update-release-tag:
+    name: Update Release Tag (make release tag point to the build commit on master branch)
+    runs-on: ubuntu-latest
+    needs: [release]
+    steps:
+    - uses: actions/checkout@v4
+    - name: Update Release Tag
+      if: ${{ github.ref == 'refs/heads/master' }}
+      run: |
+        # --force allows to overwrite previous tag
+        git tag --force ${{ env.release_tag }}
+        # --force allows to push with overwritten tag
+        git push --force origin ${{ env.release_tag }}
