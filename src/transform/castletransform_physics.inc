@@ -2278,7 +2278,7 @@ begin
   if (ScaledSize[0] <= 0) or
      (ScaledSize[1] <= 0) or
      (ScaledSize[2] <= 0) then
-    raise EPhysicsError.Create('You must assign positive Size to TBoxCollider');
+    raise EPhysicsError.Create('You must assign positive Size to TCastleBoxCollider');
   Result := TKraftShapeBox.Create(APhysics, ARigidBody, VectorToKraft(ScaledSize / 2));
 end;
 
@@ -3217,8 +3217,8 @@ begin
   while Assigned(ContactPairEdge) do
   begin
     { Without this check, OnCollisonEnter reports fake collisons when
-      one of colliding body has non regural shape (for example when
-      TBoxCollider is rotated).
+      one of colliding body has non regular shape (for example when
+      TCastleBoxCollider is rotated).
       kcfColliding = From kraft source comment: "Set when contact
       collides during a step" }
     if kcfColliding in ContactPairEdge^.ContactPair^.Flags then
