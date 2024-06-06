@@ -1,5 +1,5 @@
 {
-  Copyright 2018-2023 Michalis Kamburelis.
+  Copyright 2018-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -164,7 +164,7 @@ begin
       Options.TemplateName := TemplateName;
       Options.ProjectName := NewProjectForm.EditProjectName.Text;
       Options.ProjectCaption := NewProjectForm.EditProjectCaption.Text;
-      Options.MainView := NewProjectForm.EditStateName.Text;
+      Options.MainView := NewProjectForm.EditViewName.Text;
 
       ProjectCreateFromTemplate(CastleEnginePath, Options, ProjectDirUrl);
       GenerateProgramWithBuildTool(ProjectDirUrl);
