@@ -207,7 +207,7 @@
         SoundEngine.Play(MySound1);
       #)
 
-      See https://castle-engine.io/manual_data_directory.php
+      See https://castle-engine.io/data
       for information about the castle-data:/ protocol. In short, on desktop,
       this just indicates the "data" subdirectory of your project.
     }

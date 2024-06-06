@@ -63,8 +63,8 @@ begin
   if not SameValue(FloatSpinEditFPS.Value, 8.0) then
     URLAnchor := URLAnchor + ',fps:' + Format('%f', [FloatSpinEditFPS.Value]);
 
-  EditURL.Text := URIDeleteAnchor(EditURL.Text, true) + URLAnchor;
-  EditURL.Hint := URIDeleteAnchor(EditURL.Text, true) + URLAnchor;
+  EditURL.Text := URIDeleteAnchor(EditURL.Text) + URLAnchor;
+  EditURL.Hint := URIDeleteAnchor(EditURL.Text) + URLAnchor;
 end;
 
 procedure TImportStarlingForm.ButtonDefaultClick(Sender: TObject);

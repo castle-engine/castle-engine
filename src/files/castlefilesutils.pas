@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2022 Michalis Kamburelis.
+  Copyright 2002-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -20,7 +20,6 @@
   @unorderedList(
     @itemSpacing Compact
     @item(ApplicationConfig -- user config files)
-    @item(ApplicationData -- installed program's data files)
   )
 
   Hints about what to use (and what not to use) in a cross-platform applications
@@ -38,10 +37,16 @@
     )
 
     @item(
-      Use the @link(ApplicationData) for all URLs from which you load
-      your application read-only data.
-      For example, @longCode(#
-        MyImage := LoadImage(ApplicationData('gui/my_image.png'))
+      Use URLs for everything.
+      See https://castle-engine.io/manual_network.php .
+    )
+
+    @item(
+      Use "castle-data:/xxx" URLs to refer to the data directory of your project.
+      See https://castle-engine.io/data .
+      For example:
+      @longCode(#
+        MyImage := LoadImage('castle-data:/gui/my_image.png');
       #)
     )
 
@@ -122,8 +127,8 @@ function ExeName: string; deprecated 'as this function is not portable (may rais
 
   This is suitable to show to user. It should also indicate how to run the program,
   usually it should be the basename of the executable (although we do not depend
-  on it technically). It is used to derive config and data paths for our program,
-  see ApplicationConfig and ApplicationData. }
+  on it technically). It may be used to derive config file/dir for our program,
+  see ApplicationConfig. }
 function ProgramName: string; deprecated;
 
 { Returns @true if file exists and is a "regular" file.
@@ -168,12 +173,6 @@ function UserConfigPath: string; deprecated;
   use ApplicationConfig(ApplicationName + Extension) instead. }
 function UserConfigFile(const Extension: string): string; deprecated;
 
-{ Path to access installed data files.
-  Returns absolute path, containing trailing PathDelim.
-
-  @deprecated Deprecated, use ApplicationData instead. }
-function ProgramDataPath: string; deprecated;
-
 var
   { URL used as a prefix of all @link(ApplicationConfig) returned URLs.
     This overrides any autodetection of a suitable "user config" directory
@@ -204,152 +203,19 @@ var
   (simplifying: looks inside ~/.config/<application-name>/). }
 function ApplicationConfig(const Path: string): string;
 
-{ URL from which we should read data files.
-  This returns an URL, which is comfortable since our engine operates
-  on URLs everywhere. On normal desktop systems this will return
-  a @code(file://...) URL, usually pointing to the "data" subdirectory
-  of your project.
-  See the list below for a detailed description how it behaves on all
-  platforms.
-
-  See the manual about the purpose of "data" directory:
-  https://castle-engine.io/manual_data_directory.php .
-  Using @code('castle-data:/xxx') is adviced over explicitly calling @code(ApplicationData('xxx')).
-
-  Given Path parameter must specify a path under the data directory,
-  with possible subdirectories, with possible FileName at the end.
-  The Path is a relative URL, so you should
-  always use slashes "/" to separate subdirectories (regardless of OS),
-  and you can escape characters by %xx.
-  You can use Path = '' to get the URL to the whole data directory.
-
-  Remember that files inside the data directory may be read-only on some systems.
-  If you want to write files, use the @link(ApplicationConfig) instead.
-
-  The algorithm to find base data directory (with respect to which
-  Path is resolved) is OS-specific.
-  It looks at ApplicationName, and searches a couple of common locations,
-  using the first location that exists. We look inside
-  standard user-specific directories, then inside standard system-wide directories,
-  then we look for the "data" subdirectory
-  in the current exe directory (under Windows)
-  or in the current working directory (under other OSes).
-
-  @bold(The algorithm specification below is non-trivial.
-  Don't read it :@)
-  Instead folow the short version:
-  just place the files inside the @code(data) subdirectory
-  of your project, and everything will work out-of-the-box.)
-
-  The exact details how we currently look for data directory
-  (specified here so that you know how to install your program):
-
-  @definitionList(
-    @itemLabel(Windows)
-    @item(@orderedList(
-      @item(@code(data) subdirectory inside our exe directory, if exists.)
-
-      @item(@code(../../data) relative to our exe location, if it exists
-        and exe seems to be inside a subdirectory @code(<platform>/<config>/).
-
-        Where <platform> matches current Delphi <platform> name
-        (like 'Win32' or 'Win64' -- this is combined OS and CPU)
-        and <config> matches 'Debug' or 'Release'.
-        This deliberately is adjusted to Delphi / C++ Builder default
-        project settings, so that we detect "data" automatically when exe
-        location follows Delphi conventions.
-        This deliberately checks whether subdirectory names match
-        @code(<platform>/<config>/), to avoid picking up a random "data"
-        subdirectory for unrelated project.)
-
-      @item(Otherwise: just our exe directory.
-        But this alternative is deprecated, please don't depend on it.
-        Instead, place the data inside the "data" subdirectory.
-      )
-    ))
-
-    @itemLabel(macOS and iOS)
-    @item(@orderedList(
-      @item(On desktop macOS:
-        @code(Contents/Resources/data) subdirectory inside our bundle directory,
-        if we are inside a bundle and such subdirectory exists.)
-      @item(On iOS:
-        @code(data) subdirectory inside our bundle directory,
-        if we are inside a bundle and such subdirectory exists.)
-      @item(Otherwise, algorithm follows the algorithm on desktop Unix.)
-    ))
-
-    @itemLabel(Android)
-    @item(@orderedList(
-      @item(We always return @code(castle-android-assets:/) directory,
-        which is a special location on Android where application
-        should store it's assets.)
-    ))
-
-    @itemLabel(Nintendo Switch)
-    @item(@orderedList(
-      @item(We always return @code(castle-nx-contents:/) directory,
-        which is a special location where application
-        should store it's data files.)
-    ))
-
-    @itemLabel(Desktop Unix (Linux, macOS, FreeBSD...))
-    @item(@orderedList(
-      @item(@code(~/.local/share/) + ApplicationName.
-        This is user-specific data directory, following the default dictated by
-        http://standards.freedesktop.org/basedir-spec/basedir-spec-latest.html .
-        If such directory exists, it is returned.
-
-        This is checked first, to allow user to always override system-wide
-        installation of a program with his own installation.
-        E.g. consider the situation when an old version of a program
-        is installed system-wide in /usr/local/share/my_program/,
-        but some user (with no access to root account) wants to
-        install a newer version of it for himself. Now he can do it,
-        because ~/.local/share/my_program/ is checked 1st, before system-wide paths.)
-
-      @item(@code(HomePath +'.' +ApplicationName+'.data/').
-        If such directory exists, it is returned.
-
-        This is another location of user-specific data directory, deprecated now.
-        You should instead use more standard
-        @code(~/.local/share/) + ApplicationName.)
-
-      @item(@code('/usr/local/share/' +ApplicationName+ '/').
-        If such directory exists, it is returned.
-
-        This is suitable for system-wide installations without package manager.)
-
-      @item(@code('/usr/share/' +ApplicationName+ '/').
-        If such directory exists, it is returned.
-
-        This is suitable for system-wide installations with package manager.)
-
-      @item(@code(data) subdirectory of the current directory, if exists.
-        This is easiest and comfortable for development, just keep
-        the "data" subdirectory alongside the executable binary.
-
-        Note: This is searched *after* system-wide specific dirs above,
-        to avoid accidentally picking unrelated "data" in current directory
-        instead of system-wide data.)
-
-      @item(As a last resort, we just return the current directory.
-        So you can just place data files directly inside the current directory.
-
-        This alternative is deprecated, please don't depend on it.
-        Instead, place the data inside the "data" subdirectory.
-      )
-    )
-  )
-) }
-function ApplicationData(const Path: string): string;
+{ @deprecated }
+function ApplicationData(const Path: String): String; deprecated 'use ''castle-data:/xxx'' instead of ApplicationData(''xxx'')';
 
 var
-  { URL used as a prefix of all @link(ApplicationData) returned URLs.
-    This overrides any autodetection of a suitable "data" directory
-    done by default by @link(ApplicationData).
+  { URL used as the base application data directory.
+    Overrides the platform-specific autodetection of this directory.
+    See @url(https://castle-engine.io/data data directory
+    documentation).
 
-    This must always end with a slash, if it's not empty. }
+    If it's not empty, this must always end with a slash.
+
+    This cannot start with 'castle-data:/...', since it would mean that
+    ResolveCastleDataUrl can never finish its job. }
   ApplicationDataOverride: string;
 
 {$ifdef UNIX}
@@ -659,179 +525,9 @@ begin
   Result := FilenameToUriSafe(ConfigDir + Path);
 end;
 
-function ProgramDataPath: string;
+function ApplicationData(const Path: String): String;
 begin
-  Result := ApplicationData('');
-end;
-
-{ If Path ends with <platform>/<config>/,
-  return @true and put in StrippedPath the Path with the last 2 path components
-  removed.
-  Otherwise return @false.
-
-  Path must end with path delimiter.
-
-  When returns @true, StrippedPath is also guaranteed to end with path delimiter.
-}
-function StripExePathFromPlatformConfig(const Path: String;
-  out StrippedPath: String): Boolean;
-
-  { Platform name, like 'Win32', as used by Delphi in $(Platform) subdirectory
-    name, corresponding to this process OS / CPU.
-    Always lowercase.
-
-    This is made to also compile and work with FPC, for testing,
-    so it doesn't use TOSVersion. }
-  function DelphiPlatformName: String;
-  begin
-    Result :=
-      {$if defined(MSWINDOWS)} 'win'
-      {$elseif defined(LINUX)} 'linux'
-      {$elseif defined(DARWIN)} 'macos' // TODO: not yet confirmed by testing, just guessing
-      {$elseif defined(ANDROID)} 'android' // TODO: not yet confirmed by testing, just guessing
-      {$elseif defined(IOS)} 'ios' // TODO: not yet confirmed by testing, just guessing
-      {$else} ''
-      {$endif};
-
-    Result := Result +
-      {$if defined(CPU32)} '32'
-      {$elseif defined(CPU64)} '64'
-      {$else} ''
-      {$endif};
-  end;
-
-var
-  Dir: String;
-  ParentName: String;
-begin
-  Result := false;
-
-  Dir := ExclPathDelim(Path);
-  // LowerCase, to detect <config> case-insensitively
-  ParentName := LowerCase(ExtractFileName(Dir));
-  if (ParentName = 'debug') or
-     (ParentName = 'release') then
-  begin
-    Dir := ExtractFileDir(Dir);
-    // LowerCase, to detect <platform> case-insensitively
-    ParentName := LowerCase(ExtractFileName(Dir));
-    if ParentName = DelphiPlatformName then
-    begin
-      StrippedPath := ExtractFilePath(Dir);
-      Result := true;
-    end;
-  end;
-end;
-
-var
-  ApplicationDataIsCache: Boolean = false;
-  ApplicationDataCache: string;
-
-function ApplicationData(const Path: string): string;
-
-  {$ifndef ANDROID}
-  function GetApplicationDataPath: string;
-  {$ifdef MSWINDOWS}
-  var
-    ExePath, StrippedExePath: string;
-  begin
-    {$warnings off}
-    // knowingly using deprecated; ExeName should be undeprecated but internal one day
-    ExePath := ExtractFilePath(ExeName);
-    {$warnings on}
-
-    Result := ExePath + 'data' + PathDelim;
-    if DirectoryExists(Result) then Exit;
-
-    if StripExePathFromPlatformConfig(ExePath, StrippedExePath) then
-    begin
-      Result := StrippedExePath + 'data' + PathDelim;
-      if DirectoryExists(Result) then Exit;
-    end;
-
-    Result := ExePath;
-  {$endif MSWINDOWS}
-  {$ifdef UNIX}
-  var
-    CurPath: string;
-  begin
-    {$ifdef DARWIN}
-    if BundlePath <> '' then
-    begin
-      {$ifdef CASTLE_IOS}
-      Result := BundlePath + 'data/';
-      {$else}
-      Result := BundlePath + 'Contents/Resources/data/';
-      {$endif}
-      if DirectoryExists(Result) then Exit;
-
-      {$ifndef IOS}
-      Result := BundlePath + '../data/';
-      if DirectoryExists(Result) then
-      begin
-        WritelnLog('"Contents/Resources/data/" subdirectory not found inside the macOS application bundle: ' + BundlePath + NL +
-          '  Using instead "data/" directory that is sibling to the application bundle.' + NL +
-          '  This makes sense only for debug.' + NL +
-          '  The released application version should instead include the data inside the bundle.');
-        Exit;
-      end;
-      {$endif}
-    end;
-    {$endif DARWIN}
-
-    Result := HomePath + '.local/share/' + ApplicationName + '/';
-    if DirectoryExists(Result) then Exit;
-
-    Result := HomePath + '.' + ApplicationName + '.data/';
-    if DirectoryExists(Result) then Exit;
-
-    Result := '/usr/local/share/' + ApplicationName + '/';
-    if DirectoryExists(Result) then Exit;
-
-    Result := '/usr/share/' + ApplicationName + '/';
-    if DirectoryExists(Result) then Exit;
-
-    CurPath := InclPathDelim(GetCurrentDir);
-
-    Result := CurPath + 'data/';
-    if DirectoryExists(Result) then Exit;
-
-    Result := CurPath;
-  {$endif UNIX}
-  end;
-  {$endif not ANDROID}
-
-begin
-  if ApplicationDataOverride <> '' then
-    Exit(ApplicationDataOverride + Path);
-
-  if Pos('\', Path) <> 0 then
-    WritelnWarning('ApplicationData', 'Do not use backslashes (or a PathDelim constant) in the ApplicationData parameter. The ApplicationData parameter should be a relative URL, with components separated by slash ("/"), regardless of the OS. Path given was: ' + Path);
-
-  { Cache directory of ApplicationData. This has two reasons:
-    1. On Unix GetApplicationDataPath makes three DirectoryExists calls,
-       so it's not too fast, avoid calling it often.
-    2. It would be strange if ApplicationData results
-       suddenly changed in the middle of the program (e.g. because user just
-       made appropriate symlink or such).
-       The only case where we allow it is by ApplicationDataOverride. }
-
-  if not ApplicationDataIsCache then
-  begin
-    ApplicationDataCache :=
-      {$if defined(CASTLE_NINTENDO_SWITCH)}
-        'castle-nx-contents:/'
-      {$elseif defined(ANDROID)}
-        'castle-android-assets:/'
-      {$else}
-        FilenameToUriSafe(GetApplicationDataPath)
-      {$endif}
-    ;
-    WritelnLog('Path', Format('Program data path detected as "%s"', [ApplicationDataCache]));
-    ApplicationDataIsCache := true;
-  end;
-
-  Result := ApplicationDataCache + Path;
+  Result := 'castle-data:/' + Path;
 end;
 
 { other file utilities ---------------------------------------------------- }

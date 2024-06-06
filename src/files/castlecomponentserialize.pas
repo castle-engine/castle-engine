@@ -1,5 +1,5 @@
 {
-  Copyright 2018-2023 Michalis Kamburelis.
+  Copyright 2018-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -432,6 +432,31 @@ type
       ResolveObjectProperties: TResolveObjectPropertyList;
       SerializationProcessPool: TSerializationProcessReaderList;
       SerializationProcessPoolUsed: Integer;
+      ComponentNames: TStringList;
+
+    { Find component name in ComponentNames.
+
+      Note: Do not use Owner.FindComponent(FindName) to resolve names
+      during deserialization.
+      Reason: Owner may already have some existing
+      components before new ones have been deserialized into it
+      (e.g. if duplicating viewport+camera into an existing
+      design) with conflicting names. We do not want to link to these
+      existing components.
+
+      See TTestCastleComponentSerialize.TestPastePreserveReferences
+      for testcase why this is important. Thanks to ComponentNames
+      e.g. copy-paste (in editor) of viewport + camera into
+      the same design works correctly.
+
+      Note that having ComponentNames with fallback on Owner.FindComponent
+      would also be bad: since the name reference may be found in design
+      before the object is defined, e.g. viewport with
+      propery "Camera": "Camera1" may be specified before Camera1 is defined.
+      We should then wait for Camera1 (not reuse unrelated Camera1 from existing
+      Owner).
+      So instead, FindComponentName looks *only* in ComponentNames. }
+    function FindComponentName(const FindName: String): TComponent;
 
     { Events called by DeStreamer }
     procedure BeforeReadObject(Sender: TObject; AObject: TObject; Json: TJsonObject);
@@ -677,6 +702,21 @@ begin
     ResolveComponentReferences(TComponent(AObject));
 end;
 
+function TCastleJsonReader.FindComponentName(const FindName: String): TComponent;
+var
+  NameIndex: Integer;
+begin
+  NameIndex := ComponentNames.IndexOf(FindName);
+  if NameIndex <> -1 then
+  begin
+    Result := ComponentNames.Objects[NameIndex] as TComponent;
+    Assert(Result <> nil); // all object on this list should be non-nil
+    Exit;
+  end;
+
+  Result := nil;
+end;
+
 procedure TCastleJsonReader.RestoreProperty(Sender: TObject; AObject: TObject;
   Info: PPropInfo; AValue: TJsonData; var Handled: Boolean);
 
@@ -710,6 +750,8 @@ procedure TCastleJsonReader.RestoreProperty(Sender: TObject; AObject: TObject;
     repeat
       Inc(Number);
       Result := NameWithoutNumber + IntToStr(Number);
+    { Using Owner.FindComponent, not FindComponentName:
+      because we rename based on what exists in Owner, not ComponentNames. }
     until Owner.FindComponent(Result) = nil;
   end;
 
@@ -744,12 +786,17 @@ begin
         then the mechanism below kicks-in.)
     }
     NewName := AValue.AsString;
+    ComponentNames.AddObject(NewName, AObject);
+
+    { Using Owner.FindComponent, not FindComponentName:
+      because we rename based on what exists in Owner, not ComponentNames. }
     if Owner.FindComponent(NewName) <> nil then
     begin
       if AObject is TCastleComponent then
         TCastleComponent(AObject).InternalOriginalName := NewName;
       NewName := RenameUniquely(Owner, NewName);
     end;
+
     SetStrProp(AObject, Info, NewName);
     Handled := true;
   end;
@@ -787,7 +834,7 @@ begin
       of some existing instance. Like
         "Camera": "Camera1"
     }
-    AValue := Owner.FindComponent(DataName);
+    AValue := FindComponentName(DataName);
 
     if AValue = nil then
     begin
@@ -843,7 +890,14 @@ var
 begin
   for R in ResolveObjectProperties do
   begin
-    PropertyValueAsObject := Owner.FindComponent(R.PropertyValue);
+    PropertyValueAsObject := FindComponentName(R.PropertyValue);
+    { As a fallback, try to resolve using Owner, in case serialized
+      hierarchy references components that were not serialized,
+      but exist in Owner.
+      See TTestCastleComponentSerialize.TestPastePreserveReferencesOutsideCopied
+      for example. }
+    if PropertyValueAsObject = nil then
+      PropertyValueAsObject := Owner.FindComponent(R.PropertyValue);
     if PropertyValueAsObject = nil then
     begin
       { In case we cannot resolve the component name, it is better to set
@@ -917,6 +971,10 @@ begin
   ResolveObjectProperties := TResolveObjectPropertyList.Create(true);
 
   SerializationProcessPool := TSerializationProcessReaderList.Create(true);
+
+  ComponentNames := TStringList.Create;
+  ComponentNames.CaseSensitive := false;
+  ComponentNames.Duplicates := dupError;
 end;
 
 destructor TCastleJsonReader.Destroy;
@@ -924,6 +982,7 @@ begin
   FreeAndNil(ResolveObjectProperties);
   FreeAndNil(FDeStreamer);
   FreeAndNil(SerializationProcessPool);
+  FreeAndNil(ComponentNames);
   Dec(InternalLoadingComponent);
   inherited;
 end;

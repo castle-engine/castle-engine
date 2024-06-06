@@ -177,7 +177,7 @@ var
       TemplatePath := 'ios/services/' + ServiceName + '/';
       Project.ExtractTemplate(TemplatePath, XcodeProject);
 
-      if URIFileExists(ApplicationData(TemplatePath + 'Podfile')) then
+      if URIFileExists('castle-data:/' + TemplatePath + 'Podfile') then
       begin
         if Verbose then
           Writeln(Format('Service "%s" requires using CocoaPods. Make sure you have CocoaPods ( https://cocoapods.org/ ) installed.',
@@ -342,9 +342,9 @@ var
     Default2048x1536 := nil;
     LaunchImages := TCastleImageList.Create(true);
     try
-      Default640x1136 := LoadImage(ApplicationData('default_launch_images/DefaultLaunchImage640x1136.png'));
-      Default1536x2048 := LoadImage(ApplicationData('default_launch_images/DefaultLaunchImage1536x2048.png'));
-      Default2048x1536 := LoadImage(ApplicationData('default_launch_images/DefaultLaunchImage2048x1536.png'));
+      Default640x1136 := LoadImage('castle-data:/default_launch_images/DefaultLaunchImage640x1136.png');
+      Default1536x2048 := LoadImage('castle-data:/default_launch_images/DefaultLaunchImage1536x2048.png');
+      Default2048x1536 := LoadImage('castle-data:/default_launch_images/DefaultLaunchImage2048x1536.png');
 
       for I := 0 to Project.LaunchImages.Count - 1 do
         LaunchImages.Add(LoadImage(Project.LaunchImages[I]));

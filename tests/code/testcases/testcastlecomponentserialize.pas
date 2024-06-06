@@ -35,6 +35,8 @@ type
     procedure TestInternalAssignUsingSerialization;
     procedure TestViewportCameraReferencesReading;
     procedure TestToleratingInvalidReferences;
+    procedure TestPastePreserveReferences;
+    procedure TestPastePreserveReferencesOutsideCopied;
   end;
 
 implementation
@@ -42,6 +44,7 @@ implementation
 uses CastleFilesUtils, CastleComponentSerialize, CastleVectors,
   CastleUIControls, CastleControls, CastleUtils, CastleSceneManager,
   CastleScene, CastleClassUtils, CastleColors, CastleStringUtils, CastleTransform,
+  CastleFonts,
   { needed to deserialize castle-data:/designs/test_object_references.castle-user-interface }
   Castle2DSceneManager;
 
@@ -693,6 +696,91 @@ begin
     Viewport1 := UiOwner.FindRequiredComponent('Viewport1') as TCastleViewport;
     AssertTrue(Viewport1.Camera = nil);
   finally FreeAndNil(UiOwner) end;
+end;
+
+procedure TTestCastleComponentSerialize.TestPastePreserveReferences;
+var
+  Viewport1, Viewport2: TCastleViewport;
+  Camera1, Camera2: TCastleCamera;
+  Background1, Background2: TCastleBackground;
+  DesignOwner: TComponent;
+begin
+  DesignOwner := TComponent.Create(nil);
+  try
+    Viewport1 := TCastleViewport.Create(DesignOwner);
+    Viewport1.Name := 'Viewport1';
+    Viewport1.Camera.Free; // remove camera auto-created by TCastleViewport.Create
+
+    Camera1 := TCastleCamera.Create(DesignOwner);
+    Camera1.Name := 'Camera1';
+    Viewport1.Items.Add(Camera1);
+
+    Background1 := TCastleBackground.Create(DesignOwner);
+    Background1.Name := 'Background1';
+    Viewport1.AddNonVisualComponent(Background1);
+
+    Viewport1.Camera := Camera1;
+    Viewport1.Background := Background1;
+
+    AssertTrue(Viewport1.Items.Count = 1);
+    AssertTrue(Viewport1.Items[0] = Camera1);
+    AssertTrue(Viewport1.NonVisualComponentsCount = 1);
+    AssertTrue(Viewport1.NonVisualComponents[0] = Background1);
+
+    AssertTrue(Viewport1.Camera = Camera1);
+    AssertTrue(Viewport1.Background = Background1);
+
+    // copy Viewport1 into *same* owner,
+    // we should make new references good.
+    Viewport2 := StringToComponent(ComponentToString(Viewport1), DesignOwner)
+      as TCastleViewport;
+
+    AssertTrue(Viewport2.Items.Count = 1);
+    Camera2 := Viewport2.Items[0] as TCastleCamera;
+    AssertTrue(Viewport2.NonVisualComponentsCount = 1);
+    Background2 := Viewport2.NonVisualComponents[0] as TCastleBackground;
+
+    // new names should be OK
+    AssertEquals('Viewport2', Viewport2.Name);
+    AssertEquals('Camera2', Camera2.Name);
+    AssertEquals('Background2', Background2.Name);
+
+    // new references should be inter-connected OK
+    AssertTrue(Viewport2.Camera = Camera2);
+    AssertTrue(Viewport2.Background = Background2);
+  finally FreeAndNil(DesignOwner) end;
+end;
+
+procedure TTestCastleComponentSerialize.TestPastePreserveReferencesOutsideCopied;
+
+{ Differently than in TTestCastleComponentSerialize.TestPastePreserveReferences,
+  we test copying of hierarchy that has a reference to an object outside of
+  this hierarchy. In particular, you copy TCastleLabel that has some CustomFont
+  assigned, abd this CustomFont is not copied, but it is reachable in the owner.
+}
+
+var
+  Label1, Label2: TCastleLabel;
+  MyFont: TCastleFont;
+  DesignOwner: TComponent;
+begin
+  DesignOwner := TComponent.Create(nil);
+  try
+    MyFont := TCastleFont.Create(DesignOwner);
+    MyFont.Name := 'MyFont';
+
+    Label1 := TCastleLabel.Create(DesignOwner);
+    Label1.Name := 'Label1';
+    Label1.CustomFont := MyFont;
+    Label1.Caption := 'blablabla';
+
+    Label2 := StringToComponent(ComponentToString(Label1), DesignOwner)
+      as TCastleLabel;
+
+    AssertEquals('Label2', Label2.Name);
+    AssertEquals('blablabla', Label2.Caption);
+    AssertTrue(Label2.CustomFont = MyFont);
+  finally FreeAndNil(DesignOwner) end;
 end;
 
 initialization

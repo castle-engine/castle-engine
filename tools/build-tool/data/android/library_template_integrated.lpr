@@ -32,7 +32,7 @@ uses
   to prevent GAME_UNITS from changing the meaning of code below. }
 
 exports
-  CastleMessaging.Java_net_sourceforge_castleengine_MainActivity_jniMessage,
-  CastleSystemLanguage.Java_net_sourceforge_castleengine_MainActivity_jniLanguage,
+  CastleMessaging.Java_io_castleengine_MainActivity_jniMessage,
+  CastleSystemLanguage.Java_io_castleengine_MainActivity_jniLanguage,
   CastleAndroidNativeAppGlue.ANativeActivity_onCreate;
 end.

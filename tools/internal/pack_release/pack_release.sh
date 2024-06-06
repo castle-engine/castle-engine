@@ -81,10 +81,48 @@ trap cleanup_temp EXIT
 check_fpc_version ()
 {
   local FPC_VERSION=`fpc -iV | tr -d '\r'`
+  echo "FPC version: ${FPC_VERSION}"
+
   local REQUIRED_FPC_VERSION='3.2.2'
-  if [ "${FPC_VERSION}" '!=' "${REQUIRED_FPC_VERSION}" ]; then
-    echo "pack_release: Expected FPC version ${REQUIRED_FPC_VERSION}, but got ${FPC_VERSION}"
+
+  if [ "${CASTLE_PACK_DISABLE_FPC_VERSION_CHECK:-}" '!=' 'true' ]; then
+    if [ "${FPC_VERSION}" '!=' "${REQUIRED_FPC_VERSION}" ]; then
+      echo "pack_release: Expected FPC version ${REQUIRED_FPC_VERSION}, but got ${FPC_VERSION}"
+      exit 1
+    fi
+  fi
+}
+
+# Require building release with a supported Lazarus (also LCL, lazbuild) version.
+# See https://castle-engine.io/supported_compilers.php .
+check_lazarus_version ()
+{
+  # Note that we have to remove lines "using config file", since "lazbuild --version"
+  # can answer something like
+  #   using config file /Users/jenkins/installed/fpclazarus/fpc322-lazfixes30/lazarus/lazarus.cfg
+  #   3.5
+
+  local LAZARUS_VERSION=`lazbuild --version | grep --invert-match 'using config file' | tr -d '\r'`
+  echo "Lazarus version: ${LAZARUS_VERSION}"
+
+  # Note that we have to support Lazarus 3.0,
+  # since it's the last supported by https://github.com/gcarreno/setup-lazarus for now,
+  # see https://github.com/gcarreno/setup-lazarus/issues/30 .
+  if [ "${LAZARUS_VERSION}" '!=' '3.0' -a \
+       "${LAZARUS_VERSION}" '!=' '3.2' -a \
+       "${LAZARUS_VERSION}" '!=' '3.4' -a \
+       "${LAZARUS_VERSION}" '!=' '3.5' ]; then
+    echo "pack_release: Incorrect Lazarus version to pack release, see ${LAZARUS_VERSION}"
     exit 1
+  fi
+
+  # To avoid https://gitlab.com/freepascal.org/lazarus/lazarus/-/merge_requests/291
+  # we need Lazarus 3.5 on macOS.
+  if [ "`uname -s`" '=' 'Darwin' ]; then
+    if [ "${LAZARUS_VERSION}" '!=' '3.5' ]; then
+      echo "pack_release: macOS: Incorrect Lazarus version to pack release, see ${LAZARUS_VERSION}"
+      exit 1
+    fi
   fi
 }
 
@@ -133,6 +171,7 @@ detect_platform ()
 
   if [ "`uname -s`" '=' 'Darwin' ]; then
     SED='gsed'
+    FIND='gfind'
   fi
 
   # for debugging, output versions of tools
@@ -564,9 +603,8 @@ pack_windows_installer ()
 # Main body
 
 detect_platform
-if [ "${CASTLE_PACK_DISABLE_FPC_VERSION_CHECK:-}" '!=' 'true' ]; then
-  check_fpc_version
-fi
+check_fpc_version
+check_lazarus_version
 prepare_build_tool
 calculate_cge_version
 if [ -n "${1:-}" ]; then

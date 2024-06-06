@@ -111,7 +111,7 @@ procedure ApplicationInitialize;
 
     { This is an *extremely* simplified (only correct in simplest cases) implementation
       of determining application data directory
-      ( https://castle-engine.io/manual_data_directory.php ).
+      ( https://castle-engine.io/data ).
       We do it only for TestReadingRtl test here (that uses FPC functions
       *without* any CGE API, just for test).
       In real CGE applications, you should always use 'castle-data:/'

@@ -285,7 +285,7 @@
 
         @longCode(# Image := TDrawableImage.Create('castle-data:/textures/my_image.png', ...); #)
 
-        See https://castle-engine.io/manual_data_directory.php
+        See https://castle-engine.io/data
       )
 
       @param(ASmoothScaling The initial value of @link(SmoothScaling),

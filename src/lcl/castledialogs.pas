@@ -39,7 +39,7 @@ type
     property Url: String read GetUrl write SetUrl stored false;
     { Warn (but still allow) if user selects URL outside of data directory. }
     property AdviceDataDirectory: Boolean read FAdviceDataDirectory write FAdviceDataDirectory default false;
-    { If the URL is detected inside data directory ( https://castle-engine.io/manual_data_directory.php ),
+    { If the URL is detected inside data directory ( https://castle-engine.io/data ),
       make sure it starts with protocol castle-data:/ . }
     property UseCastleDataProtocol: Boolean read FUseCastleDataProtocol write FUseCastleDataProtocol default true;
   end;
@@ -60,7 +60,7 @@ type
     property Url: String read GetUrl write SetUrl stored false;
     { Warn (but still allow) if user selects URL outside of data directory. }
     property AdviceDataDirectory: Boolean read FAdviceDataDirectory write FAdviceDataDirectory default false;
-    { If the URL is detected inside data directory ( https://castle-engine.io/manual_data_directory.php ),
+    { If the URL is detected inside data directory ( https://castle-engine.io/data ),
       make sure it starts with protocol castle-data:/ . }
     property UseCastleDataProtocol: Boolean read FUseCastleDataProtocol write FUseCastleDataProtocol default true;
   end;
@@ -86,7 +86,7 @@ type
     property Url: String read GetUrl write SetUrl stored false;
     { Warn (but still allow) if user selects URL outside of data directory. }
     property AdviceDataDirectory: Boolean read FAdviceDataDirectory write FAdviceDataDirectory default false;
-    { If the URL is detected inside data directory ( https://castle-engine.io/manual_data_directory.php ),
+    { If the URL is detected inside data directory ( https://castle-engine.io/data ),
       make sure it starts with protocol castle-data:/ . }
     property UseCastleDataProtocol: Boolean read FUseCastleDataProtocol write FUseCastleDataProtocol default true;
     property Filter stored StoreFilterAndFilterIndex;
@@ -121,7 +121,7 @@ type
     property Url: String read GetUrl write SetUrl stored false;
     { Warn (but still allow) if user selects URL outside of data directory. }
     property AdviceDataDirectory: Boolean read FAdviceDataDirectory write FAdviceDataDirectory default false;
-    { If the URL is detected inside data directory ( https://castle-engine.io/manual_data_directory.php ),
+    { If the URL is detected inside data directory ( https://castle-engine.io/data ),
       make sure it starts with protocol castle-data:/ . }
     property UseCastleDataProtocol: Boolean read FUseCastleDataProtocol write FUseCastleDataProtocol default true;
     property Filter stored StoreFilterAndFilterIndex;
@@ -148,7 +148,7 @@ type
     property Url: String read GetUrl write SetUrl stored false;
     { Warn (but still allow) if user selects URL outside of data directory. }
     property AdviceDataDirectory: Boolean read FAdviceDataDirectory write FAdviceDataDirectory default false;
-    { If the URL is detected inside data directory ( https://castle-engine.io/manual_data_directory.php ),
+    { If the URL is detected inside data directory ( https://castle-engine.io/data ),
       make sure it starts with protocol castle-data:/ . }
     property UseCastleDataProtocol: Boolean read FUseCastleDataProtocol write FUseCastleDataProtocol default true;
     property Filter stored StoreFilterAndFilterIndex;

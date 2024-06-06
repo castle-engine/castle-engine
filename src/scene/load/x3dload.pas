@@ -411,7 +411,7 @@ begin
   { We always download stripping anchor.
     Spine, sprite sheets (Starling, Cocos2d), images, Tiled all expect such anchor.
     Other model formats may support it as well in the future. }
-  UrlWithoutAnchor := UriDeleteAnchor(Url, true);
+  UrlWithoutAnchor := UriDeleteAnchor(Url);
 
   if HasNameCounter(Url, false) then
   begin
