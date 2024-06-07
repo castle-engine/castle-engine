@@ -4,6 +4,8 @@ Test various _Castle Game Engine_ options that optimize animations processing.
 
 TODO: Some of the options demonstrated here (`OptimizeExtensiveTransformations`, `InternalFastTransformUpdate`) should eventually disappear from the engine, and their effect should be always and automatically enabled.
 
+![screenshot](screenshot.png)
+
 Using [Castle Game Engine](https://castle-engine.io/).
 
 ## Building
