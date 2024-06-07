@@ -72,6 +72,12 @@ begin
   CheckboxDynamicBatching.OnChange := {$ifdef FPC}@{$endif} CheckboxDynamicBatchingChange;
   CheckboxAnimateOnlyWhenVisible.OnChange := {$ifdef FPC}@{$endif} CheckboxAnimateOnlyWhenVisibleChange;
   CheckboxAnimateSkipTicks1.OnChange := {$ifdef FPC}@{$endif} CheckboxAnimateSkipTicks1Change;
+
+  // make these 2 optimizations "on" by default in this demo
+  CheckboxOptimizeExtensiveTransformations.Checked := true;
+  CheckboxOptimizeExtensiveTransformationsChange(nil);
+  CheckboxInternalFastTransformUpdate.Checked := true;
+  CheckboxInternalFastTransformUpdateChange(nil);
 end;
 
 procedure TViewMain.Update(const SecondsPassed: Single; var HandleInput: Boolean);
