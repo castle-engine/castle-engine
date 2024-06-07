@@ -84,6 +84,10 @@ clean: clean-cache
 	rm -Rf html/ latex/ php/ ../reference/
 
 # upload ---------------------------------------------------------------------
+#
+# This "upload" command is not used by anything (like GitHub Actions) now.
+# It is only useful for manual upload of the docs to the server by michalis,
+# in case of emergency (e.g. when the automatic upload fails).
 
 SSH_USERNAME=michalis
 SSH_HOST=ssh.castle-engine.io
