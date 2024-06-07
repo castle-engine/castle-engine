@@ -2529,12 +2529,18 @@ var
   { Set this to optimize animating transformations for scenes where you
     have many transformations (many Transform nodes), and many of them
     are animated at the same time. Often particularly effective for
-    skeletal animations of characters, 3D and 2D (e.g. from Spine or glTF). }
+    skeletal animations of characters, 3D and 2D (e.g. from Spine or glTF).
+
+    This is safe to enable, however in some cases (when you only animate
+    a single / few transformations, and the whole scene is a big tree with
+    many transformation) it may hurt performance more than it helps.
+    But in many practical cases, with skeleton-based animations from Spine
+    or glTF, it helps a lot. }
   OptimizeExtensiveTransformations: boolean = false;
 
   { Experimental optimization of Transform animation.
     It assumes that Transform nodes affect only geometry, i.e. their only effect
-    is moving/rotating etc. X3D shapes.
+    is moving/rotating/scaling shapes.
     This is *usually*, but not always, true.
     In X3D, Transform node can also affect lights, Background, Fog, cameras...
 
