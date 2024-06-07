@@ -107,6 +107,8 @@ jobs:
     # https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#repository_dispatch
     # https://docs.github.com/en/rest/repos/repos?apiVersion=2022-11-28#create-a-repository-dispatch-event
     - name: Dispatch updating Docker cge-unstable
+      env:
+        GH_TOKEN: ${{ github.token }}
       run: |
         gh api --method POST \
           -H "Accept: application/vnd.github+json" \
