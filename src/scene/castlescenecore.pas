@@ -312,18 +312,6 @@ type
       change. }
     gcActiveShapesChanged);
 
-  { Looping mode to use with TCastleSceneCore.PlayAnimation. }
-  TPlayAnimationLooping = (
-    { Use current TimeSensor.Loop value to determine whether animation
-      should loop. Suitable when X3D model already has sensible "TimeSensor.loop"
-      values. }
-    paDefault,
-    { Set TimeSensor.Loop to be @true, to force looping. }
-    paLooping,
-    { Set TimeSensor.Loop to be @false, to force not looping. }
-    paNotLooping
-  ) deprecated 'use PlayAnimation with "Loop: boolean" parameter instead of TPlayAnimationLooping';
-
   TStopAnimationEvent = procedure (const Scene: TCastleSceneCore;
     const Animation: TTimeSensorNode) of object;
 
@@ -1977,11 +1965,6 @@ type
       const TimeInAnimation: TFloatTime;
       const Loop: boolean;
       const Forward: boolean = true): boolean; overload;
-    function ForceAnimationPose(const AnimationName: String;
-      const TimeInAnimation: TFloatTime;
-      const Looping: TPlayAnimationLooping;
-      const Forward: boolean = true): boolean; overload;
-      deprecated 'use ForceAnimationPose overload with "Loop: boolean" parameter';
 
     { Play an animation specified by name.
 
@@ -2080,10 +2063,6 @@ type
     function PlayAnimation(const Parameters: TPlayAnimationParameters): boolean; overload;
     function PlayAnimation(const AnimationName: String;
       const Loop: boolean; const Forward: boolean = true): boolean; overload;
-    function PlayAnimation(const AnimationName: String;
-      const Looping: TPlayAnimationLooping;
-      const Forward: boolean = true): boolean; overload;
-      deprecated 'use another overloaded version of PlayAnimation, like simple PlayAnimation(AnimationName: String, Loop: boolean)';
 
     { Force the model to look like the initial animation frame @italic(now).
 
@@ -2561,14 +2540,6 @@ var
 
     TODO: Extend it to include all cases, and use always. }
   InternalFastTransformUpdate: Boolean = false;
-
-const
-  // Old name for paLooping.
-  paForceLooping    = paLooping;
-  // Old name for paNotLooping.
-  paForceNotLooping = paNotLooping;
-
-  ssCollidableTriangles = ssStaticCollisions deprecated 'use ssStaticCollisions instead';
 
 var
   InternalEnableAnimation: Boolean = true;
@@ -8283,28 +8254,6 @@ end;
 
 function TCastleSceneCore.ForceAnimationPose(const AnimationName: String;
   const TimeInAnimation: TFloatTime;
-  const Looping: TPlayAnimationLooping;
-  const Forward: boolean): boolean;
-var
-  Loop: boolean;
-  TimeNode: TTimeSensorNode;
-begin
-  // calculate Loop
-  case Looping of
-    paLooping   : Loop := true;
-    paNotLooping: Loop := false;
-    else
-    begin
-      TimeNode := AnimationTimeSensor(AnimationName);
-      Loop := (TimeNode <> nil) and TimeNode.Loop;
-    end;
-  end;
-
-  Result := ForceAnimationPose(AnimationName, TimeInAnimation, Loop, Forward);
-end;
-
-function TCastleSceneCore.ForceAnimationPose(const AnimationName: String;
-  const TimeInAnimation: TFloatTime;
   const Loop: boolean;
   const Forward: boolean): boolean;
 var
@@ -8340,27 +8289,6 @@ begin
       FinishTransformationChanges;
     end;
   end;
-end;
-
-function TCastleSceneCore.PlayAnimation(const AnimationName: String;
-  const Looping: TPlayAnimationLooping;
-  const Forward: boolean): boolean;
-var
-  Loop: boolean;
-  TimeNode: TTimeSensorNode;
-begin
-  // calculate Loop
-  case Looping of
-    paLooping   : Loop := true;
-    paNotLooping: Loop := false;
-    else
-    begin
-      TimeNode := AnimationTimeSensor(AnimationName);
-      Loop := (TimeNode <> nil) and TimeNode.Loop;
-    end;
-  end;
-
-  Result := PlayAnimation(AnimationName, Loop, Forward);
 end;
 
 function TCastleSceneCore.PlayAnimation(const AnimationName: String;

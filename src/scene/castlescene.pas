@@ -458,12 +458,6 @@ const
   weSolidWireframe = CastleRenderOptions.weSolidWireframe;
   weSilhouette = CastleRenderOptions.weSilhouette;
 
-  paDefault = CastleSceneCore.paDefault;
-  paForceLooping = CastleSceneCore.paForceLooping;
-  paForceNotLooping = CastleSceneCore.paForceNotLooping;
-  paLooping = CastleSceneCore.paLooping;
-  paNotLooping = CastleSceneCore.paNotLooping;
-
   ssRendering = CastleSceneCore.ssRendering;
   ssDynamicCollisions = CastleSceneCore.ssDynamicCollisions;
   ssVisibleTriangles = CastleSceneCore.ssVisibleTriangles;
