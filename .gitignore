@@ -82,6 +82,7 @@ castle-game-engine-*.fpm
 /examples/animations/simultaneous_animations_one_scene/simultaneous_animations_one_scene
 /examples/animations/split_long_animation/split_long_animation
 /examples/animations/md3_animations_tags/md3_animations_tags
+/examples/animations/optimize_animations_test/optimize_animations_test
 /examples/audio/audio_player/audio_player
 /examples/audio/doppler_demo/doppler_demo
 /examples/audio/game_3d_sound/game_3d_sound
