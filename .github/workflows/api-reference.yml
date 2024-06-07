@@ -25,7 +25,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: Make API Reference
-      run: make clean html - C doc/pasdoc/
+      run: make clean html -C doc/pasdoc/
     - name: Pack API Reference
       run: |
         cd doc/
