@@ -99,3 +99,17 @@ jobs:
         git tag --force ${{ env.release_tag }}
         # --force allows to push with overwritten tag
         git push --force origin ${{ env.release_tag }}
+
+    # Make https://github.com/castle-engine/castle-engine-cloud-builds-tools
+    # rebuild Docker image with the latest CGE snapshot.
+    #
+    # See repository_dispatch docs:
+    # https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#repository_dispatch
+    # https://docs.github.com/en/rest/repos/repos?apiVersion=2022-11-28#create-a-repository-dispatch-event
+    - name: Dispatch updating Docker cge-unstable
+      run: |
+        gh api --method POST \
+          -H "Accept: application/vnd.github+json" \
+          -H "X-GitHub-Api-Version: 2022-11-28" \
+          /repos/castle-engine/castle-engine-cloud-builds-tools/dispatches \
+          -f "event_type=cge-snapshot-changed"
