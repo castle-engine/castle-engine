@@ -4374,7 +4374,10 @@ function TTransformChangeHelper.TransformChangeTraverse(
       if Inside then
         WritelnLog('X3D transform', 'Cycle in X3D graph detected: transform node is a child of itself');
       Inside := true;
-      { Nothing to do, in particular: do not enter inside.
+      { Nothing to do, in particular: do not enter inside below by
+        TransformNode.TraverseIntoChildren.
+        Instead we leave TraverseIntoChildren = true and let regular Traverse
+        logic to visit our children.
         Our Shapes^.Group and Shapes^.Index is already correctly set
         at the inside of this transform by our HandleChangeTransform. }
       Exit;
@@ -4383,6 +4386,8 @@ function TTransformChangeHelper.TransformChangeTraverse(
     { get Shape and increase Shapes^.Index }
     ShapeTransform := Shapes^.Group.Children[Shapes^.Index] as TShapeTreeTransform;
     Inc(Shapes^.Index);
+    Assert(ShapeTransform.TransformFunctionality <> nil);
+    Assert(ShapeTransform.TransformNode = TransformNode);
 
     { update transformation inside Transform nodes that are *within*
       the modified Transform node.
@@ -4424,6 +4429,7 @@ function TTransformChangeHelper.TransformChangeTraverse(
     { get Shape and increase Shapes^.Index }
     ShapeSwitch := Shapes^.Group.Children[Shapes^.Index] as TShapeTreeSwitch;
     Inc(Shapes^.Index);
+    Assert(ShapeSwitch.SwitchNode = SwitchNode);
 
     OldShapes := Shapes;
     try
@@ -4464,6 +4470,7 @@ function TTransformChangeHelper.TransformChangeTraverse(
     { get Shape and increase Shapes^.Index }
     ShapeLOD := Shapes^.Group.Children[Shapes^.Index] as TShapeTreeLOD;
     Inc(Shapes^.Index);
+    Assert(ShapeLOD.LODNode = LODNode);
 
     { by the way, update LODInverseTransform, since it changed }
     if Inside then
@@ -4554,6 +4561,7 @@ function TTransformChangeHelper.TransformChangeTraverse(
       'Missing shape in Shapes tree');
     Instance := Shapes^.Group.Children[Shapes^.Index] as TProximitySensorInstance;
     Inc(Shapes^.Index);
+    Assert(Instance.Node = Node);
 
     Instance.InverseTransform := StateStack.Top.Transformation.InverseTransform;
 
@@ -4584,6 +4592,8 @@ function TTransformChangeHelper.TransformChangeTraverse(
       'Missing shape in Shapes tree');
     Instance := Shapes^.Group.Children[Shapes^.Index] as TVisibilitySensorInstance;
     Inc(Shapes^.Index);
+    Assert(Instance.Node = Node);
+
     Instance.Transform := StateStack.Top.Transformation.Transform;
     Instance.Box := Node.Box.Transform(Instance.Transform);
   end;
@@ -4799,7 +4809,24 @@ begin
       TransformChangeHelper.ParentScene := Self;
       TransformChangeHelper.ChangingNode := RootNode;
 
-      TransformShapesParentInfo.Group := Shapes as TShapeTreeGroup;
+      if not
+        ( (Shapes is TShapeTreeGroup) and
+          (TShapeTreeGroup(Shapes).Children.Count = 1) and
+          (TShapeTreeGroup(Shapes).Children[0] is TShapeTreeTransform) and
+          (TShapeTreeTransform(TShapeTreeGroup(Shapes).Children[0]).TransformFunctionality <> nil) and
+          (TShapeTreeTransform(TShapeTreeGroup(Shapes).Children[0]).TransformNode = RootNode) ) then
+      begin
+        raise EInternalError.Create('Scene Shapes should be TShapeTreeGroup with TShapeTreeTransform representing RootNode');
+      end;
+
+      { The logic in HandleTransform in TTransformChangeHelper.TransformChangeTraverse,
+        when Node = ChangingNode, assumes that TransformShapesParentInfo.Group
+        given here matches the *inside* of the node that is changing,
+        which is RootNode in this case.
+        So we don't set "TransformShapesParentInfo.Group := Shapes",
+        we go inside. }
+
+      TransformShapesParentInfo.Group := TShapeTreeGroup(Shapes).Children[0] as TShapeTreeGroup;
       TransformShapesParentInfo.Index := 0;
 
       { initialize TransformChangeHelper properties that may be changed
