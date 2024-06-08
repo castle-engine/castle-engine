@@ -2422,7 +2422,10 @@ type
     { When @true, we animate (more precisely: process time pass in @link(Update))
       only when the model is visible. This is a powerful optimization,
       but be careful if you depend on your animations
-      for something else than just visual effect. }
+      for something else than just visual effect.
+
+      See @url(https://github.com/castle-engine/castle-engine/tree/master/examples/animations/optimize_animations_test
+      examples/animations/optimize_animations_test) for a demo of this. }
     property AnimateOnlyWhenVisible: boolean
       read FAnimateOnlyWhenVisible write FAnimateOnlyWhenVisible default false;
 
@@ -2449,10 +2452,12 @@ type
           For example, if AnimateSkipTicks = 1, then the animation on CPU effectively
           costs 2x less. In general, AnimateSkipTicks = N means that the cost
           drops to @code(1 / (1 + N)).)
-      ) }
+      )
+
+      See @url(https://github.com/castle-engine/castle-engine/tree/master/examples/animations/optimize_animations_test
+      examples/animations/optimize_animations_test) for a demo of this. }
     property AnimateSkipTicks: Cardinal read FAnimateSkipTicks write SetAnimateSkipTicks
       default 0;
-
 
     { If AutoAnimation is set, this animation will be automatically played.
       It is useful to determine the initial animation, played once the model
@@ -2535,7 +2540,10 @@ var
     a single / few transformations, and the whole scene is a big tree with
     many transformation) it may hurt performance more than it helps.
     But in many practical cases, with skeleton-based animations from Spine
-    or glTF, it helps a lot. }
+    or glTF, it helps a lot.
+
+    See @url(https://github.com/castle-engine/castle-engine/tree/master/examples/animations/optimize_animations_test
+    examples/animations/optimize_animations_test) for a demo of this. }
   OptimizeExtensiveTransformations: boolean = false;
 
   { Experimental optimization of Transform animation.
@@ -2544,7 +2552,10 @@ var
     This is *usually*, but not always, true.
     In X3D, Transform node can also affect lights, Background, Fog, cameras...
 
-    TODO: Extend it to include all cases, and use always. }
+    TODO: Extend it to include all cases, and use always.
+
+    See @url(https://github.com/castle-engine/castle-engine/tree/master/examples/animations/optimize_animations_test
+    examples/animations/optimize_animations_test) for a demo of this. }
   InternalFastTransformUpdate: Boolean = false;
 
 var
