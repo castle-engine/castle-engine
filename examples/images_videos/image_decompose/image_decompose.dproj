@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{6B7AD908-4222-43B5-8013-A639CC5FF285}</ProjectGuid>
+        <ProjectGuid>{E1EEF754-AD26-AEB9-34C7-5AEDE87B0EA1}</ProjectGuid>
         <MainSource>image_decompose.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>

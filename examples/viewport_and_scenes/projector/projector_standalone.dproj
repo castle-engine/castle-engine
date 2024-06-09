@@ -554,6 +554,53 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
+                <DeployFile LocalName="data\shaders/limit_texture.fs" Configuration="Debug" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>./data/shaders/</RemoteDir>
+                        <RemoteName>limit_texture.fs</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Android64">
+                        <RemoteDir>./data/shaders/</RemoteDir>
+                        <RemoteName>limit_texture.fs</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSDevice64">
+                        <RemoteDir>./data/shaders/</RemoteDir>
+                        <RemoteName>limit_texture.fs</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSSimARM64">
+                        <RemoteDir>./data/shaders/</RemoteDir>
+                        <RemoteName>limit_texture.fs</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Linux64">
+                        <RemoteDir>./data/shaders/</RemoteDir>
+                        <RemoteName>limit_texture.fs</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSX64">
+                        <RemoteDir>./data/shaders/</RemoteDir>
+                        <RemoteName>limit_texture.fs</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>./data/shaders/</RemoteDir>
+                        <RemoteName>limit_texture.fs</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win32">
+                        <RemoteDir>./data/shaders/</RemoteDir>
+                        <RemoteName>limit_texture.fs</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win64">
+                        <RemoteDir>./data/shaders/</RemoteDir>
+                        <RemoteName>limit_texture.fs</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployFile LocalName="data\test_texture.png" Configuration="Debug" Class="File">
                     <Platform Name="Android">
                         <RemoteDir>./data/</RemoteDir>
@@ -880,6 +927,53 @@
                     <Platform Name="Win64">
                         <RemoteDir>./data/</RemoteDir>
                         <RemoteName>projective_texturing_simple.x3dv</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="data\shaders/limit_texture.fs" Configuration="Release" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>./data/shaders/</RemoteDir>
+                        <RemoteName>limit_texture.fs</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Android64">
+                        <RemoteDir>./data/shaders/</RemoteDir>
+                        <RemoteName>limit_texture.fs</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSDevice64">
+                        <RemoteDir>./data/shaders/</RemoteDir>
+                        <RemoteName>limit_texture.fs</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSSimARM64">
+                        <RemoteDir>./data/shaders/</RemoteDir>
+                        <RemoteName>limit_texture.fs</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Linux64">
+                        <RemoteDir>./data/shaders/</RemoteDir>
+                        <RemoteName>limit_texture.fs</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSX64">
+                        <RemoteDir>./data/shaders/</RemoteDir>
+                        <RemoteName>limit_texture.fs</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>./data/shaders/</RemoteDir>
+                        <RemoteName>limit_texture.fs</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win32">
+                        <RemoteDir>./data/shaders/</RemoteDir>
+                        <RemoteName>limit_texture.fs</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win64">
+                        <RemoteDir>./data/shaders/</RemoteDir>
+                        <RemoteName>limit_texture.fs</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
