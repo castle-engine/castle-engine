@@ -39,7 +39,7 @@
     </RequiredPackages>
     <Units Count="24">
       <Unit0>
-        <Filename Value="castle-engine.dpr"/>
+        <Filename Value="castle_engine.dpr"/>
         <IsPartOfProject Value="True"/>
       </Unit0>
       <Unit1>

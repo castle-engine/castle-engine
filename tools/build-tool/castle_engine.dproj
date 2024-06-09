@@ -1,7 +1,7 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
         <ProjectGuid>{7CEEEE16-E9AC-EB3F-8215-5CEF36C910A3}</ProjectGuid>
-        <MainSource>castle-engine.dpr</MainSource>
+        <MainSource>castle_engine.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>
         <TargetedPlatforms>33939</TargetedPlatforms>
@@ -163,7 +163,7 @@
             <MainSource>MainSource</MainSource>
         </DelphiCompile>
         <None Include="README.md"/>
-<None Include="castle-engine.dpr"/>
+<None Include="castle_engine.dpr"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>
@@ -182,7 +182,7 @@
         <BorlandProject>
             <Delphi.Personality>
                 <Source>
-                    <Source Name="MainSource">castle-engine.dpr</Source>
+                    <Source Name="MainSource">castle_engine.dpr</Source>
                 </Source>
                 <Excluded_Packages>
                     <Excluded_Packages Name="$(BDSBIN)\bcboffice2k280.bpl">Embarcadero C++Builder Office 2000 Servers Package</Excluded_Packages>
