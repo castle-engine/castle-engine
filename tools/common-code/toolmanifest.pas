@@ -905,7 +905,14 @@ procedure TCastleManifest.CreateFinish;
 
   { Check correctness. }
   procedure CheckManifestCorrect;
+  var
+    ProgramName: String;
   begin
+    { Note that project "name" and "executable_name" can contain minus ("-")
+      character which is not allowed inside a Pascal identifier.
+      This is a deliberate feature (we like names like "castle-model-viewer").
+      When we have to derive some Pascal identifier from it, we use
+      MakeProjectPascalName , TCastleProject.NamePascal and related. }
     CheckMatches('name', Name                     , AlphaNum + ['_','-']);
     CheckMatches('executable_name', ExecutableName, AlphaNum + ['_','-']);
 
@@ -915,6 +922,22 @@ procedure TCastleManifest.CreateFinish;
     { more user-visible stuff, where we allow spaces, local characters and so on }
     CheckMatches('caption', Caption, AllChars - ControlChars);
     CheckMatches('author', Author  , AllChars - ControlChars);
+
+    { StandaloneSource, if specified, determines the dpr filename
+      and (sans extension) the Pascal "program" declaration
+      (these 2 things have to match exactly, compilers check this when "program"
+      is specified, and we have to specify "program" otherwise Delphi IDE
+      breaks "uses" clause when adding units).
+      As such, it has to be a valid Pascal identifier. }
+    if StandaloneSource <> '' then
+    begin
+      ProgramName := DeleteFileExt(StandaloneSource);
+      if not IsValidIdent(ProgramName) then
+        raise Exception.CreateFmt('Program name "%s" (determined by standalone_source "%s" in CastleEngineManifest.xml) is not a valid Pascal identifier', [
+          ProgramName,
+          StandaloneSource
+        ]);
+    end;
 
     if AndroidMinSdkVersion > AndroidTargetSdkVersion then
       raise Exception.CreateFmt('Android min_sdk_version %d is larger than target_sdk_version %d, this is incorrect',

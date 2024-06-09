@@ -2163,7 +2163,7 @@ begin
       has - instead of _).
       So we have DELPHI_EXECUTABLE_NAME.
       In the long run, it would be ideal to only have EXECUTABLE_NAME
-      and make Delphi IDE build the same as Delphi command-line and FPCr. }
+      and make Delphi IDE build the same as Delphi command-line and FPC. }
     Macros.Add('DELPHI_EXECUTABLE_NAME', DeleteFileExt(StandaloneSource));
     Macros.Add('GAME_UNITS'      , Manifest.GameUnits);
     Macros.Add('SEARCH_PATHS'          , MakePathsStr(Manifest.SearchPaths, false));
@@ -2180,6 +2180,8 @@ begin
     Macros.Add('DEFINES_AS_COMPILER_OPTIONS', DefinesAsCompilerOptions);
     Macros.Add('EDITOR_UNITS'          , Manifest.EditorUnits);
     Macros.Add('EXPLICIT_STANDALONE_SOURCE', StandaloneSource);
+    // Suitable name for Pascal "program" declaration
+    Macros.Add('PASCAL_PROGRAM_NAME', DeleteFileExt(StandaloneSource));
     Macros.Add('DELPHI_SEARCH_PATHS', DelphiSearchPaths);
     Macros.Add('ICO_PATH', IcoPath);
     Macros.Add('PROJECT_GUID', ProjectGuid);
