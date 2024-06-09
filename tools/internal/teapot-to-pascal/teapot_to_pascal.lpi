@@ -40,7 +40,7 @@
     </RequiredPackages>
     <Units Count="1">
       <Unit0>
-        <Filename Value="teapot-to-pascal.lpr"/>
+        <Filename Value="teapot_to_pascal.lpr"/>
         <IsPartOfProject Value="True"/>
         <IsVisibleTab Value="True"/>
         <EditorIndex Value="0"/>

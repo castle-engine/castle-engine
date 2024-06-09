@@ -1,23 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CONFIG>
   <ProjectOptions>
-    <Version Value="12"/>
+    <Version Value="10"/>
     <General>
       <Flags>
-        <MainUnitHasUsesSectionForAllUnits Value="False"/>
         <MainUnitHasCreateFormStatements Value="False"/>
         <MainUnitHasTitleStatement Value="False"/>
         <MainUnitHasScaledStatement Value="False"/>
-        <CompatibilityMode Value="True"/>
       </Flags>
       <SessionStorage Value="InProjectDir"/>
-      <Title Value="x3d-nodes-to-pascal"/>
+      <MainUnit Value="0"/>
+      <Title Value="generate-persistent-vectors"/>
       <UseAppBundle Value="False"/>
       <ResourceType Value="res"/>
     </General>
-    <i18n>
-      <EnableI18N LFM="False"/>
-    </i18n>
     <BuildModes Count="1">
       <Item1 Name="Default" Default="True"/>
     </BuildModes>
@@ -25,47 +21,30 @@
       <Version Value="2"/>
     </PublishOptions>
     <RunParams>
-      <FormatVersion Value="2"/>
-      <Modes Count="1">
-        <Mode0 Name="default"/>
-      </Modes>
+      <local>
+        <FormatVersion Value="1"/>
+      </local>
     </RunParams>
     <RequiredPackages Count="1">
       <Item1>
         <PackageName Value="castle_base"/>
       </Item1>
     </RequiredPackages>
-    <Units Count="2">
+    <Units Count="1">
       <Unit0>
-        <Filename Value="x3d-nodes-to-pascal.lpr"/>
+        <Filename Value="generate_persistent_vectors.lpr"/>
         <IsPartOfProject Value="True"/>
       </Unit0>
-      <Unit1>
-        <Filename Value="code/generateprocessors.pas"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="GenerateProcessors"/>
-      </Unit1>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
     <Version Value="11"/>
     <Target>
-      <Filename Value="x3d-nodes-to-pascal"/>
+      <Filename Value="generate-persistent-vectors"/>
     </Target>
     <SearchPaths>
-      <IncludeFiles Value="code;$(ProjOutDir)"/>
-      <OtherUnitFiles Value="code"/>
-      <UnitOutputDirectory Value="castle-engine-output/standalone/lazarus-lib/$(TargetCPU)-$(TargetOS)"/>
+      <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>
-    <Other>
-      <Verbosity>
-        <ShowHints Value="False"/>
-      </Verbosity>
-      <ConfigFile>
-        <CustomConfigFile Value="True"/>
-        <ConfigFilePath Value="../../../castle-fpc-messages.cfg"/>
-      </ConfigFile>
-    </Other>
   </CompilerOptions>
   <Debugging>
     <Exceptions Count="3">
