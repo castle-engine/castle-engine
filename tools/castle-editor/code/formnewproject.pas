@@ -184,7 +184,7 @@ begin
 
     if EditViewName.Visible and not IsValidIdent(EditViewName.Text) then
     begin
-      ErrorBox(Format('State name "%s" is not a valid Pascal identifier',
+      ErrorBox(Format('View name "%s" is not a valid Pascal identifier',
         [EditViewName.Text]));
       CanClose := false;
       Exit;
