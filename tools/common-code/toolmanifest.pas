@@ -933,7 +933,8 @@ procedure TCastleManifest.CreateFinish;
     begin
       ProgramName := DeleteFileExt(StandaloneSource);
       if not IsValidIdent(ProgramName) then
-        raise Exception.CreateFmt('Program name "%s" (determined by standalone_source "%s" in CastleEngineManifest.xml) is not a valid Pascal identifier', [
+        //raise Exception.CreateFmt
+        WritelnWarning('Program name "%s" (determined by standalone_source "%s" in CastleEngineManifest.xml) is not a valid Pascal identifier. This will be an error in future CGE versions, please rename your DPR / LPR.', [
           ProgramName,
           StandaloneSource
         ]);
