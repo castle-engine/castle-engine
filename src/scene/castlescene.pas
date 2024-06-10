@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2023 Michalis Kamburelis.
+  Copyright 2003-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -1130,6 +1130,13 @@ var
   ShapeWorldTransform: TMatrix4;
   ForceOpaque: boolean;
 begin
+  { Call inherited to render shadow quads of children,
+    in case one TCastleScene is a child of another.
+    See https://forum.castle-engine.io/t/shadow-ignors-distanceculling/670/14 for testcase.
+    Note that inherited also checks "CheckVisible and CastShadows",
+    so they work recursively. }
+  inherited;
+
   if CheckVisible and
      CastShadows and
      { Do not render shadow volumes when rendering wireframe.

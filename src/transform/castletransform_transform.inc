@@ -2028,7 +2028,7 @@
       @noAutoLinkHere }
     property ExistsInRoot: Boolean read FExistsInRoot;
   published
-    { Is this object visible and colliding.
+    { Is this object (and all children) visible and colliding.
       Setting this to @false makes this object non-existing,
       just as if removing the object from parent would do.
 
@@ -2090,9 +2090,14 @@
       @noAutoLinkHere }
     property Pickable: boolean read FPickable write FPickable default true;
 
-    { Is item visible.
+    { Is this object (and all children) visible.
       Note that if not @link(Exists) then this doesn't matter
       (non-existing objects are never visible).
+
+      Just like most TCastleTransform properties, this affects both this
+      TCastleTransform instance (which may be a TCastleScene instance)
+      and all children, recursively. In other words, setting this to @false
+      hides this object and all children.
 
       This is independent from @link(Collides) or @link(Pickable).
       @noAutoLinkHere }
@@ -2106,7 +2111,12 @@
       in the parent coordinate system. }
     property CollisionSphereRadius: Single read FCollisionSphereRadius write FCollisionSphereRadius;
 
-    { Does the object cast shadows.
+    { Does this object (and children) cast shadows.
+
+      Just like most TCastleTransform properties, this affects both this
+      TCastleTransform instance (which may be a TCastleScene instance)
+      and all children, recursively. In other words, setting this to @false
+      makes this object and all children not cast shadows.
 
       TODO: Right now this only affects casting shadows by shadow volumes.
       It will be extended to account for shadow maps. }
@@ -2721,7 +2731,7 @@ procedure TCastleTransform.LocalRenderShadowVolume(const Params: TRenderParams;
 var
   I: Integer;
 begin
-  if Exists and CastShadows then
+  if CheckVisible and CastShadows then
   begin
     for I := 0 to List.Count - 1 do
       List[I].RenderShadowVolume(Params, ShadowVolumeRenderer);
