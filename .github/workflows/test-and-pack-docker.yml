@@ -55,6 +55,8 @@ jobs:
         run: make clean test-fpmake
       - name: Test CastleWindow backends
         run: ./tools/internal/check_castle_window_backends_compilation
+      - name: Test build tool --output
+        run: ./tools/internal/check_build_tool_output
 
   test-docker-examples:
     strategy:
