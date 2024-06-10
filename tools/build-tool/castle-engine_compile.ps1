@@ -10,8 +10,8 @@ if (Test-Path castle_engine.dpr) {
   cd ../..
 }
 
-New-Item -Path tools/build-tool/ -Name castle-engine-output -ItemType "directory"
-New-Item -Path tools/build-tool/castle-engine-output/ -Name build-tool-compilation -ItemType "directory"
+New-Item -Path tools/build-tool/ -Name castle-engine-output -ItemType "directory" -Force
+New-Item -Path tools/build-tool/castle-engine-output/ -Name build-tool-compilation -ItemType "directory" -Force
 
 fpc `
   -dRELEASE `
@@ -24,5 +24,7 @@ fpc `
   -Futools/build-tool/embedded_images/ `
   tools/build-tool/castle_engine.dpr
 
-# Make final exe name with -, not _
-Rename-Item -Path "tools/build-tool/castle_engine.exe" -NewName "castle-engine.exe"
+# Make final exe name with -, not _ .
+# Note: Using PowerShell Move-Item, not Rename-Item, because Rename-Item
+# (with with -Force) cannot overwrite destination.
+Move-Item -Path "tools/build-tool/castle_engine.exe" -Destination "castle-engine.exe" -Force
