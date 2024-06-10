@@ -27,4 +27,4 @@ fpc `
 # Make final exe name with -, not _ .
 # Note: Using PowerShell Move-Item, not Rename-Item, because Rename-Item
 # (with with -Force) cannot overwrite destination.
-Move-Item -Path "tools/build-tool/castle_engine.exe" -Destination "castle-engine.exe" -Force
+Move-Item -Path "tools/build-tool/castle_engine.exe" -Destination "tools/build-tool/castle-engine.exe" -Force
