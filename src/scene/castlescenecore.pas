@@ -1981,8 +1981,7 @@ type
       To get the list of available animations, see @link(AnimationsList).
 
       This is one of the simplest way to play animations using Castle Game Engine.
-      Alternative (that calls PlayAnimation under the hood) is to set AutoAnimation
-      and AutoAnimationLoop.
+      Alternative (that calls PlayAnimation under the hood) is to set @link(AutoAnimation).
       See https://castle-engine.io/viewport_3d#_play_animation .
 
       Playing an already-playing animation is guaranteed to restart it from
@@ -2469,15 +2468,14 @@ type
       @link(StopAnimation) and update @link(CurrentAnimation).
       The reverse is not true: calling @link(PlayAnimation) doesn't change @link(AutoAnimation).
       So you can think of @link(AutoAnimation) as "an initial animation, activated each time
-      we load the model, even if later we can change it to something else using @link(PlayAnimation)".
-
-      @seealso AutoAnimationLoop }
+      we load the model, even if later we can change it to something else using @link(PlayAnimation)". }
     property AutoAnimation: String
       read FAutoAnimation write SetAutoAnimation;
 
     { Does the animation indicated by AutoAnimation loops. }
     property AutoAnimationLoop: Boolean
       read FAutoAnimationLoop write SetAutoAnimationLoop default true;
+      {$ifdef FPC} deprecated 'in future engine versions, AutoAnimationLoop may behave as always = true, and AutoAnimation will be renamed to just Animation and changing it will always cause a looping animation. Use PlayAnimation(''my_anim'',false) from code to play animation without looping.'; {$endif}
 
     { Transformation nodes inside the model
       that are synchronized with automatically-created children TCastleTransform.
@@ -3458,10 +3456,12 @@ begin
   begin
     if AutoAnimation <> '' then
     begin
+      {$warnings off} // using deprecated AutoAnimationLoop to keep it working
       if PlayAnimation(AutoAnimation, AutoAnimationLoop) then
         { call ForceInitialAnimationPose, to avoid blinking with "setup pose"
           right after loading the UI design from file. }
         ForceInitialAnimationPose;
+      {$warnings on}
     end else
     if StopIfPlaying then
     begin
@@ -3479,6 +3479,14 @@ begin
     Url := FPendingSetUrl;
     FPendingSetUrl := '';
   end;
+  {$warnings off} // using deprecated just to make a warning
+  if not AutoAnimationLoop then
+  begin
+    WritelnWarning('AutoAnimationLoop is deprecated, but you set it to false on "%s". In future engine versions, AutoAnimationLoop may behave as always = true, and AutoAnimation will be renamed to just Animation and changing it will always cause a looping animation.' + ' Use PlayAnimation(''my_anim'',false) from code to play animation without looping.', [
+      Name
+    ]);
+  end;
+  {$warnings on}
   UpdateAutoAnimation(false);
   ExposeTransformsChange(nil);
 end;
@@ -8574,7 +8582,7 @@ function TCastleSceneCore.PropertySections(
   const PropertyName: String): TPropertySections;
 begin
   if ArrayContainsString(PropertyName, [
-       'Url', 'ProcessEvents', 'AutoAnimation', 'AutoAnimationLoop',
+       'Url', 'ProcessEvents', 'AutoAnimation',
        'DefaultAnimationTransition', 'PreciseCollisions', 'ExposeTransforms',
        'TimePlaying', 'TimePlayingSpeed', 'Cache'
      ]) then
