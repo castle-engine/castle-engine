@@ -80,26 +80,59 @@ uses CTypes,
 { TGLContextGlx -------------------------------------------------------------- }
 
 procedure TGLContextGlx.GlxAvailableCheck;
+
+  function GlxConfirmedVersion: String;
+  begin
+    if GLX_version_1_4(XDisplay) then
+      GlxConfirmedVersion := '1.4'
+    else
+    if GLX_version_1_3(XDisplay) then
+      GlxConfirmedVersion := '1.3'
+    else
+    if GLX_version_1_2(XDisplay) then
+      GlxConfirmedVersion := '1.2'
+    else
+    if GLX_version_1_1(XDisplay) then
+      GlxConfirmedVersion := '1.1'
+    else
+    if GLX_version_1_0(XDisplay) then
+      GlxConfirmedVersion := '1.0'
+    else
+      GlxConfirmedVersion := 'None';
+  end;
+
 var
-  GlxExtensions: string;
+  GlxExtensions: String;
 begin
   if not GLX_version_1_0(XDisplay) then
-    raise Exception.Create('glX extension (version at least 1.0) not found (necessary for OpenGL-based programs)') else
+  begin
+    raise Exception.Create('glX extension (version at least 1.0) not found (necessary for OpenGL-based programs)');
+  end else
   begin
     GlxExtensions := glXQueryExtensionsString(XDisplay, XScreen);
-    WritelnLogMultiline('GLX', 'GLX extension at least 1.0 found.' +NL+
-      'Versions (determined by checking both glXQueryExtension, glXQueryVersion and assigned entry points):' +NL+
-      Format('  Version 1.1: %s', [BoolToStr(GLX_version_1_1(XDisplay), true)]) +NL+
-      Format('  Version 1.2: %s', [BoolToStr(GLX_version_1_2(XDisplay), true)]) +NL+
-      Format('  Version 1.3: %s', [BoolToStr(GLX_version_1_3(XDisplay), true)]) +NL+
-      Format('  Version 1.4: %s', [BoolToStr(GLX_version_1_4(XDisplay), true)]) +NL+
-      NL+
-      'Important extensions (determined by checking glXQueryExtensionsString and assigned entry points):' +NL+
-      Format('  GLX_ARB_multisample: %s'   , [BoolToStr(GLX_ARB_multisample(XDisplay, XScreen), true)]) + NL+
-      Format('  GLX_ARB_create_context: %s', [BoolToStr(GLX_ARB_create_context(XDisplay, XScreen), true)]) +NL+
-      NL+
-      'All extensions (according to glXQueryExtensionsString):' +NL+
-      GlxExtensions);
+    if LogGLInformationVerbose then
+    begin
+      WritelnLogMultiline('GLX', 'glX extension at least 1.0 found.' +NL+
+        'Versions (determined by checking both glXQueryExtension, glXQueryVersion and assigned entry points):' +NL+
+        Format('  Version 1.1: %s', [BoolToStr(GLX_version_1_1(XDisplay), true)]) +NL+
+        Format('  Version 1.2: %s', [BoolToStr(GLX_version_1_2(XDisplay), true)]) +NL+
+        Format('  Version 1.3: %s', [BoolToStr(GLX_version_1_3(XDisplay), true)]) +NL+
+        Format('  Version 1.4: %s', [BoolToStr(GLX_version_1_4(XDisplay), true)]) +NL+
+        NL+
+        'Important extensions (determined by checking glXQueryExtensionsString and assigned entry points):' +NL+
+        Format('  GLX_ARB_multisample: %s'   , [BoolToStr(GLX_ARB_multisample(XDisplay, XScreen), true)]) + NL+
+        Format('  GLX_ARB_create_context: %s', [BoolToStr(GLX_ARB_create_context(XDisplay, XScreen), true)]) +NL+
+        NL+
+        'All extensions (according to glXQueryExtensionsString):' +NL+
+        GlxExtensions);
+    end else
+    begin
+      WritelnLog('glX initialized (version >= %s). Multisample possible: %s, modern context creation: %s (more info: LogGLInformationVerbose:=true)', [
+        GlxConfirmedVersion,
+        BoolToStr(GLX_ARB_multisample(XDisplay, XScreen), true),
+        BoolToStr(GLX_ARB_create_context(XDisplay, XScreen), true)
+      ]);
+    end;
   end;
 end;
 
