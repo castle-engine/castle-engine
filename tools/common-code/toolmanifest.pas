@@ -317,6 +317,10 @@ type
     { Finds all Pascal files (units and includes -- not lpr / dpr for now).
       Returns a list with filenames relative to Path. }
     function FindPascalFiles: TStringList;
+
+    { Convert possible manifest value of standalone_source into implied Pascal
+      program name. }
+    class function StandaloneSourceToProgramName(const AStandaloneSource: String): String;
   end;
 
 function CompilerToString(const C: TCompiler): String;
@@ -931,7 +935,7 @@ procedure TCastleManifest.CreateFinish;
       As such, it has to be a valid Pascal identifier. }
     if StandaloneSource <> '' then
     begin
-      ProgramName := DeleteFileExt(StandaloneSource);
+      ProgramName := StandaloneSourceToProgramName(StandaloneSource);
       if not IsValidIdent(ProgramName) then
         //raise Exception.CreateFmt
         WritelnWarning('Program name "%s" (determined by standalone_source "%s" in CastleEngineManifest.xml) is not a valid Pascal identifier. This will be an error in future CGE versions, please rename your DPR / LPR.', [
@@ -1088,6 +1092,13 @@ begin
   StringReplaceAllVar(Relative, '\', '/');
   {$endif}
   FindPascalFilesResult.Add(Relative);
+end;
+
+class function TCastleManifest.StandaloneSourceToProgramName(const AStandaloneSource: String): String;
+begin
+  { Use ExtractFileName to ignore path in AStandaloneSource
+    which is possible, user can specify path like "code/myprogram_standalone.lpr". }
+  Result := ExtractFileName(DeleteFileExt(AStandaloneSource));
 end;
 
 { globals -------------------------------------------------------------------- }

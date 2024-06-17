@@ -101,7 +101,12 @@ type
 
       Unlike StandaloneSourceFile, this is explicit,
       i.e. it never points to internal name in "castle-engine-output".
-      Also this method never creates the file, it merely calculates the filename. }
+      Also this method never creates the file, it merely calculates the filename.
+
+      The returned filename is relative. It is often without any path
+      (like "my_program_standalone.dpr") but it may contain a relative path
+      (like "code/my_program_standalone.dpr") if such path was specified
+      in CastleEngineManifest.xml. }
     function ExplicitStandaloneFile(const Ext: String): String;
 
     { Check the PackageFormat (looking at what is allowed for this Target/OS/CPU),
@@ -2221,7 +2226,7 @@ begin
     Macros.Add('EDITOR_UNITS'          , Manifest.EditorUnits);
     Macros.Add('EXPLICIT_STANDALONE_SOURCE', StandaloneSource);
     // Suitable name for Pascal "program" declaration
-    Macros.Add('PASCAL_PROGRAM_NAME', DeleteFileExt(StandaloneSource));
+    Macros.Add('PASCAL_PROGRAM_NAME', TCastleManifest.StandaloneSourceToProgramName(StandaloneSource));
     Macros.Add('DELPHI_SEARCH_PATHS', DelphiSearchPaths);
     Macros.Add('ICO_PATH', IcoPath);
     Macros.Add('PROJECT_GUID', ProjectGuid);
