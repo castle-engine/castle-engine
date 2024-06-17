@@ -203,7 +203,23 @@ begin
   Result := FindExe(ExeName);
 end;
 
+function GetCastleEnginePathFromExeName: String; forward;
+
 function GetCastleEnginePathFromEnv: String;
+
+  { Do everything possible to make paths that actually point to the same
+    location be the same string. }
+  function PathCanonical(const S: String): String;
+  begin
+    Result := S;
+    if Length(Result) <> 1 then // do not change root directory '/'
+      Result := ExclPathDelim(Result);
+    Result := ExpandFileName(Result);
+    Result := SReplaceChars(Result, '\', '/');
+  end;
+
+var
+  EnginePathFromExe: String;
 begin
   Result := GetEnvironmentVariable('CASTLE_ENGINE_PATH');
   if Result = '' then
@@ -241,6 +257,19 @@ begin
   if not DirectoryExists(Result + 'tools' + PathDelim + 'build-tool' + PathDelim + 'data') then
     WritelnWarning('$CASTLE_ENGINE_PATH environment variable defined, but we cannot find build tool data inside: "%s". We try to continue, but some packaging operations will fail.',
       [Result]);
+
+  if Result <> '' then
+  begin
+    EnginePathFromExe := GetCastleEnginePathFromExeName;
+    if (EnginePathFromExe <> '') and
+       (not SameFileName(PathCanonical(Result), PathCanonical(EnginePathFromExe))) then
+    begin
+      WritelnWarning('$CASTLE_ENGINE_PATH environment variable points to a different directory than the one detected from the executable path: "%s" vs "%s". This may be a mistake, possibly you have two (different) engine versions installed. Please check your environment, likely remove one of the engine versions or undefine CASTLE_ENGINE_PATH to not point to the engine that shall be unused.', [
+        Result,
+        EnginePathFromExe
+      ]);
+    end;
+  end;
 end;
 
 { Check is Path a sensible CGE sources path.

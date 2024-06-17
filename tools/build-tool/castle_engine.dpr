@@ -321,8 +321,7 @@ end;
 
 { For some operations (like creating an Android project), the tool uses
   ApplicationData files. So make sure that ApplicationData is correct.
-  We can use CastleEnginePath (that used $CASTLE_ENGINE_PATH environment variable)
-  for this. }
+  We can use CastleEnginePath (that uses various detection methods) for this. }
 procedure AdjustApplicationData;
 var
   DataPath: string;
