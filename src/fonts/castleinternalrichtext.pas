@@ -279,7 +279,9 @@ begin
   {$ifdef FPC}
   SPtr := PChar(S);
   { If S is empty, there's no need to break it. }
+  {$warnings off} // for now tolerate UTF8CharacterToUnicode usage, TODO is already above
   C := UTF8CharacterToUnicode(SPtr, CharLen);
+  {$warnings on}
   if (C > 0) and (CharLen > 0) then
   {$else}
   TextIndex := 1;
@@ -303,7 +305,9 @@ begin
     CurrentWidth := CurrentWidth + Font.TextWidth(UnicodeCharToString(C));
 
     {$ifdef FPC}
+    {$warnings off} // for now tolerate UTF8CharacterToUnicode usage, TODO is already above
     C := UTF8CharacterToUnicode(SPtr, CharLen);
+    {$warnings on}
     while (C > 0) and (CharLen > 0) and
           (CurrentWidth + Font.TextWidth(UnicodeCharToString(C)) <= MaxWidth) do
     {$else}
@@ -323,7 +327,9 @@ begin
       CurrentWidth := CurrentWidth + Font.TextWidth(UnicodeCharToString(C));
 
       {$ifdef FPC}
+      {$warnings off} // for now tolerate UTF8CharacterToUnicode usage, TODO is already above
       C := UTF8CharacterToUnicode(SPtr, CharLen);
+      {$warnings on}
       {$endif}
     end;
 
