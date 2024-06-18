@@ -1,4 +1,4 @@
-{
+﻿{
   Copyright 2014-2024 Michalis Kamburelis,
   parts based on LazUTF8 unit copyright by Lazarus developers.
   Parts of this source code are based on Lazarus LazUTF8 source code,
@@ -217,6 +217,7 @@ type
     TextPtr: PChar;
     CharLen: Integer;
     {$else}
+    TextCopy: String;
     TextIndex: Integer;
     TextLength: Integer;
     {$endif}
@@ -669,6 +670,7 @@ end;
 procedure TCastleStringIterator.Start(const S: String);
 begin
   TextIndex := 1;
+  TextCopy := S;
   TextLength := Length(S);
 end;
 
@@ -679,7 +681,7 @@ begin
   Result := TextIndex <= TextLength;
   if Result then
   begin
-    FCurrent := UnicodeStringNextChar(S, TextIndex, NextTextIndex);
+    FCurrent := UnicodeStringNextChar(TextCopy, TextIndex, NextTextIndex);
     TextIndex := NextTextIndex;
   end;
 end;
