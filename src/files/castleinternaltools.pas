@@ -28,6 +28,8 @@
 }
 unit CastleInternalTools;
 
+{$I castleconf.inc}
+
 interface
 
 uses Classes, Dom,
