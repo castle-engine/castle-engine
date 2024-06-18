@@ -262,6 +262,8 @@ function TTextPropertyString.Wrap(const Font: TCastleFontFamily; const State: TT
   end;
 
 var
+  { TODO: Code below is a mess with ifdefs for FPC (UTF-8) and Delphi (UTF-16).
+    Rewrite it to use TCastleStringIterator. }
   C: TUnicodeChar;
   {$ifdef FPC}
   PropWidthBytes: Integer;

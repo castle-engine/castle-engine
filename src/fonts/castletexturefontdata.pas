@@ -1,5 +1,5 @@
 {
-  Copyright 2014-2023 Michalis Kamburelis.
+  Copyright 2014-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -595,181 +595,75 @@ end;
 
 function TTextureFontData.TextWidth(const S: string): Integer;
 var
-  C: TUnicodeChar;
-  {$ifdef FPC}
-  TextPtr: PChar;
-  CharLen: Integer;
-  {$else}
-  TextIndex: Integer;
-  NextTextIndex: Integer;
-  TextLength: Integer;
-  {$endif}
+  Iter: TCastleStringIterator;
   G: TTextureFontData.TGlyph;
 begin
   Result := 0;
-
-  {$ifdef FPC}
-  TextPtr := PChar(S);
-  C := UTF8CharacterToUnicode(TextPtr, CharLen);
-  while (C > 0) and (CharLen > 0) do
-  {$else}
-  TextIndex := 1;
-  TextLength := Length(S);
-  while (TextIndex <= TextLength) do
-  {$endif}
+  Iter.Start(S);
+  while Iter.GetNext do
   begin
-    {$ifdef FPC}
-    Inc(TextPtr, CharLen);
-    {$else}
-    C := UnicodeStringNextChar(S, TextIndex, NextTextIndex);
-    TextIndex := NextTextIndex;
-    {$endif}
-
-    G := Glyph(C);
+    G := Glyph(Iter.Current);
     if G <> nil then
       Result := Result + G.AdvanceX;
-
-    {$ifdef FPC}
-    C := UTF8CharacterToUnicode(TextPtr, CharLen);
-    {$endif}
   end;
 end;
 
 function TTextureFontData.TextHeight(const S: string): Integer;
 var
-  C: TUnicodeChar;
-  {$ifdef FPC}
-  TextPtr: PChar;
-  CharLen: Integer;
-  {$else}
-  TextIndex: Integer;
-  NextTextIndex: Integer;
-  TextLength: Integer;
-  {$endif}
+  Iter: TCastleStringIterator;
   MinY, MaxY, YOrigin: Integer;
   G: TTextureFontData.TGlyph;
 begin
   MinY := 0;
   MaxY := 0;
 
-  {$ifdef FPC}
-  TextPtr := PChar(S);
-  C := UTF8CharacterToUnicode(TextPtr, CharLen);
-  while (C > 0) and (CharLen > 0) do
-  {$else}
-  TextIndex := 1;
-  TextLength := Length(S);
-  while (TextIndex <= TextLength) do
-  {$endif}
+  Iter.Start(S);
+  while Iter.GetNext do
   begin
-    {$ifdef FPC}
-    Inc(TextPtr, CharLen);
-    {$else}
-    C := UnicodeStringNextChar(S, TextIndex, NextTextIndex);
-    TextIndex := NextTextIndex;
-    {$endif}
-
-    G := Glyph(C);
+    G := Glyph(Iter.Current);
     if G <> nil then
     begin
       YOrigin := G.Y;
       MinVar(MinY, -YOrigin);
       MaxVar(MaxY, G.Height - YOrigin);
     end;
-
-    {$ifdef FPC}
-    C := UTF8CharacterToUnicode(TextPtr, CharLen);
-    {$endif}
   end;
   Result := MaxY - MinY;
 end;
 
 function TTextureFontData.TextMove(const S: string): TVector2Integer;
 var
-  C: TUnicodeChar;
-  {$ifdef FPC}
-  TextPtr: PChar;
-  CharLen: Integer;
-  {$else}
-  TextIndex: Integer;
-  NextTextIndex: Integer;
-  TextLength: Integer;
-  {$endif}
+  Iter: TCastleStringIterator;
   G: TTextureFontData.TGlyph;
 begin
   Result := TVector2Integer.Zero;
 
-  {$ifdef FPC}
-  TextPtr := PChar(S);
-  C := UTF8CharacterToUnicode(TextPtr, CharLen);
-  while (C > 0) and (CharLen > 0) do
-  {$else}
-  TextIndex := 1;
-  TextLength := Length(S);
-  while (TextIndex <= TextLength) do
-  {$endif}
+  Iter.Start(S);
+  while Iter.GetNext do
   begin
-    {$ifdef FPC}
-    Inc(TextPtr, CharLen);
-    {$else}
-    C := UnicodeStringNextChar(S, TextIndex, NextTextIndex);
-    TextIndex := NextTextIndex;
-    {$endif}
-
-    G := Glyph(C);
+    G := Glyph(Iter.Current);
     if G <> nil then
     begin
       Result.X := Result.X + G.AdvanceX;
       Result.Y := Result.Y + G.AdvanceY;
     end;
-
-    {$ifdef FPC}
-    C := UTF8CharacterToUnicode(TextPtr, CharLen);
-    {$endif}
   end;
 end;
 
 function TTextureFontData.TextHeightBase(const S: string): Integer;
 var
-  C: TUnicodeChar;
-  {$ifdef FPC}
-  TextPtr: PChar;
-  CharLen: Integer;
-  {$else}
-  TextIndex: Integer;
-  NextTextIndex: Integer;
-  TextLength: Integer;
-  {$endif}
+  Iter: TCastleStringIterator;
   G: TTextureFontData.TGlyph;
 begin
   Result := 0;
   { This is just like TextHeight implementation, except we only
     calculate (as Result) the MaxY value (assuming that MinY is zero). }
-
-  {$ifdef FPC}
-  TextPtr := PChar(S);
-  C := UTF8CharacterToUnicode(TextPtr, CharLen);
-  while (C > 0) and (CharLen > 0) do
-  {$else}
-  TextIndex := 1;
-  TextLength := Length(S);
-  while (TextIndex <= TextLength) do
-  {$endif}
+  Iter.Start(S);
+  while Iter.GetNext do
   begin
-    {$ifdef FPC}
-    Inc(TextPtr, CharLen);
-    {$else}
-    C := UnicodeStringNextChar(S, TextIndex, NextTextIndex);
-    TextIndex := NextTextIndex;
-    {$endif}
-
-    G := Glyph(C);
+    G := Glyph(Iter.Current);
     if G <> nil then
       MaxVar(Result, G.Height - G.Y);
-
-    {$ifdef FPC}
-    C := UTF8CharacterToUnicode(TextPtr, CharLen);
-    {$endif}
   end;
 end;
 

@@ -529,7 +529,6 @@ function TCastleWindow.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM): LRE
     KeyString := ConvertWmCharToString(WParm);
     if KeyString <> '' then
       DoKeyDown(keyNone, KeyString);
-    WritelnLog('Received WM_CHAR. Test information for https://github.com/castle-engine/castle-engine/issues/159 : WParam ' + IntToStr(WParm) + ' string: ' + {$ifdef FPC}UTF8ToHtmlEntities({$endif}KeyString{$ifdef FPC}){$endif});
   end;
 
   { Handle WM_UNICHAR that reports a key press as 32-bit Unicode character.

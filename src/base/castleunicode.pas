@@ -85,30 +85,15 @@ function UTF8SEnding(const S: String; const StartCharIndex: PtrInt): String;
   #)
 }
 function UTF8CharacterToUnicode(p: PChar; out CharLen: integer): TUnicodeChar;
-//function UTF8CharacterToUnicode(const S: string): TUnicodeChar;
+  deprecated 'use TCastleStringIterator instead';
 
 function UnicodeToUTF8(CodePoint: TUnicodeChar): string;
 function UnicodeToUTF8Inline(CodePoint: TUnicodeChar; Buf: PChar): integer;
 
-{ Convert all special Unicode characters in the given UTF-8 string to HTML entities.
-  This is a helpful routine to visualize a string with any Unicode characters
-  using simple ASCII.
-
-  "Special" Unicode characters is "anything outside of safe ASCII range,
-  which is between space and ASCII code 128".
-  The resulting string contains these special characters encoded
-  as HTML entities that show the Unicode code point in hex.
-  Like @code(&#xNNNN;) (see https://en.wikipedia.org/wiki/Unicode_and_HTML ).
-  Converts also ampersand @code(&) to @code(&amp;) to prevent ambiguities.
-
-  Tip: You can check Unicode codes by going to e.g. https://codepoints.net/U+F3
-  for @code(&#xF3;). Just edit this URL in the WWW browser address bar.
-}
-function UTF8ToHtmlEntities(const S: String): String;
-
 {$else}
 
-{ Get Unicode char code at given position in a standard Delphi String (that is, UnicodeString holding UTF-16). }
+{ Get Unicode char code at given position in a standard Delphi String
+  (that is, UnicodeString holding UTF-16). }
 function UnicodeStringNextChar(const Text: String; const Index: Integer; out NextCharIndex: Integer): TUnicodeChar;
 {$endif FPC}
 
@@ -158,6 +143,96 @@ function StringCopy(const S: String; const StartIndex, CountToCopy: Integer): St
 function StringUnicodeChar(const S: String; const Index: Integer): TUnicodeChar;
 *)
 
+{ Express single Unicode character code as a String that you can write. }
+function UnicodeCharToString(const C: TUnicodeChar): String;
+
+{ Like UnicodeCharToString, but in case C is not a printable character
+  (like ASCII control characters with code < 32),
+  show it as '#' + character number.
+
+  Use this only for debugging, or to display error messages,
+  because the output is not 100% unambiguous: if the original string
+  contains a sequence like #xxx, we make no attempt to "quoute" this sequence.
+  This the output is ambiguous, both for human and machine processing.
+  It is just "useful enough" for some cases of debugging output.
+
+  To have unambiguous output, use StringWithHtmlEntities.
+  This uses HTML entity encoding and takes care to also quote special '&'.
+  StringWithHtmlEntities it converts also characters above 128, like Polish and Chinese,
+  to numbers -- it is up to your needs whether this is more readable or not,
+  depends on how do you output this in practice. }
+function UnicodeCharToReadableString(const C: TUnicodeChar): String;
+
+{ Convert all special Unicode characters in the given string to HTML entities.
+  This is a helpful routine to visualize a string with any Unicode characters
+  using simple ASCII.
+
+  "Special" Unicode characters is "anything outside of safe ASCII range,
+  which is between space and ASCII code 128".
+  The resulting string contains these special characters encoded
+  as HTML entities that show the Unicode code point in hex.
+  Like @code(&#xNNNN;) (see https://en.wikipedia.org/wiki/Unicode_and_HTML ).
+  Converts also ampersand @code(&) to @code(&amp;) to prevent ambiguities.
+
+  Tip: You can check Unicode codes by going to e.g. https://codepoints.net/U+F3
+  for @code(&#xF3;). Just edit this URL in the WWW browser address bar.
+}
+function StringWithHtmlEntities(const S: String): String;
+
+type
+  { Iterate over String that contains Unicode characters suitable
+    for both FPC (with default String = AnsiString)
+    and Delphi (with default String = UnicodeString).
+
+    This should be used for all iteration over strings in Castle Game Engine.
+    It abstracts away various details about UTF-8 processing (in case of FPC)
+    and UTF-16 processing (in case of Delphi).
+    See https://castle-engine.io/coding_conventions#strings_unicode .
+
+    The typical usage looks like this:
+
+    @longCode(#
+    var
+      Iter: TCastleStringIterator;
+    begin
+      Iter.Start('my_string');
+      while Iter.GetNext do
+      begin
+        // do something with Iter.Current now
+        WritelnLog('Got Unicode character: %d, %s', [
+          Iter.Current,
+          UnicodeCharToString(Iter.Current)
+        ]);
+      end;
+    end;
+    #)
+
+    It is allowed to use @link(Start) again, with the same iterator
+    (regardless if it finished or not), to start processing a new (or the same)
+    String. }
+  TCastleStringIterator = record
+  strict private
+    FCurrent: TUnicodeChar;
+    {$ifdef FPC}
+    TextPtr: PChar;
+    CharLen: Integer;
+    {$else}
+    TextIndex: Integer;
+    TextLength: Integer;
+    {$endif}
+  public
+    { Start processing the given String.
+      Must be called before accessing @link(Current) or @link(GetNext). }
+    procedure Start(const S: String);
+    { Call this in a loop.
+      Must be called (and return @true) before accessing @link(Current). }
+    function GetNext: Boolean;
+    { After @link(GetNext) was called, and returned @true,
+      read this to get the current Unicode character.
+      Do not use it after @link(GetNext) returned @false. }
+    property Current: TUnicodeChar read FCurrent;
+  end;
+
 implementation
 
 uses SysUtils{$ifndef FPC}, Character{$endif}, CastleLog;
@@ -172,37 +247,11 @@ end;
 
 procedure TUnicodeCharList.Add(const SampleText: string);
 var
-  C: TUnicodeChar;
-  {$ifdef FPC}
-  TextPtr: PChar;
-  CharLen: Integer;
-  {$else}
-  TextIndex: Integer;
-  NextTextIndex: Integer;
-  TextLength: Integer;
-  {$endif}
+  Iter: TCastleStringIterator;
 begin
-  {$ifdef FPC}
-  TextPtr := PChar(SampleText);
-  C := UTF8CharacterToUnicode(TextPtr, CharLen);
-  while (C > 0) and (CharLen > 0) do
-  {$else}
-  TextIndex := 1;
-  TextLength := Length(SampleText);
-  while (TextIndex <= TextLength) do
-  {$endif}
-  begin
-    {$ifdef FPC}
-    Inc(TextPtr, CharLen);
-    {$else}
-    C := UnicodeStringNextChar(SampleText, TextIndex, NextTextIndex);
-    TextIndex := NextTextIndex;
-    {$endif}
-    Add(C);
-    {$ifdef FPC}
-    C := UTF8CharacterToUnicode(TextPtr, CharLen);
-    {$endif}
-  end;
+  Iter.Start(SampleText);
+  while Iter.GetNext do
+    Add(Iter.Current);
 end;
 
 procedure TUnicodeCharList.Add(const Characters: TSetOfChars);
@@ -219,7 +268,7 @@ var
 begin
   Result := '';
   for C in Self do
-    Result := Result + {$ifdef FPC}UnicodeToUTF8(C){$else}ConvertFromUtf32(C){$endif};
+    Result := Result + UnicodeCharToString(C);
 end;
 
 { global --------------------------------------------------------------------- }
@@ -403,15 +452,6 @@ begin
   end;
 end;
 
-{
-function UTF8CharacterToUnicode(const S: string): TUnicodeChar;
-var
-  IgnoredCharLen: integer;
-begin
-  Result := UTF8CharacterToUnicode(PChar(S), IgnoredCharLen);
-end;
-}
-
 function UnicodeToUTF8(CodePoint: TUnicodeChar): string;
 var
   Buf: array[0..6] of Char;
@@ -453,31 +493,6 @@ begin
       end;
   else
     Result:=0;
-  end;
-end;
-
-function UTF8ToHtmlEntities(const S: String): String;
-var
-  C: TUnicodeChar;
-  TextPtr: PChar;
-  CharLen: Integer;
-begin
-  TextPtr := PChar(S);
-  C := UTF8CharacterToUnicode(TextPtr, CharLen);
-  Result := '';
-  while (C > 0) and (CharLen > 0) do
-  begin
-    Inc(TextPtr, CharLen);
-
-    if (C < Ord(' ')) or (C >= 128) then
-      Result := Result + '&#x' + IntToHex(C, 1) + ';'
-    else
-    if C = Ord('&') then
-      Result := Result + '&amp;'
-    else
-      Result := Result + Chr(C);
-
-    C := UTF8CharacterToUnicode(TextPtr, CharLen);
   end;
 end;
 
@@ -583,6 +598,26 @@ end;
 
 {$endif FPC}
 
+function StringWithHtmlEntities(const S: String): String;
+var
+  Iter: TCastleStringIterator;
+  C: TUnicodeChar;
+begin
+  Iter.Start(S);
+  Result := '';
+  while Iter.GetNext do
+  begin
+    C := Iter.Current;
+    if (C < Ord(' ')) or (C >= 128) then
+      Result := Result + '&#x' + IntToHex(C, 1) + ';'
+    else
+    if C = Ord('&') then
+      Result := Result + '&amp;'
+    else
+      Result := Result + Chr(C);
+  end;
+end;
+
 function StringLength(const S: String): Integer;
 begin
   Result := {$ifdef FPC} UTF8Length {$else} UnicodeStringLength {$endif} (S);
@@ -593,11 +628,62 @@ begin
   Result := {$ifdef FPC} UTF8Copy {$else} UnicodeStringCopy {$endif} (S, StartIndex, CountToCopy);
 end;
 
+function UnicodeCharToString(const C: TUnicodeChar): String;
+begin
+  Result := {$ifdef FPC} UnicodeToUTF8 {$else}ConvertFromUtf32 {$endif} (C);
+end;
+
+function UnicodeCharToReadableString(const C: TUnicodeChar): String;
+begin
+  if C < Ord(' ') then
+    Result := '#' + IntToStr(C)
+  else
+    Result := UnicodeCharToString(C);
+end;
+
 (*
 function StringUnicodeChar(const S: String; const Index: Integer): TUnicodeChar;
 begin
   Result := {$ifdef FPC} xxx {$else} xxx {$endif} (S, Index);
 end;
 *)
+{$ifdef FPC}
+
+procedure TCastleStringIterator.Start(const S: String);
+begin
+  TextPtr := PChar(S);
+end;
+
+function TCastleStringIterator.GetNext: Boolean;
+begin
+  {$warnings off} // using deprecated function, should be internal in this unit
+  FCurrent := UTF8CharacterToUnicode(TextPtr, CharLen);
+  {$warnings on}
+  Result := (FCurrent > 0) and (CharLen > 0);
+  if Result then
+    Inc(TextPtr, CharLen);
+end;
+
+{$else}
+
+procedure TCastleStringIterator.Start(const S: String);
+begin
+  TextIndex := 1;
+  TextLength := Length(S);
+end;
+
+function TCastleStringIterator.GetNext: Boolean;
+var
+  NextTextIndex: Integer;
+begin
+  Result := TextIndex <= TextLength;
+  if Result then
+  begin
+    FCurrent := UnicodeStringNextChar(S, TextIndex, NextTextIndex);
+    TextIndex := NextTextIndex;
+  end;
+end;
+
+{$endif}
 
 end.
