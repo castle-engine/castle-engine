@@ -46,6 +46,13 @@ begin
 
   AssertEquals('CastleEncoded_a_sdsd$32$$36$$32$XYZ-123', EncodeX3DName('a_sdsd $ XYZ-123'));
   AssertEquals('a_sdsd $ XYZ-123', DecodeX3DName(EncodeX3DName('a_sdsd $ XYZ-123')));
+
+  AssertEquals('CastleEncoded_1MyName$26679$', EncodeX3DName('1MyName样'));
+  AssertEquals('1MyName样', DecodeX3DName('CastleEncoded_1MyName$26679$'));
+
+  // MyName样 is OK as X3D name, so it passes without any change
+  AssertEquals('MyName样', EncodeX3DName('MyName样'));
+  AssertEquals('MyName样', DecodeX3DName('MyName样'));
 end;
 
 initialization
