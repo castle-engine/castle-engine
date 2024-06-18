@@ -295,28 +295,32 @@ begin
     Inc(SPtr, CharLen);
     PropWidthBytes := CharLen;
     {$else}
+    {$warnings off} // for now tolerate UnicodeStringNextChar usage, TODO is already above
     C := UnicodeStringNextChar(S, TextIndex, NextTextIndex);
+    {$warnings on}
     TextIndex := NextTextIndex;
     {$endif}
-    CurrentWidth := CurrentWidth + Font.TextWidth({$ifdef FPC}UnicodeToUTF8{$else}ConvertFromUtf32{$endif}(C));
+    CurrentWidth := CurrentWidth + Font.TextWidth(UnicodeCharToString(C));
 
     {$ifdef FPC}
     C := UTF8CharacterToUnicode(SPtr, CharLen);
     while (C > 0) and (CharLen > 0) and
-          (CurrentWidth + Font.TextWidth(UnicodeToUTF8(C)) <= MaxWidth) do
+          (CurrentWidth + Font.TextWidth(UnicodeCharToString(C)) <= MaxWidth) do
     {$else}
     while (TextIndex <= TextLength) and
-          (CurrentWidth + Font.TextWidth(ConvertFromUtf32(C)) <= MaxWidth) do
+          (CurrentWidth + Font.TextWidth(UnicodeCharToString(C)) <= MaxWidth) do
     {$endif}
     begin
       {$ifdef FPC}
       Inc(SPtr, CharLen);
       PropWidthBytes += CharLen;
       {$else}
+      {$warnings off} // for now tolerate UnicodeStringNextChar usage, TODO is already above
       C := UnicodeStringNextChar(S, TextIndex, NextTextIndex);
+      {$warnings on}
       TextIndex := NextTextIndex;
       {$endif}
-      CurrentWidth := CurrentWidth + Font.TextWidth({$ifdef FPC}UnicodeToUTF8{$else}ConvertFromUtf32{$endif}(C));
+      CurrentWidth := CurrentWidth + Font.TextWidth(UnicodeCharToString(C));
 
       {$ifdef FPC}
       C := UTF8CharacterToUnicode(SPtr, CharLen);

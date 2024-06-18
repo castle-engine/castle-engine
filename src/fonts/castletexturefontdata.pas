@@ -277,8 +277,8 @@ var
     Bitmap: PFontBitmap;
   begin
     if AntiAliased then
-      Bitmaps := FontMgr.GetStringGray(FontId, {$ifdef FPC}UnicodeToUTF8(C){$else}ConvertFromUtf32(C){$endif}, Size) else
-      Bitmaps := FontMgr.GetString(FontId, {$ifdef FPC}UnicodeToUTF8(C){$else}ConvertFromUtf32(C){$endif}, Size);
+      Bitmaps := FontMgr.GetStringGray(FontId, UnicodeCharToString(C), Size) else
+      Bitmaps := FontMgr.GetString(FontId, UnicodeCharToString(C), Size);
 
     try
       if Bitmaps.Count = 0 then
@@ -356,8 +356,8 @@ var
 
   begin
     if AntiAliased then
-      Bitmaps := FontMgr.GetStringGray(FontId, {$ifdef FPC}UnicodeToUTF8(C){$else}ConvertFromUtf32(C){$endif}, Size) else
-      Bitmaps := FontMgr.GetString(FontId, {$ifdef FPC}UnicodeToUTF8(C){$else}ConvertFromUtf32(C){$endif}, Size);
+      Bitmaps := FontMgr.GetStringGray(FontId, UnicodeCharToString(C), Size) else
+      Bitmaps := FontMgr.GetString(FontId, UnicodeCharToString(C), Size);
     try
       Bitmap := Bitmaps.Bitmaps[0];
       if (Bitmap^.Pitch < 0) then
@@ -426,7 +426,7 @@ begin
         MaxVar(MaxHeight, GlyphInfo.Height);
       end else
         WritelnWarning('Font "%s" does not contain requested character %s (Unicode number %d)',
-          [UriDisplay(Url), {$ifdef FPC}UnicodeToUTF8(C){$else}ConvertFromUtf32(C){$endif}, C]);
+          [UriDisplay(Url), UnicodeCharToString(C), C]);
     end;
 
     if GlyphsCount = 0 then
@@ -574,8 +574,10 @@ begin
   if FallbackGlyphWarnings < MaxFallbackGlyphWarnings then
   begin
     Inc(FallbackGlyphWarnings);
-    WritelnWarning('Font is missing glyph for character %s (Unicode number %d)',
-      [{$ifdef FPC}UnicodeToUTF8(C){$else}ConvertFromUtf32(C){$endif}, C]);
+    WritelnWarning('Font is missing glyph for character %s (Unicode number %d)', [
+      UnicodeCharToString(C),
+      C
+    ]);
     if FallbackGlyphWarnings = MaxFallbackGlyphWarnings then
       WritelnWarning('No further warnings about missing glyphs will be reported for this font (to avoid slowing down the application by flooding the log with warnings)');
   end;

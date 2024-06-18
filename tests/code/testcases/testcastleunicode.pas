@@ -30,6 +30,7 @@ type
     procedure TestIterator;
     procedure TestUnicodeCharList;
     procedure TestUnicodeCharToReadableString;
+    procedure TestStringEnding;
   end;
 
 implementation
@@ -199,6 +200,12 @@ begin
   AssertEquals('样', UnicodeCharToReadableString($6837));
   AssertEquals('例', UnicodeCharToReadableString(20363));
   AssertEquals('中', UnicodeCharToReadableString(20013));
+end;
+
+procedure TTestUnicode.TestStringEnding;
+begin
+  AssertEquals('a źrebię', StringEnding('Ćma źrebię', 3));
+  AssertEquals('', StringEnding('Ćma źrebię', 100));
 end;
 
 initialization

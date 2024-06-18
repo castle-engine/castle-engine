@@ -289,8 +289,8 @@ begin
         begin
           SavedSelStart := SelStart;
           Text :=
-            UTF8Copy(Text, 1, SelStart) +
-            UTF8SEnding(Text, SelStart + 2);
+            StringCopy(Text, 1, SelStart) +
+            StringEnding(Text, SelStart + 2);
           SelStart := SavedSelStart;
         end;
       end;

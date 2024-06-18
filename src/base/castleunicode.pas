@@ -54,14 +54,6 @@ type
   end;
 
 {$ifdef FPC}
-function UTF8CharacterLength(p: PChar): Integer;
-function UTF8Length(const s: string): PtrInt; overload;
-function UTF8Length(p: PChar; ByteCount: PtrInt): PtrInt; overload;
-
-function UTF8CharStart(UTF8Str: PChar; Len, CharIndex: PtrInt): PChar;
-function UTF8Copy(const s: string; StartCharIndex, CharCount: PtrInt): string;
-function UTF8SEnding(const S: String; const StartCharIndex: PtrInt): String;
-
 { Return unicode character pointed by P.
   CharLen is set to 0 only when pointer P is @nil, otherwise it's always > 0.
 
@@ -83,21 +75,29 @@ function UTF8SEnding(const S: String; const StartCharIndex: PtrInt): String;
     end;
   end;
   #)
-}
+
+  @deprecated
+  This is FPC-specific, and in practice was only useful for iteration.
+  Use TCastleStringIterator instead. }
 function UTF8CharacterToUnicode(p: PChar; out CharLen: integer): TUnicodeChar;
   deprecated 'use TCastleStringIterator instead';
-
-function UnicodeToUTF8(CodePoint: TUnicodeChar): string;
-function UnicodeToUTF8Inline(CodePoint: TUnicodeChar; Buf: PChar): integer;
-
 {$else}
 
 { Get Unicode char code at given position in a standard Delphi String
-  (that is, UnicodeString holding UTF-16). }
+  (that is, UnicodeString holding UTF-16).
+  This is useful when iterating over string characters.
+
+  @deprecated
+  This is Delphi-specific, and in practice was only useful for iteration.
+  Use TCastleStringIterator instead. }
 function UnicodeStringNextChar(const Text: String; const Index: Integer; out NextCharIndex: Integer): TUnicodeChar;
+  deprecated 'use TCastleStringIterator instead';
 {$endif FPC}
 
 { Length of the string, in Unicode characters.
+
+  This is like standard Pascal @link(Length), but safe for Unicode, and working with
+  both FPC and Delphi default String (see https://castle-engine.io/coding_conventions#strings_unicode ).
 
   This works taking into account that:
   @unorderedList(
@@ -107,7 +107,10 @@ function UnicodeStringNextChar(const Text: String; const Index: Integer; out Nex
   See https://castle-engine.io/coding_conventions#strings_unicode . }
 function StringLength(const S: String): Integer;
 
-{ Copy a number of given Unicode characters from given string.
+{ Copy a number of Unicode characters from given string, from given position.
+
+  This is like standard Pascal @link(Copy), but safe for Unicode, and working with
+  both FPC and Delphi default String (see https://castle-engine.io/coding_conventions#strings_unicode ).
 
   StartIndex is 1-based, i.e. the first Unicode character in String has index 1,
   last Unicode character has index StringLength(S).
@@ -129,6 +132,14 @@ function StringLength(const S: String): Integer;
   )
   See https://castle-engine.io/coding_conventions#strings_unicode . }
 function StringCopy(const S: String; const StartIndex, CountToCopy: Integer): String;
+
+{ Copy all characters from given string, from given position.
+  StartIndex is 1-based, i.e. the first Unicode character in String has index 1,
+  last Unicode character has index StringLength(S).
+
+  This is like @link(SEnding), but safe for Unicode, and working with
+  both FPC and Delphi default String (see https://castle-engine.io/coding_conventions#strings_unicode ). }
+function StringEnding(const S: String; const StartIndex: Integer): String;
 
 (* TODO:
 
@@ -315,6 +326,9 @@ begin
     Result:=0;
 end;
 
+function UTF8Length(const s: string): PtrInt; forward; overload;
+function UTF8Length(p: PChar; ByteCount: PtrInt): PtrInt; forward; overload;
+
 function UTF8Length(const s: string): PtrInt;
 begin
   Result:=UTF8Length(PChar(s),length(s));
@@ -371,11 +385,6 @@ begin
     else
       Result:=copy(s,StartBytePos-PChar(s)+1,EndBytePos-StartBytePos);
   end;
-end;
-
-function UTF8SEnding(const S: String; const StartCharIndex: PtrInt): String;
-begin
-  result := UTF8Copy(S, StartCharIndex, MaxInt)
 end;
 
 function UTF8CharacterToUnicode(p: PChar; out CharLen: integer): Cardinal;
@@ -453,16 +462,6 @@ begin
   end;
 end;
 
-function UnicodeToUTF8(CodePoint: TUnicodeChar): string;
-var
-  Buf: array[0..6] of Char;
-  Len: Integer;
-begin
-  Len:=UnicodeToUTF8Inline(CodePoint, @Buf[0]);
-  Buf[Len]:=#0;
-  Result := StrPas(@Buf[0]);
-end;
-
 function UnicodeToUTF8Inline(CodePoint: TUnicodeChar; Buf: PChar): integer;
 begin
   case CodePoint of
@@ -495,6 +494,16 @@ begin
   else
     Result:=0;
   end;
+end;
+
+function UnicodeToUTF8(CodePoint: TUnicodeChar): string;
+var
+  Buf: array[0..6] of Char;
+  Len: Integer;
+begin
+  Len:=UnicodeToUTF8Inline(CodePoint, @Buf[0]);
+  Buf[Len]:=#0;
+  Result := StrPas(@Buf[0]);
 end;
 
 {$else FPC}
@@ -627,6 +636,11 @@ end;
 function StringCopy(const S: String; const StartIndex, CountToCopy: Integer): String;
 begin
   Result := {$ifdef FPC} UTF8Copy {$else} UnicodeStringCopy {$endif} (S, StartIndex, CountToCopy);
+end;
+
+function StringEnding(const S: String; const StartIndex: Integer): String;
+begin
+  Result := {$ifdef FPC} UTF8Copy {$else} UnicodeStringCopy {$endif} (S, StartIndex, MaxInt);
 end;
 
 function UnicodeCharToString(const C: TUnicodeChar): String;
