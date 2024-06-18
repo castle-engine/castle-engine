@@ -162,11 +162,13 @@ type
 
     @unorderedList(
       @item(Do not attach TCastleRigidBody and TCastleCollider to the avatar.)
-      @item(Set @link(TCastleScene.PreciseCollisions) to @true on level scenes.)
-      @item(Set @link(MiddleHeight) and @link(CollisionSphereRadius) to indicate
+      @item(Set @link(TCastleSceneCore.PreciseCollisions) to @true on level scenes.)
+      @item(Set @link(TCastleTransform.MiddleHeight) and
+        @link(TCastleTransform.CollisionSphereRadius) to indicate
         sphere around the avatar to resolve collisions.
         Use @link(TDebugTransform) to visualize this.)
-      @item(SeT @link(GrowSpeed) and @link(FallSpeed) to allow avatar
+      @item(SeT @link(TCastleTransform.GrowSpeed) and
+        @link(TCastleTransform.FallSpeed) to allow avatar
         to fall down and climb stairs / hills.)
     )
 

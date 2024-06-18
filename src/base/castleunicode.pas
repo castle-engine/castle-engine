@@ -96,7 +96,7 @@ function UnicodeStringNextChar(const Text: String; const Index: Integer; out Nex
 
 { Length of the string, in Unicode characters.
 
-  This is like standard Pascal @link(Length), but safe for Unicode, and working with
+  This is like standard Pascal @code(Length), but safe for Unicode, and working with
   both FPC and Delphi default String (see https://castle-engine.io/coding_conventions#strings_unicode ).
 
   This works taking into account that:
@@ -109,7 +109,7 @@ function StringLength(const S: String): Integer;
 
 { Copy a number of Unicode characters from given string, from given position.
 
-  This is like standard Pascal @link(Copy), but safe for Unicode, and working with
+  This is like standard Pascal @code(Copy), but safe for Unicode, and working with
   both FPC and Delphi default String (see https://castle-engine.io/coding_conventions#strings_unicode ).
 
   StartIndex is 1-based, i.e. the first Unicode character in String has index 1,
