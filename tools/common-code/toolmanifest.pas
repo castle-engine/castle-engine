@@ -23,7 +23,7 @@ interface
 
 uses DOM, Classes, Generics.Collections,
   CastleStringUtils, CastleImages, CastleUtils, CastleFindFiles, CastleColors,
-  CastleInternalTools,
+  CastleInternalTools, CastleUnicode,
   ToolServices, ToolAssocDocTypes;
 
 type
@@ -145,6 +145,8 @@ type
 
     function DefaultQualifiedName(const AName: String): String;
     procedure CheckMatches(const Name, Value: String; const AllowedChars: TSetOfChars);
+    class procedure CheckUnicodeDoesNotContain(
+      const Name, Value: String; const DisallowedChars: TUnicodeCharList);
     procedure CheckValidQualifiedName(const OptionName: String; const QualifiedName: String);
     { Change compiler option @xxx to use absolute paths.
       Important for "castle-engine editor" where ExtraCompilerOptionsAbsolute is inserted
@@ -321,6 +323,9 @@ type
     { Convert possible manifest value of standalone_source into implied Pascal
       program name. }
     class function StandaloneSourceToProgramName(const AStandaloneSource: String): String;
+
+    { Raise exception if AExecutableName not valid. }
+    class procedure CheckExecutableName(const AExecutableName: String);
   end;
 
 function CompilerToString(const C: TCompiler): String;
@@ -829,6 +834,41 @@ begin
         [Name, Value, SReadableForm(Value[I])]);
 end;
 
+class procedure TCastleManifest.CheckUnicodeDoesNotContain(
+  const Name, Value: String; const DisallowedChars: TUnicodeCharList);
+var
+  Iter: TCastleStringIterator;
+begin
+  Iter.Start(Value);
+  while Iter.GetNext do
+  begin
+    if DisallowedChars.IndexOf(Iter.Current) <> -1 then
+      raise Exception.CreateFmt('Project %s contains invalid characters: "%s", this character is not allowed: "%s"', [
+        Name,
+        Value,
+        UnicodeCharToReadableString(Iter.Current)
+      ]);
+  end;
+end;
+
+class procedure TCastleManifest.CheckExecutableName(const AExecutableName: String);
+var
+  DisallowedChars: TUnicodeCharList;
+  DisallowedChar: TUnicodeChar;
+begin
+  { Executable name can contain everything that is an allowed filename
+    on modern platforms.
+    See https://superuser.com/questions/358855/what-characters-are-safe-in-cross-platform-file-names-for-linux-windows-and-os .
+    In particular, most local (Chinese, Polish...) characters are OK. }
+  DisallowedChars := TUnicodeCharList.Create;
+  try
+    DisallowedChars.Add('\/:*?"<>|');
+    for DisallowedChar := 0 to 31 do // disallow null, ASCII control characters
+      DisallowedChars.Add(DisallowedChar);
+    CheckUnicodeDoesNotContain('executable_name', AExecutableName, DisallowedChars);
+  finally FreeAndNil(DisallowedChars) end;
+end;
+
 procedure TCastleManifest.CheckValidQualifiedName(const OptionName: String; const QualifiedName: String);
 var
   Components: TStringList;
@@ -912,13 +952,14 @@ procedure TCastleManifest.CreateFinish;
   var
     ProgramName: String;
   begin
-    { Note that project "name" and "executable_name" can contain minus ("-")
+    { Note that project "name" can contain minus ("-")
       character which is not allowed inside a Pascal identifier.
       This is a deliberate feature (we like names like "castle-model-viewer").
       When we have to derive some Pascal identifier from it, we use
       MakeProjectPascalName , TCastleProject.NamePascal and related. }
-    CheckMatches('name', Name                     , AlphaNum + ['_','-']);
-    CheckMatches('executable_name', ExecutableName, AlphaNum + ['_','-']);
+    CheckMatches('name', Name, AlphaNum + ['_','-']);
+
+    CheckExecutableName(ExecutableName);
 
     { non-filename stuff: allow also dots }
     CheckValidQualifiedName('qualified_name', QualifiedName);

@@ -26,14 +26,49 @@ type
   TTestToolManifest = class(TCastleTestCase)
   published
     procedure TestStandaloneSourceToProgramName;
+    procedure TestCheckExecutableName;
   end;
 
 implementation
+
+uses CastleLog;
 
 procedure TTestToolManifest.TestStandaloneSourceToProgramName;
 begin
   AssertEquals('my_program', TCastleManifest.StandaloneSourceToProgramName('my_program.lpr'));
   AssertEquals('my_program', TCastleManifest.StandaloneSourceToProgramName('code/my_program.lpr'));
+end;
+
+procedure TTestToolManifest.TestCheckExecutableName;
+begin
+  TCastleManifest.CheckExecutableName('my_program');
+  TCastleManifest.CheckExecutableName('model-program');
+  TCastleManifest.CheckExecutableName('样例中文文本');
+  TCastleManifest.CheckExecutableName('my program');
+
+  try
+    TCastleManifest.CheckExecutableName('slash/not/allowed');
+    Fail('Should fail');
+  except
+    on E: Exception do
+      WritelnLog('Valid exception: ' + E.Message);
+  end;
+
+  try
+    TCastleManifest.CheckExecutableName('bashslash\not allowed');
+    Fail('Should fail');
+  except
+    on E: Exception do
+      WritelnLog('Valid exception: ' + E.Message);
+  end;
+
+  try
+    TCastleManifest.CheckExecutableName('as:,');
+    Fail('Should fail');
+  except
+    on E: Exception do
+      WritelnLog('Valid exception: ' + E.Message);
+  end;
 end;
 
 initialization
