@@ -14,7 +14,10 @@
   ----------------------------------------------------------------------------
 }
 
-{ Test CastleUnicode unit. }
+{ Test CastleUnicode unit.
+
+  Leave UTF-8 BOM in this file for Delphi!
+  To let it interpret the string literals (like using Chinese) in this file correctly. }
 unit TestCastleUnicode;
 
 interface
@@ -92,6 +95,21 @@ begin
   AssertTrue(I.GetNext); AssertEquals('文', UnicodeCharToString(I.Current));
   AssertTrue(I.GetNext); AssertEquals('文', UnicodeCharToString(I.Current));
   AssertTrue(I.GetNext); AssertEquals('本', UnicodeCharToString(I.Current));
+  AssertFalse(I.GetNext);
+  AssertFalse(I.GetNext);
+  AssertFalse(I.GetNext);
+
+  // string with ASCII + Chinese chars
+  S := '1MyName样';
+  I.Start(S);
+  AssertTrue(I.GetNext); AssertEquals('1', UnicodeCharToString(I.Current));
+  AssertTrue(I.GetNext); AssertEquals('M', UnicodeCharToString(I.Current));
+  AssertTrue(I.GetNext); AssertEquals('y', UnicodeCharToString(I.Current));
+  AssertTrue(I.GetNext); AssertEquals('N', UnicodeCharToString(I.Current));
+  AssertTrue(I.GetNext); AssertEquals('a', UnicodeCharToString(I.Current));
+  AssertTrue(I.GetNext); AssertEquals('m', UnicodeCharToString(I.Current));
+  AssertTrue(I.GetNext); AssertEquals('e', UnicodeCharToString(I.Current));
+  AssertTrue(I.GetNext); AssertEquals('样', UnicodeCharToString(I.Current));
   AssertFalse(I.GetNext);
   AssertFalse(I.GetNext);
   AssertFalse(I.GetNext);
