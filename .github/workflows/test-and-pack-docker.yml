@@ -57,6 +57,8 @@ jobs:
         run: ./tools/internal/check_castle_window_backends_compilation
       - name: Test build tool --output
         run: ./tools/internal/check_build_tool_output
+      - name: Test LPG (Lazarus Package Group)
+        run: ./tools/internal/check_lpg_compilation
 
   test-docker-examples:
     strategy:
