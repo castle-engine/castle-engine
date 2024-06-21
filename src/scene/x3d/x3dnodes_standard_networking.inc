@@ -34,6 +34,8 @@
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
+    constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
+
     { Load the document, world and/or viewpoint referenced by this Anchor node.
 
       This iterates over url field, for each URL trying to load
@@ -191,6 +193,12 @@
 {$ifdef read_implementation}
 
 { TAnchorNode ---------------------------------------------------------------- }
+
+constructor TAnchorNode.Create(const AX3DName, ABaseUrl: String);
+begin
+  inherited;
+  AddFunctionality(TUrlFunctionality.Create(Self));
+end;
 
 function TAnchorNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
 var
