@@ -140,7 +140,19 @@
       deprecated 'use Container.ForceCaptureInput instead of this';
     {$endif}
 
-    { When true, it shows the software keyboard on Android. }
+    { Shows the software (on-screen) keyboard on mobile devices automatically
+      when the edit box gets focused.
+
+      For now, this only works on Android (not iOS yet -- see
+      https://github.com/castle-engine/castle-engine/issues/554).
+
+      This requires adding @code(<service name="keyboard" />)
+      to the Android services in @code(CastleEngineManifest.xml).
+      See example
+      @url(https://github.com/castle-engine/castle-engine/tree/master/examples/mobile/on_screen_keyboard examples/mobile/on_screen_keyboard)
+      and the @url(https://castle-engine.io/android_services Android service) documentation
+      for @url(https://github.com/castle-engine/castle-engine/tree/master/tools/build-tool/data/android/integrated-services/keyboard/README.adoc keyboard)
+      service. }
     property AutoOnScreenKeyboard: Boolean
       read FAutoOnScreenKeyboard write FAutoOnScreenKeyboard
       default DefaultAutoOnScreenKeyboard;
@@ -447,6 +459,9 @@ end;
 
 procedure TCastleEdit.DoChange;
 begin
+  { Every time the contents change, make sure caret is visible.
+    This matches what other GUIs (like GTK) do. }
+  LifeTime := 0;
   if Assigned(OnChange) then
     OnChange(Self);
 end;
@@ -464,16 +479,11 @@ end;
 
 function TCastleEdit.PropertySections(const PropertyName: String): TPropertySections;
 begin
-  if (PropertyName = 'Text') or
-     (PropertyName = 'Alignment') or
-     (PropertyName = 'Enabled') or
-     (PropertyName = 'Placeholder') or
-     (PropertyName = 'PasswordChar') or
-     (PropertyName = 'MaxLength') or
-     (PropertyName = 'FocusedColorPersistent') or
-     (PropertyName = 'UnfocusedColorPersistent') or
-     (PropertyName = 'PlaceholderColorPersistent') or
-     (PropertyName = 'BackgroundColorPersistent') then
+  if ArrayContainsString(PropertyName, [
+      'Text', 'Alignment', 'Enabled', 'Placeholder',
+      'PasswordChar', 'MaxLength', 'FocusedColorPersistent', 'UnfocusedColorPersistent',
+      'PlaceholderColorPersistent', 'BackgroundColorPersistent', 'AutoOnScreenKeyboard'
+    ]) then
     Result := [psBasic]
   else
     Result := inherited PropertySections(PropertyName);
@@ -585,6 +595,10 @@ procedure TCastleEdit.Update(const SecondsPassed: Single;
 begin
   inherited;
   LifeTime := LifeTime + SecondsPassed;
+
+  // cursor is blinking based on LifeTime, so redisplay each frame
+  VisibleChange([chRender]);
+
   { do not allow other controls to handle key presses
     (and e.g. move camera when "A" is pressed down), TCastleEdit handles all keys }
   HandleInput := false;

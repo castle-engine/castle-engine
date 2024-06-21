@@ -1,6 +1,6 @@
 {%MainUnit ../castlewindow.pas}
 {
-  Copyright 2001-2023 Michalis Kamburelis.
+  Copyright 2001-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -38,7 +38,7 @@
   - Note: LCL win32 widgetset (used on 64-bit Windows too) still uses ANSI.
 }
 
-{$ifdef OpenGLES}
+{$ifdef USE_EGL}
   {$I castlewindow_egl.inc}
 {$else}
   {$I castlewindow_wgl.inc}
@@ -369,7 +369,7 @@ function TCastleWindow.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM): LRE
       it allows to specify signedness of values as you wish. }
     TWinParam = packed record
       case Integer of
-        0:(Signed: LongInt {$if defined(cpu64)}; Dummy: LongWord {$endif});
+        0:(Signed: LongInt {$if defined(cpu64)}; Dummy: UInt32 {$endif});
         1:(LoWord, HiWord: Word);
         2:(LoSmallint, HiSmallint: Smallint);
         3:(LowestByte, LowerByte, HigherByte, HighestByte: byte);
@@ -390,7 +390,7 @@ function TCastleWindow.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM): LRE
 
       Notes:
 
-      - Doing "Exit(UnicodeToUTF8(WParm))" also seems to work for Polish chars.
+      - Doing "Exit(UnicodeCharToString(WParm))" also seems to work for Polish chars.
         But it's not necessarily correct, I think: UTF-16 character number
         is not necessarily equal to just Unicode number.
 
@@ -529,7 +529,6 @@ function TCastleWindow.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM): LRE
     KeyString := ConvertWmCharToString(WParm);
     if KeyString <> '' then
       DoKeyDown(keyNone, KeyString);
-    WritelnLog('Received WM_CHAR. Test information for https://github.com/castle-engine/castle-engine/issues/159 : WParam ' + IntToStr(WParm) + ' string: ' + {$ifdef FPC}UTF8ToHtmlEntities({$endif}KeyString{$ifdef FPC}){$endif});
   end;
 
   { Handle WM_UNICHAR that reports a key press as 32-bit Unicode character.
@@ -567,20 +566,20 @@ function TCastleWindow.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM): LRE
         This is the same: https://en.wikipedia.org/wiki/UTF-32,
         """Each 32-bit value in UTF-32 represents one Unicode code point and is exactly equal to that code point's numerical value. """
       }
-      KeyString := {$ifdef FPC}UnicodeToUTF8(WParm){$else}ConvertFromUtf32(WParm){$endif};
+      KeyString := UnicodeCharToString(WParm);
       if KeyString <> '' then
         DoKeyDown(keyNone, KeyString);
     end;
   end;
 
   function Handle_IME: Boolean;
-  
+
     function ToPoint(const V: TVector2): TPoint;
     begin
       Result.X := Floor(V.X);
-      Result.Y := Floor(Container.Height - V.Y);
+      Result.Y := Floor(Container.PixelsHeight - V.Y);
     end;
-    
+
     function GetCaretPos(var CaretPos: TPoint): Boolean;
     var
       CastleEdit: TCastleEdit;
@@ -639,15 +638,15 @@ function TCastleWindow.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM): LRE
           finally
             ImmReleaseContext(h_Wnd, vhIMC);
           end;
-          
+
           { About return value:
-            Note that WM_IME_STARTCOMPOSITION, WM_IME_ENDCOMPOSITION must return false. 
-            Because we do not implement the IME input window by itself, we return false to let the system IME handle it by itself. 
+            Note that WM_IME_STARTCOMPOSITION, WM_IME_ENDCOMPOSITION must return false.
+            Because we do not implement the IME input window by itself, we return false to let the system IME handle it by itself.
             We only tell the system where the IME window needs to be displayed, font information, etc.
-            
+
             Why do we handle WM_IME_ENDCOMPOSITION at all (that is usually when IME window is hidden)?
-            Since the IME can be developed by any company, sometimes the IME window will appear prematurely at the last closed position. 
-            So deal with WM_IME_ENDCOMPOSITION to avoid This case. 
+            Since the IME can be developed by any company, sometimes the IME window will appear prematurely at the last closed position.
+            So deal with WM_IME_ENDCOMPOSITION to avoid This case.
           }
         end;
       WM_IME_COMPOSITION:
@@ -874,7 +873,7 @@ begin
           will not process OnUpdate and such during the time menu bar is open.
           So menu bar is like a modal dialog box.
           So Fps.SecondsPassed at next Update is irrelevant, just like at the end of TGLMode.
-          Fixes e.g. CameraTransitions when choosing viewpoint from view3dscene menu.
+          Fixes e.g. CameraTransitions when choosing viewpoint from castle-model-viewer menu.
 
           We would like to call this always when user leaves the menu, but it seems
           there's no WinAPI event for this. But we can as well call this when user enters
@@ -1015,7 +1014,7 @@ begin
     But this seems unexpected to WinAPI in many situations, causing
 
     1. crashes, when this is done from some messages.
-    2. slowdown at initialization (view3dscene main menu blinks for some
+    2. slowdown at initialization (castle-model-viewer main menu blinks for some
       time, with "busy" cursor, before it becomes responsive).
 
     So the solution now is to activate it only for certain commands,
@@ -1222,12 +1221,12 @@ begin
 
       This means that actual OpenGL area size may be different than
       requested (OnResize will report it corectly, eventually lying, honoring
-      ResizeAllowed properrty). Happened e.g. when castle-view-image allowed minimal
+      ResizeAllowed properrty). Happened e.g. when castle-image-viewer allowed minimal
       window size = 200, and default welcome image had 256x256 pixels.
-      When you opened castle-view-image with no params in directory with no images,
+      When you opened castle-image-viewer with no params in directory with no images,
       then OpenGL area of size 256x256 was requested, which was so narrow that
       menu bar wrapped. Which made OpenGL area not tall enough for 256 pixels,
-      and castle-view-image had to add a vertical scrollbar to display welcome image.
+      and castle-image-viewer had to add a vertical scrollbar to display welcome image.
     }
     AdjustWindowRectEx(WindowRect, dwStyle,
       (MainMenu <> nil) and MainMenuVisible, dwExStyle);
@@ -1269,7 +1268,7 @@ begin
   h_Dc := GetDC(h_Wnd);
   Check ( h_Dc <> 0, 'GetDC failed');
 
-  ContextCreateEnd(h_Wnd);
+  ContextCreate(h_Wnd);
 
   MakeCurrent;
 
@@ -1700,7 +1699,7 @@ end;
 
 (*
 const
-  MessageTypeToWin: array [TWindowMessageType] of LongWord =
+  MessageTypeToWin: array [TWindowMessageType] of UInt32 =
   ( MB_ICONINFORMATION,
     MB_ICONWARNING,
     MB_ICONQUESTION,
@@ -1756,6 +1755,10 @@ begin
   SimpleUpdateFullScreenBackend;
 end;
 
+procedure TCastleWindow.BackendInsideUpdate;
+begin
+end;
+
 { TWinApiClipboard ----------------------------------------------------------- }
 
 { Clipboard operations using WinAPI based on:
@@ -1767,6 +1770,25 @@ end;
 type
   TWinApiClipboard = class(TCastleClipboard)
   protected
+    const
+      { We use CF_UNICODETEXT (16-bit Unicode) with both FPC and Delphi.
+        On Delphi, it matches default String type.
+        On FPC, it matches UTF-16 UnicodeString type.
+
+        We never use CF_TEXT (8-bit ANSI), even with FPC, as it has ANSI encoding
+        while we want UTF-8. }
+      StringClipboardFormat = CF_UNICODETEXT;
+    type
+      { Matching above CF_UNICODETEXT, we use 16-bit UnicodeString and
+        matching UnicodeChar to deal with clipboard on both FPC and Delphi.
+
+        Note: We don't use WideString, UnicodeString is "ref-counted 16-bit String
+        equivalent to 8-bit AnsiString",
+        https://stackoverflow.com/questions/374446/is-widestring-identical-to-string-in-delphi-2009
+        https://docwiki.embarcadero.com/RADStudio/Sydney/en/String_Types_(Delphi)
+        https://forum.lazarus.freepascal.org/index.php?topic=22464.0 }
+      TClipboardChar = WideChar; // UnicodeChar is only defined by FPC
+      TClipboardString = UnicodeString;
     function GetAsText: String; override;
     procedure SetAsText(const Value: String); override;
   end;
@@ -1775,25 +1797,32 @@ function TWinApiClipboard.GetAsText: String;
 var
   DataHandle: Windows.HGLOBAL;
   Data: Pointer;
-  Size: Integer;
+  ByteSize, CharSize: Integer;
+  ResultUnicode: TClipboardString;
 begin
   Result := '';
-  if IsClipboardFormatAvailable(CF_TEXT) then
+
+  if IsClipboardFormatAvailable(StringClipboardFormat) then
   begin
     if not Windows.OpenClipboard(Windows.HWND(nil)) then Exit;
     try
-      DataHandle := Windows.GetClipboardData(CF_TEXT);
+      DataHandle := Windows.GetClipboardData(StringClipboardFormat);
       if DataHandle = 0 then Exit;
 
-      Size := Windows.GlobalSize(DataHandle);
-      if Size > 1 then
+      ByteSize := Windows.GlobalSize(DataHandle);
+      CharSize := ByteSize div SizeOf(TClipboardChar);
+      if ByteSize mod SizeOf(TClipboardChar) <> 0 then
+        WritelnWarning('WinAPI', 'Clipboard data size is not a multiple of SizeOf(TClipboardChar)');
+
+      if CharSize > 1 then
       begin
-        Dec(Size); // do not copy trailing #0
-        Assert(Size > 0);
+        Dec(CharSize); // do not copy trailing #0
+        Assert(CharSize > 0);
         Data := Windows.GlobalLock(DataHandle);
         try
-          SetLength(Result, Size);
-          Move(Data^, Result[1], Size);
+          SetLength(ResultUnicode, CharSize);
+          Move(Data^, ResultUnicode[1], ByteSize);
+          Result := Utf16ToString(ResultUnicode);
         finally Windows.GlobalUnlock(DataHandle) end;
       end;
     finally Windows.CloseClipboard end;
@@ -1804,7 +1833,8 @@ procedure TWinApiClipboard.SetAsText(const Value: String);
 var
   DataHandle : Windows.HGLOBAL;
   Data: Pointer;
-  Size: Integer;
+  ByteSize, CharSize: Integer;
+  ValueUnicode: TClipboardString;
 begin
   if not Windows.OpenClipboard(Windows.HWND(nil)) then Exit;
   try
@@ -1812,15 +1842,19 @@ begin
 
     if Value <> '' then
     begin
-      Size := Length(Value) + 1; // copy to Windows with trailing #0
-      DataHandle := Windows.GlobalAlloc(Windows.GMEM_MOVEABLE, Size);
+      ValueUnicode := StringToUtf16(Value);
+
+      CharSize := Length(ValueUnicode) + 1; // copy to Windows with trailing #0
+      ByteSize := CharSize * SizeOf(TClipboardChar);
+
+      DataHandle := Windows.GlobalAlloc(Windows.GMEM_MOVEABLE, ByteSize);
       if DataHandle = 0 then Exit;
 
       Data := GlobalLock(DataHandle);
       try
-        Move(Value[1], Data^, Size);
+        Move(ValueUnicode[1], Data^, ByteSize);
       finally Windows.GlobalUnlock(DataHandle) end;
-      Windows.SetClipboardData(CF_TEXT, DataHandle);
+      Windows.SetClipboardData(StringClipboardFormat, DataHandle);
     end;
   finally Windows.CloseClipboard end;
 end;

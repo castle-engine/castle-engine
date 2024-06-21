@@ -1,6 +1,6 @@
 {%MainUnit castlesoundengine.pas}
 {
-  Copyright 2010-2023 Michalis Kamburelis.
+  Copyright 2010-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -22,17 +22,15 @@
   TSoundType = TCastleSound deprecated 'use TCastleSound';
 
   { Sound engine that keeps a repository of sounds, defined in a nice XML file.
-    This allows to have simple @link(Sound) and @link(Sound3D) methods,
-    that take a sound identifier (managing sound buffers will just happen
-    automatically under the hood).
+    Loading this XML file by setting @link(RepositoryUrl) property
+    creates a number of TCastleSound instances, that you can find using
+    @link(SoundFromName) method. You can use these TCastleSound instances
+    e.g. with @link(TSoundEngine.Play) method.
 
-    It extends TSoundEngine, so you can always still load new buffers
-    and play them by TSoundEngine.LoadBuffer, TSoundEngine.PlaySound
-    and all other methods. This only adds easy preloaded sounds,
-    but you're not limited to them.
-
-    To initialize your sounds repository, you have to set the RepositoryUrl
-    property. }
+    This class extends TSoundEngine. So using the sounds defined in the XML file
+    is completely optional. You can also create instances of TCastleSound
+    and use them through any other means -- by code, by setting them up in editor,
+    see https://castle-engine.io/manual_sound.php . }
   TRepoSoundEngine = class(TSoundEngine)
   private
     {$ifndef PASDOC} // PasDoc cannot parse the private section of this correctly yet
@@ -147,9 +145,32 @@
     { Reinitialize looping channels sounds.
       Should be called as soon as Sounds changes and we may have OpenAL context. }
     procedure RestartLoopingChannels;
-    function GetMusicPlayer: TLoopingChannel;
     function GetLoopingChannel(const Index: Cardinal): TLoopingChannel;
     procedure ContextOpenCore; override;
+
+    { Sound importance names and values.
+      *Maintained only to provide backward compatibility when reading sound XML files*.
+
+      Each item is a name (as a string) and a value (that is stored in Objects
+      property of the item as a pointer; add new importances by
+      AddSoundImportanceName for comfort).
+
+      These can be used within sounds.xml file.
+      Before using ContextOpen, you can fill this list with values.
+
+      Initially, it contains a couple of useful values (ordered here
+      from most to least important):
+
+      @unorderedList(
+        @item 'max' - MaxSoundImportance
+        @item 'level_event' - LevelEventSoundImportance
+        @item 'player' - PlayerSoundImportance
+        @item 'default_creature' - DefaultCreatureSoundImportance
+        @item 'minor_non_spatial' - MinorNonSpatialSoundImportance
+        @item 'default' - DefaultSoundImportance
+      ) }
+    property SoundImportanceNames: TStringList read FSoundImportanceNames;
+    procedure AddSoundImportanceName(const Name: string; Importance: Integer);
   public
     constructor Create;
     destructor Destroy; override;
@@ -164,8 +185,8 @@
       of the application.
       Right after setting RepositoryUrl you usually call SoundFromName
       a couple of times to convert some names into TCastleSound values,
-      to later use these TCastleSound values with @link(Sound) and @link(Sound3D)
-      methods.
+      to later use these TCastleSound values with @link(Play) or
+      @link(TCastleSoundSource.Sound).
 
       When the sound context is initialized (or when you set this property,
       if the sound context is initialized already)
@@ -175,8 +196,7 @@
       and TRepoSoundEngine doesn't really give you much above standard
       TSoundEngine.
 
-      If you want to actually use TRepoSoundEngine features
-      (like the @link(Sound) and @link(Sound3D) methods) you have to set this
+      If you want to actually use TRepoSoundEngine features you have to set this
       property. For example like this:
 
       @longCode(#
@@ -187,17 +207,12 @@
         SoundEngine.Play(MySound1);
       #)
 
-      See https://castle-engine.io/manual_data_directory.php
+      See https://castle-engine.io/data
       for information about the castle-data:/ protocol. In short, on desktop,
       this just indicates the "data" subdirectory of your project.
     }
     property RepositoryUrl: String read FRepositoryUrl write SetRepositoryUrl;
       {$ifdef FPC}deprecated 'instead of XML file, create design with .castle-component that contains a number of TCastleSound components';{$endif}
-
-    {$ifdef FPC}
-    { Deprecated name for RepositoryUrl. @deprecated }
-    property SoundsFileName: string read FRepositoryUrl write SetRepositoryUrl; deprecated 'use RepositoryUrl';
-    {$endif}
 
     { Reload the RepositoryUrl and all referenced buffers.
       Useful as a tool for game designers, to reload the sounds XML file
@@ -226,39 +241,6 @@
     }
     function SoundFromName(const SoundName: string; const Required: boolean = true): TCastleSound;
       deprecated 'deprecated just like RepositoryUrl';
-
-    {$ifdef FPC}
-    { Sound importance names and values.
-      Each item is a name (as a string) and a value (that is stored in Objects
-      property of the item as a pointer; add new importances by
-      AddSoundImportanceName for comfort).
-
-      These can be used within sounds.xml file.
-      Before using ContextOpen, you can fill this list with values.
-
-      Initially, it contains a couple of useful values (ordered here
-      from most to least important):
-
-      @unorderedList(
-        @item 'max' - MaxSoundImportance
-        @item 'level_event' - LevelEventSoundImportance
-        @item 'player' - PlayerSoundImportance
-        @item 'default_creature' - DefaultCreatureSoundImportance
-        @item 'minor_non_spatial' - MinorNonSpatialSoundImportance
-        @item 'default' - DefaultSoundImportance
-      ) }
-    property SoundImportanceNames: TStringList read FSoundImportanceNames;
-      deprecated 'use Priority, with numeric values';
-
-    procedure AddSoundImportanceName(const Name: string; Importance: Integer);
-      deprecated 'use Priority, with numeric values';
-
-    { Comfortable way to play and control the music.
-      Simply assign @link(TLoopingChannel.Sound MusicPlayer.Sound)
-      to play music. Set it to @nil to stop playing music.
-      This is just a shortcut for @link(LoopingChannel LoopingChannel[0]). }
-    property MusicPlayer: TLoopingChannel read GetMusicPlayer; deprecated 'use LoopingChannel[0]';
-    {$endif FPC}
 
     { Comfortable way to play and control looping non-spatial sounds, like music tracks, ambience.
 
@@ -297,7 +279,7 @@
       in game.
 
       Note that, if this does nothing, but you later set @link(RepositoryUrl)
-      or do @link(LoadBuffer) or @link(Play), then sound context will
+      or use @link(Play), then sound context will
       be created on-demand anyway. So calling this is always optional. }
     procedure PrepareResources; deprecated 'deprecated just like RepositoryUrl';
   end;
@@ -468,7 +450,6 @@ begin
   end else
     Sound.Volume := Element.AttributeSingleDef('volume', 1);
 
-  {$ifdef FPC}
   {$warnings off} // using unportable symbols knowingly
   Sound.MinGain := Element.AttributeSingleDef('min_gain', 0);
   Sound.MaxGain := Element.AttributeSingleDef('max_gain', 1);
@@ -483,7 +464,6 @@ begin
     Sound.MaxGain := 1;
   end;
   {$warnings on}
-  {$endif}
 
   if Element.AttributeString('default_importance', ImportanceStr) then
   begin
@@ -491,17 +471,12 @@ begin
       Name
     ]);
 
-    {$ifdef FPC}
-    {$warnings off} // using deprecated, to keep it working
     SoundImportanceIndex := ASoundEngine.SoundImportanceNames.IndexOf(ImportanceStr);
     if SoundImportanceIndex = -1 then
       Sound.Priority := ImportanceToPriority(StrToInt(ImportanceStr))
     else
       Sound.Priority := ImportanceToPriority(
         PtrUInt(ASoundEngine.SoundImportanceNames.Objects[SoundImportanceIndex]));
-    {$warnings on}
-    {$endif}
-
   end else
     Sound.Priority := Element.AttributeSingleDef('priority', 0.5);
 
@@ -538,16 +513,12 @@ begin
   FSoundImportanceNames := TStringList.Create;
   FSoundImportanceNames.CaseSensitive := true;
 
-  {$ifdef FPC}
-  {$warnings off} // using deprecated to keep it working
   AddSoundImportanceName('max', MaxSoundImportance);
   AddSoundImportanceName('level_event', LevelEventSoundImportance);
   AddSoundImportanceName('player', PlayerSoundImportance);
   AddSoundImportanceName('default_creature', DefaultCreatureSoundImportance);
   AddSoundImportanceName('minor_non_spatial', MinorNonSpatialSoundImportance);
   AddSoundImportanceName('default', DefaultSoundImportance);
-  {$warnings on}
-  {$endif}
 
   FSoundGroups := TSoundGroupList.Create;
 
@@ -800,13 +771,11 @@ begin
   end;
 end;
 
-{$ifdef FPC}
 procedure TRepoSoundEngine.AddSoundImportanceName(const Name: string;
   Importance: Integer);
 begin
   FSoundImportanceNames.AddObject(Name, TObject(Pointer(PtrUInt(Importance))));
 end;
-{$endif}
 
 procedure TRepoSoundEngine.PrepareResources;
 begin
@@ -826,11 +795,6 @@ begin
     FLoopingChannels[Index] := TLoopingChannel.Create(Self);
 
   Result := FLoopingChannels[Index];
-end;
-
-function TRepoSoundEngine.GetMusicPlayer: TLoopingChannel;
-begin
-  Result := LoopingChannel[0];
 end;
 
 {$endif read_implementation}

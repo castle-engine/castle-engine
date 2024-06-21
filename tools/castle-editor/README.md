@@ -6,11 +6,21 @@ See the [manual documenting the editor](https://castle-engine.io/manual_editor.p
 
 ## Contributing
 
-- Use desktop settings with 125% font scaling. Unfortunately, your personal desktop settings, at design-time, affect what is saved in LFM files, so it is best if we all use the same scaling, otherwise diffs to LFM files wildly change everything.
+### Desktop scaling settings must be 125%
 
-    You can set such scaling e.g. by GNOME 3 _"Large fonts"_ accessibilty option, or by adjusting Xorg dpi to 120 (96 * 1.25), Windows also allows to set 125% scaling.
+Use desktop settings with 125% font scaling when designing LCL forms.
 
-### Contributing
+Unfortunately, your personal desktop settings, at design-time, affect what is saved in LFM files, so it is best if we all use the same scaling, otherwise diffs to LFM files wildly change everything.
+
+You can set such scaling e.g. by
+- GNOME 3 _"Large fonts"_ accessibilty option,
+- or use "GNOME Tweak Tool" that allows to explicitly configure scaling amount to 1.25,
+- or adjusting Xorg dpi to 120 (96 * 1.25),
+- Windows also allows to set 125% scaling - search in Preferences.
+
+NOTE: Designing UI using CGE components like `TCastleButton` and other `TCastleXxx`, in CGE editor, doesn't have this issue. Everyone can use different scaling settings when working together on application using CGE UI components. But CGE editor, right now, is designed using LCL visual components.
+
+### Creating New Form
 
 When creating a new Lazarus form, remember to:
 
@@ -43,7 +53,9 @@ See https://castle-engine.io/license for details.
 This means that:
 
 - You can use the editor to create your own closed-source programs,
-- but you cannot fork the editor into a closed-source program (and distribute it publicly).
+
+- But you cannot fork the editor into a closed-source program (and distribute it publicly). If you want to fork, the fork has to be open-source as well, following GPL.
+
 - You are of course free to extend Castle Game Engine editor for internal purposes (if you don't distribute it publicly, the GPL license terms don't concern you), or you can extend it publicly on terms of GPL (thus, keeping the whole work open-source).
 
 When contributing (sending pull requests etc.) to the castle-editor source code,
@@ -56,4 +68,4 @@ to the official CGE version control repository_
 https://github.com/castle-engine/castle-engine/ ).
 The idea is that we sometimes want to move code from castle-editor to
 the engine core, for technical reasons, and we want the freedom to do so.
-Still, the editor stays GPL for the general public.
+Still, the complete editor stays GPL, as we don't apply this dual license to all our editor code, and complete editor is only GPL.

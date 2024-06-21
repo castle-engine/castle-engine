@@ -262,6 +262,8 @@ function TTextPropertyString.Wrap(const Font: TCastleFontFamily; const State: TT
   end;
 
 var
+  { TODO: Code below is a mess with ifdefs for FPC (UTF-8) and Delphi (UTF-16).
+    Rewrite it to use TCastleStringIterator. }
   C: TUnicodeChar;
   {$ifdef FPC}
   PropWidthBytes: Integer;
@@ -277,7 +279,9 @@ begin
   {$ifdef FPC}
   SPtr := PChar(S);
   { If S is empty, there's no need to break it. }
+  {$warnings off} // for now tolerate UTF8CharacterToUnicode usage, TODO is already above
   C := UTF8CharacterToUnicode(SPtr, CharLen);
+  {$warnings on}
   if (C > 0) and (CharLen > 0) then
   {$else}
   TextIndex := 1;
@@ -293,31 +297,39 @@ begin
     Inc(SPtr, CharLen);
     PropWidthBytes := CharLen;
     {$else}
+    {$warnings off} // for now tolerate UnicodeStringNextChar usage, TODO is already above
     C := UnicodeStringNextChar(S, TextIndex, NextTextIndex);
+    {$warnings on}
     TextIndex := NextTextIndex;
     {$endif}
-    CurrentWidth := CurrentWidth + Font.TextWidth({$ifdef FPC}UnicodeToUTF8{$else}ConvertFromUtf32{$endif}(C));
+    CurrentWidth := CurrentWidth + Font.TextWidth(UnicodeCharToString(C));
 
     {$ifdef FPC}
+    {$warnings off} // for now tolerate UTF8CharacterToUnicode usage, TODO is already above
     C := UTF8CharacterToUnicode(SPtr, CharLen);
+    {$warnings on}
     while (C > 0) and (CharLen > 0) and
-          (CurrentWidth + Font.TextWidth(UnicodeToUTF8(C)) <= MaxWidth) do
+          (CurrentWidth + Font.TextWidth(UnicodeCharToString(C)) <= MaxWidth) do
     {$else}
     while (TextIndex <= TextLength) and
-          (CurrentWidth + Font.TextWidth(ConvertFromUtf32(C)) <= MaxWidth) do
+          (CurrentWidth + Font.TextWidth(UnicodeCharToString(C)) <= MaxWidth) do
     {$endif}
     begin
       {$ifdef FPC}
       Inc(SPtr, CharLen);
       PropWidthBytes += CharLen;
       {$else}
+      {$warnings off} // for now tolerate UnicodeStringNextChar usage, TODO is already above
       C := UnicodeStringNextChar(S, TextIndex, NextTextIndex);
+      {$warnings on}
       TextIndex := NextTextIndex;
       {$endif}
-      CurrentWidth := CurrentWidth + Font.TextWidth({$ifdef FPC}UnicodeToUTF8{$else}ConvertFromUtf32{$endif}(C));
+      CurrentWidth := CurrentWidth + Font.TextWidth(UnicodeCharToString(C));
 
       {$ifdef FPC}
+      {$warnings off} // for now tolerate UTF8CharacterToUnicode usage, TODO is already above
       C := UTF8CharacterToUnicode(SPtr, CharLen);
+      {$warnings on}
       {$endif}
     end;
 

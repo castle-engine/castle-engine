@@ -115,10 +115,10 @@ end;
 
 function IsMemCharFilled(const Data; Size: Integer; AChar: AnsiChar): boolean;
 var p: Pointer;
-    p32: PLongWord absolute p;
+    p32: PUInt32 absolute p;
     p16: PWord absolute p;
     p8: PAnsiChar absolute p;
-    Good32: LongWord;
+    Good32: UInt32;
     Good16: Word;
 begin
  { prosto moznaby ta funkcje zrealizowac jako

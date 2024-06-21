@@ -62,7 +62,7 @@ begin
     NL+
     'implementation' +NL+
     NL+
-    'uses SysUtils, CastleImages;' + NL+
+    'uses SysUtils, CastleImages, CastleInternalDataCompression;' + NL+
     NL
   );
 

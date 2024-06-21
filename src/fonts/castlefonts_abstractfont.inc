@@ -1,6 +1,6 @@
 {%MainUnit castlefonts.pas}
 {
-  Copyright 2001-2023 Michalis Kamburelis.
+  Copyright 2001-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -654,6 +654,10 @@ var
   LineWidth: Single;
   P: Integer;
   BreakInput, BreakOutput1, BreakOutput2, HardBreakOutput: string;
+
+  { TODO: Code below is a mess with ifdefs for FPC (UTF-8) and Delphi (UTF-16).
+    Rewrite it to use TCastleStringIterator. }
+
   C: TUnicodeChar;
   {$ifdef FPC}
   BreakInputPtr: PChar;
@@ -678,7 +682,9 @@ begin
     {$ifdef FPC}
     BreakInputPtr := PChar(BreakInput);
 
+    {$warnings off} // for now tolerate UTF8CharacterToUnicode usage, TODO is already above
     C := UTF8CharacterToUnicode(BreakInputPtr, CharLen);
+    {$warnings on}
     if (C > 0) and (CharLen > 0) then
     {$else}
     TextIndex := 1;
@@ -694,33 +700,41 @@ begin
       Inc(BreakInputPtr, CharLen);
       LineWidthBytes := CharLen;
       {$else}
+      {$warnings off} // for now tolerate UnicodeStringNextChar usage, TODO is already above
       C := UnicodeStringNextChar(BreakInput, TextIndex, NextTextIndex);
+      {$warnings on}
       TextIndex := NextTextIndex;
       LineWidthBytes := TextIndex {TODO: maybe *2 to gets bytes};
       {$endif}
-      LineWidth := TextWidth({$ifdef FPC}UnicodeToUTF8{$else}ConvertFromUtf32{$endif}(C));
+      LineWidth := TextWidth(UnicodeCharToString(C));
 
       {$ifdef FPC}
+      {$warnings off} // for now tolerate UTF8CharacterToUnicode usage, TODO is already above
       C := UTF8CharacterToUnicode(BreakInputPtr, CharLen);
+      {$warnings on}
       while (C > 0) and (CharLen > 0) and
-            (LineWidth + TextWidth(UnicodeToUTF8(C)) <= MaxLineWidth) do
+            (LineWidth + TextWidth(UnicodeCharToString(C)) <= MaxLineWidth) do
       {$else}
       while (TextIndex <= TextLength) and
-            (LineWidth + TextWidth(ConvertFromUtf32(C)) <= MaxLineWidth) do
+            (LineWidth + TextWidth(UnicodeCharToString(C)) <= MaxLineWidth) do
       {$endif}
       begin
         {$ifdef FPC}
         Inc(BreakInputPtr, CharLen);
         LineWidthBytes += CharLen;
         {$else}
+        {$warnings off} // for now tolerate UnicodeStringNextChar usage, TODO is already above
         C := UnicodeStringNextChar(BreakInput, TextIndex, NextTextIndex);
+        {$warnings on}
         Inc(LineWidthBytes, NextTextIndex - TextIndex); {TODO: maybe *2 to gets bytes};
         TextIndex := NextTextIndex;
         {$endif}
-        LineWidth := LineWidth + TextWidth({$ifdef FPC}UnicodeToUTF8{$else}ConvertFromUtf32{$endif}(C));
+        LineWidth := LineWidth + TextWidth(UnicodeCharToString(C));
 
         {$ifdef FPC}
+        {$warnings off} // for now tolerate UTF8CharacterToUnicode usage, TODO is already above
         C := UTF8CharacterToUnicode(BreakInputPtr, CharLen);
+        {$warnings on}
         {$endif}
       end;
 

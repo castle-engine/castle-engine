@@ -69,7 +69,7 @@ procedure ShapesFilterBlending(
 implementation
 
 uses SysUtils,
-  {$ifdef FPC} CastleGL, {$else} OpenGL, OpenGLext, {$endif}
+  {$ifdef OpenGLES} CastleGLES, {$else} CastleGL, {$endif}
   CastleLog, X3DNodes, CastleScene, CastleTimeUtils, CastleRenderContext,
   CastleColors, CastleVectors;
 

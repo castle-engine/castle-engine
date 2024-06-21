@@ -41,7 +41,7 @@ type
         NumberOfArrayElements,
         NumberOfFaces,
         NumberOfMipmapLevels,
-        BytesOfKeyValueData: LongWord;
+        BytesOfKeyValueData: UInt32;
       end;
     const
       // See /usr/include/GL/gl.h , /usr/include/GL/glext.h
@@ -373,7 +373,7 @@ end;
 
 procedure TKTXHandler.ReadKeyValues(const Stream: TStream);
 var
-  RemainingToRead, KeyAndValueByteSize, ValuePadding: LongWord;
+  RemainingToRead, KeyAndValueByteSize, ValuePadding: UInt32;
   KeyAndValue: array of AnsiChar;
   Key, Value: AnsiString;
 begin
@@ -538,7 +538,7 @@ begin
   end else
   if (Header.GlType = 0) and
      { Header.GlTypeSize is commonly 1,
-       but Header.GlTypeSize = 0 is used by Apple, see https://github.com/castle-engine/castle-view-image/issues/1.
+       but Header.GlTypeSize = 0 is used by Apple, see https://github.com/castle-engine/castle-image-viewer/issues/1 .
        Spec doesn't clarify it for compressed textures ( http://github.khronos.org/KTX-Specification/ )
        so just ignore checking GlTypeSize below. }
      // (Header.GlTypeSize = 1) and
@@ -636,7 +636,7 @@ procedure TKTXHandler.LoadFromStream(const Stream: TStream; const Url: String);
   procedure ReadMipmapLevel(const W, H, D: Cardinal);
   var
     I: Integer;
-    ImageSize: LongWord;
+    ImageSize: UInt32;
   begin
     Stream.ReadBuffer(ImageSize, SizeOf(ImageSize));
     if SwapEndianness then

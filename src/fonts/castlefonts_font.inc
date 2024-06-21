@@ -1,6 +1,6 @@
 {%MainUnit castlefonts.pas}
 {
-  Copyright 2001-2023 Michalis Kamburelis.
+  Copyright 2001-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -38,7 +38,6 @@ type
     FAntiAliased: Boolean;
     FLoadBasicCharacters: Boolean;
     FLoadCharacters: String;
-    function GetSmoothScaling: boolean;
     function GetScale: Single;
     procedure SetScale(const AValue: Single);
     procedure SetUrl(const Value: String);
@@ -292,21 +291,37 @@ begin
   Assert((FFont = nil) or (FFont.Size <> 0));
   Assert(not IsInfinite(Value));
 
-  if DrawableImage <> nil then
-    DrawableImage.SmoothScaling := GetSmoothScaling;
-end;
+  { In the past, we had "smart" code here adjusting
+      DrawableImage.SmoothScaling := Size <> FFont.Size
+    in each SetSize (if DrawableImage <> nil),
+    based on the idea that when desired size equals optimal
+    size then there's no need for smooth scaling.
 
-function TCastleFont.GetSmoothScaling: boolean;
-begin
-  Assert(FFont <> nil); // should never be called otherwise
-  Result := Size <> FFont.Size;
+    But this causes often toggling of DrawableImage.SmoothScaling.
+    It is particularly visible when using multiple TCastleLabel,
+    and/or with multiple lines. In this case we switch between original/customized
+    font size quickly, since TCastleUserInterfaceFont.Font
+    adjusts Size, TCastleFontFamily.SubFontCustomizeBegin does SF.PushProperties.
+    But actually all rendering is done with equal Size...
+
+    So constant switching between smooth scaling and non-smooth scaling
+    does not serve anything, and it:
+
+    - makes unnnecessary OpenGL calls to toggle texture filtering back and forth,
+      slowing down rendering
+    - prevents labels batching when using TDrawableImage.BatchingBegin/End,
+      Container.UserInterfaceBatching
+  }
 end;
 
 procedure TCastleFont.PrepareResources;
 begin
   inherited;
   if (FFont <> nil) and (DrawableImage = nil) then
-    DrawableImage := TDrawableImage.Create(FFont.Image, GetSmoothScaling, false);
+    DrawableImage := TDrawableImage.Create(FFont.Image,
+      { Smooth scaling always true, ready for any Size,
+        see TCastleFont.SetSize comments.  }
+      true, false);
 end;
 
 procedure TCastleFont.GLContextClose;
@@ -350,9 +365,9 @@ var
         see GlyphPadding in castletexturefontdata.pas. }
       { TODO; Not used now. While there's a visible improvement in some cases
         (when optimal font size mismatches final font size),
-        there's also regression in view3dscene
+        there's also regression in castle-model-viewer
         (when optimal font size matches final font size closely):
-        the "A" in "Animations" button in view3dscene gets weird artifact. }
+        the "A" in "Animations" button in castle-model-viewer gets weird artifact. }
       {.$define EXTRA_GLYPH_SPACE}
 
       ScreenRect := PFloatRectangle(GlyphsScreenRects.Ptr(GlyphsToRender));
@@ -372,15 +387,7 @@ var
   end;
 
 var
-  C: TUnicodeChar;
-  {$ifdef FPC}
-  TextPtr: PChar;
-  CharLen: Integer;
-  {$else}
-  TextIndex: Integer;
-  NextTextIndex: Integer;
-  TextLength: Integer;
-  {$endif}
+  Iter: TCastleStringIterator;
   GlyphsPerChar: Integer;
 begin
   if FFont = nil then
@@ -414,30 +421,16 @@ begin
   begin
     GlyphsToRender := 0;
     { While Round() below is not needed, it improves the quality of rendered
-      text. Compare e.g. view3dscene button captions. }
+      text. Compare e.g. castle-model-viewer button captions. }
     ScreenX := Round(X);
     ScreenY := Round(Y);
     if TargetImage <> nil then
       FFont.Image.ColorWhenTreatedAsAlpha := Vector3Byte(OutlineColor.XYZ); // ignore OutlineColor[3] for now
 
-    {$ifdef FPC}
-    TextPtr := PChar(S);
-    C := UTF8CharacterToUnicode(TextPtr, CharLen);
-    while (C > 0) and (CharLen > 0) do
-    {$else}
-    TextIndex := 1;
-    TextLength := Length(S);
-    while (TextIndex <= TextLength) do
-    {$endif}
+    Iter.Start(S);
+    while Iter.GetNext do
     begin
-      {$ifdef FPC}
-      Inc(TextPtr, CharLen);
-      {$else}
-      C := UnicodeStringNextChar(S, TextIndex, NextTextIndex);
-      TextIndex := NextTextIndex;
-      {$endif}
-
-      G := FFont.Glyph(C);
+      G := FFont.Glyph(Iter.Current);
       if G <> nil then
       begin
         if (G.Width <> 0) and (G.Height <> 0) then
@@ -458,10 +451,6 @@ begin
         ScreenX := ScreenX + G.AdvanceX * Scale + Outline * 2;
         ScreenY := ScreenY + G.AdvanceY * Scale;
       end;
-
-      {$ifdef FPC}
-      C := UTF8CharacterToUnicode(TextPtr, CharLen);
-      {$endif}
     end;
 
     if TargetImage = nil then
@@ -481,24 +470,10 @@ begin
   if TargetImage <> nil then
     FFont.Image.ColorWhenTreatedAsAlpha := Vector3Byte(Color.XYZ); // ignore Color[3] for now
 
-  {$ifdef FPC}
-  TextPtr := PChar(S);
-  C := UTF8CharacterToUnicode(TextPtr, CharLen);
-  while (C > 0) and (CharLen > 0) do
-  {$else}
-  TextIndex := 1;
-  TextLength := Length(S);
-  while (TextIndex <= TextLength) do
-  {$endif}
+  Iter.Start(S);
+  while Iter.GetNext do
   begin
-    {$ifdef FPC}
-    Inc(TextPtr, CharLen);
-    {$else}
-    C := UnicodeStringNextChar(S, TextIndex, NextTextIndex);
-    TextIndex := NextTextIndex;
-    {$endif}
-
-    G := FFont.Glyph(C);
+    G := FFont.Glyph(Iter.Current);
     if G <> nil then
     begin
       if (G.Width <> 0) and (G.Height <> 0) then
@@ -509,10 +484,6 @@ begin
       ScreenX := ScreenX + G.AdvanceX * Scale + Outline * 2;
       ScreenY := ScreenY + G.AdvanceY * Scale;
     end;
-
-    {$ifdef FPC}
-    C := UTF8CharacterToUnicode(TextPtr, CharLen);
-    {$endif}
   end;
 
   if TargetImage = nil then

@@ -14,7 +14,7 @@ TCastleWindow* window;
 
 _fastcall void ApplicationInitialize()
 {
-    //Adjust container settings for a scalable UI (adjusts to any window size in a smart way).
+    // Adjust container settings for a scalable UI (adjusts to any window size in a smart way).
     window->Container->LoadSettings("castle-data:/CastleSettings.xml");
 
     // Create views (see https://castle-engine.io/views ).

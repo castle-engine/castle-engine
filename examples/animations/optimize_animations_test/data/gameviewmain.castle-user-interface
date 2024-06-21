@@ -1,0 +1,1051 @@
+{
+  "$$ClassName" : "TCastleUserInterface",
+  "FullSize" : true,
+  "Name" : "RootGroup",
+  "$Children" : [
+    {
+      "$$ClassName" : "TCastleViewport",
+      "Background" : "Background1",
+      "BlendingSort" : "sort2D",
+      "Camera" : "Camera1",
+      "FullSize" : true,
+      "Items" : {
+        "$$ClassName" : "TCastleRootTransform",
+        "PhysicsProperties" : {
+          "$$ClassName" : "TPhysicsProperties",
+          "LayerCollisions" : {
+            "$$ClassName" : "TCastleLayerCollisions"
+          },
+          "LayerNames" : {
+            "$$ClassName" : "TCastleLayerNames"
+          }
+        },
+        "$Children" : [
+          {
+            "$$ClassName" : "TCastleCamera",
+            "Name" : "Camera1",
+            "Orthographic" : {
+              "$$ClassName" : "TCastleOrthographic"
+            },
+            "Perspective" : {
+              "$$ClassName" : "TCastlePerspective"
+            },
+            "RotationPersistent" : {
+              "$$ClassName" : "TCastleVector4RotationPersistent",
+              "W" : 9.2408269643783569E-002,
+              "X" : -3.7625426054000854E-001,
+              "Y" : -9.2563605308532715E-001,
+              "Z" : -4.0385250002145767E-002
+            },
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : -3.7773506641387939E+000,
+              "Y" : 3.2089664936065674E+000,
+              "Z" : 4.0605861663818359E+001
+            }
+          },
+          {
+            "$$ClassName" : "TCastlePointLight",
+            "Intensity" : 1.0000000000000000E+001,
+            "Name" : "PointLight1",
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : 4.0000000000000000E+000,
+              "Y" : 1.0000000000000000E+000,
+              "Z" : 2.1675298690795898E+001
+            }
+          },
+          {
+            "$$ClassName" : "TCastleScene",
+            "AutoAnimation" : "flying",
+            "Cache" : true,
+            "ExposeTransforms" : [
+            ],
+            "Name" : "SceneDragon1",
+            "ProcessEvents" : true,
+            "RenderOptions" : {
+              "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+            },
+            "ScalePersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : 3.0000000260770321E-003,
+              "Y" : 3.0000000260770321E-003,
+              "Z" : 3.0000000260770321E-003
+            },
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : -2.0606780052185059E+000,
+              "Y" : 2.0852856636047363E+000,
+              "Z" : 6.2232904434204102E+000
+            },
+            "Url" : "castle-data:/dragon/dragon.json"
+          },
+          {
+            "$$ClassName" : "TCastleScene",
+            "AutoAnimation" : "flying",
+            "Cache" : true,
+            "ExposeTransforms" : [
+            ],
+            "Name" : "SceneDragon2",
+            "ProcessEvents" : true,
+            "RenderOptions" : {
+              "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+            },
+            "ScalePersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : 3.0000000260770321E-003,
+              "Y" : 3.0000000260770321E-003,
+              "Z" : 3.0000000260770321E-003
+            },
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : 6.6796088218688965E+000,
+              "Y" : 2.0852856636047363E+000,
+              "Z" : 6.2232904434204102E+000
+            },
+            "Url" : "castle-data:/dragon/dragon.json"
+          },
+          {
+            "$$ClassName" : "TCastleScene",
+            "AutoAnimation" : "flying",
+            "Cache" : true,
+            "ExposeTransforms" : [
+            ],
+            "Name" : "SceneDragon3",
+            "ProcessEvents" : true,
+            "RenderOptions" : {
+              "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+            },
+            "ScalePersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : 3.0000000260770321E-003,
+              "Y" : 3.0000000260770321E-003,
+              "Z" : 3.0000000260770321E-003
+            },
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : 1.4072148323059082E+001,
+              "Y" : 2.0852856636047363E+000,
+              "Z" : 6.2232904434204102E+000
+            },
+            "Url" : "castle-data:/dragon/dragon.json"
+          },
+          {
+            "$$ClassName" : "TCastleScene",
+            "AutoAnimation" : "flying",
+            "Cache" : true,
+            "ExposeTransforms" : [
+            ],
+            "Name" : "SceneDragon4",
+            "ProcessEvents" : true,
+            "RenderOptions" : {
+              "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+            },
+            "ScalePersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : 3.0000000260770321E-003,
+              "Y" : 3.0000000260770321E-003,
+              "Z" : 3.0000000260770321E-003
+            },
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : 1.4072148323059082E+001,
+              "Y" : 1.0577957153320312E+001,
+              "Z" : 6.2232904434204102E+000
+            },
+            "Url" : "castle-data:/dragon/dragon.json"
+          },
+          {
+            "$$ClassName" : "TCastleScene",
+            "AutoAnimation" : "flying",
+            "Cache" : true,
+            "ExposeTransforms" : [
+            ],
+            "Name" : "SceneDragon5",
+            "ProcessEvents" : true,
+            "RenderOptions" : {
+              "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+            },
+            "ScalePersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : 3.0000000260770321E-003,
+              "Y" : 3.0000000260770321E-003,
+              "Z" : 3.0000000260770321E-003
+            },
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : -2.6055698394775391E+000,
+              "Y" : 1.0577957153320312E+001,
+              "Z" : 6.2232904434204102E+000
+            },
+            "Url" : "castle-data:/dragon/dragon.json"
+          },
+          {
+            "$$ClassName" : "TCastleScene",
+            "AutoAnimation" : "flying",
+            "Cache" : true,
+            "ExposeTransforms" : [
+            ],
+            "Name" : "SceneDragon7",
+            "ProcessEvents" : true,
+            "RenderOptions" : {
+              "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+            },
+            "ScalePersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : 3.0000000260770321E-003,
+              "Y" : 3.0000000260770321E-003,
+              "Z" : 3.0000000260770321E-003
+            },
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : -1.0507854461669922E+001,
+              "Y" : 1.0577957153320312E+001,
+              "Z" : 6.2232904434204102E+000
+            },
+            "Url" : "castle-data:/dragon/dragon.json"
+          },
+          {
+            "$$ClassName" : "TCastleScene",
+            "AutoAnimation" : "flying",
+            "Cache" : true,
+            "ExposeTransforms" : [
+            ],
+            "Name" : "SceneDragon9",
+            "ProcessEvents" : true,
+            "RenderOptions" : {
+              "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+            },
+            "ScalePersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : 3.0000000260770321E-003,
+              "Y" : 3.0000000260770321E-003,
+              "Z" : 3.0000000260770321E-003
+            },
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : -1.0507854461669922E+001,
+              "Y" : 2.3194432258605957E+000,
+              "Z" : 6.2232904434204102E+000
+            },
+            "Url" : "castle-data:/dragon/dragon.json"
+          },
+          {
+            "$$ClassName" : "TCastleScene",
+            "AutoAnimation" : "flying",
+            "Cache" : true,
+            "ExposeTransforms" : [
+            ],
+            "Name" : "SceneDragon10",
+            "ProcessEvents" : true,
+            "RenderOptions" : {
+              "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+            },
+            "ScalePersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : 3.0000000260770321E-003,
+              "Y" : 3.0000000260770321E-003,
+              "Z" : 3.0000000260770321E-003
+            },
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : -1.6479454040527344E+001,
+              "Y" : 2.3194432258605957E+000,
+              "Z" : 6.2232904434204102E+000
+            },
+            "Url" : "castle-data:/dragon/dragon.json"
+          },
+          {
+            "$$ClassName" : "TCastleScene",
+            "AutoAnimation" : "flying",
+            "Cache" : true,
+            "ExposeTransforms" : [
+            ],
+            "Name" : "SceneDragon11",
+            "ProcessEvents" : true,
+            "RenderOptions" : {
+              "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+            },
+            "ScalePersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : 3.0000000260770321E-003,
+              "Y" : 3.0000000260770321E-003,
+              "Z" : 3.0000000260770321E-003
+            },
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : -1.6479454040527344E+001,
+              "Y" : 8.2000722885131836E+000,
+              "Z" : 6.2232904434204102E+000
+            },
+            "Url" : "castle-data:/dragon/dragon.json"
+          },
+          {
+            "$$ClassName" : "TCastleScene",
+            "AutoAnimation" : "flying",
+            "Cache" : true,
+            "ExposeTransforms" : [
+            ],
+            "Name" : "SceneDragon12",
+            "ProcessEvents" : true,
+            "RenderOptions" : {
+              "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+            },
+            "ScalePersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : 3.0000000260770321E-003,
+              "Y" : 3.0000000260770321E-003,
+              "Z" : 3.0000000260770321E-003
+            },
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : -9.6464834213256836E+000,
+              "Y" : 8.2000722885131836E+000,
+              "Z" : 6.2232904434204102E+000
+            },
+            "Url" : "castle-data:/dragon/dragon.json"
+          },
+          {
+            "$$ClassName" : "TCastleScene",
+            "AutoAnimation" : "flying",
+            "Cache" : true,
+            "ExposeTransforms" : [
+            ],
+            "Name" : "SceneDragon13",
+            "ProcessEvents" : true,
+            "RenderOptions" : {
+              "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+            },
+            "ScalePersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : 3.0000000260770321E-003,
+              "Y" : 3.0000000260770321E-003,
+              "Z" : 3.0000000260770321E-003
+            },
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : -5.8454775810241699E-001,
+              "Y" : 8.2000722885131836E+000,
+              "Z" : 6.2232904434204102E+000
+            },
+            "Url" : "castle-data:/dragon/dragon.json"
+          },
+          {
+            "$$ClassName" : "TCastleScene",
+            "AutoAnimation" : "flying",
+            "Cache" : true,
+            "ExposeTransforms" : [
+            ],
+            "Name" : "SceneDragon14",
+            "ProcessEvents" : true,
+            "RenderOptions" : {
+              "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+            },
+            "ScalePersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : 3.0000000260770321E-003,
+              "Y" : 3.0000000260770321E-003,
+              "Z" : 3.0000000260770321E-003
+            },
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : 5.9593615531921387E+000,
+              "Y" : 8.2000722885131836E+000,
+              "Z" : 6.2232904434204102E+000
+            },
+            "Url" : "castle-data:/dragon/dragon.json"
+          },
+          {
+            "$$ClassName" : "TCastleScene",
+            "AutoAnimation" : "flying",
+            "Cache" : true,
+            "ExposeTransforms" : [
+            ],
+            "Name" : "SceneDragon15",
+            "ProcessEvents" : true,
+            "RenderOptions" : {
+              "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+            },
+            "ScalePersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : 3.0000000260770321E-003,
+              "Y" : 3.0000000260770321E-003,
+              "Z" : 3.0000000260770321E-003
+            },
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : 1.4780161857604980E+001,
+              "Y" : 8.2000722885131836E+000,
+              "Z" : 6.2232904434204102E+000
+            },
+            "Url" : "castle-data:/dragon/dragon.json"
+          },
+          {
+            "$$ClassName" : "TCastleScene",
+            "AutoAnimation" : "flying",
+            "Cache" : true,
+            "ExposeTransforms" : [
+            ],
+            "Name" : "SceneDragon16",
+            "ProcessEvents" : true,
+            "RenderOptions" : {
+              "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+            },
+            "ScalePersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : 3.0000000260770321E-003,
+              "Y" : 3.0000000260770321E-003,
+              "Z" : 3.0000000260770321E-003
+            },
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : 1.4780161857604980E+001,
+              "Y" : 1.2791882514953613E+001,
+              "Z" : 6.2232904434204102E+000
+            },
+            "Url" : "castle-data:/dragon/dragon.json"
+          },
+          {
+            "$$ClassName" : "TCastleScene",
+            "AutoAnimation" : "flying",
+            "Cache" : true,
+            "ExposeTransforms" : [
+            ],
+            "Name" : "SceneDragon8",
+            "ProcessEvents" : true,
+            "RenderOptions" : {
+              "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+            },
+            "ScalePersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : 3.0000000260770321E-003,
+              "Y" : 3.0000000260770321E-003,
+              "Z" : 3.0000000260770321E-003
+            },
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : -1.0507854461669922E+001,
+              "Y" : 1.0577957153320312E+001,
+              "Z" : 6.2232904434204102E+000
+            },
+            "Url" : "castle-data:/dragon/dragon.json"
+          },
+          {
+            "$$ClassName" : "TCastleScene",
+            "AutoAnimation" : "flying",
+            "Cache" : true,
+            "ExposeTransforms" : [
+            ],
+            "Name" : "SceneDragon6",
+            "ProcessEvents" : true,
+            "RenderOptions" : {
+              "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+            },
+            "ScalePersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : 3.0000000260770321E-003,
+              "Y" : 3.0000000260770321E-003,
+              "Z" : 3.0000000260770321E-003
+            },
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : 5.7304258346557617E+000,
+              "Y" : 1.0577957153320312E+001,
+              "Z" : 6.2232904434204102E+000
+            },
+            "Url" : "castle-data:/dragon/dragon.json"
+          },
+          {
+            "$$ClassName" : "TCastleScene",
+            "AutoAnimation" : "walk",
+            "Cache" : true,
+            "ExposeTransforms" : [
+            ],
+            "Name" : "SceneSoldier11",
+            "ProcessEvents" : true,
+            "RenderOptions" : {
+              "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+            },
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : 1.4470641136169434E+001,
+              "Y" : -2.6079812049865723E+000,
+              "Z" : 7.5960888862609863E+000
+            },
+            "Url" : "castle-data:/enemy/soldier1.gltf"
+          },
+          {
+            "$$ClassName" : "TCastleScene",
+            "AutoAnimation" : "walk",
+            "Cache" : true,
+            "ExposeTransforms" : [
+            ],
+            "Name" : "SceneSoldier12",
+            "ProcessEvents" : true,
+            "RenderOptions" : {
+              "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+            },
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : 9.2716455459594727E+000,
+              "Y" : -2.6079812049865723E+000,
+              "Z" : 7.5960888862609863E+000
+            },
+            "Url" : "castle-data:/enemy/soldier1.gltf"
+          },
+          {
+            "$$ClassName" : "TCastleScene",
+            "AutoAnimation" : "walk",
+            "Cache" : true,
+            "ExposeTransforms" : [
+            ],
+            "Name" : "SceneSoldier13",
+            "ProcessEvents" : true,
+            "RenderOptions" : {
+              "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+            },
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : 2.0318965911865234E+000,
+              "Y" : -2.6079812049865723E+000,
+              "Z" : 7.5960888862609863E+000
+            },
+            "Url" : "castle-data:/enemy/soldier1.gltf"
+          },
+          {
+            "$$ClassName" : "TCastleScene",
+            "AutoAnimation" : "walk",
+            "Cache" : true,
+            "ExposeTransforms" : [
+            ],
+            "Name" : "SceneSoldier14",
+            "ProcessEvents" : true,
+            "RenderOptions" : {
+              "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+            },
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : 2.0318965911865234E+000,
+              "Y" : -5.8420987129211426E+000,
+              "Z" : 7.5960888862609863E+000
+            },
+            "Url" : "castle-data:/enemy/soldier1.gltf"
+          },
+          {
+            "$$ClassName" : "TCastleScene",
+            "AutoAnimation" : "walk",
+            "Cache" : true,
+            "ExposeTransforms" : [
+            ],
+            "Name" : "SceneSoldier15",
+            "ProcessEvents" : true,
+            "RenderOptions" : {
+              "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+            },
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : 7.9447774887084961E+000,
+              "Y" : -5.8420987129211426E+000,
+              "Z" : 7.5960888862609863E+000
+            },
+            "Url" : "castle-data:/enemy/soldier1.gltf"
+          },
+          {
+            "$$ClassName" : "TCastleScene",
+            "AutoAnimation" : "walk",
+            "Cache" : true,
+            "ExposeTransforms" : [
+            ],
+            "Name" : "SceneSoldier16",
+            "ProcessEvents" : true,
+            "RenderOptions" : {
+              "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+            },
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : 1.4212166786193848E+001,
+              "Y" : -5.8420987129211426E+000,
+              "Z" : 7.5960888862609863E+000
+            },
+            "Url" : "castle-data:/enemy/soldier1.gltf"
+          },
+          {
+            "$$ClassName" : "TCastleScene",
+            "AutoAnimation" : "walk",
+            "Cache" : true,
+            "ExposeTransforms" : [
+            ],
+            "Name" : "SceneSoldier17",
+            "ProcessEvents" : true,
+            "RenderOptions" : {
+              "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+            },
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : 1.2136445045471191E+001,
+              "Y" : -5.8420987129211426E+000,
+              "Z" : 7.5960888862609863E+000
+            },
+            "Url" : "castle-data:/enemy/soldier1.gltf"
+          },
+          {
+            "$$ClassName" : "TCastleScene",
+            "AutoAnimation" : "walk",
+            "Cache" : true,
+            "ExposeTransforms" : [
+            ],
+            "Name" : "SceneSoldier18",
+            "ProcessEvents" : true,
+            "RenderOptions" : {
+              "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+            },
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : 1.2136445045471191E+001,
+              "Y" : -1.5289807319641113E+000,
+              "Z" : 7.5960888862609863E+000
+            },
+            "Url" : "castle-data:/enemy/soldier1.gltf"
+          },
+          {
+            "$$ClassName" : "TCastleScene",
+            "AutoAnimation" : "walk",
+            "Cache" : true,
+            "ExposeTransforms" : [
+            ],
+            "Name" : "SceneSoldier19",
+            "ProcessEvents" : true,
+            "RenderOptions" : {
+              "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+            },
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : 6.2038388252258301E+000,
+              "Y" : -1.5289807319641113E+000,
+              "Z" : 7.5960888862609863E+000
+            },
+            "Url" : "castle-data:/enemy/soldier1.gltf"
+          },
+          {
+            "$$ClassName" : "TCastleScene",
+            "AutoAnimation" : "walk",
+            "Cache" : true,
+            "ExposeTransforms" : [
+            ],
+            "Name" : "SceneSoldier21",
+            "ProcessEvents" : true,
+            "RenderOptions" : {
+              "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+            },
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : -4.1907411813735962E-001,
+              "Y" : -1.5289807319641113E+000,
+              "Z" : 7.5960888862609863E+000
+            },
+            "Url" : "castle-data:/enemy/soldier1.gltf"
+          },
+          {
+            "$$ClassName" : "TCastleScene",
+            "AutoAnimation" : "walk",
+            "Cache" : true,
+            "ExposeTransforms" : [
+            ],
+            "Name" : "SceneSoldier22",
+            "ProcessEvents" : true,
+            "RenderOptions" : {
+              "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+            },
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : -4.9907255172729492E+000,
+              "Y" : -1.5289807319641113E+000,
+              "Z" : 7.5960888862609863E+000
+            },
+            "Url" : "castle-data:/enemy/soldier1.gltf"
+          },
+          {
+            "$$ClassName" : "TCastleScene",
+            "AutoAnimation" : "walk",
+            "Cache" : true,
+            "ExposeTransforms" : [
+            ],
+            "Name" : "SceneSoldier23",
+            "ProcessEvents" : true,
+            "RenderOptions" : {
+              "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+            },
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : -8.8367462158203125E+000,
+              "Y" : -1.5289807319641113E+000,
+              "Z" : 7.5960888862609863E+000
+            },
+            "Url" : "castle-data:/enemy/soldier1.gltf"
+          },
+          {
+            "$$ClassName" : "TCastleScene",
+            "AutoAnimation" : "walk",
+            "Cache" : true,
+            "ExposeTransforms" : [
+            ],
+            "Name" : "SceneSoldier25",
+            "ProcessEvents" : true,
+            "RenderOptions" : {
+              "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+            },
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : -1.1870310783386230E+001,
+              "Y" : -1.5289807319641113E+000,
+              "Z" : 7.5960888862609863E+000
+            },
+            "Url" : "castle-data:/enemy/soldier1.gltf"
+          },
+          {
+            "$$ClassName" : "TCastleScene",
+            "AutoAnimation" : "walk",
+            "Cache" : true,
+            "ExposeTransforms" : [
+            ],
+            "Name" : "SceneSoldier26",
+            "ProcessEvents" : true,
+            "RenderOptions" : {
+              "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+            },
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : -1.5197978019714355E+001,
+              "Y" : -1.5289807319641113E+000,
+              "Z" : 7.5960888862609863E+000
+            },
+            "Url" : "castle-data:/enemy/soldier1.gltf"
+          },
+          {
+            "$$ClassName" : "TCastleScene",
+            "AutoAnimation" : "walk",
+            "Cache" : true,
+            "ExposeTransforms" : [
+            ],
+            "Name" : "SceneSoldier27",
+            "ProcessEvents" : true,
+            "RenderOptions" : {
+              "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+            },
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : -1.5197978019714355E+001,
+              "Y" : -4.6686897277832031E+000,
+              "Z" : 7.5960888862609863E+000
+            },
+            "Url" : "castle-data:/enemy/soldier1.gltf"
+          },
+          {
+            "$$ClassName" : "TCastleScene",
+            "AutoAnimation" : "walk",
+            "Cache" : true,
+            "ExposeTransforms" : [
+            ],
+            "Name" : "SceneSoldier28",
+            "ProcessEvents" : true,
+            "RenderOptions" : {
+              "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+            },
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : -1.1786517143249512E+001,
+              "Y" : -4.6686897277832031E+000,
+              "Z" : 7.5960888862609863E+000
+            },
+            "Url" : "castle-data:/enemy/soldier1.gltf"
+          },
+          {
+            "$$ClassName" : "TCastleScene",
+            "AutoAnimation" : "walk",
+            "Cache" : true,
+            "ExposeTransforms" : [
+            ],
+            "Name" : "SceneSoldier29",
+            "ProcessEvents" : true,
+            "RenderOptions" : {
+              "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+            },
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : -8.4996662139892578E+000,
+              "Y" : -4.6686897277832031E+000,
+              "Z" : 7.5960888862609863E+000
+            },
+            "Url" : "castle-data:/enemy/soldier1.gltf"
+          },
+          {
+            "$$ClassName" : "TCastleScene",
+            "AutoAnimation" : "walk",
+            "Cache" : true,
+            "ExposeTransforms" : [
+            ],
+            "Name" : "SceneSoldier30",
+            "ProcessEvents" : true,
+            "RenderOptions" : {
+              "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+            },
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : -6.8708457946777344E+000,
+              "Y" : -4.6686897277832031E+000,
+              "Z" : 7.5960888862609863E+000
+            },
+            "Url" : "castle-data:/enemy/soldier1.gltf"
+          },
+          {
+            "$$ClassName" : "TCastleScene",
+            "AutoAnimation" : "walk",
+            "Cache" : true,
+            "ExposeTransforms" : [
+            ],
+            "Name" : "SceneSoldier31",
+            "ProcessEvents" : true,
+            "RenderOptions" : {
+              "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+            },
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : -3.0769939422607422E+000,
+              "Y" : -4.6686897277832031E+000,
+              "Z" : 7.5960888862609863E+000
+            },
+            "Url" : "castle-data:/enemy/soldier1.gltf"
+          },
+          {
+            "$$ClassName" : "TCastleScene",
+            "AutoAnimation" : "walk",
+            "Cache" : true,
+            "ExposeTransforms" : [
+            ],
+            "Name" : "SceneSoldier32",
+            "ProcessEvents" : true,
+            "RenderOptions" : {
+              "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+            },
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : -1.0014505386352539E+000,
+              "Y" : -4.6686897277832031E+000,
+              "Z" : 7.5960888862609863E+000
+            },
+            "Url" : "castle-data:/enemy/soldier1.gltf"
+          },
+          {
+            "$$ClassName" : "TCastleScene",
+            "AutoAnimation" : "walk",
+            "Cache" : true,
+            "ExposeTransforms" : [
+            ],
+            "Name" : "SceneSoldier33",
+            "ProcessEvents" : true,
+            "RenderOptions" : {
+              "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+            },
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : -1.0014505386352539E+000,
+              "Y" : -4.6686897277832031E+000,
+              "Z" : 7.5960888862609863E+000
+            },
+            "Url" : "castle-data:/enemy/soldier1.gltf"
+          },
+          {
+            "$$ClassName" : "TCastleScene",
+            "AutoAnimation" : "walk",
+            "Cache" : true,
+            "ExposeTransforms" : [
+            ],
+            "Name" : "SceneSoldier24",
+            "ProcessEvents" : true,
+            "RenderOptions" : {
+              "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+            },
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : -8.8367462158203125E+000,
+              "Y" : -1.5289807319641113E+000,
+              "Z" : 7.5960888862609863E+000
+            },
+            "Url" : "castle-data:/enemy/soldier1.gltf"
+          },
+          {
+            "$$ClassName" : "TCastleScene",
+            "AutoAnimation" : "walk",
+            "Cache" : true,
+            "ExposeTransforms" : [
+            ],
+            "Name" : "SceneSoldier20",
+            "ProcessEvents" : true,
+            "RenderOptions" : {
+              "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+            },
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : 6.2038388252258301E+000,
+              "Y" : -5.0096406936645508E+000,
+              "Z" : 7.5960888862609863E+000
+            },
+            "Url" : "castle-data:/enemy/soldier1.gltf"
+          }
+        ]
+      },
+      "Name" : "MainViewport",
+      "$NonVisualComponents" : [
+        {
+          "$$ClassName" : "TCastleBackground",
+          "Name" : "Background1"
+        }
+      ],
+      "$Children" : [
+        {
+          "$$ClassName" : "TCastleWalkNavigation",
+          "Gravity" : false,
+          "MoveSpeed" : 5.0000000000000000E+001,
+          "Name" : "FlyNavigation"
+        }
+      ],
+      "InternalDesignCamera" : {
+        "$$ClassName" : "TCastleCamera",
+        "Name" : "",
+        "Orthographic" : {
+          "$$ClassName" : "TCastleOrthographic"
+        },
+        "Perspective" : {
+          "$$ClassName" : "TCastlePerspective"
+        },
+        "RotationPersistent" : {
+          "$$ClassName" : "TCastleVector4RotationPersistent",
+          "W" : 9.2565573751926422E-002,
+          "X" : 3.8928691297769547E-002,
+          "Y" : -9.9904048442840576E-001,
+          "Z" : -2.0071841776371002E-002
+        },
+        "ScalePersistent" : {
+          "$$ClassName" : "TCastleVector3Persistent",
+          "Z" : 9.9999994039535522E-001
+        },
+        "TranslationPersistent" : {
+          "$$ClassName" : "TCastleVector3Persistent",
+          "X" : -3.7773506641387939E+000,
+          "Y" : 3.2089664936065674E+000,
+          "Z" : 4.0605861663818359E+001
+        }
+      },
+      "InternalDesignNavigations[dnFly]" : {
+        "$$ClassName" : "TCastleWalkNavigationDesign",
+        "Name" : ""
+      },
+      "InternalDesignNavigations[dnExamine]" : {
+        "$$ClassName" : "TCastleExamineNavigationDesign",
+        "Exists" : false,
+        "Name" : ""
+      },
+      "InternalDesignNavigations[dn2D]" : {
+        "$$ClassName" : "TCastle2DNavigationDesign",
+        "Exists" : false,
+        "Name" : ""
+      }
+    },
+    {
+      "$$ClassName" : "TCastleLabel",
+      "ColorPersistent" : {
+        "$$ClassName" : "TCastleColorPersistent",
+        "Blue" : 2.3529412224888802E-002,
+        "Green" : 4.4705882668495178E-001
+      },
+      "FontSize" : 2.0000000000000000E+001,
+      "HorizontalAnchorParent" : "hpRight",
+      "HorizontalAnchorSelf" : "hpRight",
+      "Name" : "LabelFps",
+      "Text" : [
+        "FPS: xxx"
+      ],
+      "TranslationPersistent" : {
+        "$$ClassName" : "TCastleVector2Persistent",
+        "X" : -2.0000000000000000E+001,
+        "Y" : -2.0000000000000000E+001
+      },
+      "VerticalAnchorParent" : "vpTop",
+      "VerticalAnchorSelf" : "vpTop"
+    },
+    {
+      "$$ClassName" : "TCastleVerticalGroup",
+      "Name" : "VerticalGroup1",
+      "Padding" : 1.0000000000000000E+001,
+      "Spacing" : 1.0000000000000000E+001,
+      "TranslationPersistent" : {
+        "$$ClassName" : "TCastleVector2Persistent",
+        "Y" : -1.0000000000000000E+001
+      },
+      "VerticalAnchorParent" : "vpTop",
+      "VerticalAnchorSelf" : "vpTop",
+      "$Children" : [
+        {
+          "$$ClassName" : "TCastleCheckbox",
+          "Caption" : "Optimize Extensive Transformations",
+          "Name" : "CheckboxOptimizeExtensiveTransformations",
+          "TranslationPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent",
+            "X" : 1.0000000000000000E+001,
+            "Y" : -1.0000000000000000E+001
+          },
+          "VerticalAnchorParent" : "vpTop",
+          "VerticalAnchorSelf" : "vpTop"
+        },
+        {
+          "$$ClassName" : "TCastleCheckbox",
+          "Caption" : "(Internal) Fast Transform Update",
+          "Name" : "CheckboxInternalFastTransformUpdate",
+          "TranslationPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent",
+            "X" : 1.0000000000000000E+001,
+            "Y" : -4.4000000000000000E+001
+          },
+          "VerticalAnchorParent" : "vpTop",
+          "VerticalAnchorSelf" : "vpTop"
+        },
+        {
+          "$$ClassName" : "TCastleCheckbox",
+          "Caption" : "Dynamic Batching (optimizes rendering, not animating)",
+          "Name" : "CheckboxDynamicBatching",
+          "TranslationPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent",
+            "X" : 1.0000000000000000E+001,
+            "Y" : -7.8000000000000000E+001
+          },
+          "VerticalAnchorParent" : "vpTop",
+          "VerticalAnchorSelf" : "vpTop"
+        },
+        {
+          "$$ClassName" : "TCastleCheckbox",
+          "Caption" : "Animate Only When Visible",
+          "Name" : "CheckboxAnimateOnlyWhenVisible",
+          "TranslationPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent",
+            "X" : 1.0000000000000000E+001,
+            "Y" : -1.1200000000000000E+002
+          },
+          "VerticalAnchorParent" : "vpTop",
+          "VerticalAnchorSelf" : "vpTop"
+        },
+        {
+          "$$ClassName" : "TCastleCheckbox",
+          "Caption" : "Animate Skip Ticks = 1",
+          "Name" : "CheckboxAnimateSkipTicks1",
+          "TranslationPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent",
+            "X" : 1.0000000000000000E+001,
+            "Y" : -1.4600000000000000E+002
+          },
+          "VerticalAnchorParent" : "vpTop",
+          "VerticalAnchorSelf" : "vpTop"
+        }
+      ]
+    }
+  ]
+}

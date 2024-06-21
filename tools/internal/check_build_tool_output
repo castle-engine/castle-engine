@@ -1,0 +1,84 @@
+#!/bin/bash
+set -euo pipefail
+IFS=$'\n\t'
+
+# --------------------------------------------------------------------
+# Test --output option of castle-engine (build tool).
+# Assumes $CASTLE_ENGINE_PATH is set.
+# Current directory doesn't matter.
+# --------------------------------------------------------------------
+
+# ----------------------------------------------------------------------------
+# prepare output path
+
+export OUTPUT_PATH="/tmp/castle-engine-test-build-tool-output-$$/"
+
+mkdir "${OUTPUT_PATH}"
+function finish {
+  rm -Rf "${OUTPUT_PATH}"
+}
+trap finish EXIT
+
+# ----------------------------------------------------------------------------
+# prepare build tool
+
+cd "${CASTLE_ENGINE_PATH}"
+./tools/build-tool/castle-engine_compile.sh
+BUILD_TOOL="${CASTLE_ENGINE_PATH}/tools/build-tool/castle-engine"
+
+# ----------------------------------------------------------------------------
+# compile play_animation to temporary output path
+
+cd "${CASTLE_ENGINE_PATH}/examples/animations/play_animation/"
+"${BUILD_TOOL}" clean
+"${BUILD_TOOL}" compile --output="${OUTPUT_PATH}"
+"${BUILD_TOOL}" package --output="${OUTPUT_PATH}" --os=linux --cpu=x86_64
+"${BUILD_TOOL}" package --output="${OUTPUT_PATH}" --os=win64 --cpu=x86_64
+"${BUILD_TOOL}" package --output="${OUTPUT_PATH}" --os=android --cpu=arm
+
+# ----------------------------------------------------------------------------
+# check stuff does/doesn't exist
+
+check_file_exists ()
+{
+  if [ ! -f "$1" ]; then
+    echo "Missing file: ${1}"
+    exit 1
+  fi
+}
+
+check_dir_exists ()
+{
+  if [ ! -d "$1" ]; then
+    echo "Missing dir: ${1}"
+    exit 1
+  fi
+}
+
+check_file_not_exists ()
+{
+  if [ -f "$1" ]; then
+    echo "File should not exist: ${1}"
+    exit 1
+  fi
+}
+
+check_dir_not_exists ()
+{
+  if [ -d "$1" ]; then
+    echo "Dir should not exist: ${1}"
+    exit 1
+  fi
+}
+
+check_file_exists "${OUTPUT_PATH}"play_animation.exe
+check_file_exists "${OUTPUT_PATH}"play_animation
+check_file_exists "${OUTPUT_PATH}"play_animation-0.1-linux-x86_64.tar.gz
+check_file_exists "${OUTPUT_PATH}"play_animation-0.1-win64-x86_64.zip
+check_dir_exists "${OUTPUT_PATH}"castle-engine-output
+
+check_file_not_exists play_animation.exe
+check_file_not_exists play_animation
+check_file_not_exists play_animation-0.1-linux-x86_64.tar.gz
+check_file_not_exists play_animation-0.1-win64-x86_64.zip
+check_dir_not_exists castle-engine-output

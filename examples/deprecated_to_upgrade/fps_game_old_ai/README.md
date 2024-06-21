@@ -22,10 +22,7 @@ Example of a fully-working 3D FPS game using "Castle Game Engine". We have:
 
 ## TODO
 
-This example doesn't yet use _Castle Game Engine_ editor to setup level and creatures on it.
-See https://castle-engine.io/castle_game_engine_for_unity_developers#_why_does_editor_template_3d_fps_game_show_a_different_approach_than_examplesfps_game .
-Define `UPCOMING_FPS_GAME_REDESIGN` within `code/gameinitialize.pas` to see the (unfinished) fps_game version using properly CGE editor features.
-But note that it doesn't (yet) support creature AI or items pickup.
+This example doesn't yet use _Castle Game Engine_ editor to setup level and creatures on it. See `examples/fps_game` for a new version that uses the editor to setup the level.
 
 ## Keys
 
@@ -53,7 +50,7 @@ see castle-game for example.
 The ExtraViewport in right-bottom part of the screen uses Examine camera,
 so the view there is fully editable. Try dragging with mouse,
 "Home" key restores comfortable initial view,
-and see e.g. view3dscene docs for full key/mouse controls list.
+and see e.g. [Castle Model Viewer](https://castle-engine.io/castle-model-viewer) docs for full key/mouse controls list.
 
 ## Building
 
@@ -61,8 +58,8 @@ Using [Castle Game Engine](https://castle-engine.io/).
 
 Compile by:
 
-- [CGE editor](https://castle-engine.io/manual_editor.php). Just use menu item _"Compile"_.
+- [CGE editor](https://castle-engine.io/editor). Just use menu items _"Compile"_ or _"Compile And Run"_.
 
 - Or use [CGE command-line build tool](https://castle-engine.io/build_tool). Run `castle-engine compile` in this directory.
 
-- Or use [Lazarus](https://www.lazarus-ide.org/). Open in Lazarus `fps_game.lpi` file and compile / run from Lazarus. Make sure to first register [CGE Lazarus packages](https://castle-engine.io/documentation.php).
+- Or use [Lazarus](https://www.lazarus-ide.org/). Open in Lazarus `fps_game.lpi` file and compile / run from Lazarus. Make sure to first register [CGE Lazarus packages](https://castle-engine.io/lazarus).

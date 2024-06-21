@@ -117,7 +117,7 @@ type
 
         @item(We recognize video URLs by extension, and then try
           to load them through ffmpeg. So ffmpeg must be available
-          on $PATH for this. See view3dscene docs for some links.
+          on $PATH for this. See castle-model-viewer docs for some links.
 
           Internally, for now we just use ffmpeg to decompose the video to
           single images, and then proceed to load this image sequence.
@@ -408,7 +408,9 @@ const
 
 implementation
 
-uses Classes, {$ifndef FPC} Windows, ShellApi, {$endif} Math,
+uses Classes,
+  {$ifndef FPC} {$ifdef MSWINDOWS} Windows, ShellApi, {$endif} {$endif}
+  Math,
   CastleClassUtils, CastleUtils, CastleStringUtils,
   CastleLog, CastleFilesUtils, CastleTextureImages,
   CastleDownload, CastleUriUtils, CastleFindFiles;
@@ -730,10 +732,10 @@ procedure TVideo.SaveToFile(const Url: String);
       WritelnLog(Executable + ' -f image2 -i "' + TemporaryImagesPattern +
         '" -y -qscale 1 "' + FileName + '"');
 
-      {$ifdef FPC}
+      {$if defined(FPC)}
       ExecuteProcess(Executable,
         ['-f', 'image2', '-i', TemporaryImagesPattern, '-y', '-qscale', '1', FileName]);
-      {$else}
+      {$elseif defined(MSWINDOWS)}
       ShellExecute(
         0,
         'open',
@@ -741,6 +743,8 @@ procedure TVideo.SaveToFile(const Url: String);
         PChar('-f image2 -i ' + TemporaryImagesPattern + '-y -qscale 1 ' + FileName),
         nil,
         SW_SHOW);
+      {$else}
+      raise Exception.Create('TODO: Executing ffmpeg on Delphi/non-Windows not implemented');
       {$endif}
 
       RemoveTemporaryImages(TemporaryImagesPattern);
@@ -1016,9 +1020,10 @@ begin
       S := S + Parameter;
   end;
   WritelnLog(S);
-  {$ifdef FPC}
+
+  {$if defined(FPC)}
     ExecuteProcess(Executable, Parameters);
-  {$else}
+  {$elseif defined(MSWINDOWS)}
     ShellExecute(
       0,
       'open',
@@ -1026,6 +1031,8 @@ begin
       PChar(S),
       nil,
       SW_SHOW);
+  {$else}
+  raise Exception.Create('TODO: Executing ffmpeg on Delphi/non-Windows not implemented');
   {$endif}
 end;
 

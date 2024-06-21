@@ -1041,7 +1041,7 @@ begin
     then X is more important than Y than Z).
 
     Do it once (setting HasBounds2DST), this fixes JoeH-AnimKick0a.x3dv
-    renderering, see x3d-public thread about view3dscene 3.8.0 announcement. }
+    renderering, see x3d-public thread about castle-model-viewer 3.8.0 announcement. }
 
   if not HasBounds2DST then
   begin

@@ -23,7 +23,7 @@ interface
 
 uses Generics.Collections,
   X3DNodes, X3DFields, CastleImages, CastleVectors, CastleClassUtils,
-  {$ifdef FPC} CastleGL, {$else} OpenGL, OpenGLext, {$endif}
+  {$ifdef OpenGLES} CastleGLES, {$else} CastleGL, {$endif}
   CastleGLUtils, CastleInternalRenderer, CastleRenderOptions, CastleShapes;
 
 type
@@ -198,7 +198,7 @@ begin
     TTextureResources.Unprepare(State.MainTexture);
     { Make next PrepareResources prepare all textures.
       Testcase:
-      - view3dscene
+      - castle-model-viewer
       - open demo-models/rendered_texture/rendered_texture_tweak_size.x3dv
       - use s / S
       - without this fix, texture would change to none, and never again
@@ -212,7 +212,22 @@ end;
 function TGLShape.UnprepareTexture(Shape: TShape; Texture: TAbstractTextureNode): Pointer;
 begin
   Result := nil; // let EnumerateTextures to enumerate all textures
-  TTextureResources.Unprepare(Texture);
+
+  { Do not call TTextureResources.Unprepare
+    (which would do Texture.InternalRendererResourceFree in the end)
+    when Texture is TInternalReusedPixelTextureNode,
+    since this texture may be reused by other scenes.
+
+    Testcase:
+    - create in editor viewport, add TCastleText
+    - add another TCastleText
+    - remove one (any one) TCastleText --
+      the other TCastleText display will be broken
+      if condition "if not (Texture is TInternalReusedPixelTextureNode) then"
+      below gets removed.
+  }
+  if not (Texture is TInternalReusedPixelTextureNode) then
+    TTextureResources.Unprepare(Texture);
 end;
 
 function TGLShape.PrepareTexture(Shape: TShape; Texture: TAbstractTextureNode): Pointer;

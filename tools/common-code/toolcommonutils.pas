@@ -155,12 +155,6 @@ procedure RunCommandNoWait(
 { Determine and create a new (unique, with random number in the name) temp directory. }
 function CreateTemporaryDir: String;
 
-{ Make correct CGE project qualified name from any ProjectName. }
-function MakeQualifiedName(ProjectName: String): String;
-
-{ Make correct CGE project Pascal name from any ProjectName. }
-function MakeProjectPascalName(ProjectName: String): String;
-
 var
   { CGE manifest filename, designating CGE project root.
     Can be adjusted using `castle-engine --manifest-name=xxx`. }
@@ -189,7 +183,7 @@ begin
       Exit;
 
     { Look for exe wrapped in macOS application bundle,
-      necessary to find view3dscene, castle-view-image in CGE bin. }
+      necessary to find castle-model-viewer, castle-image-viewer in CGE bin. }
     {$ifdef DARWIN}
     Result := CastleEnginePath + 'bin' + PathDelim +
       ExeName + '.app' + PathDelim +
@@ -209,7 +203,23 @@ begin
   Result := FindExe(ExeName);
 end;
 
+function GetCastleEnginePathFromExeName: String; forward;
+
 function GetCastleEnginePathFromEnv: String;
+
+  { Do everything possible to make paths that actually point to the same
+    location be the same string. }
+  function PathCanonical(const S: String): String;
+  begin
+    Result := S;
+    if Length(Result) <> 1 then // do not change root directory '/'
+      Result := ExclPathDelim(Result);
+    Result := ExpandFileName(Result);
+    Result := SReplaceChars(Result, '\', '/');
+  end;
+
+var
+  EnginePathFromExe: String;
 begin
   Result := GetEnvironmentVariable('CASTLE_ENGINE_PATH');
   if Result = '' then
@@ -247,6 +257,19 @@ begin
   if not DirectoryExists(Result + 'tools' + PathDelim + 'build-tool' + PathDelim + 'data') then
     WritelnWarning('$CASTLE_ENGINE_PATH environment variable defined, but we cannot find build tool data inside: "%s". We try to continue, but some packaging operations will fail.',
       [Result]);
+
+  if Result <> '' then
+  begin
+    EnginePathFromExe := GetCastleEnginePathFromExeName;
+    if (EnginePathFromExe <> '') and
+       (not SameFileName(PathCanonical(Result), PathCanonical(EnginePathFromExe))) then
+    begin
+      WritelnWarning('$CASTLE_ENGINE_PATH environment variable points to a different directory than the one detected from the executable path: "%s" vs "%s". This may be a mistake, possibly you have two (different) engine versions installed. Please check your environment, likely remove one of the engine versions or undefine CASTLE_ENGINE_PATH to not point to the engine that shall be unused.', [
+        Result,
+        EnginePathFromExe
+      ]);
+    end;
+  end;
 end;
 
 { Check is Path a sensible CGE sources path.
@@ -863,36 +886,6 @@ begin
     ApplicationName + IntToStr(Random(1000000));
   CheckForceDirectories(Result);
   WritelnVerbose('Created temporary dir for package: ' + Result);
-end;
-
-const
-  AlphaNum = ['a'..'z', 'A'..'Z', '0'..'9'];
-
-function MakeQualifiedName(ProjectName: String): String;
-const
-  { See ToolProject constant in CGE build tool. }
-  QualifiedNameAllowedChars = AlphaNum + ['.'];
-  QualifiedNameAllowedCharsFirst = QualifiedNameAllowedChars - ['.', '0'..'9'];
-begin
-  ProjectName := SDeleteChars(ProjectName, AllChars - QualifiedNameAllowedChars);
-  if (ProjectName <> '') and not (ProjectName[1] in QualifiedNameAllowedCharsFirst) then
-    ProjectName := 'project' + ProjectName;
-  if ProjectName = '' then
-    ProjectName := 'project'; // if ProjectName is left empty after above deletions, set it to anything
-  Result := 'com.mycompany.' + ProjectName;
-end;
-
-function MakeProjectPascalName(ProjectName: String): String;
-const
-  ValidProjectPascalNameChars = AlphaNum + ['_'];
-  ValidProjectPascalNameCharsFirst = ValidProjectPascalNameChars - ['0'..'9'];
-begin
-  ProjectName := SReplaceChars(ProjectName, AllChars - ValidProjectPascalNameChars, '_');
-  if (ProjectName <> '') and not (ProjectName[1] in ValidProjectPascalNameCharsFirst) then
-    ProjectName := 'project' + ProjectName;
-  if ProjectName = '' then
-    ProjectName := 'project'; // if ProjectName is left empty after above deletions, set it to anything
-  Result := ProjectName;
 end;
 
 end.

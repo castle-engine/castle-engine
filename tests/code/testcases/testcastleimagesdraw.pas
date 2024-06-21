@@ -18,9 +18,7 @@ unit TestCastleImagesDraw;
 
 interface
 
-uses
-  {$ifndef CASTLE_TESTER}FpcUnit, TestUtils, TestRegistry, CastleTestCase,{$else}
-  CastleTester, {$endif}CastleImages;
+uses CastleTester, CastleImages;
 
 type
   TTestImagesDraw = class(TCastleTestCase)

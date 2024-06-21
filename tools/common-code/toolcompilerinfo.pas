@@ -41,6 +41,11 @@ function FindExeLazarus(const ExeName: String): String;
   and LazarusCustomPath. }
 function PathExtendForFpcLazarus(const PathList: String): String;
 
+{ Write environment information to the standard output.
+  See "castle-engine --help" for valid arguments after "castle-engine output-environment",
+  these are values allowed for OutputKey. }
+procedure DoOutputEnvironment(const OutputKey: String);
+
 type
   EExecutableNotFound = class(EShortErrorMessage);
 
@@ -144,6 +149,22 @@ begin
 
   if LazarusCustomPath <> '' then
     Result := PathAppend(Result, LazarusCustomPath);
+end;
+
+procedure DoOutputEnvironment(const OutputKey: String);
+var
+  StandardUnitsPath: String;
+begin
+  case OutputKey of
+    'fpc-exe':
+      Writeln(FindExeFpcCompiler(false));
+    'fpc-standard-units-path':
+    begin
+      FindExeFpcCompiler(false, StandardUnitsPath);
+      Writeln(StandardUnitsPath);
+    end
+    else raise Exception.CreateFmt('Unsupported output key: "%s"', [OutputKey]);
+  end;
 end;
 
 function FindExeFpcCompiler(const ExceptionWhenMissing: Boolean; out FpcStandardUnitsPath: String): String;

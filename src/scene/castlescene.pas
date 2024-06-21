@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2023 Michalis Kamburelis.
+  Copyright 2003-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -29,7 +29,7 @@ unit CastleScene;
 interface
 
 uses SysUtils, Classes, Generics.Collections,
-  {$ifdef FPC} CastleGL, {$else} OpenGL, OpenGLext, {$endif}
+  {$ifdef OpenGLES} CastleGLES, {$else} CastleGL, {$endif}
   CastleVectors, CastleBoxes, X3DNodes, CastleClassUtils, CastleFonts,
   CastleUtils, CastleSceneCore, CastleInternalBackgroundRenderer,
   CastleGLUtils, CastleInternalShapeOctree, CastleInternalGLShadowVolumes, X3DFields,
@@ -457,12 +457,6 @@ const
   weWireframeOnly = CastleRenderOptions.weWireframeOnly;
   weSolidWireframe = CastleRenderOptions.weSolidWireframe;
   weSilhouette = CastleRenderOptions.weSilhouette;
-
-  paDefault = CastleSceneCore.paDefault;
-  paForceLooping = CastleSceneCore.paForceLooping;
-  paForceNotLooping = CastleSceneCore.paForceNotLooping;
-  paLooping = CastleSceneCore.paLooping;
-  paNotLooping = CastleSceneCore.paNotLooping;
 
   ssRendering = CastleSceneCore.ssRendering;
   ssDynamicCollisions = CastleSceneCore.ssDynamicCollisions;
@@ -1136,6 +1130,13 @@ var
   ShapeWorldTransform: TMatrix4;
   ForceOpaque: boolean;
 begin
+  { Call inherited to render shadow quads of children,
+    in case one TCastleScene is a child of another.
+    See https://forum.castle-engine.io/t/shadow-ignors-distanceculling/670/14 for testcase.
+    Note that inherited also checks "CheckVisible and CastShadows",
+    so they work recursively. }
+  inherited;
+
   if CheckVisible and
      CastShadows and
      { Do not render shadow volumes when rendering wireframe.
@@ -1564,7 +1565,8 @@ begin
     if Params.Frustum = nil then
       LocalRenderOutside(nil, Params)
     else
-    if (InternalOctreeRendering <> nil) and ShapeFrustumCulling then
+    if (InternalOctreeRendering <> nil) and
+       ShapeFrustumCulling then
     begin
       { Check above ShapeFrustumCulling, since the InternalOctreeRendering
         does per-shape frustum culling automatically, even before

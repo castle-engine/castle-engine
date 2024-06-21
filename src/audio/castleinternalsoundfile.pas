@@ -34,7 +34,7 @@ type
     FUrl: String;
     DataStream: TMemoryStream;
     FDataFormat: TSoundDataFormat;
-    FFrequency: LongWord;
+    FFrequency: Cardinal;
     FDuration: TFloatTime;
   public
     { Load a sound data from a given URL.
@@ -59,9 +59,9 @@ type
       Contents of Data are readonly. }
     function Data: Pointer;
     { Bytes allocated for @link(Data). }
-    function DataSize: LongWord;
+    function DataSize: Cardinal;
     property DataFormat: TSoundDataFormat read FDataFormat;
-    property Frequency: LongWord read FFrequency;
+    property Frequency: Cardinal read FFrequency;
 
     { Duration in seconds. Returns -1 if not known. }
     property Duration: TFloatTime read FDuration;
@@ -76,7 +76,7 @@ type
     FUrl: String;
     CompressedStream, DecompressedStream: TStream;
     FDataFormat: TSoundDataFormat;
-    FFrequency: LongWord;
+    FFrequency: Cardinal;
     FDuration: TFloatTime;
   public
     { Load a sound from a given URL.
@@ -97,7 +97,7 @@ type
     property Url: String read FUrl;
 
     property DataFormat: TSoundDataFormat read FDataFormat;
-    property Frequency: LongWord read FFrequency;
+    property Frequency: Cardinal read FFrequency;
     property Duration: TFloatTime read FDuration;
 
     { Returns read size. }
@@ -116,7 +116,7 @@ type
     by DataFormat. }
   TSoundReadEvent = function (
     const Url: String; const Stream: TStream;
-    out DataFormat: TSoundDataFormat; out Frequency: LongWord;
+    out DataFormat: TSoundDataFormat; out Frequency: Cardinal;
     out Duration: TFloatTime): TStream
     of object;
 
@@ -260,7 +260,7 @@ begin
   Result := DataStream.Memory;
 end;
 
-function TSoundFile.DataSize: LongWord;
+function TSoundFile.DataSize: Cardinal;
 begin
   Result := DataStream.Size;
 end;
@@ -383,12 +383,12 @@ type
 
   TWAVReader = class
     class function Read(const Url: String; const Stream: TStream;
-      out DataFormat: TSoundDataFormat; out Frequency: LongWord;
+      out DataFormat: TSoundDataFormat; out Frequency: Cardinal;
       out Duration: TFloatTime): TStream;
   end;
 
 class function TWAVReader.Read(const Url: String; const Stream: TStream;
-  out DataFormat: TSoundDataFormat; out Frequency: LongWord;
+  out DataFormat: TSoundDataFormat; out Frequency: Cardinal;
   out Duration: TFloatTime): TStream;
 
 { WAV file reader. Written mostly based on
@@ -430,8 +430,8 @@ type
     { 1 channel means mono, 2 = stereo. Theoretically other values
       are probably possible? }
     Channels: Word;
-    SamplesPerSec: LongWord;
-    AvgBytesPerSec: LongWord;
+    SamplesPerSec: UInt32;
+    AvgBytesPerSec: UInt32;
     BlockAlign: Word;
     BitsPerSample: Word;
   end;
@@ -571,7 +571,11 @@ begin
   begin
     FRegisteredSoundFormats := TRegisteredSoundFormats.Create(true);
     // register default formats, handled in this unit
+    { WAV has 2 popular MIME types,
+      see https://stackoverflow.com/questions/44891157/why-wav-format-doesnt-have-same-mimetype-in-different-browsers }
     FRegisteredSoundFormats.Add('audio/x-wav',
+      {$ifdef FPC}@{$endif}TWAVReader{$ifdef FPC}(nil){$endif}.Read);
+    FRegisteredSoundFormats.Add('audio/wav',
       {$ifdef FPC}@{$endif}TWAVReader{$ifdef FPC}(nil){$endif}.Read);
   end;
   Result := FRegisteredSoundFormats;

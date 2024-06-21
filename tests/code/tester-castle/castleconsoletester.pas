@@ -1,4 +1,4 @@
-{
+﻿{
   Copyright 2022-2022 Andrzej Kilijański, Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
@@ -28,22 +28,17 @@ type
     procedure TestFailed(const TestName, Msg: String);
 
     procedure Log(const AMessage: String);
-  private
-    FilterTests: String;
   public
     constructor Create;
     destructor Destroy; override;
 
-    { Parse --filter command-line parameter. }
-    procedure ParseParameters;
-
-    { Runs all tests (allowed by current filter, if any). }
+    { Runs all tests (allowed by current ParamFilter, if any). }
     procedure Run(const ATestCaseToRun: String = '');
   end;
 
 implementation
 
-uses CastleLog, CastleParameters, CastleUtils;
+uses CastleLog, CastleTesterParameters, CastleUtils, CastleStringUtils;
 
 procedure TCastleConsoleTester.TestFailed(const TestName, Msg: String);
 begin
@@ -52,6 +47,7 @@ end;
 
 constructor TCastleConsoleTester.Create;
 begin
+  inherited;
   FTester := TCastleTester.Create(nil);
   FTester.NotifyTestCaseExecuted := {$ifdef FPC}@{$endif}TestExecuted;
   FTester.NotifyTestFail := {$ifdef FPC}@{$endif}TestFailed;
@@ -60,6 +56,7 @@ end;
 destructor TCastleConsoleTester.Destroy;
 begin
   FreeAndNil(FTester);
+  inherited;
 end;
 
 procedure TCastleConsoleTester.Log(const AMessage: String);
@@ -73,9 +70,9 @@ begin
   Log('Scaning tests...');
   FTester.Scan;
   Log('Found ' + IntToStr(FTester.EnabledTestCount) + ' tests.');
-  if FilterTests <> '' then
+  if ParamFilter <> '' then
   begin
-    FTester.EnableFilter(FilterTests);
+    FTester.EnableFilter(ParamFilter);
     Log('Applying filter: Enabled ' + IntToStr(FTester.EnabledTestCount) + ' tests.');
   end;
   Log('Preparing tests...');
@@ -92,29 +89,6 @@ end;
 procedure TCastleConsoleTester.TestExecuted(const AName: String);
 begin
   Log('Processing: ' + AName);
-end;
-
-{ Handle --filter command-line option.
-  This is a callback for Parameters.Parse. }
-procedure OptionProc(OptionNum: Integer; HasArgument: boolean;
-  const Argument: string; const SeparateArgs: TSeparateArgs; Data: Pointer);
-var
-  Sender: TCastleConsoleTester;
-begin
-  Sender := TCastleConsoleTester(Data);
-  case OptionNum of
-    0: Sender.FilterTests := Argument;
-    else raise EInternalError.Create('OptionProc: OptionNum = ' + IntToStr(OptionNum));
-  end;
-end;
-
-procedure TCastleConsoleTester.ParseParameters;
-const
-  Options: array [0..0] of TOption = (
-    (Short:'f'; Long:'filter'; Argument: oaRequired)
-  );
-begin
-  Parameters.Parse(Options, @OptionProc, Self, true);
 end;
 
 end.

@@ -1,5 +1,5 @@
 {
-  Copyright 2018-2023 Michalis Kamburelis.
+  Copyright 2018-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -77,7 +77,7 @@ implementation
 
 uses CastleConfig, CastleLCLUtils, CastleUriUtils, CastleUtils, CastleOpenDocument,
   CastleFilesUtils, CastleParameters, CastleLog, CastleStringUtils, CastleGLUtils,
-  CastleApplicationProperties,
+  CastleApplicationProperties, CastleInternalTools,
   ProjectUtils, EditorUtils, FormNewProject, FormPreferences,
   ToolCompilerInfo, ToolFpcVersion, ToolManifest, ToolCommonUtils,
   FormProject, FormNewUnit;
@@ -134,7 +134,8 @@ end;
 
 procedure TChooseProjectForm.ButtonNewClick(Sender: TObject);
 var
-  ProjectDir, ProjectDirUrl, ManifestUrl, TemplateName: String;
+  ManifestUrl, TemplateName, ProjectDirUrl: String;
+  Options: TProjectCreationOptions;
 begin
   Hide;
 
@@ -143,13 +144,6 @@ begin
     UseEditorApplicationData; // we use our castle-data:/xxx to copy template
 
     try
-      // Create project dir
-      ProjectDir := InclPathDelim(NewProjectForm.EditLocation.Text) +
-        NewProjectForm.EditProjectName.Text;
-      ProjectDirUrl := FilenameToUriSafe(InclPathDelim(ProjectDir));
-      if not ForceDirectories(ProjectDir) then
-        raise Exception.CreateFmt('Cannot create directory "%s".', [ProjectDir]);
-
       // Calculate TemplateName
       if NewProjectForm.ButtonTemplateEmpty.Down then
         TemplateName := 'empty'
@@ -165,11 +159,14 @@ begin
       else
         raise EInternalError.Create('Unknown project template selected');
 
-      // Fill project dir
-      CopyTemplate(ProjectDirUrl, TemplateName,
-        NewProjectForm.EditProjectName.Text,
-        NewProjectForm.EditProjectCaption.Text,
-        NewProjectForm.EditStateName.Text);
+      // Fill Options
+      Options.ParentDir := NewProjectForm.EditLocation.Text;
+      Options.TemplateName := TemplateName;
+      Options.ProjectName := NewProjectForm.EditProjectName.Text;
+      Options.ProjectCaption := NewProjectForm.EditProjectCaption.Text;
+      Options.MainView := NewProjectForm.EditViewName.Text;
+
+      ProjectCreateFromTemplate(CastleEnginePath, Options, ProjectDirUrl);
       GenerateProgramWithBuildTool(ProjectDirUrl);
 
       // Open new project
@@ -238,7 +235,7 @@ end;
 
 procedure TChooseProjectForm.ButtonSupportUsClick(Sender: TObject);
 begin
-  OpenURL('https://patreon.com/castleengine/');
+  OpenUrl('https://patreon.com/castleengine/');
 end;
 
 procedure TChooseProjectForm.FormCreate(Sender: TObject);
@@ -255,6 +252,8 @@ procedure TChooseProjectForm.FormCreate(Sender: TObject);
     MuteOnRun := UserConfig.GetValue('sound/mute_on_run', DefaultMuteOnRun);
     EditorVolume := UserConfig.GetFloat('sound/editor_volume', DefaultEditorVolume);
     Compiler := StringToCompiler(UserConfig.GetValue('compiler', CompilerToString(DefaultCompiler)));
+    AndroidHome := UserConfig.GetValue('android_home', '');
+    JavaHome := UserConfig.GetValue('java_home', '');
     SoundEngineSetVolume;
   end;
 
@@ -266,7 +265,7 @@ begin
   ConfigLoad;
 
   UseEditorApplicationData;
-  InternalCastleDesignData := ApplicationData('');
+  InternalCastleDesignData := ResolveCastleDataUrl('castle-data:/');
 end;
 
 procedure TChooseProjectForm.FormDestroy(Sender: TObject);
@@ -283,6 +282,8 @@ procedure TChooseProjectForm.FormDestroy(Sender: TObject);
     UserConfig.SetDeleteValue('sound/mute_on_run', MuteOnRun, DefaultMuteOnRun);
     UserConfig.SetDeleteFloat('sound/editor_volume', EditorVolume, DefaultEditorVolume);
     UserConfig.SetDeleteValue('compiler', CompilerToString(Compiler), CompilerToString(DefaultCompiler));
+    UserConfig.SetDeleteValue('android_home', AndroidHome, '');
+    UserConfig.SetDeleteValue('java_home', JavaHome, '');
   end;
 
 begin

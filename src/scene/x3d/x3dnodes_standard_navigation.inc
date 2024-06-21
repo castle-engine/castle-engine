@@ -150,18 +150,15 @@
   { Provides various levels of detail for a given object,
     only one of which will be visible at a given time.
 
-    Note that it follows X3D naming.
-    There were some differences between VRML 2.0 LOD and X3D LOD (TLODNode):
-    "level" -> "children", so also "level_changed" -> "children_changed".
-    In X3D "level_changed" indicates just integer.
-    We don't implement VRML 97 version due to low usage.
-  }
+    Compatibility note: We follow X3D specifications exactly.
+    If use older VRML 97, note: when the level changes, we send
+    "children_changed" (following X3D) not "level_changed" (which would follow VRML 97). }
   TLODNode = class(TAbstractGroupingNode)
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
+    constructor Create(const AX3DName: string = ''; const ABaseUrl: String = ''); override;
     function TransformationChange: TNodeTransformationChange; override;
-
   {$I auto_generated_node_helpers/x3dnodes_lod.inc}
   end;
 
@@ -610,6 +607,14 @@ begin
 end;
 
 { TLODNode ----------------------------------------------------------- }
+
+constructor TLODNode.Create(const AX3DName, ABaseUrl: String);
+begin
+  inherited;
+  { Testcase that "level" is necessary for VRML 97:
+    https://www.web3d.org/x3d/content/examples/Vrml2Sourcebook/Siggraph98Course/aTorchIndex.html }
+  FdChildren.AddAlternativeName('level', 2);
+end;
 
 function TLODNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
 begin

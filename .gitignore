@@ -23,6 +23,8 @@ lib/
 *.rsm
 *.local
 __recovery
+*.deployproj
+*.delphilsp.json
 
 # Other backups
 *.blend1
@@ -45,6 +47,10 @@ xcuserdata
 # used by https://marketplace.visualstudio.com/items?itemName=alefragnani.jenkins-status
 /.jenkins
 AndroidSigningProperties.txt
+
+# Visual Studio stuff
+.vs/
+*.vcxproj.user
 
 # cge build tool stuff
 castle-engine-output
@@ -76,6 +82,7 @@ castle-game-engine-*.fpm
 /examples/animations/simultaneous_animations_one_scene/simultaneous_animations_one_scene
 /examples/animations/split_long_animation/split_long_animation
 /examples/animations/md3_animations_tags/md3_animations_tags
+/examples/animations/optimize_animations_test/optimize_animations_test
 /examples/audio/audio_player/audio_player
 /examples/audio/doppler_demo/doppler_demo
 /examples/audio/game_3d_sound/game_3d_sound
@@ -89,6 +96,12 @@ castle-game-engine-*.fpm
 /examples/creature_behaviors/creature_behaviors
 /examples/curves/deprecated_space_filling_curve/draw_space_filling_curve
 /examples/curves/use_designed_curve/use_designed_curve
+/examples/delphi/fmx/CastleFmx
+/examples/deprecated_library/build-qt_library_tester-*
+/examples/deprecated_library/cpp_winapi_library_tester/Debug
+/examples/deprecated_library/cpp_winapi_library_tester/Release
+/examples/deprecated_library/cpp_winapi_library_tester/x64
+/examples/deprecated_library/lazarus_library_tester/*.app
 /examples/deprecated_library/lazarus_library_tester/cge_dynlib_tester
 /examples/deprecated_to_upgrade/fixed_camera_game/rift
 /examples/eye_of_beholder/eye_of_beholder
@@ -101,7 +114,7 @@ castle-game-engine-*.fpm
 /examples/fps_game/fps_game
 /examples/deprecated_to_upgrade/fps_game_old_ai/fps_game
 /examples/images_videos/background_tiling/background_tiling
-/examples/images_videos/dds_decompose/dds_decompose
+/examples/images_videos/image_decompose/image_decompose
 /examples/images_videos/deprecated_drawing_modes_test/drawing_modes_test
 /examples/images_videos/deprecated_image_paint/image_paint
 /examples/images_videos/draw_images_on_gpu/draw_images_on_gpu
@@ -114,8 +127,6 @@ castle-game-engine-*.fpm
 /examples/images_videos/test_castleimage_draw3x3/test_castleimage_draw3x3
 /examples/isometric_game/isometric_game
 /examples/isometric_game_3d/isometric_game_3d
-/examples/deprecated_library/build-qt_library_tester-*
-/examples/deprecated_library/lazarus_library_tester/*.app
 /examples/deprecated_to_upgrade/isometric_game/isometric_game
 /examples/deprecated_to_upgrade/joystick/joystick_demo
 /examples/lazarus/load_model_and_camera_manually/lib/
@@ -141,6 +152,7 @@ castle-game-engine-*.fpm
 /examples/network/asynchronous_download/asynchronous_download
 /examples/network/castle_download/castle_download
 /examples/network/custom_url_handler/read_game_data_from_zip
+/examples/network/put_data/put_data
 /examples/network/remote_logging/remote_logging
 /examples/network/tcp_connection/client/client
 /examples/network/tcp_connection/server/server
@@ -191,6 +203,7 @@ castle-game-engine-*.fpm
 /examples/user_interface/show_various_ui_controls/show_various_ui_controls
 /examples/user_interface/test_all_view_events/test_all_view_events
 /examples/user_interface/timer_test/timer_test
+/examples/user_interface/ui_batching/ui_batching
 /examples/user_interface/view_events/view_events
 /examples/user_interface/zombie_fighter/zombie_fighter
 /examples/user_interface/zombie_fighter_alternative_short_lived_views/zombie_fighter
@@ -208,6 +221,7 @@ castle-game-engine-*.fpm
 /examples/viewport_and_scenes/fog_and_distance_culling/fog_and_distance_culling
 /examples/viewport_and_scenes/headlight/headlight
 /examples/viewport_and_scenes/listen_on_x3d_events/listen_on_x3d_events
+/examples/viewport_and_scenes/mesh_update/mesh_update
 /examples/viewport_and_scenes/multiple_viewports/multiple_viewports
 /examples/viewport_and_scenes/position_from_world/position_from_world
 /examples/viewport_and_scenes/render_3d_to_image/render_3d_to_image
@@ -253,7 +267,7 @@ castle-game-engine-*.fpm
 /tools/castle-curves/castle-curves
 /tools/castle-engine
 /tools/image-to-pascal/image-to-pascal
-/tools/internal/check_lazarus_packages/check_lazarus_packages
+/tools/internal/check_packages/check_packages
 /tools/internal/check_units_dependencies/check_one_unit_dependencies
 /tools/internal/fpc-cge/fpc-cge
 /tools/internal/generate-persistent-vectors/generate-persistent-vectors

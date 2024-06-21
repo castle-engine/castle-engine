@@ -194,6 +194,10 @@ begin
   FFullScreenBackend := FFullScreenWanted;
 end;
 
+procedure TCastleWindow.BackendInsideUpdate;
+begin
+end;
+
 { LibraryXxx methods --------------------------------------------------------- }
 
 procedure TCastleWindow.LibraryMouseWheel(const Scroll: Single; const Vertical: boolean);
@@ -296,9 +300,8 @@ begin
     must perform event loop }
 end;
 
-procedure TCastleApplication.QuitWhenNoOpenWindows;
+procedure TCastleApplication.BackendTerminate;
 begin
-  Terminate; // set Terminated := true
 end;
 
 function TCastleApplication.ScreenWidth: integer;
@@ -471,9 +474,8 @@ end;
 procedure CGEApp_Update; cdecl;
 begin
   try
-    Application.DoApplicationUpdate;
+    ApplicationProperties._Update;
     Application.FOpenWindows.DoUpdate;
-    Application.MaybeDoTimer;
   except
     on E: TObject do WritelnWarning('CGEApp_Update', ExceptMessage(E));
   end;

@@ -59,6 +59,7 @@ type
   public
     { Set these before Execute }
     HttpPostData, HttpHeadersKeys, HttpHeadersValues: TStrings;
+    HttpRequestBody: TStream;
     Url: String;
     HttpMethod: THttpMethod;
     SynchronizationCS: TCriticalSection;
@@ -82,6 +83,9 @@ type
     HttpResponseCode: Integer;
     HttpResponseHeaders: TStrings;
     FinalUrl: String;
+
+    { Free SynchronizationCS in destructor. }
+    OwnsSynchronizationCS: Boolean;
 
     constructor Create;
     destructor Destroy; override;
@@ -199,14 +203,24 @@ destructor TFpHttpClientJob.Destroy;
 begin
   FreeAndNil(Contents);
   FreeAndNil(HttpResponseHeaders);
+  if OwnsSynchronizationCS then
+    FreeAndNil(SynchronizationCS);
   inherited;
 end;
 
 procedure TFpHttpClientJob.Execute;
+
+  function UseHttpRequestBody: Boolean;
+  begin
+    Result := (HttpRequestBody <> nil) and (HttpRequestBody.Size <> 0);
+  end;
+
 var
   Client: TCastleFpHttpClient;
   I: Integer;
+  MemStream: TMemoryStream;
 begin
+  MemStream := nil; // to have later FreeAndNil(MemStream) safely
   try
     Client := TCastleFpHttpClient.Create(nil);
     try
@@ -233,10 +247,19 @@ begin
       FinalUrl := Url;
 
       try
+        if UseHttpRequestBody then
+        begin
+          Assert(HttpRequestBody <> nil);
+          MemStream := TMemoryStream.Create;
+          MemStream.CopyFrom(HttpRequestBody, 0);
+          MemStream.Seek(0, soFromBeginning); // client does not always rewind the stream before send
+          Client.RequestBody := MemStream; // we own stream, and free it, the client is not touching it
+        end;
+
         case HttpMethod of
           hmGet: Client.Get(Url, Contents);
           hmPost:
-            if HttpPostData <> nil then
+            if (HttpPostData <> nil) and (not UseHttpRequestBody) then
               Client.FormPost(Url, HttpPostData, Contents)
             else
               Client.Post(Url, Contents);
@@ -261,7 +284,10 @@ begin
         So we check it manually here. }
       if HttpResponseCode <> 200 then
         raise EHTTPClient.CreateFmt('Unexpected response status code: %d', [HttpResponseCode]);
-    finally FreeAndNil(Client) end;
+    finally
+      FreeAndNil(MemStream);
+      FreeAndNil(Client);
+    end;
 
     Contents.Position := 0; { rewind for easy reading }
 
@@ -315,6 +341,7 @@ procedure TFpHttpClientReader.Start;
     Job.SynchronizationCS := SynchronizationCS;
     Job.HttpMethod := HttpMethod;
     Job.HttpPostData := HttpPostData;
+    Job.HttpRequestBody := HttpRequestBody;
     Job.HttpHeadersKeys := HttpHeadersKeys;
     Job.HttpHeadersValues := HttpHeadersValues;
   end;
@@ -323,16 +350,8 @@ var
   SynchronousJob: TFpHttpClientJob;
 begin
   inherited;
-
-  { The main purpose of this is to disable Download from blocking.
-    Additionally, it also disables TCastleDownload from "downgrading" to blocking,
-    when OS doesn't support threads. }
-  if ForceSynchronous and (not EnableBlockingDownloads) then
-  begin
-    Status := dsError;
-    ErrorMessage := 'Downloading network resources (from "http" or "https"  protocols) is not enabled. Set global EnableBlockingDownloads:=true to enable.';
+  if not CheckNetworkAccess then
     Exit;
-  end;
 
   if URIProtocol(Url) = 'https' then
   begin
@@ -408,19 +427,18 @@ begin
         We cannot fix it by doing "Thread.FreeOnTerminate := true" earlier,
         because then we have a race, and "Thread" reference may no longer be used.
 
-        A potential fix is in CASTLE_SAFE_DOWNLOAD_INTERRUPTION but this:
-        1. would cause short delay when interrupting downloads
-        2. doesn't work to prevent visible mem leak in examples/network/asynchronous_download/
-           (but that leak seems unrelated? it occurs even if nothing was interrupted?)
+        A potential fix is in CASTLE_SAFE_DOWNLOAD_INTERRUPTION but this
+        could cause short delay when interrupting downloads.
 
         TODO: This is actually dangerous if the interruption will happen
         before thread Execute processed HttpPostData and HttpHeadersKeys/Values,
         as they may become invalid when owning TCastleDownload it freed.
       }
       WritelnLog('Network', 'Interrupting download in-progress of "%s"', [UriDisplay(Url)]);
+      Thread.Job.OwnsSynchronizationCS := true;
       Thread.FreeOnTerminate := true;
       Thread := nil;
-      SynchronizationCS := nil; // do not free it here, let Thread use it
+      SynchronizationCS := nil; // do not free it here, let Thread use it, let Thread.Job free it
     end else
       FreeAndNil(Thread);
     {$endif}

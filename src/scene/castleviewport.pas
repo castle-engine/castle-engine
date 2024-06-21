@@ -21,7 +21,7 @@ unit CastleViewport;
 interface
 
 uses SysUtils, Classes, Generics.Collections,
-  {$ifdef FPC} CastleGL, {$else} OpenGL, OpenGLext, {$endif}
+  {$ifdef OpenGLES} CastleGLES, {$else} CastleGL, {$endif}
   CastleVectors, X3DNodes, CastleInternalBaseTriangleOctree, CastleScene,
   CastleSceneCore, CastleCameras, CastleRenderOptions,
   CastleInternalGLShadowVolumes, CastleUIControls, CastleTransform, CastleTriangles,
@@ -167,6 +167,7 @@ type
       FOcclusionSort: TShapeSort;
       FBlendingSort: TShapeSort;
       FOnCustomShapeSort: TShapeSortEvent;
+      FUpdateSoundListener: Boolean;
 
       ShapesCollector: TShapesCollector;
       ShapesRenderer: TShapesRenderer;
@@ -889,7 +890,8 @@ type
       Options: TPrepareResourcesOptions = DefaultPrepareOptions); overload; virtual;
 
     { Current components (TCastleTransform hierarchy) pointed by the mouse cursor
-      position.
+      position. This is the @italic(first) object being hit by the ray from camera
+      through the mouse cursor position.
 
       Automatically updated to always reflect the current mouse position.
       May be @nil if nothing is hit.
@@ -902,7 +904,8 @@ type
     property MouseRayHit: TRayCollision read GetMouseRayHit;
 
     { Current TCastleTransform pointed by the mouse cursor
-      position.
+      position. This is the @italic(first) object being hit by the ray from camera
+      through the mouse cursor position.
 
       Automatically updated to always reflect the current mouse position.
       May be @nil if nothing is hit.
@@ -912,8 +915,7 @@ type
       we automatically use viewport center as the "mouse cursor position".
 
       @seealso MouseRayHit
-      @seealso TRayCollision.Transform
-    }
+      @seealso TRayCollision.Transform }
     function TransformUnderMouse: TCastleTransform;
 
     { Do not collide with this object when moving by @link(Navigation).
@@ -1206,7 +1208,7 @@ type
 
     { Protect from falling down because of gravity when position is outside
       of world bounding box.
-      This is a nice thing for general model viewers (like view3dscene),
+      This is a nice thing for general model viewers (like castle-model-viewer),
       to prevent from accidentally falling down when using "Walk" mode.
 
       This is only used by navigations performing gravity internally,
@@ -1288,6 +1290,20 @@ type
       See TShapeSortEvent for usage details and example. }
     property OnCustomShapeSort: TShapeSortEvent
       read FOnCustomShapeSort write FOnCustomShapeSort;
+
+    { Should the sound listener (that determines how the sounds are heard)
+      be updated to reflect this viewport's active camera.
+      This is @true by default, so that 3D sound "just works" out-of-the-box
+      when you have 3D sounds in the TCastleViewport.
+      However, if you use @url(https://castle-engine.io/multiple_viewports_to_display_one_world multiple viewports)
+      to display the same world from multiple cameras,
+      you should set this to @false for all but one viewport.
+
+      Active camera comes from @code(Items.MainCamera) and should match
+      @link(Camera) in all normal circumstances, if you haven't customized
+      @code(Items.MainCamera) manually. }
+    property UpdateSoundListener: Boolean
+      read FUpdateSoundListener write FUpdateSoundListener default true;
 
   {$define read_interface_class}
   {$I auto_generated_persistent_vectors/tcastleviewport_persistent_vectors.inc}
@@ -1426,6 +1442,7 @@ begin
   InternalDistortViewAspect := 1;
   ShapesCollector := TShapesCollector.Create;
   ShapesRenderer := TShapesRenderer.Create;
+  FUpdateSoundListener := true;
 
   FItems := TCastleRootTransform.Create(Self);
   FItems.SetSubComponent(true);
@@ -1872,7 +1889,7 @@ begin
   if Container = nil then
     Result := FullSize
   else
-    Result := RenderRect.Round.Equals(Container.Rect);
+    Result := RenderRect.Round.Equals(Container.PixelsRect);
 end;
 
 function TCastleViewport.GetNavigation: TCastleNavigation;
@@ -2102,7 +2119,7 @@ begin
 
     Testcase:
     - (only reproducible on Windows for some reason, but in theory problem is cross-platform)
-    - open in view3dscene anchor_test.x3dv
+    - open in castle-model-viewer anchor_test.x3dv
     - click on something, like "Key Sensor"
     - without this fix, the next EventMotion causes crash as
       TCastleSceneCore.PointingDeviceMove is run with TRayCollisionNode
@@ -2115,7 +2132,7 @@ begin
   ClearMouseRayHit;
 
   { Signal to PointingDevicePressCore to not process further collision list.
-    TODO: why is this necessary? But anchor_test on view3dscene otherwise crashes. }
+    TODO: why is this necessary? But anchor_test on castle-model-viewer otherwise crashes. }
   ItemsNodesFreeOccurred := true;
 end;
 
@@ -2242,9 +2259,6 @@ var
   M: TMatrix4;
 begin
   EnsureCameraDetected;
-
-  { We need to know container size now. }
-  Check(ContainerSizeKnown, ClassName + ' did not receive "Resize" event yet, cannnot apply projection. This usually means you try to call "Render" method with a container that does not yet have an open context.');
 
   Viewport := RenderRect.Round;
   RenderContext.Viewport := Viewport;
@@ -3541,16 +3555,6 @@ begin
   { call TCastleScreenEffects.PrepareResources. }
   inherited PrepareResources;
 
-  if ContainerSizeKnown then
-  begin
-    { TODO: This is possibly not necessary now.
-
-      It used to be necessary, to update MainScene.BackgroundSkySphereRadius,
-      and in effect make preparation of "prBackground" useful.
-      But we removed the need for MainScene.BackgroundSkySphereRadius. }
-    ApplyProjection;
-  end;
-
   {$warnings off} // using deprecated, this should be internal
   Item.PrepareResources(Options, PrepareParams);
   {$warnings on}
@@ -3863,7 +3867,8 @@ begin
       Inc(Items.InternalVisibleNonGeometryStateId);
 
     SenderCamera.GetView(Pos, Dir, Up);
-    SoundEngine.InternalUpdateListener(Pos, Dir, Up);
+    if UpdateSoundListener then
+      SoundEngine.InternalUpdateListener(Pos, Dir, Up);
   end;
 
   if Assigned(OnCameraChanged) then

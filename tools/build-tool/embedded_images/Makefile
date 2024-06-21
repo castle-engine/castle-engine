@@ -8,7 +8,7 @@ clean:
 	rm -f $(ALL_OUTPUTS)
 
 toolembeddedimages.pas: DefaultIcon.png DefaultIconSquare.png
-	image-to-pascal --output .. ToolEmbeddedImages DefaultIcon.png \
+	image-to-pascal ToolEmbeddedImages DefaultIcon.png \
 	@alpha=strip DefaultIconSquare.png
 
 tooldefaulticonxpm.inc: DefaultIcon.xpm

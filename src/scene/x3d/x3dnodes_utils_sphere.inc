@@ -27,7 +27,7 @@ procedure Sphere_Proxy(CoordIndex: TInt32List;
   { For stack number calculate it's radius and height (in y). }
   procedure StackCircle(StackNum: integer; out StackRadius, Height: Single);
   var
-    Alpha, S, C: Float;
+    Alpha, S, C: Single;
   begin
     { Calculate correct StackRadius and Height for sphere of radius 1,
       and then scale by Radius. }
@@ -181,7 +181,7 @@ procedure SphereWireframe_Proxy(CoordIndex: TInt32List;
   { For stack number calculate it's radius and height (in y). }
   procedure StackCircle(StackNum: integer; out StackRadius, Height: Single);
   var
-    Alpha, S, C: Float;
+    Alpha, S, C: Single;
   begin
     { Calculate correct StackRadius and Height for sphere of radius 1,
       and then scale by Radius. }

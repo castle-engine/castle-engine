@@ -2372,7 +2372,7 @@ function IsCenteredBox3DPlaneCollisionDouble(
 
   With Double, I can use Epsilon below. OK, that's stil a large epsilon...
   You can test on VRML models like malfunction/trunk/vrmls/wawoz.wrl:
-  view3dscene (when compiled with -dDEBUG) with fail loading
+  castle-model-viewer (when compiled with -dDEBUG) with fail loading
   (Assert(AddedSomewhere) will trigger) with too small epsilon. }
 
 const

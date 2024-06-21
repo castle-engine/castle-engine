@@ -112,11 +112,11 @@ begin
     'w': Container.OverrideCursor := mcWait;
     's': Container.OverrideCursor := mcResizeHorizontal;
     { setting mouse position tests: }
-    '1': Container.MousePosition := Vector2(0                 , 0);
-    '2': Container.MousePosition := Vector2(Container.Width    , 0);
-    '3': Container.MousePosition := Vector2(Container.Width    , Container.Height);
-    '4': Container.MousePosition := Vector2(0                 , Container.Height);
-    '5': Container.MousePosition := Vector2(Container.Width / 2, Container.Height / 2);
+    '1': Container.MousePosition := Vector2(0                        , 0);
+    '2': Container.MousePosition := Vector2(Container.PixelsWidth    , 0);
+    '3': Container.MousePosition := Vector2(Container.PixelsWidth    , Container.PixelsHeight);
+    '4': Container.MousePosition := Vector2(0                        , Container.PixelsHeight);
+    '5': Container.MousePosition := Vector2(Container.PixelsWidth / 2, Container.PixelsHeight / 2);
     { test TCastleWindow.MessageXxx }
     'm': W.MessageOK('Test information.', mtInfo);
     'q':
@@ -156,11 +156,15 @@ end;
 procedure TViewMain.Resize;
 begin
   inherited; // allow the ancestor to handle event
+
+  Assert(Container.UnscaledWidth = RootGroup.EffectiveWidth);
+  Assert(Container.UnscaledHeight = RootGroup.EffectiveHeight);
+
   Notifications.Show(Format('Resize: new size (in real device pixels) %d %d, new size with UI scaling: %f %f', [
-    Container.Width,
-    Container.Height,
-    RootGroup.EffectiveWidth,
-    RootGroup.EffectiveHeight
+    Container.PixelsWidth,
+    Container.PixelsHeight,
+    Container.UnscaledWidth,
+    Container.UnscaledHeight
   ]));
 end;
 

@@ -301,7 +301,6 @@ begin
     Window.OnClose := @Close;
     Window.OnRender := @Render;
     Window.OnUpdate := @Update;
-    Window.OnResize := @Resize2D;
 
     Window.OpenAndRun;
   finally

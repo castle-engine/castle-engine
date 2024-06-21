@@ -32,7 +32,8 @@ package castle_engine_window;
 
 requires
   rtl,
-  castle_engine;
+  castle_engine,
+  castle_engine_fmx;
 
 contains
   castleinternalwindowmodes in '..\..\src\window\castleinternalwindowmodes.pas',

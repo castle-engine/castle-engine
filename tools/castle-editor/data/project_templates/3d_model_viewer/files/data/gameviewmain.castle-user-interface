@@ -1,7 +1,7 @@
 {
   "$$ClassName" : "TCastleUserInterface",
   "FullSize" : true,
-  "Name" : "Group1",
+  "Name" : "RootGroup",
   "$Children" : [
     {
       "$$ClassName" : "TCastleViewport",

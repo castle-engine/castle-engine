@@ -11,7 +11,7 @@
           <Mode Name="default"/>
         </BuildModes>
       </Target>
-      <Target FileName="tools/build-tool/castle-engine.lpi">
+      <Target FileName="tools/build-tool/castle_engine.lpi">
         <BuildModes>
           <Mode Name="default"/>
         </BuildModes>

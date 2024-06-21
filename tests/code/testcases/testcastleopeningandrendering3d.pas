@@ -29,8 +29,7 @@ unit TestCastleOpeningAndRendering3D;
 
 interface
 
-uses {$ifndef CASTLE_TESTER}FpcUnit, TestUtils, TestRegistry, CastleTestCase,
-  {$else}CastleTester,{$endif} CastleFilesUtils, CastleFindFiles,
+uses CastleTester, CastleFilesUtils, CastleFindFiles,
   CastleWindow, CastleSceneCore, CastleScene, CastleViewport;
 
 type
@@ -64,7 +63,7 @@ implementation
 
 uses SysUtils, StrUtils,
   CastleUtils, CastleGLUtils, CastleGLVersion, CastleLog, CastleApplicationProperties,
-  CastleTransform, CastleInternalGLUtils;
+  CastleTransform, CastleInternalGLUtils, CastleStringUtils;
 
 procedure TTestOpeningAndRendering3D.TestScene(const FileName: string);
 begin
@@ -121,7 +120,10 @@ begin
   { While our masks do not allow such files,
     but searching on Windows can find xxx.x3dv~ when only *.x3dv is requested.
     So explicitly avoid them (as they will fail to load in CGE, as unrecognized).
-    TODO: should we just workaround it in FindFiles? The problem is inside FindFirst/Next. }
+
+    TODO: This is now fixed at CastleFindFiles level, see DOUBLE_CHECK_WILDCARD
+    define.
+    Extra check here shall not be necessary. }
   if IsWild(FileInfo.Name, '*~', true) then Exit;
 
   { do not check files in "errors" subdir, these are known to cause trouble }
@@ -155,9 +157,12 @@ procedure TTestOpeningAndRendering3D.TestOpenAndRender(const ARecreateSceneEachT
   end;
 
 begin
+  if not CanCreateWindowForTest then
+    Exit;
+
   RecreateSceneEachTime := ARecreateSceneEachTime;
 
-  Window := TCastleWindow.Create(nil);
+  Window := CreateWindowForTest;
   try
     Scene := TCastleScene.Create(Window);
     Scene.PreciseCollisions := true;
@@ -190,15 +195,13 @@ begin
     end;
 
     Window.Close;
-  finally FreeAndNil(Window) end;
+  finally DestroyWindowForTest(Window) end;
 end;
 
 procedure TTestOpeningAndRendering3D.Test1;
 begin
-  {$ifdef CASTLE_TESTER}
   if not CanCreateWindowForTest then
     Exit;
-  {$endif}
 
   TestOpenAndRender(false);
   TestOpenAndRender(true);

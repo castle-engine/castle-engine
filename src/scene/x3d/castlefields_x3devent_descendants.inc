@@ -66,15 +66,15 @@
   TSFLongEvent = class(TX3DEvent)
   public
     constructor Create(AParentNode: TX3DFileItem; const AName: String; const AInEvent: boolean);
-    procedure Send(const Value: LongInt; const Time: TX3DTime; const PartialSend: TPartialSend = nil); overload;
-    procedure Send(const Value: LongInt); overload;
+    procedure Send(const Value: Int32; const Time: TX3DTime; const PartialSend: TPartialSend = nil); overload;
+    procedure Send(const Value: Int32); overload;
   end;
 
   TSFInt32Event = class(TX3DEvent)
   public
     constructor Create(AParentNode: TX3DFileItem; const AName: String; const AInEvent: boolean);
-    procedure Send(const Value: LongInt; const Time: TX3DTime; const PartialSend: TPartialSend = nil); overload;
-    procedure Send(const Value: LongInt); overload;
+    procedure Send(const Value: Int32; const Time: TX3DTime; const PartialSend: TPartialSend = nil); overload;
+    procedure Send(const Value: Int32); overload;
   end;
 
   TSFMatrix3dEvent = class(TX3DEvent)
@@ -410,7 +410,7 @@ begin
   inherited Create(AParentNode, AName, TSFLong, AInEvent);
 end;
 
-procedure TSFLongEvent.Send(const Value: LongInt; const Time: TX3DTime; const PartialSend: TPartialSend);
+procedure TSFLongEvent.Send(const Value: Int32; const Time: TX3DTime; const PartialSend: TPartialSend);
 var
   Field: TX3DField;
 begin
@@ -421,7 +421,7 @@ begin
   finally FreeTemp(Field) end;
 end;
 
-procedure TSFLongEvent.Send(const Value: LongInt);
+procedure TSFLongEvent.Send(const Value: Int32);
 begin
   if (ParentNode <> nil) and
      (TX3DNode(ParentNode).Scene <> nil) then
@@ -435,7 +435,7 @@ begin
   inherited Create(AParentNode, AName, TSFInt32, AInEvent);
 end;
 
-procedure TSFInt32Event.Send(const Value: LongInt; const Time: TX3DTime; const PartialSend: TPartialSend);
+procedure TSFInt32Event.Send(const Value: Int32; const Time: TX3DTime; const PartialSend: TPartialSend);
 var
   Field: TX3DField;
 begin
@@ -446,7 +446,7 @@ begin
   finally FreeTemp(Field) end;
 end;
 
-procedure TSFInt32Event.Send(const Value: LongInt);
+procedure TSFInt32Event.Send(const Value: Int32);
 begin
   if (ParentNode <> nil) and
      (TX3DNode(ParentNode).Scene <> nil) then

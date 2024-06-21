@@ -1,6 +1,6 @@
 ﻿{%MainUnit castletiledmap.pas}
 {
-  Copyright 2015-2021 Tomasz Wojtyś, Michalis Kamburelis.
+  Copyright 2015-2024 Tomasz Wojtyś, Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -131,14 +131,20 @@ type
 
       TLayer = class
       private
+        FVisible: Boolean;
         procedure Load(const Element: TDOMElement; const BaseUrl: String); virtual;
+        procedure SetExists(const Value: Boolean);
       public
+        { Unique ID of the layer. Defaults to 0.}
+        Id: Cardinal;
         { The name of the layer. }
         Name: String;
+        { The class of the layer (since 1.9, defaults to ''). }
+        &Class: String;
         { The opacity of the layer as a value from 0 to 1. Defaults to 1. }
         Opacity: Single;
-        { Whether the layer is shown or hidden. Defaults to true. }
-        Visible: Boolean;
+        { Whether the layer is locked or unlocked. Defaults to false. }
+        Locked: Boolean;
         { Rendering offset for this layer in pixels. Defaults to 0. (since 0.14). }
         OffsetX: Single;
         { Rendering offset for this layer in pixels. Defaults to 0. (since 0.14). }
@@ -151,10 +157,27 @@ type
         Width: Integer;
         { The height of the object group in tiles. Meaningless. }
         Height: Integer;
+        { Used by the Exists-property to show/hide the layer.
+          Not a part of the file format.
+
+          TODO: Maybe rename this to RenderData,
+          consistent with other such data in this file.
+          Possibly do this at new Tiled layers API work:
+          https://castle-engine.io/roadmap#tiled_layers . }
+        SwitchNode: TSwitchNode;
         constructor Create;
         destructor Destroy; override;
         { OffsetX and OffsetY packed in a vector. }
         function Offset: TVector2;
+        { Hides or shows the layer. Not a part of the file format.
+
+          TODO:
+          This property should move to a different class, TCastleTiledMap.TLayer.
+          See https://castle-engine.io/roadmap#tiled_layers }
+        property Exists: Boolean read FVisible write SetExists;
+        { Whether the layer is shown or hidden. Defaults to true. Use the Exists-property to
+          change the visibility during runtime. }
+        property Visible: Boolean read FVisible;
       end;
 
       TObjectGroupLayer = class(TLayer)
@@ -207,6 +230,9 @@ type
       public
         { The local tile ID within its tileset. }
         Id: Cardinal;
+        { The class of the tile. Is inherited by tile objects. (since 1.0, defaults to '',
+          was saved as class in 1.9) }
+        &Type: String;
         { Defines the terrain type of each corner of the tile, given as
           comma-separated indexes in the terrain types array in the order top-left,
           top-right, bottom-left, bottom-right. Leaving out a value means that corner
@@ -481,7 +507,7 @@ procedure TCastleTiledMapData.TData.Load(const Element: TDOMElement; const BaseU
     Decoder: TBase64DecodingStream;
     Decompressor: TStream;
     Buffer: array[0..BufferSize-1] of Cardinal;
-    DataCount, DataLength: Longint;
+    DataCount, DataLength: Int64;
   begin
     Decoder := TBase64DecodingStream.Create(TStringStream.Create(Element.TextData));
     try
@@ -625,7 +651,17 @@ procedure TCastleTiledMapData.TImage.DetermineSize;
 var
  ImageData: TEncodedImage;
 begin
-  if (Width = 0) and (Height = 0) then
+  if (Width = 0) and
+     (Height = 0) and
+     { Do not load image when there's no Url (no "source" attribute at <tileset>).
+       This is possible when each <tile> has its own <image> element,
+       we don't support it yet, TCastleTiledMapConverter will later warn and
+       skip such tileset.
+
+       Testcase: Phoenix bugreport,
+       https://discord.com/channels/389676745957310465/1204090530368327690/1247180638520606829 ,
+       Michalis has testcase in private. }
+     (Url <> '') then
   begin
     { Note: While we could store Image to use it loader, e.g.
 
@@ -707,6 +743,8 @@ var
 begin
   if Element.AttributeString('id', TmpStr) then
     Id := StrToInt(TmpStr);
+  &Type := Element.AttributeStringDef('type', '');
+
   if Element.AttributeString('terrain', TmpStr) then
   begin
     SPosition := 1;
@@ -881,18 +919,27 @@ var
   TmpStr, LowerTagName: String;
 begin
   Opacity := 1;
-  Visible := True;
+  FVisible := true;
   OffsetX := 0;
   OffsetY := 0;
+  Locked := False;
   if Element.AttributeString('color', TmpStr) then
     Color := TiledToColorRGB(TmpStr)
   else
     Color := BlackRGB; // Default layer color in Tiled editor if no color is set.
+
+  if Element.AttributeString('id', TmpStr) then
+    Id := StrToInt(TmpStr);
   Name := Element.AttributeStringDef('name', '');
+  &Class := Element.AttributeStringDef('class', '');
+
   if Element.AttributeString('opacity', TmpStr) then
     Opacity := StrToFloatDot(TmpStr);
   if Element.AttributeStringDef('visible', '1') = '0' then
-    Visible := false;
+    FVisible := false;
+  if Element.AttributeStringDef('locked', '') = '1' then
+    Locked := True;
+
   OffsetX := Element.AttributeSingleDef('offsetx', 0);
   OffsetY := Element.AttributeSingleDef('offsety', 0);
 
@@ -917,6 +964,16 @@ end;
 function TCastleTiledMapData.TLayer.Offset: TVector2;
 begin
   Result := Vector2(OffsetX, OffsetY);
+end;
+
+procedure TCastleTiledMapData.TLayer.SetExists(const Value: Boolean);
+begin
+  if FVisible <> Value then
+  begin
+    FVisible := Value;
+    if Assigned(SwitchNode) then
+      SwitchNode.WhichChoice := Iff(Value, 0, -1);
+  end;
 end;
 
 { TObjectGroupLayer ---------------------------------------------------------- }

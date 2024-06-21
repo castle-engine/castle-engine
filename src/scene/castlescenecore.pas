@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2023 Michalis Kamburelis.
+  Copyright 2003-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -312,18 +312,6 @@ type
       change. }
     gcActiveShapesChanged);
 
-  { Looping mode to use with TCastleSceneCore.PlayAnimation. }
-  TPlayAnimationLooping = (
-    { Use current TimeSensor.Loop value to determine whether animation
-      should loop. Suitable when X3D model already has sensible "TimeSensor.loop"
-      values. }
-    paDefault,
-    { Set TimeSensor.Loop to be @true, to force looping. }
-    paLooping,
-    { Set TimeSensor.Loop to be @false, to force not looping. }
-    paNotLooping
-  ) deprecated 'use PlayAnimation with "Loop: boolean" parameter instead of TPlayAnimationLooping';
-
   TStopAnimationEvent = procedure (const Scene: TCastleSceneCore;
     const Animation: TTimeSensorNode) of object;
 
@@ -520,7 +508,6 @@ type
     FUrl: String;
     { Is FUrl watched by FileMonitor. }
     FUrlWatched: Boolean;
-    FStatic: boolean;
     FShadowMaps: boolean;
     FShadowMapsDefaultSize: Cardinal;
     ScheduleHeadlightOnFromNavigationInfoInChangedAll: boolean;
@@ -621,7 +608,6 @@ type
       const CameraLocalPosition: TVector3);
 
     procedure SetUrl(const AValue: String);
-    procedure SetStatic(const Value: boolean);
     procedure SetShadowMaps(const Value: boolean);
     procedure SetShadowMapsDefaultSize(const Value: Cardinal);
 
@@ -1027,7 +1013,8 @@ type
         @exclude }
       InternalDirty: Cardinal;
 
-      { @exclude }
+      { @exclude
+        Do not warn when changed node seems to belong to a different TCastleSceneCore. }
       InternalNodeSharing: Boolean;
 
     const
@@ -1846,26 +1833,6 @@ type
     procedure PrepareResources(const Options: TPrepareResourcesOptions;
       const Params: TPrepareParams); override;
 
-    {$ifdef FPC}
-    { Static scene will not be automatically notified about the changes
-      to the field values. This means that TX3DField.Send and
-      TX3DField.Changed will not notify this scene. This makes a
-      small optimization when you know you will not modify scene's VRML/X3D graph
-      besides loading (or you're prepared to do it by manually calling
-      Scene.InternalChangedField, but this should not be used anymore, it's really
-      dirty).
-
-      The behavior of events is undefined when scene is static.
-      This means that you should always have ProcessEvents = @false
-      when Static = @true. Only when Static = false you're allowed
-      to freely change ProcessEvents to @true.
-
-      Changing this is expensive when the scene content is already loaded,
-      so it's best to adjust this before @link(Load). }
-    property Static: boolean read FStatic write SetStatic default false;
-      deprecated 'do not use this; optimization done by this is really negligible; leave ProcessEvents=false for static scenes';
-    {$endif}
-
     { Nice scene caption. Uses the "title" of WorldInfo
       node inside the VRML/X3D scene. If there is no WorldInfo node
       (or it has empty title) then result is based on loaded URL. }
@@ -1998,11 +1965,6 @@ type
       const TimeInAnimation: TFloatTime;
       const Loop: boolean;
       const Forward: boolean = true): boolean; overload;
-    function ForceAnimationPose(const AnimationName: String;
-      const TimeInAnimation: TFloatTime;
-      const Looping: TPlayAnimationLooping;
-      const Forward: boolean = true): boolean; overload;
-      deprecated 'use ForceAnimationPose overload with "Loop: boolean" parameter';
 
     { Play an animation specified by name.
 
@@ -2019,8 +1981,7 @@ type
       To get the list of available animations, see @link(AnimationsList).
 
       This is one of the simplest way to play animations using Castle Game Engine.
-      Alternative (that calls PlayAnimation under the hood) is to set AutoAnimation
-      and AutoAnimationLoop.
+      Alternative (that calls PlayAnimation under the hood) is to set @link(AutoAnimation).
       See https://castle-engine.io/viewport_3d#_play_animation .
 
       Playing an already-playing animation is guaranteed to restart it from
@@ -2101,10 +2062,6 @@ type
     function PlayAnimation(const Parameters: TPlayAnimationParameters): boolean; overload;
     function PlayAnimation(const AnimationName: String;
       const Loop: boolean; const Forward: boolean = true): boolean; overload;
-    function PlayAnimation(const AnimationName: String;
-      const Looping: TPlayAnimationLooping;
-      const Forward: boolean = true): boolean; overload;
-      deprecated 'use another overloaded version of PlayAnimation, like simple PlayAnimation(AnimationName: String, Loop: boolean)';
 
     { Force the model to look like the initial animation frame @italic(now).
 
@@ -2464,7 +2421,10 @@ type
     { When @true, we animate (more precisely: process time pass in @link(Update))
       only when the model is visible. This is a powerful optimization,
       but be careful if you depend on your animations
-      for something else than just visual effect. }
+      for something else than just visual effect.
+
+      See @url(https://github.com/castle-engine/castle-engine/tree/master/examples/animations/optimize_animations_test
+      examples/animations/optimize_animations_test) for a demo of this. }
     property AnimateOnlyWhenVisible: boolean
       read FAnimateOnlyWhenVisible write FAnimateOnlyWhenVisible default false;
 
@@ -2491,10 +2451,12 @@ type
           For example, if AnimateSkipTicks = 1, then the animation on CPU effectively
           costs 2x less. In general, AnimateSkipTicks = N means that the cost
           drops to @code(1 / (1 + N)).)
-      ) }
+      )
+
+      See @url(https://github.com/castle-engine/castle-engine/tree/master/examples/animations/optimize_animations_test
+      examples/animations/optimize_animations_test) for a demo of this. }
     property AnimateSkipTicks: Cardinal read FAnimateSkipTicks write SetAnimateSkipTicks
       default 0;
-
 
     { If AutoAnimation is set, this animation will be automatically played.
       It is useful to determine the initial animation, played once the model
@@ -2506,15 +2468,14 @@ type
       @link(StopAnimation) and update @link(CurrentAnimation).
       The reverse is not true: calling @link(PlayAnimation) doesn't change @link(AutoAnimation).
       So you can think of @link(AutoAnimation) as "an initial animation, activated each time
-      we load the model, even if later we can change it to something else using @link(PlayAnimation)".
-
-      @seealso AutoAnimationLoop }
+      we load the model, even if later we can change it to something else using @link(PlayAnimation)". }
     property AutoAnimation: String
       read FAutoAnimation write SetAutoAnimation;
 
     { Does the animation indicated by AutoAnimation loops. }
     property AutoAnimationLoop: Boolean
       read FAutoAnimationLoop write SetAutoAnimationLoop default true;
+      {$ifdef FPC} deprecated 'in future engine versions, AutoAnimationLoop may behave as always = true, and AutoAnimation will be renamed to just Animation and changing it will always cause a looping animation. Use PlayAnimation(''my_anim'',false) from code to play animation without looping.'; {$endif}
 
     { Transformation nodes inside the model
       that are synchronized with automatically-created children TCastleTransform.
@@ -2560,10 +2521,6 @@ type
     property Cache: Boolean read FCache write FCache default false;
   end;
 
-  {$define read_interface}
-  {$I castlescenecore_physics_deprecated.inc}
-  {$undef read_interface}
-
 var
   { Log changes to fields.
     This debugs what and why happens through TCastleSceneCore.InternalChangedField method
@@ -2575,25 +2532,29 @@ var
   { Set this to optimize animating transformations for scenes where you
     have many transformations (many Transform nodes), and many of them
     are animated at the same time. Often particularly effective for
-    skeletal animations of characters, 3D and 2D (e.g. from Spine or glTF). }
+    skeletal animations of characters, 3D and 2D (e.g. from Spine or glTF).
+
+    This is safe to enable, however in some cases (when you only animate
+    a single / few transformations, and the whole scene is a big tree with
+    many transformation) it may hurt performance more than it helps.
+    But in many practical cases, with skeleton-based animations from Spine
+    or glTF, it helps a lot.
+
+    See @url(https://github.com/castle-engine/castle-engine/tree/master/examples/animations/optimize_animations_test
+    examples/animations/optimize_animations_test) for a demo of this. }
   OptimizeExtensiveTransformations: boolean = false;
 
   { Experimental optimization of Transform animation.
     It assumes that Transform nodes affect only geometry, i.e. their only effect
-    is moving/rotating etc. X3D shapes.
+    is moving/rotating/scaling shapes.
     This is *usually*, but not always, true.
     In X3D, Transform node can also affect lights, Background, Fog, cameras...
 
-    TODO: Extend it to include all cases, and use always. }
+    TODO: Extend it to include all cases, and use always.
+
+    See @url(https://github.com/castle-engine/castle-engine/tree/master/examples/animations/optimize_animations_test
+    examples/animations/optimize_animations_test) for a demo of this. }
   InternalFastTransformUpdate: Boolean = false;
-
-const
-  // Old name for paLooping.
-  paForceLooping    = paLooping;
-  // Old name for paNotLooping.
-  paForceNotLooping = paNotLooping;
-
-  ssCollidableTriangles = ssStaticCollisions deprecated 'use ssStaticCollisions instead';
 
 var
   InternalEnableAnimation: Boolean = true;
@@ -2605,7 +2566,6 @@ uses Math, DateUtils,
   X3DLoad, CastleUriUtils, CastleQuaternions;
 
 {$define read_implementation}
-{$I castlescenecore_physics_deprecated.inc}
 {$I castlescenecore_collisions.inc}
 {$undef read_implementation}
 
@@ -3150,7 +3110,7 @@ procedure TDetectAffectedFields.FindAnimationAffectedFields;
   { Add to the "affected" list the field indicated by given route destination
     (as Node and Event of this node).
     Node = nil is allowed here (Route.DestinationNode may be nil if node was freed,
-    e.g. delete shape in view3dscene). }
+    e.g. delete shape in castle-model-viewer). }
   procedure RouteDestinationAffectsField(const Node: TX3DNode; const Event: TX3DEvent);
   var
     Field: TX3DField;
@@ -3268,9 +3228,9 @@ begin
   { This also deinitializes script nodes. }
   ProcessEvents := false;
 
-  { Unregisted self from FileMonitor. }
+  { Unregister self from FileMonitor. }
   if FUrlWatched then
-    FileMonitor.Unwatch(FUrl, {$ifdef FPC}@{$endif} UrlChanged);
+    TCastleFileMonitor.Unwatch(FUrl, {$ifdef FPC}@{$endif} UrlChanged);
 
   FreeAndNil(FExposeTransforms);
   FreeAndNil(FExposedTransforms);
@@ -3377,7 +3337,7 @@ begin
 
   { We can't call UpdateHeadlightOnFromNavigationInfo here,
     as NavigationInfoStack may contain now already freed nodes
-    (testcase: view3dscene anchor_test and click on key_sensor anchor).
+    (testcase: castle-model-viewer anchor_test and click on key_sensor anchor).
     So only schedule it. }
   ScheduleHeadlightOnFromNavigationInfoInChangedAll := true;
 
@@ -3392,7 +3352,7 @@ begin
     (if loading a scene when ProcessEvents already enabled),
     and it may require that ChangedAll already run (e.g. it may
     initialize Script nodes, that require Node.Scene to be set,
-    see https://github.com/castle-engine/view3dscene/issues/16 ). }
+    see https://github.com/castle-engine/castle-model-viewer/issues/16 ). }
   ChangedAll;
 
   if not (slDisableResetTime in AOptions) then
@@ -3496,10 +3456,12 @@ begin
   begin
     if AutoAnimation <> '' then
     begin
+      {$warnings off} // using deprecated AutoAnimationLoop to keep it working
       if PlayAnimation(AutoAnimation, AutoAnimationLoop) then
         { call ForceInitialAnimationPose, to avoid blinking with "setup pose"
           right after loading the UI design from file. }
         ForceInitialAnimationPose;
+      {$warnings on}
     end else
     if StopIfPlaying then
     begin
@@ -3517,6 +3479,14 @@ begin
     Url := FPendingSetUrl;
     FPendingSetUrl := '';
   end;
+  {$warnings off} // using deprecated just to make a warning
+  if not AutoAnimationLoop then
+  begin
+    WritelnWarning('AutoAnimationLoop is deprecated, but you set it to false on "%s". In future engine versions, AutoAnimationLoop may behave as always = true, and AutoAnimation will be renamed to just Animation and changing it will always cause a looping animation.' + ' Use PlayAnimation(''my_anim'',false) from code to play animation without looping.', [
+      Name
+    ]);
+  end;
+  {$warnings on}
   UpdateAutoAnimation(false);
   ExposeTransformsChange(nil);
 end;
@@ -4122,15 +4092,12 @@ end;
 
 procedure TCastleSceneCore.ChangedAllEnumerateCallback(Node: TX3DNode);
 begin
-  if not FStatic then
-  begin
-    if (Node.Scene <> nil) and
-       (Node.Scene <> Self) and
-       (not InternalNodeSharing) then
-      WritelnWarning('X3D node %s is already part of another TCastleScene instance.' + ' You cannot use the same X3D node in multiple instances of TCastleScene. Instead you must copy the node, using "Node.DeepCopy". It is usually most comfortable to copy the entire scene, using "TCastleScene.Clone".',
-        [Node.NiceName]);
-    Node.Scene := Self;
-  end;
+  if (Node.Scene <> nil) and
+     (Node.Scene <> Self) and
+     (not InternalNodeSharing) then
+    WritelnWarning('X3D node %s is already part of another TCastleScene instance.' + ' You cannot use the same X3D node in multiple instances of TCastleScene. Instead you must copy the node, using "Node.DeepCopy". It is usually most comfortable to copy the entire scene, using "TCastleScene.Clone".',
+      [Node.NiceName]);
+  Node.Scene := Self;
 
   { We're using AddIfNotExists, not simple Add, below:
 
@@ -4225,7 +4192,7 @@ begin
     (note: this is old comment, progress is not possible now)
     which may call Render which may prepare GLSL shadow map shader
     that will be freed by the following ProcessShadowMapsReceivers call.
-    Testcase: view3dscene open simple_shadow_map_teapots.x3dv, turn off
+    Testcase: castle-model-viewer open simple_shadow_map_teapots.x3dv, turn off
     shadow maps "receiveShadows" handling, then turn it back on
     --- will crash without "InternalDirty" variable safety. }
   Inc(InternalDirty);
@@ -4426,7 +4393,10 @@ function TTransformChangeHelper.TransformChangeTraverse(
       if Inside then
         WritelnLog('X3D transform', 'Cycle in X3D graph detected: transform node is a child of itself');
       Inside := true;
-      { Nothing to do, in particular: do not enter inside.
+      { Nothing to do, in particular: do not enter inside below by
+        TransformNode.TraverseIntoChildren.
+        Instead we leave TraverseIntoChildren = true and let regular Traverse
+        logic to visit our children.
         Our Shapes^.Group and Shapes^.Index is already correctly set
         at the inside of this transform by our HandleChangeTransform. }
       Exit;
@@ -4435,6 +4405,8 @@ function TTransformChangeHelper.TransformChangeTraverse(
     { get Shape and increase Shapes^.Index }
     ShapeTransform := Shapes^.Group.Children[Shapes^.Index] as TShapeTreeTransform;
     Inc(Shapes^.Index);
+    Assert(ShapeTransform.TransformFunctionality <> nil);
+    Assert(ShapeTransform.TransformNode = TransformNode);
 
     { update transformation inside Transform nodes that are *within*
       the modified Transform node.
@@ -4476,6 +4448,7 @@ function TTransformChangeHelper.TransformChangeTraverse(
     { get Shape and increase Shapes^.Index }
     ShapeSwitch := Shapes^.Group.Children[Shapes^.Index] as TShapeTreeSwitch;
     Inc(Shapes^.Index);
+    Assert(ShapeSwitch.SwitchNode = SwitchNode);
 
     OldShapes := Shapes;
     try
@@ -4516,6 +4489,7 @@ function TTransformChangeHelper.TransformChangeTraverse(
     { get Shape and increase Shapes^.Index }
     ShapeLOD := Shapes^.Group.Children[Shapes^.Index] as TShapeTreeLOD;
     Inc(Shapes^.Index);
+    Assert(ShapeLOD.LODNode = LODNode);
 
     { by the way, update LODInverseTransform, since it changed }
     if Inside then
@@ -4606,6 +4580,7 @@ function TTransformChangeHelper.TransformChangeTraverse(
       'Missing shape in Shapes tree');
     Instance := Shapes^.Group.Children[Shapes^.Index] as TProximitySensorInstance;
     Inc(Shapes^.Index);
+    Assert(Instance.Node = Node);
 
     Instance.InverseTransform := StateStack.Top.Transformation.InverseTransform;
 
@@ -4636,6 +4611,8 @@ function TTransformChangeHelper.TransformChangeTraverse(
       'Missing shape in Shapes tree');
     Instance := Shapes^.Group.Children[Shapes^.Index] as TVisibilitySensorInstance;
     Inc(Shapes^.Index);
+    Assert(Instance.Node = Node);
+
     Instance.Transform := StateStack.Top.Transformation.Transform;
     Instance.Box := Node.Box.Transform(Instance.Transform);
   end;
@@ -4851,7 +4828,24 @@ begin
       TransformChangeHelper.ParentScene := Self;
       TransformChangeHelper.ChangingNode := RootNode;
 
-      TransformShapesParentInfo.Group := Shapes as TShapeTreeGroup;
+      if not
+        ( (Shapes is TShapeTreeGroup) and
+          (TShapeTreeGroup(Shapes).Children.Count = 1) and
+          (TShapeTreeGroup(Shapes).Children[0] is TShapeTreeTransform) and
+          (TShapeTreeTransform(TShapeTreeGroup(Shapes).Children[0]).TransformFunctionality <> nil) and
+          (TShapeTreeTransform(TShapeTreeGroup(Shapes).Children[0]).TransformNode = RootNode) ) then
+      begin
+        raise EInternalError.Create('Scene Shapes should be TShapeTreeGroup with TShapeTreeTransform representing RootNode');
+      end;
+
+      { The logic in HandleTransform in TTransformChangeHelper.TransformChangeTraverse,
+        when Node = ChangingNode, assumes that TransformShapesParentInfo.Group
+        given here matches the *inside* of the node that is changing,
+        which is RootNode in this case.
+        So we don't set "TransformShapesParentInfo.Group := Shapes",
+        we go inside. }
+
+      TransformShapesParentInfo.Group := TShapeTreeGroup(Shapes).Children[0] as TShapeTreeGroup;
       TransformShapesParentInfo.Index := 0;
 
       { initialize TransformChangeHelper properties that may be changed
@@ -5959,7 +5953,7 @@ begin
     then the octree in InternalOctreeCollisions remains assigned
     as long as there's no need to rebuild it.
     This is nice, in case you change Spatial again
-    (e.g. by switching "Collisions" in view3dscene),
+    (e.g. by switching "Collisions" in castle-model-viewer),
     the octree is immediately available.
 
     But we don't want to use this octree.
@@ -6021,7 +6015,7 @@ begin
     { Add only active and visible shapes }
     ShapesList := Shapes.TraverseList(true, true, false);
 
-  Result := TShapeOctree.Create(Limits, LocalBoundingBoxNoChildren, ShapesList, false);
+  Result := TShapeOctree.Create(Limits, LocalBoundingBoxNoChildren, ShapesList);
   try
     for I := 0 to Result.ShapesList.Count - 1 do
       if not Result.ShapesList[I].BoundingBox.IsEmpty then
@@ -6236,23 +6230,6 @@ begin
 
       FProcessEvents := Value;
     end;
-  end;
-end;
-
-procedure TCastleSceneCore.SetStatic(const Value: boolean);
-begin
-  if FStatic <> Value then
-  begin
-    FStatic := Value;
-    if FStatic then
-    begin
-      { Clear TX3DNode.Scene for all nodes }
-      if RootNode <> nil then
-        RootNode.UnregisterScene;
-    end else
-      { Set TX3DNode.Scene for all nodes.
-        This is done as part of ChangedAll when Static = true. }
-      ScheduleChangedAll;
   end;
 end;
 
@@ -6846,7 +6823,7 @@ begin
       To test it all in a simple case,
       open the Spine JSON file
       from https://github.com/castle-engine/demo-models/tree/master/animation/spine_animation_blending_test/exported
-      with view3dscene and run animations with TransitionDuration > 0.
+      with castle-model-viewer and run animations with TransitionDuration > 0.
 
       Note that above assumes that the field X supports lerp (TX3DField.CanAssignLerp).
       Otherwise the AD 3 case is broken (new animation would not correctly "reset"
@@ -8129,7 +8106,7 @@ var
 begin
   if RootNode = nil then
     raise Exception.Create('You have to initialize RootNode, usually just by loading some scene to TCastleSceneCore.Load, before adding viewpoints');
-  if Navigation.Camera <> nil then
+  if Navigation.Camera = nil then
     raise Exception.Create('Navigation must be part of some Viewport before using AddViewpointFromNavigation');
 
   Navigation.Camera.GetWorldView(APosition, ADirection, AUp);
@@ -8329,28 +8306,6 @@ end;
 
 function TCastleSceneCore.ForceAnimationPose(const AnimationName: String;
   const TimeInAnimation: TFloatTime;
-  const Looping: TPlayAnimationLooping;
-  const Forward: boolean): boolean;
-var
-  Loop: boolean;
-  TimeNode: TTimeSensorNode;
-begin
-  // calculate Loop
-  case Looping of
-    paLooping   : Loop := true;
-    paNotLooping: Loop := false;
-    else
-    begin
-      TimeNode := AnimationTimeSensor(AnimationName);
-      Loop := (TimeNode <> nil) and TimeNode.Loop;
-    end;
-  end;
-
-  Result := ForceAnimationPose(AnimationName, TimeInAnimation, Loop, Forward);
-end;
-
-function TCastleSceneCore.ForceAnimationPose(const AnimationName: String;
-  const TimeInAnimation: TFloatTime;
   const Loop: boolean;
   const Forward: boolean): boolean;
 var
@@ -8386,27 +8341,6 @@ begin
       FinishTransformationChanges;
     end;
   end;
-end;
-
-function TCastleSceneCore.PlayAnimation(const AnimationName: String;
-  const Looping: TPlayAnimationLooping;
-  const Forward: boolean): boolean;
-var
-  Loop: boolean;
-  TimeNode: TTimeSensorNode;
-begin
-  // calculate Loop
-  case Looping of
-    paLooping   : Loop := true;
-    paNotLooping: Loop := false;
-    else
-    begin
-      TimeNode := AnimationTimeSensor(AnimationName);
-      Loop := (TimeNode <> nil) and TimeNode.Loop;
-    end;
-  end;
-
-  Result := PlayAnimation(AnimationName, Loop, Forward);
 end;
 
 function TCastleSceneCore.PlayAnimation(const AnimationName: String;
@@ -8632,7 +8566,7 @@ begin
   if FUrl <> NewUrl then
   begin
     if FUrlWatched then
-      FileMonitor.Unwatch(FUrl, {$ifdef FPC}@{$endif} UrlChanged);
+      TCastleFileMonitor.Unwatch(FUrl, {$ifdef FPC}@{$endif} UrlChanged);
     FUrl := NewUrl;
     FUrlWatched := FileMonitor.Watch(FUrl, {$ifdef FPC}@{$endif} UrlChanged);
   end;
@@ -8648,7 +8582,7 @@ function TCastleSceneCore.PropertySections(
   const PropertyName: String): TPropertySections;
 begin
   if ArrayContainsString(PropertyName, [
-       'Url', 'ProcessEvents', 'AutoAnimation', 'AutoAnimationLoop',
+       'Url', 'ProcessEvents', 'AutoAnimation',
        'DefaultAnimationTransition', 'PreciseCollisions', 'ExposeTransforms',
        'TimePlaying', 'TimePlayingSpeed', 'Cache'
      ]) then

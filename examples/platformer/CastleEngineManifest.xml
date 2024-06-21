@@ -12,7 +12,10 @@ See https://castle-engine.io/project_manifest for documentation of this file.
   caption="Platformer"
   screen_orientation="landscape"
 >
-  <version value="1.4.0" code="5" />
+  <icons>
+    <icon path="icon.png" />
+  </icons>
+  <version value="1.4.1" code="6" />
   <compiler_options>
     <search_paths>
       <path value="code/" />

@@ -26,7 +26,7 @@
     forced by user (using window manager, not F11) really cleanly.
 }
 
-{$ifdef OpenGLES}
+{$ifdef USE_EGL}
   {$I castlewindow_egl.inc}
 {$else}
   {$I castlewindow_glx.inc}
@@ -845,12 +845,12 @@ const
         NewDpi := gdk_screen_width() / (ScreenWidthMM / 25.4);
     end;
     Container.Dpi := NewDpi;
-    // Too verbose by default, UpdateUIScale will show it if UIScaling is usDpiScale.
+    // Too verbose by default, TCastleContainer.InternalCalculateUIScale will log it if UIScaling is usDpiScale.
     // WritelnLog('GTK', 'Dots (pixels) per inch is %f (%f * default %f)',
     //   [NewDpi, NewDpi / DefaultDpi, DefaultDpi]);
   end;
 
-{$ifndef OpenGLES}
+{$ifndef USE_EGL}
 var
   GdkVisual: PGdkVisual;
   GdkColormap: PGdkColormap;
@@ -870,10 +870,10 @@ begin
   gtk_window_set_title(GTK_WINDOW(WindowGtk), PChar(GetWholeCaption));
   gtk_container_set_border_width(GTK_CONTAINER(WindowGtk), BorderWidth);
 
+  {$ifndef USE_EGL}
   { Create XVisual }
-  ContextCreateBegin;
+  ContextCreateEarly;
 
-  {$ifndef OpenGLES}
   { Create GdkColormap using XVisual }
   GdkVisual := gdk_x11_screen_lookup_visual(Application.XScreenGdk, XVisual^.VisualId);
   GdkColormap := gdk_colormap_new(GdkVisual, gfalse);
@@ -887,17 +887,18 @@ begin
   // Cleanup after gtk_widget_push_colormap called above
   gtk_widget_pop_colormap();
 
-  {$ifndef OpenGLES}
-  { We should pass WindowXID to be correct.
-    But:
-    - it is not ready yet (widget is not realized, and calling WindowXID
-      would just cause warning
-      "... Gdk-WARNING **: ....: /build/gtk+2.0-ABXlu1/gtk+2.0-2.24.32/gdk/x11/gdkdrawable-x11.c:952 drawable is not a pixmap or window"
-    - it is actually not used by castlewindow_glx.inc now.
+  {$ifndef USE_EGL}
+  { Note that we don't have, and also don't need, WindowXID now.
 
-    So, as a quick solution, we pass 0.
+    That's because widget is not realized, and calling WindowXID
+    would just cause warning
+    "... Gdk-WARNING **: ....: /build/gtk+2.0-ABXlu1/gtk+2.0-2.24.32/gdk/x11/gdkdrawable-x11.c:952 drawable is not a pixmap or window"
+
+    Luckily, TGLContextGlx doesn't require WindowXID.
+    And not defined USE_EGL -> implies we use TGLContextGlx now,
+    as GTK backend supports only glX or EGL.
   }
-  ContextCreateEnd({ WindowXID } 0);
+  ContextCreate;
   {$endif}
 
   gtk_widget_show(GTK_WIDGET(GLAreaGtk));
@@ -1032,12 +1033,14 @@ begin
     gtk_widget_realize(GTK_WIDGET(GLAreaGtk));
   end;
 
-  {$ifdef OpenGLES}
-  { In case of EGL (OpenGLES) we really need WindowXID.
+  {$ifdef USE_EGL}
+  { In case of EGL we really need WindowXID.
     So we cannot use previous workaround, instead we wait for a good time
     to get WindowXID, when widget is realized.
     TODO: Should we just do it with glX version too? }
-  ContextCreateEnd(WindowXID);
+  { TODO: WindowXID is only with X, so for now CASTLE_WINDOW_GTK_2
+    cannot work with non-Unix (like Windows). }
+  ContextCreate(WindowXID);
   {$endif}
 
   { From this point I require that WindowGtk is realized (has associated
@@ -1083,6 +1086,8 @@ begin
     if Visible then
       gtk_widget_hide(GTK_WIDGET(WindowGtk));
 
+    ContextDestroy;
+
     { Doing here
         gtk_widget_unref(GTK_WIDGET(WindowGtk));
       instead of gtk_widget_destroy causes
@@ -1100,6 +1105,10 @@ begin
       toplevel windows and do some other needed by GTK+ things). }
     gtk_widget_destroy(GTK_WIDGET(WindowGtk));
     WindowGtk := nil;
+
+    {$ifndef USE_EGL}
+    ContextDestroyLate;
+    {$endif}
   end;
 end;
 
@@ -1488,6 +1497,10 @@ begin
   end;
 end;
 
+procedure TCastleWindow.BackendInsideUpdate;
+begin
+end;
+
 { TGTKClipboard ----------------------------------------------------------- }
 
 { TODO: Shouldn't we convert here UTF8<->system, like in LCL backend?
@@ -1685,20 +1698,17 @@ begin
     DoLimitFPS;
 end;
 
-procedure TCastleApplication.QuitWhenNoOpenWindows;
+procedure TCastleApplication.BackendTerminate;
 begin
- if gtk_main_level() > 0 then gtk_main_quit();
+  { TODO: This implementation (doing gtk_main_quit)
+    is now likely unnecessary.
 
- { Tracking "Terminated" is needed, gtk_main_quit is not enough --- see
-   comments in ProcessMessage implementation.
+    We call gtk_main_quit only to exit from gtk_main --- but we do not use
+    gtk_main anymore to implement our loop.
+    We implement loop simply by calling ProcessMessage. }
 
-   Actually, we call gtk_main_quit
-   only to exit from gtk_main --- if we would not use gtk_main
-   (but e.g. implement Loop simply by calling ProcessMessage,
-   which is entirely possible), then calling gtk_main_quit
-   would not be needed at all. }
-
- Terminate; // set Terminated := true
+  if gtk_main_level() > 0 then
+    gtk_main_quit();
 end;
 
 procedure TCastleApplication.CreateBackend;

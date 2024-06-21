@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<TextureAtlas imagePath="disciple.png">
+<TextureAtlas width="1024" height="1024" imagePath="disciple.png">
   <SubTexture x="0" y="973" fps="8" name="idle_1" width="45" height="51"/>
   <SubTexture x="45" y="973" name="idle_2" width="45" height="51"/>
   <SubTexture x="90" y="973" name="idle_3" width="45" height="51"/>

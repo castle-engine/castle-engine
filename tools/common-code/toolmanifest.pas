@@ -1,5 +1,5 @@
 {
-  Copyright 2021-2023 Michalis Kamburelis.
+  Copyright 2021-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -23,13 +23,11 @@ interface
 
 uses DOM, Classes, Generics.Collections,
   CastleStringUtils, CastleImages, CastleUtils, CastleFindFiles, CastleColors,
+  CastleInternalTools, CastleUnicode,
   ToolServices, ToolAssocDocTypes;
 
 type
   TCompiler = (coAutodetect, coFpc, coDelphi);
-
-  TDependency = (depFreetype, depZlib, depPng, depSound, depOggVorbis, depHttps);
-  TDependencies = set of TDependency;
 
   TScreenOrientation = (soAny, soLandscape, soPortrait);
 
@@ -110,7 +108,6 @@ type
 
     var
       OwnerComponent: TComponent;
-      FDependencies: TDependencies;
       FName, FExecutableName, FQualifiedName, FAuthor, FCaption: String;
       FIOSOverrideQualifiedName: String;
       FIOSOverrideVersion: TProjectVersion; //< nil if not overridden, should use FVersion then
@@ -144,9 +141,12 @@ type
       FFreeDesktopComment: String;
       FDetectMemoryLeaks: Boolean;
       FMacAppBundle: Boolean;
+      FProjectDependencies: TProjectDependencies;
 
     function DefaultQualifiedName(const AName: String): String;
     procedure CheckMatches(const Name, Value: String; const AllowedChars: TSetOfChars);
+    class procedure CheckUnicodeDoesNotContain(
+      const Name, Value: String; const DisallowedChars: TUnicodeCharList);
     procedure CheckValidQualifiedName(const OptionName: String; const QualifiedName: String);
     { Change compiler option @xxx to use absolute paths.
       Important for "castle-engine editor" where ExtraCompilerOptionsAbsolute is inserted
@@ -159,7 +159,6 @@ type
     procedure CreateFinish;
     procedure FindPascalFilesCallback(const FileInfo: TFileInfo; var StopSearch: boolean);
     procedure SetBaseUrl(const Value: String);
-    procedure AddDependencyFromFoundDataFile(const FileInfo: TFileInfo; var StopSearch: Boolean);
   public
     const
       { Android SDK versions.
@@ -201,7 +200,12 @@ type
     property GameUnits: String read FGameUnits;
     property EditorUnits: String read FEditorUnits;
     property QualifiedName: String read FQualifiedName;
-    property Dependencies: TDependencies read FDependencies;
+    { Dependencies of this project.
+      Read-only from the outside, do not call any methods that modify
+      the contents of it. }
+    property ProjectDependencies: TProjectDependencies read FProjectDependencies;
+    { Shortcut for ProjectDependencies.Dependencies. }
+    function Dependencies: TDependencies;
     property Name: String read FName;
     { Project path. Absolute.
       Always ends with path delimiter, like a slash or backslash. }
@@ -315,13 +319,17 @@ type
     { Finds all Pascal files (units and includes -- not lpr / dpr for now).
       Returns a list with filenames relative to Path. }
     function FindPascalFiles: TStringList;
+
+    { Convert possible manifest value of standalone_source into implied Pascal
+      program name. }
+    class function StandaloneSourceToProgramName(const AStandaloneSource: String): String;
+
+    { Raise exception if AExecutableName not valid. }
+    class procedure CheckExecutableName(const AExecutableName: String);
   end;
 
 function CompilerToString(const C: TCompiler): String;
 function StringToCompiler(const S: String): TCompiler;
-
-function DependencyToString(const D: TDependency): String;
-function StringToDependency(const S: String): TDependency;
 
 function ScreenOrientationToString(const O: TScreenOrientation): String;
 function StringToScreenOrientation(const S: String): TScreenOrientation;
@@ -437,6 +445,7 @@ begin
   FAndroidServices := TServiceList.Create(true);
   FIOSServices := TServiceList.Create(true);
   FAssociateDocumentTypes := TAssociatedDocTypeList.Create;
+  FProjectDependencies := TProjectDependencies.Create;
 
   { set defaults (only on fields that are not already in good default state after construction) }
   FDataExists := DefaultDataExists;
@@ -551,19 +560,7 @@ begin
       FVersion.DisplayValue := DefautVersionDisplayValue;
     end;
 
-    Element := Doc.DocumentElement.ChildElement('dependencies', false);
-    if Element <> nil then
-    begin
-      ChildElements := Element.ChildrenIterator('dependency');
-      try
-        while ChildElements.GetNext do
-        begin
-          ChildElement := ChildElements.Current;
-          Include(FDependencies,
-            StringToDependency(ChildElement.AttributeString('name')));
-        end;
-      finally FreeAndNil(ChildElements) end;
-    end;
+    ProjectDependencies.ReadFromManifest(Doc);
 
     Element := Doc.DocumentElement.ChildElement('package', false);
     if Element <> nil then
@@ -793,6 +790,7 @@ end;
 
 destructor TCastleManifest.Destroy;
 begin
+  FreeAndNil(FProjectDependencies);
   FreeAndNil(OwnerComponent);
   FreeAndNil(FIncludePaths);
   FreeAndNil(FExcludePaths);
@@ -834,6 +832,41 @@ begin
     if not (Value[I] in AllowedChars) then
       raise Exception.CreateFmt('Project %s contains invalid characters: "%s", this character is not allowed: "%s"',
         [Name, Value, SReadableForm(Value[I])]);
+end;
+
+class procedure TCastleManifest.CheckUnicodeDoesNotContain(
+  const Name, Value: String; const DisallowedChars: TUnicodeCharList);
+var
+  Iter: TCastleStringIterator;
+begin
+  Iter.Start(Value);
+  while Iter.GetNext do
+  begin
+    if DisallowedChars.IndexOf(Iter.Current) <> -1 then
+      raise Exception.CreateFmt('Project %s contains invalid characters: "%s", this character is not allowed: "%s"', [
+        Name,
+        Value,
+        UnicodeCharToReadableString(Iter.Current)
+      ]);
+  end;
+end;
+
+class procedure TCastleManifest.CheckExecutableName(const AExecutableName: String);
+var
+  DisallowedChars: TUnicodeCharList;
+  DisallowedChar: TUnicodeChar;
+begin
+  { Executable name can contain everything that is an allowed filename
+    on modern platforms.
+    See https://superuser.com/questions/358855/what-characters-are-safe-in-cross-platform-file-names-for-linux-windows-and-os .
+    In particular, most local (Chinese, Polish...) characters are OK. }
+  DisallowedChars := TUnicodeCharList.Create;
+  try
+    DisallowedChars.Add('\/:*?"<>|');
+    for DisallowedChar := 0 to 31 do // disallow null, ASCII control characters
+      DisallowedChars.Add(DisallowedChar);
+    CheckUnicodeDoesNotContain('executable_name', AExecutableName, DisallowedChars);
+  finally FreeAndNil(DisallowedChars) end;
 end;
 
 procedure TCastleManifest.CheckValidQualifiedName(const OptionName: String; const QualifiedName: String);
@@ -889,36 +922,6 @@ begin
     Result := '@' + CombinePaths(Path, SEnding(Result, 2));
 end;
 
-procedure TCastleManifest.AddDependencyFromFoundDataFile(const FileInfo: TFileInfo; var StopSearch: Boolean);
-
-  procedure AddDependency(const Dependency: TDependency; const FileInfo: TFileInfo);
-  begin
-    if not (Dependency in Dependencies) then
-    begin
-      WritelnLog('Automatically adding "' + DependencyToString(Dependency) +
-        '" to dependencies because data contains file: ' + FileInfo.Url);
-      Include(FDependencies, Dependency);
-    end;
-  end;
-
-const
-  { Ignore case on all platforms, to e.g. add freetype DLL when file FOO.TTF
-    is present in data, even on case-sensitive filesystems. }
-  IgnoreCase = true;
-begin
-  if IsWild(FileInfo.Name, '*.ttf', IgnoreCase) or
-     IsWild(FileInfo.Name, '*.otf', IgnoreCase) then
-    AddDependency(depFreetype, FileInfo);
-  if IsWild(FileInfo.Name, '*.gz' , IgnoreCase) then
-    AddDependency(depZlib, FileInfo);
-  if IsWild(FileInfo.Name, '*.png', IgnoreCase) then
-    AddDependency(depPng, FileInfo);
-  if IsWild(FileInfo.Name, '*.wav', IgnoreCase) then
-    AddDependency(depSound, FileInfo);
-  if IsWild(FileInfo.Name, '*.ogg', IgnoreCase) then
-    AddDependency(depOggVorbis, FileInfo);
-end;
-
 procedure TCastleManifest.CreateFinish;
 
   { If DataExists, check whether DataPath really exists.
@@ -944,51 +947,19 @@ procedure TCastleManifest.CreateFinish;
     end;
   end;
 
-  procedure GuessDependencies;
-  begin
-    if DataExists then
-    begin
-      { Note: Instead of one FindFiles call, this could also be implemented by a series
-        of FindFirstFileIgnoreCase calls, like
-
-          if FindFirstFileIgnoreCase(DataPath, '*.ttf' , false, [ffRecursive], FileInfo) or
-          if FindFirstFileIgnoreCase(DataPath, '*.otf' , false, [ffRecursive], FileInfo) then
-            AddDependency(depFreetype, FileInfo);
-          if FindFirstFileIgnoreCase(DataPath, '*.gz' , false, [ffRecursive], FileInfo) then
-            AddDependency(depZlib, FileInfo);
-
-        But this would be inefficient. Each FindFirstFileIgnoreCase effectively again
-        enumerates all files in data. }
-
-      FindFiles(DataPath, '*', false,
-        {$ifdef FPC}@{$endif} AddDependencyFromFoundDataFile, [ffRecursive]);
-    end;
-  end;
-
-  procedure CloseDependencies;
-
-    procedure DependenciesClosure(const Dep, DepRequirement: TDependency);
-    begin
-      if (Dep in Dependencies) and not (DepRequirement in Dependencies) then
-      begin
-        WritelnLog('Automatically adding "' + DependencyToString(DepRequirement) +
-          '" to dependencies because it is a prerequisite of existing dependency "'
-          + DependencyToString(Dep) + '"');
-        Include(FDependencies, DepRequirement);
-      end;
-    end;
-
-  begin
-    DependenciesClosure(depPng, depZlib);
-    DependenciesClosure(depFreetype, depZlib);
-    DependenciesClosure(depOggVorbis, depSound);
-  end;
-
   { Check correctness. }
   procedure CheckManifestCorrect;
+  var
+    ProgramName: String;
   begin
-    CheckMatches('name', Name                     , AlphaNum + ['_','-']);
-    CheckMatches('executable_name', ExecutableName, AlphaNum + ['_','-']);
+    { Note that project "name" can contain minus ("-")
+      character which is not allowed inside a Pascal identifier.
+      This is a deliberate feature (we like names like "castle-model-viewer").
+      When we have to derive some Pascal identifier from it, we use
+      MakeProjectPascalName , TCastleProject.NamePascal and related. }
+    CheckMatches('name', Name, AlphaNum + ['_','-']);
+
+    CheckExecutableName(ExecutableName);
 
     { non-filename stuff: allow also dots }
     CheckValidQualifiedName('qualified_name', QualifiedName);
@@ -996,6 +967,23 @@ procedure TCastleManifest.CreateFinish;
     { more user-visible stuff, where we allow spaces, local characters and so on }
     CheckMatches('caption', Caption, AllChars - ControlChars);
     CheckMatches('author', Author  , AllChars - ControlChars);
+
+    { StandaloneSource, if specified, determines the dpr filename
+      and (sans extension) the Pascal "program" declaration
+      (these 2 things have to match exactly, compilers check this when "program"
+      is specified, and we have to specify "program" otherwise Delphi IDE
+      breaks "uses" clause when adding units).
+      As such, it has to be a valid Pascal identifier. }
+    if StandaloneSource <> '' then
+    begin
+      ProgramName := StandaloneSourceToProgramName(StandaloneSource);
+      if not IsValidIdent(ProgramName) then
+        //raise Exception.CreateFmt
+        WritelnWarning('Program name "%s" (determined by standalone_source "%s" in CastleEngineManifest.xml) is not a valid Pascal identifier. This will be an error in future CGE versions, please rename your DPR / LPR.', [
+          ProgramName,
+          StandaloneSource
+        ]);
+    end;
 
     if AndroidMinSdkVersion > AndroidTargetSdkVersion then
       raise Exception.CreateFmt('Android min_sdk_version %d is larger than target_sdk_version %d, this is incorrect',
@@ -1005,9 +993,20 @@ procedure TCastleManifest.CreateFinish;
 begin
   Version.InitializeItems;
   CheckDataExists;
-  GuessDependencies; // depends on FDataExists finalized, so must be after CheckDataExists
-  CloseDependencies; // must be after GuessDependencies, to close also guesses dependencies
+
+  // depends on FDataExists finalized, so must be after CheckDataExists
+  if DataExists then
+    FProjectDependencies.GuessDependencies(DataPath);
+
+  // must be after GuessDependencies, to close also guessed dependencies
+  FProjectDependencies.CloseDependencies;
+
   CheckManifestCorrect; // must be at end, to validate all
+end;
+
+function TCastleManifest.Dependencies: TDependencies;
+begin
+  Result := FProjectDependencies.Dependencies;
 end;
 
 {
@@ -1136,24 +1135,14 @@ begin
   FindPascalFilesResult.Add(Relative);
 end;
 
+class function TCastleManifest.StandaloneSourceToProgramName(const AStandaloneSource: String): String;
+begin
+  { Use ExtractFileName to ignore path in AStandaloneSource
+    which is possible, user can specify path like "code/myprogram_standalone.lpr". }
+  Result := ExtractFileName(DeleteFileExt(AStandaloneSource));
+end;
+
 { globals -------------------------------------------------------------------- }
-
-const
-  DependencyNames: array [TDependency] of string =
-  ('Freetype', 'Zlib', 'Png', 'Sound', 'OggVorbis', 'Https');
-
-function DependencyToString(const D: TDependency): String;
-begin
-  Result := DependencyNames[D];
-end;
-
-function StringToDependency(const S: String): TDependency;
-begin
-  for Result in TDependency do
-    if AnsiSameText(DependencyNames[Result], S) then
-      Exit;
-  raise Exception.CreateFmt('Invalid dependency name "%s"', [S]);
-end;
 
 const
   ScreenOrientationNames: array [TScreenOrientation] of string =

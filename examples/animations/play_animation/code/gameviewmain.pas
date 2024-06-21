@@ -1,4 +1,4 @@
-{
+﻿{
   Copyright 2018-2023 Michalis Kamburelis, Andrzej Kilijański.
 
   This file is part of "Castle Game Engine".
@@ -66,7 +66,7 @@ var
 
 implementation
 
-uses CastleWindow, CastleComponentSerialize;
+uses CastleWindow, CastleComponentSerialize, CastleRenderOptions;
 
 { TViewMain ----------------------------------------------------------------- }
 
@@ -128,8 +128,19 @@ begin
     camera to the scene unscaled size }
   Scene.Scale := Vector3(1.0, 1.0, 1.0);
   Scene.Load(Url);
+
+  { Set blending sort following "NavigationInfo.blendingSort" info from scene.
+    This means we use 2D sorting e.g. for Spine models by default. }
+  if (Scene.NavigationInfoStack.Top <> nil) and
+     (Scene.NavigationInfoStack.Top.BlendingSort <> sortAuto) then
+    Viewport.BlendingSort := Scene.NavigationInfoStack.Top.BlendingSort
+  else
+    Viewport.BlendingSort := sortAuto;
+
   Viewport.AssignDefaultCamera;
+
   CreateAnimationsButtons;
+
   { Update scale for current SliderScale value }
   ChangedScale(nil);
 end;

@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2018 Michalis Kamburelis.
+  Copyright 2003-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -25,7 +25,10 @@ uses SysUtils
     { With FPC, use cross-platform DynLibs unit. }
     , DynLibs
   {$else}
-    { With Delphi, use Windows functions directly. }
+    { With Delphi, use Windows functions directly.
+      On non-Windows, Delphi SysUtils defines compatible functions
+      LoadLibrary, FreeLibrary, GetProcAddress
+      (note: using PChar, not PAnsiChar) and HMODULE type. }
     {$ifdef MSWINDOWS} , Windows {$endif}
   {$endif};
 
@@ -126,10 +129,6 @@ type
     { What happens when @link(Symbol) fails. }
     property SymbolError: TDynLibSymbolError
       read FSymbolError write FSymbolError default seRaise;
-    {$ifdef FPC}
-    property SymbolErrorBehaviour: TDynLibSymbolError
-      read FSymbolError write FSymbolError default seRaise; deprecated 'use SymbolError';
-    {$endif}
 
     { Return address of given symbol (function name etc.) from loaded dynamic
       library. If the symbol doesn't exist, then SymbolError
@@ -196,8 +195,30 @@ end;
 
 destructor TDynLib.Destroy;
 begin
+  { Delphi on Posix (Linux) implementation of FreeLibrary has a trivial error:
+    It returns "Result := LongBool(dlclose(Module));" which is the opposite
+    of what it should return, because dlclose returns 0 on success.
+
+    But FreeLibrary should return True on success, False on failure,
+    Delphi evidently wanted it to be consistent with FreeLibrary
+    on WinAPI ( https://learn.microsoft.com/en-us/windows/win32/api/libloaderapi/nf-libloaderapi-freelibrary )
+    that has "If the function succeeds, the return value is nonzero".
+
+    So Delphi FreeLibrary should be fixed to report
+    "Result := dlclose(Module) = 0;"
+    Reported to Embarcadero: https://quality.embarcadero.com/browse/RSP-44047
+  }
+  {$if (not defined(FPC)) and (not defined(MSWINDOWS))}
+    {$define IGNORE_FREE_LIBRARY_ERRORS}
+  {$endif}
+
+  {$ifdef IGNORE_FREE_LIBRARY_ERRORS}
+  FreeLibrary(FHandle);
+  {$else}
   if not FreeLibrary(FHandle) then
     WriteLnWarning('Unloading library ' + Name + ' failed');
+  {$endif}
+
   inherited;
 end;
 

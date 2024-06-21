@@ -17,13 +17,10 @@
 { Test CastleFindFiles unit. }
 unit TestCastleFindFiles;
 
-{$ifdef FPC}{$mode objfpc}{$H+}{$endif}
-
 interface
 
 uses
-  Classes, SysUtils, {$ifndef CASTLE_TESTER}FpcUnit, TestUtils, TestRegistry,
-  CastleTestCase{$else}CastleTester{$endif};
+  Classes, SysUtils, CastleTester;
 
 type
   TTestCastleFindFiles = class(TCastleTestCase)

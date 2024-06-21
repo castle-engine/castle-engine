@@ -51,6 +51,8 @@ uses Generics.Defaults, DateUtils,
   {$ifdef FPC}
     {$ifdef LINUX} Linux, {$endif} // for clock_gettime
     {$ifdef FREEBSD} FreeBSD, {$endif} // for clock_gettime
+  {$else}
+    {$ifdef LINUX} Posix.Time, {$endif} // for clock_gettime
   {$endif}
   CastleLog;
 

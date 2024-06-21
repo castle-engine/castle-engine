@@ -28,6 +28,11 @@
   public
     LengthConversionFactor: Float;
 
+    { Parent node, always TX3DNode, @nil if this is top-level.
+      Fow now only used to enhance DefaultContainerFieldInContext knowledge,
+      for XML encoding writing, though we maintain it for all encodings. }
+    ParentNode: TObject;
+
     constructor Create(const ABaseUrl: String;
       const AVersion: TX3DVersion);
     constructor CreateCopy(Source: TX3DReader);

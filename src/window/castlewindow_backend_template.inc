@@ -170,6 +170,10 @@ begin
     Remove the above line then, and put better implementation here. }
 end;
 
+procedure TCastleWindow.BackendInsideUpdate;
+begin
+end;
+
 { TCastleWindow dialogs -------------------------------------------------- }
 
 { Methods below should make native-looking dialog boxes.
@@ -271,17 +275,8 @@ begin
   while ProcessMessage(true, true) do ;
 end;
 
-procedure TCastleApplication.QuitWhenNoOpenWindows;
+procedure TCastleApplication.BackendTerminate;
 begin
-  { TODO: Do also anything necessary to make
-      TCastleApplication.ProcessMessage
-    calls to exit with false.
-    In the simplest case, TCastleApplication.ProcessMessage can just do
-      if Terminated then Exit(false);
-    and then you don't need to do here anything extra.
-  }
-
-  Terminate; // set Terminated := true
 end;
 
 function TCastleApplication.ScreenWidth: integer;

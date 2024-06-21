@@ -1,6 +1,6 @@
 {%MainUnit castlesoundengine.pas}
 {
-  Copyright 2010-2023 Michalis Kamburelis.
+  Copyright 2010-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -21,9 +21,8 @@
   { Looping sound management, to easily play music or other looping sounds.
 
     Instance of this class should be created only internally
-    by the TRepoSoundEngine, always use this through
-    @link(TRepoSoundEngine.MusicPlayer)
-    or @link(TRepoSoundEngine.LoopingChannel). }
+    by the TRepoSoundEngine. User code should use this only by accessing
+    @link(TRepoSoundEngine.LoopingChannel). }
   TLoopingChannel = class(TComponent)
   private
     { Engine that owns this. }
@@ -69,11 +68,6 @@
     { Volume. This must always be within 0..1 range.
       0.0 means that there is no music (this case should be optimized).}
     property Volume: Single read GetVolume write SetVolume {$ifdef FPC}default DefaultVolume{$endif};
-
-    {$ifdef FPC}
-    property MusicVolume: Single read GetVolume write SetVolume default DefaultVolume;
-      deprecated 'use Volume';
-    {$endif}
 
     property Pitch: Single read GetPitch write SetPitch;
   end;

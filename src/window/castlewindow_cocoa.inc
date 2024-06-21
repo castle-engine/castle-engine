@@ -623,18 +623,19 @@ begin
   inherited viewDidMoveToWindow;
 
   if openGLContext = nil then
-    begin
-      openGLContext := NSOpenGLContext.alloc.initWithFormat_shareContext(defaultPixelFormat, nil);
-      if openGLContext = nil then
-        raise EInternalError.Create('invalid NSOpenGLContext');
-      openGLContext.makeCurrentContext;
-      openGLContext.setView(self);
+  begin
+    openGLContext := NSOpenGLContext.alloc.initWithFormat_shareContext(defaultPixelFormat, nil);
+    if openGLContext = nil then
+      raise EInternalError.Create('invalid NSOpenGLContext');
+    openGLContext.makeCurrentContext;
+    openGLContext.setView(self);
 
-      openGLContext.setValues_forParameter_fixed(@swapInterval, NSOpenGLCPSwapInterval);
+    openGLContext.setValues_forParameter_fixed(@swapInterval, NSOpenGLCPSwapInterval);
 
-      if not isOpaque then
-        openGLContext.setValues_forParameter_fixed(@opacity, NSOpenGLCPSurfaceOpacity);
-    end;
+    if not isOpaque then
+      openGLContext.setValues_forParameter_fixed(@opacity, NSOpenGLCPSurfaceOpacity);
+  end;
+
   if window = nil then
     openGLContext.clearDrawable;
 end;
@@ -741,6 +742,7 @@ begin
   { Make TGLFeatures.Create use a path that avoids accessing deprecated glGetString(GL_EXTENSIONS).
 
     TODO: This should not be necessary, we should not change RequestCapabilities here.
+    It used to be a necessary hack with FPC GLExt unit:
     But FPC GLExt unit will by default access deprecated glGetString(GL_EXTENSIONS),
     this is for now the simplest way to prevent it. }
   TGLFeatures.RequestCapabilities := rcForceModern;
@@ -832,10 +834,10 @@ begin
     For unknown reason, changing title on Cocoa resets the cursor to arrow.
     So change it back, if FCursor requires non-standard look.
 
-    Testcase: view3dscene open
+    Testcase: castle-model-viewer open
     demo-models/sensors_pointing_device/touch_sensor_tests.x3dv ,
     hover with mouse over pointing device sensor -- the cursor should remain
-    "hand", not be reset to "arrow". Note that view3dscene uses
+    "hand", not be reset to "arrow". Note that castle-model-viewer uses
     "Window.FpsShowOnCaption := true;" so indeed it changes caption every second.
 
     Some other report:
@@ -1094,6 +1096,10 @@ begin
   end;
 end;
 
+procedure TCastleWindow.BackendInsideUpdate;
+begin
+end;
+
 { TCastleApplication ---------------------------------------------------------- }
 
 procedure TCastleApplication.CreateBackend;
@@ -1219,9 +1225,8 @@ begin
   while ProcessMessage(true, true) do ;
 end;
 
-procedure TCastleApplication.QuitWhenNoOpenWindows;
+procedure TCastleApplication.BackendTerminate;
 begin
-  Terminate; // set Terminated := true
 end;
 
 function TCastleApplication.ScreenWidth: integer;

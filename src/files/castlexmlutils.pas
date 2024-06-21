@@ -142,13 +142,41 @@ type
 
     { Read from Element attribute value as color and returns @true,
       or (if there is no such attribute) returns @false
-      and does not modify Value. }
-    function AttributeColor(const AttrName: String; var Value: TCastleColor): boolean; overload;
+      and does not modify Value.
+
+      This can read a color value in any of these formats:
+
+      @unorderedList(
+        @item(Hexadecimal format, like set by @link(AttributeColorSet).)
+
+        @item(4D vector format, with 4 vector components in range 0..1,
+          separated by whitespace.
+          Like set by @link(AttributeSet AttributeSet(TVector4)) overload.)
+      )
+
+      In effect, you can write TCastleColor values to XML using
+      @link(AttributeSet) or @link(AttributeColorSet), they both can be read back
+      using this method. }
+    function AttributeColor(const AttrName: String; var Value: TCastleColor): Boolean; overload;
 
     { Read from Element attribute value as RGB color and returns @true,
       or (if there is no such attribute) returns @false
-      and does not modify Value. }
-    function AttributeColorRGB(const AttrName: String; var Value: TCastleColorRGB): boolean; overload;
+      and does not modify Value.
+
+      This can read a color value in any of these formats:
+
+      @unorderedList(
+        @item(Hexadecimal format, like set by @link(AttributeColorSet).)
+
+        @item(3D vector format, with 3 vector components in range 0..1,
+          separated by whitespace.
+          Like set by @link(AttributeSet AttributeSet(TVector3)) overload.)
+      )
+
+      In effect, you can write TCastleColorRGB values to XML using
+      @link(AttributeSet) or @link(AttributeColorSet), they both can be read back
+      using this method. }
+    function AttributeColorRGB(const AttrName: String; var Value: TCastleColorRGB): Boolean; overload;
 
     { Read from Element attribute as a 2D vector (2 floats), and returns @true,
       or (if there is no such attribute) returns @false
@@ -364,6 +392,14 @@ type
       such that it's readable back by @link(AttributeVector4) and @link(AttributeVector4Def). }
     procedure AttributeSet(const AttrName: String; const Value: TVector4); overload;
 
+    { Set the attribute as TCastleColor converted to HEX string,
+      such that it's readable back by @link(AttributeColor) and @link(AttributeColorDef). }
+    procedure AttributeColorSet(const AttrName: String; const Value: TCastleColor); overload;
+
+    { Set the attribute as TCastleColorRGB converted to HEX string,
+      such that it's readable back by @link(AttributeColorRGB) and @link(AttributeColorRGBDef). }
+    procedure AttributeColorSet(const AttrName: String; const Value: TCastleColorRGB); overload;
+
     { Other methods ---------------------------------------------------------- }
 
     { Get child element with given ChildName.
@@ -387,12 +423,20 @@ type
       we will raise EDOMChildElementError (if Required is @true, default)
       or return @nil (if Required is @false).
 
+      If there are multiple occurences and Required is @false, then
+      we return @nil. If WarnOnMultiple we will also make a warning in this case,
+      since we don't know which to return, but it it probably a mistake in XML file.
+
       @raises(EDOMChildElementError
         If child not found (or found more than once), and Required = @true.)  }
-    function Child(const ChildName: String; const Required: boolean = true): TDOMElement;
+    function Child(const ChildName: String;
+      const Required: boolean = true;
+      const WarnOnMultiple: boolean = true): TDOMElement;
 
     { Same as @link(Child). }
-    function ChildElement(const ChildName: String; const Required: boolean = true): TDOMElement;
+    function ChildElement(const ChildName: String;
+      const Required: boolean = true;
+      const WarnOnMultiple: boolean = true): TDOMElement;
 
     { Create a new child element under this element, and return it. }
     function CreateChild(const ChildName: String): TDOMElement;
@@ -594,18 +638,6 @@ function DOMGetBooleanAttribute(const Element: TDOMElement;
   const AttrName: String; var Value: boolean): boolean;
   deprecated 'use helper method AttributeBoolean on TDOMElement';
 
-{ Returns the @italic(one and only) child element of this Element.
-  If given Element has none or more than one child elements,
-  returns @nil. This is handy for parsing XML in cases when you
-  know that given element must contain exactly one other element
-  in correct XML file. }
-function DOMGetOneChildElement(const Element: TDOMElement): TDOMElement;
-  deprecated 'This method did not prove to be of much use, and it only clutters the API. Don''t use, or show us a convincing usecase when this is sensible.';
-
-function DOMGetChildElement(const Element: TDOMElement;
-  const ChildName: String; RaiseOnError: boolean): TDOMElement;
-  deprecated 'use TDOMElement helper called ChildElement';
-
 function DOMGetTextData(const Element: TDOMElement): String;
   deprecated 'use TDOMElement helper called TextData';
 
@@ -653,7 +685,8 @@ procedure UrlWriteXML(Doc: TXMLDocument; const Url: String; const BlowFishKeyPhr
 implementation
 
 uses Classes, XMLRead, XMLWrite, {$ifdef FPC} BlowFish, {$endif}
-  CastleUriUtils, CastleClassUtils, CastleInternalFileMonitor;
+  CastleUriUtils, CastleClassUtils, CastleInternalFileMonitor, CastleStringUtils,
+  CastleLog;
 
 { TDOMNodeHelper ------------------------------------------------------------- }
 
@@ -784,23 +817,33 @@ begin
 end;
 
 function TDOMElementHelper.AttributeColor(
-  const AttrName: String; var Value: TCastleColor): boolean;
+  const AttrName: String; var Value: TCastleColor): Boolean;
 var
   ValueStr: String;
 begin
   Result := AttributeString(AttrName, ValueStr);
   if Result then
-    Value := HexToColor(ValueStr);
+  begin
+    if CountTokens(ValueStr) = 4 then
+      Value := Vector4FromStr(ValueStr)
+    else
+      Value := HexToColor(ValueStr);
+  end;
 end;
 
 function TDOMElementHelper.AttributeColorRGB(
-  const AttrName: String; var Value: TCastleColorRGB): boolean;
+  const AttrName: String; var Value: TCastleColorRGB): Boolean;
 var
   ValueStr: String;
 begin
   Result := AttributeString(AttrName, ValueStr);
   if Result then
-    Value := HexToColorRGB(ValueStr);
+  begin
+    if CountTokens(ValueStr) = 3 then
+      Value := Vector3FromStr(ValueStr)
+    else
+      Value := HexToColorRGB(ValueStr);
+  end;
 end;
 
 function TDOMElementHelper.AttributeVector2(
@@ -1055,17 +1098,29 @@ begin
   SetAttribute(UTF8Decode(AttrName), UTF8Decode(Value.ToRawString));
 end;
 
+procedure TDOMElementHelper.AttributeColorSet(const AttrName: String;
+  const Value: TCastleColor);
+begin
+  SetAttribute(UTF8Decode(AttrName), UTF8Decode(ColorToHex(Value)));
+end;
+
+procedure TDOMElementHelper.AttributeColorSet(const AttrName: String;
+  const Value: TCastleColorRGB);
+begin
+  SetAttribute(UTF8Decode(AttrName), UTF8Decode(ColorRGBToHex(Value)));
+end;
+
 { ------------------------------------------------------------------------
   TDOMElementHelper: Other methods. }
 
 function TDOMElementHelper.ChildElement(const ChildName: String;
-  const Required: boolean): TDOMElement;
+  const Required, WarnOnMultiple: boolean): TDOMElement;
 begin
-  Result := Child(ChildName, Required);
+  Result := Child(ChildName, Required, WarnOnMultiple);
 end;
 
 function TDOMElementHelper.Child(const ChildName: String;
-  const Required: boolean): TDOMElement;
+  const Required, WarnOnMultiple: boolean): TDOMElement;
 var
   Children: TDOMNodeList;
   Node: TDOMNode;
@@ -1084,9 +1139,15 @@ begin
         Result := TDOMElement(Node) else
       begin
         if Required then
+        begin
           raise EDOMChildElementError.CreateFmt(
-            'Child "%s" occurs more than once', [ChildName]) else
+            'Child "%s" occurs more than once', [ChildName]);
+        end else
+        begin
+          if WarnOnMultiple then
+            WritelnWarning('XML', Format('Child "%s" occurs more than once, ignoring all occurences', [ChildName]));
           Exit(nil);
+        end;
       end;
     end;
   end;
@@ -1286,39 +1347,9 @@ begin
   Result := Element.AttributeBoolean(AttrName, Value);
 end;
 
-function DOMGetChildElement(const Element: TDOMElement;
-  const ChildName: String; RaiseOnError: boolean): TDOMElement;
-begin
-  Result := Element.ChildElement(ChildName, RaiseOnError);
-end;
-
 function DOMGetTextData(const Element: TDOMElement): String;
 begin
   Result := Element.TextData;
-end;
-
-function DOMGetOneChildElement(const Element: TDOMElement): TDOMElement;
-var
-  Children: TDOMNodeList;
-  Node: TDOMNode;
-  I: Integer;
-begin
-  Result := nil;
-  Children := Element.ChildNodes;
-  for I := 0 to Integer(Children.Count) - 1 do
-  begin
-    Node := Children.Item[I];
-    if Node.NodeType = ELEMENT_NODE then
-    begin
-      if Result = nil then
-        Result := Node as TDOMElement else
-      begin
-        { More than one element in Children. }
-        Result := nil;
-        Exit;
-      end;
-    end;
-  end;
 end;
 
 function DOMGetTextChild(const Element: TDOMElement;

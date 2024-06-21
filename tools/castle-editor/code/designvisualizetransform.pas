@@ -1,5 +1,5 @@
 {
-  Copyright 2020-2022 Michalis Kamburelis.
+  Copyright 2020-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -638,6 +638,8 @@ begin
                 Diff.Data[I] := NewPick[I] / LastPick[I];
             Parent.Scale := Parent.Scale * Diff;
           end;
+        voSelect:
+          raise EInternalError.Create('TGizmoScene shall never be created with voSelect, ');
       end;
 
       { No point in updating LastPick or LastPickAngle:

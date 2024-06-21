@@ -217,6 +217,13 @@
   https://gitlab.com/freepascal.org/fpc/source/-/commit/693491048bf2c6f9122a0d8b044ad0e55382354d }
 {$ifdef VER3_0} {$define GENERICS_CONSTREF} {$endif}
 {$ifdef VER3_2} {$define GENERICS_CONSTREF} {$endif}
+{$if defined(VER3_2_3)}
+  { FPC 3.2.3 (fixes_3_2 branch, as of 2023-12-23) no longer uses "constref".
+    Confirmed on Linux/Arm32, Linux/Arm64(Aarch64), Linux/x86_64,
+    see also sources:
+    https://gitlab.com/freepascal.org/fpc/source/-/blob/fixes_3_2/packages/rtl-generics/src/generics.collections.pas?ref_type=heads. }
+  {$undef GENERICS_CONSTREF}
+{$endif}
 
 { Define CASTLE_IOS when appropriate ----------------------------------------- }
 
@@ -295,7 +302,7 @@
 
   CGE units that directly access OpenGL(ES) should use this line:
 
-    {$ifdef FPC} CastleGL, {$else} OpenGL, OpenGLext, {$endif}
+    {$ifdef OpenGLES} CastleGLES, {$else} CastleGL, {$endif}
 
   Applications using CGE (including CGE examples) cannot include castleconf.inc
   (it's internal what it defines) and usually should not need to access OpenGL(ES)
@@ -304,14 +311,10 @@
 
     {$ifdef ANDROID} {$define OpenGLES} {$endif}
     {$ifdef CASTLE_IOS} {$define OpenGLES} {$endif}
-    {$ifdef FPC}
-      {$ifdef OpenGLES} CastleGLES, {$else} GL, GLExt, {$endif}
-    {$else}
-      OpenGL, OpenGLext,
-    {$endif}
+    {$ifdef OpenGLES} CastleGLES, {$else} CastleGL, {$endif}
 
   The above code supports both FPC and Delphi, and supports both OpenGL and OpenGLES.
-  You can simplify it in a particular application, if you don't support e.g. both FPC and Delphi.
+  Please note that above recommendation may change from time to time.
 *)
 { $define OpenGLES}
 {$ifdef ANDROID} {$define OpenGLES} {$endif}
@@ -323,14 +326,8 @@
 {$ifdef CASTLE_NINTENDO_SWITCH} {$define OpenGLES} {$endif}
 
 {$ifdef OpenGLES}
-  {$ifndef FPC}
-    {$error We do not support OpenGLES (necessary for Android, iOS) with Delphi yet}
-  {$else}
-    {$ifdef CASTLE_NINTENDO_SWITCH}
-      {$define CastleGL := CastleInternalNxGLES20}
-    {$else}
-      {$define CastleGL := CastleGLES}
-    {$endif}
+  {$ifdef CASTLE_NINTENDO_SWITCH}
+    {$define CastleGLES := CastleInternalNxGLES20}
   {$endif}
 
   { This is necessary for OpenGL ES 2.0 versions that support only 16-bit indexes,
@@ -372,7 +369,9 @@
   }
   {$define GLIndexesShort}
 {$else}
-  {$define CastleGL := GL, GLExt}
+  { For OpenGL (not ES), we use our own fork of dglOpenGL
+    (with all compilers and platforms now). }
+  {$define USE_DGL}
 {$endif}
 
 { PNG ------------------------------------------------------------------------ }
@@ -566,6 +565,11 @@
   but having a dedicated symbol allows to easier grep for it and eventually fix. }
 {$ifdef FPC}
   {$define CASTLE_SCRIPT_FPC}
+{$endif}
+
+{ Indicates units like X, XLib are available on this platform. }
+{$if defined(FPC) and (defined(LINUX) or defined(FREEBSD))}
+  {$define UNIX_WITH_X}
 {$endif}
 
 {$endif not CASTLE_CONF_INCLUDED}

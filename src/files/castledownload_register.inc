@@ -1,6 +1,6 @@
 {%MainUnit castledownload.pas}
 {
-  Copyright 2013-2020 Michalis Kamburelis.
+  Copyright 2013-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -32,6 +32,23 @@ type
     If you just want to download asynchronously from standard URLs,
     like file or http, then use TCastleDownload class. }
   TUrlAsynchronousReader = class
+  protected
+    { Call this from @link(Start) overrides in descendants that access the network.
+      Call this after they called "inherited Start" which may change ForceSynchronous.
+
+      This returns @false if
+
+      - It seems that we do synchronous download
+        (maybe because we are called from Download(),
+        or maybe we don't have thread support).
+
+      - And EnableBlockingDownloads is @false.
+
+      IOW, this makes sure we honor EnableBlockingDownloads.
+
+      When it sets @false, it also sets Status and ErrorMessage.
+      The caller @link(Start) should just Exit if this returns @false. }
+    function CheckNetworkAccess: Boolean;
   public
     { Fields set before Start is called. Should not be modified by this instance after Start.
       @groupBegin }
@@ -39,6 +56,7 @@ type
     ForceSynchronous: Boolean;
     HttpMethod: THttpMethod;
     HttpPostData, HttpHeadersKeys, HttpHeadersValues: TStrings;
+    HttpRequestBody: TMemoryStream;
     { @groupEnd }
 
     { Fields that should be updated during downloading.
@@ -131,6 +149,21 @@ begin
   {$endif}
 end;
 
+function TUrlAsynchronousReader.CheckNetworkAccess: Boolean;
+begin
+  Result := true;
+
+  { The main purpose of this is to disable Download from blocking.
+    Additionally, it also disables TCastleDownload from "downgrading" to blocking,
+    when OS doesn't support threads. }
+  if ForceSynchronous and (not EnableBlockingDownloads) then
+  begin
+    Status := dsError;
+    ErrorMessage := 'Downloading network resources (from "http" or "https"  protocols) is not enabled. Set global EnableBlockingDownloads:=true to enable.';
+    Exit(false);
+  end;
+end;
+
 procedure TUrlAsynchronousReader.Update;
 begin
 end;
@@ -151,8 +184,9 @@ type
   end;
 
   TRegisteredProtocols = class({$ifdef FPC}specialize{$endif} TObjectList<TRegisteredProtocol>)
-    { @nil if not found. }
-    function Find(const Protocol: String): TRegisteredProtocol;
+    { Find TRegisteredProtocol with given Protocol, case-insensitive.
+      Returns TRegisteredProtocol, or @nil if not found. }
+    function Find(Protocol: String): TRegisteredProtocol;
 
     procedure Add(const Protocol: String;
       const ReadEvent: TUrlReadEvent;
@@ -161,8 +195,11 @@ type
       const MimeTypeEvent: TUrlMimeTypeEvent); reintroduce;
   end;
 
-function TRegisteredProtocols.Find(const Protocol: String): TRegisteredProtocol;
+function TRegisteredProtocols.Find(Protocol: String): TRegisteredProtocol;
 begin
+  // to compare ignoring case, entries on TRegisteredProtocol.Protocol are already lower-cased
+  Protocol := LowerCase(Protocol);
+
   for Result in Self do
     if Result.Protocol = Protocol then
       Exit;
@@ -184,7 +221,8 @@ begin
      (not URIValidProtocol(Protocol)) then
     raise Exception.CreateFmt('URL protocol name "%s" is invalid (see URIValidProtocol for the requirements on protocol name)', [Protocol]);
   P := TRegisteredProtocol.Create;
-  P.Protocol := Protocol;
+  // lowercase Protocol, to later compare in TRegisteredProtocols.Find ignoring case
+  P.Protocol := LowerCase(Protocol);
   P.ReadEvent := ReadEvent;
   P.WriteEvent := WriteEvent;
   P.AsynchronousReader := AsynchronousReader;

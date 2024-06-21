@@ -86,7 +86,7 @@ NavigationInfo : X3DBindableNode {
     enumerated-type: TShapeSort ShapeSortNames sortAuto
     change: chRedisplay
     doc: """
-      Best blending sort for this scene. It may be honored by some model viewers, e.g. view3dscene honors this to display currently loaded scene.
+      Best blending sort for this scene. It may be honored by some model viewers, e.g. castle-model-viewer honors this to display currently loaded scene.
 
       Note: In CGE applications, the blending sort is determined by @link(TCastleViewport.BlendingSort). It is up to each particular application if, and how, to honor this value on @className. In general, CGE applications may display multiple models (multiple TCastleScene) and there's not necessarily any scene that is "central" or "main", so most CGE applications will just ignore this, at least on most loaded models.
 

@@ -286,7 +286,7 @@ type
         Result := TCastleFont.Create(Container);
         TCastleFont(Result).OptimalSize := NewFontOptimalSize;
         TCastleFont(Result).AntiAliased := NewFontAntiAliased;
-        TCastleFont(Result).LoadBasicCharacters := false; // if neded, they are included in UnicodeCharList
+        TCastleFont(Result).LoadBasicCharacters := false; // if needed, they are included in UnicodeCharList
         TCastleFont(Result).LoadCharacters := UnicodeCharList.ToString;
         TCastleFont(Result).URL := NewFontUrl;
       end;
@@ -340,7 +340,9 @@ begin
       else
       begin
         NewFontFamily := TCastleFontFamily.Create(Container);
-        NewFontFamily.Name := 'CastleInternalDefaultFontFamily';
+        { Don't assign name, to enable users to call LoadSettings
+          multiple times on the same container -- the names shouldn't clash. }
+        // NewFontFamily.Name := 'CastleInternalDefaultFontFamily';
         NewFontFamily.Regular := LoadFontSettings(E.Child('regular', false));
         NewFontFamily.Bold := LoadFontSettings(E.Child('bold', false));
         NewFontFamily.Italic := LoadFontSettings(E.Child('italic', false));

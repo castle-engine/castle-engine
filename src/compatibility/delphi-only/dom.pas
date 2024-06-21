@@ -127,8 +127,8 @@ type
     Nodes: TObjectList;
     InternalList: IXMLNodeList;
 
-    function GetItem(const I: LongWord): TDOMNode;
-    function GetLength: LongWord;
+    function GetItem(const I: Cardinal): TDOMNode;
+    function GetLength: Cardinal;
   private
     function InternalRemove(const Name: String): TDOMNode;
   public
@@ -136,8 +136,8 @@ type
     destructor Destroy;override;
     function GetNamedItem(Name: String): TDOMNode;
 
-    property Item[const Index: LongWord]: TDOMNode read GetItem; default;
-    property Length: LongWord read GetLength;
+    property Item[const Index: Cardinal]: TDOMNode read GetItem; default;
+    property Length: Cardinal read GetLength;
     procedure InvalidateMap;
   end;
 
@@ -190,16 +190,16 @@ type
     FOwnerDocument: TDOMDocument;
     InternalList: IXMLNodeList;
     Nodes: TObjectList;
-    function GetCount: LongWord;
-    function GetItem(const I: LongWord): TDOMNode;
+    function GetCount: Cardinal;
+    function GetItem(const I: Cardinal): TDOMNode;
   private
     procedure RemoveNode(const Child: TDOMNode);
   public
     constructor Create(const ANode: TDOMNode);
     destructor Destroy; override;
-    property Item[const I: LongWord]: TDOMNode read GetItem; default;
-    property Count: LongWord read GetCount;
-    property Length: LongWord read GetCount;
+    property Item[const I: Cardinal]: TDOMNode read GetItem; default;
+    property Count: Cardinal read GetCount;
+    property Length: Cardinal read GetCount;
   end;
 
   TDOMElement = class(TDOMNode)
@@ -305,12 +305,12 @@ begin
   inherited;
 end;
 
-function TDOMNodeList.GetCount: LongWord;
+function TDOMNodeList.GetCount: Cardinal;
 begin
   Result := InternalList.Count;
 end;
 
-function TDOMNodeList.GetItem(const I: LongWord): TDOMNode;
+function TDOMNodeList.GetItem(const I: Cardinal): TDOMNode;
 var
   NewNode: TDOMNode;
 begin
@@ -699,7 +699,7 @@ begin
   inherited;
 end;
 
-function TDOMNamedNodeMap.GetItem(const I: LongWord): TDOMNode;
+function TDOMNamedNodeMap.GetItem(const I: Cardinal): TDOMNode;
 var
   NewNode: TDOMNode;
 begin
@@ -723,7 +723,7 @@ begin
   Result := Nodes[Integer(I)] as TDOMNode;
 end;
 
-function TDOMNamedNodeMap.GetLength: LongWord;
+function TDOMNamedNodeMap.GetLength: Cardinal;
 begin
   Result := InternalList.Count;
 end;

@@ -196,12 +196,14 @@
 
   { Interpolate (animate) a 2D orientation,
     during which angle changes but axis remains constant. }
-  TOrientationInterpolator2DNode = class(TAbstractInterpolatorNode)
-  strict private
-    procedure EventSet_FractionReceive(const Event: TX3DEvent; const Value: TX3DField;
-      const Time: TX3DTime);
-  public
-    constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
+  TOrientationInterpolator2DNode = class({$ifdef FPC}specialize{$endif} TAbstractCommonInterpolatorNode<
+    TSFRotation>)
+  strict protected
+    function KeyValueCount: TListSize; override;
+    procedure InterpolatorLerp(const Target: TSFRotation; const A: Single;
+      const Index1, Index2: Integer); override;
+    procedure InterpolatorSet(const Target: TSFRotation; const Index: Integer); override;
+    function CreateOutputField: TSFRotation; override;
   {$I auto_generated_node_helpers/x3dnodes_orientationinterpolator2d.inc}
   end;
 
@@ -397,48 +399,33 @@ end;
 
 { TOrientationInterpolator2DNode ---------------------------------- }
 
-constructor TOrientationInterpolator2DNode.Create(const AX3DName, ABaseUrl: String);
+function TOrientationInterpolator2DNode.KeyValueCount: TListSize;
 begin
-  inherited;
-  EventSet_Fraction.AddNotification({$ifdef FPC}@{$endif} EventSet_FractionReceive);
+  Result := FdKeyValue.Items.Count;
 end;
 
-procedure TOrientationInterpolator2DNode.EventSet_FractionReceive(
-  const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
-
-  function KeyValue(Index: Integer): Single;
-  begin
-    if Index < FdKeyValue.Items.Count then
-      Result := FdKeyValue.Items.L[Index]
-    else
-      Result := 0;
-  end;
-
+procedure TOrientationInterpolator2DNode.InterpolatorLerp(const Target: TSFRotation;
+  const A: Single; const Index1, Index2: Integer);
 var
-  T: Single;
   OutputValueAngle: Single;
-  KeyCount, Range: Integer;
 begin
-  if not EventValue_Changed.SendNeeded then Exit;
+  OutputValueAngle := AngleLerp(A,
+    FdKeyValue.Items.L[Index1],
+    FdKeyValue.Items.L[Index2]);
+  Target.Value := Vector4(FdAxis.Value, OutputValueAngle);
+end;
 
-  KeyCount := FdKey.Items.Count;
-  if KeyCount = 0 then
-  begin
-    // Interpolator nodes containing no keys in the key field
-    // shall not produce any events.
-    Exit;
-  end else
-  begin
-    Range := KeyRange((Value as TSFFloat).Value, T);
-    if Range = 0 then
-      OutputValueAngle := KeyValue(0)
-    else
-    if Range = KeyCount then
-      OutputValueAngle := KeyValue(KeyCount - 1)
-    else
-      OutputValueAngle := AngleLerp(T, KeyValue(Range - 1), KeyValue(Range));
-  end;
-  EventValue_Changed.Send(Vector4(FdAxis.Value, OutputValueAngle), Time, Value.InternalPartialSend);
+procedure TOrientationInterpolator2DNode.InterpolatorSet(const Target: TSFRotation; const Index: Integer);
+var
+  OutputValueAngle: Single;
+begin
+  OutputValueAngle := FdKeyValue.Items.L[Index];
+  Target.Value := Vector4(FdAxis.Value, OutputValueAngle);
+end;
+
+function TOrientationInterpolator2DNode.CreateOutputField: TSFRotation;
+begin
+  Result := TSFRotation.CreateUndefined(Self, false, '');
 end;
 
 procedure RegisterKambiNodes;

@@ -1,5 +1,5 @@
 {
-  Copyright 2010-2023 Michalis Kamburelis.
+  Copyright 2010-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -54,9 +54,9 @@ type
 
   TShaderCodeHash = record
   strict private
-    Sum, XorValue: LongWord;
+    Sum, XorValue: UInt32;
   public
-    procedure AddString(const S: AnsiString; const Multiplier: LongWord);
+    procedure AddString(const S: AnsiString; const Multiplier: UInt32);
     procedure AddInteger(const I: Integer);
     procedure AddFloat(const F: Single; const UniquePrimeNumber: Cardinal);
     procedure AddPointer(Ptr: Pointer);
@@ -312,7 +312,7 @@ type
 
     { Uniform to set for this texture. May be empty. }
     UniformName: String;
-    UniformValue: LongInt;
+    UniformValue: Integer;
 
     class var TextureEnvWarningDone: Boolean;
 
@@ -724,10 +724,18 @@ type
   Accepts Node = @nil too. }
 function UniformMissingFromNode(const Node: TX3DNode): TUniformMissing;
 
+{ Find PLUG_xxx function inside PlugValue.
+  Returns xxx (the part after PLUG_),
+  and DeclaredParameters (of this plug function). Or '' if not found.
+
+  This is public in this unit for the sake of testing. }
+function FindPlugName(const PlugValue: String;
+  out DeclaredParameters: String): String;
+
 implementation
 
 uses SysUtils, StrUtils,
-  {$ifdef FPC} CastleGL, {$else} OpenGL, OpenGLext, {$endif}
+  {$ifdef OpenGLES} CastleGLES, {$else} CastleGL, {$endif}
   CastleGLUtils, CastleLog, CastleGLVersion, CastleInternalScreenEffects,
   CastleScreenEffects, CastleInternalX3DLexer, CastleInternalGLUtils;
 
@@ -763,8 +771,8 @@ end;
   in case there's some problem with FindPlugName.
 
   Testcase: opening
-  view3dscene-mobile/data/demo/teapot (fresnel and toon shader).x3dv
-  in view3dscene-mobile.
+  castle-model-viewer-mobile/data/demo/teapot (fresnel and toon shader).x3dv
+  in castle-model-viewer-mobile.
 }
 
 function MoveToOpeningParen(const S: String; var P: Integer): boolean;
@@ -811,6 +819,54 @@ begin
   until ParenLevel = 0;
 end;
 
+function FindPlugName(const PlugValue: String;
+  out DeclaredParameters: String): String;
+const
+  PlugPrefix = 'PLUG_';
+  IdentifierChars = ['0'..'9', 'a'..'z', 'A'..'Z', '_'];
+var
+  P, PBegin, DPBegin, DPEnd, SearchStart: Integer;
+begin
+  SearchStart := 1;
+  repeat
+    P := PosEx(PlugPrefix, PlugValue, SearchStart);
+    if P = 0 then Exit('');
+
+    { if code below will decide that it's an incorrect PLUG_ definition,
+      it will do Continue, and we will search again from the next position. }
+    SearchStart := P + Length(PlugPrefix);
+
+    { There must be whitespace before PLUG_ }
+    if (P > 1) and (not CharInSet(PlugValue[P - 1], WhiteSpaces)) then Continue;
+    P := P + Length(PlugPrefix);
+    PBegin := P;
+    { There must be at least one identifier char after PLUG_ }
+    if (P > Length(PlugValue)) or
+        (not CharInSet(PlugValue[P], IdentifierChars)) then Continue;
+    repeat
+      Inc(P);
+    until (P > Length(PlugValue)) or (not CharInSet(PlugValue[P], IdentifierChars));
+    { Skip whitespace after PLUG_xxx and before "(". }
+    while (P <= Length(PlugValue)) and CharInSet(PlugValue[P], WhiteSpaces) do
+      Inc(P);
+    { There must be "(" now }
+    if (P > Length(PlugValue)) or (PlugValue[P] <> '(') then
+      Continue;
+
+    // Trim needed, because P may include some trailing whitespace
+    Result := Trim(CopyPos(PlugValue, PBegin, P - 1));
+
+    DPBegin := P - 1;
+    if not MoveToOpeningParen(PlugValue, DPBegin) then Continue;
+    DPEnd := DPBegin;
+    if not MoveToMatchingParen(PlugValue, DPEnd) then Continue;
+
+    DeclaredParameters := CopyPos(PlugValue, DPBegin, DPEnd);
+    { if you managed to get here, then we have correct Result and DeclaredParameters }
+    Exit;
+  until false;
+end;
+
 { In OpenGL, each part (separate compilation) has to declare it's variables
   (uniforms, attributes etc.). It also has to declare the used procedures
   from other compilation units.
@@ -844,13 +900,13 @@ end;
 
 {$include norqcheckbegin.inc}
 
-procedure TShaderCodeHash.AddString(const S: AnsiString; const Multiplier: LongWord);
+procedure TShaderCodeHash.AddString(const S: AnsiString; const Multiplier: UInt32);
 var
-  PS: PLongWord;
-  Last: LongWord;
+  PS: PUInt32;
+  Last: UInt32;
   I: Integer;
 begin
-  PS := PLongWord(S);
+  PS := PUInt32(S);
 
   for I := 1 to Length(S) div 4 do
   begin
@@ -873,8 +929,8 @@ begin
   { This will cut the pointer on non-32bit processors.
     But that's not a problem --- we just want it for hash,
     taking the least significant 32 bits from pointer is OK for this. }
-  Sum := Sum + LongWord(PtrUInt(Ptr));
-  XorValue := XorValue xor LongWord(PtrUInt(Ptr));
+  Sum := Sum + UInt32(PtrUInt(Ptr));
+  XorValue := XorValue xor UInt32(PtrUInt(Ptr));
 end;
 
 procedure TShaderCodeHash.AddInteger(const I: Integer);
@@ -978,7 +1034,7 @@ end;
 const
   LightDefines: array [TLightDefine] of record
     Name: String;
-    Hash: LongWord;
+    Hash: UInt32;
   end =
   ( (Name: 'LIGHT%d_TYPE_POSITIONAL'  ; Hash: 107; ),
     (Name: 'LIGHT%d_TYPE_SPOT'        ; Hash: 109; ),
@@ -1568,7 +1624,7 @@ end;
 
 procedure TTextureCoordinateShader.Prepare(var Hash: TShaderCodeHash);
 var
-  IntHash: LongWord;
+  IntHash: UInt32;
 begin
 {$include norqcheckbegin.inc}
   IntHash :=
@@ -1625,7 +1681,7 @@ end;
 
 procedure TTextureShader.Prepare(var Hash: TShaderCodeHash);
 var
-  IntHash: LongWord;
+  IntHash: UInt32;
 begin
   inherited;
 
@@ -2127,54 +2183,6 @@ end;
 
 procedure TShader.Plug(const EffectPartType: TShaderType; PlugValue: String;
   CompleteCode: TShaderSource; const ForwardDeclareInFinalShader: boolean);
-const
-  PlugPrefix = 'PLUG_';
-
-  { Find PLUG_xxx function inside PlugValue.
-    Returns xxx (the part after PLUG_),
-    and DeclaredParameters (or this plug function). Or '' if not found. }
-  function FindPlugName(const PlugValue: String;
-    out DeclaredParameters: String): String;
-  const
-    IdentifierChars = ['0'..'9', 'a'..'z', 'A'..'Z', '_'];
-  var
-    P, PBegin, DPBegin, DPEnd, SearchStart: Integer;
-  begin
-    SearchStart := 1;
-    repeat
-      P := PosEx(PlugPrefix, PlugValue, SearchStart);
-      if P = 0 then Exit('');
-
-      { if code below will decide that it's an incorrect PLUG_ definition,
-        it will do Continue, and we will search again from the next position. }
-      SearchStart := P + Length(PlugPrefix);
-
-      { There must be whitespace before PLUG_ }
-      if (P > 1) and (not CharInSet(PlugValue[P - 1], WhiteSpaces)) then Continue;
-      P := P + Length(PlugPrefix);
-      PBegin := P;
-      { There must be at least one identifier char after PLUG_ }
-      if (P > Length(PlugValue)) or
-         (not CharInSet(PlugValue[P], IdentifierChars)) then Continue;
-      repeat
-        Inc(P);
-      until (P > Length(PlugValue)) or (not CharInSet(PlugValue[P], IdentifierChars));
-      { There must be a whitespace or ( after PLUG_xxx }
-      if (P > Length(PlugValue)) or (not CharInSet(PlugValue[P], (WhiteSpaces + ['(']))) then
-        Continue;
-
-      Result := CopyPos(PlugValue, PBegin, P - 1);
-
-      DPBegin := P - 1;
-      if not MoveToOpeningParen(PlugValue, DPBegin) then Continue;
-      DPEnd := DPBegin;
-      if not MoveToMatchingParen(PlugValue, DPEnd) then Continue;
-
-      DeclaredParameters := CopyPos(PlugValue, DPBegin, DPEnd);
-      { if you managed to get here, then we have correct Result and DeclaredParameters }
-      Exit;
-    until false;
-  end;
 
   function FindPlugOccurrence(const CommentBegin, Code: String;
     const CodeSearchBegin: Integer; out PBegin, PEnd: Integer): boolean;
@@ -2776,7 +2784,7 @@ var
 
 var
   HasBumpMappingUniform_NormalMapTextureUnit: Boolean;
-  BumpMappingUniform_NormalMapTextureUnit: LongInt;
+  BumpMappingUniform_NormalMapTextureUnit: Integer;
   HasBumpMappingUniform_NormalMapScale: Boolean;
   BumpMappingUniform_NormalMapScale: Single;
   HasBumpMappingUniform_HeightMapScale: Boolean;
@@ -3420,7 +3428,7 @@ begin
   begin
     FClipPlaneAlgorithm := cpFixedFunction;
 
-    glClipPlane(GL_CLIP_PLANE0 + ClipPlaneIndex, Vector4Double(Plane));
+    CastleGlClipPlane(GL_CLIP_PLANE0 + ClipPlaneIndex, Vector4Double(Plane));
     glEnable(GL_CLIP_PLANE0 + ClipPlaneIndex);
   end else
 
@@ -3513,7 +3521,7 @@ procedure TShader.EnableSurfaceTexture(const SurfaceTexture: TSurfaceTexture;
   const TextureUnit, TextureCoordinatesId: Cardinal;
   const UniformTextureName, PlugCode: String);
 var
-  HashMultiplier: LongWord;
+  HashMultiplier: UInt32;
 begin
   FSurfaceTextureShaders[SurfaceTexture].Enable := true;
   FSurfaceTextureShaders[SurfaceTexture].TextureUnit := TextureUnit;
@@ -3764,7 +3772,7 @@ begin
 
     Note that EGLSLError will be captured and turned into warning
     by TScreenEffectResource.PrepareCore .
-    This is desirable for view3dscene, as it should display only a warning
+    This is desirable for castle-model-viewer, as it should display only a warning
     for invalid X3D models. }
 
   if Source[stFragment].Count = 0 then

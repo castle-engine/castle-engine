@@ -19,7 +19,7 @@
 
 {$I castlewindow_dialogs_by_messages.inc}
 
-{$ifdef OpenGLES}
+{$ifdef USE_EGL}
   {$I castlewindow_egl.inc}
 {$else}
   {$I castlewindow_glx.inc}
@@ -33,7 +33,7 @@ Xlib, CastleInternalXlib, XUtil, X, KeySym, CursorFont,
 private
   windowXID: TWindow;
   parentwinXID: TWindow; { refreshed on ReparentNotify, needed for X_Configureevent }
-  {$ifndef OpenGLES}
+  {$ifndef USE_EGL}
   Colormap: TColormap;
   {$endif}
 
@@ -136,14 +136,16 @@ begin
 
   parentwinXID := XRootWindow(Application.XDisplay, Application.XScreen);
 
+  {$ifndef USE_EGL}
   { Creates XVisual }
-  ContextCreateBegin;
+  ContextCreateEarly;
 
-  {$ifndef OpenGLES}
   Colormap := XCreateColormap(Application.XDisplay, ParentWinXID,
     XVisual^.Visual, AllocNone);
   Attr.Colormap := Colormap;
   AttrValueMask := AttrValueMask or CWColormap;
+
+  ContextCreate;
   {$endif}
 
   if FullScreen then
@@ -164,9 +166,9 @@ begin
 
   windowXID := XCreateWindow(Application.XDisplay, parentwinXID,
     CorrectLeft, CorrectTop, CorrectWidth, CorrectHeight, 0,
-    {$ifndef OpenGLES} XVisual^.depth {$else} CopyFromParent {$endif},
+    {$ifndef USE_EGL} XVisual^.depth {$else} CopyFromParent {$endif},
     InputOutput,
-    {$ifndef OpenGLES} XVisual^.visual {$else} PVisual(CopyFromParent) {$endif},
+    {$ifndef USE_EGL} XVisual^.visual {$else} PVisual(CopyFromParent) {$endif},
     AttrValueMask, @Attr);
 
   if FullScreen and Visible then
@@ -244,7 +246,10 @@ begin
       XMapWindow(Application.XDisplay, windowXID);
   end;
 
-  ContextCreateEnd(windowXID);
+  {$ifdef USE_EGL}
+  { In case of EGL we need WindowXID. }
+  ContextCreate(windowXID);
+  {$endif}
 
   { applying FullScreen changes to the Left / Top / Width / Height }
   if FullScreen then
@@ -266,7 +271,7 @@ procedure TCastleWindow.CloseBackend;
 var
   dummy_event: TXEvent;
 begin
-  ContextDestroyBegin;
+  ContextDestroy;
 
   if FFullScreenBackend and Visible then
   begin
@@ -292,15 +297,15 @@ begin
     windowXID := None
   end;
 
-  {$ifndef OpenGLES}
+  {$ifndef USE_EGL}
   if Colormap  <> None then
   begin
     XFreeColormap(Application.XDisplay, Colormap);
     Colormap := None;
   end;
-  {$endif}
 
-  ContextDestroyEnd;
+  ContextDestroyLate;
+  {$endif}
 end;
 
 procedure TCastleWindow.SetCursor(const Value: TMouseCursor);
@@ -340,7 +345,7 @@ procedure TCastleWindow.UpdateCursor;
   end;
 
 const
-  XCursorShapeFromCastle: array [mcStandard .. High(TMouseCursor)] of LongWord =
+  XCursorShapeFromCastle: array [mcStandard .. High(TMouseCursor)] of UInt32 =
   ( XC_left_ptr,             // mcStandard
     XC_watch,                // mcWait
     XC_xterm,                // mcText
@@ -629,6 +634,10 @@ begin
   SimpleUpdateFullScreenBackend;
 end;
 
+procedure TCastleWindow.BackendInsideUpdate;
+begin
+end;
+
 { TCastleApplication ------------------------------------------------------- }
 
 function TCastleApplication.FindWindowXID(seekWindowXID: TWindow): TCastleWindow;
@@ -680,7 +689,6 @@ begin
 
     // TODO: Is it OK for a plugin to just get XDefaultScreen below?
     FXScreen := XDefaultScreen(XDisplay);
-    ContextApplicationCheck;
     WMDeleteWindow := XInternAtom(XDisplay, 'WM_DELETE_WINDOW', XBool_True);
     InitializeXDisplayDone := true;
   end;
@@ -789,7 +797,7 @@ end;
 
 function TCastleApplication.BackendName: String;
 begin
-  Result := 'Xlib+' + {$ifndef OpenGLES} 'glX' {$else} 'EGL' {$endif};
+  Result := 'Xlib+' + {$ifndef USE_EGL} 'glX' {$else} 'EGL' {$endif};
 end;
 
 function TCastleApplication.HandleXEvent(Event: TXEvent): boolean;

@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2022 Michalis Kamburelis.
+  Copyright 2002-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ 3DS loader (Load3DS procedure). }
+{ 3DS loader. }
 
 unit X3DLoadInternal3DS;
 
@@ -21,15 +21,10 @@ unit X3DLoadInternal3DS;
 
 interface
 
-uses SysUtils, Classes,
-  X3DNodes;
-
-function Load3DS(const Stream: TStream; const BaseUrl: String): TX3DRootNode;
-
 implementation
 
-uses Generics.Collections, Math,
-  CastleUtils, CastleClassUtils, CastleVectors, X3DCameraUtils,
+uses SysUtils, Classes, Generics.Collections, Math,
+  X3DNodes, X3DLoad, CastleUtils, CastleClassUtils, CastleVectors, X3DCameraUtils,
   X3DLoadInternalUtils, CastleLog, CastleDownload, CastleUriUtils,
   CastleStreamUtils;
 
@@ -246,7 +241,7 @@ type
     Materials: TMaterial3dsList;
     { @groupEnd }
     { Autodesk version used to create this 3DS. }
-    Version: LongWord;
+    Version: UInt32;
     constructor Create(const Stream: TStream);
     destructor Destroy; override;
   end;
@@ -349,7 +344,7 @@ const
 type
   TChunkHeader = packed record
     Id: Word;
-    Len: LongWord;
+    Len: UInt32;
     procedure ReadFromStream(const Stream: TStream);
   end;
 
@@ -1201,4 +1196,14 @@ begin
   end;
 end;
 
+var
+  ModelFormat: TModelFormat;
+initialization
+  ModelFormat := TModelFormat.Create;
+  ModelFormat.OnLoad := {$ifdef FPC}@{$endif} Load3DS;
+  ModelFormat.OnLoadForceMemoryStream := true;
+  ModelFormat.MimeTypes.Add('image/x-3ds');
+  ModelFormat.FileFilterName := '3D Studio (*.3ds)';
+  ModelFormat.Extensions.Add('.3ds');
+  RegisterModelFormat(ModelFormat);
 end.

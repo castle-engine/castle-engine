@@ -1,5 +1,5 @@
 {
-  Copyright 2014-2023 Michalis Kamburelis.
+  Copyright 2014-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -21,7 +21,7 @@ unit ToolProject;
 interface
 
 uses SysUtils, Classes, Generics.Collections,
-  CastleFindFiles, CastleStringUtils, CastleUtils,
+  CastleFindFiles, CastleStringUtils, CastleUtils, CastleInternalTools,
   ToolArchitectures, ToolCompile, ToolUtils, ToolServices, ToolAssocDocTypes,
   ToolPackage, ToolManifest, ToolProcess, ToolPackageFormat;
 
@@ -101,7 +101,12 @@ type
 
       Unlike StandaloneSourceFile, this is explicit,
       i.e. it never points to internal name in "castle-engine-output".
-      Also this method never creates the file, it merely calculates the filename. }
+      Also this method never creates the file, it merely calculates the filename.
+
+      The returned filename is relative. It is often without any path
+      (like "my_program_standalone.dpr") but it may contain a relative path
+      (like "code/my_program_standalone.dpr") if such path was specified
+      in CastleEngineManifest.xml. }
     function ExplicitStandaloneFile(const Ext: String): String;
 
     { Check the PackageFormat (looking at what is allowed for this Target/OS/CPU),
@@ -115,6 +120,8 @@ type
   public
     constructor Create;
     constructor Create(const APath: string);
+    constructor CreateNewProject(const ParentDir,
+      ProjectName, TemplateName, ProjectCaption, MainView: String);
     destructor Destroy; override;
 
     { Commands on a project, used by the main program code. }
@@ -295,7 +302,7 @@ end;
 
 { List filenames of external libraries used by the Dependencies, on given OS/CPU. }
 procedure ExternalLibraries(const OS: TOS; const CPU: TCPU;
-  const Dependencies: TDependencies; const List: TStrings;
+  const ProjectDependencies: TProjectDependencies; const List: TStrings;
   const CheckFilesExistence: Boolean = true);
 
   { Path to the external library in data/external_libraries/ .
@@ -306,7 +313,7 @@ procedure ExternalLibraries(const OS: TOS; const CPU: TCPU;
   var
     LibraryUrl: String;
   begin
-    LibraryUrl := ApplicationData('external_libraries/' + CPUToString(CPU) + '-' + OSToString(OS) + '/' + LibraryName);
+    LibraryUrl := 'castle-data:/' + LibraryName;
     Result := UriToFilenameSafe(LibraryUrl);
     if CheckFilesExistence and (not RegularFileExists(Result)) then
       raise Exception.Create('Cannot find dependency library in "' + Result + '". ' + SErrDataDir);
@@ -317,71 +324,21 @@ procedure ExternalLibraries(const OS: TOS; const CPU: TCPU;
     List.Add(ExternalLibraryPath(OS, CPU, LibraryName));
   end;
 
+var
+  Files: TStringList;
+  F: String;
 begin
-  case OS of
-    win32:
-      begin
-        if depFreetype in Dependencies then
-        begin
-          AddExternalLibrary('freetype.dll');
-          AddExternalLibrary('vcruntime140.dll');
-        end;
-        if depZlib in Dependencies then
-          AddExternalLibrary('zlib1.dll');
-        if depPng in Dependencies then
-          AddExternalLibrary('libpng12.dll');
-        if depSound in Dependencies then
-        begin
-          AddExternalLibrary('OpenAL32.dll');
-          AddExternalLibrary('wrap_oal.dll');
-        end;
-        if depOggVorbis in Dependencies then
-        begin
-          AddExternalLibrary('ogg.dll');
-          AddExternalLibrary('vorbis.dll');
-          AddExternalLibrary('vorbisenc.dll');
-          AddExternalLibrary('vorbisfile.dll');
-          AddExternalLibrary('msvcr120.dll');
-        end;
-        if depHttps in Dependencies then
-        begin
-          AddExternalLibrary('openssl/libeay32.dll');
-          AddExternalLibrary('openssl/ssleay32.dll');
-        end;
-      end;
+  Files := TStringList.Create;
+  try
+    case OS of
+      win32: ProjectDependencies.DeployFiles(dpWin32, Files);
+      win64: ProjectDependencies.DeployFiles(dpWin64, Files);
+      else ; { no need to do anything on other OSes }
+    end;
 
-    win64:
-      begin
-        if depFreetype in Dependencies then
-        begin
-          AddExternalLibrary('freetype.dll');
-          AddExternalLibrary('vcruntime140.dll');
-        end;
-        if depZlib in Dependencies then
-          AddExternalLibrary('zlib1.dll');
-        if depPng in Dependencies then
-          AddExternalLibrary('libpng14-14.dll');
-        if depSound in Dependencies then
-        begin
-          AddExternalLibrary('OpenAL32.dll');
-          AddExternalLibrary('wrap_oal.dll');
-        end;
-        if depOggVorbis in Dependencies then
-        begin
-          AddExternalLibrary('libogg.dll');
-          AddExternalLibrary('libvorbis.dll');
-          { AddExternalLibrary('vorbisenc.dll'); not present? }
-          AddExternalLibrary('vorbisfile.dll');
-          AddExternalLibrary('msvcr120.dll');
-        end;
-        if depHttps in Dependencies then
-        begin
-          AddExternalLibrary('openssl/libeay32.dll');
-          AddExternalLibrary('openssl/ssleay32.dll');
-        end;
-      end;
-    else ; { no need to do anything on other OSes }
-  end;
+    for F in Files do
+      AddExternalLibrary(F);
+  finally FreeAndNil(Files) end;
 end;
 
 { TCastleProject ------------------------------------------------------------- }
@@ -474,6 +431,27 @@ begin
     Writeln('Project "' + Name + '" dependencies: ' + DependenciesToStr(Dependencies));
 end;
 
+constructor TCastleProject.CreateNewProject(const ParentDir,
+  ProjectName, TemplateName, ProjectCaption, MainView: String);
+var
+  Options: TProjectCreationOptions;
+  ProjectDirUrl, ProjectDir: String;
+begin
+  Options.ParentDir := ParentDir;
+  Options.TemplateName := TemplateName;
+  Options.ProjectName := ProjectName;
+  Options.ProjectCaption := ProjectCaption;
+  Options.MainView := MainView;
+  ProjectCreateFromTemplate(CastleEnginePath, Options, ProjectDirUrl);
+
+  ProjectDir := UriToFilenameSafe(ProjectDirUrl);
+  Writeln('Created new project in ' + ProjectDir + ' based on template ' + TemplateName);
+
+  Create(ProjectDir);
+
+  DoGenerateProgram(false);
+end;
+
 destructor TCastleProject.Destroy;
 begin
   FreeAndNil(Manifest);
@@ -508,7 +486,7 @@ procedure TCastleProject.DoCompile(const OverrideCompiler: TCompiler; const Targ
   begin
     List := TCastleStringList.Create;
     try
-      ExternalLibraries(OS, CPU, Dependencies, List);
+      ExternalLibraries(OS, CPU, Manifest.ProjectDependencies, List);
       for FileName in List do
       begin
         OutputFile := LibrariesOutputPath + ExtractFileName(FileName);
@@ -592,7 +570,7 @@ begin
 
                 SourceExe := ChangeFileExt(MainSource, ExeExtensionOS(OS));
                 DestExe := ChangeFileExt(ExecutableName, ExeExtensionOS(OS));
-                AddExternalLibraries(ExtractFilePath(DestExe));
+                AddExternalLibraries(OutputPath);
                 if not SameFileName(SourceExe, DestExe) then
                 begin
                   { move exe to top-level (in case MainSource is in subdirectory
@@ -736,7 +714,7 @@ var
   begin
     List := TCastleStringList.Create;
     try
-      ExternalLibraries(OS, CPU, Dependencies, List);
+      ExternalLibraries(OS, CPU, Manifest.ProjectDependencies, List);
       for FileName in List do
         Pack.Add(FileName, ExtractFileName(FileName));
     finally FreeAndNil(List) end;
@@ -1094,7 +1072,7 @@ begin
   AbsoluteResult := TempOutputPath(Path, CreateIfNecessary) + TargetRelativePath;
   if CreateIfNecessary then
   begin
-    TemplateFile := UriToFilenameSafe(ApplicationData(TemplateRelativeUrl));
+    TemplateFile := UriToFilenameSafe('castle-data:/' +TemplateRelativeUrl);
     if Manifest.GameUnits = '' then
       raise Exception.Create(ErrorMessageMissingGameUnits);
     ExtractTemplateFile(TemplateFile, AbsoluteResult, TemplateRelativeUrl, true);
@@ -1156,7 +1134,7 @@ begin
     AndroidSourceContents := FileToString(AbsoluteResult);
     if Pos('ANativeActivity_onCreate', AndroidSourceContents) = 0 then
       InvalidAndroidSource(AbsoluteResult);
-    if Pos('Java_net_sourceforge_castleengine_MainActivity_jniMessage', AndroidSourceContents) = 0 then
+    if Pos('Java_io_castleengine_MainActivity_jniMessage', AndroidSourceContents) = 0 then
       InvalidAndroidSource(AbsoluteResult);
   end;
 
@@ -1302,7 +1280,7 @@ procedure TCastleProject.DoClean;
     try
       { CheckFilesExistence parameter for ExternalLibraries may be false.
         This way you can run "castle-engine clean" without setting $CASTLE_ENGINE_PATH . }
-      ExternalLibraries(OS, CPU, Dependencies, List, false);
+      ExternalLibraries(OS, CPU, Manifest.ProjectDependencies, List, false);
       for FileName in List do
       begin
         OutputFile := LibrariesOutputPath + ExtractFileName(FileName);
@@ -1396,7 +1374,7 @@ procedure TCastleProject.DoGenerateProgram(const GuidFromName: Boolean);
   var
     TemplateFile, TargetFile: string;
   begin
-    TemplateFile := UriToFilenameSafe(ApplicationData(TemplateRelativePath));
+    TemplateFile := UriToFilenameSafe('castle-data:/' +TemplateRelativePath);
     TargetFile := Path + TargeRelativePath;
     ExtractTemplateFile(TemplateFile, TargetFile, TemplateRelativePath, true);
     Writeln('Generated ', ExtractRelativePath(Path, TargetFile));
@@ -1516,27 +1494,32 @@ procedure TCastleProject.DoEditorRun(const WaitForProcessId: TProcessId);
   var
     List: TCastleStringList;
     OutputFile, FileName: String;
+    EditorProjectDependencies: TProjectDependencies;
   begin
     List := TCastleStringList.Create;
     try
-      ExternalLibraries(DefaultOS, DefaultCPU, [
-        // to read fonts
-        depFreetype,
-        // to read PNG
-        depZlib, depPng,
-        // to play sound
-        depSound,
-        // to read OggVorbis
-        depOggVorbis,
-        // not used now by the editor -- but likely will be used in the future, e.g. to check for new version by HTTPS query.
-        depHttps
-      ], List);
-      for FileName in List do
-      begin
-        OutputFile := LibrariesOutputPath + ExtractFileName(FileName);
-        WritelnVerbose('Copying library to ' + OutputFile);
-        CheckCopyFile(FileName, OutputFile);
-      end;
+      EditorProjectDependencies := TProjectDependencies.Create;
+      try
+        EditorProjectDependencies.Dependencies := [
+          // to read fonts
+          depFreetype,
+          // to read PNG
+          depZlib, depPng,
+          // to play sound
+          depSound,
+          // to read OggVorbis
+          depOggVorbis,
+          // not used now by the editor -- but likely will be used in the future, e.g. to check for new version by HTTPS query.
+          depHttps
+        ];
+        ExternalLibraries(DefaultOS, DefaultCPU, EditorProjectDependencies, List);
+        for FileName in List do
+        begin
+          OutputFile := LibrariesOutputPath + ExtractFileName(FileName);
+          WritelnVerbose('Copying library to ' + OutputFile);
+          CheckCopyFile(FileName, OutputFile);
+        end;
+      finally FreeAndNil(EditorProjectDependencies) end;
     finally FreeAndNil(List) end;
   end;
 
@@ -1636,6 +1619,10 @@ end;
 procedure TCastleProject.DoOutput(const OutputKey: String);
 begin
   case OutputKey of
+    'executable-name': Writeln(ExecutableName);
+    'name': Writeln(Name);
+    'pascal-name': Writeln(NamePascal);
+    'search-paths': Writeln(Manifest.SearchPaths.Text);
     'version': Writeln(Manifest.Version.DisplayValue);
     'version-code': Writeln(Manifest.Version.Code);
     else raise Exception.CreateFmt('Unsupported output key: "%s"', [OutputKey]);
@@ -1939,6 +1926,14 @@ function TCastleProject.ReplaceMacros(const Source: string): string;
     begin
       PascalFiles := Manifest.FindPascalFiles;
       try
+        { Make the files' list sorted,
+          to have the `castle-engine generate-program`
+          output fully deterministic for a given project,
+          and indepedent from source OS, undefined ordef of FindFiles etc.
+          This avoids diffs in version control if nothing changed. }
+        PascalFiles.CaseSensitive := true;
+        PascalFiles.Sort;
+
         PascalFilesXml := '';
         I := 1;
         for PascalFile in PascalFiles do
@@ -2011,37 +2006,155 @@ function TCastleProject.ReplaceMacros(const Source: string): string;
       Result := Result + D + ';';
   end;
 
+  { Generate proper DeployFile elements for DPROJ,
+    to deploy programs with their data using PAServer.
+
+    Sample:
+      <DeployFile LocalName="data\Dino.gltf" Configuration="Debug" Class="File">
+          <Platform Name="Linux64">
+              <RemoteDir>./data/</RemoteDir>
+              <RemoteName>Dino.gltf</RemoteName>
+              <Overwrite>true</Overwrite>
+          </Platform>
+          ... // repeat for all platforms
+      </DeployFile>
+      // repeat for release too
+  }
+  function DelphiDprojDeployFiles: String;
+  const
+    AllDelphiPlatformNames: array [0..8] of String = (
+      'Android',
+      'Android64',
+      'iOSDevice64',
+      'iOSSimARM64',
+      'Linux64',
+      'OSX64',
+      'OSXARM64',
+      'Win32',
+      'Win64'
+    );
+    AllDelphiConfigNames: array [0..1] of String = (
+      'Debug',
+      'Release'
+    );
+  var
+    ConfigName, PlatformName, FileRelativeName: String;
+    Files: TStringList;
+    ResultBuilder: TStringBuilder;
+  begin
+    ResultBuilder := TStringBuilder.Create;
+    try
+      Files := PackageFiles(true, cpDesktop);
+      try
+        { Make the files' list sorted,
+          to have the `castle-engine generate-program`
+          output fully deterministic for a given project,
+          and indepedent from source OS, undefined ordef of FindFiles etc.
+          This avoids diffs in version control if nothing changed. }
+        Files.CaseSensitive := true;
+        Files.Sort;
+
+        for ConfigName in AllDelphiConfigNames do
+        begin
+          for FileRelativeName in Files do
+          begin
+            ResultBuilder.Append(Format(
+              '                <DeployFile LocalName="%s\%s" Configuration="%s" Class="File">' + NL, [
+                TCastleManifest.DataName,
+                FileRelativeName,
+                ConfigName
+              ]));
+            for PlatformName in AllDelphiPlatformNames do
+              ResultBuilder.Append(Format(
+                '                    <Platform Name="%s">' + NL +
+                '                        <RemoteDir>./%s/%s</RemoteDir>' + NL +
+                '                        <RemoteName>%s</RemoteName>' + NL +
+                '                        <Overwrite>true</Overwrite>' + NL +
+                '                    </Platform>' + NL, [
+                  PlatformName,
+                  TCastleManifest.DataName,
+                  ExtractFilePath(FileRelativeName),
+                  ExtractFileName(FileRelativeName)
+                ]));
+            ResultBuilder.Append(
+              '                </DeployFile>' + NL);
+          end;
+        end;
+      finally FreeAndNil(Files) end;
+      Result := ResultBuilder.ToString;
+    finally FreeAndNil(ResultBuilder) end;
+  end;
+
   { Add macros specifically useful by Delphi project files. }
   procedure AddMacrosDproj(const Macros: TStringStringMap;
     const StandaloneSource: String);
   var
     WelcomePageFile, IncludedFiles, WelcomePageXml: String;
+    // PascalFiles unused -- see comment below
+    // PascalFiles: TStringList;
+    // PascalFile, UnitFileForDelphi: String;
   begin
     WelcomePageFile := WelcomePage;
 
-    { Add lines like this to define files:
+    { Optimize: do not calculate DPROJ_INCLUDED_FILES when not necessary. }
+    if Pos('${DPROJ_INCLUDED_FILES}', Source) <> 0 then
+    begin
+      IncludedFiles := '';
 
-        <None Include="README.md"/>
-        <None Include="play_animation_standalone.dpr"/>
+      { Add project units to IncludedFiles
 
-      This allows to easily open them from IDE, also it seems "welcome page"
-      (see below) has to be listed here to work.
+        Commented out: Note that we don't add units (like castleautogenerated.pas,
+        code/gameinitialize.pas, code/gameview*.pas) to DPROJ.
+        While possible, it would be pointless: Delphi IDE doesn't actually
+        display them as part of the project, unless they are repeated in DPR.
 
-      Note that we don't add units (like castleautogenerated.pas,
-      code/gameinitialize.pas, code/gameview*.pas) -- because Delphi would like
-      to also mention them in DPR source code but it really messes up
-      our "uses" clause (Delphi code tools do not grok our ifdef inside uses
-      clause, which we need for CThreads).
-      So better to not put units in DPR, or in DPROJ (to avoid Delphi IDE
-      trying to synchronize them, and break the DPR code in the process). }
-    IncludedFiles := '';
-    if WelcomePageFile <> '' then
-      IncludedFiles := SAppendPart(IncludedFiles, NL,
-        '<None Include="' + WelcomePageFile + '"/>');
-    if StandaloneSource <> '' then
-      IncludedFiles := SAppendPart(IncludedFiles, NL,
-        '<None Include="' + StandaloneSource + '"/>');
-    Macros.Add('DPROJ_INCLUDED_FILES', IncludedFiles);
+        And we don't want to add Manifest.FindPascalFiles to DPR.
+        Because we are not 100% certain that all units in Manifest.FindPascalFiles
+        should be linked into the application, and for all platforms.
+        We obtain Manifest.FindPascalFiles by scanning code directories,
+        we could pick units like code/unused.pas or code/onlymobile.pas .
+
+        Ultimately, we'd have to ask user to specify every used unit
+        explicitly in CastleEngineManifest.xml, for us to add it to Delphi project.
+        Doing it automatically based on Manifest.FindPascalFiles is too risky. }
+      (*
+      PascalFiles := Manifest.FindPascalFiles;
+      try
+        { Make the files' list sorted,
+          to have the `castle-engine generate-program`
+          output fully deterministic for a given project,
+          and indepedent from source OS, undefined ordef of FindFiles etc.
+          This avoids diffs in version control if nothing changed. }
+        PascalFiles.CaseSensitive := true;
+        PascalFiles.Sort;
+
+        for PascalFile in PascalFiles do
+        begin
+          if LowerCase(ExtractFileExt(PascalFile)) = '.pas' then
+          begin
+            { Normalize paths to Pascal files to use backslashes
+              (seems more standard in Delphi IDE, which is Windows-only). }
+            UnitFileForDelphi := SReplaceChars(PascalFile, '/', '\');
+            IncludedFiles := SAppendPart(IncludedFiles, NL,
+              '        <DCCReference Include="' + UnitFileForDelphi + '"/>');
+          end;
+        end;
+      finally FreeAndNil(PascalFiles) end;
+      *)
+
+      { Add lines like this to define files:
+          <None Include="README.md"/>
+          <None Include="play_animation_standalone.dpr"/>
+        This allows to easily open them from IDE, also it seems "welcome page"
+        (see below) has to be listed here to work. }
+      if WelcomePageFile <> '' then
+        IncludedFiles := SAppendPart(IncludedFiles, NL,
+          '        <None Include="' + WelcomePageFile + '"/>');
+      if StandaloneSource <> '' then
+        IncludedFiles := SAppendPart(IncludedFiles, NL,
+          '        <None Include="' + StandaloneSource + '"/>');
+      Macros.Add('DPROJ_INCLUDED_FILES', IncludedFiles);
+    end;
 
     { Define welcome page by XML content like this:
 
@@ -2049,12 +2162,18 @@ function TCastleProject.ReplaceMacros(const Source: string): string;
         <WelcomePageFolder/>
     }
     if WelcomePageFile <> '' then
+    begin
       WelcomePageXml := Format(
-        '<WelcomePageFile Path="%s"/>' + NL +
-        '<WelcomePageFolder/>', [WelcomePageFile])
-    else
+        '                <WelcomePageFile Path="%s"/>' + NL +
+        '                <WelcomePageFolder/>', [WelcomePageFile])
+    end else
       WelcomePageXml := '';
     Macros.Add('DPROJ_WELCOME_PAGE', WelcomePageXml);
+
+    { As an optimization, do not calculate DPROJ_DEPLOY_FILES
+      macro value when not needed. }
+    if Pos('${DPROJ_DEPLOY_FILES}', Source) <> 0 then
+      Macros.Add('DPROJ_DEPLOY_FILES', DelphiDprojDeployFiles);
   end;
 
 var
@@ -2083,6 +2202,14 @@ begin
     Macros.Add('CAPTION'         , Caption);
     Macros.Add('AUTHOR'          , NonEmptyAuthor);
     Macros.Add('EXECUTABLE_NAME' , ExecutableName);
+    { TODO: Right now Delphi IDE compiles exe with basename matching
+      DeleteFileExt(StandaloneSource), not our ExecutableName
+      (which is sometimes different, e.g. doesn't contain "_standalone" suffix,
+      has - instead of _).
+      So we have DELPHI_EXECUTABLE_NAME.
+      In the long run, it would be ideal to only have EXECUTABLE_NAME
+      and make Delphi IDE build the same as Delphi command-line and FPC. }
+    Macros.Add('DELPHI_EXECUTABLE_NAME', DeleteFileExt(StandaloneSource));
     Macros.Add('GAME_UNITS'      , Manifest.GameUnits);
     Macros.Add('SEARCH_PATHS'          , MakePathsStr(Manifest.SearchPaths, false));
     Macros.Add('ABSOLUTE_SEARCH_PATHS' , MakePathsStr(Manifest.SearchPaths, true));
@@ -2098,6 +2225,8 @@ begin
     Macros.Add('DEFINES_AS_COMPILER_OPTIONS', DefinesAsCompilerOptions);
     Macros.Add('EDITOR_UNITS'          , Manifest.EditorUnits);
     Macros.Add('EXPLICIT_STANDALONE_SOURCE', StandaloneSource);
+    // Suitable name for Pascal "program" declaration
+    Macros.Add('PASCAL_PROGRAM_NAME', TCastleManifest.StandaloneSourceToProgramName(StandaloneSource));
     Macros.Add('DELPHI_SEARCH_PATHS', DelphiSearchPaths);
     Macros.Add('ICO_PATH', IcoPath);
     Macros.Add('PROJECT_GUID', ProjectGuid);
@@ -2138,7 +2267,7 @@ var
 begin
   ExtractTemplateOverrideExisting := OverrideExisting;
   ExtractTemplateDestinationPath := InclPathDelim(DestinationPath);
-  ExtractTemplateDir := ExclPathDelim(UriToFilenameSafe(ApplicationData(TemplatePath)));
+  ExtractTemplateDir := ExclPathDelim(UriToFilenameSafe('castle-data:/' +TemplatePath));
   if not DirectoryExists(ExtractTemplateDir) then
     raise Exception.Create('Cannot find template in "' + ExtractTemplateDir + '". ' + SErrDataDir);
 
@@ -2213,7 +2342,7 @@ begin
     if SameText(DestinationRelativeFileNameSlashes, 'app/src/main/res/values/strings.xml') then
       MergeStringsXml(SourceFileName, DestinationFileName, @ReplaceMacros)
     else
-    if SameText(DestinationRelativeFileNameSlashes, 'app/src/main/java/net/sourceforge/castleengine/MainActivity.java') then
+    if SameText(DestinationRelativeFileNameSlashes, 'app/src/main/java/io/castleengine/MainActivity.java') then
       MergeAndroidMainActivity(SourceFileName, DestinationFileName, @ReplaceMacros)
     else
     if SameText(DestinationRelativeFileNameSlashes, 'app/src/main/jni/Android.mk') or

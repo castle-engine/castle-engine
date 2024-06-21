@@ -56,9 +56,8 @@ procedure RunAndroid(const Project: TCastleProject);
 implementation
 
 uses SysUtils, DOM, XMLWrite,
-  // TODO: Should not be needed after https://github.com/castle-engine/castle-engine/pull/302/commits/888690fdac181b6f140a71fd0d5ac20a7d7b59e6
-  {$IFDEF UNIX}BaseUnix, {$ENDIF}
   CastleUriUtils, CastleXmlUtils, CastleLog, CastleFilesUtils, CastleImages,
+  CastleInternalTools,
   ToolEmbeddedImages, ToolFPCVersion, ToolCommonUtils, ToolUtils,
   ToolServicesOperations;
 
@@ -146,13 +145,24 @@ function AdbExe(const Required: boolean = true): string;
 const
   ExeName = 'adb';
   BundleName = 'SDK';
-  EnvVarName1 = 'ANDROID_SDK_ROOT';
-  EnvVarName2 = 'ANDROID_HOME';
+  EnvVarName1 = 'ANDROID_HOME';
+  EnvVarName2 = 'ANDROID_SDK_ROOT';
 var
   Env: string;
 begin
   Result := '';
-  { try to find in $ANDROID_SDK_ROOT or (deprecated) $ANDROID_HOME }
+  { Try to find in $ANDROID_SDK_ROOT or $ANDROID_HOME.
+    Note: For a while, ANDROID_HOME for deprecated and ANDROID_SDK_ROOT
+    recommended.
+    Then, ANDROID_SDK_ROOT was deprecated and now ANDROID_HOME is recommended.
+    See
+    - official docs:
+      https://developer.android.com/tools/variables?hl=en
+      https://developer.android.com/tools?hl=en
+    - other software also adjusting:
+      https://github.com/apache/cordova-android/issues/1425
+      https://github.com/bazelbuild/bazel/issues/13612
+  }
   Env := GetEnvironmentVariable(EnvVarName1);
   if Env = '' then
     GetEnvironmentVariable(EnvVarName2);
@@ -524,31 +534,9 @@ var
         Args.Add('-Pandroid.injected.signing.key.alias=' + KeyAlias);
         Args.Add('-Pandroid.injected.signing.key.password=' + KeyAliasPassword);
       end;
+
       {$ifdef MSWINDOWS}
-      try
-        RunCommandSimple(AndroidProjectPath, AndroidProjectPath + 'gradlew.bat', Args.ToArray);
-      finally
-        { Gradle deamon is automatically initialized since Gradle version 3.0
-          (see https://docs.gradle.org/current/userguide/gradle_daemon.html)
-          but it prevents removing the castle-engine-output/android/project/ .
-          E.g. you cannot run "castle-engine package --os=android --cpu=arm"
-          again in the same directory, because it cannot remove the
-          "castle-engine-output/android/project/" at the beginning.
-
-          It seems the current directory of Java (Gradle) process is inside
-          castle-engine-output/android/project/, and Windows doesn't allow to remove such
-          directory. Doing "rm -Rf castle-engine-output/android/project/" (rm.exe from Cygwin)
-          also fails with
-
-            rm: cannot remove 'castle-engine-output/android/project/': Device or resource busy
-
-          This may be related to
-          https://discuss.gradle.org/t/the-gradle-daemon-prevents-a-clean/2473/13
-
-          The solution for now is to kill the daemon afterwards. }
-        RunCommandSimple(AndroidProjectPath, AndroidProjectPath + 'gradlew.bat', ['--stop']);
-      end;
-
+      RunCommandSimple(AndroidProjectPath, AndroidProjectPath + 'gradlew.bat', Args.ToArray);
       {$else}
       if RegularFileExists(AndroidProjectPath + 'gradlew') then
       begin
@@ -643,7 +631,7 @@ procedure RunAndroid(const Project: TCastleProject);
 var
   ActivityName, LogTag: string;
 begin
-  ActivityName := 'net.sourceforge.castleengine.MainActivity';
+  ActivityName := 'io.castleengine.MainActivity';
   RunCommandSimple(AdbExe, ['shell', 'am', 'start',
     '-a', 'android.intent.action.MAIN',
     '-n', Project.QualifiedName + '/' + ActivityName ]);

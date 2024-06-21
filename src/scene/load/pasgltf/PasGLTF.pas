@@ -342,13 +342,13 @@ type PPPasGLTFInt8=^PPasGLTFInt8;
 
      PPPasGLTFInt32=^PPasGLTFInt32;
      PPasGLTFInt32=^TPasGLTFInt32;
-     TPasGLTFInt32={$ifdef fpc}Int32{$else}longint{$endif};
+     TPasGLTFInt32={$ifdef fpc}Int32{$else}Integer{$endif};
 
      TPasGLTFInt32DynamicArray=array of TPasGLTFInt32;
 
      PPPasGLTFUInt32=^PPasGLTFUInt32;
      PPasGLTFUInt32=^TPasGLTFUInt32;
-     TPasGLTFUInt32={$ifdef fpc}UInt32{$else}longword{$endif};
+     TPasGLTFUInt32={$ifdef fpc}UInt32{$else}Cardinal{$endif};
 
      PPPasGLTFUInt32Array=^PPasGLTFUInt32Array;
      PPasGLTFUInt32Array=^TPasGLTFUInt32Array;
@@ -429,8 +429,8 @@ type PPPasGLTFInt8=^PPasGLTFInt8;
      TPasGLTFPtrUInt=uint64;
      TPasGLTFPtrInt=int64;
 {$else}
-     TPasGLTFPtrUInt=longword;
-     TPasGLTFPtrInt=longint;
+     TPasGLTFPtrUInt=Cardinal;
+     TPasGLTFPtrInt=Integer;
 {$endif}
 {$endif}
 

@@ -55,9 +55,9 @@ function png_is_alpha(png_ptr: png_structp; info_ptr: png_infop): boolean; forwa
 
 function png_is_grayscale(png_ptr: png_structp; info_ptr: png_infop): boolean; forward;
 
-function PngColorTypeToStr(const PngColorType: longint): string; forward;
-function PngInterlaceTypeToStr(const PngInterlaceType: longint): string; forward;
-function PngTextCompressionToStr(const PngTextCompression: longint): string; forward;
+function PngColorTypeToStr(const PngColorType: Int32): string; forward;
+function PngInterlaceTypeToStr(const PngInterlaceType: Int32): string; forward;
+function PngTextCompressionToStr(const PngTextCompression: Int32): string; forward;
 
 var
   { Call InitializePNG to set these variables }
@@ -111,7 +111,7 @@ end;
   Alpha channel is never added/stripped by this, although it will
   be converted to 8 bits too if exists. }
 procedure png_transform_rgb_to_grayscale8bit(png_ptr: png_structp;
-  var ColorType, BitDepth: LongWord);
+  var ColorType, BitDepth: UInt32);
 begin
   { rgb -> grayscale }
   if (ColorType and PNG_COLOR_MASK_COLOR) <> 0 then
@@ -156,7 +156,7 @@ end;
   Alpha channel is never added/stripped by this, although it will
   be converted to 8 bits too if exists. }
 procedure png_transform_rgb_to_rgb8bit(png_ptr: png_structp;
-  var ColorType, BitDepth: LongWord);
+  var ColorType, BitDepth: UInt32);
 begin
   { grayscale -> 8bit rgb }
   if (ColorType and PNG_COLOR_MASK_COLOR) = 0 then
@@ -191,7 +191,7 @@ end;
 
 procedure png_transform_remove_alpha(png_ptr: png_structp;
   info_ptr: png_infop;
-  var ColorType, BitDepth: LongWord);
+  var ColorType, BitDepth: UInt32);
 var
   bKGD_col_ptr: png_color_16p;
   {my_background_col: png_color_16;}
@@ -275,14 +275,14 @@ begin
       { Version with stripping }
       png_set_strip_alpha(png_ptr);
     end;
-    ColorType := ColorType and LongWord(not PNG_COLOR_MASK_ALPHA);
+    ColorType := ColorType and UInt32(not PNG_COLOR_MASK_ALPHA);
   end;
 end;
 
 { Removes palette from the image, making the image RGB (possibly with alpha). }
 procedure png_transform_palette_to_rgb(png_ptr: png_structp;
   info_ptr: png_infop;
-  var ColorType, BitDepth: LongWord);
+  var ColorType, BitDepth: UInt32);
 begin
   { palette -> rgb, maybe with alpha }
   if (ColorType and PNG_COLOR_MASK_PALETTE) <> 0 then
@@ -306,7 +306,7 @@ end;
 
 procedure png_transform_to_g1byte(png_ptr: png_structp; info_ptr: png_infop);
 var
-  ColorType, BitDepth: LongWord;
+  ColorType, BitDepth: UInt32;
 begin
   BitDepth := png_get_bit_depth(png_ptr, info_ptr);
   ColorType := png_get_color_type(png_ptr, info_ptr);
@@ -322,7 +322,7 @@ end;
 
 procedure png_transform_to_ga2byte(png_ptr: png_structp; info_ptr: png_infop);
 var
-  ColorType, BitDepth: LongWord;
+  ColorType, BitDepth: UInt32;
   TRNSHandled: boolean;
 begin
   BitDepth := png_get_bit_depth(png_ptr, info_ptr);
@@ -381,7 +381,7 @@ end;
 
 procedure png_transform_to_rgb3byte(png_ptr: png_structp; info_ptr: png_infop);
 var
-  ColorType, BitDepth: LongWord;
+  ColorType, BitDepth: UInt32;
 begin
   BitDepth := png_get_bit_depth(png_ptr, info_ptr);
   ColorType := png_get_color_type(png_ptr, info_ptr);
@@ -396,7 +396,7 @@ end;
 
 procedure png_transform_to_rgba4byte(png_ptr: png_structp; info_ptr: png_infop);
 var
-  ColorType, BitDepth: LongWord;
+  ColorType, BitDepth: UInt32;
   TRNSHandled: boolean;
 begin
   BitDepth := png_get_bit_depth(png_ptr, info_ptr);
@@ -454,7 +454,7 @@ end;
 
 function png_is_grayscale(png_ptr: png_structp; info_ptr: png_infop): boolean;
 var
-  ColorType: LongWord;
+  ColorType: UInt32;
 begin
   ColorType := png_get_color_type(png_ptr, info_ptr);
   Result := (ColorType and PNG_COLOR_MASK_COLOR) = 0;
@@ -462,7 +462,7 @@ end;
 
 function png_is_alpha(png_ptr: png_structp; info_ptr: png_infop): boolean;
 var
-  ColorType: LongWord;
+  ColorType: UInt32;
 begin
   ColorType := png_get_color_type(png_ptr, info_ptr);
   Result := ( (ColorType and PNG_COLOR_MASK_ALPHA) <> 0) or
@@ -471,7 +471,7 @@ end;
 
 { *ToStr -------------------------------------------------------------- }
 
-function PngColorTypeToStr(const PngColorType: longint): string;
+function PngColorTypeToStr(const PngColorType: Int32): string;
 begin
   case PngColorType of
     PNG_COLOR_TYPE_GRAY      : Result := 'Gray';
@@ -483,7 +483,7 @@ begin
   end;
 end;
 
-function PngInterlaceTypeToStr(const PngInterlaceType: longint): string;
+function PngInterlaceTypeToStr(const PngInterlaceType: Int32): string;
 begin
   case PngInterlaceType of
     PNG_INTERLACE_NONE : Result := 'None';
@@ -492,7 +492,7 @@ begin
   end;
 end;
 
-function PngTextCompressionToStr(const PngTextCompression: longint): string;
+function PngTextCompressionToStr(const PngTextCompression: Int32): string;
 begin
   case PngTextCompression of
     PNG_TEXT_COMPRESSION_NONE: Result := 'None';
@@ -776,12 +776,13 @@ end;
 { SavePNG_LibPng --------------------------------------------------------------------- }
 
 procedure SavePNG_LibPng(const Img: TEncodedImage; const Stream: TStream; const Interlaced: boolean = false);
-var png_ptr: png_structp;
-    info_ptr: png_infop;
-    InterlaceType: LongWord;
-    row_pointers: {$ifdef FPC}TFPList{$else}TList{$endif};
-    i: Cardinal;
-    ColorType: LongInt;
+var
+  png_ptr: png_structp;
+  info_ptr: png_infop;
+  InterlaceType: UInt32;
+  row_pointers: {$ifdef FPC}TFPList{$else}TList{$endif};
+  i: Cardinal;
+  ColorType: Int32;
 begin
   if not (Img is TCastleImage) then
     raise EImageSaveError.CreateFmt('Saving to PNG image class %s not possible', [Img.ClassName]);
