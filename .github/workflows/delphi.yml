@@ -26,7 +26,6 @@ jobs:
       matrix:
         host-label: [
           delphi_10_2,
-          delphi_11_3,
           delphi_12_1
         ]
 
