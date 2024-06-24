@@ -1,0 +1,18 @@
+name: Test Dispatch
+on:
+  # Allow to manually trigger the workflow.
+  workflow_dispatch:
+jobs:
+  test-dispatch:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Dispatch updating Docker cge-unstable
+      env:
+        GH_TOKEN: ${{ secrets.GH_TOKEN_DISPATCH_DOCKER_UPDATE }}
+      run: |
+        gh api --method POST \
+          -H "Accept: application/vnd.github+json" \
+          -H "X-GitHub-Api-Version: 2022-11-28" \
+          /repos/castle-engine/castle-engine-docker/dispatches \
+          -f "event_type=cge-snapshot-changed" \
+          -F "client_payload[cge_commit_sha]=${{ github.sha }}"
