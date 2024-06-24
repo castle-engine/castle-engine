@@ -114,4 +114,5 @@ jobs:
           -H "Accept: application/vnd.github+json" \
           -H "X-GitHub-Api-Version: 2022-11-28" \
           /repos/castle-engine/castle-engine-docker/dispatches \
-          -f "event_type=cge-snapshot-changed"
+          -f "event_type=cge-snapshot-changed"  \
+          -F "client_payload[cge_commit_sha]=${{ github.sha }}"
