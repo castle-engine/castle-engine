@@ -1,5 +1,15 @@
 # Platformer
 
+## Introduction
+
+Downloads:
+- [Linux, Windows, Android APK (from itch.io)](https://castle-engine.itch.io/platformer).
+- [Android (from Google Play)](https://play.google.com/store/apps/details?id=io.castleengine.platformer).
+
+Watch the movie with a playthrough on https://www.youtube.com/watch?v=yVTxr9tTHxg .
+
+## Features
+
 A complete demo of a platformer game, with
 
 - Level (and all UI) designed visually using the editor.
@@ -11,10 +21,6 @@ A complete demo of a platformer game, with
 - Sound and music.
 
 - All UI states you expect from a usual game — main menu, options (with volume configuration), pause, credits, game over and of course the actual game.
-
-You can watch the movie with a playthrough on https://www.youtube.com/watch?v=yVTxr9tTHxg .
-
-You can download the precompiled version from https://castle-engine.itch.io/platformer .
 
 Using [Castle Game Engine](https://castle-engine.io/).
 
