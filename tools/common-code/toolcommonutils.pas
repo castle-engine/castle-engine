@@ -1,5 +1,5 @@
 {
-  Copyright 2014-2023 Michalis Kamburelis.
+  Copyright 2014-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
   Parts of this file are based on FPC packages/fcl-process/src/process.pp ,
@@ -123,6 +123,8 @@ var
 
 { Run command in given (or current) directory with given arguments,
   letting output (stdout and stderr) to go to our stdout / stderr.
+  Waits for the command to finish.
+  The core functionality is thus just like the standard FPC ExecuteProcess.
 
   ExeName is searched on $PATH following standard OS conventions,
   if it's not already an absolute exe filename.
@@ -133,11 +135,16 @@ var
   environment variable, to the value of OverrideEnvironmentValue.
 
   Global variable ForcePipesPassthrough can be used to force
-  using pipes to communicate with the process.
+  using pipes to communicate with the process (instead of just letting
+  child process to use our stdout/stderr).
   It should not be necessary (and it may introduce some performance drop,
   though I didn't observe any in practice)... except on Windows when you run
   "castle-engine run" in PowerShell in VS Code.
-  For some reason, "castle-engine run" in CGE editor doesn't need it. }
+  For some reason, "castle-engine run" in CGE editor doesn't need it.
+
+  Writelns "magic" string 'Castle Game Engine Internal: ProcessID: '
+  that is helpful for CGE editor to detect the process ID of the child
+  of "castle-engine run" and thus perform "Stop" more reliably. }
 procedure RunCommandSimple(
   const ExeName: String; const Options: array of string); overload;
 procedure RunCommandSimple(
