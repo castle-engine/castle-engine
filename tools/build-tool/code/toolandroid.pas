@@ -1,5 +1,5 @@
 {
-  Copyright 2014-2022 Michalis Kamburelis.
+  Copyright 2014-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -635,13 +635,12 @@ begin
   RunCommandSimple(AdbExe, ['shell', 'am', 'start',
     '-a', 'android.intent.action.MAIN',
     '-n', Project.QualifiedName + '/' + ActivityName ]);
-  Writeln('Run successful.');
+  Writeln('Android application successfully started.');
 
   LogTag := Copy(Project.Name, 1, MaxAndroidTagLength);
 
-  Writeln('Running "adb logcat -s ' + LogTag + ':V".');
-  Writeln('We are assuming that your ApplicationName is "' + Project.Name + '".');
-  Writeln('Break this process with Ctrl+C.');
+  Writeln('Running "adb logcat -s ' + LogTag + ':V" (so we assume your ApplicationName is "' + Project.Name + '").');
+  Flush(Output); // flush, otherwise it would not appear before "adb logcat" output
 
   { run through ExecuteProcess, because we don't want to capture output,
     we want to immediately pass it to user }
