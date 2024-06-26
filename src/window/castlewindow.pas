@@ -1955,6 +1955,11 @@ type
         @itemLabel @--fullscreen-custom WIDTHxHEIGHT
         @item(Change desktop resolution by VideoChange and sets FullScreen to @true.
           Changing desktop resolution is not implemented on all platforms.)
+
+        @itemLabel @--pretend-touch-device
+        @item(Set @link(TCastleApplicationProperties.TouchDevice
+          ApplicationProperties.TouchDevice) to true.
+          See @url(https://castle-engine.io/touch_input touch input documentation).)
       )
 
       @raises(EInvalidParams When some of our options have invalid arguments.) }
@@ -3759,17 +3764,19 @@ begin
     1: Window.FullScreen := false;
     2: ApplyGeometryParam(Argument);
     3: ApplyFullScreenCustomParam(Argument);
+    4: ApplicationProperties.TouchDevice := true;
     else raise EInternalError.CreateFmt('WindowOptionProc: unhandled OptionNum %d', [OptionNum]);
   end;
 end;
 
 procedure TCastleWindow.ParseParameters;
 const
-  Options: array [0..3] of TOption = (
+  Options: array [0..4] of TOption = (
     (Short: #0; Long: 'fullscreen'; Argument: oaNone),
     (Short: #0; Long: 'window'; Argument: oaNone),
     (short: #0; Long: 'geometry'; Argument: oaRequired),
-    (Short: #0; Long: 'fullscreen-custom'; Argument: oaRequired)
+    (Short: #0; Long: 'fullscreen-custom'; Argument: oaRequired),
+    (Short: #0; Long: 'pretend-touch-device'; Argument: oaNone)
   );
 begin
   Parameters.Parse(Options, {$ifdef FPC}@{$endif} WindowOptionProc, Self, true);
@@ -3781,7 +3788,8 @@ begin
     OptionDescription('--fullscreen', 'Set window to full-screen (cover whole screen).') + NL +
     OptionDescription('--window', 'Set window to not be full-screen.') + NL +
     OptionDescription('--geometry WIDTHxHEIGHT<sign>XOFF<sign>YOFF', 'Set window to not be full-screen, and set initial size and/or position.') + NL +
-    OptionDescription('--fullscreen-custom WIDTHxHEIGHT', 'Change desktop resolution and set window to full-screen.');
+    OptionDescription('--fullscreen-custom WIDTHxHEIGHT', 'Change desktop resolution and set window to full-screen.') + NL +
+    OptionDescription('--pretend-touch-device', 'Pretend this is a device with a touch screen, for debugging purposes.');
 end;
 
 { TCastleWindow miscellaneous -------------------------------------------- }

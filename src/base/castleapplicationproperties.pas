@@ -1,5 +1,5 @@
 {
-  Copyright 2014-2023 Michalis Kamburelis.
+  Copyright 2014-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -101,9 +101,9 @@ type
       @link(TCastleApplication.ParseStandardParameters). }
     property Version: String read FVersion write FVersion;
 
-    { Initialized to @true on touch devices (Android, iOS, Nintendo Switch).
+    { Initialized to @true on devices with a touch screen (Android, iOS, Nintendo Switch).
 
-      A "touch device" means that:
+      On such devices:
 
       @unorderedList(
         @item(We cannot track @link(TCastleContainer.MousePosition)
@@ -122,6 +122,9 @@ type
           On non-touch devices, @link(TCastleContainer.TouchesCount) is always 1.)
       )
 
+      See @url(https://castle-engine.io/touch_input documentation
+      about touch input).
+
       As a debugging feature, you can set this to @true
       to simulate touch devices on a desktop.
       The idea is that when an application shows a different input behavior
@@ -129,17 +132,23 @@ type
       this boolean property. So an application may do this:
 
       @longCode(#
-      Viewport.WalkCamera.MouseLook := not ApplicationProperties.TouchDevice;
+      // show the button only on mobile
+      ButtonExit.Exists := ApplicationProperties.TouchDevice;
       #)
 
-      And to test on desktop whether everything behaves OK on mobile,
+      To test on desktop whether everything behaves OK on mobile,
       you can just earlier call this:
 
       @longCode(#
-      if FakeTouchDeviceOnDesktop then
+      if DebugTouchDeviceOnDesktop then
         ApplicationProperties.TouchDevice := true;
       #)
-    }
+
+      If you use our standard initialization using @link(TCastleWindow.ParseParameters),
+      you can also pass command-line option @code(--pretend-touch-device) to do this.
+      If you execute the game from our editor, you can also use the menu item
+      @italic("Run -> Run Parameters -> Pretend Touch Device") to do this.
+      Underneath, all these methods do is set this property to @true. }
     property TouchDevice: boolean read FTouchDevice write FTouchDevice;
 
     { Is it common, on current platform, to show the "Quit" button in your application.

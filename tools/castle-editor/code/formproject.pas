@@ -43,6 +43,7 @@ const
 type
   { Main project management. }
   TProjectForm = class(TForm)
+    ActionRunParameterPretendTouchDevice: TAction;
     ActionFindNext: TAction;
     ActionFindToggle: TAction;
     ActionImportSketchfab: TAction;
@@ -113,6 +114,7 @@ type
     MenuItem15: TMenuItem;
     MenuItem19: TMenuItem;
     MenuItem43: TMenuItem;
+    MenuItemRunParameterPretendTouchDevice: TMenuItem;
     Separator14: TMenuItem;
     MenuItem21: TMenuItem;
     MenuItem22: TMenuItem;
@@ -354,6 +356,7 @@ type
       );
     procedure ActionRunParameterDisableFpsLimitExecute(Sender: TObject);
     procedure ActionRunParameterDisableSoundExecute(Sender: TObject);
+    procedure ActionRunParameterPretendTouchDeviceExecute(Sender: TObject);
     procedure ActionRunParameterRequestFullScreenExecute(Sender: TObject);
     procedure ActionRunParameterRequestWindowExecute(Sender: TObject);
     procedure ActionShowCollidersExecute(Sender: TObject);
@@ -1106,13 +1109,18 @@ begin
   (Sender as TAction).Checked := true; // GroupIndex will make others unselected
 end;
 
-procedure TProjectForm.ActionRunParameterDisableFpsLimitExecute(Sender: TObject
-  );
+procedure TProjectForm.ActionRunParameterDisableFpsLimitExecute(Sender: TObject);
 begin
   (Sender as TAction).Checked := not (Sender as TAction).Checked;
 end;
 
 procedure TProjectForm.ActionRunParameterDisableSoundExecute(Sender: TObject);
+begin
+  (Sender as TAction).Checked := not (Sender as TAction).Checked;
+end;
+
+procedure TProjectForm.ActionRunParameterPretendTouchDeviceExecute(
+  Sender: TObject);
 begin
   (Sender as TAction).Checked := not (Sender as TAction).Checked;
 end;
@@ -3258,6 +3266,8 @@ procedure TProjectForm.BuildToolCall(const Commands: array of String;
       Params.Add('--no-sound');
     if ActionRunParameterDisableFpsLimit.Checked then
       Params.Add('--no-limit-fps');
+    if ActionRunParameterPretendTouchDevice.Checked then
+      Params.Add('--pretend-touch-device');
     if ActionRunParameterRequestFullScreen.Checked then
       Params.Add('--fullscreen');
     if ActionRunParameterRequestWindow.Checked then
