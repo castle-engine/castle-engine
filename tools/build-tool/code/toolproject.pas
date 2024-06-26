@@ -1577,10 +1577,6 @@ begin
       CheckRenameFile(NewEditorExe, EditorExe);
     {$endif}
 
-    // whether we renamed NewEditorExe or not, whether it's in macOS bundle or not, it must exist
-    if not RegularFileExists(EditorExe) then
-      raise Exception.Create('Editor should be compiled, but we cannot find file "' + EditorExe + '"');
-
     { When running custom editor build, we must make sure it can find CGE location,
       in particular so it can find editor's data (which means InternalCastleDesignData
       must be useful, and it must be able to load gfx stuff like gizmo images and
@@ -1605,6 +1601,13 @@ begin
       NewEnvironment.Values['CASTLE_ENGINE_PATH'] := CastleEnginePath;
     end;
   end;
+
+  { Regardless of all above conditions (
+    whether Manifest.EditorUnits is empty or not,
+    whether we renamed NewEditorExe or not,
+    whether it's in macOS bundle or not)... EditorExe must exist. }
+  if not RegularFileExists(EditorExe) then
+    raise Exception.Create('Editor should be compiled, but we cannot find file "' + EditorExe + '"');
 
   { Running with CurrentDirectory = Path, so that at least on Windows
     editor can automatically use the DLL files inside the project, like libeffekseer.dll.
