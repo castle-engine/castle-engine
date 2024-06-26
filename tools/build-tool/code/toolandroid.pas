@@ -642,9 +642,27 @@ begin
   Writeln('Running "adb logcat -s ' + LogTag + ':V" (so we assume your ApplicationName is "' + Project.Name + '").');
   Flush(Output); // flush, otherwise it would not appear before "adb logcat" output
 
-  { run through ExecuteProcess, because we don't want to capture output,
-    we want to immediately pass it to user }
-  ExecuteProcess(AdbExe, ['logcat', '-s', LogTag + ':V']);
+  { Initial implementation run this through ExecuteProcess,
+    because we don't want to capture output,
+    we want to immediately pass it to user.
+
+    Later implementation relies on RunCommandSimple, this way
+    we pass new ChildProcessId to EditorUtils, since it writelns the magic string
+    'Castle Game Engine Internal: ProcessID: ...' . And passing this
+    ChildProcessId to EditorUtils allows better behavior when using "Stop"
+    in CGE editor that runs Android application:
+
+    1. Without it, it seems that killing "castle-engine run" doesn't kill "adb logcat...",
+      it is left running in the background (and wasting resources).
+
+    2. Moreover, actually CGE editor would have wrong ChildProcessId,
+      leftover from previous ADB execution that started the execution.
+      We could introduce a new magic message like
+      'Stopped: Castle Game Engine Internal: ProcessID: ...'
+      but it would not solve issue AD 1 above.
+  }
+  //ExecuteProcess(AdbExe, ['logcat', '-s', LogTag + ':V']);
+  RunCommandSimple(AdbExe, ['logcat', '-s', LogTag + ':V']);
 end;
 
 end.
