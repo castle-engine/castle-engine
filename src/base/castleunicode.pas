@@ -53,47 +53,6 @@ type
     function ToString: String; override;
   end;
 
-{$ifdef FPC}
-{ Return unicode character pointed by P.
-  CharLen is set to 0 only when pointer P is @nil, otherwise it's always > 0.
-
-  The typical usage of this is to iterate over UTF-8 string char-by-char, like this:
-
-  @longCode(#
-  var
-    C: TUnicodeChar;
-    TextPtr: PChar;
-    CharLen: Integer;
-  begin
-    TextPtr := PChar(S);
-    C := UTF8CharacterToUnicode(TextPtr, CharLen);
-    while (C > 0) and (CharLen > 0) do
-    begin
-      Inc(TextPtr, CharLen);
-      // here process C...
-      C := UTF8CharacterToUnicode(TextPtr, CharLen);
-    end;
-  end;
-  #)
-
-  @deprecated
-  This is FPC-specific, and in practice was only useful for iteration.
-  Use TCastleStringIterator instead. }
-function UTF8CharacterToUnicode(p: PChar; out CharLen: integer): TUnicodeChar;
-  deprecated 'use TCastleStringIterator instead';
-{$else}
-
-{ Get Unicode char code at given position in a standard Delphi String
-  (that is, UnicodeString holding UTF-16).
-  This is useful when iterating over string characters.
-
-  @deprecated
-  This is Delphi-specific, and in practice was only useful for iteration.
-  Use TCastleStringIterator instead. }
-function UnicodeStringNextChar(const Text: String; const Index: Integer; out NextCharIndex: Integer): TUnicodeChar;
-  deprecated 'use TCastleStringIterator instead';
-{$endif FPC}
-
 { Length of the string, in Unicode characters.
 
   This is like standard Pascal @code(Length), but safe for Unicode, and working with
@@ -226,7 +185,6 @@ type
     FCurrent: TUnicodeChar;
     {$ifdef FPC}
     TextPtr: PChar;
-    CharLen: Integer;
     {$else}
     TextCopy: String;
     TextIndex: Integer;
@@ -236,9 +194,18 @@ type
     { Start processing the given String.
       Must be called before accessing @link(Current) or @link(GetNext). }
     procedure Start(const S: String);
+
     { Call this in a loop.
       Must be called (and return @true) before accessing @link(Current). }
     function GetNext: Boolean;
+
+    { Is next character available or not.
+      This returns exactly the same thing as @code(not GetNext) would return,
+      but this doesn't change the @link(Current) and doesn't advance to next
+      character. }
+    // Implemented, but not really useful now.
+    //function EndOfText: Boolean;
+
     { After @link(GetNext) was called, and returned @true,
       read this to get the current Unicode character.
       Do not use it after @link(GetNext) returned @false. }
@@ -670,14 +637,26 @@ begin
 end;
 
 function TCastleStringIterator.GetNext: Boolean;
+var
+  CharLen: Integer;
 begin
-  {$warnings off} // using deprecated function, should be internal in this unit
   FCurrent := UTF8CharacterToUnicode(TextPtr, CharLen);
-  {$warnings on}
   Result := (FCurrent > 0) and (CharLen > 0);
   if Result then
     Inc(TextPtr, CharLen);
 end;
+
+(* Implemented, but not really useful now.
+function TCastleStringIterator.EndOfText: Boolean;
+var
+  CharLen: Integer;
+  IgnoreChar: TUnicodeChar;
+begin
+  // deliberately expressed to be obvious it is "not" + the same logic as GetNext
+  IgnoreChar := UTF8CharacterToUnicode(TextPtr, CharLen);
+  Result := (IgnoreChar > 0) and (CharLen > 0);
+end;
+*)
 
 {$else}
 
@@ -699,6 +678,14 @@ begin
     TextIndex := NextTextIndex;
   end;
 end;
+
+(* Implemented, but not really useful now.
+function TCastleStringIterator.EndOfText: Boolean;
+begin
+  // deliberately expressed to be obvious it is "not" + the same logic as GetNext
+  Result := not (TextIndex <= TextLength);
+end;
+*)
 
 {$endif}
 
