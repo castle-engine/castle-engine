@@ -204,8 +204,9 @@ type
 
     - does not calculate own width properly (so e.g. anchors to right will not work).
 
-    - doesn't manage visual updates (it assumes screeb will always be redrawn after changing
-      Caption; in practice, it is easiest to only change Caption at creation).
+    - doesn't manage visual updates (it assumes screen will always be redrawn
+      after changing Caption; in practice, it is easiest to only
+      change Caption at creation).
 
     - doesn't allow translation.
 
