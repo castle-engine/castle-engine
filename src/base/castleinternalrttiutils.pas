@@ -345,10 +345,8 @@ begin
     https://en.delphipraxis.net/topic/11756-safegetenumname-a-safer-implementation-of-typinfogetenumname/ ,
     https://blog.dummzeuch.de/2024/06/21/safegetenumname-a-safer-implementation-of-typinfo-getenumname/
   }
-  // TODO: Implement for Delphi
-  // Result := (PropType^.Kind = tkEnumeration) and
-  //   (GetTypeData(PropType)^.BaseType^ = TypeInfo(Boolean));
-  Result := false;
+  Result := (PropType^.Kind = tkEnumeration) and
+    (GetTypeData(PropType)^.BaseType^ = TypeInfo(Boolean));
   {$endif}
 end;
 
