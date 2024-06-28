@@ -1271,7 +1271,7 @@
     { Control is being displayed.
       See @link(Render) for details.
       This event it called @italic(after) the @link(Render) method
-      of this control finished. }
+      of this control finished but before we started rendering children. }
     property OnRender: TUiNotifyEvent read FOnRender write FOnRender;
 
     { Not existing control is not visible, it doesn't receive input

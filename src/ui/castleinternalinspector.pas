@@ -98,7 +98,6 @@ type
       ButtonAutoSelectUi: TCastleButton;
       ButtonAutoSelectTransform: TCastleButton;
 
-      OneLevelWidth: Single;
       FOpacity: Single;
       FSelectedComponent: TComponent;
       InsideLogCallback: Boolean;
@@ -164,6 +163,7 @@ type
     procedure UpdateLabelProfilerHeader;
     procedure UpdateLabelStatsMore;
     procedure ChangeUiBatching(Sender: TObject);
+    procedure BeforeRenderHierarchyRows(const Sender: TCastleUserInterface);
   protected
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
   public
@@ -272,9 +272,13 @@ type
   protected
     procedure PreferredSize(var PreferredWidth, PreferredHeight: Single); override;
   public
-    PreviousLevel, Level: Cardinal;
-    { Both sizes in final pixels. }
-    OneLevelWidth, HierarchyRowHeight: Single;
+    { Both sizes in final pixels.
+      Updated every frame before drawing.
+      This way we properly adjust to current UI scaling. }
+    class var
+      OneLevelWidth, HierarchyRowHeight: Single;
+    var
+      PreviousLevel, Level: Cardinal;
     procedure Render; override;
   end;
 
@@ -476,8 +480,6 @@ var
 begin
   inherited;
 
-  OneLevelWidth := FallbackFont.TextWidth(DupeString(' ', LevelWidthInSpaces));
-
   // adjust inherited published properties
   FullSize := true;
   KeepInFront := true;
@@ -528,6 +530,8 @@ begin
   ButtonAutoSelectTransform := UiOwner.FindRequiredComponent('ButtonAutoSelectTransform') as TCastleButton;
 
   ForceFallbackLook(Ui);
+
+  HierarchyRowParent.OnRender := {$ifdef FPC}@{$endif} BeforeRenderHierarchyRows;
 
   CheckboxShowEvenInternal.OnChange := {$ifdef FPC}@{$endif} UpdateHierarchy;
   CheckboxUiBatching.OnChange := {$ifdef FPC}@{$endif} ChangeUiBatching;
@@ -627,6 +631,23 @@ begin
   Result := (not (csTransient in C.ComponentStyle)) or CheckboxShowEvenInternal.Checked;
 end;
 
+procedure TCastleInspector.BeforeRenderHierarchyRows(const Sender: TCastleUserInterface);
+var
+  AnyRowUi: TCastleUserInterfaceFont;
+begin
+  { Set THierarchyRowLevelDisplay.Xxx class variables
+    used when rendering rows. }
+  if HierarchyRowParent.ControlsCount > 0 then
+  begin
+    AnyRowUi := HierarchyRowParent.Controls[0] as TCastleUserInterfaceFont;
+    THierarchyRowLevelDisplay.OneLevelWidth :=
+      { Measure using AnyRowUi, to use current font size adjusted to UI scale. }
+      AnyRowUi.Font.TextWidth(DupeString(' ', LevelWidthInSpaces));
+    THierarchyRowLevelDisplay.HierarchyRowHeight :=
+      AnyRowUi.EffectiveHeight * AnyRowUi.UIScale;
+  end;
+end;
+
 procedure TCastleInspector.UpdateHierarchy(Sender: TObject);
 
 { Parts of this are deliberately consistent with TDesignFrame.UpdateDesign. }
@@ -694,8 +715,6 @@ var
 
     LevelDisplay.PreviousLevel := PreviousLevel;
     LevelDisplay.Level := Level;
-    LevelDisplay.OneLevelWidth := OneLevelWidth;
-    LevelDisplay.HierarchyRowHeight := HierarchyButton.EffectiveHeight * HierarchyButton.UIScale;
 
     Inc(RowIndex);
     PreviousLevel := Level;
