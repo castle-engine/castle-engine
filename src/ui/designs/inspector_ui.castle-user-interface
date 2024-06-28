@@ -783,7 +783,7 @@
                     "$$ClassName" : "TCastleUserInterface",
                     "Border" : {
                       "$$ClassName" : "TBorder",
-                      "AllSides" : 2.0000000000000000E+000
+                      "AllSides" : 1.0000000000000000E+000
                     },
                     "BorderColorPersistent" : {
                       "$$ClassName" : "TCastleColorPersistent",
@@ -800,10 +800,6 @@
                     "$Children" : [
                       {
                         "$$ClassName" : "TCastleRectangleControl",
-                        "Border" : {
-                          "$$ClassName" : "TBorder",
-                          "Right" : 2.0000000000000000E+000
-                        },
                         "BorderColorPersistent" : {
                           "$$ClassName" : "TCastleColorPersistent",
                           "Alpha" : 1.0000000000000000E+000,
@@ -819,7 +815,7 @@
                         },
                         "HeightFraction" : 1.0000000000000000E+000,
                         "Name" : "RectangleControl1",
-                        "WidthFraction" : 5.0000000000000000E-001,
+                        "WidthFraction" : 1.0000000000000000E+000,
                         "$Children" : [
                           {
                             "$$ClassName" : "TCastleLabel",
@@ -848,6 +844,24 @@
                         "VerticalAnchorParent" : "vpMiddle",
                         "VerticalAnchorSelf" : "vpMiddle",
                         "WidthFraction" : 5.0000000000000000E-001
+                      },
+                      {
+                        "$$ClassName" : "TCastleUserInterface",
+                        "HeightFraction" : 1.0000000000000000E+000,
+                        "HorizontalAnchorParent" : "hpRight",
+                        "HorizontalAnchorSelf" : "hpRight",
+                        "Name" : "PropValueCheckboxParent",
+                        "VerticalAnchorParent" : "vpMiddle",
+                        "VerticalAnchorSelf" : "vpMiddle",
+                        "WidthFraction" : 5.0000000000000000E-001,
+                        "$Children" : [
+                          {
+                            "$$ClassName" : "TCastleCheckbox",
+                            "Name" : "PropValueCheckbox",
+                            "VerticalAnchorParent" : "vpMiddle",
+                            "VerticalAnchorSelf" : "vpMiddle"
+                          }
+                        ]
                       }
                     ]
                   }

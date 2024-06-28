@@ -52,8 +52,11 @@ type
         Ui: TCastleUserInterface;
         LabelName: TCastleLabel;
         EditValue: TCastleEdit;
+        CheckboxValue: TCastleCheckbox;
         PropObject: TObject;
         PropInfo: PPropInfo;
+        IsBool: Boolean; //< Result of PropertyIsBool
+        procedure UpdateCurrentValue;
       end;
       TPropertyOwnerList = {$ifdef FPC}specialize{$endif} TObjectList<TPropertyOwner>;
 
@@ -141,8 +144,6 @@ type
     procedure ClickAutoSelectNothing(Sender: TObject);
     procedure ClickAutoSelectUi(Sender: TObject);
     procedure ClickAutoSelectTransform(Sender: TObject);
-    class procedure AdjustColorsBasedOnPropertyDefault(
-      const Edit: TCastleEdit; const IsDefault: Boolean);
   protected
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
   public
@@ -314,6 +315,59 @@ begin
       DrawBar(R)
     else
       DrawBarToRight(R);
+  end;
+end;
+
+{ TPropertyOwner ------------------------------------------------------------ }
+
+procedure TCastleInspector.TPropertyOwner.UpdateCurrentValue;
+
+  procedure AdjustColorsBasedOnPropertyDefault(
+    const Edit: TCastleEdit; const IsDefault: Boolean);
+  begin
+    if IsDefault then
+    begin
+      // TCastleEdit defaults
+      Edit.FocusedColor := Black;
+      Edit.UnfocusedColor := Vector4(0.25, 0.25, 0.25, 1);
+    end else
+    begin
+      Edit.FocusedColor := Blue;
+      Edit.UnfocusedColor := Vector4(0.25, 0.25, 1, 1);
+    end;
+  end;
+
+  procedure AdjustColorsBasedOnPropertyDefault(
+    const Checkbox: TCastleCheckbox; const IsDefault: Boolean);
+  begin
+    if IsDefault then
+    begin
+      Checkbox.CheckboxColor := Black;
+    end else
+    begin
+      Checkbox.CheckboxColor := Blue;
+    end;
+  end;
+
+var
+  PropName, PropValue: String;
+begin
+  Assert(IsBool = Assigned(CheckboxValue));
+  Assert(IsBool = not Assigned(EditValue));
+  if IsBool then
+  begin
+    CheckboxValue.Checked := PropertyBoolGet(PropObject, PropInfo);
+    AdjustColorsBasedOnPropertyDefault(CheckboxValue,
+      PropertyHasDefaultValue(PropObject, PropInfo, true));
+  end else
+  begin
+    if PropertyGet(PropObject, PropInfo, PropName, PropValue) then
+    begin
+      EditValue.Text := PropValue;
+      AdjustColorsBasedOnPropertyDefault(EditValue,
+        PropertyHasDefaultValue(PropObject, PropInfo, true));
+    end else
+      WritelnWarning('Cannot read property name/value, but it was possible to read it earlier');
   end;
 end;
 
@@ -1027,13 +1081,14 @@ end;
 procedure TCastleInspector.UpdateProperties;
 
   procedure AddPropertyRow(const PropObject: TObject; const PropInfo: PPropInfo;
-    const PropName, PropValue: String; const IsDefault: Boolean);
+    const PropName: String);
   var
     PropertyOwner: TPropertyOwner;
   begin
     PropertyOwner := TPropertyOwner.Create(Self);
     PropertyOwner.PropObject := PropObject;
     PropertyOwner.PropInfo := PropInfo;
+    PropertyOwner.IsBool := PropertyIsBool(PropInfo);
     Properties.Add(PropertyOwner);
 
     PropertyOwner.Ui := SerializedPropertyRowFactory.ComponentLoad(PropertyOwner) as TCastleUserInterface;
@@ -1043,12 +1098,21 @@ procedure TCastleInspector.UpdateProperties;
     PropertyRowParent.InsertFront(PropertyOwner.Ui);
 
     PropertyOwner.LabelName := PropertyOwner.FindRequiredComponent('PropName') as TCastleLabel;
-    PropertyOwner.EditValue := PropertyOwner.FindRequiredComponent('PropValue') as TCastleEdit;
-
     PropertyOwner.LabelName.Caption := PropName;
-    // TODO: editing PropValue has no effect now
-    PropertyOwner.EditValue.Text := PropValue;
-    AdjustColorsBasedOnPropertyDefault(PropertyOwner.EditValue, IsDefault);
+
+    if PropertyOwner.IsBool then
+    begin
+      PropertyOwner.CheckboxValue := PropertyOwner.FindRequiredComponent('PropValueCheckbox') as TCastleCheckbox;
+      // free (don't waste memory) unused UI
+      PropertyOwner.FindRequiredComponent('PropValue').Free;
+    end else
+    begin
+      PropertyOwner.EditValue := PropertyOwner.FindRequiredComponent('PropValue') as TCastleEdit;
+      // free (don't waste memory) unused UI
+      PropertyOwner.FindRequiredComponent('PropValueCheckboxParent').Free;
+    end;
+
+    PropertyOwner.UpdateCurrentValue;
   end;
 
   function PropertyShow(const PropObject: TComponent; const PropInfo: PPropInfo): Boolean;
@@ -1070,6 +1134,7 @@ procedure TCastleInspector.UpdateProperties;
 
 var
   PropInfos: TPropInfoList;
+  PropInfo: PPropInfo;
   I: Integer;
   PropName, PropValue: String;
 begin
@@ -1081,10 +1146,14 @@ begin
     PropInfos := TPropInfoList.Create(FSelectedComponent, tkProperties);
     try
       for I := 0 to PropInfos.Count - 1 do
-        if PropertyShow(FSelectedComponent, PropInfos.Items[I]) and
-           PropertyGet(FSelectedComponent, PropInfos.Items[I], PropName, PropValue) then
-          AddPropertyRow(FSelectedComponent, PropInfos.Items[I], PropName, PropValue,
-            PropertyHasDefaultValue(FSelectedComponent, PropInfos.Items[I], true));
+      begin
+        PropInfo := PropInfos.Items[I];
+        if PropertyShow(FSelectedComponent, PropInfo) and
+           { We get but don't actually pass PropValue to AddPropertyRow,
+             UpdateCurrentValue (called by AddPropertyRow) will read it again. }
+           PropertyGet(FSelectedComponent, PropInfo, PropName, PropValue) then
+          AddPropertyRow(FSelectedComponent, PropInfo, PropName);
+      end;
     finally FreeAndNil(PropInfos) end;
   end;
 end;
@@ -1092,18 +1161,9 @@ end;
 procedure TCastleInspector.UpdatePropertiesValues;
 var
   Po: TPropertyOwner;
-  PropName, PropValue: String;
 begin
   for Po in Properties do
-  begin
-    if PropertyGet(Po.PropObject, Po.PropInfo, PropName, PropValue) then
-    begin
-      Po.EditValue.Text := PropValue;
-      AdjustColorsBasedOnPropertyDefault(Po.EditValue,
-        PropertyHasDefaultValue(Po.PropObject, Po.PropInfo, true));
-    end else
-      WritelnWarning('Cannot read property name/value, but it was possible to read it earlier');
-  end;
+    Po.UpdateCurrentValue;
 end;
 
 procedure TCastleInspector.Resize;
@@ -1312,21 +1372,6 @@ procedure TCastleInspector.ClickAutoSelectTransform(Sender: TObject);
 begin
   AutoSelect := asTransform;
   SynchronizeButtonsAutoSelect;
-end;
-
-class procedure TCastleInspector.AdjustColorsBasedOnPropertyDefault(
-  const Edit: TCastleEdit; const IsDefault: Boolean);
-begin
-  if IsDefault then
-  begin
-    // TCastleEdit defaults
-    Edit.FocusedColor := Black;
-    Edit.UnfocusedColor := Vector4(0.25, 0.25, 0.25, 1);
-  end else
-  begin
-    Edit.FocusedColor := Blue;
-    Edit.UnfocusedColor := Vector4(0.25, 0.25, 1, 1);
-  end;
 end;
 
 initialization
