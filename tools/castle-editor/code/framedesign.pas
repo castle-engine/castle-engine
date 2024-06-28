@@ -6326,7 +6326,13 @@ end;
 
 procedure TDesignFrame.FocusDesign;
 begin
-  CastleControl.SetFocus;
+  { Note that we ignore this call when CastleControl is disabled or invisible.
+    Otherwise SetFocus would raise an error: understandably, we cannot focus
+    disabled or invisible control.
+    Ignoring it here prevents errors at "Escape" key or Undo when the design
+    is non-visual (like sounds.castle-component). }
+  if CastleControl.Enabled and CastleControl.Visible then
+    CastleControl.SetFocus;
 end;
 
 procedure TDesignFrame.FindToggle;
