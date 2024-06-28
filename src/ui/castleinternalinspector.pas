@@ -363,7 +363,7 @@ end;
 procedure TCastleInspector.TPropertyDisplay.UpdateCurrentValue;
 
   procedure AdjustColorsBasedOnPropertyDefault(
-    const Edit: TCastleEdit; const IsDefault: Boolean);
+    const Edit: TCastleEdit; const IsDefault: Boolean); overload;
   begin
     if IsDefault then
     begin
@@ -378,7 +378,7 @@ procedure TCastleInspector.TPropertyDisplay.UpdateCurrentValue;
   end;
 
   procedure AdjustColorsBasedOnPropertyDefault(
-    const Checkbox: TCastleCheckbox; const IsDefault: Boolean);
+    const Checkbox: TCastleCheckbox; const IsDefault: Boolean); overload;
   begin
     if IsDefault then
     begin
