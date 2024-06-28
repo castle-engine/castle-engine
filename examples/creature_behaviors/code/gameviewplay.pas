@@ -32,7 +32,6 @@ type
     LabelFps: TCastleLabel;
     MainViewport: TCastleViewport;
     WalkNavigation: TCastleWalkNavigation;
-    SceneWolf1: TCastleScene;
   private
     Enemies: TCastleTransformList;
     PlayerAlive: TCastleAliveBehavior;
@@ -91,7 +90,8 @@ begin
   Enemies := TCastleTransformList.Create(false);
   for I := 1 to 4 do
     AddEnemy(DesignedComponent('SceneSoldier' + IntToStr(I)) as TCastleScene);
-  AddEnemy(SceneWolf1);
+  for I := 1 to 3 do
+    AddEnemy(DesignedComponent('SceneWolf' + IntToStr(I)) as TCastleScene);
 end;
 
 procedure TViewPlay.Stop;
@@ -105,11 +105,14 @@ begin
   inherited;
   { This virtual method is executed every frame (many times per second). }
   LabelFps.Caption := 'FPS: ' + Container.Fps.ToString;
+  WalkNavigation.MouseLook := buttonRight in Container.MousePressed;
 end;
 
 function TViewPlay.Press(const Event: TInputPressRelease): Boolean;
 var
   HitAlive: TCastleAliveBehavior;
+  EnemyScene: TCastleScene;
+  EnemySoundSource: TCastleSoundSource;
 begin
   Result := inherited;
   if Result then Exit; // allow the ancestor to handle keys
@@ -139,19 +142,25 @@ begin
       HitAlive.Hurt(1000, MainViewport.Camera.Direction);
       if HitAlive.Dead then
       begin
-        (HitAlive.Parent as TCastleScene).PlayAnimation('die', false);
+        EnemyScene := HitAlive.Parent as TCastleScene;
+
+        // play die animation
+        if EnemyScene.HasAnimation('die') then
+          EnemyScene.PlayAnimation('die', false);
+        if EnemyScene.HasAnimation('sit') then // wolf has 'sit', not 'die'
+          EnemyScene.PlayAnimation('sit', false);
+
+        // stop wolf howling
+        EnemySoundSource := EnemyScene.FindBehavior(TCastleSoundSource) as TCastleSoundSource;
+        if EnemySoundSource <> nil then
+          EnemySoundSource.Sound := nil;
+
         // dead corpse no longer collides
-        HitAlive.Parent.Pickable := false;
-        HitAlive.Parent.Collides := false;
+        EnemyScene.Pickable := false;
+        EnemyScene.Collides := false;
       end;
     end;
 
-    Exit(true);
-  end;
-
-  if Event.IsKey(CtrlM) then
-  begin
-    WalkNavigation.MouseLook := not WalkNavigation.MouseLook;
     Exit(true);
   end;
 
