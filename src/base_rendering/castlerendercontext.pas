@@ -1,5 +1,5 @@
 {
-  Copyright 2001-2023 Michalis Kamburelis.
+  Copyright 2001-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -349,7 +349,7 @@ function FrustumProjection(const Dimensions: TFloatRectangle; const ZNear, ZFar:
 
 implementation
 
-uses CastleLog, CastleProjection, CastleInternalGLUtils;
+uses CastleLog, CastleProjection, CastleInternalGLUtils, CastleGLImages;
 
 constructor TRenderContext.Create(AOwner: TComponent);
 begin
@@ -872,6 +872,9 @@ var
   R: TRectangle;
   I: Integer;
 begin
+  // we need to flush batched things, before scissor change
+  TDrawableImage.BatchingFlush;
+
   if Count <> 0 then
   begin
     R := Items[0].Rect;
