@@ -1,5 +1,5 @@
 {
-  Copyright 2020-2023 Michalis Kamburelis.
+  Copyright 2020-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -51,7 +51,7 @@ implementation
 
 uses SysUtils, Math,
   CastleSoundEngine, CastleLog, CastleStringUtils, CastleFilesUtils,
-  GameViewMenu;
+  GameViewMenu, GameSounds;
 
 { TViewPlay ----------------------------------------------------------------- }
 
@@ -126,7 +126,7 @@ begin
 
   if Event.IsMouseButton(buttonLeft) then
   begin
-    SoundEngine.Play(SoundEngine.SoundFromName('shoot_sound'));
+    SoundEngine.Play(SoundShoot);
 
     { We clicked on enemy if
       - TransformUnderMouse indicates we hit something
