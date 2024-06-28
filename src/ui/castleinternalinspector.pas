@@ -273,30 +273,21 @@ procedure THierarchyRowLevelDisplay.Render;
 const
   ColorBars: TCastleColor = (X: 0.5; Y: 0.5; Z: 0.5; W: 1.0);
 
-  procedure DrawBar(const R: TFloatRectangle);
+  procedure DrawBar(const R: TFloatRectangle; const TopMostY: Single);
   begin
     DrawPrimitive2D(pmLineStrip, [
-      Vector2(R.Center.X, R.Bottom),
-      Vector2(R.Center.X, R.Top)
+      Vector2(R.Center.X, TopMostY),
+      Vector2(R.Center.X, R.Bottom)
     ],
     ColorBars);
   end;
 
-  procedure DrawBarToRight(const R: TFloatRectangle);
+  procedure DrawBarToRight(const R: TFloatRectangle; const TopMostY: Single);
   begin
     DrawPrimitive2D(pmLineStrip, [
-      Vector2(R.Center.X, R.Top),
+      Vector2(R.Center.X, TopMostY),
       Vector2(R.Center.X, R.Center.Y),
       Vector2(R.Right, R.Center.Y)
-    ],
-    ColorBars);
-  end;
-
-  procedure DrawConnectToPreviousLevel(const R: TFloatRectangle);
-  begin
-    DrawPrimitive2D(pmLineStrip, [
-      Vector2(R.Center.X, R.Top + HierarchyRowHeight / 2),
-      Vector2(R.Center.X, R.Top)
     ],
     ColorBars);
   end;
@@ -304,6 +295,7 @@ const
 var
   I: Integer;
   RR, R: TFloatRectangle;
+  TopMostY: Single;
 begin
   // inherited; // no need
   if Level = 0 then Exit; // early exit when nothing to do
@@ -314,12 +306,15 @@ begin
     R.Bottom := RR.Bottom;
     R.Width := OneLevelWidth;
     R.Height := RR.Height;
+    // Make TopMostY go to the middle of *previous* hierarchy row, to connect to it
     if I < PreviousLevel then
-      DrawConnectToPreviousLevel(R);
-    if I <> Integer(Level) - 1 then
-      DrawBar(R)
+      TopMostY := R.Top + HierarchyRowHeight / 2
     else
-      DrawBarToRight(R);
+      TopMostY := R.Top;
+    if I <> Integer(Level) - 1 then
+      DrawBar(R, TopMostY)
+    else
+      DrawBarToRight(R, TopMostY);
   end;
 end;
 
