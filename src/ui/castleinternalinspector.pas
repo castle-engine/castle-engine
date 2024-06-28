@@ -56,6 +56,7 @@ type
         PropObject: TObject;
         PropInfo: PPropInfo;
         IsBool: Boolean; //< Result of PropertyIsBool
+        procedure CheckboxChanged(Sender: TObject);
       public
         Ui: TCastleUserInterface;
         procedure Initialize(const APropObject: TObject;
@@ -339,6 +340,7 @@ begin
   if IsBool then
   begin
     CheckboxValue := FindRequiredComponent('PropValueCheckbox') as TCastleCheckbox;
+    CheckboxValue.OnChange := {$ifdef FPC}@{$endif} CheckboxChanged;
     // free (don't waste memory) unused UI
     FindRequiredComponent('PropValue').Free;
   end else
@@ -348,6 +350,13 @@ begin
     FindRequiredComponent('PropValueCheckboxParent').Free;
   end;
 
+  UpdateCurrentValue;
+end;
+
+procedure TCastleInspector.TPropertyDisplay.CheckboxChanged(Sender: TObject);
+begin
+  PropertyBoolSet(PropObject, PropInfo, CheckboxValue.Checked);
+  // refresh colors (based on whether new value is default)
   UpdateCurrentValue;
 end;
 
