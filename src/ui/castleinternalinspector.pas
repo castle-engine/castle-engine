@@ -47,18 +47,22 @@ type
 
       TAutoSelect = (asNothing, asUi, asTransform);
 
-      TPropertyOwner = class(TComponent)
-      public
-        Ui: TCastleUserInterface;
+      { Display a single property of an object. }
+      TPropertyDisplay = class(TComponent)
+      strict private
         LabelName: TCastleLabel;
         EditValue: TCastleEdit;
         CheckboxValue: TCastleCheckbox;
         PropObject: TObject;
         PropInfo: PPropInfo;
         IsBool: Boolean; //< Result of PropertyIsBool
+      public
+        Ui: TCastleUserInterface;
+        procedure Initialize(const APropObject: TObject;
+          const APropInfo: PPropInfo; const APropName: String);
         procedure UpdateCurrentValue;
       end;
-      TPropertyOwnerList = {$ifdef FPC}specialize{$endif} TObjectList<TPropertyOwner>;
+      TPropertyDisplayList = {$ifdef FPC}specialize{$endif} TObjectList<TPropertyDisplay>;
 
     var
       { Controls loaded from inspector_ui.castle-user-interface.inc }
@@ -106,7 +110,7 @@ type
       LogCount: Cardinal;
       AutoSelect: TAutoSelect;
       { Properties of the SelectedComponent. }
-      Properties: TPropertyOwnerList;
+      Properties: TPropertyDisplayList;
       TimeToUpdatePropertiesValues: TFloatTime;
 
     procedure ChangeOpacity(Sender: TObject);
@@ -318,9 +322,36 @@ begin
   end;
 end;
 
-{ TPropertyOwner ------------------------------------------------------------ }
+{ TPropertyDisplay ------------------------------------------------------------ }
 
-procedure TCastleInspector.TPropertyOwner.UpdateCurrentValue;
+procedure TCastleInspector.TPropertyDisplay.Initialize(
+  const APropObject: TObject; const APropInfo: PPropInfo; const APropName: String);
+begin
+  PropObject := APropObject;
+  PropInfo := APropInfo;
+  IsBool := PropertyIsBool(PropInfo);
+
+  ForceFallbackLook(Ui);
+
+  LabelName := FindRequiredComponent('PropName') as TCastleLabel;
+  LabelName.Caption := APropName;
+
+  if IsBool then
+  begin
+    CheckboxValue := FindRequiredComponent('PropValueCheckbox') as TCastleCheckbox;
+    // free (don't waste memory) unused UI
+    FindRequiredComponent('PropValue').Free;
+  end else
+  begin
+    EditValue := FindRequiredComponent('PropValue') as TCastleEdit;
+    // free (don't waste memory) unused UI
+    FindRequiredComponent('PropValueCheckboxParent').Free;
+  end;
+
+  UpdateCurrentValue;
+end;
+
+procedure TCastleInspector.TPropertyDisplay.UpdateCurrentValue;
 
   procedure AdjustColorsBasedOnPropertyDefault(
     const Edit: TCastleEdit; const IsDefault: Boolean);
@@ -525,7 +556,7 @@ begin
   AutoSelect := asNothing;
   SynchronizeButtonsAutoSelect;
 
-  Properties := TPropertyOwnerList.Create(true);
+  Properties := TPropertyDisplayList.Create(true);
 end;
 
 destructor TCastleInspector.Destroy;
@@ -1083,36 +1114,18 @@ procedure TCastleInspector.UpdateProperties;
   procedure AddPropertyRow(const PropObject: TObject; const PropInfo: PPropInfo;
     const PropName: String);
   var
-    PropertyOwner: TPropertyOwner;
+    PropertyDisplay: TPropertyDisplay;
   begin
-    PropertyOwner := TPropertyOwner.Create(Self);
-    PropertyOwner.PropObject := PropObject;
-    PropertyOwner.PropInfo := PropInfo;
-    PropertyOwner.IsBool := PropertyIsBool(PropInfo);
-    Properties.Add(PropertyOwner);
+    PropertyDisplay := TPropertyDisplay.Create(Self);
 
-    PropertyOwner.Ui := SerializedPropertyRowFactory.ComponentLoad(PropertyOwner) as TCastleUserInterface;
-    PropertyOwner.Ui.Culling := true; // many such rows are often not visible, in scroll view
-    PropertyOwner.Ui.Width := RectProperties.EffectiveWidthForChildren;
-    ForceFallbackLook(PropertyOwner.Ui);
-    PropertyRowParent.InsertFront(PropertyOwner.Ui);
+    PropertyDisplay.Ui := SerializedPropertyRowFactory.ComponentLoad(PropertyDisplay) as TCastleUserInterface;
+    PropertyDisplay.Ui.Culling := true; // many such rows are often not visible, in scroll view
+    PropertyDisplay.Ui.Width := RectProperties.EffectiveWidthForChildren;
 
-    PropertyOwner.LabelName := PropertyOwner.FindRequiredComponent('PropName') as TCastleLabel;
-    PropertyOwner.LabelName.Caption := PropName;
+    PropertyDisplay.Initialize(PropObject, PropInfo, PropName);
 
-    if PropertyOwner.IsBool then
-    begin
-      PropertyOwner.CheckboxValue := PropertyOwner.FindRequiredComponent('PropValueCheckbox') as TCastleCheckbox;
-      // free (don't waste memory) unused UI
-      PropertyOwner.FindRequiredComponent('PropValue').Free;
-    end else
-    begin
-      PropertyOwner.EditValue := PropertyOwner.FindRequiredComponent('PropValue') as TCastleEdit;
-      // free (don't waste memory) unused UI
-      PropertyOwner.FindRequiredComponent('PropValueCheckboxParent').Free;
-    end;
-
-    PropertyOwner.UpdateCurrentValue;
+    Properties.Add(PropertyDisplay);
+    PropertyRowParent.InsertFront(PropertyDisplay.Ui);
   end;
 
   function PropertyShow(const PropObject: TComponent; const PropInfo: PPropInfo): Boolean;
@@ -1160,7 +1173,7 @@ end;
 
 procedure TCastleInspector.UpdatePropertiesValues;
 var
-  Po: TPropertyOwner;
+  Po: TPropertyDisplay;
 begin
   for Po in Properties do
     Po.UpdateCurrentValue;

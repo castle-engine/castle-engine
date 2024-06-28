@@ -848,7 +848,13 @@
 '                        "WidthFraction" : 5.0000000000000000E-001' + LineEnding +
 '                      },' + LineEnding +
 '                      {' + LineEnding +
-'                        "$$ClassName" : "TCastleUserInterface",' + LineEnding +
+'                        "$$ClassName" : "TCastleRectangleControl",' + LineEnding +
+'                        "ColorPersistent" : {' + LineEnding +
+'                          "$$ClassName" : "TCastleColorPersistent",' + LineEnding +
+'                          "Blue" : 7.6078432798385620E-001,' + LineEnding +
+'                          "Green" : 7.6078432798385620E-001,' + LineEnding +
+'                          "Red" : 7.6078432798385620E-001' + LineEnding +
+'                        },' + LineEnding +
 '                        "HeightFraction" : 1.0000000000000000E+000,' + LineEnding +
 '                        "HorizontalAnchorParent" : "hpRight",' + LineEnding +
 '                        "HorizontalAnchorSelf" : "hpRight",' + LineEnding +
