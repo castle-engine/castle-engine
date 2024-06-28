@@ -1,5 +1,5 @@
 {
-  Copyright 2015-2023 Michalis Kamburelis.
+  Copyright 2015-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -85,6 +85,7 @@ type
       ButtonAutoSelectUi: TCastleButton;
       ButtonAutoSelectTransform: TCastleButton;
 
+      OneLevelWidth: Single;
       FOpacity: Single;
       FSelectedComponent: TComponent;
       InsideLogCallback: Boolean;
@@ -241,6 +242,81 @@ begin
   Font.Print(R.Left, R.Bottom + Font.DescenderHeight * 1.5, Color, Caption);
 end;
 
+{ THierarchyRowLevelDisplay --------------------------------------------------------- }
+
+type
+  { Display the level (indentation) of hierarchy row. }
+  THierarchyRowLevelDisplay = class(TCastleUserInterface)
+  protected
+    procedure PreferredSize(var PreferredWidth, PreferredHeight: Single); override;
+  public
+    PreviousLevel, Level: Cardinal;
+    { Both sizes in final pixels. }
+    OneLevelWidth, HierarchyRowHeight: Single;
+    procedure Render; override;
+  end;
+
+procedure THierarchyRowLevelDisplay.PreferredSize(var PreferredWidth, PreferredHeight: Single);
+begin
+  // inherited; // no need
+  PreferredWidth := OneLevelWidth * Level;
+  PreferredHeight := HierarchyRowHeight;
+end;
+
+procedure THierarchyRowLevelDisplay.Render;
+const
+  ColorBars: TCastleColor = (X: 0.5; Y: 0.5; Z: 0.5; W: 1.0);
+
+  procedure DrawBar(const R: TFloatRectangle);
+  begin
+    DrawPrimitive2D(pmLineStrip, [
+      Vector2(R.Center.X, R.Bottom),
+      Vector2(R.Center.X, R.Top)
+    ],
+    ColorBars);
+  end;
+
+  procedure DrawBarToRight(const R: TFloatRectangle);
+  begin
+    DrawPrimitive2D(pmLineStrip, [
+      Vector2(R.Center.X, R.Top),
+      Vector2(R.Center.X, R.Center.Y),
+      Vector2(R.Right, R.Center.Y)
+    ],
+    ColorBars);
+  end;
+
+  procedure DrawConnectToPreviousLevel(const R: TFloatRectangle);
+  begin
+    DrawPrimitive2D(pmLineStrip, [
+      Vector2(R.Center.X, R.Top + HierarchyRowHeight / 2),
+      Vector2(R.Center.X, R.Top)
+    ],
+    ColorBars);
+  end;
+
+var
+  I: Integer;
+  RR, R: TFloatRectangle;
+begin
+  // inherited; // no need
+  if Level = 0 then Exit; // early exit when nothing to do
+  RR := RenderRect;
+  for I := 0 to Integer(Level) - 1 do
+  begin
+    R.Left := RR.Left + I * OneLevelWidth;
+    R.Bottom := RR.Bottom;
+    R.Width := OneLevelWidth;
+    R.Height := RR.Height;
+    if I < PreviousLevel then
+      DrawConnectToPreviousLevel(R);
+    if I <> Integer(Level) - 1 then
+      DrawBar(R)
+    else
+      DrawBarToRight(R);
+  end;
+end;
+
 { TCastleInspector ----------------------------------------------------------- }
 
 { TODO:
@@ -262,6 +338,10 @@ end;
 
   checkbox to also show X3D nodes
 }
+
+const
+  // In hierarchy row, we shift main button caption by Level * LevelWidthInSpaces * space width.
+  LevelWidthInSpaces = 4;
 
 constructor TCastleInspector.Create(AOwner: TComponent);
 
@@ -290,6 +370,8 @@ var
   PropertyRowTemplate: TCastleUserInterface;
 begin
   inherited;
+
+  OneLevelWidth := FallbackFont.TextWidth(DupeString(' ', LevelWidthInSpaces));
 
   // adjust inherited published properties
   FullSize := true;
@@ -417,9 +499,6 @@ begin
   inherited;
 end;
 
-const
-  SLevelPrefix = '- ';
-
 function TCastleInspector.Selectable(const C: TComponent): Boolean;
 begin
   { Never show Self,
@@ -435,23 +514,31 @@ procedure TCastleInspector.UpdateHierarchy(Sender: TObject);
 
 var
   RowIndex: Integer;
+  PreviousLevel: Cardinal;
 
   { Add hierarchy entry.
-    MainCaption is displayed using prominent (black) font color,
-    DimCaption is displayed using dim font color -- it can be used for class name. }
-  procedure AddHierarchyEntryCore(const MainCaption, DimCaption: String; const RowTag: Pointer);
+    @param Level Determines the initial | (and similar) symbols count.
+    @param MainCaption Displayed using prominent (black) font color.
+    @param DimCaption Displayed using dim font color -- it can be used for class name. }
+  procedure AddHierarchyEntryCore(
+    const Level: Cardinal;
+    const MainCaption, DimCaption: String; const RowTag: Pointer);
   const
     // CGE editor uses lighter gray, but inspector is often on partially-transparent bg, darker gray looks better
     //DimColor: TCastleColor = (X: 0.75; Y: 0.75; Z: 0.75; W: 1.0);
     DimColor: TCastleColor = (X: 0.6; Y: 0.6; Z: 0.6; W: 1.0);
   var
     HierarchyButton: TCastleButton;
+    CaptionWithLevel: String;
     DimLabel: TSimpleLabel;
+    DimLabelX: Single;
+    LevelDisplay: THierarchyRowLevelDisplay;
   begin
     if RowIndex < HierarchyRowParent.ControlsCount then
     begin
       HierarchyButton := HierarchyRowParent.Controls[RowIndex] as TCastleButton;
       DimLabel := HierarchyButton.Controls[0] as TSimpleLabel;
+      LevelDisplay := HierarchyButton.Controls[1] as THierarchyRowLevelDisplay;
     end else
     begin
       HierarchyButton := SerializedHierarchyRowFactory.ComponentLoad(Self) as TCastleButton;
@@ -465,28 +552,39 @@ var
       DimLabel.Anchor(vpMiddle);
       HierarchyButton.InsertFront(DimLabel);
 
+      LevelDisplay := THierarchyRowLevelDisplay.Create(HierarchyButton);
+      HierarchyButton.InsertFront(LevelDisplay);
+
       ForceFallbackLook(HierarchyButton);
     end;
 
-    HierarchyButton.Caption := MainCaption;
+    CaptionWithLevel := DupeString(' ', Level * LevelWidthInSpaces) + MainCaption;
+
+    HierarchyButton.Caption := CaptionWithLevel;
 
     DimLabel.Caption := DimCaption;
-    DimLabel.Anchor(hpLeft, FallbackFont.TextWidth(MainCaption));
+    if MainCaption <> '' then
+      DimLabelX := FallbackFont.TextWidth(CaptionWithLevel + ' ')
+    else
+      DimLabelX := FallbackFont.TextWidth(CaptionWithLevel);
+    DimLabel.Anchor(hpLeft, DimLabelX);
 
     { TComponent.Tag is a (signed) PtrInt in FPC, (signed) NativeInt in Delphi,
       so typecast to PtrInt to avoid range check errors. }
     HierarchyButton.Tag := PtrInt(RowTag);
 
+    LevelDisplay.PreviousLevel := PreviousLevel;
+    LevelDisplay.Level := Level;
+    LevelDisplay.OneLevelWidth := OneLevelWidth;
+    LevelDisplay.HierarchyRowHeight := HierarchyButton.EffectiveHeight * HierarchyButton.UIScale;
+
     Inc(RowIndex);
+    PreviousLevel := Level;
   end;
 
   procedure AddHierarchyEntry(const C: TComponent; const Level: Integer);
   begin
-    AddHierarchyEntryCore(
-      DupeString(SLevelPrefix, Level) + C.Name,
-      ' (' + C.ClassName + ')',
-      C
-    );
+    AddHierarchyEntryCore(Level, C.Name,' (' + C.ClassName + ')', C);
   end;
 
   { Add given component, and its children in C.NonVisualComponents }
@@ -512,7 +610,7 @@ var
   begin
     if C.NonVisualComponentsCount <> 0 then
     begin
-      AddHierarchyEntryCore(DupeString(SLevelPrefix, Level) + 'Non-Visual Components', '', C);
+      AddHierarchyEntryCore(Level, 'Non-Visual Components', '', C);
       for Child in C.NonVisualComponentsEnumerate do
         if Selectable(Child) then
           AddNonVisualComponent(Child, Level + 1);
@@ -527,7 +625,7 @@ var
   begin
     if T.BehaviorsCount <> 0 then
     begin
-      AddHierarchyEntryCore(DupeString(SLevelPrefix, Level) + 'Behaviors', '', T);
+      AddHierarchyEntryCore(Level, 'Behaviors', '', T);
       for Child in T.BehaviorsEnumerate do
         if Selectable(Child) then
           AddNonVisualComponent(Child, Level + 1);
@@ -584,6 +682,7 @@ begin
     In effect, usual call to UpdateHierarchy should be mostly an analysis that says "nothing has
     changed, so not updating any UI". }
   RowIndex := 0;
+  PreviousLevel := 0;
 
   for I := 0 to Container.Controls.Count - 1 do
   begin
