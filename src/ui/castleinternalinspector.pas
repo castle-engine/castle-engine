@@ -23,7 +23,8 @@ interface
 
 uses Classes, Generics.Collections, TypInfo,
   CastleControls, CastleUIControls, CastleColors, CastleRectangles,
-  CastleVectors, CastleKeysMouse, CastleComponentSerialize, CastleTimeUtils;
+  CastleVectors, CastleKeysMouse, CastleComponentSerialize, CastleTimeUtils,
+  CastleTransform;
 
 type
   { Inspect Castle Game Engine state.
@@ -68,6 +69,7 @@ type
     var
       { Controls loaded from inspector_ui.castle-user-interface.inc }
       CheckboxShowEvenInternal: TCastleCheckbox;
+      CheckboxUiBatching: TCastleCheckbox;
       RectOptions, RectProperties, RectLog, RectHierarchy, RectProfiler: TCastleRectangleControl;
       ButtonHierarchyShow, ButtonHierarchyHide,
         ButtonLogShow, ButtonLogHide,
@@ -88,7 +90,10 @@ type
       CheckboxLogAutoScroll: TCastleCheckbox;
       LabelProfilerHeader: TCastleLabel;
       CheckboxProfilerDetailsInLog: TCastleCheckbox;
+      CheckboxProfilerMore: TCastleCheckbox;
       ProfilerGraph: TCastleUserInterface;
+      RectStatsMore: TCastleUserInterface;
+      LabelStatsMore: TCastleLabel;
       ButtonAutoSelectNothing: TCastleButton;
       ButtonAutoSelectUi: TCastleButton;
       ButtonAutoSelectTransform: TCastleButton;
@@ -128,6 +133,7 @@ type
     procedure ClickProfilerHide(Sender: TObject);
     procedure ClickLogClear(Sender: TObject);
     procedure ChangeProfilerDetailsInLog(Sender: TObject);
+    procedure ChangeProfilerMore(Sender: TObject);
     { Synchronize state of HorizontalGroupShow and its children with the existence of rectangles
       like RectHierarchy. So you only need to change RectHierarchy.Exists and call this method
       to have UI consistent. }
@@ -149,6 +155,15 @@ type
     procedure ClickAutoSelectNothing(Sender: TObject);
     procedure ClickAutoSelectUi(Sender: TObject);
     procedure ClickAutoSelectTransform(Sender: TObject);
+    { Detect TCastleTransform that mouse hovers over.
+      Adjusted from CGE editor TDesignFrame.TDesignerLayer.HoverTransform }
+    function HoverTransform(const AMousePosition: TVector2): TCastleTransform;
+    { Detect UI control that mouse hovers over.
+      Adjusted from CGE editor TDesignFrame.TDesignerLayer.HoverUserInterface }
+    function HoverUserInterface(const AMousePosition: TVector2): TCastleUserInterface;
+    procedure UpdateLabelProfilerHeader;
+    procedure UpdateLabelStatsMore;
+    procedure ChangeUiBatching(Sender: TObject);
   protected
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
   public
@@ -171,6 +186,7 @@ type
     procedure Update(const SecondsPassed: Single;  var HandleInput: boolean); override;
     procedure Resize; override;
     function Press(const Event: TInputPressRelease): Boolean; override;
+    procedure InternalSetContainer(const Value: TCastleContainer); override;
 
     { Opacity of the whole UI.
       Can be changed by user while operating this UI. }
@@ -188,8 +204,8 @@ implementation
 
 uses SysUtils, StrUtils, RttiUtils,
   CastleStringUtils, CastleGLUtils, CastleApplicationProperties, CastleClassUtils,
-  CastleUtils, CastleLog, CastleInternalRttiUtils,
-  CastleTransform, CastleViewport, CastleScene, CastleUriUtils;
+  CastleUtils, CastleLog, CastleInternalRttiUtils, CastleGLImages,
+  CastleViewport, CastleScene, CastleUriUtils;
 
 { ---------------------------------------------------------------------------- }
 
@@ -472,6 +488,7 @@ begin
   InsertFront(Ui);
 
   CheckboxShowEvenInternal := UiOwner.FindRequiredComponent('CheckboxShowEvenInternal') as TCastleCheckbox;
+  CheckboxUiBatching := UiOwner.FindRequiredComponent('CheckboxUiBatching') as TCastleCheckbox;
   RectOptions := UiOwner.FindRequiredComponent('RectOptions') as TCastleRectangleControl;
   RectProperties := UiOwner.FindRequiredComponent('RectProperties') as TCastleRectangleControl;
   RectLog := UiOwner.FindRequiredComponent('RectLog') as TCastleRectangleControl;
@@ -502,7 +519,10 @@ begin
   CheckboxLogAutoScroll := UiOwner.FindRequiredComponent('CheckboxLogAutoScroll') as TCastleCheckbox;
   LabelProfilerHeader := UiOwner.FindRequiredComponent('LabelProfilerHeader') as TCastleLabel;
   CheckboxProfilerDetailsInLog := UiOwner.FindRequiredComponent('CheckboxProfilerDetailsInLog') as TCastleCheckbox;
+  CheckboxProfilerMore := UiOwner.FindRequiredComponent('CheckboxProfilerMore') as TCastleCheckbox;
   ProfilerGraph := UiOwner.FindRequiredComponent('ProfilerGraph') as TCastleUserInterface;
+  RectStatsMore := UiOwner.FindRequiredComponent('RectStatsMore') as TCastleUserInterface;
+  LabelStatsMore := UiOwner.FindRequiredComponent('LabelStatsMore') as TCastleLabel;
   ButtonAutoSelectNothing := UiOwner.FindRequiredComponent('ButtonAutoSelectNothing') as TCastleButton;
   ButtonAutoSelectUi := UiOwner.FindRequiredComponent('ButtonAutoSelectUi') as TCastleButton;
   ButtonAutoSelectTransform := UiOwner.FindRequiredComponent('ButtonAutoSelectTransform') as TCastleButton;
@@ -510,6 +530,7 @@ begin
   ForceFallbackLook(Ui);
 
   CheckboxShowEvenInternal.OnChange := {$ifdef FPC}@{$endif} UpdateHierarchy;
+  CheckboxUiBatching.OnChange := {$ifdef FPC}@{$endif} ChangeUiBatching;
   ButtonHierarchyShow.OnClick := {$ifdef FPC}@{$endif} ClickHierarchyShow;
   ButtonHierarchyHide.OnClick := {$ifdef FPC}@{$endif} ClickHierarchyHide;
   ButtonLogShow.OnClick := {$ifdef FPC}@{$endif} ClickLogShow;
@@ -520,6 +541,7 @@ begin
   ButtonProfilerHide.OnClick := {$ifdef FPC}@{$endif} ClickProfilerHide;
   ButtonLogClear.OnClick := {$ifdef FPC}@{$endif} ClickLogClear;
   CheckboxProfilerDetailsInLog.OnChange := {$ifdef FPC}@{$endif} ChangeProfilerDetailsInLog;
+  CheckboxProfilerMore.OnChange := {$ifdef FPC}@{$endif} ChangeProfilerMore;
   ProfilerGraph.OnRender := {$ifdef FPC}@{$endif} ProfilerGraphRender;
   ButtonAutoSelectNothing.OnClick := {$ifdef FPC}@{$endif} ClickAutoSelectNothing;
   ButtonAutoSelectUi.OnClick := {$ifdef FPC}@{$endif} ClickAutoSelectUi;
@@ -530,6 +552,7 @@ begin
   RectLog.Exists := PersistentState.RectLogExists;
   RectHierarchy.Exists := PersistentState.RectHierarchyExists;
   RectProfiler.Exists := PersistentState.RectProfilerExists;
+  RectStatsMore.Exists := RectProfiler.Exists and CheckboxProfilerMore.Checked;
   SynchronizeButtonsToShow;
 
   FOpacity := -1; // to force setting below call SetOpacity
@@ -586,6 +609,13 @@ begin
   FreeAndNil(SerializedPropertyRowFactory);
 
   inherited;
+end;
+
+procedure TCastleInspector.InternalSetContainer(const Value: TCastleContainer);
+begin
+  inherited;
+  if Container <> nil then
+    CheckboxUiBatching.Checked := Container.UserInterfaceBatching;
 end;
 
 function TCastleInspector.Selectable(const C: TComponent): Boolean;
@@ -784,115 +814,216 @@ begin
     HierarchyRowParent.Controls[RowIndex].Free;
 end;
 
-procedure TCastleInspector.Update(const SecondsPassed: Single;  var HandleInput: boolean);
+procedure TCastleInspector.UpdateLabelProfilerHeader;
+begin
+  LabelProfilerHeader.Caption := 'Profiler | Current FPS: ' + Container.Fps.ToString;
+end;
 
-  { Detect UI control that mouse hovers over.
-    Adjusted from CGE editor TDesignFrame.TDesignerLayer.HoverUserInterface }
-  function HoverUserInterface(const AMousePosition: TVector2): TCastleUserInterface;
+procedure TCastleInspector.UpdateLabelStatsMore;
 
-    { Like TCastleUserInterface.CapturesEventsAtPosition, but
-      - ignores CapturesEvents
-      - uses RenderRectWithBorder (to be able to drag complete control)
-      - doesn't need "if the control covers the whole Container" hack. }
-    function SimpleCapturesEventsAtPosition(const UI: TCastleUserInterface;
-      const Position: TVector2; const TestWithBorder: Boolean): Boolean;
+  { Viewport implied by current SelectedComponent.
+    Similar to CGE editor TDesignFrame.SelectedViewport. }
+  function SelectedViewport: TCastleViewport;
+
+    { Return viewport indicated by T, or @nil if none. }
+    function ViewportOfTransform(const T: TCastleTransform): TCastleViewport;
     begin
-      if TestWithBorder then
-        Result := UI.RenderRectWithBorder.Contains(Position)
+      if T.World <> nil then
+        Result := T.World.Owner as TCastleViewport
       else
-        Result := UI.RenderRect.Contains(Position);
+        Result := nil;
     end;
 
-    function ControlUnder(const C: TCastleUserInterface;
-      const MousePos: TVector2; const TestWithBorder: Boolean): TCastleUserInterface;
+    { Return viewport indicated by B, or @nil if none. }
+    function ViewportOfBehavior(const B: TCastleBehavior): TCastleViewport;
+    begin
+      if B.Parent <> nil then
+        Result := ViewportOfTransform(B.Parent)
+      else
+        Result := nil;
+    end;
+
+    { Return viewport indicated by C, or @nil if none. }
+    function ViewportOfComponent(const C: TComponent): TCastleViewport;
     var
-      I: Integer;
+      ViewportChild: TCastleUserInterface;
     begin
       Result := nil;
 
-      { To allow selecting even controls that have bad rectangle (outside
-        of parent, which can happen, e.g. if you enlarge caption of label
-        with AutoSize), do not check C.CapturesEventsAtPosition(MousePos)
-        too early here. So the condition
-
-          and C.CapturesEventsAtPosition(MousePos)
-
-        is not present in "if" below. }
-
-      if C.Exists then
+      if C is TCastleViewport then
       begin
-        { First try to find children, with TestWithBorder=false (so it doesn't detect
-          control if we merely point at its border). This allows to find controls
-          places on another control's border. }
-        for I := C.ControlsCount - 1 downto 0 do
-          if Selectable(C.Controls[I]) then
-          begin
-            Result := ControlUnder(C.Controls[I], MousePos, false);
-            if Result <> nil then Exit;
-          end;
-
-        { Next try to find children, with TestWithBorder=true, so it tries harder
-          to find something. }
-        for I := C.ControlsCount - 1 downto 0 do
-          if Selectable(C.Controls[I]) then
-          begin
-            Result := ControlUnder(C.Controls[I], MousePos, true);
-            if Result <> nil then Exit;
-          end;
-
-        { Eventually return yourself, C. }
-        //if C.CapturesEventsAtPosition(MousePos) then
-        if SimpleCapturesEventsAtPosition(C, MousePos, TestWithBorder) and
-           C.EditorSelectOnHover then
-          Result := C;
-      end;
+        Result := C as TCastleViewport;
+      end else
+      if C is TCastleUserInterface then
+      begin
+        { When hovering over TCastleNavigation, or TCastleTouchNavigation,
+          or really any UI as viewport child -> select viewport. }
+        ViewportChild := C as TCastleUserInterface;
+        if {ViewportChild.FullSize and} (ViewportChild.Parent is TCastleViewport) then
+        begin
+          Result := ViewportChild.Parent as TCastleViewport;
+        end;
+      end else
+      if C is TCastleTransform then
+        Result := ViewportOfTransform(C as TCastleTransform)
+      else
+      if C is TCastleBehavior then
+        Result := ViewportOfBehavior(C as TCastleBehavior);
     end;
 
+  begin
+    Result := ViewportOfComponent(SelectedComponent);
+  end;
+
+  { Viewport to act on.
+    Similar to CGE editor TDesignFrame.CurrentViewport, that has similar goal. }
+  function CurrentViewport: TCastleViewport;
+  var
+    HoverUi: TCastleUserInterface;
+  begin
+    Result := SelectedViewport;
+    if Result = nil then
+    begin
+      { try HoverUserInterface as TCastleViewport }
+      HoverUi := HoverUserInterface(Container.MousePosition);
+      if HoverUi is TCastleViewport then // also checks HoverUi <> nil
+        Result := TCastleViewport(HoverUi)
+      else
+      { try HoverUserInterface as TCastleViewport child, like TCastleNavigation, TCastleTouchNavigation }
+      if (HoverUi <> nil) and (HoverUi.Parent is TCastleViewport) then // also checks HoverUi.Parent <> nil
+        Result := TCastleViewport(HoverUi.Parent);
+    end;
+  end;
+
+var
+  S: String;
+  CurrentV: TCastleViewport;
+begin
+  if CheckboxProfilerMore.Checked then
+  begin
+    S := 'TDrawableImage.Statistics: ' + TDrawableImage.Statistics.ToString + NL +
+      '  (Note: This inspector itself is heavy UI.)';
+    CurrentV := CurrentViewport;
+    if CurrentV <> nil then
+    begin
+      S := S + NL +
+        'Viewport "' + CurrentV.Name + '":' + NL +
+        CurrentV.Statistics.ToString;
+    end;
+    LabelStatsMore.Caption := S;
+  end;
+end;
+
+procedure TCastleInspector.ChangeUiBatching(Sender: TObject);
+begin
+  Container.UserInterfaceBatching := CheckboxUiBatching.Checked;
+end;
+
+function TCastleInspector.HoverUserInterface(const AMousePosition: TVector2): TCastleUserInterface;
+
+  { Like TCastleUserInterface.CapturesEventsAtPosition, but
+    - ignores CapturesEvents
+    - uses RenderRectWithBorder (to be able to drag complete control)
+    - doesn't need "if the control covers the whole Container" hack. }
+  function SimpleCapturesEventsAtPosition(const UI: TCastleUserInterface;
+    const Position: TVector2; const TestWithBorder: Boolean): Boolean;
+  begin
+    if TestWithBorder then
+      Result := UI.RenderRectWithBorder.Contains(Position)
+    else
+      Result := UI.RenderRect.Contains(Position);
+  end;
+
+  function ControlUnder(const C: TCastleUserInterface;
+    const MousePos: TVector2; const TestWithBorder: Boolean): TCastleUserInterface;
   var
     I: Integer;
   begin
     Result := nil;
-    for I := Container.Controls.Count - 1 downto 0 do
-      if Container.Controls[I] <> Self then
-      begin
-        Result := ControlUnder(Container.Controls[I], AMousePosition, true);
-        if Result <> nil then Exit;
-      end;
+
+    { To allow selecting even controls that have bad rectangle (outside
+      of parent, which can happen, e.g. if you enlarge caption of label
+      with AutoSize), do not check C.CapturesEventsAtPosition(MousePos)
+      too early here. So the condition
+
+        and C.CapturesEventsAtPosition(MousePos)
+
+      is not present in "if" below. }
+
+    if C.Exists then
+    begin
+      { First try to find children, with TestWithBorder=false (so it doesn't detect
+        control if we merely point at its border). This allows to find controls
+        places on another control's border. }
+      for I := C.ControlsCount - 1 downto 0 do
+        if Selectable(C.Controls[I]) then
+        begin
+          Result := ControlUnder(C.Controls[I], MousePos, false);
+          if Result <> nil then Exit;
+        end;
+
+      { Next try to find children, with TestWithBorder=true, so it tries harder
+        to find something. }
+      for I := C.ControlsCount - 1 downto 0 do
+        if Selectable(C.Controls[I]) then
+        begin
+          Result := ControlUnder(C.Controls[I], MousePos, true);
+          if Result <> nil then Exit;
+        end;
+
+      { Eventually return yourself, C. }
+      //if C.CapturesEventsAtPosition(MousePos) then
+      if SimpleCapturesEventsAtPosition(C, MousePos, TestWithBorder) and
+          C.EditorSelectOnHover then
+        Result := C;
+    end;
   end;
 
-  { Detect TCastleTransform that mouse hovers over.
-    Adjusted from CGE editor TDesignFrame.TDesignerLayer.HoverTransform }
-  function HoverTransform(const AMousePosition: TVector2): TCastleTransform;
-  var
-    UI: TCastleUserInterface;
-    Viewport: TCastleViewport;
-    RayOrigin, RayDirection: TVector3;
-    RayHit: TRayCollision;
-    I: Integer;
-  begin
-    UI := HoverUserInterface(AMousePosition);
-    if UI is TCastleViewport then // also checks UI <> nil
-      Viewport := TCastleViewport(UI)
-    else
-      Viewport := nil;
+var
+  I: Integer;
+begin
+  Result := nil;
+  for I := Container.Controls.Count - 1 downto 0 do
+    if Container.Controls[I] <> Self then
+    begin
+      Result := ControlUnder(Container.Controls[I], AMousePosition, true);
+      if Result <> nil then Exit;
+    end;
+end;
 
-    if Viewport = nil then
-      Exit(nil);
+function TCastleInspector.HoverTransform(const AMousePosition: TVector2): TCastleTransform;
+var
+  UI: TCastleUserInterface;
+  Viewport: TCastleViewport;
+  RayOrigin, RayDirection: TVector3;
+  RayHit: TRayCollision;
+  I: Integer;
+begin
+  UI := HoverUserInterface(AMousePosition);
+  if UI is TCastleViewport then // also checks UI <> nil
+    Viewport := TCastleViewport(UI)
+  else
+    Viewport := nil;
 
-    Viewport.PositionToRay(AMousePosition, true, RayOrigin, RayDirection);
-    RayHit := Viewport.Items.WorldRay(RayOrigin, RayDirection);
-    try
-      Result := nil;
-      // set the inner-most TCastleTransform hit, but not anything transient (to avoid hitting gizmo)
-      if RayHit <> nil then
-        for I := 0 to RayHit.Count - 1 do
-          if Selectable(RayHit[I].Item) then
-          begin
-            Result := RayHit[I].Item;
-            Break;
-          end;
-    finally FreeAndNil(RayHit) end;
-  end;
+  if Viewport = nil then
+    Exit(nil);
+
+  Viewport.PositionToRay(AMousePosition, true, RayOrigin, RayDirection);
+  RayHit := Viewport.Items.WorldRay(RayOrigin, RayDirection);
+  try
+    Result := nil;
+    // set the inner-most TCastleTransform hit, but not anything transient (to avoid hitting gizmo)
+    if RayHit <> nil then
+      for I := 0 to RayHit.Count - 1 do
+        if Selectable(RayHit[I].Item) then
+        begin
+          Result := RayHit[I].Item;
+          Break;
+        end;
+  finally FreeAndNil(RayHit) end;
+end;
+
+procedure TCastleInspector.Update(const SecondsPassed: Single;  var HandleInput: boolean);
 
   procedure UpdateAutoSelect;
   var
@@ -918,7 +1049,8 @@ begin
   inherited;
   UpdateHierarchy(nil);
 
-  LabelProfilerHeader.Caption := 'Profiler | Current FPS: ' + Container.Fps.ToString;
+  UpdateLabelProfilerHeader;
+  UpdateLabelStatsMore;
 
   InspectorInputStr := Container.InputInspector.ToString;
   LabelInspectorHelp.Exists := InspectorInputStr <> '';
@@ -1012,12 +1144,14 @@ end;
 procedure TCastleInspector.ClickProfilerShow(Sender: TObject);
 begin
   RectProfiler.Exists := true;
+  RectStatsMore.Exists := RectProfiler.Exists and CheckboxProfilerMore.Checked;
   SynchronizeButtonsToShow;
 end;
 
 procedure TCastleInspector.ClickProfilerHide(Sender: TObject);
 begin
   RectProfiler.Exists := false;
+  RectStatsMore.Exists := RectProfiler.Exists and CheckboxProfilerMore.Checked;
   SynchronizeButtonsToShow;
 end;
 
@@ -1201,11 +1335,21 @@ begin
     C.Width := RectHierarchy.EffectiveWidthForChildren;
   for C in PropertyRowParent do
     C.Width := RectProperties.EffectiveWidthForChildren;
+
+  RectStatsMore.Translation := Vector2(
+    RectProfiler.EffectiveRect.Left,
+    RectProfiler.Translation.Y - RectProfiler.EffectiveHeight);
 end;
 
 procedure TCastleInspector.ChangeProfilerDetailsInLog(Sender: TObject);
 begin
   FrameProfiler.LogSummary := CheckboxProfilerDetailsInLog.Checked;
+end;
+
+procedure TCastleInspector.ChangeProfilerMore(Sender: TObject);
+begin
+  RectStatsMore.Exists := RectProfiler.Exists and CheckboxProfilerMore.Checked;
+  UpdateLabelProfilerHeader;
 end;
 
 procedure TCastleInspector.ProfilerSummaryAvailable(Sender: TObject);

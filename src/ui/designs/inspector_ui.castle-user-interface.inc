@@ -243,13 +243,26 @@
 '            },' + LineEnding +
 '            {' + LineEnding +
 '              "$$ClassName" : "TCastleCheckbox",' + LineEnding +
-'              "Caption" : "Log Details",' + LineEnding +
+'              "Caption" : "Log Stats",' + LineEnding +
 '              "HorizontalAnchorParent" : "hpRight",' + LineEnding +
 '              "HorizontalAnchorSelf" : "hpRight",' + LineEnding +
 '              "Name" : "CheckboxProfilerDetailsInLog",' + LineEnding +
 '              "TranslationPersistent" : {' + LineEnding +
 '                "$$ClassName" : "TCastleVector2Persistent",' + LineEnding +
-'                "X" : -5.0000000000000000E+001' + LineEnding +
+'                "X" : -4.0000000000000000E+001' + LineEnding +
+'              },' + LineEnding +
+'              "VerticalAnchorParent" : "vpMiddle",' + LineEnding +
+'              "VerticalAnchorSelf" : "vpMiddle"' + LineEnding +
+'            },' + LineEnding +
+'            {' + LineEnding +
+'              "$$ClassName" : "TCastleCheckbox",' + LineEnding +
+'              "Caption" : "More",' + LineEnding +
+'              "HorizontalAnchorParent" : "hpRight",' + LineEnding +
+'              "HorizontalAnchorSelf" : "hpRight",' + LineEnding +
+'              "Name" : "CheckboxProfilerMore",' + LineEnding +
+'              "TranslationPersistent" : {' + LineEnding +
+'                "$$ClassName" : "TCastleVector2Persistent",' + LineEnding +
+'                "X" : -1.8000000000000000E+002' + LineEnding +
 '              },' + LineEnding +
 '              "VerticalAnchorParent" : "vpMiddle",' + LineEnding +
 '              "VerticalAnchorSelf" : "vpMiddle"' + LineEnding +
@@ -493,6 +506,77 @@
 '              ]' + LineEnding +
 '            }' + LineEnding +
 '          ]' + LineEnding +
+'        }' + LineEnding +
+'      ]' + LineEnding +
+'    },' + LineEnding +
+'    {' + LineEnding +
+'      "$$ClassName" : "TCastleRectangleControl",' + LineEnding +
+'      "AutoSizeToChildren" : true,' + LineEnding +
+'      "AutoSizeToChildrenPaddingRight" : 5.0000000000000000E+000,' + LineEnding +
+'      "AutoSizeToChildrenPaddingTop" : 5.0000000000000000E+000,' + LineEnding +
+'      "ColorPersistent" : {' + LineEnding +
+'        "$$ClassName" : "TCastleColorPersistent",' + LineEnding +
+'        "Alpha" : 2.5000000000000000E-001,' + LineEnding +
+'        "Blue" : 0.0000000000000000E+000,' + LineEnding +
+'        "Green" : 0.0000000000000000E+000,' + LineEnding +
+'        "Red" : 0.0000000000000000E+000' + LineEnding +
+'      },' + LineEnding +
+'      "Name" : "RectStatsMore",' + LineEnding +
+'      "TranslationPersistent" : {' + LineEnding +
+'        "$$ClassName" : "TCastleVector2Persistent",' + LineEnding +
+'        "X" : 3.5050000000000000E+002,' + LineEnding +
+'        "Y" : -1.4000000000000000E+002' + LineEnding +
+'      },' + LineEnding +
+'      "VerticalAnchorParent" : "vpTop",' + LineEnding +
+'      "VerticalAnchorSelf" : "vpTop",' + LineEnding +
+'      "$Children" : [' + LineEnding +
+'        {' + LineEnding +
+'          "$$ClassName" : "TCastleCheckbox",' + LineEnding +
+'          "Caption" : "User Interface Batching",' + LineEnding +
+'          "CaptionMargin" : 5.0000000000000000E+000,' + LineEnding +
+'          "CheckboxColorPersistent" : {' + LineEnding +
+'            "$$ClassName" : "TCastleColorPersistent",' + LineEnding +
+'            "Blue" : 1.0000000000000000E+000,' + LineEnding +
+'            "Green" : 1.0000000000000000E+000,' + LineEnding +
+'            "Red" : 1.0000000000000000E+000' + LineEnding +
+'          },' + LineEnding +
+'          "CheckboxSize" : 2.0000000000000000E+001,' + LineEnding +
+'          "FontSize" : 1.5000000000000000E+001,' + LineEnding +
+'          "Name" : "CheckboxUiBatching",' + LineEnding +
+'          "TextColorPersistent" : {' + LineEnding +
+'            "$$ClassName" : "TCastleColorPersistent",' + LineEnding +
+'            "Blue" : 1.0000000000000000E+000,' + LineEnding +
+'            "Green" : 1.0000000000000000E+000,' + LineEnding +
+'            "Red" : 1.0000000000000000E+000' + LineEnding +
+'          },' + LineEnding +
+'          "TranslationPersistent" : {' + LineEnding +
+'            "$$ClassName" : "TCastleVector2Persistent",' + LineEnding +
+'            "X" : 5.0000000000000000E+000,' + LineEnding +
+'            "Y" : -5.0000000000000000E+000' + LineEnding +
+'          },' + LineEnding +
+'          "VerticalAnchorParent" : "vpTop",' + LineEnding +
+'          "VerticalAnchorSelf" : "vpTop"' + LineEnding +
+'        },' + LineEnding +
+'        {' + LineEnding +
+'          "$$ClassName" : "TCastleLabel",' + LineEnding +
+'          "ColorPersistent" : {' + LineEnding +
+'            "$$ClassName" : "TCastleColorPersistent",' + LineEnding +
+'            "Blue" : 1.0000000000000000E+000,' + LineEnding +
+'            "Green" : 1.0000000000000000E+000,' + LineEnding +
+'            "Red" : 1.0000000000000000E+000' + LineEnding +
+'          },' + LineEnding +
+'          "FontSize" : 1.5000000000000000E+001,' + LineEnding +
+'          "Name" : "LabelStatsMore",' + LineEnding +
+'          "Text" : [' + LineEnding +
+'            "LabelStatsMore"' + LineEnding +
+'          ],' + LineEnding +
+'          "TranslationPersistent" : {' + LineEnding +
+'            "$$ClassName" : "TCastleVector2Persistent",' + LineEnding +
+'            "X" : 5.0000000000000000E+000,' + LineEnding +
+'            "Y" : -3.0000000000000000E+001' + LineEnding +
+'          },' + LineEnding +
+'          "VerticalAnchorParent" : "vpTop",' + LineEnding +
+'          "VerticalAnchorSelf" : "vpTop"' + LineEnding +
 '        }' + LineEnding +
 '      ]' + LineEnding +
 '    },' + LineEnding +

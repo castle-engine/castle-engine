@@ -241,13 +241,26 @@
             },
             {
               "$$ClassName" : "TCastleCheckbox",
-              "Caption" : "Log Details",
+              "Caption" : "Log Stats",
               "HorizontalAnchorParent" : "hpRight",
               "HorizontalAnchorSelf" : "hpRight",
               "Name" : "CheckboxProfilerDetailsInLog",
               "TranslationPersistent" : {
                 "$$ClassName" : "TCastleVector2Persistent",
-                "X" : -5.0000000000000000E+001
+                "X" : -4.0000000000000000E+001
+              },
+              "VerticalAnchorParent" : "vpMiddle",
+              "VerticalAnchorSelf" : "vpMiddle"
+            },
+            {
+              "$$ClassName" : "TCastleCheckbox",
+              "Caption" : "More",
+              "HorizontalAnchorParent" : "hpRight",
+              "HorizontalAnchorSelf" : "hpRight",
+              "Name" : "CheckboxProfilerMore",
+              "TranslationPersistent" : {
+                "$$ClassName" : "TCastleVector2Persistent",
+                "X" : -1.8000000000000000E+002
               },
               "VerticalAnchorParent" : "vpMiddle",
               "VerticalAnchorSelf" : "vpMiddle"
@@ -491,6 +504,77 @@
               ]
             }
           ]
+        }
+      ]
+    },
+    {
+      "$$ClassName" : "TCastleRectangleControl",
+      "AutoSizeToChildren" : true,
+      "AutoSizeToChildrenPaddingRight" : 5.0000000000000000E+000,
+      "AutoSizeToChildrenPaddingTop" : 5.0000000000000000E+000,
+      "ColorPersistent" : {
+        "$$ClassName" : "TCastleColorPersistent",
+        "Alpha" : 2.5000000000000000E-001,
+        "Blue" : 0.0000000000000000E+000,
+        "Green" : 0.0000000000000000E+000,
+        "Red" : 0.0000000000000000E+000
+      },
+      "Name" : "RectStatsMore",
+      "TranslationPersistent" : {
+        "$$ClassName" : "TCastleVector2Persistent",
+        "X" : 3.5050000000000000E+002,
+        "Y" : -1.4000000000000000E+002
+      },
+      "VerticalAnchorParent" : "vpTop",
+      "VerticalAnchorSelf" : "vpTop",
+      "$Children" : [
+        {
+          "$$ClassName" : "TCastleCheckbox",
+          "Caption" : "User Interface Batching",
+          "CaptionMargin" : 5.0000000000000000E+000,
+          "CheckboxColorPersistent" : {
+            "$$ClassName" : "TCastleColorPersistent",
+            "Blue" : 1.0000000000000000E+000,
+            "Green" : 1.0000000000000000E+000,
+            "Red" : 1.0000000000000000E+000
+          },
+          "CheckboxSize" : 2.0000000000000000E+001,
+          "FontSize" : 1.5000000000000000E+001,
+          "Name" : "CheckboxUiBatching",
+          "TextColorPersistent" : {
+            "$$ClassName" : "TCastleColorPersistent",
+            "Blue" : 1.0000000000000000E+000,
+            "Green" : 1.0000000000000000E+000,
+            "Red" : 1.0000000000000000E+000
+          },
+          "TranslationPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent",
+            "X" : 5.0000000000000000E+000,
+            "Y" : -5.0000000000000000E+000
+          },
+          "VerticalAnchorParent" : "vpTop",
+          "VerticalAnchorSelf" : "vpTop"
+        },
+        {
+          "$$ClassName" : "TCastleLabel",
+          "ColorPersistent" : {
+            "$$ClassName" : "TCastleColorPersistent",
+            "Blue" : 1.0000000000000000E+000,
+            "Green" : 1.0000000000000000E+000,
+            "Red" : 1.0000000000000000E+000
+          },
+          "FontSize" : 1.5000000000000000E+001,
+          "Name" : "LabelStatsMore",
+          "Text" : [
+            "LabelStatsMore"
+          ],
+          "TranslationPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent",
+            "X" : 5.0000000000000000E+000,
+            "Y" : -3.0000000000000000E+001
+          },
+          "VerticalAnchorParent" : "vpTop",
+          "VerticalAnchorSelf" : "vpTop"
         }
       ]
     },
