@@ -902,7 +902,7 @@ begin
   if CheckboxProfilerMore.Checked then
   begin
     S := 'TDrawableImage.Statistics: ' + TDrawableImage.Statistics.ToString + NL +
-      '  (Note: This inspector itself is heavy UI.)';
+      '  (TODO: Rendering inspector may easily cause ~100 draw calls now. Better UI batching is coming.)';
     CurrentV := CurrentViewport;
     if CurrentV <> nil then
     begin
