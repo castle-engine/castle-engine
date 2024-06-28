@@ -18,10 +18,10 @@
             "$$ClassName" : "TCastleLayerNames"
           }
         },
-        "UseHeadlight" : "hlOn",
         "$Children" : [
           {
             "$$ClassName" : "TCastleScene",
+            "CastGlobalLights" : true,
             "ExposeTransforms" : [
             ],
             "Name" : "SceneLevel",
@@ -29,7 +29,7 @@
             "RenderOptions" : {
               "$$ClassName" : "TCastleScene.TSceneRenderOptions"
             },
-            "URL" : "castle-data:/level/level-dungeon.gltf"
+            "Url" : "castle-data:/level/level-dungeon.gltf"
           },
           {
             "$$ClassName" : "TCastleScene",
@@ -47,7 +47,7 @@
               "X" : 2.0000000000000000E+000,
               "Z" : 4.0000000000000000E+000
             },
-            "URL" : "castle-data:/enemy/soldier1.gltf"
+            "Url" : "castle-data:/enemy/soldier1.gltf"
           },
           {
             "$$ClassName" : "TCastleScene",
@@ -65,7 +65,7 @@
               "X" : 5.0000000000000000E+000,
               "Z" : 3.0000000000000000E+000
             },
-            "URL" : "castle-data:/enemy/soldier1.gltf"
+            "Url" : "castle-data:/enemy/soldier1.gltf"
           },
           {
             "$$ClassName" : "TCastleScene",
@@ -83,7 +83,7 @@
               "X" : 8.0000000000000000E+000,
               "Z" : 2.0000000000000000E+000
             },
-            "URL" : "castle-data:/enemy/soldier1.gltf"
+            "Url" : "castle-data:/enemy/soldier1.gltf"
           },
           {
             "$$ClassName" : "TCastleScene",
@@ -101,7 +101,7 @@
               "X" : 1.1000000000000000E+001,
               "Z" : 1.0000000000000000E+000
             },
-            "URL" : "castle-data:/enemy/soldier1.gltf"
+            "Url" : "castle-data:/enemy/soldier1.gltf"
           },
           {
             "$$ClassName" : "TCastleScene",
@@ -117,10 +117,10 @@
             },
             "RotationPersistent" : {
               "$$ClassName" : "TCastleVector4RotationPersistent",
-              "W" : 1.7409327030181885E+000,
-              "X" : -2.4414059589616954E-004,
-              "Y" : -9.9999988079071045E-001,
-              "Z" : 2.0577452960424125E-004
+              "W" : 2.1558234691619873E+000,
+              "X" : -2.4414062500000000E-004,
+              "Y" : -9.9999994039535522E-001,
+              "Z" : 1.3112767192069441E-004
             },
             "ScalePersistent" : {
               "$$ClassName" : "TCastleVector3Persistent",
@@ -134,7 +134,7 @@
               "Y" : 1.1374617815017700E+000,
               "Z" : -1.4989929199218750E+000
             },
-            "URL" : "castle-data:/wolf/wolf.starling-xml",
+            "Url" : "castle-data:/wolf/wolf.starling-xml",
             "$Behaviors" : [
               {
                 "$$ClassName" : "TCastleSoundSource",
@@ -144,7 +144,7 @@
                   {
                     "$$ClassName" : "TCastleSound",
                     "Name" : "Sound1",
-                    "URL" : "castle-data:/audio/werewolf_howling.wav"
+                    "Url" : "castle-data:/audio/werewolf_howling.wav"
                   }
                 ]
               },
