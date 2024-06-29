@@ -8,7 +8,7 @@ See https://castle-engine.io/project_manifest for documentation of this file.
 <project name="shader_effects_on_texture"
   standalone_source="shader_effects_on_texture_standalone.dpr"
   game_units="GameInitialize"
-  qualified_name="com.mycompany.shadereffectsontexture"
+  qualified_name="io.castleengine.shader.effects.on.texture"
   caption="Shader Effects On Texture"
 >
   <compiler_options>

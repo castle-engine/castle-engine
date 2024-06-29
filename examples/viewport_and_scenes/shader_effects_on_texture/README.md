@@ -12,6 +12,8 @@ For more information about shader effects see:
 
 This particular example focuses on a special kind of "shader effect" that you can add to a texture node in _Castle Game Engine_. Such effect changes the effective texture RGBA (color, opacity) read by the engine. You can use it to apply various effects to the texture, like color correction, grayscale, sepia, manipulate effective alpha (used for blending) etc.
 
+![screenshot](screenshot.png)
+
 Using [Castle Game Engine](https://castle-engine.io/).
 
 ## Building
