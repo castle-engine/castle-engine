@@ -227,6 +227,7 @@ castle-game-engine-*.fpm
 /examples/viewport_and_scenes/render_3d_to_image/render_3d_to_image
 /examples/viewport_and_scenes/render_3d_to_texture_and_use_as_quad/render_3d_to_texture_and_use_as_quad
 /examples/viewport_and_scenes/shader_effects/shader-effects
+/examples/viewport_and_scenes/shader_effects_on_texture/shader_effects_on_texture
 /examples/viewport_and_scenes/shader_override/shader_override
 /examples/viewport_and_scenes/show_bounding_rect_in_2d/show_bounding_rect_in_2d
 /examples/viewport_and_scenes/test_triangulate/test_triangulate
