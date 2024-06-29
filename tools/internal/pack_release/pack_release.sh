@@ -309,17 +309,19 @@ cge_clean_all ()
   #     Blender (*.blend?),
   #     QtCreator (*.pro.user).
   # - macOS app bundles (made by "make examples-laz", not cleaned up by "make clean").
-	"${FIND}" . -type f '(' \
-      -iname '*~' -or \
-      -iname '*.bak' -or \
-      -iname '*.~???' -or \
-      -iname '*.pro.user' -or \
-      -iname '*.blend?' \
-    ')' -exec rm -f '{}' ';'
-	"${FIND}" . -type d '(' \
-    -iname 'backup' -or \
-    -iname '*.app' \
-		')' -exec rm -Rf '{}' ';' -prune
+	"${FIND}" . \
+    '(' -type d -name 'bin-to-keep' -prune ')' -or \
+    '(' -type f '(' \
+          -iname '*~' -or \
+          -iname '*.bak' -or \
+          -iname '*.~???' -or \
+          -iname '*.pro.user' -or \
+          -iname '*.blend?' \
+        ')' -exec rm -f '{}' ';' ')' -or \
+    '(' -type d '(' \
+          -iname 'backup' -or \
+          -iname '*.app' \
+        ')' -exec rm -Rf '{}' ';' -prune ')'
 
   # Delete pasdoc generated documentation in doc/pasdoc/ and doc/reference/
 	"${MAKE}" -C doc/pasdoc/ clean
@@ -516,6 +518,13 @@ pack_platform_dir ()
 
   # After make clean, make sure bin/ exists and is filled with what we need
   mv "${TEMP_PATH_CGE}"bin-to-keep "${TEMP_PATH_CGE}"bin
+
+  if [ "$OS" '=' 'darwin' ]; then
+    if [ ! -d "${TEMP_PATH_CGE}"bin/castle-editor.app ]; then
+      echo "Error: castle-editor.app not found in bin/ at packaging macOS release"
+      exit 1
+    fi
+  fi
 
   # Add PasDoc docs
   "${MAKE}" -C doc/pasdoc/ clean html ${MAKE_OPTIONS}
