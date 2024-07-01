@@ -284,7 +284,7 @@ jobs:
 
     - name: Download bundled FPC
       if: ${{ matrix.runner == 'windows-latest' }}
-      uses: robinraju/release-downloader@v1.10
+      uses: robinraju/release-downloader@v1.11
       with:
         repository: "castle-engine/cge-fpc"
         latest: true
