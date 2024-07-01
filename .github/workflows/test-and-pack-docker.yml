@@ -136,7 +136,7 @@ jobs:
         run: ./tools/internal/pack_release/pack_release.sh linux x86_64
 
       - name: Download bundled FPC
-        uses: robinraju/release-downloader@v1.10
+        uses: robinraju/release-downloader@v1.11
         with:
           repository: "castle-engine/cge-fpc"
           latest: true
