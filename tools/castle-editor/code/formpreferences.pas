@@ -474,7 +474,8 @@ begin
       WarningBox(Format('Directory "%s" does not exist', [Value]));
     end else
     if not (
-        DirectoryExists(InclPathDelim(Value) + 'tools') and
+        // Android SDK 30 doesn't contain 'tools', only 'platform-tools', so don't check it
+        // DirectoryExists(InclPathDelim(Value) + 'tools') and
         DirectoryExists(InclPathDelim(Value) + 'platform-tools')) then
     begin
       WarningBox(Format('Directory "%s" does not contain typical Android SDK subdirectories "tools", "platform-tools". Make sure it is correct.', [Value]));
