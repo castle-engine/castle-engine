@@ -322,6 +322,7 @@ begin
             topPolyline, topPolygon: RenderPolylinePolygon;
             topPoint: RenderPoint;
             topRectangle: RenderRectangle;
+            else ;
             // TODO: handle ellipse
           end;
         end;
