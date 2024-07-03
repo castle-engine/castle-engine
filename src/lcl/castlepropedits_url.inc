@@ -1,6 +1,6 @@
 {%MainUnit castlepropedits.pas}
 {
-  Copyright 2010-2022 Michalis Kamburelis.
+  Copyright 2010-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -194,7 +194,7 @@ var
 begin
   Dialog := TCastleOpenDialog.Create(nil);
   try
-    Dialog.Filter := 'Tiled Map (*.tmx)|*.tmx|All Files|*';
+    Dialog.Filter := LoadTiledMap_FileFilters;
     Dialog.AdviceDataDirectory := PropertyEditorsAdviceDataDirectory;
     if (GetStrValue = '') and PropertyEditorsAdviceDataDirectory then
       Dialog.URL := 'castle-data:/' // make it easier to open files within data folder

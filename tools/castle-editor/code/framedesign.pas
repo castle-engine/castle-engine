@@ -3459,6 +3459,10 @@ begin
       else
         Result := TCastleImageControl;
     end else
+    // check LoadTiledMap_FileFilters before LoadScene_FileFilters, since *.tmx matches both
+    if TFileFilterList.Matches(LoadTiledMap_FileFilters, SelectedUrl) then
+      Result := TCastleTiledMap
+    else
     if TFileFilterList.Matches(LoadScene_FileFilters, SelectedUrl) then
       Result := TCastleScene
     else
@@ -3513,6 +3517,13 @@ var
     Result.Url := Url;
   end;
 
+  function AddTiledMap(const Url: String): TCastleTiledMap;
+  begin
+    Result := AddComponent(ParentComponent, TCastleTiledMap, nil,
+      'TiledMap' + BaseNameFromUrl) as TCastleTiledMap;
+    Result.Url := Url;
+  end;
+
   function AddSound(const Url: String): TCastleTransform;
   var
     SoundSource: TCastleSoundSource;
@@ -3555,6 +3566,9 @@ begin
     else
       Result := AddImageControl(AddUrl);
   end else
+  if TFileFilterList.Matches(LoadTiledMap_FileFilters, AddUrl) then
+    Result := AddTiledMap(AddUrl)
+  else
   if TFileFilterList.Matches(LoadScene_FileFilters, AddUrl) then
     Result := AddScene(AddUrl)
   else

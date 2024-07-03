@@ -1,5 +1,5 @@
 ﻿{
-  Copyright 2015-2018 Tomasz Wojtyś, Michalis Kamburelis.
+  Copyright 2015-2024 Tomasz Wojtyś, Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -42,6 +42,9 @@ uses
 {$I castletiledmap_control.inc}
 {$I castletiledmap_scene.inc}
 {$undef read_interface}
+
+const
+  LoadTiledMap_FileFilters = 'Tiled Map (*.tmx)|*.tmx|All Files|*';
 
 implementation
 
