@@ -144,12 +144,12 @@ type
     { Improves the parallax effect, by tracing the ray as it goes through the height map.
       This is more costly, but makes the parallax effect better.
 
-      See http://graphics.cs.brown.edu/games/SteepParallax/index.html . }
+      See https://www.casual-effects.com/research/McGuire2005Parallax/index.html . }
     bmSteepParallax,
 
     { Improves the bmSteepParallax even more, by adding additional shadow calculation.
 
-      See http://graphics.cs.brown.edu/games/SteepParallax/index.html . }
+      See https://www.casual-effects.com/research/McGuire2005Parallax/index.html . }
     bmSteepParallaxShadowing
   );
 
