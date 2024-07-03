@@ -963,7 +963,7 @@ begin
           { A device has been sucessfully added to the system }
           DBT_DEVICEARRIVAL:
             begin
-              WriteLnLog('Received a WM_DEVICECHANGE event with DBT_DEVICEARRIVAL');
+              WriteLnLog('Event WM_DEVICECHANGE + DBT_DEVICEARRIVAL, possibly a joystick connected');
               //it might be a joystick, therefore
               Joysticks.InternalConnected;
             end;
