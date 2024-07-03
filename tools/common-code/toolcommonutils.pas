@@ -773,6 +773,12 @@ begin
   end;
 
   if ForcePipesPassthrough then
+    { TODO: In this case, we don't make
+        Writeln('Castle Game Engine Internal: ProcessID: ', P.ProcessID);
+      Though it doesn't seem a problem for anything on Windows.
+      In practice this is used only to reliably doing "Stop" from CGE editor
+      on running "castle-engine run" (for desktop or Android apps),
+      and these work OK on Windows too. }
     RunCommandIndirPassthrough(CurrentDirectory, AbsoluteExeName, Options,
       IgnoredOutput, ProcessStatus, OverrideEnvironmentName, OverrideEnvironmentValue)
   else
