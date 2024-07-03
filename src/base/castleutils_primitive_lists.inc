@@ -59,7 +59,6 @@ type
 
   { List of Single (single-precision floating point) values. }
   TSingleList = class({$ifdef FPC}specialize{$endif} TStructList<Single>)
-    procedure AppendFloats(Floats: TFloatList);
     function ToDouble: TDoubleList;
 
     { Assign value from TDoubleList, converting to single-precision. }
@@ -84,6 +83,10 @@ type
     { Sort and remove (exact) duplicates.
       Removal of duplicates is very fast, utilizing the fact that the list is sorted. }
     procedure SortAndRemoveDuplicates;
+
+    {$warnings off} // using deprecated, to keep it working
+    procedure AppendFloats(Floats: TFloatList);
+    {$warnings on}
   end;
 
   { List of Double (double-precision floating point) values. }
