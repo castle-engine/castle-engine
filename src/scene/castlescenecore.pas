@@ -27,7 +27,7 @@ uses SysUtils, Classes, Generics.Collections, Contnrs, Kraft,
   CastleInternalOctree, CastleInternalShapeOctree,
   CastleKeysMouse, X3DTime, CastleCameras, CastleInternalBaseTriangleOctree,
   CastleTimeUtils, CastleTransform, CastleInternalShadowMaps, CastleProjection,
-  CastleComponentSerialize;
+  CastleComponentSerialize, CastleInternalFileMonitor;
 
 type
   { These are various features that may be freed by
@@ -504,10 +504,9 @@ type
     FOnPointingDeviceSensorsChange: TNotifyEvent;
     FTimePlaying: boolean;
     FTimePlayingSpeed: Single;
-    { Change only using SetAndWatchUrl. }
+    { Change only using FUrlMonitoring.ChangeUrl. }
     FUrl: String;
-    { Is FUrl watched by FileMonitor. }
-    FUrlWatched: Boolean;
+    FUrlMonitoring: TUrlMonitoring;
     FShadowMaps: boolean;
     FShadowMapsDefaultSize: Cardinal;
     ScheduleHeadlightOnFromNavigationInfoInChangedAll: boolean;
@@ -671,9 +670,6 @@ type
     procedure SetExposeTransforms(const Value: TStrings);
     procedure ExposeTransformsChange(Sender: TObject);
     procedure SetExposeTransformsPrefix(const Value: String);
-    { Set FUrl and make it watched using FileMonitor. }
-    procedure SetAndWatchUrl(const NewUrl: String);
-    procedure UrlChanged(Sender: TObject);
   private
     FGlobalLights: TLightInstancesList;
 
@@ -2562,7 +2558,7 @@ var
 implementation
 
 uses Math, DateUtils,
-  X3DCameraUtils, CastleStringUtils, CastleLog, CastleInternalFileMonitor,
+  X3DCameraUtils, CastleStringUtils, CastleLog,
   X3DLoad, CastleUriUtils, CastleQuaternions;
 
 {$define read_implementation}
@@ -3215,23 +3211,24 @@ begin
     would set. This is (potentially) a small time saving,
     as ScheduleChangedAll does a lot of calls (although probably is fast
     anyway when RootNode = nil). }
+
+  FUrlMonitoring.Init({$ifdef FPC}@{$endif} ReloadUrl);
 end;
 
 procedure TCastleSceneCore.BeforeDestruction;
 begin
   FreeRootNode;
+
+  { This also deinitializes script nodes. }
+  ProcessEvents := false;
+
+  FUrlMonitoring.Finish(FUrl);
+
   inherited;
 end;
 
 destructor TCastleSceneCore.Destroy;
 begin
-  { This also deinitializes script nodes. }
-  ProcessEvents := false;
-
-  { Unregister self from FileMonitor. }
-  if FUrlWatched then
-    TCastleFileMonitor.Unwatch(FUrl, {$ifdef FPC}@{$endif} UrlChanged);
-
   FreeAndNil(FExposeTransforms);
   FreeAndNil(FExposedTransforms);
   FreeAndNil(ScheduledHumanoidAnimateSkin);
@@ -3434,7 +3431,7 @@ begin
     { Set FUrl before calling Load below.
       This way eventual warning from Load (like "animation not found",
       in case AutoAnimation is used) will mention the new URL, not the old one. }
-    SetAndWatchUrl(AUrl);
+    FUrlMonitoring.ChangeUrl(FUrl, AUrl);
 
     LoadCore(NewRoot, NewRootCacheOrigin, true, AOptions);
 
@@ -3523,7 +3520,7 @@ procedure TCastleSceneCore.Save(const AUrl: String);
 begin
   if RootNode <> nil then
     SaveNode(RootNode, AUrl, ApplicationName);
-  SetAndWatchUrl(AUrl);
+  FUrlMonitoring.ChangeUrl(FUrl, AUrl);
 end;
 
 procedure TCastleSceneCore.SetUrl(const AValue: String);
@@ -8556,26 +8553,9 @@ end;
 function TCastleSceneCore.Clone(const AOwner: TComponent): TCastleSceneCore;
 begin
   Result := TComponentClass(ClassType).Create(AOwner) as TCastleSceneCore;
-  Result.SetAndWatchUrl(FUrl);
+  Result.FUrlMonitoring.ChangeUrl(Result.FUrl, FUrl);
   if RootNode <> nil then
     Result.Load(RootNode.DeepCopy as TX3DRootNode, true);
-end;
-
-procedure TCastleSceneCore.SetAndWatchUrl(const NewUrl: String);
-begin
-  if FUrl <> NewUrl then
-  begin
-    if FUrlWatched then
-      TCastleFileMonitor.Unwatch(FUrl, {$ifdef FPC}@{$endif} UrlChanged);
-    FUrl := NewUrl;
-    FUrlWatched := FileMonitor.Watch(FUrl, {$ifdef FPC}@{$endif} UrlChanged);
-  end;
-end;
-
-procedure TCastleSceneCore.UrlChanged(Sender: TObject);
-begin
-  Assert(CastleDesignMode);
-  ReloadUrl;
 end;
 
 function TCastleSceneCore.PropertySections(

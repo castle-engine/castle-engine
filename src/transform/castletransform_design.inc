@@ -1,6 +1,6 @@
 {%MainUnit castletransform.pas}
 {
-  Copyright 2017-2022 Michalis Kamburelis.
+  Copyright 2017-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -35,6 +35,7 @@
       FDesignOwner: TComponent;
       FDesignObserver: TFreeNotificationObserver;
       FUrl: String;
+      FUrlMonitoring: TUrlMonitoring;
       FRevertUrl: String;
     procedure SetUrl(const Value: String);
     procedure DesignFreeNotification(const Sender: TFreeNotificationObserver);
@@ -42,6 +43,7 @@
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
+    procedure BeforeDestruction; override;
 
     { Find by name a component in currently loaded design.
       When the name is not found, raises exception (unless Required is @false,
@@ -51,6 +53,11 @@
 
     function FindRequiredComponent(const ComponentName: String): TComponent; deprecated 'use DesignedComponent(ComponentName)';
     function FindComponent(const ComponentName: String): TComponent; deprecated 'use DesignedComponent(ComponentName, false)';
+
+    { Load again the design from @link(Url).
+      This makes sense to be used when underlying file on disk
+      changed, and you want to reload it. }
+    procedure ReloadUrl;
   published
     { Load file with the transform design.
       The file should be in the format created by Castle Game Engine Editor
@@ -91,10 +98,17 @@ begin
   inherited;
   FDesignObserver := TFreeNotificationObserver.Create(Self);
   FDesignObserver.OnFreeNotification := {$ifdef FPC}@{$endif}DesignFreeNotification;
+  FUrlMonitoring.Init({$ifdef FPC}@{$endif} ReloadUrl);
 end;
 
 destructor TCastleTransformDesign.Destroy;
 begin
+  inherited;
+end;
+
+procedure TCastleTransformDesign.BeforeDestruction;
+begin
+  FUrlMonitoring.Finish(FUrl);
   inherited;
 end;
 
@@ -115,6 +129,10 @@ begin
       Assert(FDesign = nil); // DesignFreeNotification should set FDesign to nil
     end;
 
+    { TODO: Disable auto-reloading of designs for now, fearing it will cause
+      more problems than gains: reloading the design invalidates all
+      the references to components inside. }
+    //FUrlMonitoring.ChangeUrl(FUrl, Value);
     FUrl := Value;
 
     if Value <> '' then
@@ -186,6 +204,15 @@ end;
 function TCastleTransformDesign.FindComponent(const ComponentName: String): TComponent;
 begin
   Result := DesignedComponent(ComponentName, false);
+end;
+
+procedure TCastleTransformDesign.ReloadUrl;
+var
+  SavedUrl: String;
+begin
+  SavedUrl := Url;
+  Url := '';
+  Url := SavedUrl;
 end;
 
 {$endif read_implementation}

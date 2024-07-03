@@ -25,7 +25,7 @@ uses SysUtils, Classes, Generics.Collections,
   CastleKeysMouse, CastleImages, CastleUtils, CastleGLImages, CastleRectangles,
   CastleColors, CastleTimeUtils, CastleInternalRichText, CastleGLUtils,
   CastleUriUtils, CastleLog, CastleStringUtils, CastleGLShaders, CastleClassUtils,
-  CastleRenderContext;
+  CastleRenderContext, CastleInternalFileMonitor;
 
 type
   {$define read_interface}

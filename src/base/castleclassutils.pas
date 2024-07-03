@@ -932,6 +932,12 @@ type
     procedure ExecuteBackward(Sender: TObject);
   end;
 
+  TSimpleNotifyEventList = class({$ifdef FPC}specialize{$endif} TList<TSimpleNotifyEvent>)
+  public
+    { Call all (non-nil) Items, from first to last. }
+    procedure ExecuteAll(Sender: TObject);
+  end;
+
 {$ifdef FPC}
 function DumpStackToString(const BaseFramePointer: Pointer): string;
 function DumpExceptionBackTraceToString: string;
@@ -2363,6 +2369,19 @@ begin
 
     if (I < Count) and Assigned(Items[I]) then
       Items[I](Sender);
+end;
+
+{ TSimpleNotifyEventList  ------------------------------------------------------ }
+
+procedure TSimpleNotifyEventList.ExecuteAll(Sender: TObject);
+var
+  I: Integer;
+begin
+  for I := 0 to Count - 1 do
+    { See TNotifyEventList.ExecuteAll for explanation why the "I < Count"
+      adds a little safety here. }
+    if (I < Count) and Assigned(Items[I]) then
+      Items[I]();
 end;
 
 { DumpStack ------------------------------------------------------------------ }

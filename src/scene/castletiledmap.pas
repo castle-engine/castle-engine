@@ -32,7 +32,7 @@ interface
 uses
   Classes, SysUtils, DOM, XMLRead, base64,
   {$ifdef FPC} zstream {$else} { from Vampyre } DZLib {$endif},
-  Generics.Collections,
+  Generics.Collections, CastleInternalFileMonitor,
   CastleVectors, CastleColors, CastleUtils, CastleUriUtils, CastleXmlUtils,
   CastleLog, CastleStringUtils, CastleUIControls, CastleGLImages, CastleTransform,
   CastleRectangles, CastleClassUtils, CastleRenderOptions, CastleScene, X3DNodes;

@@ -66,7 +66,8 @@ uses SysUtils, Generics.Collections, Classes,
   {$ifdef OpenGLES} CastleGLES, {$else} CastleGL, {$endif}
   CastleImages, CastleVectors, CastleGLUtils, CastleTimeUtils,
   CastleTextureImages, CastleVideos, CastleInternalCompositeImage, CastleRectangles,
-  CastleGLShaders, CastleColors, CastleUtils, CastleRenderOptions, CastleInternalGLUtils;
+  CastleGLShaders, CastleColors, CastleUtils, CastleRenderOptions,
+  CastleInternalGLUtils, CastleInternalFileMonitor;
 
 {$define read_interface}
 

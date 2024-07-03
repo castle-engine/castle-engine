@@ -35,7 +35,7 @@ uses SysUtils, Classes, Generics.Collections,
   CastleGLUtils, CastleInternalShapeOctree, CastleInternalGLShadowVolumes, X3DFields,
   CastleTriangles, CastleShapes, CastleFrustum, CastleTransform, CastleGLShaders,
   CastleRectangles, CastleCameras, CastleRendererInternalShader, CastleColors,
-  CastleSceneInternalShape,
+  CastleSceneInternalShape, CastleInternalFileMonitor,
   CastleRenderOptions, CastleTimeUtils, CastleImages,
   CastleBehaviors, CastleInternalShapesRenderer, CastleSceneInternalBlending;
 

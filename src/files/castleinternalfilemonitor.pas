@@ -14,7 +14,7 @@
 }
 
 { Monitor when files change on disk,
-  to enable auto-reloading them at design-time. }
+  to enable auto-reloading them. }
 unit CastleInternalFileMonitor;
 
 {$I castleconf.inc}
@@ -22,11 +22,11 @@ unit CastleInternalFileMonitor;
 interface
 
 uses SysUtils, Classes, Generics.Collections,
-  CastleClassUtils;
+  CastleUtils, CastleClassUtils;
 
 type
   { Monitor when files change on disk,
-    to enable auto-reloading them at design-time.
+    to enable auto-reloading them.
     Use only through singleton @link(FileMonitor).
 
     When we're not design-mode (CastleDesignMode is @false),
@@ -51,8 +51,8 @@ type
         LastModified: TDateTime;
 
         { Always non-nil, non-empty instance
-          of TNotifyEventList with non-nil and valid callbacks to call.}
-        OnChanged: TNotifyEventList;
+          of TSimpleNotifyEventList with non-nil and valid callbacks to call.}
+        OnChanged: TSimpleNotifyEventList;
 
         constructor Create;
         destructor Destroy; override;
@@ -80,7 +80,7 @@ type
       Makes a warning if it was not watched.
       This is private -- external code should use
       "class procedure Unwatch". }
-    procedure UnwatchCore(const Url: String; const Notify: TNotifyEvent);
+    procedure UnwatchCore(const Url: String; const Notify: TSimpleNotifyEvent);
   public
     constructor Create;
     destructor Destroy; override;
@@ -89,20 +89,20 @@ type
       Returns @false if this URL type cannot be watched.
       If it returns @true, make sure to always call @link(Unwatch)
       when you're done with this URL. }
-    function Watch(const Url: String; const Notify: TNotifyEvent): Boolean;
+    function Watch(const Url: String; const Notify: TSimpleNotifyEvent): Boolean;
 
     { Stop watching given URL for changes, for singleton @link(FileMonitor).
       Makes a warning if it was not watched.
 
       This is a class method, and it is hardcoded that it works
       on singleton @link(FileMonitor) in this unit.
-      Though this is inconsistent with other methods in this clas,
+      Though this is inconsistent with other methods in this class,
       but it is safer: This way external code is secured in case
       it will call "unwatch" after finalization of this unit is done,
       at which point the @link(FileMonitor) has been freed and shall not be
       recreated.
       This class method handles this internally and gracefully. }
-    class procedure Unwatch(const Url: String; const Notify: TNotifyEvent);
+    class procedure Unwatch(const Url: String; const Notify: TSimpleNotifyEvent);
 
     { Scan watched files for changes to their last-modified time,
       and base on this possibly fire some notifications.
@@ -121,13 +121,32 @@ type
     procedure Changed(const Url: String);
   end;
 
+type
+  { Helper to use TCastleFileMonitor in most typical fashion:
+    you have a URL variable, String, and you have a parameter-less method
+    that reloads the contents based on this.
+
+    The record has been designed such that when it is filled with all zeroes
+    (which happens when class is created that has a field of this type),
+    this is also a valid state.
+    And calling @link(Finish) on this state is OK. }
+  TUrlMonitoring = record
+  strict private
+    FWatching: Boolean;
+    FReloadUrl: TSimpleNotifyEvent;
+  public
+    procedure Init(const ReloadUrl: TSimpleNotifyEvent);
+    procedure Finish(const Url: String);
+    procedure ChangeUrl(var Url: String; const NewUrl: String);
+  end;
+
 { Monitor when files change on disk,
   to enable auto-reloading them at design-time. }
 function FileMonitor: TCastleFileMonitor;
 
 implementation
 
-uses CastleUriUtils, CastleUtils, CastleLog;
+uses CastleUriUtils, CastleLog;
 
 var
   FFinalizationDone: Boolean;
@@ -137,7 +156,7 @@ var
 constructor TCastleFileMonitor.TFileInfo.Create;
 begin
   inherited;
-  OnChanged := TNotifyEventList.Create;
+  OnChanged := TSimpleNotifyEventList.Create;
 end;
 
 destructor TCastleFileMonitor.TFileInfo.Destroy;
@@ -193,7 +212,7 @@ begin
     Result := '';
 end;
 
-function TCastleFileMonitor.Watch(const Url: String; const Notify: TNotifyEvent): Boolean;
+function TCastleFileMonitor.Watch(const Url: String; const Notify: TSimpleNotifyEvent): Boolean;
 var
   UrlWatch: String;
   FileInfo: TFileInfo;
@@ -213,7 +232,7 @@ begin
   end;
 end;
 
-procedure TCastleFileMonitor.UnwatchCore(const Url: String; const Notify: TNotifyEvent);
+procedure TCastleFileMonitor.UnwatchCore(const Url: String; const Notify: TSimpleNotifyEvent);
 var
   UrlWatch: String;
   FileInfo: TFileInfo;
@@ -251,7 +270,7 @@ begin
 end;
 
 class procedure TCastleFileMonitor.Unwatch(
-  const Url: String; const Notify: TNotifyEvent);
+  const Url: String; const Notify: TSimpleNotifyEvent);
 begin
   if FFinalizationDone then
   begin
@@ -262,6 +281,41 @@ begin
   end else
   begin
     FileMonitor.UnwatchCore(Url, Notify);
+  end;
+end;
+
+{ TUrlMonitoring ---------------------------------------------------------- }
+
+procedure TUrlMonitoring.Init(const ReloadUrl: TSimpleNotifyEvent);
+begin
+  FWatching := false;
+  FReloadUrl := ReloadUrl;
+end;
+
+procedure TUrlMonitoring.Finish(const Url: String);
+begin
+  if FWatching then
+  begin
+    TCastleFileMonitor.Unwatch(Url, FReloadUrl);
+    FWatching := false;
+  end;
+end;
+
+procedure TUrlMonitoring.ChangeUrl(var Url: String; const NewUrl: String);
+begin
+  if Url <> NewUrl then
+  begin
+    Assert(Assigned(FReloadUrl), 'FReloadUrl must be assigned when ChangeUrl is called; this means you have to use TUrlMonitoring.Init before ChangeUrl');
+
+    { Unwatch previous URL, if any was watched }
+    Finish(Url);
+
+    Url := NewUrl;
+
+    { Watch new URL.
+      Ignore Url = '', it conventionally means "load nothing" in CGE components. }
+    if Url <> '' then
+      FWatching := FileMonitor.Watch(Url, FReloadUrl);
   end;
 end;
 
