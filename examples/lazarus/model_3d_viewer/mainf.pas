@@ -63,7 +63,7 @@ type
     MenuQuit: TMenuItem;
     MenuSep1: TMenuItem;
     MenuOpen: TMenuItem;
-    OpenDialog1: TCastleOpen3DDialog;
+    OpenDialog1: TCastleOpenSceneDialog;
     PanelBottom: TPanel;
     SaveScreenshotDialog: TCastleSaveImageDialog;
     Timer1: TTimer;

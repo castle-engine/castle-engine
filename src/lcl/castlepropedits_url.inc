@@ -21,7 +21,7 @@
 type
   { Property editor for URL that refers to something that can be loaded by
     @link(LoadNode) or @link(TCastleSceneCore.Load).
-    Show an TCastleOpen3DDialog on Edit. }
+    Show an TCastleOpenSceneDialog on Edit. }
   TSceneURLPropertyEditor = class(TStringPropertyEditor)
   public
     function GetAttributes: TPropertyAttributes; override;
@@ -96,9 +96,9 @@ end;
 
 procedure TSceneURLPropertyEditor.Edit;
 var
-  Dialog: TCastleOpen3DDialog;
+  Dialog: TCastleOpenSceneDialog;
 begin
-  Dialog := TCastleOpen3DDialog.Create(nil);
+  Dialog := TCastleOpenSceneDialog.Create(nil);
   try
     Dialog.AdviceDataDirectory := PropertyEditorsAdviceDataDirectory;
     if (GetStrValue = '') and PropertyEditorsAdviceDataDirectory then
