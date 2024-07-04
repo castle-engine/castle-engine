@@ -35,6 +35,8 @@ type
     function BufferedReadStreamFromStream(Stream: TStream): TPeekCharStream;
     procedure TestIndirectReadStream(StreamFromStreamFunc: TStreamFromStreamFunc);
     procedure TestLineColumnStreamCore(StreamFromStreamFunc: TStreamFromStreamFunc);
+    procedure DummyCallback;
+    procedure DummyCallback2;
   published
     procedure TestStreamPeekChar;
     procedure TestBufferedReadStream;
@@ -44,6 +46,8 @@ type
     procedure TestLineColumn_BufferedReadStream;
     procedure TestForIn;
     procedure TestGetBaseNameFromUrl;
+    procedure TestSimpleNotifyEventListPack;
+    procedure TestSimpleNotifyEventListUnassign;
   end;
 
   TFoo = class
@@ -428,6 +432,95 @@ begin
     AssertEquals('SceneWrl1', NewComponent.Name);
 
   finally FreeAndNil(Parent) end;
+end;
+
+procedure TTestCastleClassUtils.DummyCallback;
+begin
+end;
+
+procedure TTestCastleClassUtils.DummyCallback2;
+begin
+end;
+
+const
+  NilMethod: TMethod = (Code: nil; Data: nil);
+
+procedure TTestCastleClassUtils.TestSimpleNotifyEventListPack;
+var
+  L: TSimpleNotifyEventList;
+  M: TSimpleNotifyEvent;
+begin
+  L := TSimpleNotifyEventList.Create;
+  try
+    AssertEquals(0, L.Count);
+
+    L.Pack;
+    AssertEquals(0, L.Count);
+
+    L.Add(nil);
+    AssertEquals(1, L.Count);
+
+    L.Pack;
+    AssertEquals(0, L.Count);
+
+    L.Add({$ifdef FPC}@{$endif} DummyCallback);
+    L.Add(nil);
+    L.Add({$ifdef FPC}@{$endif} DummyCallback2);
+    L.Add(nil);
+    AssertEquals(4, L.Count);
+
+    L.Pack;
+    AssertEquals(2, L.Count);
+    M := {$ifdef FPC}@{$endif} DummyCallback;
+    AssertTrue(SameMethods(TMethod(M), TMethod(L[0])));
+    M := {$ifdef FPC}@{$endif} DummyCallback2;
+    AssertTrue(SameMethods(TMethod(M), TMethod(L[1])));
+  finally FreeAndNil(L) end;
+end;
+
+procedure TTestCastleClassUtils.TestSimpleNotifyEventListUnassign;
+var
+  L: TSimpleNotifyEventList;
+  M: TSimpleNotifyEvent;
+begin
+  L := TSimpleNotifyEventList.Create;
+  try
+    AssertEquals(0, L.Count);
+
+    L.Unassign({$ifdef FPC}@{$endif} DummyCallback);
+    AssertEquals(0, L.Count);
+
+    L.Add({$ifdef FPC}@{$endif} DummyCallback);
+    L.Add({$ifdef FPC}@{$endif} DummyCallback);
+    L.Unassign({$ifdef FPC}@{$endif} DummyCallback);
+    AssertEquals(2, L.Count);
+    M := nil;
+    AssertTrue(SameMethods(TMethod(M), TMethod(L[0])));
+    AssertTrue(SameMethods(TMethod(M), TMethod(L[1])));
+
+    L.Pack;
+    AssertEquals(0, L.Count);
+
+    L.Add({$ifdef FPC}@{$endif} DummyCallback2);
+    L.Add({$ifdef FPC}@{$endif} DummyCallback);
+    L.Add(nil);
+    L.Add({$ifdef FPC}@{$endif} DummyCallback);
+    L.Add(nil);
+    L.Add({$ifdef FPC}@{$endif} DummyCallback2);
+    L.Unassign({$ifdef FPC}@{$endif} DummyCallback2);
+    AssertEquals(6, L.Count);
+    AssertTrue(SameMethods(NilMethod, TMethod(L[0])));
+    AssertTrue(SameMethods(TMethod({$ifdef FPC}@{$endif} DummyCallback), TMethod(L[1])));
+    AssertTrue(SameMethods(NilMethod, TMethod(L[2])));
+    AssertTrue(SameMethods(TMethod({$ifdef FPC}@{$endif} DummyCallback), TMethod(L[3])));
+    AssertTrue(SameMethods(NilMethod, TMethod(L[4])));
+    AssertTrue(SameMethods(NilMethod, TMethod(L[5])));
+
+    L.Pack;
+    AssertEquals(2, L.Count);
+    AssertTrue(SameMethods(TMethod({$ifdef FPC}@{$endif} DummyCallback), TMethod(L[0])));
+    AssertTrue(SameMethods(TMethod({$ifdef FPC}@{$endif} DummyCallback), TMethod(L[1])));
+  finally FreeAndNil(L) end;
 end;
 
 initialization

@@ -1,5 +1,5 @@
 {
-  Copyright 2000-2023 Michalis Kamburelis.
+  Copyright 2000-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -924,18 +924,26 @@ type
 
   TNotifyEventList = class({$ifdef FPC}specialize{$endif} TList<TNotifyEvent>)
   public
-    { Call all (non-nil) Items, from first to last. }
+    { Call all (assigned) Items, from first to last. }
     procedure ExecuteAll(Sender: TObject);
-    { Call all (non-nil) Items, from first to last. }
+    { Call all (assigned) Items, from first to last. }
     procedure ExecuteForward(Sender: TObject);
-    { Call all (non-nil) Items, from last to first. }
+    { Call all (assigned) Items, from last to first. }
     procedure ExecuteBackward(Sender: TObject);
   end;
 
   TSimpleNotifyEventList = class({$ifdef FPC}specialize{$endif} TList<TSimpleNotifyEvent>)
   public
-    { Call all (non-nil) Items, from first to last. }
-    procedure ExecuteAll(Sender: TObject);
+    { Call all (assigned) Items, from first to last. }
+    procedure ExecuteAll;
+    { Remove all unassigned items. }
+    procedure Pack;
+    { Unassign all items equal this Event.
+      This is useful to do when (possibly) iterating over this list,
+      and doing Remove(Event) would be risky (shifting the items order).
+      So it's safer to do Unassign(Event) and call Pack once we don't iterate
+      over the list anymore. }
+    procedure Unassign(const Event: TSimpleNotifyEvent);
   end;
 
 {$ifdef FPC}
@@ -2373,7 +2381,7 @@ end;
 
 { TSimpleNotifyEventList  ------------------------------------------------------ }
 
-procedure TSimpleNotifyEventList.ExecuteAll(Sender: TObject);
+procedure TSimpleNotifyEventList.ExecuteAll;
 var
   I: Integer;
 begin
@@ -2382,6 +2390,29 @@ begin
       adds a little safety here. }
     if (I < Count) and Assigned(Items[I]) then
       Items[I]();
+end;
+
+procedure TSimpleNotifyEventList.Pack;
+var
+  I: Integer;
+begin
+  I := 0;
+  while I < Count do
+  begin
+    if Assigned(Items[I]) then
+      Inc(I)
+    else
+      Delete(I);
+  end;
+end;
+
+procedure TSimpleNotifyEventList.Unassign(const Event: TSimpleNotifyEvent);
+var
+  I: Integer;
+begin
+  for I := 0 to Count - 1 do
+    if SameMethods(TMethod(Event), TMethod(Items[I])) then
+      Items[I] := nil;
 end;
 
 { DumpStack ------------------------------------------------------------------ }

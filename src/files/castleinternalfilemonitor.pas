@@ -51,8 +51,28 @@ type
         LastModified: TDateTime;
 
         { Always non-nil, non-empty instance
-          of TSimpleNotifyEventList with non-nil and valid callbacks to call.}
+          of TSimpleNotifyEventList with non-nil and valid callbacks to call. }
         OnChanged: TSimpleNotifyEventList;
+
+        { When this is > 0, we are in the middle of iteration over
+          OnChanged callbacks. In this case outside code should not modify
+          OnChanged count (it can only set some items to @nil)
+          or free this instance.
+
+          This prevents undefined behavior in case some OnChanged
+          callback unwatches the URL, changing the OnChanged order
+          or even freeing TFileInfo class while we're in the middle of iteration
+          over OnChanged.
+
+          Testcase: just change image used by TCastleImageControl, once.
+          It will then exactly do this: TCastleImagePersistent.ReloadUrl
+          temporatily unwatches the URL, freeing TFileInfo, only to watch it again.
+          The incorrect log
+            Notified about change of URL "" because last modification time...
+          with empty URL (which shall not be possible, TFileInfo never has URL='')
+          appears, without the protection given by this field.
+        }
+        InsideExecuteAll: Cardinal;
 
         constructor Create;
         destructor Destroy; override;
@@ -61,6 +81,10 @@ type
           Calls OnChanged if the file was modified since last time
           and CallChanged. }
         procedure UpdateLastModified(const CallChanged: Boolean);
+
+        { Execute all OnChanged callbacks, safely (manages InsideExecuteAll
+          and later cleanup of @nil OnChanged callbacks). }
+        procedure ExecuteAllChanged;
       end;
 
       { Map from URL to the list of events that should be notified when URL
@@ -178,11 +202,43 @@ begin
   if CallChanged and
      (LastModified <> NewLastModified) then
   begin
-    OnChanged.ExecuteAll(Self);
+    ExecuteAllChanged;
     WritelnLog('File Monitor', 'Notified about change of URL "' + Url + '" because last modification time changed');
   end;
 
   LastModified := NewLastModified;
+end;
+
+procedure TCastleFileMonitor.TFileInfo.ExecuteAllChanged;
+begin
+  Inc(InsideExecuteAll);
+  try
+    OnChanged.ExecuteAll();
+  finally Dec(InsideExecuteAll) end;
+
+  if InsideExecuteAll = 0 then
+    OnChanged.Pack;
+
+  { If OnChanged.Count = 0 we could actually destroy ourselves,
+    doing Self.Destroy. That's what happens if someone unwatches the file
+    for the last time when InsideExecuteAll = 0.
+
+    But doing so would cause more trouble than benefits:
+
+    - All code calling ExecuteAllChanged would have to be prepared that
+      TFileInfo later possibly doesn't exist. E.g. our own UpdateLastModified
+      would have to exit after ExecuteAllChanged, not do anything more.
+
+    - And actually, leaving TFileInfo with empty OnChanged means less work.
+      Because almost always, when someone unwatches URL during
+      OnChanged.ExecuteAll, it means the URL was unwatched only temporarily
+      by ReloadUrl.
+      It is watched immediately right after.
+      So destroying TFileInfo instance only to recreate it later is pointless
+      work.
+
+    - And it is harmless. TFileInfo with empty OnChanged works OK.
+  }
 end;
 
 { TCastleFileMonitor ------------------------------------------------------ }
@@ -240,9 +296,16 @@ begin
   UrlWatch := UrlToWatch(Url);
   if FFiles.TryGetValue(UrlWatch, FileInfo) then
   begin
-    FileInfo.OnChanged.Remove(Notify);
-    if FileInfo.OnChanged.Count = 0 then
-      FFiles.Remove(UrlWatch);
+    if FileInfo.InsideExecuteAll <> 0 then
+    begin
+      FileInfo.OnChanged.Unassign(Notify);
+      //WritelnLog('Unwatching URL when we iterate inside its own OnChanged');
+    end else
+    begin
+      FileInfo.OnChanged.Remove(Notify);
+      if FileInfo.OnChanged.Count = 0 then
+        FFiles.Remove(UrlWatch);
+    end;
   end else
     WritelnWarning('File Monitor', 'Cannot unwatch URL "' + Url + '", it was not watched by anything');
 end;
@@ -264,7 +327,7 @@ begin
   if FFiles.TryGetValue(UrlWatch, FileInfo) then
   begin
     FileInfo.UpdateLastModified(false);
-    FileInfo.OnChanged.ExecuteAll(Self);
+    FileInfo.ExecuteAllChanged;
     WritelnLog('File Monitor', 'Notified about change of URL "' + Url + '" because changed explicitly by the editor');
   end;
 end;
