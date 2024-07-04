@@ -1178,6 +1178,13 @@ end;
 
 procedure TProjectForm.ApplicationProperties1Activate(Sender: TObject);
 begin
+  { TODO: At least on Linux, GTK2 backend, this is *not* reliably
+    run always when we switch back to CGE editor with Alt+Tab.
+    This in turn means we don't always auto-reload scenes, images etc.
+    when their content changed.
+  WritelnLog('TProjectForm.ApplicationProperties1Activate ' + FormatDateTime('yyyy"-"mm"-"dd" "tt', Now));
+  }
+
   { Refresh contents of selected dir, and tree of subdirectories,
     in case user created some files/directories in other applications. }
   RefreshFiles(rfEverything);
