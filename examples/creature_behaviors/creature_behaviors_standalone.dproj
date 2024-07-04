@@ -507,50 +507,50 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="data\audio/index.xml" Configuration="Debug" Class="File">
+                <DeployFile LocalName="data\audio/sounds.castle-component" Configuration="Debug" Class="File">
                     <Platform Name="Android">
                         <RemoteDir>./data/audio/</RemoteDir>
-                        <RemoteName>index.xml</RemoteName>
+                        <RemoteName>sounds.castle-component</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Android64">
                         <RemoteDir>./data/audio/</RemoteDir>
-                        <RemoteName>index.xml</RemoteName>
+                        <RemoteName>sounds.castle-component</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="iOSDevice64">
                         <RemoteDir>./data/audio/</RemoteDir>
-                        <RemoteName>index.xml</RemoteName>
+                        <RemoteName>sounds.castle-component</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="iOSSimARM64">
                         <RemoteDir>./data/audio/</RemoteDir>
-                        <RemoteName>index.xml</RemoteName>
+                        <RemoteName>sounds.castle-component</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Linux64">
                         <RemoteDir>./data/audio/</RemoteDir>
-                        <RemoteName>index.xml</RemoteName>
+                        <RemoteName>sounds.castle-component</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="OSX64">
                         <RemoteDir>./data/audio/</RemoteDir>
-                        <RemoteName>index.xml</RemoteName>
+                        <RemoteName>sounds.castle-component</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="OSXARM64">
                         <RemoteDir>./data/audio/</RemoteDir>
-                        <RemoteName>index.xml</RemoteName>
+                        <RemoteName>sounds.castle-component</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Win32">
                         <RemoteDir>./data/audio/</RemoteDir>
-                        <RemoteName>index.xml</RemoteName>
+                        <RemoteName>sounds.castle-component</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Win64">
                         <RemoteDir>./data/audio/</RemoteDir>
-                        <RemoteName>index.xml</RemoteName>
+                        <RemoteName>sounds.castle-component</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
@@ -3656,50 +3656,50 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="data\audio/index.xml" Configuration="Release" Class="File">
+                <DeployFile LocalName="data\audio/sounds.castle-component" Configuration="Release" Class="File">
                     <Platform Name="Android">
                         <RemoteDir>./data/audio/</RemoteDir>
-                        <RemoteName>index.xml</RemoteName>
+                        <RemoteName>sounds.castle-component</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Android64">
                         <RemoteDir>./data/audio/</RemoteDir>
-                        <RemoteName>index.xml</RemoteName>
+                        <RemoteName>sounds.castle-component</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="iOSDevice64">
                         <RemoteDir>./data/audio/</RemoteDir>
-                        <RemoteName>index.xml</RemoteName>
+                        <RemoteName>sounds.castle-component</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="iOSSimARM64">
                         <RemoteDir>./data/audio/</RemoteDir>
-                        <RemoteName>index.xml</RemoteName>
+                        <RemoteName>sounds.castle-component</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Linux64">
                         <RemoteDir>./data/audio/</RemoteDir>
-                        <RemoteName>index.xml</RemoteName>
+                        <RemoteName>sounds.castle-component</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="OSX64">
                         <RemoteDir>./data/audio/</RemoteDir>
-                        <RemoteName>index.xml</RemoteName>
+                        <RemoteName>sounds.castle-component</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="OSXARM64">
                         <RemoteDir>./data/audio/</RemoteDir>
-                        <RemoteName>index.xml</RemoteName>
+                        <RemoteName>sounds.castle-component</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Win32">
                         <RemoteDir>./data/audio/</RemoteDir>
-                        <RemoteName>index.xml</RemoteName>
+                        <RemoteName>sounds.castle-component</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="Win64">
                         <RemoteDir>./data/audio/</RemoteDir>
-                        <RemoteName>index.xml</RemoteName>
+                        <RemoteName>sounds.castle-component</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>

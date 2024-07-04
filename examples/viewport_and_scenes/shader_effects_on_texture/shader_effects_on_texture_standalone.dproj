@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{32537C0A-5FF5-4D9C-8C42-5B3607FCF77A}</ProjectGuid>
+        <ProjectGuid>{143AC097-8E81-8CEE-B522-8FFC69D643B0}</ProjectGuid>
         <MainSource>shader_effects_on_texture_standalone.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>
@@ -413,6 +413,241 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
+                <DeployFile LocalName="data\shaders/texture_effect_invert.fs" Configuration="Debug" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>./data/shaders/</RemoteDir>
+                        <RemoteName>texture_effect_invert.fs</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Android64">
+                        <RemoteDir>./data/shaders/</RemoteDir>
+                        <RemoteName>texture_effect_invert.fs</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSDevice64">
+                        <RemoteDir>./data/shaders/</RemoteDir>
+                        <RemoteName>texture_effect_invert.fs</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSSimARM64">
+                        <RemoteDir>./data/shaders/</RemoteDir>
+                        <RemoteName>texture_effect_invert.fs</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Linux64">
+                        <RemoteDir>./data/shaders/</RemoteDir>
+                        <RemoteName>texture_effect_invert.fs</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSX64">
+                        <RemoteDir>./data/shaders/</RemoteDir>
+                        <RemoteName>texture_effect_invert.fs</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>./data/shaders/</RemoteDir>
+                        <RemoteName>texture_effect_invert.fs</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win32">
+                        <RemoteDir>./data/shaders/</RemoteDir>
+                        <RemoteName>texture_effect_invert.fs</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win64">
+                        <RemoteDir>./data/shaders/</RemoteDir>
+                        <RemoteName>texture_effect_invert.fs</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="data\shaders/texture_effect_sepia.fs" Configuration="Debug" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>./data/shaders/</RemoteDir>
+                        <RemoteName>texture_effect_sepia.fs</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Android64">
+                        <RemoteDir>./data/shaders/</RemoteDir>
+                        <RemoteName>texture_effect_sepia.fs</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSDevice64">
+                        <RemoteDir>./data/shaders/</RemoteDir>
+                        <RemoteName>texture_effect_sepia.fs</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSSimARM64">
+                        <RemoteDir>./data/shaders/</RemoteDir>
+                        <RemoteName>texture_effect_sepia.fs</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Linux64">
+                        <RemoteDir>./data/shaders/</RemoteDir>
+                        <RemoteName>texture_effect_sepia.fs</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSX64">
+                        <RemoteDir>./data/shaders/</RemoteDir>
+                        <RemoteName>texture_effect_sepia.fs</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>./data/shaders/</RemoteDir>
+                        <RemoteName>texture_effect_sepia.fs</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win32">
+                        <RemoteDir>./data/shaders/</RemoteDir>
+                        <RemoteName>texture_effect_sepia.fs</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win64">
+                        <RemoteDir>./data/shaders/</RemoteDir>
+                        <RemoteName>texture_effect_sepia.fs</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="data\textured_model/test_texture.png" Configuration="Debug" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>./data/textured_model/</RemoteDir>
+                        <RemoteName>test_texture.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Android64">
+                        <RemoteDir>./data/textured_model/</RemoteDir>
+                        <RemoteName>test_texture.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSDevice64">
+                        <RemoteDir>./data/textured_model/</RemoteDir>
+                        <RemoteName>test_texture.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSSimARM64">
+                        <RemoteDir>./data/textured_model/</RemoteDir>
+                        <RemoteName>test_texture.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Linux64">
+                        <RemoteDir>./data/textured_model/</RemoteDir>
+                        <RemoteName>test_texture.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSX64">
+                        <RemoteDir>./data/textured_model/</RemoteDir>
+                        <RemoteName>test_texture.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>./data/textured_model/</RemoteDir>
+                        <RemoteName>test_texture.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win32">
+                        <RemoteDir>./data/textured_model/</RemoteDir>
+                        <RemoteName>test_texture.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win64">
+                        <RemoteDir>./data/textured_model/</RemoteDir>
+                        <RemoteName>test_texture.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="data\textured_model/textured_sample_thing.bin" Configuration="Debug" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>./data/textured_model/</RemoteDir>
+                        <RemoteName>textured_sample_thing.bin</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Android64">
+                        <RemoteDir>./data/textured_model/</RemoteDir>
+                        <RemoteName>textured_sample_thing.bin</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSDevice64">
+                        <RemoteDir>./data/textured_model/</RemoteDir>
+                        <RemoteName>textured_sample_thing.bin</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSSimARM64">
+                        <RemoteDir>./data/textured_model/</RemoteDir>
+                        <RemoteName>textured_sample_thing.bin</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Linux64">
+                        <RemoteDir>./data/textured_model/</RemoteDir>
+                        <RemoteName>textured_sample_thing.bin</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSX64">
+                        <RemoteDir>./data/textured_model/</RemoteDir>
+                        <RemoteName>textured_sample_thing.bin</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>./data/textured_model/</RemoteDir>
+                        <RemoteName>textured_sample_thing.bin</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win32">
+                        <RemoteDir>./data/textured_model/</RemoteDir>
+                        <RemoteName>textured_sample_thing.bin</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win64">
+                        <RemoteDir>./data/textured_model/</RemoteDir>
+                        <RemoteName>textured_sample_thing.bin</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="data\textured_model/textured_sample_thing.gltf" Configuration="Debug" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>./data/textured_model/</RemoteDir>
+                        <RemoteName>textured_sample_thing.gltf</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Android64">
+                        <RemoteDir>./data/textured_model/</RemoteDir>
+                        <RemoteName>textured_sample_thing.gltf</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSDevice64">
+                        <RemoteDir>./data/textured_model/</RemoteDir>
+                        <RemoteName>textured_sample_thing.gltf</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSSimARM64">
+                        <RemoteDir>./data/textured_model/</RemoteDir>
+                        <RemoteName>textured_sample_thing.gltf</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Linux64">
+                        <RemoteDir>./data/textured_model/</RemoteDir>
+                        <RemoteName>textured_sample_thing.gltf</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSX64">
+                        <RemoteDir>./data/textured_model/</RemoteDir>
+                        <RemoteName>textured_sample_thing.gltf</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>./data/textured_model/</RemoteDir>
+                        <RemoteName>textured_sample_thing.gltf</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win32">
+                        <RemoteDir>./data/textured_model/</RemoteDir>
+                        <RemoteName>textured_sample_thing.gltf</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win64">
+                        <RemoteDir>./data/textured_model/</RemoteDir>
+                        <RemoteName>textured_sample_thing.gltf</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployFile LocalName="data\CastleSettings.xml" Configuration="Release" Class="File">
                     <Platform Name="Android">
                         <RemoteDir>./data/</RemoteDir>
@@ -551,6 +786,241 @@
                     <Platform Name="Win64">
                         <RemoteDir>./data/</RemoteDir>
                         <RemoteName>gameviewmain.castle-user-interface</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="data\shaders/texture_effect_invert.fs" Configuration="Release" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>./data/shaders/</RemoteDir>
+                        <RemoteName>texture_effect_invert.fs</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Android64">
+                        <RemoteDir>./data/shaders/</RemoteDir>
+                        <RemoteName>texture_effect_invert.fs</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSDevice64">
+                        <RemoteDir>./data/shaders/</RemoteDir>
+                        <RemoteName>texture_effect_invert.fs</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSSimARM64">
+                        <RemoteDir>./data/shaders/</RemoteDir>
+                        <RemoteName>texture_effect_invert.fs</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Linux64">
+                        <RemoteDir>./data/shaders/</RemoteDir>
+                        <RemoteName>texture_effect_invert.fs</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSX64">
+                        <RemoteDir>./data/shaders/</RemoteDir>
+                        <RemoteName>texture_effect_invert.fs</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>./data/shaders/</RemoteDir>
+                        <RemoteName>texture_effect_invert.fs</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win32">
+                        <RemoteDir>./data/shaders/</RemoteDir>
+                        <RemoteName>texture_effect_invert.fs</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win64">
+                        <RemoteDir>./data/shaders/</RemoteDir>
+                        <RemoteName>texture_effect_invert.fs</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="data\shaders/texture_effect_sepia.fs" Configuration="Release" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>./data/shaders/</RemoteDir>
+                        <RemoteName>texture_effect_sepia.fs</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Android64">
+                        <RemoteDir>./data/shaders/</RemoteDir>
+                        <RemoteName>texture_effect_sepia.fs</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSDevice64">
+                        <RemoteDir>./data/shaders/</RemoteDir>
+                        <RemoteName>texture_effect_sepia.fs</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSSimARM64">
+                        <RemoteDir>./data/shaders/</RemoteDir>
+                        <RemoteName>texture_effect_sepia.fs</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Linux64">
+                        <RemoteDir>./data/shaders/</RemoteDir>
+                        <RemoteName>texture_effect_sepia.fs</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSX64">
+                        <RemoteDir>./data/shaders/</RemoteDir>
+                        <RemoteName>texture_effect_sepia.fs</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>./data/shaders/</RemoteDir>
+                        <RemoteName>texture_effect_sepia.fs</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win32">
+                        <RemoteDir>./data/shaders/</RemoteDir>
+                        <RemoteName>texture_effect_sepia.fs</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win64">
+                        <RemoteDir>./data/shaders/</RemoteDir>
+                        <RemoteName>texture_effect_sepia.fs</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="data\textured_model/test_texture.png" Configuration="Release" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>./data/textured_model/</RemoteDir>
+                        <RemoteName>test_texture.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Android64">
+                        <RemoteDir>./data/textured_model/</RemoteDir>
+                        <RemoteName>test_texture.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSDevice64">
+                        <RemoteDir>./data/textured_model/</RemoteDir>
+                        <RemoteName>test_texture.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSSimARM64">
+                        <RemoteDir>./data/textured_model/</RemoteDir>
+                        <RemoteName>test_texture.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Linux64">
+                        <RemoteDir>./data/textured_model/</RemoteDir>
+                        <RemoteName>test_texture.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSX64">
+                        <RemoteDir>./data/textured_model/</RemoteDir>
+                        <RemoteName>test_texture.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>./data/textured_model/</RemoteDir>
+                        <RemoteName>test_texture.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win32">
+                        <RemoteDir>./data/textured_model/</RemoteDir>
+                        <RemoteName>test_texture.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win64">
+                        <RemoteDir>./data/textured_model/</RemoteDir>
+                        <RemoteName>test_texture.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="data\textured_model/textured_sample_thing.bin" Configuration="Release" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>./data/textured_model/</RemoteDir>
+                        <RemoteName>textured_sample_thing.bin</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Android64">
+                        <RemoteDir>./data/textured_model/</RemoteDir>
+                        <RemoteName>textured_sample_thing.bin</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSDevice64">
+                        <RemoteDir>./data/textured_model/</RemoteDir>
+                        <RemoteName>textured_sample_thing.bin</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSSimARM64">
+                        <RemoteDir>./data/textured_model/</RemoteDir>
+                        <RemoteName>textured_sample_thing.bin</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Linux64">
+                        <RemoteDir>./data/textured_model/</RemoteDir>
+                        <RemoteName>textured_sample_thing.bin</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSX64">
+                        <RemoteDir>./data/textured_model/</RemoteDir>
+                        <RemoteName>textured_sample_thing.bin</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>./data/textured_model/</RemoteDir>
+                        <RemoteName>textured_sample_thing.bin</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win32">
+                        <RemoteDir>./data/textured_model/</RemoteDir>
+                        <RemoteName>textured_sample_thing.bin</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win64">
+                        <RemoteDir>./data/textured_model/</RemoteDir>
+                        <RemoteName>textured_sample_thing.bin</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="data\textured_model/textured_sample_thing.gltf" Configuration="Release" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>./data/textured_model/</RemoteDir>
+                        <RemoteName>textured_sample_thing.gltf</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Android64">
+                        <RemoteDir>./data/textured_model/</RemoteDir>
+                        <RemoteName>textured_sample_thing.gltf</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSDevice64">
+                        <RemoteDir>./data/textured_model/</RemoteDir>
+                        <RemoteName>textured_sample_thing.gltf</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="iOSSimARM64">
+                        <RemoteDir>./data/textured_model/</RemoteDir>
+                        <RemoteName>textured_sample_thing.gltf</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Linux64">
+                        <RemoteDir>./data/textured_model/</RemoteDir>
+                        <RemoteName>textured_sample_thing.gltf</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSX64">
+                        <RemoteDir>./data/textured_model/</RemoteDir>
+                        <RemoteName>textured_sample_thing.gltf</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="OSXARM64">
+                        <RemoteDir>./data/textured_model/</RemoteDir>
+                        <RemoteName>textured_sample_thing.gltf</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win32">
+                        <RemoteDir>./data/textured_model/</RemoteDir>
+                        <RemoteName>textured_sample_thing.gltf</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                    <Platform Name="Win64">
+                        <RemoteDir>./data/textured_model/</RemoteDir>
+                        <RemoteName>textured_sample_thing.gltf</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
