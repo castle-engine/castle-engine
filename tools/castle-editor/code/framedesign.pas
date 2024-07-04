@@ -707,7 +707,7 @@ uses
   CastleUtils, CastleComponentSerialize, CastleFileFilters, CastleGLUtils, CastleImages,
   CastleLog, CastleProjection, CastleStringUtils, CastleTimeUtils,
   CastleUriUtils, X3DLoad, CastleFilesUtils, CastleInternalPhysicsVisualization,
-  CastleInternalUrlUtils,
+  CastleInternalUrlUtils, CastleInternalFileMonitor,
   { CGE unit to keep in uses clause even if they are not explicitly used by FrameDesign,
     to register the core CGE components for (de)serialization. }
   Castle2DSceneManager, CastleNotifications, CastleThirdPersonNavigation, CastleSoundEngine,
@@ -6461,6 +6461,13 @@ initialization
   { Enable using our property edits e.g. for TCastleScene.URL }
   CastlePropEdits.Register;
   CastleEditorPropEdits.Register;
-  { Inside CGE editor, CastleApplicationMode is never appRunning. }
+
+  { Inside CGE editor,
+    - CastleApplicationMode is never appRunning,
+    - so CastleDesignMode is always true. }
   InternalCastleApplicationMode := appDesign;
+
+  { Inside CGE editor, file monitor is always enabled. }
+  FileMonitor.MakePossiblyEnabled;
+  FileMonitor.Enabled := true;
 end.

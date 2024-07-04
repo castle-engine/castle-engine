@@ -59,6 +59,7 @@
     mentions it, without any answer except "ignore them"..
   - entering modal message leaves the key pressed down, testcase: test_all_state_events, press Q
   - hiding cursor doesn't work for unknown reason
+  - Call FileMonitor.CheckChanges when user switches to application.
 }
 
 {$ifdef read_interface_uses}

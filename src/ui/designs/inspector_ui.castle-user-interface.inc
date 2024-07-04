@@ -1024,7 +1024,7 @@
 '              },' + LineEnding +
 '              "TranslationPersistent" : {' + LineEnding +
 '                "$$ClassName" : "TCastleVector2Persistent",' + LineEnding +
-'                "Y" : -2.7000000000000000E+001' + LineEnding +
+'                "Y" : -2.7000001907348633E+001' + LineEnding +
 '              },' + LineEnding +
 '              "Value" : 8.9999997615814209E-001,' + LineEnding +
 '              "VerticalAnchorParent" : "vpTop",' + LineEnding +
@@ -1271,6 +1271,17 @@
 '                  "VerticalAnchorSelf" : "vpMiddle"' + LineEnding +
 '                }' + LineEnding +
 '              ]' + LineEnding +
+'            },' + LineEnding +
+'            {' + LineEnding +
+'              "$$ClassName" : "TCastleCheckbox",' + LineEnding +
+'              "Caption" : "Monitor and Auto-Reload Data",' + LineEnding +
+'              "Name" : "CheckboxFileMonitorEnabled",' + LineEnding +
+'              "TranslationPersistent" : {' + LineEnding +
+'                "$$ClassName" : "TCastleVector2Persistent",' + LineEnding +
+'                "Y" : -1.4050000000000000E+002' + LineEnding +
+'              },' + LineEnding +
+'              "VerticalAnchorParent" : "vpTop",' + LineEnding +
+'              "VerticalAnchorSelf" : "vpTop"' + LineEnding +
 '            }' + LineEnding +
 '          ]' + LineEnding +
 '        },' + LineEnding +

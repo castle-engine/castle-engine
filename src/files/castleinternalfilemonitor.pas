@@ -29,9 +29,29 @@ type
     to enable auto-reloading them.
     Use only through singleton @link(FileMonitor).
 
-    When we're not design-mode (CastleDesignMode is @false),
-    watching / unwatching does nothing,
-    no changes are ever reported, @link(Watch) returns always @false. }
+    To make the file monitor actually do something, you have to set both
+    PossiblyEnabled and Enabled to @true.
+
+    - Before first URL calls Watch, call FileMonitor.MakePossiblyEnabled.
+
+      Right now this is automatically done when DEBUG is defined when
+      compiling CGE. Also CGE editor does it.
+
+      This allows to completely avoid any overhead of FileMonitor in release
+      version, for users, when data is never observed, because it is not supposed
+      to change.
+
+    - Set Enabled to @true anytime you want.
+      It can be toggled between @false and @true freely.
+
+      Only when both PossiblyEnabled and Enabled are @true,
+      the monitor actually does its work fully.
+
+      When PossiblyEnabled = @true but Enabled = @false,
+      the monitor does minimal work (collecting the files to watch)
+      to allow to later resume in case you toggle Enabled to @true.
+      But otherwise monitor doesn't check file times,
+      doesn't generate OnChanged events. }
   TCastleFileMonitor = class
   private
     type
@@ -94,6 +114,9 @@ type
       TFiles = {$ifdef FPC}specialize{$endif} TObjectDictionary<String, TFileInfo>;
     var
       FFiles: TFiles;
+      FPossiblyEnabledFinalized: Boolean;
+      FPossiblyEnabled: Boolean;
+      FEnabled: Boolean;
 
     { Convert to final URL to watch (that can be put in TFileInfo.Url),
       making URL absolute, and not using castle-data://.
@@ -105,6 +128,8 @@ type
       This is private -- external code should use
       "class procedure Unwatch". }
     procedure UnwatchCore(const Url: String; const Notify: TSimpleNotifyEvent);
+
+    procedure SetEnabled(const Value: Boolean);
   public
     constructor Create;
     destructor Destroy; override;
@@ -143,6 +168,17 @@ type
       so that the file is not detected as changed again by next
       @link(CheckChanges) call. }
     procedure Changed(const Url: String);
+
+    { Set PossiblyEnabled to @true.
+      Only possible if no file initialized watching yet. }
+    procedure MakePossiblyEnabled;
+
+    { Was MakePossiblyEnabled called. }
+    property PossiblyEnabled: Boolean read FPossiblyEnabled;
+
+    { Is monitoring enabled. Both PossiblyEnabled and Enabled must be @true
+      to actually monitor files. }
+    property Enabled: Boolean read FEnabled write SetEnabled;
   end;
 
 type
@@ -257,9 +293,6 @@ end;
 
 function TCastleFileMonitor.UrlToWatch(const Url: String): String;
 begin
-  if not CastleDesignMode then
-    Exit('');
-
   // resolve castle-data://
   Result := ResolveCastleDataURL(AbsoluteURI(Url));
 
@@ -273,6 +306,10 @@ var
   UrlWatch: String;
   FileInfo: TFileInfo;
 begin
+  FPossiblyEnabledFinalized := true; // cannot change FPossiblyEnabled anymore
+  if not FPossiblyEnabled then
+    Exit(false); // early exit, we will never watch anything
+
   UrlWatch := UrlToWatch(Url);
   Result := UrlWatch <> '';
   if Result then
@@ -281,6 +318,8 @@ begin
     begin
       FileInfo := TFileInfo.Create;
       FileInfo.Url := UrlWatch;
+      { Read initial LastModified regardless of Enabled, to later not think
+        that "everything changed" when setting Enabled = true. }
       FileInfo.UpdateLastModified(false);
       FFiles.Add(UrlWatch, FileInfo);
     end;
@@ -293,6 +332,9 @@ var
   UrlWatch: String;
   FileInfo: TFileInfo;
 begin
+  if not FPossiblyEnabled then
+    Exit; // early exit, we will never watch anything
+
   UrlWatch := UrlToWatch(Url);
   if FFiles.TryGetValue(UrlWatch, FileInfo) then
   begin
@@ -314,6 +356,9 @@ procedure TCastleFileMonitor.CheckChanges;
 var
   FileInfo: TFileInfo;
 begin
+  if not (PossiblyEnabled and Enabled) then
+    Exit;
+
   for FileInfo in FFiles.Values do
     FileInfo.UpdateLastModified(true);
 end;
@@ -323,6 +368,9 @@ var
   UrlWatch: String;
   FileInfo: TFileInfo;
 begin
+  if not (PossiblyEnabled and Enabled) then
+    Exit;
+
   UrlWatch := UrlToWatch(Url);
   if FFiles.TryGetValue(UrlWatch, FileInfo) then
   begin
@@ -382,6 +430,26 @@ begin
   end;
 end;
 
+procedure TCastleFileMonitor.MakePossiblyEnabled;
+begin
+  if FPossiblyEnabledFinalized and (not FPossiblyEnabled) then
+    raise Exception.Create('Too late to call FileMonitor.MakePossiblyEnabled, some file already called Watch (and we optimized it out, assuming FileMonitor.PossiblyEnabled = false).');
+  FPossiblyEnabled := true;
+end;
+
+procedure TCastleFileMonitor.SetEnabled(const Value: Boolean);
+begin
+  if FEnabled <> Value then
+  begin
+    FEnabled := Value;
+    if FEnabled then
+      { We didn't call UpdateLastModified when Eaabled = false.
+        So now we can update them, updating LastModified, and calling OnChanged
+        if anything changed. }
+      CheckChanges;
+  end;
+end;
+
 { global -------------------------------------------------------------------- }
 
 var
@@ -401,6 +469,9 @@ begin
 end;
 
 initialization
+  {$ifdef DEBUG}
+  FileMonitor.MakePossiblyEnabled;
+  {$endif}
 finalization
   FreeAndNil(FFileMonitor);
   FFinalizationDone := true;

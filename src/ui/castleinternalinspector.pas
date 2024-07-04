@@ -91,6 +91,7 @@ type
       LabelProfilerHeader: TCastleLabel;
       CheckboxProfilerDetailsInLog: TCastleCheckbox;
       CheckboxProfilerMore: TCastleCheckbox;
+      CheckboxFileMonitorEnabled: TCastleCheckbox;
       ProfilerGraph: TCastleUserInterface;
       RectStatsMore: TCastleUserInterface;
       LabelStatsMore: TCastleLabel;
@@ -133,6 +134,7 @@ type
     procedure ClickLogClear(Sender: TObject);
     procedure ChangeProfilerDetailsInLog(Sender: TObject);
     procedure ChangeProfilerMore(Sender: TObject);
+    procedure ChangeFileMonitorEnabled(Sender: TObject);
     { Synchronize state of HorizontalGroupShow and its children with the existence of rectangles
       like RectHierarchy. So you only need to change RectHierarchy.Exists and call this method
       to have UI consistent. }
@@ -205,7 +207,7 @@ implementation
 uses SysUtils, StrUtils, RttiUtils,
   CastleStringUtils, CastleGLUtils, CastleApplicationProperties, CastleClassUtils,
   CastleUtils, CastleLog, CastleInternalRttiUtils, CastleGLImages,
-  CastleViewport, CastleScene, CastleUriUtils;
+  CastleViewport, CastleScene, CastleUriUtils, CastleInternalFileMonitor;
 
 { ---------------------------------------------------------------------------- }
 
@@ -522,6 +524,7 @@ begin
   LabelProfilerHeader := UiOwner.FindRequiredComponent('LabelProfilerHeader') as TCastleLabel;
   CheckboxProfilerDetailsInLog := UiOwner.FindRequiredComponent('CheckboxProfilerDetailsInLog') as TCastleCheckbox;
   CheckboxProfilerMore := UiOwner.FindRequiredComponent('CheckboxProfilerMore') as TCastleCheckbox;
+  CheckboxFileMonitorEnabled := UiOwner.FindRequiredComponent('CheckboxFileMonitorEnabled') as TCastleCheckbox;
   ProfilerGraph := UiOwner.FindRequiredComponent('ProfilerGraph') as TCastleUserInterface;
   RectStatsMore := UiOwner.FindRequiredComponent('RectStatsMore') as TCastleUserInterface;
   LabelStatsMore := UiOwner.FindRequiredComponent('LabelStatsMore') as TCastleLabel;
@@ -532,6 +535,10 @@ begin
   ForceFallbackLook(Ui);
 
   HierarchyRowParent.OnRender := {$ifdef FPC}@{$endif} BeforeRenderHierarchyRows;
+
+  // TODO: TCastleCheckbox.Enabled would be useful here
+  CheckboxFileMonitorEnabled.{Enabled}Exists := FileMonitor.PossiblyEnabled;
+  CheckboxFileMonitorEnabled.Checked := FileMonitor.Enabled;
 
   CheckboxShowEvenInternal.OnChange := {$ifdef FPC}@{$endif} UpdateHierarchy;
   CheckboxUiBatching.OnChange := {$ifdef FPC}@{$endif} ChangeUiBatching;
@@ -546,6 +553,7 @@ begin
   ButtonLogClear.OnClick := {$ifdef FPC}@{$endif} ClickLogClear;
   CheckboxProfilerDetailsInLog.OnChange := {$ifdef FPC}@{$endif} ChangeProfilerDetailsInLog;
   CheckboxProfilerMore.OnChange := {$ifdef FPC}@{$endif} ChangeProfilerMore;
+  CheckboxFileMonitorEnabled.OnChange := {$ifdef FPC}@{$endif} ChangeFileMonitorEnabled;
   ProfilerGraph.OnRender := {$ifdef FPC}@{$endif} ProfilerGraphRender;
   ButtonAutoSelectNothing.OnClick := {$ifdef FPC}@{$endif} ClickAutoSelectNothing;
   ButtonAutoSelectUi.OnClick := {$ifdef FPC}@{$endif} ClickAutoSelectUi;
@@ -1074,8 +1082,11 @@ begin
   InspectorInputStr := Container.InputInspector.ToString;
   LabelInspectorHelp.Exists := InspectorInputStr <> '';
   if LabelInspectorHelp.Exists then
-    LabelInspectorHelp.Caption := 'Hide inspector by ' + NL +
-      '  ' + InspectorInputStr + '.';
+    LabelInspectorHelp.Caption :=
+      { Two lines are safer to fit longer InspectorInputStr, but we need
+        vertical space to show "Monitor and Auto-Reload" checkbox ... }
+      //'Hide inspector by ' + NL + '  ' + InspectorInputStr + '.';
+      'Hide inspector: ' + InspectorInputStr;
 
   UpdateAutoSelect;
 
@@ -1552,6 +1563,11 @@ procedure TCastleInspector.ClickAutoSelectTransform(Sender: TObject);
 begin
   AutoSelect := asTransform;
   SynchronizeButtonsAutoSelect;
+end;
+
+procedure TCastleInspector.ChangeFileMonitorEnabled(Sender: TObject);
+begin
+  FileMonitor.Enabled := CheckboxFileMonitorEnabled.Checked;
 end;
 
 initialization

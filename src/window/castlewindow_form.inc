@@ -118,6 +118,8 @@
     No decision, and practically it doesn't matter:
     with FPC, at this point we have covered all platforms with native
     TCastleWindow implementation, not depending on LCL and CASTLR_WINDOW_FORM.
+
+  TODO: Call FileMonitor.CheckChanges when user switches to application.
 }
 {$if defined(FPC) or (not defined(LINUX))}
   {$define USE_TIMER}

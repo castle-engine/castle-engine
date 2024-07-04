@@ -38,7 +38,7 @@ Glib2, Gdk2, Gtk2, CastleDynLib,
 {$endif}
 
 {$ifdef read_implementation_uses}
-CastleInternalWindowModes, CastleFindFiles,
+CastleInternalWindowModes, CastleFindFiles, CastleInternalFileMonitor,
 {$endif}
 
 {$ifdef read_interface_types}
@@ -632,6 +632,7 @@ SIGNAL_WINDOW_BEGIN
     is not enough, testcase: wrong 1st movement in Unholy after alt+tab to fight. }
   GetInitialCursorPos;
   Container.MouseLookIgnoreNextMotion;
+  FileMonitor.CheckChanges;
   FFocused := true;
   Result := gfalse;
 SIGNAL_WINDOW_END;

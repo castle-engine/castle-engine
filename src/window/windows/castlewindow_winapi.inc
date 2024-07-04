@@ -60,6 +60,7 @@ Windows, CommDlg,
 
 {$ifdef read_implementation_uses}
 CastleInternalWindowModes, CastleMessages, CastleJoysticks, CastleUnicode,
+CastleInternalFileMonitor,
 {$endif}
 
 {$ifdef read_window_interface}
@@ -726,6 +727,8 @@ begin
     WM_ACTIVATEAPP:
       begin
         Application.appActive := longbool(wParm);
+        if Application.appActive then
+          FileMonitor.CheckChanges;
         {exit; <- allow DefWindowProcW handle WM_ACTIVETAPP too,
          since you can't say "we surely handled everything that should be done in
          reaction for this message"}

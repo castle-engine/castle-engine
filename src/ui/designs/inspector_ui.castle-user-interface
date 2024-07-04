@@ -1022,7 +1022,7 @@
               },
               "TranslationPersistent" : {
                 "$$ClassName" : "TCastleVector2Persistent",
-                "Y" : -2.7000000000000000E+001
+                "Y" : -2.7000001907348633E+001
               },
               "Value" : 8.9999997615814209E-001,
               "VerticalAnchorParent" : "vpTop",
@@ -1269,6 +1269,17 @@
                   "VerticalAnchorSelf" : "vpMiddle"
                 }
               ]
+            },
+            {
+              "$$ClassName" : "TCastleCheckbox",
+              "Caption" : "Monitor and Auto-Reload Data",
+              "Name" : "CheckboxFileMonitorEnabled",
+              "TranslationPersistent" : {
+                "$$ClassName" : "TCastleVector2Persistent",
+                "Y" : -1.4050000000000000E+002
+              },
+              "VerticalAnchorParent" : "vpTop",
+              "VerticalAnchorSelf" : "vpTop"
             }
           ]
         },
