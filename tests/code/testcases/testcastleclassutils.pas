@@ -442,8 +442,16 @@ procedure TTestCastleClassUtils.DummyCallback2;
 begin
 end;
 
-const
-  NilMethod: TMethod = (Code: nil; Data: nil);
+{ While we could compare directly with SameMethods and typecasts to TMethod
+  below, it is easier to make it compile with both FPC and Delphi
+  by defining a dedicated function for this. }
+function SameSimpleNotifyEvent(const M1, M2: TSimpleNotifyEvent): Boolean;
+begin
+  Result := SameMethods(
+    TMethod(M1),
+    TMethod(M2)
+  );
+end;
 
 procedure TTestCastleClassUtils.TestSimpleNotifyEventListPack;
 var
@@ -471,10 +479,8 @@ begin
 
     L.Pack;
     AssertEquals(2, L.Count);
-    M := {$ifdef FPC}@{$endif} DummyCallback;
-    AssertTrue(SameMethods(TMethod(M), TMethod(L[0])));
-    M := {$ifdef FPC}@{$endif} DummyCallback2;
-    AssertTrue(SameMethods(TMethod(M), TMethod(L[1])));
+    AssertTrue(SameSimpleNotifyEvent({$ifdef FPC}@{$endif} DummyCallback, L[0]));
+    AssertTrue(SameSimpleNotifyEvent({$ifdef FPC}@{$endif} DummyCallback2, L[1]));
   finally FreeAndNil(L) end;
 end;
 
@@ -494,9 +500,8 @@ begin
     L.Add({$ifdef FPC}@{$endif} DummyCallback);
     L.Unassign({$ifdef FPC}@{$endif} DummyCallback);
     AssertEquals(2, L.Count);
-    M := nil;
-    AssertTrue(SameMethods(TMethod(M), TMethod(L[0])));
-    AssertTrue(SameMethods(TMethod(M), TMethod(L[1])));
+    AssertTrue(SameSimpleNotifyEvent(nil, L[0]));
+    AssertTrue(SameSimpleNotifyEvent(nil, L[1]));
 
     L.Pack;
     AssertEquals(0, L.Count);
@@ -509,17 +514,17 @@ begin
     L.Add({$ifdef FPC}@{$endif} DummyCallback2);
     L.Unassign({$ifdef FPC}@{$endif} DummyCallback2);
     AssertEquals(6, L.Count);
-    AssertTrue(SameMethods(NilMethod, TMethod(L[0])));
-    AssertTrue(SameMethods(TMethod({$ifdef FPC}@{$endif} DummyCallback), TMethod(L[1])));
-    AssertTrue(SameMethods(NilMethod, TMethod(L[2])));
-    AssertTrue(SameMethods(TMethod({$ifdef FPC}@{$endif} DummyCallback), TMethod(L[3])));
-    AssertTrue(SameMethods(NilMethod, TMethod(L[4])));
-    AssertTrue(SameMethods(NilMethod, TMethod(L[5])));
+    AssertTrue(SameSimpleNotifyEvent(nil, L[0]));
+    AssertTrue(SameSimpleNotifyEvent({$ifdef FPC}@{$endif} DummyCallback, L[1]));
+    AssertTrue(SameSimpleNotifyEvent(nil, L[2]));
+    AssertTrue(SameSimpleNotifyEvent({$ifdef FPC}@{$endif} DummyCallback, L[3]));
+    AssertTrue(SameSimpleNotifyEvent(nil, L[4]));
+    AssertTrue(SameSimpleNotifyEvent(nil, L[5]));
 
     L.Pack;
     AssertEquals(2, L.Count);
-    AssertTrue(SameMethods(TMethod({$ifdef FPC}@{$endif} DummyCallback), TMethod(L[0])));
-    AssertTrue(SameMethods(TMethod({$ifdef FPC}@{$endif} DummyCallback), TMethod(L[1])));
+    AssertTrue(SameSimpleNotifyEvent({$ifdef FPC}@{$endif} DummyCallback, L[0]));
+    AssertTrue(SameSimpleNotifyEvent({$ifdef FPC}@{$endif} DummyCallback, L[1]));
   finally FreeAndNil(L) end;
 end;
 
