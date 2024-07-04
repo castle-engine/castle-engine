@@ -45,48 +45,47 @@
     type
       TFingerIndexCaptureMap = {$ifdef FPC}specialize{$endif} TDictionary<TFingerIndex, TCastleUserInterface>;
     var
-    FOnOpen, FOnClose: TContainerEvent;
-    FOnOpenObject, FOnCloseObject: TContainerObjectEvent;
-    FOnBeforeRender, FOnRender: TContainerEvent;
-    FOnResize: TContainerEvent;
-    FOnPress, FOnRelease: TInputPressReleaseEvent;
-    FOnMotion: TInputMotionEvent;
-    FOnUpdate: TContainerEvent;
-    FFocus, FNewFocus: TCastleUserInterfaceList;
-    { Capture controls, for each FingerIndex.
-      The values in this map are never nil. }
-    FCaptureInput: TFingerIndexCaptureMap;
-    FForceCaptureInput: TCastleUserInterface;
-    FForceCaptureInputObserver: TFreeNotificationObserver;
-    FTooltipDelay: Single;
-    FTooltipDistance: Cardinal;
-    FTooltipPosition: TVector2;
-    FTooltipParent: TCastleUserInterface; // @nil if do not display
-    HasLastPositionForTooltip: boolean;
-    LastPositionForTooltip: TVector2;
-    LastPositionForTooltipTime: TTimerResult;
-    Mouse3d: T3DConnexionDevice;
-    Mouse3dPollTimer: Single;
-    FDpi: Single;
-    FUIScaling: TUIScaling;
-    FUIReferenceWidth: Single;
-    FUIReferenceHeight: Single;
-    FUIExplicitScale: Single;
-    FUIScale: Single;
-    FFps: TFramesPerSecond;
-    FPressed: TKeysPressed;
-    FMousePressed: TCastleMouseButtons;
-    FMouseLookIgnoreNextMotion: Boolean;
-    FMouseLookWaitingForMiddle: Boolean;
-    FMouseLookMotionToSubtract: TVector2;
-    FFocusAndMouseCursorValid: boolean;
-    FOverrideCursor: TMouseCursor;
-    FDefaultFont: TCastleAbstractFont;
-    FContext: TRenderContext;
-    FBackgroundEnable: Boolean;
-    FBackgroundColor: TCastleColor;
-    FInputInspector: TInputInspector;
-    FInspector: TCastleUserInterface; //< always TCastleInspector
+      FOnOpen, FOnClose: TContainerEvent;
+      FOnOpenObject, FOnCloseObject: TContainerObjectEvent;
+      FOnBeforeRender, FOnRender: TContainerEvent;
+      FOnResize: TContainerEvent;
+      FOnPress, FOnRelease: TInputPressReleaseEvent;
+      FOnMotion: TInputMotionEvent;
+      FOnUpdate: TContainerEvent;
+      FFocus, FNewFocus: TCastleUserInterfaceList;
+      { Capture controls, for each FingerIndex.
+        The values in this map are never nil. }
+      FCaptureInput: TFingerIndexCaptureMap;
+      FForceCaptureInput: TCastleUserInterface;
+      FForceCaptureInputObserver: TFreeNotificationObserver;
+      FTooltipDelay: Single;
+      FTooltipDistance: Cardinal;
+      FTooltipPosition: TVector2;
+      FTooltipParent: TCastleUserInterface; // @nil if do not display
+      HasLastPositionForTooltip: boolean;
+      LastPositionForTooltip: TVector2;
+      LastPositionForTooltipTime: TTimerResult;
+      Mouse3d: T3DConnexionDevice;
+      Mouse3dPollTimer: Single;
+      FDpi: Single;
+      FUIScaling: TUIScaling;
+      FUIReferenceWidth: Single;
+      FUIReferenceHeight: Single;
+      FUIExplicitScale: Single;
+      FUIScale: Single;
+      FFps: TFramesPerSecond;
+      FPressed: TKeysPressed;
+      FMousePressed: TCastleMouseButtons;
+      FMouseLookIgnoreNextMotion: Boolean;
+      FMouseLookWaitingForMiddle: Boolean;
+      FMouseLookMotionToSubtract: TVector2;
+      FFocusAndMouseCursorValid: boolean;
+      FOverrideCursor: TMouseCursor;
+      FDefaultFont: TCastleAbstractFont;
+      FContext: TRenderContext;
+      FBackgroundEnable: Boolean;
+      FBackgroundColor: TCastleColor;
+      FInspector: TCastleUserInterface; //< always TCastleInspector
 
     function GetView: TCastleView;
     procedure SetView(const Value: TCastleView);
@@ -119,9 +118,12 @@
     procedure ToggleInspector;
     procedure ForceCaptureInputFreeNotification(const Sender: TFreeNotificationObserver);
   private
-    FViewStack: TCastleViewList;
-    FDisableStackChange: Cardinal;
-    FControls: TInternalChildrenControls;
+    var
+      FViewStack: TCastleViewList;
+      FDisableStackChange: Cardinal;
+      FControls: TInternalChildrenControls;
+    class var
+      FInputInspector: TInputInspector;
     procedure ControlsVisibleChange(const Sender: TCastleUserInterface;
       const Changes: TCastleUserInterfaceChanges; const ChangeInitiatedByChildren: boolean);
     class procedure RenderControlPrepare(const ViewportRect: TRectangle);
@@ -796,8 +798,8 @@
 
     { Input (key, touch) to toggle the inspector at any point in the application.
       By default this is possible in debug builds, using key F8,
-      or pressing 3 fingers for 1 second (latter is useful on multi-touch devices). }
-    property InputInspector: TInputInspector read FInputInspector;
+      or pressing 3 fingers for 1 second. }
+    class property InputInspector: TInputInspector read FInputInspector;
 
     { @deprecated Use InputInspector.Key now. }
     property InspectorKey: TKey read GetInspectorKey write SetInspectorKey;
@@ -882,12 +884,6 @@ end;
 constructor TCastleContainer.Create(AOwner: TComponent);
 begin
   inherited;
-
-  FInputInspector := TInputInspector.Create(Self);
-  FInputInspector.Key := {$ifdef DEBUG} keyF8 {$else} keyNone {$endif};
-  FInputInspector.KeyModifiers := [];
-  FInputInspector.PressFingers := {$ifdef DEBUG} 3 {$else} 0 {$endif};
-  FInputInspector.PressTime := 1;
 
   FControls := TInternalChildrenControls.Create(nil);
   FControls.Container := Self;
