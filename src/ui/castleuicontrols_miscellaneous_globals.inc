@@ -183,7 +183,7 @@ begin
   TCastleContainer.InputInspector.PressFingers := 0;
   TCastleContainer.InputInspector.PressTime := 1;
 
-  ApplicationProperties.OnInitializeDebug.Add(
+  ApplicationProperties.AddInitializeDebugListener(
     {$ifdef FPC}@{$endif} InitializeInputInspectorDebug);
 end;
 

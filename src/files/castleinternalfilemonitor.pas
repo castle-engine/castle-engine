@@ -474,7 +474,7 @@ begin
 end;
 
 initialization
-  ApplicationProperties.OnInitializeDebug.Add(
+  ApplicationProperties.AddInitializeDebugListener(
     {$ifdef FPC}@{$endif} InitializeFileMonitorDebug);
   { TODO: The InitializeFileMonitorDebug is called from here only
     temporarily (in case user didn't update the project to have new
