@@ -127,12 +127,21 @@ type
       const Subdivisions: TVector2; const InputRange, OutputRange: TFloatRectangle);
 
     { Alternative version of @link(CreateNode) that creates a different shape.
-      It's has little less quality (triangulation is not adaptive like
-      for ElevationGrid), but updating it (by UpdateTriangulatedNode)
-      is a little faster (than updating the CreateNode by UpdatNode).
-      In practice, the speed gain is minimal, and this method will likely
-      be removed at some point.
 
+      Disadvantages of this method:
+
+      - A little less quality (triangulation is not "adaptive" like
+        for ElevationGrid, which splits each quad along the shortest diagonal).
+      - A little slower to render, we cause multiplple draw calls for multiple
+        strips.
+
+      Advantages:
+
+      - Updating this (by UpdateTriangulatedNode)
+        is a little faster (than updating the CreateNode by UpdatNode).
+
+      Though in practice, the speed gain is minimal, and this method will likely
+      be removed at some point?
       The parameters have the same meaning as for @link(CreateNode),
       and resulting look should be the same. }
     function CreateTriangulatedNode(const Subdivisions: TVector2;
