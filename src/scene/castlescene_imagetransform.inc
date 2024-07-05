@@ -102,7 +102,8 @@ type
       This makes sense to be used when underlying file on disk
       changed, and you want to reload it.
 
-      TODO: In case image is shared with other TCastleImagePersistent instances,
+      TODO: In case image is shared with other TCastleImageTransform instances,
+      or TCastleScene (refering to the same image using TImageTextureNode),
       for now this method will not load new image from disk.
       That's because the previous image contents will "survive" in the cache. }
     procedure ReloadUrl;
