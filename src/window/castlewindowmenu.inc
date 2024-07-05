@@ -437,9 +437,9 @@
       If there's no previous item:
 
       @unorderedList(
-        @item When Cycle = @true, return the last item.
-        @item When Cycle = @false and there is no previous item,
-          but still @link(Selected) <> nil, return @link(Selected).
+        @item(When Cycle = @true, return the last item.)
+        @item(When Cycle = @false and there is no previous item,
+          but still @link(Selected) <> nil, return @link(Selected).)
       )
 
       Only when there's no @link(Selected) item, returns @false. }
@@ -450,9 +450,9 @@
       If there's no next item:
 
       @unorderedList(
-        @item When Cycle = @true, return the first item.
-        @item When Cycle = @false and there is no next item,
-          but still @link(Selected) <> nil, return @link(Selected).
+        @item(When Cycle = @true, return the first item.)
+        @item(When Cycle = @false and there is no next item,
+          but still @link(Selected) <> nil, return @link(Selected).)
       )
 
       Only when there's no @link(Selected) item, returns @false. }
