@@ -199,7 +199,7 @@ type
   TCastleTerrainImage = class(TCastleTerrainData)
   strict private
     { FImage = nil and FUrl = '' when not loaded. }
-    FImage: TGrayscaleImage;
+    FImage: TGrayscaleFloatImage;
     FUrl: String;
     FMinLevel, FMaxLevel: Single;
     procedure SetUrl(const Value: String);
@@ -1071,12 +1071,20 @@ procedure TCastleTerrainImage.SetUrl(const Value: String);
 
   procedure LoadImage(const NewUrl: String);
   var
-    NewImage: TGrayscaleImage;
+    NewImage: TGrayscaleFloatImage;
   begin
     if NewUrl = '' then
       NewImage := nil
     else
-      NewImage := CastleImages.LoadImage(NewUrl, [TGrayscaleImage]) as TGrayscaleImage;
+    begin
+      { Read as TGrayscaleFloatImage.
+        Allows to read high-precision data from image formats that support it,
+        like 16-bit PNG, 16/32-bit TIFF, OpenEXR in the future.
+        The 8-bit formats will be converted to TGrayscaleFloatImage by
+        TGrayscaleFloatImage.Assign. }
+      NewImage := CastleImages.LoadImage(NewUrl, [TGrayscaleFloatImage])
+        as TGrayscaleFloatImage;
+    end;
 
     FreeAndNil(FImage);
     FImage := NewImage;
@@ -1118,7 +1126,7 @@ begin
     PY := Floor(TexCoord.Y * FImage.Height);
     ClampVar(PX, 0, FImage.Width  - 1);
     ClampVar(PY, 0, FImage.Height - 1);
-    Intensity := MapRangeTo01(FImage.PixelPtr(PX, PY)^, 0, High(Byte));
+    Intensity := FImage.PixelPtr(PX, PY)^;
   end else
     Intensity := 0.5;
   Result := Lerp(Intensity, MinLevel, MaxLevel);

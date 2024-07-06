@@ -1,6 +1,6 @@
 {%MainUnit castleimages.pas}
 {
-  Copyright 2001-2022 Michalis Kamburelis.
+  Copyright 2001-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -610,6 +610,158 @@ begin
     SetSize(Source);
     TargetFloatRgb := Pixels; // must be done after SetSize
     FromGrayscale;
+    URL := Source.URL + '[Assigned to ' + ClassName + ']';
+  end else
+
+    inherited;
+end;
+
+{ TGrayscaleFloatImage ------------------------------------------------------- }
+
+procedure TGrayscaleFloatImage.Assign(const Source: TCastleImage);
+var
+  TargetPixels: PSingle;
+
+  { Like GrayscaleValue, but also convert input Byte to output Single
+    (converting 0..255 to 0..1). }
+  function GrayscaleValueFromByteToSingle(const V: TVector3Byte): Single; overload;
+  begin
+    // force multiplication as Word
+    Result := (
+      Word(54 ) * V.X +
+      Word(183) * V.Y +
+      Word(19 ) * V.Z
+    ) / (256 * 256);
+  end;
+
+  { Like GrayscaleValue, but also convert input Byte to output Single
+    (converting 0..255 to 0..1). }
+  function GrayscaleValueByteToSingle(const V: TVector4Byte): Single; overload;
+  var
+    Rgb: TVector3Byte absolute V;
+  begin
+    Result := GrayscaleValueFromByteToSingle(Rgb);
+  end;
+
+  procedure FromRGBAlpha;
+  var
+    SourceRgba: PVector4Byte;
+    I: Cardinal;
+  begin
+    SourceRgba := TRGBAlphaImage(Source).Pixels;
+    for I := 1 to Width * Height * Depth do
+    begin
+      TargetPixels^ := GrayscaleValueFromByteToSingle(PVector3Byte(SourceRgba)^);
+      Inc(TargetPixels);
+      Inc(SourceRgba);
+    end;
+  end;
+
+  procedure FromRGB;
+  var
+    SourceRgb: PVector3Byte;
+    I: Cardinal;
+  begin
+    SourceRgb := TRGBImage(Source).Pixels;
+    for I := 1 to Width * Height * Depth do
+    begin
+      TargetPixels^ := GrayscaleValueFromByteToSingle(SourceRgb^);
+      Inc(TargetPixels);
+      Inc(SourceRgb);
+    end;
+  end;
+
+  procedure FromGrayscaleAlpha;
+  var
+    SourceGa: PVector2Byte;
+    I: Cardinal;
+  begin
+    SourceGa := TGrayscaleAlphaImage(Source).Pixels;
+    for I := 1 to Width * Height * Depth do
+    begin
+      TargetPixels^ := SourceGa^.X / High(Byte);
+      Inc(TargetPixels);
+      Inc(SourceGa);
+    end;
+  end;
+
+  procedure FromGrayscale;
+  var
+    SourceG: PByte;
+    I: Cardinal;
+  begin
+    SourceG := TGrayscaleImage(Source).Pixels;
+    if TGrayscaleImage(Source).TreatAsAlpha then
+    begin
+      for I := 1 to Width * Height * Depth do
+      begin
+        TargetPixels^ := TGrayscaleImage(Source).GrayscaleColorWhenTreatedAsAlpha / High(Byte);
+        Inc(TargetPixels);
+        Inc(SourceG);
+      end;
+    end else
+    begin
+      for I := 1 to Width * Height * Depth do
+      begin
+        TargetPixels^ := SourceG^ / High(Byte);
+        Inc(TargetPixels);
+        Inc(SourceG);
+      end;
+    end;
+  end;
+
+  procedure FromRgbFloat;
+  var
+    SourceRgbFloat: PVector3;
+    I: Cardinal;
+  begin
+    SourceRgbFloat := TRGBFloatImage(Source).Pixels;
+    for I := 1 to Width * Height * Depth do
+    begin
+      TargetPixels^ := GrayscaleValue(SourceRgbFloat^);
+      Inc(TargetPixels);
+      Inc(SourceRgbFloat);
+    end;
+  end;
+
+begin
+  if Source is TRGBAlphaImage then
+  begin
+    SetSize(Source);
+    TargetPixels := Pixels; // must be done after SetSize
+    FromRGBAlpha;
+    URL := Source.URL + '[Assigned to ' + ClassName + ']';
+  end else
+
+  if Source is TRGBImage then
+  begin
+    SetSize(Source);
+    TargetPixels := Pixels; // must be done after SetSize
+    FromRGB;
+    URL := Source.URL + '[Assigned to ' + ClassName + ']';
+  end else
+
+  if Source is TGrayscaleAlphaImage then
+  begin
+    SetSize(Source);
+    TargetPixels := Pixels; // must be done after SetSize
+    FromGrayscaleAlpha;
+    URL := Source.URL + '[Assigned to ' + ClassName + ']';
+  end else
+
+  if Source is TGrayscaleImage then
+  begin
+    SetSize(Source);
+    TargetPixels := Pixels; // must be done after SetSize
+    FromGrayscale;
+    URL := Source.URL + '[Assigned to ' + ClassName + ']';
+  end else
+
+  if Source is TRGBFloatImage then
+  begin
+    SetSize(Source);
+    TargetPixels := Pixels; // must be done after SetSize
+    FromRgbFloat;
     URL := Source.URL + '[Assigned to ' + ClassName + ']';
   end else
 
