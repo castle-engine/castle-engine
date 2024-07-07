@@ -56,6 +56,9 @@ begin
     //   Img.Width,
     //   Img.Height
     // ]);
+    // happens e.g. when reading TIFF, but TIFF dynamic library not available
+    if Img.Format = ifUnknown then
+      raise EImageLoadError.Create('Reading image using Vampyre Imaging failed, unknown or unsupported format');
     case Img.Format of
       ifGray8: Result := TGrayscaleImage.Create(Img.Width, Img.Height);
       ifA8Gray8: Result := TGrayscaleAlphaImage.Create(Img.Width, Img.Height);
