@@ -33,6 +33,8 @@
     class function ColorComponentsCount: Cardinal; override;
     procedure Assign(const Source: TCastleImage); override;
     procedure InvertColors; override;
+    class procedure MixColors(const OutputColor: Pointer;
+       const Weights: TVector4; const AColors: TVector4Pointer); override;
 
     { Pointer to pixels. Same as RawPixels, only typecasted to PSingle. }
     property Pixels: PSingle read GetPixels;
@@ -91,7 +93,7 @@ begin
   P := Pixels;
   for I := 1 to Width * Height * Depth do
   begin
-    P^ := 1.0 - P^;
+    P^ := Max(1.0 - P^, 0.0); // make sure result is >= 0, even when input > 1.0
     Inc(P);
   end;
 end;
@@ -113,6 +115,19 @@ var
 begin
   Pixel := PixelPtr(X, Y, Z);
   Pixel^ := GrayscaleValue(C);
+end;
+
+class procedure TGrayscaleFloatImage.MixColors(const OutputColor: Pointer;
+  const Weights: TVector4; const AColors: TVector4Pointer);
+var
+  OutputCol: PSingle absolute OutputColor;
+  Cols: array [0..3] of PSingle absolute AColors;
+begin
+  OutputCol^ :=
+    Weights.X * Cols[0]^ +
+    Weights.Y * Cols[1]^ +
+    Weights.Z * Cols[2]^ +
+    Weights.W * Cols[3]^;
 end;
 
 {$endif read_implementation}

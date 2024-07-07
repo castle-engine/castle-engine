@@ -19,12 +19,14 @@
 
 {$ifdef read_interface_const}
 const
-  PixelsImageClasses: array [0..4] of TEncodedImageClass = (
+  PixelsImageClasses: array [0..6] of TEncodedImageClass = (
     TRGBImage,
     TRGBAlphaImage,
     TGrayscaleImage,
     TGrayscaleAlphaImage,
-    TGPUCompressedImage
+    TGPUCompressedImage,
+    TRGBFloatImage,
+    TGrayscaleFloatImage
   );
 {$endif read_interface_const}
 
@@ -206,6 +208,22 @@ begin
         ImageInternalFormat := ImageFormat;
     end;
   end else
+  if Img is TGrayscaleFloatImage then
+  begin
+    ImageSwizzle := Vector4Integer(GL_RED, GL_RED, GL_RED, GL_ONE);
+    if GLFeatures.TextureModernFormatsAndSwizzle then
+    begin
+      ImageFormat := GL_RED;
+      ImageInternalFormat := GL_R32F;
+    end else
+    begin
+      ImageFormat := GL_LUMINANCE;
+      if GLFeatures.EnableFixedFunction then
+        ImageInternalFormat := Img.ColorComponentsCount
+      else
+        ImageInternalFormat := ImageFormat;
+    end;
+  end else
     raise EImageClassNotSupportedForOpenGL.CreateFmt('Image class %s cannot be loaded to OpenGL', [Img.ClassName]);
 end;
 
@@ -294,7 +312,8 @@ begin
      (Img is TGrayscaleAlphaImage) then
     Result := GL_UNSIGNED_BYTE
   else
-  if Img is TRGBFloatImage then
+  if (Img is TRGBFloatImage) or
+     (Img is TGrayscaleFloatImage) then
     Result := GL_FLOAT
   else
     raise EImageClassNotSupportedForOpenGL.CreateFmt('Image class %s cannot be loaded to OpenGL',

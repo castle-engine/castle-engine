@@ -1,5 +1,5 @@
 {
-  Copyright 2009-2022 Michalis Kamburelis.
+  Copyright 2009-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -43,18 +43,21 @@ const
     TRGBImage,
     TRGBAlphaImage,
     TGrayscaleImage,
-    TGrayscaleAlphaImage);
+    TGrayscaleAlphaImage
+  );
 
   { All image classes that may be handled by OpenGL.
     Some of them may require specific OpenGL extensions or versions
     (like GPU-compressed or float textures). }
-  TextureImageClassesAll: array [0..5] of TEncodedImageClass = (
+  TextureImageClassesAll: array [0..6] of TEncodedImageClass = (
     TRGBImage,
     TRGBAlphaImage,
     TGrayscaleImage,
     TGrayscaleAlphaImage,
     TGPUCompressedImage,
-    TRGBFloatImage);
+    TRGBFloatImage,
+    TGrayscaleFloatImage
+  );
 
 { Load image suitable for a texture.
   This will load image to memory formats supported by common
