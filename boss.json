@@ -1,0 +1,9 @@
+{
+	"name": "castle-engine",
+	"description": "Cross-platform (desktop, mobile, console) 3D and 2D game engine. Powerful visual editor. Support for glTF, X3D, Spine and more. Fast clean code using modern Pascal. Free and open-source.",
+	"version": "7.0-alpha3",
+	"homepage": "https://castle-engine.io/",
+	"mainsrc": "./src",
+	"projects": [],
+	"dependencies": {}
+}
