@@ -2321,7 +2321,7 @@ type
       always ends with CastleUtils.NL. }
     function VideoSettingsDescribe: String;
 
-    { Change the screen size, color bits and such, following the directions
+    (*Change the screen size, color bits and such, following the directions
       you set in VideoColorBits, VideoResize,
       VideoResizeWidth / VideoResizeHeight, and VideoFrequency variables.
       Returns @true if success.
@@ -2370,7 +2370,7 @@ end.
 
       TODO: Prefix "Video" for the family of these functions is not clear.
       Something like "Screen" would be better.
-    }
+    *)
     function TryVideoChange: boolean;
 
     { Change the screen size, color bits and such, following the directions
