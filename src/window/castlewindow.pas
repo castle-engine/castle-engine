@@ -2326,6 +2326,45 @@ type
       VideoResizeWidth / VideoResizeHeight, and VideoFrequency variables.
       Returns @true if success.
 
+      Example usage:
+
+@longCode(#
+unit GameChangeVideoResolution;
+
+interface
+
+var
+  // TODO: Allow user to configure it somehow, maybe read
+  UserWantsToChangeScreenResolution: Boolean = true;
+
+{ Change screen resolution, if desired by UserWantsToChangeScreenResolution. }
+procedure ChangeResolution;
+
+implementation
+
+uses CastleWindow, CastleLog, CastleConfig;
+
+procedure ChangeResolution;
+begin
+  if UserWantsToChangeScreenResolution then
+  begin
+    Application.VideoResize := true;
+    // TODO: Allow user to choose the desired resolution
+    Application.VideoResizeWidth := 1024;
+    Application.VideoResizeHeight := 768;
+    if not Application.TryVideoChange then
+      WritelnWarning('Cannot change screen resolution, continuing with current settings');
+  end;
+end;
+
+initialization
+  UserWantsToChangeScreenResolution := UserConfig.GetValue('video/change_resolution', false);
+  ChangeResolution;
+finalization
+  Application.VideoReset;
+end.
+#)
+
       TODO: Expose methods like EnumeratePossibleVideoConfigurations to predict
       what video settings are possible.
 
