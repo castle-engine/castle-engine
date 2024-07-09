@@ -2334,7 +2334,7 @@ unit GameChangeVideoResolution;
 interface
 
 var
-  // TODO: Allow user to configure it somehow, maybe read
+  // TODO: Allow user to configure it somehow
   UserWantsToChangeScreenResolution: Boolean = true;
 
 { Change screen resolution, if desired by UserWantsToChangeScreenResolution. }
