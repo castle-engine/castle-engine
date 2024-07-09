@@ -15,11 +15,21 @@ Reasons:
 
 1. Their implementation in _Vampyre Imaging Library_ is platform-specific, and doesn't support all compilers and platforms we support, at least not easily.
 
-2. Not trivial to use, as you need _LibTiff_ shared library in case of FPC + Windows, Linx, macOS.
+2. Not trivial to use, as you need _LibTiff_ shared library in case of FPC + Linux, macOS, or Delphi + Win64.
 
-For example, the TIFF format relies on a shared library _LibTiff_, that can be obtained for Linux, Windows and macOS, but it is uncertain can we support it on mobile (Android, iOS). We don't want a situation in which you design your graphics using TIFF on a desktop, and are surprised that on mobile you need to convert everything to PNG.
+For example, the TIFF format relies on a shared library _LibTiff_ for some platform/compiler combinations. It is uncertain can we support it on mobile (Android, iOS). We don't want a situation in which you design your graphics using TIFF on a desktop, and are surprised that on mobile you need to convert everything to PNG.
 
 It is also an extra burden to implement, due to need to deploy _LibTiff_ to all the potential platforms. We have to limit such work, esp. when we can recommend a better replacement -- in case of TIFF, we recommend using PNG.
+
+## Example project for thigns below
+
+Clone https://github.com/castle-engine/castle-image-viewer and switch to branch `extra-image-formats`.
+
+It has all things described below, including:
+
+- modifications in `CastleEngineManifest.xml` to enable TIFF support and package all new libraries and scripts added below,
+- `run.sh` to set `LD_LIBRARY_PATH` to find `libtiff.so.5` on Linux,
+- Linux libraries in `libraries/x86_64-linux/` .
 
 ## Activating extra support
 
@@ -72,6 +82,30 @@ castle-engine compile
 castle-engine run # will run run.sh
 ```
 
-## Example project
+## Getting LibTiff on Windows
 
-Clone https://github.com/castle-engine/castle-image-viewer and switch to branch `extra-image-formats`.
+Loading TIFF images on Windows requires `libtiff.dll` in case of compiling with Delphi for Win64.
+
+NOTE: The DLL is not necessary for Delphi + Win32 or FPC + any Windows (32 or 64). These combinations use ready TIFF support compiled-in (the `obj` files in `src/vampyre_imaginglib/src/Extensions/LibTiff/Compiled/`) and it should just work out-of-the-box. You can ignore this section if you don't care about Delphi + Win64.
+
+Following http://www.libtiff.org/build.html :
+
+- Get CMake, from https://cmake.org/download/ . I found it easiest to use Windows installer. Allow it to modify PATH, to have `cmake` on command-line.
+
+- TODO: Finish this.
+
+   And commit resulting DLL to castle-image-viewer in extra-image-formats branch.
+
+   And mention it has DLL in "## Example project for thigns below" section above.
+
+## Packacking LibTiff linbraries and run.sh script
+
+Extend your `CastleEngineManifest.xml` to package extra libraries and scripts:
+
+```xml
+<package>
+  <include path="libtiff.dll" /> <!-- necessary if you use Delphi + Win64 -->
+  <include path="run.sh" />
+  <include path="libraries/x86_64-linux/" recursive="True" />
+</package>
+```
