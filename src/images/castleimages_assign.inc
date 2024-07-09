@@ -724,6 +724,20 @@ var
     end;
   end;
 
+  procedure FromRgbAlphaFloat;
+  var
+    SourceRgbaFloat: PVector4;
+    I: Cardinal;
+  begin
+    SourceRgbaFloat := TRGBAlphaFloatImage(Source).Pixels;
+    for I := 1 to Width * Height * Depth do
+    begin
+      TargetPixels^ := GrayscaleValue(PVector3(SourceRgbaFloat)^);
+      Inc(TargetPixels);
+      Inc(SourceRgbaFloat);
+    end;
+  end;
+
 begin
   if Source is TRGBAlphaImage then
   begin
@@ -754,6 +768,188 @@ begin
     SetSize(Source);
     TargetPixels := Pixels; // must be done after SetSize
     FromGrayscale;
+    URL := Source.URL + '[Assigned to ' + ClassName + ']';
+  end else
+
+  if Source is TRGBFloatImage then
+  begin
+    SetSize(Source);
+    TargetPixels := Pixels; // must be done after SetSize
+    FromRgbFloat;
+    URL := Source.URL + '[Assigned to ' + ClassName + ']';
+  end else
+
+  if Source is TRGBAlphaFloatImage then
+  begin
+    SetSize(Source);
+    TargetPixels := Pixels; // must be done after SetSize
+    FromRgbAlphaFloat;
+    URL := Source.URL + '[Assigned to ' + ClassName + ']';
+  end else
+
+    inherited;
+end;
+
+{ TRGBAlphaFloatImage ------------------------------------------------------- }
+
+procedure TRGBAlphaFloatImage.Assign(const Source: TCastleImage);
+var
+  TargetPixels: PVector4;
+
+  procedure FromRGBAlpha;
+  var
+    SourceRgba: PVector4Byte;
+    I: Cardinal;
+  begin
+    SourceRgba := TRGBAlphaImage(Source).Pixels;
+    for I := 1 to Width * Height * Depth do
+    begin
+      TargetPixels^.X := SourceRgba^.X / High(Byte);
+      TargetPixels^.Y := SourceRgba^.Y / High(Byte);
+      TargetPixels^.Z := SourceRgba^.Z / High(Byte);
+      TargetPixels^.W := SourceRgba^.W / High(Byte);
+      Inc(TargetPixels);
+      Inc(SourceRgba);
+    end;
+  end;
+
+  procedure FromRGB;
+  var
+    SourceRgb: PVector3Byte;
+    I: Cardinal;
+  begin
+    SourceRgb := TRGBImage(Source).Pixels;
+    for I := 1 to Width * Height * Depth do
+    begin
+      TargetPixels^.X := SourceRgb^.X / High(Byte);
+      TargetPixels^.Y := SourceRgb^.Y / High(Byte);
+      TargetPixels^.Z := SourceRgb^.Z / High(Byte);
+      TargetPixels^.W := 1.0;
+      Inc(TargetPixels);
+      Inc(SourceRgb);
+    end;
+  end;
+
+  procedure FromGrayscaleAlpha;
+  var
+    SourceGa: PVector2Byte;
+    I: Cardinal;
+  begin
+    SourceGa := TGrayscaleAlphaImage(Source).Pixels;
+    for I := 1 to Width * Height * Depth do
+    begin
+      TargetPixels^.X := SourceGa^.X / High(Byte);
+      TargetPixels^.Y := TargetPixels^.X;
+      TargetPixels^.Z := TargetPixels^.X;
+      TargetPixels^.W := SourceGa^.Y / High(Byte);
+      Inc(TargetPixels);
+      Inc(SourceGa);
+    end;
+  end;
+
+  procedure FromGrayscale;
+  var
+    SourceG: PByte;
+    I: Cardinal;
+  begin
+    SourceG := TGrayscaleImage(Source).Pixels;
+    if TGrayscaleImage(Source).TreatAsAlpha then
+    begin
+      for I := 1 to Width * Height * Depth do
+      begin
+        TargetPixels^.X := TGrayscaleImage(Source).GrayscaleColorWhenTreatedAsAlpha / High(Byte);
+        TargetPixels^.Y := TargetPixels^.X;
+        TargetPixels^.Z := TargetPixels^.X;
+        TargetPixels^.W := SourceG^ / High(Byte);
+        Inc(TargetPixels);
+        Inc(SourceG);
+      end;
+    end else
+    begin
+      for I := 1 to Width * Height * Depth do
+      begin
+        TargetPixels^.X := SourceG^ / High(Byte);
+        TargetPixels^.Y := TargetPixels^.X;
+        TargetPixels^.Z := TargetPixels^.X;
+        TargetPixels^.W := 1.0;
+        Inc(TargetPixels);
+        Inc(SourceG);
+      end;
+    end;
+  end;
+
+  procedure FromGrayscaleFloat;
+  var
+    SourceRgbFloat: PSingle;
+    I: Cardinal;
+  begin
+    SourceRgbFloat := TGrayscaleFloatImage(Source).Pixels;
+    for I := 1 to Width * Height * Depth do
+    begin
+      TargetPixels^.X := SourceRgbFloat^;
+      TargetPixels^.Y := SourceRgbFloat^;
+      TargetPixels^.Z := SourceRgbFloat^;
+      TargetPixels^.W := 1.0;
+      Inc(TargetPixels);
+      Inc(SourceRgbFloat);
+    end;
+  end;
+
+  procedure FromRgbFloat;
+  var
+    SourceRgbFloat: PVector3;
+    I: Cardinal;
+  begin
+    SourceRgbFloat := TRGBFloatImage(Source).Pixels;
+    for I := 1 to Width * Height * Depth do
+    begin
+      TargetPixels^.X := SourceRgbFloat^.X;
+      TargetPixels^.Y := SourceRgbFloat^.Y;
+      TargetPixels^.Z := SourceRgbFloat^.Z;
+      TargetPixels^.W := 1.0;
+      Inc(TargetPixels);
+      Inc(SourceRgbFloat);
+    end;
+  end;
+
+begin
+  if Source is TRGBAlphaImage then
+  begin
+    SetSize(Source);
+    TargetPixels := Pixels; // must be done after SetSize
+    FromRGBAlpha;
+    URL := Source.URL + '[Assigned to ' + ClassName + ']';
+  end else
+
+  if Source is TRGBImage then
+  begin
+    SetSize(Source);
+    TargetPixels := Pixels; // must be done after SetSize
+    FromRGB;
+    URL := Source.URL + '[Assigned to ' + ClassName + ']';
+  end else
+
+  if Source is TGrayscaleAlphaImage then
+  begin
+    SetSize(Source);
+    TargetPixels := Pixels; // must be done after SetSize
+    FromGrayscaleAlpha;
+    URL := Source.URL + '[Assigned to ' + ClassName + ']';
+  end else
+
+  if Source is TGrayscaleImage then
+  begin
+    SetSize(Source);
+    TargetPixels := Pixels; // must be done after SetSize
+    FromGrayscale;
+    URL := Source.URL + '[Assigned to ' + ClassName + ']';
+  end else
+
+  if Source is TGrayscaleFloatImage then
+  begin
+    SetSize(Source);
+    TargetPixels := Pixels; // must be done after SetSize
+    FromGrayscaleFloat;
     URL := Source.URL + '[Assigned to ' + ClassName + ']';
   end else
 

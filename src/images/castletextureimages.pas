@@ -49,14 +49,20 @@ const
   { All image classes that may be handled by OpenGL.
     Some of them may require specific OpenGL extensions or versions
     (like GPU-compressed or float textures). }
-  TextureImageClassesAll: array [0..6] of TEncodedImageClass = (
+  TextureImageClassesAll: array [0..7] of TEncodedImageClass = (
+    // 8-bit images
     TRGBImage,
     TRGBAlphaImage,
     TGrayscaleImage,
     TGrayscaleAlphaImage,
+
+    // GPU-compressed
     TGPUCompressedImage,
+
+    // floating-point precision and range
+    TGrayscaleFloatImage,
     TRGBFloatImage,
-    TGrayscaleFloatImage
+    TRGBAlphaFloatImage
   );
 
 { Load image suitable for a texture.

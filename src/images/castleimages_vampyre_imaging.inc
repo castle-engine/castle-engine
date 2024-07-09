@@ -1,6 +1,6 @@
 {%MainUnit castleimages.pas}
 {
-  Copyright 2021-2022 Michalis Kamburelis.
+  Copyright 2021-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -84,6 +84,13 @@ begin
           SwapChannels(Img.ImageDataPointer^, ChannelRed, ChannelBlue);
         end;
       ifB32G32R32F: Result := TRGBFloatImage.Create(Img.Width, Img.Height);
+
+      ifA32R32G32B32F:
+        begin
+          Result := TRGBAlphaFloatImage.Create(Img.Width, Img.Height);
+          SwapChannels(Img.ImageDataPointer^, ChannelRed, ChannelBlue);
+        end;
+      ifA32B32G32R32F: Result := TRGBAlphaFloatImage.Create(Img.Width, Img.Height);
 
       { Example of ifR16G16B16:
         16-bit PNGs from https://www.motionforgepictures.com/height-maps/ .
@@ -197,8 +204,14 @@ begin
       ]);
     end;
   end else
+  if CastleImage is TGrayscaleFloatImage then
+    Format := ifR32F
+  else
   if CastleImage is TRGBFloatImage then
     Format := ifR32G32B32F
+  else
+  if CastleImage is TRGBAlphaFloatImage then
+    Format := ifA32R32G32B32F
   else
   begin
     raise EImageSaveError.CreateFmt('Cannot save image with format %s using Vampyre Imaging', [
@@ -212,7 +225,7 @@ begin
       CopyRowsFlip(TCastleImage(CastleImage))
     else
       CopyWhole(CastleImage);
-    if Format in [ifR8G8B8, ifA8R8G8B8, ifR32G32B32F] then
+    if Format in [ifR8G8B8, ifA8R8G8B8, ifR32G32B32F, ifA32R32G32B32F] then
       SwapChannels(Img.ImageDataPointer^, ChannelRed, ChannelBlue);
     if not Img.SaveToStream(Ext, Stream) then
       raise EImageSaveError.CreateFmt('Cannot save image to file format %s using Vampyre Imaging', [
