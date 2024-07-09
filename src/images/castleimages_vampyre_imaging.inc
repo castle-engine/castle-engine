@@ -106,6 +106,16 @@ begin
           Result := TRGBFloatImage.Create(Img.Width, Img.Height);
         end;
 
+      ifA16R16G16B16, ifA16B16G16R16:
+        begin
+          WritelnLog('Converting Vampyre Imaging format %s -> %s', [
+            GetFormatName(Img.Format),
+            GetFormatName(ifA32B32G32R32F)
+          ]);
+          Img.Format := ifA32B32G32R32F; // calls ConvertImage and actually changes content
+          Result := TRGBAlphaFloatImage.Create(Img.Width, Img.Height);
+        end;
+
       { A few grayscale formats that have precision beyond 8-bit,
         very useful for terrains. }
       ifR32F: Result := TGrayscaleFloatImage.Create(Img.Width, Img.Height);
