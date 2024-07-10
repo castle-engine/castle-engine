@@ -4842,7 +4842,7 @@ begin
               SaveImage(ImgRGB, Format, Stream);
             finally FreeAndNil(ImgRGB) end;
           end else
-            raise EImageSaveError.CreateFmt('Saving image not possible: Cannot save image class %s to this format', [Img.ClassName]);
+            raise EImageSaveError.CreateFmt('Saving image not possible: Cannot save image class %s (this format only allows saving RGB8)', [Img.ClassName]);
         end;
       scG_GA_RGB_RGBA, scG_GA_RGB_RGBA_GPUCompressed:
         begin
@@ -4861,15 +4861,18 @@ begin
               SaveImage(ImgRGB, Format, Stream);
             finally FreeAndNil(ImgRGB) end;
           end else
-            raise EImageSaveError.CreateFmt('Saving image not possible: Cannot save image class %s to this format', [Img.ClassName]);
+            raise EImageSaveError.CreateFmt('Saving image not possible: Cannot save image class %s (this format only allows saving G8, GA8, RGB8, RGBA8, and GPU compressed)', [Img.ClassName]);
         end;
       scRGB_RGBFloat:
         begin
           if (Img is TRGBImage) or
              (Img is TRGBFloatImage) then
             Save(Img, Stream) else
-            raise EImageSaveError.CreateFmt('Saving image not possible: Cannot save image class %s to this format', [Img.ClassName]);
+            raise EImageSaveError.CreateFmt('Saving image not possible: Cannot save image class %s  (this format only allows saving RGB8, RGB-float)', [Img.ClassName]);
         end;
+      scAnything:
+        // Just use the Save callback, don't try to convert
+        Save(Img, Stream);
       {$ifndef COMPILER_CASE_ANALYSIS}
       else raise EInternalError.Create('SaveImage: SavedClasses?');
       {$endif}

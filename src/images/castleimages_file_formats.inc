@@ -340,7 +340,8 @@ type
     scRGB,
     scG_GA_RGB_RGBA,
     scG_GA_RGB_RGBA_GPUCompressed,
-    scRGB_RGBFloat
+    scRGB_RGBFloat,
+    scAnything
   );
 
   { Index of TImageFormatInfo.MimeTypes array and
@@ -440,7 +441,7 @@ const
       { Regardless of using libpng or not, our PNG load/save can handle
         all possibilities. }
       Load: {$ifdef FPC}@{$endif}LoadPNG;
-      Save: {$ifdef FPC}@{$endif}SavePNG; SavedClasses: scG_GA_RGB_RGBA;
+      Save: {$ifdef FPC}@{$endif}SavePNG; SavedClasses: scAnything;
       DetectClass: {$ifdef FPC}@{$endif}InternalDetectClassPNG;
     ),
     ( FormatName: 'Windows BMP image';
@@ -554,7 +555,7 @@ const
       MimeTypes: ('image/tiff', '', '', '', '', '', '');
       ExtsCount: 2; Exts: ('tiff', 'tif', '', '');
       Load: {$ifdef FPC}@{$endif}LoadTIFF;
-      Save: {$ifdef FPC}@{$endif}SaveTIFF; SavedClasses: scG_GA_RGB_RGBA;
+      Save: {$ifdef FPC}@{$endif}SaveTIFF; SavedClasses: scAnything;
       DetectClass: nil;
     ),
     ( FormatName: 'JPEG 2000 image';
