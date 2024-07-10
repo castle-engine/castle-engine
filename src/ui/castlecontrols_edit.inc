@@ -1,6 +1,6 @@
 {%MainUnit castlecontrols.pas}
 {
-  Copyright 2017-2023 Michalis Kamburelis.
+  Copyright 2017-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -247,6 +247,13 @@
     FMin: Int64;
     function GetValue: Int64;
     procedure SetValue(const AValue: Int64);
+    { The Int64 by default is always shown as modified in Object Inspector.
+      We need "stored" methods to make it right.
+      We also want to save Min to JSON when you set it to zero
+      (but we don't need it when you set it to one). }
+    function IsStoredValue: Boolean;
+    function IsStoredMin: Boolean;
+    function IsStoredMax: Boolean;
   public
     constructor Create(AOwner: TComponent); override;
     procedure SetFocused(const AValue: Boolean); override;
@@ -256,11 +263,16 @@
     property Text stored false;
     property TextTranslate default false;
 
-    property Value: Int64 read GetValue write SetValue default 0;
-    { Minimum and maximum limits.
+    { Current value, default 0. }
+    property Value: Int64 read GetValue write SetValue stored IsStoredValue nodefault;
+
+    { Minimum value, default 1.
       Applied only if Min <= Max, which is not the case by default. }
-    property Min: Int64 read FMin write FMin default 1;
-    property Max: Int64 read FMax write FMax default 0;
+    property Min: Int64 read FMin write FMin stored IsStoredMin nodefault;
+
+    { Minimum value, default 1.
+      Applied only if Min <= Max, which is not the case by default. }
+    property Max: Int64 read FMax write FMax stored IsStoredMax nodefault;
   end;
 
 {$endif read_interface}
@@ -874,6 +886,21 @@ end;
 procedure TCastleIntegerEdit.SetValue(const AValue: Int64);
 begin
   Text := IntToStr(AValue);
+end;
+
+function TCastleIntegerEdit.IsStoredValue: Boolean;
+begin
+  Result := Value <> 0;
+end;
+
+function TCastleIntegerEdit.IsStoredMin: Boolean;
+begin
+  Result := Min <> 1;
+end;
+
+function TCastleIntegerEdit.IsStoredMax: Boolean;
+begin
+  Result := Max <> 0;
 end;
 
 {$endif read_implementation}
