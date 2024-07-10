@@ -18,7 +18,7 @@
 program transform_feedback;
 
 uses
-  {$ifdef FPC} GL, GLExt, {$else} OpenGL, OpenGLext, {$endif}
+  {$ifdef OpenGLES} CastleGLES, {$else} CastleGL, {$endif}
   CastleVectors, X3DNodes, CastleWindow, CastleLog,
   CastleUtils, SysUtils, CastleApplicationProperties,
   CastleViewport, CastleTimeUtils, CastleGLShaders, CastleGLUtils;
@@ -111,7 +111,8 @@ begin
   glDrawArrays(GL_TRIANGLES, 0, 3);
 
   // Ping-pong between the 2 buffers
-  PingPong := (PingPong + 1) mod 2;
+  //PingPong := (PingPong + 1) mod 2;
+  PingPong := 1 - PingPong;
 end;
 
 begin

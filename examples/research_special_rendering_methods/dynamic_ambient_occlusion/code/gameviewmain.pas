@@ -24,11 +24,7 @@ unit GameViewMain;
 interface
 
 uses Classes,
-  {$ifdef OpenGLES}
-    CastleGLES,
-  {$else}
-    {$ifdef FPC} GL, GLExt, {$else} OpenGL, OpenGLext, {$endif}
-  {$endif}
+  {$ifdef OpenGLES} CastleGLES, {$else} CastleGL, {$endif}
   CastleVectors, CastleComponentSerialize, CastleViewport,
   CastleUIControls, CastleControls, CastleKeysMouse, CastleGLUtils,
   CastleTransform, CastleShapes, CastleUtils, CastleScene, CastleGLShaders,
@@ -235,6 +231,8 @@ procedure TViewMain.TMyViewport.RenderFromView3D(const Params: TRenderParams);
     begin
       Prog := View.GLSLProgram[Pass];
       Prog.Enable;
+
+      Assert(Assigned(glActiveTexture));
 
       glActiveTexture(GL_TEXTURE0);
       glBindTexture(GL_TEXTURE_2D, View.GLElementsPositionAreaTex);
