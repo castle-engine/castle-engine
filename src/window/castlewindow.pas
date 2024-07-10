@@ -2299,9 +2299,9 @@ type
       VideoResizeHeight. Otherwise, next TryVideoChange and VideoChange will
       use default screen size.
       @groupBegin }
-    VideoResize : boolean;
+    VideoResize: Boolean;
     VideoResizeWidth,
-    VideoResizeheight : integer;
+    VideoResizeHeight: Integer;
     { @groupEnd }
 
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
