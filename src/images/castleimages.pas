@@ -4823,60 +4823,12 @@ end;
 
 procedure SaveImage(const Img: TEncodedImage; const Format: TImageFormat; Stream: TStream); overload;
 var
-  ImgRGB: TRGBImage;
   Save: TImageSaveFunc;
 begin
   if Assigned(ImageFormatInfos[Format].Save) then
   begin
     Save := ImageFormatInfos[Format].Save;
-    case ImageFormatInfos[Format].SavedClasses of
-      scRGB:
-        begin
-          if Img is TRGBImage then
-            Save(Img, Stream) else
-          if Img is TRGBFloatImage then
-          begin
-            ImgRGB := TRGBImage.Create;
-            try
-              ImgRGB.Assign(TRGBFloatImage(Img));
-              SaveImage(ImgRGB, Format, Stream);
-            finally FreeAndNil(ImgRGB) end;
-          end else
-            raise EImageSaveError.CreateFmt('Saving image not possible: Cannot save image class %s (this format only allows saving RGB8)', [Img.ClassName]);
-        end;
-      scG_GA_RGB_RGBA, scG_GA_RGB_RGBA_GPUCompressed:
-        begin
-          if (Img is TRGBImage) or
-             (Img is TRGBAlphaImage) or
-             (Img is TGrayscaleImage) or
-             (Img is TGrayscaleAlphaImage) or
-             ( (Img is TGPUCompressedImage) and
-               (ImageFormatInfos[Format].SavedClasses = scG_GA_RGB_RGBA_GPUCompressed) ) then
-            Save(Img, Stream) else
-          if Img is TRGBFloatImage then
-          begin
-            ImgRGB := TRGBImage.Create;
-            try
-              ImgRGB.Assign(TRGBFloatImage(Img));
-              SaveImage(ImgRGB, Format, Stream);
-            finally FreeAndNil(ImgRGB) end;
-          end else
-            raise EImageSaveError.CreateFmt('Saving image not possible: Cannot save image class %s (this format only allows saving G8, GA8, RGB8, RGBA8, and GPU compressed)', [Img.ClassName]);
-        end;
-      scRGB_RGBFloat:
-        begin
-          if (Img is TRGBImage) or
-             (Img is TRGBFloatImage) then
-            Save(Img, Stream) else
-            raise EImageSaveError.CreateFmt('Saving image not possible: Cannot save image class %s  (this format only allows saving RGB8, RGB-float)', [Img.ClassName]);
-        end;
-      scAnything:
-        // Just use the Save callback, don't try to convert
-        Save(Img, Stream);
-      {$ifndef COMPILER_CASE_ANALYSIS}
-      else raise EInternalError.Create('SaveImage: SavedClasses?');
-      {$endif}
-    end;
+    Save(Img, Stream);
   end else
     raise EImageSaveError.CreateFmt('Saving image class %s not implemented', [Img.ClassName]);
 end;
