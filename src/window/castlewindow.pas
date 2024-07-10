@@ -2326,7 +2326,11 @@ type
       VideoResizeWidth / VideoResizeHeight, and VideoFrequency variables.
       Returns @true if success.
 
-      Example usage:
+      See example code
+      @code(examples/user_interface/screen_resolution_change) for a working
+      example.
+
+      Simple example usage:
 
 @longCode(#
 unit GameChangeVideoResolution;

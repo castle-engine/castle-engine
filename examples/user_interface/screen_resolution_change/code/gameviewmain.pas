@@ -29,6 +29,7 @@ type
     { Components designed using CGE editor.
       These fields will be automatically initialized at Start. }
     LabelFps: TCastleLabel;
+    LabelScreenStatus: TCastleLabel;
     ButtonResolution1024x768: TCastleButton;
     ButtonResolution1280x720: TCastleButton;
     ButtonResolutionCustom: TCastleButton;
@@ -45,6 +46,7 @@ type
     constructor Create(AOwner: TComponent); override;
     procedure Start; override;
     procedure Update(const SecondsPassed: Single; var HandleInput: Boolean); override;
+    function Press(const Event: TInputPressRelease): Boolean; override;
   end;
 
 var
@@ -75,15 +77,22 @@ end;
 procedure TViewMain.Update(const SecondsPassed: Single; var HandleInput: Boolean);
 begin
   inherited;
+
   { This virtual method is executed every frame (many times per second). }
   Assert(LabelFps <> nil, 'If you remove LabelFps from the design, remember to remove also the assignment "LabelFps.Caption := ..." from code');
   LabelFps.Caption := 'FPS: ' + Container.Fps.ToString;
+
+  LabelScreenStatus.Caption := Format('Current Screen Resolution: %d x %d', [
+    Application.ScreenWidth,
+    Application.ScreenHeight
+  ]);
 end;
 
 procedure TViewMain.ChangeResolution(const NewWidth, NewHeight: Integer);
 begin
   Application.VideoResizeWidth := NewWidth;
   Application.VideoResizeHeight := NewHeight;
+  Application.VideoResize := true;
   if not Application.TryVideoChange then
     MessageOK(Application.MainWindow, Format(
       'Cannot change screen resolution to %d x %d', [
@@ -110,6 +119,18 @@ end;
 procedure TViewMain.ClickResolutionDefault(Sender: TObject);
 begin
   Application.VideoReset;
+end;
+
+function TViewMain.Press(const Event: TInputPressRelease): Boolean;
+begin
+  Result := inherited;
+  if Result then Exit;
+
+  if Event.IsKey(keyF5) then
+  begin
+    Container.SaveScreenToDefaultFile;
+    Exit(true);
+  end;
 end;
 
 end.
