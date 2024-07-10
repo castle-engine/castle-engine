@@ -79,6 +79,15 @@ type
 
     { Removes palette from the image, making the image RGB (possibly with alpha). }
     procedure PaletteToRgb;
+
+    { If we have tRNS chunk, and no alpha channel, convert it to alpha channel. }
+    procedure TrnsChunkToAlphaChannel;
+
+    { Add alpha channel (fully opaque), if no alpha chnannel exists now.
+      Should be done only after TrnsChunkToAlphaChannel, never before --
+      to let TrnsChunkToAlphaChannel have a chance to convert tRNS
+      to alpha channel. }
+    procedure AddAlphaIfNecessary;
   public
     { LibPng structures to pass around to LibPng functions. }
     png_ptr: png_structp;
@@ -318,23 +327,8 @@ begin
   end;
 end;
 
-procedure TPngFormat.AnyToGrayscale;
+procedure TPngFormat.TrnsChunkToAlphaChannel;
 begin
-  PaletteToRgb;
-  RgbToGrayscale;
-  RemoveAlpha;
-
-  { Test ColorType and BitDepth are as expected. }
-  Assert(
-    (ColorType = PNG_COLOR_TYPE_GRAY) and BitDepthFinal,
-    'PngTransformAnyToGrayscale failed to apply good png transformations');
-end;
-
-procedure TPngFormat.AnyToGrayscaleAlpha;
-begin
-  PaletteToRgb;
-  RgbToGrayscale;
-
   if TrnsExists and
      (ColorType and PNG_COLOR_MASK_ALPHA = 0) then
   begin
@@ -344,17 +338,41 @@ begin
 
   { In case of some invalid image (Like an image with alpha channel
     and also tRNS chunk ? Does libPNG allow such things ?)
-    probably (not confirmed) I may be left here with TRNSHandled = false.
+    probably (not confirmed) we may be left here with TrnsExists = false.
     Ignore this. }
+end;
 
-  if (ColorType and PNG_COLOR_MASK_ALPHA = 0) and
-     (BitDepth = 8) then
+procedure TPngFormat.AddAlphaIfNecessary;
+begin
+  if ColorType and PNG_COLOR_MASK_ALPHA = 0 then
   begin
-    png_set_filler(png_ptr, High(byte), PNG_FILLER_AFTER);
+    if BitDepth <= 8 then
+      png_set_filler(png_ptr, High(Byte), PNG_FILLER_AFTER)
+    else
+    begin
+      Assert(BitDepth = 16); // there are no PNGs above 16-bit
+      png_set_filler(png_ptr, High(UInt16), PNG_FILLER_AFTER);
+    end;
     ColorType := ColorType or PNG_COLOR_MASK_ALPHA;
   end;
+end;
 
-  { Test ColorType and BitDepth are as expected. }
+procedure TPngFormat.AnyToGrayscale;
+begin
+  PaletteToRgb;
+  RgbToGrayscale;
+  RemoveAlpha;
+  Assert(
+    (ColorType = PNG_COLOR_TYPE_GRAY) and BitDepthFinal,
+    'PngTransformAnyToGrayscale failed to apply good png transformations');
+end;
+
+procedure TPngFormat.AnyToGrayscaleAlpha;
+begin
+  PaletteToRgb;
+  RgbToGrayscale;
+  TrnsChunkToAlphaChannel;
+  AddAlphaIfNecessary;
   Assert(
     (ColorType = PNG_COLOR_TYPE_GRAY_ALPHA) and BitDepthFinal,
     'PngTransformAnyToGrayscaleAlpha failed to apply good png transformations');
@@ -365,7 +383,6 @@ begin
   PaletteToRgb;
   SomeGrayscaleToSomeRgb;
   RemoveAlpha;
-
   Assert(
     (ColorType = PNG_COLOR_TYPE_RGB) and BitDepthFinal,
     'PngTransformAnyToRGB failed to apply good png transformations');
@@ -375,26 +392,8 @@ procedure TPngFormat.AnyToRGBAlpha;
 begin
   PaletteToRgb;
   SomeGrayscaleToSomeRgb;
-
-  if TrnsExists and
-     (ColorType and PNG_COLOR_MASK_ALPHA = 0) then
-  begin
-    png_set_tRNS_to_alpha(png_ptr);
-    TrnsExists := false;
-  end;
-
-  { In case of some invalid image (Like an image with alpha channel
-    and also tRNS chunk ? Does libPNG allow such things ?)
-    probably (not confirmed) I may be left here with TRNSHandled = false.
-    Ignore this. }
-
-  if (ColorType and PNG_COLOR_MASK_ALPHA = 0) and
-     (BitDepth = 8) then
-  begin
-    png_set_filler(png_ptr, High(byte), PNG_FILLER_AFTER);
-    ColorType := ColorType or PNG_COLOR_MASK_ALPHA;
-  end;
-
+  TrnsChunkToAlphaChannel;
+  AddAlphaIfNecessary;
   Assert(
     (ColorType = PNG_COLOR_TYPE_RGB_ALPHA) and BitDepthFinal,
     'PngTransformAnyToRGBAlpha failed to apply good png transformations');
