@@ -14,7 +14,14 @@
   ----------------------------------------------------------------------------
 }
 
-{ Handle PNG format using libpng. }
+{ Handle PNG format using libpng.
+
+  Important references:
+  - LibPng manual ( linked from http://www.libpng.org/pub/png/pngdocs.html ,
+    version for 1.2.5: http://www.libpng.org/pub/png/libpng-1.2.5-manual.html )
+  - PNG test suite ( http://www.schaik.com/pngsuite/ ).
+    It is easy to check with castle-image-viewer.
+}
 
 {$if defined(CASTLE_PNG_DYNAMIC) or defined(CASTLE_PNG_STATIC)}
 
