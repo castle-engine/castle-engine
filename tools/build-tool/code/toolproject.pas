@@ -2025,14 +2025,18 @@ function TCastleProject.ReplaceMacros(const Source: string): string;
   }
   function DelphiDprojDeployFiles: String;
   const
-    AllDelphiPlatformNames: array [0..8] of String = (
-      'Android',
-      'Android64',
-      'iOSDevice64',
-      'iOSSimARM64',
+    AllDelphiPlatformNames: array [0..2] of String = (
+      { For now, commented out platforms that we don't use.
+        These platforms make DPROJ extra large
+        ( see https://forum.castle-engine.io/t/there-is-a-problem-with-generating-files-for-testing-new-features/1264/6 )
+        so for now, at least make it smaller but commenting out platforms that we don't use. }
+      // 'Android',
+      // 'Android64',
+      // 'iOSDevice64',
+      // 'iOSSimARM64',
       'Linux64',
-      'OSX64',
-      'OSXARM64',
+      // 'OSX64',
+      // 'OSXARM64',
       'Win32',
       'Win64'
     );
@@ -2057,30 +2061,46 @@ function TCastleProject.ReplaceMacros(const Source: string): string;
         Files.CaseSensitive := true;
         Files.Sort;
 
+        { Note that we try to minimize output below, as it may get really
+          large for many files.
+          ( see https://forum.castle-engine.io/t/there-is-a-problem-with-generating-files-for-testing-new-features/1264/6 )
+          That's also why we don't add too much whitespace and indentation below.
+        }
+
+        if Files.Count <> 0 then
+        begin
+          ResultBuilder.Append(
+            '<!-- Auto-generated list of deploy files.' + NL +
+            '     We need to list all "data" files to deploy Delphi applications' + NL +
+            '     to non-Windows targets,' + NL +
+            '     see https://castle-engine.io/delphi_linux#data_files_deployment .' + NL +
+            '-->' + NL);
+        end;
+
         for ConfigName in AllDelphiConfigNames do
         begin
           for FileRelativeName in Files do
           begin
             ResultBuilder.Append(Format(
-              '                <DeployFile LocalName="%s\%s" Configuration="%s" Class="File">' + NL, [
+              '<DeployFile LocalName="%s\%s" Configuration="%s" Class="File">' + NL, [
                 TCastleManifest.DataName,
                 FileRelativeName,
                 ConfigName
               ]));
             for PlatformName in AllDelphiPlatformNames do
               ResultBuilder.Append(Format(
-                '                    <Platform Name="%s">' + NL +
-                '                        <RemoteDir>./%s/%s</RemoteDir>' + NL +
-                '                        <RemoteName>%s</RemoteName>' + NL +
-                '                        <Overwrite>true</Overwrite>' + NL +
-                '                    </Platform>' + NL, [
+                ' <Platform Name="%s">' + NL +
+                '  <RemoteDir>./%s/%s</RemoteDir>' + NL +
+                '  <RemoteName>%s</RemoteName>' + NL +
+                '  <Overwrite>true</Overwrite>' + NL +
+                ' </Platform>' + NL, [
                   PlatformName,
                   TCastleManifest.DataName,
                   ExtractFilePath(FileRelativeName),
                   ExtractFileName(FileRelativeName)
                 ]));
             ResultBuilder.Append(
-              '                </DeployFile>' + NL);
+              '</DeployFile>' + NL);
           end;
         end;
       finally FreeAndNil(Files) end;
