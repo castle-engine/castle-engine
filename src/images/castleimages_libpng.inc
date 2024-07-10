@@ -549,16 +549,16 @@ var
       ImgResult := ImageClass.Create(AllocateWidth, AllocateHeight);
       PngFormat.Init(png_ptr, info_ptr);
 
-      if ImageClass = TGrayscaleImage then
+      if (ImageClass = TGrayscaleImage) or (ImageClass = TGrayscaleFloatImage) then
         PngFormat.AnyToGrayscale
       else
       if ImageClass = TGrayscaleAlphaImage then
         PngFormat.AnyToGrayscaleAlpha
       else
-      if ImageClass = TRGBImage then
+      if (ImageClass = TRGBImage) or (ImageClass = TRGBFloatImage) then
         PngFormat.AnyToRGB
       else
-      if ImageClass = TRGBAlphaImage then
+      if (ImageClass = TRGBAlphaImage) or (ImageClass = TRGBAlphaFloatImage) then
         PngFormat.AnyToRGBAlpha;
     end;
   end;
@@ -584,10 +584,227 @@ var
                 (png_get_valid(png_ptr, info_ptr, PNG_INFO_tRNS) <> 0);
   end;
 
-var
-  RowPointers: {$ifdef FPC}TFPList{$else}TList{$endif};
-  i: Cardinal;
-  IsAlpha, IsGrayscale: boolean;
+  function PngImpliesFloatFormat(const png_ptr: png_structp; const info_ptr: png_infop): Boolean;
+  var
+    BitDepth: UInt32;
+  begin
+    BitDepth := png_get_bit_depth(png_ptr, info_ptr);
+    // There are no PNGs above 16-bit (if there will be, they'll need special handling)
+    Assert(BitDepth <= 16);
+    Result := BitDepth > 8;
+  end;
+
+  { Create ImgResult with the most suitable class, and apply libpng transformations
+    to make it match this class. }
+  procedure CreateAndTransform;
+  var
+    IsAlpha, IsGrayscale, IsFloat: boolean;
+  begin
+    IsAlpha := PngIsAlpha(png_ptr, info_ptr);
+    IsGrayscale := PngIsGrayscale(png_ptr, info_ptr);
+    IsFloat := PngImpliesFloatFormat(png_ptr, info_ptr);
+
+    { First, check to what TEncodedImage descendant our image file most matches.
+
+      If it's not on the list of allowed classes, try to transform
+      it to the most matching class. When doing this, we try to perform
+      the most lossless conversion --- this means that we prefer to
+      add image channel or expand grayscale->RGB than the other way around.
+      For example, if image file is grayscale+alpha, we prefer to make
+      it RGB+alpha (expand grayscale to RGB) than to grayscale (strip alpha).
+    }
+
+    if IsFloat then
+    begin
+      if IsGrayScale then
+      begin
+        if IsAlpha then
+        begin
+          // There is no TGrayscaleAlphaFloatImage, due to low perceived usage, so convert to RGB.
+          (*
+          if not TransformPng(TGrayscaleAlphaFloatImage) then
+          if not TransformPng(TRGBAlphaFloatImage) then
+          if not TransformPng(TGrayscaleFloatImage) then
+          if not TransformPng(TRGBFloatImage) then
+            // ignore AllowedImageClasses if we cannot satisfy it, LoadEncodedImage will fix it
+            TransformPng(TGrayscaleAlphaFloatImage, false);
+          *)
+
+          if not TransformPng(TRGBAlphaFloatImage) then
+          if not TransformPng(TRGBFloatImage) then
+          if not TransformPng(TGrayscaleFloatImage) then
+            // ignore AllowedImageClasses if we cannot satisfy it, LoadEncodedImage will fix it
+            TransformPng(TRGBAlphaFloatImage, false);
+        end else
+        begin
+          if not TransformPng(TGrayscaleFloatImage) then
+          if not TransformPng(TRGBFloatImage) then
+          if not TransformPng(TRGBAlphaFloatImage) then
+            // ignore AllowedImageClasses if we cannot satisfy it, LoadEncodedImage will fix it
+            TransformPng(TGrayscaleFloatImage, false);
+        end;
+      end else
+      begin
+        if IsAlpha then
+        begin
+          if not TransformPng(TRGBAlphaFloatImage) then
+          if not TransformPng(TRGBFloatImage) then
+          if not TransformPng(TGrayscaleFloatImage) then
+            // ignore AllowedImageClasses if we cannot satisfy it, LoadEncodedImage will fix it
+            TransformPng(TRGBAlphaFloatImage, false);
+        end else
+        begin
+          if not TransformPng(TRGBFloatImage) then
+          if not TransformPng(TRGBAlphaFloatImage) then
+          if not TransformPng(TGrayscaleFloatImage) then
+            // ignore AllowedImageClasses if we cannot satisfy it, LoadEncodedImage will fix it
+            TransformPng(TRGBFloatImage, false);
+        end;
+      end;
+    end else
+    begin
+      { IsFloat = false   }
+      if IsGrayScale then
+      begin
+        if IsAlpha then
+        begin
+          if not TransformPng(TGrayscaleAlphaImage) then
+          if not TransformPng(TRGBAlphaImage) then
+          if not TransformPng(TGrayscaleImage) then
+          if not TransformPng(TRGBImage) then
+            // ignore AllowedImageClasses if we cannot satisfy it, LoadEncodedImage will fix it
+            TransformPng(TGrayscaleAlphaImage, false);
+        end else
+        begin
+          if not TransformPng(TGrayscaleImage) then
+          if not TransformPng(TGrayscaleAlphaImage) then
+          if not TransformPng(TRGBImage) then
+          if not TransformPng(TRGBAlphaImage) then
+            // ignore AllowedImageClasses if we cannot satisfy it, LoadEncodedImage will fix it
+            TransformPng(TGrayscaleImage, false);
+        end;
+      end else
+      begin
+        if IsAlpha then
+        begin
+          if not TransformPng(TRGBAlphaImage) then
+          if not TransformPng(TRGBImage) then
+          if not TransformPng(TGrayscaleAlphaImage) then
+          if not TransformPng(TGrayscaleImage) then
+            // ignore AllowedImageClasses if we cannot satisfy it, LoadEncodedImage will fix it
+            TransformPng(TRGBAlphaImage, false);
+        end else
+        begin
+          if not TransformPng(TRGBImage) then
+          if not TransformPng(TRGBAlphaImage) then
+          if not TransformPng(TGrayscaleImage) then
+          if not TransformPng(TGrayscaleAlphaImage) then
+            // ignore AllowedImageClasses if we cannot satisfy it, LoadEncodedImage will fix it
+            TransformPng(TRGBImage, false);
+        end;
+      end;
+    end;
+  end;
+
+  { Convert 16-bit row (input) to a row with Single (output).
+    Contain Count values (on input and output). }
+  procedure ConvertRow16ToFloat(const Row16: PUInt16; const RowSingle: PSingle;
+    const Count: Cardinal);
+  var
+    Row16Ptr: PUInt16;
+    RowSinglePtr: PSingle;
+    I: Integer;
+  begin
+    Row16Ptr := Row16;
+    RowSinglePtr := RowSingle;
+    for I := 0 to Integer(Count) - 1 do
+    begin
+      // Integers in PNG are in big-endian order ( https://www.w3.org/TR/png/#7Integers-and-byte-order )
+      Row16Ptr^ := BEtoN(Row16Ptr^);
+      RowSinglePtr^ := Row16Ptr^ / High(UInt16);
+      Inc(Row16Ptr);
+      Inc(RowSinglePtr);
+    end;
+  end;
+
+  { Is Img encoded as floating-point values (we use this when PNG has 16-bit per channel). }
+  function IsImgFloat(const Img: TEncodedImage): Boolean;
+  begin
+    Result :=
+      (Img is TGrayscaleFloatImage) or
+      (Img is TRGBFloatImage) or
+      (Img is TRGBAlphaFloatImage);
+  end;
+
+  { Check PNG reported row size in bytes is as we expect, as ReadRows expect.
+    If this check fails, then ReadRows cannot be run -- the memory layout
+    from LibPNG is not as it would expect. }
+  procedure CheckRowSize;
+  var
+    ImgPixelSize: Cardinal;
+  begin
+    ImgPixelSize := ImgResult.PixelSize;
+    { Account that for float images, we will read UInt16 per each Single
+      This in practice makes ImgPixelSize 2x smaller. }
+    if IsImgFloat(ImgResult) then
+       ImgPixelSize :=  ImgPixelSize * SizeOf(Uint16) div SizeOf(Single);
+
+    png_read_update_info(png_ptr, info_ptr);
+    if png_get_rowbytes(png_ptr, info_ptr) <> ImgPixelSize * ImgResult.Width then
+      raise EInternalError.CreateFmt('PNG transformations resulted in wrong row size. Our image class %s, width: %d, will be read using bytes per pixel: %d, row size: %d. PNG reported row size: %d', [
+        ImgResult.ClassName,
+        ImgResult.Width,
+        ImgPixelSize,
+        ImgPixelSize * ImgResult.Width,
+        png_get_rowbytes(png_ptr, info_ptr)
+      ]);
+  end;
+
+  { Read PNG rows and uncompress them to ImgResult data. }
+  procedure ReadRows;
+  var
+    RowPointers: {$ifdef FPC}TFPList{$else}TList{$endif};
+    I: Cardinal;
+    TempMemory16: Pointer;
+    RowSize16: PtrUInt;
+  begin
+    { now ready RowPointers as ScanLines }
+    RowPointers := {$ifdef FPC}TFPList{$else}TList{$endif}.Create;
+    try
+      RowPointers.Count := Result.Height;
+      // Handle 8-bit data
+      if (ImgResult is TGrayscaleImage) or
+         (ImgResult is TGrayscaleAlphaImage) or
+         (ImgResult is TRGBImage) or
+         (ImgResult is TRGBAlphaImage) then
+      begin
+        for I := 0 to Result.Height - 1 do
+          RowPointers[I] := ImgResult.RowPtr(ImgResult.Height - I - 1);
+        { Actually uncompress PNG data }
+        png_read_image(png_ptr, PPPng_Byte(RowPointers.List));
+      end else
+      // Handle 16-bit data that we load into float-based classes
+      begin
+        Assert(IsImgFloat(ImgResult));
+        RowSize16 := ImgResult.Width * ImgResult.ColorComponentsCount * SizeOf(UInt16);
+        TempMemory16 := GetMem(ImgResult.Height * RowSize16);
+        try
+          for I := 0 to Result.Height - 1 do
+            RowPointers[I] := Pointer(PtrUInt(TempMemory16) + I * RowSize16);
+          { Actually uncompress PNG data }
+          png_read_image(png_ptr, PPPng_Byte(RowPointers.List));
+          for I := 0 to Result.Height - 1 do
+            ConvertRow16ToFloat(RowPointers[I], ImgResult.RowPtr(ImgResult.Height - I - 1),
+              ImgResult.Width * ImgResult.ColorComponentsCount);
+        finally
+          FreeMemNiling(TempMemory16);
+        end;
+      end;
+    finally
+      FreeAndNil(RowPointers);
+    end;
+  end;
+
 begin
   png_ptr := nil;
   try
@@ -635,80 +852,9 @@ begin
     png_set_interlace_handling(png_ptr);
 
     try
-      IsAlpha := PngIsAlpha(png_ptr, info_ptr);
-      IsGrayscale := PngIsGrayscale(png_ptr, info_ptr);
-
-      { First, check to what TEncodedImage descendant our image file most matches.
-
-        If it's not on the list of allowed classes, try to transform
-        it to the most matching class. When doing this, we try to perform
-        the most lossless conversion --- this means that we prefer to
-        add image channel or expand grayscale->RGB than the other way around.
-        For example, if image file is grayscale+alpha, we prefer to make
-        it RGB+alpha (expand grayscale to RGB) than to grayscale (strip alpha).
-      }
-
-      if IsGrayScale then
-      begin
-        if IsAlpha then
-        begin
-          if not TransformPng(TGrayscaleAlphaImage) then
-          if not TransformPng(TRGBAlphaImage) then
-          if not TransformPng(TGrayscaleImage) then
-          if not TransformPng(TRGBImage) then
-            // ignore AllowedImageClasses if we cannot satisfy it, LoadEncodedImage will fix it
-            TransformPng(TGrayscaleAlphaImage, false);
-        end else
-        begin
-          if not TransformPng(TGrayscaleImage) then
-          if not TransformPng(TGrayscaleAlphaImage) then
-          if not TransformPng(TRGBImage) then
-          if not TransformPng(TRGBAlphaImage) then
-            // ignore AllowedImageClasses if we cannot satisfy it, LoadEncodedImage will fix it
-            TransformPng(TGrayscaleImage, false);
-        end;
-      end else
-      begin
-        if IsAlpha then
-        begin
-          if not TransformPng(TRGBAlphaImage) then
-          if not TransformPng(TRGBImage) then
-          if not TransformPng(TGrayscaleAlphaImage) then
-          if not TransformPng(TGrayscaleImage) then
-            // ignore AllowedImageClasses if we cannot satisfy it, LoadEncodedImage will fix it
-            TransformPng(TRGBAlphaImage, false);
-        end else
-        begin
-          if not TransformPng(TRGBImage) then
-          if not TransformPng(TRGBAlphaImage) then
-          if not TransformPng(TGrayscaleImage) then
-          if not TransformPng(TGrayscaleAlphaImage) then
-            // ignore AllowedImageClasses if we cannot satisfy it, LoadEncodedImage will fix it
-            TransformPng(TRGBImage, false);
-        end;
-      end;
-
-      png_read_update_info(png_ptr, info_ptr);
-      Assert(png_get_rowbytes(png_ptr, info_ptr) = ImgResult.PixelSize * ImgResult.Width,
-        SysUtils.Format('Internal error: applied wrong png transformations, width '+
-          '%d with %d bytes per pixel gave row byte length %d instead of %d', [
-            ImgResult.Width, ImgResult.PixelSize,
-            png_get_rowbytes(png_ptr, info_ptr),
-            ImgResult.PixelSize * ImgResult.Width
-          ]));
-
-      { now ready RowPointers as ScanLines }
-      RowPointers := {$ifdef FPC}TFPList{$else}TList{$endif}.Create;
-      try
-        RowPointers.Count := result.Height;
-        for i := 0 to result.Height-1 do
-        RowPointers[i] := ImgResult.RowPtr(ImgResult.Height -i -1);
-        { and go : uncompress image to result.data, therefore loading png image }
-        png_read_image(png_ptr, PPPng_Byte(RowPointers.List));
-      finally
-        FreeAndNil(RowPointers);
-      end;
-
+      CreateAndTransform;
+      CheckRowSize;
+      ReadRows;
       png_read_end(png_ptr, nil);
     except
       Result.Free;
