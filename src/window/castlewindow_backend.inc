@@ -2,12 +2,6 @@
 
 { Include files appropriate for current CastleWindow implementation. }
 
-{ In various include files here, we dereference memory allocated
-  with various libraries, so pointer checks will make false errors. }
-{$ifdef FPC}
-  {$checkpointer off}
-{$endif}
-
 {$ifdef CASTLE_WINDOW_WINAPI}
   {$I castlewindow_winapi.inc}
   {$I castlewindow_winsystem.inc}
@@ -50,7 +44,3 @@
   {$I castlewindow_cocoa.inc}
 {$endif}
 
-{$ifdef KAMBI_CHECK_POINTER}
-{ Turn checkpointer back on }
-{$checkpointer on}
-{$endif}
