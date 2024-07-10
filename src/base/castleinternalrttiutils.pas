@@ -236,21 +236,25 @@ begin
 
   PropType := PropInfo^.PropType{$ifndef FPC}^{$endif};
   DefValue := PropInfo^.Default;
-  { $80000000 means that there's no default value (in case of Single or String,
-    you need to specify it by "nodefault") }
+
+  { $80000000 means that there's no default value (in case of Single or String
+    or Int64, you need to specify it by "nodefault") }
   DefValueUse := DefValue <> Int32($80000000);
+  if not DefValueUse then
+    Exit;
+
   case PropType^.Kind of
     tkInteger, tkChar, tkEnumeration, tkSet, tkWChar:
       begin
         Value := GetOrdProp(PropObject, PropInfo);
-        Result := (Value = DefValue) and DefValueUse;
+        Result := Value = DefValue;
       end;
 {$ifndef FPUNONE}
     tkFloat:
       begin
         FloatValue := GetFloatProp(PropObject, PropInfo);
         DefFloatValue := PSingle(@PropInfo^.Default)^;
-        Result := (FloatValue = DefFloatValue) and DefValueUse;
+        Result := FloatValue = DefFloatValue;
       end;
 {$endif}
     tkMethod:
@@ -263,21 +267,21 @@ begin
 {$ifdef FPC}
     tkSString, tkLString, tkAString:
       begin
-        Result := (GetStrProp(PropObject, PropInfo) = '') and DefValueUse;
+        Result := GetStrProp(PropObject, PropInfo) = '';
       end;
 {$else}
     tkString, tkLString:
       begin
-        Result := (GetAnsiStrProp(PropObject, PropInfo) = '') and DefValueUse;
+        Result := GetAnsiStrProp(PropObject, PropInfo) = '';
       end;
 {$endif}
     tkWString:
       begin
-        Result := (GetWideStrProp(PropObject, PropInfo) = '') and DefValueUse;
+        Result := GetWideStrProp(PropObject, PropInfo) = '';
       end;
     tkUString:
       begin
-        Result := (GetUnicodeStrProp(PropObject, PropInfo) = '') and DefValueUse;
+        Result := GetUnicodeStrProp(PropObject, PropInfo) = '';
       end;
     tkVariant:
       begin
@@ -324,7 +328,7 @@ begin
       begin
         BoolValue := GetOrdProp(PropObject, PropInfo)<>0;
         DefBoolValue := DefValue <> 0;
-        Result := (BoolValue = DefBoolValue) and DefValueUse;
+        Result := BoolValue = DefBoolValue;
       end;
 {$endif}
     else ;
