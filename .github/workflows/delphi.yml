@@ -25,8 +25,9 @@ jobs:
     strategy:
       matrix:
         host-label: [
-          delphi_10_2,
-          delphi_12_1
+          # Temp commented out: servers offline for a week
+          # delphi_10_2,
+          # delphi_12_1
         ]
 
     # Note: This is a self-hosted runner in organization,
