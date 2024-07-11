@@ -48,6 +48,28 @@ var
     Move(Img.ImageDataPointer^.Bits^, Target.RawPixels^, Target.Size);
   end;
 
+  procedure ChangeVampyreFormat(const NewFormat: TImageFormat);
+  begin
+    WritelnLog('Converting Vampyre Imaging format %s -> %s', [
+      GetFormatName(Img.Format),
+      GetFormatName(NewFormat)
+    ]);
+    Img.Format := NewFormat; // calls ConvertImage and actually changes content
+  end;
+
+  { Convert Result from one TCastleImage to another. }
+  procedure ChangeResultClass(const NewClass: TCastleImageClass);
+  var
+    NewResult: TCastleImage;
+  begin
+    Assert(Result <> nil);
+    Assert(Result is TCastleImage);
+    NewResult := NewClass.Create(Result.Width, Result.Height, Result.Depth);
+    NewResult.Assign(Result as TCastleImage);
+    FreeAndNil(Result);
+    Result := NewResult;
+  end;
+
 begin
   Img := TSingleImage.CreateFromStream(Stream);
   try
@@ -98,21 +120,13 @@ begin
         useful for terrains. }
       ifR16G16B16, ifB16G16R16:
         begin
-          WritelnLog('Converting Vampyre Imaging format %s -> %s', [
-            GetFormatName(Img.Format),
-            GetFormatName(ifB32G32R32F)
-          ]);
-          Img.Format := ifB32G32R32F; // calls ConvertImage and actually changes content
+          ChangeVampyreFormat(ifB32G32R32F);
           Result := TRGBFloatImage.Create(Img.Width, Img.Height);
         end;
 
       ifA16R16G16B16, ifA16B16G16R16:
         begin
-          WritelnLog('Converting Vampyre Imaging format %s -> %s', [
-            GetFormatName(Img.Format),
-            GetFormatName(ifA32B32G32R32F)
-          ]);
-          Img.Format := ifA32B32G32R32F; // calls ConvertImage and actually changes content
+          ChangeVampyreFormat(ifA32B32G32R32F);
           Result := TRGBAlphaFloatImage.Create(Img.Width, Img.Height);
         end;
 
@@ -121,29 +135,28 @@ begin
       ifR32F: Result := TGrayscaleFloatImage.Create(Img.Width, Img.Height);
       ifR16F, ifGray16, ifGray32:
         begin
-          WritelnLog('Converting Vampyre Imaging format %s -> %s', [
-            GetFormatName(Img.Format),
-            GetFormatName(ifR32F)
-          ]);
-          Img.Format := ifR32F; // calls ConvertImage and actually changes content
+          ChangeVampyreFormat(ifR32F);
           Result := TGrayscaleFloatImage.Create(Img.Width, Img.Height);
+        end;
+
+      ifA16Gray16:
+        begin
+          { Vampyre doesn't have a format with 2 floats.
+            Convert to 4 floats, which is the closest, and then we'll
+            convert to 2 floats using TGrayscaleAlphaFloatImage.Assign. }
+          ChangeVampyreFormat(ifA32B32G32R32F);
+          Result := TRGBAlphaFloatImage.Create(Img.Width, Img.Height);
+          ChangeResultClass(TGrayscaleAlphaFloatImage);
         end;
 
       else
         begin
-          WritelnLog('Converting Vampyre Imaging format %s -> %s', [
-            GetFormatName(Img.Format),
-            GetFormatName(ifA8R8G8B8)
-          ]);
-
-          { This allows to read indexed (palette), like ifIndex8,
-            or 16-bit (ifA16R16G16B16F, ifA16R16G16B16) through standard
-            8-bit ARGB.
+          { Fallback to read everything through TRGBAlphaImage,
+            which has most usual information (8-bit, RGBA).
 
             Testcase: vampyre_imaginglib/src/Demos/Data/Tigers.tga
             Testcase: vampyre_imaginglib/src/Demos/Data/Tigers.tif }
-          Img.Format := ifA8R8G8B8; // calls ConvertImage and actually changes content
-
+          ChangeVampyreFormat(ifA8R8G8B8);
           Result := TRGBAlphaImage.Create(Img.Width, Img.Height);
           SwapChannels(Img.ImageDataPointer^, ChannelRed, ChannelBlue);
         end;
