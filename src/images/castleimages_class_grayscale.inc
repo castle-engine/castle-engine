@@ -67,7 +67,7 @@
       If TreatAsAlpha = @false: add constant opaque alpha.
 
       If TreatAsAlpha = @true: output alpha will be derived from source grayscale,
-      output intensity will be derived from ColorWhenTreatedAsAlpha. }
+      output luminance will be derived from ColorWhenTreatedAsAlpha. }
     function ToGrayscaleAlphaImage: TGrayscaleAlphaImage; deprecated 'create TGrayscaleAlphaImage and use TGrayscaleAlphaImage.Assign';
 
     {$ifdef FPC}
@@ -115,7 +115,7 @@
       read FColorWhenTreatedAsAlpha write SetColorWhenTreatedAsAlpha;
 
     { Automatically derived from ColorWhenTreatedAsAlpha by averaging RGB components
-      to calculate grayscale intensity.
+      to calculate grayscale luminance.
       By default 255. }
     property GrayscaleColorWhenTreatedAsAlpha: Byte
       read FGrayscaleColorWhenTreatedAsAlpha;

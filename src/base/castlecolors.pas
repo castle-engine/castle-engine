@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2023 Michalis Kamburelis.
+  Copyright 2003-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -89,7 +89,7 @@ const
   { Deprecated, use BlueRGB. @deprecated }
   Blue3Single   : TCastleColorRGB = (X: 0.0; Y: 0.0; Z: 1.0) deprecated;
 
-{ Calculate color intensity, for converting color to grayscale.
+{ Calculate color luminance (intensity), for converting color to grayscale.
   @groupBegin }
 function GrayscaleValue(const v: TCastleColorRGB): Single; {$ifdef SUPPORTS_INLINE} inline; {$endif} overload;
 function GrayscaleValue(const v: TCastleColor): Single; {$ifdef SUPPORTS_INLINE} inline; {$endif} overload;
@@ -112,7 +112,7 @@ type
 function ColorGrayscaleByte(const Color: TVector3Byte): TVector3Byte;
 { @groupEnd }
 
-{ Place color intensity (calculated like for grayscale)
+{ Place color luminance (intensity) (calculated like for grayscale)
   into the given color component. Set the other components zero.
   @groupBegin }
 function ColorRedConvertByte(const Color: TVector3Byte): TVector3Byte;
