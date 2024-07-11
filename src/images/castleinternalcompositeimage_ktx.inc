@@ -62,7 +62,7 @@ type
       GL_RGB             = $1907;
       GL_RGBA            = $1908;
       GL_LUMINANCE       = $1909;
-      GL_LUMINANCE_ALPHA = $190A;
+      //GL_LUMINANCE_ALPHA = $190A;
 
       GL_LUMINANCE8_EXT = $8040;
       GL_BGR            = $80E0;
