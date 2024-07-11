@@ -217,6 +217,10 @@ begin
   if CastleImage is TGrayscaleFloatImage then
     Format := ifR32F
   else
+  // TODO: No ifR32G32F in Vampyre Imaging, we need to convert this to be able to save it
+  // if CastleImage is TGrayscaleAlphaFloatImage then
+  //   Format := ifR32G32F
+  // else
   if CastleImage is TRGBFloatImage then
     Format := ifR32G32B32F
   else

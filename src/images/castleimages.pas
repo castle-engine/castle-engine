@@ -35,10 +35,10 @@
     @item(We have 8-bit color images:
       @orderedList(
         @item(@link(TGrayscaleImage) - 1 channel,
-          can be interpreted as intensity or alpha channel depending on
+          can be interpreted as luminance or alpha channel depending on
           @link(TGrayscaleImage.TreatAsAlpha).)
 
-        @item(@link(TGrayscaleAlphaImage) - 2 channels: intensity and alpha.)
+        @item(@link(TGrayscaleAlphaImage) - 2 channels: luminance and alpha.)
 
         @item(@link(TRGBImage) - 3 channels: red, green, blue.)
 
@@ -48,7 +48,9 @@
 
     @item(We also have an images with floating-point precision and range:
       @orderedList(
-        @item(@link(TGrayscaleFloatImage) - 1 channel: intensity.)
+        @item(@link(TGrayscaleFloatImage) - 1 channel: luminance.)
+
+        @item(@link(TGrayscaleAlphaFloatImage) - 2 channels: luminance and alpha.)
 
         @item(@link(TRGBFloatImage) - 3 channels: red, green, blue.)
 
@@ -1595,6 +1597,14 @@ uses {$ifdef FPC} ExtInterpolation, FPCanvas, FPImgCanv, {$endif}
   CastleInternalCompositeImage, CastleDownload, CastleUriUtils, CastleTimeUtils,
   CastleStreamUtils, CastleInternalDataCompression;
 
+{ Like GrayscaleValue, but also convert input Byte to output Single
+  (converting 0..255 to 0..1). }
+function GrayscaleValueFromByteToSingle(const V: TVector3Byte): Single; overload; forward;
+
+{ Like GrayscaleValue, but also convert input Byte to output Single
+  (converting 0..255 to 0..1). }
+function GrayscaleValueFromByteToSingle(const V: TVector4Byte): Single; overload; forward;
+
 { parts ---------------------------------------------------------------------- }
 
 {$define read_implementation}
@@ -1632,6 +1642,23 @@ begin
  result:=(Abs(Smallint(Color1.X) - Color2.X) <= Tolerance) and
          (Abs(Smallint(Color1.Y) - Color2.Y) <= Tolerance) and
          (Abs(Smallint(Color1.Z) - Color2.Z) <= Tolerance);
+end;
+
+function GrayscaleValueFromByteToSingle(const V: TVector3Byte): Single; overload;
+begin
+  // force multiplication as Word
+  Result := (
+    Word(54 ) * V.X +
+    Word(183) * V.Y +
+    Word(19 ) * V.Z
+  ) / (256 * 256);
+end;
+
+function GrayscaleValueFromByteToSingle(const V: TVector4Byte): Single; overload;
+var
+  Rgb: TVector3Byte absolute V;
+begin
+  Result := GrayscaleValueFromByteToSingle(Rgb);
 end;
 
 { TEncodedImage -------------------------------------------------------------- }
@@ -2876,7 +2903,9 @@ function LoadEncodedImage(Stream: TStream; const StreamFormat: TImageFormat;
       if ClassAllowed(TGrayscaleFloatImage) then
         ReplaceResult(TGrayscaleFloatImage)
       else
-
+      if ClassAllowed(TGrayscaleAlphaFloatImage) then
+        ReplaceResult(TGrayscaleAlphaFloatImage)
+      else
       if ClassAllowed(TRGBAlphaFloatImage) then
         ReplaceResult(TRGBAlphaFloatImage)
       else

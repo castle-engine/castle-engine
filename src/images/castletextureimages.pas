@@ -49,7 +49,7 @@ const
   { All image classes that may be handled by OpenGL.
     Some of them may require specific OpenGL extensions or versions
     (like GPU-compressed or float textures). }
-  TextureImageClassesAll: array [0..7] of TEncodedImageClass = (
+  TextureImageClassesAll: array [0..8] of TEncodedImageClass = (
     // 8-bit images
     TRGBImage,
     TRGBAlphaImage,
@@ -61,6 +61,7 @@ const
 
     // floating-point precision and range
     TGrayscaleFloatImage,
+    TGrayscaleAlphaFloatImage,
     TRGBFloatImage,
     TRGBAlphaFloatImage
   );

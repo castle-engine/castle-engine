@@ -67,7 +67,7 @@ end;
 
 class function TRGBAlphaFloatImage.PixelSize: Cardinal;
 begin
-  Result := 4 * SizeOf(Single);
+  Result := SizeOf(TVector4);
 end;
 
 class function TRGBAlphaFloatImage.ColorComponentsCount: Cardinal;

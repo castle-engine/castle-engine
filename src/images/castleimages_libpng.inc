@@ -558,7 +558,7 @@ var
       if (ImageClass = TGrayscaleImage) or (ImageClass = TGrayscaleFloatImage) then
         PngFormat.AnyToGrayscale
       else
-      if ImageClass = TGrayscaleAlphaImage then
+      if (ImageClass = TGrayscaleAlphaImage) or (ImageClass = TGrayscaleAlphaFloatImage) then
         PngFormat.AnyToGrayscaleAlpha
       else
       if (ImageClass = TRGBImage) or (ImageClass = TRGBFloatImage) then
@@ -626,24 +626,16 @@ var
       begin
         if IsAlpha then
         begin
-          // There is no TGrayscaleAlphaFloatImage, due to low perceived usage, so convert to RGB.
-          (*
           if not TransformPng(TGrayscaleAlphaFloatImage) then
           if not TransformPng(TRGBAlphaFloatImage) then
           if not TransformPng(TGrayscaleFloatImage) then
           if not TransformPng(TRGBFloatImage) then
             // ignore AllowedImageClasses if we cannot satisfy it, LoadEncodedImage will fix it
             TransformPng(TGrayscaleAlphaFloatImage, false);
-          *)
-
-          if not TransformPng(TRGBAlphaFloatImage) then
-          if not TransformPng(TRGBFloatImage) then
-          if not TransformPng(TGrayscaleFloatImage) then
-            // ignore AllowedImageClasses if we cannot satisfy it, LoadEncodedImage will fix it
-            TransformPng(TRGBAlphaFloatImage, false);
         end else
         begin
           if not TransformPng(TGrayscaleFloatImage) then
+          if not TransformPng(TGrayscaleAlphaFloatImage) then
           if not TransformPng(TRGBFloatImage) then
           if not TransformPng(TRGBAlphaFloatImage) then
             // ignore AllowedImageClasses if we cannot satisfy it, LoadEncodedImage will fix it
@@ -655,6 +647,7 @@ var
         begin
           if not TransformPng(TRGBAlphaFloatImage) then
           if not TransformPng(TRGBFloatImage) then
+          if not TransformPng(TGrayscaleAlphaFloatImage) then
           if not TransformPng(TGrayscaleFloatImage) then
             // ignore AllowedImageClasses if we cannot satisfy it, LoadEncodedImage will fix it
             TransformPng(TRGBAlphaFloatImage, false);
@@ -663,6 +656,7 @@ var
           if not TransformPng(TRGBFloatImage) then
           if not TransformPng(TRGBAlphaFloatImage) then
           if not TransformPng(TGrayscaleFloatImage) then
+          if not TransformPng(TGrayscaleAlphaFloatImage) then
             // ignore AllowedImageClasses if we cannot satisfy it, LoadEncodedImage will fix it
             TransformPng(TRGBFloatImage, false);
         end;
@@ -738,6 +732,7 @@ var
   begin
     Result :=
       (Img is TGrayscaleFloatImage) or
+      (Img is TGrayscaleAlphaFloatImage) or
       (Img is TRGBFloatImage) or
       (Img is TRGBAlphaFloatImage);
   end;

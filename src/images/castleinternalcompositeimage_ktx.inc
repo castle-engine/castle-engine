@@ -62,7 +62,7 @@ type
       GL_RGB             = $1907;
       GL_RGBA            = $1908;
       GL_LUMINANCE       = $1909;
-      //GL_LUMINANCE_ALPHA = $190A;
+      GL_LUMINANCE_ALPHA = $190A;
 
       GL_LUMINANCE8_EXT = $8040;
       GL_BGR            = $80E0;
@@ -75,6 +75,7 @@ type
       GL_RG             = $8227;
       //GL_R16F           = $822D;
       GL_R32F           = $822E;
+      GL_RG32F          = $8230;
       GL_RGB32F         = $8815;
       GL_RGBA32F        = $8814;
       GL_R16UI          = $8234;
@@ -520,6 +521,15 @@ begin
      (Header.GlBaseInternalFormat = GL_RED) then
   begin
     ReadFloatImage(TGrayscaleFloatImage, Stream, W, H, D);
+  end else
+  if (Header.GlType = GL_FLOAT) and
+     (Header.GlTypeSize = SizeOf(Single) * 2) and
+     (Header.GlFormat = GL_RG) and
+     (Header.GlInternalFormat = GL_RG32F) and
+     // TODO: What do files actually use as base internal format for this?
+     (Header.GlBaseInternalFormat = {GL_LUMINANCE_ALPHA} GL_RG) then
+  begin
+    ReadFloatImage(TGrayscaleAlphaFloatImage, Stream, W, H, D);
   end else
   if (Header.GlType = GL_FLOAT) and
      (Header.GlTypeSize = SizeOf(Single) * 3) and
