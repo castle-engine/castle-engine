@@ -1,6 +1,6 @@
 // -*- compile-command: "./test_single_testcase.sh TTestImages" -*-
 {
-  Copyright 2004-2023 Michalis Kamburelis.
+  Copyright 2004-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -40,6 +40,7 @@ type
     procedure TestInternalDetectClassPNG;
     procedure TestLoadAnchors;
     procedure TestPreserveTreatAsAlpha;
+    procedure TestByteSinglePrecision;
   end;
 
 implementation
@@ -481,6 +482,22 @@ begin
     finally FreeAndNil(Img2) end;
 
   finally FreeAndNil(Img1) end;
+end;
+
+procedure TTestImages.TestByteSinglePrecision;
+var
+  B: Byte;
+  S: Single;
+begin
+  { Test claim from CastleImages docs that float-based (Single) images
+    can carry Byte information without any loss.
+    We test that each Byte "survives" round-trip to Single,
+    despite being approximated in Single and then rounded. }
+  for B := Low(Byte) to High(Byte) do
+  begin
+    S := B;
+    AssertEquals(B, Round(S));
+  end;
 end;
 
 initialization
