@@ -30,8 +30,9 @@ jobs:
     uses: ./.github/workflows/quick-test.yml
   test_and_pack_docker:
     uses: ./.github/workflows/test-and-pack-docker.yml
-  delphi:
-    uses: ./.github/workflows/delphi.yml
+  # TODO: Temp commented out: servers temporarily offline
+  # delphi:
+  #   uses: ./.github/workflows/delphi.yml
   test_and_pack_runner_native:
     uses: ./.github/workflows/test-and-pack-runner-native.yml
   test_shell:
@@ -43,7 +44,10 @@ jobs:
 
   release:
     name: Release
-    needs: [quick_test, test_and_pack_docker, delphi, test_and_pack_runner_native, test_shell, check_dependencies, api_reference]
+    needs: [quick_test, test_and_pack_docker,
+      # TODO: Temp commented out: servers temporarily offline
+      #delphi,
+      test_and_pack_runner_native, test_shell, check_dependencies, api_reference]
     if: ${{ github.ref == 'refs/heads/master' }}
     runs-on: ubuntu-latest
     steps:
