@@ -41,6 +41,7 @@ type
     procedure TestLoadAnchors;
     procedure TestPreserveTreatAsAlpha;
     procedure TestByteSinglePrecision;
+    procedure TestPngFloat;
   end;
 
 implementation
@@ -498,6 +499,40 @@ begin
     S := B;
     AssertEquals(B, Round(S));
   end;
+end;
+
+procedure TTestImages.TestPngFloat;
+{ Test on images from http://www.schaik.com/pngsuite/ }
+var
+  Img: TCastleImage;
+begin
+  Img := LoadImage('castle-data:/png/basi0g16.png');
+  try
+    AssertEquals(32, Img.Width);
+    AssertEquals(32, Img.Height);
+    AssertTrue(Img is TGrayscaleFloatImage);
+  finally FreeAndNil(Img) end;
+
+  Img := LoadImage('castle-data:/png/basi2c16.png');
+  try
+    AssertEquals(32, Img.Width);
+    AssertEquals(32, Img.Height);
+    AssertTrue(Img is TRGBFloatImage);
+  finally FreeAndNil(Img) end;
+
+  Img := LoadImage('castle-data:/png/basi4a16.png');
+  try
+    AssertEquals(32, Img.Width);
+    AssertEquals(32, Img.Height);
+    AssertTrue(Img is TGrayscaleAlphaFloatImage);
+  finally FreeAndNil(Img) end;
+
+  Img := LoadImage('castle-data:/png/basi6a16.png');
+  try
+    AssertEquals(32, Img.Width);
+    AssertEquals(32, Img.Height);
+    AssertTrue(Img is TRGBAlphaFloatImage);
+  finally FreeAndNil(Img) end;
 end;
 
 initialization
