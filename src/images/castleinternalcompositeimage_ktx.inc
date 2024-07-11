@@ -313,7 +313,7 @@ var
 begin
   Image := ImageClass.Create(W, H, D);
   // Image.PixelSize is always multiple of SizeOf(Single)
-  Assert(Image.PixelSize div 4 = 0);
+  Assert(Image.PixelSize mod 4 = 0);
   // when Image.PixelSize is divisible by 4, there is never any padding
   Assert(RowBytePadding(Image) = 0);
   Images.Add(Image);
@@ -523,16 +523,15 @@ begin
     ReadFloatImage(TGrayscaleFloatImage, Stream, W, H, D);
   end else
   if (Header.GlType = GL_FLOAT) and
-     (Header.GlTypeSize = SizeOf(Single) * 2) and
+     (Header.GlTypeSize = SizeOf(Single)) and
      (Header.GlFormat = GL_RG) and
      (Header.GlInternalFormat = GL_RG32F) and
-     // TODO: What do files actually use as base internal format for this?
-     (Header.GlBaseInternalFormat = {GL_LUMINANCE_ALPHA} GL_RG) then
+     (Header.GlBaseInternalFormat = GL_RG) then
   begin
     ReadFloatImage(TGrayscaleAlphaFloatImage, Stream, W, H, D);
   end else
   if (Header.GlType = GL_FLOAT) and
-     (Header.GlTypeSize = SizeOf(Single) * 3) and
+     (Header.GlTypeSize = SizeOf(Single)) and
      (Header.GlFormat = GL_RGB) and
      (Header.GlInternalFormat = GL_RGB32F) and
      (Header.GlBaseInternalFormat = GL_RGB) then
@@ -540,7 +539,7 @@ begin
     ReadFloatImage(TRGBFloatImage, Stream, W, H, D);
   end else
   if (Header.GlType = GL_FLOAT) and
-     (Header.GlTypeSize = SizeOf(Single) * 4) and
+     (Header.GlTypeSize = SizeOf(Single)) and
      (Header.GlFormat = GL_RGBA) and
      (Header.GlInternalFormat = GL_RGBA32F) and
      (Header.GlBaseInternalFormat = GL_RGBA) then

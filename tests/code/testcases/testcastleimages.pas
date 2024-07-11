@@ -42,6 +42,7 @@ type
     procedure TestPreserveTreatAsAlpha;
     procedure TestByteSinglePrecision;
     procedure TestPngFloat;
+    procedure TestKtxFloat;
   end;
 
 implementation
@@ -531,6 +532,40 @@ begin
   try
     AssertEquals(32, Img.Width);
     AssertEquals(32, Img.Height);
+    AssertTrue(Img is TRGBAlphaFloatImage);
+  finally FreeAndNil(Img) end;
+end;
+
+procedure TTestImages.TestKtxFloat;
+{ Test on images from https://github.com/KhronosGroup/KTX-Software/tree/main/external/astc-encoder/Test/Images/Small }
+var
+  Img: TCastleImage;
+begin
+  Img := LoadImage('castle-data:/ktx/floats/hdr-rgb-r32.ktx');
+  try
+    AssertEquals(16, Img.Width);
+    AssertEquals(16, Img.Height);
+    AssertTrue(Img is TGrayscaleFloatImage);
+  finally FreeAndNil(Img) end;
+
+  Img := LoadImage('castle-data:/ktx/floats/hdr-rgb-rgb32.ktx');
+  try
+    AssertEquals(16, Img.Width);
+    AssertEquals(16, Img.Height);
+    AssertTrue(Img is TRGBFloatImage);
+  finally FreeAndNil(Img) end;
+
+  Img := LoadImage('castle-data:/ktx/floats/hdr-rgb-rg32.ktx');
+  try
+    AssertEquals(16, Img.Width);
+    AssertEquals(16, Img.Height);
+    AssertTrue(Img is TGrayscaleAlphaFloatImage);
+  finally FreeAndNil(Img) end;
+
+  Img := LoadImage('castle-data:/ktx/floats/hdr-rgba-rgba32.ktx');
+  try
+    AssertEquals(16, Img.Width);
+    AssertEquals(16, Img.Height);
     AssertTrue(Img is TRGBAlphaFloatImage);
   finally FreeAndNil(Img) end;
 end;
