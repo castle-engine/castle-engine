@@ -192,8 +192,8 @@ type
       @link(TCastlePlayingSound.Priority) and @link(TCastleSoundSource.Priority).
 
       Any value > 0 is allowed. }
-     property Priority: Single read FPriority write SetPriority
-       {$ifdef FPC}default 1.0{$endif};
+    property Priority: Single read FPriority write SetPriority
+      {$ifdef FPC}default 1.0{$endif};
   end;
 
 {$endif read_interface}

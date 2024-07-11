@@ -154,14 +154,12 @@
       Any value > 0 is allowed. }
     property Pitch: Single read FPitch write SetPitch {$ifdef FPC}default 1.0{$endif};
 
-
     { How important is the sound, between 0.0 (least important) to 1.0 (most important).
 
       The effective priority is a multiplication of @link(TCastleSound.Priority),
       @link(TCastlePlayingSound.Priority) and @link(TCastleSoundSource.Priority)
       (if the sound is played through @link(TCastleSoundSource)). }
      property Priority: Single read FPriority write SetPriority {$ifdef FPC}default 1.0{$endif};
-
 
     { Playback time of this sound, expressed in seconds.
 
