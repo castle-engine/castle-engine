@@ -62,6 +62,7 @@ type
     ImageHitPoint2: TCastleImageControl;
     ImageHitPoint1: TCastleImageControl;
     ImageKey: TCastleImageControl;
+    ButtonPause: TCastleButton;
   strict private
     { Checks this is first Update when the InputJump occurred.
       See ../README.md for documentation about allowed keys/mouse/touch input. }
@@ -162,6 +163,7 @@ type
     function InputJump: Boolean;
     function InputShot: Boolean;
 
+    procedure ClickPause(Sender: TObject);
   public
     constructor Create(AOwner: TComponent); override;
     procedure Start; override;
@@ -1290,6 +1292,11 @@ begin
   { Play game music }
   SoundEngine.LoopingChannel[0].Sound := NamedSound('GameMusic');
 
+  { ButtonPause is necessary to be able to enter pause on mobile,
+    where Escape key is not available. }
+  ButtonPause.Exists := ApplicationProperties.TouchDevice;
+  ButtonPause.OnClick := {$ifdef FPC}@{$endif} ClickPause;
+
   WritelnLog('Configuration done');
 end;
 
@@ -1417,11 +1424,16 @@ begin
 
   if Event.IsKey(keyEscape) and (Container.FrontView = ViewPlay) then
   begin
-    PauseGame;
-    ResumeGameScheduled := true;
-    Container.PushView(ViewPause);
+    ClickPause(nil);
     Exit(true);
   end;
+end;
+
+procedure TViewPlay.ClickPause(Sender: TObject);
+begin
+  PauseGame;
+  ResumeGameScheduled := true;
+  Container.PushView(ViewPause);
 end;
 
 end.

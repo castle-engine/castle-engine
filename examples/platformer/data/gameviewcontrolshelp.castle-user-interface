@@ -29,7 +29,7 @@
         "Red" : 0.0000000000000000E+000
       },
       "FullSize" : true,
-      "Name" : "RectangleControl1"
+      "Name" : "RectDimBackground"
     },
     {
       "$$ClassName" : "TCastleRectangleControl",
