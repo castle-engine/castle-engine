@@ -1340,14 +1340,20 @@ const
   BufferSize = 1000 * 1000;
 var
   ReadCount: Integer;
-  TotalReadCount: Int64;
+  TotalReadCount: PtrUInt;
   MemoryStart: Pointer;
 begin
   Result := TMemoryStream.Create;
   try
     TotalReadCount := 0;
     repeat
-      Result.Size := TotalReadCount + BufferSize;
+      { Note: on 32-bit systems,
+        - TStream.Size is still Int64 (as on all platforms)
+        - But allocated memory for pointer is at most High(UInt32) = High(PtrUInt)
+        Let the assignment "Result.Size" below raise an exception
+        if trying to read file with size > High(UInt32). }
+      Result.Size := Int64(TotalReadCount) + BufferSize;
+
       MemoryStart := Pointer(PtrUInt(Result.Memory) + TotalReadCount);
       ReadCount := GrowingStream.Read(MemoryStart^, BufferSize);
       if ReadCount = 0 then Break;
