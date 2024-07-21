@@ -43,7 +43,7 @@ var
 implementation
 
 uses CastleSoundEngine,
-  GameSound, GameViewMenu, GameViewPlay;
+  GameSound, GameViewMenu;
 
 constructor TViewPause.Create(AOwner: TComponent);
 begin
@@ -53,7 +53,6 @@ end;
 
 procedure TViewPause.ClickResume(Sender: TObject);
 begin
-  ViewPlay.ResumeGame;
   Container.PopView(Self);
 end;
 

@@ -1,5 +1,5 @@
 ﻿{
-  Copyright 2021-2021 Andrzej Kilijański, Michalis Kamburelis.
+  Copyright 2021-2024 Andrzej Kilijański, Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -99,6 +99,14 @@ type
     { List of moving platforms behaviors }
     MovingPlatforms: TMovingPlatformList;
 
+    { Did we show ViewControlsHelp }
+    ControlsHelpShown: Boolean;
+
+    { ResumeGame from nearest Resume call.
+      Set this to @true when doing PauseGame + Container.PushView
+      to show something that pauses the game. }
+    ResumeGameScheduled: Boolean;
+
     procedure ConfigurePlayerPhysics(const Player:TCastleScene);
     procedure ConfigurePlayerAbilities(const Player:TCastleScene);
     procedure PlayerCollisionEnter(const CollisionDetails: TPhysicsCollisionDetails);
@@ -177,8 +185,9 @@ implementation
 
 uses
   SysUtils, Math,
-  CastleLog,
-  GameSound, GameViewMenu, GameViewGameOver, GameViewLevelComplete, GameViewPause;
+  CastleLog, CastleApplicationProperties,
+  GameSound, GameViewMenu, GameViewGameOver, GameViewLevelComplete, GameViewPause,
+  GameViewControlsHelp;
 
 { TBullet -------------------------------------------------------------------- }
 
@@ -1299,6 +1308,12 @@ begin
 
   { Play game music }
   SoundEngine.LoopingChannel[0].Sound := NamedSound('GameMusic');
+
+  if ResumeGameScheduled then
+  begin
+    ResumeGame;
+    ResumeGameScheduled := false;
+  end;
 end;
 
 procedure TViewPlay.Update(const SecondsPassed: Single; var HandleInput: Boolean);
@@ -1310,11 +1325,22 @@ begin
   inherited;
   { This virtual method is executed every frame (many times per second). }
 
+  { Show controls help on mobile, once, when game starts }
+  if (not ControlsHelpShown) and
+     ApplicationProperties.TouchDevice and
+     (Container.FrontView = Self) then
+  begin
+    ControlsHelpShown := true;
+    PauseGame;
+    ResumeGameScheduled := true;
+    Container.PushView(ViewControlsHelp);
+    Exit;
+  end;
+
   { If player is dead and we did not show game over view we do that }
   if IsPlayerDead and (Container.FrontView <> ViewGameOver) then
   begin
     ScenePlayer.Exists := false;
-
     Container.PushView(ViewGameOver);
     Exit;
   end;
@@ -1355,14 +1381,17 @@ begin
     MainViewport.Camera.Translation := CamPos;
   end;
 
-  if CheckboxAdvancedPlayer.Checked then
-    { uncomment to see less advanced versions }
-    //UpdatePlayerByVelocityAndRay(SecondsPassed, HandleInput)
-    //UpdatePlayerByVelocityAndRayWithDblJump(SecondsPassed, HandleInput)
-    //UpdatePlayerByVelocityAndPhysicsRayWithDblJump(SecondsPassed, HandleInput)
-    UpdatePlayerByVelocityAndPhysicsRayWithDblJumpShot(SecondsPassed, HandleInput)
-  else
-    UpdatePlayerSimpleDependOnlyVelocity(SecondsPassed, HandleInput);
+  if Container.FrontView = Self then // do not react to input under ViewPause, ViewControlsHelp
+  begin
+    if CheckboxAdvancedPlayer.Checked then
+      { uncomment to see less advanced versions }
+      //UpdatePlayerByVelocityAndRay(SecondsPassed, HandleInput)
+      //UpdatePlayerByVelocityAndRayWithDblJump(SecondsPassed, HandleInput)
+      //UpdatePlayerByVelocityAndPhysicsRayWithDblJump(SecondsPassed, HandleInput)
+      UpdatePlayerByVelocityAndPhysicsRayWithDblJumpShot(SecondsPassed, HandleInput)
+    else
+      UpdatePlayerSimpleDependOnlyVelocity(SecondsPassed, HandleInput);
+  end;
 end;
 
 function TViewPlay.Press(const Event: TInputPressRelease): Boolean;
@@ -1389,6 +1418,7 @@ begin
   if Event.IsKey(keyEscape) and (Container.FrontView = ViewPlay) then
   begin
     PauseGame;
+    ResumeGameScheduled := true;
     Container.PushView(ViewPause);
     Exit(true);
   end;
