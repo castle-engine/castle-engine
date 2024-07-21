@@ -6,8 +6,7 @@
     {
       "$$ClassName" : "TCastleImageControl",
       "Content" : {
-        "$$ClassName" : "TCastleImagePersistent",
-        "Url" : "file:///home/michalis/sources/castle-engine/castle-engine/examples/platformer/store/google-play/screen1.png"
+        "$$ClassName" : "TCastleImagePersistent"
       },
       "Exists" : false,
       "HeightFraction" : 1.0000000000000000E+000,
