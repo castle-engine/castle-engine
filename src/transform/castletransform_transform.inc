@@ -3450,7 +3450,9 @@ begin
         if IsNan(NewTransformation.Transform.Data[0, 0]) then
           WarningMatrixNan(NewTransformation.Transform);
         NewFrustum := NewFrustum.TransformByInverse(Transform);
-        // 2x slower: NewFrustum := NewFrustum.Transform(InverseTransform);
+        { Equivalent version but slower (more than 2x),
+          see speed tests near TTestCastleFrustum.TestTransformFrustum: }
+        //NewFrustum := NewFrustum.Transform(InverseTransform);
       end;
 
       //FrameProfiler.Stop(fmRenderTransform);
