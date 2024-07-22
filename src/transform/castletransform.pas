@@ -79,7 +79,7 @@ initialization
   TCastleCollider.AutoSizeMinThickness := 0.01;
   TCastleCollider.AutoSizeMinThickness2D := 1;
   TCastleCollider.AutoSizeMinThickness2DDepth := 100;
-  GlobalIdentityMatrix := TMatrix4.Identity;
+  GlobalIdentityTransform.Init;
 
   RegisterSerializableComponent(TCastleTransform, 'Transform');
   RegisterSerializableComponent(TCastleTransformDesign, 'Transform Design (Use Another castle-transform File)');

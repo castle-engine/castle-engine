@@ -683,7 +683,7 @@ begin
     (Params.RenderingCamera.Camera.ProjectionType = ptOrthographic);
   GizmoRendered := TInternalCastleEditorGizmo.ShouldGizmoBeRendered(
     LastIsProjectionOrthographic,
-    Params.Transform^.MultPoint(TVector3.Zero),
+    Params.Transformation^.Transform.MultPoint(TVector3.Zero),
     Params.RenderingCamera.View.Translation
   );
   if not GizmoRendered then

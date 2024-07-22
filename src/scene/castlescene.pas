@@ -693,7 +693,7 @@ begin
   Shape.Fog := ShapeFog(Shape, Render_Params.GlobalFog as TFogNode);
 
   Render_Collector.Add(Shape, RenderOptions,
-    Render_Params.Transform^, Render_Params.DepthRange);
+    Render_Params.Transformation^.Transform, Render_Params.DepthRange);
   IsVisibleNow := true;
 end;
 
@@ -1149,11 +1149,11 @@ begin
     ForceOpaque := not (RenderOptions.Blending and (RenderOptions.Mode = rmFull));
 
     // DistanceCullingCheck* uses this value, and it may be called here
-    RenderCameraPosition := Params.InverseTransform^.MultPoint(
+    RenderCameraPosition := Params.Transformation^.InverseTransform.MultPoint(
       Params.RenderingCamera.View.Translation);
 
     { calculate and check SceneBox }
-    SceneBox := LocalBoundingBox.Transform(Params.Transform^);
+    SceneBox := LocalBoundingBox.Transform(Params.Transformation^.Transform);
     if SVRenderer.GetCasterShadowPossiblyVisible(SceneBox) then
     begin
       { Do not render shadows for objects eliminated by DistanceCulling.
@@ -1189,12 +1189,12 @@ begin
 
           When WholeSceneManifold=true, we render all shapes here.
           The per-scene check already passed above. }
-        ShapeBox := Shape.BoundingBox.Transform(Params.Transform^);
+        ShapeBox := Shape.BoundingBox.Transform(Params.Transformation^.Transform);
         SVRenderer.InitCaster(ShapeBox);
         if RenderOptions.WholeSceneManifold or
            SVRenderer.CasterShadowPossiblyVisible then
         begin
-          ShapeWorldTransform := Params.Transform^ *
+          ShapeWorldTransform := Params.Transformation^.Transform *
             Shape.State.Transformation.Transform;
           Shape.InternalShadowVolumes.RenderSilhouetteShadowVolume(
             Params,
@@ -1541,7 +1541,7 @@ begin
     end;
 
     // RenderCameraPosition is used by DistanceCullingCheck* below
-    RenderCameraPosition := Params.InverseTransform^.MultPoint(
+    RenderCameraPosition := Params.Transformation^.InverseTransform.MultPoint(
       Params.RenderingCamera.View.Translation);
 
     { Do distance culling for whole scene.

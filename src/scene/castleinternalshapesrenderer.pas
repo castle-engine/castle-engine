@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2023 Michalis Kamburelis.
+  Copyright 2003-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -112,8 +112,7 @@ type
 
     { Render all given shapes.
 
-      Note: Params.Transform / InverseTransform may be ignored
-      by this routine.
+      Note: Params.Transformation may be ignored by this routine.
       They should be set to indicate identity.
       They are meaningless here: we have scene transformation in each collected
       shape.
@@ -123,7 +122,7 @@ type
 
       TODO: Split TRenderParams into stuff needed at collection,
       and needed at rendering collecting shapes.
-      Transform / InverseTransform should be only in former. }
+      Transformation:TTransformation should be only in former. }
     procedure Render(const Shapes: TShapesCollector;
       const Params: TRenderParams);
 

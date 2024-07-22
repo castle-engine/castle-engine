@@ -909,7 +909,7 @@
       It does shadow volumes culling inside (so ShadowVolumeRenderer should
       have FrustumCullingInit already initialized).
 
-      Params.Transform/InverseTransform describe the transformation,
+      Params.Transformation describe the transformation,
       just like for @link(Render). }
     procedure RenderShadowVolume(const Params: TRenderParams;
       const ShadowVolumeRenderer: TBaseShadowVolumeRenderer);
@@ -3331,13 +3331,13 @@ end;
 
 procedure TCastleTransform.Render(const Frustum: TFrustum; const Params: TRenderParams);
 var
-  OldFrustum: PFrustum;
+  SavedFrustumPtr: PFrustum;
 begin
-  OldFrustum := Params.Frustum;
+  SavedFrustumPtr := Params.Frustum;
   Params.Frustum := @Frustum;
   try
     Render(Params);
-  finally Params.Frustum := OldFrustum end;
+  finally Params.Frustum := SavedFrustumPtr end;
 end;
 
 procedure TCastleTransform.WarningMatrixNan(const NewParamsInverseTransformValue: TMatrix4);
@@ -3361,8 +3361,7 @@ procedure TCastleTransform.Render(const Params: TRenderParams);
 
   procedure BehaviorsBeforeRender(
     const CameraView: TViewVectors;
-    const ParentWorldTransform, ParentWorldInverseTransform,
-          WorldTransform, WorldInverseTransform: TMatrix4);
+    const ParentWorldTransformation, WorldTransformation: TTransformation);
   var
     I: Integer;
     Beh: TCastleBehavior;
@@ -3370,23 +3369,23 @@ procedure TCastleTransform.Render(const Params: TRenderParams);
     for I := 0 to FBehaviors.Count - 1 do
     begin
       Beh := FBehaviors[I] as TCastleBehavior;
-      Beh.BeforeRender(CameraView,
-        ParentWorldTransform, ParentWorldInverseTransform,
-        WorldTransform, WorldInverseTransform);
+      Beh.BeforeRender(CameraView, ParentWorldTransformation, WorldTransformation);
     end;
   end;
 
 var
   T: TVector3;
-  OldParamsTransform, OldParamsInverseTransform: PMatrix4;
-  NewParamsTransformation: TTransformation;
-  OldInMeaningfulParent: Boolean;
-  OldFrustum: PFrustum;
-  NewFrustumValue: TFrustum;
+  // Saved Params.Xxx before applying our transformation
+  SavedTransformationPtr: PTransformation;
+  SavedFrustumPtr: PFrustum;
+  SavedInMeaningfulParent: Boolean;
   HasSavedDepthRange: Boolean;
   SavedDepthRange: TDepthRange;
+  // Values after applying our transformation
+  NewTransformation: TTransformation;
+  NewFrustum: TFrustum;
 begin
-  OldInMeaningfulParent := Params.InMeaningfulParent;
+  SavedInMeaningfulParent := Params.InMeaningfulParent;
   Params.InMeaningfulParent := Params.InMeaningfulParent and
     { We look at Parent.MeaningfulParent, not Self.MeaningfulParent,
       because CGE editor visualizations on TCastleTransformReference.Reference
@@ -3418,64 +3417,60 @@ begin
       if FBehaviorsNeedBeforeRender then
         BehaviorsBeforeRender(
           Params.RenderingCamera.View,
-          Params.Transform^, Params.InverseTransform^,
-          Params.Transform^, Params.InverseTransform^);
+          Params.Transformation^,
+          Params.Transformation^);
       LocalRender(Params);
     end else
     begin
       //FrameProfiler.Start(fmRenderTransform);
 
-      OldParamsTransform         := Params.Transform;
-      OldParamsInverseTransform  := Params.InverseTransform;
-      OldFrustum                 := Params.Frustum;
-      Assert(OldFrustum <> nil);
+      SavedTransformationPtr := Params.Transformation;
+      SavedFrustumPtr        := Params.Frustum;
+      Assert(SavedFrustumPtr <> nil);
 
-      NewParamsTransformation.Transform        := OldParamsTransform^;
-      NewParamsTransformation.InverseTransform := OldParamsInverseTransform^;
-      NewFrustumValue                          := OldFrustum^;
+      NewTransformation := SavedTransformationPtr^;
+      NewFrustum        := SavedFrustumPtr^;
 
-      Params.Transform        := @NewParamsTransformation.Transform;
-      Params.InverseTransform := @NewParamsTransformation.InverseTransform;
-      Params.Frustum          := @NewFrustumValue;
+      Params.Transformation := @NewTransformation;
+      Params.Frustum        := @NewFrustum;
 
       if InternalIgnoreParentScale then
-        NewParamsTransformation.ScaleToIdentity;
+        NewTransformation.ScaleToIdentity;
 
       { Update NewXxx to apply the transformation defined by this TCastleTransform.
         LocalRender expects Frustum in local coordinates (without transformation),
         so we subtract transformation below. }
       if FOnlyTranslation then
       begin
-        NewParamsTransformation.Translate(T);
-        NewFrustumValue.MoveVar(-T);
+        NewTransformation.Translate(T);
+        NewFrustum.MoveVar(-T);
       end else
       begin
-        InternalTransformationMult(NewParamsTransformation);
-        if IsNan(NewParamsTransformation.Transform.Data[0, 0]) then
-          WarningMatrixNan(NewParamsTransformation.Transform);
-        NewFrustumValue := NewFrustumValue.TransformByInverse(Transform);
-        // 2x slower: NewFrustumValue := NewFrustumValue.Transform(InverseTransform);
+        InternalTransformationMult(NewTransformation);
+        if IsNan(NewTransformation.Transform.Data[0, 0]) then
+          WarningMatrixNan(NewTransformation.Transform);
+        NewFrustum := NewFrustum.TransformByInverse(Transform);
+        // 2x slower: NewFrustum := NewFrustum.Transform(InverseTransform);
       end;
 
       //FrameProfiler.Stop(fmRenderTransform);
       if FBehaviorsNeedBeforeRender then
         BehaviorsBeforeRender(
           Params.RenderingCamera.View,
-          OldParamsTransform^, OldParamsInverseTransform^,
-          Params.Transform^, Params.InverseTransform^);
+          SavedTransformationPtr^,
+          Params.Transformation^);
       LocalRender(Params);
       //FrameProfiler.Start(fmRenderTransform);
 
-      { Restore OldXxx values.
-        They can be restored fast, thanks to using pointers to matrix/frustum. }
-      Params.Transform         := OldParamsTransform;
-      Params.InverseTransform  := OldParamsInverseTransform;
-      Params.Frustum           := OldFrustum;
+      { Restore SavedXxxPtr values.
+        They can be restored fast, thanks to restoring pointers, not content. }
+      Params.Transformation := SavedTransformationPtr;
+      Params.Frustum        := SavedFrustumPtr;
       //FrameProfiler.Stop(fmRenderTransform);
     end;
   end;
 
-  Params.InMeaningfulParent := OldInMeaningfulParent;
+  Params.InMeaningfulParent := SavedInMeaningfulParent;
 
   if HasSavedDepthRange then
     Params.DepthRange := SavedDepthRange;
@@ -3485,10 +3480,12 @@ procedure TCastleTransform.RenderShadowVolume(const Params: TRenderParams;
   const ShadowVolumeRenderer: TBaseShadowVolumeRenderer);
 var
   T: TVector3;
-  OldParamsTransform, OldParamsInverseTransform: PMatrix4;
-  NewParamsTransformation: TTransformation;
-  OldFrustum: PFrustum;
-  NewFrustumValue: TFrustum;
+  // Saved Params.Transformation, Params.Frustum before applying our transformation
+  SavedTransformationPtr: PTransformation;
+  SavedFrustumPtr: PFrustum;
+  // Values after applying our transformation
+  NewTransformation: TTransformation;
+  NewFrustum: TFrustum;
 begin
   T := Translation;
   if FOnlyTranslation and T.IsZero then
@@ -3498,42 +3495,41 @@ begin
   begin
     { TODO: This is a copy-paste of transformation algorithm from TCastleTransform.Render. }
 
-    OldParamsTransform         := Params.Transform;
-    OldParamsInverseTransform  := Params.InverseTransform;
-    OldFrustum                 := Params.Frustum;
-    Assert(OldFrustum <> nil);
+    SavedTransformationPtr := Params.Transformation;
+    SavedFrustumPtr        := Params.Frustum;
+    Assert(SavedFrustumPtr <> nil);
 
-    NewParamsTransformation.Transform        := OldParamsTransform^;
-    NewParamsTransformation.InverseTransform := OldParamsInverseTransform^;
-    NewFrustumValue                          := OldFrustum^;
+    NewTransformation := SavedTransformationPtr^;
+    NewFrustum        := SavedFrustumPtr^;
 
-    Params.Transform        := @NewParamsTransformation.Transform;
-    Params.InverseTransform := @NewParamsTransformation.InverseTransform;
-    Params.Frustum          := @NewFrustumValue;
+    Params.Transformation := @NewTransformation;
+    Params.Frustum        := @NewFrustum;
+
+    if InternalIgnoreParentScale then
+      NewTransformation.ScaleToIdentity;
 
     { Update NewXxx to apply the transformation defined by this TCastleTransform.
       LocalRender expects Frustum in local coordinates (without transformation),
       so we subtract transformation below. }
     if FOnlyTranslation then
     begin
-      NewParamsTransformation.Translate(T);
-      NewFrustumValue.MoveVar(-T);
+      NewTransformation.Translate(T);
+      NewFrustum.MoveVar(-T);
     end else
     begin
-      InternalTransformationMult(NewParamsTransformation);
-      if IsNan(NewParamsTransformation.Transform.Data[0, 0]) then
-        WarningMatrixNan(NewParamsTransformation.Transform);
-      NewFrustumValue := NewFrustumValue.TransformByInverse(Transform);
-      // 2x slower: NewFrustumValue := NewFrustumValue.Transform(InverseTransform);
+      InternalTransformationMult(NewTransformation);
+      if IsNan(NewTransformation.Transform.Data[0, 0]) then
+        WarningMatrixNan(NewTransformation.Transform);
+      NewFrustum := NewFrustum.TransformByInverse(Transform);
+      // 2x slower: NewFrustum := NewFrustum.Transform(InverseTransform);
     end;
 
     LocalRenderShadowVolume(Params, ShadowVolumeRenderer);
 
-    { Restore OldXxx values.
-      They can be restored fast, thanks to using pointers to matrix/frustum. }
-    Params.Transform         := OldParamsTransform;
-    Params.InverseTransform  := OldParamsInverseTransform;
-    Params.Frustum           := OldFrustum;
+    { Restore SavedXxxPtr values.
+      They can be restored fast, thanks to restoring pointers, not content. }
+    Params.Transformation := SavedTransformationPtr;
+    Params.Frustum        := SavedFrustumPtr;
   end;
 end;
 
@@ -4427,8 +4423,7 @@ procedure TCastleTransform.UpdateBehaviorsNeedBeforeRender;
   type
     TBeforeRenderEvent = procedure (
       const CameraView: TViewVectors;
-      const ParentWorldTransform, ParentWorldInverseTransform,
-            WorldTransform, WorldInverseTransform: TMatrix4) of object;
+      const ParentParentWorldTransformation, ParentWorldTransformation: TTransformation) of object;
   var
     CurMethod, NotOverriddedMethod: TBeforeRenderEvent;
   begin

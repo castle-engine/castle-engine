@@ -1,5 +1,5 @@
 {
-  Copyright 2006-2023 Michalis Kamburelis.
+  Copyright 2006-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -486,7 +486,7 @@ begin
   if Exists and (Parent is TCastleCamera) then
   begin
     DistanceToCameraSqr := PointsDistanceSqr(
-      Params.Transform^.MultPoint(TVector3.Zero),
+      Params.Transformation^.Transform.MultPoint(TVector3.Zero),
       Params.RenderingCamera.View.Translation
     );
     GizmoVisible := DistanceToCameraSqr > Sqr(DistanceToHide);
