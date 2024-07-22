@@ -1022,8 +1022,8 @@ type
     constructor Create(AOwner: TComponent); override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
 
-    { Load the model given as a X3D nodes graph.
-      This replaces RootNode with new value.
+    { Load the given model.
+      This replaces @link(RootNode) with new value.
 
       @param(ARootNode The model to load.
         This will become a new value of our @link(RootNode) property.)
