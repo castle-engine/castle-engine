@@ -4089,7 +4089,13 @@ begin
     However, show TCastleToolTransform, even though it is csTransient.
     We want to allow selecting joint tools.
   }
+  // Define this to inspect all transformations, including internal (gizmos)
+  {.$define EDITOR_DEBUG_TRANSFORMS}
+  {$ifdef EDITOR_DEBUG_TRANSFORMS}
+  Result := true;
+  {$else}
   Result := (not (csTransient in Child.ComponentStyle)) or (Child is TCastleToolTransform);
+  {$endif}
 end;
 
 function TDesignFrame.Deletable(const Child: TComponent): Boolean;
