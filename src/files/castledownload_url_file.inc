@@ -57,7 +57,11 @@ begin
   { We need to create subdirectory for the file,
     testcase: https://github.com/michaliskambi/test_config_subdir  }
   Dir := ExtractFilePath(FileName);
-  if not ForceDirectories(Dir) then
+  { Ignore Dir = ''. As delphi_tests show, it is possible to get here Url
+    that is relative, so also FileName that is relative, like 'aaa.castle-transform',
+    and then Dir is ''. It's OK to ignore it -- it means the target directory
+    is current directory, no need to create anything. }
+  if (Dir <> '') and (not ForceDirectories(Dir)) then
     raise Exception.CreateFmt('Cannot create directory "%s" for filename "%s"', [
       Dir,
       FileName
