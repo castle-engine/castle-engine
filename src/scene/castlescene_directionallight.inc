@@ -1,6 +1,6 @@
 {%MainUnit castlescene.pas}
 {
-  Copyright 2022-2022 Michalis Kamburelis.
+  Copyright 2022-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -72,15 +72,21 @@ constructor TCastleDirectionalLight.Create(AOwner: TComponent);
 begin
   inherited;
 
+  // defaults
   FIntensity := 1;
   FColor := WhiteRGB;
 
-  { internal stuff create }
+  // initialize light node
   FDirectionalLight := TDirectionalLightNode.Create;
   FDirectionalLight.Global := true;
   LightNode := FDirectionalLight;
   FPunctualLight := FDirectionalLight;
 
+  // apply TCastleDirectionalLight defaults to FDirectionalLight
+  FDirectionalLight.Color := FColor;
+  FDirectionalLight.Intensity := FIntensity;
+
+  // initialize Gizmo
   if Gizmo <> nil then
   begin
     if InternalCastleDesignData <> '' then

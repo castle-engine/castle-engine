@@ -4090,8 +4090,8 @@ begin
     low above ground to see the attenuation on floor.  }
   Light := TCastlePointLight.Create(Owner);
   Light.Name := ProposeComponentName(TCastlePointLight, Owner);
-  Light.Translation := Vector3(4.00, 1.00, 1.00);
-  Light.Intensity := 10;
+  Light.Translation := Vector3(4.00, 3.00, 1.00);
+  Light.Intensity := 100;
   Items.Add(Light);
 
   { purpose: initial 3D object,

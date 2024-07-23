@@ -1,6 +1,6 @@
 {%MainUnit castlescene.pas}
 {
-  Copyright 2022-2022 Michalis Kamburelis.
+  Copyright 2022-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -75,15 +75,24 @@ constructor TCastlePointLight.Create(AOwner: TComponent);
 begin
   inherited;
 
+  // defaults
   FIntensity := 1;
   FRadius := DefaultRadius;
   FAttenuation := Vector3(0, 0, 1);
   FColor := WhiteRGB;
 
-  { internal stuff create }
+  // initialize light node
   FPointLight := TPointLightNode.Create;
   LightNode := FPointLight;
   FPunctualLight := FPointLight;
+
+  // apply TCastlePointLight defaults to FPointLight
+  FPointLight.Color := FColor;
+  FPointLight.Attenuation := FAttenuation;
+  FPointLight.Intensity := FIntensity;
+  FPointLight.Radius := FRadius;
+
+  // initialize Gizmo
   if Gizmo <> nil then
     if InternalCastleDesignData <> '' then
       Gizmo.SetIconUrl(InternalCastleDesignData + 'gizmos/light/light_point.png');

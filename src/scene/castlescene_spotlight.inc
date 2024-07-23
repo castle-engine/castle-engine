@@ -1,6 +1,6 @@
 {%MainUnit castlescene.pas}
 {
-  Copyright 2022-2022 Michalis Kamburelis.
+  Copyright 2022-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -111,6 +111,7 @@ constructor TCastleSpotLight.Create(AOwner: TComponent);
 begin
   inherited;
 
+  // defaults
   FIntensity := 1;
   FRadius := DefaultRadius;
   FAttenuation := Vector3(0, 0, 1);
@@ -118,11 +119,20 @@ begin
   FBeamWidth := DefaultBeamWidth;
   FCutOffAngle := DefaultCutOffAngle;
 
-  { internal stuff create }
+  // initialize light node
   FSpotLight := TSpotLightNode.Create;
   LightNode := FSpotLight;
   FPunctualLight := FSpotLight;
 
+  // apply TCastleSpotLight defaults to FSpotLight
+  FSpotLight.Color := FColor;
+  FSpotLight.Attenuation := FAttenuation;
+  FSpotLight.Intensity := FIntensity;
+  FSpotLight.Radius := FRadius;
+  FSpotLight.BeamWidth := FBeamWidth;
+  FSpotLight.CutOffAngle := FCutOffAngle;
+
+  // initialize Gizmo
   if Gizmo <> nil then
   begin
     if InternalCastleDesignData <> '' then
