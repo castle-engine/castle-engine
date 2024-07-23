@@ -1,15 +1,36 @@
 {
   "$$ClassName" : "TCastleUserInterface",
+  "Border" : {
+    "$$ClassName" : "TBorder"
+  },
+  "BorderColorPersistent" : {
+    "$$ClassName" : "TCastleColorPersistent"
+  },
   "FullSize" : true,
   "Name" : "Group1",
+  "TranslationPersistent" : {
+    "$$ClassName" : "TCastleVector2Persistent"
+  },
   "$Children" : [
     {
       "$$ClassName" : "TCastleViewport",
       "Background" : "Background1",
+      "BackgroundColorPersistent" : {
+        "$$ClassName" : "TCastleColorPersistent"
+      },
+      "Border" : {
+        "$$ClassName" : "TBorder"
+      },
+      "BorderColorPersistent" : {
+        "$$ClassName" : "TCastleColorPersistent"
+      },
       "Camera" : "Camera1",
       "FullSize" : true,
       "Items" : {
         "$$ClassName" : "TCastleRootTransform",
+        "CenterPersistent" : {
+          "$$ClassName" : "TCastleVector3Persistent"
+        },
         "PhysicsProperties" : {
           "$$ClassName" : "TPhysicsProperties",
           "LayerCollisions" : {
@@ -19,12 +40,33 @@
             "$$ClassName" : "TCastleLayerNames"
           }
         },
+        "RotationPersistent" : {
+          "$$ClassName" : "TCastleVector4RotationPersistent"
+        },
+        "ScaleOrientationPersistent" : {
+          "$$ClassName" : "TCastleVector4Persistent"
+        },
+        "ScalePersistent" : {
+          "$$ClassName" : "TCastleVector3Persistent"
+        },
+        "TranslationPersistent" : {
+          "$$ClassName" : "TCastleVector3Persistent"
+        },
         "$Children" : [
           {
             "$$ClassName" : "TCastleCamera",
+            "CenterPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent"
+            },
+            "GravityUpPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent"
+            },
             "Name" : "Camera1",
             "Orthographic" : {
-              "$$ClassName" : "TCastleOrthographic"
+              "$$ClassName" : "TCastleOrthographic",
+              "OriginPersistent" : {
+                "$$ClassName" : "TCastleVector2Persistent"
+              }
             },
             "Perspective" : {
               "$$ClassName" : "TCastlePerspective"
@@ -33,6 +75,12 @@
               "$$ClassName" : "TCastleVector4RotationPersistent",
               "W" : 1.6985483169555664E+000,
               "Y" : 1.0000004768371582E+000
+            },
+            "ScaleOrientationPersistent" : {
+              "$$ClassName" : "TCastleVector4Persistent"
+            },
+            "ScalePersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent"
             },
             "TranslationPersistent" : {
               "$$ClassName" : "TCastleVector3Persistent",
@@ -43,8 +91,27 @@
           },
           {
             "$$ClassName" : "TCastlePointLight",
+            "AttenuationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "Z" : 0.0000000000000000E+000
+            },
+            "CenterPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent"
+            },
+            "ColorPersistent" : {
+              "$$ClassName" : "TCastleColorRGBPersistent"
+            },
             "Intensity" : 1.0000000000000000E+001,
             "Name" : "PointLight1",
+            "RotationPersistent" : {
+              "$$ClassName" : "TCastleVector4RotationPersistent"
+            },
+            "ScaleOrientationPersistent" : {
+              "$$ClassName" : "TCastleVector4Persistent"
+            },
+            "ScalePersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent"
+            },
             "TranslationPersistent" : {
               "$$ClassName" : "TCastleVector3Persistent",
               "X" : 4.0000000000000000E+000,
@@ -54,28 +121,76 @@
           },
           {
             "$$ClassName" : "TCastlePlane",
+            "CenterPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent"
+            },
+            "ColorPersistent" : {
+              "$$ClassName" : "TCastleColorPersistent"
+            },
             "Name" : "Plane1",
             "RenderOptions" : {
-              "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+              "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+              "WireframeColorPersistent" : {
+                "$$ClassName" : "TCastleColorRGBPersistent"
+              }
+            },
+            "RotationPersistent" : {
+              "$$ClassName" : "TCastleVector4RotationPersistent"
+            },
+            "ScaleOrientationPersistent" : {
+              "$$ClassName" : "TCastleVector4Persistent"
+            },
+            "ScalePersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent"
             },
             "SizePersistent" : {
               "$$ClassName" : "TCastleVector2Persistent",
               "X" : 2.0000000000000000E+002,
               "Y" : 2.0000000000000000E+002
+            },
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent"
             }
           },
           {
             "$$ClassName" : "TCastleTransform",
+            "CenterPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent"
+            },
             "Name" : "Buildings",
+            "RotationPersistent" : {
+              "$$ClassName" : "TCastleVector4RotationPersistent"
+            },
+            "ScaleOrientationPersistent" : {
+              "$$ClassName" : "TCastleVector4Persistent"
+            },
+            "ScalePersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent"
+            },
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent"
+            },
             "$Children" : [
               {
                 "$$ClassName" : "TCastleScene",
                 "Cache" : true,
+                "CenterPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene6",
                 "RenderOptions" : {
-                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+                  "WireframeColorPersistent" : {
+                    "$$ClassName" : "TCastleColorRGBPersistent"
+                  }
+                },
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent"
+                },
+                "ScaleOrientationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent"
                 },
                 "ScalePersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
@@ -88,16 +203,28 @@
                   "X" : 2.8737085342407227E+001,
                   "Z" : -1.6005714416503906E+001
                 },
-                "URL" : "castle-data:/kenney_citykitcommercial/large_buildingF.glb"
+                "Url" : "castle-data:/kenney_citykitcommercial/large_buildingF.glb"
               },
               {
                 "$$ClassName" : "TCastleScene",
                 "Cache" : true,
+                "CenterPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene65",
                 "RenderOptions" : {
-                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+                  "WireframeColorPersistent" : {
+                    "$$ClassName" : "TCastleColorRGBPersistent"
+                  }
+                },
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent"
+                },
+                "ScaleOrientationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent"
                 },
                 "ScalePersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
@@ -110,16 +237,28 @@
                   "X" : 2.8737085342407227E+001,
                   "Z" : -3.9374176025390625E+001
                 },
-                "URL" : "castle-data:/kenney_citykitcommercial/large_buildingF.glb"
+                "Url" : "castle-data:/kenney_citykitcommercial/large_buildingF.glb"
               },
               {
                 "$$ClassName" : "TCastleScene",
                 "Cache" : true,
+                "CenterPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene5",
                 "RenderOptions" : {
-                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+                  "WireframeColorPersistent" : {
+                    "$$ClassName" : "TCastleColorRGBPersistent"
+                  }
+                },
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent"
+                },
+                "ScaleOrientationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent"
                 },
                 "ScalePersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
@@ -132,16 +271,28 @@
                   "X" : -1.4389693737030029E-001,
                   "Z" : -1.6005714416503906E+001
                 },
-                "URL" : "castle-data:/kenney_citykitcommercial/large_buildingF.glb"
+                "Url" : "castle-data:/kenney_citykitcommercial/large_buildingF.glb"
               },
               {
                 "$$ClassName" : "TCastleScene",
                 "Cache" : true,
+                "CenterPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene66",
                 "RenderOptions" : {
-                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+                  "WireframeColorPersistent" : {
+                    "$$ClassName" : "TCastleColorRGBPersistent"
+                  }
+                },
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent"
+                },
+                "ScaleOrientationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent"
                 },
                 "ScalePersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
@@ -154,16 +305,28 @@
                   "X" : -1.4389693737030029E-001,
                   "Z" : -4.5079696655273438E+001
                 },
-                "URL" : "castle-data:/kenney_citykitcommercial/large_buildingF.glb"
+                "Url" : "castle-data:/kenney_citykitcommercial/large_buildingF.glb"
               },
               {
                 "$$ClassName" : "TCastleScene",
                 "Cache" : true,
+                "CenterPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene67",
                 "RenderOptions" : {
-                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+                  "WireframeColorPersistent" : {
+                    "$$ClassName" : "TCastleColorRGBPersistent"
+                  }
+                },
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent"
+                },
+                "ScaleOrientationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent"
                 },
                 "ScalePersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
@@ -176,16 +339,28 @@
                   "X" : -3.6911529541015625E+001,
                   "Z" : -4.5079696655273438E+001
                 },
-                "URL" : "castle-data:/kenney_citykitcommercial/large_buildingF.glb"
+                "Url" : "castle-data:/kenney_citykitcommercial/large_buildingF.glb"
               },
               {
                 "$$ClassName" : "TCastleScene",
                 "Cache" : true,
+                "CenterPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene11",
                 "RenderOptions" : {
-                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+                  "WireframeColorPersistent" : {
+                    "$$ClassName" : "TCastleColorRGBPersistent"
+                  }
+                },
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent"
+                },
+                "ScaleOrientationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent"
                 },
                 "ScalePersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
@@ -198,16 +373,28 @@
                   "X" : -2.7295118331909180E+001,
                   "Z" : -1.6005714416503906E+001
                 },
-                "URL" : "castle-data:/kenney_citykitcommercial/large_buildingF.glb"
+                "Url" : "castle-data:/kenney_citykitcommercial/large_buildingF.glb"
               },
               {
                 "$$ClassName" : "TCastleScene",
                 "Cache" : true,
+                "CenterPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene4",
                 "RenderOptions" : {
-                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+                  "WireframeColorPersistent" : {
+                    "$$ClassName" : "TCastleColorRGBPersistent"
+                  }
+                },
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent"
+                },
+                "ScaleOrientationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent"
                 },
                 "ScalePersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
@@ -220,16 +407,28 @@
                   "X" : 3.4964748382568359E+001,
                   "Z" : 1.3800472259521484E+001
                 },
-                "URL" : "castle-data:/kenney_citykitcommercial/large_buildingB.glb"
+                "Url" : "castle-data:/kenney_citykitcommercial/large_buildingB.glb"
               },
               {
                 "$$ClassName" : "TCastleScene",
                 "Cache" : true,
+                "CenterPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene68",
                 "RenderOptions" : {
-                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+                  "WireframeColorPersistent" : {
+                    "$$ClassName" : "TCastleColorRGBPersistent"
+                  }
+                },
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent"
+                },
+                "ScaleOrientationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent"
                 },
                 "ScalePersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
@@ -242,16 +441,28 @@
                   "X" : 5.4715339660644531E+001,
                   "Z" : 1.3800472259521484E+001
                 },
-                "URL" : "castle-data:/kenney_citykitcommercial/large_buildingB.glb"
+                "Url" : "castle-data:/kenney_citykitcommercial/large_buildingB.glb"
               },
               {
                 "$$ClassName" : "TCastleScene",
                 "Cache" : true,
+                "CenterPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene69",
                 "RenderOptions" : {
-                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+                  "WireframeColorPersistent" : {
+                    "$$ClassName" : "TCastleColorRGBPersistent"
+                  }
+                },
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent"
+                },
+                "ScaleOrientationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent"
                 },
                 "ScalePersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
@@ -264,16 +475,28 @@
                   "X" : 5.4715339660644531E+001,
                   "Z" : 2.8090040206909180E+001
                 },
-                "URL" : "castle-data:/kenney_citykitcommercial/large_buildingB.glb"
+                "Url" : "castle-data:/kenney_citykitcommercial/large_buildingB.glb"
               },
               {
                 "$$ClassName" : "TCastleScene",
                 "Cache" : true,
+                "CenterPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene70",
                 "RenderOptions" : {
-                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+                  "WireframeColorPersistent" : {
+                    "$$ClassName" : "TCastleColorRGBPersistent"
+                  }
+                },
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent"
+                },
+                "ScaleOrientationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent"
                 },
                 "ScalePersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
@@ -286,16 +509,28 @@
                   "X" : 4.3220565795898438E+001,
                   "Z" : 2.8090040206909180E+001
                 },
-                "URL" : "castle-data:/kenney_citykitcommercial/large_buildingB.glb"
+                "Url" : "castle-data:/kenney_citykitcommercial/large_buildingB.glb"
               },
               {
                 "$$ClassName" : "TCastleScene",
                 "Cache" : true,
+                "CenterPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene71",
                 "RenderOptions" : {
-                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+                  "WireframeColorPersistent" : {
+                    "$$ClassName" : "TCastleColorRGBPersistent"
+                  }
+                },
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent"
+                },
+                "ScaleOrientationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent"
                 },
                 "ScalePersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
@@ -308,16 +543,28 @@
                   "X" : -6.2330141067504883E+000,
                   "Z" : 2.8090040206909180E+001
                 },
-                "URL" : "castle-data:/kenney_citykitcommercial/large_buildingB.glb"
+                "Url" : "castle-data:/kenney_citykitcommercial/large_buildingB.glb"
               },
               {
                 "$$ClassName" : "TCastleScene",
                 "Cache" : true,
+                "CenterPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene72",
                 "RenderOptions" : {
-                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+                  "WireframeColorPersistent" : {
+                    "$$ClassName" : "TCastleColorRGBPersistent"
+                  }
+                },
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent"
+                },
+                "ScaleOrientationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent"
                 },
                 "ScalePersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
@@ -330,16 +577,28 @@
                   "X" : -3.1851209640502930E+001,
                   "Z" : 2.8090040206909180E+001
                 },
-                "URL" : "castle-data:/kenney_citykitcommercial/large_buildingB.glb"
+                "Url" : "castle-data:/kenney_citykitcommercial/large_buildingB.glb"
               },
               {
                 "$$ClassName" : "TCastleScene",
                 "Cache" : true,
+                "CenterPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene73",
                 "RenderOptions" : {
-                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+                  "WireframeColorPersistent" : {
+                    "$$ClassName" : "TCastleColorRGBPersistent"
+                  }
+                },
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent"
+                },
+                "ScaleOrientationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent"
                 },
                 "ScalePersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
@@ -352,16 +611,28 @@
                   "X" : -4.4783309936523438E+001,
                   "Z" : 6.7371630668640137E+000
                 },
-                "URL" : "castle-data:/kenney_citykitcommercial/large_buildingB.glb"
+                "Url" : "castle-data:/kenney_citykitcommercial/large_buildingB.glb"
               },
               {
                 "$$ClassName" : "TCastleScene",
                 "Cache" : true,
+                "CenterPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene3",
                 "RenderOptions" : {
-                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+                  "WireframeColorPersistent" : {
+                    "$$ClassName" : "TCastleColorRGBPersistent"
+                  }
+                },
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent"
+                },
+                "ScaleOrientationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent"
                 },
                 "ScalePersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
@@ -374,16 +645,28 @@
                   "X" : 2.3193971633911133E+001,
                   "Z" : 1.3800472259521484E+001
                 },
-                "URL" : "castle-data:/kenney_citykitcommercial/large_buildingB.glb"
+                "Url" : "castle-data:/kenney_citykitcommercial/large_buildingB.glb"
               },
               {
                 "$$ClassName" : "TCastleScene",
                 "Cache" : true,
+                "CenterPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene2",
                 "RenderOptions" : {
-                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+                  "WireframeColorPersistent" : {
+                    "$$ClassName" : "TCastleColorRGBPersistent"
+                  }
+                },
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent"
+                },
+                "ScaleOrientationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent"
                 },
                 "ScalePersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
@@ -396,16 +679,28 @@
                   "X" : 1.0574783325195312E+001,
                   "Z" : 1.3800472259521484E+001
                 },
-                "URL" : "castle-data:/kenney_citykitcommercial/large_buildingB.glb"
+                "Url" : "castle-data:/kenney_citykitcommercial/large_buildingB.glb"
               },
               {
                 "$$ClassName" : "TCastleScene",
                 "Cache" : true,
+                "CenterPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene1",
                 "RenderOptions" : {
-                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+                  "WireframeColorPersistent" : {
+                    "$$ClassName" : "TCastleColorRGBPersistent"
+                  }
+                },
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent"
+                },
+                "ScaleOrientationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent"
                 },
                 "ScalePersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
@@ -418,16 +713,28 @@
                   "X" : -3.0790927410125732E+000,
                   "Z" : 1.3800472259521484E+001
                 },
-                "URL" : "castle-data:/kenney_citykitcommercial/large_buildingB.glb"
+                "Url" : "castle-data:/kenney_citykitcommercial/large_buildingB.glb"
               },
               {
                 "$$ClassName" : "TCastleScene",
                 "Cache" : true,
+                "CenterPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene25",
                 "RenderOptions" : {
-                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+                  "WireframeColorPersistent" : {
+                    "$$ClassName" : "TCastleColorRGBPersistent"
+                  }
+                },
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent"
+                },
+                "ScaleOrientationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent"
                 },
                 "ScalePersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
@@ -440,16 +747,28 @@
                   "X" : 2.9857784271240234E+001,
                   "Z" : 4.3879627227783203E+001
                 },
-                "URL" : "castle-data:/kenney_citykitcommercial/small_buildingE.glb"
+                "Url" : "castle-data:/kenney_citykitcommercial/small_buildingE.glb"
               },
               {
                 "$$ClassName" : "TCastleScene",
                 "Cache" : true,
+                "CenterPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene34",
                 "RenderOptions" : {
-                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+                  "WireframeColorPersistent" : {
+                    "$$ClassName" : "TCastleColorRGBPersistent"
+                  }
+                },
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent"
+                },
+                "ScaleOrientationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent"
                 },
                 "ScalePersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
@@ -462,16 +781,28 @@
                   "X" : 4.5752441406250000E+001,
                   "Z" : 4.3680839538574219E+001
                 },
-                "URL" : "castle-data:/kenney_citykitcommercial/small_buildingE.glb"
+                "Url" : "castle-data:/kenney_citykitcommercial/small_buildingE.glb"
               },
               {
                 "$$ClassName" : "TCastleScene",
                 "Cache" : true,
+                "CenterPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene64",
                 "RenderOptions" : {
-                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+                  "WireframeColorPersistent" : {
+                    "$$ClassName" : "TCastleColorRGBPersistent"
+                  }
+                },
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent"
+                },
+                "ScaleOrientationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent"
                 },
                 "ScalePersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
@@ -484,16 +815,28 @@
                   "X" : 6.1467842102050781E+001,
                   "Z" : 4.3073040008544922E+001
                 },
-                "URL" : "castle-data:/kenney_citykitcommercial/small_buildingE.glb"
+                "Url" : "castle-data:/kenney_citykitcommercial/small_buildingE.glb"
               },
               {
                 "$$ClassName" : "TCastleScene",
                 "Cache" : true,
+                "CenterPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene32",
                 "RenderOptions" : {
-                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+                  "WireframeColorPersistent" : {
+                    "$$ClassName" : "TCastleColorRGBPersistent"
+                  }
+                },
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent"
+                },
+                "ScaleOrientationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent"
                 },
                 "ScalePersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
@@ -506,16 +849,28 @@
                   "X" : -2.2116663455963135E+000,
                   "Z" : 4.3879627227783203E+001
                 },
-                "URL" : "castle-data:/kenney_citykitcommercial/small_buildingE.glb"
+                "Url" : "castle-data:/kenney_citykitcommercial/small_buildingE.glb"
               },
               {
                 "$$ClassName" : "TCastleScene",
                 "Cache" : true,
+                "CenterPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene33",
                 "RenderOptions" : {
-                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+                  "WireframeColorPersistent" : {
+                    "$$ClassName" : "TCastleColorRGBPersistent"
+                  }
+                },
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent"
+                },
+                "ScaleOrientationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent"
                 },
                 "ScalePersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
@@ -528,16 +883,28 @@
                   "X" : -1.8230907440185547E+001,
                   "Z" : 4.3461791992187500E+001
                 },
-                "URL" : "castle-data:/kenney_citykitcommercial/small_buildingE.glb"
+                "Url" : "castle-data:/kenney_citykitcommercial/small_buildingE.glb"
               },
               {
                 "$$ClassName" : "TCastleScene",
                 "Cache" : true,
+                "CenterPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene35",
                 "RenderOptions" : {
-                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+                  "WireframeColorPersistent" : {
+                    "$$ClassName" : "TCastleColorRGBPersistent"
+                  }
+                },
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent"
+                },
+                "ScaleOrientationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent"
                 },
                 "ScalePersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
@@ -550,16 +917,28 @@
                   "X" : -3.3795097351074219E+001,
                   "Z" : 4.2799194335937500E+001
                 },
-                "URL" : "castle-data:/kenney_citykitcommercial/small_buildingE.glb"
+                "Url" : "castle-data:/kenney_citykitcommercial/small_buildingE.glb"
               },
               {
                 "$$ClassName" : "TCastleScene",
                 "Cache" : true,
+                "CenterPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene36",
                 "RenderOptions" : {
-                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+                  "WireframeColorPersistent" : {
+                    "$$ClassName" : "TCastleColorRGBPersistent"
+                  }
+                },
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent"
+                },
+                "ScaleOrientationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent"
                 },
                 "ScalePersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
@@ -572,21 +951,30 @@
                   "X" : -4.9427158355712891E+001,
                   "Z" : 4.2191722869873047E+001
                 },
-                "URL" : "castle-data:/kenney_citykitcommercial/small_buildingE.glb"
+                "Url" : "castle-data:/kenney_citykitcommercial/small_buildingE.glb"
               },
               {
                 "$$ClassName" : "TCastleScene",
                 "Cache" : true,
+                "CenterPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene37",
                 "RenderOptions" : {
-                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+                  "WireframeColorPersistent" : {
+                    "$$ClassName" : "TCastleColorRGBPersistent"
+                  }
                 },
                 "RotationPersistent" : {
                   "$$ClassName" : "TCastleVector4RotationPersistent",
                   "W" : 1.5707963705062866E+000,
                   "Y" : -1.0000001192092896E+000
+                },
+                "ScaleOrientationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent"
                 },
                 "ScalePersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
@@ -599,21 +987,30 @@
                   "X" : -6.1298820495605469E+001,
                   "Z" : 3.0608785629272461E+001
                 },
-                "URL" : "castle-data:/kenney_citykitcommercial/small_buildingE.glb"
+                "Url" : "castle-data:/kenney_citykitcommercial/small_buildingE.glb"
               },
               {
                 "$$ClassName" : "TCastleScene",
                 "Cache" : true,
+                "CenterPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene38",
                 "RenderOptions" : {
-                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+                  "WireframeColorPersistent" : {
+                    "$$ClassName" : "TCastleColorRGBPersistent"
+                  }
                 },
                 "RotationPersistent" : {
                   "$$ClassName" : "TCastleVector4RotationPersistent",
                   "W" : 1.5707963705062866E+000,
                   "Y" : -1.0000001192092896E+000
+                },
+                "ScaleOrientationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent"
                 },
                 "ScalePersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
@@ -626,21 +1023,30 @@
                   "X" : -6.1180191040039062E+001,
                   "Z" : 1.4822517395019531E+001
                 },
-                "URL" : "castle-data:/kenney_citykitcommercial/small_buildingE.glb"
+                "Url" : "castle-data:/kenney_citykitcommercial/small_buildingE.glb"
               },
               {
                 "$$ClassName" : "TCastleScene",
                 "Cache" : true,
+                "CenterPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene39",
                 "RenderOptions" : {
-                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+                  "WireframeColorPersistent" : {
+                    "$$ClassName" : "TCastleColorRGBPersistent"
+                  }
                 },
                 "RotationPersistent" : {
                   "$$ClassName" : "TCastleVector4RotationPersistent",
                   "W" : 1.5707963705062866E+000,
                   "Y" : -1.0000001192092896E+000
+                },
+                "ScaleOrientationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent"
                 },
                 "ScalePersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
@@ -653,21 +1059,30 @@
                   "X" : -6.1604267120361328E+001,
                   "Z" : -1.1719820499420166E+000
                 },
-                "URL" : "castle-data:/kenney_citykitcommercial/small_buildingE.glb"
+                "Url" : "castle-data:/kenney_citykitcommercial/small_buildingE.glb"
               },
               {
                 "$$ClassName" : "TCastleScene",
                 "Cache" : true,
+                "CenterPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene40",
                 "RenderOptions" : {
-                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+                  "WireframeColorPersistent" : {
+                    "$$ClassName" : "TCastleColorRGBPersistent"
+                  }
                 },
                 "RotationPersistent" : {
                   "$$ClassName" : "TCastleVector4RotationPersistent",
                   "W" : 1.5707963705062866E+000,
                   "Y" : -1.0000001192092896E+000
+                },
+                "ScaleOrientationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent"
                 },
                 "ScalePersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
@@ -680,21 +1095,30 @@
                   "X" : -6.1851280212402344E+001,
                   "Z" : -1.7189081192016602E+001
                 },
-                "URL" : "castle-data:/kenney_citykitcommercial/small_buildingE.glb"
+                "Url" : "castle-data:/kenney_citykitcommercial/small_buildingE.glb"
               },
               {
                 "$$ClassName" : "TCastleScene",
                 "Cache" : true,
+                "CenterPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene41",
                 "RenderOptions" : {
-                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+                  "WireframeColorPersistent" : {
+                    "$$ClassName" : "TCastleColorRGBPersistent"
+                  }
                 },
                 "RotationPersistent" : {
                   "$$ClassName" : "TCastleVector4RotationPersistent",
                   "W" : 1.5707963705062866E+000,
                   "Y" : -1.0000001192092896E+000
+                },
+                "ScaleOrientationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent"
                 },
                 "ScalePersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
@@ -707,21 +1131,30 @@
                   "X" : -6.2088958740234375E+001,
                   "Z" : -3.2966300964355469E+001
                 },
-                "URL" : "castle-data:/kenney_citykitcommercial/small_buildingE.glb"
+                "Url" : "castle-data:/kenney_citykitcommercial/small_buildingE.glb"
               },
               {
                 "$$ClassName" : "TCastleScene",
                 "Cache" : true,
+                "CenterPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene42",
                 "RenderOptions" : {
-                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+                  "WireframeColorPersistent" : {
+                    "$$ClassName" : "TCastleColorRGBPersistent"
+                  }
                 },
                 "RotationPersistent" : {
                   "$$ClassName" : "TCastleVector4RotationPersistent",
                   "W" : 1.5707963705062866E+000,
                   "Y" : -1.0000001192092896E+000
+                },
+                "ScaleOrientationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent"
                 },
                 "ScalePersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
@@ -734,21 +1167,30 @@
                   "X" : -6.2088958740234375E+001,
                   "Z" : -4.8910530090332031E+001
                 },
-                "URL" : "castle-data:/kenney_citykitcommercial/small_buildingE.glb"
+                "Url" : "castle-data:/kenney_citykitcommercial/small_buildingE.glb"
               },
               {
                 "$$ClassName" : "TCastleScene",
                 "Cache" : true,
+                "CenterPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene43",
                 "RenderOptions" : {
-                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+                  "WireframeColorPersistent" : {
+                    "$$ClassName" : "TCastleColorRGBPersistent"
+                  }
                 },
                 "RotationPersistent" : {
                   "$$ClassName" : "TCastleVector4RotationPersistent",
                   "W" : 3.1415927410125732E+000,
                   "Y" : -1.0000001192092896E+000
+                },
+                "ScaleOrientationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent"
                 },
                 "ScalePersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
@@ -761,21 +1203,30 @@
                   "X" : -4.9980506896972656E+001,
                   "Z" : -6.0747009277343750E+001
                 },
-                "URL" : "castle-data:/kenney_citykitcommercial/small_buildingE.glb"
+                "Url" : "castle-data:/kenney_citykitcommercial/small_buildingE.glb"
               },
               {
                 "$$ClassName" : "TCastleScene",
                 "Cache" : true,
+                "CenterPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene44",
                 "RenderOptions" : {
-                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+                  "WireframeColorPersistent" : {
+                    "$$ClassName" : "TCastleColorRGBPersistent"
+                  }
                 },
                 "RotationPersistent" : {
                   "$$ClassName" : "TCastleVector4RotationPersistent",
                   "W" : 3.1415927410125732E+000,
                   "Y" : -1.0000001192092896E+000
+                },
+                "ScaleOrientationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent"
                 },
                 "ScalePersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
@@ -788,21 +1239,30 @@
                   "X" : -3.4287860870361328E+001,
                   "Z" : -6.0415512084960938E+001
                 },
-                "URL" : "castle-data:/kenney_citykitcommercial/small_buildingE.glb"
+                "Url" : "castle-data:/kenney_citykitcommercial/small_buildingE.glb"
               },
               {
                 "$$ClassName" : "TCastleScene",
                 "Cache" : true,
+                "CenterPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene45",
                 "RenderOptions" : {
-                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+                  "WireframeColorPersistent" : {
+                    "$$ClassName" : "TCastleColorRGBPersistent"
+                  }
                 },
                 "RotationPersistent" : {
                   "$$ClassName" : "TCastleVector4RotationPersistent",
                   "W" : 3.1415927410125732E+000,
                   "Y" : -1.0000001192092896E+000
+                },
+                "ScaleOrientationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent"
                 },
                 "ScalePersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
@@ -815,21 +1275,30 @@
                   "X" : -1.8276981353759766E+001,
                   "Z" : -6.0585655212402344E+001
                 },
-                "URL" : "castle-data:/kenney_citykitcommercial/small_buildingE.glb"
+                "Url" : "castle-data:/kenney_citykitcommercial/small_buildingE.glb"
               },
               {
                 "$$ClassName" : "TCastleScene",
                 "Cache" : true,
+                "CenterPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene46",
                 "RenderOptions" : {
-                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+                  "WireframeColorPersistent" : {
+                    "$$ClassName" : "TCastleColorRGBPersistent"
+                  }
                 },
                 "RotationPersistent" : {
                   "$$ClassName" : "TCastleVector4RotationPersistent",
                   "W" : 3.1415927410125732E+000,
                   "Y" : -1.0000001192092896E+000
+                },
+                "ScaleOrientationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent"
                 },
                 "ScalePersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
@@ -842,21 +1311,30 @@
                   "X" : -2.5517208576202393E+000,
                   "Z" : -6.0801589965820312E+001
                 },
-                "URL" : "castle-data:/kenney_citykitcommercial/small_buildingE.glb"
+                "Url" : "castle-data:/kenney_citykitcommercial/small_buildingE.glb"
               },
               {
                 "$$ClassName" : "TCastleScene",
                 "Cache" : true,
+                "CenterPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene47",
                 "RenderOptions" : {
-                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+                  "WireframeColorPersistent" : {
+                    "$$ClassName" : "TCastleColorRGBPersistent"
+                  }
                 },
                 "RotationPersistent" : {
                   "$$ClassName" : "TCastleVector4RotationPersistent",
                   "W" : 3.1415927410125732E+000,
                   "Y" : -1.0000001192092896E+000
+                },
+                "ScaleOrientationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent"
                 },
                 "ScalePersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
@@ -869,21 +1347,30 @@
                   "X" : 1.3439303398132324E+001,
                   "Z" : -6.1103317260742188E+001
                 },
-                "URL" : "castle-data:/kenney_citykitcommercial/small_buildingE.glb"
+                "Url" : "castle-data:/kenney_citykitcommercial/small_buildingE.glb"
               },
               {
                 "$$ClassName" : "TCastleScene",
                 "Cache" : true,
+                "CenterPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene48",
                 "RenderOptions" : {
-                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+                  "WireframeColorPersistent" : {
+                    "$$ClassName" : "TCastleColorRGBPersistent"
+                  }
                 },
                 "RotationPersistent" : {
                   "$$ClassName" : "TCastleVector4RotationPersistent",
                   "W" : 3.1415927410125732E+000,
                   "Y" : -1.0000001192092896E+000
+                },
+                "ScaleOrientationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent"
                 },
                 "ScalePersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
@@ -896,21 +1383,30 @@
                   "X" : 2.9493030548095703E+001,
                   "Z" : -6.0875469207763672E+001
                 },
-                "URL" : "castle-data:/kenney_citykitcommercial/small_buildingE.glb"
+                "Url" : "castle-data:/kenney_citykitcommercial/small_buildingE.glb"
               },
               {
                 "$$ClassName" : "TCastleScene",
                 "Cache" : true,
+                "CenterPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene49",
                 "RenderOptions" : {
-                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+                  "WireframeColorPersistent" : {
+                    "$$ClassName" : "TCastleColorRGBPersistent"
+                  }
                 },
                 "RotationPersistent" : {
                   "$$ClassName" : "TCastleVector4RotationPersistent",
                   "W" : 3.1415927410125732E+000,
                   "Y" : -1.0000001192092896E+000
+                },
+                "ScaleOrientationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent"
                 },
                 "ScalePersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
@@ -923,21 +1419,30 @@
                   "X" : 4.5564239501953125E+001,
                   "Z" : -6.1286514282226562E+001
                 },
-                "URL" : "castle-data:/kenney_citykitcommercial/small_buildingE.glb"
+                "Url" : "castle-data:/kenney_citykitcommercial/small_buildingE.glb"
               },
               {
                 "$$ClassName" : "TCastleScene",
                 "Cache" : true,
+                "CenterPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene50",
                 "RenderOptions" : {
-                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+                  "WireframeColorPersistent" : {
+                    "$$ClassName" : "TCastleColorRGBPersistent"
+                  }
                 },
                 "RotationPersistent" : {
                   "$$ClassName" : "TCastleVector4RotationPersistent",
                   "W" : 3.1415927410125732E+000,
                   "Y" : -1.0000001192092896E+000
+                },
+                "ScaleOrientationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent"
                 },
                 "ScalePersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
@@ -950,21 +1455,30 @@
                   "X" : 6.1446292877197266E+001,
                   "Z" : -6.1286514282226562E+001
                 },
-                "URL" : "castle-data:/kenney_citykitcommercial/small_buildingE.glb"
+                "Url" : "castle-data:/kenney_citykitcommercial/small_buildingE.glb"
               },
               {
                 "$$ClassName" : "TCastleScene",
                 "Cache" : true,
+                "CenterPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene51",
                 "RenderOptions" : {
-                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+                  "WireframeColorPersistent" : {
+                    "$$ClassName" : "TCastleColorRGBPersistent"
+                  }
                 },
                 "RotationPersistent" : {
                   "$$ClassName" : "TCastleVector4RotationPersistent",
                   "W" : 4.7123889923095703E+000,
                   "Y" : -1.0000001192092896E+000
+                },
+                "ScaleOrientationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent"
                 },
                 "ScalePersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
@@ -977,16 +1491,28 @@
                   "X" : 7.3196899414062500E+001,
                   "Z" : -4.9201164245605469E+001
                 },
-                "URL" : "castle-data:/kenney_citykitcommercial/small_buildingE.glb"
+                "Url" : "castle-data:/kenney_citykitcommercial/small_buildingE.glb"
               },
               {
                 "$$ClassName" : "TCastleScene",
                 "Cache" : true,
+                "CenterPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene26",
                 "RenderOptions" : {
-                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+                  "WireframeColorPersistent" : {
+                    "$$ClassName" : "TCastleColorRGBPersistent"
+                  }
+                },
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent"
+                },
+                "ScaleOrientationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent"
                 },
                 "ScalePersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
@@ -999,16 +1525,28 @@
                   "X" : 1.7919414520263672E+001,
                   "Z" : 4.5784854888916016E+001
                 },
-                "URL" : "castle-data:/kenney_citykitcommercial/small_buildingF.glb"
+                "Url" : "castle-data:/kenney_citykitcommercial/small_buildingF.glb"
               },
               {
                 "$$ClassName" : "TCastleScene",
                 "Cache" : true,
+                "CenterPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene27",
                 "RenderOptions" : {
-                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+                  "WireframeColorPersistent" : {
+                    "$$ClassName" : "TCastleColorRGBPersistent"
+                  }
+                },
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent"
+                },
+                "ScaleOrientationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent"
                 },
                 "ScalePersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
@@ -1021,16 +1559,28 @@
                   "X" : 9.7072973251342773E+000,
                   "Z" : 4.3549076080322266E+001
                 },
-                "URL" : "castle-data:/kenney_citykitcommercial/small_buildingD.glb"
+                "Url" : "castle-data:/kenney_citykitcommercial/small_buildingD.glb"
               },
               {
                 "$$ClassName" : "TCastleScene",
                 "Cache" : true,
+                "CenterPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene28",
                 "RenderOptions" : {
-                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+                  "WireframeColorPersistent" : {
+                    "$$ClassName" : "TCastleColorRGBPersistent"
+                  }
+                },
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent"
+                },
+                "ScaleOrientationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent"
                 },
                 "ScalePersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
@@ -1043,16 +1593,28 @@
                   "X" : -2.4493530273437500E+001,
                   "Z" : 7.2084808349609375E-001
                 },
-                "URL" : "castle-data:/kenney_citykitcommercial/detail_umbrellaDetailed.glb"
+                "Url" : "castle-data:/kenney_citykitcommercial/detail_umbrellaDetailed.glb"
               },
               {
                 "$$ClassName" : "TCastleScene",
                 "Cache" : true,
+                "CenterPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene29",
                 "RenderOptions" : {
-                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+                  "WireframeColorPersistent" : {
+                    "$$ClassName" : "TCastleColorRGBPersistent"
+                  }
+                },
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent"
+                },
+                "ScaleOrientationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent"
                 },
                 "ScalePersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
@@ -1065,16 +1627,28 @@
                   "X" : -2.4493530273437500E+001,
                   "Z" : 7.0416517257690430E+000
                 },
-                "URL" : "castle-data:/kenney_citykitcommercial/detail_umbrellaDetailed.glb"
+                "Url" : "castle-data:/kenney_citykitcommercial/detail_umbrellaDetailed.glb"
               },
               {
                 "$$ClassName" : "TCastleScene",
                 "Cache" : true,
+                "CenterPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene30",
                 "RenderOptions" : {
-                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+                  "WireframeColorPersistent" : {
+                    "$$ClassName" : "TCastleColorRGBPersistent"
+                  }
+                },
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent"
+                },
+                "ScaleOrientationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent"
                 },
                 "ScalePersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
@@ -1087,16 +1661,28 @@
                   "X" : -2.4493530273437500E+001,
                   "Z" : 1.2927848815917969E+001
                 },
-                "URL" : "castle-data:/kenney_citykitcommercial/detail_umbrellaDetailed.glb"
+                "Url" : "castle-data:/kenney_citykitcommercial/detail_umbrellaDetailed.glb"
               },
               {
                 "$$ClassName" : "TCastleScene",
                 "Cache" : true,
+                "CenterPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene31",
                 "RenderOptions" : {
-                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+                  "WireframeColorPersistent" : {
+                    "$$ClassName" : "TCastleColorRGBPersistent"
+                  }
+                },
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent"
+                },
+                "ScaleOrientationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent"
                 },
                 "ScalePersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
@@ -1109,21 +1695,30 @@
                   "X" : -2.4493530273437500E+001,
                   "Z" : 1.9047256469726562E+001
                 },
-                "URL" : "castle-data:/kenney_citykitcommercial/detail_umbrellaDetailed.glb"
+                "Url" : "castle-data:/kenney_citykitcommercial/detail_umbrellaDetailed.glb"
               },
               {
                 "$$ClassName" : "TCastleScene",
                 "Cache" : true,
+                "CenterPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene52",
                 "RenderOptions" : {
-                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+                  "WireframeColorPersistent" : {
+                    "$$ClassName" : "TCastleColorRGBPersistent"
+                  }
                 },
                 "RotationPersistent" : {
                   "$$ClassName" : "TCastleVector4RotationPersistent",
                   "W" : 1.5707963705062866E+000,
                   "Y" : -9.9999988079071045E-001
+                },
+                "ScaleOrientationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent"
                 },
                 "ScalePersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
@@ -1136,21 +1731,30 @@
                   "X" : 7.4824302673339844E+001,
                   "Z" : -3.7410728454589844E+001
                 },
-                "URL" : "castle-data:/kenney_citykitcommercial/small_buildingB.glb"
+                "Url" : "castle-data:/kenney_citykitcommercial/small_buildingB.glb"
               },
               {
                 "$$ClassName" : "TCastleScene",
                 "Cache" : true,
+                "CenterPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene53",
                 "RenderOptions" : {
-                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+                  "WireframeColorPersistent" : {
+                    "$$ClassName" : "TCastleColorRGBPersistent"
+                  }
                 },
                 "RotationPersistent" : {
                   "$$ClassName" : "TCastleVector4RotationPersistent",
                   "W" : 1.5707963705062866E+000,
                   "Y" : -9.9999988079071045E-001
+                },
+                "ScaleOrientationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent"
                 },
                 "ScalePersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
@@ -1163,21 +1767,30 @@
                   "X" : 7.4824302673339844E+001,
                   "Z" : -2.9198991775512695E+001
                 },
-                "URL" : "castle-data:/kenney_citykitcommercial/small_buildingB.glb"
+                "Url" : "castle-data:/kenney_citykitcommercial/small_buildingB.glb"
               },
               {
                 "$$ClassName" : "TCastleScene",
                 "Cache" : true,
+                "CenterPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene55",
                 "RenderOptions" : {
-                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+                  "WireframeColorPersistent" : {
+                    "$$ClassName" : "TCastleColorRGBPersistent"
+                  }
                 },
                 "RotationPersistent" : {
                   "$$ClassName" : "TCastleVector4RotationPersistent",
                   "W" : 1.5707963705062866E+000,
                   "Y" : -9.9999988079071045E-001
+                },
+                "ScaleOrientationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent"
                 },
                 "ScalePersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
@@ -1190,21 +1803,30 @@
                   "X" : 7.4824302673339844E+001,
                   "Z" : -2.1110601425170898E+001
                 },
-                "URL" : "castle-data:/kenney_citykitcommercial/small_buildingB.glb"
+                "Url" : "castle-data:/kenney_citykitcommercial/small_buildingB.glb"
               },
               {
                 "$$ClassName" : "TCastleScene",
                 "Cache" : true,
+                "CenterPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene56",
                 "RenderOptions" : {
-                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+                  "WireframeColorPersistent" : {
+                    "$$ClassName" : "TCastleColorRGBPersistent"
+                  }
                 },
                 "RotationPersistent" : {
                   "$$ClassName" : "TCastleVector4RotationPersistent",
                   "W" : 1.5707963705062866E+000,
                   "Y" : -9.9999988079071045E-001
+                },
+                "ScaleOrientationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent"
                 },
                 "ScalePersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
@@ -1217,21 +1839,30 @@
                   "X" : 7.4824302673339844E+001,
                   "Z" : -1.3105956077575684E+001
                 },
-                "URL" : "castle-data:/kenney_citykitcommercial/small_buildingB.glb"
+                "Url" : "castle-data:/kenney_citykitcommercial/small_buildingB.glb"
               },
               {
                 "$$ClassName" : "TCastleScene",
                 "Cache" : true,
+                "CenterPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene57",
                 "RenderOptions" : {
-                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+                  "WireframeColorPersistent" : {
+                    "$$ClassName" : "TCastleColorRGBPersistent"
+                  }
                 },
                 "RotationPersistent" : {
                   "$$ClassName" : "TCastleVector4RotationPersistent",
                   "W" : 1.5707963705062866E+000,
                   "Y" : -9.9999988079071045E-001
+                },
+                "ScaleOrientationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent"
                 },
                 "ScalePersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
@@ -1244,21 +1875,30 @@
                   "X" : 7.4824302673339844E+001,
                   "Z" : -5.2000670433044434E+000
                 },
-                "URL" : "castle-data:/kenney_citykitcommercial/small_buildingB.glb"
+                "Url" : "castle-data:/kenney_citykitcommercial/small_buildingB.glb"
               },
               {
                 "$$ClassName" : "TCastleScene",
                 "Cache" : true,
+                "CenterPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene58",
                 "RenderOptions" : {
-                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+                  "WireframeColorPersistent" : {
+                    "$$ClassName" : "TCastleColorRGBPersistent"
+                  }
                 },
                 "RotationPersistent" : {
                   "$$ClassName" : "TCastleVector4RotationPersistent",
                   "W" : 1.5707963705062866E+000,
                   "Y" : -9.9999988079071045E-001
+                },
+                "ScaleOrientationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent"
                 },
                 "ScalePersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
@@ -1271,21 +1911,30 @@
                   "X" : 7.4824302673339844E+001,
                   "Z" : 2.8553316593170166E+000
                 },
-                "URL" : "castle-data:/kenney_citykitcommercial/small_buildingB.glb"
+                "Url" : "castle-data:/kenney_citykitcommercial/small_buildingB.glb"
               },
               {
                 "$$ClassName" : "TCastleScene",
                 "Cache" : true,
+                "CenterPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene59",
                 "RenderOptions" : {
-                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+                  "WireframeColorPersistent" : {
+                    "$$ClassName" : "TCastleColorRGBPersistent"
+                  }
                 },
                 "RotationPersistent" : {
                   "$$ClassName" : "TCastleVector4RotationPersistent",
                   "W" : 1.5707963705062866E+000,
                   "Y" : -9.9999988079071045E-001
+                },
+                "ScaleOrientationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent"
                 },
                 "ScalePersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
@@ -1298,21 +1947,30 @@
                   "X" : 7.4824302673339844E+001,
                   "Z" : 1.0844007492065430E+001
                 },
-                "URL" : "castle-data:/kenney_citykitcommercial/small_buildingB.glb"
+                "Url" : "castle-data:/kenney_citykitcommercial/small_buildingB.glb"
               },
               {
                 "$$ClassName" : "TCastleScene",
                 "Cache" : true,
+                "CenterPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene60",
                 "RenderOptions" : {
-                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+                  "WireframeColorPersistent" : {
+                    "$$ClassName" : "TCastleColorRGBPersistent"
+                  }
                 },
                 "RotationPersistent" : {
                   "$$ClassName" : "TCastleVector4RotationPersistent",
                   "W" : 1.5707963705062866E+000,
                   "Y" : -9.9999988079071045E-001
+                },
+                "ScaleOrientationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent"
                 },
                 "ScalePersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
@@ -1325,21 +1983,30 @@
                   "X" : 7.4824302673339844E+001,
                   "Z" : 1.8746894836425781E+001
                 },
-                "URL" : "castle-data:/kenney_citykitcommercial/small_buildingB.glb"
+                "Url" : "castle-data:/kenney_citykitcommercial/small_buildingB.glb"
               },
               {
                 "$$ClassName" : "TCastleScene",
                 "Cache" : true,
+                "CenterPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene61",
                 "RenderOptions" : {
-                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+                  "WireframeColorPersistent" : {
+                    "$$ClassName" : "TCastleColorRGBPersistent"
+                  }
                 },
                 "RotationPersistent" : {
                   "$$ClassName" : "TCastleVector4RotationPersistent",
                   "W" : 1.5707963705062866E+000,
                   "Y" : -9.9999988079071045E-001
+                },
+                "ScaleOrientationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent"
                 },
                 "ScalePersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
@@ -1352,21 +2019,30 @@
                   "X" : 7.4824302673339844E+001,
                   "Z" : 2.6695077896118164E+001
                 },
-                "URL" : "castle-data:/kenney_citykitcommercial/small_buildingB.glb"
+                "Url" : "castle-data:/kenney_citykitcommercial/small_buildingB.glb"
               },
               {
                 "$$ClassName" : "TCastleScene",
                 "Cache" : true,
+                "CenterPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene62",
                 "RenderOptions" : {
-                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+                  "WireframeColorPersistent" : {
+                    "$$ClassName" : "TCastleColorRGBPersistent"
+                  }
                 },
                 "RotationPersistent" : {
                   "$$ClassName" : "TCastleVector4RotationPersistent",
                   "W" : 1.5707963705062866E+000,
                   "Y" : -9.9999988079071045E-001
+                },
+                "ScaleOrientationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent"
                 },
                 "ScalePersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
@@ -1379,21 +2055,30 @@
                   "X" : 7.4824302673339844E+001,
                   "Z" : 3.4617351531982422E+001
                 },
-                "URL" : "castle-data:/kenney_citykitcommercial/small_buildingB.glb"
+                "Url" : "castle-data:/kenney_citykitcommercial/small_buildingB.glb"
               },
               {
                 "$$ClassName" : "TCastleScene",
                 "Cache" : true,
+                "CenterPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene63",
                 "RenderOptions" : {
-                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+                  "WireframeColorPersistent" : {
+                    "$$ClassName" : "TCastleColorRGBPersistent"
+                  }
                 },
                 "RotationPersistent" : {
                   "$$ClassName" : "TCastleVector4RotationPersistent",
                   "W" : 1.5707963705062866E+000,
                   "Y" : -9.9999988079071045E-001
+                },
+                "ScaleOrientationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent"
                 },
                 "ScalePersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
@@ -1406,21 +2091,30 @@
                   "X" : 7.4824302673339844E+001,
                   "Z" : 4.2505928039550781E+001
                 },
-                "URL" : "castle-data:/kenney_citykitcommercial/small_buildingB.glb"
+                "Url" : "castle-data:/kenney_citykitcommercial/small_buildingB.glb"
               },
               {
                 "$$ClassName" : "TCastleScene",
                 "Cache" : true,
+                "CenterPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene54",
                 "RenderOptions" : {
-                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+                  "WireframeColorPersistent" : {
+                    "$$ClassName" : "TCastleColorRGBPersistent"
+                  }
                 },
                 "RotationPersistent" : {
                   "$$ClassName" : "TCastleVector4RotationPersistent",
                   "W" : 1.5707963705062866E+000,
                   "Y" : -9.9999988079071045E-001
+                },
+                "ScaleOrientationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent"
                 },
                 "ScalePersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
@@ -1433,50 +2127,89 @@
                   "X" : 7.4824302673339844E+001,
                   "Z" : -2.9198991775512695E+001
                 },
-                "URL" : "castle-data:/kenney_citykitcommercial/small_buildingB.glb"
+                "Url" : "castle-data:/kenney_citykitcommercial/small_buildingB.glb"
               }
             ]
           },
           {
             "$$ClassName" : "TCastleTransform",
+            "CenterPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent"
+            },
             "Name" : "Creatures",
+            "RotationPersistent" : {
+              "$$ClassName" : "TCastleVector4RotationPersistent"
+            },
+            "ScaleOrientationPersistent" : {
+              "$$ClassName" : "TCastleVector4Persistent"
+            },
+            "ScalePersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent"
+            },
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent"
+            },
             "$Children" : [
               {
                 "$$ClassName" : "TCastleScene",
                 "AutoAnimation" : "Idle",
                 "Cache" : true,
+                "CenterPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene7",
                 "ProcessEvents" : true,
                 "RenderOptions" : {
-                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+                  "WireframeColorPersistent" : {
+                    "$$ClassName" : "TCastleColorRGBPersistent"
+                  }
                 },
                 "RotationPersistent" : {
                   "$$ClassName" : "TCastleVector4RotationPersistent",
                   "Z" : 1.0000000000000000E+000
+                },
+                "ScaleOrientationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent"
+                },
+                "ScalePersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
                 },
                 "TranslationPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
                   "X" : -1.3262297630310059E+001,
                   "Z" : -1.7601343154907227E+001
                 },
-                "URL" : "castle-data:/quaternius_ultimate_monsters/Ninja.gltf"
+                "Url" : "castle-data:/quaternius_ultimate_monsters/Ninja.gltf"
               },
               {
                 "$$ClassName" : "TCastleScene",
                 "AutoAnimation" : "Idle",
                 "Cache" : true,
+                "CenterPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene13",
                 "ProcessEvents" : true,
                 "RenderOptions" : {
-                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+                  "WireframeColorPersistent" : {
+                    "$$ClassName" : "TCastleColorRGBPersistent"
+                  }
                 },
                 "RotationPersistent" : {
                   "$$ClassName" : "TCastleVector4RotationPersistent",
                   "Z" : 1.0000000000000000E+000
+                },
+                "ScaleOrientationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent"
+                },
+                "ScalePersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
                 },
                 "TranslationPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
@@ -1484,22 +2217,34 @@
                   "Y" : -7.9729795455932617E-002,
                   "Z" : -2.7368984222412109E+001
                 },
-                "URL" : "castle-data:/quaternius_ultimate_monsters/Ninja.gltf"
+                "Url" : "castle-data:/quaternius_ultimate_monsters/Ninja.gltf"
               },
               {
                 "$$ClassName" : "TCastleScene",
                 "AutoAnimation" : "Idle",
                 "Cache" : true,
+                "CenterPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene77",
                 "ProcessEvents" : true,
                 "RenderOptions" : {
-                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+                  "WireframeColorPersistent" : {
+                    "$$ClassName" : "TCastleColorRGBPersistent"
+                  }
                 },
                 "RotationPersistent" : {
                   "$$ClassName" : "TCastleVector4RotationPersistent",
                   "Z" : 1.0000000000000000E+000
+                },
+                "ScaleOrientationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent"
+                },
+                "ScalePersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
                 },
                 "TranslationPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
@@ -1507,22 +2252,34 @@
                   "Y" : -7.9729795455932617E-002,
                   "Z" : -2.7368984222412109E+001
                 },
-                "URL" : "castle-data:/quaternius_ultimate_monsters/Ninja.gltf"
+                "Url" : "castle-data:/quaternius_ultimate_monsters/Ninja.gltf"
               },
               {
                 "$$ClassName" : "TCastleScene",
                 "AutoAnimation" : "Idle",
                 "Cache" : true,
+                "CenterPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene78",
                 "ProcessEvents" : true,
                 "RenderOptions" : {
-                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+                  "WireframeColorPersistent" : {
+                    "$$ClassName" : "TCastleColorRGBPersistent"
+                  }
                 },
                 "RotationPersistent" : {
                   "$$ClassName" : "TCastleVector4RotationPersistent",
                   "Z" : 1.0000000000000000E+000
+                },
+                "ScaleOrientationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent"
+                },
+                "ScalePersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
                 },
                 "TranslationPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
@@ -1530,22 +2287,34 @@
                   "Y" : -7.9729795455932617E-002,
                   "Z" : -3.3304767608642578E+001
                 },
-                "URL" : "castle-data:/quaternius_ultimate_monsters/Ninja.gltf"
+                "Url" : "castle-data:/quaternius_ultimate_monsters/Ninja.gltf"
               },
               {
                 "$$ClassName" : "TCastleScene",
                 "AutoAnimation" : "Idle",
                 "Cache" : true,
+                "CenterPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene16",
                 "ProcessEvents" : true,
                 "RenderOptions" : {
-                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+                  "WireframeColorPersistent" : {
+                    "$$ClassName" : "TCastleColorRGBPersistent"
+                  }
                 },
                 "RotationPersistent" : {
                   "$$ClassName" : "TCastleVector4RotationPersistent",
                   "Z" : 1.0000000000000000E+000
+                },
+                "ScaleOrientationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent"
+                },
+                "ScalePersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
                 },
                 "TranslationPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
@@ -1553,22 +2322,34 @@
                   "Y" : -7.9729795455932617E-002,
                   "Z" : -3.4109840393066406E+001
                 },
-                "URL" : "castle-data:/quaternius_ultimate_monsters/Ninja.gltf"
+                "Url" : "castle-data:/quaternius_ultimate_monsters/Ninja.gltf"
               },
               {
                 "$$ClassName" : "TCastleScene",
                 "AutoAnimation" : "Idle",
                 "Cache" : true,
+                "CenterPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene17",
                 "ProcessEvents" : true,
                 "RenderOptions" : {
-                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+                  "WireframeColorPersistent" : {
+                    "$$ClassName" : "TCastleColorRGBPersistent"
+                  }
                 },
                 "RotationPersistent" : {
                   "$$ClassName" : "TCastleVector4RotationPersistent",
                   "Z" : 1.0000000000000000E+000
+                },
+                "ScaleOrientationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent"
+                },
+                "ScalePersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
                 },
                 "TranslationPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
@@ -1576,22 +2357,34 @@
                   "Y" : -7.9729795455932617E-002,
                   "Z" : -3.4109840393066406E+001
                 },
-                "URL" : "castle-data:/quaternius_ultimate_monsters/Ninja.gltf"
+                "Url" : "castle-data:/quaternius_ultimate_monsters/Ninja.gltf"
               },
               {
                 "$$ClassName" : "TCastleScene",
                 "AutoAnimation" : "Idle",
                 "Cache" : true,
+                "CenterPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene18",
                 "ProcessEvents" : true,
                 "RenderOptions" : {
-                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+                  "WireframeColorPersistent" : {
+                    "$$ClassName" : "TCastleColorRGBPersistent"
+                  }
                 },
                 "RotationPersistent" : {
                   "$$ClassName" : "TCastleVector4RotationPersistent",
                   "Z" : 1.0000000000000000E+000
+                },
+                "ScaleOrientationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent"
+                },
+                "ScalePersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
                 },
                 "TranslationPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
@@ -1599,114 +2392,174 @@
                   "Y" : -7.9729795455932617E-002,
                   "Z" : -3.4109840393066406E+001
                 },
-                "URL" : "castle-data:/quaternius_ultimate_monsters/Ninja.gltf"
+                "Url" : "castle-data:/quaternius_ultimate_monsters/Ninja.gltf"
               },
               {
                 "$$ClassName" : "TCastleScene",
                 "AutoAnimation" : "Idle",
                 "Cache" : true,
+                "CenterPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene8",
                 "ProcessEvents" : true,
                 "RenderOptions" : {
-                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+                  "WireframeColorPersistent" : {
+                    "$$ClassName" : "TCastleColorRGBPersistent"
+                  }
                 },
                 "RotationPersistent" : {
                   "$$ClassName" : "TCastleVector4RotationPersistent",
                   "W" : 2.9976890087127686E+000,
                   "Y" : -9.9999874830245972E-001
+                },
+                "ScaleOrientationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent"
+                },
+                "ScalePersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
                 },
                 "TranslationPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
                   "X" : 2.9441015243530273E+001,
                   "Z" : 1.3174687385559082E+001
                 },
-                "URL" : "castle-data:/quaternius_ultimate_monsters/Orc.gltf"
+                "Url" : "castle-data:/quaternius_ultimate_monsters/Orc.gltf"
               },
               {
                 "$$ClassName" : "TCastleScene",
                 "AutoAnimation" : "Idle",
                 "Cache" : true,
+                "CenterPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene19",
                 "ProcessEvents" : true,
                 "RenderOptions" : {
-                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+                  "WireframeColorPersistent" : {
+                    "$$ClassName" : "TCastleColorRGBPersistent"
+                  }
                 },
                 "RotationPersistent" : {
                   "$$ClassName" : "TCastleVector4RotationPersistent",
                   "W" : 2.9976890087127686E+000,
                   "Y" : -9.9999874830245972E-001
+                },
+                "ScaleOrientationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent"
+                },
+                "ScalePersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
                 },
                 "TranslationPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
                   "X" : 3.0629095077514648E+001,
                   "Z" : 2.1373716354370117E+001
                 },
-                "URL" : "castle-data:/quaternius_ultimate_monsters/Orc.gltf"
+                "Url" : "castle-data:/quaternius_ultimate_monsters/Orc.gltf"
               },
               {
                 "$$ClassName" : "TCastleScene",
                 "AutoAnimation" : "Idle",
                 "Cache" : true,
+                "CenterPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene20",
                 "ProcessEvents" : true,
                 "RenderOptions" : {
-                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+                  "WireframeColorPersistent" : {
+                    "$$ClassName" : "TCastleColorRGBPersistent"
+                  }
                 },
                 "RotationPersistent" : {
                   "$$ClassName" : "TCastleVector4RotationPersistent",
                   "W" : 2.9976890087127686E+000,
                   "Y" : -9.9999874830245972E-001
+                },
+                "ScaleOrientationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent"
+                },
+                "ScalePersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
                 },
                 "TranslationPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
                   "X" : 3.1411567687988281E+001,
                   "Z" : 2.6773588180541992E+001
                 },
-                "URL" : "castle-data:/quaternius_ultimate_monsters/Orc.gltf"
+                "Url" : "castle-data:/quaternius_ultimate_monsters/Orc.gltf"
               },
               {
                 "$$ClassName" : "TCastleScene",
                 "AutoAnimation" : "Idle",
                 "Cache" : true,
+                "CenterPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene76",
                 "ProcessEvents" : true,
                 "RenderOptions" : {
-                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+                  "WireframeColorPersistent" : {
+                    "$$ClassName" : "TCastleColorRGBPersistent"
+                  }
                 },
                 "RotationPersistent" : {
                   "$$ClassName" : "TCastleVector4RotationPersistent",
                   "W" : 2.9976890087127686E+000,
                   "Y" : -9.9999874830245972E-001
                 },
+                "ScaleOrientationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent"
+                },
+                "ScalePersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "TranslationPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
                   "X" : 3.2162166595458984E+001,
                   "Z" : 3.1953540802001953E+001
                 },
-                "URL" : "castle-data:/quaternius_ultimate_monsters/Orc.gltf"
+                "Url" : "castle-data:/quaternius_ultimate_monsters/Orc.gltf"
               },
               {
                 "$$ClassName" : "TCastleScene",
                 "AutoAnimation" : "Idle",
                 "Cache" : true,
+                "CenterPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene9",
                 "ProcessEvents" : true,
                 "RenderOptions" : {
-                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+                  "WireframeColorPersistent" : {
+                    "$$ClassName" : "TCastleColorRGBPersistent"
+                  }
                 },
                 "RotationPersistent" : {
                   "$$ClassName" : "TCastleVector4RotationPersistent",
                   "Z" : 1.0000000000000000E+000
+                },
+                "ScaleOrientationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent"
+                },
+                "ScalePersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
                 },
                 "TranslationPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
@@ -1714,22 +2567,34 @@
                   "Y" : 1.9073486328125000E-006,
                   "Z" : -3.0449560165405273E+001
                 },
-                "URL" : "castle-data:/quaternius_ultimate_monsters/Orc_Skull.gltf"
+                "Url" : "castle-data:/quaternius_ultimate_monsters/Orc_Skull.gltf"
               },
               {
                 "$$ClassName" : "TCastleScene",
                 "AutoAnimation" : "Idle",
                 "Cache" : true,
+                "CenterPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene80",
                 "ProcessEvents" : true,
                 "RenderOptions" : {
-                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+                  "WireframeColorPersistent" : {
+                    "$$ClassName" : "TCastleColorRGBPersistent"
+                  }
                 },
                 "RotationPersistent" : {
                   "$$ClassName" : "TCastleVector4RotationPersistent",
                   "Z" : 1.0000000000000000E+000
+                },
+                "ScaleOrientationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent"
+                },
+                "ScalePersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
                 },
                 "TranslationPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
@@ -1737,22 +2602,34 @@
                   "Y" : 1.9073486328125000E-006,
                   "Z" : -3.0449560165405273E+001
                 },
-                "URL" : "castle-data:/quaternius_ultimate_monsters/Orc_Skull.gltf"
+                "Url" : "castle-data:/quaternius_ultimate_monsters/Orc_Skull.gltf"
               },
               {
                 "$$ClassName" : "TCastleScene",
                 "AutoAnimation" : "Idle",
                 "Cache" : true,
+                "CenterPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene15",
                 "ProcessEvents" : true,
                 "RenderOptions" : {
-                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+                  "WireframeColorPersistent" : {
+                    "$$ClassName" : "TCastleColorRGBPersistent"
+                  }
                 },
                 "RotationPersistent" : {
                   "$$ClassName" : "TCastleVector4RotationPersistent",
                   "Z" : 1.0000000000000000E+000
+                },
+                "ScaleOrientationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent"
+                },
+                "ScalePersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
                 },
                 "TranslationPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
@@ -1760,22 +2637,34 @@
                   "Y" : 1.9073486328125000E-006,
                   "Z" : -2.4417861938476562E+001
                 },
-                "URL" : "castle-data:/quaternius_ultimate_monsters/Orc_Skull.gltf"
+                "Url" : "castle-data:/quaternius_ultimate_monsters/Orc_Skull.gltf"
               },
               {
                 "$$ClassName" : "TCastleScene",
                 "AutoAnimation" : "Idle",
                 "Cache" : true,
+                "CenterPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene79",
                 "ProcessEvents" : true,
                 "RenderOptions" : {
-                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+                  "WireframeColorPersistent" : {
+                    "$$ClassName" : "TCastleColorRGBPersistent"
+                  }
                 },
                 "RotationPersistent" : {
                   "$$ClassName" : "TCastleVector4RotationPersistent",
                   "Z" : 1.0000000000000000E+000
+                },
+                "ScaleOrientationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent"
+                },
+                "ScalePersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
                 },
                 "TranslationPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
@@ -1783,22 +2672,34 @@
                   "Y" : 1.9073486328125000E-006,
                   "Z" : -2.4417861938476562E+001
                 },
-                "URL" : "castle-data:/quaternius_ultimate_monsters/Orc_Skull.gltf"
+                "Url" : "castle-data:/quaternius_ultimate_monsters/Orc_Skull.gltf"
               },
               {
                 "$$ClassName" : "TCastleScene",
                 "AutoAnimation" : "Idle",
                 "Cache" : true,
+                "CenterPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene14",
                 "ProcessEvents" : true,
                 "RenderOptions" : {
-                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+                  "WireframeColorPersistent" : {
+                    "$$ClassName" : "TCastleColorRGBPersistent"
+                  }
                 },
                 "RotationPersistent" : {
                   "$$ClassName" : "TCastleVector4RotationPersistent",
                   "Z" : 1.0000000000000000E+000
+                },
+                "ScaleOrientationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent"
+                },
+                "ScalePersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
                 },
                 "TranslationPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
@@ -1806,196 +2707,298 @@
                   "Y" : 1.9073486328125000E-006,
                   "Z" : -1.6610836029052734E+001
                 },
-                "URL" : "castle-data:/quaternius_ultimate_monsters/Orc_Skull.gltf"
+                "Url" : "castle-data:/quaternius_ultimate_monsters/Orc_Skull.gltf"
               },
               {
                 "$$ClassName" : "TCastleScene",
                 "AutoAnimation" : "Jump",
                 "Cache" : true,
+                "CenterPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene10",
                 "ProcessEvents" : true,
                 "RenderOptions" : {
-                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+                  "WireframeColorPersistent" : {
+                    "$$ClassName" : "TCastleColorRGBPersistent"
+                  }
                 },
                 "RotationPersistent" : {
                   "$$ClassName" : "TCastleVector4RotationPersistent",
                   "W" : 3.0361928939819336E+000,
                   "Y" : -9.9999856948852539E-001
+                },
+                "ScaleOrientationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent"
+                },
+                "ScalePersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
                 },
                 "TranslationPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
                   "X" : 1.7065891265869141E+001,
                   "Z" : 1.3709814071655273E+001
                 },
-                "URL" : "castle-data:/quaternius_ultimate_monsters/Yeti.gltf"
+                "Url" : "castle-data:/quaternius_ultimate_monsters/Yeti.gltf"
               },
               {
                 "$$ClassName" : "TCastleScene",
                 "AutoAnimation" : "Jump",
                 "Cache" : true,
+                "CenterPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene21",
                 "ProcessEvents" : true,
                 "RenderOptions" : {
-                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+                  "WireframeColorPersistent" : {
+                    "$$ClassName" : "TCastleColorRGBPersistent"
+                  }
                 },
                 "RotationPersistent" : {
                   "$$ClassName" : "TCastleVector4RotationPersistent",
                   "W" : 3.0361928939819336E+000,
                   "Y" : -9.9999856948852539E-001
+                },
+                "ScaleOrientationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent"
+                },
+                "ScalePersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
                 },
                 "TranslationPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
                   "X" : 1.7764751434326172E+001,
                   "Z" : 2.0315748214721680E+001
                 },
-                "URL" : "castle-data:/quaternius_ultimate_monsters/Yeti.gltf"
+                "Url" : "castle-data:/quaternius_ultimate_monsters/Yeti.gltf"
               },
               {
                 "$$ClassName" : "TCastleScene",
                 "AutoAnimation" : "Jump",
                 "Cache" : true,
+                "CenterPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene22",
                 "ProcessEvents" : true,
                 "RenderOptions" : {
-                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+                  "WireframeColorPersistent" : {
+                    "$$ClassName" : "TCastleColorRGBPersistent"
+                  }
                 },
                 "RotationPersistent" : {
                   "$$ClassName" : "TCastleVector4RotationPersistent",
                   "W" : 3.0361928939819336E+000,
                   "Y" : -9.9999856948852539E-001
+                },
+                "ScaleOrientationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent"
+                },
+                "ScalePersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
                 },
                 "TranslationPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
                   "X" : 1.8487100601196289E+001,
                   "Z" : 2.7143730163574219E+001
                 },
-                "URL" : "castle-data:/quaternius_ultimate_monsters/Yeti.gltf"
+                "Url" : "castle-data:/quaternius_ultimate_monsters/Yeti.gltf"
               },
               {
                 "$$ClassName" : "TCastleScene",
                 "AutoAnimation" : "Jump",
                 "Cache" : true,
+                "CenterPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene75",
                 "ProcessEvents" : true,
                 "RenderOptions" : {
-                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+                  "WireframeColorPersistent" : {
+                    "$$ClassName" : "TCastleColorRGBPersistent"
+                  }
                 },
                 "RotationPersistent" : {
                   "$$ClassName" : "TCastleVector4RotationPersistent",
                   "W" : 3.0361928939819336E+000,
                   "Y" : -9.9999856948852539E-001
                 },
+                "ScaleOrientationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent"
+                },
+                "ScalePersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "TranslationPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
                   "X" : 2.3160398483276367E+001,
                   "Z" : 2.6649333953857422E+001
                 },
-                "URL" : "castle-data:/quaternius_ultimate_monsters/Yeti.gltf"
+                "Url" : "castle-data:/quaternius_ultimate_monsters/Yeti.gltf"
               },
               {
                 "$$ClassName" : "TCastleScene",
                 "AutoAnimation" : "Idle",
                 "Cache" : true,
+                "CenterPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene12",
                 "ProcessEvents" : true,
                 "RenderOptions" : {
-                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+                  "WireframeColorPersistent" : {
+                    "$$ClassName" : "TCastleColorRGBPersistent"
+                  }
                 },
                 "RotationPersistent" : {
                   "$$ClassName" : "TCastleVector4RotationPersistent",
                   "W" : 3.2261133193969727E+000,
                   "Y" : -1.0000011920928955E+000
+                },
+                "ScaleOrientationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent"
+                },
+                "ScalePersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
                 },
                 "TranslationPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
                   "X" : 3.8678607940673828E+000,
                   "Z" : 1.2701225280761719E+001
                 },
-                "URL" : "castle-data:/quaternius_ultimate_monsters/Bunny.gltf"
+                "Url" : "castle-data:/quaternius_ultimate_monsters/Bunny.gltf"
               },
               {
                 "$$ClassName" : "TCastleScene",
                 "AutoAnimation" : "Idle",
                 "Cache" : true,
+                "CenterPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene23",
                 "ProcessEvents" : true,
                 "RenderOptions" : {
-                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+                  "WireframeColorPersistent" : {
+                    "$$ClassName" : "TCastleColorRGBPersistent"
+                  }
                 },
                 "RotationPersistent" : {
                   "$$ClassName" : "TCastleVector4RotationPersistent",
                   "W" : 3.2261133193969727E+000,
                   "Y" : -1.0000011920928955E+000
+                },
+                "ScaleOrientationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent"
+                },
+                "ScalePersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
                 },
                 "TranslationPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
                   "X" : 3.2007486820220947E+000,
                   "Z" : 2.0575317382812500E+001
                 },
-                "URL" : "castle-data:/quaternius_ultimate_monsters/Bunny.gltf"
+                "Url" : "castle-data:/quaternius_ultimate_monsters/Bunny.gltf"
               },
               {
                 "$$ClassName" : "TCastleScene",
                 "AutoAnimation" : "Idle",
                 "Cache" : true,
+                "CenterPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene24",
                 "ProcessEvents" : true,
                 "RenderOptions" : {
-                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+                  "WireframeColorPersistent" : {
+                    "$$ClassName" : "TCastleColorRGBPersistent"
+                  }
                 },
                 "RotationPersistent" : {
                   "$$ClassName" : "TCastleVector4RotationPersistent",
                   "W" : 3.2261133193969727E+000,
                   "Y" : -1.0000011920928955E+000
+                },
+                "ScaleOrientationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent"
+                },
+                "ScalePersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
                 },
                 "TranslationPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
                   "X" : 8.5610904693603516E+000,
                   "Z" : 2.7071037292480469E+001
                 },
-                "URL" : "castle-data:/quaternius_ultimate_monsters/Bunny.gltf"
+                "Url" : "castle-data:/quaternius_ultimate_monsters/Bunny.gltf"
               },
               {
                 "$$ClassName" : "TCastleScene",
                 "AutoAnimation" : "Idle",
                 "Cache" : true,
+                "CenterPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "ExposeTransforms" : [
                 ],
                 "Name" : "Scene74",
                 "ProcessEvents" : true,
                 "RenderOptions" : {
-                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+                  "WireframeColorPersistent" : {
+                    "$$ClassName" : "TCastleColorRGBPersistent"
+                  }
                 },
                 "RotationPersistent" : {
                   "$$ClassName" : "TCastleVector4RotationPersistent",
                   "W" : 3.2261133193969727E+000,
                   "Y" : -1.0000011920928955E+000
                 },
+                "ScaleOrientationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent"
+                },
+                "ScalePersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "TranslationPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
                   "X" : 2.6925384998321533E+000,
                   "Z" : 2.6573843002319336E+001
                 },
-                "URL" : "castle-data:/quaternius_ultimate_monsters/Bunny.gltf"
+                "Url" : "castle-data:/quaternius_ultimate_monsters/Bunny.gltf"
               }
             ]
           },
           {
             "$$ClassName" : "TCastleDirectionalLight",
+            "CenterPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent"
+            },
+            "ColorPersistent" : {
+              "$$ClassName" : "TCastleColorRGBPersistent"
+            },
             "Name" : "DirectionalLight1",
             "RotationPersistent" : {
               "$$ClassName" : "TCastleVector4RotationPersistent",
@@ -2004,6 +3007,12 @@
               "Y" : 6.8979126214981079E-001,
               "Z" : -2.0396645367145538E-001
             },
+            "ScaleOrientationPersistent" : {
+              "$$ClassName" : "TCastleVector4Persistent"
+            },
+            "ScalePersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent"
+            },
             "TranslationPersistent" : {
               "$$ClassName" : "TCastleVector3Persistent",
               "Y" : 2.7453145980834961E+001
@@ -2011,6 +3020,12 @@
           },
           {
             "$$ClassName" : "TCastleDirectionalLight",
+            "CenterPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent"
+            },
+            "ColorPersistent" : {
+              "$$ClassName" : "TCastleColorRGBPersistent"
+            },
             "Name" : "DirectionalLight2",
             "RotationPersistent" : {
               "$$ClassName" : "TCastleVector4RotationPersistent",
@@ -2018,6 +3033,12 @@
               "X" : -8.9662396907806396E-001,
               "Y" : 2.1783082187175751E-001,
               "Z" : 3.8550716638565063E-001
+            },
+            "ScaleOrientationPersistent" : {
+              "$$ClassName" : "TCastleVector4Persistent"
+            },
+            "ScalePersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent"
             },
             "TranslationPersistent" : {
               "$$ClassName" : "TCastleVector3Persistent",
@@ -2031,32 +3052,77 @@
       "Name" : "MainViewport",
       "OcclusionCulling" : true,
       "OcclusionSort" : "sort3D",
+      "TranslationPersistent" : {
+        "$$ClassName" : "TCastleVector2Persistent"
+      },
       "$NonVisualComponents" : [
         {
           "$$ClassName" : "TCastleBackground",
-          "Name" : "Background1"
+          "GroundBottomColorPersistent" : {
+            "$$ClassName" : "TCastleColorRGBPersistent"
+          },
+          "GroundEquatorColorPersistent" : {
+            "$$ClassName" : "TCastleColorRGBPersistent"
+          },
+          "Name" : "Background1",
+          "RotationPersistent" : {
+            "$$ClassName" : "TCastleVector4RotationPersistent"
+          },
+          "SkyEquatorColorPersistent" : {
+            "$$ClassName" : "TCastleColorRGBPersistent"
+          },
+          "SkyTopColorPersistent" : {
+            "$$ClassName" : "TCastleColorRGBPersistent"
+          }
         }
       ],
       "$Children" : [
         {
           "$$ClassName" : "TCastleWalkNavigation",
+          "Border" : {
+            "$$ClassName" : "TBorder"
+          },
+          "BorderColorPersistent" : {
+            "$$ClassName" : "TCastleColorPersistent"
+          },
           "MouseDragMode" : "mdRotate",
           "MoveSpeed" : 1.0000000000000000E+001,
-          "Name" : "MainWalkNavigation"
+          "Name" : "MainWalkNavigation",
+          "TranslationPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent"
+          }
         },
         {
           "$$ClassName" : "TCastleTouchNavigation",
+          "Border" : {
+            "$$ClassName" : "TBorder"
+          },
+          "BorderColorPersistent" : {
+            "$$ClassName" : "TCastleColorPersistent"
+          },
           "FullSize" : true,
           "Name" : "TouchNavigation1",
           "TouchInterface" : "tiWalk",
+          "TranslationPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent"
+          },
           "Viewport" : "MainViewport"
         }
       ],
       "InternalDesignCamera" : {
         "$$ClassName" : "TCastleCamera",
+        "CenterPersistent" : {
+          "$$ClassName" : "TCastleVector3Persistent"
+        },
+        "GravityUpPersistent" : {
+          "$$ClassName" : "TCastleVector3Persistent"
+        },
         "Name" : "",
         "Orthographic" : {
-          "$$ClassName" : "TCastleOrthographic"
+          "$$ClassName" : "TCastleOrthographic",
+          "OriginPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent"
+          }
         },
         "Perspective" : {
           "$$ClassName" : "TCastlePerspective"
@@ -2068,6 +3134,12 @@
           "Y" : 9.6857804059982300E-001,
           "Z" : 1.6815887391567230E-001
         },
+        "ScaleOrientationPersistent" : {
+          "$$ClassName" : "TCastleVector4Persistent"
+        },
+        "ScalePersistent" : {
+          "$$ClassName" : "TCastleVector3Persistent"
+        },
         "TranslationPersistent" : {
           "$$ClassName" : "TCastleVector3Persistent",
           "X" : 1.0087266540527344E+002,
@@ -2077,23 +3149,56 @@
       },
       "InternalDesignNavigations[dnFly]" : {
         "$$ClassName" : "TCastleWalkNavigationDesign",
+        "Border" : {
+          "$$ClassName" : "TBorder"
+        },
+        "BorderColorPersistent" : {
+          "$$ClassName" : "TCastleColorPersistent"
+        },
         "MoveSpeed" : 4.6415889739990234E+001,
-        "Name" : ""
+        "Name" : "",
+        "TranslationPersistent" : {
+          "$$ClassName" : "TCastleVector2Persistent"
+        }
       },
       "InternalDesignNavigations[dnExamine]" : {
         "$$ClassName" : "TCastleExamineNavigationDesign",
+        "Border" : {
+          "$$ClassName" : "TBorder"
+        },
+        "BorderColorPersistent" : {
+          "$$ClassName" : "TCastleColorPersistent"
+        },
         "Exists" : false,
-        "Name" : ""
+        "Name" : "",
+        "TranslationPersistent" : {
+          "$$ClassName" : "TCastleVector2Persistent"
+        }
       },
       "InternalDesignNavigations[dn2D]" : {
         "$$ClassName" : "TCastle2DNavigationDesign",
+        "Border" : {
+          "$$ClassName" : "TBorder"
+        },
+        "BorderColorPersistent" : {
+          "$$ClassName" : "TCastleColorPersistent"
+        },
         "Exists" : false,
-        "Name" : ""
+        "Name" : "",
+        "TranslationPersistent" : {
+          "$$ClassName" : "TCastleVector2Persistent"
+        }
       }
     },
     {
       "$$ClassName" : "TCastleRectangleControl",
       "AutoSizeToChildren" : true,
+      "Border" : {
+        "$$ClassName" : "TBorder"
+      },
+      "BorderColorPersistent" : {
+        "$$ClassName" : "TCastleColorPersistent"
+      },
       "ColorPersistent" : {
         "$$ClassName" : "TCastleColorPersistent",
         "Alpha" : 5.0000000000000000E-001
@@ -2109,21 +3214,45 @@
       "$Children" : [
         {
           "$$ClassName" : "TCastleVerticalGroup",
+          "Border" : {
+            "$$ClassName" : "TBorder"
+          },
+          "BorderColorPersistent" : {
+            "$$ClassName" : "TCastleColorPersistent"
+          },
+          "FrameColorPersistent" : {
+            "$$ClassName" : "TCastleColorPersistent"
+          },
           "Name" : "Hud",
           "Padding" : 1.0000000000000000E+001,
           "Spacing" : 5.0000000000000000E+000,
+          "TranslationPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent"
+          },
           "VerticalAnchorParent" : "vpTop",
           "VerticalAnchorSelf" : "vpTop",
           "$Children" : [
             {
               "$$ClassName" : "TCastleLabel",
+              "Border" : {
+                "$$ClassName" : "TBorder"
+              },
+              "BorderColorPersistent" : {
+                "$$ClassName" : "TCastleColorPersistent"
+              },
               "ColorPersistent" : {
                 "$$ClassName" : "TCastleColorPersistent",
                 "Green" : 9.0196080505847931E-002,
                 "Red" : 1.6862745583057404E-001
               },
               "FontSize" : 2.0000000000000000E+001,
+              "FrameColorPersistent" : {
+                "$$ClassName" : "TCastleColorPersistent"
+              },
               "Name" : "LabelFps",
+              "OutlineColorPersistent" : {
+                "$$ClassName" : "TCastleColorPersistent"
+              },
               "Text" : [
                 "FPS: xxx",
                 "Rendered: xxx"
@@ -2138,13 +3267,25 @@
             },
             {
               "$$ClassName" : "TCastleLabel",
+              "Border" : {
+                "$$ClassName" : "TBorder"
+              },
+              "BorderColorPersistent" : {
+                "$$ClassName" : "TCastleColorPersistent"
+              },
               "ColorPersistent" : {
                 "$$ClassName" : "TCastleColorPersistent",
                 "Blue" : 8.2352943718433380E-002,
                 "Green" : 8.2352943718433380E-002,
                 "Red" : 3.1764706969261169E-001
               },
+              "FrameColorPersistent" : {
+                "$$ClassName" : "TCastleColorPersistent"
+              },
               "Name" : "LabelInfo",
+              "OutlineColorPersistent" : {
+                "$$ClassName" : "TCastleColorPersistent"
+              },
               "Text" : [
                 "AWSD to move,",
                 "Hold Right mouse button to rotate with mouse look,",
@@ -2160,6 +3301,12 @@
             },
             {
               "$$ClassName" : "TCastleCheckbox",
+              "Border" : {
+                "$$ClassName" : "TBorder"
+              },
+              "BorderColorPersistent" : {
+                "$$ClassName" : "TCastleColorPersistent"
+              },
               "Caption" : "Occlusion Culling (Ctrl+O to toggle)",
               "CheckboxColorPersistent" : {
                 "$$ClassName" : "TCastleColorPersistent",
@@ -2178,7 +3325,7 @@
               "TranslationPersistent" : {
                 "$$ClassName" : "TCastleVector2Persistent",
                 "X" : 1.0000000000000000E+001,
-                "Y" : -1.2700000762939453E+002
+                "Y" : -1.2700000000000000E+002
               },
               "VerticalAnchorParent" : "vpTop",
               "VerticalAnchorSelf" : "vpTop"

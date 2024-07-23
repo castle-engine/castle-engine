@@ -1,15 +1,36 @@
 {
   "$$ClassName" : "TCastleUserInterface",
+  "Border" : {
+    "$$ClassName" : "TBorder"
+  },
+  "BorderColorPersistent" : {
+    "$$ClassName" : "TCastleColorPersistent"
+  },
   "FullSize" : true,
   "Name" : "Group1",
+  "TranslationPersistent" : {
+    "$$ClassName" : "TCastleVector2Persistent"
+  },
   "$Children" : [
     {
       "$$ClassName" : "TCastleViewport",
       "Background" : "Background1",
+      "BackgroundColorPersistent" : {
+        "$$ClassName" : "TCastleColorPersistent"
+      },
+      "Border" : {
+        "$$ClassName" : "TBorder"
+      },
+      "BorderColorPersistent" : {
+        "$$ClassName" : "TCastleColorPersistent"
+      },
       "Camera" : "Camera1",
       "FullSize" : true,
       "Items" : {
         "$$ClassName" : "TCastleRootTransform",
+        "CenterPersistent" : {
+          "$$ClassName" : "TCastleVector3Persistent"
+        },
         "PhysicsProperties" : {
           "$$ClassName" : "TPhysicsProperties",
           "LayerCollisions" : {
@@ -19,12 +40,33 @@
             "$$ClassName" : "TCastleLayerNames"
           }
         },
+        "RotationPersistent" : {
+          "$$ClassName" : "TCastleVector4RotationPersistent"
+        },
+        "ScaleOrientationPersistent" : {
+          "$$ClassName" : "TCastleVector4Persistent"
+        },
+        "ScalePersistent" : {
+          "$$ClassName" : "TCastleVector3Persistent"
+        },
+        "TranslationPersistent" : {
+          "$$ClassName" : "TCastleVector3Persistent"
+        },
         "$Children" : [
           {
             "$$ClassName" : "TCastleCamera",
+            "CenterPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent"
+            },
+            "GravityUpPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent"
+            },
             "Name" : "Camera1",
             "Orthographic" : {
-              "$$ClassName" : "TCastleOrthographic"
+              "$$ClassName" : "TCastleOrthographic",
+              "OriginPersistent" : {
+                "$$ClassName" : "TCastleVector2Persistent"
+              }
             },
             "Perspective" : {
               "$$ClassName" : "TCastlePerspective"
@@ -35,6 +77,9 @@
               "X" : -1.9155426343786530E-005,
               "Y" : 9.9337840080261230E-001,
               "Z" : 1.1488788574934006E-001
+            },
+            "ScaleOrientationPersistent" : {
+              "$$ClassName" : "TCastleVector4Persistent"
             },
             "ScalePersistent" : {
               "$$ClassName" : "TCastleVector3Persistent",
@@ -49,8 +94,27 @@
           },
           {
             "$$ClassName" : "TCastlePointLight",
+            "AttenuationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "Z" : 0.0000000000000000E+000
+            },
+            "CenterPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent"
+            },
+            "ColorPersistent" : {
+              "$$ClassName" : "TCastleColorRGBPersistent"
+            },
             "Intensity" : 5.0000000000000000E+000,
             "Name" : "PointLight1",
+            "RotationPersistent" : {
+              "$$ClassName" : "TCastleVector4RotationPersistent"
+            },
+            "ScaleOrientationPersistent" : {
+              "$$ClassName" : "TCastleVector4Persistent"
+            },
+            "ScalePersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent"
+            },
             "TranslationPersistent" : {
               "$$ClassName" : "TCastleVector3Persistent",
               "X" : 4.0000000000000000E+000,
@@ -60,6 +124,9 @@
           },
           {
             "$$ClassName" : "TCastleTerrain",
+            "CenterPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent"
+            },
             "Data" : "TerrainNoise1",
             "Layer1" : {
               "$$ClassName" : "TCastleTerrainLayer",
@@ -70,7 +137,10 @@
               }
             },
             "Layer2" : {
-              "$$ClassName" : "TCastleTerrainLayer"
+              "$$ClassName" : "TCastleTerrainLayer",
+              "ColorPersistent" : {
+                "$$ClassName" : "TCastleColorRGBPersistent"
+              }
             },
             "Layer3" : {
               "$$ClassName" : "TCastleTerrainLayer",
@@ -81,16 +151,40 @@
               }
             },
             "Layer4" : {
-              "$$ClassName" : "TCastleTerrainLayer"
+              "$$ClassName" : "TCastleTerrainLayer",
+              "ColorPersistent" : {
+                "$$ClassName" : "TCastleColorRGBPersistent"
+              }
             },
             "Name" : "Terrain1",
+            "QueryOffsetPersistent" : {
+              "$$ClassName" : "TCastleVector2Persistent"
+            },
             "RenderOptions" : {
-              "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+              "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+              "WireframeColorPersistent" : {
+                "$$ClassName" : "TCastleColorRGBPersistent"
+              }
+            },
+            "RotationPersistent" : {
+              "$$ClassName" : "TCastleVector4RotationPersistent"
+            },
+            "ScaleOrientationPersistent" : {
+              "$$ClassName" : "TCastleVector4Persistent"
+            },
+            "ScalePersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent"
+            },
+            "SizePersistent" : {
+              "$$ClassName" : "TCastleVector2Persistent"
             },
             "SubdivisionsPersistent" : {
               "$$ClassName" : "TCastleVector2Persistent",
               "X" : 2.5600000000000000E+002,
               "Y" : 2.5600000000000000E+002
+            },
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent"
             },
             "$NonVisualComponents" : [
               {
@@ -102,6 +196,12 @@
           },
           {
             "$$ClassName" : "TCastleDirectionalLight",
+            "CenterPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent"
+            },
+            "ColorPersistent" : {
+              "$$ClassName" : "TCastleColorRGBPersistent"
+            },
             "Intensity" : 5.0000000000000000E+000,
             "Name" : "DirectionalLight1",
             "RotationPersistent" : {
@@ -110,6 +210,12 @@
               "X" : -8.9734089374542236E-001,
               "Y" : -3.8806676864624023E-001,
               "Z" : 2.1018929779529572E-001
+            },
+            "ScaleOrientationPersistent" : {
+              "$$ClassName" : "TCastleVector4Persistent"
+            },
+            "ScalePersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent"
             },
             "Shadows" : true,
             "TranslationPersistent" : {
@@ -121,31 +227,61 @@
           },
           {
             "$$ClassName" : "TCastleTransform",
+            "CenterPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent"
+            },
             "Name" : "HousesSingleMaterial",
+            "RotationPersistent" : {
+              "$$ClassName" : "TCastleVector4RotationPersistent"
+            },
+            "ScaleOrientationPersistent" : {
+              "$$ClassName" : "TCastleVector4Persistent"
+            },
+            "ScalePersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent"
+            },
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent"
+            },
             "$Children" : [
               {
                 "$$ClassName" : "TCastleScene",
                 "Cache" : true,
+                "CenterPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "DistanceCulling" : 2.0000000000000000E+001,
                 "ExposeTransforms" : [
                 ],
                 "Name" : "SceneHouse1",
                 "RenderOptions" : {
-                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+                  "WireframeColorPersistent" : {
+                    "$$ClassName" : "TCastleColorRGBPersistent"
+                  }
                 },
                 "RotationPersistent" : {
                   "$$ClassName" : "TCastleVector4RotationPersistent",
                   "Z" : 1.0000000000000000E+000
+                },
+                "ScaleOrientationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent"
+                },
+                "ScalePersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
                 },
                 "TranslationPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
                   "X" : 2.4193817138671875E+001,
                   "Y" : 1.8420562744140625E+000
                 },
-                "URL" : "castle-data:/house.gltf",
+                "Url" : "castle-data:/house.gltf",
                 "$Behaviors" : [
                   {
                     "$$ClassName" : "TCastleStickToSurface",
+                    "DirectionPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent"
+                    },
                     "Name" : "StickToSurface1",
                     "Target" : "Terrain1"
                   }
@@ -154,16 +290,28 @@
               {
                 "$$ClassName" : "TCastleScene",
                 "Cache" : true,
+                "CenterPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "DistanceCulling" : 2.0000000000000000E+001,
                 "ExposeTransforms" : [
                 ],
                 "Name" : "SceneHouse2",
                 "RenderOptions" : {
-                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+                  "WireframeColorPersistent" : {
+                    "$$ClassName" : "TCastleColorRGBPersistent"
+                  }
                 },
                 "RotationPersistent" : {
                   "$$ClassName" : "TCastleVector4RotationPersistent",
                   "Z" : 1.0000000000000000E+000
+                },
+                "ScaleOrientationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent"
+                },
+                "ScalePersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
                 },
                 "TranslationPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
@@ -171,10 +319,13 @@
                   "Y" : 1.9053955078125000E+000,
                   "Z" : 8.1616325378417969E+000
                 },
-                "URL" : "castle-data:/house.gltf",
+                "Url" : "castle-data:/house.gltf",
                 "$Behaviors" : [
                   {
                     "$$ClassName" : "TCastleStickToSurface",
+                    "DirectionPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent"
+                    },
                     "Name" : "StickToSurface2",
                     "Target" : "Terrain1"
                   }
@@ -183,16 +334,28 @@
               {
                 "$$ClassName" : "TCastleScene",
                 "Cache" : true,
+                "CenterPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "DistanceCulling" : 2.0000000000000000E+001,
                 "ExposeTransforms" : [
                 ],
                 "Name" : "SceneHouse4",
                 "RenderOptions" : {
-                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+                  "WireframeColorPersistent" : {
+                    "$$ClassName" : "TCastleColorRGBPersistent"
+                  }
                 },
                 "RotationPersistent" : {
                   "$$ClassName" : "TCastleVector4RotationPersistent",
                   "Z" : 1.0000000000000000E+000
+                },
+                "ScaleOrientationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent"
+                },
+                "ScalePersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
                 },
                 "TranslationPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
@@ -200,10 +363,13 @@
                   "Y" : 1.9356842041015625E+000,
                   "Z" : 1.3473796844482422E+001
                 },
-                "URL" : "castle-data:/house.gltf",
+                "Url" : "castle-data:/house.gltf",
                 "$Behaviors" : [
                   {
                     "$$ClassName" : "TCastleStickToSurface",
+                    "DirectionPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent"
+                    },
                     "Name" : "StickToSurface4",
                     "Target" : "Terrain1"
                   }
@@ -212,16 +378,28 @@
               {
                 "$$ClassName" : "TCastleScene",
                 "Cache" : true,
+                "CenterPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "DistanceCulling" : 2.0000000000000000E+001,
                 "ExposeTransforms" : [
                 ],
                 "Name" : "SceneHouse5",
                 "RenderOptions" : {
-                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+                  "WireframeColorPersistent" : {
+                    "$$ClassName" : "TCastleColorRGBPersistent"
+                  }
                 },
                 "RotationPersistent" : {
                   "$$ClassName" : "TCastleVector4RotationPersistent",
                   "Z" : 1.0000000000000000E+000
+                },
+                "ScaleOrientationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent"
+                },
+                "ScalePersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
                 },
                 "TranslationPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
@@ -229,10 +407,13 @@
                   "Y" : 1.7956848144531250E+000,
                   "Z" : 2.0501136779785156E+001
                 },
-                "URL" : "castle-data:/house.gltf",
+                "Url" : "castle-data:/house.gltf",
                 "$Behaviors" : [
                   {
                     "$$ClassName" : "TCastleStickToSurface",
+                    "DirectionPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent"
+                    },
                     "Name" : "StickToSurface5",
                     "Target" : "Terrain1"
                   }
@@ -241,16 +422,28 @@
               {
                 "$$ClassName" : "TCastleScene",
                 "Cache" : true,
+                "CenterPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "DistanceCulling" : 2.0000000000000000E+001,
                 "ExposeTransforms" : [
                 ],
                 "Name" : "SceneHouse6",
                 "RenderOptions" : {
-                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+                  "WireframeColorPersistent" : {
+                    "$$ClassName" : "TCastleColorRGBPersistent"
+                  }
                 },
                 "RotationPersistent" : {
                   "$$ClassName" : "TCastleVector4RotationPersistent",
                   "Z" : 1.0000000000000000E+000
+                },
+                "ScaleOrientationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent"
+                },
+                "ScalePersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
                 },
                 "TranslationPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
@@ -258,10 +451,13 @@
                   "Y" : 2.7199096679687500E+000,
                   "Z" : 2.4699356079101562E+001
                 },
-                "URL" : "castle-data:/house.gltf",
+                "Url" : "castle-data:/house.gltf",
                 "$Behaviors" : [
                   {
                     "$$ClassName" : "TCastleStickToSurface",
+                    "DirectionPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent"
+                    },
                     "Name" : "StickToSurface6",
                     "Target" : "Terrain1"
                   }
@@ -270,17 +466,29 @@
               {
                 "$$ClassName" : "TCastleScene",
                 "Cache" : true,
+                "CenterPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "DistanceCulling" : 2.0000000000000000E+001,
                 "ExposeTransforms" : [
                 ],
                 "Name" : "SceneHouse7",
                 "RenderOptions" : {
-                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+                  "WireframeColorPersistent" : {
+                    "$$ClassName" : "TCastleColorRGBPersistent"
+                  }
                 },
                 "RotationPersistent" : {
                   "$$ClassName" : "TCastleVector4RotationPersistent",
                   "W" : 3.3095616847276688E-002,
                   "Z" : -9.9999946355819702E-001
+                },
+                "ScaleOrientationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent"
+                },
+                "ScalePersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
                 },
                 "TranslationPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
@@ -288,10 +496,13 @@
                   "Y" : 4.4692840576171875E+000,
                   "Z" : 2.8404060363769531E+001
                 },
-                "URL" : "castle-data:/house.gltf",
+                "Url" : "castle-data:/house.gltf",
                 "$Behaviors" : [
                   {
                     "$$ClassName" : "TCastleStickToSurface",
+                    "DirectionPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent"
+                    },
                     "Name" : "StickToSurface7",
                     "Target" : "Terrain1"
                   }
@@ -300,17 +511,29 @@
               {
                 "$$ClassName" : "TCastleScene",
                 "Cache" : true,
+                "CenterPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "DistanceCulling" : 2.0000000000000000E+001,
                 "ExposeTransforms" : [
                 ],
                 "Name" : "SceneHouse13",
                 "RenderOptions" : {
-                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+                  "WireframeColorPersistent" : {
+                    "$$ClassName" : "TCastleColorRGBPersistent"
+                  }
                 },
                 "RotationPersistent" : {
                   "$$ClassName" : "TCastleVector4RotationPersistent",
                   "W" : 3.3095616847276688E-002,
                   "Z" : -9.9999946355819702E-001
+                },
+                "ScaleOrientationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent"
+                },
+                "ScalePersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
                 },
                 "TranslationPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
@@ -318,10 +541,13 @@
                   "Y" : 6.1801605224609375E+000,
                   "Z" : 3.1943840026855469E+001
                 },
-                "URL" : "castle-data:/house.gltf",
+                "Url" : "castle-data:/house.gltf",
                 "$Behaviors" : [
                   {
                     "$$ClassName" : "TCastleStickToSurface",
+                    "DirectionPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent"
+                    },
                     "Name" : "StickToSurface46",
                     "Target" : "Terrain1"
                   }
@@ -330,17 +556,29 @@
               {
                 "$$ClassName" : "TCastleScene",
                 "Cache" : true,
+                "CenterPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "DistanceCulling" : 2.0000000000000000E+001,
                 "ExposeTransforms" : [
                 ],
                 "Name" : "SceneHouse14",
                 "RenderOptions" : {
-                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+                  "WireframeColorPersistent" : {
+                    "$$ClassName" : "TCastleColorRGBPersistent"
+                  }
                 },
                 "RotationPersistent" : {
                   "$$ClassName" : "TCastleVector4RotationPersistent",
                   "W" : 3.3095616847276688E-002,
                   "Z" : -9.9999946355819702E-001
+                },
+                "ScaleOrientationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent"
+                },
+                "ScalePersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
                 },
                 "TranslationPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
@@ -348,10 +586,13 @@
                   "Y" : 7.4816284179687500E+000,
                   "Z" : 3.6593070983886719E+001
                 },
-                "URL" : "castle-data:/house.gltf",
+                "Url" : "castle-data:/house.gltf",
                 "$Behaviors" : [
                   {
                     "$$ClassName" : "TCastleStickToSurface",
+                    "DirectionPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent"
+                    },
                     "Name" : "StickToSurface47",
                     "Target" : "Terrain1"
                   }
@@ -360,17 +601,29 @@
               {
                 "$$ClassName" : "TCastleScene",
                 "Cache" : true,
+                "CenterPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "DistanceCulling" : 2.0000000000000000E+001,
                 "ExposeTransforms" : [
                 ],
                 "Name" : "SceneHouse15",
                 "RenderOptions" : {
-                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+                  "WireframeColorPersistent" : {
+                    "$$ClassName" : "TCastleColorRGBPersistent"
+                  }
                 },
                 "RotationPersistent" : {
                   "$$ClassName" : "TCastleVector4RotationPersistent",
                   "W" : 3.3095616847276688E-002,
                   "Z" : -9.9999946355819702E-001
+                },
+                "ScaleOrientationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent"
+                },
+                "ScalePersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
                 },
                 "TranslationPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
@@ -378,10 +631,13 @@
                   "Y" : 7.7612915039062500E+000,
                   "Z" : 4.0973937988281250E+001
                 },
-                "URL" : "castle-data:/house.gltf",
+                "Url" : "castle-data:/house.gltf",
                 "$Behaviors" : [
                   {
                     "$$ClassName" : "TCastleStickToSurface",
+                    "DirectionPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent"
+                    },
                     "Name" : "StickToSurface48",
                     "Target" : "Terrain1"
                   }
@@ -390,17 +646,29 @@
               {
                 "$$ClassName" : "TCastleScene",
                 "Cache" : true,
+                "CenterPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "DistanceCulling" : 2.0000000000000000E+001,
                 "ExposeTransforms" : [
                 ],
                 "Name" : "SceneHouse8",
                 "RenderOptions" : {
-                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+                  "WireframeColorPersistent" : {
+                    "$$ClassName" : "TCastleColorRGBPersistent"
+                  }
                 },
                 "RotationPersistent" : {
                   "$$ClassName" : "TCastleVector4RotationPersistent",
                   "W" : 1.9054028987884521E+000,
                   "Y" : 9.9999994039535522E-001
+                },
+                "ScaleOrientationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent"
+                },
+                "ScalePersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
                 },
                 "TranslationPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
@@ -408,10 +676,13 @@
                   "Y" : 3.1089324951171875E+000,
                   "Z" : -5.2958793640136719E+000
                 },
-                "URL" : "castle-data:/house.gltf",
+                "Url" : "castle-data:/house.gltf",
                 "$Behaviors" : [
                   {
                     "$$ClassName" : "TCastleStickToSurface",
+                    "DirectionPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent"
+                    },
                     "Name" : "StickToSurface8",
                     "Target" : "Terrain1"
                   }
@@ -420,12 +691,27 @@
               {
                 "$$ClassName" : "TCastleScene",
                 "Cache" : true,
+                "CenterPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "DistanceCulling" : 2.0000000000000000E+001,
                 "ExposeTransforms" : [
                 ],
                 "Name" : "SceneHouse9",
                 "RenderOptions" : {
-                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+                  "WireframeColorPersistent" : {
+                    "$$ClassName" : "TCastleColorRGBPersistent"
+                  }
+                },
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent"
+                },
+                "ScaleOrientationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent"
+                },
+                "ScalePersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
                 },
                 "TranslationPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
@@ -433,10 +719,13 @@
                   "Y" : 7.2119293212890625E+000,
                   "Z" : -1.3484394073486328E+001
                 },
-                "URL" : "castle-data:/house.gltf",
+                "Url" : "castle-data:/house.gltf",
                 "$Behaviors" : [
                   {
                     "$$ClassName" : "TCastleStickToSurface",
+                    "DirectionPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent"
+                    },
                     "Name" : "StickToSurface9",
                     "Target" : "Terrain1"
                   }
@@ -445,23 +734,41 @@
               {
                 "$$ClassName" : "TCastleScene",
                 "Cache" : true,
+                "CenterPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "DistanceCulling" : 2.0000000000000000E+001,
                 "ExposeTransforms" : [
                 ],
                 "Name" : "SceneHouse11",
                 "RenderOptions" : {
-                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+                  "WireframeColorPersistent" : {
+                    "$$ClassName" : "TCastleColorRGBPersistent"
+                  }
+                },
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent"
+                },
+                "ScaleOrientationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent"
+                },
+                "ScalePersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
                 },
                 "TranslationPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
                   "X" : 2.3450912475585938E+001,
-                  "Y" : 9.5386047363281250E+000,
+                  "Y" : 9.5385742187500000E+000,
                   "Z" : -1.8442188262939453E+001
                 },
-                "URL" : "castle-data:/house.gltf",
+                "Url" : "castle-data:/house.gltf",
                 "$Behaviors" : [
                   {
                     "$$ClassName" : "TCastleStickToSurface",
+                    "DirectionPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent"
+                    },
                     "Name" : "StickToSurface44",
                     "Target" : "Terrain1"
                   }
@@ -470,12 +777,27 @@
               {
                 "$$ClassName" : "TCastleScene",
                 "Cache" : true,
+                "CenterPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "DistanceCulling" : 2.0000000000000000E+001,
                 "ExposeTransforms" : [
                 ],
                 "Name" : "SceneHouse12",
                 "RenderOptions" : {
-                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+                  "WireframeColorPersistent" : {
+                    "$$ClassName" : "TCastleColorRGBPersistent"
+                  }
+                },
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent"
+                },
+                "ScaleOrientationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent"
+                },
+                "ScalePersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
                 },
                 "TranslationPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
@@ -483,10 +805,13 @@
                   "Y" : 8.2699584960937500E+000,
                   "Z" : -2.7028703689575195E+001
                 },
-                "URL" : "castle-data:/house.gltf",
+                "Url" : "castle-data:/house.gltf",
                 "$Behaviors" : [
                   {
                     "$$ClassName" : "TCastleStickToSurface",
+                    "DirectionPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent"
+                    },
                     "Name" : "StickToSurface45",
                     "Target" : "Terrain1"
                   }
@@ -495,16 +820,28 @@
               {
                 "$$ClassName" : "TCastleScene",
                 "Cache" : true,
+                "CenterPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "DistanceCulling" : 2.0000000000000000E+001,
                 "ExposeTransforms" : [
                 ],
                 "Name" : "SceneHouse10",
                 "RenderOptions" : {
-                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+                  "WireframeColorPersistent" : {
+                    "$$ClassName" : "TCastleColorRGBPersistent"
+                  }
                 },
                 "RotationPersistent" : {
                   "$$ClassName" : "TCastleVector4RotationPersistent",
                   "Z" : 1.0000000000000000E+000
+                },
+                "ScaleOrientationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent"
+                },
+                "ScalePersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
                 },
                 "TranslationPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
@@ -512,10 +849,13 @@
                   "Y" : 4.7210998535156250E+000,
                   "Z" : -9.4257621765136719E+000
                 },
-                "URL" : "castle-data:/house.gltf",
+                "Url" : "castle-data:/house.gltf",
                 "$Behaviors" : [
                   {
                     "$$ClassName" : "TCastleStickToSurface",
+                    "DirectionPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent"
+                    },
                     "Name" : "StickToSurface10",
                     "Target" : "Terrain1"
                   }
@@ -524,16 +864,28 @@
               {
                 "$$ClassName" : "TCastleScene",
                 "Cache" : true,
+                "CenterPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "DistanceCulling" : 2.0000000000000000E+001,
                 "ExposeTransforms" : [
                 ],
                 "Name" : "SceneHouse3",
                 "RenderOptions" : {
-                  "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+                  "WireframeColorPersistent" : {
+                    "$$ClassName" : "TCastleColorRGBPersistent"
+                  }
                 },
                 "RotationPersistent" : {
                   "$$ClassName" : "TCastleVector4RotationPersistent",
                   "Z" : 1.0000000000000000E+000
+                },
+                "ScaleOrientationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent"
+                },
+                "ScalePersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
                 },
                 "TranslationPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
@@ -541,10 +893,13 @@
                   "Y" : 1.7602081298828125E+000,
                   "Z" : 3.9697532653808594E+000
                 },
-                "URL" : "castle-data:/house.gltf",
+                "Url" : "castle-data:/house.gltf",
                 "$Behaviors" : [
                   {
                     "$$ClassName" : "TCastleStickToSurface",
+                    "DirectionPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent"
+                    },
                     "Name" : "StickToSurface3",
                     "Target" : "Terrain1"
                   }
@@ -554,18 +909,48 @@
           },
           {
             "$$ClassName" : "TCastleTransform",
+            "CenterPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent"
+            },
             "Name" : "HousesMultipleMaterials",
+            "RotationPersistent" : {
+              "$$ClassName" : "TCastleVector4RotationPersistent"
+            },
+            "ScaleOrientationPersistent" : {
+              "$$ClassName" : "TCastleVector4Persistent"
+            },
+            "ScalePersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent"
+            },
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent"
+            },
             "$Children" : [
               {
                 "$$ClassName" : "TCastleScene",
                 "Cache" : true,
+                "CenterPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "DistanceCulling" : 2.0000000000000000E+001,
                 "ExposeTransforms" : [
                 ],
                 "Name" : "SceneHouseMultipleMats1",
                 "RenderOptions" : {
                   "$$ClassName" : "TCastleScene.TSceneRenderOptions",
-                  "WholeSceneManifold" : true
+                  "WholeSceneManifold" : true,
+                  "WireframeColorPersistent" : {
+                    "$$ClassName" : "TCastleColorRGBPersistent"
+                  }
+                },
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent"
+                },
+                "ScaleOrientationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent"
+                },
+                "ScalePersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
                 },
                 "TranslationPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
@@ -573,10 +958,13 @@
                   "Y" : 3.2637329101562500E+000,
                   "Z" : 8.5937004089355469E+000
                 },
-                "URL" : "castle-data:/house_multiple_mats.gltf",
+                "Url" : "castle-data:/house_multiple_mats.gltf",
                 "$Behaviors" : [
                   {
                     "$$ClassName" : "TCastleStickToSurface",
+                    "DirectionPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent"
+                    },
                     "Name" : "StickToSurface11",
                     "Target" : "Terrain1"
                   }
@@ -585,13 +973,28 @@
               {
                 "$$ClassName" : "TCastleScene",
                 "Cache" : true,
+                "CenterPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "DistanceCulling" : 2.0000000000000000E+001,
                 "ExposeTransforms" : [
                 ],
                 "Name" : "SceneHouseMultipleMats9",
                 "RenderOptions" : {
                   "$$ClassName" : "TCastleScene.TSceneRenderOptions",
-                  "WholeSceneManifold" : true
+                  "WholeSceneManifold" : true,
+                  "WireframeColorPersistent" : {
+                    "$$ClassName" : "TCastleColorRGBPersistent"
+                  }
+                },
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent"
+                },
+                "ScaleOrientationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent"
+                },
+                "ScalePersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
                 },
                 "TranslationPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
@@ -599,10 +1002,13 @@
                   "Y" : 3.2059173583984375E+000,
                   "Z" : 2.8728637695312500E+001
                 },
-                "URL" : "castle-data:/house_multiple_mats.gltf",
+                "Url" : "castle-data:/house_multiple_mats.gltf",
                 "$Behaviors" : [
                   {
                     "$$ClassName" : "TCastleStickToSurface",
+                    "DirectionPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent"
+                    },
                     "Name" : "StickToSurface39",
                     "Target" : "Terrain1"
                   }
@@ -611,13 +1017,28 @@
               {
                 "$$ClassName" : "TCastleScene",
                 "Cache" : true,
+                "CenterPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "DistanceCulling" : 2.0000000000000000E+001,
                 "ExposeTransforms" : [
                 ],
                 "Name" : "SceneHouseMultipleMats10",
                 "RenderOptions" : {
                   "$$ClassName" : "TCastleScene.TSceneRenderOptions",
-                  "WholeSceneManifold" : true
+                  "WholeSceneManifold" : true,
+                  "WireframeColorPersistent" : {
+                    "$$ClassName" : "TCastleColorRGBPersistent"
+                  }
+                },
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent"
+                },
+                "ScaleOrientationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent"
+                },
+                "ScalePersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
                 },
                 "TranslationPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
@@ -625,10 +1046,13 @@
                   "Y" : 3.5178070068359375E+000,
                   "Z" : 3.3712463378906250E+001
                 },
-                "URL" : "castle-data:/house_multiple_mats.gltf",
+                "Url" : "castle-data:/house_multiple_mats.gltf",
                 "$Behaviors" : [
                   {
                     "$$ClassName" : "TCastleStickToSurface",
+                    "DirectionPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent"
+                    },
                     "Name" : "StickToSurface40",
                     "Target" : "Terrain1"
                   }
@@ -637,24 +1061,42 @@
               {
                 "$$ClassName" : "TCastleScene",
                 "Cache" : true,
+                "CenterPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "DistanceCulling" : 2.0000000000000000E+001,
                 "ExposeTransforms" : [
                 ],
                 "Name" : "SceneHouseMultipleMats11",
                 "RenderOptions" : {
                   "$$ClassName" : "TCastleScene.TSceneRenderOptions",
-                  "WholeSceneManifold" : true
+                  "WholeSceneManifold" : true,
+                  "WireframeColorPersistent" : {
+                    "$$ClassName" : "TCastleColorRGBPersistent"
+                  }
+                },
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent"
+                },
+                "ScaleOrientationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent"
+                },
+                "ScalePersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
                 },
                 "TranslationPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
                   "X" : 6.8621368408203125E+000,
-                  "Y" : 3.6144104003906250E+000,
+                  "Y" : 3.6143951416015625E+000,
                   "Z" : 3.8432113647460938E+001
                 },
-                "URL" : "castle-data:/house_multiple_mats.gltf",
+                "Url" : "castle-data:/house_multiple_mats.gltf",
                 "$Behaviors" : [
                   {
                     "$$ClassName" : "TCastleStickToSurface",
+                    "DirectionPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent"
+                    },
                     "Name" : "StickToSurface41",
                     "Target" : "Terrain1"
                   }
@@ -663,13 +1105,28 @@
               {
                 "$$ClassName" : "TCastleScene",
                 "Cache" : true,
+                "CenterPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "DistanceCulling" : 2.0000000000000000E+001,
                 "ExposeTransforms" : [
                 ],
                 "Name" : "SceneHouseMultipleMats4",
                 "RenderOptions" : {
                   "$$ClassName" : "TCastleScene.TSceneRenderOptions",
-                  "WholeSceneManifold" : true
+                  "WholeSceneManifold" : true,
+                  "WireframeColorPersistent" : {
+                    "$$ClassName" : "TCastleColorRGBPersistent"
+                  }
+                },
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent"
+                },
+                "ScaleOrientationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent"
+                },
+                "ScalePersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
                 },
                 "TranslationPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
@@ -677,10 +1134,13 @@
                   "Y" : 3.1426086425781250E+000,
                   "Z" : 4.5861358642578125E+000
                 },
-                "URL" : "castle-data:/house_multiple_mats.gltf",
+                "Url" : "castle-data:/house_multiple_mats.gltf",
                 "$Behaviors" : [
                   {
                     "$$ClassName" : "TCastleStickToSurface",
+                    "DirectionPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent"
+                    },
                     "Name" : "StickToSurface26",
                     "Target" : "Terrain1"
                   }
@@ -689,24 +1149,42 @@
               {
                 "$$ClassName" : "TCastleScene",
                 "Cache" : true,
+                "CenterPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "DistanceCulling" : 2.0000000000000000E+001,
                 "ExposeTransforms" : [
                 ],
                 "Name" : "SceneHouseMultipleMats5",
                 "RenderOptions" : {
                   "$$ClassName" : "TCastleScene.TSceneRenderOptions",
-                  "WholeSceneManifold" : true
+                  "WholeSceneManifold" : true,
+                  "WireframeColorPersistent" : {
+                    "$$ClassName" : "TCastleColorRGBPersistent"
+                  }
+                },
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent"
+                },
+                "ScaleOrientationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent"
+                },
+                "ScalePersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
                 },
                 "TranslationPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
                   "X" : 6.8621368408203125E+000,
-                  "Y" : 2.8930969238281250E+000,
+                  "Y" : 2.8930816650390625E+000,
                   "Z" : -1.3499565124511719E+000
                 },
-                "URL" : "castle-data:/house_multiple_mats.gltf",
+                "Url" : "castle-data:/house_multiple_mats.gltf",
                 "$Behaviors" : [
                   {
                     "$$ClassName" : "TCastleStickToSurface",
+                    "DirectionPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent"
+                    },
                     "Name" : "StickToSurface27",
                     "Target" : "Terrain1"
                   }
@@ -715,13 +1193,28 @@
               {
                 "$$ClassName" : "TCastleScene",
                 "Cache" : true,
+                "CenterPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "DistanceCulling" : 2.0000000000000000E+001,
                 "ExposeTransforms" : [
                 ],
                 "Name" : "SceneHouseMultipleMats6",
                 "RenderOptions" : {
                   "$$ClassName" : "TCastleScene.TSceneRenderOptions",
-                  "WholeSceneManifold" : true
+                  "WholeSceneManifold" : true,
+                  "WireframeColorPersistent" : {
+                    "$$ClassName" : "TCastleColorRGBPersistent"
+                  }
+                },
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent"
+                },
+                "ScaleOrientationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent"
+                },
+                "ScalePersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
                 },
                 "TranslationPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
@@ -729,10 +1222,13 @@
                   "Y" : 4.3755340576171875E+000,
                   "Z" : -5.8874893188476562E+000
                 },
-                "URL" : "castle-data:/house_multiple_mats.gltf",
+                "Url" : "castle-data:/house_multiple_mats.gltf",
                 "$Behaviors" : [
                   {
                     "$$ClassName" : "TCastleStickToSurface",
+                    "DirectionPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent"
+                    },
                     "Name" : "StickToSurface28",
                     "Target" : "Terrain1"
                   }
@@ -741,13 +1237,28 @@
               {
                 "$$ClassName" : "TCastleScene",
                 "Cache" : true,
+                "CenterPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "DistanceCulling" : 2.0000000000000000E+001,
                 "ExposeTransforms" : [
                 ],
                 "Name" : "SceneHouseMultipleMats7",
                 "RenderOptions" : {
                   "$$ClassName" : "TCastleScene.TSceneRenderOptions",
-                  "WholeSceneManifold" : true
+                  "WholeSceneManifold" : true,
+                  "WireframeColorPersistent" : {
+                    "$$ClassName" : "TCastleColorRGBPersistent"
+                  }
+                },
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent"
+                },
+                "ScaleOrientationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent"
+                },
+                "ScalePersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
                 },
                 "TranslationPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
@@ -755,10 +1266,13 @@
                   "Y" : 6.9875030517578125E+000,
                   "Z" : -1.1366306304931641E+001
                 },
-                "URL" : "castle-data:/house_multiple_mats.gltf",
+                "Url" : "castle-data:/house_multiple_mats.gltf",
                 "$Behaviors" : [
                   {
                     "$$ClassName" : "TCastleStickToSurface",
+                    "DirectionPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent"
+                    },
                     "Name" : "StickToSurface29",
                     "Target" : "Terrain1"
                   }
@@ -767,13 +1281,28 @@
               {
                 "$$ClassName" : "TCastleScene",
                 "Cache" : true,
+                "CenterPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "DistanceCulling" : 2.0000000000000000E+001,
                 "ExposeTransforms" : [
                 ],
                 "Name" : "SceneHouseMultipleMats8",
                 "RenderOptions" : {
                   "$$ClassName" : "TCastleScene.TSceneRenderOptions",
-                  "WholeSceneManifold" : true
+                  "WholeSceneManifold" : true,
+                  "WireframeColorPersistent" : {
+                    "$$ClassName" : "TCastleColorRGBPersistent"
+                  }
+                },
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent"
+                },
+                "ScaleOrientationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent"
+                },
+                "ScalePersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
                 },
                 "TranslationPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
@@ -781,10 +1310,13 @@
                   "Y" : 9.4295806884765625E+000,
                   "Z" : -1.9205333709716797E+001
                 },
-                "URL" : "castle-data:/house_multiple_mats.gltf",
+                "Url" : "castle-data:/house_multiple_mats.gltf",
                 "$Behaviors" : [
                   {
                     "$$ClassName" : "TCastleStickToSurface",
+                    "DirectionPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent"
+                    },
                     "Name" : "StickToSurface30",
                     "Target" : "Terrain1"
                   }
@@ -793,13 +1325,28 @@
               {
                 "$$ClassName" : "TCastleScene",
                 "Cache" : true,
+                "CenterPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "DistanceCulling" : 2.0000000000000000E+001,
                 "ExposeTransforms" : [
                 ],
                 "Name" : "SceneHouseMultipleMats12",
                 "RenderOptions" : {
                   "$$ClassName" : "TCastleScene.TSceneRenderOptions",
-                  "WholeSceneManifold" : true
+                  "WholeSceneManifold" : true,
+                  "WireframeColorPersistent" : {
+                    "$$ClassName" : "TCastleColorRGBPersistent"
+                  }
+                },
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent"
+                },
+                "ScaleOrientationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent"
+                },
+                "ScalePersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
                 },
                 "TranslationPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
@@ -807,10 +1354,13 @@
                   "Y" : 8.7855682373046875E+000,
                   "Z" : -1.5756263732910156E+001
                 },
-                "URL" : "castle-data:/house_multiple_mats.gltf",
+                "Url" : "castle-data:/house_multiple_mats.gltf",
                 "$Behaviors" : [
                   {
                     "$$ClassName" : "TCastleStickToSurface",
+                    "DirectionPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent"
+                    },
                     "Name" : "StickToSurface42",
                     "Target" : "Terrain1"
                   }
@@ -819,13 +1369,28 @@
               {
                 "$$ClassName" : "TCastleScene",
                 "Cache" : true,
+                "CenterPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "DistanceCulling" : 2.0000000000000000E+001,
                 "ExposeTransforms" : [
                 ],
                 "Name" : "SceneHouseMultipleMats13",
                 "RenderOptions" : {
                   "$$ClassName" : "TCastleScene.TSceneRenderOptions",
-                  "WholeSceneManifold" : true
+                  "WholeSceneManifold" : true,
+                  "WireframeColorPersistent" : {
+                    "$$ClassName" : "TCastleColorRGBPersistent"
+                  }
+                },
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent"
+                },
+                "ScaleOrientationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent"
+                },
+                "ScalePersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
                 },
                 "TranslationPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
@@ -833,10 +1398,13 @@
                   "Y" : 9.0098876953125000E+000,
                   "Z" : -2.4497241973876953E+001
                 },
-                "URL" : "castle-data:/house_multiple_mats.gltf",
+                "Url" : "castle-data:/house_multiple_mats.gltf",
                 "$Behaviors" : [
                   {
                     "$$ClassName" : "TCastleStickToSurface",
+                    "DirectionPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent"
+                    },
                     "Name" : "StickToSurface43",
                     "Target" : "Terrain1"
                   }
@@ -845,13 +1413,19 @@
               {
                 "$$ClassName" : "TCastleScene",
                 "Cache" : true,
+                "CenterPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "DistanceCulling" : 2.0000000000000000E+001,
                 "ExposeTransforms" : [
                 ],
                 "Name" : "SceneHouseMultipleMats2",
                 "RenderOptions" : {
                   "$$ClassName" : "TCastleScene.TSceneRenderOptions",
-                  "WholeSceneManifold" : true
+                  "WholeSceneManifold" : true,
+                  "WireframeColorPersistent" : {
+                    "$$ClassName" : "TCastleColorRGBPersistent"
+                  }
                 },
                 "RotationPersistent" : {
                   "$$ClassName" : "TCastleVector4RotationPersistent",
@@ -860,16 +1434,25 @@
                   "Y" : 9.9998569488525391E-001,
                   "Z" : -5.2355243824422359E-003
                 },
+                "ScaleOrientationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent"
+                },
+                "ScalePersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "TranslationPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
                   "X" : 5.1622161865234375E+000,
                   "Y" : 2.9619445800781250E+000,
                   "Z" : 2.2069076538085938E+001
                 },
-                "URL" : "castle-data:/house_multiple_mats.gltf",
+                "Url" : "castle-data:/house_multiple_mats.gltf",
                 "$Behaviors" : [
                   {
                     "$$ClassName" : "TCastleStickToSurface",
+                    "DirectionPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent"
+                    },
                     "Name" : "StickToSurface12",
                     "Target" : "Terrain1"
                   }
@@ -878,18 +1461,30 @@
               {
                 "$$ClassName" : "TCastleScene",
                 "Cache" : true,
+                "CenterPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "DistanceCulling" : 2.0000000000000000E+001,
                 "ExposeTransforms" : [
                 ],
                 "Name" : "SceneHouseMultipleMats3",
                 "RenderOptions" : {
                   "$$ClassName" : "TCastleScene.TSceneRenderOptions",
-                  "WholeSceneManifold" : true
+                  "WholeSceneManifold" : true,
+                  "WireframeColorPersistent" : {
+                    "$$ClassName" : "TCastleColorRGBPersistent"
+                  }
                 },
                 "RotationPersistent" : {
                   "$$ClassName" : "TCastleVector4RotationPersistent",
                   "W" : 1.0563727617263794E+000,
                   "Y" : -1.0000007152557373E+000
+                },
+                "ScaleOrientationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent"
+                },
+                "ScalePersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
                 },
                 "TranslationPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
@@ -897,10 +1492,13 @@
                   "Y" : 3.1725311279296875E+000,
                   "Z" : 1.5729804992675781E+001
                 },
-                "URL" : "castle-data:/house_multiple_mats.gltf",
+                "Url" : "castle-data:/house_multiple_mats.gltf",
                 "$Behaviors" : [
                   {
                     "$$ClassName" : "TCastleStickToSurface",
+                    "DirectionPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent"
+                    },
                     "Name" : "StickToSurface13",
                     "Target" : "Terrain1"
                   }
@@ -910,7 +1508,19 @@
           },
           {
             "$$ClassName" : "TCastleTransform",
+            "CenterPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent"
+            },
             "Name" : "HousesSingleMaterialsReferences",
+            "RotationPersistent" : {
+              "$$ClassName" : "TCastleVector4RotationPersistent"
+            },
+            "ScaleOrientationPersistent" : {
+              "$$ClassName" : "TCastleVector4Persistent"
+            },
+            "ScalePersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent"
+            },
             "TranslationPersistent" : {
               "$$ClassName" : "TCastleVector3Persistent",
               "X" : -5.8467464447021484E+000
@@ -918,33 +1528,63 @@
             "$Children" : [
               {
                 "$$ClassName" : "TCastleTransform",
+                "CenterPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "Name" : "Transform1",
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent"
+                },
+                "ScaleOrientationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent"
+                },
+                "ScalePersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "TranslationPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
                   "X" : 2.2093923568725586E+001,
-                  "Y" : 1.4423370361328125E+000,
+                  "Y" : 1.4423522949218750E+000,
                   "Z" : 4.6598777770996094E+000
                 },
                 "$Children" : [
                   {
                     "$$ClassName" : "TCastleScene",
+                    "CenterPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent"
+                    },
                     "DistanceCulling" : 2.0000000000000000E+001,
                     "ExposeTransforms" : [
                     ],
                     "Name" : "SceneHouseSingleMatForReference",
                     "RenderOptions" : {
-                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+                      "WireframeColorPersistent" : {
+                        "$$ClassName" : "TCastleColorRGBPersistent"
+                      }
                     },
                     "RotationPersistent" : {
                       "$$ClassName" : "TCastleVector4RotationPersistent",
                       "Z" : 1.0000000000000000E+000
                     },
-                    "URL" : "castle-data:/house.gltf"
+                    "ScaleOrientationPersistent" : {
+                      "$$ClassName" : "TCastleVector4Persistent"
+                    },
+                    "ScalePersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent"
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent"
+                    },
+                    "Url" : "castle-data:/house.gltf"
                   }
                 ],
                 "$Behaviors" : [
                   {
                     "$$ClassName" : "TCastleStickToSurface",
+                    "DirectionPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent"
+                    },
                     "Name" : "StickToSurface14",
                     "Target" : "Terrain1"
                   }
@@ -952,8 +1592,20 @@
               },
               {
                 "$$ClassName" : "TCastleTransformReference",
+                "CenterPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "Name" : "TransformReference1",
                 "Reference" : "SceneHouseSingleMatForReference",
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent"
+                },
+                "ScaleOrientationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent"
+                },
+                "ScalePersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "TranslationPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
                   "X" : 2.0567602157592773E+001,
@@ -963,6 +1615,9 @@
                 "$Behaviors" : [
                   {
                     "$$ClassName" : "TCastleStickToSurface",
+                    "DirectionPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent"
+                    },
                     "Name" : "StickToSurface15",
                     "Target" : "Terrain1"
                   }
@@ -970,17 +1625,32 @@
               },
               {
                 "$$ClassName" : "TCastleTransformReference",
+                "CenterPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "Name" : "TransformReference2",
                 "Reference" : "SceneHouseSingleMatForReference",
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent"
+                },
+                "ScaleOrientationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent"
+                },
+                "ScalePersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "TranslationPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
                   "X" : 2.0567602157592773E+001,
-                  "Y" : 1.7574310302734375E+000,
+                  "Y" : 1.7574157714843750E+000,
                   "Z" : 1.9166290283203125E+001
                 },
                 "$Behaviors" : [
                   {
                     "$$ClassName" : "TCastleStickToSurface",
+                    "DirectionPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent"
+                    },
                     "Name" : "StickToSurface16",
                     "Target" : "Terrain1"
                   }
@@ -988,8 +1658,20 @@
               },
               {
                 "$$ClassName" : "TCastleTransformReference",
+                "CenterPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "Name" : "TransformReference3",
                 "Reference" : "SceneHouseSingleMatForReference",
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent"
+                },
+                "ScaleOrientationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent"
+                },
+                "ScalePersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "TranslationPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
                   "X" : 2.0567602157592773E+001,
@@ -999,6 +1681,9 @@
                 "$Behaviors" : [
                   {
                     "$$ClassName" : "TCastleStickToSurface",
+                    "DirectionPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent"
+                    },
                     "Name" : "StickToSurface17",
                     "Target" : "Terrain1"
                   }
@@ -1006,8 +1691,20 @@
               },
               {
                 "$$ClassName" : "TCastleTransformReference",
+                "CenterPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "Name" : "TransformReference11",
                 "Reference" : "SceneHouseSingleMatForReference",
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent"
+                },
+                "ScaleOrientationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent"
+                },
+                "ScalePersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "TranslationPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
                   "X" : 2.0567602157592773E+001,
@@ -1017,6 +1714,9 @@
                 "$Behaviors" : [
                   {
                     "$$ClassName" : "TCastleStickToSurface",
+                    "DirectionPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent"
+                    },
                     "Name" : "StickToSurface31",
                     "Target" : "Terrain1"
                   }
@@ -1024,17 +1724,32 @@
               },
               {
                 "$$ClassName" : "TCastleTransformReference",
+                "CenterPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "Name" : "TransformReference12",
                 "Reference" : "SceneHouseSingleMatForReference",
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent"
+                },
+                "ScaleOrientationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent"
+                },
+                "ScalePersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "TranslationPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
                   "X" : 2.0567602157592773E+001,
-                  "Y" : 6.0814361572265625E+000,
+                  "Y" : 6.0814208984375000E+000,
                   "Z" : 3.4827308654785156E+001
                 },
                 "$Behaviors" : [
                   {
                     "$$ClassName" : "TCastleStickToSurface",
+                    "DirectionPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent"
+                    },
                     "Name" : "StickToSurface32",
                     "Target" : "Terrain1"
                   }
@@ -1042,8 +1757,20 @@
               },
               {
                 "$$ClassName" : "TCastleTransformReference",
+                "CenterPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "Name" : "TransformReference13",
                 "Reference" : "SceneHouseSingleMatForReference",
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent"
+                },
+                "ScaleOrientationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent"
+                },
+                "ScalePersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "TranslationPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
                   "X" : 2.0567602157592773E+001,
@@ -1053,6 +1780,9 @@
                 "$Behaviors" : [
                   {
                     "$$ClassName" : "TCastleStickToSurface",
+                    "DirectionPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent"
+                    },
                     "Name" : "StickToSurface33",
                     "Target" : "Terrain1"
                   }
@@ -1060,8 +1790,20 @@
               },
               {
                 "$$ClassName" : "TCastleTransformReference",
+                "CenterPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "Name" : "TransformReference14",
                 "Reference" : "SceneHouseSingleMatForReference",
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent"
+                },
+                "ScaleOrientationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent"
+                },
+                "ScalePersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "TranslationPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
                   "X" : 2.0567602157592773E+001,
@@ -1071,6 +1813,9 @@
                 "$Behaviors" : [
                   {
                     "$$ClassName" : "TCastleStickToSurface",
+                    "DirectionPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent"
+                    },
                     "Name" : "StickToSurface34",
                     "Target" : "Terrain1"
                   }
@@ -1078,8 +1823,20 @@
               },
               {
                 "$$ClassName" : "TCastleTransformReference",
+                "CenterPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "Name" : "TransformReference15",
                 "Reference" : "SceneHouseSingleMatForReference",
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent"
+                },
+                "ScaleOrientationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent"
+                },
+                "ScalePersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "TranslationPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
                   "X" : 2.0567602157592773E+001,
@@ -1089,6 +1846,9 @@
                 "$Behaviors" : [
                   {
                     "$$ClassName" : "TCastleStickToSurface",
+                    "DirectionPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent"
+                    },
                     "Name" : "StickToSurface35",
                     "Target" : "Terrain1"
                   }
@@ -1096,8 +1856,20 @@
               },
               {
                 "$$ClassName" : "TCastleTransformReference",
+                "CenterPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "Name" : "TransformReference16",
                 "Reference" : "SceneHouseSingleMatForReference",
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent"
+                },
+                "ScaleOrientationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent"
+                },
+                "ScalePersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "TranslationPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
                   "X" : 2.0567602157592773E+001,
@@ -1107,6 +1879,9 @@
                 "$Behaviors" : [
                   {
                     "$$ClassName" : "TCastleStickToSurface",
+                    "DirectionPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent"
+                    },
                     "Name" : "StickToSurface36",
                     "Target" : "Terrain1"
                   }
@@ -1114,8 +1889,20 @@
               },
               {
                 "$$ClassName" : "TCastleTransformReference",
+                "CenterPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "Name" : "TransformReference17",
                 "Reference" : "SceneHouseSingleMatForReference",
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent"
+                },
+                "ScaleOrientationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent"
+                },
+                "ScalePersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "TranslationPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
                   "X" : 2.0567602157592773E+001,
@@ -1125,6 +1912,9 @@
                 "$Behaviors" : [
                   {
                     "$$ClassName" : "TCastleStickToSurface",
+                    "DirectionPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent"
+                    },
                     "Name" : "StickToSurface37",
                     "Target" : "Terrain1"
                   }
@@ -1132,8 +1922,20 @@
               },
               {
                 "$$ClassName" : "TCastleTransformReference",
+                "CenterPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "Name" : "TransformReference18",
                 "Reference" : "SceneHouseSingleMatForReference",
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent"
+                },
+                "ScaleOrientationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent"
+                },
+                "ScalePersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "TranslationPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
                   "X" : 2.0567602157592773E+001,
@@ -1143,6 +1945,9 @@
                 "$Behaviors" : [
                   {
                     "$$ClassName" : "TCastleStickToSurface",
+                    "DirectionPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent"
+                    },
                     "Name" : "StickToSurface38",
                     "Target" : "Terrain1"
                   }
@@ -1150,8 +1955,20 @@
               },
               {
                 "$$ClassName" : "TCastleTransformReference",
+                "CenterPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "Name" : "TransformReference19",
                 "Reference" : "SceneHouseSingleMatForReference",
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent"
+                },
+                "ScaleOrientationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent"
+                },
+                "ScalePersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "TranslationPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
                   "X" : 2.0567602157592773E+001,
@@ -1161,6 +1978,9 @@
                 "$Behaviors" : [
                   {
                     "$$ClassName" : "TCastleStickToSurface",
+                    "DirectionPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent"
+                    },
                     "Name" : "StickToSurface49",
                     "Target" : "Terrain1"
                   }
@@ -1170,15 +1990,39 @@
           },
           {
             "$$ClassName" : "TCastleTransform",
+            "CenterPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent"
+            },
             "Name" : "HousesMultipleMaterialReferences",
+            "RotationPersistent" : {
+              "$$ClassName" : "TCastleVector4RotationPersistent"
+            },
+            "ScaleOrientationPersistent" : {
+              "$$ClassName" : "TCastleVector4Persistent"
+            },
+            "ScalePersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent"
+            },
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent"
+            },
             "$Children" : [
               {
                 "$$ClassName" : "TCastleTransform",
+                "CenterPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "Name" : "Transform2",
                 "RotationPersistent" : {
                   "$$ClassName" : "TCastleVector4RotationPersistent",
                   "W" : 3.6705121397972107E-001,
                   "Y" : 1.0000042915344238E+000
+                },
+                "ScaleOrientationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent"
+                },
+                "ScalePersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
                 },
                 "TranslationPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
@@ -1187,20 +2031,41 @@
                 "$Children" : [
                   {
                     "$$ClassName" : "TCastleScene",
+                    "CenterPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent"
+                    },
                     "DistanceCulling" : 2.0000000000000000E+001,
                     "ExposeTransforms" : [
                     ],
                     "Name" : "SceneHouseMultipleMatsForReference",
                     "RenderOptions" : {
                       "$$ClassName" : "TCastleScene.TSceneRenderOptions",
-                      "WholeSceneManifold" : true
+                      "WholeSceneManifold" : true,
+                      "WireframeColorPersistent" : {
+                        "$$ClassName" : "TCastleColorRGBPersistent"
+                      }
                     },
-                    "URL" : "castle-data:/house_multiple_mats.gltf"
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent"
+                    },
+                    "ScaleOrientationPersistent" : {
+                      "$$ClassName" : "TCastleVector4Persistent"
+                    },
+                    "ScalePersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent"
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent"
+                    },
+                    "Url" : "castle-data:/house_multiple_mats.gltf"
                   }
                 ],
                 "$Behaviors" : [
                   {
                     "$$ClassName" : "TCastleStickToSurface",
+                    "DirectionPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent"
+                    },
                     "Name" : "StickToSurface18",
                     "Target" : "Terrain1"
                   }
@@ -1208,8 +2073,20 @@
               },
               {
                 "$$ClassName" : "TCastleTransformReference",
+                "CenterPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "Name" : "TransformReference4",
                 "Reference" : "SceneHouseMultipleMatsForReference",
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent"
+                },
+                "ScaleOrientationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent"
+                },
+                "ScalePersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "TranslationPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
                   "Y" : 3.9414215087890625E+000,
@@ -1218,6 +2095,9 @@
                 "$Behaviors" : [
                   {
                     "$$ClassName" : "TCastleStickToSurface",
+                    "DirectionPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent"
+                    },
                     "Name" : "StickToSurface19",
                     "Target" : "Terrain1"
                   }
@@ -1225,8 +2105,20 @@
               },
               {
                 "$$ClassName" : "TCastleTransformReference",
+                "CenterPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "Name" : "TransformReference8",
                 "Reference" : "SceneHouseMultipleMatsForReference",
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent"
+                },
+                "ScaleOrientationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent"
+                },
+                "ScalePersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "TranslationPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
                   "Y" : 4.1849975585937500E+000,
@@ -1235,6 +2127,9 @@
                 "$Behaviors" : [
                   {
                     "$$ClassName" : "TCastleStickToSurface",
+                    "DirectionPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent"
+                    },
                     "Name" : "StickToSurface23",
                     "Target" : "Terrain1"
                   }
@@ -1242,8 +2137,20 @@
               },
               {
                 "$$ClassName" : "TCastleTransformReference",
+                "CenterPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "Name" : "TransformReference9",
                 "Reference" : "SceneHouseMultipleMatsForReference",
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent"
+                },
+                "ScaleOrientationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent"
+                },
+                "ScalePersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "TranslationPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
                   "Y" : 5.7174072265625000E+000,
@@ -1252,6 +2159,9 @@
                 "$Behaviors" : [
                   {
                     "$$ClassName" : "TCastleStickToSurface",
+                    "DirectionPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent"
+                    },
                     "Name" : "StickToSurface24",
                     "Target" : "Terrain1"
                   }
@@ -1259,8 +2169,20 @@
               },
               {
                 "$$ClassName" : "TCastleTransformReference",
+                "CenterPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "Name" : "TransformReference10",
                 "Reference" : "SceneHouseMultipleMatsForReference",
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent"
+                },
+                "ScaleOrientationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent"
+                },
+                "ScalePersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "TranslationPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
                   "Y" : 7.1963653564453125E+000,
@@ -1269,6 +2191,9 @@
                 "$Behaviors" : [
                   {
                     "$$ClassName" : "TCastleStickToSurface",
+                    "DirectionPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent"
+                    },
                     "Name" : "StickToSurface25",
                     "Target" : "Terrain1"
                   }
@@ -1276,8 +2201,20 @@
               },
               {
                 "$$ClassName" : "TCastleTransformReference",
+                "CenterPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "Name" : "TransformReference24",
                 "Reference" : "SceneHouseMultipleMatsForReference",
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent"
+                },
+                "ScaleOrientationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent"
+                },
+                "ScalePersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "TranslationPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
                   "Y" : 7.8395538330078125E+000,
@@ -1286,6 +2223,9 @@
                 "$Behaviors" : [
                   {
                     "$$ClassName" : "TCastleStickToSurface",
+                    "DirectionPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent"
+                    },
                     "Name" : "StickToSurface54",
                     "Target" : "Terrain1"
                   }
@@ -1293,8 +2233,20 @@
               },
               {
                 "$$ClassName" : "TCastleTransformReference",
+                "CenterPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "Name" : "TransformReference5",
                 "Reference" : "SceneHouseMultipleMatsForReference",
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent"
+                },
+                "ScaleOrientationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent"
+                },
+                "ScalePersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "TranslationPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
                   "Y" : 4.2665863037109375E+000,
@@ -1303,6 +2255,9 @@
                 "$Behaviors" : [
                   {
                     "$$ClassName" : "TCastleStickToSurface",
+                    "DirectionPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent"
+                    },
                     "Name" : "StickToSurface20",
                     "Target" : "Terrain1"
                   }
@@ -1310,8 +2265,20 @@
               },
               {
                 "$$ClassName" : "TCastleTransformReference",
+                "CenterPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "Name" : "TransformReference6",
                 "Reference" : "SceneHouseMultipleMatsForReference",
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent"
+                },
+                "ScaleOrientationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent"
+                },
+                "ScalePersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "TranslationPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
                   "Y" : 4.0978546142578125E+000,
@@ -1320,6 +2287,9 @@
                 "$Behaviors" : [
                   {
                     "$$ClassName" : "TCastleStickToSurface",
+                    "DirectionPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent"
+                    },
                     "Name" : "StickToSurface21",
                     "Target" : "Terrain1"
                   }
@@ -1327,8 +2297,20 @@
               },
               {
                 "$$ClassName" : "TCastleTransformReference",
+                "CenterPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "Name" : "TransformReference7",
                 "Reference" : "SceneHouseMultipleMatsForReference",
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent"
+                },
+                "ScaleOrientationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent"
+                },
+                "ScalePersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "TranslationPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
                   "Y" : 3.6248779296875000E+000,
@@ -1337,6 +2319,9 @@
                 "$Behaviors" : [
                   {
                     "$$ClassName" : "TCastleStickToSurface",
+                    "DirectionPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent"
+                    },
                     "Name" : "StickToSurface22",
                     "Target" : "Terrain1"
                   }
@@ -1344,8 +2329,20 @@
               },
               {
                 "$$ClassName" : "TCastleTransformReference",
+                "CenterPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "Name" : "TransformReference20",
                 "Reference" : "SceneHouseMultipleMatsForReference",
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent"
+                },
+                "ScaleOrientationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent"
+                },
+                "ScalePersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "TranslationPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
                   "Y" : 3.1371917724609375E+000,
@@ -1354,6 +2351,9 @@
                 "$Behaviors" : [
                   {
                     "$$ClassName" : "TCastleStickToSurface",
+                    "DirectionPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent"
+                    },
                     "Name" : "StickToSurface50",
                     "Target" : "Terrain1"
                   }
@@ -1361,8 +2361,20 @@
               },
               {
                 "$$ClassName" : "TCastleTransformReference",
+                "CenterPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "Name" : "TransformReference21",
                 "Reference" : "SceneHouseMultipleMatsForReference",
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent"
+                },
+                "ScaleOrientationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent"
+                },
+                "ScalePersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "TranslationPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
                   "Y" : 2.9383087158203125E+000,
@@ -1371,6 +2383,9 @@
                 "$Behaviors" : [
                   {
                     "$$ClassName" : "TCastleStickToSurface",
+                    "DirectionPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent"
+                    },
                     "Name" : "StickToSurface51",
                     "Target" : "Terrain1"
                   }
@@ -1378,8 +2393,20 @@
               },
               {
                 "$$ClassName" : "TCastleTransformReference",
+                "CenterPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "Name" : "TransformReference22",
                 "Reference" : "SceneHouseMultipleMatsForReference",
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent"
+                },
+                "ScaleOrientationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent"
+                },
+                "ScalePersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "TranslationPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
                   "Y" : 2.5712890625000000E+000,
@@ -1388,6 +2415,9 @@
                 "$Behaviors" : [
                   {
                     "$$ClassName" : "TCastleStickToSurface",
+                    "DirectionPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent"
+                    },
                     "Name" : "StickToSurface52",
                     "Target" : "Terrain1"
                   }
@@ -1395,8 +2425,20 @@
               },
               {
                 "$$ClassName" : "TCastleTransformReference",
+                "CenterPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "Name" : "TransformReference23",
                 "Reference" : "SceneHouseMultipleMatsForReference",
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent"
+                },
+                "ScaleOrientationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent"
+                },
+                "ScalePersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
                 "TranslationPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
                   "Y" : 2.4404602050781250E+000,
@@ -1405,6 +2447,9 @@
                 "$Behaviors" : [
                   {
                     "$$ClassName" : "TCastleStickToSurface",
+                    "DirectionPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent"
+                    },
                     "Name" : "StickToSurface53",
                     "Target" : "Terrain1"
                   }
@@ -1415,61 +2460,139 @@
         ]
       },
       "Name" : "Viewport1",
+      "TranslationPersistent" : {
+        "$$ClassName" : "TCastleVector2Persistent"
+      },
       "$NonVisualComponents" : [
         {
           "$$ClassName" : "TCastleBackground",
-          "Name" : "Background1"
+          "GroundBottomColorPersistent" : {
+            "$$ClassName" : "TCastleColorRGBPersistent"
+          },
+          "GroundEquatorColorPersistent" : {
+            "$$ClassName" : "TCastleColorRGBPersistent"
+          },
+          "Name" : "Background1",
+          "RotationPersistent" : {
+            "$$ClassName" : "TCastleVector4RotationPersistent"
+          },
+          "SkyEquatorColorPersistent" : {
+            "$$ClassName" : "TCastleColorRGBPersistent"
+          },
+          "SkyTopColorPersistent" : {
+            "$$ClassName" : "TCastleColorRGBPersistent"
+          }
         }
       ],
       "$Children" : [
         {
           "$$ClassName" : "TCastleWalkNavigation",
+          "Border" : {
+            "$$ClassName" : "TBorder"
+          },
+          "BorderColorPersistent" : {
+            "$$ClassName" : "TCastleColorPersistent"
+          },
           "MoveSpeed" : 2.0000000000000000E+001,
           "Name" : "WalkNavigation1",
-          "Radius" : 1.9999999552965164E-002
+          "Radius" : 1.9999999552965164E-002,
+          "TranslationPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent"
+          }
         }
       ],
       "InternalDesignCamera" : {
         "$$ClassName" : "TCastleCamera",
+        "CenterPersistent" : {
+          "$$ClassName" : "TCastleVector3Persistent"
+        },
+        "GravityUpPersistent" : {
+          "$$ClassName" : "TCastleVector3Persistent"
+        },
         "Name" : "",
         "Orthographic" : {
-          "$$ClassName" : "TCastleOrthographic"
+          "$$ClassName" : "TCastleOrthographic",
+          "OriginPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent"
+          }
         },
         "Perspective" : {
           "$$ClassName" : "TCastlePerspective"
         },
         "RotationPersistent" : {
           "$$ClassName" : "TCastleVector4RotationPersistent",
-          "W" : 3.1960904598236084E+000,
-          "X" : -1.9110275388811715E-005,
-          "Y" : 9.9337840080261230E-001,
-          "Z" : 1.1488780379295349E-001
+          "W" : 2.7591879367828369E+000,
+          "X" : -1.1159745045006275E-002,
+          "Y" : 9.9912720918655396E-001,
+          "Z" : 4.0256083011627197E-002
+        },
+        "ScaleOrientationPersistent" : {
+          "$$ClassName" : "TCastleVector4Persistent"
+        },
+        "ScalePersistent" : {
+          "$$ClassName" : "TCastleVector3Persistent",
+          "X" : 1.0000001192092896E+000,
+          "Y" : 1.0000003576278687E+000,
+          "Z" : 1.0000001192092896E+000
         },
         "TranslationPersistent" : {
           "$$ClassName" : "TCastleVector3Persistent",
-          "X" : 1.0041589736938477E+001,
-          "Y" : 3.9674551486968994E+000,
-          "Z" : -5.8584904670715332E-001
+          "X" : 1.2997698783874512E+001,
+          "Y" : 1.2036176681518555E+001,
+          "Z" : -2.3258504867553711E+001
         }
       },
       "InternalDesignNavigations[dnFly]" : {
         "$$ClassName" : "TCastleWalkNavigationDesign",
+        "Border" : {
+          "$$ClassName" : "TBorder"
+        },
+        "BorderColorPersistent" : {
+          "$$ClassName" : "TCastleColorPersistent"
+        },
         "MoveSpeed" : 2.5118865966796875E+001,
-        "Name" : ""
+        "Name" : "",
+        "TranslationPersistent" : {
+          "$$ClassName" : "TCastleVector2Persistent"
+        }
       },
       "InternalDesignNavigations[dnExamine]" : {
         "$$ClassName" : "TCastleExamineNavigationDesign",
+        "Border" : {
+          "$$ClassName" : "TBorder"
+        },
+        "BorderColorPersistent" : {
+          "$$ClassName" : "TCastleColorPersistent"
+        },
         "Exists" : false,
-        "Name" : ""
+        "Name" : "",
+        "TranslationPersistent" : {
+          "$$ClassName" : "TCastleVector2Persistent"
+        }
       },
       "InternalDesignNavigations[dn2D]" : {
         "$$ClassName" : "TCastle2DNavigationDesign",
+        "Border" : {
+          "$$ClassName" : "TBorder"
+        },
+        "BorderColorPersistent" : {
+          "$$ClassName" : "TCastleColorPersistent"
+        },
         "Exists" : false,
-        "Name" : ""
+        "Name" : "",
+        "TranslationPersistent" : {
+          "$$ClassName" : "TCastleVector2Persistent"
+        }
       }
     },
     {
       "$$ClassName" : "TCastleLabel",
+      "Border" : {
+        "$$ClassName" : "TBorder"
+      },
+      "BorderColorPersistent" : {
+        "$$ClassName" : "TCastleColorPersistent"
+      },
       "ColorPersistent" : {
         "$$ClassName" : "TCastleColorPersistent",
         "Blue" : 4.6274510025978088E-001,
@@ -1477,9 +2600,15 @@
         "Red" : 4.6274510025978088E-001
       },
       "FontSize" : 2.0000000000000000E+001,
+      "FrameColorPersistent" : {
+        "$$ClassName" : "TCastleColorPersistent"
+      },
       "HorizontalAnchorParent" : "hpRight",
       "HorizontalAnchorSelf" : "hpRight",
       "Name" : "LabelFps",
+      "OutlineColorPersistent" : {
+        "$$ClassName" : "TCastleColorPersistent"
+      },
       "Text" : [
         "FPS: xxx"
       ],
