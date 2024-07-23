@@ -1,6 +1,6 @@
 {%MainUnit castledownload.pas}
 {
-  Copyright 2013-2023 Michalis Kamburelis.
+  Copyright 2013-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -48,11 +48,20 @@ end;
 
 class function TUrlFile.Write(const Url: String): TStream;
 var
-  FileName: String;
+  FileName, Dir: String;
 begin
   FileName := UriToFilenameSafe(URL);
   if FileName = '' then
     raise ESaveError.CreateFmt('Cannot convert URL to a filename: "%s"', [URL]);
+
+  { We need to create subdirectory for the file,
+    testcase: https://github.com/michaliskambi/test_config_subdir  }
+  Dir := ExtractFilePath(FileName);
+  if not ForceDirectories(Dir) then
+    raise Exception.CreateFmt('Cannot create directory "%s" for filename "%s"', [
+      Dir,
+      FileName
+    ]);
 
   Result := TFileStream.Create(FileName, fmCreate);
 end;

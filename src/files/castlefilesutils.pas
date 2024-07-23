@@ -500,15 +500,14 @@ end;
 
 function ApplicationConfig(const Path: string): string;
 var
-  ConfigDir, Dir: string;
+  ConfigDir: string;
 begin
   if ApplicationConfigOverride <> '' then
     Exit(ApplicationConfigOverride + Path);
 
-  { ApplicationConfig relies that ForceDirectories is reliable
-    (on Android, it's not reliable before activity started)
-    and ApplicationConfigOverride is set
-    (on iOS, it's not set before CGEApp_Initialize called). }
+  { ApplicationConfig relies that ApplicationConfigOverride is set
+    (on iOS, it's not set before CGEApp_Initialize called;
+    on Android, it's not set before AndroidMainImplementation called). }
   if not ApplicationProperties._FileAccessSafe then
     WritelnWarning('Using ApplicationConfig(''%s'') before the Application.OnInitialize was called. ' +
       'This is not reliable on mobile platforms (Android, iOS). ' +
@@ -517,11 +516,6 @@ begin
       [Path]);
 
   ConfigDir := InclPathDelim(GetAppConfigDir(false));
-  Dir := ConfigDir + ExtractFilePath(Path);
-  if not ForceDirectories(Dir) then
-    raise Exception.CreateFmt('Cannot create directory for config file: "%s"',
-      [Dir]);
-
   Result := FilenameToUriSafe(ConfigDir + Path);
 end;
 
