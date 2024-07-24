@@ -1717,6 +1717,8 @@ procedure TProjectForm.FormCreate(Sender: TObject);
     AddPlatform('Default', targetCustom, DefaultOS, DefaultCPU);
     AddPlatformSeparator;
     AddPlatform('Android (Arm 32-bit and 64-bit)', targetAndroid, { OS and CPU ignored } DefaultOS, DefaultCPU);
+    AddPlatform('Android (emulator 32-bit)', targetCustom, Android, i386);
+    AddPlatform('Android (emulator 64-bit)', targetCustom, Android, x86_64);
     AddPlatformSeparator;
     AddPlatform('iOS (Arm 32-bit and 64-bit)', targetIOS, { OS and CPU ignored } DefaultOS, DefaultCPU);
     AddPlatformSeparator;
