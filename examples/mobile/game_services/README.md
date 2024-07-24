@@ -1,5 +1,7 @@
 # Game services (achievements, leaderboards, save games...) with Google Play Games and Apple Game Center
 
+Download the game for Android from Google Play: https://play.google.com/store/apps/details?id=io.castleengine.mobile.game.services
+
 Records and shows achievements and leaderboard scores using `CastleGameService`. This uses:
 
 - Google Play Games (on Android)
