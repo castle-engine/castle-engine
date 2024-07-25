@@ -89,8 +89,6 @@ uses Math, CastleTextureFont_DefaultUi,
 {$I castlecontrols_clipboard.inc}
 {$undef read_implementation}
 
-var
-  R: TRegisteredComponent;
 initialization
   RegisterSerializableComponent(TCastleButton, 'Button');
   RegisterSerializableComponent(TCastleImageControl, 'Image');
