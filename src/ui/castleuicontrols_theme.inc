@@ -18,15 +18,13 @@
 
   { Type of theme image, use of @link(TCastleTheme.ImagesPersistent). }
   TThemeImage = (
-    tiPanel, tiPanelSeparator, tiProgressBar, tiProgressFill,
+    tiPanel, tiPanelSeparator,
     tiButtonPressed, tiButtonDisabled, tiButtonFocused, tiButtonNormal,
     tiWindow, tiScrollbarFrame, tiScrollbarSlider,
     tiSliderBackground, tiSliderThumb, tiLabel, tiGroup, tiActiveFrame, tiTooltip,
     tiTouchCtlInner, tiTouchCtlOuter, tiTouchCtlFlyInner, tiTouchCtlFlyOuter,
-    tiCrosshair1, tiCrosshair2, tiCheckmark,
+    tiCrosshair1, tiCrosshair2,
     tiSquareEmpty, tiSquareChecked, tiSquarePressedBackground,
-    tiDisclosure,
-    tiSwitchControl, tiSwitchControlFill,
 
     { Image displayed when the application is initializing,
       during @link(TCastleApplication.OnInitialize Application.OnInitialize)
@@ -314,14 +312,6 @@ begin
 
   FImagesPersistent[tiPanel].Image := Panel;
   FImagesPersistent[tiPanelSeparator].Image := PanelSeparator;
-  FImagesPersistent[tiProgressBar].Image := ProgressBar;
-  FImagesPersistent[tiProgressBar].ProtectedSides.AllSides := 2;
-  FImagesPersistent[tiProgressFill].Image := ProgressFill;
-  FImagesPersistent[tiProgressFill].ProtectedSides.AllSides := 2;
-  FImagesPersistent[tiSwitchControl].Image := ProgressBar;      // reuse same images as ProgressBar
-  FImagesPersistent[tiSwitchControl].ProtectedSides.AllSides := 2;
-  FImagesPersistent[tiSwitchControlFill].Image := ProgressFill;
-  FImagesPersistent[tiSwitchControlFill].ProtectedSides.AllSides := 2;
   FImagesPersistent[tiButtonNormal].Image := ButtonNormal;
   FImagesPersistent[tiButtonNormal].ProtectedSides.AllSides := 2;
   FImagesPersistent[tiButtonDisabled].Image := ButtonDisabled;
@@ -354,7 +344,6 @@ begin
   FImagesPersistent[tiTouchCtlFlyOuter].Image := TouchCtlFlyOuter;
   FImagesPersistent[tiCrosshair1].Image := Crosshair1;
   FImagesPersistent[tiCrosshair2].Image := Crosshair2;
-  FImagesPersistent[tiCheckmark].Image := Checkmark;
 
   { Note that tiSquareEmpty and tiSquarePressedBackground could have
     corners = (4, 4, 4, 4), but tiSquareChecked cannot.
@@ -364,7 +353,6 @@ begin
   FImagesPersistent[tiSquareChecked].Image := SquareChecked;
   FImagesPersistent[tiSquarePressedBackground].Image := SquarePressedBackground;
 
-  FImagesPersistent[tiDisclosure].Image := Disclosure;
   FImagesPersistent[tiLoading].Image := CastleInternalControlsImages.Loading;
   FImagesPersistent[tiEdit].Image := Edit;
   FImagesPersistent[tiEdit].ProtectedSides.AllSides := 2;

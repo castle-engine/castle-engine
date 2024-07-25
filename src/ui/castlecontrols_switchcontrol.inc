@@ -14,6 +14,8 @@
   ----------------------------------------------------------------------------
 }
 
+(*
+
 {$ifdef read_interface}
 
   { Touch-friendly checkbox control representing on/off state. }
@@ -208,3 +210,5 @@ begin
 end;
 
 {$endif read_implementation}
+
+*)

@@ -111,14 +111,6 @@ initialization
   RegisterSerializableComponent(TCastleCheckbox, 'Checkbox');
   RegisterSerializableComponent(TCastleDesign, 'Design (Use Another castle-user-interface File)');
   RegisterSerializableComponent(TCastleMask, 'Mask');
-
-  R := TRegisteredComponent.Create;
-  {$warnings off} // using deprecated, to keep reading it from castle-user-interface working
-  R.ComponentClass := TCastleSwitchControl;
-  {$warnings on}
-  R.Caption := ['Switch'];
-  R.IsDeprecated := true;
-  RegisterSerializableComponent(R);
 finalization
   FinalizationUIFonts;
   FinalizationClipboard;
