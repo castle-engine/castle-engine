@@ -670,6 +670,7 @@ type
     procedure SetExposeTransforms(const Value: TStrings);
     procedure ExposeTransformsChange(Sender: TObject);
     procedure SetExposeTransformsPrefix(const Value: String);
+    function CreateAnimations: TStringList;
   private
     FGlobalLights: TLightInstancesList;
 
@@ -1147,17 +1148,31 @@ type
     function TrianglesCount: Cardinal; overload;
     { @groupEnd }
 
-    function VerticesCount(const Ignored: Boolean): Cardinal; overload; deprecated 'use VerticesCount without Boolean argument, it is ignored now';
-    function TrianglesCount(const Ignored: Boolean): Cardinal; overload; deprecated 'use TrianglesCount without Boolean argument, it is ignored now';
-
-    { Helper functions for accessing viewpoints defined in the scene.
-      @groupBegin }
+    { Number of viewpoints (named camera position+orientation).
+      -1 if none. }
     function ViewpointsCount: Cardinal;
-    function GetViewpointName(Idx: integer): String;
-    procedure MoveToViewpoint(Idx: integer; Animated: boolean = true);
+
+    { Viewpoint node (TAbstractViewpointNode) from an index between 0 and ViewpointsCount. }
+    function GetViewpointNode(const Idx: integer): TAbstractViewpointNode;
+
+    { Good name to show user for a viewpoint, defined by an index between 0 and ViewpointsCount. }
+    function GetViewpointName(const Idx: integer): String;
+
+    { Move current camera of the enclosing TCastleViewport to reflect the given
+      viewpoint. This changes the camera position and orientation.
+
+      In X3D terminology, the new viewpoint node becomes "bound" (current).
+      Switching the viewpoint that is already bound (current) also has an effect,
+      it will change the camera position and orientation to reflect the viewpoint
+      defined position / orientation. }
+    procedure MoveToViewpoint(const Idx: integer; const Animated: boolean = true);
+
+    { Add to scene nodes (graph in @link(RootNode)) new viewpoint node
+      reflecting current camera and navigation settings.
+      The new viewpoint increases ViewpointsCount, so it's also immediately
+      available for switching to it. }
     procedure AddViewpointFromNavigation(const Navigation: TCastleNavigation;
       const AName: String);
-    { @groupEnd }
 
     { Methods to notify this class about changes to the underlying RootNode
       graph. Since this class caches some things, it has to be notified
@@ -1947,8 +1962,6 @@ type
     { TimeSensor of this animation, by animation index (index
       on AnimationsList). @nil if this index not found. }
     function AnimationTimeSensor(const Index: Integer): TTimeSensorNode; overload;
-
-    function Animations: TStringList; deprecated 'use AnimationsList (and do not free it''s result)';
 
     { Forcefully, immediately, set pose from given animation,
       with given time in animation.
@@ -3660,16 +3673,6 @@ begin
   Result := FTrianglesCount;
 end;
 
-function TCastleSceneCore.VerticesCount(const Ignored: Boolean): Cardinal;
-begin
-  Result := VerticesCount();
-end;
-
-function TCastleSceneCore.TrianglesCount(const Ignored: Boolean): Cardinal;
-begin
-  Result := TrianglesCount();
-end;
-
 function TCastleSceneCore.CreateShape(const AGeometry: TAbstractGeometryNode;
   const AState: TX3DGraphTraverseState; const ParentInfo: PTraversingInfo): TShape;
 begin
@@ -4284,9 +4287,7 @@ begin
 
     { recreate FAnimationsList now }
     FreeAndNil(FAnimationsList);
-    {$warnings off}
-    FAnimationsList := Animations;
-    {$warnings on}
+    FAnimationsList := CreateAnimations;
   finally
     BackgroundStack.EndChangesSchedule;
     FogStack.EndChangesSchedule;
@@ -8052,33 +8053,47 @@ begin
   Result := FViewpointsArray.Count;
 end;
 
-function TCastleSceneCore.GetViewpointName(Idx: integer): String;
+function TCastleSceneCore.GetViewpointName(const Idx: integer): String;
+var
+  ViewpointNode: TAbstractViewpointNode;
 begin
-  if Between(Idx, 0, FViewpointsArray.Count - 1) then
-    Result := FViewpointsArray[Idx].SmartDescription else
+  ViewpointNode := GetViewpointNode(Idx); // returns nil for invalid Idx
+  if ViewpointNode <> nil then
+    Result := ViewpointNode.SmartDescription
+  else
     Result := '';
 end;
 
-procedure TCastleSceneCore.MoveToViewpoint(Idx: integer; Animated: boolean);
-var
-  OldForceTeleport: boolean;
+function TCastleSceneCore.GetViewpointNode(const Idx: integer): TAbstractViewpointNode;
 begin
   if Between(Idx, 0, FViewpointsArray.Count - 1) then
+    Result := FViewpointsArray[Idx]
+  else
+    Result := nil;
+end;
+
+procedure TCastleSceneCore.MoveToViewpoint(const Idx: integer; const Animated: boolean);
+var
+  SavedForceTeleport: boolean;
+  ViewpointNode: TAbstractViewpointNode;
+begin
+  ViewpointNode := GetViewpointNode(Idx); // returns nil for invalid Idx
+  if ViewpointNode = nil then
+    Exit;
+
+  if not Animated then
   begin
-    if not Animated then
-    begin
-      OldForceTeleport := ForceTeleportTransitions;
-      ForceTeleportTransitions := true;
-    end else
-      OldForceTeleport := false; // silence warning
+    SavedForceTeleport := ForceTeleportTransitions;
+    ForceTeleportTransitions := true;
+  end else
+    SavedForceTeleport := false; // silence warning
 
-    if FViewpointsArray[Idx] = FViewpointStack.Top then
-      FViewpointsArray[Idx].Bound := false;
-    FViewpointsArray[Idx].Bound := true;
+  if ViewpointNode = FViewpointStack.Top then
+    ViewpointNode.Bound := false;
+  ViewpointNode.Bound := true;
 
-    if not Animated then
-      ForceTeleportTransitions := OldForceTeleport;
-  end;
+  if not Animated then
+    ForceTeleportTransitions := SavedForceTeleport;
 end;
 
 procedure TCastleSceneCore.AddViewpointFromNavigation(
@@ -8247,7 +8262,7 @@ begin
   end;
 end;
 
-function TCastleSceneCore.Animations: TStringList;
+function TCastleSceneCore.CreateAnimations: TStringList;
 var
   Enum: TAnimationsEnumerator;
   I: Integer;
