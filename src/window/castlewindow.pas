@@ -3520,7 +3520,7 @@ var
 begin
   Result := false;
   if (Received.Count = 2) and
-     (Received[0] = 'open_associated_url') then
+     (Received[0] = 'open-associated-url') then
   begin
     Url := Received[1];
     DoDropFiles([Url]);
