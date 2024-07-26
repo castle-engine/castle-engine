@@ -62,7 +62,7 @@
       FTooltipDistance: Cardinal;
       FTooltipPosition: TVector2;
       FTooltipParent: TCastleUserInterface; // @nil if do not display
-      HasLastPositionForTooltip: boolean;
+      HasLastPositionForTooltip: Boolean;
       LastPositionForTooltip: TVector2;
       LastPositionForTooltipTime: TTimerResult;
       Mouse3d: T3DConnexionDevice;
@@ -79,7 +79,7 @@
       FMouseLookIgnoreNextMotion: Boolean;
       FMouseLookWaitingForMiddle: Boolean;
       FMouseLookMotionToSubtract: TVector2;
-      FFocusAndMouseCursorValid: boolean;
+      FFocusAndMouseCursorValid: Boolean;
       FOverrideCursor: TMouseCursor;
       FDefaultFont: TCastleAbstractFont;
       FContext: TRenderContext;
@@ -92,8 +92,8 @@
     function GetFrontView: TCastleView;
     function GetViewStack(const Index: Integer): TCastleView;
 
-    function UseForceCaptureInput: boolean;
-    function TryGetFingerOfControl(const C: TCastleUserInterface; out Finger: TFingerIndex): boolean;
+    function UseForceCaptureInput: Boolean;
+    function TryGetFingerOfControl(const C: TCastleUserInterface; out Finger: TFingerIndex): Boolean;
     procedure SetDpi(const Value: Single);
     procedure SetUIScaling(const Value: TUIScaling);
     procedure SetUIReferenceWidth(const Value: Single);
@@ -125,7 +125,7 @@
     class var
       FInputInspector: TInputInspector;
     procedure ControlsVisibleChange(const Sender: TCastleUserInterface;
-      const Changes: TCastleUserInterfaceChanges; const ChangeInitiatedByChildren: boolean);
+      const Changes: TCastleUserInterfaceChanges; const ChangeInitiatedByChildren: Boolean);
     class procedure RenderControlPrepare(const ViewportRect: TRectangle);
     { Called when the control C is destroyed or just removed from Controls list. }
     procedure DetachNotification(const C: TCastleUserInterface);
@@ -253,18 +253,18 @@
       @groupBegin }
     procedure EventOpen(const InitializedContextsCount: Cardinal); virtual;
     procedure EventClose(const InitializedContextsCount: Cardinal); virtual;
-    function EventPress(const Event: TInputPressRelease): boolean; virtual;
-    function EventRelease(const Event: TInputPressRelease): boolean; virtual;
+    function EventPress(const Event: TInputPressRelease): Boolean; virtual;
+    function EventRelease(const Event: TInputPressRelease): Boolean; virtual;
     procedure EventUpdate; virtual;
     procedure EventMotion(const Event: TInputMotion); virtual;
-    function AllowSuspendForInput: boolean;
+    function AllowSuspendForInput: Boolean;
     procedure EventBeforeRender; virtual;
     procedure EventRender; virtual;
     procedure EventResize; virtual;
-    function EventJoyAxisMove(const JoyID, Axis: Byte): boolean; virtual;
-    function EventJoyButtonPress(const JoyID, Button: Byte): boolean; virtual;
-    function EventSensorRotation(const X, Y, Z, Angle: Double; const SecondsPassed: Single): boolean; virtual;
-    function EventSensorTranslation(const X, Y, Z, Length: Double; const SecondsPassed: Single): boolean; virtual;
+    function EventJoyAxisMove(const JoyID, Axis: Byte): Boolean; virtual;
+    function EventJoyButtonPress(const JoyID, Button: Byte): Boolean; virtual;
+    function EventSensorRotation(const X, Y, Z, Angle: Double; const SecondsPassed: Single): Boolean; virtual;
+    function EventSensorTranslation(const X, Y, Z, Length: Double; const SecondsPassed: Single): Boolean; virtual;
     { @groupEnd }
 
     { Dots (pixels) per inch. Describes how many pixels fit on a physical inch.
@@ -321,7 +321,7 @@
     procedure Invalidate; virtual;
 
     { Is the OpenGL context initialized. }
-    function GLInitialized: boolean; virtual;
+    function GLInitialized: Boolean; virtual;
 
     { Container size, in pixels.
       This is expressed in real device pixels.
@@ -402,7 +402,7 @@
 
     { Is the window focused now, which means that keys/mouse events
       are directed to this window. }
-    function Focused: boolean; virtual;
+    function Focused: Boolean; virtual;
 
     { Keys currently pressed. }
     property Pressed: TKeysPressed read FPressed;
@@ -1007,7 +1007,7 @@ begin
   end;
 end;
 
-function TCastleContainer.TryGetFingerOfControl(const C: TCastleUserInterface; out Finger: TFingerIndex): boolean;
+function TCastleContainer.TryGetFingerOfControl(const C: TCastleUserInterface; out Finger: TFingerIndex): Boolean;
 var
   FingerControlPair: {$ifdef FPC}TFingerIndexCaptureMap.TDictionaryPair{$else}TPair<TFingerIndex, TCastleUserInterface>{$endif};
 begin
@@ -1022,7 +1022,7 @@ begin
   Result := false;
 end;
 
-function TCastleContainer.UseForceCaptureInput: boolean;
+function TCastleContainer.UseForceCaptureInput: Boolean;
 begin
   Result :=
     (ForceCaptureInput <> nil) and
@@ -1063,7 +1063,7 @@ end;
 
 procedure TCastleContainer.UpdateFocusAndMouseCursor;
 var
-  AnythingForcesNoneCursor: boolean;
+  AnythingForcesNoneCursor: Boolean;
 
   { Scan all Controls, recursively.
     Update (add) to FNewFocus, update (set to true) AnythingForcesNoneCursor. }
@@ -1204,9 +1204,9 @@ begin
   FFocusAndMouseCursorValid := true;
 end;
 
-function TCastleContainer.EventSensorRotation(const X, Y, Z, Angle: Double; const SecondsPassed: Single): boolean;
+function TCastleContainer.EventSensorRotation(const X, Y, Z, Angle: Double; const SecondsPassed: Single): Boolean;
 
-  function RecursiveSensorRotation(const C: TCastleUserInterface): boolean;
+  function RecursiveSensorRotation(const C: TCastleUserInterface): Boolean;
   var
     I: Integer;
   begin
@@ -1233,9 +1233,9 @@ begin
   Result := false;
 end;
 
-function TCastleContainer.EventSensorTranslation(const X, Y, Z, Length: Double; const SecondsPassed: Single): boolean;
+function TCastleContainer.EventSensorTranslation(const X, Y, Z, Length: Double; const SecondsPassed: Single): Boolean;
 
-  function RecursiveSensorTranslation(const C: TCastleUserInterface): boolean;
+  function RecursiveSensorTranslation(const C: TCastleUserInterface): Boolean;
   var
     I: Integer;
   begin
@@ -1262,9 +1262,9 @@ begin
   Result := false;
 end;
 
-function TCastleContainer.EventJoyAxisMove(const JoyID, Axis: Byte): boolean;
+function TCastleContainer.EventJoyAxisMove(const JoyID, Axis: Byte): Boolean;
 
-  function RecursiveJoyAxisMove(const C: TCastleUserInterface): boolean;
+  function RecursiveJoyAxisMove(const C: TCastleUserInterface): Boolean;
   var
     I: Integer;
   begin
@@ -1293,9 +1293,9 @@ begin
   Result := false;
 end;
 
-function TCastleContainer.EventJoyButtonPress(const JoyID, Button: Byte): boolean;
+function TCastleContainer.EventJoyButtonPress(const JoyID, Button: Byte): Boolean;
 
-  function RecursiveJoyButtonPress(const C: TCastleUserInterface): boolean;
+  function RecursiveJoyButtonPress(const C: TCastleUserInterface): Boolean;
   var
     I: Integer;
   begin
@@ -1414,10 +1414,10 @@ procedure TCastleContainer.EventUpdate;
     end;
   end;
 
-  procedure RecursiveUpdate(const C: TCastleUserInterface; var HandleInput: boolean);
+  procedure RecursiveUpdate(const C: TCastleUserInterface; var HandleInput: Boolean);
   var
     I: Integer;
-    Dummy: boolean;
+    Dummy: Boolean;
   begin
     if PassEvents(C, false) then
     begin
@@ -1525,7 +1525,7 @@ procedure TCastleContainer.EventUpdate;
 
 var
   I: Integer;
-  HandleInput: boolean;
+  HandleInput: Boolean;
 begin
   Fps.InternalUpdateBegin;
 
@@ -1558,9 +1558,9 @@ begin
   if Assigned(OnUpdate) then OnUpdate(Self);
 end;
 
-function TCastleContainer.EventPress(const Event: TInputPressRelease): boolean;
+function TCastleContainer.EventPress(const Event: TInputPressRelease): Boolean;
 
-  function RecursivePress(const C: TCastleUserInterface): boolean;
+  function RecursivePress(const C: TCastleUserInterface): Boolean;
   var
     I: Integer;
   begin
@@ -1641,9 +1641,9 @@ begin
   end;
 end;
 
-function TCastleContainer.EventRelease(const Event: TInputPressRelease): boolean;
+function TCastleContainer.EventRelease(const Event: TInputPressRelease): Boolean;
 
-  function RecursiveRelease(const C: TCastleUserInterface): boolean;
+  function RecursiveRelease(const C: TCastleUserInterface): Boolean;
   var
     I: Integer;
   begin
@@ -1805,9 +1805,9 @@ begin
   end;
 end;
 
-function TCastleContainer.AllowSuspendForInput: boolean;
+function TCastleContainer.AllowSuspendForInput: Boolean;
 
-  function RecursiveAllowSuspendForInput(const C: TCastleUserInterface): boolean;
+  function RecursiveAllowSuspendForInput(const C: TCastleUserInterface): Boolean;
   var
     I: Integer;
   begin
@@ -1841,7 +1841,7 @@ end;
 
 procedure TCastleContainer.EventMotion(const Event: TInputMotion);
 
-  function RecursiveMotion(const C: TCastleUserInterface): boolean;
+  function RecursiveMotion(const C: TCastleUserInterface): Boolean;
   var
     I: Integer;
   begin
@@ -1903,7 +1903,7 @@ begin
 end;
 
 procedure TCastleContainer.ControlsVisibleChange(const Sender: TCastleUserInterface;
-  const Changes: TCastleUserInterfaceChanges; const ChangeInitiatedByChildren: boolean);
+  const Changes: TCastleUserInterfaceChanges; const ChangeInitiatedByChildren: Boolean);
 begin
   { We abort when ChangeInitiatedByChildren = true,
     because this event will be also called with ChangeInitiatedByChildren = false
@@ -2019,7 +2019,7 @@ end;
 procedure TCastleContainer.RenderControl(const Control: TCastleUserInterface;
   const ViewportRect: TRectangle);
 var
-  NeedsContainerSet, NeedsGLOpen: boolean;
+  NeedsContainerSet, NeedsGLOpen: Boolean;
   OldContainer: TCastleContainer;
 begin
   NeedsContainerSet := Control.Container <> Self;
@@ -2519,7 +2519,7 @@ begin
   { Default implementation, does nothing, assuming the main program redraws in a loop. }
 end;
 
-function TCastleContainer.Focused: boolean;
+function TCastleContainer.Focused: Boolean;
 begin
   { Default implementation, assuming that the context is always focused. }
   Result := true;
@@ -2556,7 +2556,7 @@ begin
   Result := 1;
 end;
 
-function TCastleContainer.GLInitialized: boolean;
+function TCastleContainer.GLInitialized: Boolean;
 begin
   { Default implementation, assuming the OpenGL context is always initialized. }
   Result := true;
