@@ -7030,7 +7030,7 @@ procedure TCastleSceneCore.ResetTime(const NewValue: TFloatTime);
 begin
   if RootNode <> nil then
     RootNode.EnumerateNodes({$ifdef FPC}@{$endif}ResetLastEventTime,
-     false);
+      false);
   InternalSetTime(NewValue, 0, true);
 end;
 
