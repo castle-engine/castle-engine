@@ -288,8 +288,7 @@
     { @exclude }
     class function InternalCalculateUIScale(
       const AUIScaling: TUIScaling;
-      const AUIReferenceWidth: Single;
-      const AUIReferenceHeight: Single;
+      AUIReferenceWidth, AUIReferenceHeight: Single;
       const AUIExplicitScale: Single;
       const ADpi, AWidth, AHeight: Single): Single;
 
@@ -728,11 +727,26 @@
       read FUIScaling write SetUIScaling default usNone;
 
     { Reference width and height to which we fit the container size
-      (as seen by TCastleUserInterface implementations) when UIScaling is
-      usEncloseReferenceSize or usFitReferenceSize.
-      See @link(usEncloseReferenceSize) and @link(usFitReferenceSize)
-      for precise description how this works.
-      Set both these properties, or set only one (and leave the other as zero).
+      when UIScaling is
+      usEncloseReferenceSize,
+      usEncloseReferenceSizeAutoOrientation,
+      usFitReferenceSize.
+
+      See the documentation of these values and @url(https://castle-engine.io/manual_castle_settings.php manual)
+      to understand how UI scaling works.
+
+      You can set both UIReferenceWidth and UIReferenceHeight,
+      or set only one (and leave the other as zero).
+
+      Note: If only one of UIReferenceWidth and UIReferenceHeight is non-zero,
+      then these 3 UI scaling modes are equivalent:
+      - usEncloseReferenceSize and
+      - usEncloseReferenceSizeAutoOrientation
+      - usFitReferenceSize
+      When only one UIReferenceWidth and UIReferenceHeight is non-zero,
+      then all these 3 modes just adjust scaling based on this one
+      non-zero reference size.
+
       @groupBegin }
     property UIReferenceWidth: Single
       read FUIReferenceWidth write SetUIReferenceWidth {$ifdef FPC}default 0{$endif};
@@ -2017,9 +2031,16 @@ begin
     Control.GLContextClose;
 end;
 
+const
+  UiScalingUsesContainerSize = [
+    usEncloseReferenceSize,
+    usEncloseReferenceSizeAutoOrientation,
+    usFitReferenceSize
+  ];
+
 procedure TCastleContainer.EventResize;
 begin
-  if UIScaling in [usEncloseReferenceSize, usFitReferenceSize] then
+  if UIScaling in UiScalingUsesContainerSize then
     { usXxxReferenceSize adjust current Width/Height to reference,
       so the FUIScale must be adjusted on each resize. }
     UpdateUIScale;
@@ -2283,8 +2304,7 @@ end;
 
 class function TCastleContainer.InternalCalculateUIScale(
   const AUIScaling: TUIScaling;
-  const AUIReferenceWidth: Single;
-  const AUIReferenceHeight: Single;
+  AUIReferenceWidth, AUIReferenceHeight: Single;
   const AUIExplicitScale: Single;
   const ADpi, AWidth, AHeight: Single): Single;
 begin
@@ -2297,14 +2317,43 @@ begin
           [ADpi, ADpi / DefaultDpi, DefaultDpi]);
         Result := ADpi / DefaultDpi;
       end;
-    usEncloseReferenceSize, usFitReferenceSize:
+    usEncloseReferenceSize, usEncloseReferenceSizeAutoOrientation, usFitReferenceSize:
       begin
         Result := 1;
+
+        { Implement usEncloseReferenceSizeAutoOrientation difference over
+          usEncloseReferenceSize: swap reference width/height to match
+          current screen orientation. }
+        if (AUIScaling = usEncloseReferenceSizeAutoOrientation) and
+           (AWidth > 0) and
+           (AHeight > 0) and
+           (AUIReferenceWidth > 0) and
+           (AUIReferenceHeight > 0) then
+        begin
+          if AWidth > AHeight then
+          begin
+            if AUIReferenceWidth < AUIReferenceHeight then
+              SwapValues(AUIReferenceWidth, AUIReferenceHeight);
+          end else
+          if AWidth < AHeight then
+          begin
+            if AUIReferenceWidth > AUIReferenceHeight then
+              SwapValues(AUIReferenceWidth, AUIReferenceHeight);
+          end;
+          Assert(
+            (AWidth > AHeight) =
+            (AUIReferenceWidth > AUIReferenceHeight)
+          );
+        end;
+
         if (AUIReferenceWidth <> 0) and (AWidth > 0) then
         begin
           Result := AWidth / AUIReferenceWidth;
           if (AUIReferenceHeight <> 0) and (AHeight > 0) then
-            if AUIScaling = usEncloseReferenceSize then
+            if AUIScaling in [
+                 usEncloseReferenceSize,
+                 usEncloseReferenceSizeAutoOrientation
+               ] then
               MinVar(Result, AHeight / AUIReferenceHeight)
             else
               MaxVar(Result, AHeight / AUIReferenceHeight);
@@ -2327,7 +2376,7 @@ end;
 procedure TCastleContainer.UpdateUIScale;
 begin
   if (not GLInitialized) and
-     (UIScaling in [usEncloseReferenceSize, usFitReferenceSize]) then
+     (UIScaling in UiScalingUsesContainerSize) then
     // don't adjust FUIScale before our Width/Height are sensible
     FUIScale := 1
   else

@@ -3049,6 +3049,7 @@ begin
     usEncloseReferenceSize: H := Format('User interface scaling in effect: window must enclose a reference size of %f x %f.' + NL,
       [CastleControl.Container.UIReferenceWidth,
        CastleControl.Container.UIReferenceHeight]);
+    usEncloseReferenceSizeAutoOrientation:...
     usFitReferenceSize    : H := Format('User interface scaling in effect: window must fit inside a reference size of %f x %f.' + NL,
       [CastleControl.Container.UIReferenceWidth,
        CastleControl.Container.UIReferenceHeight]);
