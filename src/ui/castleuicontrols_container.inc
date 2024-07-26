@@ -706,6 +706,12 @@
     property TooltipDistance: Cardinal read FTooltipDistance write FTooltipDistance
       default DefaultTooltipDistance;
 
+    { Hide the tooltip, if was displayed, right now.
+      Useful if you e.g. want to make a screenshot now - e.g. for castle-model-viewer-mobile.
+      TODO: Would be more natural to hide tooltip when parent exists:=false,
+      and then this is unnecessary. }
+    procedure InternalTooltipHide;
+
     { Enable automatic scaling of the UI.
 
       This allows your UI to look correctly on various window sizes
@@ -1331,6 +1337,16 @@ begin
       This is important, as it will be used in wildest scenarios
       (all CGE applications) and it may gather logs when existing. }
     FreeAndNil(FInspector);
+  end;
+end;
+
+procedure TCastleContainer.InternalTooltipHide;
+begin
+  if FTooltipParent <> nil then
+  begin
+    FTooltipParent.InternalSetTooltipExists(false);
+    HasLastPositionForTooltip := false;
+    FTooltipParent := nil;
   end;
 end;
 
