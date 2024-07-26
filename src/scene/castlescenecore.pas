@@ -4665,7 +4665,10 @@ begin
       end;
     ntcViewpoint:
       begin
-        if Node = ParentScene.ViewpointStack.Top then
+        if (Node = ParentScene.ViewpointStack.Top) and
+           { See TAbstractBindableNode.BeforeTraverse comments for
+             explanation why LastBeforeTraverseChangedTransform is important. }
+           ParentScene.ViewpointStack.Top.InternalLastBeforeTraverseChangedTransform  then
           ParentScene.DoBoundViewpointVectorsChanged;
 
         { TODO: Transformation of viewpoint should also affect NavigationInfo,
