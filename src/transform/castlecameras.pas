@@ -2597,6 +2597,8 @@ begin
 end;
 
 procedure TCastleExamineNavigation.OnGestureRecognized(Sender: TObject);
+const
+  PinchZoomSpeed = 20.0;
 var
   Recognizer: TCastlePinchPanGestureRecognizer;
   Factor, Size, MoveDivConst, ZoomScale: Single;
@@ -2611,14 +2613,14 @@ begin
   if ZoomEnabled and (Recognizer.Gesture = gtPinch) then
   begin
     if Recognizer.PinchScaleFactor > 1.0 then
-      Factor := 40 * (Recognizer.PinchScaleFactor - 1.0)
+      Factor := Recognizer.PinchScaleFactor - 1.0
     else
-      Factor := -40 * (1.0/Recognizer.PinchScaleFactor - 1.0);
+      Factor := - (1.0 / Recognizer.PinchScaleFactor - 1.0);
     if Turntable then
       ZoomScale := 1
     else
       ZoomScale := 3;
-    Zoom(Factor * ZoomScale);
+    Zoom(PinchZoomSpeed * Factor * ZoomScale);
   end;
 
   if MoveEnabled and (not GoodModelBox.IsEmpty) and (Recognizer.Gesture = gtPan) then
