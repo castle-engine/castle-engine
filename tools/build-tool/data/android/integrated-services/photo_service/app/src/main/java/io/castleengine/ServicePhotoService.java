@@ -1,7 +1,7 @@
 /* -*- tab-width: 4 -*- */
 
 /*
-  Copyright 2018-2020 Michalis Kamburelis, Jan Adamec.
+  Copyright 2018-2024 Michalis Kamburelis, Jan Adamec.
 
   This file is part of "Castle Game Engine".
 
@@ -57,27 +57,45 @@ public class ServicePhotoService extends ServiceAbstract
        https://stackoverflow.com/questions/57726896/mediastore-images-media-insertimage-deprecated
        https://developer.android.com/training/data-storage/shared/media
     */
-    private void imageSaveQ(String sourceImagePath)
+    private void imageSaveQ(String sourceImagePath, String mimeType)
         throws IOException, MalformedURLException
     {
         logInfo(CATEGORY, "Saving image using modern (>= Q) API " + sourceImagePath);
 
         ContentValues values = new ContentValues();
         values.put(MediaStore.MediaColumns.DISPLAY_NAME, getFileBaseName(sourceImagePath));
+
         /* Do not write DATA.
 
            https://developer.android.com/reference/android/provider/MediaStore.MediaColumns#DATA
            says: """From Android 11 onwards, this column is read-only for apps
            that target R and higher. On those devices, when creating or updating
-           a uri, this column's value is not accepted."""
+           a uri, this column's value is not accepted. Instead, to update
+           the filesystem location of a file, use the values of the DISPLAY_NAME
+           and RELATIVE_PATH columns."""
            And indeed writing it fails (testcase: Fairphone 4) with error
            ""IllegalArgumentException: Mutation of _data is not allowed when target Android""".
-
-           See also https://educate.kcnbrand.com/android-java-lang-illegalargumentexception-mutation-of-_data-is-not-allowed
-           The advise there (as far as I understand through translator)
-           is valid, setting DATA is not needed, and it's better to not set it.
         */
         //values.put(MediaStore.MediaColumns.DATA, sourceImagePath);
+
+        /* What Environment.DIRECTORY_xxx to use?
+           - DIRECTORY_DCIM
+           - DIRECTORY_PICTURES
+           - DIRECTORY_SCREENSHOTS?
+           See https://developer.android.com/reference/android/os/Environment .
+           - DIRECTORY_SCREENSHOTS fails (Fairphone 4):
+             """Error writing screenshot: java.lang.IllegalArgumentException: Primary directory Screenshots not allowed for content://media/external/images/media; allowed directories are [DCIM, Pictures]""" .
+           - The DIRECTORY_PICTURES seemed OK (Samsung Galaxy Tab A, emulated Android 34)
+             but DIRECTORY_DCIM is better: works on Fairphone 4 too.
+           - So DIRECTORY_DCIM wins as the only that works everywhere.
+        */
+        values.put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DCIM);
+
+        if (!stringNullOrEmpty(mimeType)) {
+            values.put(MediaStore.MediaColumns.MIME_TYPE, mimeType);
+        } else {
+            logWarning(CATEGORY, "No MIME type provided for " + sourceImagePath + ", the image may be not recognized by the system");
+        }
         values.put(MediaStore.MediaColumns.IS_PENDING, 1);
 
         ContentResolver resolver = getActivity().getContentResolver();
@@ -123,12 +141,13 @@ public class ServicePhotoService extends ServiceAbstract
     @Override
     public boolean messageReceived(String[] parts)
     {
-        if (parts.length == 2 && parts[0].equals("photoservice-store-image"))
+        if (parts.length == 3 && parts[0].equals("photoservice-store-image"))
         {
             String sourceImagePath = parts[1];
+            String mimeType = parts[2];
             try {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                    imageSaveQ(sourceImagePath);
+                    imageSaveQ(sourceImagePath, mimeType);
                 } else {
                     imageSaveDeprecated(sourceImagePath);
                 }

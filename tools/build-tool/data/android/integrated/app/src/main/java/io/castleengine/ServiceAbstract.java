@@ -163,6 +163,11 @@ public abstract class ServiceAbstract
         return false;
     }
 
+    public static boolean stringNullOrEmpty(String param)
+    {
+        return param == null || param.length() == 0;
+    }
+
     public void onCreate() { }
     public void onDestroy() { }
     public void onWindowFocusChanged(boolean hasFocus) { }
