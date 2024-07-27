@@ -98,6 +98,7 @@ type
       ButtonAutoSelectNothing: TCastleButton;
       ButtonAutoSelectUi: TCastleButton;
       ButtonAutoSelectTransform: TCastleButton;
+      SafeBorderContainer: TCastleUserInterface;
 
       FOpacity: Single;
       FSelectedComponent: TComponent;
@@ -531,6 +532,7 @@ begin
   ButtonAutoSelectNothing := UiOwner.FindRequiredComponent('ButtonAutoSelectNothing') as TCastleButton;
   ButtonAutoSelectUi := UiOwner.FindRequiredComponent('ButtonAutoSelectUi') as TCastleButton;
   ButtonAutoSelectTransform := UiOwner.FindRequiredComponent('ButtonAutoSelectTransform') as TCastleButton;
+  SafeBorderContainer := UiOwner.FindRequiredComponent('SafeBorderContainer') as TCastleUserInterface;
 
   ForceFallbackLook(Ui);
 
@@ -1067,6 +1069,20 @@ procedure TCastleInspector.Update(const SecondsPassed: Single;  var HandleInput:
      SelectedComponent := C;
   end;
 
+  procedure UpdateSafeBorder;
+  var
+    B: TBorder;
+  begin
+    { Honor Container.SafeBorder, to
+      - avoid showing inspector where it would be obscured
+      - also to show to user that it is correct. }
+    B := Container.SafeBorder;
+    SafeBorderContainer.Border.Top := B.Top;
+    SafeBorderContainer.Border.Right := B.Right;
+    SafeBorderContainer.Border.Bottom := B.Bottom;
+    SafeBorderContainer.Border.Left := B.Left;
+  end;
+
 const
   { Delay between updating properties. }
   UpdatePropertiesValuesInterval = 0.5;
@@ -1099,6 +1115,8 @@ begin
       TimeToUpdatePropertiesValues := UpdatePropertiesValuesInterval;
     end;
   end;
+
+  UpdateSafeBorder;
 end;
 
 procedure TCastleInspector.ChangeOpacity(Sender: TObject);
