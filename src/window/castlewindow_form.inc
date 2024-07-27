@@ -1716,11 +1716,6 @@ begin
   Result := Round(Screen.Height); // Round for FMX
 end;
 
-function TCastleApplication.ScreenStatusBarScaledHeight: Cardinal;
-begin
-  Result := 0;
-end;
-
 function TCastleApplication.BackendName: string;
 begin
   Result := 'Form';

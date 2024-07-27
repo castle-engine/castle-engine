@@ -1246,11 +1246,6 @@ begin
   Result := trunc(NSMaxY(screenFrame)) - trunc(NSMinY(screenFrame));
 end;
 
-function TCastleApplication.ScreenStatusBarScaledHeight: Cardinal;
-begin
-  Result := 0;
-end;
-
 function TCastleApplication.BackendName: String;
 begin
   Result := 'Cocoa';
