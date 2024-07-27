@@ -64,7 +64,20 @@ public class ServicePhotoService extends ServiceAbstract
 
         ContentValues values = new ContentValues();
         values.put(MediaStore.MediaColumns.DISPLAY_NAME, getFileBaseName(sourceImagePath));
-        values.put(MediaStore.MediaColumns.DATA, sourceImagePath);
+        /* Do not write DATA.
+
+           https://developer.android.com/reference/android/provider/MediaStore.MediaColumns#DATA
+           says: """From Android 11 onwards, this column is read-only for apps
+           that target R and higher. On those devices, when creating or updating
+           a uri, this column's value is not accepted."""
+           And indeed writing it fails (testcase: Fairphone 4) with error
+           ""IllegalArgumentException: Mutation of _data is not allowed when target Android""".
+
+           See also https://educate.kcnbrand.com/android-java-lang-illegalargumentexception-mutation-of-_data-is-not-allowed
+           The advise there (as far as I understand through translator)
+           is valid, setting DATA is not needed, and it's better to not set it.
+        */
+        //values.put(MediaStore.MediaColumns.DATA, sourceImagePath);
         values.put(MediaStore.MediaColumns.IS_PENDING, 1);
 
         ContentResolver resolver = getActivity().getContentResolver();
