@@ -25,7 +25,6 @@ uses Classes,
 
 type
   TCastleGestureType = (gtNone, gtPinch, gtPan);
-  TCastleGestureRecognizerState = (grstInvalid, grstStarted, grstUpdate, grstFinished);
 
   { This gesture recognizer detects pan and pinch gesture, as both use two fingers,
     but cannot be used at the same time.
@@ -35,43 +34,32 @@ type
   TCastlePinchPanGestureRecognizer = class
   strict private
     FGesture: TCastleGestureType;
-    FState: TCastleGestureRecognizerState;
-    FPanOldOffset, FPanOffset: TVector2;
+    FPanMove: TVector2;
     FPinchScaleFactor: Single;
     //FPinchCenter: TVector2;
 
     FOnGestureChanged: TNotifyEvent;
 
-    FFinger0Pressed, FFinger1Pressed: boolean;
+    FFinger0Pressed, FFinger1Pressed: Boolean;
     // stored position of the fingers, as we get only one of them in Motion event
     FFinger0Pos, FFinger1Pos: TVector2;
     // gesture start finger positions
     FFinger0StartPos, FFinger1StartPos: TVector2;
-
-    { Recognizer state. When not detected any gesture, it is in grstInvalid,
-      grstStarted is when the gesture is first recognized, grstFinished is the
-      last event of the recognized gesture, grstUpdate are all events between
-      started and finished. }
-    RecognizerState: TCastleGestureRecognizerState;
   public
     constructor Create;
 
     { Functions to pass the input to the recognizer from some @link(TCastleUserInterface).
       @groupBegin }
-    function Press(const Event: TInputPressRelease): boolean;
-    function Release(const Event: TInputPressRelease): boolean;
-    function Motion(const Event: TInputMotion; const Dpi: Single): boolean;
+    function Press(const Event: TInputPressRelease): Boolean;
+    function Release(const Event: TInputPressRelease): Boolean;
+    function Motion(const Event: TInputMotion; const Dpi: Single): Boolean;
     { @groupEnd }
 
     { Gesture type once it's recognized. Check it inside OnGestureChanged event. }
     property Gesture: TCastleGestureType read FGesture;
 
-    { Offset of the current pan gesture.
-      To get the actual change, you have to calculate PanOffset - PanOldOffset. }
-    property PanOffset: TVector2 read FPanOffset;
-
-    { Previous pan gesture offset. }
-    property PanOldOffset: TVector2 read FPanOldOffset;
+    { Movement of the current pan gesture. }
+    property PanMove: TVector2 read FPanMove;
 
     { Scale factor of the pinch gesture.
       - < 1.0 means zoom out
@@ -99,13 +87,9 @@ constructor TCastlePinchPanGestureRecognizer.Create;
 begin
   inherited;
   FGesture := gtNone;
-  FState := grstInvalid;
-  FOnGestureChanged := nil;
-  FFinger0Pressed := false;
-  FFinger1Pressed := false;
 end;
 
-function TCastlePinchPanGestureRecognizer.Press(const Event: TInputPressRelease): boolean;
+function TCastlePinchPanGestureRecognizer.Press(const Event: TInputPressRelease): Boolean;
 begin
   if Event.FingerIndex = 0 then
   begin
@@ -122,9 +106,13 @@ begin
   Result := FFinger0Pressed and FFinger1Pressed;
 end;
 
-function TCastlePinchPanGestureRecognizer.Release(const Event: TInputPressRelease): boolean;
+function TCastlePinchPanGestureRecognizer.Release(const Event: TInputPressRelease): Boolean;
+var
+  OldBothPressed, NewBothPressed: Boolean;
 begin
   Result := false;
+
+  OldBothPressed := FFinger0Pressed and FFinger1Pressed;
 
   if Event.FingerIndex = 0 then
     FFinger0Pressed := false
@@ -132,28 +120,15 @@ begin
   if Event.FingerIndex = 1 then
     FFinger1Pressed := false;
 
-  // end gesture when any finger up
-  if FState <> grstInvalid then
-  begin
-    if Assigned(FOnGestureChanged) then
-    begin
-      // send 'Finished' event
-      if Gesture = gtPinch then
-        FPinchScaleFactor := 1.0
-      else
-      if Gesture = gtPan then
-        FPanOffset := FPanOldOffset;
-      FState := grstFinished;
-      FOnGestureChanged(Self);
-    end;
-    FGesture := gtNone;
-    FState := grstInvalid;
-    Result := true;
-  end;
+  NewBothPressed := FFinger0Pressed and FFinger1Pressed;
+
+  // finger release stopped the gesture, mark as handled
+  if OldBothPressed and not NewBothPressed then
+    Exit(true);
 end;
 
 function TCastlePinchPanGestureRecognizer.Motion(const Event: TInputMotion;
-  const Dpi: Single): boolean;
+  const Dpi: Single): Boolean;
 
   { CosAngleBetweenVectors and AngleRadBetweenVectors are mostly copied from
     CastleVectors unit and adjusted for 2D vectors (and not make exception
@@ -177,106 +152,62 @@ function TCastlePinchPanGestureRecognizer.Motion(const Event: TInputMotion;
 
 var
   OldDist, NewDist: Single;
-  Length0, Length1: Single;
+  // Length0, Length1: Single;
   ParallelFingerMovement: Boolean;
 begin
   Result := false;
 
   if Event.FingerIndex = 0 then
+  begin
+    FFinger0StartPos := FFinger0Pos;
     FFinger0Pos := Event.Position
-  else
+  end else
   if Event.FingerIndex = 1 then
+  begin
+    FFinger1StartPos := FFinger1Pos;
     FFinger1Pos := Event.Position
-  else
-    Exit(FState <> grstInvalid);  // moving with additional finger
+  end else
+    Exit(false); // moving with additional finger
 
   if (not FFinger0Pressed) or (not FFinger1Pressed) then
     Exit(false);
 
-  if FState = grstInvalid then
+  // Length0 := PointsDistance(FFinger0Pos, FFinger0StartPos);
+  // Length1 := PointsDistance(FFinger1Pos, FFinger1StartPos);
+
+  // angle less then 60 deg
+  ParallelFingerMovement := AngleRadBetweenVectors(
+    FFinger0Pos - FFinger0StartPos,
+    FFinger1Pos - FFinger1StartPos) < 1.0;
+
+  { For pinch gesture, the fingers move either closer or further apart.
+    For pan gesture, the fingers move in the same direction. }
+  if ParallelFingerMovement then
   begin
-    Length0 := PointsDistance(FFinger0Pos, FFinger0StartPos);
-    Length1 := PointsDistance(FFinger1Pos, FFinger1StartPos);
+    FGesture := gtPan;
 
-    // angle less then 60 deg
-    ParallelFingerMovement := AngleRadBetweenVectors(
-      FFinger0Pos - FFinger0StartPos,
-      FFinger1Pos - FFinger1StartPos) < 1.0;
+    { Note: both fingers movement determines pan. }
+    FPanMove := 0.5 * (
+      (FFinger0StartPos - FFinger0Pos) +
+      (FFinger1StartPos - FFinger1Pos)
+    );
 
-    { For pinch gesture, the fingers move either closer or further apart.
-      For pan gesture, the fingers move in the same direction. }
-    if ParallelFingerMovement then
-    begin
-      // similar distance for both fingers
-      if Min(Length0, Length1) *1.5 > Max(Length0, Length1) then
-      begin
-        FGesture := gtPan;
-        FState := grstStarted;
-        FPanOldOffset := FFinger0StartPos;
-        FPanOffset := FFinger0Pos;
-
-        if Assigned(FOnGestureChanged) then
-          FOnGestureChanged(Self);
-
-        FState := grstUpdate;
-        Result := true;
-      end;
-      // else undecided gesture, wait for more movement
-    end else
-    begin
-      OldDist := PointsDistance(FFinger0StartPos, FFinger1StartPos);
-      NewDist := PointsDistance(FFinger0Pos, FFinger1Pos);
-
-      FGesture := gtPinch;
-      FState := grstStarted;
-      //FPinchCenter := (FFinger0Pos + FFinger1Pos) / 2.0;
-      FPinchScaleFactor := NewDist / OldDist;
-
-      if Assigned(FOnGestureChanged) then
-        FOnGestureChanged(Self);
-
-      FState := grstUpdate;
-      Result := true;
-    end;
+    if Assigned(FOnGestureChanged) then
+      FOnGestureChanged(Self);
+    Result := true;
   end else
-  if FState = grstUpdate then
   begin
-    // update gestures
-    if FGesture = gtPinch then
-    begin
-      NewDist := PointsDistance(FFinger0Pos, FFinger1Pos);
-      if Event.FingerIndex = 0 then
-        OldDist := PointsDistance(Event.OldPosition, FFinger1Pos)
-      else
-        OldDist := PointsDistance(FFinger0Pos, Event.OldPosition);
+    FGesture := gtPinch;
 
-      FPinchScaleFactor := NewDist / OldDist;
+    OldDist := PointsDistance(FFinger0StartPos, FFinger1StartPos);
+    NewDist := PointsDistance(FFinger0Pos, FFinger1Pos);
+    //FPinchCenter := (FFinger0Pos + FFinger1Pos) / 2.0;
+    FPinchScaleFactor := NewDist / OldDist;
 
-      if Assigned(FOnGestureChanged) then
-        FOnGestureChanged(Self);
-
-      Result := true;
-    end else
-    if FGesture = gtPan then
-    begin
-      if Event.FingerIndex = 0 then // send only when 1st finger moved
-      begin
-        FPanOldOffset := Event.OldPosition;
-        FPanOffset := Event.Position;
-
-        if Assigned(FOnGestureChanged) then
-          FOnGestureChanged(Self);
-      end;
-      Result := true;
-    end;
+    if Assigned(FOnGestureChanged) then
+      FOnGestureChanged(Self);
+    Result := true;
   end;
-
-  { Eat all 2 finger moves.
-    Positive effect: camera does not change before the gesture is recognized.
-    Negative effect: in theory, we might block some other two-finger gestures.
-    Doesn't matter anymore, we start recognizing some gesture immediately now,
-    results in faster reaction. }
-  Result := true;
 end;
 
 end.

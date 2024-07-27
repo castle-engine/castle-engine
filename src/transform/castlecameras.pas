@@ -2627,8 +2627,8 @@ begin
   begin
     Size := GoodModelBox.AverageSize;
     Translation := Translation - Vector3(
-      DragMoveSpeed * Size * (Recognizer.PanOldOffset.X - Recognizer.PanOffset.X) / (2*MoveDivConst),
-      DragMoveSpeed * Size * (Recognizer.PanOldOffset.Y - Recognizer.PanOffset.Y) / (2*MoveDivConst),
+      DragMoveSpeed * Size * Recognizer.PanMove.X / (2 * MoveDivConst),
+      DragMoveSpeed * Size * Recognizer.PanMove.Y / (2 * MoveDivConst),
       0);
   end;
 end;
