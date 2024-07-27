@@ -86,6 +86,10 @@
       FBackgroundEnable: Boolean;
       FBackgroundColor: TCastleColor;
       FInspector: TCastleUserInterface; //< always TCastleInspector
+      // SafeBorder, without UIScale applied, in CSS order (top, right, bottom, left)
+      FSafeBorderScaled: TVector4;
+      FSafeBorder: TBorder;
+      FOnSafeBorderChanged: TNotifyEvent;
 
     function GetView: TCastleView;
     procedure SetView(const Value: TCastleView);
@@ -117,6 +121,8 @@
     { Create / destroy FInspector. }
     procedure ToggleInspector;
     procedure ForceCaptureInputFreeNotification(const Sender: TFreeNotificationObserver);
+    function MessageReceived(const Received: TCastleStringList;
+      const ReceivedStream: TMemoryStream): Boolean;
   private
     var
       FViewStack: TCastleViewList;
@@ -350,8 +356,11 @@
 
     { Translucent status bar height in the container, in pixels.
       This is expressed in real device pixels.
-      Prefer using @link(StatusBarHeight) instead of this. }
-    function ScaledStatusBarHeight: Cardinal; virtual;
+
+      Prefer using @link(SafeBorder) instead of this,
+      @link(SafeBorder) accounts for all 4 sides and
+      is in size accounting for UI scaling. }
+    function ScaledStatusBarHeight: Cardinal; deprecated 'use SafeBorder';
 
     { Container width as seen by controls with UI scaling.
       In other words, this is the real @link(Width) with UI scaling
@@ -385,8 +394,13 @@
 
       Status bar occupies the top part of the container height. Invisible
       status bar returns height equal zero.
+
+      Prefer using @link(SafeBorder) instead of this,
+      @link(SafeBorder) accounts for all 4 sides and
+      (just like this) is also in size accounting for UI scaling.
+
       @seealso UnscaledWidth }
-    function StatusBarHeight: Single;
+    function StatusBarHeight: Single; deprecated 'use SafeBorder';
 
     { Current mouse position.
       See @link(TTouch.Position) for a documentation how this is expressed. }
@@ -885,6 +899,28 @@
       Use with indexes between 0 and ViewStackCount - 1.
       View stack is managed using @link(View) / @link(PushView) / @link(PopView). }
     property ViewStack [const Index: Integer]: TCastleView read GetViewStack;
+
+    { Safe border sizes you should honor in your UI design (do not place there
+      UI elements that have to be readable or clickable, like labels or buttons)
+      on mobile devices.
+
+      This is important for full-screen Android and iOS applications.
+      You have to leave this space empty, that is: place there simple unimportant
+      UI -- solid color, gradients. And be prepared it may be partially or
+      completely obscured by the device's status bar (on top, with stuff like
+      clock, battery, network status) or physical things obscuring the screen.
+
+      This is also sometimes called "safe area", "display cutout",
+      "statusBarHeight" (top), "bottomBarHeight" (bottom).
+      See e.g. Android docs:
+      https://developer.android.com/design/ui/mobile/guides/foundations/system-bars . }
+    function SafeBorder: TBorder;
+
+    { Event called right after @link(SafeBorder) changed. }
+    property OnSafeBorderChanged: TNotifyEvent read FOnSafeBorderChanged write FOnSafeBorderChanged;
+
+    { @exclude }
+    procedure InternalSetSafeBorderScaled(const Value: TVector4);
   end;
 
 {$endif read_interface}
@@ -923,6 +959,7 @@ begin
   FBackgroundColor := DefaultBackgroundColor;
   FForceCaptureInputObserver := TFreeNotificationObserver.Create(Self);
   FForceCaptureInputObserver.OnFreeNotification := {$ifdef FPC}@{$endif} ForceCaptureInputFreeNotification;
+  FSafeBorder := TBorder.Create(nil);
 
   { connect 3D device - 3Dconnexion device }
   Mouse3dPollTimer := 0;
@@ -933,10 +970,16 @@ begin
       WritelnLog('3D Mouse', 'Exception %s when initializing T3DConnexionDevice: %s',
         [E.ClassName, E.Message]);
   end;
+
+  if Messaging <> nil then
+    Messaging.OnReceive.Add({$ifdef FPC}@{$endif} MessageReceived);
 end;
 
 destructor TCastleContainer.Destroy;
 begin
+  if Messaging <> nil then
+    Messaging.OnReceive.Remove({$ifdef FPC}@{$endif} MessageReceived);
+
   if FViewStack <> nil then
   begin
     View := nil; // should clean FViewStack
@@ -944,6 +987,7 @@ begin
   end;
   if RenderContext = FContext then
     RenderContext := nil;
+  FreeAndNil(FSafeBorder);
   FreeAndNil(FContext);
   FreeAndNil(FPressed);
   FreeAndNil(FFps);
@@ -2400,6 +2444,12 @@ begin
       UIScaling, UIReferenceWidth, UIReferenceHeight, UIExplicitScale,
       Dpi, PixelsWidth, PixelsHeight);
 
+  { When FSafeBorderScaled is non-zero, then changing FUIScale also changed
+    SafeBorder result. }
+  if not FSafeBorderScaled.IsPerfectlyZero then
+    if Assigned(FOnSafeBorderChanged) then
+      FOnSafeBorderChanged(Self);
+
   { Note that we don't cause TCastleUserInterface.UIScaleChanged calls now.
     They are done before BeforeRender, this way culled UI controls
     (when using @link(TCastleUserInterface.Culling))
@@ -2428,9 +2478,14 @@ begin
   end;
 end;
 
+function TCastleContainer.ScaledStatusBarHeight: Cardinal;
+begin
+  Result := Round(FSafeBorderScaled.X);
+end;
+
 function TCastleContainer.StatusBarHeight: Single;
 begin
-  Result := ScaledStatusBarHeight / FUIScale;
+  Result := SafeBorder.Top;
 end;
 
 function TCastleContainer.SaveScreen(const SaveRect: TRectangle): TRGBImage;
@@ -2507,11 +2562,6 @@ end;
 function TCastleContainer.PixelsRect: TRectangle;
 begin
   Result := Rectangle(0, 0, PixelsWidth, PixelsHeight);
-end;
-
-function TCastleContainer.ScaledStatusBarHeight: Cardinal;
-begin
-  Result := 0;
 end;
 
 procedure TCastleContainer.Invalidate;
@@ -2703,6 +2753,46 @@ begin
     raise EInternalError.CreateFmt('TCastleView.GetViewStack: view stack is empty, cannot get view index %d',
       [Index]);
   Result := FViewStack[Index];
+end;
+
+procedure TCastleContainer.InternalSetSafeBorderScaled(const Value: TVector4);
+begin
+  FSafeBorderScaled := Value;
+  WritelnLog('Safe borders updated. Size scaled (in final pixels): %s, size accounting for UI scaling: %s', [
+    FSafeBorderScaled.ToString,
+    SafeBorder.ToString
+  ]);
+  if Assigned(FOnSafeBorderChanged) then
+    FOnSafeBorderChanged(Self);
+end;
+
+function TCastleContainer.MessageReceived(const Received: TCastleStringList;
+  const ReceivedStream: TMemoryStream): Boolean;
+var
+  NewSafeBorderScaled: TVector4;
+begin
+  if (Received.Count = 5) and
+     (Received[0] = 'safe-borders') then
+  begin
+    NewSafeBorderScaled := Vector4(
+      StrToInt(Received[1]),
+      StrToInt(Received[2]),
+      StrToInt(Received[3]),
+      StrToInt(Received[4])
+    );
+    InternalSetSafeBorderScaled(NewSafeBorderScaled);
+    Result := true;
+  end
+end;
+
+function TCastleContainer.SafeBorder: TBorder;
+begin
+  // assign from FSafeBorderScaled and adjust for UI scaling
+  FSafeBorder.Top    := FSafeBorderScaled.X / UIScale;
+  FSafeBorder.Right  := FSafeBorderScaled.Y / UIScale;
+  FSafeBorder.Bottom := FSafeBorderScaled.Z / UIScale;
+  FSafeBorder.Left   := FSafeBorderScaled.W / UIScale;
+  Result := FSafeBorder;
 end;
 
 {$endif read_implementation}

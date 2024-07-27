@@ -432,7 +432,6 @@ type
     function PixelsWidth: Integer; override;
     function PixelsHeight: Integer; override;
     function PixelsRect: TRectangle; override;
-    function ScaledStatusBarHeight: Cardinal; override;
     function GetMousePosition: TVector2; override;
     procedure SetMousePosition(const Value: TVector2); override;
     function Focused: boolean; override;
@@ -2399,7 +2398,6 @@ end.
 
     function ScreenHeight: integer;
     function ScreenWidth: integer;
-    function ScreenStatusBarScaledHeight: Cardinal;
 
     { List of all open windows.
       @groupBegin }
@@ -2692,11 +2690,6 @@ begin
   Result := Parent.Rect;
 end;
 
-function TWindowContainer.ScaledStatusBarHeight: Cardinal;
-begin
-  Result := Application.ScreenStatusBarScaledHeight;
-end;
-
 function TWindowContainer.GetMousePosition: TVector2;
 begin
   Result := Parent.MousePosition;
@@ -2783,7 +2776,7 @@ begin
   CreateBackend;
 
   if Messaging <> nil then
-    Messaging.OnReceive.Add({$ifdef FPC}@{$endif}MessageReceived);
+    Messaging.OnReceive.Add({$ifdef FPC}@{$endif} MessageReceived);
 end;
 
 destructor TCastleWindow.Destroy;
@@ -2799,7 +2792,7 @@ begin
   end;
 
   if Messaging <> nil then
-    Messaging.OnReceive.Remove({$ifdef FPC}@{$endif}MessageReceived);
+    Messaging.OnReceive.Remove({$ifdef FPC}@{$endif} MessageReceived);
 
   FreeAndNil(FContainer);
   FreeAndNil(FTouches);

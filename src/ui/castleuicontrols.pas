@@ -24,7 +24,8 @@ uses SysUtils, Classes, Generics.Collections,
   CastleKeysMouse, CastleUtils, CastleClassUtils, CastleGLUtils, CastleFonts,
   CastleRectangles, CastleTimeUtils, CastleInternalPk3DConnexion, CastleColors,
   CastleImages, CastleVectors, CastleJoysticks, CastleApplicationProperties,
-  CastleGLImages, CastleRenderContext, CastleComponentSerialize;
+  CastleGLImages, CastleRenderContext, CastleComponentSerialize,
+  CastleMessaging, CastleStringUtils;
 
 {$define read_interface}
 
@@ -51,7 +52,7 @@ implementation
 
 uses DOM, TypInfo, Math,
   {$ifdef OpenGLES} CastleGLES, {$else} CastleGL, {$endif}
-  CastleLog, CastleXmlUtils, CastleStringUtils,
+  CastleLog, CastleXmlUtils,
   CastleInternalSettings, CastleFilesUtils, CastleUriUtils, CastleRenderOptions,
   CastleInternalInspector, CastleInternalControlsImages, CastleInternalGLUtils;
 
