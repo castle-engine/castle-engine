@@ -167,7 +167,7 @@ implementation
 uses SysUtils,
   {$ifdef OpenGLES} CastleGLES, {$else} CastleGL, {$endif}
   CastleScene, CastleGLUtils, CastleRenderContext, CastleColors, CastleUtils,
-  X3DCameraUtils;
+  X3DCameraUtils, CastleTimeUtils;
 
 { TShapesCollector ----------------------------------------------------------- }
 
@@ -600,6 +600,8 @@ begin
     Assert(Batching.Batched.Count = 0);
   end;
 
+  FrameProfiler.Start(fmRenderCollectedShapesSort);
+
   if Params.Transparent then
   begin
     { We'll draw partially transparent objects now,
@@ -626,6 +628,8 @@ begin
       Params.RenderingCamera.View,
       OcclusionSort);
   end;
+
+  FrameProfiler.Stop(fmRenderCollectedShapesSort);
 
   Renderer.RenderBegin(Params.GlobalLights as TLightInstancesList,
     Params.RenderingCamera,

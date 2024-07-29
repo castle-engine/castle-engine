@@ -1,6 +1,6 @@
 {%MainUnit castleinternalrenderer.pas}
 {
-  Copyright 2002-2023 Michalis Kamburelis.
+  Copyright 2002-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -488,6 +488,8 @@ procedure TRenderer.RenderBegin(
   const AUserPass: TUserRenderingPass;
   const AStatistics: PRenderStatistics);
 begin
+  FrameProfiler.Start(fmRenderCoreRenderer);
+
   ClassRenderBegin;
 
   GlobalLights := AGlobalLights;
@@ -531,6 +533,8 @@ begin
   Statistics := nil;
 
   ClassRenderEnd;
+
+  FrameProfiler.Stop(fmRenderCoreRenderer);
 end;
 
 procedure TRenderer.RenderShape(const Shape: TX3DRendererShape;
