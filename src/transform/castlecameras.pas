@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2023 Michalis Kamburelis.
+  Copyright 2003-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -625,13 +625,14 @@ type
 
   { What mouse dragging does in TCastleWalkNavigation. }
   TMouseDragMode = (
-    { Moves avatar continuously in the direction of mouse drag
-      (default for TCastleWalkNavigation.MouseDragMode). }
-    mdWalk,
+    { Moves and rotates avatar depending on the direction of mouse drag.
+      Default for @link(TCastleWalkNavigation.MouseDragMode). }
+    mdWalkRotate,
     { Rotates the head when mouse is moved. }
     mdRotate,
     { Ignores the dragging. }
-    mdNone);
+    mdNone
+  );
 
   { Abstract navigation class that can utilize @italic(mouse look),
     during which mouse cursor is hidden and we look at MouseLookDelta every frame. }
@@ -1364,7 +1365,8 @@ type
     { @groupEnd }
 
     { Speed (radians per pixel delta) of rotations by mouse dragging.
-      Relevant only if niMouseDragging in @link(Input), and MouseDragMode is mdRotate or mdWalk.
+      Relevant only if niMouseDragging in @link(Input) and 
+      MouseDragMode is mdRotate or mdWalkRotate.
       Separate for horizontal and vertical, this way you can e.g. limit
       (or disable) vertical rotations, useful for games where you mostly
       look horizontally and accidentally looking up/down is more confusing
@@ -1379,14 +1381,15 @@ type
     { @groupEnd }
 
     { Moving speed when mouse dragging.
-      Relevant only when @code((MouseDragMode is mdWalk) and (niMouseDragging in UsingInput)). }
+      Relevant only when @code((MouseDragMode is mdWalkRotate) and 
+      (niMouseDragging in UsingInput)). }
     property MouseDraggingMoveSpeed: Single
       read FMouseDraggingMoveSpeed write FMouseDraggingMoveSpeed
       {$ifdef FPC}default DefaultMouseDraggingMoveSpeed{$endif};
 
     { What mouse dragging does. Used only when niMouseDragging in @link(Input). }
     property MouseDragMode: TMouseDragMode
-      read FMouseDragMode write FMouseDragMode default mdWalk;
+      read FMouseDragMode write FMouseDragMode default mdWalkRotate;
 
     { This unlocks a couple of features and automatic behaviors
       related to gravity. Gravity always drags the camera down to
@@ -3755,7 +3758,9 @@ procedure TCastleWalkNavigation.Update(const SecondsPassed: Single;
     CorrectPreferredHeight;
   end;
 
-  procedure MoveViaMouseDragging(Delta: TVector2);
+  { Implement MouseDragMode = mdWalkRotate case,
+    moving and rotating in response to mouse dragging by Delta. }
+  procedure MoveRotateViaMouseDragging(Delta: TVector2);
   var
     MoveSizeX, MoveSizeY: Single;
   const
@@ -3783,8 +3788,8 @@ procedure TCastleWalkNavigation.Update(const SecondsPassed: Single;
 
       if Abs(Delta.X) > Tolerance then
         RotateHorizontal(-Delta.X * SecondsPassed * MouseDraggingHorizontalRotationSpeed); { rotate }
-    end
-    else if buttonRight in Container.MousePressed then
+    end else 
+    if buttonRight in Container.MousePressed then
     begin
       if Delta.X < -Tolerance then
         MoveHorizontal(DirectionLeft, MoveSizeX * SecondsPassed);
@@ -3875,10 +3880,10 @@ begin
          This allows application to handle e.g. ctrl + dragging
          in some custom ways (like castle-model-viewer selecting a triangle). }
        (Container.Pressed.Modifiers - Input_Run.Modifiers = []) and
-       (MouseDragMode = mdWalk) then
+       (MouseDragMode = mdWalkRotate) then
     begin
       HandleInput := false;
-      MoveViaMouseDragging(Container.MousePosition - MouseDraggingStart);
+      MoveRotateViaMouseDragging(Container.MousePosition - MouseDraggingStart);
     end;
   end;
 

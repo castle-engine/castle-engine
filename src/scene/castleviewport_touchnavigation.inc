@@ -261,7 +261,7 @@ procedure TCastleTouchNavigation.UpdateTouchInterface;
 begin
   case TouchInterface of
     tiNone:
-      UpdateTouchControllers(mdWalk, false, false);
+      UpdateTouchControllers(mdWalkRotate, false, false);
     tiWalkRotate:
       UpdateTouchControllers(mdNone, true, true, ctcmWalking, ctcmHeadRotation);
     tiWalk:
