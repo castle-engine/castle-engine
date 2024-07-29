@@ -109,7 +109,7 @@ type
       but you don't have to. Often they will at least have the same aspect ratio
       (actually, often they will be square), but you don't have to.
 
-      Divisions determines how dense is the mesh.
+      Subdivisions determines how dense is the mesh.
 
       We return the node that you should insert to your scene.
 
