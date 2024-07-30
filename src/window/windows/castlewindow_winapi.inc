@@ -589,10 +589,9 @@ function TCastleWindow.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM): LRE
     begin
       Result := false;
       { TODO: Handles all input controls, not just TCastleEdit }
-      if (Container.Focus.Count <> 0) and
-         (Container.Focus.Last is TCastleEdit) then
+      if Container.FocusFront is TCastleEdit then
       begin
-        CastleEdit := Container.Focus.Last as TCastleEdit;
+        CastleEdit := Container.FocusFront as TCastleEdit;
         S := CastleEdit.Text;
         if CastleEdit.PasswordChar <> #0 then
           S := StringOfChar(CastleEdit.PasswordChar, Length(S));

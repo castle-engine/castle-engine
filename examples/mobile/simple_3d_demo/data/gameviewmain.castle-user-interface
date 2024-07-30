@@ -353,7 +353,6 @@
           "BorderColorPersistent" : {
             "$$ClassName" : "TCastleColorPersistent"
           },
-          "ControlMouseDragMode" : true,
           "FullSize" : true,
           "Name" : "TouchNavigation",
           "TranslationPersistent" : {

@@ -1365,7 +1365,7 @@ type
     { @groupEnd }
 
     { Speed (radians per pixel delta) of rotations by mouse dragging.
-      Relevant only if niMouseDragging in @link(Input) and 
+      Relevant only if niMouseDragging in @link(Input) and
       MouseDragMode is mdRotate or mdWalkRotate.
       Separate for horizontal and vertical, this way you can e.g. limit
       (or disable) vertical rotations, useful for games where you mostly
@@ -1381,7 +1381,7 @@ type
     { @groupEnd }
 
     { Moving speed when mouse dragging.
-      Relevant only when @code((MouseDragMode is mdWalkRotate) and 
+      Relevant only when @code((MouseDragMode is mdWalkRotate) and
       (niMouseDragging in UsingInput)). }
     property MouseDraggingMoveSpeed: Single
       read FMouseDraggingMoveSpeed write FMouseDraggingMoveSpeed
@@ -3788,7 +3788,7 @@ procedure TCastleWalkNavigation.Update(const SecondsPassed: Single;
 
       if Abs(Delta.X) > Tolerance then
         RotateHorizontal(-Delta.X * SecondsPassed * MouseDraggingHorizontalRotationSpeed); { rotate }
-    end else 
+    end else
     if buttonRight in Container.MousePressed then
     begin
       if Delta.X < -Tolerance then
@@ -3880,7 +3880,17 @@ begin
          This allows application to handle e.g. ctrl + dragging
          in some custom ways (like castle-model-viewer selecting a triangle). }
        (Container.Pressed.Modifiers - Input_Run.Modifiers = []) and
-       (MouseDragMode = mdWalkRotate) then
+       (MouseDragMode = mdWalkRotate) and
+       { Hack to avoid processing when mouse is over TCastleTouchNavigation
+         gizmo, since it does it's own rotating/movement of camera.
+         This is a hack, ideally TCastleWalkNavigation should not have a specific
+         rule to interact with TCastleTouchNavigation...
+
+         Note: We cannot move MoveRotateViaMouseDragging logic to Motion
+         (thus using "motion is handled" boolean) because
+         MoveRotateViaMouseDragging wants to move even if no mouse movement
+         happened in last frame. }
+       (not TCastleTouchNavigation.MouseOverTouchGizmo(Container)) then
     begin
       HandleInput := false;
       MoveRotateViaMouseDragging(Container.MousePosition - MouseDraggingStart);

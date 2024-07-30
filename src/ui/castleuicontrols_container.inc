@@ -318,6 +318,15 @@
       is last on this list. }
     property Focus: TCastleUserInterfaceList read FFocus;
 
+    { First control that receives input events, determined by @link(Focus) list
+      and @link(ForceCaptureInput).
+      @nil if none.
+
+      Be careful when using this: most logic should account for the fact
+      that multiple controls may be focused, that's why @link(Focus) is a list.
+      Use this only when you need to know the front-most focused control. }
+    function FocusFront: TCastleUserInterface;
+
     { Redraw the contents of of this window, at the nearest suitable time.
       This method does not redraw immediately
       (it does not call @link(EventBeforeRender) and @link(EventRender) inside),
@@ -2793,6 +2802,17 @@ begin
   FSafeBorder.Bottom := FSafeBorderScaled.Z / UIScale;
   FSafeBorder.Left   := FSafeBorderScaled.W / UIScale;
   Result := FSafeBorder;
+end;
+
+function TCastleContainer.FocusFront: TCastleUserInterface;
+begin
+  if ForceCaptureInput <> nil then
+    Result := ForceCaptureInput
+  else
+  if FFocus.Count <> 0 then
+    Result := FFocus.Last // last item is front-most
+  else
+    Result := nil;
 end;
 
 {$endif read_implementation}

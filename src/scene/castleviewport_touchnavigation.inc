@@ -1,6 +1,6 @@
 {%MainUnit castleviewport.pas}
 {
-  Copyright 2013-2023 Michalis Kamburelis.
+  Copyright 2013-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -67,10 +67,8 @@ type
     {$warnings on}
     FTouchInterface: TTouchInterface;
     FAutoWalkTouchInterface, FAutoExamineTouchInterface: TTouchInterface;
-    FControlMouseDragMode: Boolean;
     FScale: Single;
-    { Apply current TouchInterface value.
-      Call when TouchInterface or ControlMouseDragMode changed. }
+    { Apply current TouchInterface value. Call when TouchInterface value changed. }
     procedure UpdateTouchInterface;
     { Update current TouchInterface if AutoTouchInterface enabled.
       Call when AutoTouchInterface, Viewport,
@@ -82,7 +80,6 @@ type
     procedure SetAutoWalkTouchInterface(const Value: TTouchInterface);
     procedure SetAutoExamineTouchInterface(const Value: TTouchInterface);
     function TouchInterfaceStored: Boolean;
-    procedure SetControlMouseDragMode(const Value: Boolean);
     procedure SetScale(const Value: Single);
   public
     const
@@ -104,10 +101,7 @@ type
       and handling their operations.
 
       Note that you can set AutoTouchInterface = @true to have this property
-      automatically adjusted. (In which case you should not set this directly.)
-
-      When @link(ControlMouseDragMode) then this property additionally controls
-      the @link(TCastleWalkNavigation.MouseDragMode). }
+      automatically adjusted. (In which case you should not set this directly.) }
     property TouchInterface: TTouchInterface
       read FTouchInterface write SetTouchInterface stored TouchInterfaceStored
       default tiNone;
@@ -134,17 +128,11 @@ type
       read FAutoExamineTouchInterface write SetAutoExamineTouchInterface
       default DefaultAutoExamineTouchInterface;
 
-    { Control also @link(TCastleWalkNavigation.MouseDragMode) by
-      the @link(AutoTouchInterface) and @link(TouchInterface) setting.
-
-      We advise to not use this property, and instead set @link(TCastleWalkNavigation.MouseDragMode)
-      manually and explicitly. Otherwise this automatic control may be confusing, as it overrides
-      what you set in editor as @link(TCastleWalkNavigation.MouseDragMode) value. }
-    property ControlMouseDragMode: Boolean
-      read FControlMouseDragMode write SetControlMouseDragMode default false;
-
     { Visual scale of the device. }
     property Scale: Single read FScale write SetScale {$ifdef FPC}default 1.0{$endif};
+    
+    { Detect if mouse is currently over one of the touch control gizmos. }
+    class function MouseOverTouchGizmo(const AContainer: TCastleContainer): Boolean;
   end;
 
 {$endif read_interface}
@@ -243,33 +231,26 @@ procedure TCastleTouchNavigation.UpdateTouchInterface;
   end;
 
   procedure UpdateTouchControllers(
-    const MouseDragMode: TMouseDragMode;
     const LeftVisible, RightVisible: Boolean;
     const LeftMode: TCastleTouchCtlMode = ctcmWalking;
     const RightMode: TCastleTouchCtlMode = ctcmWalking);
   begin
     UpdateTouchController(false, LeftVisible , LeftMode);
     UpdateTouchController(true , RightVisible, RightMode);
-    {$warnings off} // TODO: using deprecated for now - this needs to know a "central" navigation
-    if ControlMouseDragMode and
-       (Viewport <> nil) and
-       (Viewport.Navigation is TCastleWalkNavigation) then
-      (Viewport.Navigation as TCastleWalkNavigation).MouseDragMode := MouseDragMode;
-    {$warnings on}
   end;
 
 begin
   case TouchInterface of
     tiNone:
-      UpdateTouchControllers(mdWalkRotate, false, false);
+      UpdateTouchControllers(false, false);
     tiWalkRotate:
-      UpdateTouchControllers(mdNone, true, true, ctcmWalking, ctcmHeadRotation);
+      UpdateTouchControllers(true, true, ctcmWalking, ctcmHeadRotation);
     tiWalk:
-      UpdateTouchControllers(mdRotate, false, true, ctcmWalking, ctcmWalking);
+      UpdateTouchControllers(false, true, ctcmWalking, ctcmWalking);
     tiFlyWalk:
-      UpdateTouchControllers(mdRotate, true, true, ctcmFlyUpdown, ctcmWalking);
+      UpdateTouchControllers(true, true, ctcmFlyUpdown, ctcmWalking);
     tiPan:
-      UpdateTouchControllers(mdRotate, false, true, ctcmPanXY, ctcmPanXY);
+      UpdateTouchControllers(false, true, ctcmPanXY, ctcmPanXY);
     {$ifndef COMPILER_CASE_ANALYSIS}
     else raise EInternalError.Create('TouchInterface?');
     {$endif}
@@ -340,15 +321,6 @@ begin
   end;
 end;
 
-procedure TCastleTouchNavigation.SetControlMouseDragMode(const Value: Boolean);
-begin
-  if FControlMouseDragMode <> Value then
-  begin
-    FControlMouseDragMode := Value;
-    UpdateTouchInterface;
-  end;
-end;
-
 function TCastleTouchNavigation.PropertySections(
   const PropertyName: String): TPropertySections;
 begin
@@ -372,6 +344,22 @@ begin
       if FControl[RightSide] <> nil then
         FControl[RightSide].Scale := FScale;
   end;
+end;
+
+class function TCastleTouchNavigation.MouseOverTouchGizmo(
+  const AContainer: TCastleContainer): Boolean;
+var
+  F: TCastleUserInterface;
+begin
+  {$warnings off} // TCastleTouchControl should be internal here
+  { Note that we process all AContainer.Focus, not only AContainer.FocusFront,
+    since TCastleTouchNavigation may be either in front or behind 
+    TCastleWalkNavigation. }
+  for F in AContainer.Focus do
+    if F is TCastleTouchControl then
+      Exit(true);
+  Result := false;
+  {$warnings on}
 end;
 
 {$endif read_implementation}
