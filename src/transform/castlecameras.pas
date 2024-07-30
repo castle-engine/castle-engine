@@ -3874,7 +3874,7 @@ begin
     { mouse dragging navigation }
     if (MouseDraggingStarted <> -1) and
        ReallyEnableMouseDragging and
-       ((buttonLeft in Container.MousePressed) or (buttonRight in Container.MousePressed)) and
+       (Container.MousePressed <> []) and
        { Enable dragging only when no modifiers (except Input_Run,
          which must be allowed to enable running) are pressed.
          This allows application to handle e.g. ctrl + dragging
@@ -4252,6 +4252,29 @@ function TCastleWalkNavigation.Motion(const Event: TInputMotion): boolean;
 begin
   Result := inherited;
   if Result or (Event.FingerIndex <> 0) then Exit;
+
+  { It is possible to have MouseDraggingStarted = -1 even when all buttons
+    released:
+
+    - When setting MouseDraggingStarted to >= 0 in Press,
+      we do not set Result:=true to avoid other issues
+      (see comments in TCastleNevigation.Press).
+    - But as a consequence, TCastleTouchNavigation.Press may also start dragging
+      at the same time.
+    - Then when user releases the mouse,
+      TCastleTouchNavigation.Release is called,
+      and TCastleNavigation.Release is not called.
+      This is actually regardless of whether TCastleTouchNavigation.Release
+      returns false or true. It's because TCastleContainer.EventRelease
+      calls only Capture.Release + Exit when Capture <> nil,
+      it doesn't call Release on others.
+    - In effect, since our TCastleNavigation.Release wasn't called,
+      MouseDraggingStarted is left at -1.
+
+    Testcase: simple_3d_demo, click on touch navigation in the corner,
+    then release. When moving mouse, you should *not* rotate the camera now. }
+  if Event.Pressed = [] then
+    MouseDraggingStarted := -1;
 
   if (MouseDraggingStarted <> -1) and
     // Not need to check here ReallyEnableMouseDragging, as MouseDraggingStarted is already <> -1
