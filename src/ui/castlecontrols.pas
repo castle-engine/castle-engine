@@ -35,7 +35,6 @@ type
   {$I castlecontrols_button.inc}
   {$I castlecontrols_panel.inc}
   {$I castlecontrols_imagecontrol.inc}
-  {$I castlecontrols_touchcontrol.inc}
   {$I castlecontrols_rectanglecontrol.inc}
   {$I castlecontrols_shape.inc}
   {$I castlecontrols_simplebackground.inc}
@@ -71,7 +70,6 @@ uses Math, CastleTextureFont_DefaultUi,
 {$I castlecontrols_button.inc}
 {$I castlecontrols_panel.inc}
 {$I castlecontrols_imagecontrol.inc}
-{$I castlecontrols_touchcontrol.inc}
 {$I castlecontrols_rectanglecontrol.inc}
 {$I castlecontrols_shape.inc}
 {$I castlecontrols_simplebackground.inc}
