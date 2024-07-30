@@ -368,6 +368,7 @@
           "BorderColorPersistent" : {
             "$$ClassName" : "TCastleColorPersistent"
           },
+          "MouseDragMode" : "mdRotate",
           "MoveSpeed" : 1.0000000000000000E+001,
           "Name" : "WalkNavigation1",
           "TranslationPersistent" : {
