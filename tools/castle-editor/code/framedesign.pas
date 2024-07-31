@@ -5047,12 +5047,13 @@ var
 begin
   { This event is fired when calling TCustomListView.CanEdit
     which itself is called in TCustomListView.ShowEditor
-    therefore this event preceeds initializing and showing of the editor.
-
-    Here we have to "restore" the pure name of the component (without class name)
-    before starting edit. }
+    therefore this event preceeds initializing and showing of the editor. }
   C := TComponent(Node.Data);
   AllowEdit := C <> nil; // may be nil on special tree items "Behaviors" or "Non-Visual Components"
+
+  { Old: when Note.Text was different from C.Name, we set it here.
+    This is pointless now, but also harmless, since TreeNodeCaption
+    now just returns C.Name. }
   if AllowEdit then
     Node.Text := C.Name;
 end;
