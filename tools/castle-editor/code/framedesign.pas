@@ -5098,15 +5098,34 @@ begin
         Exit;
       end;
 
-      UndoComment := 'Rename ' + Sel.Name + ' into ' + Node.Text;
       { Without this check, one could change Sel.Name to empty ('').
         Although TComponent.SetName checks that it's a valid Pascal identifier already,
         but it also explicitly allows to set Name = ''.
         Object inspector has special code to secure from empty Name
         (in TComponentNamePropertyEditor.SetValue), so we need a similar check here. }
       if not IsValidIdent(Node.Text) then
-        raise Exception.Create(Format(oisComponentNameIsNotAValidIdentifier, [Node.Text]));
-      Sel.Name := Node.Text;
+      begin
+        ErrorBox(Format(oisComponentNameIsNotAValidIdentifier, [Node.Text]));
+        Exit;
+      end;
+
+      UndoComment := 'Rename ' + Sel.Name + ' into ' + Node.Text;
+
+      try
+        Sel.Name := Node.Text;
+      except
+        { We capture exception and change into ErrorBox,
+          otherwise tree view in LCL GTK2 may end up showing a weird content
+          after doing "Node.Text := TreeNodeCaption(Sel)" below
+          (blank, with size of component name) and sometimes hang.
+          Explicitly catching and showing the error by ErrorBox workarounds it. }
+        on E: EComponentError do
+        begin
+          ErrorBox(E.Message);
+          Exit;
+        end;
+      end;
+
       ModifiedOutsideObjectInspector(UndoComment, ucHigh); // It'd be good if we set "ItemIndex" to index of "name" field, but there doesn't seem to be an easy way to
     end;
   finally
