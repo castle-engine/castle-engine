@@ -4091,7 +4091,7 @@ begin
   Light := TCastlePointLight.Create(Owner);
   Light.Name := ProposeComponentName(TCastlePointLight, Owner);
   Light.Translation := Vector3(4.00, 3.00, 1.00);
-  Light.Intensity := 100;
+  // Light.Intensity := 100; // default for TCastlePointLight now
   Items.Add(Light);
 
   { purpose: initial 3D object,

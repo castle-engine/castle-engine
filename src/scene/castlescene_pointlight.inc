@@ -41,6 +41,7 @@ type
   public
     const
       DefaultRadius = 100.0;
+      DefaultIntensity = 100.0;
 
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -53,8 +54,17 @@ type
       By default Vector3(0, 0, 1), which means light falls off according to inverse square law. }
     property Attenuation: TVector3 read FAttenuation write SetAttenuation;
   published
-    { Intensity, multiplied by color. Can be anything >= 0. }
-    property Intensity: Single read FIntensity write SetIntensity {$ifdef FPC}default 1.0{$endif};
+    { Intensity, multiplied by color. Can be anything >= 0.
+      Intuitively, how bright is the light.
+
+      Following @url(https://github.com/KhronosGroup/glTF/blob/main/extensions/2.0/Khronos/KHR_lights_punctual/README.md glTF lights specification),
+      the point light's intensity physical unit
+      is luminous intensity in candela (lm/sr).
+      This is exactly like TCastleSpotLight, but different than TCastleDirectionalLight.
+
+      The default intensity is 100.0, which is a reasonable value for a point/spot light,
+      it remains bright for a few meters around the light source. }
+    property Intensity: Single read FIntensity write SetIntensity {$ifdef FPC}default DefaultIntensity{$endif};
 
     { Light doesn't shine at all outside of a sphere with this radius.
       For performance reasons, set this as small as possible, to avoid even considering
@@ -76,7 +86,7 @@ begin
   inherited;
 
   // defaults
-  FIntensity := 1;
+  FIntensity := DefaultIntensity;
   FRadius := DefaultRadius;
   FAttenuation := Vector3(0, 0, 1);
   FColor := WhiteRGB;
