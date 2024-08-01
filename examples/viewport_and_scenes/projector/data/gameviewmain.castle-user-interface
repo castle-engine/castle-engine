@@ -94,8 +94,7 @@
           {
             "$$ClassName" : "TCastlePointLight",
             "AttenuationPersistent" : {
-              "$$ClassName" : "TCastleVector3Persistent",
-              "Z" : 0.0000000000000000E+000
+              "$$ClassName" : "TCastleVector3Persistent"
             },
             "CenterPersistent" : {
               "$$ClassName" : "TCastleVector3Persistent"
@@ -103,7 +102,6 @@
             "ColorPersistent" : {
               "$$ClassName" : "TCastleColorRGBPersistent"
             },
-            "Intensity" : 2.0000000000000000E+000,
             "Name" : "PointLight1",
             "RotationPersistent" : {
               "$$ClassName" : "TCastleVector4RotationPersistent"
@@ -124,8 +122,7 @@
           {
             "$$ClassName" : "TCastlePointLight",
             "AttenuationPersistent" : {
-              "$$ClassName" : "TCastleVector3Persistent",
-              "Z" : 0.0000000000000000E+000
+              "$$ClassName" : "TCastleVector3Persistent"
             },
             "CenterPersistent" : {
               "$$ClassName" : "TCastleVector3Persistent"
@@ -133,7 +130,6 @@
             "ColorPersistent" : {
               "$$ClassName" : "TCastleColorRGBPersistent"
             },
-            "Intensity" : 2.0000000000000000E+000,
             "Name" : "PointLight2",
             "RotationPersistent" : {
               "$$ClassName" : "TCastleVector4RotationPersistent"

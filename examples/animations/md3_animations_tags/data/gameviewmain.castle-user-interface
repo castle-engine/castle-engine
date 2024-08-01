@@ -314,7 +314,6 @@
             "ColorPersistent" : {
               "$$ClassName" : "TCastleColorRGBPersistent"
             },
-            "Intensity" : 1.0000000000000000E+002,
             "Name" : "PointLight1",
             "RotationPersistent" : {
               "$$ClassName" : "TCastleVector4RotationPersistent"
@@ -344,7 +343,6 @@
             "ColorPersistent" : {
               "$$ClassName" : "TCastleColorRGBPersistent"
             },
-            "Intensity" : 1.0000000000000000E+002,
             "Name" : "PointLight2",
             "RotationPersistent" : {
               "$$ClassName" : "TCastleVector4RotationPersistent"

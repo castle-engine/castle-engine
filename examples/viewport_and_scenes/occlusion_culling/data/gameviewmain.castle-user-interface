@@ -92,8 +92,7 @@
           {
             "$$ClassName" : "TCastlePointLight",
             "AttenuationPersistent" : {
-              "$$ClassName" : "TCastleVector3Persistent",
-              "Z" : 0.0000000000000000E+000
+              "$$ClassName" : "TCastleVector3Persistent"
             },
             "CenterPersistent" : {
               "$$ClassName" : "TCastleVector3Persistent"
@@ -101,7 +100,6 @@
             "ColorPersistent" : {
               "$$ClassName" : "TCastleColorRGBPersistent"
             },
-            "Intensity" : 1.0000000000000000E+001,
             "Name" : "PointLight1",
             "RotationPersistent" : {
               "$$ClassName" : "TCastleVector4RotationPersistent"
@@ -2999,6 +2997,7 @@
             "ColorPersistent" : {
               "$$ClassName" : "TCastleColorRGBPersistent"
             },
+            "Intensity" : 3.0000000000000000E+000,
             "Name" : "DirectionalLight1",
             "RotationPersistent" : {
               "$$ClassName" : "TCastleVector4RotationPersistent",
@@ -3026,6 +3025,7 @@
             "ColorPersistent" : {
               "$$ClassName" : "TCastleColorRGBPersistent"
             },
+            "Intensity" : 3.0000000000000000E+000,
             "Name" : "DirectionalLight2",
             "RotationPersistent" : {
               "$$ClassName" : "TCastleVector4RotationPersistent",
@@ -3129,22 +3129,23 @@
         },
         "RotationPersistent" : {
           "$$ClassName" : "TCastleVector4RotationPersistent",
-          "W" : 1.5674769878387451E+000,
-          "X" : -1.8324595689773560E-001,
-          "Y" : 9.6857804059982300E-001,
-          "Z" : 1.6815887391567230E-001
+          "W" : 1.7693117856979370E+000,
+          "X" : -1.2262354046106339E-001,
+          "Y" : 9.8280787467956543E-001,
+          "Z" : 1.3803008198738098E-001
         },
         "ScaleOrientationPersistent" : {
           "$$ClassName" : "TCastleVector4Persistent"
         },
         "ScalePersistent" : {
-          "$$ClassName" : "TCastleVector3Persistent"
+          "$$ClassName" : "TCastleVector3Persistent",
+          "Y" : 1.0000002384185791E+000
         },
         "TranslationPersistent" : {
           "$$ClassName" : "TCastleVector3Persistent",
-          "X" : 1.0087266540527344E+002,
-          "Y" : 3.0082740783691406E+001,
-          "Z" : 3.3314290046691895E+000
+          "X" : 4.7412384033203125E+001,
+          "Y" : 2.0935329437255859E+001,
+          "Z" : -2.1621167659759521E+000
         }
       },
       "InternalDesignNavigations[dnFly]" : {

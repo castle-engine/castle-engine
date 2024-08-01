@@ -95,8 +95,7 @@
           {
             "$$ClassName" : "TCastlePointLight",
             "AttenuationPersistent" : {
-              "$$ClassName" : "TCastleVector3Persistent",
-              "Z" : 0.0000000000000000E+000
+              "$$ClassName" : "TCastleVector3Persistent"
             },
             "CenterPersistent" : {
               "$$ClassName" : "TCastleVector3Persistent"
@@ -107,7 +106,7 @@
               "Green" : 4.8627451062202454E-001,
               "Red" : 6.6666670143604279E-002
             },
-            "Intensity" : 5.0000000000000000E+000,
+            "Intensity" : 5.0000000000000000E+002,
             "Name" : "PointLight2",
             "RotationPersistent" : {
               "$$ClassName" : "TCastleVector4RotationPersistent"

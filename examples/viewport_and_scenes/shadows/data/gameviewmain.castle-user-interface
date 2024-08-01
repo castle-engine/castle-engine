@@ -94,8 +94,7 @@
           {
             "$$ClassName" : "TCastlePointLight",
             "AttenuationPersistent" : {
-              "$$ClassName" : "TCastleVector3Persistent",
-              "Z" : 0.0000000000000000E+000
+              "$$ClassName" : "TCastleVector3Persistent"
             },
             "CenterPersistent" : {
               "$$ClassName" : "TCastleVector3Persistent"
@@ -105,7 +104,6 @@
               "Blue" : 0.0000000000000000E+000,
               "Green" : 0.0000000000000000E+000
             },
-            "Intensity" : 1.0000000000000000E+001,
             "Name" : "PointLight1",
             "RotationPersistent" : {
               "$$ClassName" : "TCastleVector4RotationPersistent"
@@ -265,8 +263,7 @@
           {
             "$$ClassName" : "TCastleSpotLight",
             "AttenuationPersistent" : {
-              "$$ClassName" : "TCastleVector3Persistent",
-              "Z" : 0.0000000000000000E+000
+              "$$ClassName" : "TCastleVector3Persistent"
             },
             "CenterPersistent" : {
               "$$ClassName" : "TCastleVector3Persistent"
@@ -360,8 +357,7 @@
           {
             "$$ClassName" : "TCastlePointLight",
             "AttenuationPersistent" : {
-              "$$ClassName" : "TCastleVector3Persistent",
-              "Z" : 0.0000000000000000E+000
+              "$$ClassName" : "TCastleVector3Persistent"
             },
             "CenterPersistent" : {
               "$$ClassName" : "TCastleVector3Persistent"
@@ -369,6 +365,7 @@
             "ColorPersistent" : {
               "$$ClassName" : "TCastleColorRGBPersistent"
             },
+            "Exists" : false,
             "Name" : "PointLight2",
             "RotationPersistent" : {
               "$$ClassName" : "TCastleVector4RotationPersistent"
@@ -655,8 +652,7 @@
           {
             "$$ClassName" : "TCastlePointLight",
             "AttenuationPersistent" : {
-              "$$ClassName" : "TCastleVector3Persistent",
-              "Z" : 0.0000000000000000E+000
+              "$$ClassName" : "TCastleVector3Persistent"
             },
             "CenterPersistent" : {
               "$$ClassName" : "TCastleVector3Persistent"
@@ -666,7 +662,6 @@
               "Blue" : 0.0000000000000000E+000,
               "Green" : 0.0000000000000000E+000
             },
-            "Intensity" : 1.0000000000000000E+001,
             "Name" : "PointLight5",
             "RotationPersistent" : {
               "$$ClassName" : "TCastleVector4RotationPersistent"
@@ -825,8 +820,7 @@
           {
             "$$ClassName" : "TCastleSpotLight",
             "AttenuationPersistent" : {
-              "$$ClassName" : "TCastleVector3Persistent",
-              "Z" : 0.0000000000000000E+000
+              "$$ClassName" : "TCastleVector3Persistent"
             },
             "CenterPersistent" : {
               "$$ClassName" : "TCastleVector3Persistent"
@@ -836,7 +830,6 @@
               "Blue" : 0.0000000000000000E+000,
               "Red" : 0.0000000000000000E+000
             },
-            "Intensity" : 3.0000000000000000E+000,
             "Name" : "SpotLight3",
             "RotationPersistent" : {
               "$$ClassName" : "TCastleVector4RotationPersistent",
@@ -922,8 +915,7 @@
           {
             "$$ClassName" : "TCastlePointLight",
             "AttenuationPersistent" : {
-              "$$ClassName" : "TCastleVector3Persistent",
-              "Z" : 0.0000000000000000E+000
+              "$$ClassName" : "TCastleVector3Persistent"
             },
             "CenterPersistent" : {
               "$$ClassName" : "TCastleVector3Persistent"
@@ -1216,8 +1208,7 @@
           {
             "$$ClassName" : "TCastlePointLight",
             "AttenuationPersistent" : {
-              "$$ClassName" : "TCastleVector3Persistent",
-              "Z" : 0.0000000000000000E+000
+              "$$ClassName" : "TCastleVector3Persistent"
             },
             "CenterPersistent" : {
               "$$ClassName" : "TCastleVector3Persistent"
@@ -1227,7 +1218,6 @@
               "Blue" : 0.0000000000000000E+000,
               "Green" : 0.0000000000000000E+000
             },
-            "Intensity" : 1.0000000000000000E+001,
             "Name" : "PointLight7",
             "RotationPersistent" : {
               "$$ClassName" : "TCastleVector4RotationPersistent"
@@ -1386,8 +1376,7 @@
           {
             "$$ClassName" : "TCastleSpotLight",
             "AttenuationPersistent" : {
-              "$$ClassName" : "TCastleVector3Persistent",
-              "Z" : 0.0000000000000000E+000
+              "$$ClassName" : "TCastleVector3Persistent"
             },
             "CenterPersistent" : {
               "$$ClassName" : "TCastleVector3Persistent"
@@ -1749,8 +1738,7 @@
           {
             "$$ClassName" : "TCastlePointLight",
             "AttenuationPersistent" : {
-              "$$ClassName" : "TCastleVector3Persistent",
-              "Z" : 0.0000000000000000E+000
+              "$$ClassName" : "TCastleVector3Persistent"
             },
             "CenterPersistent" : {
               "$$ClassName" : "TCastleVector3Persistent"
@@ -1760,7 +1748,6 @@
               "Blue" : 0.0000000000000000E+000,
               "Green" : 0.0000000000000000E+000
             },
-            "Intensity" : 1.0000000000000000E+001,
             "Name" : "PointLight3",
             "RotationPersistent" : {
               "$$ClassName" : "TCastleVector4RotationPersistent"
@@ -1919,8 +1906,7 @@
           {
             "$$ClassName" : "TCastleSpotLight",
             "AttenuationPersistent" : {
-              "$$ClassName" : "TCastleVector3Persistent",
-              "Z" : 0.0000000000000000E+000
+              "$$ClassName" : "TCastleVector3Persistent"
             },
             "CenterPersistent" : {
               "$$ClassName" : "TCastleVector3Persistent"
@@ -2014,8 +2000,7 @@
           {
             "$$ClassName" : "TCastlePointLight",
             "AttenuationPersistent" : {
-              "$$ClassName" : "TCastleVector3Persistent",
-              "Z" : 0.0000000000000000E+000
+              "$$ClassName" : "TCastleVector3Persistent"
             },
             "CenterPersistent" : {
               "$$ClassName" : "TCastleVector3Persistent"
