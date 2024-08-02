@@ -99,6 +99,7 @@ type
       ButtonAutoSelectUi: TCastleButton;
       ButtonAutoSelectTransform: TCastleButton;
       SafeBorderContainer: TCastleUserInterface;
+      HeaderProfiler, HeaderProfiler2ndRow: TCastleUserInterface;
 
       FOpacity: Single;
       FSelectedComponent: TComponent;
@@ -533,6 +534,8 @@ begin
   ButtonAutoSelectUi := UiOwner.FindRequiredComponent('ButtonAutoSelectUi') as TCastleButton;
   ButtonAutoSelectTransform := UiOwner.FindRequiredComponent('ButtonAutoSelectTransform') as TCastleButton;
   SafeBorderContainer := UiOwner.FindRequiredComponent('SafeBorderContainer') as TCastleUserInterface;
+  HeaderProfiler := UiOwner.FindRequiredComponent('HeaderProfiler') as TCastleUserInterface;
+  HeaderProfiler2ndRow := UiOwner.FindRequiredComponent('HeaderProfiler2ndRow') as TCastleUserInterface;
 
   ForceFallbackLook(Ui);
 
@@ -1083,6 +1086,51 @@ procedure TCastleInspector.Update(const SecondsPassed: Single;  var HandleInput:
     SafeBorderContainer.Border.Left := B.Left;
   end;
 
+  { When width is small (e.g. on potrait mobile resolutions)
+    we need 2nd row to display full "Profiler" header. }
+  procedure UpdateHeaderProfilerNeeds2ndRow;
+
+    { Change Control's parent. NewParent may be @nil. }
+    procedure ChangeParent(const Control, NewParent: TCastleUserInterface);
+    begin
+      if Control.Parent <> nil then
+        Control.Parent.RemoveControl(Control);
+      if NewParent <> nil then
+        NewParent.InsertFront(Control);
+    end;
+
+  const
+    RectProfilerHeightFractionInitial = 0.15;
+  var
+    Needs2ndRow: Boolean;
+  begin
+    Needs2ndRow := LabelProfilerHeader.EffectiveWidth >
+      HeaderProfiler.EffectiveWidth
+      - CheckboxProfilerMore.EffectiveWidth
+      - CheckboxProfilerDetailsInLog.EffectiveWidth
+      - ButtonProfilerHide.EffectiveWidth;
+    if HeaderProfiler2ndRow.Exists <> Needs2ndRow then
+    begin
+      HeaderProfiler2ndRow.Exists := Needs2ndRow;
+      if Needs2ndRow then
+      begin
+        ProfilerGraph.Border.Top := HeaderProfiler.EffectiveHeight + HeaderProfiler2ndRow.EffectiveHeight;
+        RectProfiler.HeightFraction := 0;
+        RectProfiler.Height :=
+          RectProfilerHeightFractionInitial * RectProfiler.Parent.EffectiveHeight +
+          HeaderProfiler2ndRow.EffectiveHeight;
+        ChangeParent(CheckboxProfilerMore, HeaderProfiler2ndRow);
+        ChangeParent(CheckboxProfilerDetailsInLog, HeaderProfiler2ndRow);
+      end else
+      begin
+        ProfilerGraph.Border.Top := HeaderProfiler.EffectiveHeight;
+        RectProfiler.HeightFraction := RectProfilerHeightFractionInitial;
+        ChangeParent(CheckboxProfilerMore, HeaderProfiler);
+        ChangeParent(CheckboxProfilerDetailsInLog, HeaderProfiler);
+      end;
+    end;
+  end;
+
 const
   { Delay between updating properties. }
   UpdatePropertiesValuesInterval = 0.5;
@@ -1117,6 +1165,7 @@ begin
   end;
 
   UpdateSafeBorder;
+  UpdateHeaderProfilerNeeds2ndRow;
 end;
 
 procedure TCastleInspector.ChangeOpacity(Sender: TObject);

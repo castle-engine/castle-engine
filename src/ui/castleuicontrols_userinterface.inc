@@ -232,6 +232,7 @@
     function LocalToContainerTranslationShiftBorder: TVector2;
 
     procedure SetCursor(const Value: TMouseCursor);
+    //procedure SetParent(const Value: TCastleUserInterface);
   private
     FParent: TCastleUserInterface;
     FLastSeenContainerWidth, FLastSeenContainerHeight: Integer;
@@ -820,8 +821,20 @@
     { Visual parent control. This control is rendered within the parent,
       and it's anchors and coordinates are relative to the parent.
       Parent may be @nil, which means that the @link(Container)
-      (if set) is our direct parent. }
-    property Parent: TCastleUserInterface read FParent;
+      (if set) is our direct parent.
+
+      Note that this property doesn't have a setter, as it could be confusing:
+      the order in which children are inserted into parent sometimes matters,
+      for back-and-front order. If you want to change the parent, you can
+      use code like this:
+
+      @longCode(#
+      if Control.Parent <> nil then
+        Control.Parent.RemoveControl(Control);
+      if NewParent <> nil then
+        NewParent.InsertFront(Control); // or InsertBack, as InsertControl...
+      #) }
+    property Parent: TCastleUserInterface read FParent {write SetParent};
 
     { Control position and size.
       Use this to base other controls size/position on this control's
@@ -1675,6 +1688,20 @@ begin
     {$endif}
   end;
 end;
+
+{
+procedure TCastleUserInterface.SetParent(const Value: TCastleTransform);
+begin
+  if Parent <> Value then
+  begin
+    if Parent <> nil then
+      Parent.RemoveControl(Self);
+    FParent := Value;
+    if Value <> nil then
+      Value.InsertFront(Self);
+  end;
+end;
+}
 
 {$ifdef FPC}
 procedure TCastleUserInterface.DoCursorChange;

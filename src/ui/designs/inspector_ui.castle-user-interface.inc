@@ -2672,6 +2672,32 @@
 '              ]' + LineEnding +
 '            },' + LineEnding +
 '            {' + LineEnding +
+'              "$$ClassName" : "TCastleRectangleControl",' + LineEnding +
+'              "Border" : {' + LineEnding +
+'                "$$ClassName" : "TBorder"' + LineEnding +
+'              },' + LineEnding +
+'              "BorderColorPersistent" : {' + LineEnding +
+'                "$$ClassName" : "TCastleColorPersistent"' + LineEnding +
+'              },' + LineEnding +
+'              "ColorPersistent" : {' + LineEnding +
+'                "$$ClassName" : "TCastleColorPersistent",' + LineEnding +
+'                "Alpha" : 8.9999997615814209E-001,' + LineEnding +
+'                "Blue" : 7.5294119119644165E-001,' + LineEnding +
+'                "Green" : 7.5294119119644165E-001,' + LineEnding +
+'                "Red" : 7.5294119119644165E-001' + LineEnding +
+'              },' + LineEnding +
+'              "Exists" : false,' + LineEnding +
+'              "Height" : 3.0000000000000000E+001,' + LineEnding +
+'              "Name" : "HeaderProfiler2ndRow",' + LineEnding +
+'              "TranslationPersistent" : {' + LineEnding +
+'                "$$ClassName" : "TCastleVector2Persistent",' + LineEnding +
+'                "Y" : -3.0000000000000000E+001' + LineEnding +
+'              },' + LineEnding +
+'              "VerticalAnchorParent" : "vpTop",' + LineEnding +
+'              "VerticalAnchorSelf" : "vpTop",' + LineEnding +
+'              "WidthFraction" : 1.0000000000000000E+000' + LineEnding +
+'            },' + LineEnding +
+'            {' + LineEnding +
 '              "$$ClassName" : "TCastleUserInterface",' + LineEnding +
 '              "Border" : {' + LineEnding +
 '                "$$ClassName" : "TBorder",' + LineEnding +
@@ -2850,7 +2876,7 @@
 '                      "Spacing" : 5.0000000000000000E+000,' + LineEnding +
 '                      "TranslationPersistent" : {' + LineEnding +
 '                        "$$ClassName" : "TCastleVector2Persistent",' + LineEnding +
-'                        "Y" : -1.6500000000000000E+001' + LineEnding +
+'                        "Y" : -1.6500001907348633E+001' + LineEnding +
 '                      },' + LineEnding +
 '                      "VerticalAnchorParent" : "vpTop",' + LineEnding +
 '                      "VerticalAnchorSelf" : "vpTop",' + LineEnding +
@@ -2928,7 +2954,7 @@
 '                      "Spacing" : 5.0000000000000000E+000,' + LineEnding +
 '                      "TranslationPersistent" : {' + LineEnding +
 '                        "$$ClassName" : "TCastleVector2Persistent",' + LineEnding +
-'                        "Y" : -3.3000000000000000E+001' + LineEnding +
+'                        "Y" : -3.3000003814697266E+001' + LineEnding +
 '                      },' + LineEnding +
 '                      "VerticalAnchorParent" : "vpTop",' + LineEnding +
 '                      "VerticalAnchorSelf" : "vpTop",' + LineEnding +
@@ -3005,7 +3031,7 @@
 '                      "Spacing" : 5.0000000000000000E+000,' + LineEnding +
 '                      "TranslationPersistent" : {' + LineEnding +
 '                        "$$ClassName" : "TCastleVector2Persistent",' + LineEnding +
-'                        "Y" : -4.9500000000000000E+001' + LineEnding +
+'                        "Y" : -4.9500007629394531E+001' + LineEnding +
 '                      },' + LineEnding +
 '                      "VerticalAnchorParent" : "vpTop",' + LineEnding +
 '                      "VerticalAnchorSelf" : "vpTop",' + LineEnding +
