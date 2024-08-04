@@ -16,10 +16,13 @@ X3DOneSidedMaterialNode : X3DMaterialNode {
 
   SFColor  [in,out] emissiveColor           0 0 0
     range: [0, 1]
+    doc: Emissive color, multiplied by the @link(EmissiveTexture), makes the shape brighter regardless of the surrounding lights. Usually used to make things glow.
   SFNode   [in,out] emissiveTexture         NULL
     range: X3DSingleTextureNode
     change: chEverything
+    doc: Emissive texture is multiplied by the @link(EmissiveColor). It allows the perceived emissive factor depend on a texture, and thus vary across the surface.
   SFString [in,out] emissiveTextureMapping  ""
+    doc: Determines texture coordinates used by @link(EmissiveTexture).
 
   SFNode   [in,out] normalTexture           NULL
     range: X3DTexture2DNode
@@ -67,6 +70,7 @@ X3DShapeNode : X3DChildNode, X3DBoundedObject {
   SFString [in,out]     shading            "DEFAULT"
     range: ["DEFAULT"|"GOURAUD"|"PHONG"|"WIREFRAME"]
     enumerated-type: TShading ShadingNames shDefault
+    doc: How to display given shape.
   SFBool   [in,out]     visible            TRUE
     doc: """
 Is the shape visible. Shapes that are not visible are not rendered, but otherwise are still processed (for example, hidden shapes are still used for collision detection). Toggling this is guaranteed to be ultra-fast.
@@ -76,6 +80,7 @@ Note: An alternative method to hide (and more) things in X3D is to wrap them in 
   SFString []           collision          "DEFAULT"
     range: ["DEFAULT"|"BOX"|"NONE"]
     enumerated-type: TShapeCollision ShapeCollisionNames scDefault
+    doc: How does the given shape collide. This only matters if @link(TCastleSceneCore.PreciseCollisions) is @true, otherwise the whole scene (with all shapes) collides as one big bounding box.
 }
 
 Appearance : X3DAppearanceNode {
