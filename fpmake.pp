@@ -511,9 +511,9 @@ begin
     P.Targets.AddUnit('x3dloadinternalcollada.pas');
 
     P.SourcePath.Add('src/scene/load/pasgltf');
-    P.Targets.AddUnit('PasDblStrUtils.pas');
-    P.Targets.AddUnit('PasGLTF.pas');
-    P.Targets.AddUnit('PasJSON.pas');
+    P.Targets.AddUnit('CastlePasDblStrUtils.pas');
+    P.Targets.AddUnit('CastlePasGLTF.pas');
+    P.Targets.AddUnit('CastlePasJSON.pas');
 
     Run;
   end;

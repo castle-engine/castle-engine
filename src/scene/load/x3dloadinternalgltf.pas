@@ -27,7 +27,7 @@ uses
   // standard units
   Classes,SysUtils, TypInfo, Math, Generics.Collections,
   // PasGLTF units
-  PasGLTF, PasJSON,
+  CastlePasGLTF, CastlePasJSON,
   // CGE units
   CastleUtils, CastleVectors, X3DNodes, X3DLoad, X3DFields,
   CastleClassUtils, CastleDownload, CastleUriUtils, CastleLog,

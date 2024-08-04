@@ -46,7 +46,7 @@
  *    x86-64, ARM, ARM64, etc.).                                              *
  *                                                                            *
  ******************************************************************************)
-unit PasGLTF;
+unit CastlePasGLTF;
 {$ifdef fpc}
  {$mode delphi}
  {$ifdef cpui386}
@@ -316,7 +316,7 @@ interface
 uses SysUtils,
      Classes,
      Math,
-     PasJSON;
+     CastlePasJSON;
 
 type PPPasGLTFInt8=^PPasGLTFInt8;
      PPasGLTFInt8=^TPasGLTFInt8;

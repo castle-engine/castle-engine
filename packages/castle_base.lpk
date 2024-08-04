@@ -1812,16 +1812,16 @@ See https://castle-engine.io/license.php for details.
         <Type Value="Include"/>
       </Item431>
       <Item432>
-        <Filename Value="../src/scene/load/pasgltf/PasDblStrUtils.pas"/>
-        <UnitName Value="PasDblStrUtils"/>
+        <Filename Value="../src/scene/load/pasgltf/CastlePasDblStrUtils.pas"/>
+        <UnitName Value="CastlePasDblStrUtils"/>
       </Item432>
       <Item433>
-        <Filename Value="../src/scene/load/pasgltf/PasGLTF.pas"/>
-        <UnitName Value="PasGLTF"/>
+        <Filename Value="../src/scene/load/pasgltf/CastlePasGLTF.pas"/>
+        <UnitName Value="CastlePasGLTF"/>
       </Item433>
       <Item434>
-        <Filename Value="../src/scene/load/pasgltf/PasJSON.pas"/>
-        <UnitName Value="PasJSON"/>
+        <Filename Value="../src/scene/load/pasgltf/CastlePasJSON.pas"/>
+        <UnitName Value="CastlePasJSON"/>
       </Item434>
       <Item435>
         <Filename Value="../src/scene/load/spine/x3dloadinternalspine.pas"/>

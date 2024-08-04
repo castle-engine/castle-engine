@@ -50,7 +50,7 @@
  *     models without any issues.                                             *
  *                                                                            *
  ******************************************************************************)
- unit PasDblStrUtils;
+ unit CastlePasDblStrUtils;
 {$ifdef fpc}
  {$mode delphi}
  {$ifdef cpui386}
