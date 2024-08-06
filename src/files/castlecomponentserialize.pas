@@ -203,7 +203,7 @@ type
 
       @orderedList(
         @item(To manage memory (freeing the InstanceOwner will also free
-          the loaded component))
+          the loaded component).)
 
         @item(And to search for named components.
           All the loaded components are owned by InstanceOwner
@@ -218,7 +218,8 @@ type
           instead.)
       )
 
-      For example:
+      For example, this example creates an owner dedicated for refering to
+      names in the given instance of a Rock:
 
       @longCode(#
       procedure SpawnRock;
@@ -243,13 +244,17 @@ type
       or @code(InstanceOwner.FindRequiredComponent) for the same purpose:
 
       @unorderedList(
-        @item(It is simpler to use, because you don't need to manage the InstanceOwner
-          lifetime.
+        @item(It is simpler to use, because you don't need to manage
+          the InstanceOwner lifetime.
 
           This matters in case you created InstanceOwner only for
           the purpose of loading the given design.
-          The @code(AssociateReferences) instance can freed immediately after
-          the load, and it will not affect the loaded components.
+
+          The @code(AssociateReferences) instance can be freed immediately
+          after the load, and it will not affect the loaded components.
+          Or you can keep it existing for a longer time, and reuse
+          for loading all components -- it will not mess anything,
+          as loaded components are not renamed to be unique within it.
         )
 
         @item(
