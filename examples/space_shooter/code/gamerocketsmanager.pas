@@ -90,13 +90,24 @@ var
   Rocket, Cannon: TCastleTransform;
   RocketDesign: TRocketDesign;
   RocketDirection: TVector3;
+  RocketOwner: TComponent;
+  RocketBehavior: TRocketBehavior;
+  RocketAutoRemoveBehavior: TAutoRemoveBehavior;
 begin
   // create a rocket
   RocketDesign := TRocketDesign.Create;
   try
-    Rocket := RocketFactory.ComponentLoad(Self, RocketDesign) as TCastleTransform;
-    Rocket.AddBehavior(TAutoRemoveBehavior.Create(Rocket));
-    Rocket.AddBehavior(TRocketBehavior.Create(Rocket));
+    RocketOwner := TComponent.Create(Self);
+
+    Rocket := RocketFactory.ComponentLoad(RocketOwner, RocketDesign) as TCastleTransform;
+
+    RocketAutoRemoveBehavior := TAutoRemoveBehavior.Create(RocketOwner);
+    RocketAutoRemoveBehavior.RemoveOwner := RocketOwner;
+    Rocket.AddBehavior(RocketAutoRemoveBehavior);
+
+    RocketBehavior := TRocketBehavior.Create(RocketOwner);
+    RocketBehavior.RemoveOwner := RocketOwner;
+    Rocket.AddBehavior(RocketBehavior);
 
     Cannon := Cannons[(Sender as TCastleTimer).Tag];
     Rocket.Translation := Cannon.WorldTranslation;

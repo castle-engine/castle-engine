@@ -739,6 +739,7 @@ function TCastleApplication.ProcessMessage(WaitForMessage, WaitToLimitFPS: boole
   begin
     ApplicationProperties._Update;
     FOpenWindows.DoUpdate;
+    ApplicationProperties._UpdateEnd;
   end;
 
   procedure Resize(Width, Height: Integer);

@@ -25,6 +25,7 @@ type
   { Remove the parent when it goes outside of the possibly visible space. }
   TAutoRemoveBehavior = class(TCastleBehavior)
   public
+    RemoveOwner: TComponent; //< Remove by freeing this
     procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
   end;
 
@@ -33,6 +34,7 @@ type
     Compared to TAutoRemoveBehavior, this doesn't check other borders. }
   TAutoRemoveLeftBehavior = class(TCastleBehavior)
   public
+    RemoveOwner: TComponent; //< Remove by freeing this
     procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
   end;
 
@@ -49,18 +51,22 @@ type
     You can add here any additional rocket-specific behavior.
     It is also useful to detect what collided with what in TRocksManager.RockCollisionEnter. }
   TRocketBehavior = class(TCastleBehavior)
+  public
+    RemoveOwner: TComponent; //< Remove by freeing this
   end;
 
   { Behavior for rocks.
     You can add here any additional rock-specific behavior.
     It is also useful to detect what collided with what in TRocksManager.RockCollisionEnter. }
   TRockBehavior = class(TCastleBehavior)
+  public
+    RemoveOwner: TComponent; //< Remove by freeing this
   end;
 
 implementation
 
 uses Math,
-  CastleRectangles;
+  CastleRectangles, CastleApplicationProperties;
 
 { TAutoRemoveBehavior -------------------------------------------------------- }
 
@@ -85,7 +91,7 @@ const
 begin
   inherited;
   if not RocketAllowedPositions.Contains(Parent.WorldTranslation.XY) then
-    Parent.Parent.RemoveDelayed(Parent, true);
+    ApplicationProperties.FreeDelayed(RemoveOwner);
 end;
 
 { TAutoRemoveLeftBehavior -------------------------------------------------------- }
@@ -95,7 +101,7 @@ procedure TAutoRemoveLeftBehavior.Update(const SecondsPassed: Single;
 begin
   inherited;
   if Parent.WorldTranslation.X < -1500 then
-    Parent.Parent.RemoveDelayed(Parent, true);
+    ApplicationProperties.FreeDelayed(RemoveOwner);
 end;
 
 { TRotateBehavior ------------------------------------------------------------ }

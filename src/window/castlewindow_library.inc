@@ -480,6 +480,7 @@ begin
   try
     ApplicationProperties._Update;
     Application.FOpenWindows.DoUpdate;
+    ApplicationProperties._UpdateEnd;
   except
     on E: TObject do WritelnWarning('CGEApp_Update', ExceptMessage(E));
   end;

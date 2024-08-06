@@ -52,7 +52,7 @@ type
 implementation
 
 uses SysUtils,
-  CastleUtils, CastleRectangles,
+  CastleUtils, CastleRectangles, CastleApplicationProperties,
   GameBehaviors;
 
 constructor TRocksManager.Create(AOwner: TComponent);
@@ -86,16 +86,26 @@ procedure TRocksManager.Update(const SecondsPassed: Single; var HandleInput: Boo
   var
     Rock: TCastleTransform;
     RockDesign: TRockDesign;
+    RockOwner: TComponent;
+    RockBehavior: TRockBehavior;
+    RockAutoRemoveBehavior: TAutoRemoveLeftBehavior;
   begin
     // create a rock
     RockDesign := TRockDesign.Create;
     try
-      Rock := RockFactory.ComponentLoad(Self, RockDesign) as TCastleTransform;
+      RockOwner := TComponent.Create(Self);
 
-      Rock.AddBehavior(TAutoRemoveLeftBehavior.Create(Rock));
-      Rock.AddBehavior(TRockBehavior.Create(Rock));
+      Rock := RockFactory.ComponentLoad(RockOwner, RockDesign) as TCastleTransform;
 
-      RockDesign.SceneToRotate.AddBehavior(TRotateBehavior.Create(RockDesign.SceneToRotate));
+      RockAutoRemoveBehavior := TAutoRemoveLeftBehavior.Create(RockOwner);
+      RockAutoRemoveBehavior.RemoveOwner := RockOwner;
+      Rock.AddBehavior(RockAutoRemoveBehavior);
+
+      RockBehavior := TRockBehavior.Create(RockOwner);
+      RockBehavior.RemoveOwner := RockOwner;
+      Rock.AddBehavior(RockBehavior);
+
+      RockDesign.SceneToRotate.AddBehavior(TRotateBehavior.Create(RockOwner));
 
       { Note: do not put initial X too far beyond the screen, otherwise
         it could be too often destroyed when off-screen, which isn't impressive
@@ -121,25 +131,24 @@ end;
 
 procedure TRocksManager.RockCollisionEnter(const CollisionDetails: TPhysicsCollisionDetails);
 var
-  Rock, Rocket: TCastleTransform;
+  Rock: TRockBehavior;
+  Rocket: TRocketBehavior;
 begin
+  // TODO: crashes at FreeDelayed sometimes
+  Exit;
+
+  Rock := CollisionDetails.Transforms[0].FindBehavior(TRockBehavior) as TRockBehavior;
+  Rocket := CollisionDetails.Transforms[1].FindBehavior(TRocketBehavior) as TRocketBehavior;
   // Abort if this is not a collision between rock and rocket
-  if CollisionDetails.Transforms[0].FindBehavior(TRockBehavior) = nil then
-    Exit;
-  if CollisionDetails.Transforms[1].FindBehavior(TRocketBehavior) = nil then
+  if (Rock = nil) or (Rocket = nil) then
     Exit;
 
   { TODO: We could do something more interesting here, like play a sound,
     or play pretty rock exploding animation.
     For now, we just make the rock disappear.
     The rocket that hit the rock also disappears. }
-  Rock := CollisionDetails.Transforms[0];
-  // TODO: workaround occasional crash here, only remove the rock, do not free it
-  //Rock.Parent.RemoveDelayed(Rock, true);
-  Rock.Parent.RemoveDelayed(Rock);
-
-  Rocket := CollisionDetails.Transforms[1];
-  Rocket.Parent.RemoveDelayed(Rocket, true);
+  ApplicationProperties.FreeDelayed(Rock.RemoveOwner);
+  ApplicationProperties.FreeDelayed(Rocket.RemoveOwner);
 
   Inc(FRocksDestroyed);
 end;

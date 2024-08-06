@@ -21,7 +21,7 @@ unit CastleApplicationProperties;
 
 interface
 
-uses SysUtils, Generics.Collections,
+uses SysUtils, Generics.Collections, Contnrs, Classes,
   CastleClassUtils;
 
 type
@@ -73,8 +73,10 @@ type
     // Maybe we will expose them as public read-only properties in the future.
     FInitializedDebug: Boolean;
     FInitializedRelease: Boolean;
+    FPendingToFree: TComponentList;
     function GetApplicationName: String;
     procedure SetApplicationName(const Value: String);
+    procedure DoPendingFree;
   public
     const
       DefaultLimitFPS = 120.0;
@@ -302,6 +304,8 @@ type
     { @exclude }
     procedure _Update;
     { @exclude }
+    procedure _UpdateEnd;
+    { @exclude }
     procedure _InitializeJavaActivity;
     { @exclude }
     procedure _Pause;
@@ -363,6 +367,12 @@ type
       This does *nothing* for now, but enables possible future extensions
       (e.g. special optimizations). }
     procedure InitializeRelease;
+
+    { Free given component, at the nearest suitable moment.
+      The pending free operations are done at least after processing
+      all "update" events and before processing the "render" event
+      (so the items pending to be freed will not be rendered). }
+    procedure FreeDelayed(const Item: TComponent);
   end;
 
 function ApplicationProperties(
@@ -459,6 +469,7 @@ end;
 
 destructor TCastleApplicationProperties.Destroy;
 begin
+  FreeAndNil(FPendingToFree);
   FreeAndNil(FOnGLContextOpen);
   FreeAndNil(FOnGLContextEarlyOpen);
   FreeAndNil(FOnGLContextOpenObject);
@@ -515,7 +526,30 @@ end;
 
 procedure TCastleApplicationProperties._Update;
 begin
+  DoPendingFree;
   FOnUpdate.ExecuteAll(Self);
+end;
+
+procedure TCastleApplicationProperties._UpdateEnd;
+begin
+  DoPendingFree;
+end;
+
+procedure TCastleApplicationProperties.DoPendingFree;
+var
+  I: Integer;
+begin
+  if FPendingToFree <> nil then
+    for I := FPendingToFree.Count - 1 downto 0 do
+      if I < FPendingToFree.Count then
+        FPendingToFree[I].Free; // this will remove it from children, and from FPendingToFree
+end;
+
+procedure TCastleApplicationProperties.FreeDelayed(const Item: TComponent);
+begin
+  if FPendingToFree = nil then
+    FPendingToFree := TComponentList.Create(false);
+  FPendingToFree.Add(Item);
 end;
 
 procedure TCastleApplicationProperties._InitializeJavaActivity;

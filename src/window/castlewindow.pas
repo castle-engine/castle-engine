@@ -4473,11 +4473,20 @@ begin
   while I < OpenWindowsCount do
   begin
     Window := OpenWindows[I];
-
     Window.DoUpdate;
     if Window.Closed then Continue {don't Inc(I)};
     if Terminated then Exit;
+    Inc(I);
+  end;
 
+  ApplicationProperties._UpdateEnd;
+  if Window.Closed then Exit;
+  if Terminated then Exit;
+
+  I := 0;
+  while I < OpenWindowsCount do
+  begin
+    Window := OpenWindows[I];
     if Window.Invalidated then
     begin
       WasAnyRendering := true;

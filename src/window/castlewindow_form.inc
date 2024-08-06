@@ -1288,10 +1288,11 @@ begin
   if (ApplicationProperties.LimitFPS <= 0) or
      (Fps.UpdateStartTime.ElapsedTime > 1 / ApplicationProperties.LimitFPS) then
   begin
-    { Note that calling here ApplicationProperties._Update
+    { Note that calling here ApplicationProperties._Update/_UpdateEnd
       may be too often, in case multiple TCastleWindow are open. }
     ApplicationProperties._Update;
     DoUpdate;
+    ApplicationProperties._UpdateEnd;
 
     {$ifdef FPC}
 
@@ -1558,6 +1559,7 @@ begin
   ApplicationProperties._Update;
   { Call Update events on all windows. }
   FOpenWindows.DoUpdate;
+  ApplicationProperties._UpdateEnd;
 end;
 {$endif}
 

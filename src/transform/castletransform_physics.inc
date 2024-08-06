@@ -992,8 +992,17 @@
       @italic(Warning:) Do not free the @link(TCastleTransform) instances
       that collide during this event.
       It would free the rigid body instance, which will crash the physics engine for now.
-      Instead, you can set @link(TCastleTransform.Exists) to @false
-      (you can free it later, e.g. during @link(TCastleUserInterface.OnUpdate)). }
+
+      Instead, you can:
+
+      @unorderedList(
+        @item(Schedule it for freeing later using
+          @link(TCastleApplicationProperties.FreeDelayed ApplicationProperties.FreeDelayed).)
+        @item(Or schedule it for removal/freeing later using
+          @link(TCastleTransform.RemoveDelayed).)
+        @item(Or set @link(TCastleTransform.Exists) to @false and maybe free later
+          using own mechanism.)
+      ) }
     property OnCollisionEnter: TCollisionEvent read FOnCollisionEnter write SetOnCollisionEnter;
 
     { Occurs when TCastleRigidBody stops colliding with another TCastleRigidBody.

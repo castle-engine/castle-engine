@@ -1018,13 +1018,14 @@ var
   C: TCastleControl;
 begin
   { Call DoUpdate on all TCastleControl instances. }
+  ApplicationProperties._Update;
   for I := ControlsList.Count - 1 downto 0 do
   begin
     C := ControlsList[I] as TCastleControl;
     if C.GLInitialized then
       C.DoUpdate;
   end;
-  ApplicationProperties._Update;
+  ApplicationProperties._UpdateEnd;
   DoLimitFPS;
 end;
 
