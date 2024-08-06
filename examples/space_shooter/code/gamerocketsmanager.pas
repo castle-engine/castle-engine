@@ -40,6 +40,8 @@ type
       the translations/rotations in the world coordinates of the viewport. }
     RocketsParent: TCastleTransform;
 
+    ShootsArmed: Boolean;
+
     constructor Create(AOwner: TComponent); override;
 
     { Call after you set Cannons. }
@@ -49,7 +51,7 @@ type
 implementation
 
 uses SysUtils,
-  CastleUtils, CastleRectangles,
+  CastleUtils, CastleRectangles, CastleColors, CastleScene,
   GameBehaviors;
 
 constructor TRocketsManager.Create(AOwner: TComponent);
@@ -82,7 +84,9 @@ end;
 
 type
   TRocketDesign = class(TPersistent)
+  published
     RocketRigidBody: TCastleRigidBody;
+    RootSphere: TCastleSphere;
   end;
 
 procedure TRocketsManager.CannonTimer(Sender: TObject);
@@ -107,7 +111,13 @@ begin
 
     RocketBehavior := TRocketBehavior.Create(RocketOwner);
     RocketBehavior.RemoveOwner := RocketOwner;
+    RocketBehavior.Armed := ShootsArmed;
     Rocket.AddBehavior(RocketBehavior);
+
+    if ShootsArmed then
+      RocketDesign.RootSphere.Color := Red
+    else
+      RocketDesign.RootSphere.Color := Yellow;
 
     Cannon := Cannons[(Sender as TCastleTimer).Tag];
     Rocket.Translation := Cannon.WorldTranslation;

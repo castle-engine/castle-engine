@@ -34,6 +34,7 @@ type
     SpaceShip: TCastleTransform;
     RocketsParent: TCastleTransform;
     RocksParent: TCastleTransform;
+    RectArmedHint: TCastleRectangleControl;
   private
     LifeTime: TFloatTime;
     RocketsManager: TRocketsManager;
@@ -44,7 +45,6 @@ type
     procedure Start; override;
     procedure Update(const SecondsPassed: Single; var HandleInput: Boolean); override;
     procedure Resize; override;
-    function Press(const Event: TInputPressRelease): Boolean; override;
   end;
 
 var
@@ -216,37 +216,18 @@ begin
 
   UpdateMoveSpaceShip;
   UpdateBackground;
+
+  RocketsManager.ShootsArmed := Container.Pressed[keySpace];
+  if RocketsManager.ShootsArmed then
+    RectArmedHint.Border.AllSides := 1
+  else
+    RectArmedHint.Border.AllSides := 0;
 end;
 
 procedure TViewMain.Resize;
 begin
   inherited;
   TilingBackground.UpdateCoordinates(MainViewport);
-end;
-
-function TViewMain.Press(const Event: TInputPressRelease): Boolean;
-begin
-  Result := inherited;
-  if Result then Exit; // allow the ancestor to handle keys
-
-  { This virtual method is executed when user presses
-    a key, a mouse button, or touches a touch-screen.
-
-    Note that each UI control has also events like OnPress and OnClick.
-    These events can be used to handle the "press", if it should do something
-    specific when used in that UI control.
-    The TViewMain.Press method should be used to handle keys
-    not handled in children controls.
-  }
-
-  // Use this to handle keys:
-  {
-  if Event.IsKey(keyXxx) then
-  begin
-    // DoSomething;
-    Exit(true); // key was handled
-  end;
-  }
 end;
 
 end.

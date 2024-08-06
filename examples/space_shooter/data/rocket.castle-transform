@@ -8,7 +8,7 @@
     "Blue" : 0.0000000000000000E+000
   },
   "Material" : "pmUnlit",
-  "Name" : "Sphere1",
+  "Name" : "RootSphere",
   "Radius" : 1.0000000000000000E+001,
   "RenderOptions" : {
     "$$ClassName" : "TCastleScene.TSceneRenderOptions",

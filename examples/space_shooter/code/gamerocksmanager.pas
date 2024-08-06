@@ -140,6 +140,9 @@ begin
   if (Rock = nil) or (Rocket = nil) then
     Exit;
 
+  if not Rocket.Armed then
+    Exit;
+
   { TODO: We could do something more interesting here, like play a sound,
     or play pretty rock exploding animation.
     For now, we just make the rock disappear.

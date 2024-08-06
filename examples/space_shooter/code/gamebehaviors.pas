@@ -53,6 +53,8 @@ type
   TRocketBehavior = class(TCastleBehavior)
   public
     RemoveOwner: TComponent; //< Remove by freeing this
+    // Does the rocket explode when it hits something.
+    Armed: Boolean;
   end;
 
   { Behavior for rocks.
