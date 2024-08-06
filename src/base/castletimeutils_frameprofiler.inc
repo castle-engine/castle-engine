@@ -29,14 +29,15 @@ type
       and including final swap/flush.
       This includes all other fmRenderXxx times. }
     fmRender,
+    { Time inside DrawPrimitive2D (but disregarding flushing batching, by TDrawableImage.DrawNoBatch). }
+    fmDrawPrimitive2D,
+    { Time inside TDrawableImage.DrawNoBatch, which TDrawableImage drawing. }
+    fmDrawImage,
     { Time of swap/flush at the end of rendering, when we flush GPU commands,
       swap buffers (in case of double buffering), and wait for v-sync.
       If this is large, it generally means that you have "free" time in the application
       to use on anything (CPU or GPU work), because you don't use up most of the frame time. }
     fmRenderSwapFlush,
-    { Time within TCastleTransform transformation.
-      This should not be significant -- otherwise we'll have to optimize CGE TCastleTransform transformations. }
-    //fmRenderTransform,
     { Time within TCastleScene.Render.
       Large time means that you have TCastleScene content that is time-consuming to render. }
     fmRenderScene,
@@ -303,7 +304,8 @@ procedure TCastleFrameProfiler.StartFrame;
       'Frame time: %f secs (we should have %f FPS based on this):' + NL +
       '- BeforeRender: %d%%' + NL +
       '- Render: %d%% (%f secs, we should have %f "only render FPS" based on this)' + NL +
-      //'  - TCastleTransform.Render transformation: %d%%' + NL +
+      '  - DrawPrimitive2D: %d%%' + NL +
+      '  - TDrawableImage.DrawNoBatch: %d%%' + NL +
       '  - TCastleScene.Render: %d%%' + NL +
       '    - ShapesFilterBlending: %d%%' + NL +
       '  - Sorting shapes in TShapesRenderer.Render: %d%%' + NL +
@@ -324,7 +326,8 @@ procedure TCastleFrameProfiler.StartFrame;
       PercentTime(fmRender),
       FramesTimes[CurrentFrame, IndexFrameMetric(fmRender)],
       1 / FramesTimes[CurrentFrame, IndexFrameMetric(fmRender)],
-      //PercentTime(fmRenderTransform),
+      PercentTime(fmDrawPrimitive2D),
+      PercentTime(fmDrawImage),
       PercentTime(fmRenderScene),
       PercentTime(fmRenderShapesFilterBlending),
       PercentTime(fmRenderCollectedShapesSort),

@@ -360,6 +360,8 @@ var
 begin
   TDrawableImage.BatchingFlush;
 
+  FrameProfiler.Start(fmDrawPrimitive2D);
+
   if Primitive2DRes = nil then
     Primitive2DRes := TPrimitive2DResources.Create;
 
@@ -475,6 +477,8 @@ begin
 
   if Blending then
     RenderContext.BlendingDisable;
+
+  FrameProfiler.Stop(fmDrawPrimitive2D);
 end;
 
 procedure DrawPrimitive2D(const Mode: TPrimitiveMode;

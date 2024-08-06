@@ -1233,6 +1233,8 @@ begin
        (ScreenRects^[0].Height = 0))) then
     Exit;
 
+  FrameProfiler.Start(fmDrawImage);
+
   // we load on demand, so do PrepareResources always
   PrepareResources;
   // PrepareResources, done while GL context is active, must make it true
@@ -1383,6 +1385,8 @@ begin
   end;
 
   AlphaEnd;
+
+  FrameProfiler.Stop(fmDrawImage);
 end;
 
 procedure TDrawableImage.DrawFlipped(const ScreenRect: TRectangle;

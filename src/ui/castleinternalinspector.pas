@@ -1131,6 +1131,16 @@ procedure TCastleInspector.Update(const SecondsPassed: Single;  var HandleInput:
     end;
   end;
 
+  { Update RectStatsMore.Translation,
+    necessary when RectProfiler.EffectiveRect changes.
+    Easiest to just do it from Update. }
+  procedure UpdateRectStatsMoreTranslation;
+  begin
+    RectStatsMore.Translation := Vector2(
+      RectProfiler.EffectiveRect.Left,
+      RectProfiler.Translation.Y - RectProfiler.EffectiveHeight);
+  end;
+
 const
   { Delay between updating properties. }
   UpdatePropertiesValuesInterval = 0.5;
@@ -1166,6 +1176,7 @@ begin
 
   UpdateSafeBorder;
   UpdateHeaderProfilerNeeds2ndRow;
+  UpdateRectStatsMoreTranslation;
 end;
 
 procedure TCastleInspector.ChangeOpacity(Sender: TObject);
@@ -1432,10 +1443,6 @@ begin
     C.Width := RectHierarchy.EffectiveWidthForChildren;
   for C in PropertyRowParent do
     C.Width := RectProperties.EffectiveWidthForChildren;
-
-  RectStatsMore.Translation := Vector2(
-    RectProfiler.EffectiveRect.Left,
-    RectProfiler.Translation.Y - RectProfiler.EffectiveHeight);
 end;
 
 procedure TCastleInspector.ChangeProfilerDetailsInLog(Sender: TObject);

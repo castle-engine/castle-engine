@@ -44,7 +44,7 @@ implementation
 uses
   CastleFilesUtils, CastleStringUtils, CastleGLVersion, CastleGLShaders,
   CastleLog, CastleApplicationProperties, CastleRenderContext, CastleGLImages,
-  CastleInternalGLUtils;
+  CastleInternalGLUtils, CastleTimeUtils;
 
 {$I castleglutils_types.inc}
 {$I castleglutils_features.inc}
