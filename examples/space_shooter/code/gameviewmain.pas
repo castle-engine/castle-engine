@@ -19,8 +19,9 @@ unit GameViewMain;
 interface
 
 uses Classes,
-  CastleVectors, CastleComponentSerialize,
-  CastleUIControls, CastleControls, CastleKeysMouse, CastleViewport, CastleTransform;
+  CastleVectors, CastleComponentSerialize, CastleUIControls, CastleControls,
+  CastleKeysMouse, CastleViewport, CastleTransform,
+  GameTilingBackground;
 
 type
   { Main view, where most of the application logic takes place. }
@@ -33,10 +34,12 @@ type
     SpaceShip: TCastleTransform;
   private
     Cannons: array of TCastleTransform;
+    TilingBackground: TTilingBackground;
   public
     constructor Create(AOwner: TComponent); override;
     procedure Start; override;
     procedure Update(const SecondsPassed: Single; var HandleInput: Boolean); override;
+    procedure Resize; override;
     function Press(const Event: TInputPressRelease): Boolean; override;
   end;
 
@@ -63,9 +66,14 @@ var
   I: Integer;
 begin
   inherited;
+
   SetLength(Cannons, CannonsCount);
   for I := 0 to CannonsCount - 1 do
     Cannons[I] := DesignedComponent('Cannon' + IntToStr(I)) as TCastleTransform;
+
+  TilingBackground := TTilingBackground.Create(FreeAtStop);
+  TilingBackground.Translation := Vector3(0, 0, -100); // put in the back
+  MainViewport.Items.Add(TilingBackground);
 end;
 
 procedure TViewMain.Update(const SecondsPassed: Single; var HandleInput: Boolean);
@@ -167,6 +175,15 @@ procedure TViewMain.Update(const SecondsPassed: Single; var HandleInput: Boolean
       MoveSpaceShip(DeltaSign, MaxDelta);
   end;
 
+  procedure UpdateBackground;
+  const
+    BackgroundMoveSpeed: TVector2 = (X: 1; Y: 0);
+  begin
+    TilingBackground.ImageOrigin := TilingBackground.ImageOrigin +
+      BackgroundMoveSpeed * SecondsPassed;
+    TilingBackground.UpdateCoordinates(MainViewport);
+  end;
+
 begin
   inherited;
   { This virtual method is executed every frame (many times per second). }
@@ -175,6 +192,13 @@ begin
   LabelFps.Caption := 'FPS: ' + Container.Fps.ToString;
 
   UpdateMoveSpaceShip;
+  UpdateBackground;
+end;
+
+procedure TViewMain.Resize;
+begin
+  inherited;
+  TilingBackground.UpdateCoordinates(MainViewport);
 end;
 
 function TViewMain.Press(const Event: TInputPressRelease): Boolean;
