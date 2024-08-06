@@ -38,6 +38,7 @@ type
     procedure TestPastePreserveReferences;
     procedure TestPastePreserveReferencesOutsideCopied;
     procedure TestAssociateReferences;
+    procedure TestAssociateReferencesReuseDesign;
   end;
 
 implementation
@@ -803,6 +804,7 @@ begin
   RocketsOwner := nil;
   RocketDesign1 := nil;
   RocketDesign2 := nil;
+  RocketsFactory := nil;
   try
     RocketsOwner := TComponent.Create(nil);
 
@@ -831,6 +833,51 @@ begin
     // can be freed early, and Rocket1 and Rocket2 remain valid
     FreeAndNil(RocketDesign1);
     FreeAndNil(RocketDesign2);
+    AssertTrue(Rocket1.Name <> '');
+    AssertTrue(Rocket2.Name <> '');
+
+    // factory can also be freed, and Rocket1 and Rocket2 remain valid
+    FreeAndNil(RocketsFactory);
+    AssertTrue(Rocket1.Name <> '');
+    AssertTrue(Rocket2.Name <> '');
+
+    FreeAndNil(RocketsOwner);
+  end;
+end;
+
+procedure TTestCastleComponentSerialize.TestAssociateReferencesReuseDesign;
+var
+  RocketsOwner: TComponent;
+  RocketsFactory: TCastleComponentFactory;
+  RocketDesign: TRocketDesign;
+  Rocket1: TCastleTransform;
+  Rocket2: TCastleTransform;
+begin
+  RocketsOwner := nil;
+  RocketDesign := nil;
+  RocketsFactory := nil;
+  try
+    RocketsOwner := TComponent.Create(nil);
+
+    RocketsFactory := TCastleComponentFactory.Create(nil);
+    RocketsFactory.Url := 'castle-data:/designs/test_associate_references.castle-transform';
+
+    RocketDesign := TRocketDesign.Create;
+
+    Rocket1 := RocketsFactory.ComponentLoad(RocketsOwner, RocketDesign) as TCastleTransform;
+    AssertTrue(RocketDesign.RocketRigidBody <> nil);
+    AssertEquals('RocketRigidBody', RocketDesign.RocketRigidBody.Name);
+    AssertTrue(RocketDesign.Sphere1 <> nil);
+    AssertEquals('Sphere1', RocketDesign.Sphere1.Name);
+
+    Rocket2 := RocketsFactory.ComponentLoad(RocketsOwner, RocketDesign) as TCastleTransform;
+    AssertTrue(RocketDesign.RocketRigidBody <> nil);
+    AssertEquals('RocketRigidBody1', RocketDesign.RocketRigidBody.Name);
+    AssertTrue(RocketDesign.Sphere1 <> nil);
+    AssertEquals('Sphere2', RocketDesign.Sphere1.Name);
+  finally
+    // can be freed early, and Rocket1 and Rocket2 remain valid
+    FreeAndNil(RocketDesign);
     AssertTrue(Rocket1.Name <> '');
     AssertTrue(Rocket2.Name <> '');
 

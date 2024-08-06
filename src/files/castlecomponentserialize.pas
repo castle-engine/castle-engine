@@ -1178,7 +1178,7 @@ function TCastleComponentFactory.InternalComponentLoad(
       FieldAddr := AssociateReferences.FieldAddress(ComponentNames[I]);
       if FieldAddr <> nil then
       begin
-        Assert(FieldAddr^ = nil);
+        //Assert(FieldAddr^ = nil); // may not be true, user can reuse AssociateReferences
         Assert(ComponentNames.Objects[I] is TComponent); // also checks ComponentNames.Objects[I] <> nil
         FieldAddr^ := ComponentNames.Objects[I] as TComponent;
       end;
