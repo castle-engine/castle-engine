@@ -20,7 +20,7 @@ interface
 
 uses Classes,
   CastleVectors, CastleComponentSerialize, CastleUIControls, CastleControls,
-  CastleKeysMouse, CastleViewport, CastleTransform,
+  CastleKeysMouse, CastleViewport, CastleTransform, CastleTimeUtils,
   GameTilingBackground, GameRocketsManager, GameRocksManager;
 
 type
@@ -35,6 +35,7 @@ type
     RocketsParent: TCastleTransform;
     RocksParent: TCastleTransform;
   private
+    LifeTime: TFloatTime;
     RocketsManager: TRocketsManager;
     RocksManager: TRocksManager;
     TilingBackground: TTilingBackground;
@@ -192,10 +193,9 @@ procedure TViewMain.Update(const SecondsPassed: Single; var HandleInput: Boolean
 
   procedure UpdateBackground;
   const
-    BackgroundMoveSpeed: TVector2 = (X: 1; Y: 0);
+    BackgroundMoveSpeed = 1.0;
   begin
-    TilingBackground.ImageOrigin := TilingBackground.ImageOrigin +
-      BackgroundMoveSpeed * SecondsPassed;
+    TilingBackground.ImageOrigin := Vector2Double(BackgroundMoveSpeed * LifeTime, 0.0);
     TilingBackground.UpdateCoordinates(MainViewport);
   end;
 
@@ -209,6 +209,10 @@ begin
     'Rockets existing count: ' + IntToStr(RocketsParent.Count) + NL +
     'Rocks existing count: ' + IntToStr(RocksParent.Count) + NL +
     'Rocks destroyed: ' + IntToStr(RocksManager.RocksDestroyed);
+
+  { Sum up SecondsPassed values into LifeTime (type TFloatTime = Double).
+    This keeps them precise, even after a long play, when the value gets large. }
+  LifeTime := LifeTime + SecondsPassed;
 
   UpdateMoveSpaceShip;
   UpdateBackground;

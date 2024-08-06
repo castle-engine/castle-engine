@@ -35,7 +35,7 @@ type
     { Image position visible at the viewport's left-bottom corner.
       Change this to effectively move the image.
       Always call UpdateCoordinates after changing this. }
-    ImageOrigin: TVector2;
+    ImageOrigin: TVector2Double;
 
     constructor Create(AOwner: TComponent); override;
 
@@ -117,6 +117,7 @@ procedure TTilingBackground.UpdateCoordinates(const ParentViewport: TCastleViewp
 var
   TextureSizeX, TextureSizeY: Single;
   VisibleRect: TFloatRectangle;
+  ImageOriginFrac: TVector2;
 begin
   VisibleRect := ParentViewport.Camera.Orthographic.EffectiveRect;
   { update Coordinate to make the shape fill entire viewport exactly }
@@ -131,13 +132,21 @@ begin
   TextureSizeX := VisibleRect.Width  / Texture.TextureImage.Width;
   TextureSizeY := VisibleRect.Height / Texture.TextureImage.Height;
 
+  { Pass to rendering only the fractional part of ImageOrigin.
+    Only the fractional part is relevant,
+    and this way we avoid passing huge floating point values (after
+    a few minutes of gameplay) to GPU and losing precision, resulting
+    in background "stuttering" visually. }
+  ImageOriginFrac.X := Frac(ImageOrigin.X);
+  ImageOriginFrac.Y := Frac(ImageOrigin.Y);
+
   { update TextureCoordinate to adjust the amount of "repeat" based on control size
     on the screen (VisibleRect.Width/Height), and apply ImageOrigin. }
   TextureCoordinate.SetPoint([
-    ImageOrigin + Vector2(           0,            0),
-    ImageOrigin + Vector2(TextureSizeX,            0),
-    ImageOrigin + Vector2(TextureSizeX, TextureSizeY),
-    ImageOrigin + Vector2(           0, TextureSizeY)
+    ImageOriginFrac + Vector2(           0,            0),
+    ImageOriginFrac + Vector2(TextureSizeX,            0),
+    ImageOriginFrac + Vector2(TextureSizeX, TextureSizeY),
+    ImageOriginFrac + Vector2(           0, TextureSizeY)
   ]);
 end;
 
