@@ -4487,12 +4487,16 @@ begin
   begin
     if FPendingToRemoveAndFree = nil then
       FPendingToRemoveAndFree := TComponentList.Create(false);
-    FPendingToRemoveAndFree.Add(Item);
+    { Just like TCastleApplicationProperties.FreeDelayed, avoid duplicates. }
+    if FPendingToRemoveAndFree.IndexOf(Item) = -1 then
+      FPendingToRemoveAndFree.Add(Item);
   end else
   begin
     if FPendingToRemove = nil then
       FPendingToRemove := TComponentList.Create(false);
-    FPendingToRemove.Add(Item);
+    { Just like TCastleApplicationProperties.FreeDelayed, avoid duplicates. }
+    if FPendingToRemove.IndexOf(Item) = -1 then
+      FPendingToRemove.Add(Item);
   end;
 end;
 
