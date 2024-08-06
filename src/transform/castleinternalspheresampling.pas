@@ -181,23 +181,23 @@ end;
 
 function RandomHemispherePointConst: TVector2;
 begin
-  result.X := 2*Pi*Random;
-  result.Y := ArcCos(Random);
+  Result.X := 2 * Pi * Random;
+  Result.Y := ArcCos(Random);
 end;
 
 function RandomHemispherePointConstXYZ: TVector3;
 var
-  r1, r2, sqroot: Single;
-  cosinus, sinus: Float;
+  R1, R2, SqRoot: Single;
+  C, S: Single;
 begin
-  r1 := Random;
-  r2 := Random;
-  SinCos(2*Pi*r1, sinus, cosinus);
-  sqroot := Sqrt(1-Sqr(r2));
+  R1 := Random;
+  R2 := Random;
+  SinCos(2 * Pi * R1, S, C);
+  SqRoot := Sqrt(1 - Sqr(R2));
 
-  result.X := cosinus * sqroot;
-  result.Y := sinus * sqroot;
-  result.Z := r2;
+  Result.X := C * SqRoot;
+  Result.Y := S * SqRoot;
+  Result.Z := R2;
 end;
 
 function RandomHemispherePointCosTheta(
@@ -207,56 +207,56 @@ var
 begin
   SqrtR2 := Sqrt(Random);
 
-  result.X := 2*Pi*Random;
-  result.Y := ArcCos(SqrtR2);
+  Result.X := 2 * Pi * Random;
+  Result.Y := ArcCos(SqrtR2);
   PdfValue := SqrtR2 / Pi;
 end;
 
 function RandomHemispherePointCosThetaXYZ(
   out PdfValue: Single): TVector3;
 var
-  SqRoot, r1, r2: Single;
+  SqRoot, R1, R2: Single;
   SinR1, CosR1: Float;
 begin
-  r1 := Random;
-  r2 := Random;
-  SinCos(2*Pi*r1, SinR1, CosR1);
-  SqRoot := Sqrt(1-r2);
+  R1 := Random;
+  R2 := Random;
+  SinCos(2 * Pi * R1, SinR1, CosR1);
+  SqRoot := Sqrt(1 - R2);
 
-  result.X := CosR1 * SqRoot;
-  result.Y := SinR1 * SqRoot;
-  result.Z := Sqrt(r2);
-  PdfValue := result.Z;
+  Result.X := CosR1 * SqRoot;
+  Result.Y := SinR1 * SqRoot;
+  Result.Z := Sqrt(R2);
+  PdfValue := Result.Z;
 end;
 
 function RandomHemispherePointCosThetaExp(const n: Single;
   out PdfValue: Single): TVector2;
 var
-  r2: Float;
+  R2: Float;
 begin
-  r2 := Random;
+  R2 := Random;
 
-  result.X := 2*Pi*Random;
-  result.Y := ArcCos(Power(r2, 1/(n+1)));
-  PdfValue := (n+1) * Power(r2, n/(n+1)) / 2*Pi;
+  Result.X := 2 * Pi * Random;
+  Result.Y := ArcCos(Power(R2, 1 / (n + 1)));
+  PdfValue := (n + 1) * Power(R2, n / (n + 1)) / (2 * Pi);
 end;
 
 function RandomHemispherePointCosThetaExpXYZ(const n: Single;
   out PdfValue: Single): TVector3;
 var
-  r1, r2, r2Power, r2Root: Single;
+  R1, R2, R2Power, R2Root: Single;
   SinR1, CosR1: Float;
 begin
-  r1 := Random;
-  r2 := Random;
-  SinCos(2*Pi*r1, SinR1, CosR1);
-  r2Power := Power(r2, 1/(n+1));
-  r2Root := Sqrt(1-Sqr(r2Power));
+  R1 := Random;
+  R2 := Random;
+  SinCos(2*Pi*R1, SinR1, CosR1);
+  R2Power := Power(R2, 1 / (n + 1));
+  R2Root := Sqrt(1 - Sqr(R2Power));
 
-  result.X := CosR1 * r2Root;
-  result.Y := SinR1 * r2Root;
-  result.Z := r2Power;
-  PdfValue := (n+1) * Power(r2, n/(n+1)) / 2*Pi;
+  Result.X := CosR1 * R2Root;
+  Result.Y := SinR1 * R2Root;
+  Result.Z := R2Power;
+  PdfValue := (n + 1) * Power(R2, n / (n + 1)) / (2 * Pi);
 end;
 
 end.
