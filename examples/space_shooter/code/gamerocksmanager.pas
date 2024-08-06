@@ -129,7 +129,9 @@ begin
     For now, we just make the rock disappear.
     The rocket that hit the rock also disappears. }
   Rock := CollisionDetails.Transforms[0];
-  Rock.Parent.RemoveDelayed(Rock, true);
+  // TODO: workaround occasional crash here, only remove the rock, do not free it
+  //Rock.Parent.RemoveDelayed(Rock, true);
+  Rock.Parent.RemoveDelayed(Rock);
 
   Rocket := CollisionDetails.Transforms[1];
   Rocket.Parent.RemoveDelayed(Rocket, true);
