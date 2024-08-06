@@ -134,9 +134,6 @@ var
   Rock: TRockBehavior;
   Rocket: TRocketBehavior;
 begin
-  // TODO: crashes at FreeDelayed sometimes
-  Exit;
-
   Rock := CollisionDetails.Transforms[0].FindBehavior(TRockBehavior) as TRockBehavior;
   Rocket := CollisionDetails.Transforms[1].FindBehavior(TRocketBehavior) as TRocketBehavior;
   // Abort if this is not a collision between rock and rocket

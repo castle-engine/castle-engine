@@ -549,7 +549,14 @@ procedure TCastleApplicationProperties.FreeDelayed(const Item: TComponent);
 begin
   if FPendingToFree = nil then
     FPendingToFree := TComponentList.Create(false);
-  FPendingToFree.Add(Item);
+  { Do not allow duplicates on FPendingToFree list (which would happen
+    if code calls FreeDelayed(xxx) with the same object).
+    Duplicates make list not behave OK when item is freed, not all copies
+    disappear from TComponentList then (looks like it removes only the 1st),
+    and then FPendingToFree contains dangling pointer.
+    Testcase: space_shooter, fly into rocks. }
+  if FPendingToFree.IndexOf(Item) = -1 then
+    FPendingToFree.Add(Item);
 end;
 
 procedure TCastleApplicationProperties._InitializeJavaActivity;
