@@ -1,6 +1,6 @@
 {%MainUnit castleglimages.pas}
 {
-  Copyright 2001-2023 Michalis Kamburelis.
+  Copyright 2001-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -1229,6 +1229,7 @@ var
   I: Integer;
   Vbo: PVboStorage;
   IndexPtr: Pointer;
+  UseIndex: Boolean;
 begin
   if (Count = 0) or
      ((Count = 1) and
@@ -1249,7 +1250,8 @@ begin
   GLEnableTexture(et2D);
 
   { calculate Indexes contents, only used when Count <> 1 }
-  if Count <> 1 then
+  UseIndex := Count <> 1;
+  if UseIndex then
   begin
     {$ifdef GLIndexesShort}
     if Integer(Count - 1) * IndexesPerQuad + IndexesPerQuad - 1 > High(Word) then
@@ -1291,7 +1293,7 @@ begin
     LoadBuffer(btArray, Vbo^.PointsVbo, Vbo^.PointsVboSize,
       @Points[0], Length(Points) * SizeOf(TPoint));
 
-    if Count <> 1 then
+    if UseIndex then
       LoadBuffer(btElementArray, Vbo^.IndexesVbo, Vbo^.IndexesVboSize,
         @Indexes[0], Length(Indexes) * SizeOf(Indexes[0]));
 
@@ -1353,7 +1355,7 @@ begin
 
   Inc(Statistics.DrawCalls);
 
-  if Count <> 1 then
+  if UseIndex then
   begin
     if not GLFeatures.EnableFixedFunction then
       IndexPtr := nil
