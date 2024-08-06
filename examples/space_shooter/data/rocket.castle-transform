@@ -1,0 +1,55 @@
+{
+  "$$ClassName" : "TCastleSphere",
+  "CenterPersistent" : {
+    "$$ClassName" : "TCastleVector3Persistent"
+  },
+  "ColorPersistent" : {
+    "$$ClassName" : "TCastleColorPersistent",
+    "Blue" : 0.0000000000000000E+000
+  },
+  "Material" : "pmUnlit",
+  "Name" : "Sphere1",
+  "Radius" : 1.0000000000000000E+001,
+  "RenderOptions" : {
+    "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+    "WireframeColorPersistent" : {
+      "$$ClassName" : "TCastleColorRGBPersistent"
+    }
+  },
+  "RotationPersistent" : {
+    "$$ClassName" : "TCastleVector4RotationPersistent"
+  },
+  "ScaleOrientationPersistent" : {
+    "$$ClassName" : "TCastleVector4Persistent"
+  },
+  "ScalePersistent" : {
+    "$$ClassName" : "TCastleVector3Persistent"
+  },
+  "TranslationPersistent" : {
+    "$$ClassName" : "TCastleVector3Persistent"
+  },
+  "$Behaviors" : [
+    {
+      "$$ClassName" : "TCastleSphereCollider",
+      "Mode2D" : true,
+      "Name" : "SphereCollider1"
+    },
+    {
+      "$$ClassName" : "TCastleRigidBody",
+      "AngularVelocityPersistent" : {
+        "$$ClassName" : "TCastleVector3Persistent"
+      },
+      "LinearVelocityPersistent" : {
+        "$$ClassName" : "TCastleVector3Persistent"
+      },
+      "LockRotation" : [
+        0,
+        1
+      ],
+      "LockTranslation" : [
+        2
+      ],
+      "Name" : "RocketRigidBody"
+    }
+  ]
+}

@@ -35,6 +35,7 @@
         },
         "PhysicsProperties" : {
           "$$ClassName" : "TPhysicsProperties",
+          "GravityStrength" : 0.0000000000000000E+000,
           "LayerCollisions" : {
             "$$ClassName" : "TCastleLayerCollisions"
           },
@@ -197,6 +198,26 @@
                 }
               }
             ]
+          },
+          {
+            "$$ClassName" : "TCastleTransform",
+            "CenterPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent"
+            },
+            "Name" : "RocketsParent",
+            "RotationPersistent" : {
+              "$$ClassName" : "TCastleVector4RotationPersistent"
+            },
+            "ScaleOrientationPersistent" : {
+              "$$ClassName" : "TCastleVector4Persistent"
+            },
+            "ScalePersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent"
+            },
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "Z" : 1.0000000000000000E+002
+            }
           }
         ]
       },

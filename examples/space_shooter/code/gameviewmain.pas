@@ -21,7 +21,7 @@ interface
 uses Classes,
   CastleVectors, CastleComponentSerialize, CastleUIControls, CastleControls,
   CastleKeysMouse, CastleViewport, CastleTransform,
-  GameTilingBackground;
+  GameTilingBackground, GameRocketsManager;
 
 type
   { Main view, where most of the application logic takes place. }
@@ -32,8 +32,9 @@ type
     LabelFps: TCastleLabel;
     MainViewport: TCastleViewport;
     SpaceShip: TCastleTransform;
+    RocketsParent: TCastleTransform;
   private
-    Cannons: array of TCastleTransform;
+    RocketsManager: TRocketsManager;
     TilingBackground: TTilingBackground;
   public
     constructor Create(AOwner: TComponent); override;
@@ -67,12 +68,20 @@ var
 begin
   inherited;
 
-  SetLength(Cannons, CannonsCount);
+  RocketsManager := TRocketsManager.Create(FreeAtStop);
+  RocketsManager.RocketsParent := RocketsParent;
+  SetLength(RocketsManager.Cannons, CannonsCount);
   for I := 0 to CannonsCount - 1 do
-    Cannons[I] := DesignedComponent('Cannon' + IntToStr(I)) as TCastleTransform;
+    RocketsManager.Cannons[I] := DesignedComponent('Cannon' + IntToStr(I)) as TCastleTransform;
+  RocketsManager.InitializeCannons;
+  { RocketsManager is a UI element, it has to be inserted into the UI hierarchy.
+    It doesn't actually display anything, but it can listen to events like Update
+    and have children like TCastleTimer. }
+  InsertFront(RocketsManager);
 
   TilingBackground := TTilingBackground.Create(FreeAtStop);
   TilingBackground.Translation := Vector3(0, 0, -100); // put in the back
+  TilingBackground.UpdateCoordinates(MainViewport);
   MainViewport.Items.Add(TilingBackground);
 end;
 
@@ -189,7 +198,8 @@ begin
   { This virtual method is executed every frame (many times per second). }
 
   Assert(LabelFps <> nil, 'If you remove LabelFps from the design, remember to remove also the assignment "LabelFps.Caption := ..." from code');
-  LabelFps.Caption := 'FPS: ' + Container.Fps.ToString;
+  LabelFps.Caption := 'FPS: ' + Container.Fps.ToString + NL +
+    'Rockets count: ' + IntToStr(RocketsParent.Count);
 
   UpdateMoveSpaceShip;
   UpdateBackground;
