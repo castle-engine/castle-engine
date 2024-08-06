@@ -1,0 +1,76 @@
+{
+  "$$ClassName" : "TCastleTransform",
+  "CenterPersistent" : {
+    "$$ClassName" : "TCastleVector3Persistent"
+  },
+  "Name" : "RockRoot",
+  "RotationPersistent" : {
+    "$$ClassName" : "TCastleVector4RotationPersistent"
+  },
+  "ScaleOrientationPersistent" : {
+    "$$ClassName" : "TCastleVector4Persistent"
+  },
+  "ScalePersistent" : {
+    "$$ClassName" : "TCastleVector3Persistent"
+  },
+  "TranslationPersistent" : {
+    "$$ClassName" : "TCastleVector3Persistent"
+  },
+  "$Children" : [
+    {
+      "$$ClassName" : "TCastleScene",
+      "CenterPersistent" : {
+        "$$ClassName" : "TCastleVector3Persistent"
+      },
+      "ExposeTransforms" : [
+      ],
+      "Name" : "SceneToRotate",
+      "RenderOptions" : {
+        "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+        "WireframeColorPersistent" : {
+          "$$ClassName" : "TCastleColorRGBPersistent"
+        }
+      },
+      "RotationPersistent" : {
+        "$$ClassName" : "TCastleVector4RotationPersistent"
+      },
+      "ScaleOrientationPersistent" : {
+        "$$ClassName" : "TCastleVector4Persistent"
+      },
+      "ScalePersistent" : {
+        "$$ClassName" : "TCastleVector3Persistent",
+        "X" : 1.0000000000000000E+002,
+        "Y" : 1.0000000000000000E+002,
+        "Z" : 1.0000000000000000E+002
+      },
+      "TranslationPersistent" : {
+        "$$ClassName" : "TCastleVector3Persistent"
+      },
+      "Url" : "castle-data:/rocks/rock.gltf"
+    }
+  ],
+  "$Behaviors" : [
+    {
+      "$$ClassName" : "TCastleSphereCollider",
+      "Mode2D" : true,
+      "Name" : "SphereCollider1"
+    },
+    {
+      "$$ClassName" : "TCastleRigidBody",
+      "AngularVelocityPersistent" : {
+        "$$ClassName" : "TCastleVector3Persistent"
+      },
+      "LinearVelocityPersistent" : {
+        "$$ClassName" : "TCastleVector3Persistent"
+      },
+      "LockRotation" : [
+        0,
+        1
+      ],
+      "LockTranslation" : [
+        2
+      ],
+      "Name" : "RockRigidBody"
+    }
+  ]
+}

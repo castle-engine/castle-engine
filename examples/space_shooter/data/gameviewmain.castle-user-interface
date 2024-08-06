@@ -218,6 +218,25 @@
               "$$ClassName" : "TCastleVector3Persistent",
               "Z" : 1.0000000000000000E+002
             }
+          },
+          {
+            "$$ClassName" : "TCastleTransform",
+            "CenterPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent"
+            },
+            "Name" : "RocksParent",
+            "RotationPersistent" : {
+              "$$ClassName" : "TCastleVector4RotationPersistent"
+            },
+            "ScaleOrientationPersistent" : {
+              "$$ClassName" : "TCastleVector4Persistent"
+            },
+            "ScalePersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent"
+            },
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent"
+            }
           }
         ]
       },
@@ -309,6 +328,7 @@
     },
     {
       "$$ClassName" : "TCastleLabel",
+      "Alignment" : "hpRight",
       "Border" : {
         "$$ClassName" : "TBorder"
       },

@@ -18,17 +18,39 @@ unit GameBehaviors;
 
 interface
 
-uses CastleVectors, CastleTransform;
+uses Classes,
+  CastleVectors, CastleTransform;
 
 type
   { Remove the parent when it goes outside of the possibly visible space. }
   TAutoRemoveBehavior = class(TCastleBehavior)
+  public
+    procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
+  end;
+
+  { Remove the parent when it goes outside of the @italic(left border)
+    of possibly visible space.
+    Compared to TAutoRemoveBehavior, this doesn't check other borders. }
+  TAutoRemoveLeftBehavior = class(TCastleBehavior)
+  public
+    procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
+  end;
+
+  { Slowly rotate around a random axis.}
+  TRotateBehavior = class(TCastleBehavior)
+  private
+    Axis: TVector3;
+  public
+    constructor Create(AOwner: TComponent); override;
     procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
   end;
 
 implementation
 
-uses CastleRectangles;
+uses Math,
+  CastleRectangles;
+
+{ TAutoRemoveBehavior -------------------------------------------------------- }
 
 procedure TAutoRemoveBehavior.Update(const SecondsPassed: Single;
   var RemoveMe: TRemoveType);
@@ -52,6 +74,51 @@ begin
   inherited;
   if not RocketAllowedPositions.Contains(Parent.WorldTranslation.XY) then
     Parent.Parent.RemoveDelayed(Parent, true);
+end;
+
+{ TAutoRemoveLeftBehavior -------------------------------------------------------- }
+
+procedure TAutoRemoveLeftBehavior.Update(const SecondsPassed: Single;
+  var RemoveMe: TRemoveType);
+begin
+  inherited;
+  if Parent.WorldTranslation.X < -1500 then
+    Parent.Parent.RemoveDelayed(Parent, true);
+end;
+
+{ TRotateBehavior ------------------------------------------------------------ }
+
+constructor TRotateBehavior.Create(AOwner: TComponent);
+
+  { Good uniform random choice of direction.
+    See CastleInternalSphereSampling . }
+  function RandomHemispherePointConstXYZ: TVector3;
+  var
+    R1, R2, SqRoot: Single;
+    C, S: Single;
+  begin
+    R1 := Random;
+    R2 := Random;
+    SinCos(2 * Pi * R1, S, C);
+    SqRoot := Sqrt(1 - Sqr(R2));
+
+    Result.X := C * SqRoot;
+    Result.Y := S * SqRoot;
+    Result.Z := R2;
+  end;
+
+begin
+  inherited;
+  Axis := RandomHemispherePointConstXYZ;
+end;
+
+procedure TRotateBehavior.Update(const SecondsPassed: Single;
+  var RemoveMe: TRemoveType);
+const
+  RotationSpeed = 0.5;
+begin
+  inherited;
+  Parent.Rotation := Vector4(Axis, Parent.Rotation.W + RotationSpeed * SecondsPassed);
 end;
 
 end.

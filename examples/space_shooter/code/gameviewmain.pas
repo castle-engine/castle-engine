@@ -21,7 +21,7 @@ interface
 uses Classes,
   CastleVectors, CastleComponentSerialize, CastleUIControls, CastleControls,
   CastleKeysMouse, CastleViewport, CastleTransform,
-  GameTilingBackground, GameRocketsManager;
+  GameTilingBackground, GameRocketsManager, GameRocksManager;
 
 type
   { Main view, where most of the application logic takes place. }
@@ -33,8 +33,10 @@ type
     MainViewport: TCastleViewport;
     SpaceShip: TCastleTransform;
     RocketsParent: TCastleTransform;
+    RocksParent: TCastleTransform;
   private
     RocketsManager: TRocketsManager;
+    RocksManager: TRocksManager;
     TilingBackground: TTilingBackground;
   public
     constructor Create(AOwner: TComponent); override;
@@ -68,6 +70,11 @@ var
 begin
   inherited;
 
+  TilingBackground := TTilingBackground.Create(FreeAtStop);
+  TilingBackground.Translation := Vector3(0, 0, -100); // put in the back
+  TilingBackground.UpdateCoordinates(MainViewport);
+  MainViewport.Items.Add(TilingBackground);
+
   RocketsManager := TRocketsManager.Create(FreeAtStop);
   RocketsManager.RocketsParent := RocketsParent;
   SetLength(RocketsManager.Cannons, CannonsCount);
@@ -79,10 +86,10 @@ begin
     and have children like TCastleTimer. }
   InsertFront(RocketsManager);
 
-  TilingBackground := TTilingBackground.Create(FreeAtStop);
-  TilingBackground.Translation := Vector3(0, 0, -100); // put in the back
-  TilingBackground.UpdateCoordinates(MainViewport);
-  MainViewport.Items.Add(TilingBackground);
+  RocksManager := TRocksManager.Create(FreeAtStop);
+  RocksManager.RocksParent := RocksParent;
+  RocksManager.InitializeRockResources(MainViewport);
+  InsertFront(RocksManager);
 end;
 
 procedure TViewMain.Update(const SecondsPassed: Single; var HandleInput: Boolean);
@@ -198,8 +205,10 @@ begin
   { This virtual method is executed every frame (many times per second). }
 
   Assert(LabelFps <> nil, 'If you remove LabelFps from the design, remember to remove also the assignment "LabelFps.Caption := ..." from code');
-  LabelFps.Caption := 'FPS: ' + Container.Fps.ToString + NL +
-    'Rockets count: ' + IntToStr(RocketsParent.Count);
+  LabelFps.Caption :=
+    'FPS: ' + Container.Fps.ToString + NL +
+    'Rockets count: ' + IntToStr(RocketsParent.Count) + NL +
+    'Rocks count: ' + IntToStr(RocksParent.Count);
 
   UpdateMoveSpaceShip;
   UpdateBackground;
