@@ -22,14 +22,19 @@ uses Classes,
   CastleVectors, CastleTransform, CastleScene, X3DNodes, CastleViewport;
 
 type
-  { Draw a tiling (repeatable) texture. }
+  { Draw a tiling (repeatable) texture.
+
+    This is very efficient -- always draws only 1 quad,
+    uses texture coordinats to repeat the texturein both directions as needed. }
   TTilingBackground = class(TCastleScene)
   strict private
     Coordinate: TCoordinateNode;
     TextureCoordinate: TTextureCoordinateNode;
     Texture: TImageTextureNode;
   public
-    { Image position visible at the viewport's left-bottom corner. }
+    { Image position visible at the viewport's left-bottom corner.
+      Change this to effectively move the image.
+      Always call UpdateCoordinates after changing this. }
     ImageOrigin: TVector2;
 
     constructor Create(AOwner: TComponent); override;
@@ -61,8 +66,11 @@ constructor TTilingBackground.Create(AOwner: TComponent);
 
     { Create Coordinate node (position of quad in 3D) }
     Coordinate := TCoordinateNode.Create;
-    // these will be updated in each UpdateCoordinates
     Coordinate.SetPoint([
+      { Actual value of these vectors doesn't mater, they will be updated
+        in each UpdateCoordinates.
+        It is only important to provide 4 points here, to avoid warnings
+        at creation: SetCoordIndex below will refer to these points. }
       Vector3(0  ,   0, 0),
       Vector3(100,   0, 0),
       Vector3(100, 100, 0),
@@ -71,8 +79,11 @@ constructor TTilingBackground.Create(AOwner: TComponent);
 
     { Create TextureCoordinate node (how the image is mapped onto a surface) }
     TextureCoordinate := TTextureCoordinateNode.Create;
-    // these will be updated in each UpdateCoordinates
     TextureCoordinate.SetPoint([
+      { Actual value of these vectors doesn't mater, they will be updated
+        in each UpdateCoordinates.
+        It is only important to provide 4 points here, to avoid warnings
+        at creation: SetCoordIndex below will refer to these points. }
       Vector2(0, 0),
       Vector2(10, 0),
       Vector2(10, 10),
