@@ -73,35 +73,40 @@ begin
   // FreeAndNil(TestRock) // do not free it, let it exist, to hold reference count to the texture
 end;
 
+type
+  TRockDesign = class(TPersistent)
+  published
+    SceneToRotate: TCastleTransform;
+    RockRigidBody: TCastleRigidBody;
+  end;
+
 procedure TRocksManager.Update(const SecondsPassed: Single; var HandleInput: Boolean);
 
   procedure SpawnRock;
   var
     Rock: TCastleTransform;
-    RockRigidBody: TCastleRigidBody;
-    RockOwner: TComponent;
-    SceneToRotate: TCastleTransform;
+    RockDesign: TRockDesign;
   begin
     // create a rock
-    RockOwner := TComponent.Create(Self);
-    Rock := RockFactory.ComponentLoad(RockOwner) as TCastleTransform;
+    RockDesign := TRockDesign.Create;
+    try
+      Rock := RockFactory.ComponentLoad(Self, RockDesign) as TCastleTransform;
 
-    Rock.AddBehavior(TAutoRemoveLeftBehavior.Create(Rock));
-    Rock.AddBehavior(TRockBehavior.Create(Rock));
+      Rock.AddBehavior(TAutoRemoveLeftBehavior.Create(Rock));
+      Rock.AddBehavior(TRockBehavior.Create(Rock));
 
-    SceneToRotate := RockOwner.FindRequiredComponent('SceneToRotate') as TCastleTransform;
-    SceneToRotate.AddBehavior(TRotateBehavior.Create(SceneToRotate));
+      RockDesign.SceneToRotate.AddBehavior(TRotateBehavior.Create(RockDesign.SceneToRotate));
 
-    { Note: do not put initial X too far beyond the screen, otherwise
-      it could be too often destroyed when off-screen, which isn't impressive
-      for the player. }
-    Rock.Translation := Vector3(1100, RandomFloatRange(-500, 500), 100);
+      { Note: do not put initial X too far beyond the screen, otherwise
+        it could be too often destroyed when off-screen, which isn't impressive
+        for the player. }
+      Rock.Translation := Vector3(1100, RandomFloatRange(-500, 500), 100);
 
-    RocksParent.Add(Rock);
+      RocksParent.Add(Rock);
 
-    RockRigidBody := RockOwner.FindRequiredComponent('RockRigidBody') as TCastleRigidBody;
-    RockRigidBody.LinearVelocity := Vector3(-500, 0, 0);
-    RockRigidBody.OnCollisionEnter := {$ifdef FPC}@{$endif} RockCollisionEnter;
+      RockDesign.RockRigidBody.LinearVelocity := Vector3(-500, 0, 0);
+      RockDesign.RockRigidBody.OnCollisionEnter := {$ifdef FPC}@{$endif} RockCollisionEnter;
+    finally FreeAndNil(RockDesign) end;
   end;
 
 begin

@@ -127,7 +127,9 @@ type
     JsonObject: TJsonObject;
     procedure SetUrl(const Value: String);
   private
-    function InternalComponentLoad(const InstanceOwner: TComponent;
+    function InternalComponentLoad(
+      const InstanceOwner: TComponent;
+      const AssociateReferences: TPersistent;
       const LoadInfo: TInternalComponentLoadInfo): TComponent;
   public
     { Main constructor.
@@ -188,10 +190,103 @@ type
       @link(CastleComponentSerialize.ComponentLoad),
       but it is much faster if you want to instantiate the same file many times.
 
-      Newly created component will be owned by InstanceOwner.
+      Newly created component will be owned by InstanceOwner (it can be @nil,
+      in which case you have to free it manually).
       Do not confuse this with the owner of this TCastleComponentFactory
-      -- which may be the same or different component. }
-    function ComponentLoad(const InstanceOwner: TComponent): TComponent;
+      -- which may be the same or different component.
+
+      If AssociateReferences is not @nil,
+      then published fields within AssociateReferences that match
+      the names of components within the loaded design will be set.
+
+      The @code(InstanceOwner) is useful for 2 things:
+
+      @orderedList(
+        @item(To manage memory (freeing the InstanceOwner will also free
+          the loaded component))
+
+        @item(And to search for named components.
+          All the loaded components are owned by InstanceOwner
+          and you can query for them using @code(InstanceOwner.FindComponent)
+          or @code(InstanceOwner.FindRequiredComponent).
+
+          Note that loaded components are renamed,
+          if necessary, to be unique within InstanceOwner
+          --- this is important if your InstanceOwner owns other things as well.
+          If you want to reliably search for names, make sure to use
+          different InstanceOwner for each load. Or use @code(AssociateReferences)
+          instead.)
+      )
+
+      For example:
+
+      @longCode(#
+      procedure SpawnRock;
+      var
+        RockOwner: TComponent;
+        Rock: TCastleTransform;
+        RockRigidBody: TCastleRigidBody;
+        SceneToRotate: TCastleTransform;
+      begin
+        RockOwner := TComponent.Create(Self);
+        Rock := RockFactory.ComponentLoad(RockOwner) as TCastleTransform;
+        RockRigidBody := RockOwner.FindRequiredComponent('RockRigidBody') as TCastleRigidBody;
+        SceneToRotate := RockOwner.FindRequiredComponent('SceneToRotate') as TCastleTransform;
+        // here use RockRigidBody, SceneToRotate
+      end;
+      #)
+
+      The @code(AssociateReferences) is useful to connect, at load time,
+      the names of components within the loaded design to published fields
+      inside AssociateReferences.
+      Compared to using @code(InstanceOwner.FindComponent)
+      or @code(InstanceOwner.FindRequiredComponent) for the same purpose:
+
+      @unorderedList(
+        @item(It is simpler to use, because you don't need to manage the InstanceOwner
+          lifetime.
+
+          This matters in case you created InstanceOwner only for
+          the purpose of loading the given design.
+          The @code(AssociateReferences) instance can freed immediately after
+          the load, and it will not affect the loaded components.
+        )
+
+        @item(
+          Associates the original component names, regardless of whether
+          they later required renaming to be unique within InstanceOwner.
+
+          This matters in case your InstanceOwner owns many other things.
+        )
+
+        @item(Note also one disadvantage of @code(AssociateReferences):
+          It doesn't change that field type matches.)
+      )
+
+      For example:
+
+      @longCode(#
+      type
+        TRockDesign = class(TPersistent)
+        published
+          SceneToRotate: TCastleTransform;
+          RockRigidBody: TCastleRigidBody;
+        end;
+
+      procedure SpawnRock;
+      var
+        Rock: TCastleTransform;
+        RockDesign: TRockDesign;
+      begin
+        RockDesign := TRockDesign.Create;
+        try
+          Rock := RockFactory.ComponentLoad(Self, RockDesign) as TCastleTransform;
+          // here use RockDesign.RockRigidBody, RockDesign.SceneToRotate
+        finally FreeAndNil(RockDesign) end;
+      end;
+      #) }
+    function ComponentLoad(const InstanceOwner: TComponent;
+      const AssociateReferences: TPersistent = nil): TComponent;
   end;
 
   TSerializedComponent = TCastleComponentFactory deprecated 'use TCastleComponentFactory';
@@ -394,6 +489,8 @@ type
       private
         Reader: TCastleJsonReader;
       end;
+    var
+      ComponentNames: TStringList;
     { Events called by FJsonDeStreamer }
     procedure GetObject(AObject: TObject; Info: PPropInfo;
       AData: TJsonObject; DataName: TJsonStringType; var AValue: TObject);
@@ -432,7 +529,6 @@ type
       ResolveObjectProperties: TResolveObjectPropertyList;
       SerializationProcessPool: TSerializationProcessReaderList;
       SerializationProcessPoolUsed: Integer;
-      ComponentNames: TStringList;
 
     { Find component name in ComponentNames.
 
@@ -1060,13 +1156,35 @@ begin
   JsonObject := ComponentToJson(Template);
 end;
 
-function TCastleComponentFactory.ComponentLoad(const InstanceOwner: TComponent): TComponent;
+function TCastleComponentFactory.ComponentLoad(const InstanceOwner: TComponent;
+  const AssociateReferences: TPersistent): TComponent;
 begin
-  Result := InternalComponentLoad(InstanceOwner, nil);
+  Result := InternalComponentLoad(InstanceOwner, AssociateReferences, nil);
 end;
 
-function TCastleComponentFactory.InternalComponentLoad(const InstanceOwner: TComponent;
+function TCastleComponentFactory.InternalComponentLoad(
+  const InstanceOwner: TComponent;
+  const AssociateReferences: TPersistent;
   const LoadInfo: TInternalComponentLoadInfo): TComponent;
+
+  { Set AssociateReferences fields matching component names in ComponentNames. }
+  procedure MakeAssociateReferences(const ComponentNames: TStringList);
+  var
+    I: Integer;
+    FieldAddr: ^TComponent;
+  begin
+    for I := 0 to ComponentNames.Count - 1 do
+    begin
+      FieldAddr := AssociateReferences.FieldAddress(ComponentNames[I]);
+      if FieldAddr <> nil then
+      begin
+        Assert(FieldAddr^ = nil);
+        Assert(ComponentNames.Objects[I] is TComponent); // also checks ComponentNames.Objects[I] <> nil
+        FieldAddr^ := ComponentNames.Objects[I] as TComponent;
+      end;
+    end;
+  end;
+
 var
   Reader: TCastleJsonReader;
 begin
@@ -1082,6 +1200,9 @@ begin
     Reader.DeStreamer.JsonToObject(JsonObject, Result);
 
     Reader.FinishResolvingComponentProperties;
+
+    if AssociateReferences <> nil then
+      MakeAssociateReferences(Reader.ComponentNames);
 
     if Assigned(OnInternalTranslateDesign) and (FTranslationGroupName <> '') then
       OnInternalTranslateDesign(Result, FTranslationGroupName);
@@ -1109,7 +1230,7 @@ begin
     Factory := TCastleComponentFactory.Create(nil);
     try
       Factory.LoadFromStream(ContentsStringStream, '');
-      Result := Factory.InternalComponentLoad(Owner, LoadInfo);
+      Result := Factory.InternalComponentLoad(Owner, nil, LoadInfo);
     finally FreeAndNil(Factory) end;
   finally FreeAndNil(ContentsStringStream) end;
 end;

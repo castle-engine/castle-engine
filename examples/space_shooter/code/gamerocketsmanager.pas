@@ -80,36 +80,41 @@ begin
   end;
 end;
 
+type
+  TRocketDesign = class(TPersistent)
+    RocketRigidBody: TCastleRigidBody;
+  end;
+
+
 procedure TRocketsManager.CannonTimer(Sender: TObject);
 var
   Rocket, Cannon: TCastleTransform;
-  RocketOwner: TComponent;
-  RocketRigidBody: TCastleRigidBody;
+  RocketDesign: TRocketDesign;
   RocketDirection: TVector3;
 begin
   // create a rocket
-  RocketOwner := TComponent.Create(Self);
-  Rocket := RocketFactory.ComponentLoad(RocketOwner) as TCastleTransform;
-  Rocket.AddBehavior(TAutoRemoveBehavior.Create(Rocket));
-  Rocket.AddBehavior(TRocketBehavior.Create(Rocket));
+  RocketDesign := TRocketDesign.Create;
+  try
+    Rocket := RocketFactory.ComponentLoad(Self, RocketDesign) as TCastleTransform;
+    Rocket.AddBehavior(TAutoRemoveBehavior.Create(Rocket));
+    Rocket.AddBehavior(TRocketBehavior.Create(Rocket));
 
-  RocketRigidBody := RocketOwner.FindRequiredComponent('RocketRigidBody') as TCastleRigidBody;
+    Cannon := Cannons[(Sender as TCastleTimer).Tag];
+    Rocket.Translation := Cannon.WorldTranslation;
 
-  Cannon := Cannons[(Sender as TCastleTimer).Tag];
-  Rocket.Translation := Cannon.WorldTranslation;
+    RocketsParent.Add(Rocket);
 
-  RocketsParent.Add(Rocket);
+    { Use Vector3(0, 1, 0) to determine the rocket direction,
+      because we happened to arrange Cannon transformations in editor
+      such that +Y (green arrow) points in the direction in which the cannon
+      should shoot.
 
-  { Use Vector3(0, 1, 0) to determine the rocket direction,
-    because we happened to arrange Cannon transformations in editor
-    such that +Y (green arrow) points in the direction in which the cannon
-    should shoot.
-
-    Note: Do not use Cannon.Direction, which assumes typical 3D direction/up
-    following glTF orientation, rotated by Cannon.Rotation.
-    This is not really useful for us here, despite a tempting sounding name. }
-  RocketDirection := Cannon.LocalToWorldDirection(Vector3(0, 1, 0));
-  RocketRigidBody.LinearVelocity := RocketDirection * 1000;
+      Note: Do not use Cannon.Direction, which assumes typical 3D direction/up
+      following glTF orientation, rotated by Cannon.Rotation.
+      This is not really useful for us here, despite a tempting sounding name. }
+    RocketDirection := Cannon.LocalToWorldDirection(Vector3(0, 1, 0));
+    RocketDesign.RocketRigidBody.LinearVelocity := RocketDirection * 1000;
+  finally FreeAndNil(RocketDesign) end;
 end;
 
 end.
