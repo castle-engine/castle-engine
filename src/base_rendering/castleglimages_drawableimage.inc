@@ -1201,21 +1201,24 @@ var
   end;
 
   { Bind the given buffer and update contents. }
-  procedure LoadBuffer(const Target: TGLenum;
+  procedure LoadBuffer(const Target: TBufferTarget;
     const Vbo: TGLuint; var VboCurrentSize: Cardinal;
     const ContentsPtr: Pointer; const ContentsSize: Cardinal);
+  var
+    TargetGL: TGLenum;
   begin
-    glBindBuffer(Target, Vbo);
+    RenderContext.BindBuffer[Target] := Vbo;
+    TargetGL := BufferTargetGL[Target];
     { Try using glBufferSubData if possible, manual suggests it's better
       than repeatedly calling glBufferData.
       The VBO size will only increase this way, but this is probably OK,
       it's a single VBO for all our UI stuff. }
     if VboCurrentSize < ContentsSize then
     begin
-      glBufferData(Target, ContentsSize, ContentsPtr, GL_DYNAMIC_DRAW);
+      glBufferData(TargetGL, ContentsSize, ContentsPtr, GL_DYNAMIC_DRAW);
       VboCurrentSize := ContentsSize;
     end else
-      glBufferSubData(Target, 0, ContentsSize, ContentsPtr);
+      glBufferSubData(TargetGL, 0, ContentsSize, ContentsPtr);
   end;
 
 const
@@ -1285,11 +1288,11 @@ begin
       esp. important for GL_ELEMENT_ARRAY_BUFFER whose VBO isn't bound later. }
     RenderContext.CurrentVao := Vbo^.Vao;
 
-    LoadBuffer(GL_ARRAY_BUFFER, Vbo^.PointsVbo, Vbo^.PointsVboSize,
+    LoadBuffer(btArray, Vbo^.PointsVbo, Vbo^.PointsVboSize,
       @Points[0], Length(Points) * SizeOf(TPoint));
 
     if Count <> 1 then
-      LoadBuffer(GL_ELEMENT_ARRAY_BUFFER, Vbo^.IndexesVbo, Vbo^.IndexesVboSize,
+      LoadBuffer(btElementArray, Vbo^.IndexesVbo, Vbo^.IndexesVboSize,
         @Indexes[0], Length(Indexes) * SizeOf(Indexes[0]));
 
     // initialize shaders
@@ -1368,8 +1371,8 @@ begin
     Prog.AttribVertex.DisableArray;
     Prog.AttribTexCoord.DisableArray;
 
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+    RenderContext.BindBuffer[btArray] := 0;
+    RenderContext.BindBuffer[btElementArray] := 0;
   end else
   begin
     {$ifndef OpenGLES}

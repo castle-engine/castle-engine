@@ -70,6 +70,14 @@ type
     Scale, Bias: Single;
   end;
 
+  { Target of bound buffer, see https://registry.khronos.org/OpenGL-Refpages/gl4/html/glBindBuffer.xhtml . }
+  TBufferTarget = (
+    { Vertex attributes. }
+    btArray,
+    { Indexes. }
+    btElementArray
+  );
+
   { The OpenGL / OpenGLES context state.
     We try hard to make this a @bold(very, very) small class,
     because usually it's better to introduce a clean higher-level API
@@ -123,6 +131,7 @@ type
       FFixedFunctionLighting: boolean;
       FLineType: TLineType;
       FPolygonOffset: TPolygonOffset;
+      FBoundBuffer: array [TBufferTarget] of TGLuint;
 
     procedure SetLineWidth(const Value: Single);
     procedure SetPointSize(const Value: Single);
@@ -147,6 +156,8 @@ type
     procedure SetFixedFunctionLighting(const Value: boolean);
     procedure SetLineType(const Value: TLineType);
     procedure SetPolygonOffset(const Value: TPolygonOffset);
+    function GetBoundBuffer(const Target: TBufferTarget): TGLuint;
+    procedure SetBoundBuffer(const Target: TBufferTarget; const Value: TGLuint);
   private
     FEnabledScissors: TScissorList;
   public
@@ -320,6 +331,15 @@ type
     procedure PolygonOffsetEnable(const Scale, Bias: Single);
     { Shortcut for setting @link(PolygonOffset) with PolygonOffset.Enabled = @false. }
     procedure PolygonOffsetDisable;
+
+    { Bind buffer to target, just like glBindBuffer.
+
+      Optimized to do nothing if given buffer is already bound.
+      This optimization actually matters for optimization (Android Samsung Galaxy Tab,
+      castle-model-viewer-mobile displaying inspector).
+      Without it, TDrawableImage does a lot of redundant glBindBuffer calls. }
+    property BindBuffer[const Target: TBufferTarget]: TGLuint
+      read GetBoundBuffer write SetBoundBuffer;
   end;
 
 var
@@ -346,6 +366,12 @@ function OrthoProjection(const Dimensions: TFloatRectangle;
   const ZNear: Single = -1; const ZFar: Single = 1): TMatrix4;
 function FrustumProjection(const Dimensions: TFloatRectangle; const ZNear, ZFar: Single): TMatrix4;
 { @groupEnd }
+
+const
+  BufferTargetGL: array [TBufferTarget] of TGLenum = (
+    GL_ARRAY_BUFFER,
+    GL_ELEMENT_ARRAY_BUFFER
+  );
 
 implementation
 
@@ -863,6 +889,20 @@ begin
   NewState.Scale := 0;
   NewState.Bias := 0;
   PolygonOffset := NewState;
+end;
+
+function TRenderContext.GetBoundBuffer(const Target: TBufferTarget): TGLuint;
+begin
+  Result := FBoundBuffer[Target];
+end;
+
+procedure TRenderContext.SetBoundBuffer(const Target: TBufferTarget; const Value: TGLuint);
+begin
+  if FBoundBuffer[Target] <> Value then
+  begin
+    FBoundBuffer[Target] := Value;
+    glBindBuffer(BufferTargetGL[Target], Value);
+  end;
 end;
 
 { TRenderContext.TScissorList ------------------------------------------------------------------- }

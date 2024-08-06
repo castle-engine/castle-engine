@@ -206,7 +206,7 @@ procedure TViewMain.TMyViewport.RenderFromView3D(const Params: TRenderParams);
 
       if RectVbo = 0 then
         glGenBuffers(1, @RectVbo);
-      glBindBuffer(GL_ARRAY_BUFFER, RectVbo);
+      RenderContext.BindBuffer[btArray] := RectVbo;
       glBufferData(GL_ARRAY_BUFFER, SizeOf(Points), @Points, GL_DYNAMIC_DRAW);
 
       UniformViewportSize := RenderContext.CurrentProgram.Uniform('viewport_size');
@@ -221,8 +221,8 @@ procedure TViewMain.TMyViewport.RenderFromView3D(const Params: TRenderParams);
       glDrawArrays(GL_TRIANGLE_FAN, 0, High(Points) + 1);
 
       AttribVertex.DisableArray;
-      glBindBuffer(GL_ARRAY_BUFFER, 0);
-      glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+      RenderContext.BindBuffer[btArray] := 0;
+      RenderContext.BindBuffer[btElementArray] := 0;
     end;
 
     procedure DoRender(Pass: Integer);

@@ -1529,8 +1529,8 @@ begin
     { unbind arrays, to have a clean state on exit.
       TODO: this should not be needed, instead move to RenderEnd.
       Check does occlusion query work Ok when some vbo is bound. }
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+    RenderContext.BindBuffer[btArray] := 0;
+    RenderContext.BindBuffer[btElementArray] := 0;
   end;
 end;
 
