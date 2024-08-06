@@ -85,7 +85,6 @@ type
     RocketRigidBody: TCastleRigidBody;
   end;
 
-
 procedure TRocketsManager.CannonTimer(Sender: TObject);
 var
   Rocket, Cannon: TCastleTransform;
