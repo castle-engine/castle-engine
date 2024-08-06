@@ -207,8 +207,9 @@ begin
   Assert(LabelFps <> nil, 'If you remove LabelFps from the design, remember to remove also the assignment "LabelFps.Caption := ..." from code');
   LabelFps.Caption :=
     'FPS: ' + Container.Fps.ToString + NL +
-    'Rockets count: ' + IntToStr(RocketsParent.Count) + NL +
-    'Rocks count: ' + IntToStr(RocksParent.Count);
+    'Rockets existing count: ' + IntToStr(RocketsParent.Count) + NL +
+    'Rocks existing count: ' + IntToStr(RocksParent.Count) + NL +
+    'Rocks destroyed: ' + IntToStr(RocksManager.RocksDestroyed);
 
   UpdateMoveSpaceShip;
   UpdateBackground;

@@ -45,6 +45,18 @@ type
     procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
   end;
 
+  { Behavior for rockets.
+    You can add here any additional rocket-specific behavior.
+    It is also useful to detect what collided with what in TRocksManager.RockCollisionEnter. }
+  TRocketBehavior = class(TCastleBehavior)
+  end;
+
+  { Behavior for rocks.
+    You can add here any additional rock-specific behavior.
+    It is also useful to detect what collided with what in TRocksManager.RockCollisionEnter. }
+  TRockBehavior = class(TCastleBehavior)
+  end;
+
 implementation
 
 uses Math,

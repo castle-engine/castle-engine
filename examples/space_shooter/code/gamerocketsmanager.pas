@@ -91,6 +91,7 @@ begin
   RocketOwner := TComponent.Create(Self);
   Rocket := RocketFactory.ComponentLoad(RocketOwner) as TCastleTransform;
   Rocket.AddBehavior(TAutoRemoveBehavior.Create(Rocket));
+  Rocket.AddBehavior(TRocketBehavior.Create(Rocket));
 
   RocketRigidBody := RocketOwner.FindRequiredComponent('RocketRigidBody') as TCastleRigidBody;
 

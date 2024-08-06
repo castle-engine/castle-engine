@@ -28,6 +28,8 @@ type
   private
     RockFactory: TCastleComponentFactory;
     TimeToNextRock: TFloatTime;
+    FRocksDestroyed: Cardinal;
+    procedure RockCollisionEnter(const CollisionDetails: TPhysicsCollisionDetails);
   public
     { Set this to the parent of all rocks.
       Should not be transformed, because (for simplicity) code here assumes
@@ -37,6 +39,9 @@ type
 
     constructor Create(AOwner: TComponent); override;
     procedure Update(const SecondsPassed: Single; var HandleInput: Boolean); override;
+
+    { Number of rocks destroyed. E.g. to show player score. }
+    property RocksDestroyed: Cardinal read FRocksDestroyed;
 
     { Make sure rock resources, like the texture, is initialized.
       Otherwise the first rock creation would cause a noticeable stutter
@@ -56,7 +61,7 @@ begin
   RockFactory := TCastleComponentFactory.Create(Self);
   RockFactory.Url := 'castle-data:/rocks/rock.castle-transform';
 
-  TimeToNextRock := RandomFloatRange(1.0, 3.0);
+  TimeToNextRock := RandomFloatRange(0.25, 1.0);
 end;
 
 procedure TRocksManager.InitializeRockResources(const ParentViewport: TCastleViewport);
@@ -82,6 +87,7 @@ procedure TRocksManager.Update(const SecondsPassed: Single; var HandleInput: Boo
     Rock := RockFactory.ComponentLoad(RockOwner) as TCastleTransform;
 
     Rock.AddBehavior(TAutoRemoveLeftBehavior.Create(Rock));
+    Rock.AddBehavior(TRockBehavior.Create(Rock));
 
     SceneToRotate := RockOwner.FindRequiredComponent('SceneToRotate') as TCastleTransform;
     SceneToRotate.AddBehavior(TRotateBehavior.Create(SceneToRotate));
@@ -95,6 +101,7 @@ procedure TRocksManager.Update(const SecondsPassed: Single; var HandleInput: Boo
 
     RockRigidBody := RockOwner.FindRequiredComponent('RockRigidBody') as TCastleRigidBody;
     RockRigidBody.LinearVelocity := Vector3(-500, 0, 0);
+    RockRigidBody.OnCollisionEnter := {$ifdef FPC}@{$endif} RockCollisionEnter;
   end;
 
 begin
@@ -103,8 +110,31 @@ begin
   while TimeToNextRock < 0.0 do
   begin
     SpawnRock;
-    TimeToNextRock := TimeToNextRock + RandomFloatRange(1.0, 3.0);
+    TimeToNextRock := TimeToNextRock + RandomFloatRange(0.0, 1.0);
   end;
+end;
+
+procedure TRocksManager.RockCollisionEnter(const CollisionDetails: TPhysicsCollisionDetails);
+var
+  Rock, Rocket: TCastleTransform;
+begin
+  // Abort if this is not a collision between rock and rocket
+  if CollisionDetails.Transforms[0].FindBehavior(TRockBehavior) = nil then
+    Exit;
+  if CollisionDetails.Transforms[1].FindBehavior(TRocketBehavior) = nil then
+    Exit;
+
+  { TODO: We could do something more interesting here, like play a sound,
+    or play pretty rock exploding animation.
+    For now, we just make the rock disappear.
+    The rocket that hit the rock also disappears. }
+  Rock := CollisionDetails.Transforms[0];
+  Rock.Parent.RemoveDelayed(Rock, true);
+
+  Rocket := CollisionDetails.Transforms[1];
+  Rocket.Parent.RemoveDelayed(Rocket, true);
+
+  Inc(FRocksDestroyed);
 end;
 
 end.
