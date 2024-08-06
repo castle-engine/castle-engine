@@ -2780,6 +2780,7 @@ function TCastleContainer.MessageReceived(const Received: TCastleStringList;
 var
   NewSafeBorderScaled: TVector4;
 begin
+  Result := false;
   if (Received.Count = 5) and
      (Received[0] = 'safe-borders') then
   begin
