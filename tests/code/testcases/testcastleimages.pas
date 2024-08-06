@@ -41,6 +41,7 @@ type
     procedure TestLoadAnchors;
     procedure TestPreserveTreatAsAlpha;
     procedure TestByteSinglePrecision;
+    procedure TestUInt16SinglePrecision;
     procedure TestPngFloat;
     procedure TestKtxFloat;
   end;
@@ -499,6 +500,22 @@ begin
   begin
     S := B;
     AssertEquals(B, Round(S));
+  end;
+end;
+
+procedure TTestImages.TestUInt16SinglePrecision;
+var
+  I: UInt16;
+  S: Single;
+begin
+  { Test claim that float-based (Single) images
+    can carry UInt16 information without any loss.
+    We test that each UInt16 "survives" round-trip to Single,
+    despite being approximated in Single and then rounded. }
+  for I := Low(UInt16) to High(UInt16) do
+  begin
+    S := I;
+    AssertEquals(I, Round(S));
   end;
 end;
 
