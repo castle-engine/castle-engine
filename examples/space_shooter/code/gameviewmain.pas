@@ -130,7 +130,6 @@ procedure TViewMain.Update(const SecondsPassed: Single; var HandleInput: Boolean
       Delta.Y * DeltaSign.Y
     );
 
-    AllowedPositions := FloatRectangle(-400, -400, 800, 800);
     ClampVar(NewTranslation.X, AllowedPositions.Left, AllowedPositions.Right);
     ClampVar(NewTranslation.Y, AllowedPositions.Bottom, AllowedPositions.Top);
 
