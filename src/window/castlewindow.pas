@@ -4480,7 +4480,6 @@ begin
   end;
 
   ApplicationProperties._UpdateEnd;
-  if Window.Closed then Exit;
   if Terminated then Exit;
 
   I := 0;
