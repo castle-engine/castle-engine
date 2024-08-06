@@ -44,14 +44,13 @@ type
 
     { Call after you set Cannons. }
     procedure InitializeCannons;
-
-    procedure Update(const SecondsPassed: Single; var HandleInput: Boolean); override;
   end;
 
 implementation
 
 uses SysUtils,
-  CastleUtils, CastleRectangles;
+  CastleUtils, CastleRectangles,
+  GameBehaviors;
 
 constructor TRocketsManager.Create(AOwner: TComponent);
 begin
@@ -91,6 +90,7 @@ begin
   // create a rocket
   RocketOwner := TComponent.Create(Self);
   Rocket := RocketFactory.ComponentLoad(RocketOwner) as TCastleTransform;
+  Rocket.AddBehavior(TAutoRemoveBehavior.Create(Rocket));
 
   RocketRigidBody := RocketOwner.FindRequiredComponent('RocketRigidBody') as TCastleRigidBody;
 
@@ -109,32 +109,6 @@ begin
     This is not really useful for us here, despite a tempting sounding name. }
   RocketDirection := Cannon.LocalToWorldDirection(Vector3(0, 1, 0));
   RocketRigidBody.LinearVelocity := RocketDirection * 1000;
-end;
-
-procedure TRocketsManager.Update(const SecondsPassed: Single; var HandleInput: Boolean);
-const
-  { Rockets are removed when they go far away.
-    This rectangle was chosen to be large enough to cover the whole screen.
-
-    Vertically, it covers the screen for 100%:
-    Height is 1200, for sure larger than Viewport.Camera.Orthographic.Height = 1000.
-
-    Horizontally, it covers the screen as long as aspect ratio is <= 2:1.
-
-    We *could* adjust it to Viewport.Camera.Orthographic.EffectiveRect
-    sizes, and be more precise. But this would mean that game balance works
-    a bit differently (rockets reach more or less further) depending on
-    the window size aspect ratio. }
-  RocketAllowedPositions: TFloatRectangle = (
-    Left: -1000; Bottom: -600; Width: 2000; Height: 1200
-  );
-var
-  Rocket: TCastleTransform;
-begin
-  inherited;
-  for Rocket in RocketsParent do
-    if not RocketAllowedPositions.Contains(Rocket.WorldTranslation.XY) then
-      RocketsParent.RemoveDelayed(Rocket, true);
 end;
 
 end.
