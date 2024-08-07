@@ -821,15 +821,82 @@ procedure TCastleTerrainData.UpdateNodeCore(const Node: TAbstractChildNode;
   const Subdivisions: TVector2; const InputRange, OutputRange: TFloatRectangle;
   const Appearance: TAppearanceNode; const TriangulationIgnoreHeights: Boolean);
 var
+  XDimension, ZDimension: Cardinal;
+
+  { Calculate height for given terrain point.
+    Returns also coordinate and texture coordinate of this point.
+
+    Note: coordinate in InputCoord does *not* equal, in XZ, the local coordinates
+    that will be calculated by TElevationGridNode.InternalCreateTriangles.
+    This coordinate is in input range, InputRange.
+
+    In contrast, the local coordinates calculated by TElevationGridNode.InternalCreateTriangles
+    are partially in output range: they take into account OutputRange.Width/Height.
+    They do not take into account OutputRange.Left, OutputRange.Bottom
+    which is applied by the transfomaion node. }
+  function GetHeight(const X, Z: Integer; out InputCoord, TexCoord: TVector2): Single;
+  begin
+    TexCoord := Vector2(
+      MapRangeTo01(X, 0, XDimension - 1),
+      MapRangeTo01(Z, 0, ZDimension - 1)
+    );
+    InputCoord := Vector2(
+      Lerp(TexCoord.X, InputRange.Left  , InputRange.Right),
+      Lerp(TexCoord.Y, InputRange.Bottom, InputRange.Top)
+    );
+    // TexCoord.Y grows in different direction, see Height docs for reason
+    TexCoord.Y := 1 - TexCoord.Y;
+    Result := Height(InputCoord, TexCoord);
+  end;
+
+  { Calculate 3D coordinate for given terrain point.
+    The XZ of this corresponds to the InputRange,
+    these are *not* 3D coordinates that will be
+    calculated by TElevationGridNode.InternalCreateTriangles. }
+  function GetInputCoord3D(const X, Z: Integer): TVector3;
+  var
+    InputCoord, IgnoredTexCoord: TVector2;
+  begin
+    Result.Y := GetHeight(X, Z, InputCoord, IgnoredTexCoord);
+    Result.X := InputCoord.X;
+    Result.Z := InputCoord.Y;
+  end;
+
+  { Calculate normal at given terrain point.
+
+    Generating normals on our side, instead of letting TIndexedTriangleSetNode
+    algorithm to calculate them. Reasons:
+
+    - This is faster. TIndexedTriangleSetNode has to consider general case,
+      multiple triangles sharing a vertex in a general mesh.
+      We can optimize for our case, a grid of vertexes.
+
+    - On the edges, we can calculate normals in a more predictable way.
+      This makes placing one terrain next to another result in smooth lighting
+      where the terrains meet. }
+  function GetNormal(const X, Z: Integer): TVector3;
+  var
+    P, PX, PZ: TVector3;
+  begin
+    P  := GetInputCoord3D(X, Z);
+    PX := GetInputCoord3D(X + 1, Z);
+    PZ := GetInputCoord3D(X, Z + 1);
+    Result := TVector3.CrossProduct(
+      (PZ - P),
+      (PX - P)).Normalize;
+  end;
+
+var
   Transform: TTransformNode;
+  Normal: TNormalNode;
   Shape: TShapeNode;
   TriangleSet: TIndexedTriangleSetNode;
-  X, Z, SubdivisionsX, SubdivisionsZ: Cardinal;
-  Coord, TexCoord: TVector2;
+  X, Z: Cardinal;
+  IgnoredInputCoord, IgnoredTexCoord: TVector2;
   Heights: TSingleList;
 begin
-  SubdivisionsX := Round(Subdivisions.X);
-  SubdivisionsZ := Round(Subdivisions.Y);
+  XDimension := Round(Subdivisions.X);
+  ZDimension := Round(Subdivisions.Y);
 
   Transform := Node as TTransformNode; // created by CreateNode
   Transform.ClearChildren;
@@ -839,34 +906,32 @@ begin
 
   Heights := TSingleList.Create;
   try
-    Heights.Count := SubdivisionsX * SubdivisionsZ;
-
-    for X := 0 to SubdivisionsX - 1 do
-      for Z := 0 to SubdivisionsZ - 1 do
+    // calculate Heights
+    Heights.Count := XDimension * ZDimension;
+    for X := 0 to XDimension - 1 do
+      for Z := 0 to ZDimension - 1 do
       begin
-        TexCoord := Vector2(
-          MapRangeTo01(X, 0, SubdivisionsX - 1),
-          MapRangeTo01(Z, 0, SubdivisionsZ - 1)
-        );
-        Coord := Vector2(
-          Lerp(TexCoord.X, InputRange.Left  , InputRange.Right),
-          Lerp(TexCoord.Y, InputRange.Bottom, InputRange.Top)
-        );
-        // TexCoord.Y grows in different direction, see Height docs for reason
-        TexCoord.Y := 1 - TexCoord.Y;
-        Heights.L[X + Z * SubdivisionsX] := Height(Coord, TexCoord);
+        Heights.L[X + Z * XDimension] := GetHeight(X, Z, IgnoredInputCoord, IgnoredTexCoord);
       end;
 
     TriangleSet := TElevationGridNode.InternalCreateTriangles(
-      SubdivisionsX,
-      SubdivisionsZ,
-      OutputRange.Width  / (SubdivisionsX - 1),
-      OutputRange.Height / (SubdivisionsZ - 1),
+      XDimension,
+      ZDimension,
+      OutputRange.Width  / (XDimension - 1),
+      OutputRange.Height / (ZDimension - 1),
       Heights,
       nil,
       TriangulationIgnoreHeights
     );
   finally FreeAndNil(Heights) end;
+
+  // calculate Normal (for TriangleSet.Normal)
+  Normal := TNormalNode.Create;
+  Normal.FdVector.Items.Count := XDimension * ZDimension;
+  for X := 0 to XDimension - 1 do
+    for Z := 0 to ZDimension - 1 do
+      Normal.FdVector.Items.L[X + Z * XDimension] := GetNormal(X, Z);
+  TriangleSet.Normal := Normal;
 
   Shape.Geometry := TriangleSet;
   Shape.Appearance := Appearance;
