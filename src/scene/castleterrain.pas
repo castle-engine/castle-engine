@@ -610,6 +610,7 @@ type
       );
       DefaultLayersInfluence = 1.0;
       DefaultSteepEmphasize = 2.0;
+      DefaultTriangulationIgnoreHeights = false;
 
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -697,7 +698,7 @@ type
       Avoid doing it at runtime. }
     property TriangulationIgnoreHeights: Boolean
       read FTriangulationIgnoreHeights write SetTriangulationIgnoreHeights
-      default true;
+      default DefaultTriangulationIgnoreHeights;
 
     { How much should we emphasize the "steep" layers (2nd and 4th layers)
       at the expense of "flat" layers (1st and 3rd).
@@ -1656,7 +1657,7 @@ var
 begin
   inherited;
 
-  FTriangulationIgnoreHeights := true;
+  FTriangulationIgnoreHeights := DefaultTriangulationIgnoreHeights;
   FSubdivisions := Vector2(DefaultSubdivisions, DefaultSubdivisions);
   FSize := Vector2(DefaultSize, DefaultSize);
   FLayersInfluence := DefaultLayersInfluence;

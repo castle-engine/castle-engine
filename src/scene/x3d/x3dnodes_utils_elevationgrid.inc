@@ -92,16 +92,9 @@ var
     triangulation. }
   procedure Quad(const IndexNum, I1, I2, I3, I4: Integer);
   begin
-    if PointsDistanceSqr(Coords.L[I1], Coords.L[I3]) <
-       PointsDistanceSqr(Coords.L[I2], Coords.L[I4]) then
-    begin
-      CoordIndexes.L[IndexNum    ] := I1;
-      CoordIndexes.L[IndexNum + 1] := I2;
-      CoordIndexes.L[IndexNum + 2] := I3;
-      CoordIndexes.L[IndexNum + 3] := I3;
-      CoordIndexes.L[IndexNum + 4] := I4;
-      CoordIndexes.L[IndexNum + 5] := I1;
-    end else
+    if TriangulationIgnoreHeights or
+       ( PointsDistanceSqr(Coords.L[I1], Coords.L[I3]) >
+         PointsDistanceSqr(Coords.L[I2], Coords.L[I4]) ) then
     begin
       CoordIndexes.L[IndexNum    ] := I1;
       CoordIndexes.L[IndexNum + 1] := I2;
@@ -109,6 +102,14 @@ var
       CoordIndexes.L[IndexNum + 3] := I2;
       CoordIndexes.L[IndexNum + 4] := I3;
       CoordIndexes.L[IndexNum + 5] := I4;
+    end else
+    begin
+      CoordIndexes.L[IndexNum    ] := I1;
+      CoordIndexes.L[IndexNum + 1] := I2;
+      CoordIndexes.L[IndexNum + 2] := I3;
+      CoordIndexes.L[IndexNum + 3] := I3;
+      CoordIndexes.L[IndexNum + 4] := I4;
+      CoordIndexes.L[IndexNum + 5] := I1;
     end;
   end;
 
