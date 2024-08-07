@@ -96,7 +96,7 @@ Following http://www.libtiff.org/build.html :
 
    And commit resulting DLL to castle-image-viewer in extra-image-formats branch.
 
-   And mention it has DLL in "## Example project for thigns below" section above.
+   And mention it has DLL in "## Example project for things below" section above.
 
 ## Packacking LibTiff linbraries and run.sh script
 
