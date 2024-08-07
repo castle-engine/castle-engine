@@ -835,7 +835,7 @@ var
     are partially in output range: they take into account OutputRange.Width/Height.
     They do not take into account OutputRange.Left, OutputRange.Bottom
     which is applied by the transfomaion node. }
-  function GetHeight(const X, Z: Integer; out InputCoord, TexCoord: TVector2): Single;
+  function GetHeight(const X, Z: Single; out InputCoord, TexCoord: TVector2): Single;
   begin
     TexCoord := Vector2(
       MapRangeTo01(X, 0, XDimension - 1),
@@ -854,7 +854,7 @@ var
     The XZ of this corresponds to the InputRange,
     these are *not* 3D coordinates that will be
     calculated by TElevationGridNode.InternalCreateTriangles. }
-  function GetInputCoord3D(const X, Z: Integer): TVector3;
+  function GetInputCoord3D(const X, Z: Single): TVector3;
   var
     InputCoord, IgnoredTexCoord: TVector2;
   begin
@@ -879,9 +879,13 @@ var
   var
     P, PX, PZ: TVector3;
   begin
-    P  := GetInputCoord3D(X, Z);
-    PX := GetInputCoord3D(X + 1, Z);
-    PZ := GetInputCoord3D(X, Z + 1);
+    // P  := GetInputCoord3D(X, Z);
+    // PX := GetInputCoord3D(X + 1, Z);
+    // PZ := GetInputCoord3D(X, Z + 1);
+    // sample around the point, this way we don't make normal reflecting only one side
+    P  := GetInputCoord3D(X - 0.5, Z - 0.5);
+    PX := GetInputCoord3D(X + 0.5, Z - 0.5);
+    PZ := GetInputCoord3D(X - 0.5, Z + 0.5);
     Result := TVector3.CrossProduct(
       (PZ - P),
       (PX - P)).Normalize;
