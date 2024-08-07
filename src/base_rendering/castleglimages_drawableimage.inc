@@ -1374,7 +1374,8 @@ begin
     Prog.AttribTexCoord.DisableArray;
 
     RenderContext.BindBuffer[btArray] := 0;
-    RenderContext.BindBuffer[btElementArray] := 0;
+    if UseIndex then // optimize out glBindBuffer call when not necessary
+      RenderContext.BindBuffer[btElementArray] := 0;
   end else
   begin
     {$ifndef OpenGLES}
