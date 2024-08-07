@@ -64,8 +64,10 @@ unit CastleTextureFontData;
 
   So we apply the workaround selectively, only to older Delphis.
 }
-{$if CompilerVersion < 34}
-  {$define CASTLE_WORKAROUND_GLYPH_COMPARER}
+{$ifndef FPC}
+  {$if CompilerVersion < 34}
+    {$define CASTLE_WORKAROUND_GLYPH_COMPARER}
+  {$endif}
 {$endif}
 
 interface
