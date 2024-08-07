@@ -111,6 +111,9 @@ type
       (actually, often they will be square), but you don't have to.
 
       Subdivisions determines how dense is the mesh.
+      They determine the number of rows in columns in the mesh.
+      E.g. subdivision (4,4) means 16 (4 * 4) quads and 25 (5 * 5) vertexes.
+      This matches the Blender's "subdivisions" parameter for grids.
 
       We return the node that you should insert to your scene.
 
@@ -900,8 +903,8 @@ var
   IgnoredInputCoord, IgnoredTexCoord: TVector2;
   Heights: TSingleList;
 begin
-  XDimension := Round(Subdivisions.X);
-  ZDimension := Round(Subdivisions.Y);
+  XDimension := Round(Subdivisions.X) + 1;
+  ZDimension := Round(Subdivisions.Y) + 1;
 
   Transform := Node as TTransformNode; // created by CreateNode
   Transform.ClearChildren;
