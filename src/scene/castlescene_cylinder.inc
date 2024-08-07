@@ -1,6 +1,6 @@
 {%MainUnit castlescene.pas}
 {
-  Copyright 2021-2022 Michalis Kamburelis.
+  Copyright 2021-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -24,12 +24,14 @@ type
     FRadius, FHeight: Single;
     FDoubleSided: Boolean;
     FBottom, FSide, FTop: Boolean;
+    FSlices: Cardinal;
     procedure SetRadius(const Value: Single);
     procedure SetHeight(const Value: Single);
     procedure SetDoubleSided(const Value: Boolean);
     procedure SetBottom(const Value: Boolean);
     procedure SetSide(const Value: Boolean);
     procedure SetTop(const Value: Boolean);
+    procedure SetSlices(const Value: Cardinal);
   public
     constructor Create(AOwner: TComponent); override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
@@ -57,6 +59,17 @@ type
       When @false, you can see the cylinder interior if looking from the outside
       (note: turn on DoubleSided to make interior visible). }
     property Top: Boolean read FTop write SetTop default true;
+
+    { How many "slices" to use to approximate the cylinder.
+      The cylinder is rendered using polygons (triangles and quads)
+      that approximate the cylinder shape.
+      The more slices, the more the cylinder will look like a cylinder.
+
+      Slices divide the objects like slices of a pizza.
+
+      The default value of 0 means to follow global variable
+      @link(DefaultTriangulationSlices).}
+    property Slices: Cardinal read FSlices write SetSlices default 0;
   end;
 
 {$endif read_interface}
@@ -79,17 +92,15 @@ begin
   CylinderNode := TCylinderNode.Create;
   CylinderNode.Radius := FRadius;
   CylinderNode.Height := FHeight;
+  CylinderNode.Solid := not FDoubleSided;
+  CylinderNode.Slices := FSlices;
   ShapeNode.Geometry := CylinderNode;
 end;
 
 function TCastleCylinder.PropertySections(const PropertyName: String): TPropertySections;
 begin
-  if (PropertyName = 'Radius') or
-     (PropertyName = 'Height') or
-     (PropertyName = 'DoubleSided') or
-     (PropertyName = 'Bottom') or
-     (PropertyName = 'Side') or
-     (PropertyName = 'Top') then
+  if ArrayContainsString(PropertyName, ['Radius', 'Height', 'DoubleSided',
+       'Bottom', 'Side', 'Top', 'Slices']) then
     Result := [psBasic]
   else
     Result := inherited PropertySections(PropertyName);
@@ -148,6 +159,15 @@ begin
   begin
     FTop := Value;
     CylinderNode.Top := Value;
+  end;
+end;
+
+procedure TCastleCylinder.SetSlices(const Value: Cardinal);
+begin
+  if FSlices <> Value then
+  begin
+    FSlices := Value;
+    CylinderNode.Slices := FSlices;
   end;
 end;
 

@@ -122,10 +122,8 @@ end;
 
 function TCastlePointLight.PropertySections(const PropertyName: String): TPropertySections;
 begin
-  if (PropertyName = 'ColorPersistent') or
-     (PropertyName = 'AttenuationPersistent') or
-     (PropertyName = 'Intensity') or
-     (PropertyName = 'Radius') then
+  if ArrayContainsString(PropertyName, ['ColorPersistent',
+      'AttenuationPersistent', 'Intensity', 'Radius']) then
     Result := [psBasic]
   else
     Result := inherited PropertySections(PropertyName);
