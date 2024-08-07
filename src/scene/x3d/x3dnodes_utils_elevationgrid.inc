@@ -1,6 +1,6 @@
 {%MainUnit x3dnodes.pas}
 {
-  Copyright 2002-2023 Michalis Kamburelis.
+  Copyright 2002-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -16,25 +16,34 @@
 
 function TElevationGridNode.Proxy(var State: TX3DGraphTraverseState): TAbstractGeometryNode;
 
-{ I initially rendered ElevationGrid directly, by GL_QUAD_STRIP
-  for each row. Fast, but has troubles:
+{ How to render TElevationGridNode?
 
-  - When colorPerVertex is different than normalPerVertex,
-    neither flat nor smooth shading is good.
-  - Normal generation was a pain. A code generating smooth-only normals
-    was implemented, and was already a pain to maintain (since with IndexedFaceSet,
-    we already had normal generation implemented).
-    creaseAngle was not supported, only all smooth or all flat was supported.
-  - Rendering by quads was sometimes not fully correct, as elevation grid
-    quads were not really planar. So with GPU performing any triangulation
-    it wants, results are undefined and not always the best.
-    Right now we triangulate ourselves along the shortest diagonal,
-    which improves the look much.
-    IndexedFaceSet is rendered through GL_TRIANGLES anyway.
+  - Quad strip? (direct GL_QUAD_STRIP or proxy on T[Indexed]QuadSetNode)?
 
-  Using proxy to render ElevationGrid solves above troubles.
-  Using proxy also makes simpler implementation than rendering,
-  and also it's used for triangulating.
+    Not good:
+
+    - When colorPerVertex is different than normalPerVertex,
+      neither flat nor smooth shading is good.
+
+    - With direct GL_QUAD_STRIP, normal generation was a pain.
+      We want to instead use proxy on something that already implements
+      normal support, honoring creaseAngle.
+
+    - Rendering by quads was sometimes not fully correct, as elevation grid
+      quads were not really planar. So with GPU performing any triangulation
+      it wants, results are undefined and not always the best.
+
+  - By TIndexedFaceSetNode proxy?
+
+    Mostly good, but it's not as straightforward to render by renderer
+    as TIndexedTriangleSetNode. It needs to be converted to triangles.
+
+  - By TIndexedTriangleSetNode proxy?
+
+    Better than TIndexedFaceSetNode for renderer.
+
+    We lose support for creaseAngle, but it's not a big deal.
+    Our TCastleTerrainData wasn't using it anyway, always setting creaseAngle to 4.
 }
 var
   Coords: TVector3List;
@@ -51,33 +60,29 @@ var
       CoordIndexes.L[IndexNum    ] := I1;
       CoordIndexes.L[IndexNum + 1] := I2;
       CoordIndexes.L[IndexNum + 2] := I3;
-      CoordIndexes.L[IndexNum + 3] := -1;
-      CoordIndexes.L[IndexNum + 4] := I3;
-      CoordIndexes.L[IndexNum + 5] := I4;
-      CoordIndexes.L[IndexNum + 6] := I1;
-      CoordIndexes.L[IndexNum + 7] := -1;
+      CoordIndexes.L[IndexNum + 3] := I3;
+      CoordIndexes.L[IndexNum + 4] := I4;
+      CoordIndexes.L[IndexNum + 5] := I1;
     end else
     begin
       CoordIndexes.L[IndexNum    ] := I1;
       CoordIndexes.L[IndexNum + 1] := I2;
       CoordIndexes.L[IndexNum + 2] := I4;
-      CoordIndexes.L[IndexNum + 3] := -1;
-      CoordIndexes.L[IndexNum + 4] := I2;
-      CoordIndexes.L[IndexNum + 5] := I3;
-      CoordIndexes.L[IndexNum + 6] := I4;
-      CoordIndexes.L[IndexNum + 7] := -1;
+      CoordIndexes.L[IndexNum + 3] := I2;
+      CoordIndexes.L[IndexNum + 4] := I3;
+      CoordIndexes.L[IndexNum + 5] := I4;
     end;
   end;
 
 var
-  IFS: TIndexedFaceSetNode absolute Result;
+  TriangleSet: TIndexedTriangleSetNode absolute Result;
   XDim, ZDim: Integer; {< shortcuts for appropriate fields values }
   TexCoordProvided: boolean;
   I, J, NextIndex: Integer;
   CoordNode: TCoordinateNode;
   TexCoords: TVector2List;
 begin
-  IFS := TIndexedFaceSetNode.Create(X3DName, BaseUrl);
+  TriangleSet := TIndexedTriangleSetNode.Create(X3DName, BaseUrl);
   try
     XDim := FdXDimension.Value;
     ZDim := FdZDimension.Value;
@@ -85,10 +90,10 @@ begin
     if IsNotEmpty then
     begin
       CoordNode := TCoordinateNode.Create('', BaseUrl);
-      IFS.Coord := CoordNode;
+      TriangleSet.Coord := CoordNode;
       Coords := CoordNode.FdPoint.Items;
 
-      { calculate TexCoordProvided, set IFS.FdTexCoord, maybe set TexCoords }
+      { calculate TexCoordProvided, set TriangleSet.FdTexCoord, maybe set TexCoords }
       TexCoordProvided :=
         (FdTexCoord.Value <> nil) and
         (FdTexCoord.Value is TTextureCoordinateNode) and
@@ -96,12 +101,12 @@ begin
           XDim * ZDim);
       if TexCoordProvided then
       begin
-        IFS.FdTexCoord.Value := FdTexCoord.Value;
+        TriangleSet.FdTexCoord.Value := FdTexCoord.Value;
         TexCoords := nil; // just silence Delphi warning
       end else
       begin
-        IFS.FdTexCoord.Value := TTextureCoordinateNode.Create('', BaseUrl);
-        TexCoords := TTextureCoordinateNode(IFS.FdTexCoord.Value).FdPoint.Items;
+        TriangleSet.FdTexCoord.Value := TTextureCoordinateNode.Create('', BaseUrl);
+        TexCoords := TTextureCoordinateNode(TriangleSet.FdTexCoord.Value).FdPoint.Items;
       end;
 
       { generate coords (and other per-vertex stuff: tex coords) }
@@ -123,8 +128,8 @@ begin
         end;
 
       { generate quads indexes }
-      CoordIndexes := IFS.CoordIndexField.Items;
-      CoordIndexes.Count := (XDim - 1) * (ZDim - 1) * 8;
+      CoordIndexes := TriangleSet.CoordIndexField.Items;
+      CoordIndexes.Count := (XDim - 1) * (ZDim - 1) * 6;
       NextIndex := 0;
       for J := 1 to ZDim - 1 do
         for I := 1 to XDim - 1 do
@@ -136,22 +141,22 @@ begin
                I - 1 + (J - 1) * XDim,
                I - 1 +  J      * XDim,
                I     +  J      * XDim);
-          NextIndex := NextIndex + 8;
+          NextIndex := NextIndex + 6;
         end;
       Assert(NextIndex = CoordIndexes.Count);
     end;
 
-    IFS.Solid := Solid;
-    IFS.Ccw := Ccw;
+    TriangleSet.Solid := Solid;
+    TriangleSet.Ccw := Ccw;
     { We order our coords such that we can simply copy normal/color nodes }
-    IFS.NormalPerVertex := NormalPerVertex;
-    IFS.Normal := Normal;
-    IFS.ColorPerVertex := ColorPerVertex;
-    IFS.Color := Color;
-    IFS.CreaseAngle := CreaseAngle;
+    TriangleSet.NormalPerVertex := NormalPerVertex;
+    TriangleSet.Normal := Normal;
+    TriangleSet.ColorPerVertex := ColorPerVertex;
+    TriangleSet.Color := Color;
+    // Not available: TriangleSet.CreaseAngle := CreaseAngle;
     {$ifndef CASTLE_SLIM_NODES}
-    IFS.FogCoord := FogCoord;
-    IFS.FdAttrib.AssignValue(FdAttrib);
+    TriangleSet.FogCoord := FogCoord;
+    TriangleSet.FdAttrib.AssignValue(FdAttrib);
     {$endif}
   except FreeAndNil(Result); raise end;
 end;
