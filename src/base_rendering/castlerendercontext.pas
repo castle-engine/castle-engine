@@ -898,11 +898,19 @@ end;
 
 procedure TRenderContext.SetBoundBuffer(const Target: TBufferTarget; const Value: TGLuint);
 begin
+  { TODO: Optimization (avoiding glBindBuffer) disabled.
+    Reason: castle-model-viewer (rock.gltf, triangulatio.x3dv) shows
+    that we cannot optimize out glBindBuffer calls like this,
+    it's causing crashes (Linux "guardia" system, Nvidia GPU).
+
   if FBoundBuffer[Target] <> Value then
   begin
     FBoundBuffer[Target] := Value;
     glBindBuffer(BufferTargetGL[Target], Value);
   end;
+  }
+
+  glBindBuffer(BufferTargetGL[Target], Value);
 end;
 
 { TRenderContext.TScissorList ------------------------------------------------------------------- }
