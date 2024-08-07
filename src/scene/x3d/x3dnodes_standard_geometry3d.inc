@@ -1,6 +1,6 @@
 {%MainUnit x3dnodes.pas}
 {
-  Copyright 2002-2022 Michalis Kamburelis.
+  Copyright 2002-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -275,7 +275,7 @@ end;
 
 function TConeNode.CalculateSlices: Cardinal;
 begin
-  // use default in case of -1 or invalid value
+  // use default in case of 0 or invalid value
   if FdSlices.Value < MinTriangulationSlices then
     Result := DefaultTriangulationSlices
   else
@@ -284,7 +284,7 @@ end;
 
 function TConeNode.CalculateStacks: Cardinal;
 begin
-  // use default in case of -1 or invalid value
+  // use default in case of 0 or invalid value
   if FdStacks.Value < MinTriangulationStacks then
     Result := DefaultTriangulationStacks
   else
@@ -324,7 +324,7 @@ end;
 
 function TCylinderNode.CalculateSlices: Cardinal;
 begin
-  // use default in case of -1 or invalid value
+  // use default in case of 0 or invalid value
   if FdSlices.Value < MinTriangulationSlices then
     Result := DefaultTriangulationSlices
   else
@@ -345,7 +345,7 @@ begin
 
 (*
 
-  // use default in case of -1 or invalid value
+  // use default in case of 0 or invalid value
   if FdStacks.Value < MinTriangulationStacks then
     Result := DefaultTriangulationStacks
   else
@@ -857,7 +857,7 @@ end;
 
 function TSphereNode.CalculateSlices: Cardinal;
 begin
-  // use default in case of -1 or invalid value
+  // use default in case of 0 or invalid value
   if FdSlices.Value < MinTriangulationSlices then
     Result := DefaultTriangulationSlices
   else
@@ -866,7 +866,7 @@ end;
 
 function TSphereNode.CalculateStacks: Cardinal;
 begin
-  // use default in case of -1 or invalid value
+  // use default in case of 0 or invalid value
   if FdStacks.Value < MinTriangulationStacks then
     Result := DefaultTriangulationStacks
   else
