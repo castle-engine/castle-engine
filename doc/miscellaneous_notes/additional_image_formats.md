@@ -21,7 +21,7 @@ For example, the TIFF format relies on a shared library _LibTiff_ for some platf
 
 It is also an extra burden to implement, due to need to deploy _LibTiff_ to all the potential platforms. We have to limit such work, esp. when we can recommend a better replacement -- in case of TIFF, we recommend using PNG.
 
-## Example project for thigns below
+## Example project for things below
 
 Clone https://github.com/castle-engine/castle-image-viewer and switch to branch `extra-image-formats`.
 
