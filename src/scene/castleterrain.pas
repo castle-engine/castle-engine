@@ -661,7 +661,7 @@ type
     property QueryOffset: TVector2 read FQueryOffset write SetQueryOffset;
 
     property Triangulate: Boolean read FTriangulationIgnoreHeights write SetTriangulationIgnoreHeights;
-      {$ifdef FPC}deprecated 'use TriangulationIgnoreHeights'{$endif};
+      {$ifdef FPC}deprecated 'use TriangulationIgnoreHeights';{$endif}
   published
     { Options used to render the terrain. Can be used e.g. to toggle wireframe rendering. }
     property RenderOptions: TCastleRenderOptions read GetRenderOptions;
