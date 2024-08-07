@@ -18,6 +18,56 @@ unit CastleTextureFontData;
 
 {$I castleconf.inc}
 
+{ Workaround a convoluted bug in Delphi < 10.4.
+  Doesn't affect new Delphi versions, doesn't affect FPC.
+
+  More precisely, we confirmed
+  - it occurs in Delphi 10.2.3
+  - it is fixed in Delphi 10.4.2 and all newer Delphi versions we tested (11.x, 12.x).
+
+  Details:
+
+  In these older Delphi versions,
+  using "inherited", "inherited Create" or "inherited Create(nil)"
+  in TTextureFontData.TGlyphDictionary.Create
+  leaves the created instance in state when internal FComparer is nil
+  (as if TDictionary<TKey,TValue>.Create constructor wasn't called).
+  Looks like having own constructor TGlyphDictionary.Create confuses
+  these early Delphi versions.
+
+  Workaround is to create and use own comparer, instance of
+  TUnicodeCharEqualityComparer.
+
+  This isn't related to whether this constructor has "reintroduce" or not,
+  tested.
+
+  In effect,
+  - Hash method causes Access Violation,
+  - and in effect all other routines (Add, AddOrSetValue, our SetItems)
+    cause Access Violation.
+
+  In the past, we even applied this change to any Delphi version, because
+  - The TUnicodeCharEqualityComparer makes sense anyway, the default
+    comparer from Generics.Collections for Cardinal wouldn't do anything
+    substantially different or more optimal.
+  - This way TUnicodeCharEqualityComparer will be tested even when we run
+    through latest Delphi, like 11.
+  - This way we don't care about carefully testing at which Delphi version
+    (10.3.x, 10.4.x?) the bug is fixed.
+
+  However, we later found out the workaround is not really applicable
+  to all Delphi versions. Freeing our comparer ("FreeAndNil(FComparer)")
+  makes a crash with Delphi 12.0, only in RELEASE mode (goes OK in DEBUG...).
+  Looks like in newer Delphis, we are not supposed to free the comparer.
+  But not freeing it means we most likely have a memory leak in older Delphis.
+  So part of the workaround would have to be conditional on Delphi version anyway.
+
+  So we apply the workaround selectively, only to older Delphis.
+}
+{$if CompilerVersion < 34}
+  {$define CASTLE_WORKAROUND_GLYPH_COMPARER}
+{$endif}
+
 interface
 
 uses Generics.Collections, Generics.Defaults,
@@ -54,7 +104,7 @@ type
       { Map Unicode code to a TGlyph representation. }
       TGlyphDictionary = class({$ifdef FPC}specialize{$endif} TDictionary<TUnicodeChar, TGlyph>)
       strict private
-        {$ifndef FPC}
+        {$ifdef CASTLE_WORKAROUND_GLYPH_COMPARER}
         type
           TUnicodeCharEqualityComparer = class(TCustomComparer<TUnicodeChar>)
             function Compare(const Left, Right: TUnicodeChar): Integer; override;
@@ -176,7 +226,7 @@ uses Classes, SysUtils, Character,
 
 { TUnicodeCharEqualityComparer ----------------------------------------------- }
 
-{$ifndef FPC}
+{$ifdef CASTLE_WORKAROUND_GLYPH_COMPARER}
 
 function TTextureFontData.TGlyphDictionary.TUnicodeCharEqualityComparer.
   Compare(const Left, Right: TUnicodeChar): Integer;
@@ -202,34 +252,7 @@ end;
 
 constructor TTextureFontData.TGlyphDictionary.Create;
 begin
-  {$ifndef FPC}
-  { Pass TUnicodeCharEqualityComparer to avoid Delphi 10.2.3
-    (and likely ealier versions too) bug (fixed for sure since Delphi 10.4.2).
-
-    In these older Delphi versions,
-    using "inherited", "inherited Create" or "inherited Create(nil)"
-    leaves the created instance in state when internal FComparer is nil
-    (as if TDictionary<TKey,TValue>.Create constructor wasn't called).
-    Looks like having own constructor TGlyphDictionary.Create confuses
-    these early Delphi versions.
-
-    This isn't related to whether this constructor has "reintroduce" or not,
-    tested.
-
-    In effect,
-    - Hash method causes Access Violation,
-    - and in effect all other routines (Add, AddOrSetValue, our SetItems)
-      cause Access Violation.
-
-    We apply this change to any Delphi version, because
-    - The TUnicodeCharEqualityComparer makes sense anyway, the default
-      comparer from Generics.Collections for Cardinal wouldn't do anything
-      substantially different or more optimal.
-    - This way TUnicodeCharEqualityComparer will be tested even when we run
-      through latest Delphi, like 11.
-    - This way we don't care about carefully testing at which Delphi version
-      (10.3.x, 10.4.x?) the bug is fixed.
-  }
+  {$ifdef CASTLE_WORKAROUND_GLYPH_COMPARER}
   FComparer := TUnicodeCharEqualityComparer.Create;
   inherited Create(FComparer);
   {$else}
@@ -248,8 +271,18 @@ begin
       G.Free;
   Clear;
   inherited;
-  {$ifndef FPC}
-  FreeAndNil(FComparer);
+  {$ifdef CASTLE_WORKAROUND_GLYPH_COMPARER}
+  { Don't do this on new Delphis.
+    This makes a crash with Delphi 12 when compiled
+    in RELEASE (but not DEBUG) mode.
+
+    Now CASTLE_WORKAROUND_GLYPH_COMPARER is only defined for older Delphis,
+    should we free or not?
+
+    Decision: Let eventual memory leaks happen with older Delphis.
+    Better memory leaks, than crash.
+    Everything is great (no crash, no leak) with Delphis >= 10.4. }
+  //FreeAndNil(FComparer);
   {$endif}
 end;
 
