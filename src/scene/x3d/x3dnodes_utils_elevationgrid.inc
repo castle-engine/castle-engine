@@ -15,6 +15,44 @@
 }
 
 function TElevationGridNode.Proxy(var State: TX3DGraphTraverseState): TAbstractGeometryNode;
+var
+  TriangleSet: TIndexedTriangleSetNode absolute Result;
+begin
+  TriangleSet := InternalCreateTriangles(
+    FdXDimension.Value, FdZDimension.Value,
+    FdXSpacing.Value, FdZSpacing.Value,
+    FdHeight.Items,
+    TexCoord,
+    { Idea: We could expose TElevationGridNode.TriangulationIgnoreHeights
+      as extra X3D field some day, if needed? }
+    false
+  );
+  try
+    // copy all additional fields, that are not handled by InternalCreateTriangles
+    TriangleSet.X3DName := X3DName;
+    TriangleSet.BaseUrl := BaseUrl;
+    TriangleSet.Solid := Solid;
+    TriangleSet.Ccw := Ccw;
+    { We order our coords such that we can simply copy normal/color nodes }
+    TriangleSet.NormalPerVertex := NormalPerVertex;
+    // TODO: InternalCreateTriangles should take this, and generate own normals if none provided
+    TriangleSet.Normal := Normal;
+    TriangleSet.ColorPerVertex := ColorPerVertex;
+    TriangleSet.Color := Color;
+    // Not available: TriangleSet.CreaseAngle := CreaseAngle;
+    {$ifndef CASTLE_SLIM_NODES}
+    TriangleSet.FogCoord := FogCoord;
+    TriangleSet.FdAttrib.AssignValue(FdAttrib);
+    {$endif}
+  except FreeAndNil(TriangleSet); raise end;
+end;
+
+class function TElevationGridNode.InternalCreateTriangles(
+  const AXDimension, AZDimension: Integer;
+  const AXSpacing, AZSpacing: Single;
+  const AHeight: TSingleList;
+  const ATexCoord: TAbstractTextureCoordinateNode;
+  const TriangulationIgnoreHeights: Boolean): TIndexedTriangleSetNode;
 
 { How to render TElevationGridNode?
 
@@ -75,89 +113,69 @@ var
   end;
 
 var
-  TriangleSet: TIndexedTriangleSetNode absolute Result;
-  XDim, ZDim: Integer; {< shortcuts for appropriate fields values }
-  TexCoordProvided: boolean;
   I, J, NextIndex: Integer;
   CoordNode: TCoordinateNode;
-  TexCoords: TVector2List;
+  TexCoordsToGenerate: TVector2List;
 begin
-  TriangleSet := TIndexedTriangleSetNode.Create(X3DName, BaseUrl);
+  Result := TIndexedTriangleSetNode.Create;
   try
-    XDim := FdXDimension.Value;
-    ZDim := FdZDimension.Value;
-
-    if IsNotEmpty then
+    if ClassIsNotEmpty(
+         AXDimension, AZDimension,
+         AXSpacing, AZSpacing, AHeight) then
     begin
-      CoordNode := TCoordinateNode.Create('', BaseUrl);
-      TriangleSet.Coord := CoordNode;
+      CoordNode := TCoordinateNode.Create;
+      Result.Coord := CoordNode;
       Coords := CoordNode.FdPoint.Items;
 
-      { calculate TexCoordProvided, set TriangleSet.FdTexCoord, maybe set TexCoords }
-      TexCoordProvided :=
-        (FdTexCoord.Value <> nil) and
-        (FdTexCoord.Value is TTextureCoordinateNode) and
-        (TTextureCoordinateNode(FdTexCoord.Value).FdPoint.Count >=
-          XDim * ZDim);
-      if TexCoordProvided then
+      { calculate TexCoordProvided, set Result.FdTexCoord, maybe set TexCoords }
+      if ATexCoord <> nil then
       begin
-        TriangleSet.FdTexCoord.Value := FdTexCoord.Value;
-        TexCoords := nil; // just silence Delphi warning
+        Result.FdTexCoord.Value := ATexCoord;
+        TexCoordsToGenerate := nil;
       end else
       begin
-        TriangleSet.FdTexCoord.Value := TTextureCoordinateNode.Create('', BaseUrl);
-        TexCoords := TTextureCoordinateNode(TriangleSet.FdTexCoord.Value).FdPoint.Items;
+        Result.FdTexCoord.Value := TTextureCoordinateNode.Create;
+        TexCoordsToGenerate := TTextureCoordinateNode(Result.FdTexCoord.Value).
+          FdPoint.Items;
       end;
 
       { generate coords (and other per-vertex stuff: tex coords) }
-      Coords.Count := XDim * ZDim;
-      if not TexCoordProvided then
-        TexCoords.Count := XDim * ZDim;
-      for J := 0 to ZDim - 1 do
-        for I := 0 to XDim - 1 do
+      Coords.Count := AXDimension * AZDimension;
+      if TexCoordsToGenerate <> nil then
+        TexCoordsToGenerate.Count := AXDimension * AZDimension;
+      for J := 0 to AZDimension - 1 do
+        for I := 0 to AXDimension - 1 do
         begin
-          Coords.L[I + J * XDim] := Vector3(
-            FdXSpacing.Value * I,
-            FdHeight.Items.L[I + J * XDim],
-            FdZSpacing.Value * J);
+          Coords.L[I + J * AXDimension] := Vector3(
+            AXSpacing * I,
+            AHeight.L[I + J * AXDimension],
+            AZSpacing * J);
 
-          if not TexCoordProvided then
-            TexCoords.L[I + J * XDim] := Vector2(
-              I / (XDim - 1),
-              J / (ZDim - 1));
+          if TexCoordsToGenerate <> nil then
+            TexCoordsToGenerate.L[I + J * AXDimension] := Vector2(
+              I / (AXDimension - 1),
+              J / (AZDimension - 1));
         end;
 
       { generate quads indexes }
-      CoordIndexes := TriangleSet.CoordIndexField.Items;
-      CoordIndexes.Count := (XDim - 1) * (ZDim - 1) * 6;
+      CoordIndexes := Result.CoordIndexField.Items;
+      CoordIndexes.Count := (AXDimension - 1) * (AZDimension - 1) * 6;
       NextIndex := 0;
-      for J := 1 to ZDim - 1 do
-        for I := 1 to XDim - 1 do
+      for J := 1 to AZDimension - 1 do
+        for I := 1 to AXDimension - 1 do
         begin
           { Vertices are ordered such that face is CCW from up
             (i.e. looking from positive Y axis). }
           Quad(NextIndex,
-               I     + (J - 1) * XDim,
-               I - 1 + (J - 1) * XDim,
-               I - 1 +  J      * XDim,
-               I     +  J      * XDim);
+               I     + (J - 1) * AXDimension,
+               I - 1 + (J - 1) * AXDimension,
+               I - 1 +  J      * AXDimension,
+               I     +  J      * AXDimension);
           NextIndex := NextIndex + 6;
         end;
       Assert(NextIndex = CoordIndexes.Count);
     end;
 
-    TriangleSet.Solid := Solid;
-    TriangleSet.Ccw := Ccw;
-    { We order our coords such that we can simply copy normal/color nodes }
-    TriangleSet.NormalPerVertex := NormalPerVertex;
-    TriangleSet.Normal := Normal;
-    TriangleSet.ColorPerVertex := ColorPerVertex;
-    TriangleSet.Color := Color;
-    // Not available: TriangleSet.CreaseAngle := CreaseAngle;
-    {$ifndef CASTLE_SLIM_NODES}
-    TriangleSet.FogCoord := FogCoord;
-    TriangleSet.FdAttrib.AssignValue(FdAttrib);
-    {$endif}
   except FreeAndNil(Result); raise end;
 end;
 
