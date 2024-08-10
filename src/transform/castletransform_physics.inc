@@ -1,6 +1,6 @@
-{%MainUnit castletransform.pas}
+﻿{%MainUnit castletransform.pas}
 {
-  Copyright 2017-2023 Michalis Kamburelis.
+  Copyright 2017-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -22,7 +22,19 @@
     TCastleRigidBody.OnCollisionEnter, TCastleRigidBody.OnCollisionExit. }
   TPhysicsCollisionDetails = record
   public
-    Transforms: array[0..1] of TCastleTransform;
+    Transforms: array [0..1] of TCastleTransform;
+
+    { Object that receives the OnCollisionXxx event. }
+    function Sender: TCastleTransform;
+
+    { The object object (not the one that receives the OnCollisionXxx event)
+      to which the event is related.
+
+      @unorderedList(
+        @item In case of @link(OnCollisionEnter), this is the object that we collided with.
+        @item In case of @link(OnCollisionStay), this is the object that we are currently colliding with.
+        @item In case of @link(OnCollisionExit), this is the object that we stopped colliding with.
+      ) }
     function OtherTransform: TCastleTransform;
   end;
 
@@ -989,38 +1001,38 @@
       It can occur repeatedly for the same body (in the same time instant)
       if the collision has many points of contact.
 
-      @italic(Warning:) Do not free the @link(TCastleTransform) instances
-      that collide during this event.
-      It would free the rigid body instance, which will crash the physics engine for now.
+      @italic(Warning:) Do not free the related @link(TCastleTransform)
+      or @link(TCastleRigidBody) or @link(TCastleCollider) components
+      upon receiving this event.
+      Right now, it would free an underlying physics engine object,
+      and this would crash the physics engine.
 
       Instead, you can:
 
       @unorderedList(
-        @item(Schedule it for freeing later using
+        @item(Schedule any component to free it later, using
           @link(TCastleApplicationProperties.FreeDelayed ApplicationProperties.FreeDelayed).)
-        @item(Or schedule it for removal/freeing later using
+        @item(Schedule @link(TCastleTransform) for removal/freeing later using
           @link(TCastleTransform.RemoveDelayed).)
-        @item(Or set @link(TCastleTransform.Exists) to @false and maybe free later
-          using own mechanism.)
+        @item(Or set @link(TCastleTransform.Exists) to @false
+          and maybe free it later using your own mechanism.)
       ) }
     property OnCollisionEnter: TCollisionEvent read FOnCollisionEnter write SetOnCollisionEnter;
 
     { Occurs when TCastleRigidBody stops colliding with another TCastleRigidBody.
 
-      @italic(Warning:) Do not free the @link(TCastleTransform) instances
-      that collide during this event.
-      It would free the rigid body instance, which will crash the physics engine for now.
-      Instead, you can set @link(TCastleTransform.Exists) to @false
-      (you can free it later, e.g. during @link(TCastleUserInterface.OnUpdate)). }
+      Just like at @link(OnCollisionEnter):
+      Do not free the related components upon receiving this event.
+      See the @link(OnCollisionEnter) documentation for details
+      of this limitation and solutions. }
     property OnCollisionExit: TCollisionEvent read FOnCollisionExit write SetOnCollisionExit;
 
     { Occurs when TCastleRigidBody still collides with another TCastleRigidBody.
 
-      @italic(Warning:) Do not free the @link(TCastleTransform) instances
-      that collide during this event.
-      It would free the rigid body instance, which will crash the physics engine for now.
-      Instead, you can set @link(TCastleTransform.Exists) to @false
-      (you can free it later, e.g. during @link(TCastleUserInterface.OnUpdate)). }
+      Just like at @link(OnCollisionEnter):
+      Do not free the related components upon receiving this event.
+      See the @link(OnCollisionEnter) documentation for details
+      of this limitation and solutions. }
     property OnCollisionStay: TCollisionEvent read FOnCollisionStay write SetOnCollisionStay;
   published
     { Does the physics simulation move and rotate this object
@@ -1111,7 +1123,9 @@
 
     { Controls whether the rigid body is actually processed by the physics engine.
       When this is @false, the rigid body is not updated by the physics engine,
-      and it does not cause collisions with other rigid bodies. }
+      it does not cause collisions with other rigid bodies
+      and it does not receive events like @link(OnCollisionEnter),
+      @link(OnCollisionStay), @link(OnCollisionExit). }
     property Exists: Boolean read FExists write SetExists default true;
 
     { Damping means that the velocity will decrease over time.
@@ -1383,6 +1397,11 @@ begin
 end;
 
 { TPhysicsCollisionDetails --------------------------------------------------- }
+
+function TPhysicsCollisionDetails.Sender: TCastleTransform;
+begin
+  Result := Transforms[0];
+end;
 
 function TPhysicsCollisionDetails.OtherTransform: TCastleTransform;
 begin
@@ -2930,7 +2949,7 @@ procedure TCastleRigidBody.DeinitializeCollider;
       Exit;
 
     { We don't use here FPrevCollisions list because it can be empty when
-      this rigid body don't assign any FOnCollisionXXX event. }
+      this rigid body didn't assign any FOnCollisionXXX event. }
     ContactPairEdge := FKraftBody.ContactPairEdgeFirst;
     while Assigned(ContactPairEdge) do
     begin
@@ -3099,7 +3118,13 @@ begin
         begin
           // New collision.
           if Assigned(FOnCollisionEnter) then
+          begin
+            if not CollisionDetails.Transforms[0].RigidBody.Exists then
+              WriteLnWarning('TCastleRigidBody: Calling OnCollisionEnter when 1st TCastleRigidBody has Exists=false, submit a bug with testcase');
+            if not CollisionDetails.Transforms[1].RigidBody.Exists then
+              WriteLnWarning('TCastleRigidBody: Calling OnCollisionEnter when 2nd TCastleRigidBody has Exists=false, submit a bug with testcase');
             FOnCollisionEnter(CollisionDetails);
+          end;
         end else
         begin
           // Still in collision.

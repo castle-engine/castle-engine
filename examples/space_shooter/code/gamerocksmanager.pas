@@ -134,8 +134,8 @@ var
   Rock: TRockBehavior;
   Rocket: TRocketBehavior;
 begin
-  Rock := CollisionDetails.Transforms[0].FindBehavior(TRockBehavior) as TRockBehavior;
-  Rocket := CollisionDetails.Transforms[1].FindBehavior(TRocketBehavior) as TRocketBehavior;
+  Rock := CollisionDetails.Sender.FindBehavior(TRockBehavior) as TRockBehavior;
+  Rocket := CollisionDetails.OtherTransform.FindBehavior(TRocketBehavior) as TRocketBehavior;
   // Abort if this is not a collision between rock and rocket
   if (Rock = nil) or (Rocket = nil) then
     Exit;
