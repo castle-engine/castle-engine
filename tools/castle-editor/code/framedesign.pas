@@ -1977,7 +1977,7 @@ begin
 
   if DesignRootVisual then
   begin
-    CameraPreview := TCameraPreview.Create(NewDesignOwner);
+    CameraPreview := TCameraPreview.Create(nil, NewDesignOwner);
     CastleControl.Controls.InsertBack(CameraPreview.UiRoot);
   end;
 
