@@ -368,12 +368,14 @@ function ParentPath(DirName: string;
   deprecated 'use URLs and operate on them using CastleUriUtils unit';
 
 { Combines BasePath with RelPath into complete path.
-  BasePath MUST be an absolute path,
-  on Windows it must contain at least drive specifier (like 'c:'),
-  on Unix it must begin with "/". RelPath can be relative and can
-  be absolute. If RelPath is absolute, result is RelPath.
-  Else the result is an absolute path calculated by combining RelPath
-  with BasePath.
+
+  BasePath may be an absolute path or relative path.
+  Also RelPath may be an absolute path or relative path.
+
+  If RelPath is absolute, result is just RelPath.
+  Otherwise, result is path starting from BasePath with RelPath applied
+  (whether the result is absolute or relative depends on whether BasePath
+  was absolute or relative).
 
   Usually you should instead operate on URLs
   and combine them using @link(CastleUriUtils.CombineURI). }
@@ -754,10 +756,17 @@ end;
 function CombinePaths(BasePath, RelPath: string): string;
 begin
   if IsPathAbsolute(RelPath) then
-    result := RelPath else
+  begin
+    Result := RelPath;
+  end else
   {$ifdef MSWINDOWS}
   if IsPathAbsoluteOnDrive(RelPath) then
-    result := BasePath[1] +DriveDelim +RelPath else
+  begin
+    if IsPathAbsolute(BasePath) then
+      Result := BasePath[1] + DriveDelim + RelPath
+    else
+      Result := RelPath;
+  end else
   {$endif}
   begin
     repeat
@@ -773,7 +782,10 @@ begin
         Break;
     until false;
 
-    result := InclPathDelim(BasePath) + RelPath;
+    if BasePath = '' then
+      Result := RelPath
+    else
+      Result := InclPathDelim(BasePath) + RelPath;
   end;
 end;
 
