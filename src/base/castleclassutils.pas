@@ -1064,6 +1064,16 @@ type
         there's no additional code to handle this case. You just need different
         observer for each property to be observed.)
     )
+
+    As the owner of this TFreeNotificationObserver instance (given as parameter
+    to the constructor, TFreeNotificationObserver.Create) you almost always
+    want to pass the instance that has the method you will associate
+    with @link(OnFreeNotification). In most cases (see also example above) this is
+    available as just "Self". This means that TFreeNotificationObserver
+    will be freed (and will no longer generate @link(OnFreeNotification))
+    when the instance holding the associated method is freed, not later
+    (which would mean the notification callback is called on non-existing instance,
+    leading to an access violation).
   *)
   TFreeNotificationObserver = class(TComponent)
   strict private
