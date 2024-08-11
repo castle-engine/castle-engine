@@ -1,7 +1,7 @@
 object ProjectForm: TProjectForm
-  Left = 646
+  Left = 536
   Height = 832
-  Top = 180
+  Top = 108
   Width = 1235
   Caption = ' my-project | Castle Game Engine'
   ClientHeight = 832
@@ -19,7 +19,7 @@ object ProjectForm: TProjectForm
   OnShow = FormShow
   Position = poMainFormCenter
   ShowInTaskBar = stAlways
-  LCLVersion = '3.2.0.0'
+  LCLVersion = '3.4.0.0'
   object PageControlBottom: TPageControl
     Left = 0
     Height = 224
@@ -846,11 +846,8 @@ object ProjectForm: TProjectForm
       Caption = 'Open Containing Folder'
       OnClick = MenuItemOpenDirFromFileClick
     end
-    object MenuItemSeparator2303403o: TMenuItem
-      Caption = '-'
-    end
-    object MenuItemNewSpriteSheet: TMenuItem
-      Action = ActionNewSpriteSheet
+    object MenuItem44: TMenuItem
+      Action = ActionCopyUrl
     end
     object MenuItemSepraratorSLP002: TMenuItem
       Caption = '-'
@@ -862,16 +859,19 @@ object ProjectForm: TProjectForm
     object MenuItemSeparator123123213: TMenuItem
       Caption = '-'
     end
-    object MenuItemNewDirectory: TMenuItem
-      Caption = 'New Directory...'
-      OnClick = MenuItemNewDirectoryClick
-    end
     object MenuItemDeleteFile: TMenuItem
       Caption = 'Delete...'
       OnClick = MenuItemDeleteFileClick
     end
     object N3: TMenuItem
       Caption = '-'
+    end
+    object MenuItemNewSpriteSheet: TMenuItem
+      Action = ActionNewSpriteSheet
+    end
+    object MenuItemNewDirectory: TMenuItem
+      Caption = 'New Directory...'
+      OnClick = MenuItemNewDirectoryClick
     end
     object MenuItemPopupNewUnit: TMenuItem
       Caption = 'New Unit Here'
@@ -1388,6 +1388,11 @@ object ProjectForm: TProjectForm
       Category = 'Run'
       Caption = 'Pretend Touch Device (--pretend-touch-device)'
       OnExecute = ActionRunParameterPretendTouchDeviceExecute
+    end
+    object ActionCopyUrl: TAction
+      Category = 'PopupFiles'
+      Caption = 'Copy URL'
+      OnExecute = ActionCopyUrlExecute
     end
   end
   object OpenPascalUnitDialog: TCastleOpenPascalUnitDialog

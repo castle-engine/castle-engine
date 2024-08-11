@@ -43,6 +43,7 @@ const
 type
   { Main project management. }
   TProjectForm = class(TForm)
+    ActionCopyUrl: TAction;
     ActionRunParameterPretendTouchDevice: TAction;
     ActionFindNext: TAction;
     ActionFindToggle: TAction;
@@ -114,6 +115,7 @@ type
     MenuItem15: TMenuItem;
     MenuItem19: TMenuItem;
     MenuItem43: TMenuItem;
+    MenuItem44: TMenuItem;
     MenuItemRunParameterPretendTouchDevice: TMenuItem;
     Separator14: TMenuItem;
     MenuItem21: TMenuItem;
@@ -263,7 +265,6 @@ type
     MenuItemUndo: TMenuItem;
     MenuItemSeparator78: TMenuItem;
     MenuItemReferenceOfCurrent: TMenuItem;
-    MenuItemSeparator2303403o: TMenuItem;
     MenuItemRefreshDir: TMenuItem;
     MenuItemSeparator123123213: TMenuItem;
     MenuItemOpenDirFromFile: TMenuItem;
@@ -335,6 +336,7 @@ type
     TabOutput: TTabSheet;
     ProcessUpdateTimer: TTimer;
     TabWarnings: TTabSheet;
+    procedure ActionCopyUrlExecute(Sender: TObject);
     procedure ActionFindNextExecute(Sender: TObject);
     procedure ActionFindToggleExecute(Sender: TObject);
     procedure ActionImportSketchfabExecute(Sender: TObject);
@@ -1002,6 +1004,19 @@ procedure TProjectForm.ActionFindNextExecute(Sender: TObject);
 begin
   Assert(Design <> nil); // menu item is disabled otherwise
   Design.FindNext;
+end;
+
+procedure TProjectForm.ActionCopyUrlExecute(Sender: TObject);
+var
+  SelectedFileName, Url: String;
+begin
+  if ShellListView1.Selected <> nil then
+  begin
+    SelectedFileName := ShellListView1.GetPathFromItem(ShellListView1.Selected);
+    Url := FilenameToUriSafe(SelectedFileName);
+    Url := MaybeUseDataProtocol(Url);
+    Clipboard.AsText := Url;
+  end;
 end;
 
 procedure TProjectForm.ActionFindToggleExecute(Sender: TObject);
@@ -2750,6 +2765,7 @@ procedure TProjectForm.ShellListPopupMenuPopup(Sender: TObject);
 begin
   MenuItemOpenDefault.Enabled := ShellListView1.Selected <> nil;
   MenuItemDeleteFile.Enabled := ShellListView1.Selected <> nil;
+  ActionCopyUrl.Enabled := ShellListView1.Selected <> nil;
 end;
 
 procedure TProjectForm.FreeProcess;
