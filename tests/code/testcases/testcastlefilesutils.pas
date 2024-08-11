@@ -165,7 +165,7 @@ begin
   AssertEquals('c:\a\b', CombinePaths('c:\a\', 'b'));
   AssertEquals('c:\b', CombinePaths('c:\a\', 'c:\b'));
 
-  AssertEquals('c:/a/b', CombinePaths('c:/a', 'b'));
+  AssertEquals('c:/a\b', CombinePaths('c:/a', 'b'));
   AssertEquals('c:/a/b', CombinePaths('c:/a/', 'b'));
   AssertEquals('c:/b', CombinePaths('c:/a/', 'c:/b'));
   {$endif}
