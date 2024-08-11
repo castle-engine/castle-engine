@@ -18,10 +18,10 @@
             "$$ClassName" : "TCastleLayerNames"
           }
         },
-        "UseHeadlight" : "hlOn",
         "$Children" : [
           {
             "$$ClassName" : "TCastleScene",
+            "CastGlobalLights" : true,
             "ExposeTransforms" : [
             ],
             "Name" : "SceneLevel",
@@ -29,7 +29,7 @@
             "RenderOptions" : {
               "$$ClassName" : "TCastleScene.TSceneRenderOptions"
             },
-            "URL" : "castle-data:/level/level-dungeon.gltf"
+            "Url" : "castle-data:/level/level-dungeon.gltf"
           },
           {
             "$$ClassName" : "TCastleScene",
@@ -47,7 +47,7 @@
               "X" : 2.0000000000000000E+000,
               "Z" : 4.0000000000000000E+000
             },
-            "URL" : "castle-data:/enemy/soldier1.gltf"
+            "Url" : "castle-data:/enemy/soldier1.gltf"
           },
           {
             "$$ClassName" : "TCastleScene",
@@ -65,7 +65,7 @@
               "X" : 5.0000000000000000E+000,
               "Z" : 3.0000000000000000E+000
             },
-            "URL" : "castle-data:/enemy/soldier1.gltf"
+            "Url" : "castle-data:/enemy/soldier1.gltf"
           },
           {
             "$$ClassName" : "TCastleScene",
@@ -83,7 +83,7 @@
               "X" : 8.0000000000000000E+000,
               "Z" : 2.0000000000000000E+000
             },
-            "URL" : "castle-data:/enemy/soldier1.gltf"
+            "Url" : "castle-data:/enemy/soldier1.gltf"
           },
           {
             "$$ClassName" : "TCastleScene",
@@ -101,7 +101,7 @@
               "X" : 1.1000000000000000E+001,
               "Z" : 1.0000000000000000E+000
             },
-            "URL" : "castle-data:/enemy/soldier1.gltf"
+            "Url" : "castle-data:/enemy/soldier1.gltf"
           },
           {
             "$$ClassName" : "TCastleScene",
@@ -117,10 +117,8 @@
             },
             "RotationPersistent" : {
               "$$ClassName" : "TCastleVector4RotationPersistent",
-              "W" : 1.7409327030181885E+000,
-              "X" : -2.4414059589616954E-004,
-              "Y" : -9.9999988079071045E-001,
-              "Z" : 2.0577452960424125E-004
+              "W" : 7.6648920774459839E-001,
+              "Y" : -9.9999994039535522E-001
             },
             "ScalePersistent" : {
               "$$ClassName" : "TCastleVector3Persistent",
@@ -130,11 +128,11 @@
             },
             "TranslationPersistent" : {
               "$$ClassName" : "TCastleVector3Persistent",
-              "X" : 9.9126167297363281E+000,
+              "X" : 8.8426027297973633E+000,
               "Y" : 1.1374617815017700E+000,
-              "Z" : -1.4989929199218750E+000
+              "Z" : -2.5185580253601074E+000
             },
-            "URL" : "castle-data:/wolf/wolf.starling-xml",
+            "Url" : "castle-data:/wolf/wolf.starling-xml",
             "$Behaviors" : [
               {
                 "$$ClassName" : "TCastleSoundSource",
@@ -144,13 +142,111 @@
                   {
                     "$$ClassName" : "TCastleSound",
                     "Name" : "Sound1",
-                    "URL" : "castle-data:/audio/werewolf_howling.wav"
+                    "Url" : "castle-data:/audio/werewolf_howling.wav"
                   }
                 ]
               },
               {
                 "$$ClassName" : "TCastleBillboard",
                 "Name" : "Billboard1"
+              }
+            ]
+          },
+          {
+            "$$ClassName" : "TCastleScene",
+            "AutoAnimation" : "walk",
+            "ExposeTransforms" : [
+            ],
+            "Name" : "SceneWolf2",
+            "PreciseCollisions" : true,
+            "ProcessEvents" : true,
+            "RenderOptions" : {
+              "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+              "MagnificationFilter" : "magNearest"
+            },
+            "RotationPersistent" : {
+              "$$ClassName" : "TCastleVector4RotationPersistent",
+              "W" : 7.6648920774459839E-001,
+              "Y" : -9.9999994039535522E-001
+            },
+            "ScalePersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : 7.4126735329627991E-002,
+              "Y" : 7.4126735329627991E-002,
+              "Z" : 7.4126735329627991E-002
+            },
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : 2.5673415660858154E+000,
+              "Y" : 1.1354748010635376E+000,
+              "Z" : -3.5318489074707031E+000
+            },
+            "Url" : "castle-data:/wolf/wolf.starling-xml",
+            "$Behaviors" : [
+              {
+                "$$ClassName" : "TCastleSoundSource",
+                "Name" : "SoundSource2",
+                "Sound" : "Sound2",
+                "$NonVisualComponents" : [
+                  {
+                    "$$ClassName" : "TCastleSound",
+                    "Name" : "Sound2",
+                    "Url" : "castle-data:/audio/werewolf_howling.wav"
+                  }
+                ]
+              },
+              {
+                "$$ClassName" : "TCastleBillboard",
+                "Name" : "Billboard2"
+              }
+            ]
+          },
+          {
+            "$$ClassName" : "TCastleScene",
+            "AutoAnimation" : "walk",
+            "ExposeTransforms" : [
+            ],
+            "Name" : "SceneWolf3",
+            "PreciseCollisions" : true,
+            "ProcessEvents" : true,
+            "RenderOptions" : {
+              "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+              "MagnificationFilter" : "magNearest"
+            },
+            "RotationPersistent" : {
+              "$$ClassName" : "TCastleVector4RotationPersistent",
+              "W" : 7.6648920774459839E-001,
+              "Y" : -9.9999994039535522E-001
+            },
+            "ScalePersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : 7.4126735329627991E-002,
+              "Y" : 7.4126735329627991E-002,
+              "Z" : 7.4126735329627991E-002
+            },
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : -1.9356895685195923E+000,
+              "Y" : 1.1341081857681274E+000,
+              "Z" : -3.9556045532226562E+000
+            },
+            "Url" : "castle-data:/wolf/wolf.starling-xml",
+            "$Behaviors" : [
+              {
+                "$$ClassName" : "TCastleSoundSource",
+                "Name" : "SoundSource3",
+                "Sound" : "Sound3",
+                "$NonVisualComponents" : [
+                  {
+                    "$$ClassName" : "TCastleSound",
+                    "Name" : "Sound3",
+                    "Url" : "castle-data:/audio/werewolf_howling.wav"
+                  }
+                ]
+              },
+              {
+                "$$ClassName" : "TCastleBillboard",
+                "Name" : "Billboard3"
               }
             ]
           },
@@ -165,15 +261,32 @@
             },
             "RotationPersistent" : {
               "$$ClassName" : "TCastleVector4RotationPersistent",
-              "W" : 2.4560291767120361E+000,
-              "X" : -7.8111344237186131E-007,
-              "Y" : -1.0000000000000000E+000
+              "W" : 1.1887284517288208E+000,
+              "X" : -1.0587054930510931E-006,
+              "Y" : -9.9999946355819702E-001,
+              "Z" : -7.7785301755284308E-007
             },
             "TranslationPersistent" : {
               "$$ClassName" : "TCastleVector3Persistent",
-              "X" : -6.5783720016479492E+000,
-              "Y" : 1.9696136713027954E+000,
-              "Z" : -5.7269501686096191E+000
+              "X" : -1.1513306617736816E+001,
+              "Y" : 1.9696245193481445E+000,
+              "Z" : 4.1271429061889648E+000
+            }
+          },
+          {
+            "$$ClassName" : "TCastleDirectionalLight",
+            "Name" : "LightCastingShadows",
+            "RotationPersistent" : {
+              "$$ClassName" : "TCastleVector4RotationPersistent",
+              "W" : 1.0041692256927490E+000,
+              "X" : -9.9999946355819702E-001
+            },
+            "Shadows" : true,
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : 9.3400907516479492E+000,
+              "Y" : 4.8323845863342285E+000,
+              "Z" : 8.0757904052734375E+000
             }
           }
         ]
@@ -198,20 +311,16 @@
         },
         "RotationPersistent" : {
           "$$ClassName" : "TCastleVector4RotationPersistent",
-          "W" : 4.1104249954223633E+000,
-          "X" : 9.4691433012485504E-002,
-          "Y" : 9.7977364063262939E-001,
-          "Z" : 1.7628696560859680E-001
-        },
-        "ScalePersistent" : {
-          "$$ClassName" : "TCastleVector3Persistent",
-          "Y" : 1.0000002384185791E+000
+          "W" : 9.1518563032150269E-001,
+          "X" : -5.3285449743270874E-001,
+          "Y" : -8.1859821081161499E-001,
+          "Z" : -2.1439021825790405E-001
         },
         "TranslationPersistent" : {
           "$$ClassName" : "TCastleVector3Persistent",
-          "X" : -8.8205337524414062E-001,
-          "Y" : 6.1725544929504395E+000,
-          "Z" : -3.3534867763519287E+000
+          "X" : -2.5562541961669922E+001,
+          "Y" : 1.0185080528259277E+001,
+          "Z" : 1.5208339691162109E+001
         }
       },
       "InternalDesignNavigations[dnFly]" : {
@@ -262,8 +371,8 @@
       "FontSize" : 2.0000000000000000E+001,
       "Name" : "LabelInfo",
       "Text" : [
-        "Move with AWSD and mouse dragging.",
-        "Press Ctrl + M to toggle \"Mouse Look\" mode.",
+        "Move with AWSD or mouse dragging.",
+        "Hold right mouse button to rotate with \"Mouse Look\".",
         "Press F5 to make a screenshot."
       ],
       "TranslationPersistent" : {
@@ -273,6 +382,15 @@
       },
       "VerticalAnchorParent" : "vpTop",
       "VerticalAnchorSelf" : "vpTop"
+    },
+    {
+      "$$ClassName" : "TCastleCrosshair",
+      "ColorPersistent" : {
+        "$$ClassName" : "TCastleColorPersistent",
+        "Blue" : 0.0000000000000000E+000,
+        "Green" : 1.1764706112444401E-002
+      },
+      "Name" : "Crosshair1"
     }
   ]
 }

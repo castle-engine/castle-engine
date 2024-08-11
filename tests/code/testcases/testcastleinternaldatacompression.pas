@@ -1,5 +1,5 @@
 {
-  Copyright 2023-2023 Michalis Kamburelis.
+  Copyright 2023-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -27,34 +27,15 @@ type
     procedure TestChannelsSplitCombine;
     procedure TestChannelsSplitCombineMultiChannels;
     procedure TestRleCompression;
+    procedure TestPascalEncodedMatchesOriginal;
   end;
 
 implementation
 
-uses CastleInternalDataCompression, CastleLog, CastleStringUtils, CastleImages;
+uses CastleInternalDataCompression, CastleLog, CastleStringUtils, CastleImages,
+  V3DSceneImages;
 
 {$I test_font_image_to_compress.inc}
-
-{ Like CompareMem, but slower,
-  and when the memory is different, log the difference:
-  position and the 2 different bytes. }
-function CompareMemDebug(const P1, P2: Pointer; const Size: Int64): Boolean;
-var
-  I: Int64;
-  P1B, P2B: PByte;
-begin
-  Result := true;
-  P1B := P1;
-  P2B := P2;
-  for I := 0 to Size - 1 do
-    if P1B^ <> P2B^ then
-    begin
-      WritelnLog('Difference at %d: %d <> %d', [I, P1B^, P2B^]);
-      Exit(false);
-      Inc(P1B);
-      Inc(P2B);
-    end;
-end;
 
 { TTestCastleInternalDataCompression ----------------------------------------- }
 
@@ -72,7 +53,7 @@ begin
 
       AssertEquals(SizeOf(FontImagePixels), Combined.Size);
       AssertTrue(CompareMemDebug(Combined.Memory, @FontImagePixels, Combined.Size));
-      AssertTrue(CompareMem(Combined.Memory, @FontImagePixels, Combined.Size));
+      AssertTrue(CompareMem     (Combined.Memory, @FontImagePixels, Combined.Size));
     finally FreeAndNil(Combined) end;
   finally
     Split.DataFree;
@@ -87,17 +68,13 @@ procedure TTestCastleInternalDataCompression.TestChannelsSplitCombineMultiChanne
     Split: TChannelsSplit;
     NewImage: TCastleImage;
   begin
+    //Writeln('Testing ', Image.Url, ' of class ', Image.ClassName);
     Split := DataChannelsSplit(Image.RawPixels, Image.Size, Image.PixelSize);
     try
       NewImage := TCastleImageClass(Image.ClassType).Create(Image.Width, Image.Height);
       try
         DataChannelsCombine(NewImage.RawPixels, NewImage.Size, NewImage.PixelSize, Split);
-
-        AssertEquals(Image.Size, NewImage.Size);
-        AssertEquals(Image.Width, NewImage.Width);
-        AssertEquals(Image.Height, NewImage.Height);
-        AssertTrue(CompareMemDebug(NewImage.RawPixels, Image.RawPixels, Image.Size));
-        AssertTrue(CompareMem(NewImage.RawPixels, Image.RawPixels, Image.Size));
+        AssertImagesEqual(Image, NewImage);
       finally FreeAndNil(NewImage) end;
     finally
       Split.DataFree;
@@ -112,12 +89,27 @@ begin
   Test(LoadImage('castle-data:/images/alpha.png'));
   Test(LoadImage('castle-data:/images/alpha_grayscale.png'));
   Test(LoadImage('castle-data:/images/rgbe.rgbe'));
+  Test(LoadImage('castle-data:/images/open.png'));
 
   Test(LoadImage('castle-data:/images/f023ours.jpg', [TGrayscaleImage]) as TGrayscaleImage);
   Test(LoadImage('castle-data:/images/f023ours.jpg', [TGrayscaleAlphaImage]) as TGrayscaleAlphaImage);
   Test(LoadImage('castle-data:/images/f023ours.jpg', [TRGBImage]) as TRGBImage);
   Test(LoadImage('castle-data:/images/f023ours.jpg', [TRGBAlphaImage]) as TRGBAlphaImage);
   Test(LoadImage('castle-data:/images/f023ours.jpg', [TRGBFloatImage]) as TRGBFloatImage);
+end;
+
+procedure TTestCastleInternalDataCompression.TestPascalEncodedMatchesOriginal;
+
+  procedure Test(const ImageOriginal, ImagePascalEncoded: TCastleImage);
+  begin
+    AssertImagesEqual(ImageOriginal, ImagePascalEncoded);
+    //SaveImage(ImageOriginal, 'castle-data:/images/open_original_copy.png');
+    ImageOriginal.Free;
+  end;
+
+begin
+  Test(LoadImage('castle-data:/images/open.png'), Open);
+  //SaveImage(Open, 'castle-data:/images/open_pascal_encoded.png');
 end;
 
 procedure TTestCastleInternalDataCompression.TestRleCompression;
@@ -146,30 +138,10 @@ begin
         RleDecompress(Compressed.Memory, Compressed.Size, Decompressed);
         AssertEquals(Initial.Size, Decompressed.Size);
         AssertTrue(CompareMemDebug(Decompressed.Memory, Initial.Memory, Initial.Size));
-        (*
-        TODO: CompareByte and CompareMem seem to be wrong here!
-
-        They detect the memory differs, while it is really the same,
-        shown by CompareMemDebug and looking at dump of it.
-        Observed with FPC 3.2.2 on Linux/x86_64.
-        Observed with Delphi 12 on Windows/x86_64.
-        So we're doing something wrong, but I can't see it?
-        *)
-
+        AssertTrue(CompareMem     (Decompressed.Memory, Initial.Memory, Initial.Size));
         {$ifdef FPC}
-        WritelnLog('CompareByte (should be 0) %d', [
-          CompareByte(Decompressed.Memory^, Initial.Memory^, Initial.Size)
-        ]);
+        AssertEquals(0, CompareByte(Decompressed.Memory^, Initial.Memory^, Initial.Size));
         {$endif}
-        WritelnLog('CompareMem (should be true) %s', [
-          BoolToStr(CompareMem(Decompressed.Memory, Initial.Memory, Initial.Size), true)
-        ]);
-
-        (*
-        Once/where this is fixed, use AssertTrue(CompareMem(...))
-        instead of CompareMemDebug. Use slower CompareMemDebug only
-        when CompareMem answers false, to get precise information what failed.
-        *)
       finally FreeAndNil(Decompressed) end;
     finally FreeAndNil(Compressed) end;
   finally FreeAndNil(Initial) end;

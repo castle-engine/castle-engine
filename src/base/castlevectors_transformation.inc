@@ -1,6 +1,6 @@
 {%MainUnit castlevectors.pas}
 {
-  Copyright 2020-2022 Michalis Kamburelis.
+  Copyright 2020-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -95,7 +95,7 @@ type
        results in blocked movement.
        MatrixDecompose cannot account fo arbitrary matrix that can contain anything.
 
-     - Beginng position (blocked movement) on "castle hall" level in castle-game.
+     - Beginning position (blocked movement) on "castle hall" level in castle-game.
 
        Same as above.
        Shows that we cannot detect UniformScale smartly.

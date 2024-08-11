@@ -157,7 +157,7 @@ begin
 
       But:
       - This is a bit inefficient way to abort.
-      - It causes unknown issues: view3dscene --debug-fixed-function,
+      - It causes unknown issues: castle-model-viewer --debug-fixed-function,
         enable any (like "visualize depth") screen effect,
         and you may experience crash in TCastleScene.ScreenEffectsCount
         as if ScreenEffectNodes was nil.

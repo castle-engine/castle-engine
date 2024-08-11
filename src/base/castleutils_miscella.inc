@@ -335,7 +335,7 @@ begin
     {$endif}
     { Clearly stating CPU bits is more obvious in some cases.
       E.g. this avoids the question "what does Arm mean, is it 32-bit or 64-bit Arm?". }
-    ' (this exe is using ' + IntToStr(SizeOf(Pointer) * 8) + '-bit architecture)';
+    ' (code compiled for ' + IntToStr(SizeOf(Pointer) * 8) + '-bit architecture)';
 end;
 
 function SCastleEngineProgramHelpSuffix(const AppName, AppVersion: String; const Ignored: Boolean): String;

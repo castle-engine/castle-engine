@@ -161,6 +161,10 @@ begin
     TCastleFloatRotationPropertyEditor);
   RegisterPropertyEditor(TypeInfo(Single), TCastleImageControl, 'Rotation',
     TCastleFloatRotationPropertyEditor);
+  RegisterPropertyEditor(TypeInfo(Single), TCastleSpotLight, 'BeamWidth',
+    TCastleFloatRotationPropertyEditor);
+  RegisterPropertyEditor(TypeInfo(Single), TCastleSpotLight, 'CutOffAngle',
+    TCastleFloatRotationPropertyEditor);
 
   { Handle using TCastleRegionEditor.
     Note: TBorder rule with 'ProtectedSides' name is registered

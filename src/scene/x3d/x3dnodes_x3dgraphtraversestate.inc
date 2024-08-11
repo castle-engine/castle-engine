@@ -292,7 +292,7 @@ begin
     Humanoid node. (Otherwise Matrix.MultPoint may raise errors in
     THAnimJointNode.ApplyTransform, when multiplying points with 0 matrix,
     testcase is
-    view3dscene ~/3dmodels/vrmlx3d/hanim/tecfa.unige.ch/vrml/objects/avatars/blaxxun/kambi_hanim_10_test.wrl.) }
+    castle-model-viewer ~/3dmodels/vrmlx3d/hanim/tecfa.unige.ch/vrml/objects/avatars/blaxxun/kambi_hanim_10_test.wrl.) }
   HumanoidTransformation.Init;
 
   TextureTransform := TMatrix4.Identity;

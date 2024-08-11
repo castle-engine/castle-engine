@@ -18,10 +18,11 @@
 program transform_feedback;
 
 uses
-  {$ifdef FPC} GL, GLExt, {$else} OpenGL, OpenGLext, {$endif}
+  {$ifdef OpenGLES} CastleGLES, {$else} CastleGL, {$endif}
   CastleVectors, X3DNodes, CastleWindow, CastleLog,
   CastleUtils, SysUtils, CastleApplicationProperties,
-  CastleViewport, CastleTimeUtils, CastleGLShaders, CastleGLUtils;
+  CastleViewport, CastleTimeUtils, CastleGLShaders, CastleGLUtils,
+  CastleRenderContext;
 
 const
   VertexArray: packed array[0..2] of TVector2 = (
@@ -71,7 +72,7 @@ begin
     for I := 0 to 1 do
     begin
       glBindVertexArray(VAOs[I]);
-      glBindBuffer(GL_ARRAY_BUFFER, VBOs[I]);
+      RenderContext.BindBuffer[btArray] := VBOs[I];
       glBufferData(GL_ARRAY_BUFFER, SizeOf(TVector2) * Length(VertexArray), @VertexArray[0], GL_STATIC_DRAW);
       glEnableVertexAttribArray(0);
       glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, SizeOf(TVector2), Pointer(0));
@@ -111,7 +112,8 @@ begin
   glDrawArrays(GL_TRIANGLES, 0, 3);
 
   // Ping-pong between the 2 buffers
-  PingPong := (PingPong + 1) mod 2;
+  //PingPong := (PingPong + 1) mod 2;
+  PingPong := 1 - PingPong;
 end;
 
 begin

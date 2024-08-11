@@ -1,5 +1,5 @@
 {
-  Copyright 2000-2022 Michalis Kamburelis.
+  Copyright 2000-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -327,9 +327,13 @@ function SCharIs(const S: String; const Index: Integer; const chars: TSetOfChars
 
 { Replace typically unreadable characters in string S with #number notation.
   Useful for printing strings with some unprintable chars for
-  debugging purposes. }
-function SReadableForm(const S: string): string; overload;
-function SReadableForm(const C: char): string; overload;
+  debugging purposes.
+
+  Note: In case String may contain Unicode characters, use
+  UnicodeCharToReadableString instead, after deconstructing the string
+  to Unicode characters using e.g. TCastleStringIterator. }
+function SReadableForm(const S: String): String; overload;
+function SReadableForm(const C: Char): String; overload;
 
 { Return S[StartPosition..EndPosition].
   This is similar to standard Copy procedure,
@@ -1507,7 +1511,7 @@ begin
   Result := (Index <= Length(S)) and CharInSet(S[Index], chars);
 end;
 
-function SReadableForm(const S: string): string;
+function SReadableForm(const S: String): String;
 var
   I: Integer;
 begin

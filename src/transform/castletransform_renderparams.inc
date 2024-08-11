@@ -1,6 +1,6 @@
 {%MainUnit castletransform.pas}
 {
-  Copyright 2010-2023 Michalis Kamburelis.
+  Copyright 2010-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -239,7 +239,7 @@
     UserPass: TUserRenderingPass;
 
     { Transformation that should be applied to the rendered result. }
-    Transform, InverseTransform: PMatrix4;
+    Transformation: PTransformation;
 
     { Current rendering statistics, should be updated by each
       @link(TCastleTransform.LocalRender) call. }
@@ -462,13 +462,12 @@ end;
 { TRenderParams -------------------------------------------------------------- }
 
 var
-  GlobalIdentityMatrix: TMatrix4;
+  GlobalIdentityTransform: TTransformation;
 
 constructor TRenderParams.Create;
 begin
   inherited;
-  Transform := @GlobalIdentityMatrix;
-  InverseTransform := @GlobalIdentityMatrix;
+  Transformation := @GlobalIdentityTransform;
   InMeaningfulParent := true;
 end;
 

@@ -6,7 +6,7 @@ See https://castle-engine.io/project_manifest for documentation of this file.
 -->
 
 <project name="texture-font-to-pascal"
-  standalone_source="texture-font-to-pascal.lpr"
+  standalone_source="texture_font_to_pascal.lpr"
   qualified_name="io.castleengine.texture.font.to.pascal"
 >
   <data exists="false" />

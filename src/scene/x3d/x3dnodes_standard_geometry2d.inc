@@ -168,7 +168,7 @@ end;
 
 function TCircle2DNode.CalculateSlices: Cardinal;
 begin
-  // use default in case of -1 or invalid value
+  // use default in case of 0 or invalid value
   if FdSlices.Value < MinTriangulationSlices then
     Result := DefaultTriangulationSlices
   else
@@ -210,7 +210,7 @@ end;
 
 function TDisk2DNode.CalculateSlices: Cardinal;
 begin
-  // use default in case of -1 or invalid value
+  // use default in case of 0 or invalid value
   if FdSlices.Value < MinTriangulationSlices then
     Result := DefaultTriangulationSlices
   else

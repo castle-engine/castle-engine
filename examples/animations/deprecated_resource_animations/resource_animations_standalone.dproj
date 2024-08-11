@@ -155,17 +155,17 @@
         <VerInfo_Locale>1033</VerInfo_Locale>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_1)'!=''">
-        <DCC_Define>RELEASE;$(DCC_Define)</DCC_Define>
-        <DCC_DebugInformation>0</DCC_DebugInformation>
-        <DCC_LocalDebugSymbols>false</DCC_LocalDebugSymbols>
-        <DCC_SymbolReferenceInfo>0</DCC_SymbolReferenceInfo>
-    </PropertyGroup>
-    <PropertyGroup Condition="'$(Cfg_2)'!=''">
         <DCC_Define>DEBUG;$(DCC_Define)</DCC_Define>
         <DCC_Optimize>false</DCC_Optimize>
         <DCC_GenerateStackFrames>true</DCC_GenerateStackFrames>
         <DCC_RangeChecking>true</DCC_RangeChecking>
         <DCC_IntegerOverflowCheck>true</DCC_IntegerOverflowCheck>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Cfg_2)'!=''">
+        <DCC_Define>RELEASE;$(DCC_Define)</DCC_Define>
+        <DCC_DebugInformation>0</DCC_DebugInformation>
+        <DCC_LocalDebugSymbols>false</DCC_LocalDebugSymbols>
+        <DCC_SymbolReferenceInfo>0</DCC_SymbolReferenceInfo>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_2_Android64)'!=''">
         <BT_BuildType>Debug</BT_BuildType>
@@ -188,11 +188,11 @@
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>
-        <BuildConfiguration Include="Release">
+        <BuildConfiguration Include="Debug">
             <Key>Cfg_1</Key>
             <CfgParent>Base</CfgParent>
         </BuildConfiguration>
-        <BuildConfiguration Include="Debug">
+        <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>
         </BuildConfiguration>
@@ -272,2638 +272,963 @@
                 </DeployFile>
 
                 <!-- Deploy data files -->
-                <DeployFile LocalName="data\CastleSettings.xml" Configuration="Debug" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>CastleSettings.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>CastleSettings.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>CastleSettings.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>CastleSettings.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>CastleSettings.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>CastleSettings.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>CastleSettings.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>CastleSettings.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>CastleSettings.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\deprecated/knight.png" Configuration="Debug" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/deprecated/</RemoteDir>
-                        <RemoteName>knight.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/deprecated/</RemoteDir>
-                        <RemoteName>knight.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/deprecated/</RemoteDir>
-                        <RemoteName>knight.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/deprecated/</RemoteDir>
-                        <RemoteName>knight.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/deprecated/</RemoteDir>
-                        <RemoteName>knight.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/deprecated/</RemoteDir>
-                        <RemoteName>knight.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/deprecated/</RemoteDir>
-                        <RemoteName>knight.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/deprecated/</RemoteDir>
-                        <RemoteName>knight.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/deprecated/</RemoteDir>
-                        <RemoteName>knight.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\deprecated/knight_multiple_castle_anim_frames/attack.castle-anim-frames" Configuration="Debug" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
-                        <RemoteName>attack.castle-anim-frames</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
-                        <RemoteName>attack.castle-anim-frames</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
-                        <RemoteName>attack.castle-anim-frames</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
-                        <RemoteName>attack.castle-anim-frames</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
-                        <RemoteName>attack.castle-anim-frames</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
-                        <RemoteName>attack.castle-anim-frames</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
-                        <RemoteName>attack.castle-anim-frames</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
-                        <RemoteName>attack.castle-anim-frames</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
-                        <RemoteName>attack.castle-anim-frames</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\deprecated/knight_multiple_castle_anim_frames/die.castle-anim-frames" Configuration="Debug" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
-                        <RemoteName>die.castle-anim-frames</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
-                        <RemoteName>die.castle-anim-frames</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
-                        <RemoteName>die.castle-anim-frames</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
-                        <RemoteName>die.castle-anim-frames</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
-                        <RemoteName>die.castle-anim-frames</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
-                        <RemoteName>die.castle-anim-frames</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
-                        <RemoteName>die.castle-anim-frames</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
-                        <RemoteName>die.castle-anim-frames</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
-                        <RemoteName>die.castle-anim-frames</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\deprecated/knight_multiple_castle_anim_frames/hurt.castle-anim-frames" Configuration="Debug" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
-                        <RemoteName>hurt.castle-anim-frames</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
-                        <RemoteName>hurt.castle-anim-frames</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
-                        <RemoteName>hurt.castle-anim-frames</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
-                        <RemoteName>hurt.castle-anim-frames</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
-                        <RemoteName>hurt.castle-anim-frames</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
-                        <RemoteName>hurt.castle-anim-frames</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
-                        <RemoteName>hurt.castle-anim-frames</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
-                        <RemoteName>hurt.castle-anim-frames</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
-                        <RemoteName>hurt.castle-anim-frames</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\deprecated/knight_multiple_castle_anim_frames/idle.castle-anim-frames" Configuration="Debug" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
-                        <RemoteName>idle.castle-anim-frames</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
-                        <RemoteName>idle.castle-anim-frames</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
-                        <RemoteName>idle.castle-anim-frames</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
-                        <RemoteName>idle.castle-anim-frames</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
-                        <RemoteName>idle.castle-anim-frames</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
-                        <RemoteName>idle.castle-anim-frames</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
-                        <RemoteName>idle.castle-anim-frames</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
-                        <RemoteName>idle.castle-anim-frames</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
-                        <RemoteName>idle.castle-anim-frames</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\deprecated/knight_multiple_castle_anim_frames/resource.xml" Configuration="Debug" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
-                        <RemoteName>resource.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
-                        <RemoteName>resource.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
-                        <RemoteName>resource.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
-                        <RemoteName>resource.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
-                        <RemoteName>resource.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
-                        <RemoteName>resource.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
-                        <RemoteName>resource.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
-                        <RemoteName>resource.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
-                        <RemoteName>resource.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\deprecated/knight_multiple_castle_anim_frames/walk.castle-anim-frames" Configuration="Debug" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
-                        <RemoteName>walk.castle-anim-frames</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
-                        <RemoteName>walk.castle-anim-frames</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
-                        <RemoteName>walk.castle-anim-frames</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
-                        <RemoteName>walk.castle-anim-frames</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
-                        <RemoteName>walk.castle-anim-frames</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
-                        <RemoteName>walk.castle-anim-frames</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
-                        <RemoteName>walk.castle-anim-frames</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
-                        <RemoteName>walk.castle-anim-frames</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
-                        <RemoteName>walk.castle-anim-frames</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\deprecated/knight_multiple_x3d/attack.x3dv" Configuration="Debug" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
-                        <RemoteName>attack.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
-                        <RemoteName>attack.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
-                        <RemoteName>attack.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
-                        <RemoteName>attack.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
-                        <RemoteName>attack.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
-                        <RemoteName>attack.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
-                        <RemoteName>attack.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
-                        <RemoteName>attack.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
-                        <RemoteName>attack.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\deprecated/knight_multiple_x3d/die.x3dv" Configuration="Debug" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
-                        <RemoteName>die.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
-                        <RemoteName>die.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
-                        <RemoteName>die.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
-                        <RemoteName>die.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
-                        <RemoteName>die.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
-                        <RemoteName>die.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
-                        <RemoteName>die.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
-                        <RemoteName>die.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
-                        <RemoteName>die.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\deprecated/knight_multiple_x3d/hurt.x3dv" Configuration="Debug" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
-                        <RemoteName>hurt.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
-                        <RemoteName>hurt.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
-                        <RemoteName>hurt.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
-                        <RemoteName>hurt.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
-                        <RemoteName>hurt.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
-                        <RemoteName>hurt.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
-                        <RemoteName>hurt.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
-                        <RemoteName>hurt.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
-                        <RemoteName>hurt.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\deprecated/knight_multiple_x3d/idle.x3dv" Configuration="Debug" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
-                        <RemoteName>idle.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
-                        <RemoteName>idle.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
-                        <RemoteName>idle.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
-                        <RemoteName>idle.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
-                        <RemoteName>idle.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
-                        <RemoteName>idle.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
-                        <RemoteName>idle.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
-                        <RemoteName>idle.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
-                        <RemoteName>idle.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\deprecated/knight_multiple_x3d/make.sh" Configuration="Debug" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
-                        <RemoteName>make.sh</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
-                        <RemoteName>make.sh</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
-                        <RemoteName>make.sh</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
-                        <RemoteName>make.sh</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
-                        <RemoteName>make.sh</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
-                        <RemoteName>make.sh</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
-                        <RemoteName>make.sh</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
-                        <RemoteName>make.sh</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
-                        <RemoteName>make.sh</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\deprecated/knight_multiple_x3d/resource.xml" Configuration="Debug" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
-                        <RemoteName>resource.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
-                        <RemoteName>resource.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
-                        <RemoteName>resource.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
-                        <RemoteName>resource.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
-                        <RemoteName>resource.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
-                        <RemoteName>resource.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
-                        <RemoteName>resource.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
-                        <RemoteName>resource.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
-                        <RemoteName>resource.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\deprecated/knight_multiple_x3d/walk.x3dv" Configuration="Debug" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
-                        <RemoteName>walk.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
-                        <RemoteName>walk.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
-                        <RemoteName>walk.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
-                        <RemoteName>walk.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
-                        <RemoteName>walk.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
-                        <RemoteName>walk.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
-                        <RemoteName>walk.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
-                        <RemoteName>walk.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
-                        <RemoteName>walk.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\deprecated/knight_single_castle_anim_frames/knight.castle-anim-frames" Configuration="Debug" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/deprecated/knight_single_castle_anim_frames/</RemoteDir>
-                        <RemoteName>knight.castle-anim-frames</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/deprecated/knight_single_castle_anim_frames/</RemoteDir>
-                        <RemoteName>knight.castle-anim-frames</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/deprecated/knight_single_castle_anim_frames/</RemoteDir>
-                        <RemoteName>knight.castle-anim-frames</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/deprecated/knight_single_castle_anim_frames/</RemoteDir>
-                        <RemoteName>knight.castle-anim-frames</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/deprecated/knight_single_castle_anim_frames/</RemoteDir>
-                        <RemoteName>knight.castle-anim-frames</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/deprecated/knight_single_castle_anim_frames/</RemoteDir>
-                        <RemoteName>knight.castle-anim-frames</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/deprecated/knight_single_castle_anim_frames/</RemoteDir>
-                        <RemoteName>knight.castle-anim-frames</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/deprecated/knight_single_castle_anim_frames/</RemoteDir>
-                        <RemoteName>knight.castle-anim-frames</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/deprecated/knight_single_castle_anim_frames/</RemoteDir>
-                        <RemoteName>knight.castle-anim-frames</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\deprecated/knight_single_castle_anim_frames/resource.xml" Configuration="Debug" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/deprecated/knight_single_castle_anim_frames/</RemoteDir>
-                        <RemoteName>resource.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/deprecated/knight_single_castle_anim_frames/</RemoteDir>
-                        <RemoteName>resource.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/deprecated/knight_single_castle_anim_frames/</RemoteDir>
-                        <RemoteName>resource.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/deprecated/knight_single_castle_anim_frames/</RemoteDir>
-                        <RemoteName>resource.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/deprecated/knight_single_castle_anim_frames/</RemoteDir>
-                        <RemoteName>resource.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/deprecated/knight_single_castle_anim_frames/</RemoteDir>
-                        <RemoteName>resource.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/deprecated/knight_single_castle_anim_frames/</RemoteDir>
-                        <RemoteName>resource.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/deprecated/knight_single_castle_anim_frames/</RemoteDir>
-                        <RemoteName>resource.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/deprecated/knight_single_castle_anim_frames/</RemoteDir>
-                        <RemoteName>resource.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\deprecated/knight_single_x3d/knight.x3dv" Configuration="Debug" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/deprecated/knight_single_x3d/</RemoteDir>
-                        <RemoteName>knight.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/deprecated/knight_single_x3d/</RemoteDir>
-                        <RemoteName>knight.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/deprecated/knight_single_x3d/</RemoteDir>
-                        <RemoteName>knight.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/deprecated/knight_single_x3d/</RemoteDir>
-                        <RemoteName>knight.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/deprecated/knight_single_x3d/</RemoteDir>
-                        <RemoteName>knight.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/deprecated/knight_single_x3d/</RemoteDir>
-                        <RemoteName>knight.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/deprecated/knight_single_x3d/</RemoteDir>
-                        <RemoteName>knight.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/deprecated/knight_single_x3d/</RemoteDir>
-                        <RemoteName>knight.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/deprecated/knight_single_x3d/</RemoteDir>
-                        <RemoteName>knight.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\deprecated/knight_single_x3d/resource.xml" Configuration="Debug" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/deprecated/knight_single_x3d/</RemoteDir>
-                        <RemoteName>resource.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/deprecated/knight_single_x3d/</RemoteDir>
-                        <RemoteName>resource.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/deprecated/knight_single_x3d/</RemoteDir>
-                        <RemoteName>resource.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/deprecated/knight_single_x3d/</RemoteDir>
-                        <RemoteName>resource.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/deprecated/knight_single_x3d/</RemoteDir>
-                        <RemoteName>resource.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/deprecated/knight_single_x3d/</RemoteDir>
-                        <RemoteName>resource.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/deprecated/knight_single_x3d/</RemoteDir>
-                        <RemoteName>resource.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/deprecated/knight_single_x3d/</RemoteDir>
-                        <RemoteName>resource.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/deprecated/knight_single_x3d/</RemoteDir>
-                        <RemoteName>resource.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\gameviewmain.castle-user-interface" Configuration="Debug" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\knight_single_gltf/AUTHORS.txt" Configuration="Debug" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/knight_single_gltf/</RemoteDir>
-                        <RemoteName>AUTHORS.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/knight_single_gltf/</RemoteDir>
-                        <RemoteName>AUTHORS.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/knight_single_gltf/</RemoteDir>
-                        <RemoteName>AUTHORS.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/knight_single_gltf/</RemoteDir>
-                        <RemoteName>AUTHORS.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/knight_single_gltf/</RemoteDir>
-                        <RemoteName>AUTHORS.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/knight_single_gltf/</RemoteDir>
-                        <RemoteName>AUTHORS.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/knight_single_gltf/</RemoteDir>
-                        <RemoteName>AUTHORS.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/knight_single_gltf/</RemoteDir>
-                        <RemoteName>AUTHORS.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/knight_single_gltf/</RemoteDir>
-                        <RemoteName>AUTHORS.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\knight_single_gltf/knight.bin" Configuration="Debug" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/knight_single_gltf/</RemoteDir>
-                        <RemoteName>knight.bin</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/knight_single_gltf/</RemoteDir>
-                        <RemoteName>knight.bin</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/knight_single_gltf/</RemoteDir>
-                        <RemoteName>knight.bin</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/knight_single_gltf/</RemoteDir>
-                        <RemoteName>knight.bin</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/knight_single_gltf/</RemoteDir>
-                        <RemoteName>knight.bin</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/knight_single_gltf/</RemoteDir>
-                        <RemoteName>knight.bin</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/knight_single_gltf/</RemoteDir>
-                        <RemoteName>knight.bin</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/knight_single_gltf/</RemoteDir>
-                        <RemoteName>knight.bin</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/knight_single_gltf/</RemoteDir>
-                        <RemoteName>knight.bin</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\knight_single_gltf/knight.gltf" Configuration="Debug" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/knight_single_gltf/</RemoteDir>
-                        <RemoteName>knight.gltf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/knight_single_gltf/</RemoteDir>
-                        <RemoteName>knight.gltf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/knight_single_gltf/</RemoteDir>
-                        <RemoteName>knight.gltf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/knight_single_gltf/</RemoteDir>
-                        <RemoteName>knight.gltf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/knight_single_gltf/</RemoteDir>
-                        <RemoteName>knight.gltf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/knight_single_gltf/</RemoteDir>
-                        <RemoteName>knight.gltf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/knight_single_gltf/</RemoteDir>
-                        <RemoteName>knight.gltf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/knight_single_gltf/</RemoteDir>
-                        <RemoteName>knight.gltf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/knight_single_gltf/</RemoteDir>
-                        <RemoteName>knight.gltf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\knight_single_gltf/knight.png" Configuration="Debug" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/knight_single_gltf/</RemoteDir>
-                        <RemoteName>knight.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/knight_single_gltf/</RemoteDir>
-                        <RemoteName>knight.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/knight_single_gltf/</RemoteDir>
-                        <RemoteName>knight.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/knight_single_gltf/</RemoteDir>
-                        <RemoteName>knight.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/knight_single_gltf/</RemoteDir>
-                        <RemoteName>knight.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/knight_single_gltf/</RemoteDir>
-                        <RemoteName>knight.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/knight_single_gltf/</RemoteDir>
-                        <RemoteName>knight.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/knight_single_gltf/</RemoteDir>
-                        <RemoteName>knight.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/knight_single_gltf/</RemoteDir>
-                        <RemoteName>knight.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\knight_single_gltf/resource.xml" Configuration="Debug" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/knight_single_gltf/</RemoteDir>
-                        <RemoteName>resource.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/knight_single_gltf/</RemoteDir>
-                        <RemoteName>resource.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/knight_single_gltf/</RemoteDir>
-                        <RemoteName>resource.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/knight_single_gltf/</RemoteDir>
-                        <RemoteName>resource.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/knight_single_gltf/</RemoteDir>
-                        <RemoteName>resource.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/knight_single_gltf/</RemoteDir>
-                        <RemoteName>resource.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/knight_single_gltf/</RemoteDir>
-                        <RemoteName>resource.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/knight_single_gltf/</RemoteDir>
-                        <RemoteName>resource.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/knight_single_gltf/</RemoteDir>
-                        <RemoteName>resource.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\level/base.bin" Configuration="Debug" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/level/</RemoteDir>
-                        <RemoteName>base.bin</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/level/</RemoteDir>
-                        <RemoteName>base.bin</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/level/</RemoteDir>
-                        <RemoteName>base.bin</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/level/</RemoteDir>
-                        <RemoteName>base.bin</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/level/</RemoteDir>
-                        <RemoteName>base.bin</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/level/</RemoteDir>
-                        <RemoteName>base.bin</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/level/</RemoteDir>
-                        <RemoteName>base.bin</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/level/</RemoteDir>
-                        <RemoteName>base.bin</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/level/</RemoteDir>
-                        <RemoteName>base.bin</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\level/base.gltf" Configuration="Debug" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/level/</RemoteDir>
-                        <RemoteName>base.gltf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/level/</RemoteDir>
-                        <RemoteName>base.gltf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/level/</RemoteDir>
-                        <RemoteName>base.gltf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/level/</RemoteDir>
-                        <RemoteName>base.gltf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/level/</RemoteDir>
-                        <RemoteName>base.gltf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/level/</RemoteDir>
-                        <RemoteName>base.gltf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/level/</RemoteDir>
-                        <RemoteName>base.gltf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/level/</RemoteDir>
-                        <RemoteName>base.gltf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/level/</RemoteDir>
-                        <RemoteName>base.gltf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\level/level.xml" Configuration="Debug" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/level/</RemoteDir>
-                        <RemoteName>level.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/level/</RemoteDir>
-                        <RemoteName>level.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/level/</RemoteDir>
-                        <RemoteName>level.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/level/</RemoteDir>
-                        <RemoteName>level.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/level/</RemoteDir>
-                        <RemoteName>level.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/level/</RemoteDir>
-                        <RemoteName>level.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/level/</RemoteDir>
-                        <RemoteName>level.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/level/</RemoteDir>
-                        <RemoteName>level.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/level/</RemoteDir>
-                        <RemoteName>level.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\CastleSettings.xml" Configuration="Release" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>CastleSettings.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>CastleSettings.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>CastleSettings.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>CastleSettings.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>CastleSettings.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>CastleSettings.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>CastleSettings.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>CastleSettings.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>CastleSettings.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\deprecated/knight.png" Configuration="Release" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/deprecated/</RemoteDir>
-                        <RemoteName>knight.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/deprecated/</RemoteDir>
-                        <RemoteName>knight.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/deprecated/</RemoteDir>
-                        <RemoteName>knight.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/deprecated/</RemoteDir>
-                        <RemoteName>knight.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/deprecated/</RemoteDir>
-                        <RemoteName>knight.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/deprecated/</RemoteDir>
-                        <RemoteName>knight.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/deprecated/</RemoteDir>
-                        <RemoteName>knight.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/deprecated/</RemoteDir>
-                        <RemoteName>knight.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/deprecated/</RemoteDir>
-                        <RemoteName>knight.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\deprecated/knight_multiple_castle_anim_frames/attack.castle-anim-frames" Configuration="Release" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
-                        <RemoteName>attack.castle-anim-frames</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
-                        <RemoteName>attack.castle-anim-frames</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
-                        <RemoteName>attack.castle-anim-frames</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
-                        <RemoteName>attack.castle-anim-frames</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
-                        <RemoteName>attack.castle-anim-frames</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
-                        <RemoteName>attack.castle-anim-frames</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
-                        <RemoteName>attack.castle-anim-frames</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
-                        <RemoteName>attack.castle-anim-frames</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
-                        <RemoteName>attack.castle-anim-frames</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\deprecated/knight_multiple_castle_anim_frames/die.castle-anim-frames" Configuration="Release" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
-                        <RemoteName>die.castle-anim-frames</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
-                        <RemoteName>die.castle-anim-frames</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
-                        <RemoteName>die.castle-anim-frames</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
-                        <RemoteName>die.castle-anim-frames</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
-                        <RemoteName>die.castle-anim-frames</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
-                        <RemoteName>die.castle-anim-frames</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
-                        <RemoteName>die.castle-anim-frames</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
-                        <RemoteName>die.castle-anim-frames</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
-                        <RemoteName>die.castle-anim-frames</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\deprecated/knight_multiple_castle_anim_frames/hurt.castle-anim-frames" Configuration="Release" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
-                        <RemoteName>hurt.castle-anim-frames</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
-                        <RemoteName>hurt.castle-anim-frames</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
-                        <RemoteName>hurt.castle-anim-frames</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
-                        <RemoteName>hurt.castle-anim-frames</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
-                        <RemoteName>hurt.castle-anim-frames</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
-                        <RemoteName>hurt.castle-anim-frames</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
-                        <RemoteName>hurt.castle-anim-frames</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
-                        <RemoteName>hurt.castle-anim-frames</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
-                        <RemoteName>hurt.castle-anim-frames</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\deprecated/knight_multiple_castle_anim_frames/idle.castle-anim-frames" Configuration="Release" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
-                        <RemoteName>idle.castle-anim-frames</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
-                        <RemoteName>idle.castle-anim-frames</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
-                        <RemoteName>idle.castle-anim-frames</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
-                        <RemoteName>idle.castle-anim-frames</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
-                        <RemoteName>idle.castle-anim-frames</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
-                        <RemoteName>idle.castle-anim-frames</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
-                        <RemoteName>idle.castle-anim-frames</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
-                        <RemoteName>idle.castle-anim-frames</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
-                        <RemoteName>idle.castle-anim-frames</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\deprecated/knight_multiple_castle_anim_frames/resource.xml" Configuration="Release" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
-                        <RemoteName>resource.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
-                        <RemoteName>resource.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
-                        <RemoteName>resource.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
-                        <RemoteName>resource.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
-                        <RemoteName>resource.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
-                        <RemoteName>resource.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
-                        <RemoteName>resource.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
-                        <RemoteName>resource.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
-                        <RemoteName>resource.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\deprecated/knight_multiple_castle_anim_frames/walk.castle-anim-frames" Configuration="Release" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
-                        <RemoteName>walk.castle-anim-frames</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
-                        <RemoteName>walk.castle-anim-frames</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
-                        <RemoteName>walk.castle-anim-frames</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
-                        <RemoteName>walk.castle-anim-frames</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
-                        <RemoteName>walk.castle-anim-frames</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
-                        <RemoteName>walk.castle-anim-frames</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
-                        <RemoteName>walk.castle-anim-frames</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
-                        <RemoteName>walk.castle-anim-frames</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
-                        <RemoteName>walk.castle-anim-frames</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\deprecated/knight_multiple_x3d/attack.x3dv" Configuration="Release" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
-                        <RemoteName>attack.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
-                        <RemoteName>attack.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
-                        <RemoteName>attack.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
-                        <RemoteName>attack.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
-                        <RemoteName>attack.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
-                        <RemoteName>attack.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
-                        <RemoteName>attack.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
-                        <RemoteName>attack.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
-                        <RemoteName>attack.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\deprecated/knight_multiple_x3d/die.x3dv" Configuration="Release" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
-                        <RemoteName>die.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
-                        <RemoteName>die.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
-                        <RemoteName>die.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
-                        <RemoteName>die.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
-                        <RemoteName>die.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
-                        <RemoteName>die.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
-                        <RemoteName>die.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
-                        <RemoteName>die.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
-                        <RemoteName>die.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\deprecated/knight_multiple_x3d/hurt.x3dv" Configuration="Release" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
-                        <RemoteName>hurt.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
-                        <RemoteName>hurt.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
-                        <RemoteName>hurt.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
-                        <RemoteName>hurt.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
-                        <RemoteName>hurt.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
-                        <RemoteName>hurt.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
-                        <RemoteName>hurt.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
-                        <RemoteName>hurt.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
-                        <RemoteName>hurt.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\deprecated/knight_multiple_x3d/idle.x3dv" Configuration="Release" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
-                        <RemoteName>idle.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
-                        <RemoteName>idle.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
-                        <RemoteName>idle.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
-                        <RemoteName>idle.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
-                        <RemoteName>idle.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
-                        <RemoteName>idle.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
-                        <RemoteName>idle.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
-                        <RemoteName>idle.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
-                        <RemoteName>idle.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\deprecated/knight_multiple_x3d/make.sh" Configuration="Release" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
-                        <RemoteName>make.sh</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
-                        <RemoteName>make.sh</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
-                        <RemoteName>make.sh</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
-                        <RemoteName>make.sh</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
-                        <RemoteName>make.sh</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
-                        <RemoteName>make.sh</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
-                        <RemoteName>make.sh</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
-                        <RemoteName>make.sh</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
-                        <RemoteName>make.sh</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\deprecated/knight_multiple_x3d/resource.xml" Configuration="Release" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
-                        <RemoteName>resource.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
-                        <RemoteName>resource.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
-                        <RemoteName>resource.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
-                        <RemoteName>resource.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
-                        <RemoteName>resource.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
-                        <RemoteName>resource.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
-                        <RemoteName>resource.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
-                        <RemoteName>resource.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
-                        <RemoteName>resource.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\deprecated/knight_multiple_x3d/walk.x3dv" Configuration="Release" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
-                        <RemoteName>walk.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
-                        <RemoteName>walk.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
-                        <RemoteName>walk.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
-                        <RemoteName>walk.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
-                        <RemoteName>walk.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
-                        <RemoteName>walk.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
-                        <RemoteName>walk.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
-                        <RemoteName>walk.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
-                        <RemoteName>walk.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\deprecated/knight_single_castle_anim_frames/knight.castle-anim-frames" Configuration="Release" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/deprecated/knight_single_castle_anim_frames/</RemoteDir>
-                        <RemoteName>knight.castle-anim-frames</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/deprecated/knight_single_castle_anim_frames/</RemoteDir>
-                        <RemoteName>knight.castle-anim-frames</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/deprecated/knight_single_castle_anim_frames/</RemoteDir>
-                        <RemoteName>knight.castle-anim-frames</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/deprecated/knight_single_castle_anim_frames/</RemoteDir>
-                        <RemoteName>knight.castle-anim-frames</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/deprecated/knight_single_castle_anim_frames/</RemoteDir>
-                        <RemoteName>knight.castle-anim-frames</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/deprecated/knight_single_castle_anim_frames/</RemoteDir>
-                        <RemoteName>knight.castle-anim-frames</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/deprecated/knight_single_castle_anim_frames/</RemoteDir>
-                        <RemoteName>knight.castle-anim-frames</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/deprecated/knight_single_castle_anim_frames/</RemoteDir>
-                        <RemoteName>knight.castle-anim-frames</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/deprecated/knight_single_castle_anim_frames/</RemoteDir>
-                        <RemoteName>knight.castle-anim-frames</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\deprecated/knight_single_castle_anim_frames/resource.xml" Configuration="Release" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/deprecated/knight_single_castle_anim_frames/</RemoteDir>
-                        <RemoteName>resource.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/deprecated/knight_single_castle_anim_frames/</RemoteDir>
-                        <RemoteName>resource.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/deprecated/knight_single_castle_anim_frames/</RemoteDir>
-                        <RemoteName>resource.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/deprecated/knight_single_castle_anim_frames/</RemoteDir>
-                        <RemoteName>resource.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/deprecated/knight_single_castle_anim_frames/</RemoteDir>
-                        <RemoteName>resource.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/deprecated/knight_single_castle_anim_frames/</RemoteDir>
-                        <RemoteName>resource.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/deprecated/knight_single_castle_anim_frames/</RemoteDir>
-                        <RemoteName>resource.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/deprecated/knight_single_castle_anim_frames/</RemoteDir>
-                        <RemoteName>resource.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/deprecated/knight_single_castle_anim_frames/</RemoteDir>
-                        <RemoteName>resource.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\deprecated/knight_single_x3d/knight.x3dv" Configuration="Release" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/deprecated/knight_single_x3d/</RemoteDir>
-                        <RemoteName>knight.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/deprecated/knight_single_x3d/</RemoteDir>
-                        <RemoteName>knight.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/deprecated/knight_single_x3d/</RemoteDir>
-                        <RemoteName>knight.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/deprecated/knight_single_x3d/</RemoteDir>
-                        <RemoteName>knight.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/deprecated/knight_single_x3d/</RemoteDir>
-                        <RemoteName>knight.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/deprecated/knight_single_x3d/</RemoteDir>
-                        <RemoteName>knight.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/deprecated/knight_single_x3d/</RemoteDir>
-                        <RemoteName>knight.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/deprecated/knight_single_x3d/</RemoteDir>
-                        <RemoteName>knight.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/deprecated/knight_single_x3d/</RemoteDir>
-                        <RemoteName>knight.x3dv</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\deprecated/knight_single_x3d/resource.xml" Configuration="Release" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/deprecated/knight_single_x3d/</RemoteDir>
-                        <RemoteName>resource.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/deprecated/knight_single_x3d/</RemoteDir>
-                        <RemoteName>resource.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/deprecated/knight_single_x3d/</RemoteDir>
-                        <RemoteName>resource.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/deprecated/knight_single_x3d/</RemoteDir>
-                        <RemoteName>resource.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/deprecated/knight_single_x3d/</RemoteDir>
-                        <RemoteName>resource.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/deprecated/knight_single_x3d/</RemoteDir>
-                        <RemoteName>resource.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/deprecated/knight_single_x3d/</RemoteDir>
-                        <RemoteName>resource.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/deprecated/knight_single_x3d/</RemoteDir>
-                        <RemoteName>resource.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/deprecated/knight_single_x3d/</RemoteDir>
-                        <RemoteName>resource.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\gameviewmain.castle-user-interface" Configuration="Release" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\knight_single_gltf/AUTHORS.txt" Configuration="Release" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/knight_single_gltf/</RemoteDir>
-                        <RemoteName>AUTHORS.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/knight_single_gltf/</RemoteDir>
-                        <RemoteName>AUTHORS.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/knight_single_gltf/</RemoteDir>
-                        <RemoteName>AUTHORS.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/knight_single_gltf/</RemoteDir>
-                        <RemoteName>AUTHORS.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/knight_single_gltf/</RemoteDir>
-                        <RemoteName>AUTHORS.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/knight_single_gltf/</RemoteDir>
-                        <RemoteName>AUTHORS.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/knight_single_gltf/</RemoteDir>
-                        <RemoteName>AUTHORS.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/knight_single_gltf/</RemoteDir>
-                        <RemoteName>AUTHORS.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/knight_single_gltf/</RemoteDir>
-                        <RemoteName>AUTHORS.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\knight_single_gltf/knight.bin" Configuration="Release" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/knight_single_gltf/</RemoteDir>
-                        <RemoteName>knight.bin</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/knight_single_gltf/</RemoteDir>
-                        <RemoteName>knight.bin</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/knight_single_gltf/</RemoteDir>
-                        <RemoteName>knight.bin</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/knight_single_gltf/</RemoteDir>
-                        <RemoteName>knight.bin</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/knight_single_gltf/</RemoteDir>
-                        <RemoteName>knight.bin</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/knight_single_gltf/</RemoteDir>
-                        <RemoteName>knight.bin</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/knight_single_gltf/</RemoteDir>
-                        <RemoteName>knight.bin</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/knight_single_gltf/</RemoteDir>
-                        <RemoteName>knight.bin</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/knight_single_gltf/</RemoteDir>
-                        <RemoteName>knight.bin</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\knight_single_gltf/knight.gltf" Configuration="Release" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/knight_single_gltf/</RemoteDir>
-                        <RemoteName>knight.gltf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/knight_single_gltf/</RemoteDir>
-                        <RemoteName>knight.gltf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/knight_single_gltf/</RemoteDir>
-                        <RemoteName>knight.gltf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/knight_single_gltf/</RemoteDir>
-                        <RemoteName>knight.gltf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/knight_single_gltf/</RemoteDir>
-                        <RemoteName>knight.gltf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/knight_single_gltf/</RemoteDir>
-                        <RemoteName>knight.gltf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/knight_single_gltf/</RemoteDir>
-                        <RemoteName>knight.gltf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/knight_single_gltf/</RemoteDir>
-                        <RemoteName>knight.gltf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/knight_single_gltf/</RemoteDir>
-                        <RemoteName>knight.gltf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\knight_single_gltf/knight.png" Configuration="Release" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/knight_single_gltf/</RemoteDir>
-                        <RemoteName>knight.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/knight_single_gltf/</RemoteDir>
-                        <RemoteName>knight.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/knight_single_gltf/</RemoteDir>
-                        <RemoteName>knight.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/knight_single_gltf/</RemoteDir>
-                        <RemoteName>knight.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/knight_single_gltf/</RemoteDir>
-                        <RemoteName>knight.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/knight_single_gltf/</RemoteDir>
-                        <RemoteName>knight.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/knight_single_gltf/</RemoteDir>
-                        <RemoteName>knight.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/knight_single_gltf/</RemoteDir>
-                        <RemoteName>knight.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/knight_single_gltf/</RemoteDir>
-                        <RemoteName>knight.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\knight_single_gltf/resource.xml" Configuration="Release" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/knight_single_gltf/</RemoteDir>
-                        <RemoteName>resource.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/knight_single_gltf/</RemoteDir>
-                        <RemoteName>resource.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/knight_single_gltf/</RemoteDir>
-                        <RemoteName>resource.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/knight_single_gltf/</RemoteDir>
-                        <RemoteName>resource.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/knight_single_gltf/</RemoteDir>
-                        <RemoteName>resource.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/knight_single_gltf/</RemoteDir>
-                        <RemoteName>resource.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/knight_single_gltf/</RemoteDir>
-                        <RemoteName>resource.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/knight_single_gltf/</RemoteDir>
-                        <RemoteName>resource.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/knight_single_gltf/</RemoteDir>
-                        <RemoteName>resource.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\level/base.bin" Configuration="Release" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/level/</RemoteDir>
-                        <RemoteName>base.bin</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/level/</RemoteDir>
-                        <RemoteName>base.bin</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/level/</RemoteDir>
-                        <RemoteName>base.bin</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/level/</RemoteDir>
-                        <RemoteName>base.bin</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/level/</RemoteDir>
-                        <RemoteName>base.bin</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/level/</RemoteDir>
-                        <RemoteName>base.bin</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/level/</RemoteDir>
-                        <RemoteName>base.bin</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/level/</RemoteDir>
-                        <RemoteName>base.bin</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/level/</RemoteDir>
-                        <RemoteName>base.bin</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\level/base.gltf" Configuration="Release" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/level/</RemoteDir>
-                        <RemoteName>base.gltf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/level/</RemoteDir>
-                        <RemoteName>base.gltf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/level/</RemoteDir>
-                        <RemoteName>base.gltf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/level/</RemoteDir>
-                        <RemoteName>base.gltf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/level/</RemoteDir>
-                        <RemoteName>base.gltf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/level/</RemoteDir>
-                        <RemoteName>base.gltf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/level/</RemoteDir>
-                        <RemoteName>base.gltf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/level/</RemoteDir>
-                        <RemoteName>base.gltf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/level/</RemoteDir>
-                        <RemoteName>base.gltf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\level/level.xml" Configuration="Release" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/level/</RemoteDir>
-                        <RemoteName>level.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/level/</RemoteDir>
-                        <RemoteName>level.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/level/</RemoteDir>
-                        <RemoteName>level.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/level/</RemoteDir>
-                        <RemoteName>level.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/level/</RemoteDir>
-                        <RemoteName>level.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/level/</RemoteDir>
-                        <RemoteName>level.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/level/</RemoteDir>
-                        <RemoteName>level.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/level/</RemoteDir>
-                        <RemoteName>level.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/level/</RemoteDir>
-                        <RemoteName>level.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
+<!-- Auto-generated list of deploy files.
+     We need to list all "data" files to deploy Delphi applications
+     to non-Windows targets,
+     see https://castle-engine.io/delphi_linux#data_files_deployment .
+-->
+<DeployFile LocalName="data\CastleSettings.xml" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>CastleSettings.xml</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>CastleSettings.xml</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>CastleSettings.xml</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\deprecated/knight.png" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/deprecated/</RemoteDir>
+  <RemoteName>knight.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/deprecated/</RemoteDir>
+  <RemoteName>knight.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/deprecated/</RemoteDir>
+  <RemoteName>knight.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\deprecated/knight_multiple_castle_anim_frames/attack.castle-anim-frames" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
+  <RemoteName>attack.castle-anim-frames</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
+  <RemoteName>attack.castle-anim-frames</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
+  <RemoteName>attack.castle-anim-frames</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\deprecated/knight_multiple_castle_anim_frames/die.castle-anim-frames" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
+  <RemoteName>die.castle-anim-frames</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
+  <RemoteName>die.castle-anim-frames</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
+  <RemoteName>die.castle-anim-frames</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\deprecated/knight_multiple_castle_anim_frames/hurt.castle-anim-frames" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
+  <RemoteName>hurt.castle-anim-frames</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
+  <RemoteName>hurt.castle-anim-frames</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
+  <RemoteName>hurt.castle-anim-frames</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\deprecated/knight_multiple_castle_anim_frames/idle.castle-anim-frames" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
+  <RemoteName>idle.castle-anim-frames</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
+  <RemoteName>idle.castle-anim-frames</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
+  <RemoteName>idle.castle-anim-frames</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\deprecated/knight_multiple_castle_anim_frames/resource.xml" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
+  <RemoteName>resource.xml</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
+  <RemoteName>resource.xml</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
+  <RemoteName>resource.xml</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\deprecated/knight_multiple_castle_anim_frames/walk.castle-anim-frames" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
+  <RemoteName>walk.castle-anim-frames</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
+  <RemoteName>walk.castle-anim-frames</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
+  <RemoteName>walk.castle-anim-frames</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\deprecated/knight_multiple_x3d/attack.x3dv" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
+  <RemoteName>attack.x3dv</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
+  <RemoteName>attack.x3dv</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
+  <RemoteName>attack.x3dv</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\deprecated/knight_multiple_x3d/die.x3dv" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
+  <RemoteName>die.x3dv</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
+  <RemoteName>die.x3dv</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
+  <RemoteName>die.x3dv</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\deprecated/knight_multiple_x3d/hurt.x3dv" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
+  <RemoteName>hurt.x3dv</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
+  <RemoteName>hurt.x3dv</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
+  <RemoteName>hurt.x3dv</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\deprecated/knight_multiple_x3d/idle.x3dv" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
+  <RemoteName>idle.x3dv</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
+  <RemoteName>idle.x3dv</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
+  <RemoteName>idle.x3dv</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\deprecated/knight_multiple_x3d/make.sh" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
+  <RemoteName>make.sh</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
+  <RemoteName>make.sh</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
+  <RemoteName>make.sh</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\deprecated/knight_multiple_x3d/resource.xml" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
+  <RemoteName>resource.xml</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
+  <RemoteName>resource.xml</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
+  <RemoteName>resource.xml</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\deprecated/knight_multiple_x3d/walk.x3dv" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
+  <RemoteName>walk.x3dv</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
+  <RemoteName>walk.x3dv</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
+  <RemoteName>walk.x3dv</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\deprecated/knight_single_castle_anim_frames/knight.castle-anim-frames" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/deprecated/knight_single_castle_anim_frames/</RemoteDir>
+  <RemoteName>knight.castle-anim-frames</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/deprecated/knight_single_castle_anim_frames/</RemoteDir>
+  <RemoteName>knight.castle-anim-frames</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/deprecated/knight_single_castle_anim_frames/</RemoteDir>
+  <RemoteName>knight.castle-anim-frames</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\deprecated/knight_single_castle_anim_frames/resource.xml" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/deprecated/knight_single_castle_anim_frames/</RemoteDir>
+  <RemoteName>resource.xml</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/deprecated/knight_single_castle_anim_frames/</RemoteDir>
+  <RemoteName>resource.xml</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/deprecated/knight_single_castle_anim_frames/</RemoteDir>
+  <RemoteName>resource.xml</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\deprecated/knight_single_x3d/knight.x3dv" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/deprecated/knight_single_x3d/</RemoteDir>
+  <RemoteName>knight.x3dv</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/deprecated/knight_single_x3d/</RemoteDir>
+  <RemoteName>knight.x3dv</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/deprecated/knight_single_x3d/</RemoteDir>
+  <RemoteName>knight.x3dv</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\deprecated/knight_single_x3d/resource.xml" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/deprecated/knight_single_x3d/</RemoteDir>
+  <RemoteName>resource.xml</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/deprecated/knight_single_x3d/</RemoteDir>
+  <RemoteName>resource.xml</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/deprecated/knight_single_x3d/</RemoteDir>
+  <RemoteName>resource.xml</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\gameviewmain.castle-user-interface" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>gameviewmain.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>gameviewmain.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>gameviewmain.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\knight_single_gltf/AUTHORS.txt" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/knight_single_gltf/</RemoteDir>
+  <RemoteName>AUTHORS.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/knight_single_gltf/</RemoteDir>
+  <RemoteName>AUTHORS.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/knight_single_gltf/</RemoteDir>
+  <RemoteName>AUTHORS.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\knight_single_gltf/knight.bin" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/knight_single_gltf/</RemoteDir>
+  <RemoteName>knight.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/knight_single_gltf/</RemoteDir>
+  <RemoteName>knight.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/knight_single_gltf/</RemoteDir>
+  <RemoteName>knight.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\knight_single_gltf/knight.gltf" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/knight_single_gltf/</RemoteDir>
+  <RemoteName>knight.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/knight_single_gltf/</RemoteDir>
+  <RemoteName>knight.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/knight_single_gltf/</RemoteDir>
+  <RemoteName>knight.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\knight_single_gltf/knight.png" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/knight_single_gltf/</RemoteDir>
+  <RemoteName>knight.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/knight_single_gltf/</RemoteDir>
+  <RemoteName>knight.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/knight_single_gltf/</RemoteDir>
+  <RemoteName>knight.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\knight_single_gltf/resource.xml" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/knight_single_gltf/</RemoteDir>
+  <RemoteName>resource.xml</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/knight_single_gltf/</RemoteDir>
+  <RemoteName>resource.xml</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/knight_single_gltf/</RemoteDir>
+  <RemoteName>resource.xml</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\level/base.bin" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/level/</RemoteDir>
+  <RemoteName>base.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/level/</RemoteDir>
+  <RemoteName>base.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/level/</RemoteDir>
+  <RemoteName>base.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\level/base.gltf" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/level/</RemoteDir>
+  <RemoteName>base.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/level/</RemoteDir>
+  <RemoteName>base.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/level/</RemoteDir>
+  <RemoteName>base.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\level/level.xml" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/level/</RemoteDir>
+  <RemoteName>level.xml</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/level/</RemoteDir>
+  <RemoteName>level.xml</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/level/</RemoteDir>
+  <RemoteName>level.xml</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\CastleSettings.xml" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>CastleSettings.xml</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>CastleSettings.xml</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>CastleSettings.xml</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\deprecated/knight.png" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/deprecated/</RemoteDir>
+  <RemoteName>knight.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/deprecated/</RemoteDir>
+  <RemoteName>knight.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/deprecated/</RemoteDir>
+  <RemoteName>knight.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\deprecated/knight_multiple_castle_anim_frames/attack.castle-anim-frames" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
+  <RemoteName>attack.castle-anim-frames</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
+  <RemoteName>attack.castle-anim-frames</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
+  <RemoteName>attack.castle-anim-frames</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\deprecated/knight_multiple_castle_anim_frames/die.castle-anim-frames" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
+  <RemoteName>die.castle-anim-frames</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
+  <RemoteName>die.castle-anim-frames</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
+  <RemoteName>die.castle-anim-frames</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\deprecated/knight_multiple_castle_anim_frames/hurt.castle-anim-frames" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
+  <RemoteName>hurt.castle-anim-frames</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
+  <RemoteName>hurt.castle-anim-frames</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
+  <RemoteName>hurt.castle-anim-frames</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\deprecated/knight_multiple_castle_anim_frames/idle.castle-anim-frames" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
+  <RemoteName>idle.castle-anim-frames</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
+  <RemoteName>idle.castle-anim-frames</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
+  <RemoteName>idle.castle-anim-frames</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\deprecated/knight_multiple_castle_anim_frames/resource.xml" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
+  <RemoteName>resource.xml</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
+  <RemoteName>resource.xml</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
+  <RemoteName>resource.xml</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\deprecated/knight_multiple_castle_anim_frames/walk.castle-anim-frames" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
+  <RemoteName>walk.castle-anim-frames</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
+  <RemoteName>walk.castle-anim-frames</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/deprecated/knight_multiple_castle_anim_frames/</RemoteDir>
+  <RemoteName>walk.castle-anim-frames</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\deprecated/knight_multiple_x3d/attack.x3dv" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
+  <RemoteName>attack.x3dv</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
+  <RemoteName>attack.x3dv</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
+  <RemoteName>attack.x3dv</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\deprecated/knight_multiple_x3d/die.x3dv" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
+  <RemoteName>die.x3dv</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
+  <RemoteName>die.x3dv</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
+  <RemoteName>die.x3dv</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\deprecated/knight_multiple_x3d/hurt.x3dv" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
+  <RemoteName>hurt.x3dv</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
+  <RemoteName>hurt.x3dv</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
+  <RemoteName>hurt.x3dv</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\deprecated/knight_multiple_x3d/idle.x3dv" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
+  <RemoteName>idle.x3dv</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
+  <RemoteName>idle.x3dv</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
+  <RemoteName>idle.x3dv</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\deprecated/knight_multiple_x3d/make.sh" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
+  <RemoteName>make.sh</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
+  <RemoteName>make.sh</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
+  <RemoteName>make.sh</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\deprecated/knight_multiple_x3d/resource.xml" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
+  <RemoteName>resource.xml</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
+  <RemoteName>resource.xml</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
+  <RemoteName>resource.xml</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\deprecated/knight_multiple_x3d/walk.x3dv" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
+  <RemoteName>walk.x3dv</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
+  <RemoteName>walk.x3dv</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/deprecated/knight_multiple_x3d/</RemoteDir>
+  <RemoteName>walk.x3dv</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\deprecated/knight_single_castle_anim_frames/knight.castle-anim-frames" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/deprecated/knight_single_castle_anim_frames/</RemoteDir>
+  <RemoteName>knight.castle-anim-frames</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/deprecated/knight_single_castle_anim_frames/</RemoteDir>
+  <RemoteName>knight.castle-anim-frames</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/deprecated/knight_single_castle_anim_frames/</RemoteDir>
+  <RemoteName>knight.castle-anim-frames</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\deprecated/knight_single_castle_anim_frames/resource.xml" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/deprecated/knight_single_castle_anim_frames/</RemoteDir>
+  <RemoteName>resource.xml</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/deprecated/knight_single_castle_anim_frames/</RemoteDir>
+  <RemoteName>resource.xml</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/deprecated/knight_single_castle_anim_frames/</RemoteDir>
+  <RemoteName>resource.xml</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\deprecated/knight_single_x3d/knight.x3dv" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/deprecated/knight_single_x3d/</RemoteDir>
+  <RemoteName>knight.x3dv</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/deprecated/knight_single_x3d/</RemoteDir>
+  <RemoteName>knight.x3dv</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/deprecated/knight_single_x3d/</RemoteDir>
+  <RemoteName>knight.x3dv</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\deprecated/knight_single_x3d/resource.xml" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/deprecated/knight_single_x3d/</RemoteDir>
+  <RemoteName>resource.xml</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/deprecated/knight_single_x3d/</RemoteDir>
+  <RemoteName>resource.xml</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/deprecated/knight_single_x3d/</RemoteDir>
+  <RemoteName>resource.xml</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\gameviewmain.castle-user-interface" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>gameviewmain.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>gameviewmain.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>gameviewmain.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\knight_single_gltf/AUTHORS.txt" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/knight_single_gltf/</RemoteDir>
+  <RemoteName>AUTHORS.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/knight_single_gltf/</RemoteDir>
+  <RemoteName>AUTHORS.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/knight_single_gltf/</RemoteDir>
+  <RemoteName>AUTHORS.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\knight_single_gltf/knight.bin" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/knight_single_gltf/</RemoteDir>
+  <RemoteName>knight.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/knight_single_gltf/</RemoteDir>
+  <RemoteName>knight.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/knight_single_gltf/</RemoteDir>
+  <RemoteName>knight.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\knight_single_gltf/knight.gltf" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/knight_single_gltf/</RemoteDir>
+  <RemoteName>knight.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/knight_single_gltf/</RemoteDir>
+  <RemoteName>knight.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/knight_single_gltf/</RemoteDir>
+  <RemoteName>knight.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\knight_single_gltf/knight.png" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/knight_single_gltf/</RemoteDir>
+  <RemoteName>knight.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/knight_single_gltf/</RemoteDir>
+  <RemoteName>knight.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/knight_single_gltf/</RemoteDir>
+  <RemoteName>knight.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\knight_single_gltf/resource.xml" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/knight_single_gltf/</RemoteDir>
+  <RemoteName>resource.xml</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/knight_single_gltf/</RemoteDir>
+  <RemoteName>resource.xml</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/knight_single_gltf/</RemoteDir>
+  <RemoteName>resource.xml</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\level/base.bin" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/level/</RemoteDir>
+  <RemoteName>base.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/level/</RemoteDir>
+  <RemoteName>base.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/level/</RemoteDir>
+  <RemoteName>base.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\level/base.gltf" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/level/</RemoteDir>
+  <RemoteName>base.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/level/</RemoteDir>
+  <RemoteName>base.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/level/</RemoteDir>
+  <RemoteName>base.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\level/level.xml" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/level/</RemoteDir>
+  <RemoteName>level.xml</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/level/</RemoteDir>
+  <RemoteName>level.xml</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/level/</RemoteDir>
+  <RemoteName>level.xml</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
 
 
                 <DeployClass Name="AdditionalDebugSymbols">

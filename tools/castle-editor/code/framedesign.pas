@@ -64,6 +64,7 @@ type
     ButtonClearTranslation: TButton;
     ButtonPlayStop: TSpeedButton;
     ButtonApiReferenceForCurrent: TSpeedButton;
+    EditFindInHierarchy: TEdit;
     LabelPhysics: TLabel;
     LabelPlayStop: TLabel;
     LabelViewport: TLabel;
@@ -155,6 +156,7 @@ type
     procedure ControlsTreeEndDrag(Sender, Target: TObject; X, Y: Integer);
     procedure ControlsTreeSelectionChanged(Sender: TObject);
     procedure ButtonInteractModeClick(Sender: TObject);
+    procedure EditFindInHierarchyChange(Sender: TObject);
     procedure FrameResize(Sender: TObject);
     procedure MenuItemAddComponentClick(Sender: TObject);
     procedure MenuTreeViewItemCutClick(Sender: TObject);
@@ -273,6 +275,7 @@ type
       // Last selected components (with AutoSelectParents=true)
       LastSelected: TComponentList;
       FShowColliders: Boolean;
+      FindActive: Boolean;
 
     { Create and add to the designed parent a new component,
       whose type best matches currently selected file in SourceShellList.
@@ -684,6 +687,11 @@ type
     { Saves some editor data in subcomponent of Application for property
       editors }
     procedure UpdateEditorDataForPropertyEditors;
+
+    { Toggle whether the edit box to find component by name exists. }
+    procedure FindToggle;
+    { Find next, if find is active. }
+    procedure FindNext;
   end;
 
 implementation
@@ -699,7 +707,7 @@ uses
   CastleUtils, CastleComponentSerialize, CastleFileFilters, CastleGLUtils, CastleImages,
   CastleLog, CastleProjection, CastleStringUtils, CastleTimeUtils,
   CastleUriUtils, X3DLoad, CastleFilesUtils, CastleInternalPhysicsVisualization,
-  CastleInternalUrlUtils,
+  CastleInternalUrlUtils, CastleInternalFileMonitor,
   { CGE unit to keep in uses clause even if they are not explicitly used by FrameDesign,
     to register the core CGE components for (de)serialization. }
   Castle2DSceneManager, CastleNotifications, CastleThirdPersonNavigation, CastleSoundEngine,
@@ -1678,6 +1686,9 @@ begin
   FTransformDesigningObserver.OnFreeNotification := {$ifdef FPC}@{$endif} TransformDesigningFreeNotification;
   *)
   UpdateEditorDataForPropertyEditors;
+
+  FindActive := false;
+  SetEnabledVisible(EditFindInHierarchy, FindActive);
 end;
 
 destructor TDesignFrame.Destroy;
@@ -1966,7 +1977,7 @@ begin
 
   if DesignRootVisual then
   begin
-    CameraPreview := TCameraPreview.Create(NewDesignOwner);
+    CameraPreview := TCameraPreview.Create(nil, NewDesignOwner);
     CastleControl.Controls.InsertBack(CameraPreview.UiRoot);
   end;
 
@@ -3038,6 +3049,7 @@ begin
     usEncloseReferenceSize: H := Format('User interface scaling in effect: window must enclose a reference size of %f x %f.' + NL,
       [CastleControl.Container.UIReferenceWidth,
        CastleControl.Container.UIReferenceHeight]);
+    usEncloseReferenceSizeAutoOrientation:...
     usFitReferenceSize    : H := Format('User interface scaling in effect: window must fit inside a reference size of %f x %f.' + NL,
       [CastleControl.Container.UIReferenceWidth,
        CastleControl.Container.UIReferenceHeight]);
@@ -3448,6 +3460,10 @@ begin
       else
         Result := TCastleImageControl;
     end else
+    // check LoadTiledMap_FileFilters before LoadScene_FileFilters, since *.tmx matches both
+    if TFileFilterList.Matches(LoadTiledMap_FileFilters, SelectedUrl) then
+      Result := TCastleTiledMap
+    else
     if TFileFilterList.Matches(LoadScene_FileFilters, SelectedUrl) then
       Result := TCastleScene
     else
@@ -3502,6 +3518,13 @@ var
     Result.Url := Url;
   end;
 
+  function AddTiledMap(const Url: String): TCastleTiledMap;
+  begin
+    Result := AddComponent(ParentComponent, TCastleTiledMap, nil,
+      'TiledMap' + BaseNameFromUrl) as TCastleTiledMap;
+    Result.Url := Url;
+  end;
+
   function AddSound(const Url: String): TCastleTransform;
   var
     SoundSource: TCastleSoundSource;
@@ -3544,6 +3567,9 @@ begin
     else
       Result := AddImageControl(AddUrl);
   end else
+  if TFileFilterList.Matches(LoadTiledMap_FileFilters, AddUrl) then
+    Result := AddTiledMap(AddUrl)
+  else
   if TFileFilterList.Matches(LoadScene_FileFilters, AddUrl) then
     Result := AddScene(AddUrl)
   else
@@ -4064,7 +4090,13 @@ begin
     However, show TCastleToolTransform, even though it is csTransient.
     We want to allow selecting joint tools.
   }
+  // Define this to inspect all transformations, including internal (gizmos)
+  {.$define EDITOR_DEBUG_TRANSFORMS}
+  {$ifdef EDITOR_DEBUG_TRANSFORMS}
+  Result := true;
+  {$else}
   Result := (not (csTransient in Child.ComponentStyle)) or (Child is TCastleToolTransform);
+  {$endif}
 end;
 
 function TDesignFrame.Deletable(const Child: TComponent): Boolean;
@@ -5015,12 +5047,13 @@ var
 begin
   { This event is fired when calling TCustomListView.CanEdit
     which itself is called in TCustomListView.ShowEditor
-    therefore this event preceeds initializing and showing of the editor.
-
-    Here we have to "restore" the pure name of the component (without class name)
-    before starting edit. }
+    therefore this event preceeds initializing and showing of the editor. }
   C := TComponent(Node.Data);
   AllowEdit := C <> nil; // may be nil on special tree items "Behaviors" or "Non-Visual Components"
+
+  { Old: when Note.Text was different from C.Name, we set it here.
+    This is pointless now, but also harmless, since TreeNodeCaption
+    now just returns C.Name. }
   if AllowEdit then
     Node.Text := C.Name;
 end;
@@ -5065,15 +5098,34 @@ begin
         Exit;
       end;
 
-      UndoComment := 'Rename ' + Sel.Name + ' into ' + Node.Text;
       { Without this check, one could change Sel.Name to empty ('').
         Although TComponent.SetName checks that it's a valid Pascal identifier already,
         but it also explicitly allows to set Name = ''.
         Object inspector has special code to secure from empty Name
         (in TComponentNamePropertyEditor.SetValue), so we need a similar check here. }
       if not IsValidIdent(Node.Text) then
-        raise Exception.Create(Format(oisComponentNameIsNotAValidIdentifier, [Node.Text]));
-      Sel.Name := Node.Text;
+      begin
+        ErrorBox(Format(oisComponentNameIsNotAValidIdentifier, [Node.Text]));
+        Exit;
+      end;
+
+      UndoComment := 'Rename ' + Sel.Name + ' into ' + Node.Text;
+
+      try
+        Sel.Name := Node.Text;
+      except
+        { We capture exception and change into ErrorBox,
+          otherwise tree view in LCL GTK2 may end up showing a weird content
+          after doing "Node.Text := TreeNodeCaption(Sel)" below
+          (blank, with size of component name) and sometimes hang.
+          Explicitly catching and showing the error by ErrorBox workarounds it. }
+        on E: EComponentError do
+        begin
+          ErrorBox(E.Message);
+          Exit;
+        end;
+      end;
+
       ModifiedOutsideObjectInspector(UndoComment, ucHigh); // It'd be good if we set "ItemIndex" to index of "name" field, but there doesn't seem to be an easy way to
     end;
   finally
@@ -6315,13 +6367,134 @@ end;
 
 procedure TDesignFrame.FocusDesign;
 begin
-  CastleControl.SetFocus;
+  { Note that we ignore this call when CastleControl is disabled or invisible.
+    Otherwise SetFocus would raise an error: understandably, we cannot focus
+    disabled or invisible control.
+    Ignoring it here prevents errors at "Escape" key or Undo when the design
+    is non-visual (like sounds.castle-component). }
+  if CastleControl.Enabled and CastleControl.Visible then
+    CastleControl.SetFocus;
+end;
+
+procedure TDesignFrame.FindToggle;
+begin
+  FindActive := not FindActive;
+  SetEnabledVisible(EditFindInHierarchy, FindActive);
+  if FindActive then
+  begin
+    EditFindInHierarchy.Text := ''; // clear edit when showing it
+    // Note: SetFocus must be done after making it enabled, otherwise exception is raised
+    EditFindInHierarchy.SetFocus;
+  end;
+end;
+
+procedure TDesignFrame.EditFindInHierarchyChange(Sender: TObject);
+var
+  LowerFindText: String;
+  TreeNode: TTreeNode;
+  C: TComponent;
+begin
+  if FindActive and (EditFindInHierarchy.Text <> '') then
+  begin
+    LowerFindText := LowerCase(EditFindInHierarchy.Text);
+
+    TreeNode := ControlsTree.Items.GetFirstNode;
+    while TreeNode <> nil do
+    begin
+      C := SelectedFromNode(TreeNode, false);
+      if (C <> nil) and (Pos(LowerFindText, LowerCase(C.Name)) <> 0) then
+      begin
+        SelectedComponent := C;
+        Exit;
+      end;
+      TreeNode := TreeNode.GetNext;
+    end;
+
+    Beep; // nothing found
+  end;
+end;
+
+procedure TDesignFrame.FindNext;
+var
+  LowerFindText: String;
+  TreeNode: TTreeNode;
+  Sel, C: TComponent;
+  SeenSelection: Boolean;
+begin
+  if FindActive and (EditFindInHierarchy.Text <> '') then
+  begin
+    if SelectedComponent = nil then
+    begin
+      { try to find first match }
+      EditFindInHierarchyChange(nil)
+    end else
+    begin
+      Sel := GetSelectedComponent(false);
+      LowerFindText := LowerCase(EditFindInHierarchy.Text);
+
+      // first pass: go to selected component, find first match after it
+      SeenSelection := false;
+
+      TreeNode := ControlsTree.Items.GetFirstNode;
+      while TreeNode <> nil do
+      begin
+        C := SelectedFromNode(TreeNode, false);
+
+        if SeenSelection and
+           (C <> nil) and
+           (Pos(LowerFindText, LowerCase(C.Name)) <> 0) then
+        begin
+          SelectedComponent := C;
+          Exit;
+        end;
+        if C = Sel then
+          SeenSelection := true;
+
+        TreeNode := TreeNode.GetNext;
+      end;
+
+      // no match found after selected component, search from the beginning
+
+      if not SeenSelection then
+      begin
+        WritelnWarning('Not found SelectedComponent %s among tree nodes, something is wrong', [Sel.Name]);
+        Exit;
+      end;
+
+      TreeNode := ControlsTree.Items.GetFirstNode;
+      while TreeNode <> nil do
+      begin
+        C := SelectedFromNode(TreeNode, false);
+
+        if C = Sel then
+        begin
+          // we reached selection again, so no next match found
+          Exit;
+        end;
+
+        if (C <> nil) and (Pos(LowerFindText, LowerCase(C.Name)) <> 0) then
+        begin
+          SelectedComponent := C;
+          Exit;
+        end;
+
+        TreeNode := TreeNode.GetNext;
+      end;
+    end;
+  end;
 end;
 
 initialization
   { Enable using our property edits e.g. for TCastleScene.URL }
   CastlePropEdits.Register;
   CastleEditorPropEdits.Register;
-  { Inside CGE editor, CastleApplicationMode is never appRunning. }
+
+  { Inside CGE editor,
+    - CastleApplicationMode is never appRunning,
+    - so CastleDesignMode is always true. }
   InternalCastleApplicationMode := appDesign;
+
+  { Inside CGE editor, file monitor is always enabled. }
+  FileMonitor.MakePossiblyEnabled;
+  FileMonitor.Enabled := true;
 end.

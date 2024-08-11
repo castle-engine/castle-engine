@@ -365,9 +365,9 @@ var
         see GlyphPadding in castletexturefontdata.pas. }
       { TODO; Not used now. While there's a visible improvement in some cases
         (when optimal font size mismatches final font size),
-        there's also regression in view3dscene
+        there's also regression in castle-model-viewer
         (when optimal font size matches final font size closely):
-        the "A" in "Animations" button in view3dscene gets weird artifact. }
+        the "A" in "Animations" button in castle-model-viewer gets weird artifact. }
       {.$define EXTRA_GLYPH_SPACE}
 
       ScreenRect := PFloatRectangle(GlyphsScreenRects.Ptr(GlyphsToRender));
@@ -387,15 +387,7 @@ var
   end;
 
 var
-  C: TUnicodeChar;
-  {$ifdef FPC}
-  TextPtr: PChar;
-  CharLen: Integer;
-  {$else}
-  TextIndex: Integer;
-  NextTextIndex: Integer;
-  TextLength: Integer;
-  {$endif}
+  Iter: TCastleStringIterator;
   GlyphsPerChar: Integer;
 begin
   if FFont = nil then
@@ -429,30 +421,16 @@ begin
   begin
     GlyphsToRender := 0;
     { While Round() below is not needed, it improves the quality of rendered
-      text. Compare e.g. view3dscene button captions. }
+      text. Compare e.g. castle-model-viewer button captions. }
     ScreenX := Round(X);
     ScreenY := Round(Y);
     if TargetImage <> nil then
       FFont.Image.ColorWhenTreatedAsAlpha := Vector3Byte(OutlineColor.XYZ); // ignore OutlineColor[3] for now
 
-    {$ifdef FPC}
-    TextPtr := PChar(S);
-    C := UTF8CharacterToUnicode(TextPtr, CharLen);
-    while (C > 0) and (CharLen > 0) do
-    {$else}
-    TextIndex := 1;
-    TextLength := Length(S);
-    while (TextIndex <= TextLength) do
-    {$endif}
+    Iter.Start(S);
+    while Iter.GetNext do
     begin
-      {$ifdef FPC}
-      Inc(TextPtr, CharLen);
-      {$else}
-      C := UnicodeStringNextChar(S, TextIndex, NextTextIndex);
-      TextIndex := NextTextIndex;
-      {$endif}
-
-      G := FFont.Glyph(C);
+      G := FFont.Glyph(Iter.Current);
       if G <> nil then
       begin
         if (G.Width <> 0) and (G.Height <> 0) then
@@ -473,10 +451,6 @@ begin
         ScreenX := ScreenX + G.AdvanceX * Scale + Outline * 2;
         ScreenY := ScreenY + G.AdvanceY * Scale;
       end;
-
-      {$ifdef FPC}
-      C := UTF8CharacterToUnicode(TextPtr, CharLen);
-      {$endif}
     end;
 
     if TargetImage = nil then
@@ -496,24 +470,10 @@ begin
   if TargetImage <> nil then
     FFont.Image.ColorWhenTreatedAsAlpha := Vector3Byte(Color.XYZ); // ignore Color[3] for now
 
-  {$ifdef FPC}
-  TextPtr := PChar(S);
-  C := UTF8CharacterToUnicode(TextPtr, CharLen);
-  while (C > 0) and (CharLen > 0) do
-  {$else}
-  TextIndex := 1;
-  TextLength := Length(S);
-  while (TextIndex <= TextLength) do
-  {$endif}
+  Iter.Start(S);
+  while Iter.GetNext do
   begin
-    {$ifdef FPC}
-    Inc(TextPtr, CharLen);
-    {$else}
-    C := UnicodeStringNextChar(S, TextIndex, NextTextIndex);
-    TextIndex := NextTextIndex;
-    {$endif}
-
-    G := FFont.Glyph(C);
+    G := FFont.Glyph(Iter.Current);
     if G <> nil then
     begin
       if (G.Width <> 0) and (G.Height <> 0) then
@@ -524,10 +484,6 @@ begin
       ScreenX := ScreenX + G.AdvanceX * Scale + Outline * 2;
       ScreenY := ScreenY + G.AdvanceY * Scale;
     end;
-
-    {$ifdef FPC}
-    C := UTF8CharacterToUnicode(TextPtr, CharLen);
-    {$endif}
   end;
 
   if TargetImage = nil then

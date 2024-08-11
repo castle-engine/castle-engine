@@ -367,7 +367,7 @@ begin
     begin
       { Initialize vertex arrays that we we will use with indexed nodes. }
       if Vbo[vtCoordinate] <> 0 then
-        glBindBuffer(GL_ARRAY_BUFFER, Vbo[vtCoordinate]);
+        RenderContext.BindBuffer[btArray] := Vbo[vtCoordinate];
 
       {$ifdef OpenGLES}
       Assert(CurrentMeshShader <> nil, 'OpenGL ES 2.0 rendering must go through shaders');
@@ -417,7 +417,7 @@ begin
       end;
 
       if Vbo[vtAttribute] <> 0 then
-        glBindBuffer(GL_ARRAY_BUFFER, Vbo[vtAttribute]);
+        RenderContext.BindBuffer[btArray] := Vbo[vtAttribute];
 
       if CurrentMeshShader <> nil then
       begin
@@ -511,7 +511,7 @@ begin
         if Vbo[vtIndex] <> 0 then
         begin
           RenderContext.CurrentVao := Vao;
-          glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, Vbo[vtIndex]);
+          RenderContext.BindBuffer[btElementArray] := Vbo[vtIndex];
         end;
 
         if Arrays.Counts = nil then

@@ -360,9 +360,11 @@ function IntSqrt(const Value: Cardinal): Cardinal;
   http://www.khronos.org/opengles/sdk/docs/manglsl/xhtml/smoothstep.xml }
 function SmoothStep(const Edge0, Edge1, X: Single): Single;
 
-{ Utility functions to control the endianess of Single and Double values; no
-  support for Extended though as such values have yet to be encountered when
-  read from a file
+{ Utility functions to control the endianess.
+  Note: Floating-point versions support Single and Double, but not Extended
+  (which means different things on different platforms/compilers,
+  see https://castle-engine.io/coding_conventions#no_extended ,
+  and in practice binary files don't contain numbers >= Double).
 
   @groupBegin }
 function Swap32(Value: UInt32): UInt32;

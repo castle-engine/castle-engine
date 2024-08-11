@@ -149,6 +149,7 @@
     FBound: Boolean;
     FTransform: TMatrix4;
     FTransformScale: Single;
+    FLastBeforeTraverseChangedTransform: Boolean;
     procedure EventIsBoundReceive(const Event: TX3DEvent; const AValue: TX3DField;
       const Time: TX3DTime);
     procedure SetBound(const Value: Boolean);
@@ -213,6 +214,9 @@
     property Transform: TMatrix4 read FTransform;
     property TransformScale: Single read FTransformScale;
     { @groupEnd }
+
+    property InternalLastBeforeTraverseChangedTransform: Boolean
+      read FLastBeforeTraverseChangedTransform;
 
     {$I auto_generated_node_helpers/x3dnodes_x3dbindablenode.inc}
   end;
@@ -565,7 +569,7 @@ function TAbstractMetadataNode.DefaultContainerFieldInContext(
   const Version: TX3DVersion; const ParentNode: TX3DNode): String;
 begin
   { X3D 4.0 changed the containerField for MetadataXxx nodes,
-    see https://github.com/castle-engine/view3dscene/issues/78 . }
+    see https://github.com/castle-engine/castle-model-viewer/issues/78 . }
   if Version.Major >= 4 then
     Result := 'value'
   else
@@ -587,8 +591,40 @@ procedure TAbstractBindableNode.BeforeTraverse(
 begin
   inherited;
 
-  FTransform := StateStack.Top.Transformation.Transform;
-  FTransformScale := StateStack.Top.Transformation.Scale;
+  { We need to compare old and new matrix to determine
+    FLastBeforeTraverseChangedTransform.
+    Even though this may be wasteful, but FLastBeforeTraverseChangedTransform
+    is very desperately needed: otherwise every time
+    TTransformChangeHelper.TransformChangeTraverse processes
+    the bound viewpoint node (and it is processed in every frame,
+    if model has some animation and some Viewpoint node and OptimizeExtensiveTransformations),
+    and without FLastBeforeTraverseChangedTransform,
+    we'd have to report each frame "possibly viewpoint vectors changed".
+
+    Testcase: cat in castle-model-viewer-mobile,
+    if FLastBeforeTraverseChangedTransform would be missing (or always true)
+    then
+    - it would be impossible to rotate the cat model,
+    - it would be impossible to zoom it,
+    - and every viewpoint switch would be instant.
+
+    For this to happen, we need:
+    - some animation in the model playing that changes transformation each frame
+      (e.g. skeleton animation of the cat)
+    - OptimizedExtensiveTransformations = true (to process all nodes each time
+      some transformation changes)
+    - AutoCamera = true used (otherwise DoBoundViewpointVectorsChanged doesn't
+      really cause anything)
+  }
+
+  FLastBeforeTraverseChangedTransform :=
+    (not TMatrix4.PerfectlyEquals(FTransform, StateStack.Top.Transformation.Transform)) or
+    (FTransformScale <> StateStack.Top.Transformation.Scale);
+  if FLastBeforeTraverseChangedTransform then
+  begin
+    FTransform := StateStack.Top.Transformation.Transform;
+    FTransformScale := StateStack.Top.Transformation.Scale;
+  end;
 end;
 
 procedure TAbstractBindableNode.EventIsBoundReceive(

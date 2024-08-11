@@ -289,6 +289,10 @@ type
   https://wiki.freepascal.org/for-in_loop }
 operator Enumerator(const A: TComponentList): TComponentListEnumerator;
 
+var
+  { Path to Android SDK (for ANDROID_HOME), and Java (JAVA_HOME). }
+  AndroidHome, JavaHome: String;
+
 implementation
 
 uses
@@ -454,6 +458,11 @@ begin
     Environment.Values['CASTLE_ENGINE_PATH'] := CastleEnginePath;
     WritelnLog('Calling process with extended CASTLE_ENGINE_PATH: ' + Environment.Values['CASTLE_ENGINE_PATH']);
   end;
+
+  if AndroidHome <> '' then
+    Environment.Values['ANDROID_HOME'] := AndroidHome;
+  if JavaHome <> '' then
+    Environment.Values['JAVA_HOME'] := JavaHome;
 
   { create Process and call Process.Execute }
   Process := TProcess.Create(nil);

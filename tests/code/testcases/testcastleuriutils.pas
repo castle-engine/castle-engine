@@ -38,6 +38,7 @@ type
     procedure TestDecodeBase64;
     procedure TestEncodeBase64;
     procedure TestMimeTypeHttpQuery;
+    procedure TestUriMimeType;
   end;
 
 implementation
@@ -424,6 +425,29 @@ begin
 
   // test exactly from https://github.com/castle-engine/castle-engine/issues/547
   AssertEquals('image/jpeg', UriMimeType('https://cards.scryfall.io/large/front/0/9/092c48bd-b648-4c9e-aa99-cac3c407911d.jpg?1692936576'));
+end;
+
+procedure TTestUriUtils.TestUriMimeType;
+begin
+  AssertEquals('image/png', UriMimeType('aaa.png'));
+  AssertEquals('image/png', UriMimeType('aaa.png#some-anchor'));
+  AssertEquals('image/png', UriMimeType('castle-data:/aaa.png'));
+  AssertEquals('image/png', UriMimeType('castle-data:/aaa.png#some-anchor'));
+
+  AssertEquals('image/png', UriMimeType('%23/aaa.png'));
+  AssertEquals('image/png', UriMimeType('%23/aaa.png#some-anchor'));
+  AssertEquals('image/png', UriMimeType('castle-data:/%23/aaa.png'));
+  AssertEquals('image/png', UriMimeType('castle-data:/%23/aaa.png#some-anchor'));
+
+  AssertEquals('application/x-md3', UriMimeType('head.md3'));
+  AssertEquals('application/x-md3', UriMimeType('head.md3#skin:light'));
+  AssertEquals('application/x-md3', UriMimeType('castle-data:/head.md3'));
+  AssertEquals('application/x-md3', UriMimeType('castle-data:/head.md3#skin:light'));
+
+  AssertEquals('application/json', UriMimeType('dragon.json'));
+  AssertEquals('application/json', UriMimeType('dragon.json#skin:dark'));
+  AssertEquals('application/json', UriMimeType('castle-data:/dragon.json'));
+  AssertEquals('application/json', UriMimeType('castle-data:/dragon.json#skin:dark'));
 end;
 
 initialization

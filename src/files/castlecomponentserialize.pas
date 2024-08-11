@@ -1,5 +1,5 @@
 {
-  Copyright 2018-2023 Michalis Kamburelis.
+  Copyright 2018-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -127,7 +127,9 @@ type
     JsonObject: TJsonObject;
     procedure SetUrl(const Value: String);
   private
-    function InternalComponentLoad(const InstanceOwner: TComponent;
+    function InternalComponentLoad(
+      const InstanceOwner: TComponent;
+      const AssociateReferences: TPersistent;
       const LoadInfo: TInternalComponentLoadInfo): TComponent;
   public
     { Main constructor.
@@ -188,10 +190,108 @@ type
       @link(CastleComponentSerialize.ComponentLoad),
       but it is much faster if you want to instantiate the same file many times.
 
-      Newly created component will be owned by InstanceOwner.
+      Newly created component will be owned by InstanceOwner (it can be @nil,
+      in which case you have to free it manually).
       Do not confuse this with the owner of this TCastleComponentFactory
-      -- which may be the same or different component. }
-    function ComponentLoad(const InstanceOwner: TComponent): TComponent;
+      -- which may be the same or different component.
+
+      If AssociateReferences is not @nil,
+      then published fields within AssociateReferences that match
+      the names of components within the loaded design will be set.
+
+      The @code(InstanceOwner) is useful for 2 things:
+
+      @orderedList(
+        @item(To manage memory (freeing the InstanceOwner will also free
+          the loaded component).)
+
+        @item(And to search for named components.
+          All the loaded components are owned by InstanceOwner
+          and you can query for them using @code(InstanceOwner.FindComponent)
+          or @code(InstanceOwner.FindRequiredComponent).
+
+          Note that loaded components are renamed,
+          if necessary, to be unique within InstanceOwner
+          --- this is important if your InstanceOwner owns other things as well.
+          If you want to reliably search for names, make sure to use
+          different InstanceOwner for each load. Or use @code(AssociateReferences)
+          instead.)
+      )
+
+      For example, this example creates an owner dedicated for refering to
+      names in the given instance of a Rock:
+
+      @longCode(#
+      procedure SpawnRock;
+      var
+        RockOwner: TComponent;
+        Rock: TCastleTransform;
+        RockRigidBody: TCastleRigidBody;
+        SceneToRotate: TCastleTransform;
+      begin
+        RockOwner := TComponent.Create(Self);
+        Rock := RockFactory.ComponentLoad(RockOwner) as TCastleTransform;
+        RockRigidBody := RockOwner.FindRequiredComponent('RockRigidBody') as TCastleRigidBody;
+        SceneToRotate := RockOwner.FindRequiredComponent('SceneToRotate') as TCastleTransform;
+        // here use RockRigidBody, SceneToRotate
+      end;
+      #)
+
+      The @code(AssociateReferences) is useful to connect, at load time,
+      the names of components within the loaded design to published fields
+      inside AssociateReferences.
+      Compared to using @code(InstanceOwner.FindComponent)
+      or @code(InstanceOwner.FindRequiredComponent) for the same purpose:
+
+      @unorderedList(
+        @item(It is simpler to use, because you don't need to manage
+          the InstanceOwner lifetime.
+
+          This matters in case you created InstanceOwner only for
+          the purpose of loading the given design.
+
+          The @code(AssociateReferences) instance can be freed immediately
+          after the load, and it will not affect the loaded components.
+          Or you can keep it existing for a longer time, and reuse
+          for loading all components -- it will not mess anything,
+          as loaded components are not renamed to be unique within it.
+        )
+
+        @item(
+          Associates the original component names, regardless of whether
+          they later required renaming to be unique within InstanceOwner.
+
+          This matters in case your InstanceOwner owns many other things.
+        )
+
+        @item(Note also one disadvantage of @code(AssociateReferences):
+          It doesn't change that field type matches.)
+      )
+
+      For example:
+
+      @longCode(#
+      type
+        TRockDesign = class(TPersistent)
+        published
+          SceneToRotate: TCastleTransform;
+          RockRigidBody: TCastleRigidBody;
+        end;
+
+      procedure SpawnRock;
+      var
+        Rock: TCastleTransform;
+        RockDesign: TRockDesign;
+      begin
+        RockDesign := TRockDesign.Create;
+        try
+          Rock := RockFactory.ComponentLoad(Self, RockDesign) as TCastleTransform;
+          // here use RockDesign.RockRigidBody, RockDesign.SceneToRotate
+        finally FreeAndNil(RockDesign) end;
+      end;
+      #) }
+    function ComponentLoad(const InstanceOwner: TComponent;
+      const AssociateReferences: TPersistent = nil): TComponent;
   end;
 
   TSerializedComponent = TCastleComponentFactory deprecated 'use TCastleComponentFactory';
@@ -394,6 +494,8 @@ type
       private
         Reader: TCastleJsonReader;
       end;
+    var
+      ComponentNames: TStringList;
     { Events called by FJsonDeStreamer }
     procedure GetObject(AObject: TObject; Info: PPropInfo;
       AData: TJsonObject; DataName: TJsonStringType; var AValue: TObject);
@@ -432,6 +534,30 @@ type
       ResolveObjectProperties: TResolveObjectPropertyList;
       SerializationProcessPool: TSerializationProcessReaderList;
       SerializationProcessPoolUsed: Integer;
+
+    { Find component name in ComponentNames.
+
+      Note: Do not use Owner.FindComponent(FindName) to resolve names
+      during deserialization.
+      Reason: Owner may already have some existing
+      components before new ones have been deserialized into it
+      (e.g. if duplicating viewport+camera into an existing
+      design) with conflicting names. We do not want to link to these
+      existing components.
+
+      See TTestCastleComponentSerialize.TestPastePreserveReferences
+      for testcase why this is important. Thanks to ComponentNames
+      e.g. copy-paste (in editor) of viewport + camera into
+      the same design works correctly.
+
+      Note that having ComponentNames with fallback on Owner.FindComponent
+      would also be bad: since the name reference may be found in design
+      before the object is defined, e.g. viewport with
+      propery "Camera": "Camera1" may be specified before Camera1 is defined.
+      We should then wait for Camera1 (not reuse unrelated Camera1 from existing
+      Owner).
+      So instead, FindComponentName looks *only* in ComponentNames. }
+    function FindComponentName(const FindName: String): TComponent;
 
     { Events called by DeStreamer }
     procedure BeforeReadObject(Sender: TObject; AObject: TObject; Json: TJsonObject);
@@ -677,6 +803,21 @@ begin
     ResolveComponentReferences(TComponent(AObject));
 end;
 
+function TCastleJsonReader.FindComponentName(const FindName: String): TComponent;
+var
+  NameIndex: Integer;
+begin
+  NameIndex := ComponentNames.IndexOf(FindName);
+  if NameIndex <> -1 then
+  begin
+    Result := ComponentNames.Objects[NameIndex] as TComponent;
+    Assert(Result <> nil); // all object on this list should be non-nil
+    Exit;
+  end;
+
+  Result := nil;
+end;
+
 procedure TCastleJsonReader.RestoreProperty(Sender: TObject; AObject: TObject;
   Info: PPropInfo; AValue: TJsonData; var Handled: Boolean);
 
@@ -710,6 +851,8 @@ procedure TCastleJsonReader.RestoreProperty(Sender: TObject; AObject: TObject;
     repeat
       Inc(Number);
       Result := NameWithoutNumber + IntToStr(Number);
+    { Using Owner.FindComponent, not FindComponentName:
+      because we rename based on what exists in Owner, not ComponentNames. }
     until Owner.FindComponent(Result) = nil;
   end;
 
@@ -744,12 +887,17 @@ begin
         then the mechanism below kicks-in.)
     }
     NewName := AValue.AsString;
+    ComponentNames.AddObject(NewName, AObject);
+
+    { Using Owner.FindComponent, not FindComponentName:
+      because we rename based on what exists in Owner, not ComponentNames. }
     if Owner.FindComponent(NewName) <> nil then
     begin
       if AObject is TCastleComponent then
         TCastleComponent(AObject).InternalOriginalName := NewName;
       NewName := RenameUniquely(Owner, NewName);
     end;
+
     SetStrProp(AObject, Info, NewName);
     Handled := true;
   end;
@@ -787,7 +935,7 @@ begin
       of some existing instance. Like
         "Camera": "Camera1"
     }
-    AValue := Owner.FindComponent(DataName);
+    AValue := FindComponentName(DataName);
 
     if AValue = nil then
     begin
@@ -843,7 +991,14 @@ var
 begin
   for R in ResolveObjectProperties do
   begin
-    PropertyValueAsObject := Owner.FindComponent(R.PropertyValue);
+    PropertyValueAsObject := FindComponentName(R.PropertyValue);
+    { As a fallback, try to resolve using Owner, in case serialized
+      hierarchy references components that were not serialized,
+      but exist in Owner.
+      See TTestCastleComponentSerialize.TestPastePreserveReferencesOutsideCopied
+      for example. }
+    if PropertyValueAsObject = nil then
+      PropertyValueAsObject := Owner.FindComponent(R.PropertyValue);
     if PropertyValueAsObject = nil then
     begin
       { In case we cannot resolve the component name, it is better to set
@@ -917,6 +1072,10 @@ begin
   ResolveObjectProperties := TResolveObjectPropertyList.Create(true);
 
   SerializationProcessPool := TSerializationProcessReaderList.Create(true);
+
+  ComponentNames := TStringList.Create;
+  ComponentNames.CaseSensitive := false;
+  ComponentNames.Duplicates := dupError;
 end;
 
 destructor TCastleJsonReader.Destroy;
@@ -924,6 +1083,7 @@ begin
   FreeAndNil(ResolveObjectProperties);
   FreeAndNil(FDeStreamer);
   FreeAndNil(SerializationProcessPool);
+  FreeAndNil(ComponentNames);
   Dec(InternalLoadingComponent);
   inherited;
 end;
@@ -1001,13 +1161,35 @@ begin
   JsonObject := ComponentToJson(Template);
 end;
 
-function TCastleComponentFactory.ComponentLoad(const InstanceOwner: TComponent): TComponent;
+function TCastleComponentFactory.ComponentLoad(const InstanceOwner: TComponent;
+  const AssociateReferences: TPersistent): TComponent;
 begin
-  Result := InternalComponentLoad(InstanceOwner, nil);
+  Result := InternalComponentLoad(InstanceOwner, AssociateReferences, nil);
 end;
 
-function TCastleComponentFactory.InternalComponentLoad(const InstanceOwner: TComponent;
+function TCastleComponentFactory.InternalComponentLoad(
+  const InstanceOwner: TComponent;
+  const AssociateReferences: TPersistent;
   const LoadInfo: TInternalComponentLoadInfo): TComponent;
+
+  { Set AssociateReferences fields matching component names in ComponentNames. }
+  procedure MakeAssociateReferences(const ComponentNames: TStringList);
+  var
+    I: Integer;
+    FieldAddr: ^TComponent;
+  begin
+    for I := 0 to ComponentNames.Count - 1 do
+    begin
+      FieldAddr := AssociateReferences.FieldAddress(ComponentNames[I]);
+      if FieldAddr <> nil then
+      begin
+        //Assert(FieldAddr^ = nil); // may not be true, user can reuse AssociateReferences
+        Assert(ComponentNames.Objects[I] is TComponent); // also checks ComponentNames.Objects[I] <> nil
+        FieldAddr^ := ComponentNames.Objects[I] as TComponent;
+      end;
+    end;
+  end;
+
 var
   Reader: TCastleJsonReader;
 begin
@@ -1023,6 +1205,9 @@ begin
     Reader.DeStreamer.JsonToObject(JsonObject, Result);
 
     Reader.FinishResolvingComponentProperties;
+
+    if AssociateReferences <> nil then
+      MakeAssociateReferences(Reader.ComponentNames);
 
     if Assigned(OnInternalTranslateDesign) and (FTranslationGroupName <> '') then
       OnInternalTranslateDesign(Result, FTranslationGroupName);
@@ -1050,7 +1235,7 @@ begin
     Factory := TCastleComponentFactory.Create(nil);
     try
       Factory.LoadFromStream(ContentsStringStream, '');
-      Result := Factory.InternalComponentLoad(Owner, LoadInfo);
+      Result := Factory.InternalComponentLoad(Owner, nil, LoadInfo);
     finally FreeAndNil(Factory) end;
   finally FreeAndNil(ContentsStringStream) end;
 end;

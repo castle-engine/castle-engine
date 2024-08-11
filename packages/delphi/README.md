@@ -6,7 +6,7 @@ NOTE: These packages are *not* necessary for developing applications using `TCas
 
 ## Installation in Delphi
 
-This is duplicated in https://castle-engine.io/delphi_packages[Delphi packages installation docs]:
+This is duplicated in [Delphi packages installation docs](https://castle-engine.io/delphi_packages):
 
 - Open in Delphi `AllPackages.groupproj`
 

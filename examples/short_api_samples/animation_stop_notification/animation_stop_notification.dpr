@@ -20,7 +20,7 @@
 uses SysUtils,
   CastleWindow, CastleSceneCore, CastleScene, CastleViewport, CastleCameras,
   CastleVectors, CastleUIControls, CastleControls, X3DNodes,
-  CastleKeysMouse, CastleColors, CastleNotifications;
+  CastleKeysMouse, CastleColors, CastleNotifications, CastleLog;
 
 { TViewMain ----------------------------------------------------------------- }
 
@@ -96,6 +96,8 @@ var
   Window: TCastleWindow;
   ViewMain: TViewMain;
 begin
+  InitializeLog;
+
   Window := TCastleWindow.Create(Application);
   Window.Open;
   Application.MainWindow := Window;

@@ -1,10 +1,10 @@
 object ProjectForm: TProjectForm
-  Left = 646
-  Height = 678
-  Top = 234
+  Left = 536
+  Height = 832
+  Top = 108
   Width = 1235
   Caption = ' my-project | Castle Game Engine'
-  ClientHeight = 648
+  ClientHeight = 832
   ClientWidth = 1235
   DesignTimePPI = 120
   KeyPreview = True
@@ -19,11 +19,11 @@ object ProjectForm: TProjectForm
   OnShow = FormShow
   Position = poMainFormCenter
   ShowInTaskBar = stAlways
-  LCLVersion = '2.2.2.0'
+  LCLVersion = '3.4.0.0'
   object PageControlBottom: TPageControl
     Left = 0
     Height = 224
-    Top = 424
+    Top = 608
     Width = 1235
     ActivePage = TabOutput
     Align = alBottom
@@ -32,46 +32,46 @@ object ProjectForm: TProjectForm
     TabOrder = 2
     object TabFiles: TTabSheet
       Caption = 'Files'
-      ClientHeight = 188
+      ClientHeight = 187
       ClientWidth = 1225
       ParentFont = False
       object SplitterBetweenFiles: TSplitter
         Left = 0
-        Height = 188
+        Height = 187
         Top = 0
         Width = 5
       end
     end
     object TabOutput: TTabSheet
       Caption = 'Output'
-      ClientHeight = 188
+      ClientHeight = 187
       ClientWidth = 1225
       ParentFont = False
       object ListOutput: TListBox
         Left = 0
-        Height = 188
+        Height = 187
         Top = 0
         Width = 1225
         Align = alClient
         ItemHeight = 21
-        OnDblClick = ListOutputDblClick
         ParentFont = False
         PopupMenu = OutputPopup
         ScrollWidth = 902
         Style = lbOwnerDrawFixed
         TabOrder = 0
         TopIndex = -1
+        OnDblClick = ListOutputDblClick
       end
     end
     object TabWarnings: TTabSheet
       Caption = 'Warnings'
-      ClientHeight = 188
+      ClientHeight = 187
       ClientWidth = 1225
       ParentFont = False
       TabVisible = False
       object ListWarnings: TListBox
         Left = 0
-        Height = 187
+        Height = 186
         Top = 1
         Width = 1225
         Align = alClient
@@ -99,35 +99,35 @@ object ProjectForm: TProjectForm
     Cursor = crVSplit
     Left = 0
     Height = 6
-    Top = 418
+    Top = 602
     Width = 1235
     Align = alBottom
     ResizeAnchor = akBottom
   end
   object PanelAboveTabs: TPanel
     Left = 0
-    Height = 418
+    Height = 602
     Top = 0
     Width = 1235
     Align = alClient
     BevelOuter = bvNone
-    ClientHeight = 418
+    ClientHeight = 602
     ClientWidth = 1235
     ParentFont = False
     TabOrder = 0
     object PanelNoDesign: TPanel
       Left = 0
-      Height = 418
+      Height = 602
       Top = 0
       Width = 1235
       Align = alClient
       BevelOuter = bvNone
-      ClientHeight = 418
+      ClientHeight = 602
       ClientWidth = 1235
       TabOrder = 0
       object PanelNoDesignTop: TPanel
         Left = 5
-        Height = 66
+        Height = 67
         Top = 5
         Width = 1225
         Align = alTop
@@ -137,12 +137,12 @@ object ProjectForm: TProjectForm
         ChildSizing.HorizontalSpacing = 5
         ChildSizing.Layout = cclLeftToRightThenTopToBottom
         ChildSizing.ControlsPerLine = 100
-        ClientHeight = 66
+        ClientHeight = 67
         ClientWidth = 1225
         TabOrder = 0
         object BitBtnNewView: TBitBtn
           Left = 0
-          Height = 66
+          Height = 67
           Top = 0
           Width = 157
           Action = ActionNewUnitView
@@ -157,7 +157,7 @@ object ProjectForm: TProjectForm
         end
         object BitBtnPlayStop: TBitBtn
           Left = 162
-          Height = 66
+          Height = 67
           Top = 0
           Width = 188
           Action = ActionPlayStop
@@ -173,17 +173,17 @@ object ProjectForm: TProjectForm
       end
       object PanelOpenExistingView: TPanel
         Left = 0
-        Height = 342
-        Top = 76
+        Height = 525
+        Top = 77
         Width = 1235
         Align = alClient
         BevelOuter = bvNone
-        ClientHeight = 342
+        ClientHeight = 525
         ClientWidth = 1235
         TabOrder = 1
         object LabelOpenExistingView: TLabel
           Left = 10
-          Height = 22
+          Height = 23
           Top = 10
           Width = 1225
           Align = alTop
@@ -194,24 +194,24 @@ object ProjectForm: TProjectForm
         end
         object ListOpenExistingView: TListView
           Left = 10
-          Height = 290
-          Top = 42
+          Height = 472
+          Top = 43
           Width = 1215
           Align = alClient
           AutoSortIndicator = True
           AutoWidthLastColumn = True
           BorderSpacing.Around = 10
-          Columns = <
+          Columns = <          
             item
               AutoSize = True
               Caption = 'Name'
               MinWidth = 209
               Width = 209
-            end
+            end          
             item
               Caption = 'File'
               Width = 626
-            end
+            end          
             item
               Caption = 'Last Modified'
               Width = 378
@@ -361,6 +361,15 @@ object ProjectForm: TProjectForm
       end
       object MenuItem21: TMenuItem
         Action = ActionComponentSaveSelected
+      end
+      object Separator14: TMenuItem
+        Caption = '-'
+      end
+      object MenuItem43: TMenuItem
+        Action = ActionFindToggle
+      end
+      object MenuItem19: TMenuItem
+        Action = ActionFindNext
       end
       object MenuSeparator6123: TMenuItem
         Caption = '-'
@@ -586,6 +595,9 @@ object ProjectForm: TProjectForm
         end
         object MenuItemRunParameterDisableFpsLimit: TMenuItem
           Action = ActionRunParameterDisableFpsLimit
+        end
+        object MenuItemRunParameterPretendTouchDevice: TMenuItem
+          Action = ActionRunParameterPretendTouchDevice
         end
         object Separator11: TMenuItem
           Caption = '-'
@@ -834,11 +846,8 @@ object ProjectForm: TProjectForm
       Caption = 'Open Containing Folder'
       OnClick = MenuItemOpenDirFromFileClick
     end
-    object MenuItemSeparator2303403o: TMenuItem
-      Caption = '-'
-    end
-    object MenuItemNewSpriteSheet: TMenuItem
-      Action = ActionNewSpriteSheet
+    object MenuItem44: TMenuItem
+      Action = ActionCopyUrl
     end
     object MenuItemSepraratorSLP002: TMenuItem
       Caption = '-'
@@ -850,16 +859,19 @@ object ProjectForm: TProjectForm
     object MenuItemSeparator123123213: TMenuItem
       Caption = '-'
     end
-    object MenuItemNewDirectory: TMenuItem
-      Caption = 'New Directory...'
-      OnClick = MenuItemNewDirectoryClick
-    end
     object MenuItemDeleteFile: TMenuItem
       Caption = 'Delete...'
       OnClick = MenuItemDeleteFileClick
     end
     object N3: TMenuItem
       Caption = '-'
+    end
+    object MenuItemNewSpriteSheet: TMenuItem
+      Action = ActionNewSpriteSheet
+    end
+    object MenuItemNewDirectory: TMenuItem
+      Caption = 'New Directory...'
+      OnClick = MenuItemNewDirectoryClick
     end
     object MenuItemPopupNewUnit: TMenuItem
       Caption = 'New Unit Here'
@@ -1359,6 +1371,28 @@ object ProjectForm: TProjectForm
       Category = 'Data'
       Caption = 'Import from Sketchfab...'
       OnExecute = ActionImportSketchfabExecute
+    end
+    object ActionFindToggle: TAction
+      Category = 'Edit'
+      Caption = 'Find'
+      OnExecute = ActionFindToggleExecute
+      ShortCut = 16454
+    end
+    object ActionFindNext: TAction
+      Category = 'Edit'
+      Caption = 'Find Next'
+      OnExecute = ActionFindNextExecute
+      ShortCut = 114
+    end
+    object ActionRunParameterPretendTouchDevice: TAction
+      Category = 'Run'
+      Caption = 'Pretend Touch Device (--pretend-touch-device)'
+      OnExecute = ActionRunParameterPretendTouchDeviceExecute
+    end
+    object ActionCopyUrl: TAction
+      Category = 'PopupFiles'
+      Caption = 'Copy URL'
+      OnExecute = ActionCopyUrlExecute
     end
   end
   object OpenPascalUnitDialog: TCastleOpenPascalUnitDialog

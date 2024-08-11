@@ -6,7 +6,7 @@ See https://castle-engine.io/project_manifest for documentation of this file.
 -->
 
 <project name="image-to-pascal"
-  standalone_source="image-to-pascal.lpr"
+  standalone_source="image_to_pascal.lpr"
   qualified_name="io.castleengine.image.to.pascal">
   <data exists="false" />
 </project>

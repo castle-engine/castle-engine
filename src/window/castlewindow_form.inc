@@ -104,13 +104,13 @@
 
     Otherwise such bugs can be observed (only on LCL-Carbon, not on LCL-GTK2):
 
-    - When trying to Walk using mouse dragging in view3dscene, it doesn't
+    - When trying to Walk using mouse dragging in castle-model-viewer, it doesn't
       work smoothly: when you simply keep some mouse button pressed,
       but don't move the mouse anymore (which should result in constant
       movement forward/backward if you did it after dragging up/down),
       then we don't get any events (so no movement, no redraw...).
 
-    - Using view3dscene Navigation->Jump to viewpoint... doesn't work
+    - Using castle-model-viewer Navigation->Jump to viewpoint... doesn't work
       smoothly, there is a visible delay when we don't receive messages
       right after menu click, and so transtion is visible with some delay.
 
@@ -118,6 +118,8 @@
     No decision, and practically it doesn't matter:
     with FPC, at this point we have covered all platforms with native
     TCastleWindow implementation, not depending on LCL and CASTLR_WINDOW_FORM.
+
+  TODO: Call FileMonitor.CheckChanges when user switches to application.
 }
 {$if defined(FPC) or (not defined(LINUX))}
   {$define USE_TIMER}
@@ -169,7 +171,7 @@ private
         And we need to capture it, to work with GTK2 and menu bar,
         e.g. when you use Alt+F to reach "File" menu, do not keep "Alt" key in
         the pressed state indefinitely (e.g. it would make camera keys non-working
-        after opening a file using Alt+F and recent files in view3dscene).
+        after opening a file using Alt+F and recent files in castle-model-viewer).
 
         This should be also harmless on other non-GTK2 widgetsets. }
       procedure IntfDoSelect; override;
@@ -482,7 +484,7 @@ begin
     Or Page Up / Page Down.
     It is displayed in menu OK, but FMX doesn't actually call menu item
     when pressing home.
-    Testcase: castle-view-image. }
+    Testcase: castle-image-viewer. }
 
   KeyFromCastle(Entry.Key, Entry.KeyString, Entry.Modifiers, KeyCode, Shift);
   FormMenuItem.ShortCut := KeyToShortCut(KeyCode, Shift);
@@ -559,7 +561,7 @@ begin
     There is a problem when you have a menu item with key shortcut,
     and when this menu item is executed --- we destroy and create new menu
     that also reacts to this shortcut. In this case, Carbon executes
-    the menu item again! Consider e.g. view3dscene "File->Open" with
+    the menu item again! Consider e.g. castle-model-viewer "File->Open" with
     Ctrl+O shortcut, that after opening a new file rebuilds the menu
     to update the "recent files" menu section. Consider also "Display->Raytrace"
     with Ctrl+R shortcut, that after choosing options changes
@@ -651,15 +653,15 @@ begin
       Sometimes after menu changes we have a segfault in Carbon widgetset,
       like our menu item reference was invalid.
       Happens after various menu changes: rebuilding the menu, also fast changes
-      like MenuDelete (like when changing recent files submenu in view3dscene).
+      like MenuDelete (like when changing recent files submenu in castle-model-viewer).
       It seems that Carbon doesn't like deleting a menu currently used.
 
       Happens both when debugging and not debugging.
-      Using the file menu to choose a recent file to load from view3dscene
+      Using the file menu to choose a recent file to load from castle-model-viewer
       is the most common case.
 
       In Lazarus debuggger:
-        Project view3dscene.app raised exception class 'External: EXC_BAD_ACCESS'.
+        Project castle-model-viewer.app raised exception class 'External: EXC_BAD_ACCESS'.
         In file './carbon/carbonlclintf.inc' at line 342:
         end; {TCarbonWidgetSet.PromptUser}
 
@@ -804,9 +806,9 @@ begin
     but we may be already in csDestroying state of Form (so it's owned components
     are already freed).
 
-    Affects macOS with Carbon widgetset behavior when making view3dscene
+    Affects macOS with Carbon widgetset behavior when making castle-model-viewer
     screenshot from command-line, like
-    ".../view3dscene .../dynamic_world.x3dv --screenshot 0 output_2d_screenshot.png".
+    ".../castle-model-viewer .../dynamic_world.x3dv --screenshot 0 output_2d_screenshot.png".
 
     Alternatively we could check "not (csDestroying in Form.ComponentState)"
     in Invalidate, but this feels cleaner. }
@@ -891,7 +893,7 @@ begin
   OpenGLControl.OnMouseWheel := {$ifdef FPC}@{$endif} OpenGLControlMouseWheel;
 
   { Make sure we have OpenGL context created now, and send initial Invalidate
-    (it may not happen automatically, testcase: castle-view-image on Carbon).
+    (it may not happen automatically, testcase: castle-image-viewer on Carbon).
     TCastleWindow.OpenCore will call MakeCurrent next. }
   OpenGLControl.HandleNeeded;
   OpenGLControl.Invalidate;
@@ -1286,10 +1288,11 @@ begin
   if (ApplicationProperties.LimitFPS <= 0) or
      (Fps.UpdateStartTime.ElapsedTime > 1 / ApplicationProperties.LimitFPS) then
   begin
-    { Note that calling here ApplicationProperties._Update
+    { Note that calling here ApplicationProperties._Update/_UpdateEnd
       may be too often, in case multiple TCastleWindow are open. }
     ApplicationProperties._Update;
     DoUpdate;
+    ApplicationProperties._UpdateEnd;
 
     {$ifdef FPC}
 
@@ -1556,6 +1559,7 @@ begin
   ApplicationProperties._Update;
   { Call Update events on all windows. }
   FOpenWindows.DoUpdate;
+  ApplicationProperties._UpdateEnd;
 end;
 {$endif}
 
@@ -1712,11 +1716,6 @@ end;
 function TCastleApplication.ScreenHeight: integer;
 begin
   Result := Round(Screen.Height); // Round for FMX
-end;
-
-function TCastleApplication.ScreenStatusBarScaledHeight: Cardinal;
-begin
-  Result := 0;
 end;
 
 function TCastleApplication.BackendName: string;

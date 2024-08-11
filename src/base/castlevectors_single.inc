@@ -1,6 +1,6 @@
 {%MainUnit castlevectors.pas}
 {
-  Copyright 2003-2022 Michalis Kamburelis.
+  Copyright 2003-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -950,20 +950,21 @@ end;
 
 function CosAngleBetweenVectors(const V1, V2: TVector3): Single;
 var
-  LensSquared: Float;
+  LensSquared: Single;
 begin
-  (* jak widac, wykrecam sie jednym pierwiastkowaniem pierwiastkujac
-     v1.LengthSqr i v2.LengthSqr jednoczesnie. *)
-
+  { Optimization: We don't do 2x Sqrt (on V1 length and V2 length).
+    Instead, we can do 1x Sqrt on both of them,
+    simply they are multiplied for the final purpose. }
   LensSquared := v1.LengthSqr * v2.LengthSqr;
   if IsZero(LensSquared) then
     raise EVectorInvalidOp.Create(
       'Cannot calculate angle between vectors, at least one of the vectors is zero');
 
-  (* musimy robic tu Clamp do (-1, 1) bo praktyka pokazala ze czasami na skutek
-     bledow obliczen zmiennoprzec. wynik tej funkcji jest maciupinke poza
-     zakresem. A Cosinum musi byc w zakresie -1..1, w szczegolnosci
-     ArcCos() dla czegos choc troche poza zakresem wywala paskudny EInvalidArgument *)
+  { We need to clamp to [-1...1] range, otherwise sometimes floating-point
+    errors make the result very slightly outside this range. And ArcCos
+    (used in AngleRadBetweenVectors) expects [-1...1] range (as the only valid
+    range of cosinus values, makes sense), otherwise it makes EInvalidArgument
+    exception. }
   Result := Clamped(
     TVector3.DotProduct(V1, V2) / Sqrt(LensSquared), -1.0, 1.0);
 end;
@@ -1021,9 +1022,26 @@ begin
   Result := RotatePointAroundAxisRad(DegToRad(Angle), Point, Axis);
 end;
 
-procedure WarningZeroVectorNonZeroAngle;
+procedure WarningZeroVectorNonZeroAngle(const Axis: TVector3; const Angle: Single);
 begin
-  WritelnWarning('RotatePointAroundAxisRad called with rotation Axis = zero but non-zero rotation Angle, this is invalid');
+  WritelnWarning('RotatePointAroundAxisRad called with rotation Axis = zero (%s) but non-zero rotation Angle (%g), this is invalid', [
+    Axis.ToRawString,
+    Angle
+  ]);
+end;
+
+procedure WarningZeroVectorNonZeroAngle90(const Axis: TVector3);
+begin
+  WritelnWarning('RotatePointAroundAxis90 called with rotation Axis = zero (%s) but non-zero rotation Angle (90, implied by name), this is invalid', [
+    Axis.ToRawString
+  ]);
+end;
+
+procedure WarningZeroVectorNonZeroAngleMinus90(const Axis: TVector3);
+begin
+  WritelnWarning('RotatePointAroundAxisMinus90 called with rotation Axis = zero (%s) but non-zero rotation Angle (-90, implied by name), this is invalid', [
+    Axis.ToRawString
+  ]);
 end;
 
 function RotatePointAroundAxisRad(const Angle: Single; const Point: TVector3;
@@ -1047,7 +1065,7 @@ begin
     { In case vector has zero length (so it's just zero),
       the Angle must be zero, and we can exit early. }
     if Angle <> 0 then
-      WarningZeroVectorNonZeroAngle;
+      WarningZeroVectorNonZeroAngle(Axis, Angle);
     Exit(Point);
   end;
 
@@ -1081,7 +1099,7 @@ begin
     Z := Axis.Z * L;
   end else
   begin
-    WarningZeroVectorNonZeroAngle;
+    WarningZeroVectorNonZeroAngle90(Axis);
     Exit(Point);
   end;
 
@@ -1115,7 +1133,7 @@ begin
     Z := Axis.Z * L;
   end else
   begin
-    WarningZeroVectorNonZeroAngle;
+    WarningZeroVectorNonZeroAngleMinus90(Axis);
     Exit(Point);
   end;
 
@@ -2570,7 +2588,7 @@ begin
   D := M3.Determinant;
   { Comparing "IsZero(D)" would not be OK,
     see TTestCastleVectors.TestEpsilonInModelViewToNormalMatrix ,
-    https://github.com/castle-engine/view3dscene/issues/35 }
+    https://github.com/castle-engine/castle-model-viewer/issues/35 }
   //if IsZero(D) then
   if D = 0 then
     { modelview not invertible, nothing good to do but we have to continue

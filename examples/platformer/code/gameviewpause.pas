@@ -1,5 +1,5 @@
 ﻿{
-  Copyright 2021-2021 Andrzej Kilijański, Michalis Kamburelis.
+  Copyright 2021-2024 Andrzej Kilijański, Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -19,7 +19,7 @@ unit GameViewPause;
 interface
 
 uses Classes,
-  CastleUIControls, CastleControls;
+  CastleUIControls, CastleControls, CastleKeysMouse;
 
 type
   TViewPause = class(TCastleView)
@@ -34,7 +34,7 @@ type
   public
     constructor Create(AOwner: TComponent); override;
     procedure Start; override;
-
+    function Press(const Event: TInputPressRelease): Boolean; override;
   end;
 
 var
@@ -43,7 +43,7 @@ var
 implementation
 
 uses CastleSoundEngine,
-  GameSound, GameViewMenu, GameViewPlay;
+  GameSound, GameViewMenu;
 
 constructor TViewPause.Create(AOwner: TComponent);
 begin
@@ -53,7 +53,6 @@ end;
 
 procedure TViewPause.ClickResume(Sender: TObject);
 begin
-  ViewPlay.ResumeGame;
   Container.PopView(Self);
 end;
 
@@ -70,6 +69,19 @@ begin
 
   { Play menu music }
   SoundEngine.LoopingChannel[0].Sound := NamedSound('MenuMusic');
+end;
+
+function TViewPause.Press(const Event: TInputPressRelease): Boolean;
+begin
+  Result := inherited;
+  if Result then Exit;
+
+  // allow to exit pause with the same key as entering pause: Escape
+  if Event.IsKey(keyEscape) then
+  begin
+    ClickResume(nil);
+    Result := true;
+  end;
 end;
 
 end.

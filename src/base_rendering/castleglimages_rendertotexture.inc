@@ -286,7 +286,7 @@ end;
 var
   { We may want to use an FBO, while another FBO is already used.
 
-    Right now, this situation happens only when we use view3dscene
+    Right now, this situation happens only when we use castle-model-viewer
     with --screenshot option, and we load a scene that uses a generated
     texture (like RenderedTexture or GeneratedShadowMap).
 
@@ -615,7 +615,7 @@ begin
       Status := glCheckFramebufferStatus(GL_FRAMEBUFFER);
       case Status of
         GL_FRAMEBUFFER_COMPLETE: Success := true;
-        GL_FRAMEBUFFER_UNSUPPORTED: WritelnWarning('FBO', 'Unsupported framebuffer configuration, will fallback to glCopyTexSubImage2D approach. If your window is invisible (like for "view3dscene --screenshot"), you may get only a black screen.');
+        GL_FRAMEBUFFER_UNSUPPORTED: WritelnWarning('FBO', 'Unsupported framebuffer configuration, will fallback to glCopyTexSubImage2D approach. If your window is invisible (like for "castle-model-viewer --screenshot"), you may get only a black screen.');
         else raise EFramebufferInvalid.CreateFmt('Framebuffer check failed: %s (FBO error number %d)',
           [ FramebufferStatusToString(Status), Status]);
       end;

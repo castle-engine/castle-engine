@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2023 Michalis Kamburelis.
+  Copyright 2003-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -283,7 +283,12 @@ type
       and stops further processing. }
     function EnumerateTextures(const Enumerate: TEnumerateShapeTexturesFunction): Pointer; virtual; abstract;
 
-    function DebugInfo(const Indent: string = ''): string; virtual; abstract;
+    { Describe the shapes tree, recursively (with children),
+      multi-line (ends with newline too). }
+    function DebugInfo(const Indent: string = ''): string; virtual;
+
+    { Describe this shape, not recursively. }
+    function DebugInfoWithoutChildren: String; virtual;
 
     { Using the TX3DNode.InternalSceneShape field,
       you can associate X3D node with a number of TShapeTree instances.
@@ -714,7 +719,7 @@ type
     procedure LocalTriangulate(const TriangleEvent: TTriangleEvent);
     { @groupEnd }
 
-    function DebugInfo(const Indent: string = ''): string; override;
+    function DebugInfoWithoutChildren: String; override;
     function NiceName: string;
 
     { Local geometry changes very often (like every frame).
@@ -847,6 +852,8 @@ type
     function IterateBeginIndex(OnlyActive: boolean): Integer; override;
     function IterateEndIndex(OnlyActive: boolean): Cardinal; override;
     {$endif}
+
+    function DebugInfoWithoutChildren: String; override;
   end;
 
   { Node of the TShapeTree transforming it's children.
@@ -866,6 +873,7 @@ type
     constructor Create(const AParentScene: TX3DEventsEngine);
     destructor Destroy; override;
     procedure FastTransformUpdate(var AnythingChanged: Boolean); override;
+    function DebugInfoWithoutChildren: String; override;
 
     property TransformFunctionality: TTransformFunctionality
       read FTransformFunctionality write SetTransformFunctionality;
@@ -876,8 +884,6 @@ type
       Owned by this TShapeTreeTransform instance. You should assign
       to it when you set TransformNode. }
     property TransformState: TX3DGraphTraverseState read FTransformState;
-
-    function DebugInfo(const Indent: string = ''): string; override;
   end;
 
   { Node of the TShapeTree representing the LOD (level of detail) alternative.
@@ -934,6 +940,7 @@ type
     function IterateBeginIndex(OnlyActive: boolean): Integer; override;
     function IterateEndIndex(OnlyActive: boolean): Cardinal; override;
     {$endif}
+    function DebugInfoWithoutChildren: String; override;
   end;
 
   TProximitySensorInstance = class(TShapeTree)
@@ -954,7 +961,7 @@ type
     property Node: TProximitySensorNode read FNode write FNode;
 
     function EnumerateTextures(const Enumerate: TEnumerateShapeTexturesFunction): Pointer; override;
-    function DebugInfo(const Indent: string = ''): string; override;
+    function DebugInfoWithoutChildren: String; override;
   end;
 
   TVisibilitySensorInstance = class(TShapeTree)
@@ -978,7 +985,7 @@ type
     property Node: TVisibilitySensorNode read FNode write FNode;
 
     function EnumerateTextures(const Enumerate: TEnumerateShapeTexturesFunction): Pointer; override;
-    function DebugInfo(const Indent: string = ''): string; override;
+    function DebugInfoWithoutChildren: String; override;
   end;
 
   { Iterates over all TShape items that would be enumerated by
@@ -1387,6 +1394,16 @@ begin
   FastTransformUpdateCore(AnythingChanged, T);
 end;
 
+function TShapeTree.DebugInfo(const Indent: String): String;
+begin
+  Result := Indent + DebugInfoWithoutChildren + NL;
+end;
+
+function TShapeTree.DebugInfoWithoutChildren: String;
+begin
+  Result := ClassName;
+end;
+
 { TShape -------------------------------------------------------------- }
 
 constructor TShape.Create(const AParentScene: TX3DEventsEngine;
@@ -1488,7 +1505,7 @@ begin
        (AGeometry.TexCoordField.Value <> nil) and
        { TODO: This workarounds assertion failure in UnAssociateNode
          when using shadow maps on a primitive, like Sphere.
-         Reproducible by view3dscene (open and close
+         Reproducible by castle-model-viewer (open and close
          demo-models/shadow_maps/primitives.x3dv )
          and automatic tests (when TTestOpeningAndRendering3D.TestScene
          opens and closes tests/data/warning_when_new_node_as_shadow_map_light.x3dv ).
@@ -3047,9 +3064,9 @@ begin
   finally FreeAndNil(TR) end;
 end;
 
-function TShape.DebugInfo(const Indent: string): string;
+function TShape.DebugInfoWithoutChildren: String;
 begin
-  Result := Indent + NiceName + NL;
+  Result := NiceName;
 end;
 
 function TShape.NiceName: string;
@@ -3201,7 +3218,7 @@ function TShapeTreeGroup.DebugInfo(const Indent: string): string;
 var
   I: Integer;
 begin
-  Result := Indent + ClassName + NL;
+  Result := inherited; // will use DebugInfoWithoutChildren
   for I := 0 to FChildren.Count - 1 do
     Result := Result + FChildren[I].DebugInfo(Indent + Format('  %3d:', [I]));
 end;
@@ -3255,6 +3272,11 @@ begin
     Result := inherited;
 end;
 {$endif}
+
+function TShapeTreeSwitch.DebugInfoWithoutChildren: String;
+begin
+  Result := 'Switch (' + SwitchNode.X3DName + ')';
+end;
 
 { TShapeTreeTransform ---------------------------------------------------- }
 
@@ -3314,19 +3336,15 @@ begin
   Result := TransformFunctionality.Parent;
 end;
 
-function TShapeTreeTransform.DebugInfo(const Indent: string): string;
+function TShapeTreeTransform.DebugInfoWithoutChildren: String;
 var
-  I: Integer;
   TransformNodeName: String;
 begin
   if TransformFunctionality <> nil then
     TransformNodeName := TransformFunctionality.Parent.NiceName
   else
     TransformNodeName := 'nil';
-
-  Result := Indent + ClassName + ' (' + TransformNodeName + ')' + NL;
-  for I := 0 to Children.Count - 1 do
-    Result := Result + Children[I].DebugInfo(Indent + Format('  %3d:', [I]));
+  Result := ClassName + ' (' + TransformNodeName + ')';
 end;
 
 { TShapeTreeLOD ------------------------------------------------------- }
@@ -3398,6 +3416,11 @@ begin
 end;
 {$endif}
 
+function TShapeTreeLOD.DebugInfoWithoutChildren: String;
+begin
+  Result := 'LOD (' + LODNode.X3DName + ')';
+end;
+
 { TProximitySensorInstance ---------------------------------------------- }
 
 procedure TProximitySensorInstance.TraverseCore(const Func: TShapeTraverseFunc;
@@ -3424,9 +3447,9 @@ begin
   Result := nil;
 end;
 
-function TProximitySensorInstance.DebugInfo(const Indent: string = ''): string;
+function TProximitySensorInstance.DebugInfoWithoutChildren: String;
 begin
-  Result := Indent + 'ProximitySensor (' + Node.X3DName + ')' + NL;
+  Result := 'ProximitySensor (' + Node.X3DName + ')';
 end;
 
 { TVisibilitySensorInstance ---------------------------------------------- }
@@ -3455,9 +3478,9 @@ begin
   Result := nil;
 end;
 
-function TVisibilitySensorInstance.DebugInfo(const Indent: string = ''): string;
+function TVisibilitySensorInstance.DebugInfoWithoutChildren: String;
 begin
-  Result := Indent + 'VisibilitySensor (' + Node.X3DName + ')' + NL;
+  Result := 'VisibilitySensor (' + Node.X3DName + ')';
 end;
 
 { TShapeTreeIterator ----------------------------------------------------- }

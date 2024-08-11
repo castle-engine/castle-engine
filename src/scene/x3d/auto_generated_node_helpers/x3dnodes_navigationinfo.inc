@@ -102,7 +102,7 @@
     strict private FFdBlendingSort: TSFStringEnum;
     { Internal wrapper for property @code(BlendingSort). This wrapper API may change, we advise to access simpler @code(BlendingSort) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdBlendingSort: TSFStringEnum read FFdBlendingSort;
-    { Best blending sort for this scene. It may be honored by some model viewers, e.g. view3dscene honors this to display currently loaded scene.
+    { Best blending sort for this scene. It may be honored by some model viewers, e.g. castle-model-viewer honors this to display currently loaded scene.
 
       Note: In CGE applications, the blending sort is determined by @link(TCastleViewport.BlendingSort). It is up to each particular application if, and how, to honor this value on @className. In general, CGE applications may display multiple models (multiple TCastleScene) and there's not necessarily any scene that is "central" or "main", so most CGE applications will just ignore this, at least on most loaded models.
 

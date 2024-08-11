@@ -240,7 +240,13 @@ begin
           Exit; // resign from special handling
         InsertChar(Chr(Ord('0') + Key - VK_NUMPAD0));
       end;
-    VK_F: InsertChar(IfThen(LettersUpCase, 'F', 'f'));
+    VK_F:
+      begin
+        if (Shift = []) or (Shift = [ssShift]) then
+          InsertChar(IfThen(LettersUpCase, 'F', 'f'))
+        else
+          Exit; // resign from special handling, e.g. let Ctrl+F always call menu item "Find Toggle"
+      end;
     VK_Z:
       if Shift = [ssCtrl] then
         Undo
@@ -283,8 +289,8 @@ begin
         begin
           SavedSelStart := SelStart;
           Text :=
-            UTF8Copy(Text, 1, SelStart) +
-            UTF8SEnding(Text, SelStart + 2);
+            StringCopy(Text, 1, SelStart) +
+            StringEnding(Text, SelStart + 2);
           SelStart := SavedSelStart;
         end;
       end;

@@ -66,7 +66,7 @@ begin
   Writeln('AppConfigDir (global): ', GetAppConfigDir(true));
 
   // CGE data
-  Writeln('ApplicationData(''''): ', ApplicationData(''));
+  Writeln('castle-data:/: ', ResolveCastleDataURL('castle-data:/'));
 
   (*
   // Old code, when we needed to set ApplicationDataOverride.
@@ -80,7 +80,7 @@ begin
   {$endif}
   Writeln('Detected ExePath: ', ExePath);
   ApplicationDataOverride := FilenameToUriSafe(ExePath + 'data/');
-  Writeln('ApplicationData('''') after ApplicationDataOverride: ', ApplicationData(''));
+  Writeln('castle-data:/ after ApplicationDataOverride: ', ResolveCastleDataURL('castle-data:/'));
   *)
 
   Writeln('castle-data:/image.png: ', ResolveCastleDataURL('castle-data:/image.png'));

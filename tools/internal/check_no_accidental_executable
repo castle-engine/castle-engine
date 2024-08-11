@@ -27,6 +27,10 @@ find . '(' -type d -name .git -prune -false ')' -or \
                        -path './tools/internal/check_no_accidental_executable' -or \
                        -path './tools/internal/upload_github_release' -or \
                        -path './tools/internal/cge_shell_tests' -or \
+                       -path './tools/internal/examples_regenerate_auto_files' -or \
+                       -path './tools/internal/check_castle_window_backends_compilation' -or \
+                       -path './tools/internal/examples_edit_readmes' -or \
+                       -path './tools/internal/examples_edit_readmes_helper' -or \
                        -path './tools/build-tool/data/android/integrated-services/*.so' \
                    ')' ')' -or \
        '(' -executable -type f -print ')'

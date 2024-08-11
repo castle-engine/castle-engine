@@ -1,6 +1,6 @@
 {%MainUnit x3dnodes.pas}
 {
-  Copyright 2008-2023 Michalis Kamburelis.
+  Copyright 2008-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -150,11 +150,12 @@
         procedure SetDiffuseColor(const Value: TVector3); override;
         function GetSpecularColor: TVector3; override;
         procedure SetSpecularColor(const Value: TVector3); override;
+        function GetEmissiveColor: TVector3; override;
+        procedure SetEmissiveColor(const Value: TVector3); override;
       public
         constructor Create(ANode: TCommonSurfaceShaderNode);
 
         function AmbientColor: TVector3; override;
-        function EmissiveColor: TVector3; override;
         function Shininess: Single; override;
         function ReflectionColor: TVector3; override;
         function TransmissionColor: TVector3; override;
@@ -578,9 +579,14 @@ begin
   FNode.SpecularFactor := Value;
 end;
 
-function TCommonSurfaceShaderNode.TCommonSurfaceShaderInfo.EmissiveColor: TVector3;
+function TCommonSurfaceShaderNode.TCommonSurfaceShaderInfo.GetEmissiveColor: TVector3;
 begin
   Result := FNode.EmissiveFactor;
+end;
+
+procedure TCommonSurfaceShaderNode.TCommonSurfaceShaderInfo.SetEmissiveColor(const Value: TVector3);
+begin
+  FNode.EmissiveFactor := Value;
 end;
 
 function TCommonSurfaceShaderNode.TCommonSurfaceShaderInfo.Shininess: Single;

@@ -1,6 +1,6 @@
 {%MainUnit castledownload.pas}
 {
-  Copyright 2013-2023 Michalis Kamburelis.
+  Copyright 2013-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -48,11 +48,24 @@ end;
 
 class function TUrlFile.Write(const Url: String): TStream;
 var
-  FileName: String;
+  FileName, Dir: String;
 begin
   FileName := UriToFilenameSafe(URL);
   if FileName = '' then
     raise ESaveError.CreateFmt('Cannot convert URL to a filename: "%s"', [URL]);
+
+  { We need to create subdirectory for the file,
+    testcase: https://github.com/michaliskambi/test_config_subdir  }
+  Dir := ExtractFilePath(FileName);
+  { Ignore Dir = ''. As delphi_tests show, it is possible to get here Url
+    that is relative, so also FileName that is relative, like 'aaa.castle-transform',
+    and then Dir is ''. It's OK to ignore it -- it means the target directory
+    is current directory, no need to create anything. }
+  if (Dir <> '') and (not ForceDirectories(Dir)) then
+    raise Exception.CreateFmt('Cannot create directory "%s" for filename "%s"', [
+      Dir,
+      FileName
+    ]);
 
   Result := TFileStream.Create(FileName, fmCreate);
 end;
@@ -60,15 +73,27 @@ end;
 class function TUrlFile.MimeType(const URI: string; out Gzipped: Boolean): String;
 var
   U: TURI;
-  Ext, ExtExt, ExtA{, ExtExtA}, URIWithoutAnchor, URIName, UriPathDocument: String;
+  Ext, ExtExt, URIName, UriPathDocument: String;
 begin
   Result := '';
   Gzipped := false;
 
   U := ParseURI(URI);
+
   { Deconstruct first URL properly using ParseURI.
     This allows to strip the HTTP query part "?xxx", see
-    https://github.com/castle-engine/castle-engine/issues/547 . }
+    https://github.com/castle-engine/castle-engine/issues/547 .
+
+    Note that ParseURI also strips anchor, like #xxx .
+    Otherwise 'xxx.json#skinname' would not be detected as Spine JSON.
+    So there's no need for URIDeleteAnchor lower, UriPathDocument is already
+    without anchor.
+    The anchor here is stripped, so all loaders
+
+    - should strip anchors, e.g. both LoadImageAsNode and LoadImage must strip anchors.
+    - can use anchors for extra info, like Spine, sprite sheets and images
+      already do.
+  }
   UriPathDocument := U.Path + U.Document;
 
   { We're consciously using here ExtractFileExt and ExtractFileDoubleExt on URIs,
@@ -77,18 +102,6 @@ begin
     or ExtractURIDoubleExt: *everything* should operate on MIME types instead. }
   Ext := LowerCase(ExtractFileExt(UriPathDocument));
   ExtExt := LowerCase(ExtractFileDoubleExt(UriPathDocument));
-
-  { Some of our reading functions, like Spine, sprite sheets and images,
-    recognize and strip anchors from URL.
-    So recognize MIME type based on URL without anchor too.
-    Otherwise 'xxx.json#skinname' would not be detected as Spine JSON.
-    The comparison below can use ExtA / ExtExtA instead of Ext / ExtExt then.
-
-    Note that doing it here means that *all* implementations of relevant formats
-    should strip anchors, e.g. both LoadImageAsNode and LoadImage must strip anchors. }
-  URIWithoutAnchor := URIDeleteAnchor(UriPathDocument, true);
-  ExtA := LowerCase(ExtractFileExt(URIWithoutAnchor));
-  // unused: ExtExtA := LowerCase(ExtractFileDoubleExt(URIWithoutAnchor));
 
   URIName := LowerCase(ExtractURIName(UriPathDocument));
 
@@ -110,7 +123,7 @@ begin
     http://en.wikipedia.org/wiki/MIME
     http://tools.ietf.org/html/rfc4288 }
 
-  // 3D models (see also view3dscene MIME specification in view3dscene/desktop/view3dscene.xml)
+  // 3D models (see also castle-model-viewer MIME specification in castle-model-viewer/desktop/castle-model-viewer.xml)
   if Ext    = '.wrl'    then Result := 'model/vrml' else
   if Ext    = '.wrz'    then begin Result := 'model/vrml'; Gzipped := true; end else
   if ExtExt = '.wrl.gz' then begin Result := 'model/vrml'; Gzipped := true; end else
@@ -130,12 +143,12 @@ begin
   if Ext = '.3ds' then Result := 'image/x-3ds' else
   if Ext = '.max' then Result := 'image/x-3ds' else
   if Ext = '.iv' then Result := 'application/x-inventor' else
-  if ExtA = '.md3' then Result := 'application/x-md3' else
+  if Ext = '.md3' then Result := 'application/x-md3' else
   if Ext = '.obj' then Result := 'application/x-wavefront-obj' else
   if Ext = '.geo' then Result := 'application/x-geo' else
   if Ext = '.kanim' then Result := 'application/x-castle-anim-frames' else
   if Ext = '.castle-anim-frames' then Result := 'application/x-castle-anim-frames' else
-  if ExtA = '.json' then Result := 'application/json' else
+  if Ext = '.json' then Result := 'application/json' else
   { Various sites propose various MIME types for STL:
     https://gist.github.com/allysonsouza/1bf9d4a0295a14373979cd23d15df0a9
     application/wavefront-stl
@@ -150,14 +163,14 @@ begin
   if Ext = '.svg' then Result := 'image/svg+xml' else
   if Ext = '.ico' then Result := 'image/x-icon' else
   if Ext = '.icns' then Result := 'image/icns' else
-  if ExtA = '.castle-sprite-sheet' then Result := 'application/x-castle-sprite-sheet' else
+  if Ext = '.castle-sprite-sheet' then Result := 'application/x-castle-sprite-sheet' else
   { I didn't found real MIME type for Starling Texture Atlas.
     Created as image type based on
     https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types
   }
-  if ExtA = '.starling-xml' then Result := 'application/x-starling-sprite-sheet' else
-  if ExtA = '.cocos2d-plist' then Result := 'application/x-cocos2d-sprite-sheet' else
-  if ExtA = '.plist' then Result := 'application/x-plist' else
+  if Ext = '.starling-xml' then Result := 'application/x-starling-sprite-sheet' else
+  if Ext = '.cocos2d-plist' then Result := 'application/x-cocos2d-sprite-sheet' else
+  if Ext = '.plist' then Result := 'application/x-plist' else
 
   // HTML
   if Ext = '.htm' then Result := 'text/html' else
@@ -191,7 +204,7 @@ begin
   if Ext = '.mp3' then Result := 'audio/mpeg' else
   if Ext = '.ogg' then Result := 'audio/ogg' else
   if Ext = '.oga' then Result := 'audio/ogg' else
-  if Ext = '.wav' then Result := 'audio/x-wav' else
+  if Ext = '.wav' then Result := 'audio/wav' else
   if Ext = '.mid' then Result := 'audio/midi' else
   if Ext = '.midi' then Result := 'audio/midi' else
   if Ext = '.au' then Result := 'audio/basic' else
@@ -225,16 +238,16 @@ begin
   if Ext = '.rar' then Result := 'application/x-rar-compressed' else
   if Ext = '.gz' then begin Result := 'application/gzip'; Gzipped := true; end else
   // Various
-  if ExtA = '.xml' then Result := 'application/xml' else
+  if Ext = '.xml' then Result := 'application/xml' else
   if Ext = '.castlescript' then Result := 'text/x-castlescript' else
   if Ext = '.kscript'      then Result := 'text/x-castlescript' else
   if Ext = '.js' then Result := 'application/javascript' else
   if Ext = '.castle-user-interface' then Result := 'text/x-castle-user-interface' else
   if Ext = '.castle-transform' then Result := 'text/x-castle-transform' else
   if Ext = '.castle-component' then Result := 'text/x-castle-component' else
-  if ExtA = '.tmx' then Result := 'application/x-tiled-map' else
+  if Ext = '.tmx' then Result := 'application/x-tiled-map' else
     { as a last resort, check URIMimeExtensions }
-    URIMimeExtensions.TryGetValue(ExtA, Result);
+    URIMimeExtensions.TryGetValue(Ext, Result);
 end;
 
 {$endif}

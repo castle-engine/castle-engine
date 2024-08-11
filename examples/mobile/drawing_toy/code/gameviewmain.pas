@@ -76,7 +76,7 @@ begin
   Brushes[5] := LoadBrush('cross_blue');
 
   { Create new image to draw on }
-  NewImage := TRGBImage.Create(Container.Width, Container.Height);
+  NewImage := TRGBImage.Create(Container.PixelsWidth, Container.PixelsHeight);
   NewImage.Clear(Black);
   NewDrawableImage := TDrawableImage.Create(
     NewImage,
@@ -131,10 +131,10 @@ begin
     and copy contens from previous image (as much as possible). }
 
   if (MainImageControl.DrawableImage = nil) or
-     (MainImageControl.DrawableImage.Width <> Container.Width) or
-     (MainImageControl.DrawableImage.Height <> Container.Height) then
+     (MainImageControl.DrawableImage.Width <> Container.PixelsWidth) or
+     (MainImageControl.DrawableImage.Height <> Container.PixelsHeight) then
   begin
-    NewImage := TRGBImage.Create(Container.Width, Container.Height);
+    NewImage := TRGBImage.Create(Container.PixelsWidth, Container.PixelsHeight);
     NewImage.Clear(Black);
 
     NewDrawableImage := TDrawableImage.Create(

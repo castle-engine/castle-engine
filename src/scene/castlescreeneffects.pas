@@ -500,7 +500,7 @@ var
         operations (they read color values that can be modified by operations
         of the same shader, so it's undefined (depends on how shaders are
         executed in parallel) which one is first) then the artifacts are
-        visible. For example, use view3dscene "Edge Detect" effect +
+        visible. For example, use castle-model-viewer "Edge Detect" effect +
         any other effect. }
       ScreenEffectTextureDest := CreateScreenEffectTexture(false);
       ScreenEffectTextureSrc := CreateScreenEffectTexture(false);
@@ -580,7 +580,7 @@ var
         ScreenPoint[2].Position := Vector2( 1,  1);
         ScreenPoint[3].TexCoord := Vector2(0, 1);
         ScreenPoint[3].Position := Vector2(-1,  1);
-        glBindBuffer(GL_ARRAY_BUFFER, ScreenPointVbo);
+        RenderContext.BindBuffer[btArray] := ScreenPointVbo;
         glBufferData(GL_ARRAY_BUFFER, SizeOf(ScreenPoint), @(ScreenPoint[0]), GL_STATIC_DRAW);
       end;
 
@@ -590,7 +590,7 @@ var
       RenderContext.CurrentProgram := Shader;
       RenderContext.CurrentVao := ScreenPointVao;
 
-      glBindBuffer(GL_ARRAY_BUFFER, ScreenPointVbo);
+      RenderContext.BindBuffer[btArray] := ScreenPointVbo;
 
       glActiveTexture(GL_TEXTURE0); // GLFeatures.UseMultiTexturing is already checked
       glBindTexture(ScreenEffectTextureTarget, ScreenEffectTextureSrc);
@@ -629,7 +629,7 @@ var
 
       AttribVertex.DisableArray;
       AttribTexCoord.DisableArray;
-      glBindBuffer(GL_ARRAY_BUFFER, 0);
+      RenderContext.BindBuffer[btArray] := 0;
     end;
 
   var

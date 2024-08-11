@@ -154,9 +154,11 @@ end;
 procedure TDelphiNetReader.Start;
 begin
   inherited;
+  if not CheckNetworkAccess then
+    Exit;
 
   { TODO: honor
-    ForceSynchronous: Boolean;
+    ForceSynchronous: Boolean; // or nothing more to do?
     HttpHeadersKeys, HttpHeadersValues: TStrings;
   }
 

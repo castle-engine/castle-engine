@@ -204,15 +204,27 @@ function TTextPropertyString.Wrap(const Font: TCastleFontFamily; const State: TT
   const CurrentLine: TTextLine; const CurrentPropertyIndex: Integer): TTextLine;
 
   { Split line in the middle of this TTextPropertyString. }
-  procedure BreakLine(const MaximumChars: Integer);
+  procedure BreakLine(const MaximumUnicodeChars: Cardinal);
   var
     NewProp: TTextPropertyString;
     ExtractedProp: TTextProperty;
-    BreakOutput1, BreakOutput2: string;
+    HardBreakOutput, BreakOutput1, BreakOutput2: String;
     P: Integer;
   begin
-    { We have to break this line now. }
-    P := BackCharsPos(WhiteSpaces, Copy(S, 1, MaximumChars));
+    { HardBreakOutput is BreakOutput1 in case we don't find a whitespace
+      on which to break }
+    HardBreakOutput := StringCopy(S, 1, MaximumUnicodeChars);
+
+    { We have to break this line now.
+
+      Note: To split with space, we use regular
+      BackCharsPos followed by Copy + SEnding. These are not aware of
+      multi-character sequences that in UTF-8 (FPC) or UTF-16 (Delphi) may mean
+      one Unicode character. But it's OK, the space is detected correctly
+      (since it's a single character in UTF-8 and UTF-16 and cannot be mistaken
+      for the middle of a multi-character sequence due to how UTF-8 and UTF-16
+      are made). }
+    P := BackCharsPos(WhiteSpaces, HardBreakOutput);
     if P > 0 then
     begin
       BreakOutput1 := Copy(S, 1, P - 1);
@@ -239,8 +251,8 @@ function TTextPropertyString.Wrap(const Font: TCastleFontFamily; const State: TT
         So the line should should be typically long in Japanese and it should
         be broken where it doesn't fit (not earlier, when bold/non-bold changes).
       }
-      BreakOutput1 := Copy(S, 1, MaximumChars);
-      BreakOutput2 := SEnding(S, Length(BreakOutput1) + 1);
+      BreakOutput1 := HardBreakOutput;
+      BreakOutput2 := StringEnding(S, MaximumUnicodeChars + 1);
     end;
 
     { now leave BreakOutput1 in this line, and add BreakOutput2
@@ -262,71 +274,39 @@ function TTextPropertyString.Wrap(const Font: TCastleFontFamily; const State: TT
   end;
 
 var
-  C: TUnicodeChar;
-  {$ifdef FPC}
-  PropWidthBytes: Integer;
-  SPtr: PChar;
-  CharLen: Integer;
-  {$else}
-  TextIndex: Integer;
-  NextTextIndex: Integer;
-  TextLength: Integer;
-  {$endif}
+  SIterator: TCastleStringIterator;
+  PropUnicodeChars: Cardinal;
+  BreakNeeded: Boolean;
+  NewCurrentWidth: Single;
 begin
   Result := nil;
-  {$ifdef FPC}
-  SPtr := PChar(S);
+  SIterator.Start(S);
   { If S is empty, there's no need to break it. }
-  C := UTF8CharacterToUnicode(SPtr, CharLen);
-  if (C > 0) and (CharLen > 0) then
-  {$else}
-  TextIndex := 1;
-  TextLength := Length(S);
-  if TextLength > 0 then
-  {$endif}
+  if SIterator.GetNext then
   begin
     { the first character C is always considered to fit into BreakOutput1,
       regardless of MaxWidth --- after all, we have to place this character
       somewhere (otherwise we would have to reject this character
       or raise an error). }
-    {$ifdef FPC}
-    Inc(SPtr, CharLen);
-    PropWidthBytes := CharLen;
-    {$else}
-    C := UnicodeStringNextChar(S, TextIndex, NextTextIndex);
-    TextIndex := NextTextIndex;
-    {$endif}
-    CurrentWidth := CurrentWidth + Font.TextWidth({$ifdef FPC}UnicodeToUTF8{$else}ConvertFromUtf32{$endif}(C));
+    CurrentWidth := CurrentWidth + Font.TextWidth(UnicodeCharToString(SIterator.Current));
+    PropUnicodeChars := 1;
+    BreakNeeded := false;
 
-    {$ifdef FPC}
-    C := UTF8CharacterToUnicode(SPtr, CharLen);
-    while (C > 0) and (CharLen > 0) and
-          (CurrentWidth + Font.TextWidth(UnicodeToUTF8(C)) <= MaxWidth) do
-    {$else}
-    while (TextIndex <= TextLength) and
-          (CurrentWidth + Font.TextWidth(ConvertFromUtf32(C)) <= MaxWidth) do
-    {$endif}
+    while SIterator.GetNext do
     begin
-      {$ifdef FPC}
-      Inc(SPtr, CharLen);
-      PropWidthBytes += CharLen;
-      {$else}
-      C := UnicodeStringNextChar(S, TextIndex, NextTextIndex);
-      TextIndex := NextTextIndex;
-      {$endif}
-      CurrentWidth := CurrentWidth + Font.TextWidth({$ifdef FPC}UnicodeToUTF8{$else}ConvertFromUtf32{$endif}(C));
-
-      {$ifdef FPC}
-      C := UTF8CharacterToUnicode(SPtr, CharLen);
-      {$endif}
+      NewCurrentWidth := CurrentWidth + Font.TextWidth(UnicodeCharToString(SIterator.Current));
+      if NewCurrentWidth > MaxWidth then
+      begin
+        { More characters available, but we need to break }
+        BreakNeeded := true;
+        Break;
+      end;
+      CurrentWidth := NewCurrentWidth;
+      PropUnicodeChars := PropUnicodeChars + 1;
     end;
 
-    {$ifdef FPC}
-    if (C > 0) and (CharLen > 0) then // then above loop stopped because we have to break
-    {$else}
-    if TextIndex <= TextLength then
-    {$endif}
-      BreakLine({$ifdef FPC} PropWidthBytes {$else} TextIndex {$endif});
+    if BreakNeeded then
+      BreakLine(PropUnicodeChars);
   end;
 end;
 

@@ -1,5 +1,5 @@
 ﻿{
-  Copyright 2022-2023 Andrzej Kilijański, Dean Zobec, Michael Van Canneyt, Michalis Kamburelis.
+  Copyright 2022-2024 Andrzej Kilijański, Dean Zobec, Michael Van Canneyt, Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -176,10 +176,18 @@ type
       const Epsilon: Single; AddrOfError: Pointer = nil); overload;
 
     { Check that 3D planes (defined by equation Ax+By+Cz+D=0) are equal.
-      The vectors must be a component-wise multiplication of each other. }
+      The vectors must be a component-wise multiplication of each other.
+
+      @param(CheckEqualDirection
+        The plane direction (ABC) must point in the same direction
+        (because our planes in practice often determine a half-space,
+        not only a plane, so their direction matters).
+      ) }
     procedure AssertPlaneEquals(const Expected, Actual: TVector4;
+      const CheckEqualDirection: Boolean;
       const Epsilon: Single; AddrOfError: Pointer = nil); overload;
     procedure AssertPlaneEquals(const Expected, Actual: TVector4;
+      const CheckEqualDirection: Boolean;
       AddrOfError: Pointer = nil); overload;
 
     { TODO: Need to have different names to avoid FPC errors "duplicate ASM label",
@@ -210,13 +218,15 @@ type
     procedure AssertBoxesEqual(const Msg: String; const Expected, Actual: TBox3D;
       const Epsilon: Double; AddrOfError: Pointer = nil); overload;
 
-    procedure AssertImagesEqual(const Expected, Actual: TRGBAlphaImage;
+    procedure AssertImagesEqual(const Expected, Actual: TCastleImage;
       AddrOfError: Pointer = nil);
 
     procedure AssertRectsEqual(const Expected, Actual: TRectangle;
       AddrOfError: Pointer = nil); overload;
     procedure AssertRectsEqual(const Expected, Actual: TFloatRectangle;
       AddrOfError: Pointer = nil); overload;
+
+    procedure AssertFrustumNormalized(const F: TFrustum);
 
     procedure AssertFrustumEquals(const Expected, Actual: TFrustum;
       const Epsilon: Single; AddrOfError: Pointer = nil); overload;
@@ -403,19 +413,52 @@ type
 
 procedure RegisterTest(CastleTestCaseClass: TCastleTestCaseClass);
 
+{ Like CompareMem, but slower,
+  and when the memory is different, log the difference:
+  position and the 2 different bytes.
+
+  Note: Size and I are Integer, not Int64.
+  This is good enough for current purposes, and it's easier for implementation
+  (iterating with In64 doesn't compile with FPC 3.2.2 on Linux/Arm (32-bit)
+  now (Raspberry Pi).) }
+function CompareMemDebug(const P1, P2: Pointer; const Size: Integer): Boolean;
+
 implementation
 
 uses TypInfo, Math, {$ifdef FPC}testutils,{$else}IOUtils,{$endif} StrUtils,
   CastleLog, CastleUtils, CastleStringUtils, CastleTesterParameters;
 
+{ routines ------------------------------------------------------------------- }
+
 var
   FRegisteredTestCaseList: {$ifdef FPC}specialize{$endif} TList<TCastleTestCaseClass>;
-
 
 procedure RegisterTest(CastleTestCaseClass: TCastleTestCaseClass);
 begin
   FRegisteredTestCaseList.Add(CastleTestCaseClass);
 end;
+
+function CompareMemDebug(const P1, P2: Pointer; const Size: Integer): Boolean;
+var
+  I: Integer;
+  P1B, P2B: PByte;
+begin
+  Result := true;
+  P1B := P1;
+  P2B := P2;
+  for I := 0 to Size - 1 do
+  begin
+    if P1B^ <> P2B^ then
+    begin
+      WritelnLog('Difference at %d: %d <> %d', [I, P1B^, P2B^]);
+      Exit(false);
+    end;
+    Inc(P1B);
+    Inc(P2B);
+  end;
+end;
+
+{ TCastleTester -------------------------------------------------------------- }
 
 procedure TCastleTester.AddRegisteredTestCases;
 var
@@ -821,26 +864,42 @@ begin
   AssertFrustumEquals(Expected, Actual, SingleEpsilon, AddrOfError);
 end;
 
-procedure TCastleTestCase.AssertImagesEqual(const Expected,
-  Actual: TRGBAlphaImage; AddrOfError: Pointer);
-var
-  ExpectedPtr, ActualPtr: PVector4Byte;
-  I: Integer;
+procedure TCastleTestCase.AssertImagesEqual(
+  const Expected, Actual: TCastleImage; AddrOfError: Pointer);
 begin
   if AddrOfError = nil then
     AddrOfError := {$ifdef FPC}get_caller_addr(get_frame){$else}System.ReturnAddress{$endif};
 
-  // Overloaded version with AErrorAddrs is missing for fpcunit AssertEquals
-  AssertEquals(Expected.Width, Actual.Width{, AErrorAddrs});
-  AssertEquals(Expected.Height, Actual.Height{, AErrorAddrs});
-  AssertEquals(Expected.Depth, Actual.Depth{, AErrorAddrs});
-  ExpectedPtr := Expected.Pixels;
-  ActualPtr := Actual.Pixels;
-  for I := 1 to Actual.Width * Actual.Height * Actual.Depth do
+  AssertEquals(Expected.Width, Actual.Width);
+  AssertEquals(Expected.Height, Actual.Height);
+  AssertEquals(Expected.Depth, Actual.Depth);
+  AssertEquals(Expected.Size, Actual.Size);
+
+  AssertTrue(CompareMemDebug(Expected.RawPixels, Actual.RawPixels, Expected.Size));
+  AssertTrue(CompareMem     (Expected.RawPixels, Actual.RawPixels, Expected.Size));
+end;
+
+procedure TCastleTestCase.AssertFrustumNormalized(const F: TFrustum);
+
+  procedure AssertPlaneNormalized(const P: TVector4);
+  var
+    PDir: TVector3 absolute P;
   begin
-    AssertVectorEquals(ExpectedPtr^, ActualPtr^, AddrOfError);
-    Inc(ExpectedPtr);
-    Inc(ActualPtr);
+    if not SameValue(PDir.Length, 1.0, SingleEpsilon) then
+      Fail('Plane is not normalized (frustum planes have to be normalized): ' + P.ToString);
+  end;
+
+var
+  I: TFrustumPlane;
+begin
+  if F.FarInfinity then
+  begin
+    for I := Low(I) to Pred(High(I)) do
+      AssertPlaneNormalized(F.Planes[I]);
+  end else
+  begin
+    for I := Low(I) to High(I) do
+      AssertPlaneNormalized(F.Planes[I]);
   end;
 end;
 
@@ -852,17 +911,21 @@ begin
   if AddrOfError = nil then
     AddrOfError := {$ifdef FPC}get_caller_addr(get_frame){$else}System.ReturnAddress{$endif};
 
+  // by the way, check frustums have normalized planes
+  AssertFrustumNormalized(Expected);
+  AssertFrustumNormalized(Actual);
+
   try
     AssertEquals(Expected.FarInfinity, Actual.FarInfinity);
 
     if Expected.FarInfinity then
     begin
       for I := Low(I) to Pred(High(I)) do
-        AssertPlaneEquals(Expected.Planes[I], Actual.Planes[I], Epsilon);
+        AssertPlaneEquals(Expected.Planes[I], Actual.Planes[I], true, Epsilon);
     end else
     begin
       for I := Low(I) to High(I) do
-        AssertPlaneEquals(Expected.Planes[I], Actual.Planes[I], Epsilon);
+        AssertPlaneEquals(Expected.Planes[I], Actual.Planes[I], true, Epsilon);
     end;
   except
     on E: Exception do
@@ -916,11 +979,12 @@ begin
 end;
 
 procedure TCastleTestCase.AssertPlaneEquals(const Expected, Actual: TVector4;
+  const CheckEqualDirection: Boolean;
   AddrOfError: Pointer);
 begin
   if AddrOfError = nil then
     AddrOfError := {$ifdef FPC}get_caller_addr(get_frame){$else}ReturnAddress{$endif};
-  AssertPlaneEquals(Expected, Actual, SingleEpsilon, AddrOfError);
+  AssertPlaneEquals(Expected, Actual, CheckEqualDirection, SingleEpsilon, AddrOfError);
 end;
 
 procedure TCastleTestCase.AssertVectorEqualsDouble(const Expected,
@@ -1026,7 +1090,17 @@ begin
 end;
 
 procedure TCastleTestCase.AssertPlaneEquals(const Expected, Actual: TVector4;
+  const CheckEqualDirection: Boolean;
   const Epsilon: Single; AddrOfError: Pointer);
+
+  function VectorsDifference(const V1, V2: TVector4): Single;
+  var
+    I: Integer;
+  begin
+    I := MaxAbsVectorCoord(V1 - V2);
+    Result := Abs(V1[I] - V2[I]);
+  end;
+
 var
   MaxE, MaxA: Integer;
 begin
@@ -1053,16 +1127,23 @@ begin
     Fail(Format('Planes (TVector4) are not equal, one of them has zero maximum component, the other not. Expected: %s, actual: %s',
       [Expected.ToRawString, Actual.ToRawString]), AddrOfError);
   end else
+  if CheckEqualDirection and
+     ((Expected[MaxE] >= 0) <> (Actual[MaxA] >= 0)) then
+  begin
+    Fail(Format('Planes (TVector4) are not equal, point in different directions (this matters e.g. for frustum calculations). Expected: %s, actual: %s',
+      [Expected.ToRawString, Actual.ToRawString]), AddrOfError);
+  end else
   begin
     if not TVector4.Equals(
       Expected,
       Actual * (Expected[MaxE] / Actual[MaxA]),
       Epsilon
     ) then
-      Fail(Format('Planes (TVector4) are not equal, they are not multiplied version of each other. Expected: %s, actual: %s. After trying to bring them closer, actual is %s', [
+      Fail(Format('Planes (TVector4) are not equal, they are not multiplied version of each other. Expected: %s, actual: %s. After trying to bring them closer, actual is %s, max difference %f', [
         Expected.ToRawString,
         Actual.ToRawString,
-        (Actual * (Expected[MaxE] / Actual[MaxA])).ToRawString
+        (Actual * (Expected[MaxE] / Actual[MaxA])).ToRawString,
+        VectorsDifference(Expected, Actual * (Expected[MaxE] / Actual[MaxA]))
       ]), AddrOfError);
   end;
 end;

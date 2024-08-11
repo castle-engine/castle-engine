@@ -960,7 +960,7 @@ object Main: TMain
       end
     end
   end
-  object OpenDialog1: TCastleOpen3DDialog
+  object OpenDialog1: TCastleOpenSceneDialog
     Title = 'Open Scene'
     Left = 72
     Top = 208

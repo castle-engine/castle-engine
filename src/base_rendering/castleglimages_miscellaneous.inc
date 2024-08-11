@@ -1,6 +1,6 @@
 {%MainUnit castleglimages.pas}
 {
-  Copyright 2001-2023 Michalis Kamburelis.
+  Copyright 2001-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -14,17 +14,26 @@
   ----------------------------------------------------------------------------
 }
 
-{ Part of CastleGLImages unit: miscellneous stuff. }
+{ Part of CastleGLImages unit: miscellaneous stuff. }
 {$ifdef read_interface}
 
 {$ifdef read_interface_const}
 const
-  PixelsImageClasses: array [0..4] of TEncodedImageClass = (
+  PixelsImageClasses: array [0..8] of TEncodedImageClass = (
+    // 8-bit
     TRGBImage,
     TRGBAlphaImage,
     TGrayscaleImage,
     TGrayscaleAlphaImage,
-    TGPUCompressedImage
+
+    // compressed
+    TGPUCompressedImage,
+
+    // floating-point
+    TGrayscaleFloatImage,
+    TGrayscaleAlphaFloatImage,
+    TRGBFloatImage,
+    TRGBAlphaFloatImage
   );
 {$endif read_interface_const}
 
@@ -190,6 +199,41 @@ begin
         ImageInternalFormat := ImageFormat;
     end;
   end else
+  if Img is TGrayscaleFloatImage then
+  begin
+    ImageSwizzle := Vector4Integer(GL_RED, GL_RED, GL_RED, GL_ONE);
+    if GLFeatures.TextureModernFormatsAndSwizzle then
+    begin
+      ImageFormat := GL_RED;
+      ImageInternalFormat := GL_R32F;
+    end else
+    begin
+      ImageFormat := GL_LUMINANCE;
+      if GLFeatures.EnableFixedFunction then
+        ImageInternalFormat := Img.ColorComponentsCount
+      else
+        ImageInternalFormat := ImageFormat;
+    end;
+  end else
+  if Img is TGrayscaleAlphaFloatImage then
+  begin
+    { Use texture swizzle to load texture
+      - 1st channel (red) -> RBG
+      - 2nd channel (green) -> alpha }
+    ImageSwizzle := Vector4Integer(GL_RED, GL_RED, GL_RED, GL_GREEN);
+    if GLFeatures.TextureModernFormatsAndSwizzle then
+    begin
+      ImageFormat := GL_RG;
+      ImageInternalFormat := GL_RG32F;
+    end else
+    begin
+      ImageFormat := GL_LUMINANCE_ALPHA;
+      if GLFeatures.EnableFixedFunction then
+        ImageInternalFormat := Img.ColorComponentsCount
+      else
+        ImageInternalFormat := ImageFormat;
+    end;
+  end else
   if Img is TRGBFloatImage then
   begin
     ImageSwizzle := Vector4Integer(GL_RED, GL_GREEN, GL_BLUE, GL_ONE);
@@ -200,6 +244,22 @@ begin
     end else
     begin
       ImageFormat := GL_RGB;
+      if GLFeatures.EnableFixedFunction then
+        ImageInternalFormat := Img.ColorComponentsCount
+      else
+        ImageInternalFormat := ImageFormat;
+    end;
+  end else
+  if Img is TRGBAlphaFloatImage then
+  begin
+    ImageSwizzle := Vector4Integer(GL_RED, GL_GREEN, GL_BLUE, GL_ALPHA);
+    if GLFeatures.TextureModernFormatsAndSwizzle then
+    begin
+      ImageFormat := GL_RGBA;
+      ImageInternalFormat := GL_RGBA32F;
+    end else
+    begin
+      ImageFormat := GL_RGBA;
       if GLFeatures.EnableFixedFunction then
         ImageInternalFormat := Img.ColorComponentsCount
       else
@@ -294,7 +354,10 @@ begin
      (Img is TGrayscaleAlphaImage) then
     Result := GL_UNSIGNED_BYTE
   else
-  if Img is TRGBFloatImage then
+  if (Img is TGrayscaleFloatImage) or
+     (Img is TGrayscaleAlphaFloatImage) or
+     (Img is TRGBFloatImage) or
+     (Img is TRGBAlphaFloatImage) then
     Result := GL_FLOAT
   else
     raise EImageClassNotSupportedForOpenGL.CreateFmt('Image class %s cannot be loaded to OpenGL',

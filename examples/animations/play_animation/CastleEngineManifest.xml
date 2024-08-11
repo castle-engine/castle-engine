@@ -11,7 +11,7 @@ See https://castle-engine.io/project_manifest for documentation of this file.
   qualified_name="io.castleengine.play.animation"
   caption="Play Animation"
 >
-  <compiler_options detect_memory_leaks="true">
+  <compiler_options>
     <search_paths>
       <path value="code/" />
     </search_paths>

@@ -1,6 +1,6 @@
 // -*- compile-command: "./test_single_testcase.sh TTestCastleFilesUtils" -*-
 {
-  Copyright 2007-2022 Michalis Kamburelis.
+  Copyright 2007-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -30,6 +30,7 @@ type
     procedure TestTimer;
     {$ifdef UNIX} procedure TestHomePath; {$endif}
     procedure TestGetTempDir;
+    procedure TestApplicationData;
   end;
 
 implementation
@@ -131,6 +132,11 @@ begin
   {$endif}
 end;
 
+procedure TTestCastleFilesUtils.TestApplicationData;
+begin
+  AssertEquals('castle-data:/', ApplicationData(''));
+  AssertEquals('castle-data:/xxx/yyy', ApplicationData('xxx/yyy'));
+end;
 
 initialization
   RegisterTest(TTestCastleFilesUtils);

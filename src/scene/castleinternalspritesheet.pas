@@ -1,5 +1,5 @@
 {
-  Copyright 2020-2021 Andrzej Kilijanski.
+  Copyright 2020-2024 Andrzej Kilijanski, Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -22,8 +22,7 @@ interface
 
 uses
   Classes, SysUtils, Generics.Collections,
-  X3DNodes,
-  CastleImages, CastleVectors;
+  X3DNodes, X3DLoad, CastleImages, CastleVectors;
 
 type
   TCastleSpriteSheetAnimation = class;
@@ -104,8 +103,8 @@ type
 
     procedure Load(const URL: String); overload;
     procedure Load(const Stream: TStream; const BaseUrl: String); overload;
-    { Saves file to castle sprite sheet. If SaveSaveCopy = true then don't clears
-      Modified state, don't change URL, don't save image paths }
+    { Saves file to castle sprite sheet. If SaveCopy = true then don't clear
+      Modified state, don't change URL, don't save image paths. }
     procedure Save(const AURL: String; const SaveCopy: Boolean = false);
 
     function ToX3D: TX3DRootNode;
@@ -1044,6 +1043,8 @@ begin
   Result.AppendChild(RootNode);
 
   RootNode.AttributeSet('imagePath', FSpriteSheet.RelativeAtlasPath);
+  RootNode.AttributeSet('width', FSpriteSheet.AtlasWidth);
+  RootNode.AttributeSet('height', FSpriteSheet.AtlasHeight);
 
   for I := 0 to FSpriteSheet.AnimationCount - 1 do
   begin
@@ -1781,7 +1782,7 @@ var
   URLWithoutAnchor: String;
   Stream: TStream;
 begin
-  URLWithoutAnchor := UriDeleteAnchor(URL, true);
+  URLWithoutAnchor := UriDeleteAnchor(URL);
 
   Stream := Download(URLWithoutAnchor);
   try
@@ -1806,6 +1807,31 @@ end;
 
 procedure TCastleSpriteSheet.Save(const AURL: String;
   const SaveCopy: Boolean = false);
+
+  { Copy URL contents from source to destination.
+    Converts URLs to filenames automatically.
+    Also automatically aborts copy when source and destination are equal,
+    which happens easily if you just want to open + resave sprite sheet
+    and would cause "Bad file number" exception on Linux. }
+  procedure CopyUrlContents(const SourceUrl, DestUrl: String);
+  var
+    SourceFileName, DestFileName: String;
+  begin
+    SourceFileName := UriToFilenameSafe(SourceUrl);
+    DestFileName := UriToFilenameSafe(DestUrl);
+    if SameFileName(
+      ExpandFileName(SourceFileName),
+      ExpandFileName(DestFileName)) then
+    begin
+      WritelnLog('Trying to copying contents between the same URLs: %s -> %s, ignoring', [
+        UriDisplay(SourceUrl),
+        UriDisplay(DestUrl)
+      ]);
+      Exit;
+    end;
+    CheckCopyFile(SourceFileName, DestFileName);
+  end;
+
 var
   ExporterXML: TCastleSpriteSheetXMLExporter;
   XMLDoc: TXMLDocument;
@@ -1835,7 +1861,7 @@ begin
 
     { Save image file }
     if FGeneratedAtlas = nil then
-      CheckCopyFile(UriToFilenameSafe(LoadedAtlasPath), UriToFilenameSafe(AtlasURL))
+      CopyUrlContents(LoadedAtlasPath, AtlasURL)
     else
       SaveImage(FGeneratedAtlas, AtlasURL);
 
@@ -2179,15 +2205,25 @@ var
   Image: TCastleImage;
 begin
   FRelativeImagePath := AtlasNode.AttributeString('imagePath');
-  FAbsoluteImagePath := ExtractUriPath(UriDeleteAnchor(URL, true)) + FRelativeImagePath;
-  { Some exporters like Free Texture Packer add width and height attributes.
-    In this case we don't need load image to check them. }
+  FAbsoluteImagePath := ExtractUriPath(UriDeleteAnchor(URL)) + FRelativeImagePath;
+  { Some exporters, like Free Texture Packer and
+    Castle Game Engine itself (in TCastleSpriteSheetXMLExporter.ExportToXML)
+    store width and height attributes.
+    This is good -- in this case we don't need to load image to know them,
+    which avoids loading the image each time at sprite sheet open
+    (image will be loaded later by TImageTextureNode anyway,
+    but it can do it smarter, using cache;
+    trying to use cache here, in a way that remains active later, caused
+    too many code complications). }
   if AtlasNode.HasAttribute('width') and AtlasNode.HasAttribute('height') then
   begin
     FImageWidth := AtlasNode.AttributeInteger('width');
     FImageHeight := AtlasNode.AttributeInteger('height');
   end else
   begin
+    WritelnWarning('The sprite sheet "%s" loading is not optimal. We advise to save this using the latest Castle Game Engine sprite sheet editor, to benefit from faster loading. If this is already in ".castle-sprite-sheet" format, then just open + save it from CGE editor.', [
+      UriDisplay(URL)
+    ]);
     Image := LoadImage(FAbsoluteImagePath);
     try
       FImageWidth := Image.Width;
@@ -2448,5 +2484,23 @@ begin
   FAnimationNaming := anStrictUnderscore;
 end;
 
+var
+  ModelFormat: TModelFormat;
+initialization
+  ModelFormat := TModelFormat.Create;
+  ModelFormat.OnLoad := {$ifdef FPC}@{$endif} LoadCastleSpriteSheet;
+  ModelFormat.MimeTypes.Add('application/x-castle-sprite-sheet');
+  ModelFormat.FileFilterName := 'Castle Sprite Sheet (*.castle-sprite-sheet)';
+  ModelFormat.Extensions.Add('.castle-sprite-sheet');
+  RegisterModelFormat(ModelFormat);
 
+  { Starling sprite sheets are actually loaded exactly the same way as CGE
+    sprite sheets, but this is implementation detail.
+    We register it as separate format, with separate FileFilterName. }
+  ModelFormat := TModelFormat.Create;
+  ModelFormat.OnLoad := {$ifdef FPC}@{$endif} LoadCastleSpriteSheet;
+  ModelFormat.MimeTypes.Add('application/x-starling-sprite-sheet');
+  ModelFormat.FileFilterName := 'Starling Sprite Sheet (*.starling-xml)';
+  ModelFormat.Extensions.Add('.starling-xml');
+  RegisterModelFormat(ModelFormat);
 end.

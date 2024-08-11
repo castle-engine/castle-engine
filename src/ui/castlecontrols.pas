@@ -25,7 +25,7 @@ uses SysUtils, Classes, Generics.Collections,
   CastleKeysMouse, CastleImages, CastleUtils, CastleGLImages, CastleRectangles,
   CastleColors, CastleTimeUtils, CastleInternalRichText, CastleGLUtils,
   CastleUriUtils, CastleLog, CastleStringUtils, CastleGLShaders, CastleClassUtils,
-  CastleRenderContext;
+  CastleRenderContext, CastleInternalFileMonitor;
 
 type
   {$define read_interface}
@@ -35,7 +35,6 @@ type
   {$I castlecontrols_button.inc}
   {$I castlecontrols_panel.inc}
   {$I castlecontrols_imagecontrol.inc}
-  {$I castlecontrols_touchcontrol.inc}
   {$I castlecontrols_rectanglecontrol.inc}
   {$I castlecontrols_shape.inc}
   {$I castlecontrols_simplebackground.inc}
@@ -71,7 +70,6 @@ uses Math, CastleTextureFont_DefaultUi,
 {$I castlecontrols_button.inc}
 {$I castlecontrols_panel.inc}
 {$I castlecontrols_imagecontrol.inc}
-{$I castlecontrols_touchcontrol.inc}
 {$I castlecontrols_rectanglecontrol.inc}
 {$I castlecontrols_shape.inc}
 {$I castlecontrols_simplebackground.inc}
@@ -89,8 +87,6 @@ uses Math, CastleTextureFont_DefaultUi,
 {$I castlecontrols_clipboard.inc}
 {$undef read_implementation}
 
-var
-  R: TRegisteredComponent;
 initialization
   RegisterSerializableComponent(TCastleButton, 'Button');
   RegisterSerializableComponent(TCastleImageControl, 'Image');
@@ -111,14 +107,6 @@ initialization
   RegisterSerializableComponent(TCastleCheckbox, 'Checkbox');
   RegisterSerializableComponent(TCastleDesign, 'Design (Use Another castle-user-interface File)');
   RegisterSerializableComponent(TCastleMask, 'Mask');
-
-  R := TRegisteredComponent.Create;
-  {$warnings off} // using deprecated, to keep reading it from castle-user-interface working
-  R.ComponentClass := TCastleSwitchControl;
-  {$warnings on}
-  R.Caption := ['Switch'];
-  R.IsDeprecated := true;
-  RegisterSerializableComponent(R);
 finalization
   FinalizationUIFonts;
   FinalizationClipboard;

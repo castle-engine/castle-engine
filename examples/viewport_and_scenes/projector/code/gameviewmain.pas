@@ -1,5 +1,5 @@
 {
-  Copyright 2023-2023 Michalis Kamburelis.
+  Copyright 2023-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -20,7 +20,8 @@ interface
 
 uses Classes,
   CastleVectors, CastleComponentSerialize, CastleScene,
-  CastleUIControls, CastleControls, CastleKeysMouse, X3DNodes;
+  CastleUIControls, CastleControls, CastleKeysMouse, X3DNodes,
+  CastleRenderOptions;
 
 type
   { Main view, where most of the application logic takes place. }
@@ -55,6 +56,32 @@ end;
 
 procedure TViewMain.Start;
 
+  { Limit the texture display to the place where its coordinates are in 0..1 range.
+
+    Explanation why this is needed:
+    The texture rendered by projecting in AddProjection is by default
+    not limited to its 0..1 texture coordinates.
+    And ProjTexture.RepeatS/T cannot change this (ProjTexture.RepeatS/T
+    only changes *what* is visible outside 0..1 range, not *if* it is visible).
+
+    So we setup a small shader that will reject applying texture when
+    the texture coordinate is outside 0..1 range. }
+  function CreateEffectToLimitTexture: TEffectNode;
+  var
+    EffectPart: TEffectPartNode;
+  begin
+    Result := TEffectNode.Create;
+    Result.Language := slGLSL;
+
+    { Add TEffectPartNode which actually contains shader code.
+      You can load shader code from file,
+      you could also set it explicitly from string using EffectPart.Contents := '...'; }
+    EffectPart := TEffectPartNode.Create;
+    EffectPart.ShaderType := stFragment;
+    EffectPart.SetUrl(['castle-data:/shaders/limit_texture.fs']);
+    Result.SetParts([EffectPart]);
+  end;
+
   { Add texture projected by Projector to given mesh in given scene. }
   procedure AddProjection(const Projector: TSpotLightNode;
     const ProjectedTextureUrl: String;
@@ -84,11 +111,12 @@ procedure TViewMain.Start;
         ProjTexture.SetUrl([ProjectedTextureUrl]);
         ProjTexture.RepeatS := false;
         ProjTexture.RepeatT := false;
+        ProjTexture.SetEffects([CreateEffectToLimitTexture]);
 
         { In this demo we just assume that Appearance and Material nodes
           are already present in the model (so they have been created in Blender)
           and that material is physical. }
-        Material :=  Shape.Appearance.Material as TPhysicalMaterialNode;
+        Material := Shape.Appearance.Material as TPhysicalMaterialNode;
         Material.BaseTexture := ProjTexture;
       end;
   end;
@@ -115,6 +143,11 @@ begin
   }
   Projector.Location := Vector3(10, 10, 10);
   Projector.Direction := Vector3(-10, -10, -10);
+
+  // Allows to see the need for AddEffectToLimitTexture
+  // Projector.Location := Vector3(0.5, 5, 0.5);
+  // Projector.Direction := Vector3(0, -1, 0);
+
   { See ../data/projective_texturing_simple.x3dv for explanation of
     various TSpotLightNode fields. }
   Projector.CutOffAngle := 0.15;

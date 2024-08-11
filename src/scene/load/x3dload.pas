@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2023 Michalis Kamburelis.
+  Copyright 2003-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -13,11 +13,10 @@
   ----------------------------------------------------------------------------
 }
 
-{ @abstract(Loading scenes as X3D nodes.)
+{ @abstract(Loading and saving nodes.)
 
-  Every format except VRML/X3D is handled by converting it into X3D nodes graph.
-  This allows to use our great X3D renderer, tools, saving to X3D and such,
-  on every model.
+  Almost every format is handled by converting it into VRML / X3D nodes graph.
+  This allows to use nodes throughout the engine, for all rendering and processing.
 
   Basic guide for adding a new format:
 
@@ -33,11 +32,11 @@
       Each format has a file filter to specifically choose this format,
       and also is added to the "All Scenes" filter.)
 
-    @item(Enable view3dscene to associate with this file format on freedesktops
+    @item(Enable castle-model-viewer to associate with this file format on freedesktops
       (GNOME, and other following freedesktop.org specs). For this,
 
-      1. Update view3dscene MIME database.
-      Simply add appopriate element to ../../../view3dscene/freedesktop/view3dscene.xml.
+      1. Update castle-model-viewer MIME database.
+      Simply add appopriate element to ../../../castle-model-viewer/freedesktop/castle-model-viewer.xml.
       Format of that MIME xml file is self-explanatory.
       It's good idea to google first
       to search for standard MIME type for your model format (e.g. wikipedia
@@ -46,10 +45,10 @@
       name for your format.
 
       2. After adding to MIME database, you want to also add format to
-      ../../../view3dscene/freedesktop/view3dscene.desktop, to indicate that
-      view3dscene handles this MIME type.
+      ../../../castle-model-viewer/freedesktop/castle-model-viewer.desktop, to indicate that
+      castle-model-viewer handles this MIME type.
 
-      3. Finally, also add this to ../../../view3dscene/freedesktop/install_thumbnailer.sh,
+      3. Finally, also add this to ../../../castle-model-viewer/freedesktop/install_thumbnailer.sh,
       so that GNOME nautilus thumbnailers for this MIME types can be installed.)
 
     @item(You probably also want to extend documentation.
@@ -64,7 +63,7 @@ unit X3DLoad;
 interface
 
 uses SysUtils, Classes,
-  CastleUtils, CastleVectors, X3DNodes;
+  CastleUtils, CastleVectors, X3DNodes, CastleStringUtils;
 
 { Load a scene as X3D node. Guesses scene format based on the URL extension.
   We load a large number of formats, see https://castle-engine.io/creating_data_model_formats.php .
@@ -113,8 +112,7 @@ end;
   so you would actually use @code('castle-data:/my_model.x3d') URL instead
   of @code('my_model.x3d').
 }
-function LoadNode(const Url: String;
-  const NilOnUnrecognizedFormat: boolean = false): TX3DRootNode; overload;
+function LoadNode(const Url: String): TX3DRootNode; overload;
 
 { Load a scene as X3D node from TStream.
 
@@ -143,57 +141,7 @@ function LoadNode(const Url: String;
   The overloaded LoadNode without explicit TStream accounts for gzip-compressed streams
   in some cases.
 }
-function LoadNode(const Stream: TStream; BaseUrl: String; const MimeType: String;
-  const NilOnUnrecognizedFormat: boolean = false): TX3DRootNode; overload;
-
-function Load3D(const Url: String;
-  const AllowStdIn: boolean = false;
-  const NilOnUnrecognizedFormat: boolean = false): TX3DRootNode; deprecated 'use LoadNode, and note it has one less parameter (AllowStdIn is not implemented anymore)';
-
-const
-  SaveX3D_FileFilters =
-  'All files|*|' +
-  '*X3D XML (*.x3d)|*.x3d|' +
-  'X3D XML (compressed) (*.x3dz, *.x3d.gz)|*.x3dz;*.x3d.gz|' +
-  'X3D classic (*.x3dv)|*.x3dv|' +
-  'X3D classic (compressed) (*.x3dvz, *.x3dv.gz)|*.x3dvz;*.x3dv.gz';
-
-{ File filters for files loaded by @link(TCastleSceneCore.Load) and @link(LoadNode).
-  Suitable for TFileFilterList.AddFiltersFromString and TCastleWindow.FileDialog. }
-function LoadScene_FileFilters: String;
-
-{ File filters for files loaded by @link(TCastleSceneCore.Load) and @link(LoadNode).
-  Suitable for TFileFilterList.AddFiltersFromString and TCastleWindow.FileDialog. }
-function Load3D_FileFilters: String; deprecated 'use LoadScene_FileFilters';
-
-{ Load various model formats as animation expressed by VRML/X3D sequence.
-
-  For model formats that cannot express animations (like GEO or Wavefront OBJ)
-  or that express animations in a single file (like VRML/X3D >= 2.0)
-  we load them exactly like LoadNode, adding exactly one item
-  to KeyNodes.
-  So this function handles @italic(at least) the same model formats as LoadNode.
-
-  Additionally, we load castle-anim-frames and MD3 formats to a sequence of frames.
-
-  @param(KeyNodes Sequence of root nodes will be stored there.
-    Pass here some created and empty instance of TX3DNodeList.)
-
-  @param(KeyTimes Sequence of time values.
-    Pass here some created and empty instance of TSingleList.)
-}
-procedure Load3DSequence(
-  const Url: String;
-  const AllowStdIn: boolean;
-  const KeyNodes: TX3DNodeList;
-  const KeyTimes: TSingleList;
-  out ScenesPerTime: Cardinal;
-  out Epsilon: Single;
-  out TimeLoop, TimeBackwards: boolean); deprecated 'use LoadNode instead of Load3DSequence';
-
-{ File filters for files loaded by Load3DSequence, suitable
-  for TFileFilterList.AddFiltersFromString and TCastleWindow.FileDialog. }
-function Load3DSequence_FileFilters: String; deprecated 'use LoadScene_FileFilters, and use LoadNode instead of Load3DSequence';
+function LoadNode(const Stream: TStream; BaseUrl: String; const MimeType: String): TX3DRootNode; overload;
 
 const
   DefaultBakedAnimationSmoothness = 1;
@@ -206,39 +154,158 @@ var
   BakedAnimationSmoothness: Single = DefaultBakedAnimationSmoothness;
 
 { Save model to a file.
-  Right now we only support saving to the X3D format,
-  in classic (MIME type 'model/x3d+vrml') or XML encoding (MIME type 'model/x3d+xml').
 
-  The overloaded version with explicit URL also automatically detects and handles
-  gzip compression of the resulting file.
+  See SaveNode_FileFilters for all model formats that we can save.
+
+  If you provide explicit URL, it determines the output format.
+  If you provide a Stream and MimeType, then MimeType determines the output format.
+  E.g. use MimeType = 'model/x3d+vrml' to X3D classic encoding,
+  or MimeType = 'model/x3d+xml' to X3D XML encoding.
 
   @param(Generator Optional name, or short description, of the application
     generating this file. This value is not interpreted in any way,
-    it is simply a "metadata" information we store in the resulting file.
+    it is simply a "metadata" information we may store in the resulting file.
   )
 
   @param(Source Optional name of the original file, if this file is a result of some
     conversion or transformation. This value is not interpreted in any way,
-    it is simply a "metadata" information we store in the resulting file.
+    it is simply a "metadata" information we may store in the resulting file.
   )
 }
-procedure SaveNode(const Node: TX3DNode;
+procedure SaveNode(const Node: TX3DRootNode;
   const Url: String;
   const Generator: String = '';
   const Source: String = ''); overload;
-procedure SaveNode(const Node: TX3DNode;
+procedure SaveNode(const Node: TX3DRootNode;
   const Stream: TStream; const MimeType: String;
   const Generator: String = '';
   const Source: String = ''); overload;
 
+{ File filters for files loaded by @link(TCastleSceneCore.Load) and @link(LoadNode).
+  Suitable for TFileFilterList.AddFiltersFromString and TCastleWindow.FileDialog. }
+function LoadScene_FileFilters: String;
+
+{ File filters for files saved by @link(SaveNode).
+  Suitable for TFileFilterList.AddFiltersFromString and TCastleWindow.FileDialog. }
+function SaveNode_FileFilters: String;
+
+type
+  TModelLoadEvent = function (const Stream: TStream; const BaseUrl: String):
+    TX3DRootNode;
+  TModelSaveEvent = procedure (const Node: TX3DRootNode; const Stream: TStream;
+    const Generator: String; const Source: String);
+
+  { Information about a model format, used with @link(RegisterModelFormat). }
+  TModelFormat = class
+  public
+    { How to load given model format (from TStream to TX3DRootNode).
+      May be unassigned if we cannot load it. }
+    OnLoad: TModelLoadEvent;
+
+    { Does the @link(OnLoad) event require a TStream within which we can
+      freely seek. If @true, we will load it with soForceMemoryStream
+      for @link(Download). }
+    OnLoadForceMemoryStream: Boolean;
+
+    { How to save given model format (from TX3DRootNode to TStream).
+      May be unassigned if we cannot save it. }
+    OnSave: TModelSaveEvent;
+
+    { List of MIME types. At least one MIME type must be provided here,
+      at the time you call @link(RegisterModelFormat). }
+    MimeTypes: TCastleStringList;
+
+    { File filter name, like "X3D classic (*.x3dv)".
+      Must be non-empty.
+
+      It's your choice whether to show here extensions,
+      and if yes -> it's your responsibility
+      to make sure they match information in @link(Extensions)
+      and map to one of the MIME types specified in @link(MimeTypes).
+
+      To map extensions -> MIME types, add the map to @link(UriMimeExtensions). }
+    FileFilterName: String;
+
+    { List of file extensions (including the leading dot) like '.x3dv'.
+      Must be non-empty, that is: at least one extension must be provided here.
+
+      If the model filenames contains multiple extensions, you can specify them
+      here, e.g. ".x3dv.gz" is a valid extension on this list.
+      It is common to pack X3D files in gzip and use ".x3dv.gz" extension,
+      so we handle it here.
+
+      It's your responsibility to make sure that all extensions here
+      map to one of the MIME types specified in @link(MimeTypes).
+
+      To map extensions -> MIME types, add the map to @link(UriMimeExtensions). }
+    Extensions: TCastleStringList;
+
+    constructor Create;
+    destructor Destroy; override;
+  end;
+
+(*Register given model format, to enable loading and/or saving it
+  using @link(LoadNode), @link(SaveNode) and all routines on top of them,
+  like @link(TCastleSceneCore.Load).
+
+  The ModelFormat instance given here becomes owned by the internal list
+  in this unit. Do not free it, do not modify it after registering it.
+
+  Here's an example how to register a new model format, USD.
+  This example assumes you want to register the new model format
+  in the @code(initialization) section of a unit, which is the most common place,
+  as it ensures that the format is registered for any future use in the application.
+
+  @longCode(#
+  function LoadUSD(const Stream: TStream; const BaseUrl: String): TX3DRootNode;
+  begin
+    Result := TX3DRootNode.Create;
+    // TODO: Load USD here
+  end;
+
+  var
+    ModelFormat: TModelFormat;
+  initialization
+    ModelFormat := TModelFormat.Create;
+    ModelFormat.OnLoad := {$ifdef FPC}@{$endif} LoadUSD;
+    ModelFormat.MimeTypes.Add('model/vnd.usda');
+    ModelFormat.MimeTypes.Add('model/vnd.usdz+zip');
+    ModelFormat.FileFilterName := 'Universal Scene Description';
+    ModelFormat.Extensions.Add('.usd');
+    ModelFormat.Extensions.Add('.usda');
+    ModelFormat.Extensions.Add('.usdc');
+    ModelFormat.Extensions.Add('.usdz');
+    RegisterModelFormat(ModelFormat);
+
+    UriMimeExtensions['.usd'] := 'model/vnd.usda';
+    UriMimeExtensions['.usda'] := 'model/vnd.usda';
+    UriMimeExtensions['.usdc'] := 'model/vnd.usda';
+    UriMimeExtensions['.usdz'] := 'model/vnd.usdz+zip';
+  end.
+  #) *)
+procedure RegisterModelFormat(const ModelFormat: TModelFormat);
+
 implementation
 
-uses CastleClassUtils, CastleImages, CastleUriUtils, CastleStringUtils,
+uses Generics.Collections,
+  CastleClassUtils, CastleImages, CastleUriUtils,
   X3DLoadInternalGEO, X3DLoadInternal3DS, X3DLoadInternalOBJ,
   X3DLoadInternalCollada, X3DLoadInternalSpine, X3DLoadInternalSTL,
   X3DLoadInternalMD3, X3DLoadInternalGLTF, X3DLoadInternalImage,
   X3DLoadInternalCocos2d, CastleInternalNodeInterpolator,
   CastleInternalSpritesheet, CastleDownload, X3DLoadInternalTiledMap;
+
+{ declare FRegisteredModelFormats early ------------------------------------- }
+
+type
+  TModelFormatList = class({$ifdef FPC}specialize{$endif} TObjectList<TModelFormat>)
+    function FindMimeType(const MimeType: string): TModelFormat;
+  end;
+
+var
+  FRegisteredModelFormats: TModelFormatList;
+
+{ loading -------------------------------------------------------------------- }
 
 { Load a sequence of nodes to an animation suitable for TNodeInterpolator.
   Allows to read sequence of static models as an animation,
@@ -300,10 +367,26 @@ begin
   finally FreeAndNil(Animations) end;
 end;
 
-function LoadNode(const Url: String;
-  const NilOnUnrecognizedFormat: boolean): TX3DRootNode;
+function LoadNode(const Url: String): TX3DRootNode;
 var
   MimeType, UrlWithoutAnchor: string;
+
+  function ForceMemoryStream(const MimeType: String): Boolean;
+  var
+    ModelFormat: TModelFormat;
+  begin
+    if FRegisteredModelFormats = nil then
+      raise Exception.Create('No model formats registered, you try to LoadNode too early, before initialization of Castle Game Engine units that register model formats');
+
+    ModelFormat := FRegisteredModelFormats.FindMimeType(MimeType);
+    if ModelFormat = nil then
+      raise Exception.CreateFmt('Unrecognized file type "%s" for scene with base URL "%s"', [
+        MimeType,
+        UriDisplay(Url)
+      ]);
+
+    Result := ModelFormat.OnLoadForceMemoryStream;
+  end;
 
   function DownloadAndLoad(DownloadOptions: TStreamOptions): TX3DRootNode;
   var
@@ -312,21 +395,13 @@ var
     { Some formats readers require seeking capability.
       Testcase: e.g. PasGLTF does seeking,
       and without soForceMemoryStream reading glTF from Android assets (TReadAssetStream) would fail. }
-    if (MimeType = 'model/gltf+json') or
-       (MimeType = 'model/gltf-binary') or
-       (MimeType = 'application/x-md3') or
-       (MimeType = 'image/x-3ds') or
-       (MimeType = 'application/x-stl') or
-       { other STL mime types }
-       (MimeType = 'application/wavefront-stl') or
-       (MimeType = 'application/vnd.ms-pki.stl') or
-       (MimeType = 'application/x-navistyle') or
-       IsImageMimeType(MimeType, true, false) then
+
+    if ForceMemoryStream(MimeType) then
       Include(DownloadOptions, soForceMemoryStream);
 
     Stream := Download(UrlWithoutAnchor, DownloadOptions);
     try
-      Result := LoadNode(Stream, Url, MimeType, NilOnUnrecognizedFormat);
+      Result := LoadNode(Stream, Url, MimeType);
     finally FreeAndNil(Stream) end;
   end;
 
@@ -336,7 +411,7 @@ begin
   { We always download stripping anchor.
     Spine, sprite sheets (Starling, Cocos2d), images, Tiled all expect such anchor.
     Other model formats may support it as well in the future. }
-  UrlWithoutAnchor := UriDeleteAnchor(Url, true);
+  UrlWithoutAnchor := UriDeleteAnchor(Url);
 
   if HasNameCounter(Url, false) then
   begin
@@ -378,20 +453,13 @@ begin
 end;
 
 function LoadNode(const Stream: TStream;
-  BaseUrl: String; const MimeType: String;
-  const NilOnUnrecognizedFormat: boolean = false): TX3DRootNode;
-
-  function LoadAnimFrames(const Stream: TStream; const BaseUrl: String): TX3DRootNode;
-  var
-    Animations: TNodeInterpolator.TAnimationList;
-  begin
-    Animations := TNodeInterpolator.LoadAnimFramesToKeyNodes(Stream, BaseUrl);
-    try
-      Result := TNodeInterpolator.LoadToX3D(Animations);
-    finally FreeAndNil(Animations) end;
-  end;
-
+  BaseUrl: String; const MimeType: String): TX3DRootNode;
+var
+  ModelFormat: TModelFormat;
 begin
+  if FRegisteredModelFormats = nil then
+    raise Exception.Create('No model formats registered, you try to LoadNode too early, before initialization of Castle Game Engine units that register model formats');
+
   { All internal loading functions may assume BaseUrl is absolute.
 
     E.g. from glTF loader:
@@ -400,234 +468,205 @@ begin
     Otherwise "InclPathDelim(ExtractFilePath(UriToFilenameSafe('my_file.gtlf')))"
     would result in '/' (accidentally making all TPasGLTF.TImage.Uri values
     relative to root directory on Unix). This was reproducible doing
-    "view3dscene my_file.gtlf" on the command-line.
+    "castle-model-viewer my_file.gtlf" on the command-line.
 
-    Also tovrmlx3d assumes that passing "stdin.x3dv" means that "stdin.x3dv"
+    Also castle-model-converter assumes that passing "stdin.x3dv" means that "stdin.x3dv"
     file is in current working dir. Using AbsoluteUri(BaseUrl) correctly
     adds the current working dir to URL. }
   BaseUrl := AbsoluteUri(BaseUrl);
 
-  if (MimeType = 'application/x-inventor') or
-     (MimeType = 'model/vrml') or
-     (MimeType = 'model/x3d+vrml') then
-    Result := LoadX3DClassicInternal(Stream, BaseUrl)
-  else
+  ModelFormat := FRegisteredModelFormats.FindMimeType(MimeType);
+  if ModelFormat = nil then
+    raise Exception.CreateFmt('Unrecognized file type "%s" for scene with base URL "%s"', [
+      MimeType,
+      UriDisplay(BaseUrl)
+    ]);
 
-  if MimeType = 'model/x3d+xml' then
-    Result := LoadX3DXmlInternal(Stream, BaseUrl)
-  else
+  if not Assigned(ModelFormat.OnLoad) then
+    raise Exception.CreateFmt('Cannot load model format "%s"', [MimeType]);
 
-  if MimeType = 'application/x-geo' then
-    Result := LoadGEO(Stream, BaseUrl)
-  else
+  Result := ModelFormat.OnLoad(Stream, BaseUrl);
 
-  if MimeType = 'image/x-3ds' then
-    Result := Load3DS(Stream, BaseUrl)
-  else
+  Assert(Result <> nil);
 
-  if MimeType = 'application/x-wavefront-obj' then
-    Result := LoadWavefrontOBJ(Stream, BaseUrl)
-  else
-
-  if MimeType = 'model/vnd.collada+xml' then
-    Result := LoadCollada(Stream, BaseUrl)
-  else
-
-  if MimeType = 'application/json' then
-    Result := LoadSpine(Stream, BaseUrl)
-  else
-
-  if MimeType = 'application/x-castle-anim-frames' then
-    Result := LoadAnimFrames(Stream, BaseUrl)
-  else
-
-  if MimeType = 'application/x-md3' then
-    Result := LoadMD3(Stream, BaseUrl)
-  else
-
-  if (MimeType = 'application/x-stl') or
-     { try also other STL mime types }
-     (MimeType = 'application/wavefront-stl') or
-     (MimeType = 'application/vnd.ms-pki.stl') or
-     (MimeType = 'application/x-navistyle') then
-    Result := LoadSTL(Stream, BaseUrl)
-  else
-
-  if (MimeType = 'model/gltf+json') or
-     (MimeType = 'model/gltf-binary') then
-    Result := LoadGLTF(Stream, BaseUrl)
-  else
-
-  if (MimeType = 'application/x-castle-sprite-sheet') or
-     (MimeType = 'application/x-starling-sprite-sheet') then
-    Result := LoadCastleSpriteSheet(Stream, BaseUrl)
-  else
-
-  if (MimeType = 'application/x-plist') or
-     (MimeType = 'application/x-cocos2d-sprite-sheet') then
-    Result := LoadCocos2d(Stream, BaseUrl)
-  else
-
-  if MimeType = 'application/x-tiled-map' then
-    Result := LoadTiledMap2d(Stream, BaseUrl)
-  else
-
-  { Support for simple graphics images like PNG }
-  if IsImageMimeType(MimeType, true, false) then
-    Result := LoadImageAsNode(Stream, BaseUrl, MimeType)
-  else
-
-  if NilOnUnrecognizedFormat then
-    Result := nil
-  else
-    raise Exception.CreateFmt('Unrecognized file type "%s" for scene with base URL "%s"',
-      [MimeType, UriDisplay(BaseUrl)]);
-
-  if Result <> nil then
-  begin
-    { Fix names after loading (from any format -- X3D, glTF can have collisions in names),
-      to have non-unique names for accessing everything,
-      e.g. EXPORT statements should use correct (non-unique) names
-      to be IMPORTed.
-      Testcase: x3d-tests/gltf_inlined/avocado_and_exports/avocado_imported.x3dv . }
-    Result.InternalFixNodeNames;
-  end;
+  { Fix names after loading (from any format -- X3D, glTF can have collisions in names),
+    to have non-unique names for accessing everything,
+    e.g. EXPORT statements should use correct (non-unique) names
+    to be IMPORTed.
+    Testcase: x3d-tests/gltf_inlined/avocado_and_exports/avocado_imported.x3dv . }
+  Result.InternalFixNodeNames;
 end;
 
-function LoadScene_FileFilters: String;
-var
-  ImageExtensions: String;
-begin
-  ImageExtensions := LoadImage_FileFilters.AllExtensions;
+{ saving -------------------------------------------------------------------- }
 
-  Result :=   'All Files|*|' +
-    '*All Scenes|*.wrl;*.wrl.gz;*.wrz;*.x3d;*.x3dz;*.x3d.gz;*.x3dv;*.x3dvz;*.x3dv.gz;*.kanim;*.castle-anim-frames;*.dae;*.iv;*.3ds;*.md3;*.obj;*.geo;*.json;*.stl;*.glb;*.gltf;*.castle-sprite-sheet;*.starling-xml;*.cocos2d-plist;*.plist;*.tmx;' + ImageExtensions + '|' +
-    'VRML (*.wrl, *.wrl.gz, *.wrz)|*.wrl;*.wrl.gz;*.wrz|' +
-    { TODO:
-      and X3D binary (*.x3db;*.x3db.gz)
-    }
-    'X3D XML (*.x3d, *.x3dz, *.x3d.gz)|*.x3d;*.x3dz;*.x3d.gz|' +
-    'X3D classic (*.x3dv, *.x3dvz, *.x3dv.gz)|*.x3dv;*.x3dvz;*.x3dv.gz|' +
-    'Castle Animation Frames (*.castle-anim-frames, *.kanim)|*.castle-anim-frames;*.kanim|' +
-    'glTF (*.glb, *.gltf)|*.glb;*.gltf|' +
-    'Collada (*.dae)|*.dae|' +
-    'Inventor (*.iv)|*.iv|' +
-    '3D Studio (*.3ds)|*.3ds|' +
-    'Quake 3 engine models (*.md3)|*.md3|' +
-    'Wavefront (*.obj)|*.obj|' +
-    'Videoscape (*.geo)|*.geo|' +
-    'Spine animation (*.json)|*.json|' +
-    'Standard Triangle Language (*.stl)|*.stl|' +
-    'Castle Sprite Sheet (*.castle-sprite-sheet)|*.castle-sprite-sheet|' +
-    'Starling Sprite Sheet (*.starling-xml)|*.starling-xml|' +
-    'Cocos2d Sprite Sheet (*.cocos2d-plist, *.plist)|*.cocos2d-plist;*.plist|' +
-    'Tiled Map (*.tmx)|*.tmx|' +
-    { Uncomment to see version with extensions - but filter combo is very long then }
-    //'Images (' + StringReplace(ImageExtensions, ';', ', ', [rfReplaceAll]) + ')|' + ImageExtensions;
-    'Images |' + ImageExtensions;
-end;
-
-function Load3D_FileFilters: String;
-begin
-  Result := LoadScene_FileFilters;
-end;
-
-function Load3D(const Url: String;
-  const AllowStdIn, NilOnUnrecognizedFormat: boolean): TX3DRootNode;
-begin
-  Result := LoadNode(Url, NilOnUnrecognizedFormat);
-end;
-
-procedure Load3DSequence(const Url: String;
-  const AllowStdIn: boolean;
-  const KeyNodes: TX3DNodeList;
-  const KeyTimes: TSingleList;
-  out ScenesPerTime: Cardinal;
-  out Epsilon: Single;
-  out TimeLoop, TimeBackwards: boolean);
-
-  procedure LoadNodeAnimation(Animations: TNodeInterpolator.TAnimationList);
-  var
-    Animation: TNodeInterpolator.TAnimation;
-    I: Integer;
-  begin
-    { This obsolete routine just reads the 1st animation only.
-      There's no way to support multiple animations with this interface. }
-    Animation := Animations[0];
-
-    for I := 0 to Animation.KeyNodes.Count - 1 do
-      KeyNodes.Add(Animation.KeyNodes[I]);
-    for I := 0 to Animation.KeyTimes.Count - 1 do
-      KeyTimes.Add(Animation.KeyTimes[I]);
-    ScenesPerTime   := Animation.ScenesPerTime;
-    Epsilon         := Animation.Epsilon;
-    TimeLoop        := Animation.Loop;
-    TimeBackwards   := Animation.Backwards;
-
-    FreeAndNil(Animations);
-  end;
-
-  procedure LoadSingle(Node: TX3DNode);
-  begin
-    KeyNodes.Add(Node);
-    KeyTimes.Add(0); { One time value }
-    ScenesPerTime := 1;      { doesn't matter }
-    Epsilon := 0.0;  { doesn't matter }
-    TimeLoop := false;      { doesn't matter }
-    TimeBackwards := false; { doesn't matter }
-  end;
-
-var
-  MimeType: String;
-  AbsoluteBaseUrl: String;
-  Stream: TStream;
-begin
-  Assert(KeyTimes.Count = 0);
-  Assert(KeyNodes.Count = 0);
-
-  MimeType := UriMimeType(Url);
-
-  if MimeType = 'application/x-castle-anim-frames' then
-  begin
-    AbsoluteBaseUrl := AbsoluteUri(Url);
-    Stream := Download(Url);
-    try
-      LoadNodeAnimation(TNodeInterpolator.LoadAnimFramesToKeyNodes(Stream, AbsoluteBaseUrl));
-    finally FreeAndNil(Stream) end;
-  end else
-    LoadSingle(LoadNode(Url));
-end;
-
-function Load3DSequence_FileFilters: String;
-begin
-  Result := LoadScene_FileFilters;
-end;
-
-procedure SaveNode(const Node: TX3DNode;
+procedure SaveNode(const Node: TX3DRootNode;
   const Url: String;
   const Generator: String;
   const Source: String);
+var
+  Stream: TStream;
 begin
-  {$warnings off} // using deprecated, it will be internal
-  Save3D(Node, Url, Generator, Source);
-  {$warnings on}
+  Stream := UrlSaveStream(Url);
+  try
+    SaveNode(Node, Stream, UriMimeType(Url), Generator, Source);
+  finally FreeAndNil(Stream) end;
 end;
 
-procedure SaveNode(const Node: TX3DNode;
+procedure SaveNode(const Node: TX3DRootNode;
   const Stream: TStream; const MimeType: String;
   const Generator: String;
   const Source: String);
 var
-  Encoding: TX3DEncoding;
+  ModelFormat: TModelFormat;
 begin
-  if (MimeType = 'model/vrml') or
-     (MimeType = 'model/x3d+vrml') then
-    Encoding := xeClassic
-  else
-    Encoding := xeXML;
-  {$warnings off} // using deprecated, it will be internal
-  Save3D(Node, Stream, Generator, Source, Encoding);
-  {$warnings on}
+  if FRegisteredModelFormats = nil then
+    raise Exception.Create('No model formats registered, you try to SaveNode too early, before initialization of Castle Game Engine units that register model formats');
+
+  ModelFormat := FRegisteredModelFormats.FindMimeType(MimeType);
+  if ModelFormat = nil then
+    raise Exception.CreateFmt('Unrecognized file type "%s" for saving scene', [
+      MimeType
+    ]);
+
+  if not Assigned(ModelFormat.OnSave) then
+    raise Exception.CreateFmt('Cannot save model format "%s"', [MimeType]);
+
+  ModelFormat.OnSave(Node, Stream, Generator, Source);
 end;
 
+{ file filters -------------------------------------------------------------- }
+
+{ Common implementation of LoadScene_FileFilters and SaveNode_FileFilters. }
+function SaveLoad_FileFilters(const Load: boolean): String;
+
+  function AllExtensions: String;
+  var
+    ModelFormat: TModelFormat;
+    Ext: string;
+  begin
+    Result := '';
+    for ModelFormat in FRegisteredModelFormats do
+      for Ext in ModelFormat.Extensions do
+        Result := SAppendPart(Result, ';', '*' + Ext);
+  end;
+
+  function FormatExtensions(const ModelFormat: TModelFormat): String;
+  var
+    Ext: string;
+  begin
+    Result := '';
+    for Ext in ModelFormat.Extensions do
+      Result := SAppendPart(Result, ';', '*' + Ext);
+  end;
+
+var
+  ModelFormat: TModelFormat;
+  DefaultMark: String;
+begin
+  if FRegisteredModelFormats = nil then
+    raise Exception.Create('No model formats registered, you try to build filters list too early, before initialization of Castle Game Engine units that register model formats');
+
+  Result := 'All Files|*';
+
+  if Load then
+  begin
+    { When loading, "All Scenes" is the default filter. }
+    Result := Result + '|*All Scenes|' + AllExtensions;
+  end;
+
+  for ModelFormat in FRegisteredModelFormats do
+  begin
+    // exclude ModelFormat that cannot be loaded / saved
+    if Load then
+    begin
+      if not Assigned(ModelFormat.OnLoad) then
+        Continue;
+    end else
+    begin
+      if not Assigned(ModelFormat.OnSave) then
+        Continue;
+    end;
+
+    { When saving, the default filter is X3D XML. }
+    DefaultMark := Iff((not Load) and (ModelFormat.MimeTypes[0] = 'model/x3d+xml'), '*', '');
+
+    Result := Result + '|' +
+      DefaultMark +
+      ModelFormat.FileFilterName + '|' + FormatExtensions(ModelFormat);
+  end;
+end;
+
+function LoadScene_FileFilters: String;
+begin
+  Result := SaveLoad_FileFilters(true);
+end;
+
+function SaveNode_FileFilters: String;
+begin
+  Result := SaveLoad_FileFilters(false);
+end;
+
+{ TModelFormat and friends -------------------------------------------------- }
+
+constructor TModelFormat.Create;
+begin
+  inherited;
+  MimeTypes := TCastleStringList.Create;
+  MimeTypes.CaseSensitive := false; // makes TModelFormatList.FindMimeType ignore case
+  Extensions := TCastleStringList.Create;
+end;
+
+destructor TModelFormat.Destroy;
+begin
+  FreeAndNil(MimeTypes);
+  FreeAndNil(Extensions);
+  inherited;
+end;
+
+function TModelFormatList.FindMimeType(const MimeType: string): TModelFormat;
+begin
+  for Result in Self do
+    if Result.MimeTypes.IndexOf(MimeType) <> -1 then
+      Exit;
+  Result := nil;
+end;
+
+procedure RegisterModelFormat(const ModelFormat: TModelFormat);
+
+  procedure CheckMimeTypesNotYetRegistered(const NewMimeTypes: TStrings);
+  var
+    NewMimeType: String;
+    ExistingModelFormat: TModelFormat;
+  begin
+    for NewMimeType in NewMimeTypes do
+    begin
+      ExistingModelFormat := FRegisteredModelFormats.FindMimeType(NewMimeType);
+      if ExistingModelFormat <> nil then
+        raise Exception.CreateFmt('RegisterModelFormat: MIME type "%s" is already registered', [NewMimeType]);
+    end;
+  end;
+
+var
+  Ext: string;
+begin
+  // validate
+  if ModelFormat.MimeTypes.Count = 0 then
+    raise Exception.Create('RegisterModelFormat: ModelFormat.MimeTypes must be non-empty at registration');
+  if ModelFormat.FileFilterName = '' then
+    raise Exception.Create('RegisterModelFormat: ModelFormat.FileFilters must be non-empty at registration');
+  if ModelFormat.Extensions.Count = 0 then
+    raise Exception.Create('RegisterModelFormat: ModelFormat.Extensions must be non-empty at registration');
+  for Ext in ModelFormat.Extensions do
+    if not IsPrefix('.', Ext, false) then
+      raise Exception.CreateFmt('RegisterModelFormat: ModelFormat.Extensions must start with a dot, but "%s" does not', [Ext]);
+
+  if FRegisteredModelFormats = nil then
+    FRegisteredModelFormats := TModelFormatList.Create(true);
+  CheckMimeTypesNotYetRegistered(ModelFormat.MimeTypes);
+  FRegisteredModelFormats.Add(ModelFormat);
+end;
+
+initialization
+finalization
+  FreeAndNil(FRegisteredModelFormats);
 end.
