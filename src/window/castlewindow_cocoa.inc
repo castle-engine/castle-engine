@@ -1101,6 +1101,45 @@ procedure TCastleWindow.BackendInsideUpdate;
 begin
 end;
 
+{ TCocoaClipboard ----------------------------------------------------------- }
+
+{ Clipboard operations using Cocoa }
+
+type
+  TCocoaClipboard = class(TCastleClipboard)
+  protected
+    function GetAsText: String; override;
+    procedure SetAsText(const Value: String); override;
+  end;
+
+function TCocoaClipboard.GetAsText: String;
+var
+  Pasteboard: NSPasteboard;
+  Text: NSString;
+begin
+  Result := '';
+
+  Pasteboard := NSPasteboard.generalPasteboard;
+  if Pasteboard <> nil then
+  begin
+    Text := Pasteboard.stringForType(NSPasteboardTypeString);
+    if Text <> nil then
+        Result := PChar(Text.UTF8String);
+  end;
+end;
+
+procedure TCocoaClipboard.SetAsText(const Value: String);
+var
+  Pasteboard: NSPasteboard;
+begin
+  Pasteboard := NSPasteboard.generalPasteboard;
+  if Pasteboard <> nil then
+  begin
+    Pasteboard.clearContents;
+    Pasteboard.setString_forType(NSSTR(Value), NSPasteboardTypeString);
+  end;
+end;
+
 { TCastleApplication ---------------------------------------------------------- }
 
 procedure TCastleApplication.CreateBackend;
@@ -1156,6 +1195,8 @@ begin
 
   delegate := TCocoaAppDelegate.alloc.init;
   app.setDelegate(delegate);
+
+  RegisterClipboard(TCocoaClipboard.Create);
 
   NSApp.setActivationPolicy(NSApplicationActivationPolicyRegular);
   NSApp.activateIgnoringOtherApps(true);
