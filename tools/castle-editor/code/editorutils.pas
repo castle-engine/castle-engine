@@ -1077,6 +1077,11 @@ begin
   {$endif}
   *)
 
+  {$ifdef DARWIN}
+  if (Result = '') and (FileExists('/Applications/Visual Studio Code.app/Contents/MacOS/Electron')) then
+    Result := '/Applications/Visual Studio Code.app/Contents/MacOS/Electron';
+  {$endif}
+
   if (Result = '') and ExceptionWhenMissing then
     raise EExecutableNotFound.Create('Cannot find Visual Studio Code. Make sure it is installed, and available on environment variable $PATH (there should be an option to set this up during VS Code installlation).');
 end;
