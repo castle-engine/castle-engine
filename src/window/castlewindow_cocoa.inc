@@ -554,6 +554,7 @@ type
   TOpenGLView = objcclass (NSView)
     public
       function initWithFrame(frameRect: NSRect): id; override;
+      procedure dealloc; override;
       function isOpaque: ObjCBool; override;
       procedure viewDidMoveToWindow; override;
       procedure mouseEntered(theEvent: NSEvent); override;
@@ -562,6 +563,7 @@ type
       procedure updateTrackingAreas; override;
       procedure keyDown(theEvent: NSEvent); override;
       procedure drawRect(dirtyRect: NSRect); override;
+      procedure setFrameSize(newSize: NSSize); override;
 
       { Realizes TCastleWindow.OnDropFiles, allows to handle dropping files. }
       function performDragOperation(sender: NSDraggingInfoProtocol): ObjCBOOL; override;
@@ -574,7 +576,7 @@ type
       function defaultPixelFormat: NSOpenGLPixelFormat; message 'defaultPixelFormat';
       function windowRef: TCastleWindow; message 'windowRef';
       procedure frameChanged (sender: NSNotification); message 'frameChanged:';
-      procedure reshape; message 'reshape';
+      procedure reshape(newSize: NSSize); message 'reshape:';
   end;
 
 // note: setValues_forParameter in RTL headers is parsed wrong
@@ -638,13 +640,15 @@ begin
   end;
 
   if window = nil then
-    openGLContext.clearDrawable;
+    openGLContext.clearDrawable
+  else
+    reshape(bounds.size);
 end;
 
 procedure TOpenGLView.frameChanged (sender: NSNotification);
 begin
-  if openGLContext <> nil then
-    reshape;
+  if (openGLContext <> nil) and (window <> nil) and (windowRef <> nil) then
+    reshape(bounds.size);
 end;
 
 procedure TOpenGLView.drawRect(dirtyRect: NSRect);
@@ -653,9 +657,10 @@ begin
   // openGLContext.flushBuffer;
 end;
 
-procedure TOpenGLView.reshape;
+procedure TOpenGLView.reshape(newSize: NSSize);
 var
   ScaleFactor: Single;
+  BackingSize: NSSize;
 begin
   openGLContext.update;
 
@@ -670,16 +675,25 @@ begin
       https://developer.apple.com/documentation/quartzcore/calayer/1410746-contentsscale?language=objc
       (possibly we could use NSViewLayerContentScaleDelegate
       to avoid such scaling on OpenGL control; for now this solution seems easier). }
-    if window.respondsToSelector( ObjCSelector('backingScaleFactor')) then
-      ScaleFactor := window.backingScaleFactor
+    if window.respondsToSelector( ObjCSelector('backingScaleFactor')) then  // check if we are on OSX 10.7
+    begin
+      BackingSize := convertSizeToBacking(newSize);
+      ScaleFactor := BackingSize.width / newSize.width;
+    end
     else
-    if window.respondsToSelector( ObjCSelector('userSpaceScaleFactor')) then // for older OSX
-      {$warnings off}
-      // do not warn about userSpaceScaleFactor being deprecated, we only use it for older OS
-      ScaleFactor := window.userSpaceScaleFactor
-      {$warnings on}
-    else
-      ScaleFactor := 1;
+    begin
+      if window.respondsToSelector( ObjCSelector('backingScaleFactor')) then
+        ScaleFactor := window.backingScaleFactor
+      else
+      if window.respondsToSelector( ObjCSelector('userSpaceScaleFactor')) then // for older OSX
+        {$warnings off}
+        // do not warn about userSpaceScaleFactor being deprecated, we only use it for older OS
+        ScaleFactor := window.userSpaceScaleFactor
+        {$warnings on}
+      else
+        ScaleFactor := 1;
+      BackingSize := NSMakeSize(newSize.width * ScaleFactor, newSize.height * ScaleFactor);
+    end;
 
     if TCocoaWindow(window).ScaleFactor <> ScaleFactor then
     begin
@@ -687,10 +701,14 @@ begin
       windowRef.Container.Dpi := ScaleFactor * DefaultDpi
     end;
 
-    windowRef.DoResize(
-      trunc(ScaleFactor * bounds.size.width),
-      trunc(ScaleFactor * bounds.size.height), false);
+    windowRef.DoResize(trunc(BackingSize.width), trunc(BackingSize.height), false);
   end;
+end;
+
+procedure TOpenGLView.setFrameSize(newSize: NSSize);
+begin
+  inherited setFrameSize(newSize);
+  reshape(newSize);
 end;
 
 function TOpenGLView.isOpaque: ObjCBool;
@@ -753,7 +771,19 @@ function TOpenGLView.initWithFrame(frameRect: NSRect): id;
 begin
   result := inherited initWithFrame(frameRect);
   if result <> nil then
-    NSNotificationCenter(NSNotificationCenter.defaultCenter).addObserver_selector_name_object(result, objcselector('frameChanged:'), NSViewGlobalFrameDidChangeNotification, nil);
+  begin
+    // NSViewGlobalFrameDidChangeNotification is not needed when setFrameSize is overriden in our view. This notification is received far too often.
+    //NSNotificationCenter(NSNotificationCenter.defaultCenter).addObserver_selector_name_object(result, objcselector('frameChanged:'), NSViewGlobalFrameDidChangeNotification, result);
+  end;
+end;
+
+procedure TOpenGLView.dealloc;
+begin
+  //NSNotificationCenter(NSNotificationCenter.defaultCenter).removeObserver_name_object(self, NSViewGlobalFrameDidChangeNotification, result);
+  NSNotificationCenter(NSNotificationCenter.defaultCenter).removeObserver_name_object(self, NSWindowDidChangeScreenNotification, nil);
+  NSNotificationCenter(NSNotificationCenter.defaultCenter).removeObserver_name_object(self, NSWindowDidChangeBackingPropertiesNotification, nil);
+
+  inherited dealloc;
 end;
 
 function TOpenGLView.draggingEntered(sender: NSDraggingInfoProtocol): NSDragOperation;
@@ -941,6 +971,9 @@ begin
   window.setContentView(openGLView);
   openGLView.release;
 
+  NSNotificationCenter(NSNotificationCenter.defaultCenter).addObserver_selector_name_object(openGLView, objcselector('frameChanged:'), NSWindowDidChangeScreenNotification, window);
+  NSNotificationCenter(NSNotificationCenter.defaultCenter).addObserver_selector_name_object(openGLView, objcselector('frameChanged:'), NSWindowDidChangeBackingPropertiesNotification, window);
+
   if FullScreen then
     FullScreenBegin;
 
@@ -948,12 +981,13 @@ begin
 
   window.setCollectionBehavior(NSWindowCollectionBehaviorFullScreenPrimary);
   window.setAcceptsMouseMovedEvents(true);
-  window.makeKeyAndOrderFront(nil);
+  //openGLView.reshape(openGLView.bounds.size); // Note: scale = 2 on Retina screen: OK
+  window.makeKeyAndOrderFront(nil);             // Note: in this place when openGLView loses Retina res, while the windows.backingScaleFagtor is still 2. Before this call, openGLView.ScaleFactor is 2, after this call it becomes 1
+
+  openGLView.reshape(openGLView.bounds.size);   // Note: scale = 1 on Retina screen?!
 
   glcontext := openGLView.openGLContext;
   ref := window;
-
-  Container.Dpi := window.ScaleFactor * DefaultDpi; // InitializeDpi;
 
   Application.OpenWindowsAdd(Self);
 
