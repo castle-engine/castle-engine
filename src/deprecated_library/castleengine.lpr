@@ -136,11 +136,6 @@ begin
 
     CGEApp_Open(InitialWidth, InitialHeight, 0, Dpi);
 
-    {$ifdef DARWIN}
-    if (GLVersion <> nil) and GLVersion.AtLeast(3, 2) then
-        TGLFeatures.RequestCapabilities := rcForceModern;
-    {$endif}
-
     Crosshair := TCrosshairManager.Create;
   except
     on E: TObject do WritelnWarning('Window', 'CGE_Open: ' + ExceptMessage(E));
