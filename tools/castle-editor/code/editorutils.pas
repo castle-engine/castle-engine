@@ -1063,6 +1063,10 @@ begin
 end;
 
 function FindExeVSCode(const ExceptionWhenMissing: Boolean): String;
+{$ifdef DARWIN}
+const
+  MacVSCodePath = '/Applications/Visual Studio Code.app/Contents/MacOS/Electron';
+{$endif}
 begin
   Result := FindExe('code');
 
@@ -1078,8 +1082,8 @@ begin
   *)
 
   {$ifdef DARWIN}
-  if (Result = '') and (FileExists('/Applications/Visual Studio Code.app/Contents/MacOS/Electron')) then
-    Result := '/Applications/Visual Studio Code.app/Contents/MacOS/Electron';
+  if (Result = '') and (FileExists(MacVSCodePath)) then
+    Result := MacVSCodePath;
   {$endif}
 
   if (Result = '') and ExceptionWhenMissing then
