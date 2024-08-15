@@ -3,6 +3,12 @@ you can use the files provided here.
 They will make the "Castle Game Engine" nicely listed in the applications list
 of any desktop (GNOME, MATE, KDE, ...).
 
+Short version, automatic:
+
+1. Run `install.sh` script.
+
+Long version, manual:
+
 1. To make the desktop file work, first make sure that the system can find the relevant executables.
    It is simplest to just edit the desktop file to add full path to the "Exec" and "Icon" lines,
    like this:
