@@ -1,6 +1,6 @@
 {%MainUnit castletransform.pas}
 {
-  Copyright 2017-2022 Michalis Kamburelis.
+  Copyright 2017-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -20,8 +20,8 @@
   TCastleAbstractRootTransform = class;
   TCastleTransform = class;
   TRenderingCamera = class;
-  TRigidBody = class;
   TCastleRigidBody = class;
+  TCastleCollider = class;
   TPhysicsProperties = class;
   TCastleCamera = class;
 

@@ -1,6 +1,6 @@
 {%MainUnit castlescene.pas}
 {
-  Copyright 2022-2022 Michalis Kamburelis.
+  Copyright 2022-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -39,6 +39,9 @@ type
     procedure SetColor(const Value: TCastleColorRGB);
     procedure SetIntensity(const Value: Single);
   public
+    const
+      DefaultIntensity = 1.0;
+
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
@@ -46,8 +49,22 @@ type
     { Light color shining over surface. By default white. }
     property Color: TCastleColorRGB read FColor write SetColor;
   published
-    { Intensity, multiplied by color. Can be anything >= 0. }
-    property Intensity: Single read FIntensity write SetIntensity {$ifdef FPC}default 1.0{$endif};
+    { Intensity, multiplied by color. Can be anything >= 0.
+      Intuitively, how bright is the light.
+
+      Note that the physical interpretation of what the @italic(intensity)
+      means for a directional light is a bit different than for
+      TCastlePointLight and TCastleSpotLight.
+      Directional light doesn't have a position, consequently it doesn't have
+      attenuation. Following @url(https://github.com/KhronosGroup/glTF/blob/main/extensions/2.0/Khronos/KHR_lights_punctual/README.md glTF lights specification),
+      the directional light's intensity physical unit
+      is illuminance in lux (lm/m2).
+
+      For the above reason, different values of intensity are "reasonable"
+      for directional light than for point and spot lights.
+      By default directional light intensity is 1.0, unlike point and spot lights
+      which have intensity 100.0 by default. }
+    property Intensity: Single read FIntensity write SetIntensity {$ifdef FPC}default DefaultIntensity{$endif};
 
   {$define read_interface_class}
   {$I auto_generated_persistent_vectors/tcastledirectionallight_persistent_vectors.inc}
@@ -72,15 +89,21 @@ constructor TCastleDirectionalLight.Create(AOwner: TComponent);
 begin
   inherited;
 
-  FIntensity := 1;
+  // defaults
+  FIntensity := DefaultIntensity;
   FColor := WhiteRGB;
 
-  { internal stuff create }
+  // initialize light node
   FDirectionalLight := TDirectionalLightNode.Create;
   FDirectionalLight.Global := true;
   LightNode := FDirectionalLight;
   FPunctualLight := FDirectionalLight;
 
+  // apply TCastleDirectionalLight defaults to FDirectionalLight
+  FDirectionalLight.Color := FColor;
+  FDirectionalLight.Intensity := FIntensity;
+
+  // initialize Gizmo
   if Gizmo <> nil then
   begin
     if InternalCastleDesignData <> '' then

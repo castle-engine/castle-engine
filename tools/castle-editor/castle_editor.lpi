@@ -241,6 +241,7 @@
     </Target>
     <SearchPaths>
       <IncludeFiles Value="../../src/common_includes;$(ProjOutDir)"/>
+      <Libraries Value="../../src/vampyre_imaginglib/src/Extensions/J2KObjects"/>
       <OtherUnitFiles Value="../common-code;code"/>
       <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>

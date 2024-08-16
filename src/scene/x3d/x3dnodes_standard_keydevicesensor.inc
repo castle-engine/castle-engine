@@ -207,7 +207,7 @@ begin
     { Catch both CharBackspace and keyBackSpace.
       Catching CharBackspace is not enough, because it's also equal to Ctrl+H.
       Same for CharEnter: it's also equal to Ctrl+M.
-      And Ctrl+... may be often used by some menu items, see e.g. view3dscene. }
+      And Ctrl+... may be often used by some menu items, see e.g. castle-model-viewer. }
 
     if (KeyString = CharBackspace) or (Key = keyBackSpace) then
     begin

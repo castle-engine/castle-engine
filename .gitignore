@@ -82,6 +82,7 @@ castle-game-engine-*.fpm
 /examples/animations/simultaneous_animations_one_scene/simultaneous_animations_one_scene
 /examples/animations/split_long_animation/split_long_animation
 /examples/animations/md3_animations_tags/md3_animations_tags
+/examples/animations/optimize_animations_test/optimize_animations_test
 /examples/audio/audio_player/audio_player
 /examples/audio/doppler_demo/doppler_demo
 /examples/audio/game_3d_sound/game_3d_sound
@@ -112,8 +113,7 @@ castle-game-engine-*.fpm
 /examples/fonts/texture-font-to-pascal
 /examples/fps_game/fps_game
 /examples/deprecated_to_upgrade/fps_game_old_ai/fps_game
-/examples/images_videos/background_tiling/background_tiling
-/examples/images_videos/dds_decompose/dds_decompose
+/examples/images_videos/image_decompose/image_decompose
 /examples/images_videos/deprecated_drawing_modes_test/drawing_modes_test
 /examples/images_videos/deprecated_image_paint/image_paint
 /examples/images_videos/draw_images_on_gpu/draw_images_on_gpu
@@ -189,6 +189,7 @@ castle-game-engine-*.fpm
 /examples/short_api_samples/transform_save_load/aaa.castle-transform
 /examples/short_api_samples/transform_save_load/transform_save_load
 /examples/short_api_samples/xml_utils/bookmarks_xml_demo
+/examples/space_shooter/space_shooter
 /examples/sprite_sheets/sprite_sheets_demo/sprite_sheets_demo
 /examples/terrain/terrain
 /examples/test_local_filename_chars/test_local_filename_chars
@@ -199,9 +200,11 @@ castle-game-engine-*.fpm
 /examples/user_interface/dragging_test/dragging_test
 /examples/user_interface/edit_test/edit_test
 /examples/user_interface/mask/mask
+/examples/user_interface/screen_resolution_change/screen_resolution_change
 /examples/user_interface/show_various_ui_controls/show_various_ui_controls
 /examples/user_interface/test_all_view_events/test_all_view_events
 /examples/user_interface/timer_test/timer_test
+/examples/user_interface/ui_batching/ui_batching
 /examples/user_interface/view_events/view_events
 /examples/user_interface/zombie_fighter/zombie_fighter
 /examples/user_interface/zombie_fighter_alternative_short_lived_views/zombie_fighter
@@ -219,11 +222,13 @@ castle-game-engine-*.fpm
 /examples/viewport_and_scenes/fog_and_distance_culling/fog_and_distance_culling
 /examples/viewport_and_scenes/headlight/headlight
 /examples/viewport_and_scenes/listen_on_x3d_events/listen_on_x3d_events
+/examples/viewport_and_scenes/mesh_update/mesh_update
 /examples/viewport_and_scenes/multiple_viewports/multiple_viewports
 /examples/viewport_and_scenes/position_from_world/position_from_world
 /examples/viewport_and_scenes/render_3d_to_image/render_3d_to_image
 /examples/viewport_and_scenes/render_3d_to_texture_and_use_as_quad/render_3d_to_texture_and_use_as_quad
 /examples/viewport_and_scenes/shader_effects/shader-effects
+/examples/viewport_and_scenes/shader_effects_on_texture/shader_effects_on_texture
 /examples/viewport_and_scenes/shader_override/shader_override
 /examples/viewport_and_scenes/show_bounding_rect_in_2d/show_bounding_rect_in_2d
 /examples/viewport_and_scenes/test_triangulate/test_triangulate

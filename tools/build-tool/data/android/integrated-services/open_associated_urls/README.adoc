@@ -1,3 +1,7 @@
 ## open_associated_urls
 
-See example usage in https://github.com/castle-engine/view3dscene-mobile/blob/master/CastleEngineManifest.xml .
+This Android service is automatically used if your project manifest declares that the application should be associated with some file types. There should never be a need to declare using this service explicitly.
+
+The file associations are configured using the `<associate_document_types>` XML elements in `CastleEngineManifest.xml`. See https://castle-engine.io/project_manifest#_associated_file_types for details.
+
+See example usage in https://github.com/castle-engine/castle-model-viewer-mobile/blob/master/CastleEngineManifest.xml .

@@ -172,6 +172,7 @@ headlight
 height
 high
 history
+html
 humanoid
 hurt
 idft
@@ -424,6 +425,7 @@ water
 waypoints
 weights
 white
+whitespace
 whitespaces
 width
 window

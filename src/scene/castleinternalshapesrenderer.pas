@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2023 Michalis Kamburelis.
+  Copyright 2003-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -112,8 +112,7 @@ type
 
     { Render all given shapes.
 
-      Note: Params.Transform / InverseTransform may be ignored
-      by this routine.
+      Note: Params.Transformation may be ignored by this routine.
       They should be set to indicate identity.
       They are meaningless here: we have scene transformation in each collected
       shape.
@@ -123,7 +122,7 @@ type
 
       TODO: Split TRenderParams into stuff needed at collection,
       and needed at rendering collecting shapes.
-      Transform / InverseTransform should be only in former. }
+      Transformation:TTransformation should be only in former. }
     procedure Render(const Shapes: TShapesCollector;
       const Params: TRenderParams);
 
@@ -168,7 +167,7 @@ implementation
 uses SysUtils,
   {$ifdef OpenGLES} CastleGLES, {$else} CastleGL, {$endif}
   CastleScene, CastleGLUtils, CastleRenderContext, CastleColors, CastleUtils,
-  X3DCameraUtils;
+  X3DCameraUtils, CastleTimeUtils;
 
 { TShapesCollector ----------------------------------------------------------- }
 
@@ -601,6 +600,8 @@ begin
     Assert(Batching.Batched.Count = 0);
   end;
 
+  FrameProfiler.Start(fmRenderCollectedShapesSort);
+
   if Params.Transparent then
   begin
     { We'll draw partially transparent objects now,
@@ -627,6 +628,8 @@ begin
       Params.RenderingCamera.View,
       OcclusionSort);
   end;
+
+  FrameProfiler.Stop(fmRenderCollectedShapesSort);
 
   Renderer.RenderBegin(Params.GlobalLights as TLightInstancesList,
     Params.RenderingCamera,
@@ -709,7 +712,7 @@ begin
   { TODO: also Invalidate occlusion culling if camera moved a lot.
 
     Should take care of all viewpoints switching, like
-    - switching to other viewpoint through view3dscene "viewpoints" menu,
+    - switching to other viewpoint through castle-model-viewer "viewpoints" menu,
     - just getting an event set_bind = true through vrml route.
     - calling Camera.SetView / SetWorldView to teleport.
   }

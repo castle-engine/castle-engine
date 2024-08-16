@@ -1,6 +1,6 @@
 {%MainUnit castlefonts.pas}
 {
-  Copyright 2001-2023 Michalis Kamburelis.
+  Copyright 2001-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -305,16 +305,8 @@ var
 var
   ImageX, ImageY, ScreenX, ScreenY, InitialMargin: Single;
   CharIndex: Integer;
-  C: TUnicodeChar;
+  Iter: TCastleStringIterator;
   I: Integer;
-  {$ifdef FPC}
-  TextPtr: PChar;
-  CharLen: Integer;
-  {$else}
-  TextIndex: Integer;
-  NextTextIndex: Integer;
-  TextLength: Integer;
-  {$endif}
 begin
   if TargetImage = nil then
   begin
@@ -340,23 +332,10 @@ begin
   InitialMargin := Floor(ScaledDisplayMargin / 2);
 
   I := 0;
-  {$ifdef FPC}
-  TextPtr := PChar(S);
-  C := UTF8CharacterToUnicode(TextPtr, CharLen);
-  while (C > 0) and (CharLen > 0) do
-  {$else}
-  TextIndex := 1;
-  TextLength := Length(S);
-  while (TextIndex <= TextLength) do
-  {$endif}
+  Iter.Start(S);
+  while Iter.GetNext do
   begin
-    {$ifdef FPC}
-    Inc(TextPtr, CharLen);
-    {$else}
-    C := UnicodeStringNextChar(S, TextIndex, NextTextIndex);
-    TextIndex := NextTextIndex;
-    {$endif}
-    CharIndex := C - Ord(' ');  // TODO: check that
+    CharIndex := Iter.Current - Ord(' ');
     ImageX := CharIndex mod FImageColumns;
     ImageY := CharIndex div FImageColumns;
     if ImageY < ImageRows then
@@ -373,10 +352,6 @@ begin
         FloatRectangle(ScreenX, ScreenY, ScaledCharWidth, ScaledCharHeight),
         FloatRectangle(ImageX, ImageY, CharWidth, CharHeight));
     end;
-
-    {$ifdef FPC}
-    C := UTF8CharacterToUnicode(TextPtr, CharLen);
-    {$endif}
   end;
 
   if TargetImage = nil then

@@ -1,6 +1,6 @@
 {%MainUnit castlebehaviors.pas}
 {
-  Copyright 2021-2022 Michalis Kamburelis.
+  Copyright 2021-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -41,8 +41,7 @@ type
     destructor Destroy; override;
     procedure BeforeRender(
       const CameraView: TViewVectors;
-      const ParentParentWorldTransform, ParentParentWorldInverseTransform,
-            ParentWorldTransform, ParentWorldInverseTransform: TMatrix4); override;
+      const ParentParentWorldTransformation, ParentWorldTransformation: TTransformation); override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
 
     { Axis around which the billboard rotates to face the camera.
@@ -177,21 +176,20 @@ end;
 
 procedure TCastleBillboard.BeforeRender(
   const CameraView: TViewVectors;
-  const ParentParentWorldTransform, ParentParentWorldInverseTransform,
-        ParentWorldTransform, ParentWorldInverseTransform: TMatrix4);
+  const ParentParentWorldTransformation, ParentWorldTransformation: TTransformation);
 
   { Like Parent.Parent.WorldToLocalDirection, but uses current
     transformation knowledge. }
   function ParentParentWorldToLocalDirection(const D: TVector3): TVector3;
   begin
-    Result := ParentParentWorldInverseTransform.MultDirection(D);
+    Result := ParentParentWorldTransformation.InverseTransform.MultDirection(D);
   end;
 
   { Like Parent.Parent.WorldToLocal, but uses current
     transformation knowledge. }
   function ParentParentWorldToLocal(const P: TVector3): TVector3;
   begin
-    Result := ParentParentWorldInverseTransform.MultPoint(P);
+    Result := ParentParentWorldTransformation.InverseTransform.MultPoint(P);
   end;
 
 var

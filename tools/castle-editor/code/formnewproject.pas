@@ -1,5 +1,5 @@
 {
-  Copyright 2018-2018 Michalis Kamburelis.
+  Copyright 2018-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -30,11 +30,11 @@ type
     ButtonPanel1: TButtonPanel;
     ButtonTemplate2d: TSpeedButton;
     EditLocation: TDirectoryEdit;
-    EditStateName: TEdit;
+    EditViewName: TEdit;
     EditProjectName: TEdit;
     EditProjectCaption: TEdit;
     GroupProjectTemplate: TGroupBox;
-    LabelStateName: TLabel;
+    LabelViewName: TLabel;
     LabelProjectLocation: TLabel;
     LabelProjectCaption: TLabel;
     LabelTitle: TLabel;
@@ -48,8 +48,7 @@ type
     procedure FormShow(Sender: TObject);
     procedure ButtonTemplateClick(Sender: TObject);
   private
-    procedure AdjustFormSize;
-    procedure AdjustStateNameUi;
+    procedure AdjustViewNameUi;
   public
 
   end;
@@ -84,6 +83,19 @@ procedure TNewProjectForm.FormShow(Sender: TObject);
       {$endif}
   end;
 
+  { We used to base form height on whether EditViewName is available,
+    but this
+    - causes ugly jump in window on GTK2 when switching templates
+    - for user it is not obvious why EditViewName appears/disappears.
+    Now we keep form height constant during operation,
+    and when EditViewName is not available - we explain it. }
+  procedure AdjustFormSize;
+  const
+    ButtonsMargin = 8;
+  begin
+    ClientHeight := EditViewName.Top + EditViewName.Height + ButtonsMargin + ButtonPanel1.Height;
+  end;
+
 var
   DefaultNewProjectDir, NewProjectDir: String;
 begin
@@ -98,37 +110,29 @@ begin
 
   EditProjectName.Text := 'my-new-project';
   EditProjectCaption.Text := 'My New Project';
-  EditStateName.Text := 'Main';
+  EditViewName.Text := 'Main';
 
-  AdjustStateNameUi;
+  AdjustViewNameUi;
   AdjustFormSize;
 end;
 
-procedure TNewProjectForm.AdjustFormSize;
-const
-  ButtonsMargin = 8;
-begin
-  { adjust form height }
-  if EditStateName.Visible then
-    ClientHeight := EditStateName.Top + EditStateName.Height + ButtonsMargin + ButtonPanel1.Height
-  else
-    ClientHeight := EditProjectCaption.Top + EditProjectCaption.Height + ButtonsMargin + ButtonPanel1.Height;
-end;
-
-procedure TNewProjectForm.AdjustStateNameUi;
+procedure TNewProjectForm.AdjustViewNameUi;
 var
-  AskForStateName: Boolean;
+  ViewNameConfigurable: Boolean;
 begin
-  AskForStateName := ButtonTemplateEmpty.Down or ButtonTemplate3dModelViewer.Down;
-  SetEnabledVisible(LabelStateName, AskForStateName);
-  SetEnabledVisible(EditStateName, AskForStateName);
+  ViewNameConfigurable := ButtonTemplateEmpty.Down or ButtonTemplate3dModelViewer.Down;
+  LabelViewName.Enabled := ViewNameConfigurable;
+  EditViewName.Enabled := ViewNameConfigurable;
+  if ViewNameConfigurable then
+    LabelViewName.Caption := 'Main View Name (determines name of the initial design and Pascal unit)'
+  else
+    LabelViewName.Caption := 'Main View Name (not customizable, as this template has multiple views)';
 end;
 
 procedure TNewProjectForm.ButtonTemplateClick(Sender: TObject);
 begin
   (Sender as TSpeedButton).Down := true;
-  AdjustStateNameUi;
-  AdjustFormSize;
+  AdjustViewNameUi;
 end;
 
 procedure TNewProjectForm.FormCloseQuery(Sender: TObject; var CanClose: boolean);
@@ -178,10 +182,10 @@ begin
       Exit;
     end;
 
-    if EditStateName.Visible and not IsValidIdent(EditStateName.Text) then
+    if EditViewName.Visible and not IsValidIdent(EditViewName.Text) then
     begin
-      ErrorBox(Format('State name "%s" is not a valid Pascal identifier',
-        [EditStateName.Text]));
+      ErrorBox(Format('View name "%s" is not a valid Pascal identifier',
+        [EditViewName.Text]));
       CanClose := false;
       Exit;
     end;

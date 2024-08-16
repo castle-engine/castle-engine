@@ -60,6 +60,7 @@ Windows, CommDlg,
 
 {$ifdef read_implementation_uses}
 CastleInternalWindowModes, CastleMessages, CastleJoysticks, CastleUnicode,
+CastleInternalFileMonitor,
 {$endif}
 
 {$ifdef read_window_interface}
@@ -390,7 +391,7 @@ function TCastleWindow.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM): LRE
 
       Notes:
 
-      - Doing "Exit(UnicodeToUTF8(WParm))" also seems to work for Polish chars.
+      - Doing "Exit(UnicodeCharToString(WParm))" also seems to work for Polish chars.
         But it's not necessarily correct, I think: UTF-16 character number
         is not necessarily equal to just Unicode number.
 
@@ -529,7 +530,6 @@ function TCastleWindow.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM): LRE
     KeyString := ConvertWmCharToString(WParm);
     if KeyString <> '' then
       DoKeyDown(keyNone, KeyString);
-    WritelnLog('Received WM_CHAR. Test information for https://github.com/castle-engine/castle-engine/issues/159 : WParam ' + IntToStr(WParm) + ' string: ' + {$ifdef FPC}UTF8ToHtmlEntities({$endif}KeyString{$ifdef FPC}){$endif});
   end;
 
   { Handle WM_UNICHAR that reports a key press as 32-bit Unicode character.
@@ -567,7 +567,7 @@ function TCastleWindow.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM): LRE
         This is the same: https://en.wikipedia.org/wiki/UTF-32,
         """Each 32-bit value in UTF-32 represents one Unicode code point and is exactly equal to that code point's numerical value. """
       }
-      KeyString := {$ifdef FPC}UnicodeToUTF8(WParm){$else}ConvertFromUtf32(WParm){$endif};
+      KeyString := UnicodeCharToString(WParm);
       if KeyString <> '' then
         DoKeyDown(keyNone, KeyString);
     end;
@@ -589,10 +589,9 @@ function TCastleWindow.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM): LRE
     begin
       Result := false;
       { TODO: Handles all input controls, not just TCastleEdit }
-      if (Container.Focus.Count <> 0) and
-         (Container.Focus.Last is TCastleEdit) then
+      if Container.FocusFront is TCastleEdit then
       begin
-        CastleEdit := Container.Focus.Last as TCastleEdit;
+        CastleEdit := Container.FocusFront as TCastleEdit;
         S := CastleEdit.Text;
         if CastleEdit.PasswordChar <> #0 then
           S := StringOfChar(CastleEdit.PasswordChar, Length(S));
@@ -727,6 +726,8 @@ begin
     WM_ACTIVATEAPP:
       begin
         Application.appActive := longbool(wParm);
+        if Application.appActive then
+          FileMonitor.CheckChanges;
         {exit; <- allow DefWindowProcW handle WM_ACTIVETAPP too,
          since you can't say "we surely handled everything that should be done in
          reaction for this message"}
@@ -874,7 +875,7 @@ begin
           will not process OnUpdate and such during the time menu bar is open.
           So menu bar is like a modal dialog box.
           So Fps.SecondsPassed at next Update is irrelevant, just like at the end of TGLMode.
-          Fixes e.g. CameraTransitions when choosing viewpoint from view3dscene menu.
+          Fixes e.g. CameraTransitions when choosing viewpoint from castle-model-viewer menu.
 
           We would like to call this always when user leaves the menu, but it seems
           there's no WinAPI event for this. But we can as well call this when user enters
@@ -964,7 +965,7 @@ begin
           { A device has been sucessfully added to the system }
           DBT_DEVICEARRIVAL:
             begin
-              WriteLnLog('Received a WM_DEVICECHANGE event with DBT_DEVICEARRIVAL');
+              WriteLnLog('Event WM_DEVICECHANGE + DBT_DEVICEARRIVAL, possibly a joystick connected');
               //it might be a joystick, therefore
               Joysticks.InternalConnected;
             end;
@@ -1015,7 +1016,7 @@ begin
     But this seems unexpected to WinAPI in many situations, causing
 
     1. crashes, when this is done from some messages.
-    2. slowdown at initialization (view3dscene main menu blinks for some
+    2. slowdown at initialization (castle-model-viewer main menu blinks for some
       time, with "busy" cursor, before it becomes responsive).
 
     So the solution now is to activate it only for certain commands,
@@ -1222,12 +1223,12 @@ begin
 
       This means that actual OpenGL area size may be different than
       requested (OnResize will report it corectly, eventually lying, honoring
-      ResizeAllowed properrty). Happened e.g. when castle-view-image allowed minimal
+      ResizeAllowed properrty). Happened e.g. when castle-image-viewer allowed minimal
       window size = 200, and default welcome image had 256x256 pixels.
-      When you opened castle-view-image with no params in directory with no images,
+      When you opened castle-image-viewer with no params in directory with no images,
       then OpenGL area of size 256x256 was requested, which was so narrow that
       menu bar wrapped. Which made OpenGL area not tall enough for 256 pixels,
-      and castle-view-image had to add a vertical scrollbar to display welcome image.
+      and castle-image-viewer had to add a vertical scrollbar to display welcome image.
     }
     AdjustWindowRectEx(WindowRect, dwStyle,
       (MainMenu <> nil) and MainMenuVisible, dwExStyle);
@@ -1823,7 +1824,7 @@ begin
         try
           SetLength(ResultUnicode, CharSize);
           Move(Data^, ResultUnicode[1], ByteSize);
-          Result := ResultUnicode;
+          Result := Utf16ToString(ResultUnicode);
         finally Windows.GlobalUnlock(DataHandle) end;
       end;
     finally Windows.CloseClipboard end;
@@ -1843,7 +1844,7 @@ begin
 
     if Value <> '' then
     begin
-      ValueUnicode := Value;
+      ValueUnicode := StringToUtf16(Value);
 
       CharSize := Length(ValueUnicode) + 1; // copy to Windows with trailing #0
       ByteSize := CharSize * SizeOf(TClipboardChar);
@@ -2076,11 +2077,6 @@ begin
   if DisplaySettingsChanged and VideoResize then
     result := VideoResizeHeight else
     result := GetSystemMetrics(SM_CYSCREEN);
-end;
-
-function TCastleApplication.ScreenStatusBarScaledHeight: Cardinal;
-begin
-  Result := 0;
 end;
 
 function TCastleApplication.BackendName: String;

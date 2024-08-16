@@ -25,19 +25,11 @@ uses SysUtils, Classes,
 
 { Extracts #anchor from URI. On input, URI contains full URI.
   On output, Anchor is removed from URI and saved in Anchor.
-  If no #anchor existed, Anchor is set to ''.
-
-  When RecognizeEvenEscapedHash, we also recognize as a delimiter
-  escaped hash, %23. This is a hack and should not be used (prevents
-  from using actual filename with hash, thus making the escaping process
-  useless). Unless there's no other sensible way --- e.g. specify
-  Spine skin name when opening Spine json file... }
-procedure UriExtractAnchor(var Uri: String; out Anchor: string;
-  const RecognizeEvenEscapedHash: boolean = false);
+  If no #anchor existed, Anchor is set to ''. }
+procedure UriExtractAnchor(var Uri: String; out Anchor: string);
 
 { Like UriExtractAnchor, but URI remains unchanged. }
-procedure UriGetAnchor(const Uri: String; out Anchor: string;
-  const RecognizeEvenEscapedHash: boolean = false);
+procedure UriGetAnchor(const Uri: String; out Anchor: string);
 
 { Calculate #anchor from an URI, and split it into a key-value map.
 
@@ -53,8 +45,7 @@ procedure UriGetSettingsFromAnchor(const Uri: String;
   const SettingsFromAnchor: TStringStringMap);
 
 { Return URI with anchor (if was any) stripped. }
-function UriDeleteAnchor(const Uri: String;
-  const RecognizeEvenEscapedHash: boolean = false): string;
+function UriDeleteAnchor(const Uri: String): string;
 
 { Replace all sequences like %xx with their actual 8-bit characters.
 
@@ -366,10 +357,17 @@ function UriExists(Url: String): TUriExists;
   including always final slash at the end. }
 function UriCurrentPath: string;
 
-{ If this is castle-data:... URL, resolve it using ApplicationData. }
+{ If the given URL uses "castle-data:..." protocol, resolve it,
+  returning a URL that does not use "castle-data:..." protocol any more.
+  For example may resolve "castle-data:/xxx" into
+  "file:///home/michalis/my-application/data/xxx".
+  See https://castle-engine.io/data
+  for documentation how our "data directory" works.
+
+  If the URL has a different protocol, it is returned unchanged. }
 function ResolveCastleDataUrl(const Url: String): String;
 
-{ If this URL indicates something inside the @url(https://castle-engine.io/manual_data_directory.php
+{ If this URL indicates something inside the @url(https://castle-engine.io/data
   CGE data directory) then return URL relative to this data directory.
   E.g. for "castle-data:/foo/bar.txt" it returns "foo/bar.txt".
 
@@ -584,17 +582,15 @@ end;
 
 { other routines ------------------------------------------------------------- }
 
-procedure UriGetAnchor(const Uri: String; out Anchor: string;
-  const RecognizeEvenEscapedHash: boolean = false);
+procedure UriGetAnchor(const Uri: String; out Anchor: string);
 var
   U: String;
 begin
   U := Uri;
-  UriExtractAnchor(U, Anchor, RecognizeEvenEscapedHash);
+  UriExtractAnchor(U, Anchor);
 end;
 
-procedure UriExtractAnchor(var Uri: String; out Anchor: string;
-  const RecognizeEvenEscapedHash: boolean);
+procedure UriExtractAnchor(var Uri: String; out Anchor: string);
 var
   HashPos: Integer;
 begin
@@ -614,15 +610,6 @@ begin
   begin
     Anchor := SEnding(Uri, HashPos + 1);
     SetLength(Uri, HashPos - 1);
-  end else
-  if RecognizeEvenEscapedHash then
-  begin
-    HashPos := BackPos('%23', Uri);
-    if HashPos <> 0 then
-    begin
-      Anchor := SEnding(Uri, HashPos + 3);
-      SetLength(Uri, HashPos - 1);
-    end;
   end;
 end;
 
@@ -658,7 +645,7 @@ begin
 
   { We need recognize escaped hash because GTK2 open dialog returns %23
     in # position }
-  UriGetAnchor(Uri, Anchor, true);
+  UriGetAnchor(Uri, Anchor);
   SettingsFromAnchor.Clear;
 
   if Anchor = '' then
@@ -673,13 +660,12 @@ begin
   until false;
 end;
 
-function UriDeleteAnchor(const Uri: String;
-  const RecognizeEvenEscapedHash: boolean): string;
+function UriDeleteAnchor(const Uri: String): string;
 var
   Anchor: string;
 begin
   Result := Uri;
-  UriExtractAnchor(Result, Anchor, RecognizeEvenEscapedHash);
+  UriExtractAnchor(Result, Anchor);
 end;
 
 function RawUriDecode(const S: string): string;
@@ -1108,10 +1094,6 @@ begin
     Result := UriDisplay(AbsoluteUri(Uri), true);
 end;
 
-const
-  { RecognizeEvenEscapedHash value for URI extracting functions below. }
-  DefaultRecognizeEvenEscapedHash = true;
-
 function ChangeUriExt(const Url, Extension: string): string;
 
   {$ifndef FPC}
@@ -1149,7 +1131,7 @@ var
   UrlWithoutAnchor, Anchor: String;
 begin
   UrlWithoutAnchor := Url;
-  UriExtractAnchor(UrlWithoutAnchor, Anchor, DefaultRecognizeEvenEscapedHash);
+  UriExtractAnchor(UrlWithoutAnchor, Anchor);
   Result := ChangeFileExt(UrlWithoutAnchor, Extension);
   if Anchor <> '' then
     Result := Result + '#' + Anchor;
@@ -1165,7 +1147,7 @@ var
   UrlWithoutAnchor: String;
   {$ifndef FPC} I: Integer; {$endif}
 begin
-  UrlWithoutAnchor := UriDeleteAnchor(Url, DefaultRecognizeEvenEscapedHash);
+  UrlWithoutAnchor := UriDeleteAnchor(Url);
   {$ifdef FPC}
   Result := ExtractFileName(UrlWithoutAnchor);
   {$else}
@@ -1191,7 +1173,7 @@ begin
     "castle-data:/starling/character_zombie_atlas.starling-xml#fps:8,anim-naming:strict-underscore")
     would cause trouble: it would be considered a drive letter separator,
     and change the result. }
-  UrlWithoutAnchor := UriDeleteAnchor(Url, DefaultRecognizeEvenEscapedHash);
+  UrlWithoutAnchor := UriDeleteAnchor(Url);
   {$ifdef FPC}
   Result := ExtractFilePath(UrlWithoutAnchor);
   {$else}
@@ -1352,6 +1334,173 @@ begin
   end;
 end;
 
+{ If Path ends with <platform>/<config>/,
+  return @true and put in StrippedPath the Path with the last 2 path components
+  removed.
+  Otherwise return @false.
+
+  Path must end with path delimiter.
+
+  When returns @true, StrippedPath is also guaranteed to end with path delimiter.
+}
+function StripExePathFromPlatformConfig(const Path: String;
+  out StrippedPath: String): Boolean;
+
+  { Platform name, like 'Win32', as used by Delphi in $(Platform) subdirectory
+    name, corresponding to this process OS / CPU.
+    Always lowercase.
+
+    This is made to also compile and work with FPC, for testing,
+    so it doesn't use TOSVersion. }
+  function DelphiPlatformName: String;
+  begin
+    Result :=
+      {$if defined(MSWINDOWS)} 'win'
+      {$elseif defined(LINUX)} 'linux'
+      {$elseif defined(DARWIN)} 'macos' // TODO: not yet confirmed by testing, just guessing
+      {$elseif defined(ANDROID)} 'android' // TODO: not yet confirmed by testing, just guessing
+      {$elseif defined(IOS)} 'ios' // TODO: not yet confirmed by testing, just guessing
+      {$else} ''
+      {$endif};
+
+    Result := Result +
+      {$if defined(CPU32)} '32'
+      {$elseif defined(CPU64)} '64'
+      {$else} ''
+      {$endif};
+  end;
+
+var
+  Dir: String;
+  ParentName: String;
+begin
+  Result := false;
+
+  Dir := ExclPathDelim(Path);
+  // LowerCase, to detect <config> case-insensitively
+  ParentName := LowerCase(ExtractFileName(Dir));
+  if (ParentName = 'debug') or
+     (ParentName = 'release') then
+  begin
+    Dir := ExtractFileDir(Dir);
+    // LowerCase, to detect <platform> case-insensitively
+    ParentName := LowerCase(ExtractFileName(Dir));
+    if ParentName = DelphiPlatformName then
+    begin
+      StrippedPath := ExtractFilePath(Dir);
+      Result := true;
+    end;
+  end;
+end;
+
+var
+  ApplicationDataIsCache: Boolean = false;
+  ApplicationDataCache: string;
+
+function ApplicationDataCore(const Path: string): string;
+
+  {$ifndef ANDROID}
+  function GetApplicationDataPath: string;
+  {$ifdef MSWINDOWS}
+  var
+    ExePath, StrippedExePath: string;
+  begin
+    {$warnings off}
+    // knowingly using deprecated; ExeName should be undeprecated but internal one day
+    ExePath := ExtractFilePath(ExeName);
+    {$warnings on}
+
+    Result := ExePath + 'data' + PathDelim;
+    if DirectoryExists(Result) then Exit;
+
+    if StripExePathFromPlatformConfig(ExePath, StrippedExePath) then
+    begin
+      Result := StrippedExePath + 'data' + PathDelim;
+      if DirectoryExists(Result) then Exit;
+    end;
+
+    Result := ExePath;
+  {$endif MSWINDOWS}
+  {$ifdef UNIX}
+  var
+    CurPath: string;
+  begin
+    {$ifdef DARWIN}
+    if BundlePath <> '' then
+    begin
+      {$ifdef CASTLE_IOS}
+      Result := BundlePath + 'data/';
+      {$else}
+      Result := BundlePath + 'Contents/Resources/data/';
+      {$endif}
+      if DirectoryExists(Result) then Exit;
+
+      {$ifndef IOS}
+      Result := BundlePath + '../data/';
+      if DirectoryExists(Result) then
+      begin
+        WritelnLog('"Contents/Resources/data/" subdirectory not found inside the macOS application bundle: ' + BundlePath + NL +
+          '  Using instead "data/" directory that is sibling to the application bundle.' + NL +
+          '  This makes sense only for debug.' + NL +
+          '  The released application version should instead include the data inside the bundle.');
+        Exit;
+      end;
+      {$endif}
+    end;
+    {$endif DARWIN}
+
+    Result := HomePath + '.local/share/' + ApplicationName + '/';
+    if DirectoryExists(Result) then Exit;
+
+    Result := '/usr/local/share/' + ApplicationName + '/';
+    if DirectoryExists(Result) then Exit;
+
+    Result := '/usr/share/' + ApplicationName + '/';
+    if DirectoryExists(Result) then Exit;
+
+    CurPath := InclPathDelim(GetCurrentDir);
+
+    Result := CurPath + 'data/';
+    if DirectoryExists(Result) then Exit;
+
+    Result := CurPath;
+  {$endif UNIX}
+  end;
+  {$endif not ANDROID}
+
+begin
+  if ApplicationDataOverride <> '' then
+    Exit(ApplicationDataOverride + Path);
+
+  if Pos('\', Path) <> 0 then
+    WritelnWarning('ResolveCastleDataUrl', 'Do not use backslashes (or a PathDelim constant) in the ApplicationDataCore parameter. The ApplicationDataCore parameter should be a relative URL, with components separated by slash ("/"), regardless of the OS. Path given was: ' + Path);
+
+  { Cache directory returned by ApplicationDataCore. This has two reasons:
+    1. On Unix GetApplicationDataPath makes three DirectoryExists calls,
+       so it's not too fast, avoid calling it often.
+    2. It would be strange if ApplicationDataCore results
+       suddenly changed in the middle of the program (e.g. because user just
+       made appropriate symlink or such).
+       The only case where we allow it is by ApplicationDataOverride. }
+
+  if not ApplicationDataIsCache then
+  begin
+    ApplicationDataCache :=
+      {$if defined(CASTLE_NINTENDO_SWITCH)}
+        'castle-nx-contents:/'
+      {$elseif defined(ANDROID)}
+        'castle-android-assets:/'
+      {$else}
+        FilenameToUriSafe(GetApplicationDataPath)
+      {$endif}
+    ;
+    WritelnLog('Path', Format('Program data path detected as "%s"', [ApplicationDataCache]));
+    ApplicationDataIsCache := true;
+  end;
+
+  Result := ApplicationDataCache + Path;
+end;
+
 function ResolveCastleDataUrl(const Url: String): String;
 
   { Fix case for the Url relative to data. }
@@ -1362,7 +1511,7 @@ function ResolveCastleDataUrl(const Url: String): String;
     ParentUrl: String;
     I: Integer;
   begin
-    ParentUrl := UriIncludeSlash(ApplicationData(''));
+    ParentUrl := UriIncludeSlash(ApplicationDataCore(''));
     Result := '';
 
     H := TFixCaseHandler.Create;
@@ -1402,7 +1551,7 @@ begin
     if CastleDataIgnoreCase and FileNameCaseSensitive then
     {$warnings on}
       RelativeToData := FixCase(RelativeToData);
-    Result := ApplicationData(RelativeToData);
+    Result := ApplicationDataCore(RelativeToData);
   end else
     Result := Url;
 end;

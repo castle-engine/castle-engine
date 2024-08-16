@@ -1,5 +1,5 @@
 {
-  Copyright 2010-2022 Michalis Kamburelis.
+  Copyright 2010-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -63,11 +63,6 @@ type
   TVisibleChange              = CastleTransform.TVisibleChange;
   TVisibleChanges             = CastleTransform.TVisibleChanges;
   TRenderStatistics           = CastleTransform.TRenderStatistics;
-  TRigidBody                  = CastleTransform.TRigidBody;
-  TCollider                   = CastleTransform.TCollider;
-  TSphereCollider             = CastleTransform.TSphereCollider;
-  TBoxCollider                = CastleTransform.TBoxCollider;
-  TPlaneCollider              = CastleTransform.TPlaneCollider;
 
   T3DMoving       = CastleTransformExtra.TCastleMoving deprecated 'use TCastleMoving';
   T3DLinearMoving = CastleTransformExtra.TCastleLinearMoving deprecated 'use TCastleLinearMoving';

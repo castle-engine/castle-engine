@@ -57,6 +57,39 @@
       this allows to easily design a scalable UI. }
     usEncloseReferenceSize,
 
+    { Similar to usEncloseReferenceSize, but automatically flips the reference
+      width and height to adjust to what is currently bigger (width or height),
+      to adjust to mobile orientation changes (portrait vs landscape).
+
+      For example, when UIReferenceWidth = 1600 and UIReferenceHeight = 900,
+      then it will adjust to 1600x900 when device is in landscape mode (width > height),
+      and to 900x1600 when device is in portrait mode (width < height).
+
+      In effect, in contrast to usEncloseReferenceSize:
+
+      @unorderedList(
+        @item(Advantage: On mobile devices, if you allow user to switch
+          between portrait and landscape,
+          the UI will have the same physical size in both portrait and landscape
+          modes. So it looks better on mobile.
+        )
+
+        @item(Disadvantage: Designing for this is a bit harder than
+          for usEncloseReferenceSize, as you need to test both
+          portrait (width smaller than height) and landscape (width bigger than height),
+          as they result in different calculations.
+        )
+      )
+
+      This is different from usEncloseReferenceSize only
+      when both @link(TCastleContainer.UIReferenceWidth) and
+      @link(TCastleContainer.UIReferenceHeight) are set to non-zero values.
+      When one of them is zero, then both usEncloseReferenceSize and
+      usEncloseReferenceSizeAutoOrientation behave the same,
+      they just adjust scaling based on this one non-zero reference size.
+    }
+    usEncloseReferenceSizeAutoOrientation,
+
     { Scale to fake that the container sizes fit inside
       @link(TCastleContainer.UIReferenceWidth) and
       @link(TCastleContainer.UIReferenceHeight).

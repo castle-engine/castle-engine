@@ -59,6 +59,7 @@
     mentions it, without any answer except "ignore them"..
   - entering modal message leaves the key pressed down, testcase: test_all_state_events, press Q
   - hiding cursor doesn't work for unknown reason
+  - Call FileMonitor.CheckChanges when user switches to application.
 }
 
 {$ifdef read_interface_uses}
@@ -742,6 +743,7 @@ begin
   { Make TGLFeatures.Create use a path that avoids accessing deprecated glGetString(GL_EXTENSIONS).
 
     TODO: This should not be necessary, we should not change RequestCapabilities here.
+    It used to be a necessary hack with FPC GLExt unit:
     But FPC GLExt unit will by default access deprecated glGetString(GL_EXTENSIONS),
     this is for now the simplest way to prevent it. }
   TGLFeatures.RequestCapabilities := rcForceModern;
@@ -833,10 +835,10 @@ begin
     For unknown reason, changing title on Cocoa resets the cursor to arrow.
     So change it back, if FCursor requires non-standard look.
 
-    Testcase: view3dscene open
+    Testcase: castle-model-viewer open
     demo-models/sensors_pointing_device/touch_sensor_tests.x3dv ,
     hover with mouse over pointing device sensor -- the cursor should remain
-    "hand", not be reset to "arrow". Note that view3dscene uses
+    "hand", not be reset to "arrow". Note that castle-model-viewer uses
     "Window.FpsShowOnCaption := true;" so indeed it changes caption every second.
 
     Some other report:
@@ -1242,11 +1244,6 @@ var
 begin
   screenFrame := NSScreen.mainScreen.frame;
   Result := trunc(NSMaxY(screenFrame)) - trunc(NSMinY(screenFrame));
-end;
-
-function TCastleApplication.ScreenStatusBarScaledHeight: Cardinal;
-begin
-  Result := 0;
 end;
 
 function TCastleApplication.BackendName: String;

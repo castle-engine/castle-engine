@@ -43,6 +43,10 @@ const
 type
   { Main project management. }
   TProjectForm = class(TForm)
+    ActionCopyUrl: TAction;
+    ActionRunParameterPretendTouchDevice: TAction;
+    ActionFindNext: TAction;
+    ActionFindToggle: TAction;
     ActionImportSketchfab: TAction;
     ActionShowStatistics: TAction;
     ActionRunParameterCapabilitiesForceFixedFunction: TAction;
@@ -109,6 +113,11 @@ type
     MenuItem11: TMenuItem;
     MenuItem12: TMenuItem;
     MenuItem15: TMenuItem;
+    MenuItem19: TMenuItem;
+    MenuItem43: TMenuItem;
+    MenuItem44: TMenuItem;
+    MenuItemRunParameterPretendTouchDevice: TMenuItem;
+    Separator14: TMenuItem;
     MenuItem21: TMenuItem;
     MenuItem22: TMenuItem;
     MenuItem24: TMenuItem;
@@ -256,7 +265,6 @@ type
     MenuItemUndo: TMenuItem;
     MenuItemSeparator78: TMenuItem;
     MenuItemReferenceOfCurrent: TMenuItem;
-    MenuItemSeparator2303403o: TMenuItem;
     MenuItemRefreshDir: TMenuItem;
     MenuItemSeparator123123213: TMenuItem;
     MenuItemOpenDirFromFile: TMenuItem;
@@ -328,6 +336,9 @@ type
     TabOutput: TTabSheet;
     ProcessUpdateTimer: TTimer;
     TabWarnings: TTabSheet;
+    procedure ActionCopyUrlExecute(Sender: TObject);
+    procedure ActionFindNextExecute(Sender: TObject);
+    procedure ActionFindToggleExecute(Sender: TObject);
     procedure ActionImportSketchfabExecute(Sender: TObject);
     procedure ActionPhysicsShowAllJointsToolsExecute(Sender: TObject);
     procedure ActionPhysicsHideAllJointsToolsExecute(Sender: TObject);
@@ -347,6 +358,7 @@ type
       );
     procedure ActionRunParameterDisableFpsLimitExecute(Sender: TObject);
     procedure ActionRunParameterDisableSoundExecute(Sender: TObject);
+    procedure ActionRunParameterPretendTouchDeviceExecute(Sender: TObject);
     procedure ActionRunParameterRequestFullScreenExecute(Sender: TObject);
     procedure ActionRunParameterRequestWindowExecute(Sender: TObject);
     procedure ActionShowCollidersExecute(Sender: TObject);
@@ -988,6 +1000,35 @@ begin
   ImportSketchfabForm.Show;
 end;
 
+procedure TProjectForm.ActionFindNextExecute(Sender: TObject);
+begin
+  Assert(Design <> nil); // menu item is disabled otherwise
+  Design.FindNext;
+end;
+
+procedure TProjectForm.ActionCopyUrlExecute(Sender: TObject);
+var
+  SelectedFileName, Url: String;
+begin
+  if ShellListView1.Selected <> nil then
+  begin
+    SelectedFileName := ShellListView1.GetPathFromItem(ShellListView1.Selected);
+    Url := FilenameToUriSafe(SelectedFileName);
+    Url := MaybeUseDataProtocol(Url);
+    Clipboard.AsText := Url;
+  end;
+end;
+
+procedure TProjectForm.ActionFindToggleExecute(Sender: TObject);
+begin
+  Assert(Design <> nil); // menu item is disabled otherwise
+
+  // TODO: Make it a checked action, toggle checked state,
+  // synchronize with design (also when it's closed).
+
+  Design.FindToggle;
+end;
+
 procedure TProjectForm.ActionPhysicsHideAllJointsToolsExecute(Sender: TObject);
 begin
   Assert(Design <> nil); // menu item is disabled otherwise
@@ -1083,13 +1124,18 @@ begin
   (Sender as TAction).Checked := true; // GroupIndex will make others unselected
 end;
 
-procedure TProjectForm.ActionRunParameterDisableFpsLimitExecute(Sender: TObject
-  );
+procedure TProjectForm.ActionRunParameterDisableFpsLimitExecute(Sender: TObject);
 begin
   (Sender as TAction).Checked := not (Sender as TAction).Checked;
 end;
 
 procedure TProjectForm.ActionRunParameterDisableSoundExecute(Sender: TObject);
+begin
+  (Sender as TAction).Checked := not (Sender as TAction).Checked;
+end;
+
+procedure TProjectForm.ActionRunParameterPretendTouchDeviceExecute(
+  Sender: TObject);
 begin
   (Sender as TAction).Checked := not (Sender as TAction).Checked;
 end;
@@ -1147,6 +1193,13 @@ end;
 
 procedure TProjectForm.ApplicationProperties1Activate(Sender: TObject);
 begin
+  { TODO: At least on Linux, GTK2 backend, this is *not* reliably
+    run always when we switch back to CGE editor with Alt+Tab.
+    This in turn means we don't always auto-reload scenes, images etc.
+    when their content changed.
+  WritelnLog('TProjectForm.ApplicationProperties1Activate ' + FormatDateTime('yyyy"-"mm"-"dd" "tt', Now));
+  }
+
   { Refresh contents of selected dir, and tree of subdirectories,
     in case user created some files/directories in other applications. }
   RefreshFiles(rfEverything);
@@ -1625,7 +1678,7 @@ procedure TProjectForm.FormCreate(Sender: TObject);
     ShellListView1.OnSelectItem := @ShellListViewSelectItem;
     ShellListView1.Hint := 'Double-click to open.' + NL +
       NL +
-      '- Scenes and images open in engine viewers (view3dscene, castle-view-image).' + NL +
+      '- Scenes and images open in engine viewers (castle-model-viewer, castle-image-viewer).' + NL +
       '- Designs open in this editor.' + NL +
       '- Pascal files open in the code editor.' + NL +
       '- Other files open in OS default applications.';
@@ -1679,6 +1732,8 @@ procedure TProjectForm.FormCreate(Sender: TObject);
     AddPlatform('Default', targetCustom, DefaultOS, DefaultCPU);
     AddPlatformSeparator;
     AddPlatform('Android (Arm 32-bit and 64-bit)', targetAndroid, { OS and CPU ignored } DefaultOS, DefaultCPU);
+    AddPlatform('Android (emulator 32-bit)', targetCustom, Android, i386);
+    AddPlatform('Android (emulator 64-bit)', targetCustom, Android, x86_64);
     AddPlatformSeparator;
     AddPlatform('iOS (Arm 32-bit and 64-bit)', targetIOS, { OS and CPU ignored } DefaultOS, DefaultCPU);
     AddPlatformSeparator;
@@ -1836,7 +1891,6 @@ begin
   UserConfig.SetValue('ProjectForm_Docking', WantedDocking);
   FormHide(Self); //to save config properly
   ApplicationProperties.OnWarning.Remove(@WarningNotification);
-  ApplicationDataOverride := '';
   FreeProcess;
   FreeAndNil(OutputList);
   FreeAndNil(Manifest);
@@ -1849,6 +1903,26 @@ begin
   FreeAndNil(DesignWarningsForm);
   FreeAndNil(PlatformsInfo);
   FreeAndNil(ListOpenExistingViewStr);
+  FreeAndNil(Design);
+
+  { It is important to reset ApplicationDataOverride
+    *after* FreeAndNil(Design), which in turn freed components like
+    TCastleScene that possibly interacted with FileMonitor.
+
+    That's because TCastleScene doing FileMonitor.Watch of
+    e.g. "castle-data:/soldier.gltf" with one ApplicationDataOverride value,
+    and then doing Unwatch on the same "castle-data:/soldier.gltf"
+    but *after* ApplicationDataOverride changed,
+    is effectively talking about 2 different files.
+
+    And FileMonitor detects it, as it remembers "final" URLs,
+    with castle-data resolved (and that's good).
+
+    Testcase: Open 3D FPS game template (it has 4 soldiers),
+    open play view,
+    close the editor with Alt + F4.
+    There should be no warnings that we "cannot unwatch .../soldier.gltf" }
+  ApplicationDataOverride := '';
 end;
 
 procedure TProjectForm.DesignObserverFreeNotification(const Sender: TFreeNotificationObserver);
@@ -2376,6 +2450,8 @@ begin
   ActionModeRotate.Enabled := Design <> nil;
   ActionModeScale.Enabled := Design <> nil;
   ActionShowStatistics.Enabled := Design <> nil;
+  ActionFindToggle.Enabled := Design <> nil;
+  ActionFindNext.Enabled := Design <> nil;
 
   { Options that toggle InternalForceWireframe could actually work with Design=nil,
     with current implementation.
@@ -2689,6 +2765,7 @@ procedure TProjectForm.ShellListPopupMenuPopup(Sender: TObject);
 begin
   MenuItemOpenDefault.Enabled := ShellListView1.Selected <> nil;
   MenuItemDeleteFile.Enabled := ShellListView1.Selected <> nil;
+  ActionCopyUrl.Enabled := ShellListView1.Selected <> nil;
 end;
 
 procedure TProjectForm.FreeProcess;
@@ -3107,7 +3184,7 @@ begin
     { Check for images first because TCastleScene can now load images. }
     if LoadImage_FileFilters.Matches(SelectedURL) then
     begin
-      OpenWithCastleTool('castle-view-image', SelectedURL, [SelectedURL]);
+      OpenWithCastleTool('castle-image-viewer', SelectedURL, [SelectedURL]);
       Exit;
     end;
 
@@ -3123,7 +3200,7 @@ begin
 
     if TFileFilterList.Matches(LoadScene_FileFilters, SelectedURL) then
     begin
-      OpenWithCastleTool('view3dscene', SelectedURL,
+      OpenWithCastleTool('castle-model-viewer', SelectedURL,
         ['--project', ProjectPathUrl, SelectedURL]);
       Exit;
     end;
@@ -3214,6 +3291,8 @@ procedure TProjectForm.BuildToolCall(const Commands: array of String;
       Params.Add('--no-sound');
     if ActionRunParameterDisableFpsLimit.Checked then
       Params.Add('--no-limit-fps');
+    if ActionRunParameterPretendTouchDevice.Checked then
+      Params.Add('--pretend-touch-device');
     if ActionRunParameterRequestFullScreen.Checked then
       Params.Add('--fullscreen');
     if ActionRunParameterRequestWindow.Checked then

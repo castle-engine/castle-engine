@@ -69,30 +69,22 @@
       viewports (see https://castle-engine.io/multiple_viewports_to_display_one_world).
 
       @param(
-        ParentParentWorldTransform World transform of the parent of the parent
-        of this behavior.
+        ParentParentWorldTransformation
+
+        World transformation of the parent of the parent of this behavior.
         The name is kind of convoluted, but consistent:
         When the parent of this behavior has exactly one parent TCastleTransform
-        (not zero, not more) then ParentParentWorldTransform
+        (not zero, not more) then ParentParentWorldTransformation.Transform
         is equivalent to Parent.Parent.WorldTransform.
       )
 
       @param(
-        ParentParentWorldInverseTransform
-        Inverse world transform of the parent of the parent
-        of this behavior.
-      )
+        ParentWorldTransformation
 
-      @param(
-        ParentWorldTransform
-        World transform of the parent of this behavior.
-        Equal to Parent.WorldTransform, if the Parent exists exactly
+        World transformation of the parent of this behavior.
+        ParentWorldTransformation.Transform is equal to
+        Parent.WorldTransform, if the Parent exists exactly
         once in the viewport.
-      )
-
-      @param(
-        ParentWorldInverseTransform
-        Inverse world transform of the parent of this behavior.
       )
 
       @param(CameraView
@@ -101,8 +93,7 @@
     }
     procedure BeforeRender(
       const CameraView: TViewVectors;
-      const ParentParentWorldTransform, ParentParentWorldInverseTransform,
-            ParentWorldTransform, ParentWorldInverseTransform: TMatrix4); virtual;
+      const ParentParentWorldTransformation, ParentWorldTransformation: TTransformation); virtual;
 
     { Called after @link(Parent) changed, at the end of @link(TCastleTransform.AddBehavior),
       @link(TCastleTransform.RemoveBehavior). }
@@ -243,8 +234,7 @@ end;
 
 procedure TCastleBehavior.BeforeRender(
   const CameraView: TViewVectors;
-  const ParentParentWorldTransform, ParentParentWorldInverseTransform,
-        ParentWorldTransform, ParentWorldInverseTransform: TMatrix4);
+  const ParentParentWorldTransformation, ParentWorldTransformation: TTransformation);
 begin
 end;
 

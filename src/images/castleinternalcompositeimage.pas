@@ -84,8 +84,7 @@ type
         which means that one axis seems reverted when you want OpenGL right-handed
         coord system (like
         OpenGL, see http://opengl.org/registry/specs/ARB/texture_cube_map.txt).
-        See [https://castle-engine.io/x3d_implementation_status.php#section_dds]
-        for more. }
+        See https://castle-engine.io/dds for more. }
       TDDSCubeMapSide = (
         dcsPositiveX,
         dcsNegativeX,
@@ -214,7 +213,7 @@ type
       (as then the image data is just a continuous memory area,
       loadable by glTexImage3d). But it's not comfortable if you want
       to display it using some 2D GUI. For example, it's not comfortable
-      for image viewer like castle-view-image.
+      for image viewer like castle-image-viewer.
 
       So this method will convert such TCastleImage instances (with Depth > 1)
       into a sequence of TCastleImage instances all with Depth = 1.

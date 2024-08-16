@@ -1,6 +1,6 @@
 {%MainUnit x3dnodes.pas}
 {
-  Copyright 2002-2022 Michalis Kamburelis.
+  Copyright 2002-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -25,13 +25,16 @@
   TMaterialInfo = class abstract
   strict private
     FNode: TX3DNode;
+  protected
+    function GetMainColor: TVector3; virtual; abstract;
+    procedure SetMainColor(const Value: TVector3); virtual; abstract;
+    function GetEmissiveColor: TVector3; virtual; abstract;
+    procedure SetEmissiveColor(const Value: TVector3); virtual; abstract;
   public
     const
       DefaultTransparency = 0.0;
 
     constructor Create(ANode: TX3DNode);
-
-    function EmissiveColor: TVector3; virtual; abstract;
 
     function Transparency: Single; virtual; abstract;
     { Opacity is just @code(1 - Transparency). }
@@ -40,11 +43,20 @@
     { Associated material node. }
     property Node: TX3DNode read FNode;
 
-    { If it is necessary to approximate the material by a single color,
-      use this color. This is useful for debug purposes,
+    { Single color that is the best approximation of this material look.
+
+      For Phong material, it's DiffuseColor. For unlit material, it's EmissiveColor.
+      For physical material, it's BaseColor.
+
+      This is useful for debug purposes,
       for example when we force everything to be unlit by Attributes.Lighting=false.
       It doesn't follow any X3D official equations, it's only for debugging. }
-    function MainColor: TVector3; virtual; abstract;
+    property MainColor: TVector3 read GetMainColor write SetMainColor;
+
+    { Emissive color represents the color of the material
+      that is not affected by any light sources.
+      All material types (unlit, Phong, physical) have this color. }
+    property EmissiveColor: TVector3 read GetEmissiveColor write SetEmissiveColor;
   end;
 
   { Material information that defines parameters for Phong lighting equations.
@@ -56,6 +68,9 @@
     procedure SetDiffuseColor(const Value: TVector3); virtual; abstract;
     function GetSpecularColor: TVector3; virtual; abstract;
     procedure SetSpecularColor(const Value: TVector3); virtual; abstract;
+    { Main color of Phong material is @link(DiffuseColor). }
+    function GetMainColor: TVector3; override;
+    procedure SetMainColor(const Value: TVector3); override;
   public
     const
       { Default material parameters.
@@ -121,27 +136,31 @@
     function TransDiffuse: TVector3; virtual;
     function ReflSpecularExp: Single; virtual;
     function TransSpecularExp: Single; virtual;
-
-    { Main color of Phong material is @link(DiffuseColor). }
-    function MainColor: TVector3; override;
   end;
 
   TX3DMaterialInfoAbstract = TMaterialInfo deprecated 'use TMaterialInfo';
 
   { Material information that defines parameters for unlit lighting equations. }
   TUnlitMaterialInfo = class(TMaterialInfo)
+  protected
     { Main color of unlit material is @link(EmissiveColor). }
-    function MainColor: TVector3; override;
+    function GetMainColor: TVector3; override;
+    procedure SetMainColor(const Value: TVector3); override;
   end;
 
   { Material information that defines parameters for physical lighting equations. }
   TPhysicalMaterialInfo = class(TMaterialInfo)
-    function BaseColor: TVector3; virtual; abstract;
+  protected
+    { Main color of PBR material is @link(BaseColor). }
+    function GetMainColor: TVector3; override;
+    procedure SetMainColor(const Value: TVector3); override;
+    function GetBaseColor: TVector3; virtual; abstract;
+    procedure SetBaseColor(const Value: TVector3); virtual; abstract;
+  public
+    { The most important color of the physical material. }
+    property BaseColor: TVector3 read GetBaseColor write SetBaseColor;
     function Metallic: Single; virtual; abstract;
     function Roughness: Single; virtual; abstract;
-
-    { Main color of PBR material is @link(BaseColor). }
-    function MainColor: TVector3; override;
   end;
 
 {$endif read_interface}
@@ -221,23 +240,38 @@ begin
   Result := DefaultTransSpecularExp;
 end;
 
-function TPhongMaterialInfo.MainColor: TVector3;
+function TPhongMaterialInfo.GetMainColor: TVector3;
 begin
   Result := DiffuseColor;
 end;
 
+procedure TPhongMaterialInfo.SetMainColor(const Value: TVector3);
+begin
+  DiffuseColor := Value;
+end;
+
 { TUnlitMaterialInfo --------------------------------------------------------- }
 
-function TUnlitMaterialInfo.MainColor: TVector3;
+function TUnlitMaterialInfo.GetMainColor: TVector3;
 begin
   Result := EmissiveColor;
 end;
 
+procedure TUnlitMaterialInfo.SetMainColor(const Value: TVector3);
+begin
+  EmissiveColor := Value;
+end;
+
 { TPhysicalMaterialInfo --------------------------------------------------------- }
 
-function TPhysicalMaterialInfo.MainColor: TVector3;
+function TPhysicalMaterialInfo.GetMainColor: TVector3;
 begin
   Result := BaseColor;
+end;
+
+procedure TPhysicalMaterialInfo.SetMainColor(const Value: TVector3);
+begin
+  BaseColor := Value;
 end;
 
 {$endif read_implementation}

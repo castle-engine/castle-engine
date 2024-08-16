@@ -3,6 +3,12 @@ you can use the files provided here.
 They will make the "Castle Game Engine" nicely listed in the applications list
 of any desktop (GNOME, MATE, KDE, ...).
 
+Short version, automatic:
+
+1. Run `install.sh` script.
+
+Long version, manual:
+
 1. To make the desktop file work, first make sure that the system can find the relevant executables.
    It is simplest to just edit the desktop file to add full path to the "Exec" and "Icon" lines,
    like this:
@@ -16,7 +22,7 @@ of any desktop (GNOME, MATE, KDE, ...).
 
      ```
      sudo ln -s /home/michalis/castle-engine/bin/castle-editor /usr/local/bin/castle-editor
-     sudo ln -s /home/michalis/castle-engine/bin/view3dscene /usr/local/bin/view3dscene
+     sudo ln -s /home/michalis/castle-engine/bin/castle-model-viewer /usr/local/bin/castle-model-viewer
      ```
 
    Alternative is to put the programs on $PATH .
@@ -42,6 +48,5 @@ of any desktop (GNOME, MATE, KDE, ...).
 
    And running `update-desktop-database` is actually not necessary on new systems.
 
-Note: the installation files for view3dscene are not yet distributed here.
-To install view3dscene in menu, get http://github.com/castle-engine/view3dscene
-and follow the desktop/INSTALL.txt instructions there ( https://github.com/castle-engine/view3dscene/blob/master/desktop/INSTALL.txt ).
+Note: the installation files for castle-model-viewer are not yet distributed here.
+To install castle-model-viewer in menu, get [castle-model-viewer](http://github.com/castle-engine/castle-model-viewer) and follow the [instructions there](https://github.com/castle-engine/castle-model-viewer/blob/master/freedesktop/README.md).

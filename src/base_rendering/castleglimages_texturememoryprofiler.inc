@@ -107,7 +107,7 @@
     @item(@code(generated:/GeneratedCubeMapTexture(GenTex2)))
   )
 
-  You can also use the profiler from view3dscene, run it with
+  You can also use the profiler from castle-model-viewer, run it with
   "--debug-texture-memory" command-line option, load your 3D model
   and then use menu option "Console -> Print Texture Memory Usage".
 }

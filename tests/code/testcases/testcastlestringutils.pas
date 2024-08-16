@@ -40,6 +40,7 @@ type
     procedure TestAddMultiLine;
     procedure TestRegexpMatches;
     procedure TestIsWild;
+    procedure TestSAppendPart;
   end;
 
 implementation
@@ -504,6 +505,14 @@ begin
 
   AssertTrue(IsWild('TTestEventLoop.Test1', '*testeventloop*', true));
   AssertTrue(IsWild('TTestCastleWindow.TestEventLoop', '*testeventloop*', true));
+end;
+
+procedure TTestCastleStringUtils.TestSAppendPart;
+begin
+  AssertEquals('', SAppendPart('', '', ''));
+  AssertEquals('foo', SAppendPart('', ';', 'foo'));
+  AssertEquals('foo;foo', SAppendPart('foo', ';', 'foo'));
+  AssertEquals('foo;foo;foo', SAppendPart('foo;foo', ';', 'foo'));
 end;
 
 initialization

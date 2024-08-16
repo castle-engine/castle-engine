@@ -1,6 +1,6 @@
 {%MainUnit castletimeutils.pas}
 {
-  Copyright 2019-2021 Michalis Kamburelis.
+  Copyright 2019-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -29,20 +29,33 @@ type
       and including final swap/flush.
       This includes all other fmRenderXxx times. }
     fmRender,
+    { Time inside DrawPrimitive2D (but disregarding flushing batching, by TDrawableImage.DrawNoBatch). }
+    fmDrawPrimitive2D,
+    { Time inside TDrawableImage.DrawNoBatch, which TDrawableImage drawing. }
+    fmDrawImage,
     { Time of swap/flush at the end of rendering, when we flush GPU commands,
       swap buffers (in case of double buffering), and wait for v-sync.
       If this is large, it generally means that you have "free" time in the application
       to use on anything (CPU or GPU work), because you don't use up most of the frame time. }
     fmRenderSwapFlush,
-    { Time within TCastleTransform transformation.
-      This should not be significant -- otherwise we'll have to optimize CGE TCastleTransform transformations. }
-    //fmRenderTransform,
     { Time within TCastleScene.Render.
       Large time means that you have TCastleScene content that is time-consuming to render. }
     fmRenderScene,
     { Time within fmRenderScene spent filtering blended shapes.
       This should not be significant -- otherwise we'll have to optimize this bit in CGE. }
-    //fmRenderShapesFilterBlending,
+    fmRenderShapesFilterBlending,
+    { Time within TShapesRenderer.Render spent sorting shapes.
+      If this is significant, then:
+      @unorderedList(
+        @item(On engine side, we have pending ideas how to optimize this sorting,)
+        @item(On user side, consider turning off BlendingSort and OcclusionSort,
+          if you don't need them.)
+      ) }
+    fmRenderCollectedShapesSort,
+    { Time within TShapesRenderer.Render spent doing core of rendering,
+      passing shapes to TRenderer that in turn passes them to OpenGL(ES).
+      This is usually the most significant part of rendering time. }
+    fmRenderCoreRenderer,
 
     { Time of TCastleContainer.EventUpdate,
       so most of the things outside of rendering.
@@ -291,9 +304,12 @@ procedure TCastleFrameProfiler.StartFrame;
       'Frame time: %f secs (we should have %f FPS based on this):' + NL +
       '- BeforeRender: %d%%' + NL +
       '- Render: %d%% (%f secs, we should have %f "only render FPS" based on this)' + NL +
-      //'  - TCastleTransform.Render transformation: %d%%' + NL +
+      '  - DrawPrimitive2D: %d%%' + NL +
+      '  - TDrawableImage.DrawNoBatch: %d%%' + NL +
       '  - TCastleScene.Render: %d%%' + NL +
-      //'    - ShapesFilterBlending: %d%%' + NL +
+      '    - ShapesFilterBlending: %d%%' + NL +
+      '  - Sorting shapes in TShapesRenderer.Render: %d%%' + NL +
+      '  - TRenderer: %d%%' + NL +
       '  - Swap / flush buffers (includes waiting for v-sync): %d%%' + NL +
       '%s' +
       '- Update: %d%%' + NL +
@@ -310,10 +326,13 @@ procedure TCastleFrameProfiler.StartFrame;
       PercentTime(fmRender),
       FramesTimes[CurrentFrame, IndexFrameMetric(fmRender)],
       1 / FramesTimes[CurrentFrame, IndexFrameMetric(fmRender)],
-      PercentTime(fmRenderSwapFlush),
-      //PercentTime(fmRenderTransform),
+      PercentTime(fmDrawPrimitive2D),
+      PercentTime(fmDrawImage),
       PercentTime(fmRenderScene),
-      //PercentTime(fmRenderShapesFilterBlending),
+      PercentTime(fmRenderShapesFilterBlending),
+      PercentTime(fmRenderCollectedShapesSort),
+      PercentTime(fmRenderCoreRenderer),
+      PercentTime(fmRenderSwapFlush),
       DisplayUserMetrics(UserMetricsRenderNames, 1 + Ord(High(TFrameMetric)) + 1 + 0),
       PercentTime(fmUpdate),
       PercentTime(fmUpdateGeneratedTextures),

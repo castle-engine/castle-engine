@@ -1,6 +1,6 @@
 {%MainUnit castleinternalrenderer.pas}
 {
-  Copyright 2002-2023 Michalis Kamburelis.
+  Copyright 2002-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -488,6 +488,8 @@ procedure TRenderer.RenderBegin(
   const AUserPass: TUserRenderingPass;
   const AStatistics: PRenderStatistics);
 begin
+  FrameProfiler.Start(fmRenderCoreRenderer);
+
   ClassRenderBegin;
 
   GlobalLights := AGlobalLights;
@@ -531,6 +533,8 @@ begin
   Statistics := nil;
 
   ClassRenderEnd;
+
+  FrameProfiler.Stop(fmRenderCoreRenderer);
 end;
 
 procedure TRenderer.RenderShape(const Shape: TX3DRendererShape;
@@ -1525,8 +1529,8 @@ begin
     { unbind arrays, to have a clean state on exit.
       TODO: this should not be needed, instead move to RenderEnd.
       Check does occlusion query work Ok when some vbo is bound. }
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+    RenderContext.BindBuffer[btArray] := 0;
+    RenderContext.BindBuffer[btElementArray] := 0;
   end;
 end;
 

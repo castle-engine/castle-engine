@@ -13,7 +13,7 @@ function Panel: TGrayscaleAlphaImage;
 
 function WindowDarkTransparent: TRGBAlphaImage;
 
-function Tooltip: TRGBAlphaImage;
+function Tooltip: TRGBImage;
 
 function TooltipRounded: TRGBAlphaImage;
 
@@ -37,10 +37,6 @@ function FrameThickWhite: TGrayscaleAlphaImage;
 
 function FrameThickYellow: TRGBAlphaImage;
 
-function ProgressBar: TRGBAlphaImage;
-
-function ProgressFill: TRGBAlphaImage;
-
 function TouchCtlInner: TRGBAlphaImage;
 
 function TouchCtlOuter: TRGBAlphaImage;
@@ -56,10 +52,6 @@ function Crosshair1: TRGBAlphaImage;
 function Crosshair2: TRGBAlphaImage;
 
 function ScrollbarSlider: TGrayscaleAlphaImage;
-
-function Checkmark: TRGBAlphaImage;
-
-function Disclosure: TRGBAlphaImage;
 
 function SquareEmpty: TRGBAlphaImage;
 
@@ -108,8 +100,6 @@ finalization
   FreeAndNil(FFrameYellowBlack);
   FreeAndNil(FFrameThickWhite);
   FreeAndNil(FFrameThickYellow);
-  FreeAndNil(FProgressBar);
-  FreeAndNil(FProgressFill);
   FreeAndNil(FTouchCtlInner);
   FreeAndNil(FTouchCtlOuter);
   FreeAndNil(FTouchCtlFlyInner);
@@ -118,8 +108,6 @@ finalization
   FreeAndNil(FCrosshair1);
   FreeAndNil(FCrosshair2);
   FreeAndNil(FScrollbarSlider);
-  FreeAndNil(FCheckmark);
-  FreeAndNil(FDisclosure);
   FreeAndNil(FSquareEmpty);
   FreeAndNil(FSquarePressedBackground);
   FreeAndNil(FSquareChecked);

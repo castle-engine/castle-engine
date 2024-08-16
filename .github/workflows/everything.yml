@@ -1,0 +1,118 @@
+# ----------------------------------------------------------------------------
+# GitHub Action workflow to release CGE build on GitHub.
+#
+# We call other workflows, this seems easiest way to wait for *all* other
+# workflows and be able to get their artifacts.
+# ----------------------------------------------------------------------------
+
+name: Everything (Test, Pack, Release)
+on:
+  pull_request:
+  # Run on push to any branch, not on tags.
+  # Checking tags is not useful for us (we check the commit when it happened
+  # at branch) and we would waste a lot of time on every "snapshpt" tag change.
+  push:
+    branches:
+      - '**'
+
+env:
+  # To which GitHub release tag should we upload artifacts.
+  # Can be "snapshot" or "vX.Y.Z" (latter when we make stable release).
+  release_tag: snapshot
+  #release_tag: vX.Y.Z
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  quick_test:
+    uses: ./.github/workflows/quick-test.yml
+  test_and_pack_docker:
+    uses: ./.github/workflows/test-and-pack-docker.yml
+  delphi:
+    uses: ./.github/workflows/delphi.yml
+  test_and_pack_runner_native:
+    uses: ./.github/workflows/test-and-pack-runner-native.yml
+  test_shell:
+    uses: ./.github/workflows/test-shell.yml
+  check_dependencies:
+    uses: ./.github/workflows/check-dependencies.yml
+  api_reference:
+    uses: ./.github/workflows/api-reference.yml
+
+  release:
+    name: Release
+    needs: [quick_test, test_and_pack_docker, delphi, test_and_pack_runner_native, test_shell, check_dependencies, api_reference]
+    if: ${{ github.ref == 'refs/heads/master' }}
+    runs-on: ubuntu-latest
+    steps:
+
+    # We can get artifacts from other workflows here, because we called them.
+    #
+    # History:
+    # Note that by default you cannot share artifacts between workflows.
+    # See
+    # https://docs.github.com/en/actions/using-workflows/storing-workflow-data-as-artifacts#sharing-data-between-workflow-runs
+    # Solutions:
+    # - best, official https://github.com/actions/download-artifact?tab=readme-ov-file#download-artifacts-from-other-workflow-runs-or-repositories
+    # - alt: https://github.com/dawidd6/action-download-artifact
+    # - other, including download using cli: https://stackoverflow.com/questions/60355925/share-artifacts-between-workflows-github-actions
+
+    - name: Download packaged releases
+      uses: actions/download-artifact@v4
+      with:
+        merge-multiple: true
+    - name: List downloaded files
+      run: ls -R
+
+    # We use automatic GITHUB_TOKEN secret provided by GitHub with GH CLI, see
+    # https://docs.github.com/en/actions/security-guides/automatic-token-authentication
+    # https://docs.github.com/en/github-cli/github-cli/about-github-cli
+
+    - name: GH CLI status
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: gh auth status
+    - name: GH CLI test
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: gh release list --repo ${{ github.repository }}
+
+    # Releases files in the GitHub release.
+    - name: Release Artifacts
+      if: ${{ github.ref == 'refs/heads/master' }}
+      run: gh release --repo ${{ github.repository }} upload ${{ env.release_tag }} --clobber castle-engine*.zip castle-engine-setup-*.exe
+      env:
+        GH_TOKEN: ${{ github.token }}
+
+  update-release-tag:
+    name: Update Release Tag (make release tag point to the build commit on master branch)
+    runs-on: ubuntu-latest
+    needs: [release]
+    steps:
+    - uses: actions/checkout@v4
+    - name: Update Release Tag
+      if: ${{ github.ref == 'refs/heads/master' }}
+      run: |
+        # --force allows to overwrite previous tag
+        git tag --force ${{ env.release_tag }}
+        # --force allows to push with overwritten tag
+        git push --force origin ${{ env.release_tag }}
+
+    # Make https://github.com/castle-engine/castle-engine-docker
+    # rebuild Docker image with the latest CGE snapshot.
+    #
+    # See repository_dispatch docs:
+    # https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#repository_dispatch
+    # https://docs.github.com/en/rest/repos/repos?apiVersion=2022-11-28#create-a-repository-dispatch-event
+    - name: Dispatch updating Docker cge-unstable
+      env:
+        GH_TOKEN: ${{ secrets.GH_TOKEN_DISPATCH_DOCKER_UPDATE }}
+      run: |
+        gh api --method POST \
+          -H "Accept: application/vnd.github+json" \
+          -H "X-GitHub-Api-Version: 2022-11-28" \
+          /repos/castle-engine/castle-engine-docker/dispatches \
+          -f "event_type=cge-snapshot-changed"  \
+          -F "client_payload[cge_commit_sha]=${{ github.sha }}"

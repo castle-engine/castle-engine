@@ -1,5 +1,5 @@
 {
-  Copyright 2017-2018 Michalis Kamburelis and Jan Adamec.
+  Copyright 2017-2024 Michalis Kamburelis and Jan Adamec.
 
   This file is part of "Castle Game Engine".
 
@@ -35,11 +35,15 @@ type
 
 implementation
 
-uses CastleMessaging;
+uses CastleMessaging, CastleUriUtils;
 
 class procedure TPhotoService.StoreImage(APath: string);
 begin
-  Messaging.Send(['photoservice-store-image', APath]);
+  Messaging.Send([
+    'photoservice-store-image',
+    APath,
+    UriMimeType(APath)
+  ]);
 end;
 
 end.

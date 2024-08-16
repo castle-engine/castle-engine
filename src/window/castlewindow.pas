@@ -432,7 +432,6 @@ type
     function PixelsWidth: Integer; override;
     function PixelsHeight: Integer; override;
     function PixelsRect: TRectangle; override;
-    function ScaledStatusBarHeight: Cardinal; override;
     function GetMousePosition: TVector2; override;
     procedure SetMousePosition(const Value: TVector2); override;
     function Focused: boolean; override;
@@ -1430,8 +1429,8 @@ type
       Setting this to @false allows you to get an OpenGL context without
       showing anything on the desktop. This can be used for rendering
       and capturing OpenGL stuff without showing it on the desktop.
-      One example is the @--screenshot option of view3dscene, see
-      [https://castle-engine.io/view3dscene.php#section_screenshot].
+      One example is the @--screenshot option of castle-model-viewer, see
+      [https://castle-engine.io/castle-model-viewer].
 
       If you implement such thing, remember that you should not render
       and capture the normal front or back buffer contents.
@@ -1955,6 +1954,11 @@ type
         @itemLabel @--fullscreen-custom WIDTHxHEIGHT
         @item(Change desktop resolution by VideoChange and sets FullScreen to @true.
           Changing desktop resolution is not implemented on all platforms.)
+
+        @itemLabel @--pretend-touch-device
+        @item(Set @link(TCastleApplicationProperties.TouchDevice
+          ApplicationProperties.TouchDevice) to true.
+          See @url(https://castle-engine.io/touch_input touch input documentation).)
       )
 
       @raises(EInvalidParams When some of our options have invalid arguments.) }
@@ -2294,9 +2298,9 @@ type
       VideoResizeHeight. Otherwise, next TryVideoChange and VideoChange will
       use default screen size.
       @groupBegin }
-    VideoResize : boolean;
+    VideoResize: Boolean;
     VideoResizeWidth,
-    VideoResizeheight : integer;
+    VideoResizeHeight: Integer;
     { @groupEnd }
 
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
@@ -2316,17 +2320,60 @@ type
       always ends with CastleUtils.NL. }
     function VideoSettingsDescribe: String;
 
-    { Change the screen size, color bits and such, following the directions
+    (*Change the screen size, color bits and such, following the directions
       you set in VideoColorBits, VideoResize,
       VideoResizeWidth / VideoResizeHeight, and VideoFrequency variables.
       Returns @true if success.
+
+      See example code
+      @code(examples/user_interface/screen_resolution_change) for a working
+      example.
+
+      Simple example usage:
+
+@longCode(#
+unit GameChangeVideoResolution;
+
+interface
+
+var
+  // TODO: Allow user to configure it somehow
+  UserWantsToChangeScreenResolution: Boolean = true;
+
+{ Change screen resolution, if desired by UserWantsToChangeScreenResolution. }
+procedure ChangeResolution;
+
+implementation
+
+uses CastleWindow, CastleLog, CastleConfig;
+
+procedure ChangeResolution;
+begin
+  if UserWantsToChangeScreenResolution then
+  begin
+    Application.VideoResize := true;
+    // TODO: Allow user to choose the desired resolution
+    Application.VideoResizeWidth := 1024;
+    Application.VideoResizeHeight := 768;
+    if not Application.TryVideoChange then
+      WritelnWarning('Cannot change screen resolution, continuing with current settings');
+  end;
+end;
+
+initialization
+  UserWantsToChangeScreenResolution := UserConfig.GetValue('video/change_resolution', false);
+  ChangeResolution;
+finalization
+  Application.VideoReset;
+end.
+#)
 
       TODO: Expose methods like EnumeratePossibleVideoConfigurations to predict
       what video settings are possible.
 
       TODO: Prefix "Video" for the family of these functions is not clear.
       Something like "Screen" would be better.
-    }
+    *)
     function TryVideoChange: boolean;
 
     { Change the screen size, color bits and such, following the directions
@@ -2351,7 +2398,6 @@ type
 
     function ScreenHeight: integer;
     function ScreenWidth: integer;
-    function ScreenStatusBarScaledHeight: Cardinal;
 
     { List of all open windows.
       @groupBegin }
@@ -2644,11 +2690,6 @@ begin
   Result := Parent.Rect;
 end;
 
-function TWindowContainer.ScaledStatusBarHeight: Cardinal;
-begin
-  Result := Application.ScreenStatusBarScaledHeight;
-end;
-
 function TWindowContainer.GetMousePosition: TVector2;
 begin
   Result := Parent.MousePosition;
@@ -2735,7 +2776,7 @@ begin
   CreateBackend;
 
   if Messaging <> nil then
-    Messaging.OnReceive.Add({$ifdef FPC}@{$endif}MessageReceived);
+    Messaging.OnReceive.Add({$ifdef FPC}@{$endif} MessageReceived);
 end;
 
 destructor TCastleWindow.Destroy;
@@ -2751,7 +2792,7 @@ begin
   end;
 
   if Messaging <> nil then
-    Messaging.OnReceive.Remove({$ifdef FPC}@{$endif}MessageReceived);
+    Messaging.OnReceive.Remove({$ifdef FPC}@{$endif} MessageReceived);
 
   FreeAndNil(FContainer);
   FreeAndNil(FTouches);
@@ -3472,7 +3513,7 @@ var
 begin
   Result := false;
   if (Received.Count = 2) and
-     (Received[0] = 'open_associated_url') then
+     (Received[0] = 'open-associated-url') then
   begin
     Url := Received[1];
     DoDropFiles([Url]);
@@ -3759,17 +3800,19 @@ begin
     1: Window.FullScreen := false;
     2: ApplyGeometryParam(Argument);
     3: ApplyFullScreenCustomParam(Argument);
+    4: ApplicationProperties.TouchDevice := true;
     else raise EInternalError.CreateFmt('WindowOptionProc: unhandled OptionNum %d', [OptionNum]);
   end;
 end;
 
 procedure TCastleWindow.ParseParameters;
 const
-  Options: array [0..3] of TOption = (
+  Options: array [0..4] of TOption = (
     (Short: #0; Long: 'fullscreen'; Argument: oaNone),
     (Short: #0; Long: 'window'; Argument: oaNone),
     (short: #0; Long: 'geometry'; Argument: oaRequired),
-    (Short: #0; Long: 'fullscreen-custom'; Argument: oaRequired)
+    (Short: #0; Long: 'fullscreen-custom'; Argument: oaRequired),
+    (Short: #0; Long: 'pretend-touch-device'; Argument: oaNone)
   );
 begin
   Parameters.Parse(Options, {$ifdef FPC}@{$endif} WindowOptionProc, Self, true);
@@ -3781,7 +3824,8 @@ begin
     OptionDescription('--fullscreen', 'Set window to full-screen (cover whole screen).') + NL +
     OptionDescription('--window', 'Set window to not be full-screen.') + NL +
     OptionDescription('--geometry WIDTHxHEIGHT<sign>XOFF<sign>YOFF', 'Set window to not be full-screen, and set initial size and/or position.') + NL +
-    OptionDescription('--fullscreen-custom WIDTHxHEIGHT', 'Change desktop resolution and set window to full-screen.');
+    OptionDescription('--fullscreen-custom WIDTHxHEIGHT', 'Change desktop resolution and set window to full-screen.') + NL +
+    OptionDescription('--pretend-touch-device', 'Pretend this is a device with a touch screen, for debugging purposes.');
 end;
 
 { TCastleWindow miscellaneous -------------------------------------------- }
@@ -4429,11 +4473,19 @@ begin
   while I < OpenWindowsCount do
   begin
     Window := OpenWindows[I];
-
     Window.DoUpdate;
     if Window.Closed then Continue {don't Inc(I)};
     if Terminated then Exit;
+    Inc(I);
+  end;
 
+  ApplicationProperties._UpdateEnd;
+  if Terminated then Exit;
+
+  I := 0;
+  while I < OpenWindowsCount do
+  begin
+    Window := OpenWindows[I];
     if Window.Invalidated then
     begin
       WasAnyRendering := true;

@@ -262,12 +262,27 @@
     property Meta: TStringStringMap read FMeta;
 
     { Set properties to force saving this node graph as X3D.
-      If we're already configured to save as X3D (major version >= 3)
+      If we're already configured to save as X3D (current major version >= 3)
       then do nothing. Otherwise, sets major/minor versions
-      (by default: for X3D 3.2; make sure AMajor is >= 3)
-      and sets X3D profile (default: Interchange). }
-    procedure ForceSaveAsX3D(const AMajor: Integer = 3;
-      const AMinor: Integer = 2;
+      (by default: for X3D 4.0, Interchange profile).
+
+      Provided AMajor must be >= 3, since X3D version is always >= 3.
+
+      This works to indicate convert VRML 2.0 to X3D.
+      We simply change ForceVersion used to save to indicate X3D version.
+      This is a reasonable conversion of VRML 2 -> X3D (except NURBS nodes,
+      which are incompatible between VRML 2.0 and X3D and at this point
+      not dealt by this conversion correctly).
+
+      This should not be used if the original file version
+      indicates that it's an old VRML 1.0 or Inventor file,
+      as we have not implemented convertion from VRML 1.0/Inventor to X3D.
+      So it wil result in VRML 1.0/Inventor nodes saved using
+      the X3D (XML or classic) encoding, which is not a format supported
+      by any X3D reader (even our own).
+      We will display a warning if you attempt this. }
+    procedure ForceSaveAsX3D(const AMajor: Integer = 4;
+      const AMinor: Integer = 0;
       const AProfile: string = 'Interchange');
 
     { Global prototype namespace at the end of parsing the file.
@@ -304,8 +319,13 @@
     { @groupEnd }
 
     { @exclude
-      Fix X3D names inside to make sure all nodes that are part of ROUTE have non-empty names.
-      See doc/miscellaneous_notes/avoid_renaming_node_names_at_import.md for documentation why we do this. }
+      Fix X3D names inside to make sure
+
+      - all nodes have empty, or unique names.
+      - all nodes that are part of ROUTE have non-empty names.
+
+      See https://castle-engine.io/gltf#unique_names
+      for documentation why we do this. }
     procedure InternalFixNodeNames;
   end;
 
@@ -674,12 +694,13 @@ end;
 { TFixNamesHandler ----------------------------------------------------------- }
 
 { Log renames done by TX3DRootNode.InternalFixNodeNames (to make node names
-  that are relevant for ROUTEs unique).
+  unique).
 
-  Disabled by default now, as it seemed too spammy, e.g. in case of glTF models in
+  It can be spammy, e.g. in case of glTF models in
   examples/viewport_and_scenes/occlusion_culling/ .
-  And it's also not that critical for usual case,
-  it only matters if someone wants to access renamed nodes using FindNode.
+  It is critical, if someone wants to access renamed nodes using FindNode...
+  but otherwise, it can be confusing (lots of logs,
+  and ignorable when you don't want to search for renamed nodes).
 }
 {.$define CASTLE_LOG_NODE_RENAMES}
 
@@ -745,7 +766,7 @@ function TFixNamesHandler.HandleNode(ParentNode, Node: TX3DNode): Pointer;
 
         This optimization avoids spending longer and longer times
         to find unique names for names with the same prefix.
-        Testcase: https://github.com/castle-engine/view3dscene/issues/43
+        Testcase: https://github.com/castle-engine/castle-model-viewer/issues/43
         (received privately by Michalis, due to model being copyrighted).
       }
       PrefixIndex := Prefixes.IndexOf(Prefix);
@@ -797,7 +818,7 @@ function TFixNamesHandler.HandleNode(ParentNode, Node: TX3DNode): Pointer;
     {$ifdef CASTLE_LOG_NODE_RENAMES}
     if LogsDone < MaxLogsDone then
     begin
-      WritelnLog('Renaming node "%s" -> "%s" to have unique name; these renames are done to allow saving ROUTEs later', [
+      WritelnLog('Renaming node "%s" -> "%s" to have unique name. If you want to query for this node name, we recommend to not rely on the order of renames, and instead make the name unique in the input file.', [
         OriginalName,
         Node.X3DName
       ]);
@@ -852,17 +873,9 @@ begin
     Exit;
   Visited.Add(Node);
 
-  { make sure node name is unique.
-
-    Not done anymore: see discussion in doc/miscellaneous_notes/avoid_renaming_node_names_at_import.md .
-    These renames do not prevent 100% name clashes anyway,
-    and they are not expected and not reliable (from user's POV,
-    it is hard to predict which node gets _2, _3 suffix).
-  }
-  (*
+  { make sure node name is unique }
   if Node.X3DName <> '' then
     MakeUniquelyNamed(Node);
-  *)
 
   { make sure nodes used in ROUTEs are uniquely named }
   for I := 0 to Node.RoutesCount - 1 do
@@ -1016,10 +1029,16 @@ begin
   end;
 end;
 
-procedure TX3DRootNode.ForceSaveAsX3D(const AMajor: Integer = 3;
-  const AMinor: Integer = 2;
-  const AProfile: string = 'Interchange');
+procedure TX3DRootNode.ForceSaveAsX3D(const AMajor, AMinor: Integer;
+  const AProfile: String);
 begin
+  if AMajor < 3 then
+    raise Exception.Create('ForceSaveAsX3D requires AMajor >= 3, since this is X3D version and X3D version numbering starts at 3.0');
+
+  if HasForceVersion and
+     (ForceVersion.Major <= 1) then
+    WritelnWarning('Converting VRML 1.0 or Inventor to X3D is not implemented. You will get VRML 1.0/Inventor nodes encoded like for X3D, which is not much useful, nothing will be able to read this combination.');
+
   if (not HasForceVersion) or
      (ForceVersion.Major < 3) then
   begin

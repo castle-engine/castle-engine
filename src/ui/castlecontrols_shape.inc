@@ -1,6 +1,6 @@
 {%MainUnit castlecontrols.pas}
 {
-  Copyright 2010-2022 Michalis Kamburelis.
+  Copyright 2010-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -26,7 +26,8 @@
     stTriangleLeft
   );
 
-  { Draw a simple shape (rectangle, circle) with given color and optional outline. }
+  { Draw a simple shape (rectangle, circle, triangle) with given color
+    and optional outline. }
   TCastleShape = class(TCastleUserInterface)
   strict private
     FFilled, FOutline, FOutlineThick: boolean;
@@ -51,7 +52,9 @@
 
     { The outline color, used if @link(Outline). By default, opaque black. }
     property OutlineColor: TCastleColor read FOutlineColor write SetOutlineColor;
-      {$ifdef FPC}deprecated 'do not rely on outlines implemented in TCastleShape, as both OutlineThick approaches have disadvantages';{$endif}
+  published
+    { The shape (rectangle, circle, triangle) to be drawn. }
+    property ShapeType: TShapeType read FShapeType write SetShapeType default stRectangle;
 
     { Determines the drawing method of the outline, used if @link(Outline).
 
@@ -64,11 +67,12 @@
           @bold(outline widths thicker than 1 pixel are not guaranteed
           to be supported. In particular they will almost never work on mobile
           (OpenGLES).)
-          See the LineWidth comments at DrawPrimitive2D procedure.
 
           Consider using other methods if you need to draw a thick shape outline
-          in a reliable manner. To draw a rectangle with frame, it's usually better
-          to use Draw3x3 call, with a special texture with a frame and insides.)
+          in a reliable manner.
+          For example, set @link(OutlineThick) to @true.
+          Or draw the shape as an image with a frame,
+          using @link(TCastleImageControl) and @link(TCastleImageControl.ProtectedSides).)
 
         @itemLabel(@true)
         @item(Draw the outline by first drawing a larger shape with OutlineColor
@@ -90,7 +94,6 @@
       )
     }
     property OutlineThick: boolean read FOutlineThick write SetOutlineThick default false;
-      {$ifdef FPC}deprecated 'do not rely on outlines implemented in TCastleShape, as both OutlineThick approaches have disadvantages';{$endif}
 
     { The outline width, used if @link(Outline).
       It is affected by UI scaling.
@@ -99,16 +102,14 @@
       @bold(outline widths thicker than 1 pixel are not guaranteed
       to be supported. In particular they will almost never work on mobile (OpenGLES).)
       Change OutlineThick to @true to have reliable thick outlines. }
-    property OutlineWidth: Single read FOutlineWidth write SetOutlineWidth {$ifdef FPC}default 1.0{$endif};
-      {$ifdef FPC}deprecated 'do not rely on outlines implemented in TCastleShape, as both OutlineThick approaches have disadvantages';{$endif}
+    property OutlineWidth: Single read FOutlineWidth write SetOutlineWidth
+      {$ifdef FPC}default 1.0{$endif};
 
+    { Display outline of the shape using @link(OutlineColor). }
     property Outline: boolean read FOutline write SetOutline default false;
-      {$ifdef FPC}deprecated 'leave this always false; do not rely on outlines implemented in TCastleShape, as both OutlineThick approaches have disadvantages';{$endif}
 
+    { Display inside of the shape using @link(Color). }
     property Filled: boolean read FFilled write SetFilled default true;
-      {$ifdef FPC}deprecated 'leave this always true; do not rely on outlines implemented in TCastleShape, as both OutlineThick approaches have disadvantages';{$endif}
-  published
-    property ShapeType: TShapeType read FShapeType write SetShapeType default stRectangle;
 
   {$define read_interface_class}
   {$I auto_generated_persistent_vectors/tcastleshape_persistent_vectors.inc}
@@ -207,22 +208,100 @@ begin
   end;
 end;
 
+type
+  TShapeTypeTriangle = stTriangleUp..stTriangleLeft;
+
+{ Draw triangle type indicated by current ShapeType.
+  Use only when ShapeType is stTriangleXxx.
+
+  @param R Rectangle to draw the triangle inside.
+  @param Color Color of the triangle.
+  @param Filled Whether we should fill the triangle, otherwise we draw only lines.
+  @param LineWidth Line width used when Filled = @false.
+
+  Note: This is internal, and deliberately not a method of TCastleShape,
+  to not use some TCastleShape property by accident. }
+procedure DrawTriangleCore(const ShapeType: TShapeTypeTriangle;
+  const R: TFloatRectangle; const Color: TCastleColor; const Filled: Boolean;
+  const LineWidth: Single = 1.0);
+var
+  Mode: TPrimitiveMode;
+  Points: array [0..2] of TVector2;
+begin
+  if Filled then
+    Mode := pmTriangles
+  else
+    Mode := pmLineLoop;
+
+  case ShapeType of
+    stTriangleUp:
+      begin
+        Points[0] := Vector2(R.Left, R.Bottom);
+        Points[1] := Vector2(R.Right, R.Bottom);
+        Points[2] := Vector2((R.Left + R.Right) / 2, R.Top);
+      end;
+    stTriangleDown:
+      begin
+        Points[0] := Vector2(R.Right, R.Top);
+        Points[1] := Vector2(R.Left, R.Top);
+        Points[2] := Vector2((R.Left + R.Right) / 2, R.Bottom);
+      end;
+    stTriangleRight:
+      begin
+        Points[0] := Vector2(R.Left, R.Bottom);
+        Points[1] := Vector2(R.Right, (R.Top + R.Bottom) / 2);
+        Points[2] := Vector2(R.Left, R.Top);
+      end;
+    stTriangleLeft:
+      begin
+        Points[0] := Vector2(R.Right, R.Top);
+        Points[1] := Vector2(R.Left, (R.Top + R.Bottom) / 2);
+        Points[2] := Vector2(R.Right, R.Bottom);
+      end;
+    else raise EInternalError.Create('DrawTriangleCore only useful for triangle shapes');
+  end;
+
+  DrawPrimitive2D(Mode, Points, Color,
+    { We specify BlendingSourceFactor, BlendingDestinationFactor, ForceBlending
+      equal to default, only to be able to provide explicit LineWidth. }
+    bsSrcAlpha, bdOneMinusSrcAlpha, false, LineWidth);
+end;
+
 procedure TCastleShape.Render;
+
+  function RectGrowForTriangleOutline(const RR: TFloatRectangle;
+    const OutlineOut: Single): TFloatRectangle;
+  var
+    ExtraGrowTip: Single;
+  begin
+    Result := RR.Grow(OutlineOut);
+    { Expand RR more in the direction of the triangle, makes the outline look
+      even in typical cases.
+      TODO: Use trigonometry to calculate this more precisely. }
+    ExtraGrowTip := 2 * OutlineOut;
+    case ShapeType of
+      stTriangleUp: Result := Result.GrowTop(ExtraGrowTip);
+      stTriangleDown: Result := Result.GrowBottom(ExtraGrowTip);
+      stTriangleRight: Result := Result.GrowRight(ExtraGrowTip);
+      stTriangleLeft: Result := Result.GrowLeft(ExtraGrowTip);
+      else raise EInternalError.Create('Only triangle ShapeType should be here');
+    end;
+  end;
+
 var
   RR: TFloatRectangle;
-  OutlineW, OutlineIn, OutlineOut: Integer;
+  OutlineWidthScaled, OutlineIn, OutlineOut: Single;
 begin
   inherited;
   RR := RenderRect;
+  OutlineWidthScaled := UIScale * OutlineWidth;
 
-  {$warnings off} // using deprecated to keep it working
   if Filled and Outline and OutlineThick then
   begin
     { special case when we use OutlineThick drawing mode }
 
-    OutlineW := Ceil(UIScale * OutlineWidth);
-    OutlineIn := - OutlineW div 2;
-    OutlineOut := OutlineW + OutlineIn;
+    OutlineIn := -OutlineWidthScaled / 2;
+    OutlineOut := OutlineWidthScaled / 2;
 
     case ShapeType of
       stRectangle:
@@ -230,65 +309,58 @@ begin
           DrawRectangle(RR.Grow(OutlineOut), OutlineColor);
           DrawRectangle(RR.Grow(OutlineIn ), Color);
         end;
-      stCircle   :
+      stCircle:
         begin
           DrawCircle(RR.Center, RR.Width / 2 + OutlineOut, RR.Height / 2 + OutlineOut, OutlineColor);
           DrawCircle(RR.Center, RR.Width / 2 + OutlineIn , RR.Height / 2 + OutlineIn , Color);
         end;
-      else WritelnWarning('TCastleShape.Render: Outline not implemented for this ShapeType. Do not use deprecated Outline.');
+      stTriangleUp..stTriangleLeft:
+        begin
+          DrawTriangleCore(ShapeType, RectGrowForTriangleOutline(RR, OutlineOut), OutlineColor, true);
+          DrawTriangleCore(ShapeType, RR.Grow(OutlineIn), Color, true);
+        end;
+      {$ifndef COMPILER_CASE_ANALYSIS}
+      else raise EInternalError.Create('TCastleShape.Render: ShapeType not implemented (Outline thick)');
+      {$endif}
     end;
   end else
   begin
     if Filled then
-  {$warnings on}
       case ShapeType of
-        stRectangle: DrawRectangle(RR, Color);
-        stCircle   : DrawCircle(RR.Center, RR.Width / 2, RR.Height / 2, Color);
-        stTriangleUp:
-          DrawPrimitive2D(pmTriangles, [
-            Vector2(RR.Left, RR.Bottom),
-            Vector2(RR.Right, RR.Bottom),
-            Vector2((RR.Left + RR.Right) / 2, RR.Top)
-          ], Color);
-        stTriangleDown:
-          DrawPrimitive2D(pmTriangles, [
-            Vector2(RR.Right, RR.Top),
-            Vector2(RR.Left, RR.Top),
-            Vector2((RR.Left + RR.Right) / 2, RR.Bottom)
-          ], Color);
-        stTriangleRight:
-          DrawPrimitive2D(pmTriangles, [
-            Vector2(RR.Left, RR.Bottom),
-            Vector2(RR.Right, (RR.Top + RR.Bottom) / 2),
-            Vector2(RR.Left, RR.Top)
-          ], Color);
-        stTriangleLeft:
-          DrawPrimitive2D(pmTriangles, [
-            Vector2(RR.Right, RR.Top),
-            Vector2(RR.Left, (RR.Top + RR.Bottom) / 2),
-            Vector2(RR.Right, RR.Bottom)
-          ], Color);
+        stRectangle:
+          DrawRectangle(RR, Color);
+        stCircle:
+          DrawCircle(RR.Center, RR.Width / 2, RR.Height / 2, Color);
+        stTriangleUp..stTriangleLeft:
+          DrawTriangleCore(ShapeType, RR, Color, true);
         {$ifndef COMPILER_CASE_ANALYSIS}
         else raise EInternalError.Create('TCastleShape.Render: ShapeType not implemented');
         {$endif}
       end;
 
-    {$warnings off} // using deprecated to keep it working
     if Outline then
       case ShapeType of
-        stRectangle: DrawRectangleOutline(RR, OutlineColor, UIScale * OutlineWidth);
-        stCircle   : DrawCircleOutline(RR.Center, RR.Width / 2, RR.Height / 2, OutlineColor, UIScale * OutlineWidth);
-        else WritelnWarning('TCastleShape.Render: Outline not implemented for this ShapeType. Do not use deprecated Outline.');
+        stRectangle:
+          DrawRectangleOutline(RR, OutlineColor, OutlineWidthScaled);
+        stCircle:
+          DrawCircleOutline(RR.Center, RR.Width / 2, RR.Height / 2, OutlineColor, OutlineWidthScaled);
+        stTriangleUp..stTriangleLeft:
+          DrawTriangleCore(ShapeType, RR, OutlineColor, false, OutlineWidthScaled);
+        {$ifndef COMPILER_CASE_ANALYSIS}
+        else raise EInternalError.Create('TCastleShape.Render: ShapeType not implemented (Outline, not thick)');
+        {$endif}
       end;
-    {$warnings on}
   end;
 end;
 
 function TCastleShape.PropertySections(
   const PropertyName: String): TPropertySections;
 begin
-  if (PropertyName = 'ColorPersistent') or
-     (PropertyName = 'ShapeType') then
+  if ArrayContainsString(PropertyName, [
+      'ShapeType',
+      'ColorPersistent', 'OutlineColorPersistent',
+      'Filled', 'Outline', 'OutlineWidth', 'OutlineThick'
+    ]) then
     Result := [psBasic]
   else
     Result := inherited PropertySections(PropertyName);

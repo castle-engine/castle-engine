@@ -1,5 +1,5 @@
 {
-  Copyright 2019-2023 Michalis Kamburelis.
+  Copyright 2019-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -27,12 +27,19 @@ type
     ButtonRegisterLazarusPackages: TButton;
     ButtonPanel1: TButtonPanel;
     CheckBoxMuteOnRun: TCheckBox;
+    DirectoryEditAndroidHome: TDirectoryEdit;
+    DirectoryEditJavaHome: TDirectoryEdit;
     DirectoryEditFpc: TDirectoryEdit;
     DirectoryEditCgePath: TDirectoryEdit;
     DirectoryEditLazarus: TDirectoryEdit;
     EditCodeEditorCommand: TFileNameEdit;
     EditCodeEditorCommandLineColumn: TFileNameEdit;
     EditCodeEditorCommandProject: TFileNameEdit;
+    LabelAndroidDocsWww: TLabel;
+    LabelAndroidHome: TLabel;
+    LabelJavaHome: TLabel;
+    LabelAndroidHomeHint: TLabel;
+    LabelJavaHomeHint: TLabel;
     LabelCodeEditorAutodetect: TLabel;
     LabelCodeEditorCommandLineColumn: TLabel;
     LabelCompilerAutodetect: TLabel;
@@ -48,6 +55,7 @@ type
     LabelInstructions0: TLabel;
     LabelInstructions1: TLabel;
     LabelInstructions2: TLabel;
+    LabelAndroidDocsWwwCaption: TLabel;
     LabelLazarusWebsite: TLabel;
     LabelVolume: TLabel;
     LabelCodeEditorCommandInstructions: TLabel;
@@ -65,6 +73,7 @@ type
     ListPages: TListBox;
     PanelGeneral: TPanel;
     PanelCompilation: TPanel;
+    PanelAndroid: TPanel;
     PanelInstructions: TPanel;
     PanelCodeEditor: TPanel;
     PanelSound: TPanel;
@@ -79,6 +88,8 @@ type
     RadioCodeEditorVSCode: TRadioButton;
     TrackVolume: TTrackBar;
     procedure ButtonRegisterLazarusPackagesClick(Sender: TObject);
+    procedure DirectoryEditAndroidHomeAcceptDirectory(Sender: TObject;
+      var Value: String);
     procedure DirectoryEditCgePathChange(Sender: TObject);
     procedure DirectoryEditFpcChange(Sender: TObject);
     procedure DirectoryEditLazarusChange(Sender: TObject);
@@ -91,6 +102,7 @@ type
     procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
     procedure FormCloseQuery(Sender: TObject; var CanClose: boolean);
     procedure FormShow(Sender: TObject);
+    procedure LabelAndroidDocsWwwClick(Sender: TObject);
     procedure LabelLazarusWebsiteClick(Sender: TObject);
     procedure ListPagesClick(Sender: TObject);
     procedure RadioCodeEditorAnyChange(Sender: TObject);
@@ -109,7 +121,7 @@ var
 implementation
 
 uses CastleOpenDocument, CastleUtils, CastleLog, CastleSoundEngine,
-  CastleStringUtils, CastleFilesUtils,
+  CastleStringUtils, CastleFilesUtils, CastleUriUtils,
   ToolCompilerInfo, ToolFpcVersion, ToolCommonUtils, ToolManifest,
   EditorUtils, ProjectUtils;
 
@@ -119,7 +131,7 @@ uses CastleOpenDocument, CastleUtils, CastleLog, CastleSoundEngine,
 
 procedure TPreferencesForm.LabelLazarusWebsiteClick(Sender: TObject);
 begin
-  OpenURL('https://www.lazarus-ide.org/');
+  OpenUrl('https://www.lazarus-ide.org/');
 end;
 
 procedure TPreferencesForm.ListPagesClick(Sender: TObject);
@@ -254,6 +266,8 @@ begin
   DirectoryEditFpc.Directory := FpcCustomPath;
   DirectoryEditLazarus.Directory := LazarusCustomPath;
   DirectoryEditCgePath.Directory := CastleEngineOverridePath;
+  DirectoryEditAndroidHome.Directory := AndroidHome;
+  DirectoryEditJavaHome.Directory := JavaHome;
   { We will change the global Fpc/LazarusCustomPath during this dialog,
     so allow to revert them on "Cancel". }
   OriginalFpcCustomPath := FpcCustomPath;
@@ -286,6 +300,11 @@ begin
   CheckBoxMuteOnRun.Checked := MuteOnRun;
 end;
 
+procedure TPreferencesForm.LabelAndroidDocsWwwClick(Sender: TObject);
+begin
+  OpenUrl('https://castle-engine.io/android');
+end;
+
 procedure TPreferencesForm.FormClose(Sender: TObject;
   var CloseAction: TCloseAction);
 
@@ -313,7 +332,7 @@ procedure TPreferencesForm.FormClose(Sender: TObject;
     }
     OldApplicationDataOverride := ApplicationDataOverride;
     UseEditorApplicationData;
-    InternalCastleDesignData := ApplicationData('');
+    InternalCastleDesignData := ResolveCastleDataUrl('castle-data:/');
     ApplicationDataOverride := OldApplicationDataOverride;
   end;
 
@@ -359,6 +378,10 @@ begin
     // sound tab
     EditorVolume := TrackVolume.Position / TrackVolume.Max;
     MuteOnRun := CheckBoxMuteOnRun.Checked;
+
+    // Android tab
+    AndroidHome := DirectoryEditAndroidHome.Directory;
+    JavaHome := DirectoryEditJavaHome.Directory;
   end else
   begin
     { XxxCustomPath are special.
@@ -441,6 +464,25 @@ begin
   end;
 end;
 
+procedure TPreferencesForm.DirectoryEditAndroidHomeAcceptDirectory(
+  Sender: TObject; var Value: String);
+begin
+  if Value <> '' then
+  begin
+    if not DirectoryExists(Value) then
+    begin
+      WarningBox(Format('Directory "%s" does not exist', [Value]));
+    end else
+    if not (
+        // Android SDK 30 doesn't contain 'tools', only 'platform-tools', so don't check it
+        // DirectoryExists(InclPathDelim(Value) + 'tools') and
+        DirectoryExists(InclPathDelim(Value) + 'platform-tools')) then
+    begin
+      WarningBox(Format('Directory "%s" does not contain typical Android SDK subdirectories "tools", "platform-tools". Make sure it is correct.', [Value]));
+    end;
+  end;
+end;
+
 procedure TPreferencesForm.DirectoryEditCgePathChange(Sender: TObject);
 begin
   CastleEngineOverridePath := DirectoryEditCgePath.Directory;
@@ -490,6 +532,7 @@ begin
     2: SelectedPage := PanelCompilation;
     3: SelectedPage := PanelFpcLazarusConfig;
     4: SelectedPage := PanelSound;
+    5: SelectedPage := PanelAndroid;
     else raise Exception.CreateFmt('Unexpected ListPages.ItemIndex %d', [ListPages.ItemIndex]);
   end;
   SetEnabledVisible(PanelGeneral         , PanelGeneral          = SelectedPage);
@@ -497,6 +540,7 @@ begin
   SetEnabledVisible(PanelCompilation     , PanelCompilation      = SelectedPage);
   SetEnabledVisible(PanelFpcLazarusConfig, PanelFpcLazarusConfig = SelectedPage);
   SetEnabledVisible(PanelSound           , PanelSound            = SelectedPage);
+  SetEnabledVisible(PanelAndroid         , PanelAndroid          = SelectedPage);
 end;
 
 end.

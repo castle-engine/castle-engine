@@ -1,5 +1,5 @@
 {
-  Copyright 2014-2022 Michalis Kamburelis.
+  Copyright 2014-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -145,13 +145,24 @@ function AdbExe(const Required: boolean = true): string;
 const
   ExeName = 'adb';
   BundleName = 'SDK';
-  EnvVarName1 = 'ANDROID_SDK_ROOT';
-  EnvVarName2 = 'ANDROID_HOME';
+  EnvVarName1 = 'ANDROID_HOME';
+  EnvVarName2 = 'ANDROID_SDK_ROOT';
 var
   Env: string;
 begin
   Result := '';
-  { try to find in $ANDROID_SDK_ROOT or (deprecated) $ANDROID_HOME }
+  { Try to find in $ANDROID_SDK_ROOT or $ANDROID_HOME.
+    Note: For a while, ANDROID_HOME for deprecated and ANDROID_SDK_ROOT
+    recommended.
+    Then, ANDROID_SDK_ROOT was deprecated and now ANDROID_HOME is recommended.
+    See
+    - official docs:
+      https://developer.android.com/tools/variables?hl=en
+      https://developer.android.com/tools?hl=en
+    - other software also adjusting:
+      https://github.com/apache/cordova-android/issues/1425
+      https://github.com/bazelbuild/bazel/issues/13612
+  }
   Env := GetEnvironmentVariable(EnvVarName1);
   if Env = '' then
     GetEnvironmentVariable(EnvVarName2);
@@ -620,21 +631,38 @@ procedure RunAndroid(const Project: TCastleProject);
 var
   ActivityName, LogTag: string;
 begin
-  ActivityName := 'net.sourceforge.castleengine.MainActivity';
+  ActivityName := 'io.castleengine.MainActivity';
   RunCommandSimple(AdbExe, ['shell', 'am', 'start',
     '-a', 'android.intent.action.MAIN',
     '-n', Project.QualifiedName + '/' + ActivityName ]);
-  Writeln('Run successful.');
+  Writeln('Android application successfully started.');
 
   LogTag := Copy(Project.Name, 1, MaxAndroidTagLength);
 
-  Writeln('Running "adb logcat -s ' + LogTag + ':V".');
-  Writeln('We are assuming that your ApplicationName is "' + Project.Name + '".');
-  Writeln('Break this process with Ctrl+C.');
+  Writeln('Running "adb logcat -s ' + LogTag + ':V" (so we assume your ApplicationName is "' + Project.Name + '").');
+  Flush(Output); // flush, otherwise it would not appear before "adb logcat" output
 
-  { run through ExecuteProcess, because we don't want to capture output,
-    we want to immediately pass it to user }
-  ExecuteProcess(AdbExe, ['logcat', '-s', LogTag + ':V']);
+  { Initial implementation run this through ExecuteProcess,
+    because we don't want to capture output,
+    we want to immediately pass it to user.
+
+    Later implementation relies on RunCommandSimple, this way
+    we pass new ChildProcessId to EditorUtils, since it writelns the magic string
+    'Castle Game Engine Internal: ProcessID: ...' . And passing this
+    ChildProcessId to EditorUtils allows better behavior when using "Stop"
+    in CGE editor that runs Android application:
+
+    1. Without it, it seems that killing "castle-engine run" doesn't kill "adb logcat...",
+      it is left running in the background (and wasting resources).
+
+    2. Moreover, actually CGE editor would have wrong ChildProcessId,
+      leftover from previous ADB execution that started the execution.
+      We could introduce a new magic message like
+      'Stopped: Castle Game Engine Internal: ProcessID: ...'
+      but it would not solve issue AD 1 above.
+  }
+  //ExecuteProcess(AdbExe, ['logcat', '-s', LogTag + ':V']);
+  RunCommandSimple(AdbExe, ['logcat', '-s', LogTag + ':V']);
 end;
 
 end.

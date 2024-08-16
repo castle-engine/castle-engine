@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2023 Michalis Kamburelis.
+  Copyright 2003-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -35,7 +35,7 @@ uses SysUtils, Classes, Generics.Collections,
   CastleGLUtils, CastleInternalShapeOctree, CastleInternalGLShadowVolumes, X3DFields,
   CastleTriangles, CastleShapes, CastleFrustum, CastleTransform, CastleGLShaders,
   CastleRectangles, CastleCameras, CastleRendererInternalShader, CastleColors,
-  CastleSceneInternalShape,
+  CastleSceneInternalShape, CastleInternalFileMonitor,
   CastleRenderOptions, CastleTimeUtils, CastleImages,
   CastleBehaviors, CastleInternalShapesRenderer, CastleSceneInternalBlending;
 
@@ -458,12 +458,6 @@ const
   weSolidWireframe = CastleRenderOptions.weSolidWireframe;
   weSilhouette = CastleRenderOptions.weSilhouette;
 
-  paDefault = CastleSceneCore.paDefault;
-  paForceLooping = CastleSceneCore.paForceLooping;
-  paForceNotLooping = CastleSceneCore.paForceNotLooping;
-  paLooping = CastleSceneCore.paLooping;
-  paNotLooping = CastleSceneCore.paNotLooping;
-
   ssRendering = CastleSceneCore.ssRendering;
   ssDynamicCollisions = CastleSceneCore.ssDynamicCollisions;
   ssVisibleTriangles = CastleSceneCore.ssVisibleTriangles;
@@ -699,7 +693,7 @@ begin
   Shape.Fog := ShapeFog(Shape, Render_Params.GlobalFog as TFogNode);
 
   Render_Collector.Add(Shape, RenderOptions,
-    Render_Params.Transform^, Render_Params.DepthRange);
+    Render_Params.Transformation^.Transform, Render_Params.DepthRange);
   IsVisibleNow := true;
 end;
 
@@ -1136,6 +1130,13 @@ var
   ShapeWorldTransform: TMatrix4;
   ForceOpaque: boolean;
 begin
+  { Call inherited to render shadow quads of children,
+    in case one TCastleScene is a child of another.
+    See https://forum.castle-engine.io/t/shadow-ignors-distanceculling/670/14 for testcase.
+    Note that inherited also checks "CheckVisible and CastShadows",
+    so they work recursively. }
+  inherited;
+
   if CheckVisible and
      CastShadows and
      { Do not render shadow volumes when rendering wireframe.
@@ -1148,11 +1149,11 @@ begin
     ForceOpaque := not (RenderOptions.Blending and (RenderOptions.Mode = rmFull));
 
     // DistanceCullingCheck* uses this value, and it may be called here
-    RenderCameraPosition := Params.InverseTransform^.MultPoint(
+    RenderCameraPosition := Params.Transformation^.InverseTransform.MultPoint(
       Params.RenderingCamera.View.Translation);
 
     { calculate and check SceneBox }
-    SceneBox := LocalBoundingBox.Transform(Params.Transform^);
+    SceneBox := LocalBoundingBox.Transform(Params.Transformation^.Transform);
     if SVRenderer.GetCasterShadowPossiblyVisible(SceneBox) then
     begin
       { Do not render shadows for objects eliminated by DistanceCulling.
@@ -1188,12 +1189,12 @@ begin
 
           When WholeSceneManifold=true, we render all shapes here.
           The per-scene check already passed above. }
-        ShapeBox := Shape.BoundingBox.Transform(Params.Transform^);
+        ShapeBox := Shape.BoundingBox.Transform(Params.Transformation^.Transform);
         SVRenderer.InitCaster(ShapeBox);
         if RenderOptions.WholeSceneManifold or
            SVRenderer.CasterShadowPossiblyVisible then
         begin
-          ShapeWorldTransform := Params.Transform^ *
+          ShapeWorldTransform := Params.Transformation^.Transform *
             Shape.State.Transformation.Transform;
           Shape.InternalShadowVolumes.RenderSilhouetteShadowVolume(
             Params,
@@ -1540,7 +1541,7 @@ begin
     end;
 
     // RenderCameraPosition is used by DistanceCullingCheck* below
-    RenderCameraPosition := Params.InverseTransform^.MultPoint(
+    RenderCameraPosition := Params.Transformation^.InverseTransform.MultPoint(
       Params.RenderingCamera.View.Translation);
 
     { Do distance culling for whole scene.

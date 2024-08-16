@@ -730,7 +730,7 @@ begin
        (MimeType = 'application/xml') then
     begin
       { If file has anchors don't show import dialog }
-      UriGetAnchor(URLToOpen, URLAnchor, true);
+      UriGetAnchor(URLToOpen, URLAnchor);
       if URLAnchor = '' then
       begin
         ImportStarlingForm.Initialize(URLToOpen);

@@ -37,6 +37,7 @@ uses SysUtils,
   , GameViewPause
   , GameViewOptions
   , GameViewCredits
+  , GameViewControlsHelp
   {$endregion 'Castle Initialization Uses'};
 
 var
@@ -75,6 +76,7 @@ begin
   ViewPause := TViewPause.Create(Application);
   ViewOptions := TViewOptions.Create(Application);
   ViewCredits := TViewCredits.Create(Application);
+  ViewControlsHelp := TViewControlsHelp.Create(Application);
   {$endregion 'Castle View Creation'}
 
   Window.Container.View := ViewMenu;

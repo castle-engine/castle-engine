@@ -212,7 +212,9 @@ var
     rather than completely recreating the data store with glBufferData.
     This avoids the cost of reallocating the data store. " ). }
   procedure BufferData(const VboType: TVboType;
-    const Target: TGLenum; const Size: Cardinal; const Data: Pointer);
+    const Target: TBufferTarget; const Size: Cardinal; const Data: Pointer);
+  var
+    TargetGL: TGLenum;
   begin
     { It may happen that Data = nil, because Arrays.AttributeSize may be 0
       (some shapes just don't need extra per-vertex attributes).
@@ -244,15 +246,16 @@ var
          as it tries to access non-existent data from vertex arrays). }
        (VboAllocatedSize[VboType] <> Size) then
     begin
-      glBindBuffer(Target, Vbo[VboType]);
+      RenderContext.BindBuffer[Target] := Vbo[VboType];
+      TargetGL := BufferTargetGL[Target];
       if NewVbos or
         (VboAllocatedUsage <> DataUsage) or
         (VboAllocatedSize[VboType] <> Size) then
       begin
-        glBufferData(Target, Size, Data, DataUsage);
+        glBufferData(TargetGL, Size, Data, DataUsage);
         VboAllocatedSize[VboType] := Size;
       end else
-        glBufferSubData(Target, 0, Size, Data);
+        glBufferSubData(TargetGL, 0, Size, Data);
     end;
   end;
 
@@ -307,14 +310,14 @@ begin
 
     VboCoordinatePreserveGeometryOrder := Arrays.CoordinatePreserveGeometryOrder;
 
-    BufferData(vtCoordinate, GL_ARRAY_BUFFER,
+    BufferData(vtCoordinate, btArray,
       Arrays.Count * Arrays.CoordinateSize, Arrays.CoordinateArray);
 
-    BufferData(vtAttribute, GL_ARRAY_BUFFER,
+    BufferData(vtAttribute, btArray,
       Arrays.Count * Arrays.AttributeSize, Arrays.AttributeArray);
 
     if Arrays.Indexes <> nil then
-      BufferData(vtIndex, GL_ELEMENT_ARRAY_BUFFER,
+      BufferData(vtIndex, btElementArray,
         Arrays.Indexes.Count * SizeOf(TGeometryIndex), Arrays.Indexes.L);
 
     VboAllocatedUsage := DataUsage;

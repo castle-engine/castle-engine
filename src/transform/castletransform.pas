@@ -1,4 +1,4 @@
-{
+﻿{
   Copyright 2010-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
@@ -23,7 +23,8 @@ uses SysUtils, Classes, Math, Generics.Collections, Contnrs, Kraft,
   CastleVectors, CastleFrustum, CastleBoxes, CastleClassUtils, CastleKeysMouse,
   CastleRectangles, CastleUtils, CastleTimeUtils, CastleComponentSerialize,
   CastleSoundEngine, CastleTriangles, CastleRenderOptions, CastleProjection,
-  CastleUIControls, CastleQuaternions, CastleColors, CastleInternalClassUtils;
+  CastleUIControls, CastleQuaternions, CastleColors, CastleInternalClassUtils,
+  CastleInternalFileMonitor;
 
 type
   {$define read_interface}
@@ -38,7 +39,6 @@ type
   {$I castletransform_camera.inc}
 
 {$I castletransform_physics.inc}
-{$I castletransform_physics_deprecated.inc}
 {$I castletransform_joints.inc}
 {$I castletransform_joints_experimental.inc}
 {$I castletransform_serialize.inc}
@@ -57,7 +57,6 @@ uses CastleLog, CastleApplicationProperties, CastleUriUtils, CastleInternalRays,
 {$I castletransform_initial_types.inc}
 {$I castletransform_renderparams.inc}
 {$I castletransform_physics.inc}
-{$I castletransform_physics_deprecated.inc}
 {$I castletransform_joints.inc}
 {$I castletransform_joints_experimental.inc}
 {$I castletransform_collisions.inc}
@@ -80,7 +79,7 @@ initialization
   TCastleCollider.AutoSizeMinThickness := 0.01;
   TCastleCollider.AutoSizeMinThickness2D := 1;
   TCastleCollider.AutoSizeMinThickness2DDepth := 100;
-  GlobalIdentityMatrix := TMatrix4.Identity;
+  GlobalIdentityTransform.Init;
 
   RegisterSerializableComponent(TCastleTransform, 'Transform');
   RegisterSerializableComponent(TCastleTransformDesign, 'Transform Design (Use Another castle-transform File)');

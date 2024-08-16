@@ -6,7 +6,7 @@ See https://castle-engine.io/project_manifest for documentation of this file.
 -->
 
 <project name="fpc-cge"
-  standalone_source="fpc-cge.lpr"
+  standalone_source="fpc_cge.lpr"
   qualified_name="io.castleengine.fpc.cge">
   <compiler_options>
     <defines>

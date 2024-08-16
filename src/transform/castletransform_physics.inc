@@ -1,6 +1,6 @@
-{%MainUnit castletransform.pas}
+﻿{%MainUnit castletransform.pas}
 {
-  Copyright 2017-2023 Michalis Kamburelis.
+  Copyright 2017-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -22,7 +22,19 @@
     TCastleRigidBody.OnCollisionEnter, TCastleRigidBody.OnCollisionExit. }
   TPhysicsCollisionDetails = record
   public
-    Transforms: array[0..1] of TCastleTransform;
+    Transforms: array [0..1] of TCastleTransform;
+
+    { Object that receives the OnCollisionXxx event. }
+    function Sender: TCastleTransform;
+
+    { The object object (not the one that receives the OnCollisionXxx event)
+      to which the event is related.
+
+      @unorderedList(
+        @item In case of @link(OnCollisionEnter), this is the object that we collided with.
+        @item In case of @link(OnCollisionStay), this is the object that we are currently colliding with.
+        @item In case of @link(OnCollisionExit), this is the object that we stopped colliding with.
+      ) }
     function OtherTransform: TCastleTransform;
   end;
 
@@ -634,8 +646,6 @@
     cdContinuous
   );
 
-  TCollider = class;
-
   { Use this behavior to be affected by physics collisions and forces.
     Add a TCastleRigidBody and some collider (TCastleCollider descendant)
     as behaviors of TCastleTransform to make the given TCastleTransform
@@ -686,9 +696,6 @@
     procedure UpdateKraftGravity;
   private
     FKraftBody: TKraftRigidBody;
-    {$warnings off}
-    FCollider: TCollider;
-    {$warnings on}
     FGravity: Boolean;
     FDynamic: Boolean;
     FAnimated: Boolean;
@@ -709,8 +716,7 @@
     { Transform for which we initialized the physics objects or nil }
     FTransform: TCastleTransform;
 
-    { Get appropriate TKraftShape (from the deprecated TCollider or the new TCastleCollider).
-      This may be removed after removing deprecated TCollider, as it will be a bit pointless then. }
+    { Get appropriate TKraftShape (from TCastleCollider). }
     function GetKraftShape: TKraftShape;
 
     { Updates existence state of all physics engine objects - body and collider. }
@@ -766,7 +772,7 @@
 
       Initialization is done in three steps:
       1. Creation of Kraft rigid body in InitializeEngineRigidBody
-      2. Creation of Kraft shape based on TCollider (deprecated) or TCastleCollider
+      2. Creation of Kraft shape based on TCastleCollider
       3. Finishing initialization when creation of Kraft shape succeeded }
     procedure InitializePhysicsEngineObjects;
 
@@ -866,7 +872,7 @@
       This ignores the collider of this rigid body (to not accidentally collide
       with your own collider), and checks collisions with the rest of the world in
       given max distance.
-      Only collisions with the physics colliders (TCastleCollider and TCollider)
+      Only collisions with the physics colliders (TCastleCollider)
       are considered.
 
       Note: The @link(TCastleTransform.Pickable) property is ignored by this method,
@@ -995,29 +1001,38 @@
       It can occur repeatedly for the same body (in the same time instant)
       if the collision has many points of contact.
 
-      @italic(Warning:) Do not free the @link(TCastleTransform) instances
-      that collide during this event.
-      It would free the rigid body instance, which will crash the physics engine for now.
-      Instead, you can set @link(TCastleTransform.Exists) to @false
-      (you can free it later, e.g. during @link(TCastleUserInterface.OnUpdate)). }
+      @italic(Warning:) Do not free the related @link(TCastleTransform)
+      or @link(TCastleRigidBody) or @link(TCastleCollider) components
+      upon receiving this event.
+      Right now, it would free an underlying physics engine object,
+      and this would crash the physics engine.
+
+      Instead, you can:
+
+      @unorderedList(
+        @item(Schedule any component to free it later, using
+          @link(TCastleApplicationProperties.FreeDelayed ApplicationProperties.FreeDelayed).)
+        @item(Schedule @link(TCastleTransform) for removal/freeing later using
+          @link(TCastleTransform.RemoveDelayed).)
+        @item(Or set @link(TCastleTransform.Exists) to @false
+          and maybe free it later using your own mechanism.)
+      ) }
     property OnCollisionEnter: TCollisionEvent read FOnCollisionEnter write SetOnCollisionEnter;
 
     { Occurs when TCastleRigidBody stops colliding with another TCastleRigidBody.
 
-      @italic(Warning:) Do not free the @link(TCastleTransform) instances
-      that collide during this event.
-      It would free the rigid body instance, which will crash the physics engine for now.
-      Instead, you can set @link(TCastleTransform.Exists) to @false
-      (you can free it later, e.g. during @link(TCastleUserInterface.OnUpdate)). }
+      Just like at @link(OnCollisionEnter):
+      Do not free the related components upon receiving this event.
+      See the @link(OnCollisionEnter) documentation for details
+      of this limitation and solutions. }
     property OnCollisionExit: TCollisionEvent read FOnCollisionExit write SetOnCollisionExit;
 
     { Occurs when TCastleRigidBody still collides with another TCastleRigidBody.
 
-      @italic(Warning:) Do not free the @link(TCastleTransform) instances
-      that collide during this event.
-      It would free the rigid body instance, which will crash the physics engine for now.
-      Instead, you can set @link(TCastleTransform.Exists) to @false
-      (you can free it later, e.g. during @link(TCastleUserInterface.OnUpdate)). }
+      Just like at @link(OnCollisionEnter):
+      Do not free the related components upon receiving this event.
+      See the @link(OnCollisionEnter) documentation for details
+      of this limitation and solutions. }
     property OnCollisionStay: TCollisionEvent read FOnCollisionStay write SetOnCollisionStay;
   published
     { Does the physics simulation move and rotate this object
@@ -1072,16 +1087,6 @@
       @link(TCastleRigidBody.OnCollisionExit)). }
     property Trigger: Boolean read FTrigger write SetTrigger default false;
 
-    { Shape used for collisions with this object.
-      You cannot assign this property directly,
-      it is automatically assigned when you create a @link(TCollider)
-      specifying this @link(TRigidBody) as it's parent.
-
-      This is deprecated, using deprecated TCollider class.
-
-      @deprecated }
-    property Collider: TCollider read FCollider;
-
     { Sets CollisionDetectionMode in rigid body to Discrete or ContinuousSweep. }
     property CollisionDetection: TCollisionDetection read FCollisionDetection
       write SetCollisionDetection default cdDiscrete;
@@ -1118,7 +1123,9 @@
 
     { Controls whether the rigid body is actually processed by the physics engine.
       When this is @false, the rigid body is not updated by the physics engine,
-      and it does not cause collisions with other rigid bodies. }
+      it does not cause collisions with other rigid bodies
+      and it does not receive events like @link(OnCollisionEnter),
+      @link(OnCollisionStay), @link(OnCollisionExit). }
     property Exists: Boolean read FExists write SetExists default true;
 
     { Damping means that the velocity will decrease over time.
@@ -1391,6 +1398,11 @@ end;
 
 { TPhysicsCollisionDetails --------------------------------------------------- }
 
+function TPhysicsCollisionDetails.Sender: TCastleTransform;
+begin
+  Result := Transforms[0];
+end;
+
 function TPhysicsCollisionDetails.OtherTransform: TCastleTransform;
 begin
   Result := Transforms[1];
@@ -1602,10 +1614,6 @@ end;
 procedure TCastleCollider.InitializeKraft(const APhysics: TKraft;
   const ACastleRigidBody: TCastleRigidBody);
 begin
-  // when using old Collider and new one
-  if ACastleRigidBody.Collider <> nil then
-    raise Exception.Create('Trying to use old TCollider and TCastleCollider');
-
   Assert(ACastleRigidBody.FKraftBody <> nil,
     'Trying initialize kraft shape when rigid body not initialized!');
 
@@ -1621,7 +1629,7 @@ begin
   FKraftShape := CreateKraftShape(APhysics, ACastleRigidBody.FKraftBody);
   Assert(FKraftShape <> nil);
 
-  // assign common TCollider properties to Kraft shape
+  // assign common collider properties to Kraft shape
   FKraftShape.Density := Density;
   FKraftShape.Restitution := Restitution;
   FKraftShape.Friction := Friction;
@@ -2162,7 +2170,7 @@ begin
   if (ScaledSize[0] <= 0) or
      (ScaledSize[1] <= 0) or
      (ScaledSize[2] <= 0) then
-    raise EPhysicsError.Create('You must assign positive Size to TBoxCollider');
+    raise EPhysicsError.Create('You must assign positive Size to TCastleBoxCollider');
   Result := TKraftShapeBox.Create(APhysics, ARigidBody, VectorToKraft(ScaledSize / 2));
 end;
 
@@ -2700,7 +2708,6 @@ begin
     already freed FKraftBody and set it nil. }
 
   FreeAndNil(FKraftBody);
-  FreeAndNil(FCollider);
   FreeAndNil(FCollisionList);
   FreeAndNil(FPrevCollisions);
   FreeAndNil(FCurrentCollisions);
@@ -2848,10 +2855,7 @@ procedure TCastleRigidBody.InitializeCollider;
   var
     V: TVector3;
   begin
-    if Collider <> nil then
-      FKraftBody.ForcedMass := Collider.Mass
-    else
-      FKraftBody.ForcedMass := FCastleCollider.Mass;
+    FKraftBody.ForcedMass := FCastleCollider.Mass;
 
     FKraftBody.Finish;
 
@@ -2894,18 +2898,6 @@ begin
       'InitializeCollider: Trying to add collider but rigid body not initialized.');
 
   CastleColliderFromTransform := GetCastleColliderFromParent;
-  if (Collider <> nil) and (CastleColliderFromTransform <> nil) then
-    raise Exception.Create(
-      'You can''t use TCollider and TCastleCollider in the same rigid body. ' + NL +
-      'Remove deprecated RigidBody.Collider.');
-
-  if Collider <> nil then
-  begin
-    Collider.InitializeKraft(Parent.World.FKraftEngine, FKraftBody);
-    FinishInitialization;
-    Exit;
-  end;
-
   if (FCastleCollider <> CastleColliderFromTransform) and (FCastleCollider <> nil) then
   begin
     { Trying to initialize rigid body with another collider without deinitialization
@@ -2924,11 +2916,6 @@ end;
 
 procedure TCastleRigidBody.CheckInitialization(const ACastleCollider: TCastleCollider);
 begin
-  if Collider <> nil then
-    raise Exception.Create(
-      'You can''t use TCollider and TCastleCollider in the same rigid body. ' + NL +
-      'Remove deprecated RigidBody.Collider.');
-
   { FCastleCollider has pointer to castle collider behavior that was used to
     initialize rigid body so we didn't need do anything. }
   if FCastleCollider = ACastleCollider then
@@ -2962,7 +2949,7 @@ procedure TCastleRigidBody.DeinitializeCollider;
       Exit;
 
     { We don't use here FPrevCollisions list because it can be empty when
-      this rigid body don't assign any FOnCollisionXXX event. }
+      this rigid body didn't assign any FOnCollisionXXX event. }
     ContactPairEdge := FKraftBody.ContactPairEdgeFirst;
     while Assigned(ContactPairEdge) do
     begin
@@ -3003,15 +2990,12 @@ begin
     So other rigid body can crash when it try to send FOnCollisionExit event.
     Collisons must be handled before CastleCollider deinitialization because
     kraft resets collisons when you remove collider. }
-  if (Collider <> nil) or (FCastleCollider <> nil) then
+  if FCastleCollider <> nil then
     RemoveSelfFromOtherRigidBodiesCollisionLists;
 
-  { Collider.FKraftShape is owned by FKraftBody, it was automatically freed already }
-  if Collider <> nil then
-  begin
-    Collider.FKraftShape := nil;
-    FState := stateMissingCollider;
-  end else
+  { FCastleCollider.FKraftShape is owned by FKraftBody,
+    we need to free it (or nil) ASAP otherwise it will be freed
+    implicitly by FKraftBody freeing. }
   if FCastleCollider <> nil then
   begin
     if FKraftBody.ShapeCount > 0 then
@@ -3111,8 +3095,8 @@ begin
   while Assigned(ContactPairEdge) do
   begin
     { Without this check, OnCollisonEnter reports fake collisons when
-      one of colliding body has non regural shape (for example when
-      TBoxCollider is rotated).
+      one of colliding body has non regular shape (for example when
+      TCastleBoxCollider is rotated).
       kcfColliding = From kraft source comment: "Set when contact
       collides during a step" }
     if kcfColliding in ContactPairEdge^.ContactPair^.Flags then
@@ -3134,7 +3118,13 @@ begin
         begin
           // New collision.
           if Assigned(FOnCollisionEnter) then
+          begin
+            if not CollisionDetails.Transforms[0].RigidBody.Exists then
+              WriteLnWarning('TCastleRigidBody: Calling OnCollisionEnter when 1st TCastleRigidBody has Exists=false, submit a bug with testcase');
+            if not CollisionDetails.Transforms[1].RigidBody.Exists then
+              WriteLnWarning('TCastleRigidBody: Calling OnCollisionEnter when 2nd TCastleRigidBody has Exists=false, submit a bug with testcase');
             FOnCollisionEnter(CollisionDetails);
+          end;
         end else
         begin
           // Still in collision.
@@ -3180,9 +3170,6 @@ end;
 
 function TCastleRigidBody.GetKraftShape: TKraftShape;
 begin
-  if Collider <> nil then
-    Result := Collider.FKraftShape
-  else
   if FCastleCollider <> nil then
     Result := FCastleCollider.FKraftShape
   else
@@ -3512,7 +3499,7 @@ procedure TCastleRigidBody.Update(const SecondsPassed: Single; var RemoveMe: TRe
 
       LocalTransform := Parent.CheckParent.WorldInverseTransform *
         MatrixFromKraft(Shape.InterpolatedWorldTransform);
-      if (FCollider = nil) and (FCastleCollider <> nil) and
+      if (FCastleCollider <> nil) and
          (FCastleCollider.FUseLocalTransform) then
         LocalTransform := LocalTransform * FCastleCollider.FLocalInverseTransform;
 

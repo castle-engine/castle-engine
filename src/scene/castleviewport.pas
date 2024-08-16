@@ -167,6 +167,7 @@ type
       FOcclusionSort: TShapeSort;
       FBlendingSort: TShapeSort;
       FOnCustomShapeSort: TShapeSortEvent;
+      FUpdateSoundListener: Boolean;
 
       ShapesCollector: TShapesCollector;
       ShapesRenderer: TShapesRenderer;
@@ -1207,7 +1208,7 @@ type
 
     { Protect from falling down because of gravity when position is outside
       of world bounding box.
-      This is a nice thing for general model viewers (like view3dscene),
+      This is a nice thing for general model viewers (like castle-model-viewer),
       to prevent from accidentally falling down when using "Walk" mode.
 
       This is only used by navigations performing gravity internally,
@@ -1289,6 +1290,20 @@ type
       See TShapeSortEvent for usage details and example. }
     property OnCustomShapeSort: TShapeSortEvent
       read FOnCustomShapeSort write FOnCustomShapeSort;
+
+    { Should the sound listener (that determines how the sounds are heard)
+      be updated to reflect this viewport's active camera.
+      This is @true by default, so that 3D sound "just works" out-of-the-box
+      when you have 3D sounds in the TCastleViewport.
+      However, if you use @url(https://castle-engine.io/multiple_viewports_to_display_one_world multiple viewports)
+      to display the same world from multiple cameras,
+      you should set this to @false for all but one viewport.
+
+      Active camera comes from @code(Items.MainCamera) and should match
+      @link(Camera) in all normal circumstances, if you haven't customized
+      @code(Items.MainCamera) manually. }
+    property UpdateSoundListener: Boolean
+      read FUpdateSoundListener write FUpdateSoundListener default true;
 
   {$define read_interface_class}
   {$I auto_generated_persistent_vectors/tcastleviewport_persistent_vectors.inc}
@@ -1427,6 +1442,7 @@ begin
   InternalDistortViewAspect := 1;
   ShapesCollector := TShapesCollector.Create;
   ShapesRenderer := TShapesRenderer.Create;
+  FUpdateSoundListener := true;
 
   FItems := TCastleRootTransform.Create(Self);
   FItems.SetSubComponent(true);
@@ -2103,7 +2119,7 @@ begin
 
     Testcase:
     - (only reproducible on Windows for some reason, but in theory problem is cross-platform)
-    - open in view3dscene anchor_test.x3dv
+    - open in castle-model-viewer anchor_test.x3dv
     - click on something, like "Key Sensor"
     - without this fix, the next EventMotion causes crash as
       TCastleSceneCore.PointingDeviceMove is run with TRayCollisionNode
@@ -2116,7 +2132,7 @@ begin
   ClearMouseRayHit;
 
   { Signal to PointingDevicePressCore to not process further collision list.
-    TODO: why is this necessary? But anchor_test on view3dscene otherwise crashes. }
+    TODO: why is this necessary? But anchor_test on castle-model-viewer otherwise crashes. }
   ItemsNodesFreeOccurred := true;
 end;
 
@@ -3851,7 +3867,8 @@ begin
       Inc(Items.InternalVisibleNonGeometryStateId);
 
     SenderCamera.GetView(Pos, Dir, Up);
-    SoundEngine.InternalUpdateListener(Pos, Dir, Up);
+    if UpdateSoundListener then
+      SoundEngine.InternalUpdateListener(Pos, Dir, Up);
   end;
 
   if Assigned(OnCameraChanged) then
@@ -4073,8 +4090,8 @@ begin
     low above ground to see the attenuation on floor.  }
   Light := TCastlePointLight.Create(Owner);
   Light.Name := ProposeComponentName(TCastlePointLight, Owner);
-  Light.Translation := Vector3(4.00, 1.00, 1.00);
-  Light.Intensity := 10;
+  Light.Translation := Vector3(4.00, 3.00, 1.00);
+  // Light.Intensity := 100; // default for TCastlePointLight now
   Items.Add(Light);
 
   { purpose: initial 3D object,

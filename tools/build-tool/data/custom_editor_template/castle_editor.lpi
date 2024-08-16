@@ -241,6 +241,7 @@
     </Target>
     <SearchPaths>
       <IncludeFiles Value="${CASTLE_ENGINE_PATH}src/common_includes;$(ProjOutDir)"/>
+      <Libraries Value="../../src/vampyre_imaginglib/src/Extensions/J2KObjects"/>
       <OtherUnitFiles Value="${CASTLE_ENGINE_PATH}tools/castle-editor/code;${CASTLE_ENGINE_PATH}tools/common-code"/>
       <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
     <Libraries Value="${ABSOLUTE_LIBRARY_PATHS}" /> </SearchPaths>

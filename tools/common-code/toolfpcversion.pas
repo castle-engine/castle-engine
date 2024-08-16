@@ -111,7 +111,8 @@ begin
   Token := NextToken(S, SeekPos, NonDigits);
   if Token = '' then
   begin
-    WritelnWarning('Failed to query version: no release number in "%s", assuming 0', [S]);
+    // Do not warn about this, Lazarus has now version numbers without release, like "3.2"
+    // WritelnWarning('Failed to query version: no release number in "%s", assuming 0', [S]);
     Release := 0;
   end else
     Release := StrToInt(Token);

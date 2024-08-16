@@ -1,5 +1,5 @@
 {
-  Copyright 2009-2023 Michalis Kamburelis.
+  Copyright 2009-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -92,7 +92,8 @@ type
     FChangeNotifications: TNotifyEventList;
     procedure UpdateNodeCore(const Node: TAbstractChildNode;
       const Subdivisions: TVector2; const InputRange, OutputRange: TFloatRectangle;
-      const Appearance: TAppearanceNode);
+      const Appearance: TAppearanceNode;
+      const TriangulationIgnoreHeights: Boolean);
   private
     { Create X3D node with the given terrain shape.
 
@@ -109,7 +110,10 @@ type
       but you don't have to. Often they will at least have the same aspect ratio
       (actually, often they will be square), but you don't have to.
 
-      Divisions determines how dense is the mesh.
+      Subdivisions determines how dense is the mesh.
+      They determine the number of rows in columns in the mesh.
+      E.g. subdivision (4,4) means 16 (4 * 4) quads and 25 (5 * 5) vertexes.
+      This matches the Blender's "subdivisions" parameter for grids.
 
       We return the node that you should insert to your scene.
 
@@ -118,31 +122,15 @@ type
       and it can even be @nil. }
     function CreateNode(const Subdivisions: TVector2;
       const InputRange, OutputRange: TFloatRectangle;
-      const Appearance: TAppearanceNode): TAbstractChildNode; overload;
+      const Appearance: TAppearanceNode;
+      const TriangulationIgnoreHeights: Boolean): TAbstractChildNode; overload;
 
     { Update a node created by @link(CreateNode)
       to the new terrain and it's settings.
       The appearance of the previously created node (in CreateNode) is preserved. }
     procedure UpdateNode(const Node: TAbstractChildNode;
-      const Subdivisions: TVector2; const InputRange, OutputRange: TFloatRectangle);
-
-    { Alternative version of @link(CreateNode) that creates a different shape.
-      It's has little less quality (triangulation is not adaptive like
-      for ElevationGrid), but updating it (by UpdateTriangulatedNode)
-      is a little faster (than updating the CreateNode by UpdatNode).
-      In practice, the speed gain is minimal, and this method will likely
-      be removed at some point.
-
-      The parameters have the same meaning as for @link(CreateNode),
-      and resulting look should be the same. }
-    function CreateTriangulatedNode(const Subdivisions: TVector2;
-      const InputRange, OutputRange: TFloatRectangle;
-      const Appearance: TAppearanceNode): TAbstractChildNode;
-
-    { Update a node created by @link(CreateTriangulatedNode)
-      to the new terrain and it's settings. }
-    procedure UpdateTriangulatedNode(const Node: TAbstractChildNode;
-      const Subdivisions: TVector2; const InputRange, OutputRange: TFloatRectangle);
+      const Subdivisions: TVector2; const InputRange, OutputRange: TFloatRectangle;
+      const TriangulationIgnoreHeights: Boolean);
   protected
     { Use this in descendants implementation to notify that data
       (affecting @link(Height) results) changed.
@@ -190,7 +178,7 @@ type
   TCastleTerrainImage = class(TCastleTerrainData)
   strict private
     { FImage = nil and FUrl = '' when not loaded. }
-    FImage: TGrayscaleImage;
+    FImage: TGrayscaleFloatImage;
     FUrl: String;
     FMinLevel, FMaxLevel: Single;
     procedure SetUrl(const Value: String);
@@ -575,7 +563,7 @@ type
     Layers: array [1..LayersCount] of TCastleTerrainLayer;
     FData: TCastleTerrainData;
     FDataObserver: TFreeNotificationObserver;
-    FTriangulate: Boolean;
+    FTriangulationIgnoreHeights: Boolean;
     FSize, FQueryOffset: TVector2;
     FLayersInfluence: Single;
     FSteepEmphasize: Single;
@@ -592,7 +580,7 @@ type
     procedure UpdateGeometry;
 
     procedure SetData(const Value: TCastleTerrainData);
-    procedure SetTriangulate(const Value: Boolean);
+    procedure SetTriangulationIgnoreHeights(const Value: Boolean);
     procedure SetSubdivisions(const Value: TVector2);
     procedure SetSize(const Value: TVector2);
     procedure SetQueryOffset(const Value: TVector2);
@@ -625,6 +613,7 @@ type
       );
       DefaultLayersInfluence = 1.0;
       DefaultSteepEmphasize = 2.0;
+      DefaultTriangulationIgnoreHeights = false;
 
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -670,6 +659,9 @@ type
       It can be used to display a terrain noise matching neighboring terrain
       noise. }
     property QueryOffset: TVector2 read FQueryOffset write SetQueryOffset;
+
+    property Triangulate: Boolean read FTriangulationIgnoreHeights write SetTriangulationIgnoreHeights;
+      {$ifdef FPC}deprecated 'use TriangulationIgnoreHeights';{$endif}
   published
     { Options used to render the terrain. Can be used e.g. to toggle wireframe rendering. }
     property RenderOptions: TCastleRenderOptions read GetRenderOptions;
@@ -695,12 +687,21 @@ type
       Avoid doing it at runtime. }
     property Data: TCastleTerrainData read FData write SetData;
 
-    { Do we generate as a set of triangles, or ElevationGrid.
-      TODO: this is internal decision, should behave always like true?
+    { Triangulate each terrain quad the same way.
+
+      When @false (default) we make a triangulation that has a little better
+      quality. Each quad is split into 2 triangles in a way along the shortest
+      diagonal.
+
+      When @true, all the quads are triangulated consistently, disregarding
+      the heights. This looks a bit worse, but is more friendly to dynamic changes,
+      since changing the heights doesn't change the topology.
 
       Changing this requires rebuild of terrain geometry, so it's costly.
       Avoid doing it at runtime. }
-    property Triangulate: Boolean read FTriangulate write SetTriangulate default true;
+    property TriangulationIgnoreHeights: Boolean
+      read FTriangulationIgnoreHeights write SetTriangulationIgnoreHeights
+      default DefaultTriangulationIgnoreHeights;
 
     { How much should we emphasize the "steep" layers (2nd and 4th layers)
       at the expense of "flat" layers (1st and 3rd).
@@ -793,14 +794,17 @@ end;
 
 function TCastleTerrainData.CreateNode(const Subdivisions: TVector2;
   const InputRange, OutputRange: TFloatRectangle;
-  const Appearance: TAppearanceNode): TAbstractChildNode;
+  const Appearance: TAppearanceNode;
+  const TriangulationIgnoreHeights: Boolean): TAbstractChildNode;
 begin
   Result := TTransformNode.Create;
-  UpdateNodeCore(Result, Subdivisions, InputRange, OutputRange, Appearance);
+  UpdateNodeCore(Result, Subdivisions, InputRange, OutputRange, Appearance,
+    TriangulationIgnoreHeights);
 end;
 
 procedure TCastleTerrainData.UpdateNode(const Node: TAbstractChildNode;
-  const Subdivisions: TVector2; const InputRange, OutputRange: TFloatRectangle);
+  const Subdivisions: TVector2; const InputRange, OutputRange: TFloatRectangle;
+  const TriangulationIgnoreHeights: Boolean);
 var
   Transform: TTransformNode;
   Shape: TShapeNode;
@@ -812,22 +816,95 @@ begin
   Appearance := Shape.Appearance;
 
   Appearance.KeepExistingBegin;
-  UpdateNodeCore(Node, Subdivisions, InputRange, OutputRange, Appearance);
+  UpdateNodeCore(Node, Subdivisions, InputRange, OutputRange, Appearance,
+    TriangulationIgnoreHeights);
   Appearance.KeepExistingEnd;
 end;
 
 procedure TCastleTerrainData.UpdateNodeCore(const Node: TAbstractChildNode;
   const Subdivisions: TVector2; const InputRange, OutputRange: TFloatRectangle;
-  const Appearance: TAppearanceNode);
+  const Appearance: TAppearanceNode; const TriangulationIgnoreHeights: Boolean);
+var
+  XDimension, ZDimension: Cardinal;
+
+  { Calculate height for given terrain point.
+    Returns also coordinate and texture coordinate of this point.
+
+    Note: coordinate in InputCoord does *not* equal, in XZ, the local coordinates
+    that will be calculated by TElevationGridNode.InternalCreateTriangles.
+    This coordinate is in input range, InputRange.
+
+    In contrast, the local coordinates calculated by TElevationGridNode.InternalCreateTriangles
+    are partially in output range: they take into account OutputRange.Width/Height.
+    They do not take into account OutputRange.Left, OutputRange.Bottom
+    which is applied by the transfomaion node. }
+  function GetHeight(const X, Z: Single; out InputCoord, TexCoord: TVector2): Single;
+  begin
+    TexCoord := Vector2(
+      MapRangeTo01(X, 0, XDimension - 1),
+      MapRangeTo01(Z, 0, ZDimension - 1)
+    );
+    InputCoord := Vector2(
+      Lerp(TexCoord.X, InputRange.Left  , InputRange.Right),
+      Lerp(TexCoord.Y, InputRange.Bottom, InputRange.Top)
+    );
+    // TexCoord.Y grows in different direction, see Height docs for reason
+    TexCoord.Y := 1 - TexCoord.Y;
+    Result := Height(InputCoord, TexCoord);
+  end;
+
+  { Calculate 3D coordinate for given terrain point.
+    The XZ of this corresponds to the InputRange,
+    these are *not* 3D coordinates that will be
+    calculated by TElevationGridNode.InternalCreateTriangles. }
+  function GetInputCoord3D(const X, Z: Single): TVector3;
+  var
+    InputCoord, IgnoredTexCoord: TVector2;
+  begin
+    Result.Y := GetHeight(X, Z, InputCoord, IgnoredTexCoord);
+    Result.X := InputCoord.X;
+    Result.Z := InputCoord.Y;
+  end;
+
+  { Calculate normal at given terrain point.
+
+    Generating normals on our side, instead of letting TIndexedTriangleSetNode
+    algorithm to calculate them. Reasons:
+
+    - This is faster. TIndexedTriangleSetNode has to consider general case,
+      multiple triangles sharing a vertex in a general mesh.
+      We can optimize for our case, a grid of vertexes.
+
+    - On the edges, we can calculate normals in a more predictable way.
+      This makes placing one terrain next to another result in smooth lighting
+      where the terrains meet. }
+  function GetNormal(const X, Z: Integer): TVector3;
+  var
+    P, PX, PZ: TVector3;
+  begin
+    // P  := GetInputCoord3D(X, Z);
+    // PX := GetInputCoord3D(X + 1, Z);
+    // PZ := GetInputCoord3D(X, Z + 1);
+    // sample around the point, this way we don't make normal reflecting only one side
+    P  := GetInputCoord3D(X - 0.5, Z - 0.5);
+    PX := GetInputCoord3D(X + 0.5, Z - 0.5);
+    PZ := GetInputCoord3D(X - 0.5, Z + 0.5);
+    Result := TVector3.CrossProduct(
+      (PZ - P),
+      (PX - P)).Normalize;
+  end;
+
 var
   Transform: TTransformNode;
+  Normal: TNormalNode;
   Shape: TShapeNode;
-  Grid: TElevationGridNode;
-  X, Z, SubdivisionsX, SubdivisionsZ: Cardinal;
-  Coord, TexCoord: TVector2;
+  TriangleSet: TIndexedTriangleSetNode;
+  X, Z: Cardinal;
+  IgnoredInputCoord, IgnoredTexCoord: TVector2;
+  Heights: TSingleList;
 begin
-  SubdivisionsX := Round(Subdivisions.X);
-  SubdivisionsZ := Round(Subdivisions.Y);
+  XDimension := Round(Subdivisions.X) + 1;
+  ZDimension := Round(Subdivisions.Y) + 1;
 
   Transform := Node as TTransformNode; // created by CreateNode
   Transform.ClearChildren;
@@ -835,212 +912,40 @@ begin
 
   Shape := TShapeNode.Create;
 
-  Grid := TElevationGridNode.Create;
-  Shape.FdGeometry.Value := Grid;
-  Grid.FdCreaseAngle.Value := 4; { > pi, to be perfectly smooth }
-  Grid.FdXDimension.Value := SubdivisionsX;
-  Grid.FdZDimension.Value := SubdivisionsZ;
-  Grid.FdXSpacing.Value := OutputRange.Width  / (SubdivisionsX - 1);
-  Grid.FdZSpacing.Value := OutputRange.Height / (SubdivisionsZ - 1);
-  Grid.FdHeight.Items.Count := SubdivisionsX * SubdivisionsZ;
+  Heights := TSingleList.Create;
+  try
+    // calculate Heights
+    Heights.Count := XDimension * ZDimension;
+    for X := 0 to XDimension - 1 do
+      for Z := 0 to ZDimension - 1 do
+      begin
+        Heights.L[X + Z * XDimension] := GetHeight(X, Z, IgnoredInputCoord, IgnoredTexCoord);
+      end;
 
-  for X := 0 to SubdivisionsX - 1 do
-    for Z := 0 to SubdivisionsZ - 1 do
-    begin
-      TexCoord := Vector2(
-        MapRangeTo01(X, 0, SubdivisionsX - 1),
-        MapRangeTo01(Z, 0, SubdivisionsZ - 1)
-      );
-      Coord := Vector2(
-        Lerp(TexCoord.X, InputRange.Left  , InputRange.Right),
-        Lerp(TexCoord.Y, InputRange.Bottom, InputRange.Top)
-      );
-      // TexCoord.Y grows in different direction, see Height docs for reason
-      TexCoord.Y := 1 - TexCoord.Y;
-      Grid.FdHeight.Items.L[X + Z * SubdivisionsX] := Height(Coord, TexCoord);
-    end;
+    TriangleSet := TElevationGridNode.InternalCreateTriangles(
+      XDimension,
+      ZDimension,
+      OutputRange.Width  / (XDimension - 1),
+      OutputRange.Height / (ZDimension - 1),
+      Heights,
+      nil,
+      TriangulationIgnoreHeights
+    );
+  finally FreeAndNil(Heights) end;
 
+  // calculate Normal (for TriangleSet.Normal)
+  Normal := TNormalNode.Create;
+  Normal.FdVector.Items.Count := XDimension * ZDimension;
+  for X := 0 to XDimension - 1 do
+    for Z := 0 to ZDimension - 1 do
+      Normal.FdVector.Items.L[X + Z * XDimension] := GetNormal(X, Z);
+  TriangleSet.Normal := Normal;
+
+  Shape.Geometry := TriangleSet;
   Shape.Appearance := Appearance;
 
   // at the end, as this may cause Scene.ChangedAll
   Transform.AddChildren(Shape);
-end;
-
-function TCastleTerrainData.CreateTriangulatedNode(const Subdivisions: TVector2;
-  const InputRange, OutputRange: TFloatRectangle;
-  const Appearance: TAppearanceNode): TAbstractChildNode;
-var
-  Geometry: TIndexedTriangleStripSetNode;
-  CoordNode: TCoordinateNode;
-  NormalNode: TNormalNode;
-  Shape: TShapeNode;
-  Transform: TTransformNode;
-begin
-  Geometry := TIndexedTriangleStripSetNode.Create;
-
-  CoordNode := TCoordinateNode.Create;
-  Geometry.Coord := CoordNode;
-
-  NormalNode := TNormalNode.Create;
-  Geometry.Normal := NormalNode;
-
-  Shape := TShapeNode.Create;
-  Shape.Geometry := Geometry;
-  Shape.Appearance := Appearance;
-
-  Transform := TTransformNode.Create;
-  Transform.AddChildren(Shape);
-
-  Result := Transform;
-
-  UpdateTriangulatedNode(Result, Subdivisions, InputRange, OutputRange);
-end;
-
-procedure TCastleTerrainData.UpdateTriangulatedNode(const Node: TAbstractChildNode;
-  const Subdivisions: TVector2; const InputRange, OutputRange: TFloatRectangle);
-var
-  SubdivisionsPlus1: TVector2Cardinal;
-  Coord, Normal: TVector3List;
-  Index: TInt32List;
-  FaceNormals: TVector3List;
-  SubdivisionsX, SubdivisionsZ: Cardinal;
-
-  procedure CalculatePosition(const I, J: Cardinal; out Position: TVector3);
-  var
-    TexCoord, Coord: TVector2;
-  begin
-    TexCoord.X := I / (SubdivisionsX - 1);
-    TexCoord.Y := J / (SubdivisionsZ - 1);
-    Coord.X := InputRange.Width  * TexCoord.X + InputRange.Left;
-    Coord.Y := InputRange.Height * TexCoord.Y + InputRange.Bottom;
-
-    { Note that we don't shift by OutputRange.Left/Bottom by addition here,
-      but by TTransformNode. This way in shader terrain_position (that determines
-      UV for textures) starts from (0,0) at the corner (not middle) of the terrain,
-      which makes it easier (and consistent with UpdateNode for ElevationGrid)
-      to apply a texture that covers exactly the terrain once (matching
-      TCastleTextureImage image mapping). }
-    Position.X := OutputRange.Width  * TexCoord.X{ + OutputRange.Left};
-    Position.Z := OutputRange.Height * TexCoord.Y{ + OutputRange.Bottom};
-
-    // TexCoord.Y grows in different direction, see Height docs for reason
-    TexCoord.Y := 1 - TexCoord.Y;
-
-    Position.Y := Height(Coord, TexCoord);
-  end;
-
-  function Idx(const I, J: Integer): Integer;
-  begin
-    Result := I + J * SubdivisionsPlus1.X;
-  end;
-
-  procedure CalculateFaceNormal(const I, J: Cardinal; out Normal: TVector3);
-  var
-    P, PX, PY: PVector3;
-  begin
-    P  := PVector3(Coord.Ptr(Idx(I, J)));
-    PX := PVector3(Coord.Ptr(Idx(I + 1, J)));
-    PY := PVector3(Coord.Ptr(Idx(I, J + 1)));
-    Normal := TVector3.CrossProduct(
-      (PY^ - P^),
-      (PX^ - P^)).Normalize;
-  end;
-
-  procedure CalculateNormal(const I, J: Cardinal; out Normal: TVector3);
-
-    function FaceNormal(const DeltaX, DeltaY: Integer): TVector3;
-    begin
-      Result := FaceNormals.L[Idx(I + DeltaX, J + DeltaY)];
-    end;
-
-  begin
-    Normal := FaceNormal(0, 0);
-    if (I > 0) then
-      Normal := Normal + FaceNormal(-1, 0);
-    if (J > 0) then
-      Normal := Normal + FaceNormal(0, -1);
-    if (I > 0) and (J > 0) then
-      Normal := Normal + FaceNormal(-1, -1);
-    Normal := Normal.Normalize;
-  end;
-
-var
-  Transform: TTransformNode;
-  Shape: TShapeNode;
-  Geometry: TIndexedTriangleStripSetNode;
-  CoordNode: TCoordinateNode;
-  NormalNode: TNormalNode;
-  I, J: Cardinal;
-  IndexPtr: PInt32;
-begin
-  { extract nodes from Node, assuming it was created by CreateTriangulatedNode }
-  Transform := Node as TTransformNode;
-  Shape := Transform.FdChildren[0] as TShapeNode;
-  Geometry := Shape.Geometry as TIndexedTriangleStripSetNode;
-  CoordNode := Geometry.Coord as TCoordinateNode;
-  NormalNode := Geometry.Normal as TNormalNode;
-
-  Transform.Translation := Vector3(OutputRange.Left, 0, OutputRange.Bottom);
-
-  SubdivisionsX := Round(Subdivisions.X);
-  SubdivisionsZ := Round(Subdivisions.Y);
-
-  { We render SubdivisionsX-1 squares (edges) along the X way,
-    with SubdivisionsX points along the way.
-    But calculate positions for SubdivisionsX + 1 points,
-    because we need + 1 additional for normal calculation in CalculateFaceNormal. }
-  SubdivisionsPlus1 := Vector2Cardinal(SubdivisionsX + 1, SubdivisionsZ + 1);
-
-  Index := Geometry.FdIndex.Items;
-  Coord := CoordNode.FdPoint.Items;
-  Normal := NormalNode.FdVector.Items;
-
-  { We will render (SubdivisionsX * SubdivisionsZ) points, but we want to calculate
-    ((SubdivisionsX+1) * (SubdivisionsZ+1)) points:
-    to be able to calculate normal vectors.
-    Normals for the last row and last column will not be calculated,
-    and will not be used. }
-  Coord.Count := SubdivisionsPlus1.X * SubdivisionsPlus1.Y;
-  Normal.Count := SubdivisionsPlus1.X * SubdivisionsPlus1.Y;
-
-  { calculate Coord }
-  for I := 0 to SubdivisionsX do
-    for J := 0 to SubdivisionsZ do
-      CalculatePosition(I, J, Coord.L[Idx(I, J)]);
-  CoordNode.FdPoint.Changed;
-
-  { calculate Normals }
-  FaceNormals := TVector3List.Create;
-  try
-    FaceNormals.Count := SubdivisionsPlus1.X * SubdivisionsPlus1.Y;
-    { calculate per-face (flat) normals }
-    for I := 0 to SubdivisionsX - 1 do
-      for J := 0 to SubdivisionsZ - 1 do
-        CalculateFaceNormal(I, J, FaceNormals.L[Idx(I, J)]);
-    { calculate smooth vertex normals }
-    for I := 0 to SubdivisionsX - 1 do
-      for J := 0 to SubdivisionsZ - 1 do
-        CalculateNormal(I, J, Normal.L[Idx(I, J)]);
-  finally FreeAndNil(FaceNormals) end;
-  NormalNode.FdVector.Changed;
-
-  { calculate Index }
-  Index.Count := (SubdivisionsX - 1) * (SubdivisionsZ * 2 + 1);
-  IndexPtr := PInt32(Index.L);
-  for I := 1 to SubdivisionsX - 1 do
-  begin
-    for J := 0 to SubdivisionsZ - 1 do
-    begin
-      // order to make it CCW when viewed from above
-      IndexPtr^ := Idx(I    , J); Inc(IndexPtr);
-      IndexPtr^ := Idx(I - 1, J); Inc(IndexPtr);
-    end;
-    IndexPtr^ := -1;
-    Inc(IndexPtr);
-  end;
-  // make sure our Index.Count was set exactly to what we needed
-  Assert((PtrUInt(IndexPtr) - PtrUInt(Index.L)) div SizeOf(Int32) = Index.Count);
-  Geometry.FdIndex.Changed;
 end;
 
 { TCastleTerrainImage ------------------------------------------------------------ }
@@ -1062,12 +967,20 @@ procedure TCastleTerrainImage.SetUrl(const Value: String);
 
   procedure LoadImage(const NewUrl: String);
   var
-    NewImage: TGrayscaleImage;
+    NewImage: TGrayscaleFloatImage;
   begin
     if NewUrl = '' then
       NewImage := nil
     else
-      NewImage := CastleImages.LoadImage(NewUrl, [TGrayscaleImage]) as TGrayscaleImage;
+    begin
+      { Read as TGrayscaleFloatImage.
+        Allows to read high-precision data from image formats that support it,
+        like 16-bit PNG, 16/32-bit TIFF, OpenEXR in the future.
+        The 8-bit formats will be converted to TGrayscaleFloatImage by
+        TGrayscaleFloatImage.Assign. }
+      NewImage := CastleImages.LoadImage(NewUrl, [TGrayscaleFloatImage])
+        as TGrayscaleFloatImage;
+    end;
 
     FreeAndNil(FImage);
     FImage := NewImage;
@@ -1109,7 +1022,7 @@ begin
     PY := Floor(TexCoord.Y * FImage.Height);
     ClampVar(PX, 0, FImage.Width  - 1);
     ClampVar(PY, 0, FImage.Height - 1);
-    Intensity := MapRangeTo01(FImage.PixelPtr(PX, PY)^, 0, High(Byte));
+    Intensity := FImage.PixelPtr(PX, PY)^;
   end else
     Intensity := 0.5;
   Result := Lerp(Intensity, MinLevel, MaxLevel);
@@ -1751,7 +1664,7 @@ var
 begin
   inherited;
 
-  FTriangulate := true;
+  FTriangulationIgnoreHeights := DefaultTriangulationIgnoreHeights;
   FSubdivisions := Vector2(DefaultSubdivisions, DefaultSubdivisions);
   FSize := Vector2(DefaultSize, DefaultSize);
   FLayersInfluence := DefaultLayersInfluence;
@@ -1849,7 +1762,7 @@ procedure TCastleTerrain.UpdateGeometry;
     Shape.Appearance := Appearance;
 
     { We translate the quad by TTransformNode, to keep the vertex coordinates
-      in object space consistent with what is generated by CreateNode and CreateTriangulatedNode,
+      in object space consistent with what is generated by CreateNode,
       and make the texture UV coordinates start the same. }
     Transform.Translation := Vector3(Range.Left, 0, Range.Bottom);
 
@@ -1887,19 +1800,13 @@ begin
   begin
     if TerrainNode = nil then
     begin
-      if Triangulate then
-        TerrainNode := Data.CreateTriangulatedNode(Subdivisions, InputRange, OutputRange, Appearance)
-      else
-        TerrainNode := Data.CreateNode(Subdivisions, InputRange, OutputRange, Appearance);
+      TerrainNode := Data.CreateNode(Subdivisions, InputRange, OutputRange, Appearance, TriangulationIgnoreHeights);
       Root := TX3DRootNode.Create;
       Root.AddChildren(TerrainNode);
       Scene.Load(Root, true);
     end else
     begin
-      if Triangulate then
-        Data.UpdateTriangulatedNode(TerrainNode, Subdivisions, InputRange, OutputRange)
-      else
-        Data.UpdateNode(TerrainNode, Subdivisions, InputRange, OutputRange);
+      Data.UpdateNode(TerrainNode, Subdivisions, InputRange, OutputRange, TriangulationIgnoreHeights);
     end;
   end else
   begin
@@ -1959,9 +1866,9 @@ begin
   Data := nil;
 end;
 
-procedure TCastleTerrain.SetTriangulate(const Value: Boolean);
+procedure TCastleTerrain.SetTriangulationIgnoreHeights(const Value: Boolean);
 begin
-  if FTriangulate <> Value then
+  if FTriangulationIgnoreHeights <> Value then
   begin
     // free the TerrainNode and RootNode, even if already created, to create new one
     if TerrainNode <> nil then
@@ -1969,7 +1876,7 @@ begin
       Scene.RootNode := nil; // will free TerrainNode and RootNode
       TerrainNode := nil;
     end;
-    FTriangulate := Value;
+    FTriangulationIgnoreHeights := Value;
     UpdateGeometry;
   end;
 end;
@@ -2041,7 +1948,7 @@ end;
 function TCastleTerrain.PropertySections(const PropertyName: String): TPropertySections;
 begin
   if ArrayContainsString(PropertyName, [
-       'RenderOptions', 'Data', 'Triangulate', 'SubdivisionsPersistent',
+       'RenderOptions', 'Data', 'TriangulationIgnoreHeights', 'SubdivisionsPersistent',
        'SizePersistent', 'PreciseCollisions',
        'Height1', 'Height2',
        'Layer1', 'Layer2', 'Layer3', 'Layer4',

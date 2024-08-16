@@ -4,9 +4,9 @@
 castle-engine-output
 
 # Unix executable
-${PROJECT_NAME}
+/${PROJECT_NAME}
 # Windows executable
-${PROJECT_NAME}.exe
+/${PROJECT_NAME}.exe
 # Library files placed alongside Windows executable
 *.dll
 # Auto-updated by CGE tools when compiling Windows build

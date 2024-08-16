@@ -70,4 +70,4 @@ Statuses used by the admob service:
 
 If you have any problems with the admob service or want more logs, change the value of the `ServiceAdMob.debug` from `false` to `true`.
 Service source file is located in:
-`tools/build-tool/data/android/integrated-services/admob/app/src/main/java/net/sourceforge/castleengine/ServiceAdMob.java`
+`tools/build-tool/data/android/integrated-services/admob/app/src/main/java/io/castleengine/ServiceAdMob.java`

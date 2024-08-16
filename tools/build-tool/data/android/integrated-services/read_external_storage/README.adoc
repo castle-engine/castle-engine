@@ -6,6 +6,6 @@ _"External storage"_ includes normal files, which can be accessed in _Castle Gam
 
 These are e.g. files in your internal memory and SD cards.
 
-Note: This service is not necessary to read files from https://castle-engine.io/manual_data_directory.php[data directory] on Android. The application data, pakaged in APK, is installed to a special application-specific directory on Android, to which your app always has access.
+Note: This service is not necessary to read files from https://castle-engine.io/data[data directory] on Android. The application data, pakaged in APK, is installed to a special application-specific directory on Android, to which your app always has access.
 
 Note: This service is not necessary if you also use `write_external_storage`. If an application has write access, it implicitly also has read access (as documented on https://developer.android.com/reference/android/Manifest.permission.html#READ_EXTERNAL_STORAGE ).

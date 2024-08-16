@@ -1,6 +1,6 @@
 {%MainUnit castlefonts.pas}
 {
-  Copyright 2001-2023 Michalis Kamburelis.
+  Copyright 2001-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -650,19 +650,12 @@ procedure TCastleAbstractFont.BreakLines(broken: TStrings;
   MaxLineWidth: Single; FirstToBreak: integer);
 var
   I: Integer;
-  LineWidthBytes: Integer;
-  LineWidth: Single;
+  LineWidth, NewLineWidth: Single;
+  LineUnicodeChars: Cardinal;
   P: Integer;
   BreakInput, BreakOutput1, BreakOutput2, HardBreakOutput: string;
-  C: TUnicodeChar;
-  {$ifdef FPC}
-  BreakInputPtr: PChar;
-  CharLen: Integer;
-  {$else}
-  TextIndex: Integer;
-  NextTextIndex: Integer;
-  TextLength: Integer;
-  {$endif}
+  BreakInputIterator: TCastleStringIterator;
+  BreakNeeded: Boolean;
 begin
   { break the strings on Broken list.
     We look at MaxLineWidth in pixels, taking into account that font
@@ -673,67 +666,46 @@ begin
   while I < Broken.Count do
   begin
     BreakInput := Broken[I];
-
+    BreakInputIterator.Start(BreakInput);
     { Try breaking line number I. If it's empty, there's no need to break it. }
-    {$ifdef FPC}
-    BreakInputPtr := PChar(BreakInput);
-
-    C := UTF8CharacterToUnicode(BreakInputPtr, CharLen);
-    if (C > 0) and (CharLen > 0) then
-    {$else}
-    TextIndex := 1;
-    TextLength := Length(BreakInput);
-    if TextLength > 0 then
-    {$endif}
+    if BreakInputIterator.GetNext then
     begin
       { the first character C is always considered to fit into BreakOutput1,
         regardless of MaxLineWidth --- after all, we have to place this character
         somewhere (otherwise we would have to reject this character
         or raise an error). }
-      {$ifdef FPC}
-      Inc(BreakInputPtr, CharLen);
-      LineWidthBytes := CharLen;
-      {$else}
-      C := UnicodeStringNextChar(BreakInput, TextIndex, NextTextIndex);
-      TextIndex := NextTextIndex;
-      LineWidthBytes := TextIndex {TODO: maybe *2 to gets bytes};
-      {$endif}
-      LineWidth := TextWidth({$ifdef FPC}UnicodeToUTF8{$else}ConvertFromUtf32{$endif}(C));
+      LineWidth := TextWidth(UnicodeCharToString(BreakInputIterator.Current));
+      LineUnicodeChars := 1;
+      BreakNeeded := false;
 
-      {$ifdef FPC}
-      C := UTF8CharacterToUnicode(BreakInputPtr, CharLen);
-      while (C > 0) and (CharLen > 0) and
-            (LineWidth + TextWidth(UnicodeToUTF8(C)) <= MaxLineWidth) do
-      {$else}
-      while (TextIndex <= TextLength) and
-            (LineWidth + TextWidth(ConvertFromUtf32(C)) <= MaxLineWidth) do
-      {$endif}
+      while BreakInputIterator.GetNext do
       begin
-        {$ifdef FPC}
-        Inc(BreakInputPtr, CharLen);
-        LineWidthBytes += CharLen;
-        {$else}
-        C := UnicodeStringNextChar(BreakInput, TextIndex, NextTextIndex);
-        Inc(LineWidthBytes, NextTextIndex - TextIndex); {TODO: maybe *2 to gets bytes};
-        TextIndex := NextTextIndex;
-        {$endif}
-        LineWidth := LineWidth + TextWidth({$ifdef FPC}UnicodeToUTF8{$else}ConvertFromUtf32{$endif}(C));
-
-        {$ifdef FPC}
-        C := UTF8CharacterToUnicode(BreakInputPtr, CharLen);
-        {$endif}
+        NewLineWidth := LineWidth + TextWidth(UnicodeCharToString(BreakInputIterator.Current));
+        if NewLineWidth > MaxLineWidth then
+        begin
+          { More characters available, but we need to break }
+          BreakNeeded := true;
+          Break;
+        end;
+        LineWidth := NewLineWidth;
+        LineUnicodeChars := LineUnicodeChars + 1;
       end;
 
-      {$ifdef FPC}
-      if (C > 0) and (CharLen > 0) then // then above loop stopped because we have to break
-      {$else}
-      if TextIndex <= TextLength then // TODO: check that carefully
-      {$endif}
+      if BreakNeeded then
       begin
         { HardBreakOutput is BreakOutput1 in case we don't find a whitespace
           on which to break }
-        HardBreakOutput := Copy(BreakInput, 1, LineWidthBytes);
-        { We have to break this line now. }
+        HardBreakOutput := StringCopy(BreakInput, 1, LineUnicodeChars);
+
+        { We have to break this line now.
+
+          Note: To split with space, we use regular
+          BackCharsPos followed by Copy + SEnding. These are not aware of
+          multi-character sequences that in UTF-8 (FPC) or UTF-16 (Delphi) may mean
+          one Unicode character. But it's OK, the space is detected correctly
+          (since it's a single character in UTF-8 and UTF-16 and cannot be mistaken
+          for the middle of a multi-character sequence due to how UTF-8 and UTF-16
+          are made). }
         P := BackCharsPos(WhiteSpaces, HardBreakOutput);
         if P > 0 then
         begin
@@ -742,7 +714,7 @@ begin
         end else
         begin
           BreakOutput1 := HardBreakOutput;
-          BreakOutput2 := SEnding(BreakInput, Length(HardBreakOutput) + 1);
+          BreakOutput2 := StringEnding(BreakInput, LineUnicodeChars + 1);
         end;
         Broken[I] := BreakOutput1;
         Broken.Insert(I + 1, BreakOutput2); // next iteration will break BreakOutput2

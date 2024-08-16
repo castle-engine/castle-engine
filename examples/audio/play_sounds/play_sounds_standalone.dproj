@@ -155,17 +155,17 @@
         <VerInfo_Locale>1033</VerInfo_Locale>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_1)'!=''">
-        <DCC_Define>RELEASE;$(DCC_Define)</DCC_Define>
-        <DCC_DebugInformation>0</DCC_DebugInformation>
-        <DCC_LocalDebugSymbols>false</DCC_LocalDebugSymbols>
-        <DCC_SymbolReferenceInfo>0</DCC_SymbolReferenceInfo>
-    </PropertyGroup>
-    <PropertyGroup Condition="'$(Cfg_2)'!=''">
         <DCC_Define>DEBUG;$(DCC_Define)</DCC_Define>
         <DCC_Optimize>false</DCC_Optimize>
         <DCC_GenerateStackFrames>true</DCC_GenerateStackFrames>
         <DCC_RangeChecking>true</DCC_RangeChecking>
         <DCC_IntegerOverflowCheck>true</DCC_IntegerOverflowCheck>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Cfg_2)'!=''">
+        <DCC_Define>RELEASE;$(DCC_Define)</DCC_Define>
+        <DCC_DebugInformation>0</DCC_DebugInformation>
+        <DCC_LocalDebugSymbols>false</DCC_LocalDebugSymbols>
+        <DCC_SymbolReferenceInfo>0</DCC_SymbolReferenceInfo>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_2_Android64)'!=''">
         <BT_BuildType>Debug</BT_BuildType>
@@ -187,11 +187,11 @@
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>
-        <BuildConfiguration Include="Release">
+        <BuildConfiguration Include="Debug">
             <Key>Cfg_1</Key>
             <CfgParent>Base</CfgParent>
         </BuildConfiguration>
-        <BuildConfiguration Include="Debug">
+        <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>
         </BuildConfiguration>
@@ -270,1792 +270,657 @@
                 </DeployFile>
 
                 <!-- Deploy data files -->
-                <DeployFile LocalName="data\CastleSettings.xml" Configuration="Debug" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>CastleSettings.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>CastleSettings.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>CastleSettings.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>CastleSettings.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>CastleSettings.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>CastleSettings.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>CastleSettings.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>CastleSettings.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>CastleSettings.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\gameviewmain.castle-user-interface" Configuration="Debug" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\part_playing_sound.castle-user-interface" Configuration="Debug" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>part_playing_sound.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>part_playing_sound.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>part_playing_sound.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>part_playing_sound.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>part_playing_sound.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>part_playing_sound.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>part_playing_sound.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>part_playing_sound.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>part_playing_sound.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\sounds/AUTHORS.txt" Configuration="Debug" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>AUTHORS.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>AUTHORS.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>AUTHORS.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>AUTHORS.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>AUTHORS.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>AUTHORS.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>AUTHORS.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>AUTHORS.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>AUTHORS.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\sounds/beating_that_thing-22000Hz-16bit-stereo.ogg" Configuration="Debug" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>beating_that_thing-22000Hz-16bit-stereo.ogg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>beating_that_thing-22000Hz-16bit-stereo.ogg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>beating_that_thing-22000Hz-16bit-stereo.ogg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>beating_that_thing-22000Hz-16bit-stereo.ogg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>beating_that_thing-22000Hz-16bit-stereo.ogg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>beating_that_thing-22000Hz-16bit-stereo.ogg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>beating_that_thing-22000Hz-16bit-stereo.ogg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>beating_that_thing-22000Hz-16bit-stereo.ogg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>beating_that_thing-22000Hz-16bit-stereo.ogg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\sounds/beating_that_thing-44100Hz-16bit-stereo.ogg" Configuration="Debug" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>beating_that_thing-44100Hz-16bit-stereo.ogg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>beating_that_thing-44100Hz-16bit-stereo.ogg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>beating_that_thing-44100Hz-16bit-stereo.ogg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>beating_that_thing-44100Hz-16bit-stereo.ogg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>beating_that_thing-44100Hz-16bit-stereo.ogg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>beating_that_thing-44100Hz-16bit-stereo.ogg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>beating_that_thing-44100Hz-16bit-stereo.ogg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>beating_that_thing-44100Hz-16bit-stereo.ogg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>beating_that_thing-44100Hz-16bit-stereo.ogg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\sounds/misc_sound-22000Hz-8bit-mono.wav" Configuration="Debug" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>misc_sound-22000Hz-8bit-mono.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>misc_sound-22000Hz-8bit-mono.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>misc_sound-22000Hz-8bit-mono.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>misc_sound-22000Hz-8bit-mono.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>misc_sound-22000Hz-8bit-mono.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>misc_sound-22000Hz-8bit-mono.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>misc_sound-22000Hz-8bit-mono.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>misc_sound-22000Hz-8bit-mono.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>misc_sound-22000Hz-8bit-mono.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\sounds/misc_sound-44100Hz-8bit-mono.wav" Configuration="Debug" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>misc_sound-44100Hz-8bit-mono.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>misc_sound-44100Hz-8bit-mono.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>misc_sound-44100Hz-8bit-mono.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>misc_sound-44100Hz-8bit-mono.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>misc_sound-44100Hz-8bit-mono.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>misc_sound-44100Hz-8bit-mono.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>misc_sound-44100Hz-8bit-mono.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>misc_sound-44100Hz-8bit-mono.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>misc_sound-44100Hz-8bit-mono.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\sounds/negative-44100Hz-8bit-stereo.wav" Configuration="Debug" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>negative-44100Hz-8bit-stereo.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>negative-44100Hz-8bit-stereo.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>negative-44100Hz-8bit-stereo.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>negative-44100Hz-8bit-stereo.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>negative-44100Hz-8bit-stereo.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>negative-44100Hz-8bit-stereo.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>negative-44100Hz-8bit-stereo.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>negative-44100Hz-8bit-stereo.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>negative-44100Hz-8bit-stereo.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\sounds/original_versions/beating_that_thing.mp3" Configuration="Debug" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/sounds/original_versions/</RemoteDir>
-                        <RemoteName>beating_that_thing.mp3</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/sounds/original_versions/</RemoteDir>
-                        <RemoteName>beating_that_thing.mp3</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/sounds/original_versions/</RemoteDir>
-                        <RemoteName>beating_that_thing.mp3</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/sounds/original_versions/</RemoteDir>
-                        <RemoteName>beating_that_thing.mp3</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/sounds/original_versions/</RemoteDir>
-                        <RemoteName>beating_that_thing.mp3</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/sounds/original_versions/</RemoteDir>
-                        <RemoteName>beating_that_thing.mp3</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/sounds/original_versions/</RemoteDir>
-                        <RemoteName>beating_that_thing.mp3</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/sounds/original_versions/</RemoteDir>
-                        <RemoteName>beating_that_thing.mp3</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/sounds/original_versions/</RemoteDir>
-                        <RemoteName>beating_that_thing.mp3</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\sounds/original_versions/misc_sound-44100Hz-16bit-stereo.wav" Configuration="Debug" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/sounds/original_versions/</RemoteDir>
-                        <RemoteName>misc_sound-44100Hz-16bit-stereo.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/sounds/original_versions/</RemoteDir>
-                        <RemoteName>misc_sound-44100Hz-16bit-stereo.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/sounds/original_versions/</RemoteDir>
-                        <RemoteName>misc_sound-44100Hz-16bit-stereo.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/sounds/original_versions/</RemoteDir>
-                        <RemoteName>misc_sound-44100Hz-16bit-stereo.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/sounds/original_versions/</RemoteDir>
-                        <RemoteName>misc_sound-44100Hz-16bit-stereo.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/sounds/original_versions/</RemoteDir>
-                        <RemoteName>misc_sound-44100Hz-16bit-stereo.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/sounds/original_versions/</RemoteDir>
-                        <RemoteName>misc_sound-44100Hz-16bit-stereo.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/sounds/original_versions/</RemoteDir>
-                        <RemoteName>misc_sound-44100Hz-16bit-stereo.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/sounds/original_versions/</RemoteDir>
-                        <RemoteName>misc_sound-44100Hz-16bit-stereo.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\sounds/original_versions/negative-44100Hz-16bit-stereo.wav" Configuration="Debug" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/sounds/original_versions/</RemoteDir>
-                        <RemoteName>negative-44100Hz-16bit-stereo.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/sounds/original_versions/</RemoteDir>
-                        <RemoteName>negative-44100Hz-16bit-stereo.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/sounds/original_versions/</RemoteDir>
-                        <RemoteName>negative-44100Hz-16bit-stereo.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/sounds/original_versions/</RemoteDir>
-                        <RemoteName>negative-44100Hz-16bit-stereo.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/sounds/original_versions/</RemoteDir>
-                        <RemoteName>negative-44100Hz-16bit-stereo.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/sounds/original_versions/</RemoteDir>
-                        <RemoteName>negative-44100Hz-16bit-stereo.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/sounds/original_versions/</RemoteDir>
-                        <RemoteName>negative-44100Hz-16bit-stereo.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/sounds/original_versions/</RemoteDir>
-                        <RemoteName>negative-44100Hz-16bit-stereo.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/sounds/original_versions/</RemoteDir>
-                        <RemoteName>negative-44100Hz-16bit-stereo.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\sounds/original_versions/positive-44100Hz-16bit-stereo.wav" Configuration="Debug" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/sounds/original_versions/</RemoteDir>
-                        <RemoteName>positive-44100Hz-16bit-stereo.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/sounds/original_versions/</RemoteDir>
-                        <RemoteName>positive-44100Hz-16bit-stereo.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/sounds/original_versions/</RemoteDir>
-                        <RemoteName>positive-44100Hz-16bit-stereo.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/sounds/original_versions/</RemoteDir>
-                        <RemoteName>positive-44100Hz-16bit-stereo.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/sounds/original_versions/</RemoteDir>
-                        <RemoteName>positive-44100Hz-16bit-stereo.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/sounds/original_versions/</RemoteDir>
-                        <RemoteName>positive-44100Hz-16bit-stereo.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/sounds/original_versions/</RemoteDir>
-                        <RemoteName>positive-44100Hz-16bit-stereo.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/sounds/original_versions/</RemoteDir>
-                        <RemoteName>positive-44100Hz-16bit-stereo.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/sounds/original_versions/</RemoteDir>
-                        <RemoteName>positive-44100Hz-16bit-stereo.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\sounds/original_versions/save-44100Hz-16bit-stereo.wav" Configuration="Debug" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/sounds/original_versions/</RemoteDir>
-                        <RemoteName>save-44100Hz-16bit-stereo.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/sounds/original_versions/</RemoteDir>
-                        <RemoteName>save-44100Hz-16bit-stereo.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/sounds/original_versions/</RemoteDir>
-                        <RemoteName>save-44100Hz-16bit-stereo.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/sounds/original_versions/</RemoteDir>
-                        <RemoteName>save-44100Hz-16bit-stereo.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/sounds/original_versions/</RemoteDir>
-                        <RemoteName>save-44100Hz-16bit-stereo.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/sounds/original_versions/</RemoteDir>
-                        <RemoteName>save-44100Hz-16bit-stereo.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/sounds/original_versions/</RemoteDir>
-                        <RemoteName>save-44100Hz-16bit-stereo.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/sounds/original_versions/</RemoteDir>
-                        <RemoteName>save-44100Hz-16bit-stereo.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/sounds/original_versions/</RemoteDir>
-                        <RemoteName>save-44100Hz-16bit-stereo.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\sounds/original_versions/temple_adam_goh-44000Hz-16bit-stereo.ogg" Configuration="Debug" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/sounds/original_versions/</RemoteDir>
-                        <RemoteName>temple_adam_goh-44000Hz-16bit-stereo.ogg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/sounds/original_versions/</RemoteDir>
-                        <RemoteName>temple_adam_goh-44000Hz-16bit-stereo.ogg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/sounds/original_versions/</RemoteDir>
-                        <RemoteName>temple_adam_goh-44000Hz-16bit-stereo.ogg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/sounds/original_versions/</RemoteDir>
-                        <RemoteName>temple_adam_goh-44000Hz-16bit-stereo.ogg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/sounds/original_versions/</RemoteDir>
-                        <RemoteName>temple_adam_goh-44000Hz-16bit-stereo.ogg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/sounds/original_versions/</RemoteDir>
-                        <RemoteName>temple_adam_goh-44000Hz-16bit-stereo.ogg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/sounds/original_versions/</RemoteDir>
-                        <RemoteName>temple_adam_goh-44000Hz-16bit-stereo.ogg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/sounds/original_versions/</RemoteDir>
-                        <RemoteName>temple_adam_goh-44000Hz-16bit-stereo.ogg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/sounds/original_versions/</RemoteDir>
-                        <RemoteName>temple_adam_goh-44000Hz-16bit-stereo.ogg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\sounds/positive-44100Hz-16bit-mono.wav" Configuration="Debug" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>positive-44100Hz-16bit-mono.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>positive-44100Hz-16bit-mono.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>positive-44100Hz-16bit-mono.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>positive-44100Hz-16bit-mono.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>positive-44100Hz-16bit-mono.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>positive-44100Hz-16bit-mono.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>positive-44100Hz-16bit-mono.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>positive-44100Hz-16bit-mono.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>positive-44100Hz-16bit-mono.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\sounds/save-44100Hz-16bit-stereo.wav" Configuration="Debug" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>save-44100Hz-16bit-stereo.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>save-44100Hz-16bit-stereo.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>save-44100Hz-16bit-stereo.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>save-44100Hz-16bit-stereo.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>save-44100Hz-16bit-stereo.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>save-44100Hz-16bit-stereo.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>save-44100Hz-16bit-stereo.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>save-44100Hz-16bit-stereo.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>save-44100Hz-16bit-stereo.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\sounds/stereo_test.wav" Configuration="Debug" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>stereo_test.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>stereo_test.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>stereo_test.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>stereo_test.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>stereo_test.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>stereo_test.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>stereo_test.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>stereo_test.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>stereo_test.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\sounds/temple_adam_goh-44000Hz-16bit-mono.ogg" Configuration="Debug" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>temple_adam_goh-44000Hz-16bit-mono.ogg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>temple_adam_goh-44000Hz-16bit-mono.ogg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>temple_adam_goh-44000Hz-16bit-mono.ogg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>temple_adam_goh-44000Hz-16bit-mono.ogg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>temple_adam_goh-44000Hz-16bit-mono.ogg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>temple_adam_goh-44000Hz-16bit-mono.ogg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>temple_adam_goh-44000Hz-16bit-mono.ogg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>temple_adam_goh-44000Hz-16bit-mono.ogg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>temple_adam_goh-44000Hz-16bit-mono.ogg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\CastleSettings.xml" Configuration="Release" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>CastleSettings.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>CastleSettings.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>CastleSettings.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>CastleSettings.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>CastleSettings.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>CastleSettings.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>CastleSettings.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>CastleSettings.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>CastleSettings.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\gameviewmain.castle-user-interface" Configuration="Release" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\part_playing_sound.castle-user-interface" Configuration="Release" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>part_playing_sound.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>part_playing_sound.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>part_playing_sound.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>part_playing_sound.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>part_playing_sound.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>part_playing_sound.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>part_playing_sound.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>part_playing_sound.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>part_playing_sound.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\sounds/AUTHORS.txt" Configuration="Release" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>AUTHORS.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>AUTHORS.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>AUTHORS.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>AUTHORS.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>AUTHORS.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>AUTHORS.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>AUTHORS.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>AUTHORS.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>AUTHORS.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\sounds/beating_that_thing-22000Hz-16bit-stereo.ogg" Configuration="Release" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>beating_that_thing-22000Hz-16bit-stereo.ogg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>beating_that_thing-22000Hz-16bit-stereo.ogg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>beating_that_thing-22000Hz-16bit-stereo.ogg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>beating_that_thing-22000Hz-16bit-stereo.ogg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>beating_that_thing-22000Hz-16bit-stereo.ogg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>beating_that_thing-22000Hz-16bit-stereo.ogg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>beating_that_thing-22000Hz-16bit-stereo.ogg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>beating_that_thing-22000Hz-16bit-stereo.ogg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>beating_that_thing-22000Hz-16bit-stereo.ogg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\sounds/beating_that_thing-44100Hz-16bit-stereo.ogg" Configuration="Release" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>beating_that_thing-44100Hz-16bit-stereo.ogg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>beating_that_thing-44100Hz-16bit-stereo.ogg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>beating_that_thing-44100Hz-16bit-stereo.ogg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>beating_that_thing-44100Hz-16bit-stereo.ogg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>beating_that_thing-44100Hz-16bit-stereo.ogg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>beating_that_thing-44100Hz-16bit-stereo.ogg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>beating_that_thing-44100Hz-16bit-stereo.ogg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>beating_that_thing-44100Hz-16bit-stereo.ogg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>beating_that_thing-44100Hz-16bit-stereo.ogg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\sounds/misc_sound-22000Hz-8bit-mono.wav" Configuration="Release" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>misc_sound-22000Hz-8bit-mono.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>misc_sound-22000Hz-8bit-mono.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>misc_sound-22000Hz-8bit-mono.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>misc_sound-22000Hz-8bit-mono.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>misc_sound-22000Hz-8bit-mono.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>misc_sound-22000Hz-8bit-mono.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>misc_sound-22000Hz-8bit-mono.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>misc_sound-22000Hz-8bit-mono.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>misc_sound-22000Hz-8bit-mono.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\sounds/misc_sound-44100Hz-8bit-mono.wav" Configuration="Release" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>misc_sound-44100Hz-8bit-mono.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>misc_sound-44100Hz-8bit-mono.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>misc_sound-44100Hz-8bit-mono.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>misc_sound-44100Hz-8bit-mono.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>misc_sound-44100Hz-8bit-mono.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>misc_sound-44100Hz-8bit-mono.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>misc_sound-44100Hz-8bit-mono.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>misc_sound-44100Hz-8bit-mono.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>misc_sound-44100Hz-8bit-mono.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\sounds/negative-44100Hz-8bit-stereo.wav" Configuration="Release" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>negative-44100Hz-8bit-stereo.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>negative-44100Hz-8bit-stereo.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>negative-44100Hz-8bit-stereo.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>negative-44100Hz-8bit-stereo.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>negative-44100Hz-8bit-stereo.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>negative-44100Hz-8bit-stereo.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>negative-44100Hz-8bit-stereo.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>negative-44100Hz-8bit-stereo.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>negative-44100Hz-8bit-stereo.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\sounds/original_versions/beating_that_thing.mp3" Configuration="Release" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/sounds/original_versions/</RemoteDir>
-                        <RemoteName>beating_that_thing.mp3</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/sounds/original_versions/</RemoteDir>
-                        <RemoteName>beating_that_thing.mp3</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/sounds/original_versions/</RemoteDir>
-                        <RemoteName>beating_that_thing.mp3</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/sounds/original_versions/</RemoteDir>
-                        <RemoteName>beating_that_thing.mp3</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/sounds/original_versions/</RemoteDir>
-                        <RemoteName>beating_that_thing.mp3</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/sounds/original_versions/</RemoteDir>
-                        <RemoteName>beating_that_thing.mp3</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/sounds/original_versions/</RemoteDir>
-                        <RemoteName>beating_that_thing.mp3</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/sounds/original_versions/</RemoteDir>
-                        <RemoteName>beating_that_thing.mp3</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/sounds/original_versions/</RemoteDir>
-                        <RemoteName>beating_that_thing.mp3</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\sounds/original_versions/misc_sound-44100Hz-16bit-stereo.wav" Configuration="Release" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/sounds/original_versions/</RemoteDir>
-                        <RemoteName>misc_sound-44100Hz-16bit-stereo.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/sounds/original_versions/</RemoteDir>
-                        <RemoteName>misc_sound-44100Hz-16bit-stereo.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/sounds/original_versions/</RemoteDir>
-                        <RemoteName>misc_sound-44100Hz-16bit-stereo.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/sounds/original_versions/</RemoteDir>
-                        <RemoteName>misc_sound-44100Hz-16bit-stereo.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/sounds/original_versions/</RemoteDir>
-                        <RemoteName>misc_sound-44100Hz-16bit-stereo.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/sounds/original_versions/</RemoteDir>
-                        <RemoteName>misc_sound-44100Hz-16bit-stereo.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/sounds/original_versions/</RemoteDir>
-                        <RemoteName>misc_sound-44100Hz-16bit-stereo.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/sounds/original_versions/</RemoteDir>
-                        <RemoteName>misc_sound-44100Hz-16bit-stereo.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/sounds/original_versions/</RemoteDir>
-                        <RemoteName>misc_sound-44100Hz-16bit-stereo.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\sounds/original_versions/negative-44100Hz-16bit-stereo.wav" Configuration="Release" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/sounds/original_versions/</RemoteDir>
-                        <RemoteName>negative-44100Hz-16bit-stereo.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/sounds/original_versions/</RemoteDir>
-                        <RemoteName>negative-44100Hz-16bit-stereo.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/sounds/original_versions/</RemoteDir>
-                        <RemoteName>negative-44100Hz-16bit-stereo.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/sounds/original_versions/</RemoteDir>
-                        <RemoteName>negative-44100Hz-16bit-stereo.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/sounds/original_versions/</RemoteDir>
-                        <RemoteName>negative-44100Hz-16bit-stereo.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/sounds/original_versions/</RemoteDir>
-                        <RemoteName>negative-44100Hz-16bit-stereo.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/sounds/original_versions/</RemoteDir>
-                        <RemoteName>negative-44100Hz-16bit-stereo.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/sounds/original_versions/</RemoteDir>
-                        <RemoteName>negative-44100Hz-16bit-stereo.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/sounds/original_versions/</RemoteDir>
-                        <RemoteName>negative-44100Hz-16bit-stereo.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\sounds/original_versions/positive-44100Hz-16bit-stereo.wav" Configuration="Release" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/sounds/original_versions/</RemoteDir>
-                        <RemoteName>positive-44100Hz-16bit-stereo.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/sounds/original_versions/</RemoteDir>
-                        <RemoteName>positive-44100Hz-16bit-stereo.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/sounds/original_versions/</RemoteDir>
-                        <RemoteName>positive-44100Hz-16bit-stereo.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/sounds/original_versions/</RemoteDir>
-                        <RemoteName>positive-44100Hz-16bit-stereo.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/sounds/original_versions/</RemoteDir>
-                        <RemoteName>positive-44100Hz-16bit-stereo.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/sounds/original_versions/</RemoteDir>
-                        <RemoteName>positive-44100Hz-16bit-stereo.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/sounds/original_versions/</RemoteDir>
-                        <RemoteName>positive-44100Hz-16bit-stereo.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/sounds/original_versions/</RemoteDir>
-                        <RemoteName>positive-44100Hz-16bit-stereo.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/sounds/original_versions/</RemoteDir>
-                        <RemoteName>positive-44100Hz-16bit-stereo.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\sounds/original_versions/save-44100Hz-16bit-stereo.wav" Configuration="Release" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/sounds/original_versions/</RemoteDir>
-                        <RemoteName>save-44100Hz-16bit-stereo.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/sounds/original_versions/</RemoteDir>
-                        <RemoteName>save-44100Hz-16bit-stereo.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/sounds/original_versions/</RemoteDir>
-                        <RemoteName>save-44100Hz-16bit-stereo.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/sounds/original_versions/</RemoteDir>
-                        <RemoteName>save-44100Hz-16bit-stereo.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/sounds/original_versions/</RemoteDir>
-                        <RemoteName>save-44100Hz-16bit-stereo.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/sounds/original_versions/</RemoteDir>
-                        <RemoteName>save-44100Hz-16bit-stereo.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/sounds/original_versions/</RemoteDir>
-                        <RemoteName>save-44100Hz-16bit-stereo.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/sounds/original_versions/</RemoteDir>
-                        <RemoteName>save-44100Hz-16bit-stereo.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/sounds/original_versions/</RemoteDir>
-                        <RemoteName>save-44100Hz-16bit-stereo.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\sounds/original_versions/temple_adam_goh-44000Hz-16bit-stereo.ogg" Configuration="Release" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/sounds/original_versions/</RemoteDir>
-                        <RemoteName>temple_adam_goh-44000Hz-16bit-stereo.ogg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/sounds/original_versions/</RemoteDir>
-                        <RemoteName>temple_adam_goh-44000Hz-16bit-stereo.ogg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/sounds/original_versions/</RemoteDir>
-                        <RemoteName>temple_adam_goh-44000Hz-16bit-stereo.ogg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/sounds/original_versions/</RemoteDir>
-                        <RemoteName>temple_adam_goh-44000Hz-16bit-stereo.ogg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/sounds/original_versions/</RemoteDir>
-                        <RemoteName>temple_adam_goh-44000Hz-16bit-stereo.ogg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/sounds/original_versions/</RemoteDir>
-                        <RemoteName>temple_adam_goh-44000Hz-16bit-stereo.ogg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/sounds/original_versions/</RemoteDir>
-                        <RemoteName>temple_adam_goh-44000Hz-16bit-stereo.ogg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/sounds/original_versions/</RemoteDir>
-                        <RemoteName>temple_adam_goh-44000Hz-16bit-stereo.ogg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/sounds/original_versions/</RemoteDir>
-                        <RemoteName>temple_adam_goh-44000Hz-16bit-stereo.ogg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\sounds/positive-44100Hz-16bit-mono.wav" Configuration="Release" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>positive-44100Hz-16bit-mono.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>positive-44100Hz-16bit-mono.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>positive-44100Hz-16bit-mono.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>positive-44100Hz-16bit-mono.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>positive-44100Hz-16bit-mono.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>positive-44100Hz-16bit-mono.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>positive-44100Hz-16bit-mono.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>positive-44100Hz-16bit-mono.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>positive-44100Hz-16bit-mono.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\sounds/save-44100Hz-16bit-stereo.wav" Configuration="Release" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>save-44100Hz-16bit-stereo.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>save-44100Hz-16bit-stereo.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>save-44100Hz-16bit-stereo.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>save-44100Hz-16bit-stereo.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>save-44100Hz-16bit-stereo.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>save-44100Hz-16bit-stereo.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>save-44100Hz-16bit-stereo.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>save-44100Hz-16bit-stereo.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>save-44100Hz-16bit-stereo.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\sounds/stereo_test.wav" Configuration="Release" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>stereo_test.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>stereo_test.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>stereo_test.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>stereo_test.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>stereo_test.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>stereo_test.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>stereo_test.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>stereo_test.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>stereo_test.wav</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\sounds/temple_adam_goh-44000Hz-16bit-mono.ogg" Configuration="Release" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>temple_adam_goh-44000Hz-16bit-mono.ogg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>temple_adam_goh-44000Hz-16bit-mono.ogg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>temple_adam_goh-44000Hz-16bit-mono.ogg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>temple_adam_goh-44000Hz-16bit-mono.ogg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>temple_adam_goh-44000Hz-16bit-mono.ogg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>temple_adam_goh-44000Hz-16bit-mono.ogg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>temple_adam_goh-44000Hz-16bit-mono.ogg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>temple_adam_goh-44000Hz-16bit-mono.ogg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/sounds/</RemoteDir>
-                        <RemoteName>temple_adam_goh-44000Hz-16bit-mono.ogg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
+<!-- Auto-generated list of deploy files.
+     We need to list all "data" files to deploy Delphi applications
+     to non-Windows targets,
+     see https://castle-engine.io/delphi_linux#data_files_deployment .
+-->
+<DeployFile LocalName="data\CastleSettings.xml" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>CastleSettings.xml</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>CastleSettings.xml</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>CastleSettings.xml</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\gameviewmain.castle-user-interface" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>gameviewmain.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>gameviewmain.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>gameviewmain.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\part_playing_sound.castle-user-interface" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>part_playing_sound.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>part_playing_sound.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>part_playing_sound.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\sounds/AUTHORS.txt" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/sounds/</RemoteDir>
+  <RemoteName>AUTHORS.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/sounds/</RemoteDir>
+  <RemoteName>AUTHORS.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/sounds/</RemoteDir>
+  <RemoteName>AUTHORS.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\sounds/beating_that_thing-22000Hz-16bit-stereo.ogg" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/sounds/</RemoteDir>
+  <RemoteName>beating_that_thing-22000Hz-16bit-stereo.ogg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/sounds/</RemoteDir>
+  <RemoteName>beating_that_thing-22000Hz-16bit-stereo.ogg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/sounds/</RemoteDir>
+  <RemoteName>beating_that_thing-22000Hz-16bit-stereo.ogg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\sounds/beating_that_thing-44100Hz-16bit-stereo.ogg" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/sounds/</RemoteDir>
+  <RemoteName>beating_that_thing-44100Hz-16bit-stereo.ogg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/sounds/</RemoteDir>
+  <RemoteName>beating_that_thing-44100Hz-16bit-stereo.ogg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/sounds/</RemoteDir>
+  <RemoteName>beating_that_thing-44100Hz-16bit-stereo.ogg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\sounds/misc_sound-22000Hz-8bit-mono.wav" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/sounds/</RemoteDir>
+  <RemoteName>misc_sound-22000Hz-8bit-mono.wav</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/sounds/</RemoteDir>
+  <RemoteName>misc_sound-22000Hz-8bit-mono.wav</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/sounds/</RemoteDir>
+  <RemoteName>misc_sound-22000Hz-8bit-mono.wav</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\sounds/misc_sound-44100Hz-8bit-mono.wav" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/sounds/</RemoteDir>
+  <RemoteName>misc_sound-44100Hz-8bit-mono.wav</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/sounds/</RemoteDir>
+  <RemoteName>misc_sound-44100Hz-8bit-mono.wav</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/sounds/</RemoteDir>
+  <RemoteName>misc_sound-44100Hz-8bit-mono.wav</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\sounds/negative-44100Hz-8bit-stereo.wav" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/sounds/</RemoteDir>
+  <RemoteName>negative-44100Hz-8bit-stereo.wav</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/sounds/</RemoteDir>
+  <RemoteName>negative-44100Hz-8bit-stereo.wav</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/sounds/</RemoteDir>
+  <RemoteName>negative-44100Hz-8bit-stereo.wav</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\sounds/original_versions/beating_that_thing.mp3" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/sounds/original_versions/</RemoteDir>
+  <RemoteName>beating_that_thing.mp3</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/sounds/original_versions/</RemoteDir>
+  <RemoteName>beating_that_thing.mp3</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/sounds/original_versions/</RemoteDir>
+  <RemoteName>beating_that_thing.mp3</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\sounds/original_versions/misc_sound-44100Hz-16bit-stereo.wav" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/sounds/original_versions/</RemoteDir>
+  <RemoteName>misc_sound-44100Hz-16bit-stereo.wav</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/sounds/original_versions/</RemoteDir>
+  <RemoteName>misc_sound-44100Hz-16bit-stereo.wav</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/sounds/original_versions/</RemoteDir>
+  <RemoteName>misc_sound-44100Hz-16bit-stereo.wav</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\sounds/original_versions/negative-44100Hz-16bit-stereo.wav" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/sounds/original_versions/</RemoteDir>
+  <RemoteName>negative-44100Hz-16bit-stereo.wav</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/sounds/original_versions/</RemoteDir>
+  <RemoteName>negative-44100Hz-16bit-stereo.wav</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/sounds/original_versions/</RemoteDir>
+  <RemoteName>negative-44100Hz-16bit-stereo.wav</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\sounds/original_versions/positive-44100Hz-16bit-stereo.wav" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/sounds/original_versions/</RemoteDir>
+  <RemoteName>positive-44100Hz-16bit-stereo.wav</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/sounds/original_versions/</RemoteDir>
+  <RemoteName>positive-44100Hz-16bit-stereo.wav</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/sounds/original_versions/</RemoteDir>
+  <RemoteName>positive-44100Hz-16bit-stereo.wav</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\sounds/original_versions/save-44100Hz-16bit-stereo.wav" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/sounds/original_versions/</RemoteDir>
+  <RemoteName>save-44100Hz-16bit-stereo.wav</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/sounds/original_versions/</RemoteDir>
+  <RemoteName>save-44100Hz-16bit-stereo.wav</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/sounds/original_versions/</RemoteDir>
+  <RemoteName>save-44100Hz-16bit-stereo.wav</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\sounds/original_versions/temple_adam_goh-44000Hz-16bit-stereo.ogg" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/sounds/original_versions/</RemoteDir>
+  <RemoteName>temple_adam_goh-44000Hz-16bit-stereo.ogg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/sounds/original_versions/</RemoteDir>
+  <RemoteName>temple_adam_goh-44000Hz-16bit-stereo.ogg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/sounds/original_versions/</RemoteDir>
+  <RemoteName>temple_adam_goh-44000Hz-16bit-stereo.ogg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\sounds/positive-44100Hz-16bit-mono.wav" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/sounds/</RemoteDir>
+  <RemoteName>positive-44100Hz-16bit-mono.wav</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/sounds/</RemoteDir>
+  <RemoteName>positive-44100Hz-16bit-mono.wav</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/sounds/</RemoteDir>
+  <RemoteName>positive-44100Hz-16bit-mono.wav</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\sounds/save-44100Hz-16bit-stereo.wav" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/sounds/</RemoteDir>
+  <RemoteName>save-44100Hz-16bit-stereo.wav</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/sounds/</RemoteDir>
+  <RemoteName>save-44100Hz-16bit-stereo.wav</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/sounds/</RemoteDir>
+  <RemoteName>save-44100Hz-16bit-stereo.wav</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\sounds/stereo_test.wav" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/sounds/</RemoteDir>
+  <RemoteName>stereo_test.wav</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/sounds/</RemoteDir>
+  <RemoteName>stereo_test.wav</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/sounds/</RemoteDir>
+  <RemoteName>stereo_test.wav</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\sounds/temple_adam_goh-44000Hz-16bit-mono.ogg" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/sounds/</RemoteDir>
+  <RemoteName>temple_adam_goh-44000Hz-16bit-mono.ogg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/sounds/</RemoteDir>
+  <RemoteName>temple_adam_goh-44000Hz-16bit-mono.ogg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/sounds/</RemoteDir>
+  <RemoteName>temple_adam_goh-44000Hz-16bit-mono.ogg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\CastleSettings.xml" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>CastleSettings.xml</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>CastleSettings.xml</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>CastleSettings.xml</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\gameviewmain.castle-user-interface" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>gameviewmain.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>gameviewmain.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>gameviewmain.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\part_playing_sound.castle-user-interface" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>part_playing_sound.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>part_playing_sound.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>part_playing_sound.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\sounds/AUTHORS.txt" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/sounds/</RemoteDir>
+  <RemoteName>AUTHORS.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/sounds/</RemoteDir>
+  <RemoteName>AUTHORS.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/sounds/</RemoteDir>
+  <RemoteName>AUTHORS.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\sounds/beating_that_thing-22000Hz-16bit-stereo.ogg" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/sounds/</RemoteDir>
+  <RemoteName>beating_that_thing-22000Hz-16bit-stereo.ogg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/sounds/</RemoteDir>
+  <RemoteName>beating_that_thing-22000Hz-16bit-stereo.ogg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/sounds/</RemoteDir>
+  <RemoteName>beating_that_thing-22000Hz-16bit-stereo.ogg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\sounds/beating_that_thing-44100Hz-16bit-stereo.ogg" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/sounds/</RemoteDir>
+  <RemoteName>beating_that_thing-44100Hz-16bit-stereo.ogg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/sounds/</RemoteDir>
+  <RemoteName>beating_that_thing-44100Hz-16bit-stereo.ogg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/sounds/</RemoteDir>
+  <RemoteName>beating_that_thing-44100Hz-16bit-stereo.ogg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\sounds/misc_sound-22000Hz-8bit-mono.wav" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/sounds/</RemoteDir>
+  <RemoteName>misc_sound-22000Hz-8bit-mono.wav</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/sounds/</RemoteDir>
+  <RemoteName>misc_sound-22000Hz-8bit-mono.wav</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/sounds/</RemoteDir>
+  <RemoteName>misc_sound-22000Hz-8bit-mono.wav</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\sounds/misc_sound-44100Hz-8bit-mono.wav" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/sounds/</RemoteDir>
+  <RemoteName>misc_sound-44100Hz-8bit-mono.wav</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/sounds/</RemoteDir>
+  <RemoteName>misc_sound-44100Hz-8bit-mono.wav</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/sounds/</RemoteDir>
+  <RemoteName>misc_sound-44100Hz-8bit-mono.wav</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\sounds/negative-44100Hz-8bit-stereo.wav" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/sounds/</RemoteDir>
+  <RemoteName>negative-44100Hz-8bit-stereo.wav</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/sounds/</RemoteDir>
+  <RemoteName>negative-44100Hz-8bit-stereo.wav</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/sounds/</RemoteDir>
+  <RemoteName>negative-44100Hz-8bit-stereo.wav</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\sounds/original_versions/beating_that_thing.mp3" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/sounds/original_versions/</RemoteDir>
+  <RemoteName>beating_that_thing.mp3</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/sounds/original_versions/</RemoteDir>
+  <RemoteName>beating_that_thing.mp3</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/sounds/original_versions/</RemoteDir>
+  <RemoteName>beating_that_thing.mp3</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\sounds/original_versions/misc_sound-44100Hz-16bit-stereo.wav" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/sounds/original_versions/</RemoteDir>
+  <RemoteName>misc_sound-44100Hz-16bit-stereo.wav</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/sounds/original_versions/</RemoteDir>
+  <RemoteName>misc_sound-44100Hz-16bit-stereo.wav</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/sounds/original_versions/</RemoteDir>
+  <RemoteName>misc_sound-44100Hz-16bit-stereo.wav</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\sounds/original_versions/negative-44100Hz-16bit-stereo.wav" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/sounds/original_versions/</RemoteDir>
+  <RemoteName>negative-44100Hz-16bit-stereo.wav</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/sounds/original_versions/</RemoteDir>
+  <RemoteName>negative-44100Hz-16bit-stereo.wav</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/sounds/original_versions/</RemoteDir>
+  <RemoteName>negative-44100Hz-16bit-stereo.wav</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\sounds/original_versions/positive-44100Hz-16bit-stereo.wav" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/sounds/original_versions/</RemoteDir>
+  <RemoteName>positive-44100Hz-16bit-stereo.wav</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/sounds/original_versions/</RemoteDir>
+  <RemoteName>positive-44100Hz-16bit-stereo.wav</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/sounds/original_versions/</RemoteDir>
+  <RemoteName>positive-44100Hz-16bit-stereo.wav</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\sounds/original_versions/save-44100Hz-16bit-stereo.wav" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/sounds/original_versions/</RemoteDir>
+  <RemoteName>save-44100Hz-16bit-stereo.wav</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/sounds/original_versions/</RemoteDir>
+  <RemoteName>save-44100Hz-16bit-stereo.wav</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/sounds/original_versions/</RemoteDir>
+  <RemoteName>save-44100Hz-16bit-stereo.wav</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\sounds/original_versions/temple_adam_goh-44000Hz-16bit-stereo.ogg" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/sounds/original_versions/</RemoteDir>
+  <RemoteName>temple_adam_goh-44000Hz-16bit-stereo.ogg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/sounds/original_versions/</RemoteDir>
+  <RemoteName>temple_adam_goh-44000Hz-16bit-stereo.ogg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/sounds/original_versions/</RemoteDir>
+  <RemoteName>temple_adam_goh-44000Hz-16bit-stereo.ogg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\sounds/positive-44100Hz-16bit-mono.wav" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/sounds/</RemoteDir>
+  <RemoteName>positive-44100Hz-16bit-mono.wav</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/sounds/</RemoteDir>
+  <RemoteName>positive-44100Hz-16bit-mono.wav</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/sounds/</RemoteDir>
+  <RemoteName>positive-44100Hz-16bit-mono.wav</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\sounds/save-44100Hz-16bit-stereo.wav" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/sounds/</RemoteDir>
+  <RemoteName>save-44100Hz-16bit-stereo.wav</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/sounds/</RemoteDir>
+  <RemoteName>save-44100Hz-16bit-stereo.wav</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/sounds/</RemoteDir>
+  <RemoteName>save-44100Hz-16bit-stereo.wav</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\sounds/stereo_test.wav" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/sounds/</RemoteDir>
+  <RemoteName>stereo_test.wav</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/sounds/</RemoteDir>
+  <RemoteName>stereo_test.wav</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/sounds/</RemoteDir>
+  <RemoteName>stereo_test.wav</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\sounds/temple_adam_goh-44000Hz-16bit-mono.ogg" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/sounds/</RemoteDir>
+  <RemoteName>temple_adam_goh-44000Hz-16bit-mono.ogg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/sounds/</RemoteDir>
+  <RemoteName>temple_adam_goh-44000Hz-16bit-mono.ogg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/sounds/</RemoteDir>
+  <RemoteName>temple_adam_goh-44000Hz-16bit-mono.ogg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
 
 
                 <DeployClass Name="AdditionalDebugSymbols">
