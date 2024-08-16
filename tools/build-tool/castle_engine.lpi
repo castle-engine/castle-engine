@@ -38,7 +38,7 @@
         <PackageName Value="castle_base"/>
       </Item1>
     </RequiredPackages>
-    <Units Count="24">
+    <Units Count="25">
       <Unit0>
         <Filename Value="castle_engine.dpr"/>
         <IsPartOfProject Value="True"/>
@@ -66,6 +66,7 @@
       <Unit5>
         <Filename Value="code/toolutils.pas"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="ToolUtils"/>
       </Unit5>
       <Unit6>
         <Filename Value="code/toolandroid.pas"/>
@@ -91,6 +92,7 @@
       <Unit11>
         <Filename Value="code/toolmacros.pas"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="ToolMacros"/>
       </Unit11>
       <Unit12>
         <Filename Value="code/toolnintendoswitch.pas"/>
@@ -144,6 +146,11 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="ToolDebian"/>
       </Unit23>
+      <Unit24>
+        <Filename Value="code/toolmacos.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="ToolMacOS"/>
+      </Unit24>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
