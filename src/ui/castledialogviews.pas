@@ -672,13 +672,17 @@ begin
     end;
     Result := true;
   end else
-  if Event.IsKey(CtrlC) then
+  { Use keyC+mkCtrl to check for this, not CtrlC, this way on macOS we
+    allow Command+C to copy text. }
+  //if Event.IsKey(CtrlC) then
+  if Event.IsKey(keyC, [mkCtrl]) then
   begin
     if InputText <> '' then
       Clipboard.AsText := InputText;
     Result := true;
   end else
-  if Event.IsKey(CtrlX) then
+  //if Event.IsKey(CtrlX) then
+  if Event.IsKey(keyX, [mkCtrl]) then
   begin
     if InputText <> '' then
     begin
@@ -687,7 +691,8 @@ begin
     end;
     Result := true;
   end else
-  if Event.IsKey(CtrlV) then
+  //if Event.IsKey(CtrlV) then
+  if Event.IsKey(keyV, [mkCtrl]) then
   begin
     InputText := SDeleteChars(Clipboard.AsText, AllChars - AllowedChars);
     Result := true;
