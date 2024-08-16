@@ -2984,7 +2984,9 @@ var
           I := 0;
           while I + 2 < Count do
           begin
-            Triangle(I, I + 1, I + 2);
+            if Arrays.FrontFaceCcw then
+              Triangle(I    , I + 1, I + 2) else
+              Triangle(I + 1, I    , I + 2);
             Inc(I, 3);
           end;
         end;
@@ -2993,14 +2995,16 @@ var
           I := 0;
           while I + 2 < Count do
           begin
-            Triangle(0, I + 1, I + 2);
+            if Arrays.FrontFaceCcw then
+              Triangle(I    , I + 1, I + 2) else
+              Triangle(I + 1, I    , I + 2);
             Inc(I);
           end;
         end;
       gpTriangleStrip:
         begin
           I := 0;
-          NormalOrder := true;
+          NormalOrder := Arrays.FrontFaceCcw;
           while I + 2 < Count do
           begin
             if NormalOrder then
