@@ -968,6 +968,7 @@ begin
   openGLView := TOpenGLView.alloc.initWithFrame(window.contentView.bounds);
   // makes drag-and-drop files on window work
   openGLView.registerForDraggedTypes(NSArray.arrayWithObjects_count(@NSFilenamesPboardType, 1));
+  openGLView.setWantsBestResolutionOpenGLSurface(true);    // docs say this is deprecated and defaults to Yes, however when not set, we don't get retina resolution since macOS 15 SDK
   window.setContentView(openGLView);
   openGLView.release;
 
@@ -981,10 +982,9 @@ begin
 
   window.setCollectionBehavior(NSWindowCollectionBehaviorFullScreenPrimary);
   window.setAcceptsMouseMovedEvents(true);
-  //openGLView.reshape(openGLView.bounds.size); // Note: scale = 2 on Retina screen: OK
-  window.makeKeyAndOrderFront(nil);             // Note: in this place when openGLView loses Retina res, while the windows.backingScaleFagtor is still 2. Before this call, openGLView.ScaleFactor is 2, after this call it becomes 1
+  window.makeKeyAndOrderFront(nil);
 
-  openGLView.reshape(openGLView.bounds.size);   // Note: scale = 1 on Retina screen?!
+  openGLView.reshape(openGLView.bounds.size);
 
   glcontext := openGLView.openGLContext;
   ref := window;
