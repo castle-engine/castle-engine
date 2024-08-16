@@ -1,5 +1,5 @@
 {
-  Copyright 2010-2023 Michalis Kamburelis.
+  Copyright 2010-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -44,7 +44,7 @@ procedure ProcessShadowMapsReceivers(Model: TX3DNode; Shapes: TShapeTree;
 implementation
 
 uses SysUtils, Generics.Collections,
-  CastleUtils, CastleStringUtils,
+  CastleUtils, CastleStringUtils, CastleImages,
   CastleBoxes, CastleLog, CastleVectors, CastleRectangles;
 
 const
@@ -185,6 +185,30 @@ end;
 
 procedure TLightList.ShapeAdd(const Shape: TShape);
 
+  { Create 1 white pixel texture, acting as "filler" in MultiTexture.texture list.
+    TODO: Using such "filler" is a hack, in the long run we should avoid
+    it by not adding TGeneratedShadowMapNode to the MultiTexture.texture list. }
+  function NewWhitePixelTexture: TPixelTextureNode;
+  var
+    Img: TGrayscaleImage;
+  begin
+    Result := TPixelTextureNode.Create;
+    Img := TGrayscaleImage.Create(1, 1);
+    Img.Clear(High(Byte));
+    Result.FdImage.Value := Img;
+  end;
+
+  function GetTextureCoordinatesCount(const TexCoordNode: TX3DNode): Cardinal;
+  begin
+    if TexCoordNode is TMultiTextureCoordinateNode then
+      Result := TMultiTextureCoordinateNode(TexCoordNode).FdTexCoord.Count
+    else
+    if TexCoordNode is TAbstractSingleTextureNode then
+      Result := 1
+    else
+      Result := 0;
+  end;
+
   { Add ShadowMap to the textures used by the shape.
     Always converts Texture to TMultiTextureNode, to add the shadow map
     preserving old texture.
@@ -192,9 +216,29 @@ procedure TLightList.ShapeAdd(const Shape: TShape);
     Returns the count of textures in TexturesCount, not counting the last
     ShadowMap texture. But it *does* count the texture in
     OriginalGeometry.FontTextureNode. IOW, TexturesCount is
-    "how many texCoords are actually used, not counting new stuff for shadow maps". }
+    "how many texCoords are actually used, not counting new stuff for shadow maps".
+    Note that it does not just come from MultiTexture.count,
+    since with X3D 4 we also have textures in material slots like
+    Material.diffuseTexture or PhysicalMaterial.occlusionTexture
+    ( see https://forum.castle-engine.io/t/conflict-generatedshadowmap-with-occlusionmap/1306 ).
+
+    We need to synchronize the number of textures and texture coordinates,
+    as we (over-)use the MultiTexture* nodes to add shadows texture
+    and tex coords:
+
+    - Our ProjectedTextureCoordinate is added to MultiTextureCoordinate.
+    - Our GeneratedShadowMap (newly created here, or using provided
+      light.defaultShadowMap) is added to MultiTexture.
+
+    The positions of the above texture and tex coords on the lists must match.
+
+    TODO: In the future, we want to manage shadow maps without modifying
+    the MultiTexture and MultiTextureCoordinate nodes.
+    This will mean we don't need to calculate TexturesCount,
+    and we don't need WantedTexCoordsCount parameter to HandleTexGen. }
   procedure HandleShadowMap(var Texture: TAbstractTextureNode;
-    const ShadowMap: TGeneratedShadowMapNode; out TexturesCount: Cardinal);
+    const ShadowMap: TGeneratedShadowMapNode; out TexturesCount: Cardinal;
+    const TextureCoordinatesCount: Cardinal);
   var
     MTexture: TMultiTextureNode;
   begin
@@ -219,6 +263,36 @@ procedure TLightList.ShapeAdd(const Shape: TShape);
     Assert(Texture = MTexture);
 
     TexturesCount := MTexture.FdTexture.Count;
+
+    { Make sure MTexture.FdMode.Count = MTexture.FdTexture.Count,
+      this is necessary for later logic. }
+    while MTexture.FdMode.Count < MTexture.FdTexture.Count do
+      MTexture.FdMode.Items.Add(''); // equal to MODULATE, default
+    if MTexture.FdMode.Count > MTexture.FdTexture.Count then
+      MTexture.FdMode.Count := MTexture.FdTexture.Count;
+    Assert(MTexture.FdMode.Count = MTexture.FdTexture.Count);
+
+    { Increase TexturesCount to reach at least TextureCoordinatesCount,
+      because we *have to* preserve the existing tex coords,
+      regardless of their count.
+      Even if existing tex coords are more than MultiTexture count,
+      but they may be used by additional textures in material slots
+      like Material.diffuseTexture or PhysicalMaterial.occlusionTexture. }
+    while TexturesCount < TextureCoordinatesCount do
+    begin
+      { TODO: The code below would be better, more efficient,
+        leaving the new slots as "OFF".
+        But the renderer is not ready for this, see
+        https://github.com/castle-engine/demo-models/blob/master/shadow_maps/primitives.x3dv }
+      // MTexture.FdTexture.Add(TPixelTextureNode.Create);
+      // MTexture.FdMode.Items.Add('OFF'); // do not use this texture, it is only to fill the list
+      MTexture.FdTexture.Add(NewWhitePixelTexture);
+      MTexture.FdMode.Items.Add(''); // MODULATE by white, doing nothing
+      Inc(TexturesCount);
+    end;
+
+    { Add 1 for FontTextureNode, because renderer will also do this, and expect
+      shadow map position to match. }
     if Shape.OriginalGeometry.FontTextureNode <> nil then
       Inc(TexturesCount);
 
@@ -238,16 +312,18 @@ procedure TLightList.ShapeAdd(const Shape: TShape);
     Converts texCoord to TMultiTextureCoordinateNode,
     to preserve previous tex coord.
 
-    May remove some texCoord nodes, knowing that only the 1st
-    RelevantTexCoordsCount nodes are used.
-    May add some texCoord nodes (with TextureCoordinateGenerator = BOUNDS),
-    to make sure that we have at least RelevantTexCoordsCount nodes.
-
-    Makes sure that the count of texCoords is exactly RelevantTexCoordsCount,
-    not counting the last (newly added) TexGen node. }
+    May
+    - remove some texCoord nodes, to remain only WantedTexCoordsCount.
+      But also makes a warning about it: you should never use this to decrease
+      tex coords, as this process should preserve all tex coords.
+    - add some texCoord nodes (with TextureCoordinateGenerator = BOUNDS),
+      to make sure that we have at least WantedTexCoordsCount nodes.
+    - overall: Makes sure that the count of texCoords is exactly
+      WantedTexCoordsCount,
+      not counting the last (newly added) TexGen node. }
   procedure HandleTexGen(var TexCoord: TX3DNode;
     const TexGen: TProjectedTextureCoordinateNode;
-    const RelevantTexCoordsCount: Cardinal);
+    const WantedTexCoordsCount: Cardinal);
 
     { Resize Coords. If you increase Coords, then new ones
       are TextureCoordinateGenerator nodes (with mode=BOUNDS). }
@@ -259,6 +335,9 @@ procedure TLightList.ShapeAdd(const Shape: TShape);
     begin
       OldCount := Coords.Count;
       Coords.Count := NewCount;
+
+      if NewCount < OldCount then
+        WritelnWarning('Decreased texture coordinate count while processing for shadow maps; submit a bug with a testcase');
 
       for I := OldCount to Integer(NewCount) - 1 do
       begin
@@ -298,7 +377,7 @@ procedure TLightList.ShapeAdd(const Shape: TShape);
     begin
       { Add new necessary TextureCoordinateGenerator nodes,
         or remove unused nodes, to make texCoord size right }
-      ResizeTexCoord(MTexCoord.FdTexCoord, RelevantTexCoordsCount);
+      ResizeTexCoord(MTexCoord.FdTexCoord, WantedTexCoordsCount);
 
       MTexCoord.FdTexCoord.Add(TexGen);
     end;
@@ -366,7 +445,7 @@ procedure TLightList.ShapeAdd(const Shape: TShape);
     MaterialTexture, Texture: TAbstractTextureNode;
     TextureTransform: TAbstractTextureTransformNode;
     TexCoord: TX3DNode;
-    TexturesCount: Cardinal;
+    TexturesCount, TextureCoordinatesCount: Cardinal;
   begin
     Light := FindLight(LightNode);
 
@@ -408,7 +487,10 @@ procedure TLightList.ShapeAdd(const Shape: TShape);
       end;
     end;
 
-    HandleShadowMap(Texture, Light^.ShadowMap, TexturesCount);
+    TextureCoordinatesCount :=
+      GetTextureCoordinatesCount(Shape.Geometry.TexCoordField.Value);
+
+    HandleShadowMap(Texture, Light^.ShadowMap, TexturesCount, TextureCoordinatesCount);
     { set Texture.
       Note: don't use "Shape.Node.Texture := ", we have to avoid calling
       "Send(xxx)" underneath here, as it would cause CastleSceneCore processing
