@@ -203,7 +203,7 @@ procedure TLightList.ShapeAdd(const Shape: TShape);
     if TexCoordNode is TMultiTextureCoordinateNode then
       Result := TMultiTextureCoordinateNode(TexCoordNode).FdTexCoord.Count
     else
-    if TexCoordNode is TAbstractSingleTextureNode then
+    if TexCoordNode is TAbstractSingleTextureCoordinateNode then
       Result := 1
     else
       Result := 0;
@@ -298,7 +298,9 @@ procedure TLightList.ShapeAdd(const Shape: TShape);
 
     { If the texture that we want to add is already present, abort.
       This may happen, as HandleLight may iterate many times over
-      the same light. }
+      the same light.
+      We decrease TexturesCount, as we promised this doesn't include the shadow
+      map we're adding. }
     if MTexture.FdTexture.IndexOf(ShadowMap) <> -1 then
     begin
       Dec(TexturesCount);
@@ -337,7 +339,10 @@ procedure TLightList.ShapeAdd(const Shape: TShape);
       Coords.Count := NewCount;
 
       if NewCount < OldCount then
-        WritelnWarning('Decreased texture coordinate count while processing for shadow maps; submit a bug with a testcase');
+        WritelnWarning('Decreased texture coordinate count (%d to %d) while processing for shadow maps; submit a bug with a testcase', [
+          OldCount,
+          NewCount
+        ]);
 
       for I := OldCount to Integer(NewCount) - 1 do
       begin
@@ -487,6 +492,7 @@ procedure TLightList.ShapeAdd(const Shape: TShape);
       end;
     end;
 
+    Assert(Shape.Geometry.TexCoordField <> nil);
     TextureCoordinatesCount :=
       GetTextureCoordinatesCount(Shape.Geometry.TexCoordField.Value);
 
