@@ -1,6 +1,6 @@
 {%MainUnit castlewindow.pas}
 {
-  Copyright 2022-2023 Michalis Kamburelis and GLPT, LCL contributors.
+  Copyright 2022-2024 Michalis Kamburelis, Jan Adamec, and GLPT, LCL contributors.
 
   The Cocoa integration code is based on
 
@@ -968,7 +968,23 @@ begin
   openGLView := TOpenGLView.alloc.initWithFrame(window.contentView.bounds);
   // makes drag-and-drop files on window work
   openGLView.registerForDraggedTypes(NSArray.arrayWithObjects_count(@NSFilenamesPboardType, 1));
-  openGLView.setWantsBestResolutionOpenGLSurface(true);    // docs say this is deprecated and defaults to Yes, however when not set, we don't get retina resolution since macOS 15 SDK
+  { It is critical to call this, in order to get the "real" resolution OpenGL
+    context (with our pixel corresponding to final device pixels).
+    Otherwise, with Retina monitors, we get OpenGL context with smaller pixel
+    size that is then stretched (on the macOS side) to the final size,
+    which is not what we want -- we want crisp rendering, we want to control
+    any eventual scaling on our side.
+
+    This wasnt necessary when compiling with old macOS SDK (on macOS 12.7.2).
+
+    With new macOS SDK (macOS 14.6, Xcode 15.4) this is necessary.
+
+    Docs on https://developer.apple.com/documentation/appkit/nsview/1414938-wantsbestresolutionopenglsurface?language=objc
+    say this is deprecated and defaults to Yes with new macOS SDK, but it seems
+    the docs are wrong.
+    LCL Cocoa TOpenGLControl also does this, see
+    https://gitlab.com/freepascal.org/lazarus/lazarus/-/blob/main/components/opengl/glcocoanscontext.pas?ref_type=heads . }
+  openGLView.setWantsBestResolutionOpenGLSurface(true);
   window.setContentView(openGLView);
   openGLView.release;
 
