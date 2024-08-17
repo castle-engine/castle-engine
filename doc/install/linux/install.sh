@@ -35,4 +35,6 @@ sed --in-place "s|Exec=.*|Exec=${CASTLE_ENGINE_PATH}/bin/castle-editor|g" ${HOME
 sed --in-place "s|Icon=.*|Icon=${CASTLE_ENGINE_PATH}/doc/pasdoc/logo/castle_game_engine_icon.svg|g" ${HOME}/.local/share/applications/castle-editor.desktop
 
 echo "Desktop file installed OK."
-cat ${HOME}/.local/share/applications/castle-editor.desktop
+
+# Debug:
+#cat ${HOME}/.local/share/applications/castle-editor.desktop
