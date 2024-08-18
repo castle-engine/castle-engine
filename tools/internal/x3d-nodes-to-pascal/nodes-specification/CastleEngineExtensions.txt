@@ -36,7 +36,7 @@ GeneratedShadowMap : X3DSingleTextureNode {
     range: (0,Inf)
     change: chTextureRendererProperties
   SFNode     []            light            NULL
-    range: X3DLightNode
+    range: X3DPunctualLightNode
     change: chGeneratedTextureUpdateNeeded
     weak-link
   SFFloat    [in,out]      scale            DefaultScale

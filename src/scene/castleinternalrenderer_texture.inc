@@ -1,6 +1,6 @@
 {%MainUnit castleinternalrenderer.pas}
 {
-  Copyright 2002-2023 Michalis Kamburelis.
+  Copyright 2002-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -389,6 +389,7 @@
     VarianceShadowMaps: boolean;
     NeedsMipmaps: boolean;
     FGLName: TGLuint;
+    WarninigDoneCannotEnable: Boolean;
   protected
     class function IsClassForTextureNode(ANode: TAbstractTextureNode): boolean; override;
     procedure PrepareCore(
@@ -2146,8 +2147,11 @@ begin
   Result := Bind(TextureUnit);
   if not Result then Exit;
 
-  Shader.EnableTexture(TextureUnit,
-    tt2DShadow, TextureNode, Env, Size, TextureNode.Light);
+  if not WarninigDoneCannotEnable then
+  begin
+    WarninigDoneCannotEnable := true;
+    WritelnWarning('Not supported anymore: GeneratedShadowMap placed directly within Appearance.textures of a shadow receiver. Use instead Appearance.receiveShadows or light.shadows to activate shadow maps.');
+  end;
 end;
 
 procedure TGeneratedShadowMapResource.Update(

@@ -28,8 +28,8 @@
     procedure SetUpdate(const Value: TTextureUpdate);
     function GetSize: Integer;
     procedure SetSize(const Value: Integer);
-    function GetLight: TAbstractLightNode;
-    procedure SetLight(const Value: TAbstractLightNode);
+    function GetLight: TAbstractPunctualLightNode;
+    procedure SetLight(const Value: TAbstractPunctualLightNode);
     function GetScale: Single;
     procedure SetScale(const Value: Single);
     function GetBias: Single;
@@ -57,7 +57,7 @@
     { Internal wrapper for property @code(Light). This wrapper API may change, we advise to access simpler @code(Light) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdLight: TSFNode read FFdLight;
     {  }
-    property Light: TAbstractLightNode read GetLight write SetLight;
+    property Light: TAbstractPunctualLightNode read GetLight write SetLight;
 
     strict private FFdScale: TSFFloat;
     { Internal wrapper for property @code(Scale). This wrapper API may change, we advise to access simpler @code(Scale) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
@@ -103,15 +103,15 @@ begin
   FdSize.Send(Value);
 end;
 
-function TGeneratedShadowMapNode.GetLight: TAbstractLightNode;
+function TGeneratedShadowMapNode.GetLight: TAbstractPunctualLightNode;
 begin
-  if FdLight.Value is TAbstractLightNode then
-    Result := TAbstractLightNode(FdLight.Value)
+  if FdLight.Value is TAbstractPunctualLightNode then
+    Result := TAbstractPunctualLightNode(FdLight.Value)
   else
     Result := nil;
 end;
 
-procedure TGeneratedShadowMapNode.SetLight(const Value: TAbstractLightNode);
+procedure TGeneratedShadowMapNode.SetLight(const Value: TAbstractPunctualLightNode);
 begin
   FdLight.Send(Value);
 end;
@@ -164,7 +164,7 @@ begin
    FdSize.MustBeNonnegative := true;
   AddField(FFdSize);
 
-  FFdLight := TSFNode.Create(Self, False, 'light', [TAbstractLightNode]);
+  FFdLight := TSFNode.Create(Self, False, 'light', [TAbstractPunctualLightNode]);
    FdLight.ChangeAlways := chGeneratedTextureUpdateNeeded;
    FdLight.WeakLink := true;
   AddField(FFdLight);
