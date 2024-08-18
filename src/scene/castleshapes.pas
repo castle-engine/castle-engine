@@ -2996,8 +2996,8 @@ var
           while I + 2 < Count do
           begin
             if Arrays.FrontFaceCcw then
-              Triangle(I    , I + 1, I + 2) else
-              Triangle(I + 1, I    , I + 2);
+              Triangle(0, I + 1, I + 2) else
+              Triangle(0, I + 2, I + 1);
             Inc(I);
           end;
         end;
