@@ -1284,7 +1284,7 @@ procedure TRenderer.RenderShapeTextures(const Shape: TX3DRendererShape;
   begin
     GLTexture := TTextureResources.Get(Texture);
     if GLTexture <> nil then
-      GLTexture.EnableAll(Self, GLFeatures.MaxTextureUnits, TexCoordsNeeded, Shader);
+      GLTexture.EnableAll(Self, GLFeatures.MaxTextureUnits, TexCoordsNeeded, Shader, false);
   end;
 
   procedure EnableShadowMaps(const Texture: TAbstractTextureNode;
@@ -1369,9 +1369,11 @@ procedure TRenderer.RenderShapeTextures(const Shape: TX3DRendererShape;
       AlphaTest := TGLShape(Shape).AlphaChannel = acTest;
 
       if FontTextureRes <> nil then
-        FontTextureRes.EnableAll(Self, GLFeatures.MaxTextureUnits, TexCoordsNeeded, Shader);
+        FontTextureRes.EnableAll(Self, GLFeatures.MaxTextureUnits, TexCoordsNeeded, Shader,
+          false);
       if TextureRes <> nil then
-        TextureRes.EnableAll(Self, GLFeatures.MaxTextureUnits, TexCoordsNeeded, Shader);
+        TextureRes.EnableAll(Self, GLFeatures.MaxTextureUnits, TexCoordsNeeded, Shader,
+          FontTextureRes <> nil);
       BoundTextureUnits := TexCoordsNeeded;
 
       if (Shape.Node <> nil) and

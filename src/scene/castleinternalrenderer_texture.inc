@@ -141,7 +141,8 @@
       const Renderer: TRenderer;
       const TextureUnitsCount: Cardinal;
       var TextureSlotsUsed: Cardinal;
-      Shader: TShader); virtual; abstract;
+      const Shader: TShader;
+      const HasPreviousMainTexture: Boolean); virtual; abstract;
   end;
 
   { Manage TTextureResource connected to X3D nodes.
@@ -190,7 +191,9 @@
   public
     procedure EnableAll(const Renderer: TRenderer;
       const TextureUnitsCount: Cardinal;
-      var TextureSlotsUsed: Cardinal; Shader: TShader); override;
+      var TextureSlotsUsed: Cardinal;
+      const Shader: TShader;
+      const HasPreviousMainTexture: Boolean); override;
   end;
 
   { Renderer resource for TMultiTextureNode.
@@ -215,7 +218,9 @@
       Shader: TShader; const Env: TTextureEnv): boolean; override;
     procedure EnableAll(const Renderer: TRenderer;
       const TextureUnitsCount: Cardinal;
-      var TextureSlotsUsed: Cardinal; Shader: TShader); override;
+      var TextureSlotsUsed: Cardinal;
+      const Shader: TShader;
+      const HasPreviousMainTexture: Boolean); override;
   end;
 
   { Renderer resource for a 2D texture. }
@@ -691,7 +696,9 @@ end;
 
 procedure TSingleTextureResource.EnableAll(const Renderer: TRenderer;
   const TextureUnitsCount: Cardinal;
-  var TextureSlotsUsed: Cardinal; Shader: TShader);
+  var TextureSlotsUsed: Cardinal;
+  const Shader: TShader;
+  const HasPreviousMainTexture: Boolean);
 var
   Env: TTextureEnv;
 begin
@@ -718,6 +725,28 @@ begin
     lighting calculation). So it would not be conforming either. }
 
   Env.Init(coModulate);
+
+  { HasPreviousMainTexture is passed when enabling Appearance.texture
+    on Text node (geometry with FontTextureNode set),
+    IOW when we have textured Text node.
+
+    In this case, we already called EnableAll with FontTextureNode,
+    and it has determined the initial color (and alpha) of the text.
+    So our Source should indicate to mix with previous texture (FontTextureNode),
+    and not with the material color (as is default, and would override
+    FontTextureNode alpha).
+
+    Testcases:
+      demo-models/shadow_maps/primitives.x3dv
+      demo-models/text/text_textured.x3dv
+    Without this "if HasPreviousMainTexture then" check,
+    the textured text displays every letter as a rectangle, as alpha
+    of FontTextureNode is ignored. }
+  if HasPreviousMainTexture then
+  begin
+    Env.Source[cRGB  ] := csPreviousTexture;
+    Env.Source[cAlpha] := csPreviousTexture;
+  end;
 
   if (TextureUnitsCount > 0) and
      Enable(TextureSlotsUsed, Shader, Env) then
@@ -808,7 +837,9 @@ end;
 
 procedure TMultiTextureResource.EnableAll(const Renderer: TRenderer;
   const TextureUnitsCount: Cardinal;
-  var TextureSlotsUsed: Cardinal; Shader: TShader);
+  var TextureSlotsUsed: Cardinal;
+  const Shader: TShader;
+  const HasPreviousMainTexture: Boolean);
 {$ifndef OpenGLES}
 const
   ColorSourceGL: array [TColorSource] of TGLint = (
