@@ -636,7 +636,7 @@ procedure TRenderer.RenderShape(const Shape: TX3DRendererShape;
       if Shape.Node.Shading = shGouraud then
         PhongShading := false;
     { if some feature requires PhongShading, make it true }
-    if ShapeMaybeUsesSurfaceTexture(Shape) or
+    if ShapeTextureForcesPhongShading(Shape) or
       ShapeMaybeUsesShadowMaps(Shape) or
       ShapeMaterialRequiresPhongShading(Shape) or
       ShapeUsesEnvironmentLight(Shape) or
