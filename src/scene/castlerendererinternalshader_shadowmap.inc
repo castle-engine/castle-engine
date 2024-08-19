@@ -38,7 +38,7 @@
     ShadowMap: TGeneratedShadowMapNode;
     procedure PrepareHash(var Hash: TShaderCodeHash);
     procedure GenerateCode(const Shader: TShader);
-    procedure SetUniforms(const AProgram: TX3DShaderProgram);
+    procedure SetUniformsOnce(const AProgram: TX3DShaderProgram);
     procedure SetDynamicUniforms(const AProgram: TX3DShaderProgram;
       const RenderingCamera: TRenderingCamera);
   end;
@@ -50,7 +50,7 @@
   TShadowMapShaderList = class({$ifdef FPC}specialize{$endif} TStructList<TShadowMapShader>)
   public
     procedure GenerateCode(const Shader: TShader);
-    procedure SetUniforms(const AProgram: TX3DShaderProgram);
+    procedure SetUniformsOnce(const AProgram: TX3DShaderProgram);
     procedure SetDynamicUniforms(const AProgram: TX3DShaderProgram;
       const RenderingCamera: TRenderingCamera);
   end;
@@ -131,7 +131,7 @@ begin
     ShadowLightShader.Code);
 end;
 
-procedure TShadowMapShader.SetUniforms(const AProgram: TX3DShaderProgram);
+procedure TShadowMapShader.SetUniformsOnce(const AProgram: TX3DShaderProgram);
 begin
   AProgram.SetUniform(ShadowMapName, TextureUnit);
 end;
@@ -164,12 +164,12 @@ begin
     L[I].GenerateCode(Shader);
 end;
 
-procedure TShadowMapShaderList.SetUniforms(const AProgram: TX3DShaderProgram);
+procedure TShadowMapShaderList.SetUniformsOnce(const AProgram: TX3DShaderProgram);
 var
   I: Integer;
 begin
   for I := 0 to Count - 1 do
-    L[I].SetUniforms(AProgram);
+    L[I].SetUniformsOnce(AProgram);
 end;
 
 procedure TShadowMapShaderList.SetDynamicUniforms(const AProgram: TX3DShaderProgram;
