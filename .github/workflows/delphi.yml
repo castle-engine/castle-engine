@@ -25,10 +25,8 @@ jobs:
     strategy:
       matrix:
         host-label: [
-          delphi_10_2
-          #,
-          # Temporarily offline
-          # delphi_12_1
+          delphi_10_2,
+          delphi_12_1
         ]
 
     # Note: This is a self-hosted runner in organization,
