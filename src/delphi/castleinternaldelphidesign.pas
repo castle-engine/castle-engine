@@ -680,6 +680,7 @@ begin
   SrcDirs := TStringList.Create;
   try
     SrcDirs.Delimiter := ';';
+    SrcDirs.StrictDelimiter := true;
     SrcDirs.DelimitedText  := Paths;
     Result := 0;
 
@@ -716,6 +717,7 @@ begin
   SrcDirs := TStringList.Create;
   try
     SrcDirs.Delimiter := ';';
+    SrcDirs.StrictDelimiter := true;
     SrcDirs.DelimitedText  := Paths;
     Result := 0;
 
