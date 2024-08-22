@@ -2449,6 +2449,7 @@ begin
       glDisable(GL_CLIP_PLANE0 + ClipPlaneIndex);
     cpClipDistance:
       glDisable(GL_CLIP_DISTANCE0 + ClipPlaneIndex);
+    else ;
   end;
   {$endif}
 end;

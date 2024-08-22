@@ -481,10 +481,12 @@ type
   {$undef read_window_interface}
 
   protected
+    {$warnings off} // using deprecated class in deprecated method
     { Create a container class for this window.
       Override this to use a custom container class, e.g. to override
       some container methods. }
     function CreateContainer: TWindowContainer; virtual; deprecated 'instead of custom TWindowContainer descendants, use custom TCastleView descendants';
+    {$warnings on}
   private
     FWidth, FHeight, FLeft, FTop: Integer;
     { Window size reported last to DoResize,
@@ -2801,13 +2803,12 @@ begin
   inherited;
 end;
 
+{$warnings off} // using deprecated class in deprecated method
 function TCastleWindow.CreateContainer: TWindowContainer;
 begin
-  // Using deprecated CreateContainer - should be internal in the future
-  {$warnings off}
   Result := TWindowContainer.Create(Self);
-  {$warnings on}
 end;
+{$warnings on}
 
 procedure TCastleWindow.OpenCore;
 
