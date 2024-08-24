@@ -182,16 +182,33 @@ procedure TDetectUnusedData.ScanProject(const ProjectPath, ProjectDataPath: Stri
         resolves relative paths) but it means we can easily classify some
         files as "used" when they are actually not.
     }
+    function UsedByContents(const Used, PotentialUser: TResource; const UsedBaseName: String): Boolean;
+    begin
+      Result := PotentialUser.ContentsLoaded and
+        (Pos(UsedBaseName, PotentialUser.Contents) <> 0)
+    end;
+
+    function UsedByNames(const Used, PotentialUser: TResource; const UsedExt: String): Boolean;
+    begin
+      if UsedExt = '.atlas' then
+        // special rule for .atlas files: used by corresponding .json files
+        Result := ChangeFileExt(Used.FileName, '.json') = PotentialUser.FileName
+      else
+        Result := false;
+    end;
+
     procedure AddUsers(const Used: TResource; const AllPotentialUsers: TResourceList);
     var
       PotentialUser: TResource;
-      BaseName: String;
+      UsedBaseName, UsedExt: String;
     begin
-      BaseName := ExtractFileName(Used.FileName);
+      UsedBaseName := ExtractFileName(Used.FileName);
+      UsedExt := LowerCase(ExtractFileExt(Used.FileName));
       for PotentialUser in AllPotentialUsers do
-        if (Used <> PotentialUser) And
-           PotentialUser.ContentsLoaded and
-           (Pos(BaseName, PotentialUser.Contents) <> 0) then
+        if (Used <> PotentialUser) and
+           ( UsedByContents(Used, PotentialUser, UsedBaseName) or
+             UsedByNames(Used, PotentialUser, UsedExt)
+           ) then
           Used.Users.Add(PotentialUser);
     end;
 
