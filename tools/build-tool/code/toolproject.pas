@@ -1660,7 +1660,17 @@ begin
       end;
 
       Writeln;
-      Writeln(Format('%d unused files. Size %s.', [
+      Writeln('Sorted by size, descending:');
+      Writeln;
+
+      DetectUnusedData.SortUnusedDataBySize;
+      for R in DetectUnusedData.UnusedData do
+      begin
+        Writeln(R.RelativeFileName + ' (' + SizeToStr(R.Size) + ')');
+      end;
+
+      Writeln;
+      Writeln(Format('%d unused files. Total size %s.', [
         UnusedCount,
         SizeToStr(UnusedSize)
       ]));

@@ -16,6 +16,8 @@
 { Detect unused files in data. }
 unit ToolProjectUnusedData;
 
+{$I castleconf.inc}
+
 interface
 
 uses Generics.Collections, Classes,
@@ -54,11 +56,12 @@ type
     procedure ScanProject(const ProjectPath, ProjectDataPath: String;
       const ProjectPascalFiles: TStringList);
     property UnusedData: TResourceList read FUnusedData;
+    procedure SortUnusedDataBySize;
   end;
 
 implementation
 
-uses SysUtils,
+uses SysUtils, Generics.Defaults,
   CastleImages, CastleFilesUtils, CastleUriUtils;
 
 { TDetectUnusedData.TResource ------------------------------------------------ }
@@ -266,6 +269,20 @@ begin
   DetectUsage;
   DetectUsedInProject;
   FillUnusedData;
+end;
+
+function CompareResourceSize(
+  {$ifdef GENERICS_CONSTREF}constref{$else}const{$endif}
+  Left, Right: TDetectUnusedData.TResource): Integer;
+begin
+  Result := Right.Size - Left.Size;
+end;
+
+procedure TDetectUnusedData.SortUnusedDataBySize;
+type
+  TResourceComparer = specialize TComparer<TResource>;
+begin
+  FUnusedData.Sort(TResourceComparer.Construct(@CompareResourceSize));
 end;
 
 end.
