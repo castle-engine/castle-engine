@@ -505,6 +505,9 @@ begin
         Parameters.CheckHigh(2);
         Project.DoOutput(Parameters[2]);
       end else
+      if Command = 'unused-data' then
+        Project.DoUnusedData
+      else
         raise EInvalidParams.CreateFmt('Invalid COMMAND to perform: "%s". Use --help to get usage information', [Command]);
     finally FreeAndNil(Project) end;
   end;

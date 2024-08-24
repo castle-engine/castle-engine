@@ -153,6 +153,7 @@ type
     procedure DoEditorRebuildIfNeeded;
     procedure DoEditorRun(const WaitForProcessId: TProcessId);
     procedure DoOutput(const OutputKey: String);
+    procedure DoUnusedData;
 
     { Information about the project, derived from CastleEngineManifest.xml. }
     { }
@@ -278,7 +279,8 @@ uses {$ifdef UNIX} BaseUnix, {$endif}
   CastleTimeUtils,
   ToolResources, ToolAndroid, ToolMacOS,
   ToolTextureGeneration, ToolIOS, ToolAndroidMerging, ToolNintendoSwitch,
-  ToolCommonUtils, ToolMacros, ToolCompilerInfo, ToolPackageCollectFiles;
+  ToolCommonUtils, ToolMacros, ToolCompilerInfo, ToolPackageCollectFiles,
+  ToolProjectUnusedData;
 
 const
   SErrDataDir = 'Make sure you have installed the data files of the Castle Game Engine build tool. Usually it is easiest to set the $CASTLE_ENGINE_PATH environment variable to the location of castle_game_engine/ or castle-engine/ directory, the build tool will then find its data correctly.'
@@ -1630,6 +1632,41 @@ begin
     'version-code': Writeln(Manifest.Version.Code);
     else raise Exception.CreateFmt('Unsupported output key: "%s"', [OutputKey]);
   end;
+end;
+
+procedure TCastleProject.DoUnusedData;
+var
+  DetectUnusedData: TDetectUnusedData;
+  R: TDetectUnusedData.TResource;
+  UnusedCount: Cardinal;
+  UnusedSize: Int64;
+begin
+  DetectUnusedData := TDetectUnusedData.Create;
+  try
+    DetectUnusedData.ScanProject(Path, DataPath, Manifest.FindPascalFiles);
+
+    if DetectUnusedData.UnusedData.Count <> 0 then
+    begin
+      Writeln('Likely unused data files of the project listed below:');
+      Writeln;
+
+      UnusedSize := 0;
+      UnusedCount := 0;
+      for R in DetectUnusedData.UnusedData do
+      begin
+        Writeln(R.RelativeFileName);
+        UnusedSize := UnusedSize + R.Size;
+        Inc(UnusedCount);
+      end;
+
+      Writeln;
+      Writeln(Format('%d unused files. Size %s.', [
+        UnusedCount,
+        SizeToStr(UnusedSize)
+      ]));
+    end else
+      Writeln('No unused data files detected.');
+  finally FreeAndNil(DetectUnusedData) end;
 end;
 
 procedure TCastleProject.AddMacrosAndroid(const Macros: TStringStringMap);
