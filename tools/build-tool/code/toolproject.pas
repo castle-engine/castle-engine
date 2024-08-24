@@ -1640,10 +1640,20 @@ var
   R: TDetectUnusedData.TResource;
   UnusedCount: Cardinal;
   UnusedSize: Int64;
+  PascalFiles: TStringList;
 begin
   DetectUnusedData := TDetectUnusedData.Create;
   try
-    DetectUnusedData.ScanProject(Path, DataPath, Manifest.FindPascalFiles);
+    PascalFiles := Manifest.FindPascalFiles;
+    try
+      { Scan also StandaloneSource, useful e.g. for
+        examples/viewport_and_scenes/anisotropic_filtering to detect that
+        glTF from data is loaded. }
+      if Manifest.StandaloneSource <> '' then
+        PascalFiles.Add(Manifest.StandaloneSource);
+
+      DetectUnusedData.ScanProject(Path, DataPath, PascalFiles);
+    finally FreeAndNil(PascalFiles) end;
 
     if DetectUnusedData.UnusedData.Count <> 0 then
     begin
