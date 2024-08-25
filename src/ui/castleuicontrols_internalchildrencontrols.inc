@@ -1,6 +1,6 @@
 {%MainUnit castleuicontrols.pas}
 {
-  Copyright 2010-2021 Michalis Kamburelis.
+  Copyright 2010-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -71,11 +71,23 @@
     property Items[const I: Integer]: TCastleUserInterface read GetItem write SetItem; default;
     function Count: Integer;
     procedure Assign(const Source: TInternalChildrenControls);
+
     { Remove the Item from this list.
+
       Note that the given Item should always exist only once on a list
       (it is not allowed to add it multiple times), so there's no @code(RemoveAll)
-      method. }
+      method.
+
+      Note that this method @italic(does not) free the Item instance.
+      This method merely removes Item from the list.
+
+      See https://castle-engine.io/modern_pascal#_freeing_classes
+      for description how to free instances in Pascal.
+      As TCastleUserInterface descends from TComponent, a simple and proper solution
+      is often just to create it with some "owner" (like @link(TCastleView.FreeAtStop) or @link(Application))
+      that will take care of freeing it. }
     procedure Remove(const Item: TCastleUserInterface);
+
     procedure Clear;
     procedure Add(const Item: TCastleUserInterface); deprecated 'use InsertFront or InsertBack';
     procedure Insert(Index: Integer; const Item: TCastleUserInterface);

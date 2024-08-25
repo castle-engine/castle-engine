@@ -1036,7 +1036,7 @@ type
 
     Using this is an alternative to observing freeing using
     standard TComponent.FreeNotification / TComponent.RemoveFreeNotification mechanism
-    https://castle-engine.io/modern_pascal_introduction.html#_free_notification .
+    https://castle-engine.io/modern_pascal#_free_notification .
     Using TFreeNotificationObserver is:
 
     @unorderedList(
@@ -1045,7 +1045,7 @@ type
         E.g. the line @code(FChildObserver.Observed := Value) is simpler
         than the typical equivalent lines required to unregister notification
         of the old value and register notification of the new value.
-        (See https://castle-engine.io/modern_pascal_introduction.html#_free_notification
+        (See https://castle-engine.io/modern_pascal#_free_notification
         example of FreeNotification usage.)
       )
 
