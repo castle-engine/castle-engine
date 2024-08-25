@@ -135,7 +135,8 @@ constructor TInternalChildrenControls.Create(AParent: TCastleUserInterface);
 begin
   inherited Create;
   FParent := AParent;
-  FList := TMyObjectList.Create;
+  FList := TMyObjectList.Create(false);
+  Assert(not FList.OwnsObjects);
   FList.Parent := Self;
   FCaptureFreeNotifications := TCaptureFreeNotifications.Create(nil);
   FCaptureFreeNotifications.Parent := Self;
@@ -407,6 +408,7 @@ end;
 
 procedure TInternalChildrenControls.TMyObjectList.Notify(Ptr: Pointer; Action: TListNotification);
 begin
+  inherited;
   Parent.Notify(Ptr, Action);
 end;
 
