@@ -707,7 +707,7 @@
               },
               {
                 "$$ClassName" : "TCastleScene",
-                "AutoAnimation" : "animation",
+                "AutoAnimation" : "Velociraptor_Idle",
                 "CenterPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent"
                 },
@@ -718,12 +718,15 @@
                 "ProcessEvents" : true,
                 "RenderOptions" : {
                   "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+                  "WholeSceneManifold" : true,
                   "WireframeColorPersistent" : {
                     "$$ClassName" : "TCastleColorRGBPersistent"
                   }
                 },
                 "RotationPersistent" : {
-                  "$$ClassName" : "TCastleVector4RotationPersistent"
+                  "$$ClassName" : "TCastleVector4RotationPersistent",
+                  "W" : 1.5438649654388428E+000,
+                  "Y" : -9.9999922513961792E-001
                 },
                 "ScaleOrientationPersistent" : {
                   "$$ClassName" : "TCastleVector4Persistent"
@@ -734,10 +737,10 @@
                 "TranslationPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
                   "X" : -1.3659042358398438E+001,
-                  "Y" : -4.4340143203735352E+000,
+                  "Y" : -5.8608446121215820E+000,
                   "Z" : -4.5631856918334961E+000
                 },
-                "Url" : "castle-data:/raptor.castle-anim-frames"
+                "Url" : "castle-data:/velociraptor/velociraptor.gltf"
               },
               {
                 "$$ClassName" : "TCastleCamera",
@@ -917,6 +920,33 @@
                   "Y" : -4.4899997711181641E+000,
                   "Z" : 4.8899998664855957E+000
                 }
+              },
+              {
+                "$$ClassName" : "TCastleDirectionalLight",
+                "CenterPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
+                "ColorPersistent" : {
+                  "$$ClassName" : "TCastleColorRGBPersistent"
+                },
+                "Name" : "DirectionalLight2",
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent",
+                  "W" : 2.6330058574676514E+000,
+                  "X" : -1.0000009536743164E+000
+                },
+                "ScaleOrientationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent"
+                },
+                "ScalePersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
+                "Shadows" : true,
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "Y" : 1.1802188873291016E+001,
+                  "Z" : -1.3242606163024902E+001
+                }
               }
             ]
           },
@@ -995,24 +1025,23 @@
             },
             "RotationPersistent" : {
               "$$ClassName" : "TCastleVector4RotationPersistent",
-              "W" : 1.0893447399139404E+000,
-              "X" : -1.5021929144859314E-001,
-              "Y" : -9.8455291986465454E-001,
-              "Z" : -8.9943960309028625E-002
+              "W" : 3.9705417156219482E+000,
+              "X" : 9.6053905785083771E-002,
+              "Y" : 9.7252267599105835E-001,
+              "Z" : 2.1206937730312347E-001
             },
             "ScaleOrientationPersistent" : {
               "$$ClassName" : "TCastleVector4Persistent"
             },
             "ScalePersistent" : {
               "$$ClassName" : "TCastleVector3Persistent",
-              "Y" : 1.0000001192092896E+000,
-              "Z" : 1.0000001192092896E+000
+              "Y" : 1.0000002384185791E+000
             },
             "TranslationPersistent" : {
               "$$ClassName" : "TCastleVector3Persistent",
-              "X" : -5.0837215423583984E+001,
-              "Y" : -2.3265354633331299E+000,
-              "Z" : 8.6649589538574219E+000
+              "X" : -2.1465332031250000E+001,
+              "Y" : 9.7124185562133789E+000,
+              "Z" : -1.5019657135009766E+001
             }
           },
           "InternalDesignNavigations[dnFly]" : {
