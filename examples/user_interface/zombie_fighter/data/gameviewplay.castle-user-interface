@@ -34,7 +34,6 @@
       "$Children" : [
         {
           "$$ClassName" : "TCastleViewport",
-          "AutoCamera" : true,
           "BackgroundColorPersistent" : {
             "$$ClassName" : "TCastleColorPersistent"
           },
@@ -51,7 +50,6 @@
             "CenterPersistent" : {
               "$$ClassName" : "TCastleVector3Persistent"
             },
-            "MainScene" : "MainScene",
             "PhysicsProperties" : {
               "$$ClassName" : "TPhysicsProperties",
               "LayerCollisions" : {
@@ -127,7 +125,7 @@
                 "RotationPersistent" : {
                   "$$ClassName" : "TCastleVector4RotationPersistent",
                   "W" : 2.2048397064208984E+000,
-                  "Y" : 1.0000001192092896E+000
+                  "Y" : 1.0000000000000000E+000
                 },
                 "ScaleOrientationPersistent" : {
                   "$$ClassName" : "TCastleVector4Persistent"
@@ -138,7 +136,7 @@
                 "TranslationPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",
                   "X" : 3.2496919631958008E+000,
-                  "Y" : 2.0000000000000000E+000,
+                  "Y" : 1.7999999523162842E+000,
                   "Z" : -5.4161548614501953E+000
                 }
               }
