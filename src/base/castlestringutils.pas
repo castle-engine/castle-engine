@@ -1745,11 +1745,12 @@ begin
   result := Copy(s, Length(s)-rpart+1, rpart);
 end;
 
-function SAppendPart(const s, PartSeparator, NextPart: string): string;
+function SAppendPart(const S, PartSeparator, NextPart: String): String;
 begin
- if s = '' then
-  result := NextPart else
-  result := s+PartSeparator+NextPart;
+  if S = '' then
+    Result := NextPart
+  else
+    Result := S + PartSeparator + NextPart;
 end;
 
 procedure DeFormat(Data: string; const Format: string;
