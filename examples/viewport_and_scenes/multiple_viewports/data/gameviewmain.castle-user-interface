@@ -549,7 +549,8 @@
               "$$ClassName" : "TCastleVector3Persistent"
             },
             "TranslationPersistent" : {
-              "$$ClassName" : "TCastleVector3Persistent"
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : -1.5920999646186829E-001
             }
           },
           "InternalDesignNavigations[dnFly]" : {
@@ -666,7 +667,7 @@
                 "TranslationPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent"
                 },
-                "Url" : "castle-data:/bridge_level/bridge_final.x3dv"
+                "Url" : "castle-data:/bridge_level/bridge.gltf"
               },
               {
                 "$$ClassName" : "TCastleScene",
@@ -929,6 +930,7 @@
                 "ColorPersistent" : {
                   "$$ClassName" : "TCastleColorRGBPersistent"
                 },
+                "Intensity" : 2.0000000000000000E+000,
                 "Name" : "DirectionalLight2",
                 "RotationPersistent" : {
                   "$$ClassName" : "TCastleVector4RotationPersistent",
@@ -946,6 +948,68 @@
                   "$$ClassName" : "TCastleVector3Persistent",
                   "Y" : 1.1802188873291016E+001,
                   "Z" : -1.3242606163024902E+001
+                }
+              },
+              {
+                "$$ClassName" : "TCastleScene",
+                "CenterPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
+                "ExposeTransforms" : [
+                ],
+                "Name" : "SceneTeapot",
+                "ProcessEvents" : true,
+                "RenderOptions" : {
+                  "$$ClassName" : "TCastleScene.TSceneRenderOptions",
+                  "WireframeColorPersistent" : {
+                    "$$ClassName" : "TCastleColorRGBPersistent"
+                  }
+                },
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent"
+                },
+                "ScaleOrientationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent"
+                },
+                "ScalePersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "Y" : -1.6640365123748779E-001
+                },
+                "Url" : "castle-data:/teapot.x3dv"
+              },
+              {
+                "$$ClassName" : "TCastleSpotLight",
+                "AttenuationPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "Z" : 0.0000000000000000E+000
+                },
+                "CenterPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
+                "ColorPersistent" : {
+                  "$$ClassName" : "TCastleColorRGBPersistent"
+                },
+                "Intensity" : 1.0000000000000000E+001,
+                "Name" : "SpotLight1",
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent",
+                  "W" : 1.7755829095840454E+000,
+                  "Z" : -1.0000005960464478E+000
+                },
+                "ScaleOrientationPersistent" : {
+                  "$$ClassName" : "TCastleVector4Persistent"
+                },
+                "ScalePersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent"
+                },
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "X" : -2.0654511451721191E+000,
+                  "Y" : -2.4835476875305176E+000,
+                  "Z" : 2.6059825897216797E+001
                 }
               }
             ]
@@ -1025,23 +1089,25 @@
             },
             "RotationPersistent" : {
               "$$ClassName" : "TCastleVector4RotationPersistent",
-              "W" : 3.9705417156219482E+000,
-              "X" : 9.6053905785083771E-002,
-              "Y" : 9.7252267599105835E-001,
-              "Z" : 2.1206937730312347E-001
+              "W" : 1.6277012825012207E+000,
+              "X" : -1.3794554769992828E-001,
+              "Y" : -9.8005926609039307E-001,
+              "Z" : -1.4302058517932892E-001
             },
             "ScaleOrientationPersistent" : {
               "$$ClassName" : "TCastleVector4Persistent"
             },
             "ScalePersistent" : {
               "$$ClassName" : "TCastleVector3Persistent",
-              "Y" : 1.0000002384185791E+000
+              "X" : 1.0000001192092896E+000,
+              "Y" : 1.0000001192092896E+000,
+              "Z" : 1.0000001192092896E+000
             },
             "TranslationPersistent" : {
               "$$ClassName" : "TCastleVector3Persistent",
-              "X" : -2.1465332031250000E+001,
-              "Y" : 9.7124185562133789E+000,
-              "Z" : -1.5019657135009766E+001
+              "X" : -2.7913312911987305E+001,
+              "Y" : 7.1346324682235718E-001,
+              "Z" : -2.6529617309570312E+000
             }
           },
           "InternalDesignNavigations[dnFly]" : {
@@ -1052,6 +1118,7 @@
             "BorderColorPersistent" : {
               "$$ClassName" : "TCastleColorPersistent"
             },
+            "MoveSpeed" : 1.3593563079833984E+001,
             "Name" : "",
             "TranslationPersistent" : {
               "$$ClassName" : "TCastleVector2Persistent"
