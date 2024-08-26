@@ -458,11 +458,6 @@ const
   weSolidWireframe = CastleRenderOptions.weSolidWireframe;
   weSilhouette = CastleRenderOptions.weSilhouette;
 
-  ssRendering = CastleSceneCore.ssRendering;
-  ssDynamicCollisions = CastleSceneCore.ssDynamicCollisions;
-  ssVisibleTriangles = CastleSceneCore.ssVisibleTriangles;
-  ssStaticCollisions = CastleSceneCore.ssStaticCollisions;
-
 {$define read_interface}
 {$I castlescene_roottransform.inc}
 {$I castlescene_abstractprimitive.inc}

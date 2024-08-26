@@ -86,7 +86,7 @@ uses Math, Contnrs,
 
 type
   { Simple 3D axis-aligned box, resolving collisions with this box using
-    TCastleScene fallback methods when Spatial = []. }
+    TCastleScene fallback methods when PreciseCollisions=false. }
   TMy3D = class(TCastleSceneCore)
   private
     MyBox: TBox3D;
@@ -1207,11 +1207,11 @@ var
 
   procedure AssertBox(const TestName: string; const T: TCastleTransform; const B: TBox3D);
   begin
-    Scene.Spatial := [];
+    Scene.PreciseCollisions := false;
     AssertBox2(TestName + '_Scene as bbox', T, B);
-    Scene.Spatial := [ssDynamicCollisions];
+    Scene.PreciseCollisions := true;
     AssertBox2(TestName + '_Scene as ssDynamicCollisions octree', T, B);
-    Scene.Spatial := [ssStaticCollisions];
+    Scene.PreciseCollisions := true;
     AssertBox2(TestName + '_Scene as ssStaticCollisions octree', T, B);
   end;
 

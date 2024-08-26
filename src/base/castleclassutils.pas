@@ -509,6 +509,12 @@ type
     procedure ReadWriteList(const Key: String;
       const ListEnumerate: TListEnumerateEvent; const ListAdd: TListAddEvent;
       const ListClear: TListClearEvent); virtual; abstract;
+
+    { Is there set with the given Key, and non-empty?
+      Internal, because use-case small: backward compatibility for old designs
+      with "Spatial" set.
+      @exclude}
+    function InternalHasNonEmptySet(const Key: String): Boolean; virtual; abstract;
   end;
 
   { Component with various CGE extensions: can be a parent of other non-visual components
@@ -2050,6 +2056,7 @@ type
       const ListEnumerate: TSerializationProcess.TListEnumerateEvent;
       const ListAdd: TSerializationProcess.TListAddEvent;
       const ListClear: TSerializationProcess.TListClearEvent); override;
+    function InternalHasNonEmptySet(const Key: String): Boolean; override;
   end;
 
 procedure TTranslatePropertiesOnChildren.TranslatePropertiesOnChild(Child: TComponent);
@@ -2089,6 +2096,12 @@ end;
 procedure TTranslatePropertiesOnChildren.ReadWriteSingle(const Key: String; var Value: Single; const IsStored: Boolean);
 begin
   // just override abstract method to do nothing
+end;
+
+function TTranslatePropertiesOnChildren.InternalHasNonEmptySet(const Key: String): Boolean;
+begin
+  // just override abstract method to do nothing
+  Result := false;
 end;
 
 procedure TranslateProperties(const C: TComponent;
