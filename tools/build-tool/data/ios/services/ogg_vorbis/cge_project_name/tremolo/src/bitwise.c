@@ -26,7 +26,7 @@
 #include <stdio.h>
 
 
-#if !defined(ARM_LITTLE_ENDIAN) || defined(_V_BIT_TEST)
+#if !defined(ARM_LITTLE_ENDIAN_ASSEMBLER) || defined(_V_BIT_TEST)
 static unsigned long mask[]=
 {0x00000000,0x00000001,0x00000003,0x00000007,0x0000000f,
  0x0000001f,0x0000003f,0x0000007f,0x000000ff,0x000001ff,
@@ -37,7 +37,7 @@ static unsigned long mask[]=
  0x3fffffff,0x7fffffff,0xffffffff };
 #endif
 
-#ifdef ARM_LITTLE_ENDIAN
+#ifdef ARM_LITTLE_ENDIAN_ASSEMBLER
 
 #ifdef DEBUGGING_BITWISE
 extern void oggpack_readinitARM(oggpack_buffer *b,ogg_reference *r);
@@ -154,10 +154,11 @@ static void _span(oggpack_buffer *b){
     }else{
       /* we've either met the end of decode, or gone past it. halt
 	 only if we're past */
-      if(b->headend*8<b->headbit)
-	/* read has fallen off the end */
-	b->headend=-1;
-        break;
+      if(b->headend*8<b->headbit) {
+	      /* read has fallen off the end */
+	      b->headend=-1;
+      }
+      break;
     }
   }
 }
@@ -189,8 +190,7 @@ void oggpack_readinit(oggpack_buffer *b,ogg_reference *r){
 /* Read in bits without advancing the bitptr; bits <= 32 */
 long oggpack_look(oggpack_buffer *b,int bits){
   unsigned long m=mask[bits];
-  unsigned long ret = 0;  // CGE: initialized to silence warnings
-  //int BITS = bits; // CGE: unused
+  unsigned long ret=0;
 
   bits+=b->headbit;
 
@@ -256,7 +256,6 @@ long oggpack_look(oggpack_buffer *b,int bits){
 
 /* limited to 32 at a time */
 void oggpack_adv(oggpack_buffer *b,int bits){
-  // int BITS=bits;  // CGE: unused
   bits+=b->headbit;
   b->headbit=bits&7;
   b->headend-=(bits>>3);
@@ -437,7 +436,7 @@ void _end_verify2(int count){
 
   /* does reading to exactly byte alignment *not* trip EOF? */
   oggpack_adv(&o,leftover);
-#ifdef ARM_LITTLE_ENDIAN
+#ifdef ARM_LITTLE_ENDIAN_ASSEMBLER
     if(o.bitsLeftInSegment!=0)
 #else
   if(o.headend!=0)
@@ -448,7 +447,7 @@ void _end_verify2(int count){
 
   /* does EOF trip properly after a single additional bit? */
   oggpack_adv(&o,1);
-#ifdef ARM_LITTLE_ENDIAN
+#ifdef ARM_LITTLE_ENDIAN_ASSEMBLER
     if(o.bitsLeftInSegment>=0)
 #else
   if(o.headend>=0)
@@ -460,7 +459,7 @@ void _end_verify2(int count){
   /* does EOF stay set over additional bit reads? */
   for(i=0;i<=32;i++){
     oggpack_adv(&o,i);
-#ifdef ARM_LITTLE_ENDIAN
+#ifdef ARM_LITTLE_ENDIAN_ASSEMBLER
     if(o.bitsLeftInSegment>=0)
 #else
     if(o.headend>=0)

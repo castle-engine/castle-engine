@@ -100,7 +100,7 @@ type
 
      GLsizeiptr = ptrint;
      TGLsizeiptr = GLsizeiptr;
-  { OpenGL ES core versions  }
+  { OpenGL ES 3.0 core versions  }
      GLuint64 = QWord;
      TGLuint64 = GLuint64;
      PGLuint64 = ^GLuint64;
@@ -1617,7 +1617,7 @@ end;
       glBeginPerfMonitorAMD:=nil;
       glEndPerfMonitorAMD:=nil;
       glGetPerfMonitorCounterDataAMD:=nil;
-      //
+      // OpenGL ES 3.0 APIs
       glReadBuffer := nil;
       glDrawRangeElements := nil;
       glTexImage3D := nil;
