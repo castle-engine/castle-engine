@@ -444,8 +444,8 @@
                 },
                 "ColorPersistent" : {
                   "$$ClassName" : "TCastleColorRGBPersistent",
-                  "Blue" : 0.0000000000000000E+000,
-                  "Red" : 9.1764706373214722E-001
+                  "Green" : 8.9803922176361084E-001,
+                  "Red" : 1.2941177189350128E-001
                 },
                 "Intensity" : 5.0000000000000000E+002,
                 "Name" : "SpotLight1",
@@ -461,9 +461,7 @@
                   "$$ClassName" : "TCastleVector3Persistent"
                 },
                 "TranslationPersistent" : {
-                  "$$ClassName" : "TCastleVector3Persistent",
-                  "X" : 2.6672208309173584E+000,
-                  "Z" : -7.0278029441833496E+000
+                  "$$ClassName" : "TCastleVector3Persistent"
                 }
               }
             ]
