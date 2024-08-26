@@ -32,17 +32,22 @@
 *.castle-component text eol=auto
 *.castle-transform text eol=auto
 .gitignore text eol=auto
-*.x3d text eol=auto
-*.wrl text eol=auto
 Makefile text eol=auto
 *.iss text eol=auto
 
-# do not convert line endings (binary,
-# or just we prefer don't touch -- e.g. svg can *probably* we treated as text,
-# but no need, we edit it in graphic editors anyway, so no tool breaks line endings).
+
+
+# do not convert line endings (binary)
 *.gltf binary
 *.glb binary
+# Note: svg could *probably* be treated as text (it's XML, line endings
+# could be native), but it's safer to treat it as binary.
+# We edit it in mostly graphic editors like Inkscape anyway,
+# so no need to worry about line endings and text editors.
 *.svg binary
+# Treat these as binary, they may contain gzip data - see tests/data/gzipped_x3d/sphere_normal_extension_but_gzipped.wrl
+*.x3d binary
+*.wrl binary
 
 # Even on Windows, shell scripts line endings must be Unix, to work with Cygwin's bash.
 *.sh text eol=lf
