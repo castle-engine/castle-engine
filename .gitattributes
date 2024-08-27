@@ -35,8 +35,6 @@
 Makefile text eol=auto
 *.iss text eol=auto
 
-
-
 # do not convert line endings (binary)
 *.gltf binary
 *.glb binary
