@@ -1030,7 +1030,7 @@ procedure TCastleWindow.SetCaption(const Part: TCaptionPart; const Value: String
 begin
   FCaption[Part] := Value;
   if not Closed then
-    ref.setTitle(NSSTR(GetWholeCaption));
+    ref.setTitle(NSString.stringWithUTF8String(PChar(GetWholeCaption)));
 end;
 
 procedure TCastleWindow.BackendMakeCurrent;
