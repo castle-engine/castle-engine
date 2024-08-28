@@ -1,6 +1,6 @@
 // -*- compile-command: "./test_single_testcase.sh TTestCastleStringUtils" -*-
 {
-  Copyright 2004-2021 Michalis Kamburelis.
+  Copyright 2004-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -41,6 +41,7 @@ type
     procedure TestRegexpMatches;
     procedure TestIsWild;
     procedure TestSAppendPart;
+    procedure TestStringListStrict;
   end;
 
 implementation
@@ -513,6 +514,46 @@ begin
   AssertEquals('foo', SAppendPart('', ';', 'foo'));
   AssertEquals('foo;foo', SAppendPart('foo', ';', 'foo'));
   AssertEquals('foo;foo;foo', SAppendPart('foo;foo', ';', 'foo'));
+end;
+
+procedure TTestCastleStringUtils.TestStringListStrict;
+
+{ This code is similar to what CastleInternalDelphiDesign does in
+  TCastleDelphiIdeIntegration.AddPaths ,
+  TCastleDelphiIdeIntegration.RemovePaths . }
+
+const
+  InputStr = '$(BDSLIB)\$(Platform)\release;$(BDSUSERDIR)\Imports;$(BDSUSERDIR)\Imports\$(Platform);$(BDS)\Imports;$(BDSCOMMONDIR)\Dcp;$(BDS)\include;c:\path with spaces';
+  NewPath1 = 'C:\cygwin64\home\michalis\sources\castle-engine\castle-engine\src\base';
+  NewPath2 = 'C:\cygwin64\home\michalis\sources\castle-engine\castle-engine\src\common_includes';
+  OutputStr = InputStr + ';' + NewPath1 + ';' + NewPath2;
+var
+  List: TStringList;
+  I: Integer;
+begin
+  List := TStringList.Create;
+  try
+    List.Delimiter := ';';
+    { This is critically important to not break "c:\path with spaces" in InputStr.
+      See also https://github.com/castle-engine/castle-engine/issues/626 .
+      Another solution, aside from StrictDelimiter, would be to use
+      CGE SplitString + GlueString. }
+    List.StrictDelimiter := true;
+    List.DelimitedText := InputStr;
+    List.Add(NewPath1);
+    List.Add(NewPath2);
+    AssertEquals(OutputStr, List.DelimitedText);
+
+    I := List.IndexOf(NewPath1);
+    AssertFalse(I = -1);
+    List.Delete(I);
+
+    I := List.IndexOf(NewPath2);
+    AssertFalse(I = -1);
+    List.Delete(I);
+
+    AssertEquals(InputStr, List.DelimitedText);
+  finally FreeAndNil(List) end;
 end;
 
 initialization

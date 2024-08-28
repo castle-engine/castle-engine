@@ -163,7 +163,7 @@ uses {$ifdef windows}
       Windows,
       MMSystem,
      {$else}
-      {$ifdef unix}
+      {$if defined(unix) and (not defined(CASTLE_NINTENDO_SWITCH))}
        BaseUnix,
        Unix,
        UnixType,
@@ -172,10 +172,11 @@ uses {$ifdef windows}
        {$ifend}
       {$else}
        // Use CGE cross-platform routines for time, instead of relying on SDL.
+       // Good for Nintendo Switch and future web target.
        // SDL,
        CastleTimeUtils,
        {$define USE_CASTLE_TIME_UTILS}
-      {$endif}
+      {$ifend}
      {$endif}
      {$ifdef DebugDraw}
       {$ifdef fpc}
@@ -10449,8 +10450,8 @@ begin
  inherited Create;
  fFrequencyShift:=0;
 {$if defined(USE_CASTLE_TIME_UTILS)}
- // Copied from TimerFrequency constant in CastleTimeUtils
- fFrequency:= 1000000;
+ // CastleGetTickCount64 frequency is 1000 (miliseconds)
+ fFrequency:= 1000;
 {$elseif defined(windows)}
  if QueryPerformanceFrequency(fFrequency) then begin
   while (fFrequency and $ffffffffe0000000)<>0 do begin
@@ -10498,7 +10499,7 @@ var tv:timeval;
 {$ifend}
 begin
 {$if defined(USE_CASTLE_TIME_UTILS)}
- result:=Timer.InternalValue;
+ result:=CastleGetTickCount64;
 {$elseif defined(windows)}
  if not QueryPerformanceCounter(result) then begin
   result:=timeGetTime;
@@ -10528,15 +10529,19 @@ end;
 
 procedure TKraftHighResolutionTimer.Sleep(Delay:int64);
 var EndTime,NowTime{$ifdef unix},SleepTime{$endif}:int64;
-{$ifdef unix}
+{$if defined(USE_CASTLE_TIME_UTILS)}
+// nothing needed to be declared
+{$elseif defined(unix)}
     req,rem:timespec;
-{$endif}
+{$ifend}
 begin
  if Delay>0 then begin
 {$if defined(USE_CASTLE_TIME_UTILS)}
   { We don't have in CGE own Sleep, we found that SysUtils.Sleep
     works OK everywhere. }
+  {$ifndef CASTLE_NINTENDO_SWITCH}
   SysUtils.Sleep(Delay);
+  {$endif}
 {$elseif defined(windows)}
   NowTime:=GetTime;
   EndTime:=NowTime+Delay;

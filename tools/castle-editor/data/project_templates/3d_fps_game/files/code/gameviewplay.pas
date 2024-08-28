@@ -23,6 +23,7 @@ type
     MainViewport: TCastleViewport;
     WalkNavigation: TCastleWalkNavigation;
     SceneEnemy1, SceneEnemy2, SceneEnemy3, SceneEnemy4: TCastleScene;
+    SimpleCrosshair: TCastleCrosshair;
   private
     { Enemies behaviors }
     Enemies: TEnemyList;
@@ -126,6 +127,26 @@ begin
   if Event.IsMouseButton(buttonRight) then
   begin
     WalkNavigation.MouseLook := not WalkNavigation.MouseLook;
+
+    { This game allows to toggle WalkNavigation.MouseLook at run-time,
+      which changes:
+      - how can user rotate the camera (with mouse look -- just move the mouse
+        around),
+      - whether the mouse cursor is visible (mouse cursor is hidden when
+        "mouse look" is active, as we internally reposition it to ~roughly
+        the middle of the viewport all the time),
+      - what the MainViewport.TransformUnderMouse queries
+        (with mouse look -- it always makes a raycast from the exact middle of
+        the viewport).
+
+      The crosshair, at the middle of the screen, is thus useful
+      (and even necessary) only when "mouse look" is active.
+
+      It real games, it is usually simpler, because you use "mouse look"
+      always, or not at all.
+      In this demo, we wanted to have both options. }
+    SimpleCrosshair.Exists := WalkNavigation.MouseLook;
+
     Exit(true);
   end;
 

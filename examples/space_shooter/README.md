@@ -6,7 +6,7 @@ Initial version of a space shooter game.
 
 - Background (drawn efficiently as one quad, with texture repeating to infinity).
 
-- Rockets (fired by the player's cannons). Each rocker has a collider and can detect when it hit an enemy. Rocket can be "armed" (destroys enemies) or "not" (just a ball that bounces off enemies).
+- Rockets (fired by the player's cannons). Each rocket has a collider and can detect when it hit an enemy. Rocket can be "armed" (destroys enemies) or "not" (just a ball that bounces off enemies).
 
 - Enemies, played by the Mighty Rotating Rocks! They just move slowly towards the player. You can shoot them to destroy.
 

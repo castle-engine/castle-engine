@@ -1,5 +1,5 @@
 ﻿{
-  Copyright 2018-2023 Michalis Kamburelis, Andrzej Kilijański.
+  Copyright 2018-2024 Michalis Kamburelis, Andrzej Kilijański.
 
   This file is part of "Castle Game Engine".
 
@@ -37,6 +37,7 @@ type
     SceneAnimationButtons: TCastleUserInterface;
     CheckboxForward, CheckboxLoop, CheckboxMagFilterNearest, CheckboxMinFilterNearest, CheckboxAnimationNamingLoadOpt: TCastleCheckbox;
     SliderTransition, SliderScale, SliderFPSLoadOpt: TCastleFloatSlider;
+    SliderOptimization: TCastleIntegerSlider;
   private
     { Event handlers }
     procedure OpenScene(const Url: String);
@@ -51,6 +52,7 @@ type
     procedure ChangedTextureMagOptions(Sender: TObject);
     procedure ChangedTextureMinOptions(Sender: TObject);
     procedure ChangedStarlingOptions(Sender: TObject);
+    procedure ChangedOptimization(Sender: TObject);
 
     { Simple function to parse current settings in options UI
       see ClickButtonOpen2DStarling for more info. }
@@ -90,6 +92,7 @@ begin
   SliderFPSLoadOpt.OnChange := {$ifdef FPC}@{$endif} ChangedStarlingOptions;
   CheckboxAnimationNamingLoadOpt.OnChange := {$ifdef FPC}@{$endif} ChangedStarlingOptions;
   SliderScale.OnChange := {$ifdef FPC}@{$endif} ChangedScale;
+  SliderOptimization.OnChange := {$ifdef FPC}@{$endif} ChangedOptimization;
   CheckboxMagFilterNearest.OnChange := {$ifdef FPC}@{$endif} ChangedTextureMagOptions;
   CheckboxMinFilterNearest.OnChange := {$ifdef FPC}@{$endif} ChangedTextureMinOptions;
 
@@ -298,6 +301,20 @@ begin
       Params.TransitionDuration := SliderTransition.Value;
       Scene.PlayAnimation(Params);
     finally FreeAndNil(Params) end;
+  end;
+end;
+
+procedure TViewMain.ChangedOptimization(Sender: TObject);
+begin
+  { Activate a few optimizations based on the slider value.
+    See examples/animations/optimize_animations_test/ for more notes
+    about optimizing. }
+  Viewport.DynamicBatching := SliderOptimization.Value > 0;
+  InternalFastTransformUpdate := SliderOptimization.Value > 0;
+  OptimizeExtensiveTransformations := SliderOptimization.Value > 0;
+  case SliderOptimization.Value of
+    0, 1: Scene.AnimateSkipTicks := 0;
+    2: Scene.AnimateSkipTicks := 1;
   end;
 end;
 

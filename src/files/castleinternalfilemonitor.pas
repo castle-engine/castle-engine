@@ -206,7 +206,7 @@ function FileMonitor: TCastleFileMonitor;
 
 implementation
 
-uses CastleUriUtils, CastleLog, CastleApplicationProperties;
+uses CastleUriUtils, CastleLog, CastleApplicationProperties, CastleFilesUtils;
 
 var
   FFinalizationDone: Boolean;
@@ -226,20 +226,45 @@ begin
 end;
 
 procedure TCastleFileMonitor.TFileInfo.UpdateLastModified(const CallChanged: Boolean);
+
+  function UrlAge(const Url: String): TDateTime;
+  var
+    FileName: String;
+  begin
+    FileName := UriToFilenameSafe(Url);
+    if FileName = '' then
+    begin
+      WritelnWarning('File Monitor', 'Cannot get last modified time of URL "%s", it is not a regular file', [
+        UriDisplay(Url)
+      ]);
+      Exit(0);
+    end;
+
+    if not FileAge(FileName, Result) then
+    begin
+      { Don't make any warning when FileName does not exist --
+        returning 0 is then exactly the valid behavior,
+        we will effectively observe when it will get created. }
+      if RegularFileExists(FileName) then
+        WritelnWarning('File Monitor', 'Cannot get last modified time of URL "%s", it will not be watched reliably', [
+          UriDisplay(Url)
+        ]);
+      Exit(0);
+    end;
+  end;
+
 var
   NewLastModified: TDateTime;
 begin
-  if not FileAge(UriToFilenameSafe(Url), NewLastModified) then
-  begin
-    WritelnWarning('File Monitor', 'Cannot get last modified time of URL "' + Url + '", it will not be watched reliably');
-    NewLastModified := 0;
-  end;
+  NewLastModified := UrlAge(Url);
 
   if CallChanged and
      (LastModified <> NewLastModified) then
   begin
     ExecuteAllChanged;
-    WritelnLog('File Monitor', 'Notified about change of URL "' + Url + '" because last modification time changed');
+    WritelnLog('File Monitor', 'Notified about change of URL "%s" because last modification time changed', [
+      UriDisplay(Url)
+    ]);
   end;
 
   LastModified := NewLastModified;

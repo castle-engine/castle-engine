@@ -1,0 +1,35 @@
+#X3D V3.2 utf8
+PROFILE Interchange
+
+# Add a teapot, with cubemap mirror.
+# This shows that generated cubemap textures work from transform_scenes_demos
+# as well, and mirror shows all world obects (all in TCastleViewport,
+# not only in one TCastleScene).
+Transform {
+  translation -10 -4 4
+  children Shape {
+    appearance Appearance {
+      material Material {
+        diffuseColor 0.5 1 0.5
+        specularColor 1 1 1 shininess 1 }
+      texture MultiTexture {
+        texture [
+          ImageTexture { url "bridge_level/textures/059_plombieresgbr.jpg" }
+          GeneratedCubeMapTexture {
+            update "ALWAYS" # change to "NEXT_FRAME_ONLY" for speed
+            size 256
+          }
+        ]
+        mode [ "MODULATE" "ADD" ]
+      }
+    }
+    geometry Teapot {
+      texCoord MultiGeneratedTextureCoordinate {
+        texCoord [
+          TextureCoordinateGenerator { mode "COORD" }
+          TextureCoordinateGenerator { mode "WORLDSPACEREFLECTIONVECTOR" }
+        ]
+      }
+    }
+  }
+}

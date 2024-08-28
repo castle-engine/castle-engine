@@ -93,13 +93,6 @@ begin
     SceneSpatialOnlyVisibleTriangles := UiOwner.FindRequiredComponent('SceneSpatialOnlyVisibleTriangles') as TCastleScene;
     SceneSpatialOnlyStaticCollisions := UiOwner.FindRequiredComponent('SceneSpatialOnlyStaticCollisions') as TCastleScene;
 
-    AssertTrue(SceneSpatialNone.Spatial = []);
-    AssertTrue(SceneSpatialPreciseCollisions.Spatial = [ssRendering, ssDynamicCollisions]);
-    AssertTrue(SceneSpatialOnlyRendering.Spatial = [ssRendering]);
-    AssertTrue(SceneSpatialOnlyDynamicCollisions.Spatial = [ssDynamicCollisions]);
-    AssertTrue(SceneSpatialOnlyVisibleTriangles.Spatial = [ssVisibleTriangles]);
-    AssertTrue(SceneSpatialOnlyStaticCollisions.Spatial = [ssStaticCollisions]);
-
     AssertFalse(SceneSpatialNone.PreciseCollisions);
     AssertTrue(SceneSpatialPreciseCollisions.PreciseCollisions);
     AssertTrue(SceneSpatialOnlyRendering.PreciseCollisions);

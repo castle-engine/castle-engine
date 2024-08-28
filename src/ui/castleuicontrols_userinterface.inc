@@ -1,6 +1,6 @@
 {%MainUnit castleuicontrols.pas}
 {
-  Copyright 2010-2023 Michalis Kamburelis.
+  Copyright 2010-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -623,7 +623,7 @@
       It is still the caller's responsibility to make sure the Item is freed
       at some point.
 
-      See https://castle-engine.io/modern_pascal_introduction.html#_freeing_classes
+      See https://castle-engine.io/modern_pascal#_freeing_classes
       for description how to free instances in Pascal.
       As TCastleUserInterface descends from TComponent, a simple and proper solution
       is often just to create it with some "owner" (like @link(TCastleView.FreeAtStop) or @link(Application))
@@ -641,7 +641,7 @@
       It is still the caller's responsibility to make sure the children controls
       are freed at some point.
 
-      See https://castle-engine.io/modern_pascal_introduction.html#_freeing_classes
+      See https://castle-engine.io/modern_pascal#_freeing_classes
       for description how to free instances in Pascal.
       As TCastleUserInterface descends from TComponent, a simple and proper solution
       is often just to create it with some "owner" (like @link(TCastleView.FreeAtStop) or @link(Application))

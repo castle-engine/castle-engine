@@ -728,9 +728,7 @@ constructor TVisualizeTransformSelected.Create(AOwner: TComponent);
     Result.Pickable := FPickable;
     Result.CastShadows := false;
     Result.InternalExcludeFromParentBoundingVolume := true;
-    {$warnings off} // TODO: Change this to Result.PreciseCollisions := true, once tested it equally performs
-    Result.Spatial := [ssDynamicCollisions];
-    {$warnings on}
+    Result.PreciseCollisions := true;
     Result.SetTransient;
     Result.OnParentModified := @GizmoHasModifiedParent;
     Result.OnGizmoStopDrag := @GizmoStopDrag;

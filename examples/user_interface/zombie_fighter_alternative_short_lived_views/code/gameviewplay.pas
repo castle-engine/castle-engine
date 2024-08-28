@@ -111,7 +111,7 @@ begin
   if Event.IsMouseButton(buttonLeft) then
   begin
     Triangle := MainViewport.TriangleHit;
-    if (Triangle <> nil) and // we clicked on something that has triangle information (e.g. because it has Spatial with ssDynamicCollisions)
+    if (Triangle <> nil) and // we clicked on something that has triangle information (e.g. because it has PreciseCollisions)
        (Triangle^.MaterialInfo <> nil)  and // the clicked triangle has a material information
        ( (Triangle^.MaterialInfo.Node.X3DName = 'MA_female_zombie_material') or
          (Triangle^.MaterialInfo.Node.X3DName = 'MA_male_zombie_material')) then

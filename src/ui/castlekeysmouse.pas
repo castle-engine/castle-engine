@@ -1,5 +1,5 @@
 ﻿{
-  Copyright 2001-2022 Michalis Kamburelis, Tomasz Wojtyś.
+  Copyright 2001-2024 Michalis Kamburelis, Tomasz Wojtyś.
 
   This file is part of "Castle Game Engine".
 
@@ -715,14 +715,27 @@ type
     function MouseWheel: TMouseWheelDirection;
     { @groupEnd }
 
-    { Check is event type correct, and then check if event Key or KeyString
-      matches. Always false for AKey = keyNone or AKeyString = ''.
-      @groupBegin }
-    function IsKey(const AKey: TKey): boolean; overload;
-    function IsKey(AKeyString: String): boolean; overload;
-    { @groupEnd }
-    function IsMouseButton(const AMouseButton: TCastleMouseButton): boolean;
-    function IsMouseWheel(const AMouseWheel: TMouseWheelDirection): boolean;
+    { Does the event indicate pressing the given key.
+      This overloaded version, without RequiredModifiers parameter,
+      ignores the currently pressed modifiers.
+      Always @false when AKey is keyNone. }
+    function IsKey(const AKey: TKey): Boolean; overload;
+
+    { Does the event indicate pressing the given key.
+      This overloaded version, with RequiredModifiers, checks that pressed
+      modifiers match exactly the RequiredModifiers.
+      Always @false when AKey is keyNone. }
+    function IsKey(const AKey: TKey; const RequiredModifiers: TModifierKeys): Boolean; overload;
+
+    { Does the event indicate pressing the given key, with key given as a
+      string representation.
+      The AKeyString is a single Unicode character, represented as a String
+      (UTF-8 string with FPC, UTF-16 string with Delphi).
+      Always @false when AKeyString is ''. }
+    function IsKey(AKeyString: String): Boolean; overload;
+
+    function IsMouseButton(const AMouseButton: TCastleMouseButton): Boolean;
+    function IsMouseWheel(const AMouseWheel: TMouseWheelDirection): Boolean;
 
     { Textual description of this event. }
     function ToString: string;
@@ -759,7 +772,7 @@ function InputMouseButton(const Position: TVector2;
   const MouseButton: TCastleMouseButton; const FingerIndex: TFingerIndex;
   const ModifiersDown: TModifierKeys = []): TInputPressRelease;
 function InputMouseWheel(const Position: TVector2;
-  const Scroll: Single; const Vertical: boolean;
+  const Scroll: Single; const Vertical: Boolean;
   const ModifiersDown: TModifierKeys = []): TInputPressRelease;
 { @groupEnd }
 
@@ -1206,12 +1219,17 @@ begin
     Result := mwNone;
 end;
 
-function TInputPressRelease.IsKey(const AKey: TKey): boolean;
+function TInputPressRelease.IsKey(const AKey: TKey): Boolean;
 begin
   Result := (AKey <> keyNone) and (EventType = itKey) and (Key = AKey);
 end;
 
-function TInputPressRelease.IsKey(AKeystring: String): boolean;
+function TInputPressRelease.IsKey(const AKey: TKey; const RequiredModifiers: TModifierKeys): Boolean;
+begin
+  Result := IsKey(AKey) and (ModifiersDown = RequiredModifiers);
+end;
+
+function TInputPressRelease.IsKey(AKeystring: String): Boolean;
 begin
   // only for backward compatibility (when this parameter was Char) convert #0 to ''
   if AKeystring = #0 then
@@ -1220,12 +1238,12 @@ begin
   Result := (AKeystring <> '') and (EventType = itKey) and (KeyString = AKeystring);
 end;
 
-function TInputPressRelease.IsMouseButton(const AMouseButton: TCastleMouseButton): boolean;
+function TInputPressRelease.IsMouseButton(const AMouseButton: TCastleMouseButton): Boolean;
 begin
   Result := (EventType = itMouseButton) and (MouseButton = AMouseButton);
 end;
 
-function TInputPressRelease.IsMouseWheel(const AMouseWheel: TMouseWheelDirection): boolean;
+function TInputPressRelease.IsMouseWheel(const AMouseWheel: TMouseWheelDirection): Boolean;
 begin
   Result := (EventType = itMouseWheel) and (MouseWheel = AMouseWheel);
 end;
