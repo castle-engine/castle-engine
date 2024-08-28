@@ -54,7 +54,7 @@ begin
       for Shape in ShapeList do
         { Try also LocalTriangulate instead of Triangulate,
           to have Position in local shape coordinates. }
-        Shape.Triangulate({$ifdef FPC}@{$endif} Handler.HandleTriangle);
+        Shape.Triangulate({$ifdef FPC}@{$endif} Handler.HandleTriangle, true);
     finally FreeAndNil(Handler) end;
   finally FreeAndNil(Scene) end;
 end.

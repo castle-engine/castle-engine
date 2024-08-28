@@ -352,7 +352,10 @@ begin
     try
       Helper.Stream := Stream;
       for Shape in Scene.Shapes.TraverseList(true) do
-        Shape.Triangulate({$ifdef FPC}@{$endif} Helper.ProcessTriangle);
+        Shape.Triangulate({$ifdef FPC}@{$endif} Helper.ProcessTriangle,
+          { FrontFaceAlwaysCcw necessary,
+            since STL always make backface culling from CCW }
+          true);
       TriangleCount := Helper.TriangleCount;
     finally FreeAndNil(Helper) end;
   finally FreeAndNil(Scene) end;

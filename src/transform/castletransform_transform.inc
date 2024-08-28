@@ -651,7 +651,9 @@
       Default implementation returns @false. }
     function HasColliderMesh: Boolean; virtual;
 
-    { Enumerate triangles for a collision mesh that TCastleMeshCollider can use. }
+    { Enumerate triangles for a collision mesh that TCastleMeshCollider can use.
+      Always the front side of triangles is CCW (this matters for
+      @link(TCastleMeshCollider) with @link(TCastleMeshCollider.DoubleSided) = @false). }
     procedure ColliderMesh(const TriangleEvent: TTriangleEvent); virtual;
 
     { Does the item really collide. Trivial shortcut for checking @link(Collides) and @link(Exists). }

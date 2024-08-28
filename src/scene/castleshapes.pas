@@ -725,9 +725,35 @@ type
       LocalTriangulate returns coordinates in local shape transformation
       (that is, not transformed by State.Transform yet).
 
+      @param(FrontFaceAlwaysCcw
+        This parameter determines what is the "front" face of the
+        generated triangles. This "front" face matters e.g.
+
+        @unorderedList(
+          @item(In case the shape uses backface-culling.
+            This is indicated by "solid" fields
+            in X3D nodes, like @link(TAbstractComposedGeometryNode.Solid).
+            In case of some model formats, like STL, the backface-culling
+            is always "on".
+          )
+          @item(In case we use @link(TCastleMeshCollider) with
+            @link(TCastleMeshCollider.DoubleSided) = @false.
+          )
+        )
+
+        When FrontFaceAlwaysCcw is @false (default), the order of the vertexes of
+        each triangle follows the order in polygons in the original geometry.
+
+        When FrontFaceAlwaysCcw is @true (default), triangles are generated
+        such that the front face is always CCW (looks counter-clockwise
+        from the outside).
+      )
+
       @groupBegin }
-    procedure Triangulate(const TriangleEvent: TTriangleEvent);
-    procedure LocalTriangulate(const TriangleEvent: TTriangleEvent);
+    procedure Triangulate(const TriangleEvent: TTriangleEvent;
+      const FrontFaceAlwaysCcw: Boolean = false);
+    procedure LocalTriangulate(const TriangleEvent: TTriangleEvent;
+      const FrontFaceAlwaysCcw: Boolean = false);
     { @groupEnd }
 
     function DebugInfoWithoutChildren: String; override;
@@ -2165,7 +2191,8 @@ begin
     end else
     begin
       Result.Triangles.Capacity := TrianglesCount;
-      LocalTriangulate({$ifdef FPC}@{$endif}Result.AddItemTriangle);
+      LocalTriangulate({$ifdef FPC}@{$endif}Result.AddItemTriangle,
+        { FrontFaceAlwaysCcw should not matter } false);
     end;
   except Result.Free; raise end;
 
@@ -2924,7 +2951,8 @@ begin
     Result := nil;
 end;
 
-procedure TShape.LocalTriangulate(const TriangleEvent: TTriangleEvent);
+procedure TShape.LocalTriangulate(const TriangleEvent: TTriangleEvent;
+  const FrontFaceAlwaysCcw: Boolean);
 var
   Arrays: TGeometryArrays;
   RangeBeginIndex: Integer;
@@ -2997,13 +3025,16 @@ var
     I: Cardinal;
     NormalOrder: boolean;
   begin
+    NormalOrder := (not FrontFaceAlwaysCcw) or Arrays.FrontFaceCcw;
     case Arrays.Primitive of
       gpTriangles:
         begin
           I := 0;
           while I + 2 < Count do
           begin
-            Triangle(I, I + 1, I + 2);
+            if NormalOrder then
+              Triangle(I    , I + 1, I + 2) else
+              Triangle(I + 1, I    , I + 2);
             Inc(I, 3);
           end;
         end;
@@ -3012,14 +3043,15 @@ var
           I := 0;
           while I + 2 < Count do
           begin
-            Triangle(0, I + 1, I + 2);
+            if NormalOrder then
+              Triangle(0, I + 1, I + 2) else
+              Triangle(0, I + 2, I + 1);
             Inc(I);
           end;
         end;
       gpTriangleStrip:
         begin
           I := 0;
-          NormalOrder := true;
           while I + 2 < Count do
           begin
             if NormalOrder then
@@ -3071,7 +3103,8 @@ begin
   TriangleEvent(Shape, Position.Transform(Transform^), Normal, TexCoord, Face);
 end;
 
-procedure TShape.Triangulate(const TriangleEvent: TTriangleEvent);
+procedure TShape.Triangulate(const TriangleEvent: TTriangleEvent;
+  const FrontFaceAlwaysCcw: Boolean);
 var
   TR: TTriangulateRedirect;
 begin
@@ -3079,7 +3112,7 @@ begin
   try
     TR.Transform := @(State.Transformation.Transform);
     TR.TriangleEvent := TriangleEvent;
-    LocalTriangulate({$ifdef FPC}@{$endif}TR.LocalNewTriangle);
+    LocalTriangulate({$ifdef FPC}@{$endif}TR.LocalNewTriangle, FrontFaceAlwaysCcw);
   finally FreeAndNil(TR) end;
 end;
 
