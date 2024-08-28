@@ -1577,11 +1577,6 @@ end;
 { globals ------------------------------------------------------------------- }
 
 function CreateOctreeVisibleTrianglesForScene(const Scene: TCastleSceneCore): TTriangleOctree;
-
-{ Implementation is similar to the deprecated
-  TCastleSceneCore.CreateTriangleOctree, but simplified and with
-  assumption "only visible triangles" hardcoded. }
-
 var
   ShapeList: TShapeList;
   Shape: TShape;
@@ -1595,7 +1590,8 @@ begin
       { OnlyCollidable } false
     );
     for Shape in ShapeList do
-      Shape.Triangulate({$ifdef FPC}@{$endif} Result.AddItemTriangle);
+      Shape.Triangulate({$ifdef FPC}@{$endif} Result.AddItemTriangle,
+        { FrontFaceAlwaysCcw should not matter } false);
   except Result.Free; raise end;
 end;
 
