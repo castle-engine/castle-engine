@@ -5976,7 +5976,7 @@ function TCastleSceneCore.CreateTriangleOctree(
     for Shape in ShapeList do
       if (Collidable and Shape.Collidable) or
          ((not Collidable) and Shape.Visible) then
-        Shape.Triangulate(TriangleEvent);
+        Shape.Triangulate(TriangleEvent, { FrontFaceAlwaysCcw should not matter } false);
   end;
 
 begin
