@@ -141,7 +141,7 @@ function ProgramName: string; deprecated;
   unlike FPC FileExists which is inconsistent between OSes
   -- on Unix, FPC FileExists surprisingly answers @true for a directory).
 
-  Consider using URIExists or URIFileExists instead of this function,
+  Consider using @link(UriExists) or @link(UriFileExists) instead of this function,
   since in CGE you should use URLs for everything. }
 function RegularFileExists(const FileName: String): Boolean;
 

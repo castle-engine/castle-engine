@@ -458,6 +458,16 @@ type
     procedure FastTransformUpdateCore(var AnythingChanged: Boolean;
       const ParentTransformation: TTransformation); override;
   public
+    { List of TGeneratedShadowMap instances that should affect this shape.
+
+      May be @nil, equal to an empty list.
+
+      Created on-demand, never owns the children.
+      All children are always non-nil TGeneratedShadowMapNode instances.
+
+      @exclude }
+    InternalShadowMaps: TX3DNodeList;
+
     { Constructor.
       @param(ParentInfo Recursive information about parents,
         for the geometry node of given shape.
@@ -583,8 +593,9 @@ type
 
       To initialize this, add ssTriangles to @link(InternalSpatial) property,
       otherwise it's @nil. Parent TCastleSceneCore will take care of this
-      (when parent TCastleSceneCore.Spatial contains ssDynamicCollisions, then
-      all shapes contain ssTriangles within their InternalSpatial).
+      (when parent TCastleSceneCore.PreciseCollisions = @true
+      (that is when TCastleSceneCore.Spatial contains ssDynamicCollisions)
+      then all shapes contain ssTriangles within their InternalSpatial).
 
       Parent TCastleSceneCore will take care to keep this octree always updated.
 
@@ -1471,6 +1482,7 @@ end;
 
 destructor TShape.Destroy;
 begin
+  FreeAndNil(InternalShadowMaps);
   FreeAndNil(FShadowVolumes);
   FreeProxy;
   FreeAndNil(FNormals);
@@ -2228,8 +2240,8 @@ begin
         it (calling "Shape.InternalOctreeTriangles" right after setting
         "Shape.InternalSpatial := Value") for some time,
         but it just wasn't perfect,
-        because if we did "Scene.Spatial := [ssDynamicCollisions]"
-        but later "Scene.URL := ..." then didn't create octree for new shapes.
+        because if we did "Scene.PreciseCollisions := true"
+        but later "Scene.URL := ..." then it didn't create octree for new shapes.
 
         Note: InternalOctreeTriangles only does the job if FSpatial is already set to non-empty.
       }
@@ -2835,6 +2847,13 @@ begin
 
   Result := HandleTextureNode(OriginalGeometry.FontTextureNode);
   if Result <> nil then Exit;
+
+  if InternalShadowMaps <> nil then
+    for I := 0 to InternalShadowMaps.Count - 1 do
+    begin
+      Result := HandleTextureNode(InternalShadowMaps[I] as TGeneratedShadowMapNode);
+      if Result <> nil then Exit;
+    end;
 end;
 
 type

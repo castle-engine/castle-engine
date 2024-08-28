@@ -258,7 +258,9 @@ begin
         Points[1] := Vector2(R.Left, (R.Top + R.Bottom) / 2);
         Points[2] := Vector2(R.Right, R.Bottom);
       end;
+    {$ifndef COMPILER_CASE_ANALYSIS}
     else raise EInternalError.Create('DrawTriangleCore only useful for triangle shapes');
+    {$endif}
   end;
 
   DrawPrimitive2D(Mode, Points, Color,

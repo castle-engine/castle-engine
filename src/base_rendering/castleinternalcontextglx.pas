@@ -231,6 +231,10 @@ var
 
     Attribs := TInt32List.Create;
     try
+      {$ifdef OpenGLES}
+        {$fatal Cannot initialize OpenGLES context using glX. If you want to use OpenGLES, use EGL (see USE_EGL in CastleWindow unit). Or use regular desktop OpenGL, not OpenGLES, on regular Unix.}
+      {$endif}
+
       { Select 3.2 core context.
         See https://registry.khronos.org/OpenGL/extensions/ARB/GLX_ARB_create_context.txt }
       if TGLFeatures.RequestCapabilities = rcForceModern then

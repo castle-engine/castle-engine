@@ -1750,6 +1750,8 @@ procedure TProjectForm.FormCreate(Sender: TObject);
     AddPlatformSeparator;
     AddPlatform('FreeBSD 32-bit', targetCustom, FreeBSD, i386);
     AddPlatform('FreeBSD 64-bit', targetCustom, FreeBSD, x86_64);
+    AddPlatformSeparator;
+    AddPlatform('Nintendo Switch', targetNintendoSwitch, { OS and CPU ignored } DefaultOS, DefaultCPU);
   end;
 
   procedure BuildPackageFormatsMenu;

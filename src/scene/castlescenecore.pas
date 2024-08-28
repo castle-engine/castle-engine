@@ -23,7 +23,7 @@ interface
 
 uses SysUtils, Classes, Generics.Collections, Contnrs, Kraft,
   CastleVectors, CastleBoxes, CastleTriangles, X3DFields, X3DNodes,
-  CastleClassUtils, CastleUtils, CastleShapes, CastleInternalTriangleOctree,
+  CastleClassUtils, CastleUtils, CastleShapes,
   CastleInternalOctree, CastleInternalShapeOctree,
   CastleKeysMouse, X3DTime, CastleCameras, CastleInternalBaseTriangleOctree,
   CastleTimeUtils, CastleTransform, CastleInternalShadowMaps, CastleProjection,
@@ -209,64 +209,6 @@ type
     function Top: TAbstractViewpointNode;
     procedure PushIfEmpty(Node: TAbstractViewpointNode; SendEvents: boolean);
   end;
-
-  { Possible spatial structures that may be managed by TCastleSceneCore,
-    see @link(TCastleSceneCore.Spatial). }
-  TSceneSpatialStructure = (
-    { Create @italic(and keep up-to-date) a spatial structure
-      containing all visible shapes.
-      It's useful for "frustum culling", it will be automatically
-      used by TCastleScene rendering to speed it up.
-
-      This octree will be automatically updated on dynamic scenes
-      (when e.g. animation moves some shape by changing it's transformation). }
-    ssRendering,
-
-    { Create @italic(and keep up-to-date) a spatial structure
-      containing all collidable shapes (and then reaching
-      into collidable triangles for a specifc shape).
-      It is automatically used by the XxxCollision methods in this class.
-
-      This is actually a hierarchy of octrees: scene is partitioned
-      first into Shapes (each instance of VRML/X3D geometry node),
-      and then each Shape has an octree of triangles inside.
-
-      This octree is useful for all kinds of collision detection.
-      Compared to ssStaticCollisions, it is (very slightly on typical scenes)
-      less efficient, but it can also be updated very fast.
-      For example, merely transforming some Shape means that only
-      one item needs to be moved in the top-level shape tree.
-      So this is the most important structure for collision detection on
-      dynamic scenes. }
-    ssDynamicCollisions,
-
-    { Create a spatial structure containing all visible triangles, suitable only
-      for scenes that stay static.
-
-      It's primarily use is for ray-tracers, that make a lot of collision queries
-      to the same scene in the same time. When rendering using OpenGL,
-      this has no use currently.
-
-      This structure is not updated on scene changes. In fact, the scene
-      contents cannot change when this octree is created --- as this octree
-      keeps pointers to some states that may become invalid in dynamic scenes. }
-    ssVisibleTriangles,
-
-    { Create a spatial structure containing all collidable triangles,
-      @bold(only for scenes that never change).
-
-      It may be useful if you're absolutely sure that you have a static scene
-      (nothing changes, i.e. ProcessEvents = @false and you never
-      make any change to X3D nodes from code) and
-      you want to have collision detection with the scene.
-
-      For dynamic scenes, using this is a bad idea as
-      this octree is not updated on scene changes. In fact, the scene
-      contents cannot change when this octree is created --- as this octree
-      keeps pointers to some states that may become invalid in dynamic scenes.
-      Use ssDynamicCollisions for dynamic scenes. }
-    ssStaticCollisions);
-  TSceneSpatialStructures = set of TSceneSpatialStructure;
 
   TGeometryChange =
   ( { Everything changed. All octrees must be rebuild, old State pointers
@@ -767,23 +709,16 @@ type
   private
     FCompiledScriptHandlers: TCompiledScriptHandlerInfoList;
 
-    { Create octree containing all triangles or shapes from our scene.
-      Create octree, inits it with our LocalBoundingBox
-      and adds shapes (or all triangles from our Shapes).
-
-      Triangles are generated using calls like
-      @code(Shape.Triangulate(...)).
+    { Create octree containing all shapes from our scene.
+      Create octree, inits it with our LocalBoundingBox and adds shapes.
 
       If Collidable, then only the collidable, or at least "pickable",
-      triangles are generated. Which means that children of
+      shapes are generated. Which means that children of
       Collision nodes with collide = FALSE (or proxy <> nil) are not placed here.
       Otherwise, only the visible (not necessarily collidable)
       items are placed in the octree.
 
-      Remember that triangle octree has references to Shape nodes
-      inside RootNode VRML/X3D tree and to State objects inside
-      our @link(Shapes) tree.
-      And shape octree has references to our @link(Shapes) tree.
+      Remember that shape octree has references to our @link(Shapes) tree.
       So you must rebuild such octree when this object changes.
 
       Note: remember that this is a function and it returns
@@ -805,36 +740,21 @@ type
       Octrees, as implemented here, are a lot more flexible.
 
       @groupBegin }
-    function CreateTriangleOctree(const Limits: TOctreeLimits;
-      const Collidable: boolean): TTriangleOctree;
     function CreateShapeOctree(const Limits: TOctreeLimits;
       const Collidable: boolean): TShapeOctree;
     { @groupEnd }
   private
-    FTriangleOctreeLimits: TOctreeLimits;
+    type
+      { Possible spatial structures that may be managed by TCastleSceneCore,
+        see @link(PreciseCollisions). }
+      TSceneSpatialStructure = (ssRendering, ssDynamicCollisions);
+      TSceneSpatialStructures = set of TSceneSpatialStructure;
 
-    FShapeOctreeLimits: TOctreeLimits;
-
-    FOctreeRendering: TShapeOctree;
-    FOctreeDynamicCollisions: TShapeOctree;
-    FOctreeVisibleTriangles: TTriangleOctree;
-    FOctreeStaticCollisions: TTriangleOctree;
-    FSpatial: TSceneSpatialStructures;
-
-    { Properties of created triangle octrees.
-      See TriangleOctree unit comments for description.
-
-      Default value comes from DefTriangleOctreeLimits.
-
-      They are used only when the octree is created, so usually you
-      want to set them right before changing @link(Spatial) from []
-      to something else.
-
-      Note that particular models may override this by
-      [https://castle-engine.io/x3d_extensions.php#section_ext_octree_properties].
-
-      @groupBegin }
-    function TriangleOctreeLimits: POctreeLimits;
+    var
+      FShapeOctreeLimits: TOctreeLimits;
+      FOctreeRendering: TShapeOctree;
+      FOctreeDynamicCollisions: TShapeOctree;
+      FSpatial: TSceneSpatialStructures;
 
     { Properties of created shape octrees.
       See ShapeOctree unit comments for description.
@@ -850,6 +770,8 @@ type
     function ShapeOctreeLimits: POctreeLimits;
 
     procedure SetSpatial(const Value: TSceneSpatialStructures);
+    property Spatial: TSceneSpatialStructures read FSpatial write SetSpatial;
+
     function GetPreciseCollisions: Boolean;
     procedure SetPreciseCollisions(const Value: Boolean);
   private
@@ -1022,6 +944,7 @@ type
     { }
     constructor Create(AOwner: TComponent); override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
+    procedure CustomSerialization(const SerializationProcess: TSerializationProcess); override;
 
     { Load the given model.
       This replaces @link(RootNode) with new value.
@@ -1388,73 +1311,52 @@ type
       {$ifdef FPC} deprecated 'set OwnsRootNode only at loading, do not depend on this property'; {$endif}
 
     { A spatial structure containing all visible shapes.
-      Add ssRendering to @link(Spatial) property, otherwise it's @nil.
+      Set @link(PreciseCollisions) to @true to have this non-nil.
 
-      @bold(You should not use this directly.
-      Instead use TCastleViewport
-      and then use @code(Viewport.Items.WorldXxxCollision) methods like
-      @link(TCastleAbstractRootTransform.WorldRay Viewport.Items.WorldRay) or
-      @link(TCastleAbstractRootTransform.WorldSphereCollision Viewport.Items.WorldSphereCollision).)
+      This is used internally for "frustum culling", it will be automatically
+      used by TCastleScene rendering to speed it up.
+      @bold(You should not need to use this directly.)
+
+      This octree will be automatically updated on dynamic scenes
+      (when e.g. animation moves some shape by changing it's transformation).
 
       Note that when VRML/X3D scene contains Collision nodes, this octree
       contains the @italic(visible (not necessarily collidable)) objects. }
     function InternalOctreeRendering: TShapeOctree;
 
-    { A spatial structure containing all collidable shapes.
-      Add ssDynamicCollisions to @link(Spatial) property, otherwise it's @nil.
+    { A spatial structure containing all collidable shapes (and then
+      collidable triangles for a specifc shape).
+      Set @link(PreciseCollisions) to @true to have this non-nil.
+
+      This is actually a hierarchy of octrees: scene is partitioned
+      first into Shapes (each instance of VRML/X3D geometry node),
+      and then each Shape has an octree of triangles inside.
+      Thanks to this, merely transforming some Shape means that only
+      one item needs to be moved in the top-level shape tree.
+      So this is the most important structure for collision detection on
+      dynamic scenes.
+
+      This octree is useful for all kinds of collision detection.
+      This is automatically used by the XxxCollision methods in this class.
 
       @bold(You should not usually use this directly.
       Instead use TCastleViewport
       and then use @code(Viewport.Items.WorldXxxCollision) methods like
       @link(TCastleAbstractRootTransform.WorldRay Viewport.Items.WorldRay) or
       @link(TCastleAbstractRootTransform.WorldSphereCollision Viewport.Items.WorldSphereCollision).)
-
-      You can use @link(InternalOctreeCollisions) to get either
-      @link(InternalOctreeDynamicCollisions) or
-      @link(InternalOctreeStaticCollisions), whichever is available.
 
       Note that when VRML/X3D scene contains Collision nodes, this octree
       contains the @italic(collidable (not necessarily rendered)) objects.
 
+      This is kept up-to-date automatically when the scene changes.
       TODO: Temporarily, this is updated simply by rebuilding. }
     function InternalOctreeDynamicCollisions: TShapeOctree;
 
-    { A spatial structure containing all visible triangles, suitable only
-      for scenes that stay static.
-      Add ssVisibleTriangles to @link(Spatial) property, otherwise it's @nil.
+    { Octree for collisions.
 
-      @bold(You should not usually use this directly.
-      Instead use TCastleViewport
-      and then use @code(Viewport.Items.WorldXxxCollision) methods like
-      @link(TCastleAbstractRootTransform.WorldRay Viewport.Items.WorldRay) or
-      @link(TCastleAbstractRootTransform.WorldSphereCollision Viewport.Items.WorldSphereCollision).)
-
-      Note that when VRML/X3D scene contains X3D Collision nodes, this octree
-      contains the @italic(visible (not necessarily collidable)) objects. }
-    function InternalOctreeVisibleTriangles: TTriangleOctree;
-
-    { A spatial structure containing all collidable triangles.
-      Add ssStaticCollisions to @link(Spatial) property, otherwise it's @nil.
-
-      @bold(You should not usually use this directly.
-      Instead use TCastleViewport
-      and then use @code(Viewport.Items.WorldXxxCollision) methods like
-      @link(TCastleAbstractRootTransform.WorldRay Viewport.Items.WorldRay) or
-      @link(TCastleAbstractRootTransform.WorldSphereCollision Viewport.Items.WorldSphereCollision).)
-
-      It is automatically used by the XxxCollision methods in this class,
-      if exists, unless OctreeDynamicCollisions exists.
-
-      Note that you can use @link(InternalOctreeCollisions) to get either
-      @link(InternalOctreeDynamicCollisions)
-      or @link(InternalOctreeStaticCollisions), whichever is available. }
-    function InternalOctreeStaticCollisions: TTriangleOctree;
-
-    { Octree for collisions. This returns either
-      @link(InternalOctreeStaticCollisions) or
-      @link(InternalOctreeDynamicCollisions), whichever is available (or @nil if none).
-      Be sure to add ssDynamicCollisions or ssStaticCollisions to have
-      this available.
+      This is equal to @link(InternalOctreeDynamicCollisions) now
+      as we don't have other ways to check for collisions.
+      Set @link(PreciseCollisions) to @true to have this non-nil.
 
       @bold(You should not usually use this directly.
       Instead use TCastleViewport
@@ -2219,24 +2121,24 @@ type
       1.0 means that 1 second  of real time equals to 1 unit of world time. }
     property TimePlayingSpeed: Single read FTimePlayingSpeed write FTimePlayingSpeed {$ifdef FPC}default 1.0{$endif};
 
-    { In most cases you should get / set simpler @link(PreciseCollisions) property, not this.
-      Which spatial structures (octrees) should be created and used.
+    { Resolve collisions precisely with the scene triangles.
 
-      Using "spatial structures" allows to achieve various things:
+      When this is @false we will only consider the bounding box of this scene
+      for collisions. We look at bounding box of model loaded in @link(Url),
+      not at children (TCastleTransform) bounding boxes.
 
-      @unorderedList(
-        @item(@bold(ssDynamicCollisions) or @bold(ssStaticCollisions):
+      More details: Setting this creates two spatial structures (octrees):
 
-          Using one of these two flags allows to resolve collisions with
+      @orderedList(
+        @item(
+          To detect collisions in dynamic scenes.
+
+          This allows to resolve collisions with
           the (collidable) triangles of the model.
           By default, every X3D Shape is collidable using it's exact mesh.
           You can use the X3D @link(TCollisionNode) to turn collisions
           off for some shapes, or replace some shapes with simpler objects
           for the collision-detection purposes.
-
-          If you use neither @bold(ssDynamicCollisions) nor @bold(ssStaticCollisions),
-          then the collisions are resolved using the whole scene bounding
-          box. That is, treating the whole scene as a giant cube.
 
           You can always toggle @link(Collides) to quickly make
           the scene not collidable. In summary:
@@ -2244,36 +2146,23 @@ type
           @unorderedList(
             @item(@link(Collides) = @false: the scene does not collide.)
 
-            @item(@link(Collides) = @true and Spatial is empty:
+            @item(@link(Collides) = @true and @name = @true:
               the scene collides as it's bounding box (LocalBoundingBoxNoChildren to be precise,
               so the box of @link(Url) model is taken into account,
               but not children).
               This is the default situation after constructing TCastleScene.)
 
-            @item(@link(Collides) = @true and
-              Spatial contains @bold(ssDynamicCollisions) or @bold(ssStaticCollisions):
-              the scene collides as a set of triangles.
+            @item(@link(Collides) = @true and @name = @false:
+              The scene collides as a set of triangles.
               The triangles are derived from information in X3D Shape and Collision
               nodes.)
           )
-
-          The ssStaticCollisions can be used instead of ssDynamicCollisions
-          when the scene is guaranteed to @italic(absolutely never) change,
-          and @italic(only when the speed is absolutely crucial).
-          The collision structure created by ssStaticCollisions
-          is a bit faster (although may use significantly more memory).
-          The @italic(practical advice is to almost always use ssDynamicCollisions
-          instead of ssStaticCollisions): the speed gains
-          from ssStaticCollisions are usually impossible to measure,
-          and ssStaticCollisions sometimes uses significantly more memory,
-          and if you by accident modify the model (animate it etc.)
-          with ssStaticCollisions -> then results are undefined,
-          even crashes are possible.
         )
 
-        @item(@bold(ssRendering):
+        @item(
+          To speedup frustum culling.
 
-          Using this flag adds an additional optimization during rendering.
+          This adds an additional optimization during rendering.
           It allows to use frustum culling with an octree.
           Whether the frustum culling is actually used depends
           on @link(TCastleScene.ShapeFrustumCulling) value (by default: yes).
@@ -2283,58 +2172,14 @@ type
           Whether the frustum culling is actually used also depends
           on @link(TCastleScene.ShapeFrustumCulling) value.
 
-          Using frustum culling (preferably with ssRendering flag)
+          Using frustum culling (preferably with PreciseCollisions = @true)
           is highly adviced if your camera usually only sees
           only a part of the scene. For example, it a noticeable optimization
           if you have a camera walking/flying inside a typical game
-          level/location.)
-
-        @item(@bold(ssVisibleTriangles):
-
-          Using this flag allows to resolve collisions with visible
-          (not only collidable) triangles quickly.
-
-          This is in practice useful only for ray-tracers,
-          normal applications should not use this.
-          Normal applications should avoid collision detection with the
-          @italic(visible) version of the model.
-          Normal applications should instead
-          perform collision detection with the @italic(collidable)
-          version of the model, since this is much better optimized
-          (both by the engine code, and by an artist creating the model,
-          using X3D Collision nodes etc.)
+          level/location.
         )
       )
-
-      See @link(TSceneSpatialStructure) for more details about
-      the possible values. For usual dynamic scenes rendered in real-time,
-      you set this to @code([ssRendering, ssDynamicCollisions]).
-
-      By default, the value of this property is empty, which means that
-      no octrees will be created. This has to be the default value,
-      to:
-
-      @orderedList(
-        @item(Not create octrees by default (e.g. at construction).
-          Creating them takes time (and memory).)
-        @item(Allow developer to adjust TriangleOctreeLimits
-          before creating the octree.)
-      ) }
-    property Spatial: TSceneSpatialStructures read FSpatial write SetSpatial
-      stored false default [];
-      {$ifdef FPC}deprecated 'use PreciseCollisions';{$endif}
-
-    { Resolve collisions precisely with the scene triangles.
-
-      When this is @false we will only consider the bounding box of this scene
-      for collisions. We look at bounding box of model loaded in @link(Url),
-      not at children (TCastleTransform) bounding boxes.
-
-      Internal notes:
-      When @true, this sets @link(TCastleSceneCore.Spatial) to [ssRendering, ssDynamicCollisions].
-      This is a good setting for scenes that may be dynamic.
-      When @false, this sets @link(TCastleSceneCore.Spatial) to [].
-      When reading, any @link(TCastleSceneCore.Spatial) <> [] means "precise collisions". }
+    }
     property PreciseCollisions: Boolean read GetPreciseCollisions write SetPreciseCollisions default false;
 
     { Should the event mechanism (a basic of animations and interactions) work.
@@ -3177,7 +3022,6 @@ begin
   FOwnsRootNode := true;
   FShapesHash := 1;
 
-  FTriangleOctreeLimits := DefTriangleOctreeLimits;
   FShapeOctreeLimits := DefShapeOctreeLimits;
 
   FShapes := TShapeTreeGroup.Create(Self);
@@ -3268,8 +3112,6 @@ begin
 
   FreeAndNil(FOctreeRendering);
   FreeAndNil(FOctreeDynamicCollisions);
-  FreeAndNil(FOctreeVisibleTriangles);
-  FreeAndNil(FOctreeStaticCollisions);
   FreeAndNil(FAnimationsList);
   FreeAndNil(AnimationAffectedFields);
   FreeAndNil(PreviousPartialAffectedFields);
@@ -5611,13 +5453,6 @@ begin
     end;
   end;
 
-  if FOctreeStaticCollisions <> nil then
-  begin
-    WritelnWarning('ssStaticCollisions used on scene "' + Name + '" but the geometry changed. Freeing the spatial structure. You should use ssDynamicCollisions for this scene');
-    FreeAndNil(FOctreeStaticCollisions);
-    PointingDeviceClear; // remove any reference to (no longer valid) PTriangle records
-  end;
-
   if Assigned(OnGeometryChanged) then
     OnGeometryChanged(Self, Change in SomeLocalGeometryChanged,
       { We know LocalGeometryShape is nil now if Change does not contain
@@ -5765,11 +5600,6 @@ end;
 
 { octrees -------------------------------------------------------------------- }
 
-function TCastleSceneCore.TriangleOctreeLimits: POctreeLimits;
-begin
-  Result := @FTriangleOctreeLimits;
-end;
-
 function TCastleSceneCore.ShapeOctreeLimits: POctreeLimits;
 begin
   Result := @FShapeOctreeLimits;
@@ -5846,25 +5676,6 @@ begin
       end;
     end;
 
-    { Handle OctreeVisibleTriangles }
-
-    Old := ssVisibleTriangles in FSpatial;
-    New := ssVisibleTriangles in Value;
-
-    if Old and not New then
-      FreeAndNil(FOctreeVisibleTriangles);
-
-    { Handle OctreeStaticCollisions }
-
-    Old := ssStaticCollisions in FSpatial;
-    New := ssStaticCollisions in Value;
-
-    if Old and not New then
-    begin
-      FreeAndNil(FOctreeStaticCollisions);
-      PointingDeviceClear; // remove any reference to (no longer valid) PTriangle records
-    end;
-
     FSpatial := Value;
   end;
 end;
@@ -5914,36 +5725,14 @@ begin
   Result := FOctreeDynamicCollisions;
 end;
 
-function TCastleSceneCore.InternalOctreeVisibleTriangles: TTriangleOctree;
-begin
-  if (ssVisibleTriangles in FSpatial) and (FOctreeVisibleTriangles = nil) then
-    FOctreeVisibleTriangles := CreateTriangleOctree(
-      FTriangleOctreeLimits,
-      false);
-  Result := FOctreeVisibleTriangles;
-end;
-
-function TCastleSceneCore.InternalOctreeStaticCollisions: TTriangleOctree;
-begin
-  if (ssStaticCollisions in FSpatial) and (FOctreeStaticCollisions = nil) then
-    FOctreeStaticCollisions := CreateTriangleOctree(
-      FTriangleOctreeLimits,
-      true);
-  Result := FOctreeStaticCollisions;
-end;
-
 function TCastleSceneCore.InternalOctreeCollisions: TBaseTrianglesOctree;
 begin
-  if InternalOctreeStaticCollisions <> nil then
-    Result := InternalOctreeStaticCollisions else
-  if InternalOctreeDynamicCollisions <> nil then
-    Result := InternalOctreeDynamicCollisions else
-    Result := nil;
+  Result := InternalOctreeDynamicCollisions;
 end;
 
 function TCastleSceneCore.UseInternalOctreeCollisions: boolean;
 begin
-  Result := FSpatial * [ssStaticCollisions, ssDynamicCollisions] <> [];
+  Result := ssDynamicCollisions in FSpatial;
   Assert((not Result) or (InternalOctreeCollisions <> nil));
 
   { We check whether to use InternalOctreeCollisions
@@ -5961,43 +5750,6 @@ begin
     When Spatial = [], you can *expect* that collisions revert to simpler
     mechanism (using bounding boxes).
     This is important only if you may have Collides = true with Spatial empty. }
-end;
-
-function TCastleSceneCore.CreateTriangleOctree(
-  const Limits: TOctreeLimits;
-  const Collidable: boolean): TTriangleOctree;
-
-  procedure FillOctree(TriangleEvent: TTriangleEvent);
-  var
-    ShapeList: TShapeList;
-    Shape: TShape;
-  begin
-    ShapeList := Shapes.TraverseList(true);
-    for Shape in ShapeList do
-      if (Collidable and Shape.Collidable) or
-         ((not Collidable) and Shape.Visible) then
-        Shape.Triangulate(TriangleEvent, { FrontFaceAlwaysCcw should not matter } false);
-  end;
-
-begin
-  Inc(InternalDirty);
-  try
-
-  Result := TTriangleOctree.Create(Limits, LocalBoundingBoxNoChildren);
-  try
-    Result.Triangles.Capacity := TrianglesCount;
-    FillOctree({$ifdef FPC} @ {$endif} Result.AddItemTriangle);
-  except Result.Free; raise end;
-
-  finally Dec(InternalDirty) end;
-
-  { $define CASTLE_DEBUG_OCTREE_DUPLICATION}
-  {$ifdef CASTLE_DEBUG_OCTREE_DUPLICATION}
-  WritelnLog('Triangles Octree Stats', '%d items in octree, %d items in octree''s leafs, duplication %f',
-    [Result.TotalItemsInOctree,
-     Result.TotalItemsInLeafs,
-     Result.TotalItemsInLeafs / Result.TotalItemsInOctree]);
-  {$endif}
 end;
 
 function TCastleSceneCore.CreateShapeOctree(
@@ -7935,8 +7687,6 @@ begin
   begin
     InternalOctreeRendering;
     InternalOctreeDynamicCollisions;
-    InternalOctreeVisibleTriangles;
-    InternalOctreeStaticCollisions;
     PrepareShapesOctrees;
   end;
 end;
@@ -8726,6 +8476,16 @@ begin
       E.Child.Name := TExposedTransform.X3dNameToPascal(ExposeTransformsPrefix, E.Node.X3DName);
       InternalCastleDesignInvalidate :=  true;
     end;
+  end;
+end;
+
+procedure TCastleSceneCore.CustomSerialization(const SerializationProcess: TSerializationProcess);
+begin
+  inherited;
+  if SerializationProcess.InternalHasNonEmptySet('Spatial') then
+  begin
+    WritelnWarning('Scene %s: Spatial property is deprecated, use PreciseCollisions instead', [Name]);
+    PreciseCollisions := true;
   end;
 end;
 

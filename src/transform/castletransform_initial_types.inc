@@ -107,8 +107,7 @@
 
       @unorderedList(
         @item(If the collision occured with a TCastleSceneCore with
-          @link(TCastleSceneCore.Spatial) that includes a collidable
-          structure (ssDynamicCollisions or ssStaticCollisions),
+          @link(TCastleSceneCore.PreciseCollisions)
           then this triangle is set.)
 
         @item(If the collision occured merely with a TCastleTransform bounding box,

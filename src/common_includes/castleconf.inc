@@ -327,7 +327,7 @@
 
 {$ifdef OpenGLES}
   {$ifdef CASTLE_NINTENDO_SWITCH}
-    {$define CastleGLES := CastleInternalNxGLES20}
+    {$define CastleGLES := CastleInternalNxGLES}
   {$endif}
 
   { This is necessary for OpenGL ES 2.0 versions that support only 16-bit indexes,

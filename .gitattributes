@@ -1,7 +1,10 @@
 # See https://github.com/github/linguist about the linguist attributes.
 #
-# See https://help.github.com/en/articles/dealing-with-line-endings
-# about line endings.
+# See about line endings:
+# - https://help.github.com/en/articles/dealing-with-line-endings
+# - https://www.aleksandrhovhannisyan.com/blog/crlf-vs-lf-normalizing-line-endings-in-git/
+#   Very helpful to learn evolution of line endings handling in GIT --
+#   recommendations changed over time.
 # We expect that you commit text files with Unix line endings to the repository.
 # If you work on Windows, you can configure GIT to either automatically convert
 # between Windows/Unix on download/upload (so you will see Windows line endings,
@@ -11,17 +14,48 @@
 # make sure that your text editor handles Unix line endings,
 # and that you create new lines with Unix line endings).
 
+# convert line endings, Pascal
 *.inc linguist-language=Pascal text eol=auto
 *.lpr linguist-language=Pascal text eol=auto
 *.dpr linguist-language=Pascal text eol=auto
 *.pas linguist-language=Pascal text eol=auto
 
+# convert line endings, other text
 *.lpk text eol=auto
 *.xml text eol=auto
 *.dpk text eol=auto
 *.md text eol=auto
+*.txt text eol=auto
+*.lpi text eol=auto
+*.json text eol=auto
+*.castle-user-interface text eol=auto
+*.castle-component text eol=auto
+*.castle-transform text eol=auto
+.gitignore text eol=auto
+Makefile text eol=auto
+*.iss text eol=auto
+
+# do not convert line endings (binary)
+*.gltf binary
+*.glb binary
+# Note: svg could *probably* be treated as text (it's XML, line endings
+# could be native), but it's safer to treat it as binary.
+# We edit it in mostly graphic editors like Inkscape anyway,
+# so no need to worry about line endings and text editors.
+*.svg binary
+# Treat these as binary, they may contain gzip data - see tests/data/gzipped_x3d/sphere_normal_extension_but_gzipped.wrl
+*.x3d binary
+*.wrl binary
 
 # Even on Windows, shell scripts line endings must be Unix, to work with Cygwin's bash.
 *.sh text eol=lf
 cge_shell_tests eol=lf
+tools/internal/check_build_tool_output eol=lf
+tools/internal/check_castle_window_backends_compilation eol=lf
+tools/internal/check_lpg_compilation eol=lf
+tools/internal/check_no_accidental_executable eol=lf
+tools/internal/examples_edit_readmes eol=lf
+tools/internal/examples_edit_readmes_helper eol=lf
+tools/internal/examples_regenerate_auto_files eol=lf
+tools/internal/lazbuild_retry eol=lf
 *gradlew text eol=lf

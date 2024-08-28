@@ -488,10 +488,10 @@
         },
         "RotationPersistent" : {
           "$$ClassName" : "TCastleVector4RotationPersistent",
-          "W" : 1.4303674697875977E+000,
-          "X" : -1.8075780570507050E-001,
-          "Y" : -9.7172313928604126E-001,
-          "Z" : -1.5192440152168274E-001
+          "W" : 2.0262496471405029E+000,
+          "X" : -1.2279010564088821E-001,
+          "Y" : -9.7388416528701782E-001,
+          "Z" : -1.9097661972045898E-001
         },
         "ScaleOrientationPersistent" : {
           "$$ClassName" : "TCastleVector4Persistent"
@@ -502,9 +502,9 @@
         },
         "TranslationPersistent" : {
           "$$ClassName" : "TCastleVector3Persistent",
-          "X" : -1.3182171821594238E+001,
-          "Y" : 7.4157643318176270E+000,
-          "Z" : 1.1833348274230957E+000
+          "X" : -1.9457670211791992E+001,
+          "Y" : 1.1720646858215332E+001,
+          "Z" : -8.5490398406982422E+000
         }
       },
       "InternalDesignNavigations[dnFly]" : {
@@ -618,6 +618,23 @@
       },
       "VerticalAnchorParent" : "vpTop",
       "VerticalAnchorSelf" : "vpTop"
+    },
+    {
+      "$$ClassName" : "TCastleCrosshair",
+      "Border" : {
+        "$$ClassName" : "TBorder"
+      },
+      "BorderColorPersistent" : {
+        "$$ClassName" : "TCastleColorPersistent"
+      },
+      "ColorPersistent" : {
+        "$$ClassName" : "TCastleColorPersistent"
+      },
+      "Exists" : false,
+      "Name" : "SimpleCrosshair",
+      "TranslationPersistent" : {
+        "$$ClassName" : "TCastleVector2Persistent"
+      }
     }
   ]
 }

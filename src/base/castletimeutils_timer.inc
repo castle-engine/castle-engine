@@ -33,13 +33,6 @@ type
     { Holds non-zero value. Use to detect whether this TTimerResult comes from Timer
       call, or is just a zero field in new class instance. }
     function Initialized: Boolean;
-
-    { Expose internal Value for Kraft when USE_CASTLE_TIME_UTILS. }
-    {$ifndef PASDOC}
-      {$if (not defined(FPC)) and (not defined(MSWINDOWS))}
-        property InternalValue: QWord read Value;
-      {$endif}
-    {$endif}
   end;
 
 { Timer to measure (real) time passed during some operations.
