@@ -145,6 +145,7 @@ castle-game-engine-*.fpm
 /examples/mobile/on_screen_keyboard/on_screen_keyboard
 /examples/mobile/simple_3d_demo/simple_3d_demo
 /examples/mobile/two_cars/two_cars
+/mobile/simplest_manifest_test/simplest_manifest_test
 /examples/viewport_and_scenes/shadows/shadows
 /examples/viewport_and_scenes/shadow_volumes_whole_scene_manifold/shadow_volumes_whole_scene_manifold
 /examples/viewport_and_scenes/bump_mapping/bump_mapping
@@ -208,6 +209,7 @@ castle-game-engine-*.fpm
 /examples/user_interface/view_events/view_events
 /examples/user_interface/zombie_fighter/zombie_fighter
 /examples/user_interface/zombie_fighter_alternative_short_lived_views/zombie_fighter
+/examples/user_interface/progress_bar_ui_example/progress_bar_ui_example
 /examples/viewport_and_scenes/anisotropic_filtering/anisotropic_filtering
 /examples/viewport_and_scenes/billboards_blending_in_3d/billboards_blending_in_3d
 /examples/viewport_and_scenes/build_3d_object_by_code/build_3d_object_by_code
