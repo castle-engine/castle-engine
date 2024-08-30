@@ -275,9 +275,9 @@ begin
       if Location.Name = StartLocationName then
         StartLocation := Location;
 
-      Location.FImageUrl := I.Current.AttributeUrl('image_Url', GameConfig.Url);
-      Location.FShadowedImageUrl := I.Current.AttributeUrl('shadowed_image_Url', GameConfig.Url);
-      Location.FSceneUrl := I.Current.AttributeUrl('scene_Url', GameConfig.Url);
+      Location.FImageUrl := I.Current.AttributeUrl('image_url', GameConfig.Url);
+      Location.FShadowedImageUrl := I.Current.AttributeUrl('shadowed_image_url', GameConfig.Url);
+      Location.FSceneUrl := I.Current.AttributeUrl('scene_url', GameConfig.Url);
       Location.FViewpoint := I.Current.AttributeStringDef('viewpoint', '');
 
       I.Current.AttributeString('scene_camera_description',
