@@ -150,9 +150,9 @@ var
         RenderParams.Frustum := @RenderParams.RenderingCamera.Frustum;
         RenderParams.RendererToPrepareShapes := ShapesRenderer.Renderer;
         RenderParams.Collector := ShapesCollector;
-        RenderParams.Transparent := false; Render(RenderParams);
-        RenderParams.Transparent := true ; Render(RenderParams);
-        ShapesRenderer.Render(ShapesCollector, RenderParams);
+        Render(RenderParams);
+        // TODO: we render both trasparent and opaque objects in 1 pass, without blending below
+        ShapesRenderer.Render(ShapesCollector, RenderParams, false);
       finally FreeAndNil(RenderParams.RenderingCamera) end;
     finally FreeAndNil(RenderParams) end;
 
@@ -179,7 +179,7 @@ var
 begin
   InitializeSHBasisMap;
 
-  ShapesCollector := TShapesCollector.Create;
+  ShapesCollector := TShapesCollector.Create(true);
   ShapesRenderer := TShapesRenderer.Create;
 
   { Call all DrawMap. This wil draw maps, get them,

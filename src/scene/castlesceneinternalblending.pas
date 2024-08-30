@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2023 Michalis Kamburelis.
+  Copyright 2003-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -58,13 +58,13 @@ type
       const RenderOptions: TCastleRenderOptions);
   end;
 
-{ Fill a TShapeList with only opaque (UseBlending = @false) or
-  only transparent shapes (UseBlending = @true). }
-procedure ShapesFilterBlending(
+{ Fill a TShapeList by shapes from Tree traversal,
+  filtered by TestShapeVisibility. }
+procedure ShapesFilter(
   const Tree: TShapeTree;
   const OnlyActive, OnlyVisible, OnlyCollidable: boolean;
   const TestShapeVisibility: TTestShapeVisibility;
-  const FilteredShapes: TShapeList; const UseBlending: boolean);
+  const FilteredShapes: TShapeList);
 
 implementation
 
@@ -156,17 +156,17 @@ end;
 
 { global --------------------------------------------------------------------- }
 
-procedure ShapesFilterBlending(
+procedure ShapesFilter(
   const Tree: TShapeTree;
   const OnlyActive, OnlyVisible, OnlyCollidable: boolean;
   const TestShapeVisibility: TTestShapeVisibility;
-  const FilteredShapes: TShapeList; const UseBlending: boolean);
+  const FilteredShapes: TShapeList);
 var
   List: TShapeList;
   Shape: TShape;
   I: Integer;
 begin
-  FrameProfiler.Start(fmRenderShapesFilterBlending);
+  FrameProfiler.Start(fmRenderShapesFilter);
 
   { Use "Count := 0" instead of Clear, this way previous Capacity remains }
   FilteredShapes.Count := 0;
@@ -180,20 +180,13 @@ begin
     for I := 0 to List.Count - 1 do
     begin
       Shape := List[I];
-      if (TGLShape(Shape).UseBlending = UseBlending) and TestShapeVisibility(TGLShape(Shape)) then
+      if TestShapeVisibility(TGLShape(Shape)) then
         FilteredShapes.Add(Shape);
     end;
   end else
-  begin
-    for I := 0 to List.Count - 1 do
-    begin
-      Shape := List[I];
-      if TGLShape(Shape).UseBlending = UseBlending then
-        FilteredShapes.Add(Shape);
-    end;
-  end;
+    FilteredShapes.AddRange(List);
 
-  FrameProfiler.Stop(fmRenderShapesFilterBlending);
+  FrameProfiler.Stop(fmRenderShapesFilter);
 end;
 
 end.

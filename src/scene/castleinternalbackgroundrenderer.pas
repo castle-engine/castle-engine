@@ -204,7 +204,6 @@ begin
   inherited;
 
   Params.InShadow := false;
-  Params.ShadowVolumesReceivers := [false, true];
   Params.RenderingCamera := RenderingCamera;
   Params.Collector := ShapesCollector;
   Params.RendererToPrepareShapes := ShapesRenderer.Renderer;
@@ -230,8 +229,7 @@ begin
     as Scene has no transformation.
     And that's good, the TCastleTransform.Render could not handle any transformation
     as Params.Frustum is nil.  }
-  Params.Transparent := false; Scene.Render(Params);
-  Params.Transparent := true ; Scene.Render(Params);
+  Scene.Render(Params);
 
   { Disable occlusion culling on background.
     It works correctly... but the 1-frame delay is too noticeable,
@@ -245,7 +243,8 @@ begin
   SavedOcclusionSort := ShapesRenderer.OcclusionSort;
   ShapesRenderer.OcclusionSort := sortNone;
 
-  ShapesRenderer.Render(ShapesCollector, Params);
+  // TODO: call ShapesRenderer.Render 2 times, for transparent and opaque objects, and filter ShapesCollector
+  ShapesRenderer.Render(ShapesCollector, Params, false);
 
   ShapesRenderer.OcclusionCulling := SavedOcclusionCulling;
   ShapesRenderer.BlendingSort := SavedBlendingSort;

@@ -41,9 +41,9 @@ type
     { Time within TCastleScene.Render.
       Large time means that you have TCastleScene content that is time-consuming to render. }
     fmRenderScene,
-    { Time within fmRenderScene spent filtering blended shapes.
+    { Time within fmRenderScene spent filtering shapes.
       This should not be significant -- otherwise we'll have to optimize this bit in CGE. }
-    fmRenderShapesFilterBlending,
+    fmRenderShapesFilter,
     { Time within TShapesRenderer.Render spent sorting shapes.
       If this is significant, then:
       @unorderedList(
@@ -307,7 +307,7 @@ procedure TCastleFrameProfiler.StartFrame;
       '  - DrawPrimitive2D: %d%%' + NL +
       '  - TDrawableImage.DrawNoBatch: %d%%' + NL +
       '  - TCastleScene.Render: %d%%' + NL +
-      '    - ShapesFilterBlending: %d%%' + NL +
+      '    - ShapesFilter: %d%%' + NL +
       '  - Sorting shapes in TShapesRenderer.Render: %d%%' + NL +
       '  - TRenderer: %d%%' + NL +
       '  - Swap / flush buffers (includes waiting for v-sync): %d%%' + NL +
@@ -329,7 +329,7 @@ procedure TCastleFrameProfiler.StartFrame;
       PercentTime(fmDrawPrimitive2D),
       PercentTime(fmDrawImage),
       PercentTime(fmRenderScene),
-      PercentTime(fmRenderShapesFilterBlending),
+      PercentTime(fmRenderShapesFilter),
       PercentTime(fmRenderCollectedShapesSort),
       PercentTime(fmRenderCoreRenderer),
       PercentTime(fmRenderSwapFlush),

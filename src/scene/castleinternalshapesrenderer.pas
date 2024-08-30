@@ -23,7 +23,7 @@ interface
 uses CastleVectors, CastleSceneInternalShape, CastleRenderOptions,
   CastleInternalOcclusionCulling, CastleSceneInternalBlending,
   CastleInternalBatchShapes, CastleInternalRenderer, CastleTransform,
-  X3DNodes, CastleShapes;
+  X3DNodes, CastleShapes, CastleUtils;
 
 type
   { Collect shapes, possibly coming from different TCastleScene instances,
@@ -32,15 +32,21 @@ type
   private
     FCollected: TCollectedShapeList;
   public
-    constructor Create;
+    constructor Create(const OwnsObjects: Boolean);
     destructor Destroy; override;
+
+    { Add all shapes from Source that pass the filters. }
+    procedure AddFiltered(const Source: TShapesCollector;
+      const FilterTransparent: TBooleanSet;
+      const FilterShadowVolumesReceivers: TBooleanSet);
 
     { Clear shapes to render. }
     procedure Clear;
 
     { Add a shape to render. }
     procedure Add(const Shape: TGLShape; const RenderOptions: TCastleRenderOptions;
-      const SceneTransform: TMatrix4; const DepthRange: TDepthRange);
+      const SceneTransform: TMatrix4; const DepthRange: TDepthRange;
+      const ShadowVolumesReceiver: Boolean);
   end;
 
   { Render collected shapes.
@@ -124,7 +130,8 @@ type
       and needed at rendering collecting shapes.
       Transformation:TTransformation should be only in former. }
     procedure Render(const Shapes: TShapesCollector;
-      const Params: TRenderParams);
+      const Params: TRenderParams;
+      const UsingBlending: Boolean);
 
     { Combine (right before rendering) multiple shapes with a similar appearance into one.
       This can drastically reduce the number of "draw calls",
@@ -166,15 +173,15 @@ implementation
 
 uses SysUtils,
   {$ifdef OpenGLES} CastleGLES, {$else} CastleGL, {$endif}
-  CastleScene, CastleGLUtils, CastleRenderContext, CastleColors, CastleUtils,
+  CastleScene, CastleGLUtils, CastleRenderContext, CastleColors,
   X3DCameraUtils, CastleTimeUtils;
 
 { TShapesCollector ----------------------------------------------------------- }
 
-constructor TShapesCollector.Create;
+constructor TShapesCollector.Create(const OwnsObjects: Boolean);
 begin
-  inherited;
-  FCollected := TCollectedShapeList.Create(true);
+  inherited Create;
+  FCollected := TCollectedShapeList.Create(OwnsObjects);
 end;
 
 destructor TShapesCollector.Destroy;
@@ -191,7 +198,8 @@ end;
 procedure TShapesCollector.Add(const Shape: TGLShape;
   const RenderOptions: TCastleRenderOptions;
   const SceneTransform: TMatrix4;
-  const DepthRange: TDepthRange);
+  const DepthRange: TDepthRange;
+  const ShadowVolumesReceiver: Boolean);
 var
   NewCollected: TCollectedShape;
 begin
@@ -200,7 +208,20 @@ begin
   NewCollected.RenderOptions := RenderOptions;
   NewCollected.SceneTransform := SceneTransform;
   NewCollected.DepthRange := DepthRange;
+  NewCollected.ShadowVolumesReceiver := ShadowVolumesReceiver;
   FCollected.Add(NewCollected);
+end;
+
+procedure TShapesCollector.AddFiltered(const Source: TShapesCollector;
+  const FilterTransparent: TBooleanSet;
+  const FilterShadowVolumesReceivers: TBooleanSet);
+var
+  CollectedShape: TCollectedShape;
+begin
+  for CollectedShape in Source.FCollected do
+    if CollectedShape.Shape.UseBlending in FilterTransparent then
+      if CollectedShape.ShadowVolumesReceiver in FilterShadowVolumesReceivers then
+        FCollected.Add(CollectedShape);
 end;
 
 { TShapesRenderer ----------------------------------------------------------- }
@@ -502,8 +523,9 @@ begin
   if Params.InternalPass = 0 then
   begin
     Inc(Params.Statistics.ShapesRendered);
-    if Params.Transparent then
-      Inc(Params.Statistics.ShapesRenderedBlending);
+    // TODO: restore this statistic
+    // if Params.Transparent then
+    //   Inc(Params.Statistics.ShapesRenderedBlending);
   end;
 
   Shape := CollectedShape.Shape;
@@ -544,7 +566,8 @@ begin
 end;
 
 procedure TShapesRenderer.Render(const Shapes: TShapesCollector;
-  const Params: TRenderParams);
+  const Params: TRenderParams;
+  const UsingBlending: Boolean);
 
   procedure BatchingCommit;
   var
@@ -602,7 +625,7 @@ begin
 
   FrameProfiler.Start(fmRenderCollectedShapesSort);
 
-  if Params.Transparent then
+  if UsingBlending then
   begin
     { We'll draw partially transparent objects now,
       only from scenes with RenderOptions.Blending. }
@@ -646,7 +669,7 @@ begin
 
     { This must be called after BatchingCommit,
       since BatchingCommit may render some shapes }
-    if Params.Transparent then
+    if UsingBlending then
       FBlendingRenderer.RenderEnd;
 
     { As each RenderShape_OcclusionTests inside could set OcclusionBoxState,

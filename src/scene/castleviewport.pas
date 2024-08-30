@@ -1,5 +1,5 @@
 {
-  Copyright 2009-2023 Michalis Kamburelis.
+  Copyright 2009-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -169,7 +169,7 @@ type
       FOnCustomShapeSort: TShapeSortEvent;
       FUpdateSoundListener: Boolean;
 
-      ShapesCollector: TShapesCollector;
+      AllShapesCollector, FilteredShapesCollector: TShapesCollector;
       ShapesRenderer: TShapesRenderer;
 
     procedure CommonCreate(const AOwner: TComponent; const ADesignManipulation: Boolean);
@@ -416,13 +416,22 @@ type
       as needed. Their previous values do not matter. }
     procedure RenderFromView3D(const Params: TRenderParams); virtual;
 
-    { Render one pass, with current camera and parameters (e.g. only transparent
-      or only opaque shapes).
+    { Render one pass, with current camera and parameters.
       All current camera settings are saved in RenderParams.RenderingCamera.
-      @param(Params Rendering parameters, see @link(TRenderParams).) }
-    procedure RenderOnePass(const Params: TRenderParams); virtual;
 
-    procedure Render3D(const Params: TRenderParams); virtual; deprecated 'use RenderOnePass';
+      @param(Params Rendering parameters, see @link(TRenderParams).)
+
+      @param(UsingBlending Should we use blending.
+        Also implies filtering shapes based on if they are
+        opaque (TGLShape.UseBlending = @false)
+        or transparent (TGLShape.UseBlending = @true).)
+
+      @param(FilterShadowVolumesReceivers Render only shapes
+        that may receive shadow volumes, or ones that don't, or both.
+        This checks if TCastleScene.ReceiveShadowVolumes is within this set.) }
+    procedure RenderOnePass(const Params: TRenderParams;
+      const UsingBlending: Boolean;
+      const FilterShadowVolumesReceivers: TBooleanSet); virtual;
 
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
 
@@ -1440,7 +1449,8 @@ begin
   FClearDepth := true;
   InternalDistortFieldOfViewY := 1;
   InternalDistortViewAspect := 1;
-  ShapesCollector := TShapesCollector.Create;
+  AllShapesCollector := TShapesCollector.Create(true);
+  FilteredShapesCollector := TShapesCollector.Create(false);
   ShapesRenderer := TShapesRenderer.Create;
   FUpdateSoundListener := true;
 
@@ -1653,7 +1663,8 @@ begin
   FreeAndNil(FRenderParams);
   FreeAndNil(FPrepareParams);
   FreeAndNil(FRenderWithoutScreenEffectsRenderingCamera);
-  FreeAndNil(ShapesCollector);
+  FreeAndNil(AllShapesCollector);
+  FreeAndNil(FilteredShapesCollector);
   FreeAndNil(ShapesRenderer);
 
   {$define read_implementation_destructor}
@@ -2460,11 +2471,9 @@ begin
   {$warnings on}
 end;
 
-procedure TCastleViewport.Render3D(const Params: TRenderParams);
-begin
-end;
-
-procedure TCastleViewport.RenderOnePass(const Params: TRenderParams);
+procedure TCastleViewport.RenderOnePass(const Params: TRenderParams;
+  const UsingBlending: Boolean;
+  const FilterShadowVolumesReceivers: TBooleanSet);
 
   { Based on BlendingSort, determine
     ShapesRenderer.BlendingSort, making sure that sortAuto is handled correctly.
@@ -2496,20 +2505,14 @@ procedure TCastleViewport.RenderOnePass(const Params: TRenderParams);
   end;
 
 begin
-  ShapesCollector.Clear;
-  Assert(Params.Collector = ShapesCollector);
-
-  {$warnings off} // keep deprecated working
-  Render3D(Params);
-  {$warnings on}
-
-  Params.Frustum := @Params.RenderingCamera.Frustum;
-  Items.Render(Params);
+  FilteredShapesCollector.Clear;
+  FilteredShapesCollector.AddFiltered(AllShapesCollector,
+    [UsingBlending], FilterShadowVolumesReceivers);
 
   ShapesRenderer.OcclusionSort := EffectiveOcclusionSort;
   ShapesRenderer.BlendingSort := EffectiveBlendingSort;
   ShapesRenderer.OnCustomShapeSort := OnCustomShapeSort;
-  ShapesRenderer.Render(ShapesCollector, Params);
+  ShapesRenderer.Render(FilteredShapesCollector, Params, UsingBlending);
 end;
 
 procedure TCastleViewport.RenderShadowVolume(const Params: TRenderParams);
@@ -2647,9 +2650,8 @@ procedure TCastleViewport.RenderFromView3D(const Params: TRenderParams);
       the camera). }
 
     Params.InShadow := false;
-
-    Params.Transparent := false; Params.ShadowVolumesReceivers := [false, true]; RenderOnePass(Params);
-    Params.Transparent := true ; Params.ShadowVolumesReceivers := [false, true]; RenderOnePass(Params);
+    RenderOnePass(Params, false, [false, true]);
+    RenderOnePass(Params, true , [false, true]);
   end;
 
   procedure RenderWithShadowVolumes(const MainLightPosition: TVector4);
@@ -2677,6 +2679,16 @@ procedure TCastleViewport.RenderFromView3D(const Params: TRenderParams);
 var
   MainLightPosition: TVector4;
 begin
+  { Calculate contents of AllShapesCollector.
+    This way Items.Render, with all transformation calcuations,
+    frustum tests etc. is done only once, no matter how many times we need to
+    call RenderOnPass. }
+  AllShapesCollector.Clear;
+  Assert(Params.Collector = AllShapesCollector);
+  Params.Frustum := @Params.RenderingCamera.Frustum;
+  Items.Render(Params);
+
+  // call RenderOnePass multiple times, filtering AllShapesCollector in different ways
   if GLFeatures.ShadowVolumesPossible and
      ShadowVolumes and
      MainLightForShadowVolumes(MainLightPosition) then
@@ -2765,7 +2777,7 @@ procedure TCastleViewport.RenderFromViewEverything(const RenderingCamera: TRende
       { TODO: BackgroundRenderer should have its own ShapesRenderer,
         ShapesCollector. }
       BackgroundRenderer.Render(RenderingCamera, BackgroundWireframe,
-        RenderRect, FProjection, ShapesCollector, ShapesRenderer);
+        RenderRect, FProjection, AllShapesCollector, ShapesRenderer);
       RenderingCamera.RotationOnly := false;
     end;
   end;
@@ -2810,7 +2822,7 @@ begin
   { various FRenderParams initialization }
   FRenderParams.UserPass := CustomRenderingPass;
   FRenderParams.RenderingCamera := RenderingCamera;
-  FRenderParams.Collector := ShapesCollector;
+  FRenderParams.Collector := AllShapesCollector;
   FRenderParams.RendererToPrepareShapes := ShapesRenderer.Renderer;
 
   { calculate FRenderParams.Projection*, simplified from just like CalculateProjection does }

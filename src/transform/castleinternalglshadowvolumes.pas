@@ -23,11 +23,14 @@ interface
 uses
   {$ifdef OpenGLES} CastleGLES, {$else} CastleGL, {$endif}
   CastleTransform, CastleVectors, CastleBoxes, CastleGLUtils, CastleFrustum,
-  CastleRenderPrimitives;
+  CastleRenderPrimitives, CastleUtils;
 
 type
   TGLShadowVolumeRenderer = class;
 
+  TSVRenderOnePassProc = procedure (const Params: TRenderParams;
+    const UsingBlending: Boolean;
+    const FilterShadowVolumesReceivers: TBooleanSet) of object;
   TSVRenderProc = procedure (const Params: TRenderParams) of object;
 
   { Shadow volume rendering in OpenGL.
@@ -179,7 +182,7 @@ type
       RenderShadowVolumes renders shadow volumes from shadow casters. }
     procedure Render(
       const Params: TRenderParams;
-      const RenderOnePass: TSVRenderProc;
+      const RenderOnePass: TSVRenderOnePassProc;
       const RenderShadowVolumes: TSVRenderProc);
 
     { Use this to render shadow quads. }
@@ -193,7 +196,7 @@ type
 implementation
 
 uses SysUtils,
-  CastleUtils, CastleStringUtils, CastleLog, CastleGLVersion,
+  CastleStringUtils, CastleLog, CastleGLVersion,
   CastleTriangles, CastleRenderOptions, CastleRenderContext;
 
 constructor TGLShadowVolumeRenderer.Create;
@@ -521,7 +524,7 @@ end;
 
 procedure TGLShadowVolumeRenderer.Render(
   const Params: TRenderParams;
-  const RenderOnePass: TSVRenderProc;
+  const RenderOnePass: TSVRenderOnePassProc;
   const RenderShadowVolumes: TSVRenderProc);
 
 const
@@ -554,14 +557,10 @@ begin
   Assert(GLFeatures.ShadowVolumesPossible);
 
   Params.InShadow := false;
-  Params.Transparent := false;
-  Params.ShadowVolumesReceivers := [false];
-  RenderOnePass(Params);
+  RenderOnePass(Params, false, [false]);
 
   Params.InShadow := true;
-  Params.Transparent := false;
-  Params.ShadowVolumesReceivers := [true];
-  RenderOnePass(Params);
+  RenderOnePass(Params, false, [true]);
 
   glEnable(GL_STENCIL_TEST);
     { Note that stencil buffer is set to all 0 now. }
@@ -658,9 +657,7 @@ begin
     glEnable(GL_STENCIL_TEST);
       Inc(Params.StencilTest);
       Params.InShadow := false;
-      Params.Transparent := false;
-      Params.ShadowVolumesReceivers := [true];
-      RenderOnePass(Params);
+      RenderOnePass(Params, false, [true]);
       Dec(Params.StencilTest);
     glDisable(GL_STENCIL_TEST);
 
@@ -688,14 +685,10 @@ begin
   end;
 
   Params.InShadow := false;
-  Params.Transparent := true;
-  Params.ShadowVolumesReceivers := [true];
-  RenderOnePass(Params);
+  RenderOnePass(Params, true, [true]);
 
   Params.InShadow := false;
-  Params.Transparent := true;
-  Params.ShadowVolumesReceivers := [false];
-  RenderOnePass(Params);
+  RenderOnePass(Params, true, [false]);
 end;
 
 procedure TGLShadowVolumeRenderer.SetDebugRender(const Value: Boolean);

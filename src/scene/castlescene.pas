@@ -129,8 +129,7 @@ type
       Adds all potentially visible shapes to Params.Collector.
       "Potentially visible" is decided by TestShapeVisibility
       (shape is visible if TestShapeVisibility is @nil or returns
-      @true for this shape) and Params.Transparent value must include
-      given shape.
+      @true for this shape).
 
       Updates Params.Statistics. }
     procedure LocalRenderInside(const TestShapeVisibility: TTestShapeVisibility;
@@ -143,7 +142,6 @@ type
 
       - frustum culling,
       - distance culling,
-      - filtering by transparency (only shapes matching Params.Transparent are returned)
       - filtering using TestShapeVisibility.
 
       Shapes that pass send to Params.Collector.
@@ -688,7 +686,8 @@ begin
   Shape.Fog := ShapeFog(Shape, Render_Params.GlobalFog as TFogNode);
 
   Render_Collector.Add(Shape, RenderOptions,
-    Render_Params.Transformation^.Transform, Render_Params.DepthRange);
+    Render_Params.Transformation^.Transform, Render_Params.DepthRange,
+    ReceiveShadowVolumes);
   IsVisibleNow := true;
 end;
 
@@ -734,13 +733,13 @@ procedure TCastleScene.LocalRenderInside(
   procedure CollectAllAsOpaque(
     const IgnoreShapesWithBlending: Boolean = false);
   begin
-    if not Params.Transparent then
-    begin
-      if IgnoreShapesWithBlending then
-        Shapes.Traverse({$ifdef FPC}@{$endif}CollectShape_AllTests_Opaque, true, true)
-      else
-        Shapes.Traverse({$ifdef FPC}@{$endif}CollectShape_AllTests, true, true);
-    end;
+    // TODO: Is IgnoreShapesWithBlending treatment still OK with new "later filtering"?
+    // Should we force UseBlending = false for all shapes maybe?
+
+    if IgnoreShapesWithBlending then
+      Shapes.Traverse({$ifdef FPC}@{$endif}CollectShape_AllTests_Opaque, true, true)
+    else
+      Shapes.Traverse({$ifdef FPC}@{$endif}CollectShape_AllTests, true, true);
   end;
 
   procedure UpdateVisibilitySensors;
@@ -790,21 +789,9 @@ procedure TCastleScene.LocalRenderInside(
   begin
     if RenderOptions.Blending then
     begin
-      if not Params.Transparent then
-      begin
-        { Opaque objects, for Params.Transparent = false }
-        ShapesFilterBlending(Shapes, true, true, false,
-          TestShapeVisibility, FilteredShapes, false);
-        for I := 0 to FilteredShapes.Count - 1 do
-          CollectShape_SomeTests(TGLShape(FilteredShapes[I]));
-      end else
-      begin
-        { Partially transparent (blending) objects, for Params.Transparent = true }
-        ShapesFilterBlending(Shapes, true, true, false,
-          TestShapeVisibility, FilteredShapes, true);
-        for I := 0 to FilteredShapes.Count - 1 do
-          CollectShape_SomeTests(TGLShape(FilteredShapes[I]));
-      end;
+      ShapesFilter(Shapes, true, true, false, TestShapeVisibility, FilteredShapes);
+      for I := 0 to FilteredShapes.Count - 1 do
+        CollectShape_SomeTests(TGLShape(FilteredShapes[I]));
     end else
       CollectAllAsOpaque;
   end;
@@ -814,7 +801,7 @@ begin
     Otherwise, we would increase it twice.
     This method is always called first with Params.Transparent = false,
     then Params.Transparent = true during a single frame. }
-  if (not Params.Transparent) and (Params.InternalPass = 0) then
+  if Params.InternalPass = 0 then
   begin
     Params.Statistics.ShapesVisible := Params.Statistics.ShapesVisible +
       ShapesActiveVisibleCount;
@@ -1039,8 +1026,7 @@ begin
     already did tests below. But it may also be called directly,
     so do the checks below anyway. (The checks are trivial, so no speed harm.) }
   if CheckVisible and
-     (InternalDirty = 0) and
-     (ReceiveShadowVolumes in Params.ShadowVolumesReceivers) then
+     (InternalDirty = 0) then
   begin
     { I used to make here more complex "prepare" mechanism, that was trying
       to prepare for particular shapes only right before they are rendered
@@ -1518,13 +1504,11 @@ begin
 
   if InternalEnableRendering and
      CheckVisible and
-     (InternalDirty = 0) and
-     (ReceiveShadowVolumes in Params.ShadowVolumesReceivers) then
+     (InternalDirty = 0) then
   begin
     FrameProfiler.Start(fmRenderScene);
 
-    if (not Params.Transparent) and
-       (Params.InternalPass = 0) then
+    if Params.InternalPass = 0 then
       Inc(Params.Statistics.ScenesVisible);
 
     if FSceneFrustumCulling and
@@ -1548,8 +1532,7 @@ begin
       Exit;
     end;
 
-    if (not Params.Transparent) and
-       (Params.InternalPass = 0) then
+    if Params.InternalPass = 0 then
       Inc(Params.Statistics.ScenesRendered);
 
     FrustumForShapeCulling := Params.Frustum;
@@ -1790,13 +1773,6 @@ begin
   inherited;
   FGlobalLights := TLightInstancesList.Create;
   InShadow := false;
-  ShadowVolumesReceivers := [false, true];
-  { Transparent does not have good default value.
-    User of TBasicRenderParams should call Render method with both Transparent values,
-    to really render everything correctly.
-    We just set them here to capture most 3D objects
-    (as using TBasicRenderParams for anything is a discouraged hack anyway). }
-  Transparent := false;
 end;
 
 destructor TBasicRenderParams.Destroy;
