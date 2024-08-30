@@ -144,10 +144,17 @@ begin
     the the Player). This is satisfied, since CurrentLocation.Scene
     is first in Viewport.Items. }
 
-  if (not Params.Transparent) and
-     (true in Params.ShadowVolumesReceivers) then
+  // TODO: This test is not valid anymore,
+  // - LocalRender must collect all shapes,
+  //   transparent and opaque, shadow receivers and not.
+  // - Also test "if Params.InShadow then" is not good, InShadow should not be relevant at collection time.
+  // - It cannot render directly. TODO: Add a way to render directly?
+
+  // if (not Params.Transparent) and
+  //    (true in Params.ShadowVolumesReceivers) then
+
   begin
-    { Nole that the 3 lines that save, set and restore RenderContext.ProjectionMatrix
+    { Note that the 3 lines that save, set and restore RenderContext.ProjectionMatrix
       are necessary only in case GLFeatures.EnableFixedFunction = true,
       which will be false on all modern GPUs and OpenGLES.
       When GLFeatures.EnableFixedFunction = false,
