@@ -1,5 +1,5 @@
 /*
-  Copyright 2013-2023 Jan Adamec, Michalis Kamburelis.
+  Copyright 2013-2024 Jan Adamec, Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -310,6 +310,7 @@ extern void CGE_KeyDown(int /*ECgeKey*/ eKey);
 extern void CGE_KeyUp(int /*ECgeKey*/ eKey);
 
 extern void CGE_LoadSceneFromFile(const char *szFile);                     // name od the file has to be utf-8 encoded
+extern void CGE_SaveSceneToFile(const char *szFile);
 
 extern int CGE_GetViewpointsCount(void);
 extern void CGE_GetViewpointName(int iViewpointIdx, char *szName, int nBufSize);    // szName is buffer of size nBufSize, and is filled with utf-8 encoded string

@@ -35,10 +35,14 @@ procedure CompileNintendoSwitch(
 
 { Compile a final library for Nintendo Switch.
 
-  CompilerOptions.OS andCompilerOptions.CPU are ignored by this routine.
+  Note that OutputLibraryFile is the expected location of compiled library file
+  from CompileFile. The compilation command should not need to do anything special
+  to make the library in this filename.
+
+  CompilerOptions.OS and CompilerOptions.CPU are ignored by this routine.
   This routine may modify CompilerOptions contents. }
 procedure CompileNintendoSwitchLibrary(const Project: TCastleProject;
-  const WorkingDirectory, CompileFile: string;
+  const WorkingDirectory, CompileFile, OutputLibraryFile: string;
   const CompilerOptions: TCompilerOptions);
 
 procedure PackageNintendoSwitch(const Project: TCastleProject);
@@ -64,7 +68,7 @@ begin
 end;
 
 procedure CompileNintendoSwitchLibrary(const Project: TCastleProject;
-  const WorkingDirectory, CompileFile: string;
+  const WorkingDirectory, CompileFile, OutputLibraryFile: string;
   const CompilerOptions: TCompilerOptions);
 begin
   NxNotSupported;

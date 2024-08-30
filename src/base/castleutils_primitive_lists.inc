@@ -247,6 +247,7 @@ end;
 
 { TSingleList ------------------------------------------------------------ }
 
+{$warnings off} // using deprecated, to keep it working
 procedure TSingleList.AppendFloats(Floats: TFloatList);
 var
   OldCount, I: TListSize;
@@ -256,6 +257,7 @@ begin
   for i := 0 to Floats.Count - 1 do
     Items[OldCount+i] := Floats.Items[i];
 end;
+{$warnings on}
 
 function TSingleList.ToDouble: TDoubleList;
 begin

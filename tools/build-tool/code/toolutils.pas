@@ -86,6 +86,10 @@ procedure ParametersAddMacros(const Macros, Parameters: TStringStringMap;
   Since FPC 3.2.2 it is linkfiles<id>.res (and we ignore link<id>.res and linksyms<id>.res). }
 function FindLinkRes(const Path: String): String;
 
+{ Delete all link<id>.res and linkfiles<id>.res files,
+  to make the job unambiguous for future FindLinkRes from future compilations. }
+procedure DeleteLinkRes(const Path: String);
+
 { Set Unix executable bit.
   It will not be able to perform the CHMOD operation on non-Unix OS
   and will log a corresponding warning instead. }
@@ -267,6 +271,30 @@ begin
   raise Exception.CreateFmt('Cannot find any linker input file in the directory "%s"', [
     Path
   ]);
+end;
+
+type
+  TDeleteLinkResHandler = class
+    procedure FoundFile(const FileInfo: TFileInfo; var StopSearch: boolean);
+  end;
+
+procedure TDeleteLinkResHandler.FoundFile(const FileInfo: TFileInfo; var StopSearch: boolean);
+begin
+  if Verbose then
+    Writeln('Deleting linker input file (to later unambiguosly detect the one linker file that is relevant): ',
+      FileInfo.AbsoluteName);
+  DeleteFile(FileInfo.AbsoluteName);
+end;
+
+procedure DeleteLinkRes(const Path: String);
+var
+  Handler: TDeleteLinkResHandler;
+begin
+  Handler := TDeleteLinkResHandler.Create;
+  try
+    //FindFiles(Path, 'linkfiles*.res', false, @Handler.FoundFile, []);
+    FindFiles(Path, 'link*.res', false, @Handler.FoundFile, []);
+  finally FreeAndNil(Handler) end;
 end;
 
 procedure DoMakeExecutable(const PathAndName: String);

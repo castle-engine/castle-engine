@@ -481,10 +481,12 @@ type
   {$undef read_window_interface}
 
   protected
+    {$warnings off} // using deprecated class in deprecated method
     { Create a container class for this window.
       Override this to use a custom container class, e.g. to override
       some container methods. }
     function CreateContainer: TWindowContainer; virtual; deprecated 'instead of custom TWindowContainer descendants, use custom TCastleView descendants';
+    {$warnings on}
   private
     FWidth, FHeight, FLeft, FTop: Integer;
     { Window size reported last to DoResize,
@@ -2801,13 +2803,12 @@ begin
   inherited;
 end;
 
+{$warnings off} // using deprecated class in deprecated method
 function TCastleWindow.CreateContainer: TWindowContainer;
 begin
-  // Using deprecated CreateContainer - should be internal in the future
-  {$warnings off}
   Result := TWindowContainer.Create(Self);
-  {$warnings on}
 end;
+{$warnings on}
 
 procedure TCastleWindow.OpenCore;
 
@@ -4936,17 +4937,26 @@ end;
 
 function KeyToString(const KeyString: String; const Key: TKey;
   const Modifiers: TModifierKeys; out S: String): boolean;
+const
+  {$ifdef CASTLE_WINDOW_FORM}
+    {$ifdef LCLCarbon}
+      {$define CASTLE_CtrlIsCommand}
+    {$endif}
+  {$endif}
+  // Our Cocoa backend always reports Command modifier as Ctrl.
+  {$ifdef CASTLE_WINDOW_COCOA}
+    {$define CASTLE_CtrlIsCommand}
+  {$endif}
+  CtrlIsCommand = {$ifdef CASTLE_CtrlIsCommand} true {$else} false {$endif};
 begin
   if KeyString <> '' then
   begin
-    S := KeyStringToNiceStr(KeyString, Modifiers, false
-      {$ifdef CASTLE_WINDOW_FORM} {$ifdef LCLCarbon}, true {$endif} {$endif} );
+    S := KeyStringToNiceStr(KeyString, Modifiers, false, CtrlIsCommand);
     Result := true;
   end else
   if Key <> keyNone then
   begin
-    S := KeyToStr(Key, Modifiers
-      {$ifdef CASTLE_WINDOW_FORM} {$ifdef LCLCarbon}, true {$endif} {$endif});
+    S := KeyToStr(Key, Modifiers, CtrlIsCommand);
     Result := true;
   end else
   Result := false;

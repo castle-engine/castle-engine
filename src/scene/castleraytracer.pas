@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2022 Michalis Kamburelis.
+  Copyright 2003-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -42,7 +42,8 @@ interface
 uses Classes,
   CastleVectors, CastleImages, CastleInternalRays, CastleProjection, CastleUtils,
   CastleInternalBaseTriangleOctree, CastleShapes, X3DNodes,
-  CastleInternalSpaceFillingCurves, CastleTriangles;
+  CastleInternalSpaceFillingCurves, CastleTriangles, CastleSceneCore,
+  CastleInternalTriangleOctree;
 
 type
   { }
@@ -54,7 +55,9 @@ type
   strict protected
     procedure AppendStats(const Stats: TStrings; const RenderingTime: Single); virtual;
   public
-    { Scene to render.
+    { Spatial structure (that contains geometry with materials) to render.
+      You can create it using e.g. CreateOctreeVisibleTrianglesForScene
+      for TCastleScene.
       Must be set before calling @link(Execute). }
     Octree: TBaseTrianglesOctree;
 
@@ -240,6 +243,11 @@ type
       this doesn't give any noticeable benefit. }
     SFCurveClass: TSpaceFillingCurveClass;
   end;
+
+{ Create spatial structure to resolve collisions in the given scene.
+  Caller is responsible for freeing the result. }
+function CreateOctreeVisibleTrianglesForScene(
+  const Scene: TCastleSceneCore): TTriangleOctree;
 
 implementation
 
@@ -1564,6 +1572,27 @@ begin
     [PathsCount / RenderingTime]));
   Stats.Append(Format('%f simple collision tests done per one path.',
     [TriangleCollisionTestsCounter /  PathsCount ]));
+end;
+
+{ globals ------------------------------------------------------------------- }
+
+function CreateOctreeVisibleTrianglesForScene(const Scene: TCastleSceneCore): TTriangleOctree;
+var
+  ShapeList: TShapeList;
+  Shape: TShape;
+begin
+  Result := TTriangleOctree.Create(DefTriangleOctreeLimits, Scene.LocalBoundingBox);
+  try
+    Result.Triangles.Capacity := Scene.TrianglesCount;
+    ShapeList := Scene.Shapes.TraverseList(
+      { OnlyActive } true,
+      { OnlyVisible } true,
+      { OnlyCollidable } false
+    );
+    for Shape in ShapeList do
+      Shape.Triangulate({$ifdef FPC}@{$endif} Result.AddItemTriangle,
+        { FrontFaceAlwaysCcw should not matter } false);
+  except Result.Free; raise end;
 end;
 
 end.

@@ -19,7 +19,7 @@ env:
   # To which GitHub release tag should we upload artifacts.
   # Can be "snapshot" or "vX.Y.Z" (latter when we make stable release).
   release_tag: snapshot
-  #release_tag: vX.Y.Z
+  #release_tag: v7.0-alpha.3
 
 defaults:
   run:

@@ -636,7 +636,7 @@ procedure TRenderer.RenderShape(const Shape: TX3DRendererShape;
       if Shape.Node.Shading = shGouraud then
         PhongShading := false;
     { if some feature requires PhongShading, make it true }
-    if ShapeMaybeUsesSurfaceTexture(Shape) or
+    if ShapeTextureForcesPhongShading(Shape) or
       ShapeMaybeUsesShadowMaps(Shape) or
       ShapeMaterialRequiresPhongShading(Shape) or
       ShapeUsesEnvironmentLight(Shape) or
@@ -1277,37 +1277,34 @@ procedure TRenderer.RenderShapeTextures(const Shape: TX3DRendererShape;
       (Node is TIndexedLineSetNode));
   end;
 
-  procedure EnableOneShadowMap(const Texture: TGeneratedShadowMapNode;
-    var TexCoordsNeeded: Cardinal; const Shader: TShader);
+  procedure EnableShadowMaps(const ShadowMaps: TX3DNodeList;
+    var ABoundTextureUnits: Cardinal; const Shader: TShader);
   var
-    GLTexture: TTextureResource;
-  begin
-    GLTexture := TTextureResources.Get(Texture);
-    if GLTexture <> nil then
-      GLTexture.EnableAll(Self, GLFeatures.MaxTextureUnits, TexCoordsNeeded, Shader);
-  end;
-
-  procedure EnableShadowMaps(const Texture: TAbstractTextureNode;
-    var TexCoordsNeeded: Cardinal; const Shader: TShader);
-  var
+    ShadowMapNode: TGeneratedShadowMapNode;
+    Res: TTextureResource;
     I: Integer;
-    ChildNode: TX3DNode;
   begin
-    if Texture is TGeneratedShadowMapNode then
+    for I := 0 to ShadowMaps.Count - 1 do
     begin
-      EnableOneShadowMap(TGeneratedShadowMapNode(Texture), TexCoordsNeeded, Shader);
-    end else
-    if Texture is TMultiTextureNode then
-      for I := 0 to TMultiTextureNode(Texture).FdTexture.Count - 1 do
-      begin
-        { TODO: This is not really correct, the texture unit number
-          (TexCoordsNeeded) may not correspond to the texture coordinate number
-          where the ProjectedTextureCoordinate node is. }
+      Assert(ShadowMaps[I] is TGeneratedShadowMapNode);
+      ShadowMapNode := TGeneratedShadowMapNode(ShadowMaps[I]);
 
-        ChildNode := TMultiTextureNode(Texture).FdTexture[I];
-        if ChildNode is TGeneratedShadowMapNode then
-          EnableOneShadowMap(TGeneratedShadowMapNode(ChildNode), TexCoordsNeeded, Shader);
+      // get TTextureResource instance
+      Res := TTextureResources.Get(ShadowMapNode);
+      if Res = nil then
+      begin
+        WritelnWarning('Shadow Map', 'Shadow map "%s" has no renderer texture resource, cannot use it', [
+          ShadowMapNode.NiceName
+        ]);
+        Continue;
       end;
+
+      // bind the texture to the next free texture unit
+      Res.Bind(ABoundTextureUnits);
+
+      Shader.EnableShadowMap(ABoundTextureUnits, ShadowMapNode);
+      Inc(ABoundTextureUnits); // we used one more texture unit
+    end;
   end;
 
   function GetAlphaCutoff(const Shape: TShape): Single;
@@ -1369,24 +1366,15 @@ procedure TRenderer.RenderShapeTextures(const Shape: TX3DRendererShape;
       AlphaTest := TGLShape(Shape).AlphaChannel = acTest;
 
       if FontTextureRes <> nil then
-        FontTextureRes.EnableAll(Self, GLFeatures.MaxTextureUnits, TexCoordsNeeded, Shader);
+        FontTextureRes.EnableAll(Self, GLFeatures.MaxTextureUnits, TexCoordsNeeded, Shader,
+          false);
       if TextureRes <> nil then
-        TextureRes.EnableAll(Self, GLFeatures.MaxTextureUnits, TexCoordsNeeded, Shader);
+        TextureRes.EnableAll(Self, GLFeatures.MaxTextureUnits, TexCoordsNeeded, Shader,
+          FontTextureRes <> nil);
       BoundTextureUnits := TexCoordsNeeded;
 
-      if (Shape.Node <> nil) and
-         (Shape.Node.Appearance <> nil) and
-         (Shape.Node.Appearance.Texture <> nil) and
-         (TextureNode <> Shape.Node.Appearance.Texture) then
-      begin
-        { This means that Shape.State.MainTexture comes
-          from CommonSurfaceShader or X3Dv4 Material or PhysicalMaterial.
-          Make sure to still enable shadow maps from Shape.Appearance.Texture
-          then.
-          TODO: shadow maps should be placed in some special slot,
-          dedicated for them. }
-        EnableShadowMaps(Shape.Node.Appearance.Texture, TexCoordsNeeded, Shader);
-      end;
+      if Shape.InternalShadowMaps <> nil then
+        EnableShadowMaps(Shape.InternalShadowMaps, BoundTextureUnits, Shader);
 
       { If there is special texture like a normalmap, enable it. }
       BumpMappingEnable(Shape, RenderOptions, BoundTextureUnits, TexCoordsNeeded, Shader);
