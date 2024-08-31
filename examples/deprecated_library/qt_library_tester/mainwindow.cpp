@@ -1,5 +1,5 @@
 /*
-  Copyright 2014 Jan Adamec, Michalis Kamburelis.
+  Copyright 2014-2024 Jan Adamec, Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -37,6 +37,11 @@ MainWindow::MainWindow(QWidget *parent) :
 
     QSurfaceFormat aFormat;
     aFormat.setSamples(4);
+    aFormat.setDepthBufferSize(24);
+    aFormat.setStencilBufferSize(8);
+    aFormat.setSwapBehavior(QSurfaceFormat::DoubleBuffer);
+    aFormat.setSwapInterval(1);
+    QSurfaceFormat::setDefaultFormat(aFormat);
 
     m_pGlWidget = new GLWidget(aFormat, this);    // init with multisampling
     setCentralWidget(m_pGlWidget);
@@ -234,8 +239,12 @@ void MainWindow::MenuShowWarningClick()
 
 void MainWindow::MenuOpenGLInfoClick()
 {
+    m_pGlWidget->makeCurrent();
+
     char szBuf[8192];
     CGE_GetOpenGLInformation(szBuf, 8192);
+
+    m_pGlWidget->doneCurrent();
 
     QDialog aDlg(this);
     aDlg.setWindowTitle(tr("OpenGL Information"));
