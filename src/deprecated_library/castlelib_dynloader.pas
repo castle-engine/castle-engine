@@ -1,5 +1,5 @@
 {
-  Copyright 2008-2023 Jan Adamec, Michalis Kamburelis.
+  Copyright 2008-2024 Jan Adamec, Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -263,6 +263,7 @@ procedure CGE_Finalize(); cdecl; external 'castleengine';
 procedure CGE_Open(flags: cUInt32; InitialWidth, InitialHeight, Dpi: cUInt32); cdecl; external 'castleengine';
 procedure CGE_Close(); cdecl; external 'castleengine';
 procedure CGE_GetOpenGLInformation(szBuffer: pchar; nBufSize: cInt32); cdecl; external 'castleengine';
+procedure CGE_GetCastleEngineVersion(szBuffer: pchar; nBufSize: cInt32); cdecl; external 'castleengine';
 procedure CGE_Resize(uiViewWidth, uiViewHeight: cUInt32); cdecl; external 'castleengine';
 procedure CGE_Render(); cdecl; external 'castleengine';
 procedure CGE_SaveScreenshotToFile(szFile: pcchar); cdecl; external 'castleengine';
