@@ -201,7 +201,9 @@ type
         LayerPhysicsSimulation: TCastleUserInterface;
         LabelPhysicsSimulationRunning: TCastleLabel;
         LabelPhysicsSimulationPaused: TCastleLabel;
+        OnGLContextOpen: TNotifyEvent;
         constructor Create(AOwner: TComponent); override;
+        procedure GLContextOpen; override;
         function Press(const Event: TInputPressRelease): Boolean; override;
         function Release(const Event: TInputPressRelease): Boolean; override;
         function Motion(const Event: TInputMotion): Boolean; override;
@@ -304,9 +306,10 @@ type
 
     function CameraToSynchronize(const V: TCastleViewport): TCastleCamera;
     procedure CameraSynchronize(const Source, Target: TCastleCamera; const MakeUndo: Boolean);
-    procedure CastleControlOpen(Sender: TObject);
-    procedure CastleControlResize(Sender: TObject);
-    procedure CastleControlUpdate(Sender: TObject);
+    procedure CastleControlGLContextOpen(Sender: TObject);
+    //procedure CastleControlResize(Sender: TObject);
+    procedure CastleControlUpdate(const Sender: TCastleUserInterface;
+      const SecondsPassed: Single; var HandleInput: Boolean);
     procedure CastleControlDragOver(Sender, Source: TObject; X, Y: Integer;
       State: TDragState; var Accept: Boolean);
     procedure CastleControlDragDrop(Sender, Source: TObject; X, Y: Integer);
@@ -800,6 +803,13 @@ begin
   RectStatistics.InsertFront(LabelStatistics);
 
   ForceFallbackLook(RectStatistics);
+end;
+
+procedure TDesignFrame.TDesignerLayer.GLContextOpen;
+begin
+  inherited;
+  if Assigned(OnGLContextOpen) then
+    OnGLContextOpen(Self);
 end;
 
 function TDesignFrame.TDesignerLayer.HoverUserInterface(
@@ -1625,11 +1635,6 @@ begin
   CastleControl := TCastleControl.Create(Self);
   CastleControl.AutoFocus := true; // needed on Windows to receive AWSD, Ctrl+Z...
   CastleControl.Align := alClient;
-  {$warnings off} // TODO: upgrade it
-  CastleControl.OnResize := @CastleControlResize;
-  CastleControl.OnOpen := @CastleControlOpen;
-  CastleControl.OnUpdate := @CastleControlUpdate;
-  {$warnings on}
   CastleControl.OnDragOver := @CastleControlDragOver;
   CastleControl.OnDragDrop := @CastleControlDragDrop;
   CastleControl.Parent := PanelMiddle; // set Parent last, following https://wiki.freepascal.org/LCL_Tips#Set_the_Parent_as_last
@@ -1640,6 +1645,8 @@ begin
 
   FDesignerLayer := TDesignerLayer.Create(Self);
   FDesignerLayer.Frame := Self;
+  FDesignerLayer.OnUpdate := @CastleControlUpdate;
+  FDesignerLayer.OnGLContextOpen := @CastleControlGLContextOpen;
   CastleControl.Controls.InsertFront(FDesignerLayer);
 
   // It's too easy to change it visually and forget, so we set it from code
@@ -3031,13 +3038,13 @@ begin
   Result := C.Name;
 end;
 
+(* TODO: Show UI scaling somewhere?
+
 procedure TDesignFrame.CastleControlResize(Sender: TObject);
-//var
-//  CalculatedUIScale: Single;
-//  H, CalculatedUIScaleStr: String;
+var
+  CalculatedUIScale: Single;
+  H, CalculatedUIScaleStr: String;
 begin
-  // TODO: where to display UI scaling effect nicely?
-  {
   // trick to get private TCastleContainer.FCalculatedUIScale
   CalculatedUIScale :=  (1 / CastleControl.Container.UnscaledWidth) *
     CastleControl.Container.Width;
@@ -3071,10 +3078,10 @@ begin
        CastleControl.Container.UnscaledHeight]);
   end;
   LabelUIScaling.Hint := H;
-  }
 end;
+*)
 
-procedure TDesignFrame.CastleControlOpen(Sender: TObject);
+procedure TDesignFrame.CastleControlGLContextOpen(Sender: TObject);
 
   procedure ReadSettings;
   var
@@ -3112,7 +3119,8 @@ begin
   ReadSettings;
 end;
 
-procedure TDesignFrame.CastleControlUpdate(Sender: TObject);
+procedure TDesignFrame.CastleControlUpdate(const Sender: TCastleUserInterface;
+  const SecondsPassed: Single; var HandleInput: Boolean);
 
   function ViewportDebugInfo(const V: TCastleViewport): String;
 

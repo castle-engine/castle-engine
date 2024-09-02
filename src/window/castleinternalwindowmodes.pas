@@ -49,11 +49,6 @@ type
       TWindowState = class(TComponent)
       strict private
         Window: TCastleWindow;
-        OldMotion: TInputMotionEvent;
-        OldPress, OldRelease: TInputPressReleaseEvent;
-        OldOpenObject, OldCloseObject: TContainerObjectEvent;
-        OldBeforeRender, OldRender, OldCloseQuery, OldUpdate, OldTimer: TContainerEvent;
-        OldResize: TContainerEvent;
         OldMenuClick: TMenuClickFunc;
         OldCaption: string;
         OldUserdata: Pointer;
@@ -77,7 +72,7 @@ type
           2. expand constructor, destructor and SetStandardState } { }
 
         procedure SetStandardState(
-          NewRender, NewResize, NewCloseQuery: TContainerEvent);
+          const NewCloseQuery: TContainerEvent);
 
         { Constructor saves the TCastleWindow state, destructor applies this state
           back to the window.
@@ -175,27 +170,7 @@ type
       Window properties resetted:
 
       @unorderedList(
-        @item(All callbacks (OnXxx) are set to @nil.
-
-          Except the open/close callbacks
-          (OnOpen and OnClose, OnOpenObject and OnCloseObject).
-          Actually, OnOpenObject and OnCloseObject are changed for internal purposes,
-          but, assuming you use SetStandardState, the orignal ones will still happen.
-          Global CastleUIControls.OnGLContextOpen, CastleUIControls.OnGLContextClose
-          are also untouched.
-
-          @unorderedList(
-            @item(On standalone, we can expect that the window
-              (and OpenGL context) will stay open during the lifetime of a single
-              TGLMode. So it doesn't really matter what we do with callbacks
-              OnOpen / OnClose.)
-            @item(On mobiles (Android) this is not necessarily true.
-              Window may get closed at any time.
-              So be extra careful when implementing OnOpen / OnClose callbacks,
-              remember that they may happen when we're inside a mode (for example
-              inside a modal message in CastleMessages or a progress bar).)
-          )
-        )
+        @item(OnMenuClick is set to @nil.)
         @item(TCastleWindow.Caption and TCastleWindow.MainMenu are left as they were.)
         @item(TCastleWindow.Cursor is reset to mcDefault.)
         @item(TCastleWindow.UserData is reset to @nil.)
@@ -213,8 +188,8 @@ type
       it's an empty callback, thus using it disables the possibility
       to close the window by window manager
       (usually using "close" button in some window corner or Alt+F4). }
-    constructor CreateReset(AWindow: TCastleWindow;
-      NewRender, NewResize, NewCloseQuery: TContainerEvent);
+    constructor CreateReset(const AWindow: TCastleWindow;
+      const NewCloseQuery: TContainerEvent);
 
     destructor Destroy; override;
 
@@ -252,20 +227,6 @@ begin
   inherited Create(nil);
   Window := AWindow;
 
-  {$warnings off} // keep deprecated OnXxx working
-  OldOpenObject := Window.OnOpenObject;
-  OldCloseObject := Window.OnCloseObject;
-  { Note that we do not touch OnOpen and OnClose. Let them happen.
-    Our WindowOpen/Close will also call origina OnOpenObject/Close. }
-  OldMotion := Window.OnMotion;
-  OldPress := Window.OnPress;
-  OldRelease := Window.OnRelease;
-  OldBeforeRender := Window.OnBeforeRender;
-  OldRender := Window.OnRender;
-  OldCloseQuery := Window.OnCloseQuery;
-  OldResize := Window.OnResize;
-  OldUpdate := Window.OnUpdate;
-  {$warnings on}
   OldMenuClick := Window.OnMenuClick;
   oldCaption := Window.Caption;
   oldUserdata := Window.Userdata;
@@ -284,18 +245,6 @@ end;
 
 destructor TGLMode.TWindowState.Destroy;
 begin
-  {$warnings off} // keep deprecated OnXxx working
-  Window.OnOpenObject := OldOpenObject;
-  Window.OnCloseObject := OldCloseObject;
-  Window.OnMotion := OldMotion;
-  Window.OnPress := OldPress;
-  Window.OnRelease := OldRelease;
-  Window.OnBeforeRender := OldBeforeRender;
-  Window.OnRender := OldRender;
-  Window.OnCloseQuery := OldCloseQuery;
-  Window.OnResize := OldResize;
-  Window.OnUpdate := OldUpdate;
-  {$warnings on}
   Window.OnMenuClick := OldMenuClick;
   Window.Caption := oldCaption;
   Window.Userdata := oldUserdata;
@@ -354,23 +303,8 @@ begin
 end;
 
 procedure TGLMode.TWindowState.SetStandardState(
-  NewRender, NewResize, NewCloseQuery: TContainerEvent);
+  const NewCloseQuery: TContainerEvent);
 begin
-  {$warnings off} // keep deprecated OnXxx working
-  Window.OnOpenObject := {$ifdef FPC}@{$endif}WindowOpen;
-  Window.OnCloseObject := {$ifdef FPC}@{$endif}WindowClose;
-  Window.OnMotion := nil;
-  Window.OnPress := nil;
-  Window.OnRelease := nil;
-  Window.OnBeforeRender := nil;
-  Window.OnRender := nil;
-  Window.OnCloseQuery := nil;
-  Window.OnUpdate := nil;
-  Window.OnResize := nil;
-  Window.OnRender := NewRender;
-  Window.OnResize := NewResize;
-  Window.OnCloseQuery := NewCloseQuery;
-  {$warnings on}
   Window.OnMenuClick := nil;
   {Window.Caption := leave current value}
   Window.Userdata := nil;
@@ -429,11 +363,11 @@ begin
   Window.Invalidate;
 end;
 
-constructor TGLMode.CreateReset(AWindow: TCastleWindow;
-  NewRender, NewResize, NewCloseQuery: TContainerEvent);
+constructor TGLMode.CreateReset(const AWindow: TCastleWindow;
+  const NewCloseQuery: TContainerEvent);
 begin
   Create(AWindow);
-  OldState.SetStandardState(NewRender, NewResize, NewCloseQuery);
+  OldState.SetStandardState(NewCloseQuery);
 end;
 
 destructor TGLMode.Destroy;

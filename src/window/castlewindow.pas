@@ -56,8 +56,10 @@
 
     @item(Call @link(TCastleApplication.Run Application.Run).
       This will enter message loop that will call
-      appropriate windows' callbacks at appropriate times
-      (OnRender, OnPress, OnRelease, OnResize, OnUpdate and many more).
+      appropriate events at appropriate times
+      (TCastleContainer.EventRender, TCastleContainer.EventPress,
+      TCastleContainer.EventRelease, TCastleContainer.EventResize,
+      TCastleContainer.EventUpdate and many more).
 
       For more advanced needs you can use something like
 
@@ -463,11 +465,8 @@ type
     See https://castle-engine.io/control_on_form .
 
     Deprecated functionality:
-    You can also add any user-interface controls to the @link(Controls) property.
-    User-interface controls are any @link(TCastleUserInterface) descendants,
-    like @link(TCastleImageControl) or @link(TCastleButton) or @link(TCastleViewport).
-    Use events like @link(OnPress) to react to events.
-    Use event @link(OnUpdate) to do something continuously. }
+    You can actually add any @link(TCastleUserInterface) controls to
+    the @link(Controls) property, not only TCastleView descendants. }
   TCastleWindow = class(TComponent)
 
   { Include CastleWindow-backend-specific parts of TCastleWindow class.
@@ -559,28 +558,6 @@ type
     procedure SetCaption(const Part: TCaptionPart; const Value: String);
     function GetWholeCaption: String;
     procedure SetCursor(const Value: TMouseCursor);
-    function GetOnOpen: TContainerEvent;
-    procedure SetOnOpen(const Value: TContainerEvent);
-    function GetOnOpenObject: TContainerObjectEvent;
-    procedure SetOnOpenObject(const Value: TContainerObjectEvent);
-    function GetOnBeforeRender: TContainerEvent;
-    procedure SetOnBeforeRender(const Value: TContainerEvent);
-    function GetOnRender: TContainerEvent;
-    procedure SetOnRender(const Value: TContainerEvent);
-    function GetOnResize: TContainerEvent;
-    procedure SetOnResize(const Value: TContainerEvent);
-    function GetOnClose: TContainerEvent;
-    procedure SetOnClose(const Value: TContainerEvent);
-    function GetOnCloseObject: TContainerObjectEvent;
-    procedure SetOnCloseObject(const Value: TContainerObjectEvent);
-    function GetOnUpdate: TContainerEvent;
-    procedure SetOnUpdate(const Value: TContainerEvent);
-    function GetOnPress: TInputPressReleaseEvent;
-    procedure SetOnPress(const Value: TInputPressReleaseEvent);
-    function GetOnRelease: TInputPressReleaseEvent;
-    procedure SetOnRelease(const Value: TInputPressReleaseEvent);
-    function GetOnMotion: TInputMotionEvent;
-    procedure SetOnMotion(const Value: TInputMotionEvent);
     function GetTouches(const Index: Integer): TTouch;
     procedure SetWidth(const Value: Integer);
     procedure SetHeight(const Value: Integer);
@@ -1053,7 +1030,7 @@ type
       @unorderedList(
         @item(Some backends require closing + reopening the window to make it
           fullscreen. So be prepared that changing FullScreen
-          may result in OnClose + OnOpen events, and all OpenGL resources
+          may result in EventClose + EventOpen events, and all OpenGL resources
           are reloaded. In most cases, engine takes care of everything
           automatically (all TCastleScene, TCastleUserInterface, TDrawableImage and other
           resources are automatically reloaded), just be aware that
@@ -1203,67 +1180,6 @@ type
       ) }
     property ResizeAllowed: TResizeAllowed
       read FResizeAllowed write FResizeAllowed default raAllowed;
-
-    { OpenGL context is created, initialize things that require OpenGL
-      context. Often you do not need to use this callback (engine components will
-      automatically create/release OpenGL resource when necessary).
-      You usually will also want to implement Window.OnClose callback that
-      should release stuff you create here.
-
-      Often, instead of using this callback, it's cleaner to derive new classes
-      from TCastleUserInterface class or it's descendants,
-      and override their GLContextOpen / GLContextClose methods to react to
-      context being open/closed. Using such TCastleUserInterface classes
-      is usually easier, as you add/remove them from controls whenever
-      you want (e.g. you add them in
-      @link(TCastleApplication.OnInitialize Application.OnInitialize)),
-      and underneath they create/release/create again the OpenGL resources
-      when necessary.
-
-      OnOpen is always called @bold(after)
-      @link(TCastleApplication.OnInitialize Application.OnInitialize).
-      In normal circumstances, for a typical standalone game, the OnOpen will
-      happen only once. But for other targets, it may be necessary to close/reopen
-      the OpenGL context many times, e.g. on mobile platforms it's normal
-      that application may "loose" the OpenGL context and it may need
-      to recreate OpenGL resources when it wakes up.
-      Event called when OpenGL context is initialized.
-
-      It's guaranteed that every newly opened window will get
-      EventOpen (OnOpen) first, and then EventResize (OnResize),
-      and only then --- the other callbacks, as the user uses the window.
-      This is consistent EventOpen (OnOpen)
-      is always the first executed callback and OnClose
-      is always the last. This allows you to cleanly initialize / finalize
-      OpenGL resources.
-
-      During EventOpen (OnOpen) you already have valid
-      Width / Height values, that is those values were already adjusted
-      if ResizeAllowed <> raNotAllowed.
-
-      @bold(Be careful what you do in this callback if you want your game
-      to work on Android or other non-standalone platforms.)
-      On Android, OpenGL context may be closed and opened at any time,
-      as user can switch from/to your application at any time.
-      You should use
-      @link(TCastleApplication.OnInitialize Application.OnInitialize)
-      for a one-time initialization (it is executed right before
-      the very first OnOpen would be executed).
-      Use this callback only to create OpenGL resources
-      (destroyed in OnClose).
-
-      @deprecated Instead of this, use TCastleUserInterface and TCastleView virtual
-      method @link(TCastleUserInterface.GLContextOpen).
-      Or use Application.OnInitialize for initialization.
-      Or use ApplicationProperties.OnGLContextOpen to know when GL context is
-      created.
-
-      @groupBegin }
-    property OnOpen: TContainerEvent read GetOnOpen write SetOnOpen;
-      {$ifdef FPC}deprecated 'instead of this, use TCastleUserInterface and TCastleView virtual method GLContextOpen; or use Application.OnInitialize for initialization; or use ApplicationProperties.OnGLContextOpen';{$endif}
-    property OnOpenObject: TContainerObjectEvent read GetOnOpenObject write SetOnOpenObject;
-      {$ifdef FPC}deprecated 'instead of this, use TCastleUserInterface and TCastleView virtual methods GLContextOpen; or use Application.OnInitialize for initialization; or use ApplicationProperties.OnGLContextOpenObject';{$endif}
-    { @groupEnd }
 
     { Minimum and maximum window sizes. Always
 
@@ -1477,110 +1393,6 @@ type
       May be changed even when the window is already open. }
     property Caption: String read GetPublicCaption write SetPublicCaption;
 
-    { Render window contents here.
-
-      Called when window contents must be redrawn,
-      e.g. after creating a window, after resizing a window, after uncovering
-      the window etc. You can also request yourself a redraw of the window
-      by the Invalidate method, which will cause this event to be called
-      at nearest good time.
-
-      Note that calling Invalidate while in EventRender (OnRender) is not ignored.
-      It instructs to call EventRender (OnRender) again, as soon as possible.
-
-      When you have some controls on the @link(Controls) list,
-      the OnRender event is done @bold(last).
-      So here you can draw on top of the existing controls.
-      To draw something underneath the existing controls, create a new TCastleUserInterface
-      and override it's @link(TCastleUserInterface.Render) and insert it to the controls
-      using @code(Controls.InsertBack(MyBackgroundControl);).
-
-      @deprecated Instead of this, use TCastleUserInterface and TCastleView virtual method Render and OnRender event. }
-    property OnRender: TContainerEvent read GetOnRender write SetOnRender;
-      {$ifdef FPC}deprecated 'instead of this, use TCastleUserInterface and TCastleView virtual method Render or OnRender event';{$endif}
-
-    {$ifdef FPC}
-    { @deprecated Deprecated name for OnRender. }
-    property OnDraw: TContainerEvent read GetOnRender write SetOnRender; deprecated;
-    {$endif}
-
-    { Always called right before EventRender (OnRender).
-      These two events, EventBeforeRender (OnBeforeRender) and EventRender (OnRender),
-      will be always called sequentially as a pair.
-
-      The only difference between these two events is that
-      time spent in EventBeforeRender (OnBeforeRender)
-      is NOT counted as "frame time"
-      by Fps.OnlyRenderFps. This is useful when you have something that needs
-      to be done from time to time right before OnRender and that is very
-      time-consuming. It such cases it is not desirable to put such time-consuming
-      task inside OnRender because this would cause a sudden big change in
-      Fps.OnlyRenderFps value. So you can avoid this by putting
-      this in OnBeforeRender.
-
-      @deprecated Instead of this, use TCastleUserInterface and TCastleView virtual
-      method BeforeRender. Or just use virtual Render or OnRender event. }
-    property OnBeforeRender: TContainerEvent read GetOnBeforeRender write SetOnBeforeRender;
-      {$ifdef FPC}deprecated 'instead of this, use TCastleUserInterface and TCastleView virtual method BeforeRender; or use virtual Render or OnRender event';{$endif}
-
-    { Called when the window size (@link(Width), @link(Height)) changes.
-      It's also guaranteed to be called during @link(Open),
-      right after the EventOpen (OnOpen) event.
-
-      @deprecated Instead of this, use TCastleUserInterface and TCastleView virtual
-      method Resize.
-
-      @seealso ResizeAllowed }
-    property OnResize: TContainerEvent read GetOnResize write SetOnResize;
-      {$ifdef FPC}deprecated 'instead of this, use TCastleUserInterface and TCastleView virtual method Resize';{$endif}
-
-    { Called when the window is closed, right before the OpenGL context
-      is destroyed. This is your last chance to release OpenGL resources,
-      like textures, shaders, display lists etc. This is a counterpart
-      to OnOpen event.
-
-      @deprecated Instead of this, use TCastleUserInterface and TCastleView virtual
-      method @link(TCastleUserInterface.GLContextClose).
-      Or use ApplicationProperties.OnGLContextClose. }
-    property OnClose: TContainerEvent read GetOnClose write SetOnClose;
-      {$ifdef FPC}deprecated 'instead of this, use TCastleUserInterface and TCastleView virtual method GLContextClose; or use ApplicationProperties.OnGLContextClose';{$endif}
-    property OnCloseObject: TContainerObjectEvent read GetOnCloseObject write SetOnCloseObject;
-      {$ifdef FPC}deprecated 'instead of this, use TCastleUserInterface and TCastleView virtual method GLContextClose; or use ApplicationProperties.OnGLContextCloseObject';{$endif}
-
-    { Called when user presses a key or mouse button or moves mouse wheel.
-
-      @deprecated Instead of this, use TCastleUserInterface and TCastleView virtual
-      method Press and OnPress event. }
-    property OnPress: TInputPressReleaseEvent read GetOnPress write SetOnPress;
-      {$ifdef FPC}deprecated 'instead of this, use TCastleUserInterface and TCastleView virtual method Press or OnPress event';{$endif}
-
-    { Called when user releases a pressed key or mouse button.
-
-      It's called right after @code(Pressed[Key]) changed from true to false.
-
-      The TInputPressRelease structure, passed as a parameter to this event,
-      contains the exact information what was released.
-
-      Note that reporting characters for "key release" messages is not
-      perfect, as various key combinations (sometimes more than one?) may lead
-      to generating given character. We have some intelligent algorithm
-      for this, used to make Characters table and to detect
-      this C for OnRelease callback. The idea is that a character is released
-      when the key that initially caused the press of this character is
-      also released.
-
-      This solves in a determined way problems like
-      "what happens if I press Shift, then X,
-      then release Shift, then release X". (will "X" be correctly
-      released as pressed and then released? yes.
-      will small "x" be reported as released at the end? no, as it was never
-      pressed.)
-
-      @deprecated Instead of this, use TCastleUserInterface and TCastleView virtual
-      method Release and OnRelease event. }
-    property OnRelease: TInputPressReleaseEvent read GetOnRelease write SetOnRelease;
-      {$ifdef FPC}deprecated 'instead of this, use TCastleUserInterface and TCastleView virtual method Release or OnRelease event';{$endif}
-
     { Called when user tries to close the window.
       This is called when you use window manager features to close the window,
       like clicking on the "close" icon on the window frame or using Alt+F4
@@ -1617,38 +1429,10 @@ type
       when user tries to close the window. }
     property OnCloseQuery: TContainerEvent read FOnCloseQuery write FOnCloseQuery;
 
-    { Mouse or a finger on touch device moved.
-
-      For a mouse, remember you always have the currently
-      pressed mouse buttons in MousePressed. When this is called,
-      the MousePosition property records the @italic(previous)
-      mouse position, while callback parameter NewMousePosition gives
-      the @italic(new) mouse position.
-
-      @deprecated Instead of this, use TCastleUserInterface and TCastleView virtual
-      method Motion and OnMotion event. }
-    property OnMotion: TInputMotionEvent read GetOnMotion write SetOnMotion;
-      {$ifdef FPC}deprecated 'instead of this, use TCastleUserInterface and TCastleView virtual method Motion or OnMotion event';{$endif}
-
     { Send fake motion event, without actually moving the mouse through the backend.
       This is useful only for automatic tests.
       @exclude }
     procedure InternalFakeMotion(const Event: TInputMotion);
-
-    { Continuously occuring event, called for all open windows.
-      This event is called at least as regularly as redraw,
-      so it is continuously called even when your game
-      is overwhelmed by messages (like mouse moves) and redraws.
-
-      This is called at the same time (right after or right before) when
-      all callbacks on the list
-      @link(TCastleApplicationProperties.OnUpdate ApplicationProperties.OnUpdate)
-      are called.
-
-      @deprecated Instead of this, use TCastleUserInterface and TCastleView virtual
-      method Update and OnUpdate event. }
-    property OnUpdate: TContainerEvent read GetOnUpdate write SetOnUpdate;
-      {$ifdef FPC}deprecated 'instead of this, use TCastleUserInterface and TCastleView virtual method Update or OnUpdate event';{$endif}
 
     { Called when user drag and drops file(s) on the window.
       In case of macOS bundle, this is also called when user opens a document
@@ -4064,116 +3848,6 @@ end;
 function TCastleWindow.Controls: TInternalChildrenControls;
 begin
   Result := Container.Controls;
-end;
-
-function TCastleWindow.GetOnOpen: TContainerEvent;
-begin
-  Result := Container.OnOpen;
-end;
-
-procedure TCastleWindow.SetOnOpen(const Value: TContainerEvent);
-begin
-  Container.OnOpen := Value;
-end;
-
-function TCastleWindow.GetOnOpenObject: TContainerObjectEvent;
-begin
-  Result := Container.OnOpenObject;
-end;
-
-procedure TCastleWindow.SetOnOpenObject(const Value: TContainerObjectEvent);
-begin
-  Container.OnOpenObject := Value;
-end;
-
-function TCastleWindow.GetOnBeforeRender: TContainerEvent;
-begin
-  Result := Container.OnBeforeRender;
-end;
-
-procedure TCastleWindow.SetOnBeforeRender(const Value: TContainerEvent);
-begin
-  Container.OnBeforeRender := Value;
-end;
-
-function TCastleWindow.GetOnRender: TContainerEvent;
-begin
-  Result := Container.OnRender;
-end;
-
-procedure TCastleWindow.SetOnRender(const Value: TContainerEvent);
-begin
-  Container.OnRender := Value;
-end;
-
-function TCastleWindow.GetOnResize: TContainerEvent;
-begin
-  Result := Container.OnResize;
-end;
-
-procedure TCastleWindow.SetOnResize(const Value: TContainerEvent);
-begin
-  Container.OnResize := Value;
-end;
-
-function TCastleWindow.GetOnClose: TContainerEvent;
-begin
-  Result := Container.OnClose;
-end;
-
-procedure TCastleWindow.SetOnClose(const Value: TContainerEvent);
-begin
-  Container.OnClose := Value;
-end;
-
-function TCastleWindow.GetOnCloseObject: TContainerObjectEvent;
-begin
-  Result := Container.OnCloseObject;
-end;
-
-procedure TCastleWindow.SetOnCloseObject(const Value: TContainerObjectEvent);
-begin
-  Container.OnCloseObject := Value;
-end;
-
-function TCastleWindow.GetOnUpdate: TContainerEvent;
-begin
-  Result := Container.OnUpdate;
-end;
-
-procedure TCastleWindow.SetOnUpdate(const Value: TContainerEvent);
-begin
-  Container.OnUpdate := Value;
-end;
-
-function TCastleWindow.GetOnPress: TInputPressReleaseEvent;
-begin
-  Result := Container.OnPress;
-end;
-
-procedure TCastleWindow.SetOnPress(const Value: TInputPressReleaseEvent);
-begin
-  Container.OnPress := Value;
-end;
-
-function TCastleWindow.GetOnRelease: TInputPressReleaseEvent;
-begin
-  Result := Container.OnRelease;
-end;
-
-procedure TCastleWindow.SetOnRelease(const Value: TInputPressReleaseEvent);
-begin
-  Container.OnRelease := Value;
-end;
-
-function TCastleWindow.GetOnMotion: TInputMotionEvent;
-begin
-  Result := Container.OnMotion;
-end;
-
-procedure TCastleWindow.SetOnMotion(const Value: TInputMotionEvent);
-begin
-  Container.OnMotion := Value;
 end;
 
 procedure TCastleWindow.SetDemoOptions(const ASwapFullScreen_Key: TKey;
