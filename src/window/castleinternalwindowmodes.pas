@@ -66,6 +66,9 @@ type
         OldAutomaticTouchControl: boolean;
         procedure WindowOpen(Container: TCastleContainer);
         procedure WindowClose(Container: TCastleContainer);
+        { Empty TCastleWindow callback, useful as TCastleWindow.OnCloseQuery
+          to disallow closing the window by user. }
+        procedure NoClose(Container: TCastleContainer);
       public
         { When adding new attributes to TCastleWindow that should be saved/restored,
           you must remember to
@@ -106,10 +109,6 @@ type
     OldState: TWindowState;
     Window: TCastleWindow;
     DisabledContextOpenClose: boolean;
-
-    { Empty TCastleWindow callback, useful as TCastleWindow.OnCloseQuery
-      to disallow closing the window by user. }
-    procedure NoClose(Container: TCastleContainer);
   public
     { Constructor saves open TCastleWindow and OpenGL state.
       Destructor will restore them.
@@ -297,6 +296,10 @@ begin
   end;
 end;
 
+procedure TGLMode.TWindowState.NoClose(Container: TCastleContainer);
+begin
+end;
+
 procedure TGLMode.TWindowState.SetStandardState;
 begin
   Window.OnMenuClick := nil;
@@ -392,10 +395,6 @@ begin
   end;
 
   inherited;
-end;
-
-procedure TGLMode.NoClose(Container: TCastleContainer);
-begin
 end;
 
 { TGLModeFrozenScreen ------------------------------------------------------ }
