@@ -171,6 +171,18 @@ begin
   end;
 end;
 
+procedure CGE_GetCastleEngineVersion(szBuffer: pchar; nBufSize: cInt32); cdecl;
+var
+  sText: string;
+begin
+  try
+    sText := CastleEngineVersion;
+    StrPLCopy(szBuffer, sText, nBufSize-1);
+  except
+    on E: TObject do WritelnWarning('Window', 'CGE_GetCastleEngineVersion: ' + ExceptMessage(E));
+  end;
+end;
+
 procedure CGE_Resize(uiViewWidth, uiViewHeight: cUInt32); cdecl;
 begin
   try
@@ -946,6 +958,7 @@ exports
   CGE_Open,
   CGE_Close,
   CGE_GetOpenGLInformation,
+  CGE_GetCastleEngineVersion,
   CGE_Render,
   CGE_Resize,
   CGE_SetLibraryCallbackProc,

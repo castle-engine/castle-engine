@@ -1,5 +1,5 @@
 {
-  Copyright 2004-2023 Michalis Kamburelis.
+  Copyright 2004-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -181,14 +181,35 @@ end;
 var
   StatusText: TStatusText;
 
-{ TCurvesDisplay ------------------------------------------------------------- }
+{ TViewCurves ------------------------------------------------------------- }
 
 type
-  TCurvesDisplay = class(TCastleUserInterface)
+  TViewCurves = class(TCastleView)
+  public
+    procedure Start; override;
     procedure Render; override;
+    function Motion(const Event: TInputMotion): Boolean; override;
+    function Press(const Event: TInputPressRelease): Boolean; override;
+    function Release(const Event: TInputPressRelease): Boolean; override;
+    procedure Update(const SecondsPassed: Single; var HandleInput: boolean); override;
   end;
 
-procedure TCurvesDisplay.Render;
+var
+  ViewCurves: TViewCurves;
+
+procedure TViewCurves.Start;
+begin
+  inherited;
+  StatusText := TStatusText.Create(Window);
+  StatusText.Padding := 5;
+  StatusText.Anchor(hpLeft, 5);
+  StatusText.Anchor(vpBottom, 5);
+  StatusText.Frame := true;
+  StatusText.Color := Yellow;
+  InsertFront(StatusText);
+end;
+
+procedure TViewCurves.Render;
 
   function TransformPoint(const V: TVector2): TVector2;
   begin
@@ -258,6 +279,8 @@ var
   Color: TCastleColor;
   SelectedPointXY: TVector2;
 begin
+  inherited;
+
   if BackgroundImage <> nil then
     BackgroundImage.Draw(FloatRectangle(BackgroundImage.Rect).Translate(SceneMove).ScaleAround0(SceneZoom));
 
@@ -319,7 +342,7 @@ begin
   ClampVar(SceneZoom, 0.01, 100);
 end;
 
-procedure Press(Container: TCastleContainer; const Event: TInputPressRelease);
+function TViewCurves.Press(const Event: TInputPressRelease): Boolean;
 
   procedure ClosestControlPoint(const Point: TVector2;
     var CurveNum, PointNum: Integer);
@@ -372,33 +395,55 @@ const
 var
   Pos: TVector2;
 begin
+  Result := inherited;
+  if Result then Exit;
+
   Pos := Event.Position / SceneZoom;
+
   if Event.IsMouseButton(buttonLeft) then
   begin
     SelectClosestPoint(Pos);
     StartDragging;
-  end else
+    Container.Invalidate;
+    Exit(true);
+  end;
+
   if Event.IsMouseButton(buttonRight) then
-    AddNewPoint(Pos) else
-  if Event.IsMouseWheel(mwUp) or Event.IsMouseWheel(mwLeft) then
-    ChangeZoom(ZoomFactor) else
-  if Event.IsMouseWheel(mwDown) or Event.IsMouseWheel(mwRight) then
-    ChangeZoom(1 / ZoomFactor) else
-    Exit;
-
-  Window.Invalidate;
-end;
-
-procedure Release(Container: TCastleContainer; const Event: TInputPressRelease);
-begin
-  if Event.IsMouseButton(buttonLeft) then
   begin
-    Dragging := false;
-    Window.Invalidate;
+    AddNewPoint(Pos);
+    Container.Invalidate;
+    Exit(true);
+  end;
+
+  if Event.IsMouseWheel(mwUp) or Event.IsMouseWheel(mwLeft) then
+  begin
+    ChangeZoom(ZoomFactor);
+    Container.Invalidate;
+    Exit(true);
+  end;
+
+  if Event.IsMouseWheel(mwDown) or Event.IsMouseWheel(mwRight) then
+  begin
+    ChangeZoom(1 / ZoomFactor);
+    Container.Invalidate;
+    Exit(true);
   end;
 end;
 
-procedure Motion(Container: TCastleContainer; const Event: TInputMotion);
+function TViewCurves.Release(const Event: TInputPressRelease): Boolean;
+begin
+  Result := inherited;
+  if Result then Exit;
+
+  if Event.IsMouseButton(buttonLeft) then
+  begin
+    Dragging := false;
+    Container.Invalidate;
+    Exit(true);
+  end;
+end;
+
+function TViewCurves.Motion(const Event: TInputMotion): Boolean;
 const
   DraggingFarEnough = 5;
 var
@@ -406,6 +451,9 @@ var
   Change3D: TVector3;
   I: Integer;
 begin
+  Result := inherited;
+  if Result then Exit;
+
   if Dragging then
   begin
     if not DraggingFarEnoughToBeActive then
@@ -434,7 +482,7 @@ begin
   end;
 end;
 
-procedure Update(Container: TCastleContainer);
+procedure TViewCurves.Update(const SecondsPassed: Single; var HandleInput: boolean);
 
   procedure ChangeMove(const X, Y: Single);
   const
@@ -447,6 +495,7 @@ procedure Update(Container: TCastleContainer);
 const
   ZoomFactor = 2;
 begin
+  inherited;
   if Container.Pressed.Characters['+'] then
     ChangeZoom(Power(ZoomFactor, Container.Fps.SecondsPassed));
   if Container.Pressed.Characters['-'] then
@@ -781,25 +830,15 @@ begin
 
   Curves := TControlPointsCurveList.Create(true);
 
-  StatusText := TStatusText.Create(Window);
-  StatusText.Padding := 5;
-  StatusText.Anchor(hpLeft, 5);
-  StatusText.Anchor(vpBottom, 5);
-  StatusText.Frame := true;
-  StatusText.Color := Yellow;
-  Window.Controls.InsertFront(StatusText);
-
-  Window.Controls.InsertBack(TCurvesDisplay.Create(Window));
+  ViewCurves := TViewCurves.Create(Window);
+  Window.Container.View := ViewCurves;
 
   { SetCurvesUrl also initializes Window.Caption }
   if Parameters.High = 1 then
-    LoadCurves(Parameters[1]) else
+    LoadCurves(Parameters[1])
+  else
     SetCurvesUrl('my_curves.xml');
 
-  Window.OnPress := @Press;
-  Window.OnRelease := @Release;
-  Window.OnMotion := @Motion;
-  Window.OnUpdate := @Update;
   Window.OnMenuClick := @MenuClick;
 end;
 
