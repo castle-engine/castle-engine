@@ -28,10 +28,6 @@
   TCastleView = class;
   TCastleViewList = class;
 
-  { Event type used now only by TCastleWindow.OnCloseQuery.
-    TODO: We should use TContainerObjectEvent for TCastleWindow.OnCloseQuery too. }
-  TContainerEvent = procedure (Container: TCastleContainer);
-
   TContainerObjectEvent = procedure (Container: TCastleContainer) of object;
 
   TUiNotifyEvent = procedure (const Sender: TCastleUserInterface) of object;

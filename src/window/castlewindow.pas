@@ -492,7 +492,7 @@ type
       and not clamped with some internal constaints like ResizeAllowed
       of MaxWidth etc. }
     FRealWidth, FRealHeight: Integer;
-    FOnCloseQuery: TContainerEvent;
+    FOnCloseQuery: TContainerObjectEvent;
     FOnDropFiles: TDropFilesFunc;
     { FFullScreenWanted is the value set by FullScreen property by the user.
       FFullScreenBackend is the last value of FullScreen known to the backend
@@ -1427,7 +1427,7 @@ type
       on closing the window (i.e. QuitWhenLastWindowClosed = false).
       By default, if this event is undefined, we call Close(true)
       when user tries to close the window. }
-    property OnCloseQuery: TContainerEvent read FOnCloseQuery write FOnCloseQuery;
+    property OnCloseQuery: TContainerObjectEvent read FOnCloseQuery write FOnCloseQuery;
 
     { Send fake motion event, without actually moving the mouse through the backend.
       This is useful only for automatic tests.
@@ -3308,10 +3308,7 @@ end;
 
 function TCastleWindow.AllowSuspendForInput: boolean;
 begin
-  {$warnings off} // keep deprecated working - OnUpdate
-  Result := Container.AllowSuspendForInput and
-    not (Invalidated or Assigned(OnUpdate) or FpsShowOnCaption);
-  {$warnings on}
+  Result := Container.AllowSuspendForInput and not (Invalidated or FpsShowOnCaption);
 end;
 
 { Menu things ------------------------------------------------------------ }

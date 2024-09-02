@@ -50,6 +50,7 @@ type
       strict private
         Window: TCastleWindow;
         OldMenuClick: TMenuClickFunc;
+        OldCloseQuery: TContainerObjectEvent;
         OldCaption: string;
         OldUserdata: Pointer;
         OldAutoRedisplay: boolean;
@@ -71,8 +72,7 @@ type
           1. expand this class with new fields
           2. expand constructor, destructor and SetStandardState } { }
 
-        procedure SetStandardState(
-          const NewCloseQuery: TContainerEvent);
+        procedure SetStandardState;
 
         { Constructor saves the TCastleWindow state, destructor applies this state
           back to the window.
@@ -106,6 +106,10 @@ type
     OldState: TWindowState;
     Window: TCastleWindow;
     DisabledContextOpenClose: boolean;
+
+    { Empty TCastleWindow callback, useful as TCastleWindow.OnCloseQuery
+      to disallow closing the window by user. }
+    procedure NoClose(Container: TCastleContainer);
   public
     { Constructor saves open TCastleWindow and OpenGL state.
       Destructor will restore them.
@@ -170,7 +174,7 @@ type
       Window properties resetted:
 
       @unorderedList(
-        @item(OnMenuClick is set to @nil.)
+        @item(TCastleWindow.OnMenuClick is set to @nil.)
         @item(TCastleWindow.Caption and TCastleWindow.MainMenu are left as they were.)
         @item(TCastleWindow.Cursor is reset to mcDefault.)
         @item(TCastleWindow.UserData is reset to @nil.)
@@ -183,13 +187,10 @@ type
         @item(All TCastleWindow.Controls are temporarily removed.)
       )
 
-      If you're looking for a suitable callback to pass as NewCloseQuery
-      (new TCastleWindow.OnCloseQuery), @@NoClose may be suitable:
-      it's an empty callback, thus using it disables the possibility
-      to close the window by window manager
+      The TCastleWindow.OnCloseQuery is set to an empty callback,
+      thus it disables the possibility to close the window by window manager
       (usually using "close" button in some window corner or Alt+F4). }
-    constructor CreateReset(const AWindow: TCastleWindow;
-      const NewCloseQuery: TContainerEvent);
+    constructor CreateReset(const AWindow: TCastleWindow);
 
     destructor Destroy; override;
 
@@ -212,10 +213,6 @@ type
     destructor Destroy; override;
   end;
 
-{ Empty TCastleWindow callback, useful as TCastleWindow.OnCloseQuery
-  to disallow closing the window by user. }
-procedure NoClose(Container: TCastleContainer);
-
 implementation
 
 uses CastleUtils, CastleColors, CastleVectors;
@@ -228,6 +225,7 @@ begin
   Window := AWindow;
 
   OldMenuClick := Window.OnMenuClick;
+  OldCloseQuery := Window.OnCloseQuery;
   oldCaption := Window.Caption;
   oldUserdata := Window.Userdata;
   oldAutoRedisplay := Window.AutoRedisplay;
@@ -246,6 +244,7 @@ end;
 destructor TGLMode.TWindowState.Destroy;
 begin
   Window.OnMenuClick := OldMenuClick;
+  Window.OnCloseQuery := OldCloseQuery;
   Window.Caption := oldCaption;
   Window.Userdata := oldUserdata;
   Window.AutoRedisplay := oldAutoRedisplay;
@@ -271,8 +270,6 @@ var
   I: Integer;
   C: TCastleUserInterface;
 begin
-  if Assigned(OldOpenObject) then
-    OldOpenObject(Container);
   { Make sure to call GLContextOpen on OldControls,
     otherwise they would not initialize OpenGL resources even though OpenGL
     context was open. This goes around the C.DisableContextOpenClose value,
@@ -289,8 +286,6 @@ var
   I: Integer;
   C: TCastleUserInterface;
 begin
-  if Assigned(OldCloseObject) then
-    OldCloseObject(Container);
   { Make sure to call GLContextClose on OldControls,
     otherwise they would not release OpenGL resources even though OpenGL
     context was closed. This goes around the C.DisableContextOpenClose value,
@@ -302,10 +297,10 @@ begin
   end;
 end;
 
-procedure TGLMode.TWindowState.SetStandardState(
-  const NewCloseQuery: TContainerEvent);
+procedure TGLMode.TWindowState.SetStandardState;
 begin
   Window.OnMenuClick := nil;
+  Window.OnCloseQuery := {$ifdef FPC}@{$endif} NoClose;
   {Window.Caption := leave current value}
   Window.Userdata := nil;
   Window.AutoRedisplay := false;
@@ -363,11 +358,10 @@ begin
   Window.Invalidate;
 end;
 
-constructor TGLMode.CreateReset(const AWindow: TCastleWindow;
-  const NewCloseQuery: TContainerEvent);
+constructor TGLMode.CreateReset(const AWindow: TCastleWindow);
 begin
   Create(AWindow);
-  OldState.SetStandardState(NewCloseQuery);
+  OldState.SetStandardState;
 end;
 
 destructor TGLMode.Destroy;
@@ -398,6 +392,10 @@ begin
   end;
 
   inherited;
+end;
+
+procedure TGLMode.NoClose(Container: TCastleContainer);
+begin
 end;
 
 { TGLModeFrozenScreen ------------------------------------------------------ }
@@ -443,7 +441,7 @@ begin
   BackgroundControls.FullSize := true;
   FillBackgroundControls;
 
-  OldState.SetStandardState(nil, nil, @NoClose);
+  OldState.SetStandardState;
 
   AWindow.Controls.InsertFront(BackgroundControls);
 end;
@@ -453,12 +451,6 @@ begin
   inherited;
   { it's a little safer to call this after inherited }
   FreeAndNil(BackgroundControls);
-end;
-
-{ routines ------------------------------------------------------------------- }
-
-procedure NoClose(Container: TCastleContainer);
-begin
 end;
 
 end.
