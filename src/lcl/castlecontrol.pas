@@ -176,15 +176,6 @@ type
     FAutoRedisplay: boolean;
     { manually track when we need to be repainted, useful for AggressiveUpdate }
     Invalidated: boolean;
-    FOnOpen: TNotifyEvent;
-    FOnBeforeRender: TNotifyEvent;
-    FOnRender: TNotifyEvent;
-    FOnResize: TNotifyEvent;
-    FOnClose: TNotifyEvent;
-    FOnPress: TControlInputPressReleaseEvent;
-    FOnRelease: TControlInputPressReleaseEvent;
-    FOnMotion: TControlInputMotionEvent;
-    FOnUpdate: TNotifyEvent;
     FKeyPressHandler: TLCLKeyPressHandler;
     FAutoFocus: Boolean;
 
