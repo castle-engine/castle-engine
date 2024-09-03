@@ -66,18 +66,17 @@ begin
   inherited;
 end;
 
+{ View ----------------------------------------------------------------------- }
+
+type
+  { View to contain whole UI and to handle events, like key press. }
+  TMyView = class(TCastleView)
+  end;
+
+var
+  MyView: TMyView;
+
 { routines ------------------------------------------------------------------- }
-
-procedure WindowUpdate(Container: TCastleContainer);
-begin
-  // ... do something every frame
-  Status.Caption := 'FPS: ' + Container.Fps.ToString;
-end;
-
-procedure WindowPress(Container: TCastleContainer; const Event: TInputPressRelease);
-begin
-  // ... react to press of key, mouse, touch
-end;
 
 { One-time initialization of resources. }
 procedure ApplicationInitialize;
@@ -91,26 +90,25 @@ begin
   { make following calls to castle-data:/ also load data from ZIP }
   ApplicationDataOverride := 'my-packed-data:/';
 
-  { Assign Window callbacks }
-  Window.OnUpdate := @WindowUpdate;
-  Window.OnPress := @WindowPress;
-
   { For a scalable UI (adjusts to any window size in a smart way), use UIScaling }
   Window.Container.UIReferenceWidth := 1024;
   Window.Container.UIReferenceHeight := 768;
   Window.Container.UIScaling := usEncloseReferenceSize;
 
+  MyView := TMyView.Create(Application);
+  Window.Container.View := MyView;
+
   Viewport := TCastleViewport.Create(Application);
   Viewport.FullSize := true;
   Viewport.InsertBack(TCastleExamineNavigation.Create(Application));
-  Window.Controls.InsertFront(Viewport);
+  MyView.InsertFront(Viewport);
 
   { Show a label with frames per second information }
   Status := TCastleLabel.Create(Application);
   Status.Anchor(vpTop, -10);
   Status.Anchor(hpRight, -10);
   Status.Color := Yellow; // you could also use "Vector4(1, 1, 0, 1)" instead of Yellow
-  Window.Controls.InsertFront(Status);
+  MyView.InsertFront(Status);
 
   { Show 2D image }
   ExampleImage := TCastleImageControl.Create(Application);
@@ -119,7 +117,7 @@ begin
   // 'my-packed-data:/example_image.png';
   ExampleImage.Anchor(vpBottom, 100);
   ExampleImage.Anchor(hpLeft, 100);
-  Window.Controls.InsertFront(ExampleImage);
+  MyView.InsertFront(ExampleImage);
 
   { Show a 3D object (TCastleScene) inside a Viewport
     (which acts as a full-screen viewport by default). }
