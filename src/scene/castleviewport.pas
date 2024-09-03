@@ -36,9 +36,6 @@ type
   TCastleViewport = class;
   TCastleSceneManager = class;
 
-  TRenderOnePassEvent = procedure (Viewport: TCastleViewport;
-    const Params: TRenderParams) of object;
-
   { Event for @link(TCastleViewport.OnProjection). }
   TProjectionEvent = procedure (var Parameters: TProjection) of object;
 
@@ -410,28 +407,19 @@ type
 
     { Render the scene, assuming that buffers were already cleared and background
       was rendered. Called by RenderFromViewEverything at the end.
-      Lights are calculated in Params at this point.
-
-      This will change Params.Transparent, Params.InShadow and Params.ShadowVolumesReceivers
-      as needed. Their previous values do not matter. }
+      Lights are calculated in Params at this point. }
     procedure RenderFromView3D(const Params: TRenderParams); virtual;
 
     { Render one pass, with current camera and parameters.
       All current camera settings are saved in RenderParams.RenderingCamera.
 
-      @param(Params Rendering parameters, see @link(TRenderParams).)
+      @param(Params Rendering parameters, see @link(TRenderParams).
+        TODO: move all relevant to TRenderOnePassParams.)
 
-      @param(UsingBlending Should we use blending.
-        Also implies filtering shapes based on if they are
-        opaque (TGLShape.UseBlending = @false)
-        or transparent (TGLShape.UseBlending = @true).)
-
-      @param(FilterShadowVolumesReceivers Render only shapes
-        that may receive shadow volumes, or ones that don't, or both.
-        This checks if TCastleScene.ReceiveShadowVolumes is within this set.) }
+      @param(PassParams Rendering parameters of this pass,
+        see @link(TRenderOnePassParams).) }
     procedure RenderOnePass(const Params: TRenderParams;
-      const UsingBlending: Boolean;
-      const FilterShadowVolumesReceivers: TBooleanSet); virtual;
+      const PassParams: TRenderOnePassParams); virtual;
 
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
 
@@ -2472,8 +2460,7 @@ begin
 end;
 
 procedure TCastleViewport.RenderOnePass(const Params: TRenderParams;
-  const UsingBlending: Boolean;
-  const FilterShadowVolumesReceivers: TBooleanSet);
+  const PassParams: TRenderOnePassParams);
 
   { Based on BlendingSort, determine
     ShapesRenderer.BlendingSort, making sure that sortAuto is handled correctly.
@@ -2507,12 +2494,12 @@ procedure TCastleViewport.RenderOnePass(const Params: TRenderParams;
 begin
   FilteredShapesCollector.Clear;
   FilteredShapesCollector.AddFiltered(AllShapesCollector,
-    [UsingBlending], FilterShadowVolumesReceivers);
+    [PassParams.UsingBlending], PassParams.FilterShadowVolumesReceivers);
 
   ShapesRenderer.OcclusionSort := EffectiveOcclusionSort;
   ShapesRenderer.BlendingSort := EffectiveBlendingSort;
   ShapesRenderer.OnCustomShapeSort := OnCustomShapeSort;
-  ShapesRenderer.Render(FilteredShapesCollector, Params, UsingBlending);
+  ShapesRenderer.Render(FilteredShapesCollector, Params, PassParams);
 end;
 
 procedure TCastleViewport.RenderShadowVolume(const Params: TRenderParams);
@@ -2642,6 +2629,8 @@ end;
 procedure TCastleViewport.RenderFromView3D(const Params: TRenderParams);
 
   procedure RenderNoShadowVolumes;
+  var
+    PassParams: TRenderOnePassParams;
   begin
     { We must first render all non-transparent objects,
       then all transparent objects. Otherwise transparent objects
@@ -2649,9 +2638,11 @@ procedure TCastleViewport.RenderFromView3D(const Params: TRenderParams);
       covered by non-transparent objects (that are in fact further away from
       the camera). }
 
-    Params.InShadow := false;
-    RenderOnePass(Params, false, [false, true]);
-    RenderOnePass(Params, true , [false, true]);
+    PassParams.Init;
+    PassParams.UsingBlending := false;
+    RenderOnePass(Params, PassParams);
+    PassParams.UsingBlending := true;
+    RenderOnePass(Params, PassParams);
   end;
 
   procedure RenderWithShadowVolumes(const MainLightPosition: TVector4);
@@ -2774,10 +2765,11 @@ procedure TCastleViewport.RenderFromViewEverything(const RenderingCamera: TRende
         {$endif}
       end;
       RenderingCamera.RotationOnly := true;
-      { TODO: BackgroundRenderer should have its own ShapesRenderer,
-        ShapesCollector. }
       BackgroundRenderer.Render(RenderingCamera, BackgroundWireframe,
-        RenderRect, FProjection, AllShapesCollector, ShapesRenderer);
+        RenderRect, FProjection,
+        { TODO: BackgroundRenderer should have its own ShapesRenderer,
+          ShapesCollector. }
+        AllShapesCollector, FilteredShapesCollector, ShapesRenderer);
       RenderingCamera.RotationOnly := false;
     end;
   end;

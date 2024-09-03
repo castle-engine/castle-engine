@@ -85,7 +85,7 @@ type
       It's useful to pass this as LightRenderEvent to @link(Render)
       when you use shadow algorithm that requires
       you to make a first pass rendering the scene all shadowed. }
-    procedure LightRenderInShadow(const Shape: TShape;
+    procedure LightRenderDisableShadowVolumeCastingLights(const Shape: TShape;
       const Light: TLightInstance;
       const IsGlobalLight: Boolean; var LightOn: boolean);
 
@@ -102,9 +102,11 @@ type
     procedure SetOcclusionCulling(const Value: Boolean);
 
     procedure RenderShape_NoTests(
-      const CollectedShape: TCollectedShape; const Params: TRenderParams);
+      const CollectedShape: TCollectedShape;
+      const Params: TRenderParams; const PassParams: TRenderOnePassParams);
     procedure RenderShape_OcclusionTests(
-      const CollectedShape: TCollectedShape; const Params: TRenderParams);
+      const CollectedShape: TCollectedShape;
+      const Params: TRenderParams; const PassParams: TRenderOnePassParams);
   public
     constructor Create;
     destructor Destroy; override;
@@ -126,12 +128,13 @@ type
 
       TODO: Make sure they are ignored, assert they are identity.
 
-      TODO: Split TRenderParams into stuff needed at collection,
-      and needed at rendering collecting shapes.
-      Transformation:TTransformation should be only in former. }
+      TODO: This should not take TRenderParams, and rename:
+      - TRenderParams -> TCollectShapesParams
+      - TRenderOnePassParams -> TRenderShapesParams
+      Transformation:TTransformation should be only in TCollectShapesParams,
+      thus it will be obvious that it's not used here. }
     procedure Render(const Shapes: TShapesCollector;
-      const Params: TRenderParams;
-      const UsingBlending: Boolean);
+      const Params: TRenderParams; const PassParams: TRenderOnePassParams);
 
     { Combine (right before rendering) multiple shapes with a similar appearance into one.
       This can drastically reduce the number of "draw calls",
@@ -334,7 +337,7 @@ begin
   Result := FBatching;
 end;
 
-procedure TShapesRenderer.LightRenderInShadow(const Shape: TShape;
+procedure TShapesRenderer.LightRenderDisableShadowVolumeCastingLights(const Shape: TShape;
   const Light: TLightInstance;
   const IsGlobalLight: Boolean; var LightOn: boolean);
 begin
@@ -368,7 +371,8 @@ begin
 end;
 
 procedure TShapesRenderer.RenderShape_NoTests(
-  const CollectedShape: TCollectedShape; const Params: TRenderParams);
+  const CollectedShape: TCollectedShape;
+  const Params: TRenderParams; const PassParams: TRenderOnePassParams);
 var
   RenderOptions: TCastleRenderOptions; //< a shortcut for CollectedShape.RenderOptions
   Shape: TGLShape; //< a shortcut for CollectedShape.Shape
@@ -540,7 +544,8 @@ begin
 end;
 
 procedure TShapesRenderer.RenderShape_OcclusionTests(
-  const CollectedShape: TCollectedShape; const Params: TRenderParams);
+  const CollectedShape: TCollectedShape;
+  const Params: TRenderParams; const PassParams: TRenderOnePassParams);
 begin
   { About "Params.RenderingCamera.Target = rtScreen" below:
 
@@ -559,15 +564,14 @@ begin
   if EffectiveOcclusionCulling and
       (Params.RenderingCamera.Target = rtScreen) then
   begin
-    FOcclusionCullingRenderer.Render(CollectedShape, Params,
+    FOcclusionCullingRenderer.Render(CollectedShape, Params, PassParams,
       {$ifdef FPC}@{$endif} RenderShape_NoTests);
   end else
-    RenderShape_NoTests(CollectedShape, Params);
+    RenderShape_NoTests(CollectedShape, Params, PassParams);
 end;
 
 procedure TShapesRenderer.Render(const Shapes: TShapesCollector;
-  const Params: TRenderParams;
-  const UsingBlending: Boolean);
+  const Params: TRenderParams; const PassParams: TRenderOnePassParams);
 
   procedure BatchingCommit;
   var
@@ -587,7 +591,7 @@ procedure TShapesRenderer.Render(const Shapes: TShapesCollector;
           Doesn't matter, we know that occlusion culling is not done when
           batching is used, so RenderShape_OcclusionTests just calls
           RenderShape_NoTests. }
-        RenderShape_NoTests(Shape, Params);
+        RenderShape_NoTests(Shape, Params, PassParams);
       end;
       Batching.FreeBatched;
     end;
@@ -602,8 +606,8 @@ begin
   if Shapes.FCollected.Count = 0 then
     Exit;
 
-  if Params.InShadow then
-    LightRenderEvent := {$ifdef FPC}@{$endif}LightRenderInShadow
+  if PassParams.DisableShadowVolumeCastingLights then
+    LightRenderEvent := {$ifdef FPC}@{$endif}LightRenderDisableShadowVolumeCastingLights
   else
     LightRenderEvent := {$ifdef FPC}@{$endif}LightRender;
 
@@ -625,7 +629,7 @@ begin
 
   FrameProfiler.Start(fmRenderCollectedShapesSort);
 
-  if UsingBlending then
+  if PassParams.UsingBlending then
   begin
     { We'll draw partially transparent objects now,
       only from scenes with RenderOptions.Blending. }
@@ -662,14 +666,14 @@ begin
     for CollectedShape in Shapes.FCollected do
     begin
       if not (EffectiveDynamicBatching and Batching.Batch(CollectedShape)) then
-        RenderShape_OcclusionTests(CollectedShape, Params);
+        RenderShape_OcclusionTests(CollectedShape, Params, PassParams);
     end;
 
     BatchingCommit;
 
     { This must be called after BatchingCommit,
       since BatchingCommit may render some shapes }
-    if UsingBlending then
+    if PassParams.UsingBlending then
       FBlendingRenderer.RenderEnd;
 
     { As each RenderShape_OcclusionTests inside could set OcclusionBoxState,

@@ -1772,7 +1772,6 @@ constructor TBasicRenderParams.Create;
 begin
   inherited;
   FGlobalLights := TLightInstancesList.Create;
-  InShadow := false;
 end;
 
 destructor TBasicRenderParams.Destroy;

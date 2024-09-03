@@ -147,7 +147,7 @@ begin
   // TODO: This test is not valid anymore,
   // - LocalRender must collect all shapes,
   //   transparent and opaque, shadow receivers and not.
-  // - Also test "if Params.InShadow then" is not good, InShadow should not be relevant at collection time.
+  // - Also we cannot test "if Params.DisableShadowVolumeCastingLights then" here, at collecting
   // - It cannot render directly. TODO: Add a way to render directly?
 
   // if (not Params.Transparent) and
@@ -166,9 +166,10 @@ begin
     SavedDepthTest := RenderContext.DepthTest;
     RenderContext.DepthTest := false;
 
-    if Params.InShadow then
-      DrawImage(ShadowedImage)
-    else
+    // TODO, see above
+    // if Params.DisableShadowVolumeCastingLights then
+    //   DrawImage(ShadowedImage)
+    // else
       DrawImage(Image);
 
     RenderContext.ProjectionMatrix := SavedProjectionMatrix; // restore 3D projection

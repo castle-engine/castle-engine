@@ -131,6 +131,7 @@ var
     Map: TGrayscaleImage;
     I, SHBasis, ScreenX, ScreenY: Integer;
     RenderParams: TRenderParams;
+    PassParams: TRenderOnePassParams;
   begin
     ScreenX := CubeMapInfo[Side].ScreenX * CubeMapSize + MapScreenX;
     ScreenY := CubeMapInfo[Side].ScreenY * CubeMapSize + MapScreenY;
@@ -139,7 +140,6 @@ var
 
     RenderParams := TBasicRenderParams.Create;
     try
-      { TBasicRenderParams will automatically have good defaults (inclusive) for InShadow and ShadowVolumesReceivers. }
       RenderParams.RenderingCamera := TRenderingCamera.Create;
       try
         RenderParams.RenderingCamera.FromViewVectors(
@@ -152,7 +152,8 @@ var
         RenderParams.Collector := ShapesCollector;
         Render(RenderParams);
         // TODO: we render both trasparent and opaque objects in 1 pass, without blending below
-        ShapesRenderer.Render(ShapesCollector, RenderParams, false);
+        PassParams.Init;
+        ShapesRenderer.Render(ShapesCollector, RenderParams, PassParams);
       finally FreeAndNil(RenderParams.RenderingCamera) end;
     finally FreeAndNil(RenderParams) end;
 

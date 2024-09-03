@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2023 Michalis Kamburelis.
+  Copyright 2003-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -29,7 +29,7 @@ uses
 
 type
   TShapeRenderEvent = procedure (const Shape: TCollectedShape;
-    const Params: TRenderParams) of object;
+    const Params: TRenderParams; const PassParams: TRenderOnePassParams) of object;
 
   TOcclusionCullingUtilsRenderer = class
   strict private
@@ -58,7 +58,7 @@ type
     destructor Destroy; override;
     property Utils: TOcclusionCullingUtilsRenderer read FUtils;
     procedure Render(const CollectedShape: TCollectedShape;
-      const Params: TRenderParams;
+      const Params: TRenderParams; const PassParams: TRenderOnePassParams;
       const RenderShape: TShapeRenderEvent);
   end;
 
@@ -189,7 +189,8 @@ begin
 end;
 
 procedure TOcclusionCullingRenderer.Render(const CollectedShape: TCollectedShape;
-  const Params: TRenderParams; const RenderShape: TShapeRenderEvent);
+  const Params: TRenderParams; const PassParams: TRenderOnePassParams;
+  const RenderShape: TShapeRenderEvent);
 
   { Read OpenGL(ES) occlusion query result, return if hit > 0 samples
     (was visible). }
@@ -235,12 +236,11 @@ begin
   { Render shape, or shape box, possibly making new occlusion query. }
   Shape.OcclusionQueryAsked :=
     { Do not do occlusion query (although still use results from previous
-      query) if we're within stencil test (like in InShadow = false pass
-      of shadow volumes). This would incorrectly mark some shapes
+      query) if we're within stencil test. This would incorrectly mark some shapes
       as non-visible (just because they don't pass stencil test on any pixel),
       while in fact they should be visible in the very next
-      (with InShadow = true) render pass. }
-    (Params.StencilTest = 0) and
+      render pass. }
+    (not PassParams.InsideStencilTest) and
     (not SceneMultipleInstances);
 
   if Shape.OcclusionQueryAsked then
@@ -252,7 +252,7 @@ begin
 
     if WasVisible then
     begin
-      RenderShape(CollectedShape, Params);
+      RenderShape(CollectedShape, Params, PassParams);
     end else
     begin
       { Object was not visible in the last frame.
@@ -270,7 +270,7 @@ begin
   end else
   begin
     if WasVisible then
-      RenderShape(CollectedShape, Params);
+      RenderShape(CollectedShape, Params, PassParams);
   end;
 end;
 
