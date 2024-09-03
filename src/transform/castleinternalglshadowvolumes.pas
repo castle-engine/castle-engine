@@ -667,17 +667,11 @@ begin
     Count := SavedCount;
   end;
 
-  // render transparent stuff
+  // render all transparent stuff, never in shadow
   PassParams.Init;
   PassParams.UsingBlending := true;
   PassParams.DisableShadowVolumeCastingLights := false;
-  PassParams.FilterShadowVolumesReceivers := [true];
-  RenderOnePass(Params, PassParams);
-
-  PassParams.Init;
-  PassParams.UsingBlending := true;
-  PassParams.DisableShadowVolumeCastingLights := false;
-  PassParams.FilterShadowVolumesReceivers := [false];
+  PassParams.FilterShadowVolumesReceivers := [false, true];
   RenderOnePass(Params, PassParams);
 end;
 
