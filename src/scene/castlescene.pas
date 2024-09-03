@@ -116,10 +116,6 @@ type
       Checks everything except TestShapeVisibility callback,
       so it assumes that filtering by TestShapeVisibility is already done. }
     procedure CollectShape_SomeTests(const Shape: TGLShape);
-    { Render Shape if all tests (including TestShapeVisibility) pass. }
-    procedure CollectShape_AllTests(const Shape: TShape);
-    { Render Shape if all tests (including TestShapeVisibility) pass, and it is opaque. }
-    procedure CollectShape_AllTests_Opaque(const Shape: TShape);
 
     procedure ResetShapeVisible(const Shape: TShape);
 
@@ -703,44 +699,9 @@ begin
   end;
 end;
 
-procedure TCastleScene.CollectShape_AllTests(const Shape: TShape);
-begin
-  if ( (not Assigned(Render_TestShapeVisibility)) or
-       Render_TestShapeVisibility(TGLShape(Shape))) then
-    CollectShape_SomeTests(TGLShape(Shape));
-end;
-
-procedure TCastleScene.CollectShape_AllTests_Opaque(const Shape: TShape);
-begin
-  if not TGLShape(Shape).UseBlending then
-  begin
-    CollectShape_AllTests(Shape);
-  end;
-end;
-
 procedure TCastleScene.LocalRenderInside(
   const TestShapeVisibility: TTestShapeVisibility;
   const Params: TRenderParams);
-
-  { If we're now collecting opaque shapes (Params.Transparent=false) then add:
-    - all opaque shapes
-      when IgnoreShapesWithBlending = true
-    - all shapes (opaque and the ones supposed to use blending)
-      when IgnoreShapesWithBlending = false, default.
-      This is good e.g. when RenderOptions.Blending=false,
-      so that all shapes are treated as opaque.
-  }
-  procedure CollectAllAsOpaque(
-    const IgnoreShapesWithBlending: Boolean = false);
-  begin
-    // TODO: Is IgnoreShapesWithBlending treatment still OK with new "later filtering"?
-    // Should we force UseBlending = false for all shapes maybe?
-
-    if IgnoreShapesWithBlending then
-      Shapes.Traverse({$ifdef FPC}@{$endif}CollectShape_AllTests_Opaque, true, true)
-    else
-      Shapes.Traverse({$ifdef FPC}@{$endif}CollectShape_AllTests, true, true);
-  end;
 
   procedure UpdateVisibilitySensors;
   var
@@ -782,20 +743,8 @@ procedure TCastleScene.LocalRenderInside(
     end;
   end;
 
-  { Render for RenderOptions.Mode = rmFull }
-  procedure RenderModeFull;
-  var
-    I: Integer;
-  begin
-    if RenderOptions.Blending then
-    begin
-      ShapesFilter(Shapes, true, true, false, TestShapeVisibility, FilteredShapes);
-      for I := 0 to FilteredShapes.Count - 1 do
-        CollectShape_SomeTests(TGLShape(FilteredShapes[I]));
-    end else
-      CollectAllAsOpaque;
-  end;
-
+var
+  I: Integer;
 begin
   { We update XxxVisible only for one value of Params.Transparent.
     Otherwise, we would increase it twice.
@@ -813,21 +762,9 @@ begin
   Render_TestShapeVisibility := TestShapeVisibility;
   Render_Collector := Params.Collector as TShapesCollector;
 
-  case RenderOptions.Mode of
-    rmDepth:
-      { When not rmFull, we don't want to do anything with
-        glDepthMask (RenderContext.DepthBufferUpdate)
-        or GL_BLEND enable state. Just render everything
-        (except: don't render partially transparent stuff for shadow maps). }
-      CollectAllAsOpaque(true);
-    rmSolidColor:
-      CollectAllAsOpaque(false);
-    rmFull:
-      RenderModeFull;
-    {$ifndef COMPILER_CASE_ANALYSIS}
-    else raise EInternalError.Create('RenderOptions.Mode?');
-    {$endif}
-  end;
+  ShapesFilter(Shapes, true, true, false, TestShapeVisibility, FilteredShapes);
+  for I := 0 to FilteredShapes.Count - 1 do
+    CollectShape_SomeTests(TGLShape(FilteredShapes[I]));
 end;
 
 procedure TCastleScene.PrepareResources(

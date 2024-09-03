@@ -222,7 +222,7 @@ var
   CollectedShape: TCollectedShape;
 begin
   for CollectedShape in Source.FCollected do
-    if CollectedShape.Shape.UseBlending in FilterTransparent then
+    if CollectedShape.UseBlending in FilterTransparent then
       if CollectedShape.ShadowVolumesReceiver in FilterShadowVolumesReceivers then
         FCollected.Add(CollectedShape);
 end;

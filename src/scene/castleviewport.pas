@@ -2641,8 +2641,16 @@ procedure TCastleViewport.RenderFromView3D(const Params: TRenderParams);
     PassParams.Init;
     PassParams.UsingBlending := false;
     RenderOnePass(Params, PassParams);
-    PassParams.UsingBlending := true;
-    RenderOnePass(Params, PassParams);
+
+    { Do not render transparent objects to the depth buffer,
+      so they don't cast shadows with shadow maps.
+      These RenderingCamera.Target values imply rendering with
+      RenderOptions.Mode = rmDepth for all scenes. }
+    if not (Params.RenderingCamera.Target in [rtVarianceShadowMap, rtShadowMap]) then
+    begin
+      PassParams.UsingBlending := true;
+      RenderOnePass(Params, PassParams);
+    end;
   end;
 
   procedure RenderWithShadowVolumes(const MainLightPosition: TVector4);
