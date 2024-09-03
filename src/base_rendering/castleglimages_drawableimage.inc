@@ -589,8 +589,8 @@
       the image contents from @link(TEncodedImage) to GPU, which is not something
       you want to do every frame. Doing this occasionally,
       or during the loading/preparation stage, is OK.
-      Doing this often, e.g. during every @link(TCastleWindow.OnRender)
-      or @link(TCastleWindow.OnUpdate), will hurt your performance.
+      Doing this often, e.g. during every @link(TCastleUserInterface.Render),
+      will hurt your performance.
       During the game, it's most efficient to treat the @link(TDrawableImage) instances
       as "constant" -- avoid changing their contents, avoid creating new ones. }
     procedure Load(const AImage: TEncodedImage); virtual;

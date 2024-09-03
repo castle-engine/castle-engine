@@ -1838,8 +1838,7 @@ type
           The events of this TCastleWindow will not happen
           while we are inside a modal dialog box.
 
-          We have a special code that disables all TCastleWindow
-          callbacks (like TCastleWindow.OnUpdate) and temporarily
+          We have a special code that temporarily
           disables all UI controls on the @link(Controls) list
           (so your TCastleUserInterface, TCastleTransform, TCastleView etc.
           instances will @italic(not) have their methods,
@@ -2224,10 +2223,8 @@ end.
     { Process messages from the window system.
       You have to call this repeatedly to process key presses,
       mouse events, redraws and everything else.
-      Messages are processed and appropriate window callbacks are called,
-      like TCastleWindow.OnRender,
-      TCastleWindow.OnUpdate,
-      TCastleWindow.OnKeyPress and many others.
+      Messages are processed and appropriate methods of TCastleUserInterface
+      instances (including TCastleView) are called.
 
       For simple programs calling the @link(Run) method is usually
       the best solution, @link(Run) just calls ProcessMessage in a loop.
