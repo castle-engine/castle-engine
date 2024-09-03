@@ -527,9 +527,8 @@ begin
   if Params.InternalPass = 0 then
   begin
     Inc(Params.Statistics.ShapesRendered);
-    // TODO: restore this statistic
-    // if Params.Transparent then
-    //   Inc(Params.Statistics.ShapesRenderedBlending);
+    if PassParams.UsingBlending then
+      Inc(Params.Statistics.ShapesRenderedBlending);
   end;
 
   Shape := CollectedShape.Shape;
