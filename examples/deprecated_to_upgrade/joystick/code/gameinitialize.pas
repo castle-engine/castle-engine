@@ -37,9 +37,12 @@ type
     Shape: TCastleShape;
     Lab: TCastleLabel;
     procedure SetAxis(const Value: TVector2);
+    function GetCaption: String;
+    procedure SetCaption(const Value: String);
   public
     constructor Create(AOwner: TComponent); override;
     property Axis: TVector2 read FAxis write SetAxis;
+    property Caption: String read GetCaption write SetCaption;
   end;
 
 constructor TJoyAxisVisualize.Create(AOwner: TComponent);
@@ -48,20 +51,19 @@ begin
   Color := Vector4(0, 0.5, 0, 1); // dark green
   Border.AllSides := 2;
   BorderColor := Yellow;
-  Width := 500;
-  Height := 500;
+  Width := 256;
+  Height := 256;
 
   Shape := TCastleShape.Create(Self);
   Shape.ShapeType := stCircle;
   Shape.Color := Yellow;
   Shape.Anchor(hpMiddle);
   Shape.Anchor(vpMiddle);
-  Shape.Width := 100;
-  Shape.Height := 100;
+  Shape.Width := 16;
+  Shape.Height := 16;
   InsertFront(Shape);
 
   Lab := TCastleLabel.Create(Self);
-  Lab.Caption := 'Joystick Axis';
   Lab.Color := Yellow;
   Lab.Anchor(hpLeft);
   Lab.Anchor(vpBottom);
@@ -72,6 +74,16 @@ procedure TJoyAxisVisualize.SetAxis(const Value: TVector2);
 begin
   FAxis := Value;
   Shape.Translation := Value * Vector2(Width - Shape.Width, Height - Shape.Height) / 2;
+end;
+
+function TJoyAxisVisualize.GetCaption: String;
+begin
+  Result := Lab.Caption;
+end;
+
+procedure TJoyAxisVisualize.SetCaption(const Value: String);
+begin
+  Lab.Caption := Value;
 end;
 
 { globals -------------------------------------------------------------------- }
@@ -105,7 +117,7 @@ type
     SelectedJoystick: Integer;
     JoyButtons: array of TCastleButton;
     JoyAxes: array of TCastleLabel;
-    JoyAxisVisualize: TJoyAxisVisualize;
+    JoyLeftAxisVisualize, JoyRightAxisVisualize: TJoyAxisVisualize;
 
     procedure ClearJoystickUI;
     procedure ClearSelectedJoystickUI;
@@ -243,7 +255,8 @@ begin
   for I := Low(JoyAxes) to High(JoyAxes) do
     JoyAxes[i].Free;
   SetLength(JoyAxes, 0);
-  FreeAndNil(JoyAxisVisualize);
+  FreeAndNil(JoyLeftAxisVisualize);
+  FreeAndNil(JoyRightAxisVisualize);
 
   SelectedJoystick := -1;
   LabelSelectedJoystick.Caption := 'Selected: none';
@@ -301,10 +314,17 @@ begin
   Notifications.Show(Format('Found %d axes',
     [Joysticks.GetInfo(SelectedJoystick)^.Count.Axes]));
 
-  JoyAxisVisualize := TJoyAxisVisualize.Create(Application);
-  JoyAxisVisualize.Anchor(hpRight, -10);
-  JoyAxisVisualize.Anchor(vpTop, -10);
-  InsertFront(JoyAxisVisualize);
+  JoyLeftAxisVisualize := TJoyAxisVisualize.Create(Application);
+  JoyLeftAxisVisualize.Anchor(hpRight, -256 - 10 - 10);
+  JoyLeftAxisVisualize.Anchor(vpTop, -10);
+  JoyLeftAxisVisualize.Caption := 'Left Axis';
+  InsertFront(JoyLeftAxisVisualize);
+
+  JoyRightAxisVisualize := TJoyAxisVisualize.Create(Application);
+  JoyRightAxisVisualize.Anchor(hpRight, -10);
+  JoyRightAxisVisualize.Anchor(vpTop, -10);
+  JoyRightAxisVisualize.Caption := 'Right Axis';
+  InsertFront(JoyRightAxisVisualize);
 end;
 
 procedure TViewMain.InitializeJoystickUI(Sender: TObject);
@@ -344,8 +364,10 @@ begin
   { update JoyAxisVisualize.Axis }
   if SelectedJoystick <> -1 then
   begin
-    Assert(JoyAxisVisualize <> nil);
-    JoyAxisVisualize.Axis := Joysticks[SelectedJoystick].Axis;
+    Assert(JoyLeftAxisVisualize <> nil);
+    Assert(JoyRightAxisVisualize <> nil);
+    JoyLeftAxisVisualize.Axis := Joysticks[SelectedJoystick].LeftAxis;
+    JoyRightAxisVisualize.Axis := Joysticks[SelectedJoystick].RightAxis;
   end;
 end;
 
