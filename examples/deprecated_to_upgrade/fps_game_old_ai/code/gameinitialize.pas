@@ -719,7 +719,7 @@ begin
   EventsHandler := TEventsHandler.Create(Application);
 
   { TODO: Use TCastleView to handle key presses. }
-  Viewport.OnPress := @EventsHandler.Press;
+  Viewport.OnPress := {$ifdef FPC}@{$endif} EventsHandler.Press;
 
   { Add the Notifications to our window.
     We add a global Notifications object from CastleGameNotifications.
