@@ -13,138 +13,125 @@
   ----------------------------------------------------------------------------
 }
 
-{ Window with rendering context suitable for rendering of "Castle Game Engine".
-  Provides a window that can render hierarchy of TCastleUserInterface,
-  which includes a hierarchy of 3D and 2D scenes inside TCastleViewport.
-  Use the @link(TCastleWindow) as your window class.
+{ Defines @link(TCastleWindow) class: a window for rendering,
+  processing of inputs, and generally the primary way to display your
+  "Castle Game Engine" application.
 
-  @link(Application) object (instance of class @link(TCastleApplication))
-  is a central manager of all open @link(TCastleWindow) windows.
+  Technically speaking, most of the @link(TCastleWindow) job
+  is to initialize rendering context (like OpenGL, OpenGLES context)
+  and to manage a hierarchy of user interface controls (@link(TCastleUserInterface)).
+  When necessary, it calls the proper methods of these controls to render,
+  process inputs, and so on.
 
-  Using this unit:
+  @bold(Usage:)
 
-  @orderedList(
-    @item(Declare and create @link(TCastleWindow) instance. (Or a descendant
-      like @link(TCastleWindow).))
+  You usually do not need to write code to create an instance of this class yourself.
+  Just create a new project (using @italic("New Project") in CGE editor, or
+  using @code(castle-engine create NEW-PROJECT-NAME) command-line).
+  The recommended code to create and initialize a single @link(TCastleWindow)
+  instance will be already there. It basically
 
-    @item(Assign Window properties and callbacks like
-      @link(TCastleWindow.OnRender OnRender),
-      @link(TCastleWindow.OnResize OnResize),
-      @link(TCastleWindow.Width Width),
-      @link(TCastleWindow.Height Height),
-      @link(TCastleWindow.Caption Caption).)
+  @unorderedList(
+    @itemSpacing Compact
+    @item(Creates @link(TCastleWindow) instance.)
+    @item(Calls @link(TCastleWindow.Open Window.Open)
+      to initialize rendering context and display the window.)
+    @item(Calls @link(TCastleApplication.Run Application.Run)
+      to process system events in a loop.
+      This loop will run until you call
+      @link(TCastleApplication.Terminate Application.Terminate)
+      or close last visible window using @link(TCastleWindow.Close Window.Close).
+      User can also close the window (using Alt+F4 or clicking on "X" button
+      on the titlebar).)
+  )
 
-    @item(To initialize your game, you usually want to use
-      @link(TCastleApplication.OnInitialize Application.OnInitialize).
+  Most of the code you write will be inside a "view", see
+  https://castle-engine.io/view_events . This view is just
+  a @link(TCastleUserInterface) instance inside a @link(TCastleWindow),
+  and that's where you can override methods like @link(TCastleUserInterface.Render),
+  @link(TCastleUserInterface.Press), @link(TCastleUserInterface.Update).
 
-      If you only care about
-      standalone programs (for normal OSes like Linux, Windows, MacOSX,
-      but not Android) you may also just initialize your game in the main
-      program block, although using
-      @link(TCastleApplication.OnInitialize Application.OnInitialize)
-      is still often comfortable.)
+  @bold(Application singleton:)
 
-    @item(Call @link(TCastleWindow.Open Window.Open),
-      this will actually show the window and it's
-      associated OpenGL context.
+  This unit also defines a singleton @link(Application) object
+  (instance of class @link(TCastleApplication)),
+  which is a central manager of all open @link(TCastleWindow) windows.
 
-      The first window open calls
-      @link(TCastleApplication.OnInitialize Application.OnInitialize).
-      It also calls
-      @link(TCastleWindow.OnOpen OnOpen) and
-      @link(TCastleWindow.OnResize OnResize) callbacks.)
+  You don't need to use the @link(Application) object directly in most cases.
+  The new projects will contain a unit @code(GameInitialize) that performs
+  the initialization of your application in a routine called @code(ApplicationInitialize),
+  assigned to the
+  @link(TCastleApplication.OnInitialize Application.OnInitialize).
+  This is the place to do a global initialization (that doesn't fit to be
+  put in any view's Start method).
 
-    @item(Call @link(TCastleApplication.Run Application.Run).
-      This will enter message loop that will call
-      appropriate events at appropriate times
-      (TCastleContainer.EventRender, TCastleContainer.EventPress,
-      TCastleContainer.EventRelease, TCastleContainer.EventResize,
-      TCastleContainer.EventUpdate and many more).
+  @bold(Multiple windows:)
 
-      For more advanced needs you can use something like
+  Desktop applications are generally free to create and open
+  as many @link(TCastleWindow) instances as they want.
+  Mobile and console applications are limited to a single
+  @link(TCastleWindow) instance which shall be assigned to the
+  @link(TCastleApplication.MainWindow Application.MainWindow) property.
+
+  @bold(Window features:)
+
+  Features of @link(TCastleWindow) and @link(TCastleApplication) include:
+
+  @unorderedList(
+    @item(Each window has its own rendering context.
+      OpenGL and OpenGLES context can be initialized by each window.)
+
+    @item(Window handles system events like key presses,
+      mouse presses and movement, touch events on mobile.)
+
+    @item(Window sends events when it needs to be redrawn
+      and when it has been resized.)
+
+    @item(TCastleWindow.Pressed information is available to
+      always check which keys re pressed.)
+
+    @item(Application speed is automatically measured, see @link(TCastleWindow.Fps),)
+
+    @item(On desktops you can create multiple windows,
+      each with its own rendering context.
+      All the windows share rendering resources (like textures).)
+
+    @item(On desktops (and Android) you can use
+      @link(TCastleApplication.ProcessMessage) to implement modal dialog boxes
+      as routines that block the event loop until the dialog is closed.
+      To do this, you can run a loop like this:
 
       @longCode(#
         while Application.ProcessMessage do <something>;
       #)
+    )
 
-      instead of Application.Run.
+    @item(Multiple backends are available (WinAPI, GTK 2, Cocoa, LCL, FMX, Xlib...),
+      see @url(https://castle-engine.io/castlewindow_backends CastleWindow Backends).
+      There's also a special backend CASTLE_WINDOW_LIBRARY that allows to use
+      existing OpenGL(ES) context created by some other code
+      (e.g. Objective-C code on iOS).)
 
-      You can also call @link(TCastleWindow.OpenAndRun Window.OpenAndRun),
-      this is just a shortcut for Window.Open + Application.Run.)
-
-    @item(Application.Run ends when you call @link(TCastleApplication.Terminate Application.Terminate)
-      or when you close last visible window using @link(TCastleWindow.Close Close(true)).
-
-      User is also allowed to close a window using WindowManager facilities
-      (clicking on "X" button in the frame corner, pressing Alt+F4 or something
-      like that). By default, such user action will make window close
-      (but you can freely customize what your program does when user
-      tries to close the window using callback
-      @link(TCastleWindow.OnCloseQuery OnCloseQuery)).)
-  )
-
-  So the simplest example of using this unit can look like this:
-
-  @longcode(#
-    uses CastleWindow;
-
-    var
-      Window: TCastleWindow;
-
-    procedure Render(Sender: TCastleContainer);
-    begin
-      // ... e.g. DrawRectangle or TDrawableImage.Draw calls inside
-    end;
-
-    begin
-      Window := TCastleWindow.Create(Application);
-      Window.OnResize := @Resize;
-      Window.Caption := 'Simplest CastleWindow example';
-      Window.OpenAndRun;
-    end.
-  #)
-
-  @italic(More component-like approach):
-  For larger programs, it makes more sense to divide functionality into
-  controls, which are classes descending from TCastleUserInterface.
-  You can override TCastleUserInterface methods to render, capture input and so on
-  (see e.g. @link(TCastleUserInterface.Render),
-  @link(TCastleUserInterface.Press),
-  @link(TCastleUserInterface.Update).)
-  You can then add your control to the TCastleWindow.Controls list.
-
-  Some features list:
-
-  @unorderedList(
-
-    @item(TCastleApplication.ProcessMessage method.
-      This allows you to reimplement
-      event loop handling, which is crucial for implementing things
-      like @link(MessageInputQuery) function that does modal GUI dialog box.)
-
-    @item(TCastleWindow.Pressed to easily and reliably check which keys
-      are pressed.)
-
-    @item(Application speed, see @link(TCastleWindow.Fps),)
-
-    @item(A menu bar under WinAPI and GTK backends.
+    @item(Some backends support a menu bar.
+      Consult @url(https://castle-engine.io/castlewindow_backends CastleWindow Backends)
+      to learn which backends support menus.
 
       You can attach a menu to a window. Menu structure is constructed using
       various descendants of TMenuEntry class.
       Then you have to assign such menu structure
-      to TCastleWindow.MainMenu property. When CastleWindow is implemented on top
-      of GTK_2 or WINAPI or LCL we will show this menu and call
-      TCastleWindow.OnMenuClick, TCastleWindow.OnMenuItemClick
-      when user clicks some menu item.
-      Other backends (XLIB for now) ignore MainMenu.
+      to TCastleWindow.MainMenu property.
+      Assign @link(TCastleWindow.OnMenuItemClick)
+      to handle what happens when the user clicks some menu item.
 
       See @code(examples/window/window_menu/)
       for an example how to use the menu.)
 
-    @item(Changing screen resolution and bit depth,
-      see TCastleApplication.VideoChange.)
+    @item(Changing screen resolution and bit depth is possible on some platforms,
+      see TCastleApplication.VideoChange.
+      Consult @url(https://castle-engine.io/castlewindow_backends CastleWindow Backends)
+      to learn which backends support this feature.)
 
-    @item(You can request OpenGL context properties:
+    @item(You can request OpenGL(ES) context properties:
       @unorderedList(
         @item color buffer
         @item with alpha channel (@link(TCastleWindow.AlphaBits AlphaBits)),
@@ -157,9 +144,11 @@
     )
 
     @item(You can use native modal dialogs for things such as file selection.
-      GTK backend will use GTK dialogs, WinAPI backend
-      will use Windows dialog boxes, XLib backend will fall back
-      on CastleMessages text input.
+      Consult @url(https://castle-engine.io/castlewindow_backends CastleWindow Backends)
+      to learn which backends support this feature.
+
+      We will use native dialogs,like GTK or WinAPI dialogs, if available.
+      So these dialogs look and behave good on all platforms.
 
       See TCastleWindow.FileDialog (for opening and saving files) and
       TCastleWindow.ColorDialog (for choosing RGB colors).)
@@ -242,7 +231,7 @@ unit CastleWindow;
 { Configure some debugging options of CastleWindow ------------------------------- }
 
 { Define CASTLE_WINDOW_CHECK_GL_ERRORS_AFTER_DRAW to check OpenGL errors
-  after TCastleWindow.EventRender (TCastleWindow.OnRender callback) calls.
+  after TCastleContainer.EventRender calls.
   This is done by DoRender, that is: when a backend initiates the drawing.
   The check is done by CastleGLUtils.CheckGLErrors, checks glGetError
   and eventually raises an exception. }
