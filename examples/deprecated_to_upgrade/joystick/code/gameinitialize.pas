@@ -100,12 +100,10 @@ const
     'JOY_POVY'
   );
 
-var
-  Window: TCastleWindow;
-
 { TViewMain ------------------------------------------------------------- }
 
 type
+  { View to handle events. }
   TViewMain = class(TCastleView)
   strict private
     MenuGroup: TCastleVerticalGroup;
@@ -371,7 +369,10 @@ begin
   end;
 end;
 
-{ ApplicationInitialize ------------------------------------------------------ }
+{ initialization ------------------------------------------------------------- }
+
+var
+  Window: TCastleWindow;
 
 { One-time initialization of resources. }
 procedure ApplicationInitialize;
