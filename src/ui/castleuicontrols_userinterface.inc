@@ -1101,9 +1101,9 @@
 
       Note that using @link(Anchor) is often more comfortable than this method,
       since you only need to set anchor once (for example, right after creating
-      the control). In contract, adjusting position using this method
+      the control). In contrast, adjusting position using this method
       will typically need to be repeated at each window on resize,
-      like in @link(TCastleWindow.OnResize). }
+      like in @link(TCastleUserInterface.Resize). }
     procedure Align(
       const ControlPosition: THorizontalPosition;
       const ContainerPosition: THorizontalPosition;
@@ -1122,9 +1122,9 @@
 
       Note that using @link(Anchor) is often more comfortable than this method,
       since you only need to set anchor once (for example, right after creating
-      the control). In contract, adjusting position using this method
+      the control). In contrast, adjusting position using this method
       will typically need to be repeated at each window on resize,
-      like in @link(TCastleWindow.OnResize). }
+      like in @link(TCastleUserInterface.Resize). }
     procedure Align(
       const ControlPosition: TVerticalPosition;
       const ContainerPosition: TVerticalPosition;
@@ -1140,7 +1140,7 @@
       the control call @code(Anchor(hpMiddle); Anchor(vpMiddle);).
       In contrast, adjusting position using this method
       will typically need to be repeated at each window on resize,
-      like in @link(TCastleWindow.OnResize). }
+      like in @link(TCastleUserInterface.Resize). }
     procedure Center; deprecated 'use Anchor(hpMiddle); Anchor(vpMiddle); to reliably center the control';
 
     { UI scale of this control, derived from container

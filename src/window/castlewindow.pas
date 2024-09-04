@@ -2195,7 +2195,7 @@ end.
       Called only once, at the very beginning
       of the game, when we're ready to load everything
       and the first OpenGL context is initialized (right before
-      calling TCastleWindow.OnOpen).
+      calling TCastleUserInterface.GLContextOpen on all UIs).
 
       For targets like Android or iOS,
       you should not do anything (even reading files) before this callback occurs.
@@ -2744,7 +2744,8 @@ procedure TCastleWindow.OpenCore;
 
       DoResize(FRealWidth, FRealHeight, true);
     except
-      { capture exceptions from Application.OnInitialize, Window.OnOpen, Window.OnResize }
+      { capture exceptions from Application.OnInitialize,
+        Container.EventOpen, Container.EventResize }
       Application.HandleException(Self);
     end;
 

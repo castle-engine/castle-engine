@@ -66,16 +66,14 @@ begin
 
     Note that the TGLSLProgram instance may only exist when OpenGL(ES) context
     is open. So it's cleanest to create / destroy TGLSLProgram in
-
-    - Window.OnOpen / Window.OnClose events,
-    - or overridden TCastleUserInterface.GLContextOpen / TCastleUserInterface.GLContextClose.
+    overridden TCastleUserInterface.GLContextOpen / TCastleUserInterface.GLContextClose.
 
     This approach will also work reliably on mobile platforms,
     when the OpenGLES context may be lost and recreated in the middle
     of the application too.
 
-    Note that Window.OnOpen occurs after Application.OnInitialize,
-    so Image (TCastleImageControl) is already created.
+    Note that these occur after Application.OnInitialize,
+    so Image (TCastleImageControl) is already created at this point.
   }
 
   Shader := TGLSLProgram.Create;

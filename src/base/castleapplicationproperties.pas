@@ -256,9 +256,11 @@ type
           @link(TCastleApplication.OnInitialize)),
           but we need to reinitialize Java part.
 
-          Note that this is different from @link(TCastleWindow.OnOpen).
-          We lose OpenGL context often, actually every time user switches to another
-          app, without having neither Java nor native threads killed.
+          Note that this is different from opening a new rendering context
+          (when the @link(TCastleUserInterface.GLContextOpen) is called).
+          On mobile we lose OpenGLES context often,
+          actually every time user switches to another app,
+          but we don't necessarily have our Java or native threads killed at this moment.
         )
       )
 

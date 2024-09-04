@@ -310,12 +310,9 @@
       More precisely, when this property is @true, then the
       @link(Press), @link(Release) and @link(Motion) events are marked as
       "handled" in this UI view. This means that they will not be processed
-      further, by UI controls under this view, in particular by UI views
-      that are underneath this view in @italic(view stack) (created
-      by @link(Push) method). They will also not be passed to final container
-      (TCastleWindow, TCastleControl) callbacks like
-      TCastleWindow.OnPress (as these callbacks are always used at the end,
-      when nothing else handled the event).
+      further, by UI controls behind this view, in particular by UI views
+      that are behind this view in @italic(view stack) (created
+      by @link(Push) method).
 
       Note that setting this to @true means that calling @code(inherited)
       from your @link(Press) overridden implementation will always return @true,
