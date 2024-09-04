@@ -56,10 +56,10 @@ type
     procedure RemakeGLVideo;
     procedure SaveVideo(const NewVideoUrl: String);
     procedure LoadVideo(const NewVideoUrl: String);
-  end;
 
-var
-  ViewMain: TViewMain;
+    procedure MenuClick(const MenuItem: TMenuItem);
+    function CreateMainMenu: TMenu;
+  end;
 
 procedure TViewMain.RemakeGLVideo;
 begin
@@ -135,14 +135,10 @@ begin
     Video.LoadFromFile(NewVideoUrl);
     VideoUrl := NewVideoUrl;
     Time := 0;
-    { Check if menu items are <> nil before using,
-      because when this is called from Start then menu is not created yet. }
-    if MenuEdit <> nil then
-      MenuEdit.Enabled := Video.Loaded;
-    if MenuRevert <> nil then
-      MenuRevert.Enabled := Video.Loaded;
-    if MenuSave <> nil then
-      MenuSave.Enabled := Video.Loaded;
+    Assert(MenuEdit <> nil); // CreateMainMenu must be done earlier
+    MenuEdit.Enabled := Video.Loaded;
+    MenuRevert.Enabled := Video.Loaded;
+    MenuSave.Enabled := Video.Loaded;
     RemakeGLVideo;
   except
     on E: Exception do
@@ -166,6 +162,10 @@ begin
   inherited;
   TimePlaying := true; // default
   Video := TVideo.Create;
+
+  Window.MainMenu := CreateMainMenu;
+  Window.OnMenuItemClick := {$ifdef FPC}@{$endif} MenuClick;
+
   Parameters.CheckHighAtMost(1);
   if Parameters.High = 1 then
     LoadVideo(Parameters[1])
@@ -180,9 +180,7 @@ begin
   inherited;
 end;
 
-{ menu ----------------------------------------------------------------------- }
-
-procedure MenuClick(Container: TCastleContainer; MenuItem: TMenuItem);
+procedure TViewMain.MenuClick(const MenuItem: TMenuItem);
 var
   S: string;
   I: Integer;
@@ -191,33 +189,33 @@ begin
   case MenuItem.IntData of
     10:
       begin
-        S := ViewMain.VideoUrl;
+        S := VideoUrl;
         if Window.FileDialog('Open file', S, true) then
-          ViewMain.LoadVideo(S);
+          LoadVideo(S);
       end;
     13:
       begin
-        S := ViewMain.VideoUrl;
+        S := VideoUrl;
         if Window.FileDialog('Save to file', S, false) then
-          ViewMain.SaveVideo(S);
+          SaveVideo(S);
       end;
     15:
       begin
-        if ViewMain.Video.Loaded then
-          ViewMain.LoadVideo(ViewMain.VideoUrl);
+        if Video.Loaded then
+          LoadVideo(VideoUrl);
       end;
     20: Window.Close;
-    110: ViewMain.TimePlaying := not ViewMain.TimePlaying;
-    120: ViewMain.Time := 0;
+    110: TimePlaying := not TimePlaying;
+    120: Time := 0;
     130:
       begin
-        ViewMain.Video.TimeLoop := not ViewMain.Video.TimeLoop;
-        ViewMain.GLVideo.TimeLoop := ViewMain.Video.TimeLoop;
+        Video.TimeLoop := not Video.TimeLoop;
+        GLVideo.TimeLoop := Video.TimeLoop;
       end;
     140:
       begin
-        ViewMain.Video.TimeBackwards := not ViewMain.Video.TimeBackwards;
-        ViewMain.GLVideo.TimeBackwards := ViewMain.Video.TimeBackwards;
+        Video.TimeBackwards := not Video.TimeBackwards;
+        GLVideo.TimeBackwards := Video.TimeBackwards;
       end;
 
     { Editing operations.
@@ -225,53 +223,53 @@ begin
       TImageFunction callback... too lazy to do this now. }
 
     410: begin
-           Assert(ViewMain.Video.Loaded);
-           for I := 0 to ViewMain.Video.Count - 1 do
-             ViewMain.Video.Items[I].Grayscale;
-           ViewMain.RemakeGLVideo;
+           Assert(Video.Loaded);
+           for I := 0 to Video.Count - 1 do
+             Video.Items[I].Grayscale;
+           RemakeGLVideo;
          end;
     420..422:
          begin
-           Assert(ViewMain.Video.Loaded);
-           for I := 0 to ViewMain.Video.Count - 1 do
-             ViewMain.Video.Items[I].ConvertToChannelRGB(MenuItem.IntData - 420);
-           ViewMain.RemakeGLVideo;
+           Assert(Video.Loaded);
+           for I := 0 to Video.Count - 1 do
+             Video.Items[I].ConvertToChannelRGB(MenuItem.IntData - 420);
+           RemakeGLVideo;
          end;
     430..432:
          begin
-           Assert(ViewMain.Video.Loaded);
-           for I := 0 to ViewMain.Video.Count - 1 do
-             ViewMain.Video.Items[I].StripToChannelRGB(MenuItem.IntData - 430);
-           ViewMain.RemakeGLVideo;
+           Assert(Video.Loaded);
+           for I := 0 to Video.Count - 1 do
+             Video.Items[I].StripToChannelRGB(MenuItem.IntData - 430);
+           RemakeGLVideo;
          end;
     440: begin
-           Assert(ViewMain.Video.Loaded);
-           for I := 0 to ViewMain.Video.Count - 1 do
-             ViewMain.Video.Items[I].FlipHorizontal;
-           ViewMain.RemakeGLVideo;
+           Assert(Video.Loaded);
+           for I := 0 to Video.Count - 1 do
+             Video.Items[I].FlipHorizontal;
+           RemakeGLVideo;
          end;
 
     445: begin
-           FadeFrames := Min(10, ViewMain.Video.Count div 2);
+           FadeFrames := Min(10, Video.Count div 2);
            if MessageInputQueryCardinal(Window,
              'How many frames to use for fading?', FadeFrames) then
            begin
-             ViewMain.Video.FadeWithSelf(FadeFrames);
-             ViewMain.RemakeGLVideo;
+             Video.FadeWithSelf(FadeFrames);
+             RemakeGLVideo;
            end;
          end;
 
     450: begin
-           ViewMain.Video.MixWithSelfBackwards;
-           ViewMain.RemakeGLVideo;
+           Video.MixWithSelfBackwards;
+           RemakeGLVideo;
            { MixWithSelfBackwards changes TimeBackwards, we have to reflect
              this in our menu item. }
-           ViewMain.MenuTimeBackwards.Checked := ViewMain.Video.TimeBackwards;
+           MenuTimeBackwards.Checked := Video.TimeBackwards;
          end;
   end;
 end;
 
-function CreateMainMenu: TMenu;
+function TViewMain.CreateMainMenu: TMenu;
 var
   M: TMenu;
 begin
@@ -279,29 +277,29 @@ begin
   M := TMenu.Create('_File');
     M.Append(TMenuItem.Create('_Open ...',   10, CtrlO));
     M.Append(TMenuSeparator.Create);
-    ViewMain.MenuSave := TMenuItem.Create('_Save As ...',  13);
-    ViewMain.MenuSave.Enabled := ViewMain.Video.Loaded;
-    M.Append(ViewMain.MenuSave);
-    ViewMain.MenuRevert := TMenuItem.Create('_Revert',     15);
-    ViewMain.MenuRevert.Enabled := ViewMain.Video.Loaded;
-    M.Append(ViewMain.MenuRevert);
+    MenuSave := TMenuItem.Create('_Save As ...',  13);
+    MenuSave.Enabled := Video.Loaded;
+    M.Append(MenuSave);
+    MenuRevert := TMenuItem.Create('_Revert',     15);
+    MenuRevert.Enabled := Video.Loaded;
+    M.Append(MenuRevert);
     M.Append(TMenuSeparator.Create);
     M.Append(TMenuItem.Create('_Exit',       20, CtrlW));
     Result.Append(M);
   M := TMenu.Create('_Playback');
     M.Append(TMenuItemChecked.Create('_Playing / Paused', 110, CtrlP,
-      ViewMain.TimePlaying, true));
+      TimePlaying, true));
     M.Append(TMenuItem.Create('_Rewind to Beginning',     120, keyHome));
     M.Append(TMenuSeparator.Create);
     M.Append(TMenuItemChecked.Create('_Loop',             130,
-      ViewMain.Video.TimeLoop, true));
-    ViewMain.MenuTimeBackwards := TMenuItemChecked.Create('_Play Backwards after Playing Forward', 140,
-      ViewMain.Video.TimeBackwards, true);
-    M.Append(ViewMain.MenuTimeBackwards);
+      Video.TimeLoop, true));
+    MenuTimeBackwards := TMenuItemChecked.Create('_Play Backwards after Playing Forward', 140,
+      Video.TimeBackwards, true);
+    M.Append(MenuTimeBackwards);
     Result.Append(M);
   M := TMenu.Create('_Edit');
-    ViewMain.MenuEdit := M;
-    ViewMain.MenuEdit.Enabled := ViewMain.Video.Loaded;
+    MenuEdit := M;
+    MenuEdit.Enabled := Video.Loaded;
     M.Append(TMenuItem.Create('_Fade with Self (Makes Video Loop Seamless) ...', 445));
     M.Append(TMenuItem.Create('_Mix with Self Backwards (Makes Video Loop Seamless)', 450));
     M.Append(TMenuSeparator.Create);
@@ -321,21 +319,19 @@ end;
 
 { initialization ------------------------------------------------------------- }
 
+var
+  ViewMain: TViewMain;
 begin
   LoadAnimatedGifs := true;
 
   Window := TCastleWindow.Create(Application);
+  Window.SetDemoOptions(keyF11, #0, true);
+  Window.AutoRedisplay := true;
   Application.MainWindow := Window;
 
   ViewMain := TViewMain.Create(Application);
   Window.Container.View := ViewMain;
 
-  Window.SetDemoOptions(keyF11, #0, true);
-  Window.AutoRedisplay := true;
-  Window.MainMenu := CreateMainMenu;
-  Window.OnMenuClick := @MenuClick;
-
   Window.Open;
-
   Application.Run;
 end.

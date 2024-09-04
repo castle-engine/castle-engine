@@ -50,6 +50,7 @@ type
       strict private
         Window: TCastleWindow;
         OldMenuClick: TMenuClickFunc;
+        OldMenuItemClick: TMenuItemClickEvent;
         OldCloseQuery: TContainerObjectEvent;
         OldCaption: string;
         OldUserdata: Pointer;
@@ -173,7 +174,7 @@ type
       Window properties resetted:
 
       @unorderedList(
-        @item(TCastleWindow.OnMenuClick is set to @nil.)
+        @item(TCastleWindow.OnMenuClick, OnMenuItemClick is set to @nil.)
         @item(TCastleWindow.Caption and TCastleWindow.MainMenu are left as they were.)
         @item(TCastleWindow.Cursor is reset to mcDefault.)
         @item(TCastleWindow.UserData is reset to @nil.)
@@ -223,7 +224,10 @@ begin
   inherited Create(nil);
   Window := AWindow;
 
+  {$warnings off} // keep deprecated working
   OldMenuClick := Window.OnMenuClick;
+  {$warnings on}
+  OldMenuItemClick := Window.OnMenuItemClick;
   OldCloseQuery := Window.OnCloseQuery;
   oldCaption := Window.Caption;
   oldUserdata := Window.Userdata;
@@ -242,7 +246,10 @@ end;
 
 destructor TGLMode.TWindowState.Destroy;
 begin
+  {$warnings off} // keep deprecated working
   Window.OnMenuClick := OldMenuClick;
+  {$warnings on}
+  Window.OnMenuItemClick := OldMenuItemClick;
   Window.OnCloseQuery := OldCloseQuery;
   Window.Caption := oldCaption;
   Window.Userdata := oldUserdata;
@@ -302,7 +309,10 @@ end;
 
 procedure TGLMode.TWindowState.SetStandardState;
 begin
+  {$warnings off} // keep deprecated working
   Window.OnMenuClick := nil;
+  {$warnings on}
+  Window.OnMenuItemClick := nil;
   Window.OnCloseQuery := {$ifdef FPC}@{$endif} NoClose;
   {Window.Caption := leave current value}
   Window.Userdata := nil;

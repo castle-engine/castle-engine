@@ -134,7 +134,8 @@
       Then you have to assign such menu structure
       to TCastleWindow.MainMenu property. When CastleWindow is implemented on top
       of GTK_2 or WINAPI or LCL we will show this menu and call
-      TCastleWindow.OnMenuClick when user clicks some menu item.
+      TCastleWindow.OnMenuClick, TCastleWindow.OnMenuItemClick
+      when user clicks some menu item.
       Other backends (XLIB for now) ignore MainMenu.
 
       See @code(examples/window/window_menu/)
@@ -411,6 +412,7 @@ type
 
   TUpdateFunc = procedure;
   TMenuClickFunc = procedure (Container: TCastleContainer; Item: TMenuItem);
+  TMenuItemClickEvent = procedure (const Item: TMenuItem) of object;
   TDropFilesFunc = procedure (Container: TCastleContainer; const FileNames: array of string);
   TGLContextRetryOpenFunc = function (Window: TCastleWindow): boolean;
 
@@ -877,10 +879,13 @@ type
       const TrackReleased: boolean = true);
     procedure DoMouseWheel(const Scroll: Single; const Vertical: boolean);
     { Just call it when user presses some MenuItem.
-      This takes care of MainMenu.Enabled,
-        MakeCurrent,
-        Item.DoClick,
-        optional OnMenuClick or Container.EventKeyDown }
+      This takes care of
+      - MainMenu.Enabled (and if menu item was activated using key shortcut,
+        but the menu is disabled, we pass key to EventKeyDown)
+      - MakeCurrent,
+      - Item.DoClick,
+      - OnMenuClick,
+      - OnMenuItemClick }
     procedure DoMenuClick(Item: TMenuItem);
 
     procedure DoDropFiles(const FileNames: array of string);
@@ -1466,6 +1471,7 @@ type
     FMainMenuVisible: boolean;
     FOwnsMainMenu: boolean;
     FOnMenuClick: TMenuClickFunc;
+    FOnMenuItemClick: TMenuItemClickEvent;
     FUserData: Pointer;
     procedure SetMainMenu(Value: TMenu);
   public
@@ -1493,11 +1499,13 @@ type
       for all menu items inside, of course).
       You can use this to disallow user from clicking on the whole
       menu. When MainMenu.Enabled = @false then
-      no MenuItem.DoClick, no OnMenuClick
-      will be called when user presses some menu item.
+      menu click is not called
+      (no MenuItem.DoClick, no OnMenuClick, no OnMenuItemClick)
+      when user presses some menu item.
       When user presses some keyboard shortcut for some menu item,
-      no MenuItem.DoClick and no OnMenuClick will be called,
-      but instead normal EventPress (OnPress) will be called.
+      also no menu click is not called
+      (no MenuItem.DoClick, no OnMenuClick, no OnMenuItemClick)
+      and we make normal EventPress.
 
       Disabling MainMenu is useful e.g. during modal dialog box, like @link(MessageOk).
       This way you can force use to interact with the modal box. }
@@ -1513,16 +1521,20 @@ type
       TCastleWindow instance is freed. }
     property OwnsMainMenu: boolean read FOwnsMainMenu write FOwnsMainMenu default true;
 
-    { Called each time user chooses some menu item and it's not handled
-      in TMenuItem.DoClick. By default, menu item handling is passed
-      to TMenuItem.DoClick. Only when it return @false (not handled) then
-      we call this window's event. }
-    property OnMenuClick: TMenuClickFunc read FOnMenuClick write FOnMenuClick;
+    { User clicked (enabled) menu item
+      (and it wasn't already handled by TMenuItem.DoClick).
 
-    {$ifdef FPC}
-    { Deprecated name for OnMenuClick. }
-    property OnMenuCommand: TMenuClickFunc read FOnMenuClick write FOnMenuClick; deprecated;
-    {$endif}
+      By default, menu item handling is passed to TMenuItem.DoClick.
+      Only when it returns @false (not handled) then we call this event. }
+    property OnMenuClick: TMenuClickFunc read FOnMenuClick write FOnMenuClick;
+      {$ifdef FPC} deprecated 'use OnMenuItemClick'; {$endif}
+
+    { User clicked (enabled) menu item
+      (and it wasn't already handled by TMenuItem.DoClick).
+
+      By default, menu item handling is passed to TMenuItem.DoClick.
+      Only when it returns @false (not handled) then we call this event. }
+    property OnMenuItemClick: TMenuItemClickEvent read FOnMenuItemClick write FOnMenuItemClick;
 
     { @section(Mouse state) -------------------------------------------------- }
 
@@ -3277,8 +3289,12 @@ begin
   { Maybe Item.DoClick changed current OpenGL context and returned false?
     We want to be safe, so we do here MakeCurrent again. }
   MakeCurrent;
+  {$warnings off} // keep deprecated working
   if Assigned(OnMenuClick) then
     OnMenuClick(Container, Item);
+  {$warnings on}
+  if Assigned(OnMenuItemClick) then
+    OnMenuItemClick(Item);
 end;
 
 procedure TCastleWindow.DoDropFiles(const FileNames: array of string);
