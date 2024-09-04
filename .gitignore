@@ -115,7 +115,6 @@ castle-game-engine-*.fpm
 /examples/deprecated_to_upgrade/fps_game_old_ai/fps_game
 /examples/images_videos/image_decompose/image_decompose
 /examples/images_videos/deprecated_drawing_modes_test/drawing_modes_test
-/examples/images_videos/deprecated_image_paint/image_paint
 /examples/images_videos/draw_images_on_gpu/draw_images_on_gpu
 /examples/images_videos/image_compare/image_compare
 /examples/images_videos/image_convert/image_convert
