@@ -203,8 +203,8 @@ type
     for some event (like pressing a key), keeping the same screen
     displayed.
 
-    During this lifetime, we set special TCastleWindow.OnRender and TCastleWindow.OnResize
-    to draw the saved image in a simplest 2D OpenGL projection. }
+    During this lifetime, we set special TCastleUserInterface to display
+    the saved image. }
   TGLModeFrozenScreen = class(TGLMode)
   private
     BackgroundControls: TCastleUserInterface;

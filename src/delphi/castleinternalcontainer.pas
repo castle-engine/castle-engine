@@ -27,9 +27,7 @@
   unifying them more.
   Right now, TCastleWindow and LCL TCastleControl do some things manually
   for historic purposes, e.g. they expose GL context requirements
-  like TCastleWindow.DepthBits,
-  and they expose callbacks like TCastleWindow.OnRender that we don't advise to use
-  (use TCastleView instead or TCastleUserInterface.OnRender to do rendering).
+  like TCastleWindow.DepthBits.
   Nowadays we know that
 
   - API of classes like TCastleWindow / TCastleControl should be simpler and just expose

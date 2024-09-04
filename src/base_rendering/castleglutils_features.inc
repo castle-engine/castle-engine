@@ -453,8 +453,8 @@ type
         @item(It makes TDrawableImage, DrawPrimitive2D, TCastleRenderUnlitMesh
           use OpenGL fixed-function pipeline.)
         @item(It allows you to use fixed-function pipeline calls in the
-          @link(TCastleWindow.OnRender) callback, @link(TCastleUserInterface.Render)
-          override and related places.)
+          @link(TCastleUserInterface.Render) overrides and other places
+          where you can do rendering.)
         @item(It also allows some deprecated rendering features like WindowPos
           to continue to work.)
       )

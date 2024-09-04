@@ -39,9 +39,7 @@
 
   { Image that can be drawn.
     This image can be drawn in various rendering methods and events,
-    e.g. inside overridden @link(TCastleUserInterface.Render) or from events
-    @link(TCastleWindow.OnRender) or
-    @link(TCastleControl.OnRender).
+    e.g. inside overridden @link(TCastleUserInterface.Render).
 
     See the manual about drawing using TDrawableImage:
     https://castle-engine.io/manual_2d_ui_custom_drawn.php .
