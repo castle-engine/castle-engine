@@ -106,7 +106,7 @@ var
 implementation
 
 uses SysUtils, DOM,
-  CastleImages, CastleUIControls, CastleGLUtils, CastleXmlUtils,
+  CastleImages, CastleUIControls, CastleGLUtils, CastleXmlUtils, CastleUriUtils,
   CastleSceneCore, CastleApplicationProperties, X3DLoad, CastleRenderContext,
   GameConfiguration;
 
@@ -144,17 +144,23 @@ var
 begin
   { Render the 2D image covering the location.
 
-    This cooperates correctly with shadow volumes, because the Image.Draw call
-    is correctly masked with the stencil buffer settings of the shadow volume
-    renderer.
+    This cooperates correctly with shadow volumes, because when
+    PassParams.DisableShadowVolumeCastingLights = true then also the stencil
+    buffer settings force drawing only when the shadows are.
+    The call to Image.Draw (when DisableShadowVolumeCastingLights)
+    thus renders only pixels that are detected as "in shadow".
 
-    TODO: The order is wrong now, AddRenderEvent happens before everything now.
-    So it mostly works, but somewhat by accident.
-
-    To work correctly, the location scene must be rendered before creatures
-    (like Player) scenes (otherwise Image.Draw would unconditionally cover
-    the the Player). This is satisfied, since CurrentLocation.Scene
-    is first in Viewport.Items. }
+    The order of rendering is important also. Our Image.Draw must be drawn
+    unconditionaly right where the Scene is drawn, such that
+    - color buffer set by Image.Draw
+    - ...corresponds to the depth buffer set by the Scene.
+    This way player 3D character is correctly behind / in front of the rendered
+    location image.
+    This works now, because
+    - event added by AddRenderEvent happens before everything now.
+    - then CurrentLocation.Scene is first in Viewport.Items.
+    - then the rest, like Player, scenes are rendered (that cannot be
+      overdrawn by Image.Draw). }
 
   if (not PassParams.UsingBlending) and
      (true in PassParams.FilterShadowVolumesReceivers) then
@@ -198,6 +204,17 @@ begin
 end;
 
 procedure TLocation.Load(const PrepareParams: TPrepareParams);
+
+  function HasViewpoint(const Scene: TCastleSceneCore; const ViewpointName: string): Boolean;
+  var
+    I: Integer;
+  begin
+    for I := 0 to Scene.ViewpointsCount - 1 do
+      if Scene.GetViewpointName(I) = ViewpointName then
+        Exit(true);
+    Result := false;
+  end;
+
 begin
   if Loaded then Exit;
   Loaded := true;
@@ -216,6 +233,13 @@ begin
   FScene.InitialViewpointName := FViewpoint;
   FScene.Load(SceneUrl);
   FScene.PrepareResources([prRenderSelf, prBoundingBox], PrepareParams);
+
+  // check FScene.InitialViewpointName valid
+  if not HasViewpoint(FScene, FViewpoint) then
+    raise Exception.CreateFmt('Viewpoint name "%s" not found in scene "%s"', [
+      FViewpoint,
+      UriDisplay(SceneUrl)
+    ]);
 
   FImageTransform := TLocationImageTransform.Create(nil);
   FImageTransform.Image := FImage;
