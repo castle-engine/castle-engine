@@ -734,7 +734,7 @@ object ProjectForm: TProjectForm
         Caption = '-'
       end
       object MenuItem46: TMenuItem
-        Action = ActionExportToX3D
+        Action = ActionExportToModel
       end
     end
     object MenuItemWindow: TMenuItem
@@ -1400,10 +1400,10 @@ object ProjectForm: TProjectForm
       Caption = 'Copy URL'
       OnExecute = ActionCopyUrlExecute
     end
-    object ActionExportToX3D: TAction
+    object ActionExportToModel: TAction
       Category = 'Data'
-      Caption = 'Export Selection to X3D...'
-      OnExecute = ActionExportToX3DExecute
+      Caption = 'Export Selection to X3D, STL...'
+      OnExecute = ActionExportToModelExecute
     end
   end
   object OpenPascalUnitDialog: TCastleOpenPascalUnitDialog

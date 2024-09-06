@@ -175,7 +175,7 @@ type
       const AState: TX3DGraphTraverseState;
       const ParentInfo: PTraversingInfo): TShape; override;
     procedure InternalInvalidateBackgroundRenderer; override;
-    function InternalSaveX3DInside: TObject; override;
+    function InternalBuildNodeInside: TObject; override;
 
     procedure LocalRender(const Params: TRenderParams); override;
 
@@ -1704,7 +1704,7 @@ begin
   PreparedShapesResources := false;
 end;
 
-function TCastleScene.InternalSaveX3DInside: TObject;
+function TCastleScene.InternalBuildNodeInside: TObject;
 
   { Does our RootNode export (using X3D mechanism) given name. }
   function RootExportsName(const ExportedName: String): Boolean;

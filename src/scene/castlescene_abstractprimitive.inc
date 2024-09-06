@@ -65,7 +65,7 @@ type
       This also updates TCastleMeshCollider mesh, if it referred to us. }
     procedure UpdateCollider;
 
-    function InternalSaveX3DInside: TObject; override;
+    function InternalBuildNodeInside: TObject; override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -343,7 +343,7 @@ begin
     C.InternalTransformChanged(Self);
 end;
 
-function TCastleAbstractPrimitive.InternalSaveX3DInside: TObject;
+function TCastleAbstractPrimitive.InternalBuildNodeInside: TObject;
 begin
   Result := FShapeNode.DeepCopy;
 end;

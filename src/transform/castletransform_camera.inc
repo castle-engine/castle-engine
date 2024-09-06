@@ -293,7 +293,7 @@
     procedure InternalSetEffectiveProjection(
       const AEffectiveProjectionNear, AEffectiveProjectionFar: Single);
   protected
-    function InternalSaveX3DInside: TObject; override;
+    function InternalBuildNodeInside: TObject; override;
   public
     InternalOnSceneBoundViewpointChanged,
     InternalOnSceneBoundViewpointVectorsChanged,
@@ -1464,7 +1464,7 @@ begin
   ]));
 end;
 
-function TCastleCamera.InternalSaveX3DInside: TObject;
+function TCastleCamera.InternalBuildNodeInside: TObject;
 var
   OrthoViewpoint: TOrthoViewpointNode;
   Viewpoint: TViewpointNode;
@@ -1498,7 +1498,7 @@ begin
         Viewpoint.Position := TVector3.Zero;
         Result := Viewpoint;
       end;
-    else raise EInternalError.Create('TCastleCamera.InternalSaveX3DInside: PerspectiveType?');
+    else raise EInternalError.Create('TCastleCamera.InternalBuildNodeInside: PerspectiveType?');
   end;
 end;
 

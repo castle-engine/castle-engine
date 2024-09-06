@@ -575,9 +575,9 @@
     { Override to be notified after ExistsInRoot value changed. }
     procedure ExistsInRootChanged; virtual;
 
-    { Helper for InternalSaveX3D.
+    { Helper for InternalBuildNode.
       Result must be TAbstractChildNode or @nil. }
-    function InternalSaveX3DInside: TObject; virtual;
+    function InternalBuildNodeInside: TObject; virtual;
   public
     const
       DefaultMiddleHeight = 0.5;
@@ -2066,17 +2066,22 @@
       @noAutoLinkHere }
     property ExistsInRoot: Boolean read FExistsInRoot;
 
-    { Create X3D nodes' tree representing this TCastleTransorm (and its children).
+    { Create X3D nodes graph representing this TCastleTransorm (and its children).
+      This can be used to save to any format supported by the @link(SaveNode),
+      like X3D and STL.
 
       This is internal, because:
 
       @unorderedList(
         @item(It is not complete, and it will never be.
-          X3D cannot express that Castle Game Engine components can express.
-          Also, while you can load the X3D nodes inside TCastleScene,
-          so will not be able to edit them again in CGE editor.
+          X3D and other formats cannot express everything that
+          Castle Game Engine components can express.
+          Also, while you can load the resulting model back inside TCastleScene,
+          it will not result in back the same CGE components
+          (though it could be an option some day, see https://castle-engine.io/expose ).
+          It will be just a single CGE component, TCaastleScene.)
 
-          If you want to use CGE editor for authoring X3D,
+          If you want to use CGE editor for authoring X3D or other model formats,
           just keep the original CGE editor files (.castle-user-interface)
           around, as "source" version of your 3D / 2D world,
           and export it to X3D as many times as you wish.)
@@ -2121,7 +2126,7 @@
       and thus it is never @nil.
       Caller should avoid check for @code(csTransient in Transform.ComponentState)
       if you want to avoid this. }
-    function InternalSaveX3D: TObject;
+    function InternalBuildNode: TObject;
   published
     { Is this object (and all children) visible and colliding.
       Setting this to @false makes this object non-existing,
@@ -4711,7 +4716,7 @@ begin
   end;
 end;
 
-function TCastleTransform.InternalSaveX3D: TObject;
+function TCastleTransform.InternalBuildNode: TObject;
 
   { Transform.Rotation and Transform.ScaleOrientation have
 
@@ -4747,7 +4752,7 @@ begin
     TransformNode.ScaleOrientation := RotationHasZDefault(ScaleOrientation);
     TransformNode.Center := Center;
 
-    ChildNode := InternalSaveX3DInside as TAbstractChildNode;
+    ChildNode := InternalBuildNodeInside as TAbstractChildNode;
     if ChildNode <> nil then
       TransformNode.AddChildren(ChildNode);
 
@@ -4759,13 +4764,13 @@ begin
       if csTransient in ChildTransform.ComponentStyle then
         Continue;
 
-      ChildNode := ChildTransform.InternalSaveX3D as TAbstractChildNode;
+      ChildNode := ChildTransform.InternalBuildNode as TAbstractChildNode;
       TransformNode.AddChildren(ChildNode);
     end;
   except FreeAndNil(Result); raise end;
 end;
 
-function TCastleTransform.InternalSaveX3DInside: TObject;
+function TCastleTransform.InternalBuildNodeInside: TObject;
 begin
   Result := nil;
 end;

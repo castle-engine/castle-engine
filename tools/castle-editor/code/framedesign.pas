@@ -74,7 +74,7 @@ type
     LabelSizeInfo: TLabel;
     MemoInfo: TMemo;
     PanelSpinEditAllowVerticalCentering: TPanel;
-    ExportToX3DDialog: TCastleSaveDialog;
+    ExportToModelDialog: TCastleSaveDialog;
     SeparatorBeforeChangeClass: TMenuItem;
     MenuItemChangeClassUserInterface: TMenuItem;
     MenuItemChangeClassNonVisual: TMenuItem;
@@ -697,7 +697,7 @@ type
     { Find next, if find is active. }
     procedure FindNext;
 
-    procedure ExportToX3D;
+    procedure ExportToModel;
   end;
 
 implementation
@@ -1666,7 +1666,8 @@ begin
   VisualizeTransformSelected.OnGizmoStopDrag := @GizmoStopDrag;
 
   SaveDesignDialog.InitialDir := UriToFilenameSafe(ApplicationDataOverride);
-  ExportToX3DDialog.InitialDir := UriToFilenameSafe(ApplicationDataOverride);
+  ExportToModelDialog.InitialDir := UriToFilenameSafe(ApplicationDataOverride);
+  ExportToModelDialog.Filter := SaveNode_FileFilters;
 
   TabInfo.TabVisible := false;
 
@@ -6496,9 +6497,9 @@ begin
   end;
 end;
 
-procedure TDesignFrame.ExportToX3D;
+procedure TDesignFrame.ExportToModel;
 var
-  ExportedX3D: TAbstractChildNode;
+  ExportedNode: TAbstractChildNode;
   RootNode: TX3DRootNode;
 begin
   if SelectedTransform = nil then
@@ -6507,13 +6508,13 @@ begin
     Exit;
   end;
 
-  if ExportToX3DDialog.Execute then
+  if ExportToModelDialog.Execute then
   begin
     RootNode := TX3DRootNode.Create;
     try
-      ExportedX3D := SelectedTransform.InternalSaveX3D as TAbstractChildNode;
-      RootNode.AddChildren(ExportedX3D);
-      SaveNode(RootNode, ExportToX3DDialog.Url);
+      ExportedNode := SelectedTransform.InternalBuildNode as TAbstractChildNode;
+      RootNode.AddChildren(ExportedNode);
+      SaveNode(RootNode, ExportToModelDialog.Url);
     finally FreeAndNil(RootNode) end;
   end;
 end;
