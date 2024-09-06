@@ -8549,6 +8549,9 @@ begin
 
   InlineNode := TInlineNode.Create;
   InlineNode.X3DName := Name + '_Scene';
+  { Set InlineNode.BaseUrl, to allow opening the URLs relative to this,
+    needed e.g. when saving as STL. }
+  InlineNode.BaseUrl := SaveBaseUrl;
   InlineNode.FdUrl.Items.Add(AdjustUrl(Url));
 
   if ExportAnimation then
