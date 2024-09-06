@@ -577,7 +577,7 @@
 
     { Helper for InternalBuildNode.
       Result must be TAbstractChildNode or @nil. }
-    function InternalBuildNodeInside: TObject; virtual;
+    function InternalBuildNodeInside(const SaveBaseUrl: String): TObject; virtual;
   public
     const
       DefaultMiddleHeight = 0.5;
@@ -2126,7 +2126,7 @@
       and thus it is never @nil.
       Caller should avoid check for @code(csTransient in Transform.ComponentState)
       if you want to avoid this. }
-    function InternalBuildNode: TObject;
+    function InternalBuildNode(const SaveBaseUrl: String): TObject;
   published
     { Is this object (and all children) visible and colliding.
       Setting this to @false makes this object non-existing,
@@ -4716,7 +4716,7 @@ begin
   end;
 end;
 
-function TCastleTransform.InternalBuildNode: TObject;
+function TCastleTransform.InternalBuildNode(const SaveBaseUrl: String): TObject;
 
   { Transform.Rotation and Transform.ScaleOrientation have
 
@@ -4752,7 +4752,7 @@ begin
     TransformNode.ScaleOrientation := RotationHasZDefault(ScaleOrientation);
     TransformNode.Center := Center;
 
-    ChildNode := InternalBuildNodeInside as TAbstractChildNode;
+    ChildNode := InternalBuildNodeInside(SaveBaseUrl) as TAbstractChildNode;
     if ChildNode <> nil then
       TransformNode.AddChildren(ChildNode);
 
@@ -4764,13 +4764,13 @@ begin
       if csTransient in ChildTransform.ComponentStyle then
         Continue;
 
-      ChildNode := ChildTransform.InternalBuildNode as TAbstractChildNode;
+      ChildNode := ChildTransform.InternalBuildNode(SaveBaseUrl) as TAbstractChildNode;
       TransformNode.AddChildren(ChildNode);
     end;
   except FreeAndNil(Result); raise end;
 end;
 
-function TCastleTransform.InternalBuildNodeInside: TObject;
+function TCastleTransform.InternalBuildNodeInside(const SaveBaseUrl: String): TObject;
 begin
   Result := nil;
 end;

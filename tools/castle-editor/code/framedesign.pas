@@ -6501,6 +6501,7 @@ procedure TDesignFrame.ExportToModel;
 var
   ExportedNode: TAbstractChildNode;
   RootNode: TX3DRootNode;
+  SaveUrl: String;
 begin
   if SelectedTransform = nil then
   begin
@@ -6512,9 +6513,10 @@ begin
   begin
     RootNode := TX3DRootNode.Create;
     try
-      ExportedNode := SelectedTransform.InternalBuildNode as TAbstractChildNode;
+      SaveUrl := ExportToModelDialog.Url;
+      ExportedNode := SelectedTransform.InternalBuildNode(SaveUrl) as TAbstractChildNode;
       RootNode.AddChildren(ExportedNode);
-      SaveNode(RootNode, ExportToModelDialog.Url);
+      SaveNode(RootNode, SaveUrl);
     finally FreeAndNil(RootNode) end;
   end;
 end;

@@ -32,7 +32,7 @@ type
     { Descendants should set X3D light node here. }
     property LightNode: TAbstractLightNode read FLightNode write SetLightNode;
     property Gizmo: TInternalCastleEditorGizmo read FGizmo;
-    function InternalBuildNodeInside: TObject; override;
+    function InternalBuildNodeInside(const SaveBaseUrl: String): TObject; override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -97,7 +97,7 @@ begin
     Result := inherited PropertySections(PropertyName);
 end;
 
-function TCastleAbstractLight.InternalBuildNodeInside: TObject;
+function TCastleAbstractLight.InternalBuildNodeInside(const SaveBaseUrl: String): TObject;
 begin
   if FLightNode <> nil then
     Result := FLightNode.DeepCopy

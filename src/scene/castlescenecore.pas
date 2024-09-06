@@ -830,6 +830,8 @@ type
 
     GeneratedTextures: TGeneratedTextureList;
 
+    function InternalBuildNodeInside(const SaveBaseUrl: String): TObject; override;
+
     { Create TShape (or descendant) instance suitable for this
       TCastleSceneCore descendant. In this class, this simply creates new
       TShape instance. If you make a descendant of TCastleSceneCore,
@@ -8487,6 +8489,78 @@ begin
     WritelnWarning('Scene %s: Spatial property is deprecated, use PreciseCollisions instead', [Name]);
     PreciseCollisions := true;
   end;
+end;
+
+function TCastleSceneCore.InternalBuildNodeInside(const SaveBaseUrl: String): TObject;
+
+  { Try to make URL for X3D file relative to SaveBaseUrl. }
+  function AdjustUrl(const Url: String): String;
+  var
+    TargetUrl, SaveBaseFileName, TargetFileName: String;
+  begin
+    TargetUrl := ResolveCastleDataUrl(Url);
+    TargetFileName := UriToFilenameSafe(TargetUrl);
+    SaveBaseFileName := UriToFilenameSafe(SaveBaseUrl);
+    if (SaveBaseFileName <> '') and (TargetFileName <> '') then
+    begin
+      Result := ExtractRelativePath(SaveBaseFileName, TargetFileName);
+
+      { Do not use: This would make the Result again an absolute URL
+      //Result := FilenameToUriSafe(Result);
+        Instead, using this trivial way to turn relative filename -> URL,
+        it accounts for Windows backslashes and encodes URL. }
+      Result := InternalUriEscape(SReplaceChars(Result, '\', '/'));
+    end else
+      // use original URL then, possibly with castle-data:/ protocol
+      Result := Url;
+  end;
+
+  { Does our RootNode export (using X3D mechanism) given name. }
+  function RootExportsName(const ExportedName: String): Boolean;
+  var
+    E: TX3DExport;
+    HereExported: String;
+  begin
+    if (RootNode <> nil) and (RootNode.ExportedNames <> nil) then
+    begin
+      for E in RootNode.ExportedNames do
+      begin
+        if E.ExportedAlias <> '' then
+          HereExported := E.ExportedAlias
+        else
+        if E.ExportedNode <> nil then
+          HereExported := E.ExportedNode.X3DName
+        else
+          HereExported := '';
+        if HereExported = ExportedName then
+          Exit(true);
+      end;
+    end;
+  end;
+
+var
+  InlineNode: TInlineNode;
+  Import: TX3DImport;
+begin
+  InlineNode := TInlineNode.Create;
+  InlineNode.X3DName := Name + '_Scene';
+  InlineNode.FdUrl.Items.Add(AdjustUrl(Url));
+
+  // if AutoAnimation is defined, setup nodes to start given animation
+  if AutoAnimation <> '' then
+  begin
+    if RootExportsName(AutoAnimation) then
+    begin
+      Import := TX3DImport.Create;
+      Import.InlineNodeName := InlineNode.X3DName;
+      Import.ImportedNodeName := AutoAnimation;
+      Import.ImportedNodeAlias := AutoAnimation; // same as ImportedNodeName
+      InlineNode.AddImport(Import);
+      // TODO: add sensor to activate this time sensor.
+    end;
+  end;
+
+  Result := InlineNode;
 end;
 
 end.
