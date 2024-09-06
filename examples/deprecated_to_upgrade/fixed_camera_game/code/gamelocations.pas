@@ -1,5 +1,5 @@
 {
-  Copyright 2008-2023 Michalis Kamburelis.
+  Copyright 2008-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -33,6 +33,8 @@ type
       TLocationImageTransform = class(TCastleTransform)
       private
         Image, ShadowedImage: TDrawableImage;
+        procedure RenderLocation(const Transformation: TTransformation;
+          const PassParams: TRenderOnePassParams);
       public
         ViewportRect: TRectangle;
         procedure LocalRender(const Params: TRenderParams); override;
@@ -110,8 +112,15 @@ uses SysUtils, DOM,
 
 { TLocation.TLocationImage --------------------------------------------------- }
 
-procedure TLocation.TLocationImageTransform.
-  LocalRender(const Params: TRenderParams);
+procedure TLocation.TLocationImageTransform.LocalRender(const Params: TRenderParams);
+begin
+  inherited;
+  Params.AddRenderEvent({$ifdef FPC}@{$endif} RenderLocation);
+end;
+
+procedure TLocation.TLocationImageTransform.RenderLocation(
+  const Transformation: TTransformation;
+  const PassParams: TRenderOnePassParams);
 
   { Draw Image centered on screen, to fit inside the TCastleViewport,
     matching the 3D scene projection. }
@@ -139,20 +148,16 @@ begin
     is correctly masked with the stencil buffer settings of the shadow volume
     renderer.
 
+    TODO: The order is wrong now, AddRenderEvent happens before everything now.
+    So it mostly works, but somewhat by accident.
+
     To work correctly, the location scene must be rendered before creatures
     (like Player) scenes (otherwise Image.Draw would unconditionally cover
     the the Player). This is satisfied, since CurrentLocation.Scene
     is first in Viewport.Items. }
 
-  // TODO: This test is not valid anymore,
-  // - LocalRender must collect all shapes,
-  //   transparent and opaque, shadow receivers and not.
-  // - Also we cannot test "if Params.DisableShadowVolumeCastingLights then" here, at collecting
-  // - It cannot render directly. TODO: Add a way to render directly?
-
-  // if (not Params.Transparent) and
-  //    (true in Params.ShadowVolumesReceivers) then
-
+  if (not PassParams.UsingBlending) and
+     (true in PassParams.FilterShadowVolumesReceivers) then
   begin
     { Note that the 3 lines that save, set and restore RenderContext.ProjectionMatrix
       are necessary only in case GLFeatures.EnableFixedFunction = true,
@@ -166,10 +171,9 @@ begin
     SavedDepthTest := RenderContext.DepthTest;
     RenderContext.DepthTest := false;
 
-    // TODO, see above
-    // if Params.DisableShadowVolumeCastingLights then
-    //   DrawImage(ShadowedImage)
-    // else
+    if PassParams.DisableShadowVolumeCastingLights then
+      DrawImage(ShadowedImage)
+    else
       DrawImage(Image);
 
     RenderContext.ProjectionMatrix := SavedProjectionMatrix; // restore 3D projection
