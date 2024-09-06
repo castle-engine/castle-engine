@@ -175,6 +175,7 @@ type
       const AState: TX3DGraphTraverseState;
       const ParentInfo: PTraversingInfo): TShape; override;
     procedure InternalInvalidateBackgroundRenderer; override;
+    function InternalSaveX3DInside: TObject; override;
 
     procedure LocalRender(const Params: TRenderParams); override;
 
@@ -1701,6 +1702,56 @@ end;
 procedure TCastleScene.InternalSchedulePrepareResources;
 begin
   PreparedShapesResources := false;
+end;
+
+function TCastleScene.InternalSaveX3DInside: TObject;
+
+  { Does our RootNode export (using X3D mechanism) given name. }
+  function RootExportsName(const ExportedName: String): Boolean;
+  var
+    E: TX3DExport;
+    HereExported: String;
+  begin
+    if (RootNode <> nil) and (RootNode.ExportedNames <> nil) then
+    begin
+      for E in RootNode.ExportedNames do
+      begin
+        if E.ExportedAlias <> '' then
+          HereExported := E.ExportedAlias
+        else
+        if E.ExportedNode <> nil then
+          HereExported := E.ExportedNode.X3DName
+        else
+          HereExported := '';
+        if HereExported = ExportedName then
+          Exit(true);
+      end;
+    end;
+  end;
+
+var
+  InlineNode: TInlineNode;
+  Import: TX3DImport;
+begin
+  InlineNode := TInlineNode.Create;
+  InlineNode.X3DName := Name + '_Scene';
+  InlineNode.FdUrl.Items.Add(Url);
+
+  // if AutoAnimation is defined, setup nodes to start given animation
+  if AutoAnimation <> '' then
+  begin
+    if RootExportsName(AutoAnimation) then
+    begin
+      Import := TX3DImport.Create;
+      Import.InlineNodeName := InlineNode.X3DName;
+      Import.ImportedNodeName := AutoAnimation;
+      Import.ImportedNodeAlias := AutoAnimation; // same as ImportedNodeName
+      InlineNode.AddImport(Import);
+      // TODO: add sensor to activate this time sensor.
+    end;
+  end;
+
+  Result := InlineNode;
 end;
 
 { TBasicRenderParams --------------------------------------------------------- }

@@ -43,6 +43,7 @@ const
 type
   { Main project management. }
   TProjectForm = class(TForm)
+    ActionExportToX3D: TAction;
     ActionCopyUrl: TAction;
     ActionRunParameterPretendTouchDevice: TAction;
     ActionFindNext: TAction;
@@ -116,6 +117,8 @@ type
     MenuItem19: TMenuItem;
     MenuItem43: TMenuItem;
     MenuItem44: TMenuItem;
+    Separator15: TMenuItem;
+    MenuItem46: TMenuItem;
     MenuItemRunParameterPretendTouchDevice: TMenuItem;
     Separator14: TMenuItem;
     MenuItem21: TMenuItem;
@@ -337,6 +340,7 @@ type
     ProcessUpdateTimer: TTimer;
     TabWarnings: TTabSheet;
     procedure ActionCopyUrlExecute(Sender: TObject);
+    procedure ActionExportToX3DExecute(Sender: TObject);
     procedure ActionFindNextExecute(Sender: TObject);
     procedure ActionFindToggleExecute(Sender: TObject);
     procedure ActionImportSketchfabExecute(Sender: TObject);
@@ -1017,6 +1021,12 @@ begin
     Url := MaybeUseDataProtocol(Url);
     Clipboard.AsText := Url;
   end;
+end;
+
+procedure TProjectForm.ActionExportToX3DExecute(Sender: TObject);
+begin
+  Assert(Design <> nil); // menu item is disabled otherwise
+  Design.ExportToX3D;
 end;
 
 procedure TProjectForm.ActionFindToggleExecute(Sender: TObject);
@@ -2454,6 +2464,7 @@ begin
   ActionShowStatistics.Enabled := Design <> nil;
   ActionFindToggle.Enabled := Design <> nil;
   ActionFindNext.Enabled := Design <> nil;
+  ActionExportToX3D.Enabled := Design <> nil;
 
   { Options that toggle InternalForceWireframe could actually work with Design=nil,
     with current implementation.

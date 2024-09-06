@@ -74,6 +74,7 @@ type
     LabelSizeInfo: TLabel;
     MemoInfo: TMemo;
     PanelSpinEditAllowVerticalCentering: TPanel;
+    ExportToX3DDialog: TCastleSaveDialog;
     SeparatorBeforeChangeClass: TMenuItem;
     MenuItemChangeClassUserInterface: TMenuItem;
     MenuItemChangeClassNonVisual: TMenuItem;
@@ -695,6 +696,8 @@ type
     procedure FindToggle;
     { Find next, if find is active. }
     procedure FindNext;
+
+    procedure ExportToX3D;
   end;
 
 implementation
@@ -710,7 +713,7 @@ uses
   CastleUtils, CastleComponentSerialize, CastleFileFilters, CastleGLUtils, CastleImages,
   CastleLog, CastleProjection, CastleStringUtils, CastleTimeUtils,
   CastleUriUtils, X3DLoad, CastleFilesUtils, CastleInternalPhysicsVisualization,
-  CastleInternalUrlUtils, CastleInternalFileMonitor,
+  CastleInternalUrlUtils, CastleInternalFileMonitor, X3DNodes,
   { CGE unit to keep in uses clause even if they are not explicitly used by FrameDesign,
     to register the core CGE components for (de)serialization. }
   Castle2DSceneManager, CastleNotifications, CastleThirdPersonNavigation, CastleSoundEngine,
@@ -1663,6 +1666,7 @@ begin
   VisualizeTransformSelected.OnGizmoStopDrag := @GizmoStopDrag;
 
   SaveDesignDialog.InitialDir := UriToFilenameSafe(ApplicationDataOverride);
+  ExportToX3DDialog.InitialDir := UriToFilenameSafe(ApplicationDataOverride);
 
   TabInfo.TabVisible := false;
 
@@ -6489,6 +6493,28 @@ begin
         TreeNode := TreeNode.GetNext;
       end;
     end;
+  end;
+end;
+
+procedure TDesignFrame.ExportToX3D;
+var
+  ExportedX3D: TAbstractChildNode;
+  RootNode: TX3DRootNode;
+begin
+  if SelectedTransform = nil then
+  begin
+    ErrorBox('Select one transformation (like "Items" inside a viewport or anything inside) to export.');
+    Exit;
+  end;
+
+  if ExportToX3DDialog.Execute then
+  begin
+    RootNode := TX3DRootNode.Create;
+    try
+      ExportedX3D := SelectedTransform.InternalSaveX3D as TAbstractChildNode;
+      RootNode.AddChildren(ExportedX3D);
+      SaveNode(RootNode, ExportToX3DDialog.Url);
+    finally FreeAndNil(RootNode) end;
   end;
 end;
 

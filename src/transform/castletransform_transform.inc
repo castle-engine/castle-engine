@@ -574,6 +574,10 @@
 
     { Override to be notified after ExistsInRoot value changed. }
     procedure ExistsInRootChanged; virtual;
+
+    { Helper for InternalSaveX3D.
+      Result must be TAbstractChildNode or @nil. }
+    function InternalSaveX3DInside: TObject; virtual;
   public
     const
       DefaultMiddleHeight = 0.5;
@@ -2061,6 +2065,63 @@
 
       @noAutoLinkHere }
     property ExistsInRoot: Boolean read FExistsInRoot;
+
+    { Create X3D nodes' tree representing this TCastleTransorm (and its children).
+
+      This is internal, because:
+
+      @unorderedList(
+        @item(It is not complete, and it will never be.
+          X3D cannot express that Castle Game Engine components can express.
+          Also, while you can load the X3D nodes inside TCastleScene,
+          so will not be able to edit them again in CGE editor.
+
+          If you want to use CGE editor for authoring X3D,
+          just keep the original CGE editor files (.castle-user-interface)
+          around, as "source" version of your 3D / 2D world,
+          and export it to X3D as many times as you wish.)
+
+        @item(It is not the adviced way to save TCastleTransform to file.
+          Rather, we advise to save hierarchy using the @link(TransformSave)
+          to .castle-transform files.
+          See also CastleComponentSerialize.
+          You can then @url(https://castle-engine.io/reuse_design reuse designs)
+          using the @link(TCastleTransformDesign) component.
+          This is the way to reliably save and restore 100% of published
+          properties of TCastleTransform and its descendants.)
+        )
+      )
+
+      That said, this is useful, because:
+
+      @unorderedList(
+        @item(It allows to open things designed in CGE in X3D browsers, like
+          @url(https://castle-engine.io/castle-model-viewer Castle Model Viewer),
+          @url(https://castle-engine.io/castle-model-viewer-mobile Castle Model Viewer Mobile),
+          @url(https://www.x3dom.org/ X3DOM (in WWW browser)),
+          @url(https://create3000.github.io/x_ite/ X_ITE (in WWW browser)),
+          @url(https://freewrl.sourceforge.io/ FreeWRL).
+          See @url(https://www.web3d.org/x3d/content/examples/X3dResources.html X3D Resources) for even more useful tools.)
+
+        @item(It's useful for debugging purposes when developing CGE.
+
+          Since some CGE components are realized under the hood using X3D as well,
+          e.g. light components like @link(TCastlePointLight) are mostly just
+          wrappers for X3D nodes like @link(TPointLightNode) --
+          just with somewhat better defaults and sometimes better naming.
+          Though it is not guaranteed to always be like it (our own components
+          allow us to implement lights without X3D nodes under the hood as well),
+          but when it is -> this method allows to "peek under the hood"
+          at nodes really used to render.)
+      )
+
+      Result must be TTransformNode but it cannot be declared as such.
+
+      It exports content for all nodes, even csTransient,
+      and thus it is never @nil.
+      Caller should avoid check for @code(csTransient in Transform.ComponentState)
+      if you want to avoid this. }
+    function InternalSaveX3D: TObject;
   published
     { Is this object (and all children) visible and colliding.
       Setting this to @false makes this object non-existing,
@@ -4648,6 +4709,65 @@ begin
       SList.Add('Physics joint only works if also TCastleRigidBody and TCastleCollider behaviors are present.');
     end;
   end;
+end;
+
+function TCastleTransform.InternalSaveX3D: TObject;
+
+  { Transform.Rotation and Transform.ScaleOrientation have
+
+    - Default = (0,0,0,0) in CGE (as a special exception, we allow zero axis).
+      This is a nice default value for rotations, consistent with many other
+      defaults that are "equal to memory filled with zero" when possible,
+      and it doesn't suggest any rotation axis (for 2D, Z axis is not useful).
+
+    - And they have default = (0,0,1,0) in X3D.
+
+    When saving, adjust to X3D default, to not make "noise" in output
+    unnecessarily by non-defaut values. }
+  function RotationHasZDefault(const Rot: TVector4): TVector4;
+  begin
+    if Rot.IsPerfectlyZero then
+      Result := Vector4(0, 0, 1, 0)
+    else
+      Result := Rot;
+  end;
+
+var
+  TransformNode: TTransformNode;
+  ChildNode: TAbstractChildNode;
+  ChildTransform: TCastleTransform;
+begin
+  TransformNode := TTransformNode.Create;
+  Result := TransformNode;
+  try
+    TransformNode.X3DName := Name;
+    TransformNode.Translation := Translation;
+    TransformNode.Rotation := RotationHasZDefault(Rotation);
+    TransformNode.Scale := Scale;
+    TransformNode.ScaleOrientation := RotationHasZDefault(ScaleOrientation);
+    TransformNode.Center := Center;
+
+    ChildNode := InternalSaveX3DInside as TAbstractChildNode;
+    if ChildNode <> nil then
+      TransformNode.AddChildren(ChildNode);
+
+    for ChildTransform in Self do
+    begin
+      { Do not export anything for internal transformations, like used by
+        TCastle*Light or TCastleText.
+        Although they should override this method anyway. }
+      if csTransient in ChildTransform.ComponentStyle then
+        Continue;
+
+      ChildNode := ChildTransform.InternalSaveX3D as TAbstractChildNode;
+      TransformNode.AddChildren(ChildNode);
+    end;
+  except FreeAndNil(Result); raise end;
+end;
+
+function TCastleTransform.InternalSaveX3DInside: TObject;
+begin
+  Result := nil;
 end;
 
 {$define read_implementation_methods}

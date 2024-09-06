@@ -292,6 +292,8 @@
     // @exclude
     procedure InternalSetEffectiveProjection(
       const AEffectiveProjectionNear, AEffectiveProjectionFar: Single);
+  protected
+    function InternalSaveX3DInside: TObject; override;
   public
     InternalOnSceneBoundViewpointChanged,
     InternalOnSceneBoundViewpointVectorsChanged,
@@ -1460,6 +1462,44 @@ begin
     EffectiveProjectionFar,
     Iff(EffectiveProjectionFar = ZFarInfinity, ' (infinity: no far clipping plane)', '')
   ]));
+end;
+
+function TCastleCamera.InternalSaveX3DInside: TObject;
+var
+  OrthoViewpoint: TOrthoViewpointNode;
+  Viewpoint: TViewpointNode;
+  OrthoFovLeft, OrthoFovBottom: Single;
+begin
+  case ProjectionType of
+    ptOrthographic:
+      begin
+        OrthoViewpoint := TOrthoViewpointNode.Create;
+        OrthoFovLeft   := -Orthographic.Origin.X * Orthographic.Width;
+        OrthoFovBottom := -Orthographic.Origin.Y * Orthographic.Height;
+        OrthoViewpoint.SetFieldOfView([
+          OrthoFovLeft,
+          OrthoFovBottom,
+          OrthoFovLeft + Orthographic.Width,
+          OrthoFovBottom + Orthographic.Height
+        ]);
+        OrthoViewpoint.Position := TVector3.Zero;
+        Result := OrthoViewpoint;
+      end;
+    ptPerspective:
+      begin
+        Viewpoint := TViewpointNode.Create;
+        Viewpoint.FieldOfView := Perspective.FieldOfView;
+        { X3D FieldOfViewForceVertical allows to express FieldOfViewAxis = faVertical
+          case.
+          Other FieldOfViewAxis = faVertical values are all treated
+          as default X3D behavior, which means faSmallest. }
+        Viewpoint.FieldOfViewForceVertical := Perspective.FieldOfViewAxis = faVertical;
+        Viewpoint.FieldOfView := Perspective.FieldOfView;
+        Viewpoint.Position := TVector3.Zero;
+        Result := Viewpoint;
+      end;
+    else raise EInternalError.Create('TCastleCamera.InternalSaveX3DInside: PerspectiveType?');
+  end;
 end;
 
 {$define read_implementation_methods}

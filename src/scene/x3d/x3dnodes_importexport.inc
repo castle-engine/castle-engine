@@ -46,7 +46,7 @@
     { Exported node.
       Note that we store node reference, not just ExportedNodeName,
       this way renaming the ExportedNode (e.g. by RenameUniquely during saving)
-      is properly reflected in wrtitten EXPORT statement. }
+      is properly reflected in the saved EXPORT statement. }
     property ExportedNode: TX3DNode read FExportedNode write SetExportedNode;
 
     procedure Parse(Lexer: TX3DLexer; Reader: TX3DReaderNames);

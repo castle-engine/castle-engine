@@ -64,6 +64,8 @@ type
       This updates TCastleCollider with TCastleCollider.AutoSize.
       This also updates TCastleMeshCollider mesh, if it referred to us. }
     procedure UpdateCollider;
+
+    function InternalSaveX3DInside: TObject; override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -339,6 +341,11 @@ begin
   C := FindBehavior(TCastleCollider) as TCastleCollider;
   if C <> nil then
     C.InternalTransformChanged(Self);
+end;
+
+function TCastleAbstractPrimitive.InternalSaveX3DInside: TObject;
+begin
+  Result := FShapeNode.DeepCopy;
 end;
 
 {$define read_implementation_methods}
