@@ -544,7 +544,8 @@ begin
   case Operation of
     opInsert: ParentView.SetNameReference(AComponent, AComponent.Name, true);
     opRemove: ParentView.SetNameReference(AComponent, AComponent.Name, false);
-    else ;
+    // To write else or not? See https://castle-engine.io/coding_conventions#_if_you_dont_care_whether_you_exhaust_all_options_or_not_you_want_to_be_prepared_for_future_extensions_of_enum_type_but_you_dont_want_any_warnings
+    // else ;
   end;
   inherited;
 end;
