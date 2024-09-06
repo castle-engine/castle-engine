@@ -491,20 +491,52 @@
     function LocalRayCollision(const RayOrigin, RayDirection: TVector3;
       const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): TRayCollision; virtual;
 
-    { Render with given Params (includes a full transformation of this scene).
+    { Collect the things to be rendered now.
 
-      This is @bold(mostly an internal method). You should not need to override
-      it during normal engine usage. Instead, you should render everything using
-      TCastleScene, which allows to load or build (by code) nodes to display
-      meshes, light and everything else.
-      But overriding this may be useful for special customized rendering. }
+      Override this method if you need to perform custom rendering,
+      by direct OpenGL(ES) calls.
+      Never call this method yourself -- the rendering of TCastleViewport
+      will call it when needed.
+
+      @italic(Warning: It is an advanced topic how to make
+      such rendering work, and make it work in a cross-platform way.)
+      You will need to understand how OpenGL(ES) works,
+      and you will need to account for how the engine renders things too,
+      to not conflict with the engine -- e.g. you will have to use
+      @link(RederContext) for some things.
+      If you're not ready for this, then you're better off not overriding
+      this method, instead just rely on the engine built-in rendering,
+      done by TCastleScene and other components.
+
+      This method gets parameters (Params) including a full transformation of this scene.
+
+      In return, it should add the things to be rendered in this frame
+      using @link(TRenderParams.AddRenderEvent Params.AddRenderEvent).
+
+      Internally: TCastleScene also adds X3D shapes to be rendered to
+      @link(TRenderParams.Collector). But you should not need to deal with
+      @link(TRenderParams.Collector) in your own code.
+
+      TODO: The names LocalRender, TRenderParams are now confusing.
+      LocalRender is not a method where one should "render" anymore.
+      It's a "collection phase". Think of it as
+      "TCastleTranssform.CollectThingsToRender(const Params: ...)"
+      and bear with us as we figure out a non-confusing naming around this. }
     procedure LocalRender(const Params: TRenderParams); virtual;
 
     { Render shadow volumes (with a full transformation of this scene).
 
-      This is @bold(mostly an internal method). You should not need to override
-      it during normal engine usage. If you render everything using TCastleScene,
-      then rendering shadow volumes is also automatically handled by TCastleScene. }
+      Override this if you do custom rendering (overriding also @link(LocalRender))
+      and would like to render shadow volumes for your custom rendering.
+      Never call this method yourself -- the rendering of TCastleViewport
+      will call it when needed.
+
+      Just like for @link(LocalRender), the same warning applies:
+      doing custom rendering is an advanced topic, you need to understand
+      how OpenGL(ES) works, and how the engine renders things, to make it all work.
+      Most projects should not need to override this method,
+      instead rely on built-in engine components like TCastleScene to render
+      everything. }
     procedure LocalRenderShadowVolume(const Params: TRenderParams;
       const ShadowVolumeRenderer: TBaseShadowVolumeRenderer); virtual;
 
