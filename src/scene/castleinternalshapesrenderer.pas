@@ -26,16 +26,29 @@ uses CastleVectors, CastleSceneInternalShape, CastleRenderOptions,
   X3DNodes, CastleShapes, CastleUtils;
 
 type
+  { Collected information how to call TRenderEvent. }
+  TCollectedRenderEvent = record
+    Event: TRenderEvent;
+    Transformation: TTransformation;
+  end;
+
+  { List of @link(TCollectedRenderEvent). }
+  TRenderEventList = class({$ifdef FPC}specialize{$endif} TStructList<TCollectedRenderEvent>)
+    procedure ExecuteAll(const PassParams: TRenderOnePassParams);
+  end;
+
   { Collect shapes, possibly coming from different TCastleScene instances,
     to render them together using TShapesRenderer. }
   TShapesCollector = class
   private
     FCollected: TCollectedShapeList;
+    FRenderEvents: TRenderEventList; //< may be nil, treat like empty
   public
     constructor Create(const OwnsObjects: Boolean);
     destructor Destroy; override;
 
-    { Add all shapes from Source that pass the filters. }
+    { Add all shapes from Source that pass the filters.
+      Also add all collected render events (added to Source by AddRenderEvent). }
     procedure AddFiltered(const Source: TShapesCollector;
       const FilterTransparent: TBooleanSet;
       const FilterShadowVolumesReceivers: TBooleanSet);
@@ -47,6 +60,11 @@ type
     procedure Add(const Shape: TGLShape; const RenderOptions: TCastleRenderOptions;
       const SceneTransform: TMatrix4; const DepthRange: TDepthRange;
       const ShadowVolumesReceiver: Boolean);
+
+    { Add a custom rendering event.
+      @seealso TRenderParams.AddRenderEvent. }
+    procedure AddRenderEvent(const Transformation: TTransformation;
+      const RenderEvent: TRenderEvent);
   end;
 
   { Render collected shapes.
@@ -179,6 +197,16 @@ uses SysUtils,
   CastleScene, CastleGLUtils, CastleRenderContext, CastleColors,
   X3DCameraUtils, CastleTimeUtils;
 
+{ TRenderEventList ---------------------------------------------------------- }
+
+procedure TRenderEventList.ExecuteAll(const PassParams: TRenderOnePassParams);
+var
+  I: Integer;
+begin
+  for I := 0 to Count - 1 do
+    L[I].Event(L[I].Transformation, PassParams);
+end;
+
 { TShapesCollector ----------------------------------------------------------- }
 
 constructor TShapesCollector.Create(const OwnsObjects: Boolean);
@@ -190,12 +218,15 @@ end;
 destructor TShapesCollector.Destroy;
 begin
   FreeAndNil(FCollected);
+  FreeAndNil(FRenderEvents);
   inherited;
 end;
 
 procedure TShapesCollector.Clear;
 begin
   FCollected.Clear;
+  if FRenderEvents <> nil then
+    FRenderEvents.Clear;
 end;
 
 procedure TShapesCollector.Add(const Shape: TGLShape;
@@ -225,6 +256,28 @@ begin
     if CollectedShape.UseBlending in FilterTransparent then
       if CollectedShape.ShadowVolumesReceiver in FilterShadowVolumesReceivers then
         FCollected.Add(CollectedShape);
+
+  if Source.FRenderEvents <> nil then
+  begin
+    if FRenderEvents = nil then
+      FRenderEvents := TRenderEventList.Create;
+    FRenderEvents.Clear;
+    FRenderEvents.AddRange(Source.FRenderEvents);
+  end else
+    FreeAndNil(FRenderEvents);
+  Assert((Source.FRenderEvents = nil) = (FRenderEvents = nil));
+end;
+
+procedure TShapesCollector.AddRenderEvent(const Transformation: TTransformation;
+  const RenderEvent: TRenderEvent);
+var
+  CollectedRenderEvent: TCollectedRenderEvent;
+begin
+  if FRenderEvents = nil then
+    FRenderEvents := TRenderEventList.Create;
+  CollectedRenderEvent.Event := RenderEvent;
+  CollectedRenderEvent.Transformation := Transformation;
+  FRenderEvents.Add(CollectedRenderEvent);
 end;
 
 { TShapesRenderer ----------------------------------------------------------- }
@@ -600,8 +653,10 @@ var
   LightRenderEvent: TLightRenderEvent;
   CollectedShape: TCollectedShape;
 begin
-  { TODO: This optimization should be useless, remove.
-    For now it helps with hack that access 0th scene RenderOptions below. }
+  if Shapes.FRenderEvents <> nil then
+    Shapes.FRenderEvents.ExecuteAll(PassParams);
+
+  // Optimization for common case: Early exit if no Shapes to process
   if Shapes.FCollected.Count = 0 then
     Exit;
 
