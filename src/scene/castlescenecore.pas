@@ -8539,28 +8539,37 @@ function TCastleSceneCore.InternalBuildNodeInside(const SaveBaseUrl: String): TO
   end;
 
 var
+  ExportAnimation: Boolean;
   InlineNode: TInlineNode;
+  GroupNode: TGroupNode;
   Import: TX3DImport;
 begin
+  // if AutoAnimation is defined, setup nodes to start given animation
+  ExportAnimation := (AutoAnimation <> '') and RootExportsName(AutoAnimation);
+
   InlineNode := TInlineNode.Create;
   InlineNode.X3DName := Name + '_Scene';
   InlineNode.FdUrl.Items.Add(AdjustUrl(Url));
 
-  // if AutoAnimation is defined, setup nodes to start given animation
-  if AutoAnimation <> '' then
+  if ExportAnimation then
   begin
-    if RootExportsName(AutoAnimation) then
-    begin
-      Import := TX3DImport.Create;
-      Import.InlineNodeName := InlineNode.X3DName;
-      Import.ImportedNodeName := AutoAnimation;
-      Import.ImportedNodeAlias := AutoAnimation; // same as ImportedNodeName
-      InlineNode.AddImport(Import);
-      // TODO: add sensor to activate this time sensor.
-    end;
-  end;
+    GroupNode := TGroupNode.Create;
+    GroupNode.X3DName := Name + '_Group';
+    GroupNode.AddChildren(InlineNode);
 
-  Result := InlineNode;
+    Import := TX3DImport.Create;
+    Import.InlineNodeName := InlineNode.X3DName;
+    Import.ImportedNodeName := AutoAnimation;
+    { Prefix imported name with Name, to make it unique if you export
+      many times some scene with the same animation name.
+      Testcase: exporting 3D FPS game template, many soldiers with "walk". }
+    Import.ImportedNodeAlias := Name + '_' + AutoAnimation; // same as ImportedNodeName
+    GroupNode.AddImport(Import);
+    // TODO: add sensor to activate this time sensor.
+
+    Result := GroupNode;
+  end else
+    Result := InlineNode;
 end;
 
 end.
