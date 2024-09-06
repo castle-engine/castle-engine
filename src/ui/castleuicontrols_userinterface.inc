@@ -648,6 +648,17 @@
       that will take care of freeing it. }
     procedure ClearControls;
 
+    { Move to become the front-most control within the parent.
+
+      This works when this control is a child of another control (has @link(Parent)
+      assigned) or when it's a direct child of the container
+      (in which case @link(Parent) is not assigned by @link(Container) is,
+      which means the control is directly on @link(TCastleContainer.Controls) list).
+
+      This is ignored if this control is not within any container (so, also not
+      within any parent). }
+    procedure MoveToFront;
+
     {$ifdef FPC}
     property GetExists: Boolean read FExists; deprecated 'use Exists';
     {$endif}
@@ -1874,6 +1885,29 @@ begin
   if FControls <> nil then
     Result := FControls.Count else
     Result := 0;
+end;
+
+procedure TCastleUserInterface.MoveToFront;
+
+  procedure MoveInControls(const ParentControls: TInternalChildrenControls);
+  var
+    Index: Integer;
+  begin
+    Index := ParentControls.IndexOf(Self);
+    if Index = -1 then
+      raise EInternalError.Create('TCastleUserInterface.MoveToFront: ParentControls.IndexOf(Self) = -1');
+    ParentControls.Move(Index, ParentControls.Count - 1);
+  end;
+
+begin
+  if Parent <> nil then
+  begin
+    Assert(Parent.ControlsCount > 0);
+    Assert(Parent.FControls <> nil);
+    MoveInControls(Parent.FControls);
+  end else
+  if Container <> nil then
+    MoveInControls(Container.Controls);
 end;
 
 procedure TCastleUserInterface.InternalSetContainer(const Value: TCastleContainer);

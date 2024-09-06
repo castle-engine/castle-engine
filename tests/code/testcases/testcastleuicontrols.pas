@@ -35,6 +35,7 @@ type
     procedure TestContainerSettingsClosedWindow;
     procedure TestContainerSettingsOpenWindow;
     procedure TestControlsParentDoesNotOwn;
+    procedure TestMoveToFront;
   end;
 
 implementation
@@ -338,6 +339,82 @@ begin
   finally
     FreeAndNil(MyChild);
     FreeAndNil(SomeParent);
+    FreeAndNil(Container);
+  end;
+end;
+
+type
+  TMyUiTestMoveToFront = class(TCastleUserInterface)
+  public
+    ChangeContainerUnexpected: Boolean;
+    procedure InternalSetContainer(const NewContainer: TCastleContainer); override;
+  end;
+
+procedure TMyUiTestMoveToFront.InternalSetContainer(const NewContainer: TCastleContainer);
+begin
+  if ChangeContainerUnexpected then
+    raise Exception.Create('Unexpected change of container');
+  inherited;
+end;
+
+procedure TTestCastleUIControls.TestMoveToFront;
+var
+  Container: TTestContainer;
+  U1, U2: TCastleUserInterface;
+  UTest: TMyUiTestMoveToFront;
+begin
+  U1 := nil;
+  U2 := nil;
+  Container := nil;
+  try
+    Container := TTestContainer.Create(nil);
+    U1 := TCastleUserInterface.Create(nil);
+    U1.Name := 'U1';
+    U2 := TCastleUserInterface.Create(nil);
+    U2.Name := 'U2';
+    UTest := TMyUiTestMoveToFront.Create(nil);
+    UTest.Name := 'UTest';
+
+    UTest.ChangeContainerUnexpected := true;
+    UTest.MoveToFront; // does nothing now
+    UTest.ChangeContainerUnexpected := false;
+
+    Container.Controls.InsertFront(UTest);
+    Container.Controls.InsertFront(U1);
+    AssertEquals(2, Container.Controls.Count);
+    AssertTrue(Container.Controls[0] = UTest);
+    AssertTrue(Container.Controls[1] = U1);
+
+    UTest.ChangeContainerUnexpected := true;
+    UTest.MoveToFront;
+    UTest.ChangeContainerUnexpected := false;
+
+    // order changed now
+    AssertEquals(2, Container.Controls.Count);
+    AssertTrue(Container.Controls[0] = U1);
+    AssertTrue(Container.Controls[1] = UTest);
+
+    // now test if it's also good when UTest is a child of U1
+
+    Container.Controls.Remove(UTest);
+    U1.InsertFront(UTest);
+    U1.InsertFront(U2);
+    AssertEquals(2, U1.ControlsCount);
+    AssertTrue(U1.Controls[0] = UTest);
+    AssertTrue(U1.Controls[1] = U2);
+
+    UTest.ChangeContainerUnexpected := true;
+    UTest.MoveToFront;
+    UTest.ChangeContainerUnexpected := false;
+
+    // order changed now
+    AssertEquals(2, U1.ControlsCount);
+    AssertTrue(U1.Controls[0] = U2);
+    AssertTrue(U1.Controls[1] = UTest);
+  finally
+    FreeAndNil(U1);
+    FreeAndNil(U2);
+    FreeAndNil(UTest);
     FreeAndNil(Container);
   end;
 end;
