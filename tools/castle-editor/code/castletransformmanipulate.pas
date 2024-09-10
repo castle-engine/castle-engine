@@ -206,7 +206,9 @@ type
   end;
 
 var
-  ColorHover, ColorSelected, ColorHoverAndSelected: TCastleColor;
+  { Hover and selection colors.
+    They have reasonable defaults, but you can change them if you want. }
+  ColorHover, ColorSelected: TCastleColor;
 
 implementation
 
@@ -932,5 +934,4 @@ end;
 initialization
   ColorHover := HexToColor('fffba0'); // desaturated yellow
   ColorSelected := White;
-  ColorHoverAndSelected := Yellow;
 end.

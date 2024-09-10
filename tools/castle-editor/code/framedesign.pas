@@ -745,6 +745,10 @@ begin
     Result := UI.Parent.RenderRect;
 end;
 
+var
+  { Used to display UI that is both selected and hovered over. }
+  ColorHoverAndSelected: TCastleColor;
+
 { TDesignFrame.TDesignerLayer ------------------------------------------------ }
 
 constructor TDesignFrame.TDesignerLayer.Create(AOwner: TComponent);
@@ -6523,6 +6527,8 @@ begin
 end;
 
 initialization
+  ColorHoverAndSelected := Yellow;
+
   { Enable using our property edits e.g. for TCastleScene.URL }
   CastlePropEdits.Register;
   CastleEditorPropEdits.Register;
