@@ -202,7 +202,8 @@ type
       The list Selected does not become owned by this class.
       You can free it whenever you want, even immediately after calling this method,
       we don't keep any reference to it -- we copy the contents. }
-    procedure SetSelected(const Selected: TComponentList);
+    procedure SetSelected(const Selected: TComponentList); overload;
+    procedure SetSelected(const Selected: array of TComponent); overload;
   end;
 
 var
@@ -598,27 +599,32 @@ begin
      (Pick.Triangle^.ShapeNode.Appearance <> nil) then
   begin
     AppearanceName := Pick.Triangle^.ShapeNode.Appearance.X3DName;
-    case AppearanceName of
-      'MaterialX': DraggingCoord := 0;
-      'MaterialY': DraggingCoord := 1;
-      'MaterialZ':
-        begin
-          { In 2D mode dragging Z axis means translate in X and Y. }
-          if IsOrthographicTranslation then
-            DraggingCoord := -2
-          else
-            DraggingCoord := 2;
-        end;
-      'MaterialCenter':
-        begin
-          { In 2D mode dragging center square means translate in X and Y. }
-          if IsOrthographicTranslation then
-            DraggingCoord := -2
-          else if (Mode = mmScale) then
-            DraggingCoord := -1;
-        end;
-      else Exit;
-    end;
+    if AppearanceName = 'MaterialX' then
+    begin
+      DraggingCoord := 0;
+    end else
+    if AppearanceName = 'MaterialY' then
+    begin
+      DraggingCoord := 1;
+    end else
+    if AppearanceName = 'MaterialZ' then
+    begin
+      { In 2D mode dragging Z axis means translate in X and Y. }
+      if IsOrthographicTranslation then
+        DraggingCoord := -2
+      else
+        DraggingCoord := 2;
+    end else
+    if AppearanceName = 'MaterialCenter' then
+    begin
+      { In 2D mode dragging center square means translate in X and Y. }
+      if IsOrthographicTranslation then
+        DraggingCoord := -2
+      else
+      if Mode = mmScale then
+        DraggingCoord := -1;
+    end else
+      Exit; // ignore draging on other material names
 
     if Mode = mmRotate then
       CanDrag := AngleOnPlane(LastPickAngle, Pick, DraggingCoord)
@@ -796,8 +802,8 @@ constructor TCastleTransformManipulate.Create(AOwner: TComponent);
     Result.InternalExcludeFromParentBoundingVolume := true;
     Result.PreciseCollisions := true;
     Result.SetTransient;
-    Result.OnTransformModified := @GizmoHasTransformModified;
-    Result.OnTransformModifyEnd := @GizmoHasTransformModifyEnd;
+    Result.OnTransformModified := {$ifdef FPC}@{$endif} GizmoHasTransformModified;
+    Result.OnTransformModifyEnd := {$ifdef FPC}@{$endif} GizmoHasTransformModifyEnd;
   end;
 
 begin
@@ -843,6 +849,18 @@ begin
     Boxes[I].BoxColor := ColorOpacity(ColorSelected, 0.5);
     Boxes[I].Exists := true;
   end;
+end;
+
+procedure TCastleTransformManipulate.SetSelected(const Selected: array of TComponent);
+var
+  List: TComponentList;
+  C: TComponent;
+begin
+  List := TComponentList.Create(false);
+  try
+    for C in Selected do
+      List.Add(C);
+  finally FreeAndNil(List) end;
 end;
 
 procedure TCastleTransformManipulate.SetSelected(const Selected: TComponentList);
@@ -902,7 +920,7 @@ begin
   if FPickable <> Value then
   begin
     FPickable := Value;
-    for M in TManipulateMode do
+    for M := Low(TManipulateMode) to High(TManipulateMode) do
       if Gizmo[M] <> nil then // Gizmo[mmSelect] is nil now, nothing to show
         Gizmo[M].Pickable := Value;
   end;
