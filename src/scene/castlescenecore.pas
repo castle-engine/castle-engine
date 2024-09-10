@@ -8521,6 +8521,7 @@ function TCastleSceneCore.InternalBuildNodeInside(const SaveBaseUrl: String): TO
     E: TX3DExport;
     HereExported: String;
   begin
+    Result := false;
     if (RootNode <> nil) and (RootNode.ExportedNames <> nil) then
     begin
       for E in RootNode.ExportedNames do
