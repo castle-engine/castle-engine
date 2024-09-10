@@ -195,7 +195,7 @@ type
     procedure ChangedScene;
   end;
 
-  TDebugTransformBoxList = specialize TObjectList<TDebugTransformBox>;
+  TDebugTransformBoxList = {$ifdef FPC}specialize{$endif} TObjectList<TDebugTransformBox>;
 
   { Like TDebugTransformBox, but visualizes also additional properties.
     This is useful to visualize typical properties of TCastleTransform
