@@ -213,10 +213,10 @@ var
 implementation
 
 uses Math,
-  ProjectUtils,
   CastleLog, CastleShapes, CastleViewport, CastleProjection,
   CastleQuaternions, X3DNodes, CastleGLUtils, CastleRenderContext,
-  CastleControl, CastleKeysMouse, CastleRenderOptions;
+  CastleKeysMouse, CastleRenderOptions,
+  CastleInternalTransformData;
 
 { TCastleTransformHover ------------------------------------------------------ }
 
@@ -810,15 +810,17 @@ begin
   Boxes := TDebugTransformBoxList.Create(true);
   CreateMoreBoxes;
 
+  RegisterTransformManipulateData;
+
   // Gizmo[mmSelect] remains nil
   Gizmo[mmTranslate] := CreateGizmoScene;
-  Gizmo[mmTranslate].Load(InternalCastleDesignData + 'gizmos/transform/translate_final.x3dv');
+  Gizmo[mmTranslate].Load('castle-internal-embedded-data:/translate_final.x3dv');
   Gizmo[mmTranslate].Mode := mmTranslate;
   Gizmo[mmRotate] := CreateGizmoScene;
-  Gizmo[mmRotate].Load(InternalCastleDesignData + 'gizmos/transform/rotate_final.x3dv');
+  Gizmo[mmRotate].Load('castle-internal-embedded-data:/rotate_final.x3dv');
   Gizmo[mmRotate].Mode := mmRotate;
   Gizmo[mmScale] := CreateGizmoScene;
-  Gizmo[mmScale].Load(InternalCastleDesignData + 'gizmos/transform/scale_final.x3dv');
+  Gizmo[mmScale].Load('castle-internal-embedded-data:/scale_final.x3dv');
   Gizmo[mmScale].Mode := mmScale;
 end;
 

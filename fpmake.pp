@@ -482,6 +482,8 @@ begin
     P.Targets.AddUnit('x3dcamerautils.pas');
     P.Targets.AddUnit('x3dtime.pas');
     P.Targets.AddUnit('castleinternalscreeneffects.pas');
+    P.Targets.AddUnit('castletransformmanipulate.pas');
+    P.Targets.AddUnit('castleinternaltransformdata.pas');
 
     P.SourcePath.Add('src/scene/x3d');
     P.Targets.AddUnit('x3dnodes.pas');
