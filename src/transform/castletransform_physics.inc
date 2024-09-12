@@ -2521,14 +2521,18 @@ procedure TCastleMeshCollider.AddTriangle(Shape: TObject;
   const Position: TTriangle3;
   const Normal: TTriangle3; const TexCoord: TTriangle4;
   const Face: TFaceIndex);
+var
+  S: Single;
 begin
   { TODO: it's probably not optimal to call AddTriangle
     for each triangle, we should instead call Load with a list. }
 
+  S := TotalScale;
+
   FKraftMesh.AddTriangle(
-    FKraftMesh.AddVertex(VectorToKraft(Position.Data[0])),
-    FKraftMesh.AddVertex(VectorToKraft(Position.Data[1])),
-    FKraftMesh.AddVertex(VectorToKraft(Position.Data[2])),
+    FKraftMesh.AddVertex(VectorToKraft(S * Position.Data[0])),
+    FKraftMesh.AddVertex(VectorToKraft(S * Position.Data[1])),
+    FKraftMesh.AddVertex(VectorToKraft(S * Position.Data[2])),
     FKraftMesh.AddNormal(VectorToKraft(Normal.Data[0])),
     FKraftMesh.AddNormal(VectorToKraft(Normal.Data[1])),
     FKraftMesh.AddNormal(VectorToKraft(Normal.Data[2]))
@@ -2539,9 +2543,9 @@ begin
     { We also add triangles for the other side.
       Kraft RayCast does not check inverted triangles. }
     FKraftMesh.AddTriangle(
-      FKraftMesh.AddVertex(VectorToKraft(Position.Data[2])),
-      FKraftMesh.AddVertex(VectorToKraft(Position.Data[1])),
-      FKraftMesh.AddVertex(VectorToKraft(Position.Data[0])),
+      FKraftMesh.AddVertex(VectorToKraft(S * Position.Data[2])),
+      FKraftMesh.AddVertex(VectorToKraft(S * Position.Data[1])),
+      FKraftMesh.AddVertex(VectorToKraft(S * Position.Data[0])),
       FKraftMesh.AddNormal(VectorToKraft(-Normal.Data[2])),
       FKraftMesh.AddNormal(VectorToKraft(-Normal.Data[1])),
       FKraftMesh.AddNormal(VectorToKraft(-Normal.Data[0]))
