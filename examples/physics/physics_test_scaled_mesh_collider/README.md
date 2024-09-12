@@ -2,6 +2,8 @@
 
 Test that scaling (by setting `TCastleTransform.Scale`) works correctly with `TCastleMeshCollider`. The mesh collider is appropriately affected, whether you set the scale at design-time or run-time. You can run physics in editor or just run the application.
 
+![Screenshot](screenshot.png)
+
 Using [Castle Game Engine](https://castle-engine.io/).
 
 ## Building
