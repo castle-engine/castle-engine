@@ -47,6 +47,8 @@ type
     procedure ReloadMap;
     procedure UpdateSmoothScaling;
     procedure SetLayers(const Value: TLayers);
+  protected
+    function InternalBuildNodeInside: TObject; override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -345,6 +347,15 @@ begin
     Tileset.TileWidth,
     Tileset.TileHeight
   );
+end;
+
+function TCastleTiledMap.InternalBuildNodeInside: TObject;
+begin
+  // TODO: adjust TextureProperties, to reflect our SmoothScaling
+  if FScene.RootNode <> nil then
+    Result := FScene.RootNode.DeepCopy
+  else
+    Result := nil;
 end;
 
 {$endif read_implementation}

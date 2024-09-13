@@ -1468,20 +1468,41 @@ function TCastleCamera.InternalBuildNodeInside: TObject;
 var
   OrthoViewpoint: TOrthoViewpointNode;
   Viewpoint: TViewpointNode;
-  OrthoFovLeft, OrthoFovBottom: Single;
+  OrthoFovLeft, OrthoFovBottom, OrthoSize: Single;
 begin
   case ProjectionType of
     ptOrthographic:
       begin
         OrthoViewpoint := TOrthoViewpointNode.Create;
-        OrthoFovLeft   := -Orthographic.Origin.X * Orthographic.Width;
-        OrthoFovBottom := -Orthographic.Origin.Y * Orthographic.Height;
-        OrthoViewpoint.SetFieldOfView([
-          OrthoFovLeft,
-          OrthoFovBottom,
-          OrthoFovLeft + Orthographic.Width,
-          OrthoFovBottom + Orthographic.Height
-        ]);
+        if (Orthographic.Width <> 0) and
+           (Orthographic.Height <> 0) then
+        begin
+          OrthoFovLeft   := -Orthographic.Origin.X * Orthographic.Width;
+          OrthoFovBottom := -Orthographic.Origin.Y * Orthographic.Height;
+          OrthoViewpoint.SetFieldOfView([
+            OrthoFovLeft,
+            OrthoFovBottom,
+            OrthoFovLeft + Orthographic.Width,
+            OrthoFovBottom + Orthographic.Height
+          ]);
+        end else
+        if (Orthographic.Width <> 0) or
+           (Orthographic.Height <> 0) then
+        begin
+          OrthoSize := Max(Orthographic.Width, Orthographic.Height);
+          { Unlike our TCastleOrthographic, X3D OrthoViewpoint needs
+            both width and height non-zero.
+            So use the one we have non-zero to determine both -- these are
+            minimal values for fov anyway, so it will result in sensible rendering. }
+          OrthoFovLeft   := -Orthographic.Origin.X * OrthoSize;
+          OrthoFovBottom := -Orthographic.Origin.Y * OrthoSize;
+          OrthoViewpoint.SetFieldOfView([
+            OrthoFovLeft,
+            OrthoFovBottom,
+            OrthoFovLeft + OrthoSize,
+            OrthoFovBottom + OrthoSize
+          ]);
+        end;
         OrthoViewpoint.Position := TVector3.Zero;
         Result := OrthoViewpoint;
       end;
