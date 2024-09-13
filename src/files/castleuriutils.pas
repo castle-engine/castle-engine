@@ -191,6 +191,16 @@ function UriToFilenameSafe(const Uri: String): string;
   as relative to the current directory). }
 function FilenameToUriSafe(FileName: string): string;
 
+{ Convert filename to URI,
+  if the filename is relative -- the URI will also be relative.
+
+  In contrast to FilenameToUriSafe, which always returns absolute URI,
+  this will return relative URI if the filename is relative.
+  If the given filename is absolute, this is equivalent to FilenameToUriSafe.
+
+  The FileName = '' is also considered relative, and returns ''. }
+function RelativeFilenameToUriSafe(const FileName: String): String;
+
 { Tries change URI to use castle-data: protocol.
   It's used in our editor to change absolute paths to relative to castle-data
   directory. }
@@ -1003,6 +1013,18 @@ begin
   FilenamePart := InternalUriEscape(FilenamePart);
 
   Result := Result + FilenamePart;
+end;
+
+function RelativeFilenameToUriSafe(const FileName: String): String;
+begin
+  if IsPathAbsolute(FileName) then
+    Result := FilenameToUriSafe(FileName)
+  else
+  begin
+    { This simple implementation is enough to handle relative filenames->URLs.
+      It accounts for Windows backslashes and encodes URL. }
+    Result := InternalUriEscape(SReplaceChars(FileName, '\', '/'));
+  end;
 end;
 
 var

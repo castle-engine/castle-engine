@@ -830,7 +830,7 @@ type
 
     GeneratedTextures: TGeneratedTextureList;
 
-    function InternalBuildNodeInside(const SaveBaseUrl: String): TObject; override;
+    function InternalBuildNodeInside: TObject; override;
 
     { Create TShape (or descendant) instance suitable for this
       TCastleSceneCore descendant. In this class, this simply creates new
@@ -8491,29 +8491,7 @@ begin
   end;
 end;
 
-function TCastleSceneCore.InternalBuildNodeInside(const SaveBaseUrl: String): TObject;
-
-  { Try to make URL for X3D file relative to SaveBaseUrl. }
-  function AdjustUrl(const Url: String): String;
-  var
-    TargetUrl, SaveBaseFileName, TargetFileName: String;
-  begin
-    TargetUrl := ResolveCastleDataUrl(Url);
-    TargetFileName := UriToFilenameSafe(TargetUrl);
-    SaveBaseFileName := UriToFilenameSafe(SaveBaseUrl);
-    if (SaveBaseFileName <> '') and (TargetFileName <> '') then
-    begin
-      Result := ExtractRelativePath(SaveBaseFileName, TargetFileName);
-
-      { Do not use: This would make the Result again an absolute URL
-      //Result := FilenameToUriSafe(Result);
-        Instead, using this trivial way to turn relative filename -> URL,
-        it accounts for Windows backslashes and encodes URL. }
-      Result := InternalUriEscape(SReplaceChars(Result, '\', '/'));
-    end else
-      // use original URL then, possibly with castle-data:/ protocol
-      Result := Url;
-  end;
+function TCastleSceneCore.InternalBuildNodeInside: TObject;
 
   { Does our RootNode export (using X3D mechanism) given name. }
   function RootExportsName(const ExportedName: String): Boolean;
@@ -8550,10 +8528,7 @@ begin
 
   InlineNode := TInlineNode.Create;
   InlineNode.X3DName := Name + '_Scene';
-  { Set InlineNode.BaseUrl, to allow opening the URLs relative to this,
-    needed e.g. when saving as STL. }
-  InlineNode.BaseUrl := SaveBaseUrl;
-  InlineNode.FdUrl.Items.Add(AdjustUrl(Url));
+  InlineNode.SetUrl([Url]);
 
   if ExportAnimation then
   begin

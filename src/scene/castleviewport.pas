@@ -1363,7 +1363,7 @@ implementation
 
 uses DOM, Math, TypInfo,
   CastleGLUtils, CastleLog, CastleStringUtils,
-  CastleSoundEngine, CastleGLVersion, CastleTextureImages,
+  CastleSoundEngine, CastleGLVersion, CastleTextureImages, X3DFields,
   CastleInternalSettings, CastleXmlUtils, CastleUriUtils, CastleInternalRenderer,
   CastleRenderContext, CastleApplicationProperties, X3DLoad, CastleInternalGLUtils;
 
@@ -4293,13 +4293,103 @@ begin
   end;
 end;
 
+type
+  { Helper for InternalBuildNode. }
+  TInternalBuildNodeHelper = class
+  strict private
+    { Adjust URL present at some node to be relative to BaseUrl. }
+    function AdjustUrl(const Url: String): String;
+  public
+    BaseUrl: String;
+    procedure ProcessNode(Node: TX3DNode);
+  end;
+
+function TInternalBuildNodeHelper.AdjustUrl(const Url: String): String;
+var
+  TargetUrl, BaseFileName, TargetFileName, ResultFileName: String;
+begin
+  TargetUrl := ResolveCastleDataUrl(Url);
+  TargetFileName := UriToFilenameSafe(TargetUrl);
+  BaseFileName := UriToFilenameSafe(BaseUrl);
+  if (BaseFileName <> '') and (TargetFileName <> '') then
+  begin
+    ResultFileName := ExtractRelativePath(BaseFileName, TargetFileName);
+    Result := RelativeFilenameToUriSafe(ResultFileName);
+  end else
+    // use original URL then, maybe with castle-data:/, maybe other protocol
+    Result := Url;
+end;
+
+procedure TInternalBuildNodeHelper.ProcessNode(Node: TX3DNode);
+
+  procedure ProcessUrlField(const Field: TMFString);
+  var
+    I: Integer;
+  begin
+    for I := 0 to Field.Items.Count - 1 do
+      Field.Items[I] := AdjustUrl(Field.Items[I]);
+  end;
+
+begin
+  { Set Node.BaseUrl, to allow opening the URLs relative to BaseUrl
+    (which will also be present because of AdjustUrl).
+
+    This is important if some code will require to load URLs from the exported
+    graph, which happens e.g. for TInlineNode URLs when saving as STL:
+    we need to load inline contents then.
+    So, without this, saving to STL from "Export Viewport to X3D, STL..."
+    in editor would fail for TCastleScene in viewport. }
+  Node.BaseUrl := BaseUrl;
+
+  if Node is TInlineNode then
+    ProcessUrlField(TInlineNode(Node).FdUrl)
+  else
+  if Node is TImageTextureNode then
+    ProcessUrlField(TImageTextureNode(Node).FdUrl)
+  else
+  if Node is TBackgroundNode then
+  begin
+    ProcessUrlField(TBackgroundNode(Node).FdBackUrl);
+    ProcessUrlField(TBackgroundNode(Node).FdBottomUrl);
+    ProcessUrlField(TBackgroundNode(Node).FdFrontUrl);
+    ProcessUrlField(TBackgroundNode(Node).FdLeftUrl);
+    ProcessUrlField(TBackgroundNode(Node).FdRightUrl);
+    ProcessUrlField(TBackgroundNode(Node).FdTopUrl);
+  end;
+end;
+
 function TCastleViewport.InternalBuildNode(const SaveBaseUrl: String): TX3DRootNode;
 var
   ExportedItems: TAbstractChildNode;
+  Helper: TInternalBuildNodeHelper;
 begin
   Result := TX3DRootNode.Create;
   try
-    ExportedItems := Items.InternalBuildNode(SaveBaseUrl) as TAbstractChildNode;
+    ExportedItems := Items.InternalBuildNode as TAbstractChildNode;
+    Helper := TInternalBuildNodeHelper.Create;
+    try
+      Helper.BaseUrl := SaveBaseUrl;
+
+      { Process all nodes to fix the URLs inside.
+        Doing it here (not e.g. for particular nodes/fields inside
+        implementations of overrides of InternalBuildNodeInside)
+        means:
+
+        - We fix all nodes, even the ones not explicitly processed by the
+          InternalBuildNodeInside implementations. E.g. TCastleTerrain
+          produces copies of some TImageTextureNode because it used some textures.
+
+        - The code to do it is centralized here,
+          no need to pass around some class like TInternalBuildNodeUtils.
+          So the code is simpler.
+
+        - Less chance that some node will "slip out" from processing.
+          Once we handled some node type in our TInternalBuildNodeHelper.ProcessNode,
+          the implementations ofInternalBuildNodeInside don't need to worry
+          about it.
+      }
+      ExportedItems.EnumerateNodes(TX3DNode, {$ifdef FPC}@{$endif} Helper.ProcessNode, false);
+    finally FreeAndNil(Helper) end;
     Result.AddChildren(ExportedItems);
   except FreeAndNil(Result); raise end;
 end;

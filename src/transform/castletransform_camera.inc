@@ -293,7 +293,7 @@
     procedure InternalSetEffectiveProjection(
       const AEffectiveProjectionNear, AEffectiveProjectionFar: Single);
   protected
-    function InternalBuildNodeInside(const SaveBaseUrl: String): TObject; override;
+    function InternalBuildNodeInside: TObject; override;
   public
     InternalOnSceneBoundViewpointChanged,
     InternalOnSceneBoundViewpointVectorsChanged,
@@ -1464,7 +1464,7 @@ begin
   ]));
 end;
 
-function TCastleCamera.InternalBuildNodeInside(const SaveBaseUrl: String): TObject;
+function TCastleCamera.InternalBuildNodeInside: TObject;
 var
   OrthoViewpoint: TOrthoViewpointNode;
   Viewpoint: TViewpointNode;

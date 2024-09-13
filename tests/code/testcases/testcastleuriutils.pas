@@ -1,6 +1,6 @@
 ﻿// -*- compile-command: "./test_single_testcase.sh TTestUriUtils" -*-
 {
-  Copyright 2013-2021 Michalis Kamburelis.
+  Copyright 2013-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -39,6 +39,7 @@ type
     procedure TestEncodeBase64;
     procedure TestMimeTypeHttpQuery;
     procedure TestUriMimeType;
+    procedure TestRelativeFilenameToUriSafe;
   end;
 
 implementation
@@ -448,6 +449,14 @@ begin
   AssertEquals('application/json', UriMimeType('dragon.json#skin:dark'));
   AssertEquals('application/json', UriMimeType('castle-data:/dragon.json'));
   AssertEquals('application/json', UriMimeType('castle-data:/dragon.json#skin:dark'));
+end;
+
+procedure TTestUriUtils.TestRelativeFilenameToUriSafe;
+begin
+  AssertEquals('foo/bar.txt', RelativeFilenameToUriSafe('foo/bar.txt'));
+  AssertEquals('foo/bar.txt', RelativeFilenameToUriSafe('foo\bar.txt'));
+  AssertEquals('', RelativeFilenameToUriSafe(''));
+  AssertEquals('foo/bar%20xyz.txt', RelativeFilenameToUriSafe('foo/bar xyz.txt'));
 end;
 
 initialization
