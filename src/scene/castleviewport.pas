@@ -984,6 +984,31 @@ type
     function InternalNavigationHeight(const Sender: TCastleNavigation;
       const Position: TVector3;
       out AboveHeight: Single; out AboveGround: PTriangle): Boolean;
+
+    { Export whole viewport contents to a node.
+      This is useful to save viewport contents to X3D, STL or other files
+      that we can save.
+      This tries to export as much as we can express using nodes,
+      which includes everything in @link(Items) (transformations, scenes,
+      lights and more) and optional things like TCastleNavigation types
+      (fly, walk, examine...), current @link(Background), current @link(Fog).
+
+      Why is this an internal method?
+
+      @unorderedList(
+        @item(Because for Castle Game Engine usage,
+          we advice to save things using @link(CastleComponentSerialize) unit,
+          like @code(UserInterfaceSave(MyViewport, 'viewport-with-contents.castle-user-interface')).
+          The @link(CastleComponentSerialize) routines with reliably save
+          100% of Pascal published properties.)
+
+        @item(In contrast, this method only saves a subset of engine features
+          -- the ones that can be expressed in a straightforward fashion as X3D nodes.)
+
+        @item(See TCastleTransform.InternalBuildNode for more explanation.
+          including why it's an internal method.)
+      ) }
+    function InternalBuildNode(const SaveBaseUrl: String): TX3DRootNode;
   published
     { Transformations and scenes visible in this viewport.
       You should add here your @link(TCastleTransform) and @link(TCastleScene)
@@ -4266,6 +4291,17 @@ begin
     if ShapesRenderer <> nil then
       ShapesRenderer.OcclusionCulling := Value;
   end;
+end;
+
+function TCastleViewport.InternalBuildNode(const SaveBaseUrl: String): TX3DRootNode;
+var
+  ExportedItems: TAbstractChildNode;
+begin
+  Result := TX3DRootNode.Create;
+  try
+    ExportedItems := Items.InternalBuildNode(SaveBaseUrl) as TAbstractChildNode;
+    Result.AddChildren(ExportedItems);
+  except FreeAndNil(Result); raise end;
 end;
 
 {$define read_implementation_methods}

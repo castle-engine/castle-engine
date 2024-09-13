@@ -6504,23 +6504,21 @@ end;
 
 procedure TDesignFrame.ExportToModel;
 var
-  ExportedNode: TAbstractChildNode;
   RootNode: TX3DRootNode;
   SaveUrl: String;
 begin
-  if SelectedTransform = nil then
+  if CurrentViewport = nil then
   begin
-    ErrorBox('Select one transformation (like "Items" inside a viewport or anything inside) to export.');
+    ErrorBox('Select a viewport to export first.' + NL + NL +
+      'Do it by selecting any TCastleViewport or a child of it in the hierarchy. Or just hover your mouse over it.');
     Exit;
   end;
 
   if ExportToModelDialog.Execute then
   begin
-    RootNode := TX3DRootNode.Create;
+    SaveUrl := ExportToModelDialog.Url;
+    RootNode := CurrentViewport.InternalBuildNode(SaveUrl);
     try
-      SaveUrl := ExportToModelDialog.Url;
-      ExportedNode := SelectedTransform.InternalBuildNode(SaveUrl) as TAbstractChildNode;
-      RootNode.AddChildren(ExportedNode);
       SaveNode(RootNode, SaveUrl);
     finally FreeAndNil(RootNode) end;
   end;

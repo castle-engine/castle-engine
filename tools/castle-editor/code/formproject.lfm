@@ -1402,7 +1402,7 @@ object ProjectForm: TProjectForm
     end
     object ActionExportToModel: TAction
       Category = 'Data'
-      Caption = 'Export Selection to X3D, STL...'
+      Caption = 'Export Viewport to X3D, STL...'
       OnExecute = ActionExportToModelExecute
     end
   end
