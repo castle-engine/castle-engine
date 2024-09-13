@@ -4428,9 +4428,13 @@ begin
   Result := TX3DRootNode.Create;
   try
     ExportedItems := Items.InternalBuildNode as TAbstractChildNode;
+    Result.AddChildren(ExportedItems);
 
     if Background <> nil then
       Result.AddChildren(Background.InternalBuildNode);
+
+    if Fog <> nil then
+      Result.AddChildren(Fog.InternalFogNode.DeepCopy as TAbstractChildNode);
 
     Nav := GetNonInternalNavigation;
     if Nav <> nil then
@@ -4458,9 +4462,8 @@ begin
           the implementations ofInternalBuildNodeInside don't need to worry
           about it.
       }
-      ExportedItems.EnumerateNodes(TX3DNode, {$ifdef FPC}@{$endif} Helper.ProcessNode, false);
+      Result.EnumerateNodes(TX3DNode, {$ifdef FPC}@{$endif} Helper.ProcessNode, false);
     finally FreeAndNil(Helper) end;
-    Result.AddChildren(ExportedItems);
   except FreeAndNil(Result); raise end;
 end;
 
