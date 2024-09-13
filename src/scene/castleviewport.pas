@@ -4366,6 +4366,10 @@ begin
   Result := TX3DRootNode.Create;
   try
     ExportedItems := Items.InternalBuildNode as TAbstractChildNode;
+
+    if Background <> nil then
+      Result.AddChildren(Background.InternalBuildNode);
+
     Helper := TInternalBuildNodeHelper.Create;
     try
       Helper.BaseUrl := SaveBaseUrl;
