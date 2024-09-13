@@ -4359,9 +4359,71 @@ begin
 end;
 
 function TCastleViewport.InternalBuildNode(const SaveBaseUrl: String): TX3DRootNode;
+
+  { Find current TCastleNavigation that exists and is not internal
+    (used at editor design-time). Returns undefined if multiple such
+    navigations exist. }
+  function GetNonInternalNavigation: TCastleNavigation;
+  var
+    I: Integer;
+  begin
+    for I := ControlsCount - 1 downto 0 do
+      if (Controls[I] is TCastleNavigation) and
+         (Controls[I].Exists) and
+         (not (csTransient in Controls[I].ComponentStyle)) then
+        Exit(TCastleNavigation(Controls[I]));
+    Result := nil;
+  end;
+
+  { Create X3D TNavigationInfoNode node from given TCastleNavigation.
+    This is somewhat a reverse of TCastleSceneCore.InternalUpdateNavigation . }
+  function NavigationBuildNode(const Navigation: TCastleNavigation): TNavigationInfoNode;
+  var
+    Walk: TCastleWalkNavigation;
+  begin
+    Result := TNavigationInfoNode.Create;
+
+    // may be overridden below if some TCastleNavigation has more knowledge
+    Result.SetAvatarSize([
+      Navigation.Radius
+    ]);
+
+    if Navigation is TCastleWalkNavigation then
+    begin
+      Walk := TCastleWalkNavigation(Navigation);
+      if Walk.Gravity then
+        Result.SetType(['WALK', 'ANY'])
+      else
+        Result.SetType(['FLY', 'ANY']);
+      Result.Speed := Walk.MoveSpeed;
+      Result.HeadBobbing := Walk.HeadBobbing;
+      Result.HeadBobbingTime := Walk.HeadBobbingTime;
+      if Walk.ClimbHeight > 0 then
+        Result.SetAvatarSize([
+          Navigation.Radius,
+          Walk.PreferredHeight,
+          Walk.ClimbHeight
+        ])
+      else
+        Result.SetAvatarSize([
+          Navigation.Radius,
+          Walk.PreferredHeight
+        ]);
+    end else
+    if Navigation is TCastle2DNavigation then
+    begin
+      Result.SetType(['2D', 'ANY']);
+    end else
+    if Navigation is TCastleExamineNavigation then
+    begin
+      Result.SetType(['EXAMINE', 'ANY']);
+    end;
+  end;
+
 var
   ExportedItems: TAbstractChildNode;
   Helper: TInternalBuildNodeHelper;
+  Nav: TCastleNavigation;
 begin
   Result := TX3DRootNode.Create;
   try
@@ -4369,6 +4431,10 @@ begin
 
     if Background <> nil then
       Result.AddChildren(Background.InternalBuildNode);
+
+    Nav := GetNonInternalNavigation;
+    if Nav <> nil then
+      Result.AddChildren(NavigationBuildNode(Nav));
 
     Helper := TInternalBuildNodeHelper.Create;
     try
