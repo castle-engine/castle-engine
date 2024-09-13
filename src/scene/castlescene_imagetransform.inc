@@ -54,6 +54,8 @@ type
     procedure SetAlphaChannel(const Value: TAutoAlphaChannel);
     procedure SetUrl(const Value: String);
     procedure SetMipmaps(const Value: Boolean);
+  protected
+    function InternalBuildNodeInside: TObject; override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -457,6 +459,13 @@ begin
     FTexPropertiesNode.GuiTexture := not FMipmaps;
     FScene.ChangedAll; // TODO ChangedAll should not be needed
   end;
+end;
+
+function TCastleImageTransform.InternalBuildNodeInside: TObject;
+begin
+  Assert(FScene <> nil); // always <> nil in this class
+  Assert(FScene.RootNode <> nil); // always <> nil in this class
+  Result := FScene.RootNode.DeepCopy;
 end;
 
 {$define read_implementation_methods}
