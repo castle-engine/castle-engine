@@ -112,7 +112,7 @@ begin
         {$endif}
       end;
 
-      Modified('');
+      Modified;
     end;
 
   finally

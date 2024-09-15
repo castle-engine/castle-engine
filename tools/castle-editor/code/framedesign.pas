@@ -37,7 +37,7 @@ uses
   CastleColors, CastleScene, CastleRenderOptions, CastleEditorPropEdits,
   // editor units
   FrameAnchors, CastleShellCtrls, EditorUtils,
-  DesignVisualizeTransform, DesignUndoSystem, DesignCameraPreview,
+  CastleTransformManipulate, DesignUndoSystem, DesignCameraPreview,
   DesignObjectInspector;
 
 type
@@ -74,6 +74,7 @@ type
     LabelSizeInfo: TLabel;
     MemoInfo: TMemo;
     PanelSpinEditAllowVerticalCentering: TPanel;
+    ExportToModelDialog: TCastleSaveDialog;
     SeparatorBeforeChangeClass: TMenuItem;
     MenuItemChangeClassUserInterface: TMenuItem;
     MenuItemChangeClassNonVisual: TMenuItem;
@@ -201,7 +202,9 @@ type
         LayerPhysicsSimulation: TCastleUserInterface;
         LabelPhysicsSimulationRunning: TCastleLabel;
         LabelPhysicsSimulationPaused: TCastleLabel;
+        OnGLContextOpen: TNotifyEvent;
         constructor Create(AOwner: TComponent); override;
+        procedure GLContextOpen; override;
         function Press(const Event: TInputPressRelease): Boolean; override;
         function Release(const Event: TInputPressRelease): Boolean; override;
         function Motion(const Event: TInputMotion): Boolean; override;
@@ -258,8 +261,8 @@ type
       ControlsTreeNodeUnderMouse: TTreeNode;
       ControlsTreeNodeUnderMouseSide: TTreeNodeSide;
       PendingErrorBox: String;
-      VisualizeTransformHover: TVisualizeTransformHover;
-      VisualizeTransformSelected: TVisualizeTransformSelected;
+      TransformHover: TCastleTransformHover;
+      TransformManipulate: TCastleTransformManipulate;
       CollectionPropertyEditorForm: TCollectionPropertyEditorForm;
       DesignStateBeforePhysicsRun: String;
       DesignModifiedBeforePhysicsRun: Boolean;
@@ -304,9 +307,10 @@ type
 
     function CameraToSynchronize(const V: TCastleViewport): TCastleCamera;
     procedure CameraSynchronize(const Source, Target: TCastleCamera; const MakeUndo: Boolean);
-    procedure CastleControlOpen(Sender: TObject);
-    procedure CastleControlResize(Sender: TObject);
-    procedure CastleControlUpdate(Sender: TObject);
+    procedure CastleControlGLContextOpen(Sender: TObject);
+    //procedure CastleControlResize(Sender: TObject);
+    procedure CastleControlUpdate(const Sender: TCastleUserInterface;
+      const SecondsPassed: Single; var HandleInput: Boolean);
     procedure CastleControlDragOver(Sender, Source: TObject; X, Y: Integer;
       State: TDragState; var Accept: Boolean);
     procedure CastleControlDragDrop(Sender, Source: TObject; X, Y: Integer);
@@ -457,8 +461,8 @@ type
     procedure InspectorFilter(const Sender: TObject; const AEditor: TPropertyEditor;
       var AShow: Boolean;
       const FilterBySection: Boolean; const Section: TPropertySection);
-    procedure GizmoHasModifiedParent(Sender: TObject);
-    procedure GizmoStopDrag(Sender: TObject);
+    procedure GizmoTransformModified(Sender: TObject);
+    procedure GizmoTransformModifyEnd(Sender: TObject);
     { Fix camera position, to look at Pos.XY in case of 2D games.
       Use this before doing V.InternalCamera.AnimateTo/SetWorldView with given Pos,Dir,Up.
 
@@ -536,7 +540,7 @@ type
 
     { Currently selected transformation, chosen more aggressively than just
       SelectedTransform. Even selecting a behavior makes the parent current.
-      This way e.g. VisualizeTransformSelected also shows
+      This way e.g. TransformManipulate also shows
       the transformation of selected behavior. }
     function CurrentTransform: TCastleTransform;
   protected
@@ -692,6 +696,8 @@ type
     procedure FindToggle;
     { Find next, if find is active. }
     procedure FindNext;
+
+    procedure ExportToModel;
   end;
 
 implementation
@@ -707,7 +713,7 @@ uses
   CastleUtils, CastleComponentSerialize, CastleFileFilters, CastleGLUtils, CastleImages,
   CastleLog, CastleProjection, CastleStringUtils, CastleTimeUtils,
   CastleUriUtils, X3DLoad, CastleFilesUtils, CastleInternalPhysicsVisualization,
-  CastleInternalUrlUtils, CastleInternalFileMonitor,
+  CastleInternalUrlUtils, CastleInternalFileMonitor, X3DNodes,
   { CGE unit to keep in uses clause even if they are not explicitly used by FrameDesign,
     to register the core CGE components for (de)serialization. }
   Castle2DSceneManager, CastleNotifications, CastleThirdPersonNavigation, CastleSoundEngine,
@@ -738,6 +744,10 @@ begin
   else
     Result := UI.Parent.RenderRect;
 end;
+
+var
+  { Used to display UI that is both selected and hovered over. }
+  ColorHoverAndSelected: TCastleColor;
 
 { TDesignFrame.TDesignerLayer ------------------------------------------------ }
 
@@ -800,6 +810,13 @@ begin
   RectStatistics.InsertFront(LabelStatistics);
 
   ForceFallbackLook(RectStatistics);
+end;
+
+procedure TDesignFrame.TDesignerLayer.GLContextOpen;
+begin
+  inherited;
+  if Assigned(OnGLContextOpen) then
+    OnGLContextOpen(Self);
 end;
 
 function TDesignFrame.TDesignerLayer.HoverUserInterface(
@@ -1327,11 +1344,11 @@ function TDesignFrame.TDesignerLayer.Motion(const Event: TInputMotion): Boolean;
     begin
       HoverC := HoverComponent(Event.Position); // may also return nil
       if HoverC is TCastleTransform then
-        Frame.VisualizeTransformHover.Parent := TCastleTransform(HoverC)
+        Frame.TransformHover.Current := TCastleTransform(HoverC)
       else
-        Frame.VisualizeTransformHover.Parent := nil;
+        Frame.TransformHover.Current := nil;
     end else
-      Frame.VisualizeTransformHover.Parent := nil;
+      Frame.TransformHover.Current := nil;
   end;
 
   { Sometimes, trying to drag (translate/resize) UI,
@@ -1625,11 +1642,6 @@ begin
   CastleControl := TCastleControl.Create(Self);
   CastleControl.AutoFocus := true; // needed on Windows to receive AWSD, Ctrl+Z...
   CastleControl.Align := alClient;
-  {$warnings off} // TODO: upgrade it
-  CastleControl.OnResize := @CastleControlResize;
-  CastleControl.OnOpen := @CastleControlOpen;
-  CastleControl.OnUpdate := @CastleControlUpdate;
-  {$warnings on}
   CastleControl.OnDragOver := @CastleControlDragOver;
   CastleControl.OnDragDrop := @CastleControlDragDrop;
   CastleControl.Parent := PanelMiddle; // set Parent last, following https://wiki.freepascal.org/LCL_Tips#Set_the_Parent_as_last
@@ -1640,6 +1652,8 @@ begin
 
   FDesignerLayer := TDesignerLayer.Create(Self);
   FDesignerLayer.Frame := Self;
+  FDesignerLayer.OnUpdate := @CastleControlUpdate;
+  FDesignerLayer.OnGLContextOpen := @CastleControlGLContextOpen;
   CastleControl.Controls.InsertFront(FDesignerLayer);
 
   // It's too easy to change it visually and forget, so we set it from code
@@ -1650,12 +1664,14 @@ begin
   SelfAnchorsFrame.OnAnchorChange := @FrameAnchorsChange;
   ParentAnchorsFrame.OnAnchorChange := @FrameAnchorsChange;
 
-  VisualizeTransformHover := TVisualizeTransformHover.Create(Self);
-  VisualizeTransformSelected := TVisualizeTransformSelected.Create(Self);
-  VisualizeTransformSelected.OnParentModified := @GizmoHasModifiedParent;
-  VisualizeTransformSelected.OnGizmoStopDrag := @GizmoStopDrag;
+  TransformHover := TCastleTransformHover.Create(Self);
+  TransformManipulate := TCastleTransformManipulate.Create(Self);
+  TransformManipulate.OnTransformModified := @GizmoTransformModified;
+  TransformManipulate.OnTransformModifyEnd := @GizmoTransformModifyEnd;
 
   SaveDesignDialog.InitialDir := UriToFilenameSafe(ApplicationDataOverride);
+  ExportToModelDialog.InitialDir := UriToFilenameSafe(ApplicationDataOverride);
+  ExportToModelDialog.Filter := SaveNode_FileFilters;
 
   TabInfo.TabVisible := false;
 
@@ -3031,13 +3047,13 @@ begin
   Result := C.Name;
 end;
 
+(* TODO: Show UI scaling somewhere?
+
 procedure TDesignFrame.CastleControlResize(Sender: TObject);
-//var
-//  CalculatedUIScale: Single;
-//  H, CalculatedUIScaleStr: String;
+var
+  CalculatedUIScale: Single;
+  H, CalculatedUIScaleStr: String;
 begin
-  // TODO: where to display UI scaling effect nicely?
-  {
   // trick to get private TCastleContainer.FCalculatedUIScale
   CalculatedUIScale :=  (1 / CastleControl.Container.UnscaledWidth) *
     CastleControl.Container.Width;
@@ -3071,10 +3087,10 @@ begin
        CastleControl.Container.UnscaledHeight]);
   end;
   LabelUIScaling.Hint := H;
-  }
 end;
+*)
 
-procedure TDesignFrame.CastleControlOpen(Sender: TObject);
+procedure TDesignFrame.CastleControlGLContextOpen(Sender: TObject);
 
   procedure ReadSettings;
   var
@@ -3112,7 +3128,8 @@ begin
   ReadSettings;
 end;
 
-procedure TDesignFrame.CastleControlUpdate(Sender: TObject);
+procedure TDesignFrame.CastleControlUpdate(const Sender: TCastleUserInterface;
+  const SecondsPassed: Single; var HandleInput: Boolean);
 
   function ViewportDebugInfo(const V: TCastleViewport): String;
 
@@ -3292,13 +3309,13 @@ procedure TDesignFrame.CastleControlDragDrop(Sender, Source: TObject; X, Y: Inte
 
     { Make gizmos not pickable when looking for new scene position,
       because ray can hit on gizmo. }
-    OldPickable := VisualizeTransformSelected.Pickable;
+    OldPickable := TransformManipulate.Pickable;
     try
-      VisualizeTransformSelected.Pickable := false;
+      TransformManipulate.Pickable := false;
       Viewport.PositionToRay(Vector2(X, CastleControl.Height - Y), true, RayOrigin, RayDirection);
       RayHit := Viewport.Items.WorldRay(RayOrigin, RayDirection);
     finally
-      VisualizeTransformSelected.Pickable := OldPickable;
+      TransformManipulate.Pickable := OldPickable;
     end;
 
     if (RayHit = nil) and (Cam.ProjectionType = ptOrthographic) then
@@ -3756,18 +3773,19 @@ begin
   end;
 end;
 
-procedure TDesignFrame.GizmoHasModifiedParent(Sender: TObject);
+procedure TDesignFrame.GizmoTransformModified(Sender: TObject);
 begin
   { Same comment as in Apply Drag:
     UndoOnRelease = true here means that we don't record the actual undo
-    but defer it to GizmoStopDrag event }
+    but defer it to GizmoTransformModifyEnd event }
   ModifiedOutsideObjectInspector('', ucLow, true); // UndoComment doesn't matter here
 end;
 
-procedure TDesignFrame.GizmoStopDrag(Sender: TObject);
+procedure TDesignFrame.GizmoTransformModifyEnd(Sender: TObject);
 begin
   if UndoSystem.ScheduleRecordUndoOnRelease then
-    RecordUndo('Transform ' + (Sender as TVisualizeTransformSelected).Parent.Name +
+    RecordUndo('Transform ' +
+      (Sender as TCastleTransformManipulate).MainSelected.Name +
       ' with Gizmo', ucHigh);
 end;
 
@@ -4921,16 +4939,16 @@ begin
       TransformDesigning := T;
     *)
 
-    VisualizeTransformSelected.SetSelectedParents(Selected);
+    TransformManipulate.SetSelected(Selected);
     if T is TCastleAbstractRootTransform then
     begin
       { Special case to disallow editing TCastleAbstractRootTransform transformation.
         See InspectorFilter for explanation, in short: editing TCastleAbstractRootTransform
         transformation is very unintuitive. }
-      VisualizeTransformSelected.Parent := nil
+      TransformManipulate.MainSelected := nil
     end else
     begin
-      VisualizeTransformSelected.Parent := T; // works also in case SelectedTransform is nil
+      TransformManipulate.MainSelected := T; // works also in case SelectedTransform is nil
     end;
   finally FreeAndNil(Selected) end;
 
@@ -6303,10 +6321,10 @@ begin
   ButtonScaleMode.Down := Mode = moScale;
 
   case Mode of
-    moTranslate: VisualizeTransformSelected.Operation := voTranslate;
-    moRotate: VisualizeTransformSelected.Operation := voRotate;
-    moScale: VisualizeTransformSelected.Operation := voScale;
-    else VisualizeTransformSelected.Operation := voSelect;
+    moTranslate: TransformManipulate.Mode := mmTranslate;
+    moRotate: TransformManipulate.Mode := mmRotate;
+    moScale: TransformManipulate.Mode := mmScale;
+    else TransformManipulate.Mode := mmSelect;
   end;
 end;
 
@@ -6484,7 +6502,31 @@ begin
   end;
 end;
 
+procedure TDesignFrame.ExportToModel;
+var
+  RootNode: TX3DRootNode;
+  SaveUrl: String;
+begin
+  if CurrentViewport = nil then
+  begin
+    ErrorBox('Select a viewport to export first.' + NL + NL +
+      'Do it by selecting any TCastleViewport or a child of it in the hierarchy. Or just hover your mouse over it.');
+    Exit;
+  end;
+
+  if ExportToModelDialog.Execute then
+  begin
+    SaveUrl := ExportToModelDialog.Url;
+    RootNode := CurrentViewport.InternalBuildNode(SaveUrl);
+    try
+      SaveNode(RootNode, SaveUrl);
+    finally FreeAndNil(RootNode) end;
+  end;
+end;
+
 initialization
+  ColorHoverAndSelected := Yellow;
+
   { Enable using our property edits e.g. for TCastleScene.URL }
   CastlePropEdits.Register;
   CastleEditorPropEdits.Register;

@@ -583,11 +583,6 @@ const
   MouseWheelDirectionStr: array [TMouseWheelDirection] of string =
   ('none', 'up', 'down', 'left', 'right');
 
-{ Determine simple mouse wheel direction from a Scroll and Vertical
-  parameters received from TCastleWindow.OnMouseWheel.
-  Assumes that Scroll <> 0, like TCastleWindow.OnMouseWheel guarantees. }
-function MouseWheelDirection(const Scroll: Single; const Vertical: boolean): TMouseWheelDirection;
-
 { Convert string value back to a key name, reversing KeyToStr.
   If string does not contain any recognized key name, return DefaultKey. }
 function StrToKey(const S: string; const DefaultKey: TKey): TKey;
@@ -1118,15 +1113,6 @@ begin
   end;
 end;
 
-function MouseWheelDirection(const Scroll: Single; const Vertical: boolean): TMouseWheelDirection;
-begin
-  if Scroll > 0 then
-  begin
-    if Vertical then Result := mwUp else Result := mwLeft;
-  end else
-    if Vertical then Result := mwDown else Result := mwRight;
-end;
-
 { TKeysPressed --------------------------------------------------------------- }
 
 function TKeysPressed.GetItems(const Key: TKey): Boolean;
@@ -1212,10 +1198,23 @@ end;
 
 { TInputPressRelease --------------------------------------------------------- }
 
+{ Determine simple mouse wheel direction from a Scroll and Vertical
+  parameters. Assumes that Scroll <> 0, like TCastleWindow guarantees
+  when sending EventType = itMouseWheel. }
+function MouseWheelDirection(const Scroll: Single; const Vertical: boolean): TMouseWheelDirection;
+begin
+  if Scroll > 0 then
+  begin
+    if Vertical then Result := mwUp else Result := mwLeft;
+  end else
+    if Vertical then Result := mwDown else Result := mwRight;
+end;
+
 function TInputPressRelease.MouseWheel: TMouseWheelDirection;
 begin
   if EventType = itMouseWheel then
-    Result := MouseWheelDirection(MouseWheelScroll, MouseWheelVertical) else
+    Result := MouseWheelDirection(MouseWheelScroll, MouseWheelVertical)
+  else
     Result := mwNone;
 end;
 

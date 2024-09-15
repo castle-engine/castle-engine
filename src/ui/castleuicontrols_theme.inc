@@ -27,8 +27,7 @@
     tiSquareEmpty, tiSquareChecked, tiSquarePressedBackground,
 
     { Image displayed when the application is initializing,
-      during @link(TCastleApplication.OnInitialize Application.OnInitialize)
-      and @link(TCastleWindow.OnOpen Window.OnOpen).
+      during @link(TCastleApplication.OnInitialize Application.OnInitialize).
       And @link(TCastleUserInterface.GLContextOpen) for all initially present UI controls.
       This "loading image" is loaded and displayed first,
       so that user does not see a black screen while the resources are prepared.

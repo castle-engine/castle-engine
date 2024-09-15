@@ -1,5 +1,5 @@
 {
-  Copyright 2008-2023 Michalis Kamburelis.
+  Copyright 2008-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -33,6 +33,8 @@ type
       TLocationImageTransform = class(TCastleTransform)
       private
         Image, ShadowedImage: TDrawableImage;
+        procedure RenderLocation(const Transformation: TTransformation;
+          const PassParams: TRenderOnePassParams);
       public
         ViewportRect: TRectangle;
         procedure LocalRender(const Params: TRenderParams); override;
@@ -104,14 +106,21 @@ var
 implementation
 
 uses SysUtils, DOM,
-  CastleImages, CastleUIControls, CastleGLUtils, CastleXmlUtils,
+  CastleImages, CastleUIControls, CastleGLUtils, CastleXmlUtils, CastleUriUtils,
   CastleSceneCore, CastleApplicationProperties, X3DLoad, CastleRenderContext,
   GameConfiguration;
 
 { TLocation.TLocationImage --------------------------------------------------- }
 
-procedure TLocation.TLocationImageTransform.
-  LocalRender(const Params: TRenderParams);
+procedure TLocation.TLocationImageTransform.LocalRender(const Params: TRenderParams);
+begin
+  inherited;
+  Params.AddRenderEvent({$ifdef FPC}@{$endif} RenderLocation);
+end;
+
+procedure TLocation.TLocationImageTransform.RenderLocation(
+  const Transformation: TTransformation;
+  const PassParams: TRenderOnePassParams);
 
   { Draw Image centered on screen, to fit inside the TCastleViewport,
     matching the 3D scene projection. }
@@ -135,19 +144,28 @@ var
 begin
   { Render the 2D image covering the location.
 
-    This cooperates correctly with shadow volumes, because the Image.Draw call
-    is correctly masked with the stencil buffer settings of the shadow volume
-    renderer.
+    This cooperates correctly with shadow volumes, because when
+    PassParams.DisableShadowVolumeCastingLights = true then also the stencil
+    buffer settings force drawing only when the shadows are.
+    The call to Image.Draw (when DisableShadowVolumeCastingLights)
+    thus renders only pixels that are detected as "in shadow".
 
-    To work correctly, the location scene must be rendered before creatures
-    (like Player) scenes (otherwise Image.Draw would unconditionally cover
-    the the Player). This is satisfied, since CurrentLocation.Scene
-    is first in Viewport.Items. }
+    The order of rendering is important also. Our Image.Draw must be drawn
+    unconditionaly right where the Scene is drawn, such that
+    - color buffer set by Image.Draw
+    - ...corresponds to the depth buffer set by the Scene.
+    This way player 3D character is correctly behind / in front of the rendered
+    location image.
+    This works now, because
+    - event added by AddRenderEvent happens before everything now.
+    - then CurrentLocation.Scene is first in Viewport.Items.
+    - then the rest, like Player, scenes are rendered (that cannot be
+      overdrawn by Image.Draw). }
 
-  if (not Params.Transparent) and
-     (true in Params.ShadowVolumesReceivers) then
+  if (not PassParams.UsingBlending) and
+     (true in PassParams.FilterShadowVolumesReceivers) then
   begin
-    { Nole that the 3 lines that save, set and restore RenderContext.ProjectionMatrix
+    { Note that the 3 lines that save, set and restore RenderContext.ProjectionMatrix
       are necessary only in case GLFeatures.EnableFixedFunction = true,
       which will be false on all modern GPUs and OpenGLES.
       When GLFeatures.EnableFixedFunction = false,
@@ -159,7 +177,7 @@ begin
     SavedDepthTest := RenderContext.DepthTest;
     RenderContext.DepthTest := false;
 
-    if Params.InShadow then
+    if PassParams.DisableShadowVolumeCastingLights then
       DrawImage(ShadowedImage)
     else
       DrawImage(Image);
@@ -186,6 +204,17 @@ begin
 end;
 
 procedure TLocation.Load(const PrepareParams: TPrepareParams);
+
+  function HasViewpoint(const Scene: TCastleSceneCore; const ViewpointName: string): Boolean;
+  var
+    I: Integer;
+  begin
+    for I := 0 to Scene.ViewpointsCount - 1 do
+      if Scene.GetViewpointName(I) = ViewpointName then
+        Exit(true);
+    Result := false;
+  end;
+
 begin
   if Loaded then Exit;
   Loaded := true;
@@ -204,6 +233,13 @@ begin
   FScene.InitialViewpointName := FViewpoint;
   FScene.Load(SceneUrl);
   FScene.PrepareResources([prRenderSelf, prBoundingBox], PrepareParams);
+
+  // check FScene.InitialViewpointName valid
+  if not HasViewpoint(FScene, FViewpoint) then
+    raise Exception.CreateFmt('Viewpoint name "%s" not found in scene "%s"', [
+      FViewpoint,
+      UriDisplay(SceneUrl)
+    ]);
 
   FImageTransform := TLocationImageTransform.Create(nil);
   FImageTransform.Image := FImage;
@@ -275,9 +311,9 @@ begin
       if Location.Name = StartLocationName then
         StartLocation := Location;
 
-      Location.FImageUrl := I.Current.AttributeUrl('image_Url', GameConfig.Url);
-      Location.FShadowedImageUrl := I.Current.AttributeUrl('shadowed_image_Url', GameConfig.Url);
-      Location.FSceneUrl := I.Current.AttributeUrl('scene_Url', GameConfig.Url);
+      Location.FImageUrl := I.Current.AttributeUrl('image_url', GameConfig.Url);
+      Location.FShadowedImageUrl := I.Current.AttributeUrl('shadowed_image_url', GameConfig.Url);
+      Location.FSceneUrl := I.Current.AttributeUrl('scene_url', GameConfig.Url);
       Location.FViewpoint := I.Current.AttributeStringDef('viewpoint', '');
 
       I.Current.AttributeString('scene_camera_description',

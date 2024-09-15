@@ -94,7 +94,6 @@ castle-game-engine-*.fpm
 /examples/castlescript/image_make_by_script/image_make_by_script
 /examples/component_gallery/cge-component-gallery
 /examples/creature_behaviors/creature_behaviors
-/examples/curves/deprecated_space_filling_curve/draw_space_filling_curve
 /examples/curves/use_designed_curve/use_designed_curve
 /examples/delphi/fmx/CastleFmx
 /examples/deprecated_library/build-qt_library_tester-*
@@ -116,7 +115,6 @@ castle-game-engine-*.fpm
 /examples/deprecated_to_upgrade/fps_game_old_ai/fps_game
 /examples/images_videos/image_decompose/image_decompose
 /examples/images_videos/deprecated_drawing_modes_test/drawing_modes_test
-/examples/images_videos/deprecated_image_paint/image_paint
 /examples/images_videos/draw_images_on_gpu/draw_images_on_gpu
 /examples/images_videos/image_compare/image_compare
 /examples/images_videos/image_convert/image_convert
@@ -127,7 +125,6 @@ castle-game-engine-*.fpm
 /examples/images_videos/test_castleimage_draw3x3/test_castleimage_draw3x3
 /examples/isometric_game/isometric_game
 /examples/isometric_game_3d/isometric_game_3d
-/examples/deprecated_to_upgrade/isometric_game/isometric_game
 /examples/deprecated_to_upgrade/joystick/joystick_demo
 /examples/lazarus/load_model_and_camera_manually/lib/
 /examples/lazarus/load_model_and_camera_manually/load_model_and_camera_manually
@@ -172,6 +169,7 @@ castle-game-engine-*.fpm
 /examples/physics/physics_simple_3d_bullet/physics_simple_3d_bullet
 /examples/physics/physics_test_changing_transformation/physics_test_changing_transformation
 /examples/physics/physics_test_scale_colliders/physics_test_scale_colliders
+/examples/physics/physics_test_scaled_mesh_collider/physics_test_scaled_mesh_collider
 /examples/physics/physics_test_transformation_sync/physics_test_transformation_sync
 /examples/platformer/platformer
 /examples/plugin/cge_3d_viewer/cge_3d_viewer

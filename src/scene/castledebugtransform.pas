@@ -18,7 +18,7 @@ unit CastleDebugTransform;
 
 interface
 
-uses Classes,
+uses Classes, Generics.Collections,
   CastleTransform, CastleBoxes, X3DNodes, CastleScene, CastleVectors, CastleColors;
 
 type
@@ -194,6 +194,8 @@ type
     property BoxColor: TCastleColor read FBoxColor write SetBoxColor;
     procedure ChangedScene;
   end;
+
+  TDebugTransformBoxList = {$ifdef FPC}specialize{$endif} TObjectList<TDebugTransformBox>;
 
   { Like TDebugTransformBox, but visualizes also additional properties.
     This is useful to visualize typical properties of TCastleTransform

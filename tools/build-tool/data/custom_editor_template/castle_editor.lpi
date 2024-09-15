@@ -110,9 +110,9 @@
         <UnitName Value="FormPreferences"/>
       </Unit9>
       <Unit10>
-        <Filename Value="${CASTLE_ENGINE_PATH}tools/castle-editor/code/designvisualizetransform.pas"/>
+        <Filename Value="${CASTLE_ENGINE_PATH}tools/castle-editor/code/castletransformmanipulate.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="DesignVisualizeTransform"/>
+        <UnitName Value="CastleTransformManipulate"/>
       </Unit10>
       <Unit11>
         <Filename Value="${CASTLE_ENGINE_PATH}tools/castle-editor/code/formspritesheeteditor.pas"/>

@@ -23,11 +23,13 @@ interface
 uses
   {$ifdef OpenGLES} CastleGLES, {$else} CastleGL, {$endif}
   CastleTransform, CastleVectors, CastleBoxes, CastleGLUtils, CastleFrustum,
-  CastleRenderPrimitives;
+  CastleRenderPrimitives, CastleUtils;
 
 type
   TGLShadowVolumeRenderer = class;
 
+  TSVRenderOnePassProc = procedure (const Params: TRenderParams;
+    const PassParams: TRenderOnePassParams) of object;
   TSVRenderProc = procedure (const Params: TRenderParams) of object;
 
   { Shadow volume rendering in OpenGL.
@@ -144,42 +146,12 @@ type
       You have to provide the appropriate callbacks that render given
       scene parts.
 
-      Params.Transparent and Params.ShadowVolumesReceivers and Params.InShadow
-      are changed here (their previous values are ignored).
-      They cannot be modified by our callbacks.
-
       RenderOnePass renders part of the scene.
-
-      @unorderedList(
-        @item(
-          When Params.ShadowVolumesReceivers includes @true, renders things that
-          may be in the shadow.
-          You should use Params.InShadow to either display the version
-          of the scene in the shadows (so probably darker, probably with some
-          lights off) or the version that is currently lighted
-          (probably brighter, with normal scene lights on).)
-
-        @item(
-          When Params.ShadowVolumesReceivers includes @true, renders things that
-          must never be considered in shadow (are not shadow receivers).
-          Params.InShadow is always @false when Params.ShadowVolumesReceivers is only [@false]
-          (to render only stuff that is never in shadow).)
-      )
-
-      RenderOnePass must also honour Params.Transparent,
-      rendering only opaque or only transparent parts.
-      For Transparent = @true, always Params.InShadow = @false.
-      Shadow volumes simply don't allow transparent object
-      to function properly as shadow receivers.
-      Reading [http://developer.nvidia.com/object/fast_shadow_volumes.html]
-      notes: they also just do separate rendering pass to render the
-      partially-transparent parts, IOW they also note that transparent parts
-      simply don't work at all with shadow volumes.
 
       RenderShadowVolumes renders shadow volumes from shadow casters. }
     procedure Render(
       const Params: TRenderParams;
-      const RenderOnePass: TSVRenderProc;
+      const RenderOnePass: TSVRenderOnePassProc;
       const RenderShadowVolumes: TSVRenderProc);
 
     { Use this to render shadow quads. }
@@ -193,7 +165,7 @@ type
 implementation
 
 uses SysUtils,
-  CastleUtils, CastleStringUtils, CastleLog, CastleGLVersion,
+  CastleStringUtils, CastleLog, CastleGLVersion,
   CastleTriangles, CastleRenderOptions, CastleRenderContext;
 
 constructor TGLShadowVolumeRenderer.Create;
@@ -521,7 +493,7 @@ end;
 
 procedure TGLShadowVolumeRenderer.Render(
   const Params: TRenderParams;
-  const RenderOnePass: TSVRenderProc;
+  const RenderOnePass: TSVRenderOnePassProc;
   const RenderShadowVolumes: TSVRenderProc);
 
 const
@@ -550,18 +522,23 @@ var
   SavedColorChannels: TColorChannels;
   SavedDepthFunc: TDepthFunction;
   SavedCullFace, SavedDepthTest: Boolean;
+  PassParams: TRenderOnePassParams;
 begin
   Assert(GLFeatures.ShadowVolumesPossible);
 
-  Params.InShadow := false;
-  Params.Transparent := false;
-  Params.ShadowVolumesReceivers := [false];
-  RenderOnePass(Params);
+  // render opaque stuff that is never in shadow, because it does not receive shadows
+  PassParams.Init;
+  PassParams.UsingBlending := false;
+  PassParams.DisableShadowVolumeCastingLights := false;
+  PassParams.FilterShadowVolumesReceivers := [false];
+  RenderOnePass(Params, PassParams);
 
-  Params.InShadow := true;
-  Params.Transparent := false;
-  Params.ShadowVolumesReceivers := [true];
-  RenderOnePass(Params);
+  // render opaque stuff, assuming it is in shadow (but it does receive shadows, may be overdrawn later with lit version)
+  PassParams.Init;
+  PassParams.UsingBlending := false;
+  PassParams.DisableShadowVolumeCastingLights := true;
+  PassParams.FilterShadowVolumesReceivers := [true];
+  RenderOnePass(Params, PassParams);
 
   glEnable(GL_STENCIL_TEST);
     { Note that stencil buffer is set to all 0 now. }
@@ -610,8 +587,8 @@ begin
 
     This is easy doable for opaque parts. But what about transparent
     things? In other words, where should we call
-    RenderOnePass(Transparent=true, ShadowVolumesReceivers=false)
-    and RenderOnePass(Transparent=true, InShadow=false, ShadowVolumesReceivers=true)?
+    - RenderOnePass with UsingBlending=true, ShadowVolumesReceivers=[false]?
+    - RenderOnePass with UsingBlending=true, DisableShadowVolumeCastingLights=false, ShadowVolumesReceivers=[true]?
     They should be rendered but they don't affect depth buffer.
     Well, clearly, they have to be rendered
     before glClear(GL_DEPTH_BUFFER_BIT) (for the same reason that
@@ -656,12 +633,15 @@ begin
     glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
     glStencilFunc(GL_EQUAL, 0, StencilShadowBits);
     glEnable(GL_STENCIL_TEST);
-      Inc(Params.StencilTest);
-      Params.InShadow := false;
-      Params.Transparent := false;
-      Params.ShadowVolumesReceivers := [true];
-      RenderOnePass(Params);
-      Dec(Params.StencilTest);
+
+      // render opaque stuff that is *not* in shadow (because passes stencil test)
+      PassParams.Init;
+      PassParams.UsingBlending := false;
+      PassParams.FilterShadowVolumesReceivers := [true];
+      PassParams.DisableShadowVolumeCastingLights := false;
+      PassParams.InsideStencilTest := true;
+      RenderOnePass(Params, PassParams);
+
     glDisable(GL_STENCIL_TEST);
 
   RenderContext.DepthFunc := SavedDepthFunc;
@@ -687,15 +667,12 @@ begin
     Count := SavedCount;
   end;
 
-  Params.InShadow := false;
-  Params.Transparent := true;
-  Params.ShadowVolumesReceivers := [true];
-  RenderOnePass(Params);
-
-  Params.InShadow := false;
-  Params.Transparent := true;
-  Params.ShadowVolumesReceivers := [false];
-  RenderOnePass(Params);
+  // render all transparent stuff, never in shadow
+  PassParams.Init;
+  PassParams.UsingBlending := true;
+  PassParams.DisableShadowVolumeCastingLights := false;
+  PassParams.FilterShadowVolumesReceivers := [false, true];
+  RenderOnePass(Params, PassParams);
 end;
 
 procedure TGLShadowVolumeRenderer.SetDebugRender(const Value: Boolean);

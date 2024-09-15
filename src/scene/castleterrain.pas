@@ -594,6 +594,7 @@ type
     UvScaleField, MetallicField, RoughnessField: TSFVec4f;
   protected
     procedure Loaded; override;
+    function InternalBuildNodeInside: TObject; override;
   public
     const
       DefaultSubdivisions = 64;
@@ -1967,6 +1968,14 @@ end;
 procedure TCastleTerrain.ColliderMesh(const TriangleEvent: TTriangleEvent);
 begin
   Scene.ColliderMesh(TriangleEvent);
+end;
+
+function TCastleTerrain.InternalBuildNodeInside: TObject;
+begin
+  if Scene.RootNode <> nil then
+    Result := Scene.RootNode.DeepCopy
+  else
+    Result := nil;
 end;
 
 {$define read_implementation_methods}

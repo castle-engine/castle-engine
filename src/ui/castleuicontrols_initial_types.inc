@@ -28,10 +28,7 @@
   TCastleView = class;
   TCastleViewList = class;
 
-  TContainerEvent = procedure (Container: TCastleContainer);
   TContainerObjectEvent = procedure (Container: TCastleContainer) of object;
-  TInputPressReleaseEvent = procedure (Container: TCastleContainer; const Event: TInputPressRelease);
-  TInputMotionEvent = procedure (Container: TCastleContainer; const Event: TInputMotion);
 
   TUiNotifyEvent = procedure (const Sender: TCastleUserInterface) of object;
   TUiUpdateEvent = procedure (const Sender: TCastleUserInterface;

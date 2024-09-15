@@ -1,5 +1,5 @@
 {
-  Copyright 2008-2023 Michalis Kamburelis.
+  Copyright 2008-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -31,24 +31,45 @@ uses SysUtils, Math,
 var
   Window: TCastleWindow;
 
-  Video: TVideo;
-  GLVideo: TGLVideo2D;
-  VideoUrl: String;
+{ TViewMain ------------------------------------------------------------------ }
 
-  Time: TFloatTime;
-  TimePlaying: boolean = true;
+type
+  { View to handle events. }
+  TViewMain = class(TCastleView)
+  private
+    Video: TVideo;
+    GLVideo: TGLVideo2D;
+    VideoUrl: String;
 
-  MenuEdit: TMenu;
-  MenuTimeBackwards: TMenuItemChecked;
-  MenuRevert, MenuSave: TMenuItem;
+    Time: TFloatTime;
+    TimePlaying: boolean;
 
-procedure RemakeGLVideo;
+    MenuEdit: TMenu;
+    MenuTimeBackwards: TMenuItemChecked;
+    MenuRevert, MenuSave: TMenuItem;
+  public
+    procedure Start; override;
+    procedure Stop; override;
+    procedure Update(const SecondsPassed: Single; var HandleInput: boolean); override;
+    procedure Render; override;
+
+    procedure RemakeGLVideo;
+    procedure SaveVideo(const NewVideoUrl: String);
+    procedure LoadVideo(const NewVideoUrl: String);
+
+    procedure MenuClick(const MenuItem: TMenuItem);
+    function CreateMainMenu: TMenu;
+  end;
+
+procedure TViewMain.RemakeGLVideo;
 begin
   FreeAndNil(GLVideo);
   GLVideo := TGLVideo2D.Create(Video);
 end;
 
-procedure Render(Container: TCastleContainer);
+procedure TViewMain.Render;
+var
+  RR: TFloatRectangle;
 const
   TimeBarHeight = 10;
   TimeBarMargin = 2;
@@ -75,40 +96,46 @@ const
         Strs.Append('Video not loaded');
 
       FallbackFont.PrintStrings(15,
-        Window.Height - FallbackFont.Height * Strs.Count - TimeBarHeight, Yellow,
+        RR.Height - FallbackFont.Height * Strs.Count - TimeBarHeight, Yellow,
         Strs, false, 2);
     finally FreeAndNil(Strs) end;
   end;
 
 begin
+  inherited;
+
+  RR := RenderRect;
+
   if Video.Loaded then
   begin
     GLVideo.DrawableImageFromTime(Time).Draw(0, 0);
 
     { draw time of the video bar }
-    DrawRectangle(Rectangle(0, Window.Height - TimeBarHeight,
-      Window.Width, TimeBarHeight), Black);
-    DrawRectangle(Rectangle(TimeBarMargin, Window.Height - TimeBarHeight + TimeBarMargin,
-      Round(MapRange(Video.IndexFromTime(Time), 0, Video.Count - 1,
-        0, Window.Width - 2 * TimeBarMargin)), TimeBarHeight - 2 * TimeBarMargin),
+    DrawRectangle(FloatRectangle(0, RR.Height - TimeBarHeight,
+      RR.Width, TimeBarHeight), Black);
+    DrawRectangle(FloatRectangle(TimeBarMargin, RR.Height - TimeBarHeight + TimeBarMargin,
+      MapRange(Video.IndexFromTime(Time), 0, Video.Count - 1,
+        0, RR.Width - 2 * TimeBarMargin), TimeBarHeight - 2 * TimeBarMargin),
       Gray);
   end;
 
   DrawStatus;
 end;
 
-procedure Update(Container: TCastleContainer);
+procedure TViewMain.Update(const SecondsPassed: Single; var HandleInput: boolean);
 begin
+  inherited;
   if TimePlaying then
-    Time := Time + Window.Fps.SecondsPassed;
+    Time := Time + Container.Fps.SecondsPassed;
 end;
 
-procedure LoadVideo(const NewVideoUrl: String);
+procedure TViewMain.LoadVideo(const NewVideoUrl: String);
 begin
   try
     Video.LoadFromFile(NewVideoUrl);
     VideoUrl := NewVideoUrl;
     Time := 0;
+    Assert(MenuEdit <> nil); // CreateMainMenu must be done earlier
     MenuEdit.Enabled := Video.Loaded;
     MenuRevert.Enabled := Video.Loaded;
     MenuSave.Enabled := Video.Loaded;
@@ -119,7 +146,7 @@ begin
   end;
 end;
 
-procedure SaveVideo(const NewVideoUrl: String);
+procedure TViewMain.SaveVideo(const NewVideoUrl: String);
 begin
   try
     Video.SaveToFile(NewVideoUrl);
@@ -130,20 +157,30 @@ begin
   end;
 end;
 
-procedure Open(Container: TCastleContainer);
+procedure TViewMain.Start;
 begin
+  inherited;
+  TimePlaying := true; // default
+  Video := TVideo.Create;
+
+  Window.MainMenu := CreateMainMenu;
+  Window.OnMenuItemClick := {$ifdef FPC}@{$endif} MenuClick;
+
+  Parameters.CheckHighAtMost(1);
   if Parameters.High = 1 then
     LoadVideo(Parameters[1])
   else
     LoadVideo('castle-data:/flame_seamless/@counter(4).png');
 end;
 
-procedure Close(Container: TCastleContainer);
+procedure TViewMain.Stop;
 begin
   FreeAndNil(GLVideo);
+  FreeAndNil(Video);
+  inherited;
 end;
 
-procedure MenuClick(Container: TCastleContainer; MenuItem: TMenuItem);
+procedure TViewMain.MenuClick(const MenuItem: TMenuItem);
 var
   S: string;
   I: Integer;
@@ -232,7 +269,7 @@ begin
   end;
 end;
 
-function CreateMainMenu: TMenu;
+function TViewMain.CreateMainMenu: TMenu;
 var
   M: TMenu;
 begin
@@ -241,10 +278,10 @@ begin
     M.Append(TMenuItem.Create('_Open ...',   10, CtrlO));
     M.Append(TMenuSeparator.Create);
     MenuSave := TMenuItem.Create('_Save As ...',  13);
-    MenuSave.Enabled := false;
+    MenuSave.Enabled := Video.Loaded;
     M.Append(MenuSave);
     MenuRevert := TMenuItem.Create('_Revert',     15);
-    MenuRevert.Enabled := false;
+    MenuRevert.Enabled := Video.Loaded;
     M.Append(MenuRevert);
     M.Append(TMenuSeparator.Create);
     M.Append(TMenuItem.Create('_Exit',       20, CtrlW));
@@ -262,7 +299,7 @@ begin
     Result.Append(M);
   M := TMenu.Create('_Edit');
     MenuEdit := M;
-    MenuEdit.Enabled := false;
+    MenuEdit.Enabled := Video.Loaded;
     M.Append(TMenuItem.Create('_Fade with Self (Makes Video Loop Seamless) ...', 445));
     M.Append(TMenuItem.Create('_Mix with Self Backwards (Makes Video Loop Seamless)', 450));
     M.Append(TMenuSeparator.Create);
@@ -280,30 +317,21 @@ begin
     Result.Append(M);
 end;
 
+{ initialization ------------------------------------------------------------- }
+
+var
+  ViewMain: TViewMain;
 begin
   LoadAnimatedGifs := true;
 
   Window := TCastleWindow.Create(Application);
+  Window.SetDemoOptions(keyF11, #0, true);
+  Window.AutoRedisplay := true;
+  Application.MainWindow := Window;
 
-  try
-    Application.MainWindow := Window;
+  ViewMain := TViewMain.Create(Application);
+  Window.Container.View := ViewMain;
 
-    Video := TVideo.Create;
-
-    { We will actually handle 1st param in Init. }
-    Parameters.CheckHighAtMost(1);
-
-    Window.SetDemoOptions(keyF11, #0, true);
-    Window.AutoRedisplay := true;
-    Window.MainMenu := CreateMainMenu;
-    Window.OnMenuClick := @MenuClick;
-    Window.OnOpen := @Open;
-    Window.OnClose := @Close;
-    Window.OnRender := @Render;
-    Window.OnUpdate := @Update;
-
-    Window.OpenAndRun;
-  finally
-    FreeAndNil(Video);
-  end;
+  Window.Open;
+  Application.Run;
 end.

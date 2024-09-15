@@ -596,7 +596,8 @@ procedure CGEApp_JoystickAxis(JoystickIndex: CInt; X, Y: Single); cdecl;
 begin
   try
     CheckMainWindow;
-    Joysticks.InternalSetJoystickAxis(JoystickIndex, Vector2(X, Y));
+    // TODO: rename this to CGEApp_JoystickLeftAxis, support also CGEApp_JoystickRightAxis
+    Joysticks.InternalSetJoystickLeftAxis(JoystickIndex, Vector2(X, Y));
     // if (X <> 0) or (Y <> 0) then
     //   WritelnLog('Joy axis %d %f %f %f', [JoystickIndex, X, Y]);
   except

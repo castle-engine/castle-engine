@@ -88,6 +88,11 @@
       that will take care of freeing it. }
     procedure Remove(const Item: TCastleUserInterface);
 
+    { Move the Item from AIndex to ANewIndex.
+      Do it without invoking uncessary notifications about item being
+      removed + added to the list, container, parent. }
+    procedure Move(const AIndex, ANewIndex: Integer);
+
     procedure Clear;
     procedure Add(const Item: TCastleUserInterface); deprecated 'use InsertFront or InsertBack';
     procedure Insert(Index: Integer; const Item: TCastleUserInterface);
@@ -402,6 +407,11 @@ begin
       for I := 0 to Count - 1 do
         RegisterContainer(Items[I], FContainer);
   end;
+end;
+
+procedure TInternalChildrenControls.Move(const AIndex, ANewIndex: Integer);
+begin
+  FList.Move(AIndex, ANewIndex);
 end;
 
 { TInternalChildrenControls.TMyObjectList ----------------------------------------------- }

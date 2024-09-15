@@ -30,7 +30,6 @@ type
   TCastleSceneManager         = CastleViewport.TCastleSceneManager;
   TCastleAbstractViewportList = CastleViewport.TCastleViewportList;
   {$warnings on}
-  TRender3DEvent              = CastleViewport.TRenderOnePassEvent;
   TProjectionEvent            = CastleViewport.TProjectionEvent;
   TUseHeadlight               = CastleScene.TUseHeadlight;
 

@@ -1,5 +1,5 @@
 {
-  Copyright 2009-2023 Michalis Kamburelis.
+  Copyright 2009-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -35,9 +35,6 @@ uses SysUtils, Classes, Generics.Collections,
 type
   TCastleViewport = class;
   TCastleSceneManager = class;
-
-  TRenderOnePassEvent = procedure (Viewport: TCastleViewport;
-    const Params: TRenderParams) of object;
 
   { Event for @link(TCastleViewport.OnProjection). }
   TProjectionEvent = procedure (var Parameters: TProjection) of object;
@@ -169,7 +166,7 @@ type
       FOnCustomShapeSort: TShapeSortEvent;
       FUpdateSoundListener: Boolean;
 
-      ShapesCollector: TShapesCollector;
+      AllShapesCollector, FilteredShapesCollector: TShapesCollector;
       ShapesRenderer: TShapesRenderer;
 
     procedure CommonCreate(const AOwner: TComponent; const ADesignManipulation: Boolean);
@@ -410,19 +407,19 @@ type
 
     { Render the scene, assuming that buffers were already cleared and background
       was rendered. Called by RenderFromViewEverything at the end.
-      Lights are calculated in Params at this point.
-
-      This will change Params.Transparent, Params.InShadow and Params.ShadowVolumesReceivers
-      as needed. Their previous values do not matter. }
+      Lights are calculated in Params at this point. }
     procedure RenderFromView3D(const Params: TRenderParams); virtual;
 
-    { Render one pass, with current camera and parameters (e.g. only transparent
-      or only opaque shapes).
+    { Render one pass, with current camera and parameters.
       All current camera settings are saved in RenderParams.RenderingCamera.
-      @param(Params Rendering parameters, see @link(TRenderParams).) }
-    procedure RenderOnePass(const Params: TRenderParams); virtual;
 
-    procedure Render3D(const Params: TRenderParams); virtual; deprecated 'use RenderOnePass';
+      @param(Params Rendering parameters, see @link(TRenderParams).
+        TODO: move all relevant to TRenderOnePassParams.)
+
+      @param(PassParams Rendering parameters of this pass,
+        see @link(TRenderOnePassParams).) }
+    procedure RenderOnePass(const Params: TRenderParams;
+      const PassParams: TRenderOnePassParams); virtual;
 
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
 
@@ -987,6 +984,31 @@ type
     function InternalNavigationHeight(const Sender: TCastleNavigation;
       const Position: TVector3;
       out AboveHeight: Single; out AboveGround: PTriangle): Boolean;
+
+    { Export whole viewport contents to a node.
+      This is useful to save viewport contents to X3D, STL or other files
+      that we can save.
+      This tries to export as much as we can express using nodes,
+      which includes everything in @link(Items) (transformations, scenes,
+      lights and more) and optional things like TCastleNavigation types
+      (fly, walk, examine...), current @link(Background), current @link(Fog).
+
+      Why is this an internal method?
+
+      @unorderedList(
+        @item(Because for Castle Game Engine usage,
+          we advice to save things using @link(CastleComponentSerialize) unit,
+          like @code(UserInterfaceSave(MyViewport, 'viewport-with-contents.castle-user-interface')).
+          The @link(CastleComponentSerialize) routines with reliably save
+          100% of Pascal published properties.)
+
+        @item(In contrast, this method only saves a subset of engine features
+          -- the ones that can be expressed in a straightforward fashion as X3D nodes.)
+
+        @item(See TCastleTransform.InternalBuildNode for more explanation.
+          including why it's an internal method.)
+      ) }
+    function InternalBuildNode(const SaveBaseUrl: String): TX3DRootNode;
   published
     { Transformations and scenes visible in this viewport.
       You should add here your @link(TCastleTransform) and @link(TCastleScene)
@@ -1341,7 +1363,7 @@ implementation
 
 uses DOM, Math, TypInfo,
   CastleGLUtils, CastleLog, CastleStringUtils,
-  CastleSoundEngine, CastleGLVersion, CastleTextureImages,
+  CastleSoundEngine, CastleGLVersion, CastleTextureImages, X3DFields,
   CastleInternalSettings, CastleXmlUtils, CastleUriUtils, CastleInternalRenderer,
   CastleRenderContext, CastleApplicationProperties, X3DLoad, CastleInternalGLUtils;
 
@@ -1440,7 +1462,8 @@ begin
   FClearDepth := true;
   InternalDistortFieldOfViewY := 1;
   InternalDistortViewAspect := 1;
-  ShapesCollector := TShapesCollector.Create;
+  AllShapesCollector := TShapesCollector.Create(true);
+  FilteredShapesCollector := TShapesCollector.Create(false);
   ShapesRenderer := TShapesRenderer.Create;
   FUpdateSoundListener := true;
 
@@ -1653,7 +1676,8 @@ begin
   FreeAndNil(FRenderParams);
   FreeAndNil(FPrepareParams);
   FreeAndNil(FRenderWithoutScreenEffectsRenderingCamera);
-  FreeAndNil(ShapesCollector);
+  FreeAndNil(AllShapesCollector);
+  FreeAndNil(FilteredShapesCollector);
   FreeAndNil(ShapesRenderer);
 
   {$define read_implementation_destructor}
@@ -2460,11 +2484,8 @@ begin
   {$warnings on}
 end;
 
-procedure TCastleViewport.Render3D(const Params: TRenderParams);
-begin
-end;
-
-procedure TCastleViewport.RenderOnePass(const Params: TRenderParams);
+procedure TCastleViewport.RenderOnePass(const Params: TRenderParams;
+  const PassParams: TRenderOnePassParams);
 
   { Based on BlendingSort, determine
     ShapesRenderer.BlendingSort, making sure that sortAuto is handled correctly.
@@ -2496,20 +2517,14 @@ procedure TCastleViewport.RenderOnePass(const Params: TRenderParams);
   end;
 
 begin
-  ShapesCollector.Clear;
-  Assert(Params.Collector = ShapesCollector);
-
-  {$warnings off} // keep deprecated working
-  Render3D(Params);
-  {$warnings on}
-
-  Params.Frustum := @Params.RenderingCamera.Frustum;
-  Items.Render(Params);
+  FilteredShapesCollector.Clear;
+  FilteredShapesCollector.AddFiltered(AllShapesCollector,
+    [PassParams.UsingBlending], PassParams.FilterShadowVolumesReceivers);
 
   ShapesRenderer.OcclusionSort := EffectiveOcclusionSort;
   ShapesRenderer.BlendingSort := EffectiveBlendingSort;
   ShapesRenderer.OnCustomShapeSort := OnCustomShapeSort;
-  ShapesRenderer.Render(ShapesCollector, Params);
+  ShapesRenderer.Render(FilteredShapesCollector, Params, PassParams);
 end;
 
 procedure TCastleViewport.RenderShadowVolume(const Params: TRenderParams);
@@ -2639,6 +2654,8 @@ end;
 procedure TCastleViewport.RenderFromView3D(const Params: TRenderParams);
 
   procedure RenderNoShadowVolumes;
+  var
+    PassParams: TRenderOnePassParams;
   begin
     { We must first render all non-transparent objects,
       then all transparent objects. Otherwise transparent objects
@@ -2646,10 +2663,19 @@ procedure TCastleViewport.RenderFromView3D(const Params: TRenderParams);
       covered by non-transparent objects (that are in fact further away from
       the camera). }
 
-    Params.InShadow := false;
+    PassParams.Init;
+    PassParams.UsingBlending := false;
+    RenderOnePass(Params, PassParams);
 
-    Params.Transparent := false; Params.ShadowVolumesReceivers := [false, true]; RenderOnePass(Params);
-    Params.Transparent := true ; Params.ShadowVolumesReceivers := [false, true]; RenderOnePass(Params);
+    { Do not render transparent objects to the depth buffer,
+      so they don't cast shadows with shadow maps.
+      These RenderingCamera.Target values imply rendering with
+      RenderOptions.Mode = rmDepth for all scenes. }
+    if not (Params.RenderingCamera.Target in [rtVarianceShadowMap, rtShadowMap]) then
+    begin
+      PassParams.UsingBlending := true;
+      RenderOnePass(Params, PassParams);
+    end;
   end;
 
   procedure RenderWithShadowVolumes(const MainLightPosition: TVector4);
@@ -2677,6 +2703,16 @@ procedure TCastleViewport.RenderFromView3D(const Params: TRenderParams);
 var
   MainLightPosition: TVector4;
 begin
+  { Calculate contents of AllShapesCollector.
+    This way Items.Render, with all transformation calcuations,
+    frustum tests etc. is done only once, no matter how many times we need to
+    call RenderOnPass. }
+  AllShapesCollector.Clear;
+  Assert(Params.Collector = AllShapesCollector);
+  Params.Frustum := @Params.RenderingCamera.Frustum;
+  Items.Render(Params);
+
+  // call RenderOnePass multiple times, filtering AllShapesCollector in different ways
   if GLFeatures.ShadowVolumesPossible and
      ShadowVolumes and
      MainLightForShadowVolumes(MainLightPosition) then
@@ -2762,10 +2798,11 @@ procedure TCastleViewport.RenderFromViewEverything(const RenderingCamera: TRende
         {$endif}
       end;
       RenderingCamera.RotationOnly := true;
-      { TODO: BackgroundRenderer should have its own ShapesRenderer,
-        ShapesCollector. }
       BackgroundRenderer.Render(RenderingCamera, BackgroundWireframe,
-        RenderRect, FProjection, ShapesCollector, ShapesRenderer);
+        RenderRect, FProjection,
+        { TODO: BackgroundRenderer should have its own ShapesRenderer,
+          ShapesCollector. }
+        AllShapesCollector, FilteredShapesCollector, ShapesRenderer);
       RenderingCamera.RotationOnly := false;
     end;
   end;
@@ -2810,7 +2847,7 @@ begin
   { various FRenderParams initialization }
   FRenderParams.UserPass := CustomRenderingPass;
   FRenderParams.RenderingCamera := RenderingCamera;
-  FRenderParams.Collector := ShapesCollector;
+  FRenderParams.Collector := AllShapesCollector;
   FRenderParams.RendererToPrepareShapes := ShapesRenderer.Renderer;
 
   { calculate FRenderParams.Projection*, simplified from just like CalculateProjection does }
@@ -4254,6 +4291,180 @@ begin
     if ShapesRenderer <> nil then
       ShapesRenderer.OcclusionCulling := Value;
   end;
+end;
+
+type
+  { Helper for InternalBuildNode. }
+  TInternalBuildNodeHelper = class
+  strict private
+    { Adjust URL present at some node to be relative to BaseUrl. }
+    function AdjustUrl(const Url: String): String;
+  public
+    BaseUrl: String;
+    procedure ProcessNode(Node: TX3DNode);
+  end;
+
+function TInternalBuildNodeHelper.AdjustUrl(const Url: String): String;
+var
+  TargetUrl, BaseFileName, TargetFileName, ResultFileName: String;
+begin
+  TargetUrl := ResolveCastleDataUrl(Url);
+  TargetFileName := UriToFilenameSafe(TargetUrl);
+  BaseFileName := UriToFilenameSafe(BaseUrl);
+  if (BaseFileName <> '') and (TargetFileName <> '') then
+  begin
+    ResultFileName := ExtractRelativePath(BaseFileName, TargetFileName);
+    Result := RelativeFilenameToUriSafe(ResultFileName);
+  end else
+    // use original URL then, maybe with castle-data:/, maybe other protocol
+    Result := Url;
+end;
+
+procedure TInternalBuildNodeHelper.ProcessNode(Node: TX3DNode);
+
+  procedure ProcessUrlField(const Field: TMFString);
+  var
+    I: Integer;
+  begin
+    for I := 0 to Field.Items.Count - 1 do
+      Field.Items[I] := AdjustUrl(Field.Items[I]);
+  end;
+
+begin
+  { Set Node.BaseUrl, to allow opening the URLs relative to BaseUrl
+    (which will also be present because of AdjustUrl).
+
+    This is important if some code will require to load URLs from the exported
+    graph, which happens e.g. for TInlineNode URLs when saving as STL:
+    we need to load inline contents then.
+    So, without this, saving to STL from "Export Viewport to X3D, STL..."
+    in editor would fail for TCastleScene in viewport. }
+  Node.BaseUrl := BaseUrl;
+
+  if Node is TInlineNode then
+    ProcessUrlField(TInlineNode(Node).FdUrl)
+  else
+  if Node is TImageTextureNode then
+    ProcessUrlField(TImageTextureNode(Node).FdUrl)
+  else
+  if Node is TBackgroundNode then
+  begin
+    ProcessUrlField(TBackgroundNode(Node).FdBackUrl);
+    ProcessUrlField(TBackgroundNode(Node).FdBottomUrl);
+    ProcessUrlField(TBackgroundNode(Node).FdFrontUrl);
+    ProcessUrlField(TBackgroundNode(Node).FdLeftUrl);
+    ProcessUrlField(TBackgroundNode(Node).FdRightUrl);
+    ProcessUrlField(TBackgroundNode(Node).FdTopUrl);
+  end;
+end;
+
+function TCastleViewport.InternalBuildNode(const SaveBaseUrl: String): TX3DRootNode;
+
+  { Find current TCastleNavigation that exists and is not internal
+    (used at editor design-time). Returns undefined if multiple such
+    navigations exist. }
+  function GetNonInternalNavigation: TCastleNavigation;
+  var
+    I: Integer;
+  begin
+    for I := ControlsCount - 1 downto 0 do
+      if (Controls[I] is TCastleNavigation) and
+         (Controls[I].Exists) and
+         (not (csTransient in Controls[I].ComponentStyle)) then
+        Exit(TCastleNavigation(Controls[I]));
+    Result := nil;
+  end;
+
+  { Create X3D TNavigationInfoNode node from given TCastleNavigation.
+    This is somewhat a reverse of TCastleSceneCore.InternalUpdateNavigation . }
+  function NavigationBuildNode(const Navigation: TCastleNavigation): TNavigationInfoNode;
+  var
+    Walk: TCastleWalkNavigation;
+  begin
+    Result := TNavigationInfoNode.Create;
+
+    // may be overridden below if some TCastleNavigation has more knowledge
+    Result.SetAvatarSize([
+      Navigation.Radius
+    ]);
+
+    if Navigation is TCastleWalkNavigation then
+    begin
+      Walk := TCastleWalkNavigation(Navigation);
+      if Walk.Gravity then
+        Result.SetType(['WALK', 'ANY'])
+      else
+        Result.SetType(['FLY', 'ANY']);
+      Result.Speed := Walk.MoveSpeed;
+      Result.HeadBobbing := Walk.HeadBobbing;
+      Result.HeadBobbingTime := Walk.HeadBobbingTime;
+      if Walk.ClimbHeight > 0 then
+        Result.SetAvatarSize([
+          Navigation.Radius,
+          Walk.PreferredHeight,
+          Walk.ClimbHeight
+        ])
+      else
+        Result.SetAvatarSize([
+          Navigation.Radius,
+          Walk.PreferredHeight
+        ]);
+    end else
+    if Navigation is TCastle2DNavigation then
+    begin
+      Result.SetType(['2D', 'ANY']);
+    end else
+    if Navigation is TCastleExamineNavigation then
+    begin
+      Result.SetType(['EXAMINE', 'ANY']);
+    end;
+  end;
+
+var
+  ExportedItems: TAbstractChildNode;
+  Helper: TInternalBuildNodeHelper;
+  Nav: TCastleNavigation;
+begin
+  Result := TX3DRootNode.Create;
+  try
+    ExportedItems := Items.InternalBuildNode as TAbstractChildNode;
+    Result.AddChildren(ExportedItems);
+
+    if Background <> nil then
+      Result.AddChildren(Background.InternalBuildNode);
+
+    if Fog <> nil then
+      Result.AddChildren(Fog.InternalFogNode.DeepCopy as TAbstractChildNode);
+
+    Nav := GetNonInternalNavigation;
+    if Nav <> nil then
+      Result.AddChildren(NavigationBuildNode(Nav));
+
+    Helper := TInternalBuildNodeHelper.Create;
+    try
+      Helper.BaseUrl := SaveBaseUrl;
+
+      { Process all nodes to fix the URLs inside.
+        Doing it here (not e.g. for particular nodes/fields inside
+        implementations of overrides of InternalBuildNodeInside)
+        means:
+
+        - We fix all nodes, even the ones not explicitly processed by the
+          InternalBuildNodeInside implementations. E.g. TCastleTerrain
+          produces copies of some TImageTextureNode because it used some textures.
+
+        - The code to do it is centralized here,
+          no need to pass around some class like TInternalBuildNodeUtils.
+          So the code is simpler.
+
+        - Less chance that some node will "slip out" from processing.
+          Once we handled some node type in our TInternalBuildNodeHelper.ProcessNode,
+          the implementations ofInternalBuildNodeInside don't need to worry
+          about it.
+      }
+      Result.EnumerateNodes(TX3DNode, {$ifdef FPC}@{$endif} Helper.ProcessNode, false);
+    finally FreeAndNil(Helper) end;
+  except FreeAndNil(Result); raise end;
 end;
 
 {$define read_implementation_methods}

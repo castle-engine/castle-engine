@@ -188,8 +188,9 @@ type
 
           This limits the number of TCastleApplication.ProcessMessage
           calls per second, in situations when we do not have to process any user input.
-          So we limit not only rendering (TCastleWindow.OnRender)
-          but also other animation processing (TCastleWindow.OnUpdate) calls per second.
+          So we limit not only rendering (@link(TCastleUserInterface.Render))
+          but also @link(TCastleUserInterface.Update) processing
+          (which includes physics and animation processing) calls per second.
           See TCastleApplication.ProcessMessage.
 
           See TCastleWindow.ProcessMessage documentation about WaitToLimitFPS
@@ -239,9 +240,7 @@ type
       and last OnGLContextClose. }
     property IsGLContextOpen: boolean read FIsGLContextOpen;
 
-    { Callbacks called continuously when (at least one) window is open.
-      You can use this just like @link(TCastleControl.OnUpdate)
-      or @link(TCastleWindow.OnUpdate). }
+    { Callbacks called continuously when (at least one) window is open. }
     property OnUpdate: TNotifyEventList read FOnUpdate;
 
     { Callbacks called when Android Java activity started.
@@ -257,9 +256,11 @@ type
           @link(TCastleApplication.OnInitialize)),
           but we need to reinitialize Java part.
 
-          Note that this is different from @link(TCastleWindow.OnOpen).
-          We lose OpenGL context often, actually every time user switches to another
-          app, without having neither Java nor native threads killed.
+          Note that this is different from opening a new rendering context
+          (when the @link(TCastleUserInterface.GLContextOpen) is called).
+          On mobile we lose OpenGLES context often,
+          actually every time user switches to another app,
+          but we don't necessarily have our Java or native threads killed at this moment.
         )
       )
 
