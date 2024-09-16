@@ -35,9 +35,6 @@ type
 
   TFrustumPointsSingle = TFrustumPoints deprecated 'use TFrustumPoints';
 
-  TFrustumPointsDouble = packed array [0..7] of TVector4Double
-    {$ifdef FPC}deprecated 'use Single-precision TFrustumPoints'{$endif};
-
 const
   FrustumPointsQuadsIndexes: packed array [TFrustumPlane, 0..3] of UInt16 =
   ( (0, 3, 7, 4),
@@ -79,10 +76,13 @@ type
     and low-overhead at the same time. }
   TFrustum = record
   private
+    type
+      TFrustumPointsDouble = packed array [0..7] of TVector4Double;
     procedure NormalizePlanes;
     { Last plane index.
       High(TFrustumPlane), or Pred(High(TFrustumPlane)) if FarInfinity. }
     function LastPlane: TFrustumPlane;
+    procedure CalculatePointsDouble(out FrustumPoints: TFrustumPointsDouble);
   public
     { Calculate frustum, knowing the combined matrix (modelview * projection). }
     constructor Init(const Matrix: TMatrix4); overload;
@@ -126,10 +126,7 @@ type
       @raises(EPlanesParallel If Frustum doesn't have planes of any
         valid frustum.)
     }
-    procedure CalculatePoints(out FrustumPoints: TFrustumPoints); overload;
-
-    procedure CalculatePoints(out FrustumPoints: TFrustumPointsDouble); overload;
-      deprecated 'use the overload on TFrustumPoints (Single-precision); it may calculate parts using Double-precision internally, to be correct';
+    procedure CalculatePoints(out FrustumPoints: TFrustumPoints);
 
     { Checks for collision between frustum and sphere.
 
@@ -317,20 +314,17 @@ end;
 procedure TFrustum.CalculatePoints(out FrustumPoints: TFrustumPoints);
 { It's better to make these calculations using Double precision. }
 // This deliberately uses TFrustumPointsDouble
-// and CalculatePoints based on TFrustumPointsDouble.
-// They should be internal (private) in this unit in the future.
-{$warnings off}
+// and CalculatePointsDouble based on TFrustumPointsDouble.
 var
   FrustumPointsDouble: TFrustumPointsDouble;
   I: Integer;
 begin
-  CalculatePoints(FrustumPointsDouble);
+  CalculatePointsDouble(FrustumPointsDouble);
   for I := 0 to High(FrustumPoints) do
     FrustumPoints[I] := Vector4(FrustumPointsDouble[I]);
 end;
-{$warnings on}
 
-procedure TFrustum.CalculatePoints(out FrustumPoints: TFrustumPointsDouble);
+procedure TFrustum.CalculatePointsDouble(out FrustumPoints: TFrustumPointsDouble);
 var
   Camera: TVector3Double;
 begin
