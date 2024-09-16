@@ -1519,7 +1519,9 @@ begin
         Viewpoint.Position := TVector3.Zero;
         Result := Viewpoint;
       end;
+    {$ifndef COMPILER_CASE_ANALYSIS}
     else raise EInternalError.Create('TCastleCamera.InternalBuildNodeInside: PerspectiveType?');
+    {$endif}
   end;
 end;
 

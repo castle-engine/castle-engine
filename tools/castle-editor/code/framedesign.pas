@@ -1164,10 +1164,12 @@ function TDesignFrame.TDesignerLayer.Motion(const Event: TInputMotion): Boolean;
     case ResizingHorizontal of
       hpLeft : Result := Result.GrowLeft(-Move.X);
       hpRight: Result := Result.GrowRight(Move.X);
+      else ;
     end;
     case ResizingVertical of
       vpBottom: Result := Result.GrowBottom(-Move.Y);
       vpTop   : Result := Result.GrowTop(Move.Y);
+      else ;
     end;
   end;
 
@@ -1218,6 +1220,7 @@ function TDesignFrame.TDesignerLayer.Motion(const Event: TInputMotion): Boolean;
                   hpLeft  : UI.Translation := UI.Translation + Vector2(X, 0);
                   hpMiddle: UI.Translation := UI.Translation + Vector2(X / 2, 0);
                   //hpRight : UI.Translation := no need to change
+                  else ;
                 end;
               end;
             hpRight:
@@ -1231,6 +1234,7 @@ function TDesignFrame.TDesignerLayer.Motion(const Event: TInputMotion): Boolean;
                   // hpLeft  : UI.Translation := no need to change
                   hpMiddle: UI.Translation := UI.Translation + Vector2(X / 2, 0);
                   hpRight : UI.Translation := UI.Translation + Vector2(X, 0);
+                  else ;
                 end;
               end;
           end;
@@ -1263,6 +1267,7 @@ function TDesignFrame.TDesignerLayer.Motion(const Event: TInputMotion): Boolean;
               end;
           end;
         end;
+      else ;
     end;
 
     { We pass UndoOnRelease = true to defer recording Undo until Release is called
@@ -5464,6 +5469,7 @@ procedure TDesignFrame.ControlsTreeDragDrop(Sender, Source: TObject; X,
           // TODO: update tree in a simple way for now
           UpdateDesign;
         end;
+      else ;
     end;
   end;
 

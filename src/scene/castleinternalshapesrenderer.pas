@@ -572,7 +572,9 @@ var
           RenderWireframe(true);
           RenderContext.PolygonOffset := SavedPolygonOffset;
         end;
+      {$ifndef COMPILER_CASE_ANALYSIS}
       else raise EInternalError.Create('Render: RenderOptions.WireframeEffect ?');
+      {$endif}
     end;
   end;
 
