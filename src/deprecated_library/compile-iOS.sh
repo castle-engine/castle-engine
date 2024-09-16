@@ -18,12 +18,9 @@ set -e
 # Never use cache, as it will likely contain CastleWindow with different backend, and units without -fPIC.
 castle-engine cache-clean
 
-castle-engine simple-compile \
-  --target=ios \
-  --ios-simulator \
-  --compiler-option=-fPIC \
-  --compiler-option=-dCASTLE_WINDOW_LIBRARY \
-  --verbose \
-  castleengine.lpr
+# Variant not using CastleEngineManifest.xml
+#castle-engine simple-compile --target=ios --ios-simulator --compiler-option=-fPIC --compiler-option=-dCASTLE_WINDOW_LIBRARY --verbose castleengine.lpr
+#libtool -static -o libcastleengine.a castle-engine-output/compilation/aarch64-ios/lib_cge_project.a castle-engine-output/compilation/x86_64-iphonesim/lib_cge_project.a
 
-libtool -static -o libcastleengine.a castle-engine-output/compilation/aarch64-ios/lib_cge_project.a castle-engine-output/compilation/x86_64-iphonesim/lib_cge_project.a
+# Variant using CastleEngineManifest.xml
+castle-engine compile --target ios --ios-simulator
