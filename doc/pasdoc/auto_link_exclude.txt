@@ -395,6 +395,7 @@ transparent
 traverse
 triangle
 triangles
+triangulate
 trigger
 uniform
 uniforms
