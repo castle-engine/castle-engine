@@ -2069,23 +2069,12 @@
     { Create X3D nodes graph representing this TCastleTransorm (and its children).
       This can be used to save to any format supported by the @link(SaveNode),
       like X3D and STL.
+      See @url(https://castle-engine.io/wp/2024/09/18/export-3d-or-2d-world-designed-in-castle-game-engine-editor-to-x3d-or-stl/
+      this news post) for a summary of available features.
 
-      This is internal, because:
+      This method is internal, because:
 
       @unorderedList(
-        @item(It is not complete, and it will never be.
-          X3D and other formats cannot express everything that
-          Castle Game Engine components can express.
-          Also, while you can load the resulting model back inside TCastleScene,
-          it will not result in back the same CGE components
-          (though it could be an option some day, see https://castle-engine.io/expose ).
-          It will be just a single CGE component, @link(TCastleScene).
-
-          If you want to use CGE editor for authoring X3D or other model formats,
-          just keep the original CGE editor files (.castle-user-interface)
-          around, as "source" version of your 3D / 2D world,
-          and export it to X3D as many times as you wish.)
-
         @item(It is not the adviced way to save TCastleTransform to file.
           Rather, we advise to save hierarchy using the @link(TransformSave)
           to .castle-transform files.
@@ -2094,6 +2083,23 @@
           using the @link(TCastleTransformDesign) component.
           This is the way to reliably save and restore 100% of published
           properties of TCastleTransform and its descendants.)
+        )
+
+        @item(The export is not complete, and it will never be.
+          X3D and other formats cannot express everything that
+          Castle Game Engine components can express.
+        )
+
+        @item(While you can load the resulting X3D back inside the engine editor,
+          this will be just a single component @link(TCastleScene),
+          not all the components you exported.
+
+          (though it could be an option some day, see https://castle-engine.io/expose ).
+
+          Solution: If you want to use CGE editor for authoring X3D
+          or other model formats, just keep the original CGE editor files
+          around, as the "source" version of your 3D / 2D world and export
+          it to X3D as many times as you wish.
         )
       )
 
