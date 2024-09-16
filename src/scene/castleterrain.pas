@@ -732,8 +732,7 @@ type
 
     { Resolve collisions precisely with the terrain geometry.
       When this is @false we will only consider the terrain bounding box for collisions,
-      which prevents moving on terrain nicely, picking terrain points with mouse etc.
-      This sets @link(TCastleSceneCore.Spatial). }
+      which prevents moving on terrain nicely, picking terrain points with mouse etc. }
     property PreciseCollisions: Boolean read FPreciseCollisions write SetPreciseCollisions default true;
 
   {$define read_interface_class}

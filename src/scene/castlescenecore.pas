@@ -1432,8 +1432,8 @@ type
       and PointingDeviceOverPoint,
       thus producing isOver and such events.
 
-      To make pointing-device sensors work Ok, make sure you have non-nil
-      OctreeCollisions (e.g. include ssDynamicCollisions in @link(Spatial)). }
+      For pointing device sensors to work, you must have collision
+      structures set up by setting @link(PreciseCollisions) to @true. }
     function PointingDeviceMove(const Pick: TRayCollisionNode;
       const Distance: Single): boolean; override;
 
@@ -2078,8 +2078,7 @@ type
       (we use ClassType.Create to call a virtual constructor).
 
       Note that this @bold(does not copy other scene attributes),
-      like @link(ProcessEvents) or @link(Spatial) or rendering attributes
-      in @link(TCastleScene.RenderOptions).
+      like @link(ProcessEvents) or @link(TCastleScene.RenderOptions).
       It only copies the scene graph (RootNode) and also sets
       target URL based on source URL (for logging purposes, e.g.
       TCastleProfilerTime use this URL to report loading and preparation times). }

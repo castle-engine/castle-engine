@@ -503,7 +503,7 @@
       You will need to understand how OpenGL(ES) works,
       and you will need to account for how the engine renders things too,
       to not conflict with the engine -- e.g. you will have to use
-      @link(RederContext) for some things.
+      @link(RenderContext) for some things.
       If you're not ready for this, then you're better off not overriding
       this method, instead just rely on the engine built-in rendering,
       done by TCastleScene and other components.
@@ -2079,7 +2079,7 @@
           Also, while you can load the resulting model back inside TCastleScene,
           it will not result in back the same CGE components
           (though it could be an option some day, see https://castle-engine.io/expose ).
-          It will be just a single CGE component, TCaastleScene.)
+          It will be just a single CGE component, @link(TCastleScene).
 
           If you want to use CGE editor for authoring X3D or other model formats,
           just keep the original CGE editor files (.castle-user-interface)

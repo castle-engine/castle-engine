@@ -443,7 +443,7 @@ type
 
     You should use this with TCastleView, following https://castle-engine.io/views
     and the rest of CGE manual.
-    All user interface creation and event handling should be inside some state.
+    All user interface creation and event handling should be inside some view.
 
     By default, the window is filled with simple color from
     @link(TCastleContainer.BackgroundColor Container.BackgroundColor).
@@ -1438,7 +1438,8 @@ type
 
     { Should we automatically redraw the window all the time,
       without the need for an @link(Invalidate) call.
-      If @true (the default), EventRender (OnRender) will called constantly.
+      If @true (the default), render events will be called as often as reasonable
+      on this system, usually 60 times per second.
 
       If your game may have a still screen (nothing animates),
       then this approach is a little unoptimal, as we use CPU and GPU
@@ -1446,8 +1447,8 @@ type
       property to @false, and make sure that you call
       @link(Invalidate) always when you need to redraw the screen.
       Note that the engine components always call @link(Invalidate) when
-      necessary, so usually you should only call it yourself if you provide
-      a custom @link(OnRender) implementation. }
+      necessary, so you really only need to call @link(Invalidate) yourself
+      if you make custom rendering in some @link(TCastleUserInterface.OnRender). }
     property AutoRedisplay: boolean read FAutoRedisplay write SetAutoRedisplay
       default true;
 

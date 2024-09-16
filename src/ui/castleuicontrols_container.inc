@@ -516,10 +516,12 @@
       read GetMousePosition write SetMousePosition;
 
     { Currently pressed mouse buttons. When this changes, you're always
-      notified by @link(OnPress) or @link(OnRelease) events.
+      notified by @link(TCastleUserInterface.OnPress) or
+      @link(TCastleUserInterface.OnRelease) events.
 
       This value is always current, in particular it's already updated
-      before we call events @link(OnPress) or @link(OnRelease). }
+      before we call events @link(TCastleUserInterface.OnPress) or
+      @link(TCastleUserInterface.OnRelease). }
     property MousePressed: TCastleMouseButtons read FMousePressed write FMousePressed;
 
     { Is the window focused now, which means that keys/mouse events
@@ -917,13 +919,10 @@
 
         @item(eventually you can also call
           @link(TRenderContext.Clear RenderContext.Clear)
-          at the beginning of your rendering in @link(OnRender).
-          This is the least advised method, as @link(OnRender)
-          is performed after drawing all other controls,
-          so doing
-          @link(TRenderContext.Clear RenderContext.Clear)
-          there would force you to make
-          all your drawing in @link(OnRender).)
+          at the beginning of your custom rendering in some
+          @link(TCastleUserInterface.OnRender).
+          Make such @link(TCastleUserInterface) fill the entire container
+          by setting @link(TCastleUserInterface.FullSize) to @true.)
       )
 
       If you set this to @false, but do not draw something else
