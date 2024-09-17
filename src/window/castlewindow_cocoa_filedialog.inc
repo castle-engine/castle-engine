@@ -190,9 +190,10 @@ begin
     begin
       FileFilterPattern := Filter.Patterns[J];
       if FileFilterPattern = '*' then
-         AllowOtherFileTypes := true;
-      if FileFilterPattern.Length > 2 then
-         fileTypes.addObject(NSSTR(FileFilterPattern.Substring(2)));
+        AllowOtherFileTypes := true;
+      if IsPrefix('*.', FileFilterPattern, false) and
+         (Length(FileFilterPattern) > 2)  then
+        fileTypes.addObject(NSSTR(PrefixRemove('*.', FileFilterPattern, false)));
     end;
   end;
   if fileTypes.count > 0 then
