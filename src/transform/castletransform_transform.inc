@@ -137,6 +137,34 @@
       // Always equal to FindBehaviors(TCastleCollider)
       FCachedCollider: TCastleCollider;
 
+      { Does some child has a TCastleRigidBody or TCastleCollider
+        behavior.
+
+        1. It is updated, immediately, when adding the behaviors,
+           though only for unique parents.
+
+        2. It is also updated recursively, during Update, for items that exist.
+           This overrides update from AD 1.
+
+        Note: having TCastleRigidBody or TCastleCollider behavior on Self
+        does *not* cause these fields to be @true.
+        Only children matter, not Self.
+
+        TODO: This is not perfect, as both ways of updating it are not perfect.
+
+        AD 1 - not perfect, because only for unique parents,
+        and it doesn't remove the flag (never sets to false),
+        and also it is overridden by AD 2.
+
+        AD 2 - not perfect, because with delay (not when state actually changes),
+        and only for children that exist.
+        It would be better to have it available immediately
+        (always when behaviors change), disregarding Exists.
+        It would be even better to not need it at all -- and move the necessary
+        logic to TCastleRigidBody updates, if should cause the necessary changes
+        when parent changed since the last state. }
+      FColliderInChildren, FRigidBodyInChildren: Boolean;
+
     procedure SerializeChildrenAdd(const C: TComponent);
     procedure SerializeChildrenClear;
     procedure SerializeChildrenEnumerate(const Proc: TGetChildProc);
@@ -654,15 +682,6 @@
         by the bounding volume, and it would create a "feedback loop"
         if the visualization itself would enlarge the bounding box). }
       InternalExcludeFromParentBoundingVolume: Boolean;
-
-      { Results in more correct, but often unnecessary and time wasting operation:
-        changing this transformation also updates all children's rigid bodies
-        transformation in the physics engine.
-
-        This is important if you change transformation of some parent,
-        without directly changing the transformation of children,
-        but the children have rigid bodies attached. }
-      InternalMovesPhysicsBodies: Boolean;
 
     { How many times this is a child in the FWorld,
       counting all possible paths in transformation tree.
@@ -2941,13 +2960,16 @@ procedure TCastleTransform.Update(const SecondsPassed: Single; var RemoveMe: TRe
     end;
   end;
 
+  { Call Update on all children (TCastleTransform instances) that Exists.
+    Also updates FColliderInChildren, FRigidBodyInChildren. }
   procedure UpdateChildren;
   var
     I: Integer;
     Item: TCastleTransform;
     RemoveItem: TRemoveType;
   begin
-    PendingRemovals;
+    FColliderInChildren := false;
+    FRigidBodyInChildren := false;
 
     I := 0;
     while I < List.Count do
@@ -2963,19 +2985,25 @@ procedure TCastleTransform.Update(const SecondsPassed: Single; var RemoveMe: TRe
           if RemoveItem = rtRemoveAndFree then
             FreeAndNil(Item);
         end else
+        begin
+          if Item.FColliderInChildren or (Item.FCachedCollider <> nil) then
+            FColliderInChildren := true;
+          if Item.FRigidBodyInChildren or (Item.FCachedRigidBody <> nil) then
+            FRigidBodyInChildren := true;
           Inc(I);
+        end;
       end else
         Inc(I);
     end;
-
-    PendingRemovals;
   end;
 
 begin
   Assert(Exists); // this should never be called on TCastleTransform that does not exist
 
   UpdateBehaviors;
+  PendingRemovals;
   UpdateChildren;
+  PendingRemovals;
 
   if FAfterUpdate <> nil then
     FAfterUpdate.ExecuteAll(Self);
@@ -3246,8 +3274,9 @@ begin
   if Collider <> nil then
     Collider.UpdateWorldScale;
 
-  for T in Self do
-    T.UpdateCollidersWorldScale;
+  if FColliderInChildren then
+    for T in Self do
+      T.UpdateCollidersWorldScale;
 end;
 
 function TCastleTransform.HasWorldTransform: boolean;
@@ -3887,9 +3916,7 @@ procedure TCastleTransform.ChangedTransformCore(const UpdatePhysicsTransform: Bo
        (not RBody.DuringSettingTransformationFromPhysicsEngine) then
       RBody.SetWorldTransformation(Transform.WorldTransform);
 
-    { TODO: This is time-consuming for changing larger hierarchies.
-      We should avoid it somehow. }
-    if InternalMovesPhysicsBodies then
+    if FRigidBodyInChildren then
       for I := 0 to Transform.List.Count - 1 do
         RecursiveRigidBodySetWorldTransformation(Transform.List[I]);
   end;
@@ -4319,9 +4346,32 @@ begin
 end;
 
 procedure TCastleTransform.UpdateCachedBehaviors;
+
+  procedure ParentsHaveCollider(Transform: TCastleTransform);
+  begin
+    while Transform.Parent <> nil do
+    begin
+      Transform.Parent.FColliderInChildren := true;
+      Transform := Transform.Parent;
+    end;
+  end;
+
+  procedure ParentsHaveRigidBody(Transform: TCastleTransform);
+  begin
+    while Transform.Parent <> nil do
+    begin
+      Transform.Parent.FRigidBodyInChildren := true;
+      Transform := Transform.Parent;
+    end;
+  end;
+
 begin
   FCachedRigidBody := FindBehavior(TCastleRigidBody) as TCastleRigidBody;
   FCachedCollider := FindBehavior(TCastleCollider) as TCastleCollider;
+  if FCachedCollider <> nil then
+    ParentsHaveCollider(Self);
+  if FCachedRigidBody <> nil then
+    ParentsHaveRigidBody(Self);
 end;
 
 procedure TCastleTransform.AddBehavior(const Behavior: TCastleBehavior);
