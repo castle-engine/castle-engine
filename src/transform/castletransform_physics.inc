@@ -741,6 +741,9 @@
       This is required after changing various properties in Kraft body/collider. }
     procedure KraftForceUpdatingReadyBody;
 
+    { Set transformation known to the physics engine.
+      This should always be called with argument equal to
+      Parent.WorldTransform. }
     procedure SetWorldTransformation(const WorldTransform: TMatrix4);
     procedure SetLockTranslation(const AValue: T3DCoords);
     procedure SetLockRotation(const AValue: T3DCoords);
