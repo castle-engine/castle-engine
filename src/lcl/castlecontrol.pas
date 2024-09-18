@@ -133,7 +133,7 @@ type
 
       If you have more complicated control flow,
       we recommend to leave this property empty, and split your management
-      into a number of states (TCastleView) instead.
+      into a number of views (TCastleView) instead.
       In this case, load design using TCastleView.DesignUrl.
       This property makes it however easy to use .castle-user-interface
       in simple cases, when TCastleControl just shows one UI.
@@ -154,13 +154,13 @@ type
 
     You can use this with TCastleView, following https://castle-engine.io/control_on_form instructions.
     In this case, all user interface creation and event handling should
-    be inside some state.
+    be inside some view.
 
     You can also add any user-interface controls to the @link(Controls) property.
     User-interface controls are any @link(TCastleUserInterface) descendants,
     like @link(TCastleImageControl) or @link(TCastleButton) or @link(TCastleViewport).
-    Use events like @link(OnPress) to react to events.
-    Use event @link(OnUpdate) to do something continuously.
+    Use their events like @link(TCastleUserInterface.OnPress) to react to input.
+    Use event @link(TCastleUserInterface.OnUpdate) to do something continuously.
 
     By default, the control is filled with simple color from
     @link(TCastleContainer.BackgroundColor Container.BackgroundColor).
@@ -309,7 +309,7 @@ type
       { Central control.
 
         This is only important now if you use deprecated way of setting TCastleView,
-        using class properties/methods TUIState.Current, TUIState.Push.
+        using class properties/methods TCastleView.Current, TCastleView.Push.
         If instead you use new way of setting TCastleView,
         using container properties/methods TCastleContainer.Current, TCastleContainer.Push,
         then this value isn't useful.
@@ -444,7 +444,8 @@ type
 
     { Should we automatically redraw the window all the time,
       without the need for an @link(Invalidate) call.
-      If @true (the default), OnRender will called constantly.
+      If @true (the default), render events will be called as often as reasonable
+      on this system, usually 60 times per second.
 
       If your game may have a still screen (nothing animates),
       then this approach is a little unoptimal, as we use CPU and GPU
@@ -452,8 +453,8 @@ type
       property to @false, and make sure that you call
       @link(Invalidate) always when you need to redraw the screen.
       Note that the engine components always call @link(Invalidate) when
-      necessary, so usually you should only call it yourself if you provide
-      a custom @link(OnRender) implementation. }
+      necessary, so you really only need to call @link(Invalidate) yourself
+      if you make custom rendering in some @link(TCastleUserInterface.OnRender). }
     property AutoRedisplay: boolean read FAutoRedisplay write SetAutoRedisplay
       default true;
 
@@ -462,7 +463,7 @@ type
 
       If you have more complicated control flow,
       we recommend to leave this property empty, and split your management
-      into a number of states (TCastleView) instead.
+      into a number of views (TCastleView) instead.
       In this case, load design using TCastleView.DesignUrl.
       This property makes it however easy to use .castle-user-interface
       in simple cases, when TCastleControl just shows one UI.

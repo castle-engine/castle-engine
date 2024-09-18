@@ -315,7 +315,7 @@ type
       (we use ClassType.Create to call a virtual constructor).
 
       Note that this @bold(does not copy other scene properties),
-      like @link(ProcessEvents) or @link(Spatial) or @link(RenderOptions) contents. }
+      like @link(ProcessEvents) or @link(RenderOptions) contents. }
     function Clone(const AOwner: TComponent): TCastleScene;
 
     { Whether the scene was (potentially, at least partially) visible

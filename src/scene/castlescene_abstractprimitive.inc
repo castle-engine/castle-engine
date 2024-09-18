@@ -111,8 +111,7 @@ type
 
     { Resolve collisions precisely with the primitive geometry.
       When this is @false we will only consider the primitive bounding box for collisions,
-      so e.g. player will not be able to move within sphere's box corners.
-      This sets @link(TCastleSceneCore.Spatial). }
+      so e.g. player will not be able to move within sphere's box corners. }
     property PreciseCollisions: Boolean read FPreciseCollisions write SetPreciseCollisions default false;
 
     { Rendering options of the scene. }

@@ -1474,6 +1474,7 @@ begin
     ptOrthographic:
       begin
         OrthoViewpoint := TOrthoViewpointNode.Create;
+        OrthoViewpoint.AutoCenterOfRotation := true; // make Examine navigation better
         if (Orthographic.Width <> 0) and
            (Orthographic.Height <> 0) then
         begin
@@ -1509,6 +1510,7 @@ begin
     ptPerspective:
       begin
         Viewpoint := TViewpointNode.Create;
+        Viewpoint.AutoCenterOfRotation := true; // make Examine navigation better
         Viewpoint.FieldOfView := Perspective.FieldOfView;
         { X3D FieldOfViewForceVertical allows to express FieldOfViewAxis = faVertical
           case.
@@ -1519,7 +1521,9 @@ begin
         Viewpoint.Position := TVector3.Zero;
         Result := Viewpoint;
       end;
+    {$ifndef COMPILER_CASE_ANALYSIS}
     else raise EInternalError.Create('TCastleCamera.InternalBuildNodeInside: PerspectiveType?');
+    {$endif}
   end;
 end;
 

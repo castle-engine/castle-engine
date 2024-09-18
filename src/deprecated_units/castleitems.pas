@@ -845,7 +845,9 @@ var
   AttackDC, AttackDR, AttackKD: Single;
   AttackSoundHitDone: boolean;
 
+  {$warnings off} // using deprecated TCastleAlive in deprecated
   procedure ImmediateAttackHit(Enemy: TCastleAlive);
+  {$warnings on}
   begin
     if not AttackSoundHitDone then
     begin

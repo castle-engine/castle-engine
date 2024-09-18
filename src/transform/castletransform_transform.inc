@@ -137,6 +137,46 @@
       // Always equal to FindBehaviors(TCastleCollider)
       FCachedCollider: TCastleCollider;
 
+      { Does some child has a TCastleRigidBody or TCastleCollider
+        behavior.
+
+        1. It is updated, immediately, when adding the behaviors,
+           though only for unique parents.
+
+        2. It is also updated recursively, during Update, for items that exist.
+           This overrides update from AD 1.
+
+        Note: having TCastleRigidBody or TCastleCollider behavior on Self
+        does *not* cause these fields to be @true.
+        Only children matter, not Self.
+
+        TODO: This is not perfect, as both ways of updating it are not perfect.
+
+        AD 1 - not perfect, because only for unique parents,
+        and it doesn't remove the flag (never sets to false),
+        and also it is overridden by AD 2.
+
+        AD 2 - not perfect, because with delay (not when state actually changes),
+        and only for children that exist.
+
+        *Possibly* we can have bugs with the reproduction along these lines:
+        - add collider / rigid body to a transform
+        - make this transform part of the world, so that Kraft state is initialized
+        - then set the transform.Exists := false
+        - wait at least 1 update for the FRigidBodyInChildren on parent to be updated to false
+        - then change the transformation of the parent
+        - and then set the transform.Exists := true
+        - possible bug: the transform that temporarily didn't exist
+          - didn't account properly for new transfomation, e.g. it didn't move when parent moved
+          - didn't update the collider size properly (accounting for Scale changes of parent)
+
+        It would be better to have it available immediately
+        (always when behaviors change), disregarding Exists.
+        It would be even better to not need it at all -- and move the necessary
+        logic to TCastleRigidBody updates, if should cause the necessary changes
+        when parent changed since the last state. }
+      FColliderInChildren, FRigidBodyInChildren: Boolean;
+
     procedure SerializeChildrenAdd(const C: TComponent);
     procedure SerializeChildrenClear;
     procedure SerializeChildrenEnumerate(const Proc: TGetChildProc);
@@ -503,7 +543,7 @@
       You will need to understand how OpenGL(ES) works,
       and you will need to account for how the engine renders things too,
       to not conflict with the engine -- e.g. you will have to use
-      @link(RederContext) for some things.
+      @link(RenderContext) for some things.
       If you're not ready for this, then you're better off not overriding
       this method, instead just rely on the engine built-in rendering,
       done by TCastleScene and other components.
@@ -654,15 +694,6 @@
         by the bounding volume, and it would create a "feedback loop"
         if the visualization itself would enlarge the bounding box). }
       InternalExcludeFromParentBoundingVolume: Boolean;
-
-      { Results in more correct, but often unnecessary and time wasting operation:
-        changing this transformation also updates all children's rigid bodies
-        transformation in the physics engine.
-
-        This is important if you change transformation of some parent,
-        without directly changing the transformation of children,
-        but the children have rigid bodies attached. }
-      InternalMovesPhysicsBodies: Boolean;
 
     { How many times this is a child in the FWorld,
       counting all possible paths in transformation tree.
@@ -2069,23 +2100,12 @@
     { Create X3D nodes graph representing this TCastleTransorm (and its children).
       This can be used to save to any format supported by the @link(SaveNode),
       like X3D and STL.
+      See @url(https://castle-engine.io/wp/2024/09/18/export-3d-or-2d-world-designed-in-castle-game-engine-editor-to-x3d-or-stl/
+      this news post) for a summary of available features.
 
-      This is internal, because:
+      This method is internal, because:
 
       @unorderedList(
-        @item(It is not complete, and it will never be.
-          X3D and other formats cannot express everything that
-          Castle Game Engine components can express.
-          Also, while you can load the resulting model back inside TCastleScene,
-          it will not result in back the same CGE components
-          (though it could be an option some day, see https://castle-engine.io/expose ).
-          It will be just a single CGE component, TCaastleScene.)
-
-          If you want to use CGE editor for authoring X3D or other model formats,
-          just keep the original CGE editor files (.castle-user-interface)
-          around, as "source" version of your 3D / 2D world,
-          and export it to X3D as many times as you wish.)
-
         @item(It is not the adviced way to save TCastleTransform to file.
           Rather, we advise to save hierarchy using the @link(TransformSave)
           to .castle-transform files.
@@ -2094,6 +2114,23 @@
           using the @link(TCastleTransformDesign) component.
           This is the way to reliably save and restore 100% of published
           properties of TCastleTransform and its descendants.)
+        )
+
+        @item(The export is not complete, and it will never be.
+          X3D and other formats cannot express everything that
+          Castle Game Engine components can express.
+        )
+
+        @item(While you can load the resulting X3D back inside the engine editor,
+          this will be just a single component @link(TCastleScene),
+          not all the components you exported.
+
+          (though it could be an option some day, see https://castle-engine.io/expose ).
+
+          Solution: If you want to use CGE editor for authoring X3D
+          or other model formats, just keep the original CGE editor files
+          around, as the "source" version of your 3D / 2D world and export
+          it to X3D as many times as you wish.
         )
       )
 
@@ -2935,13 +2972,16 @@ procedure TCastleTransform.Update(const SecondsPassed: Single; var RemoveMe: TRe
     end;
   end;
 
+  { Call Update on all children (TCastleTransform instances) that Exists.
+    Also updates FColliderInChildren, FRigidBodyInChildren. }
   procedure UpdateChildren;
   var
     I: Integer;
     Item: TCastleTransform;
     RemoveItem: TRemoveType;
   begin
-    PendingRemovals;
+    FColliderInChildren := false;
+    FRigidBodyInChildren := false;
 
     I := 0;
     while I < List.Count do
@@ -2957,19 +2997,25 @@ procedure TCastleTransform.Update(const SecondsPassed: Single; var RemoveMe: TRe
           if RemoveItem = rtRemoveAndFree then
             FreeAndNil(Item);
         end else
+        begin
+          if Item.FColliderInChildren or (Item.FCachedCollider <> nil) then
+            FColliderInChildren := true;
+          if Item.FRigidBodyInChildren or (Item.FCachedRigidBody <> nil) then
+            FRigidBodyInChildren := true;
           Inc(I);
+        end;
       end else
         Inc(I);
     end;
-
-    PendingRemovals;
   end;
 
 begin
   Assert(Exists); // this should never be called on TCastleTransform that does not exist
 
   UpdateBehaviors;
+  PendingRemovals;
   UpdateChildren;
+  PendingRemovals;
 
   if FAfterUpdate <> nil then
     FAfterUpdate.ExecuteAll(Self);
@@ -3240,8 +3286,9 @@ begin
   if Collider <> nil then
     Collider.UpdateWorldScale;
 
-  for T in Self do
-    T.UpdateCollidersWorldScale;
+  if FColliderInChildren then
+    for T in Self do
+      T.UpdateCollidersWorldScale;
 end;
 
 function TCastleTransform.HasWorldTransform: boolean;
@@ -3881,9 +3928,7 @@ procedure TCastleTransform.ChangedTransformCore(const UpdatePhysicsTransform: Bo
        (not RBody.DuringSettingTransformationFromPhysicsEngine) then
       RBody.SetWorldTransformation(Transform.WorldTransform);
 
-    { TODO: This is time-consuming for changing larger hierarchies.
-      We should avoid it somehow. }
-    if InternalMovesPhysicsBodies then
+    if FRigidBodyInChildren then
       for I := 0 to Transform.List.Count - 1 do
         RecursiveRigidBodySetWorldTransformation(Transform.List[I]);
   end;
@@ -4313,9 +4358,32 @@ begin
 end;
 
 procedure TCastleTransform.UpdateCachedBehaviors;
+
+  procedure ParentsHaveCollider(Transform: TCastleTransform);
+  begin
+    while Transform.Parent <> nil do
+    begin
+      Transform.Parent.FColliderInChildren := true;
+      Transform := Transform.Parent;
+    end;
+  end;
+
+  procedure ParentsHaveRigidBody(Transform: TCastleTransform);
+  begin
+    while Transform.Parent <> nil do
+    begin
+      Transform.Parent.FRigidBodyInChildren := true;
+      Transform := Transform.Parent;
+    end;
+  end;
+
 begin
   FCachedRigidBody := FindBehavior(TCastleRigidBody) as TCastleRigidBody;
   FCachedCollider := FindBehavior(TCastleCollider) as TCastleCollider;
+  if FCachedCollider <> nil then
+    ParentsHaveCollider(Self);
+  if FCachedRigidBody <> nil then
+    ParentsHaveRigidBody(Self);
 end;
 
 procedure TCastleTransform.AddBehavior(const Behavior: TCastleBehavior);

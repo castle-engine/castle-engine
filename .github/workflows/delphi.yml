@@ -25,10 +25,8 @@ jobs:
     strategy:
       matrix:
         host-label: [
-          delphi_10_2
-          # Runner with Delphi 12.1 not reliable now. Temporarily disabled.
-          # ,
-          # delphi_12_1
+          delphi_10_2,
+          delphi_12_2
         ]
 
     # Note: This is a self-hosted runner in organization,
