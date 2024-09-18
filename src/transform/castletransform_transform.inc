@@ -158,6 +158,18 @@
 
         AD 2 - not perfect, because with delay (not when state actually changes),
         and only for children that exist.
+
+        *Possibly* we can have bugs with the reproduction along these lines:
+        - add collider / rigid body to a transform
+        - make this transform part of the world, so that Kraft state is initialized
+        - then set the transform.Exists := false
+        - wait at least 1 update for the FRigidBodyInChildren on parent to be updated to false
+        - then change the transformation of the parent
+        - and then set the transform.Exists := true
+        - possible bug: the transform that temporarily didn't exist
+          - didn't account properly for new transfomation, e.g. it didn't move when parent moved
+          - didn't update the collider size properly (accounting for Scale changes of parent)
+
         It would be better to have it available immediately
         (always when behaviors change), disregarding Exists.
         It would be even better to not need it at all -- and move the necessary
