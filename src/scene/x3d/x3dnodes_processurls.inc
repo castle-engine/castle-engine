@@ -165,6 +165,39 @@ begin
   if Node is TImageTextureNode then
     ProcessUrlField(TImageTextureNode(Node).FdUrl)
   else
+  if Node is TImageTexture3DNode then
+    ProcessUrlField(TImageTexture3DNode(Node).FdUrl)
+  else
+  if Node is TMovieTextureNode then
+    ProcessUrlField(TMovieTextureNode(Node).FdUrl)
+  else
+  if Node is TImageCubeMapTextureNode then
+    ProcessUrlField(TImageCubeMapTextureNode(Node).FdUrl)
+  else
+  if Node is TDISEntityTypeMappingNode then
+    ProcessUrlField(TDISEntityTypeMappingNode(Node).FdUrl)
+  else
+  if Node is TAudioClipNode then
+    ProcessUrlField(TAudioClipNode(Node).FdUrl)
+  else
+  if Node is TScriptNode then
+    ProcessUrlField(TScriptNode(Node).FdUrl)
+  else
+  if Node is TShaderProgramNode then
+    ProcessUrlField(TShaderProgramNode(Node).FdUrl)
+  else
+  if Node is TShaderPartNode then
+    ProcessUrlField(TShaderPartNode(Node).FdUrl)
+  else
+  if Node is TPackagedShaderNode then
+    ProcessUrlField(TPackagedShaderNode(Node).FdUrl)
+  else
+  if Node is TGeoMetadataNode then
+    ProcessUrlField(TGeoMetadataNode(Node).FdUrl)
+  else
+  if Node is TAnchorNode then
+    ProcessUrlField(TAnchorNode(Node).FdUrl)
+  else
   if Node is TBackgroundNode then
   begin
     ProcessUrlField(TBackgroundNode(Node).FdBackUrl);
@@ -178,10 +211,6 @@ begin
   for I := 0 to Node.PrototypesCount - 1 do
     if Node.Prototypes[I] is TX3DExternalPrototype then
       ProcessUrlField(TX3DExternalPrototype(Node.Prototypes[I]).UrlList);
-
-  // TODO: I'm sure I missed some fields here.
-  // Above we only handled things procuced right now by InternalBuildNode implentations,
-  // there may be more.
 
   { Set Node.BaseUrl, to allow opening the URLs relative to BaseUrl
     (which will also be present because of AdjustUrl).
