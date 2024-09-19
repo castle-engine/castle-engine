@@ -62,6 +62,7 @@ procedure CompileMacOS(const Compiler: TCompiler;
   const CompilerOptions: TCompilerOptions);
 var
   LinkRes, ArchIntelBinary, ArchArmBinary, OutputBinary: string;
+  ArchIntelCompiled, ArchArmCompiled: boolean;
 begin
   { We need to set the env.variable MACOSX_DEPLOYMENT_TARGET for x86_64 platform
     for FPC to at least 10.9 in order to pass Apple Notarization. }
@@ -69,32 +70,61 @@ begin
   CompilerOptions.OverrideEnvironmentName := 'MACOSX_DEPLOYMENT_TARGET';
   CompilerOptions.OverrideEnvironmentValue := '10.9.0';
 
-  CompilerOptions.CPU := x86_64;
-  Compile(Compiler, WorkingDirectory, CompileFile, CompilerOptions);
+  try
+    ArchIntelCompiled := false;
+    CompilerOptions.CPU := x86_64;
+    Compile(Compiler, WorkingDirectory, CompileFile, CompilerOptions);
+    ArchIntelCompiled := true;
+  except
+    Writeln('Warning: x86_64 slice not compiled. Resulting binary will not contain it, will not be "universal".');
+  end;
 
   CompilerOptions.OverrideEnvironmentName := '';
   CompilerOptions.OverrideEnvironmentValue := '';
 
-  // Get the output binary, rename it to include architecture.
-  //WriteLn('OutputBinary = ' + CompilerOptions.OutputBinary);
-  LinkRes := CompilerOptions.LinkerOutputFile;
-  OutputBinary := LinkRes;
-  ArchIntelBinary := LinkRes + '.x86_64';
-  CheckRenameFile(LinkRes, ArchIntelBinary);
+  if ArchIntelCompiled then
+  begin
+    // Get the output binary, rename it to include architecture.
+    //WriteLn('OutputBinary = ' + CompilerOptions.OutputBinary);
+    LinkRes := CompilerOptions.LinkerOutputFile;
+    OutputBinary := LinkRes;
+    ArchIntelBinary := LinkRes + '.x86_64';
+    CheckRenameFile(LinkRes, ArchIntelBinary);
+  end;
 
+  //--------------
   // Same for aarch64, not need to change the environment variables here.
-  CompilerOptions.CPU := aarch64;
-  Compile(Compiler, WorkingDirectory, CompileFile, CompilerOptions);
+  try
+    ArchArmCompiled := false;
+    CompilerOptions.CPU := aarch64;
+    Compile(Compiler, WorkingDirectory, CompileFile, CompilerOptions);
+    ArchArmCompiled := true;
+  except
+    Writeln('Warning: aarch64 slice not compiled. Resulting binary will not contain it, will not be "universal".');
+  end;
 
-  LinkRes := CompilerOptions.LinkerOutputFile;
-  ArchArmBinary := LinkRes + '.aarch64';
-  CheckRenameFile(LinkRes, ArchArmBinary);
+  if ArchArmCompiled then
+  begin
+    LinkRes := CompilerOptions.LinkerOutputFile;
+    ArchArmBinary := LinkRes + '.aarch64';
+    CheckRenameFile(LinkRes, ArchArmBinary);
+  end;
 
-  // Glue both slices together and delete compiled binaries for each architecture
-  RunCommandSimple('lipo', [ArchIntelBinary, ArchArmBinary, '-output', OutputBinary, '-create']);
+  //--------------
+  // Universal binary is created only when both slices were compiled.
+  if ArchIntelCompiled and ArchArmCompiled then
+  begin
+    // Glue both slices together and delete compiled binaries for each architecture
+    RunCommandSimple('lipo', [ArchIntelBinary, ArchArmBinary, '-output', OutputBinary, '-create']);
 
-  CheckDeleteFile(ArchIntelBinary);
-  CheckDeleteFile(ArchArmBinary);
+    CheckDeleteFile(ArchIntelBinary);
+    CheckDeleteFile(ArchArmBinary);
+  end
+  else if ArchIntelCompiled then
+    CheckRenameFile(ArchIntelBinary, OutputBinary)   // rename it back to OutputBinary
+  else if ArchArmCompiled then
+    CheckRenameFile(ArchArmBinary, OutputBinary);
+
 end;
 
 procedure SaveResized(const Image: TCastleImage; const Size: Integer; const OutputFileName: string);
