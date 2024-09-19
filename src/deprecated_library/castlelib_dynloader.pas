@@ -255,6 +255,12 @@ const
   ecgeinputExMove       = 32;
   ecgeinputExZoom       = 33;
 
+  // URL processing (ECgeNavigationInput)
+  ecgeurlProcessingNone           = 0;
+  ecgeurlProcessingToRelative     = 1;
+  ecgeurlProcessingEmbedResources = 2;
+  ecgeurlProcessingCopyToOuputDir = 3;
+
 type
   TLibraryCallbackProc = function (eCode, iParam1, iParam2: cInt32; szParam: pcchar):cInt32; cdecl;
 
@@ -276,7 +282,7 @@ procedure CGE_MouseWheel(zDelta: cFloat; bVertical: cBool); cdecl; external 'cas
 procedure CGE_KeyDown(eKey: CInt32); cdecl; external 'castleengine';
 procedure CGE_KeyUp(eKey: CInt32); cdecl; external 'castleengine';
 procedure CGE_LoadSceneFromFile(szFile: pcchar); cdecl; external 'castleengine';
-procedure CGE_SaveSceneToFile(szFile: pcchar); cdecl; external 'castleengine';
+procedure CGE_SaveSceneToFile(szFile: pcchar; eUrlProcessing: cInt32); cdecl; external 'castleengine';
 function CGE_GetViewpointsCount(): cInt32; cdecl; external 'castleengine';
 procedure CGE_GetViewpointName(iViewpointIdx: cInt32; szName: pchar; nBufSize: cInt32); cdecl; external 'castleengine';
 procedure CGE_MoveToViewpoint(iViewpointIdx: cInt32; bAnimated: cBool); cdecl; external 'castleengine';

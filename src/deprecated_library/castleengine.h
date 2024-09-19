@@ -277,6 +277,14 @@ enum ECgeNavigationInput
   ecgeinputExZoom       = 33,
 };
 
+enum ECgeUrlProcessing
+{
+  ecgeurlProcessingNone           = 0,
+  ecgeurlProcessingToRelative     = 1,
+  ecgeurlProcessingEmbedResources = 2,
+  ecgeurlProcessingCopyToOuputDir = 3,
+};
+
 typedef int (CDECL *TCgeLibraryCallback)(int /*ECgeLibCallbackCode*/eCode, int iParam1, int iParam2, const char *szParam);
 
 
@@ -311,7 +319,7 @@ extern void CGE_KeyDown(int /*ECgeKey*/ eKey);
 extern void CGE_KeyUp(int /*ECgeKey*/ eKey);
 
 extern void CGE_LoadSceneFromFile(const char *szFile);                     // name od the file has to be utf-8 encoded
-extern void CGE_SaveSceneToFile(const char *szFile);
+extern void CGE_SaveSceneToFile(const char *szFile, int /*ECgeUrlProcessing*/ eUrlProcessing);
 
 extern int CGE_GetViewpointsCount(void);
 extern void CGE_GetViewpointName(int iViewpointIdx, char *szName, int nBufSize);    // szName is buffer of size nBufSize, and is filled with utf-8 encoded string
