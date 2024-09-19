@@ -87,22 +87,22 @@ type
   { Helper for ProcessUrls. }
   TProcessUrlsHelper = class
   strict private
-    function UrlChangeCastleDataToRelative(const Url: String): String;
-    function EmbedResource(const Url: String): String;
-    function CopyResourceToSubdirectory(const Url: String): String;
+    function UrlChangeCastleDataToRelative(const Url, CurrentBaseUrl: String): String;
+    function EmbedResource(const Url, CurrentBaseUrl: String): String;
+    function CopyResourceToSubdirectory(const Url, CurrentBaseUrl: String): String;
   public
-    BaseUrl: String;
+    BaseUrl, TargetBaseUrl: String;
     UrlProcessing: TUrlProcessing;
     procedure ProcessNode(Node: TX3DNode);
   end;
 
-function TProcessUrlsHelper.UrlChangeCastleDataToRelative(const Url: String): String;
+function TProcessUrlsHelper.UrlChangeCastleDataToRelative(const Url, CurrentBaseUrl: String): String;
 var
   ResourceUrl, BaseFileName, ResourceFileName, ResultFileName: String;
 begin
-  ResourceUrl := ResolveCastleDataUrl(Url);
+  ResourceUrl := CombineUri(CurrentBaseUrl, Url);
   ResourceFileName := UriToFilenameSafe(ResourceUrl);
-  BaseFileName := UriToFilenameSafe(BaseUrl);
+  BaseFileName := UriToFilenameSafe(TargetBaseUrl);
   if (BaseFileName <> '') and (ResourceFileName <> '') then
   begin
     ResultFileName := ExtractRelativePath(BaseFileName, ResourceFileName);
@@ -112,23 +112,26 @@ begin
     Result := Url;
 end;
 
-function TProcessUrlsHelper.EmbedResource(const Url: String): String;
+function TProcessUrlsHelper.EmbedResource(const Url, CurrentBaseUrl: String): String;
 begin
-  // TODO
+  // TODO (use CastleInternalDataUri, see what tools/to-data-uri/to_data_uri.lpr does)
   Result := Url;
 end;
 
-function TProcessUrlsHelper.CopyResourceToSubdirectory(const Url: String): String;
+function TProcessUrlsHelper.CopyResourceToSubdirectory(const Url, CurrentBaseUrl: String): String;
 var
-  ResourceUrl, BaseFileName, ResourceFileName: String;
+  ResourceUrl, BaseFileName, ResourceFileName, ResourceFileTitle, TargetFileName: String;
 begin
-  ResourceUrl := ResolveCastleDataUrl(Url);
+  ResourceUrl := CombineUri(CurrentBaseUrl, Url);
   ResourceFileName := UriToFilenameSafe(ResourceUrl);
-  BaseFileName := UriToFilenameSafe(BaseUrl);
+  BaseFileName := UriToFilenameSafe(TargetBaseUrl);
   if (BaseFileName <> '') and (ResourceFileName <> '') then
   begin
-    CheckCopyFile(ResourceFileName, ExtractFilePath(BaseFileName));
-    Result := ExtractFileName(ResourceFileName);
+    ResourceFileTitle := ExtractFileName(ResourceFileName);
+    TargetFileName := ExtractFilePath(BaseFileName) + ResourceFileTitle;
+    if not FileExists(TargetFileName) then  // lets suppose same TargetFileName means same original source file
+       CheckCopyFile(ResourceFileName, TargetFileName);
+    Result := ResourceFileTitle;
   end else
     // use original URL then, maybe with castle-data:/, maybe other protocol
     Result := Url;
@@ -144,13 +147,11 @@ procedure TProcessUrlsHelper.ProcessNode(Node: TX3DNode);
     begin
       case UrlProcessing of
         suChangeCastleDataToRelative:
-          Field.Items[I] := UrlChangeCastleDataToRelative(Field.Items[I]);
+          Field.Items[I] := UrlChangeCastleDataToRelative(Field.Items[I], Node.BaseUrl);
         suEmbedResources:
-          // TODO (use CastleInternalDataUri, see what tools/to-data-uri/to_data_uri.lpr does)
-          Field.Items[I] := EmbedResource(Field.Items[I]);
+          Field.Items[I] := EmbedResource(Field.Items[I], Node.BaseUrl);
         suCopyResourcesToSubdirectory:
-          // TODO
-          Field.Items[I] := CopyResourceToSubdirectory(Field.Items[I]);
+          Field.Items[I] := CopyResourceToSubdirectory(Field.Items[I], Node.BaseUrl);
       end;
     end;
   end;
@@ -158,16 +159,6 @@ procedure TProcessUrlsHelper.ProcessNode(Node: TX3DNode);
 var
   I: Integer;
 begin
-  { Set Node.BaseUrl, to allow opening the URLs relative to BaseUrl
-    (which will also be present because of AdjustUrl).
-
-    This is important if some code will require to load URLs from the exported
-    graph, which happens e.g. for TInlineNode URLs when saving as STL:
-    we need to load inline contents then.
-    So, without this, saving to STL from "Export Viewport to X3D, STL..."
-    in editor would fail for TCastleScene in viewport. }
-  Node.BaseUrl := BaseUrl;
-
   if Node is TInlineNode then
     ProcessUrlField(TInlineNode(Node).FdUrl)
   else
@@ -184,13 +175,23 @@ begin
     ProcessUrlField(TBackgroundNode(Node).FdTopUrl);
   end;
 
-  for I := 0 to Node.PrototypesCount do
+  for I := 0 to Node.PrototypesCount - 1 do
     if Node.Prototypes[I] is TX3DExternalPrototype then
       ProcessUrlField(TX3DExternalPrototype(Node.Prototypes[I]).UrlList);
 
   // TODO: I'm sure I missed some fields here.
   // Above we only handled things procuced right now by InternalBuildNode implentations,
   // there may be more.
+
+  { Set Node.BaseUrl, to allow opening the URLs relative to BaseUrl
+    (which will also be present because of AdjustUrl).
+
+    This is important if some code will require to load URLs from the exported
+    graph, which happens e.g. for TInlineNode URLs when saving as STL:
+    we need to load inline contents then.
+    So, without this, saving to STL from "Export Viewport to X3D, STL..."
+    in editor would fail for TCastleScene in viewport. }
+  Node.BaseUrl := TargetBaseUrl;
 end;
 
 procedure ProcessUrls(const RootNode: TX3DRootNode;
@@ -200,7 +201,7 @@ var
 begin
   Helper := TProcessUrlsHelper.Create;
   try
-    Helper.BaseUrl := SaveBaseUrl;
+    Helper.TargetBaseUrl := SaveBaseUrl;
     Helper.UrlProcessing := UrlProcessing;
     RootNode.EnumerateNodes(TX3DNode, {$ifdef FPC}@{$endif} Helper.ProcessNode, false);
   finally FreeAndNil(Helper) end;
