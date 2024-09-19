@@ -16,6 +16,8 @@
 
 { IFC JSON reading and writing. }
 
+{$ifdef read_interface}
+
 type
   { IFC file representation.
 
@@ -33,8 +35,14 @@ type
     Data: TIfcProject;
   end;
 
+{$endif read_interface}
+
+{$ifdef read_implementation}
+
 function IfcJsonLoad(const Json: TJsonData): TIfcFile;
 begin
   Result := TIfcFile.Create;
   // TODO
 end;
+
+{$endif read_implementation}

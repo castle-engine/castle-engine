@@ -16,6 +16,8 @@
 
 { IFC types and classes. }
 
+{$ifdef read_interface}
+
 type
   // forward declarations
   TIfcRepresentationItem = class;
@@ -27,44 +29,63 @@ type
   TIfcOpeningElement = class;
   TIfcRepresentationList = class;
 
-  { https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcReal.htm }
+  { Float type used throughout IFC.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcReal.htm }
   TIfcReal = Single;
 
-  { https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcPositiveLengthMeasure.htm }
+  { Positive distance.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcPositiveLengthMeasure.htm }
   TIfcPositiveLengthMeasure = Single;
 
   { Distance.
-    https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcLengthMeasure.htm }
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcLengthMeasure.htm }
   TIfcLengthMeasure = Single;
 
-  { https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcDimensionCount.htm }
+  { Number of dimensions.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcDimensionCount.htm }
   TIfcDimensionCount = 1..3;
 
-  { https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcLabel.htm }
+  { Text label.
+
+    https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcLabel.htm }
   TIfcLabel = String;
 
-  { https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcText.htm }
+  { Text.
+
+    https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcText.htm }
   TIfcText = String;
 
-  { https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcIdentifier.htm }
+  { Identifier.
+
+    https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcIdentifier.htm }
   TIfcIdentifier = String;
 
-  { https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcPresentationStyle.htm }
+  { Presentation information assigned to geometric representation items.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcPresentationStyle.htm }
   TIfcPresentationStyle = class
     Name: TIfcLabel;
   end;
   TIfcPresentationStyleList = {$ifdef FPC}specialize{$endif} TObjectList<TIfcPresentationStyle>;
 
   { Collection of all those items, that are assigned to a single layer.
-    This is either TIfcRepresentationItem or (TODO) TIfcRepresentation.
-    https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcLayeredItem.htm }
+    This is either TIfcRepresentationItem or TIfcRepresentation.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcLayeredItem.htm }
   TIfcLayeredItem = TObject;
+
+  { List of TIfcLayeredItem. }
   TIfcLayeredItemList = Contnrs.TObjectList;
 
   { The presentation layer assignment provides the layer name (and optionally
     a description and an identifier) for a collection of geometric
     representation items.
-    https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcPresentationLayerAssignment.htm }
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcPresentationLayerAssignment.htm }
   TIfcPresentationLayerAssignment = class
     { Name of the layer. }
     Name: TIfcLabel;
@@ -83,10 +104,10 @@ type
     destructor Destroy; override;
   end;
 
-  { Most commonly these IfcRepresentationItem's are geometric or topological
-    representation items, that can (but not need to) have presentation
-    style information assigned.
-    https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcRepresentationItem.htm }
+  { Geometric or topological representation items,
+    that can (but not need to) have presentation style information assigned.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcRepresentationItem.htm }
   TIfcRepresentationItem = class
     { Assignment of the representation item to a single or multiple layer(s).
       @nil if none. }
@@ -101,7 +122,9 @@ type
   TIfcRepresentationItemList = class({$ifdef FPC}specialize{$endif} TObjectList<TIfcRepresentationItem>)
   end;
 
-  { https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcStyledItem.htm }
+  { Style information for products.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcStyledItem.htm }
   TIfcStyledItem = class(TIfcRepresentationItem)
     { A geometric representation item to which the style is assigned.
       May be @nil. }
@@ -119,8 +142,9 @@ type
     destructor Destroy; override;
   end;
 
-  { The IfcDirection provides a direction in two or three dimensional space.
-    https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcDirection.htm }
+  { Direction in 2D or 3D.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcDirection.htm }
   TIfcDirection = class
     { Defined as 2 or 3 values of TIfcReal type.
       In practice, this is just a 3D vector for our engine. }
@@ -135,12 +159,14 @@ type
   { Common supertype of all geometric items used within a representation.
     It is positioned within a geometric coordinate system,
     directly or indirectly through intervening items.
-    https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcGeometricRepresentationItem.htm }
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcGeometricRepresentationItem.htm }
   TIfcGeometricRepresentationItem = class abstract(TIfcRepresentationItem)
   end;
 
   { 3D shape.
-    https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcSolidModel.htm }
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcSolidModel.htm }
   TIfcSolidModel = class abstract(TIfcGeometricRepresentationItem)
   const
     { The space dimensionality of this class, it is always 3. }
@@ -149,7 +175,8 @@ type
 
   { Represents the 3D shape by a sweeping representation scheme allowing
     a two dimensional planar cross section to sweep through space.
-    https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcSweptAreaSolid.htm }
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcSweptAreaSolid.htm }
   TIfcSweptAreaSolid = class abstract(TIfcSolidModel)
     { The surface defining the area to be swept.
       It is given as a profile definition within the xy plane
@@ -161,7 +188,8 @@ type
   end;
 
   { Defined by sweeping a cross section provided by a profile definition.
-    https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcExtrudedAreaSolid.htm }
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcExtrudedAreaSolid.htm }
   TIfcExtrudedAreaSolid = class(TIfcSweptAreaSolid)
     { The direction in which the surface, provided by SweptArea is to be swept.
       The ExtrudedDirection shall not be perpendicular to the local z-axis. }
@@ -172,7 +200,8 @@ type
   end;
 
   { Most abstract and root class for all entity definitions.
-    https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcRoot.htm }
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcRoot.htm }
   TIfcRoot = class abstract
     GlobalId: TGUID;
 
@@ -184,7 +213,8 @@ type
   end;
 
   { Any semantically treated thing or process.
-    https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcObjectDefinition.htm }
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcObjectDefinition.htm }
   TIfcObjectDefinition = class abstract(TIfcRoot)
     IsDecomposedBy: TIfcRelAggregatesList;
     // TODO: rest
@@ -193,16 +223,19 @@ type
   end;
   TIfcObjectDefinitionList = {$ifdef FPC}specialize{$endif} TObjectList<TIfcObjectDefinition>;
 
+  { Any semantically treated thing or process. }
   TIfcObject = class abstract(TIfcObjectDefinition)
     // TODO
   end;
 
+  { Define the object coordinate system. }
   TIfcObjectPlacement = class abstract
     // TODO
   end;
 
   { Abstract point.
-    https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcPoint.htm }
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcPoint.htm }
   TIfcPoint = class abstract(TIfcGeometricRepresentationItem)
     { The dimensions are derived from the descendant classes.
       Determined by the number of coordinate components in case of
@@ -212,14 +245,16 @@ type
   end;
 
   { A regular 3D point (may be specified as 2D too, in which case we set Z to 0).
-    https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcCartesianPoint.htm }
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcCartesianPoint.htm }
   TIfcCartesianPoint = class(TIfcPoint)
     Coordinates: TVector3;
   end;
 
   { Abstract supertype of placement subtypes that define the location of an item,
     or an entire shape representation, and provide its orientation.
-    https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcPlacement.htm }
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcPlacement.htm }
   TIfcPlacement = class abstract(TIfcRepresentationItem)
     Location: TIfcPoint;
 
@@ -228,7 +263,8 @@ type
   end;
 
   { Location and orientation to place items in a two-dimensional space.
-    https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcAxis2Placement2D.htm }
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcAxis2Placement2D.htm }
   TIfcAxis2Placement2D = class(TIfcPlacement)
     { Direction of the local X axis. May be @nil. }
     RefDirection: TIfcDirection;
@@ -245,7 +281,8 @@ type
   end;
 
   { Location and orientations to place items in a three-dimensional space.
-    https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcAxis2Placement3D.htm }
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcAxis2Placement3D.htm }
   TIfcAxis2Placement3D = class(TIfcPlacement)
     { Direction of the local Z axis. May be @nil. }
     Axis: TIfcDirection;
@@ -273,7 +310,8 @@ type
     This is not a class, but a choice in IFC standard.
     So in Pascal we also don't define it as new class (to keep our inheritance
     of classes consistent with IFC).
-    https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcAxis2Placement.htm }
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcAxis2Placement.htm }
   TIfcAxis2Placement = TIfcPlacement;
 
   { Relative placement of a product
@@ -287,7 +325,8 @@ type
   end;
 
   { Any object that relates to a geometric or spatial context.
-    https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcProduct.htm }
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcProduct.htm }
   TIfcProduct = class abstract(TIfcObject)
     { Object coordinate system and placement of the product in space. }
     ObjectPlacement: TIfcObjectPlacement;
@@ -296,6 +335,9 @@ type
   TIfcProductList = class({$ifdef FPC}specialize{$endif} TObjectList<TIfcProduct>)
   end;
 
+  { Elements that might be used to define a spatial structure.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcSpatialElement.htm }
   TIfcSpatialElement = class abstract(TIfcProduct)
     LongName: TIfcLabel;
     // TODO: rest of fields
@@ -304,11 +346,13 @@ type
   TIfcRelationship = class abstract(TIfcRoot)
   end;
 
+  { Relationship that connects objects under some criteria. }
   TIfcRelConnects = class abstract(TIfcRelationship)
   end;
 
   { Relationship to assign elements to a certain level of the spatial project structure.
-    https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcRelContainedInSpatialStructure.htm }
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcRelContainedInSpatialStructure.htm }
   TIfcRelContainedInSpatialStructure = class(TIfcRelConnects)
     { Set of products, which are contained within this level of
       the spatial structure hierarchy. }
@@ -319,6 +363,7 @@ type
   end;
   TIfcRelContainedInSpatialStructureList = {$ifdef FPC}specialize{$endif} TObjectList<TIfcRelContainedInSpatialStructure>;
 
+  { Spatial structure can be used to provide a spatial organization of a project. }
   TIfcSpatialStructureElement = class abstract(TIfcSpatialElement)
     // TODO
     ContainsElements: TIfcRelContainedInSpatialStructureList;
@@ -327,20 +372,25 @@ type
   end;
 
   { Defined area of land on which the project construction is to be completed.
-    https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcSite.htm }
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcSite.htm }
   TIfcSite = class(TIfcSpatialStructureElement)
     // TODO
   end;
 
+  { Any built facility, like a building, bridge. }
   TIfcFacility = class(TIfcSpatialStructureElement)
   end;
 
+  { Building facility.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcBuilding.htm }
   TIfcBuilding = class(TIfcFacility)
   end;
 
-  { Has an elevation and typically represents a (nearly) horizontal aggregation
-    of spaces that are vertically bound.
-    https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcBuildingStorey.htm }
+  { Storey (~floor).
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcBuildingStorey.htm }
   TIfcBuildingStorey = class(TIfcSpatialStructureElement)
     { Elevation of the base of this storey, relative to the 0,00
       internal reference height of the building. }
@@ -360,10 +410,13 @@ type
 
   { All existence dependent elements which modify the shape and appearance
     of the associated master element.
-    https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcFeatureElement.htm }
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcFeatureElement.htm }
   TIfcFeatureElement = class abstract(TIfcElement)
   end;
 
+  { Existence dependent element which modifies the shape and appearance
+    of the associated master element. }
   TIfcFeatureElementSubtraction = class abstract(TIfcFeatureElement)
     { Reference to the Voids Relationship that uses this Opening Element
       to create a void within an Element. }
@@ -372,7 +425,8 @@ type
 
   { Relationship between an opening element and an element that fills
     (or partially fills) the opening element. It is an one-to-one relationship.
-    https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcRelFillsElement.htm }
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcRelFillsElement.htm }
   TIfcRelFillsElement = class(TIfcRelConnects)
     { Opening Element being filled by virtue of this relationship. }
     RelatingOpeningElement: TIfcOpeningElement;
@@ -381,8 +435,12 @@ type
   end;
   TIfcRelFillsElementList = {$ifdef FPC}specialize{$endif} TObjectList<TIfcRelFillsElement>;
 
+  { Used by TIfcOpeningElement.PredefinedType. }
   TIfcOpeningElementTypeEnum = (NotDefined, Opening, Recess, UserDefined);
 
+  { Opening: a void within any element that has physical manifestation.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcOpeningElement.htm }
   TIfcOpeningElement = class(TIfcFeatureElementSubtraction)
     { By default NotDefined if not specified, we deliberately made NotDefined
       the enum value with memory representation 0 in Pascal. }
@@ -392,18 +450,21 @@ type
     destructor Destroy; override;
   end;
 
-  { Primarily part of the construction of a built facility, i.e.,
-    its structural and space separating system. Built elements are all
+  { Part of the construction of a built facility, built elements are all
     physically existent and tangible things.
-    https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcBuiltElement.htm }
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcBuiltElement.htm }
   TIfcBuiltElement = class(TIfcElement)
   end;
 
+  { Used for TIfcWindow.PredefinedType. }
   TIfcWindowTypeEnum = (NotDefined, LightDome, SkyLight, Window, UserDefined);
 
   { Basic configuration of the window type in terms of the number of window
     panels and the subdivision of the total window.
-    https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcWindowTypePartitioningEnum.htm }
+    Used for TIfcWindow.PartitioningType.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcWindowTypePartitioningEnum.htm }
   TIfcWindowTypePartitioningEnum = (
     NotDefined,
     DoublePanelHorizontal,
@@ -419,7 +480,8 @@ type
   );
 
   { Window building element.
-    https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcWindow.htm }
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcWindow.htm }
   TIfcWindow = class(TIfcBuiltElement)
     { Overall measure of the height, it reflects the Z Dimension of
       a bounding box, enclosing the window opening. }
@@ -448,7 +510,8 @@ type
     creates a void in the element. It is a one-to-one relationship.
     This relationship implies a boolean operation of subtraction between
     the geometric bodies of the element and the opening.
-    https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcRelVoidsElement.htm }
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcRelVoidsElement.htm }
   TIfcRelVoidsElement = class
     RelatingBuildingElement: TIfcElement;
     RelatedOpeningElement: TIfcFeatureElementSubtraction;
@@ -456,7 +519,9 @@ type
   TIfcRelVoidsElementList = class({$ifdef FPC}specialize{$endif} TObjectList<TIfcRelVoidsElement>)
   end;
 
-  { https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcRelAggregates.htm }
+  { General composition/decomposition (or whole/part) relationship.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcRelAggregates.htm }
   TIfcRelAggregates = class
     RelatingObject: TIfcObjectDefinition;
     RelatedObjects: TIfcObjectDefinitionList;
@@ -468,7 +533,8 @@ type
 
   { Project context in which objects, type objects, property sets,
     and properties are defined.
-    https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcContext.htm }
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcContext.htm }
   TIfcContext = class abstract(TIfcObjectDefinition)
     // TODO: rest
     constructor Create;
@@ -477,10 +543,12 @@ type
 
   { Context for information to be exchanged or shared,
     it may represent a construction project but does not have to.
-    https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcProject.htm }
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcProject.htm }
   TIfcProject = class(TIfcContext)
   end;
 
+  { How to display the product. }
   TIfcRepresentation = class abstract
     { Set of geometric representation items that are defined for this representation. }
     Items: TIfcRepresentationItemList;
@@ -488,6 +556,8 @@ type
     constructor Create;
     destructor Destroy; override;
   end;
+
+  { List of TIfcRepresentation. }
   TIfcRepresentationList = class({$ifdef FPC}specialize{$endif} TObjectList<TIfcRepresentation>)
   end;
 
@@ -495,13 +565,18 @@ type
     // TODO
   end;
 
+  { Representation of a product or a product component within a specific
+    geometric representation context.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcShapeRepresentation.htm }
   TIfcShapeRepresentation = class(TIfcShapeModel)
     // TODO
   end;
 
   { Representation of a product, including its (geometric or topological)
     representation. A product can have zero, one or many geometric representations.
-    https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcProductRepresentation.htm }
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcProductRepresentation.htm }
   TIfcProductRepresentation = class abstract
     Name: TIfcLabel;
     Description: TIfcText;
@@ -512,6 +587,10 @@ type
     constructor Create;
     destructor Destroy; override;
   end;
+
+{$endif read_interface}
+
+{$ifdef read_implementation}
 
 { TIfcStyledItem ------------------------------------------------------------- }
 
@@ -654,3 +733,4 @@ begin
   inherited;
 end;
 
+{$endif read_implementation}

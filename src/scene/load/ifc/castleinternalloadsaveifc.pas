@@ -16,12 +16,19 @@
 { Loading and saving of Industry Foundation Classes (IFC).
 
   See:
-  - https://www.buildingsmart.org/standards/bsi-standards/industry-foundation-classes/
-  - https://technical.buildingsmart.org/standards/ifc/
-  - Specs https://technical.buildingsmart.org/standards/ifc/ifc-schema-specifications/
-    Most important: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/index.html
-  - Excellent intro: https://www.youtube.com/watch?v=h2Rv9iu7yDk
-  - Test files: https://github.com/buildingSMART/Sample-Test-Files/
+
+  @unorderedList(
+    @item(Specs:
+      @unorderedList(
+        @item Most important, latest spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/index.html
+        @item https://www.buildingsmart.org/standards/bsi-standards/industry-foundation-classes/
+        @item https://technical.buildingsmart.org/standards/ifc/
+        @item https://technical.buildingsmart.org/standards/ifc/ifc-schema-specifications/
+      )
+    )
+    @item Great overview by Dion Moult: https://www.youtube.com/watch?v=h2Rv9iu7yDk
+    @item Test files: https://github.com/buildingSMART/Sample-Test-Files/
+  )
 }
 unit CastleInternalLoadSaveIfc;
 
@@ -30,14 +37,23 @@ unit CastleInternalLoadSaveIfc;
 
 interface
 
-implementation
-
 uses Contnrs, Generics.Collections, SysUtils, Classes,
   FpJson, JSONParser, JSONScanner,
-  CastleVectors, X3DLoad, X3DNodes, CastleUriUtils;
+  CastleVectors, X3DNodes, CastleUriUtils;
 
+{$define read_interface}
 {$I castleinternalloadsaveifc_ifc_types.inc}
 {$I castleinternalloadsaveifc_json.inc}
+{$undef read_interface}
+
+implementation
+
+uses X3DLoad;
+
+{$define read_implementation}
+{$I castleinternalloadsaveifc_ifc_types.inc}
+{$I castleinternalloadsaveifc_json.inc}
+{$undef read_implementation}
 
 { Loading -------------------------------------------------------------------- }
 
