@@ -4360,7 +4360,6 @@ function TCastleViewport.InternalBuildNode(
 
 var
   ExportedItems: TAbstractChildNode;
-  Helper: TInternalBuildNodeHelper;
   Nav: TCastleNavigation;
 begin
   Result := TX3DRootNode.Create;
@@ -4396,7 +4395,7 @@ begin
         the implementations ofInternalBuildNodeInside don't need to worry
         about it.
     }
-    ProcessUrls(Result, UrlProcessing, SaveBaseUrl)
+    ProcessUrls(Result, SaveBaseUrl, UrlProcessing)
   except FreeAndNil(Result); raise end;
 end;
 

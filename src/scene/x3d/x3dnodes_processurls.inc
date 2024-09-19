@@ -88,6 +88,8 @@ type
   TProcessUrlsHelper = class
   strict private
     function UrlChangeCastleDataToRelative(const Url: String): String;
+    function EmbedResource(const Url: String): String;
+    function CopyResourceToSubdirectory(const Url: String): String;
   public
     BaseUrl: String;
     UrlProcessing: TUrlProcessing;
@@ -96,15 +98,37 @@ type
 
 function TProcessUrlsHelper.UrlChangeCastleDataToRelative(const Url: String): String;
 var
-  TargetUrl, BaseFileName, TargetFileName, ResultFileName: String;
+  ResourceUrl, BaseFileName, ResourceFileName, ResultFileName: String;
 begin
-  TargetUrl := ResolveCastleDataUrl(Url);
-  TargetFileName := UriToFilenameSafe(TargetUrl);
+  ResourceUrl := ResolveCastleDataUrl(Url);
+  ResourceFileName := UriToFilenameSafe(ResourceUrl);
   BaseFileName := UriToFilenameSafe(BaseUrl);
-  if (BaseFileName <> '') and (TargetFileName <> '') then
+  if (BaseFileName <> '') and (ResourceFileName <> '') then
   begin
-    ResultFileName := ExtractRelativePath(BaseFileName, TargetFileName);
+    ResultFileName := ExtractRelativePath(BaseFileName, ResourceFileName);
     Result := RelativeFilenameToUriSafe(ResultFileName);
+  end else
+    // use original URL then, maybe with castle-data:/, maybe other protocol
+    Result := Url;
+end;
+
+function TProcessUrlsHelper.EmbedResource(const Url: String): String;
+begin
+  // TODO
+  Result := Url;
+end;
+
+function TProcessUrlsHelper.CopyResourceToSubdirectory(const Url: String): String;
+var
+  ResourceUrl, BaseFileName, ResourceFileName: String;
+begin
+  ResourceUrl := ResolveCastleDataUrl(Url);
+  ResourceFileName := UriToFilenameSafe(ResourceUrl);
+  BaseFileName := UriToFilenameSafe(BaseUrl);
+  if (BaseFileName <> '') and (ResourceFileName <> '') then
+  begin
+    CheckCopyFile(ResourceFileName, ExtractFilePath(BaseFileName));
+    Result := ExtractFileName(ResourceFileName);
   end else
     // use original URL then, maybe with castle-data:/, maybe other protocol
     Result := Url;
@@ -126,11 +150,13 @@ procedure TProcessUrlsHelper.ProcessNode(Node: TX3DNode);
           Field.Items[I] := EmbedResource(Field.Items[I]);
         suCopyResourcesToSubdirectory:
           // TODO
-          Field.Items[I] := CopyResourceToSubdirectory(Field.Items[I], BaseUrl);
+          Field.Items[I] := CopyResourceToSubdirectory(Field.Items[I]);
       end;
     end;
   end;
 
+var
+  I: Integer;
 begin
   { Set Node.BaseUrl, to allow opening the URLs relative to BaseUrl
     (which will also be present because of AdjustUrl).
@@ -158,6 +184,10 @@ begin
     ProcessUrlField(TBackgroundNode(Node).FdTopUrl);
   end;
 
+  for I := 0 to Node.PrototypesCount do
+    if Node.Prototypes[I] is TX3DExternalPrototype then
+      ProcessUrlField(TX3DExternalPrototype(Node.Prototypes[I]).UrlList);
+
   // TODO: I'm sure I missed some fields here.
   // Above we only handled things procuced right now by InternalBuildNode implentations,
   // there may be more.
@@ -165,8 +195,10 @@ end;
 
 procedure ProcessUrls(const RootNode: TX3DRootNode;
   const SaveBaseUrl: String; const UrlProcessing: TUrlProcessing);
+var
+  Helper: TProcessUrlsHelper;
 begin
-  Helper := TInternalBuildNodeHelper.Create;
+  Helper := TProcessUrlsHelper.Create;
   try
     Helper.BaseUrl := SaveBaseUrl;
     Helper.UrlProcessing := UrlProcessing;
