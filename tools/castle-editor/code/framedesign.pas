@@ -6512,6 +6512,7 @@ procedure TDesignFrame.ExportToModel;
 var
   RootNode: TX3DRootNode;
   SaveUrl: String;
+  UrlProcessing: TUrlProcessing;
 begin
   if CurrentViewport = nil then
   begin
@@ -6523,6 +6524,7 @@ begin
   if ExportToModelDialog.Execute then
   begin
     SaveUrl := ExportToModelDialog.Url;
+    UrlProcessing := suChangeCastleDataToRelative;
     { TODO: get UrlProcessing as parameter;
 
       TODO: FormProject should allow user to choose UrlProcessing --
