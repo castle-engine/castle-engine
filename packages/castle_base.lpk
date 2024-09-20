@@ -4568,7 +4568,7 @@ See https://castle-engine.io/license for details.
         <Type Value="Include"/>
       </Item1119>
       <Item1120>
-        <Filename Value="../src/scene/x3d/generated-pascal/x3dnodes_processurls.inc"/>
+        <Filename Value="../src/scene/x3d/x3dnodes_processurls.inc"/>
         <Type Value="Include"/>
       </Item1120>
     </Files>
