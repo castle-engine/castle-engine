@@ -39,6 +39,8 @@ type
     procedure TestPastePreserveReferencesOutsideCopied;
     procedure TestAssociateReferences;
     procedure TestAssociateReferencesReuseDesign;
+    procedure TestSaveTransformNoDefaultVectors;
+    procedure TestSaveUiNoDefaultVectors;
   end;
 
 implementation
@@ -888,6 +890,50 @@ begin
 
     FreeAndNil(RocketsOwner);
   end;
+end;
+
+procedure TTestCastleComponentSerialize.TestSaveTransformNoDefaultVectors;
+var
+  T: TCastleTransform;
+  TAsString: String;
+begin
+  T := TCastleTransform.Create(nil);
+  try
+    T.Name := 'MyTransform';
+    TAsString := ComponentToString(T);
+    // make sure result is sensible
+    AssertTrue(Pos('"MyTransform"', TAsString) > 0);
+    // make sure result does not contain any vectors,
+    // it should not have to -- when everything is default,
+    // output should be simple, for easy diffs
+    AssertEquals(0, Pos('TCastleVector3Persistent', TAsString));
+    AssertEquals(0, Pos('TCastleVector4Persistent', TAsString));
+    AssertEquals(0, Pos('TCastleVector4RotationPersistent', TAsString));
+    AssertEquals(0, Pos('TCastleColorPersistent', TAsString));
+    AssertEquals(0, Pos('TCastleColorRGBPersistent', TAsString));
+  finally FreeAndNil(T) end;
+end;
+
+procedure TTestCastleComponentSerialize.TestSaveUiNoDefaultVectors;
+var
+  C: TCastleRectangleControl;
+  CAsString: String;
+begin
+  C := TCastleRectangleControl.Create(nil);
+  try
+    C.Name := 'MyControl';
+    CAsString := ComponentToString(C);
+    // make sure result is sensible
+    AssertTrue(Pos('"MyControl"', CAsString) > 0);
+    // make sure result does not contain any vectors,
+    // it should not have to -- when everything is default,
+    // output should be simple, for easy diffs
+    AssertEquals(0, Pos('TCastleVector3Persistent', CAsString));
+    AssertEquals(0, Pos('TCastleVector4Persistent', CAsString));
+    AssertEquals(0, Pos('TCastleVector4RotationPersistent', CAsString));
+    AssertEquals(0, Pos('TCastleColorPersistent', CAsString));
+    AssertEquals(0, Pos('TCastleColorRGBPersistent', CAsString));
+  finally FreeAndNil(C) end;
 end;
 
 initialization
