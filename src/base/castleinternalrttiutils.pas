@@ -240,7 +240,10 @@ begin
   { $80000000 means that there's no default value (in case of Single or String
     or Int64, you need to specify it by "nodefault") }
   DefValueUse := DefValue <> Int32($80000000);
-  if not DefValueUse then
+  if (not DefValueUse) and
+     { PropInfo^.Default doesn't matter for our tkClass logic.
+       And it seems it may be $80000000 always (with FPC 3.3.1 at least). }
+     (PropType^.Kind <> tkClass) then
     Exit;
 
   case PropType^.Kind of
