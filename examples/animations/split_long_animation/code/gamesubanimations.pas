@@ -74,7 +74,7 @@ type
 implementation
 
 uses SysUtils,
-  CastleURIUtils, CastleDownload, CastleStringUtils, CastleLog, CastleUtils;
+  CastleUriUtils, CastleDownload, CastleStringUtils, CastleLog, CastleUtils;
 
 constructor TSubAnimations.Create(AOwner: TComponent);
 begin

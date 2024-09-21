@@ -3,10 +3,15 @@
 # Build tool (and compiler) temporary output
 castle-engine-output
 
+# Lazarus IDE
+# lps (session settings) are user-specific, so they should not be versioned
+*.lps
+*.dbg
+
 # Unix executable
-${PROJECT_NAME}
+/${PROJECT_NAME}
 # Windows executable
-${PROJECT_NAME}.exe
+/${PROJECT_NAME}.exe
 # Library files placed alongside Windows executable
 *.dll
 # Auto-updated by CGE tools when compiling Windows build

@@ -93,12 +93,15 @@
   published
     { Speed of scrolling by arrow keys, in pixels (before UI scaling) per second. }
     property KeyScrollSpeed: Single read FKeyScrollSpeed write FKeyScrollSpeed {$ifdef FPC}default DefaultKeyScrollSpeed{$endif};
+
     { Speed of scrolling by mouse wheel, in pixels (before UI scaling) per event. }
     property WheelScrollSpeed: Single read FWheelScrollSpeed write FWheelScrollSpeed {$ifdef FPC}default DefaultWheelScrollSpeed{$endif};
+
     { Width of the scroll bar.
       Value of 0 means to use global default
       in @link(TCastleTheme.ScrollBarWidth Theme.ScrollBarWidth). }
     property ScrollBarWidth: Single read FScrollBarWidth write FScrollBarWidth {$ifdef FPC}default 0{$endif};
+
     { Position of the scroll bar.
       @definitionList(
         @itemLabel(@false)
@@ -111,11 +114,12 @@
         )
       ) }
     property ScrollBarLeft: Boolean read FScrollBarLeft write FScrollBarLeft default false;
+
     { Enable scrolling by dragging @italic(anywhere) in the scroll area.
       This is usually suitable for mobile devices.
       Note that this doesn't affect the dragging directly by the scrollbar,
       which is always enabled. }
-    property EnableDragging: Boolean read FEnableDragging write FEnableDragging default false;
+    property EnableDragging: Boolean read FEnableDragging write FEnableDragging default true;
 
     { How much do we scroll.
       Setting it always clamps the value to a sensible range,
@@ -266,6 +270,7 @@ begin
   FKeyScrollSpeed := DefaultKeyScrollSpeed;
   FWheelScrollSpeed := DefaultWheelScrollSpeed;
   FTintScrollBarInactive := White;
+  FEnableDragging := true;
 
   FScrollbarFrame := TCastleImagePersistent.Create;
   FScrollbarFrame.OnChange := {$Ifdef FPC}@{$endif} CustomScrollBarChanged;
@@ -326,7 +331,7 @@ function TCastleScrollViewCustom.PropertySections(const PropertyName: String
   ): TPropertySections;
 begin
   if ArrayContainsString(PropertyName, [
-       'ScrollBarWidth', 'ScrollbarFrame', 'ScrollbarSlider'
+       'ScrollBarWidth', 'ScrollbarFrame', 'ScrollbarSlider', 'EnableDragging'
      ]) then
     Result := [psBasic]
   else
@@ -420,14 +425,18 @@ procedure TCastleScrollViewCustom.Update(const SecondsPassed: Single;
       begin
         Scroll := Scroll - KeyScrollSpeed * SecondsPassed;
         ResetInertialForce;
+        { Do "HandleInput := false" only when some relevant key
+          (for scroll view) is pressed, otherwise allow other controls to process
+          the key. }
+        HandleInput := false;
       end;
       if Container.Pressed[ keyArrowDown] or
          Container.Pressed[keyNumpadDown] then
       begin
         Scroll := Scroll + KeyScrollSpeed * SecondsPassed;
         ResetInertialForce;
+        HandleInput := false;
       end;
-      HandleInput := false;
     end;
   end;
 

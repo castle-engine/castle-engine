@@ -20,7 +20,7 @@ float snoise(vec3 v, out vec3 gradient);
 
 vec3 simple_3d_noise(vec3 noise_input)
 {
-  vec3 result;
+  vec3 result = vec3(0.0);
 
   vec3 output1;
   snoise(noise_input, output1);

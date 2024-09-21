@@ -169,4 +169,27 @@ begin
     Result := nil;
 end;
 
+procedure InitializeInputInspectorDebug;
+begin
+  TCastleContainer.InputInspector.Key := keyF8;
+  TCastleContainer.InputInspector.PressFingers := 3;
+end;
+
+procedure InitializeInputInspector;
+begin
+  TCastleContainer.FInputInspector := TInputInspector.Create(nil);
+  TCastleContainer.InputInspector.Key := keyNone;
+  TCastleContainer.InputInspector.KeyModifiers := [];
+  TCastleContainer.InputInspector.PressFingers := 0;
+  TCastleContainer.InputInspector.PressTime := 1;
+
+  ApplicationProperties.AddInitializeDebugListener(
+    {$ifdef FPC}@{$endif} InitializeInputInspectorDebug);
+end;
+
+procedure FinalizeInputInspector;
+begin
+  FreeAndNil(TCastleContainer.FInputInspector);
+end;
+
 {$endif read_implementation}

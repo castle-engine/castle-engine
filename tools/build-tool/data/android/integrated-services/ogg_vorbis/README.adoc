@@ -4,20 +4,8 @@ Enable the _OggVorbis_ sound format on Android.
 
 _There is no need to include this service explicitly_, it is automatically added if your game depends on "OggVorbis". Which in turn is automatically detected when the build tool notices an `.ogg` file inside your data, although it can also be explicitly requested by declaring `<dependency name="OggVorbis" />` in link:pass:[CastleEngineManifest.xml examples][CastleEngineManifest.xml].
 
-In effect, loading OggVorbis sound files in your Android games _just works_ -- you only need to make sure your Android `project_type` is set to `"integrated"`.
+In effect, loading OggVorbis sound files in your Android games _just works_.
 
-We use very fast open-source OggVorbis implementation called _Tremolo_, see https://github.com/michaliskambi/tremolo-android . You can compile _Tremolo_ in low-precision mode (`libtremolo-low-precision.so`) to get more efficiency (decoding will be faster, less CPU hungry), although then the quality is quite horrible in my tests.
+We use very fast open-source OggVorbis implementation called _Tremolo_, see https://github.com/castle-engine/android-tremolo[].
 
 Note that on Android, the sound engine (with OpenAL underneath) has to be paused / resumed when user switches between applications. If you play some music, and you want resuming to start it again -- you need to register you callback on `SoundEngine.OnOpenClose` to handle this situation. If you play music using `TMusicPlayer`, this is taken care of automatically.
-
-#### Source code of Tremolo
-
-The exact source code of this library is on https://github.com/castle-engine/android-tremolo
-
-Update the library files (SO) like this:
-
-----
-git clone https://github.com/castle-engine/android-tremolo
-cd android-tremolo/
-make build
-----

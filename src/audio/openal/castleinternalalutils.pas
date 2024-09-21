@@ -185,7 +185,7 @@ function EnumerationExtPresent: boolean; overload;
 
 implementation
 
-uses CastleVectors, CastleStringUtils, CastleLog, CastleURIUtils;
+uses CastleVectors, CastleStringUtils, CastleLog, CastleUriUtils;
 
 {$define read_implementation}
 

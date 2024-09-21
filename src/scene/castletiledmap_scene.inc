@@ -1,6 +1,6 @@
 ﻿{%MainUnit castletiledmap.pas}
 {
-  Copyright 2023-2023 Michalis Kamburelis.
+  Copyright 2023-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -35,28 +35,32 @@ type
   strict private
     FForceTilesetSpacing: Boolean;
     FData: TCastleTiledMapData;
-    FURL: String;
+    FUrl: String;
+    FUrlMonitoring: TUrlMonitoring;
     FSmoothScaling, FSmoothScalingSafeBorder: Boolean;
     FScene: TCastleScene;
     FLayers: TLayers;
     procedure SetForceTilesetSpacing(const AValue: Boolean);
-    procedure SetURL(const Value: string);
+    procedure SetUrl(const Value: String);
     procedure SetSmoothScaling(const Value: Boolean);
     procedure SetSmoothScalingSafeBorder(const Value: Boolean);
     procedure ReloadMap;
     procedure UpdateSmoothScaling;
     procedure SetLayers(const Value: TLayers);
+  protected
+    function InternalBuildNodeInside: TObject; override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
+    procedure BeforeDestruction; override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
 
     procedure PlayAnimations;
     procedure StopAnimations(const ResetAnimations: Boolean);
     function HasAnimations: Boolean;
 
-    { Currently loaded map (from @link(URL)), if any.
-      @nil if no map is loaded (when @link(URL) is empty). Read-only. }
+    { Currently loaded map (from @link(Url)), if any.
+      @nil if no map is loaded (when @link(Url) is empty). Read-only. }
     property Data: TCastleTiledMapData read FData;
 
     property Map: TCastleTiledMapData read FData; {$ifdef FPC} deprecated 'use Data'; {$endif}
@@ -71,7 +75,7 @@ type
 
       Note that loading new map from new URL automatically starts animations.
       You can stop them with @link(StopAnimations). }
-    property URL: String read FURL write SetURL;
+    property Url: String read FUrl write SetUrl;
 
     { How are images scaled.
       @true means we use nice "bilinear" filter.
@@ -138,7 +142,16 @@ type
 
       Note that changing this when map is loaded reloads it,
       and automatically starts animations.
-      You can stop them with @link(StopAnimations). }
+      You can stop them with @link(StopAnimations).
+
+      TODO:
+      There is an alternative way to hide/show layers: you can read/write
+      @code(MyMap.Data.Layers[<layer-index>].Exists) property.
+      However, we do not encourage using the @code(Data) property now,
+      and we plan to add a better layer API,
+      see https://castle-engine.io/roadmap#tiled_layers .
+      So eventually, we want to allow just using @code(MyMap.Layers[<layer-index>].Exists)
+      to hide/show layers. }
     property Layers: TLayers read FLayers write SetLayers default AllLayers;
   end;
 
@@ -163,6 +176,8 @@ begin
   FLayers := AllLayers;
 
   UpdateSmoothScaling;
+
+  FUrlMonitoring.Init({$ifdef FPC}@{$endif} ReloadMap);
 end;
 
 destructor TCastleTiledMap.Destroy;
@@ -172,22 +187,28 @@ begin
   inherited;
 end;
 
+procedure TCastleTiledMap.BeforeDestruction;
+begin
+  FUrlMonitoring.Finish(FUrl);
+  inherited;
+end;
+
 function TCastleTiledMap.PropertySections(
   const PropertyName: String): TPropertySections;
 begin
   if ArrayContainsString(PropertyName, [
-      'URL', 'SmoothScaling', 'SmoothScalingSafeBorder', 'Layers', 'ForceTilesetSpacing'
+      'Url', 'SmoothScaling', 'SmoothScalingSafeBorder', 'Layers', 'ForceTilesetSpacing'
      ]) then
     Result := [psBasic]
   else
     Result := inherited PropertySections(PropertyName);
 end;
 
-procedure TCastleTiledMap.SetURL(const Value: string);
+procedure TCastleTiledMap.SetUrl(const Value: String);
 begin
-  if FURL <> Value then
+  if FUrl <> Value then
   begin
-    FURL := Value;
+    FUrlMonitoring.ChangeUrl(FUrl, Value);
     try
       ReloadMap;
     except
@@ -199,7 +220,7 @@ begin
         if CastleDesignMode then
         begin
           WritelnWarning('TCastleTiledMap', 'Failed to load tiledmap "%s": %s',
-            [URIDisplay(Value), ExceptMessage(E)]);
+            [UriDisplay(Value), ExceptMessage(E)]);
           Exit;
         end else
           raise;
@@ -224,9 +245,9 @@ begin
   FreeAndNil(FData);
   FScene.Load(nil, true);
 
-  if FURL <> '' then
+  if FUrl <> '' then
   begin
-    FData := TCastleTiledMapData.Create(URL);
+    FData := TCastleTiledMapData.Create(Url);
     Converter := TCastleTiledMapConverter.Create(FData);
     try
       Converter.SmoothScalingSafeBorder := SmoothScalingSafeBorder;
@@ -326,6 +347,15 @@ begin
     Tileset.TileWidth,
     Tileset.TileHeight
   );
+end;
+
+function TCastleTiledMap.InternalBuildNodeInside: TObject;
+begin
+  // TODO: adjust TextureProperties, to reflect our SmoothScaling
+  if FScene.RootNode <> nil then
+    Result := FScene.RootNode.DeepCopy
+  else
+    Result := nil;
 end;
 
 {$endif read_implementation}

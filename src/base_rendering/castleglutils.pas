@@ -23,7 +23,7 @@ interface
 
 uses
   SysUtils, Math, Generics.Collections, Classes,
-  {$ifdef FPC} CastleGL, {$else} OpenGL, OpenGLext, {$endif}
+  {$ifdef OpenGLES} CastleGLES, {$else} CastleGL, {$endif}
   CastleImages, CastleUtils, CastleVectors, CastleRectangles,
   CastleColors, CastleProjection, CastleRenderOptions;
 
@@ -44,7 +44,7 @@ implementation
 uses
   CastleFilesUtils, CastleStringUtils, CastleGLVersion, CastleGLShaders,
   CastleLog, CastleApplicationProperties, CastleRenderContext, CastleGLImages,
-  CastleInternalGLUtils;
+  CastleInternalGLUtils, CastleTimeUtils;
 
 {$I castleglutils_types.inc}
 {$I castleglutils_features.inc}

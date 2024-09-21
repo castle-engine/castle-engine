@@ -19,15 +19,17 @@
 {$ifdef read_interface}
 
 type
-  { Helper methods extending TSerializedComponent.
+  { Helper methods extending TCastleComponentFactory.
 
     Implementation note: Ideally these should be split in CastleUIControls
     and CastleTransform units. But we cannot, as these units should not
     depend on each other, and only last defined helper works.
-    FPC trunk has a solution to this ($modeswitch multiscopehelpers)
-    https://wiki.lazarus.freepascal.org/Helper_types but we cannot use it yet,
-    we need to work with FPC 3.0.4. }
-  TSerializedComponentHelper = class helper for TSerializedComponent
+
+    TODO: FPC trunk has a solution to this ($modeswitch multiscopehelpers)
+    https://wiki.lazarus.freepascal.org/Helper_types .
+    Since we require FPC >= 3.2.0, maybe we can us it?
+    If FPC >= 3.2.0 and our supported Delphi versions support this? }
+  TCastleComponentFactoryHelper = class helper for TCastleComponentFactory
     { Instantiate component.
       Using this is equivalent to using global @link(CastleUIControls.UserInterfaceLoad),
       but this is much faster if you want to instantiate the same file many times. }
@@ -43,12 +45,12 @@ type
 
 {$ifdef read_implementation}
 
-function TSerializedComponentHelper.UserInterfaceLoad(const Owner: TComponent): TCastleUserInterface;
+function TCastleComponentFactoryHelper.UserInterfaceLoad(const Owner: TComponent): TCastleUserInterface;
 begin
   Result := ComponentLoad(Owner) as TCastleUserInterface;
 end;
 
-function TSerializedComponentHelper.TransformLoad(const Owner: TComponent): TCastleTransform;
+function TCastleComponentFactoryHelper.TransformLoad(const Owner: TComponent): TCastleTransform;
 begin
   Result := ComponentLoad(Owner) as TCastleTransform;
 end;

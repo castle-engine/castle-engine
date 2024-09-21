@@ -1,5 +1,5 @@
 {
-  Copyright 2001-2023 Michalis Kamburelis.
+  Copyright 2001-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -21,7 +21,7 @@ unit CastleRenderContext;
 interface
 
 uses SysUtils, Generics.Collections, Classes,
-  {$ifdef FPC} CastleGL, {$else} OpenGL, OpenGLext, {$endif}
+  {$ifdef OpenGLES} CastleGLES, {$else} CastleGL, {$endif}
   CastleUtils, CastleVectors, CastleRectangles, CastleGLShaders, CastleColors,
   CastleRenderOptions, CastleGLUtils;
 
@@ -69,6 +69,14 @@ type
     Enabled: Boolean;
     Scale, Bias: Single;
   end;
+
+  { Target of bound buffer, see https://registry.khronos.org/OpenGL-Refpages/gl4/html/glBindBuffer.xhtml . }
+  TBufferTarget = (
+    { Vertex attributes. }
+    btArray,
+    { Indexes. }
+    btElementArray
+  );
 
   { The OpenGL / OpenGLES context state.
     We try hard to make this a @bold(very, very) small class,
@@ -123,6 +131,7 @@ type
       FFixedFunctionLighting: boolean;
       FLineType: TLineType;
       FPolygonOffset: TPolygonOffset;
+      FBoundBuffer: array [TBufferTarget] of TGLuint;
 
     procedure SetLineWidth(const Value: Single);
     procedure SetPointSize(const Value: Single);
@@ -147,6 +156,8 @@ type
     procedure SetFixedFunctionLighting(const Value: boolean);
     procedure SetLineType(const Value: TLineType);
     procedure SetPolygonOffset(const Value: TPolygonOffset);
+    function GetBoundBuffer(const Target: TBufferTarget): TGLuint;
+    procedure SetBoundBuffer(const Target: TBufferTarget; const Value: TGLuint);
   private
     FEnabledScissors: TScissorList;
   public
@@ -320,6 +331,15 @@ type
     procedure PolygonOffsetEnable(const Scale, Bias: Single);
     { Shortcut for setting @link(PolygonOffset) with PolygonOffset.Enabled = @false. }
     procedure PolygonOffsetDisable;
+
+    { Bind buffer to target, just like glBindBuffer.
+
+      Optimized to do nothing if given buffer is already bound.
+      This optimization actually matters for optimization (Android Samsung Galaxy Tab,
+      castle-model-viewer-mobile displaying inspector).
+      Without it, TDrawableImage does a lot of redundant glBindBuffer calls. }
+    property BindBuffer[const Target: TBufferTarget]: TGLuint
+      read GetBoundBuffer write SetBoundBuffer;
   end;
 
 var
@@ -347,9 +367,15 @@ function OrthoProjection(const Dimensions: TFloatRectangle;
 function FrustumProjection(const Dimensions: TFloatRectangle; const ZNear, ZFar: Single): TMatrix4;
 { @groupEnd }
 
+const
+  BufferTargetGL: array [TBufferTarget] of TGLenum = (
+    GL_ARRAY_BUFFER,
+    GL_ELEMENT_ARRAY_BUFFER
+  );
+
 implementation
 
-uses CastleLog, CastleProjection, CastleInternalGLUtils;
+uses CastleLog, CastleProjection, CastleInternalGLUtils, CastleGLImages;
 
 constructor TRenderContext.Create(AOwner: TComponent);
 begin
@@ -422,7 +448,7 @@ begin
   for B in Buffers do
     Mask := Mask or ClearBufferMask[B];
   if Mask <> 0 then
-    {$ifndef OpenGLES} {$ifdef FPC} GL {$else} OpenGL {$endif} {$else} CastleGL {$endif}.GLClear(Mask);
+    glClear(Mask);
 end;
 
 procedure TRenderContext.SetLineWidth(const Value: Single);
@@ -634,12 +660,11 @@ end;
 
 procedure TRenderContext.UpdateViewport;
 begin
-  {$ifndef OpenGLES} {$ifdef FPC} GL {$else} OpenGL {$endif} {$else} CastleGL {$endif}
-    .glViewport(
-      FViewport.Left   + FViewportDelta.X,
-      FViewport.Bottom + FViewportDelta.Y,
-      FViewport.Width,
-      FViewport.Height);
+  glViewport(
+    FViewport.Left   + FViewportDelta.X,
+    FViewport.Bottom + FViewportDelta.Y,
+    FViewport.Width,
+    FViewport.Height);
 end;
 
 procedure TRenderContext.WarningViewportTooLarge;
@@ -866,6 +891,28 @@ begin
   PolygonOffset := NewState;
 end;
 
+function TRenderContext.GetBoundBuffer(const Target: TBufferTarget): TGLuint;
+begin
+  Result := FBoundBuffer[Target];
+end;
+
+procedure TRenderContext.SetBoundBuffer(const Target: TBufferTarget; const Value: TGLuint);
+begin
+  { TODO: Optimization (avoiding glBindBuffer) disabled.
+    Reason: castle-model-viewer (rock.gltf, triangulatio.x3dv) shows
+    that we cannot optimize out glBindBuffer calls like this,
+    it's causing crashes (Linux "guardia" system, Nvidia GPU).
+
+  if FBoundBuffer[Target] <> Value then
+  begin
+    FBoundBuffer[Target] := Value;
+    glBindBuffer(BufferTargetGL[Target], Value);
+  end;
+  }
+
+  glBindBuffer(BufferTargetGL[Target], Value);
+end;
+
 { TRenderContext.TScissorList ------------------------------------------------------------------- }
 
 procedure TRenderContext.TScissorList.Update;
@@ -873,6 +920,9 @@ var
   R: TRectangle;
   I: Integer;
 begin
+  // we need to flush batched things, before scissor change
+  TDrawableImage.BatchingFlush;
+
   if Count <> 0 then
   begin
     R := Items[0].Rect;

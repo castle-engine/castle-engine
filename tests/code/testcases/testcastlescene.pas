@@ -20,11 +20,11 @@ unit TestCastleScene;
 interface
 
 uses
-  Classes, SysUtils, {$ifndef CASTLE_TESTER}FpcUnit, TestUtils, TestRegistry
-    {$else}CastleTester{$endif};
+  Classes, SysUtils,
+  CastleTester;
 
 type
-  TTestScene = class({$ifndef CASTLE_TESTER}TTestCase{$else}TCastleTestCase{$endif})
+  TTestScene = class(TCastleTestCase)
   published
     procedure TestScene;
     procedure TestSpatialUpgrade;
@@ -92,13 +92,6 @@ begin
     SceneSpatialOnlyDynamicCollisions := UiOwner.FindRequiredComponent('SceneSpatialOnlyDynamicCollisions') as TCastleScene;
     SceneSpatialOnlyVisibleTriangles := UiOwner.FindRequiredComponent('SceneSpatialOnlyVisibleTriangles') as TCastleScene;
     SceneSpatialOnlyStaticCollisions := UiOwner.FindRequiredComponent('SceneSpatialOnlyStaticCollisions') as TCastleScene;
-
-    AssertTrue(SceneSpatialNone.Spatial = []);
-    AssertTrue(SceneSpatialPreciseCollisions.Spatial = [ssRendering, ssDynamicCollisions]);
-    AssertTrue(SceneSpatialOnlyRendering.Spatial = [ssRendering]);
-    AssertTrue(SceneSpatialOnlyDynamicCollisions.Spatial = [ssDynamicCollisions]);
-    AssertTrue(SceneSpatialOnlyVisibleTriangles.Spatial = [ssVisibleTriangles]);
-    AssertTrue(SceneSpatialOnlyStaticCollisions.Spatial = [ssStaticCollisions]);
 
     AssertFalse(SceneSpatialNone.PreciseCollisions);
     AssertTrue(SceneSpatialPreciseCollisions.PreciseCollisions);

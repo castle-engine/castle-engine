@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2023 Michalis Kamburelis.
+  Copyright 2003-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -29,13 +29,13 @@ unit CastleScene;
 interface
 
 uses SysUtils, Classes, Generics.Collections,
-  {$ifdef FPC} CastleGL, {$else} OpenGL, OpenGLext, {$endif}
+  {$ifdef OpenGLES} CastleGLES, {$else} CastleGL, {$endif}
   CastleVectors, CastleBoxes, X3DNodes, CastleClassUtils, CastleFonts,
   CastleUtils, CastleSceneCore, CastleInternalBackgroundRenderer,
   CastleGLUtils, CastleInternalShapeOctree, CastleInternalGLShadowVolumes, X3DFields,
   CastleTriangles, CastleShapes, CastleFrustum, CastleTransform, CastleGLShaders,
   CastleRectangles, CastleCameras, CastleRendererInternalShader, CastleColors,
-  CastleSceneInternalShape,
+  CastleSceneInternalShape, CastleInternalFileMonitor,
   CastleRenderOptions, CastleTimeUtils, CastleImages,
   CastleBehaviors, CastleInternalShapesRenderer, CastleSceneInternalBlending;
 
@@ -116,10 +116,6 @@ type
       Checks everything except TestShapeVisibility callback,
       so it assumes that filtering by TestShapeVisibility is already done. }
     procedure CollectShape_SomeTests(const Shape: TGLShape);
-    { Render Shape if all tests (including TestShapeVisibility) pass. }
-    procedure CollectShape_AllTests(const Shape: TShape);
-    { Render Shape if all tests (including TestShapeVisibility) pass, and it is opaque. }
-    procedure CollectShape_AllTests_Opaque(const Shape: TShape);
 
     procedure ResetShapeVisible(const Shape: TShape);
 
@@ -129,8 +125,7 @@ type
       Adds all potentially visible shapes to Params.Collector.
       "Potentially visible" is decided by TestShapeVisibility
       (shape is visible if TestShapeVisibility is @nil or returns
-      @true for this shape) and Params.Transparent value must include
-      given shape.
+      @true for this shape).
 
       Updates Params.Statistics. }
     procedure LocalRenderInside(const TestShapeVisibility: TTestShapeVisibility;
@@ -143,7 +138,6 @@ type
 
       - frustum culling,
       - distance culling,
-      - filtering by transparency (only shapes matching Params.Transparent are returned)
       - filtering using TestShapeVisibility.
 
       Shapes that pass send to Params.Collector.
@@ -321,24 +315,55 @@ type
       (we use ClassType.Create to call a virtual constructor).
 
       Note that this @bold(does not copy other scene properties),
-      like @link(ProcessEvents) or @link(Spatial) or @link(RenderOptions) contents. }
+      like @link(ProcessEvents) or @link(RenderOptions) contents. }
     function Clone(const AOwner: TComponent): TCastleScene;
 
-    { Whether the scene was (potentially, at least partially) visible in the last rendering event.
+    { Whether the scene was (potentially, at least partially) visible
+      in the last rendering event.
 
       The "was visible" means that "some shape was visible", that is:
       some shape passed frustum culling, distance culling
-      and (TODO) occlusion culling (see https://castle-engine.io/occlusion_culling )
+      and occlusion culling (see https://castle-engine.io/occlusion_culling )
       tests.
 
-      For this method it doesn't matter if the scene contains some lights
-      that only make some other scenes brighter. Or if the scene contains some background
-      that affects TCastleViewport skybox. Only the visibility of shapes matters.
+      The result of this method is not affected by:
+
+      @unorderedList(
+        @item(Lights.
+
+          That is, it doesn't matter whether this scene contains some lights
+          (X3D light nodes in @link(RootNode))
+          that possibly make some other scenes brighter.
+        )
+
+        @item(Background.
+
+          It doesn't matter whether the scene contains some background
+          that affects TCastleViewport skybox.)
+
+        @item(Children scenes.
+
+          It doesn't matter if you have any children scenes
+          (TCastleScene instances that are children of this)
+          and whether they are visible.
+          This follows the general rule that TCastleScene-specific features
+          do not look/affect children scenes, including children TCastleScene.
+          Only TCastleTransform features, like @link(TCastleTransform.Exists),
+          are applied recursively, i.e. they generally affect the children
+          transformations.
+        )
+      )
+
+      To summarize and emphasize: for this method,
+      @bold(only the visibility of shapes within this scene matters).
 
       If this scene instance is used multiple times within some viewport,
       or when multiple viewports render the same scene,
       then it is enough that at least one shape in one of the scene instances
-      was visible last frame.  }
+      was visible last frame.
+
+      TODO: For now, occlusion culling doesn't affect this, i.e. if the scene
+      is not visible because occlusion culling. }
     function WasVisible: Boolean;
   published
     { Improve performance of rendering by checking for each shape whether
@@ -427,17 +452,6 @@ const
   weSolidWireframe = CastleRenderOptions.weSolidWireframe;
   weSilhouette = CastleRenderOptions.weSilhouette;
 
-  paDefault = CastleSceneCore.paDefault;
-  paForceLooping = CastleSceneCore.paForceLooping;
-  paForceNotLooping = CastleSceneCore.paForceNotLooping;
-  paLooping = CastleSceneCore.paLooping;
-  paNotLooping = CastleSceneCore.paNotLooping;
-
-  ssRendering = CastleSceneCore.ssRendering;
-  ssDynamicCollisions = CastleSceneCore.ssDynamicCollisions;
-  ssVisibleTriangles = CastleSceneCore.ssVisibleTriangles;
-  ssStaticCollisions = CastleSceneCore.ssStaticCollisions;
-
 {$define read_interface}
 {$I castlescene_roottransform.inc}
 {$I castlescene_abstractprimitive.inc}
@@ -465,9 +479,9 @@ implementation
 
 uses Math,
   CastleGLVersion, CastleLog, CastleStringUtils, CastleApplicationProperties,
-  CastleShapeInternalRenderShadowVolumes, CastleURIUtils,
+  CastleShapeInternalRenderShadowVolumes, CastleUriUtils, CastleProjection,
   CastleComponentSerialize, CastleRenderContext, CastleFilesUtils,
-  CastleInternalGLUtils, CastleInternalRenderer;
+  CastleInternalGLUtils, CastleInternalRenderer, X3DCameraUtils;
 
 {$define read_implementation}
 {$I castlescene_roottransform.inc}
@@ -668,7 +682,8 @@ begin
   Shape.Fog := ShapeFog(Shape, Render_Params.GlobalFog as TFogNode);
 
   Render_Collector.Add(Shape, RenderOptions,
-    Render_Params.Transform^, Render_Params.DepthRange);
+    Render_Params.Transformation^.Transform, Render_Params.DepthRange,
+    ReceiveShadowVolumes);
   IsVisibleNow := true;
 end;
 
@@ -676,52 +691,17 @@ procedure TCastleScene.CollectShape_SomeTests(const Shape: TGLShape);
 begin
   if (Shape <> AvoidShapeRendering) and
      ( (not AvoidNonShadowCasterRendering) or Shape.ShadowCaster) and
-     ( { implement Shape node "render" field here, by a trivial check }
-       (Shape.Node = nil) or Shape.Node.Render
+     ( { implement TAbstractShapeNode.Visible here, by a trivial check }
+       (Shape.Node = nil) or Shape.Node.Visible
      ) then
   begin
     CollectShape_NoTests(Shape);
   end;
 end;
 
-procedure TCastleScene.CollectShape_AllTests(const Shape: TShape);
-begin
-  if ( (not Assigned(Render_TestShapeVisibility)) or
-       Render_TestShapeVisibility(TGLShape(Shape))) then
-    CollectShape_SomeTests(TGLShape(Shape));
-end;
-
-procedure TCastleScene.CollectShape_AllTests_Opaque(const Shape: TShape);
-begin
-  if not TGLShape(Shape).UseBlending then
-  begin
-    CollectShape_AllTests(Shape);
-  end;
-end;
-
 procedure TCastleScene.LocalRenderInside(
   const TestShapeVisibility: TTestShapeVisibility;
   const Params: TRenderParams);
-
-  { If we're now collecting opaque shapes (Params.Transparent=false) then add:
-    - all opaque shapes
-      when IgnoreShapesWithBlending = true
-    - all shapes (opaque and the ones supposed to use blending)
-      when IgnoreShapesWithBlending = false, default.
-      This is good e.g. when RenderOptions.Blending=false,
-      so that all shapes are treated as opaque.
-  }
-  procedure CollectAllAsOpaque(
-    const IgnoreShapesWithBlending: Boolean = false);
-  begin
-    if not Params.Transparent then
-    begin
-      if IgnoreShapesWithBlending then
-        Shapes.Traverse({$ifdef FPC}@{$endif}CollectShape_AllTests_Opaque, true, true)
-      else
-        Shapes.Traverse({$ifdef FPC}@{$endif}CollectShape_AllTests, true, true);
-    end;
-  end;
 
   procedure UpdateVisibilitySensors;
   var
@@ -763,38 +743,14 @@ procedure TCastleScene.LocalRenderInside(
     end;
   end;
 
-  { Render for RenderOptions.Mode = rmFull }
-  procedure RenderModeFull;
-  var
-    I: Integer;
-  begin
-    if RenderOptions.Blending then
-    begin
-      if not Params.Transparent then
-      begin
-        { Opaque objects, for Params.Transparent = false }
-        ShapesFilterBlending(Shapes, true, true, false,
-          TestShapeVisibility, FilteredShapes, false);
-        for I := 0 to FilteredShapes.Count - 1 do
-          CollectShape_SomeTests(TGLShape(FilteredShapes[I]));
-      end else
-      begin
-        { Partially transparent (blending) objects, for Params.Transparent = true }
-        ShapesFilterBlending(Shapes, true, true, false,
-          TestShapeVisibility, FilteredShapes, true);
-        for I := 0 to FilteredShapes.Count - 1 do
-          CollectShape_SomeTests(TGLShape(FilteredShapes[I]));
-      end;
-    end else
-      CollectAllAsOpaque;
-  end;
-
+var
+  I: Integer;
 begin
   { We update XxxVisible only for one value of Params.Transparent.
     Otherwise, we would increase it twice.
     This method is always called first with Params.Transparent = false,
     then Params.Transparent = true during a single frame. }
-  if (not Params.Transparent) and (Params.InternalPass = 0) then
+  if Params.InternalPass = 0 then
   begin
     Params.Statistics.ShapesVisible := Params.Statistics.ShapesVisible +
       ShapesActiveVisibleCount;
@@ -806,21 +762,9 @@ begin
   Render_TestShapeVisibility := TestShapeVisibility;
   Render_Collector := Params.Collector as TShapesCollector;
 
-  case RenderOptions.Mode of
-    rmDepth:
-      { When not rmFull, we don't want to do anything with
-        glDepthMask (RenderContext.DepthBufferUpdate)
-        or GL_BLEND enable state. Just render everything
-        (except: don't render partially transparent stuff for shadow maps). }
-      CollectAllAsOpaque(true);
-    rmSolidColor:
-      CollectAllAsOpaque(false);
-    rmFull:
-      RenderModeFull;
-    {$ifndef COMPILER_CASE_ANALYSIS}
-    else raise EInternalError.Create('RenderOptions.Mode?');
-    {$endif}
-  end;
+  ShapesFilter(Shapes, true, true, false, TestShapeVisibility, FilteredShapes);
+  for I := 0 to FilteredShapes.Count - 1 do
+    CollectShape_SomeTests(TGLShape(FilteredShapes[I]));
 end;
 
 procedure TCastleScene.PrepareResources(
@@ -872,15 +816,14 @@ var
       to render with lights. }
     DummyCamera := TRenderingCamera.Create;
     try
-      { Set matrix to be anything sensible.
-        Otherwise opening a scene with shadow maps makes a warning
+      { Set camera vectors to be anything sensible.
+        Otherwise (if we pass zero matrix) opening a scene with shadow maps makes a warning
         that camera matrix is all 0,
         and cannot be inverted, since
         TTextureCoordinateRenderer.RenderCoordinateBegin does
         RenderingCamera.InverseMatrixNeeded.
         Testcase: silhouette. }
-      DummyCamera.FromMatrix(TVector3.Zero,
-        TMatrix4.Identity, TMatrix4.Identity, TMatrix4.Identity);
+      DummyCamera.FromViewVectors(DefaultX3DCameraView, TMatrix4.Identity);
 
       Renderer.RenderBegin(ReceivedGlobalLights, DummyCamera, nil, 0, 0, 0,
         @DummyStatistics);
@@ -916,7 +859,7 @@ begin
   if not ApplicationProperties.IsGLContextOpen then
   begin
     WritelnLog('PrepareResources', 'Rendering context not available, skipping preparing TCastleScene rendering resources for "%s"', [
-      URIDisplay(URL)
+      UriDisplay(URL)
     ]);
     Exit;
   end;
@@ -1020,8 +963,7 @@ begin
     already did tests below. But it may also be called directly,
     so do the checks below anyway. (The checks are trivial, so no speed harm.) }
   if CheckVisible and
-     (InternalDirty = 0) and
-     (ReceiveShadowVolumes in Params.ShadowVolumesReceivers) then
+     (InternalDirty = 0) then
   begin
     { I used to make here more complex "prepare" mechanism, that was trying
       to prepare for particular shapes only right before they are rendered
@@ -1081,7 +1023,7 @@ begin
   ShapesList := Shapes.TraverseList(true);
     for I := 0 to ShapesList.Count - 1 do
       if ShapesList[I].Collidable then
-        ShapesList[I].Triangulate(TriangleEvent);
+        ShapesList[I].Triangulate(TriangleEvent, true);
 end;
 
 { Shadow volumes ------------------------------------------------------------- }
@@ -1106,6 +1048,13 @@ var
   ShapeWorldTransform: TMatrix4;
   ForceOpaque: boolean;
 begin
+  { Call inherited to render shadow quads of children,
+    in case one TCastleScene is a child of another.
+    See https://forum.castle-engine.io/t/shadow-ignors-distanceculling/670/14 for testcase.
+    Note that inherited also checks "CheckVisible and CastShadows",
+    so they work recursively. }
+  inherited;
+
   if CheckVisible and
      CastShadows and
      { Do not render shadow volumes when rendering wireframe.
@@ -1118,10 +1067,11 @@ begin
     ForceOpaque := not (RenderOptions.Blending and (RenderOptions.Mode = rmFull));
 
     // DistanceCullingCheck* uses this value, and it may be called here
-    RenderCameraPosition := Params.InverseTransform^.MultPoint(Params.RenderingCamera.Position);
+    RenderCameraPosition := Params.Transformation^.InverseTransform.MultPoint(
+      Params.RenderingCamera.View.Translation);
 
     { calculate and check SceneBox }
-    SceneBox := LocalBoundingBox.Transform(Params.Transform^);
+    SceneBox := LocalBoundingBox.Transform(Params.Transformation^.Transform);
     if SVRenderer.GetCasterShadowPossiblyVisible(SceneBox) then
     begin
       { Do not render shadows for objects eliminated by DistanceCulling.
@@ -1157,12 +1107,12 @@ begin
 
           When WholeSceneManifold=true, we render all shapes here.
           The per-scene check already passed above. }
-        ShapeBox := Shape.BoundingBox.Transform(Params.Transform^);
+        ShapeBox := Shape.BoundingBox.Transform(Params.Transformation^.Transform);
         SVRenderer.InitCaster(ShapeBox);
         if RenderOptions.WholeSceneManifold or
            SVRenderer.CasterShadowPossiblyVisible then
         begin
-          ShapeWorldTransform := Params.Transform^ *
+          ShapeWorldTransform := Params.Transformation^.Transform *
             Shape.State.Transformation.Transform;
           Shape.InternalShadowVolumes.RenderSilhouetteShadowVolume(
             Params,
@@ -1291,7 +1241,7 @@ procedure TCastleScene.Update(const SecondsPassed: Single; var RemoveMe: TRemove
     const ProjectionNear, ProjectionFar: Single;
     const CurrentViewpoint: TAbstractViewpointNode;
     const CameraViewKnown: boolean;
-    const CameraPosition, CameraDirection, CameraUp: TVector3);
+    const CameraView: TViewVectors);
 
     procedure UpdateGeneratedCubeMap(const TexNode: TGeneratedCubeMapTextureNode);
     var
@@ -1356,7 +1306,7 @@ procedure TCastleScene.Update(const SecondsPassed: Single; var RemoveMe: TRemove
         if TextureRes <> nil then
         begin
           TextureRes.Update(Render, ProjectionNear, ProjectionFar, CurrentViewpoint,
-            CameraViewKnown, CameraPosition, CameraDirection, CameraUp, Shape);
+            CameraViewKnown, CameraView, Shape);
 
           TexNode.GenTexFunctionality.PostUpdate;
 
@@ -1386,7 +1336,7 @@ procedure TCastleScene.Update(const SecondsPassed: Single; var RemoveMe: TRemove
     Shape: TGLShape;
     TextureNode: TAbstractTextureNode;
     GenTexFunctionality: TGeneratedTextureFunctionality;
-    CamPos, CamDir, CamUp: TVector3;
+    CamView: TViewVectors;
   begin
     if GeneratedTextures.Count = 0 then
       Exit; // optimize away common case
@@ -1404,12 +1354,10 @@ procedure TCastleScene.Update(const SecondsPassed: Single; var RemoveMe: TRemove
 
     if World.MainCamera <> nil then
     begin
-      World.MainCamera.GetWorldView(CamPos, CamDir, CamUp);
+      CamView := World.MainCamera.WorldView;
     end else
     begin
-      CamPos := TVector3.Zero;
-      CamDir := DefaultCameraDirection;
-      CamUp  := DefaultCameraUp;
+      CamView := DefaultX3DCameraView;
     end;
 
     for I := 0 to GeneratedTextures.Count - 1 do
@@ -1446,7 +1394,7 @@ procedure TCastleScene.Update(const SecondsPassed: Single; var RemoveMe: TRemove
       UpdateOneGeneratedTexture(Shape, TextureNode,
         RenderFunc, ProjectionNear, ProjectionFar,
         ViewpointStack.Top,
-        World.MainCamera <> nil, CamPos, CamDir, CamUp);
+        World.MainCamera <> nil, CamView);
 
       AvoidShapeRendering := nil;
       AvoidNonShadowCasterRendering := false;
@@ -1493,13 +1441,11 @@ begin
 
   if InternalEnableRendering and
      CheckVisible and
-     (InternalDirty = 0) and
-     (ReceiveShadowVolumes in Params.ShadowVolumesReceivers) then
+     (InternalDirty = 0) then
   begin
     FrameProfiler.Start(fmRenderScene);
 
-    if (not Params.Transparent) and
-       (Params.InternalPass = 0) then
+    if Params.InternalPass = 0 then
       Inc(Params.Statistics.ScenesVisible);
 
     if FSceneFrustumCulling and
@@ -1511,7 +1457,8 @@ begin
     end;
 
     // RenderCameraPosition is used by DistanceCullingCheck* below
-    RenderCameraPosition := Params.InverseTransform^.MultPoint(Params.RenderingCamera.Position);
+    RenderCameraPosition := Params.Transformation^.InverseTransform.MultPoint(
+      Params.RenderingCamera.View.Translation);
 
     { Do distance culling for whole scene.
       When WholeSceneManifold=true, this is the only place where
@@ -1522,8 +1469,7 @@ begin
       Exit;
     end;
 
-    if (not Params.Transparent) and
-       (Params.InternalPass = 0) then
+    if Params.InternalPass = 0 then
       Inc(Params.Statistics.ScenesRendered);
 
     FrustumForShapeCulling := Params.Frustum;
@@ -1534,7 +1480,8 @@ begin
     if Params.Frustum = nil then
       LocalRenderOutside(nil, Params)
     else
-    if (InternalOctreeRendering <> nil) and ShapeFrustumCulling then
+    if (InternalOctreeRendering <> nil) and
+       ShapeFrustumCulling then
     begin
       { Check above ShapeFrustumCulling, since the InternalOctreeRendering
         does per-shape frustum culling automatically, even before
@@ -1762,14 +1709,6 @@ constructor TBasicRenderParams.Create;
 begin
   inherited;
   FGlobalLights := TLightInstancesList.Create;
-  InShadow := false;
-  ShadowVolumesReceivers := [false, true];
-  { Transparent does not have good default value.
-    User of TBasicRenderParams should call Render method with both Transparent values,
-    to really render everything correctly.
-    We just set them here to capture most 3D objects
-    (as using TBasicRenderParams for anything is a discouraged hack anyway). }
-  Transparent := false;
 end;
 
 destructor TBasicRenderParams.Destroy;

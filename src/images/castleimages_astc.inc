@@ -30,17 +30,17 @@ type
     BlockdimX: Byte;
     BlockdimY: Byte;
     BlockdimZ: Byte;
-    XSize: LongWord;
-    YSize: LongWord;
-    ZSize: LongWord;
+    XSize: UInt32;
+    YSize: UInt32;
+    ZSize: UInt32;
   end;
 
 function LoadASTC(const Stream: TStream;
   const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage;
 const
-  MagicAstc : Longword = $5CA1AB13;
+  MagicAstc : UInt32 = $5CA1AB13;
 var
-  Magic: LongWord;
+  Magic: UInt32;
   Word24bit: array[0..2] of Byte;
   Info: TAstcInfo;
   Res: TGPUCompressedImage absolute Result;

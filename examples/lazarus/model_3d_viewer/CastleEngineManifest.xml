@@ -8,6 +8,7 @@ See https://castle-engine.io/project_manifest for documentation of this file.
 <project name="model_3d_viewer"
   lazarus_project="model_3d_viewer.lpi"
   build_using_lazbuild="true"
+  qualified_name="io.castleengine.model.viewer">
 >
   <data exists="false"/>
 </project>

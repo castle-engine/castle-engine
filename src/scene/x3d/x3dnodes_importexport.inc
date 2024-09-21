@@ -46,7 +46,7 @@
     { Exported node.
       Note that we store node reference, not just ExportedNodeName,
       this way renaming the ExportedNode (e.g. by RenameUniquely during saving)
-      is properly reflected in wrtitten EXPORT statement. }
+      is properly reflected in the saved EXPORT statement. }
     property ExportedNode: TX3DNode read FExportedNode write SetExportedNode;
 
     procedure Parse(Lexer: TX3DLexer; Reader: TX3DReaderNames);
@@ -172,10 +172,10 @@ procedure TX3DExport.DestructionNotification(const Node: TX3DNode);
 begin
   { If FExportedNode is freed, make sure to set our FExportedNode to @nil.
     Testcase:
-    - open some glTF model in view3dscene
-    - select shape in view3dscene
-    - remove a shape using view3dscene "Edit -> Remove Shape..."
-    - save result to X3D using view3dscene "File -> Save..."
+    - open some glTF model in castle-model-viewer
+    - select shape in castle-model-viewer
+    - remove a shape using castle-model-viewer "Edit -> Remove Shape..."
+    - save result to X3D using castle-model-viewer "File -> Save..."
     Without TX3DExport.DestructionNotification, this would crash, as TX3DExport
     would contain invalid FExportedNode pointer at saving time. }
 

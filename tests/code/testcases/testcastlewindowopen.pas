@@ -14,16 +14,19 @@
   ----------------------------------------------------------------------------
 }
 
-{ Test doing various stuff from TCastleWindow.OnOpen. }
+{ Test doing various stuff when GL context is open. }
 unit TestCastleWindowOpen;
 
 interface
 
-uses Classes, SysUtils, {$ifndef CASTLE_TESTER}FpcUnit, TestUtils, TestRegistry
-  {$else}CastleTester{$endif}, CastleWindow;
+uses Classes, SysUtils,
+  CastleTester, CastleWindow;
 
 type
-  TTestCastleWindowOpen = class({$ifndef CASTLE_TESTER}TTestCase{$else}TCastleTestCase{$endif})
+  TTestCastleWindowOpen = class(TCastleTestCase)
+  private
+    procedure WindowOpen2(Sender: TObject);
+    procedure WindowOpen3(Sender: TObject);
   published
     procedure TestSaveScreenFromOpen;
     procedure TestLoadLevelFromOpen;
@@ -35,9 +38,21 @@ uses CastleControls, CastleImages,
   CastleUIControls, CastleViewport, CastleLevels;
 
 type
+  TEventControl = class(TCastleUserInterface)
+  public
+    OnGLContextOpen: TNotifyEvent;
+    procedure GLContextOpen; override;
+  end;
+
   TControl2 = class(TCastleUserInterface)
     procedure GLContextOpen; override;
   end;
+
+procedure TEventControl.GLContextOpen;
+begin
+  if Assigned(OnGLContextOpen) then
+    OnGLContextOpen(Self);
+end;
 
 procedure TControl2.GLContextOpen;
 var
@@ -47,7 +62,7 @@ begin
   FreeAndNil(Image);
 end;
 
-procedure WindowOpen2(Container: TCastleContainer);
+procedure TTestCastleWindowOpen.WindowOpen2(Sender: TObject);
 var
   Image: TCastleImage;
 begin
@@ -58,41 +73,32 @@ end;
 procedure TTestCastleWindowOpen.TestSaveScreenFromOpen;
 var
   Window: TCastleWindow;
+  EventControl: TEventControl;
 begin
-  {$ifdef CASTLE_TESTER}
-  if not IsConsoleMode then
-    Exit; // TODO: We can test window progress only in console mode
-  {$endif}
+  if not CanCreateWindowForTest then
+    Exit;
 
-  Window := TCastleWindow.Create(nil);
+  Window := CreateWindowForTest;
   try
+    EventControl := TEventControl.Create(Window);
+    EventControl.OnGLContextOpen := {$ifdef FPC}@{$endif} WindowOpen2;
+    Window.Controls.InsertFront(EventControl);
+
     Window.Controls.InsertFront(TControl2.Create(Window));
     Window.Controls.InsertFront(TCastleButton.Create(Window));
     Window.Controls.InsertFront(TControl2.Create(Window));
-    Window.OnOpen := @WindowOpen2;
     Application.MainWindow := Window;
 
     Window.Open;
     Window.Close;
   finally
-    FreeAndNil(Window);
-    Application.MainWindow := nil;
+    DestroyWindowForTest(Window);
   end;
 end;
 
-type
-  TCastleWindowWithSceneManager = class(TCastleWindow)
-    SceneManager: TGameSceneManager;
-    constructor Create(AOwner: TComponent); override;
-  end;
-
-constructor TCastleWindowWithSceneManager.Create(AOwner: TComponent);
-begin
-  inherited;
-  SceneManager := TGameSceneManager.Create(Self);
-  SceneManager.FullSize := true;
-  Controls.InsertFront(SceneManager);
-end;
+var
+  // Avalable during TTestCastleWindowOpen.TestLoadLevelFromOpen
+  SceneManagerForLoadLevel: TGameSceneManager;
 
 type
   TControl3 = class(TCastleUserInterface)
@@ -101,42 +107,46 @@ type
 
 procedure TControl3.GLContextOpen;
 begin
-  (Application.MainWindow as TCastleWindowWithSceneManager).SceneManager.LoadLevel('level_without_loading_image');
+  SceneManagerForLoadLevel.LoadLevel('level_without_loading_image');
 end;
 
-procedure WindowOpen3(Container: TCastleContainer);
+procedure TTestCastleWindowOpen.WindowOpen3(Sender: TObject);
 begin
-  (Application.MainWindow as TCastleWindowWithSceneManager).SceneManager.LoadLevel('level_without_loading_image');
+  SceneManagerForLoadLevel.LoadLevel('level_without_loading_image');
 end;
 
 procedure TTestCastleWindowOpen.TestLoadLevelFromOpen;
 
   procedure DoTest(const WithButton: boolean);
   var
-    Window: TCastleWindowWithSceneManager;
+    Window: TCastleWindow;
+    EventControl: TEventControl;
   begin
-    Window := TCastleWindowWithSceneManager.Create(nil);
+    Window := CreateWindowForTest;
     try
+      EventControl := TEventControl.Create(Window);
+      EventControl.OnGLContextOpen := {$ifdef FPC}@{$endif} WindowOpen3;
+      Window.Controls.InsertFront(EventControl);
+
+      SceneManagerForLoadLevel := TGameSceneManager.Create(Window);
+      SceneManagerForLoadLevel.FullSize := true;
+      Window.Controls.InsertFront(SceneManagerForLoadLevel);
+
       Window.Controls.InsertFront(TControl3.Create(Window));
       if WithButton then
         Window.Controls.InsertFront(TCastleButton.Create(Window));
       Window.Controls.InsertFront(TControl3.Create(Window));
-      Window.OnOpen := @WindowOpen3;
-      Application.MainWindow := Window;
 
       Window.Open;
       Window.Close;
     finally
-      FreeAndNil(Window);
-      Application.MainWindow := nil;
+      DestroyWindowForTest(Window);
     end;
   end;
 
 begin
-  {$ifdef CASTLE_TESTER}
-  if not IsConsoleMode then
-    Exit; // TODO: We can test window progress only in console mode
-  {$endif}
+  if not CanCreateWindowForTest then
+    Exit;
 
   Levels.LoadFromFiles('castle-data:/game/level_without_loading_image');
   DoTest(false);

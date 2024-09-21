@@ -20,7 +20,7 @@ unit CastleInternalGLCubeMaps;
 
 interface
 
-uses {$ifdef FPC} CastleGL, {$else} OpenGL, OpenGLext, {$endif}
+uses {$ifdef OpenGLES} CastleGLES, {$else} CastleGL, {$endif}
   CastleVectors, CastleInternalCubeMaps, CastleImages, CastleInternalCompositeImage,
   CastleGLImages, CastleTransform, CastleGLUtils;
 
@@ -131,6 +131,7 @@ var
     Map: TGrayscaleImage;
     I, SHBasis, ScreenX, ScreenY: Integer;
     RenderParams: TRenderParams;
+    PassParams: TRenderOnePassParams;
   begin
     ScreenX := CubeMapInfo[Side].ScreenX * CubeMapSize + MapScreenX;
     ScreenY := CubeMapInfo[Side].ScreenY * CubeMapSize + MapScreenY;
@@ -139,22 +140,20 @@ var
 
     RenderParams := TBasicRenderParams.Create;
     try
-      { TBasicRenderParams will automatically have good defaults (inclusive) for InShadow and ShadowVolumesReceivers. }
       RenderParams.RenderingCamera := TRenderingCamera.Create;
       try
-        RenderParams.RenderingCamera.FromMatrix(
-          CapturePoint,
-          LookDirMatrix(CapturePoint, CubeMapInfo[Side].Dir, CubeMapInfo[Side].Up),
-          FastLookDirMatrix(CubeMapInfo[Side].Dir, CubeMapInfo[Side].Up),
+        RenderParams.RenderingCamera.FromViewVectors(
+          CapturePoint, CubeMapInfo[Side].Dir, CubeMapInfo[Side].Up,
           RenderContext.ProjectionMatrix
         );
         RenderParams.RenderingCamera.Target := rtCubeMapEnvironment;
         RenderParams.Frustum := @RenderParams.RenderingCamera.Frustum;
         RenderParams.RendererToPrepareShapes := ShapesRenderer.Renderer;
         RenderParams.Collector := ShapesCollector;
-        RenderParams.Transparent := false; Render(RenderParams);
-        RenderParams.Transparent := true ; Render(RenderParams);
-        ShapesRenderer.Render(ShapesCollector, RenderParams);
+        Render(RenderParams);
+        // TODO: we render both trasparent and opaque objects in 1 pass, without blending below
+        PassParams.Init;
+        ShapesRenderer.Render(ShapesCollector, RenderParams, PassParams);
       finally FreeAndNil(RenderParams.RenderingCamera) end;
     finally FreeAndNil(RenderParams) end;
 
@@ -181,7 +180,7 @@ var
 begin
   InitializeSHBasisMap;
 
-  ShapesCollector := TShapesCollector.Create;
+  ShapesCollector := TShapesCollector.Create(true);
   ShapesRenderer := TShapesRenderer.Create;
 
   { Call all DrawMap. This wil draw maps, get them,
@@ -218,10 +217,8 @@ procedure SetRenderingCamera(const RenderingCamera: TRenderingCamera;
   const CapturePoint: TVector3;
   const Side: TCubeMapSide);
 begin
-  RenderingCamera.FromMatrix(
-    CapturePoint,
-    LookDirMatrix(CapturePoint, CubeMapInfo[Side].Dir, CubeMapInfo[Side].Up),
-    FastLookDirMatrix(CubeMapInfo[Side].Dir, CubeMapInfo[Side].Up),
+  RenderingCamera.FromViewVectors(
+    CapturePoint, CubeMapInfo[Side].Dir, CubeMapInfo[Side].Up,
     RenderContext.ProjectionMatrix);
 end;
 

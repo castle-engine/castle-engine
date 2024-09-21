@@ -1,5 +1,5 @@
 {
-  Copyright 2014-2023 Michalis Kamburelis.
+  Copyright 2014-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -18,9 +18,61 @@ unit CastleTextureFontData;
 
 {$I castleconf.inc}
 
+{ Workaround a convoluted bug in Delphi < 10.4.
+  Doesn't affect new Delphi versions, doesn't affect FPC.
+
+  More precisely, we confirmed
+  - it occurs in Delphi 10.2.3
+  - it is fixed in Delphi 10.4.2 and all newer Delphi versions we tested (11.x, 12.x).
+
+  Details:
+
+  In these older Delphi versions,
+  using "inherited", "inherited Create" or "inherited Create(nil)"
+  in TTextureFontData.TGlyphDictionary.Create
+  leaves the created instance in state when internal FComparer is nil
+  (as if TDictionary<TKey,TValue>.Create constructor wasn't called).
+  Looks like having own constructor TGlyphDictionary.Create confuses
+  these early Delphi versions.
+
+  Workaround is to create and use own comparer, instance of
+  TUnicodeCharEqualityComparer.
+
+  This isn't related to whether this constructor has "reintroduce" or not,
+  tested.
+
+  In effect,
+  - Hash method causes Access Violation,
+  - and in effect all other routines (Add, AddOrSetValue, our SetItems)
+    cause Access Violation.
+
+  In the past, we even applied this change to any Delphi version, because
+  - The TUnicodeCharEqualityComparer makes sense anyway, the default
+    comparer from Generics.Collections for Cardinal wouldn't do anything
+    substantially different or more optimal.
+  - This way TUnicodeCharEqualityComparer will be tested even when we run
+    through latest Delphi, like 11.
+  - This way we don't care about carefully testing at which Delphi version
+    (10.3.x, 10.4.x?) the bug is fixed.
+
+  However, we later found out the workaround is not really applicable
+  to all Delphi versions. Freeing our comparer ("FreeAndNil(FComparer)")
+  makes a crash with Delphi 12.0, only in RELEASE mode (goes OK in DEBUG...).
+  Looks like in newer Delphis, we are not supposed to free the comparer.
+  But not freeing it means we most likely have a memory leak in older Delphis.
+  So part of the workaround would have to be conditional on Delphi version anyway.
+
+  So we apply the workaround selectively, only to older Delphis.
+}
+{$ifndef FPC}
+  {$if CompilerVersion < 34}
+    {$define CASTLE_WORKAROUND_GLYPH_COMPARER}
+  {$endif}
+{$endif}
+
 interface
 
-uses Generics.Collections,
+uses Generics.Collections, Generics.Defaults,
   CastleVectors, CastleUnicode, CastleStringUtils, CastleImages,
   CastleInternalFreeType;
 
@@ -56,9 +108,21 @@ type
         { Position of the glyph on the image in TTextureFontData.Image. }
         ImageX, ImageY: Cardinal;
       end;
+
       { Map Unicode code to a TGlyph representation. }
       TGlyphDictionary = class({$ifdef FPC}specialize{$endif} TDictionary<TUnicodeChar, TGlyph>)
       strict private
+        {$ifdef CASTLE_WORKAROUND_GLYPH_COMPARER}
+        type
+          TUnicodeCharEqualityComparer = class(TCustomComparer<TUnicodeChar>)
+            function Compare(const Left, Right: TUnicodeChar): Integer; override;
+            function Equals(const Left, Right: TUnicodeChar): Boolean; override;
+            function GetHashCode(const Value: TUnicodeChar): Integer; override;
+          end;
+        var
+          FComparer: TUnicodeCharEqualityComparer;
+        {$endif}
+
         FOwnsGlyphs: boolean;
         function GetItems(const AKey: TUnicodeChar): TGlyph;
         procedure SetItems(const AKey: TUnicodeChar; const AValue: TGlyph);
@@ -108,7 +172,7 @@ type
       so remember to free it after calling this constructor.
 
       @raises EFreeTypeLibraryNotFound If the freetype library is not installed. }
-    constructor Create(const AUrl: string;
+    constructor Create(const AUrl: String;
       const ASize: Cardinal; const AnAntiAliased: Boolean;
       ACharacters: TUnicodeCharList = nil; const ADistanceField: Boolean = false);
 
@@ -120,7 +184,7 @@ type
       const ASize: Cardinal; const AnAntiAliased: Boolean);
     destructor Destroy; override;
 
-    property URL: String read FUrl;
+    property Url: String read FUrl;
     property Size: Cardinal read FSize;
     property AntiAliased: Boolean read FAntiAliased;
 
@@ -167,31 +231,27 @@ type
 
 implementation
 
-uses Classes, SysUtils, Character, Generics.Defaults,
-  CastleLog, CastleUtils, CastleURIUtils, CastleFilesUtils, CastleDownload;
+uses Classes, SysUtils, Character,
+  CastleLog, CastleUtils, CastleUriUtils, CastleFilesUtils, CastleDownload;
 
 { TUnicodeCharEqualityComparer ----------------------------------------------- }
 
-{$ifndef FPC}
+{$ifdef CASTLE_WORKAROUND_GLYPH_COMPARER}
 
-type
-  TUnicodeCharEqualityComparer = class(TCustomComparer<TUnicodeChar>)
-    function Compare(const Left, Right: TUnicodeChar): Integer; override;
-    function Equals(const Left, Right: TUnicodeChar): Boolean; override;
-    function GetHashCode(const Value: TUnicodeChar): Integer; override;
-  end;
-
-function TUnicodeCharEqualityComparer.Compare(const Left, Right: TUnicodeChar): Integer;
+function TTextureFontData.TGlyphDictionary.TUnicodeCharEqualityComparer.
+  Compare(const Left, Right: TUnicodeChar): Integer;
 begin
   Result := Left - Right;
 end;
 
-function TUnicodeCharEqualityComparer.Equals(const Left, Right: TUnicodeChar): Boolean;
+function TTextureFontData.TGlyphDictionary.TUnicodeCharEqualityComparer.
+  Equals(const Left, Right: TUnicodeChar): Boolean;
 begin
   Result := Left = Right;
 end;
 
-function TUnicodeCharEqualityComparer.GetHashCode(const Value: TUnicodeChar): Integer;
+function TTextureFontData.TGlyphDictionary.TUnicodeCharEqualityComparer.
+  GetHashCode(const Value: TUnicodeChar): Integer;
 begin
   Result := Value;
 end;
@@ -202,35 +262,9 @@ end;
 
 constructor TTextureFontData.TGlyphDictionary.Create;
 begin
-  {$ifndef FPC}
-  { Pass TUnicodeCharEqualityComparer to avoid Delphi 10.2.3
-    (and likely ealier versions too) bug (fixed for sure since Delphi 10.4.2).
-
-    In these older Delphi versions,
-    using "inherited", "inherited Create" or "inherited Create(nil)"
-    leaves the created instance in state when internal FComparer is nil
-    (as if TDictionary<TKey,TValue>.Create constructor wasn't called).
-    Looks like having own constructor TGlyphDictionary.Create confuses
-    these early Delphi versions.
-
-    This isn't related to whether this constructor has "reintroduce" or not,
-    tested.
-
-    In effect,
-    - Hash method causes Access Violation,
-    - and in effect all other routines (Add, AddOrSetValue, our SetItems)
-      cause Access Violation.
-
-    We apply this change to any Delphi version, because
-    - The TUnicodeCharEqualityComparer makes sense anyway, the default
-      comparer from Generics.Collections for Cardinal wouldn't do anything
-      substantially different or more optimal.
-    - This way TUnicodeCharEqualityComparer will be tested even when we run
-      through latest Delphi, like 11.
-    - This way we don't care about carefully testing at which Delphi version
-      (10.3.x, 10.4.x?) the bug is fixed.
-  }
-  inherited Create(TUnicodeCharEqualityComparer.Create);
+  {$ifdef CASTLE_WORKAROUND_GLYPH_COMPARER}
+  FComparer := TUnicodeCharEqualityComparer.Create;
+  inherited Create(FComparer);
   {$else}
   inherited;
   {$endif}
@@ -247,6 +281,19 @@ begin
       G.Free;
   Clear;
   inherited;
+  {$ifdef CASTLE_WORKAROUND_GLYPH_COMPARER}
+  { Don't do this on new Delphis.
+    This makes a crash with Delphi 12 when compiled
+    in RELEASE (but not DEBUG) mode.
+
+    Now CASTLE_WORKAROUND_GLYPH_COMPARER is only defined for older Delphis,
+    should we free or not?
+
+    Decision: Let eventual memory leaks happen with older Delphis.
+    Better memory leaks, than crash.
+    Everything is great (no crash, no leak) with Delphis >= 10.4. }
+  //FreeAndNil(FComparer);
+  {$endif}
 end;
 
 function TTextureFontData.TGlyphDictionary.GetItems(const AKey: TUnicodeChar): TGlyph;
@@ -273,25 +320,25 @@ var
     Bitmap: PFontBitmap;
   begin
     if AntiAliased then
-      Bitmaps := FontMgr.GetStringGray(FontId, {$ifdef FPC}UnicodeToUTF8(C){$else}ConvertFromUtf32(C){$endif}, Size) else
-      Bitmaps := FontMgr.GetString(FontId, {$ifdef FPC}UnicodeToUTF8(C){$else}ConvertFromUtf32(C){$endif}, Size);
+      Bitmaps := FontMgr.GetStringGray(FontId, UnicodeCharToString(C), Size) else
+      Bitmaps := FontMgr.GetString(FontId, UnicodeCharToString(C), Size);
 
     try
       if Bitmaps.Count = 0 then
       begin
         WritelnWarning('Font', Format('Font "%s" does not contain glyph for character "%s" (index %d)',
-          [URL, C, Ord(C)]));
+          [Url, C, Ord(C)]));
         Exit(nil);
       end;
 
       Bitmap := Bitmaps.Bitmaps[0];
       if Bitmaps.Count > 1 then
         WritelnWarning('Font', Format('Font "%s" contains a sequence of glyphs (more than a single glyph) for a single character "%s" (index %d)',
-          [URL, C, Ord(C)]));
+          [Url, C, Ord(C)]));
       if (Bitmap^.Width < 0) or (Bitmap^.Height < 0) then
       begin
         WritelnWarning('Font', Format('Font "%s" contains a glyphs with Width or Height < 0 for character "%s" (index %d)',
-          [URL, C, Ord(C)]));
+          [Url, C, Ord(C)]));
         Exit(nil);
       end;
 
@@ -426,14 +473,14 @@ var
 
   begin
     if AntiAliased then
-      Bitmaps := FontMgr.GetStringGray(FontId, {$ifdef FPC}UnicodeToUTF8(C){$else}ConvertFromUtf32(C){$endif}, Size) else
-      Bitmaps := FontMgr.GetString(FontId, {$ifdef FPC}UnicodeToUTF8(C){$else}ConvertFromUtf32(C){$endif}, Size);
+      Bitmaps := FontMgr.GetStringGray(FontId, UnicodeCharToString(C), Size) else
+      Bitmaps := FontMgr.GetString(FontId, UnicodeCharToString(C), Size);
     try
       Bitmap := Bitmaps.Bitmaps[0];
       if (Bitmap^.Pitch < 0) then
       begin
         WritelnWarning('Font', Format('Font "%s" contains a glyphs with Pitch < 0 for character "%s" (index %d)',
-          [URL, C, Ord(C)]));
+          [Url, C, Ord(C)]));
         Exit;
       end;
       if DistanceField then
@@ -471,7 +518,7 @@ begin
   FUseFallbackGlyph := true;
 
   InitFontMgr;
-  FontId := FontMgr.RequestFont(URL);
+  FontId := FontMgr.RequestFont(Url);
 
   TemporaryCharacters := ACharacters = nil;
   if TemporaryCharacters then
@@ -505,7 +552,7 @@ begin
         MaxVar(MaxHeight, GlyphInfo.Height);
       end else
         WritelnWarning('Font "%s" does not contain requested character %s (Unicode number %d)',
-          [URIDisplay(URL), {$ifdef FPC}UnicodeToUTF8(C){$else}ConvertFromUtf32(C){$endif}, C]);
+          [UriDisplay(Url), UnicodeCharToString(C), C]);
     end;
 
     if GlyphsCount = 0 then
@@ -524,13 +571,13 @@ begin
       ImageSize := ImageSize * 2;
 
     WritelnLog('Font', 'Creating image %dx%d to store glyphs of font "%s" (%d glyphs, max glyph size (including %d pixel padding) is %dx%d)',
-      [ImageSize, ImageSize, URL, GlyphsCount, GlyphPadding, MaxWidth, MaxHeight]);
+      [ImageSize, ImageSize, Url, GlyphsCount, GlyphPadding, MaxWidth, MaxHeight]);
 
     FImage := TGrayscaleImage.Create(ImageSize, ImageSize);
     Image.Clear(0);
     Image.TreatAsAlpha := true;
-    // Image.URL doesn't change image contents, it is only information for profiler
-    Image.URL := URL + Format('[font converted to a texture, size: %d, anti-aliased: %s]', [
+    // Image.Url doesn't change image contents, it is only information for profiler
+    Image.Url := Url + Format('[font converted to a texture, size: %d, anti-aliased: %s]', [
       Size,
       BoolToStr(AntiAliased, true)
     ]);
@@ -574,10 +621,15 @@ var
   GlyphPair: {$ifdef FPC}TGlyphDictionary.TDictionaryPair{$else}TPair<TUnicodeChar, TGlyph>{$endif};
 begin
   inherited Create;
-  FUrl := AImage.URL; // this is only for debug purposes now (to potentially display in debug, profiler etc.)
+  FUrl := AImage.Url; // this is only for debug purposes now (to potentially display in debug, profiler etc.)
   FSize := ASize;
   FAntiAliased := AnAntiAliased;
   FUseFallbackGlyph := true;
+
+  // WritelnLog('Creating font from %s with %d glyphs', [
+  //   AImage.Url,
+  //   AGlyphs.Count
+  // ]);
 
   { split AGlyphs into FGlyphsByte and FGlyphsExtra }
   FGlyphsExtra := TGlyphDictionary.Create;
@@ -654,8 +706,10 @@ begin
   if FallbackGlyphWarnings < MaxFallbackGlyphWarnings then
   begin
     Inc(FallbackGlyphWarnings);
-    WritelnWarning('Font is missing glyph for character %s (Unicode number %d)',
-      [{$ifdef FPC}UnicodeToUTF8(C){$else}ConvertFromUtf32(C){$endif}, C]);
+    WritelnWarning('Font is missing glyph for character %s (Unicode number %d)', [
+      UnicodeCharToString(C),
+      C
+    ]);
     if FallbackGlyphWarnings = MaxFallbackGlyphWarnings then
       WritelnWarning('No further warnings about missing glyphs will be reported for this font (to avoid slowing down the application by flooding the log with warnings)');
   end;
@@ -675,181 +729,75 @@ end;
 
 function TTextureFontData.TextWidth(const S: string): Integer;
 var
-  C: TUnicodeChar;
-  {$ifdef FPC}
-  TextPtr: PChar;
-  CharLen: Integer;
-  {$else}
-  TextIndex: Integer;
-  NextTextIndex: Integer;
-  TextLength: Integer;
-  {$endif}
+  Iter: TCastleStringIterator;
   G: TTextureFontData.TGlyph;
 begin
   Result := 0;
-
-  {$ifdef FPC}
-  TextPtr := PChar(S);
-  C := UTF8CharacterToUnicode(TextPtr, CharLen);
-  while (C > 0) and (CharLen > 0) do
-  {$else}
-  TextIndex := 1;
-  TextLength := Length(S);
-  while (TextIndex <= TextLength) do
-  {$endif}
+  Iter.Start(S);
+  while Iter.GetNext do
   begin
-    {$ifdef FPC}
-    Inc(TextPtr, CharLen);
-    {$else}
-    C := UnicodeStringNextChar(S, TextIndex, NextTextIndex);
-    TextIndex := NextTextIndex;
-    {$endif}
-
-    G := Glyph(C);
+    G := Glyph(Iter.Current);
     if G <> nil then
       Result := Result + G.AdvanceX;
-
-    {$ifdef FPC}
-    C := UTF8CharacterToUnicode(TextPtr, CharLen);
-    {$endif}
   end;
 end;
 
 function TTextureFontData.TextHeight(const S: string): Integer;
 var
-  C: TUnicodeChar;
-  {$ifdef FPC}
-  TextPtr: PChar;
-  CharLen: Integer;
-  {$else}
-  TextIndex: Integer;
-  NextTextIndex: Integer;
-  TextLength: Integer;
-  {$endif}
+  Iter: TCastleStringIterator;
   MinY, MaxY, YOrigin: Integer;
   G: TTextureFontData.TGlyph;
 begin
   MinY := 0;
   MaxY := 0;
 
-  {$ifdef FPC}
-  TextPtr := PChar(S);
-  C := UTF8CharacterToUnicode(TextPtr, CharLen);
-  while (C > 0) and (CharLen > 0) do
-  {$else}
-  TextIndex := 1;
-  TextLength := Length(S);
-  while (TextIndex <= TextLength) do
-  {$endif}
+  Iter.Start(S);
+  while Iter.GetNext do
   begin
-    {$ifdef FPC}
-    Inc(TextPtr, CharLen);
-    {$else}
-    C := UnicodeStringNextChar(S, TextIndex, NextTextIndex);
-    TextIndex := NextTextIndex;
-    {$endif}
-
-    G := Glyph(C);
+    G := Glyph(Iter.Current);
     if G <> nil then
     begin
       YOrigin := G.Y;
       MinVar(MinY, -YOrigin);
       MaxVar(MaxY, G.Height - YOrigin);
     end;
-
-    {$ifdef FPC}
-    C := UTF8CharacterToUnicode(TextPtr, CharLen);
-    {$endif}
   end;
   Result := MaxY - MinY;
 end;
 
 function TTextureFontData.TextMove(const S: string): TVector2Integer;
 var
-  C: TUnicodeChar;
-  {$ifdef FPC}
-  TextPtr: PChar;
-  CharLen: Integer;
-  {$else}
-  TextIndex: Integer;
-  NextTextIndex: Integer;
-  TextLength: Integer;
-  {$endif}
+  Iter: TCastleStringIterator;
   G: TTextureFontData.TGlyph;
 begin
   Result := TVector2Integer.Zero;
 
-  {$ifdef FPC}
-  TextPtr := PChar(S);
-  C := UTF8CharacterToUnicode(TextPtr, CharLen);
-  while (C > 0) and (CharLen > 0) do
-  {$else}
-  TextIndex := 1;
-  TextLength := Length(S);
-  while (TextIndex <= TextLength) do
-  {$endif}
+  Iter.Start(S);
+  while Iter.GetNext do
   begin
-    {$ifdef FPC}
-    Inc(TextPtr, CharLen);
-    {$else}
-    C := UnicodeStringNextChar(S, TextIndex, NextTextIndex);
-    TextIndex := NextTextIndex;
-    {$endif}
-
-    G := Glyph(C);
+    G := Glyph(Iter.Current);
     if G <> nil then
     begin
       Result.X := Result.X + G.AdvanceX;
       Result.Y := Result.Y + G.AdvanceY;
     end;
-
-    {$ifdef FPC}
-    C := UTF8CharacterToUnicode(TextPtr, CharLen);
-    {$endif}
   end;
 end;
 
 function TTextureFontData.TextHeightBase(const S: string): Integer;
 var
-  C: TUnicodeChar;
-  {$ifdef FPC}
-  TextPtr: PChar;
-  CharLen: Integer;
-  {$else}
-  TextIndex: Integer;
-  NextTextIndex: Integer;
-  TextLength: Integer;
-  {$endif}
+  Iter: TCastleStringIterator;
   G: TTextureFontData.TGlyph;
 begin
   Result := 0;
   { This is just like TextHeight implementation, except we only
     calculate (as Result) the MaxY value (assuming that MinY is zero). }
-
-  {$ifdef FPC}
-  TextPtr := PChar(S);
-  C := UTF8CharacterToUnicode(TextPtr, CharLen);
-  while (C > 0) and (CharLen > 0) do
-  {$else}
-  TextIndex := 1;
-  TextLength := Length(S);
-  while (TextIndex <= TextLength) do
-  {$endif}
+  Iter.Start(S);
+  while Iter.GetNext do
   begin
-    {$ifdef FPC}
-    Inc(TextPtr, CharLen);
-    {$else}
-    C := UnicodeStringNextChar(S, TextIndex, NextTextIndex);
-    TextIndex := NextTextIndex;
-    {$endif}
-
-    G := Glyph(C);
+    G := Glyph(Iter.Current);
     if G <> nil then
       MaxVar(Result, G.Height - G.Y);
-
-    {$ifdef FPC}
-    C := UTF8CharacterToUnicode(TextPtr, CharLen);
-    {$endif}
   end;
 end;
 

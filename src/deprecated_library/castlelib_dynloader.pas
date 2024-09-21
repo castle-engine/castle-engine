@@ -1,5 +1,5 @@
 {
-  Copyright 2008-2023 Jan Adamec, Michalis Kamburelis.
+  Copyright 2008-2024 Jan Adamec, Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -217,6 +217,44 @@ const
   kcge_Comma       = 188;
   kcge_Period      = 190;
 
+  // mouse button (ECgeMouseButton)
+  ecgemouseButtonNone   = 0;  
+  ecgemouseButtonLeft   = 1;  
+  ecgemouseButtonMiddle = 2;  
+  ecgemouseButtonRight  = 3;  
+  ecgemouseButtonExtra1 = 4;  
+  ecgemouseButtonExtra2 = 5;  
+
+  // mouse wheel direction (ECgeMouseWheelDirection)
+  ecgemouseWheelNone    = 0;  
+  ecgemouseWheelUp      = 1;  
+  ecgemouseWheelDown    = 2;  
+  ecgemouseWheelLeft    = 3;  
+  ecgemouseWheelRight   = 4;  
+
+  // camera input (ECgeNavigationInput)
+  ecgeinputZoomIn       = 1;
+  ecgeinputZoomOut      = 2;
+  ecgeinputForward      = 11;
+  ecgeinputBackward     = 12;
+  ecgeinputLeftRotate   = 13;
+  ecgeinputRightRotate  = 14;
+  ecgeinputLeftStrafe   = 15;
+  ecgeinputRightStrafe  = 16;
+  ecgeinputUpRotate     = 17;
+  ecgeinputDownRotate   = 18;
+  ecgeinputIncreasePreferredHeight = 19;
+  ecgeinputDecreasePreferredHeight = 20;
+  ecgeinputGravityUp    = 21;
+  ecgeinputRun          = 22;
+  ecgeinputMoveSpeedInc = 23;
+  ecgeinputMoveSpeedDec = 24;
+  ecgeinputJump         = 25;
+  ecgeinputCrouch       = 26;
+  ecgeinputExRotate     = 31;
+  ecgeinputExMove       = 32;
+  ecgeinputExZoom       = 33;
+
 type
   TLibraryCallbackProc = function (eCode, iParam1, iParam2: cInt32; szParam: pcchar):cInt32; cdecl;
 
@@ -225,6 +263,7 @@ procedure CGE_Finalize(); cdecl; external 'castleengine';
 procedure CGE_Open(flags: cUInt32; InitialWidth, InitialHeight, Dpi: cUInt32); cdecl; external 'castleengine';
 procedure CGE_Close(); cdecl; external 'castleengine';
 procedure CGE_GetOpenGLInformation(szBuffer: pchar; nBufSize: cInt32); cdecl; external 'castleengine';
+procedure CGE_GetCastleEngineVersion(szBuffer: pchar; nBufSize: cInt32); cdecl; external 'castleengine';
 procedure CGE_Resize(uiViewWidth, uiViewHeight: cUInt32); cdecl; external 'castleengine';
 procedure CGE_Render(); cdecl; external 'castleengine';
 procedure CGE_SaveScreenshotToFile(szFile: pcchar); cdecl; external 'castleengine';
@@ -237,6 +276,7 @@ procedure CGE_MouseWheel(zDelta: cFloat; bVertical: cBool); cdecl; external 'cas
 procedure CGE_KeyDown(eKey: CInt32); cdecl; external 'castleengine';
 procedure CGE_KeyUp(eKey: CInt32); cdecl; external 'castleengine';
 procedure CGE_LoadSceneFromFile(szFile: pcchar); cdecl; external 'castleengine';
+procedure CGE_SaveSceneToFile(szFile: pcchar); cdecl; external 'castleengine';
 function CGE_GetViewpointsCount(): cInt32; cdecl; external 'castleengine';
 procedure CGE_GetViewpointName(iViewpointIdx: cInt32; szName: pchar; nBufSize: cInt32); cdecl; external 'castleengine';
 procedure CGE_MoveToViewpoint(iViewpointIdx: cInt32; bAnimated: cBool); cdecl; external 'castleengine';
@@ -247,6 +287,7 @@ procedure CGE_GetViewCoords(pfPosX, pfPosY, pfPosZ, pfDirX, pfDirY, pfDirZ,
 procedure CGE_MoveViewToCoords(fPosX, fPosY, fPosZ, fDirX, fDirY, fDirZ,
                                fUpX, fUpY, fUpZ, fGravX, fGravY, fGravZ: cFloat;
                                bAnimated: cBool); cdecl; external 'castleengine';
+procedure CGE_SetNavigationInputShortcut(eInput, eKey1, eKey2, eMouseButton, eMouseWheel: cInt32); cdecl; external 'castleengine';
 function CGE_GetNavigationType(): cInt32; cdecl; external 'castleengine';
 procedure CGE_SetNavigationType(NewType: cInt32); cdecl; external 'castleengine';
 procedure CGE_SetTouchInterface(eMode: cInt32); cdecl; external 'castleengine';

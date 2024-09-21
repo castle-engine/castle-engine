@@ -151,7 +151,7 @@ unit CastleVectors;
 
 interface
 
-uses SysUtils, Generics.Collections, Classes,
+uses SysUtils, Generics.Collections, Classes, Math,
   CastleUtils, CastleVectorsInternalSingle, CastleVectorsInternalDouble, CastleClassUtils;
 
 {$define read_interface}
@@ -176,7 +176,7 @@ uses SysUtils, Generics.Collections, Classes,
 
 implementation
 
-uses Math,
+uses
   CastleStringUtils, CastleColors, CastleLog, CastleQuaternions;
 
 {$define read_implementation}

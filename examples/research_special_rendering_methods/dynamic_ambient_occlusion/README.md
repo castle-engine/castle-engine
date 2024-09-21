@@ -4,7 +4,7 @@ Sample implementation of "Dynamic ambient occlusion". See below for algorithm de
 
 By default we open the "peach" model from `data/` subdirectory. You can pass on command-line URL of a different model to open, like `castle-data:/chinchilla_awakens.x3dv`.
 
-Navigate by mouse/keys like in view3dscene (see https://castle-engine.io/view3dscene.php).
+Navigate by mouse/keys like in [Castle Model Viewer](https://castle-engine.io/castle-model-viewer).
 
 Use keys s / S scale shadow more / less (for more/less dramatic effect; the default scale is anyway 2 times larger than what math suggests, to be more dramatic).
 
@@ -14,11 +14,11 @@ Using [Castle Game Engine](https://castle-engine.io/).
 
 Compile by:
 
-- [CGE editor](https://castle-engine.io/manual_editor.php). Just use menu item _"Compile"_.
+- [CGE editor](https://castle-engine.io/editor). Just use menu items _"Compile"_ or _"Compile And Run"_.
 
 - Or use [CGE command-line build tool](https://castle-engine.io/build_tool). Run `castle-engine compile` in this directory.
 
-- Or use [Lazarus](https://www.lazarus-ide.org/). Open in Lazarus `dynamic_ambient_occlusion_standalone.lpi` file and compile / run from Lazarus. Make sure to first register [CGE Lazarus packages](https://castle-engine.io/documentation.php).
+- Or use [Lazarus](https://www.lazarus-ide.org/). Open in Lazarus `dynamic_ambient_occlusion_standalone.lpi` file and compile / run from Lazarus. Make sure to first register [CGE Lazarus packages](https://castle-engine.io/lazarus).
 
 ## Algorithm
 
@@ -157,3 +157,5 @@ Disadvantages:
 TODO: our current method of generating elements works only for nodes
 with explicit vertexes, so will not work for X3D primitives (sphere,
 cone and and such).
+
+- Or use [Delphi](https://www.embarcadero.com/products/Delphi). Open in Delphi `dynamic_ambient_occlusion_standalone.dproj` file and compile / run from Delphi. See [CGE and Delphi](https://castle-engine.io/delphi) documentation for details.

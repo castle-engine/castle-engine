@@ -27,11 +27,11 @@
 
 type
   TUrlData = class
-    class function Read(const Url: string; out MimeType: string): TStream;
+    class function Read(const Url: String; out MimeType: string): TStream;
     class function MimeType(const URI: string; out Gzipped: Boolean): String;
   end;
 
-class function TUrlData.Read(const Url: string; out MimeType: string): TStream;
+class function TUrlData.Read(const Url: String; out MimeType: string): TStream;
 var
   DataUri: TDataUri;
 begin

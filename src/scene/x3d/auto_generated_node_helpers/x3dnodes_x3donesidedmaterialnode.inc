@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2023 Michalis Kamburelis.
+  Copyright 2015-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -39,24 +39,24 @@
   public
     { Create node fields and events. }
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdEmissiveColor: TSFColor;
     { Internal wrapper for property @code(EmissiveColor). This wrapper API may change, we advise to access simpler @code(EmissiveColor) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdEmissiveColor: TSFColor read FFdEmissiveColor;
-    {  }
+    { Emissive color, multiplied by the @link(EmissiveTexture), makes the shape brighter regardless of the surrounding lights. Usually used to make things glow. }
     property EmissiveColor: TCastleColorRGB read GetEmissiveColor write SetEmissiveColor;
 
     strict private FFdEmissiveTexture: TSFNode;
     { Internal wrapper for property @code(EmissiveTexture). This wrapper API may change, we advise to access simpler @code(EmissiveTexture) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdEmissiveTexture: TSFNode read FFdEmissiveTexture;
-    {  }
+    { Emissive texture is multiplied by the @link(EmissiveColor). It allows the perceived emissive factor depend on a texture, and thus vary across the surface. }
     property EmissiveTexture: TAbstractSingleTextureNode read GetEmissiveTexture write SetEmissiveTexture;
 
     strict private FFdEmissiveTextureMapping: TSFString;
     { Internal wrapper for property @code(EmissiveTextureMapping). This wrapper API may change, we advise to access simpler @code(EmissiveTextureMapping) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdEmissiveTextureMapping: TSFString read FFdEmissiveTextureMapping;
-    {  }
+    { Determines texture coordinates used by @link(EmissiveTexture). }
     property EmissiveTextureMapping: String read GetEmissiveTextureMapping write SetEmissiveTextureMapping;
 
     strict private FFdNormalTexture: TSFNode;

@@ -18,7 +18,7 @@
   - Face indexes stored at triangles.
 
     Not having this information, we cannot implement the feature
-    "Edit -> Remove face" in view3dscene.
+    "Edit -> Remove face" in castle-model-viewer.
 
   - Defining this also disables the "mailbox" speed optimization for triangles.
 
@@ -94,7 +94,7 @@
   For models where shapes are not duplicated (like alien_mirror.wrl),
   this makes a slight slowdown (from to 1.38 to 1.49), but I think that's
   acceptable. Trivial models are fast enough anyway. And note that ray-tracers
-  are free to use OctreeVisibleTriangles, not based on shapes,
+  are free to use CreateOctreeVisibleTriangles, not based on shapes,
   since the scene is static there. This is really only for interactive usage
   with OctreeDynamicCollisions and such.
 }

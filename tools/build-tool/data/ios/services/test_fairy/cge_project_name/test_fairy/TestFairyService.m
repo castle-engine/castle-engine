@@ -27,7 +27,11 @@ bool testFairyInitialized = false;
 void TestFairyInitialize()
 {
     if (!testFairyInitialized) {
-        [TestFairy setServerEndpoint:@"https://${IOS.TEST_FAIRY.DOMAIN}.testfairy.com"];
+        /* Do not specify domain anymore?
+           Free TestFairy users do not have a domain,
+           and it seems not necessary to specify it anyway. */
+        // [TestFairy setServerEndpoint:@"https://${IOS.TEST_FAIRY.DOMAIN}.testfairy.com"];
+
         [TestFairy begin:@"${IOS.TEST_FAIRY.SDK_APP_TOKEN}"];
         testFairyInitialized = true;
     }

@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2023 Michalis Kamburelis.
+  Copyright 2003-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -275,57 +275,6 @@ type
       ) }
     property Radius: Single read FRadius write FRadius {$ifdef FPC}default DefaultRadius{$endif};
 
-    { Calculate a 3D ray picked by the WindowX, WindowY position on the window.
-
-      Uses current container size, which means that it assumes that viewport
-      fills the whole container. The navigation, as well as the parent viewport,
-      must be part of some container UI hierarchy for this to work.
-
-      Projection (read-only here) describe your projection,
-      required for calculating the ray properly.
-      Resulting RayDirection is always normalized.
-
-      WindowPosition is given in the same style as TCastleContainer.MousePosition:
-      (0, 0) is bottom-left. }
-    procedure Ray(const WindowPosition: TVector2;
-      const Projection: TProjection;
-      out RayOrigin, RayDirection: TVector3); deprecated 'use Viewport.Camera.CustomRay with proper viewport sizes, or use higher-level utilities like Viewport.MouseRayHit instead';
-
-    { Calculate a ray picked by current mouse position on the window.
-
-      Uses current container size, which means that it assumes that viewport
-      fills the whole container. The navigation, as well as the parent viewport,
-      must be part of some container UI hierarchy for this to work.
-
-      @seealso Ray
-      @seealso CustomRay }
-    procedure MouseRay(
-      const Projection: TProjection;
-      out RayOrigin, RayDirection: TVector3); deprecated 'use Viewport.Camera.CustomRay with proper viewport sizes, or use higher-level utilities like Viewport.MouseRayHit instead';
-
-    { Calculate a ray picked by WindowPosition position on the viewport,
-      assuming current viewport dimensions are as given.
-      This doesn't look at our container sizes at all.
-
-      Projection (read-only here) describe projection,
-      required for calculating the ray properly.
-
-      Resulting RayDirection is always normalized.
-
-      WindowPosition is given in the same style as TCastleContainer.MousePosition:
-      (0, 0) is bottom-left. }
-    procedure CustomRay(
-      const ViewportRect: TRectangle;
-      const WindowPosition: TVector2;
-      const Projection: TProjection;
-      out RayOrigin, RayDirection: TVector3); overload;
-      deprecated 'use Viewport.Camera.CustomRay';
-    procedure CustomRay(
-      const ViewportRect: TFloatRectangle;
-      const WindowPosition: TVector2;
-      const Projection: TProjection;
-      out RayOrigin, RayDirection: TVector3); overload; deprecated 'use Viewport.Camera.CustomRay';
-
     function Press(const Event: TInputPressRelease): boolean; override;
     function Release(const Event: TInputPressRelease): boolean; override;
 
@@ -416,6 +365,7 @@ type
       FPinchGestureRecognizer: TCastlePinchPanGestureRecognizer;
       FCenterOfRotation: TVector3;
       FAutoCenterOfRotation: Boolean;
+      FZoomSpeed: Single;
 
       FInputs_Move: T3BoolInputs;
       FInputs_Rotate: T3BoolInputs;
@@ -465,10 +415,13 @@ type
     procedure SetMouseButtonMove(const Value: TCastleMouseButton);
     function GetMouseButtonZoom: TCastleMouseButton;
     procedure SetMouseButtonZoom(const Value: TCastleMouseButton);
+  protected
+    function Zoom(const Factor: Single): Boolean; override;
   public
     const
       DefaultRotationAccelerationSpeed = 5.0;
-      DefaultRotationSpeed = 2.0;
+      DefaultRotationSpeed = 1.0;
+      DefaultZoomSpeed = 1.0;
 
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -511,12 +464,6 @@ type
 
     { Continuous rotation animation, applied each Update to Rotations. }
     property RotationsAnim: TVector3 read FRotationsAnim write SetRotationsAnim;
-
-    { How fast user moves the scene by mouse/touch dragging. }
-    property DragMoveSpeed: Single read FDragMoveSpeed write FDragMoveSpeed {$ifdef FPC}default 1.0{$endif};
-
-    { How fast user moves the scene by pressing keys. }
-    property KeysMoveSpeed: Single read FKeysMoveSpeed write FKeysMoveSpeed {$ifdef FPC}default 1.0{$endif};
 
     {$ifdef FPC}
     property MoveAmount: TVector3 read GetTranslation write SetTranslation;
@@ -600,22 +547,10 @@ type
       read GetMouseNavigation write SetMouseNavigation default true; deprecated;
     {$endif}
 
-    { Speed to change the rotation acceleration,
-      used when RotationAccelerate = @true. }
-    property RotationAccelerationSpeed: Single
-      read FRotationAccelerationSpeed
-      write FRotationAccelerationSpeed
-      {$ifdef FPC}default DefaultRotationAccelerationSpeed{$endif};
-
-    { Speed to change the rotation, used when RotationAccelerate = @false. }
-    property RotationSpeed: Single
-      read FRotationSpeed
-      write FRotationSpeed
-      {$ifdef FPC}default DefaultRotationSpeed{$endif};
-
     { 3D point around which we rotate, in world coordinates.
       This is used only when AutoCenterOfRotation = @false. }
     property CenterOfRotation: TVector3 read FCenterOfRotation write FCenterOfRotation;
+
   published
     { Enable rotating the camera around the model by user input.
       When @false, no keys / mouse dragging / 3D mouse etc. can cause a rotation.
@@ -647,6 +582,31 @@ type
     { Should we calculate center of rotation automatically (based on world bounding box)
       or use explicit @link(CenterOfRotation). }
     property AutoCenterOfRotation: Boolean read FAutoCenterOfRotation write FAutoCenterOfRotation default true;
+
+    { How fast user moves the scene by mouse/touch dragging. }
+    property DragMoveSpeed: Single read FDragMoveSpeed write FDragMoveSpeed {$ifdef FPC}default 1.0{$endif};
+
+    { How fast user moves the scene by pressing keys. }
+    property KeysMoveSpeed: Single read FKeysMoveSpeed write FKeysMoveSpeed {$ifdef FPC}default 1.0{$endif};
+
+    { Speed to change the rotation acceleration,
+      used when RotationAccelerate = @true. }
+    property RotationAccelerationSpeed: Single
+      read FRotationAccelerationSpeed
+      write FRotationAccelerationSpeed
+      {$ifdef FPC}default DefaultRotationAccelerationSpeed{$endif};
+
+    { Speed to change the rotation, used when RotationAccelerate = @false. }
+    property RotationSpeed: Single
+      read FRotationSpeed
+      write FRotationSpeed
+      {$ifdef FPC}default DefaultRotationSpeed{$endif};
+
+    { Speed to change the Zoom, when ZoomEnabled = @true. }
+    property ZoomSpeed: Single
+      read FZoomSpeed
+      write FZoomSpeed
+      {$ifdef FPC}default DefaultZoomSpeed{$endif};
   end;
 
   { Navigation most suitable for 2D viewports
@@ -665,13 +625,14 @@ type
 
   { What mouse dragging does in TCastleWalkNavigation. }
   TMouseDragMode = (
-    { Moves avatar continuously in the direction of mouse drag
-      (default for TCastleWalkNavigation.MouseDragMode). }
-    mdWalk,
+    { Moves and rotates avatar depending on the direction of mouse drag.
+      Default for @link(TCastleWalkNavigation.MouseDragMode). }
+    mdWalkRotate,
     { Rotates the head when mouse is moved. }
     mdRotate,
     { Ignores the dragging. }
-    mdNone);
+    mdNone
+  );
 
   { Abstract navigation class that can utilize @italic(mouse look),
     during which mouse cursor is hidden and we look at MouseLookDelta every frame. }
@@ -1404,7 +1365,8 @@ type
     { @groupEnd }
 
     { Speed (radians per pixel delta) of rotations by mouse dragging.
-      Relevant only if niMouseDragging in @link(Input), and MouseDragMode is mdRotate or mdWalk.
+      Relevant only if niMouseDragging in @link(Input) and
+      MouseDragMode is mdRotate or mdWalkRotate.
       Separate for horizontal and vertical, this way you can e.g. limit
       (or disable) vertical rotations, useful for games where you mostly
       look horizontally and accidentally looking up/down is more confusing
@@ -1419,14 +1381,15 @@ type
     { @groupEnd }
 
     { Moving speed when mouse dragging.
-      Relevant only when @code((MouseDragMode is mdWalk) and (niMouseDragging in UsingInput)). }
+      Relevant only when @code((MouseDragMode is mdWalkRotate) and
+      (niMouseDragging in UsingInput)). }
     property MouseDraggingMoveSpeed: Single
       read FMouseDraggingMoveSpeed write FMouseDraggingMoveSpeed
       {$ifdef FPC}default DefaultMouseDraggingMoveSpeed{$endif};
 
     { What mouse dragging does. Used only when niMouseDragging in @link(Input). }
     property MouseDragMode: TMouseDragMode
-      read FMouseDragMode write FMouseDragMode default mdWalk;
+      read FMouseDragMode write FMouseDragMode default mdWalkRotate;
 
     { This unlocks a couple of features and automatic behaviors
       related to gravity. Gravity always drags the camera down to
@@ -1575,41 +1538,6 @@ begin
       ClassName
     ]);
   Result := (InternalViewport as TCastleViewport).InternalCamera;
-end;
-
-procedure TCastleNavigation.Ray(const WindowPosition: TVector2;
-  const Projection: TProjection;
-  out RayOrigin, RayDirection: TVector3);
-begin
-  Assert(ContainerSizeKnown, 'Container size not known yet (probably navigation instance not added to UI controls hierarchy of some container), cannot use TCastleNavigation.Ray');
-  Camera.CustomRay(FloatRectangle(ContainerRect), WindowPosition, Projection, RayOrigin, RayDirection);
-end;
-
-procedure TCastleNavigation.MouseRay(
-  const Projection: TProjection;
-  out RayOrigin, RayDirection: TVector3);
-begin
-  Assert(ContainerSizeKnown, 'Camera container size not known yet (probably camera not added to Controls list), cannot use TCastleNavigation.MouseRay');
-  Camera.CustomRay(FloatRectangle(ContainerRect), Container.MousePosition, Projection, RayOrigin, RayDirection);
-end;
-
-procedure TCastleNavigation.CustomRay(
-  const ViewportRect: TFloatRectangle;
-  const WindowPosition: TVector2;
-  const Projection: TProjection;
-  out RayOrigin, RayDirection: TVector3);
-begin
-  Camera.CustomRay(ViewportRect, WindowPosition, Projection, RayOrigin, RayDirection);
-end;
-
-procedure TCastleNavigation.CustomRay(
-  const ViewportRect: TRectangle;
-  const WindowPosition: TVector2;
-  const Projection: TProjection;
-  out RayOrigin, RayDirection: TVector3);
-begin
-  Camera.CustomRay(FloatRectangle(ViewportRect),
-    WindowPosition, Projection, RayOrigin, RayDirection);
 end;
 
 procedure TCastleNavigation.AnimateTo(const APos, ADir, AUp: TVector3; const Time: TFloatTime);
@@ -1979,6 +1907,7 @@ begin
   FPinchGestureRecognizer.OnGestureChanged := {$ifdef FPC}@{$endif}OnGestureRecognized;
   FExactMovement := true;
   FAutoCenterOfRotation := true;
+  FZoomSpeed := DefaultZoomSpeed;
 
   for I := 0 to 2 do
     for B := false to true do
@@ -2146,6 +2075,11 @@ begin
   );
 end;
 
+function TCastleExamineNavigation.Zoom(const Factor: Single): Boolean;
+begin
+  Result := inherited Zoom(Factor * ZoomSpeed);
+end;
+
 procedure TCastleExamineNavigation.Update(const SecondsPassed: Single;
   var HandleInput: boolean);
 var
@@ -2186,7 +2120,7 @@ begin
 
   if RotationEnabled and (not FRotationsAnim.IsPerfectlyZero) then
   begin
-    RotChange := SecondsPassed;
+    RotChange := SecondsPassed * RotationSpeed;
 
     if FRotationsAnim[0] <> 0 then
       V.Rotations := QuatFromAxisAngle(TVector3.One[0],
@@ -2332,7 +2266,7 @@ begin
   Result := true;
 
   Moved := false;
-  RotationSize := SecondsPassed * Angle;
+  RotationSize := SecondsPassed * Angle * RotationSpeed;
   V := ExamineVectors;
 
   if Abs(X) > 0.4 then      { tilt forward / backward}
@@ -2510,16 +2444,18 @@ var
   begin
     V := ExamineVectors;
 
+    {$warnings off} // using deprecated ContainerSizeKnown
     if (not ContainerSizeKnown) then
+    {$warnings on}
     begin
-      V.Rotations := XYRotation(1);
+      V.Rotations := XYRotation(RotationSpeed);
     end else
     if Turntable then
     begin
       //Result := XYRotation(0.5); // this matches the rotation speed of ntExamine
       { Do one turn around Y axis by dragging from one viewport side to another
         (so it does not depend on viewport size)  }
-      V.Rotations := XYRotation(2 * Pi * MoveDivConst / Container.Width);
+      V.Rotations := XYRotation(2 * Pi * MoveDivConst / Container.PixelsWidth * RotationSpeed);
     end else
     begin
       { When the cursor is close to the window edge, make rotation around Z axis.
@@ -2529,8 +2465,8 @@ var
       AvgX := (Event.Position[0] + Event.OldPosition[0]) / 2;
       AvgY := (Event.Position[1] + Event.OldPosition[1]) / 2;
       { let physical size affect scaling speed }
-      W2 := Container.Width / 2;
-      H2 := Container.Height / 2;
+      W2 := Container.PixelsWidth / 2;
+      H2 := Container.PixelsHeight / 2;
       { calculate rotation around Z }
       ZRotAngle :=
         ArcTan2((Event.OldPosition[1] - H2) / H2, (Event.OldPosition[0] - W2) / W2) -
@@ -2546,7 +2482,7 @@ var
       ZRotRatio := Min(1.0, Sqrt(Sqr((AvgX - W2) / W2) + Sqr((AvgY - H2) / H2)));
       V.Rotations :=
         QuatFromAxisAngle(Vector3(0, 0, -1), ZRotRatio * ZRotAngle) *
-        XYRotation(1 - ZRotRatio);
+        XYRotation((1 - ZRotRatio) * RotationSpeed);
     end;
 
     ExamineVectors := V;
@@ -2664,6 +2600,8 @@ begin
 end;
 
 procedure TCastleExamineNavigation.OnGestureRecognized(Sender: TObject);
+const
+  PinchZoomSpeed = 20.0;
 var
   Recognizer: TCastlePinchPanGestureRecognizer;
   Factor, Size, MoveDivConst, ZoomScale: Single;
@@ -2678,22 +2616,22 @@ begin
   if ZoomEnabled and (Recognizer.Gesture = gtPinch) then
   begin
     if Recognizer.PinchScaleFactor > 1.0 then
-      Factor := 40 * (Recognizer.PinchScaleFactor - 1.0)
+      Factor := Recognizer.PinchScaleFactor - 1.0
     else
-      Factor := -40 * (1.0/Recognizer.PinchScaleFactor - 1.0);
+      Factor := - (1.0 / Recognizer.PinchScaleFactor - 1.0);
     if Turntable then
       ZoomScale := 1
     else
       ZoomScale := 3;
-    Zoom(Factor * ZoomScale);
+    Zoom(PinchZoomSpeed * Factor * ZoomScale);
   end;
 
   if MoveEnabled and (not GoodModelBox.IsEmpty) and (Recognizer.Gesture = gtPan) then
   begin
     Size := GoodModelBox.AverageSize;
     Translation := Translation - Vector3(
-      DragMoveSpeed * Size * (Recognizer.PanOldOffset.X - Recognizer.PanOffset.X) / (2*MoveDivConst),
-      DragMoveSpeed * Size * (Recognizer.PanOldOffset.Y - Recognizer.PanOffset.Y) / (2*MoveDivConst),
+      DragMoveSpeed * Size * Recognizer.PanMove.X / (2 * MoveDivConst),
+      DragMoveSpeed * Size * Recognizer.PanMove.Y / (2 * MoveDivConst),
       0);
   end;
 end;
@@ -2820,10 +2758,12 @@ begin
   Result := inherited;
   if Result or (Event.FingerIndex <> 0) then Exit;
 
+  {$warnings off} // using deprecated ContainerSizeKnown
   if InternalUsingMouseLook and
     Container.Focused and
     ContainerSizeKnown and
     Valid then
+  {$warnings on}
   begin
     HandleMouseLook;
     Exit;
@@ -3494,11 +3434,11 @@ procedure TCastleWalkNavigation.Update(const SecondsPassed: Single;
                since last Update. This means that it's common that at the same moment
                when Falling changed suddenly to @true, SecondsPassed may be large
                and we're better not using this too much... A practical bug demo:
-               open in view3dscene (it does progress bar in OpenGL, so will cause
+               open in castle-model-viewer (it does progress bar in OpenGL, so will cause
                large SecondsPassed) any model with gravity on and camera slightly
                higher then PreferredHeight (we want to trigger Falling
                right when the model is loaded). E.g. run
-               "view3dscene demo_models/navigation/speed_2.wrl".
+               "castle-model-viewer demo_models/navigation/speed_2.wrl".
                If FallSpeedIncrease will be done before FallingEffect,
                then you'll see that at the very first frame FFallSpeed
                was increased so much (because SecondsPassed was large) that it triggered
@@ -3818,7 +3758,9 @@ procedure TCastleWalkNavigation.Update(const SecondsPassed: Single;
     CorrectPreferredHeight;
   end;
 
-  procedure MoveViaMouseDragging(Delta: TVector2);
+  { Implement MouseDragMode = mdWalkRotate case,
+    moving and rotating in response to mouse dragging by Delta. }
+  procedure MoveRotateViaMouseDragging(Delta: TVector2);
   var
     MoveSizeX, MoveSizeY: Single;
   const
@@ -3846,8 +3788,8 @@ procedure TCastleWalkNavigation.Update(const SecondsPassed: Single;
 
       if Abs(Delta.X) > Tolerance then
         RotateHorizontal(-Delta.X * SecondsPassed * MouseDraggingHorizontalRotationSpeed); { rotate }
-    end
-    else if buttonRight in Container.MousePressed then
+    end else
+    if buttonRight in Container.MousePressed then
     begin
       if Delta.X < -Tolerance then
         MoveHorizontal(DirectionLeft, MoveSizeX * SecondsPassed);
@@ -3932,16 +3874,26 @@ begin
     { mouse dragging navigation }
     if (MouseDraggingStarted <> -1) and
        ReallyEnableMouseDragging and
-       ((buttonLeft in Container.MousePressed) or (buttonRight in Container.MousePressed)) and
+       (Container.MousePressed <> []) and
        { Enable dragging only when no modifiers (except Input_Run,
          which must be allowed to enable running) are pressed.
          This allows application to handle e.g. ctrl + dragging
-         in some custom ways (like view3dscene selecting a triangle). }
+         in some custom ways (like castle-model-viewer selecting a triangle). }
        (Container.Pressed.Modifiers - Input_Run.Modifiers = []) and
-       (MouseDragMode = mdWalk) then
+       (MouseDragMode = mdWalkRotate) and
+       { Hack to avoid processing when mouse is over TCastleTouchNavigation
+         gizmo, since it does it's own rotating/movement of camera.
+         This is a hack, ideally TCastleWalkNavigation should not have a specific
+         rule to interact with TCastleTouchNavigation...
+
+         Note: We cannot move MoveRotateViaMouseDragging logic to Motion
+         (thus using "motion is handled" boolean) because
+         MoveRotateViaMouseDragging wants to move even if no mouse movement
+         happened in last frame. }
+       (not TCastleTouchNavigation.MouseOverTouchGizmo(Container)) then
     begin
       HandleInput := false;
-      MoveViaMouseDragging(Container.MousePosition - MouseDraggingStart);
+      MoveRotateViaMouseDragging(Container.MousePosition - MouseDraggingStart);
     end;
   end;
 
@@ -4002,7 +3954,7 @@ function TCastleWalkNavigation.Press(const Event: TInputPressRelease): boolean;
         in this case.
 
         Yes, this situation can happen: for example open a model with
-        no viewpoint in VRML in view3dscene (so default viewpoint,
+        no viewpoint in VRML in castle-model-viewer (so default viewpoint,
         both gravity and Up = +Y is used). Then change GravityUp
         by menu and press Home (Input_GravityUp). }
 
@@ -4300,6 +4252,29 @@ function TCastleWalkNavigation.Motion(const Event: TInputMotion): boolean;
 begin
   Result := inherited;
   if Result or (Event.FingerIndex <> 0) then Exit;
+
+  { It is possible to have MouseDraggingStarted = -1 even when all buttons
+    released:
+
+    - When setting MouseDraggingStarted to >= 0 in Press,
+      we do not set Result:=true to avoid other issues
+      (see comments in TCastleNevigation.Press).
+    - But as a consequence, TCastleTouchNavigation.Press may also start dragging
+      at the same time.
+    - Then when user releases the mouse,
+      TCastleTouchNavigation.Release is called,
+      and TCastleNavigation.Release is not called.
+      This is actually regardless of whether TCastleTouchNavigation.Release
+      returns false or true. It's because TCastleContainer.EventRelease
+      calls only Capture.Release + Exit when Capture <> nil,
+      it doesn't call Release on others.
+    - In effect, since our TCastleNavigation.Release wasn't called,
+      MouseDraggingStarted is left at -1.
+
+    Testcase: simple_3d_demo, click on touch navigation in the corner,
+    then release. When moving mouse, you should *not* rotate the camera now. }
+  if Event.Pressed = [] then
+    MouseDraggingStarted := -1;
 
   if (MouseDraggingStarted <> -1) and
     // Not need to check here ReallyEnableMouseDragging, as MouseDraggingStarted is already <> -1

@@ -1,5 +1,5 @@
 {
-  Copyright 2007-2023 Michalis Kamburelis.
+  Copyright 2007-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -63,8 +63,9 @@
     @item(
       Creating/destroying the TGLSLProgram instance immediately creates/destroys
       appropriate program on GPU. So be sure to create/destroy it only
-      when you have OpenGL context available (for example, create in TCastleWindow.OnOpen
-      and destroy in TCastleWindow.OnClose).)
+      when you have OpenGL context available (for example,
+      create in @link(TCastleUserInterface.GLContextOpen),
+      and destroy in @link(TCastleUserInterface.GLContextClose)).)
 
     @item(
       Upon creation, we check current OpenGL context abilities.
@@ -107,7 +108,7 @@ unit CastleGLShaders;
 interface
 
 uses SysUtils, Classes, Generics.Collections,
-  {$ifdef FPC} CastleGL, {$else} OpenGL, OpenGLext, {$endif}
+  {$ifdef OpenGLES} CastleGLES, {$else} CastleGL, {$endif}
   CastleGLUtils, CastleUtils, CastleVectors, CastleRenderOptions;
 
 type
@@ -849,7 +850,7 @@ begin
 
     Unfortunately, there's no glUniform*ub (unsigned byte) or such function.
 
-    So convert to longints. }
+    So convert to 32 ints. }
   Ints := Value.ToInt32;
   try
     Owner.Enable;
@@ -1300,8 +1301,11 @@ function TGLSLProgram.DebugInfo: string;
       for I := 0 to UniformsCount - 1 do
       begin
         SetLength(Name, UniformMaxLength);
-        glGetActiveUniform(ProgramId, I, UniformMaxLength, @ReturnedLength,
-          @Size, @AType, PAnsiCharOrNil(Name));
+        glGetActiveUniform(ProgramId, I, UniformMaxLength,
+          {$ifndef USE_DGL}@{$endif} ReturnedLength,
+          {$ifndef USE_DGL}@{$endif} Size,
+          {$ifndef USE_DGL}@{$endif} AType,
+          PAnsiCharOrNil(Name));
         SetLength(Name, ReturnedLength);
         UniformNames.Append(Format('  %d: Name: %s, type: %s, size: %d',
           [I, Name, GLShaderVariableTypeName(AType), Size]));
@@ -1337,8 +1341,11 @@ function TGLSLProgram.DebugInfo: string;
       for I := 0 to AttribsCount - 1 do
       begin
         SetLength(Name, AttribMaxLength);
-        glGetActiveAttrib(ProgramId, I, AttribMaxLength, @ReturnedLength,
-          @Size, @AType, PAnsiCharOrNil(Name));
+        glGetActiveAttrib(ProgramId, I, AttribMaxLength,
+          {$ifndef USE_DGL}@{$endif} ReturnedLength,
+          {$ifndef USE_DGL}@{$endif} Size,
+          {$ifndef USE_DGL}@{$endif} AType,
+          PAnsiCharOrNil(Name));
         SetLength(Name, ReturnedLength);
         AttribNames.Append(Format('  %d: Name: %s, type: %s, size: %d',
           [I, Name, GLShaderVariableTypeName(AType), Size]));
@@ -1451,7 +1458,7 @@ var
       ShaderGetInfoLog naturally comes out multiline (it contains a
       couple of error messages) and it's best presented with line breaks.
       So a line break right before ShaderGetInfoLog contents looks good. }
-    if Compiled <> GL_TRUE then
+    if Compiled <> Ord(GL_TRUE) then
       ReportCompileError(GetShaderInfoLog(Result));
   end;
 
@@ -1471,7 +1478,12 @@ const
     { Otherwise each sampler2DShadow would have to contain precision specifier.
       EXT_shadow_samplers says that lowp is default, so presumably it is OK:
       https://registry.khronos.org/OpenGL/extensions/EXT/EXT_shadow_samplers.txt }
-    'precision lowp sampler2DShadow;' + NL,
+    'precision lowp sampler2DShadow;' + NL +
+    { Otherwise each sampler3D would have to contain precision specifier.
+      3D textures are part of OpenGLES 3.0 core, so it's OK to use sampler3D here.
+      Testcase that this is needed: castle-model-viewer, compiled with OpenGLES,
+      viewing demo-models/water/caustics/Barna29.x3dv . }
+    'precision lowp sampler3D;' + NL,
 
     // geometry - not supported by OpenGLES
     '#define CASTLE_GLSL_VERSION_UPGRADE' + NL,
@@ -1487,7 +1499,8 @@ const
     '#define texture3DProj textureProj' + NL +
     '#define gl_FragColor castle_FragColor' + NL +
     'out mediump vec4 castle_FragColor;' + NL +
-    'precision lowp sampler2DShadow;' + NL
+    'precision lowp sampler2DShadow;' + NL +
+    'precision lowp sampler3D;' + NL
   );
   {$else}
   GL31CoreHeader: array [TShaderType] of String = (
@@ -1724,7 +1737,7 @@ begin
     glLinkProgram(ProgramId);
     glGetProgramiv(ProgramId, GL_LINK_STATUS, @Linked);
 
-    if Linked <> GL_TRUE then
+    if Linked <> Ord(GL_TRUE) then
       // raises exception
       ReportLinkError(GetProgramInfoLog(ProgramId));
 

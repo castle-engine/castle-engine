@@ -1,6 +1,6 @@
 {%MainUnit castleuicontrols.pas}
 {
-  Copyright 2010-2023 Michalis Kamburelis.
+  Copyright 2010-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -232,6 +232,7 @@
     function LocalToContainerTranslationShiftBorder: TVector2;
 
     procedure SetCursor(const Value: TMouseCursor);
+    //procedure SetParent(const Value: TCastleUserInterface);
   private
     FParent: TCastleUserInterface;
     FLastSeenContainerWidth, FLastSeenContainerHeight: Integer;
@@ -257,10 +258,10 @@
 
     { Container sizes.
       @groupBegin }
-    function ContainerWidth: Cardinal; virtual;
-    function ContainerHeight: Cardinal; virtual;
-    function ContainerRect: TRectangle; virtual;
-    function ContainerSizeKnown: boolean; virtual;
+    function ContainerWidth: Cardinal; virtual; deprecated 'arrange UI using anchors, FullSize and friends; if you really need container size, use "Container.UnscaledWidth" or "Container.PixelsWidth" after checking "Container <> nil"';
+    function ContainerHeight: Cardinal; virtual; deprecated 'arrange UI using anchors, FullSize and friends; if you really need container size, use "Container.UnscaledHeight" or "Container.PixelsHeight" after checking "Container <> nil"';
+    function ContainerRect: TRectangle; virtual; deprecated 'arrange UI using anchors, FullSize and friends; if you really need container size, use "Container.UnscaledRect" or "Container.PixelsRect" after checking "Container <> nil"';
+    function ContainerSizeKnown: boolean; virtual; deprecated 'arrange UI using anchors, FullSize and friends; if you really need container size, use "Container.UnscaledWidth/Height" or "Container.PixelsWidth/Height" after checking "Container <> nil"';
     { @groupEnd }
 
     {$ifdef FPC}
@@ -313,11 +314,13 @@
     destructor Destroy; override;
     procedure CustomSerialization(const SerializationProcess: TSerializationProcess); override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
+    procedure DesignerInfo(const SList: TStrings); override;
+    procedure DesignerWarnings(const SList: TStrings); override;
     function GetEnumerator: TEnumerator;
     procedure InternalSetContainer(const Value: TCastleContainer); virtual;
 
-    (*Handle press or release of a key, mouse button or mouse wheel.
-      Return @true if the event was somehow handled,
+    (*Override this method to react to user pressing a key, mouse button or mouse wheel.
+      Return @true if the event was handled,
       which prevents from passing this event to other UI controls.
 
       When implementing in descendants it is best to override it like this:
@@ -359,26 +362,45 @@
       subsequent mouse events: subsequent mouse moves and release will be send
       to this control even if mouse will move outside of this control.
 
-      The events PreviewPress and PreviewRelease are passed first to
-      the parent control, before children have a chance to process this event.
-      In partcular, overriding them makes sense if you draw something that "looks clickable"
-      in @link(TCastleUserInterface.RenderOverChildren).
-
       The events Press and Release are passed to the parent only
       after the children had a chance to process this event.
       Overriding them makes sense if you draw something that "looks clickable"
       in @link(TCastleUserInterface.Render), which is the standard place you should draw stuff.
       For example our TCastleButton draws there.
 
-      Note that releasing of the mouse wheel is not reported now by any backend.
+      In contrast, the events PreviewPress and PreviewRelease are passed first to
+      the parent control, before children have a chance to process this event.
+      In partcular, overriding them makes sense if you draw something that "looks clickable"
+      in @link(TCastleUserInterface.RenderOverChildren).
+    *)
+    function Press(const Event: TInputPressRelease): boolean; virtual;
+
+    { Override this method to react to user releasing a key, mouse button.
+      Return @true if the event was handled,
+      which prevents from passing this event to other UI controls.
+
+      This is counterpart to @link(Press) method.
+      See @link(Press) for more details.
+
+      Note: We'd like this method to also be called when user releases
+      a mouse wheel. But currently releasing of the mouse wheel
+      is not reported now by any backend.
       Only releasing of keys and mouse buttons is reported.
 
-      @groupBegin *)
-    function Press(const Event: TInputPressRelease): boolean; virtual;
+      @seealso Press }
     function Release(const Event: TInputPressRelease): boolean; virtual;
+
+    { Similar to @link(Press) but allows the parent control to preview
+      the event before it is passed to children UI controls.
+
+      @seealso Press }
     function PreviewPress(const Event: TInputPressRelease): boolean; virtual;
+
+    { Similar to @link(Release) but allows the parent control to preview
+      the event before it is passed to children UI controls.
+
+      @seealso Press }
     function PreviewRelease(const Event: TInputPressRelease): boolean; virtual;
-    { @groupEnd }
 
     { Motion of mouse or touch. }
     function Motion(const Event: TInputMotion): boolean; virtual;
@@ -437,8 +459,10 @@
         if HandleInput then
         begin
           if Container.Pressed[keyArrowRight] then
+          begin
             Transform.Position := Transform.Position + Vector3(SecondsPassed * 10, 0, 0);
-          HandleInput := false;
+            HandleInput := false;
+          end;
         end;
       #)
 
@@ -526,10 +550,9 @@
     { Event called when the container (component or window with OpenGL context)
       size changes.
 
-      You can resize/reposition your component here,
-      for example set @link(TCastleUserInterface.Left) or @link(TCastleUserInterface.Bottom),
+      You can resize/reposition your component here
       to react to parent size changes.
-      This is called only when the OpenGL context of the container
+      This is called only when the rendering context of the container
       is initialized, so you can be sure that this is called only between
       GLContextOpen and GLContextClose.
 
@@ -545,8 +568,6 @@
       the size of the container, if and only if the OpenGL context is
       initialized. }
     procedure Resize; virtual;
-
-    procedure ContainerResize(const AContainerWidth, AContainerHeight: Cardinal); virtual; deprecated 'use Resize';
 
     { Container of this control. When adding control to container's Controls
       list (like TCastleWindow.Controls) container will automatically
@@ -602,7 +623,7 @@
       It is still the caller's responsibility to make sure the Item is freed
       at some point.
 
-      See https://castle-engine.io/modern_pascal_introduction.html#_freeing_classes
+      See https://castle-engine.io/modern_pascal#_freeing_classes
       for description how to free instances in Pascal.
       As TCastleUserInterface descends from TComponent, a simple and proper solution
       is often just to create it with some "owner" (like @link(TCastleView.FreeAtStop) or @link(Application))
@@ -620,12 +641,23 @@
       It is still the caller's responsibility to make sure the children controls
       are freed at some point.
 
-      See https://castle-engine.io/modern_pascal_introduction.html#_freeing_classes
+      See https://castle-engine.io/modern_pascal#_freeing_classes
       for description how to free instances in Pascal.
       As TCastleUserInterface descends from TComponent, a simple and proper solution
       is often just to create it with some "owner" (like @link(TCastleView.FreeAtStop) or @link(Application))
       that will take care of freeing it. }
     procedure ClearControls;
+
+    { Move to become the front-most control within the parent.
+
+      This works when this control is a child of another control (has @link(Parent)
+      assigned) or when it's a direct child of the container
+      (in which case @link(Parent) is not assigned by @link(Container) is,
+      which means the control is directly on @link(TCastleContainer.Controls) list).
+
+      This is ignored if this control is not within any container (so, also not
+      within any parent). }
+    procedure MoveToFront;
 
     {$ifdef FPC}
     property GetExists: Boolean read FExists; deprecated 'use Exists';
@@ -800,8 +832,20 @@
     { Visual parent control. This control is rendered within the parent,
       and it's anchors and coordinates are relative to the parent.
       Parent may be @nil, which means that the @link(Container)
-      (if set) is our direct parent. }
-    property Parent: TCastleUserInterface read FParent;
+      (if set) is our direct parent.
+
+      Note that this property doesn't have a setter, as it could be confusing:
+      the order in which children are inserted into parent sometimes matters,
+      for back-and-front order. If you want to change the parent, you can
+      use code like this:
+
+      @longCode(#
+      if Control.Parent <> nil then
+        Control.Parent.RemoveControl(Control);
+      if NewParent <> nil then
+        NewParent.InsertFront(Control); // or InsertBack, as InsertControl...
+      #) }
+    property Parent: TCastleUserInterface read FParent {write SetParent};
 
     { Control position and size.
       Use this to base other controls size/position on this control's
@@ -1068,9 +1112,9 @@
 
       Note that using @link(Anchor) is often more comfortable than this method,
       since you only need to set anchor once (for example, right after creating
-      the control). In contract, adjusting position using this method
+      the control). In contrast, adjusting position using this method
       will typically need to be repeated at each window on resize,
-      like in @link(TCastleWindow.OnResize). }
+      like in @link(TCastleUserInterface.Resize). }
     procedure Align(
       const ControlPosition: THorizontalPosition;
       const ContainerPosition: THorizontalPosition;
@@ -1089,9 +1133,9 @@
 
       Note that using @link(Anchor) is often more comfortable than this method,
       since you only need to set anchor once (for example, right after creating
-      the control). In contract, adjusting position using this method
+      the control). In contrast, adjusting position using this method
       will typically need to be repeated at each window on resize,
-      like in @link(TCastleWindow.OnResize). }
+      like in @link(TCastleUserInterface.Resize). }
     procedure Align(
       const ControlPosition: TVerticalPosition;
       const ContainerPosition: TVerticalPosition;
@@ -1107,7 +1151,7 @@
       the control call @code(Anchor(hpMiddle); Anchor(vpMiddle);).
       In contrast, adjusting position using this method
       will typically need to be repeated at each window on resize,
-      like in @link(TCastleWindow.OnResize). }
+      like in @link(TCastleUserInterface.Resize). }
     procedure Center; deprecated 'use Anchor(hpMiddle); Anchor(vpMiddle); to reliably center the control';
 
     { UI scale of this control, derived from container
@@ -1251,7 +1295,7 @@
     { Control is being displayed.
       See @link(Render) for details.
       This event it called @italic(after) the @link(Render) method
-      of this control finished. }
+      of this control finished but before we started rendering children. }
     property OnRender: TUiNotifyEvent read FOnRender write FOnRender;
 
     { Not existing control is not visible, it doesn't receive input
@@ -1590,33 +1634,34 @@ end;
 
 procedure TCastleUserInterface.Resize;
 begin
-  {$warnings off}
-  ContainerResize(ContainerWidth, ContainerHeight); // call deprecated, to keep it working
-  {$warnings on}
-end;
-
-procedure TCastleUserInterface.ContainerResize(const AContainerWidth, AContainerHeight: Cardinal);
-begin
 end;
 
 function TCastleUserInterface.ContainerWidth: Cardinal;
 begin
+  {$warnings off} // using deprecated to implement deprecated
   if ContainerSizeKnown then
-    Result := Container.Width else
+  {$warnings on}
+    Result := Container.PixelsWidth
+  else
     Result := 0;
 end;
 
 function TCastleUserInterface.ContainerHeight: Cardinal;
 begin
+  {$warnings off} // using deprecated to implement deprecated
   if ContainerSizeKnown then
-    Result := Container.Height else
+  {$warnings on}
+    Result := Container.PixelsHeight
+  else
     Result := 0;
 end;
 
 function TCastleUserInterface.ContainerRect: TRectangle;
 begin
+  {$warnings off} // using deprecated to implement deprecated
   if ContainerSizeKnown then
-    Result := Container.Rect
+  {$warnings on}
+    Result := Container.PixelsRect
   else
     Result := TRectangle.Empty;
 end;
@@ -1654,6 +1699,20 @@ begin
     {$endif}
   end;
 end;
+
+{
+procedure TCastleUserInterface.SetParent(const Value: TCastleTransform);
+begin
+  if Parent <> Value then
+  begin
+    if Parent <> nil then
+      Parent.RemoveControl(Self);
+    FParent := Value;
+    if Value <> nil then
+      Value.InsertFront(Self);
+  end;
+end;
+}
 
 {$ifdef FPC}
 procedure TCastleUserInterface.DoCursorChange;
@@ -1828,6 +1887,29 @@ begin
     Result := 0;
 end;
 
+procedure TCastleUserInterface.MoveToFront;
+
+  procedure MoveInControls(const ParentControls: TInternalChildrenControls);
+  var
+    Index: Integer;
+  begin
+    Index := ParentControls.IndexOf(Self);
+    if Index = -1 then
+      raise EInternalError.Create('TCastleUserInterface.MoveToFront: ParentControls.IndexOf(Self) = -1');
+    ParentControls.Move(Index, ParentControls.Count - 1);
+  end;
+
+begin
+  if Parent <> nil then
+  begin
+    Assert(Parent.ControlsCount > 0);
+    Assert(Parent.FControls <> nil);
+    MoveInControls(Parent.FControls);
+  end else
+  if Container <> nil then
+    MoveInControls(Container.Controls);
+end;
+
 procedure TCastleUserInterface.InternalSetContainer(const Value: TCastleContainer);
 var
   I: Integer;
@@ -1872,6 +1954,7 @@ begin
     Exit(false);
 
   SR := RenderRect;
+  {$warnings off} // using deprecated ContainerWidth/Height now
   Result := SR.Contains(Position) or
     { if the control covers the whole Container, it *always* captures events,
       even when mouse position is unknown yet, or outside the window. }
@@ -1880,6 +1963,7 @@ begin
      (SR.Bottom <= 0) and
      (SR.Width >= ContainerWidth) and
      (SR.Height >= ContainerHeight));
+  {$warnings on}
 end;
 
 function TCastleUserInterface.TooltipExists: boolean;
@@ -1913,8 +1997,8 @@ var
 begin
   if Container <> nil then
   begin
-    NewContainerWidth := Container.Width;
-    NewContainerHeight := Container.Height;
+    NewContainerWidth := Container.PixelsWidth;
+    NewContainerHeight := Container.PixelsHeight;
   end else
   begin
     NewContainerWidth := 0;
@@ -2003,7 +2087,9 @@ procedure TCastleUserInterface.InternalRecursiveRender(const ViewportRect: TRect
   var
     ResultInt, ScissorRect: TRectangle;
   begin
+    {$warnings off} // using deprecated ContainerRect
     ResultInt := ContainerRect;
+    {$warnings on}
     if RenderContext.FinalScissor(ScissorRect) then
       ResultInt := ResultInt * ScissorRect;
     Result := FloatRectangle(ResultInt);
@@ -2174,7 +2260,7 @@ end;
 
 procedure TCastleUserInterface.ReadLeft(Reader: TReader);
 var
-  D: LongInt;
+  D: Int32;
 begin
   D := DesignInfo;
   LongRec(D).Lo:=Reader.ReadInteger;
@@ -2183,7 +2269,7 @@ end;
 
 procedure TCastleUserInterface.ReadTop(Reader: TReader);
 var
-  D: LongInt;
+  D: Int32;
 begin
   D := DesignInfo;
   LongRec(D).Hi:=Reader.ReadInteger;
@@ -2202,7 +2288,7 @@ end;
 
 procedure TCastleUserInterface.DefineProperties(Filer: TFiler);
 Var Ancestor : TComponent;
-    Temp : longint;
+    Temp : Int32;
 begin
   { Don't call inherited that defines magic left/top.
     This would make reading design-time "left" broken, it seems that our
@@ -2521,12 +2607,14 @@ function TCastleUserInterface.RectWithAnchors(const CalculateEvenWithoutContaine
 var
   PR: TFloatRectangle;
 begin
+  {$warnings off} // using deprecated ContainerSizeKnown for now
   if (not ContainerSizeKnown) and
      (not CalculateEvenWithoutContainer) then
     { Don't call virtual Rect in this state, Rect implementations
       typically assume that ParentRect is sensible.
       This is crucial, various programs will crash without it. }
     Exit(TFloatRectangle.Empty);
+  {$warnings on}
 
   Result := FastRectWithoutAnchors;
 
@@ -2634,7 +2722,9 @@ begin
         RemoveBottom(Parent.FBorder.TotalBottom * UIScale).
         RemoveLeft  (Parent.FBorder.TotalLeft   * UIScale);
   end else
+    {$warnings off} // using deprecated ContainerRect
     Result := FloatRectangle(ContainerRect);
+    {$warnings on}
 end;
 
 procedure TCastleUserInterface.SetHorizontalAnchorSelf(const Value: THorizontalPosition);
@@ -2946,6 +3036,52 @@ procedure TCastleUserInterface.InternalSetTooltipExists(const Value: Boolean);
 begin
   if TooltipControl <> nil then
     TooltipControl.Exists := Value;
+end;
+
+procedure TCastleUserInterface.DesignerInfo(const SList: TStrings);
+var
+  RR: TFloatRectangle;
+  AllowResizeWidth, AllowResizeHeight: Boolean;
+  ReasonCannotResize: String;
+begin
+  inherited;
+  RR := RenderRectWithBorder;
+  if RR.IsEmpty then
+  begin
+    SList.Add('Size: Empty');
+  end else
+  begin
+    SList.Add(Format(
+      'Effective size: %f x %f', [
+      EffectiveWidth,
+      EffectiveHeight
+    ]));
+    SList.Add(Format('Render rectangle (scaled and with anchors):' + NL +
+      '  Left x Bottom: %f x %f' + NL +
+      '  Size: %f x %f', [
+      RR.Left,
+      RR.Bottom,
+      RR.Width,
+      RR.Height
+    ]));
+
+    EditorAllowResize(
+      { out } AllowResizeWidth,
+      { out } AllowResizeHeight,
+      { out } ReasonCannotResize);
+    if not (AllowResizeWidth and AllowResizeHeight) then
+    begin
+      SList.Add('Cannot be resized at design-time because of:' + NL + ReasonCannotResize);
+    end;
+  end;
+end;
+
+procedure TCastleUserInterface.DesignerWarnings(const SList: TStrings);
+begin
+  inherited;
+  if (Parent <> nil) and
+     (not Parent.RenderRect.Contains(RenderRectWithBorder)) then
+    SList.Add('The rectangle occupied by this control is outside of the parent rectangle. The events (like mouse clicks) may not reach this control. You must always fit child control inside the parent.');
 end;
 
 {$define read_implementation_methods}

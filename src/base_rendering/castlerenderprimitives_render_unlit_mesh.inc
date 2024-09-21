@@ -279,9 +279,9 @@ procedure TCastleRenderUnlitMesh.Render(const Mode: TPrimitiveMode);
     RenderContext.CurrentProgram := Programs[UseColor].Shader;
     RenderContext.CurrentVao := Vao;
 
-    glBindBuffer(GL_ARRAY_BUFFER, VboVertex);
+    RenderContext.BindBuffer[btArray] := VboVertex;
     // do this even if VboIndex = 0, to set this to 0
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, VboIndex);
+    RenderContext.BindBuffer[btElementArray] := VboIndex;
 
     if FUseColor then
       Programs[UseColor].UniformColor.SetValue(Color);
@@ -292,8 +292,8 @@ procedure TCastleRenderUnlitMesh.Render(const Mode: TPrimitiveMode);
 
     Programs[UseColor].AttributeVertex.DisableArray;
 
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+    RenderContext.BindBuffer[btArray] := 0;
+    RenderContext.BindBuffer[btElementArray] := 0;
   end;
 
   {$ifndef OpenGLES}
@@ -371,7 +371,7 @@ begin
     if NewVbo then
       glGenBuffers(1, @VboIndex);
 
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, VboIndex);
+    RenderContext.BindBuffer[btElementArray] := VboIndex;
 
     NewSize := IndexesCount * SizeOf(UInt16);
     if NewVbo or (NewSize <> IndexAllocatedBytes) then
@@ -406,7 +406,7 @@ begin
     if NewVbo then
       glGenBuffers(1, @VboVertex);
 
-    glBindBuffer(GL_ARRAY_BUFFER, VboVertex);
+    RenderContext.BindBuffer[btArray] := VboVertex;
 
     NewSize := VertexesCount * SizeOf(TVector4);
     if NewVbo or (NewSize <> VertexAllocatedBytes) then

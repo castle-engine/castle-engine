@@ -24,12 +24,12 @@
     TSFBool,
     TBooleanList>)
   strict protected
-    function RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): string; override;
+    function RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): String; override;
     procedure AddToList(const ItemList: TBooleanList; const Item: TSFBool); override;
     function CreateItemBeforeParse: TSFBool; override;
   public
-    class function X3DType: string; override;
-    class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
+    class function X3DType: String; override;
+    class function CreateEvent(const AParentNode: TX3DFileItem; const AName: String; const AInEvent: boolean): TX3DEvent; override;
   end;
 
   TMFLong = class({$ifdef FPC}specialize{$endif} TX3DSimpleMultField<
@@ -40,7 +40,7 @@
     FSaveToStreamLineUptoNegative: boolean;
     WrongVertexIndexWarnings: Integer;
   strict protected
-    function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; override;
+    function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): String; override;
     procedure AddToList(const ItemList: TInt32List; const Item: TSFLong); override;
     function SaveToStreamDoNewLineAfterRawItem(ItemNum: integer): boolean; override;
     function CreateItemBeforeParse: TSFLong; override;
@@ -52,8 +52,8 @@
       read FSaveToStreamLineUptoNegative write FSaveToStreamLineUptoNegative
       default false;
 
-    class function X3DType: string; override;
-    class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
+    class function X3DType: String; override;
+    class function CreateEvent(const AParentNode: TX3DFileItem; const AName: String; const AInEvent: boolean): TX3DEvent; override;
 
     { Call WritelnWarning reporting that an invalid vertex index
       is caused from this field. This simply calls WritelnWarning
@@ -74,14 +74,14 @@
       content/examples/Basic/HumanoidAnimation/NancyDiving.x3dv
       from http://www.web3d.org/ example models. }
     procedure WritelnWarning_WrongVertexIndex(
-      const GeometryX3DType: string;
+      const GeometryX3DType: String;
       const VertexNum: Integer; const CoordCount: Integer);
   end;
 
   TMFInt32 = class(TMFLong)
   public
-    class function X3DType: string; override;
-    class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
+    class function X3DType: String; override;
+    class function CreateEvent(const AParentNode: TX3DFileItem; const AName: String; const AInEvent: boolean): TX3DEvent; override;
   end;
 
   TMFMatrix3f = class({$ifdef FPC}specialize{$endif} TX3DSimpleMultField<
@@ -89,14 +89,14 @@
     TSFMatrix3f,
     TMatrix3List>)
   strict protected
-    function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; override;
+    function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): String; override;
     procedure AddToList(const ItemList: TMatrix3List; const Item: TSFMatrix3f); override;
     function CreateItemBeforeParse: TSFMatrix3f; override;
   public
     procedure AssignLerp(const A: Double; Value1, Value2: TX3DField); override;
     function CanAssignLerp: boolean; override;
-    class function X3DType: string; override;
-    class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
+    class function X3DType: String; override;
+    class function CreateEvent(const AParentNode: TX3DFileItem; const AName: String; const AInEvent: boolean): TX3DEvent; override;
   end;
 
   TMFMatrix3d = class({$ifdef FPC}specialize{$endif} TX3DSimpleMultField<
@@ -104,14 +104,14 @@
     TSFMatrix3d,
     TMatrix3DoubleList>)
   strict protected
-    function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; override;
+    function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): String; override;
     procedure AddToList(const ItemList: TMatrix3DoubleList; const Item: TSFMatrix3d); override;
     function CreateItemBeforeParse: TSFMatrix3d; override;
   public
     procedure AssignLerp(const A: Double; Value1, Value2: TX3DField); override;
     function CanAssignLerp: boolean; override;
-    class function X3DType: string; override;
-    class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
+    class function X3DType: String; override;
+    class function CreateEvent(const AParentNode: TX3DFileItem; const AName: String; const AInEvent: boolean): TX3DEvent; override;
   end;
 
   TMFMatrix4f = class({$ifdef FPC}specialize{$endif} TX3DSimpleMultField<
@@ -119,14 +119,14 @@
     TSFMatrix4f,
     TMatrix4List>)
   strict protected
-    function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; override;
+    function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): String; override;
     procedure AddToList(const ItemList: TMatrix4List; const Item: TSFMatrix4f); override;
     function CreateItemBeforeParse: TSFMatrix4f; override;
   public
     procedure AssignLerp(const A: Double; Value1, Value2: TX3DField); override;
     function CanAssignLerp: boolean; override;
-    class function X3DType: string; override;
-    class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
+    class function X3DType: String; override;
+    class function CreateEvent(const AParentNode: TX3DFileItem; const AName: String; const AInEvent: boolean): TX3DEvent; override;
   end;
 
   TMFMatrix4d = class({$ifdef FPC}specialize{$endif} TX3DSimpleMultField<
@@ -134,14 +134,14 @@
     TSFMatrix4d,
     TMatrix4DoubleList>)
   strict protected
-    function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; override;
+    function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): String; override;
     procedure AddToList(const ItemList: TMatrix4DoubleList; const Item: TSFMatrix4d); override;
     function CreateItemBeforeParse: TSFMatrix4d; override;
   public
     procedure AssignLerp(const A: Double; Value1, Value2: TX3DField); override;
     function CanAssignLerp: boolean; override;
-    class function X3DType: string; override;
-    class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
+    class function X3DType: String; override;
+    class function CreateEvent(const AParentNode: TX3DFileItem; const AName: String; const AInEvent: boolean): TX3DEvent; override;
   end;
 
   TMFVec2f = class({$ifdef FPC}specialize{$endif} TX3DSimpleMultField<
@@ -149,14 +149,14 @@
     TSFVec2f,
     TVector2List>)
   strict protected
-    function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; override;
+    function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): String; override;
     procedure AddToList(const ItemList: TVector2List; const Item: TSFVec2f); override;
     function CreateItemBeforeParse: TSFVec2f; override;
   public
     procedure AssignLerp(const A: Double; Value1, Value2: TX3DField); override;
     function CanAssignLerp: boolean; override;
-    class function X3DType: string; override;
-    class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
+    class function X3DType: String; override;
+    class function CreateEvent(const AParentNode: TX3DFileItem; const AName: String; const AInEvent: boolean): TX3DEvent; override;
   end;
 
   TMFVec3f = class({$ifdef FPC}specialize{$endif} TX3DSimpleMultField<
@@ -164,20 +164,20 @@
     TSFVec3f,
     TVector3List>)
   strict protected
-    function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; override;
+    function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): String; override;
     procedure AddToList(const ItemList: TVector3List; const Item: TSFVec3f); override;
     function CreateItemBeforeParse: TSFVec3f; override;
   public
     procedure AssignLerp(const A: Double; Value1, Value2: TX3DField); override;
     function CanAssignLerp: boolean; override;
-    class function X3DType: string; override;
-    class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
+    class function X3DType: String; override;
+    class function CreateEvent(const AParentNode: TX3DFileItem; const AName: String; const AInEvent: boolean): TX3DEvent; override;
   end;
 
   TMFColor = class(TMFVec3f)
   public
-    class function X3DType: string; override;
-    class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
+    class function X3DType: String; override;
+    class function CreateEvent(const AParentNode: TX3DFileItem; const AName: String; const AInEvent: boolean): TX3DEvent; override;
   end;
 
   TMFVec4f = class({$ifdef FPC}specialize{$endif} TX3DSimpleMultField<
@@ -185,20 +185,20 @@
     TSFVec4f,
     TVector4List>)
   strict protected
-    function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; override;
+    function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): String; override;
     procedure AddToList(const ItemList: TVector4List; const Item: TSFVec4f); override;
     function CreateItemBeforeParse: TSFVec4f; override;
   public
     procedure AssignLerp(const A: Double; Value1, Value2: TX3DField); override;
     function CanAssignLerp: boolean; override;
-    class function X3DType: string; override;
-    class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
+    class function X3DType: String; override;
+    class function CreateEvent(const AParentNode: TX3DFileItem; const AName: String; const AInEvent: boolean): TX3DEvent; override;
   end;
 
   TMFColorRGBA = class(TMFVec4f)
   public
-    class function X3DType: string; override;
-    class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
+    class function X3DType: String; override;
+    class function CreateEvent(const AParentNode: TX3DFileItem; const AName: String; const AInEvent: boolean): TX3DEvent; override;
   end;
 
   TMFVec2d = class({$ifdef FPC}specialize{$endif} TX3DSimpleMultField<
@@ -206,14 +206,14 @@
     TSFVec2d,
     TVector2DoubleList>)
   strict protected
-    function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; override;
+    function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): String; override;
     procedure AddToList(const ItemList: TVector2DoubleList; const Item: TSFVec2d); override;
     function CreateItemBeforeParse: TSFVec2d; override;
   public
     procedure AssignLerp(const A: Double; Value1, Value2: TX3DField); override;
     function CanAssignLerp: boolean; override;
-    class function X3DType: string; override;
-    class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
+    class function X3DType: String; override;
+    class function CreateEvent(const AParentNode: TX3DFileItem; const AName: String; const AInEvent: boolean): TX3DEvent; override;
   end;
 
   TMFVec3d = class({$ifdef FPC}specialize{$endif} TX3DSimpleMultField<
@@ -221,14 +221,14 @@
     TSFVec3d,
     TVector3DoubleList>)
   strict protected
-    function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; override;
+    function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): String; override;
     procedure AddToList(const ItemList: TVector3DoubleList; const Item: TSFVec3d); override;
     function CreateItemBeforeParse: TSFVec3d; override;
   public
     procedure AssignLerp(const A: Double; Value1, Value2: TX3DField); override;
     function CanAssignLerp: boolean; override;
-    class function X3DType: string; override;
-    class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
+    class function X3DType: String; override;
+    class function CreateEvent(const AParentNode: TX3DFileItem; const AName: String; const AInEvent: boolean): TX3DEvent; override;
   end;
 
   TMFVec4d = class({$ifdef FPC}specialize{$endif} TX3DSimpleMultField<
@@ -236,14 +236,14 @@
     TSFVec4d,
     TVector4DoubleList>)
   strict protected
-    function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; override;
+    function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): String; override;
     procedure AddToList(const ItemList: TVector4DoubleList; const Item: TSFVec4d); override;
     function CreateItemBeforeParse: TSFVec4d; override;
   public
     procedure AssignLerp(const A: Double; Value1, Value2: TX3DField); override;
     function CanAssignLerp: boolean; override;
-    class function X3DType: string; override;
-    class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
+    class function X3DType: String; override;
+    class function CreateEvent(const AParentNode: TX3DFileItem; const AName: String; const AInEvent: boolean): TX3DEvent; override;
   end;
 
   TMFRotation = class({$ifdef FPC}specialize{$endif} TX3DSimpleMultField<
@@ -251,14 +251,14 @@
     TSFRotation,
     TVector4List>)
   strict protected
-    function RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): string; override;
+    function RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): String; override;
     procedure AddToList(const ItemList: TVector4List; const Item: TSFRotation); override;
     function CreateItemBeforeParse: TSFRotation; override;
   public
     procedure AssignLerp(const A: Double; Value1, Value2: TX3DField); override;
     function CanAssignLerp: boolean; override;
-    class function X3DType: string; override;
-    class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
+    class function X3DType: String; override;
+    class function CreateEvent(const AParentNode: TX3DFileItem; const AName: String; const AInEvent: boolean): TX3DEvent; override;
   end;
 
   TMFFloat = class({$ifdef FPC}specialize{$endif} TX3DSimpleMultField<
@@ -268,7 +268,7 @@
   strict private
     FAngle: boolean;
   strict protected
-    function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; override;
+    function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): String; override;
     procedure AddToList(const ItemList: TSingleList; const Item: TSFFloat); override;
     function SaveToStreamDoNewLineAfterRawItem(ItemNum: integer): boolean; override;
     function CreateItemBeforeParse: TSFFloat; override;
@@ -280,8 +280,8 @@
 
     procedure AssignLerp(const A: Double; Value1, Value2: TX3DField); override;
     function CanAssignLerp: boolean; override;
-    class function X3DType: string; override;
-    class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
+    class function X3DType: String; override;
+    class function CreateEvent(const AParentNode: TX3DFileItem; const AName: String; const AInEvent: boolean): TX3DEvent; override;
   end;
 
   TMFDouble = class({$ifdef FPC}specialize{$endif} TX3DSimpleMultField<
@@ -289,21 +289,21 @@
     TSFDouble,
     TDoubleList>)
   strict protected
-    function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; override;
+    function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): String; override;
     procedure AddToList(const ItemList: TDoubleList; const Item: TSFDouble); override;
     function SaveToStreamDoNewLineAfterRawItem(ItemNum: integer): boolean; override;
     function CreateItemBeforeParse: TSFDouble; override;
   public
     procedure AssignLerp(const A: Double; Value1, Value2: TX3DField); override;
     function CanAssignLerp: boolean; override;
-    class function X3DType: string; override;
-    class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
+    class function X3DType: String; override;
+    class function CreateEvent(const AParentNode: TX3DFileItem; const AName: String; const AInEvent: boolean): TX3DEvent; override;
   end;
 
   TMFTime = class(TMFDouble)
   public
-    class function X3DType: string; override;
-    class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
+    class function X3DType: String; override;
+    class function CreateEvent(const AParentNode: TX3DFileItem; const AName: String; const AInEvent: boolean): TX3DEvent; override;
   end;
 
   TMFString = class(TX3DMultField)
@@ -325,17 +325,17 @@
 
       CreateUndefined sets DefaultValuesCount to -1. }
     DefaultValuesCount: Integer;
-    DefaultValue: string;
+    DefaultValue: String;
 
     procedure SetItems(const Value: TCastleStringList);
-    function GetItemsSafe(Index: Integer): string;
-    procedure SetItemsSafe(Index: Integer; const Value: string);
+    function GetItemsSafe(Index: Integer): String;
+    procedure SetItemsSafe(Index: Integer; const Value: String);
   strict protected
     procedure Clear;
     function GetCount: TListSize; override;
     procedure SetCount(const Value: TListSize); override;
 
-    function RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): string;
+    function RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): String;
     procedure AddToList(const ItemList: TCastleStringList; const Item: TSFString);
     procedure SaveToStreamValue(Writer: TX3DWriter); override;
     function CreateItemBeforeParse: TSFString;
@@ -343,11 +343,11 @@
     procedure WritelnWarning_InvalidIndex(const Index, ACount: Integer);
   public
     constructor Create(const AParentNode: TX3DFileItem;
-      const AExposed: boolean; const AName: string;
+      const AExposed: boolean; const AName: String;
       const InitialContent: array of string);
 
     constructor CreateUndefined(const AParentNode: TX3DFileItem;
-      const AExposed: boolean; const AName: string); override;
+      const AExposed: boolean; const AName: String); override;
     destructor Destroy; override;
     function FastEqualsValue(SecondValue: TX3DField): boolean; override;
 
@@ -355,13 +355,13 @@
       override this more in descendants. It uses TSingleField.Parse method. }
     procedure ParseValue(Lexer: TX3DLexer; Reader: TX3DReader); override;
 
-    class function X3DType: string; override;
-    class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
-    procedure ParseXMLAttribute(const AttributeValue: string; Reader: TX3DReader); override;
+    class function X3DType: String; override;
+    class function CreateEvent(const AParentNode: TX3DFileItem; const AName: String; const AInEvent: boolean): TX3DEvent; override;
+    procedure ParseXMLAttribute(const AttributeValue: String; Reader: TX3DReader); override;
     function SaveToXmlValue: TSaveToXmlMethod; override;
 
     property Items: TCastleStringList read FItems write SetItems;
-    property ItemsSafe[Index: Integer]: string read GetItemsSafe write SetItemsSafe;
+    property ItemsSafe[Index: Integer]: String read GetItemsSafe write SetItemsSafe;
 
     { Copy another field value, default value and other properties. }
     procedure Assign(Source: TPersistent); override;
@@ -389,7 +389,7 @@
 
 { TMFBool ------------------------------------------------------------------ }
 
-function TMFBool.RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string;
+function TMFBool.RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): String;
 begin
   Result := BoolKeywords[Encoding][Items[ItemNum]];
 end;
@@ -399,12 +399,12 @@ begin
   Items.Add(Item.Value);
 end;
 
-class function TMFBool.X3DType: string;
+class function TMFBool.X3DType: String;
 begin
   Result := 'MFBool';
 end;
 
-class function TMFBool.CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent;
+class function TMFBool.CreateEvent(const AParentNode: TX3DFileItem; const AName: String; const AInEvent: boolean): TX3DEvent;
 begin
   Result := TMFBoolEvent.Create(AParentNode, AName, AInEvent);
 end;
@@ -421,7 +421,7 @@ begin
   Result := SaveToStreamLineUptoNegative and (Items[ItemNum] < 0);
 end;
 
-function TMFLong.RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string;
+function TMFLong.RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): String;
 begin
   Result := IntToStr(Items[ItemNum])
 end;
@@ -431,12 +431,12 @@ begin
   Items.Add(Item.Value);
 end;
 
-class function TMFLong.X3DType: string;
+class function TMFLong.X3DType: String;
 begin
   Result := 'MFLong';
 end;
 
-class function TMFLong.CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent;
+class function TMFLong.CreateEvent(const AParentNode: TX3DFileItem; const AName: String; const AInEvent: boolean): TX3DEvent;
 begin
   Result := TMFLongEvent.Create(AParentNode, AName, AInEvent);
 end;
@@ -447,7 +447,7 @@ begin
 end;
 
 procedure TMFLong.WritelnWarning_WrongVertexIndex(
-  const GeometryX3DType: string;
+  const GeometryX3DType: String;
   const VertexNum: Integer; const CoordCount: Integer);
 const
   MaxWrongVertexIndexWarnings = 10;
@@ -464,24 +464,24 @@ end;
 
 { TMFInt32 ------------------------------------------------------------------- }
 
-class function TMFInt32.X3DType: string;
+class function TMFInt32.X3DType: String;
 begin
   Result := 'MFInt32';
 end;
 
-class function TMFInt32.CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent;
+class function TMFInt32.CreateEvent(const AParentNode: TX3DFileItem; const AName: String; const AInEvent: boolean): TX3DEvent;
 begin
   Result := TMFInt32Event.Create(AParentNode, AName, AInEvent);
 end;
 
 { TMFMatrix3f ------------------------------------------------------------------- }
 
-class function TMFMatrix3f.X3DType: string;
+class function TMFMatrix3f.X3DType: String;
 begin
   Result := 'MFMatrix3f';
 end;
 
-class function TMFMatrix3f.CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent;
+class function TMFMatrix3f.CreateEvent(const AParentNode: TX3DFileItem; const AName: String; const AInEvent: boolean): TX3DEvent;
 begin
   Result := TMFMatrix3fEvent.Create(AParentNode, AName, AInEvent);
 end;
@@ -491,9 +491,9 @@ begin
   Result := TSFMatrix3f.CreateUndefined(ParentNode, false, '');
 end;
 
-function TMFMatrix3f.RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): string;
+function TMFMatrix3f.RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): String;
 begin
-  Result := Items.L[ItemNum].ToRawString;
+  Result := Items.L[ItemNum].ToRawString('', FloatOutputFormat);
 end;
 
 procedure TMFMatrix3f.AddToList(const ItemList: TMatrix3List; const Item: TSFMatrix3f);
@@ -513,12 +513,12 @@ end;
 
 { TMFMatrix3d ------------------------------------------------------------------- }
 
-class function TMFMatrix3d.X3DType: string;
+class function TMFMatrix3d.X3DType: String;
 begin
   Result := 'MFMatrix3d';
 end;
 
-class function TMFMatrix3d.CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent;
+class function TMFMatrix3d.CreateEvent(const AParentNode: TX3DFileItem; const AName: String; const AInEvent: boolean): TX3DEvent;
 begin
   Result := TMFMatrix3dEvent.Create(AParentNode, AName, AInEvent);
 end;
@@ -528,9 +528,9 @@ begin
   Result := TSFMatrix3d.CreateUndefined(ParentNode, false, '');
 end;
 
-function TMFMatrix3d.RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): string;
+function TMFMatrix3d.RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): String;
 begin
-  Result := Items.L[ItemNum].ToRawString;
+  Result := Items.L[ItemNum].ToRawString('', FloatOutputFormat);
 end;
 
 procedure TMFMatrix3d.AddToList(const ItemList: TMatrix3DoubleList; const Item: TSFMatrix3d);
@@ -550,12 +550,12 @@ end;
 
 { TMFMatrix4f ------------------------------------------------------------------- }
 
-class function TMFMatrix4f.X3DType: string;
+class function TMFMatrix4f.X3DType: String;
 begin
   Result := 'MFMatrix4f';
 end;
 
-class function TMFMatrix4f.CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent;
+class function TMFMatrix4f.CreateEvent(const AParentNode: TX3DFileItem; const AName: String; const AInEvent: boolean): TX3DEvent;
 begin
   Result := TMFMatrix4fEvent.Create(AParentNode, AName, AInEvent);
 end;
@@ -565,9 +565,9 @@ begin
   Result := TSFMatrix4f.CreateUndefined(ParentNode, false, '');
 end;
 
-function TMFMatrix4f.RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): string;
+function TMFMatrix4f.RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): String;
 begin
-  Result := Items.L[ItemNum].ToRawString;
+  Result := Items.L[ItemNum].ToRawString('', FloatOutputFormat);
 end;
 
 procedure TMFMatrix4f.AddToList(const ItemList: TMatrix4List; const Item: TSFMatrix4f);
@@ -587,12 +587,12 @@ end;
 
 { TMFMatrix4d ------------------------------------------------------------------- }
 
-class function TMFMatrix4d.X3DType: string;
+class function TMFMatrix4d.X3DType: String;
 begin
   Result := 'MFMatrix4d';
 end;
 
-class function TMFMatrix4d.CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent;
+class function TMFMatrix4d.CreateEvent(const AParentNode: TX3DFileItem; const AName: String; const AInEvent: boolean): TX3DEvent;
 begin
   Result := TMFMatrix4dEvent.Create(AParentNode, AName, AInEvent);
 end;
@@ -602,9 +602,9 @@ begin
   Result := TSFMatrix4d.CreateUndefined(ParentNode, false, '');
 end;
 
-function TMFMatrix4d.RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): string;
+function TMFMatrix4d.RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): String;
 begin
-  Result := Items.L[ItemNum].ToRawString;
+  Result := Items.L[ItemNum].ToRawString('', FloatOutputFormat);
 end;
 
 procedure TMFMatrix4d.AddToList(const ItemList: TMatrix4DoubleList; const Item: TSFMatrix4d);
@@ -624,12 +624,12 @@ end;
 
 { TMFVec2f ------------------------------------------------------------------- }
 
-class function TMFVec2f.X3DType: string;
+class function TMFVec2f.X3DType: String;
 begin
   Result := 'MFVec2f';
 end;
 
-class function TMFVec2f.CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent;
+class function TMFVec2f.CreateEvent(const AParentNode: TX3DFileItem; const AName: String; const AInEvent: boolean): TX3DEvent;
 begin
   Result := TMFVec2fEvent.Create(AParentNode, AName, AInEvent);
 end;
@@ -639,9 +639,9 @@ begin
   Result := TSFVec2f.CreateUndefined(ParentNode, false, '');
 end;
 
-function TMFVec2f.RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): string;
+function TMFVec2f.RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): String;
 begin
-  Result := Items.L[ItemNum].ToRawString;
+  Result := Items.L[ItemNum].ToRawString(FloatOutputFormat);
 end;
 
 procedure TMFVec2f.AddToList(const ItemList: TVector2List; const Item: TSFVec2f);
@@ -661,12 +661,12 @@ end;
 
 { TMFVec3f ------------------------------------------------------------------- }
 
-class function TMFVec3f.X3DType: string;
+class function TMFVec3f.X3DType: String;
 begin
   Result := 'MFVec3f';
 end;
 
-class function TMFVec3f.CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent;
+class function TMFVec3f.CreateEvent(const AParentNode: TX3DFileItem; const AName: String; const AInEvent: boolean): TX3DEvent;
 begin
   Result := TMFVec3fEvent.Create(AParentNode, AName, AInEvent);
 end;
@@ -676,9 +676,9 @@ begin
   Result := TSFVec3f.CreateUndefined(ParentNode, false, '');
 end;
 
-function TMFVec3f.RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): string;
+function TMFVec3f.RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): String;
 begin
-  Result := Items.L[ItemNum].ToRawString;
+  Result := Items.L[ItemNum].ToRawString(FloatOutputFormat);
 end;
 
 procedure TMFVec3f.AddToList(const ItemList: TVector3List; const Item: TSFVec3f);
@@ -698,24 +698,24 @@ end;
 
 { TMFColor ------------------------------------------------------------------- }
 
-class function TMFColor.X3DType: string;
+class function TMFColor.X3DType: String;
 begin
   Result := 'MFColor';
 end;
 
-class function TMFColor.CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent;
+class function TMFColor.CreateEvent(const AParentNode: TX3DFileItem; const AName: String; const AInEvent: boolean): TX3DEvent;
 begin
   Result := TMFColorEvent.Create(AParentNode, AName, AInEvent);
 end;
 
 { TMFVec4f ------------------------------------------------------------------- }
 
-class function TMFVec4f.X3DType: string;
+class function TMFVec4f.X3DType: String;
 begin
   Result := 'MFVec4f';
 end;
 
-class function TMFVec4f.CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent;
+class function TMFVec4f.CreateEvent(const AParentNode: TX3DFileItem; const AName: String; const AInEvent: boolean): TX3DEvent;
 begin
   Result := TMFVec4fEvent.Create(AParentNode, AName, AInEvent);
 end;
@@ -725,9 +725,9 @@ begin
   Result := TSFVec4f.CreateUndefined(ParentNode, false, '');
 end;
 
-function TMFVec4f.RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): string;
+function TMFVec4f.RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): String;
 begin
-  Result := Items.L[ItemNum].ToRawString;
+  Result := Items.L[ItemNum].ToRawString(FloatOutputFormat);
 end;
 
 procedure TMFVec4f.AddToList(const ItemList: TVector4List; const Item: TSFVec4f);
@@ -747,24 +747,24 @@ end;
 
 { TMFColorRGBA --------------------------------------------------------------- }
 
-class function TMFColorRGBA.X3DType: string;
+class function TMFColorRGBA.X3DType: String;
 begin
   Result := 'MFColorRGBA';
 end;
 
-class function TMFColorRGBA.CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent;
+class function TMFColorRGBA.CreateEvent(const AParentNode: TX3DFileItem; const AName: String; const AInEvent: boolean): TX3DEvent;
 begin
   Result := TMFColorRGBAEvent.Create(AParentNode, AName, AInEvent);
 end;
 
 { TMFVec2d ------------------------------------------------------------------- }
 
-class function TMFVec2d.X3DType: string;
+class function TMFVec2d.X3DType: String;
 begin
   Result := 'MFVec2d';
 end;
 
-class function TMFVec2d.CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent;
+class function TMFVec2d.CreateEvent(const AParentNode: TX3DFileItem; const AName: String; const AInEvent: boolean): TX3DEvent;
 begin
   Result := TMFVec2dEvent.Create(AParentNode, AName, AInEvent);
 end;
@@ -774,9 +774,9 @@ begin
   Result := TSFVec2d.CreateUndefined(ParentNode, false, '');
 end;
 
-function TMFVec2d.RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): string;
+function TMFVec2d.RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): String;
 begin
-  Result := Items.L[ItemNum].ToRawString;
+  Result := Items.L[ItemNum].ToRawString(FloatOutputFormat);
 end;
 
 procedure TMFVec2d.AddToList(const ItemList: TVector2DoubleList; const Item: TSFVec2d);
@@ -796,12 +796,12 @@ end;
 
 { TMFVec3d ------------------------------------------------------------------- }
 
-class function TMFVec3d.X3DType: string;
+class function TMFVec3d.X3DType: String;
 begin
   Result := 'MFVec3d';
 end;
 
-class function TMFVec3d.CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent;
+class function TMFVec3d.CreateEvent(const AParentNode: TX3DFileItem; const AName: String; const AInEvent: boolean): TX3DEvent;
 begin
   Result := TMFVec3dEvent.Create(AParentNode, AName, AInEvent);
 end;
@@ -811,9 +811,9 @@ begin
   Result := TSFVec3d.CreateUndefined(ParentNode, false, '');
 end;
 
-function TMFVec3d.RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): string;
+function TMFVec3d.RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): String;
 begin
-  Result := Items.L[ItemNum].ToRawString;
+  Result := Items.L[ItemNum].ToRawString(FloatOutputFormat);
 end;
 
 procedure TMFVec3d.AddToList(const ItemList: TVector3DoubleList; const Item: TSFVec3d);
@@ -833,12 +833,12 @@ end;
 
 { TMFVec4d ------------------------------------------------------------------- }
 
-class function TMFVec4d.X3DType: string;
+class function TMFVec4d.X3DType: String;
 begin
   Result := 'MFVec4d';
 end;
 
-class function TMFVec4d.CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent;
+class function TMFVec4d.CreateEvent(const AParentNode: TX3DFileItem; const AName: String; const AInEvent: boolean): TX3DEvent;
 begin
   Result := TMFVec4dEvent.Create(AParentNode, AName, AInEvent);
 end;
@@ -848,9 +848,9 @@ begin
   Result := TSFVec4d.CreateUndefined(ParentNode, false, '');
 end;
 
-function TMFVec4d.RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): string;
+function TMFVec4d.RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): String;
 begin
-  Result := Items.L[ItemNum].ToRawString;
+  Result := Items.L[ItemNum].ToRawString(FloatOutputFormat);
 end;
 
 procedure TMFVec4d.AddToList(const ItemList: TVector4DoubleList; const Item: TSFVec4d);
@@ -870,12 +870,12 @@ end;
 
 { TMFRotation ---------------------------------------------------------------- }
 
-class function TMFRotation.X3DType: string;
+class function TMFRotation.X3DType: String;
 begin
   Result := 'MFRotation';
 end;
 
-class function TMFRotation.CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent;
+class function TMFRotation.CreateEvent(const AParentNode: TX3DFileItem; const AName: String; const AInEvent: boolean): TX3DEvent;
 begin
   Result := TMFRotationEvent.Create(AParentNode, AName, AInEvent);
 end;
@@ -885,9 +885,9 @@ begin
   Result := TSFRotation.CreateUndefined(ParentNode, false, '');
 end;
 
-function TMFRotation.RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): string;
+function TMFRotation.RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): String;
 begin
-  Result := Items.L[ItemNum].ToRawString;
+  Result := Items.L[ItemNum].ToRawString(FloatOutputFormat);
 end;
 
 procedure TMFRotation.AddToList(const ItemList: TVector4List; const Item: TSFRotation);
@@ -912,9 +912,9 @@ begin
   Result := false;
 end;
 
-function TMFFloat.RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string;
+function TMFFloat.RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): String;
 begin
-  Result := FormatDot('%g', [Items[ItemNum]]);
+  Result := FormatDot(FloatOutputFormat, [Items[ItemNum]]);
 end;
 
 procedure TMFFloat.AddToList(const ItemList: TSingleList; const Item: TSFFloat);
@@ -932,12 +932,12 @@ begin
   Result := true;
 end;
 
-class function TMFFloat.X3DType: string;
+class function TMFFloat.X3DType: String;
 begin
   Result := 'MFFloat';
 end;
 
-class function TMFFloat.CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent;
+class function TMFFloat.CreateEvent(const AParentNode: TX3DFileItem; const AName: String; const AInEvent: boolean): TX3DEvent;
 begin
   Result := TMFFloatEvent.Create(AParentNode, AName, AInEvent);
 end;
@@ -959,9 +959,9 @@ begin
   Result := false;
 end;
 
-function TMFDouble.RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string;
+function TMFDouble.RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): String;
 begin
-  Result := FormatDot('%g', [Items[ItemNum]]);
+  Result := FormatDot(FloatOutputFormat, [Items[ItemNum]]);
 end;
 
 procedure TMFDouble.AddToList(const ItemList: TDoubleList; const Item: TSFDouble);
@@ -979,12 +979,12 @@ begin
   Result := true;
 end;
 
-class function TMFDouble.X3DType: string;
+class function TMFDouble.X3DType: String;
 begin
   Result := 'MFDouble';
 end;
 
-class function TMFDouble.CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent;
+class function TMFDouble.CreateEvent(const AParentNode: TX3DFileItem; const AName: String; const AInEvent: boolean): TX3DEvent;
 begin
   Result := TMFDoubleEvent.Create(AParentNode, AName, AInEvent);
 end;
@@ -996,12 +996,12 @@ end;
 
 { TMFTime -------------------------------------------------------------------- }
 
-class function TMFTime.X3DType: string;
+class function TMFTime.X3DType: String;
 begin
   Result := 'MFTime';
 end;
 
-class function TMFTime.CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent;
+class function TMFTime.CreateEvent(const AParentNode: TX3DFileItem; const AName: String; const AInEvent: boolean): TX3DEvent;
 begin
   Result := TMFTimeEvent.Create(AParentNode, AName, AInEvent);
 end;
@@ -1035,7 +1035,7 @@ begin
     StringsEqual(Items, TMFString(SecondValue).Items);
 end;
 
-function TMFString.RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string;
+function TMFString.RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): String;
 begin
   case Encoding of
     xeClassic: Result := StringToX3DClassic(Items[ItemNum]);
@@ -1051,12 +1051,12 @@ begin
   Items.Add(Item.Value);
 end;
 
-class function TMFString.X3DType: string;
+class function TMFString.X3DType: String;
 begin
   Result := 'MFString';
 end;
 
-class function TMFString.CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent;
+class function TMFString.CreateEvent(const AParentNode: TX3DFileItem; const AName: String; const AInEvent: boolean): TX3DEvent;
 begin
   Result := TMFStringEvent.Create(AParentNode, AName, AInEvent);
 end;
@@ -1066,7 +1066,7 @@ begin
   Result := TSFString.CreateUndefined(ParentNode, false, '');
 end;
 
-procedure TMFString.ParseXMLAttribute(const AttributeValue: string; Reader: TX3DReader);
+procedure TMFString.ParseXMLAttribute(const AttributeValue: String; Reader: TX3DReader);
 
   { TODO: Copy-paste of TX3DSimpleMultField.ParseXMLAttributeLexer }
   procedure ParseXMLAttributeLexer(Lexer: TX3DLexer; Reader: TX3DReader);
@@ -1255,7 +1255,7 @@ begin
 end;
 
 constructor TMFString.CreateUndefined(const AParentNode: TX3DFileItem;
-  const AExposed: boolean; const AName: string);
+  const AExposed: boolean; const AName: String);
 begin
   inherited;
   FItems := TCastleStringList.Create;
@@ -1263,10 +1263,10 @@ begin
 end;
 
 constructor TMFString.Create(const AParentNode: TX3DFileItem;
-  const AExposed: boolean; const AName: string;
+  const AExposed: boolean; const AName: String;
   const InitialContent: array of string);
 begin
-  inherited Create(AParentNode, AExposed, AName);
+  CreateUndefined(AParentNode, AExposed, AName);
   Items.AddRange(InitialContent);
   AssignDefaultValueFromValue;
 end;
@@ -1416,7 +1416,7 @@ begin
   end;
 end;
 
-function TMFString.GetItemsSafe(Index: Integer): string;
+function TMFString.GetItemsSafe(Index: Integer): String;
 begin
   if (Index >= 0) and (Index < Items.Count) then
     //Result := Items.{$ifdef FPC}L[Index]{$else}InternalGetItem(Index){$endif} else
@@ -1427,7 +1427,7 @@ begin
   end;
 end;
 
-procedure TMFString.SetItemsSafe(Index: Integer; const Value: string);
+procedure TMFString.SetItemsSafe(Index: Integer; const Value: String);
 begin
   if (Index >= 0) and (Index < Items.Count) then
     Items.L[Index] := Value else

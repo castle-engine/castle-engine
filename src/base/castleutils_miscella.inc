@@ -228,6 +228,9 @@ var
   { @exclude Refresh UI of CGE editor, because hierarchy of UI/transforms changed. }
   InternalCastleDesignInvalidate: Boolean;
 
+type
+  TBooleanSet = set of Boolean;
+
 {$endif read_interface}
 
 {$ifdef read_implementation}
@@ -335,7 +338,7 @@ begin
     {$endif}
     { Clearly stating CPU bits is more obvious in some cases.
       E.g. this avoids the question "what does Arm mean, is it 32-bit or 64-bit Arm?". }
-    ' (this exe is using ' + IntToStr(SizeOf(Pointer) * 8) + '-bit architecture)';
+    ' (code compiled for ' + IntToStr(SizeOf(Pointer) * 8) + '-bit architecture)';
 end;
 
 function SCastleEngineProgramHelpSuffix(const AppName, AppVersion: String; const Ignored: Boolean): String;
@@ -371,10 +374,36 @@ begin
 end;
 
 {$ifndef FPC}
-function DefaultFormatSettings: TFormatSettings;
-begin
-  Result := TFormatSettings.Create;
-end;
+{ Delphi on Linux has weird bugs when one tries to use TFormatSettings.Create
+  too often, which would happen if we define
+
+    function DefaultFormatSettings: TFormatSettings;
+    begin
+      Result := TFormatSettings.Create;
+    end;
+
+  and then use e.g. FloatToStrDisplay from TVector3.ToString,
+  by printing in each update:
+
+    Writeln('Got SetRotation ', FRotation.ToString);
+
+  Doing this from TCastleTransform.SetRotation every frame
+  causes the screen to go black when rendering on Delphi/Linux.
+
+  Also FPC display is then never updated, and it seems
+  FRealFps or FOnlyRenderFps never changes.
+
+  Also sprite sheets animation then hangs from time to time.
+
+  Compiler bug? The relations are completely weird.
+  And the weird stuff is only on Delphi/Linux,
+  works fine with Delphi/Windows (and FPC naturally too, but FPC
+  has simpler DefaultFormatSettings).
+  Doing it in a simpler way, just initialize DefaultFormatSettings once,
+  works better and makes all above weird problems disappear. }
+
+var
+  DefaultFormatSettings: TFormatSettings;
 {$endif}
 
 function FormatDot(const Fmt: String; const Args: array of const): String;
@@ -419,8 +448,8 @@ begin
     20,
     2);
 
-  { We just remove trailing digits after decimal separator, we don't need them.
-    A less hacky way (that doens't involve string fixing) would be nicer,
+  { We remove trailing zeroes after decimal separator, we don't need them.
+    A less hacky way (that doesn't involve string fixing) would be nicer,
     but it doesn't seem possible based on FloatToStrF possibilities,
     at least with FPC. }
   if Pos('.', Result) <> 0 then

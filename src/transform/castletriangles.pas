@@ -429,11 +429,11 @@ var
 
   @groupBegin }
 function IndexedConvexPolygonNormal(
-  Indices: PLongintArray; IndicesCount: integer;
+  Indices: PInt32Array; IndicesCount: integer;
   Verts: PVector3Array; const VertsCount: Integer;
   const ResultForIncorrectPoly: TVector3): TVector3; overload;
 function IndexedConvexPolygonNormal(
-  const Indices: PLongintArray; const IndicesCount: integer;
+  const Indices: PInt32Array; const IndicesCount: integer;
   const Verts: PVector3Array; const VertsCount: Integer;
   const VertsStride: PtrUInt;
   const ResultForIncorrectPoly: TVector3): TVector3; overload;
@@ -448,10 +448,10 @@ function IndexedConvexPolygonNormal(
 
   @groupBegin }
 function IndexedConvexPolygonArea(
-  const Indices: PLongintArray; const IndicesCount: integer;
+  const Indices: PInt32Array; const IndicesCount: integer;
   const Verts: PVector3Array; const VertsCount: Integer): Single; overload;
 function IndexedConvexPolygonArea(
-  const Indices: PLongintArray; const IndicesCount: integer;
+  const Indices: PInt32Array; const IndicesCount: integer;
   const Verts: PVector3Array; const VertsCount: Integer;
   const VertsStride: PtrUInt): Single; overload;
 { @groupEnd }
@@ -617,7 +617,7 @@ begin
 end;
 
 function IndexedConvexPolygonNormal(
-  Indices: PLongintArray; IndicesCount: integer;
+  Indices: PInt32Array; IndicesCount: integer;
   Verts: PVector3Array; const VertsCount: Integer;
   const ResultForIncorrectPoly: TVector3): TVector3;
 begin
@@ -628,7 +628,7 @@ begin
 end;
 
 function IndexedConvexPolygonNormal(
-  const Indices: PLongintArray; const IndicesCount: integer;
+  const Indices: PInt32Array; const IndicesCount: integer;
   const Verts: PVector3Array; const VertsCount: Integer;
   const VertsStride: PtrUInt;
   const ResultForIncorrectPoly: TVector3): TVector3;
@@ -698,7 +698,7 @@ begin
 end;
 
 function IndexedConvexPolygonArea(
-  const Indices: PLongintArray; const IndicesCount: integer;
+  const Indices: PInt32Array; const IndicesCount: integer;
   const Verts: PVector3Array; const VertsCount: Integer): Single;
 begin
   Result := IndexedConvexPolygonArea(
@@ -707,7 +707,7 @@ begin
 end;
 
 function IndexedConvexPolygonArea(
-  const Indices: PLongintArray; const IndicesCount: integer;
+  const Indices: PInt32Array; const IndicesCount: integer;
   const Verts: PVector3Array; const VertsCount: Integer;
   const VertsStride: PtrUInt): Single;
 

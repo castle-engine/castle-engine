@@ -21,6 +21,8 @@ assign
 attenuation
 attribute
 attributes
+avatar
+avatars
 background
 behavior
 behaviors
@@ -170,6 +172,7 @@ headlight
 height
 high
 history
+html
 humanoid
 hurt
 idft
@@ -392,6 +395,7 @@ transparent
 traverse
 triangle
 triangles
+triangulate
 trigger
 uniform
 uniforms
@@ -399,6 +403,7 @@ unprepare
 up
 update
 uri
+url
 used
 valid
 value
@@ -410,6 +415,8 @@ vertexes
 verts
 vibrate
 videos
+view
+views
 viewport
 viewports
 visible
@@ -419,6 +426,7 @@ water
 waypoints
 weights
 white
+whitespace
 whitespaces
 width
 window

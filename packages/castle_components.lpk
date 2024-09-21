@@ -47,7 +47,7 @@ This package, castle_components.lpk, contains the Lazarus visual components that
 This is the same license as used by Lazarus LCL and FPC RTL.
 See https://castle-engine.io/license for details.
 "/>
-    <Version Major="6" Minor="92"/>
+    <Version Major="6" Minor="93" Release="1"/>
     <Files Count="32">
       <Item1>
         <Filename Value="../src/lcl/castlecontrol.pas"/>

@@ -44,7 +44,7 @@
       @exclude }
     InternalHeadlight: Boolean;
 
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
+    constructor Create(const AX3DName: string = ''; const ABaseUrl: String = ''); override;
 
     { Create TLightInstance record describing this light node under given
       State. }
@@ -144,7 +144,8 @@
       read  GetProjectionWorldDirection
       write SetProjectionWorldDirection;
 
-    procedure GetView(out Pos, Dir, Side, Up: TVector3);
+    procedure GetView(out Pos, Dir, Side, Up: TVector3); overload;
+    procedure GetView(out View: TViewVectors); overload;
     { @groupEnd }
 
     { Calculate distances between the given Box and this light source.
@@ -179,7 +180,7 @@
     function  GetProjectionDirectionLocal: TVector3; override;
     procedure SetProjectionDirectionLocal(const Value: TVector3); override;
   public
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
+    constructor Create(const AX3DName: string = ''; const ABaseUrl: String = ''); override;
     procedure UpdateLightInstance(var LightInstance: TLightInstance); override;
     function ProjectionMatrix: TMatrix4; override;
     function ModelviewMatrix: TMatrix4; override;
@@ -193,7 +194,7 @@
   { Base class for all positional lights. }
   TAbstractPositionalLightNode = class(TAbstractPunctualLightNode)
   public
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
+    constructor Create(const AX3DName: string = ''; const ABaseUrl: String = ''); override;
 
     { Calculate light intensity drop because of the distance to the light.
       This follows the equation @code(1/max( attenuation[0] + ... ))
@@ -530,6 +531,13 @@ end;
 procedure TAbstractPunctualLightNode.SetProjectionWorldDirection(const Value: TVector3);
 begin
   ProjectionDirectionLocal := InverseTransform.MultDirection(Value);
+end;
+
+procedure TAbstractPunctualLightNode.GetView(out View: TViewVectors);
+var
+  IgnoredSide: TVector3;
+begin
+  GetView(View.Translation, View.Direction, IgnoredSide, View.Up);
 end;
 
 procedure TAbstractPunctualLightNode.GetView(out Pos, Dir, Side, Up: TVector3);

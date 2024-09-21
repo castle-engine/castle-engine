@@ -20,11 +20,6 @@ unit X3DLoadInternalSpine;
 
 interface
 
-uses SysUtils, Classes,
-  X3DNodes;
-
-function LoadSpine(const Stream: TStream; const BaseUrl: String): TX3DRootNode;
-
 var
   { Turn this on to see some additional warnings when loading Spine models.
     These warnings are sometimes too verbose (often the models will work fine,
@@ -37,8 +32,10 @@ var
 
 implementation
 
-uses Generics.Collections, FpJson, JSONParser, JSONScanner, Math,
-  CastleVectors, CastleCurves, CastleUtils, CastleLog, CastleURIUtils, CastleDownload,
+uses SysUtils, Classes,
+  Generics.Collections, FpJson, JSONParser, JSONScanner, Math,
+  X3DNodes, X3DLoad, CastleVectors, CastleCurves, CastleUtils, CastleLog,
+  CastleUriUtils, CastleDownload,
   CastleStringUtils, CastleClassUtils, CastleColors, X3DLoadInternalUtils,
   CastleTriangles, CastleRenderOptions,
   X3DFields;
@@ -96,61 +93,61 @@ function LoadSpine(const Stream: TStream; const BaseUrl: String): TX3DRootNode;
 
   function CreateTextureLoader(const CustomAtlasName: String): TTextureLoader;
 
-    function FindAtlas(const InitialAtlasURL: string; out AtlasURL: string): boolean;
+    function FindAtlas(const InitialAtlasUrl: String; out AtlasUrl: String): boolean;
     var
       NoExtension: string;
     begin
-      AtlasURL := InitialAtlasURL;
-      if URIFileExists(AtlasURL) then Exit(true);
+      AtlasUrl := InitialAtlasUrl;
+      if URIFileExists(AtlasUrl) then Exit(true);
 
       NoExtension := ChangeURIExt(BaseUrl, '');
 
       // try with "_tex", used by Dragon Bones
-      AtlasURL := NoExtension + '_tex.atlas';
-      if URIFileExists(AtlasURL) then Exit(true);
+      AtlasUrl := NoExtension + '_tex.atlas';
+      if URIFileExists(AtlasUrl) then Exit(true);
 
       // try to remove -pro and -ess suffixes, Spine runtimes on
       // https://github.com/EsotericSoftware/spine-runtimes
       // (sometimes) do it too
       if IsSuffix('-pro', NoExtension, true) then
       begin
-        AtlasURL := SuffixRemove('-pro', NoExtension, true) + '.atlas';
-        if URIFileExists(AtlasURL) then Exit(true);
+        AtlasUrl := SuffixRemove('-pro', NoExtension, true) + '.atlas';
+        if URIFileExists(AtlasUrl) then Exit(true);
       end;
 
       if IsSuffix('-ess', NoExtension, true) then
       begin
-        AtlasURL := SuffixRemove('-ess', NoExtension, true) + '.atlas';
-        if URIFileExists(AtlasURL) then Exit(true);
+        AtlasUrl := SuffixRemove('-ess', NoExtension, true) + '.atlas';
+        if URIFileExists(AtlasUrl) then Exit(true);
       end;
 
       Exit(false);
     end;
 
   var
-    StandardAtlasURL, AtlasURL: string;
+    StandardAtlasUrl, AtlasUrl: String;
     Atlas: TAtlas;
   begin
     if SpineIgnoreTextures then
       Exit(TSimpleTextureLoader.Create(BaseUrl));
 
-    // calculate StandardAtlasURL
+    // calculate StandardAtlasUrl
     if CustomAtlasName <> '' then
-      StandardAtlasURL := ExtractURIPath(BaseUrl) + CustomAtlasName + '.atlas'
+      StandardAtlasUrl := ExtractURIPath(BaseUrl) + CustomAtlasName + '.atlas'
     else
-      StandardAtlasURL := ChangeURIExt(BaseUrl, '.atlas');
+      StandardAtlasUrl := ChangeURIExt(BaseUrl, '.atlas');
 
-    if FindAtlas(StandardAtlasURL, AtlasURL) then
+    if FindAtlas(StandardAtlasUrl, AtlasUrl) then
     begin
       Atlas := TAtlas.Create;
       try
-        Atlas.Parse(AtlasURL);
+        Atlas.Parse(AtlasUrl);
         Atlas.BuildNodes(BaseUrl);
         Result := Atlas;
       except FreeAndNil(Atlas); raise end;
     end else
     begin
-      WritelnLog('Spine', 'Atlas not found under URL "' + StandardAtlasURL + '" (and some alternative URLs we tried), will load images without atlas, using "images/xxx.png" filenames');
+      WritelnLog('Spine', 'Atlas not found under URL "' + StandardAtlasUrl + '" (and some alternative URLs we tried), will load images without atlas, using "images/xxx.png" filenames');
       Result := TSimpleTextureLoader.Create(BaseUrl);
     end;
   end;
@@ -195,7 +192,7 @@ begin
           except
             on E: ESpineReadError do
             begin
-              E.Message := E.Message + ' (inside ' + URIDisplay(BaseUrl) + ')';
+              E.Message := E.Message + ' (inside ' + UriDisplay(BaseUrl) + ')';
               raise;
             end;
           end;
@@ -205,4 +202,13 @@ begin
   finally FreeAndNil(TextureLoader) end;
 end;
 
+var
+  ModelFormat: TModelFormat;
+initialization
+  ModelFormat := TModelFormat.Create;
+  ModelFormat.OnLoad := {$ifdef FPC}@{$endif} LoadSpine;
+  ModelFormat.MimeTypes.Add('application/json');
+  ModelFormat.FileFilterName := 'Spine animation (*.json)';
+  ModelFormat.Extensions.Add('.json');
+  RegisterModelFormat(ModelFormat);
 end.

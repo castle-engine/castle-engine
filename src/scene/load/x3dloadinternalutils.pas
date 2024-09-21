@@ -55,12 +55,12 @@ function AmbientIntensity(const AmbientColor, DiffuseColor: TVector4): Single; o
   We prefer to return just Base, if it exists, or when no alternative exists.
   When Base doesn't exist but some likely alternative exists (e.g. with
   different case), we return it. }
-function SearchTextureFile(const BaseUrl: string; Base: string): string;
+function SearchTextureFile(const BaseUrl: String; Base: string): string;
 
 { Convert backslashes to slashes. Use for formats where this interpretation
   of backslash (instead of %-encoding actual backslash, see
   https://sourceforge.net/p/castle-engine/tickets/21/ ) seems more common. }
-function FixRelativeUrl(const URL: string): string;
+function FixRelativeUrl(const Url: String): string;
 
 var
   { Use CGE X3D extensions when importing the model.
@@ -70,7 +70,7 @@ var
 implementation
 
 uses SysUtils, Math, URIParser, StrUtils,
-  CastleStringUtils, CastleFindFiles, CastleLog, CastleURIUtils, CastleUnicode;
+  CastleStringUtils, CastleFindFiles, CastleLog, CastleUriUtils, CastleUnicode;
 
 const
   EncodedPrefix = 'CastleEncoded_';
@@ -92,35 +92,14 @@ const
 
   function DoEncodeUTF8(const S: String): String;
   var
+    Iter: TCastleStringIterator;
     C: TUnicodeChar;
-    {$ifdef FPC}
-    TextPtr: PChar;
-    CharLen: Integer;
-    {$else}
-    TextIndex: Integer;
-    NextTextIndex: Integer;
-    TextLength: Integer;
-    {$endif}
-
   begin
     Result := '';
-
-    {$ifdef FPC}
-    TextPtr := PChar(S);
-    C := UTF8CharacterToUnicode(TextPtr, CharLen);
-    while (C > 0) and (CharLen > 0) do
-    {$else}
-    TextIndex := 1;
-    TextLength := Length(S);
-    while (TextIndex <= TextLength) do
-    {$endif}
+    Iter.Start(S);
+    while Iter.GetNext do
     begin
-      {$ifdef FPC}
-      Inc(TextPtr, CharLen);
-      {$else}
-      C := UnicodeStringNextChar(S, TextIndex, NextTextIndex);
-      TextIndex := NextTextIndex;
-      {$endif}
+      C := Iter.Current;
 
       { We use $ to mark encoded chars, so we need to encode it too.
         Note that we don't worry NonAllowedFirstChars,
@@ -130,10 +109,6 @@ const
         Result := Result + Chr(C)
       else
         Result := Result + '$' + IntToStr(C) + '$';
-
-      {$ifdef FPC}
-      C := UTF8CharacterToUnicode(TextPtr, CharLen);
-      {$endif}
     end;
   end;
 
@@ -152,7 +127,8 @@ function DecodeX3DName(const S: String): String;
   function DoDecodeUTF8(const S: String): String;
   var
     I, EndingDollar: Integer;
-    CharCode: Integer;
+    CharCode: TUnicodeChar;
+    CharCodeInt: Integer;
   begin
     Result := '';
     I := 1;
@@ -168,17 +144,14 @@ function DecodeX3DName(const S: String): String;
           Exit(S);
         end;
 
-        if not TryStrToInt(Copy(S, I + 1, EndingDollar - I - 1), CharCode) then
+        if not TryStrToInt(Copy(S, I + 1, EndingDollar - I - 1), CharCodeInt) then
         begin
           WritelnWarning('Invalid UTF-8 code in encoded X3D name %s. Invalid encoding of X3D name, assuming not encoded at all.', [S]);
           Exit(S);
         end;
+        CharCode := CharCodeInt;
 
-        {$ifdef FPC}
-        Result += UnicodeToUTF8(CharCode);
-        {$else}
-        Result := Result + Chr(CharCode);
-        {$endif}
+        Result := Result + UnicodeCharToString(CharCode);
         I := EndingDollar + 1;
       end else
       begin
@@ -214,7 +187,7 @@ begin
     DiffuseColor.XYZ);
 end;
 
-function SearchTextureFile(const BaseUrl: string; Base: string): string;
+function SearchTextureFile(const BaseUrl: String; Base: string): string;
 var
   SomePathDelim: Integer;
   BaseShort, Path: string;
@@ -274,9 +247,9 @@ begin
   Result := Base;
 end;
 
-function FixRelativeUrl(const URL: string): string;
+function FixRelativeUrl(const Url: String): string;
 begin
-  Result := SReplaceChars(URL, '\', '/');
+  Result := SReplaceChars(Url, '\', '/');
 end;
 
 end.

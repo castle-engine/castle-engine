@@ -2,5 +2,12 @@
     <!-- Base application theme. -->
     <style name="AppTheme" parent="${ANDROID_ACTIVITY_THEME}">
         <item name="android:windowTranslucentStatus">true</item>
+        <!--
+        Allow display cutouts, following
+        https://developer.android.com/develop/ui/views/layout/display-cutout?hl=en
+        -->
+        <item name="android:windowLayoutInDisplayCutoutMode">
+          shortEdges
+        </item>
     </style>
 </resources>

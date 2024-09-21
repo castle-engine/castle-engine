@@ -44,8 +44,8 @@
     {$endif}
   {$else}
     // See http://delphi.wikia.com/wiki/CompilerVersion_Constant
-    {$if CompilerVersion < 20}
-      {message fatal 'Use Delphi >= 2009 compile Castle Game Engine. See https://castle-engine.io/supported_compilers.php'}
+    {$if CompilerVersion < 32}
+      {$message fatal 'Use Delphi >= 10.2.1 to compile Castle Game Engine. See https://castle-engine.io/delphi'}
     {$endif}
   {$endif}
 {$endif}
@@ -70,6 +70,8 @@
     FPC has this by default.
     See https://docwiki.embarcadero.com/RADStudio/Sydney/en/Pointer_Math_(Delphi) }
   {$pointermath on}
+  // For now we only support FPC or Delphi
+  {$define DELPHI}
 {$endif}
 
 {$writeableconst off} // Note: no way to specify this by FPC command-line.
@@ -206,11 +208,6 @@
     $warnings on/off... but not enough for Delphi.
     TODO: This should eventually by unhidden. }
   {$warn SYMBOL_DEPRECATED off}
-
-  { The below are problems only for C++.
-    TODO: This should eventually by unhidden and we can support C++ builder. }
-  {$warn DUPLICATE_CTOR_DTOR off}
-  {$warn PRIVATE_PROPACCESSOR off}
 {$endif}
 
 { If GENERICS_CONSTREF is defined, then various routines used with Generics.Collections
@@ -220,6 +217,13 @@
   https://gitlab.com/freepascal.org/fpc/source/-/commit/693491048bf2c6f9122a0d8b044ad0e55382354d }
 {$ifdef VER3_0} {$define GENERICS_CONSTREF} {$endif}
 {$ifdef VER3_2} {$define GENERICS_CONSTREF} {$endif}
+{$if defined(VER3_2_3)}
+  { FPC 3.2.3 (fixes_3_2 branch, as of 2023-12-23) no longer uses "constref".
+    Confirmed on Linux/Arm32, Linux/Arm64(Aarch64), Linux/x86_64,
+    see also sources:
+    https://gitlab.com/freepascal.org/fpc/source/-/blob/fixes_3_2/packages/rtl-generics/src/generics.collections.pas?ref_type=heads. }
+  {$undef GENERICS_CONSTREF}
+{$endif}
 
 { Define CASTLE_IOS when appropriate ----------------------------------------- }
 
@@ -298,7 +302,7 @@
 
   CGE units that directly access OpenGL(ES) should use this line:
 
-    {$ifdef FPC} CastleGL, {$else} OpenGL, OpenGLext, {$endif}
+    {$ifdef OpenGLES} CastleGLES, {$else} CastleGL, {$endif}
 
   Applications using CGE (including CGE examples) cannot include castleconf.inc
   (it's internal what it defines) and usually should not need to access OpenGL(ES)
@@ -307,14 +311,10 @@
 
     {$ifdef ANDROID} {$define OpenGLES} {$endif}
     {$ifdef CASTLE_IOS} {$define OpenGLES} {$endif}
-    {$ifdef FPC}
-      {$ifdef OpenGLES} CastleGLES, {$else} GL, GLExt, {$endif}
-    {$else}
-      OpenGL, OpenGLext,
-    {$endif}
+    {$ifdef OpenGLES} CastleGLES, {$else} CastleGL, {$endif}
 
   The above code supports both FPC and Delphi, and supports both OpenGL and OpenGLES.
-  You can simplify it in a particular application, if you don't support e.g. both FPC and Delphi.
+  Please note that above recommendation may change from time to time.
 *)
 { $define OpenGLES}
 {$ifdef ANDROID} {$define OpenGLES} {$endif}
@@ -326,14 +326,8 @@
 {$ifdef CASTLE_NINTENDO_SWITCH} {$define OpenGLES} {$endif}
 
 {$ifdef OpenGLES}
-  {$ifndef FPC}
-    {$error We do not support OpenGLES (necessary for Android, iOS) with Delphi yet}
-  {$else}
-    {$ifdef CASTLE_NINTENDO_SWITCH}
-      {$define CastleGL := CastleInternalNxGLES20}
-    {$else}
-      {$define CastleGL := CastleGLES}
-    {$endif}
+  {$ifdef CASTLE_NINTENDO_SWITCH}
+    {$define CastleGLES := CastleInternalNxGLES}
   {$endif}
 
   { This is necessary for OpenGL ES 2.0 versions that support only 16-bit indexes,
@@ -375,7 +369,9 @@
   }
   {$define GLIndexesShort}
 {$else}
-  {$define CastleGL := GL, GLExt}
+  { For OpenGL (not ES), we use our own fork of dglOpenGL
+    (with all compilers and platforms now). }
+  {$define USE_DGL}
 {$endif}
 
 { PNG ------------------------------------------------------------------------ }
@@ -473,19 +469,6 @@
 {$ifdef ANDROID} {$undef HAS_FP_HTTP_CLIENT} {$endif}
 {$ifndef FPC} {$undef HAS_FP_HTTP_CLIENT} {$endif}
 
-{ Embedded stuff ------------------------------------------------------------- }
-
-{ If defined, the compiled code will have embedded all the variations
-  of basic fonts for the X3D Text node
-  (see [https://castle-engine.io/x3d_implementation_text.php]).
-  This is comfortable (the FontStyle font works, with 3 * 4 font variations,
-  out of the box), but it increases your exe size --- possibly without a reason,
-  if you don't use FontStyle X3D node.
-
-  Undefine this to conserve around 0.7 MB in exe size.
-  All the Text X3D nodes will use standard sans non-bold, non-italic font. }
-{$define CASTLE_EMBED_ALL_3D_FONT_VARIATIONS}
-
 { Threading --------------------------------------------------------------- }
 
 { Threading support, as some platforms don't have threads (implemented yet).
@@ -582,6 +565,11 @@
   but having a dedicated symbol allows to easier grep for it and eventually fix. }
 {$ifdef FPC}
   {$define CASTLE_SCRIPT_FPC}
+{$endif}
+
+{ Indicates units like X, XLib are available on this platform. }
+{$if defined(FPC) and (defined(LINUX) or defined(FREEBSD))}
+  {$define UNIX_WITH_X}
 {$endif}
 
 {$endif not CASTLE_CONF_INCLUDED}

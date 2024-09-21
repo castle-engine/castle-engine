@@ -1,6 +1,6 @@
 {%MainUnit x3dnodes.pas}
 {
-  Copyright 2008-2023 Michalis Kamburelis.
+  Copyright 2008-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -41,7 +41,7 @@
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
+    constructor Create(const AX3DName: string = ''; const ABaseUrl: String = ''); override;
     class function ForVRMLVersion(const Version: TX3DVersion): boolean; override;
     function TransformationChange: TNodeTransformationChange; override;
   {$I auto_generated_node_helpers/x3dnodes_matrixtransform.inc}
@@ -54,7 +54,7 @@
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
+    constructor Create(const AX3DName: string = ''; const ABaseUrl: String = ''); override;
     function Proxy(var State: TX3DGraphTraverseState): TAbstractGeometryNode; override;
     function TexCoordField: TSFNode; override;
     function AutoGenerate3DTexCoords: boolean; override;
@@ -71,7 +71,7 @@
     procedure EventWriteReceive(
       const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
   public
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
+    constructor Create(const AX3DName: string = ''; const ABaseUrl: String = ''); override;
     destructor Destroy; override;
   {$I auto_generated_node_helpers/x3dnodes_logger.inc}
   end;
@@ -133,7 +133,7 @@
     procedure EventResetReceive(
       const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
   public
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
+    constructor Create(const AX3DName: string = ''; const ABaseUrl: String = ''); override;
   {$I auto_generated_node_helpers/x3dnodes_toggler.inc}
   end;
 
@@ -150,11 +150,12 @@
         procedure SetDiffuseColor(const Value: TVector3); override;
         function GetSpecularColor: TVector3; override;
         procedure SetSpecularColor(const Value: TVector3); override;
+        function GetEmissiveColor: TVector3; override;
+        procedure SetEmissiveColor(const Value: TVector3); override;
       public
         constructor Create(ANode: TCommonSurfaceShaderNode);
 
         function AmbientColor: TVector3; override;
-        function EmissiveColor: TVector3; override;
         function Shininess: Single; override;
         function ReflectionColor: TVector3; override;
         function TransmissionColor: TVector3; override;
@@ -188,9 +189,29 @@
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   {$I auto_generated_node_helpers/x3dnodes_imagebackground.inc}
   end;
+
+  { Not implemented:
+    Bindable node to setup rendering and culling parameters.
+
+    Compatible with X3DOM.
+    Not implemented in Castle Game Engine yet, we merely parse it now,
+    but don't do anything with obtained information.
+
+    See https://doc.x3dom.org/author/EnvironmentalEffects/Environment.html }
+  TEnvironmentNode = class(TAbstractBindableNode)
+  {$I auto_generated_node_helpers/x3dnodes_environment.inc}
+  end;
 {$endif read_interface}
 
 {$ifdef read_implementation}
+
+const
+  ToneMappingNames: array [TToneMapping] of String = (
+    'NONE',
+    'UNCHARTED',
+    'HEJL-RICHARD',
+    'ACES'
+  );
 
 { TMatrixTransformNode.TMatrixTransformNodeTransformFunctionality --------------------------- }
 
@@ -241,7 +262,7 @@ begin
   Result := ntcTransform;
 end;
 
-constructor TTeapotNode.Create(const AX3DName: string = ''; const ABaseUrl: string = '');
+constructor TTeapotNode.Create(const AX3DName: string = ''; const ABaseUrl: String = '');
 begin
   inherited;
   FdSize.ChangeAlways := chGeometry;
@@ -256,9 +277,9 @@ const
   // auto_generated_teapot/teapot.inc.
   {
   TeapotCoord: array [0..0] of TVector3 = ((X: 0; Y: 0; Z: 0));
-  TeapotCoordIndex: array [0..0] of LongInt = (0);
+  TeapotCoordIndex: array [0..0] of Int32 = (0);
   TeapotManifoldCoord: array [0..0] of TVector3 = ((X: 0; Y: 0; Z: 0));
-  TeapotManifoldCoordIndex: array [0..0] of LongInt = (0);
+  TeapotManifoldCoordIndex: array [0..0] of Int32 = (0);
   }
   {$I auto_generated_teapot/teapot.inc}
 var
@@ -558,9 +579,14 @@ begin
   FNode.SpecularFactor := Value;
 end;
 
-function TCommonSurfaceShaderNode.TCommonSurfaceShaderInfo.EmissiveColor: TVector3;
+function TCommonSurfaceShaderNode.TCommonSurfaceShaderInfo.GetEmissiveColor: TVector3;
 begin
   Result := FNode.EmissiveFactor;
+end;
+
+procedure TCommonSurfaceShaderNode.TCommonSurfaceShaderInfo.SetEmissiveColor(const Value: TVector3);
+begin
+  FNode.EmissiveFactor := Value;
 end;
 
 function TCommonSurfaceShaderNode.TCommonSurfaceShaderInfo.Shininess: Single;
@@ -632,7 +658,8 @@ begin
     TPlaneNode,
     TTogglerNode,
     TCommonSurfaceShaderNode,
-    TImageBackgroundNode
+    TImageBackgroundNode,
+    TEnvironmentNode
   ]);
 end;
 {$endif read_implementation}

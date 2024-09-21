@@ -28,10 +28,10 @@
 }
 program window_menu;
 
-{$ifdef MSWINDOWS} {$apptype CONSOLE} {$endif}
+{$ifdef MSWINDOWS} {$apptype GUI} {$endif}
 
 uses SysUtils,
-  CastleVectors, CastleKeysMouse, CastleColors,
+  CastleVectors, CastleKeysMouse, CastleColors, CastleLog,
   CastleWindow, CastleGLUtils, CastleMessages, CastleStringUtils,
   CastleViewport, CastleScene, X3DNodes;
 
@@ -146,10 +146,11 @@ procedure MenuClick(Container: TCastleContainer; Item: TMenuItem);
 var
   M: TMenu;
 begin
-  Writeln('You clicked menu item "', SRemoveMnemonics(Item.Caption),
-    '" with SmallId ', Item.SmallId);
+  WritelnLog('You clicked menu item "%s" with id %d', [
+    SRemoveMnemonics(Item.Caption),
+    Item.SmallId
+  ]);
   case Item.IntData of
-    0..High(Colors): Material.DiffuseColor := Colors[Item.IntData];
     10: begin
           Shape.FdGeometry.Value := GeometryRect;
           Shape.FdGeometry.Changed;
@@ -185,6 +186,8 @@ begin
     100: Window.MainMenu := AlternativeMainMenu;
     101: Window.MainMenu := MainMenu;
 
+    200.. 200 + High(Colors): Material.DiffuseColor := Colors[Item.IntData - 200];
+
     else Exit;
   end;
   Window.Invalidate;
@@ -197,6 +200,8 @@ var
   RadioGroup: TMenuItemRadioGroup;
   Viewport: TCastleViewport;
 begin
+  InitializeLog;
+
   Window := TCastleWindow.Create(Application);
   Application.MainWindow := Window; // makes MessageYesNo work OK
 
@@ -221,14 +226,26 @@ begin
     M.Append(TMenuItem.Create('_Exit', 20));
     MainMenu.Append(M);
   M := TMenu.Create('_Color');
-    M.Append(TMenuItem.Create('_Red', 0));
-    M.Append(TMenuItem.Create('_Green', 1));
-    M.Append(TMenuItem.Create('_Blue', 2));
-    M.Append(TMenuItem.Create('_Yellow', 3));
-    M.Append(TMenuSeparator.Create);
-    M.Append(TMenuItem.Create('_White', 4));
-    M.Append(TMenuItem.Create('Gr_ay', 5));
-    M.Append(TMenuItem.Create('B_lack', 6));
+    M.AppendRadioGroup([
+        '_Red',
+        '_Green',
+        '_Blue',
+        '_Yellow',
+        '_White',
+        'Gr_ay',
+        'B_lack'
+      ],
+      { BaseIntData: MenuClick should handle Item.IntData values
+        from 200 to High(Colors) + 200 }
+      200,
+      { SelectedIndex, corresponds to dafault color. }
+      0,
+      { AutoCheckToggle: The clicked radio item will automatically
+        have Checked := true, other radio items in group will have Checked := false. }
+      true,
+      { QuoteCaption: no, because we use _ above for mnemonics. }
+      false
+    );
     MainMenu.Append(M);
   M := TMenu.Create('_Placement');
     { Radio menu items test }

@@ -19,8 +19,7 @@ unit TestSysUtils;
 interface
 
 uses
-  Classes, SysUtils, {$ifndef CASTLE_TESTER}FpcUnit, TestUtils, TestRegistry,
-  CastleTestCase{$else}CastleTester{$endif};
+  Classes, SysUtils, CastleTester;
 
 type
   TTestSysUtils = class(TCastleTestCase)
@@ -29,7 +28,7 @@ type
 
 implementation
 
-uses CastleFilesUtils, CastleURIUtils;
+uses CastleFilesUtils, CastleUriUtils;
 
 procedure TTestSysUtils.TestDirectoryFileExists;
 begin
@@ -61,33 +60,33 @@ begin
     thankfully.
   }
   {$ifdef MSWINDOWS}
-  AssertFalse(FileExists(URIToFilenameSafe('castle-data:/')));
-  AssertFalse(FileExists(URIToFilenameSafe('castle-data:/images/')));
+  AssertFalse(FileExists(UriToFilenameSafe('castle-data:/')));
+  AssertFalse(FileExists(UriToFilenameSafe('castle-data:/images/')));
   {$else}
     {$if not defined(VER3_3)} // For FPC 3.3.1, the behavior depends on exact revision...
       {$if defined(VER3_0) or defined(VER3_1)}
-      AssertTrue(FileExists(URIToFilenameSafe('castle-data:/')));
-      AssertTrue(FileExists(URIToFilenameSafe('castle-data:/images/')));
+      AssertTrue(FileExists(UriToFilenameSafe('castle-data:/')));
+      AssertTrue(FileExists(UriToFilenameSafe('castle-data:/images/')));
       {$else}
-      AssertFalse(FileExists(URIToFilenameSafe('castle-data:/')));
-      AssertFalse(FileExists(URIToFilenameSafe('castle-data:/images/')));
+      AssertFalse(FileExists(UriToFilenameSafe('castle-data:/')));
+      AssertFalse(FileExists(UriToFilenameSafe('castle-data:/images/')));
       {$endif}
     {$endif}
   {$endif}
-  AssertTrue(FileExists(URIToFilenameSafe('castle-data:/test.xml')));
-  AssertTrue(not FileExists(URIToFilenameSafe('castle-data:/test-not-existing.xml')));
+  AssertTrue(FileExists(UriToFilenameSafe('castle-data:/test.xml')));
+  AssertTrue(not FileExists(UriToFilenameSafe('castle-data:/test-not-existing.xml')));
 
   { Our RegularFileExists does not detect directory as "file". }
-  AssertFalse(RegularFileExists(URIToFilenameSafe('castle-data:/')));
-  AssertFalse(RegularFileExists(URIToFilenameSafe('castle-data:/images/')));
-  AssertTrue(RegularFileExists(URIToFilenameSafe('castle-data:/test.xml')));
-  AssertTrue(not RegularFileExists(URIToFilenameSafe('castle-data:/test-not-existing.xml')));
+  AssertFalse(RegularFileExists(UriToFilenameSafe('castle-data:/')));
+  AssertFalse(RegularFileExists(UriToFilenameSafe('castle-data:/images/')));
+  AssertTrue(RegularFileExists(UriToFilenameSafe('castle-data:/test.xml')));
+  AssertTrue(not RegularFileExists(UriToFilenameSafe('castle-data:/test-not-existing.xml')));
 
   { DirectoryExists detects directories, not regular files. }
-  AssertTrue(DirectoryExists(URIToFilenameSafe('castle-data:/')));
-  AssertTrue(DirectoryExists(URIToFilenameSafe('castle-data:/images/')));
-  AssertTrue(not DirectoryExists(URIToFilenameSafe('castle-data:/test.xml')));
-  AssertTrue(not DirectoryExists(URIToFilenameSafe('castle-data:/test-not-existing.xml')));
+  AssertTrue(DirectoryExists(UriToFilenameSafe('castle-data:/')));
+  AssertTrue(DirectoryExists(UriToFilenameSafe('castle-data:/images/')));
+  AssertTrue(not DirectoryExists(UriToFilenameSafe('castle-data:/test.xml')));
+  AssertTrue(not DirectoryExists(UriToFilenameSafe('castle-data:/test-not-existing.xml')));
 end;
 
 initialization

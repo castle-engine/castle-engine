@@ -1,4 +1,4 @@
-// -*- compile-command: "./test_single_testcase.sh TTestX3DLoadInternalUtils" -*-
+﻿// -*- compile-command: "./test_single_testcase.sh TTestX3DLoadInternalUtils" -*-
 {
   Copyright 2019-2021 Michalis Kamburelis.
 
@@ -14,24 +14,27 @@
   ----------------------------------------------------------------------------
 }
 
-{ Test X3DLoadInternalUtils unit. }
+{ Test X3DLoadInternalUtils unit.
+
+  Leave UTF-8 BOM in this file for Delphi!
+  To let it interpret the string literals (like using Chinese) in this file correctly. }
 unit TestX3DLoadInternalUtils;
 
 interface
 
 uses
-  Classes, SysUtils, {$ifndef CASTLE_TESTER}FpcUnit, TestUtils, TestRegistry
-  {$else}CastleTester{$endif};
+  Classes, SysUtils,
+  CastleTester;
 
 type
-  TTestX3DLoadInternalUtils = class({$ifndef CASTLE_TESTER}TTestCase{$else}TCastleTestCase{$endif})
+  TTestX3DLoadInternalUtils = class(TCastleTestCase)
   published
     procedure TestX3DNameEncode;
   end;
 
 implementation
 
-uses X3DLoadInternalUtils;
+uses X3DLoadInternalUtils, CastleUnicode;
 
 procedure TTestX3DLoadInternalUtils.TestX3DNameEncode;
 begin
@@ -46,6 +49,14 @@ begin
 
   AssertEquals('CastleEncoded_a_sdsd$32$$36$$32$XYZ-123', EncodeX3DName('a_sdsd $ XYZ-123'));
   AssertEquals('a_sdsd $ XYZ-123', DecodeX3DName(EncodeX3DName('a_sdsd $ XYZ-123')));
+
+  AssertEquals(8, StringLength('1MyName样'));
+  AssertEquals('CastleEncoded_1MyName$26679$', EncodeX3DName('1MyName样'));
+  AssertEquals('1MyName样', DecodeX3DName('CastleEncoded_1MyName$26679$'));
+
+  // MyName样 is OK as X3D name, so it passes without any change
+  AssertEquals('MyName样', EncodeX3DName('MyName样'));
+  AssertEquals('MyName样', DecodeX3DName('MyName样'));
 end;
 
 initialization

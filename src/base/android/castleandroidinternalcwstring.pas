@@ -52,8 +52,8 @@ uses dynlibs, CastleAndroidInternalLog;
 
 type
   UErrorCode = SizeInt;
-  int32_t = longint;
-  uint32_t = longword;
+  int32_t = Integer;
+  uint32_t = Cardinal;
   PUConverter = pointer;
   PUCollator = pointer;
   UBool = LongBool;
@@ -883,7 +883,7 @@ const
   TestProcName = 'ucnv_open';
 
 var
-  i: longint;
+  i: int32_t;
   s: ansistring;
 begin
   hlibICU:=LoadLibrary('libicuuc.so');

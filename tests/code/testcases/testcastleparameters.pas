@@ -19,8 +19,8 @@ unit TestCastleParameters;
 
 interface
 
-uses Classes, SysUtils, {$ifndef CASTLE_TESTER}FpcUnit, TestUtils, TestRegistry,
-  {$else}CastleTester,{$endif} CastleParameters, CastleUtils;
+uses Classes, SysUtils,
+  CastleTester, CastleParameters, CastleUtils;
 
 type
   TParsedOption = record
@@ -32,7 +32,7 @@ type
   PParsedOption = ^TParsedOption;
   TParsedOptionList = {$ifdef FPC}specialize{$endif} TStructList<TParsedOption>;
 
-  TTestParsingParameters = class({$ifndef CASTLE_TESTER}TTestCase{$else}TCastleTestCase{$endif})
+  TTestParsingParameters = class(TCastleTestCase)
   private
     procedure AssertParsEqual(const ParsValues: array of string; const ParsTestName: string);
     procedure AssertParsedParsEqual(const ParsedPars1: TParsedOptionList;

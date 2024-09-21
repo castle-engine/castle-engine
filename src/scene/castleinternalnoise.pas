@@ -60,10 +60,10 @@ uses Math, CastleCurves;
 
 { Integer noise -------------------------------------------------------------- }
 
-{ Make integer noise: for 3 given LongInts, generate random LongWord value.
+{ Make integer noise: for 3 given Int32s, generate random UInt32 value.
 
-  It is designed to fill uniformly the LongWord range.
-  So if you want float result in 0 ... 1, just divide by High(LongWord),
+  It is designed to fill uniformly the UInt32 range.
+  So if you want float result in 0 ... 1, just divide by High(UInt32),
   which is exactly what IntegerNoise (without Core suffix) does.
 
   If you want noise based on 2D coords, just pass Z = 0 -- it's Ok,
@@ -184,12 +184,12 @@ const
     (1201, 219977, 10937, 2862599, 1111733503)
   );
 
-function IntegerNoiseCore(const X, Y, Z: LongInt; const Seed: Cardinal): UInt32;
+function IntegerNoiseCore(const X, Y, Z: Int32; const Seed: Cardinal): UInt32;
 type
   TUInt32Array = array [0..High(Integer) div SizeOf(UInt32) - 1] of UInt32;
   PUInt32Array = ^TUInt32Array;
 var
-  N: LongWord;
+  N: UInt32;
   PPrimes: PUInt32Array;
 {$I norqcheckbegin.inc}
 begin
@@ -202,12 +202,12 @@ begin
 end;
 {$I norqcheckend.inc}
 
-function IntegerNoise(const X, Y, Z: LongInt; const Seed: Cardinal): Single; overload;
+function IntegerNoise(const X, Y, Z: Int32; const Seed: Cardinal): Single; overload;
 begin
   Result := IntegerNoiseCore(X, Y, Z, Seed) / High(UInt32);
 end;
 
-function IntegerNoise(const X, Y: LongInt; const Seed: Cardinal): Single; overload;
+function IntegerNoise(const X, Y: Int32; const Seed: Cardinal): Single; overload;
 begin
   Result := IntegerNoiseCore(X, Y, 0, Seed) / High(UInt32);
 end;
@@ -232,7 +232,7 @@ function InterpolatedNoise2D_Spline(const X, Y: Single; const Seed: Cardinal): S
 
 { BlurredInterpolatedNoise* -------------------------------------------------- }
 
-function BlurredIntegerNoise(const X, Y: LongInt; const Seed: Cardinal): Single;
+function BlurredIntegerNoise(const X, Y: Int32; const Seed: Cardinal): Single;
 begin
   Result :=
       IntegerNoise(X    , Y    , Seed) / 4 +

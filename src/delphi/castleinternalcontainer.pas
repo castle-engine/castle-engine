@@ -27,9 +27,7 @@
   unifying them more.
   Right now, TCastleWindow and LCL TCastleControl do some things manually
   for historic purposes, e.g. they expose GL context requirements
-  like TCastleWindow.DepthBits,
-  and they expose callbacks like TCastleWindow.OnRender that we don't advise to use
-  (use TCastleView instead or TCastleUserInterface.OnRender to do rendering).
+  like TCastleWindow.DepthBits.
   Nowadays we know that
 
   - API of classes like TCastleWindow / TCastleControl should be simpler and just expose
@@ -46,8 +44,10 @@ unit CastleInternalContainer;
 interface
 
 uses Classes, Generics.Collections,
+  {$ifdef MSWINDOWS} CastleInternalContextWgl, {$endif}
+  {$ifdef LINUX} CastleInternalContextEgl, {$endif}
   CastleRectangles, CastleImages,
-  CastleUIControls, CastleInternalContextBase, CastleInternalContextWgl;
+  CastleUIControls, CastleInternalContextBase;
 
 type
   TCastleContainerEasy = class(TCastleContainer)
@@ -65,7 +65,6 @@ type
     FDesignUrl: String;
     FDesignLoaded: TCastleUserInterface;
     FDesignLoadedOwner: TComponent;
-    procedure MakeContextCurrent;
     procedure SetAutoRedisplay(const Value: Boolean);
     procedure DoUpdate;
     procedure SetDesignUrl(const Value: String);
@@ -77,8 +76,8 @@ type
 
     { Call these methods from final components that wrap TCastleContainerEasy,
       like TCastleControl, TCastleWindow. }
-    procedure CreateContext;
-    procedure DestroyContext;
+    procedure InitializeContext;
+    procedure FinalizeContext;
     procedure DoRender;
 
     class var
@@ -92,8 +91,14 @@ type
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    function GLInitialized: boolean; override;
     function SaveScreen(const SaveRect: TRectangle): TRGBImage; overload; override;
+
+    { Is OpenGL(ES) context initialized for this container. }
+    function GLInitialized: boolean; override;
+
+    { Make given OpenGL(ES) context current.
+      Can only be used if GLInitialized. }
+    procedure MakeContextCurrent;
 
     { When the DesignUrl is set you can use this method to find
       loaded components. Like this:
@@ -153,20 +158,12 @@ implementation
 
 uses SysUtils,
   CastleRenderContext, CastleGLUtils, CastleApplicationProperties, CastleGLImages,
-  CastleGLVersion, CastleTimeUtils, CastleUtils, CastleLog, CastleURIUtils,
+  CastleGLVersion, CastleTimeUtils, CastleUtils, CastleLog, CastleUriUtils,
   CastleComponentSerialize, CastleInternalDelphiUtils, CastleFilesUtils;
 
 var
-  { All TCastleContainerEasy instances created.
-
-    We use this to share OpenGL contexts,
-    as all OpenGL contexts in our engine must share OpenGL resources
-    (our OnGLContextOpen and such callbacks depend on it,
-    and it makes implementation much easier). }
+  { All TCastleContainerEasy instances created. }
   ContainersList: TCastleContainerEasyList;
-
-  { Tracks how many containers on ContainersList have GL context initialized. }
-  ContainersOpen: Cardinal;
 
   LastLimitFPSTime: TTimerResult;
 
@@ -178,7 +175,7 @@ begin
   FRequirements.Name := 'Requirements';
   FRequirements.SetSubComponent(true);
 
-  FPlatformContext := TGLContextWGL.Create;
+  FPlatformContext := ContextCreateBestInstance;
 
   FAutoRedisplay := true;
 
@@ -196,6 +193,7 @@ end;
 
 procedure TCastleContainerEasy.MakeContextCurrent;
 begin
+  Assert(GLInitialized);
   RenderContext := Context;
   FPlatformContext.MakeCurrent;
 end;
@@ -218,29 +216,15 @@ begin
   Result := SaveScreen_NoFlush(Rect, SaveScreenBuffer);
 end;
 
-procedure TCastleContainerEasy.CreateContext;
-
-  function AnyOtherOpenContext: TGLContext;
-  var
-    C: TCastleContainerEasy;
-  begin
-    for C in ContainersList do
-      if (C <> Self) and C.GLInitialized then
-        Exit(C.FPlatformContext);
-    Result := nil;
-  end;
-
+procedure TCastleContainerEasy.InitializeContext;
 begin
   if not FGLInitialized then
   begin
     FGLInitialized := true;
 
-    // In CGE, all open contexts should share GL resources
-    FPlatformContext.SharedContext := AnyOtherOpenContext;
-
     AdjustContext(FPlatformContext);
 
-    FPlatformContext.ContextCreate(FRequirements);
+    FPlatformContext.Initialize(FRequirements);
 
     FEffectiveDoubleBuffer := Requirements.DoubleBuffer;
 
@@ -250,9 +234,8 @@ begin
     RenderContext.Viewport := Rect;
     ApplicationProperties._GLContextEarlyOpen;
 
-    Inc(ContainersOpen);
     // Note that this will cause ApplicationProperties._GLContextOpen if necessary
-    EventOpen(ContainersOpen);
+    EventOpen(TGLContext.InitializedContextsCount);
     EventResize;
     Invalidate;
 
@@ -269,15 +252,15 @@ procedure TCastleContainerEasy.AdjustContext(const PlatformContext: TGLContext);
 begin
 end;
 
-procedure TCastleContainerEasy.DestroyContext;
+procedure TCastleContainerEasy.FinalizeContext;
 begin
   if FGLInitialized then
   begin
-    EventClose(ContainersOpen);
-    Dec(ContainersOpen);
+    EventClose(TGLContext.InitializedContextsCount);
     FGLInitialized := false;
+    FPlatformContext.Finalize;
 
-    if UpdatingEnabled and (ContainersOpen = 0) then
+    if UpdatingEnabled and (TGLContext.InitializedContextsCount = 0) then
     begin
       UpdatingEnabled := false;
       UpdatingDisable;
@@ -388,14 +371,43 @@ var
   I: Integer;
   C: TCastleContainerEasy;
 begin
-  for I := ContainersList.Count - 1 downto 0 do
+  { Be extra careful about processing here, so check ContainersList <> nil.
+
+    As this may run after our
+    "finalization" has run in case of VCL TCastleControl,
+    when ReportMemoryLeaksOnShutdown:=true is used.
+    In this case, the dialog shown by ReportMemoryLeaksOnShutdown happens
+    after our "finalization", but before
+    the TCastleControl.TContainer.UpdatingDisable from Vcl.CastleControl,
+    so before the TCastleControl lost GL context.
+    And during ReportMemoryLeaksOnShutdown, the WinAPI message loop runs,
+    making the TCastleControl timer execute.
+  }
+
+  if ContainersList <> nil then
+    for I := ContainersList.Count - 1 downto 0 do
+    begin
+      C := ContainersList[I];
+      if C.GLInitialized then
+        C.DoUpdate;
+    end;
+  if ApplicationProperties(false) <> nil then
   begin
-    C := ContainersList[I];
-    if C.GLInitialized then
-      C.DoUpdate;
+    ApplicationProperties(false)._Update;
+
+    { For unknown reason, DoLimitFPS causes weird application freezes on FMXLinux.
+      Application update seems not to work, controls (both our OpenGL and
+      regular FMX) seem occasionally not rendered (esp. after window resize),
+      buttons react to clicks unreliably.
+
+      Note: in case of Linux, this code is only used when Delphi + Linux + FMX.
+      Because TCastleContainerEasy is only used with Delphi for FMX and VCL,
+      and on Linux only FMX is possible. }
+    {$ifndef LINUX}
+    DoLimitFPS;
+    {$endif}
   end;
-  ApplicationProperties._Update;
-  DoLimitFPS;
+
 end;
 
 procedure TCastleContainerEasy.LoadDesign;
@@ -415,7 +427,7 @@ procedure TCastleContainerEasy.LoadDesign;
       ProjectPath := OnGetDesignTimeProjectPath();
 
       { Override ApplicationData interpretation, and castle-data:/xxx URL meaning. }
-      ApplicationDataOverride := FilenameToURISafe(
+      ApplicationDataOverride := FilenameToUriSafe(
         InclPathDelim(ProjectPath) + 'data' + PathDelim);
     end;
   end;
@@ -460,7 +472,7 @@ begin
           if CastleDesignMode then // looks at InternalCastleApplicationMode
           begin
             WritelnWarning('TCastleControl', 'Failed to load design "%s": %s', [
-              URIDisplay(DesignUrl),
+              UriDisplay(DesignUrl),
               ExceptMessage(E)
             ]);
             Exit;
@@ -502,7 +514,7 @@ begin
   if Required and (Result = nil) then
     raise EComponentNotFound.CreateFmt('Cannot find component named "%s" in design "%s"', [
       ComponentName,
-      URIDisplay(DesignUrl)
+      UriDisplay(DesignUrl)
     ]);
 end;
 

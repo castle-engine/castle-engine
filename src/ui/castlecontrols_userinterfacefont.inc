@@ -242,11 +242,14 @@ begin
   TooltipWidth := TooltipLabelContainer.EffectiveWidth;
   TooltipHeight := TooltipLabelContainer.EffectiveHeight;
 
-  Pos := TooltipPosition;
+  // convert TooltipPosition from final coordinates to scaled coordinates
+  Pos := TooltipPosition / TooltipLabelContainer.UIScale;
 
   { now try to fix X, Y to make tooltip fit inside a window }
+  {$warnings off} // using deprecated ContainerWidth/Height now
   MinVar(Pos.X, ContainerWidth  / TooltipLabelContainer.UIScale - TooltipWidth );
   MinVar(Pos.Y, ContainerHeight / TooltipLabelContainer.UIScale - TooltipHeight);
+  {$warnings on}
   MaxVar(Pos.X, 0);
   MaxVar(Pos.Y, 0);
 

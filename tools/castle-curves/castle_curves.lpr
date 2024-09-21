@@ -1,0 +1,871 @@
+{
+  Copyright 2004-2024 Michalis Kamburelis.
+
+  This file is part of "Castle Game Engine".
+
+  "Castle Game Engine" is free software; see the file COPYING.txt,
+  included in this distribution, for details about the copyright.
+
+  "Castle Game Engine" is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+  ----------------------------------------------------------------------------
+}
+
+{ Create and edit curves.
+  Docs are at https://castle-engine.io/curves_tool }
+
+{$ifdef MSWINDOWS} {$apptype GUI} {$endif}
+{$I castleconf.inc}
+
+uses SysUtils, Classes, Math,
+  CastleWindow, CastleImages, CastleGLUtils, CastleLog, CastleRenderOptions,
+  CastleUtils, CastleMessages, CastleCurves, CastleVectors, CastleFonts,
+  CastleKeysMouse, CastleParameters, CastleClassUtils, CastleRectangles,
+  CastleFilesUtils, CastleStringUtils, CastleColors, CastleUriUtils,
+  CastleUIControls, CastleControls, CastleGLImages, CastleOpenDocument,
+  CastleApplicationProperties, CastleRenderContext;
+
+var
+  Window: TCastleWindow;
+
+  Curves: TControlPointsCurveList;
+  { -1 (none selected) or in [0 .. Curves.Count-1].
+    Always set using SetSelectedCurve. }
+  SelectedCurve: Integer = -1;
+  { -1 (none selected) or (only if SelectedCurve <> -1)
+    in [0 .. Curves[SelectedCurve].ControlPoints.Count-1].
+    Always set using SetSelectedPoint. }
+  SelectedPoint: Integer = -1;
+
+  RenderSegments: Cardinal = 500;
+  ShowPoints: boolean = true;
+  ShowSelectedCurveConvexHull: boolean = false;
+  LineWidth: Float = 1;
+
+  { Indicates dragging with mouse.
+    So SelectedPoint and SelectedCurve never change during dragging
+    (changing them by any means, like a menu command, breaks dragging).
+    Always SelectedPoint <> -1 (so SelectedCurve also <>-1) when Dragging. }
+  Dragging: boolean = false;
+  DraggingFarEnoughToBeActive: boolean;
+  DraggingStartPosition: TVector2;
+
+  { Just an indication of from what URL we loaded these Curves /
+    where we saved them last time / etc.
+    Set only using SetCurvesURL. }
+  CurvesUrl: String;
+
+  ColorConvexHull: TCastleColor;
+  ColorCurveSelected: TCastleColor;
+  ColorCurveNotSelected: TCastleColor;
+  ColorPointSelected: TCastleColor;
+
+  BackgroundImage: TDrawableImage;
+  BackgroundImageUrl: String;
+
+  SceneZoom: Single = 1;
+  SceneMove: TVector2;
+
+const
+  CurvesToolUrl = 'https://castle-engine.io/curves_tool';
+  DonateUrl = 'https://castle-engine.io/donate.php';
+
+  PointSize = 10;
+
+{ Call this always when SelectedPoint or SelectedCurve or (any) contents of
+  Curves[SelectedCurve] changes. It is always called from
+  SetSelectedXxx so if you change something and then call SetSelectedXxx,
+  you don't have to call this. }
+procedure SelectedChanged;
+begin
+  Dragging := false;
+end;
+
+procedure SetSelectedPoint(Value: Integer);
+begin
+  SelectedPoint := Value;
+  SelectedChanged;
+end;
+
+procedure SetSelectedCurve(Value: Integer);
+begin
+  SelectedCurve := Value;
+  SelectedChanged;
+end;
+
+procedure SetCurvesUrl(const Value: String);
+begin
+  CurvesUrl := Value;
+  Window.Caption := Value + ' - Curves plotting';
+end;
+
+function PiecewiseCubicBezierCurveSelected: boolean;
+begin
+  Result := (SelectedCurve <> -1) and
+            (Curves[SelectedCurve] is TPiecewiseCubicBezier);
+end;
+
+const
+  SErrSelectCurve = 'You must select some curve.';
+  SErrSelectPiecewiseCubicBezierCurve = 'You must select a Piecewise Cubic Bezier curve.';
+
+procedure LoadCurves(const NewUrl: String);
+var
+  ErrMessage: String;
+  NewCurves: TCurveList;
+  I: Integer;
+begin
+  NewCurves := nil;
+  try
+    NewCurves := TCurveList.Create(false);
+    NewCurves.LoadFromFile(NewUrl);
+  except
+    on E: Exception do
+    begin
+      ErrMessage := 'Error while loading file "' + NewUrl + '" : ' + E.Message;
+      if Window.Closed then
+        WritelnWarning('Loading', ErrMessage) else
+        MessageOK(Window, ErrMessage);
+      FreeAndNil(NewCurves); // avoid memory leaks
+      Exit;
+    end;
+  end;
+
+  { move curve instances from NewCurves to Curves.
+    Potentially, various curve types may be stored in curves file,
+    but right now we support only TControlPointsCurve. }
+  Curves.Clear;
+  for I := 0 to NewCurves.Count - 1 do
+    if NewCurves[I] is TControlPointsCurve then
+      Curves.Add(NewCurves[I] as TControlPointsCurve);
+  FreeAndNil(NewCurves);
+
+  { select stuff after Curves is updated }
+  SetCurvesUrl(NewUrl);
+  if Curves.Count <> 0 then { select first curve, if available }
+    SetSelectedCurve(0) else
+    SetSelectedCurve(-1);
+  if SelectedCurve = -1 then
+    SetSelectedPoint(-1) else
+    SetSelectedPoint(0);
+end;
+
+{ TStatusText ---------------------------------------------------------------- }
+
+type
+  TStatusText = class(TCastleLabel)
+    procedure Update(const SecondsPassed: Single; var HandleInput: boolean); override;
+  end;
+
+procedure TStatusText.Update(const SecondsPassed: Single; var HandleInput: boolean);
+
+  function IntToStrOrNone(i: Integer): String;
+  begin
+    if i <> -1 then Result := IntToStr(i) else Result := 'none';
+  end;
+
+begin
+  inherited;
+  { regenerate Text contents at every Update call }
+  Text.Clear;
+  Text.Append(Format('Selected curve : %s', [IntToStrOrNone(SelectedCurve)]));
+  if SelectedCurve <> -1 then
+    Text.Append(Format('  Curve type : %s', [Curves[SelectedCurve].ClassName]));
+  Text.Append(Format('Selected point : %s', [IntToStrOrNone(SelectedPoint)]));
+  Text.Append('');
+  Text.Append(Format('Rendering segments = %d', [RenderSegments]));
+end;
+
+var
+  StatusText: TStatusText;
+
+{ TViewCurves ------------------------------------------------------------- }
+
+type
+  TViewCurves = class(TCastleView)
+  public
+    procedure Start; override;
+    procedure Render; override;
+    function Motion(const Event: TInputMotion): Boolean; override;
+    function Press(const Event: TInputPressRelease): Boolean; override;
+    function Release(const Event: TInputPressRelease): Boolean; override;
+    procedure Update(const SecondsPassed: Single; var HandleInput: boolean); override;
+  end;
+
+var
+  ViewCurves: TViewCurves;
+
+procedure TViewCurves.Start;
+begin
+  inherited;
+  StatusText := TStatusText.Create(Window);
+  StatusText.Padding := 5;
+  StatusText.Anchor(hpLeft, 5);
+  StatusText.Anchor(vpBottom, 5);
+  StatusText.Frame := true;
+  StatusText.Color := Yellow;
+  InsertFront(StatusText);
+end;
+
+procedure TViewCurves.Render;
+
+  function TransformPoint(const V: TVector2): TVector2;
+  begin
+    Result := (V + SceneMove) * SceneZoom;
+  end;
+
+  function TransformPoint(const V: TVector3): TVector2;
+  begin
+    Result := TransformPoint(V.XY);
+  end;
+
+  procedure MyDrawPrimitive2D(const Mode: TPrimitiveMode;
+    const Points: array of TVector2;
+    const Color: TCastleColor);
+  begin
+    DrawPrimitive2D(Mode, Points, Color,
+      bsSrcAlpha, bdOneMinusSrcAlpha, false, // defaults
+      LineWidth, PointSize // specify custom line width and point size
+    );
+  end;
+
+  { Render curve by dividing it into a given number of line segments. }
+  procedure RenderCurve(const Curve: TCurve; const Segments: Cardinal;
+    const Color: TCastleColor; const LineWidth: Single);
+  var
+    Points: array of TVector2;
+    I: Integer;
+  begin
+    SetLength(Points, Segments + 1);
+    for I := 0 to Segments do
+      Points[I] := TransformPoint(Curve.PointOfSegment(I, Segments));
+    MyDrawPrimitive2D(pmLineStrip, Points, Color);
+  end;
+
+  procedure RenderControlPoints(const Curve: TControlPointsCurve;
+    const ControlPointsColor: TCastleColor);
+  var
+    Points: array of TVector2;
+    I: Integer;
+  begin
+    SetLength(Points, Curve.ControlPoints.Count);
+    for I := 0 to Curve.ControlPoints.Count - 1 do
+      Points[I] := TransformPoint(Curve.ControlPoints.L[I]);
+    MyDrawPrimitive2D(pmPoints, Points, ControlPointsColor);
+  end;
+
+  { Render convex hull polygon, using ConvexHullColor.
+    Ignores Z-coord of ControlPoints. }
+  procedure RenderConvexHull(const Curve: TControlPointsCurve;
+    const ConvexHullColor: TCastleColor);
+  var
+    ConvexHull: TVector3List;
+    Points: array of TVector2;
+    I: Integer;
+  begin
+    ConvexHull := Curve.ConvexHull;
+    try
+      SetLength(Points, ConvexHull.Count);
+      for I := 0 to ConvexHull.Count - 1 do
+        Points[I] := TransformPoint(ConvexHull.L[I]);
+      MyDrawPrimitive2D(pmTriangleFan, Points, ConvexHullColor);
+    finally FreeAndNil(ConvexHull) end;
+  end;
+
+var
+  I: Integer;
+  Color: TCastleColor;
+  SelectedPointXY: TVector2;
+begin
+  inherited;
+
+  if BackgroundImage <> nil then
+    BackgroundImage.Draw(FloatRectangle(BackgroundImage.Rect).Translate(SceneMove).ScaleAround0(SceneZoom));
+
+  { draw convex hull of SelectedCurve }
+  if ShowSelectedCurveConvexHull and (SelectedCurve <> -1) then
+  begin
+    RenderConvexHull(Curves[SelectedCurve], ColorConvexHull);
+  end;
+
+  { draw all curves and their control points }
+  for i := 0 to Curves.Count-1 do
+  begin
+    if i = SelectedCurve then
+      Color := ColorCurveSelected
+    else
+      Color := ColorCurveNotSelected;
+    if ShowPoints then
+      RenderControlPoints(Curves[i], Color);
+    RenderCurve(Curves[i], RenderSegments, Color, LineWidth);
+  end;
+
+  { draw SelectedPoint }
+  if SelectedPoint <> -1 then
+  begin
+    SelectedPointXY := TransformPoint(Curves[SelectedCurve].ControlPoints.Items[SelectedPoint]);
+    MyDrawPrimitive2D(pmPoints, [SelectedPointXY], ColorPointSelected);
+  end;
+end;
+
+{ Add new curve point and select it. }
+procedure AddNewPoint(const Position: TVector2);
+var
+  NewPoint: TVector3;
+begin
+  NewPoint := Vector3(Position[0], Position[1], 0);
+
+  if SelectedCurve = -1 then
+  begin
+    Curves.Add(TPiecewiseCubicBezier.Create);
+    SetSelectedCurve(Curves.Count - 1);
+  end;
+
+  if SelectedPoint = -1 then
+  begin
+    Curves[SelectedCurve].ControlPoints.Add(NewPoint);
+    SetSelectedPoint(Curves[SelectedCurve].ControlPoints.Count-1);
+  end else
+  begin
+    Curves[SelectedCurve].ControlPoints.Insert(SelectedPoint+1, NewPoint);
+    SetSelectedPoint(SelectedPoint+1);
+  end;
+
+  Curves[SelectedCurve].UpdateControlPoints;
+end;
+
+procedure ChangeZoom(const Multiply: Single);
+begin
+  SceneZoom *= Multiply;
+  ClampVar(SceneZoom, 0.01, 100);
+end;
+
+function TViewCurves.Press(const Event: TInputPressRelease): Boolean;
+
+  procedure ClosestControlPoint(const Point: TVector2;
+    var CurveNum, PointNum: Integer);
+  { return such CurveNum, PointNum that
+    Curves[CurveNum].ControlPoints[PointNum] is the closest control point
+    (from all ControlPoints from all Curves) to x, y.
+    Returns -1, -1 if Curves.Count = 0. }
+  var
+    SqrDist, SqrBestDist: Single;
+    i, j: Integer;
+  begin
+    SqrBestDist := MaxSingle;
+    CurveNum := -1;
+    PointNum := -1;
+    for i := 0 to Curves.Count-1 do
+      for j := 0 to Curves[i].ControlPoints.Count-1 do
+      begin
+        SqrDist := Sqr(Curves[i].ControlPoints.Items[j][0] - Point[0]) +
+                   Sqr(Curves[i].ControlPoints.Items[j][1] - Point[1]);
+        if SqrDist < SqrBestDist then
+        begin
+          SqrBestDist := SqrDist;
+          CurveNum := i;
+          PointNum := j;
+        end;
+      end;
+  end;
+
+  procedure SelectClosestPoint(const Point: TVector2);
+  var
+    NewSelectedCurve, NewSelectedPoint: Integer;
+  begin
+    ClosestControlPoint(Point, NewSelectedCurve, NewSelectedPoint);
+    SetSelectedCurve(NewSelectedCurve);
+    SetSelectedPoint(NewSelectedPoint);
+  end;
+
+  procedure StartDragging;
+  begin
+    if SelectedPoint <> -1 then
+    begin
+      Dragging := true;
+      DraggingFarEnoughToBeActive := false;
+      DraggingStartPosition := Event.Position;
+    end;
+  end;
+
+const
+  ZoomFactor = 1.05;
+var
+  Pos: TVector2;
+begin
+  Result := inherited;
+  if Result then Exit;
+
+  Pos := Event.Position / SceneZoom;
+
+  if Event.IsMouseButton(buttonLeft) then
+  begin
+    SelectClosestPoint(Pos);
+    StartDragging;
+    Container.Invalidate;
+    Exit(true);
+  end;
+
+  if Event.IsMouseButton(buttonRight) then
+  begin
+    AddNewPoint(Pos);
+    Container.Invalidate;
+    Exit(true);
+  end;
+
+  if Event.IsMouseWheel(mwUp) or Event.IsMouseWheel(mwLeft) then
+  begin
+    ChangeZoom(ZoomFactor);
+    Container.Invalidate;
+    Exit(true);
+  end;
+
+  if Event.IsMouseWheel(mwDown) or Event.IsMouseWheel(mwRight) then
+  begin
+    ChangeZoom(1 / ZoomFactor);
+    Container.Invalidate;
+    Exit(true);
+  end;
+end;
+
+function TViewCurves.Release(const Event: TInputPressRelease): Boolean;
+begin
+  Result := inherited;
+  if Result then Exit;
+
+  if Event.IsMouseButton(buttonLeft) then
+  begin
+    Dragging := false;
+    Container.Invalidate;
+    Exit(true);
+  end;
+end;
+
+function TViewCurves.Motion(const Event: TInputMotion): Boolean;
+const
+  DraggingFarEnough = 5;
+var
+  Change: TVector2;
+  Change3D: TVector3;
+  I: Integer;
+begin
+  Result := inherited;
+  if Result then Exit;
+
+  if Dragging then
+  begin
+    if not DraggingFarEnoughToBeActive then
+    begin
+      DraggingFarEnoughToBeActive :=
+        PointsDistanceSqr(DraggingStartPosition, Event.Position) > Sqr(DraggingFarEnough);
+      if DraggingFarEnoughToBeActive then
+        Change := Event.Position - DraggingStartPosition else
+        // do not drag until you move mouse definitely away, to avoid accidental dragging
+        Exit;
+    end else
+      Change := Event.Position - Event.OldPosition;
+
+    Change3D := Vector3(Change, 0);
+    if not (mkShift in Window.Pressed.Modifiers) then
+    begin
+      Curves[SelectedCurve].ControlPoints.L[SelectedPoint] += Change3D;
+    end else
+    begin
+      for i := 0 to Curves[SelectedCurve].ControlPoints.Count-1 do
+        Curves[SelectedCurve].ControlPoints.L[i] += Change3D;
+    end;
+
+    Curves[SelectedCurve].UpdateControlPoints;
+    Window.Invalidate;
+  end;
+end;
+
+procedure TViewCurves.Update(const SecondsPassed: Single; var HandleInput: boolean);
+
+  procedure ChangeMove(const X, Y: Single);
+  const
+    MoveSpeed = 10;
+  begin
+    { Divide by / Zoom, to effectively move slower when in larger zoom. }
+    SceneMove := SceneMove + Vector2(X, Y) * MoveSpeed / SceneZoom;
+  end;
+
+const
+  ZoomFactor = 2;
+begin
+  inherited;
+  if Container.Pressed.Characters['+'] then
+    ChangeZoom(Power(ZoomFactor, Container.Fps.SecondsPassed));
+  if Container.Pressed.Characters['-'] then
+    ChangeZoom(Power(1 / ZoomFactor, Container.Fps.SecondsPassed));
+  if Container.Pressed[keyArrowUp] then
+    ChangeMove(0, 1);
+  if Container.Pressed[keyArrowDown] then
+    ChangeMove(0, -1);
+  if Container.Pressed[keyArrowLeft] then
+    ChangeMove(-1, 0);
+  if Container.Pressed[keyArrowRight] then
+    ChangeMove(1, 0);
+end;
+
+{ menu ------------------------------------------------------------ }
+
+procedure MenuClick(Container: TCastleContainer; MenuItem: TMenuItem);
+
+  procedure ChangeSelectedCurve(Next: boolean);
+  var
+    Change: Integer;
+  begin
+    if SelectedCurve = -1 then
+    begin
+      if Curves.Count <> 0 then
+      begin
+        if Next then SetSelectedCurve(0) else SetSelectedCurve(Curves.Count-1);
+        SetSelectedPoint(0);
+      end;
+    end else
+    begin
+      if Curves.Count > 1 then
+      begin
+        if Next then Change:=+1 else Change := -1;
+        SetSelectedCurve(ChangeIntCycle(SelectedCurve, Change, Curves.Count-1));
+        SetSelectedPoint(0);
+      end;
+    end;
+  end;
+
+  procedure ChangeSelectedPoint(Next: boolean);
+  var
+    Change: Integer;
+  begin
+    if SelectedCurve <> -1 then
+    begin
+      if SelectedPoint = -1 then
+      begin
+        if Next then
+          SetSelectedPoint(0) else
+          SetSelectedPoint(Curves[SelectedCurve].ControlPoints.Count-1);
+      end else
+      begin
+        if Next then Change:=+1 else Change := -1;
+        SetSelectedPoint(ChangeIntCycle(SelectedPoint, Change,
+          Curves[SelectedCurve].ControlPoints.Count-1));
+      end;
+    end;
+  end;
+
+  procedure DeleteSelectedCurve;
+  begin
+    if SelectedCurve <> -1 then
+    begin
+      { remove Curves[SelectedCurve] }
+      Curves.Delete(SelectedCurve);
+      { update SelectedCurve and SelectedPoint }
+      if SelectedCurve >= Curves.Count then
+      begin
+        if Curves.Count = 0 then SetSelectedCurve(-1) else SetSelectedCurve(0);
+      end;
+      if SelectedCurve = -1 then
+        SetSelectedPoint(-1) else
+        SetSelectedPoint(0);
+    end;
+  end;
+
+  procedure DeleteSelectedPoint;
+  begin
+    if SelectedPoint <> -1 then
+    begin
+      if Curves[SelectedCurve].ControlPoints.Count = 1 then
+        DeleteSelectedCurve else
+      begin
+        { remove point }
+        Curves[SelectedCurve].ControlPoints.Delete(SelectedPoint);
+        Curves[SelectedCurve].UpdateControlPoints;
+        { update SelectedPoint }
+        if SelectedPoint >= Curves[SelectedCurve].ControlPoints.Count then
+          SetSelectedPoint(Curves[SelectedCurve].ControlPoints.Count-1);
+      end;
+    end;
+  end;
+
+  procedure OpenFile;
+  var
+    S: String;
+  begin
+    S := CurvesUrl;
+    if Window.FileDialog('Open curves from XML file', S, true,
+      'All Files|*|*XML files|*.xml') then
+      LoadCurves(S);
+  end;
+
+  procedure SaveFile;
+  var
+    S: String;
+    NewCurves: TCurveList;
+    I: Integer;
+  begin
+    s := CurvesUrl;
+    if Window.FileDialog('Save curves to XML file', s, false,
+      'All Files|*|*XML files|*.xml') then
+    begin
+      try
+        NewCurves := TCurveList.Create(false);
+        for I := 0 to Curves.Count - 1 do
+          NewCurves.Add(Curves[I]);
+        NewCurves.SaveToFile(S);
+      finally FreeAndNil(NewCurves) end;
+
+      SetCurvesUrl(S);
+    end;
+  end;
+
+  procedure ScaleCurve;
+  var
+    Scale: Single;
+    I: Integer;
+  begin
+    if SelectedCurve <> -1 then
+    begin
+      Scale := 1;
+      if MessageInputQuery(Window, 'Enter scale:', Scale) then
+      begin
+        for I := 0 to Curves[SelectedCurve].ControlPoints.Count - 1 do
+          Curves[SelectedCurve].ControlPoints.L[I] *= Scale;
+        Curves[SelectedCurve].UpdateControlPoints;
+      end;
+    end else
+      MessageOK(Window, SErrSelectCurve);
+  end;
+
+var
+  S: String;
+begin
+  case MenuItem.IntData of
+    4:  OpenFile;
+    6:  SaveFile;
+    8:  Window.SaveScreenDialog(FileNameAutoInc('castle-curves_%d.png'));
+    10: Window.Close;
+
+    201: begin
+           S := BackgroundImageUrl;
+           if Window.FileDialog('Open background image', S, true,
+             LoadImage_FileFilters) then
+           begin
+             BackgroundImageUrl := S;
+             FreeAndNil(BackgroundImage);
+             BackgroundImage := TDrawableImage.Create(BackgroundImageUrl);
+           end;
+         end;
+    202: FreeAndNil(BackgroundImage);
+
+    305: StatusText.Exists := not StatusText.Exists;
+    310: ShowPoints := not ShowPoints;
+    320: ShowSelectedCurveConvexHull := not ShowSelectedCurveConvexHull;
+    326: begin
+           SceneZoom := 1;
+           SceneMove := TVector2.Zero;
+         end;
+    330: RenderSegments := Max(1, MessageInputCardinal(Window,
+           'Render curves as ... segments ?', RenderSegments));
+    331: RenderSegments *= 2;
+    332: RenderSegments := Max(1, RenderSegments div 2);
+    336: MessageInputQuery(Window, 'Input line width:', LineWidth);
+
+    341: Window.ColorDialog(ColorConvexHull);
+    342: Window.ColorDialog(ColorCurveSelected);
+    343: Window.ColorDialog(ColorCurveNotSelected);
+    344: Window.ColorDialog(ColorPointSelected);
+
+    401: ScaleCurve;
+    403: begin
+           SetSelectedCurve(-1);
+           SetSelectedPoint(-1);
+         end;
+    404: ChangeSelectedCurve(true);
+    405: ChangeSelectedCurve(false);
+    406: ChangeSelectedPoint(true);
+    407: ChangeSelectedPoint(false);
+    408: DeleteSelectedPoint;
+    409: DeleteSelectedCurve;
+
+    1010:if not OpenUrl(CurvesToolUrl) then
+           Window.MessageOk(SCannotOpenUrl, mtError);
+    1020:if not OpenUrl(DonateUrl) then
+           Window.MessageOk(SCannotOpenUrl, mtError);
+    1030:begin
+           MessageOk(Window,
+             'castle-curves: curves editor for Castle Game Engine.' +nl+
+             'Version ' + ApplicationProperties.Version + '.' + NL +
+             NL +
+             CurvesToolUrl + NL +
+             NL +
+             'Compiled with ' + SCompilerDescription + '.' + NL +
+             'Platform: ' + SPlatformDescription + '.');
+         end;
+    else raise EInternalError.Create('not impl menu item');
+  end;
+  Window.Invalidate;
+end;
+
+function CreateMainMenu: TMenu;
+var
+  M: TMenu;
+begin
+  Result := TMenu.Create('Main menu');
+  M := TMenu.Create('_File');
+    { swapping fullscreen turned off for simplicity in implementation
+      BGImage }
+    { M.Append(TMenuItemKey.Create('FullScreen on/off', F11));
+    }
+    M.Append(TMenuItem.Create('_Open ...',            4, CtrlO));
+    M.Append(TMenuItem.Create('_Save ...',            6, CtrlS));
+    M.Append(TMenuSeparator.Create);
+    M.Append(TMenuItem.Create('Save screen ...', 8, keyF5));
+    M.Append(TMenuSeparator.Create);
+    M.Append(TMenuItem.Create('_Exit',                10, CtrlW));
+    Result.Append(M);
+  M := TMenu.Create('_Background');
+    M.Append(TMenuItem.Create('_Load ...', 201));
+    M.Append(TMenuItem.Create('_Clear',              202));
+    Result.Append(M);
+  M := TMenu.Create('_View');
+    M.Append(TMenuItemChecked.Create('Show / Hide _status', 305, keyF1,
+      true { default of StatusText.Exists }, true));
+    M.Append(TMenuItemChecked.Create(
+      'Show / Hide non-selected _points',                   310,
+      ShowPoints, true));
+    M.Append(TMenuItemChecked.Create(
+      'Show / Hide _convex hull of selected curve',         320,
+      ShowSelectedCurveConvexHull, true));
+    M.Append(TMenuSeparator.Create);
+    M.Append(TMenuItem.Create('Restore Default Position/Scale' , 326, keyHome));
+    M.Append(TMenuSeparator.Create);
+    M.Append(TMenuItem.Create('Set curves _rendering segments ...', 330));
+    M.Append(TMenuItem.Create('Curves rendering segments x 2',      331, 's'));
+    M.Append(TMenuItem.Create('Curves rendering segments / 2',      332, 'S'));
+    M.Append(TMenuSeparator.Create);
+    M.Append(TMenuItem.Create('Set line width ...',                 336));
+    M.Append(TMenuSeparator.Create);
+    M.Append(TMenuItem.Create('Change convex hull color ...',         341));
+    M.Append(TMenuItem.Create('Change selected curve color ...',      342));
+    M.Append(TMenuItem.Create('Change non-selected curves color ...', 343));
+    M.Append(TMenuItem.Create('Change selected point color ...',      344));
+    Result.Append(M);
+  M := TMenu.Create('_Select');
+    M.Append(TMenuItem.Create('_Nothing selected',                   403, 'n'));
+    M.Append(TMenuSeparator.Create);
+    M.Append(TMenuItem.Create('Select _next curve',                  404, 'c'));
+    M.Append(TMenuItem.Create('Select _previous curve',              405, 'C'));
+    M.Append(TMenuSeparator.Create);
+    M.Append(TMenuItem.Create('Select next point on this curve',     406, 'p'));
+    M.Append(TMenuItem.Create('Select previous point on this curve', 407, 'P'));
+    Result.Append(M);
+  M := TMenu.Create('_Edit');
+    M.Append(TMenuItem.Create('_Scale curve...',                     401));
+    M.Append(TMenuSeparator.Create);
+    M.Append(TMenuItem.Create('Delete selected _point',              408, 'd'));
+    M.Append(TMenuItem.Create('Delete selected _curve',              409, 'D'));
+    Result.Append(M);
+  M := TMenu.Create('_Help');
+    M.Append(TMenuItem.Create('Visit castle-curves website',  1010));
+    M.Append(TMenuItem.Create('Donate to Castle Game Engine', 1020));
+    M.Append(TMenuSeparator.Create);
+    M.Append(TMenuItem.Create('About castle-curves',          1030));
+    Result.Append(M);
+end;
+
+{ options ------------------------------------------------------------ }
+
+const
+  Options: array[0..1] of TOption = (
+    (Short: 'h'; Long: 'help'; Argument: oaNone),
+    (Short: 'v'; Long: 'version'; Argument: oaNone)
+  );
+
+procedure OptionProc(OptionNum: Integer; HasArgument: boolean;
+  const Argument: String; const SeparateArgs: TSeparateArgs; Data: Pointer);
+begin
+  case OptionNum of
+    0:begin
+        InfoWrite(
+          'castle-curves: create and edit curves for Castle Game Engine.' + NL +
+          NL+
+          'Available options are:' + NL +
+          OptionDescription('-h / --help', 'Print this help message and exit.') + NL +
+          OptionDescription('-v / --version', 'Print the version number and exit.') + NL +
+          NL +
+          TCastleWindow.ParseParametersHelp + NL +
+          NL +
+          'Full documentation on' + NL +
+          'https://castle-engine.io/curves_tool' + NL +
+          NL +
+          ApplicationProperties.Description);
+        Halt;
+      end;
+    1:begin
+        // include ApplicationName in version, good for help2man
+        WritelnStr(ApplicationName + ' ' + ApplicationProperties.Version);
+        Halt;
+      end;
+    else raise EInternalError.Create('OptionProc');
+  end;
+end;
+
+procedure ApplicationInitialize;
+begin
+  { initialize variables }
+  ColorConvexHull := Gray;
+  ColorCurveSelected := Yellow;
+  ColorCurveNotSelected := Green;
+  ColorPointSelected := White;
+  Theme.DialogsLight;
+
+  if URIFileExists('castle-data:/grid.png') then
+  begin
+    BackgroundImageUrl := 'castle-data:/grid.png';
+    BackgroundImage := TDrawableImage.Create(BackgroundImageUrl);
+  end;
+
+  Curves := TControlPointsCurveList.Create(true);
+
+  ViewCurves := TViewCurves.Create(Window);
+  Window.Container.View := ViewCurves;
+
+  { SetCurvesUrl also initializes Window.Caption }
+  if Parameters.High = 1 then
+    LoadCurves(Parameters[1])
+  else
+    SetCurvesUrl('my_curves.xml');
+
+  Window.OnMenuClick := @MenuClick;
+end;
+
+{ main ------------------------------------------------------------ }
+
+begin
+  ApplicationProperties.ApplicationName := 'castle-curves';
+  ApplicationProperties.Version := '2.0.0';
+  ApplicationProperties.OnWarning.Add(@ApplicationProperties.WriteWarningOnConsole);
+  InitializeLog;
+
+  Window := TCastleWindow.Create(Application);
+
+  Window.ParseParameters;
+  Parameters.Parse(Options, @OptionProc, nil);
+  Parameters.CheckHighAtMost(1);
+
+  { initialize menu (before Window.Open) }
+  Window.MainMenu := CreateMainMenu;
+
+  Application.OnInitialize := @ApplicationInitialize;
+
+  try
+    Window.Open;
+    Application.Run;
+  finally
+    FreeAndNil(Curves);
+    FreeAndNil(BackgroundImage);
+  end;
+end.

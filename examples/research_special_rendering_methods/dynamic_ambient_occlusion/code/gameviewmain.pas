@@ -24,11 +24,7 @@ unit GameViewMain;
 interface
 
 uses Classes,
-  {$ifdef OpenGLES}
-    CastleGLES,
-  {$else}
-    {$ifdef FPC} GL, GLExt, {$else} OpenGL, OpenGLext, {$endif}
-  {$endif}
+  {$ifdef OpenGLES} CastleGLES, {$else} CastleGL, {$endif}
   CastleVectors, CastleComponentSerialize, CastleViewport,
   CastleUIControls, CastleControls, CastleKeysMouse, CastleGLUtils,
   CastleTransform, CastleShapes, CastleUtils, CastleScene, CastleGLShaders,
@@ -210,7 +206,7 @@ procedure TViewMain.TMyViewport.RenderFromView3D(const Params: TRenderParams);
 
       if RectVbo = 0 then
         glGenBuffers(1, @RectVbo);
-      glBindBuffer(GL_ARRAY_BUFFER, RectVbo);
+      RenderContext.BindBuffer[btArray] := RectVbo;
       glBufferData(GL_ARRAY_BUFFER, SizeOf(Points), @Points, GL_DYNAMIC_DRAW);
 
       UniformViewportSize := RenderContext.CurrentProgram.Uniform('viewport_size');
@@ -225,8 +221,8 @@ procedure TViewMain.TMyViewport.RenderFromView3D(const Params: TRenderParams);
       glDrawArrays(GL_TRIANGLE_FAN, 0, High(Points) + 1);
 
       AttribVertex.DisableArray;
-      glBindBuffer(GL_ARRAY_BUFFER, 0);
-      glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+      RenderContext.BindBuffer[btArray] := 0;
+      RenderContext.BindBuffer[btElementArray] := 0;
     end;
 
     procedure DoRender(Pass: Integer);
@@ -235,6 +231,8 @@ procedure TViewMain.TMyViewport.RenderFromView3D(const Params: TRenderParams);
     begin
       Prog := View.GLSLProgram[Pass];
       Prog.Enable;
+
+      Assert(Assigned(glActiveTexture));
 
       glActiveTexture(GL_TEXTURE0);
       glBindTexture(GL_TEXTURE_2D, View.GLElementsPositionAreaTex);
@@ -422,7 +420,7 @@ procedure TViewMain.Start;
   end;
 
 var
-  ModelURL: String;
+  ModelUrl: String;
 begin
   inherited;
 
@@ -438,9 +436,9 @@ begin
 
   Parameters.CheckHighAtMost(1);
   if Parameters.High = 1 then
-    ModelURL := Parameters[1]
+    ModelUrl := Parameters[1]
   else
-    ModelURL :=
+    ModelUrl :=
       //'castle-data:/chinchilla_awakens.x3dv';
       //'castle-data:/simplico.wrl';
       //'castle-data:/ultra_simplico_human.wrl';
@@ -455,7 +453,7 @@ begin
 
   { initialize Scene }
   Scene := TCastleScene.Create(Application);
-  Scene.Load(ModelURL);
+  Scene.Load(ModelUrl);
   Scene.PreciseCollisions := true;
   Scene.OnGeometryChanged := {$ifdef FPC}@{$endif} SceneGeometryChanged;
   Scene.ProcessEvents := true; { allow Scene animation }

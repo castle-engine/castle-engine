@@ -1,0 +1,39 @@
+# ----------------------------------------------------------------------------
+# GitHub Action workflow to build API reference using PasDoc
+# and store it as an artifact.
+#
+# The scripts on https://castle-engine.io/
+# will notice it and deploy new version on
+# https://castle-engine.io/apidoc/html/index.html .
+# ----------------------------------------------------------------------------
+
+name: API Reference
+
+# Called by everything.yml
+on: [workflow_call]
+#on: [push, pull_request]
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  build_api_reference:
+    name: API Reference
+    runs-on: ubuntu-latest
+    container: kambi/castle-engine-cloud-builds-tools:cge-none
+    steps:
+    - uses: actions/checkout@v4
+    - name: Make API Reference
+      run: make clean html -C doc/pasdoc/
+    - name: Pack API Reference
+      run: |
+        cd doc/
+        zip -r castle-engine-only-api-reference.zip reference
+        mv castle-engine-only-api-reference.zip ../
+    - name: Archive Artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: api-reference
+        path: castle-engine-only-api-reference.zip
+        if-no-files-found: error

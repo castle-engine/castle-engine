@@ -6,7 +6,9 @@ See https://castle-engine.io/project_manifest for documentation of this file.
 -->
 
 <project name="castle_download"
-  standalone_source="castle_download.dpr">
+  standalone_source="castle_download.dpr"
+  qualified_name="io.castleengine.castle.download"
+>
   <dependencies>
     <dependency name="Https" /> <!-- read https links -->
   </dependencies>

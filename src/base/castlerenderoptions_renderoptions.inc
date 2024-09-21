@@ -93,6 +93,14 @@ type
     procedure SetLighting(const Value: Boolean);
 
     procedure UpdateHash;
+
+    function IsStoredBumpMappingParallaxHeight: Boolean;
+    function IsStoredLineWidth: Boolean;
+    function IsStoredPointSize: Boolean;
+    function IsStoredSilhouetteBias: Boolean;
+    function IsStoredSilhouetteScale: Boolean;
+    function IsStoredSolidWireframeBias: Boolean;
+    function IsStoredSolidWireframeScale: Boolean;
   protected
     { Called before changing an attribute that requires the release
       of things cached in a renderer. This includes attributes that affect:
@@ -249,13 +257,13 @@ type
     { Size of points. This has an effect on TPointSetNode rendering.
       Must be > 0. }
     property PointSize: Single
-      read FPointSize write SetPointSize {$ifdef FPC}default DefaultPointSize{$endif};
+      read FPointSize write SetPointSize stored IsStoredPointSize;
 
     { Line width. This has an effect on TLineSetNode rendering,
       and on wireframe rendering when @link(TCastleRenderOptions.WireframeEffect) indicates it.
       Must be > 0. }
     property LineWidth: Single
-      read FLineWidth write SetLineWidth {$ifdef FPC}default DefaultLineWidth{$endif};
+      read FLineWidth write SetLineWidth stored IsStoredLineWidth;
 
     { Use bump mapping. The bump mapping is only done when particular shape
       defines a normal map (and a height map, if you want parallax bump mapping).
@@ -284,7 +292,7 @@ type
       bmSteepParallaxShadowing then this property is used to interpret the height information. }
     property BumpMappingParallaxHeight: Single
       read FBumpMappingParallaxHeight write SetBumpMappingParallaxHeight
-      {$ifdef FPC}default DefaultBumpMappingParallaxHeight{$endif};
+      stored IsStoredBumpMappingParallaxHeight;
 
     { Whether to use Phong shading by default.
 
@@ -418,13 +426,13 @@ type
       read FWireframeEffect write SetWireframeEffect default weNormal;
 
     property SolidWireframeScale: Single
-      read FSolidWireframeScale write SetSolidWireframeScale {$ifdef FPC}default DefaultSolidWireframeScale{$endif};
+      read FSolidWireframeScale write SetSolidWireframeScale stored IsStoredSolidWireframeScale;
     property SolidWireframeBias: Single
-      read FSolidWireframeBias write SetSolidWireframeBias {$ifdef FPC}default DefaultSolidWireframeBias{$endif};
+      read FSolidWireframeBias write SetSolidWireframeBias stored IsStoredSolidWireframeBias;
     property SilhouetteScale: Single
-      read FSilhouetteScale write SetSilhouetteScale {$ifdef FPC}default DefaultSilhouetteScale{$endif};
+      read FSilhouetteScale write SetSilhouetteScale stored IsStoredSilhouetteScale;
     property SilhouetteBias: Single
-      read FSilhouetteBias write SetSilhouetteBias {$ifdef FPC}default DefaultSilhouetteBias{$endif};
+      read FSilhouetteBias write SetSilhouetteBias stored IsStoredSilhouetteBias;
 
     { Support lighting and backface culling for models using negative scale.
       This has a small performance cost, and so is disabled by default. }
@@ -664,7 +672,7 @@ begin
         'MinificationFilter', 'MagnificationFilter', 'PointSize', 'LineWidth',
         'BumpMapping', 'BumpMappingParallaxHeight', 'PhongShading', 'ShadowSampling',
         'MaxLightsPerShape', 'Blending', 'BlendingSourceFactor', 'BlendingDestinationFactor',
-        'WireframeEffect',
+        'WireframeEffect', 'WireframeColorPersistent',
         'SolidWireframeScale', 'SolidWireframeBias', 'SilhouetteScale',
         'SilhouetteBias', 'RobustNegativeScale',
         'WholeSceneManifold', 'ColorChannels'
@@ -946,6 +954,41 @@ begin
     FLighting := Value;
     UpdateHash;
   end;
+end;
+
+function TCastleRenderOptions.IsStoredBumpMappingParallaxHeight: Boolean;
+begin
+  Result := FBumpMappingParallaxHeight <> Single(DefaultBumpMappingParallaxHeight);
+end;
+
+function TCastleRenderOptions.IsStoredLineWidth: Boolean;
+begin
+  Result := FLineWidth <> DefaultLineWidth;
+end;
+
+function TCastleRenderOptions.IsStoredPointSize: Boolean;
+begin
+  Result := FPointSize <> DefaultPointSize;
+end;
+
+function TCastleRenderOptions.IsStoredSilhouetteBias: Boolean;
+begin
+  Result := FSilhouetteBias <> DefaultSilhouetteBias;
+end;
+
+function TCastleRenderOptions.IsStoredSilhouetteScale: Boolean;
+begin
+  Result := FSilhouetteScale <> DefaultSilhouetteScale;
+end;
+
+function TCastleRenderOptions.IsStoredSolidWireframeBias: Boolean;
+begin
+  Result := FSolidWireframeBias <> DefaultSolidWireframeBias;
+end;
+
+function TCastleRenderOptions.IsStoredSolidWireframeScale: Boolean;
+begin
+  Result := FSolidWireframeScale <> DefaultSolidWireframeScale;
 end;
 
 {$define read_implementation_methods}

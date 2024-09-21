@@ -1,6 +1,6 @@
 {%MainUnit castlecontrols.pas}
 {
-  Copyright 2018-2023 Michalis Kamburelis.
+  Copyright 2018-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -19,7 +19,7 @@
   EMaximumDesignDepth = class(Exception);
 
   { Contents of this user-interface control are loaded from an indicated file
-    (by the @link(URL) property).
+    (by the @link(Url) property).
 
     The file should be in the format created by Castle Game Engine Editor
     (serialized by CastleComponentSerialize routines) with .castle-user-interface extension. }
@@ -33,10 +33,11 @@
         loaded by UserInterfaceLoad by simple FreeAndNil(FDesignOwner). }
       FDesignOwner: TComponent;
       FDesignObserver: TFreeNotificationObserver;
-      FURL: String;
-      FRevertURL: String;
+      FUrl: String;
+      FUrlMonitoring: TUrlMonitoring;
+      FRevertUrl: String;
       FStretchWhenNotLoaded: Boolean;
-    procedure SetURL(const Value: String);
+    procedure SetUrl(const Value: String);
     function GetStretch: Boolean;
     procedure SetStretch(const Value: Boolean);
     procedure DesignFreeNotification(const Sender: TFreeNotificationObserver);
@@ -44,6 +45,7 @@
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
+    procedure BeforeDestruction; override;
 
     { Find by name a component in currently loaded design.
       When the name is not found, raises exception (unless Required is @false,
@@ -56,6 +58,11 @@
 
     { Loaded design, only for internal usage. @exclude }
     property InternalDesign: TCastleUserInterface read FDesign;
+
+    { Load again the design from @link(Url).
+      This makes sense to be used when underlying file on disk
+      changed, and you want to reload it. }
+    procedure ReloadUrl;
   published
     { Load file with the user interface design.
       The file should be in the format created by Castle Game Engine Editor
@@ -73,15 +80,15 @@
         MyButton: TCastleButton;
       begin
         MyDesign := TCastleDesign.Create(...);
-        MyDesign.URL := 'castle-data:/my_user_interface.castle-user-interface';
+        MyDesign.Url := 'castle-data:/my_user_interface.castle-user-interface';
         MyButton := MyDesign.DesignedComponent('MyButton') as TCastleButton;
         MyButton.OnClick := ...;
       end;
       #)
     }
-    property URL: String read FURL write SetURL;
+    property Url: String read FUrl write SetUrl;
 
-    { Whether the loaded component (from @link(URL)) fills the rectangle
+    { Whether the loaded component (from @link(Url)) fills the rectangle
       of this TCastleDesign instance.
 
       By default this is @true, which makes sense if the loaded component
@@ -103,7 +110,7 @@
     property Stretch: Boolean read GetStretch write SetStretch default true;
 
     { URL used to perform editor "Revert" operation. }
-    property RevertURL: String read FRevertURL write FRevertURL;
+    property RevertUrl: String read FRevertUrl write FRevertUrl;
   end;
 
 {$endif read_interface}
@@ -118,10 +125,17 @@ begin
   FDesignObserver := TFreeNotificationObserver.Create(Self);
   FDesignObserver.OnFreeNotification := {$ifdef FPC}@{$endif}DesignFreeNotification;
   FStretchWhenNotLoaded := true;
+  FUrlMonitoring.Init({$ifdef FPC}@{$endif} ReloadUrl);
 end;
 
 destructor TCastleDesign.Destroy;
 begin
+  inherited;
+end;
+
+procedure TCastleDesign.BeforeDestruction;
+begin
+  FUrlMonitoring.Finish(FUrl);
   inherited;
 end;
 
@@ -130,11 +144,11 @@ begin
   FDesign := nil;
 end;
 
-procedure TCastleDesign.SetURL(const Value: String);
+procedure TCastleDesign.SetUrl(const Value: String);
 const
   MaxLoadDepth = 32; // 64 is too much for macOS/x86_64; although for Linux/x86_64 even 1024 was OK
 begin
-  if FURL <> Value then
+  if FUrl <> Value then
   begin
     if FDesign <> nil then
     begin
@@ -143,7 +157,11 @@ begin
       Assert(FDesign = nil); // DesignFreeNotification should set FDesign to nil
     end;
 
-    FURL := Value;
+    { TODO: Disable auto-reloading of designs for now, fearing it will cause
+      more problems than gains: reloading the design invalidates all
+      the references to components inside. }
+    //FUrlMonitoring.ChangeUrl(FUrl, Value);
+    FUrl := Value;
 
     if Value <> '' then
     begin
@@ -166,7 +184,7 @@ begin
         begin
           if CastleDesignMode then
           begin
-            WritelnWarning('TCastleDesign', 'Failed to load design "%s": %s', [URIDisplay(URL), ExceptMessage(E)]);
+            WritelnWarning('TCastleDesign', 'Failed to load design "%s": %s', [UriDisplay(Url), ExceptMessage(E)]);
             Exit;
           end else
             raise;
@@ -208,7 +226,7 @@ end;
 function TCastleDesign.PropertySections(
   const PropertyName: String): TPropertySections;
 begin
-  if (PropertyName = 'URL') or
+  if (PropertyName = 'Url') or
      (PropertyName = 'Stretch') then
     Result := [psBasic]
   else
@@ -235,6 +253,15 @@ end;
 function TCastleDesign.FindComponent(const ComponentName: String): TComponent;
 begin
   Result := DesignedComponent(ComponentName, false);
+end;
+
+procedure TCastleDesign.ReloadUrl;
+var
+  SavedUrl: String;
+begin
+  SavedUrl := Url;
+  Url := '';
+  Url := SavedUrl;
 end;
 
 {$endif read_implementation}

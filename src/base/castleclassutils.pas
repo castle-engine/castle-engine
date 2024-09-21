@@ -1,5 +1,5 @@
 {
-  Copyright 2000-2022 Michalis Kamburelis.
+  Copyright 2000-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -20,13 +20,13 @@
   Some notes about TStream descendants :
   @unorderedList(
     @item(
-      I call a stream "purely sequential" (or just "sequential")
+      We call a stream "purely sequential" (or just "sequential")
       if it allows only reading and/or writing of data
       and does not allow free "Seek" calls,
       in particular --- it does not allow Seek to move back in a stream.)
 
     @item(
-      I call a stream "growing" if it's read-only and it's purely sequential
+      We call a stream "growing" if it's read-only and it's purely sequential
       and it's Size property may be useless. In other words, when you read
       a "growing" stream, you don't know when it ends, until you reach the end.
       You just have to read data until Read returns 0.)
@@ -37,7 +37,6 @@
       e.g. seen for THandleStream when handle is StdIn.)
   )
 }
-
 unit CastleClassUtils;
 
 {$I castleconf.inc}
@@ -83,12 +82,9 @@ procedure Strings_Trim(Strings: TStrings; MaxCount: Cardinal);
 { ---------------------------------------------------------------------------- }
 { @section(TStream utilities) }
 
-{ }
-procedure StreamWriteLongWord(Stream: TStream; const Value: LongWord);
-function StreamReadLongWord(Stream: TStream): LongWord;
-
-procedure StreamWriteByte(Stream: TStream; const Value: Byte);
-function StreamReadByte(Stream: TStream): Byte;
+// Unused
+//procedure StreamWriteByte(Stream: TStream; const Value: Byte);
+//function StreamReadByte(Stream: TStream): Byte;
 
 { Write string contents, encoded as 8-bit (UTF-8), to stream.
   Versions with "Ln" suffix append a newline.
@@ -376,14 +372,14 @@ type
     { A position of the next unread char in Buffer,
       i.e. PeekChar simply returns Buffer[BufferPos]
       (unless BufferPos = BufferEnd, in which case buffer must be refilled). }
-    BufferPos: LongWord;
+    BufferPos: Cardinal;
 
     { Always BufferPos <= BufferEnd.
       Always Buffer[BufferPos..BufferEnd - 1] is the data that still must be
       returned by TBufferedReadStream.Read method. }
-    BufferEnd: LongWord;
+    BufferEnd: Cardinal;
 
-    FBufferSize: LongWord;
+    FBufferSize: Cardinal;
 
     { Sets Buffer contents, BufferEnd reading data from SourceStream.
       BufferPos is always resetted to 0 by this. }
@@ -392,7 +388,7 @@ type
     function GetPosition: Int64; override;
   public
     constructor Create(ASourceStream: TStream; AOwnsSourceStream: boolean;
-      ABufferSize: LongWord = DefaultReadBufferSize);
+      ABufferSize: Cardinal = DefaultReadBufferSize);
     destructor Destroy; override;
 
     function Read(var LocalBuffer; Count: Longint): Longint; override;
@@ -400,7 +396,7 @@ type
     function ReadChar: Integer; override;
     function ReadUpto(const EndingChars: TSetOfChars): AnsiString; override;
 
-    property BufferSize: LongWord read FBufferSize;
+    property BufferSize: Cardinal read FBufferSize;
   end;
 
 { ---------------------------------------------------------------------------- }
@@ -513,6 +509,12 @@ type
     procedure ReadWriteList(const Key: String;
       const ListEnumerate: TListEnumerateEvent; const ListAdd: TListAddEvent;
       const ListClear: TListClearEvent); virtual; abstract;
+
+    { Is there set with the given Key, and non-empty?
+      Internal, because use-case small: backward compatibility for old designs
+      with "Spatial" set.
+      @exclude}
+    function InternalHasNonEmptySet(const Key: String): Boolean; virtual; abstract;
   end;
 
   { Component with various CGE extensions: can be a parent of other non-visual components
@@ -715,6 +717,14 @@ type
       The name of this method is consistent with TPropertyEditor.ValueIsStreamed
       in LCL. }
     function ValueIsStreamed: Boolean; virtual;
+
+    { Override to add information that should be visible at design-time.
+      Call @code(SList.Add) for each new line of information. }
+    procedure DesignerInfo(const SList: TStrings); virtual;
+
+    { Override to add warnings that should be visible at design-time.
+      Call @code(SList.Add) for each new warning. }
+    procedure DesignerWarnings(const SList: TStrings); virtual;
   end;
 
 { Enumerate all properties that are possible to translate in this component
@@ -920,12 +930,36 @@ type
 
   TNotifyEventList = class({$ifdef FPC}specialize{$endif} TList<TNotifyEvent>)
   public
-    { Call all (non-nil) Items, from first to last. }
+    { Call all (assigned) Items, from first to last. }
     procedure ExecuteAll(Sender: TObject);
-    { Call all (non-nil) Items, from first to last. }
+
+    { Call all (assigned) Items, from first to last. }
     procedure ExecuteForward(Sender: TObject);
-    { Call all (non-nil) Items, from last to first. }
+
+    { Call all (assigned) Items, from last to first. }
     procedure ExecuteBackward(Sender: TObject);
+  end;
+
+  TSimpleNotifyEventList = class({$ifdef FPC}specialize{$endif} TList<TSimpleNotifyEvent>)
+  public
+    { Call all (assigned) Items, from first to last. }
+    procedure ExecuteAll;
+
+    { Remove all unassigned items. }
+    procedure Pack;
+
+    { Unassign all items equal this Event.
+      This is useful to do when (possibly) iterating over this list,
+      and doing Remove(Event) would be risky (shifting the items order).
+      So it's safer to do Unassign(Event) and call Pack once we don't iterate
+      over the list anymore. }
+    procedure Unassign(const Event: TSimpleNotifyEvent);
+  end;
+
+  TProcedureList = class({$ifdef FPC}specialize{$endif} TList<TProcedure>)
+  public
+    { Call all (assigned) Items, from first to last. }
+    procedure ExecuteAll;
   end;
 
 {$ifdef FPC}
@@ -1008,7 +1042,7 @@ type
 
     Using this is an alternative to observing freeing using
     standard TComponent.FreeNotification / TComponent.RemoveFreeNotification mechanism
-    https://castle-engine.io/modern_pascal_introduction.html#_free_notification .
+    https://castle-engine.io/modern_pascal#_free_notification .
     Using TFreeNotificationObserver is:
 
     @unorderedList(
@@ -1017,7 +1051,7 @@ type
         E.g. the line @code(FChildObserver.Observed := Value) is simpler
         than the typical equivalent lines required to unregister notification
         of the old value and register notification of the new value.
-        (See https://castle-engine.io/modern_pascal_introduction.html#_free_notification
+        (See https://castle-engine.io/modern_pascal#_free_notification
         example of FreeNotification usage.)
       )
 
@@ -1036,6 +1070,16 @@ type
         there's no additional code to handle this case. You just need different
         observer for each property to be observed.)
     )
+
+    As the owner of this TFreeNotificationObserver instance (given as parameter
+    to the constructor, TFreeNotificationObserver.Create) you almost always
+    want to pass the instance that has the method you will associate
+    with @link(OnFreeNotification). In most cases (see also example above) this is
+    available as just "Self". This means that TFreeNotificationObserver
+    will be freed (and will no longer generate @link(OnFreeNotification))
+    when the instance holding the associated method is freed, not later
+    (which would mean the notification callback is called on non-existing instance,
+    leading to an access violation).
   *)
   TFreeNotificationObserver = class(TComponent)
   strict private
@@ -1122,16 +1166,7 @@ end;
 
 { TStream helpers -------------------------------------------------------- }
 
-procedure StreamWriteLongWord(Stream: TStream; const Value: LongWord);
-begin
-  Stream.WriteBuffer(Value, SizeOf(Value));
-end;
-
-function StreamReadLongWord(Stream: TStream): LongWord;
-begin
-  Stream.ReadBuffer(Result, SizeOf(Result));
-end;
-
+{ // Unused
 procedure StreamWriteByte(Stream: TStream; const Value: Byte);
 begin
   Stream.WriteBuffer(Value, SizeOf(Value));
@@ -1141,6 +1176,7 @@ function StreamReadByte(Stream: TStream): Byte;
 begin
   Stream.ReadBuffer(Result, SizeOf(Result));
 end;
+}
 
 procedure WriteStr(const Stream: TStream; const S: AnsiString);
 begin
@@ -1320,14 +1356,20 @@ const
   BufferSize = 1000 * 1000;
 var
   ReadCount: Integer;
-  TotalReadCount: Int64;
+  TotalReadCount: PtrUInt;
   MemoryStart: Pointer;
 begin
   Result := TMemoryStream.Create;
   try
     TotalReadCount := 0;
     repeat
-      Result.Size := TotalReadCount + BufferSize;
+      { Note: on 32-bit systems,
+        - TStream.Size is still Int64 (as on all platforms)
+        - But allocated memory for pointer is at most High(UInt32) = High(PtrUInt)
+        Let the assignment "Result.Size" below raise an exception
+        if trying to read file with size > High(UInt32). }
+      Result.Size := Int64(TotalReadCount) + BufferSize;
+
       MemoryStart := Pointer(PtrUInt(Result.Memory) + TotalReadCount);
       ReadCount := GrowingStream.Read(MemoryStart^, BufferSize);
       if ReadCount = 0 then Break;
@@ -1597,7 +1639,7 @@ end;
 { TBufferedReadStream ----------------------------------------------------- }
 
 constructor TBufferedReadStream.Create(ASourceStream: TStream;
-  AOwnsSourceStream: boolean; ABufferSize: LongWord);
+  AOwnsSourceStream: boolean; ABufferSize: Cardinal);
 begin
   inherited Create(ASourceStream, AOwnsSourceStream);
 
@@ -1626,15 +1668,15 @@ end;
 
 function TBufferedReadStream.Read(var LocalBuffer; Count: Longint): Longint;
 var
-  CopyCount: LongWord;
+  CopyCount: Cardinal;
 begin
   if Count < 0 then
     Result := 0 else
-  if LongWord(Count) <= BufferEnd - BufferPos then
+  if Cardinal(Count) <= BufferEnd - BufferPos then
   begin
     { In this case we can fill LocalBuffer using only data from Buffer }
     Move(Buffer^[BufferPos], LocalBuffer, Count);
-    BufferPos := BufferPos + LongWord(Count);
+    BufferPos := BufferPos + Cardinal(Count);
     Result := Count;
   end else
   begin
@@ -1648,10 +1690,10 @@ begin
       of TBufferedReadStream, to guarantee buffered reading).
       On the other hand, if Count >= BufferSize I can read it directly
       from SourceStream, no need to use Buffer in this case. }
-    if LongWord(Count) < BufferSize then
+    if Cardinal(Count) < BufferSize then
     begin
       FillBuffer;
-      CopyCount := Min(LongWord(Count), BufferEnd - BufferPos);
+      CopyCount := Min(Cardinal(Count), BufferEnd - BufferPos);
       Move(Buffer^[0], PChar(@LocalBuffer)[Result], CopyCount);
       BufferPos := BufferPos + CopyCount;
       Result := Result + LongInt(CopyCount);
@@ -1703,7 +1745,7 @@ end;
 function TBufferedReadStream.ReadUpto(const EndingChars: TSetOfChars): AnsiString;
 var
   Peeked: Integer;
-  BufferBeginPos, OldResultLength, ReadCount: LongWord;
+  BufferBeginPos, OldResultLength, ReadCount: Cardinal;
   ConsumingChar: AnsiChar;
 begin
   Result := '';
@@ -1975,6 +2017,14 @@ begin
   Result := true;
 end;
 
+procedure TCastleComponent.DesignerInfo(const SList: TStrings);
+begin
+end;
+
+procedure TCastleComponent.DesignerWarnings(const SList: TStrings);
+begin
+end;
+
 { TComponent routines -------------------------------------------------------- }
 
 type
@@ -2006,6 +2056,7 @@ type
       const ListEnumerate: TSerializationProcess.TListEnumerateEvent;
       const ListAdd: TSerializationProcess.TListAddEvent;
       const ListClear: TSerializationProcess.TListClearEvent); override;
+    function InternalHasNonEmptySet(const Key: String): Boolean; override;
   end;
 
 procedure TTranslatePropertiesOnChildren.TranslatePropertiesOnChild(Child: TComponent);
@@ -2045,6 +2096,12 @@ end;
 procedure TTranslatePropertiesOnChildren.ReadWriteSingle(const Key: String; var Value: Single; const IsStored: Boolean);
 begin
   // just override abstract method to do nothing
+end;
+
+function TTranslatePropertiesOnChildren.InternalHasNonEmptySet(const Key: String): Boolean;
+begin
+  // just override abstract method to do nothing
+  Result := false;
 end;
 
 procedure TranslateProperties(const C: TComponent;
@@ -2359,6 +2416,55 @@ begin
 
     if (I < Count) and Assigned(Items[I]) then
       Items[I](Sender);
+end;
+
+{ TSimpleNotifyEventList  ------------------------------------------------------ }
+
+procedure TSimpleNotifyEventList.ExecuteAll;
+var
+  I: Integer;
+begin
+  for I := 0 to Count - 1 do
+    { See TNotifyEventList.ExecuteAll for explanation why the "I < Count"
+      adds a little safety here. }
+    if (I < Count) and Assigned(Items[I]) then
+      Items[I]();
+end;
+
+procedure TSimpleNotifyEventList.Pack;
+var
+  I: Integer;
+begin
+  I := 0;
+  while I < Count do
+  begin
+    if Assigned(Items[I]) then
+      Inc(I)
+    else
+      Delete(I);
+  end;
+end;
+
+procedure TSimpleNotifyEventList.Unassign(const Event: TSimpleNotifyEvent);
+var
+  I: Integer;
+begin
+  for I := 0 to Count - 1 do
+    if SameMethods(TMethod(Event), TMethod(Items[I])) then
+      Items[I] := nil;
+end;
+
+{ TProcedureList ------------------------------------------------------ }
+
+procedure TProcedureList.ExecuteAll;
+var
+  I: Integer;
+begin
+  for I := 0 to Count - 1 do
+    { See TNotifyEventList.ExecuteAll for explanation why the "I < Count"
+      adds a little safety here. }
+    if (I < Count) and Assigned(Items[I]) then
+      Items[I]();
 end;
 
 { DumpStack ------------------------------------------------------------------ }

@@ -1,5 +1,5 @@
 {
-  Copyright 2020-2021 Andrzej Kilijanski.
+  Copyright 2020-2023 Andrzej Kilijanski, Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -173,7 +173,7 @@ type
     procedure ListViewAnimationsDragOver(Sender, Source: TObject; X,
       Y: Integer; State: TDragState; var Accept: Boolean);
     procedure ListViewAnimationsEdited(Sender: TObject; Item: TListItem;
-      var AValue: string);
+      var AValue: String);
     procedure ListViewAnimationsSelectItem(Sender: TObject; Item: TListItem;
       Selected: Boolean);
     procedure ListViewFramesSelectItem(Sender: TObject; Item: TListItem;
@@ -185,8 +185,6 @@ type
   private
     type
       TPreviewMode = (pmAnimation, pmFrame);
-      { Enum just for readability }
-      TForceFileRegen = (ffgDoForceFileRegen, ffgDontForceFileRegen);
 
       TSelectedFrames = class
       strict private
@@ -229,6 +227,12 @@ type
       FSelectNewAnimation: Boolean;
       { RC for LockUpdatePreview/UnlockUpdatePreview }
       FLockUpdatePReviewRC: Integer;
+      { If @true, then
+        - FPreviewScene <> nil and
+        - FPreviewScene.RootNode contents are synchronized to show all
+          animations in current FSpriteSheet contents,
+          i.e. they are FSpriteSheet.ToX3D. }
+      FNodesShowSpriteSheetAnimation: Boolean;
 
     function ProposeSaveSpriteSheet: Boolean;
     { Returns true if sprite sheet was closed }
@@ -249,7 +253,7 @@ type
     function GetFirstSelectedFrame: TCastleSpriteSheetFrame;
     function GetLastSelectedFrame: TCastleSpriteSheetFrame;
     function FrameTitle(const FrameNo: Integer;
-      const Frame: TCastleSpriteSheetFrame): string;
+      const Frame: TCastleSpriteSheetFrame): String;
     procedure UpdateFrameTitles;
 
     { Returns current preview mode }
@@ -259,12 +263,16 @@ type
     procedure ShowPreviewControl(const MakeVisible: Boolean);
     { Creates viewport and scene for preview }
     procedure CreatePreviewUIIfNeeded;
-    { Updates current preview. If PreviewModesToUpdate is pmAnimation
-      value of ForcePreviewFileRegen controls sprite sheet file should be forced
-      to regenrate/reload. Note that it will be regenerated even if you don't
-      set it force when it's obvoius (eg. for frames). }
-    procedure UpdatePreview(const PreviewModesToUpdate: TPreviewMode;
-      const ForcePreviewFileRegen: TForceFileRegen);
+    { Updates current preview.
+
+      If PreviewModesToUpdate is pmAnimation then
+      value of FNodesShowSpriteSheetAnimation determines if we need to rebuild
+      X3D nodes from FSpriteSheet contents. FNodesShowSpriteSheetAnimation = false
+      means we need to rebuild.
+
+      In case of PreviewModesToUpdate = pmFrame, right now the X3D nodes
+      will be always rebuild. }
+    procedure UpdatePreview(const PreviewModesToUpdate: TPreviewMode);
     { Regenerates and load animation preview }
     procedure RegenerateAnimationPreview;
     { Regenerates and load frame preview }
@@ -313,7 +321,7 @@ implementation
 {$R *.lfm}
 
 uses GraphType, IntfGraphics, Math, LCLIntf, LCLType, FPImage,
-  CastleImages, CastleLog, CastleUtils, CastleURIUtils, CastleFilesUtils,
+  CastleImages, CastleLog, CastleUtils, CastleUriUtils, CastleFilesUtils,
   X3DNodes,
   EditorUtils,
   FormProject, FormImportAtlas, FormImportStarling
@@ -450,7 +458,8 @@ begin
   finally
     FreeAndNil(SelectedFrames);
   end;
-  UpdatePreview(GetCurrentPreviewMode, ffgDoForceFileRegen);
+  FNodesShowSpriteSheetAnimation := false;
+  UpdatePreview(GetCurrentPreviewMode);
 end;
 
 procedure TSpriteSheetEditorForm.ActionCreateNewAnimationFromSelectionUpdate(
@@ -700,7 +709,8 @@ begin
   finally
     FSelectNewAnimation := OldSelectNewAnimation;
   end;
-  UpdatePreview(GetCurrentPreviewMode, ffgDoForceFileRegen);
+  FNodesShowSpriteSheetAnimation := false;
+  UpdatePreview(GetCurrentPreviewMode);
 end;
 
 procedure TSpriteSheetEditorForm.ActionOpenSpriteSheetExecute(Sender: TObject);
@@ -715,12 +725,12 @@ begin
     URLToOpen := OpenDialog.URL;
 
     { Check: if file is Starling }
-    MimeType := URIMimeType(URLToOpen);
+    MimeType := UriMimeType(URLToOpen);
     if (MimeType = 'application/x-starling-sprite-sheet') or
        (MimeType = 'application/xml') then
     begin
       { If file has anchors don't show import dialog }
-      URIGetAnchor(URLToOpen, URLAnchor, true);
+      UriGetAnchor(URLToOpen, URLAnchor);
       if URLAnchor = '' then
       begin
         ImportStarlingForm.Initialize(URLToOpen);
@@ -746,7 +756,8 @@ begin
     Exit;
 
   FSpriteSheet.RemoveAnimation(Animation);
-  UpdatePreview(GetCurrentPreviewMode, ffgDoForceFileRegen);
+  FNodesShowSpriteSheetAnimation := false;
+  UpdatePreview(GetCurrentPreviewMode);
 end;
 
 procedure TSpriteSheetEditorForm.ActionDeleteAnimationUpdate(Sender: TObject);
@@ -815,7 +826,7 @@ end;
 procedure TSpriteSheetEditorForm.ActionSaveSpriteSheetExecute(Sender: TObject);
 begin
   if (FSpriteSheet.URL = '') or
-     (URIMimeType(FSpriteSheet.URL) <> 'application/x-castle-sprite-sheet') then
+     (UriMimeType(FSpriteSheet.URL) <> 'application/x-castle-sprite-sheet') then
     ActionSaveSpriteSheetAsExecute(Sender)
   else
     FSpriteSheet.Save(FSpriteSheet.URL, false);
@@ -832,7 +843,8 @@ begin
   begin
     Animation.FramesPerSecond := FloatSpinEditFPS.Value;
     { To change frames per second file must be regenerated. }
-    UpdatePreview(GetCurrentPreviewMode, ffgDoForceFileRegen);
+    FNodesShowSpriteSheetAnimation := false;
+    UpdatePreview(GetCurrentPreviewMode);
   end;
 end;
 
@@ -903,10 +915,10 @@ begin
   { Adjust InitialDir values to make open/save dialogs natural, and clear URL.
     Do this in FormShow, as one instance of TSpriteSheetEditorForm may exist across
     many CGE projects being open. }
-  OpenDialog.InitialDir := URIToFilenameSafe('castle-data:/');
-  SaveDialog.InitialDir := URIToFilenameSafe('castle-data:/');
-  CastleOpenImageDialog.InitialDir := URIToFilenameSafe('castle-data:/');
-  CastleImportAtlasDialog.InitialDir := URIToFilenameSafe('castle-data:/');
+  OpenDialog.InitialDir := UriToFilenameSafe('castle-data:/');
+  SaveDialog.InitialDir := UriToFilenameSafe('castle-data:/');
+  CastleOpenImageDialog.InitialDir := UriToFilenameSafe('castle-data:/');
+  CastleImportAtlasDialog.InitialDir := UriToFilenameSafe('castle-data:/');
   OpenDialog.URL := '';
   SaveDialog.URL := '';
   CastleOpenImageDialog.URL := '';
@@ -973,7 +985,7 @@ begin
 end;
 
 procedure TSpriteSheetEditorForm.ListViewAnimationsEdited(Sender: TObject;
-  Item: TListItem; var AValue: string);
+  Item: TListItem; var AValue: String);
 var
   Animation: TCastleSpriteSheetAnimation;
 begin
@@ -990,7 +1002,8 @@ begin
   end;
 
   Animation.Name := AValue;
-  UpdatePreview(GetCurrentPreviewMode, ffgDoForceFileRegen);
+  FNodesShowSpriteSheetAnimation := false;
+  UpdatePreview(GetCurrentPreviewMode);
 end;
 
 procedure TSpriteSheetEditorForm.ListViewAnimationsSelectItem(Sender: TObject;
@@ -1013,7 +1026,7 @@ begin
   { In case of changing frames, animation preview should be ok
     (frame preview is always regenerated). }
   if GetCurrentPreviewMode = pmFrame then
-    UpdatePreview(GetCurrentPreviewMode, ffgDontForceFileRegen);
+    UpdatePreview(GetCurrentPreviewMode);
 end;
 
 procedure TSpriteSheetEditorForm.PopupMenuCloseGTK2Fix(Sender: TObject);
@@ -1034,7 +1047,8 @@ procedure TSpriteSheetEditorForm.RadioFrameChange(Sender: TObject);
 begin
   { In case of changing from frame preview to animation preview,
     animation preview can be outdated so we force file regeneration }
-  UpdatePreview(GetCurrentPreviewMode, ffgDoForceFileRegen);
+  FNodesShowSpriteSheetAnimation := false;
+  UpdatePreview(GetCurrentPreviewMode);
 end;
 
 procedure TSpriteSheetEditorForm.SpinEditMaxAtlasSizeChange(Sender: TObject);
@@ -1127,7 +1141,7 @@ begin
   FloatSpinEditFPS.Value := Animation.FramesPerSecond;
   ClearFrames;
   LoadFrames(Animation);
-  UpdatePreview(GetCurrentPreviewMode, ffgDontForceFileRegen);
+  UpdatePreview(GetCurrentPreviewMode);
 end;
 
 procedure TSpriteSheetEditorForm.ClearFrames;
@@ -1286,7 +1300,7 @@ begin
 end;
 
 function TSpriteSheetEditorForm.FrameTitle(const FrameNo: Integer;
-  const Frame: TCastleSpriteSheetFrame): string;
+  const Frame: TCastleSpriteSheetFrame): String;
 begin
   Result := IntToStr(FrameNo + 1) + ' - ' + IntToStr(Frame.FrameWidth) +
      'x' + IntToStr(Frame.FrameHeight);
@@ -1328,7 +1342,7 @@ begin
   begin
     FNavigation := TCastle2DNavigation.Create(Self);
 
-    FViewport := TCastleViewport.InternalCreateNonDesign(Self);
+    FViewport := TCastleViewport.InternalCreateNonDesign(Self, 0);
     Assert(FViewport.Camera <> nil);
     FViewport.FullSize := true;
     FViewport.InsertFront(FNavigation);
@@ -1344,8 +1358,7 @@ begin
 end;
 
 procedure TSpriteSheetEditorForm.UpdatePreview(
-  const PreviewModesToUpdate: TPreviewMode;
-  const ForcePreviewFileRegen: TForceFileRegen);
+  const PreviewModesToUpdate: TPreviewMode);
 
   procedure LoadFrameInPreview(
     const Frame: TCastleSpriteSheetFrame);
@@ -1389,9 +1402,11 @@ begin
   case PreviewModesToUpdate of
     pmAnimation:
       begin
-        { only when we know file should change }
-        if ForcePreviewFileRegen = ffgDoForceFileRegen then
+        if not FNodesShowSpriteSheetAnimation then
+        begin
           RegenerateAnimationPreview;
+          FNodesShowSpriteSheetAnimation := false;
+        end;
         LoadAnimationInPreview(GetCurrentAnimation);
       end;
     pmFrame:
@@ -1523,7 +1538,10 @@ procedure TSpriteSheetEditorForm.UnlockUpdatePreview;
 begin
   Dec(FLockUpdatePReviewRC);
   if FLockUpdatePReviewRC < 1 then
-    UpdatePreview(GetCurrentPreviewMode, ffgDoForceFileRegen);
+  begin
+    FNodesShowSpriteSheetAnimation := false;
+    UpdatePreview(GetCurrentPreviewMode);
+  end;
 end;
 
 procedure TSpriteSheetEditorForm.UpdateWindowCaption;
@@ -1545,7 +1563,7 @@ begin
   if FSpriteSheet.URL = '' then
     FileName := 'New Sprite Sheet'
   else
-    FileName := ExtractURIName(FSpriteSheet.URL);
+    FileName := ExtractUriName(FSpriteSheet.URL);
 
   Caption := ModifiedMark + FileName + ' | ' + FWindowTitle;
 end;
@@ -1687,7 +1705,8 @@ begin
   end;
 
   { Preview update must be always called here (make preview always correct). }
-  UpdatePreview(GetCurrentPreviewMode, ffgDoForceFileRegen);
+  FNodesShowSpriteSheetAnimation := false;
+  UpdatePreview(GetCurrentPreviewMode);
 end;
 
 procedure TSpriteSheetEditorForm.AnimationMoved(
@@ -1703,7 +1722,8 @@ procedure TSpriteSheetEditorForm.MaxAtlasSizeChanged(const MaxWidth,
   MaxHeight: Integer);
 begin
   SpinEditMaxAtlasSize.Value := Max(MaxWidth, MaxHeight);
-  UpdatePreview(GetCurrentPreviewMode, ffgDoForceFileRegen);
+  FNodesShowSpriteSheetAnimation := false;
+  UpdatePreview(GetCurrentPreviewMode);
 end;
 
 procedure TSpriteSheetEditorForm.AnimationAdded(
@@ -1747,7 +1767,8 @@ begin
     { Just add frame on last position }
     AddFrameToListView(NewFrame, NewFrame.Animation.FrameCount - 1);
   finally
-    UpdatePreview(GetCurrentPreviewMode, ffgDoForceFileRegen);
+    FNodesShowSpriteSheetAnimation := false;
+    UpdatePreview(GetCurrentPreviewMode);
   end;
 end;
 
@@ -1766,12 +1787,19 @@ begin
     FSpriteSheet :=  TCastleSpriteSheet.Create(true); // edit mode
     FSpriteSheet.OnModifiedStateChanged := @ModifiedStateChanged;
     FSpriteSheet.Load(URL);
+    { Note that this has to be set early to false, not right before
+      UpdatePreview lower in this routine, in case something will call
+      indirectly UpdatePreview. Right now, LoadAnimations actually call
+      UpdatePreview. Failure to set FNodesShowSpriteSheetAnimation:=false
+      would result in warnings "animation not found", see
+      https://github.com/castle-engine/castle-engine/issues/527 . }
+    FNodesShowSpriteSheetAnimation := false;
     LoadAtlasSize;
     UpdateWindowCaption;
     LoadAnimations(FSpriteSheet);
     AssignEventsToSpriteSheet;
     FLockUpdatePReviewRC := 0;
-    UpdatePreview(GetCurrentPreviewMode, ffgDoForceFileRegen);
+    UpdatePreview(GetCurrentPreviewMode);
   except
     on E:Exception do
     begin
@@ -1789,12 +1817,13 @@ begin
       Exit;
     CloseSpriteSheet;
     FSpriteSheet :=  TCastleSpriteSheet.Create(true);
+    FNodesShowSpriteSheetAnimation := false;
     LoadAtlasSize;
     UpdateWindowCaption;
     LoadAnimations(FSpriteSheet);
     AssignEventsToSpriteSheet;
     FLockUpdatePReviewRC := 0;
-    UpdatePreview(GetCurrentPreviewMode, ffgDoForceFileRegen);
+    UpdatePreview(GetCurrentPreviewMode);
   except
     on E:Exception do
     begin

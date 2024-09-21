@@ -623,7 +623,9 @@ begin
           for I := Order to Dimension - 1 do
             Knot.L[I] := (I - Order) div (Order - 1) + 1;
         end;
+      {$ifndef COMPILER_CASE_ANALYSIS}
       else raise EInternalError.Create('NurbsKnotIfNeeded 594');
+      {$endif}
     end;
 
     // Debug:

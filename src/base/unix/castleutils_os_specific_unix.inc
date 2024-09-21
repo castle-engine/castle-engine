@@ -28,13 +28,16 @@ function CastleReadLink(const FileName: string): string;
 {$ifdef read_implementation}
 
 function CastleReadLink(const FileName: string): string;
-var ReadLinkResult, NewLength: Integer;
+var
+  ReadLinkResult, NewLength: Integer;
+  FileNameAnsi: AnsiString;
 begin
  NewLength := 100;
  repeat
   SetLength(Result, NewLength);
+  FileNameAnsi := FileName;
   ReadLinkResult := {$ifdef FPC} FpReadlink {$else} ReadLink {$endif}
-    (PAnsiChar(FileName), Pointer(Result), NewLength);
+    (PAnsiChar(FileNameAnsi), Pointer(Result), NewLength);
 
   OSCheck( ReadLinkResult <> -1, 'readlink' );
 

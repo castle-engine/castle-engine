@@ -3,4 +3,15 @@
 #
 # See https://docs.testfairy.com/iOS_SDK/Integrating_iOS_SDK.html#cocoapods
 
-pod 'TestFairy', :inhibit_warnings => true
+# TODO: Forcing version 1.28.5, to avoid 1.28.6 that requires "Code Coverage"
+# enabled, and I don't know how to enable it for "Archive".
+# Enabling "Code Coverage" for testing is easy, following
+# https://developer.apple.com/library/archive/documentation/DeveloperTools/Conceptual/testing_with_xcode/chapters/07-code_coverage.html ,
+# but the "Archive" action in Xcode than still fails with
+# unknown symbol ___llvm_profile_runtime" .
+#
+# See https://github.com/testfairy/testfairy-cordova-plugin/issues/32 .
+#
+# For now reverting to 1.28.5 seems to work OK.
+
+pod 'TestFairy', '1.28.5', :inhibit_warnings => true

@@ -156,7 +156,7 @@ function FastUpdateArrays(const Shape: TX3DRendererShape): Boolean;
             end;
 
             // load NewCoordinates to GPU
-            glBindBuffer(GL_ARRAY_BUFFER, Cache.Vbo[vtCoordinate]);
+            RenderContext.BindBuffer[btArray] := Cache.Vbo[vtCoordinate];
             glBufferSubData(GL_ARRAY_BUFFER, 0, Size, NewCoordinates);
           finally FreeMemNiling(NewCoordinates) end;
         end;
