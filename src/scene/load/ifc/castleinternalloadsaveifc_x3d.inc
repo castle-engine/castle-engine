@@ -30,15 +30,18 @@ begin
   Result := TX3DRootNode.Create('', BaseUrl);
   try
     if Ifc.Version <> '' then
-      Result.MetadataString['IFC_Version'] := Ifc.Version;
+      { TODO: "metadata" of TX3DRootNode is not serialized, but META is.
+        Yeah, there are effectively two ways to store metadata in X3D. }
+      //Result.MetadataString['IFC_Version'] := Ifc.Version;
+      Result.Meta['IFC_Version'] := Ifc.Version;
     if Ifc.SchemaIdentifier <> '' then
-      Result.MetadataString['IFC_SchemaIdentifier'] := Ifc.SchemaIdentifier;
+      Result.Meta['IFC_SchemaIdentifier'] := Ifc.SchemaIdentifier;
     if Ifc.OriginatingSystem <> '' then
-      Result.MetadataString['IFC_OriginatingSystem'] := Ifc.OriginatingSystem;
+      Result.Meta['IFC_OriginatingSystem'] := Ifc.OriginatingSystem;
     if Ifc.PreprocessorVersion <> '' then
-      Result.MetadataString['IFC_PreprocessorVersion'] := Ifc.PreprocessorVersion;
+      Result.Meta['IFC_PreprocessorVersion'] := Ifc.PreprocessorVersion;
     if Ifc.TimeStamp <> '' then
-      Result.MetadataString['IFC_TimeStamp'] := Ifc.TimeStamp;
+      Result.Meta['IFC_TimeStamp'] := Ifc.TimeStamp;
 
     // TODO: rest
   except FreeAndNil(Result); raise end;
