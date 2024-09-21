@@ -75,7 +75,9 @@ type
     property Data: TIfcPersistentList read FData write FData;
   end;
 
-  { Invalid IFC file exception. }
+  { Invalid IFC file exception.
+    Not all IFC extensions descend from this, e.g. we may also generate EJson
+    exception or stream-reading exception. }
   EInvalidIfc = class(Exception);
 
 {$endif read_interface}

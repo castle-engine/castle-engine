@@ -144,37 +144,47 @@ function IfcJsonLoad(const Json: TJsonData): TIfcFile;
         Continue;
       end;
 
-      case PropertyType(PropInfo) of
-        ptString:
-          PropertySetString(Ifc, PropInfo, Json.Items[I].AsString);
-        ptInteger:
-          PropertySetInteger(Ifc, PropInfo, Json.Items[I].AsInteger);
-        ptBoolean:
-          PropertySetBoolean(Ifc, PropInfo, Json.Items[I].AsBoolean);
-        ptFloat:
-          PropertySetFloat(Ifc, PropInfo, Json.Items[I].AsFloat);
-        ptInstance:
-          begin
-            if Json.Items[I] is TJsonObject then
-              ReadIfcChildInstance(PropInfo, Json.Items[I] as TJsonObject)
-            else
-            if Json.Items[I] is TJsonArray then
-              ReadIfcChildArray(PropInfo, Json.Items[I] as TJsonArray)
-            else
+      try
+        case PropertyType(PropInfo) of
+          ptString:
+            PropertySetString(Ifc, PropInfo, Json.Items[I].AsString);
+          ptInteger:
+            PropertySetInteger(Ifc, PropInfo, Json.Items[I].AsInteger);
+          ptBoolean:
+            PropertySetBoolean(Ifc, PropInfo, Json.Items[I].AsBoolean);
+          ptFloat:
+            PropertySetFloat(Ifc, PropInfo, Json.Items[I].AsFloat);
+          ptInstance:
             begin
-              WritelnWarning('IFC', 'IFC type "%s" expected to be a JSON object or array (because it is a Pascal class), ignoring', [
-                DebugJsonKey
-              ]);
-              Continue
+              if Json.Items[I] is TJsonObject then
+                ReadIfcChildInstance(PropInfo, Json.Items[I] as TJsonObject)
+              else
+              if Json.Items[I] is TJsonArray then
+                ReadIfcChildArray(PropInfo, Json.Items[I] as TJsonArray)
+              else
+              begin
+                WritelnWarning('IFC', 'IFC type "%s" expected to be a JSON object or array (because it is a Pascal class), ignoring', [
+                  DebugJsonKey
+                ]);
+                Continue
+              end;
             end;
-          end;
-        else
-          begin
-            WritelnWarning('IFC', 'IFC field "%s" found in Pascal class %s but with unhandled type, ignoring', [
-              DebugJsonKey,
-              Ifc.ClassName
-            ]);
-          end;
+          else
+            begin
+              WritelnWarning('IFC', 'IFC field "%s" found in Pascal class %s but with unhandled type, ignoring', [
+                DebugJsonKey,
+                Ifc.ClassName
+              ]);
+            end;
+        end;
+      except
+        on E: EJson do
+        begin
+          { Enhance JSON error message, e.g. when unexpected JSON type occurs
+            and the AsString above cannot convert. }
+          E.Message := E.Message + Format(' (field "%s")', [DebugJsonKey]);
+          raise;
+        end;
       end;
 
       // TODO special code to hadnle TVector3 (TIfcDirection.DirectionRatios, TIfcCartesianPoint.Coordinate)
