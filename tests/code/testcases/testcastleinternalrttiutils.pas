@@ -145,13 +145,13 @@ begin
     MyObject.MyChildObject := Child1;
     MyObject.MyEnum := meTwo;
 
-    AssertTrue(PropertyType(GetPropInfo(MyObject, 'MyInt')) = ptAnyInteger);
+    AssertTrue(PropertyType(GetPropInfo(MyObject, 'MyInt')) = ptInteger);
     AssertEquals(10, PropertyGetInteger(MyObject, GetPropInfo(MyObject, 'MyInt')));
 
     PropertySetInteger(MyObject, GetPropInfo(MyObject, 'MyInt'), 20);
     AssertEquals(20, MyObject.MyInt);
 
-    AssertTrue(PropertyType(GetPropInfo(MyObject, 'MyInt64')) = ptAnyInteger);
+    AssertTrue(PropertyType(GetPropInfo(MyObject, 'MyInt64')) = ptInteger);
     AssertEquals(Int64(High(UInt32)) + 123, PropertyGetInteger(MyObject, GetPropInfo(MyObject, 'MyInt64')));
 
     PropertySetInteger(MyObject, GetPropInfo(MyObject, 'MyInt64'), Int64(High(UInt32)) + 124);

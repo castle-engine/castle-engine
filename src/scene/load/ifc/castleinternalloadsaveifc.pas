@@ -39,20 +39,25 @@ interface
 
 uses Contnrs, Generics.Collections, SysUtils, Classes,
   FpJson, JSONParser, JSONScanner,
-  CastleVectors, X3DNodes, CastleUriUtils;
+  CastleVectors, X3DNodes, CastleUriUtils, CastleLog;
 
 {$define read_interface}
 {$I castleinternalloadsaveifc_ifc_types.inc}
+{$I castleinternalloadsaveifc_ifc_standard_types.inc}
 {$I castleinternalloadsaveifc_json.inc}
+{$I castleinternalloadsaveifc_x3d.inc}
 {$undef read_interface}
 
 implementation
 
-uses X3DLoad;
+uses TypInfo,
+  X3DLoad, CastleInternalRttiUtils, CastleStringUtils;
 
 {$define read_implementation}
 {$I castleinternalloadsaveifc_ifc_types.inc}
+{$I castleinternalloadsaveifc_ifc_standard_types.inc}
 {$I castleinternalloadsaveifc_json.inc}
+{$I castleinternalloadsaveifc_x3d.inc}
 {$undef read_implementation}
 
 { Loading -------------------------------------------------------------------- }
@@ -70,11 +75,7 @@ begin
     try
       IfcFile := IfcJsonLoad(Json);
       try
-        // TODO: read Json to IfcFile
-        Result := TX3DRootNode.Create('', BaseUrl);
-        try
-          // TODO: convert IfcFile to X3D nodes
-        except FreeAndNil(Result); raise end;
+        Result := IfcToX3D(IfcFile, BaseUrl);
       finally FreeAndNil(IfcFile) end;
     finally FreeAndNil(Json) end;
   finally FreeAndNil(JsonParser) end;
@@ -98,4 +99,6 @@ initialization
   RegisterModelFormat(ModelFormat);
 
   UriMimeExtensions['.ifcjson'] := 'application/x-ifc-json';
+finalization
+  FinalizeIfcClasses;
 end.

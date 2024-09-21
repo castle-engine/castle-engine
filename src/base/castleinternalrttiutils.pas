@@ -89,7 +89,7 @@ type
   TPropertyType = (
     { Any integer type that fits witihin 64-bits.
       This includes Integer, Int64 and QWord (only these can be published in Pascal). }
-    ptAnyInteger,
+    ptInteger,
 
     { Single, 32-bit floating point number.
       Other floating point types cannot be published in Pascal
@@ -143,7 +143,7 @@ procedure PropertySetBoolean(const PropObject: TObject; const PropInfo: PPropInf
 { @groupEnd }
 
 { Get or set a property of type Integer, Int64 or QWord.
-  Use only when PropertyType is ptAnyInteger, undefined what happens otherwise.
+  Use only when PropertyType is ptInteger, undefined what happens otherwise.
   Do not use with QWord values outside of Int64 range -- undefined what happens
   (for now, we just cast QWord to Int64).
   @groupBegin }
@@ -237,7 +237,7 @@ begin
   Result := true;
 
   case PropertyType(PropInfo) of
-    ptAnyInteger:
+    ptInteger:
       Value := IntToStr(PropertyGetInteger(PropObject, PropInfo));
     ptFloat:
       Value := FloatToStrDot(PropertyGetFloat(PropObject, PropInfo));
@@ -412,7 +412,7 @@ begin
 
   case PropType^.Kind of
     tkInteger, tkInt64 {$ifdef FPC}, tkQWord{$endif}:
-      Result := ptAnyInteger;
+      Result := ptInteger;
 {$ifndef FPUNONE}
     tkFloat:
       Result := ptFloat;
