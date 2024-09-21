@@ -25,7 +25,10 @@
     with various COLOR_UNIFORM / not versions.
     And we cannot just hardcode "define COLOR_UNIFORM" here,
     because the uniform is not passed when color is white.
-    We need to improve how TDrawableImage.CustomShader is used?
+    - We need to improve how TDrawableImage.CustomShader is used?
+    - Hm, but why does it work now when TCastleLabel.Color is white?
+      The "color" uniform is undefined -- is it just white by accident?
+      Check that we don't pass "color" uniform in this case.
 
   - This is in subdirectory base_rendering/.
     The subdirectory base_rendering is not the best for font stuff,
