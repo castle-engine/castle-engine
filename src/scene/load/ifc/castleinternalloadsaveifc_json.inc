@@ -122,6 +122,90 @@ function IfcJsonLoad(const Json: TJsonData): TIfcFile;
       {$pop}
     {$endif}
 
+    (*Convert JSON value from IFC to string.
+      Accounts both for values specified directly, e.g.
+
+        "name": "Default Building",
+        "description": "Description of Default Building",
+
+      and wrapped in JSON objects using IfcLabel or IfcText, e.g.
+
+        "name" : {
+          "type" : "IfcLabel",
+          "value" : "Default Building"
+        },
+        "description" : {
+          "type" : "IfcText",
+          "value" : "Description of Default Building"
+        },
+
+      Both forms are found in practice, see
+      https://github.com/buildingSMART/Sample-Test-Files/blob/master/IFC%204.0/BuildingSMARTSpec/wall-with-opening-and-window.json
+      and a version of it imported + exported by Bonsai BIM.
+    *)
+    function JsonToString(const JsonValue: TJsonData): String;
+    var
+      JsonObj: TJsonObject;
+      JsonObjType: String;
+    begin
+      if JsonValue is TJsonObject then
+      begin
+        JsonObj := JsonValue as TJsonObject;
+        JsonObjType := JsonObj.Get('type', '');
+        if (JsonObjType = 'IfcLabel') or
+           (JsonObjType = 'IfcText') then
+          Result := JsonObj.Get('value', '')
+        else
+        begin
+          WritelnWarning('IFC', 'IFC field "%s" is a JSON object, but not of type "IfcLabel" or "IfcText", ignoring', [
+            DebugJsonKey
+          ]);
+          Result := '';
+        end;
+      end else
+        Result := JsonValue.AsString;
+    end;
+
+    (*Convert JSON value from IFC to string.
+      Account for both wrapped and not values:
+
+        "elevation": 0.0,
+
+      or
+
+        "elevation" : {
+          "type" : "IfcLengthMeasure",
+          "value" : 0.0
+        }
+
+      Both forms are found in practice, see
+      https://github.com/buildingSMART/Sample-Test-Files/blob/master/IFC%204.0/BuildingSMARTSpec/wall-with-opening-and-window.json
+      and a version of it imported + exported by Bonsai BIM.
+    *)
+    function JsonToFloat(const JsonValue: TJsonData): Single;
+    var
+      JsonObj: TJsonObject;
+      JsonObjType: String;
+    begin
+      if JsonValue is TJsonObject then
+      begin
+        JsonObj := JsonValue as TJsonObject;
+        JsonObjType := JsonObj.Get('type', '');
+        if (JsonObjType = 'IfcPositiveLengthMeasure') or
+           (JsonObjType = 'IfcLengthMeasure') or
+           (JsonObjType = 'IfcReal') then
+          Result := JsonObj.Get('value', 0.0)
+        else
+        begin
+          WritelnWarning('IFC', 'IFC field "%s" is a JSON object, but not of type "IfcReal" or "IfcLengthMeasure" or "IfcPositiveLengthMeasure", ignoring', [
+            DebugJsonKey
+          ]);
+          Result := 0.0;
+        end;
+      end else
+        Result := JsonValue.AsFloat;
+    end;
+
   var
     I: Integer;
     JsonKey: String;
@@ -147,13 +231,13 @@ function IfcJsonLoad(const Json: TJsonData): TIfcFile;
       try
         case PropertyType(PropInfo) of
           ptString:
-            PropertySetString(Ifc, PropInfo, Json.Items[I].AsString);
+            PropertySetString(Ifc, PropInfo, JsonToString(Json.Items[I]));
           ptInteger:
-            PropertySetInteger(Ifc, PropInfo, Json.Items[I].AsInteger);
+            PropertySetInteger(Ifc, PropInfo, Json.Items[I].AsInt64);
           ptBoolean:
             PropertySetBoolean(Ifc, PropInfo, Json.Items[I].AsBoolean);
           ptFloat:
-            PropertySetFloat(Ifc, PropInfo, Json.Items[I].AsFloat);
+            PropertySetFloat(Ifc, PropInfo, JsonToFloat(Json.Items[I]));
           ptInstance:
             begin
               if Json.Items[I] is TJsonObject then
@@ -181,9 +265,10 @@ function IfcJsonLoad(const Json: TJsonData): TIfcFile;
         on E: EJson do
         begin
           { Enhance JSON error message, e.g. when unexpected JSON type occurs
-            and the AsString above cannot convert. }
-          E.Message := E.Message + Format(' (field "%s")', [DebugJsonKey]);
-          raise;
+            and the AsString above cannot convert.
+            Also change type, to prevent recursively adding " (field "field")"
+            to the message. }
+          raise EInvalidIfc.Create(E.Message + Format(' (field "%s")', [DebugJsonKey]));
         end;
       end;
 
