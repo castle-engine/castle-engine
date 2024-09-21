@@ -469,7 +469,7 @@ begin
   end;
 
   { Handle early castle-data:, protocol to access application data,
-    https://castle-engine.io/manual_data_directory.php . }
+    https://castle-engine.io/data . }
   if P = 'castle-data' then
   begin
     FFinalUrl := ResolveCastleDataURL(Url);
@@ -612,8 +612,9 @@ procedure TCastleDownload.SetContentsApplyOptions(UnderlyingStream: TStream);
 
       if ForceMemoryStream then
       begin
-        { TODO: our engine never uses both soGzip and soForceMemoryStream
-          for now, so below code path is untested. }
+        { This case happens e.g. when reading .x3d.gz, that is gzipped
+          (must pass through TGZFileStream)
+          but also needs OnLoadForceMemoryStream. }
         NewResult := TMemoryStream.Create;
         ReadGrowingStream(Result, NewResult, true);
         FreeAndNil(Result);

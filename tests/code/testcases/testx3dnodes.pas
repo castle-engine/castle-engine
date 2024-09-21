@@ -110,6 +110,7 @@ type
     procedure TestInlineShaderCode;
     procedure TestOpenInvalidIndexes;
     procedure TestGltfConversion;
+    procedure TestLoadWithoutWarning;
   end;
 
 implementation
@@ -2605,6 +2606,19 @@ begin
         SaveNode(Node, OutputStream, 'model/x3d+vrml');
       finally FreeAndNil(OutputStream) end;
     finally FreeAndNil(Node) end;
+  finally
+    ApplicationProperties.OnWarning.Remove({$ifdef FPC}@{$endif}OnWarningRaiseException);
+  end;
+end;
+
+procedure TTestX3DNodes.TestLoadWithoutWarning;
+var
+  Node: TX3DRootNode;
+begin
+  ApplicationProperties.OnWarning.Add({$ifdef FPC}@{$endif}OnWarningRaiseException);
+  try
+    Node := LoadNode('castle-data:/loadsensor_children.x3dv');
+    FreeAndNil(Node);
   finally
     ApplicationProperties.OnWarning.Remove({$ifdef FPC}@{$endif}OnWarningRaiseException);
   end;

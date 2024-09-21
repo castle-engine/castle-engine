@@ -631,10 +631,22 @@ end;
 procedure TCastleAbstractRootTransform.CustomSerialization(
   const SerializationProcess: TSerializationProcess);
 
+  function InternalViewport: TComponent;
+  begin
+    { This is a quick hack, assuming Owner = containing TCastleViewport.
+      It's in practice mostly OK (the only case when TCastleAbstractRootTransform
+      is created is from TCastleViewport, TODO: unless user would create
+      it manually which is allowed).
+      And there's no big harm if we make mistake (only ViewportCaption will be wrong,
+      which is only used for debug message). }
+    Result := Owner;
+  end;
+
   function ViewportCaption: String;
   begin
-    if (Owner <> nil) and (Owner.Name <> '') then
-      Result := '"' + Owner.Name + '.Items"'
+    if (InternalViewport <> nil) and
+       (InternalViewport.Name <> '') then
+      Result := '"' + InternalViewport.Name + '.Items"'
     else
       Result := 'TCastleViewport.Items';
   end;

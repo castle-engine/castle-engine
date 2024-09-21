@@ -6,7 +6,7 @@ See https://castle-engine.io/project_manifest for documentation of this file.
 -->
 
 <project name="to-data-uri"
-  standalone_source="to-data-uri.lpr"
+  standalone_source="to_data_uri.lpr"
   qualified_name="io.castleengine.to.data.uri"
 >
   <data exists="false" />

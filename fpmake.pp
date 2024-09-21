@@ -488,6 +488,8 @@ begin
     P.Targets.AddUnit('x3dcamerautils.pas');
     P.Targets.AddUnit('x3dtime.pas');
     P.Targets.AddUnit('castleinternalscreeneffects.pas');
+    P.Targets.AddUnit('castletransformmanipulate.pas');
+    P.Targets.AddUnit('castleinternaltransformdata.pas');
 
     P.SourcePath.Add('src/scene/x3d');
     P.Targets.AddUnit('x3dnodes.pas');
@@ -517,9 +519,9 @@ begin
     P.Targets.AddUnit('x3dloadinternalcollada.pas');
 
     P.SourcePath.Add('src/scene/load/pasgltf');
-    P.Targets.AddUnit('PasDblStrUtils.pas');
-    P.Targets.AddUnit('PasGLTF.pas');
-    P.Targets.AddUnit('PasJSON.pas');
+    P.Targets.AddUnit('CastlePasDblStrUtils.pas');
+    P.Targets.AddUnit('CastlePasGLTF.pas');
+    P.Targets.AddUnit('CastlePasJSON.pas');
 
     Run;
   end;

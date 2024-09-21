@@ -55,6 +55,10 @@ jobs:
         run: make clean test-fpmake
       - name: Test CastleWindow backends
         run: ./tools/internal/check_castle_window_backends_compilation
+      - name: Test build tool --output
+        run: ./tools/internal/check_build_tool_output
+      - name: Test LPG (Lazarus Package Group)
+        run: ./tools/internal/check_lpg_compilation
 
   test-docker-examples:
     strategy:
@@ -113,8 +117,8 @@ jobs:
         run: make clean examples-laz CASTLE_CONSERVE_DISK_SPACE=true
 
 
-  pack:
-    name: Pack to zip
+  pack_1:
+    name: Pack to zip (1)
     runs-on: ubuntu-latest
     container: kambi/castle-engine-cloud-builds-tools:cge-none
     steps:
@@ -131,8 +135,26 @@ jobs:
       - name: Pack Linux/x86_64
         run: ./tools/internal/pack_release/pack_release.sh linux x86_64
 
+      - name: Archive Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-and-linux-release-from-docker-1
+          path: "castle-engine*.zip"
+          if-no-files-found: error
+
+  # We split pack into two jobs to avoid running out of disk space
+  # on GH hosted runners, no other reason.
+  pack_2:
+    name: Pack to zip (2)
+    runs-on: ubuntu-latest
+    container: kambi/castle-engine-cloud-builds-tools:cge-none
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set environment
+        run: echo "CASTLE_ENGINE_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+
       - name: Download bundled FPC
-        uses: robinraju/release-downloader@v1.10
+        uses: robinraju/release-downloader@v1.11
         with:
           repository: "castle-engine/cge-fpc"
           latest: true
@@ -146,6 +168,6 @@ jobs:
       - name: Archive Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: windows-and-linux-release-from-docker
+          name: windows-and-linux-release-from-docker-2
           path: "castle-engine*.zip"
           if-no-files-found: error

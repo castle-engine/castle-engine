@@ -34,11 +34,36 @@ type
     procedure TestContainerSettingsNoWindow;
     procedure TestContainerSettingsClosedWindow;
     procedure TestContainerSettingsOpenWindow;
+    procedure TestControlsParentDoesNotOwn;
+    procedure TestMoveToFront;
   end;
 
 implementation
 
 uses CastleRectangles, CastleVectors, CastleUtils, CastleWindow;
+
+{ TTestContainer ------------------------------------------------------------- }
+
+type
+  { Dummy container class with minimal overrides (to not be abstract),
+    just for testing. }
+  TTestContainer = class(TCastleContainer)
+  public
+    function PixelsWidth: Integer; override;
+    function PixelsHeight: Integer; override;
+  end;
+
+function TTestContainer.PixelsWidth: Integer;
+begin
+  Result := 100;
+end;
+
+function TTestContainer.PixelsHeight: Integer;
+begin
+  Result := 100;
+end;
+
+{ TTestCastleUIControls ------------------------------------------------------ }
 
 procedure TTestCastleUIControls.TestRectEffective;
 var
@@ -153,23 +178,6 @@ begin
   finally FreeAndNil(Owner) end;
 end;
 
-type
-  TTestContainer = class(TCastleContainer)
-  public
-    function PixelsWidth: Integer; override;
-    function PixelsHeight: Integer; override;
-  end;
-
-function TTestContainer.PixelsWidth: Integer;
-begin
-  Result := 100;
-end;
-
-function TTestContainer.PixelsHeight: Integer;
-begin
-  Result := 100;
-end;
-
 procedure TTestCastleUIControls.TestDetachParent;
 var
   Container: TTestContainer;
@@ -230,30 +238,11 @@ begin
   end;
 end;
 
-type
-  { Dummy container class with minimal overrides (to not be abstract),
-    just for testing. }
-  TMyContainer = class(TCastleContainer)
-  public
-    function PixelsWidth: Integer; override;
-    function PixelsHeight: Integer; override;
-  end;
-
-function TMyContainer.PixelsWidth: Integer;
-begin
-  Result := 100;
-end;
-
-function TMyContainer.PixelsHeight: Integer;
-begin
-  Result := 100;
-end;
-
 procedure TTestCastleUIControls.TestContainerSettingsNoWindow;
 var
   Container: TCastleContainer;
 begin
-  Container := TMyContainer.Create(nil);
+  Container := TTestContainer.Create(nil);
   try
     Container.LoadSettings('castle-data:/settings_test/test1.xml');
     Container.LoadSettings('castle-data:/settings_test/test2.xml');
@@ -294,6 +283,140 @@ begin
     Container.LoadSettings('castle-data:/settings_test/test2.xml');
     Container.LoadSettings('castle-data:/settings_test/test3.xml');
   finally DestroyWindowForTest(Window); end;
+end;
+
+type
+  TMyUi = class(TCastleUserInterface)
+  public
+    FreeingUnexpected: Boolean;
+    destructor Destroy; override;
+  end;
+
+destructor TMyUi.Destroy;
+begin
+  { Note that in general, one should avoid raising exceptions from the destructor.
+    That's because such exception can easily obscure the real reason while
+    the destructor is called -- because something else failed,
+    and we're in "finally" clause because of other exception.
+    In general, destructor should just gracefully accept half-created instance,
+    because there maybe was exception during constructor.
+
+    But in this case it is justified.
+    The exception should never happen if test goes OK.
+    If the test fails, we'll investigate why. }
+  if FreeingUnexpected then
+    raise Exception.Create('Unexpected freeing, this means something owns it but should not');
+  inherited;
+end;
+
+procedure TTestCastleUIControls.TestControlsParentDoesNotOwn;
+var
+  MyChild: TMyUi;
+  Container: TTestContainer;
+  SomeParent: TCastleUserInterface;
+begin
+  // make it safe to free stuff by a single finally clause
+  Container := nil;
+  SomeParent := nil;
+  MyChild := TMyUi.Create(nil);
+  try
+    MyChild.FreeingUnexpected := true;
+
+    Container := TTestContainer.Create(nil);
+
+    Container.Controls.InsertFront(MyChild);
+    Container.Controls.Remove(MyChild);
+
+    SomeParent := TCastleUserInterface.Create(nil);
+    SomeParent.InsertFront(MyChild);
+    SomeParent.RemoveControl(MyChild);
+
+    Container.Controls.InsertFront(SomeParent);
+    SomeParent.InsertFront(MyChild);
+    SomeParent.RemoveControl(MyChild);
+
+    MyChild.FreeingUnexpected := false;
+  finally
+    FreeAndNil(MyChild);
+    FreeAndNil(SomeParent);
+    FreeAndNil(Container);
+  end;
+end;
+
+type
+  TMyUiTestMoveToFront = class(TCastleUserInterface)
+  public
+    ChangeContainerUnexpected: Boolean;
+    procedure InternalSetContainer(const NewContainer: TCastleContainer); override;
+  end;
+
+procedure TMyUiTestMoveToFront.InternalSetContainer(const NewContainer: TCastleContainer);
+begin
+  if ChangeContainerUnexpected then
+    raise Exception.Create('Unexpected change of container');
+  inherited;
+end;
+
+procedure TTestCastleUIControls.TestMoveToFront;
+var
+  Container: TTestContainer;
+  U1, U2: TCastleUserInterface;
+  UTest: TMyUiTestMoveToFront;
+begin
+  U1 := nil;
+  U2 := nil;
+  Container := nil;
+  try
+    Container := TTestContainer.Create(nil);
+    U1 := TCastleUserInterface.Create(nil);
+    U1.Name := 'U1';
+    U2 := TCastleUserInterface.Create(nil);
+    U2.Name := 'U2';
+    UTest := TMyUiTestMoveToFront.Create(nil);
+    UTest.Name := 'UTest';
+
+    UTest.ChangeContainerUnexpected := true;
+    UTest.MoveToFront; // does nothing now
+    UTest.ChangeContainerUnexpected := false;
+
+    Container.Controls.InsertFront(UTest);
+    Container.Controls.InsertFront(U1);
+    AssertEquals(2, Container.Controls.Count);
+    AssertTrue(Container.Controls[0] = UTest);
+    AssertTrue(Container.Controls[1] = U1);
+
+    UTest.ChangeContainerUnexpected := true;
+    UTest.MoveToFront;
+    UTest.ChangeContainerUnexpected := false;
+
+    // order changed now
+    AssertEquals(2, Container.Controls.Count);
+    AssertTrue(Container.Controls[0] = U1);
+    AssertTrue(Container.Controls[1] = UTest);
+
+    // now test if it's also good when UTest is a child of U1
+
+    Container.Controls.Remove(UTest);
+    U1.InsertFront(UTest);
+    U1.InsertFront(U2);
+    AssertEquals(2, U1.ControlsCount);
+    AssertTrue(U1.Controls[0] = UTest);
+    AssertTrue(U1.Controls[1] = U2);
+
+    UTest.ChangeContainerUnexpected := true;
+    UTest.MoveToFront;
+    UTest.ChangeContainerUnexpected := false;
+
+    // order changed now
+    AssertEquals(2, U1.ControlsCount);
+    AssertTrue(U1.Controls[0] = U2);
+    AssertTrue(U1.Controls[1] = UTest);
+  finally
+    FreeAndNil(U1);
+    FreeAndNil(U2);
+    FreeAndNil(UTest);
+    FreeAndNil(Container);
+  end;
 end;
 
 initialization

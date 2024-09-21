@@ -26,8 +26,8 @@ jobs:
     name: Test and Pack
     strategy:
       matrix:
-
-        # TODO: Fix for macos-latest:
+        # TODO:
+        # Readd macos-latest:
         #
         # Fails teapot-to-pascal compilation with:
         #
@@ -36,8 +36,14 @@ jobs:
         #       _CASTLEOPENDOCUMENT_$$_OPENURL$ANSISTRING$$BOOLEAN in castleopendocument.o
         #
         # Using macos-12 as last Intel-based mac.
+        #
+        # TODO: Readd macos-12:
+        # For now cannot be used as
+        # https://github.com/gcarreno/setup-lazarus doesn't have Lazarus >= 3.5
+        # and we need it to have https://gitlab.com/freepascal.org/lazarus/lazarus/-/merge_requests/291
+        # solved.
 
-        runner: [macos_x64, ubuntu-latest, windows-latest, macos-12]
+        runner: [macos_x64, ubuntu-latest, windows-latest]
         include:
           # To not overload the slower RPi, use it only with master
           - if: ${{ github.ref == 'refs/heads/master' }}
@@ -49,8 +55,9 @@ jobs:
           - is_macos: false
           - runner: macos_x64
             is_macos: true
-          - runner: macos-12
-            is_macos: true
+          # Uncomment this once we reeanable macos-12
+          # - runner: macos-12
+          #   is_macos: true
           # Uncomment this once we reeanable macos-latest
           # - runner: macos-latest
           #   is_macos: true
@@ -277,7 +284,7 @@ jobs:
 
     - name: Download bundled FPC
       if: ${{ matrix.runner == 'windows-latest' }}
-      uses: robinraju/release-downloader@v1.10
+      uses: robinraju/release-downloader@v1.11
       with:
         repository: "castle-engine/cge-fpc"
         latest: true

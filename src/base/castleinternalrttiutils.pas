@@ -1,5 +1,5 @@
 {
-  Copyright 2021-2023 Michalis Kamburelis.
+  Copyright 2021-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -80,6 +80,19 @@ function PropertyGet(const PropObject: TObject; const PropInfo: PPropInfo;
   ) }
 function PropertyHasDefaultValue(const PropObject: TObject;
   const PropInfo: PPropInfo; const TreatSubComponentAsDefault: Boolean = false): Boolean;
+
+{ Is property of type Boolean (and any similar type, like LongBool,
+  that for user presentation is also just a boolean,
+  i.e. 2 values shown as checkbox). }
+function PropertyIsBool(const PropInfo: PPropInfo): Boolean;
+
+{ Get a property of type Boolean.
+  Use only when PropertyIsBool is @true, undefined what happens otherwise. }
+function PropertyBoolGet(const PropObject: TObject; const PropInfo: PPropInfo): Boolean;
+
+{ Set a property of type Boolean.
+  Use only when PropertyIsBool is @true, undefined what happens otherwise. }
+procedure PropertyBoolSet(const PropObject: TObject; const PropInfo: PPropInfo; const NewValue: Boolean);
 
 implementation
 
@@ -223,21 +236,25 @@ begin
 
   PropType := PropInfo^.PropType{$ifndef FPC}^{$endif};
   DefValue := PropInfo^.Default;
-  { $80000000 means that there's no default value (in case of Single or String,
-    you need to specify it by "nodefault") }
+
+  { $80000000 means that there's no default value (in case of Single or String
+    or Int64, you need to specify it by "nodefault") }
   DefValueUse := DefValue <> Int32($80000000);
+  if not DefValueUse then
+    Exit;
+
   case PropType^.Kind of
     tkInteger, tkChar, tkEnumeration, tkSet, tkWChar:
       begin
         Value := GetOrdProp(PropObject, PropInfo);
-        Result := (Value = DefValue) and DefValueUse;
+        Result := Value = DefValue;
       end;
 {$ifndef FPUNONE}
     tkFloat:
       begin
         FloatValue := GetFloatProp(PropObject, PropInfo);
         DefFloatValue := PSingle(@PropInfo^.Default)^;
-        Result := (FloatValue = DefFloatValue) and DefValueUse;
+        Result := FloatValue = DefFloatValue;
       end;
 {$endif}
     tkMethod:
@@ -250,21 +267,21 @@ begin
 {$ifdef FPC}
     tkSString, tkLString, tkAString:
       begin
-        Result := (GetStrProp(PropObject, PropInfo) = '') and DefValueUse;
+        Result := GetStrProp(PropObject, PropInfo) = '';
       end;
 {$else}
     tkString, tkLString:
       begin
-        Result := (GetAnsiStrProp(PropObject, PropInfo) = '') and DefValueUse;
+        Result := GetAnsiStrProp(PropObject, PropInfo) = '';
       end;
 {$endif}
     tkWString:
       begin
-        Result := (GetWideStrProp(PropObject, PropInfo) = '') and DefValueUse;
+        Result := GetWideStrProp(PropObject, PropInfo) = '';
       end;
     tkUString:
       begin
-        Result := (GetUnicodeStrProp(PropObject, PropInfo) = '') and DefValueUse;
+        Result := GetUnicodeStrProp(PropObject, PropInfo) = '';
       end;
     tkVariant:
       begin
@@ -311,11 +328,40 @@ begin
       begin
         BoolValue := GetOrdProp(PropObject, PropInfo)<>0;
         DefBoolValue := DefValue <> 0;
-        Result := (BoolValue = DefBoolValue) and DefValueUse;
+        Result := BoolValue = DefBoolValue;
       end;
 {$endif}
     else ;
   end;
+end;
+
+function PropertyIsBool(const PropInfo: PPropInfo): Boolean;
+var
+  PropType: PTypeInfo;
+begin
+  PropType := PropInfo^.PropType{$ifndef FPC}^{$endif};
+  {$ifdef FPC}
+  Result := PropType^.Kind = tkBool;
+  {$else}
+  { Delphi makes things harder, using tkEnumeration for Boolean.
+    See http://blong.com/Conferences/BorConUK98/DelphiRTTI/CB140.htm ,
+    https://stackoverflow.com/questions/10188459/how-to-loop-all-properties-in-a-class ,
+    https://en.delphipraxis.net/topic/11756-safegetenumname-a-safer-implementation-of-typinfogetenumname/ ,
+    https://blog.dummzeuch.de/2024/06/21/safegetenumname-a-safer-implementation-of-typinfo-getenumname/
+  }
+  Result := (PropType^.Kind = tkEnumeration) and
+    (GetTypeData(PropType)^.BaseType^ = TypeInfo(Boolean));
+  {$endif}
+end;
+
+function PropertyBoolGet(const PropObject: TObject; const PropInfo: PPropInfo): Boolean;
+begin
+  Result := GetOrdProp(PropObject, PropInfo) <> 0;
+end;
+
+procedure PropertyBoolSet(const PropObject: TObject; const PropInfo: PPropInfo; const NewValue: Boolean);
+begin
+  SetOrdProp(PropObject, PropInfo, Iff(NewValue, 1, 0));
 end;
 
 initialization

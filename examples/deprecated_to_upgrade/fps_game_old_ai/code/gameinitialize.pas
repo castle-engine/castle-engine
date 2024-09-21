@@ -75,13 +75,13 @@ var
   ExtraViewport: TCastleViewport;
   CreaturesSpawned: Integer;
 
-{ Buttons -------------------------------------------------------------------- }
+{ TEventsHandler -------------------------------------------------------------------- }
 
 type
   { Container for buttons and their callbacks.
     You could as well derive descendant of TCastleWindow to keep your
     callbacks, or place these callbacks as methods of Lazarus form. }
-  TButtons = class(TComponent)
+  TEventsHandler = class(TComponent)
     ToggleMouseLookButton: TCastleButton;
     ExitButton: TCastleButton;
     RenderDebugCreaturesButton: TCastleButton;
@@ -99,12 +99,14 @@ type
     procedure AddCreatureButtonClick(Sender: TObject);
     procedure AddItemButtonClick(Sender: TObject);
     procedure AttackButtonClick(Sender: TObject);
+    procedure Press(const Sender: TCastleUserInterface;
+      const Event: TInputPressRelease; var Handled: Boolean);
   end;
 
 const
   ControlsMargin = 8;
 
-constructor TButtons.Create(AOwner: TComponent);
+constructor TEventsHandler.Create(AOwner: TComponent);
 var
   NextButtonBottom: Single;
 begin
@@ -204,30 +206,30 @@ begin
   NextButtonBottom := NextButtonBottom + (AttackButton.EffectiveHeight + ControlsMargin);
 end;
 
-procedure TButtons.ToggleMouseLookButtonClick(Sender: TObject);
+procedure TEventsHandler.ToggleMouseLookButtonClick(Sender: TObject);
 begin
   ToggleMouseLookButton.Pressed := not ToggleMouseLookButton.Pressed;
   Player.Navigation.MouseLook := ToggleMouseLookButton.Pressed;
 end;
 
-procedure TButtons.ExitButtonClick(Sender: TObject);
+procedure TEventsHandler.ExitButtonClick(Sender: TObject);
 begin
   Application.Terminate;
 end;
 
-procedure TButtons.RenderDebugCreaturesButtonClick(Sender: TObject);
+procedure TEventsHandler.RenderDebugCreaturesButtonClick(Sender: TObject);
 begin
   RenderDebugCreaturesButton.Pressed := not RenderDebugCreaturesButton.Pressed;
   TCreature.RenderDebug := RenderDebugCreaturesButton.Pressed;
 end;
 
-procedure TButtons.RenderDebugItemsButtonClick(Sender: TObject);
+procedure TEventsHandler.RenderDebugItemsButtonClick(Sender: TObject);
 begin
   RenderDebugItemsButton.Pressed := not RenderDebugItemsButton.Pressed;
   TItemOnWorld.RenderDebug := RenderDebugItemsButton.Pressed;
 end;
 
-procedure TButtons.ScreenshotButtonClick(Sender: TObject);
+procedure TEventsHandler.ScreenshotButtonClick(Sender: TObject);
 var
   Url: String;
 begin
@@ -244,7 +246,7 @@ begin
   // when Url = '' it means that recommended directory to store screenshots on this platform cannot be found
 end;
 
-procedure TButtons.AddCreatureButtonClick(Sender: TObject);
+procedure TEventsHandler.AddCreatureButtonClick(Sender: TObject);
 var
   Translation: TVector3;
   Direction: TVector3;
@@ -264,7 +266,7 @@ begin
     [CreaturesSpawned]);
 end;
 
-procedure TButtons.AddItemButtonClick(Sender: TObject);
+procedure TEventsHandler.AddItemButtonClick(Sender: TObject);
 var
   Translation: TVector3;
   ItemResource: TItemResource;
@@ -282,13 +284,67 @@ begin
   // Player.PickItem(ItemResource.CreateItem(1));
 end;
 
-procedure TButtons.AttackButtonClick(Sender: TObject);
+procedure TEventsHandler.AttackButtonClick(Sender: TObject);
 begin
   Player.Attack;
 end;
 
+procedure CreatePlayer; forward;
+
+procedure TEventsHandler.Press(const Sender: TCastleUserInterface;
+  const Event: TInputPressRelease; var Handled: Boolean);
+begin
+  { We simulate button presses on some key presses. There is no automatic
+    mechanism to assign key shortcut to a TCastleButton right now.
+    Note that we pass Sender = nil to the callbacks, because we know that
+    our TEventsHandler callbacks ignore Sender parameter. }
+  if Event.IsKey(keyF4) and
+     // in case we test touch input in desktop, ToggleMouseLookButton = nil
+     (ToggleMouseLookButton <> nil) then
+  begin
+    ToggleMouseLookButtonClick(nil);
+    Handled := true;
+    Exit;
+  end;
+
+  if Event.IsKey(CharEscape) then
+  begin
+    ExitButtonClick(nil);
+    Handled := true;
+    Exit;
+  end;
+
+  if Event.IsKey(keyF5) then
+  begin
+    ScreenshotButtonClick(nil);
+    Handled := true;
+    Exit;
+  end;
+
+  if Event.IsKey(keyF9) then
+  begin
+    AddCreatureButtonClick(nil);
+    Handled := true;
+    Exit;
+  end;
+
+  if Event.IsKey(keyF10) then
+  begin
+    AddItemButtonClick(nil);
+    Handled := true;
+    Exit;
+  end;
+
+  if Event.IsKey(keyF1) then
+  begin
+    CreatePlayer;
+    Handled := true;
+    Exit;
+  end;
+end;
+
 var
-  Buttons: TButtons;
+  EventsHandler: TEventsHandler;
 
 { Player HUD ---------------------------------------------------------------- }
 
@@ -463,32 +519,8 @@ begin
 
   Level.Player := Player;
 
-  if Buttons <> nil then
-    Buttons.ToggleMouseLookButton.Pressed := false;
-end;
-
-{ Window callbacks ----------------------------------------------------------- }
-
-procedure Press(Container: TCastleContainer; const Event: TInputPressRelease);
-begin
-  { We simulate button presses on some key presses. There is no automatic
-    mechanism to assign key shortcut to a TCastleButton right now.
-    Note that we pass Sender = nil to the callbacks, because we know that
-    our TButtons callbacks ignore Sender parameter. }
-  if Event.IsKey(keyF4) and
-     // in case we test touch input in desktop, ToggleMouseLookButton = nil
-     (Buttons.ToggleMouseLookButton <> nil) then
-    Buttons.ToggleMouseLookButtonClick(nil) else
-  if Event.IsKey(CharEscape) then
-    Buttons.ExitButtonClick(nil) else
-  if Event.IsKey(keyF5) then
-    Buttons.ScreenshotButtonClick(nil) else
-  if Event.IsKey(keyF9) then
-    Buttons.AddCreatureButtonClick(nil) else
-  if Event.IsKey(keyF10) then
-    Buttons.AddItemButtonClick(nil);
-  if Event.IsKey(keyF1) then
-    CreatePlayer;
+  if EventsHandler <> nil then
+    EventsHandler.ToggleMouseLookButton.Pressed := false;
 end;
 
 { Customized item ------------------------------------------------------------ }
@@ -634,13 +666,6 @@ begin
   { Allow user to actually edit this view, e.g. by mouse scroll. }
   ExtraViewport.Navigation := TCastleExamineNavigation.Create(Application);
 
-  { Assign callbacks to some window events.
-    Note about initial events: Window.Open calls OnOpen and first OnResize events,
-    so if you want to receive them --- be sure to register them before calling
-    Window.Open. That is why we assign them here, and that is why we created
-    ExtraViewport (that is resized in Resize callback) earlier. }
-  Window.OnPress := @Press;
-
   { Enable automatic navigation UI on touch devices. }
   //ApplicationProperties.TouchDevice := true; // use this to test touch behavior on desktop
   if ApplicationProperties.TouchDevice then
@@ -690,8 +715,11 @@ begin
     "placeholders" on the level, see TLevel.Load documentation. }
   Level.Load('example_level');
 
-  { Add some buttons }
-  Buttons := TButtons.Create(Application);
+  { Add EventsHandler }
+  EventsHandler := TEventsHandler.Create(Application);
+
+  { TODO: Use TCastleView to handle key presses. }
+  Viewport.OnPress := {$ifdef FPC}@{$endif} EventsHandler.Press;
 
   { Add the Notifications to our window.
     We add a global Notifications object from CastleGameNotifications.

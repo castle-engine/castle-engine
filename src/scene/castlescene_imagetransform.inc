@@ -1,6 +1,6 @@
 {%MainUnit castlescene.pas}
 {
-  Copyright 2022-2022 Michalis Kamburelis.
+  Copyright 2022-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -41,6 +41,8 @@ type
     FAlphaChannel: TAutoAlphaChannel;
     FMipmaps: Boolean;
 
+    FUrlMonitoring: TUrlMonitoring;
+
     { Update X3D TCoordinateNode, TTextureCoordinateNode. }
     procedure UpdateCoordinateNodes;
     procedure SetPivot(const Value: TVector2);
@@ -52,10 +54,13 @@ type
     procedure SetAlphaChannel(const Value: TAutoAlphaChannel);
     procedure SetUrl(const Value: String);
     procedure SetMipmaps(const Value: Boolean);
+  protected
+    function InternalBuildNodeInside: TObject; override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
+    procedure BeforeDestruction; override;
 
     { How is the image placed within its own coordinate system.
       Default value (0.5, 0.5) means that the middle of the image is at (0,0,0).
@@ -94,6 +99,16 @@ type
 
     { Color to multiply by image. By default, opaque white. }
     property Color: TCastleColor read FColor write SetColor;
+
+    { Load again the image from current URL.
+      This makes sense to be used when underlying file on disk
+      changed, and you want to reload it.
+
+      TODO: In case image is shared with other TCastleImageTransform instances,
+      or TCastleScene (refering to the same image using TImageTextureNode),
+      for now this method will not load new image from disk.
+      That's because the previous image contents will "survive" in the cache. }
+    procedure ReloadUrl;
   published
     { How is the image scaled.
       Determines scaling done both by @link(Size) and TCastleTransform.Scale. }
@@ -218,6 +233,8 @@ begin
   FRootNode.AddChildren(FShapeNode);
   FScene.Load(FRootNode, true);
 
+  FUrlMonitoring.Init({$ifdef FPC}@{$endif} ReloadUrl);
+
   {$define read_implementation_constructor}
   {$I auto_generated_persistent_vectors/tcastleimagetransform_persistent_vectors.inc}
   {$undef read_implementation_constructor}
@@ -230,6 +247,12 @@ begin
   {$undef read_implementation_destructor}
 
   FreeAndNil(FScene);
+  inherited;
+end;
+
+procedure TCastleImageTransform.BeforeDestruction;
+begin
+  FUrlMonitoring.Finish(FUrl);
   inherited;
 end;
 
@@ -329,13 +352,22 @@ procedure TCastleImageTransform.SetUrl(const Value: String);
 begin
   if FUrl <> Value then
   begin
-    FUrl := Value;
+    FUrlMonitoring.ChangeUrl(FUrl, Value);
     if Value <> '' then
       FTextureNode.SetUrl([Value])
     else
       FTextureNode.SetUrl([]);
     UpdateCoordinateNodes;
   end;
+end;
+
+procedure TCastleImageTransform.ReloadUrl;
+var
+  SavedUrl: String;
+begin
+  SavedUrl := Url;
+  Url := '';
+  Url := SavedUrl;
 end;
 
 procedure TCastleImageTransform.SetPivot(const Value: TVector2);
@@ -427,6 +459,13 @@ begin
     FTexPropertiesNode.GuiTexture := not FMipmaps;
     FScene.ChangedAll; // TODO ChangedAll should not be needed
   end;
+end;
+
+function TCastleImageTransform.InternalBuildNodeInside: TObject;
+begin
+  Assert(FScene <> nil); // always <> nil in this class
+  Assert(FScene.RootNode <> nil); // always <> nil in this class
+  Result := FScene.RootNode.DeepCopy;
 end;
 
 {$define read_implementation_methods}

@@ -1,6 +1,6 @@
 {%MainUnit castlescene.pas}
 {
-  Copyright 2022-2022 Michalis Kamburelis.
+  Copyright 2022-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -41,6 +41,7 @@ type
   public
     const
       DefaultRadius = 100.0;
+      DefaultIntensity = 100.0;
 
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -53,8 +54,17 @@ type
       By default Vector3(0, 0, 1), which means light falls off according to inverse square law. }
     property Attenuation: TVector3 read FAttenuation write SetAttenuation;
   published
-    { Intensity, multiplied by color. Can be anything >= 0. }
-    property Intensity: Single read FIntensity write SetIntensity {$ifdef FPC}default 1.0{$endif};
+    { Intensity, multiplied by color. Can be anything >= 0.
+      Intuitively, how bright is the light.
+
+      Following @url(https://github.com/KhronosGroup/glTF/blob/main/extensions/2.0/Khronos/KHR_lights_punctual/README.md glTF lights specification),
+      the point light's intensity physical unit
+      is luminous intensity in candela (lm/sr).
+      This is exactly like TCastleSpotLight, but different than TCastleDirectionalLight.
+
+      The default intensity is 100.0, which is a reasonable value for a point/spot light,
+      it remains bright for a few meters around the light source. }
+    property Intensity: Single read FIntensity write SetIntensity {$ifdef FPC}default DefaultIntensity{$endif};
 
     { Light doesn't shine at all outside of a sphere with this radius.
       For performance reasons, set this as small as possible, to avoid even considering
@@ -75,15 +85,24 @@ constructor TCastlePointLight.Create(AOwner: TComponent);
 begin
   inherited;
 
-  FIntensity := 1;
+  // defaults
+  FIntensity := DefaultIntensity;
   FRadius := DefaultRadius;
   FAttenuation := Vector3(0, 0, 1);
   FColor := WhiteRGB;
 
-  { internal stuff create }
+  // initialize light node
   FPointLight := TPointLightNode.Create;
   LightNode := FPointLight;
   FPunctualLight := FPointLight;
+
+  // apply TCastlePointLight defaults to FPointLight
+  FPointLight.Color := FColor;
+  FPointLight.Attenuation := FAttenuation;
+  FPointLight.Intensity := FIntensity;
+  FPointLight.Radius := FRadius;
+
+  // initialize Gizmo
   if Gizmo <> nil then
     if InternalCastleDesignData <> '' then
       Gizmo.SetIconUrl(InternalCastleDesignData + 'gizmos/light/light_point.png');
@@ -103,10 +122,8 @@ end;
 
 function TCastlePointLight.PropertySections(const PropertyName: String): TPropertySections;
 begin
-  if (PropertyName = 'ColorPersistent') or
-     (PropertyName = 'AttenuationPersistent') or
-     (PropertyName = 'Intensity') or
-     (PropertyName = 'Radius') then
+  if ArrayContainsString(PropertyName, ['ColorPersistent',
+      'AttenuationPersistent', 'Intensity', 'Radius']) then
     Result := [psBasic]
   else
     Result := inherited PropertySections(PropertyName);

@@ -1,5 +1,5 @@
 /*
-  Copyright 2013-2014 Jan Adamec, Michalis Kamburelis.
+  Copyright 2013-2024 Jan Adamec, Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -36,6 +36,11 @@
 #else          // suppose Windows build
   #include <windows.h>
 #endif
+
+#ifdef MSVC
+#pragma optimize("", off)   // strangely MSVC calls pfrd_CGE_MouseDown always with left button in release ?!
+#endif
+
 #include "castleengine.h"
 
 //-----------------------------------------------------------------------------
@@ -44,6 +49,7 @@ typedef void (CDECL *PFNRD_CGE_Finalize)();
 typedef void (CDECL *PFNRD_CGE_Open)(unsigned uiFlags, unsigned initialWidth, unsigned initialHeight, unsigned uiDpi);
 typedef void (CDECL *PFNRD_CGE_Close)(bool quitWhenLastWindowClosed);
 typedef void (CDECL *PFNRD_CGE_GetOpenGLInformation)(char *szBuffer, int nBufSize);
+typedef void (CDECL *PFNRD_CGE_GetCastleEngineVersion)(char *szBuffer, int nBufSize);
 
 typedef void (CDECL *PFNRD_CGE_Resize)(unsigned uiViewWidth, unsigned uiViewHeight);
 typedef void (CDECL *PFNRD_CGE_Render)();
@@ -60,6 +66,7 @@ typedef void (CDECL *PFNRD_CGE_KeyDown)(int eKey);
 typedef void (CDECL *PFNRD_CGE_KeyUp)(int eKey);
 
 typedef void (CDECL *PFNRD_CGE_LoadSceneFromFile)(const char *szFile);
+typedef void (CDECL *PFNRD_CGE_SaveSceneToFile)(const char *szFile);
 
 typedef int (CDECL *PFNRD_CGE_GetViewpointsCount)();
 typedef void (CDECL *PFNRD_CGE_GetViewpointName)(int iViewpointIdx, char *szName, int nBufSize);
@@ -90,6 +97,7 @@ PFNRD_CGE_Finalize pfrd_CGE_Finalize = NULL;
 PFNRD_CGE_Open pfrd_CGE_Open = NULL;
 PFNRD_CGE_Close pfrd_CGE_Close = NULL;
 PFNRD_CGE_GetOpenGLInformation pfrd_CGE_GetOpenGLInformation = NULL;
+PFNRD_CGE_GetCastleEngineVersion pfrd_CGE_GetCastleEngineVersion = NULL;
 PFNRD_CGE_Resize pfrd_CGE_Resize = NULL;
 PFNRD_CGE_Render pfrd_CGE_Render = NULL;
 PFNRD_CGE_SaveScreenshotToFile pfrd_CGE_SaveScreenshotToFile = NULL;
@@ -102,6 +110,7 @@ PFNRD_CGE_MouseWheel pfrd_CGE_MouseWheel = NULL;
 PFNRD_CGE_KeyDown pfrd_CGE_KeyDown = NULL;
 PFNRD_CGE_KeyUp pfrd_CGE_KeyUp = NULL;
 PFNRD_CGE_LoadSceneFromFile pfrd_CGE_LoadSceneFromFile = NULL;
+PFNRD_CGE_SaveSceneToFile pfrd_CGE_SaveSceneToFile = NULL;
 PFNRD_CGE_GetViewpointsCount pfrd_CGE_GetViewpointsCount = NULL;
 PFNRD_CGE_GetViewpointName pfrd_CGE_GetViewpointName = NULL;
 PFNRD_CGE_MoveToViewpoint pfrd_CGE_MoveToViewpoint = NULL;
@@ -125,7 +134,7 @@ QFunctionPointer cge_GetProc(QLibrary &rCgeLib, const char *symbol)
 {
     QFunctionPointer f = rCgeLib.resolve(symbol);
     if (f == nullptr)
-        QMessageBox::critical(NULL, "error - cannot load function", symbol);
+        QMessageBox::critical(NULL, "CGE Load Error", QString("Cannot load Castle Game Engine function: ") + symbol + "\nPlease try reinstalling the software.");
     return f;
 }
 #else
@@ -161,6 +170,7 @@ void CGE_LoadLibrary()
     pfrd_CGE_Open = (PFNRD_CGE_Open)cge_GetProc(hCgeDll, "CGE_Open");
     pfrd_CGE_Close = (PFNRD_CGE_Close)cge_GetProc(hCgeDll, "CGE_Close");
     pfrd_CGE_GetOpenGLInformation = (PFNRD_CGE_GetOpenGLInformation)cge_GetProc(hCgeDll, "CGE_GetOpenGLInformation");
+    pfrd_CGE_GetCastleEngineVersion = (PFNRD_CGE_GetCastleEngineVersion)cge_GetProc(hCgeDll, "CGE_GetCastleEngineVersion");
     pfrd_CGE_Resize = (PFNRD_CGE_Resize)cge_GetProc(hCgeDll, "CGE_Resize");
     pfrd_CGE_Render = (PFNRD_CGE_Render)cge_GetProc(hCgeDll, "CGE_Render");
     pfrd_CGE_SaveScreenshotToFile = (PFNRD_CGE_SaveScreenshotToFile)cge_GetProc(hCgeDll, "CGE_SaveScreenshotToFile");
@@ -173,6 +183,7 @@ void CGE_LoadLibrary()
     pfrd_CGE_KeyDown = (PFNRD_CGE_KeyDown)cge_GetProc(hCgeDll, "CGE_KeyDown");
     pfrd_CGE_KeyUp = (PFNRD_CGE_KeyUp)cge_GetProc(hCgeDll, "CGE_KeyUp");
     pfrd_CGE_LoadSceneFromFile = (PFNRD_CGE_LoadSceneFromFile)cge_GetProc(hCgeDll, "CGE_LoadSceneFromFile");
+    pfrd_CGE_SaveSceneToFile = (PFNRD_CGE_SaveSceneToFile)cge_GetProc(hCgeDll, "CGE_SaveSceneToFile");
     pfrd_CGE_GetViewpointsCount = (PFNRD_CGE_GetViewpointsCount)cge_GetProc(hCgeDll, "CGE_GetViewpointsCount");
     pfrd_CGE_GetViewpointName = (PFNRD_CGE_GetViewpointName)cge_GetProc(hCgeDll, "CGE_GetViewpointName");
     pfrd_CGE_MoveToViewpoint = (PFNRD_CGE_MoveToViewpoint)cge_GetProc(hCgeDll, "CGE_MoveToViewpoint");
@@ -227,6 +238,13 @@ void CGE_GetOpenGLInformation(char *szBuffer, int nBufSize)
 }
 
 //-----------------------------------------------------------------------------
+void CGE_GetCastleEngineVersion(char *szBuffer, int nBufSize)
+{
+	if (pfrd_CGE_GetCastleEngineVersion!=NULL)
+        (*pfrd_CGE_GetCastleEngineVersion)(szBuffer, nBufSize);
+}
+
+//-----------------------------------------------------------------------------
 void CGE_Resize(unsigned uiViewWidth, unsigned uiViewHeight)
 {
 	if (pfrd_CGE_Resize!=NULL)
@@ -261,9 +279,6 @@ void CGE_Update()
 		(*pfrd_CGE_Update)();
 }
 
-#ifdef MSVC
-#pragma optimize("", off)   // strangely MSVC calls pfrd_CGE_MouseDown always with left button in release ?!
-#endif
 //-----------------------------------------------------------------------------
 void CGE_MouseDown(int x, int y, bool bLeftBtn, int nFingerIdx)
 {
@@ -311,6 +326,13 @@ void CGE_LoadSceneFromFile(const char *szFile)
 {
 	if (pfrd_CGE_LoadSceneFromFile!=NULL)
 		(*pfrd_CGE_LoadSceneFromFile)(szFile);
+}
+
+//-----------------------------------------------------------------------------
+void CGE_SaveSceneToFile(const char *szFile)
+{
+	if (pfrd_CGE_SaveSceneToFile!=NULL)
+		(*pfrd_CGE_SaveSceneToFile)(szFile);
 }
 
 //-----------------------------------------------------------------------------

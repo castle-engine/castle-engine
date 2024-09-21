@@ -322,7 +322,7 @@ begin
         // in real applications, Viewport has its internal renderer
         Renderer := TRenderer.Create(nil);
         try
-          ShapesCollector := TShapesCollector.Create;
+          ShapesCollector := TShapesCollector.Create(true);
           try
             Box := TCastleBox.Create(nil);
             try

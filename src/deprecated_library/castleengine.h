@@ -1,5 +1,5 @@
 /*
-  Copyright 2013-2023 Jan Adamec, Michalis Kamburelis.
+  Copyright 2013-2024 Jan Adamec, Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -293,6 +293,7 @@ extern void CGE_Finalize(void);
 extern void CGE_Open(unsigned uiFlags, unsigned initialWidth, unsigned initialHeight, unsigned uiDpi);
 extern void CGE_Close(bool quitWhenLastWindowClosed);
 extern void CGE_GetOpenGLInformation(char *szBuffer, int nBufSize);        // szBuffer is filled inside the function with max size of nBufSize
+extern void CGE_GetCastleEngineVersion(char *szBuffer, int nBufSize);      // szBuffer is filled inside the function with max size of nBufSize
 extern void CGE_SetUserInterface(bool bAutomaticTouchInterface); // should be called at the start of the program. Touch interface controls will be updated automatically then.
 
 extern void CGE_Resize(unsigned uiViewWidth, unsigned uiViewHeight);       // let the library know about the viewport size changes
@@ -310,6 +311,7 @@ extern void CGE_KeyDown(int /*ECgeKey*/ eKey);
 extern void CGE_KeyUp(int /*ECgeKey*/ eKey);
 
 extern void CGE_LoadSceneFromFile(const char *szFile);                     // name od the file has to be utf-8 encoded
+extern void CGE_SaveSceneToFile(const char *szFile);
 
 extern int CGE_GetViewpointsCount(void);
 extern void CGE_GetViewpointName(int iViewpointIdx, char *szName, int nBufSize);    // szName is buffer of size nBufSize, and is filled with utf-8 encoded string

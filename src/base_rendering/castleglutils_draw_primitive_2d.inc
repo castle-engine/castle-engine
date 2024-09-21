@@ -360,6 +360,8 @@ var
 begin
   TDrawableImage.BatchingFlush;
 
+  FrameProfiler.Start(fmDrawPrimitive2D);
+
   if Primitive2DRes = nil then
     Primitive2DRes := TPrimitive2DResources.Create;
 
@@ -422,7 +424,7 @@ begin
     RenderContext.CurrentProgram := Primitive2DRes.Prog;
     RenderContext.CurrentVao := Primitive2DRes.Vao;
 
-    glBindBuffer(GL_ARRAY_BUFFER, Primitive2DRes.Vbo);
+    RenderContext.BindBuffer[btArray] := Primitive2DRes.Vbo;
     { load only RequiredPointPtrSize, not Primitive2DRes.PointPtrAllocated which may be larger }
     Assert(Primitive2DRes.PointPtrAllocated >= RequiredPointPtrSize);
     glBufferData(GL_ARRAY_BUFFER, RequiredPointPtrSize, Primitive2DRes.PointPtr, GL_DYNAMIC_DRAW);
@@ -465,7 +467,7 @@ begin
       to disable them separately }
     Primitive2DRes.AttribVertex.DisableArray;
 
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    RenderContext.BindBuffer[btArray] := 0;
   end else
   begin
     {$ifndef OpenGLES}
@@ -475,6 +477,8 @@ begin
 
   if Blending then
     RenderContext.BlendingDisable;
+
+  FrameProfiler.Stop(fmDrawPrimitive2D);
 end;
 
 procedure DrawPrimitive2D(const Mode: TPrimitiveMode;

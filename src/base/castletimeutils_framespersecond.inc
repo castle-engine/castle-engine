@@ -64,10 +64,12 @@ type
       time spent inside "render" calls (thus ignoring time spent on
       physics and other logic).
 
-      This measures only time spend in @link(TCastleContainer.EventRender)
-      method (and it's subordinates, like @link(TCastleUserInterface.Render),
-      @link(TCastleScene.LocalRender),
-      @link(TCastleWindow.OnRender)).
+      This measures only time spent rendering.
+      More precisely, time spent in @link(TCastleContainer.EventRender)
+      (which in turn renders everything else,
+      calling all @link(TCastleUserInterface.Render) for all things in the container).
+
+      and it's subordinates, like @link(TCastleUserInterface.Render)).
       It does not take into account time spent on other activities,
       like "update" calls, and it doesn't take into account that frames are possibly
       not rendered all the time (when AutoRedisplay = @false).

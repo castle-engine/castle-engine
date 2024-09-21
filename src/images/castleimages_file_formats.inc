@@ -173,8 +173,6 @@ function LoadASTC(const Stream: TStream;
   SaveXxx should
     raise EImageSaveError.CreateFmt('Saving to XXX image class %s not possible', [Img.ClassName]);
   when Img doesn't have acceptable class.
-  Also, list of handled image classes should be reflected in SavedClasses
-  in ImageFormatsInfo[] for this format.
 }
 
 { }
@@ -340,7 +338,8 @@ type
     scRGB,
     scG_GA_RGB_RGBA,
     scG_GA_RGB_RGBA_GPUCompressed,
-    scRGB_RGBFloat
+    scRGB_RGBFloat,
+    scAnything
   );
 
   { Index of TImageFormatInfo.MimeTypes array and
@@ -410,12 +409,6 @@ type
       @nil if cannot be saved. }
     Save: TImageSaveFunc;
 
-    { If Save is assigned, this describes what TEncodedImage descendants
-      can be handled by this Save. SaveImage needs this information,
-      to make necessary conversions from other TEncodedImage classes,
-      when possible. }
-    SavedClasses: TImageSaveHandledClasses;
-
     { Detect the class to which load image, based on Stream.
       Return @nil if auto-detection failed.
 
@@ -440,7 +433,7 @@ const
       { Regardless of using libpng or not, our PNG load/save can handle
         all possibilities. }
       Load: {$ifdef FPC}@{$endif}LoadPNG;
-      Save: {$ifdef FPC}@{$endif}SavePNG; SavedClasses: scG_GA_RGB_RGBA;
+      Save: {$ifdef FPC}@{$endif}SavePNG;
       DetectClass: {$ifdef FPC}@{$endif}InternalDetectClassPNG;
     ),
     ( FormatName: 'Windows BMP image';
@@ -448,7 +441,7 @@ const
       MimeTypes: ('image/bmp', '', '', '', '', '', '');
       ExtsCount: 1; Exts: ('bmp', '', '', '');
       Load: {$ifdef FPC}@{$endif}LoadBMP;
-      Save: {$ifdef FPC}@{$endif}SaveBMP; SavedClasses: scRGB;
+      Save: {$ifdef FPC}@{$endif}SaveBMP;
       DetectClass: nil;
     ),
     { JFIF, JPEG File Interchange Format } { }
@@ -457,7 +450,7 @@ const
       MimeTypes: ('image/jpeg', 'image/jpg', '', '', '', '', '');
       ExtsCount: 3; Exts: ('jpg', 'jpeg', 'jpe', '');
       Load: {$ifdef FPC}@{$endif}LoadJPEG;
-      Save: {$ifdef FPC}@{$endif}SaveJPEG; SavedClasses: scG_GA_RGB_RGBA;
+      Save: {$ifdef FPC}@{$endif}SaveJPEG;
       DetectClass: {$ifdef FPC}@{$endif}DetectClassJPG;
     ),
     { Graphics Interchange Format } { }
@@ -466,7 +459,7 @@ const
       MimeTypes: ('image/gif', '', '', '', '', '', '');
       ExtsCount: 1; Exts: ('gif', '', '', '');
       Load: {$ifdef FPC}@{$endif}LoadGIF;
-      Save: {$ifdef FPC}@{$endif}SaveGIF; SavedClasses: scG_GA_RGB_RGBA;
+      Save: {$ifdef FPC}@{$endif}SaveGIF;
       DetectClass: nil;
     ),
     ( FormatName: 'TarGA image';
@@ -474,7 +467,7 @@ const
       MimeTypes: ('image/x-targa', 'image/x-tga', '', '', '', '', '');
       ExtsCount: 2; Exts: ('tga', 'tpic', '', '');
       Load: {$ifdef FPC}@{$endif}LoadTGA;
-      Save: {$ifdef FPC}@{$endif}SaveTGA; SavedClasses: scG_GA_RGB_RGBA;
+      Save: {$ifdef FPC}@{$endif}SaveTGA;
       DetectClass: nil;
     ),
     ( FormatName: 'XPM image';
@@ -482,7 +475,7 @@ const
       MimeTypes: ('image/x-xpixmap', '', '', '', '', '', '');
       ExtsCount: 1; Exts: ('xpm', '', '', '');
       Load: {$ifdef FPC}@{$endif}LoadXPM;
-      Save: {$ifdef FPC}@{$endif}SaveXPM; SavedClasses: scG_GA_RGB_RGBA;
+      Save: {$ifdef FPC}@{$endif}SaveXPM;
       DetectClass: nil;
     ),
     ( FormatName: 'PSD image';
@@ -490,7 +483,7 @@ const
       MimeTypes: ('image/photoshop', 'image/x-photoshop', 'image/psd', 'application/photoshop', '', '', '');
       ExtsCount: 1; Exts: ('psd', '', '', '');
       Load: {$ifdef FPC}@{$endif}LoadPSD;
-      Save: nil; SavedClasses: scRGB;
+      Save: nil;
       DetectClass: nil;
     ),
     ( FormatName: 'ZSoft PCX image';
@@ -498,7 +491,7 @@ const
       MimeTypes: ('image/pcx', 'application/pcx', 'application/x-pcx', 'image/x-pc-paintbrush', 'image/x-pcx', '', '');
       ExtsCount: 1; Exts: ('pcx', '', '', '');
       Load: {$ifdef FPC}@{$endif}LoadPCX;
-      Save: nil; SavedClasses: scRGB;
+      Save: nil;
       DetectClass: nil;
     ),
     ( FormatName: 'PNM image';
@@ -506,7 +499,7 @@ const
       MimeTypes: ('image/x-portable-anymap', 'image/x-portable-graymap', 'image/x-pgm', 'image/x-portable-bitmap', 'image/pbm', 'image/x-pbm', 'image/x-portable-pixmap');
       ExtsCount: 4; Exts: ('pnm', 'pgm', 'pbm', 'ppm');
       Load: {$ifdef FPC}@{$endif}LoadPNM;
-      Save: {$ifdef FPC}@{$endif}SavePNM; SavedClasses: scG_GA_RGB_RGBA;
+      Save: {$ifdef FPC}@{$endif}SavePNM;
       DetectClass: nil;
     ),
 
@@ -516,7 +509,7 @@ const
       MimeTypes: ('image/x-dds', '', '', '', '', '', '');
       ExtsCount: 1; Exts: ('dds', '', '', '');
       Load: {$ifdef FPC}@{$endif}LoadDDS;
-      Save: {$ifdef FPC}@{$endif}SaveDDS; SavedClasses: scG_GA_RGB_RGBA_GPUCompressed;
+      Save: {$ifdef FPC}@{$endif}SaveDDS;
       DetectClass: nil;
     ),
 
@@ -526,7 +519,7 @@ const
       MimeTypes: ('image/ktx', '', '', '', '', '', '');
       ExtsCount: 1; Exts: ('ktx', '', '', '');
       Load: {$ifdef FPC}@{$endif}LoadKTX;
-      Save: nil; SavedClasses: scG_GA_RGB_RGBA_GPUCompressed;
+      Save: nil;
       DetectClass: nil;
     ),
     { ASTC } { }
@@ -535,7 +528,7 @@ const
       MimeTypes: ('image/astc', '', '', '', '', '', '');
       ExtsCount: 1; Exts: ('astc', '', '', '');
       Load: {$ifdef FPC}@{$endif}LoadASTC;
-      Save: nil; SavedClasses: scG_GA_RGB_RGBA_GPUCompressed;
+      Save: nil;
       DetectClass: nil;
     ),
     ( FormatName: 'RGBE (Radiance, HDR) image';
@@ -543,7 +536,7 @@ const
       MimeTypes: ('image/vnd.radiance', '', '', '', '', '', '');
       ExtsCount: 3; Exts: ('rgbe', 'pic', 'hdr', '');
       Load: {$ifdef FPC}@{$endif}LoadRGBE;
-      Save: {$ifdef FPC}@{$endif}SaveRGBE; SavedClasses: scRGB_RGBFloat;
+      Save: {$ifdef FPC}@{$endif}SaveRGBE;
       DetectClass: nil;
     )
 
@@ -554,7 +547,9 @@ const
       MimeTypes: ('image/tiff', '', '', '', '', '', '');
       ExtsCount: 2; Exts: ('tiff', 'tif', '', '');
       Load: {$ifdef FPC}@{$endif}LoadTIFF;
-      Save: {$ifdef FPC}@{$endif}SaveTIFF; SavedClasses: scG_GA_RGB_RGBA;
+      // Saving to TIFF always seems to cause SEGFAULT; TODO: test and submit to Vampyre
+      //Save: {$ifdef FPC}@{$endif}SaveTIFF;
+      Save: nil;
       DetectClass: nil;
     ),
     ( FormatName: 'JPEG 2000 image';
@@ -562,7 +557,7 @@ const
       MimeTypes: ('image/jp2', 'image/jpeg2000', 'image/jpeg2000-image', 'image/x-jpeg2000-image', '', '', '');
       ExtsCount: 1; Exts: ('jp2', '', '', '');
       Load: {$ifdef FPC}@{$endif}LoadJP2;
-      Save: {$ifdef FPC}@{$endif}SaveJP2; SavedClasses: scG_GA_RGB_RGBA;
+      Save: {$ifdef FPC}@{$endif}SaveJP2;
       DetectClass: nil;
     )
     {$endif CASTLE_ENABLE_PLATFORM_SPECIFIC_IMAGE_FORMATS}
@@ -573,7 +568,7 @@ const
       MimeTypes: ('image/x-exr', '', '', '', '', '', '');
       ExtsCount: 1; Exts: ('exr', '', '', '');
       Load: {$ifdef FPC}@{$endif}LoadEXR;
-      Save: nil; SavedClasses: scRGB;
+      Save: nil;
       DetectClass: nil;
     )
     *)

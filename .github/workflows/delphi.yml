@@ -26,7 +26,7 @@ jobs:
       matrix:
         host-label: [
           delphi_10_2,
-          delphi_11_3
+          delphi_12_2
         ]
 
     # Note: This is a self-hosted runner in organization,
@@ -110,10 +110,22 @@ jobs:
         run: make test-editor-templates CASTLE_ENGINE_TOOL_OPTIONS="--compiler=delphi --os=win64 --cpu=x86_64" BUILD_TOOL="${BUILD_TOOL}"
       - name: Build Templates (Win32)
         run: make test-editor-templates CASTLE_ENGINE_TOOL_OPTIONS="--compiler=delphi --os=win32 --cpu=i386" BUILD_TOOL="${BUILD_TOOL}"
+
+      # Our examples do pass with Delphi 10.2, but the host with delphi_10_2
+      # is right now a really weak machine -- building Win64 examples takes 2h 45m,
+      # building Win32 examples takes 55 min. Moreover sometimes it crashes just
+      # randomly (next build of the same thing goes OK) -- not sure if it's
+      # Delphi 10.2 fault or this machine's RAM or sthg.
+      #
+      # TODO: For now, we skip "make examples-delphi" test for delphi_10_2.
+      # If we'll have better hardware, we'll resume them.
       - name: Build Examples (Win64)
+        if: ${{ matrix.host-label != 'delphi_10_2' }}
         run: make examples-delphi CASTLE_ENGINE_TOOL_OPTIONS="--os=win64 --cpu=x86_64" BUILD_TOOL="${BUILD_TOOL}"
       - name: Build Examples (Win32)
+        if: ${{ matrix.host-label != 'delphi_10_2' }}
         run: make examples-delphi CASTLE_ENGINE_TOOL_OPTIONS="--os=win32 --cpu=i386" BUILD_TOOL="${BUILD_TOOL}"
+
       - name: Build Delphi-specific Examples (Win64)
         run: |
           cd examples/delphi/vcl

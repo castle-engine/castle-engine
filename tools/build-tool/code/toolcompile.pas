@@ -1,5 +1,5 @@
 {
-  Copyright 2014-2023 Michalis Kamburelis.
+  Copyright 2014-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -659,6 +659,9 @@ begin
         WritelnWarning('Disabling optimizations, because they are buggy on Aarch64 with older FPC. Upgrade to FPC >= 3.2.2.');
       end else
         FpcOptions.Add('-O2');
+        // Not using -O3: Fails badly on 64-bit Raspberry Pi (Linux/Aarch64),
+        // at TTestCastleComponentSerialize.TestCustomSerialization
+        //FpcOptions.Add('-O3');
       FpcOptions.Add('-dRELEASE');
     end;
 
@@ -676,12 +679,12 @@ begin
         end;
       cmDebug:
         begin
-          FpcOptions.Add('-Cr');
-          FpcOptions.Add('-Co');
-          FpcOptions.Add('-Sa');
-          FpcOptions.Add('-CR');
-          FpcOptions.Add('-g');
-          FpcOptions.Add('-gl');
+          FpcOptions.Add('-Cr'); // Range checking, see https://github.com/michaliskambi/modern-pascal-introduction/wiki/What-are-range-and-overflow-checks-(and-errors)-in-Pascal
+          FpcOptions.Add('-Co'); // Overflow checking, see https://github.com/michaliskambi/modern-pascal-introduction/wiki/What-are-range-and-overflow-checks-(and-errors)-in-Pascal
+          FpcOptions.Add('-Sa'); // Assertions
+          FpcOptions.Add('-CR'); // Verify method calls
+          FpcOptions.Add('-g');  // Debug info (automatic), for debuggers
+          FpcOptions.Add('-gl'); // Line info (in backtraces)
           FpcOptions.Add('-dDEBUG');
           { Disable -Ct (Stack checking) added to fpc.cfg in default
             fpcupdeluxe installation when DEBUG is defined.
@@ -733,10 +736,10 @@ begin
       //FpcOptions.Add('-CaEABIHF');
     end;
 
-    if Options.DetectMemoryLeaks then
+    if Options.DetectMemoryLeaks then // see https://castle-engine.io/memory_leaks
     begin
-      FpcOptions.Add('-gl');
-      FpcOptions.Add('-gh');
+      FpcOptions.Add('-gl'); // HeapTrc
+      FpcOptions.Add('-gh'); // LineInfo
     end;
 
     AddIOSOptions;

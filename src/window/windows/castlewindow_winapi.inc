@@ -60,6 +60,7 @@ Windows, CommDlg,
 
 {$ifdef read_implementation_uses}
 CastleInternalWindowModes, CastleMessages, CastleJoysticks, CastleUnicode,
+CastleInternalFileMonitor,
 {$endif}
 
 {$ifdef read_window_interface}
@@ -390,7 +391,7 @@ function TCastleWindow.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM): LRE
 
       Notes:
 
-      - Doing "Exit(UnicodeToUTF8(WParm))" also seems to work for Polish chars.
+      - Doing "Exit(UnicodeCharToString(WParm))" also seems to work for Polish chars.
         But it's not necessarily correct, I think: UTF-16 character number
         is not necessarily equal to just Unicode number.
 
@@ -418,7 +419,7 @@ function TCastleWindow.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM): LRE
     The frequency of "key repeat" depends on user settings.
 
     And... that's completely OK. We still pass each WM_KEYDOWN to DoKeyDown.
-    This way our API (TCastleUserInterface.Press, TCastleWindow.OnPress)
+    This way our API (TCastleUserInterface.Press)
     will generate repeated key presses.
     This is documented and desired (e.g. for implementing UI like edit box).
     User can check TInputPressRelease.KeyRepeated that is calculated
@@ -529,7 +530,6 @@ function TCastleWindow.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM): LRE
     KeyString := ConvertWmCharToString(WParm);
     if KeyString <> '' then
       DoKeyDown(keyNone, KeyString);
-    WritelnLog('Received WM_CHAR. Test information for https://github.com/castle-engine/castle-engine/issues/159 : WParam ' + IntToStr(WParm) + ' string: ' + {$ifdef FPC}UTF8ToHtmlEntities({$endif}KeyString{$ifdef FPC}){$endif});
   end;
 
   { Handle WM_UNICHAR that reports a key press as 32-bit Unicode character.
@@ -567,7 +567,7 @@ function TCastleWindow.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM): LRE
         This is the same: https://en.wikipedia.org/wiki/UTF-32,
         """Each 32-bit value in UTF-32 represents one Unicode code point and is exactly equal to that code point's numerical value. """
       }
-      KeyString := {$ifdef FPC}UnicodeToUTF8(WParm){$else}ConvertFromUtf32(WParm){$endif};
+      KeyString := UnicodeCharToString(WParm);
       if KeyString <> '' then
         DoKeyDown(keyNone, KeyString);
     end;
@@ -589,10 +589,9 @@ function TCastleWindow.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM): LRE
     begin
       Result := false;
       { TODO: Handles all input controls, not just TCastleEdit }
-      if (Container.Focus.Count <> 0) and
-         (Container.Focus.Last is TCastleEdit) then
+      if Container.FocusFront is TCastleEdit then
       begin
-        CastleEdit := Container.Focus.Last as TCastleEdit;
+        CastleEdit := Container.FocusFront as TCastleEdit;
         S := CastleEdit.Text;
         if CastleEdit.PasswordChar <> #0 then
           S := StringOfChar(CastleEdit.PasswordChar, Length(S));
@@ -727,6 +726,8 @@ begin
     WM_ACTIVATEAPP:
       begin
         Application.appActive := longbool(wParm);
+        if Application.appActive then
+          FileMonitor.CheckChanges;
         {exit; <- allow DefWindowProcW handle WM_ACTIVETAPP too,
          since you can't say "we surely handled everything that should be done in
          reaction for this message"}
@@ -964,7 +965,7 @@ begin
           { A device has been sucessfully added to the system }
           DBT_DEVICEARRIVAL:
             begin
-              WriteLnLog('Received a WM_DEVICECHANGE event with DBT_DEVICEARRIVAL');
+              WriteLnLog('Event WM_DEVICECHANGE + DBT_DEVICEARRIVAL, possibly a joystick connected');
               //it might be a joystick, therefore
               Joysticks.InternalConnected;
             end;
@@ -2076,11 +2077,6 @@ begin
   if DisplaySettingsChanged and VideoResize then
     result := VideoResizeHeight else
     result := GetSystemMetrics(SM_CYSCREEN);
-end;
-
-function TCastleApplication.ScreenStatusBarScaledHeight: Cardinal;
-begin
-  Result := 0;
 end;
 
 function TCastleApplication.BackendName: String;

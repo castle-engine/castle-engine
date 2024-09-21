@@ -1,6 +1,6 @@
 // -*- compile-command: "./test_single_testcase.sh TTestImages" -*-
 {
-  Copyright 2004-2023 Michalis Kamburelis.
+  Copyright 2004-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -40,6 +40,10 @@ type
     procedure TestInternalDetectClassPNG;
     procedure TestLoadAnchors;
     procedure TestPreserveTreatAsAlpha;
+    procedure TestByteSinglePrecision;
+    procedure TestUInt16SinglePrecision;
+    procedure TestPngFloat;
+    procedure TestKtxFloat;
   end;
 
 implementation
@@ -481,6 +485,106 @@ begin
     finally FreeAndNil(Img2) end;
 
   finally FreeAndNil(Img1) end;
+end;
+
+procedure TTestImages.TestByteSinglePrecision;
+var
+  B: Byte;
+  S: Single;
+begin
+  { Test claim from CastleImages docs that float-based (Single) images
+    can carry Byte information without any loss.
+    We test that each Byte "survives" round-trip to Single,
+    despite being approximated in Single and then rounded. }
+  for B := Low(Byte) to High(Byte) do
+  begin
+    S := B;
+    AssertEquals(B, Round(S));
+  end;
+end;
+
+procedure TTestImages.TestUInt16SinglePrecision;
+var
+  I: UInt16;
+  S: Single;
+begin
+  { Test claim that float-based (Single) images
+    can carry UInt16 information without any loss.
+    We test that each UInt16 "survives" round-trip to Single,
+    despite being approximated in Single and then rounded. }
+  for I := Low(UInt16) to High(UInt16) do
+  begin
+    S := I;
+    AssertEquals(I, Round(S));
+  end;
+end;
+
+procedure TTestImages.TestPngFloat;
+{ Test on images from http://www.schaik.com/pngsuite/ }
+var
+  Img: TCastleImage;
+begin
+  Img := LoadImage('castle-data:/png/basi0g16.png');
+  try
+    AssertEquals(32, Img.Width);
+    AssertEquals(32, Img.Height);
+    AssertTrue(Img is TGrayscaleFloatImage);
+  finally FreeAndNil(Img) end;
+
+  Img := LoadImage('castle-data:/png/basi2c16.png');
+  try
+    AssertEquals(32, Img.Width);
+    AssertEquals(32, Img.Height);
+    AssertTrue(Img is TRGBFloatImage);
+  finally FreeAndNil(Img) end;
+
+  Img := LoadImage('castle-data:/png/basi4a16.png');
+  try
+    AssertEquals(32, Img.Width);
+    AssertEquals(32, Img.Height);
+    AssertTrue(Img is TGrayscaleAlphaFloatImage);
+  finally FreeAndNil(Img) end;
+
+  Img := LoadImage('castle-data:/png/basi6a16.png');
+  try
+    AssertEquals(32, Img.Width);
+    AssertEquals(32, Img.Height);
+    AssertTrue(Img is TRGBAlphaFloatImage);
+  finally FreeAndNil(Img) end;
+end;
+
+procedure TTestImages.TestKtxFloat;
+{ Test on images from https://github.com/KhronosGroup/KTX-Software/tree/main/external/astc-encoder/Test/Images/Small }
+var
+  Img: TCastleImage;
+begin
+  Img := LoadImage('castle-data:/ktx/floats/hdr-rgb-r32.ktx');
+  try
+    AssertEquals(16, Img.Width);
+    AssertEquals(16, Img.Height);
+    AssertTrue(Img is TGrayscaleFloatImage);
+  finally FreeAndNil(Img) end;
+
+  Img := LoadImage('castle-data:/ktx/floats/hdr-rgb-rgb32.ktx');
+  try
+    AssertEquals(16, Img.Width);
+    AssertEquals(16, Img.Height);
+    AssertTrue(Img is TRGBFloatImage);
+  finally FreeAndNil(Img) end;
+
+  Img := LoadImage('castle-data:/ktx/floats/hdr-rgb-rg32.ktx');
+  try
+    AssertEquals(16, Img.Width);
+    AssertEquals(16, Img.Height);
+    AssertTrue(Img is TGrayscaleAlphaFloatImage);
+  finally FreeAndNil(Img) end;
+
+  Img := LoadImage('castle-data:/ktx/floats/hdr-rgba-rgba32.ktx');
+  try
+    AssertEquals(16, Img.Width);
+    AssertEquals(16, Img.Height);
+    AssertTrue(Img is TRGBAlphaFloatImage);
+  finally FreeAndNil(Img) end;
 end;
 
 initialization

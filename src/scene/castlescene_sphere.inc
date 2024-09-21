@@ -1,6 +1,6 @@
 {%MainUnit castlescene.pas}
 {
-  Copyright 2021-2022 Michalis Kamburelis.
+  Copyright 2021-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -23,8 +23,11 @@ type
     SphereNode: TSphereNode;
     FRadius: Single;
     FDoubleSided: Boolean;
+    FSlices, FStacks: Cardinal;
     procedure SetRadius(const Value: Single);
     procedure SetDoubleSided(const Value: Boolean);
+    procedure SetSlices(const Value: Cardinal);
+    procedure SetStacks(const Value: Cardinal);
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -38,6 +41,28 @@ type
 
     { CollisionSphereRadius is always derived from Radius for this component. }
     property CollisionSphereRadius stored false;
+
+    { How many "slices" to use to approximate the sphere.
+      The sphere is rendered using polygons (triangles and quads)
+      that approximate the sphere shape.
+      The more slices, the more the sphere will look like a sphere.
+
+      Slices divide the objects like slices of a pizza.
+
+      The default value of 0 means to follow global variable
+      @link(DefaultTriangulationSlices).}
+    property Slices: Cardinal read FSlices write SetSlices default 0;
+
+    { How many "stacks" to use to approximate the sphere.
+      The sphere is rendered using polygons (triangles and quads)
+      that approximate the sphere shape.
+      The more stacks, the more the sphere will look like a sphere.
+
+      Stacks divide the objects like stacks of a tower.
+
+      The default value of 0 means to follow global variable
+      @link(DefaultTriangulationStacks).}
+    property Stacks: Cardinal read FStacks write SetStacks default 0;
   end;
 
 {$endif read_interface}
@@ -55,6 +80,9 @@ begin
 
   SphereNode := TSphereNode.Create;
   SphereNode.Radius := FRadius;
+  SphereNode.Solid := not FDoubleSided;
+  SphereNode.Slices := FSlices;
+  SphereNode.Stacks := FStacks;
   ShapeNode.Geometry := SphereNode;
 
   { set CollisionSphereRadius to make collisions work better for sphere }
@@ -68,8 +96,8 @@ end;
 
 function TCastleSphere.PropertySections(const PropertyName: String): TPropertySections;
 begin
-  if (PropertyName = 'Radius') or
-     (PropertyName = 'DoubleSided') then
+  if ArrayContainsString(PropertyName, ['Radius', 'DoubleSided',
+       'Slices', 'Stacks']) then
     Result := [psBasic]
   else
     Result := inherited PropertySections(PropertyName);
@@ -92,6 +120,24 @@ begin
   begin
     FDoubleSided := Value;
     SphereNode.Solid := not Value;
+  end;
+end;
+
+procedure TCastleSphere.SetSlices(const Value: Cardinal);
+begin
+  if FSlices <> Value then
+  begin
+    FSlices := Value;
+    SphereNode.Slices := FSlices;
+  end;
+end;
+
+procedure TCastleSphere.SetStacks(const Value: Cardinal);
+begin
+  if FStacks <> Value then
+  begin
+    FStacks := Value;
+    SphereNode.Stacks := FStacks;
   end;
 end;
 

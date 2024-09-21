@@ -1,5 +1,26 @@
 # Platformer
 
+## Introduction
+
+This a a full-featured _platformer_ game implemented using [Castle Game Engine](https://castle-engine.io/).
+
+Watch the movie with a playthrough on https://www.youtube.com/watch?v=yVTxr9tTHxg .
+
+## Downloads
+
+- [Linux, Windows, Android APK (from itch.io)](https://castle-engine.itch.io/platformer).
+- [Android (from Google Play)](https://play.google.com/store/apps/details?id=io.castleengine.platformer).
+
+## Screenshots
+
+![Screenshot 1](store/google-play/screen1.png)
+![Screenshot 2](store/google-play/screen2.png)
+![Screenshot 3](store/google-play/screen3.png)
+![Screenshot 4](store/google-play/screen4.png)
+![Screenshot 5](store/google-play/screen5.png)
+
+## Features
+
 A complete demo of a platformer game, with
 
 - Level (and all UI) designed visually using the editor.
@@ -11,12 +32,6 @@ A complete demo of a platformer game, with
 - Sound and music.
 
 - All UI states you expect from a usual game — main menu, options (with volume configuration), pause, credits, game over and of course the actual game.
-
-You can watch the movie with a playthrough on https://www.youtube.com/watch?v=yVTxr9tTHxg .
-
-You can download the precompiled version from https://castle-engine.itch.io/platformer .
-
-Using [Castle Game Engine](https://castle-engine.io/).
 
 ## Keys, mouse, touch input
 

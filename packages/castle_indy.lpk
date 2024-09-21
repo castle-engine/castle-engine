@@ -27,9 +27,9 @@
 This package, castle_indy.lpk, contains the units that depend on Indy. You can install this package in Lazarus. See https://castle-engine.io/manual_network.php#section_indy about our networking solutions."/>
     <License Value="GNU LGPL with static linking exception >= 2.
 This is the same license as used by Lazarus LCL and FPC RTL.
-See https://castle-engine.io/license.php for details.
+See https://castle-engine.io/license for details.
 "/>
-    <Version Major="6" Minor="92"/>
+    <Version Major="6" Minor="93" Release="1"/>
     <Files Count="1">
       <Item1>
         <Filename Value="../src/files/indy/castleclientserver.pas"/>

@@ -1,6 +1,6 @@
 { -*- compile-command: "./castleengine_compile.sh" -*- }
 {
-  Copyright 2013-2023 Jan Adamec, Michalis Kamburelis.
+  Copyright 2013-2024 Jan Adamec, Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -34,7 +34,7 @@
 library castleengine;
 
 uses CTypes, Math, SysUtils, CastleUtils,
-  Classes, CastleKeysMouse, CastleCameras, CastleVectors, CastleGLUtils,
+  Classes, CastleKeysMouse, CastleCameras, CastleVectors, CastleGLUtils, CastleGLVersion,
   CastleImages, CastleSceneCore, CastleUIControls, X3DNodes, X3DFields, CastleLog,
   CastleBoxes, CastleControls, CastleInputs, CastleApplicationProperties,
   CastleWindow, CastleViewport, CastleScene, CastleTransform;
@@ -168,6 +168,18 @@ begin
     StrPLCopy(szBuffer, sText, nBufSize-1);
   except
     on E: TObject do WritelnWarning('Window', 'CGE_GetOpenGLInformation: ' + ExceptMessage(E));
+  end;
+end;
+
+procedure CGE_GetCastleEngineVersion(szBuffer: pchar; nBufSize: cInt32); cdecl;
+var
+  sText: string;
+begin
+  try
+    sText := CastleEngineVersion;
+    StrPLCopy(szBuffer, sText, nBufSize-1);
+  except
+    on E: TObject do WritelnWarning('Window', 'CGE_GetCastleEngineVersion: ' + ExceptMessage(E));
   end;
 end;
 
@@ -352,6 +364,17 @@ begin
     Viewport.AssignDefaultNavigation;
   except
     on E: TObject do WritelnWarning('Window', 'CGE_LoadSceneFromFile: ' + ExceptMessage(E));
+  end;
+end;
+
+procedure CGE_SaveSceneToFile(szFile: pcchar); cdecl;
+begin
+  if not CGE_VerifyScene('CGE_SaveSceneToFile') then
+    exit;
+  try
+    MainScene.Save(StrPas(PChar(szFile)));
+  except
+    on E: TObject do WritelnWarning('Window', 'CGE_SaveSceneToFile: ' + ExceptMessage(E));
   end;
 end;
 
@@ -935,6 +958,7 @@ exports
   CGE_Open,
   CGE_Close,
   CGE_GetOpenGLInformation,
+  CGE_GetCastleEngineVersion,
   CGE_Render,
   CGE_Resize,
   CGE_SetLibraryCallbackProc,
@@ -946,6 +970,7 @@ exports
   CGE_KeyDown,
   CGE_KeyUp,
   CGE_LoadSceneFromFile,
+  CGE_SaveSceneToFile,
   CGE_SetNavigationInputShortcut,
   CGE_GetNavigationType,
   CGE_SetNavigationType,

@@ -1,6 +1,6 @@
 {%MainUnit castleglimages.pas}
 {
-  Copyright 2001-2023 Michalis Kamburelis.
+  Copyright 2001-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -39,9 +39,7 @@
 
   { Image that can be drawn.
     This image can be drawn in various rendering methods and events,
-    e.g. inside overridden @link(TCastleUserInterface.Render) or from events
-    @link(TCastleWindow.OnRender) or
-    @link(TCastleControl.OnRender).
+    e.g. inside overridden @link(TCastleUserInterface.Render).
 
     See the manual about drawing using TDrawableImage:
     https://castle-engine.io/manual_2d_ui_custom_drawn.php .
@@ -285,7 +283,7 @@
 
         @longCode(# Image := TDrawableImage.Create('castle-data:/textures/my_image.png', ...); #)
 
-        See https://castle-engine.io/manual_data_directory.php
+        See https://castle-engine.io/data
       )
 
       @param(ASmoothScaling The initial value of @link(SmoothScaling),
@@ -589,8 +587,8 @@
       the image contents from @link(TEncodedImage) to GPU, which is not something
       you want to do every frame. Doing this occasionally,
       or during the loading/preparation stage, is OK.
-      Doing this often, e.g. during every @link(TCastleWindow.OnRender)
-      or @link(TCastleWindow.OnUpdate), will hurt your performance.
+      Doing this often, e.g. during every @link(TCastleUserInterface.Render),
+      will hurt your performance.
       During the game, it's most efficient to treat the @link(TDrawableImage) instances
       as "constant" -- avoid changing their contents, avoid creating new ones. }
     procedure Load(const AImage: TEncodedImage); virtual;
@@ -1201,21 +1199,24 @@ var
   end;
 
   { Bind the given buffer and update contents. }
-  procedure LoadBuffer(const Target: TGLenum;
+  procedure LoadBuffer(const Target: TBufferTarget;
     const Vbo: TGLuint; var VboCurrentSize: Cardinal;
     const ContentsPtr: Pointer; const ContentsSize: Cardinal);
+  var
+    TargetGL: TGLenum;
   begin
-    glBindBuffer(Target, Vbo);
+    RenderContext.BindBuffer[Target] := Vbo;
+    TargetGL := BufferTargetGL[Target];
     { Try using glBufferSubData if possible, manual suggests it's better
       than repeatedly calling glBufferData.
       The VBO size will only increase this way, but this is probably OK,
       it's a single VBO for all our UI stuff. }
     if VboCurrentSize < ContentsSize then
     begin
-      glBufferData(Target, ContentsSize, ContentsPtr, GL_DYNAMIC_DRAW);
+      glBufferData(TargetGL, ContentsSize, ContentsPtr, GL_DYNAMIC_DRAW);
       VboCurrentSize := ContentsSize;
     end else
-      glBufferSubData(Target, 0, ContentsSize, ContentsPtr);
+      glBufferSubData(TargetGL, 0, ContentsSize, ContentsPtr);
   end;
 
 const
@@ -1226,12 +1227,15 @@ var
   I: Integer;
   Vbo: PVboStorage;
   IndexPtr: Pointer;
+  UseIndex: Boolean;
 begin
   if (Count = 0) or
      ((Count = 1) and
       ((ScreenRects^[0].Width = 0) or
        (ScreenRects^[0].Height = 0))) then
     Exit;
+
+  FrameProfiler.Start(fmDrawImage);
 
   // we load on demand, so do PrepareResources always
   PrepareResources;
@@ -1244,7 +1248,8 @@ begin
   GLEnableTexture(et2D);
 
   { calculate Indexes contents, only used when Count <> 1 }
-  if Count <> 1 then
+  UseIndex := Count <> 1;
+  if UseIndex then
   begin
     {$ifdef GLIndexesShort}
     if Integer(Count - 1) * IndexesPerQuad + IndexesPerQuad - 1 > High(Word) then
@@ -1283,11 +1288,11 @@ begin
       esp. important for GL_ELEMENT_ARRAY_BUFFER whose VBO isn't bound later. }
     RenderContext.CurrentVao := Vbo^.Vao;
 
-    LoadBuffer(GL_ARRAY_BUFFER, Vbo^.PointsVbo, Vbo^.PointsVboSize,
+    LoadBuffer(btArray, Vbo^.PointsVbo, Vbo^.PointsVboSize,
       @Points[0], Length(Points) * SizeOf(TPoint));
 
-    if Count <> 1 then
-      LoadBuffer(GL_ELEMENT_ARRAY_BUFFER, Vbo^.IndexesVbo, Vbo^.IndexesVboSize,
+    if UseIndex then
+      LoadBuffer(btElementArray, Vbo^.IndexesVbo, Vbo^.IndexesVboSize,
         @Indexes[0], Length(Indexes) * SizeOf(Indexes[0]));
 
     // initialize shaders
@@ -1348,7 +1353,7 @@ begin
 
   Inc(Statistics.DrawCalls);
 
-  if Count <> 1 then
+  if UseIndex then
   begin
     if not GLFeatures.EnableFixedFunction then
       IndexPtr := nil
@@ -1366,8 +1371,9 @@ begin
     Prog.AttribVertex.DisableArray;
     Prog.AttribTexCoord.DisableArray;
 
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+    RenderContext.BindBuffer[btArray] := 0;
+    if UseIndex then // optimize out glBindBuffer call when not necessary
+      RenderContext.BindBuffer[btElementArray] := 0;
   end else
   begin
     {$ifndef OpenGLES}
@@ -1383,6 +1389,8 @@ begin
   end;
 
   AlphaEnd;
+
+  FrameProfiler.Stop(fmDrawImage);
 end;
 
 procedure TDrawableImage.DrawFlipped(const ScreenRect: TRectangle;

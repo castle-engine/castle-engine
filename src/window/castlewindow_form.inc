@@ -118,6 +118,8 @@
     No decision, and practically it doesn't matter:
     with FPC, at this point we have covered all platforms with native
     TCastleWindow implementation, not depending on LCL and CASTLR_WINDOW_FORM.
+
+  TODO: Call FileMonitor.CheckChanges when user switches to application.
 }
 {$if defined(FPC) or (not defined(LINUX))}
   {$define USE_TIMER}
@@ -1286,10 +1288,11 @@ begin
   if (ApplicationProperties.LimitFPS <= 0) or
      (Fps.UpdateStartTime.ElapsedTime > 1 / ApplicationProperties.LimitFPS) then
   begin
-    { Note that calling here ApplicationProperties._Update
+    { Note that calling here ApplicationProperties._Update/_UpdateEnd
       may be too often, in case multiple TCastleWindow are open. }
     ApplicationProperties._Update;
     DoUpdate;
+    ApplicationProperties._UpdateEnd;
 
     {$ifdef FPC}
 
@@ -1556,6 +1559,7 @@ begin
   ApplicationProperties._Update;
   { Call Update events on all windows. }
   FOpenWindows.DoUpdate;
+  ApplicationProperties._UpdateEnd;
 end;
 {$endif}
 
@@ -1712,11 +1716,6 @@ end;
 function TCastleApplication.ScreenHeight: integer;
 begin
   Result := Round(Screen.Height); // Round for FMX
-end;
-
-function TCastleApplication.ScreenStatusBarScaledHeight: Cardinal;
-begin
-  Result := 0;
 end;
 
 function TCastleApplication.BackendName: string;

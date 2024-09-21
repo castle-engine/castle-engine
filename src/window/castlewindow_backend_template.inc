@@ -291,11 +291,6 @@ begin
   Result := 200;
 end;
 
-function TCastleApplication.ScreenStatusBarScaledHeight: Cardinal;
-begin
-  Result := 0;
-end;
-
 function TCastleApplication.BackendName: String;
 begin
   { TODO }

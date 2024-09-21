@@ -8,7 +8,12 @@ set -euo pipefail
 
 cd "$CASTLE_ENGINE_PATH"
 
-make clean BUILD_TOOL=castle-engine > /dev/null # use build tool on $PATH
+./tools/build-tool/castle-engine_compile.sh
+mv -f ./tools/build-tool/castle-engine ./castle-engine-preserve
+
+make clean BUILD_TOOL="`pwd`"/castle-engine-preserve > /dev/null
+
+rm -f ./castle-engine-preserve
 
 # Note: we allow executable bit on libraries in
 # tools/build-tool/data/android/integrated-services/*.so .
@@ -31,6 +36,8 @@ find . '(' -type d -name .git -prune -false ')' -or \
                        -path './tools/internal/check_castle_window_backends_compilation' -or \
                        -path './tools/internal/examples_edit_readmes' -or \
                        -path './tools/internal/examples_edit_readmes_helper' -or \
+                       -path './tools/internal/check_lpg_compilation' -or \
+                       -path './tools/internal/check_build_tool_output' -or \
                        -path './tools/build-tool/data/android/integrated-services/*.so' \
                    ')' ')' -or \
        '(' -executable -type f -print ')'

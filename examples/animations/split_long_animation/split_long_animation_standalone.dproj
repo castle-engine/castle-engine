@@ -155,17 +155,17 @@
         <VerInfo_Locale>1033</VerInfo_Locale>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_1)'!=''">
-        <DCC_Define>RELEASE;$(DCC_Define)</DCC_Define>
-        <DCC_DebugInformation>0</DCC_DebugInformation>
-        <DCC_LocalDebugSymbols>false</DCC_LocalDebugSymbols>
-        <DCC_SymbolReferenceInfo>0</DCC_SymbolReferenceInfo>
-    </PropertyGroup>
-    <PropertyGroup Condition="'$(Cfg_2)'!=''">
         <DCC_Define>DEBUG;$(DCC_Define)</DCC_Define>
         <DCC_Optimize>false</DCC_Optimize>
         <DCC_GenerateStackFrames>true</DCC_GenerateStackFrames>
         <DCC_RangeChecking>true</DCC_RangeChecking>
         <DCC_IntegerOverflowCheck>true</DCC_IntegerOverflowCheck>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Cfg_2)'!=''">
+        <DCC_Define>RELEASE;$(DCC_Define)</DCC_Define>
+        <DCC_DebugInformation>0</DCC_DebugInformation>
+        <DCC_LocalDebugSymbols>false</DCC_LocalDebugSymbols>
+        <DCC_SymbolReferenceInfo>0</DCC_SymbolReferenceInfo>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_2_Android64)'!=''">
         <BT_BuildType>Debug</BT_BuildType>
@@ -188,11 +188,11 @@
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>
-        <BuildConfiguration Include="Release">
+        <BuildConfiguration Include="Debug">
             <Key>Cfg_1</Key>
             <CfgParent>Base</CfgParent>
         </BuildConfiguration>
-        <BuildConfiguration Include="Debug">
+        <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>
         </BuildConfiguration>
@@ -272,1698 +272,623 @@
                 </DeployFile>
 
                 <!-- Deploy data files -->
-                <DeployFile LocalName="data\CastleSettings.xml" Configuration="Debug" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>CastleSettings.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>CastleSettings.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>CastleSettings.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>CastleSettings.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>CastleSettings.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>CastleSettings.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>CastleSettings.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>CastleSettings.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>CastleSettings.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\README.txt" Configuration="Debug" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>README.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>README.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>README.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>README.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>README.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>README.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>README.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>README.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>README.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\gameviewmain.castle-user-interface" Configuration="Debug" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/license.txt" Configuration="Debug" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/</RemoteDir>
-                        <RemoteName>license.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/</RemoteDir>
-                        <RemoteName>license.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/</RemoteDir>
-                        <RemoteName>license.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/</RemoteDir>
-                        <RemoteName>license.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/</RemoteDir>
-                        <RemoteName>license.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/</RemoteDir>
-                        <RemoteName>license.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/</RemoteDir>
-                        <RemoteName>license.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/</RemoteDir>
-                        <RemoteName>license.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/</RemoteDir>
-                        <RemoteName>license.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/scene.bin" Configuration="Debug" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/</RemoteDir>
-                        <RemoteName>scene.bin</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/</RemoteDir>
-                        <RemoteName>scene.bin</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/</RemoteDir>
-                        <RemoteName>scene.bin</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/</RemoteDir>
-                        <RemoteName>scene.bin</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/</RemoteDir>
-                        <RemoteName>scene.bin</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/</RemoteDir>
-                        <RemoteName>scene.bin</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/</RemoteDir>
-                        <RemoteName>scene.bin</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/</RemoteDir>
-                        <RemoteName>scene.bin</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/</RemoteDir>
-                        <RemoteName>scene.bin</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/scene.gltf" Configuration="Debug" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/</RemoteDir>
-                        <RemoteName>scene.gltf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/</RemoteDir>
-                        <RemoteName>scene.gltf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/</RemoteDir>
-                        <RemoteName>scene.gltf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/</RemoteDir>
-                        <RemoteName>scene.gltf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/</RemoteDir>
-                        <RemoteName>scene.gltf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/</RemoteDir>
-                        <RemoteName>scene.gltf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/</RemoteDir>
-                        <RemoteName>scene.gltf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/</RemoteDir>
-                        <RemoteName>scene.gltf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/</RemoteDir>
-                        <RemoteName>scene.gltf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/09_-_Default_baseColor.jpeg" Configuration="Debug" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>09_-_Default_baseColor.jpeg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>09_-_Default_baseColor.jpeg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>09_-_Default_baseColor.jpeg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>09_-_Default_baseColor.jpeg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>09_-_Default_baseColor.jpeg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>09_-_Default_baseColor.jpeg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>09_-_Default_baseColor.jpeg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>09_-_Default_baseColor.jpeg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>09_-_Default_baseColor.jpeg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/09_-_Default_emissive.jpeg" Configuration="Debug" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>09_-_Default_emissive.jpeg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>09_-_Default_emissive.jpeg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>09_-_Default_emissive.jpeg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>09_-_Default_emissive.jpeg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>09_-_Default_emissive.jpeg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>09_-_Default_emissive.jpeg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>09_-_Default_emissive.jpeg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>09_-_Default_emissive.jpeg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>09_-_Default_emissive.jpeg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/09_-_Default_metallicRoughness.png" Configuration="Debug" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>09_-_Default_metallicRoughness.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>09_-_Default_metallicRoughness.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>09_-_Default_metallicRoughness.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>09_-_Default_metallicRoughness.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>09_-_Default_metallicRoughness.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>09_-_Default_metallicRoughness.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>09_-_Default_metallicRoughness.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>09_-_Default_metallicRoughness.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>09_-_Default_metallicRoughness.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/09_-_Default_normal.png" Configuration="Debug" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>09_-_Default_normal.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>09_-_Default_normal.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>09_-_Default_normal.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>09_-_Default_normal.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>09_-_Default_normal.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>09_-_Default_normal.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>09_-_Default_normal.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>09_-_Default_normal.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>09_-_Default_normal.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/material_1_baseColor.png" Configuration="Debug" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_1_baseColor.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_1_baseColor.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_1_baseColor.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_1_baseColor.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_1_baseColor.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_1_baseColor.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_1_baseColor.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_1_baseColor.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_1_baseColor.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/material_1_metallicRoughness.png" Configuration="Debug" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_1_metallicRoughness.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_1_metallicRoughness.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_1_metallicRoughness.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_1_metallicRoughness.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_1_metallicRoughness.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_1_metallicRoughness.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_1_metallicRoughness.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_1_metallicRoughness.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_1_metallicRoughness.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/material_1_normal.png" Configuration="Debug" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_1_normal.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_1_normal.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_1_normal.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_1_normal.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_1_normal.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_1_normal.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_1_normal.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_1_normal.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_1_normal.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/material_2_baseColor.jpeg" Configuration="Debug" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_2_baseColor.jpeg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_2_baseColor.jpeg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_2_baseColor.jpeg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_2_baseColor.jpeg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_2_baseColor.jpeg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_2_baseColor.jpeg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_2_baseColor.jpeg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_2_baseColor.jpeg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_2_baseColor.jpeg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/material_3_emissive.jpeg" Configuration="Debug" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_3_emissive.jpeg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_3_emissive.jpeg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_3_emissive.jpeg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_3_emissive.jpeg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_3_emissive.jpeg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_3_emissive.jpeg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_3_emissive.jpeg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_3_emissive.jpeg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_3_emissive.jpeg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/material_baseColor.jpeg" Configuration="Debug" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_baseColor.jpeg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_baseColor.jpeg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_baseColor.jpeg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_baseColor.jpeg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_baseColor.jpeg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_baseColor.jpeg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_baseColor.jpeg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_baseColor.jpeg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_baseColor.jpeg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/material_metallicRoughness.png" Configuration="Debug" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_metallicRoughness.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_metallicRoughness.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_metallicRoughness.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_metallicRoughness.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_metallicRoughness.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_metallicRoughness.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_metallicRoughness.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_metallicRoughness.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_metallicRoughness.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/material_normal.png" Configuration="Debug" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_normal.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_normal.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_normal.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_normal.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_normal.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_normal.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_normal.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_normal.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_normal.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\CastleSettings.xml" Configuration="Release" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>CastleSettings.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>CastleSettings.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>CastleSettings.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>CastleSettings.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>CastleSettings.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>CastleSettings.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>CastleSettings.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>CastleSettings.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>CastleSettings.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\README.txt" Configuration="Release" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>README.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>README.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>README.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>README.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>README.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>README.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>README.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>README.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>README.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\gameviewmain.castle-user-interface" Configuration="Release" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/</RemoteDir>
-                        <RemoteName>gameviewmain.castle-user-interface</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/license.txt" Configuration="Release" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/</RemoteDir>
-                        <RemoteName>license.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/</RemoteDir>
-                        <RemoteName>license.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/</RemoteDir>
-                        <RemoteName>license.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/</RemoteDir>
-                        <RemoteName>license.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/</RemoteDir>
-                        <RemoteName>license.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/</RemoteDir>
-                        <RemoteName>license.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/</RemoteDir>
-                        <RemoteName>license.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/</RemoteDir>
-                        <RemoteName>license.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/</RemoteDir>
-                        <RemoteName>license.txt</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/scene.bin" Configuration="Release" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/</RemoteDir>
-                        <RemoteName>scene.bin</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/</RemoteDir>
-                        <RemoteName>scene.bin</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/</RemoteDir>
-                        <RemoteName>scene.bin</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/</RemoteDir>
-                        <RemoteName>scene.bin</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/</RemoteDir>
-                        <RemoteName>scene.bin</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/</RemoteDir>
-                        <RemoteName>scene.bin</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/</RemoteDir>
-                        <RemoteName>scene.bin</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/</RemoteDir>
-                        <RemoteName>scene.bin</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/</RemoteDir>
-                        <RemoteName>scene.bin</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/scene.gltf" Configuration="Release" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/</RemoteDir>
-                        <RemoteName>scene.gltf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/</RemoteDir>
-                        <RemoteName>scene.gltf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/</RemoteDir>
-                        <RemoteName>scene.gltf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/</RemoteDir>
-                        <RemoteName>scene.gltf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/</RemoteDir>
-                        <RemoteName>scene.gltf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/</RemoteDir>
-                        <RemoteName>scene.gltf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/</RemoteDir>
-                        <RemoteName>scene.gltf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/</RemoteDir>
-                        <RemoteName>scene.gltf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/</RemoteDir>
-                        <RemoteName>scene.gltf</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/09_-_Default_baseColor.jpeg" Configuration="Release" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>09_-_Default_baseColor.jpeg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>09_-_Default_baseColor.jpeg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>09_-_Default_baseColor.jpeg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>09_-_Default_baseColor.jpeg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>09_-_Default_baseColor.jpeg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>09_-_Default_baseColor.jpeg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>09_-_Default_baseColor.jpeg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>09_-_Default_baseColor.jpeg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>09_-_Default_baseColor.jpeg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/09_-_Default_emissive.jpeg" Configuration="Release" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>09_-_Default_emissive.jpeg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>09_-_Default_emissive.jpeg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>09_-_Default_emissive.jpeg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>09_-_Default_emissive.jpeg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>09_-_Default_emissive.jpeg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>09_-_Default_emissive.jpeg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>09_-_Default_emissive.jpeg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>09_-_Default_emissive.jpeg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>09_-_Default_emissive.jpeg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/09_-_Default_metallicRoughness.png" Configuration="Release" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>09_-_Default_metallicRoughness.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>09_-_Default_metallicRoughness.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>09_-_Default_metallicRoughness.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>09_-_Default_metallicRoughness.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>09_-_Default_metallicRoughness.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>09_-_Default_metallicRoughness.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>09_-_Default_metallicRoughness.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>09_-_Default_metallicRoughness.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>09_-_Default_metallicRoughness.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/09_-_Default_normal.png" Configuration="Release" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>09_-_Default_normal.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>09_-_Default_normal.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>09_-_Default_normal.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>09_-_Default_normal.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>09_-_Default_normal.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>09_-_Default_normal.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>09_-_Default_normal.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>09_-_Default_normal.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>09_-_Default_normal.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/material_1_baseColor.png" Configuration="Release" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_1_baseColor.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_1_baseColor.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_1_baseColor.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_1_baseColor.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_1_baseColor.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_1_baseColor.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_1_baseColor.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_1_baseColor.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_1_baseColor.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/material_1_metallicRoughness.png" Configuration="Release" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_1_metallicRoughness.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_1_metallicRoughness.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_1_metallicRoughness.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_1_metallicRoughness.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_1_metallicRoughness.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_1_metallicRoughness.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_1_metallicRoughness.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_1_metallicRoughness.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_1_metallicRoughness.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/material_1_normal.png" Configuration="Release" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_1_normal.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_1_normal.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_1_normal.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_1_normal.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_1_normal.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_1_normal.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_1_normal.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_1_normal.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_1_normal.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/material_2_baseColor.jpeg" Configuration="Release" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_2_baseColor.jpeg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_2_baseColor.jpeg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_2_baseColor.jpeg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_2_baseColor.jpeg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_2_baseColor.jpeg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_2_baseColor.jpeg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_2_baseColor.jpeg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_2_baseColor.jpeg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_2_baseColor.jpeg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/material_3_emissive.jpeg" Configuration="Release" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_3_emissive.jpeg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_3_emissive.jpeg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_3_emissive.jpeg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_3_emissive.jpeg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_3_emissive.jpeg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_3_emissive.jpeg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_3_emissive.jpeg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_3_emissive.jpeg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_3_emissive.jpeg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/material_baseColor.jpeg" Configuration="Release" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_baseColor.jpeg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_baseColor.jpeg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_baseColor.jpeg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_baseColor.jpeg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_baseColor.jpeg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_baseColor.jpeg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_baseColor.jpeg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_baseColor.jpeg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_baseColor.jpeg</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/material_metallicRoughness.png" Configuration="Release" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_metallicRoughness.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_metallicRoughness.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_metallicRoughness.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_metallicRoughness.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_metallicRoughness.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_metallicRoughness.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_metallicRoughness.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_metallicRoughness.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_metallicRoughness.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="data\sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/material_normal.png" Configuration="Release" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_normal.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Android64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_normal.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSDevice64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_normal.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="iOSSimARM64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_normal.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Linux64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_normal.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSX64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_normal.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="OSXARM64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_normal.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win32">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_normal.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                    <Platform Name="Win64">
-                        <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
-                        <RemoteName>material_normal.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
+<!-- Auto-generated list of deploy files.
+     We need to list all "data" files to deploy Delphi applications
+     to non-Windows targets,
+     see https://castle-engine.io/delphi_linux#data_files_deployment .
+-->
+<DeployFile LocalName="data\CastleSettings.xml" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>CastleSettings.xml</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>CastleSettings.xml</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>CastleSettings.xml</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\README.txt" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>README.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>README.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>README.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\gameviewmain.castle-user-interface" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>gameviewmain.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>gameviewmain.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>gameviewmain.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/license.txt" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/</RemoteDir>
+  <RemoteName>license.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/</RemoteDir>
+  <RemoteName>license.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/</RemoteDir>
+  <RemoteName>license.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/scene.bin" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/</RemoteDir>
+  <RemoteName>scene.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/</RemoteDir>
+  <RemoteName>scene.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/</RemoteDir>
+  <RemoteName>scene.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/scene.gltf" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/</RemoteDir>
+  <RemoteName>scene.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/</RemoteDir>
+  <RemoteName>scene.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/</RemoteDir>
+  <RemoteName>scene.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/09_-_Default_baseColor.jpeg" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteName>09_-_Default_baseColor.jpeg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteName>09_-_Default_baseColor.jpeg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteName>09_-_Default_baseColor.jpeg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/09_-_Default_emissive.jpeg" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteName>09_-_Default_emissive.jpeg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteName>09_-_Default_emissive.jpeg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteName>09_-_Default_emissive.jpeg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/09_-_Default_metallicRoughness.png" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteName>09_-_Default_metallicRoughness.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteName>09_-_Default_metallicRoughness.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteName>09_-_Default_metallicRoughness.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/09_-_Default_normal.png" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteName>09_-_Default_normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteName>09_-_Default_normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteName>09_-_Default_normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/material_1_baseColor.png" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteName>material_1_baseColor.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteName>material_1_baseColor.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteName>material_1_baseColor.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/material_1_metallicRoughness.png" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteName>material_1_metallicRoughness.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteName>material_1_metallicRoughness.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteName>material_1_metallicRoughness.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/material_1_normal.png" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteName>material_1_normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteName>material_1_normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteName>material_1_normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/material_2_baseColor.jpeg" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteName>material_2_baseColor.jpeg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteName>material_2_baseColor.jpeg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteName>material_2_baseColor.jpeg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/material_3_emissive.jpeg" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteName>material_3_emissive.jpeg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteName>material_3_emissive.jpeg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteName>material_3_emissive.jpeg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/material_baseColor.jpeg" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteName>material_baseColor.jpeg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteName>material_baseColor.jpeg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteName>material_baseColor.jpeg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/material_metallicRoughness.png" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteName>material_metallicRoughness.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteName>material_metallicRoughness.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteName>material_metallicRoughness.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/material_normal.png" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteName>material_normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteName>material_normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteName>material_normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\CastleSettings.xml" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>CastleSettings.xml</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>CastleSettings.xml</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>CastleSettings.xml</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\README.txt" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>README.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>README.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>README.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\gameviewmain.castle-user-interface" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>gameviewmain.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>gameviewmain.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>gameviewmain.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/license.txt" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/</RemoteDir>
+  <RemoteName>license.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/</RemoteDir>
+  <RemoteName>license.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/</RemoteDir>
+  <RemoteName>license.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/scene.bin" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/</RemoteDir>
+  <RemoteName>scene.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/</RemoteDir>
+  <RemoteName>scene.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/</RemoteDir>
+  <RemoteName>scene.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/scene.gltf" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/</RemoteDir>
+  <RemoteName>scene.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/</RemoteDir>
+  <RemoteName>scene.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/</RemoteDir>
+  <RemoteName>scene.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/09_-_Default_baseColor.jpeg" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteName>09_-_Default_baseColor.jpeg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteName>09_-_Default_baseColor.jpeg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteName>09_-_Default_baseColor.jpeg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/09_-_Default_emissive.jpeg" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteName>09_-_Default_emissive.jpeg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteName>09_-_Default_emissive.jpeg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteName>09_-_Default_emissive.jpeg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/09_-_Default_metallicRoughness.png" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteName>09_-_Default_metallicRoughness.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteName>09_-_Default_metallicRoughness.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteName>09_-_Default_metallicRoughness.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/09_-_Default_normal.png" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteName>09_-_Default_normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteName>09_-_Default_normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteName>09_-_Default_normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/material_1_baseColor.png" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteName>material_1_baseColor.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteName>material_1_baseColor.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteName>material_1_baseColor.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/material_1_metallicRoughness.png" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteName>material_1_metallicRoughness.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteName>material_1_metallicRoughness.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteName>material_1_metallicRoughness.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/material_1_normal.png" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteName>material_1_normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteName>material_1_normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteName>material_1_normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/material_2_baseColor.jpeg" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteName>material_2_baseColor.jpeg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteName>material_2_baseColor.jpeg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteName>material_2_baseColor.jpeg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/material_3_emissive.jpeg" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteName>material_3_emissive.jpeg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteName>material_3_emissive.jpeg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteName>material_3_emissive.jpeg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/material_baseColor.jpeg" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteName>material_baseColor.jpeg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteName>material_baseColor.jpeg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteName>material_baseColor.jpeg</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/material_metallicRoughness.png" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteName>material_metallicRoughness.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteName>material_metallicRoughness.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteName>material_metallicRoughness.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/material_normal.png" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteName>material_normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteName>material_normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/sketchfab/halloween-pumpkin-lantern-knight-13b06d0843d94b179c1d9dc2c67e5ed4/textures/</RemoteDir>
+  <RemoteName>material_normal.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
 
 
                 <DeployClass Name="AdditionalDebugSymbols">

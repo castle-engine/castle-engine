@@ -40,7 +40,7 @@ private
 
   { Does this shape possibly use some texture that requires Phong shading.
     Decide before actually making any OpenGL operations. }
-  class function ShapeMaybeUsesSurfaceTexture(const Shape: TX3DRendererShape): boolean;
+  class function ShapeTextureForcesPhongShading(const Shape: TX3DRendererShape): boolean;
 
 {$endif read_interface}
 
@@ -70,7 +70,7 @@ begin
   Result := GLTexture2D(Node, IgnoreTextureHasAlpha);
 end;
 
-class function TRenderer.ShapeMaybeUsesSurfaceTexture(const Shape: TX3DRendererShape): boolean;
+class function TRenderer.ShapeTextureForcesPhongShading(const Shape: TX3DRendererShape): boolean;
 var
   SurfaceShader: TCommonSurfaceShaderNode;
   MatOne: TAbstractOneSidedMaterialNode;

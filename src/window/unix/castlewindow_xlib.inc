@@ -833,11 +833,6 @@ begin
   Result := XDisplayHeight(XDisplay, XScreen);
 end;
 
-function TCastleApplication.ScreenStatusBarScaledHeight: Cardinal;
-begin
-  Result := 0;
-end;
-
 {$endif}
 
 { TWindowContainer ----------------------------------------------------------- }

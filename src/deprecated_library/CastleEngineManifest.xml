@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project name="castleengine"
+  standalone_source="castleengine.lpr"
+  ios_source="castleengine.lpr">
+  <data exists="false"/>
+  <compiler_options>
+    <defines>
+      <define>CASTLE_WINDOW_LIBRARY</define>
+    </defines>
+    <custom_options>
+      <option>-fPIC</option>
+    </custom_options>
+  </compiler_options>
+</project>

@@ -38,10 +38,10 @@ Circle2D : X3DGeometryNode {
     change: chGeometry
 
   # CASTLE GAME ENGINE EXTENSIONS:
-  SFInt32    [in,out]      slices      -1
-    range: {-1} + [3, infinity)
+  SFInt32    [in,out]      slices      0
+    range: {0} + [3, infinity)
     change: chGeometry
-    doc: How much to subdivide the circle. Larger values result in polygon that looks smoother (more like a correct circle), but also mean that we need to render more triangles. The default value, -1 means to use the global @link(DefaultTriangulationSlices) parameter.
+    doc: How much to subdivide the circle. Larger values result in a shape that looks smoother (like a correct circle), but also mean that we need to render more triangles. The default value, 0 means to use the global @link(DefaultTriangulationSlices) parameter.
 }
 
 Disk2D : X3DGeometryNode {
@@ -55,10 +55,10 @@ Disk2D : X3DGeometryNode {
     change: chGeometry
 
   # CASTLE GAME ENGINE EXTENSIONS:
-  SFInt32    [in,out]      slices      -1
+  SFInt32    [in,out]      slices      0
     change: chGeometry
-    range: {-1} + [3, infinity)
-    doc: How much to subdivide the circles (both inner and outer circles of the disk). Larger values result in a polygon that looks smoother, but also mean that we need to render more triangles. The default value, -1 means to use the global @link(DefaultTriangulationSlices) parameter.
+    range: {0} + [3, infinity)
+    doc: How much to subdivide the circles (both inner and outer circles of the disk). Larger values result in a shape that looks smoother, but also mean that we need to render more triangles. The default value, 0 means to use the global @link(DefaultTriangulationSlices) parameter.
 }
 
 Polyline2D : X3DGeometryNode {

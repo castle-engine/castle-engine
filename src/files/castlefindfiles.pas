@@ -55,7 +55,12 @@ type
     Size: QWord;
   end;
 
-  TFileInfoList = {$ifdef FPC}specialize{$endif} TStructList<TFileInfo>;
+  { Returned by FindFilesList. }
+  TFileInfoList = class({$ifdef FPC}specialize{$endif} TStructList<TFileInfo>)
+    { Sort alphabetically by @link(TFileInfo.Url).
+      Useful, since the order returned by @link(FindFilesList) is undefined. }
+    procedure SortUrls;
+  end;
 
   { Called for each file found.
     StopSearch is always initially @false, you can change it to @true to stop
@@ -202,9 +207,23 @@ function FindFirstFileIgnoreCase(const Path, Mask: string;
 
 implementation
 
-uses URIParser, StrUtils,
+uses URIParser, StrUtils, Generics.Defaults,
   CastleUriUtils, CastleLog, CastleXmlUtils, CastleStringUtils,
   CastleInternalDirectoryInformation, CastleFilesUtils;
+
+function CompareFileInfo(
+  {$ifdef GENERICS_CONSTREF}constref{$else}const{$endif}
+  Left, Right: TFileInfo): Integer;
+begin
+  Result := AnsiCompareStr(Left.Url, Right.Url);
+end;
+
+procedure TFileInfoList.SortUrls;
+type
+  TFileInfoComparer = {$ifdef FPC}specialize{$endif} TComparer<TFileInfo>;
+begin
+  Sort(TFileInfoComparer.Construct({$ifdef FPC}@{$endif} CompareFileInfo));
+end;
 
 { Note that some limitations of FindFirst/FindNext underneath are reflected in our
   functionality. Under Windows, mask is treated somewhat hacky:

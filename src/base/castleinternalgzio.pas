@@ -33,7 +33,7 @@
   instead of only normal files.
 
   Together with CastleInternalZStream, this allows to compress/decompress by gzip
-  entirely in memory, withou any temporary files underneath.
+  entirely in memory, without any temporary files underneath.
 
   (Yes, the original gzio.pas code looks quite old-school.
   It is a C code translated literally to an old Pascal, without any

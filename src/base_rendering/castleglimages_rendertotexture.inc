@@ -418,7 +418,7 @@ begin
   inherited Create;
 
   if not ApplicationProperties.IsGLContextOpen then
-    raise EFramebufferError.Create('Cannot create TGLRenderToTexture when OpenGL context is not available. Do this later -- e.g. from events like TCastleControl.OnOpen, TCastleWindow.OnOpen, Application.OnInitialize, or after an explicit call to TCastleWindow.Open.');
+    raise EFramebufferError.Create('Cannot create TGLRenderToTexture when OpenGL context is not available. Do this later, e.g. from events like TCastleUserInterface.Render, TCastleUserInterface.GLContextOpen, Application.OnInitialize.');
 
   FTextureTarget := GL_TEXTURE_2D;
   FCompleteTextureTarget := GL_TEXTURE_2D;

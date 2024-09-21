@@ -27,6 +27,7 @@ type
   published
     procedure TestLoadingUi;
     procedure TestLoadingTransform;
+    procedure TestLoadingRenderingWithoutAtlas;
   end;
 
 implementation
@@ -72,6 +73,16 @@ begin
   try
     for MapUrl in TestMaps do
       Map.Url := MapUrl;
+  finally FreeAndNil(Map) end;
+end;
+
+procedure TTestCastleTiledMap.TestLoadingRenderingWithoutAtlas;
+var
+  Map: TCastleTiledMap;
+begin
+  Map := TCastleTiledMap.Create(nil);
+  try
+    Map.Url := 'castle-data:/tiled-map-no-atlas/test.tmx';
   finally FreeAndNil(Map) end;
 end;
 

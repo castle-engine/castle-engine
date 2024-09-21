@@ -1,6 +1,6 @@
 {%MainUnit castlecontrols.pas}
 {
-  Copyright 2018-2023 Michalis Kamburelis.
+  Copyright 2018-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -34,6 +34,7 @@
       FDesignOwner: TComponent;
       FDesignObserver: TFreeNotificationObserver;
       FUrl: String;
+      FUrlMonitoring: TUrlMonitoring;
       FRevertUrl: String;
       FStretchWhenNotLoaded: Boolean;
     procedure SetUrl(const Value: String);
@@ -44,6 +45,7 @@
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
+    procedure BeforeDestruction; override;
 
     { Find by name a component in currently loaded design.
       When the name is not found, raises exception (unless Required is @false,
@@ -56,6 +58,11 @@
 
     { Loaded design, only for internal usage. @exclude }
     property InternalDesign: TCastleUserInterface read FDesign;
+
+    { Load again the design from @link(Url).
+      This makes sense to be used when underlying file on disk
+      changed, and you want to reload it. }
+    procedure ReloadUrl;
   published
     { Load file with the user interface design.
       The file should be in the format created by Castle Game Engine Editor
@@ -118,10 +125,17 @@ begin
   FDesignObserver := TFreeNotificationObserver.Create(Self);
   FDesignObserver.OnFreeNotification := {$ifdef FPC}@{$endif}DesignFreeNotification;
   FStretchWhenNotLoaded := true;
+  FUrlMonitoring.Init({$ifdef FPC}@{$endif} ReloadUrl);
 end;
 
 destructor TCastleDesign.Destroy;
 begin
+  inherited;
+end;
+
+procedure TCastleDesign.BeforeDestruction;
+begin
+  FUrlMonitoring.Finish(FUrl);
   inherited;
 end;
 
@@ -143,6 +157,10 @@ begin
       Assert(FDesign = nil); // DesignFreeNotification should set FDesign to nil
     end;
 
+    { TODO: Disable auto-reloading of designs for now, fearing it will cause
+      more problems than gains: reloading the design invalidates all
+      the references to components inside. }
+    //FUrlMonitoring.ChangeUrl(FUrl, Value);
     FUrl := Value;
 
     if Value <> '' then
@@ -235,6 +253,15 @@ end;
 function TCastleDesign.FindComponent(const ComponentName: String): TComponent;
 begin
   Result := DesignedComponent(ComponentName, false);
+end;
+
+procedure TCastleDesign.ReloadUrl;
+var
+  SavedUrl: String;
+begin
+  SavedUrl := Url;
+  Url := '';
+  Url := SavedUrl;
 end;
 
 {$endif read_implementation}

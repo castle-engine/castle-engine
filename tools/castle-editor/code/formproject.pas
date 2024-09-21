@@ -43,6 +43,9 @@ const
 type
   { Main project management. }
   TProjectForm = class(TForm)
+    ActionExportToModel: TAction;
+    ActionCopyUrl: TAction;
+    ActionRunParameterPretendTouchDevice: TAction;
     ActionFindNext: TAction;
     ActionFindToggle: TAction;
     ActionImportSketchfab: TAction;
@@ -113,6 +116,10 @@ type
     MenuItem15: TMenuItem;
     MenuItem19: TMenuItem;
     MenuItem43: TMenuItem;
+    MenuItem44: TMenuItem;
+    Separator15: TMenuItem;
+    MenuItem46: TMenuItem;
+    MenuItemRunParameterPretendTouchDevice: TMenuItem;
     Separator14: TMenuItem;
     MenuItem21: TMenuItem;
     MenuItem22: TMenuItem;
@@ -261,7 +268,6 @@ type
     MenuItemUndo: TMenuItem;
     MenuItemSeparator78: TMenuItem;
     MenuItemReferenceOfCurrent: TMenuItem;
-    MenuItemSeparator2303403o: TMenuItem;
     MenuItemRefreshDir: TMenuItem;
     MenuItemSeparator123123213: TMenuItem;
     MenuItemOpenDirFromFile: TMenuItem;
@@ -333,6 +339,8 @@ type
     TabOutput: TTabSheet;
     ProcessUpdateTimer: TTimer;
     TabWarnings: TTabSheet;
+    procedure ActionCopyUrlExecute(Sender: TObject);
+    procedure ActionExportToModelExecute(Sender: TObject);
     procedure ActionFindNextExecute(Sender: TObject);
     procedure ActionFindToggleExecute(Sender: TObject);
     procedure ActionImportSketchfabExecute(Sender: TObject);
@@ -354,6 +362,7 @@ type
       );
     procedure ActionRunParameterDisableFpsLimitExecute(Sender: TObject);
     procedure ActionRunParameterDisableSoundExecute(Sender: TObject);
+    procedure ActionRunParameterPretendTouchDeviceExecute(Sender: TObject);
     procedure ActionRunParameterRequestFullScreenExecute(Sender: TObject);
     procedure ActionRunParameterRequestWindowExecute(Sender: TObject);
     procedure ActionShowCollidersExecute(Sender: TObject);
@@ -1001,6 +1010,25 @@ begin
   Design.FindNext;
 end;
 
+procedure TProjectForm.ActionCopyUrlExecute(Sender: TObject);
+var
+  SelectedFileName, Url: String;
+begin
+  if ShellListView1.Selected <> nil then
+  begin
+    SelectedFileName := ShellListView1.GetPathFromItem(ShellListView1.Selected);
+    Url := FilenameToUriSafe(SelectedFileName);
+    Url := MaybeUseDataProtocol(Url);
+    Clipboard.AsText := Url;
+  end;
+end;
+
+procedure TProjectForm.ActionExportToModelExecute(Sender: TObject);
+begin
+  Assert(Design <> nil); // menu item is disabled otherwise
+  Design.ExportToModel;
+end;
+
 procedure TProjectForm.ActionFindToggleExecute(Sender: TObject);
 begin
   Assert(Design <> nil); // menu item is disabled otherwise
@@ -1106,13 +1134,18 @@ begin
   (Sender as TAction).Checked := true; // GroupIndex will make others unselected
 end;
 
-procedure TProjectForm.ActionRunParameterDisableFpsLimitExecute(Sender: TObject
-  );
+procedure TProjectForm.ActionRunParameterDisableFpsLimitExecute(Sender: TObject);
 begin
   (Sender as TAction).Checked := not (Sender as TAction).Checked;
 end;
 
 procedure TProjectForm.ActionRunParameterDisableSoundExecute(Sender: TObject);
+begin
+  (Sender as TAction).Checked := not (Sender as TAction).Checked;
+end;
+
+procedure TProjectForm.ActionRunParameterPretendTouchDeviceExecute(
+  Sender: TObject);
 begin
   (Sender as TAction).Checked := not (Sender as TAction).Checked;
 end;
@@ -1170,6 +1203,13 @@ end;
 
 procedure TProjectForm.ApplicationProperties1Activate(Sender: TObject);
 begin
+  { TODO: At least on Linux, GTK2 backend, this is *not* reliably
+    run always when we switch back to CGE editor with Alt+Tab.
+    This in turn means we don't always auto-reload scenes, images etc.
+    when their content changed.
+  WritelnLog('TProjectForm.ApplicationProperties1Activate ' + FormatDateTime('yyyy"-"mm"-"dd" "tt', Now));
+  }
+
   { Refresh contents of selected dir, and tree of subdirectories,
     in case user created some files/directories in other applications. }
   RefreshFiles(rfEverything);
@@ -1702,6 +1742,8 @@ procedure TProjectForm.FormCreate(Sender: TObject);
     AddPlatform('Default', targetCustom, DefaultOS, DefaultCPU);
     AddPlatformSeparator;
     AddPlatform('Android (Arm 32-bit and 64-bit)', targetAndroid, { OS and CPU ignored } DefaultOS, DefaultCPU);
+    AddPlatform('Android (emulator 32-bit)', targetCustom, Android, i386);
+    AddPlatform('Android (emulator 64-bit)', targetCustom, Android, x86_64);
     AddPlatformSeparator;
     AddPlatform('iOS (Arm 32-bit and 64-bit)', targetIOS, { OS and CPU ignored } DefaultOS, DefaultCPU);
     AddPlatformSeparator;
@@ -1718,6 +1760,8 @@ procedure TProjectForm.FormCreate(Sender: TObject);
     AddPlatformSeparator;
     AddPlatform('FreeBSD 32-bit', targetCustom, FreeBSD, i386);
     AddPlatform('FreeBSD 64-bit', targetCustom, FreeBSD, x86_64);
+    AddPlatformSeparator;
+    AddPlatform('Nintendo Switch', targetNintendoSwitch, { OS and CPU ignored } DefaultOS, DefaultCPU);
   end;
 
   procedure BuildPackageFormatsMenu;
@@ -2420,6 +2464,7 @@ begin
   ActionShowStatistics.Enabled := Design <> nil;
   ActionFindToggle.Enabled := Design <> nil;
   ActionFindNext.Enabled := Design <> nil;
+  ActionExportToModel.Enabled := Design <> nil;
 
   { Options that toggle InternalForceWireframe could actually work with Design=nil,
     with current implementation.
@@ -2733,6 +2778,7 @@ procedure TProjectForm.ShellListPopupMenuPopup(Sender: TObject);
 begin
   MenuItemOpenDefault.Enabled := ShellListView1.Selected <> nil;
   MenuItemDeleteFile.Enabled := ShellListView1.Selected <> nil;
+  ActionCopyUrl.Enabled := ShellListView1.Selected <> nil;
 end;
 
 procedure TProjectForm.FreeProcess;
@@ -3258,6 +3304,8 @@ procedure TProjectForm.BuildToolCall(const Commands: array of String;
       Params.Add('--no-sound');
     if ActionRunParameterDisableFpsLimit.Checked then
       Params.Add('--no-limit-fps');
+    if ActionRunParameterPretendTouchDevice.Checked then
+      Params.Add('--pretend-touch-device');
     if ActionRunParameterRequestFullScreen.Checked then
       Params.Add('--fullscreen');
     if ActionRunParameterRequestWindow.Checked then

@@ -36,7 +36,7 @@ type
     Count  : record
       Axes    : Integer;
       Buttons : Integer;
-             end;
+    end;
     Caps   : UInt32;
   end;
 
@@ -65,7 +65,14 @@ type
       TODO: Deprecate at some point, in favor of simpler joystick API like @link(TJoystick.Axis). }
     State   : TJoyState;
 
-    function Axis: TVector2;
+    { @deprecated Deprecated name, use LeftAxis. }
+    function Axis: TVector2; deprecated 'use LeftAxis';
+
+    { Left analog stick position. }
+    function LeftAxis: TVector2;
+    { Right analog stick position. }
+    function RightAxis: TVector2;
+
     destructor Destroy; override;
   end;
 
@@ -170,7 +177,11 @@ type
       @exclude }
     procedure InternalSetJoystickCount(const JoystickCount: Integer);
     { @exclude }
-    procedure InternalSetJoystickAxis(const JoystickIndex: Integer; const Axis: TVector2);
+    procedure InternalSetJoystickAxis(const JoystickIndex: Integer; const Axis: TVector2); deprecated 'use InternalSetJoystickLeftAxis';
+    { @exclude }
+    procedure InternalSetJoystickLeftAxis(const JoystickIndex: Integer; const Axis: TVector2);
+    { @exclude }
+    procedure InternalSetJoystickRightAxis(const JoystickIndex: Integer; const Axis: TVector2);
 
     { Used by CastleWindow when
       an external API notifies us about connecting/disconnecting devices to the system.
@@ -217,9 +228,22 @@ end;
 
 function TJoystick.Axis: TVector2;
 begin
+  Result := LeftAxis;
+end;
+
+function TJoystick.LeftAxis: TVector2;
+begin
   Result := Vector2(
     State.Axis[JOY_AXIS_X],
     State.Axis[JOY_AXIS_Y]
+  );
+end;
+
+function TJoystick.RightAxis: TVector2;
+begin
+  Result := Vector2(
+    State.Axis[JOY_AXIS_U],
+    -State.Axis[JOY_AXIS_R]
   );
 end;
 
@@ -362,7 +386,17 @@ end;
 
 procedure TJoysticks.InternalSetJoystickAxis(const JoystickIndex: Integer; const Axis: TVector2);
 begin
-  TExplicitJoystickBackend(ExplicitBackend).SetJoystickAxis(FList, JoystickIndex, Axis);
+  InternalSetJoystickLeftAxis(JoystickIndex, Axis);
+end;
+
+procedure TJoysticks.InternalSetJoystickLeftAxis(const JoystickIndex: Integer; const Axis: TVector2);
+begin
+  TExplicitJoystickBackend(ExplicitBackend).SetJoystickLeftAxis(FList, JoystickIndex, Axis);
+end;
+
+procedure TJoysticks.InternalSetJoystickRightAxis(const JoystickIndex: Integer; const Axis: TVector2);
+begin
+  TExplicitJoystickBackend(ExplicitBackend).SetJoystickRightAxis(FList, JoystickIndex, Axis);
 end;
 
 procedure TJoysticks.InternalConnected;

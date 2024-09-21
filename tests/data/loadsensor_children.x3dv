@@ -1,0 +1,13 @@
+#X3D V4.0 utf8
+PROFILE Interchange
+
+DEF MyInline Inline { url "level1.x3d" }
+DEF MyAnchor Anchor { url "level1.x3d" }
+DEF MyGeoMetadata GeoMetadata { url "https://example.org/geo_metadata_description.txt" }
+DEF MyLoadSensor LoadSensor {
+  children [
+    USE MyInline
+    USE MyAnchor
+    USE MyGeoMetadata
+  ]
+}

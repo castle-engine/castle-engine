@@ -1,5 +1,5 @@
 {
-  Copyright 2018-2023 Michalis Kamburelis.
+  Copyright 2018-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -164,7 +164,7 @@ begin
       Options.TemplateName := TemplateName;
       Options.ProjectName := NewProjectForm.EditProjectName.Text;
       Options.ProjectCaption := NewProjectForm.EditProjectCaption.Text;
-      Options.MainView := NewProjectForm.EditStateName.Text;
+      Options.MainView := NewProjectForm.EditViewName.Text;
 
       ProjectCreateFromTemplate(CastleEnginePath, Options, ProjectDirUrl);
       GenerateProgramWithBuildTool(ProjectDirUrl);
@@ -252,6 +252,8 @@ procedure TChooseProjectForm.FormCreate(Sender: TObject);
     MuteOnRun := UserConfig.GetValue('sound/mute_on_run', DefaultMuteOnRun);
     EditorVolume := UserConfig.GetFloat('sound/editor_volume', DefaultEditorVolume);
     Compiler := StringToCompiler(UserConfig.GetValue('compiler', CompilerToString(DefaultCompiler)));
+    AndroidHome := UserConfig.GetValue('android_home', '');
+    JavaHome := UserConfig.GetValue('java_home', '');
     SoundEngineSetVolume;
   end;
 
@@ -263,7 +265,7 @@ begin
   ConfigLoad;
 
   UseEditorApplicationData;
-  InternalCastleDesignData := ApplicationData('');
+  InternalCastleDesignData := ResolveCastleDataUrl('castle-data:/');
 end;
 
 procedure TChooseProjectForm.FormDestroy(Sender: TObject);
@@ -280,6 +282,8 @@ procedure TChooseProjectForm.FormDestroy(Sender: TObject);
     UserConfig.SetDeleteValue('sound/mute_on_run', MuteOnRun, DefaultMuteOnRun);
     UserConfig.SetDeleteFloat('sound/editor_volume', EditorVolume, DefaultEditorVolume);
     UserConfig.SetDeleteValue('compiler', CompilerToString(Compiler), CompilerToString(DefaultCompiler));
+    UserConfig.SetDeleteValue('android_home', AndroidHome, '');
+    UserConfig.SetDeleteValue('java_home', JavaHome, '');
   end;
 
 begin

@@ -1,5 +1,5 @@
 {
-  Copyright 2005-2023 Michalis Kamburelis.
+  Copyright 2005-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -34,9 +34,6 @@ type
   TFrustumPoints = packed array [0..7] of TVector4;
 
   TFrustumPointsSingle = TFrustumPoints deprecated 'use TFrustumPoints';
-
-  TFrustumPointsDouble = packed array [0..7] of TVector4Double
-    {$ifdef FPC}deprecated 'use Single-precision TFrustumPoints'{$endif};
 
 const
   FrustumPointsQuadsIndexes: packed array [TFrustumPlane, 0..3] of UInt16 =
@@ -79,7 +76,13 @@ type
     and low-overhead at the same time. }
   TFrustum = record
   private
+    type
+      TFrustumPointsDouble = packed array [0..7] of TVector4Double;
     procedure NormalizePlanes;
+    { Last plane index.
+      High(TFrustumPlane), or Pred(High(TFrustumPlane)) if FarInfinity. }
+    function LastPlane: TFrustumPlane;
+    procedure CalculatePointsDouble(out FrustumPoints: TFrustumPointsDouble);
   public
     { Calculate frustum, knowing the combined matrix (modelview * projection). }
     constructor Init(const Matrix: TMatrix4); overload;
@@ -123,10 +126,7 @@ type
       @raises(EPlanesParallel If Frustum doesn't have planes of any
         valid frustum.)
     }
-    procedure CalculatePoints(out FrustumPoints: TFrustumPoints); overload;
-
-    procedure CalculatePoints(out FrustumPoints: TFrustumPointsDouble); overload;
-      deprecated 'use the overload on TFrustumPoints (Single-precision); it may calculate parts using Double-precision internally, to be correct';
+    procedure CalculatePoints(out FrustumPoints: TFrustumPoints);
 
     { Checks for collision between frustum and sphere.
 
@@ -279,12 +279,8 @@ end;
 
 procedure TFrustum.NormalizePlanes;
 var
-  fp, LastPlane: TFrustumPlane;
+  fp: TFrustumPlane;
 begin
-  LastPlane := High(fp);
-  if FarInfinity then
-    LastPlane := Pred(LastPlane);
-
   for fp := Low(fp) to LastPlane do
   begin
     NormalizePlaneVar(Planes[fp]);
@@ -318,20 +314,17 @@ end;
 procedure TFrustum.CalculatePoints(out FrustumPoints: TFrustumPoints);
 { It's better to make these calculations using Double precision. }
 // This deliberately uses TFrustumPointsDouble
-// and CalculatePoints based on TFrustumPointsDouble.
-// They should be internal (private) in this unit in the future.
-{$warnings off}
+// and CalculatePointsDouble based on TFrustumPointsDouble.
 var
   FrustumPointsDouble: TFrustumPointsDouble;
   I: Integer;
 begin
-  CalculatePoints(FrustumPointsDouble);
+  CalculatePointsDouble(FrustumPointsDouble);
   for I := 0 to High(FrustumPoints) do
     FrustumPoints[I] := Vector4(FrustumPointsDouble[I]);
 end;
-{$warnings on}
 
-procedure TFrustum.CalculatePoints(out FrustumPoints: TFrustumPointsDouble);
+procedure TFrustum.CalculatePointsDouble(out FrustumPoints: TFrustumPointsDouble);
 var
   Camera: TVector3Double;
 begin
@@ -361,22 +354,16 @@ function TFrustum.SphereCollisionPossible(
   const SphereCenter: TVector3; const SphereRadiusSqr: Single):
   TFrustumCollisionPossible;
 var
-  fp, LastPlane: TFrustumPlane;
+  fp: TFrustumPlane;
   Distance, SqrRealDistance: Single;
   InsidePlanesCount: Cardinal;
 begin
   InsidePlanesCount := 0;
 
-  LastPlane := High(FP);
-  Assert(LastPlane = fpFar);
-
   { If the frustum has far plane in infinity, then ignore this plane.
     Inc InsidePlanesCount, since the sphere is inside this infinite plane. }
   if FarInfinity then
-  begin
-    LastPlane := Pred(LastPlane);
     Inc(InsidePlanesCount);
-  end;
 
   { The logic goes like this:
       if sphere is on the "outside" of *any* of 6 planes, result is NoCollision
@@ -413,7 +400,8 @@ begin
   end;
 
   if InsidePlanesCount = 6 then
-    Result := fcInsideFrustum else
+    Result := fcInsideFrustum
+  else
     Result := fcSomeCollisionPossible;
 end;
 
@@ -423,30 +411,22 @@ function TFrustum.SphereCollisionPossibleSimple(
 var
   fp: TFrustumPlane;
   Distance, SqrRealDistance: Single;
-  LastPlane: TFrustumPlane;
 begin
-  LastPlane := High(FP);
-  Assert(LastPlane = fpFar);
-
-  { If the frustum has far plane in infinity, then ignore this plane. }
-  if FarInfinity then
-    LastPlane := Pred(LastPlane);
-
   for fp := Low(fp) to LastPlane do
   begin
-   { This is not a true distance since this is signed }
-   Distance := Planes[fp].X * SphereCenter.X +
-               Planes[fp].Y * SphereCenter.Y +
-               Planes[fp].Z * SphereCenter.Z +
-               Planes[fp].W;
+    { This is not a true distance since this is signed }
+    Distance := Planes[fp].X * SphereCenter.X +
+                Planes[fp].Y * SphereCenter.Y +
+                Planes[fp].Z * SphereCenter.Z +
+                Planes[fp].W;
 
-   SqrRealDistance := Sqr(Distance);
+    SqrRealDistance := Sqr(Distance);
 
-   if (Distance < 0) and (SqrRealDistance > SphereRadiusSqr) then
-   begin
-    Result := false;
-    Exit;
-   end;
+    if (Distance < 0) and (SqrRealDistance > SphereRadiusSqr) then
+    begin
+      Result := false;
+      Exit;
+    end;
   end;
 
   Result := true;
@@ -463,23 +443,16 @@ function TFrustum.Box3DCollisionPossible(
 var
   fp: TFrustumPlane;
   InsidePlanesCount: Cardinal;
-  LastPlane: TFrustumPlane;
 begin
   if Box.IsEmpty then
     Exit(fcNoCollision);
 
   InsidePlanesCount := 0;
 
-  LastPlane := High(FP);
-  Assert(LastPlane = fpFar);
-
   { If the frustum has far plane in infinity, then ignore this plane.
     Inc InsidePlanesCount, since the box is inside this infinite plane. }
   if FarInfinity then
-  begin
-    LastPlane := Pred(LastPlane);
     Inc(InsidePlanesCount);
-  end;
 
   { The logic goes like this:
       if box is on the "outside" of *any* of 6 planes, result is NoCollision
@@ -498,7 +471,8 @@ begin
   end;
 
   if InsidePlanesCount = 6 then
-    Result := fcInsideFrustum else
+    Result := fcInsideFrustum
+  else
     Result := fcSomeCollisionPossible;
 end;
 
@@ -510,17 +484,9 @@ function TFrustum.Box3DCollisionPossibleSimple(
 
 var
   fp: TFrustumPlane;
-  LastPlane: TFrustumPlane;
 begin
   if Box.IsEmpty then
     Exit(false);
-
-  LastPlane := High(FP);
-  Assert(LastPlane = fpFar);
-
-  { If the frustum has far plane in infinity, then ignore this plane. }
-  if FarInfinity then
-    LastPlane := Pred(LastPlane);
 
   for fp := Low(fp) to LastPlane do
     { Again, don't be confused by name "Inside" below: pcInside
@@ -577,41 +543,72 @@ begin
               Planes[fpBottom].Z * Direction.Z >= 0 );
 end;
 
+function TFrustum.LastPlane: TFrustumPlane;
+begin
+  Result := High(TFrustumPlane);
+  Assert(Result = fpFar); // last plane must be far, to make LastPlane logic sensible
+  if FarInfinity then
+    Result := Pred(Result);
+end;
+
 function TFrustum.Transform(const M: TMatrix4): TFrustum;
 var
   I: TFrustumPlane;
 begin
-  if FarInfinity then
+  for I := Low(I) to LastPlane do
   begin
-    Assert(High(I) = fpFar);
-    for I := Low(I) to Pred(High(I)) do
-      Result.Planes[I] := PlaneTransform(Planes[I], M);
-    Result.Planes[fpFar] := TVector4.Zero;
-  end else
-    for I := Low(I) to High(I) do
-      Result.Planes[I] := PlaneTransform(Planes[I], M);
+    Result.Planes[I] := PlaneTransform(Planes[I], M);
+    { Just like comments in TFrustum.TransformByInverse say,
+      we need to normalize planes.
+      PlaneTransform doesn't preserve plane normalization in case
+      matrix has scale (as autotests show). }
+    NormalizePlaneVar(Result.Planes[I]);
+  end;
 
+  if FarInfinity then
+    Result.Planes[fpFar] := TVector4.Zero;
   Result.FarInfinity := FarInfinity;
 end;
 
 function TFrustum.TransformByInverse(const MInverse: TMatrix4): TFrustum;
+
+{ Multiply by transpose(inverse(M)) to transform plane.
+
+  - This is faster than PlaneTransform since we only need to do one matrix
+    multiplication (in TransposeMultiply), while PlaneTransform needs two.
+
+    Uncomment speed test in TTestCastleFrustum.TestTransformFrustum
+    to check speed gain of TransformByInverse (MInverse.TransposeMultiply)
+    vs Transform (PlaneTransform).
+
+  - See https://stackoverflow.com/questions/7685495/transforming-a-3d-plane-using-a-4x4-matrix
+    for idea.
+
+  - Note: This needs to renormalize the resulting planes
+    in case the MInverse contains scaling.
+    Our TFrustum has always normalized planes (promised in interface),
+    and some code may depend on it -- our collision checking with frustum
+    calculates distances assuming that planes are normalized.
+
+    Testcase: TCastleScene with PreciseCollisions = true
+    (use frustum and octree for rendering optimizations)
+    and multiple shapes and ShapeFrustumCulling = true.
+    I didn't track down the exact code, but some test in TestOctreeWithFrustum
+    inside TCastleScene assumes that frustum planes are normalized.
+    See private-assets/various_test_projects/test_frustum_planes_normalized_or_frustum_culling_bad/ .
+}
+
 var
   I: TFrustumPlane;
 begin
-  if FarInfinity then
+  for I := Low(I) to LastPlane do
   begin
-    Assert(High(I) = fpFar);
-    { Multiply by transpose(inverse(M)) to transform plane.
-      This is faster than PlaneTransform since we only need to do one matrix
-      multiplication (in TransposeMultiply), while PlaneTransform needs two.
-      See https://stackoverflow.com/questions/7685495/transforming-a-3d-plane-using-a-4x4-matrix . }
-    for I := Low(I) to Pred(High(I)) do
-      Result.Planes[I] := MInverse.TransposeMultiply(Planes[I]);
-    Result.Planes[fpFar] := TVector4.Zero;
-  end else
-    for I := Low(I) to High(I) do
-      Result.Planes[I] := MInverse.TransposeMultiply(Planes[I]);
+    Result.Planes[I] := MInverse.TransposeMultiply(Planes[I]);
+    NormalizePlaneVar(Result.Planes[I]);
+  end;
 
+  if FarInfinity then
+    Result.Planes[fpFar] := TVector4.Zero;
   Result.FarInfinity := FarInfinity;
 end;
 
@@ -625,15 +622,10 @@ var
   I: TFrustumPlane;
 begin
   Result := '';
+  for I := Low(I) to LastPlane do
+    Result := Result + Indent + Planes[I].ToString + LineEnding;
   if FarInfinity then
-  begin
-    Assert(High(I) = fpFar);
-    for I := Low(I) to Pred(High(I)) do
-      Result := Result + Indent + Planes[I].ToString + LineEnding;
     Result := Result + Indent + '(no far plane, frustum goes to infinity)' + LineEnding;
-  end else
-    for I := Low(I) to High(I) do
-      Result := Result + Indent + Planes[I].ToString + LineEnding;
 end;
 
 end.

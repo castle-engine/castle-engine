@@ -60,6 +60,8 @@
   end;
 
   TGeoMetadataNode = class(TAbstractInfoNode)
+  public
+    constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
   {$I auto_generated_node_helpers/x3dnodes_geometadata.inc}
   end;
 
@@ -143,6 +145,14 @@ end;
 function TGeoElevationGridNode.SolidField: TSFBool;
 begin
   Result := FdSolid;
+end;
+
+{ TGeoMetadataNode ----------------------------------------------------------- }
+
+constructor TGeoMetadataNode.Create(const AX3DName, ABaseUrl: String);
+begin
+  inherited;
+  AddFunctionality(TUrlFunctionality.Create(Self));
 end;
 
 { TGeoViewpointNode ---------------------------------------------------------- }

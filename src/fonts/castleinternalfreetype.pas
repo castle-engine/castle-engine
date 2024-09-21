@@ -522,14 +522,7 @@ var g : PMgrGlyph;
     bm : PFT_BitmapGlyph;
     gl : PFT_Glyph;
     e, prevIndex, prevx, r, rx : integer;
-    {$ifdef FPC}
-    cl : integer;
-    pc : pchar;
-    {$else}
-    TextIndex: Integer;
-    NextIndex: Integer;
-    TextLength: Integer;
-    {$endif}
+    Iter: TCastleStringIterator;
     uc : TUnicodeChar;
     pos, kern : FT_Vector;
     buf : CastleUtils.PByteArray;
@@ -547,24 +540,10 @@ begin
   pos.x := 0;
   pos.y := 0;
   r := -1;
-  // get the unicode for the character. Also performed at the end of the while loop.
-  {$ifdef FPC}
-  pc := pchar(text);
-  uc := UTF8CharacterToUnicode (pc, cl);
-  while (cl>0) and (uc>0) do
-  {$else}
-  TextIndex := 1;
-  TextLength := Length(Text);
-  while (TextIndex <= TextLength) do
-  {$endif}
+  Iter.Start(Text);
+  while Iter.GetNext do
   begin
-    {$ifdef FPC}
-      // increment pchar by character length
-      inc (pc, cl);
-    {$else}
-      uc := UnicodeStringNextChar(Text, TextIndex, NextIndex);
-      TextIndex := NextIndex;
-    {$endif}
+    uc := Iter.Current;
     // retrieve loaded glyph
     g := GetGlyph (uc);
     inc (r);
@@ -624,9 +603,6 @@ begin
     // finish rendered glyph
     FT_Done_Glyph (gl);
     // Get the next unicode
-    {$ifdef FPC}
-    uc := UTF8CharacterToUnicode (pc, cl);
-    {$endif}
   end;  // while
   result.FText := Text;
   result.CalculateGlobals;
