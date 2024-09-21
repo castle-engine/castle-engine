@@ -338,24 +338,8 @@ procedure TCastleFont.PrepareResources;
   var
     VS, FS: String;
   begin
-    VS := 'attribute vec2 vertex;' + LineEnding +
-          'attribute vec2 tex_coord;' + LineEnding +
-          'uniform vec2 viewport_size;' + LineEnding +
-          'varying vec2 tex_coord_frag;' + LineEnding +
-          'void main(void)' + LineEnding +
-          '{' + LineEnding +
-          '  gl_Position = vec4(vertex * 2.0 / viewport_size - vec2(1.0), 0.0, 1.0);' + LineEnding +
-          '  tex_coord_frag = tex_coord;' + LineEnding +
-          '}' + LineEnding;
-    FS := 'varying vec2 tex_coord_frag;' + LineEnding +
-          'uniform sampler2D image_texture;' + LineEnding +
-          'void main(void)' + LineEnding +
-          '{' + LineEnding +
-          'gl_FragColor = texture2D(image_texture, tex_coord_frag);' + LineEnding +
-          'if (gl_FragColor.a <= 0.495) discard;' + LineEnding +
-          'else if ((gl_FragColor.a > 0.495) && (gl_FragColor.a < 0.5)) gl_FragColor = vec4(1.0,1.0,1.0,(gl_FragColor.a - 0.495) * 200.0);' + LineEnding +
-          'else gl_FragColor = vec4(1.0,1.0,1.0,1.0);' +
-          '}' + LineEnding;
+    VS := {$I image.vs.inc};
+    FS := {$I distance_field_font.fs.inc};
 
     FreeAndNil(DistanceFieldShader);
     DistanceFieldShader := TGLSLProgram.Create;
