@@ -1,16 +1,7 @@
 {
   "$$ClassName" : "TCastleUserInterface",
-  "Border" : {
-    "$$ClassName" : "TBorder"
-  },
-  "BorderColorPersistent" : {
-    "$$ClassName" : "TCastleColorPersistent"
-  },
   "FullSize" : true,
   "Name" : "Group1",
-  "TranslationPersistent" : {
-    "$$ClassName" : "TCastleVector2Persistent"
-  },
   "$NonVisualComponents" : [
     {
       "$$ClassName" : "TCastleFont",
@@ -42,12 +33,6 @@
   "$Children" : [
     {
       "$$ClassName" : "TCastleLabel",
-      "Border" : {
-        "$$ClassName" : "TBorder"
-      },
-      "BorderColorPersistent" : {
-        "$$ClassName" : "TCastleColorPersistent"
-      },
       "ColorPersistent" : {
         "$$ClassName" : "TCastleColorPersistent",
         "Blue" : 1.7647059261798859E-001,
@@ -55,15 +40,9 @@
         "Red" : 9.8823529481887817E-001
       },
       "FontSize" : 2.0000000000000000E+001,
-      "FrameColorPersistent" : {
-        "$$ClassName" : "TCastleColorPersistent"
-      },
       "HorizontalAnchorParent" : "hpRight",
       "HorizontalAnchorSelf" : "hpRight",
       "Name" : "LabelFps",
-      "OutlineColorPersistent" : {
-        "$$ClassName" : "TCastleColorPersistent"
-      },
       "Text" : [
         "FPS: xxx"
       ],
@@ -77,52 +56,22 @@
     },
     {
       "$$ClassName" : "TCastleVerticalGroup",
-      "Border" : {
-        "$$ClassName" : "TBorder"
-      },
-      "BorderColorPersistent" : {
-        "$$ClassName" : "TCastleColorPersistent"
-      },
-      "FrameColorPersistent" : {
-        "$$ClassName" : "TCastleColorPersistent"
-      },
       "HorizontalAnchorParent" : "hpMiddle",
       "HorizontalAnchorSelf" : "hpMiddle",
       "Name" : "VerticalGroup1",
       "Spacing" : 2.0000000000000000E+001,
-      "TranslationPersistent" : {
-        "$$ClassName" : "TCastleVector2Persistent"
-      },
       "VerticalAnchorParent" : "vpMiddle",
       "VerticalAnchorSelf" : "vpMiddle",
       "$Children" : [
         {
           "$$ClassName" : "TCastleHorizontalGroup",
-          "Border" : {
-            "$$ClassName" : "TBorder"
-          },
-          "BorderColorPersistent" : {
-            "$$ClassName" : "TCastleColorPersistent"
-          },
-          "FrameColorPersistent" : {
-            "$$ClassName" : "TCastleColorPersistent"
-          },
           "Name" : "HorizontalGroup1",
           "Spacing" : 5.0000000000000000E+001,
-          "TranslationPersistent" : {
-            "$$ClassName" : "TCastleVector2Persistent"
-          },
           "VerticalAnchorParent" : "vpTop",
           "VerticalAnchorSelf" : "vpTop",
           "$Children" : [
             {
               "$$ClassName" : "TCastleLabel",
-              "Border" : {
-                "$$ClassName" : "TBorder"
-              },
-              "BorderColorPersistent" : {
-                "$$ClassName" : "TCastleColorPersistent"
-              },
               "ColorPersistent" : {
                 "$$ClassName" : "TCastleColorPersistent",
                 "Blue" : 1.0000000000000000E+000,
@@ -131,30 +80,15 @@
               },
               "CustomFont" : "FontAlphaProtaNormal30",
               "FontSize" : 8.0000000000000000E+001,
-              "FrameColorPersistent" : {
-                "$$ClassName" : "TCastleColorPersistent"
-              },
               "Name" : "LabelAlphaProtaNormal",
-              "OutlineColorPersistent" : {
-                "$$ClassName" : "TCastleColorPersistent"
-              },
               "Text" : [
                 "Normal Font"
               ],
-              "TranslationPersistent" : {
-                "$$ClassName" : "TCastleVector2Persistent"
-              },
               "VerticalAnchorParent" : "vpMiddle",
               "VerticalAnchorSelf" : "vpMiddle"
             },
             {
               "$$ClassName" : "TCastleLabel",
-              "Border" : {
-                "$$ClassName" : "TBorder"
-              },
-              "BorderColorPersistent" : {
-                "$$ClassName" : "TCastleColorPersistent"
-              },
               "ColorPersistent" : {
                 "$$ClassName" : "TCastleColorPersistent",
                 "Green" : 1.0000000000000000E+000,
@@ -162,13 +96,7 @@
               },
               "CustomFont" : "FontAlphaProtaNormal30",
               "FontSize" : 8.0000000000000000E+001,
-              "FrameColorPersistent" : {
-                "$$ClassName" : "TCastleColorPersistent"
-              },
               "Name" : "LabelAlphaProtaNormalYellow",
-              "OutlineColorPersistent" : {
-                "$$ClassName" : "TCastleColorPersistent"
-              },
               "Text" : [
                 "Yellow"
               ],
@@ -183,15 +111,6 @@
         },
         {
           "$$ClassName" : "TCastleHorizontalGroup",
-          "Border" : {
-            "$$ClassName" : "TBorder"
-          },
-          "BorderColorPersistent" : {
-            "$$ClassName" : "TCastleColorPersistent"
-          },
-          "FrameColorPersistent" : {
-            "$$ClassName" : "TCastleColorPersistent"
-          },
           "Name" : "HorizontalGroup2",
           "Spacing" : 5.0000000000000000E+001,
           "TranslationPersistent" : {
@@ -203,12 +122,6 @@
           "$Children" : [
             {
               "$$ClassName" : "TCastleLabel",
-              "Border" : {
-                "$$ClassName" : "TBorder"
-              },
-              "BorderColorPersistent" : {
-                "$$ClassName" : "TCastleColorPersistent"
-              },
               "ColorPersistent" : {
                 "$$ClassName" : "TCastleColorPersistent",
                 "Blue" : 1.0000000000000000E+000,
@@ -217,30 +130,15 @@
               },
               "CustomFont" : "FontAlphaProtaDistance30",
               "FontSize" : 8.0000000000000000E+001,
-              "FrameColorPersistent" : {
-                "$$ClassName" : "TCastleColorPersistent"
-              },
               "Name" : "LabelAlphaProtaDistance",
-              "OutlineColorPersistent" : {
-                "$$ClassName" : "TCastleColorPersistent"
-              },
               "Text" : [
                 "Distance Field F"
               ],
-              "TranslationPersistent" : {
-                "$$ClassName" : "TCastleVector2Persistent"
-              },
               "VerticalAnchorParent" : "vpMiddle",
               "VerticalAnchorSelf" : "vpMiddle"
             },
             {
               "$$ClassName" : "TCastleLabel",
-              "Border" : {
-                "$$ClassName" : "TBorder"
-              },
-              "BorderColorPersistent" : {
-                "$$ClassName" : "TCastleColorPersistent"
-              },
               "ColorPersistent" : {
                 "$$ClassName" : "TCastleColorPersistent",
                 "Green" : 1.0000000000000000E+000,
@@ -248,13 +146,7 @@
               },
               "CustomFont" : "FontAlphaProtaDistance30",
               "FontSize" : 8.0000000000000000E+001,
-              "FrameColorPersistent" : {
-                "$$ClassName" : "TCastleColorPersistent"
-              },
               "Name" : "LabelAlphaProtaDistanceYellow",
-              "OutlineColorPersistent" : {
-                "$$ClassName" : "TCastleColorPersistent"
-              },
               "Text" : [
                 "Yellow"
               ],
@@ -269,15 +161,6 @@
         },
         {
           "$$ClassName" : "TCastleHorizontalGroup",
-          "Border" : {
-            "$$ClassName" : "TBorder"
-          },
-          "BorderColorPersistent" : {
-            "$$ClassName" : "TCastleColorPersistent"
-          },
-          "FrameColorPersistent" : {
-            "$$ClassName" : "TCastleColorPersistent"
-          },
           "Name" : "HorizontalGroup3",
           "Spacing" : 5.0000000000000000E+001,
           "TranslationPersistent" : {
@@ -289,12 +172,6 @@
           "$Children" : [
             {
               "$$ClassName" : "TCastleLabel",
-              "Border" : {
-                "$$ClassName" : "TBorder"
-              },
-              "BorderColorPersistent" : {
-                "$$ClassName" : "TCastleColorPersistent"
-              },
               "ColorPersistent" : {
                 "$$ClassName" : "TCastleColorPersistent",
                 "Blue" : 1.0000000000000000E+000,
@@ -303,30 +180,15 @@
               },
               "CustomFont" : "FontDejaVuSansNormal30",
               "FontSize" : 1.3000000000000000E+002,
-              "FrameColorPersistent" : {
-                "$$ClassName" : "TCastleColorPersistent"
-              },
               "Name" : "LabelDejaVuSansNormal",
-              "OutlineColorPersistent" : {
-                "$$ClassName" : "TCastleColorPersistent"
-              },
               "Text" : [
                 "Normal Font"
               ],
-              "TranslationPersistent" : {
-                "$$ClassName" : "TCastleVector2Persistent"
-              },
               "VerticalAnchorParent" : "vpMiddle",
               "VerticalAnchorSelf" : "vpMiddle"
             },
             {
               "$$ClassName" : "TCastleLabel",
-              "Border" : {
-                "$$ClassName" : "TBorder"
-              },
-              "BorderColorPersistent" : {
-                "$$ClassName" : "TCastleColorPersistent"
-              },
               "ColorPersistent" : {
                 "$$ClassName" : "TCastleColorPersistent",
                 "Green" : 1.0000000000000000E+000,
@@ -334,13 +196,7 @@
               },
               "CustomFont" : "FontDejaVuSansNormal30",
               "FontSize" : 1.3000000000000000E+002,
-              "FrameColorPersistent" : {
-                "$$ClassName" : "TCastleColorPersistent"
-              },
               "Name" : "LabelDejaVuSansNormalYellow",
-              "OutlineColorPersistent" : {
-                "$$ClassName" : "TCastleColorPersistent"
-              },
               "Text" : [
                 "Yellow"
               ],
@@ -355,15 +211,6 @@
         },
         {
           "$$ClassName" : "TCastleHorizontalGroup",
-          "Border" : {
-            "$$ClassName" : "TBorder"
-          },
-          "BorderColorPersistent" : {
-            "$$ClassName" : "TCastleColorPersistent"
-          },
-          "FrameColorPersistent" : {
-            "$$ClassName" : "TCastleColorPersistent"
-          },
           "Name" : "HorizontalGroup4",
           "Spacing" : 5.0000000000000000E+001,
           "TranslationPersistent" : {
@@ -375,12 +222,6 @@
           "$Children" : [
             {
               "$$ClassName" : "TCastleLabel",
-              "Border" : {
-                "$$ClassName" : "TBorder"
-              },
-              "BorderColorPersistent" : {
-                "$$ClassName" : "TCastleColorPersistent"
-              },
               "ColorPersistent" : {
                 "$$ClassName" : "TCastleColorPersistent",
                 "Blue" : 1.0000000000000000E+000,
@@ -389,30 +230,15 @@
               },
               "CustomFont" : "FontDejaVuSansDistance30",
               "FontSize" : 1.3000000000000000E+002,
-              "FrameColorPersistent" : {
-                "$$ClassName" : "TCastleColorPersistent"
-              },
               "Name" : "LabelDejaVuSansDistance",
-              "OutlineColorPersistent" : {
-                "$$ClassName" : "TCastleColorPersistent"
-              },
               "Text" : [
                 "Distance Field F"
               ],
-              "TranslationPersistent" : {
-                "$$ClassName" : "TCastleVector2Persistent"
-              },
               "VerticalAnchorParent" : "vpMiddle",
               "VerticalAnchorSelf" : "vpMiddle"
             },
             {
               "$$ClassName" : "TCastleLabel",
-              "Border" : {
-                "$$ClassName" : "TBorder"
-              },
-              "BorderColorPersistent" : {
-                "$$ClassName" : "TCastleColorPersistent"
-              },
               "ColorPersistent" : {
                 "$$ClassName" : "TCastleColorPersistent",
                 "Green" : 1.0000000000000000E+000,
@@ -420,13 +246,7 @@
               },
               "CustomFont" : "FontDejaVuSansDistance30",
               "FontSize" : 1.3000000000000000E+002,
-              "FrameColorPersistent" : {
-                "$$ClassName" : "TCastleColorPersistent"
-              },
               "Name" : "LabelDejaVuSansDistanceYellow",
-              "OutlineColorPersistent" : {
-                "$$ClassName" : "TCastleColorPersistent"
-              },
               "Text" : [
                 "Yellow"
               ],
