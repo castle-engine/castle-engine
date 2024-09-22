@@ -482,8 +482,8 @@ type
       Override this to add copying using some more sophisticated method
       than just memory copying (so also for handling mode other than
       dmBlend). }
-    procedure DrawFromCore(Source: TCastleImage;
-      X, Y, SourceX, SourceY, SourceWidth, SourceHeight: Integer;
+    procedure DrawFromCore(const Source: TCastleImage;
+      const X, Y, SourceX, SourceY, SourceWidth, SourceHeight: Integer;
       const Mode: TDrawMode); virtual;
 
     {$ifdef FPC}
@@ -841,12 +841,15 @@ type
         is not implemented yet.)
 
       @groupBegin }
-    procedure DrawFrom(Source: TCastleImage; const X, Y: Integer;
+    procedure DrawFrom(const Source: TCastleImage; const X, Y: Integer;
       const Mode: TDrawMode = dmBlend); overload;
-    procedure DrawFrom(Source: TCastleImage;
+    procedure DrawFrom(const Source: TCastleImage;
       X, Y, SourceX, SourceY, SourceWidth, SourceHeight: Integer;
       const Mode: TDrawMode = dmBlend); overload;
-    procedure DrawTo(Destination: TCastleImage; const X, Y: Integer;
+    procedure DrawFrom(const Source: TCastleImage;
+      const X, Y: Integer; const SourceRect: TRectangle;
+      const Mode: TDrawMode = dmBlend); overload;
+    procedure DrawTo(const Destination: TCastleImage; const X, Y: Integer;
       const Mode: TDrawMode = dmBlend);
     { @groupEnd }
 
