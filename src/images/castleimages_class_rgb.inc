@@ -24,8 +24,8 @@
     procedure FromFpImage(const FPImage: TInternalCastleFpImage); override;
     {$endif FPC}
   protected
-    procedure DrawFromCore(Source: TCastleImage;
-      X, Y, SourceX, SourceY, SourceWidth, SourceHeight: Integer;
+    procedure DrawFromCore(const Source: TCastleImage;
+      const X, Y, SourceX, SourceY, SourceWidth, SourceHeight: Integer;
       const Mode: TDrawMode); override;
     function GetColors(const X, Y, Z: Integer): TCastleColor; override;
     procedure SetColors(const X, Y, Z: Integer; const C: TCastleColor); override;
