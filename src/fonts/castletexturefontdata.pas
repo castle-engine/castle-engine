@@ -74,7 +74,7 @@ interface
 
 uses Generics.Collections, Generics.Defaults,
   CastleVectors, CastleUnicode, CastleStringUtils, CastleImages,
-  CastleInternalFreeType;
+  CastleInternalFreeType, CastleRectangles;
 
 type
   { Raised by
@@ -98,14 +98,23 @@ type
         { How to shift the glyph with respect
           to the starting position when drawing. }
         X, Y: Integer;
+
         { How to advance the position for next glyph. }
         AdvanceX, AdvanceY: Integer;
+
         { Size of the glyph.
           Always Width and Height >= 0 (they are Cardinal type after all),
           but note that it is possible that Width = Height = 0
-          (it commonly happens for space ' ' character). }
+          (it commonly happens for space ' ' character).
+
+          For rendering, use GlyphDrawImageRect to get the actual size,
+          as these fields include an extra padding in case of distance field rendering. }
         Width, Height: Cardinal;
-        { Position of the glyph on the image in TTextureFontData.Image. }
+
+        { Position of the glyph on the image in TTextureFontData.Image.
+
+          For rendering, use GlyphDrawImageRect to get the actual size,
+          as these fields include an extra padding in case of distance field rendering. }
         ImageX, ImageY: Cardinal;
       end;
 
@@ -163,6 +172,15 @@ type
 
     procedure CalculateFallbackGlyph;
     procedure MakeFallbackWarning(const C: TUnicodeChar);
+
+    { Height of the glyph in the image,
+      not counting the additional padding added when rendering with distance field fonts.
+      This is a faster shortcut for GlyphDrawImageRect(G).Height. }
+    function GlyphDrawHeight(const G: TTextureFontData.TGlyph): Cardinal;
+
+    { Non-zero when distance field rendering is used.
+      You need to account for it when rendering the glyph image. }
+    property AdditionalPadding: Integer read FAdditionalPadding;
   public
     { Create by reading a FreeType font file, like ttf.
 
@@ -225,8 +243,16 @@ type
       (for example letter "y" has the tail below the baseline in most fonts). }
     function TextHeightBase(const S: string): Integer;
     function TextMove(const S: string): TVector2Integer;
+
+    { Is the font prepared for distance field rendering. }
     property DistanceField: Boolean read FDistanceField;
-    property AdditionalPadding: Integer read FAdditionalPadding;
+
+    { Rect of the glyph in the image,
+      without the additional padding added when rendering with distance field fonts.
+
+      To get the full rect of the glyph in the image, with padding,
+      use G.ImageX, G.ImageY, G.Width, G.Height. }
+    function GlyphDrawImageRect(const G: TTextureFontData.TGlyph): TRectangle;
   end;
 
 implementation
@@ -749,6 +775,22 @@ begin
   end;
 end;
 
+function TTextureFontData.GlyphDrawHeight(const G: TTextureFontData.TGlyph): Cardinal;
+begin
+  Assert(G.Height >= 2 * AdditionalPadding);
+  // same as GlyphDrawImageRect calculation
+  Result := G.Height - 2 * AdditionalPadding;
+end;
+
+function TTextureFontData.GlyphDrawImageRect(const G: TTextureFontData.TGlyph): TRectangle;
+begin
+  Result.Left   := G.ImageX + AdditionalPadding;
+  Result.Bottom := G.ImageY + AdditionalPadding;
+  Result.Width  := G.Width  - 2 * AdditionalPadding;
+  // same as GlyphDrawHeight calculation
+  Result.Height := G.Height - 2 * AdditionalPadding;
+end;
+
 function TTextureFontData.TextHeight(const S: string): Integer;
 var
   Iter: TCastleStringIterator;
@@ -766,7 +808,7 @@ begin
     begin
       YOrigin := G.Y;
       MinVar(MinY, -YOrigin);
-      MaxVar(MaxY, G.Height - YOrigin);
+      MaxVar(MaxY, GlyphDrawHeight(G) - YOrigin);
     end;
   end;
   Result := MaxY - MinY;
@@ -804,7 +846,7 @@ begin
   begin
     G := Glyph(Iter.Current);
     if G <> nil then
-      MaxVar(Result, G.Height - G.Y);
+      MaxVar(Result, GlyphDrawHeight(G) - G.Y);
   end;
 end;
 

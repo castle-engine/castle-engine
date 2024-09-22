@@ -408,10 +408,7 @@ var
       TargetImage.DrawFrom(FFont.Image,
         Round(ScreenX - G.X * Scale + OutlineMoveX * Outline),
         Round(ScreenY - G.Y * Scale + OutlineMoveY * Outline),
-        G.ImageX,
-        G.ImageY,
-        G.Width,
-        G.Height);
+        FFont.GlyphDrawImageRect(G));
     end else
     begin
       Assert(GlyphsToRender < GlyphsScreenRects.Count);
@@ -432,17 +429,20 @@ var
         the "A" in "Animations" button in castle-model-viewer gets weird artifact. }
       {.$define EXTRA_GLYPH_SPACE}
 
-      ScreenRect := PFloatRectangle(GlyphsScreenRects.Ptr(GlyphsToRender));
-      ScreenRect^.Left   := ScreenX - (G.X {$ifdef EXTRA_GLYPH_SPACE} + 0.5 {$endif} + FFont.AdditionalPadding) * Scale + OutlineMoveX * Outline;
-      ScreenRect^.Bottom := ScreenY - (G.Y {$ifdef EXTRA_GLYPH_SPACE} + 0.5 {$endif} + FFont.AdditionalPadding) * Scale + OutlineMoveY * Outline;
-      ScreenRect^.Width  := (G.Width  {$ifdef EXTRA_GLYPH_SPACE} + 1 {$endif}) * Scale;
-      ScreenRect^.Height := (G.Height {$ifdef EXTRA_GLYPH_SPACE} + 1 {$endif}) * Scale;
-
       ImageRect := PFloatRectangle(GlyphsImageRects.Ptr(GlyphsToRender));
-      ImageRect^.Left   := G.ImageX {$ifdef EXTRA_GLYPH_SPACE} - 0.5 {$endif};
-      ImageRect^.Bottom := G.ImageY {$ifdef EXTRA_GLYPH_SPACE} - 0.5 {$endif};
-      ImageRect^.Width  := G.Width  {$ifdef EXTRA_GLYPH_SPACE} + 1 {$endif};
-      ImageRect^.Height := G.Height {$ifdef EXTRA_GLYPH_SPACE} + 1 {$endif};
+      ImageRect^ := FloatRectangle(FFont.GlyphDrawImageRect(G));
+      {$ifdef EXTRA_GLYPH_SPACE}
+      ImageRect^.Left   := ImageRect^.Left   - 0.5;
+      ImageRect^.Bottom := ImageRect^.Bottom - 0.5;
+      ImageRect^.Width  := ImageRect^.Width  + 1;
+      ImageRect^.Height := ImageRect^.Height + 1;
+      {$endif}
+
+      ScreenRect := PFloatRectangle(GlyphsScreenRects.Ptr(GlyphsToRender));
+      ScreenRect^.Left   := ScreenX - (G.X {$ifdef EXTRA_GLYPH_SPACE} + 0.5 {$endif}) * Scale + OutlineMoveX * Outline;
+      ScreenRect^.Bottom := ScreenY - (G.Y {$ifdef EXTRA_GLYPH_SPACE} + 0.5 {$endif}) * Scale + OutlineMoveY * Outline;
+      ScreenRect^.Width  := ImageRect^.Width  * Scale;
+      ScreenRect^.Height := ImageRect^.Height * Scale;
 
       Inc(GlyphsToRender);
     end;
