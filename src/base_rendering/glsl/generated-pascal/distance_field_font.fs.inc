@@ -20,16 +20,22 @@
 '  It is used as custom shader for TDrawableImage.' + LineEnding +
 '  Notes:' + LineEnding +
 '' + LineEnding +
-'  - Just like image.fs it honors the COLOR_UNIFORM, and multiplies it' + LineEnding +
-'    (e.g. to honor TCastleLabel.Color).' + LineEnding +
+'  - This always behaves as image.fs with COLOR_UNIFORM defined,' + LineEnding +
+'    so it defines and uses "uniform vec4 color;".' + LineEnding +
 '' + LineEnding +
-'    TODO: Hm, but TDrawableImage.CustomShader is not recompiled now' + LineEnding +
-'    with various COLOR_UNIFORM / not versions.' + LineEnding +
-'    And we cannot just hardcode "define COLOR_UNIFORM" here,' + LineEnding +
-'    because the uniform is not passed when color is white.' + LineEnding +
-'    We need to improve how TDrawableImage.CustomShader is used?' + LineEnding +
+'    It can, because it is used always with a font texture that consists' + LineEnding +
+'    only of alpha channel. The TDrawableImage always has' + LineEnding +
+'    - TextureHasOnlyAlpha = true' + LineEnding +
+'    - and so, it has always ColorTreatment = ctColorMultipliesTextureAlpha' + LineEnding +
+'    - and so,' + LineEnding +
+'      - TDrawableImage.TImageProgram.InitializeUniformsAttributes' + LineEnding +
+'        queries for "color" uniform,' + LineEnding +
+'      - and rendering sets it using "Prog.UniformColor.SetValue(Color)".' + LineEnding +
 '' + LineEnding +
-'  - This is in subdirectory base_rendering/.' + LineEnding +
+'    This means the rendering honors TDrawableImage.Color' + LineEnding +
+'    which in turn means it honors TCastleLabel.Color.' + LineEnding +
+'' + LineEnding +
+'  - This shader is in subdirectory base_rendering/.' + LineEnding +
 '    The subdirectory base_rendering is not the best for font stuff,' + LineEnding +
 '    but this way the distance_field_font.fs lives alongside image.fs' + LineEnding +
 '    with which it should be synchronized.' + LineEnding +
@@ -41,18 +47,11 @@
 'varying vec2 tex_coord_frag;' + LineEnding +
 'uniform sampler2D image_texture;' + LineEnding +
 '' + LineEnding +
-'#define COLOR_UNIFORM' + LineEnding +
-'#ifdef COLOR_UNIFORM' + LineEnding +
 'uniform vec4 color;' + LineEnding +
-'#endif' + LineEnding +
 '' + LineEnding +
 'void main(void)' + LineEnding +
 '{' + LineEnding +
-'#ifdef COLOR_UNIFORM' + LineEnding +
 '  gl_FragColor = color;' + LineEnding +
-'#else' + LineEnding +
-'  gl_FragColor = vec4(1.0);' + LineEnding +
-'#endif' + LineEnding +
 '' + LineEnding +
 '  float alpha_from_distance_texture = texture2D(image_texture, tex_coord_frag).a;' + LineEnding +
 '  if (alpha_from_distance_texture <= 0.495) {' + LineEnding +

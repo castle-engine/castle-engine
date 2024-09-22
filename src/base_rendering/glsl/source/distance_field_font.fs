@@ -18,19 +18,22 @@
   It is used as custom shader for TDrawableImage.
   Notes:
 
-  - Just like image.fs it honors the COLOR_UNIFORM, and multiplies it
-    (e.g. to honor TCastleLabel.Color).
+  - This always behaves as image.fs with COLOR_UNIFORM defined,
+    so it defines and uses "uniform vec4 color;".
 
-    TODO: Hm, but TDrawableImage.CustomShader is not recompiled now
-    with various COLOR_UNIFORM / not versions.
-    And we cannot just hardcode "define COLOR_UNIFORM" here,
-    because the uniform is not passed when color is white.
-    - We need to improve how TDrawableImage.CustomShader is used?
-    - Hm, but why does it work now when TCastleLabel.Color is white?
-      The "color" uniform is undefined -- is it just white by accident?
-      Check that we don't pass "color" uniform in this case.
+    It can, because it is used always with a font texture that consists
+    only of alpha channel. The TDrawableImage always has
+    - TextureHasOnlyAlpha = true
+    - and so, it has always ColorTreatment = ctColorMultipliesTextureAlpha
+    - and so,
+      - TDrawableImage.TImageProgram.InitializeUniformsAttributes
+        queries for "color" uniform,
+      - and rendering sets it using "Prog.UniformColor.SetValue(Color)".
 
-  - This is in subdirectory base_rendering/.
+    This means the rendering honors TDrawableImage.Color
+    which in turn means it honors TCastleLabel.Color.
+
+  - This shader is in subdirectory base_rendering/.
     The subdirectory base_rendering is not the best for font stuff,
     but this way the distance_field_font.fs lives alongside image.fs
     with which it should be synchronized.
@@ -42,18 +45,11 @@
 varying vec2 tex_coord_frag;
 uniform sampler2D image_texture;
 
-#define COLOR_UNIFORM
-#ifdef COLOR_UNIFORM
 uniform vec4 color;
-#endif
 
 void main(void)
 {
-#ifdef COLOR_UNIFORM
   gl_FragColor = color;
-#else
-  gl_FragColor = vec4(1.0);
-#endif
 
   float alpha_from_distance_texture = texture2D(image_texture, tex_coord_frag).a;
   if (alpha_from_distance_texture <= 0.495) {
