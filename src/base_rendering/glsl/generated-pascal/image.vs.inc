@@ -1,5 +1,5 @@
 { -*- buffer-read-only: t -*- }
-{ DON'T EDIT -- this file was automatically generated from "image.vs" }
+{ DON'T EDIT -- this file was automatically generated from "source/image.vs" }
 'attribute vec2 vertex;' + LineEnding +
 'attribute vec2 tex_coord;' + LineEnding +
 '' + LineEnding +

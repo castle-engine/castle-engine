@@ -1,5 +1,5 @@
 { -*- buffer-read-only: t -*- }
-{ DON'T EDIT -- this file was automatically generated from "primitive_2.vs" }
+{ DON'T EDIT -- this file was automatically generated from "source/primitive_2.vs" }
 'attribute vec2 vertex;' + LineEnding +
 'uniform vec2 viewport_size;' + LineEnding +
 '' + LineEnding +
