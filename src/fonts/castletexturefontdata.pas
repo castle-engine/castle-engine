@@ -429,6 +429,7 @@ var
         TCastleFont will also apply a different shader on top of the generated texture
         which also can slow down performance a tiny bit,
         however this effect should be completely negligible.
+
       3.We also add special padding to each symbol of the font,
         which sometimes results in larger texure generated. }
     procedure DrawCharDistanceField;

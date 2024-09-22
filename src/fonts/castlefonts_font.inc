@@ -122,29 +122,73 @@ type
       see @url(https://www.freetype.org/freetype2/docs/ft2faq.html#general-what the summary of font formats supported by FreeType). }
     property Url: String read FUrl write SetUrl;
 
-    { Set this to use distance field font rendering.
-      This means the font is loaded to a special texture (that
-      stores distances to the nearest glyph edge) and it uses a special shader
-      (that accounts for this texture).
+    { Use "distance field" font rendering.
+      This is a font rendering technique that @italic(may)
+      result in a better quality when the text is large.
 
-      Advantage of using distance field font rendering:
+      Underneath, the font is processed to a different texture than usual
+      (that expresses distances to glyphs) and rendered usign a special shader.
 
-      The font that looks good (not blurred) even when scaled up.
-      That is, when the actual font size
-      (like derived from @link(TCastleLabel.FontSize) and UI scaling)
+      The positive outcome is that the font looks better (not blurred)
+      even when scaled up.
+      "Scaling up" occurs when the actual font size
+      (derived from @link(TCastleLabel.FontSize) and UI scaling)
       is significantly larger than the optimal size for which the font
-      image was prepared (@link(OptimalSize)). Rendering without distance field
-      (when this is @false, by default) results in blurred font look in such cases.
+      image was prepared (@link(OptimalSize)). In this case, rendering
+      without distance field (when this is @false, by default)
+      results in blurred font look.
       When this is @true, the look remains "crisp".
 
-      Disadvantage:
+      Disadvantages:
 
-      Preparing a distance field font texture is more consuming
-      (TODO: we could introduce a way to do this in preprocessing,
-      like "castle-engine auto-generate" command that would generalize
-      current "castle-engine auto-generate-textures").
+      One, preparing a distance field font texture is more time-consuming.
+      So loading time may be slightly larger. This increased loading time
+      is generally negligible if you just have a few fonts.
+      But be sure to profile your loading time (see
+      https://castle-engine.io/manual_optimization.php )
+      if you use a lot of fonts with DistanceField = @true.
 
-      Also, the result is not always a better quality. }
+      A more serious disadvantage is that the result is not always a better quality:
+      At really large sizes, the artifacts of distance field rendering
+      may be visible -- the letters are "crisp" but their shape may be slightly
+      distorted.
+      If you don't mind extra memory usage, you can likely get better
+      quality by just loading a larger font texture (with larger OptimalSize)
+      and leaving this property at @false.
+
+      Morover, when the final font size is *smaller* than the size for which
+      the font was prepared, it will definitely look worse.
+
+      TODO: We could defeat some of the issues mentioned above.
+      You're welcome to ping us ( https://castle-engine.io/talk.php )
+      and support ( https://www.patreon.com/castleengine ) to make it happen.
+
+      @unorderedList(
+        @item(The loading time of fonts (with and without distance fields)
+          could be improved by generating the necessary texture at
+          preprocessing, introducing "castle-engine auto-generate" command
+          that would generalize current "castle-engine auto-generate-textures".
+        )
+
+        @item(TCastleText (text in a viewport) cannot handle fonts with DistanceField
+          yet. Result would not be sensible. For now, TCastleText.FontStyleFontChanged
+          warns about it and forces DistanceField to @false.)
+
+        @item(It is possible that the quality could be improved:
+
+          Implement normalization.
+          Can this make downscaling better? Does this make upscaling better?
+          See https://libgdx.com/wiki/graphics/2d/fonts/distance-field-fonts
+          what it means.)
+
+        @item(Introduce a fallback on non-distance-field texture,
+          used when downscaling happens?
+
+          This means larger memory usage,
+          and potential jump in look if someone animates FontSize.
+        )
+      )
+    }
     property DistanceField: Boolean read FDistanceField write SetDistanceField
       default false;
 
