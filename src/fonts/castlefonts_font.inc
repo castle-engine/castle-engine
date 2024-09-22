@@ -41,7 +41,7 @@ type
     FLoadBasicCharacters: Boolean;
     FLoadCharacters: String;
     function GetScale: Single;
-    procedure SetDistanceField(AValue: Boolean);
+    procedure SetDistanceField(const AValue: Boolean);
     procedure SetScale(const AValue: Single);
     procedure SetUrl(const Value: String);
     procedure SetOptimalSize(const Value: Cardinal);
@@ -122,10 +122,31 @@ type
       see @url(https://www.freetype.org/freetype2/docs/ft2faq.html#general-what the summary of font formats supported by FreeType). }
     property Url: String read FUrl write SetUrl;
 
-    { If this font texture is a regular image (false, default)
-      or a distance field image (true) which is slower to load,
-      generates larger texture but is upscaled in much higher quality }
-    property DistanceField: Boolean read FDistanceField write SetDistanceField default false;
+    { Set this to use distance field font rendering.
+      This means the font is loaded to a special texture (that
+      stores distances to the nearest glyph edge) and it uses a special shader
+      (that accounts for this texture).
+
+      Advantage of using distance field font rendering:
+
+      The font that looks good (not blurred) even when scaled up.
+      That is, when the actual font size
+      (like derived from @link(TCastleLabel.FontSize) and UI scaling)
+      is significantly larger than the optimal size for which the font
+      image was prepared (@link(OptimalSize)). Rendering without distance field
+      (when this is @false, by default) results in blurred font look in such cases.
+      When this is @true, the look remains "crisp".
+
+      Disadvantage:
+
+      Preparing a distance field font texture is more consuming
+      (TODO: we could introduce a way to do this in preprocessing,
+      like "castle-engine auto-generate" command that would generalize
+      current "castle-engine auto-generate-textures").
+
+      Also, the result is not always a better quality. }
+    property DistanceField: Boolean read FDistanceField write SetDistanceField
+      default false;
 
     { Optimal font size (in real device pixels),
       the font will be scaled when other size is actually needed.
@@ -285,7 +306,7 @@ begin
     Result := Size;
 end;
 
-procedure TCastleFont.SetDistanceField(AValue: Boolean);
+procedure TCastleFont.SetDistanceField(const AValue: Boolean);
 begin
   if FDistanceField <> AValue then
   begin
@@ -343,7 +364,7 @@ procedure TCastleFont.PrepareResources;
 
     FreeAndNil(DistanceFieldShader);
     DistanceFieldShader := TGLSLProgram.Create;
-    DistanceFieldShader.Name := 'TDistanceFieldCut';
+    DistanceFieldShader.Name := 'DistanceFieldShader';
     DistanceFieldShader.AttachVertexShader(VS);
     DistanceFieldShader.AttachFragmentShader(FS);
     DistanceFieldShader.Link;
