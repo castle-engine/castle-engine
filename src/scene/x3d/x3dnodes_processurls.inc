@@ -92,13 +92,15 @@ type
   { Helper for ProcessUrls. }
   TProcessUrlsHelper = class
   strict private
+    TargetCopySubDirectory: String;  // when suCopyResourcesToSubdirectory, this will be the full path of that subdirectory
+    procedure PrepareSubDirectory;   // prepare the subdirectory for copy-to-subdiretory case
+
     function UrlChangeCastleDataToRelative(const Url: String): String;
     function UrlChangeAllPathsToRelative(const Url, CurrentBaseUrl: String): String;
     function EmbedResource(const Url, CurrentBaseUrl: String): String;
     function CopyResourceToSubdirectory(const Url, CurrentBaseUrl: String): String;
   public
     TargetBaseUrl: String;     // saving scene into this file
-    TargetCopySubDirectory: String;  // when suCopyResourcesToSubdirectory, this will be the full path of that subdirectory
     UrlProcessing: TUrlProcessing;
     procedure ProcessNode(Node: TX3DNode);
   end;
@@ -144,12 +146,31 @@ begin
   Result := Url;
 end;
 
+procedure TProcessUrlsHelper.PrepareSubDirectory;
+var
+  TargetBaseFileName, TargetSubdirTitle: String;
+begin
+  TargetBaseFileName := UriToFilenameSafe(TargetBaseUrl);
+  if TargetBaseFileName <> '' then
+  begin
+    TargetSubdirTitle := DeleteUriExt(ExtractFileName(TargetBaseFileName)) + '_resources';
+    TargetCopySubDirectory := ExtractFilePath(TargetBaseFileName) + TargetSubdirTitle;
+    if not DirectoryExists(TargetCopySubDirectory) then
+       CheckForceDirectories(TargetCopySubDirectory);
+  end;
+end;
+
 function TProcessUrlsHelper.CopyResourceToSubdirectory(const Url, CurrentBaseUrl: String): String;
 var
   ResourceUrl, ResourceFileName, ResourceFileTitle, TargetFileName: String;
 begin
   ResourceUrl := CombineUri(CurrentBaseUrl, Url);
   ResourceFileName := UriToFilenameSafe(ResourceUrl);
+
+  // create the subdirectory once
+  if (TargetCopySubDirectory = '') and (ResourceFileName <> '') then
+    PrepareSubDirectory;
+
   if (TargetCopySubDirectory <> '') and (ResourceFileName <> '') then
   begin
     ResourceFileTitle := ExtractFileName(ResourceFileName);
@@ -254,26 +275,11 @@ procedure ProcessUrls(const RootNode: TX3DRootNode;
   const SaveBaseUrl: String; const UrlProcessing: TUrlProcessing);
 var
   Helper: TProcessUrlsHelper;
-  TargetBaseFileName, TargetSubdirTitle: String;
 begin
   Helper := TProcessUrlsHelper.Create;
   try
     Helper.TargetBaseUrl := SaveBaseUrl;
     Helper.UrlProcessing := UrlProcessing;
-
-    // prepare the subdirectory for copy-to-subdiretory case
-    if UrlProcessing = suCopyResourcesToSubdirectory then
-    begin
-      TargetBaseFileName := UriToFilenameSafe(Helper.TargetBaseUrl);
-      if TargetBaseFileName <> '' then
-      begin
-        TargetSubdirTitle := DeleteUriExt(ExtractFileName(TargetBaseFileName)) + '_resources';
-        Helper.TargetCopySubDirectory := ExtractFilePath(TargetBaseFileName) + TargetSubdirTitle;
-        if not DirectoryExists(Helper.TargetCopySubDirectory) then
-           CheckForceDirectories(Helper.TargetCopySubDirectory);
-      end;
-    end;
-
     RootNode.EnumerateNodes(TX3DNode, {$ifdef FPC}@{$endif} Helper.ProcessNode, false);
   finally FreeAndNil(Helper) end;
 end;
