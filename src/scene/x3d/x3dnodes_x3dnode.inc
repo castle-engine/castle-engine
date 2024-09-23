@@ -3356,6 +3356,13 @@ begin
         Result.FPrototypeInstanceHelpers := CopyState.DeepCopy(PrototypeInstanceHelpers);
     end;
 
+    { TODO: add virtual DeepCopy to TX3DPrototypeBase and implement it for TX3DPrototype and TX3DExternalPrototype.
+    if FPrototypes <> nil then
+    begin
+      for I := 0 to FPrototypes.Count - 1 do
+        Result.AddPrototype(FPrototypes[I].DeepCopy(CopyState));
+    end;}
+
     Result.DefaultContainerField := DefaultContainerField;
   except
     FreeAndNil(Result);

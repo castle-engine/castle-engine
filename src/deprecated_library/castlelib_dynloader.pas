@@ -255,11 +255,12 @@ const
   ecgeinputExMove       = 32;
   ecgeinputExZoom       = 33;
 
-  // URL processing (ECgeNavigationInput)
-  ecgeurlProcessingNone           = 0;
-  ecgeurlProcessingToRelative     = 1;
-  ecgeurlProcessingEmbedResources = 2;
-  ecgeurlProcessingCopyToOuputDir = 3;
+  // URL processing (ECgeUrlProcessing)
+  ecgeurlProcessingNone                 = 0;
+  ecgeurlProcessingCastleDataToRelative = 1;
+  ecgeurlProcessingAllPathsToRelative   = 2;
+  ecgeurlProcessingEmbedResources       = 3;
+  ecgeurlProcessingCopyToOuputDir       = 4;
 
 type
   TLibraryCallbackProc = function (eCode, iParam1, iParam2: cInt32; szParam: pcchar):cInt32; cdecl;

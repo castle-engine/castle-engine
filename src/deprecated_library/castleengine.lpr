@@ -380,8 +380,9 @@ begin
     case eUrlProcessing of
       0: UrlProcessing := suNone;
       1: UrlProcessing := suChangeCastleDataToRelative;
-      2: UrlProcessing := suEmbedResources;
-      3: UrlProcessing := suCopyResourcesToSubdirectory;
+      2: UrlProcessing := suChangeAllPathsToRelative;
+      3: UrlProcessing := suEmbedResources;
+      4: UrlProcessing := suCopyResourcesToSubdirectory;
     end;
     if UrlProcessing = suNone then
       MainScene.Save(SaveFileName)

@@ -58,6 +58,11 @@ type
       so it should not use "castle-data:/". }
     suChangeCastleDataToRelative,
 
+    { All castle-data and local file URLs are converted to relative paths URLs.
+      This is for cases when project is saved to a new location, while resources
+      are kept on the same place". }
+    suChangeAllPathsToRelative,
+
     { Make all resources embedded, by using data URI.
       See https://castle-engine.io/manual_network.php#section_data about data URI.
       In effect, the resulting X3D file is self-contained,
@@ -65,11 +70,11 @@ type
       https://castle-engine.io/castle-model-viewer-mobile . }
     suEmbedResources,
 
-    { Copy all resources to the "export-output" subdirectory alongside
+    { Copy all resources to the "<name>-resources" subdirectory alongside
       the exported file, and change all URLs to be relative and point to that
       directory.
 
-      This allows to e.g. ZIP the resulting file + the "export-output" subdirectory
+      This allows to e.g. ZIP the resulting file + the "<name>-resources" subdirectory
       and reliably know that it contains everything needed to display the model. }
     suCopyResourcesToSubdirectory
   );
@@ -87,20 +92,25 @@ type
   { Helper for ProcessUrls. }
   TProcessUrlsHelper = class
   strict private
-    function UrlChangeCastleDataToRelative(const Url, CurrentBaseUrl: String): String;
+    function UrlChangeCastleDataToRelative(const Url: String): String;
+    function UrlChangeAllPathsToRelative(const Url, CurrentBaseUrl: String): String;
     function EmbedResource(const Url, CurrentBaseUrl: String): String;
     function CopyResourceToSubdirectory(const Url, CurrentBaseUrl: String): String;
   public
-    BaseUrl, TargetBaseUrl: String;
+    TargetBaseUrl: String;     // saving scene into this file
+    TargetCopySubDirectory: String;  // when suCopyResourcesToSubdirectory, this will be the full path of that subdirectory
     UrlProcessing: TUrlProcessing;
     procedure ProcessNode(Node: TX3DNode);
   end;
 
-function TProcessUrlsHelper.UrlChangeCastleDataToRelative(const Url, CurrentBaseUrl: String): String;
+function TProcessUrlsHelper.UrlChangeCastleDataToRelative(const Url: String): String;
 var
   ResourceUrl, BaseFileName, ResourceFileName, ResultFileName: String;
 begin
-  ResourceUrl := CombineUri(CurrentBaseUrl, Url);
+  if UriProtocol(Url) <> 'castle-data' then
+    Exit(Url);
+
+  ResourceUrl := ResolveCastleDataUrl(Url);
   ResourceFileName := UriToFilenameSafe(ResourceUrl);
   BaseFileName := UriToFilenameSafe(TargetBaseUrl);
   if (BaseFileName <> '') and (ResourceFileName <> '') then
@@ -112,6 +122,22 @@ begin
     Result := Url;
 end;
 
+function TProcessUrlsHelper.UrlChangeAllPathsToRelative(const Url, CurrentBaseUrl: String): String;
+var
+  ResourceUrl, BaseFileName, ResourceFileName, ResultFileName: String;
+begin
+  ResourceUrl := CombineUri(CurrentBaseUrl, ResolveCastleDataUrl(Url));
+  ResourceFileName := UriToFilenameSafe(ResourceUrl);
+  BaseFileName := UriToFilenameSafe(TargetBaseUrl);
+  if (BaseFileName <> '') and (ResourceFileName <> '') then
+  begin
+    ResultFileName := ExtractRelativePath(BaseFileName, ResourceFileName);
+    Result := RelativeFilenameToUriSafe(ResultFileName);
+  end else
+    // use original URL
+    Result := Url;
+end;
+
 function TProcessUrlsHelper.EmbedResource(const Url, CurrentBaseUrl: String): String;
 begin
   // TODO (use CastleInternalDataUri, see what tools/to-data-uri/to_data_uri.lpr does)
@@ -120,18 +146,17 @@ end;
 
 function TProcessUrlsHelper.CopyResourceToSubdirectory(const Url, CurrentBaseUrl: String): String;
 var
-  ResourceUrl, BaseFileName, ResourceFileName, ResourceFileTitle, TargetFileName: String;
+  ResourceUrl, ResourceFileName, ResourceFileTitle, TargetFileName: String;
 begin
   ResourceUrl := CombineUri(CurrentBaseUrl, Url);
   ResourceFileName := UriToFilenameSafe(ResourceUrl);
-  BaseFileName := UriToFilenameSafe(TargetBaseUrl);
-  if (BaseFileName <> '') and (ResourceFileName <> '') then
+  if (TargetCopySubDirectory <> '') and (ResourceFileName <> '') then
   begin
     ResourceFileTitle := ExtractFileName(ResourceFileName);
-    TargetFileName := ExtractFilePath(BaseFileName) + ResourceFileTitle;
+    TargetFileName := IncludeTrailingPathDelimiter(TargetCopySubDirectory) + ResourceFileTitle;
     if not FileExists(TargetFileName) then  // lets suppose same TargetFileName means same original source file
        CheckCopyFile(ResourceFileName, TargetFileName);
-    Result := ResourceFileTitle;
+    Result := IncludeTrailingPathDelimiter(ExtractFileName(TargetCopySubDirectory)) + ResourceFileTitle;
   end else
     // use original URL then, maybe with castle-data:/, maybe other protocol
     Result := Url;
@@ -147,7 +172,9 @@ procedure TProcessUrlsHelper.ProcessNode(Node: TX3DNode);
     begin
       case UrlProcessing of
         suChangeCastleDataToRelative:
-          Field.Items[I] := UrlChangeCastleDataToRelative(Field.Items[I], Node.BaseUrl);
+          Field.Items[I] := UrlChangeCastleDataToRelative(Field.Items[I]);
+        suChangeAllPathsToRelative:
+          Field.Items[I] := UrlChangeAllPathsToRelative(Field.Items[I], Node.BaseUrl);
         suEmbedResources:
           Field.Items[I] := EmbedResource(Field.Items[I], Node.BaseUrl);
         suCopyResourcesToSubdirectory:
@@ -227,11 +254,26 @@ procedure ProcessUrls(const RootNode: TX3DRootNode;
   const SaveBaseUrl: String; const UrlProcessing: TUrlProcessing);
 var
   Helper: TProcessUrlsHelper;
+  TargetBaseFileName, TargetSubdirTitle: String;
 begin
   Helper := TProcessUrlsHelper.Create;
   try
     Helper.TargetBaseUrl := SaveBaseUrl;
     Helper.UrlProcessing := UrlProcessing;
+
+    // prepare the subdirectory for copy-to-subdiretory case
+    if UrlProcessing = suCopyResourcesToSubdirectory then
+    begin
+      TargetBaseFileName := UriToFilenameSafe(Helper.TargetBaseUrl);
+      if TargetBaseFileName <> '' then
+      begin
+        TargetSubdirTitle := DeleteUriExt(ExtractFileName(TargetBaseFileName)) + '_resources';
+        Helper.TargetCopySubDirectory := ExtractFilePath(TargetBaseFileName) + TargetSubdirTitle;
+        if not DirectoryExists(Helper.TargetCopySubDirectory) then
+           CheckForceDirectories(Helper.TargetCopySubDirectory);
+      end;
+    end;
+
     RootNode.EnumerateNodes(TX3DNode, {$ifdef FPC}@{$endif} Helper.ProcessNode, false);
   finally FreeAndNil(Helper) end;
 end;

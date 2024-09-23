@@ -279,10 +279,11 @@ enum ECgeNavigationInput
 
 enum ECgeUrlProcessing
 {
-  ecgeurlProcessingNone           = 0,
-  ecgeurlProcessingToRelative     = 1,
-  ecgeurlProcessingEmbedResources = 2,
-  ecgeurlProcessingCopyToOuputDir = 3,
+  ecgeurlProcessingNone                 = 0,
+  ecgeurlProcessingCastleDataToRelative = 1,
+  ecgeurlProcessingAllPathsToRelative   = 2,
+  ecgeurlProcessingEmbedResources       = 3,
+  ecgeurlProcessingCopyToOuputDir       = 4,
 };
 
 typedef int (CDECL *TCgeLibraryCallback)(int /*ECgeLibCallbackCode*/eCode, int iParam1, int iParam2, const char *szParam);
