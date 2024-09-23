@@ -127,6 +127,7 @@ end;
 function TProcessUrlsHelper.UrlChangeAllPathsToRelative(const Url, CurrentBaseUrl: String): String;
 var
   ResourceUrl, BaseFileName, ResourceFileName, ResultFileName: String;
+  ParsedResourceUri: TURI;
 begin
   ResourceUrl := CombineUri(CurrentBaseUrl, ResolveCastleDataUrl(Url));
   ResourceFileName := UriToFilenameSafe(ResourceUrl);
@@ -135,6 +136,11 @@ begin
   begin
     ResultFileName := ExtractRelativePath(BaseFileName, ResourceFileName);
     Result := RelativeFilenameToUriSafe(ResultFileName);
+
+    // keep the bookmark part of URL (may be important for Externprotos)
+    ParsedResourceUri := ParseURI(ResourceUrl);
+    if ParsedResourceUri.Bookmark <> '' then
+      Result := Result + '#' + ParsedResourceUri.Bookmark;
   end else
     // use original URL
     Result := Url;
@@ -172,6 +178,7 @@ end;
 function TProcessUrlsHelper.CopyResourceToSubdirectory(const Url, CurrentBaseUrl: String): String;
 var
   ResourceUrl, ResourceFileName, ResourceFileTitle, TargetFileName: String;
+  ParsedResourceUri: TURI;
 begin
   ResourceUrl := CombineUri(CurrentBaseUrl, Url);
   ResourceFileName := UriToFilenameSafe(ResourceUrl);
@@ -187,6 +194,11 @@ begin
     if not FileExists(TargetFileName) then  // lets suppose same TargetFileName means same original source file
        CheckCopyFile(ResourceFileName, TargetFileName);
     Result := IncludeTrailingPathDelimiter(ExtractFileName(TargetCopySubDirectory)) + ResourceFileTitle;
+
+    // keep the bookmark part of URL (may be important for Externprotos)
+    ParsedResourceUri := ParseURI(ResourceUrl);
+    if ParsedResourceUri.Bookmark <> '' then
+      Result := Result + '#' + ParsedResourceUri.Bookmark;
   end else
     // use original URL then, maybe with castle-data:/, maybe other protocol
     Result := Url;
