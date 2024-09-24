@@ -152,13 +152,16 @@ var
   F: TStream;
   MimeType: String;
 begin
-  // TODO (use CastleInternalDataUri, see what tools/to-data-uri/to_data_uri.lpr does)
-  ResourceUrl := CombineUri(CurrentBaseUrl, ResolveCastleDataUrl(Url));
-  F := Download(ResourceUrl, [soForceMemoryStream], MimeType);
-  if (F <> nil) then
-    Result := StreamToDataUri(F, MimeType)
-  else
-    Result := Url;
+  // use CastleInternalDataUri, see what tools/to-data-uri/to_data_uri.lpr does
+  Result := Url;
+  try
+    ResourceUrl := CombineUri(CurrentBaseUrl, ResolveCastleDataUrl(Url));
+    F := Download(ResourceUrl, [soForceMemoryStream], MimeType);
+    if (F <> nil) then
+      Result := StreamToDataUri(F, MimeType)
+  finally
+    FreeAndNil(F);
+  end;
 end;
 
 procedure TProcessUrlsHelper.PrepareSubDirectory;
