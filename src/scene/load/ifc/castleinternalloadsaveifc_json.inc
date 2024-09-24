@@ -22,6 +22,20 @@
 
 {$ifdef read_implementation}
 
+{ Simple hack to detect does given object is a TObjectList<xxx> specialization.
+  They don't share any common ancestor in Generics.Collections in FPC,
+  so there's no obvious "is" check to do this.
+  This hack seems acceptable in this case -- as this is only internal
+  and has to account only for classes inside
+  our own castleinternalloadsaveifc_ifc_standard_types.inc,
+  so we can rely on our own naming conventions. }
+function ClassNameOfList(const PotentialListClassName: String): Boolean;
+begin
+  Result :=
+    IsSuffix('List', PotentialListClassName, false) or
+    IsPrefix('TObjectList<', PotentialListClassName, false);
+end;
+
 function IfcJsonLoad(const Json: TJsonData): TIfcFile;
 
   procedure DeserializeJson(const Json: TJsonObject; const Ifc: TIfcPersistent);
@@ -93,9 +107,7 @@ function IfcJsonLoad(const Json: TJsonData): TIfcFile;
 
       { To be at least a bit safer, we check whether class name looks like a list.
         This is satisfied by all lists in castleinternalloadsaveifc_ifc_types.inc. }
-      if not (
-          IsSuffix('List', List.ClassName, false) or
-          IsPrefix('TObjectList<', List.ClassName, false) ) then
+      if not ClassNameOfList(List.ClassName) then
         raise EInvalidIfc.CreateFmt('Pascal property "%s" is supposed to be a list, but the class name does not end with "List": %s', [
           PropInfo^.Name,
           List.ClassName
@@ -274,6 +286,7 @@ function IfcJsonLoad(const Json: TJsonData): TIfcFile;
 
       // TODO special code to hadnle TVector3 (TIfcDirection.DirectionRatios, TIfcCartesianPoint.Coordinate)
       // TODO: figure out ownership; should we just make them all TComponent, and owned by common owner?
+      // TODO: resolve refs
     end;
   end;
 
@@ -308,6 +321,107 @@ begin
       ]);
     DeserializeJson(JsonObj, Result);
   end;
+end;
+
+function IfcJsonSave(const IfcFile: TIfcFile): TJsonObject;
+
+  function SerializeJson(const Ifc: TIfcPersistent): TJsonObject; forward;
+
+  {$ifdef FPC}
+    {$push}
+    // Disable object check for our TIfcPersistentList cast hack
+    {$objectchecks off}
+  {$endif}
+
+  { For all elements on JsonChildArray create and read Pascal class,
+    and add it to property PropInfo of Ifc,
+    which should be a list descendant. }
+  function SerializeJsonList(const ListRaw: TObject): TJsonArray;
+  var
+    I: Integer;
+    List: TIfcPersistentList;
+  begin
+    List := TIfcPersistentList(ListRaw);
+    Result := TJsonArray.Create;
+    for I := 0 to List.Count - 1 do
+      Result.Add(SerializeJson(List[I]));
+  end;
+
+  {$ifdef FPC}
+    {$pop}
+  {$endif}
+
+  function SerializeJson(const Ifc: TIfcPersistent): TJsonObject;
+  var
+    PropInfos: TPropInfoList;
+    PropInfo: PPropInfo;
+    PropName, DebugPropName, IfcClassName, JsonKey: String;
+    I: Integer;
+    IfcObjProperty: TObject;
+  begin
+    Result := TJsonObject.Create;
+
+    // save "type" in IFC
+    IfcClassName := PrefixRemove('T', Ifc.ClassName, false);
+    if Ifc is TIfcFile then
+      Result.Add('type', 'IFC.JSON')
+    else
+      Result.Add('type', IfcClassName);
+
+    PropInfos := TPropInfoList.Create(Ifc, tkProperties);
+    try
+      for I := 0 to PropInfos.Count - 1 do
+      begin
+        PropInfo := PropInfos.Items[I];
+        PropName := PropInfo^.Name;
+
+        // calculate key in JSON object to use for this property
+        JsonKey := PropName;
+        Assert(JsonKey <> '', 'Property name is empty');
+        Assert(JsonKey <> 'type', 'Property name "type" is reserved for IFC');
+        JsonKey[1] := LoCase(JsonKey[1]); // IFC wants camelCase not PascalCase
+
+        DebugPropName := IfcClassName + '.' + PropName;
+        case PropertyType(PropInfo) of
+          ptString:
+            Result.Add(JsonKey, PropertyGetString(Ifc, PropInfo));
+          ptInteger:
+            Result.Add(JsonKey, PropertyGetInteger(Ifc, PropInfo));
+          ptBoolean:
+            Result.Add(JsonKey, PropertyGetBoolean(Ifc, PropInfo));
+          ptFloat:
+            Result.Add(JsonKey, PropertyGetFloat(Ifc, PropInfo));
+          ptInstance:
+            begin
+              IfcObjProperty := PropertyGetInstance(Ifc, PropInfo);
+              if IfcObjProperty <> nil then
+              begin
+                // TODO: avoid infinite recursion because of cycles, use ref=xxx
+                if IfcObjProperty is TIfcPersistent then
+                  Result.Add(JsonKey, SerializeJson(TIfcPersistent(IfcObjProperty)))
+                else
+                if ClassNameOfList(IfcObjProperty.ClassName) then
+                  Result.Add(JsonKey, SerializeJsonList(IfcObjProperty))
+                else
+                  WritelnWarning('IFC', 'IFC field "%s" has unsupported class "%s", ignoring', [
+                    DebugPropName,
+                    IfcObjProperty.ClassName
+                  ]);
+              end;
+            end;
+          else
+            begin
+              WritelnWarning('IFC', 'IFC field "%s" found in Pascal class with unhandled type, ignoring', [
+                DebugPropName
+              ]);
+            end;
+        end;
+      end;
+    finally FreeAndNil(PropInfos) end;
+  end;
+
+begin
+  Result := SerializeJson(IfcFile);
 end;
 
 {$endif read_implementation}

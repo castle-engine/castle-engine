@@ -50,8 +50,9 @@ uses Contnrs, Generics.Collections, SysUtils, Classes,
 
 implementation
 
-uses TypInfo,
-  X3DLoad, CastleInternalRttiUtils, CastleStringUtils;
+uses TypInfo, RttiUtils,
+  X3DLoad, CastleInternalRttiUtils, CastleStringUtils, CastleClassUtils,
+  CastleDownload;
 
 {$define read_implementation}
 {$I castleinternalloadsaveifc_ifc_types.inc}
@@ -64,6 +65,26 @@ uses TypInfo,
 
 { Main routine that converts IFC -> X3D nodes, doing most of the work. }
 function LoadIfc(const Stream: TStream; const BaseUrl: String): TX3DRootNode;
+
+  { Only for debugging purposes: save back the IFC data to JSON.
+    This is an easy test whether IfcJsonLoad understood everything correctly,
+    and whether IfcJsonSave saves everything correctly. }
+  procedure DebugSaveBack(const IfcFile: TIfcFile);
+  var
+    JsonObj: TJsonObject;
+    JsonString: String;
+    Stream: TStream;
+  begin
+    Stream := UrlSaveStream(ExtractUriPath(BaseUrl) + 'debug.ifcjson');
+    try
+      JsonObj := IfcJsonSave(IfcFile);
+      try
+        JsonString := JsonObj.FormatJSON;
+        WriteStr(Stream, JsonString);
+      finally FreeAndNil(JsonObj) end;
+    finally FreeAndNil(Stream) end;
+  end;
+
 var
   JsonParser: TJsonParser;
   Json: TJsonData;
@@ -76,6 +97,7 @@ begin
       IfcFile := IfcJsonLoad(Json);
       try
         Result := IfcToX3D(IfcFile, BaseUrl);
+        DebugSaveBack(IfcFile);
       finally FreeAndNil(IfcFile) end;
     finally FreeAndNil(Json) end;
   finally FreeAndNil(JsonParser) end;
