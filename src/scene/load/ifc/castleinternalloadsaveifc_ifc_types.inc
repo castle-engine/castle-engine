@@ -55,7 +55,7 @@ type
     The file starts with some metadata (in STEP header, on JSON top-level object)
     and then follows the "data" which is TIfcProject instance. }
   TIfcFile = class(TIfcPersistent)
-  private
+  strict private
     FEncodingType: String;
     FVersion: String;
     FSchemaIdentifier: String;
@@ -78,7 +78,7 @@ type
     property PreprocessorVersion: String read FPreprocessorVersion write FPreprocessorVersion;
     // TODO: If ever necessary, convert this to TDateTime
     property TimeStamp: String read FTimeStamp write FTimeStamp;
-    property Data: TIfcPersistentList read FData write FData;
+    property Data: TIfcPersistentList read FData;
   end;
 
   { Invalid IFC file exception.

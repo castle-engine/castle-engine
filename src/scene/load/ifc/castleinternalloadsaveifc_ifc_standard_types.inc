@@ -14,7 +14,49 @@
   ----------------------------------------------------------------------------
 }
 
-{ Types and classes that correspond to the IFC standard. }
+{ Types and classes that correspond to the IFC standard.
+
+  Some conventions:
+
+  - All IFC classes descend from TIfcPersistent.
+    It right now descends from TComponent,
+    all IFC classes will be owned by TIfcFile instance when read by IfcJsonLoad.
+
+  - For all IFC fields:
+
+    - Place all fields with F in "strict private" section.
+
+    - Publish them as properties in "published" section.
+
+    - Properties of any type supported by TPropertyType
+      (from CastleInternalRttiUtils) are supported.
+      This means
+      - integers,
+      - booleans,
+      - floats,
+      - strings,
+      - properties that refer to an optional instance of another IFC class.
+      - properties that are a list of instances of another IFC class.
+
+    - All properties *except* lists should be read-write.
+      Lists should be read-only.
+
+    - The list properties (that are JSON arrays) should be classes
+      equal to, or descending from, TObjectList<Xxx> descendants.
+      If it descends from TObjectList<Xxx>, keep the name with suffix "List".
+
+      Their published property should be read-only.
+      (This avoids mistakes like reinitializing the list in descendant,
+      since the property will be read-only even in descendant.)
+
+      The list instance has to be created in constructor,
+      with "false" parameter so it *does not* own the objects.
+      We use TComponent ownership for this, as IFC is a graph
+      (even with cycles), and "freeing everyting along with one single owner"
+      is the simplest reliable solution to manage memory.
+
+      The list instance is FreeAndNil'ed in destructor.
+}
 
 {$ifdef read_interface}
 
@@ -69,7 +111,7 @@
 
     Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcPresentationStyle.htm }
   TIfcPresentationStyle = class(TIfcPersistent)
-  private
+  strict private
     FName: TIfcLabel;
   published
     property Name: TIfcLabel read FName write FName;
@@ -91,7 +133,7 @@
 
     Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcPresentationLayerAssignment.htm }
   TIfcPresentationLayerAssignment = class(TIfcPersistent)
-  private
+  strict private
     FName: TIfcLabel;
     FDescription: TIfcText;
     FAssignedItems: TIfcLayeredItemList;
@@ -108,7 +150,7 @@
 
     { The set of layered items, which are assigned to this layer.
       Always at least 1 element. }
-    property AssignedItems: TIfcLayeredItemList read FAssignedItems write FAssignedItems;
+    property AssignedItems: TIfcLayeredItemList read FAssignedItems;
 
     { An (internal) identifier assigned to the layer. }
     property Identifier: TIfcIdentifier read FIdentifier write FIdentifier;
@@ -119,7 +161,7 @@
 
     Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcRepresentationItem.htm }
   TIfcRepresentationItem = class(TIfcPersistent)
-  private
+  strict private
     FLayerAssignment: TIfcPresentationLayerAssignment;
     FStyledByItem: TIfcStyledItem;
   published
@@ -140,7 +182,7 @@
 
     Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcStyledItem.htm }
   TIfcStyledItem = class(TIfcRepresentationItem)
-  private
+  strict private
     FItem: TIfcRepresentationItem;
     FStyles: TIfcPresentationStyleList;
     FName: TIfcLabel;
@@ -155,7 +197,7 @@
     { Representation styles which are assigned,
       either to an geometric representation item, or to a material definition.
       Always has at least 1 element. }
-    property Styles: TIfcPresentationStyleList read FStyles write FStyles;
+    property Styles: TIfcPresentationStyleList read FStyles;
 
     { The word, or group of words, by which the styled item is referred to. }
     property Name: TIfcLabel read FName write FName;
@@ -165,7 +207,7 @@
 
     Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcDirection.htm }
   TIfcDirection = class(TIfcPersistent)
-  private
+  strict private
     FDirectionRatios: TVector3;
     FDim: Single;
   public
@@ -216,7 +258,7 @@
 
     Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcExtrudedAreaSolid.htm }
   TIfcExtrudedAreaSolid = class(TIfcSweptAreaSolid)
-  private
+  strict private
     FExtrudedDirection: TIfcDirection;
     FDepth: TIfcPositiveLengthMeasure;
   published
@@ -232,7 +274,7 @@
 
     Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcRoot.htm }
   TIfcRoot = class abstract(TIfcPersistent)
-  private
+  strict private
     FGlobalId: String; // actually TGUID;
     FName: TIfcLabel;
     FDescription: TIfcText;
@@ -254,14 +296,14 @@
 
     Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcObjectDefinition.htm }
   TIfcObjectDefinition = class abstract(TIfcRoot)
-  private
+  strict private
     FIsDecomposedBy: TIfcRelAggregatesList;
     // TODO: rest
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
   published
-    property IsDecomposedBy: TIfcRelAggregatesList read FIsDecomposedBy write FIsDecomposedBy;
+    property IsDecomposedBy: TIfcRelAggregatesList read FIsDecomposedBy;
   end;
   TIfcObjectDefinitionList = {$ifdef FPC}specialize{$endif} TObjectList<TIfcObjectDefinition>;
 
@@ -279,7 +321,7 @@
 
     Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcPoint.htm }
   TIfcPoint = class abstract(TIfcGeometricRepresentationItem)
-  private
+  strict private
     FDim: TIfcDimensionCount;
   published
     { The dimensions are derived from the descendant classes.
@@ -293,7 +335,7 @@
 
     Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcCartesianPoint.htm }
   TIfcCartesianPoint = class(TIfcPoint)
-  private
+  strict private
     FCoordinates: TVector3;
   public
     { Actual 3D point value.
@@ -308,7 +350,7 @@
 
     Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcPlacement.htm }
   TIfcPlacement = class abstract(TIfcRepresentationItem)
-  private
+  strict private
     FLocation: TIfcPoint;
   published
     property Location: TIfcPoint read FLocation write FLocation;
@@ -321,7 +363,7 @@
 
     Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcAxis2Placement2D.htm }
   TIfcAxis2Placement2D = class(TIfcPlacement)
-  private
+  strict private
     FRefDirection: TIfcDirection;
   published
     { Direction of the local X axis. May be @nil. }
@@ -342,7 +384,7 @@
 
     Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcAxis2Placement3D.htm }
   TIfcAxis2Placement3D = class(TIfcPlacement)
-  private
+  strict private
     FAxis: TIfcDirection;
     FRefDirection: TIfcDirection;
   published
@@ -383,7 +425,7 @@
     https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcLocalPlacement.htm
   }
   TIfcLocalPlacement = class(TIfcObjectPlacement)
-  private
+  strict private
     FRelativePlacement: TIfcAxis2Placement;
   published
     property RelativePlacement: TIfcAxis2Placement read FRelativePlacement write FRelativePlacement;
@@ -393,7 +435,7 @@
 
     Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcProduct.htm }
   TIfcProduct = class abstract(TIfcObject)
-  private
+  strict private
     FObjectPlacement: TIfcObjectPlacement;
   published
     { Object coordinate system and placement of the product in space. }
@@ -407,7 +449,7 @@
 
     Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcSpatialElement.htm }
   TIfcSpatialElement = class abstract(TIfcProduct)
-  private
+  strict private
     FLongName: TIfcLabel;
     // TODO: rest of fields
   published
@@ -425,7 +467,7 @@
 
     Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcRelContainedInSpatialStructure.htm }
   TIfcRelContainedInSpatialStructure = class(TIfcRelConnects)
-  private
+  strict private
     FRelatedElements: TIfcProductList;
     FRelatingStructure: TIfcSpatialElement;
   public
@@ -434,7 +476,7 @@
   published
     { Set of products, which are contained within this level of
       the spatial structure hierarchy. }
-    property RelatedElements: TIfcProductList read FRelatedElements write FRelatedElements;
+    property RelatedElements: TIfcProductList read FRelatedElements;
 
     { Spatial structure element, within which the element is contained. }
     property RelatingStructure: TIfcSpatialElement read FRelatingStructure write FRelatingStructure;
@@ -443,14 +485,14 @@
 
   { Spatial structure can be used to provide a spatial organization of a project. }
   TIfcSpatialStructureElement = class abstract(TIfcSpatialElement)
-  private
+  strict private
     // TODO
     FContainsElements: TIfcRelContainedInSpatialStructureList;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
   published
-    property ContainsElements: TIfcRelContainedInSpatialStructureList read FContainsElements write FContainsElements;
+    property ContainsElements: TIfcRelContainedInSpatialStructureList read FContainsElements;
   end;
 
   { Defined area of land on which the project construction is to be completed.
@@ -474,7 +516,7 @@
 
     Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcBuildingStorey.htm }
   TIfcBuildingStorey = class(TIfcSpatialStructureElement)
-  private
+  strict private
     FElevation: TIfcLengthMeasure;
   published
     { Elevation of the base of this storey, relative to the 0,00
@@ -487,14 +529,14 @@
 
   { Generalization of all components that make up a facility. }
   TIfcElement = class abstract(TIfcProduct)
-  private
+  strict private
     FHasOpenings: TIfcRelVoidsElementList;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
   published
     { List of openings associated with this element. }
-    property HasOpenings: TIfcRelVoidsElementList read FHasOpenings write FHasOpenings;
+    property HasOpenings: TIfcRelVoidsElementList read FHasOpenings;
   end;
 
   { All existence dependent elements which modify the shape and appearance
@@ -507,7 +549,7 @@
   { Existence dependent element which modifies the shape and appearance
     of the associated master element. }
   TIfcFeatureElementSubtraction = class abstract(TIfcFeatureElement)
-  private
+  strict private
     FVoidsElements: TIfcRelVoidsElementList;
   public
     constructor Create(AOwner: TComponent); override;
@@ -515,7 +557,7 @@
   published
     { Reference to the Voids Relationship that uses this Opening Element
       to create a void within an Element. }
-    property VoidsElements: TIfcRelVoidsElementList read FVoidsElements write FVoidsElements;
+    property VoidsElements: TIfcRelVoidsElementList read FVoidsElements;
   end;
 
   { Relationship between an opening element and an element that fills
@@ -523,7 +565,7 @@
 
     Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcRelFillsElement.htm }
   TIfcRelFillsElement = class(TIfcRelConnects)
-  private
+  strict private
     FRelatingOpeningElement: TIfcOpeningElement;
     FRelatedBuildingElement: TIfcElement;
   published
@@ -541,7 +583,7 @@
 
     Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcOpeningElement.htm }
   TIfcOpeningElement = class(TIfcFeatureElementSubtraction)
-  private
+  strict private
     FPredefinedType: TIfcOpeningElementTypeEnum;
     FHasFillings: TIfcRelFillsElementList;
   public
@@ -551,7 +593,7 @@
     { By default NotDefined if not specified, we deliberately made NotDefined
       the enum value with memory representation 0 in Pascal. }
     property PredefinedType: TIfcOpeningElementTypeEnum read FPredefinedType write FPredefinedType;
-    property HasFillings: TIfcRelFillsElementList read FHasFillings write FHasFillings;
+    property HasFillings: TIfcRelFillsElementList read FHasFillings;
   end;
 
   { Part of the construction of a built facility, built elements are all
@@ -587,7 +629,7 @@
 
     Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcWindow.htm }
   TIfcWindow = class(TIfcBuiltElement)
-  private
+  strict private
     FOverallHeight: TIfcPositiveLengthMeasure;
     FOverallWidth: TIfcPositiveLengthMeasure;
     FPredefinedType: TIfcWindowTypeEnum;
@@ -624,7 +666,7 @@
 
     Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcRelVoidsElement.htm }
   TIfcRelVoidsElement = class(TIfcPersistent)
-  private
+  strict private
     FRelatingBuildingElement: TIfcElement;
     FRelatedOpeningElement: TIfcFeatureElementSubtraction;
   published
@@ -638,7 +680,7 @@
 
     Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcRelAggregates.htm }
   TIfcRelAggregates = class(TIfcPersistent)
-  private
+  strict private
     FRelatingObject: TIfcObjectDefinition;
     FRelatedObjects: TIfcObjectDefinitionList;
   public
@@ -646,7 +688,7 @@
     destructor Destroy; override;
   published
     property RelatingObject: TIfcObjectDefinition read FRelatingObject write FRelatingObject;
-    property RelatedObjects: TIfcObjectDefinitionList read FRelatedObjects write FRelatedObjects;
+    property RelatedObjects: TIfcObjectDefinitionList read FRelatedObjects;
   end;
   TIfcRelAggregatesList = class({$ifdef FPC}specialize{$endif} TObjectList<TIfcRelAggregates>)
   end;
@@ -669,7 +711,7 @@
 
   { How to display the product. }
   TIfcRepresentation = class abstract(TIfcPersistent)
-  private
+  strict private
     FItems: TIfcRepresentationItemList;
     // TODO rest
   public
@@ -677,7 +719,7 @@
     destructor Destroy; override;
   published
     { Set of geometric representation items that are defined for this representation. }
-    property Items: TIfcRepresentationItemList read FItems write FItems;
+    property Items: TIfcRepresentationItemList read FItems;
   end;
 
   { List of TIfcRepresentation. }
@@ -701,7 +743,7 @@
 
     Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcProductRepresentation.htm }
   TIfcProductRepresentation = class abstract(TIfcPersistent)
-  private
+  strict private
     FName: TIfcLabel;
     FDescription: TIfcText;
     FRepresentations: TIfcRepresentationList;
@@ -712,7 +754,7 @@
     property Name: TIfcLabel read FName write FName;
     property Description: TIfcText read FDescription write FDescription;
     { Contained list of representations (including shape representations). }
-    property Representations: TIfcRepresentationList read FRepresentations write FRepresentations;
+    property Representations: TIfcRepresentationList read FRepresentations;
   end;
 
 var
@@ -734,7 +776,7 @@ procedure FinalizeIfcClasses;
 constructor TIfcStyledItem.Create(AOwner: TComponent);
 begin
   inherited;
-  Styles := TIfcPresentationStyleList.Create(false);
+  FStyles := TIfcPresentationStyleList.Create(false);
 end;
 
 destructor TIfcStyledItem.Destroy;
@@ -748,7 +790,7 @@ end;
 constructor TIfcPresentationLayerAssignment.Create(AOwner: TComponent);
 begin
   inherited;
-  AssignedItems := TIfcLayeredItemList.Create(false);
+  FAssignedItems := TIfcLayeredItemList.Create(false);
 end;
 
 destructor TIfcPresentationLayerAssignment.Destroy;
@@ -762,7 +804,7 @@ end;
 constructor TIfcObjectDefinition.Create(AOwner: TComponent);
 begin
   inherited;
-  IsDecomposedBy := TIfcRelAggregatesList.Create(false);
+  FIsDecomposedBy := TIfcRelAggregatesList.Create(false);
 end;
 
 destructor TIfcObjectDefinition.Destroy;
@@ -776,7 +818,7 @@ end;
 constructor TIfcSpatialStructureElement.Create(AOwner: TComponent);
 begin
   inherited;
-  ContainsElements := TIfcRelContainedInSpatialStructureList.Create(false);
+  FContainsElements := TIfcRelContainedInSpatialStructureList.Create(false);
 end;
 
 destructor TIfcSpatialStructureElement.Destroy;
@@ -790,7 +832,7 @@ end;
 constructor TIfcElement.Create(AOwner: TComponent);
 begin
   inherited;
-  HasOpenings := TIfcRelVoidsElementList.Create(false);
+  FHasOpenings := TIfcRelVoidsElementList.Create(false);
 end;
 
 destructor TIfcElement.Destroy;
@@ -804,7 +846,7 @@ end;
 constructor TIfcRelAggregates.Create(AOwner: TComponent);
 begin
   inherited;
-  RelatedObjects := TIfcObjectDefinitionList.Create(false);
+  FRelatedObjects := TIfcObjectDefinitionList.Create(false);
 end;
 
 destructor TIfcRelAggregates.Destroy;
@@ -819,7 +861,7 @@ constructor TIfcOpeningElement.Create(AOwner: TComponent);
 
 begin
   inherited;
-  HasFillings := TIfcRelFillsElementList.Create(false);
+  FHasFillings := TIfcRelFillsElementList.Create(false);
 end;
 
 destructor TIfcOpeningElement.Destroy;
@@ -833,7 +875,7 @@ end;
 constructor TIfcProductRepresentation.Create(AOwner: TComponent);
 begin
   inherited;
-  Representations := TIfcRepresentationList.Create(false);
+  FRepresentations := TIfcRepresentationList.Create(false);
 end;
 
 destructor TIfcProductRepresentation.Destroy;
@@ -847,7 +889,7 @@ end;
 constructor TIfcRepresentation.Create(AOwner: TComponent);
 begin
   inherited;
-  Items := TIfcRepresentationItemList.Create(false);
+  FItems := TIfcRepresentationItemList.Create(false);
 end;
 
 destructor TIfcRepresentation.Destroy;
@@ -861,7 +903,7 @@ end;
 constructor TIfcFeatureElementSubtraction.Create(AOwner: TComponent);
 begin
   inherited;
-  VoidsElements := TIfcRelVoidsElementList.Create(false);
+  FVoidsElements := TIfcRelVoidsElementList.Create(false);
 end;
 
 destructor TIfcFeatureElementSubtraction.Destroy;
@@ -875,7 +917,7 @@ end;
 constructor TIfcRelContainedInSpatialStructure.Create(AOwner: TComponent);
 begin
   inherited;
-  RelatedElements := TIfcProductList.Create(false);
+  FRelatedElements := TIfcProductList.Create(false);
 end;
 
 destructor TIfcRelContainedInSpatialStructure.Destroy;
