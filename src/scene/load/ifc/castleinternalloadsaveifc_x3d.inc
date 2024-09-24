@@ -21,6 +21,9 @@
 { Convert IFC file to X3D. }
 function IfcToX3D(const Ifc: TIfcFile; const BaseUrl: String): TX3DRootNode;
 
+{ Convert IFC file to X3D. }
+function X3DToIfc(const RootNode: TX3DRootNode): TIfcFile;
+
 {$endif read_interface}
 
 {$ifdef read_implementation}
@@ -45,6 +48,12 @@ begin
 
     // TODO: rest
   except FreeAndNil(Result); raise end;
+end;
+
+function X3DToIfc(const RootNode: TX3DRootNode): TIfcFile;
+begin
+  Result := TIfcFile.Create;
+  // TODO
 end;
 
 {$endif read_implementation}

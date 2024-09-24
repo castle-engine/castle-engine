@@ -18,6 +18,12 @@
 
 {$ifdef read_interface}
 
+{ Load IFC from JSON. }
+function IfcJsonLoad(const Json: TJsonData): TIfcFile;
+
+{ Save IFC to JSON. }
+function IfcJsonSave(const IfcFile: TIfcFile): TJsonObject;
+
 {$endif read_interface}
 
 {$ifdef read_implementation}
