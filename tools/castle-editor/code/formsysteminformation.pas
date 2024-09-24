@@ -22,7 +22,8 @@ interface
 
 uses
   Classes, SysUtils, Forms, Controls, Graphics, Dialogs, ButtonPanel, ExtCtrls,
-  StdCtrls, CastleControl;
+  StdCtrls,
+  CastleControl, CastleUiControls;
 
 type
   TSystemInformationForm = class(TForm)
@@ -33,7 +34,7 @@ type
     Panel1: TPanel;
     Panel2: TPanel;
     SaveDialogText: TSaveDialog;
-    procedure CastleControl1Open(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
     procedure FormHide(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure HelpButtonClick(Sender: TObject);
@@ -41,8 +42,13 @@ type
   private
     type
       TInfoType = (itRendering, itAudio, itOther);
+      TContextNotification = class(TCastleUserInterface)
+        // pass the notification about context creation to form's GLContextOpen method
+        procedure GLContextOpen; override;
+      end;
     var
       Info: array [TInfoType] of String;
+    procedure GLContextOpen;
     procedure SoundEngineOpenClose(Sender: TObject);
   public
 
@@ -58,6 +64,14 @@ implementation
 uses CastleGLUtils, CastleSoundEngine, CastleUtils, CastleFilesUtils,
   CastleUriUtils,
   ProjectUtils;
+
+procedure TSystemInformationForm.TContextNotification.GLContextOpen;
+begin
+  inherited;
+  (Owner as TSystemInformationForm).GLContextOpen;
+end;
+
+{ TSystemInformationForm --------------------------------------------------- }
 
 procedure TSystemInformationForm.ListSectionsClick(Sender: TObject);
 var
@@ -123,13 +137,18 @@ begin
   MemoSysInfo.Lines.Text := Info[TInfoType(ListSections.ItemIndex)];
 end;
 
-procedure TSystemInformationForm.CastleControl1Open(Sender: TObject);
+procedure TSystemInformationForm.GLContextOpen;
 begin
   // use GLInformationString only once rendering context initialized
   Info[itRendering] := GLInformationString;
 
   if ListSections.ItemIndex = Ord(itRendering) then
     MemoSysInfo.Lines.Text := Info[itRendering];
+end;
+
+procedure TSystemInformationForm.FormCreate(Sender: TObject);
+begin
+  CastleControl1.Container.Controls.Add(TContextNotification.Create(Self));
 end;
 
 procedure TSystemInformationForm.FormHide(Sender: TObject);
