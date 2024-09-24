@@ -4571,10 +4571,6 @@ See https://castle-engine.io/license for details.
         <Filename Value="../src/base_rendering/glsl/generated-pascal/distance_field_font.fs.inc"/>
         <Type Value="Include"/>
       </Item1120>
-      <Item1125>
-        <Filename Value="../src/scene/load/ifc/castleinternalloadsaveifc.pas"/>
-        <UnitName Value="CastleInternalLoadSaveIfc"/>
-      </Item1125>
       <Item1121>
         <Filename Value="../src/scene/load/ifc/castleinternalloadsaveifc_ifc_types.inc"/>
         <Type Value="Include"/>
@@ -4591,6 +4587,10 @@ See https://castle-engine.io/license for details.
         <Filename Value="../src/scene/load/ifc/castleinternalloadsaveifc_x3d.inc"/>
         <Type Value="Include"/>
       </Item1124>
+      <Item1125>
+        <Filename Value="../src/scene/load/ifc/castleinternalloadsaveifc.pas"/>
+        <UnitName Value="CastleInternalLoadSaveIfc"/>
+      </Item1125>
       <Item1126>
         <Filename Value="../src/scene/x3d/x3dnodes_processurls.inc"/>
         <Type Value="Include"/>

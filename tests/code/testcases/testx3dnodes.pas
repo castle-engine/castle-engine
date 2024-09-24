@@ -2652,7 +2652,7 @@ begin
     RootNode.AddChildren(Shape);
 
     // run test for suNone
-    TempDir := GetTempDir;
+    TempDir := GetTempDirectory;
     ProcessUrls(RootNode, TempDir + 'testproc.x3d', suNone);
     AssertTrue(TextureNode.FdUrl.Count = 1);
     AssertTrue(TestUrls[0] = TextureNode.FdUrl.Items[0]);  // no change is OK
