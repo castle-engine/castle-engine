@@ -209,18 +209,21 @@
   TIfcDirection = class(TIfcPersistent)
   strict private
     FDirectionRatios: TVector3;
-    FDim: Single;
+    { TODO: Dim is not explicitly specified in IFC, but it is derived from
+      the contents of IFC. Needs special logic, if ever needed in CGE. }
+    //FDim: TIfcDimensionCount;
   public
     { Defined as 2 or 3 values of TIfcReal type.
       In practice, this is just a 3D vector for our engine.
       Note: This is serialized / deserialized to IFC, but it cannot be published
       in Pascal. }
     property DirectionRatios: TVector3 read FDirectionRatios write FDirectionRatios;
-  published
+
     { The number of dimensions specified in the IFC file, 2 or 3.
       Regardless of it, DirectionRatios always has the Z value defined:
       we set Z to 0 when it is not defined in IFC. }
-    property Dim: Single read FDim write FDim;
+    //TODO: property Dim: TIfcDimensionCount read FDim write FDim;
+  published
   end;
 
   { Common supertype of all geometric items used within a representation.
@@ -321,14 +324,18 @@
 
     Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcPoint.htm }
   TIfcPoint = class abstract(TIfcGeometricRepresentationItem)
+  (*TODO: Dim is not explicitly specified in IFC, but it is derived from
+    the contents of IFC. Needs special logic, if ever needed in CGE.
+
   strict private
     FDim: TIfcDimensionCount;
-  published
+  public
     { The dimensions are derived from the descendant classes.
       Determined by the number of coordinate components in case of
       TIfcCartesianPoint or by the dimensionality
       of the basis curve or surface in other cases. }
     property Dim: TIfcDimensionCount read FDim write FDim;
+  *)
   end;
 
   { A regular 3D point (may be specified as 2D too, in which case we set Z to 0).
