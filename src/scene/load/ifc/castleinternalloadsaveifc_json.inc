@@ -18,7 +18,17 @@
 
 {$ifdef read_interface}
 
-{ Load IFC from JSON. }
+{ Load IFC from JSON.
+
+  All the IFC class instances in the resulting graph
+  are owned by the returned TIfcFile instance, so you can easily
+  free them by just freing the resulting TIfcFile.
+
+  If you create your own instances of IFC classes, you can follow your
+  own idea of a memory management. But if you want to keep it simple,
+  and you want to free everything by just freeing the resulting
+  TIfcFile instance, then just create all IFC instances with the owner
+  being the returned TIfcFile instance. }
 function IfcJsonLoad(const Json: TJsonData): TIfcFile;
 
 { Save IFC to JSON. }
@@ -43,6 +53,10 @@ begin
 end;
 
 function IfcJsonLoad(const Json: TJsonData): TIfcFile;
+var
+  { All TIfcPersistent instances are created with this owner.
+    This is just the returned TIfcFile instance, which is a TComponent. }
+  IfcOwner: TComponent;
 
   procedure DeserializeJson(const Json: TJsonObject; const Ifc: TIfcPersistent);
   var
@@ -67,7 +81,7 @@ function IfcJsonLoad(const Json: TJsonData): TIfcFile;
         Exit(nil);
       end;
 
-      Result := FindIfcClass.Create;
+      Result := FindIfcClass.Create(IfcOwner);
       DeserializeJson(JsonChildObj, Result);
     end;
 
@@ -291,7 +305,6 @@ function IfcJsonLoad(const Json: TJsonData): TIfcFile;
       end;
 
       // TODO special code to hadnle TVector3 (TIfcDirection.DirectionRatios, TIfcCartesianPoint.Coordinate)
-      // TODO: figure out ownership; should we just make them all TComponent, and owned by common owner?
       // TODO: resolve refs
     end;
   end;
@@ -303,7 +316,9 @@ var
 begin
   InitializeIfcClasses; // make sure IfcClasses ready
 
-  Result := TIfcFile.Create;
+  Result := TIfcFile.Create(nil);
+  IfcOwner := Result;
+
   if not (Json is TJsonObject) then
     raise EInvalidIfc.Create('Top-level JSON object expected');
   JsonObj := Json as TJsonObject;
@@ -316,7 +331,7 @@ begin
   TopLevelType := JsonObj.Get('type', '');
   if TopLevelType = 'IfcProject' then
   begin
-    Project := TIfcProject.Create;
+    Project := TIfcProject.Create(IfcOwner);
     Result.Data.Add(Project);
     DeserializeJson(JsonObj, Project);
   end else
@@ -386,6 +401,9 @@ function IfcJsonSave(const IfcFile: TIfcFile): TJsonObject;
         Assert(JsonKey <> '', 'Property name is empty');
         Assert(JsonKey <> 'type', 'Property name "type" is reserved for IFC');
         JsonKey[1] := LoCase(JsonKey[1]); // IFC wants camelCase not PascalCase
+
+        // TODO: do not save when property value is default.
+        // Assumes: are strings always '' by default in IFC?
 
         DebugPropName := IfcClassName + '.' + PropName;
         case PropertyType(PropInfo) of

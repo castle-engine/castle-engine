@@ -22,14 +22,20 @@ type
   TIfcProject = class;
 
   {$M+}
-  { Abstract class that can serialized to / deserialized from an IFC file.
-    This is not part of the official IFC standard, it added for CGE purposes. }
-  TIfcPersistent = class abstract
+  { Abstract class that can be serialized to / deserialized from an IFC file.
+    This is not part of the official IFC standard, it is added for CGE purposes.
+
+    It is a TComponent, because all IFC classes are owned by a common owner.
+    This way we avoid complicated memory management ("who is responsible
+    for freeing who", or reference counting as we did for X3D nodes),
+    and we can easily free all IFC classes by freeing the owner. }
+  TIfcPersistent = class abstract(TComponent)
   public
-    constructor Create; virtual;
+    //constructor Create(AOwner: TComponent); override; // not needed
   end;
   {$M-}
 
+  { List of TIfcPersistent instances. }
   TIfcPersistentList = {$ifdef FPC}specialize{$endif} TObjectList<TIfcPersistent>;
 
   TIfcPersistentClass = class of TIfcPersistent;
@@ -58,7 +64,7 @@ type
     FTimeStamp: String;
     FData: TIfcPersistentList;
   public
-    constructor Create; override;
+    constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     { Return one and only TIfcProject instance from Data.
       @raises(EInvalidIfc If there is no TIfcProject instance in Data
@@ -86,12 +92,13 @@ type
 
 { TIfcPersistent ------------------------------------------------------------- }
 
-constructor TIfcPersistent.Create;
-begin
-  inherited;
-  { Implemented only to not be abstract, to allow all descendants,
-    direct or not, to just call "inherited". }
-end;
+// Not needed anymore.
+// constructor TIfcPersistent.Create(AOwner: TComponent);
+// begin
+//   inherited;
+//   { Implemented only to not be abstract, to allow all descendants,
+//     direct or not, to just call "inherited". }
+// end;
 
 { TIfcPersistentList --------------------------------------------------------- }
 
@@ -112,10 +119,10 @@ end;
 
 { TIfcFile ------------------------------------------------------------------- }
 
-constructor TIfcFile.Create;
+constructor TIfcFile.Create(AOwner: TComponent);
 begin
   inherited;
-  FData := TIfcPersistentList.Create(true);
+  FData := TIfcPersistentList.Create(false);
 end;
 
 destructor TIfcFile.Destroy;

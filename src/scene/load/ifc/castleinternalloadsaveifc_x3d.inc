@@ -52,7 +52,7 @@ end;
 
 function X3DToIfc(const RootNode: TX3DRootNode): TIfcFile;
 begin
-  Result := TIfcFile.Create;
+  Result := TIfcFile.Create(nil);
   // TODO
 end;
 

@@ -97,7 +97,7 @@
     FAssignedItems: TIfcLayeredItemList;
     FIdentifier: TIfcIdentifier;
   public
-    constructor Create; override;
+    constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
   published
     { Name of the layer. }
@@ -145,7 +145,7 @@
     FStyles: TIfcPresentationStyleList;
     FName: TIfcLabel;
   public
-    constructor Create; override;
+    constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
   published
     { A geometric representation item to which the style is assigned.
@@ -258,7 +258,7 @@
     FIsDecomposedBy: TIfcRelAggregatesList;
     // TODO: rest
   public
-    constructor Create; override;
+    constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
   published
     property IsDecomposedBy: TIfcRelAggregatesList read FIsDecomposedBy write FIsDecomposedBy;
@@ -429,7 +429,7 @@
     FRelatedElements: TIfcProductList;
     FRelatingStructure: TIfcSpatialElement;
   public
-    constructor Create; override;
+    constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
   published
     { Set of products, which are contained within this level of
@@ -447,7 +447,7 @@
     // TODO
     FContainsElements: TIfcRelContainedInSpatialStructureList;
   public
-    constructor Create; override;
+    constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
   published
     property ContainsElements: TIfcRelContainedInSpatialStructureList read FContainsElements write FContainsElements;
@@ -490,7 +490,7 @@
   private
     FHasOpenings: TIfcRelVoidsElementList;
   public
-    constructor Create; override;
+    constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
   published
     { List of openings associated with this element. }
@@ -510,7 +510,7 @@
   private
     FVoidsElements: TIfcRelVoidsElementList;
   public
-    constructor Create; override;
+    constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
   published
     { Reference to the Voids Relationship that uses this Opening Element
@@ -545,7 +545,7 @@
     FPredefinedType: TIfcOpeningElementTypeEnum;
     FHasFillings: TIfcRelFillsElementList;
   public
-    constructor Create; override;
+    constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
   published
     { By default NotDefined if not specified, we deliberately made NotDefined
@@ -642,7 +642,7 @@
     FRelatingObject: TIfcObjectDefinition;
     FRelatedObjects: TIfcObjectDefinitionList;
   public
-    constructor Create; override;
+    constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
   published
     property RelatingObject: TIfcObjectDefinition read FRelatingObject write FRelatingObject;
@@ -658,8 +658,6 @@
   TIfcContext = class abstract(TIfcObjectDefinition)
   public
     // TODO: rest
-    constructor Create; override;
-    destructor Destroy; override;
   end;
 
   { Context for information to be exchanged or shared,
@@ -675,7 +673,7 @@
     FItems: TIfcRepresentationItemList;
     // TODO rest
   public
-    constructor Create; override;
+    constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
   published
     { Set of geometric representation items that are defined for this representation. }
@@ -708,7 +706,7 @@
     FDescription: TIfcText;
     FRepresentations: TIfcRepresentationList;
   public
-    constructor Create; override;
+    constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
   published
     property Name: TIfcLabel read FName write FName;
@@ -733,10 +731,10 @@ procedure FinalizeIfcClasses;
 
 { TIfcStyledItem ------------------------------------------------------------- }
 
-constructor TIfcStyledItem.Create;
+constructor TIfcStyledItem.Create(AOwner: TComponent);
 begin
   inherited;
-  Styles := TIfcPresentationStyleList.Create(true);
+  Styles := TIfcPresentationStyleList.Create(false);
 end;
 
 destructor TIfcStyledItem.Destroy;
@@ -747,10 +745,10 @@ end;
 
 { TIfcPresentationLayerAssignment ------------------------------------------- }
 
-constructor TIfcPresentationLayerAssignment.Create;
+constructor TIfcPresentationLayerAssignment.Create(AOwner: TComponent);
 begin
   inherited;
-  AssignedItems := TIfcLayeredItemList.Create(true);
+  AssignedItems := TIfcLayeredItemList.Create(false);
 end;
 
 destructor TIfcPresentationLayerAssignment.Destroy;
@@ -761,10 +759,10 @@ end;
 
 { TIfcObjectDefinition ------------------------------------------------------- }
 
-constructor TIfcObjectDefinition.Create;
+constructor TIfcObjectDefinition.Create(AOwner: TComponent);
 begin
   inherited;
-  IsDecomposedBy := TIfcRelAggregatesList.Create(true);
+  IsDecomposedBy := TIfcRelAggregatesList.Create(false);
 end;
 
 destructor TIfcObjectDefinition.Destroy;
@@ -775,10 +773,10 @@ end;
 
 { TIfcSpatialStructureElement ------------------------------------------------ }
 
-constructor TIfcSpatialStructureElement.Create;
+constructor TIfcSpatialStructureElement.Create(AOwner: TComponent);
 begin
   inherited;
-  ContainsElements := TIfcRelContainedInSpatialStructureList.Create(true);
+  ContainsElements := TIfcRelContainedInSpatialStructureList.Create(false);
 end;
 
 destructor TIfcSpatialStructureElement.Destroy;
@@ -789,10 +787,10 @@ end;
 
 { TIfcElement --------------------------------------------------------------- }
 
-constructor TIfcElement.Create;
+constructor TIfcElement.Create(AOwner: TComponent);
 begin
   inherited;
-  HasOpenings := TIfcRelVoidsElementList.Create(true);
+  HasOpenings := TIfcRelVoidsElementList.Create(false);
 end;
 
 destructor TIfcElement.Destroy;
@@ -803,10 +801,10 @@ end;
 
 { TIfcRelAggregates --------------------------------------------------------- }
 
-constructor TIfcRelAggregates.Create;
+constructor TIfcRelAggregates.Create(AOwner: TComponent);
 begin
   inherited;
-  RelatedObjects := TIfcObjectDefinitionList.Create(true);
+  RelatedObjects := TIfcObjectDefinitionList.Create(false);
 end;
 
 destructor TIfcRelAggregates.Destroy;
@@ -815,27 +813,13 @@ begin
   inherited;
 end;
 
-{ TIfcContext --------------------------------------------------------------- }
-
-constructor TIfcContext.Create;
-begin
-  inherited;
-  IsDecomposedBy := TIfcRelAggregatesList.Create(true);
-end;
-
-destructor TIfcContext.Destroy;
-begin
-  FreeAndNil(FIsDecomposedBy);
-  inherited;
-end;
-
 { TIfcOpeningElement -------------------------------------------------------- }
 
-constructor TIfcOpeningElement.Create;
+constructor TIfcOpeningElement.Create(AOwner: TComponent);
 
 begin
   inherited;
-  HasFillings := TIfcRelFillsElementList.Create(true);
+  HasFillings := TIfcRelFillsElementList.Create(false);
 end;
 
 destructor TIfcOpeningElement.Destroy;
@@ -846,10 +830,10 @@ end;
 
 { TIfcProductRepresentation ------------------------------------------------- }
 
-constructor TIfcProductRepresentation.Create;
+constructor TIfcProductRepresentation.Create(AOwner: TComponent);
 begin
   inherited;
-  Representations := TIfcRepresentationList.Create(true);
+  Representations := TIfcRepresentationList.Create(false);
 end;
 
 destructor TIfcProductRepresentation.Destroy;
@@ -860,10 +844,10 @@ end;
 
 { TIfcRepresentation -------------------------------------------------------- }
 
-constructor TIfcRepresentation.Create;
+constructor TIfcRepresentation.Create(AOwner: TComponent);
 begin
   inherited;
-  Items := TIfcRepresentationItemList.Create(true);
+  Items := TIfcRepresentationItemList.Create(false);
 end;
 
 destructor TIfcRepresentation.Destroy;
@@ -874,10 +858,10 @@ end;
 
 { TIfcFeatureElementSubtraction --------------------------------------------- }
 
-constructor TIfcFeatureElementSubtraction.Create;
+constructor TIfcFeatureElementSubtraction.Create(AOwner: TComponent);
 begin
   inherited;
-  VoidsElements := TIfcRelVoidsElementList.Create(true);
+  VoidsElements := TIfcRelVoidsElementList.Create(false);
 end;
 
 destructor TIfcFeatureElementSubtraction.Destroy;
@@ -888,10 +872,10 @@ end;
 
 { TIfcRelContainedInSpatialStructure --------------------------------------- }
 
-constructor TIfcRelContainedInSpatialStructure.Create;
+constructor TIfcRelContainedInSpatialStructure.Create(AOwner: TComponent);
 begin
   inherited;
-  RelatedElements := TIfcProductList.Create(true);
+  RelatedElements := TIfcProductList.Create(false);
 end;
 
 destructor TIfcRelContainedInSpatialStructure.Destroy;
