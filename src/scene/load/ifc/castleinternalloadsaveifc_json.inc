@@ -38,6 +38,8 @@ function IfcJsonSave(const IfcFile: TIfcFile): TJsonObject;
 
 {$ifdef read_implementation}
 
+// TODO load/save enum values to JSON not done yet.
+
 { Simple hack to detect does given object is a TObjectList<xxx> specialization.
   They don't share any common ancestor in Generics.Collections in FPC,
   so there's no obvious "is" check to do this.
@@ -94,6 +96,40 @@ begin
     end;
   end else
     Result := JsonValue.AsString;
+end;
+
+(*Convert JSON value from IFC to Int64.
+  Accounts both for values specified directly, e.g.
+
+    "creationDate": 1323724715,
+
+  and wrapped in JSON objects e.g.
+
+    "creationDate" : {
+      "type" : "IfcTimeStamp",
+      "value" : 1323724715
+    }
+*)
+function JsonToInteger(const JsonValue: TJsonData; const DebugJsonKey: String): Int64;
+var
+  JsonObj: TJsonObject;
+  JsonObjType: String;
+begin
+  if JsonValue is TJsonObject then
+  begin
+    JsonObj := JsonValue as TJsonObject;
+    JsonObjType := JsonObj.Get('type', '');
+    if JsonObjType = 'IfcTimeStamp' then
+      Result := JsonObj.Get('value', Int64(0))
+    else
+    begin
+      WritelnWarning('IFC', 'IFC field "%s" is a JSON object, but not of type "IfcTimeStamp", ignoring', [
+        DebugJsonKey
+      ]);
+      Result := 0;
+    end;
+  end else
+    Result := JsonValue.AsInt64;
 end;
 
 (*Convert JSON value from IFC to string.
@@ -348,7 +384,7 @@ var
           ptString:
             PropertySetString(Ifc, PropInfo, JsonToString(Json.Items[I], DebugJsonKey));
           ptInteger:
-            PropertySetInteger(Ifc, PropInfo, Json.Items[I].AsInt64);
+            PropertySetInteger(Ifc, PropInfo, JsonToInteger(Json.Items[I], DebugJsonKey));
           ptBoolean:
             PropertySetBoolean(Ifc, PropInfo, Json.Items[I].AsBoolean);
           ptFloat:
