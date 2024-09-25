@@ -38,8 +38,6 @@ function IfcJsonSave(const IfcFile: TIfcFile): TJsonObject;
 
 {$ifdef read_implementation}
 
-// TODO load/save enum values to JSON not done yet.
-
 { Simple hack to detect does given object is a TObjectList<xxx> specialization.
   They don't share any common ancestor in Generics.Collections in FPC,
   so there's no obvious "is" check to do this.
@@ -383,6 +381,8 @@ var
         case PropertyType(PropInfo) of
           ptString:
             PropertySetString(Ifc, PropInfo, JsonToString(Json.Items[I], DebugJsonKey));
+          ptEnumeration:
+            PropertySetEnumStr(Ifc, PropInfo, Json.Items[I].AsString);
           ptInteger:
             PropertySetInteger(Ifc, PropInfo, JsonToInteger(Json.Items[I], DebugJsonKey));
           ptBoolean:
@@ -589,6 +589,8 @@ function IfcJsonSave(const IfcFile: TIfcFile): TJsonObject;
         case PropType of
           ptString:
             Result.Add(JsonKey, PropertyGetString(Ifc, PropInfo));
+          ptEnumeration:
+            Result.Add(JsonKey, PropertyGetEnumStr(Ifc, PropInfo));
           ptInteger:
             Result.Add(JsonKey, PropertyGetInteger(Ifc, PropInfo));
           ptBoolean:

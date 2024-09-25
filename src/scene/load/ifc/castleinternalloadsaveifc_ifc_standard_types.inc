@@ -30,6 +30,9 @@
 
     - Use "default" as usual in Pascal. When the property equals default,
       it will not be serialized to IFC JSON.
+      Not using "default" (or "stored") means it is serialized always to IFC JSON.
+      (Usual Pascal rules for "default" apply, e.g. all Strings implicitly
+      have default '' always.)
 
     - Properties of any type supported by TPropertyType
       (from CastleInternalRttiUtils) are supported.
@@ -68,6 +71,11 @@
       but a bit simpler: we don't need to define a TVector3 in public section,
       we define TCastleVector3PersistentSimple in published section,
       and user code can access it like "MyIfcDirection.DirectionRatios.Value".
+
+  - Enumerated values in Pascal should reflect IFC.
+    Make them PascalCase for easier reading, but keep the underscores.
+    That is, enum values must match IFC spec, but not in case-sensitive manner
+    (because GetEnumValue and CGE PropertySetEnumStr do not care about case).
 }
 
 {$ifdef read_interface}
@@ -917,15 +925,15 @@
     Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcWindowTypePartitioningEnum.htm }
   TIfcWindowTypePartitioningEnum = (
     NotDefined,
-    DoublePanelHorizontal,
-    DoublePanelVertical,
-    SinglePanel,
-    TriplePanelBottom,
-    TriplePanelHorizontal,
-    TriplePanelLeft,
-    TriplePanelRight,
-    TriplePanelTop,
-    TriplePanelVertical,
+    Double_Panel_Horizontal,
+    Double_Panel_Vertical,
+    Single_Panel,
+    Triple_Panel_Bottom,
+    Triple_Panel_Horizontal,
+    Triple_Panel_Left,
+    Triple_Panel_Right,
+    Triple_Panel_Top,
+    Triple_Panel_Vertical,
     UserDefined
   );
 
