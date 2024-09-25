@@ -29,6 +29,77 @@ function X3DToIfc(const RootNode: TX3DRootNode): TIfcFile;
 {$ifdef read_implementation}
 
 function IfcToX3D(const Ifc: TIfcFile; const BaseUrl: String): TX3DRootNode;
+
+  procedure ReadObjectDefinition(const Parent: TAbstractGroupingNode; const IfcObjDef: TIfcObjectDefinition); forward;
+
+  procedure ReadRelAggregates(const Parent: TAbstractGroupingNode; const RelAggregates: TIfcRelAggregates);
+  var
+    RelatedObject: TIfcObjectDefinition;
+    Group: TGroupNode;
+  begin
+    Group := TGroupNode.Create('', BaseUrl);
+    Parent.AddChildren(Group);
+    Group.MetadataString['IFC_Type'] := RelAggregates.ClassName;
+    Group.MetadataString['IFC_Name'] := RelAggregates.Name;
+    Group.MetadataString['IFC_Description'] := RelAggregates.Description;
+
+    for RelatedObject in RelAggregates.RelatedObjects do
+      ReadObjectDefinition(Group, RelatedObject);
+  end;
+
+  procedure ReadProduct(const Parent: TAbstractGroupingNode; const Product: TIfcProduct);
+  var
+    Element: TIfcElement;
+  begin
+    // TODO: read Product.Representation - IfcProductDefinitionShape in testcase
+
+    if Product is TIfcElement then
+    begin
+      Element := TIfcElement(Product);
+      // read Element.HasOpenings
+    end;
+  end;
+
+  procedure ReadRelContainedInSpatialStructure(const Parent: TAbstractGroupingNode;
+    const RelContainedInSpatialStructure: TIfcRelContainedInSpatialStructure);
+  var
+    Product: TIfcProduct;
+    Group: TGroupNode;
+  begin
+    Group := TGroupNode.Create('', BaseUrl);
+    Parent.AddChildren(Group);
+    Group.MetadataString['IFC_Type'] := RelContainedInSpatialStructure.ClassName;
+    Group.MetadataString['IFC_Name'] := RelContainedInSpatialStructure.Name;
+    Group.MetadataString['IFC_Description'] := RelContainedInSpatialStructure.Description;
+
+    for Product in RelContainedInSpatialStructure.RelatedElements do
+      ReadProduct(Group, Product);
+  end;
+
+  procedure ReadObjectDefinition(const Parent: TAbstractGroupingNode; const IfcObjDef: TIfcObjectDefinition);
+  var
+    RelAggregates: TIfcRelAggregates;
+    Group: TGroupNode;
+    IfcSpatialStructureElement: TIfcSpatialStructureElement;
+    RelContainedInSpatialStructure: TIfcRelContainedInSpatialStructure;
+  begin
+    Group := TGroupNode.Create('', BaseUrl);
+    Parent.AddChildren(Group);
+    Group.MetadataString['IFC_Type'] := IfcObjDef.ClassName;
+    Group.MetadataString['IFC_Name'] := IfcObjDef.Name;
+    Group.MetadataString['IFC_Description'] := IfcObjDef.Description;
+
+    for RelAggregates in IfcObjDef.IsDecomposedBy do
+      ReadRelAggregates(Group, RelAggregates);
+
+    if IfcObjDef is TIfcSpatialStructureElement then
+    begin
+      IfcSpatialStructureElement := TIfcSpatialStructureElement(IfcObjDef);
+      for RelContainedInSpatialStructure in IfcSpatialStructureElement.ContainsElements do
+        ReadRelContainedInSpatialStructure(Group, RelContainedInSpatialStructure);
+    end;
+  end;
+
 begin
   Result := TX3DRootNode.Create('', BaseUrl);
   try
@@ -46,7 +117,7 @@ begin
     if Ifc.TimeStamp <> '' then
       Result.Meta['IFC_TimeStamp'] := Ifc.TimeStamp;
 
-    // TODO: rest
+    ReadObjectDefinition(Result, Ifc.Project);
   except FreeAndNil(Result); raise end;
 end;
 

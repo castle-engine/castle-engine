@@ -98,6 +98,7 @@
   TIfcPersonAndOrganizationList = class;
   TIfcOrganizationRelationshipList = class;
   TIfcCartesianPointList = class;
+  TIfcProductRepresentation = class;
 
   { Float type used throughout IFC.
 
@@ -780,10 +781,19 @@
   TIfcProduct = class abstract(TIfcObject)
   strict private
     FObjectPlacement: TIfcObjectPlacement;
+    FRepresentation: TIfcProductRepresentation;
   published
     { Object coordinate system and placement of the product in space. }
-    // TODO: rest of fields
     property ObjectPlacement: TIfcObjectPlacement read FObjectPlacement write FObjectPlacement;
+
+    { Representations of the product. }
+    property Representation: TIfcProductRepresentation read FRepresentation write FRepresentation;
+
+    // TODO // property ReferencedBy: TIfcRelAssignsToProductList read FReferencedBy;
+
+    // TODO // property PositionedRelativeTo: TIfcRelPositionsList read FPositionedRelativeTo;
+
+    // TODO // property ReferencedInStructures: TIfcRelReferencedInSpatialStructure read FReferencedInStructures;
   end;
   TIfcProductList = class({$ifdef FPC}specialize{$endif} TObjectList<TIfcProduct>)
   end;
@@ -873,13 +883,70 @@
   { Generalization of all components that make up a facility. }
   TIfcElement = class abstract(TIfcProduct)
   strict private
+    FTag: TIfcIdentifier;
+    // TODO
+    // FFillsVoids: TIfcRelFillsElement;
+    // FConnectedTo: TIfcRelConnectsElementsList;
+    // FIsInterferedByElements: TIfcRelInterferesElementsList;
+    // FInterferesElements: TIfcRelInterferesElementsList;
+    // FHasProjections: TIfcRelProjectsElementList;
     FHasOpenings: TIfcRelVoidsElementList;
+    // TODO
+    // FIsConnectionRealization: TIfcRelConnectsWithRealizingElementsList;
+    // FProvidesBoundaries: TIfcRelSpaceBoundaryList;
+    // FConnectedFrom: TIfcRelConnectsElementsList;
+    // FContainedInStructure: TIfcRelContainedInSpatialStructure;
+    // TODO
+    // FHasCoverings: TIfcRelCoversBldgElementsList;
+    // FHasSurfaceFeatures: TIfcRelAdheresToElementList;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
   published
+    { The tag (or label) identifier at the particular instance of a product,
+      e.g. the serial number, or the position number.
+      Note: This obscures TComponent.Tag property. }
+    property Tag: TIfcIdentifier read FTag write FTag;
+
+    // TODO
+    // { Reference to the IfcRelFillsElement relationship that puts the element as a filling into the opening created within another element. }
+    // property FillsVoids: TIfcRelFillsElement read FFillsVoids write FFillsVoids;
+
+    // { Reference to the element connection relationship. }
+	  // property ConnectedTo: TIfcRelConnectsElementsList read FConnectedTo;
+
+    // { Reference to the interference relationship to indicate the element that is interfered. }
+	  // property IsInterferedByElements: TIfcRelInterferesElementsList read FIsInterferedByElements;
+
+    // { Reference to the interference relationship to indicate the element that interferes. }
+	  // property InterferesElements: TIfcRelInterferesElementsList read FInterferesElements;
+
+    // { Projection relationship that adds a feature (using a Boolean union) to the IfcBuiltElement. }
+	  // property HasProjections: TIfcRelProjectsElementList read FHasProjections;
+
     { List of openings associated with this element. }
-    property HasOpenings: TIfcRelVoidsElementList read FHasOpenings;
+	  property HasOpenings: TIfcRelVoidsElementList read FHasOpenings;
+
+    // TODO
+    // { Reference to the connection relationship with realizing element. }
+    // property IsConnectionRealization: TIfcRelConnectsWithRealizingElementsList read FIsConnectionRealization;
+
+    // { Space boundaries by virtue of the objectified relationship IfcRelSpaceBoundary. }
+    // property ProvidesBoundaries: TIfcRelSpaceBoundaryList read FProvidesBoundaries;
+
+    // { Element connection relationship. }
+    // property ConnectedFrom: TIfcRelConnectsElementsList read FConnectedFrom;
+
+    { Containment relationship to the spatial structure element, to which the element is primarily associated. }
+    // TODO: should be list according to one testcase?
+    // TODO property ContainedInStructure: TIfcRelContainedInSpatialStructure read FContainedInStructure write FContainedInStructure;
+
+    // TODO
+    // { Reference to IfcCovering by virtue of the objectified relationship IfcRelCoversBldgElements. }
+    // property HasCoverings: TIfcRelCoversBldgElementsList read FHasCoverings;
+
+    // { Reference to the IfcRelAdheresToElement relationship that adheres a IfcSurfaceFeature to an element. }
+    // property HasSurfaceFeatures: TIfcRelAdheresToElementList read FHasSurfaceFeatures;
   end;
 
   { All existence dependent elements which modify the shape and appearance
@@ -1214,12 +1281,32 @@ end;
 constructor TIfcElement.Create(AOwner: TComponent);
 begin
   inherited;
+  // TODO
+  // FConnectedTo := TIfcRelConnectsElementsList.Create(false);
+  // FIsInterferedByElements := TIfcRelInterferesElementsList.Create(false);
+  // FInterferesElements := TIfcRelInterferesElementsList.Create(false);
+  // FHasProjections := TIfcRelProjectsElementList.Create(false);
   FHasOpenings := TIfcRelVoidsElementList.Create(false);
+  // TODO
+  // FIsConnectionRealization := TIfcRelConnectsWithRealizingElementsList.Create(false);
+  // FProvidesBoundaries := TIfcRelSpaceBoundaryList.Create(false);
+  // FConnectedFrom := TIfcRelConnectsElementsList.Create(false);
+  // FHasCoverings := TIfcRelCoversBldgElementsList.Create(false);
+  // FHasSurfaceFeatures := TIfcRelAdheresToElementList.Create(false);
 end;
 
 destructor TIfcElement.Destroy;
 begin
+  // FreeAndNil(FConnectedTo);
+  // FreeAndNil(FIsInterferedByElements);
+  // FreeAndNil(FInterferesElements);
+  // FreeAndNil(FHasProjections);
   FreeAndNil(FHasOpenings);
+  // FreeAndNil(FIsConnectionRealization);
+  // FreeAndNil(FProvidesBoundaries);
+  // FreeAndNil(FConnectedFrom);
+  // FreeAndNil(FHasCoverings);
+  // FreeAndNil(FHasSurfaceFeatures);
   inherited;
 end;
 
