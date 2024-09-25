@@ -57,18 +57,23 @@ var
   { All TIfcPersistent instances are created with this owner.
     This is just the returned TIfcFile instance, which is a TComponent. }
   IfcOwner: TComponent;
+  { Map of currently known GUIDs -> TIfcPersistent instances.
+    This is used to resolve "ref" in IFC throughout loading. }
+  Refs: TCastleStringList;
 
   procedure DeserializeJson(const Json: TJsonObject; const Ifc: TIfcPersistent);
   var
     DebugJsonKey: String;
 
-    { From JsonChildObj create and read Pascal class.
+    { From JsonChildObj create and read Pascal class (or return ready instance from Refs).
       Returns @nil if not possible, which happens if "type" in IFC is not implemented
       on our side. }
     function CreateIfcInstance(const JsonChildObj: TJsonObject): TIfcPersistent;
     var
+      IfcRef: String;
       IfcChildType: String;
       FindIfcClass: TIfcPersistentClass;
+      IfcRefIndex: Integer;
     begin
       IfcChildType:= JsonChildObj.Get('type', '');
       FindIfcClass := IfcClasses.FindIfcType(IfcChildType);
@@ -79,6 +84,35 @@ var
           DebugJsonKey
         ]);
         Exit(nil);
+      end;
+
+      IfcRef := JsonChildObj.Get('ref', '');
+      if IfcRef <> '' then
+      begin
+        IfcRefIndex := Refs.IndexOf(IfcRef);
+        if IfcRefIndex = -1 then
+        begin
+          // save the reference to resolve later
+          Result := FindIfcClass.Create(IfcOwner);
+          Result.Ref := IfcRef;
+          Exit;
+        end;
+
+        Result := Refs.Objects[IfcRefIndex] as TIfcPersistent;
+        if not (Result is FindIfcClass) then
+        begin
+          WritelnWarning('IFC', 'IFC reference "%s" to class %s is not of the expected class, ignoring', [
+            IfcRef,
+            IfcChildType
+          ]);
+          Exit(nil);
+        end;
+
+        // WritelnLog('IFC', 'Success: IFC reference "%s" to class %s resolved', [
+        //   IfcRef,
+        //   IfcChildType
+        // ]);
+        Exit;
       end;
 
       Result := FindIfcClass.Create(IfcOwner);
@@ -335,9 +369,23 @@ var
           raise EInvalidIfc.Create(E.Message + Format(' (field "%s")', [DebugJsonKey]));
         end;
       end;
-
-      // TODO: resolve refs
     end;
+
+    if (Ifc is TIfcRoot) and
+        (TIfcRoot(Ifc).GlobalId <> '') then
+      Refs.AddObject(TIfcRoot(Ifc).GlobalId, Ifc);
+  end;
+
+  { Recursively resolve all remaining unresolved references in the IFC graph.
+
+    This means we find all TIfcPersistent instances with Ref non-empty,
+    and either resolve them (replacing with proper objects)
+    or make a warning and set Ref to '' if not possible.
+
+    By the end of this, Ref should be empty in all TIfcPersistent instances. }
+  procedure ResolveReferences(const Ifc: TIfcPersistent);
+  begin
+    // TODO
   end;
 
 var
@@ -354,25 +402,29 @@ begin
     raise EInvalidIfc.Create('Top-level JSON object expected');
   JsonObj := Json as TJsonObject;
 
-  { Some JSON files use "IfcProject" at top-level
-    (see https://github.com/buildingSMART/Sample-Test-Files/blob/master/IFC%204.0/BuildingSMARTSpec/wall-with-opening-and-window.json ),
-    some use "IFC.JSON" at top-level and then "IfcProject" is inside "data".
-    Account for both cases. }
+  Refs := TCastleStringList.Create;
+  try
+    { Some JSON files use "IfcProject" at top-level
+      (see https://github.com/buildingSMART/Sample-Test-Files/blob/master/IFC%204.0/BuildingSMARTSpec/wall-with-opening-and-window.json ),
+      some use "IFC.JSON" at top-level and then "IfcProject" is inside "data".
+      Account for both cases. }
+    TopLevelType := JsonObj.Get('type', '');
+    if TopLevelType = 'IfcProject' then
+    begin
+      Project := TIfcProject.Create(IfcOwner);
+      Result.Data.Add(Project);
+      DeserializeJson(JsonObj, Project);
+    end else
+    begin
+      if TopLevelType <> 'IFC.JSON' then
+        WritelnWarning('IFC', 'Top-level JSON object should have "type" = "IfcProject" or "IFC.JSON", but is "%s"', [
+          TopLevelType
+        ]);
+      DeserializeJson(JsonObj, Result);
+    end;
 
-  TopLevelType := JsonObj.Get('type', '');
-  if TopLevelType = 'IfcProject' then
-  begin
-    Project := TIfcProject.Create(IfcOwner);
-    Result.Data.Add(Project);
-    DeserializeJson(JsonObj, Project);
-  end else
-  begin
-    if TopLevelType <> 'IFC.JSON' then
-      WritelnWarning('IFC', 'Top-level JSON object should have "type" = "IfcProject" or "IFC.JSON", but is "%s"', [
-        TopLevelType
-      ]);
-    DeserializeJson(JsonObj, Result);
-  end;
+    ResolveReferences(Result);
+  finally FreeAndNil(Refs) end;
 end;
 
 function IfcJsonSave(const IfcFile: TIfcFile): TJsonObject;

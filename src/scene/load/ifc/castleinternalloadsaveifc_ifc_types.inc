@@ -30,6 +30,13 @@ type
     for freeing who", or reference counting as we did for X3D nodes),
     and we can easily free all IFC classes by freeing the owner. }
   TIfcPersistent = class abstract(TComponent)
+  private
+    { Useful during parsing, indicates this is an unresolved reference
+      and should be replaced by the actual object later, once we know all
+      references.
+      Once parsing finished, i.e. IfcLoadJson returned,
+      no instance should have this non-empty. }
+    Ref: String;
   public
     //constructor Create(AOwner: TComponent); override; // not needed
   end;
