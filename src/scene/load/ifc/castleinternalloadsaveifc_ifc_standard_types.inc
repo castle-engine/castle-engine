@@ -993,7 +993,7 @@
   { General composition/decomposition (or whole/part) relationship.
 
     Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcRelAggregates.htm }
-  TIfcRelAggregates = class(TIfcPersistent)
+  TIfcRelAggregates = class(TIfcRelDecomposes)
   strict private
     FRelatingObject: TIfcObjectDefinition;
     FRelatedObjects: TIfcObjectDefinitionList;
