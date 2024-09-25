@@ -97,6 +97,7 @@
   TIfcPerson = class;
   TIfcPersonAndOrganizationList = class;
   TIfcOrganizationRelationshipList = class;
+  TIfcCartesianPointList = class;
 
   { Float type used throughout IFC.
 
@@ -265,6 +266,34 @@
 
     Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcGeometricRepresentationItem.htm }
   TIfcGeometricRepresentationItem = class abstract(TIfcRepresentationItem)
+  end;
+
+  { Curve in 2D or 3D.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcCurve.htm }
+  TIfcCurve = class abstract(TIfcGeometricRepresentationItem)
+    { Space dimensionality of this abstract class, defined differently for all
+      subtypes. }
+    // TODO: derived: function Dim: TIfcDimensionCount; abstract;
+  end;
+
+  TIfcBoundedCurve = class abstract(TIfcCurve)
+  end;
+
+  { Bounded curve with only linear segments defined by a list of Cartesian points.
+    If the first and the last Cartesian point in the list are identical,
+    then the polyline is a closed curve, otherwise it is an open curve.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcPolyline.htm }
+  TIfcPolyline = class(TIfcBoundedCurve)
+  strict private
+    FPoints: TIfcCartesianPointList;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+  published
+    { Points defining the polyline. }
+    property Points: TIfcCartesianPointList read FPoints;
   end;
 
   { 3D shape.
@@ -656,6 +685,8 @@
     { Actual 3D point value. }
     property Coordinates: TCastleVector3PersistentSimple read FCoordinates;
   end;
+  TIfcCartesianPointList = class({$ifdef FPC}specialize{$endif} TObjectList<TIfcCartesianPoint>)
+  end;
 
   { Abstract supertype of placement subtypes that define the location of an item,
     or an entire shape representation, and provide its orientation.
@@ -913,6 +944,40 @@
 
     Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcBuiltElement.htm }
   TIfcBuiltElement = class(TIfcElement)
+  end;
+
+  TIfcWallTypeEnum = (
+    ElementedWall,
+    Movable,
+    Parapet,
+    Partitioning,
+    PlumbingWall,
+    Polygonal,
+    RetainingWall,
+    Shear,
+    SolidWall,
+    Standard,
+    WaveWall,
+    UserDefined,
+    NotDefined
+  );
+
+  { Wall represents a vertical construction that may bound or subdivide spaces.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcWall.htm }
+  TIfcWall = class(TIfcBuiltElement)
+  strict private
+    FPredefinedType: TIfcWallTypeEnum;
+  published
+    { Predefined generic type for a wall. }
+    property PredefinedType: TIfcWallTypeEnum read FPredefinedType write FPredefinedType;
+  end;
+
+  { Wall with certain constraints for the provision of parameters and
+    with certain constraints for the geometric representation.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcWallStandardCase.htm }
+  TIfcWallStandardCase = class(TIfcWall)
   end;
 
   { Used for TIfcWindow.PredefinedType. }
@@ -1337,6 +1402,20 @@ begin
   inherited;
 end;
 
+{ TIfcPolyline ------------------------------------------------------------- }
+
+constructor TIfcPolyline.Create(AOwner: TComponent);
+begin
+  inherited;
+  FPoints := TIfcCartesianPointList.Create(false);
+end;
+
+destructor TIfcPolyline.Destroy;
+begin
+  FreeAndNil(FPoints);
+  inherited;
+end;
+
 { initialization, finalization ----------------------------------------------- }
 
 procedure InitializeIfcClasses;
@@ -1396,6 +1475,9 @@ begin
     IfcClasses.Add(TIfcOrganizationRelationship);
     IfcClasses.Add(TIfcOwnerHistory);
     IfcClasses.Add(TIfcApplication);
+    IfcClasses.Add(TIfcWall);
+    IfcClasses.Add(TIfcWallStandardCase);
+    IfcClasses.Add(TIfcPolyline);
   end;
 end;
 
