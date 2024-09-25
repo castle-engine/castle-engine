@@ -612,11 +612,18 @@ begin
 end;
 
 procedure PropertySetEnum(const PropObject: TObject; const PropInfo: PPropInfo; const Value: Integer);
+{ Only FPC has GetEnumNameCount. }
+{$ifdef FPC}
+  {$define HAS_GetEnumNameCount}
+{$endif}
+{$ifdef HAS_GetEnumNameCount}
 var
   PropType: PTypeInfo;
+{$endif HAS_GetEnumNameCount}
 begin
   Assert(PropertyType(PropInfo) = ptEnumeration);
 
+  {$ifdef HAS_GetEnumNameCount}
   // TODO: This check is invalid for enumerated values with custom values.
   // But can they be ever published in Pascal?
   // Check, ev. add parameter const CheckRange: Boolean = true
@@ -628,6 +635,7 @@ begin
       Value,
       GetEnumNameCount(PropType)
     ]);
+  {$endif HAS_GetEnumNameCount}
 
   SetOrdProp(PropObject, PropInfo, Value);
 end;
