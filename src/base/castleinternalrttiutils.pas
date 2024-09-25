@@ -112,6 +112,9 @@ type
     { Class instance, anything descending from TObject. }
     ptInstance,
 
+    { Enumerated type (but not boolean). }
+    ptEnumeration,
+
     { Any other property type not handled by our code. }
     ptOther
   );
@@ -170,6 +173,27 @@ procedure PropertySetString(const PropObject: TObject; const PropInfo: PPropInfo
   @groupBegin }
 function PropertyGetInstance(const PropObject: TObject; const PropInfo: PPropInfo): TObject;
 procedure PropertySetInstance(const PropObject: TObject; const PropInfo: PPropInfo; const Value: TObject);
+{ @groupEnd }
+
+{ Get or set a property of enumerated type.
+  Use only when PropertyType is ptEnumeration, undefined what happens otherwise.
+
+  You can get or set as Integer (PropertyGetEnum, PropertySetEnum).
+
+  Or you can get or set as a String (PropertyGetEnumStr, PropertySetEnumStr)
+  for comfort. Getting or setting enumerated property as a String
+  uses GetEnumName and GetEnumValue to convert between Integer and String.
+  Just like GetEnumValue, the enumerated name given to PropertySetEnumStr
+  is not case-sensitive, so you can use e.g.
+  @code(PropertySetEnumStr(MyObject, MyPropInfo, 'MyEnumValue'))
+  or @code(PropertySetEnumStr(MyObject, MyPropInfo, 'MYENUMVALUE'))
+  interchangeably.
+
+  @groupBegin }
+function PropertyGetEnum(const PropObject: TObject; const PropInfo: PPropInfo): Integer;
+function PropertyGetEnumStr(const PropObject: TObject; const PropInfo: PPropInfo): String;
+procedure PropertySetEnum(const PropObject: TObject; const PropInfo: PPropInfo; const Value: Integer);
+procedure PropertySetEnumStr(const PropObject: TObject; const PropInfo: PPropInfo; const Value: String);
 { @groupEnd }
 
 implementation
@@ -247,6 +271,8 @@ begin
       Value := BoolToStr(PropertyGetBoolean(PropObject, PropInfo), true);
     ptInstance:
       Value := ObjectToString(PropertyGetInstance(PropObject, PropInfo));
+    ptEnumeration:
+      Value := PropertyGetEnumStr(PropObject, PropInfo);
     ptOther:
       begin
         { Handle additional property types that are not handled byPropertyType
@@ -254,8 +280,6 @@ begin
           for them. }
         PropType := PropInfo^.PropType{$ifndef FPC}^{$endif};
         case PropType^.Kind of
-          tkEnumeration:
-            Value := GetEnumName(PropType, GetOrdProp(PropObject, PropInfo));
           tkChar:
             Value := Char(GetOrdProp(PropObject, PropInfo));
           tkVariant:
@@ -416,6 +440,8 @@ begin
   case PropType^.Kind of
     tkInteger, tkInt64 {$ifdef FPC}, tkQWord{$endif}:
       Result := ptInteger;
+    tkEnumeration:
+      Result := ptEnumeration;
 {$ifndef FPUNONE}
     tkFloat:
       Result := ptFloat;
@@ -568,6 +594,60 @@ procedure PropertySetInstance(const PropObject: TObject; const PropInfo: PPropIn
 begin
   Assert(PropertyType(PropInfo) = ptInstance);
   SetObjectProp(PropObject, PropInfo, Value);
+end;
+
+function PropertyGetEnum(const PropObject: TObject; const PropInfo: PPropInfo): Integer;
+begin
+  Assert(PropertyType(PropInfo) = ptEnumeration);
+  Result := GetOrdProp(PropObject, PropInfo);
+end;
+
+function PropertyGetEnumStr(const PropObject: TObject; const PropInfo: PPropInfo): String;
+var
+  PropType: PTypeInfo;
+begin
+  Assert(PropertyType(PropInfo) = ptEnumeration);
+  PropType := PropInfo^.PropType{$ifndef FPC}^{$endif};
+  Result := GetEnumName(PropType, GetOrdProp(PropObject, PropInfo));
+end;
+
+procedure PropertySetEnum(const PropObject: TObject; const PropInfo: PPropInfo; const Value: Integer);
+var
+  PropType: PTypeInfo;
+begin
+  Assert(PropertyType(PropInfo) = ptEnumeration);
+
+  // TODO: This check is invalid for enumerated values with custom values.
+  // But can they be ever published in Pascal?
+  // Check, ev. add parameter const CheckRange: Boolean = true
+  // (keep the default true for safety).
+  PropType := PropInfo^.PropType{$ifndef FPC}^{$endif};
+  if Value >= GetEnumNameCount(PropType)  then
+    raise Exception.CreateFmt('Setting enumerated property "%s" to a value %d that seems outside of the possible enum range (GetEnumNameCount is %d)', [
+      PropInfo^.Name,
+      Value,
+      GetEnumNameCount(PropType)
+    ]);
+
+  SetOrdProp(PropObject, PropInfo, Value);
+end;
+
+procedure PropertySetEnumStr(const PropObject: TObject; const PropInfo: PPropInfo; const Value: String);
+var
+  PropType: PTypeInfo;
+  EnumValue: Integer;
+begin
+  Assert(PropertyType(PropInfo) = ptEnumeration);
+
+  PropType := PropInfo^.PropType{$ifndef FPC}^{$endif};
+  EnumValue := GetEnumValue(PropType, Value);
+  if EnumValue = -1 then
+    raise Exception.CreateFmt('Setting enumerated property "%s" to "%s" that is not a valid enum value', [
+      PropInfo^.Name,
+      Value
+    ]);
+
+  SetOrdProp(PropObject, PropInfo, EnumValue);
 end;
 
 initialization
