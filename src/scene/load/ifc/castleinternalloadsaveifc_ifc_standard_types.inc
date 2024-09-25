@@ -83,6 +83,12 @@
   TIfcRelVoidsElementList = class;
   TIfcOpeningElement = class;
   TIfcRepresentationList = class;
+  TIfcAddressList = class;
+  TIfcOrganization = class;
+  TIfcOrganizationList = class;
+  TIfcPerson = class;
+  TIfcPersonAndOrganizationList = class;
+  TIfcOrganizationRelationshipList = class;
 
   { Float type used throughout IFC.
 
@@ -118,6 +124,12 @@
 
     https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcIdentifier.htm }
   TIfcIdentifier = String;
+
+  { Indication of date and time by measuring the number of seconds
+    which have elapsed since 1 January 1970, 00:00:00 UTC.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcTimeStamp.htm}
+  TIfcTimeStamp = Int64;
 
   { Presentation information assigned to geometric representation items.
 
@@ -286,17 +298,289 @@
     property Depth: TIfcPositiveLengthMeasure read FDepth write FDepth {$ifdef FPC}default 0.0{$endif};
   end;
 
+  { Person acting on behalf of an organization.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcPersonAndOrganization.htm }
+  TIfcPersonAndOrganization = class(TIfcPersistent)
+  strict private
+    FThePerson: TIfcPerson;
+    FTheOrganization: TIfcOrganization;
+    //FRoles: TIfcActorRoleList; // TODO
+  published
+    { Person who is related to the organization. }
+    property ThePerson: TIfcPerson read FThePerson write FThePerson;
+
+    { Organization to which the person is related. }
+    property TheOrganization: TIfcOrganization read FTheOrganization write FTheOrganization;
+
+    { Roles played by the person within the context of an organization. }
+    // property Roles: TIfcActorRoleList read FRoles; // TODO
+  end;
+  TIfcPersonAndOrganizationList = class({$ifdef FPC}specialize{$endif} TObjectList<TIfcPersonAndOrganization>)
+  end;
+
+  { Individual human being.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcPerson.htm }
+  TIfcPerson = class(TIfcPersistent)
+  strict private
+    FIdentification: TIfcIdentifier;
+    FFamilyName: TIfcLabel;
+    FGivenName: TIfcLabel;
+    //FMiddleNames: TIfcLabelList;
+    //FPrefixTitles: TIfcLabelList;
+    //FSuffixTitles: TIfcLabelList;
+    //FRoles: TIfcActorRoleList;
+    FAddresses: TIfcAddressList;
+    FEngagedIn: TIfcPersonAndOrganizationList;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+  published
+    { Identification of the person. }
+    property Identification: TIfcIdentifier read FIdentification write FIdentification;
+
+    { The name by which the family identity of the person may be recognized. }
+    property FamilyName: TIfcLabel read FFamilyName write FFamilyName;
+
+    { The name by which a person is known within a family. }
+    property GivenName: TIfcLabel read FGivenName write FGivenName;
+
+    { Additional names given to a person. }
+    //property MiddleNames: TIfcLabelList read FMiddleNames; // TODO serialization/deserialization for string list needed
+
+    { The word, or group of words, which specify the person's social and/or professional standing and appear before his/her names. }
+    //property PrefixTitles: TIfcLabelList read FPrefixTitles; // TODO serialization/deserialization for string list needed
+
+    { The word, or group of words, which specify the person's social and/or professional standing and appear after his/her names.}
+    //property SuffixTitles: TIfcLabelList read FSuffixTitles; // TODO serialization/deserialization for string list needed
+
+    { Roles played by the person. }
+    //property Roles: TIfcActorRoleList read FRoles; // TODO
+
+    { Postal and telecommunication addresses of a person. }
+    property Addresses: TIfcAddressList read FAddresses;
+
+    { The inverse relationship to IfcPersonAndOrganization relationships in which IfcPerson is engaged. }
+    property EngagedIn: TIfcPersonAndOrganizationList read FEngagedIn;
+  end;
+  TIfcPersonList = class({$ifdef FPC}specialize{$endif} TObjectList<TIfcPerson>)
+  end;
+
+  { Base entity for relationships between resource-level entities.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcResourceLevelRelationship.htm }
+  TIfcResourceLevelRelationship = class abstract(TIfcPersistent)
+  strict private
+    FName: TIfcLabel;
+    FDescription: TIfcText;
+  published
+    { A name used to identify or qualify the relationship. }
+    property Name: TIfcLabel read FName write FName;
+
+    { A description that may apply additional information about the relationship. }
+    property Description: TIfcText read FDescription write FDescription;
+  end;
+
+  { Organization relationship.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcOrganizationRelationship.htm }
+  TIfcOrganizationRelationship = class(TIfcResourceLevelRelationship)
+  strict private
+    FRelatingOrganization: TIfcOrganization;
+    FRelatedOrganizations: TIfcOrganizationList;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+  published
+    { Organization which is the relating part of the relationship between organizations. }
+    property RelatingOrganization: TIfcOrganization read FRelatingOrganization write FRelatingOrganization;
+
+    { The other, possibly dependent, organizations which are the related parts of the relationship between organizations.  }
+    property RelatedOrganizations: TIfcOrganizationList read FRelatedOrganizations;
+  end;
+  TIfcOrganizationRelationshipList = class({$ifdef FPC}specialize{$endif} TObjectList<TIfcOrganizationRelationship>)
+  end;
+
+  { Named and structured grouping with a corporate identity.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcOrganization.htm }
+  TIfcOrganization = class(TIfcPersistent)
+  strict private
+    FIdentification: TIfcIdentifier;
+    FName: TIfcLabel;
+    FDescription: TIfcText;
+    //FRoles: TIfcActorRoleList;
+    FAddresses: TIfcAddressList;
+    FIsRelatedBy: TIfcOrganizationRelationshipList;
+    FRelates: TIfcOrganizationRelationshipList;
+    FEngages: TIfcPersonAndOrganizationList;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+  published
+    { Identification of the organization. }
+ 	  property Identification: TIfcIdentifier read FIdentification write FIdentification;
+
+    { The word, or group of words, by which the organization is referred to. }
+    property Name: TIfcLabel read FName write FName;
+
+    { Text that relates the nature of the organization. }
+    property Description: TIfcText read FDescription write FDescription;
+
+    { Roles played by the organization. }
+    //property Roles: TIfcActorRoleList read FRoles; // TODO
+
+    { Postal and telecom addresses of an organization. }
+    property Addresses: TIfcAddressList read FAddresses;
+
+    { The inverse relationship for relationship RelatedOrganizations of IfcOrganizationRelationship. }
+    property IsRelatedBy: TIfcOrganizationRelationshipList read FIsRelatedBy;
+
+    { The inverse relationship for relationship RelatingOrganization of IfcOrganizationRelationship. }
+    property Relates: TIfcOrganizationRelationshipList read FRelates;
+
+    { Inverse relationship to IfcPersonAndOrganization relationships in which IfcOrganization is engaged. }
+    property Engages: TIfcPersonAndOrganizationList read FEngages;
+  end;
+  TIfcOrganizationList = class({$ifdef FPC}specialize{$endif} TObjectList<TIfcOrganization>)
+  end;
+
+  { Logical location of the address.
+
+    https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcAddressTypeEnum.htm }
+  TIfcAddressTypeEnum = (
+    UserDefined,
+    DistributionPoint,
+    Home,
+    Office,
+    Site
+  );
+
+  { Various kinds of postal and telecom addresses.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcAddress.htm }
+  TIfcAddress = class abstract(TIfcPersistent)
+  strict private
+    FPurpose: TIfcAddressTypeEnum;
+    FDescription: TIfcText;
+    FUserDefinedPurpose: TIfcLabel;
+    FOfPerson: TIfcPersonList;
+    FOfOrganization: TIfcOrganizationList;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+  published
+    { Logical location of the address. }
+    property Purpose: TIfcAddressTypeEnum read FPurpose write FPurpose;
+
+    { The nature of the address. }
+    property Description: TIfcText read FDescription write FDescription;
+
+    { Yser specific purpose of the address beyond the enumeration values
+      provided by @link(Purpose). }
+    property UserDefinedPurpose: TIfcLabel read FUserDefinedPurpose write FUserDefinedPurpose;
+
+    { Inverse relationship to Person to whom address is associated. }
+    property OfPerson: TIfcPersonList read FOfPerson;
+
+    { Inverse relationship to Organization to whom address is associated. }
+    property OfOrganization: TIfcOrganizationList read FOfOrganization;
+  end;
+  TIfcAddressList = class({$ifdef FPC}specialize{$endif} TObjectList<TIfcAddress>)
+  end;
+
+  { IFC compliant application developed by an application developer. }
+  TIfcApplication = class(TIfcPersistent)
+  strict private
+    FApplicationDeveloper: TIfcOrganization;
+    FVersion: TIfcLabel;
+    FApplicationFullName: TIfcLabel;
+    FApplicationIdentifier: TIfcIdentifier;
+  published
+    { Name of the application developer. }
+    property ApplicationDeveloper: TIfcOrganization read FApplicationDeveloper write FApplicationDeveloper;
+
+    { Version number of this software as specified by the developer of the application. }
+    property Version: TIfcLabel read FVersion write FVersion;
+
+    { Full name of the application as specified by the application developer. }
+    property ApplicationFullName: TIfcLabel read FApplicationFullName write FApplicationFullName;
+
+    { Short identifying name for the application. }
+    property ApplicationIdentifier: TIfcIdentifier read FApplicationIdentifier write FApplicationIdentifier;
+  end;
+
+  TIfcStateEnum = (
+    Locked,
+    ReadOnly,
+    ReadOnlyLocked,
+    ReadWrite,
+    ReadWriteLocked
+  );
+
+  TIfcChangeActionEnum =  (
+    Added,
+    Deleted,
+    Modified,
+    NoChange,
+    NotDefined
+  );
+
+  { All history and identification related information.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcOwnerHistory.htm }
+  TIfcOwnerHistory = class(TIfcPersistent)
+  strict private
+    FOwningUser: TIfcPersonAndOrganization;
+    FOwningApplication: TIfcApplication;
+    FState: TIfcStateEnum;
+    FChangeAction: TIfcChangeActionEnum;
+    FLastModifiedDate: TIfcTimeStamp;
+    FLastModifyingUser: TIfcPersonAndOrganization;
+    FLastModifyingApplication: TIfcApplication;
+    FCreationDate: TIfcTimeStamp;
+  published
+    { End user who currently "owns" this object. }
+    property OwningUser: TIfcPersonAndOrganization read FOwningUser write FOwningUser;
+
+    { Application which currently "owns" this object on behalf of
+      the owning user of the application. }
+    property OwningApplication: TIfcApplication read FOwningApplication write FOwningApplication;
+
+    { Current access state of the object. }
+    property State: TIfcStateEnum read FState write FState;
+
+    { Actions associated with changes made to the object. }
+    property ChangeAction: TIfcChangeActionEnum read FChangeAction write FChangeAction;
+
+    { When the the last modification was made by LastModifyingUser
+      and LastModifyingApplication.}
+    property LastModifiedDate: TIfcTimeStamp read FLastModifiedDate write FLastModifiedDate default 0;
+
+    { User who carried out the last modification using LastModifyingApplication. }
+    property LastModifyingUser: TIfcPersonAndOrganization read FLastModifyingUser write FLastModifyingUser;
+
+    { Application used to make the last modification. }
+    property LastModifyingApplication: TIfcApplication read FLastModifyingApplication write FLastModifyingApplication;
+
+    { When was the entity first created by the original OwningApplication.
+      Once defined this value remains unchanged through the lifetime of the entity. }
+    property CreationDate: TIfcTimeStamp read FCreationDate write FCreationDate default 0;
+  end;
+
   { Most abstract and root class for all entity definitions.
 
     Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcRoot.htm }
   TIfcRoot = class abstract(TIfcPersistent)
   strict private
+    FOwnerHistory: TIfcOwnerHistory;
     FGlobalId: String; // actually TGUID;
     FName: TIfcLabel;
     FDescription: TIfcText;
   published
     { Information about the current ownership of that object. }
-    // TODO: OwnerHistory: TIfcOwnerHistory;
+    property OwnerHistory: TIfcOwnerHistory read FOwnerHistory write FOwnerHistory;
 
     { Globally unique identifier for the object instance.
       Note: Not declared as TGUID, because TGUID cannot be published,
@@ -780,7 +1064,10 @@
   end;
 
 var
-  { List of all IFC classes that are defined in this unit. }
+  { List of all (non-abstract) IFC classes that are defined in this unit.
+
+    TODO: We didn't strictly check if all classes on this list are non-abstract.
+    In practice, it doesn't matter for current code. }
   IfcClasses: TIfcPersistentClassList;
 
 { Make sure IfcClasses is assigned and filled with contents. }
@@ -976,6 +1263,72 @@ begin
   inherited;
 end;
 
+{ TIfcAddress -------------------------------------------------------------- }
+
+constructor TIfcAddress.Create(AOwner: TComponent);
+begin
+  inherited;
+  FOfPerson := TIfcPersonList.Create(false);
+  FOfOrganization := TIfcOrganizationList.Create(false);
+end;
+
+destructor TIfcAddress.Destroy;
+begin
+  FreeAndNil(FOfPerson);
+  FreeAndNil(FOfOrganization);
+  inherited;
+end;
+
+{ TIfcPerson --------------------------------------------------------------- }
+
+constructor TIfcPerson.Create(AOwner: TComponent);
+begin
+  inherited;
+  FAddresses := TIfcAddressList.Create(false);
+  FEngagedIn := TIfcPersonAndOrganizationList.Create(false);
+end;
+
+destructor TIfcPerson.Destroy;
+begin
+  FreeAndNil(FAddresses);
+  FreeAndNil(FEngagedIn);
+  inherited;
+end;
+
+{ TIfcOrganization --------------------------------------------------------- }
+
+constructor TIfcOrganization.Create(AOwner: TComponent);
+begin
+  inherited;
+  FAddresses := TIfcAddressList.Create(false);
+  FIsRelatedBy := TIfcOrganizationRelationshipList.Create(false);
+  FRelates := TIfcOrganizationRelationshipList.Create(false);
+  FEngages := TIfcPersonAndOrganizationList.Create(false);
+end;
+
+destructor TIfcOrganization.Destroy;
+begin
+  FreeAndNil(FAddresses);
+  FreeAndNil(FIsRelatedBy);
+  FreeAndNil(FRelates);
+  FreeAndNil(FEngages);
+  inherited;
+end;
+
+{ TIfcOrganizationRelationship --------------------------------------------- }
+
+constructor TIfcOrganizationRelationship.Create(AOwner: TComponent);
+begin
+  inherited;
+  FRelatedOrganizations := TIfcOrganizationList.Create(false);
+end;
+
+destructor TIfcOrganizationRelationship.Destroy;
+begin
+  FreeAndNil(FRelatedOrganizations);
+  inherited;
+end;
+
 { initialization, finalization ----------------------------------------------- }
 
 procedure InitializeIfcClasses;
@@ -1026,6 +1379,15 @@ begin
     IfcClasses.Add(TIfcShapeModel);
     IfcClasses.Add(TIfcShapeRepresentation);
     IfcClasses.Add(TIfcProductRepresentation);
+    IfcClasses.Add(TIfcStyledItem);
+    IfcClasses.Add(TIfcPresentationLayerAssignment);
+    IfcClasses.Add(TIfcPersonAndOrganization);
+    IfcClasses.Add(TIfcAddress);
+    IfcClasses.Add(TIfcPerson);
+    IfcClasses.Add(TIfcOrganization);
+    IfcClasses.Add(TIfcOrganizationRelationship);
+    IfcClasses.Add(TIfcOwnerHistory);
+    IfcClasses.Add(TIfcApplication);
   end;
 end;
 
