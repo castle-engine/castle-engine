@@ -488,6 +488,18 @@ function IfcJsonSave(const IfcFile: TIfcFile): TJsonObject;
       Result.Add(SerializeJson(List[I]));
   end;
 
+  { Is given ListRaw a list, and it is not empty. }
+  function NonEmptyList(const ListRaw: TObject): Boolean;
+  var
+    List: TIfcPersistentList;
+  begin
+    List := TIfcPersistentList(ListRaw);
+    Result :=
+      (List <> nil) and
+      ClassNameOfList(List.ClassName) and
+      (List.Count <> 0);
+  end;
+
   {$ifdef FPC}
     {$pop}
   {$endif}
@@ -499,6 +511,8 @@ function IfcJsonSave(const IfcFile: TIfcFile): TJsonObject;
     PropName, DebugPropName, IfcClassName, JsonKey: String;
     I: Integer;
     IfcObjProperty: TObject;
+    PropType: TPropertyType;
+    HasDefaultValue: Boolean;
   begin
     Result := TJsonObject.Create;
 
@@ -522,11 +536,21 @@ function IfcJsonSave(const IfcFile: TIfcFile): TJsonObject;
         Assert(JsonKey <> 'type', 'Property name "type" is reserved for IFC');
         JsonKey[1] := LoCase(JsonKey[1]); // IFC wants camelCase not PascalCase
 
-        // TODO: do not save when property value is default.
-        // Assumes: are strings always '' by default in IFC?
+        PropType := PropertyType(PropInfo);
+
+        HasDefaultValue := PropertyHasDefaultValue(Ifc, PropInfo) and
+          (not (PropType in [ptInstance, ptOther]));
+        { For simple types (strings, numbers, booleans) we don't save
+          the default value, as it's not necessary (means shorter output,
+          also means we don't save TComponent.Tag = 0 to IFC).
+          For ptInstance, not saving default (nil) is already accounted for
+          in "case" below.
+          For ptOther, let "case" below make warning. }
+        if HasDefaultValue then
+          Continue;
 
         DebugPropName := IfcClassName + '.' + PropName;
-        case PropertyType(PropInfo) of
+        case PropType of
           ptString:
             Result.Add(JsonKey, PropertyGetString(Ifc, PropInfo));
           ptInteger:
@@ -548,8 +572,11 @@ function IfcJsonSave(const IfcFile: TIfcFile): TJsonObject;
                   Result.Add(JsonKey, SerializeJson(TIfcPersistent(IfcObjProperty)))
                 else
                 if ClassNameOfList(IfcObjProperty.ClassName) then
-                  Result.Add(JsonKey, SerializeJsonList(IfcObjProperty))
-                else
+                begin
+                  // don't save empty lists, just for shorter output
+                  if NonEmptyList(IfcObjProperty) then
+                    Result.Add(JsonKey, SerializeJsonList(IfcObjProperty));
+                end else
                   WritelnWarning('IFC', 'IFC field "%s" has unsupported class "%s", ignoring', [
                     DebugPropName,
                     IfcObjProperty.ClassName

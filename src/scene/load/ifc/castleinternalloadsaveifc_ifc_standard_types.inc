@@ -28,6 +28,9 @@
 
     - Publish them as properties in "published" section.
 
+    - Use "default" as usual in Pascal. When the property equals default,
+      it will not be serialized to IFC JSON.
+
     - Properties of any type supported by TPropertyType
       (from CastleInternalRttiUtils) are supported.
       This means
@@ -280,7 +283,7 @@
     property ExtrudedDirection: TIfcDirection read FExtrudedDirection write FExtrudedDirection;
 
     { The distance the surface is to be swept along the ExtrudedDirection. }
-    property Depth: TIfcPositiveLengthMeasure read FDepth write FDepth;
+    property Depth: TIfcPositiveLengthMeasure read FDepth write FDepth {$ifdef FPC}default 0.0{$endif};
   end;
 
   { Most abstract and root class for all entity definitions.
@@ -655,21 +658,23 @@
   published
     { Overall measure of the height, it reflects the Z Dimension of
       a bounding box, enclosing the window opening. }
-    property OverallHeight: TIfcPositiveLengthMeasure read FOverallHeight write FOverallHeight;
+    property OverallHeight: TIfcPositiveLengthMeasure read FOverallHeight write FOverallHeight {$ifdef FPC}default 0.0{$endif};
 
     { Overall measure of the width, it reflects the X Dimension of
       a bounding box, enclosing the window opening. }
-    property OverallWidth: TIfcPositiveLengthMeasure read FOverallWidth write FOverallWidth;
+    property OverallWidth: TIfcPositiveLengthMeasure read FOverallWidth write FOverallWidth {$ifdef FPC}default 0.0{$endif};
 
     { Predefined generic type for a window that is specified in an enumeration.
       By default NotDefined if not specified, we deliberately made NotDefined
       the enum value with memory representation 0 in Pascal. }
-    property PredefinedType: TIfcWindowTypeEnum read FPredefinedType write FPredefinedType;
+    property PredefinedType: TIfcWindowTypeEnum read FPredefinedType write FPredefinedType
+      default TIfcWindowTypeEnum.NotDefined;
 
     { General layout of the window in terms of the partitioning of panels.
       By default NotDefined if not specified, we deliberately made NotDefined
       the enum value with memory representation 0 in Pascal. }
-    property PartitioningType: TIfcWindowTypePartitioningEnum read FPartitioningType write FPartitioningType;
+    property PartitioningType: TIfcWindowTypePartitioningEnum read FPartitioningType write FPartitioningType
+      default TIfcWindowTypePartitioningEnum.NotDefined;
 
     { Shall only be provided, if the value of PartitioningType is set to
       TIfcWindowTypePartitioningEnum.NotDefined. }
