@@ -96,6 +96,30 @@ var
       PropertySetInstance(Ifc, PropInfo, IfcChild);
     end;
 
+    { From elements of JsonChildArray read TVector3 and place it in
+      property PropInfo of Ifc, which must be a TCastleVector3Persistent. }
+    procedure ReadIfcChildVector3(const PropInfo: PPropInfo;
+      const JsonChildArray: TJsonArray);
+    var
+      I: Integer;
+      VectorPersistent: TCastleVector3Persistent;
+      Vector: TVector3;
+    begin
+      VectorPersistent := PropertyGetInstance(Ifc, PropInfo) as TCastleVector3Persistent;
+      if VectorPersistent = nil then
+        raise EInvalidIfc.CreateFmt('Pascal property "%s" is supposed to be a TCastleVector3Persistent, but it is nil', [
+          PropInfo^.Name
+        ]);
+
+      // read JSON array into Vector:TVector3
+      Vector := TVector3.Zero;
+      for I := 0 to 2 do
+        if I < JsonChildArray.Count then
+          Vector.Data[I] := JsonChildArray.Items[I].AsFloat;
+
+      VectorPersistent.Value := Vector;
+    end;
+
     {$ifdef FPC}
       {$push}
       // Disable object check for our TIfcPersistentList cast hack
@@ -110,16 +134,24 @@ var
     var
       I: Integer;
       IfcChild: TIfcPersistent;
+      ListOrVector: TObject;
       List: TIfcPersistentList;
       JsonChildObj: TJsonObject;
     begin
+      ListOrVector := PropertyGetInstance(Ifc, PropInfo);
+      if ListOrVector is TCastleVector3Persistent then
+      begin
+        ReadIfcChildVector3(PropInfo, JsonChildArray);
+        Exit;
+      end;
+
       { Cast to TIfcPersistentList because it is a cheat,
         actually everything is from generic class TObjectList<something specific>
         with "something specific" being a descendant of TIfcPersistent.
         There doesn't seem to be any other way to do this using old RTTI
         (from TypInfo vs new Rtti unit), we need to access this list using
         RTTI to add each member. }
-      List := TIfcPersistentList(PropertyGetInstance(Ifc, PropInfo));
+      List := TIfcPersistentList(ListOrVector);
       if List = nil then
         raise EInvalidIfc.CreateFmt('Pascal property "%s" is supposed to be a list, but it is nil', [
           PropInfo^.Name
@@ -304,7 +336,6 @@ var
         end;
       end;
 
-      // TODO special code to hadnle TVector3 (TIfcDirection.DirectionRatios, TIfcCartesianPoint.Coordinate)
       // TODO: resolve refs
     end;
   end;
@@ -347,6 +378,16 @@ end;
 function IfcJsonSave(const IfcFile: TIfcFile): TJsonObject;
 
   function SerializeJson(const Ifc: TIfcPersistent): TJsonObject; forward;
+
+  { Serialize TVector3 to JSON array. }
+  function SerializeJsonVector3(const Vector: TCastleVector3Persistent): TJsonArray;
+  var
+    I: Integer;
+  begin
+    Result := TJsonArray.Create;
+    for I := 0 to 2 do
+      Result.Add(Vector.Value[I]);
+  end;
 
   {$ifdef FPC}
     {$push}
@@ -421,6 +462,9 @@ function IfcJsonSave(const IfcFile: TIfcFile): TJsonObject;
               if IfcObjProperty <> nil then
               begin
                 // TODO: avoid infinite recursion because of cycles, use ref=xxx
+                if IfcObjProperty is TCastleVector3Persistent then
+                  Result.Add(JsonKey, SerializeJsonVector3(TCastleVector3Persistent(IfcObjProperty)))
+                else
                 if IfcObjProperty is TIfcPersistent then
                   Result.Add(JsonKey, SerializeJson(TIfcPersistent(IfcObjProperty)))
                 else

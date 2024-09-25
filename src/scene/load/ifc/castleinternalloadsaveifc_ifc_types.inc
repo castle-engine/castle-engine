@@ -86,6 +86,17 @@ type
     exception or stream-reading exception. }
   EInvalidIfc = class(Exception);
 
+  { Like TCastleVector3Persistent, but it just contains TVector3,
+    you don't need to provide InternalGetValue, InternalSetValue callbacks. }
+  TCastleVector3PersistentSimple = class(TCastleVector3Persistent)
+  strict private
+    SimpleValue: TVector3;
+    function GetValueSimple: TVector3;
+    procedure SetValueSimple(const AValue: TVector3);
+  public
+    constructor Create(const AOwner: TComponent = nil);
+  end;
+
 {$endif read_interface}
 
 {$ifdef read_implementation}
@@ -147,6 +158,25 @@ begin
   end;
   if Result = nil then
     raise EInvalidIfc.Create('IFC file does not contain any TIfcProject');
+end;
+
+{ TCastleVector3PersistentSimple --------------------------------------------- }
+
+constructor TCastleVector3PersistentSimple.Create(const AOwner: TComponent = nil);
+begin
+  inherited Create(AOwner);
+  InternalGetValue := {$ifdef FPC}@{$endif} GetValueSimple;
+  InternalSetValue := {$ifdef FPC}@{$endif} SetValueSimple;
+end;
+
+function TCastleVector3PersistentSimple.GetValueSimple: TVector3;
+begin
+  Result := SimpleValue;
+end;
+
+procedure TCastleVector3PersistentSimple.SetValueSimple(const AValue: TVector3);
+begin
+  SimpleValue := AValue;
 end;
 
 {$endif read_implementation}

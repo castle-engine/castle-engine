@@ -56,6 +56,15 @@
       is the simplest reliable solution to manage memory.
 
       The list instance is FreeAndNil'ed in destructor.
+
+    - The vector properties should be treated using
+      TCastleVector3PersistentSimple.
+
+      This is similar to regular CGE components,
+      see https://castle-engine.io/custom_components#_publishing_vectors_and_colors ,
+      but a bit simpler: we don't need to define a TVector3 in public section,
+      we define TCastleVector3PersistentSimple in published section,
+      and user code can access it like "MyIfcDirection.DirectionRatios.Value".
 }
 
 {$ifdef read_interface}
@@ -208,22 +217,23 @@
     Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcDirection.htm }
   TIfcDirection = class(TIfcPersistent)
   strict private
-    FDirectionRatios: TVector3;
+    FDirectionRatios: TCastleVector3PersistentSimple;
+
     { TODO: Dim is not explicitly specified in IFC, but it is derived from
       the contents of IFC. Needs special logic, if ever needed in CGE. }
     //FDim: TIfcDimensionCount;
   public
-    { Defined as 2 or 3 values of TIfcReal type.
-      In practice, this is just a 3D vector for our engine.
-      Note: This is serialized / deserialized to IFC, but it cannot be published
-      in Pascal. }
-    property DirectionRatios: TVector3 read FDirectionRatios write FDirectionRatios;
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
 
     { The number of dimensions specified in the IFC file, 2 or 3.
       Regardless of it, DirectionRatios always has the Z value defined:
       we set Z to 0 when it is not defined in IFC. }
     //TODO: property Dim: TIfcDimensionCount read FDim write FDim;
   published
+    { Defined as 2 or 3 values of TIfcReal type.
+      In practice, this is just a 3D vector for our engine. }
+    property DirectionRatios: TCastleVector3PersistentSimple read FDirectionRatios;
   end;
 
   { Common supertype of all geometric items used within a representation.
@@ -343,13 +353,13 @@
     Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcCartesianPoint.htm }
   TIfcCartesianPoint = class(TIfcPoint)
   strict private
-    FCoordinates: TVector3;
+    FCoordinates: TCastleVector3PersistentSimple;
   public
-    { Actual 3D point value.
-      Note: This is serialized / deserialized to IFC, but it cannot be published
-      in Pascal. }
-    property Coordinates: TVector3 read FCoordinates write FCoordinates;
-  //published
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+  published
+    { Actual 3D point value. }
+    property Coordinates: TCastleVector3PersistentSimple read FCoordinates;
   end;
 
   { Abstract supertype of placement subtypes that define the location of an item,
@@ -930,6 +940,34 @@ end;
 destructor TIfcRelContainedInSpatialStructure.Destroy;
 begin
   FreeAndNil(FRelatedElements);
+  inherited;
+end;
+
+{ TIfcCartesianPoint -------------------------------------------------------- }
+
+constructor TIfcCartesianPoint.Create(AOwner: TComponent);
+begin
+  inherited;
+  FCoordinates := TCastleVector3PersistentSimple.Create;
+end;
+
+destructor TIfcCartesianPoint.Destroy;
+begin
+  FreeAndNil(FCoordinates);
+  inherited;
+end;
+
+{ TIfcDirection ------------------------------------------------------------- }
+
+constructor TIfcDirection.Create(AOwner: TComponent);
+begin
+  inherited;
+  FDirectionRatios := TCastleVector3PersistentSimple.Create;
+end;
+
+destructor TIfcDirection.Destroy;
+begin
+  FreeAndNil(FDirectionRatios);
   inherited;
 end;
 
