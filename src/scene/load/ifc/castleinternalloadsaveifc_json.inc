@@ -244,44 +244,42 @@ var
       {$objectchecks off}
     {$endif}
 
-    { For all elements on JsonChildArray create and read Pascal class,
-      and add it to property PropInfo of Ifc,
-      which should be a list descendant. }
-    procedure ReadIfcChildArray(const PropInfo: PPropInfo;
-      const JsonChildArray: TJsonArray);
-    var
-      I: Integer;
-      IfcChild: TIfcPersistent;
-      ListOrVector: TObject;
-      List: TIfcPersistentList;
-      JsonChildObj: TJsonObject;
+    { Get the list property from PropInfo as TIfcPersistentList. }
+    function GetListProperty(const PropInfo: PPropInfo): TIfcPersistentList;
     begin
-      ListOrVector := PropertyGetInstance(Ifc, PropInfo);
-      if ListOrVector is TCastleVector3Persistent then
-      begin
-        ReadIfcChildVector3(PropInfo, JsonChildArray);
-        Exit;
-      end;
-
       { Cast to TIfcPersistentList because it is a cheat,
         actually everything is from generic class TObjectList<something specific>
         with "something specific" being a descendant of TIfcPersistent.
         There doesn't seem to be any other way to do this using old RTTI
         (from TypInfo vs new Rtti unit), we need to access this list using
         RTTI to add each member. }
-      List := TIfcPersistentList(ListOrVector);
-      if List = nil then
+      Result := TIfcPersistentList(PropertyGetInstance(Ifc, PropInfo));
+      if Result = nil then
         raise EInvalidIfc.CreateFmt('Pascal property "%s" is supposed to be a list, but it is nil', [
           PropInfo^.Name
         ]);
 
       { To be at least a bit safer, we check whether class name looks like a list.
         This is satisfied by all lists in castleinternalloadsaveifc_ifc_types.inc. }
-      if not ClassNameOfList(List.ClassName) then
+      if not ClassNameOfList(Result.ClassName) then
         raise EInvalidIfc.CreateFmt('Pascal property "%s" is supposed to be a list, but the class name does not end with "List": %s', [
           PropInfo^.Name,
-          List.ClassName
+          Result.ClassName
         ]);
+    end;
+
+    { For all elements on JsonChildArray create and read Pascal class,
+      and add it to property PropInfo of Ifc,
+      which should be a list descendant. }
+    procedure ReadIfcChildArray(const PropInfo: PPropInfo;
+      const JsonChildArray: TJsonArray);
+    var
+      List: TIfcPersistentList;
+      I: Integer;
+      IfcChild: TIfcPersistent;
+      JsonChildObj: TJsonObject;
+    begin
+      List := GetListProperty(PropInfo);
 
       for I := 0 to JsonChildArray.Count - 1 do
       begin
@@ -300,6 +298,24 @@ var
       end;
     end;
 
+    { Read one JSON object, add it as the only item to the list property PropInfo of Ifc.
+
+      This is sometimes used by IFC JSON, see
+      https://github.com/buildingSMART/Sample-Test-Files/blob/master/IFC%204.0/BuildingSMARTSpec/wall-with-opening-and-window.json#L70
+      where "isDecomposedBy" (a list of IfcRelAggregates) is just a single
+      instance of IfcRelAggregates. }
+    procedure ReadIfcChildArrayOneItem(const PropInfo: PPropInfo;
+      const JsonChildObj: TJsonObject);
+    var
+      List: TIfcPersistentList;
+      IfcChild: TIfcPersistent;
+    begin
+      List := GetListProperty(PropInfo);
+      IfcChild := CreateIfcInstance(JsonChildObj);
+      if IfcChild <> nil then // if nil, then CreateIfcInstance already made warning
+        List.Add(IfcChild);
+    end;
+
     {$ifdef FPC}
       {$pop}
     {$endif}
@@ -308,6 +324,7 @@ var
     I: Integer;
     JsonKey: String;
     PropInfo: PPropInfo;
+    CurrentInstance: TObject;
   begin
     for I := 0 to Json.Count - 1 do
     begin
@@ -338,12 +355,22 @@ var
             PropertySetFloat(Ifc, PropInfo, JsonToFloat(Json.Items[I], DebugJsonKey));
           ptInstance:
             begin
+              CurrentInstance := PropertyGetInstance(Ifc, PropInfo);
               if Json.Items[I] is TJsonObject then
-                ReadIfcChildInstance(PropInfo, Json.Items[I] as TJsonObject)
-              else
+              begin
+                if (CurrentInstance <> nil) and
+                    ClassNameOfList(CurrentInstance.ClassName) then
+                  ReadIfcChildArrayOneItem(PropInfo, Json.Items[I] as TJsonObject)
+                else
+                  ReadIfcChildInstance(PropInfo, Json.Items[I] as TJsonObject)
+              end else
               if Json.Items[I] is TJsonArray then
-                ReadIfcChildArray(PropInfo, Json.Items[I] as TJsonArray)
-              else
+              begin
+                if CurrentInstance is TCastleVector3Persistent then
+                  ReadIfcChildVector3(PropInfo, Json.Items[I] as TJsonArray)
+                else
+                  ReadIfcChildArray(PropInfo, Json.Items[I] as TJsonArray)
+              end else
               begin
                 WritelnWarning('IFC', 'IFC type "%s" expected to be a JSON object or array (because it is a Pascal class), ignoring', [
                   DebugJsonKey
