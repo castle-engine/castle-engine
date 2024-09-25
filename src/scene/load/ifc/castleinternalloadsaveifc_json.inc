@@ -52,6 +52,90 @@ begin
     IsPrefix('TObjectList<', PotentialListClassName, false);
 end;
 
+(*Convert JSON value from IFC to string.
+  Accounts both for values specified directly, e.g.
+
+    "name": "Default Building",
+    "description": "Description of Default Building",
+
+  and wrapped in JSON objects using IfcLabel or IfcText, e.g.
+
+    "name" : {
+      "type" : "IfcLabel",
+      "value" : "Default Building"
+    },
+    "description" : {
+      "type" : "IfcText",
+      "value" : "Description of Default Building"
+    },
+
+  Both forms are found in practice, see
+  https://github.com/buildingSMART/Sample-Test-Files/blob/master/IFC%204.0/BuildingSMARTSpec/wall-with-opening-and-window.json
+  and a version of it imported + exported by Bonsai BIM.
+*)
+function JsonToString(const JsonValue: TJsonData; const DebugJsonKey: String): String;
+var
+  JsonObj: TJsonObject;
+  JsonObjType: String;
+begin
+  if JsonValue is TJsonObject then
+  begin
+    JsonObj := JsonValue as TJsonObject;
+    JsonObjType := JsonObj.Get('type', '');
+    if (JsonObjType = 'IfcLabel') or
+        (JsonObjType = 'IfcText') then
+      Result := JsonObj.Get('value', '')
+    else
+    begin
+      WritelnWarning('IFC', 'IFC field "%s" is a JSON object, but not of type "IfcLabel" or "IfcText", ignoring', [
+        DebugJsonKey
+      ]);
+      Result := '';
+    end;
+  end else
+    Result := JsonValue.AsString;
+end;
+
+(*Convert JSON value from IFC to string.
+  Account for both wrapped and not values:
+
+    "elevation": 0.0,
+
+  or
+
+    "elevation" : {
+      "type" : "IfcLengthMeasure",
+      "value" : 0.0
+    }
+
+  Both forms are found in practice, see
+  https://github.com/buildingSMART/Sample-Test-Files/blob/master/IFC%204.0/BuildingSMARTSpec/wall-with-opening-and-window.json
+  and a version of it imported + exported by Bonsai BIM.
+*)
+function JsonToFloat(const JsonValue: TJsonData; const DebugJsonKey: String): Single;
+var
+  JsonObj: TJsonObject;
+  JsonObjType: String;
+begin
+  if JsonValue is TJsonObject then
+  begin
+    JsonObj := JsonValue as TJsonObject;
+    JsonObjType := JsonObj.Get('type', '');
+    if (JsonObjType = 'IfcPositiveLengthMeasure') or
+        (JsonObjType = 'IfcLengthMeasure') or
+        (JsonObjType = 'IfcReal') then
+      Result := JsonObj.Get('value', 0.0)
+    else
+    begin
+      WritelnWarning('IFC', 'IFC field "%s" is a JSON object, but not of type "IfcReal" or "IfcLengthMeasure" or "IfcPositiveLengthMeasure", ignoring', [
+        DebugJsonKey
+      ]);
+      Result := 0.0;
+    end;
+  end else
+    Result := JsonValue.AsFloat;
+end;
+
 function IfcJsonLoad(const Json: TJsonData): TIfcFile;
 var
   { All TIfcPersistent instances are created with this owner.
@@ -149,7 +233,7 @@ var
       Vector := TVector3.Zero;
       for I := 0 to 2 do
         if I < JsonChildArray.Count then
-          Vector.Data[I] := JsonChildArray.Items[I].AsFloat;
+          Vector.Data[I] := JsonToFloat(JsonChildArray.Items[I], DebugJsonKey);
 
       VectorPersistent.Value := Vector;
     end;
@@ -220,90 +304,6 @@ var
       {$pop}
     {$endif}
 
-    (*Convert JSON value from IFC to string.
-      Accounts both for values specified directly, e.g.
-
-        "name": "Default Building",
-        "description": "Description of Default Building",
-
-      and wrapped in JSON objects using IfcLabel or IfcText, e.g.
-
-        "name" : {
-          "type" : "IfcLabel",
-          "value" : "Default Building"
-        },
-        "description" : {
-          "type" : "IfcText",
-          "value" : "Description of Default Building"
-        },
-
-      Both forms are found in practice, see
-      https://github.com/buildingSMART/Sample-Test-Files/blob/master/IFC%204.0/BuildingSMARTSpec/wall-with-opening-and-window.json
-      and a version of it imported + exported by Bonsai BIM.
-    *)
-    function JsonToString(const JsonValue: TJsonData): String;
-    var
-      JsonObj: TJsonObject;
-      JsonObjType: String;
-    begin
-      if JsonValue is TJsonObject then
-      begin
-        JsonObj := JsonValue as TJsonObject;
-        JsonObjType := JsonObj.Get('type', '');
-        if (JsonObjType = 'IfcLabel') or
-           (JsonObjType = 'IfcText') then
-          Result := JsonObj.Get('value', '')
-        else
-        begin
-          WritelnWarning('IFC', 'IFC field "%s" is a JSON object, but not of type "IfcLabel" or "IfcText", ignoring', [
-            DebugJsonKey
-          ]);
-          Result := '';
-        end;
-      end else
-        Result := JsonValue.AsString;
-    end;
-
-    (*Convert JSON value from IFC to string.
-      Account for both wrapped and not values:
-
-        "elevation": 0.0,
-
-      or
-
-        "elevation" : {
-          "type" : "IfcLengthMeasure",
-          "value" : 0.0
-        }
-
-      Both forms are found in practice, see
-      https://github.com/buildingSMART/Sample-Test-Files/blob/master/IFC%204.0/BuildingSMARTSpec/wall-with-opening-and-window.json
-      and a version of it imported + exported by Bonsai BIM.
-    *)
-    function JsonToFloat(const JsonValue: TJsonData): Single;
-    var
-      JsonObj: TJsonObject;
-      JsonObjType: String;
-    begin
-      if JsonValue is TJsonObject then
-      begin
-        JsonObj := JsonValue as TJsonObject;
-        JsonObjType := JsonObj.Get('type', '');
-        if (JsonObjType = 'IfcPositiveLengthMeasure') or
-           (JsonObjType = 'IfcLengthMeasure') or
-           (JsonObjType = 'IfcReal') then
-          Result := JsonObj.Get('value', 0.0)
-        else
-        begin
-          WritelnWarning('IFC', 'IFC field "%s" is a JSON object, but not of type "IfcReal" or "IfcLengthMeasure" or "IfcPositiveLengthMeasure", ignoring', [
-            DebugJsonKey
-          ]);
-          Result := 0.0;
-        end;
-      end else
-        Result := JsonValue.AsFloat;
-    end;
-
   var
     I: Integer;
     JsonKey: String;
@@ -329,13 +329,13 @@ var
       try
         case PropertyType(PropInfo) of
           ptString:
-            PropertySetString(Ifc, PropInfo, JsonToString(Json.Items[I]));
+            PropertySetString(Ifc, PropInfo, JsonToString(Json.Items[I], DebugJsonKey));
           ptInteger:
             PropertySetInteger(Ifc, PropInfo, Json.Items[I].AsInt64);
           ptBoolean:
             PropertySetBoolean(Ifc, PropInfo, Json.Items[I].AsBoolean);
           ptFloat:
-            PropertySetFloat(Ifc, PropInfo, JsonToFloat(Json.Items[I]));
+            PropertySetFloat(Ifc, PropInfo, JsonToFloat(Json.Items[I], DebugJsonKey));
           ptInstance:
             begin
               if Json.Items[I] is TJsonObject then
