@@ -136,7 +136,7 @@ function LoadIfc(const Stream: TStream; const BaseUrl: String): TX3DRootNode;
     JsonString: String;
     Stream: TStream;
   begin
-    Stream := UrlSaveStream(ExtractUriPath(BaseUrl) + 'debug.ifcjson');
+    Stream := UrlSaveStream(DeleteUriExt(BaseUrl) + '-debug-roundtrip.ifcjson');
     try
       JsonObj := IfcJsonSave(IfcFile);
       try
