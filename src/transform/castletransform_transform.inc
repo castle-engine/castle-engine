@@ -2113,7 +2113,7 @@
           You can then @url(https://castle-engine.io/reuse_design reuse designs)
           using the @link(TCastleTransformDesign) component.
           This is the way to reliably save and restore 100% of published
-          properties of TCastleTransform and its descendants.)
+          properties of TCastleTransform and its descendants.
         )
 
         @item(The export is not complete, and it will never be.
