@@ -127,7 +127,7 @@ begin
     do not treat huge "time passed" as meaningful in next Update.
     Note: MaxSensibleSecondsPassed would limit this problem anyway,
     but still it's better to just make it zero. }
-  Window.Fps.ZeroNextSecondsPassed;
+  Window.Container.Fps.ZeroNextSecondsPassed;
 
   { create OpenGL context, run OnOpen events and so on }
   Window.Open;
