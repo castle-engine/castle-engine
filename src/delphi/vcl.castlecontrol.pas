@@ -243,6 +243,9 @@ end;
 
 function TCastleControl.DoMouseWheel(Shift: TShiftState; WheelDelta: Integer;
   MousePos: TPoint): Boolean;
+var
+  Scroll: Single;
+  Vertical: Boolean;
 begin
   Scroll := WheelDelta / 120;
   Vertical := true; // only vertical scrolling is reported here

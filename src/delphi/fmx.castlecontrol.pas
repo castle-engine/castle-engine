@@ -625,6 +625,9 @@ end;
 
 procedure TCastleControl.MouseWheel(Shift: TShiftState; WheelDelta: Integer;
   var Handled: Boolean);
+var
+  Scroll: Single;
+  Vertical: Boolean;
 begin
   if not Handled then
   begin
