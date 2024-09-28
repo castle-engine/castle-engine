@@ -304,6 +304,7 @@ begin
   Viewport.FullSize := true;
   Viewport.OnCameraChanged := @BrowserCameraChanged;
   Viewport.Camera.Add(TCastleDirectionalLight.Create(Self)); // headlight
+  Viewport.PreventInfiniteFallingDown := true;
   Browser.Controls.InsertFront(Viewport);
 
   RecentFiles := TCastleRecentFiles.Create(Self);
