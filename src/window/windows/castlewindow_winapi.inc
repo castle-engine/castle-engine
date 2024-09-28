@@ -694,6 +694,7 @@ function TCastleWindow.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM): LRE
 
 var
   DoEnableUpdatesFromWindowProc, DoDisableUpdatesFromWindowProc: boolean;
+  CorrectMousePressed: TCastleMouseButtons;
 begin
   Result := 0;
 
@@ -888,16 +889,20 @@ begin
 
     WM_MOUSEMOVE:
       begin
-        { We could refresh FMousePressed now:
-            FMousePressed := [];
-            if (MK_LBUTTON and wParm) <> 0 then Include(FMousePressed, buttonLeft);
-            if (MK_MBUTTON and wParm) <> 0 then Include(FMousePressed, buttonMiddle);
-            if (MK_RBUTTON and wParm) <> 0 then Include(FMousePressed, buttonRight);
-          but it's not needed (we keep it current anyway in mousedown/up events). }
+        { Our DoMouseDown/Up should keep the Container.MousePressed updated,
+          making the information from "MK_LBUTTON and wParm" etc. redundant.
+          But check it, to be sure. }
+        CorrectMousePressed := [];
+        if (MK_LBUTTON and wParm) <> 0 then Include(CorrectMousePressed, buttonLeft);
+        if (MK_MBUTTON and wParm) <> 0 then Include(CorrectMousePressed, buttonMiddle);
+        if (MK_RBUTTON and wParm) <> 0 then Include(CorrectMousePressed, buttonRight);
+        if CorrectMousePressed <> Container.MousePressed then
+          WritelnWarning('Container.MousePressed not up-to-date with Windows messages when calling DoMotion');
+
         DoMotion(InputMotion(MousePosition, LeftTopToCastle(
           TWinParam(lParm).LoSmallint,
           TWinParam(lParm).HiSmallint),
-          MousePressed, 0));
+          Container.MousePressed, 0));
         Exit;
       end;
     WM_LBUTTONDOWN: begin HandleMouseDown(buttonLeft  ); Exit end;
@@ -1126,7 +1131,7 @@ procedure TCastleWindow.OpenBackend;
   begin
     if GetCursorPos({$ifdef FPC}@{$endif}InitialCursorPos) then
     begin
-      FMousePosition := LeftTopToCastle(
+      Container.InitializeMousePosition := LeftTopToCastle(
         InitialCursorPos.X - ClientRect.Left,
         InitialCursorPos.Y - ClientRect.Top);
     end;
@@ -1332,7 +1337,7 @@ begin
   end;
 end;
 
-procedure TCastleWindow.SetMousePosition(const Value: TVector2);
+procedure TCastleWindow.SystemSetMousePosition(const Value: TVector2);
 
   { Perform similar function as WinAPI SetCursorPos (set cursor position,
     given absolute screen coordinates), but using SendInput WinAPI call.
@@ -1375,16 +1380,8 @@ procedure TCastleWindow.SetMousePosition(const Value: TVector2);
 var
   P: TVector2Integer;
 begin
-  if not Closed then
-  begin
-
-    { Do not set Mouse.CursorPos to the same value, to make sure we don't cause
-      unnecessary OnMotion on some systems while actual MousePosition didn't change. }
-    if TVector2.PerfectlyEquals(Value, FMousePosition) then Exit;
-
-    P := CastleToLeftTopInt(Value);
-    SetCursorPosBySendInput(Left + P.X, Top + P.Y);
-  end;
+  P := CastleToLeftTopInt(Value);
+  SetCursorPosBySendInput(Left + P.X, Top + P.Y);
 end;
 
 procedure TCastleWindow.CloseBackend;

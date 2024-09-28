@@ -762,13 +762,13 @@ type
   @groupBegin }
 function InputKey(const Position: TVector2; const Key: TKey;
   const KeyString: string;
-  const ModifiersDown: TModifierKeys = []): TInputPressRelease;
+  const ModifiersDown: TModifierKeys): TInputPressRelease;
 function InputMouseButton(const Position: TVector2;
   const MouseButton: TCastleMouseButton; const FingerIndex: TFingerIndex;
-  const ModifiersDown: TModifierKeys = []): TInputPressRelease;
+  const ModifiersDown: TModifierKeys): TInputPressRelease;
 function InputMouseWheel(const Position: TVector2;
   const Scroll: Single; const Vertical: Boolean;
-  const ModifiersDown: TModifierKeys = []): TInputPressRelease;
+  const ModifiersDown: TModifierKeys): TInputPressRelease;
 { @groupEnd }
 
 { Construct TInputMotion. }

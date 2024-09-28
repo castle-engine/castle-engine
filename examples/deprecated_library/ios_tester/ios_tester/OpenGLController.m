@@ -277,7 +277,7 @@
     }
     else if (sender.state == UIGestureRecognizerStateEnded)
     {
-        CGE_MouseUp(pt.x, pt.y, true, 0, false);
+        CGE_MouseUp(pt.x, pt.y, true, 0);
         m_bIsPanning = false;
     }
 }
@@ -291,7 +291,7 @@
     [self RecalcTouchPosForCGE:&pt];
 
     CGE_MouseDown(pt.x, pt.y, true, 0);
-    CGE_MouseUp(pt.x, pt.y, true, 0, false);
+    CGE_MouseUp(pt.x, pt.y, true, 0);
 }
 
 //-----------------------------------------------------------------
@@ -360,7 +360,7 @@
 
         CGPoint pt = [touch locationInView:self.view];
         [self RecalcTouchPosForCGE:&pt];
-        CGE_MouseUp(pt.x, pt.y, true, (int)nFingerIdx, false);
+        CGE_MouseUp(pt.x, pt.y, true, (int)nFingerIdx);
     }
 
     [super touchesEnded:touches withEvent:event];
@@ -378,7 +378,7 @@
 
         CGPoint pt = [touch locationInView:self.view];
         [self RecalcTouchPosForCGE:&pt];
-        CGE_MouseUp(pt.x, pt.y, true, (int)nFingerIdx, false);
+        CGE_MouseUp(pt.x, pt.y, true, (int)nFingerIdx);
     }
 
     [super touchesCancelled:touches withEvent:event];

@@ -381,20 +381,12 @@ begin
   end;
 end;
 
-procedure TCastleWindow.SetMousePosition(const Value: TVector2);
+procedure TCastleWindow.SystemSetMousePosition(const Value: TVector2);
 var
   P: TVector2Integer;
 begin
-  if not Closed then
-  begin
-
-    { Do not set Mouse.CursorPos to the same value, to make sure we don't cause
-      unnecessary OnMotion on some systems while actual MousePosition didn't change. }
-    if TVector2.PerfectlyEquals(Value, FMousePosition) then Exit;
-
-    P := CastleToLeftTopInt(Value);
-    XWarpPointer(Application.XDisplay, X.None, WindowXID, 0, 0, 0, 0, P.X, P.Y);
-  end;
+  P := CastleToLeftTopInt(Value);
+  XWarpPointer(Application.XDisplay, X.None, WindowXID, 0, 0, 0, 0, P.X, P.Y);
 end;
 
 procedure TCastleWindow.CreateBackend;

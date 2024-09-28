@@ -174,15 +174,10 @@ begin
     { TODO: call LibraryCallbackProc to change caption to GetWholeCaption };
 end;
 
-procedure TCastleWindow.SetMousePosition(const Value: TVector2);
+procedure TCastleWindow.SystemSetMousePosition(const Value: TVector2);
 begin
-  if (not Closed) and Assigned(LibraryCallbackProc) then
+  if Assigned(LibraryCallbackProc) then
   begin
-
-    { Do not set Mouse.CursorPos to the same value, to make sure we don't cause
-      unnecessary OnMotion on some systems while actual MousePosition didn't change. }
-    if TVector2.PerfectlyEquals(Value, FMousePosition) then Exit;
-
     LibraryCallbackProc(ecgelibSetMousePosition, Floor(Value[0]), Floor(Value[1]), nil);
   end;
 end;
@@ -488,12 +483,12 @@ end;
 
 procedure CGEApp_MouseDown(X, Y: CInt32; bLeftBtn: cBool; FingerIndex: CInt32); cdecl;
 var
-  MyButton: TCastleMouseButton;
+  CastleButton: TCastleMouseButton;
 begin
   try
     CheckMainWindow;
-    if (bLeftBtn) then MyButton := buttonLeft else MyButton := buttonRight;
-    Application.MainWindow.DoMouseDown(Vector2(X, Y), MyButton, FingerIndex);
+    if (bLeftBtn) then CastleButton := buttonLeft else CastleButton := buttonRight;
+    Application.MainWindow.DoMouseDown(Vector2(X, Y), CastleButton, FingerIndex);
   except
     on E: TObject do WritelnWarning('CGEApp_MouseDown', ExceptMessage(E));
   end;
@@ -515,17 +510,17 @@ begin
 end;
 
 procedure CGEApp_MouseUp(X, Y: cInt32; bLeftBtn: cBool;
-  FingerIndex: CInt32; TrackReleased: cBool); cdecl;
+  FingerIndex: CInt32); cdecl;
 var
-  MyButton: TCastleMouseButton;
+  CastleButton: TCastleMouseButton;
 begin
   try
     CheckMainWindow;
     if bLeftBtn then
-      MyButton := buttonLeft
+      CastleButton := buttonLeft
     else
-      MyButton := buttonRight;
-    Application.MainWindow.DoMouseUp(Vector2(X, Y), MyButton, FingerIndex, TrackReleased);
+      CastleButton := buttonRight;
+    Application.MainWindow.DoMouseUp(Vector2(X, Y), CastleButton, FingerIndex);
   except
     on E: TObject do WritelnWarning('CGEApp_MouseUp', ExceptMessage(E));
   end;

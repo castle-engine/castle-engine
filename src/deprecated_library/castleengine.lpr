@@ -298,11 +298,11 @@ begin
 end;
 
 procedure CGE_MouseUp(X, Y: cInt32; bLeftBtn: cBool;
-  FingerIndex: CInt32; TrackReleased: cBool); cdecl;
+  FingerIndex: CInt32); cdecl;
 begin
   try
     if not CGE_VerifyWindow('CGE_MouseUp') then exit;
-    CGEApp_MouseUp(X, Y, bLeftBtn, FingerIndex, TrackReleased);
+    CGEApp_MouseUp(X, Y, bLeftBtn, FingerIndex);
   except
     on E: TObject do WritelnWarning('Window', 'CGE_MouseUp: ' + ExceptMessage(E));
   end;

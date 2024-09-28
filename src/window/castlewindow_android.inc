@@ -697,14 +697,12 @@ begin
   Result := true;
 end;
 
-procedure TCastleWindow.SetMousePosition(const Value: TVector2);
+procedure TCastleWindow.SystemSetMousePosition(const Value: TVector2);
 begin
   { There is no cursor position on Android devices.
     Just update MousePosition (although we're not really required to
     do this, code using SetMousePosition should not depend that
     it was always successful). }
-  if not Closed then
-    FMousePosition := Value;
 end;
 
 procedure TCastleWindow.UpdateFullScreenBackend;
@@ -800,7 +798,7 @@ begin
               MainWindow.DoMouseDown(QEvent.Touch.Position, buttonLeft, QEvent.FingerIndex);
           aeMotionUp  :
             if not MainWindow.Closed then
-              MainWindow.DoMouseUp  (QEvent.Touch.Position, buttonLeft, QEvent.FingerIndex, false);
+              MainWindow.DoMouseUp  (QEvent.Touch.Position, buttonLeft, QEvent.FingerIndex);
           aeMotionMove:
             if not MainWindow.Closed then
               MainWindow.DoMotion   (InputMotion(QEvent.Touch.OldPosition, QEvent.Touch.Position, [buttonLeft], QEvent.FingerIndex));

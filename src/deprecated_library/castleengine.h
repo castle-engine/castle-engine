@@ -232,21 +232,21 @@ enum ECgeKey    // values for these constants have to be same as in unit CastleK
 
 enum ECgeMouseButton
 {
-  ecgemouseButtonNone   = 0,  
-  ecgemouseButtonLeft   = 1,  
-  ecgemouseButtonMiddle = 2,  
-  ecgemouseButtonRight  = 3,  
-  ecgemouseButtonExtra1 = 4,  
-  ecgemouseButtonExtra2 = 5,  
+  ecgemouseButtonNone   = 0,
+  ecgemouseButtonLeft   = 1,
+  ecgemouseButtonMiddle = 2,
+  ecgemouseButtonRight  = 3,
+  ecgemouseButtonExtra1 = 4,
+  ecgemouseButtonExtra2 = 5,
 };
 
 enum ECgeMouseWheelDirection
 {
-  ecgemouseWheelNone    = 0,  
-  ecgemouseWheelUp      = 1,  
-  ecgemouseWheelDown    = 2,  
-  ecgemouseWheelLeft    = 3,  
-  ecgemouseWheelRight   = 4,  
+  ecgemouseWheelNone    = 0,
+  ecgemouseWheelUp      = 1,
+  ecgemouseWheelDown    = 2,
+  ecgemouseWheelLeft    = 3,
+  ecgemouseWheelRight   = 4,
 };
 
 enum ECgeNavigationInput
@@ -304,7 +304,7 @@ extern void CGE_Update(void);                                                  /
 
 extern void CGE_MouseDown(int x, int y, bool bLeftBtn, int nFingerIdx);    // [0,0] is the bottom-left corner!
 extern void CGE_Motion(int x, int y, int nFingerIdx);
-extern void CGE_MouseUp(int x, int y, bool bLeftBtn, int nFingerIdx, bool trackReleased);
+extern void CGE_MouseUp(int x, int y, bool bLeftBtn, int nFingerIdx);
 extern void CGE_MouseWheel(float zDelta, bool bVertical);
 
 extern void CGE_KeyDown(int /*ECgeKey*/ eKey);
