@@ -882,7 +882,7 @@ begin
           there's no WinAPI event for this. But we can as well call this when user enters
           the menu, because of blocking above --- it will have the same effect, since
           DoUpdate is not called inside the menu. }
-        Fps.ZeroNextSecondsPassed;
+        Container.Fps.ZeroNextSecondsPassed;
 
         Exit;
       end;
@@ -899,7 +899,7 @@ begin
         if CorrectMousePressed <> Container.MousePressed then
           WritelnWarning('Container.MousePressed not up-to-date with Windows messages when calling DoMotion');
 
-        DoMotion(InputMotion(MousePosition, LeftTopToCastle(
+        DoMotion(InputMotion(Container.MousePosition, LeftTopToCastle(
           TWinParam(lParm).LoSmallint,
           TWinParam(lParm).HiSmallint),
           Container.MousePressed, 0));
@@ -1131,9 +1131,9 @@ procedure TCastleWindow.OpenBackend;
   begin
     if GetCursorPos({$ifdef FPC}@{$endif}InitialCursorPos) then
     begin
-      Container.InitializeMousePosition := LeftTopToCastle(
+      Container.InitializeMousePosition(LeftTopToCastle(
         InitialCursorPos.X - ClientRect.Left,
-        InitialCursorPos.Y - ClientRect.Top);
+        InitialCursorPos.Y - ClientRect.Top));
     end;
   end;
 
