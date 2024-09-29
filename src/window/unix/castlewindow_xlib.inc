@@ -580,15 +580,17 @@ function TCastleWindow.HandleXEvent(const Event: TXEvent): boolean;
 
   procedure X_MotionNotify(const xEvent: TXMotionEvent);
   begin
-    { We could refresh MousePressed now. But no need for now?
-    mousePressed:=[];
-    if (Button1Mask and event.state) <> 0 then Include(mousePressed, buttonLeft);
-    if (Button2Mask and event.state) <> 0 then Include(mousePressed, buttonMiddle);
-    if (Button3Mask and event.state) <> 0 then Include(mousePressed, buttonRight);
+    { We could refresh Container.MousePressed now. But no need for now?
+    NewMousePressed : = [];
+    if (Button1Mask and event.state) <> 0 then Include(NewMousePressed, buttonLeft);
+    if (Button2Mask and event.state) <> 0 then Include(NewMousePressed, buttonMiddle);
+    if (Button3Mask and event.state) <> 0 then Include(NewMousePressed, buttonRight);
+    // and synchronize with Container.MousePressed, just like castlewindow_winapi.inc does
     }
-    DoMotion(InputMotion(MousePosition,
+
+    DoMotion(InputMotion(Container.MousePosition,
       LeftTopToCastle(xEvent.x, xEvent.y),
-      MousePressed, 0));
+      Container.MousePressed, 0));
   end;
 
   procedure X_FocusOut(const xEvent: TXFocusOutEvent);

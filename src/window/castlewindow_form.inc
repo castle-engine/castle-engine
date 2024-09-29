@@ -1337,8 +1337,8 @@ procedure TCastleWindow.OpenGLControlMouseMove(Sender: TObject;
   Shift: TShiftState;
   X, Y: {$ifdef FPC} Integer {$else} Single {$endif});
 begin
-  DoMotion(InputMotion(MousePosition, MousePosToCastle(X, Y),
-    MousePressed, 0));
+  DoMotion(InputMotion(Container.MousePosition, MousePosToCastle(X, Y),
+    Container.MousePressed, 0));
 
   {$ifdef FPC}
   { On LCL, we need to call ProcessTasks often,

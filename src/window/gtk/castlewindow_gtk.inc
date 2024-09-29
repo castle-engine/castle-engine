@@ -539,7 +539,7 @@ function signal_motion_notify_event(AGLAreaGtk: PGtkGLArea; Event: PGdkEventMoti
   data: gpointer): gboolean; cdecl;
 SIGNAL_GLAREA_BEGIN
   DoMotion(InputMotion(Container.MousePosition,
-    LeftTopToCastle(Event^.x, Event^.y), MousePressed, 0));
+    LeftTopToCastle(Event^.x, Event^.y), Container.MousePressed, 0));
   Result := gtrue;
 SIGNAL_GLAREA_END;
 

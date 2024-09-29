@@ -765,9 +765,9 @@ type
       Below is the detailed specification, but summing some things up
       you don't have to worry about these things when you use DoXxx methods
       (these things are fully handled by DoXxx methods):
-      - updating state of MousePressed
-      - updating state of Pressed (Pressed.Keys, Pressed.Characters etc.)
-      - updating state of MousePosition
+      - updating state of Container.MousePressed
+      - updating state of Container.Pressed (Pressed.Keys, Pressed.Characters etc.)
+      - updating state of Container.MousePosition
       - calling MakeCurrent before every EventXxx
       - flushing gl commands (and swapping gl buffers when DoubleBuffer'ing)
       - taking care of AutoRedisplay
@@ -2870,7 +2870,7 @@ begin
       DoKeyUp(Key);
 
   for MouseButton := Low(MouseButton) to High(MouseButton) do
-    if MouseButton in MousePressed then
+    if MouseButton in Container.MousePressed then
       DoMouseUp(Container.MousePosition, MouseButton, 0);
 
   Container.MouseLookIgnoreNextMotion;

@@ -60,7 +60,7 @@ private
   type
     { On Android, we have to track previous touch positions using our
       own structure, instead of relying on
-      MainWindow.FTouches.FingerIndexPosition[FingerIndex].
+      MainWindow.Container.Touches.FingerIndexPosition[FingerIndex].
 
       Reason: DoMotion is not immediately called when
       receiving AMOTION_EVENT_ACTION_MOVE. That is bacause we have to do

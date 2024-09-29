@@ -500,10 +500,9 @@ var
 begin
   try
     CheckMainWindow;
-    { TODO: using MousePressed as Pressed is only OK without multi-touch. }
     W := Application.MainWindow;
-    W.DoMotion(InputMotion(W.FTouches.FingerIndexPosition[FingerIndex],
-      Vector2(X, Y), W.MousePressed, FingerIndex));
+    W.DoMotion(InputMotion(W.Container.Touches.FingerIndexPosition[FingerIndex],
+      Vector2(X, Y), W.Container.MousePressed, FingerIndex));
   except
     on E: TObject do WritelnWarning('CGEApp_Motion', ExceptMessage(E));
   end;

@@ -360,7 +360,9 @@ function TCastleWindow.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM): LRE
   procedure MaybeRelease;
   { mouse up occurred; release capture if all mouse buttons are now up }
   begin
-    if (mousePressed=[]) and (GetCapture = H_Wnd) then ReleaseCapture;
+    if (Container.MousePressed = []) and
+       (GetCapture = H_Wnd) then
+      ReleaseCapture;
   end;
 
   type
@@ -814,8 +816,8 @@ begin
 
           1. Left and Top are said in unit's interface to work like that
 
-          2. SetMousePosition requires this. Otherwise positions
-             set by SetMousePosition and read by MousePosition properties
+          2. SystemSetMousePosition requires this. Otherwise positions
+             set by SystemSetMousePosition and read by MousePosition properties
              would be slightly different.
              And there are cases when it is important that they use
              exactly the same coordinate systems --- e.g. mouse look handling.
