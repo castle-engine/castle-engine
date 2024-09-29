@@ -28,7 +28,8 @@
       May be @nil, for example when this list is used by TRayCollision. }
     property Owner: TCastleTransform read FOwner;
   protected
-    procedure Notify(constref AValue: TCastleTransform; ACollectionNotification: TCollectionNotification); override;
+    procedure Notify({$ifdef GENERICS_CONSTREF}constref{$else}const{$endif} AValue: TCastleTransform;
+      ACollectionNotification: TCollectionNotification); override;
   public
     { Delete all found instances of the given Item.
       Shifts all other pointers to the left.
@@ -53,7 +54,8 @@ end;
 
 { TCastleTransformList ------------------------------------------------------------ }
 
-procedure TCastleTransformList.Notify(constref AValue: TCastleTransform;
+procedure TCastleTransformList.Notify(
+  {$ifdef GENERICS_CONSTREF}constref{$else}const{$endif} AValue: TCastleTransform;
   ACollectionNotification: TCollectionNotification);
 begin
   inherited;
