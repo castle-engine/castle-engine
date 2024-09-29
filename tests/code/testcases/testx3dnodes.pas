@@ -2627,7 +2627,6 @@ end;
 
 procedure TTestX3DNodes.TestNodeClassesList;
 var
-  I: Integer;
   ClassesList: TX3DNodeClassesList;
   Node: TX3DNode;
 begin
