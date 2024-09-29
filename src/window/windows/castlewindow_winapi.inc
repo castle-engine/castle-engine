@@ -692,9 +692,49 @@ function TCastleWindow.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM): LRE
     MaybeRelease;
   end;
 
+  procedure HandleMouseMove;
+  var
+    CorrectMousePressed: TCastleMouseButtons;
+    MouseButton: TCastleMouseButton;
+    CastleMousePosition: TVector2;
+  begin
+    CastleMousePosition := LeftTopToCastle(
+      TWinParam(lParm).LoSmallint,
+      TWinParam(lParm).HiSmallint);
+
+    { Our DoMouseDown/Up should keep the Container.MousePressed updated,
+      making the information from "MK_LBUTTON and wParm" etc. redundant.
+      But actually it's known to fail if you press/release mouse buttons
+      when a dialog (like FileDialog) is open.
+      So check, and eventually synchronize. }
+    CorrectMousePressed := [];
+    if (MK_LBUTTON and wParm) <> 0 then Include(CorrectMousePressed, buttonLeft);
+    if (MK_MBUTTON and wParm) <> 0 then Include(CorrectMousePressed, buttonMiddle);
+    if (MK_RBUTTON and wParm) <> 0 then Include(CorrectMousePressed, buttonRight);
+    if CorrectMousePressed <> Container.MousePressed then
+    begin
+      WritelnLog('Container.MousePressed not up-to-date with Windows messages when calling DoMotion. This may happen if you press/release mouse buttons when a dialog (like FileDialog) is open. Synchronizing.');
+      for MouseButton := Low(TCastleMouseButton) to High(TCastleMouseButton) do
+      begin
+        if (MouseButton in Container.MousePressed) and
+           (not (MouseButton in CorrectMousePressed)) then
+        begin
+          DoMouseUp(CastleMousePosition, MouseButton, 0);
+        end else
+        if (not (MouseButton in Container.MousePressed)) and
+           (MouseButton in CorrectMousePressed) then
+          DoMouseDown(CastleMousePosition, MouseButton, 0);
+      end;
+      if CorrectMousePressed <> Container.MousePressed then
+        WritelnWarning('Container.MousePressed still not up-to-date with Windows messages when calling DoMotion. This should not happen.');
+    end;
+
+    DoMotion(InputMotion(Container.MousePosition, CastleMousePosition,
+      Container.MousePressed, 0));
+  end;
+
 var
   DoEnableUpdatesFromWindowProc, DoDisableUpdatesFromWindowProc: boolean;
-  CorrectMousePressed: TCastleMouseButtons;
 begin
   Result := 0;
 
@@ -887,24 +927,7 @@ begin
         Exit;
       end;
 
-    WM_MOUSEMOVE:
-      begin
-        { Our DoMouseDown/Up should keep the Container.MousePressed updated,
-          making the information from "MK_LBUTTON and wParm" etc. redundant.
-          But check it, to be sure. }
-        CorrectMousePressed := [];
-        if (MK_LBUTTON and wParm) <> 0 then Include(CorrectMousePressed, buttonLeft);
-        if (MK_MBUTTON and wParm) <> 0 then Include(CorrectMousePressed, buttonMiddle);
-        if (MK_RBUTTON and wParm) <> 0 then Include(CorrectMousePressed, buttonRight);
-        if CorrectMousePressed <> Container.MousePressed then
-          WritelnWarning('Container.MousePressed not up-to-date with Windows messages when calling DoMotion');
-
-        DoMotion(InputMotion(Container.MousePosition, LeftTopToCastle(
-          TWinParam(lParm).LoSmallint,
-          TWinParam(lParm).HiSmallint),
-          Container.MousePressed, 0));
-        Exit;
-      end;
+    WM_MOUSEMOVE: begin HandleMouseMove; Exit end;
     WM_LBUTTONDOWN: begin HandleMouseDown(buttonLeft  ); Exit end;
     WM_MBUTTONDOWN: begin HandleMouseDown(buttonMiddle); Exit end;
     WM_RBUTTONDOWN: begin HandleMouseDown(buttonRight ); Exit end;
