@@ -66,7 +66,7 @@ procedure CGEApp_SetLibraryCallbackProc(aProc: TLibraryCallbackProc); cdecl;
 procedure CGEApp_Update; cdecl;
 procedure CGEApp_MouseDown(X, Y: CInt32; bLeftBtn: cBool; FingerIndex: CInt32); cdecl;
 procedure CGEApp_Motion(X, Y: CInt32; FingerIndex: CInt32); cdecl;
-procedure CGEApp_MouseUp(X, Y: cInt32; bLeftBtn: cBool; FingerIndex: CInt32; TrackReleased: cBool); cdecl;
+procedure CGEApp_MouseUp(X, Y: cInt32; bLeftBtn: cBool; FingerIndex: CInt32); cdecl;
 procedure CGEApp_KeyDown(eKey: CInt32); cdecl;
 procedure CGEApp_KeyUp(eKey: CInt32); cdecl;
 procedure CGEApp_JoystickAxis(JoystickIndex: CInt; X, Y: Single); cdecl;
@@ -497,11 +497,33 @@ end;
 procedure CGEApp_Motion(X, Y: CInt32; FingerIndex: CInt32); cdecl;
 var
   W: TCastleWindow;
+
+  { Adjusted copy of internal TTouchList.FindFingerIndex }
+  function FindFingerIndex(const FingerIndex: TFingerIndex): Integer;
+  begin
+    for Result := 0 to W.Container.TouchesCount - 1 do
+      if W.Container.Touches[Result].FingerIndex = FingerIndex then
+        Exit;
+    Result := -1;
+  end;
+
+  { Adjusted copy of internal TTouchList.GetFingerIndexPosition }
+  function GetFingerIndexPosition(const FingerIndex: TFingerIndex): TVector2;
+  var
+    Index: Integer;
+  begin
+    Index := FindFingerIndex(FingerIndex);
+    if Index <> -1 then
+      Result := W.Container.Touches[Index].Position
+    else
+      Result := TVector2.Zero;
+  end;
+
 begin
   try
     CheckMainWindow;
     W := Application.MainWindow;
-    W.DoMotion(InputMotion(W.Container.Touches.FingerIndexPosition[FingerIndex],
+    W.DoMotion(InputMotion(GetFingerIndexPosition(FingerIndex),
       Vector2(X, Y), W.Container.MousePressed, FingerIndex));
   except
     on E: TObject do WritelnWarning('CGEApp_Motion', ExceptMessage(E));
