@@ -111,6 +111,7 @@ type
     procedure TestOpenInvalidIndexes;
     procedure TestGltfConversion;
     procedure TestLoadWithoutWarning;
+    procedure TestUrlProcessing;
     procedure TestNodeClassesList;
   end;
 
@@ -2622,6 +2623,61 @@ begin
     FreeAndNil(Node);
   finally
     ApplicationProperties.OnWarning.Remove({$ifdef FPC}@{$endif}OnWarningRaiseException);
+  end;
+end;
+
+procedure TTestX3DNodes.TestUrlProcessing;
+var
+  TestUrls: TCastleStringList;
+  RootNode: TX3DRootNode;
+  Shape: TShapeNode;
+  AppearanceNode: TAppearanceNode;
+  TextureNode: TImageTextureNode;
+  TempDir: String;
+begin
+  try
+    TestUrls := TCastleStringList.Create;
+    TestUrls.Add('castle-data:/images/f023ours.jpg');
+
+    // prepare the scene
+    TextureNode := TImageTextureNode.Create;
+    TextureNode.SetUrl(TestUrls);
+
+    AppearanceNode := TAppearanceNode.Create;
+    AppearanceNode.Texture := TextureNode;
+
+    Shape := TShapeNode.Create;
+    Shape.Appearance := AppearanceNode;
+
+    RootNode := TX3DRootNode.Create;
+    RootNode.AddChildren(Shape);
+
+    // run test for suNone
+    TempDir := GetTempDirectory;
+    ProcessUrls(RootNode, TempDir + 'testproc.x3d', suNone);
+    AssertTrue(TextureNode.FdUrl.Count = 1);
+    AssertTrue(TestUrls[0] = TextureNode.FdUrl.Items[0]);  // no change is OK
+
+    // run test for suChangeCastleDataToRelative
+    ProcessUrls(RootNode, TempDir + 'testproc.x3d', suChangeCastleDataToRelative);
+    AssertTrue(TextureNode.FdUrl.Count = 1);
+    AssertTrue(not IsPrefix('castle-data:', TextureNode.FdUrl.Items[0]));   // replaced with something
+
+    // run test for suEmbedResources
+    ProcessUrls(RootNode, TempDir + 'testproc.x3d', suEmbedResources);
+    AssertTrue(TextureNode.FdUrl.Count = 1);
+    AssertTrue(IsPrefix('data:', TextureNode.FdUrl.Items[0])); // that relative path was read and embedded
+
+    // run test for suCopyResourcesToSubdirectory
+    TextureNode.SetUrl(TestUrls); // reset URL back to original value
+    ProcessUrls(RootNode, TempDir + 'testproc.x3d', suCopyResourcesToSubdirectory);
+    AssertTrue(TextureNode.FdUrl.Count = 1);
+    AssertTrue(TextureNode.FdUrl.Items[0] = IncludeTrailingPathDelimiter('testproc_resources') + 'f023ours.jpg');
+    AssertTrue(FileExists(TempDir + TextureNode.FdUrl.Items[0]));
+    DeleteFile(TempDir + TextureNode.FdUrl.Items[0]);
+  finally
+    FreeAndNil(RootNode);
+    FreeAndNil(TestUrls);
   end;
 end;
 
