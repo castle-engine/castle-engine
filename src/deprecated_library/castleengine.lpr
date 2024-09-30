@@ -755,6 +755,9 @@ begin
             if MainScene <> nil then
                MainScene.RenderOptions.PhongShading := (nValue > 0);
           end;
+      11: begin    // ecgevarPreventInfiniteFallingDown
+            Viewport.PreventInfiniteFallingDown := (nValue > 0);
+          end;
     end;
   except
     on E: TObject do WritelnWarning('Window', 'CGE_SetVariableInt: ' + ExceptMessage(E));
