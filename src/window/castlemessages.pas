@@ -428,7 +428,7 @@ begin
   finally
     FreeAndNil(SavedMode);
     { Message boxes should not leave the keys in false/strange pressed view. }
-    Window.Pressed.Clear;
+    Window.Container.Pressed.Clear;
   end;
 
   View.Stop;

@@ -102,9 +102,6 @@ type
   private
     Parent: TCastleControl;
     procedure UnLoadDesign;
-  protected
-    function GetMousePosition: TVector2; override;
-    procedure SetMousePosition(const Value: TVector2); override;
   public
     constructor Create(AParent: TCastleControl); reintroduce;
     procedure Invalidate; override;
@@ -112,6 +109,7 @@ type
     function PixelsWidth: Integer; override;
     function PixelsHeight: Integer; override;
     procedure SetInternalCursor(const Value: TMouseCursor); override;
+    procedure SystemSetMousePosition(const Value: TVector2); override;
     function SaveScreen(const SaveRect: TRectangle): TRGBImage; override; overload;
   public
     { When the DesignUrl is set you can use this method to find
@@ -171,7 +169,6 @@ type
   TCastleControl = class(TCustomOpenGLControl)
   strict private
     FContainer: TCastleControlContainer;
-    FMousePosition: TVector2;
     FGLInitialized: boolean;
     FAutoRedisplay: boolean;
     { manually track when we need to be repainted, useful for AggressiveUpdate }
@@ -210,7 +207,9 @@ type
     procedure KeyPressHandlerPress(Sender: TObject;
       const Event: TInputPressRelease);
 
+    function GetMousePosition: TVector2;
     procedure SetMousePosition(const Value: TVector2);
+    function MousePosToCastle(const X, Y: Single): TVector2;
     procedure SetAutoRedisplay(const Value: boolean);
     function GetDesignUrl: String;
     procedure SetDesignUrl(const Value: String);
@@ -287,6 +286,7 @@ type
     procedure AggressiveUpdate;
   private
     class function GetMainContainer: TCastleContainer;
+    procedure SystemSetMousePosition(const Value: TVector2);
   protected
     procedure DestroyHandle; override;
     procedure DoExit; override;
@@ -332,24 +332,24 @@ type
     procedure Paint; override;
 
     { Keys currently pressed. }
-    function Pressed: TKeysPressed;
-    { Mouse buttons currently pressed.
-      See @link(TCastleContainer.MousePressed) for details. }
-    function MousePressed: TCastleMouseButtons;
+    function Pressed: TKeysPressed; deprecated 'use Container.Pressed';
+    function MousePressed: TCastleMouseButtons; deprecated 'use Container.MousePressed';
     procedure ReleaseAllKeysAndMouse;
 
     { Current mouse position.
-      See @link(TTouch.Position) for a documentation how this is expressed. }
-    property MousePosition: TVector2 read FMousePosition write SetMousePosition;
+      See @link(TTouch.Position) for a documentation how this is expressed.
+      @deprecated Get and set @link(Container.MousePosition) instead. }
+    property MousePosition: TVector2 read GetMousePosition write SetMousePosition;
+      {$ifdef FPC} deprecated 'use Container.MousePosition' {$endif};
 
     { Application speed. }
-    function Fps: TFramesPerSecond;
+    function Fps: TFramesPerSecond; deprecated 'use Container.Fps';
 
     { Capture the current control contents to an image.
       @groupBegin }
-    procedure SaveScreen(const Url: String); overload;
-    function SaveScreen: TRGBImage; overload;
-    function SaveScreen(const SaveRect: TRectangle): TRGBImage; overload;
+    procedure SaveScreen(const Url: String); overload; deprecated 'use Container.SaveScreen';
+    function SaveScreen: TRGBImage; overload; deprecated 'use Container.SaveScreen';
+    function SaveScreen(const SaveRect: TRectangle): TRGBImage; overload; deprecated 'use Container.SaveScreen';
     { @groupEnd }
 
     { Color buffer where we draw, and from which it makes sense to grab pixels.
@@ -647,16 +647,6 @@ begin
   Result := Parent.Height;
 end;
 
-function TCastleControlContainer.GetMousePosition: TVector2;
-begin
-  Result := Parent.MousePosition;
-end;
-
-procedure TCastleControlContainer.SetMousePosition(const Value: TVector2);
-begin
-  Parent.MousePosition := Value;
-end;
-
 procedure TCastleControlContainer.SetInternalCursor(const Value: TMouseCursor);
 var
   NewCursor: TCursor;
@@ -669,6 +659,11 @@ begin
     and in window manager too, but it's safer to not depend on it). }
   if Parent.Cursor <> NewCursor then
     Parent.Cursor := NewCursor;
+end;
+
+procedure TCastleControlContainer.SystemSetMousePosition(const Value: TVector2);
+begin
+  Parent.SystemSetMousePosition(Value);
 end;
 
 function TCastleControlContainer.SaveScreen(const SaveRect: TRectangle): TRGBImage;
@@ -933,10 +928,10 @@ end;
 procedure TCastleControl.ReleaseAllKeysAndMouse;
 
   { This does a subset of MouseUp implementation, only caring about updating CGE state now. }
-  procedure CastleMouseUp(const MyButton: TCastleMouseButton);
+  procedure CastleMouseUp(const CastleButton: TCastleMouseButton);
   begin
-    Container.MousePressed := Container.MousePressed - [MyButton];
-    Container.EventRelease(InputMouseButton(MousePosition, MyButton, 0));
+    Container.EventRelease(InputMouseButton(Container.MousePosition,
+      CastleButton, 0, ModifiersDown(Container.Pressed)));
   end;
 
   { This does a subset of KeyUp implementation, only caring about updating CGE state now. }
@@ -948,10 +943,11 @@ procedure TCastleControl.ReleaseAllKeysAndMouse;
       This may call OnPress (which sets Pressed to true). }
     FKeyPressHandler.Flush;
 
-    Pressed.KeyUp(MyKey, MyKeyString);
+    Container.Pressed.KeyUp(MyKey, MyKeyString);
 
     if (MyKey <> keyNone) or (MyKeyString <> '') then
-      Container.EventRelease(InputKey(MousePosition, MyKey, MyKeyString));
+      Container.EventRelease(InputKey(Container.MousePosition,
+        MyKey, MyKeyString, ModifiersDown(Container.Pressed)));
   end;
 
 var
@@ -960,11 +956,11 @@ var
 begin
   { This should also take care of releasing Characters. }
   for Key := Low(Key) to High(Key) do
-    if Pressed[Key] then
+    if Container.Pressed[Key] then
       CastleKeyUp(Key);
 
   for MouseButton := Low(MouseButton) to High(MouseButton) do
-    if MouseButton in MousePressed then
+    if MouseButton in Container.MousePressed then
       CastleMouseUp(MouseButton);
 
   Container.MouseLookIgnoreNextMotion;
@@ -972,9 +968,9 @@ end;
 
 procedure TCastleControl.UpdateShiftState(const Shift: TShiftState);
 begin
-  Pressed.Keys[keyShift] := ssShift in Shift;
-  Pressed.Keys[keyAlt  ] := ssAlt   in Shift;
-  Pressed.Keys[keyCtrl ] := ssCtrl  in Shift;
+  Container.Pressed.Keys[keyShift] := ssShift in Shift;
+  Container.Pressed.Keys[keyAlt  ] := ssAlt   in Shift;
+  Container.Pressed.Keys[keyCtrl ] := ssCtrl  in Shift;
 end;
 
 procedure TCastleControl.KeyPressHandlerPress(Sender: TObject;
@@ -986,17 +982,17 @@ begin
   Assert((Event.Key <> keyNone) or (Event.KeyString <> ''));
 
   NewEvent := Event;
-  NewEvent.Position := MousePosition;
+  NewEvent.Position := Container.MousePosition;
   NewEvent.KeyRepeated :=
     // Key already pressed
-    ((NewEvent.Key = keyNone) or Pressed.Keys[NewEvent.Key]) and
+    ((NewEvent.Key = keyNone) or Container.Pressed.Keys[NewEvent.Key]) and
     // KeyString already pressed
-    ((NewEvent.KeyString = '') or Pressed.Strings[NewEvent.KeyString]);
+    ((NewEvent.KeyString = '') or Container.Pressed.Strings[NewEvent.KeyString]);
 
   { Note that Event has invalid position (TLCLKeyPressHandler always sends
     zero). So all the following code has to use NewEvent instead. }
 
-  Pressed.KeyDown(NewEvent.Key, NewEvent.KeyString);
+  Container.Pressed.KeyDown(NewEvent.Key, NewEvent.KeyString);
 
   Container.EventPress(NewEvent);
 
@@ -1046,7 +1042,7 @@ begin
 
   MyKey := KeyToCastle(Key, Shift);
   if MyKey <> keyNone then
-    Pressed.KeyUp(MyKey, MyKeyString);
+    Container.Pressed.KeyUp(MyKey, MyKeyString);
 
   UpdateShiftState(Shift); { do this after Pressed update above, and before EventRelease }
 
@@ -1061,48 +1057,53 @@ begin
   inherited KeyUp(Key, Shift); { LCL OnKeyUp before our callbacks }
 
   if (MyKey <> keyNone) or (MyKeyString <> '') then
-    if Container.EventRelease(InputKey(MousePosition, MyKey, MyKeyString)) then
+    if Container.EventRelease(InputKey(Container.MousePosition,
+      MyKey, MyKeyString, ModifiersDown(Container.Pressed))) then
       Key := 0; // handled
+end;
+
+function TCastleControl.MousePosToCastle(const X, Y: Single): TVector2;
+begin
+  Result := Vector2(X, Height - 1 - Y);
 end;
 
 procedure TCastleControl.MouseDown(Button: Controls.TMouseButton;
   Shift: TShiftState; X, Y: Integer);
 var
-  MyButton: TCastleMouseButton;
+  CastleButton: TCastleMouseButton;
 begin
   if AutoFocus and not Focused then
     SetFocus;
 
-  FMousePosition := Vector2(X, Height - 1 - Y);
-
-  if MouseButtonToCastle(Button, MyButton) then
-    Container.MousePressed := Container.MousePressed + [MyButton];
-
-  UpdateShiftState(Shift); { do this after Pressed update above, and before *Event }
+  { This updates Container.Pressed.
+    Do this before using ModifiersDown(Container.Pressed) below. }
+  UpdateShiftState(Shift);
 
   inherited MouseDown(Button, Shift, X, Y); { LCL OnMouseDown before our callbacks }
 
-  if MouseButtonToCastle(Button, MyButton) then
-    Container.EventPress(InputMouseButton(MousePosition, MyButton, 0,
-      ModifiersDown(Container.Pressed)));
+  if MouseButtonToCastle(Button, CastleButton) then
+  begin
+    Container.EventPress(InputMouseButton(MousePosToCastle(X, Y),
+      CastleButton, 0, ModifiersDown(Container.Pressed)));
+  end;
 end;
 
 procedure TCastleControl.MouseUp(Button: Controls.TMouseButton;
   Shift: TShiftState; X, Y: Integer);
 var
-  MyButton: TCastleMouseButton;
+  CastleButton: TCastleMouseButton;
 begin
-  FMousePosition := Vector2(X, Height - 1 - Y);
-
-  if MouseButtonToCastle(Button, MyButton) then
-    Container.MousePressed := Container.MousePressed - [MyButton];
-
+  { This updates Container.Pressed.
+    Do this before using ModifiersDown(Container.Pressed) below. }
   UpdateShiftState(Shift); { do this after Pressed update above, and before *Event }
 
   inherited MouseUp(Button, Shift, X, Y); { LCL OnMouseUp before our callbacks }
 
-  if MouseButtonToCastle(Button, MyButton) then
-    Container.EventRelease(InputMouseButton(MousePosition, MyButton, 0));
+  if MouseButtonToCastle(Button, CastleButton) then
+  begin
+    Container.EventRelease(InputMouseButton(MousePosToCastle(X, Y),
+      CastleButton, 0, ModifiersDown(Container.Pressed)));
+  end;
 end;
 
 procedure TCastleControl.AggressiveUpdate;
@@ -1115,7 +1116,7 @@ begin
     DesiredFPS := MaxDesiredFPS
   else
     DesiredFPS := Min(MaxDesiredFPS, ApplicationProperties.LimitFPS);
-  if TimerSeconds(Timer, Fps.UpdateStartTime) > 1 / DesiredFPS then
+  if TimerSeconds(Timer, Container.Fps.UpdateStartTime) > 1 / DesiredFPS then
   begin
     DoUpdate;
     if Invalidated then Paint;
@@ -1130,13 +1131,9 @@ begin
 
   if GLInitialized then
   begin
-    Container.EventMotion(InputMotion(MousePosition,
-      Vector2(NewX, Height - 1 - NewY), MousePressed, 0));
-
-    // change FMousePosition *after* EventMotion, callbacks may depend on it
-    FMousePosition := Vector2(NewX, Height - 1 - NewY);
-
     UpdateShiftState(Shift);
+    Container.EventMotion(InputMotion(Container.MousePosition,
+      MousePosToCastle(NewX, NewY), Container.MousePressed, 0));
     AggressiveUpdate;
   end;
 
@@ -1145,9 +1142,27 @@ end;
 
 function TCastleControl.DoMouseWheel(Shift: TShiftState; WheelDelta: Integer;
   MousePos: TPoint): Boolean;
+var
+  CastleNewPosition: TVector2;
+  Scroll: Single;
+  Vertical: boolean;
 begin
-  Result := Container.EventPress(InputMouseWheel(MousePosition, WheelDelta/120, true,
-    ModifiersDown(Container.Pressed)));
+  { TODO: use MousePos? like this:
+      CastleNewPosition := MousePosToCastle(MousePos.X, MousePos.Y);
+    But check it is in correct (local) coordinate system,
+    as the parameter looks inconsistent with LCL MouseDown/Up/Move
+    (which pass 2x Integer), so maybe it's in different coord space. }
+  CastleNewPosition := Container.MousePosition;
+
+  { This updates Container.Pressed.
+    Do this before using ModifiersDown(Container.Pressed) below. }
+  UpdateShiftState(Shift);
+
+  Scroll := WheelDelta/120;
+  Vertical := true; // only vertical scrolling is reported here
+
+  Result := Container.EventPress(InputMouseWheel(CastleNewPosition,
+    Scroll, Vertical, ModifiersDown(Container.Pressed)));
   AggressiveUpdate;
   if Result then Exit;
 
@@ -1193,7 +1208,7 @@ begin
     { clear Invalidated before rendering, so that calling Invalidate in OnRender works }
     Invalidated := false;
     Container.EventBeforeRender;
-    Fps.InternalRenderBegin;
+    Container.Fps.InternalRenderBegin;
     try
       Container.EventRender;
       DoOnPaint; // call OnPaint, like it would be a top-most TCastleUserInterface
@@ -1203,7 +1218,7 @@ begin
       // it seems calling Invalidate from Paint doesn't work, so we'll
       // have to do it elsewhere
       // if AutoRedisplay then Invalidate;
-    finally Fps.InternalRenderEnd end;
+    finally Container.Fps.InternalRenderEnd end;
   end;
 end;
 
@@ -1229,7 +1244,18 @@ begin
   Result := Container.SaveScreen(SaveRect);
 end;
 
+function TCastleControl.GetMousePosition: TVector2;
+begin
+  Result := Container.MousePosition;
+end;
+
 procedure TCastleControl.SetMousePosition(const Value: TVector2);
+begin
+  // Note that this will call SystemSetMousePosition, if necessary
+  Container.MousePosition := Value;
+end;
+
+procedure TCastleControl.SystemSetMousePosition(const Value: TVector2);
 var
   NewCursorPos: TPoint;
 begin

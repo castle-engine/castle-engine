@@ -185,7 +185,7 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
     case WM_LBUTTONUP:
     case WM_RBUTTONUP:
         CGE_MouseUp(GET_X_LPARAM(lParam), g_windowHeight-1-GET_Y_LPARAM(lParam),
-            msg==WM_LBUTTONUP, 0, true);
+            msg==WM_LBUTTONUP, 0);
         if (GetCapture()==hWnd)
             ReleaseCapture();
         break;

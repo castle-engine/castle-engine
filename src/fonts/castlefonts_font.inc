@@ -132,7 +132,7 @@ type
       The positive outcome is that the font looks better (not blurred)
       even when scaled up.
       "Scaling up" occurs when the actual font size
-      (derived from @link(TCastleLabel.FontSize) and UI scaling)
+      (derived from @link(TCastleUserInterfaceFont.FontSize) and UI scaling)
       is significantly larger than the optimal size for which the font
       image was prepared (@link(OptimalSize)). In this case, rendering
       without distance field (when this is @false, by default)
