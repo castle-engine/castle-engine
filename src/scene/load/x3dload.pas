@@ -293,7 +293,8 @@ uses Generics.Collections,
   X3DLoadInternalCollada, X3DLoadInternalSpine, X3DLoadInternalSTL,
   X3DLoadInternalMD3, X3DLoadInternalGLTF, X3DLoadInternalImage,
   X3DLoadInternalCocos2d, CastleInternalNodeInterpolator,
-  CastleInternalSpritesheet, CastleDownload, X3DLoadInternalTiledMap;
+  CastleInternalSpritesheet, CastleDownload, X3DLoadInternalTiledMap,
+  CastleInternalLoadSaveIfc;
 
 { declare FRegisteredModelFormats early ------------------------------------- }
 

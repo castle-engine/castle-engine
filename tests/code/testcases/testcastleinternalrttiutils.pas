@@ -26,6 +26,7 @@ type
   published
     procedure TestPropertyHasDefaultValue;
     procedure TestPropertyGetValue;
+    procedure TestPropertyTypeAndGetSet;
   end;
 
 implementation
@@ -95,6 +96,100 @@ begin
     AssertEquals('Z', PropName);
     AssertEquals('0', PropValue);
   finally FreeAndNil(Cam) end;
+end;
+
+type
+  TMyChildObject = class
+  end;
+
+  TMyEnum = (meOne, meTwo, meThree);
+
+  TMyObject = class
+  private
+    FMyInt: Integer;
+    FMyInt64: Int64;
+    FMyString: String;
+    FMyFloat: Single;
+    FMyBool: Boolean;
+    FMyChildObject: TMyChildObject;
+    FMyEnum: TMyEnum;
+  published
+    property MyInt: Integer read FMyInt write FMyInt;
+    property MyInt64: Int64 read FMyInt64 write FMyInt64;
+    property MyString: String read FMyString write FMyString;
+    property MyFloat: Single read FMyFloat write FMyFloat;
+    property MyBool: Boolean read FMyBool write FMyBool;
+    property MyChildObject: TMyChildObject read FMyChildObject write FMyChildObject;
+    property MyEnum: TMyEnum read FMyEnum write FMyEnum;
+  end;
+
+procedure TTestCastleInternalRttiUtils.TestPropertyTypeAndGetSet;
+var
+  MyObject: TMyObject;
+  Child1, Child2: TMyChildObject;
+begin
+  // Initialize to nil, for easy "finally" clause later
+  Child1 := nil;
+  Child2 := nil;
+  MyObject := nil;
+  try
+    Child1 := TMyChildObject.Create;
+    Child2 := TMyChildObject.Create;
+    MyObject := TMyObject.Create;
+
+    MyObject.MyInt := 10;
+    MyObject.MyInt64 := Int64(High(UInt32)) + 123; // assign some value that really needs 64-bit
+    MyObject.MyString := 'Hello';
+    MyObject.MyFloat := 3.14;
+    MyObject.MyBool := true;
+    MyObject.MyChildObject := Child1;
+    MyObject.MyEnum := meTwo;
+
+    AssertTrue(PropertyType(GetPropInfo(MyObject, 'MyInt')) = ptInteger);
+    AssertEquals(10, PropertyGetInteger(MyObject, GetPropInfo(MyObject, 'MyInt')));
+
+    PropertySetInteger(MyObject, GetPropInfo(MyObject, 'MyInt'), 20);
+    AssertEquals(20, MyObject.MyInt);
+
+    AssertTrue(PropertyType(GetPropInfo(MyObject, 'MyInt64')) = ptInteger);
+    AssertEquals(Int64(High(UInt32)) + 123, PropertyGetInteger(MyObject, GetPropInfo(MyObject, 'MyInt64')));
+
+    PropertySetInteger(MyObject, GetPropInfo(MyObject, 'MyInt64'), Int64(High(UInt32)) + 124);
+    AssertEquals(Int64(High(UInt32)) + 124, MyObject.MyInt64);
+
+    AssertTrue(PropertyType(GetPropInfo(MyObject, 'MyString')) = ptString);
+    AssertEquals('Hello', PropertyGetString(MyObject, GetPropInfo(MyObject, 'MyString')));
+
+    PropertySetString(MyObject, GetPropInfo(MyObject, 'MyString'), 'World');
+    AssertEquals('World', MyObject.MyString);
+
+    AssertTrue(PropertyType(GetPropInfo(MyObject, 'MyFloat')) = ptFloat);
+    AssertSameValue(3.14, PropertyGetFloat(MyObject, GetPropInfo(MyObject, 'MyFloat')), 0.0001);
+
+    PropertySetFloat(MyObject, GetPropInfo(MyObject, 'MyFloat'), 2.71);
+    AssertSameValue(2.71, MyObject.MyFloat, 0.0001);
+
+    AssertTrue(PropertyType(GetPropInfo(MyObject, 'MyBool')) = ptBoolean);
+    AssertEquals(true, PropertyGetBoolean(MyObject, GetPropInfo(MyObject, 'MyBool')));
+
+    PropertySetBoolean(MyObject, GetPropInfo(MyObject, 'MyBool'), false);
+    AssertEquals(false, MyObject.MyBool);
+
+    AssertTrue(PropertyType(GetPropInfo(MyObject, 'MyChildObject')) = ptInstance);
+    AssertTrue(PropertyGetInstance(MyObject, GetPropInfo(MyObject, 'MyChildObject')) = Child1);
+
+    PropertySetInstance(MyObject, GetPropInfo(MyObject, 'MyChildObject'), Child2);
+    AssertTrue(MyObject.MyChildObject = Child2);
+
+    PropertySetInstance(MyObject, GetPropInfo(MyObject, 'MyChildObject'), nil);
+    AssertTrue(MyObject.MyChildObject = nil);
+
+    AssertTrue(PropertyType(GetPropInfo(MyObject, 'MyEnum')) = ptOther);
+  finally
+    FreeAndNil(MyObject);
+    FreeAndNil(Child1);
+    FreeAndNil(Child2);
+  end;
 end;
 
 initialization

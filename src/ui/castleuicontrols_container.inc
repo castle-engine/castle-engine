@@ -97,6 +97,8 @@
       FOnSafeBorderChanged: TNotifyEvent;
       FCollectedMotion: TInputMotion;
       FHasCollectedMotion: Boolean;
+      FTouches: TTouchList;
+      FMousePosition: TVector2;
 
     function GetView: TCastleView;
     procedure SetView(const Value: TCastleView);
@@ -132,6 +134,9 @@
       const ReceivedStream: TMemoryStream): Boolean;
     procedure FlushCollectedMotion;
     procedure EventMotionNoCollect(const Event: TInputMotion);
+    function GetMousePosition: TVector2;
+    procedure SetMousePosition(const Value: TVector2);
+    function GetTouches(const Index: Integer): TTouch;
   private
     var
       FViewStack: TCastleViewList;
@@ -154,9 +159,19 @@
     {$endif}
     property InternalCursor: TMouseCursor write SetInternalCursor;
 
-    function GetMousePosition: TVector2; virtual;
-    procedure SetMousePosition(const Value: TVector2); virtual;
-    function GetTouches(const Index: Integer): TTouch; virtual;
+    { Descendants should override this to change the mouse position
+      on explicit request (from engine or application code,
+      e.g. mouse look repositions the mouse to the center of the screen).
+      This is not called when mouse position changes because of user input,
+      which is handled inside @link(EventMotion).
+      This is not called when the window / contained is closed. }
+    procedure SystemSetMousePosition(const Value: TVector2); virtual;
+
+    { Call this when the initial mouse position is known, right when we open
+      the window or make it focused again.
+      This doesn't ever cause SystemSetMousePosition, it should be used
+      only to tell the engine what the *current* mouse position really is. }
+    procedure InitializeMousePosition(const Value: TVector2);
 
     { Does setting MousePosition also causes Motion / OnMotion events.
       While we tried to make everything work reliably always,
@@ -282,10 +297,32 @@
       @param(InitializedContextsCount See EventOpen) }
     procedure EventClose(const InitializedContextsCount: Cardinal);
 
-    { User presses a key, mouse button or moves the mouse wheel. }
+    { User presses a key, mouse button or moves the mouse wheel.
+
+      This calls @link(TCastleUserInterface.Press) methods for all controls
+      that should receive information about this event.
+      This means controls under the mouse (from Event.Position),
+      @link(ForceCaptureInput) control (if any).
+
+      This also updates @link(MousePressed), @link(MousePosition), @link(Touches)
+      when this is a press of a mouse button. They are updated before
+      calling the @link(TCastleUserInterface.Press). }
     function EventPress(const Event: TInputPressRelease): Boolean;
 
     { User releases a pressed key or mouse button.
+
+      This calls @link(TCastleUserInterface.Release) methods for all controls
+      that should receive information about this event.
+      This means controls under the mouse (from Event.Position),
+      @link(ForceCaptureInput) control (if any),
+      control capturing the input (when you press a mouse/finger over a control
+      we make sure that subsequent motion/release reach this control,
+      regardless if the position is over the same control; X Windows has similar
+      mechanism).
+
+      This also updates @link(MousePressed), @link(MousePosition), @link(Touches)
+      when this is a release of a mouse button. They are updated before
+      calling the @link(TCastleUserInterface.Release).
 
       It's called right after @code(Pressed[Key]) changed from true to false.
 
@@ -522,7 +559,11 @@
       This value is always current, in particular it's already updated
       before we call events @link(TCastleUserInterface.OnPress) or
       @link(TCastleUserInterface.OnRelease). }
-    property MousePressed: TCastleMouseButtons read FMousePressed write FMousePressed;
+    property MousePressed: TCastleMouseButtons read FMousePressed
+      { Setter commented out, as there should be no need to set this directly,
+        even internally. All changes should be reported through
+        EventPress / EventRelease. }
+      { write FMousePressed};
 
     { Is the window focused now, which means that keys/mouse events
       are directed to this window. }
@@ -547,7 +588,7 @@
 
     { Count of currently active touches (mouse or fingers pressed) on the screen.
       @seealso Touches }
-    function TouchesCount: Integer; virtual;
+    function TouchesCount: Integer;
 
     property Context: TRenderContext read FContext;
 
@@ -1067,6 +1108,11 @@ begin
   FForceCaptureInputObserver := TFreeNotificationObserver.Create(Self);
   FForceCaptureInputObserver.OnFreeNotification := {$ifdef FPC}@{$endif} ForceCaptureInputFreeNotification;
   FSafeBorder := TBorder.Create(nil);
+  FTouches := TTouchList.Create;
+  { Initial dummy value.
+    Some methods, like TCastleContainer.UpdateFocusAndMouseCursor,
+    use this to calculate "focused" CGE control so we keep it within the window. }
+  FMousePosition := Vector2(1, 1);
 
   { connect 3D device - 3Dconnexion device }
   Mouse3dPollTimer := 0;
@@ -1105,6 +1151,7 @@ begin
   FreeAndNil(FNewFocus);
   { set to nil by SetForceCaptureInput, to detach free notification }
   ForceCaptureInput := nil;
+  FreeAndNil(FTouches);
   inherited;
 end;
 
@@ -1719,6 +1766,20 @@ end;
 
 function TCastleContainer.EventPress(const Event: TInputPressRelease): Boolean;
 
+  { Update state: FMousePosition, FMousePressed, FTouches. }
+  procedure UpdateCurrentMousePositionAndTouches;
+  begin
+    if Event.EventType = itMouseButton then
+    begin
+      if Event.FingerIndex = 0 then
+      begin
+        FMousePosition := Event.Position;
+        FMousePressed := FMousePressed + [Event.MouseButton];
+      end;
+      FTouches.FingerIndexPosition[Event.FingerIndex] := Event.Position;
+    end;
+  end;
+
   function RecursivePress(const C: TCastleUserInterface): Boolean;
   var
     I: Integer;
@@ -1768,6 +1829,7 @@ var
   I: Integer;
 begin
   FlushCollectedMotion;
+  UpdateCurrentMousePositionAndTouches;
 
   Result := false;
 
@@ -1797,6 +1859,27 @@ end;
 
 function TCastleContainer.EventRelease(const Event: TInputPressRelease): Boolean;
 
+  { Update state: FMousePosition, FMousePressed, FTouches. }
+  procedure UpdateCurrentMousePositionAndTouches;
+  begin
+    if Event.EventType = itMouseButton then
+    begin
+      if Event.FingerIndex = 0 then
+      begin
+        FMousePosition := Event.Position;
+        FMousePressed := FMousePressed - [Event.MouseButton];
+      end;
+      if not ApplicationProperties.TouchDevice then
+        { for desktops, when the mouse is used, we track the position of the mouse
+          even after "mouse up" event. }
+        FTouches.FingerIndexPosition[Event.FingerIndex] := Event.Position
+      else
+        { for touch devices, it does not make sense to track the position
+          when the finger is not pressing. }
+        FTouches.RemoveFingerIndex(Event.FingerIndex);
+    end;
+  end;
+
   function RecursiveRelease(const C: TCastleUserInterface): Boolean;
   var
     I: Integer;
@@ -1825,6 +1908,7 @@ var
   Capture: TCastleUserInterface;
 begin
   FlushCollectedMotion;
+  UpdateCurrentMousePositionAndTouches;
 
   Result := false;
 
@@ -1896,7 +1980,12 @@ procedure TCastleContainer.EventOpen(const InitializedContextsCount: Cardinal);
 var
   I: Integer;
 begin
-  FHasCollectedMotion := false; // initialize
+  { Initialize input state to default (in case container instance is
+    opened/closed multiple times, doing this in constructor would not be enough) }
+  FHasCollectedMotion := false;
+  FMousePressed := [];
+  FMousePosition := Vector2(1, 1);
+  FPressed.Clear;
 
   if InitializedContextsCount = 1 then
     ApplicationProperties._GLContextOpen;
@@ -2017,61 +2106,87 @@ end;
 
 procedure TCastleContainer.EventMotionNoCollect(const Event: TInputMotion);
 
-  function RecursiveMotion(const C: TCastleUserInterface): Boolean;
-  var
-    I: Integer;
-  begin
-    if PassEvents(C, Event) then
-    begin
-      { try to pass release to C children }
-      for I := C.ControlsCount - 1 downto 0 do
-        if RecursiveMotion(C.Controls[I]) then
-          Exit(true);
+  { Call all TCastleUserInterface.Motion.
+    Takes care of accounting for ForceCaptureInput and FCaptureInput. }
+  procedure CallMotionEvents;
 
-      { try C.Motion itself }
-      if (C <> ForceCaptureInput) and C.Motion(Event) then
-        Exit(true);
+    function RecursiveMotion(const C: TCastleUserInterface): Boolean;
+    var
+      I: Integer;
+    begin
+      if PassEvents(C, Event) then
+      begin
+        { try to pass release to C children }
+        for I := C.ControlsCount - 1 downto 0 do
+          if RecursiveMotion(C.Controls[I]) then
+            Exit(true);
+
+        { try C.Motion itself }
+        if (C <> ForceCaptureInput) and C.Motion(Event) then
+          Exit(true);
+      end;
+
+      Result := false;
     end;
 
-    Result := false;
+  var
+    I: Integer;
+    Capture: TCastleUserInterface;
+  begin
+    { pass to ForceCaptureInput }
+    if UseForceCaptureInput then
+    begin
+      if ForceCaptureInput.Motion(Event) then
+        Exit;
+    end;
+
+    { pass to control holding capture }
+
+    if not FCaptureInput.TryGetValue(Event.FingerIndex, Capture) then
+      Capture := nil;
+
+    if (Capture <> nil) and not Capture.Exists then
+    begin
+      { No longer capturing, since the Exists returns false now.
+        We do not send any events to non-existing controls. }
+      FCaptureInput.Remove(Event.FingerIndex);
+      Capture := nil;
+    end;
+
+    if (Capture <> nil) and (Capture <> ForceCaptureInput) then
+    begin
+      Capture.Motion(Event);
+      Exit; // if something is capturing the input, prevent other controls from getting the events
+    end;
+
+    { pass to all Controls }
+    for I := Controls.Count - 1 downto 0 do
+      if RecursiveMotion(Controls[I]) then
+        Exit;
   end;
 
-var
-  I: Integer;
-  Capture: TCastleUserInterface;
+  { Update FMousePosition and FTouches position. }
+  procedure UpdateCurrentMousePositionAndTouches;
+  begin
+    if Event.FingerIndex = 0 then
+      { change FMousePosition *after* EventMotion, callbacks may depend on it }
+      FMousePosition := Event.Position;
+    FTouches.FingerIndexPosition[Event.FingerIndex] := Event.Position;
+  end;
+
 begin
+  CallMotionEvents;
+
+  { Call this after CallMotionEvents.
+    This must be done *after* calling all TCastleUserInterface.Motion methods,
+    we guarantee in the interface,
+    and e.g. mdRotate implementation in TCastleWalkNavigation.Motion depends
+    on it (see https://forum.castle-engine.io/t/cant-rotate-view-with-the-rotate-mode/1368/3 ). }
+  UpdateCurrentMousePositionAndTouches;
+
+  { Call this after UpdateCurrentMousePositionAndTouches,
+    because it uses MousePosition. }
   UpdateFocusAndMouseCursor;
-
-  { pass to ForceCaptureInput }
-  if UseForceCaptureInput then
-  begin
-    if ForceCaptureInput.Motion(Event) then
-      Exit;
-  end;
-
-  { pass to control holding capture }
-
-  if not FCaptureInput.TryGetValue(Event.FingerIndex, Capture) then
-    Capture := nil;
-
-  if (Capture <> nil) and not Capture.Exists then
-  begin
-    { No longer capturing, since the Exists returns false now.
-      We do not send any events to non-existing controls. }
-    FCaptureInput.Remove(Event.FingerIndex);
-    Capture := nil;
-  end;
-
-  if (Capture <> nil) and (Capture <> ForceCaptureInput) then
-  begin
-    Capture.Motion(Event);
-    Exit; // if something is capturing the input, prevent other controls from getting the events
-  end;
-
-  { pass to all Controls }
-  for I := Controls.Count - 1 downto 0 do
-    if RecursiveMotion(Controls[I]) then
-      Exit;
 end;
 
 procedure TCastleContainer.ControlsVisibleChange(const Sender: TCastleUserInterface;
@@ -2711,28 +2826,43 @@ end;
 
 function TCastleContainer.GetMousePosition: TVector2;
 begin
-  { Default implementation, assuming mouse is glued to the middle of the screen.
-    Some methods, like TCastleContainer.UpdateFocusAndMouseCursor,
-    use this to calculate "focused" CGE control.
-  }
-  Result := Vector2(PixelsWidth / 2, PixelsHeight / 2);
+  Result := FMousePosition;
 end;
 
 procedure TCastleContainer.SetMousePosition(const Value: TVector2);
 begin
-  { Default implementation, ignores new mouse position. }
+  { Compare with existing MousePosition,
+    to not cause unnecessary SystemSetMousePosition.
+
+    This is important not only for performance: on systems where
+    SettingMousePositionCausesMotion = true, we don't want to cause
+    additional EventMotion when the mouse didn't really move. }
+  if not TVector2.PerfectlyEquals(Value, MousePosition) then
+  begin
+    FMousePosition := Value;
+    if GLInitialized then
+      SystemSetMousePosition(Value);
+  end;
+end;
+
+procedure TCastleContainer.SystemSetMousePosition(const Value: TVector2);
+begin
+  { Default implementation, does nothing. }
+end;
+
+procedure TCastleContainer.InitializeMousePosition(const Value: TVector2);
+begin
+  FMousePosition := Value;
 end;
 
 function TCastleContainer.GetTouches(const Index: Integer): TTouch;
 begin
-  Assert(Index = 0, 'Base TCastleContainer implementation does not support multi-touch, so you can only access Touches[0]');
-  Result.FingerIndex := 0;
-  Result.Position := MousePosition;
+  Result := FTouches[Index];
 end;
 
 function TCastleContainer.TouchesCount: Integer;
 begin
-  Result := 1;
+  Result := FTouches.Count;
 end;
 
 function TCastleContainer.GLInitialized: Boolean;

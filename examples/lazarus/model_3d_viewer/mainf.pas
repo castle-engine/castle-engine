@@ -215,7 +215,7 @@ procedure TMain.Timer1Timer(Sender: TObject);
 var
   Pos, Dir, Up: TVector3;
 begin
-  LabelFps.Caption := 'FPS: ' + Browser.Fps.ToString;
+  LabelFps.Caption := 'FPS: ' + Browser.Container.Fps.ToString;
 
   { Update edit boxes about camera only from time to time.
     Otherwise, updating edit controls
@@ -304,6 +304,7 @@ begin
   Viewport.FullSize := true;
   Viewport.OnCameraChanged := @BrowserCameraChanged;
   Viewport.Camera.Add(TCastleDirectionalLight.Create(Self)); // headlight
+  Viewport.PreventInfiniteFallingDown := true;
   Browser.Controls.InsertFront(Viewport);
 
   RecentFiles := TCastleRecentFiles.Create(Self);
@@ -420,7 +421,7 @@ var
 begin
   if SaveScreenshotDialog.Execute then
   begin
-    Image := Browser.SaveScreen;
+    Image := Browser.Container.SaveScreen;
     try
       SaveImage(Image, SaveScreenshotDialog.Url);
     finally FreeAndNil(Image) end;
