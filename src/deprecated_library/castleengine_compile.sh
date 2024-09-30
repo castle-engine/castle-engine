@@ -16,9 +16,4 @@ set -eu
 
 # Never use cache, as it will likely contain CastleWindow with different backend, and units without -fPIC.
 castle-engine cache-clean
-
-castle-engine simple-compile \
-  --compiler-option=-fPIC \
-  --compiler-option=-dCASTLE_WINDOW_LIBRARY \
-  --verbose \
-  castleengine.lpr
+castle-engine compile
