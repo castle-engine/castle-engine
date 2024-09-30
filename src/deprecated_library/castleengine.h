@@ -64,6 +64,7 @@ enum ECgeVariable   // used for querying engine parameters in CGE_Set/GetVariabl
     ecgevarHeadlight       = 8,   // avatar's headlight (int, 1 = on, 0 = off)
     ecgevarOcclusionCulling  = 9,   // occlusion culling (int, 1 = on, 0 = off)
     ecgevarPhongShading    = 10,  // phong shading (int, 1 = on, 0 = off)
+    ecgevarPreventInfiniteFallingDown = 11,  // prevent infinite falling down (int, 1 = on, 0 = off)
 };
 
 enum ECgeNavigationType
