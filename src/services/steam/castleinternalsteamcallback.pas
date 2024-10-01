@@ -1,6 +1,22 @@
-{ Provides basic classes to interact with Steam callbacks structures
+{
+  Copyright 2023-2024 Michalis Kamburelis, Eugene Loza, Sérgio Flores (Relfos).
+
+  This file is part of "Castle Game Engine".
+
+  "Castle Game Engine" is free software; see the file COPYING.txt,
+  included in this distribution, for details about the copyright.
+
+  "Castle Game Engine" is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+  ----------------------------------------------------------------------------
+}
+{ Provides basic classes to interact with Steam callbacks structures.
+
   This is a slightly modified copy of
-  https://github.com/Relfos/steamworks_wrappers/blob/master/headers/SteamCallback.pas (MIT license)
+  https://github.com/Relfos/steamworks_wrappers/blob/master/headers/SteamCallback.pas
+  (MIT license, compatible with CGE - https://castle-engine.io/license )
   by Sérgio Flores (Relfos) }
 Unit CastleInternalSteamCallback;
 

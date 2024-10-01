@@ -1,3 +1,20 @@
+{
+  Copyright 2023-2024 Michalis Kamburelis, Eugene Loza.
+
+  This file is part of "Castle Game Engine".
+
+  "Castle Game Engine" is free software; see the file COPYING.txt,
+  included in this distribution, for details about the copyright.
+
+  "Castle Game Engine" is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+  ----------------------------------------------------------------------------
+}
+{ Game initialization.
+  This unit is cross-platform.
+  It will be used by the platform-specific program or library file. }
 unit GameInitialize;
 
 interface
@@ -20,8 +37,8 @@ const
     Note that using this example will add this game to your Steam library
     For other AppId make sure to modify it both here and in steam_appid.txt
     Also make sure that you own the app and have it in your Steam library
-    and that it has achievements set up, otherwise no ahievements will be displayed here }
-  AppId = UInt32(480);
+    and that it has achievements set up, otherwise no achievements will be displayed here }
+  AppId = 480;
 
 { One-time initialization of resources. }
 procedure ApplicationInitialize;

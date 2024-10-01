@@ -13,23 +13,29 @@
   ----------------------------------------------------------------------------
 }
 
-{ Provides basic interaction with Steam API
-  Call InitSteam(AppId) and wait for Steam.Initialized before starting using it
-  For now features mostly interaction with Steam Achievements
+{ Integration with Steam.
+
+  Call InitSteam(AppId) and wait for Steam.Initialized before using it.
+
+  You can interact with Steam achievements - list them, set them, clear them.
+
   Note: Current calls to Steam API require a specific version of SteamWorks: 1.57
   You can download the corresponding dynamic library from
   https://partner.steamgames.com/downloads/list
 
-  Notes about supported platforms (OS / CPU):
-  * Windows / x86_64 - functional
-  * Windows / i386 - functional
-  * Linux / x86_64 - TODO: not tested, should be working
-  * Linux / i386 - TODO: not tested, has a chance to work out of the box
-  * Linux / Arm, Linux / Aarch64 - cannot work
-    (2 critical "asm" sections in CastleInternalSteamCallback
-    not ported to this CPU, but also Steam doesn't support this platform
-    from what we know)
-  * macOS - failing
+  Platforms supported (OS / CPU):
+  @unorderedList(
+    @item Windows / x86_64 - functional
+    @item Windows / i386 - functional
+    @item Linux / x86_64 - TODO: not tested, should be working
+    @item Linux / i386 - TODO: not tested, has a chance to work out of the box
+    @item(Linux / Arm, Linux / Aarch64 - cannot work
+
+      (2 critical "asm" sections in CastleInternalSteamCallback
+      not ported to this CPU, but also Steam doesn't support this platform
+      from what we know).)
+    @item(macOS - TODO: failing)
+  )
 }
 unit CastleSteam;
 
@@ -42,10 +48,10 @@ uses
   CastleInternalSteamConstantsAndTypes, CastleInternalSteamCallback;
 
 type
-  { Provides simplified access to some Steam API functions
+  { Access to Steam.
     Do not create a manual instance of the class,
-    call SteamInit(AppId) to initialize singleton of this class.
-    Steam API will shut down automatically when the app shuts down }
+    call SteamInit(AppId) to initialize a single instance of this class.
+    Steam API will shut down automatically when the app shuts down. }
   TCastleSteam = class(TObject)
   strict private
     FInitialized: Boolean;
@@ -59,65 +65,91 @@ type
     procedure OnUserStatsReceived(P: Pointer);
     procedure GetAchievements;
     { For now if some operation failed, we log an error into WriteLnWarning
-      This seems to be the practice of SteamWorks examples,
+      This seems to be the practice of SteamWorks examples.
       So hopefully Steam API cannot randomly fail at regular requests
-      if they are formulated correctly (e.g. achievement exists, etc.)
+      if they are formulated correctly (e.g. achievement exists, etc.).
       Make sure Steam.Initialized before calling Steam features }
     procedure SteamError(const ErrorMsg: String);
   public
     { List of achievements for this game
       These are IDs of achievements, used in other calls
       This field is initialized after Steam has been initialized
-      and is nil until that moment }
+      and is nil until that moment. }
     Achievements: TStringList;
+
     { Set achievement as "achieved",
-      This will also toggle overlay indicating the obtained achievement to the Player }
+      Steam will automatically show a small overlay indicating that the
+      achievement is obtained. }
     procedure SetAchievement(const AchievementId: String);
-    { Get state of the achievement. Returns:
-      "true" - achievement has been achieved
-      "false" - achievement has not been achieved }
+
+    { Is this achievement "achieved". }
     function GetAchievement(const AchievementId: String): Boolean;
-    { Set achievement as "not achieved"
-      sometimes useful for testing purposes }
+
+    { Set achievement as "not achieved".
+      Should not be necessary for normal usage (the convention is that
+      once users achieve something, it stays achieved forever).
+      But this is useful for testing purposes -- you may want to clear own
+      achievements during testing. }
     procedure ClearAchievement(const AchievementId: String);
-    { Clears all achievements from the connected user }
+
+    { Clears all achievements from the connected user.
+      @seealso ClearAchievement }
     procedure ClearAllAchievements;
-    { Shows Steam overlay "progress towards achievement" i.e. Wins 33/100 }
-    procedure IndicateAchievementProgress(const AchievementId: String; const CurrentProgress, MaxProgress: UInt32);
+
+    { Show Steam overlay "progress towards achievement" i.e. "Wins 33/100" }
+    procedure IndicateAchievementProgress(const AchievementId: String;
+      const CurrentProgress, MaxProgress: UInt32);
   public
-    { If this instance is properly initialized,
+    { If this instance is properly initialized.
       Check this before using more complex Steam API calls
+      (TODO: document which ones).
       It should regularly take several frames to initialize Steam API,
-      So avoid calling Steam features too early, e.g. from Initialization code }
+      So avoid calling Steam features too early, e.g. from Initialization code. }
     property Initialized: Boolean read FInitialized;
+
     { Updates callbacks, performs saving of user stats
       According to SteamWorks documentation you should run this at least 10 times a second, better if every frame }
     procedure Update;
-    constructor Create; // override;
+
+    constructor Create;
     destructor Destroy; override;
   end;
 
 { Instance of Steam API bridge,
-  use this singleton to access to Steam API
+  use this singleton to access to Steam API.
   Will throw an exception "Steam not initialized" if called before InitSteam }
 function Steam: TCastleSteam;
 
-{ Connect to Steam and initialize everything:
-  1. It checks if Steam is running and exits with error code 1 otherwise
-  2. It tries to connect to Steam API and checks if the game was run
-     through Steam or through exe file. In the latter case the game will
-     automatically restart through Steam
-     Note: this behavior is recommended for end-user build of the game,
-     to avoid this, place steam_appid.txt with your game's AppId near app's executable
-  3. Will ask TCastleSteam to initialize interfaces and request user stats
-     Note: Steam will not be fully initialized until confirmation callback
-     will be received by TCastleSteam, this may take several frames.
-     Check for Steam.Initialized before using non-trivial features of Steam API.
-  You need to provide AppId for your app to this function }
+{ Connect to Steam and initialize everything.
+
+  @orderedList(
+    @item(It checks if Steam is running and exits with error code 1 otherwise.)
+
+    @item(It tries to connect to Steam API and checks if the game was run
+      through Steam or through exe file. In the latter case the game will
+      automatically restart through Steam
+
+      Note: this behavior is recommended for end-user build of the game,
+      to avoid this, place steam_appid.txt with your game's AppId near app's executable.
+      TODO: clarify above sentence. Use unholy txt for info how steam_appid.txt works.)
+
+    @item(Will ask TCastleSteam to initialize interfaces and request user stats
+      Note: Steam will not be fully initialized until confirmation callback
+      will be received by TCastleSteam, this may take several frames.
+      Check for Steam.Initialized before using non-trivial features of Steam API.
+      You need to provide AppId for your app to this function.
+    )
+  )
+
+  TODO: update docs for OnInitialized.
+  TODO: Let user do Steam := TCastleSteam.Create(AppId) instead of InitSteam(AppId). }
 procedure InitSteam(const AppId: Integer);
+
 { If Steam library is available runtime }
 function SteamLibraryAvailable: Boolean;
+
 implementation
+
 uses
   SysUtils,
   CastleLog,

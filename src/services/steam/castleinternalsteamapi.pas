@@ -1,10 +1,23 @@
+{
+  Copyright 2023-2024 Michalis Kamburelis, Eugene Loza.
+
+  This file is part of "Castle Game Engine".
+
+  "Castle Game Engine" is free software; see the file COPYING.txt,
+  included in this distribution, for details about the copyright.
+
+  "Castle Game Engine" is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+  ----------------------------------------------------------------------------
+}
 { Translation of Steam headers (first of all steam_api_flat.h and steam_api_internal.h).
-  Note that for yet unknown reason not all Steam calls are accessible from Pascal code
-  Therefore only those calls that were tested and proven to work are included.
-  Some features can be accessed in more than one way, through different calls
-  which was accounted for in this unit.
-  We'd like to note invaluable help that Apus Engine's sources by Ivan Polyacov (Cooler2)
-  have provided in hunting down those specific calls and a few tricks to make them work properly. }
+  Only calls that were tested and proven to work are included.
+
+  Credits: We note invaluable help that Apus Engine's sources
+  by Ivan Polyacov (Cooler2) have provided in hunting down the specific calls
+  that work and a few tricks to make them work properly. }
 unit CastleInternalSteamApi;
 
 {$I castleconf.inc}
@@ -16,11 +29,11 @@ uses
 
 procedure InitializeSteamLibrary;
 procedure FinalizeSteamLibrary;
-var
 
+var
 { steam_api.h : See full documentation at https://partner.steamgames.com/doc/api/steam_api }
   SteamAPI_Init: function (): Boolean; CDecl;
-  SteamAPI_ReleaseCurrentThreadMemory: procedure (); CDecl; // UNTESTED
+  SteamAPI_ReleaseCurrentThreadMemory: procedure (); CDecl; // TODO: UNTESTED
   SteamAPI_RestartAppIfNecessary: function (unOwnAppID: UInt32): Boolean; CDecl;
   SteamAPI_RunCallbacks: procedure (); CDecl;
   SteamAPI_Shutdown: procedure (); CDecl;
@@ -68,7 +81,7 @@ var
 // Call this after changing stats or achievements
   SteamAPI_ISteamUserStats_StoreStats: function (SteamUserStats: Pointer): Boolean; CDecl;
 
-// the ones below crash without any reason explained
+// TODO: the ones below crash without any reason explained
 //SteamAPI_ISteamUserStats_GetStatInt32: function (SteamUserStats: Pointer; const StatName: PAnsiChar; Value: Int32): Boolean; CDecl;
 //SteamAPI_ISteamUserStats_GetStatFloat: function (SteamUserStats: Pointer; const StatName: PAnsiChar; Value: Single): Boolean; CDecl;
 //SteamAPI_ISteamUserStats_SetStatInt32: function (SteamUserStats: Pointer; const StatName: PAnsiChar; Value: Int32): Boolean; CDecl;
@@ -84,12 +97,13 @@ uses
 
 procedure FinalizeSteamLibrary;
 begin
+  // TODO: clear all callbacks
   FreeAndNil(SteamLibrary);
 end;
 
 procedure InitializeSteamLibrary;
 begin
-  FinalizeSteamLibrary; // TODO
+  FinalizeSteamLibrary;
 
   {$if defined(DARWIN)} // macOS
   SteamLibrary := TDynLib.Load('libsteam_api.dylib', false);

@@ -1,3 +1,18 @@
+{
+  Copyright 2023-2024 Michalis Kamburelis, Eugene Loza, Sérgio Flores (Relfos).
+
+  This file is part of "Castle Game Engine".
+
+  "Castle Game Engine" is free software; see the file COPYING.txt,
+  included in this distribution, for details about the copyright.
+
+  "Castle Game Engine" is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+  ----------------------------------------------------------------------------
+}
+{ Steam constants and types. }
 unit CastleInternalSteamConstantsAndTypes;
 
 {$I castleconf.inc}
@@ -14,7 +29,9 @@ type
 const
   { Note for now we are forced to use "version-specific" calls to Steam API
     There are version-free calls in Steam API headers, however, those just crash
-    for no reason. Therefore for now we must use a specific version of Steamworks: 1.57 }
+    (TODO: reason unknown).
+    Therefore for now we use a specific version of Steamworks: 1.57 }
+  // TODO: can we clean this up?
   STEAMCLIENT_INTERFACE_VERSION = 'SteamClient020'; // in isteamclient.h, I don't know how to pull it from there
   STEAMUSER_INTERFACE_VERSION = 'SteamUser023'; // in isteamuser.h
   STEAMUSERSTATS_INTERFACE_VERSION = 'STEAMUSERSTATS_INTERFACE_VERSION012'; // isteamuserstats.h

@@ -1,3 +1,18 @@
+{
+  Copyright 2023-2024 Michalis Kamburelis, Eugene Loza.
+
+  This file is part of "Castle Game Engine".
+
+  "Castle Game Engine" is free software; see the file COPYING.txt,
+  included in this distribution, for details about the copyright.
+
+  "Castle Game Engine" is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+  ----------------------------------------------------------------------------
+}
+{ Main view, where most of the game logic takes place. }
 unit GameViewMain;
 
 interface
@@ -61,7 +76,7 @@ begin
   end;
   Button := TCastleButton.Create(VerticalGroupAchievements);
   Button.Caption := 'Indicate Achievement Progress';
-  Button.OnClick := {$ifdef FPC}@{$endif}ClickAchievementProgress;
+  Button.OnClick := {$ifdef FPC}@{$endif} ClickAchievementProgress;
   VerticalGroupAchievements.InsertFront(Button);
 end;
 
@@ -88,6 +103,7 @@ procedure TViewMain.Log(const Message: String);
 var
   NewLabel: TCastleLabel;
 begin
+  // TODO: use OnScreenNotifications
   NewLabel := TCastleLabel.Create(VerticalGroupLog);
   NewLabel.Caption := Message;
   NewLabel.Color := CastleColors.White;
@@ -112,8 +128,10 @@ begin
   LabelFps.Caption := 'FPS: ' + Container.Fps.ToString;
 
   { Some Steam features (like callbacks) require calling Update often, usually every frame }
+  // TODO: make it called automatically if you InitSteam (create Steam instance)
   Steam.Update;
 
+  // TODO: use Steam.OnInitialized
   if not SteamAchievementsReceived and Steam.Initialized then
   begin
     SteamAchievementsReceived := true;
