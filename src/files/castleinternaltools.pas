@@ -77,6 +77,7 @@ const
     'scene/glsl/generated-pascal',
     'scene/x3d',
     'scene/load',
+    'scene/load/ifc',
     'scene/load/spine',
     'scene/load/md3',
     'scene/load/collada',

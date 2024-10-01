@@ -62,6 +62,7 @@ const
   ecgevarHeadlight       = 8;   // avatar's headlight (int, 1 = on, 0 = off)
   ecgevarOcclusionCulling = 9;  // occlusion culling (int, 1 = on, 0 = off)
   ecgevarPhongShading    = 10;  // phong shading (int, 1 = on, 0 = off)
+  ecgevarPreventInfiniteFallingDown = 11;  // prevent infinite falling down (int, 1 = on, 0 = off)
 
   // navigation types (ECgeNavigationType enum)
   ecgenavWalk      = 0;
@@ -218,19 +219,19 @@ const
   kcge_Period      = 190;
 
   // mouse button (ECgeMouseButton)
-  ecgemouseButtonNone   = 0;  
-  ecgemouseButtonLeft   = 1;  
-  ecgemouseButtonMiddle = 2;  
-  ecgemouseButtonRight  = 3;  
-  ecgemouseButtonExtra1 = 4;  
-  ecgemouseButtonExtra2 = 5;  
+  ecgemouseButtonNone   = 0;
+  ecgemouseButtonLeft   = 1;
+  ecgemouseButtonMiddle = 2;
+  ecgemouseButtonRight  = 3;
+  ecgemouseButtonExtra1 = 4;
+  ecgemouseButtonExtra2 = 5;
 
   // mouse wheel direction (ECgeMouseWheelDirection)
-  ecgemouseWheelNone    = 0;  
-  ecgemouseWheelUp      = 1;  
-  ecgemouseWheelDown    = 2;  
-  ecgemouseWheelLeft    = 3;  
-  ecgemouseWheelRight   = 4;  
+  ecgemouseWheelNone    = 0;
+  ecgemouseWheelUp      = 1;
+  ecgemouseWheelDown    = 2;
+  ecgemouseWheelLeft    = 3;
+  ecgemouseWheelRight   = 4;
 
   // camera input (ECgeNavigationInput)
   ecgeinputZoomIn       = 1;
@@ -271,7 +272,7 @@ procedure CGE_SetLibraryCallbackProc(aProc: TLibraryCallbackProc); cdecl; extern
 procedure CGE_Update(); cdecl; external 'castleengine';
 procedure CGE_MouseDown(X, Y: cInt32; bLeftBtn: cBool; FingerIndex: CInt32); cdecl; external 'castleengine';
 procedure CGE_Motion(X, Y: cInt32; FingerIndex: CInt32); cdecl; external 'castleengine';
-procedure CGE_MouseUp(X, Y: cInt32; bLeftBtn: cBool; FingerIndex: CInt32; trackReleased: cBool); cdecl; external 'castleengine';
+procedure CGE_MouseUp(X, Y: cInt32; bLeftBtn: cBool; FingerIndex: CInt32); cdecl; external 'castleengine';
 procedure CGE_MouseWheel(zDelta: cFloat; bVertical: cBool); cdecl; external 'castleengine';
 procedure CGE_KeyDown(eKey: CInt32); cdecl; external 'castleengine';
 procedure CGE_KeyUp(eKey: CInt32); cdecl; external 'castleengine';

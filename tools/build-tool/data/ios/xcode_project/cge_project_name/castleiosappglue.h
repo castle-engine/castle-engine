@@ -202,7 +202,7 @@ extern void CGEApp_Update(void);                                                
 
 extern void CGEApp_MouseDown(int x, int y, bool bLeftBtn, int nFingerIdx);    // [0,0] is the bottom-left corner!
 extern void CGEApp_Motion(int x, int y, int nFingerIdx);
-extern void CGEApp_MouseUp(int x, int y, bool bLeftBtn, int nFingerIdx, bool trackReleased);
+extern void CGEApp_MouseUp(int x, int y, bool bLeftBtn, int nFingerIdx);
 
 extern void CGEApp_KeyDown(int /*ECgeKey*/ eKey);
 extern void CGEApp_KeyUp(int /*ECgeKey*/ eKey);

@@ -195,7 +195,7 @@ void GLWidget::mouseReleaseEvent(QMouseEvent *event)
     if (!m_bAfterInit) return;
 
     QPoint pt(PointFromMousePoint(event->pos()));
-    CGE_MouseUp(pt.x(), pt.y(), event->button()==Qt::LeftButton, 0, true);
+    CGE_MouseUp(pt.x(), pt.y(), event->button()==Qt::LeftButton, 0);
 }
 
 #ifndef QT_NO_WHEELEVENT

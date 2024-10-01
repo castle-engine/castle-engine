@@ -130,6 +130,8 @@ void MainWindow::UpdateAfterSceneLoaded()
     ui->actionHeadlight->setChecked(CGE_GetVariableInt(ecgevarHeadlight)>0);
     ui->actionSSAO->setChecked(CGE_GetVariableInt(ecgevarEffectSSAO)>0);
 
+    CGE_SetVariableInt(ecgevarPreventInfiniteFallingDown, 1);
+
     if (m_aNavKeeper.ApplyState())  // when scene loading was caused by reloading (changing multisampling, etc)
         UpdateNavigationButtons();
 }

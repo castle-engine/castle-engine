@@ -244,7 +244,7 @@ unit CastleWindow;
 {$ifdef CASTLE_WINDOW_GTK_2} {$define CASTLE_WINDOW_GTK_ANY} {$endif}
 
 { Sometimes GTK backend needs to call some X-specific things:
-  1. Implementing TCastleWindow.SetMousePosition.
+  1. Implementing TCastleWindow.SystemSetMousePosition.
      Older GDK/GTK versions didn't have any function for this (see here
      [http://mail.gnome.org/archives/gtk-list/2001-January/msg00035.html]),
      although newer GDK has gdk_display_warp_pointer.
@@ -425,13 +425,10 @@ type
     function PixelsWidth: Integer; override;
     function PixelsHeight: Integer; override;
     function PixelsRect: TRectangle; override;
-    function GetMousePosition: TVector2; override;
-    procedure SetMousePosition(const Value: TVector2); override;
     function Focused: boolean; override;
     procedure SetInternalCursor(const Value: TMouseCursor); override;
-    function GetTouches(const Index: Integer): TTouch; override;
-    function TouchesCount: Integer; override;
     function SaveScreen(const SaveRect: TRectangle): TRGBImage; overload; override;
+    procedure SystemSetMousePosition(const Value: TVector2); override;
     function SettingMousePositionCausesMotion: Boolean; override;
   end deprecated 'do not descend from this, instead use custom TCastleView descendants';
 
@@ -493,7 +490,6 @@ type
     FDuringOpen: boolean;
     FResizeAllowed: TResizeAllowed;
     FFocused: boolean;
-    FMousePosition: TVector2;
     FRedBits, FGreenBits, FBlueBits: Cardinal;
     FAutoRedisplay: boolean;
     FCaption: array [TCaptionPart] of string;
@@ -533,7 +529,6 @@ type
     FContainer: TWindowContainer;
     {$warnings on}
     FCursor: TMouseCursor;
-    FTouches: TTouchList;
     FNamedParameters: TCastleStringList;
     { When Open, this says if the window actually has double-buffer. }
     HasDoubleBuffer: Boolean;
@@ -576,8 +571,13 @@ type
       just call SimpleUpdateFullScreenBackend. }
     procedure UpdateFullScreenBackend;
 
+    function GetMousePosition: TVector2;
     procedure SetMousePosition(const Value: TVector2);
     procedure SetFullScreenWanted(const Value: Boolean);
+
+    { Implement in backends to react to requests of mouse position
+      by code. See @link(TCastleContainer.SystemSetMousePosition). }
+    procedure SystemSetMousePosition(const Value: TVector2);
 
     { Used in particular backend, open OpenGL context and do
       Application.OpenWindowsAdd(Self) there.
@@ -765,9 +765,9 @@ type
       Below is the detailed specification, but summing some things up
       you don't have to worry about these things when you use DoXxx methods
       (these things are fully handled by DoXxx methods):
-      - updating state of MousePressed
-      - updating state of Pressed (Pressed.Keys, Pressed.Characters etc.)
-      - updating state of MousePosition
+      - updating state of Container.MousePressed
+      - updating state of Container.Pressed (Pressed.Keys, Pressed.Characters etc.)
+      - updating state of Container.MousePosition
       - calling MakeCurrent before every EventXxx
       - flushing gl commands (and swapping gl buffers when DoubleBuffer'ing)
       - taking care of AutoRedisplay
@@ -851,22 +851,12 @@ type
     }
     procedure DoKeyDown(const Key: TKey; const KeyString: String);
     procedure DoKeyUp(const key: TKey);
-    { Do MakeCurrent,
-         EventMotion,
-         update MousePosition }
     procedure DoMotion(const Event: TInputMotion);
-    { DoMouseDown/Up:
-        update MousePosition (so that before EventPress/EventRelease position
-          of the mouse is set to the current, precise, position)
-        update MousePressed
-        MakeCurrent
-        EventPress/EventRelease }
     procedure DoMouseDown(const Position: TVector2;
-      Button: TCastleMouseButton; const FingerIndex: TFingerIndex = 0);
+      const AButton: TCastleMouseButton; const FingerIndex: TFingerIndex);
     procedure DoMouseUp(const Position: TVector2;
-      Button: TCastleMouseButton; const FingerIndex: TFingerIndex = 0;
-      const TrackReleased: boolean = true);
-    procedure DoMouseWheel(const Scroll: Single; const Vertical: boolean);
+      const AButton: TCastleMouseButton; const FingerIndex: TFingerIndex);
+    procedure DoMouseWheel(const Scroll: Single; const Vertical: Boolean);
     { Just call it when user presses some MenuItem.
       This takes care of
       - MainMenu.Enabled (and if menu item was activated using key shortcut,
@@ -1107,7 +1097,8 @@ type
           the window is closed.)
       ) }
     property MousePosition: TVector2
-      read FMousePosition write SetMousePosition;
+      read GetMousePosition write SetMousePosition;
+      {$ifdef FPC} deprecated 'use Container.MousePressed'; {$endif}
 
     { Currently active touches on the screen.
       This tracks currently pressed fingers, in case of touch devices (mobile, like Android and iOS).
@@ -1118,10 +1109,12 @@ type
       @seealso TouchesCount
       @seealso TTouch }
     property Touches[const Index: Integer]: TTouch read GetTouches;
+      {$ifdef FPC} deprecated 'use Container.Touches'; {$endif}
 
     { Count of currently active touches (mouse or fingers pressed) on the screen.
       @seealso Touches }
     function TouchesCount: Integer;
+      deprecated 'use Container.TouchesCount';
 
     { When (if at all) window size may be changed.
 
@@ -1711,10 +1704,10 @@ type
 
   public
     { Keys currently pressed. }
-    function Pressed: TKeysPressed;
+    function Pressed: TKeysPressed; deprecated 'use Container.Pressed';
 
     { Measures application speed. }
-    function Fps: TFramesPerSecond;
+    function Fps: TFramesPerSecond; deprecated 'use Container.Fps';
 
     { OpenAndRun stuff --------------------------------------------------------- }
 
@@ -2475,16 +2468,6 @@ begin
   Result := Parent.Rect;
 end;
 
-function TWindowContainer.GetMousePosition: TVector2;
-begin
-  Result := Parent.MousePosition;
-end;
-
-procedure TWindowContainer.SetMousePosition(const Value: TVector2);
-begin
-  Parent.MousePosition := Value;
-end;
-
 function TWindowContainer.Focused: boolean;
 begin
   Result := Parent.Focused;
@@ -2493,16 +2476,6 @@ end;
 procedure TWindowContainer.SetInternalCursor(const Value: TMouseCursor);
 begin
   Parent.InternalCursor := Value;
-end;
-
-function TWindowContainer.GetTouches(const Index: Integer): TTouch;
-begin
-  Result := Parent.Touches[Index];
-end;
-
-function TWindowContainer.TouchesCount: Integer;
-begin
-  Result := Parent.TouchesCount;
 end;
 
 function TWindowContainer.SaveScreen(const SaveRect: TRectangle): TRGBImage;
@@ -2516,6 +2489,11 @@ begin
   EventBeforeRender;
   EventRender;
   Result := SaveScreen_NoFlush(SaveRect, Parent.SaveScreenBuffer);
+end;
+
+procedure TWindowContainer.SystemSetMousePosition(const Value: TVector2);
+begin
+  Parent.SystemSetMousePosition(Value);
 end;
 
 { TCastleWindow ---------------------------------------------------------- }
@@ -2543,7 +2521,6 @@ begin
   FVisible := true;
   FAutoRedisplay := true;
   OwnsMainMenu := true;
-  FMousePosition := Vector2(-1, -1);
   FMainMenuVisible := true;
   // Using deprecated CreateContainer - should be internal in the future
   {$warnings off}
@@ -2553,7 +2530,6 @@ begin
   SwapFullScreen_Key := keyNone;
   FpsShowOnCaption := false;
   FFpsCaptionUpdateDelay := DefaultFpsCaptionUpdateDelay;
-  FTouches := TTouchList.Create;
   FFocused := true;
   FNamedParameters := TCastleStringList.Create;
   FRequirements := TGLContextRequirements.Create(nil);
@@ -2580,7 +2556,6 @@ begin
     Messaging.OnReceive.Remove({$ifdef FPC}@{$endif} MessageReceived);
 
   FreeAndNil(FContainer);
-  FreeAndNil(FTouches);
   FreeAndNil(FNamedParameters);
   FreeAndNil(FRequirements);
   inherited;
@@ -2665,8 +2640,6 @@ procedure TCastleWindow.OpenCore;
     FRealHeight := FHeight;
 
     { reset some window state variables }
-    Pressed.Clear;
-    Container.MousePressed := [];
     EventOpenCalled := false;
 
     { Set Closed to false. Before OpenBackend and EventOpen + EventResize,
@@ -2893,12 +2866,12 @@ begin
 
   { Since we do DoKeyUp, this should also take care of releasing Characters. }
   for Key := Low(Key) to High(Key) do
-    if Pressed[Key] then
+    if Container.Pressed[Key] then
       DoKeyUp(Key);
 
   for MouseButton := Low(MouseButton) to High(MouseButton) do
-    if MouseButton in MousePressed then
-      DoMouseUp(MousePosition, MouseButton);
+    if MouseButton in Container.MousePressed then
+      DoMouseUp(Container.MousePosition, MouseButton, 0);
 
   Container.MouseLookIgnoreNextMotion;
 end;
@@ -3024,7 +2997,7 @@ begin
   if Closed then Exit; { check, in case window got closed in the event }
 
   FrameProfiler.Start(fmRender);
-  Fps.InternalRenderBegin;
+  Container.Fps.InternalRenderBegin;
   try
     Container.EventRender;
     if Closed then Exit; { check, in case window got closed in the event }
@@ -3068,7 +3041,7 @@ begin
 
     if AutoRedisplay then Invalidate;
   finally
-    Fps.InternalRenderEnd;
+    Container.Fps.InternalRenderEnd;
     FrameProfiler.Stop(fmRender);
   end;
 end;
@@ -3093,7 +3066,7 @@ var
         end;
       end else
       if (Entry is TMenuItem) and
-         TMenuItem(Entry).KeyMatches(Key, Event.KeyString, Pressed.Modifiers) then
+         TMenuItem(Entry).KeyMatches(Key, Event.KeyString, Container.Pressed.Modifiers) then
         Result := TMenuItem(Entry);
     end;
 
@@ -3107,17 +3080,17 @@ var
   MatchingMI: TMenuItem;
   KeyRepeated: boolean;
 begin
-  Event := InputKey(MousePosition, Key, KeyString, ModifiersDown(Container.Pressed));
+  Event := InputKey(Container.MousePosition, Key, KeyString, ModifiersDown(Container.Pressed));
 
   KeyRepeated :=
     // Key or KeyString non-empty
     ((Key <> keyNone) or (KeyString <> '')) and
     // Key already pressed
-    ((Key = keyNone) or Pressed.Keys[Key]) and
+    ((Key = keyNone) or Container.Pressed.Keys[Key]) and
     // KeyString already pressed
-    ((KeyString = '') or Pressed.Strings[KeyString]);
+    ((KeyString = '') or Container.Pressed.Strings[KeyString]);
 
-  Pressed.KeyDown(Key, KeyString);
+  Container.Pressed.KeyDown(Key, KeyString);
 
   { This implementation guarantees that
 
@@ -3173,13 +3146,14 @@ procedure TCastleWindow.DoKeyUp(const key: TKey);
 var
   KeyString: String;
 begin
-  if Pressed[Key] then
+  if Container.Pressed[Key] then
   begin
     { keyNone key is never pressed, DoKeyDown guarantees this }
     Assert(Key <> keyNone);
-    Pressed.KeyUp(Key, KeyString);
+    Container.Pressed.KeyUp(Key, KeyString);
     MakeCurrent;
-    Container.EventRelease(InputKey(MousePosition, Key, KeyString, ModifiersDown(Container.Pressed)));
+    Container.EventRelease(InputKey(Container.MousePosition, Key, KeyString,
+      ModifiersDown(Container.Pressed)));
   end;
 end;
 
@@ -3192,59 +3166,38 @@ procedure TCastleWindow.DoMotion(const Event: TInputMotion);
 begin
   MakeCurrent;
   Container.EventMotion(Event);
-  if Event.FingerIndex = 0 then
-    { change FMousePosition *after* EventMotion, callbacks may depend on it }
-    FMousePosition := Event.Position;
-  FTouches.FingerIndexPosition[Event.FingerIndex] := Event.Position;
 end;
 
 procedure TCastleWindow.DoMouseDown(const Position: TVector2;
-  Button: TCastleMouseButton; const FingerIndex: TFingerIndex);
+  const AButton: TCastleMouseButton; const FingerIndex: TFingerIndex);
 var
   Event: TInputPressRelease;
 begin
-  if FingerIndex = 0 then
-  begin
-    FMousePosition := Position;
-    Container.MousePressed := Container.MousePressed + [Button];
-  end;
   MakeCurrent;
-  Event := InputMouseButton(Position, Button, FingerIndex,
+  Event := InputMouseButton(Position, AButton, FingerIndex,
     ModifiersDown(Container.Pressed));
   Container.EventPress(Event);
-  FTouches.FingerIndexPosition[Event.FingerIndex] := Event.Position;
 end;
 
 procedure TCastleWindow.DoMouseUp(const Position: TVector2;
-  Button: TCastleMouseButton; const FingerIndex: TFingerIndex;
-  const TrackReleased: boolean);
+  const AButton: TCastleMouseButton; const FingerIndex: TFingerIndex);
 var
   Event: TInputPressRelease;
 begin
-  if FingerIndex = 0 then
-  begin
-    FMousePosition := Position;
-    Container.MousePressed := Container.MousePressed - [Button];
-  end;
   MakeCurrent;
-  Event := InputMouseButton(Position, Button, FingerIndex,
+  Event := InputMouseButton(Position, AButton, FingerIndex,
     ModifiersDown(Container.Pressed));
   Container.EventRelease(Event);
-  if TrackReleased then
-    { for desktops, when the mouse is used, we track the position of the mouse
-      even after "mouse up" event. }
-    FTouches.FingerIndexPosition[Event.FingerIndex] := Event.Position
-  else
-    { for touch devices, it does not make sense to track the position when the finger
-      is not pressing. }
-    FTouches.RemoveFingerIndex(Event.FingerIndex);
 end;
 
-procedure TCastleWindow.DoMouseWheel(const Scroll: Single; const Vertical: boolean);
+procedure TCastleWindow.DoMouseWheel(const Scroll: Single; const Vertical: Boolean);
+var
+  Event: TInputPressRelease;
 begin
   MakeCurrent;
-  Container.EventPress(InputMouseWheel(MousePosition, Scroll, Vertical,
-    ModifiersDown(Container.Pressed)));
+  Event := InputMouseWheel(Container.MousePosition, Scroll, Vertical,
+    ModifiersDown(Container.Pressed));
+  Container.EventPress(Event);
 end;
 
 procedure TCastleWindow.DoUpdate;
@@ -3262,7 +3215,7 @@ begin
      (TimerSeconds(Timer, LastFpsOutputTime) >= FpsCaptionUpdateDelay) then
   begin
     LastFpsOutputTime := Timer;
-    SetCaption(cpFps, ' - FPS: ' + Fps.ToString);
+    SetCaption(cpFps, ' - FPS: ' + Container.Fps.ToString);
   end;
 
   UpdateFullScreenBackend;
@@ -3864,16 +3817,6 @@ begin
   FpsShowOnCaption := AFpsShowOnCaption;
 end;
 
-function TCastleWindow.GetTouches(const Index: Integer): TTouch;
-begin
-  Result := FTouches[Index];
-end;
-
-function TCastleWindow.TouchesCount: Integer;
-begin
-  Result := FTouches.Count;
-end;
-
 function TCastleWindow.MousePressed: TCastleMouseButtons;
 begin
   Result := Container.MousePressed;
@@ -3887,6 +3830,26 @@ end;
 function TCastleWindow.Fps: TFramesPerSecond;
 begin
   Result := Container.Fps;
+end;
+
+function TCastleWindow.GetTouches(const Index: Integer): TTouch;
+begin
+  Result := Container.Touches[Index];
+end;
+
+function TCastleWindow.TouchesCount: Integer;
+begin
+  Result := Container.TouchesCount;
+end;
+
+function TCastleWindow.GetMousePosition: TVector2;
+begin
+  Result := Container.MousePosition;
+end;
+
+procedure TCastleWindow.SetMousePosition(const Value: TVector2);
+begin
+  Container.MousePosition := Value;
 end;
 
 function TCastleWindow.LeftTopToCastle(const V: TVector2): TVector2;
@@ -4169,7 +4132,7 @@ begin
       if Window.Closed then Continue {don't Inc(I)};
       if Terminated then Exit;
     end else
-      Window.Fps.InternalSleeping;
+      Window.Container.Fps.InternalSleeping;
 
     Inc(I);
   end;
@@ -4187,7 +4150,7 @@ var
   I: Integer;
 begin
   for I := 0 to OpenWindowsCount - 1 do
-    OpenWindows[I].Fps.InternalSleeping;
+    OpenWindows[I].Container.Fps.InternalSleeping;
 end;
 
 function TCastleApplication.AllowSuspendForInput: boolean;

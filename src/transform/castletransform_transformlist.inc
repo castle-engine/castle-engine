@@ -17,27 +17,28 @@
 {$ifdef read_interface}
 
 //type
-  { List of TCastleTransform instances.
-    This inherits from TCastleObjectList, getting many
-    features like TList notification mechanism. }
-  TCastleTransformList = class(TCastleObjectList)
+  { List of TCastleTransform instances. }
+  TCastleTransformList = class({$ifdef FPC}specialize{$endif} TObjectList<TCastleTransform>)
   private
     { Note: Using this class with FOwner <> nil is only for internal purposes. }
     FOwner: TCastleTransform;
-    function GetItem(const I: Integer): TCastleTransform;
-    procedure SetItem(const I: Integer; const Item: TCastleTransform);
-    { TCastleTransform instance that owns this list.
+
+    { TCastleTransform instance that gets notified when items
+      are added or removed.
       May be @nil, for example when this list is used by TRayCollision. }
     property Owner: TCastleTransform read FOwner;
-
-    procedure SortBackToFront2D;
-      deprecated 'use TCastleViewport.BlendingSort to sort objects for blending';
+  protected
+    procedure Notify({$ifdef GENERICS_CONSTREF}constref{$else}const{$endif} AValue: TCastleTransform;
+      ACollectionNotification: TCollectionNotification); override;
   public
-    procedure Notify(Ptr: Pointer; Action: TListNotification); override;
-    property Items[const I: Integer]: TCastleTransform read GetItem write SetItem; default;
+    { Delete all found instances of the given Item.
+      Shifts all other pointers to the left.
+      Returns how many instances were removed (that is, how much Count
+      was decreased).
 
-    function First: TCastleTransform;
-    function Last: TCastleTransform;
+      This does not free the items,
+      unless the list has been created with OwnsObjects = @true. }
+    function RemoveAll(const Item: TCastleTransform): Cardinal;
   end;
 
 {$endif read_interface}
@@ -53,49 +54,41 @@ end;
 
 { TCastleTransformList ------------------------------------------------------------ }
 
-procedure TCastleTransformList.Notify(Ptr: Pointer; Action: TListNotification);
-var
-  B: TCastleTransform;
+procedure TCastleTransformList.Notify(
+  {$ifdef GENERICS_CONSTREF}constref{$else}const{$endif} AValue: TCastleTransform;
+  ACollectionNotification: TCollectionNotification);
 begin
   inherited;
 
   if Owner <> nil then
   begin
-    B := TCastleTransform(Ptr);
-
-    case Action of
-      lnAdded: B.AddParent(Owner);
-      lnExtracted, lnDeleted: B.RemoveParent(Owner);
+    case ACollectionNotification of
+      cnAdded:
+        AValue.AddParent(Owner);
+      cnExtracted, cnRemoved:
+        AValue.RemoveParent(Owner);
       {$ifndef COMPILER_CASE_ANALYSIS}
-      else raise EInternalError.Create('TCastleTransformList.Notify action?');
+      else raise EInternalError.Create('TCastleTransformList.Notify ACollectionNotification?');
       {$endif}
     end;
   end;
 end;
 
-function TCastleTransformList.GetItem(const I: Integer): TCastleTransform;
+function TCastleTransformList.RemoveAll(const Item: TCastleTransform): Cardinal;
+var
+  I: Integer;
 begin
-  Result := TCastleTransform(inherited Items[I]);
-end;
-
-procedure TCastleTransformList.SetItem(const I: Integer; const Item: TCastleTransform);
-begin
-  inherited Items[I] := Item;
-end;
-
-function TCastleTransformList.First: TCastleTransform;
-begin
-  Result := (inherited First) as TCastleTransform;
-end;
-
-function TCastleTransformList.Last: TCastleTransform;
-begin
-  Result := (inherited Last) as TCastleTransform;
-end;
-
-procedure TCastleTransformList.SortBackToFront2D;
-begin
-  Sort(@CompareBackToFront2D);
+  Result := 0;
+  I := 0;
+  while I < Count do
+  begin
+    if Items[I] = Item then
+    begin
+      Delete(I);
+      Inc(Result);
+    end else
+      Inc(I);
+  end;
 end;
 
 {$endif read_implementation}

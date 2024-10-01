@@ -156,10 +156,9 @@ begin
   Result := { TODO } true;
 end;
 
-procedure TCastleWindow.SetMousePosition(const Value: TVector2);
+procedure TCastleWindow.SystemSetMousePosition(const Value: TVector2);
 begin
-  if not Closed then
-    { TODO };
+  { TODO }
 end;
 
 procedure TCastleWindow.UpdateFullScreenBackend;
