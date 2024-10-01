@@ -19,9 +19,32 @@
 
   You can interact with Steam achievements - list them, set them, clear them.
 
-  Note: Current calls to Steam API require a specific version of SteamWorks: 1.57
-  You can download the corresponding dynamic library from
-  https://partner.steamgames.com/downloads/list
+  You need the Steam dynamic library to be available at runtime to use this:
+
+  @orderedList(
+    @item(Download the corresponding dynamic library from
+      https://partner.steamgames.com/downloads/list .
+      Note: Current calls to Steam API require a specific version of SteamWorks: 1.57 .
+      So get the "steamworks_sdk_157.zip".)
+
+    @item(Extract the zip wherever you like.)
+
+    @item(Copy the dynamic library (from "sdk/redistributable_bin/<platform>")
+      into your project's directory (alongside the executable).
+
+      For example, in case of 64-bit Windows, copy the dll file from
+      "sdk/redistributable_bin/steam_api64.dll"
+      into the same directory as your .exe file.
+
+      Note: Ignore *.lib files on Windows, they are not needed for dynamic linking.
+    )
+
+    @item(For exact instructions how to add external library to your project,
+      see e.g. https://castle-engine.io/fmod . You will want to add it to be
+      "packaged" in the final application. On Unix, you will also want to create
+      a script "run.sh" to run your application with modified LD_LIBRARY_PATH
+      to use it.)
+  )
 
   Platforms supported (OS / CPU):
   @unorderedList(
@@ -127,11 +150,9 @@ function Steam: TCastleSteam;
 
     @item(It tries to connect to Steam API and checks if the game was run
       through Steam or through exe file. In the latter case the game will
-      automatically restart through Steam
-
-      Note: this behavior is recommended for end-user build of the game,
-      to avoid this, place steam_appid.txt with your game's AppId near app's executable.
-      TODO: clarify above sentence. Use unholy txt for info how steam_appid.txt works.)
+      automatically restart through Steam.
+      See the `examples/steam/` README for a description how does the Steam
+      integration behave, when it restarts the game.)
 
     @item(Will ask TCastleSteam to initialize interfaces and request user stats
       Note: Steam will not be fully initialized until confirmation callback

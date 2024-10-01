@@ -47,6 +47,8 @@ implementation
 
 uses SysUtils;
 
+// TODO: Nice label when Steam DLL cannot be initialized
+
 { TViewMain ----------------------------------------------------------------- }
 
 procedure TViewMain.FillInAchievements;

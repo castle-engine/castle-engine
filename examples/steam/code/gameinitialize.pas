@@ -32,12 +32,10 @@ var
   Window: TCastleWindow;
 
 const
-  { Here we are using AppID of SteamWorks game example - SpaceWar
-    see https://partner.steamgames.com/doc/sdk/api/example
-    Note that using this example will add this game to your Steam library
-    For other AppId make sure to modify it both here and in steam_appid.txt
-    Also make sure that you own the app and have it in your Steam library
-    and that it has achievements set up, otherwise no achievements will be displayed here }
+  { Application id on Steam.
+    By default we are using AppID of SteamWorks game example - SpaceWar
+    see https://partner.steamgames.com/doc/sdk/api/example .
+    See the README.md for more information about AppID. }
   AppId = 480;
 
 { One-time initialization of resources. }
