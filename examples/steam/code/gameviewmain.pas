@@ -48,6 +48,8 @@ implementation
 
 uses SysUtils;
 
+// TODO: Separate clear achievement / set achievemnts to different buttons, to test separetely
+
 { TViewMain ----------------------------------------------------------------- }
 
 procedure TViewMain.FillInAchievements;
