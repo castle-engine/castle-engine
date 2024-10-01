@@ -26,6 +26,7 @@ type
   TViewMain = class(TCastleView)
   published
     LabelFps: TCastleLabel;
+    LabelSteamStatus: TCastleLabel;
     VerticalGroupAchievements: TCastleVerticalGroup;
     VerticalGroupLog: TCastleVerticalGroup;
   strict private
@@ -46,8 +47,6 @@ var
 implementation
 
 uses SysUtils;
-
-// TODO: Nice label when Steam DLL cannot be initialized
 
 { TViewMain ----------------------------------------------------------------- }
 
@@ -139,6 +138,16 @@ begin
     SteamAchievementsReceived := true;
     FillInAchievements;
   end;
+
+  // update LabelSteamStatus.Caption
+  if Steam.Enabled then
+  begin
+    if Steam.Initialized then
+      LabelSteamStatus.Caption := 'Steam enabled and initialized OK.'
+    else
+      LabelSteamStatus.Caption := 'Steam enabled, initializing...'
+  end else
+    LabelSteamStatus.Caption := 'Steam disabled (dynamic library not found or other reason -- consult the logs and the docs https://castle-engine.io/steam )';
 end;
 
 end.

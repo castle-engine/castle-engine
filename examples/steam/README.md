@@ -2,7 +2,12 @@
 
 Basic test of Steam integration with [Castle Game Engine](https://castle-engine.io/).
 
-TODO: Move docs below to new "Steam integration" manual page, https://castle-engine.io/steam . Move there also parts of CastleSteam unit docs.
+TODO:
+- Move docs below to new "Steam integration" manual page, https://castle-engine.io/steam .
+- Move there also parts of CastleSteam unitdocs.
+
+TODO: indicate achievement progress fails:
+Warning: Failed to SteamAPI_ISteamUserStats_IndicateAchievementProgress
 
 ## How to run
 
