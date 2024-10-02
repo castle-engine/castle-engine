@@ -413,8 +413,6 @@
         <DCCReference Include="..\..\src\files\castleinternalurlutils.pas"/>
         <DCCReference Include="..\..\src\files\castleinternaltools.pas"/>
         <DCCReference Include="..\..\src\services\steam\castleinternalsteamapi.pas"/>
-        <DCCReference Include="..\..\src\services\steam\castleinternalsteamcallback.pas"/>
-        <DCCReference Include="..\..\src\services\steam\castleinternalsteamconstantsandtypes.pas"/>
         <DCCReference Include="..\..\src\services\steam\castlesteam.pas"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>

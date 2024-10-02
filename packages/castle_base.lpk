@@ -60,7 +60,7 @@ This is the same license as used by Lazarus LCL and FPC RTL.
 See https://castle-engine.io/license for details.
 "/>
     <Version Major="6" Minor="93" Release="1"/>
-    <Files Count="1129">
+    <Files Count="1127">
       <Item1>
         <Filename Value="../src/audio/castleinternalabstractsoundbackend.pas"/>
         <UnitName Value="CastleInternalAbstractSoundBackend"/>
@@ -4596,17 +4596,9 @@ See https://castle-engine.io/license for details.
         <UnitName Value="CastleInternalSteamApi"/>
       </Item1126>
       <Item1127>
-        <Filename Value="../src/services/steam/castleinternalsteamcallback.pas"/>
-        <UnitName Value="CastleInternalSteamCallback"/>
-      </Item1127>
-      <Item1128>
-        <Filename Value="../src/services/steam/castleinternalsteamconstantsandtypes.pas"/>
-        <UnitName Value="CastleInternalSteamConstantsAndTypes"/>
-      </Item1128>
-      <Item1129>
         <Filename Value="../src/services/steam/castlesteam.pas"/>
         <UnitName Value="CastleSteam"/>
-      </Item1129>
+      </Item1127>
     </Files>
     <CompatibilityMode Value="True"/>
     <RequiredPkgs Count="1">

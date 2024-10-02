@@ -327,8 +327,6 @@ contains
   castletransformmanipulate in '..\..\src\scene\castletransformmanipulate.pas',
   castleinternaltransformdata in '..\..\src\scene\castleinternaltransformdata.pas',
   castleinternalsteamapi in '..\..\src\services\steam\castleinternalsteamapi.pas',
-  castleinternalsteamcallback in '..\..\src\services\steam\castleinternalsteamcallback.pas',
-  castleinternalsteamconstantsandtypes in '..\..\src\services\steam\castleinternalsteamconstantsandtypes.pas',
   castlesteam in '..\..\src\services\steam\castlesteam.pas';
 
 end.

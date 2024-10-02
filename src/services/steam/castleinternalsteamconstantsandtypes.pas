@@ -17,12 +17,24 @@ unit CastleInternalSteamConstantsAndTypes;
 
 {$I castleconf.inc}
 
+{$ifdef FPC}
+  {$packrecords C}
+{$else}
+  {$ALIGN 4}
+{$endif}
+
 interface
+
+uses CTypes;
 
 type
   HSteamPipe = Int32;
   HSteamUser = Int32;
-  CSteamId = UInt64; // It's a struct but passed as UInt64
+  { It's a struct in C headers but can be passed as UInt64,
+    defined in C headers with explicit statement that it's 64-bit sized. }
+  CSteamId = UInt64;
+  { It's a struct in C headers but can be passed as UInt64,
+    defined in C headers with explicit ability to be typecasted as 64-bit int. }
   CGameID = UInt64;
   EResult = UInt32;
 
@@ -39,8 +51,24 @@ const
 type
   SteamAPIWarningMessageHook = procedure (nSeverity: Integer; pchDebugText: PAnsiChar); Cdecl;
 
+  { Internal structure used in manual callback dispatch
+    (CallbackMsg_t in C headers). }
+  TCallbackMsg = record
+    // Specific user to whom this callback applies.
+	  m_hSteamUser: HSteamUser;
+    // Callback identifier.  (Corresponds to the k_iCallback enum in the callback structure.)
+	  m_iCallback: CInt;
+    // Points to the callback structure
+	  m_pubParam: Puint8;
+    // Size of the data pointed to by m_pubParam
+	  m_cubParam: CInt;
+  end;
+  PCallbackMsg = ^TCallbackMsg;
+
+  // handle to a Steam API call
+  TSteamAPICall = UInt64;
+
 const
-  { copy from steam_api_internal.h }
   //-----------------------------------------------------------------------------
   // Purpose: Base values for callback identifiers, each callback must
   //			have a unique ID.
@@ -85,7 +113,34 @@ const
   k_iSteamRemotePlayCallbacks = 5700;
   k_iSteamChatCallbacks = 5900;
 
-{ callback received structs, from isteamxxxxxxx.h for other callbacks and constants }
+  k_uAPICallInvalid = TSteamAPICall(0);
+
+type
+  // Purpose: called when a SteamAsyncCall_t has completed (or failed)
+  TSteamAPICallCompleted = record
+  const
+    k_iCallback = k_iSteamUtilsCallbacks + 3;
+  var
+    m_hAsyncCall: TSteamAPICall;
+    m_iCallback: CInt;
+    m_cubParam: UInt32;
+  end;
+  PSteamAPICallCompleted = ^TSteamAPICallCompleted;
+
+  // Purpose: called when the latests stats and achievements have been received
+  // from the server
+  TUserStatsReceived = record
+  const
+    k_iCallback = k_iSteamUserStatsCallbacks + 1;
+  var
+    // Game these stats are for
+		GameID: CGameID;
+    // Success / error fetching the stats
+		Result: EResult;
+    // The user for whom the stats are retrieved for
+		SteamID: CSteamId;
+	end;
+  PUserStatsReceived = ^TUserStatsReceived;
 
 implementation
 

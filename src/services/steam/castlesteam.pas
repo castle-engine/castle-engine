@@ -15,22 +15,15 @@
 
 { Integration with Steam.
   See @url(https://castle-engine.io/steam Steam and Castle Game Engine documentation)
-  for usage.
-
-  Call InitSteam(AppId) and wait for Steam.Initialized before using it.
-
-  You can interact with Steam achievements - list them, set them, clear them.
-
-}
+  for usage. }
 unit CastleSteam;
 
 {$I castleconf.inc}
 
 interface
 
-uses
-  Classes,
-  CastleInternalSteamConstantsAndTypes, CastleInternalSteamCallback;
+uses Classes,
+  CastleInternalSteamConstantsAndTypes, CastleInternalSteamApi;
 
 type
   { Access to Steam.
@@ -47,8 +40,7 @@ type
     SteamUserStats: Pointer;
     SteamUserHandle: HSteamUser;
     SteamPipeHandle: HSteamPipe;
-    SteamUserStatsCallbackDispatcher: SteamCallbackDispatcher;
-    procedure OnUserStatsReceived(P: Pointer);
+    procedure CallbackUserStatsReceived(P: PUserStatsReceived);
     procedure GetAchievements;
     { For now if some operation failed, we log an error into WriteLnWarning
       This seems to be the practice of SteamWorks examples.
@@ -140,10 +132,8 @@ procedure InitSteam(const AppId: Integer);
 
 implementation
 
-uses
-  SysUtils,
-  CastleLog,
-  CastleInternalSteamApi;
+uses SysUtils, CTypes,
+  CastleLog;
 
 var
   FSteam: TCastleSteam;
@@ -229,13 +219,12 @@ constructor TCastleSteam.Create(const AppId: Integer);
     // SteamUser := SteamAPI_ISteamClient_GetISteamUser(
     //   SteamClient, SteamUserHandle, SteamPipeHandle, STEAMUSER_INTERFACE_VERSION);
 
-    // Init UserStats interface and request UserStats - wait for callback
+    // Init SteamUserStats and request UserStats (will wait for callback, handled in Update)
     SteamUserStats := SteamAPI_ISteamClient_GetISteamUserStats(
       SteamClient, SteamUserHandle, SteamPipeHandle, STEAMUSERSTATS_INTERFACE_VERSION);
     SteamAPI_ISteamUserStats_RequestCurrentStats(SteamUserStats);
-    SteamUserStatsCallbackDispatcher := SteamCallbackDispatcher.Create(
-      SteamStatsCallbackID,
-      {$ifdef FPC}@{$endif}OnUserStatsReceived, SizeOf(Steam_UserStatsReceived));
+
+    SteamAPI_ManualDispatch_Init();
   end;
 
 begin
@@ -257,13 +246,10 @@ begin
   inherited Destroy;
 end;
 
-procedure TCastleSteam.OnUserStatsReceived(P: Pointer);
+procedure TCastleSteam.CallbackUserStatsReceived(P: PUserStatsReceived);
 begin
-  if not Enabled then
-    Exit;
-  SteamUserStatsCallbackDispatcher.Free;
-  WriteLnLog('Steam', 'OnUserStatsReceived');
-  FInitialized := true; // maybe only after all callbacks are received - one boolean per each init callback. But as long as we have only one now, this will do
+  WriteLnLog('Steam', 'Received UserStats from Steam');
+  FInitialized := true; // TODO: Initialized -> UserStatsInitialized?
   GetAchievements;
 end;
 
@@ -301,12 +287,19 @@ begin
 end;
 
 function TCastleSteam.GetAchievement(const AchievementId: String): Boolean;
+var
+  CAchieved: CBool;
 begin
+  Result := false;
   if not Enabled then
     Exit;
   if Initialized then
   begin
-    if not SteamAPI_ISteamUserStats_GetAchievement(SteamUserStats, PAnsiChar(AchievementId), {out} Result) then
+    if SteamAPI_ISteamUserStats_GetAchievement(SteamUserStats,
+        PAnsiChar(AchievementId), @CAchieved) then
+    begin
+      Result := CAchieved;
+    end else
       SteamError('Failed to SteamAPI_ISteamUserStats_GetAchievement');
   end else
     SteamError('GetAchievement failed! Steam is not initialized!');
@@ -352,11 +345,75 @@ begin
 end;
 
 procedure TCastleSteam.Update;
+
+  { Request callbacks from Steam API if any pending.
+
+    We don't use SteamAPI_RunCallbacks, as it
+    - Requires quite hacky code, to simulate C++ class VMT, with a specially
+      crafted record and assembler help. See TODO link to old code.
+    - Crashes on Linux/x86_64 (maybe because of the above).
+
+    Following the Steamworks docs recommendation, we use manual dispatching,
+    see https://partner.steamgames.com/doc/sdk/api#manual_dispatch
+    and example code at SteamAPI_ManualDispatch_Init.
+  }
+  procedure SteamRunCallbacks;
+  var
+    Callback: TCallbackMsg;
+    PCallCompleted: PSteamAPICallCompleted;
+    PTmpCallResult: Pointer;
+    BFailed: CBool;
+  begin
+  	SteamAPI_ManualDispatch_RunFrame(SteamPipeHandle);
+	  while SteamAPI_ManualDispatch_GetNextCallback(SteamPipeHandle, @Callback) do
+    begin
+		  // Check for dispatching API call results
+
+      // Look at callback.m_iCallback to see what kind of callback it is,
+      // and dispatch to appropriate handler(s)
+		  case Callback.m_iCallback of
+        TSteamAPICallCompleted.k_iCallback:
+          begin
+            PCallCompleted := PSteamAPICallCompleted(Callback.m_pubParam);
+            PTmpCallResult := GetMem(Callback.m_cubParam);
+            if SteamAPI_ManualDispatch_GetAPICallResult(SteamPipeHandle,
+                PCallCompleted^.m_hAsyncCall, PTmpCallResult, Callback.m_cubParam,
+                Callback.m_iCallback, @BFailed) then
+            begin
+              // TODO:
+              // Dispatch the call result to the registered handler(s) for the
+              // call identified by pCallCompleted^.m_hAsyncCall
+              WritelnLog('Steam', 'Dispatch the call result to the handlers for m_iCallback %d, m_hAsyncCall %d', [
+                PCallCompleted^.m_iCallback,
+                PCallCompleted^.m_hAsyncCall
+              ]);
+            end;
+            FreeMem(PTmpCallResult);
+          end;
+        TUserStatsReceived.k_iCallback:
+          begin
+            // SteamUserStatsCallbackDispatcher.Dispatch(Callback.m_pubParam);
+            CallbackUserStatsReceived(PUserStatsReceived(Callback.m_pubParam));
+          end;
+        else
+          begin
+            WritelnLog('Steam', 'Callback m_iCallback %d, we ignore it now', [
+              Callback.m_iCallback
+            ]);
+          end;
+      end;
+
+      // We must call this before next SteamAPI_ManualDispatch_GetNextCallback.
+      SteamAPI_ManualDispatch_FreeLastCallback(SteamPipeHandle);
+    end;
+  end;
+
 begin
   if not Enabled then
     Exit;
-  // Request callbacks from Steam API if any pending
-  SteamAPI_RunCallbacks();
+
+  SteamRunCallbacks;
+
   // If we have unsaved changes, try saving them; if failed - repeat
   if Initialized and StoreStats then
     if SteamAPI_ISteamUserStats_StoreStats(SteamUserStats) then // repeat it every Update until success
