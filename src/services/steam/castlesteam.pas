@@ -155,12 +155,12 @@ constructor TCastleSteam.Create(const AppId: Integer);
         // If the app was started through EXE - restart the game through Steam
         if SteamAPI_RestartAppIfNecessary(AppId) then
         begin
-          WriteLnLog('The app was run through exe - restarting through Steam.');
+          WriteLnLog('The app was run through exe directly (not by clicking "Play" in Steam), restarting through Steam.');
           Halt(0);
         end else
         begin
           FEnabled := true;
-          WriteLnLog('The app was started through Steam');
+          WriteLnLog('The app was started through Steam (or runs in developer mode with steam_appid.txt), Steam integration enabled OK.');
         end;
       end else
         WriteLnWarning('SteamAPI_Init failed. This means Steam does not run in the background, but you run the application in development mode (with steam_appid.txt). In this case Steam integration will not work. See https://castle-engine.io/steam for information how to test the Steam integration.');
