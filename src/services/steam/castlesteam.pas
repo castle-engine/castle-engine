@@ -1,5 +1,5 @@
 {
-  Copyright 2023-2023 Michalis Kamburelis, Yevhen Loza.
+  Copyright 2023-2024 Michalis Kamburelis, Yevhen Loza.
 
   This file is part of "Castle Game Engine".
 
@@ -89,15 +89,14 @@ type
     procedure IndicateAchievementProgress(const AchievementId: String;
       const CurrentProgress, MaxProgress: UInt32);
   public
-    { If this instance is properly initialized.
-      Check this before using more complex Steam API calls
-      (TODO: document which ones).
-      It should regularly take several frames to initialize Steam API,
-      So avoid calling Steam features too early, e.g. from Initialization code. }
+    { Are we connected to Steam successfully.
+      Before this is @true, methods of this class (like reporting achievements)
+      don't do anything. }
     property Initialized: Boolean read FInitialized;
 
     { Updates callbacks, performs saving of user stats
-      According to SteamWorks documentation you should run this at least 10 times a second, better if every frame }
+      According to SteamWorks documentation you should run this at least 10 times a second, better if every frame.
+      TODO: This should not be necessary to be public }
     procedure Update;
 
     { Do we have Steam integration available (but not necessarily initialized yet,
@@ -126,7 +125,7 @@ function Steam: TCastleSteam;
       See the `examples/steam/` README for a description how does the Steam
       integration behave, when it restarts the game.)
 
-    @item(Will ask TCastleSteam to initialize interfaces and request user stats
+    @item(Will ask TCastleSteam to initialize interfaces and request user stats.
 
       Note: Steam will not be fully initialized until confirmation callback
       will be received by TCastleSteam, this may take several frames.
@@ -135,7 +134,7 @@ function Steam: TCastleSteam;
     )
   )
 
-  TODO: update docs for OnInitialized.
+  TODO: update docs for OnInitialize.
   TODO: Let user do Steam := TCastleSteam.Create(AppId) instead of InitSteam(AppId). }
 procedure InitSteam(const AppId: Integer);
 
