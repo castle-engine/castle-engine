@@ -202,7 +202,14 @@ constructor TCastleSteam.Create(const AppId: Integer);
       end else
         WriteLnWarning('SteamAPI_Init failed. This means Steam does not run in the background, but you run the application in development mode (with steam_appid.txt). In this case Steam integration will not work. See https://castle-engine.io/steam for information how to test the Steam integration.');
     end else
-      WriteLnWarning('Steam Library is not available.');
+    begin
+      {$warnings off} // ignore FPC warnings about unreachable code, since SteamLibraryName is constant
+      if SteamLibraryName <> '' then
+        WriteLnWarning('Steam dynamic library "%s" not found', [SteamLibraryName])
+      else
+        WriteLnWarning('Steam is not supported on this platform');
+      {$warnings on}
+    end;
   end;
 
   procedure InitialSteamCalls;

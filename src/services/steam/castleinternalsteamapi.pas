@@ -91,6 +91,21 @@ var
 var
   SteamLibrary: TDynLib;
 
+const
+  SteamLibraryName =
+    {$if defined(DARWIN)} // macOS
+    'libsteam_api.dylib'
+    {$elseif defined(UNIX)}
+    'libsteam_api.so'
+    {$elseif defined(MSWINDOWS) and defined(CPUX64)}
+    'steam_api64.dll'
+    {$elseif defined(MSWINDOWS) and defined(CPUX86)}
+    'steam_api.dll'
+    {$else}
+    // Steam library not available on this platform
+    ''
+    {$endif};
+
 implementation
 uses
   SysUtils;
@@ -105,17 +120,8 @@ procedure InitializeSteamLibrary;
 begin
   FinalizeSteamLibrary;
 
-  {$if defined(DARWIN)} // macOS
-  SteamLibrary := TDynLib.Load('libsteam_api.dylib', false);
-  {$elseif defined(UNIX)}
-  SteamLibrary := TDynLib.Load('libsteam_api.so', false);
-  {$elseif defined(MSWINDOWS) and defined(CPUX64)}
-  SteamLibrary := TDynLib.Load('steam_api64.dll', false);
-  {$elseif defined(MSWINDOWS) and defined(CPUX86)}
-  SteamLibrary := TDynLib.Load('steam_api.dll', false);
-  {$else}
-  // Steam library not known on this platform
-  {$endif}
+  if SteamLibraryName <> '' then
+    SteamLibrary := TDynLib.Load(SteamLibraryName, false);
 
   if SteamLibrary <> nil then
   begin
