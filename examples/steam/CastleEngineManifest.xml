@@ -16,4 +16,13 @@ See https://castle-engine.io/project_manifest for documentation of this file.
       <path value="code/" />
     </search_paths>
   </compiler_options>
+  <package>
+    <!-- For 64-bit Windows -->
+    <include path="steam_api64.dll" />
+    <!-- For Linux -->
+    <include path="run.sh" />
+    <include path="libsteam_api.so" />
+    <!-- For macOS -->
+    <include path="libsteam_api.dylib" />
+  </package>
 </project>

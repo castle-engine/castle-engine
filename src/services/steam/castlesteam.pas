@@ -14,51 +14,13 @@
 }
 
 { Integration with Steam.
+  See @url(https://castle-engine.io/steam Steam and Castle Game Engine documentation)
+  for usage.
 
   Call InitSteam(AppId) and wait for Steam.Initialized before using it.
 
   You can interact with Steam achievements - list them, set them, clear them.
 
-  You need the Steam dynamic library to be available at runtime to use this:
-
-  @orderedList(
-    @item(Download the corresponding dynamic library from
-      https://partner.steamgames.com/downloads/list .
-      Note: Current calls to Steam API require a specific version of SteamWorks: 1.57 .
-      So get the "steamworks_sdk_157.zip".)
-
-    @item(Extract the zip wherever you like.)
-
-    @item(Copy the dynamic library (from "sdk/redistributable_bin/<platform>")
-      into your project's directory (alongside the executable).
-
-      For example, in case of 64-bit Windows, copy the dll file from
-      "sdk/redistributable_bin/steam_api64.dll"
-      into the same directory as your .exe file.
-
-      Note: Ignore *.lib files on Windows, they are not needed for dynamic linking.
-    )
-
-    @item(For exact instructions how to add external library to your project,
-      see e.g. https://castle-engine.io/fmod . You will want to add it to be
-      "packaged" in the final application. On Unix, you will also want to create
-      a script "run.sh" to run your application with modified LD_LIBRARY_PATH
-      to use it.)
-  )
-
-  Platforms supported (OS / CPU):
-  @unorderedList(
-    @item Windows / x86_64 - functional
-    @item Windows / i386 - functional
-    @item Linux / x86_64 - TODO: not tested, should be working
-    @item Linux / i386 - TODO: not tested, has a chance to work out of the box
-    @item(Linux / Arm, Linux / Aarch64 - cannot work
-
-      (2 critical "asm" sections in CastleInternalSteamCallback
-      not ported to this CPU, but also Steam doesn't support this platform
-      from what we know).)
-    @item(macOS - TODO: failing)
-  )
 }
 unit CastleSteam;
 
