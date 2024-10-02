@@ -1,5 +1,5 @@
 {
-  Copyright 2023-2024 Michalis Kamburelis, Eugene Loza.
+  Copyright 2023-2024 Michalis Kamburelis, Eugene Loza, Sérgio Flores (Relfos).
 
   This file is part of "Castle Game Engine".
 
@@ -12,26 +12,172 @@
 
   ----------------------------------------------------------------------------
 }
-{ Translation of Steam headers (first of all steam_api_flat.h and steam_api_internal.h).
-  Only calls that were tested and proven to work are included.
+{ Steam headers translated to Pascal.
 
-  Credits: We note invaluable help that Apus Engine's sources
-  by Ivan Polyacov (Cooler2) have provided in hunting down the specific calls
-  that work and a few tricks to make them work properly. }
+  We expose only a subset of Steam API that we currently need and tested --
+  initialization, manual callbacks dispatchibg, achievements, some more.
+  Much more work is coming, to enable more Steam features through our
+  integration, which will also make this unit more complete.
+
+  See https://castle-engine.io/steam for documentation how to use Steam
+  with Castle Game Engine applications.
+  Normal game developers (using Castle Game Engine to develop games)
+  should not used this unit directly. Instead, use higher-level CastleSteam unit.
+
+  Engine developers looking to extend Steam integration should look at this
+  unit and how CastleSteam unit uses it.
+  See https://partner.steamgames.com/doc/sdk/api for full Steam API documentation.
+
+  Credits:
+
+  - Sérgio Flores (Relfos) and https://github.com/Relfos/steamworks_wrappers/
+
+    We did something different in our (CGE) integration, to deliberately avoid
+    the need for any additional "wrapper" libraries.
+    We also use "manual dispatching" of Steam callbacks, which is a bit less
+    hacky.
+    Still, we were able to do these improvements thanks to the work of
+    Sérgio Flores, looking how Steam can be used at all in Pascal.
+
+  - We note invaluable help that Apus Engine's sources
+    by Ivan Polyacov ( https://github.com/Cooler2/ApusGameEngine )
+    have provided in hunting down the specific calls
+    that work and a few tricks to make them work properly.
+}
 unit CastleInternalSteamApi;
 
 {$I castleconf.inc}
 
+{$ifdef FPC}
+  {$packrecords C}
+{$else}
+  {$ALIGN 4}
+{$endif}
+
 interface
 
 uses
-  CTypes, CastleDynLib, CastleInternalSteamConstantsAndTypes;
+  CTypes, CastleDynLib;
 
-procedure InitializeSteamLibrary;
-procedure FinalizeSteamLibrary;
+{ Constants and types. }
+
+type
+  HSteamPipe = Int32;
+  HSteamUser = Int32;
+  { It's a struct in C headers but can be passed as UInt64,
+    defined in C headers with explicit statement that it's 64-bit sized. }
+  CSteamId = UInt64;
+  { It's a struct in C headers but can be passed as UInt64,
+    defined in C headers with explicit ability to be typecasted as 64-bit int. }
+  CGameID = UInt64;
+  EResult = UInt32;
+
+const
+  { Note for now we are forced to use "version-specific" calls to Steam API
+    There are version-free calls in Steam API headers, however, those just crash
+    (TODO: reason unknown).
+    Therefore for now we use a specific version of Steamworks: 1.57 }
+  // TODO: can we clean this up?
+  STEAMCLIENT_INTERFACE_VERSION = 'SteamClient020'; // in isteamclient.h, I don't know how to pull it from there
+  STEAMUSER_INTERFACE_VERSION = 'SteamUser023'; // in isteamuser.h
+  STEAMUSERSTATS_INTERFACE_VERSION = 'STEAMUSERSTATS_INTERFACE_VERSION012'; // isteamuserstats.h
+
+type
+  SteamAPIWarningMessageHook = procedure (nSeverity: Integer; pchDebugText: PAnsiChar); Cdecl;
+
+  { Internal structure used in manual callback dispatch
+    (CallbackMsg_t in C headers). }
+  TCallbackMsg = record
+    // Specific user to whom this callback applies.
+	  m_hSteamUser: HSteamUser;
+    // Callback identifier.  (Corresponds to the k_iCallback enum in the callback structure.)
+	  m_iCallback: CInt;
+    // Points to the callback structure
+	  m_pubParam: Puint8;
+    // Size of the data pointed to by m_pubParam
+	  m_cubParam: CInt;
+  end;
+  PCallbackMsg = ^TCallbackMsg;
+
+  // handle to a Steam API call
+  TSteamAPICall = UInt64;
+
+const
+  //-----------------------------------------------------------------------------
+  // Purpose: Base values for callback identifiers, each callback must
+  //			have a unique ID.
+  //-----------------------------------------------------------------------------
+  k_iSteamUserCallbacks = 100;
+  k_iSteamGameServerCallbacks = 200;
+  k_iSteamFriendsCallbacks = 300;
+  k_iSteamBillingCallbacks = 400;
+  k_iSteamMatchmakingCallbacks = 500;
+  k_iSteamContentServerCallbacks = 600;
+  k_iSteamUtilsCallbacks = 700;
+  k_iSteamAppsCallbacks = 1000;
+  k_iSteamUserStatsCallbacks = 1100;
+  k_iSteamNetworkingCallbacks = 1200;
+  k_iSteamNetworkingSocketsCallbacks = 1220;
+  k_iSteamNetworkingMessagesCallbacks = 1250;
+  k_iSteamNetworkingUtilsCallbacks = 1280;
+  k_iSteamRemoteStorageCallbacks = 1300;
+  k_iSteamGameServerItemsCallbacks = 1500;
+  k_iSteamGameCoordinatorCallbacks = 1700;
+  k_iSteamGameServerStatsCallbacks = 1800;
+  k_iSteam2AsyncCallbacks = 1900;
+  k_iSteamGameStatsCallbacks = 2000;
+  k_iSteamHTTPCallbacks = 2100;
+  k_iSteamScreenshotsCallbacks = 2300;
+  // NOTE: 2500-2599 are reserved
+  k_iSteamStreamLauncherCallbacks = 2600;
+  k_iSteamControllerCallbacks = 2800;
+  k_iSteamUGCCallbacks = 3400;
+  k_iSteamStreamClientCallbacks = 3500;
+  k_iSteamAppListCallbacks = 3900;
+  k_iSteamMusicCallbacks = 4000;
+  k_iSteamMusicRemoteCallbacks = 4100;
+  k_iSteamGameNotificationCallbacks = 4400;
+  k_iSteamHTMLSurfaceCallbacks = 4500;
+  k_iSteamVideoCallbacks = 4600;
+  k_iSteamInventoryCallbacks = 4700;
+  k_iSteamParentalSettingsCallbacks = 5000;
+  k_iSteamGameSearchCallbacks = 5200;
+  k_iSteamPartiesCallbacks = 5300;
+  k_iSteamSTARCallbacks = 5500;
+  k_iSteamRemotePlayCallbacks = 5700;
+  k_iSteamChatCallbacks = 5900;
+
+  k_uAPICallInvalid = TSteamAPICall(0);
+
+type
+  // Purpose: called when a SteamAsyncCall_t has completed (or failed)
+  TSteamAPICallCompleted = record
+  const
+    k_iCallback = k_iSteamUtilsCallbacks + 3;
+  var
+    m_hAsyncCall: TSteamAPICall;
+    m_iCallback: CInt;
+    m_cubParam: UInt32;
+  end;
+  PSteamAPICallCompleted = ^TSteamAPICallCompleted;
+
+  // Purpose: called when the latests stats and achievements have been received
+  // from the server
+  TUserStatsReceived = record
+  const
+    k_iCallback = k_iSteamUserStatsCallbacks + 1;
+  var
+    // Game these stats are for
+		GameID: CGameID;
+    // Success / error fetching the stats
+		Result: EResult;
+    // The user for whom the stats are retrieved for
+		SteamID: CSteamId;
+	end;
+  PUserStatsReceived = ^TUserStatsReceived;
 
 var
-{ steam_api.h : See full documentation at https://partner.steamgames.com/doc/api/steam_api }
+  { steam_api.h : See full documentation at https://partner.steamgames.com/doc/api/steam_api }
   SteamAPI_Init: function (): CBool; CDecl;
   SteamAPI_ReleaseCurrentThreadMemory: procedure (); CDecl; // TODO: UNTESTED
   SteamAPI_RestartAppIfNecessary: function (unOwnAppID: UInt32): CBool; CDecl;
@@ -43,55 +189,30 @@ var
   SteamAPI_ManualDispatch_FreeLastCallback: procedure (SteamPipe: HSteamPipe); CDecl;
   SteamAPI_ManualDispatch_GetAPICallResult: function (SteamPipe: HSteamPipe; hSteamAPICall: TSteamAPICall; pCallback: Pointer; cubCallback: CInt; iCallbackExpected: CInt; pbFailed: PCbool): CBool; CDecl;
 
-{ steam_api_internal.h : undocumented? }
-
-//SteamInternal_ContextInit: function ( void *pContextInitData ): Pointer;
+  { steam_api_internal.h }
   SteamInternal_CreateInterface: function (SteamClientInterfaceVersion: PAnsiChar): Pointer; CDecl;
-//SteamInternal_FindOrCreateUserInterface: function ( HSteamUser hSteamUser, const char *pszVersion ): Pointer;
-//SteamInternal_FindOrCreateGameServerInterface: function ( HSteamUser hSteamUser, const char *pszVersion ): Pointer;
   SteamAPI_GetHSteamUser: function (): HSteamUser; CDecl;
   SteamAPI_GetHSteamPipe: function (): HSteamPipe; CDecl;
-
   SteamAPI_RegisterCallback: procedure (pCallback: Pointer; iCallback: Integer); CDecl;
   SteamAPI_UnregisterCallback: procedure (pCallback: Pointer); CDecl;
 
-{ steam_api_flat.h : contains all available functions in one place
-  Weird enough not all of them seem to do what they look like they're supposed to do
-  So, sometimes experimenting is necessary : which function will work
-  and which will simply crash without explaining any reason
-  I don't see any big point in translating all of the headers currently,
-  for the said weird behavior first of all,
-  Let's add here only functions that were tested and proven to work,
-  which should be done on use-case basis. }
-
-(* ISteamClient *)
-
+  (* ISteamClient *)
   SteamAPI_ISteamClient_SetWarningMessageHook: procedure (SteamClient: Pointer; WarningMessageHook: SteamAPIWarningMessageHook); CDecl;
   SteamAPI_ISteamClient_GetISteamUser: function (SteamClient: Pointer; SteamUserHandle: HSteamUser; SteamPipeHandle: HSteamPipe; const SteamUserInterfaceVersion: PAnsiChar): Pointer; CDecl;
   SteamAPI_ISteamClient_GetISteamUserStats: function (SteamClient: Pointer; SteamUserHandle: HSteamUser; SteamPipeHandle: HSteamPipe; const SteamUserStatsInterfaceVersion: PAnsiChar): Pointer; CDecl;
 
-(* ISteamUserStats *)
-
-// SteamAPI_SteamUserStats: function (): Pointer; CDecl; // This one returns something that doesn't work
+  (* ISteamUserStats *)
   SteamAPI_ISteamUserStats_RequestCurrentStats: function (SteamUserStats: Pointer): CBool; CDecl;
   SteamAPI_ISteamUserStats_GetAchievement: function (SteamUserStats: Pointer; const AchievementName: PAnsiChar; Achieved: PCBool): CBool; CDecl;
   SteamAPI_ISteamUserStats_SetAchievement: function (SteamUserStats: Pointer; const AchievementName: PAnsiChar): CBool; CDecl;
   SteamAPI_ISteamUserStats_ClearAchievement: function (SteamUserStats: Pointer; const AchievementName: PAnsiChar): CBool; CDecl;
   SteamAPI_ISteamUserStats_GetNumAchievements: function (SteamUserStats: Pointer): UInt32; CDecl;
-// It returns string-ID of the achievement, not a human readable name
+  // It returns string-ID of the achievement, not a human readable name
   SteamAPI_ISteamUserStats_GetAchievementName: function (SteamUserStats: Pointer; AchievementId: UInt32 ): PAnsiChar; CDecl;
-// Show Steam popup "achievement : 30/100", see https://partner.steamgames.com/doc/api/ISteamUserStats#IndicateAchievementProgress
+  // Show Steam popup "achievement : 30/100", see https://partner.steamgames.com/doc/api/ISteamUserStats#IndicateAchievementProgress
   SteamAPI_ISteamUserStats_IndicateAchievementProgress: function (SteamUserStats: Pointer; const AchievementName: PAnsiChar; CurrentProgress: UInt32; MaxProgress: UInt32): CBool; CDecl;
-
-// Call this after changing stats or achievements
+  // Call this after changing stats or achievements
   SteamAPI_ISteamUserStats_StoreStats: function (SteamUserStats: Pointer): CBool; CDecl;
-
-// TODO: the ones below crash without any reason explained
-//SteamAPI_ISteamUserStats_GetStatInt32: function (SteamUserStats: Pointer; const StatName: PAnsiChar; Value: Int32): CBool; CDecl;
-//SteamAPI_ISteamUserStats_GetStatFloat: function (SteamUserStats: Pointer; const StatName: PAnsiChar; Value: Single): CBool; CDecl;
-//SteamAPI_ISteamUserStats_SetStatInt32: function (SteamUserStats: Pointer; const StatName: PAnsiChar; Value: Int32): CBool; CDecl;
-//SteamAPI_ISteamUserStats_SetStatFloat: function (SteamUserStats: Pointer; const StatName: PAnsiChar; Value: Single): CBool; CDecl;
-//SteamAPI_ISteamUserStats_UpdateAvgRateStat: function (SteamUserStats: Pointer; const StatName: PAnsiChar; CountThisSession: Single; SessionLength: Double): CBool; CDecl;
 
 var
   SteamLibrary: TDynLib;
@@ -110,6 +231,9 @@ const
     // Steam library not available on this platform
     ''
     {$endif};
+
+procedure InitializeSteamLibrary;
+procedure FinalizeSteamLibrary;
 
 implementation
 

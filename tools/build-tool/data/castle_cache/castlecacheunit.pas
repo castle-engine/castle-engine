@@ -77,8 +77,6 @@ uses
 
   // src/services/steam
   castleinternalsteamapi,
-  castleinternalsteamcallback,
-  castleinternalsteamconstantsandtypes,
   castlesteam,
 
 {$ifdef ANDROID}

@@ -336,8 +336,6 @@ begin
 
     P.SourcePath.Add('src/services/steam');
     P.Targets.AddUnit('castleinternalsteamapi.pas');
-    P.Targets.AddUnit('castleinternalsteamcallback.pas');
-    P.Targets.AddUnit('castleinternalsteamconstantsandtypes.pas');
     P.Targets.AddUnit('castlesteam.pas');
 
     if Defaults.OS = Android then

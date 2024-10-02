@@ -23,7 +23,7 @@ unit CastleSteam;
 interface
 
 uses Classes,
-  CastleInternalSteamConstantsAndTypes, CastleInternalSteamApi;
+  CastleInternalSteamApi;
 
 type
   { Access to Steam.
