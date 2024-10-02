@@ -358,6 +358,8 @@ procedure TCastleSteam.Update;
     and example code at SteamAPI_ManualDispatch_Init.
   }
   procedure SteamRunCallbacks;
+  { Extra logging of unhandled Steam callbacks (it's normal that we have some). }
+  {.$define CASTLE_DEBUG_STEAM_CALLBACKS}
   var
     Callback: TCallbackMsg;
     PCallCompleted: PSteamAPICallCompleted;
@@ -367,39 +369,50 @@ procedure TCastleSteam.Update;
   	SteamAPI_ManualDispatch_RunFrame(SteamPipeHandle);
 	  while SteamAPI_ManualDispatch_GetNextCallback(SteamPipeHandle, @Callback) do
     begin
-		  // Check for dispatching API call results
-
       // Look at callback.m_iCallback to see what kind of callback it is,
       // and dispatch to appropriate handler(s)
 		  case Callback.m_iCallback of
         TSteamAPICallCompleted.k_iCallback:
           begin
+            // TODO: remove this warning once this code is tested
+            WritelnWarning('Steam', 'SteamAPICallCompleted callback: TODO untested handling');
+
+            // Check for dispatching API call results
             PCallCompleted := PSteamAPICallCompleted(Callback.m_pubParam);
             PTmpCallResult := GetMem(Callback.m_cubParam);
             if SteamAPI_ManualDispatch_GetAPICallResult(SteamPipeHandle,
                 PCallCompleted^.m_hAsyncCall, PTmpCallResult, Callback.m_cubParam,
                 Callback.m_iCallback, @BFailed) then
             begin
-              // TODO:
-              // Dispatch the call result to the registered handler(s) for the
-              // call identified by pCallCompleted^.m_hAsyncCall
+              { Dispatch the call result to the registered handler(s) for the
+                call identified by pCallCompleted^.m_hAsyncCall
+
+                Note (CGE): The piece of code handling SteamAPICallCompleted
+                is adjusted from the example code in C API about
+                SteamAPI_ManualDispatch_GetNextCallback.
+                But right now, we don't have any need for this,
+                and the log below never happens in our Steam usage so far.
+              }
+              {$ifdef CASTLE_DEBUG_STEAM_CALLBACKS}
               WritelnLog('Steam', 'Dispatch the call result to the handlers for m_iCallback %d, m_hAsyncCall %d', [
                 PCallCompleted^.m_iCallback,
                 PCallCompleted^.m_hAsyncCall
               ]);
+              {$endif}
             end;
             FreeMem(PTmpCallResult);
           end;
         TUserStatsReceived.k_iCallback:
           begin
-            // SteamUserStatsCallbackDispatcher.Dispatch(Callback.m_pubParam);
             CallbackUserStatsReceived(PUserStatsReceived(Callback.m_pubParam));
           end;
         else
           begin
+            {$ifdef CASTLE_DEBUG_STEAM_CALLBACKS}
             WritelnLog('Steam', 'Callback m_iCallback %d, we ignore it now', [
               Callback.m_iCallback
             ]);
+            {$endif}
           end;
       end;
 
