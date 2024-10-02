@@ -55,6 +55,26 @@ type
       and is nil until that moment. }
     Achievements: TStringList;
 
+    { Connect to Steam and initialize everything.
+
+      @orderedList(
+        @item(It tries to connect to Steam API and checks if the game was run
+          through Steam or through exe file. In the latter case the game will
+          automatically restart through Steam.
+          See the `examples/steam/` README for a description how does the Steam
+          integration behave, when it restarts the game.)
+
+        @item(Will ask TCastleSteam to initialize interfaces and request user stats.
+
+          Note: Steam will not be fully initialized until confirmation callback
+          will be received by TCastleSteam, this may take several frames.
+          Check for Steam.Initialized before using non-trivial features of Steam API.
+          You need to provide AppId for your app to this function.
+        )
+      )
+
+      TODO: update docs for OnInitialize.
+    }
     constructor Create(const AppId: Integer);
     destructor Destroy; override;
 
@@ -103,61 +123,14 @@ type
     property Enabled: Boolean read FEnabled;
   end;
 
-{ Instance of Steam API bridge,
-  use this singleton to access to Steam API.
-  Will throw an exception "Steam not initialized" if called before InitSteam }
-function Steam: TCastleSteam;
-
-{ Connect to Steam and initialize everything.
-
-  @orderedList(
-    @item(It tries to connect to Steam API and checks if the game was run
-      through Steam or through exe file. In the latter case the game will
-      automatically restart through Steam.
-      See the `examples/steam/` README for a description how does the Steam
-      integration behave, when it restarts the game.)
-
-    @item(Will ask TCastleSteam to initialize interfaces and request user stats.
-
-      Note: Steam will not be fully initialized until confirmation callback
-      will be received by TCastleSteam, this may take several frames.
-      Check for Steam.Initialized before using non-trivial features of Steam API.
-      You need to provide AppId for your app to this function.
-    )
-  )
-
-  TODO: update docs for OnInitialize.
-  TODO: Let user do Steam := TCastleSteam.Create(AppId) instead of InitSteam(AppId). }
-procedure InitSteam(const AppId: Integer);
-
 implementation
 
 uses SysUtils, CTypes,
   CastleLog;
 
-var
-  FSteam: TCastleSteam;
-
-function SteamInitialized: Boolean;
-begin
-  Exit((FSteam <> nil) and FSteam.Initialized);
-end;
-
-function Steam: TCastleSteam;
-begin
-  if FSteam = nil then
-    raise Exception.Create('Steam is not initialized');
-  Exit(FSteam);
-end;
-
 procedure WarningHook(nSeverity: Integer; pchDebugText: PAnsiChar); Cdecl;
 begin
-  WriteLnLog('Steam Warning: ''%s'' (Severity: %d)', [pchDebugText^, NSeverity]);
-end;
-
-procedure InitSteam(const AppId: Integer);
-begin
-  FSteam := TCastleSteam.Create(AppId);
+  WriteLnLog('Steam Warning: "%s" (Severity: %d)', [pchDebugText^, NSeverity]);
 end;
 
 { TCastleSteam --------------------------------------------------------------- }
@@ -433,8 +406,5 @@ begin
       StoreStats := false;
 end;
 
-initialization // Delphi needs initialization before finalization
-finalization
-  FreeAndNil(FSteam);
 end.
 

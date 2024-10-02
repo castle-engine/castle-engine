@@ -22,7 +22,8 @@ interface
 implementation
 
 uses SysUtils,
-  CastleWindow, CastleLog, CastleUIControls, CastleSteam
+  CastleWindow, CastleLog, CastleUIControls, CastleSteam,
+  GameSteam
   {$region 'Castle Initialization Uses'}
   // The content here may be automatically updated by CGE editor.
   , GameViewMain
@@ -31,20 +32,13 @@ uses SysUtils,
 var
   Window: TCastleWindow;
 
-const
-  { Application id on Steam.
-    By default we are using AppID of SteamWorks game example - SpaceWar
-    see https://partner.steamgames.com/doc/sdk/api/example .
-    See the README.md for more information about AppID. }
-  AppId = 480;
-
 { One-time initialization of resources. }
 procedure ApplicationInitialize;
 begin
   { Adjust container settings for a scalable UI (adjusts to any window size in a smart way). }
   Window.Container.LoadSettings('castle-data:/CastleSettings.xml');
 
-  InitSteam(AppId);
+  Steam := TCastleSteam.Create(AppId);
 
   { Create TViewMain that will handle "main" view of the game.
     Larger games may use multiple views,
@@ -96,6 +90,9 @@ initialization
 
     Note that some platforms (like mobile) ignore these window sizes.
   }
+
+  // Fullscreen by default, makes Steam overlay look better
+  Window.FullScreen := true;
 
   { Handle command-line parameters like --fullscreen and --window.
     By doing this last, you let user to override your fullscreen / mode setup. }

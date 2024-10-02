@@ -46,7 +46,8 @@ var
 
 implementation
 
-uses SysUtils;
+uses SysUtils,
+  GameSteam;
 
 // TODO: Separate clear achievement / set achievemnts to different buttons, to test separetely
 
@@ -131,7 +132,7 @@ begin
   LabelFps.Caption := 'FPS: ' + Container.Fps.ToString;
 
   { Some Steam features (like callbacks) require calling Update often, usually every frame }
-  // TODO: make it called automatically if you InitSteam (create Steam instance)
+  // TODO: make it called automatically if you have Steam instance
   Steam.Update;
 
   // TODO: use Steam.OnInitialized
