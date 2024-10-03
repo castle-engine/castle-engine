@@ -30,9 +30,11 @@ type
     VerticalGroupAchievements: TCastleVerticalGroup;
     VerticalGroupLog: TCastleVerticalGroup;
   strict private
-    procedure ClickAchievement(Sender: TObject);
-    procedure ClickAchievementProgress(Sender: TObject);
-    procedure FillInAchievements;
+    AchievementRowFactory: TCastleComponentFactory;
+    procedure ClickSetAchievement(Sender: TObject);
+    procedure ClickClearAchievement(Sender: TObject);
+    procedure ClickIndicateProgress(Sender: TObject);
+    procedure UpdateAchievementsUi;
     procedure SteamUserStatsReceived(Sender: TObject);
   public
     constructor Create(AOwner: TComponent); override;
@@ -47,9 +49,8 @@ var
 implementation
 
 uses SysUtils,
+  CastleUtils,
   GameSteam;
-
-// TODO: Separate clear achievement / set achievemnts to different buttons, to test separetely
 
 { TViewMain ----------------------------------------------------------------- }
 
@@ -63,6 +64,9 @@ procedure TViewMain.Start;
 begin
   inherited;
   Steam.OnUserStatsReceived := {$ifdef FPC}@{$endif} SteamUserStatsReceived;
+
+  AchievementRowFactory := TCastleComponentFactory.Create(FreeAtStop);
+  AchievementRowFactory.Url := 'castle-data:/achievement_row.castle-user-interface';
 end;
 
 procedure TViewMain.Stop;
@@ -79,7 +83,7 @@ begin
     Since Steam instance "lives"
     independently of our views, we don't want it to call methods of our
     view when the view is stopped, as our methods may be not ready
-    for this (e.g. FillInAchievements assumes that the view is not stopped).
+    for this (e.g. UpdateAchievementsUi assumes that the view is not stopped).
 
     The check "if Steam <> nil then" is only in case GameSteam finalization
     will happen before this view stops (which is done from CastleWindow
@@ -91,71 +95,7 @@ end;
 
 procedure TViewMain.SteamUserStatsReceived(Sender: TObject);
 begin
-  FillInAchievements;
-end;
-
-procedure TViewMain.FillInAchievements;
-var
-  S: String;
-  Horiz: TCastleHorizontalGroup;
-  Button: TCastleButton;
-  Lab: TCastleLabel;
-begin
-  VerticalGroupAchievements.ClearControls;  // Warning: hidden memory leak here, as ClearControls doesn't free them
-  for S in Steam.Achievements do
-  begin
-    Horiz := TCastleHorizontalGroup.Create(VerticalGroupAchievements);
-    Horiz.Spacing := 20;
-    VerticalGroupAchievements.InsertFront(Horiz);
-    Button := TCastleButton.Create(Horiz);
-    Button.Caption := S;
-    Button.OnClick := {$ifdef FPC}@{$endif}ClickAchievement;
-    Horiz.InsertFront(Button);
-    Lab := TCastleLabel.Create(Horiz);
-    if Steam.GetAchievement(S) then
-      Lab.Caption := 'YES'
-    else
-      Lab.Caption := 'NO';
-    Lab.Color := CastleColors.White;
-    Horiz.InsertFront(Lab);
-  end;
-  Button := TCastleButton.Create(VerticalGroupAchievements);
-  Button.Caption := 'Indicate Achievement Progress';
-  Button.OnClick := {$ifdef FPC}@{$endif} ClickAchievementProgress;
-  VerticalGroupAchievements.InsertFront(Button);
-end;
-
-procedure TViewMain.ClickAchievement(Sender: TObject);
-begin
-  { Note that in a normal game, you would not use achievements like this.
-    Instead you should
-    - Call Steam.SetAchievement, with a hardcoded name,
-      when user achieves something.
-    - And you never really need to call Steam.ClearAchievement in a normal game
-      (do not take away achievements from the user).
-    - And you seldom need to check Steam.GetAchievement in a normal game
-      (just go ahead and set the achievement, and Steam will ignore it if it's
-      already set).
-
-    What we do here, is for debug purposes. }
-  if Steam.GetAchievement((Sender as TCastleButton).Caption) then
-  begin
-    Steam.ClearAchievement((Sender as TCastleButton).Caption);
-  end else
-  begin
-    Steam.SetAchievement((Sender as TCastleButton).Caption);
-  end;
-  FillInAchievements;
-end;
-
-procedure TViewMain.ClickAchievementProgress(Sender: TObject);
-begin
-  { Note that in a normal game, you would not call
-    Steam.IndicateAchievementProgress like this.
-    You should call Steam.IndicateAchievementProgress as a result of user
-    actually doing something, like winning a game. }
-  Steam.ClearAchievement('ACH_WIN_100_GAMES');
-  Steam.IndicateAchievementProgress('ACH_WIN_100_GAMES', Random(99) + 1, 100);
+  UpdateAchievementsUi;
 end;
 
 procedure TViewMain.Update(const SecondsPassed: Single; var HandleInput: Boolean);
@@ -172,6 +112,103 @@ begin
       LabelSteamStatus.Caption := 'Steam enabled, waiting for user stats...'
   end else
     LabelSteamStatus.Caption := 'Steam disabled (dynamic library not found or other reason -- consult the logs and the docs https://castle-engine.io/steam )';
+end;
+
+type
+  { Published fields of this match the component names in
+    achievement_row.castle-user-interface.
+    They will be set by TCastleComponentFactory.ComponentLoad
+    automatically, see API docs of it. }
+  TAchievementRowDesign = class(TPersistent)
+  published
+    LabelAchievementName: TCastleLabel;
+    LabelAchievedState: TCastleLabel;
+    ButtonSetAchievement: TCastleButton;
+    ButtonClearAchievement: TCastleButton;
+    ButtonIndicateProgress: TCastleButton;
+  end;
+
+procedure TViewMain.UpdateAchievementsUi;
+var
+  Row: TCastleUserInterface;
+  RowDesign: TAchievementRowDesign;
+  I: Integer;
+  AchievementName: String;
+begin
+  { Free all previous achievement rows.
+    Freeing the component (TCastleUserInterface instance) automatically
+    removes it also from the parent, so we just free all
+    VerticalGroupAchievements children, and in effect
+    the VerticalGroupAchievements.Controls list will be empty. }
+  while VerticalGroupAchievements.ControlsCount > 0 do
+    VerticalGroupAchievements.Controls[0].Free;
+
+  for I := 0 to Steam.Achievements.Count - 1 do
+  begin
+    RowDesign := TAchievementRowDesign.Create;
+    try
+      Row := AchievementRowFactory.ComponentLoad(FreeAtStop, RowDesign) as TCastleUserInterface;
+      VerticalGroupAchievements.InsertFront(Row);
+
+      AchievementName := Steam.Achievements[I];
+      RowDesign.LabelAchievementName.Caption := Format('Achievement %d: %s', [
+        I,
+        AchievementName
+      ]);
+      RowDesign.LabelAchievedState.Exists := Steam.GetAchievement(AchievementName);
+
+      RowDesign.ButtonSetAchievement.OnClick := {$ifdef FPC}@{$endif} ClickSetAchievement;
+      RowDesign.ButtonSetAchievement.Tag := I;
+
+      RowDesign.ButtonClearAchievement.OnClick := {$ifdef FPC}@{$endif} ClickClearAchievement;
+      RowDesign.ButtonClearAchievement.Tag := I;
+
+      RowDesign.ButtonIndicateProgress.OnClick := {$ifdef FPC}@{$endif} ClickIndicateProgress;
+      RowDesign.ButtonIndicateProgress.Tag := I;
+      // Steam allows to call IndicateAchievementProgress only for achievements that are not yet achieved
+      RowDesign.ButtonIndicateProgress.Enabled := not Steam.GetAchievement(AchievementName);
+    finally FreeAndNil(RowDesign) end;
+  end;
+end;
+
+procedure TViewMain.ClickSetAchievement(Sender: TObject);
+var
+  AchievementName: String;
+begin
+  { Note that in a normal game, you would not set achievements like this.
+    Instead you should call Steam.SetAchievement with a hardcoded name,
+    when user achieves something.
+    This example allows to "achieve" anything, just for testing purposes. }
+  AchievementName := Steam.Achievements[(Sender as TCastleButton).Tag];
+  Steam.SetAchievement(AchievementName);
+  UpdateAchievementsUi;
+end;
+
+procedure TViewMain.ClickClearAchievement(Sender: TObject);
+var
+  AchievementName: String;
+begin
+  { Note that in a normal game, you would not clear achievements.
+    Never take away achievements from the user.
+    This functionality is only for testing purposes. }
+  AchievementName := Steam.Achievements[(Sender as TCastleButton).Tag];
+  Steam.ClearAchievement(AchievementName);
+  UpdateAchievementsUi;
+end;
+
+procedure TViewMain.ClickIndicateProgress(Sender: TObject);
+var
+  AchievementName: String;
+begin
+  { Note that in a normal game, you would not call IndicateAchievementProgress
+    like this.
+    You should call IndicateAchievementProgress as a result of user actually
+    doing something, progressing the achievement.
+    And you should do this only for some achievements, that are prepared
+    to be progressed and display nice message in overlay in response. }
+  AchievementName := Steam.Achievements[(Sender as TCastleButton).Tag];
+  Steam.IndicateAchievementProgress(AchievementName, RandomIntRange(1, 100), 100);
+  UpdateAchievementsUi;
 end;
 
 end.

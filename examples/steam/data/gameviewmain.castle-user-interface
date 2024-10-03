@@ -29,12 +29,14 @@
     {
       "$$ClassName" : "TCastleVerticalGroup",
       "Name" : "VerticalGroupAchievements",
+      "Spacing" : 2.0000000000000000E+001,
       "TranslationPersistent" : {
         "$$ClassName" : "TCastleVector2Persistent",
-        "X" : 1.0000000000000000E+001
+        "X" : 1.0000000000000000E+001,
+        "Y" : -1.0000000000000000E+001
       },
-      "VerticalAnchorParent" : "vpMiddle",
-      "VerticalAnchorSelf" : "vpMiddle"
+      "VerticalAnchorParent" : "vpTop",
+      "VerticalAnchorSelf" : "vpTop"
     },
     {
       "$$ClassName" : "TCastleLabel",
