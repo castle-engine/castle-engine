@@ -72,6 +72,23 @@ type
   CGameID = UInt64;
   EResult = UInt32;
 
+  { Express all "bool" from Steam API using this type.
+
+    Note that CBool, equal to LongBool, would be wrong.
+    Symptoms:
+    - SteamAPI_RestartAppIfNecessary result is then considered always
+      "true" on Windows (but not on Linux).
+    - SteamAPI_ISteamUserStats_GetAchievement (has a pointer to modify "achieved"
+      status) behaves than as if all achievements are always achieved.
+      (on Windows and Linux).
+
+    Testing, it seems for Steam API, bool is 1 byte, not 4 bytes.
+    So ByteBool is reliable.
+    Pascal's Boolean also happens to work, but it's not guaranteed how it behaves
+    for non-1 values. }
+  TSteamBool = ByteBool;
+  PSteamBool = ^TSteamBool;
+
 const
   { Note for now we are forced to use "version-specific" calls to Steam API
     There are version-free calls in Steam API headers, however, those just crash
@@ -178,16 +195,16 @@ type
 
 var
   { steam_api.h : See full documentation at https://partner.steamgames.com/doc/api/steam_api }
-  SteamAPI_Init: function (): CBool; CDecl;
+  SteamAPI_Init: function (): TSteamBool; CDecl;
   SteamAPI_ReleaseCurrentThreadMemory: procedure (); CDecl; // TODO: UNTESTED
-  SteamAPI_RestartAppIfNecessary: function (unOwnAppID: UInt32): CBool; CDecl;
+  SteamAPI_RestartAppIfNecessary: function (unOwnAppID: UInt32): TSteamBool; CDecl;
   SteamAPI_RunCallbacks: procedure (); CDecl;
   SteamAPI_Shutdown: procedure (); CDecl;
   SteamAPI_ManualDispatch_RunFrame: procedure (SteamPipe: HSteamPipe); CDecl;
   SteamAPI_ManualDispatch_Init: procedure (); CDecl;
-  SteamAPI_ManualDispatch_GetNextCallback: function (SteamPipe: HSteamPipe; pCallbackMsg: PCallbackMsg): CBool; CDecl;
+  SteamAPI_ManualDispatch_GetNextCallback: function (SteamPipe: HSteamPipe; pCallbackMsg: PCallbackMsg): TSteamBool; CDecl;
   SteamAPI_ManualDispatch_FreeLastCallback: procedure (SteamPipe: HSteamPipe); CDecl;
-  SteamAPI_ManualDispatch_GetAPICallResult: function (SteamPipe: HSteamPipe; hSteamAPICall: TSteamAPICall; pCallback: Pointer; cubCallback: CInt; iCallbackExpected: CInt; pbFailed: PCbool): CBool; CDecl;
+  SteamAPI_ManualDispatch_GetAPICallResult: function (SteamPipe: HSteamPipe; hSteamAPICall: TSteamAPICall; pCallback: Pointer; cubCallback: CInt; iCallbackExpected: CInt; pbFailed: PSteamBool): TSteamBool; CDecl;
 
   { steam_api_internal.h }
   SteamInternal_CreateInterface: function (SteamClientInterfaceVersion: PAnsiChar): Pointer; CDecl;
@@ -202,17 +219,17 @@ var
   SteamAPI_ISteamClient_GetISteamUserStats: function (SteamClient: Pointer; SteamUserHandle: HSteamUser; SteamPipeHandle: HSteamPipe; const SteamUserStatsInterfaceVersion: PAnsiChar): Pointer; CDecl;
 
   (* ISteamUserStats *)
-  SteamAPI_ISteamUserStats_RequestCurrentStats: function (SteamUserStats: Pointer): CBool; CDecl;
-  SteamAPI_ISteamUserStats_GetAchievement: function (SteamUserStats: Pointer; const AchievementName: PAnsiChar; Achieved: PCBool): CBool; CDecl;
-  SteamAPI_ISteamUserStats_SetAchievement: function (SteamUserStats: Pointer; const AchievementName: PAnsiChar): CBool; CDecl;
-  SteamAPI_ISteamUserStats_ClearAchievement: function (SteamUserStats: Pointer; const AchievementName: PAnsiChar): CBool; CDecl;
+  SteamAPI_ISteamUserStats_RequestCurrentStats: function (SteamUserStats: Pointer): TSteamBool; CDecl;
+  SteamAPI_ISteamUserStats_GetAchievement: function (SteamUserStats: Pointer; const AchievementName: PAnsiChar; Achieved: PSteamBool): TSteamBool; CDecl;
+  SteamAPI_ISteamUserStats_SetAchievement: function (SteamUserStats: Pointer; const AchievementName: PAnsiChar): TSteamBool; CDecl;
+  SteamAPI_ISteamUserStats_ClearAchievement: function (SteamUserStats: Pointer; const AchievementName: PAnsiChar): TSteamBool; CDecl;
   SteamAPI_ISteamUserStats_GetNumAchievements: function (SteamUserStats: Pointer): UInt32; CDecl;
   // It returns string-ID of the achievement, not a human readable name
   SteamAPI_ISteamUserStats_GetAchievementName: function (SteamUserStats: Pointer; AchievementId: UInt32 ): PAnsiChar; CDecl;
   // Show Steam popup "achievement : 30/100", see https://partner.steamgames.com/doc/api/ISteamUserStats#IndicateAchievementProgress
-  SteamAPI_ISteamUserStats_IndicateAchievementProgress: function (SteamUserStats: Pointer; const AchievementName: PAnsiChar; CurrentProgress: UInt32; MaxProgress: UInt32): CBool; CDecl;
+  SteamAPI_ISteamUserStats_IndicateAchievementProgress: function (SteamUserStats: Pointer; const AchievementName: PAnsiChar; CurrentProgress: UInt32; MaxProgress: UInt32): TSteamBool; CDecl;
   // Call this after changing stats or achievements
-  SteamAPI_ISteamUserStats_StoreStats: function (SteamUserStats: Pointer): CBool; CDecl;
+  SteamAPI_ISteamUserStats_StoreStats: function (SteamUserStats: Pointer): TSteamBool; CDecl;
 
 var
   SteamLibrary: TDynLib;

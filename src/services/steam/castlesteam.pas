@@ -261,7 +261,7 @@ end;
 
 function TCastleSteam.GetAchievement(const AchievementId: String): Boolean;
 var
-  CAchieved: CBool;
+  CAchieved: TSteamBool;
 begin
   Result := false;
   if not Enabled then
@@ -337,7 +337,7 @@ procedure TCastleSteam.Update;
     Callback: TCallbackMsg;
     PCallCompleted: PSteamAPICallCompleted;
     PTmpCallResult: Pointer;
-    BFailed: CBool;
+    BFailed: TSteamBool;
   begin
   	SteamAPI_ManualDispatch_RunFrame(SteamPipeHandle);
 	  while SteamAPI_ManualDispatch_GetNextCallback(SteamPipeHandle, @Callback) do
