@@ -261,7 +261,33 @@ uses
 
 procedure FinalizeSteamLibrary;
 begin
-  // TODO: clear all callbacks
+  Pointer({$ifndef FPC}@{$endif} SteamAPI_Init) := nil;
+  Pointer({$ifndef FPC}@{$endif} SteamAPI_ReleaseCurrentThreadMemory) := nil;
+  Pointer({$ifndef FPC}@{$endif} SteamAPI_RestartAppIfNecessary) := nil;
+  Pointer({$ifndef FPC}@{$endif} SteamAPI_RunCallbacks) := nil;
+  Pointer({$ifndef FPC}@{$endif} SteamAPI_Shutdown) := nil;
+  Pointer({$ifndef FPC}@{$endif} SteamAPI_ManualDispatch_RunFrame) := nil;
+  Pointer({$ifndef FPC}@{$endif} SteamAPI_ManualDispatch_Init) := nil;
+  Pointer({$ifndef FPC}@{$endif} SteamAPI_ManualDispatch_GetNextCallback) := nil;
+  Pointer({$ifndef FPC}@{$endif} SteamAPI_ManualDispatch_FreeLastCallback) := nil;
+  Pointer({$ifndef FPC}@{$endif} SteamAPI_ManualDispatch_GetAPICallResult) := nil;
+  Pointer({$ifndef FPC}@{$endif} SteamInternal_CreateInterface) := nil;
+  Pointer({$ifndef FPC}@{$endif} SteamAPI_GetHSteamUser) := nil;
+  Pointer({$ifndef FPC}@{$endif} SteamAPI_GetHSteamPipe) := nil;
+  Pointer({$ifndef FPC}@{$endif} SteamAPI_RegisterCallback) := nil;
+  Pointer({$ifndef FPC}@{$endif} SteamAPI_UnregisterCallback) := nil;
+  Pointer({$ifndef FPC}@{$endif} SteamAPI_ISteamClient_SetWarningMessageHook) := nil;
+  Pointer({$ifndef FPC}@{$endif} SteamAPI_ISteamClient_GetISteamUser) := nil;
+  Pointer({$ifndef FPC}@{$endif} SteamAPI_ISteamClient_GetISteamUserStats) := nil;
+  Pointer({$ifndef FPC}@{$endif} SteamAPI_ISteamUserStats_RequestCurrentStats) := nil;
+  Pointer({$ifndef FPC}@{$endif} SteamAPI_ISteamUserStats_GetAchievement) := nil;
+  Pointer({$ifndef FPC}@{$endif} SteamAPI_ISteamUserStats_SetAchievement) := nil;
+  Pointer({$ifndef FPC}@{$endif} SteamAPI_ISteamUserStats_ClearAchievement) := nil;
+  Pointer({$ifndef FPC}@{$endif} SteamAPI_ISteamUserStats_GetNumAchievements) := nil;
+  Pointer({$ifndef FPC}@{$endif} SteamAPI_ISteamUserStats_GetAchievementName) := nil;
+  Pointer({$ifndef FPC}@{$endif} SteamAPI_ISteamUserStats_IndicateAchievementProgress) := nil;
+  Pointer({$ifndef FPC}@{$endif} SteamAPI_ISteamUserStats_StoreStats) := nil;
+
   FreeAndNil(SteamLibrary);
 end;
 
