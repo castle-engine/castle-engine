@@ -34,7 +34,6 @@ type
     procedure ClickAchievementProgress(Sender: TObject);
     procedure FillInAchievements;
     procedure SteamUserStatsReceived(Sender: TObject);
-    procedure Log(const Message: String);
   public
     constructor Create(AOwner: TComponent); override;
     procedure Start; override;
@@ -128,13 +127,22 @@ end;
 
 procedure TViewMain.ClickAchievement(Sender: TObject);
 begin
+  { Note that in a normal game, you would not use achievements like this.
+    Instead you should
+    - Call Steam.SetAchievement, with a hardcoded name,
+      when user achieves something.
+    - And you never really need to call Steam.ClearAchievement in a normal game
+      (do not take away achievements from the user).
+    - And you seldom need to check Steam.GetAchievement in a normal game
+      (just go ahead and set the achievement, and Steam will ignore it if it's
+      already set).
+
+    What we do here, is for debug purposes. }
   if Steam.GetAchievement((Sender as TCastleButton).Caption) then
   begin
-    Log('Achievement set, clearing');
     Steam.ClearAchievement((Sender as TCastleButton).Caption);
   end else
   begin
-    Log('Achievement not set, adding');
     Steam.SetAchievement((Sender as TCastleButton).Caption);
   end;
   FillInAchievements;
@@ -142,19 +150,12 @@ end;
 
 procedure TViewMain.ClickAchievementProgress(Sender: TObject);
 begin
+  { Note that in a normal game, you would not call
+    Steam.IndicateAchievementProgress like this.
+    You should call Steam.IndicateAchievementProgress as a result of user
+    actually doing something, like winning a game. }
   Steam.ClearAchievement('ACH_WIN_100_GAMES');
   Steam.IndicateAchievementProgress('ACH_WIN_100_GAMES', Random(99) + 1, 100);
-end;
-
-procedure TViewMain.Log(const Message: String);
-var
-  NewLabel: TCastleLabel;
-begin
-  // TODO: use OnScreenNotifications
-  NewLabel := TCastleLabel.Create(VerticalGroupLog);
-  NewLabel.Caption := Message;
-  NewLabel.Color := CastleColors.White;
-  VerticalGroupLog.InsertFront(NewLabel);
 end;
 
 procedure TViewMain.Update(const SecondsPassed: Single; var HandleInput: Boolean);
