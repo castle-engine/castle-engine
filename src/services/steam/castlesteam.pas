@@ -367,7 +367,11 @@ procedure TCastleSteam.Update(Sender: TObject);
 
     We don't use SteamAPI_RunCallbacks, as it
     - Requires quite hacky code, to simulate C++ class VMT, with a specially
-      crafted record and assembler help. See TODO link to old code.
+      crafted record and assembler help.
+      See
+      https://github.com/castle-engine/castle-engine/blob/af09fba831c76db45dde7e0d230c1304dffbd4d3/src/services/steam/castleinternalsteamcallback.pas
+      that we removed in
+      https://github.com/castle-engine/castle-engine/commit/28d9a2e4558b0b7f66c77c5e93f47bddec186285 .
     - Crashes on Linux/x86_64 (maybe because of the above).
 
     Following the Steamworks docs recommendation, we use manual dispatching,
@@ -383,12 +387,12 @@ procedure TCastleSteam.Update(Sender: TObject);
     PTmpCallResult: Pointer;
     BFailed: TSteamBool;
   begin
-  	SteamAPI_ManualDispatch_RunFrame(SteamPipeHandle);
-	  while SteamAPI_ManualDispatch_GetNextCallback(SteamPipeHandle, @Callback) do
+    SteamAPI_ManualDispatch_RunFrame(SteamPipeHandle);
+    while SteamAPI_ManualDispatch_GetNextCallback(SteamPipeHandle, @Callback) do
     begin
       // Look at callback.m_iCallback to see what kind of callback it is,
       // and dispatch to appropriate handler(s)
-		  case Callback.m_iCallback of
+      case Callback.m_iCallback of
         TSteamAPICallCompleted.k_iCallback:
           begin
             // TODO: remove this warning once this code is tested

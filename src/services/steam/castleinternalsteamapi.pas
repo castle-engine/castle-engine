@@ -106,15 +106,15 @@ type
     (CallbackMsg_t in C headers). }
   TCallbackMsg = record
     // Specific user to whom this callback applies.
-	  m_hSteamUser: HSteamUser;
+    m_hSteamUser: HSteamUser;
     // Callback identifier.  (Corresponds to the k_iCallback enum in the callback structure.)
-	  m_iCallback: CInt;
+    m_iCallback: CInt;
     // Points to the callback structure
     // (C headers literal translation would be Puint8, but it's pointless,
     // this is not pointer to UInt8, this is a pointer to callback-specific blob).
-	  m_pubParam: Pointer;
+    m_pubParam: Pointer;
     // Size of the data pointed to by m_pubParam
-	  m_cubParam: CInt;
+    m_cubParam: CInt;
   end;
   PCallbackMsg = ^TCallbackMsg;
 
@@ -187,12 +187,12 @@ type
     k_iCallback = k_iSteamUserStatsCallbacks + 1;
   var
     // Game these stats are for
-		GameID: CGameID;
+    GameID: CGameID;
     // Success / error fetching the stats
-		Result: EResult;
+    Result: EResult;
     // The user for whom the stats are retrieved for
-		SteamID: CSteamId;
-	end;
+    SteamID: CSteamId;
+  end;
   PUserStatsReceived = ^TUserStatsReceived;
 
 var
