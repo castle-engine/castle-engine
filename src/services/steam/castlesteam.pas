@@ -32,10 +32,13 @@ uses Classes,
   CastleInternalSteamApi;
 
 type
-  { Access to Steam.
-    Do not create a manual instance of the class,
-    call SteamInit(AppId) to initialize a single instance of this class.
-    Steam API will shut down automatically when the app shuts down. }
+  { Integration with Steam.
+    See @url(https://castle-engine.io/steam Steam and Castle Game Engine documentation)
+    for usage.
+    Create an instance of this class (passing to the constructor
+    the Steam application id), observe properties like @link(Enabled)
+    and @link(Initialized), and call methods like @link(SetAchievement)
+    to interact with Steam API. }
   TCastleSteam = class
   strict private
     FEnabled: Boolean;
