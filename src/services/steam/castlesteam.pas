@@ -20,6 +20,12 @@ unit CastleSteam;
 
 {$I castleconf.inc}
 
+{ Do not warn at PAnsiChar(String) typecasts here,
+  they are OK -- we cast strings to 8-bit for Steam API usage. }
+{$ifndef FPC}
+  {$warn SUSPICIOUS_TYPECAST off}
+{$endif}
+
 interface
 
 uses Classes,
@@ -134,7 +140,7 @@ type
 implementation
 
 uses SysUtils, CTypes,
-  CastleLog;
+  CastleLog, CastleUtils;
 
 procedure WarningHook(nSeverity: Integer; pchDebugText: PAnsiChar); Cdecl;
 begin
