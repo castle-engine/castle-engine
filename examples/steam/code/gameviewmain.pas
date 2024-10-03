@@ -100,6 +100,7 @@ end;
 
 procedure TViewMain.ClickAchievementProgress(Sender: TObject);
 begin
+  Steam.ClearAchievement('ACH_WIN_100_GAMES');
   Steam.IndicateAchievementProgress('ACH_WIN_100_GAMES', Random(99) + 1, 100);
 end;
 

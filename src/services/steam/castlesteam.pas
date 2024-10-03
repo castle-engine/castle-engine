@@ -97,7 +97,15 @@ type
       @seealso ClearAchievement }
     procedure ClearAllAchievements;
 
-    { Show Steam overlay "progress towards achievement" i.e. "Wins 33/100" }
+    { Show Steam overlay "progress towards achievement" e.g. "Wins 33/100".
+
+      Don't use this when achievement is already achieved.
+      Doing so will only result in an error from Steam, visible as a warning in logs:
+      "Failed to SteamAPI_ISteamUserStats_IndicateAchievementProgress".
+
+      Calling this with CurrentProgress >= MaxProgress @italic(does not)
+      mark the achievement as achieved. It only shows the progress in the overlay.
+      You still have to call @link(SetAchievement) to make it achieved. }
     procedure IndicateAchievementProgress(const AchievementId: String;
       const CurrentProgress, MaxProgress: UInt32);
   public
@@ -313,6 +321,7 @@ begin
   begin
     if not SteamAPI_ISteamUserStats_IndicateAchievementProgress(SteamUserStats, PAnsiChar(AchievementId), CurrentProgress, MaxProgress) then
       SteamError('Failed to SteamAPI_ISteamUserStats_IndicateAchievementProgress');
+    StoreStats := true; // not really necessary it seems
   end else
     SteamError('IndicateAchievementProgress failed! Steam is not initialized!');
 end;
