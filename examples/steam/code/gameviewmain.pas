@@ -162,10 +162,6 @@ begin
   inherited;
   LabelFps.Caption := 'FPS: ' + Container.Fps.ToString;
 
-  { Some Steam features (like callbacks) require calling Update often, usually every frame }
-  // TODO: make it called automatically if you have Steam instance
-  Steam.Update;
-
   // update LabelSteamStatus.Caption
   if Steam.Enabled then
   begin

@@ -62,6 +62,10 @@ type
       it's also the practice of SteamWorks examples. This way failure
       to communicate with Steam doesn't stop the game, it just logs a warning. }
     procedure SteamError(const ErrorMsg: String);
+    { Runs callbacks, performs saving of user stats.
+      According to SteamWorks documentation you should run this
+      at least 10 times a second, better if every frame. }
+    procedure Update(Sender: TObject);
   public
     { Connect to Steam and initialize everything.
 
@@ -86,11 +90,6 @@ type
     }
     constructor Create(const AppId: Integer);
     destructor Destroy; override;
-
-    { Updates callbacks, performs saving of user stats
-      According to SteamWorks documentation you should run this at least 10 times a second, better if every frame.
-      TODO: This should not be necessary to be public }
-    procedure Update;
 
     { Do we have Steam integration available.
 
@@ -157,7 +156,7 @@ type
 implementation
 
 uses SysUtils, CTypes,
-  CastleLog, CastleUtils;
+  CastleLog, CastleUtils, CastleApplicationProperties;
 
 procedure WarningHook(nSeverity: Integer; pchDebugText: PAnsiChar); Cdecl;
 begin
@@ -240,6 +239,8 @@ begin
   InitializeSteamLibrary;
   CheckEnabledAndRestart;
   InitialSteamCalls;
+
+  ApplicationProperties.OnUpdate.Add({$ifdef FPC}@{$endif} Update);
 end;
 
 destructor TCastleSteam.Destroy;
@@ -247,6 +248,8 @@ begin
   FreeAndNil(FAchievements);
   if Enabled then
     SteamAPI_Shutdown();
+  if ApplicationProperties(false) <> nil then
+    ApplicationProperties(false).OnUpdate.Remove({$ifdef FPC}@{$endif} Update);
   inherited;
 end;
 
@@ -358,7 +361,7 @@ begin
     SteamError('IndicateAchievementProgress failed. ' + SUserStatsNotReceived);
 end;
 
-procedure TCastleSteam.Update;
+procedure TCastleSteam.Update(Sender: TObject);
 
   { Request callbacks from Steam API if any pending.
 
