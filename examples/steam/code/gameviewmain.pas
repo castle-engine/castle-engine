@@ -109,7 +109,19 @@ begin
     if Steam.UserStatsReceived then
       LabelSteamStatus.Caption := 'Steam enabled and user stats received OK.'
     else
-      LabelSteamStatus.Caption := 'Steam enabled, waiting for user stats...'
+      LabelSteamStatus.Caption := 'Steam enabled, waiting for user stats...';
+    // Add more information to LabelSteamStatus.Caption
+    LabelSteamStatus.Caption := LabelSteamStatus.Caption + NL +
+      NL +
+      'Country: ' + Steam.Country + NL +
+      'Language: ' + Steam.Language + NL +
+      NL +
+      'Overlay Enabled: ' + BoolToStr(Steam.OverlayEnabled, true) + NL +
+      'Running in VR: ' + BoolToStr(Steam.RunningInVR, true) + NL +
+      'Running on Steam Deck: ' + BoolToStr(Steam.RunningOnSteamDeck, true) + NL +
+      NL +
+      'App ID: ' + IntToStr(Steam.AppId) + NL +
+      'Build ID: ' + IntToStr(Steam.BuildId);
   end else
     LabelSteamStatus.Caption := 'Steam disabled (dynamic library not found or other reason -- consult the logs and the docs https://castle-engine.io/steam )';
 end;

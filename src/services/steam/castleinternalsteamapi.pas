@@ -71,6 +71,7 @@ type
     defined in C headers with explicit ability to be typecasted as 64-bit int. }
   CGameID = UInt64;
   EResult = UInt32;
+  TAppId = UInt32;
 
   { Express all "bool" from Steam API using this type.
 
@@ -195,11 +196,19 @@ type
   end;
   PUserStatsReceived = ^TUserStatsReceived;
 
+  // Pointer to ISteamApps interface from Steam API.
+  // For our translation, this is just a pointer to an opaque structure.
+  // Defined as a record to be incompatible with e.g. ISteamUtils.
+  ISteamApps = record Ptr: Pointer; end;
+
+  // Pointer to ISteamUtils interface from Steam API.
+  ISteamUtils = record Ptr: Pointer; end;
+
 var
-  { steam_api.h : See full documentation at https://partner.steamgames.com/doc/api/steam_api }
+  // steam_api.h translation (full documentation at https://partner.steamgames.com/doc/api/steam_api )
   SteamAPI_Init: function (): TSteamBool; CDecl;
   SteamAPI_ReleaseCurrentThreadMemory: procedure (); CDecl; // TODO: UNTESTED
-  SteamAPI_RestartAppIfNecessary: function (unOwnAppID: UInt32): TSteamBool; CDecl;
+  SteamAPI_RestartAppIfNecessary: function (unOwnAppID: TAppId): TSteamBool; CDecl;
   SteamAPI_RunCallbacks: procedure (); CDecl;
   SteamAPI_Shutdown: procedure (); CDecl;
   SteamAPI_ManualDispatch_RunFrame: procedure (SteamPipe: HSteamPipe); CDecl;
@@ -208,19 +217,22 @@ var
   SteamAPI_ManualDispatch_FreeLastCallback: procedure (SteamPipe: HSteamPipe); CDecl;
   SteamAPI_ManualDispatch_GetAPICallResult: function (SteamPipe: HSteamPipe; hSteamAPICall: TSteamAPICall; pCallback: Pointer; cubCallback: CInt; iCallbackExpected: CInt; pbFailed: PSteamBool): TSteamBool; CDecl;
 
-  { steam_api_internal.h }
+  // steam_api_internal.h translation
   SteamInternal_CreateInterface: function (SteamClientInterfaceVersion: PAnsiChar): Pointer; CDecl;
   SteamAPI_GetHSteamUser: function (): HSteamUser; CDecl;
   SteamAPI_GetHSteamPipe: function (): HSteamPipe; CDecl;
   SteamAPI_RegisterCallback: procedure (pCallback: Pointer; iCallback: Integer); CDecl;
   SteamAPI_UnregisterCallback: procedure (pCallback: Pointer); CDecl;
 
-  (* ISteamClient *)
+  // steam_api_flat.h translation below,
+  // which is actually "flat" (C, no classes) Steam API corresponding to the C++ API
+
+  // ISteamClient
   SteamAPI_ISteamClient_SetWarningMessageHook: procedure (SteamClient: Pointer; WarningMessageHook: SteamAPIWarningMessageHook); CDecl;
   SteamAPI_ISteamClient_GetISteamUser: function (SteamClient: Pointer; SteamUserHandle: HSteamUser; SteamPipeHandle: HSteamPipe; const SteamUserInterfaceVersion: PAnsiChar): Pointer; CDecl;
   SteamAPI_ISteamClient_GetISteamUserStats: function (SteamClient: Pointer; SteamUserHandle: HSteamUser; SteamPipeHandle: HSteamPipe; const SteamUserStatsInterfaceVersion: PAnsiChar): Pointer; CDecl;
 
-  (* ISteamUserStats *)
+  // ISteamUserStats
   SteamAPI_ISteamUserStats_RequestCurrentStats: function (SteamUserStats: Pointer): TSteamBool; CDecl;
   SteamAPI_ISteamUserStats_GetAchievement: function (SteamUserStats: Pointer; const AchievementName: PAnsiChar; Achieved: PSteamBool): TSteamBool; CDecl;
   SteamAPI_ISteamUserStats_SetAchievement: function (SteamUserStats: Pointer; const AchievementName: PAnsiChar): TSteamBool; CDecl;
@@ -232,6 +244,36 @@ var
   SteamAPI_ISteamUserStats_IndicateAchievementProgress: function (SteamUserStats: Pointer; const AchievementName: PAnsiChar; CurrentProgress: UInt32; MaxProgress: UInt32): TSteamBool; CDecl;
   // Call this after changing stats or achievements
   SteamAPI_ISteamUserStats_StoreStats: function (SteamUserStats: Pointer): TSteamBool; CDecl;
+
+  // ISteamUtils
+  // A versioned accessor is exported by the library
+  //SteamAPI_SteamUtils_v010: function (): ISteamUtils; CDecl;
+  // Unversioned accessor to get the current version.
+  // In Pascal translation, this is just an alias to 'SteamAPI_SteamUtils_v010'.
+  SteamAPI_SteamUtils: function (): ISteamUtils; CDecl;
+  // returns the 2 digit ISO 3166-1-alpha-2 format country code this client
+  // is running in (as looked up via an IP-to-location database) e.g "US" or "UK".
+  SteamAPI_ISteamUtils_GetIPCountry: function (Self: ISteamUtils): PAnsiChar; CDecl;
+  // Returns true if the overlay is running & the user can access it. The overlay process could take a few seconds to
+  // start & hook the game process, so this function will initially return false while the overlay is loading.
+  SteamAPI_ISteamUtils_IsOverlayEnabled: function (Self: ISteamUtils): TSteamBool; CDecl;
+  // returns true if Steam itself is running in VR mode
+  SteamAPI_ISteamUtils_IsSteamRunningInVR: function (Self: ISteamUtils): TSteamBool; CDecl;
+  // returns true if currently running on the Steam Deck device
+  SteamAPI_ISteamUtils_IsSteamRunningOnSteamDeck: function (Self: ISteamUtils): TSteamBool; CDecl;
+
+  // ISteamApps
+  // A versioned accessor is exported by the library
+  //SteamAPI_SteamApps_v008: function (): ISteamApps; CDecl;
+  // Unversioned accessor to get the current version.
+  // In Pascal translation, this is just an alias to 'SteamAPI_SteamApps_v008'.
+  SteamAPI_SteamApps: function (): ISteamApps; CDecl;
+  // return the buildid of this app, may change at any time based on backend updates to the game
+  SteamAPI_ISteamApps_GetAppBuildId: function (Self: ISteamApps): CInt; CDecl;
+  // Takes AppID of DLC and checks if the user owns the DLC & if the DLC is installed
+  SteamAPI_ISteamApps_BIsDlcInstalled: function (Self: ISteamApps; AppID: TAppId): TSteamBool; CDecl;
+  // returns the current game language
+  SteamAPI_ISteamApps_GetCurrentGameLanguage: function (Self: ISteamApps): PAnsiChar; CDecl;
 
 var
   SteamLibrary: TDynLib;
@@ -287,6 +329,15 @@ begin
   Pointer({$ifndef FPC}@{$endif} SteamAPI_ISteamUserStats_GetAchievementName) := nil;
   Pointer({$ifndef FPC}@{$endif} SteamAPI_ISteamUserStats_IndicateAchievementProgress) := nil;
   Pointer({$ifndef FPC}@{$endif} SteamAPI_ISteamUserStats_StoreStats) := nil;
+  Pointer({$ifndef FPC}@{$endif} SteamAPI_SteamUtils) := nil;
+  Pointer({$ifndef FPC}@{$endif} SteamAPI_ISteamUtils_GetIPCountry) := nil;
+  Pointer({$ifndef FPC}@{$endif} SteamAPI_ISteamUtils_IsOverlayEnabled) := nil;
+  Pointer({$ifndef FPC}@{$endif} SteamAPI_ISteamUtils_IsSteamRunningInVR) := nil;
+  Pointer({$ifndef FPC}@{$endif} SteamAPI_ISteamUtils_IsSteamRunningOnSteamDeck) := nil;
+  Pointer({$ifndef FPC}@{$endif} SteamAPI_SteamApps) := nil;
+  Pointer({$ifndef FPC}@{$endif} SteamAPI_ISteamApps_GetAppBuildId) := nil;
+  Pointer({$ifndef FPC}@{$endif} SteamAPI_ISteamApps_BIsDlcInstalled) := nil;
+  Pointer({$ifndef FPC}@{$endif} SteamAPI_ISteamApps_GetCurrentGameLanguage) := nil;
 
   FreeAndNil(SteamLibrary);
 end;
@@ -326,6 +377,17 @@ begin
     Pointer({$ifndef FPC}@{$endif} SteamAPI_ISteamUserStats_GetAchievementName) := SteamLibrary.Symbol('SteamAPI_ISteamUserStats_GetAchievementName');
     Pointer({$ifndef FPC}@{$endif} SteamAPI_ISteamUserStats_IndicateAchievementProgress) := SteamLibrary.Symbol('SteamAPI_ISteamUserStats_IndicateAchievementProgress');
     Pointer({$ifndef FPC}@{$endif} SteamAPI_ISteamUserStats_StoreStats) := SteamLibrary.Symbol('SteamAPI_ISteamUserStats_StoreStats');
+    // alias to versioned entry point
+    Pointer({$ifndef FPC}@{$endif} SteamAPI_SteamUtils) := SteamLibrary.Symbol('SteamAPI_SteamUtils_v010');
+    Pointer({$ifndef FPC}@{$endif} SteamAPI_ISteamUtils_GetIPCountry) := SteamLibrary.Symbol('SteamAPI_ISteamUtils_GetIPCountry');
+    Pointer({$ifndef FPC}@{$endif} SteamAPI_ISteamUtils_IsOverlayEnabled) := SteamLibrary.Symbol('SteamAPI_ISteamUtils_IsOverlayEnabled');
+    Pointer({$ifndef FPC}@{$endif} SteamAPI_ISteamUtils_IsSteamRunningInVR) := SteamLibrary.Symbol('SteamAPI_ISteamUtils_IsSteamRunningInVR');
+    Pointer({$ifndef FPC}@{$endif} SteamAPI_ISteamUtils_IsSteamRunningOnSteamDeck) := SteamLibrary.Symbol('SteamAPI_ISteamUtils_IsSteamRunningOnSteamDeck');
+    // alias to versioned entry point
+    Pointer({$ifndef FPC}@{$endif} SteamAPI_SteamApps) := SteamLibrary.Symbol('SteamAPI_SteamApps_v008');
+    Pointer({$ifndef FPC}@{$endif} SteamAPI_ISteamApps_GetAppBuildId) := SteamLibrary.Symbol('SteamAPI_ISteamApps_GetAppBuildId');
+    Pointer({$ifndef FPC}@{$endif} SteamAPI_ISteamApps_BIsDlcInstalled) := SteamLibrary.Symbol('SteamAPI_ISteamApps_BIsDlcInstalled');
+    Pointer({$ifndef FPC}@{$endif} SteamAPI_ISteamApps_GetCurrentGameLanguage) := SteamLibrary.Symbol('SteamAPI_ISteamApps_GetCurrentGameLanguage');
   end;
 end;
 

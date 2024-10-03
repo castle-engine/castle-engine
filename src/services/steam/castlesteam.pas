@@ -32,6 +32,8 @@ uses Classes,
   CastleInternalSteamApi;
 
 type
+  TAppId = CastleInternalSteamApi.TAppId;
+
   { Integration with Steam.
     See @url(https://castle-engine.io/steam Steam and Castle Game Engine documentation)
     for usage.
@@ -41,6 +43,7 @@ type
     to interact with Steam API. }
   TCastleSteam = class
   strict private
+    FAppId: TAppId;
     FEnabled: Boolean;
     FAchievements: TStrings;
     FUserStatsReceived: Boolean;
@@ -88,8 +91,11 @@ type
         )
       )
     }
-    constructor Create(const AppId: Integer);
+    constructor Create(const AAppId: TAppId);
     destructor Destroy; override;
+
+    { Steam application id, given when creating this. }
+    property AppId: TAppId read FAppId;
 
     { Do we have Steam integration available.
 
@@ -151,6 +157,31 @@ type
       You still have to call @link(SetAchievement) to make it achieved. }
     procedure IndicateAchievementProgress(const AchievementId: String;
       const CurrentProgress, MaxProgress: UInt32);
+
+    { 2 digit ISO 3166-1-alpha-2 format country code this client
+      is running in (as looked up via an IP-to-location database) e.g "US" or "UK". }
+    function Country: String;
+
+    { Is the Steam overlay running and the user can access it.
+      The overlay process could take a few seconds to
+      start & hook the game process, so this function will initially return false
+      while the overlay is loading. }
+    function OverlayEnabled: Boolean;
+
+    { Is Steam running in VR mode. }
+    function RunningInVR: Boolean;
+
+    { Is currently running on the Steam Deck device. }
+    function RunningOnSteamDeck: Boolean;
+
+    { Build id of this app. }
+    function BuildId: Integer;
+
+    { Checks if the user owns the DLC and if the DLC is installed. }
+    function DlcInstalled(const DlcAppID: TAppId): Boolean;
+
+    { Current game language. }
+    function Language: String;
   end;
 
 implementation
@@ -165,7 +196,7 @@ end;
 
 { TCastleSteam --------------------------------------------------------------- }
 
-constructor TCastleSteam.Create(const AppId: Integer);
+constructor TCastleSteam.Create(const AAppId: TAppId);
 
   { Set some conditions and set Enabled.
     It may also restart the game through Steam if it was run through exe,
@@ -232,6 +263,7 @@ constructor TCastleSteam.Create(const AppId: Integer);
 
 begin
   inherited Create;
+  FAppId := AAppId;
 
   StoreStats := false;
   FUserStatsReceived := false; // waiting for callback
@@ -454,5 +486,53 @@ begin
       StoreStats := false;
 end;
 
-end.
+function TCastleSteam.Country: String;
+begin
+  if not Enabled then
+    Exit('');
+  Result := SteamAPI_ISteamUtils_GetIPCountry(SteamAPI_SteamUtils());
+end;
 
+function TCastleSteam.OverlayEnabled: Boolean;
+begin
+  if not Enabled then
+    Exit(false);
+  Result := SteamAPI_ISteamUtils_IsOverlayEnabled(SteamAPI_SteamUtils());
+end;
+
+function TCastleSteam.RunningInVR: Boolean;
+begin
+  if not Enabled then
+    Exit(false);
+  Result := SteamAPI_ISteamUtils_IsSteamRunningInVR(SteamAPI_SteamUtils());
+end;
+
+function TCastleSteam.RunningOnSteamDeck: Boolean;
+begin
+  if not Enabled then
+    Exit(false);
+  Result := SteamAPI_ISteamUtils_IsSteamRunningOnSteamDeck(SteamAPI_SteamUtils());
+end;
+
+function TCastleSteam.BuildId: Integer;
+begin
+  if not Enabled then
+    Exit(0);
+  Result := SteamAPI_ISteamApps_GetAppBuildId(SteamAPI_SteamApps());
+end;
+
+function TCastleSteam.DlcInstalled(const DlcAppID: TAppId): Boolean;
+begin
+  if not Enabled then
+    Exit(false);
+  Result := SteamAPI_ISteamApps_BIsDlcInstalled(SteamAPI_SteamApps(), DlcAppID);
+end;
+
+function TCastleSteam.Language: String;
+begin
+  if not Enabled then
+    Exit('');
+  Result := SteamAPI_ISteamApps_GetCurrentGameLanguage(SteamAPI_SteamApps());
+end;
+
+end.
