@@ -30,14 +30,15 @@ type
     VerticalGroupAchievements: TCastleVerticalGroup;
     VerticalGroupLog: TCastleVerticalGroup;
   strict private
-    SteamAchievementsReceived: Boolean;
     procedure ClickAchievement(Sender: TObject);
     procedure ClickAchievementProgress(Sender: TObject);
     procedure FillInAchievements;
-  public
+    procedure SteamUserStatsReceived(Sender: TObject);
     procedure Log(const Message: String);
+  public
     constructor Create(AOwner: TComponent); override;
     procedure Start; override;
+    procedure Stop; override;
     procedure Update(const SecondsPassed: Single; var HandleInput: Boolean); override;
   end;
 
@@ -52,6 +53,47 @@ uses SysUtils,
 // TODO: Separate clear achievement / set achievemnts to different buttons, to test separetely
 
 { TViewMain ----------------------------------------------------------------- }
+
+constructor TViewMain.Create(AOwner: TComponent);
+begin
+  inherited;
+  DesignUrl := 'castle-data:/gameviewmain.castle-user-interface';
+end;
+
+procedure TViewMain.Start;
+begin
+  inherited;
+  Steam.OnUserStatsReceived := {$ifdef FPC}@{$endif} SteamUserStatsReceived;
+end;
+
+procedure TViewMain.Stop;
+begin
+  { Disconnect our callback from Steam.
+
+    This is not really necessary in this simple example, that has only
+    one view. Moreover, OnUserStatsReceived right now occurs only once,
+    soon after the game starts.
+
+    But it is a good practice to disconnect events,
+    as it is necessary in larger applications, and it makes the code safe
+    regardless of how many times / when is the event called.
+    Since Steam instance "lives"
+    independently of our views, we don't want it to call methods of our
+    view when the view is stopped, as our methods may be not ready
+    for this (e.g. FillInAchievements assumes that the view is not stopped).
+
+    The check "if Steam <> nil then" is only in case GameSteam finalization
+    will happen before this view stops (which is done from CastleWindow
+    finalization). }
+  if Steam <> nil then
+    Steam.OnUserStatsReceived := nil;
+  inherited;
+end;
+
+procedure TViewMain.SteamUserStatsReceived(Sender: TObject);
+begin
+  FillInAchievements;
+end;
 
 procedure TViewMain.FillInAchievements;
 var
@@ -115,18 +157,6 @@ begin
   VerticalGroupLog.InsertFront(NewLabel);
 end;
 
-constructor TViewMain.Create(AOwner: TComponent);
-begin
-  inherited;
-  DesignUrl := 'castle-data:/gameviewmain.castle-user-interface';
-end;
-
-procedure TViewMain.Start;
-begin
-  inherited;
-  SteamAchievementsReceived := false;
-end;
-
 procedure TViewMain.Update(const SecondsPassed: Single; var HandleInput: Boolean);
 begin
   inherited;
@@ -136,20 +166,13 @@ begin
   // TODO: make it called automatically if you have Steam instance
   Steam.Update;
 
-  // TODO: use Steam.OnInitialized
-  if not SteamAchievementsReceived and Steam.Initialized then
-  begin
-    SteamAchievementsReceived := true;
-    FillInAchievements;
-  end;
-
   // update LabelSteamStatus.Caption
   if Steam.Enabled then
   begin
-    if Steam.Initialized then
-      LabelSteamStatus.Caption := 'Steam enabled and initialized OK.'
+    if Steam.UserStatsReceived then
+      LabelSteamStatus.Caption := 'Steam enabled and user stats received OK.'
     else
-      LabelSteamStatus.Caption := 'Steam enabled, initializing...'
+      LabelSteamStatus.Caption := 'Steam enabled, waiting for user stats...'
   end else
     LabelSteamStatus.Caption := 'Steam disabled (dynamic library not found or other reason -- consult the logs and the docs https://castle-engine.io/steam )';
 end;
