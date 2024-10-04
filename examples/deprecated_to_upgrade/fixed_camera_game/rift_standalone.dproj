@@ -100,7 +100,7 @@
         <DCC_Namespace>System;Xml;Data;Datasnap;Web;Soap;$(DCC_Namespace)</DCC_Namespace>
         <Icon_MainIcon>$(BDS)\bin\delphi_PROJECTICON.ico</Icon_MainIcon>
         <Icns_MainIcns>$(BDS)\bin\delphi_PROJECTICNS.icns</Icns_MainIcns>
-        <DCC_UnitSearchPath>../../../src/base;../../../src/common_includes;../../../src/base/android;../../../src/base/windows;../../../src/base/unix;../../../src/base_rendering;../../../src/base_rendering/dglopengl;../../../src/base_rendering/glsl/generated-pascal;../../../src/fonts;../../../src/window;../../../src/window/gtk;../../../src/window/windows;../../../src/window/unix;../../../src/window/deprecated_units;../../../src/images;../../../src/transform;../../../src/scene;../../../src/scene/glsl/generated-pascal;../../../src/scene/x3d;../../../src/scene/load;../../../src/scene/load/ifc;../../../src/scene/load/spine;../../../src/scene/load/md3;../../../src/scene/load/collada;../../../src/scene/load/pasgltf;../../../src/audio;../../../src/audio/fmod;../../../src/audio/openal;../../../src/audio/ogg_vorbis;../../../src/files;../../../src/files/indy;../../../src/castlescript;../../../src/ui;../../../src/ui/windows;../../../src/services;../../../src/physics;../../../src/physics/kraft;../../../src/deprecated_units;../../../src/vampyre_imaginglib/src/Source;../../../src/vampyre_imaginglib/src/Source/JpegLib;../../../src/vampyre_imaginglib/src/Source/ZLib;../../../src/vampyre_imaginglib/src/Extras/Extensions;../../../src/vampyre_imaginglib/src/Extensions/J2KObjects;../../../src/vampyre_imaginglib/src/Extensions/LibTiff;../../../src/vampyre_imaginglib/src/Extensions;../../../src/delphi;../../../src/compatibility/delphi-only;../../../src/compatibility/delphi-only/fcl-json;code/;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
+        <DCC_UnitSearchPath>../../../src/base;../../../src/common_includes;../../../src/base/android;../../../src/base/windows;../../../src/base/unix;../../../src/base_rendering;../../../src/base_rendering/dglopengl;../../../src/base_rendering/glsl/generated-pascal;../../../src/fonts;../../../src/window;../../../src/window/gtk;../../../src/window/windows;../../../src/window/unix;../../../src/window/deprecated_units;../../../src/images;../../../src/transform;../../../src/scene;../../../src/scene/glsl/generated-pascal;../../../src/scene/x3d;../../../src/scene/load;../../../src/scene/load/ifc;../../../src/scene/load/spine;../../../src/scene/load/md3;../../../src/scene/load/collada;../../../src/scene/load/pasgltf;../../../src/audio;../../../src/audio/fmod;../../../src/audio/openal;../../../src/audio/ogg_vorbis;../../../src/files;../../../src/files/indy;../../../src/castlescript;../../../src/ui;../../../src/ui/windows;../../../src/services;../../../src/services/steam;../../../src/physics;../../../src/physics/kraft;../../../src/deprecated_units;../../../src/vampyre_imaginglib/src/Source;../../../src/vampyre_imaginglib/src/Source/JpegLib;../../../src/vampyre_imaginglib/src/Source/ZLib;../../../src/vampyre_imaginglib/src/Extras/Extensions;../../../src/vampyre_imaginglib/src/Extensions/J2KObjects;../../../src/vampyre_imaginglib/src/Extensions/LibTiff;../../../src/vampyre_imaginglib/src/Extensions;../../../src/delphi;../../../src/compatibility/delphi-only;../../../src/compatibility/delphi-only/fcl-json;code/;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
         <DCC_DcuOutput>castle-engine-output\delphi\$(Platform)\$(Config)</DCC_DcuOutput>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base_Android)'!=''">
@@ -294,57 +294,6 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\avatar\avatar.bin" Configuration="Debug" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/avatar\</RemoteDir>
-  <RemoteName>avatar.bin</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/avatar\</RemoteDir>
-  <RemoteName>avatar.bin</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/avatar\</RemoteDir>
-  <RemoteName>avatar.bin</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\avatar\avatar.castle-transform" Configuration="Debug" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/avatar\</RemoteDir>
-  <RemoteName>avatar.castle-transform</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/avatar\</RemoteDir>
-  <RemoteName>avatar.castle-transform</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/avatar\</RemoteDir>
-  <RemoteName>avatar.castle-transform</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\avatar\avatar.gltf" Configuration="Debug" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/avatar\</RemoteDir>
-  <RemoteName>avatar.gltf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/avatar\</RemoteDir>
-  <RemoteName>avatar.gltf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/avatar\</RemoteDir>
-  <RemoteName>avatar.gltf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
 <DeployFile LocalName="data\CastleSettings.xml" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
   <RemoteDir>./data/</RemoteDir>
@@ -359,6 +308,57 @@
  <Platform Name="Win64">
   <RemoteDir>./data/</RemoteDir>
   <RemoteName>CastleSettings.xml</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\avatar/avatar.bin" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/avatar/</RemoteDir>
+  <RemoteName>avatar.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/avatar/</RemoteDir>
+  <RemoteName>avatar.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/avatar/</RemoteDir>
+  <RemoteName>avatar.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\avatar/avatar.castle-transform" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/avatar/</RemoteDir>
+  <RemoteName>avatar.castle-transform</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/avatar/</RemoteDir>
+  <RemoteName>avatar.castle-transform</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/avatar/</RemoteDir>
+  <RemoteName>avatar.castle-transform</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\avatar/avatar.gltf" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/avatar/</RemoteDir>
+  <RemoteName>avatar.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/avatar/</RemoteDir>
+  <RemoteName>avatar.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/avatar/</RemoteDir>
+  <RemoteName>avatar.gltf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
@@ -379,512 +379,512 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\images\human_beach.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\images/human_beach.png" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/images\</RemoteDir>
+  <RemoteDir>./data/images/</RemoteDir>
   <RemoteName>human_beach.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/images\</RemoteDir>
+  <RemoteDir>./data/images/</RemoteDir>
   <RemoteName>human_beach.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/images\</RemoteDir>
+  <RemoteDir>./data/images/</RemoteDir>
   <RemoteName>human_beach.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\images\human_beach_corroded.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\images/human_beach_corroded.png" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/images\</RemoteDir>
+  <RemoteDir>./data/images/</RemoteDir>
   <RemoteName>human_beach_corroded.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/images\</RemoteDir>
+  <RemoteDir>./data/images/</RemoteDir>
   <RemoteName>human_beach_corroded.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/images\</RemoteDir>
+  <RemoteDir>./data/images/</RemoteDir>
   <RemoteName>human_beach_corroded.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\images\human_beach_original.jpg" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\images/human_beach_original.jpg" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/images\</RemoteDir>
+  <RemoteDir>./data/images/</RemoteDir>
   <RemoteName>human_beach_original.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/images\</RemoteDir>
+  <RemoteDir>./data/images/</RemoteDir>
   <RemoteName>human_beach_original.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/images\</RemoteDir>
+  <RemoteDir>./data/images/</RemoteDir>
   <RemoteName>human_beach_original.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\images\morning_buildings.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\images/morning_buildings.png" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/images\</RemoteDir>
+  <RemoteDir>./data/images/</RemoteDir>
   <RemoteName>morning_buildings.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/images\</RemoteDir>
+  <RemoteDir>./data/images/</RemoteDir>
   <RemoteName>morning_buildings.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/images\</RemoteDir>
+  <RemoteDir>./data/images/</RemoteDir>
   <RemoteName>morning_buildings.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\images\morning_buildings_corroded.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\images/morning_buildings_corroded.png" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/images\</RemoteDir>
+  <RemoteDir>./data/images/</RemoteDir>
   <RemoteName>morning_buildings_corroded.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/images\</RemoteDir>
+  <RemoteDir>./data/images/</RemoteDir>
   <RemoteName>morning_buildings_corroded.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/images\</RemoteDir>
+  <RemoteDir>./data/images/</RemoteDir>
   <RemoteName>morning_buildings_corroded.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\images\morning_buildings_original.jpg" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\images/morning_buildings_original.jpg" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/images\</RemoteDir>
+  <RemoteDir>./data/images/</RemoteDir>
   <RemoteName>morning_buildings_original.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/images\</RemoteDir>
+  <RemoteDir>./data/images/</RemoteDir>
   <RemoteName>morning_buildings_original.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/images\</RemoteDir>
+  <RemoteDir>./data/images/</RemoteDir>
   <RemoteName>morning_buildings_original.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\images\train_crash.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\images/train_crash.png" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/images\</RemoteDir>
+  <RemoteDir>./data/images/</RemoteDir>
   <RemoteName>train_crash.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/images\</RemoteDir>
+  <RemoteDir>./data/images/</RemoteDir>
   <RemoteName>train_crash.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/images\</RemoteDir>
+  <RemoteDir>./data/images/</RemoteDir>
   <RemoteName>train_crash.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\images\train_crash_corroded.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\images/train_crash_corroded.png" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/images\</RemoteDir>
+  <RemoteDir>./data/images/</RemoteDir>
   <RemoteName>train_crash_corroded.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/images\</RemoteDir>
+  <RemoteDir>./data/images/</RemoteDir>
   <RemoteName>train_crash_corroded.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/images\</RemoteDir>
+  <RemoteDir>./data/images/</RemoteDir>
   <RemoteName>train_crash_corroded.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\images\train_crash_original.jpg" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\images/train_crash_original.jpg" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/images\</RemoteDir>
+  <RemoteDir>./data/images/</RemoteDir>
   <RemoteName>train_crash_original.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/images\</RemoteDir>
+  <RemoteDir>./data/images/</RemoteDir>
   <RemoteName>train_crash_original.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/images\</RemoteDir>
+  <RemoteDir>./data/images/</RemoteDir>
   <RemoteName>train_crash_original.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\images\water_ducks_original.jpg" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\images/water_ducks_original.jpg" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/images\</RemoteDir>
+  <RemoteDir>./data/images/</RemoteDir>
   <RemoteName>water_ducks_original.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/images\</RemoteDir>
+  <RemoteDir>./data/images/</RemoteDir>
   <RemoteName>water_ducks_original.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/images\</RemoteDir>
+  <RemoteDir>./data/images/</RemoteDir>
   <RemoteName>water_ducks_original.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\images\wild_road.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\images/wild_road.png" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/images\</RemoteDir>
+  <RemoteDir>./data/images/</RemoteDir>
   <RemoteName>wild_road.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/images\</RemoteDir>
+  <RemoteDir>./data/images/</RemoteDir>
   <RemoteName>wild_road.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/images\</RemoteDir>
+  <RemoteDir>./data/images/</RemoteDir>
   <RemoteName>wild_road.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\images\wild_road_corroded.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\images/wild_road_corroded.png" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/images\</RemoteDir>
+  <RemoteDir>./data/images/</RemoteDir>
   <RemoteName>wild_road_corroded.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/images\</RemoteDir>
+  <RemoteDir>./data/images/</RemoteDir>
   <RemoteName>wild_road_corroded.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/images\</RemoteDir>
+  <RemoteDir>./data/images/</RemoteDir>
   <RemoteName>wild_road_corroded.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\images\wild_road_original.jpg" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\images/wild_road_original.jpg" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/images\</RemoteDir>
+  <RemoteDir>./data/images/</RemoteDir>
   <RemoteName>wild_road_original.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/images\</RemoteDir>
+  <RemoteDir>./data/images/</RemoteDir>
   <RemoteName>wild_road_original.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/images\</RemoteDir>
+  <RemoteDir>./data/images/</RemoteDir>
   <RemoteName>wild_road_original.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\locations\home\forest.jpg" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\locations/home/forest.jpg" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/locations\home\</RemoteDir>
+  <RemoteDir>./data/locations/home/</RemoteDir>
   <RemoteName>forest.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/locations\home\</RemoteDir>
+  <RemoteDir>./data/locations/home/</RemoteDir>
   <RemoteName>forest.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/locations\home\</RemoteDir>
+  <RemoteDir>./data/locations/home/</RemoteDir>
   <RemoteName>forest.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\locations\home\lemog_002bois.jpg" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\locations/home/lemog_002bois.jpg" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/locations\home\</RemoteDir>
+  <RemoteDir>./data/locations/home/</RemoteDir>
   <RemoteName>lemog_002bois.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/locations\home\</RemoteDir>
+  <RemoteDir>./data/locations/home/</RemoteDir>
   <RemoteName>lemog_002bois.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/locations\home\</RemoteDir>
+  <RemoteDir>./data/locations/home/</RemoteDir>
   <RemoteName>lemog_002bois.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\locations\home\lemog_009bois.jpg" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\locations/home/lemog_009bois.jpg" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/locations\home\</RemoteDir>
+  <RemoteDir>./data/locations/home/</RemoteDir>
   <RemoteName>lemog_009bois.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/locations\home\</RemoteDir>
+  <RemoteDir>./data/locations/home/</RemoteDir>
   <RemoteName>lemog_009bois.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/locations\home\</RemoteDir>
+  <RemoteDir>./data/locations/home/</RemoteDir>
   <RemoteName>lemog_009bois.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\locations\home\lemog_011bois.jpg" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\locations/home/lemog_011bois.jpg" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/locations\home\</RemoteDir>
+  <RemoteDir>./data/locations/home/</RemoteDir>
   <RemoteName>lemog_011bois.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/locations\home\</RemoteDir>
+  <RemoteDir>./data/locations/home/</RemoteDir>
   <RemoteName>lemog_011bois.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/locations\home\</RemoteDir>
+  <RemoteDir>./data/locations/home/</RemoteDir>
   <RemoteName>lemog_011bois.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\locations\home\lemog_071bois.jpg" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\locations/home/lemog_071bois.jpg" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/locations\home\</RemoteDir>
+  <RemoteDir>./data/locations/home/</RemoteDir>
   <RemoteName>lemog_071bois.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/locations\home\</RemoteDir>
+  <RemoteDir>./data/locations/home/</RemoteDir>
   <RemoteName>lemog_071bois.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/locations\home\</RemoteDir>
+  <RemoteDir>./data/locations/home/</RemoteDir>
   <RemoteName>lemog_071bois.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\locations\home\renders\render.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\locations/home/renders/render.png" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/locations\home\renders\</RemoteDir>
+  <RemoteDir>./data/locations/home/renders/</RemoteDir>
   <RemoteName>render.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/locations\home\renders\</RemoteDir>
+  <RemoteDir>./data/locations/home/renders/</RemoteDir>
   <RemoteName>render.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/locations\home\renders\</RemoteDir>
+  <RemoteDir>./data/locations/home/renders/</RemoteDir>
   <RemoteName>render.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\locations\home\renders\render_shadowed.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\locations/home/renders/render_shadowed.png" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/locations\home\renders\</RemoteDir>
+  <RemoteDir>./data/locations/home/renders/</RemoteDir>
   <RemoteName>render_shadowed.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/locations\home\renders\</RemoteDir>
+  <RemoteDir>./data/locations/home/renders/</RemoteDir>
   <RemoteName>render_shadowed.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/locations\home\renders\</RemoteDir>
+  <RemoteDir>./data/locations/home/renders/</RemoteDir>
   <RemoteName>render_shadowed.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\locations\home\scene.glb" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\locations/home/scene.glb" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/locations\home\</RemoteDir>
+  <RemoteDir>./data/locations/home/</RemoteDir>
   <RemoteName>scene.glb</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/locations\home\</RemoteDir>
+  <RemoteDir>./data/locations/home/</RemoteDir>
   <RemoteName>scene.glb</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/locations\home\</RemoteDir>
+  <RemoteDir>./data/locations/home/</RemoteDir>
   <RemoteName>scene.glb</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\menu_bg\main_menu.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\menu_bg/main_menu.png" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/menu_bg\</RemoteDir>
+  <RemoteDir>./data/menu_bg/</RemoteDir>
   <RemoteName>main_menu.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/menu_bg\</RemoteDir>
+  <RemoteDir>./data/menu_bg/</RemoteDir>
   <RemoteName>main_menu.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/menu_bg\</RemoteDir>
+  <RemoteDir>./data/menu_bg/</RemoteDir>
   <RemoteName>main_menu.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\menu_bg\main_menu_original.jpg" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\menu_bg/main_menu_original.jpg" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/menu_bg\</RemoteDir>
+  <RemoteDir>./data/menu_bg/</RemoteDir>
   <RemoteName>main_menu_original.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/menu_bg\</RemoteDir>
+  <RemoteDir>./data/menu_bg/</RemoteDir>
   <RemoteName>main_menu_original.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/menu_bg\</RemoteDir>
+  <RemoteDir>./data/menu_bg/</RemoteDir>
   <RemoteName>main_menu_original.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\sounds\all_sounds.castle-component" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\sounds/all_sounds.castle-component" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/sounds\</RemoteDir>
+  <RemoteDir>./data/sounds/</RemoteDir>
   <RemoteName>all_sounds.castle-component</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/sounds\</RemoteDir>
+  <RemoteDir>./data/sounds/</RemoteDir>
   <RemoteName>all_sounds.castle-component</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/sounds\</RemoteDir>
+  <RemoteDir>./data/sounds/</RemoteDir>
   <RemoteName>all_sounds.castle-component</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\sounds\menu_click.wav" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\sounds/menu_click.wav" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/sounds\</RemoteDir>
+  <RemoteDir>./data/sounds/</RemoteDir>
   <RemoteName>menu_click.wav</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/sounds\</RemoteDir>
+  <RemoteDir>./data/sounds/</RemoteDir>
   <RemoteName>menu_click.wav</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/sounds\</RemoteDir>
+  <RemoteDir>./data/sounds/</RemoteDir>
   <RemoteName>menu_click.wav</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\sounds\menu_current_item_changed.wav" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\sounds/menu_current_item_changed.wav" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/sounds\</RemoteDir>
+  <RemoteDir>./data/sounds/</RemoteDir>
   <RemoteName>menu_current_item_changed.wav</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/sounds\</RemoteDir>
+  <RemoteDir>./data/sounds/</RemoteDir>
   <RemoteName>menu_current_item_changed.wav</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/sounds\</RemoteDir>
+  <RemoteDir>./data/sounds/</RemoteDir>
   <RemoteName>menu_current_item_changed.wav</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\sounds\music\among_us.wav" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\sounds/music/README.txt" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/sounds\music\</RemoteDir>
-  <RemoteName>among_us.wav</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/sounds\music\</RemoteDir>
-  <RemoteName>among_us.wav</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/sounds\music\</RemoteDir>
-  <RemoteName>among_us.wav</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\sounds\music\cool_grove.wav" Configuration="Debug" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/sounds\music\</RemoteDir>
-  <RemoteName>cool_grove.wav</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/sounds\music\</RemoteDir>
-  <RemoteName>cool_grove.wav</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/sounds\music\</RemoteDir>
-  <RemoteName>cool_grove.wav</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\sounds\music\README.txt" Configuration="Debug" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/sounds\music\</RemoteDir>
+  <RemoteDir>./data/sounds/music/</RemoteDir>
   <RemoteName>README.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/sounds\music\</RemoteDir>
+  <RemoteDir>./data/sounds/music/</RemoteDir>
   <RemoteName>README.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/sounds\music\</RemoteDir>
+  <RemoteDir>./data/sounds/music/</RemoteDir>
   <RemoteName>README.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\sounds\music\shifting_sands.wav" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\sounds/music/among_us.wav" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/sounds\music\</RemoteDir>
+  <RemoteDir>./data/sounds/music/</RemoteDir>
+  <RemoteName>among_us.wav</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/sounds/music/</RemoteDir>
+  <RemoteName>among_us.wav</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/sounds/music/</RemoteDir>
+  <RemoteName>among_us.wav</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\sounds/music/cool_grove.wav" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/sounds/music/</RemoteDir>
+  <RemoteName>cool_grove.wav</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/sounds/music/</RemoteDir>
+  <RemoteName>cool_grove.wav</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/sounds/music/</RemoteDir>
+  <RemoteName>cool_grove.wav</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\sounds/music/shifting_sands.wav" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/sounds/music/</RemoteDir>
   <RemoteName>shifting_sands.wav</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/sounds\music\</RemoteDir>
+  <RemoteDir>./data/sounds/music/</RemoteDir>
   <RemoteName>shifting_sands.wav</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/sounds\music\</RemoteDir>
+  <RemoteDir>./data/sounds/music/</RemoteDir>
   <RemoteName>shifting_sands.wav</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -906,57 +906,6 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\avatar\avatar.bin" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/avatar\</RemoteDir>
-  <RemoteName>avatar.bin</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/avatar\</RemoteDir>
-  <RemoteName>avatar.bin</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/avatar\</RemoteDir>
-  <RemoteName>avatar.bin</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\avatar\avatar.castle-transform" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/avatar\</RemoteDir>
-  <RemoteName>avatar.castle-transform</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/avatar\</RemoteDir>
-  <RemoteName>avatar.castle-transform</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/avatar\</RemoteDir>
-  <RemoteName>avatar.castle-transform</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\avatar\avatar.gltf" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/avatar\</RemoteDir>
-  <RemoteName>avatar.gltf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/avatar\</RemoteDir>
-  <RemoteName>avatar.gltf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/avatar\</RemoteDir>
-  <RemoteName>avatar.gltf</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
 <DeployFile LocalName="data\CastleSettings.xml" Configuration="Release" Class="File">
  <Platform Name="Linux64">
   <RemoteDir>./data/</RemoteDir>
@@ -971,6 +920,57 @@
  <Platform Name="Win64">
   <RemoteDir>./data/</RemoteDir>
   <RemoteName>CastleSettings.xml</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\avatar/avatar.bin" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/avatar/</RemoteDir>
+  <RemoteName>avatar.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/avatar/</RemoteDir>
+  <RemoteName>avatar.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/avatar/</RemoteDir>
+  <RemoteName>avatar.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\avatar/avatar.castle-transform" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/avatar/</RemoteDir>
+  <RemoteName>avatar.castle-transform</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/avatar/</RemoteDir>
+  <RemoteName>avatar.castle-transform</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/avatar/</RemoteDir>
+  <RemoteName>avatar.castle-transform</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\avatar/avatar.gltf" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/avatar/</RemoteDir>
+  <RemoteName>avatar.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/avatar/</RemoteDir>
+  <RemoteName>avatar.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/avatar/</RemoteDir>
+  <RemoteName>avatar.gltf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
@@ -991,512 +991,512 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\images\human_beach.png" Configuration="Release" Class="File">
+<DeployFile LocalName="data\images/human_beach.png" Configuration="Release" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/images\</RemoteDir>
+  <RemoteDir>./data/images/</RemoteDir>
   <RemoteName>human_beach.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/images\</RemoteDir>
+  <RemoteDir>./data/images/</RemoteDir>
   <RemoteName>human_beach.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/images\</RemoteDir>
+  <RemoteDir>./data/images/</RemoteDir>
   <RemoteName>human_beach.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\images\human_beach_corroded.png" Configuration="Release" Class="File">
+<DeployFile LocalName="data\images/human_beach_corroded.png" Configuration="Release" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/images\</RemoteDir>
+  <RemoteDir>./data/images/</RemoteDir>
   <RemoteName>human_beach_corroded.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/images\</RemoteDir>
+  <RemoteDir>./data/images/</RemoteDir>
   <RemoteName>human_beach_corroded.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/images\</RemoteDir>
+  <RemoteDir>./data/images/</RemoteDir>
   <RemoteName>human_beach_corroded.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\images\human_beach_original.jpg" Configuration="Release" Class="File">
+<DeployFile LocalName="data\images/human_beach_original.jpg" Configuration="Release" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/images\</RemoteDir>
+  <RemoteDir>./data/images/</RemoteDir>
   <RemoteName>human_beach_original.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/images\</RemoteDir>
+  <RemoteDir>./data/images/</RemoteDir>
   <RemoteName>human_beach_original.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/images\</RemoteDir>
+  <RemoteDir>./data/images/</RemoteDir>
   <RemoteName>human_beach_original.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\images\morning_buildings.png" Configuration="Release" Class="File">
+<DeployFile LocalName="data\images/morning_buildings.png" Configuration="Release" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/images\</RemoteDir>
+  <RemoteDir>./data/images/</RemoteDir>
   <RemoteName>morning_buildings.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/images\</RemoteDir>
+  <RemoteDir>./data/images/</RemoteDir>
   <RemoteName>morning_buildings.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/images\</RemoteDir>
+  <RemoteDir>./data/images/</RemoteDir>
   <RemoteName>morning_buildings.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\images\morning_buildings_corroded.png" Configuration="Release" Class="File">
+<DeployFile LocalName="data\images/morning_buildings_corroded.png" Configuration="Release" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/images\</RemoteDir>
+  <RemoteDir>./data/images/</RemoteDir>
   <RemoteName>morning_buildings_corroded.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/images\</RemoteDir>
+  <RemoteDir>./data/images/</RemoteDir>
   <RemoteName>morning_buildings_corroded.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/images\</RemoteDir>
+  <RemoteDir>./data/images/</RemoteDir>
   <RemoteName>morning_buildings_corroded.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\images\morning_buildings_original.jpg" Configuration="Release" Class="File">
+<DeployFile LocalName="data\images/morning_buildings_original.jpg" Configuration="Release" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/images\</RemoteDir>
+  <RemoteDir>./data/images/</RemoteDir>
   <RemoteName>morning_buildings_original.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/images\</RemoteDir>
+  <RemoteDir>./data/images/</RemoteDir>
   <RemoteName>morning_buildings_original.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/images\</RemoteDir>
+  <RemoteDir>./data/images/</RemoteDir>
   <RemoteName>morning_buildings_original.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\images\train_crash.png" Configuration="Release" Class="File">
+<DeployFile LocalName="data\images/train_crash.png" Configuration="Release" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/images\</RemoteDir>
+  <RemoteDir>./data/images/</RemoteDir>
   <RemoteName>train_crash.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/images\</RemoteDir>
+  <RemoteDir>./data/images/</RemoteDir>
   <RemoteName>train_crash.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/images\</RemoteDir>
+  <RemoteDir>./data/images/</RemoteDir>
   <RemoteName>train_crash.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\images\train_crash_corroded.png" Configuration="Release" Class="File">
+<DeployFile LocalName="data\images/train_crash_corroded.png" Configuration="Release" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/images\</RemoteDir>
+  <RemoteDir>./data/images/</RemoteDir>
   <RemoteName>train_crash_corroded.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/images\</RemoteDir>
+  <RemoteDir>./data/images/</RemoteDir>
   <RemoteName>train_crash_corroded.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/images\</RemoteDir>
+  <RemoteDir>./data/images/</RemoteDir>
   <RemoteName>train_crash_corroded.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\images\train_crash_original.jpg" Configuration="Release" Class="File">
+<DeployFile LocalName="data\images/train_crash_original.jpg" Configuration="Release" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/images\</RemoteDir>
+  <RemoteDir>./data/images/</RemoteDir>
   <RemoteName>train_crash_original.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/images\</RemoteDir>
+  <RemoteDir>./data/images/</RemoteDir>
   <RemoteName>train_crash_original.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/images\</RemoteDir>
+  <RemoteDir>./data/images/</RemoteDir>
   <RemoteName>train_crash_original.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\images\water_ducks_original.jpg" Configuration="Release" Class="File">
+<DeployFile LocalName="data\images/water_ducks_original.jpg" Configuration="Release" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/images\</RemoteDir>
+  <RemoteDir>./data/images/</RemoteDir>
   <RemoteName>water_ducks_original.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/images\</RemoteDir>
+  <RemoteDir>./data/images/</RemoteDir>
   <RemoteName>water_ducks_original.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/images\</RemoteDir>
+  <RemoteDir>./data/images/</RemoteDir>
   <RemoteName>water_ducks_original.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\images\wild_road.png" Configuration="Release" Class="File">
+<DeployFile LocalName="data\images/wild_road.png" Configuration="Release" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/images\</RemoteDir>
+  <RemoteDir>./data/images/</RemoteDir>
   <RemoteName>wild_road.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/images\</RemoteDir>
+  <RemoteDir>./data/images/</RemoteDir>
   <RemoteName>wild_road.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/images\</RemoteDir>
+  <RemoteDir>./data/images/</RemoteDir>
   <RemoteName>wild_road.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\images\wild_road_corroded.png" Configuration="Release" Class="File">
+<DeployFile LocalName="data\images/wild_road_corroded.png" Configuration="Release" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/images\</RemoteDir>
+  <RemoteDir>./data/images/</RemoteDir>
   <RemoteName>wild_road_corroded.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/images\</RemoteDir>
+  <RemoteDir>./data/images/</RemoteDir>
   <RemoteName>wild_road_corroded.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/images\</RemoteDir>
+  <RemoteDir>./data/images/</RemoteDir>
   <RemoteName>wild_road_corroded.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\images\wild_road_original.jpg" Configuration="Release" Class="File">
+<DeployFile LocalName="data\images/wild_road_original.jpg" Configuration="Release" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/images\</RemoteDir>
+  <RemoteDir>./data/images/</RemoteDir>
   <RemoteName>wild_road_original.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/images\</RemoteDir>
+  <RemoteDir>./data/images/</RemoteDir>
   <RemoteName>wild_road_original.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/images\</RemoteDir>
+  <RemoteDir>./data/images/</RemoteDir>
   <RemoteName>wild_road_original.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\locations\home\forest.jpg" Configuration="Release" Class="File">
+<DeployFile LocalName="data\locations/home/forest.jpg" Configuration="Release" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/locations\home\</RemoteDir>
+  <RemoteDir>./data/locations/home/</RemoteDir>
   <RemoteName>forest.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/locations\home\</RemoteDir>
+  <RemoteDir>./data/locations/home/</RemoteDir>
   <RemoteName>forest.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/locations\home\</RemoteDir>
+  <RemoteDir>./data/locations/home/</RemoteDir>
   <RemoteName>forest.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\locations\home\lemog_002bois.jpg" Configuration="Release" Class="File">
+<DeployFile LocalName="data\locations/home/lemog_002bois.jpg" Configuration="Release" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/locations\home\</RemoteDir>
+  <RemoteDir>./data/locations/home/</RemoteDir>
   <RemoteName>lemog_002bois.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/locations\home\</RemoteDir>
+  <RemoteDir>./data/locations/home/</RemoteDir>
   <RemoteName>lemog_002bois.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/locations\home\</RemoteDir>
+  <RemoteDir>./data/locations/home/</RemoteDir>
   <RemoteName>lemog_002bois.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\locations\home\lemog_009bois.jpg" Configuration="Release" Class="File">
+<DeployFile LocalName="data\locations/home/lemog_009bois.jpg" Configuration="Release" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/locations\home\</RemoteDir>
+  <RemoteDir>./data/locations/home/</RemoteDir>
   <RemoteName>lemog_009bois.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/locations\home\</RemoteDir>
+  <RemoteDir>./data/locations/home/</RemoteDir>
   <RemoteName>lemog_009bois.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/locations\home\</RemoteDir>
+  <RemoteDir>./data/locations/home/</RemoteDir>
   <RemoteName>lemog_009bois.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\locations\home\lemog_011bois.jpg" Configuration="Release" Class="File">
+<DeployFile LocalName="data\locations/home/lemog_011bois.jpg" Configuration="Release" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/locations\home\</RemoteDir>
+  <RemoteDir>./data/locations/home/</RemoteDir>
   <RemoteName>lemog_011bois.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/locations\home\</RemoteDir>
+  <RemoteDir>./data/locations/home/</RemoteDir>
   <RemoteName>lemog_011bois.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/locations\home\</RemoteDir>
+  <RemoteDir>./data/locations/home/</RemoteDir>
   <RemoteName>lemog_011bois.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\locations\home\lemog_071bois.jpg" Configuration="Release" Class="File">
+<DeployFile LocalName="data\locations/home/lemog_071bois.jpg" Configuration="Release" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/locations\home\</RemoteDir>
+  <RemoteDir>./data/locations/home/</RemoteDir>
   <RemoteName>lemog_071bois.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/locations\home\</RemoteDir>
+  <RemoteDir>./data/locations/home/</RemoteDir>
   <RemoteName>lemog_071bois.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/locations\home\</RemoteDir>
+  <RemoteDir>./data/locations/home/</RemoteDir>
   <RemoteName>lemog_071bois.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\locations\home\renders\render.png" Configuration="Release" Class="File">
+<DeployFile LocalName="data\locations/home/renders/render.png" Configuration="Release" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/locations\home\renders\</RemoteDir>
+  <RemoteDir>./data/locations/home/renders/</RemoteDir>
   <RemoteName>render.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/locations\home\renders\</RemoteDir>
+  <RemoteDir>./data/locations/home/renders/</RemoteDir>
   <RemoteName>render.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/locations\home\renders\</RemoteDir>
+  <RemoteDir>./data/locations/home/renders/</RemoteDir>
   <RemoteName>render.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\locations\home\renders\render_shadowed.png" Configuration="Release" Class="File">
+<DeployFile LocalName="data\locations/home/renders/render_shadowed.png" Configuration="Release" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/locations\home\renders\</RemoteDir>
+  <RemoteDir>./data/locations/home/renders/</RemoteDir>
   <RemoteName>render_shadowed.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/locations\home\renders\</RemoteDir>
+  <RemoteDir>./data/locations/home/renders/</RemoteDir>
   <RemoteName>render_shadowed.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/locations\home\renders\</RemoteDir>
+  <RemoteDir>./data/locations/home/renders/</RemoteDir>
   <RemoteName>render_shadowed.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\locations\home\scene.glb" Configuration="Release" Class="File">
+<DeployFile LocalName="data\locations/home/scene.glb" Configuration="Release" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/locations\home\</RemoteDir>
+  <RemoteDir>./data/locations/home/</RemoteDir>
   <RemoteName>scene.glb</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/locations\home\</RemoteDir>
+  <RemoteDir>./data/locations/home/</RemoteDir>
   <RemoteName>scene.glb</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/locations\home\</RemoteDir>
+  <RemoteDir>./data/locations/home/</RemoteDir>
   <RemoteName>scene.glb</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\menu_bg\main_menu.png" Configuration="Release" Class="File">
+<DeployFile LocalName="data\menu_bg/main_menu.png" Configuration="Release" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/menu_bg\</RemoteDir>
+  <RemoteDir>./data/menu_bg/</RemoteDir>
   <RemoteName>main_menu.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/menu_bg\</RemoteDir>
+  <RemoteDir>./data/menu_bg/</RemoteDir>
   <RemoteName>main_menu.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/menu_bg\</RemoteDir>
+  <RemoteDir>./data/menu_bg/</RemoteDir>
   <RemoteName>main_menu.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\menu_bg\main_menu_original.jpg" Configuration="Release" Class="File">
+<DeployFile LocalName="data\menu_bg/main_menu_original.jpg" Configuration="Release" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/menu_bg\</RemoteDir>
+  <RemoteDir>./data/menu_bg/</RemoteDir>
   <RemoteName>main_menu_original.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/menu_bg\</RemoteDir>
+  <RemoteDir>./data/menu_bg/</RemoteDir>
   <RemoteName>main_menu_original.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/menu_bg\</RemoteDir>
+  <RemoteDir>./data/menu_bg/</RemoteDir>
   <RemoteName>main_menu_original.jpg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\sounds\all_sounds.castle-component" Configuration="Release" Class="File">
+<DeployFile LocalName="data\sounds/all_sounds.castle-component" Configuration="Release" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/sounds\</RemoteDir>
+  <RemoteDir>./data/sounds/</RemoteDir>
   <RemoteName>all_sounds.castle-component</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/sounds\</RemoteDir>
+  <RemoteDir>./data/sounds/</RemoteDir>
   <RemoteName>all_sounds.castle-component</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/sounds\</RemoteDir>
+  <RemoteDir>./data/sounds/</RemoteDir>
   <RemoteName>all_sounds.castle-component</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\sounds\menu_click.wav" Configuration="Release" Class="File">
+<DeployFile LocalName="data\sounds/menu_click.wav" Configuration="Release" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/sounds\</RemoteDir>
+  <RemoteDir>./data/sounds/</RemoteDir>
   <RemoteName>menu_click.wav</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/sounds\</RemoteDir>
+  <RemoteDir>./data/sounds/</RemoteDir>
   <RemoteName>menu_click.wav</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/sounds\</RemoteDir>
+  <RemoteDir>./data/sounds/</RemoteDir>
   <RemoteName>menu_click.wav</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\sounds\menu_current_item_changed.wav" Configuration="Release" Class="File">
+<DeployFile LocalName="data\sounds/menu_current_item_changed.wav" Configuration="Release" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/sounds\</RemoteDir>
+  <RemoteDir>./data/sounds/</RemoteDir>
   <RemoteName>menu_current_item_changed.wav</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/sounds\</RemoteDir>
+  <RemoteDir>./data/sounds/</RemoteDir>
   <RemoteName>menu_current_item_changed.wav</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/sounds\</RemoteDir>
+  <RemoteDir>./data/sounds/</RemoteDir>
   <RemoteName>menu_current_item_changed.wav</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\sounds\music\among_us.wav" Configuration="Release" Class="File">
+<DeployFile LocalName="data\sounds/music/README.txt" Configuration="Release" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/sounds\music\</RemoteDir>
-  <RemoteName>among_us.wav</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/sounds\music\</RemoteDir>
-  <RemoteName>among_us.wav</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/sounds\music\</RemoteDir>
-  <RemoteName>among_us.wav</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\sounds\music\cool_grove.wav" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/sounds\music\</RemoteDir>
-  <RemoteName>cool_grove.wav</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/sounds\music\</RemoteDir>
-  <RemoteName>cool_grove.wav</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/sounds\music\</RemoteDir>
-  <RemoteName>cool_grove.wav</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\sounds\music\README.txt" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/sounds\music\</RemoteDir>
+  <RemoteDir>./data/sounds/music/</RemoteDir>
   <RemoteName>README.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/sounds\music\</RemoteDir>
+  <RemoteDir>./data/sounds/music/</RemoteDir>
   <RemoteName>README.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/sounds\music\</RemoteDir>
+  <RemoteDir>./data/sounds/music/</RemoteDir>
   <RemoteName>README.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\sounds\music\shifting_sands.wav" Configuration="Release" Class="File">
+<DeployFile LocalName="data\sounds/music/among_us.wav" Configuration="Release" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/sounds\music\</RemoteDir>
+  <RemoteDir>./data/sounds/music/</RemoteDir>
+  <RemoteName>among_us.wav</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/sounds/music/</RemoteDir>
+  <RemoteName>among_us.wav</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/sounds/music/</RemoteDir>
+  <RemoteName>among_us.wav</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\sounds/music/cool_grove.wav" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/sounds/music/</RemoteDir>
+  <RemoteName>cool_grove.wav</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/sounds/music/</RemoteDir>
+  <RemoteName>cool_grove.wav</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/sounds/music/</RemoteDir>
+  <RemoteName>cool_grove.wav</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\sounds/music/shifting_sands.wav" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/sounds/music/</RemoteDir>
   <RemoteName>shifting_sands.wav</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/sounds\music\</RemoteDir>
+  <RemoteDir>./data/sounds/music/</RemoteDir>
   <RemoteName>shifting_sands.wav</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/sounds\music\</RemoteDir>
+  <RemoteDir>./data/sounds/music/</RemoteDir>
   <RemoteName>shifting_sands.wav</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
