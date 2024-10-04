@@ -391,7 +391,8 @@ clean: cleanexamples
 					-iname '*.identcache' -or \
 					-iname '*.rsm' -or \
 					-iname '*.log' -or \
-					-iname libsteam_api.so \
+					-iname libsteam_api.so -or \
+					-iname libsteam_api.dylib \
 				')' \
 	     -print \
 	     | xargs rm -f

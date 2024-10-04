@@ -39,6 +39,7 @@ backup
 *.exe
 *.dll
 libsteam_api.so
+libsteam_api.dylib
 *.pro.user
 .DS_Store
 xcuserdata
