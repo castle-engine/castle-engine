@@ -269,7 +269,7 @@ begin
       It seems that for everything, so just do it always. }
     {$ifdef DARWIN}
     if (Handle = InvalidDynLibHandle) and (BundlePath <> '') then
-      Handle := LoadLibrary(PChar(BundlePath + 'Contents/MacOS/' + AName), false);
+      Handle := LoadLibrary(PChar(BundlePath + 'Contents/MacOS/' + AName));
     {$endif}
   end;
 
