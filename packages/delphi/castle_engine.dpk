@@ -325,7 +325,9 @@ contains
   castleinternalurlutils in '..\..\src\files\castleinternalurlutils.pas',
   castleinternaltools in '..\..\src\files\castleinternaltools.pas',
   castletransformmanipulate in '..\..\src\scene\castletransformmanipulate.pas',
-  castleinternaltransformdata in '..\..\src\scene\castleinternaltransformdata.pas';
+  castleinternaltransformdata in '..\..\src\scene\castleinternaltransformdata.pas',
+  castleinternalsteamapi in '..\..\src\services\steam\castleinternalsteamapi.pas',
+  castlesteam in '..\..\src\services\steam\castlesteam.pas';
 
 end.
 

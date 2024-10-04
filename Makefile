@@ -364,32 +364,36 @@ cleanexamples:
 .PHONY: clean
 
 clean: cleanexamples
-	"$(FIND)" . -type f '(' -iname '*.ow'  -or \
-	                   -iname '*.ppw' -or \
-			   -iname '*.aw' -or \
-	                   -iname '*.o'   -or \
-			   -iname '*.or'  -or \
-			   -iname '*.ppu' -or \
-			   '(' -iname '*.a' -and -not -iwholename '*/vampyre_imaginglib/*' ')' -or \
-			   '(' -iname '*.res' -and \
-			       -not -iwholename '*/vampyre_imaginglib/*' -and \
-			       -not -iwholename '*/mbColorLib/*' -and \
-			       -not -iwholename '*/examples/delphi/*' ')' \
-			       -or \
-			   -iname '*.rsj' -or \
-			   -iname '*.compiled' -or \
-			   -iname '*.lps' -or \
-			   -iname '*.libimp*.a' -or \
-			   -iname '*.apk' -or \
-			   -iname '*.aab' -or \
-			   -iname '*.dbg' -or \
-	                   -iname '*.dcu' -or \
-			   -iname '*.dpu' -or \
-			   -iname '*.bpi' -or \
-			   -iname '*.dproj.local' -or \
-			   -iname '*.identcache' -or \
-			   -iname '*.rsm' -or \
-	                   -iname '*.log' ')' \
+	"$(FIND)" . -type f '(' \
+					-iname '*.ow'  -or \
+					-iname '*.ppw' -or \
+					-iname '*.aw' -or \
+					-iname '*.o'   -or \
+					-iname '*.or'  -or \
+					-iname '*.ppu' -or \
+					'(' -iname '*.a' -and -not -iwholename '*/vampyre_imaginglib/*' ')' -or \
+					'(' -iname '*.res' -and \
+						-not -iwholename '*/vampyre_imaginglib/*' -and \
+						-not -iwholename '*/mbColorLib/*' -and \
+						-not -iwholename '*/examples/delphi/*' ')' \
+					-or \
+					-iname '*.rsj' -or \
+					-iname '*.compiled' -or \
+					-iname '*.lps' -or \
+					-iname '*.libimp*.a' -or \
+					-iname '*.apk' -or \
+					-iname '*.aab' -or \
+					-iname '*.dbg' -or \
+					-iname '*.dcu' -or \
+					-iname '*.dpu' -or \
+					-iname '*.bpi' -or \
+					-iname '*.dproj.local' -or \
+					-iname '*.identcache' -or \
+					-iname '*.rsm' -or \
+					-iname '*.log' -or \
+					-iname libsteam_api.so -or \
+					-iname libsteam_api.dylib \
+				')' \
 	     -print \
 	     | xargs rm -f
 # Note: *.app directory is a macOS bundle,
