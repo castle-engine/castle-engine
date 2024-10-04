@@ -1,5 +1,5 @@
 {
-  Copyright 2022-2022 Michalis Kamburelis.
+  Copyright 2022-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -49,7 +49,7 @@ procedure ZipMacAppBundle(const Project: TCastleProject; const BundleParenPath, 
 implementation
 
 uses {$ifdef UNIX} BaseUnix, {$endif} SysUtils,
-  CastleFilesUtils, CastleLog, CastleImages,
+  CastleFilesUtils, CastleLog, CastleImages, CastleFindFiles,
   ToolArchitectures, ToolCommonUtils, ToolUtils, ToolEmbeddedImages;
 
 procedure SaveResized(const Image: TCastleImage; const Size: Integer; const OutputFileName: string);
@@ -135,6 +135,30 @@ procedure CreateMacAppBundle(const Project: TCastleProject; const BundleParenPat
       CheckCopyFile(Src, Dst);
   end;
 
+  { Copy or symlink additional file, given as filename:
+    - relative to project path (for source)
+    - relative to bundle exe dir (for destination).
+    Make a Writeln about it (always, because this is a bit non-standard thing
+    we do, better tell user about it).
+
+    TODO: It would be better to control it by some parameter in manifest, like:
+
+      <macos_bundle_exe>
+        <include file="libsteam_api.dylib" />
+        <include file="steam_appid.txt" />
+      </macos_bundle_exe>
+
+    and allow each package (like CGE Steam integration) to specify it. }
+  procedure CopyOrSymlinkFileAlongsideExe(const RelativeName, OutputBundleExePath: String);
+  begin
+    Writeln(Format('Copying (or symlinking) additional file (alongside exe) into the bundle: %s', [
+      RelativeName
+    ]));
+    CopyOrSymlinkFile(
+      Project.Path + RelativeName,
+      OutputBundleExePath + RelativeName);
+  end;
+
   procedure CopyOrSymlinkData(const Dst: String);
   begin
     if SymlinkToFiles then
@@ -146,6 +170,8 @@ procedure CreateMacAppBundle(const Project: TCastleProject; const BundleParenPat
 var
   OutputBundlePath, OutputBundleExePath, OutputBundleResourcesPath, IconIcns, IconPng: String;
   LoadedIcon: TCastleImage;
+  DynLibs: TFileInfoList;
+  DynLibInfo: TFileInfo;
 begin
   { create clean OutputBundlePath }
   OutputBundlePath := InclPathDelim(BundleParenPath) + Project.Caption + '.app' + PathDelim;
@@ -170,6 +196,20 @@ begin
   ExeInBundle := OutputBundleExePath + Project.ExecutableName;
   CopyOrSymlinkFile(Project.Path + Project.ExecutableName, ExeInBundle);
   DoMakeExecutable(ExeInBundle);
+
+  { Copy or symlink dynamic libraries into the bundle.
+    This cooperates with our code in CastleDynLibs to find the dynamic libraries. }
+  DynLibs := FindFilesList(Project.Path, 'lib*.dylib', false, []);
+  try
+    for DynLibInfo in DynLibs do
+      CopyOrSymlinkFileAlongsideExe(DynLibInfo.Name, OutputBundleExePath);
+  finally FreeAndNil(DynLibs) end;
+
+  { Necessary to test applications with Steam integration on macOS.
+    TODO: This should not be hardcoded in the build tool, we need a way to
+    specify this in the project file. }
+  if FileExists(Project.Path + 'steam_appid.txt') then
+    CopyOrSymlinkFileAlongsideExe('steam_appid.txt', OutputBundleExePath);
 
   IconIcns := Project.Icons.FindExtension(['.icns']);
   if IconIcns <> '' then
