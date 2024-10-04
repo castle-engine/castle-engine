@@ -4,6 +4,8 @@ Test Steam integration with [Castle Game Engine](https://castle-engine.io/). Thi
 
 Follow the documentation about [Steam and Castle Game Engine](https://castle-engine.io/steam) to set up the Steam dynamic library for this project. If you don't do this, then the integration will do nothing -- the game will still run, but without the Steam dynamic library present we cannot "talk" with Steam.
 
+![Screenshot](screenshot.png)
+
 ## Building
 
 Compile by:
