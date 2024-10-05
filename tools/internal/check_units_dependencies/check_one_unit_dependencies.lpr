@@ -88,7 +88,7 @@ var
   end;
 
 const
-  AllowedExceptions: array [0..9] of String = (
+  AllowedExceptions: array [0..10] of String = (
     // Because TCurve.GeometryNode uses X3D nodes. Possible to overcome (just move it somewhere else) but weird (it is natural to have this in TCurve).
     'Category castlescript uses scene. Unit ./castlescript/castlecurves.pas uses X3DNodes',
 
@@ -109,7 +109,10 @@ const
     'Category ui uses transform. Unit ./ui/castleinternalinspector.pas uses CastleCameras',
     'Category ui uses scene. Unit ./ui/castleinternalinspector.pas uses CastleScene',
     'Category ui uses transform. Unit ./ui/castleinternalinspector.pas uses CastleTransform',
-    'Category ui uses scene. Unit ./ui/castleinternalinspector.pas uses CastleViewport'
+    'Category ui uses scene. Unit ./ui/castleinternalinspector.pas uses CastleViewport',
+
+    // CastleDynLibs neeeds CastleFilesUtils.BundlePath
+    'Category base uses files. Unit ./base/castledynlib.pas uses CastleFilesUtils'
   );
 
 var
