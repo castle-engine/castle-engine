@@ -91,14 +91,13 @@ type
   PSteamBool = ^TSteamBool;
 
 const
-  { Note for now we are forced to use "version-specific" calls to Steam API
-    There are version-free calls in Steam API headers, however, those just crash
-    (TODO: reason unknown).
-    Therefore for now we use a specific version of Steamworks: 1.57 }
-  // TODO: can we clean this up?
-  STEAMCLIENT_INTERFACE_VERSION = 'SteamClient020'; // in isteamclient.h, I don't know how to pull it from there
-  STEAMUSER_INTERFACE_VERSION = 'SteamUser023'; // in isteamuser.h
-  STEAMUSERSTATS_INTERFACE_VERSION = 'STEAMUSERSTATS_INTERFACE_VERSION012'; // isteamuserstats.h
+  { Versions of Steam API interfaces.
+    Correspond to Steamworks 1.57 version. }
+  STEAMCLIENT_INTERFACE_VERSION = 'SteamClient020'; //< isteamclient.h
+  STEAMUSER_INTERFACE_VERSION = 'SteamUser023'; //< isteamuser.h
+  STEAMUSERSTATS_INTERFACE_VERSION = 'STEAMUSERSTATS_INTERFACE_VERSION012'; //< isteamuserstats.h
+  VersionSteamUtils = '010'; //< matches STEAMUTILS_INTERFACE_VERSION *and* accessor in steam_api_flat.h
+  VersionSteamApps = '008'; //< matches STEAMAPPS_INTERFACE_VERSION *and* accessor in steam_api_flat.h
 
 type
   SteamAPIWarningMessageHook = procedure (nSeverity: Integer; pchDebugText: PAnsiChar); Cdecl;
@@ -247,9 +246,9 @@ var
 
   // ISteamUtils
   // A versioned accessor is exported by the library
-  //SteamAPI_SteamUtils_v010: function (): ISteamUtils; CDecl;
+  //SteamAPI_SteamUtils_v<VersionSteamUtils>: function (): ISteamUtils; CDecl;
   // Unversioned accessor to get the current version.
-  // In Pascal translation, this is just an alias to 'SteamAPI_SteamUtils_v010'.
+  // In Pascal translation, this is just an alias to 'SteamAPI_SteamUtils_v' + VersionSteamUtils.
   SteamAPI_SteamUtils: function (): ISteamUtils; CDecl;
   // returns the 2 digit ISO 3166-1-alpha-2 format country code this client
   // is running in (as looked up via an IP-to-location database) e.g "US" or "UK".
@@ -264,9 +263,9 @@ var
 
   // ISteamApps
   // A versioned accessor is exported by the library
-  //SteamAPI_SteamApps_v008: function (): ISteamApps; CDecl;
+  //SteamAPI_SteamApps_v<VersionSteamApps>: function (): ISteamApps; CDecl;
   // Unversioned accessor to get the current version.
-  // In Pascal translation, this is just an alias to 'SteamAPI_SteamApps_v008'.
+  // In Pascal translation, this is just an alias to 'SteamAPI_SteamApps_v' + VersionSteamApps.
   SteamAPI_SteamApps: function (): ISteamApps; CDecl;
   // return the buildid of this app, may change at any time based on backend updates to the game
   SteamAPI_ISteamApps_GetAppBuildId: function (Self: ISteamApps): CInt; CDecl;
@@ -378,13 +377,13 @@ begin
     Pointer({$ifndef FPC}@{$endif} SteamAPI_ISteamUserStats_IndicateAchievementProgress) := SteamLibrary.Symbol('SteamAPI_ISteamUserStats_IndicateAchievementProgress');
     Pointer({$ifndef FPC}@{$endif} SteamAPI_ISteamUserStats_StoreStats) := SteamLibrary.Symbol('SteamAPI_ISteamUserStats_StoreStats');
     // alias to versioned entry point
-    Pointer({$ifndef FPC}@{$endif} SteamAPI_SteamUtils) := SteamLibrary.Symbol('SteamAPI_SteamUtils_v010');
+    Pointer({$ifndef FPC}@{$endif} SteamAPI_SteamUtils) := SteamLibrary.Symbol('SteamAPI_SteamUtils_v' + VersionSteamUtils);
     Pointer({$ifndef FPC}@{$endif} SteamAPI_ISteamUtils_GetIPCountry) := SteamLibrary.Symbol('SteamAPI_ISteamUtils_GetIPCountry');
     Pointer({$ifndef FPC}@{$endif} SteamAPI_ISteamUtils_IsOverlayEnabled) := SteamLibrary.Symbol('SteamAPI_ISteamUtils_IsOverlayEnabled');
     Pointer({$ifndef FPC}@{$endif} SteamAPI_ISteamUtils_IsSteamRunningInVR) := SteamLibrary.Symbol('SteamAPI_ISteamUtils_IsSteamRunningInVR');
     Pointer({$ifndef FPC}@{$endif} SteamAPI_ISteamUtils_IsSteamRunningOnSteamDeck) := SteamLibrary.Symbol('SteamAPI_ISteamUtils_IsSteamRunningOnSteamDeck');
     // alias to versioned entry point
-    Pointer({$ifndef FPC}@{$endif} SteamAPI_SteamApps) := SteamLibrary.Symbol('SteamAPI_SteamApps_v008');
+    Pointer({$ifndef FPC}@{$endif} SteamAPI_SteamApps) := SteamLibrary.Symbol('SteamAPI_SteamApps_v' + VersionSteamApps);
     Pointer({$ifndef FPC}@{$endif} SteamAPI_ISteamApps_GetAppBuildId) := SteamLibrary.Symbol('SteamAPI_ISteamApps_GetAppBuildId');
     Pointer({$ifndef FPC}@{$endif} SteamAPI_ISteamApps_BIsDlcInstalled) := SteamLibrary.Symbol('SteamAPI_ISteamApps_BIsDlcInstalled');
     Pointer({$ifndef FPC}@{$endif} SteamAPI_ISteamApps_GetCurrentGameLanguage) := SteamLibrary.Symbol('SteamAPI_ISteamApps_GetCurrentGameLanguage');
