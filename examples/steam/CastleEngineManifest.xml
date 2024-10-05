@@ -16,13 +16,19 @@ See https://castle-engine.io/project_manifest for documentation of this file.
       <path value="code/" />
     </search_paths>
   </compiler_options>
+
+  <!-- See https://castle-engine.io/steam -->
   <package>
     <!-- For 64-bit Windows -->
     <include path="steam_api64.dll" />
+
     <!-- For Linux -->
     <include path="run.sh" />
     <include path="libsteam_api.so" />
-    <!-- For macOS -->
-    <include path="libsteam_api.dylib" />
+
+    <!-- For macOS: nothing is necessary for now.
+      We pack lib*.dylib (and steam_appid.txt for testing)
+      into bundle alongside exe automatically. -->
+    <!-- include path="libsteam_api.dylib" /-->
   </package>
 </project>
