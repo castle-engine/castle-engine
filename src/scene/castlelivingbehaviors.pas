@@ -13,11 +13,10 @@
   ----------------------------------------------------------------------------
 }
 
-{ Standard behaviors (TCastleBehavior descendants).
-  These express simple mechanics, like
-  playing sound (@link(TCastleSoundSource)), billboard (@link(TCastleBillboard)),
-  sticking to the surface (@link(TCastleStickToSurface)). }
-unit CastleBehaviors;
+{ Behaviors for living things that have life, can be alive or dead,
+  can fight / cooperate with each other: good for players, NPCs, creatures,
+  bots. }
+unit CastleLivingBehaviors;
 
 {$I castleconf.inc}
 
@@ -28,24 +27,21 @@ uses Classes, Generics.Collections,
   CastleSoundEngine;
 
 {$define read_interface}
-{$I castlebehaviors_soundsource.inc}
-{$I castlebehaviors_billboard.inc}
-{$I castlebehaviors_sticktosurface.inc}
+{$I castlelivingbehaviors_living.inc}
+{$I castlelivingbehaviors_moveattack.inc}
 {$undef read_interface}
 
 implementation
 
 uses SysUtils, Math,
   CastleUtils, CastleLog, CastleBoxes, CastleComponentSerialize,
-  CastleCameras;
+  CastleCameras, CastleScene;
 
 {$define read_implementation}
-{$I castlebehaviors_soundsource.inc}
-{$I castlebehaviors_billboard.inc}
-{$I castlebehaviors_sticktosurface.inc}
+{$I castlelivingbehaviors_living.inc}
+{$I castlelivingbehaviors_moveattack.inc}
 
 initialization
-  RegisterSerializableComponent(TCastleSoundSource, 'Sound Source');
-  RegisterSerializableComponent(TCastleBillboard, 'Billboard');
-  RegisterSerializableComponent(TCastleStickToSurface, 'Stick To Surface');
+  RegisterSerializableComponent(TCastleLiving, 'Living');
+  RegisterSerializableComponent(TCastleMoveAttack, 'Move Attack');
 end.

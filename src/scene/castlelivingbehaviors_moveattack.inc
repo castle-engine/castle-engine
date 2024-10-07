@@ -1,4 +1,4 @@
-{%MainUnit castlebehaviors.pas}
+{%MainUnit castlelivingbehaviors.pas}
 {
   Copyright 2006-2024 Michalis Kamburelis.
 
@@ -29,9 +29,9 @@ type
       @item(TCastleSoundSource (to play spatial sounds;
         this creature is silent otherwise),)
 
-      @item(TCastleAliveBehavior (to account for the fact that current creature
+      @item(TCastleLiving (to account for the fact that current creature
         may be dead, or badly wounded;
-        if the TCastleAliveBehavior is not present,
+        if the TCastleLiving is not present,
         this creature is assumed indestructible.))
     ) }
   TCastleMoveAttack = class(TCastleBehavior)
@@ -82,7 +82,7 @@ type
     LastSensedEnemy: TVector3;
     LastSensedEnemySector: TSector;
 
-    FEnemy: TCastleAliveBehavior;
+    FEnemy: TCastleLiving;
     FEnemyObserver: TFreeNotificationObserver;
     FSoundAttackHit: TCastleSound;
     FSoundAttackStart: TCastleSound;
@@ -95,7 +95,7 @@ type
     FAnimationHurt: String;
 
     property StateChangeTime: TFloatTime read FStateChangeTime;
-    procedure SetEnemy(const Value: TCastleAliveBehavior);
+    procedure SetEnemy(const Value: TCastleLiving);
     procedure EnemyFreeNotification(const Sender: TFreeNotificationObserver);
     procedure PlaySound(const ASound: TCastleSound; const SoundHeight: Single);
     procedure SetSoundAttackHit(const Value: TCastleSound);
@@ -109,15 +109,15 @@ type
     function AnimationDieBackStored: Boolean;
     function AnimationHurtStored: Boolean;
     function AnimationDuration(const Animation: String): TFloatTime;
-    { Associated TCastleAliveBehavior on the same transform.
+    { Associated TCastleLiving on the same transform.
 
-      Note that we don't automatically create TCastleAliveBehavior,
+      Note that we don't automatically create TCastleLiving,
       this would make it complicated when something adds another
-      instance of TCastleAliveBehavior -- adding it before or after
+      instance of TCastleLiving -- adding it before or after
       adding TCastleMoveAttack would have different effect.
-      It's better to just code everything to account for Alive = @nil
+      It's better to just code everything to account for Living = @nil
       case (which means "indestructible"). }
-    function Alive: TCastleAliveBehavior;
+    function Living: TCastleLiving;
     { Sector of any TCastleTransform. }
     function Sector(const OtherTransform: TCastleTransform): TSector; overload;
     { Sector of parent TCastleTransform. }
@@ -175,7 +175,7 @@ type
   published
     { Enemy that is being chased and attacked by this creature.
       May be @nil, which means that the creature is not chasing anybody. }
-    property Enemy: TCastleAliveBehavior read FEnemy write SetEnemy;
+    property Enemy: TCastleLiving read FEnemy write SetEnemy;
 
     { Sound played when short-range attack hits. }
     property SoundAttackHit: TCastleSound read FSoundAttackHit write SetSoundAttackHit;
@@ -256,7 +256,7 @@ begin
   Enemy := nil;
 end;
 
-procedure TCastleMoveAttack.SetEnemy(const Value: TCastleAliveBehavior);
+procedure TCastleMoveAttack.SetEnemy(const Value: TCastleLiving);
 begin
   if FEnemy <> Value then
   begin
@@ -291,7 +291,7 @@ begin
   if not (Parent is TCastleScene) then
     raise Exception.CreateFmt('%s can only be attached to a TCastleScene', [ClassName]);
 
-  if (Alive = nil) or (Alive.MaxLife > 0) then
+  if (Living = nil) or (Living.MaxLife > 0) then
   begin
     FState := stateIdle;
     FStateChangeTime := 0;
@@ -461,9 +461,9 @@ begin
   end;
 end;
 
-function TCastleMoveAttack.Alive: TCastleAliveBehavior;
+function TCastleMoveAttack.Living: TCastleLiving;
 begin
-  Result := Parent.FindBehavior(TCastleAliveBehavior) as TCastleAliveBehavior;
+  Result := Parent.FindBehavior(TCastleLiving) as TCastleLiving;
 end;
 
 function TCastleMoveAttack.Sector(const OtherTransform: TCastleTransform): TSector;
@@ -638,10 +638,10 @@ var
   { Considering only Life, MaxLife, RunAwayLife - do we want to run away? }
   function WantToRunAwayBasedOnLife: Boolean;
   var
-    A: TCastleAliveBehavior;
+    A: TCastleLiving;
   begin
-    A := Alive;
-    { This logic means that Alive=nil -> never runs away, makes sense
+    A := Living;
+    { This logic means that Living=nil -> never runs away, makes sense
       since it means it is indestructible. }
     Result := (A <> nil) and (A.Life <= A.MaxLife * Resource.RunAwayLife);
   end;
@@ -1096,8 +1096,8 @@ var
   function WasLastAttackBack: boolean;
   begin
     try
-      Result := (Alive <> nil) and
-        (AngleRadBetweenVectors(Alive.HurtDirection, Parent.Direction) < Pi/2);
+      Result := (Living <> nil) and
+        (AngleRadBetweenVectors(Living.HurtDirection, Parent.Direction) < Pi/2);
     except
       on EVectorInvalidOp do Result := false;
     end;
@@ -1152,8 +1152,8 @@ begin
   Parent.InternalMiddleForceBox := Parent.InternalMiddleForceBox and (LifeTime <= InternalMiddleForceBoxTime);
 
   // switch to die state if creature is dead
-  if (Alive <> nil) and
-     Alive.Dead and
+  if (Living <> nil) and
+     Living.Dead and
      (not (State in [stateDie, stateDieBack])) then
   begin
     if (AnimationDieBack <> '') and WasLastAttackBack then
@@ -1213,7 +1213,7 @@ begin
 //  UpdateDebugTransform;
 end;
 
-(* TODO: run hurt, listen on TCastleAliveBehavior
+(* TODO: run hurt, listen on TCastleLiving
 procedure TCastleMoveAttack.SetLife(const Value: Single);
 begin
   if (not Dead) and
@@ -1227,7 +1227,7 @@ end;
 
 procedure TCastleMoveAttack.Attack;
 var
-  E: TCastleAliveBehavior;
+  E: TCastleLiving;
 
   function ShortRangeAttackHits: boolean;
   var
@@ -1267,12 +1267,12 @@ var
     Result := B.Translate(WorldDirection * Resource.AttackMaxDistance).Collision(EB);
   end;
 
-  procedure AttackHurt(const HurtEnemy: TCastleAliveBehavior);
+  procedure AttackHurt(const HurtEnemy: TCastleLiving);
   begin
     Assert(HurtEnemy <> nil, 'Enemy to hurt cannot be nil, ShortRangeAttackHits should be false if Enemy is nil');
     HurtEnemy.Hurt(Resource.AttackDamageConst +
       Random * Resource.AttackDamageRandom, Parent.WorldView.Direction,
-      Resource.AttackKnockbackDistance, Alive);
+      Resource.AttackKnockbackDistance, Living);
   end;
 
 begin
@@ -1328,10 +1328,10 @@ begin
 end;
 *)
 
-(* TODO: be notified from TCastleAliveBehavior
+(* TODO: be notified from TCastleLiving
 procedure TCastleMoveAttack.Hurt(const LifeLoss: Single;
   const HurtDirection: TVector3;
-  const AHurtStrength: Single; const Attacker: TCastleAlive);
+  const AHurtStrength: Single; const Attacker: TCastleLiving);
 begin
   inherited Hurt(LifeLoss, HurtDirection,
     AHurtStrength * Resource.KnockBackDistance, Attacker);

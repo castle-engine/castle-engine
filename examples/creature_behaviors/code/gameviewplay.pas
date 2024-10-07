@@ -34,7 +34,7 @@ type
     WalkNavigation: TCastleWalkNavigation;
   private
     Enemies: TCastleTransformList;
-    PlayerAlive: TCastleAliveBehavior;
+    PlayerAlive: TCastleLiving;
   public
     constructor Create(AOwner: TComponent); override;
     procedure Start; override;
@@ -68,7 +68,7 @@ procedure TViewPlay.Start;
   begin
     Enemies.Add(EnemyScene);
 
-    EnemyScene.AddBehavior(TCastleAliveBehavior.Create(FreeAtStop));
+    EnemyScene.AddBehavior(TCastleLiving.Create(FreeAtStop));
 
     MoveAttackBehavior := TCastleMoveAttack.Create(FreeAtStop);
     MoveAttackBehavior.Enemy := PlayerAlive;
@@ -80,7 +80,7 @@ var
 begin
   inherited;
 
-  PlayerAlive := TCastleAliveBehavior.Create(FreeAtStop);
+  PlayerAlive := TCastleLiving.Create(FreeAtStop);
   MainViewport.Camera.AddBehavior(PlayerAlive);
 
   { Initialize Enemies }
@@ -107,7 +107,7 @@ end;
 
 function TViewPlay.Press(const Event: TInputPressRelease): Boolean;
 var
-  HitAlive: TCastleAliveBehavior;
+  HitAlive: TCastleLiving;
   EnemyScene: TCastleScene;
   EnemySoundSource: TCastleSoundSource;
 begin
@@ -130,12 +130,12 @@ begin
 
     { We clicked on enemy if
       - TransformUnderMouse indicates we hit something
-      - It has a behavior of TCastleAliveBehavior. }
+      - It has a behavior of TCastleLiving. }
     if (MainViewport.TransformUnderMouse <> nil) and
-       (MainViewport.TransformUnderMouse.FindBehavior(TCastleAliveBehavior) <> nil) then
+       (MainViewport.TransformUnderMouse.FindBehavior(TCastleLiving) <> nil) then
     begin
       // TODO: TCastleMoveAttack should take care of this
-      HitAlive := MainViewport.TransformUnderMouse.FindBehavior(TCastleAliveBehavior) as TCastleAliveBehavior;
+      HitAlive := MainViewport.TransformUnderMouse.FindBehavior(TCastleLiving) as TCastleLiving;
       HitAlive.Hurt(1000, MainViewport.Camera.Direction);
       if HitAlive.Dead then
       begin

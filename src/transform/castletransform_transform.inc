@@ -654,7 +654,7 @@
         some timeout when they restore InternalMiddleForceBox to false.
 
         This is quite internal hack and you should not use this in your own programs.
-        This is used only by TWalkAttackCreature.
+        This is used only by TCastleMoveAttack.
         @exclude }
       InternalMiddleForceBox: boolean;
       { @exclude }
