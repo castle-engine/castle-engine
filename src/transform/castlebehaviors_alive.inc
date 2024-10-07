@@ -1,6 +1,6 @@
 {%MainUnit castlebehaviors.pas}
 {
-  Copyright 2006-2022 Michalis Kamburelis.
+  Copyright 2006-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -17,14 +17,31 @@
 {$ifdef read_interface}
 
 type
-  { Behavior that tracks life points, and determines being alive/dead
+  { Represents a "pontentially alive" creature.
+    Tracks @link(Life) points which determine being alive or @link(Dead)
     for game purposes.
+    It is also a basis for creatures to be aware of each other.
 
-    Using this class in your own games is completely optional.
+    E.g. we can remember the last @link(Attacker).
+    This may be used by some other logic (not implemented by this behavior)
+    to either run away from the last attacker (e.g. when health low)
+    or run toward it (to retaliate).
+
+    This behavior is suitable both for player characters (controlled by humans)
+    and for creatures / NPCs / bots (controller by code).
+    For the latter (creatures / NPCs / bots) consider adding
+    another behavior that implements actual AI, like TCastleWalkAttack
+    or your own logic (see "3D FPS Game" for a simple example).
+    See https://castle-engine.io/behaviors about using and implementing
+    behaviors.
+
+    Note that using this class in your own games is completely optional.
     You can implement "alive" functionality yourself trivially,
     and then make your own decisions about various details
     (e.g. is life a float, or integer? does life equal "precisely
-    zero" means being still alive, or dead?). }
+    zero" means being still alive, or dead?).
+    This class is just a convenience, we made some decisions
+    trying to address a wide range of games. }
   TCastleAliveBehavior = class(TCastleBehavior)
   strict private
     FLife: Single;
@@ -56,10 +73,11 @@ type
       done by other behaviors.
 
       Note: If all you want to do is to decrease @link(Life),
-      you can also just set @link(Life) property directly.
+      you can also just set @link(Life) property directly, like
+      @code(MyCreature.Life := MyCreature.Life - 10;).
 
       @param(AHurtDirection Should be a normalized vector indicating direction
-        from which the attack came.
+        from which the attack came, in world coordinates.
 
         In this class, it does nothing, merely sets @link(HurtDirection) property.
         Which may be used by other effects.)
@@ -81,13 +99,14 @@ type
 
         In this class, it does nothing, merely sets @link(Attacker) property.
         Which may be used by other effects.)
-      )}
+      ) }
     procedure Hurt(const LifeLoss: Single;
       const AHurtDirection: TVector3;
       const AHurtStrength: Single = 0;
       const AnAttacker: TCastleAliveBehavior = nil); virtual;
 
-    { Direction from where the last attack came, set by @link(Hurt).
+    { Direction from where the last attack came, set by @link(Hurt),
+      in world coordinates.
       Zero if there was no specific direction of last attack,
       otherwise a normalized (length 1) vector. }
     property HurtDirection: TVector3 read FHurtDirection;
@@ -113,7 +132,7 @@ type
       i.e. all the code allows the have @link(Life) > @link(MaxLife)
       to account for special game mechanisms,
       like "magic life boost to make health temporarily larger than normal".
-      It is up to your game whether such situation will actually happen. }
+      It is up to your game logic whether such situation will actually happen. }
     property MaxLife: Single read FMaxLife write FMaxLife {$ifdef FPC}default DefaultLife{$endif};
   end;
 

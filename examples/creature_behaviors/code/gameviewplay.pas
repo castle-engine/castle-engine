@@ -63,19 +63,16 @@ end;
 procedure TViewPlay.Start;
 
   procedure AddEnemy(const EnemyScene: TCastleScene);
-  // TODO MoveAttackBehavior: TCastleMoveAttack;
+  var
+    MoveAttackBehavior: TCastleMoveAttack;
   begin
     Enemies.Add(EnemyScene);
 
-    // TODO: TCastleMoveAttack should take care of this
-    EnemyScene.PlayAnimation('walk', true);
-
     EnemyScene.AddBehavior(TCastleAliveBehavior.Create(FreeAtStop));
 
-    // TODO
-    // MoveAttackBehavior := TCastleMoveAttack.Create(FreeAtStop);
-    // MoveAttackBehavior.Enemy := PlayerAlive;
-    // EnemyScene.AddBehavior(MoveAttackBehavior);
+    MoveAttackBehavior := TCastleMoveAttack.Create(FreeAtStop);
+    MoveAttackBehavior.Enemy := PlayerAlive;
+    EnemyScene.AddBehavior(MoveAttackBehavior);
   end;
 
 var
