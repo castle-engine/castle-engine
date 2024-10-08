@@ -282,7 +282,7 @@
                 "Red" : 8.1176471710205078E-001
               },
               "FontSize" : 3.0000000000000000E+001,
-              "Name" : "Label1",
+              "Name" : "LabelPlayerLife",
               "Text" : [
                 "Life: 100.0"
               ],

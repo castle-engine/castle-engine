@@ -35,6 +35,7 @@ type
     WalkNavigation: TCastleWalkNavigation;
     SoundShoot: TCastleSound;
     PlayerHurtFlash: TCastleFlashEffect;
+    LabelPlayerLife: TCastleLabel;
   private
     Enemies: TCastleTransformList;
     PlayerLiving: TCastleLiving;
@@ -53,7 +54,7 @@ var
 implementation
 
 uses SysUtils, Math,
-  CastleLog, CastleStringUtils, CastleFilesUtils, CastleColors,
+  CastleLog, CastleStringUtils, CastleFilesUtils, CastleColors, CastleUtils,
   GameViewMenu;
 
 { TViewPlay ----------------------------------------------------------------- }
@@ -69,6 +70,7 @@ procedure TViewPlay.Start;
   procedure AddEnemy(const EnemyScene: TCastleScene);
   var
     MoveAttackBehavior: TCastleMoveAttack;
+    EnemyLiving: TCastleLiving;
   begin
     Enemies.Add(EnemyScene);
 
@@ -77,9 +79,13 @@ procedure TViewPlay.Start;
     // Allow to collide as sphere for movement on level, to not get stuck in floor/stairs
     EnemyScene.CollisionSphereRadius := 0.25;
 
-    EnemyScene.AddBehavior(TCastleLiving.Create(FreeAtStop));
+    EnemyLiving := TCastleLiving.Create(FreeAtStop);
+    // Assign Name only for nice debug e.g. in PlayerLiving.Attacker.Name below.
+    EnemyLiving.Name := EnemyScene.Name + 'Living';
+    EnemyScene.AddBehavior(EnemyLiving);
 
     MoveAttackBehavior := TCastleMoveAttack.Create(FreeAtStop);
+    MoveAttackBehavior.Name := EnemyScene.Name + 'MoveAttack';
     MoveAttackBehavior.Enemy := PlayerLiving;
     MoveAttackBehavior.AnimationAttack := 'Sword';
     MoveAttackBehavior.AnimationIdle := 'Idle';
@@ -89,6 +95,9 @@ procedure TViewPlay.Start;
     MoveAttackBehavior.MoveSpeed := 3.0;
     MoveAttackBehavior.AttackMaxDistance := 4.0;
     MoveAttackBehavior.PreferredDistance := MoveAttackBehavior.AttackMaxDistance;
+    MoveAttackBehavior.AttackTime := 0.5;
+    MoveAttackBehavior.AttackDamage.DamageConst := 10;
+    MoveAttackBehavior.AttackDamage.DamageRandom := 10;
     EnemyScene.AddBehavior(MoveAttackBehavior);
   end;
 
@@ -143,6 +152,7 @@ begin
   inherited;
   { This virtual method is executed every frame (many times per second). }
   LabelFps.Caption := 'FPS: ' + Container.Fps.ToString;
+  LabelPlayerLife.Caption := FormatDot('Life: %f', [PlayerLiving.Life]);
 end;
 
 function TViewPlay.Press(const Event: TInputPressRelease): Boolean;
