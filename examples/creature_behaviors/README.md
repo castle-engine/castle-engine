@@ -1,8 +1,11 @@
 # Testing TCastleBehavior for creatures
 
-This is a start of testing AI by TCastleBehavior for creatures.
+Test creature AI implemented by behaviors:
 
-TODO: `TCastleMoveAttack`, which should be the focus of this, is not ready yet.
+- `TCastleMoveAttack` - move towards the player and attack when close enough.
+- `TCastleLiving` - manage life (hit points), for both enemies and player.
+
+See https://castle-engine.io/behaviors about using behaviors and implementing your own.
 
 ## Building
 
