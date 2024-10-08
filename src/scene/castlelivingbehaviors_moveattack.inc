@@ -1504,7 +1504,13 @@ var
   begin
     if E = nil then Exit(false); { no enemy to hurt }
     B := Parent.WorldBoundingBox;
+
+    { When E box is empty (e.g. TCastleLiving is attached to TCastleCamera,
+      represents the player in 1st-person view), we use a small box around
+      player position. }
     EB := E.Parent.WorldBoundingBox;
+    if EB.IsEmpty then
+      EB := Box3DAroundPoint(E.Parent.WorldMiddle, 0.1);
 
     { We would like to check collision between EB and our B translated
       by our Direction now, i.e.
