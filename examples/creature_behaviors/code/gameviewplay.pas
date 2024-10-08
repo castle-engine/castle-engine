@@ -98,6 +98,31 @@ begin
   PlayerAlive := TCastleLiving.Create(FreeAtStop);
   MainViewport.Camera.AddBehavior(PlayerAlive);
 
+  { Mouse look always active.
+    In this case MainViewport.TransformUnderMouse queries always screen middle,
+    which is what we want.
+    We display also always crosshair in the middle of the screen.
+
+    Note: If we wanted to use mouse cursor position instead of screen middle,
+    this is also possible.
+    - We can hide Crosshair1 (Crosshair1.Exists:=false or just remove it from the design)
+    - We can leave WalkNavigation.MouseLook := false
+    - We can query hit at any screen position,
+      use
+
+        Viewport.PositionToRay(Container.MousePosition, true, RayOrigin, RayDirection);
+        RayCollision := Viewport.Items.WorldRay(RayOrigin, RayDirection);
+        if RayCollision <> nil then
+        try
+          HitTransform := RayCollision.Transform;
+          if HitTransform <> nil then
+            ...
+        finally
+          FreeAndNil(RayCollision);
+        end;
+  }
+  WalkNavigation.MouseLook := true;
+
   { Initialize Enemies }
   Enemies := TCastleTransformList.Create(false);
   for I := 1 to 5 do
@@ -115,7 +140,6 @@ begin
   inherited;
   { This virtual method is executed every frame (many times per second). }
   LabelFps.Caption := 'FPS: ' + Container.Fps.ToString;
-  WalkNavigation.MouseLook := buttonRight in Container.MousePressed;
 end;
 
 function TViewPlay.Press(const Event: TInputPressRelease): Boolean;
