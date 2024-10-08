@@ -125,7 +125,12 @@ type
       it may also be set directly. }
     property Attacker: TCastleLiving read FAttacker write SetAttacker;
   published
-    { Current Life. The object is considered "dead" when this is <= 0. }
+    { Current Life (hit points). The object is considered "dead" when this is <= 0.
+
+      Expressed as float, allows to represent fractional life,
+      allows to animate life (e.g. increasing life by some
+      "SecondsPassed * RegenerationRate" each frame,
+      or decreasing by "SeconsPassed * PoisonSpeed"). }
     property Life: Single read FLife write FLife {$ifdef FPC}default DefaultLife{$endif};
 
     { Maximum amount of life.
