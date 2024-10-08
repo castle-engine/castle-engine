@@ -68,6 +68,9 @@ procedure TViewPlay.Start;
   begin
     Enemies.Add(EnemyScene);
 
+    // TODO: current MoveAttackBehavior assumes old physics
+    EnemyScene.Gravity := true;
+
     EnemyScene.AddBehavior(TCastleLiving.Create(FreeAtStop));
 
     MoveAttackBehavior := TCastleMoveAttack.Create(FreeAtStop);
