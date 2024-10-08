@@ -79,7 +79,7 @@ type
 
     { Last known information about enemy. }
     HasLastSensedEnemy: Boolean;
-    LastSensedEnemy: TVector3;
+    LastSensedEnemy: TVector3; //< in world coordinates
     LastSensedEnemySector: TSector;
 
     FEnemy: TCastleLiving;
@@ -741,7 +741,7 @@ var
     begin
       { Calculate and check AngleBetweenTheDirectionToEnemy. }
       AngleBetweenTheDirectionToEnemy := AngleRadBetweenVectors(
-        LastSensedEnemy - Parent.Middle, Parent.Direction);
+        LastSensedEnemy - Parent.WorldMiddle, Parent.WorldDirection);
       Result := AngleBetweenTheDirectionToEnemy <= MaxAngle;
     end;
   end;
@@ -764,13 +764,13 @@ var
     out AngleBetweenDirectionToTarget: Single);
   begin
     { calculate DirectionToTarget }
-    DirectionToTarget := Target - Parent.Middle;
+    DirectionToTarget := Target - Parent.WorldMiddle;
     if Parent.Gravity then
       MakeVectorsOrthoOnTheirPlane(DirectionToTarget, World.GravityUp);
 
     { calculate AngleBetweenDirectionToTarget }
     AngleBetweenDirectionToTarget :=
-      AngleRadBetweenVectors(DirectionToTarget, Parent.Direction);
+      AngleRadBetweenVectors(DirectionToTarget, Parent.WorldDirection);
   end;
 
   { Call this only when HasLastSensedEnemy }
@@ -803,7 +803,7 @@ var
     AngleChange: Single;
     NewDirection: TVector3;
   begin
-    if not VectorsParallel(DirectionToTarget, Parent.Direction) then
+    if not VectorsParallel(DirectionToTarget, Parent.WorldDirection) then
     begin
       { Rotate Direction, to be closer to DirectionToTarget }
 
@@ -811,13 +811,13 @@ var
       AngleChange := AngleChangeSpeed * SecondsPassed;
       MinVar(AngleChange, AngleBetweenDirectionToTarget);
 
-      NewDirection := RotatePointAroundAxisRad(AngleChange, Parent.Direction,
-        TVector3.CrossProduct(Parent.Direction, DirectionToTarget));
+      NewDirection := RotatePointAroundAxisRad(AngleChange, Parent.WorldDirection,
+        TVector3.CrossProduct(Parent.WorldDirection, DirectionToTarget));
 
       { Make sure direction for non-flying creatures is orthogonal to GravityUp. }
       if Parent.Gravity then
         MakeVectorsOrthoOnTheirPlane(NewDirection, Parent.World.GravityUp);
-      Parent.Direction := NewDirection;
+      Parent.WorldDirection := NewDirection;
     end;
   end;
 
@@ -828,8 +828,8 @@ var
     SqrDistanceToTarget: Single;
   begin
     if not Parent.Gravity then
-      SqrDistanceToTarget := PointsDistanceSqr(Parent.Middle, Target) else
-      SqrDistanceToTarget := PointsDistance2DSqr(Parent.Middle, Target, Parent.World.GravityCoordinate);
+      SqrDistanceToTarget := PointsDistanceSqr(Parent.WorldMiddle, Target) else
+      SqrDistanceToTarget := PointsDistance2DSqr(Parent.WorldMiddle, Target, Parent.World.GravityCoordinate);
     Result :=
       { If creature is ideally at the target
         (for not Flying creatures, this means "ideally under/above the target"),
@@ -955,7 +955,7 @@ var
   begin
     Distance := RandomMoveDistance;
 
-    AlternativeTarget := Parent.Middle;
+    AlternativeTarget := Parent.WorldMiddle;
     { Add random values to the AlternativeTarget, but only on the components
       where creature can reliably move. Creature that cannot fly cannot
       move in gravity (UpIndex) direction. }
@@ -999,7 +999,7 @@ var
       end else
       if Parent.Gravity and
          (AngleBetweenDirectionToEnemy < 0.01) and
-         Parent.BoundingBox.Contains2D(LastSensedEnemy, Parent.World.GravityCoordinate) then
+         Parent.WorldBoundingBox.Contains2D(LastSensedEnemy, Parent.World.GravityCoordinate) then
       begin
         { Then the enemy (or it's last known position) is right above or below us.
           Since we can't fly, we can't get there. Standing in place
@@ -1058,7 +1058,7 @@ var
           (that will be calculated later by Move)
           because they are too close to Middle to be good to test against.
           I'm calculating here where I would get after 0.2 second. }
-        (not TooHighAboveTheGround(Parent.Middle + Parent.Direction * (MoveSpeed * 0.2))) and
+        (not TooHighAboveTheGround(Parent.WorldMiddle + Parent.WorldDirection * (MoveSpeed * 0.2))) and
 
         { Use Move without wall-sliding here.
           Things using MoveAlongTheDirection depend on the fact that
@@ -1069,6 +1069,7 @@ var
           Our trick with "AlternativeTarget" should handle
           eventual problems with the track of creature, so wall-sliding
           should not be needed. }
+        // TODO: This exceptionally uses non-world Parent.Direction, but it will change to physics soon
         Parent.Move(Parent.Direction * (MoveSpeed * SecondsPassed), false, false);
     end;
 
@@ -1339,7 +1340,7 @@ var
   begin
     try
       Result := (Living <> nil) and
-        (AngleRadBetweenVectors(Living.HurtDirection, Parent.Direction) < Pi/2);
+        (AngleRadBetweenVectors(Living.HurtDirection, Parent.WorldDirection) < Pi/2);
     except
       on EVectorInvalidOp do Result := false;
     end;
@@ -1412,24 +1413,24 @@ begin
   EnemySensedNow := (E <> nil) and (
     (
       { enemy seen }
-      (AngleRadBetweenNormals(E.Middle - Parent.Middle, Parent.Direction) <=
+      (AngleRadBetweenNormals(E.WorldMiddle - Parent.WorldMiddle, Parent.WorldDirection) <=
        VisibilityAngle / 2) and
-      Parent.LineOfSight(Parent.Middle, E.Middle)
+      Parent.LineOfSight(Parent.WorldMiddle, E.WorldMiddle)
     ) or
     (
       { enemy smelled }
-      PointsDistanceSqr(E.Middle, Parent.Middle) < Sqr(SmellDistance)
+      PointsDistanceSqr(E.WorldMiddle, Parent.WorldMiddle) < Sqr(SmellDistance)
     ) );
   if EnemySensedNow then
   begin
     HasLastSensedEnemy := true;
-    LastSensedEnemy := E.Middle;
+    LastSensedEnemy := E.WorldMiddle;
     LastSensedEnemySector := Sector(E.Parent);
   end;
 
   if HasLastSensedEnemy then
   begin
-    SqrDistanceToLastSensedEnemy := PointsDistanceSqr(LastSensedEnemy, Parent.Middle);
+    SqrDistanceToLastSensedEnemy := PointsDistanceSqr(LastSensedEnemy, Parent.WorldMiddle);
   end;
 
   case FState of
@@ -1474,13 +1475,11 @@ var
   function ShortRangeAttackHits: boolean;
   var
     B, EB: TBox3D;
-    WorldDirection: TVector3;
     DistanceLength, DistanceIncrease: Single;
   begin
     if E = nil then Exit(false); { no enemy to hurt }
     B := Parent.WorldBoundingBox;
     EB := E.Parent.WorldBoundingBox;
-    WorldDirection := Parent.WorldView.Direction;
 
     { We would like to check collision between EB and our B translated
       by our Direction now, i.e.
@@ -1500,13 +1499,13 @@ var
     DistanceLength := DistanceIncrease;
     while DistanceLength < AttackMaxDistance do
     begin
-      if B.Translate(WorldDirection * DistanceLength).Collision(EB) then
+      if B.Translate(Parent.WorldDirection * DistanceLength).Collision(EB) then
         Exit(true);
       DistanceLength := DistanceLength + DistanceIncrease;
     end;
 
     { Check one last time for AttackMaxDistance }
-    Result := B.Translate(WorldDirection * AttackMaxDistance).Collision(EB);
+    Result := B.Translate(Parent.WorldDirection * AttackMaxDistance).Collision(EB);
   end;
 
   procedure AttackHurt(const HurtEnemy: TCastleLiving);
@@ -1514,7 +1513,7 @@ var
     Assert(HurtEnemy <> nil, 'Enemy to hurt cannot be nil, ShortRangeAttackHits should be false if Enemy is nil');
     HurtEnemy.Hurt(
       AttackDamage.DamageConst + Random * AttackDamage.DamageRandom,
-      Parent.WorldView.Direction,
+      Parent.WorldDirection,
       AttackDamage.KnockbackDistance, Living);
   end;
 
