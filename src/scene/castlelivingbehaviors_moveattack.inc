@@ -455,7 +455,7 @@ constructor TCastleMoveAttack.Create(AOwner: TComponent);
 begin
   inherited;
   FEnemyObserver := TFreeNotificationObserver.Create(Self);
-  FEnemyObserver.OnFreeNotification := @EnemyFreeNotification;
+  FEnemyObserver.OnFreeNotification := {$ifdef FPC}@{$endif} EnemyFreeNotification;
 
   FAnimationIdle        := DefaultAnimationIdle;
   FAnimationMove        := DefaultAnimationMove;
@@ -1414,7 +1414,7 @@ begin
   inherited;
   // TODO: restore functionality: if DebugTimeStopForCreatures then Exit;
 
-  FLifeTime += SecondsPassed;
+  FLifeTime := FLifeTime + SecondsPassed;
 
   { eventually turn off InternalMiddleForceBox }
   Parent.InternalMiddleForceBox := Parent.InternalMiddleForceBox and (LifeTime <= InternalMiddleForceBoxTime);
