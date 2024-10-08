@@ -46,7 +46,7 @@ uses SysUtils, Math,
 {$I castlelivingbehaviors_missile.inc}
 
 initialization
-  RegisterSerializableComponent(TCastleLiving, 'Living');
-  RegisterSerializableComponent(TCastleMoveAttack, 'Move Attack');
-  RegisterSerializableComponent(TCastleMoveAttack, 'Missile');
+  RegisterSerializableComponent(TCastleLiving, ['Living', 'Living']);
+  RegisterSerializableComponent(TCastleMoveAttack, ['Living', 'Move Attack']);
+  RegisterSerializableComponent(TCastleMoveAttack, ['Living', 'Missile']);
 end.

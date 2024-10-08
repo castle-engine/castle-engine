@@ -22,7 +22,7 @@ uses Classes,
   CastleComponentSerialize, CastleUIControls, CastleControls,
   CastleKeysMouse, CastleViewport, CastleScene, CastleVectors, CastleCameras,
   CastleTransform, CastleBehaviors, CastleLivingBehaviors, CastleClassUtils,
-  CastleSoundEngine;
+  CastleSoundEngine, CastleFlashEffect;
 
 type
   { Main "playing game" view, where most of the game logic takes place. }
@@ -34,9 +34,11 @@ type
     MainViewport: TCastleViewport;
     WalkNavigation: TCastleWalkNavigation;
     SoundShoot: TCastleSound;
+    PlayerHurtFlash: TCastleFlashEffect;
   private
     Enemies: TCastleTransformList;
-    PlayerAlive: TCastleLiving;
+    PlayerLiving: TCastleLiving;
+    procedure PlayerHurt(Sender: TObject);
   public
     constructor Create(AOwner: TComponent); override;
     procedure Start; override;
@@ -51,7 +53,7 @@ var
 implementation
 
 uses SysUtils, Math,
-  CastleLog, CastleStringUtils, CastleFilesUtils,
+  CastleLog, CastleStringUtils, CastleFilesUtils, CastleColors,
   GameViewMenu;
 
 { TViewPlay ----------------------------------------------------------------- }
@@ -78,7 +80,7 @@ procedure TViewPlay.Start;
     EnemyScene.AddBehavior(TCastleLiving.Create(FreeAtStop));
 
     MoveAttackBehavior := TCastleMoveAttack.Create(FreeAtStop);
-    MoveAttackBehavior.Enemy := PlayerAlive;
+    MoveAttackBehavior.Enemy := PlayerLiving;
     MoveAttackBehavior.AnimationAttack := 'Sword';
     MoveAttackBehavior.AnimationIdle := 'Idle';
     MoveAttackBehavior.AnimationMove := 'Walk';
@@ -95,8 +97,9 @@ var
 begin
   inherited;
 
-  PlayerAlive := TCastleLiving.Create(FreeAtStop);
-  MainViewport.Camera.AddBehavior(PlayerAlive);
+  PlayerLiving := TCastleLiving.Create(FreeAtStop);
+  PlayerLiving.OnHurt := {$ifdef FPC}@{$endif} PlayerHurt;
+  MainViewport.Camera.AddBehavior(PlayerLiving);
 
   { Mouse look always active.
     In this case MainViewport.TransformUnderMouse queries always screen middle,
@@ -195,6 +198,16 @@ begin
     Container.View := ViewMenu;
     Exit(true);
   end;
+end;
+
+procedure TViewPlay.PlayerHurt(Sender: TObject);
+begin
+  PlayerHurtFlash.Flash(Red, true);
+  if PlayerLiving.Attacker <> nil then
+    WritelnLog('Player hurt by ' + PlayerLiving.Attacker.Name);
+
+  // TODO: play some hurt sound
+  //SoundEngine.Play(SoundHurt);
 end;
 
 end.

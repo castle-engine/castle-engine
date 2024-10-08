@@ -244,6 +244,55 @@
           "MoveSpeed" : 1.0000000000000000E+001,
           "Name" : "WalkNavigation",
           "PreferredHeight" : 2.0000000000000000E+000
+        },
+        {
+          "$$ClassName" : "TCastleFlashEffect",
+          "Image" : {
+            "$$ClassName" : "TCastleImagePersistent"
+          },
+          "Name" : "PlayerHurtFlash"
+        },
+        {
+          "$$ClassName" : "TCastleRectangleControl",
+          "AutoSizeToChildren" : true,
+          "AutoSizeToChildrenPaddingRight" : 1.0000000000000000E+001,
+          "AutoSizeToChildrenPaddingTop" : 1.0000000000000000E+001,
+          "ColorPersistent" : {
+            "$$ClassName" : "TCastleColorPersistent",
+            "Alpha" : 8.4705883264541626E-001,
+            "Blue" : 1.4901961386203766E-001,
+            "Green" : 1.4901961386203766E-001,
+            "Red" : 1.4901961386203766E-001
+          },
+          "HorizontalAnchorParent" : "hpMiddle",
+          "HorizontalAnchorSelf" : "hpMiddle",
+          "Name" : "RectangleControl1",
+          "TranslationPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent",
+            "Y" : -1.0000000000000000E+001
+          },
+          "VerticalAnchorParent" : "vpTop",
+          "VerticalAnchorSelf" : "vpTop",
+          "$Children" : [
+            {
+              "$$ClassName" : "TCastleLabel",
+              "ColorPersistent" : {
+                "$$ClassName" : "TCastleColorPersistent",
+                "Green" : 1.4117647707462311E-001,
+                "Red" : 8.1176471710205078E-001
+              },
+              "FontSize" : 3.0000000000000000E+001,
+              "Name" : "Label1",
+              "Text" : [
+                "Life: 100.0"
+              ],
+              "TranslationPersistent" : {
+                "$$ClassName" : "TCastleVector2Persistent",
+                "X" : 1.0000000000000000E+001,
+                "Y" : 1.0000000000000000E+001
+              }
+            }
+          ]
         }
       ],
       "InternalDesignCamera" : {
@@ -257,21 +306,16 @@
         },
         "RotationPersistent" : {
           "$$ClassName" : "TCastleVector4RotationPersistent",
-          "W" : 1.5183837413787842E+000,
-          "X" : -2.5319594144821167E-001,
-          "Y" : -9.4074058532714844E-001,
-          "Z" : -2.2560793161392212E-001
-        },
-        "ScalePersistent" : {
-          "$$ClassName" : "TCastleVector3Persistent",
-          "Y" : 9.9999994039535522E-001,
-          "Z" : 9.9999988079071045E-001
+          "W" : 1.8945616483688354E+000,
+          "X" : -2.6837342977523804E-001,
+          "Y" : -9.0265858173370361E-001,
+          "Z" : -3.3642712235450745E-001
         },
         "TranslationPersistent" : {
           "$$ClassName" : "TCastleVector3Persistent",
-          "X" : -7.1811814308166504E+000,
+          "X" : -1.8267769813537598E+000,
           "Y" : 6.5599174499511719E+000,
-          "Z" : 5.1505775451660156E+000
+          "Z" : 2.1844930648803711E+000
         }
       },
       "InternalDesignNavigations[dnFly]" : {

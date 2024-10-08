@@ -50,6 +50,7 @@ type
     FHurtStrength: Single;
     FAttacker: TCastleLiving;
     FAttackerObserver: TFreeNotificationObserver;
+    FOnHurt: TNotifyEvent;
     procedure SetAttacker(const Value: TCastleLiving);
     procedure AttackerFreeNotification(const Sender: TFreeNotificationObserver);
   protected
@@ -136,6 +137,10 @@ type
       like "magic life boost to make health temporarily larger than normal".
       It is up to your game logic whether such situation will actually happen. }
     property MaxLife: Single read FMaxLife write FMaxLife {$ifdef FPC}default DefaultLife{$endif};
+
+    { Event called right after creature is hurt and properties like
+      @link(HurtDirection), @link(HurtStrength) and @link(Attacker) are set. }
+    property OnHurt: TNotifyEvent read FOnHurt write FOnHurt;
   end;
 
 {$endif read_interface}
@@ -189,6 +194,8 @@ begin
   FHurtDirection := AHurtDirection;
   FHurtStrength := AHurtStrength;
   Attacker := AnAttacker;
+  if Assigned(FOnHurt) then
+    FOnHurt(Self);
 end;
 
 function TCastleLiving.PropertySections(
