@@ -1383,6 +1383,23 @@ var
   end;
 *)
 
+  { Line of sight between 2 transformations. }
+  function LineOfSight(const T1, T2: TCastleTransform): Boolean;
+  var
+    SavedExists1, SavedExists2: Boolean;
+  begin
+    SavedExists1 := T1.Exists;
+    SavedExists2 := T2.Exists;
+    T1.Exists := false;
+    T2.Exists := false;
+    try
+      Result := World.WorldLineOfSight(T1.WorldMiddle, T2.WorldMiddle);
+    finally
+      T1.Exists := SavedExists1;
+      T2.Exists := SavedExists2;
+    end;
+  end;
+
 var
   E: TCastleTransform;
 begin
@@ -1415,7 +1432,7 @@ begin
       { enemy seen }
       (AngleRadBetweenNormals(E.WorldMiddle - Parent.WorldMiddle, Parent.WorldDirection) <=
        VisibilityAngle / 2) and
-      Parent.LineOfSight(Parent.WorldMiddle, E.WorldMiddle)
+      LineOfSight(Parent, E)
     ) or
     (
       { enemy smelled }
