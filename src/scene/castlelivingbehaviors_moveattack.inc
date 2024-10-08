@@ -191,7 +191,7 @@ type
 
       DefaultAttackTime = 0.0;
       DefaultAttackMinDelay = 2.0;
-      DefaultAttackMaxDistance = DefaultPreferredDistance;
+      DefaultAttackMaxDistance = 2.0;
       DefaultAttackMaxAngle = Pi / 6;
 
       DefaultFireMissileTime = 0.0;
@@ -203,7 +203,7 @@ type
       DefaultMoveSpeed = 10.0;
       DefaultRunAwayLife = 0.3;
       DefaultRunAwayDistance = 10.0;
-      DefaultPreferredDistance = 2.0;
+      DefaultPreferredDistance = DefaultAttackMaxDistance;
       DefaultRandomMoveDistance = 10.0;
       DefaultMaxHeightAcceptableToFall = 1.5;
       DefaultVisibilityAngle = Pi * 120 / 180;
@@ -1069,7 +1069,7 @@ var
           Our trick with "AlternativeTarget" should handle
           eventual problems with the track of creature, so wall-sliding
           should not be needed. }
-        Move(Parent.Direction * (MoveSpeed * SecondsPassed), false, false);
+        Parent.Move(Parent.Direction * (MoveSpeed * SecondsPassed), false, false);
     end;
 
     { Go the way to LastSensedEnemy, *not* by using waypoints.

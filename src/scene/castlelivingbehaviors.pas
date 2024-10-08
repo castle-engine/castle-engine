@@ -24,10 +24,11 @@ interface
 
 uses Classes, Generics.Collections,
   CastleVectors, CastleTransform, CastleTimeUtils, CastleClassUtils, CastleSectors,
-  CastleSoundEngine;
+  CastleSoundEngine, CastleBehaviors;
 
 {$define read_interface}
 {$I castlelivingbehaviors_living.inc}
+{$I castlelivingbehaviors_damage.inc}
 {$I castlelivingbehaviors_moveattack.inc}
 {$I castlelivingbehaviors_missile.inc}
 {$undef read_interface}

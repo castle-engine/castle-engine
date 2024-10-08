@@ -21,7 +21,7 @@ interface
 uses Classes,
   CastleComponentSerialize, CastleUIControls, CastleControls,
   CastleKeysMouse, CastleViewport, CastleScene, CastleVectors, CastleCameras,
-  CastleTransform, CastleBehaviors, CastleClassUtils;
+  CastleTransform, CastleBehaviors, CastleLivingBehaviors, CastleClassUtils;
 
 type
   { Main "playing game" view, where most of the game logic takes place. }

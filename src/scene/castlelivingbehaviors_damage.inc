@@ -20,11 +20,14 @@ type
   { Damage done by something (like short-range attack of @link(TCastleMoveAttack)
     or missile impact of @link(TCastleMissile)). }
   TCastleDamage = class(TCastleComponent)
+  strict private
+    FDamageConst, FDamageRandom, FKnockbackDistance: Single;
   public
     const
       DefaultDamageConst = 0.0;
       DefaultDamageRandom = 0.0;
       DefaultKnockbackDistance = 0.0;
+    constructor Create(AOwner: TComponent); override;
   published
     { Constant damage.
       Decreases the victim's @link(TCastleLiving.Life) by a constant amount.
