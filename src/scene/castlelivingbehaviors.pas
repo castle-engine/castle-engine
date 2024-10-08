@@ -29,6 +29,7 @@ uses Classes, Generics.Collections,
 {$define read_interface}
 {$I castlelivingbehaviors_living.inc}
 {$I castlelivingbehaviors_moveattack.inc}
+{$I castlelivingbehaviors_missile.inc}
 {$undef read_interface}
 
 implementation
@@ -39,9 +40,12 @@ uses SysUtils, Math,
 
 {$define read_implementation}
 {$I castlelivingbehaviors_living.inc}
+{$I castlelivingbehaviors_damage.inc}
 {$I castlelivingbehaviors_moveattack.inc}
+{$I castlelivingbehaviors_missile.inc}
 
 initialization
   RegisterSerializableComponent(TCastleLiving, 'Living');
   RegisterSerializableComponent(TCastleMoveAttack, 'Move Attack');
+  RegisterSerializableComponent(TCastleMoveAttack, 'Missile');
 end.

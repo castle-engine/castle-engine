@@ -46,7 +46,7 @@ type
         stateDieBack,
         stateHurt
       );
-  private
+  strict private
     FState: TState;
     FLifeTime: TFloatTime;
     FCurrentAnimation: String;
@@ -86,6 +86,8 @@ type
     FEnemyObserver: TFreeNotificationObserver;
     FSoundAttackHit: TCastleSound;
     FSoundAttackStart: TCastleSound;
+
+    // animation names
     FAnimationIdle: String;
     FAnimationMove: String;
     FAnimationAttack: String;
@@ -93,6 +95,32 @@ type
     FAnimationDie: String;
     FAnimationDieBack: String;
     FAnimationHurt: String;
+
+    // Attack* properties
+    FAttackMinDelay: Single;
+    FAttackMaxDistance: Single;
+    FAttackMaxAngle: Single;
+    FAttackTime: Single;
+    FAttackDamage: TCastleDamage;
+
+    // FireMissile* properties
+    FFireMissileTime: Single;
+    FFireMissileMinDelay: Single;
+    FFireMissileMaxDistance: Single;
+    FFireMissileMaxAngle: Single;
+    FFireMissileHeight: Single;
+
+    // movement properties
+    FMoveSpeed: Single;
+    FRunAwayLife: Single;
+    FRunAwayDistance: Single;
+    FPreferredDistance: Single;
+    FRandomMoveDistance: Single;
+    FMaxHeightAcceptableToFall: Single;
+    FVisibilityAngle: Single;
+    FSmellDistance: Single;
+
+    FRemoveDead: Boolean;
 
     property StateChangeTime: TFloatTime read FStateChangeTime;
     procedure SetEnemy(const Value: TCastleLiving);
@@ -138,19 +166,18 @@ type
       if enemy is still within reach (AttackMaxDistance; even if it was within
       reach at the start of stateAttack state, the enemy could step back,
       so we need to check AttackMaxDistance again).
-      The damage and knockback are defined by TCreatureResource.AttackDamageConst,
-      TCreatureResource.AttackDamageRandom, TCreatureResource.AttackHurtStrength. }
+      The damage and knockback are defined by @link(AttackDamage). }
     procedure Attack; virtual;
 
-    { Actually do the attack indicated by AnimationFireMissile
-      and FireMissileTime and other FireMissileXxx properties.
+    { Actually do the attack indicated by @link(AnimationFireMissile)
+      and @link(FireMissileTime) and other FireMissileXxx properties.
       This happens in the middle of AnimationFireMissile, at the time
       FireMissileTime.
 
       This can happen only if you defined AnimationFireMissile (it is <> '').
 
-      The default implementation here creates a new creature with resource
-      defined by FireMissileName, if FireMissileName is not empty. }
+      The default implementation here creates a new missile using
+      FireMissileFactory, if FireMissileFactory is not @nil. }
     procedure FireMissile; virtual;
   public
     const
@@ -161,6 +188,28 @@ type
       DefaultAnimationDie = 'die';
       DefaultAnimationDieBack =  ''; //< Default value of AnimationDieBack, empty because it is an optional animation.
       DefaultAnimationHurt = 'hurt';
+
+      DefaultAttackTime = 0.0;
+      DefaultAttackMinDelay = 2.0;
+      DefaultAttackMaxDistance = DefaultPreferredDistance;
+      DefaultAttackMaxAngle = Pi / 6;
+
+      DefaultFireMissileTime = 0.0;
+      DefaultFireMissileMinDelay = DefaultAttackMinDelay;
+      DefaultFireMissileMaxDistance = 30.0;
+      DefaultFireMissileMaxAngle = DefaultAttackMaxAngle;
+      DefaultFireMissileHeight = 0.5;
+
+      DefaultMoveSpeed = 10.0;
+      DefaultRunAwayLife = 0.3;
+      DefaultRunAwayDistance = 10.0;
+      DefaultPreferredDistance = 2.0;
+      DefaultRandomMoveDistance = 10.0;
+      DefaultMaxHeightAcceptableToFall = 1.5;
+      DefaultVisibilityAngle = Pi * 120 / 180;
+      DefaultSmellDistance = 0.0;
+
+      DefaultRemoveDead = false;
 
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -228,6 +277,172 @@ type
 
     { Animation when the creature will be hurt. }
     property AnimationHurt: String read FAnimationHurt write FAnimationHurt stored AnimationHurtStored nodefault;
+
+    { Minimum delay between one attack and the other, in seconds.
+      Note that the duration of AttackAnimation also limits how often creature
+      can do an attack (so e.g. setting this to 0.0 doesn't mean that creature
+      can constantly attack, if AttackAnimation takes 1 second then at least
+      this 1 second will have to pass between actual attack hits). }
+    property AttackMinDelay: Single
+      read FAttackMinDelay write FAttackMinDelay
+      {$ifdef FPC}default DefaultAttackMinDelay{$endif};
+
+    { Maximum distance between enemy and creature to allow creature
+      to start attack. The distance is measured between
+      enemy (see TCastleMoveAttack.Enemy) and current creature
+      Middle (see @link(TCastleTransform.Middle)) points. }
+    property AttackMaxDistance: Single
+      read FAttackMaxDistance write FAttackMaxDistance
+      {$ifdef FPC}default DefaultAttackMaxDistance{$endif};
+
+    { The time point within AttackAnimation at which the short-range attack
+      happens. When exactly happens depends on the virtual
+      @link(TCastleMoveAttack.Attack) method implementation,
+      in the base TCastleMoveAttack it is a short-range
+      attack. }
+    property AttackTime: Single read FAttackTime write FAttackTime
+      {$ifdef FPC}default DefaultAttackTime{$endif};
+
+    { Since most of the creatures will have their weapon
+      on their front (teeth, shooting hands, claws, whatever),
+      they can attack enemy only when they are facing the enemy.
+
+      More precisely, the attack is allowed to start only when
+      the angle between current creature @link(TCastleTransform.Direction Direction)
+      and the vector from creature's Middle to the enemy's Middle (see TCastleTransform.Middle)
+      is <= AttackMaxAngle.
+
+      This is in radians. }
+    property AttackMaxAngle: Single
+      read FAttackMaxAngle write FAttackMaxAngle
+      {$ifdef FPC}default DefaultAttackMaxAngle{$endif};
+
+    { Attack damage.
+      Used by the creatures that do short-range attack
+      (when @link(AttackAnimation) is set). }
+    property AttackDamage: TCastleDamage read FAttackDamage;
+
+    { The time (in seconds) since the FireMissileAnimation start when we actually
+      spawn a missile. By default zero, which means that we spawn the missile
+      right when FireMissileAnimation starts.
+      Must be < than the FireMissileAnimation duration, otherwise we will never
+      reach tthis time and missile will never be fired. }
+    property FireMissileTime: Single
+      read FFireMissileTime write FFireMissileTime
+      {$ifdef FPC}default DefaultFireMissileTime{$endif};
+
+    { Minimum delay (in seconds) between firing of the missiles.
+      The missile will not be fired if a previous missile was fired within last
+      FireMissileMinDelay seconds.
+      (Even if all other conditions for firing the missile are satisfied.) }
+    property FireMissileMinDelay: Single
+      read FFireMissileMinDelay write FFireMissileMinDelay
+      {$ifdef FPC}default DefaultFireMissileMinDelay{$endif};
+
+    { Maximum distance to the enemy to make firing missiles sensible.
+      The creature will only fire the missile if enemy is within this distance.
+      The creature will also try to shorten distance to the enemy,
+      to get within this distance. }
+    property FireMissileMaxDistance: Single
+      read FFireMissileMaxDistance write FFireMissileMaxDistance
+      {$ifdef FPC}default DefaultFireMissileMaxDistance{$endif};
+
+    { Maximum angle (in radians) between current direction and
+      the direction toward enemy to make firing missiles sensible.
+      The creature will only fire the missile if enemy is within a cone of this angle. }
+    property FireMissileMaxAngle: Single
+      read FFireMissileMaxAngle write FFireMissileMaxAngle
+      {$ifdef FPC}default DefaultFireMissileMaxAngle{$endif};
+
+    { Height (between Position and Middle, usually: legs and eyes)
+      of the fired missile (see FireMissileFactory). }
+    property FireMissileHeight: Single
+      read FFireMissileHeight write FFireMissileHeight
+      {$ifdef FPC}default DefaultFireMissileHeight{$endif};
+
+    { The moving speed: how much Direction vector will be scaled
+      when moving in csWalk. }
+    property MoveSpeed: Single read FMoveSpeed write FMoveSpeed
+      {$ifdef FPC}default DefaultMoveSpeed{$endif};
+
+    { Portion of life and distance when the creature decides it's best to run away
+      from the enemy. RunAwayLife is expressed as a fraction of MaxLife.
+      We run if our @code(Life <= MaxLife * RunAwayLife) and the distance
+      to the (last seen) enemy is < RunAwayDistance.
+      Set RunAwayLife = 1 to make the creature always try to keep a safe distance
+      from the enemy.
+      @groupBegin }
+    property RunAwayLife: Single
+      read FRunAwayLife write FRunAwayLife {$ifdef FPC}default DefaultRunAwayLife{$endif};
+    property RunAwayDistance: Single
+      read FRunAwayDistance write FRunAwayDistance
+      {$ifdef FPC}default DefaultRunAwayDistance{$endif};
+    { @groupEnd }
+
+    { The preferred distance between enemy and the creature.
+      The creature will try to walk closer to the enemy if the distance is larger.
+      (If you want to make the creature to also walk father from the enemy
+      when necessary, then set RunAwayLife and RunAwayDistance.)
+
+      This should be <= AttackMaxDistance or FireMissileMaxDistance,
+      if you hope to actually perform a short-range or firing missile attack.
+      The creature can attack enemy from AttackMaxDistance
+      or fire missile from FireMissileMaxDistance,
+      but it will walk closer to the enemy if possible --- until the distance
+      is PreferredDistance. }
+    property PreferredDistance: Single
+      read FPreferredDistance write FPreferredDistance
+      {$ifdef FPC}default DefaultPreferredDistance{$endif};
+
+    { Distance to point to move to, when creature wanders aimlessly unable
+      to reach the target, but also wanting to move somewhere. }
+    property RandomMoveDistance: Single
+      read FRandomMoveDistance
+      write FRandomMoveDistance
+      {$ifdef FPC}default DefaultRandomMoveDistance{$endif};
+
+    { When considering possible movement, creature is OK to fall down from
+      this height. It should be small enough to not let creature to jump
+      into chasms, but also large enough to enable creature to get down e.g. stairs. }
+    property MaxHeightAcceptableToFall: Single
+      read FMaxHeightAcceptableToFall
+      write FMaxHeightAcceptableToFall
+      {$ifdef FPC}default DefaultMaxHeightAcceptableToFall{$endif};
+
+    { Creature sees other things (like enemies) only within a cone
+      of this angle. This way, the creature only looks forward, and you can
+      sneak upon a creature from the back. Simply set this to >= 2 * Pi
+      to remove this limit.
+
+      Note that the creature also becomes aware of the enemy when it is
+      hurt by a direct attack, regardless of VisibilityAngle. This way
+      if you sneak and attack a creature from the back, it will turn around
+      and fight you.
+
+      Creature can also smell others, see SmellDistance. }
+    property VisibilityAngle: Single read FVisibilityAngle write FVisibilityAngle
+      {$ifdef FPC}default DefaultVisibilityAngle{$endif};
+
+    { Creature smells other things (like enemies) within a sphere of this
+      radius. This allows to detect enemy regardless of which direction
+      the creature is facing, regardless of whether there is a line of sight
+      to the enemy, regardless if enemy is moving.
+
+      This is quite powerful ability to detect enemies,
+      if you set this to something large (by default it's zero).
+      Detecting enemies allows to more accurately/faster attack them
+      and/or run away from them.
+
+      Note: If you want the creature to nicely run from behind the corner,
+      be sure to setup good sectors/waypoints in your level.}
+    property SmellDistance: Single read FSmellDistance write FSmellDistance
+      {$ifdef FPC}default DefaultSmellDistance{$endif};
+
+    { Should dead creature instances be automatically freed and thus
+      removed from the viewport. The default @false means that corpses
+      lie in the world forever (or until you manually remove them). }
+    property RemoveDead: Boolean
+      read FRemoveDead write FRemoveDead default DefaultRemoveDead;
   end;
 
 {$endif read_interface}
@@ -241,6 +456,7 @@ begin
   inherited;
   FEnemyObserver := TFreeNotificationObserver.Create(Self);
   FEnemyObserver.OnFreeNotification := @EnemyFreeNotification;
+
   FAnimationIdle        := DefaultAnimationIdle;
   FAnimationMove        := DefaultAnimationMove;
   FAnimationAttack      := DefaultAnimationAttack;
@@ -248,6 +464,32 @@ begin
   FAnimationDie         := DefaultAnimationDie;
   FAnimationDieBack     := DefaultAnimationDieBack;
   FAnimationHurt        := DefaultAnimationHurt;
+
+  FAttackTime := DefaultAttackTime;
+  FAttackMinDelay := DefaultAttackMinDelay;
+  FAttackMaxDistance := DefaultAttackMaxDistance;
+  FAttackMaxAngle := DefaultAttackMaxAngle;
+
+  FAttackDamage := TCastleDamage.Create(Self);
+  FAttackDamage.SetSubComponent(true);
+  FAttackDamage.Name := 'Damage';
+
+  FFireMissileTime :=  DefaultFireMissileTime;
+  FFireMissileMaxDistance := DefaultFireMissileMaxDistance;
+  FFireMissileMaxAngle := DefaultFireMissileMaxAngle;
+  FFireMissileMinDelay := DefaultFireMissileMinDelay;
+  FFireMissileHeight := DefaultFireMissileHeight;
+
+  MoveSpeed := DefaultMoveSpeed;
+  FRunAwayLife := DefaultRunAwayLife;
+  FRunAwayDistance := DefaultRunAwayDistance;
+  FPreferredDistance := DefaultPreferredDistance;
+  FRandomMoveDistance := DefaultRandomMoveDistance;
+  FMaxHeightAcceptableToFall := DefaultMaxHeightAcceptableToFall;
+  FVisibilityAngle := DefaultVisibilityAngle;
+  FSmellDistance := DefaultSmellDistance;
+
+  FRemoveDead := DefaultRemoveDead;
 end;
 
 procedure TCastleMoveAttack.EnemyFreeNotification(
@@ -507,13 +749,13 @@ var
   function AttackAllowed: boolean;
   begin
     Result := ActionAllowed(AnimationAttack, LastAttackTime,
-      Resource.AttackMinDelay, Resource.AttackMaxDistance, Resource.AttackMaxAngle);
+      AttackMinDelay, AttackMaxDistance, AttackMaxAngle);
   end;
 
   function FireMissileAllowed: boolean;
   begin
     Result := ActionAllowed(AnimationFireMissile, LastFireMissileTime,
-      Resource.FireMissileMinDelay, Resource.FireMissileMaxDistance, Resource.FireMissileMaxAngle);
+      FireMissileMinDelay, FireMissileMaxDistance, FireMissileMaxAngle);
   end;
 
   procedure CalculateDirectionToTarget(
@@ -643,7 +885,7 @@ var
     A := Living;
     { This logic means that Living=nil -> never runs away, makes sense
       since it means it is indestructible. }
-    Result := (A <> nil) and (A.Life <= A.MaxLife * Resource.RunAwayLife);
+    Result := (A <> nil) and (A.Life <= A.MaxLife * RunAwayLife);
   end;
 
   { This doesn't take into account current Direction,
@@ -661,8 +903,8 @@ var
         we can attack. }
       (not
         ( WantToRunAwayBasedOnLife and
-          ( (AnimationFireMissile = '') or (Resource.FireMissileMaxDistance < Resource.RunAwayDistance) ) and
-          ( (AnimationAttack      = '') or (Resource.     AttackMaxDistance < Resource.RunAwayDistance) )
+          ( (AnimationFireMissile = '') or (FireMissileMaxDistance < RunAwayDistance) ) and
+          ( (AnimationAttack      = '') or (     AttackMaxDistance < RunAwayDistance) )
         )
       ) and
       (
@@ -674,7 +916,7 @@ var
           be bad to get closer to enemy in this case, as this would allow
           enemy to easier attack (shorter distance --- easier to reach with
           short-range weapon, or easier to aim with long-range weapon). }
-        (SqrDistanceToLastSensedEnemy > Sqr(Resource.PreferredDistance))
+        (SqrDistanceToLastSensedEnemy > Sqr(PreferredDistance))
       );
   end;
 
@@ -703,7 +945,7 @@ var
       to know last enemy position. This actually makes sense in Real World too. }
     Result := HasLastSensedEnemy and
       WantToRunAwayBasedOnLife and
-      (SqrDistanceToLastSensedEnemy < Sqr(Resource.RunAwayDistance));
+      (SqrDistanceToLastSensedEnemy < Sqr(RunAwayDistance));
   end;
 
   procedure InitAlternativeTarget;
@@ -711,7 +953,7 @@ var
     Distance: Single;
     I: Integer;
   begin
-    Distance := Resource.RandomMoveDistance;
+    Distance := RandomMoveDistance;
 
     AlternativeTarget := Parent.Middle;
     { Add random values to the AlternativeTarget, but only on the components
@@ -804,7 +1046,7 @@ var
         if Parent.Gravity then
         begin
           Parent.Height(NewMiddle, AboveHeight);
-          if AboveHeight > Resource.MaxHeightAcceptableToFall + Parent.PreferredHeight then
+          if AboveHeight > MaxHeightAcceptableToFall + Parent.PreferredHeight then
             Result := true;
         end;
       end;
@@ -816,7 +1058,7 @@ var
           (that will be calculated later by Move)
           because they are too close to Middle to be good to test against.
           I'm calculating here where I would get after 0.2 second. }
-        (not TooHighAboveTheGround(Parent.Middle + Parent.Direction * (Resource.MoveSpeed * 0.2))) and
+        (not TooHighAboveTheGround(Parent.Middle + Parent.Direction * (MoveSpeed * 0.2))) and
 
         { Use Move without wall-sliding here.
           Things using MoveAlongTheDirection depend on the fact that
@@ -827,7 +1069,7 @@ var
           Our trick with "AlternativeTarget" should handle
           eventual problems with the track of creature, so wall-sliding
           should not be needed. }
-        Move(Parent.Direction * (Resource.MoveSpeed * SecondsPassed), false, false);
+        Move(Parent.Direction * (MoveSpeed * SecondsPassed), false, false);
     end;
 
     { Go the way to LastSensedEnemy, *not* by using waypoints.
@@ -1055,7 +1297,7 @@ var
     StateTime: Single;
   begin
     StateTime := LifeTime - StateChangeTime;
-    if (not AttackDone) and (StateTime >= Resource.AttackTime) then
+    if (not AttackDone) and (StateTime >= AttackTime) then
     begin
       AttackDone := true;
       Attack;
@@ -1069,7 +1311,7 @@ var
     StateTime: Single;
   begin
     StateTime := LifeTime - StateChangeTime;
-    if (not FireMissileDone) and (StateTime >= Resource.FireMissileTime) then
+    if (not FireMissileDone) and (StateTime >= FireMissileTime) then
     begin
       FireMissileDone := true;
       FireMissile;
@@ -1105,7 +1347,7 @@ var
 
   procedure DoDie(const AnimationDuration: Single);
   begin
-    if Resource.RemoveDead and
+    if RemoveDead and
       (LifeTime - StateChangeTime > AnimationDuration) then
       RemoveMe := rtRemoveAndFree;
   end;
@@ -1171,12 +1413,12 @@ begin
     (
       { enemy seen }
       (AngleRadBetweenNormals(E.Middle - Parent.Middle, Parent.Direction) <=
-       Resource.VisibilityAngle / 2) and
+       VisibilityAngle / 2) and
       Parent.LineOfSight(Parent.Middle, E.Middle)
     ) or
     (
       { enemy smelled }
-      PointsDistanceSqr(E.Middle, Parent.Middle) < Sqr(Resource.SmellDistance)
+      PointsDistanceSqr(E.Middle, Parent.Middle) < Sqr(SmellDistance)
     ) );
   if EnemySensedNow then
   begin
@@ -1217,9 +1459,9 @@ end;
 procedure TCastleMoveAttack.SetLife(const Value: Single);
 begin
   if (not Dead) and
-    (Life - Value > Resource.MinLifeLossToHurt * MaxLife) and
-    ( (Resource.ChanceToHurt = 1.0) or
-      (Random < Resource.ChanceToHurt) ) then
+    (Life - Value > MinLifeLossToHurt * MaxLife) and
+    ( (ChanceToHurt = 1.0) or
+      (Random < ChanceToHurt) ) then
     SetState(stateHurt);
   inherited;
 end;
@@ -1244,7 +1486,7 @@ var
       by our Direction now, i.e.
         B.Translate(Direction * ???).Collision(EB)
       But how much should be scale Direction, i.e. what to put for "???" ?
-      It must be large enough to compensate even large Resource.AttackMaxDistance,
+      It must be large enough to compensate even large AttackMaxDistance,
       it must be small enough so that enemy should not be able to avoid
       our attacks just by standing very close to the creature.
 
@@ -1256,23 +1498,24 @@ var
     DistanceIncrease := B.MinSize / 2;
 
     DistanceLength := DistanceIncrease;
-    while DistanceLength < Resource.AttackMaxDistance do
+    while DistanceLength < AttackMaxDistance do
     begin
       if B.Translate(WorldDirection * DistanceLength).Collision(EB) then
         Exit(true);
       DistanceLength := DistanceLength + DistanceIncrease;
     end;
 
-    { Check one last time for Resource.AttackMaxDistance }
-    Result := B.Translate(WorldDirection * Resource.AttackMaxDistance).Collision(EB);
+    { Check one last time for AttackMaxDistance }
+    Result := B.Translate(WorldDirection * AttackMaxDistance).Collision(EB);
   end;
 
   procedure AttackHurt(const HurtEnemy: TCastleLiving);
   begin
     Assert(HurtEnemy <> nil, 'Enemy to hurt cannot be nil, ShortRangeAttackHits should be false if Enemy is nil');
-    HurtEnemy.Hurt(Resource.AttackDamageConst +
-      Random * Resource.AttackDamageRandom, Parent.WorldView.Direction,
-      Resource.AttackKnockbackDistance, Living);
+    HurtEnemy.Hurt(
+      AttackDamage.DamageConst + Random * AttackDamage.DamageRandom,
+      Parent.WorldView.Direction,
+      AttackDamage.KnockbackDistance, Living);
   end;
 
 begin
@@ -1287,16 +1530,27 @@ end;
 procedure TCastleMoveAttack.FireMissile;
 (* TODO: fire missile:
 var
-  Missile: TCreature;
+  Missile: TCastleTransform;
   MissilePosition, MissileDirection: TVector3;
 begin
-  if (Resource.FireMissileName <> '') and HasLastSensedEnemy then
+  if (FireMissileFactory <> nil) and HasLastSensedEnemy then
   begin
-    MissilePosition := LerpLegsMiddle(Resource.FireMissileHeight);
+    MissileParent := FireMissileParent;
+    if MissileParent = nil then
+      MissileParent := Parent.Parent;
+    { Means that Parent is not added to any world or that it's root
+      (should not happen, adding this behavior to root is not useful).
+      Just abort in this case. }
+    if MissileParent = nil then
+      Exit;
+
+    MissilePosition := LerpLegsMiddle(FireMissileHeight);
     MissileDirection := LastSensedEnemy - MissilePosition;
-    Missile := (Resources.FindName(Resource.FireMissileName) as TCreatureResource).
-      CreateCreature(Level, MissilePosition, MissileDirection);
-    Missile.Sound3d(Resource.FireMissileSound, 0.0);
+    Missile := FireMissileFactory.ComponentLoad(...) as TCastleTransform;
+    Missile.Translation := MissilePosition;
+    Missile.Direction := MissileDirection;
+    MissileParent.Add(Missile);
+    Missile.Sound3d(FireMissileSound, 0.0);
   end;
 end;
 *)
@@ -1334,7 +1588,7 @@ procedure TCastleMoveAttack.Hurt(const LifeLoss: Single;
   const AHurtStrength: Single; const Attacker: TCastleLiving);
 begin
   inherited Hurt(LifeLoss, HurtDirection,
-    AHurtStrength * Resource.KnockBackDistance, Attacker);
+    AHurtStrength * KnockBackDistance, Attacker);
 
   { If attacked by Enemy, update LastSensedEnemy fields.
     This way when you attack a creature from the back, it will turn around
