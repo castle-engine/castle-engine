@@ -21,7 +21,8 @@ interface
 uses Classes,
   CastleComponentSerialize, CastleUIControls, CastleControls,
   CastleKeysMouse, CastleViewport, CastleScene, CastleVectors, CastleCameras,
-  CastleTransform, CastleBehaviors, CastleLivingBehaviors, CastleClassUtils;
+  CastleTransform, CastleBehaviors, CastleLivingBehaviors, CastleClassUtils,
+  CastleSoundEngine;
 
 type
   { Main "playing game" view, where most of the game logic takes place. }
@@ -32,6 +33,7 @@ type
     LabelFps: TCastleLabel;
     MainViewport: TCastleViewport;
     WalkNavigation: TCastleWalkNavigation;
+    SoundShoot: TCastleSound;
   private
     Enemies: TCastleTransformList;
     PlayerAlive: TCastleLiving;
@@ -49,8 +51,8 @@ var
 implementation
 
 uses SysUtils, Math,
-  CastleSoundEngine, CastleLog, CastleStringUtils, CastleFilesUtils,
-  GameViewMenu, GameSounds;
+  CastleLog, CastleStringUtils, CastleFilesUtils,
+  GameViewMenu;
 
 { TViewPlay ----------------------------------------------------------------- }
 
@@ -77,6 +79,14 @@ procedure TViewPlay.Start;
 
     MoveAttackBehavior := TCastleMoveAttack.Create(FreeAtStop);
     MoveAttackBehavior.Enemy := PlayerAlive;
+    MoveAttackBehavior.AnimationAttack := 'Sword';
+    MoveAttackBehavior.AnimationIdle := 'Idle';
+    MoveAttackBehavior.AnimationMove := 'Walk';
+    MoveAttackBehavior.AnimationDie := 'Death';
+    MoveAttackBehavior.AnimationHurt := 'HitReact';
+    MoveAttackBehavior.MoveSpeed := 3.0;
+    MoveAttackBehavior.AttackMaxDistance := 4.0;
+    MoveAttackBehavior.PreferredDistance := MoveAttackBehavior.AttackMaxDistance;
     EnemyScene.AddBehavior(MoveAttackBehavior);
   end;
 
@@ -90,10 +100,8 @@ begin
 
   { Initialize Enemies }
   Enemies := TCastleTransformList.Create(false);
-  for I := 1 to 4 do
-    AddEnemy(DesignedComponent('SceneSoldier' + IntToStr(I)) as TCastleScene);
-  for I := 1 to 3 do
-    AddEnemy(DesignedComponent('SceneWolf' + IntToStr(I)) as TCastleScene);
+  for I := 1 to 5 do
+    AddEnemy(DesignedComponent('SceneSkeleton' + IntToStr(I)) as TCastleScene);
 end;
 
 procedure TViewPlay.Stop;
@@ -112,9 +120,8 @@ end;
 
 function TViewPlay.Press(const Event: TInputPressRelease): Boolean;
 var
-  HitAlive: TCastleLiving;
+  HitLiving: TCastleLiving;
   EnemyScene: TCastleScene;
-  EnemySoundSource: TCastleSoundSource;
 begin
   Result := inherited;
   if Result then Exit; // allow the ancestor to handle keys
@@ -139,24 +146,11 @@ begin
     if (MainViewport.TransformUnderMouse <> nil) and
        (MainViewport.TransformUnderMouse.FindBehavior(TCastleLiving) <> nil) then
     begin
-      // TODO: TCastleMoveAttack should take care of this
-      HitAlive := MainViewport.TransformUnderMouse.FindBehavior(TCastleLiving) as TCastleLiving;
-      HitAlive.Hurt(1000, MainViewport.Camera.Direction);
-      if HitAlive.Dead then
+      HitLiving := MainViewport.TransformUnderMouse.FindBehavior(TCastleLiving) as TCastleLiving;
+      HitLiving.Hurt(1000, MainViewport.Camera.Direction);
+      if HitLiving.Dead then
       begin
-        EnemyScene := HitAlive.Parent as TCastleScene;
-
-        // play die animation
-        if EnemyScene.HasAnimation('die') then
-          EnemyScene.PlayAnimation('die', false);
-        if EnemyScene.HasAnimation('sit') then // wolf has 'sit', not 'die'
-          EnemyScene.PlayAnimation('sit', false);
-
-        // stop wolf howling
-        EnemySoundSource := EnemyScene.FindBehavior(TCastleSoundSource) as TCastleSoundSource;
-        if EnemySoundSource <> nil then
-          EnemySoundSource.Sound := nil;
-
+        EnemyScene := MainViewport.TransformUnderMouse as TCastleScene;
         // dead corpse no longer collides
         EnemyScene.Pickable := false;
         EnemyScene.Collides := false;

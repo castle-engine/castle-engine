@@ -200,7 +200,7 @@ type
       DefaultFireMissileMaxAngle = DefaultAttackMaxAngle;
       DefaultFireMissileHeight = 0.5;
 
-      DefaultMoveSpeed = 10.0;
+      DefaultMoveSpeed = 1.0;
       DefaultRunAwayLife = 0.3;
       DefaultRunAwayDistance = 10.0;
       DefaultPreferredDistance = DefaultAttackMaxDistance;

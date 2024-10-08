@@ -26,8 +26,7 @@ uses SysUtils,
   CastleWindow, CastleScene, CastleControls, CastleLog,
   CastleFilesUtils, CastleSceneCore, CastleKeysMouse, CastleColors,
   CastleUIControls, CastleApplicationProperties, CastleSoundEngine,
-  CastleTransform, CastleRenderOptions,
-  GameSounds
+  CastleTransform, CastleRenderOptions
   {$region 'Castle Initialization Uses'}
   // The content here may be automatically updated by CGE editor.
   , GameViewMenu
@@ -51,9 +50,6 @@ begin
   {$endregion 'Castle View Creation'}
 
   Window.Container.View := ViewMenu;
-
-  InitializeSounds;
-  SoundEngine.LoopingChannel[0].Sound := SoundMusic;
 end;
 
 initialization
