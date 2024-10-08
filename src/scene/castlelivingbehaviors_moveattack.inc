@@ -792,33 +792,44 @@ var
       Pi - AngleBetweenDirectionFromEnemy;
   end;
 
-  { This changes Direction to be closer to DirectionToTarget.
-    Note that it requires the value of AngleBetweenDirectionToTarget
-    effectively }
-  procedure RotateDirectionToFaceTarget(const DirectionToTarget: TVector3;
-    const AngleBetweenDirectionToTarget: Single);
+  { Change Parent.Direction (gradually) to be closer,
+    in world coordinates, to DirectionToTarget. }
+  procedure RotateDirectionToFaceTarget(const DirectionToTarget: TVector3);
   const
     AngleChangeSpeed = 5.0;
   var
-    AngleChange: Single;
-    NewDirection: TVector3;
+    RotateAroundGravityUp: Boolean;
+    AngleChange, AngleBetween: Single;
+    OldDir, NewDir, RotationAxis: TVector3;
   begin
-    if not VectorsParallel(DirectionToTarget, Parent.WorldDirection) then
+    RotateAroundGravityUp := Parent.Gravity; // TODO: expose and allow to configure
+    OldDir := Parent.WorldDirection;
+    NewDir := DirectionToTarget;
+
+    if RotateAroundGravityUp then
     begin
-      { Rotate Direction, to be closer to DirectionToTarget }
-
-      { calculate AngleChange }
-      AngleChange := AngleChangeSpeed * SecondsPassed;
-      MinVar(AngleChange, AngleBetweenDirectionToTarget);
-
-      NewDirection := RotatePointAroundAxisRad(AngleChange, Parent.WorldDirection,
-        TVector3.CrossProduct(Parent.WorldDirection, DirectionToTarget));
-
-      { Make sure direction for non-flying creatures is orthogonal to GravityUp. }
-      if Parent.Gravity then
-        MakeVectorsOrthoOnTheirPlane(NewDirection, Parent.World.GravityUp);
-      Parent.WorldDirection := NewDirection;
+      // MakeVectorsOrthoOnTheirPlane(OldDir, Parent.World.GravityUp);
+      // MakeVectorsOrthoOnTheirPlane(NewDir, Parent.World.GravityUp);
+      // faster way of adjusting vectors to be flat
+      OldDir.Data[Parent.World.GravityCoordinate] := 0;
+      NewDir.Data[Parent.World.GravityCoordinate] := 0;
     end;
+
+    // it isn't obvious should be normalize NewDir, better nornmalize for safety
+    NewDir := NewDir.Normalize;
+
+    RotationAxis := TVector3.CrossProduct(OldDir, NewDir);
+    AngleBetween := RotationAngleRadBetweenVectors(OldDir, NewDir, RotationAxis);
+
+    { calculate AngleChange }
+    AngleChange := AngleChangeSpeed * SecondsPassed;
+    if AngleBetween < 0 then
+      AngleChange := Max(AngleBetween, -AngleChange)
+    else
+      AngleChange := Min(AngleBetween, AngleChange);
+
+    NewDir := RotatePointAroundAxisRad(AngleChange, OldDir, RotationAxis);
+    Parent.WorldDirection := NewDir;
   end;
 
   function CloseEnoughToTarget(const Target: TVector3): boolean;
@@ -1015,8 +1026,7 @@ var
       end else
       begin
         { Continue stateIdle state }
-        RotateDirectionToFaceTarget(DirectionToEnemy,
-          AngleBetweenDirectionToEnemy);
+        RotateDirectionToFaceTarget(DirectionToEnemy);
       end;
     end;
   end;
@@ -1058,7 +1068,8 @@ var
           (that will be calculated later by Move)
           because they are too close to Middle to be good to test against.
           I'm calculating here where I would get after 0.2 second. }
-        (not TooHighAboveTheGround(Parent.WorldMiddle + Parent.WorldDirection * (MoveSpeed * 0.2))) and
+        // TODO: This exceptionally uses non-world Parent.Direction/Middle, as it is passed to Parent.Height
+        (not TooHighAboveTheGround(Parent.Middle + Parent.Direction * (MoveSpeed * 0.2))) and
 
         { Use Move without wall-sliding here.
           Things using MoveAlongTheDirection depend on the fact that
@@ -1089,8 +1100,11 @@ var
         begin
           { Not able to get to enemy this way ? Maybe there exists
             some alternative way, not straight. Lets try. }
-          InitAlternativeTarget;
-          Exit;
+          // TODO: commented out, because
+          // 1. MoveAlongTheDirection fails every frame, unknown reason
+          // 2. it changes alt target every frame, which is not good -- should only change from time to time
+          // InitAlternativeTarget;
+          // Exit;
         end;
       end else
       begin
@@ -1099,8 +1113,7 @@ var
         Exit;
       end;
 
-      RotateDirectionToFaceTarget(DirectionToTarget,
-        AngleBetweenDirectionToTarget);
+      RotateDirectionToFaceTarget(DirectionToTarget);
     end;
 
     procedure MoveToWaypoint(const Target: TVector3);
@@ -1127,8 +1140,7 @@ var
         Exit;
       end;
 
-      RotateDirectionToFaceTarget(DirectionToTarget,
-        AngleBetweenDirectionToTarget);
+      RotateDirectionToFaceTarget(DirectionToTarget);
     end;
 
   const
@@ -1194,8 +1206,7 @@ var
           and do RotateDirectionToFaceTarget below. }
       end;
 
-      RotateDirectionToFaceTarget(DirectionToTarget,
-        AngleBetweenDirectionToTarget);
+      RotateDirectionToFaceTarget(DirectionToTarget);
     end else
     if WantToRunAway then
     begin
@@ -1214,8 +1225,7 @@ var
         end;
       end;
 
-      RotateDirectionToFaceTarget(DirectionToTarget,
-        AngleBetweenDirectionToTarget);
+      RotateDirectionToFaceTarget(DirectionToTarget);
     end else
     begin
       if not HasLastSensedEnemy then
