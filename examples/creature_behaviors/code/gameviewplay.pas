@@ -70,6 +70,8 @@ procedure TViewPlay.Start;
 
     // TODO: current MoveAttackBehavior assumes old physics
     EnemyScene.Gravity := true;
+    // Allow to collide as sphere for movement on level, to not get stuck in floor/stairs
+    EnemyScene.CollisionSphereRadius := 0.25;
 
     EnemyScene.AddBehavior(TCastleLiving.Create(FreeAtStop));
 

@@ -1100,11 +1100,9 @@ var
         begin
           { Not able to get to enemy this way ? Maybe there exists
             some alternative way, not straight. Lets try. }
-          // TODO: commented out, because
-          // 1. MoveAlongTheDirection fails every frame, unknown reason
-          // 2. it changes alt target every frame, which is not good -- should only change from time to time
-          // InitAlternativeTarget;
-          // Exit;
+          // TODO: in case creature completely cannot move (so all MoveAlongTheDirection fail, all tries to reach alternative targets fail) do not do InitAlternativeTarget each frame (makes blinking)
+          InitAlternativeTarget;
+          Exit;
         end;
       end else
       begin
