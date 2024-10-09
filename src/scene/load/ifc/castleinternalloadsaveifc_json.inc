@@ -402,6 +402,7 @@ var
         Tolerate it.
       }
       if (JsonInstanceValue is TJsonArray) and
+         (not (CurrentInstance is TCastleVector3Persistent)) and
          (not ClassNameOfList(PropertyGetInstanceClass(Ifc, PropInfo).ClassName)) then
       begin
         case TJsonArray(JsonInstanceValue).Count of
