@@ -138,12 +138,19 @@
               "X" : -1.1513306617736816E+001,
               "Y" : 1.9696245193481445E+000,
               "Z" : 4.1271429061889648E+000
-            }
+            },
+            "$Behaviors" : [
+              {
+                "$$ClassName" : "TCastleLiving",
+                "Name" : "PlayerLiving"
+              }
+            ]
           },
           {
             "$$ClassName" : "TCastleScene",
             "AutoAnimation" : "Idle",
             "Cache" : true,
+            "CollisionSphereRadius" : 2.5000000000000000E-001,
             "ExposeTransforms" : [
             ],
             "Name" : "SceneSkeleton1",
@@ -169,6 +176,29 @@
               {
                 "$$ClassName" : "TCastleSoundSource",
                 "Name" : "SoundSource1"
+              },
+              {
+                "$$ClassName" : "TCastleLiving",
+                "Name" : "Living1"
+              },
+              {
+                "$$ClassName" : "TCastleMoveAttack",
+                "AnimationAttack" : "Sword",
+                "AnimationDie" : "Death",
+                "AnimationHurt" : "HitReact",
+                "AnimationIdle" : "Idle",
+                "AnimationMove" : "Walk",
+                "AttackDamage" : {
+                  "$$ClassName" : "TCastleDamage",
+                  "DamageConst" : 1.0000000000000000E+001,
+                  "DamageRandom" : 1.0000000000000000E+001
+                },
+                "AttackMaxDistance" : 4.0000000000000000E+000,
+                "AttackTime" : 5.0000000000000000E-001,
+                "Enemy" : "PlayerLiving",
+                "MoveSpeed" : 3.0000000000000000E+000,
+                "Name" : "MoveAttack1",
+                "PreferredDistance" : 4.0000000000000000E+000
               }
             ]
           },
@@ -176,6 +206,7 @@
             "$$ClassName" : "TCastleScene",
             "AutoAnimation" : "Idle",
             "Cache" : true,
+            "CollisionSphereRadius" : 2.5000000000000000E-001,
             "ExposeTransforms" : [
             ],
             "Name" : "SceneSkeleton2",
@@ -201,6 +232,29 @@
               {
                 "$$ClassName" : "TCastleSoundSource",
                 "Name" : "SoundSource2"
+              },
+              {
+                "$$ClassName" : "TCastleLiving",
+                "Name" : "Living2"
+              },
+              {
+                "$$ClassName" : "TCastleMoveAttack",
+                "AnimationAttack" : "Sword",
+                "AnimationDie" : "Death",
+                "AnimationHurt" : "HitReact",
+                "AnimationIdle" : "Idle",
+                "AnimationMove" : "Walk",
+                "AttackDamage" : {
+                  "$$ClassName" : "TCastleDamage",
+                  "DamageConst" : 1.0000000000000000E+001,
+                  "DamageRandom" : 1.0000000000000000E+001
+                },
+                "AttackMaxDistance" : 4.0000000000000000E+000,
+                "AttackTime" : 5.0000000000000000E-001,
+                "Enemy" : "PlayerLiving",
+                "MoveSpeed" : 3.0000000000000000E+000,
+                "Name" : "MoveAttack2",
+                "PreferredDistance" : 4.0000000000000000E+000
               }
             ]
           },
@@ -208,6 +262,7 @@
             "$$ClassName" : "TCastleScene",
             "AutoAnimation" : "Idle",
             "Cache" : true,
+            "CollisionSphereRadius" : 2.5000000000000000E-001,
             "ExposeTransforms" : [
             ],
             "Name" : "SceneSkeleton3",
@@ -233,6 +288,29 @@
               {
                 "$$ClassName" : "TCastleSoundSource",
                 "Name" : "SoundSource3"
+              },
+              {
+                "$$ClassName" : "TCastleLiving",
+                "Name" : "Living3"
+              },
+              {
+                "$$ClassName" : "TCastleMoveAttack",
+                "AnimationAttack" : "Sword",
+                "AnimationDie" : "Death",
+                "AnimationHurt" : "HitReact",
+                "AnimationIdle" : "Idle",
+                "AnimationMove" : "Walk",
+                "AttackDamage" : {
+                  "$$ClassName" : "TCastleDamage",
+                  "DamageConst" : 1.0000000000000000E+001,
+                  "DamageRandom" : 1.0000000000000000E+001
+                },
+                "AttackMaxDistance" : 4.0000000000000000E+000,
+                "AttackTime" : 5.0000000000000000E-001,
+                "Enemy" : "PlayerLiving",
+                "MoveSpeed" : 3.0000000000000000E+000,
+                "Name" : "MoveAttack3",
+                "PreferredDistance" : 4.0000000000000000E+000
               }
             ]
           },
@@ -240,6 +318,7 @@
             "$$ClassName" : "TCastleScene",
             "AutoAnimation" : "Idle",
             "Cache" : true,
+            "CollisionSphereRadius" : 2.5000000000000000E-001,
             "ExposeTransforms" : [
             ],
             "Name" : "SceneSkeleton4",
@@ -265,6 +344,29 @@
               {
                 "$$ClassName" : "TCastleSoundSource",
                 "Name" : "SoundSource4"
+              },
+              {
+                "$$ClassName" : "TCastleLiving",
+                "Name" : "Living4"
+              },
+              {
+                "$$ClassName" : "TCastleMoveAttack",
+                "AnimationAttack" : "Sword",
+                "AnimationDie" : "Death",
+                "AnimationHurt" : "HitReact",
+                "AnimationIdle" : "Idle",
+                "AnimationMove" : "Walk",
+                "AttackDamage" : {
+                  "$$ClassName" : "TCastleDamage",
+                  "DamageConst" : 1.0000000000000000E+001,
+                  "DamageRandom" : 1.0000000000000000E+001
+                },
+                "AttackMaxDistance" : 4.0000000000000000E+000,
+                "AttackTime" : 5.0000000000000000E-001,
+                "Enemy" : "PlayerLiving",
+                "MoveSpeed" : 3.0000000000000000E+000,
+                "Name" : "MoveAttack4",
+                "PreferredDistance" : 4.0000000000000000E+000
               }
             ]
           },
@@ -272,6 +374,7 @@
             "$$ClassName" : "TCastleScene",
             "AutoAnimation" : "Idle",
             "Cache" : true,
+            "CollisionSphereRadius" : 2.5000000000000000E-001,
             "ExposeTransforms" : [
             ],
             "Name" : "SceneSkeleton5",
@@ -302,6 +405,29 @@
               {
                 "$$ClassName" : "TCastleSoundSource",
                 "Name" : "SoundSource5"
+              },
+              {
+                "$$ClassName" : "TCastleLiving",
+                "Name" : "Living5"
+              },
+              {
+                "$$ClassName" : "TCastleMoveAttack",
+                "AnimationAttack" : "Sword",
+                "AnimationDie" : "Death",
+                "AnimationHurt" : "HitReact",
+                "AnimationIdle" : "Idle",
+                "AnimationMove" : "Walk",
+                "AttackDamage" : {
+                  "$$ClassName" : "TCastleDamage",
+                  "DamageConst" : 1.0000000000000000E+001,
+                  "DamageRandom" : 1.0000000000000000E+001
+                },
+                "AttackMaxDistance" : 4.0000000000000000E+000,
+                "AttackTime" : 5.0000000000000000E-001,
+                "Enemy" : "PlayerLiving",
+                "MoveSpeed" : 3.0000000000000000E+000,
+                "Name" : "MoveAttack5",
+                "PreferredDistance" : 4.0000000000000000E+000
               }
             ]
           }
@@ -377,16 +503,14 @@
         },
         "RotationPersistent" : {
           "$$ClassName" : "TCastleVector4RotationPersistent",
-          "W" : 1.9541602134704590E+000,
-          "X" : -4.4179373979568481E-001,
-          "Y" : -7.5073468685150146E-001,
-          "Z" : -4.9113729596138000E-001
+          "W" : 1.8373264074325562E+000,
+          "X" : -2.8419101238250732E-001,
+          "Y" : -8.9870458841323853E-001,
+          "Z" : -3.3401432633399963E-001
         },
         "ScalePersistent" : {
           "$$ClassName" : "TCastleVector3Persistent",
-          "X" : 1.0000001192092896E+000,
-          "Y" : 1.0000001192092896E+000,
-          "Z" : 1.0000001192092896E+000
+          "Y" : 1.0000001192092896E+000
         },
         "TranslationPersistent" : {
           "$$ClassName" : "TCastleVector3Persistent",

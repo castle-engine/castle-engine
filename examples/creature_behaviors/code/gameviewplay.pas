@@ -36,9 +36,8 @@ type
     SoundShoot: TCastleSound;
     PlayerHurtFlash: TCastleFlashEffect;
     LabelPlayerLife: TCastleLabel;
-  private
-    Enemies: TCastleTransformList;
     PlayerLiving: TCastleLiving;
+  private
     procedure PlayerHurt(Sender: TObject);
   public
     constructor Create(AOwner: TComponent); override;
@@ -66,49 +65,10 @@ begin
 end;
 
 procedure TViewPlay.Start;
-
-  procedure AddEnemy(const EnemyScene: TCastleScene);
-  var
-    MoveAttackBehavior: TCastleMoveAttack;
-    EnemyLiving: TCastleLiving;
-  begin
-    Enemies.Add(EnemyScene);
-
-    // TODO: current MoveAttackBehavior assumes old physics
-    EnemyScene.Gravity := true;
-    // Allow to collide as sphere for movement on level, to not get stuck in floor/stairs
-    EnemyScene.CollisionSphereRadius := 0.25;
-
-    EnemyLiving := TCastleLiving.Create(FreeAtStop);
-    // Assign Name only for nice debug e.g. in PlayerLiving.Attacker.Name below.
-    EnemyLiving.Name := EnemyScene.Name + 'Living';
-    EnemyScene.AddBehavior(EnemyLiving);
-
-    MoveAttackBehavior := TCastleMoveAttack.Create(FreeAtStop);
-    MoveAttackBehavior.Name := EnemyScene.Name + 'MoveAttack';
-    MoveAttackBehavior.Enemy := PlayerLiving;
-    MoveAttackBehavior.AnimationAttack := 'Sword';
-    MoveAttackBehavior.AnimationIdle := 'Idle';
-    MoveAttackBehavior.AnimationMove := 'Walk';
-    MoveAttackBehavior.AnimationDie := 'Death';
-    MoveAttackBehavior.AnimationHurt := 'HitReact';
-    MoveAttackBehavior.MoveSpeed := 3.0;
-    MoveAttackBehavior.AttackMaxDistance := 4.0;
-    MoveAttackBehavior.PreferredDistance := MoveAttackBehavior.AttackMaxDistance;
-    MoveAttackBehavior.AttackTime := 0.5;
-    MoveAttackBehavior.AttackDamage.DamageConst := 10;
-    MoveAttackBehavior.AttackDamage.DamageRandom := 10;
-    EnemyScene.AddBehavior(MoveAttackBehavior);
-  end;
-
-var
-  I: Integer;
 begin
   inherited;
 
-  PlayerLiving := TCastleLiving.Create(FreeAtStop);
   PlayerLiving.OnHurt := {$ifdef FPC}@{$endif} PlayerHurt;
-  MainViewport.Camera.AddBehavior(PlayerLiving);
 
   { Mouse look always active.
     In this case MainViewport.TransformUnderMouse queries always screen middle,
@@ -134,16 +94,10 @@ begin
         end;
   }
   WalkNavigation.MouseLook := true;
-
-  { Initialize Enemies }
-  Enemies := TCastleTransformList.Create(false);
-  for I := 1 to 5 do
-    AddEnemy(DesignedComponent('SceneSkeleton' + IntToStr(I)) as TCastleScene);
 end;
 
 procedure TViewPlay.Stop;
 begin
-  FreeAndNil(Enemies);
   inherited;
 end;
 
@@ -184,7 +138,7 @@ begin
        (MainViewport.TransformUnderMouse.FindBehavior(TCastleLiving) <> nil) then
     begin
       HitLiving := MainViewport.TransformUnderMouse.FindBehavior(TCastleLiving) as TCastleLiving;
-      HitLiving.Hurt(1000, MainViewport.Camera.Direction);
+      HitLiving.Hurt(1000, MainViewport.Camera.WorldDirection);
       if HitLiving.Dead then
       begin
         EnemyScene := MainViewport.TransformUnderMouse as TCastleScene;
