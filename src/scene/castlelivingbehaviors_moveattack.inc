@@ -490,6 +490,9 @@ begin
   FSmellDistance := DefaultSmellDistance;
 
   FRemoveDead := DefaultRemoveDead;
+
+  // initial state
+  FState := stateIdle;
 end;
 
 procedure TCastleMoveAttack.EnemyFreeNotification(
@@ -532,24 +535,6 @@ begin
   // Our PlayAnimation and AnimationDuration requires you attach this to TCastleScene
   if not (Parent is TCastleScene) then
     raise Exception.CreateFmt('%s can only be attached to a TCastleScene', [ClassName]);
-
-  if (Living = nil) or (Living.MaxLife > 0) then
-  begin
-    FState := stateIdle;
-    FStateChangeTime := 0;
-  end else
-  begin
-    // TODO: remove this logic, it means that adding behaviors order matters, it should not
-
-    { This means that the creature is created already in dead state...
-      So we start with stateDie state and set FStateChangeTime to fake
-      the fact that creature was killed long time ago.
-
-      This way the creature is created as a dead corpse, without making
-      any kind of dying (or wounded) sound or animation. }
-    FState := stateDie;
-    FStateChangeTime := -1000;
-  end;
 
   UpdateAnimation;
 
@@ -1413,6 +1398,9 @@ var
 begin
   inherited;
   // TODO: restore functionality: if DebugTimeStopForCreatures then Exit;
+
+  if not (CastleApplicationMode in [appRunning, appSimulation]) then
+    Exit;
 
   FLifeTime := FLifeTime + SecondsPassed;
 
