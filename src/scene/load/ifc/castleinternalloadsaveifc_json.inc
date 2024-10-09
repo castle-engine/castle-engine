@@ -293,7 +293,31 @@ var
 
       // read JSON array into Vector:TVector3
       Vector := TVector3.Zero;
-      for I := 0 to 2 do
+      for I := 0 to Vector.Count - 1 do
+        if I < JsonChildArray.Count then
+          Vector.Data[I] := JsonToFloat(JsonChildArray.Items[I], DebugJsonKey);
+
+      VectorPersistent.Value := Vector;
+    end;
+
+    { From elements of JsonChildArray read TVector4 and place it in
+      property PropInfo of Ifc, which must be a TCastleVector4Persistent. }
+    procedure ReadIfcChildVector4(const PropInfo: PPropInfo;
+      const JsonChildArray: TJsonArray);
+    var
+      I: Integer;
+      VectorPersistent: TCastleVector4Persistent;
+      Vector: TVector4;
+    begin
+      VectorPersistent := PropertyGetInstance(Ifc, PropInfo) as TCastleVector4Persistent;
+      if VectorPersistent = nil then
+        raise EInvalidIfc.CreateFmt('Pascal property "%s" is supposed to be a TCastleVector4Persistent, but it is nil', [
+          PropInfo^.Name
+        ]);
+
+      // read JSON array into Vector:TVector4
+      Vector := TVector4.Zero;
+      for I := 0 to Vector.Count - 1 do
         if I < JsonChildArray.Count then
           Vector.Data[I] := JsonToFloat(JsonChildArray.Items[I], DebugJsonKey);
 
@@ -403,6 +427,7 @@ var
       }
       if (JsonInstanceValue is TJsonArray) and
          (not (CurrentInstance is TCastleVector3Persistent)) and
+         (not (CurrentInstance is TCastleVector4Persistent)) and
          (not ClassNameOfList(PropertyGetInstanceClass(Ifc, PropInfo).ClassName)) then
       begin
         case TJsonArray(JsonInstanceValue).Count of
@@ -437,6 +462,9 @@ var
       begin
         if CurrentInstance is TCastleVector3Persistent then
           ReadIfcChildVector3(PropInfo, JsonInstanceValue as TJsonArray)
+        else
+        if CurrentInstance is TCastleVector4Persistent then
+          ReadIfcChildVector4(PropInfo, JsonInstanceValue as TJsonArray)
         else
           ReadIfcChildArray(PropInfo, JsonInstanceValue as TJsonArray)
       end else
@@ -574,7 +602,17 @@ function IfcJsonSave(const IfcFile: TIfcFile): TJsonObject;
     I: Integer;
   begin
     Result := TJsonArray.Create;
-    for I := 0 to 2 do
+    for I := 0 to Result.Count - 1 do
+      Result.Add(Vector.Value[I]);
+  end;
+
+  { Serialize TVector4 to JSON array. }
+  function SerializeJsonVector4(const Vector: TCastleVector4Persistent): TJsonArray;
+  var
+    I: Integer;
+  begin
+    Result := TJsonArray.Create;
+    for I := 0 to Result.Count - 1 do
       Result.Add(Vector.Value[I]);
   end;
 
@@ -679,6 +717,9 @@ function IfcJsonSave(const IfcFile: TIfcFile): TJsonObject;
                 // TODO: avoid infinite recursion because of cycles, use ref=xxx
                 if IfcObjProperty is TCastleVector3Persistent then
                   Result.Add(JsonKey, SerializeJsonVector3(TCastleVector3Persistent(IfcObjProperty)))
+                else
+                if IfcObjProperty is TCastleVector4Persistent then
+                  Result.Add(JsonKey, SerializeJsonVector4(TCastleVector4Persistent(IfcObjProperty)))
                 else
                 if IfcObjProperty is TIfcPersistent then
                   Result.Add(JsonKey, SerializeJson(TIfcPersistent(IfcObjProperty)))

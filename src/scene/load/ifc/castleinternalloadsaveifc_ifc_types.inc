@@ -106,6 +106,17 @@ type
     constructor Create(const AOwner: TComponent = nil);
   end;
 
+  { Like TCastleVector4Persistent, but it just contains TVector4,
+    you don't need to provide InternalGetValue, InternalSetValue callbacks. }
+  TCastleVector4PersistentSimple = class(TCastleVector4Persistent)
+  strict private
+    SimpleValue: TVector4;
+    function GetValueSimple: TVector4;
+    procedure SetValueSimple(const AValue: TVector4);
+  public
+    constructor Create(const AOwner: TComponent = nil);
+  end;
+
 {$endif read_interface}
 
 {$ifdef read_implementation}
@@ -184,6 +195,25 @@ begin
 end;
 
 procedure TCastleVector3PersistentSimple.SetValueSimple(const AValue: TVector3);
+begin
+  SimpleValue := AValue;
+end;
+
+{ TCastleVector4PersistentSimple --------------------------------------------- }
+
+constructor TCastleVector4PersistentSimple.Create(const AOwner: TComponent = nil);
+begin
+  inherited Create(AOwner);
+  InternalGetValue := {$ifdef FPC}@{$endif} GetValueSimple;
+  InternalSetValue := {$ifdef FPC}@{$endif} SetValueSimple;
+end;
+
+function TCastleVector4PersistentSimple.GetValueSimple: TVector4;
+begin
+  Result := SimpleValue;
+end;
+
+procedure TCastleVector4PersistentSimple.SetValueSimple(const AValue: TVector4);
 begin
   SimpleValue := AValue;
 end;

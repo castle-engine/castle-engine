@@ -64,7 +64,8 @@
       The list instance is FreeAndNil'ed in destructor.
 
     - The vector properties should be treated using
-      TCastleVector3PersistentSimple.
+      TCastleVector3PersistentSimple,
+      TCastleVector4PersistentSimple (unused for now) etc.
 
       This is similar to regular CGE components,
       see https://castle-engine.io/custom_components#_publishing_vectors_and_colors ,
@@ -939,11 +940,83 @@
     property ContainsElements: TIfcRelContainedInSpatialStructureList read FContainsElements;
   end;
 
+  { Compound measure of plane angle in degrees, minutes, seconds,
+    and optionally millionth-seconds of arc.
+    IFC defines it as list of 3 or 4 integers.
+    We considered using TCastleVector4PersistentSimple for this,
+    but actually a regular class with 4 integer properties is better,
+    fits IFC JSON encoding. }
+  TIfcCompoundPlaneAngleMeasure = class(TIfcPersistent)
+  strict private
+    FDegrees: Integer;
+    FMinutes: Integer;
+    FSeconds: Integer;
+    FMicroSeconds: Integer;
+  published
+    property Degrees: Integer read FDegrees write FDegrees;
+    property Minutes: Integer read FMinutes write FMinutes;
+    property Seconds: Integer read FSeconds write FSeconds;
+    property MicroSeconds: Integer read FMicroSeconds write FMicroSeconds;
+  end;
+
+  { Address for delivery of paper based mail and other postal deliveries. }
+  TIfcPostalAddress = class(TIfcAddress)
+  strict private
+    FInternalLocation: TIfcLabel;
+    // TODO: FAddressLines: TIfcLabelList;
+    FPostalBox: TIfcLabel;
+    FTown: TIfcLabel;
+    FRegion: TIfcLabel;
+    FPostalCode: TIfcLabel;
+    FCountry: TIfcLabel;
+  published
+    { Internal location for the address. }
+    property InternalLocation: TIfcLabel read FInternalLocation write FInternalLocation;
+
+    { The postal address. }
+    // property AddressLines: TIfcLabelList read FAddressLines; // TODO serialization/deserialization for string list needed
+
+    { An address that is implied by an identifiable mail drop. }
+    property PostalBox: TIfcLabel read FPostalBox write FPostalBox;
+
+    { The name of a town. }
+    property Town: TIfcLabel read FTown write FTown;
+
+    { The name of a region. }
+    property Region: TIfcLabel read FRegion write FRegion;
+
+    { The code that is used by the country's postal service. }
+    property PostalCode: TIfcLabel read FPostalCode write FPostalCode;
+
+    { An ISO 3166 2-digit country code. }
+    property Country: TIfcLabel read FCountry write FCountry;
+  end;
+
   { Defined area of land on which the project construction is to be completed.
 
     Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcSite.htm }
   TIfcSite = class(TIfcSpatialStructureElement)
-    // TODO
+  strict private
+    FRefLatitude: TIfcCompoundPlaneAngleMeasure;
+    FRefLongitude: TIfcCompoundPlaneAngleMeasure;
+    FRefElevation: TIfcLengthMeasure;
+    FLandTitleNumber: TIfcLabel;
+    FSiteAddress: TIfcPostalAddress;
+  published
+    { World Latitude at reference poin. }
+    property RefLatitude: TIfcCompoundPlaneAngleMeasure read FRefLatitude write FRefLatitude;
+
+    { World Longitude at reference point. }
+    property RefLongitude: TIfcCompoundPlaneAngleMeasure read FRefLongitude write FRefLongitude;
+
+    { Datum elevation relative to sea level. }
+    property RefElevation: TIfcLengthMeasure read FRefElevation write FRefElevation;
+
+    { The land title number. }
+    property LandTitleNumber: TIfcLabel read FLandTitleNumber write FLandTitleNumber;
+
+    { Address given to the site for postal purposes. }
+    property SiteAddress: TIfcPostalAddress read FSiteAddress write FSiteAddress;
   end;
 
   { Any built facility, like a building, bridge. }
@@ -1716,6 +1789,8 @@ begin
     IfcClasses.Add(TIfcPolyline);
     IfcClasses.Add(TIfcPropertyDefinition);
     IfcClasses.Add(TIfcRelDeclares);
+    IfcClasses.Add(TIfcPostalAddress);
+    IfcClasses.Add(TIfcCompoundPlaneAngleMeasure);
   end;
 end;
 
