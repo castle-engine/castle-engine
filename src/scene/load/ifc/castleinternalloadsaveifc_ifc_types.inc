@@ -35,7 +35,9 @@ type
       and should be replaced by the actual object later, once we know all
       references.
       Once parsing finished, i.e. IfcLoadJson returned,
-      no instance should have this non-empty. }
+      no instance should have this non-empty.
+      TODO: Move to TIfcRoot? Since only it can have GlobalId, only it can be
+      referenced. }
     Ref: String;
   public
     //constructor Create(AOwner: TComponent); override; // not needed

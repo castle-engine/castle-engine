@@ -183,6 +183,54 @@ var
   var
     DebugJsonKey: String;
 
+    { Get IFC object referenced by IfcRef.
+      Returns either
+      - a "ready" object (if this reference is already read),
+      - or a stub (object with Ref property set, nothing more, to be resolved later),
+      - or @nil (in case of error -- this now happens if reference is ready
+        but wrong class).
+
+      TODO: When RequiredClass is nil and we create a stub, we effectively
+      break Pascal type checking, by inserting TIfcRoot into something that
+      may require a more concrete type.
+      Extract the class type using RTTI and demand that RequiredClass
+      is non-nil instead.
+
+      @param (RequiredClass If non-nil, is used to check if resolved reference
+        is of the expected class, it also determines the stub type.)
+    }
+    function GetIfcReference(const IfcRef: String; const RequiredClass: TIfcPersistentClass): TIfcPersistent;
+    var
+      IfcRefIndex: Integer;
+    begin
+      IfcRefIndex := Refs.IndexOf(IfcRef);
+      if IfcRefIndex = -1 then
+      begin
+        // save the reference to resolve later
+        if RequiredClass <> nil then
+          Result := RequiredClass.Create(IfcOwner)
+        else
+          Result := TIfcPersistent.Create(IfcOwner);
+        Result.Ref := IfcRef;
+        Exit;
+      end;
+
+      Result := Refs.Objects[IfcRefIndex] as TIfcPersistent;
+      if (RequiredClass <> nil) and (not (Result is RequiredClass)) then
+      begin
+        WritelnWarning('IFC', 'IFC reference "%s" to class %s is not of the expected class, ignoring', [
+          IfcRef,
+          RequiredClass.ClassName
+        ]);
+        Exit(nil);
+      end;
+
+      // WritelnLog('IFC', 'Success: IFC reference "%s" to class %s resolved', [
+      //   IfcRef,
+      //   IfcChildType
+      // ]);
+    end;
+
     { From JsonChildObj create and read Pascal class (or return ready instance from Refs).
       Returns @nil if not possible, which happens if "type" in IFC is not implemented
       on our side. }
@@ -191,7 +239,6 @@ var
       IfcRef: String;
       IfcChildType: String;
       FindIfcClass: TIfcPersistentClass;
-      IfcRefIndex: Integer;
     begin
       IfcChildType:= JsonChildObj.Get('type', '');
       FindIfcClass := IfcClasses.FindIfcType(IfcChildType);
@@ -207,29 +254,7 @@ var
       IfcRef := JsonChildObj.Get('ref', '');
       if IfcRef <> '' then
       begin
-        IfcRefIndex := Refs.IndexOf(IfcRef);
-        if IfcRefIndex = -1 then
-        begin
-          // save the reference to resolve later
-          Result := FindIfcClass.Create(IfcOwner);
-          Result.Ref := IfcRef;
-          Exit;
-        end;
-
-        Result := Refs.Objects[IfcRefIndex] as TIfcPersistent;
-        if not (Result is FindIfcClass) then
-        begin
-          WritelnWarning('IFC', 'IFC reference "%s" to class %s is not of the expected class, ignoring', [
-            IfcRef,
-            IfcChildType
-          ]);
-          Exit(nil);
-        end;
-
-        // WritelnLog('IFC', 'Success: IFC reference "%s" to class %s resolved', [
-        //   IfcRef,
-        //   IfcChildType
-        // ]);
+        Result := GetIfcReference(IfcRef, FindIfcClass);
         Exit;
       end;
 
@@ -406,6 +431,11 @@ var
                   ReadIfcChildVector3(PropInfo, Json.Items[I] as TJsonArray)
                 else
                   ReadIfcChildArray(PropInfo, Json.Items[I] as TJsonArray)
+              end else
+              if Json.Items[I] is TJsonString then
+              begin
+                // when a string is given, it's a reference to another object
+                PropertySetInstance(Ifc, PropInfo, GetIfcReference(Json.Items[I].AsString, nil));
               end else
               begin
                 WritelnWarning('IFC', 'IFC type "%s" expected to be a JSON object or array (because it is a Pascal class), ignoring', [
