@@ -210,6 +210,9 @@ var
         if RequiredClass <> nil then
           Result := RequiredClass.Create(IfcOwner)
         else
+          // TODO: Should not create instance of abstract class TIfcPersistent
+          // We could have TIfcUnresolvedReference = class(TIfcPersistent),
+          // but better: require RequiredClass to be non-nil.
           Result := TIfcPersistent.Create(IfcOwner);
         Result.Ref := IfcRef;
         Exit;
@@ -314,7 +317,8 @@ var
         RTTI to add each member. }
       Result := TIfcPersistentList(PropertyGetInstance(Ifc, PropInfo));
       if Result = nil then
-        raise EInvalidIfc.CreateFmt('Pascal property "%s" is supposed to be a list, but it is nil', [
+        raise EInvalidIfc.CreateFmt('Pascal property "%s.%s" is supposed to be a list, but it is nil', [
+          Ifc.ClassName,
           PropInfo^.Name
         ]);
 
@@ -342,16 +346,22 @@ var
 
       for I := 0 to JsonChildArray.Count - 1 do
       begin
-        if not (JsonChildArray.Items[I] is TJsonObject) then
+        if JsonChildArray.Items[I] is TJsonObject then
         begin
-          WritelnWarning('IFC', 'IFC array item %d (inside IFC field "%s") not a JSON object, ignoring', [
+          JsonChildObj := JsonChildArray.Items[I] as TJsonObject;
+          IfcChild := CreateIfcInstance(JsonChildObj);
+        end else
+        if JsonChildArray.Items[I] is TJsonString then
+        begin
+          IfcChild := GetIfcReference(JsonChildArray.Items[I].AsString, nil);
+        end else
+        begin
+          WritelnWarning('IFC', 'IFC array item %d (inside IFC field "%s") not a JSON object or string, ignoring', [
             I,
             DebugJsonKey
           ]);
           Continue;
         end;
-        JsonChildObj := JsonChildArray.Items[I] as TJsonObject;
-        IfcChild := CreateIfcInstance(JsonChildObj);
         if IfcChild <> nil then // if nil, then CreateIfcInstance already made warning
           List.Add(IfcChild);
       end;
@@ -379,11 +389,72 @@ var
       {$pop}
     {$endif}
 
+    procedure ReadInstanceProperty(const PropInfo: PPropInfo; JsonInstanceValue: TJsonData);
+    var
+      CurrentInstance: TObject;
+    begin
+      CurrentInstance := PropertyGetInstance(Ifc, PropInfo);
+
+      { Sometimes JSON gives a 1-item array when actually spec has "SET [0:1]",
+        so it's not a list in Pascal.
+        Example: TIfcProject.HasContext in
+        https://github.com/buildingSMART/Sample-Test-Files/blob/master/IFC%204.0/BuildingSMARTSpec/wall-with-opening-and-window.json
+        Tolerate it.
+      }
+      if (JsonInstanceValue is TJsonArray) and
+         (not ClassNameOfList(PropertyGetInstanceClass(Ifc, PropInfo).ClassName)) then
+      begin
+        case TJsonArray(JsonInstanceValue).Count of
+          0:begin
+              PropertySetInstance(Ifc, PropInfo, nil);
+              Exit;
+            end;
+          1:begin
+              { Allow further code to read 1st array item
+                (maybe TJsonObject, maybe TJsonString for ref). }
+              JsonInstanceValue := TJsonArray(JsonInstanceValue).Items[0];
+            end;
+          else
+          begin
+            WritelnWarning('IFC', 'IFC field "%s" is a JSON array with more than 1 item, ignoring', [
+              DebugJsonKey
+            ]);
+            Exit;
+          end;
+        end;
+      end;
+
+      if JsonInstanceValue is TJsonObject then
+      begin
+        if (CurrentInstance <> nil) and
+            ClassNameOfList(CurrentInstance.ClassName) then
+          ReadIfcChildArrayOneItem(PropInfo, JsonInstanceValue as TJsonObject)
+        else
+          ReadIfcChildInstance(PropInfo, JsonInstanceValue as TJsonObject)
+      end else
+      if JsonInstanceValue is TJsonArray then
+      begin
+        if CurrentInstance is TCastleVector3Persistent then
+          ReadIfcChildVector3(PropInfo, JsonInstanceValue as TJsonArray)
+        else
+          ReadIfcChildArray(PropInfo, JsonInstanceValue as TJsonArray)
+      end else
+      if JsonInstanceValue is TJsonString then
+      begin
+        // when a string is given, it's a reference to another object
+        PropertySetInstance(Ifc, PropInfo, GetIfcReference(JsonInstanceValue.AsString, nil));
+      end else
+      begin
+        WritelnWarning('IFC', 'IFC type "%s" expected to be a JSON object or array (because it is a Pascal class), ignoring', [
+          DebugJsonKey
+        ]);
+      end;
+    end;
+
   var
     I: Integer;
     JsonKey: String;
     PropInfo: PPropInfo;
-    CurrentInstance: TObject;
   begin
     for I := 0 to Json.Count - 1 do
     begin
@@ -415,35 +486,7 @@ var
           ptFloat:
             PropertySetFloat(Ifc, PropInfo, JsonToFloat(Json.Items[I], DebugJsonKey));
           ptInstance:
-            begin
-              CurrentInstance := PropertyGetInstance(Ifc, PropInfo);
-              if Json.Items[I] is TJsonObject then
-              begin
-                if (CurrentInstance <> nil) and
-                    ClassNameOfList(CurrentInstance.ClassName) then
-                  ReadIfcChildArrayOneItem(PropInfo, Json.Items[I] as TJsonObject)
-                else
-                  ReadIfcChildInstance(PropInfo, Json.Items[I] as TJsonObject)
-              end else
-              if Json.Items[I] is TJsonArray then
-              begin
-                if CurrentInstance is TCastleVector3Persistent then
-                  ReadIfcChildVector3(PropInfo, Json.Items[I] as TJsonArray)
-                else
-                  ReadIfcChildArray(PropInfo, Json.Items[I] as TJsonArray)
-              end else
-              if Json.Items[I] is TJsonString then
-              begin
-                // when a string is given, it's a reference to another object
-                PropertySetInstance(Ifc, PropInfo, GetIfcReference(Json.Items[I].AsString, nil));
-              end else
-              begin
-                WritelnWarning('IFC', 'IFC type "%s" expected to be a JSON object or array (because it is a Pascal class), ignoring', [
-                  DebugJsonKey
-                ]);
-                Continue
-              end;
-            end;
+            ReadInstanceProperty(PropInfo, Json.Items[I]);
           else
             begin
               WritelnWarning('IFC', 'IFC field "%s" found in Pascal class %s but with unhandled type, ignoring', [

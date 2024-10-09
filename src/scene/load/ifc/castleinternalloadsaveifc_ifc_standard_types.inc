@@ -99,6 +99,9 @@
   TIfcOrganizationRelationshipList = class;
   TIfcCartesianPointList = class;
   TIfcProductRepresentation = class;
+  TIfcRelDeclares = class;
+  TIfcDefinitionSelectList = class;
+  TIfcContext = class;
 
   { Float type used throughout IFC.
 
@@ -630,18 +633,89 @@
     property Description: TIfcText read FDescription write FDescription;
   end;
 
+  TIfcRelationship = class abstract(TIfcRoot)
+  end;
+
+  TIfcRelAssociates = class abstract(TIfcRelationship)
+  strict private
+    FRelatedObjects: TIfcDefinitionSelectList;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+  published
+    { Set of object or property definitions to which the external references
+      or information is associated.}
+    property RelatedObjects: TIfcDefinitionSelectList read FRelatedObjects;
+  end;
+  TIfcRelAssociatesList = class({$ifdef FPC}specialize{$endif} TObjectList<TIfcRelAssociates>)
+  end;
+
+  { Generalization of all characteristics (i.e. a grouping of individual
+    properties), that may be assigned to objects. }
+  TIfcPropertyDefinition = class(TIfcRoot)
+  strict private
+    FHasContext: TIfcRelDeclares;
+    FHasAssociations: TIfcRelAssociatesList;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+  published
+    { Reference to the relationship IfcRelDeclares and
+      thus to the IfcProject or IfcProjectLibrary. }
+    property HasContext: TIfcRelDeclares read FHasContext write FHasContext;
+
+    { Reference to the relationship IfcRelAssociates and thus to those
+      externally defined concepts, like classifications, documents,
+      or library information, which are associated to the property definition. }
+    property HasAssociations: TIfcRelAssociatesList read FHasAssociations;
+  end;
+
+  { Either TIfcObjectDefinition or TIfcPropertyDefinition. }
+  TIfcDefinitionSelect = TIfcRoot;
+
+  { List of TIfcDefinitionSelect. }
+  TIfcDefinitionSelectList = class({$ifdef FPC}specialize{$endif} TObjectList<TIfcDefinitionSelect>)
+  end;
+
+  { Declaration of objects (subtypes of IfcObject) or properties
+    (subtypes of IfcPropertyDefinition) to a project or project library
+    (represented by IfcProject, or IfcProjectLibrary). }
+  TIfcRelDeclares = class(TIfcRelationship)
+  strict private
+    FRelatingContext: TIfcContext;
+    FRelatedDefinitions: TIfcDefinitionSelectList;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+  published
+    { Reference to the IfcProject to which additional information is assigned. }
+    property RelatingContext: TIfcContext read FRelatingContext write FRelatingContext;
+
+    { Set of object or property definitions that are assigned to a context and
+      to which the unit and representation context definitions of that context
+      apply. }
+    property RelatedDefinitions: TIfcDefinitionSelectList read FRelatedDefinitions;
+  end;
+
   { Any semantically treated thing or process.
 
     Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcObjectDefinition.htm }
   TIfcObjectDefinition = class abstract(TIfcRoot)
   strict private
     FIsDecomposedBy: TIfcRelAggregatesList;
+    FHasContext: TIfcRelDeclares;
     // TODO: rest
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
   published
+    { References to the decomposition relationship being an aggregation. }
     property IsDecomposedBy: TIfcRelAggregatesList read FIsDecomposedBy;
+
+    { References to the context providing context information such as project
+      unit or representation context. It should only be asserted for
+      the uppermost non-spatial object. }
+    property HasContext: TIfcRelDeclares read FHasContext write FHasContext;
   end;
   TIfcObjectDefinitionList = {$ifdef FPC}specialize{$endif} TObjectList<TIfcObjectDefinition>;
 
@@ -807,9 +881,6 @@
     // TODO: rest of fields
   published
     property LongName: TIfcLabel read FLongName write FLongName;
-  end;
-
-  TIfcRelationship = class abstract(TIfcRoot)
   end;
 
   { Relationship that connects objects under some criteria. }
@@ -1503,6 +1574,48 @@ begin
   inherited;
 end;
 
+{ TIfcPropertyDefinition ----------------------------------------------------- }
+
+constructor TIfcPropertyDefinition.Create(AOwner: TComponent);
+begin
+  inherited;
+  FHasAssociations := TIfcRelAssociatesList.Create(false);
+end;
+
+destructor TIfcPropertyDefinition.Destroy;
+begin
+  FreeAndNil(FHasAssociations);
+  inherited;
+end;
+
+{ TIfcRelDeclares ------------------------------------------------------------ }
+
+constructor TIfcRelDeclares.Create(AOwner: TComponent);
+begin
+  inherited;
+  FRelatedDefinitions := TIfcDefinitionSelectList.Create(false);
+end;
+
+destructor TIfcRelDeclares.Destroy;
+begin
+  FreeAndNil(FRelatedDefinitions);
+  inherited;
+end;
+
+{ TIfcRelAssociates ---------------------------------------------------------- }
+
+constructor TIfcRelAssociates.Create(AOwner: TComponent);
+begin
+  inherited;
+  FRelatedObjects := TIfcDefinitionSelectList.Create(false);
+end;
+
+destructor TIfcRelAssociates.Destroy;
+begin
+  FreeAndNil(FRelatedObjects);
+  inherited;
+end;
+
 { initialization, finalization ----------------------------------------------- }
 
 procedure InitializeIfcClasses;
@@ -1565,6 +1678,8 @@ begin
     IfcClasses.Add(TIfcWall);
     IfcClasses.Add(TIfcWallStandardCase);
     IfcClasses.Add(TIfcPolyline);
+    IfcClasses.Add(TIfcPropertyDefinition);
+    IfcClasses.Add(TIfcRelDeclares);
   end;
 end;
 
