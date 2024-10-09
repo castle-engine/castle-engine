@@ -60,7 +60,7 @@ private
   type
     { On Android, we have to track previous touch positions using our
       own structure, instead of relying on
-      MainWindow.FTouches.FingerIndexPosition[FingerIndex].
+      MainWindow.Container.Touches.FingerIndexPosition[FingerIndex].
 
       Reason: DoMotion is not immediately called when
       receiving AMOTION_EVENT_ACTION_MOVE. That is bacause we have to do
@@ -127,7 +127,7 @@ begin
     do not treat huge "time passed" as meaningful in next Update.
     Note: MaxSensibleSecondsPassed would limit this problem anyway,
     but still it's better to just make it zero. }
-  Window.Fps.ZeroNextSecondsPassed;
+  Window.Container.Fps.ZeroNextSecondsPassed;
 
   { create OpenGL context, run OnOpen events and so on }
   Window.Open;
@@ -697,14 +697,12 @@ begin
   Result := true;
 end;
 
-procedure TCastleWindow.SetMousePosition(const Value: TVector2);
+procedure TCastleWindow.SystemSetMousePosition(const Value: TVector2);
 begin
   { There is no cursor position on Android devices.
     Just update MousePosition (although we're not really required to
     do this, code using SetMousePosition should not depend that
     it was always successful). }
-  if not Closed then
-    FMousePosition := Value;
 end;
 
 procedure TCastleWindow.UpdateFullScreenBackend;
@@ -800,7 +798,7 @@ begin
               MainWindow.DoMouseDown(QEvent.Touch.Position, buttonLeft, QEvent.FingerIndex);
           aeMotionUp  :
             if not MainWindow.Closed then
-              MainWindow.DoMouseUp  (QEvent.Touch.Position, buttonLeft, QEvent.FingerIndex, false);
+              MainWindow.DoMouseUp  (QEvent.Touch.Position, buttonLeft, QEvent.FingerIndex);
           aeMotionMove:
             if not MainWindow.Closed then
               MainWindow.DoMotion   (InputMotion(QEvent.Touch.OldPosition, QEvent.Touch.Position, [buttonLeft], QEvent.FingerIndex));

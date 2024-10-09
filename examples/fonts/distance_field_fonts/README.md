@@ -4,6 +4,8 @@ Test of _distance field fonts_.
 
 _"Distance field fonts"_ is an alternative font rendering method, that makes glyphs (font characters, like letters) always look "crisp", regardless of the size. They are never "blurry" -- in contrast to the default `TCastleFont` rendering where letters may look blurry if the effective font size is much different from the size for which the internal font texture was prepared (`TCastleFont.OptimalSize`).
 
+![Screenshot](screenshot.png)
+
 For more details how distance field fonts internally work:
 
 - See [this article](https://libgdx.com/wiki/graphics/2d/fonts/distance-field-fonts) (libgdx documentation).

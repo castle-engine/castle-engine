@@ -265,7 +265,9 @@ type
         )
 
         @item(Note also one disadvantage of @code(AssociateReferences):
-          It doesn't change that field type matches.)
+          It doesn't check that field type matches.
+          If a field name has a typo, it will be just left @nil,
+          causing "Access Violation" if you try to access it.)
       )
 
       For example:

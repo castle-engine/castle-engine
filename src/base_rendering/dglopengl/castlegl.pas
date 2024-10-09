@@ -15244,15 +15244,19 @@ function dglGetProcAddress(const ProcNameStr: String; LibHandle: TDynLib = nil {
       Result := nil;
   end;
 
+{$if defined(DGL_WIN) or defined(DGL_GLX)}
 var
   ProcName: AnsiString;
+{$endif}
 begin
   Result := nil;
 
+  {$if defined(DGL_WIN) or defined(DGL_GLX)}
   { TDynLib.Symbol, just like FPC and Delphi GetProcAddress (which it uses underneath),
     takes default String, i.e. 8-bit in FPC, 16-bit in Delphi.
     But wglGetProcAddress and glXGetProcAddress get 8-bit. }
   ProcName := ProcNameStr;
+  {$endif}
 
   if LibHandle = nil then
     LibHandle := GL_LibHandle;

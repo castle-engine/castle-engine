@@ -45,7 +45,8 @@ uses
   DataModuleIcons, FormImportAtlas, FormImportStarling, FormNewUnit,
   EditorCodeTools, CastleShellCtrls, FormSystemInformation,
   CastleComponentEditorDesigner, DesignCameraPreview, DesignObjectInspector,
-  DesignUndoSystem, FormRestartCustomEditor, FormImportSketchfab, FormProgress;
+  DesignUndoSystem, DesignSteam,
+  FormRestartCustomEditor, FormImportSketchfab, FormProgress;
 
 { Forces using a dedicated (faster) GPU on laptops with multiple GPUs.
   See https://castle-engine.io/dedicated_gpu }

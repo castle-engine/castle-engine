@@ -2860,7 +2860,8 @@ begin
   if NewCurrentViewport = nil then
   begin
     { try HoverUserInterface as TCastleViewport }
-    HoverUi := FDesignerLayer.HoverUserInterface(CastleControl.MousePosition, true);
+    HoverUi := FDesignerLayer.HoverUserInterface(
+      CastleControl.Container.MousePosition, true);
     if HoverUi is TCastleViewport then // also checks HoverUi <> nil
       NewCurrentViewport := TCastleViewport(HoverUi)
     else

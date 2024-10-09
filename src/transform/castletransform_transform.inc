@@ -763,8 +763,7 @@
       See https://castle-engine.io/blending .
       For correct blending, when you have multiple partially-transparent scenes,
       the partially-transparent objects must be sorted from back to front on the list.
-      So you should add them in the proper order, or insert on proper positions,
-      or use @link(SortBackToFront2D) on parent transformation. }
+      So you should add them in the proper order, or insert on proper positions. }
     procedure Insert(const Index: Integer; const Item: TCastleTransform);
 
     { Remove a child.
@@ -889,37 +888,6 @@
     property Parent: TCastleTransform read FParent write SetParent;
 
     {$ifdef FPC}property UniqueParent: TCastleTransform read FParent; deprecated 'use Parent';{$endif}
-
-    { Sort objects back-to-front @italic(right now)
-      following the blending 2D sorting algorithm.
-      Only the immediate list items are reordered.
-
-      Calling this method makes sense if you use
-      @url(https://castle-engine.io/blending blending)
-      and set @link(TCastleViewport.BlendingSort) to sortNone,
-      and multiple partially-transparent objects may
-      be visible at the same place on the screen.
-      Sorting avoids artifacts when rendering.
-
-      @unorderedList(
-        @item(
-          In general, you should call this method whenever the correct back-to-front order
-          of objects (with respect to the current camera) changes.
-        )
-        @item(
-          In 2D, you typically need to call this only when some objects' Z value changed
-          (making this object move behind / in front of some other object),
-          or when new object is added.
-          You don't need to call this method when camera changes or when object's XY position
-          changes, as they don't affect the order.
-        )
-      )
-
-      Note that this doesn't take care of sorting the shapes
-      within the scenes. For this, you should set
-      @link(TCastleViewport.BlendingSort). }
-    procedure SortBackToFront2D;
-      deprecated 'use TCastleViewport.BlendingSort to sort objects for blending';
 
     { Bounding box of this object, in the coordinate system of the parent transformation.
       This method takes into account current transformation
@@ -2113,7 +2081,7 @@
           You can then @url(https://castle-engine.io/reuse_design reuse designs)
           using the @link(TCastleTransformDesign) component.
           This is the way to reliably save and restore 100% of published
-          properties of TCastleTransform and its descendants.)
+          properties of TCastleTransform and its descendants.
         )
 
         @item(The export is not complete, and it will never be.
@@ -2611,8 +2579,10 @@ begin
     Practical situation when it happens is in testcases
     TTestCastleTransform.TestNotifications and TTestCastleTransform.TestNotificationsSceneManager. }
 
-  if (Operation = opRemove) and (AComponent is TCastleTransform) and (List <> nil) then
-    List.RemoveAll(AComponent);
+  if (Operation = opRemove) and
+     (AComponent is TCastleTransform) and
+     (List <> nil) then
+    List.RemoveAll(TCastleTransform(AComponent));
 end;
 
 function TCastleTransform.Height(const MyPosition: TVector3;
@@ -2817,13 +2787,6 @@ end;
 procedure TCastleTransform.Exchange(const Index1, Index2: Integer);
 begin
   List.Exchange(Index1, Index2);
-end;
-
-procedure TCastleTransform.SortBackToFront2D;
-begin
-  {$warnings off} // using deprecated in deprecated
-  List.SortBackToFront2D;
-  {$warnings on}
 end;
 
 function TCastleTransform.LocalBoundingBox: TBox3D;
@@ -3508,7 +3471,7 @@ procedure TCastleTransform.Render(const Params: TRenderParams);
 
   procedure BehaviorsBeforeRender(
     const CameraView: TViewVectors;
-    const ParentWorldTransformation, WorldTransformation: TTransformation);
+    const ParentWorldTransformation: TTransformation);
   var
     I: Integer;
     Beh: TCastleBehavior;
@@ -3516,7 +3479,7 @@ procedure TCastleTransform.Render(const Params: TRenderParams);
     for I := 0 to FBehaviors.Count - 1 do
     begin
       Beh := FBehaviors[I] as TCastleBehavior;
-      Beh.BeforeRender(CameraView, ParentWorldTransformation, WorldTransformation);
+      Beh.BeforeRender(CameraView, ParentWorldTransformation);
     end;
   end;
 
@@ -3562,14 +3525,22 @@ begin
     if FOnlyTranslation and T.IsZero and (not InternalIgnoreParentScale) then
     begin
       if FBehaviorsNeedBeforeRender then
-        BehaviorsBeforeRender(
-          Params.RenderingCamera.View,
-          Params.Transformation^,
-          Params.Transformation^);
+        BehaviorsBeforeRender(Params.RenderingCamera.View, Params.Transformation^);
       LocalRender(Params);
     end else
     begin
       //FrameProfiler.Start(fmRenderTransform);
+
+      { Call TCastleBehavior.BeforeRender for all behaviors *before*
+        changing NewTransformation (e.g. by InternalTransformationMult)
+        because BeforeRender may change our transformation.
+        Testcases:
+        - multiple viewports example with TCastleImageTransform + TCastleBillboard.
+        - looking at light's gizmo in editor through a camera preview,
+          and simultaneously in the main design view.
+          Should be seen as billboard in both cases. }
+      if FBehaviorsNeedBeforeRender then
+        BehaviorsBeforeRender(Params.RenderingCamera.View, Params.Transformation^);
 
       SavedTransformationPtr := Params.Transformation;
       SavedFrustumPtr        := Params.Frustum;
@@ -3603,11 +3574,6 @@ begin
       end;
 
       //FrameProfiler.Stop(fmRenderTransform);
-      if FBehaviorsNeedBeforeRender then
-        BehaviorsBeforeRender(
-          Params.RenderingCamera.View,
-          SavedTransformationPtr^,
-          Params.Transformation^);
       LocalRender(Params);
       //FrameProfiler.Start(fmRenderTransform);
 
@@ -4593,7 +4559,7 @@ procedure TCastleTransform.UpdateBehaviorsNeedBeforeRender;
   type
     TBeforeRenderEvent = procedure (
       const CameraView: TViewVectors;
-      const ParentParentWorldTransformation, ParentWorldTransformation: TTransformation) of object;
+      const ParentParentWorldTransformation: TTransformation) of object;
   var
     CurMethod, NotOverriddedMethod: TBeforeRenderEvent;
   begin

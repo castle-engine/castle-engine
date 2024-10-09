@@ -713,8 +713,8 @@ procedure TCastleWindow.OpenBackend;
     InitialMousePos := OpenGLControl.AbsoluteToLocal(InitialMousePos);
     //WritelnLog('Initial mouse position (OpenGL control coordinates): %f %f', [InitialMousePos.X, InitialMousePos.Y]);
     {$endif}
-    FMousePosition := MousePosToCastle(InitialMousePos.X, InitialMousePos.Y);
-    //WritelnLog('Initial mouse position (CGE coordinates): %s', [FMousePosition.ToString]);
+    Container.InitializeMousePosition(MousePosToCastle(InitialMousePos.X, InitialMousePos.Y));
+    //WritelnLog('Initial mouse position (CGE coordinates): %s', [Container.MousePosition.ToString]);
   end;
 
   { Convert argument to assign to Form.Width / Height to make the result
@@ -1059,7 +1059,7 @@ begin
   Result := false;
 end;
 
-procedure TCastleWindow.SetMousePosition(const Value: TVector2);
+procedure TCastleWindow.SystemSetMousePosition(const Value: TVector2);
 
   { Convert window position from the CGE convention to window system
     convention where (0,0) is left-top.
@@ -1075,56 +1075,48 @@ var
   P: {$ifdef FPC} TVector2Integer {$else} TVector2 {$endif};
   Pt: {$ifdef FPC} TPoint {$else} TPointF {$endif};
 begin
-  if not Closed then
+  //WritelnLog('New mouse position (CGE coordinates): %f %f', [Value.X, Value.Y]);
+
+  P := {$ifdef FPC} CastleToLeftTopInt {$else} CastleToLeftTop {$endif}
+    (Value / OpenGLControl.MousePosScale);
+
+  {$ifdef FPC}
+  { LCL version: use Mouse.CursorPos .}
+  Pt := Point(P.X, P.Y);
+  Pt := OpenGLControl.ControlToScreen(Pt);
+  Mouse.CursorPos := Pt;
+
+  {$else}
+  { FMX version.
+    It seems there's no cross-platform solution for this in FMX.
+    It has IFMXMouseService but only with GetMousePos, not setter.
+    So we just do platform-specific call in FmxSetMousePos,
+    for now implemented only for Linux (GTK 3). }
+
+  Pt := PointF(P.X, P.Y);
+  //WritelnLog('New mouse position (OpenGL control coordinates): %f %f', [Pt.X, Pt.Y]);
+  Pt := OpenGLControl.LocalToAbsolute(Pt);
+  //WritelnLog('New mouse position (form coordinates): %f %f', [Pt.X, Pt.Y]);
+  Pt := Form.ClientToScreen(Pt);
+  //WritelnLog('New mouse position (screen coordinates): %f %f', [Pt.X, Pt.Y]);
+
+  {$ifdef LINUX}
+  if Form.Handle = nil then
   begin
-
-    { Do not set Mouse.CursorPos to the same value, to make sure we don't cause
-      unnecessary OnMotion on some systems while actual MousePosition didn't change. }
-    if TVector2.PerfectlyEquals(Value, FMousePosition) then Exit;
-
-    //WritelnLog('New mouse position (CGE coordinates): %f %f', [Value.X, Value.Y]);
-
-    P := {$ifdef FPC} CastleToLeftTopInt {$else} CastleToLeftTop {$endif}
-      (Value / OpenGLControl.MousePosScale);
-
-    {$ifdef FPC}
-    { LCL version: use Mouse.CursorPos .}
-    Pt := Point(P.X, P.Y);
-    Pt := OpenGLControl.ControlToScreen(Pt);
-    Mouse.CursorPos := Pt;
-
-    {$else}
-    { FMX version.
-      It seems there's no cross-platform solution for this in FMX.
-      It has IFMXMouseService but only with GetMousePos, not setter.
-      So we just do platform-specific call in FmxSetMousePos,
-      for now implemented only for Linux (GTK 3). }
-
-    Pt := PointF(P.X, P.Y);
-    //WritelnLog('New mouse position (OpenGL control coordinates): %f %f', [Pt.X, Pt.Y]);
-    Pt := OpenGLControl.LocalToAbsolute(Pt);
-    //WritelnLog('New mouse position (form coordinates): %f %f', [Pt.X, Pt.Y]);
-    Pt := Form.ClientToScreen(Pt);
-    //WritelnLog('New mouse position (screen coordinates): %f %f', [Pt.X, Pt.Y]);
-
-    {$ifdef LINUX}
-    if Form.Handle = nil then
-    begin
-      WritelnWarning('Cannot set mouse position, form has no Handle');
-      Exit;
-    end;
-    if TLinuxWindowHandle(Form.Handle).NativeHandle = nil then
-    begin
-      WritelnWarning('Cannot set mouse position, form has no NativeHandle');
-      Exit;
-    end;
-    FmxSetMousePos(TLinuxWindowHandle(Form.Handle).NativeHandle, Pt);
-    {$else}
-    WritelnWarning('Setting mouse position not implemented for this platform with Delphi and CASTLE_WINDOW_FORM');
-    {$endif}
-
-    {$endif}
+    WritelnWarning('Cannot set mouse position, form has no Handle');
+    Exit;
   end;
+  if TLinuxWindowHandle(Form.Handle).NativeHandle = nil then
+  begin
+    WritelnWarning('Cannot set mouse position, form has no NativeHandle');
+    Exit;
+  end;
+  FmxSetMousePos(TLinuxWindowHandle(Form.Handle).NativeHandle, Pt);
+  {$else}
+  WritelnWarning('Setting mouse position not implemented for this platform with Delphi and CASTLE_WINDOW_FORM');
+  {$endif}
+
+  {$endif}
 end;
 
 procedure TCastleWindow.MenuItemClick(Sender: TObject);
@@ -1265,20 +1257,20 @@ procedure TCastleWindow.OpenGLControlMouseDown(Sender: TObject;
   Button: TMouseButton; Shift: TShiftState;
   X, Y: {$ifdef FPC} Integer {$else} Single {$endif});
 var
-  MyButton: TCastleMouseButton;
+  CastleButton: TCastleMouseButton;
 begin
-  if MouseButtonToCastle(Button, MyButton) then
-    DoMouseDown(MousePosToCastle(X, Y), MyButton, 0);
+  if MouseButtonToCastle(Button, CastleButton) then
+    DoMouseDown(MousePosToCastle(X, Y), CastleButton, 0);
 end;
 
 procedure TCastleWindow.OpenGLControlMouseUp(Sender: TObject;
   Button: TMouseButton; Shift: TShiftState;
   X, Y: {$ifdef FPC} Integer {$else} Single {$endif});
 var
-  MyButton: TCastleMouseButton;
+  CastleButton: TCastleMouseButton;
 begin
-  if MouseButtonToCastle(Button, MyButton) then
-    DoMouseUp(MousePosToCastle(X, Y), MyButton, 0);
+  if MouseButtonToCastle(Button, CastleButton) then
+    DoMouseUp(MousePosToCastle(X, Y), CastleButton, 0);
 end;
 
 procedure TCastleWindow.ProcessTasks;
@@ -1345,8 +1337,8 @@ procedure TCastleWindow.OpenGLControlMouseMove(Sender: TObject;
   Shift: TShiftState;
   X, Y: {$ifdef FPC} Integer {$else} Single {$endif});
 begin
-  DoMotion(InputMotion(MousePosition, MousePosToCastle(X, Y),
-    MousePressed, 0));
+  DoMotion(InputMotion(Container.MousePosition, MousePosToCastle(X, Y),
+    Container.MousePressed, 0));
 
   {$ifdef FPC}
   { On LCL, we need to call ProcessTasks often,

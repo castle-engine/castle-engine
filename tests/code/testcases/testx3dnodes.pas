@@ -111,6 +111,7 @@ type
     procedure TestOpenInvalidIndexes;
     procedure TestGltfConversion;
     procedure TestLoadWithoutWarning;
+    procedure TestNodeClassesList;
   end;
 
 implementation
@@ -2622,6 +2623,43 @@ begin
   finally
     ApplicationProperties.OnWarning.Remove({$ifdef FPC}@{$endif}OnWarningRaiseException);
   end;
+end;
+
+procedure TTestX3DNodes.TestNodeClassesList;
+var
+  ClassesList: TX3DNodeClassesList;
+  Node: TX3DNode;
+begin
+  // test basic operations on TX3DNodeClassesList
+  ClassesList := TX3DNodeClassesList.Create;
+  try
+    ClassesList.Add(TAbstractGeometryNode);
+    ClassesList.Add(TGroupNode);
+
+    AssertEquals(2, ClassesList.Count);
+    AssertTrue(ClassesList[0] = TAbstractGeometryNode);
+    AssertTrue(ClassesList[1] = TGroupNode);
+
+    AssertEquals(0, ClassesList.IndexOf(TAbstractGeometryNode));
+    AssertEquals(1, ClassesList.IndexOf(TGroupNode));
+    AssertEquals(-1, ClassesList.IndexOf(TX3DNode));
+    AssertEquals(-1, ClassesList.IndexOf(TBoxNode));
+
+    Node := TBoxNode.Create;
+    try
+      AssertEquals(0, ClassesList.IndexOfAnyAncestor(Node));
+    finally FreeAndNil(Node) end;
+
+    Node := TAbstractGeometryNode.Create;
+    try
+      AssertEquals(0, ClassesList.IndexOfAnyAncestor(Node));
+    finally FreeAndNil(Node) end;
+
+    Node := TGroupNode.Create;
+    try
+      AssertEquals(1, ClassesList.IndexOfAnyAncestor(Node));
+    finally FreeAndNil(Node) end;
+  finally FreeAndNil(ClassesList) end;
 end;
 
 initialization
