@@ -175,6 +175,10 @@ function PropertyGetInstance(const PropObject: TObject; const PropInfo: PPropInf
 procedure PropertySetInstance(const PropObject: TObject; const PropInfo: PPropInfo; const Value: TObject);
 { @groupEnd }
 
+{ Declared type (class) for a property of type TObject (object instance).
+  Use only when PropertyType is ptInstance, undefined what happens otherwise. }
+function PropertyGetInstanceClass(const PropObject: TObject; const PropInfo: PPropInfo): TClass;
+
 { Get or set a property of enumerated type.
   Use only when PropertyType is ptEnumeration, undefined what happens otherwise.
 
@@ -594,6 +598,15 @@ procedure PropertySetInstance(const PropObject: TObject; const PropInfo: PPropIn
 begin
   Assert(PropertyType(PropInfo) = ptInstance);
   SetObjectProp(PropObject, PropInfo, Value);
+end;
+
+function PropertyGetInstanceClass(const PropObject: TObject; const PropInfo: PPropInfo): TClass;
+begin
+  Assert(PropertyType(PropInfo) = ptInstance);
+  { Use PropInfo^.Name, not PropInfo, because FPC doesn't have overload
+    that accepts PPropInfo, unlike Delphi:
+    https://docwiki.embarcadero.com/Libraries/Sydney//en/System.TypInfo.GetObjectPropClass }
+  Result := GetObjectPropClass(PropObject, PropInfo^.Name);
 end;
 
 function PropertyGetEnum(const PropObject: TObject; const PropInfo: PPropInfo): Integer;
