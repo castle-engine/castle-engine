@@ -686,7 +686,10 @@ begin
   if FCurrentAnimation <> AnimationName then
   begin
     FCurrentAnimation := AnimationName;
-    if not (Parent as TCastleScene).PlayAnimation(FCurrentAnimation, Loop) then
+    // TODO: just abort for now if csLoading in Parent.ComponentStyle, hoping we'll call UpdateAnimation later.
+    // We should do it later, once parent is loaded.
+    if (not (csLoading in Parent.ComponentState)) and
+       (not (Parent as TCastleScene).PlayAnimation(FCurrentAnimation, Loop)) then
       WritelnWarning('Cannot find animation "%s" on %s', [FCurrentAnimation, Name]);
   end;
 end;
