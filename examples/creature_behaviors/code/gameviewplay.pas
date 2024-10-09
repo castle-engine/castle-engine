@@ -67,33 +67,7 @@ end;
 procedure TViewPlay.Start;
 begin
   inherited;
-
   PlayerLiving.OnHurt := {$ifdef FPC}@{$endif} PlayerHurt;
-
-  { Mouse look always active.
-    In this case MainViewport.TransformUnderMouse queries always screen middle,
-    which is what we want.
-    We display also always crosshair in the middle of the screen.
-
-    Note: If we wanted to use mouse cursor position instead of screen middle,
-    this is also possible.
-    - We can hide Crosshair1 (Crosshair1.Exists:=false or just remove it from the design)
-    - We can leave WalkNavigation.MouseLook := false
-    - We can query hit at any screen position,
-      use
-
-        Viewport.PositionToRay(Container.MousePosition, true, RayOrigin, RayDirection);
-        RayCollision := Viewport.Items.WorldRay(RayOrigin, RayDirection);
-        if RayCollision <> nil then
-        try
-          HitTransform := RayCollision.Transform;
-          if HitTransform <> nil then
-            ...
-        finally
-          FreeAndNil(RayCollision);
-        end;
-  }
-  WalkNavigation.MouseLook := true;
 end;
 
 procedure TViewPlay.Stop;
@@ -107,12 +81,19 @@ begin
   { This virtual method is executed every frame (many times per second). }
   LabelFps.Caption := 'FPS: ' + Container.Fps.ToString;
   LabelPlayerLife.Caption := FormatDot('Life: %f', [PlayerLiving.Life]);
+
+  { Mouse look only active when right mouse button pressed.
+    This is nice for demo, allows to release mouse look easily.
+    For normal FPS games, you usually just keep MouseLook always true
+    during play, and only release it during a "pause" menu or such. }
+  WalkNavigation.MouseLook := buttonRight in Container.MousePressed;
 end;
 
 function TViewPlay.Press(const Event: TInputPressRelease): Boolean;
 var
+  HitTransform: TCastleTransform;
   HitLiving: TCastleLiving;
-  EnemyScene: TCastleScene;
+  HitScene: TCastleScene;
 begin
   Result := inherited;
   if Result then Exit; // allow the ancestor to handle keys
@@ -132,19 +113,25 @@ begin
     SoundEngine.Play(SoundShoot);
 
     { We clicked on enemy if
-      - TransformUnderMouse indicates we hit something
-      - It has a behavior of TCastleLiving. }
-    if (MainViewport.TransformUnderMouse <> nil) and
-       (MainViewport.TransformUnderMouse.FindBehavior(TCastleLiving) <> nil) then
+      - MainViewport.TransformHit(...) indicates we hit something
+      - It has a behavior of TCastleLiving.
+
+      Note: we use TransformHit, not TransformUnderMouse,
+      because we want to shoot from viewport center, not from the mouse cursor
+      (regardless if MouseLook is on or off). We consistently always show
+      crosshair in the screen center. }
+    HitTransform := MainViewport.TransformHit(MainViewport.RenderRect.Center, true);
+    if (HitTransform <> nil) and
+       (HitTransform.FindBehavior(TCastleLiving) <> nil) then
     begin
-      HitLiving := MainViewport.TransformUnderMouse.FindBehavior(TCastleLiving) as TCastleLiving;
+      HitLiving := HitTransform.FindBehavior(TCastleLiving) as TCastleLiving;
       HitLiving.Hurt(1000, MainViewport.Camera.WorldDirection);
       if HitLiving.Dead then
       begin
-        EnemyScene := MainViewport.TransformUnderMouse as TCastleScene;
+        HitScene := HitTransform as TCastleScene;
         // dead corpse no longer collides
-        EnemyScene.Pickable := false;
-        EnemyScene.Collides := false;
+        HitScene.Pickable := false;
+        HitScene.Collides := false;
       end;
     end;
 
