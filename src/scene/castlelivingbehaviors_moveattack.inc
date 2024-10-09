@@ -536,6 +536,9 @@ begin
   if not (Parent is TCastleScene) then
     raise Exception.CreateFmt('%s can only be attached to a TCastleScene', [ClassName]);
 
+  // TODO: current MoveAttackBehavior assumes old physics, and obeys Gravity to know how to rotate
+  Parent.Gravity := true;
+
   UpdateAnimation;
 
   WaypointsSaved := TWaypointList.Create(false);
