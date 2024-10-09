@@ -102,6 +102,7 @@
   TIfcRelDeclares = class;
   TIfcDefinitionSelectList = class;
   TIfcContext = class;
+  TIfcObjectPlacementList = class;
 
   { Float type used throughout IFC.
 
@@ -726,7 +727,26 @@
 
   { Define the object coordinate system. }
   TIfcObjectPlacement = class abstract(TIfcPersistent)
-    // TODO
+  strict private
+    FPlacementRelTo: TIfcObjectPlacement;
+    FPlacesObject: TIfcProductList;
+    FReferencedByPlacements: TIfcObjectPlacementList;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+  published
+    { Reference to object placement that provides the relative placement with
+      its placement in a grid, local coordinate system or linear referenced
+      placement. }
+    property PlacementRelTo: TIfcObjectPlacement read FPlacementRelTo write FPlacementRelTo;
+
+    { The IfcObjectPlacement shall be used to provide a placement
+      and an object coordinate system for instances of IfcProduct. }
+    property PlacesObject: TIfcProductList read FPlacesObject;
+
+    property ReferencedByPlacements: TIfcObjectPlacementList read FReferencedByPlacements;
+  end;
+  TIfcObjectPlacementList = class({$ifdef FPC}specialize{$endif} TObjectList<TIfcObjectPlacement>)
   end;
 
   { Abstract point.
@@ -1613,6 +1633,22 @@ end;
 destructor TIfcRelAssociates.Destroy;
 begin
   FreeAndNil(FRelatedObjects);
+  inherited;
+end;
+
+{ TIfcObjectPlacement -------------------------------------------------------- }
+
+constructor TIfcObjectPlacement.Create(AOwner: TComponent);
+begin
+  inherited;
+  FPlacesObject := TIfcProductList.Create(false);
+  FReferencedByPlacements := TIfcObjectPlacementList.Create(false);
+end;
+
+destructor TIfcObjectPlacement.Destroy;
+begin
+  FreeAndNil(FPlacesObject);
+  FreeAndNil(FReferencedByPlacements);
   inherited;
 end;
 
