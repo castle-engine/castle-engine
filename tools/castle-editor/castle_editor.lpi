@@ -27,19 +27,22 @@
     <RunParams>
       <FormatVersion Value="2"/>
     </RunParams>
-    <RequiredPackages Count="4">
+    <RequiredPackages Count="5">
       <Item1>
-        <PackageName Value="castle_editor_components"/>
+        <PackageName Value="MetaDarkStyle"/>
       </Item1>
       <Item2>
-        <PackageName Value="AnchorDocking"/>
+        <PackageName Value="castle_editor_components"/>
       </Item2>
       <Item3>
-        <PackageName Value="castle_components"/>
+        <PackageName Value="AnchorDocking"/>
       </Item3>
       <Item4>
-        <PackageName Value="LCL"/>
+        <PackageName Value="castle_components"/>
       </Item4>
+      <Item5>
+        <PackageName Value="LCL"/>
+      </Item5>
     </RequiredPackages>
     <Units Count="31">
       <Unit0>
