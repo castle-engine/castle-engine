@@ -1802,6 +1802,7 @@ const
   procedure LaunchImageStoryboardInitialize;
   var
     Img: TCastleImage;
+    StoryboardFileName: String;
   begin
     if Manifest.LaunchImageStoryboard.Path <> '' then
     begin
@@ -1809,7 +1810,11 @@ const
         raise Exception.CreateFmt('Launch image storyboard must be a PNG file, but is "%s"', [
           Manifest.LaunchImageStoryboard.Path
         ]);
-      Img := LoadImage(Manifest.LaunchImageStoryboard.Path);
+      { Note: Using "StoryboardFileName := Manifest.LaunchImageStoryboard.Path"
+        would be wrong, as "castle-engine compile" may be executed in subdirectory
+        of the project, not the project's top-level directory. }
+      StoryboardFileName := CombinePaths(Path, Manifest.LaunchImageStoryboard.Path);
+      Img := LoadImage(StoryboardFileName);
       try
         FLaunchImageStoryboardWidth := Img.Width;
         FLaunchImageStoryboardHeight := Img.Height;
