@@ -14,7 +14,7 @@
 }
 
 { Main form. }
-unit mainf;
+unit MainF;
 
 interface
 
@@ -280,6 +280,9 @@ end;
 
 procedure TMain.FormCreate(Sender: TObject);
 begin
+  ApplicationProperties.ApplicationName := 'model_3d_viewer';
+  InitializeLog;
+
   { load config settings }
   UserConfig.Load;
 
