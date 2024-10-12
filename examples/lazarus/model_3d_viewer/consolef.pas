@@ -1,6 +1,20 @@
-unit ConsoleF;
+{
+  Copyright 2008-2024 Michalis Kamburelis.
 
-{$mode objfpc}{$H+}
+  This file is part of "Castle Game Engine".
+
+  "Castle Game Engine" is free software; see the file COPYING.txt,
+  included in this distribution, for details about the copyright.
+
+  "Castle Game Engine" is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+  ----------------------------------------------------------------------------
+}
+
+{ Form to track and display warnings. }
+unit ConsoleF;
 
 interface
 
@@ -9,19 +23,17 @@ uses
   CastleLog;
 
 type
-
-  { TConsole }
-
+  { Track and display warnings
+    (send to Castle Game Engine log by WritelnWarning). }
   TConsole = class(TForm)
     Button1: TButton;
     Memo1: TMemo;
     procedure Button1Click(Sender: TObject);
-    procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
   private
   public
-    WasWarnings: boolean;
+    WarningsCount: Integer;
     procedure WarningToConsole(const Category, S: string);
   end;
 
@@ -40,17 +52,12 @@ uses MainF,
 procedure TConsole.WarningToConsole(const Category, S: string);
 begin
   Memo1.Lines.Append(Category + ': ' + S);
-  WasWarnings := true;
+  Inc(WarningsCount);
 end;
 
 procedure TConsole.Button1Click(Sender: TObject);
 begin
   Close;
-end;
-
-procedure TConsole.FormClose(Sender: TObject; var CloseAction: TCloseAction);
-begin
-  Main.MenuShowConsole.Checked := false;
 end;
 
 procedure TConsole.FormCreate(Sender: TObject);

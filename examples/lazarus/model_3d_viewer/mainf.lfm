@@ -910,6 +910,23 @@ object Main: TMain
       Caption = 'FPS: xxx xxx xxx'
       ParentColor = False
     end
+    object ButtonWarnings: TButton
+      AnchorSideTop.Control = ImagePoweredBy
+      AnchorSideTop.Side = asrBottom
+      AnchorSideRight.Control = ButtonScreenshot
+      AnchorSideRight.Side = asrBottom
+      Left = 791
+      Height = 30
+      Top = 112
+      Width = 88
+      Anchors = [akTop, akRight]
+      AutoSize = True
+      Caption = 'Warnings'
+      Enabled = False
+      TabOrder = 3
+      Visible = False
+      OnClick = ButtonWarningsClick
+    end
   end
   object Browser: TCastleControl
     AnchorSideBottom.Control = PanelBottom
@@ -954,8 +971,7 @@ object Main: TMain
         OnClick = MenuFocusGLControlClick
       end
       object MenuShowConsole: TMenuItem
-        AutoCheck = True
-        Caption = 'Show Warnings &Console'
+        Caption = 'Show Warnings'
         ShowAlwaysCheckable = True
         OnClick = MenuShowConsoleClick
       end

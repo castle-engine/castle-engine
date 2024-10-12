@@ -1,5 +1,5 @@
 {
-  Copyright 2008-2022 Michalis Kamburelis.
+  Copyright 2008-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -16,8 +16,6 @@
 { Main form. }
 unit mainf;
 
-{$mode objfpc}{$H+}
-
 interface
 
 uses Classes, SysUtils, LResources, Forms, Controls, Graphics, Dialogs,
@@ -26,6 +24,7 @@ uses Classes, SysUtils, LResources, Forms, Controls, Graphics, Dialogs,
   CastleViewport, CastleDialogs, CastleControls;
 
 type
+  { Main form. }
   TMain = class(TForm)
     ApplicationProperties1: TApplicationProperties;
     ButtonExamine: TSpeedButton;
@@ -34,6 +33,7 @@ type
     ButtonScreenshot: TBitBtn;
     ButtonChangeCamera: TButton;
     ButtonWalk: TSpeedButton;
+    ButtonWarnings: TButton;
     EditPositionX: TEdit;
     EditPositionY: TEdit;
     EditPositionZ: TEdit;
@@ -72,6 +72,7 @@ type
     procedure ButtonScreenshotClick(Sender: TObject);
     procedure BrowserCameraChanged(Camera: TObject);
     procedure ButtonChangeCameraClick(Sender: TObject);
+    procedure ButtonWarningsClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormDeactivate(Sender: TObject);
     procedure MenuAboutOpenGLClick(Sender: TObject);
@@ -137,7 +138,9 @@ procedure TMain.OpenScene(const Url: String);
   end;
 
 begin
-  Console.WasWarnings := false;
+  Console.WarningsCount := 0; // reset
+  ButtonWarnings.Visible := false;
+  ButtonWarnings.Enabled := false;
   Console.Memo1.Lines.Append('--- Loading ' + Url);
 
   LoadScene(Url);
@@ -145,11 +148,9 @@ begin
   SceneUrl := Url;
   UpdateCaption;
 
-  if Console.WasWarnings then
-  begin
-    MenuShowConsole.Checked := true;
-    Console.Visible := MenuShowConsole.Checked;
-  end;
+  ButtonWarnings.Caption := Format('Warnings (%d)', [Console.WarningsCount]);
+  ButtonWarnings.Visible := Console.WarningsCount <> 0;
+  ButtonWarnings.Enabled := Console.WarningsCount <> 0;
 
   RecentFiles.Add(Url);
 
@@ -184,7 +185,7 @@ end;
 
 procedure TMain.MenuShowConsoleClick(Sender: TObject);
 begin
-  Console.Visible := MenuShowConsole.Checked;
+  Console.Show;
 end;
 
 procedure TMain.MenuWebsiteClick(Sender: TObject);
@@ -351,6 +352,11 @@ begin
       StrToFloatDot(EditUpX.Text),
       StrToFloatDot(EditUpY.Text),
       StrToFloatDot(EditUpZ.Text)));
+end;
+
+procedure TMain.ButtonWarningsClick(Sender: TObject);
+begin
+  Console.Show;
 end;
 
 procedure TMain.BrowserCameraChanged(Camera: TObject);
