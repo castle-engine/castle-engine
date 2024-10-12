@@ -130,6 +130,8 @@ procedure TMain.OpenScene(const Url: String);
     MainScene.ProcessEvents := true;
 
     Viewport.Items.Add(MainScene);
+    // deprecated, but must be set for AssignDefaultCamera to reflect current camera
+    Viewport.Items.MainScene := MainScene;
 
     Viewport.AssignDefaultCamera;
   end;
