@@ -228,17 +228,17 @@ begin
     Viewport.Camera.GetView(Pos, Dir, Up);
     { Note that Dir, Up returned here are always normalized }
 
-    EditPositionX.Text := Format('%f', [Pos[0]]);
-    EditPositionY.Text := Format('%f', [Pos[1]]);
-    EditPositionZ.Text := Format('%f', [Pos[2]]);
+    EditPositionX.Text := FormatDot('%f', [Pos[0]]);
+    EditPositionY.Text := FormatDot('%f', [Pos[1]]);
+    EditPositionZ.Text := FormatDot('%f', [Pos[2]]);
 
-    EditDirectionX.Text := Format('%f', [Dir[0]]);
-    EditDirectionY.Text := Format('%f', [Dir[1]]);
-    EditDirectionZ.Text := Format('%f', [Dir[2]]);
+    EditDirectionX.Text := FormatDot('%f', [Dir[0]]);
+    EditDirectionY.Text := FormatDot('%f', [Dir[1]]);
+    EditDirectionZ.Text := FormatDot('%f', [Dir[2]]);
 
-    EditUpX.Text := Format('%f', [Up[0]]);
-    EditUpY.Text := Format('%f', [Up[1]]);
-    EditUpZ.Text := Format('%f', [Up[2]]);
+    EditUpX.Text := FormatDot('%f', [Up[0]]);
+    EditUpY.Text := FormatDot('%f', [Up[1]]);
+    EditUpZ.Text := FormatDot('%f', [Up[2]]);
   end;
 end;
 
