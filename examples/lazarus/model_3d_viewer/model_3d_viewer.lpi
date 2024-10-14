@@ -61,6 +61,7 @@
         <ComponentName Value="Main"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
+        <UnitName Value="MainF"/>
       </Unit1>
     </Units>
   </ProjectOptions>
