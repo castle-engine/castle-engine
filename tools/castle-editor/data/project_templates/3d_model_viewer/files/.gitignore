@@ -17,6 +17,8 @@ __recovery
 __history
 *.deployproj
 *.delphilsp.json
+# Auto-updated by Delphi IDE, unused for now (we use castle-auto-generated-resources.res)
+/${DELPHI_EXECUTABLE_NAME}.res
 
 # Blender
 *.blend?
