@@ -915,6 +915,40 @@ type
       @seealso TRayCollision.Transform }
     function TransformUnderMouse: TCastleTransform;
 
+    { Current TCastleTransform hit by the ray from given Position over the viewport.
+
+      Position and ContainerCoordinates meaning is the same as for @link(PositionToRay):
+
+      @unorderedList(
+        @item(When ContainerCoordinates = @true,
+          then Position is in real device coordinates and relative to whole
+          container.
+
+          E.g. passing a @code(Position) equal to @code(MyViewport.RenderRect.Center)
+          means shooting a ray from the center of the viewport.
+
+          E.g. passing a @code(Position) equal to @code(Container.MousePosition)
+          means shooting a ray from the current mouse position.
+        )
+
+        @item(When ContainerCoordinates = @false,
+          then Position is in scaled UI coordinates and relative to the viewport.
+
+          E.g. passing a @code(Position) equal to
+          @code(Vector2(MyViewport.EffectiveWidth / 2, MyViewport.EffectiveHeight / 2))
+          means shooting a ray from the center of the viewport.
+
+          E.g. passing a @code(Position) equal to Vector2(0, 0)
+          means shooting a ray from the left-bottom corner of the viewport.
+        )
+      )
+
+      Similar to @link(TransformUnderMouse), this method returns the first
+      TCastleTransform hit by the ray.
+    }
+    function TransformHit(const Position: TVector2;
+      const ContainerCoordinates: Boolean): TCastleTransform;
+
     { Do not collide with this object when moving by @link(Navigation).
       It makes sense to put here player avatar (in 3rd person view)
       or player collision volume (in 1st person view)
@@ -2135,6 +2169,23 @@ begin
   if R <> nil then
     Result := R.Transform
   else
+    Result := nil;
+end;
+
+function TCastleViewport.TransformHit(const Position: TVector2;
+  const ContainerCoordinates: Boolean): TCastleTransform;
+var
+  RayOrigin, RayDirection: TVector3;
+  RayHit: TRayCollision;
+begin
+  PositionToRay(Position, ContainerCoordinates, RayOrigin, RayDirection);
+  RayHit := CameraRayCollision(RayOrigin, RayDirection);
+  if RayHit <> nil then
+  begin
+    try
+      Result := RayHit.Transform;
+    finally FreeAndNil(RayHit) end;
+  end else
     Result := nil;
 end;
 

@@ -216,11 +216,6 @@ begin
     TDynLib.Load('libvorbisfile.3.dylib', false);
     if VorbisFileLibrary = nil then
       VorbisFileLibrary := TDynLib.Load('libvorbisfile.dylib', false);
-    if (VorbisFileLibrary = nil) and (BundlePath <> '') then
-      VorbisFileLibrary := TDynLib.Load(BundlePath + 'Contents/MacOS/libvorbisfile.3.dylib', false);
-    if (VorbisFileLibrary = nil) and (BundlePath <> '') then
-      VorbisFileLibrary := TDynLib.Load(BundlePath + 'Contents/MacOS/libvorbisfile.dylib', false);
-
     {$else}
     TDynLib.Load('libvorbisfile.so.3', false);
     if VorbisFileLibrary = nil then

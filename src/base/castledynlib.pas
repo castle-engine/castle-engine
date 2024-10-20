@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2023 Michalis Kamburelis.
+  Copyright 2003-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -66,6 +66,13 @@ type
 
       @item(The interface of this is OS-independent and works for
         both FPC and Delphi.)
+
+      @item(macOS-specific extra feature: when loading a library, we also look
+        for it inside the bundle. This allows to distribute macOS dynamic
+        libraries (libxxx.dylib) simply inside the application bundle,
+        in Contents/MacOS/ directory (alongside executable).
+        This is useful to distribute libraries like libpng, libvorbisfile,
+        libsteam_api with your application.)
     )
 
     Typical usage:
@@ -181,7 +188,9 @@ var
 
 implementation
 
-uses CastleUtils, CastleLog;
+uses CastleUtils, CastleLog,
+  // for BundlePath on Darwin
+  CastleFilesUtils;
 
 constructor TDynLib.Create(const AName: string; AHandle: TDynLibHandle);
 begin
@@ -253,7 +262,17 @@ begin
   if InternalDisableDynamicLibraries then
     Handle := InvalidDynLibHandle
   else
+  begin
     Handle := LoadLibrary(PChar(AName));
+    { On macOS, search for dynamic libraries in the bundle too.
+      This fallback makes sense for libpng, libvorbisfile, libsteam_api...
+      It seems that for everything, so just do it always. }
+    {$ifdef DARWIN}
+    if (Handle = InvalidDynLibHandle) and (BundlePath <> '') then
+      Handle := LoadLibrary(PChar(BundlePath + 'Contents/MacOS/' + AName));
+    {$endif}
+  end;
+
   if Handle = InvalidDynLibHandle then
   begin
     if RaiseExceptionOnError then

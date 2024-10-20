@@ -146,6 +146,8 @@ fi
 PASDOC_INCLUDE_DIRS="\
   --include common_includes/\
   --include transform/\
+  --include services/\
+  --include services/steam/\
   --include scene/\
   --include scene/load/\
   --include scene/load/spine/\

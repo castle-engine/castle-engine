@@ -100,7 +100,7 @@
         <DCC_Namespace>System;Xml;Data;Datasnap;Web;Soap;$(DCC_Namespace)</DCC_Namespace>
         <Icon_MainIcon>$(BDS)\bin\delphi_PROJECTICON.ico</Icon_MainIcon>
         <Icns_MainIcns>$(BDS)\bin\delphi_PROJECTICNS.icns</Icns_MainIcns>
-        <DCC_UnitSearchPath>../../src/base;../../src/common_includes;../../src/base/android;../../src/base/windows;../../src/base/unix;../../src/base_rendering;../../src/base_rendering/dglopengl;../../src/base_rendering/glsl/generated-pascal;../../src/fonts;../../src/window;../../src/window/gtk;../../src/window/windows;../../src/window/unix;../../src/window/deprecated_units;../../src/images;../../src/transform;../../src/scene;../../src/scene/glsl/generated-pascal;../../src/scene/x3d;../../src/scene/load;../../src/scene/load/ifc;../../src/scene/load/spine;../../src/scene/load/md3;../../src/scene/load/collada;../../src/scene/load/pasgltf;../../src/audio;../../src/audio/fmod;../../src/audio/openal;../../src/audio/ogg_vorbis;../../src/files;../../src/files/indy;../../src/castlescript;../../src/ui;../../src/ui/windows;../../src/services;../../src/physics;../../src/physics/kraft;../../src/deprecated_units;../../src/vampyre_imaginglib/src/Source;../../src/vampyre_imaginglib/src/Source/JpegLib;../../src/vampyre_imaginglib/src/Source/ZLib;../../src/vampyre_imaginglib/src/Extras/Extensions;../../src/vampyre_imaginglib/src/Extensions/J2KObjects;../../src/vampyre_imaginglib/src/Extensions/LibTiff;../../src/vampyre_imaginglib/src/Extensions;../../src/delphi;../../src/compatibility/delphi-only;../../src/compatibility/delphi-only/fcl-json;code/;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
+        <DCC_UnitSearchPath>../../src/base;../../src/common_includes;../../src/base/android;../../src/base/windows;../../src/base/unix;../../src/base_rendering;../../src/base_rendering/dglopengl;../../src/base_rendering/glsl/generated-pascal;../../src/fonts;../../src/window;../../src/window/gtk;../../src/window/windows;../../src/window/unix;../../src/window/deprecated_units;../../src/images;../../src/transform;../../src/scene;../../src/scene/glsl/generated-pascal;../../src/scene/x3d;../../src/scene/load;../../src/scene/load/ifc;../../src/scene/load/spine;../../src/scene/load/md3;../../src/scene/load/collada;../../src/scene/load/pasgltf;../../src/audio;../../src/audio/fmod;../../src/audio/openal;../../src/audio/ogg_vorbis;../../src/files;../../src/files/indy;../../src/castlescript;../../src/ui;../../src/ui/windows;../../src/services;../../src/services/steam;../../src/physics;../../src/physics/kraft;../../src/deprecated_units;../../src/vampyre_imaginglib/src/Source;../../src/vampyre_imaginglib/src/Source/JpegLib;../../src/vampyre_imaginglib/src/Source/ZLib;../../src/vampyre_imaginglib/src/Extras/Extensions;../../src/vampyre_imaginglib/src/Extensions/J2KObjects;../../src/vampyre_imaginglib/src/Extensions/LibTiff;../../src/vampyre_imaginglib/src/Extensions;../../src/delphi;../../src/compatibility/delphi-only;../../src/compatibility/delphi-only/fcl-json;code/;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
         <DCC_DcuOutput>castle-engine-output\delphi\$(Platform)\$(Config)</DCC_DcuOutput>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base_Android)'!=''">
@@ -294,6 +294,23 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
+<DeployFile LocalName="data\README.txt" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>README.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>README.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>README.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
 <DeployFile LocalName="data\gameviewmain.castle-user-interface" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
   <RemoteDir>./data/</RemoteDir>
@@ -311,649 +328,632 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\map_objects\AUTHORS.txt" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\map_objects/AUTHORS.txt" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/map_objects\</RemoteDir>
+  <RemoteDir>./data/map_objects/</RemoteDir>
   <RemoteName>AUTHORS.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/map_objects\</RemoteDir>
+  <RemoteDir>./data/map_objects/</RemoteDir>
   <RemoteName>AUTHORS.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/map_objects\</RemoteDir>
+  <RemoteDir>./data/map_objects/</RemoteDir>
   <RemoteName>AUTHORS.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\map_objects\ground\soil_1_ta.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\map_objects/ground/soil_1_ta.png" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/map_objects\ground\</RemoteDir>
+  <RemoteDir>./data/map_objects/ground/</RemoteDir>
   <RemoteName>soil_1_ta.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/map_objects\ground\</RemoteDir>
+  <RemoteDir>./data/map_objects/ground/</RemoteDir>
   <RemoteName>soil_1_ta.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/map_objects\ground\</RemoteDir>
+  <RemoteDir>./data/map_objects/ground/</RemoteDir>
   <RemoteName>soil_1_ta.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\map_objects\ground\soil_2_ta.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\map_objects/ground/soil_2_ta.png" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/map_objects\ground\</RemoteDir>
+  <RemoteDir>./data/map_objects/ground/</RemoteDir>
   <RemoteName>soil_2_ta.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/map_objects\ground\</RemoteDir>
+  <RemoteDir>./data/map_objects/ground/</RemoteDir>
   <RemoteName>soil_2_ta.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/map_objects\ground\</RemoteDir>
+  <RemoteDir>./data/map_objects/ground/</RemoteDir>
   <RemoteName>soil_2_ta.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\map_objects\ground\soil_3_ta.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\map_objects/ground/soil_3_ta.png" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/map_objects\ground\</RemoteDir>
+  <RemoteDir>./data/map_objects/ground/</RemoteDir>
   <RemoteName>soil_3_ta.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/map_objects\ground\</RemoteDir>
+  <RemoteDir>./data/map_objects/ground/</RemoteDir>
   <RemoteName>soil_3_ta.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/map_objects\ground\</RemoteDir>
+  <RemoteDir>./data/map_objects/ground/</RemoteDir>
   <RemoteName>soil_3_ta.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\map_objects\ground\soil_4_ta.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\map_objects/ground/soil_4_ta.png" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/map_objects\ground\</RemoteDir>
+  <RemoteDir>./data/map_objects/ground/</RemoteDir>
   <RemoteName>soil_4_ta.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/map_objects\ground\</RemoteDir>
+  <RemoteDir>./data/map_objects/ground/</RemoteDir>
   <RemoteName>soil_4_ta.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/map_objects\ground\</RemoteDir>
+  <RemoteDir>./data/map_objects/ground/</RemoteDir>
   <RemoteName>soil_4_ta.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\map_objects\ground\soil_5_ta.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\map_objects/ground/soil_5_ta.png" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/map_objects\ground\</RemoteDir>
+  <RemoteDir>./data/map_objects/ground/</RemoteDir>
   <RemoteName>soil_5_ta.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/map_objects\ground\</RemoteDir>
+  <RemoteDir>./data/map_objects/ground/</RemoteDir>
   <RemoteName>soil_5_ta.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/map_objects\ground\</RemoteDir>
+  <RemoteDir>./data/map_objects/ground/</RemoteDir>
   <RemoteName>soil_5_ta.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\map_objects\ground\soil_6_ta.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\map_objects/ground/soil_6_ta.png" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/map_objects\ground\</RemoteDir>
+  <RemoteDir>./data/map_objects/ground/</RemoteDir>
   <RemoteName>soil_6_ta.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/map_objects\ground\</RemoteDir>
+  <RemoteDir>./data/map_objects/ground/</RemoteDir>
   <RemoteName>soil_6_ta.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/map_objects\ground\</RemoteDir>
+  <RemoteDir>./data/map_objects/ground/</RemoteDir>
   <RemoteName>soil_6_ta.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\map_objects\ground\soil_7_ta.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\map_objects/ground/soil_7_ta.png" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/map_objects\ground\</RemoteDir>
+  <RemoteDir>./data/map_objects/ground/</RemoteDir>
   <RemoteName>soil_7_ta.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/map_objects\ground\</RemoteDir>
+  <RemoteDir>./data/map_objects/ground/</RemoteDir>
   <RemoteName>soil_7_ta.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/map_objects\ground\</RemoteDir>
+  <RemoteDir>./data/map_objects/ground/</RemoteDir>
   <RemoteName>soil_7_ta.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\map_objects\observer\observer.castle-sprite-sheet" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\map_objects/observer/observer.castle-sprite-sheet" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/map_objects\observer\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/</RemoteDir>
   <RemoteName>observer.castle-sprite-sheet</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/map_objects\observer\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/</RemoteDir>
   <RemoteName>observer.castle-sprite-sheet</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/map_objects\observer\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/</RemoteDir>
   <RemoteName>observer.castle-sprite-sheet</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\map_objects\observer\observer.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\map_objects/observer/observer.png" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/map_objects\observer\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/</RemoteDir>
   <RemoteName>observer.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/map_objects\observer\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/</RemoteDir>
   <RemoteName>observer.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/map_objects\observer\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/</RemoteDir>
   <RemoteName>observer.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\map_objects\observer\sprite_sheet_frames\observer_dying_N_1_hh.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\map_objects/observer/sprite_sheet_frames/observer_dying_N_1_hh.png" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
   <RemoteName>observer_dying_N_1_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
   <RemoteName>observer_dying_N_1_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
   <RemoteName>observer_dying_N_1_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\map_objects\observer\sprite_sheet_frames\observer_dying_N_2_hh.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\map_objects/observer/sprite_sheet_frames/observer_dying_N_2_hh.png" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
   <RemoteName>observer_dying_N_2_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
   <RemoteName>observer_dying_N_2_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
   <RemoteName>observer_dying_N_2_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\map_objects\observer\sprite_sheet_frames\observer_dying_N_3_hh.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\map_objects/observer/sprite_sheet_frames/observer_dying_N_3_hh.png" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
   <RemoteName>observer_dying_N_3_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
   <RemoteName>observer_dying_N_3_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
   <RemoteName>observer_dying_N_3_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\map_objects\observer\sprite_sheet_frames\observer_dying_N_4_hh.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\map_objects/observer/sprite_sheet_frames/observer_dying_N_4_hh.png" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
   <RemoteName>observer_dying_N_4_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
   <RemoteName>observer_dying_N_4_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
   <RemoteName>observer_dying_N_4_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\map_objects\observer\sprite_sheet_frames\observer_dying_N_5_hh.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\map_objects/observer/sprite_sheet_frames/observer_dying_N_5_hh.png" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
   <RemoteName>observer_dying_N_5_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
   <RemoteName>observer_dying_N_5_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
   <RemoteName>observer_dying_N_5_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\map_objects\observer\sprite_sheet_frames\observer_dying_N_6_hh.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\map_objects/observer/sprite_sheet_frames/observer_dying_N_6_hh.png" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
   <RemoteName>observer_dying_N_6_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
   <RemoteName>observer_dying_N_6_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
   <RemoteName>observer_dying_N_6_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\map_objects\observer\sprite_sheet_frames\observer_float_E_1_hh.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\map_objects/observer/sprite_sheet_frames/observer_float_E_1_hh.png" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
   <RemoteName>observer_float_E_1_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
   <RemoteName>observer_float_E_1_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
   <RemoteName>observer_float_E_1_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\map_objects\observer\sprite_sheet_frames\observer_float_N_1_hh.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\map_objects/observer/sprite_sheet_frames/observer_float_NE_1_hh.png" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
-  <RemoteName>observer_float_N_1_hh.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
-  <RemoteName>observer_float_N_1_hh.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
-  <RemoteName>observer_float_N_1_hh.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\map_objects\observer\sprite_sheet_frames\observer_float_NE_1_hh.png" Configuration="Debug" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
   <RemoteName>observer_float_NE_1_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
   <RemoteName>observer_float_NE_1_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
   <RemoteName>observer_float_NE_1_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\map_objects\observer\sprite_sheet_frames\observer_float_NW_1_hh.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\map_objects/observer/sprite_sheet_frames/observer_float_NW_1_hh.png" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
   <RemoteName>observer_float_NW_1_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
   <RemoteName>observer_float_NW_1_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
   <RemoteName>observer_float_NW_1_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\map_objects\observer\sprite_sheet_frames\observer_float_S_1_hh.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\map_objects/observer/sprite_sheet_frames/observer_float_N_1_hh.png" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
-  <RemoteName>observer_float_S_1_hh.png</RemoteName>
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
+  <RemoteName>observer_float_N_1_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
-  <RemoteName>observer_float_S_1_hh.png</RemoteName>
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
+  <RemoteName>observer_float_N_1_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
-  <RemoteName>observer_float_S_1_hh.png</RemoteName>
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
+  <RemoteName>observer_float_N_1_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\map_objects\observer\sprite_sheet_frames\observer_float_SE_1_hh.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\map_objects/observer/sprite_sheet_frames/observer_float_SE_1_hh.png" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
   <RemoteName>observer_float_SE_1_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
   <RemoteName>observer_float_SE_1_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
   <RemoteName>observer_float_SE_1_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\map_objects\observer\sprite_sheet_frames\observer_float_SW_1_hh.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\map_objects/observer/sprite_sheet_frames/observer_float_SW_1_hh.png" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
   <RemoteName>observer_float_SW_1_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
   <RemoteName>observer_float_SW_1_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
   <RemoteName>observer_float_SW_1_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\map_objects\observer\sprite_sheet_frames\observer_float_W_1_hh.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\map_objects/observer/sprite_sheet_frames/observer_float_S_1_hh.png" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
+  <RemoteName>observer_float_S_1_hh.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
+  <RemoteName>observer_float_S_1_hh.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
+  <RemoteName>observer_float_S_1_hh.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\map_objects/observer/sprite_sheet_frames/observer_float_W_1_hh.png" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
   <RemoteName>observer_float_W_1_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
   <RemoteName>observer_float_W_1_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
   <RemoteName>observer_float_W_1_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\map_objects\observer\sprite_sheet_frames\observer_growing_1_hh.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\map_objects/observer/sprite_sheet_frames/observer_growing_1_hh.png" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
   <RemoteName>observer_growing_1_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
   <RemoteName>observer_growing_1_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
   <RemoteName>observer_growing_1_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\map_objects\observer\sprite_sheet_frames\observer_growing_2_hh.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\map_objects/observer/sprite_sheet_frames/observer_growing_2_hh.png" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
   <RemoteName>observer_growing_2_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
   <RemoteName>observer_growing_2_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
   <RemoteName>observer_growing_2_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\map_objects\observer\sprite_sheet_frames\observer_growing_3_hh.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\map_objects/observer/sprite_sheet_frames/observer_growing_3_hh.png" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
   <RemoteName>observer_growing_3_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
   <RemoteName>observer_growing_3_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
   <RemoteName>observer_growing_3_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\map_objects\observer\sprite_sheet_frames\observer_growing_4_hh.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\map_objects/observer/sprite_sheet_frames/observer_growing_4_hh.png" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
   <RemoteName>observer_growing_4_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
   <RemoteName>observer_growing_4_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
   <RemoteName>observer_growing_4_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\map_objects\observer\sprite_sheet_frames\observer_growing_5_hh.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\map_objects/observer/sprite_sheet_frames/observer_growing_5_hh.png" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
   <RemoteName>observer_growing_5_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
   <RemoteName>observer_growing_5_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
   <RemoteName>observer_growing_5_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\map_objects\observer\sprite_sheet_frames\observer_growing_6_hh.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\map_objects/observer/sprite_sheet_frames/observer_growing_6_hh.png" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
   <RemoteName>observer_growing_6_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
   <RemoteName>observer_growing_6_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
   <RemoteName>observer_growing_6_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\map_objects\observer\sprite_sheet_frames\observer_growing_7_hh.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\map_objects/observer/sprite_sheet_frames/observer_growing_7_hh.png" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
   <RemoteName>observer_growing_7_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
   <RemoteName>observer_growing_7_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
   <RemoteName>observer_growing_7_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\map_objects\observer\sprite_sheet_frames\observer_spawn_N_1_hh.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\map_objects/observer/sprite_sheet_frames/observer_spawn_N_1_hh.png" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
   <RemoteName>observer_spawn_N_1_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
   <RemoteName>observer_spawn_N_1_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
   <RemoteName>observer_spawn_N_1_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\map_objects\observer\sprite_sheet_frames\observer_spawn_N_2_hh.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\map_objects/observer/sprite_sheet_frames/observer_spawn_N_2_hh.png" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
   <RemoteName>observer_spawn_N_2_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
   <RemoteName>observer_spawn_N_2_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
   <RemoteName>observer_spawn_N_2_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\map_objects\observer\sprite_sheet_frames\observer_spawn_N_3_hh.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\map_objects/observer/sprite_sheet_frames/observer_spawn_N_3_hh.png" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
   <RemoteName>observer_spawn_N_3_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
   <RemoteName>observer_spawn_N_3_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
   <RemoteName>observer_spawn_N_3_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\map_objects\penguin\penguin1.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\map_objects/penguin/penguin1.png" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/map_objects\penguin\</RemoteDir>
+  <RemoteDir>./data/map_objects/penguin/</RemoteDir>
   <RemoteName>penguin1.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/map_objects\penguin\</RemoteDir>
+  <RemoteDir>./data/map_objects/penguin/</RemoteDir>
   <RemoteName>penguin1.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/map_objects\penguin\</RemoteDir>
+  <RemoteDir>./data/map_objects/penguin/</RemoteDir>
   <RemoteName>penguin1.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\map_objects\trees\kambi_birch_01_mature_autumn_thc.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\map_objects/trees/kambi_birch_01_mature_autumn_thc.png" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/map_objects\trees\</RemoteDir>
+  <RemoteDir>./data/map_objects/trees/</RemoteDir>
   <RemoteName>kambi_birch_01_mature_autumn_thc.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/map_objects\trees\</RemoteDir>
+  <RemoteDir>./data/map_objects/trees/</RemoteDir>
   <RemoteName>kambi_birch_01_mature_autumn_thc.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/map_objects\trees\</RemoteDir>
+  <RemoteDir>./data/map_objects/trees/</RemoteDir>
   <RemoteName>kambi_birch_01_mature_autumn_thc.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\map_objects\trees\kambi_birch_01_mature_winter_thc.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\map_objects/trees/kambi_birch_01_mature_winter_thc.png" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/map_objects\trees\</RemoteDir>
+  <RemoteDir>./data/map_objects/trees/</RemoteDir>
   <RemoteName>kambi_birch_01_mature_winter_thc.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/map_objects\trees\</RemoteDir>
+  <RemoteDir>./data/map_objects/trees/</RemoteDir>
   <RemoteName>kambi_birch_01_mature_winter_thc.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/map_objects\trees\</RemoteDir>
+  <RemoteDir>./data/map_objects/trees/</RemoteDir>
   <RemoteName>kambi_birch_01_mature_winter_thc.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\README.txt" Configuration="Debug" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>README.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>README.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>README.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
@@ -974,6 +974,23 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
+<DeployFile LocalName="data\README.txt" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>README.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>README.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>README.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
 <DeployFile LocalName="data\gameviewmain.castle-user-interface" Configuration="Release" Class="File">
  <Platform Name="Linux64">
   <RemoteDir>./data/</RemoteDir>
@@ -991,649 +1008,632 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\map_objects\AUTHORS.txt" Configuration="Release" Class="File">
+<DeployFile LocalName="data\map_objects/AUTHORS.txt" Configuration="Release" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/map_objects\</RemoteDir>
+  <RemoteDir>./data/map_objects/</RemoteDir>
   <RemoteName>AUTHORS.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/map_objects\</RemoteDir>
+  <RemoteDir>./data/map_objects/</RemoteDir>
   <RemoteName>AUTHORS.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/map_objects\</RemoteDir>
+  <RemoteDir>./data/map_objects/</RemoteDir>
   <RemoteName>AUTHORS.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\map_objects\ground\soil_1_ta.png" Configuration="Release" Class="File">
+<DeployFile LocalName="data\map_objects/ground/soil_1_ta.png" Configuration="Release" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/map_objects\ground\</RemoteDir>
+  <RemoteDir>./data/map_objects/ground/</RemoteDir>
   <RemoteName>soil_1_ta.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/map_objects\ground\</RemoteDir>
+  <RemoteDir>./data/map_objects/ground/</RemoteDir>
   <RemoteName>soil_1_ta.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/map_objects\ground\</RemoteDir>
+  <RemoteDir>./data/map_objects/ground/</RemoteDir>
   <RemoteName>soil_1_ta.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\map_objects\ground\soil_2_ta.png" Configuration="Release" Class="File">
+<DeployFile LocalName="data\map_objects/ground/soil_2_ta.png" Configuration="Release" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/map_objects\ground\</RemoteDir>
+  <RemoteDir>./data/map_objects/ground/</RemoteDir>
   <RemoteName>soil_2_ta.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/map_objects\ground\</RemoteDir>
+  <RemoteDir>./data/map_objects/ground/</RemoteDir>
   <RemoteName>soil_2_ta.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/map_objects\ground\</RemoteDir>
+  <RemoteDir>./data/map_objects/ground/</RemoteDir>
   <RemoteName>soil_2_ta.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\map_objects\ground\soil_3_ta.png" Configuration="Release" Class="File">
+<DeployFile LocalName="data\map_objects/ground/soil_3_ta.png" Configuration="Release" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/map_objects\ground\</RemoteDir>
+  <RemoteDir>./data/map_objects/ground/</RemoteDir>
   <RemoteName>soil_3_ta.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/map_objects\ground\</RemoteDir>
+  <RemoteDir>./data/map_objects/ground/</RemoteDir>
   <RemoteName>soil_3_ta.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/map_objects\ground\</RemoteDir>
+  <RemoteDir>./data/map_objects/ground/</RemoteDir>
   <RemoteName>soil_3_ta.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\map_objects\ground\soil_4_ta.png" Configuration="Release" Class="File">
+<DeployFile LocalName="data\map_objects/ground/soil_4_ta.png" Configuration="Release" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/map_objects\ground\</RemoteDir>
+  <RemoteDir>./data/map_objects/ground/</RemoteDir>
   <RemoteName>soil_4_ta.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/map_objects\ground\</RemoteDir>
+  <RemoteDir>./data/map_objects/ground/</RemoteDir>
   <RemoteName>soil_4_ta.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/map_objects\ground\</RemoteDir>
+  <RemoteDir>./data/map_objects/ground/</RemoteDir>
   <RemoteName>soil_4_ta.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\map_objects\ground\soil_5_ta.png" Configuration="Release" Class="File">
+<DeployFile LocalName="data\map_objects/ground/soil_5_ta.png" Configuration="Release" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/map_objects\ground\</RemoteDir>
+  <RemoteDir>./data/map_objects/ground/</RemoteDir>
   <RemoteName>soil_5_ta.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/map_objects\ground\</RemoteDir>
+  <RemoteDir>./data/map_objects/ground/</RemoteDir>
   <RemoteName>soil_5_ta.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/map_objects\ground\</RemoteDir>
+  <RemoteDir>./data/map_objects/ground/</RemoteDir>
   <RemoteName>soil_5_ta.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\map_objects\ground\soil_6_ta.png" Configuration="Release" Class="File">
+<DeployFile LocalName="data\map_objects/ground/soil_6_ta.png" Configuration="Release" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/map_objects\ground\</RemoteDir>
+  <RemoteDir>./data/map_objects/ground/</RemoteDir>
   <RemoteName>soil_6_ta.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/map_objects\ground\</RemoteDir>
+  <RemoteDir>./data/map_objects/ground/</RemoteDir>
   <RemoteName>soil_6_ta.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/map_objects\ground\</RemoteDir>
+  <RemoteDir>./data/map_objects/ground/</RemoteDir>
   <RemoteName>soil_6_ta.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\map_objects\ground\soil_7_ta.png" Configuration="Release" Class="File">
+<DeployFile LocalName="data\map_objects/ground/soil_7_ta.png" Configuration="Release" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/map_objects\ground\</RemoteDir>
+  <RemoteDir>./data/map_objects/ground/</RemoteDir>
   <RemoteName>soil_7_ta.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/map_objects\ground\</RemoteDir>
+  <RemoteDir>./data/map_objects/ground/</RemoteDir>
   <RemoteName>soil_7_ta.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/map_objects\ground\</RemoteDir>
+  <RemoteDir>./data/map_objects/ground/</RemoteDir>
   <RemoteName>soil_7_ta.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\map_objects\observer\observer.castle-sprite-sheet" Configuration="Release" Class="File">
+<DeployFile LocalName="data\map_objects/observer/observer.castle-sprite-sheet" Configuration="Release" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/map_objects\observer\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/</RemoteDir>
   <RemoteName>observer.castle-sprite-sheet</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/map_objects\observer\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/</RemoteDir>
   <RemoteName>observer.castle-sprite-sheet</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/map_objects\observer\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/</RemoteDir>
   <RemoteName>observer.castle-sprite-sheet</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\map_objects\observer\observer.png" Configuration="Release" Class="File">
+<DeployFile LocalName="data\map_objects/observer/observer.png" Configuration="Release" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/map_objects\observer\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/</RemoteDir>
   <RemoteName>observer.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/map_objects\observer\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/</RemoteDir>
   <RemoteName>observer.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/map_objects\observer\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/</RemoteDir>
   <RemoteName>observer.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\map_objects\observer\sprite_sheet_frames\observer_dying_N_1_hh.png" Configuration="Release" Class="File">
+<DeployFile LocalName="data\map_objects/observer/sprite_sheet_frames/observer_dying_N_1_hh.png" Configuration="Release" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
   <RemoteName>observer_dying_N_1_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
   <RemoteName>observer_dying_N_1_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
   <RemoteName>observer_dying_N_1_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\map_objects\observer\sprite_sheet_frames\observer_dying_N_2_hh.png" Configuration="Release" Class="File">
+<DeployFile LocalName="data\map_objects/observer/sprite_sheet_frames/observer_dying_N_2_hh.png" Configuration="Release" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
   <RemoteName>observer_dying_N_2_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
   <RemoteName>observer_dying_N_2_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
   <RemoteName>observer_dying_N_2_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\map_objects\observer\sprite_sheet_frames\observer_dying_N_3_hh.png" Configuration="Release" Class="File">
+<DeployFile LocalName="data\map_objects/observer/sprite_sheet_frames/observer_dying_N_3_hh.png" Configuration="Release" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
   <RemoteName>observer_dying_N_3_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
   <RemoteName>observer_dying_N_3_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
   <RemoteName>observer_dying_N_3_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\map_objects\observer\sprite_sheet_frames\observer_dying_N_4_hh.png" Configuration="Release" Class="File">
+<DeployFile LocalName="data\map_objects/observer/sprite_sheet_frames/observer_dying_N_4_hh.png" Configuration="Release" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
   <RemoteName>observer_dying_N_4_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
   <RemoteName>observer_dying_N_4_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
   <RemoteName>observer_dying_N_4_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\map_objects\observer\sprite_sheet_frames\observer_dying_N_5_hh.png" Configuration="Release" Class="File">
+<DeployFile LocalName="data\map_objects/observer/sprite_sheet_frames/observer_dying_N_5_hh.png" Configuration="Release" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
   <RemoteName>observer_dying_N_5_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
   <RemoteName>observer_dying_N_5_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
   <RemoteName>observer_dying_N_5_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\map_objects\observer\sprite_sheet_frames\observer_dying_N_6_hh.png" Configuration="Release" Class="File">
+<DeployFile LocalName="data\map_objects/observer/sprite_sheet_frames/observer_dying_N_6_hh.png" Configuration="Release" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
   <RemoteName>observer_dying_N_6_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
   <RemoteName>observer_dying_N_6_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
   <RemoteName>observer_dying_N_6_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\map_objects\observer\sprite_sheet_frames\observer_float_E_1_hh.png" Configuration="Release" Class="File">
+<DeployFile LocalName="data\map_objects/observer/sprite_sheet_frames/observer_float_E_1_hh.png" Configuration="Release" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
   <RemoteName>observer_float_E_1_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
   <RemoteName>observer_float_E_1_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
   <RemoteName>observer_float_E_1_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\map_objects\observer\sprite_sheet_frames\observer_float_N_1_hh.png" Configuration="Release" Class="File">
+<DeployFile LocalName="data\map_objects/observer/sprite_sheet_frames/observer_float_NE_1_hh.png" Configuration="Release" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
-  <RemoteName>observer_float_N_1_hh.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
-  <RemoteName>observer_float_N_1_hh.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
-  <RemoteName>observer_float_N_1_hh.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\map_objects\observer\sprite_sheet_frames\observer_float_NE_1_hh.png" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
   <RemoteName>observer_float_NE_1_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
   <RemoteName>observer_float_NE_1_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
   <RemoteName>observer_float_NE_1_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\map_objects\observer\sprite_sheet_frames\observer_float_NW_1_hh.png" Configuration="Release" Class="File">
+<DeployFile LocalName="data\map_objects/observer/sprite_sheet_frames/observer_float_NW_1_hh.png" Configuration="Release" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
   <RemoteName>observer_float_NW_1_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
   <RemoteName>observer_float_NW_1_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
   <RemoteName>observer_float_NW_1_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\map_objects\observer\sprite_sheet_frames\observer_float_S_1_hh.png" Configuration="Release" Class="File">
+<DeployFile LocalName="data\map_objects/observer/sprite_sheet_frames/observer_float_N_1_hh.png" Configuration="Release" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
-  <RemoteName>observer_float_S_1_hh.png</RemoteName>
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
+  <RemoteName>observer_float_N_1_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
-  <RemoteName>observer_float_S_1_hh.png</RemoteName>
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
+  <RemoteName>observer_float_N_1_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
-  <RemoteName>observer_float_S_1_hh.png</RemoteName>
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
+  <RemoteName>observer_float_N_1_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\map_objects\observer\sprite_sheet_frames\observer_float_SE_1_hh.png" Configuration="Release" Class="File">
+<DeployFile LocalName="data\map_objects/observer/sprite_sheet_frames/observer_float_SE_1_hh.png" Configuration="Release" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
   <RemoteName>observer_float_SE_1_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
   <RemoteName>observer_float_SE_1_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
   <RemoteName>observer_float_SE_1_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\map_objects\observer\sprite_sheet_frames\observer_float_SW_1_hh.png" Configuration="Release" Class="File">
+<DeployFile LocalName="data\map_objects/observer/sprite_sheet_frames/observer_float_SW_1_hh.png" Configuration="Release" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
   <RemoteName>observer_float_SW_1_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
   <RemoteName>observer_float_SW_1_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
   <RemoteName>observer_float_SW_1_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\map_objects\observer\sprite_sheet_frames\observer_float_W_1_hh.png" Configuration="Release" Class="File">
+<DeployFile LocalName="data\map_objects/observer/sprite_sheet_frames/observer_float_S_1_hh.png" Configuration="Release" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
+  <RemoteName>observer_float_S_1_hh.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
+  <RemoteName>observer_float_S_1_hh.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
+  <RemoteName>observer_float_S_1_hh.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\map_objects/observer/sprite_sheet_frames/observer_float_W_1_hh.png" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
   <RemoteName>observer_float_W_1_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
   <RemoteName>observer_float_W_1_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
   <RemoteName>observer_float_W_1_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\map_objects\observer\sprite_sheet_frames\observer_growing_1_hh.png" Configuration="Release" Class="File">
+<DeployFile LocalName="data\map_objects/observer/sprite_sheet_frames/observer_growing_1_hh.png" Configuration="Release" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
   <RemoteName>observer_growing_1_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
   <RemoteName>observer_growing_1_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
   <RemoteName>observer_growing_1_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\map_objects\observer\sprite_sheet_frames\observer_growing_2_hh.png" Configuration="Release" Class="File">
+<DeployFile LocalName="data\map_objects/observer/sprite_sheet_frames/observer_growing_2_hh.png" Configuration="Release" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
   <RemoteName>observer_growing_2_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
   <RemoteName>observer_growing_2_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
   <RemoteName>observer_growing_2_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\map_objects\observer\sprite_sheet_frames\observer_growing_3_hh.png" Configuration="Release" Class="File">
+<DeployFile LocalName="data\map_objects/observer/sprite_sheet_frames/observer_growing_3_hh.png" Configuration="Release" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
   <RemoteName>observer_growing_3_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
   <RemoteName>observer_growing_3_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
   <RemoteName>observer_growing_3_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\map_objects\observer\sprite_sheet_frames\observer_growing_4_hh.png" Configuration="Release" Class="File">
+<DeployFile LocalName="data\map_objects/observer/sprite_sheet_frames/observer_growing_4_hh.png" Configuration="Release" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
   <RemoteName>observer_growing_4_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
   <RemoteName>observer_growing_4_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
   <RemoteName>observer_growing_4_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\map_objects\observer\sprite_sheet_frames\observer_growing_5_hh.png" Configuration="Release" Class="File">
+<DeployFile LocalName="data\map_objects/observer/sprite_sheet_frames/observer_growing_5_hh.png" Configuration="Release" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
   <RemoteName>observer_growing_5_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
   <RemoteName>observer_growing_5_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
   <RemoteName>observer_growing_5_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\map_objects\observer\sprite_sheet_frames\observer_growing_6_hh.png" Configuration="Release" Class="File">
+<DeployFile LocalName="data\map_objects/observer/sprite_sheet_frames/observer_growing_6_hh.png" Configuration="Release" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
   <RemoteName>observer_growing_6_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
   <RemoteName>observer_growing_6_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
   <RemoteName>observer_growing_6_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\map_objects\observer\sprite_sheet_frames\observer_growing_7_hh.png" Configuration="Release" Class="File">
+<DeployFile LocalName="data\map_objects/observer/sprite_sheet_frames/observer_growing_7_hh.png" Configuration="Release" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
   <RemoteName>observer_growing_7_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
   <RemoteName>observer_growing_7_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
   <RemoteName>observer_growing_7_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\map_objects\observer\sprite_sheet_frames\observer_spawn_N_1_hh.png" Configuration="Release" Class="File">
+<DeployFile LocalName="data\map_objects/observer/sprite_sheet_frames/observer_spawn_N_1_hh.png" Configuration="Release" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
   <RemoteName>observer_spawn_N_1_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
   <RemoteName>observer_spawn_N_1_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
   <RemoteName>observer_spawn_N_1_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\map_objects\observer\sprite_sheet_frames\observer_spawn_N_2_hh.png" Configuration="Release" Class="File">
+<DeployFile LocalName="data\map_objects/observer/sprite_sheet_frames/observer_spawn_N_2_hh.png" Configuration="Release" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
   <RemoteName>observer_spawn_N_2_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
   <RemoteName>observer_spawn_N_2_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
   <RemoteName>observer_spawn_N_2_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\map_objects\observer\sprite_sheet_frames\observer_spawn_N_3_hh.png" Configuration="Release" Class="File">
+<DeployFile LocalName="data\map_objects/observer/sprite_sheet_frames/observer_spawn_N_3_hh.png" Configuration="Release" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
   <RemoteName>observer_spawn_N_3_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
   <RemoteName>observer_spawn_N_3_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/map_objects\observer\sprite_sheet_frames\</RemoteDir>
+  <RemoteDir>./data/map_objects/observer/sprite_sheet_frames/</RemoteDir>
   <RemoteName>observer_spawn_N_3_hh.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\map_objects\penguin\penguin1.png" Configuration="Release" Class="File">
+<DeployFile LocalName="data\map_objects/penguin/penguin1.png" Configuration="Release" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/map_objects\penguin\</RemoteDir>
+  <RemoteDir>./data/map_objects/penguin/</RemoteDir>
   <RemoteName>penguin1.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/map_objects\penguin\</RemoteDir>
+  <RemoteDir>./data/map_objects/penguin/</RemoteDir>
   <RemoteName>penguin1.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/map_objects\penguin\</RemoteDir>
+  <RemoteDir>./data/map_objects/penguin/</RemoteDir>
   <RemoteName>penguin1.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\map_objects\trees\kambi_birch_01_mature_autumn_thc.png" Configuration="Release" Class="File">
+<DeployFile LocalName="data\map_objects/trees/kambi_birch_01_mature_autumn_thc.png" Configuration="Release" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/map_objects\trees\</RemoteDir>
+  <RemoteDir>./data/map_objects/trees/</RemoteDir>
   <RemoteName>kambi_birch_01_mature_autumn_thc.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/map_objects\trees\</RemoteDir>
+  <RemoteDir>./data/map_objects/trees/</RemoteDir>
   <RemoteName>kambi_birch_01_mature_autumn_thc.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/map_objects\trees\</RemoteDir>
+  <RemoteDir>./data/map_objects/trees/</RemoteDir>
   <RemoteName>kambi_birch_01_mature_autumn_thc.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\map_objects\trees\kambi_birch_01_mature_winter_thc.png" Configuration="Release" Class="File">
+<DeployFile LocalName="data\map_objects/trees/kambi_birch_01_mature_winter_thc.png" Configuration="Release" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/map_objects\trees\</RemoteDir>
+  <RemoteDir>./data/map_objects/trees/</RemoteDir>
   <RemoteName>kambi_birch_01_mature_winter_thc.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/map_objects\trees\</RemoteDir>
+  <RemoteDir>./data/map_objects/trees/</RemoteDir>
   <RemoteName>kambi_birch_01_mature_winter_thc.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/map_objects\trees\</RemoteDir>
+  <RemoteDir>./data/map_objects/trees/</RemoteDir>
   <RemoteName>kambi_birch_01_mature_winter_thc.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\README.txt" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>README.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>README.txt</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>README.txt</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
