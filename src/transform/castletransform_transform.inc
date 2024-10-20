@@ -3471,7 +3471,7 @@ procedure TCastleTransform.Render(const Params: TRenderParams);
 
   procedure BehaviorsBeforeRender(
     const CameraView: TViewVectors;
-    const ParentWorldTransformation, WorldTransformation: TTransformation);
+    const ParentWorldTransformation: TTransformation);
   var
     I: Integer;
     Beh: TCastleBehavior;
@@ -3479,7 +3479,7 @@ procedure TCastleTransform.Render(const Params: TRenderParams);
     for I := 0 to FBehaviors.Count - 1 do
     begin
       Beh := FBehaviors[I] as TCastleBehavior;
-      Beh.BeforeRender(CameraView, ParentWorldTransformation, WorldTransformation);
+      Beh.BeforeRender(CameraView, ParentWorldTransformation);
     end;
   end;
 
@@ -3525,14 +3525,22 @@ begin
     if FOnlyTranslation and T.IsZero and (not InternalIgnoreParentScale) then
     begin
       if FBehaviorsNeedBeforeRender then
-        BehaviorsBeforeRender(
-          Params.RenderingCamera.View,
-          Params.Transformation^,
-          Params.Transformation^);
+        BehaviorsBeforeRender(Params.RenderingCamera.View, Params.Transformation^);
       LocalRender(Params);
     end else
     begin
       //FrameProfiler.Start(fmRenderTransform);
+
+      { Call TCastleBehavior.BeforeRender for all behaviors *before*
+        changing NewTransformation (e.g. by InternalTransformationMult)
+        because BeforeRender may change our transformation.
+        Testcases:
+        - multiple viewports example with TCastleImageTransform + TCastleBillboard.
+        - looking at light's gizmo in editor through a camera preview,
+          and simultaneously in the main design view.
+          Should be seen as billboard in both cases. }
+      if FBehaviorsNeedBeforeRender then
+        BehaviorsBeforeRender(Params.RenderingCamera.View, Params.Transformation^);
 
       SavedTransformationPtr := Params.Transformation;
       SavedFrustumPtr        := Params.Frustum;
@@ -3566,11 +3574,6 @@ begin
       end;
 
       //FrameProfiler.Stop(fmRenderTransform);
-      if FBehaviorsNeedBeforeRender then
-        BehaviorsBeforeRender(
-          Params.RenderingCamera.View,
-          SavedTransformationPtr^,
-          Params.Transformation^);
       LocalRender(Params);
       //FrameProfiler.Start(fmRenderTransform);
 
@@ -4556,7 +4559,7 @@ procedure TCastleTransform.UpdateBehaviorsNeedBeforeRender;
   type
     TBeforeRenderEvent = procedure (
       const CameraView: TViewVectors;
-      const ParentParentWorldTransformation, ParentWorldTransformation: TTransformation) of object;
+      const ParentParentWorldTransformation: TTransformation) of object;
   var
     CurMethod, NotOverriddedMethod: TBeforeRenderEvent;
   begin

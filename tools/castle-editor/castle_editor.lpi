@@ -41,7 +41,7 @@
         <PackageName Value="LCL"/>
       </Item4>
     </RequiredPackages>
-    <Units Count="30">
+    <Units Count="31">
       <Unit0>
         <Filename Value="castle_editor.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -232,6 +232,11 @@
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="FormProgress"/>
       </Unit29>
+      <Unit30>
+        <Filename Value="code/designsteam.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="DesignSteam"/>
+      </Unit30>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

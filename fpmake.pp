@@ -334,6 +334,10 @@ begin
     P.Targets.AddUnit('castleopendocument.pas');
     P.Targets.AddUnit('castletenjin.pas');
 
+    P.SourcePath.Add('src/services/steam');
+    P.Targets.AddUnit('castleinternalsteamapi.pas');
+    P.Targets.AddUnit('castlesteam.pas');
+
     if Defaults.OS = Android then
     begin
       P.SourcePath.Add('src/base/android');

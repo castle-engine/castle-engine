@@ -100,7 +100,7 @@
         <DCC_Namespace>System;Xml;Data;Datasnap;Web;Soap;$(DCC_Namespace)</DCC_Namespace>
         <Icon_MainIcon>$(BDS)\bin\delphi_PROJECTICON.ico</Icon_MainIcon>
         <Icns_MainIcns>$(BDS)\bin\delphi_PROJECTICNS.icns</Icns_MainIcns>
-        <DCC_UnitSearchPath>../../../src/base;../../../src/common_includes;../../../src/base/android;../../../src/base/windows;../../../src/base/unix;../../../src/base_rendering;../../../src/base_rendering/dglopengl;../../../src/base_rendering/glsl/generated-pascal;../../../src/fonts;../../../src/window;../../../src/window/gtk;../../../src/window/windows;../../../src/window/unix;../../../src/window/deprecated_units;../../../src/images;../../../src/transform;../../../src/scene;../../../src/scene/glsl/generated-pascal;../../../src/scene/x3d;../../../src/scene/load;../../../src/scene/load/ifc;../../../src/scene/load/spine;../../../src/scene/load/md3;../../../src/scene/load/collada;../../../src/scene/load/pasgltf;../../../src/audio;../../../src/audio/fmod;../../../src/audio/openal;../../../src/audio/ogg_vorbis;../../../src/files;../../../src/files/indy;../../../src/castlescript;../../../src/ui;../../../src/ui/windows;../../../src/services;../../../src/physics;../../../src/physics/kraft;../../../src/deprecated_units;../../../src/vampyre_imaginglib/src/Source;../../../src/vampyre_imaginglib/src/Source/JpegLib;../../../src/vampyre_imaginglib/src/Source/ZLib;../../../src/vampyre_imaginglib/src/Extras/Extensions;../../../src/vampyre_imaginglib/src/Extensions/J2KObjects;../../../src/vampyre_imaginglib/src/Extensions/LibTiff;../../../src/vampyre_imaginglib/src/Extensions;../../../src/delphi;../../../src/compatibility/delphi-only;../../../src/compatibility/delphi-only/fcl-json;code/;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
+        <DCC_UnitSearchPath>../../../src/base;../../../src/common_includes;../../../src/base/android;../../../src/base/windows;../../../src/base/unix;../../../src/base_rendering;../../../src/base_rendering/dglopengl;../../../src/base_rendering/glsl/generated-pascal;../../../src/fonts;../../../src/window;../../../src/window/gtk;../../../src/window/windows;../../../src/window/unix;../../../src/window/deprecated_units;../../../src/images;../../../src/transform;../../../src/scene;../../../src/scene/glsl/generated-pascal;../../../src/scene/x3d;../../../src/scene/load;../../../src/scene/load/ifc;../../../src/scene/load/spine;../../../src/scene/load/md3;../../../src/scene/load/collada;../../../src/scene/load/pasgltf;../../../src/audio;../../../src/audio/fmod;../../../src/audio/openal;../../../src/audio/ogg_vorbis;../../../src/files;../../../src/files/indy;../../../src/castlescript;../../../src/ui;../../../src/ui/windows;../../../src/services;../../../src/services/steam;../../../src/physics;../../../src/physics/kraft;../../../src/deprecated_units;../../../src/vampyre_imaginglib/src/Source;../../../src/vampyre_imaginglib/src/Source/JpegLib;../../../src/vampyre_imaginglib/src/Source/ZLib;../../../src/vampyre_imaginglib/src/Extras/Extensions;../../../src/vampyre_imaginglib/src/Extensions/J2KObjects;../../../src/vampyre_imaginglib/src/Extensions/LibTiff;../../../src/vampyre_imaginglib/src/Extensions;../../../src/delphi;../../../src/compatibility/delphi-only;../../../src/compatibility/delphi-only/fcl-json;code/;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
         <DCC_DcuOutput>castle-engine-output\delphi\$(Platform)\$(Config)</DCC_DcuOutput>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base_Android)'!=''">
@@ -277,23 +277,6 @@
      to non-Windows targets,
      see https://castle-engine.io/delphi_linux#data_files_deployment .
 -->
-<DeployFile LocalName="data\ask_dialog.castle-user-interface" Configuration="Debug" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>ask_dialog.castle-user-interface</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>ask_dialog.castle-user-interface</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>ask_dialog.castle-user-interface</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
 <DeployFile LocalName="data\AUTHORS.txt" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
   <RemoteDir>./data/</RemoteDir>
@@ -328,36 +311,53 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\enemy_images\Female-Zombie-300px.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\ask_dialog.castle-user-interface" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/enemy_images\</RemoteDir>
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>ask_dialog.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>ask_dialog.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>ask_dialog.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\enemy_images/Female-Zombie-300px.png" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/enemy_images/</RemoteDir>
   <RemoteName>Female-Zombie-300px.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/enemy_images\</RemoteDir>
+  <RemoteDir>./data/enemy_images/</RemoteDir>
   <RemoteName>Female-Zombie-300px.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/enemy_images\</RemoteDir>
+  <RemoteDir>./data/enemy_images/</RemoteDir>
   <RemoteName>Female-Zombie-300px.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\enemy_images\Male-Zombie-300px.png" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\enemy_images/Male-Zombie-300px.png" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/enemy_images\</RemoteDir>
+  <RemoteDir>./data/enemy_images/</RemoteDir>
   <RemoteName>Male-Zombie-300px.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/enemy_images\</RemoteDir>
+  <RemoteDir>./data/enemy_images/</RemoteDir>
   <RemoteName>Male-Zombie-300px.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/enemy_images\</RemoteDir>
+  <RemoteDir>./data/enemy_images/</RemoteDir>
   <RemoteName>Male-Zombie-300px.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -430,19 +430,19 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\level\level1.x3d" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\level/level1.x3d" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/level\</RemoteDir>
+  <RemoteDir>./data/level/</RemoteDir>
   <RemoteName>level1.x3d</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/level\</RemoteDir>
+  <RemoteDir>./data/level/</RemoteDir>
   <RemoteName>level1.x3d</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/level\</RemoteDir>
+  <RemoteDir>./data/level/</RemoteDir>
   <RemoteName>level1.x3d</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -461,23 +461,6 @@
  <Platform Name="Win64">
   <RemoteDir>./data/</RemoteDir>
   <RemoteName>loading.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\ask_dialog.castle-user-interface" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>ask_dialog.castle-user-interface</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>ask_dialog.castle-user-interface</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>ask_dialog.castle-user-interface</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
@@ -515,36 +498,53 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\enemy_images\Female-Zombie-300px.png" Configuration="Release" Class="File">
+<DeployFile LocalName="data\ask_dialog.castle-user-interface" Configuration="Release" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/enemy_images\</RemoteDir>
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>ask_dialog.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>ask_dialog.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>ask_dialog.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\enemy_images/Female-Zombie-300px.png" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/enemy_images/</RemoteDir>
   <RemoteName>Female-Zombie-300px.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/enemy_images\</RemoteDir>
+  <RemoteDir>./data/enemy_images/</RemoteDir>
   <RemoteName>Female-Zombie-300px.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/enemy_images\</RemoteDir>
+  <RemoteDir>./data/enemy_images/</RemoteDir>
   <RemoteName>Female-Zombie-300px.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\enemy_images\Male-Zombie-300px.png" Configuration="Release" Class="File">
+<DeployFile LocalName="data\enemy_images/Male-Zombie-300px.png" Configuration="Release" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/enemy_images\</RemoteDir>
+  <RemoteDir>./data/enemy_images/</RemoteDir>
   <RemoteName>Male-Zombie-300px.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/enemy_images\</RemoteDir>
+  <RemoteDir>./data/enemy_images/</RemoteDir>
   <RemoteName>Male-Zombie-300px.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/enemy_images\</RemoteDir>
+  <RemoteDir>./data/enemy_images/</RemoteDir>
   <RemoteName>Male-Zombie-300px.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
@@ -617,19 +617,19 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\level\level1.x3d" Configuration="Release" Class="File">
+<DeployFile LocalName="data\level/level1.x3d" Configuration="Release" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/level\</RemoteDir>
+  <RemoteDir>./data/level/</RemoteDir>
   <RemoteName>level1.x3d</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/level\</RemoteDir>
+  <RemoteDir>./data/level/</RemoteDir>
   <RemoteName>level1.x3d</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/level\</RemoteDir>
+  <RemoteDir>./data/level/</RemoteDir>
   <RemoteName>level1.x3d</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>

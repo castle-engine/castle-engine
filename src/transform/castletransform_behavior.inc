@@ -52,21 +52,43 @@
     procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); virtual;
 
     { Event called right before rendering the parent TCastleTransform.
+      Override this if you have to adjust the parent transformation strictly
+      before the rendering.
 
-      Override this is you have to adjust the parent transformation strictly
-      before the rendering, and doing it in @link(Update) is not enough.
+      Compared to adjusting the parent transformation in e.g. @link(Update),
+      adjusting the parent transformation here has advantages:
 
-      E.g. this makes sense to implement billboard, because user must never
-      see artifacts caused by billboard not perfectly aligned with
-      the camera (blending sort along camera direction in sort3D is not perfect
-      if billboard doesn't exactly match camera direction).
+      @orderedList(
+        @item(There's no 1-frame delay between moving the thing that causes
+          the change (like camera) and updating the thing that reacts to it
+          (like a transformation with a billboard).
+        )
 
-      Overriding this also allows to adjust transformation before rendering
-      each occurrence of TCastleTransform in the viewport tree.
-      This matters if given TCastleTransform may occur multiple times
-      in the viewport tree, directly or through @link(TCastleTransformReference).
-      This also matters if given TCastleTransform may be present in multiple
-      viewports (see https://castle-engine.io/multiple_viewports_to_display_one_world).
+        @item(We adjust transformation before rendering
+          each occurrence of TCastleTransform in the viewport tree.
+          This matters if given TCastleTransform may occur multiple times
+          in the viewport tree, directly or through @link(TCastleTransformReference).
+        )
+
+        @item(We adjust transformation before each render,
+          so things are OK if given TCastleTransform is present in multiple
+          viewports (see https://castle-engine.io/multiple_viewports_to_display_one_world).
+        )
+      )
+
+      For example, adjusting the TCastleTransform done by the TCastleBillboard
+      is done using this method. The transformation in this case is determined
+      by the camera and parent's parent transformation. The transformation
+      has to be applied without any delay (even a 1-frame delay would be visible,
+      as artifacts caused by billboard not perfectly aligned with
+      the camera would be visible -- blending sort along camera direction in sort3D
+      is not perfect if billboard doesn't exactly match camera direction).
+      And the transformation with billboard may be present in multiple viewports
+      and/or multiple times in the same viewport tree.
+
+      @param(CameraView
+        Current camera vectors, in world coordinates, used to render the scene
+        now.)
 
       @param(
         ParentParentWorldTransformation
@@ -77,23 +99,10 @@
         (not zero, not more) then ParentParentWorldTransformation.Transform
         is equivalent to Parent.Parent.WorldTransform.
       )
-
-      @param(
-        ParentWorldTransformation
-
-        World transformation of the parent of this behavior.
-        ParentWorldTransformation.Transform is equal to
-        Parent.WorldTransform, if the Parent exists exactly
-        once in the viewport.
-      )
-
-      @param(CameraView
-        Current camera vectors, in world coordinates, used to render the scene
-        now.)
     }
     procedure BeforeRender(
       const CameraView: TViewVectors;
-      const ParentParentWorldTransformation, ParentWorldTransformation: TTransformation); virtual;
+      const ParentParentWorldTransformation: TTransformation); virtual;
 
     { Called after @link(Parent) changed, at the end of @link(TCastleTransform.AddBehavior),
       @link(TCastleTransform.RemoveBehavior). }
@@ -234,7 +243,7 @@ end;
 
 procedure TCastleBehavior.BeforeRender(
   const CameraView: TViewVectors;
-  const ParentParentWorldTransformation, ParentWorldTransformation: TTransformation);
+  const ParentParentWorldTransformation: TTransformation);
 begin
 end;
 
