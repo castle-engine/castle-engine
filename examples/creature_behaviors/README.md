@@ -9,7 +9,6 @@ See [behaviors](https://castle-engine.io/behaviors) about using behaviors and im
 
 Note: This example runs much faster in the _Release_ mode (when optimizations are enabled). In _Debug_ mode, the FPS is noticeably much slower. This is true of all CGE applications, but it's especially noticeable here. See [how to optimize your applications](https://castle-engine.io/manual_optimization.php).
 
-
 Using [Castle Game Engine](https://castle-engine.io/).
 
 ## Building
