@@ -471,6 +471,7 @@ begin
     P.Targets.AddUnit('castleinternalx3dlexer.pas');
     P.Targets.AddUnit('castleinternalx3dscript.pas');
     P.Targets.AddUnit('castleinternalmaterialproperties.pas');
+    P.Targets.AddUnit('castlelivingbehaviors.pas');
     P.Targets.AddUnit('castleraytracer.pas');
     P.Targets.AddUnit('castlerendererinternallights.pas');
     P.Targets.AddUnit('castlerendererinternalshader.pas');
