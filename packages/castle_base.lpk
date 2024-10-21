@@ -4584,14 +4584,6 @@ See https://castle-engine.io/license for details.
         <UnitName Value="CastleInternalLoadSaveIfc"/>
       </Item1123>
       <Item1124>
-        <Filename Value="../src/scene/load/ifc/castleinternalloadsaveifc_x3d.inc"/>
-        <Type Value="Include"/>
-      </Item1124>
-      <Item1125>
-        <Filename Value="../src/scene/load/ifc/castleinternalloadsaveifc.pas"/>
-        <UnitName Value="CastleInternalLoadSaveIfc"/>
-      </Item1125>
-      <Item1126>
         <Filename Value="../src/services/steam/castleinternalsteamapi.pas"/>
         <UnitName Value="CastleInternalSteamApi"/>
       </Item1124>
