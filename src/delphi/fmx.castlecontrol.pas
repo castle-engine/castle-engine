@@ -75,11 +75,10 @@ type
         {$endif}
         class procedure UpdatingTimerEvent(Sender: TObject);
       protected
-        function GetMousePosition: TVector2; override;
-        procedure SetMousePosition(const Value: TVector2); override;
         procedure AdjustContext(const PlatformContext: TGLContext); override;
         class procedure UpdatingEnable; override;
         class procedure UpdatingDisable; override;
+        procedure SystemSetMousePosition(const Value: TVector2); override;
       public
         constructor Create(AParent: TCastleControl); reintroduce;
         procedure Invalidate; override;
@@ -90,7 +89,6 @@ type
 
     var
       FContainer: TContainer;
-      FMousePosition: TVector2;
       FGLUtility: TFmxOpenGLUtility;
 
     function GetCurrentShift: TShiftState;
@@ -255,22 +253,6 @@ begin
   Parent.FGLUtility.ContextAdjustEarly(PlatformContext);
 end;
 
-function TCastleControl.TContainer.GetMousePosition: TVector2;
-begin
-  Result := Parent.FMousePosition;
-end;
-
-procedure TCastleControl.TContainer.SetMousePosition(const Value: TVector2);
-begin
-  { TODO
-
-    There's no facility to do this using FMX, it seems.
-    We need platform-specific code.
-    - So far in CastleFmxUtils we have FmxSetMousePos for Linux, use it.
-    - And implement equivalent for Windows.
-  }
-end;
-
 function TCastleControl.TContainer.PixelsWidth: Integer;
 var
   Scale: Single;
@@ -305,7 +287,20 @@ begin
   { TODO (use similar code from CASTLE_WINDOW_FORM implementation).
 
     Note: This is commonly used by MouseLook, but it will not work OK
-    until both this and SetMousePosition are implemented. }
+    until both this and SystemSetMousePosition are implemented. }
+end;
+
+procedure TCastleControl.TContainer.SystemSetMousePosition(const Value: TVector2);
+begin
+  inherited;
+
+  { TODO
+
+    There's no facility to do this using FMX, it seems.
+    We need platform-specific code.
+    - So far in CastleFmxUtils we have FmxSetMousePos for Linux, use it.
+    - And implement equivalent for Windows.
+  }
 end;
 
 { TCastleControl ---------------------------------------------------- }
@@ -580,66 +575,67 @@ end;
 procedure TCastleControl.MouseDown(Button: TMouseButton; Shift: TShiftState; X,
   Y: Single);
 var
-  MyButton: TCastleMouseButton;
+  CastleButton: TCastleMouseButton;
 begin
   if not IsFocused then // TODO: doesn't seem to help with focus
     SetFocus;
 
   inherited; { FMX OnMouseDown before our callbacks }
 
-  FMousePosition := MousePosToCastle(X, Y);
+  { This updates Container.Pressed.
+    Do this before using ModifiersDown(Container.Pressed) below. }
+  CurrentShift := Shift;
 
-  if MouseButtonToCastle(Button, MyButton) then
-    Container.MousePressed := Container.MousePressed + [MyButton];
-
-  CurrentShift := Shift; { do this after Pressed update above, and before *Event }
-
-  if MouseButtonToCastle(Button, MyButton) then
-    Container.EventPress(InputMouseButton(FMousePosition, MyButton, 0,
-      ModifiersDown(Container.Pressed)));
+  if MouseButtonToCastle(Button, CastleButton) then
+  begin
+    Container.EventPress(InputMouseButton(MousePosToCastle(X, Y),
+      CastleButton, 0, ModifiersDown(Container.Pressed)));
+  end;
 end;
 
 procedure TCastleControl.MouseMove(Shift: TShiftState; NewX, NewY: Single);
-var
-  NewMousePos: TVector2;
 begin
   inherited;
 
-  NewMousePos := MousePosToCastle(NewX, NewY);
-
-  Container.EventMotion(InputMotion(FMousePosition,
-    NewMousePos, Container.MousePressed, 0));
-
-  // change FMousePosition *after* EventMotion, callbacks may depend on it
-  FMousePosition := NewMousePos;
-
+  { This updates Container.Pressed.
+    Do this before using ModifiersDown(Container.Pressed) below. }
   CurrentShift := Shift;
+
+  Container.EventMotion(InputMotion(Container.MousePosition,
+    MousePosToCastle(NewX, NewY), Container.MousePressed, 0));
 end;
 
 procedure TCastleControl.MouseUp(Button: TMouseButton; Shift: TShiftState; X,
   Y: Single);
 var
-  MyButton: TCastleMouseButton;
+  CastleButton: TCastleMouseButton;
 begin
   inherited; { FMX OnMouseUp before our callbacks }
 
-  FMousePosition := MousePosToCastle(X, Y);
+  { This updates Container.Pressed.
+    Do this before using ModifiersDown(Container.Pressed) below. }
+  CurrentShift := Shift;
 
-  if MouseButtonToCastle(Button, MyButton) then
-    Container.MousePressed := Container.MousePressed - [MyButton];
-
-  CurrentShift := Shift; { do this after Pressed update above, and before *Event }
-
-  if MouseButtonToCastle(Button, MyButton) then
-    Container.EventRelease(InputMouseButton(FMousePosition, MyButton, 0));
+  if MouseButtonToCastle(Button, CastleButton) then
+  begin
+    Container.EventRelease(InputMouseButton(MousePosToCastle(X, Y),
+      CastleButton, 0, ModifiersDown(Container.Pressed)));
+  end;
 end;
 
 procedure TCastleControl.MouseWheel(Shift: TShiftState; WheelDelta: Integer;
   var Handled: Boolean);
+var
+  Scroll: Single;
+  Vertical: Boolean;
 begin
   if not Handled then
+  begin
+    Scroll := WheelDelta / 120;
+    Vertical := true; // only vertical scrolling is reported here
     Handled := Container.EventPress(InputMouseWheel(
-      FMousePosition, WheelDelta / 120, true, ModifiersDown(Container.Pressed)));
+      Container.MousePosition, Scroll, Vertical, ModifiersDown(Container.Pressed)));
+  end;
 
   inherited;
 end;
@@ -658,7 +654,7 @@ begin
 
   if (CastleKey <> keyNone) or (CastleKeyString <> '') then
   begin
-    CastleEvent := InputKey(FMousePosition, CastleKey, CastleKeyString,
+    CastleEvent := InputKey(Container.MousePosition, CastleKey, CastleKeyString,
       ModifiersDown(Container.Pressed));
 
     // check this before updating Container.Pressed
@@ -701,7 +697,7 @@ begin
 
   if (CastleKey <> keyNone) or (CastleKeyString <> '') then
   begin
-    CastleEvent := InputKey(FMousePosition, CastleKey, CastleKeyString,
+    CastleEvent := InputKey(Container.MousePosition, CastleKey, CastleKeyString,
       ModifiersDown(Container.Pressed));
 
     Container.Pressed.KeyUp(CastleEvent.Key, CastleEvent.KeyString);

@@ -23,24 +23,48 @@ interface
 uses CastleVectors, CastleSceneInternalShape, CastleRenderOptions,
   CastleInternalOcclusionCulling, CastleSceneInternalBlending,
   CastleInternalBatchShapes, CastleInternalRenderer, CastleTransform,
-  X3DNodes, CastleShapes;
+  X3DNodes, CastleShapes, CastleUtils;
 
 type
+  { Collected information how to call TRenderEvent. }
+  TCollectedRenderEvent = record
+    Event: TRenderEvent;
+    Transformation: TTransformation;
+  end;
+
+  { List of @link(TCollectedRenderEvent). }
+  TRenderEventList = class({$ifdef FPC}specialize{$endif} TStructList<TCollectedRenderEvent>)
+    procedure ExecuteAll(const PassParams: TRenderOnePassParams);
+  end;
+
   { Collect shapes, possibly coming from different TCastleScene instances,
     to render them together using TShapesRenderer. }
   TShapesCollector = class
   private
     FCollected: TCollectedShapeList;
+    FRenderEvents: TRenderEventList; //< may be nil, treat like empty
   public
-    constructor Create;
+    constructor Create(const OwnsObjects: Boolean);
     destructor Destroy; override;
+
+    { Add all shapes from Source that pass the filters.
+      Also add all collected render events (added to Source by AddRenderEvent). }
+    procedure AddFiltered(const Source: TShapesCollector;
+      const FilterTransparent: TBooleanSet;
+      const FilterShadowVolumesReceivers: TBooleanSet);
 
     { Clear shapes to render. }
     procedure Clear;
 
     { Add a shape to render. }
     procedure Add(const Shape: TGLShape; const RenderOptions: TCastleRenderOptions;
-      const SceneTransform: TMatrix4; const DepthRange: TDepthRange);
+      const SceneTransform: TMatrix4; const DepthRange: TDepthRange;
+      const ShadowVolumesReceiver: Boolean);
+
+    { Add a custom rendering event.
+      @seealso TRenderParams.AddRenderEvent. }
+    procedure AddRenderEvent(const Transformation: TTransformation;
+      const RenderEvent: TRenderEvent);
   end;
 
   { Render collected shapes.
@@ -79,7 +103,7 @@ type
       It's useful to pass this as LightRenderEvent to @link(Render)
       when you use shadow algorithm that requires
       you to make a first pass rendering the scene all shadowed. }
-    procedure LightRenderInShadow(const Shape: TShape;
+    procedure LightRenderDisableShadowVolumeCastingLights(const Shape: TShape;
       const Light: TLightInstance;
       const IsGlobalLight: Boolean; var LightOn: boolean);
 
@@ -96,9 +120,11 @@ type
     procedure SetOcclusionCulling(const Value: Boolean);
 
     procedure RenderShape_NoTests(
-      const CollectedShape: TCollectedShape; const Params: TRenderParams);
+      const CollectedShape: TCollectedShape;
+      const Params: TRenderParams; const PassParams: TRenderOnePassParams);
     procedure RenderShape_OcclusionTests(
-      const CollectedShape: TCollectedShape; const Params: TRenderParams);
+      const CollectedShape: TCollectedShape;
+      const Params: TRenderParams; const PassParams: TRenderOnePassParams);
   public
     constructor Create;
     destructor Destroy; override;
@@ -120,11 +146,13 @@ type
 
       TODO: Make sure they are ignored, assert they are identity.
 
-      TODO: Split TRenderParams into stuff needed at collection,
-      and needed at rendering collecting shapes.
-      Transformation:TTransformation should be only in former. }
+      TODO: This should not take TRenderParams, and rename:
+      - TRenderParams -> TCollectShapesParams
+      - TRenderOnePassParams -> TRenderShapesParams
+      Transformation:TTransformation should be only in TCollectShapesParams,
+      thus it will be obvious that it's not used here. }
     procedure Render(const Shapes: TShapesCollector;
-      const Params: TRenderParams);
+      const Params: TRenderParams; const PassParams: TRenderOnePassParams);
 
     { Combine (right before rendering) multiple shapes with a similar appearance into one.
       This can drastically reduce the number of "draw calls",
@@ -166,32 +194,46 @@ implementation
 
 uses SysUtils,
   {$ifdef OpenGLES} CastleGLES, {$else} CastleGL, {$endif}
-  CastleScene, CastleGLUtils, CastleRenderContext, CastleColors, CastleUtils,
+  CastleScene, CastleGLUtils, CastleRenderContext, CastleColors,
   X3DCameraUtils, CastleTimeUtils;
+
+{ TRenderEventList ---------------------------------------------------------- }
+
+procedure TRenderEventList.ExecuteAll(const PassParams: TRenderOnePassParams);
+var
+  I: Integer;
+begin
+  for I := 0 to Count - 1 do
+    L[I].Event(L[I].Transformation, PassParams);
+end;
 
 { TShapesCollector ----------------------------------------------------------- }
 
-constructor TShapesCollector.Create;
+constructor TShapesCollector.Create(const OwnsObjects: Boolean);
 begin
-  inherited;
-  FCollected := TCollectedShapeList.Create(true);
+  inherited Create;
+  FCollected := TCollectedShapeList.Create(OwnsObjects);
 end;
 
 destructor TShapesCollector.Destroy;
 begin
   FreeAndNil(FCollected);
+  FreeAndNil(FRenderEvents);
   inherited;
 end;
 
 procedure TShapesCollector.Clear;
 begin
   FCollected.Clear;
+  if FRenderEvents <> nil then
+    FRenderEvents.Clear;
 end;
 
 procedure TShapesCollector.Add(const Shape: TGLShape;
   const RenderOptions: TCastleRenderOptions;
   const SceneTransform: TMatrix4;
-  const DepthRange: TDepthRange);
+  const DepthRange: TDepthRange;
+  const ShadowVolumesReceiver: Boolean);
 var
   NewCollected: TCollectedShape;
 begin
@@ -200,7 +242,42 @@ begin
   NewCollected.RenderOptions := RenderOptions;
   NewCollected.SceneTransform := SceneTransform;
   NewCollected.DepthRange := DepthRange;
+  NewCollected.ShadowVolumesReceiver := ShadowVolumesReceiver;
   FCollected.Add(NewCollected);
+end;
+
+procedure TShapesCollector.AddFiltered(const Source: TShapesCollector;
+  const FilterTransparent: TBooleanSet;
+  const FilterShadowVolumesReceivers: TBooleanSet);
+var
+  CollectedShape: TCollectedShape;
+begin
+  for CollectedShape in Source.FCollected do
+    if CollectedShape.UseBlending in FilterTransparent then
+      if CollectedShape.ShadowVolumesReceiver in FilterShadowVolumesReceivers then
+        FCollected.Add(CollectedShape);
+
+  if Source.FRenderEvents <> nil then
+  begin
+    if FRenderEvents = nil then
+      FRenderEvents := TRenderEventList.Create;
+    FRenderEvents.Clear;
+    FRenderEvents.AddRange(Source.FRenderEvents);
+  end else
+    FreeAndNil(FRenderEvents);
+  Assert((Source.FRenderEvents = nil) = (FRenderEvents = nil));
+end;
+
+procedure TShapesCollector.AddRenderEvent(const Transformation: TTransformation;
+  const RenderEvent: TRenderEvent);
+var
+  CollectedRenderEvent: TCollectedRenderEvent;
+begin
+  if FRenderEvents = nil then
+    FRenderEvents := TRenderEventList.Create;
+  CollectedRenderEvent.Event := RenderEvent;
+  CollectedRenderEvent.Transformation := Transformation;
+  FRenderEvents.Add(CollectedRenderEvent);
 end;
 
 { TShapesRenderer ----------------------------------------------------------- }
@@ -313,7 +390,7 @@ begin
   Result := FBatching;
 end;
 
-procedure TShapesRenderer.LightRenderInShadow(const Shape: TShape;
+procedure TShapesRenderer.LightRenderDisableShadowVolumeCastingLights(const Shape: TShape;
   const Light: TLightInstance;
   const IsGlobalLight: Boolean; var LightOn: boolean);
 begin
@@ -347,7 +424,8 @@ begin
 end;
 
 procedure TShapesRenderer.RenderShape_NoTests(
-  const CollectedShape: TCollectedShape; const Params: TRenderParams);
+  const CollectedShape: TCollectedShape;
+  const Params: TRenderParams; const PassParams: TRenderOnePassParams);
 var
   RenderOptions: TCastleRenderOptions; //< a shortcut for CollectedShape.RenderOptions
   Shape: TGLShape; //< a shortcut for CollectedShape.Shape
@@ -494,7 +572,9 @@ var
           RenderWireframe(true);
           RenderContext.PolygonOffset := SavedPolygonOffset;
         end;
+      {$ifndef COMPILER_CASE_ANALYSIS}
       else raise EInternalError.Create('Render: RenderOptions.WireframeEffect ?');
+      {$endif}
     end;
   end;
 
@@ -502,7 +582,7 @@ begin
   if Params.InternalPass = 0 then
   begin
     Inc(Params.Statistics.ShapesRendered);
-    if Params.Transparent then
+    if PassParams.UsingBlending then
       Inc(Params.Statistics.ShapesRenderedBlending);
   end;
 
@@ -518,7 +598,8 @@ begin
 end;
 
 procedure TShapesRenderer.RenderShape_OcclusionTests(
-  const CollectedShape: TCollectedShape; const Params: TRenderParams);
+  const CollectedShape: TCollectedShape;
+  const Params: TRenderParams; const PassParams: TRenderOnePassParams);
 begin
   { About "Params.RenderingCamera.Target = rtScreen" below:
 
@@ -537,14 +618,14 @@ begin
   if EffectiveOcclusionCulling and
       (Params.RenderingCamera.Target = rtScreen) then
   begin
-    FOcclusionCullingRenderer.Render(CollectedShape, Params,
+    FOcclusionCullingRenderer.Render(CollectedShape, Params, PassParams,
       {$ifdef FPC}@{$endif} RenderShape_NoTests);
   end else
-    RenderShape_NoTests(CollectedShape, Params);
+    RenderShape_NoTests(CollectedShape, Params, PassParams);
 end;
 
 procedure TShapesRenderer.Render(const Shapes: TShapesCollector;
-  const Params: TRenderParams);
+  const Params: TRenderParams; const PassParams: TRenderOnePassParams);
 
   procedure BatchingCommit;
   var
@@ -564,7 +645,7 @@ procedure TShapesRenderer.Render(const Shapes: TShapesCollector;
           Doesn't matter, we know that occlusion culling is not done when
           batching is used, so RenderShape_OcclusionTests just calls
           RenderShape_NoTests. }
-        RenderShape_NoTests(Shape, Params);
+        RenderShape_NoTests(Shape, Params, PassParams);
       end;
       Batching.FreeBatched;
     end;
@@ -574,13 +655,15 @@ var
   LightRenderEvent: TLightRenderEvent;
   CollectedShape: TCollectedShape;
 begin
-  { TODO: This optimization should be useless, remove.
-    For now it helps with hack that access 0th scene RenderOptions below. }
+  if Shapes.FRenderEvents <> nil then
+    Shapes.FRenderEvents.ExecuteAll(PassParams);
+
+  // Optimization for common case: Early exit if no Shapes to process
   if Shapes.FCollected.Count = 0 then
     Exit;
 
-  if Params.InShadow then
-    LightRenderEvent := {$ifdef FPC}@{$endif}LightRenderInShadow
+  if PassParams.DisableShadowVolumeCastingLights then
+    LightRenderEvent := {$ifdef FPC}@{$endif}LightRenderDisableShadowVolumeCastingLights
   else
     LightRenderEvent := {$ifdef FPC}@{$endif}LightRender;
 
@@ -602,7 +685,7 @@ begin
 
   FrameProfiler.Start(fmRenderCollectedShapesSort);
 
-  if Params.Transparent then
+  if PassParams.UsingBlending then
   begin
     { We'll draw partially transparent objects now,
       only from scenes with RenderOptions.Blending. }
@@ -639,14 +722,14 @@ begin
     for CollectedShape in Shapes.FCollected do
     begin
       if not (EffectiveDynamicBatching and Batching.Batch(CollectedShape)) then
-        RenderShape_OcclusionTests(CollectedShape, Params);
+        RenderShape_OcclusionTests(CollectedShape, Params, PassParams);
     end;
 
     BatchingCommit;
 
     { This must be called after BatchingCommit,
       since BatchingCommit may render some shapes }
-    if Params.Transparent then
+    if PassParams.UsingBlending then
       FBlendingRenderer.RenderEnd;
 
     { As each RenderShape_OcclusionTests inside could set OcclusionBoxState,

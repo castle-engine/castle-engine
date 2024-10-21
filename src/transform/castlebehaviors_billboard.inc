@@ -41,7 +41,7 @@ type
     destructor Destroy; override;
     procedure BeforeRender(
       const CameraView: TViewVectors;
-      const ParentParentWorldTransformation, ParentWorldTransformation: TTransformation); override;
+      const ParentParentWorldTransformation: TTransformation); override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
 
     { Axis around which the billboard rotates to face the camera.
@@ -176,7 +176,7 @@ end;
 
 procedure TCastleBillboard.BeforeRender(
   const CameraView: TViewVectors;
-  const ParentParentWorldTransformation, ParentWorldTransformation: TTransformation);
+  const ParentParentWorldTransformation: TTransformation);
 
   { Like Parent.Parent.WorldToLocalDirection, but uses current
     transformation knowledge. }

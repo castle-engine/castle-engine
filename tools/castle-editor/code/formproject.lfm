@@ -730,6 +730,12 @@ object ProjectForm: TProjectForm
       object MenuItem42: TMenuItem
         Action = ActionImportSketchfab
       end
+      object Separator15: TMenuItem
+        Caption = '-'
+      end
+      object MenuItem46: TMenuItem
+        Action = ActionExportToModel
+      end
     end
     object MenuItemWindow: TMenuItem
       Caption = 'Window'
@@ -1393,6 +1399,11 @@ object ProjectForm: TProjectForm
       Category = 'PopupFiles'
       Caption = 'Copy URL'
       OnExecute = ActionCopyUrlExecute
+    end
+    object ActionExportToModel: TAction
+      Category = 'Data'
+      Caption = 'Export Viewport to X3D, STL...'
+      OnExecute = ActionExportToModelExecute
     end
   end
   object OpenPascalUnitDialog: TCastleOpenPascalUnitDialog

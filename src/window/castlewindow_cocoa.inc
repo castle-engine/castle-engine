@@ -390,7 +390,7 @@ var
       WritelnWarning('Cocoa event indicated that %s should be pressed, but not registered as pressed yet', [
         MouseButtonStr[MouseButton]
       ]);
-      win.DoMouseDown(win.MousePosition, MouseButton, 0);
+      win.DoMouseDown(win.Container.MousePosition, MouseButton, 0);
     end;
   end;
 
@@ -403,14 +403,14 @@ var
     IsShift, IsAlt, IsCtrl: Boolean;
   begin
     IsShift := (ModifierFlags and NSShiftKeyMask) <> 0;
-    if IsShift <> win.Pressed[keyShift] then
+    if IsShift <> win.Container.Pressed[keyShift] then
       if IsShift then
         win.DoKeyDown(keyShift, '')
       else
         win.DoKeyUp(keyShift);
 
     IsAlt := (ModifierFlags and NSAlternateKeyMask) <> 0;
-    if IsAlt <> win.Pressed[keyAlt] then
+    if IsAlt <> win.Container.Pressed[keyAlt] then
       if IsAlt then
         win.DoKeyDown(keyAlt, '')
       else
@@ -419,7 +419,7 @@ var
     IsCtrl :=
       //(ModifierFlags and NSControlKeyMask) <> 0;
       (ModifierFlags and NSCommandKeyMask) <> 0; // treat Command key as Ctrl
-    if IsCtrl <> win.Pressed[keyCtrl] then
+    if IsCtrl <> win.Container.Pressed[keyCtrl] then
       if IsCtrl then
         win.DoKeyDown(keyCtrl, '')
       else
@@ -466,7 +466,7 @@ begin
                 NSRightMouseDragged: CheckMotionDragged(buttonRight);
                 NSOtherMouseDragged: CheckMotionDragged(buttonMiddle);
               end;
-              win.DoMotion(InputMotion(win.MousePosition,
+              win.DoMotion(InputMotion(win.Container.MousePosition,
                 Vector2(event.locationInWindow.x*ScaleFactor, event.locationInWindow.y*ScaleFactor), win.MousePressed, 0));
             end;
           NSLeftMouseDown, NSRightMouseDown, NSOtherMouseDown:
@@ -1103,9 +1103,10 @@ begin
   Result := { TODO } true;
 end;
 
-procedure TCastleWindow.SetMousePosition(const Value: TVector2);
+procedure TCastleWindow.SystemSetMousePosition(const Value: TVector2);
 begin
 end;
+
 (* TODO: Unfortunately none of the options below make any effect.
 
 var

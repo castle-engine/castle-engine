@@ -1,5 +1,5 @@
 /*
-  Copyright 2014 Jan Adamec, Michalis Kamburelis.
+  Copyright 2014-2024 Jan Adamec, Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -129,7 +129,12 @@ void GLWidget::OnUpdateTimer()
 {
     if (!m_bAfterInit) return;
 
+    makeCurrent();  // be sure we have the right context set
+
     CGE_Update();
+
+    doneCurrent();
+
     if (!m_bLimitFPS || m_bNeedsDisplay)
     {
         m_bNeedsDisplay = false;
@@ -139,7 +144,7 @@ void GLWidget::OnUpdateTimer()
 
 void GLWidget::updateGL()
 {
-    update(); // TODO: Qt6 really?
+    update();
 }
 
 void GLWidget::paintGL()
@@ -190,7 +195,7 @@ void GLWidget::mouseReleaseEvent(QMouseEvent *event)
     if (!m_bAfterInit) return;
 
     QPoint pt(PointFromMousePoint(event->pos()));
-    CGE_MouseUp(pt.x(), pt.y(), event->button()==Qt::LeftButton, 0, true);
+    CGE_MouseUp(pt.x(), pt.y(), event->button()==Qt::LeftButton, 0);
 }
 
 #ifndef QT_NO_WHEELEVENT

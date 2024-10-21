@@ -171,6 +171,18 @@ begin
   end;
 end;
 
+procedure CGE_GetCastleEngineVersion(szBuffer: pchar; nBufSize: cInt32); cdecl;
+var
+  sText: string;
+begin
+  try
+    sText := CastleEngineVersion;
+    StrPLCopy(szBuffer, sText, nBufSize-1);
+  except
+    on E: TObject do WritelnWarning('Window', 'CGE_GetCastleEngineVersion: ' + ExceptMessage(E));
+  end;
+end;
+
 procedure CGE_Resize(uiViewWidth, uiViewHeight: cUInt32); cdecl;
 begin
   try
@@ -286,11 +298,11 @@ begin
 end;
 
 procedure CGE_MouseUp(X, Y: cInt32; bLeftBtn: cBool;
-  FingerIndex: CInt32; TrackReleased: cBool); cdecl;
+  FingerIndex: CInt32); cdecl;
 begin
   try
     if not CGE_VerifyWindow('CGE_MouseUp') then exit;
-    CGEApp_MouseUp(X, Y, bLeftBtn, FingerIndex, TrackReleased);
+    CGEApp_MouseUp(X, Y, bLeftBtn, FingerIndex);
   except
     on E: TObject do WritelnWarning('Window', 'CGE_MouseUp: ' + ExceptMessage(E));
   end;
@@ -743,6 +755,9 @@ begin
             if MainScene <> nil then
                MainScene.RenderOptions.PhongShading := (nValue > 0);
           end;
+      11: begin    // ecgevarPreventInfiniteFallingDown
+            Viewport.PreventInfiniteFallingDown := (nValue > 0);
+          end;
     end;
   except
     on E: TObject do WritelnWarning('Window', 'CGE_SetVariableInt: ' + ExceptMessage(E));
@@ -946,6 +961,7 @@ exports
   CGE_Open,
   CGE_Close,
   CGE_GetOpenGLInformation,
+  CGE_GetCastleEngineVersion,
   CGE_Render,
   CGE_Resize,
   CGE_SetLibraryCallbackProc,

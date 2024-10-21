@@ -19,7 +19,8 @@
 {$ifdef read_interface}
 
   { Information send along with TCollisionEvent event, like
-    TCastleRigidBody.OnCollisionEnter, TCastleRigidBody.OnCollisionExit. }
+    @link(TCastleRigidBody.OnCollisionEnter),
+    @link(TCastleRigidBody.OnCollisionExit). }
   TPhysicsCollisionDetails = record
   public
     Transforms: array [0..1] of TCastleTransform;
@@ -31,9 +32,9 @@
       to which the event is related.
 
       @unorderedList(
-        @item In case of @link(OnCollisionEnter), this is the object that we collided with.
-        @item In case of @link(OnCollisionStay), this is the object that we are currently colliding with.
-        @item In case of @link(OnCollisionExit), this is the object that we stopped colliding with.
+        @item In case of @link(TCastleRigidBody.OnCollisionEnter), this is the object that we collided with.
+        @item In case of @link(TCastleRigidBody.OnCollisionStay), this is the object that we are currently colliding with.
+        @item In case of @link(TCastleRigidBody.OnCollisionExit), this is the object that we stopped colliding with.
       ) }
     function OtherTransform: TCastleTransform;
   end;
@@ -740,6 +741,9 @@
       This is required after changing various properties in Kraft body/collider. }
     procedure KraftForceUpdatingReadyBody;
 
+    { Set transformation known to the physics engine.
+      This should always be called with argument equal to
+      Parent.WorldTransform. }
     procedure SetWorldTransformation(const WorldTransform: TMatrix4);
     procedure SetLockTranslation(const AValue: T3DCoords);
     procedure SetLockRotation(const AValue: T3DCoords);
@@ -2521,14 +2525,18 @@ procedure TCastleMeshCollider.AddTriangle(Shape: TObject;
   const Position: TTriangle3;
   const Normal: TTriangle3; const TexCoord: TTriangle4;
   const Face: TFaceIndex);
+var
+  S: Single;
 begin
   { TODO: it's probably not optimal to call AddTriangle
     for each triangle, we should instead call Load with a list. }
 
+  S := TotalScale;
+
   FKraftMesh.AddTriangle(
-    FKraftMesh.AddVertex(VectorToKraft(Position.Data[0])),
-    FKraftMesh.AddVertex(VectorToKraft(Position.Data[1])),
-    FKraftMesh.AddVertex(VectorToKraft(Position.Data[2])),
+    FKraftMesh.AddVertex(VectorToKraft(S * Position.Data[0])),
+    FKraftMesh.AddVertex(VectorToKraft(S * Position.Data[1])),
+    FKraftMesh.AddVertex(VectorToKraft(S * Position.Data[2])),
     FKraftMesh.AddNormal(VectorToKraft(Normal.Data[0])),
     FKraftMesh.AddNormal(VectorToKraft(Normal.Data[1])),
     FKraftMesh.AddNormal(VectorToKraft(Normal.Data[2]))
@@ -2539,9 +2547,9 @@ begin
     { We also add triangles for the other side.
       Kraft RayCast does not check inverted triangles. }
     FKraftMesh.AddTriangle(
-      FKraftMesh.AddVertex(VectorToKraft(Position.Data[2])),
-      FKraftMesh.AddVertex(VectorToKraft(Position.Data[1])),
-      FKraftMesh.AddVertex(VectorToKraft(Position.Data[0])),
+      FKraftMesh.AddVertex(VectorToKraft(S * Position.Data[2])),
+      FKraftMesh.AddVertex(VectorToKraft(S * Position.Data[1])),
+      FKraftMesh.AddVertex(VectorToKraft(S * Position.Data[0])),
       FKraftMesh.AddNormal(VectorToKraft(-Normal.Data[2])),
       FKraftMesh.AddNormal(VectorToKraft(-Normal.Data[1])),
       FKraftMesh.AddNormal(VectorToKraft(-Normal.Data[0]))

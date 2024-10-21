@@ -66,7 +66,7 @@ procedure CGEApp_SetLibraryCallbackProc(aProc: TLibraryCallbackProc); cdecl;
 procedure CGEApp_Update; cdecl;
 procedure CGEApp_MouseDown(X, Y: CInt32; bLeftBtn: cBool; FingerIndex: CInt32); cdecl;
 procedure CGEApp_Motion(X, Y: CInt32; FingerIndex: CInt32); cdecl;
-procedure CGEApp_MouseUp(X, Y: cInt32; bLeftBtn: cBool; FingerIndex: CInt32; TrackReleased: cBool); cdecl;
+procedure CGEApp_MouseUp(X, Y: cInt32; bLeftBtn: cBool; FingerIndex: CInt32); cdecl;
 procedure CGEApp_KeyDown(eKey: CInt32); cdecl;
 procedure CGEApp_KeyUp(eKey: CInt32); cdecl;
 procedure CGEApp_JoystickAxis(JoystickIndex: CInt; X, Y: Single); cdecl;
@@ -174,15 +174,10 @@ begin
     { TODO: call LibraryCallbackProc to change caption to GetWholeCaption };
 end;
 
-procedure TCastleWindow.SetMousePosition(const Value: TVector2);
+procedure TCastleWindow.SystemSetMousePosition(const Value: TVector2);
 begin
-  if (not Closed) and Assigned(LibraryCallbackProc) then
+  if Assigned(LibraryCallbackProc) then
   begin
-
-    { Do not set Mouse.CursorPos to the same value, to make sure we don't cause
-      unnecessary OnMotion on some systems while actual MousePosition didn't change. }
-    if TVector2.PerfectlyEquals(Value, FMousePosition) then Exit;
-
     LibraryCallbackProc(ecgelibSetMousePosition, Floor(Value[0]), Floor(Value[1]), nil);
   end;
 end;
@@ -488,12 +483,12 @@ end;
 
 procedure CGEApp_MouseDown(X, Y: CInt32; bLeftBtn: cBool; FingerIndex: CInt32); cdecl;
 var
-  MyButton: TCastleMouseButton;
+  CastleButton: TCastleMouseButton;
 begin
   try
     CheckMainWindow;
-    if (bLeftBtn) then MyButton := buttonLeft else MyButton := buttonRight;
-    Application.MainWindow.DoMouseDown(Vector2(X, Y), MyButton, FingerIndex);
+    if (bLeftBtn) then CastleButton := buttonLeft else CastleButton := buttonRight;
+    Application.MainWindow.DoMouseDown(Vector2(X, Y), CastleButton, FingerIndex);
   except
     on E: TObject do WritelnWarning('CGEApp_MouseDown', ExceptMessage(E));
   end;
@@ -502,30 +497,51 @@ end;
 procedure CGEApp_Motion(X, Y: CInt32; FingerIndex: CInt32); cdecl;
 var
   W: TCastleWindow;
+
+  { Adjusted copy of internal TTouchList.FindFingerIndex }
+  function FindFingerIndex(const FingerIndex: TFingerIndex): Integer;
+  begin
+    for Result := 0 to W.Container.TouchesCount - 1 do
+      if W.Container.Touches[Result].FingerIndex = FingerIndex then
+        Exit;
+    Result := -1;
+  end;
+
+  { Adjusted copy of internal TTouchList.GetFingerIndexPosition }
+  function GetFingerIndexPosition(const FingerIndex: TFingerIndex): TVector2;
+  var
+    Index: Integer;
+  begin
+    Index := FindFingerIndex(FingerIndex);
+    if Index <> -1 then
+      Result := W.Container.Touches[Index].Position
+    else
+      Result := TVector2.Zero;
+  end;
+
 begin
   try
     CheckMainWindow;
-    { TODO: using MousePressed as Pressed is only OK without multi-touch. }
     W := Application.MainWindow;
-    W.DoMotion(InputMotion(W.FTouches.FingerIndexPosition[FingerIndex],
-      Vector2(X, Y), W.MousePressed, FingerIndex));
+    W.DoMotion(InputMotion(GetFingerIndexPosition(FingerIndex),
+      Vector2(X, Y), W.Container.MousePressed, FingerIndex));
   except
     on E: TObject do WritelnWarning('CGEApp_Motion', ExceptMessage(E));
   end;
 end;
 
 procedure CGEApp_MouseUp(X, Y: cInt32; bLeftBtn: cBool;
-  FingerIndex: CInt32; TrackReleased: cBool); cdecl;
+  FingerIndex: CInt32); cdecl;
 var
-  MyButton: TCastleMouseButton;
+  CastleButton: TCastleMouseButton;
 begin
   try
     CheckMainWindow;
     if bLeftBtn then
-      MyButton := buttonLeft
+      CastleButton := buttonLeft
     else
-      MyButton := buttonRight;
-    Application.MainWindow.DoMouseUp(Vector2(X, Y), MyButton, FingerIndex, TrackReleased);
+      CastleButton := buttonRight;
+    Application.MainWindow.DoMouseUp(Vector2(X, Y), CastleButton, FingerIndex);
   except
     on E: TObject do WritelnWarning('CGEApp_MouseUp', ExceptMessage(E));
   end;
@@ -596,7 +612,8 @@ procedure CGEApp_JoystickAxis(JoystickIndex: CInt; X, Y: Single); cdecl;
 begin
   try
     CheckMainWindow;
-    Joysticks.InternalSetJoystickAxis(JoystickIndex, Vector2(X, Y));
+    // TODO: rename this to CGEApp_JoystickLeftAxis, support also CGEApp_JoystickRightAxis
+    Joysticks.InternalSetJoystickLeftAxis(JoystickIndex, Vector2(X, Y));
     // if (X <> 0) or (Y <> 0) then
     //   WritelnLog('Joy axis %d %f %f %f', [JoystickIndex, X, Y]);
   except

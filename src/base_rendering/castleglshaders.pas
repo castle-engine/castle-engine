@@ -63,8 +63,9 @@
     @item(
       Creating/destroying the TGLSLProgram instance immediately creates/destroys
       appropriate program on GPU. So be sure to create/destroy it only
-      when you have OpenGL context available (for example, create in TCastleWindow.OnOpen
-      and destroy in TCastleWindow.OnClose).)
+      when you have OpenGL context available (for example,
+      create in @link(TCastleUserInterface.GLContextOpen),
+      and destroy in @link(TCastleUserInterface.GLContextClose)).)
 
     @item(
       Upon creation, we check current OpenGL context abilities.

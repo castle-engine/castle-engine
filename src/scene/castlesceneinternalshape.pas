@@ -64,8 +64,6 @@ type
       const Changes: TX3DChanges); override;
     procedure PrepareResources;
     procedure GLContextClose;
-
-    function UseBlending: Boolean;
   end;
 
   { Shape with additional information how to render it inside a world,
@@ -75,6 +73,9 @@ type
     RenderOptions: TCastleRenderOptions;
     SceneTransform: TMatrix4;
     DepthRange: TDepthRange;
+    ShadowVolumesReceiver: Boolean;
+    { Should rendering this use blending (to account for partial transparency). }
+    function UseBlending: Boolean;
   end;
 
   TCollectedShapeList = class({$ifdef FPC}specialize{$endif} TObjectList<TCollectedShape>)
@@ -295,11 +296,6 @@ begin
   end;
 end;
 
-function TGLShape.UseBlending: Boolean;
-begin
-  Result := AlphaChannel = acBlending;
-end;
-
 procedure TGLShape.SchedulePrepareResources;
 begin
   if ParentScene <> nil then
@@ -307,6 +303,18 @@ begin
 end;
 
 { TCollectedShape ---------------------------------------------------------- }
+
+function TCollectedShape.UseBlending: Boolean;
+begin
+  { When RenderOptions.Blending=false, treat all shapes as opaque.
+    Same for RenderOptions.Mode = rmSolidColor. }
+  if (not RenderOptions.Blending) or (RenderOptions.Mode = rmSolidColor) then
+    Exit(false);
+
+  Result := Shape.AlphaChannel = acBlending;
+end;
+
+{ TCollectedShapeList ---------------------------------------------------------- }
 
 type
   TCollectedShapeComparer = {$ifdef FPC}specialize{$endif} TComparer<TCollectedShape>;

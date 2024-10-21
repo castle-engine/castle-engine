@@ -9,6 +9,9 @@ To use terrain in your own games:
 - add `TCastleTerrainNoise` to generate terrain heights
 - set `TCastleTerrain.Data` to connect it with `TCastleTerrainNoise`.
 
+![Screenshot](screenshot.png)
+![Screenshot from editor](screenshot_editor.png)
+
 Using [Castle Game Engine](https://castle-engine.io/).
 
 ## Building

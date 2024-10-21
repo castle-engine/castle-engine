@@ -219,16 +219,23 @@ var
   end;
 
   procedure MoveMouse(const Pos: TVector2);
-  // var
-  //   C: TCastleUserInterface;
+  { Useful to test current Focus value: }
+  {.$define CASTLE_DEBUG_FOCUS_TEST}
+  {$ifdef CASTLE_DEBUG_FOCUS_TEST}
+  var
+    C: TCastleUserInterface;
+  {$endif}
   begin
-    Window.InternalFakeMotion(InputMotion(Window.MousePosition, Pos, [], 0));
-    Window.Container.UpdateFocusAndMouseCursor;
-    { Useful to test current Focus value:
+    Window.InternalFakeMotion(InputMotion(Window.Container.MousePosition, Pos, [], 0));
+    { Do some other event than motion, to flush the motion events
+      collected by CASTLE_COLLECT_MOTION. }
+    Window.Container.EventPress(InputKey(Pos, keySpace, ' ', []));
+
+    {$ifdef CASTLE_DEBUG_FOCUS_TEST}
     Writeln('Focus now ', Window.Container.Focus.Count);
     for C in Window.Container.Focus do
       Writeln('  ', C.Name, ':', C.ClassName);
-    }
+    {$endif}
   end;
 
 begin
@@ -322,7 +329,7 @@ begin
         // in real applications, Viewport has its internal renderer
         Renderer := TRenderer.Create(nil);
         try
-          ShapesCollector := TShapesCollector.Create;
+          ShapesCollector := TShapesCollector.Create(true);
           try
             Box := TCastleBox.Create(nil);
             try

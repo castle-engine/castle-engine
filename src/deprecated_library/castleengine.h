@@ -64,6 +64,7 @@ enum ECgeVariable   // used for querying engine parameters in CGE_Set/GetVariabl
     ecgevarHeadlight       = 8,   // avatar's headlight (int, 1 = on, 0 = off)
     ecgevarOcclusionCulling  = 9,   // occlusion culling (int, 1 = on, 0 = off)
     ecgevarPhongShading    = 10,  // phong shading (int, 1 = on, 0 = off)
+    ecgevarPreventInfiniteFallingDown = 11,  // prevent infinite falling down (int, 1 = on, 0 = off)
 };
 
 enum ECgeNavigationType
@@ -232,21 +233,21 @@ enum ECgeKey    // values for these constants have to be same as in unit CastleK
 
 enum ECgeMouseButton
 {
-  ecgemouseButtonNone   = 0,  
-  ecgemouseButtonLeft   = 1,  
-  ecgemouseButtonMiddle = 2,  
-  ecgemouseButtonRight  = 3,  
-  ecgemouseButtonExtra1 = 4,  
-  ecgemouseButtonExtra2 = 5,  
+  ecgemouseButtonNone   = 0,
+  ecgemouseButtonLeft   = 1,
+  ecgemouseButtonMiddle = 2,
+  ecgemouseButtonRight  = 3,
+  ecgemouseButtonExtra1 = 4,
+  ecgemouseButtonExtra2 = 5,
 };
 
 enum ECgeMouseWheelDirection
 {
-  ecgemouseWheelNone    = 0,  
-  ecgemouseWheelUp      = 1,  
-  ecgemouseWheelDown    = 2,  
-  ecgemouseWheelLeft    = 3,  
-  ecgemouseWheelRight   = 4,  
+  ecgemouseWheelNone    = 0,
+  ecgemouseWheelUp      = 1,
+  ecgemouseWheelDown    = 2,
+  ecgemouseWheelLeft    = 3,
+  ecgemouseWheelRight   = 4,
 };
 
 enum ECgeNavigationInput
@@ -293,6 +294,7 @@ extern void CGE_Finalize(void);
 extern void CGE_Open(unsigned uiFlags, unsigned initialWidth, unsigned initialHeight, unsigned uiDpi);
 extern void CGE_Close(bool quitWhenLastWindowClosed);
 extern void CGE_GetOpenGLInformation(char *szBuffer, int nBufSize);        // szBuffer is filled inside the function with max size of nBufSize
+extern void CGE_GetCastleEngineVersion(char *szBuffer, int nBufSize);      // szBuffer is filled inside the function with max size of nBufSize
 extern void CGE_SetUserInterface(bool bAutomaticTouchInterface); // should be called at the start of the program. Touch interface controls will be updated automatically then.
 
 extern void CGE_Resize(unsigned uiViewWidth, unsigned uiViewHeight);       // let the library know about the viewport size changes
@@ -303,7 +305,7 @@ extern void CGE_Update(void);                                                  /
 
 extern void CGE_MouseDown(int x, int y, bool bLeftBtn, int nFingerIdx);    // [0,0] is the bottom-left corner!
 extern void CGE_Motion(int x, int y, int nFingerIdx);
-extern void CGE_MouseUp(int x, int y, bool bLeftBtn, int nFingerIdx, bool trackReleased);
+extern void CGE_MouseUp(int x, int y, bool bLeftBtn, int nFingerIdx);
 extern void CGE_MouseWheel(float zDelta, bool bVertical);
 
 extern void CGE_KeyDown(int /*ECgeKey*/ eKey);

@@ -49,6 +49,7 @@ typedef void (CDECL *PFNRD_CGE_Finalize)();
 typedef void (CDECL *PFNRD_CGE_Open)(unsigned uiFlags, unsigned initialWidth, unsigned initialHeight, unsigned uiDpi);
 typedef void (CDECL *PFNRD_CGE_Close)(bool quitWhenLastWindowClosed);
 typedef void (CDECL *PFNRD_CGE_GetOpenGLInformation)(char *szBuffer, int nBufSize);
+typedef void (CDECL *PFNRD_CGE_GetCastleEngineVersion)(char *szBuffer, int nBufSize);
 
 typedef void (CDECL *PFNRD_CGE_Resize)(unsigned uiViewWidth, unsigned uiViewHeight);
 typedef void (CDECL *PFNRD_CGE_Render)();
@@ -58,7 +59,7 @@ typedef void (CDECL *PFNRD_CGE_Update)();
 
 typedef void (CDECL *PFNRD_CGE_MouseDown)(int x, int y, bool bLeftBtn, int nFingerIdx);
 typedef void (CDECL *PFNRD_CGE_Motion)(int x, int y, int nFingerIdx);
-typedef void (CDECL *PFNRD_CGE_MouseUp)(int x, int y, bool bLeftBtn, int nFingerIdx, bool trackReleased);
+typedef void (CDECL *PFNRD_CGE_MouseUp)(int x, int y, bool bLeftBtn, int nFingerIdx);
 typedef void (CDECL *PFNRD_CGE_MouseWheel)(float zDelta, bool bVertical);
 
 typedef void (CDECL *PFNRD_CGE_KeyDown)(int eKey);
@@ -96,6 +97,7 @@ PFNRD_CGE_Finalize pfrd_CGE_Finalize = NULL;
 PFNRD_CGE_Open pfrd_CGE_Open = NULL;
 PFNRD_CGE_Close pfrd_CGE_Close = NULL;
 PFNRD_CGE_GetOpenGLInformation pfrd_CGE_GetOpenGLInformation = NULL;
+PFNRD_CGE_GetCastleEngineVersion pfrd_CGE_GetCastleEngineVersion = NULL;
 PFNRD_CGE_Resize pfrd_CGE_Resize = NULL;
 PFNRD_CGE_Render pfrd_CGE_Render = NULL;
 PFNRD_CGE_SaveScreenshotToFile pfrd_CGE_SaveScreenshotToFile = NULL;
@@ -168,6 +170,7 @@ void CGE_LoadLibrary()
     pfrd_CGE_Open = (PFNRD_CGE_Open)cge_GetProc(hCgeDll, "CGE_Open");
     pfrd_CGE_Close = (PFNRD_CGE_Close)cge_GetProc(hCgeDll, "CGE_Close");
     pfrd_CGE_GetOpenGLInformation = (PFNRD_CGE_GetOpenGLInformation)cge_GetProc(hCgeDll, "CGE_GetOpenGLInformation");
+    pfrd_CGE_GetCastleEngineVersion = (PFNRD_CGE_GetCastleEngineVersion)cge_GetProc(hCgeDll, "CGE_GetCastleEngineVersion");
     pfrd_CGE_Resize = (PFNRD_CGE_Resize)cge_GetProc(hCgeDll, "CGE_Resize");
     pfrd_CGE_Render = (PFNRD_CGE_Render)cge_GetProc(hCgeDll, "CGE_Render");
     pfrd_CGE_SaveScreenshotToFile = (PFNRD_CGE_SaveScreenshotToFile)cge_GetProc(hCgeDll, "CGE_SaveScreenshotToFile");
@@ -235,6 +238,13 @@ void CGE_GetOpenGLInformation(char *szBuffer, int nBufSize)
 }
 
 //-----------------------------------------------------------------------------
+void CGE_GetCastleEngineVersion(char *szBuffer, int nBufSize)
+{
+	if (pfrd_CGE_GetCastleEngineVersion!=NULL)
+        (*pfrd_CGE_GetCastleEngineVersion)(szBuffer, nBufSize);
+}
+
+//-----------------------------------------------------------------------------
 void CGE_Resize(unsigned uiViewWidth, unsigned uiViewHeight)
 {
 	if (pfrd_CGE_Resize!=NULL)
@@ -284,10 +294,10 @@ void CGE_Motion(int x, int y, int nFingerIdx)
 }
 
 //-----------------------------------------------------------------------------
-void CGE_MouseUp(int x, int y, bool bLeftBtn, int nFingerIdx, bool trackReleased)
+void CGE_MouseUp(int x, int y, bool bLeftBtn, int nFingerIdx)
 {
 	if (pfrd_CGE_MouseUp!=NULL)
-		(*pfrd_CGE_MouseUp)(x, y, bLeftBtn, nFingerIdx, trackReleased);
+		(*pfrd_CGE_MouseUp)(x, y, bLeftBtn, nFingerIdx);
 }
 
 //-----------------------------------------------------------------------------

@@ -26,7 +26,9 @@ type
     procedure Poll(const List: TJoystickList;
       const EventContainer: TJoysticks); override;
     procedure SetJoystickCount(const List: TJoystickList; const NewJoystickCount: Integer);
-    procedure SetJoystickAxis(const List: TJoystickList; const JoystickIndex: Integer; const Axis: TVector2);
+    procedure SetJoystickAxis(const List: TJoystickList; const JoystickIndex: Integer; const Axis: TVector2); deprecated 'use SetJoystickLeftAxis';
+    procedure SetJoystickLeftAxis(const List: TJoystickList; const JoystickIndex: Integer; const Axis: TVector2);
+    procedure SetJoystickRightAxis(const List: TJoystickList; const JoystickIndex: Integer; const Axis: TVector2);
   end;
 
 implementation
@@ -52,6 +54,11 @@ begin
 end;
 
 procedure TExplicitJoystickBackend.SetJoystickAxis(const List: TJoystickList; const JoystickIndex: Integer; const Axis: TVector2);
+begin
+  SetJoystickLeftAxis(List, JoystickIndex, Axis);
+end;
+
+procedure TExplicitJoystickBackend.SetJoystickLeftAxis(const List: TJoystickList; const JoystickIndex: Integer; const Axis: TVector2);
 var
   Joystick: TJoystick;
 begin
@@ -60,6 +67,22 @@ begin
     Joystick := List[JoystickIndex];
     Joystick.State.Axis[JOY_AXIS_X] := Axis.X;
     Joystick.State.Axis[JOY_AXIS_Y] := Axis.Y;
+  end else
+    WriteLnWarning('Joystick index %d given to CGEApp_JoystickAxis is incorrect. Current joystick count (given to CGEApp_JoystickCount) is %d.', [
+      JoystickIndex,
+      List.Count
+    ]);
+end;
+
+procedure TExplicitJoystickBackend.SetJoystickRightAxis(const List: TJoystickList; const JoystickIndex: Integer; const Axis: TVector2);
+var
+  Joystick: TJoystick;
+begin
+  if Between(JoystickIndex, 0, List.Count - 1) then
+  begin
+    Joystick := List[JoystickIndex];
+    Joystick.State.Axis[JOY_AXIS_U] := Axis.X;
+    Joystick.State.Axis[JOY_AXIS_R] := -Axis.Y;
   end else
     WriteLnWarning('Joystick index %d given to CGEApp_JoystickAxis is incorrect. Current joystick count (given to CGEApp_JoystickCount) is %d.', [
       JoystickIndex,

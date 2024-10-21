@@ -64,6 +64,8 @@ type
       This updates TCastleCollider with TCastleCollider.AutoSize.
       This also updates TCastleMeshCollider mesh, if it referred to us. }
     procedure UpdateCollider;
+
+    function InternalBuildNodeInside: TObject; override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -109,8 +111,7 @@ type
 
     { Resolve collisions precisely with the primitive geometry.
       When this is @false we will only consider the primitive bounding box for collisions,
-      so e.g. player will not be able to move within sphere's box corners.
-      This sets @link(TCastleSceneCore.Spatial). }
+      so e.g. player will not be able to move within sphere's box corners. }
     property PreciseCollisions: Boolean read FPreciseCollisions write SetPreciseCollisions default false;
 
     { Rendering options of the scene. }
@@ -339,6 +340,11 @@ begin
   C := FindBehavior(TCastleCollider) as TCastleCollider;
   if C <> nil then
     C.InternalTransformChanged(Self);
+end;
+
+function TCastleAbstractPrimitive.InternalBuildNodeInside: TObject;
+begin
+  Result := FShapeNode.DeepCopy;
 end;
 
 {$define read_implementation_methods}

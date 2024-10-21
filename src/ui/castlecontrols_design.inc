@@ -26,7 +26,18 @@
   TCastleDesign = class(TCastleUserInterface)
   strict private
     class var
-      LoadDepth: Cardinal;
+      { Keeps track of TCastleDesign causing loading of another TCastleDesign,
+        avoids infinite recursion.
+
+        In the past we tried with MaxDepth, but this
+        - Puts unnecessary limit on how deep you can nest designs,
+          even when not causing recursion.
+        - It's hard to choose safe and reasonable value for MaxDepth.
+          In some cases 1024 was enough, in some 32, in some even 32 caused
+          too much trouble.
+        Using a stack with URLs allows to break at 1st sight of recursion,
+        but also allow any depth when it's not recursive. }
+      LoadStack: TCastleStringList;
     var
       FDesign: TCastleUserInterface;
       { We don't use Self as Owner of FDesign, to allow freeing everything
@@ -145,8 +156,34 @@ begin
 end;
 
 procedure TCastleDesign.SetUrl(const Value: String);
-const
-  MaxLoadDepth = 32; // 64 is too much for macOS/x86_64; although for Linux/x86_64 even 1024 was OK
+
+  { Make a warning if LoadStack check fails.
+    Otherwise add us to LoadStack. }
+  procedure CheckAndBeingLoadStack;
+  begin
+    if LoadStack = nil then
+      LoadStack := TCastleStringList.Create;
+
+    if LoadStack.IndexOf(Url) <> -1 then
+      raise EMaximumDesignDepth.CreateFmt('TCastleDesign %s with URL "%s" loads recursively the same design file. Breaking, to prevent infinite recursion', [
+        Name, Url
+      ]);
+    LoadStack.Add(Url);
+  end;
+
+  { Remove us from LoadStack. }
+  procedure EndLoadStack;
+  var
+    I: Integer;
+  begin
+    I := LoadStack.IndexOf(Url);
+    Assert(LoadStack.Count <> 0);
+    Assert(I = LoadStack.Count - 1);
+    LoadStack.Delete(I);
+    if LoadStack.Count = 0 then
+      FreeAndNil(LoadStack);
+  end;
+
 begin
   if FUrl <> Value then
   begin
@@ -166,16 +203,11 @@ begin
     if Value <> '' then
     begin
       try
-        { Check LoadDepth = MaxLoadDepth to prevent infinite loop when referencing your own design. }
-        if LoadDepth = MaxLoadDepth then
-          raise EMaximumDesignDepth.CreateFmt('Exceeded maximum depth (%d) when loading TCastleDesign within TCastleDesign. It is possible that TCastleDesign references its own design', [
-            MaxLoadDepth
-          ]);
-        Inc(LoadDepth);
+        CheckAndBeingLoadStack;
         try
           FDesignOwner := TComponent.Create(Self);
           FDesign := UserInterfaceLoad(Value, FDesignOwner);
-        finally Dec(LoadDepth) end;
+        finally EndLoadStack end;
       except
         { If loading design file failed, and we're inside CGE editor,
           merely report a warning. This allows deserializing in CGE editor

@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!--
+Specify basic information about the project, including how this project is build.
+See https://castle-engine.io/project_manifest for documentation of this file.
+-->
+
+<project name="steam_test"
+  standalone_source="steam_test_standalone.dpr"
+  game_units="GameInitialize"
+  qualified_name="io.castleengine.steam.test"
+  caption="Steam Test"
+>
+  <compiler_options>
+    <search_paths>
+      <path value="code/" />
+    </search_paths>
+  </compiler_options>
+
+  <!-- See https://castle-engine.io/steam -->
+  <package>
+    <!-- For 64-bit Windows -->
+    <include path="steam_api64.dll" />
+
+    <!-- For Linux -->
+    <include path="run.sh" />
+    <include path="libsteam_api.so" />
+
+    <!-- For macOS: nothing is necessary for now.
+      We pack lib*.dylib (and steam_appid.txt for testing)
+      into bundle alongside exe automatically. -->
+    <!-- include path="libsteam_api.dylib" /-->
+  </package>
+</project>

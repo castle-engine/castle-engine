@@ -228,6 +228,9 @@ var
   { @exclude Refresh UI of CGE editor, because hierarchy of UI/transforms changed. }
   InternalCastleDesignInvalidate: Boolean;
 
+type
+  TBooleanSet = set of Boolean;
+
 {$endif read_interface}
 
 {$ifdef read_implementation}

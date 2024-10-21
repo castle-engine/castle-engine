@@ -755,6 +755,7 @@ type
       FOctreeRendering: TShapeOctree;
       FOctreeDynamicCollisions: TShapeOctree;
       FSpatial: TSceneSpatialStructures;
+      FPreciseCollisions: Boolean;
 
     { Properties of created shape octrees.
       See ShapeOctree unit comments for description.
@@ -771,8 +772,9 @@ type
 
     procedure SetSpatial(const Value: TSceneSpatialStructures);
     property Spatial: TSceneSpatialStructures read FSpatial write SetSpatial;
+    { Update Spatial from PreciseCollisions and CastleDesignMode. }
+    procedure UpdateSpatial;
 
-    function GetPreciseCollisions: Boolean;
     procedure SetPreciseCollisions(const Value: Boolean);
   private
     FMainLightForShadowsExists: boolean;
@@ -829,6 +831,8 @@ type
     IsVisibleNow: boolean;
 
     GeneratedTextures: TGeneratedTextureList;
+
+    function InternalBuildNodeInside: TObject; override;
 
     { Create TShape (or descendant) instance suitable for this
       TCastleSceneCore descendant. In this class, this simply creates new
@@ -1428,8 +1432,8 @@ type
       and PointingDeviceOverPoint,
       thus producing isOver and such events.
 
-      To make pointing-device sensors work Ok, make sure you have non-nil
-      OctreeCollisions (e.g. include ssDynamicCollisions in @link(Spatial)). }
+      For pointing device sensors to work, you must have collision
+      structures set up by setting @link(PreciseCollisions) to @true. }
     function PointingDeviceMove(const Pick: TRayCollisionNode;
       const Distance: Single): boolean; override;
 
@@ -2074,8 +2078,7 @@ type
       (we use ClassType.Create to call a virtual constructor).
 
       Note that this @bold(does not copy other scene attributes),
-      like @link(ProcessEvents) or @link(Spatial) or rendering attributes
-      in @link(TCastleScene.RenderOptions).
+      like @link(ProcessEvents) or @link(TCastleScene.RenderOptions).
       It only copies the scene graph (RootNode) and also sets
       target URL based on source URL (for logging purposes, e.g.
       TCastleProfilerTime use this URL to report loading and preparation times). }
@@ -2180,7 +2183,7 @@ type
         )
       )
     }
-    property PreciseCollisions: Boolean read GetPreciseCollisions write SetPreciseCollisions default false;
+    property PreciseCollisions: Boolean read FPreciseCollisions write SetPreciseCollisions default false;
 
     { Should the event mechanism (a basic of animations and interactions) work.
 
@@ -3070,6 +3073,8 @@ begin
     anyway when RootNode = nil). }
 
   FUrlMonitoring.Init({$ifdef FPC}@{$endif} ReloadUrl);
+
+  UpdateSpatial;
 end;
 
 procedure TCastleSceneCore.BeforeDestruction;
@@ -5636,14 +5641,6 @@ var
 begin
   if Value <> FSpatial then
   begin
-    if ( (Value <> []) and
-         (Value <> [ssRendering, ssDynamicCollisions]) and
-         (Value <> [ssDynamicCollisions])
-       ) then
-      WritelnWarning('%s: Spatial values different than [], [ssRendering,ssDynamicCollisions], [ssDynamicCollisions] may not be allowed in future engine versions. We advise to use TCastleScene.PreciseCollisions instead of TCastleScene.Spatial.', [
-        Name
-      ]);
-
     { Handle OctreeRendering }
 
     Old := ssRendering in FSpatial;
@@ -5680,21 +5677,23 @@ begin
   end;
 end;
 
-function TCastleSceneCore.GetPreciseCollisions: Boolean;
-begin
-  {$warnings off} // this uses deprecated Spatial, which should be Internal at some point
-  Result := Spatial <> [];
-  {$warnings on}
-end;
-
 procedure TCastleSceneCore.SetPreciseCollisions(const Value: Boolean);
 begin
-  {$warnings off} // this uses deprecated Spatial, which should be Internal at some point
-  if Value then
+  if FPreciseCollisions <> Value then
+  begin
+    FPreciseCollisions := Value;
+    UpdateSpatial;
+  end;
+end;
+
+procedure TCastleSceneCore.UpdateSpatial;
+begin
+  { In CastleDesignMode we always have precise collisions,
+    to support precise picking in the editor. }
+  if FPreciseCollisions or CastleDesignMode then
     Spatial := [ssRendering, ssDynamicCollisions]
   else
     Spatial := [];
-  {$warnings on}
 end;
 
 function TCastleSceneCore.InternalOctreeRendering: TShapeOctree;
@@ -8487,6 +8486,66 @@ begin
     WritelnWarning('Scene %s: Spatial property is deprecated, use PreciseCollisions instead', [Name]);
     PreciseCollisions := true;
   end;
+end;
+
+function TCastleSceneCore.InternalBuildNodeInside: TObject;
+
+  { Does our RootNode export (using X3D mechanism) given name. }
+  function RootExportsName(const ExportedName: String): Boolean;
+  var
+    E: TX3DExport;
+    HereExported: String;
+  begin
+    Result := false;
+    if (RootNode <> nil) and (RootNode.ExportedNames <> nil) then
+    begin
+      for E in RootNode.ExportedNames do
+      begin
+        if E.ExportedAlias <> '' then
+          HereExported := E.ExportedAlias
+        else
+        if E.ExportedNode <> nil then
+          HereExported := E.ExportedNode.X3DName
+        else
+          HereExported := '';
+        if HereExported = ExportedName then
+          Exit(true);
+      end;
+    end;
+  end;
+
+var
+  ExportAnimation: Boolean;
+  InlineNode: TInlineNode;
+  GroupNode: TGroupNode;
+  Import: TX3DImport;
+begin
+  // if AutoAnimation is defined, setup nodes to start given animation
+  ExportAnimation := (AutoAnimation <> '') and RootExportsName(AutoAnimation);
+
+  InlineNode := TInlineNode.Create;
+  InlineNode.X3DName := Name + '_Scene';
+  InlineNode.SetUrl([Url]);
+
+  if ExportAnimation then
+  begin
+    GroupNode := TGroupNode.Create;
+    GroupNode.X3DName := Name + '_Group';
+    GroupNode.AddChildren(InlineNode);
+
+    Import := TX3DImport.Create;
+    Import.InlineNodeName := InlineNode.X3DName;
+    Import.ImportedNodeName := AutoAnimation;
+    { Prefix imported name with Name, to make it unique if you export
+      many times some scene with the same animation name.
+      Testcase: exporting 3D FPS game template, many soldiers with "walk". }
+    Import.ImportedNodeAlias := Name + '_' + AutoAnimation; // same as ImportedNodeName
+    GroupNode.AddImport(Import);
+    // TODO: add sensor to activate this time sensor.
+
+    Result := GroupNode;
+  end else
+    Result := InlineNode;
 end;
 
 end.

@@ -7,7 +7,7 @@
 
 <castle_settings>
   <ui_scaling
-    mode="EncloseReferenceSize"
+    mode="EncloseReferenceSizeAutoOrientation"
     reference_width="1600"
     reference_height="900"
   />

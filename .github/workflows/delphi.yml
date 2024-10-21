@@ -26,7 +26,7 @@ jobs:
       matrix:
         host-label: [
           delphi_10_2,
-          delphi_12_1
+          delphi_12_2
         ]
 
     # Note: This is a self-hosted runner in organization,

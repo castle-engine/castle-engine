@@ -292,6 +292,8 @@
     // @exclude
     procedure InternalSetEffectiveProjection(
       const AEffectiveProjectionNear, AEffectiveProjectionFar: Single);
+  protected
+    function InternalBuildNodeInside: TObject; override;
   public
     InternalOnSceneBoundViewpointChanged,
     InternalOnSceneBoundViewpointVectorsChanged,
@@ -1460,6 +1462,69 @@ begin
     EffectiveProjectionFar,
     Iff(EffectiveProjectionFar = ZFarInfinity, ' (infinity: no far clipping plane)', '')
   ]));
+end;
+
+function TCastleCamera.InternalBuildNodeInside: TObject;
+var
+  OrthoViewpoint: TOrthoViewpointNode;
+  Viewpoint: TViewpointNode;
+  OrthoFovLeft, OrthoFovBottom, OrthoSize: Single;
+begin
+  case ProjectionType of
+    ptOrthographic:
+      begin
+        OrthoViewpoint := TOrthoViewpointNode.Create;
+        OrthoViewpoint.AutoCenterOfRotation := true; // make Examine navigation better
+        if (Orthographic.Width <> 0) and
+           (Orthographic.Height <> 0) then
+        begin
+          OrthoFovLeft   := -Orthographic.Origin.X * Orthographic.Width;
+          OrthoFovBottom := -Orthographic.Origin.Y * Orthographic.Height;
+          OrthoViewpoint.SetFieldOfView([
+            OrthoFovLeft,
+            OrthoFovBottom,
+            OrthoFovLeft + Orthographic.Width,
+            OrthoFovBottom + Orthographic.Height
+          ]);
+        end else
+        if (Orthographic.Width <> 0) or
+           (Orthographic.Height <> 0) then
+        begin
+          OrthoSize := Max(Orthographic.Width, Orthographic.Height);
+          { Unlike our TCastleOrthographic, X3D OrthoViewpoint needs
+            both width and height non-zero.
+            So use the one we have non-zero to determine both -- these are
+            minimal values for fov anyway, so it will result in sensible rendering. }
+          OrthoFovLeft   := -Orthographic.Origin.X * OrthoSize;
+          OrthoFovBottom := -Orthographic.Origin.Y * OrthoSize;
+          OrthoViewpoint.SetFieldOfView([
+            OrthoFovLeft,
+            OrthoFovBottom,
+            OrthoFovLeft + OrthoSize,
+            OrthoFovBottom + OrthoSize
+          ]);
+        end;
+        OrthoViewpoint.Position := TVector3.Zero;
+        Result := OrthoViewpoint;
+      end;
+    ptPerspective:
+      begin
+        Viewpoint := TViewpointNode.Create;
+        Viewpoint.AutoCenterOfRotation := true; // make Examine navigation better
+        Viewpoint.FieldOfView := Perspective.FieldOfView;
+        { X3D FieldOfViewForceVertical allows to express FieldOfViewAxis = faVertical
+          case.
+          Other FieldOfViewAxis = faVertical values are all treated
+          as default X3D behavior, which means faSmallest. }
+        Viewpoint.FieldOfViewForceVertical := Perspective.FieldOfViewAxis = faVertical;
+        Viewpoint.FieldOfView := Perspective.FieldOfView;
+        Viewpoint.Position := TVector3.Zero;
+        Result := Viewpoint;
+      end;
+    {$ifndef COMPILER_CASE_ANALYSIS}
+    else raise EInternalError.Create('TCastleCamera.InternalBuildNodeInside: PerspectiveType?');
+    {$endif}
+  end;
 end;
 
 {$define read_implementation_methods}

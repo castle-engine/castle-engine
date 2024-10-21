@@ -730,9 +730,8 @@ type
         generated triangles. This "front" face matters e.g.
 
         @unorderedList(
-          @item(In case the shape uses backface-culling.
-            This is indicated by "solid" fields
-            in X3D nodes, like @link(TAbstractComposedGeometryNode.Solid).
+          @item(In case the shape uses backface-culling,
+            when @link(TAbstractGeometryNode.Solid).
             In case of some model formats, like STL, the backface-culling
             is always "on".
           )

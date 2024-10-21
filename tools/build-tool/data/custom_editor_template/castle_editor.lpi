@@ -41,7 +41,7 @@
         <PackageName Value="LCL"/>
       </Item4>
     <Item5> <PackageName Value="castle_editor_automatic_package"/> </Item5> </RequiredPackages>
-    <Units Count="30">
+    <Units Count="31">
       <Unit0>
         <Filename Value="castle_editor.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -110,9 +110,9 @@
         <UnitName Value="FormPreferences"/>
       </Unit9>
       <Unit10>
-        <Filename Value="${CASTLE_ENGINE_PATH}tools/castle-editor/code/designvisualizetransform.pas"/>
+        <Filename Value="${CASTLE_ENGINE_PATH}tools/castle-editor/code/castletransformmanipulate.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="DesignVisualizeTransform"/>
+        <UnitName Value="CastleTransformManipulate"/>
       </Unit10>
       <Unit11>
         <Filename Value="${CASTLE_ENGINE_PATH}tools/castle-editor/code/formspritesheeteditor.pas"/>
@@ -232,6 +232,11 @@
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="FormProgress"/>
       </Unit29>
+      <Unit30>
+        <Filename Value="${CASTLE_ENGINE_PATH}tools/castle-editor/code/designsteam.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="DesignSteam"/>
+      </Unit30>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

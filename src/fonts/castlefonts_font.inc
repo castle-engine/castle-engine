@@ -29,9 +29,11 @@ type
     ready TTextureFontData instance. }
   TCastleFont = class(TCastleAbstractFont)
   strict private
+    FDistanceField: Boolean;
     FFont: TTextureFontData; //< nil when no font loaded successfully
-    FOwnsFont: boolean;
+    FOwnsFont: Boolean;
     DrawableImage: TDrawableImage;
+    DistanceFieldShader: TGLSLProgram;
     GlyphsScreenRects, GlyphsImageRects: TFloatRectangleList;
     FUrl: String;
     FOptimalSize: Cardinal;
@@ -39,6 +41,7 @@ type
     FLoadBasicCharacters: Boolean;
     FLoadCharacters: String;
     function GetScale: Single;
+    procedure SetDistanceField(const AValue: Boolean);
     procedure SetScale(const AValue: Single);
     procedure SetUrl(const Value: String);
     procedure SetOptimalSize(const Value: Cardinal);
@@ -99,11 +102,11 @@ type
 
     procedure PrepareResources; override;
     procedure Print(const X, Y: Single; const Color: TCastleColor;
-      const S: string); override;
-    function TextWidth(const S: string): Single; override;
-    function TextHeight(const S: string): Single; override;
-    function TextHeightBase(const S: string): Single; override;
-    function TextMove(const S: string): TVector2; override;
+      const S: String); override;
+    function TextWidth(const S: String): Single; override;
+    function TextHeight(const S: String): Single; override;
+    function TextHeightBase(const S: String): Single; override;
+    function TextMove(const S: String): TVector2; override;
 
     { Underlying font data. }
     property FontData: TTextureFontData read FFont; {$ifdef FPC}deprecated 'you should not need to use this directly';{$endif} // can't be removed from delphi because x3dnodes_standard_text.inc uses that
@@ -118,6 +121,76 @@ type
       the @url(https://www.freetype.org/ FreeType library), even bitmap fonts,
       see @url(https://www.freetype.org/freetype2/docs/ft2faq.html#general-what the summary of font formats supported by FreeType). }
     property Url: String read FUrl write SetUrl;
+
+    { Use "distance field" font rendering.
+      This is a font rendering technique that @italic(may)
+      result in a better quality when the text is large.
+
+      Underneath, the font is processed to a different texture than usual
+      (that expresses distances to glyphs) and rendered usign a special shader.
+
+      The positive outcome is that the font looks better (not blurred)
+      even when scaled up.
+      "Scaling up" occurs when the actual font size
+      (derived from @link(TCastleUserInterfaceFont.FontSize) and UI scaling)
+      is significantly larger than the optimal size for which the font
+      image was prepared (@link(OptimalSize)). In this case, rendering
+      without distance field (when this is @false, by default)
+      results in blurred font look.
+      When this is @true, the look remains "crisp".
+
+      Disadvantages:
+
+      One, preparing a distance field font texture is more time-consuming.
+      So loading time may be slightly larger. This increased loading time
+      is generally negligible if you just have a few fonts.
+      But be sure to profile your loading time (see
+      https://castle-engine.io/manual_optimization.php )
+      if you use a lot of fonts with DistanceField = @true.
+
+      A more serious disadvantage is that the result is not always a better quality:
+      At really large sizes, the artifacts of distance field rendering
+      may be visible -- the letters are "crisp" but their shape may be slightly
+      distorted.
+      If you don't mind extra memory usage, you can likely get better
+      quality by just loading a larger font texture (with larger OptimalSize)
+      and leaving this property at @false.
+
+      Morover, when the final font size is *smaller* than the size for which
+      the font was prepared, it will definitely look worse.
+
+      TODO: We could defeat some of the issues mentioned above.
+      You're welcome to ping us ( https://castle-engine.io/talk.php )
+      and support ( https://www.patreon.com/castleengine ) to make it happen.
+
+      @unorderedList(
+        @item(The loading time of fonts (with and without distance fields)
+          could be improved by generating the necessary texture at
+          preprocessing, introducing "castle-engine auto-generate" command
+          that would generalize current "castle-engine auto-generate-textures".
+        )
+
+        @item(TCastleText (text in a viewport) cannot handle fonts with DistanceField
+          yet. Result would not be sensible. For now, TCastleText.FontStyleFontChanged
+          warns about it and forces DistanceField to @false.)
+
+        @item(It is possible that the quality could be improved:
+
+          Implement normalization.
+          Can this make downscaling better? Does this make upscaling better?
+          See https://libgdx.com/wiki/graphics/2d/fonts/distance-field-fonts
+          what it means.)
+
+        @item(Introduce a fallback on non-distance-field texture,
+          used when downscaling happens?
+
+          This means larger memory usage,
+          and potential jump in look if someone animates FontSize.
+        )
+      )
+    }
+    property DistanceField: Boolean read FDistanceField write SetDistanceField
+      default false;
 
     { Optimal font size (in real device pixels),
       the font will be scaled when other size is actually needed.
@@ -137,7 +210,7 @@ type
     property LoadBasicCharacters: Boolean read FLoadBasicCharacters write SetLoadBasicCharacters default true;
 
     { Load from font all characters listed here. As everywhere in CGE
-      (same as in Lazarus LCL), this is an string composed from UTF-8 characters. }
+      (same as in Lazarus LCL), this is an String composed from UTF-8 characters. }
     property LoadCharacters: String read FLoadCharacters write SetLoadCharacters;
   end;
 
@@ -199,7 +272,7 @@ begin
     Unload
   else
   begin
-    NewFontData := TTextureFontData.Create(Url, ASize, AnAntiAliased, ACharacters);
+    NewFontData := TTextureFontData.Create(Url, ASize, AnAntiAliased, ACharacters, FDistanceField);
     Load(NewFontData, true, AdjustProperties);
   end;
 end;
@@ -209,7 +282,7 @@ constructor TCastleFont.Create(const Url: String;
   const ACharacters: TSetOfChars);
 var
   Chars: TUnicodeCharList;
-  C: char;
+  C: Char;
 begin
   Chars := TUnicodeCharList.Create;
   try
@@ -262,6 +335,7 @@ begin
      (PropertyName = 'OptimalSize') or
      (PropertyName = 'AntiAliased') or
      (PropertyName = 'LoadCharacters') or
+     (PropertyName = 'DistanceField') or
      (PropertyName = 'LoadBasicCharacters') then
     Result := [psBasic]
   else
@@ -274,6 +348,15 @@ begin
     Result := Size / FFont.Size
   else
     Result := Size;
+end;
+
+procedure TCastleFont.SetDistanceField(const AValue: Boolean);
+begin
+  if FDistanceField <> AValue then
+  begin
+    FDistanceField := AValue;
+    Reload;
+  end;
 end;
 
 procedure TCastleFont.SetScale(const AValue: Single);
@@ -315,23 +398,46 @@ begin
 end;
 
 procedure TCastleFont.PrepareResources;
+
+  procedure AttachDistanceFieldShader;
+  var
+    VS, FS: String;
+  begin
+    VS := {$I image.vs.inc};
+    FS := {$I distance_field_font.fs.inc};
+
+    FreeAndNil(DistanceFieldShader);
+    DistanceFieldShader := TGLSLProgram.Create;
+    DistanceFieldShader.Name := 'DistanceFieldShader';
+    DistanceFieldShader.AttachVertexShader(VS);
+    DistanceFieldShader.AttachFragmentShader(FS);
+    DistanceFieldShader.Link;
+    DrawableImage.CustomShader := DistanceFieldShader;
+    DrawableImage.SmoothScaling := true;
+  end;
+
 begin
   inherited;
   if (FFont <> nil) and (DrawableImage = nil) then
+  begin
     DrawableImage := TDrawableImage.Create(FFont.Image,
       { Smooth scaling always true, ready for any Size,
         see TCastleFont.SetSize comments.  }
       true, false);
+    if FFont.DistanceField then
+      AttachDistanceFieldShader;
+  end;
 end;
 
 procedure TCastleFont.GLContextClose;
 begin
   FreeAndNil(DrawableImage);
+  FreeAndNil(DistanceFieldShader);
   inherited;
 end;
 
 procedure TCastleFont.Print(const X, Y: Single; const Color: TCastleColor;
-  const S: string);
+  const S: String);
 var
   ScreenX, ScreenY: Single;
   G: TTextureFontData.TGlyph;
@@ -346,10 +452,7 @@ var
       TargetImage.DrawFrom(FFont.Image,
         Round(ScreenX - G.X * Scale + OutlineMoveX * Outline),
         Round(ScreenY - G.Y * Scale + OutlineMoveY * Outline),
-        G.ImageX,
-        G.ImageY,
-        G.Width,
-        G.Height);
+        FFont.GlyphDrawImageRect(G));
     end else
     begin
       Assert(GlyphsToRender < GlyphsScreenRects.Count);
@@ -370,17 +473,20 @@ var
         the "A" in "Animations" button in castle-model-viewer gets weird artifact. }
       {.$define EXTRA_GLYPH_SPACE}
 
+      ImageRect := PFloatRectangle(GlyphsImageRects.Ptr(GlyphsToRender));
+      ImageRect^ := FloatRectangle(FFont.GlyphDrawImageRect(G));
+      {$ifdef EXTRA_GLYPH_SPACE}
+      ImageRect^.Left   := ImageRect^.Left   - 0.5;
+      ImageRect^.Bottom := ImageRect^.Bottom - 0.5;
+      ImageRect^.Width  := ImageRect^.Width  + 1;
+      ImageRect^.Height := ImageRect^.Height + 1;
+      {$endif}
+
       ScreenRect := PFloatRectangle(GlyphsScreenRects.Ptr(GlyphsToRender));
       ScreenRect^.Left   := ScreenX - (G.X {$ifdef EXTRA_GLYPH_SPACE} + 0.5 {$endif}) * Scale + OutlineMoveX * Outline;
       ScreenRect^.Bottom := ScreenY - (G.Y {$ifdef EXTRA_GLYPH_SPACE} + 0.5 {$endif}) * Scale + OutlineMoveY * Outline;
-      ScreenRect^.Width  := (G.Width  {$ifdef EXTRA_GLYPH_SPACE} + 1 {$endif}) * Scale;
-      ScreenRect^.Height := (G.Height {$ifdef EXTRA_GLYPH_SPACE} + 1 {$endif}) * Scale;
-
-      ImageRect := PFloatRectangle(GlyphsImageRects.Ptr(GlyphsToRender));
-      ImageRect^.Left   := G.ImageX {$ifdef EXTRA_GLYPH_SPACE} - 0.5 {$endif};
-      ImageRect^.Bottom := G.ImageY {$ifdef EXTRA_GLYPH_SPACE} - 0.5 {$endif};
-      ImageRect^.Width  := G.Width  {$ifdef EXTRA_GLYPH_SPACE} + 1 {$endif};
-      ImageRect^.Height := G.Height {$ifdef EXTRA_GLYPH_SPACE} + 1 {$endif};
+      ScreenRect^.Width  := ImageRect^.Width  * Scale;
+      ScreenRect^.Height := ImageRect^.Height * Scale;
 
       Inc(GlyphsToRender);
     end;
@@ -495,7 +601,7 @@ begin
   end;
 end;
 
-function TCastleFont.TextWidth(const S: string): Single;
+function TCastleFont.TextWidth(const S: String): Single;
 begin
   if FFont = nil then
     Exit(0); // font not loaded
@@ -504,21 +610,21 @@ begin
     Result := Result + Outline * 2 * StringLength(S);
 end;
 
-function TCastleFont.TextHeight(const S: string): Single;
+function TCastleFont.TextHeight(const S: String): Single;
 begin
   if FFont = nil then
     Exit(0); // font not loaded
   Result := FFont.TextHeight(S) * Scale + Outline * 2;
 end;
 
-function TCastleFont.TextHeightBase(const S: string): Single;
+function TCastleFont.TextHeightBase(const S: String): Single;
 begin
   if FFont = nil then
     Exit(0); // font not loaded
   Result := FFont.TextHeightBase(S) * Scale + Outline * 2;
 end;
 
-function TCastleFont.TextMove(const S: string): TVector2;
+function TCastleFont.TextMove(const S: String): TVector2;
 var
   M: TVector2Integer;
 begin

@@ -334,6 +334,10 @@ begin
     P.Targets.AddUnit('castleopendocument.pas');
     P.Targets.AddUnit('castletenjin.pas');
 
+    P.SourcePath.Add('src/services/steam');
+    P.Targets.AddUnit('castleinternalsteamapi.pas');
+    P.Targets.AddUnit('castlesteam.pas');
+
     if Defaults.OS = Android then
     begin
       P.SourcePath.Add('src/base/android');
@@ -482,6 +486,8 @@ begin
     P.Targets.AddUnit('x3dcamerautils.pas');
     P.Targets.AddUnit('x3dtime.pas');
     P.Targets.AddUnit('castleinternalscreeneffects.pas');
+    P.Targets.AddUnit('castletransformmanipulate.pas');
+    P.Targets.AddUnit('castleinternaltransformdata.pas');
 
     P.SourcePath.Add('src/scene/x3d');
     P.Targets.AddUnit('x3dnodes.pas');
@@ -506,6 +512,9 @@ begin
 
     P.SourcePath.Add('src/scene/load/md3');
     P.Targets.AddUnit('x3dloadinternalmd3.pas');
+
+    P.SourcePath.Add('src/scene/load/ifc');
+    P.Targets.AddUnit('castleinternalloadsaveifc.pas');
 
     P.SourcePath.Add('src/scene/load/collada');
     P.Targets.AddUnit('x3dloadinternalcollada.pas');

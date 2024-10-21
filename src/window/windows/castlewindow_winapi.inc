@@ -360,7 +360,9 @@ function TCastleWindow.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM): LRE
   procedure MaybeRelease;
   { mouse up occurred; release capture if all mouse buttons are now up }
   begin
-    if (mousePressed=[]) and (GetCapture = H_Wnd) then ReleaseCapture;
+    if (Container.MousePressed = []) and
+       (GetCapture = H_Wnd) then
+      ReleaseCapture;
   end;
 
   type
@@ -419,7 +421,7 @@ function TCastleWindow.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM): LRE
     The frequency of "key repeat" depends on user settings.
 
     And... that's completely OK. We still pass each WM_KEYDOWN to DoKeyDown.
-    This way our API (TCastleUserInterface.Press, TCastleWindow.OnPress)
+    This way our API (TCastleUserInterface.Press)
     will generate repeated key presses.
     This is documented and desired (e.g. for implementing UI like edit box).
     User can check TInputPressRelease.KeyRepeated that is calculated
@@ -692,6 +694,47 @@ function TCastleWindow.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM): LRE
     MaybeRelease;
   end;
 
+  procedure HandleMouseMove;
+  var
+    CorrectMousePressed: TCastleMouseButtons;
+    MouseButton: TCastleMouseButton;
+    CastleMousePosition: TVector2;
+  begin
+    CastleMousePosition := LeftTopToCastle(
+      TWinParam(lParm).LoSmallint,
+      TWinParam(lParm).HiSmallint);
+
+    { Our DoMouseDown/Up should keep the Container.MousePressed updated,
+      making the information from "MK_LBUTTON and wParm" etc. redundant.
+      But actually it's known to fail if you press/release mouse buttons
+      when a dialog (like FileDialog) is open.
+      So check, and eventually synchronize. }
+    CorrectMousePressed := [];
+    if (MK_LBUTTON and wParm) <> 0 then Include(CorrectMousePressed, buttonLeft);
+    if (MK_MBUTTON and wParm) <> 0 then Include(CorrectMousePressed, buttonMiddle);
+    if (MK_RBUTTON and wParm) <> 0 then Include(CorrectMousePressed, buttonRight);
+    if CorrectMousePressed <> Container.MousePressed then
+    begin
+      WritelnLog('Container.MousePressed not up-to-date with Windows messages when calling DoMotion. This may happen if you press/release mouse buttons when a dialog (like FileDialog) is open. Synchronizing.');
+      for MouseButton := Low(TCastleMouseButton) to High(TCastleMouseButton) do
+      begin
+        if (MouseButton in Container.MousePressed) and
+           (not (MouseButton in CorrectMousePressed)) then
+        begin
+          DoMouseUp(CastleMousePosition, MouseButton, 0);
+        end else
+        if (not (MouseButton in Container.MousePressed)) and
+           (MouseButton in CorrectMousePressed) then
+          DoMouseDown(CastleMousePosition, MouseButton, 0);
+      end;
+      if CorrectMousePressed <> Container.MousePressed then
+        WritelnWarning('Container.MousePressed still not up-to-date with Windows messages when calling DoMotion. This should not happen.');
+    end;
+
+    DoMotion(InputMotion(Container.MousePosition, CastleMousePosition,
+      Container.MousePressed, 0));
+  end;
+
 var
   DoEnableUpdatesFromWindowProc, DoDisableUpdatesFromWindowProc: boolean;
 begin
@@ -773,8 +816,8 @@ begin
 
           1. Left and Top are said in unit's interface to work like that
 
-          2. SetMousePosition requires this. Otherwise positions
-             set by SetMousePosition and read by MousePosition properties
+          2. SystemSetMousePosition requires this. Otherwise positions
+             set by SystemSetMousePosition and read by MousePosition properties
              would be slightly different.
              And there are cases when it is important that they use
              exactly the same coordinate systems --- e.g. mouse look handling.
@@ -881,25 +924,12 @@ begin
           there's no WinAPI event for this. But we can as well call this when user enters
           the menu, because of blocking above --- it will have the same effect, since
           DoUpdate is not called inside the menu. }
-        Fps.ZeroNextSecondsPassed;
+        Container.Fps.ZeroNextSecondsPassed;
 
         Exit;
       end;
 
-    WM_MOUSEMOVE:
-      begin
-        { We could refresh FMousePressed now:
-            FMousePressed := [];
-            if (MK_LBUTTON and wParm) <> 0 then Include(FMousePressed, buttonLeft);
-            if (MK_MBUTTON and wParm) <> 0 then Include(FMousePressed, buttonMiddle);
-            if (MK_RBUTTON and wParm) <> 0 then Include(FMousePressed, buttonRight);
-          but it's not needed (we keep it current anyway in mousedown/up events). }
-        DoMotion(InputMotion(MousePosition, LeftTopToCastle(
-          TWinParam(lParm).LoSmallint,
-          TWinParam(lParm).HiSmallint),
-          MousePressed, 0));
-        Exit;
-      end;
+    WM_MOUSEMOVE: begin HandleMouseMove; Exit end;
     WM_LBUTTONDOWN: begin HandleMouseDown(buttonLeft  ); Exit end;
     WM_MBUTTONDOWN: begin HandleMouseDown(buttonMiddle); Exit end;
     WM_RBUTTONDOWN: begin HandleMouseDown(buttonRight ); Exit end;
@@ -1126,9 +1156,9 @@ procedure TCastleWindow.OpenBackend;
   begin
     if GetCursorPos({$ifdef FPC}@{$endif}InitialCursorPos) then
     begin
-      FMousePosition := LeftTopToCastle(
+      Container.InitializeMousePosition(LeftTopToCastle(
         InitialCursorPos.X - ClientRect.Left,
-        InitialCursorPos.Y - ClientRect.Top);
+        InitialCursorPos.Y - ClientRect.Top));
     end;
   end;
 
@@ -1332,7 +1362,7 @@ begin
   end;
 end;
 
-procedure TCastleWindow.SetMousePosition(const Value: TVector2);
+procedure TCastleWindow.SystemSetMousePosition(const Value: TVector2);
 
   { Perform similar function as WinAPI SetCursorPos (set cursor position,
     given absolute screen coordinates), but using SendInput WinAPI call.
@@ -1375,16 +1405,8 @@ procedure TCastleWindow.SetMousePosition(const Value: TVector2);
 var
   P: TVector2Integer;
 begin
-  if not Closed then
-  begin
-
-    { Do not set Mouse.CursorPos to the same value, to make sure we don't cause
-      unnecessary OnMotion on some systems while actual MousePosition didn't change. }
-    if TVector2.PerfectlyEquals(Value, FMousePosition) then Exit;
-
-    P := CastleToLeftTopInt(Value);
-    SetCursorPosBySendInput(Left + P.X, Top + P.Y);
-  end;
+  P := CastleToLeftTopInt(Value);
+  SetCursorPosBySendInput(Left + P.X, Top + P.Y);
 end;
 
 procedure TCastleWindow.CloseBackend;

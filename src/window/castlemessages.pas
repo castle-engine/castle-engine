@@ -412,7 +412,7 @@ begin
 
   { Using @NoClose below allows to safely use MessageXxx inside own OnCloseQuery,
     like "if MessageYesNo('Are you sure ?') then Window.Close;" }
-  SavedMode := TGLMode.CreateReset(Window, nil, nil, @NoClose);
+  SavedMode := TGLMode.CreateReset(Window);
   try
     { use View directly as UI control, not using TCastleContainer.PushView
       nor setting TCastleContainer.View,
@@ -428,7 +428,7 @@ begin
   finally
     FreeAndNil(SavedMode);
     { Message boxes should not leave the keys in false/strange pressed view. }
-    Window.Pressed.Clear;
+    Window.Container.Pressed.Clear;
   end;
 
   View.Stop;

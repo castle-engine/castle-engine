@@ -24,7 +24,7 @@ interface
 uses Classes, Generics.Collections, TypInfo,
   CastleControls, CastleUIControls, CastleColors, CastleRectangles,
   CastleVectors, CastleKeysMouse, CastleComponentSerialize, CastleTimeUtils,
-  CastleTransform;
+  CastleTransform, CastleInternalRttiUtils;
 
 type
   { Inspect Castle Game Engine state.
@@ -56,7 +56,7 @@ type
         CheckboxValue: TCastleCheckbox;
         PropObject: TObject;
         PropInfo: PPropInfo;
-        IsBool: Boolean; //< Result of PropertyIsBool
+        PropType: TPropertyType;
         procedure CheckboxChanged(Sender: TObject);
       public
         Ui: TCastleUserInterface;
@@ -208,7 +208,7 @@ implementation
 
 uses SysUtils, StrUtils, RttiUtils,
   CastleStringUtils, CastleGLUtils, CastleApplicationProperties, CastleClassUtils,
-  CastleUtils, CastleLog, CastleInternalRttiUtils, CastleGLImages,
+  CastleUtils, CastleLog, CastleGLImages,
   CastleViewport, CastleScene, CastleUriUtils, CastleInternalFileMonitor;
 
 { ---------------------------------------------------------------------------- }
@@ -349,24 +349,27 @@ procedure TCastleInspector.TPropertyDisplay.Initialize(
 begin
   PropObject := APropObject;
   PropInfo := APropInfo;
-  IsBool := PropertyIsBool(PropInfo);
+  PropType := PropertyType(PropInfo);
 
   ForceFallbackLook(Ui);
 
   LabelName := FindRequiredComponent('PropName') as TCastleLabel;
   LabelName.Caption := APropName;
 
-  if IsBool then
-  begin
-    CheckboxValue := FindRequiredComponent('PropValueCheckbox') as TCastleCheckbox;
-    CheckboxValue.OnChange := {$ifdef FPC}@{$endif} CheckboxChanged;
-    // free (don't waste memory) unused UI
-    FindRequiredComponent('PropValue').Free;
-  end else
-  begin
-    EditValue := FindRequiredComponent('PropValue') as TCastleEdit;
-    // free (don't waste memory) unused UI
-    FindRequiredComponent('PropValueCheckboxParent').Free;
+  case PropType of
+    ptBoolean:
+      begin
+        CheckboxValue := FindRequiredComponent('PropValueCheckbox') as TCastleCheckbox;
+        CheckboxValue.OnChange := {$ifdef FPC}@{$endif} CheckboxChanged;
+        // free (don't waste memory) unused UI
+        FindRequiredComponent('PropValue').Free;
+      end;
+    else
+      begin
+        EditValue := FindRequiredComponent('PropValue') as TCastleEdit;
+        // free (don't waste memory) unused UI
+        FindRequiredComponent('PropValueCheckboxParent').Free;
+      end;
   end;
 
   UpdateCurrentValue;
@@ -374,7 +377,7 @@ end;
 
 procedure TCastleInspector.TPropertyDisplay.CheckboxChanged(Sender: TObject);
 begin
-  PropertyBoolSet(PropObject, PropInfo, CheckboxValue.Checked);
+  PropertySetBoolean(PropObject, PropInfo, CheckboxValue.Checked);
   // refresh colors (based on whether new value is default)
   UpdateCurrentValue;
 end;
@@ -411,22 +414,25 @@ procedure TCastleInspector.TPropertyDisplay.UpdateCurrentValue;
 var
   PropName, PropValue: String;
 begin
-  Assert(IsBool = Assigned(CheckboxValue));
-  Assert(IsBool = not Assigned(EditValue));
-  if IsBool then
-  begin
-    CheckboxValue.Checked := PropertyBoolGet(PropObject, PropInfo);
-    AdjustColorsBasedOnPropertyDefault(CheckboxValue,
-      PropertyHasDefaultValue(PropObject, PropInfo, true));
-  end else
-  begin
-    if PropertyGet(PropObject, PropInfo, PropName, PropValue) then
-    begin
-      EditValue.Text := PropValue;
-      AdjustColorsBasedOnPropertyDefault(EditValue,
-        PropertyHasDefaultValue(PropObject, PropInfo, true));
-    end else
-      WritelnWarning('Cannot read property name/value, but it was possible to read it earlier');
+  Assert((PropType = ptBoolean) = Assigned(CheckboxValue));
+  Assert((PropType = ptBoolean) = not Assigned(EditValue));
+  case PropType of
+    ptBoolean:
+      begin
+        CheckboxValue.Checked := PropertyGetBoolean(PropObject, PropInfo);
+        AdjustColorsBasedOnPropertyDefault(CheckboxValue,
+          PropertyHasDefaultValue(PropObject, PropInfo, true));
+      end;
+    else
+      begin
+        if PropertyGet(PropObject, PropInfo, PropName, PropValue) then
+        begin
+          EditValue.Text := PropValue;
+          AdjustColorsBasedOnPropertyDefault(EditValue,
+            PropertyHasDefaultValue(PropObject, PropInfo, true));
+        end else
+          WritelnWarning('Cannot read property name/value, but it was possible to read it earlier');
+      end;
   end;
 end;
 

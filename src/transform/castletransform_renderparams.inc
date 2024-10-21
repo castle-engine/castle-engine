@@ -195,7 +195,58 @@
     function CurrentMatrix: TMatrix4;
   end;
 
-  { Information that a TCastleTransform object needs to render.
+  { How to render a single pass, when the shapes are already collected. }
+  TRenderOnePassParams = record
+    { Should we use blending.
+
+      TCastleViewport.RenderOnePass does filtering shapes based on this,
+      before calling ShapesRenderer.Render.
+      Matches shape that are opaque (TGLShape.UseBlending = @false)
+      or transparent (TGLShape.UseBlending = @true).
+
+      Note: When UsingBlending = @true, always DisableShadowVolumeCastingLights = @false.
+      Shadow volumes simply don't allow transparent object
+      to function properly as shadow receivers.
+      Reading [http://developer.nvidia.com/object/fast_shadow_volumes.html]
+      notes: they also just do separate rendering pass to render the
+      partially-transparent parts, IOW they also note that transparent parts
+      simply don't work at all with shadow volumes. }
+    UsingBlending: Boolean;
+
+    { Render only shapes  that may receive shadow volumes, or ones that don't,
+      or both.
+
+      TCastleViewport.RenderOnePass does filtering shapes based on this,
+      before calling ShapesRenderer.Render.
+      This checks if TCastleScene.ReceiveShadowVolumes is within this set.
+
+      Default value (after @link(Init)) is [false, true].
+
+      Note: DisableShadowVolumeCastingLights is always @false
+      when FilterShadowVolumesReceivers is only [@false]
+      (to render only stuff that is never in shadow). }
+    FilterShadowVolumesReceivers: TBooleanSet;
+
+    { If @true, means that we're using multi-pass shadowing technique
+      (like shadow volumes) and currently doing the "shadowed" pass.
+
+      Which means that lights with shadowVolumes = TRUE
+      (see https://castle-engine.io/shadow_volumes#_x3d_fields_shadowvolumes_and_shadowvolumesmain )
+      should be turned off. }
+    DisableShadowVolumeCastingLights: Boolean;
+
+    InsideStencilTest: Boolean;
+
+    procedure Init;
+  end;
+
+  { Callback used by @link(TRenderParams.AddRenderEvent).
+    @seealso TRenderParams.AddRenderEvent }
+  TRenderEvent = procedure (const Transformation: TTransformation;
+    const PassParams: TRenderOnePassParams) of object;
+
+  { Information that a TCastleTransform.LocalRender needs to render.
+    "To render" means "just to collect shapes" for TCastleScene.LocalRender.
     Read-only for @link(TCastleTransform.LocalRender)
     (except @link(Statistics), which should be updated during rendering).
 
@@ -207,28 +258,6 @@
     @link(TCastleTransform.LocalRender) during normal engine usage.
     But it may be useful for special customized rendering. }
   TRenderParams = class
-    { Which parts should be rendered: opaque (@false) or transparent (@true).
-      This should "filter" the rendered parts by @link(TCastleTransform.LocalRender). }
-    Transparent: boolean;
-
-    { Should we render parts that may receive shadow volumes, or ones that don't, or both.
-      This should never be [].
-      During rendering, simply check does it match TCastleScene.ReceiveShadowVolumes.
-      This should "filter" the rendered parts by @link(TCastleTransform.LocalRender). }
-    ShadowVolumesReceivers: set of Boolean;
-
-    { If @true, means that we're using multi-pass
-      shadowing technique (like shadow volumes),
-      and currently doing the "shadowed" pass.
-
-      Which means that most lights (ones with shadowVolumes = TRUE)
-      should be turned off, see [https://castle-engine.io/x3d_extensions.php#section_ext_shadows].) }
-    InShadow: boolean;
-
-    { Value > 0 means we're inside some stencil test (like for
-      InShadow = @false pass of shadow volumes). }
-    StencilTest: Cardinal;
-
     { Rendering pass number, for internal multi-pass rendering,
       like for shadow volumes. }
     InternalPass: TInternalRenderingPass;
@@ -279,7 +308,8 @@
       Note that shapes and scenes *should not* get associated with this TRenderer
       instance when being prepared.
       Shapes and scenes should remain independent of TRenderer instance,
-      to easily change them to a different renderer (like a differe TCastleViewport).
+      to easily change them to a different renderer (like a
+      different TCastleViewport).
       So this TRenderer instance is provided to be used, but do not keep
       anywhere in shapes / scenes a reference to it.
 
@@ -293,6 +323,20 @@
 
     { Lights that shine on object (headlight and lights from all scenes with CastGlobalLights). }
     function GlobalLights: TAbstractLightInstancesList; virtual; abstract;
+
+    { Add a custom rendering event.
+
+      Given RenderEvent will be called multiple times during this render pass,
+      with TRenderOnePassParams containing different values,
+      for example once to render opaque shapes
+      (with @link(TRenderOnePassParams.UsingBlending) = @false),
+      once to render transparent shapes
+      (with @link(TRenderOnePassParams.UsingBlending) = @true).
+
+      So be sure to filter what you're doing inside this callback by
+      @link(TRenderOnePassParams.UsingBlending) and
+      @link(TRenderOnePassParams.FilterShadowVolumesReceivers). }
+    procedure AddRenderEvent(const RenderEvent: TRenderEvent);
   end;
 
   { Information that a TCastleTransform object needs to prepare rendering.
@@ -469,6 +513,19 @@ begin
   inherited;
   Transformation := @GlobalIdentityTransform;
   InMeaningfulParent := true;
+end;
+
+procedure TRenderParams.AddRenderEvent(const RenderEvent: TRenderEvent);
+begin
+  (Collector as TShapesCollector).AddRenderEvent(Transformation^, RenderEvent);
+end;
+
+{ TRenderOnePassParams ------------------------------------------------------- }
+
+procedure TRenderOnePassParams.Init;
+begin
+  FillChar(Self, SizeOf(Self), 0);
+  FilterShadowVolumesReceivers := [false, true];
 end;
 
 {$endif read_implementation}

@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{EAB19926-51C7-44FF-85E0-1FFD36241820}</ProjectGuid>
+        <ProjectGuid>{C3BFC686-DD3C-DECF-D265-AC3F861960F3}</ProjectGuid>
         <MainSource>space_shooter_standalone.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>
@@ -100,7 +100,7 @@
         <DCC_Namespace>System;Xml;Data;Datasnap;Web;Soap;$(DCC_Namespace)</DCC_Namespace>
         <Icon_MainIcon>$(BDS)\bin\delphi_PROJECTICON.ico</Icon_MainIcon>
         <Icns_MainIcns>$(BDS)\bin\delphi_PROJECTICNS.icns</Icns_MainIcns>
-        <DCC_UnitSearchPath>../../src/base;../../src/common_includes;../../src/base/android;../../src/base/windows;../../src/base/unix;../../src/base_rendering;../../src/base_rendering/dglopengl;../../src/base_rendering/glsl/generated-pascal;../../src/fonts;../../src/window;../../src/window/gtk;../../src/window/windows;../../src/window/unix;../../src/window/deprecated_units;../../src/images;../../src/transform;../../src/scene;../../src/scene/glsl/generated-pascal;../../src/scene/x3d;../../src/scene/load;../../src/scene/load/spine;../../src/scene/load/md3;../../src/scene/load/collada;../../src/scene/load/pasgltf;../../src/audio;../../src/audio/fmod;../../src/audio/openal;../../src/audio/ogg_vorbis;../../src/files;../../src/files/indy;../../src/castlescript;../../src/ui;../../src/ui/windows;../../src/services;../../src/physics;../../src/physics/kraft;../../src/deprecated_units;../../src/vampyre_imaginglib/src/Source;../../src/vampyre_imaginglib/src/Source/JpegLib;../../src/vampyre_imaginglib/src/Source/ZLib;../../src/vampyre_imaginglib/src/Extras/Extensions;../../src/vampyre_imaginglib/src/Extensions/J2KObjects;../../src/vampyre_imaginglib/src/Extensions/LibTiff;../../src/vampyre_imaginglib/src/Extensions;../../src/delphi;../../src/compatibility/delphi-only;../../src/compatibility/delphi-only/fcl-json;code/;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
+        <DCC_UnitSearchPath>../../src/base;../../src/common_includes;../../src/base/android;../../src/base/windows;../../src/base/unix;../../src/base_rendering;../../src/base_rendering/dglopengl;../../src/base_rendering/glsl/generated-pascal;../../src/fonts;../../src/window;../../src/window/gtk;../../src/window/windows;../../src/window/unix;../../src/window/deprecated_units;../../src/images;../../src/transform;../../src/scene;../../src/scene/glsl/generated-pascal;../../src/scene/x3d;../../src/scene/load;../../src/scene/load/ifc;../../src/scene/load/spine;../../src/scene/load/md3;../../src/scene/load/collada;../../src/scene/load/pasgltf;../../src/audio;../../src/audio/fmod;../../src/audio/openal;../../src/audio/ogg_vorbis;../../src/files;../../src/files/indy;../../src/castlescript;../../src/ui;../../src/ui/windows;../../src/services;../../src/services/steam;../../src/physics;../../src/physics/kraft;../../src/deprecated_units;../../src/vampyre_imaginglib/src/Source;../../src/vampyre_imaginglib/src/Source/JpegLib;../../src/vampyre_imaginglib/src/Source/ZLib;../../src/vampyre_imaginglib/src/Extras/Extensions;../../src/vampyre_imaginglib/src/Extensions/J2KObjects;../../src/vampyre_imaginglib/src/Extensions/LibTiff;../../src/vampyre_imaginglib/src/Extensions;../../src/delphi;../../src/compatibility/delphi-only;../../src/compatibility/delphi-only/fcl-json;code/;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
         <DCC_DcuOutput>castle-engine-output\delphi\$(Platform)\$(Config)</DCC_DcuOutput>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base_Android)'!=''">
@@ -277,6 +277,23 @@
      to non-Windows targets,
      see https://castle-engine.io/delphi_linux#data_files_deployment .
 -->
+<DeployFile LocalName="data\AUTHORS.md" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>AUTHORS.md</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>AUTHORS.md</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>AUTHORS.md</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
 <DeployFile LocalName="data\CastleSettings.xml" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
   <RemoteDir>./data/</RemoteDir>
@@ -328,6 +345,278 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
+<DeployFile LocalName="data\rocket.castle-transform" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>rocket.castle-transform</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>rocket.castle-transform</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>rocket.castle-transform</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\rocks/rock.bin" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/rocks/</RemoteDir>
+  <RemoteName>rock.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/rocks/</RemoteDir>
+  <RemoteName>rock.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/rocks/</RemoteDir>
+  <RemoteName>rock.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\rocks/rock.castle-transform" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/rocks/</RemoteDir>
+  <RemoteName>rock.castle-transform</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/rocks/</RemoteDir>
+  <RemoteName>rock.castle-transform</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/rocks/</RemoteDir>
+  <RemoteName>rock.castle-transform</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\rocks/rock.gltf" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/rocks/</RemoteDir>
+  <RemoteName>rock.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/rocks/</RemoteDir>
+  <RemoteName>rock.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/rocks/</RemoteDir>
+  <RemoteName>rock.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\rocks/rock_diffuse.png" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/rocks/</RemoteDir>
+  <RemoteName>rock_diffuse.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/rocks/</RemoteDir>
+  <RemoteName>rock_diffuse.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/rocks/</RemoteDir>
+  <RemoteName>rock_diffuse.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\ship/shiper_mix_02_0.png" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/ship/</RemoteDir>
+  <RemoteName>shiper_mix_02_0.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/ship/</RemoteDir>
+  <RemoteName>shiper_mix_02_0.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/ship/</RemoteDir>
+  <RemoteName>shiper_mix_02_0.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\ship/shiper_remix_h_hover_0.png" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/ship/</RemoteDir>
+  <RemoteName>shiper_remix_h_hover_0.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/ship/</RemoteDir>
+  <RemoteName>shiper_remix_h_hover_0.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/ship/</RemoteDir>
+  <RemoteName>shiper_remix_h_hover_0.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\space/deadPlanet.png" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/space/</RemoteDir>
+  <RemoteName>deadPlanet.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/space/</RemoteDir>
+  <RemoteName>deadPlanet.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/space/</RemoteDir>
+  <RemoteName>deadPlanet.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\space/goldSpace.png" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/space/</RemoteDir>
+  <RemoteName>goldSpace.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/space/</RemoteDir>
+  <RemoteName>goldSpace.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/space/</RemoteDir>
+  <RemoteName>goldSpace.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\space/greenPlanet.png" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/space/</RemoteDir>
+  <RemoteName>greenPlanet.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/space/</RemoteDir>
+  <RemoteName>greenPlanet.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/space/</RemoteDir>
+  <RemoteName>greenPlanet.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\space/greySpace.png" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/space/</RemoteDir>
+  <RemoteName>greySpace.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/space/</RemoteDir>
+  <RemoteName>greySpace.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/space/</RemoteDir>
+  <RemoteName>greySpace.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\space/purplePlanet.png" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/space/</RemoteDir>
+  <RemoteName>purplePlanet.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/space/</RemoteDir>
+  <RemoteName>purplePlanet.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/space/</RemoteDir>
+  <RemoteName>purplePlanet.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\space/redSpace.png" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/space/</RemoteDir>
+  <RemoteName>redSpace.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/space/</RemoteDir>
+  <RemoteName>redSpace.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/space/</RemoteDir>
+  <RemoteName>redSpace.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\space/rustPlanet-NoAtmosphere.png" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/space/</RemoteDir>
+  <RemoteName>rustPlanet-NoAtmosphere.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/space/</RemoteDir>
+  <RemoteName>rustPlanet-NoAtmosphere.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/space/</RemoteDir>
+  <RemoteName>rustPlanet-NoAtmosphere.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\space/rustPlanet-WithAtmosphere.png" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/space/</RemoteDir>
+  <RemoteName>rustPlanet-WithAtmosphere.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/space/</RemoteDir>
+  <RemoteName>rustPlanet-WithAtmosphere.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/space/</RemoteDir>
+  <RemoteName>rustPlanet-WithAtmosphere.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\AUTHORS.md" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>AUTHORS.md</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>AUTHORS.md</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>AUTHORS.md</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
 <DeployFile LocalName="data\CastleSettings.xml" Configuration="Release" Class="File">
  <Platform Name="Linux64">
   <RemoteDir>./data/</RemoteDir>
@@ -376,6 +665,261 @@
  <Platform Name="Win64">
   <RemoteDir>./data/</RemoteDir>
   <RemoteName>gameviewmain.castle-user-interface</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\rocket.castle-transform" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>rocket.castle-transform</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>rocket.castle-transform</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/</RemoteDir>
+  <RemoteName>rocket.castle-transform</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\rocks/rock.bin" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/rocks/</RemoteDir>
+  <RemoteName>rock.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/rocks/</RemoteDir>
+  <RemoteName>rock.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/rocks/</RemoteDir>
+  <RemoteName>rock.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\rocks/rock.castle-transform" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/rocks/</RemoteDir>
+  <RemoteName>rock.castle-transform</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/rocks/</RemoteDir>
+  <RemoteName>rock.castle-transform</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/rocks/</RemoteDir>
+  <RemoteName>rock.castle-transform</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\rocks/rock.gltf" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/rocks/</RemoteDir>
+  <RemoteName>rock.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/rocks/</RemoteDir>
+  <RemoteName>rock.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/rocks/</RemoteDir>
+  <RemoteName>rock.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\rocks/rock_diffuse.png" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/rocks/</RemoteDir>
+  <RemoteName>rock_diffuse.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/rocks/</RemoteDir>
+  <RemoteName>rock_diffuse.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/rocks/</RemoteDir>
+  <RemoteName>rock_diffuse.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\ship/shiper_mix_02_0.png" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/ship/</RemoteDir>
+  <RemoteName>shiper_mix_02_0.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/ship/</RemoteDir>
+  <RemoteName>shiper_mix_02_0.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/ship/</RemoteDir>
+  <RemoteName>shiper_mix_02_0.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\ship/shiper_remix_h_hover_0.png" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/ship/</RemoteDir>
+  <RemoteName>shiper_remix_h_hover_0.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/ship/</RemoteDir>
+  <RemoteName>shiper_remix_h_hover_0.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/ship/</RemoteDir>
+  <RemoteName>shiper_remix_h_hover_0.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\space/deadPlanet.png" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/space/</RemoteDir>
+  <RemoteName>deadPlanet.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/space/</RemoteDir>
+  <RemoteName>deadPlanet.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/space/</RemoteDir>
+  <RemoteName>deadPlanet.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\space/goldSpace.png" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/space/</RemoteDir>
+  <RemoteName>goldSpace.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/space/</RemoteDir>
+  <RemoteName>goldSpace.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/space/</RemoteDir>
+  <RemoteName>goldSpace.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\space/greenPlanet.png" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/space/</RemoteDir>
+  <RemoteName>greenPlanet.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/space/</RemoteDir>
+  <RemoteName>greenPlanet.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/space/</RemoteDir>
+  <RemoteName>greenPlanet.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\space/greySpace.png" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/space/</RemoteDir>
+  <RemoteName>greySpace.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/space/</RemoteDir>
+  <RemoteName>greySpace.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/space/</RemoteDir>
+  <RemoteName>greySpace.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\space/purplePlanet.png" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/space/</RemoteDir>
+  <RemoteName>purplePlanet.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/space/</RemoteDir>
+  <RemoteName>purplePlanet.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/space/</RemoteDir>
+  <RemoteName>purplePlanet.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\space/redSpace.png" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/space/</RemoteDir>
+  <RemoteName>redSpace.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/space/</RemoteDir>
+  <RemoteName>redSpace.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/space/</RemoteDir>
+  <RemoteName>redSpace.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\space/rustPlanet-NoAtmosphere.png" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/space/</RemoteDir>
+  <RemoteName>rustPlanet-NoAtmosphere.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/space/</RemoteDir>
+  <RemoteName>rustPlanet-NoAtmosphere.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/space/</RemoteDir>
+  <RemoteName>rustPlanet-NoAtmosphere.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\space/rustPlanet-WithAtmosphere.png" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/space/</RemoteDir>
+  <RemoteName>rustPlanet-WithAtmosphere.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/space/</RemoteDir>
+  <RemoteName>rustPlanet-WithAtmosphere.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/space/</RemoteDir>
+  <RemoteName>rustPlanet-WithAtmosphere.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>

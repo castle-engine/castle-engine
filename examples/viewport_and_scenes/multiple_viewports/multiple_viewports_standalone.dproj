@@ -100,7 +100,7 @@
         <DCC_Namespace>System;Xml;Data;Datasnap;Web;Soap;$(DCC_Namespace)</DCC_Namespace>
         <Icon_MainIcon>$(BDS)\bin\delphi_PROJECTICON.ico</Icon_MainIcon>
         <Icns_MainIcns>$(BDS)\bin\delphi_PROJECTICNS.icns</Icns_MainIcns>
-        <DCC_UnitSearchPath>../../../src/base;../../../src/common_includes;../../../src/base/android;../../../src/base/windows;../../../src/base/unix;../../../src/base_rendering;../../../src/base_rendering/dglopengl;../../../src/base_rendering/glsl/generated-pascal;../../../src/fonts;../../../src/window;../../../src/window/gtk;../../../src/window/windows;../../../src/window/unix;../../../src/window/deprecated_units;../../../src/images;../../../src/transform;../../../src/scene;../../../src/scene/glsl/generated-pascal;../../../src/scene/x3d;../../../src/scene/load;../../../src/scene/load/spine;../../../src/scene/load/md3;../../../src/scene/load/collada;../../../src/scene/load/pasgltf;../../../src/audio;../../../src/audio/fmod;../../../src/audio/openal;../../../src/audio/ogg_vorbis;../../../src/files;../../../src/files/indy;../../../src/castlescript;../../../src/ui;../../../src/ui/windows;../../../src/services;../../../src/physics;../../../src/physics/kraft;../../../src/deprecated_units;../../../src/vampyre_imaginglib/src/Source;../../../src/vampyre_imaginglib/src/Source/JpegLib;../../../src/vampyre_imaginglib/src/Source/ZLib;../../../src/vampyre_imaginglib/src/Extras/Extensions;../../../src/vampyre_imaginglib/src/Extensions/J2KObjects;../../../src/vampyre_imaginglib/src/Extensions/LibTiff;../../../src/vampyre_imaginglib/src/Extensions;../../../src/delphi;../../../src/compatibility/delphi-only;../../../src/compatibility/delphi-only/fcl-json;code/;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
+        <DCC_UnitSearchPath>../../../src/base;../../../src/common_includes;../../../src/base/android;../../../src/base/windows;../../../src/base/unix;../../../src/base_rendering;../../../src/base_rendering/dglopengl;../../../src/base_rendering/glsl/generated-pascal;../../../src/fonts;../../../src/window;../../../src/window/gtk;../../../src/window/windows;../../../src/window/unix;../../../src/window/deprecated_units;../../../src/images;../../../src/transform;../../../src/scene;../../../src/scene/glsl/generated-pascal;../../../src/scene/x3d;../../../src/scene/load;../../../src/scene/load/ifc;../../../src/scene/load/spine;../../../src/scene/load/md3;../../../src/scene/load/collada;../../../src/scene/load/pasgltf;../../../src/audio;../../../src/audio/fmod;../../../src/audio/openal;../../../src/audio/ogg_vorbis;../../../src/files;../../../src/files/indy;../../../src/castlescript;../../../src/ui;../../../src/ui/windows;../../../src/services;../../../src/services/steam;../../../src/physics;../../../src/physics/kraft;../../../src/deprecated_units;../../../src/vampyre_imaginglib/src/Source;../../../src/vampyre_imaginglib/src/Source/JpegLib;../../../src/vampyre_imaginglib/src/Source/ZLib;../../../src/vampyre_imaginglib/src/Extras/Extensions;../../../src/vampyre_imaginglib/src/Extensions/J2KObjects;../../../src/vampyre_imaginglib/src/Extensions/LibTiff;../../../src/vampyre_imaginglib/src/Extensions;../../../src/delphi;../../../src/compatibility/delphi-only;../../../src/compatibility/delphi-only/fcl-json;code/;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
         <DCC_DcuOutput>castle-engine-output\delphi\$(Platform)\$(Config)</DCC_DcuOutput>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base_Android)'!=''">
@@ -345,37 +345,37 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\bridge_level/bridge.x3d" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\bridge_level/bridge.bin" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
   <RemoteDir>./data/bridge_level/</RemoteDir>
-  <RemoteName>bridge.x3d</RemoteName>
+  <RemoteName>bridge.bin</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
   <RemoteDir>./data/bridge_level/</RemoteDir>
-  <RemoteName>bridge.x3d</RemoteName>
+  <RemoteName>bridge.bin</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
   <RemoteDir>./data/bridge_level/</RemoteDir>
-  <RemoteName>bridge.x3d</RemoteName>
+  <RemoteName>bridge.bin</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\bridge_level/bridge_final.x3dv" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\bridge_level/bridge.gltf" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
   <RemoteDir>./data/bridge_level/</RemoteDir>
-  <RemoteName>bridge_final.x3dv</RemoteName>
+  <RemoteName>bridge.gltf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
   <RemoteDir>./data/bridge_level/</RemoteDir>
-  <RemoteName>bridge_final.x3dv</RemoteName>
+  <RemoteName>bridge.gltf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
   <RemoteDir>./data/bridge_level/</RemoteDir>
-  <RemoteName>bridge_final.x3dv</RemoteName>
+  <RemoteName>bridge.gltf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
@@ -481,54 +481,71 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\raptor.castle-anim-frames" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\teapot.x3dv" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
   <RemoteDir>./data/</RemoteDir>
-  <RemoteName>raptor.castle-anim-frames</RemoteName>
+  <RemoteName>teapot.x3dv</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
   <RemoteDir>./data/</RemoteDir>
-  <RemoteName>raptor.castle-anim-frames</RemoteName>
+  <RemoteName>teapot.x3dv</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
   <RemoteDir>./data/</RemoteDir>
-  <RemoteName>raptor.castle-anim-frames</RemoteName>
+  <RemoteName>teapot.x3dv</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\raptor_1.x3d" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\velociraptor/AUTHORS.md" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>raptor_1.x3d</RemoteName>
+  <RemoteDir>./data/velociraptor/</RemoteDir>
+  <RemoteName>AUTHORS.md</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>raptor_1.x3d</RemoteName>
+  <RemoteDir>./data/velociraptor/</RemoteDir>
+  <RemoteName>AUTHORS.md</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>raptor_1.x3d</RemoteName>
+  <RemoteDir>./data/velociraptor/</RemoteDir>
+  <RemoteName>AUTHORS.md</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\raptor_2.x3d" Configuration="Debug" Class="File">
+<DeployFile LocalName="data\velociraptor/velociraptor.bin" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>raptor_2.x3d</RemoteName>
+  <RemoteDir>./data/velociraptor/</RemoteDir>
+  <RemoteName>velociraptor.bin</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>raptor_2.x3d</RemoteName>
+  <RemoteDir>./data/velociraptor/</RemoteDir>
+  <RemoteName>velociraptor.bin</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>raptor_2.x3d</RemoteName>
+  <RemoteDir>./data/velociraptor/</RemoteDir>
+  <RemoteName>velociraptor.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\velociraptor/velociraptor.gltf" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/velociraptor/</RemoteDir>
+  <RemoteName>velociraptor.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/velociraptor/</RemoteDir>
+  <RemoteName>velociraptor.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/velociraptor/</RemoteDir>
+  <RemoteName>velociraptor.gltf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
@@ -600,37 +617,37 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\bridge_level/bridge.x3d" Configuration="Release" Class="File">
+<DeployFile LocalName="data\bridge_level/bridge.bin" Configuration="Release" Class="File">
  <Platform Name="Linux64">
   <RemoteDir>./data/bridge_level/</RemoteDir>
-  <RemoteName>bridge.x3d</RemoteName>
+  <RemoteName>bridge.bin</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
   <RemoteDir>./data/bridge_level/</RemoteDir>
-  <RemoteName>bridge.x3d</RemoteName>
+  <RemoteName>bridge.bin</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
   <RemoteDir>./data/bridge_level/</RemoteDir>
-  <RemoteName>bridge.x3d</RemoteName>
+  <RemoteName>bridge.bin</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\bridge_level/bridge_final.x3dv" Configuration="Release" Class="File">
+<DeployFile LocalName="data\bridge_level/bridge.gltf" Configuration="Release" Class="File">
  <Platform Name="Linux64">
   <RemoteDir>./data/bridge_level/</RemoteDir>
-  <RemoteName>bridge_final.x3dv</RemoteName>
+  <RemoteName>bridge.gltf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
   <RemoteDir>./data/bridge_level/</RemoteDir>
-  <RemoteName>bridge_final.x3dv</RemoteName>
+  <RemoteName>bridge.gltf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
   <RemoteDir>./data/bridge_level/</RemoteDir>
-  <RemoteName>bridge_final.x3dv</RemoteName>
+  <RemoteName>bridge.gltf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
@@ -736,54 +753,71 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\raptor.castle-anim-frames" Configuration="Release" Class="File">
+<DeployFile LocalName="data\teapot.x3dv" Configuration="Release" Class="File">
  <Platform Name="Linux64">
   <RemoteDir>./data/</RemoteDir>
-  <RemoteName>raptor.castle-anim-frames</RemoteName>
+  <RemoteName>teapot.x3dv</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
   <RemoteDir>./data/</RemoteDir>
-  <RemoteName>raptor.castle-anim-frames</RemoteName>
+  <RemoteName>teapot.x3dv</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
   <RemoteDir>./data/</RemoteDir>
-  <RemoteName>raptor.castle-anim-frames</RemoteName>
+  <RemoteName>teapot.x3dv</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\raptor_1.x3d" Configuration="Release" Class="File">
+<DeployFile LocalName="data\velociraptor/AUTHORS.md" Configuration="Release" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>raptor_1.x3d</RemoteName>
+  <RemoteDir>./data/velociraptor/</RemoteDir>
+  <RemoteName>AUTHORS.md</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>raptor_1.x3d</RemoteName>
+  <RemoteDir>./data/velociraptor/</RemoteDir>
+  <RemoteName>AUTHORS.md</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>raptor_1.x3d</RemoteName>
+  <RemoteDir>./data/velociraptor/</RemoteDir>
+  <RemoteName>AUTHORS.md</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\raptor_2.x3d" Configuration="Release" Class="File">
+<DeployFile LocalName="data\velociraptor/velociraptor.bin" Configuration="Release" Class="File">
  <Platform Name="Linux64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>raptor_2.x3d</RemoteName>
+  <RemoteDir>./data/velociraptor/</RemoteDir>
+  <RemoteName>velociraptor.bin</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win32">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>raptor_2.x3d</RemoteName>
+  <RemoteDir>./data/velociraptor/</RemoteDir>
+  <RemoteName>velociraptor.bin</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
  <Platform Name="Win64">
-  <RemoteDir>./data/</RemoteDir>
-  <RemoteName>raptor_2.x3d</RemoteName>
+  <RemoteDir>./data/velociraptor/</RemoteDir>
+  <RemoteName>velociraptor.bin</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\velociraptor/velociraptor.gltf" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/velociraptor/</RemoteDir>
+  <RemoteName>velociraptor.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/velociraptor/</RemoteDir>
+  <RemoteName>velociraptor.gltf</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/velociraptor/</RemoteDir>
+  <RemoteName>velociraptor.gltf</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>

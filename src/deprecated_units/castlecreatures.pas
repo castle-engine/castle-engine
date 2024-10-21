@@ -19,15 +19,15 @@ unit CastleCreatures
 
 {$I castleconf.inc}
 
+{$warnings off} // using deprecated CastleResources, TCastleAlive in deprecated unit
+
 interface
 
-{$warnings off} // using deprecated CastleResources in deprecated
 uses Classes, Generics.Collections,
   CastleVectors, CastleBoxes, CastleClassUtils, CastleUtils, CastleScene,
   CastleStringUtils, CastleResources, CastleXMLConfig, CastleTransform,
   CastleTransformExtra, CastleSoundEngine, CastleFrustum, X3DNodes, CastleColors,
   CastleDebugTransform, CastleSectors, CastleBehaviors;
-{$warnings on}
 
 type
   TCreatureState = type Integer;
@@ -228,11 +228,9 @@ type
       {$ifdef FPC}default DefaultKnockBackDistance{$endif};
 
     { See TCastleAlive.KnockBackSpeed. }
-    {$warnings off} // using deprecated in deprecated
     property KnockBackSpeed: Single
       read FKnockBackSpeed write FKnockBackSpeed
       {$ifdef FPC}default TCastleAlive.DefaultKnockBackSpeed{$endif};
-    {$warnings on}
 
     { By default dead creatures (corpses) don't collide, this usually looks better. }
     property CollidesWhenDead: boolean
@@ -1079,11 +1077,9 @@ var
 
 implementation
 
-{$warnings off} // using deprecated CastleProgress, CastleGameNotifications in deprecated
 uses SysUtils, DOM, Math,
   CastleFilesUtils, CastleGLUtils,
   CastleProgress, CastleGameNotifications, CastleUIControls;
-{$warnings on}
 
 { TCreatureResource -------------------------------------------------------------- }
 
@@ -1093,9 +1089,7 @@ begin
   FFlying := DefaultFlying;
   FDefaultMaxLife := DefaultDefaultMaxLife;
   FKnockBackDistance := DefaultKnockBackDistance;
-  {$warnings off} // using deprecated in deprecated
   FKnockBackSpeed := TCastleAlive.DefaultKnockBackSpeed;
-  {$warnings on}
   FSoundDieTiedToCreature := DefaultSoundDieTiedToCreature;
   FAttackDamageConst := DefaultAttackDamageConst;
   FAttackDamageRandom := DefaultAttackDamageRandom;
@@ -1105,9 +1099,7 @@ begin
   FFallMinHeightToDamage := DefaultFallMinHeightToDamage;
   FFallDamageScaleMin := DefaultFallDamageScaleMin;
   FFallDamageScaleMax := DefaultFallDamageScaleMax;
-  {$warnings off} // using deprecated in deprecated
   FFallSound := SoundEngine.SoundFromName(DefaultFallSoundName, false);
-  {$warnings on}
   ScaleMin := 1;
   ScaleMax := 1;
 end;
@@ -1116,9 +1108,7 @@ procedure TCreatureResource.LoadFromFile(ResourceConfig: TCastleConfig);
 begin
   inherited;
 
-  {$warnings off} // using deprecated in deprecated
   KnockBackSpeed := ResourceConfig.GetFloat('knockback_speed', TCastleAlive.DefaultKnockBackSpeed);
-  {$warnings on}
   CollidesWhenDead := ResourceConfig.GetValue('collides_when_dead', false);
   ScaleMin := ResourceConfig.GetFloat('scale_min', 1);
   ScaleMax := ResourceConfig.GetFloat('scale_max', 1);
@@ -1143,14 +1133,12 @@ begin
   FallDamageScaleMin := ResourceConfig.GetFloat('fall/damage/scale_min', DefaultFallDamageScaleMin);
   FallDamageScaleMax := ResourceConfig.GetFloat('fall/damage/scale_max', DefaultFallDamageScaleMax);
 
-  {$warnings off} // using deprecated SoundFromName in deprecated
   SoundSuddenPain := SoundEngine.SoundFromName(
     ResourceConfig.GetValue('sound_sudden_pain', ''));
   SoundDie := SoundEngine.SoundFromName(
     ResourceConfig.GetValue('sound_die', ''));
   FallSound := SoundEngine.SoundFromName(
     ResourceConfig.GetValue('fall/sound/name', DefaultFallSoundName), false);
-  {$warnings on}
 end;
 
 function TCreatureResource.FlexibleUp: boolean;
@@ -1194,11 +1182,9 @@ begin
   Result.SetView(APosition, ADirection, RootTransform.GravityUp, FlexibleUp);
   Result.Life := MaxLife;
   Result.KnockBackSpeed := KnockBackSpeed;
-  {$warnings off} // using deprecated in deprecated
   Result.Gravity := not Flying;
   Result.FallSpeed := FallSpeed;
   Result.GrowSpeed := GrowSpeed;
-  {$warnings on}
   Result.CastShadows := CastShadowVolumes;
   Result.MiddleHeight := MiddleHeight;
   Scale := RandomFloatRange(ScaleMin, ScaleMax);
@@ -1343,18 +1329,14 @@ begin
   AttackMaxDistance := ResourceConfig.GetFloat('attack/max_distance', DefaultAttackMaxDistance);
   AttackMaxAngle := ResourceConfig.GetFloat('attack/max_angle', DefaultAttackMaxAngle);
   AttackMinDelay := ResourceConfig.GetFloat('attack/min_delay', DefaultAttackMinDelay);
-  {$warnings off} // using deprecated SoundFromName in deprecated
   AttackSoundHit := SoundEngine.SoundFromName(ResourceConfig.GetValue('attack/sound_hit', ''));
   AttackSoundStart := SoundEngine.SoundFromName(ResourceConfig.GetValue('attack/sound_start', ''));
-  {$warnings on}
 
   FireMissileTime :=  ResourceConfig.GetFloat('fire_missile/time', DefaultFireMissileTime);
   FireMissileMaxDistance := ResourceConfig.GetFloat('fire_missile/max_distance', DefaultFireMissileMaxDistance);
   FireMissileMaxAngle := ResourceConfig.GetFloat('fire_missile/max_angle', DefaultFireMissileMaxAngle);
   FireMissileMinDelay := ResourceConfig.GetFloat('fire_missile/min_delay', DefaultFireMissileMinDelay);
-  {$warnings off} // using deprecated SoundFromName in deprecated
   FireMissileSound := SoundEngine.SoundFromName(ResourceConfig.GetValue('fire_missile/sound', ''));
-  {$warnings on}
   FireMissileName := ResourceConfig.GetValue('fire_missile/name', '');
   FireMissileHeight := ResourceConfig.GetFloat('fire_missile/height', DefaultFireMissileHeight);
 end;
@@ -1409,12 +1391,10 @@ begin
     DefaultDirectionFallSpeed);
   RemoveDead := ResourceConfig.GetValue('remove_dead', DefaultRemoveDead);
 
-  {$warnings off} // using deprecated SoundFromName in deprecated
   SoundHit := SoundEngine.SoundFromName(
     ResourceConfig.GetValue('sound_hit', ''));
   SoundIdle := SoundEngine.SoundFromName(
     ResourceConfig.GetValue('sound_idle', ''));
-  {$warnings on}
 end;
 
 function TMissileCreatureResource.CreateCreature(
@@ -1441,9 +1421,7 @@ begin
     MiddleHeight, so MiddleHeight is always between bounding box bottom and top
     for missiles. See TCastleTransform.MiddleHeight. }
 
-  {$warnings off} // using deprecated in deprecated
   Result.Gravity := false;
-  {$warnings on}
 end;
 
 function TMissileCreatureResource.RadiusCalculate(const GravityUp: TVector3): Single;
@@ -1512,10 +1490,8 @@ end;
 
 function TCreature.GetCollides: boolean;
 begin
-  {$warnings off} // internally using deprecated, in a deprecated unit
   Result := (inherited GetCollides) and
     (Resource.CollidesWhenDead or (not Dead));
-  {$warnings on}
 end;
 
 destructor TCreature.Destroy;
@@ -1736,9 +1712,7 @@ end;
 
 function TWalkAttackCreature.Enemy: TCastleAlive;
 begin
-  {$warnings off} // using deprecated in deprecated
   Result := Level.GetPlayer as TCastleAlive;
-  {$warnings on}
   if (Result <> nil) and Result.Dead then
     Result := nil; { do not attack dead player }
 end;
@@ -1893,9 +1867,7 @@ var
   begin
     { calculate DirectionToTarget }
     DirectionToTarget := Target - Middle;
-    {$warnings off} // using deprecated in deprecated
     if Gravity then
-    {$warnings on}
       MakeVectorsOrthoOnTheirPlane(DirectionToTarget, World.GravityUp);
 
     { calculate AngleBetweenDirectionToTarget }
@@ -1945,9 +1917,7 @@ var
         TVector3.CrossProduct(Direction, DirectionToTarget));
 
       { Make sure direction for non-flying creatures is orthogonal to GravityUp. }
-      {$warnings off} // using deprecated in deprecated
       if Gravity then
-      {$warnings on}
         MakeVectorsOrthoOnTheirPlane(NewDirection, World.GravityUp);
       Direction := NewDirection;
     end;
@@ -1959,10 +1929,8 @@ var
   var
     SqrDistanceToTarget: Single;
   begin
-    {$warnings off} // using deprecated in deprecated
     if not Gravity then
       SqrDistanceToTarget := PointsDistanceSqr(Middle, Target)
-    {$warnings on}
     else
       SqrDistanceToTarget := PointsDistance2DSqr(Middle, Target, World.GravityCoordinate);
     Result :=
@@ -2084,9 +2052,7 @@ var
       where creature can reliably move. Creature that cannot fly cannot
       move in gravity (UpIndex) direction. }
     for I := 0 to 2 do
-      {$warnings off} // using deprecated in deprecated
       if (not Gravity) or (I <> World.GravityCoordinate) then
-      {$warnings on}
         AlternativeTarget.Data[I] := AlternativeTarget.Data[I] + (Random * Distance * 2 - Distance);
 
     HasAlternativeTarget := true;
@@ -2123,9 +2089,7 @@ var
         SetState(csWalk);
         Result := false;
       end else
-      {$warnings off} // using deprecated in deprecated
       if Gravity and
-      {$warnings on}
          (AngleBetweenDirectionToEnemy < 0.01) and
          BoundingBox.Contains2D(LastSensedEnemy, World.GravityCoordinate) then
       begin
@@ -2171,14 +2135,10 @@ var
         AboveHeight: Single;
       begin
         Result := false;
-        {$warnings off} // using deprecated in deprecated
         if Gravity then
-        {$warnings on}
         begin
           Height(NewMiddle, AboveHeight);
-          {$warnings off} // using deprecated in deprecated
           if AboveHeight > Resource.MaxHeightAcceptableToFall + PreferredHeight then
-          {$warnings on}
             Result := true;
         end;
       end;
@@ -2571,9 +2531,7 @@ begin
 
     For non-flying, this is not needed, as then Up should always remain equal
     to initial value, which is GravityUp. }
-  {$warnings off} // using deprecated in deprecated
   if not Gravity then
-  {$warnings on}
     UpPrefer(World.GravityUp);
 
   UpdateDebugTransform;
@@ -2592,9 +2550,7 @@ end;
 
 procedure TWalkAttackCreature.Attack;
 var
-  {$warnings off} // using deprecated in deprecated
   E: TCastleAlive;
-  {$warnings on}
 
   function ShortRangeAttackHits: boolean;
   var
@@ -2730,13 +2686,11 @@ var
     SavedPlayerExists: Boolean;
     SavedCreaturesRootExists: Boolean;
   begin
-    {$warnings off} // using deprecated in deprecated
     if (not Resource.HitsPlayer) and (Player <> nil) then
     begin
       SavedPlayerExists := Player.Exists;
       Player.Exists := false;
     end;
-    {$warnings on}
     if not Resource.HitsCreatures then
     begin
       SavedCreaturesRootExists := Level.CreaturesRoot.Exists;
@@ -2747,10 +2701,8 @@ var
     finally
       if not Resource.HitsCreatures then
         Level.CreaturesRoot.Exists := SavedCreaturesRootExists;
-      {$warnings off} // using deprecated in deprecated
       if (not Resource.HitsPlayer) and (Player <> nil) then
         Player.Exists := SavedPlayerExists;
-      {$warnings on}
     end;
   end;
 
@@ -2865,9 +2817,7 @@ end;
 procedure TMissileCreature.HitPlayer;
 begin
   ForceRemoveDead := true;
-  {$warnings off} // using deprecated in deprecated
   AttackHurt(Level.GetPlayer as TCastleAlive);
-  {$warnings on}
 end;
 
 procedure TMissileCreature.HitCreature(Creature: TCreature);

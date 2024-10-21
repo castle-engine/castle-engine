@@ -1454,4 +1454,11 @@ object DesignFrame: TDesignFrame
       OnExecute = ActionApiReferenceOfCurrentExecute
     end
   end
+  object ExportToModelDialog: TCastleSaveDialog
+    Title = 'Export to a standard 3D / 2D model format'
+    FileName = 'export.x3d'
+    Options = [ofOverwritePrompt, ofEnableSizing, ofViewDetail]
+    Left = 648
+    Top = 320
+  end
 end

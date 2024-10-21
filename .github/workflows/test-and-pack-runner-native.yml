@@ -42,15 +42,19 @@ jobs:
         # https://github.com/gcarreno/setup-lazarus doesn't have Lazarus >= 3.5
         # and we need it to have https://gitlab.com/freepascal.org/lazarus/lazarus/-/merge_requests/291
         # solved.
+        #
+        # TODO: Using ubuntu-22.04 instead of ubuntu-latest as a workaround for zip crashes,
+        # see test-and-pack-docker.yml notes.
 
-        runner: [macos_x64, ubuntu-latest, windows-latest]
+        runner: [macos_x64, ubuntu-22.04, windows-latest]
         include:
           # To not overload the slower RPi, use it only with master
           - if: ${{ github.ref == 'refs/heads/master' }}
             runner: raspberry_pi_64
           - if: ${{ github.ref == 'refs/heads/master' }}
             runner: raspberry_pi_32
-          # Add is_macos variable to later easily check.
+
+          # Add is_macos variable to easily check for any macOS.
           # Default is false, and then we override it to true for macos runners.
           - is_macos: false
           - runner: macos_x64
@@ -61,18 +65,23 @@ jobs:
           # Uncomment this once we reeanable macos-latest
           # - runner: macos-latest
           #   is_macos: true
+
+          # Add is_gh_ubuntu variable to easily check for any GHA-hosted Ubuntu.
+          - is_gh_ubuntu: false
+          - runner: ubuntu-22.04
+            is_gh_ubuntu: true
     runs-on: ${{ matrix.runner }}
     steps:
     - uses: actions/checkout@v4
 
     - name: Install FPC+Lazarus
       # On GH hosted runners, install FPC+Lazarus
-      if: ${{ matrix.runner == 'ubuntu-latest' || matrix.runner == 'macos-latest' || matrix.runner == 'macos-12' || matrix.runner == 'windows-latest'}}
+      if: ${{ matrix.is_gh_ubuntu || matrix.runner == 'macos-latest' || matrix.runner == 'macos-12' || matrix.runner == 'windows-latest'}}
       uses: gcarreno/setup-lazarus@v3.2.17
       with:
         lazarus-version: stable
     - name: Install Linux dependencies
-      if: ${{ matrix.runner == 'ubuntu-latest' }}
+      if: ${{ matrix.is_gh_ubuntu }}
       # Run "apt-get update" before installing, following https://docs.github.com/en/actions/using-github-hosted-runners/about-github-hosted-runners/customizing-github-hosted-runners
       run: |
         sudo apt-get update
@@ -210,7 +219,7 @@ jobs:
     - name: Build And Run Auto-Tests
       run: make tests
 
-    # Fails at least on ubuntu-latest. TODO: Unsure how to set $FPCDIR, for now skip this test.
+    # Fails at least on ubuntu-latest (when it was synonym with 22.04). TODO: Unsure how to set $FPCDIR, for now skip this test.
     # - name: Build Using FpMake
     #   # Too slow on RPi
     #   # On macOS: we don't have fpmake "opengl" package ok after installing on macOS using fpcupdeluxe?
@@ -269,13 +278,13 @@ jobs:
       #     not depending that cge_clean_all in pack_release.sh
       #     cleans everything.
       #
-      # - ubuntu-latest, because the test-and-pack-docker.yml is also doing
+      # - is_gh_ubuntu, because the test-and-pack-docker.yml is also doing
       #   equivalent build (castle-engine-7.0-alpha.snapshot-linux-x86_64.zip).
       #   The Docker job is a bit better, see above about windows-latest:
       #   PasDoc version in Docker is more consistent,
       #   and the build does not rely on cge_clean_all.
       #
-      if: ${{ matrix.runner != 'macos-12' && matrix.runner != 'windows-latest' && matrix.runner != 'ubuntu-latest' }}
+      if: ${{ matrix.runner != 'macos-12' && matrix.runner != 'windows-latest' && !matrix.is_gh_ubuntu }}
       uses: actions/upload-artifact@v4
       with:
         name: ${{ matrix.runner }}-release

@@ -109,6 +109,22 @@ type
       in CastleEngineManifest.xml. }
     function ExplicitStandaloneFile(const Ext: String): String;
 
+    { Name of executable produced when compiling using Delphi IDE
+      (not by CGE build tool, or editor, or Lazarus).
+
+      TODO: Right now Delphi IDE compiles exe with basename matching
+      DeleteFileExt(StandaloneSource), not our ExecutableName
+      (which is sometimes different, e.g. doesn't contain "_standalone" suffix,
+      has - instead of _).
+      That's why this method exists.
+      In the long run, it would be ideal to only have EXECUTABLE_NAME
+      and make Delphi IDE build the same as Delphi command-line and FPC.
+
+      This is relative to project root, just like ExplicitStandaloneFile.
+
+      This does not contain the executable extension, like .exe on Windows. }
+    function DelphiExecutableName: String;
+
     { Check the PackageFormat (looking at what is allowed for this Target/OS/CPU),
       finalize the pfDefault to something more concrete. }
     function PackageFormatFinalize(
@@ -1371,6 +1387,14 @@ begin
     Result := NamePascal + '_standalone' + Ext;
 end;
 
+function TCastleProject.DelphiExecutableName: String;
+var
+  StandaloneSource: String;
+begin
+  StandaloneSource := ExplicitStandaloneFile('.dpr');
+  Result := DeleteFileExt(StandaloneSource);
+end;
+
 procedure TCastleProject.DoGenerateProgram(const GuidFromName: Boolean);
 
   procedure Generate(const TemplateRelativePath, TargeRelativePath: string);
@@ -1802,6 +1826,7 @@ const
   procedure LaunchImageStoryboardInitialize;
   var
     Img: TCastleImage;
+    StoryboardFileName: String;
   begin
     if Manifest.LaunchImageStoryboard.Path <> '' then
     begin
@@ -1809,7 +1834,11 @@ const
         raise Exception.CreateFmt('Launch image storyboard must be a PNG file, but is "%s"', [
           Manifest.LaunchImageStoryboard.Path
         ]);
-      Img := LoadImage(Manifest.LaunchImageStoryboard.Path);
+      { Note: Using "StoryboardFileName := Manifest.LaunchImageStoryboard.Path"
+        would be wrong, as "castle-engine compile" may be executed in subdirectory
+        of the project, not the project's top-level directory. }
+      StoryboardFileName := CombinePaths(Path, Manifest.LaunchImageStoryboard.Path);
+      Img := LoadImage(StoryboardFileName);
       try
         FLaunchImageStoryboardWidth := Img.Width;
         FLaunchImageStoryboardHeight := Img.Height;
@@ -2283,14 +2312,7 @@ begin
     Macros.Add('CAPTION'         , Caption);
     Macros.Add('AUTHOR'          , NonEmptyAuthor);
     Macros.Add('EXECUTABLE_NAME' , ExecutableName);
-    { TODO: Right now Delphi IDE compiles exe with basename matching
-      DeleteFileExt(StandaloneSource), not our ExecutableName
-      (which is sometimes different, e.g. doesn't contain "_standalone" suffix,
-      has - instead of _).
-      So we have DELPHI_EXECUTABLE_NAME.
-      In the long run, it would be ideal to only have EXECUTABLE_NAME
-      and make Delphi IDE build the same as Delphi command-line and FPC. }
-    Macros.Add('DELPHI_EXECUTABLE_NAME', DeleteFileExt(StandaloneSource));
+    Macros.Add('DELPHI_EXECUTABLE_NAME', DelphiExecutableName);
     Macros.Add('GAME_UNITS'      , Manifest.GameUnits);
     Macros.Add('SEARCH_PATHS'          , MakePathsStr(Manifest.SearchPaths, false));
     Macros.Add('ABSOLUTE_SEARCH_PATHS' , MakePathsStr(Manifest.SearchPaths, true));

@@ -594,6 +594,7 @@ type
     UvScaleField, MetallicField, RoughnessField: TSFVec4f;
   protected
     procedure Loaded; override;
+    function InternalBuildNodeInside: TObject; override;
   public
     const
       DefaultSubdivisions = 64;
@@ -731,8 +732,7 @@ type
 
     { Resolve collisions precisely with the terrain geometry.
       When this is @false we will only consider the terrain bounding box for collisions,
-      which prevents moving on terrain nicely, picking terrain points with mouse etc.
-      This sets @link(TCastleSceneCore.Spatial). }
+      which prevents moving on terrain nicely, picking terrain points with mouse etc. }
     property PreciseCollisions: Boolean read FPreciseCollisions write SetPreciseCollisions default true;
 
   {$define read_interface_class}
@@ -1967,6 +1967,14 @@ end;
 procedure TCastleTerrain.ColliderMesh(const TriangleEvent: TTriangleEvent);
 begin
   Scene.ColliderMesh(TriangleEvent);
+end;
+
+function TCastleTerrain.InternalBuildNodeInside: TObject;
+begin
+  if Scene.RootNode <> nil then
+    Result := Scene.RootNode.DeepCopy
+  else
+    Result := nil;
 end;
 
 {$define read_implementation_methods}

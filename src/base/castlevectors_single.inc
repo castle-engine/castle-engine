@@ -50,20 +50,39 @@ function AngleRadBetweenNormals(const V1, V2: TVector3): Single; overload;
 
 { Signed angle between two vectors, in radians.
   As opposed to AngleRadBetweenNormals, this returns a signed angle,
-  between -Pi and Pi. This is guaranteed to be such angle that rotating
-  V1 around vector cross product (V1 x V2) will produce V2.
-  As you see, the order or arguments is important (just like it's important
-  for vector cross).
+  between -Pi and Pi.
 
-  Overloaded versions with Cross argument assume the rotation is done around
-  given Cross vector, which @italic(must) be a cross product or it's negation
-  (in other words, it must be orthogonal to both vectors).
+  The resulting angle is guaranteed to be such that rotating
+  (using RotatePointAroundAxisRad)
+  V1 around @code(TVector3.CrossProduct(V1, V2))
+  (cross product V1 x V2) will produce V2.
+  Note: The order or arguments is important (just like it's important
+  for the vector cross product).
 
-  @raises EVectorInvalidOp If V1 or V2 is zero.
-  @groupBegin }
+  @raises EVectorInvalidOp If V1 or V2 is zero. }
 function RotationAngleRadBetweenVectors(const V1, V2: TVector3): Single; overload;
+
+{ Signed angle between two vectors, in radians.
+  As opposed to AngleRadBetweenNormals, this returns a signed angle,
+  between -Pi and Pi.
+
+  The resulting angle is guaranteed to be such that rotating
+  (using RotatePointAroundAxisRad)
+  V1 around vector Cross will produce V2.
+  Note: The order or arguments is important (just like it's important
+  for the vector cross product).
+
+  The Cross parameter can only have 2 values: V1 x V2 or V2 x V1.
+  In other words, Cross must be orthogonal to both vectors.
+  So this routine is not much more flexible than the other RotationAngleRadBetweenVectors
+  overload with 2 arguments. Only 2 possible values of Cross are allowed.
+  This overload is mainly useful because it is more efficient,
+  as RotationAngleRadBetweenVectors overload with 2 arguments
+  must just calculate vector cross, but you may
+  have it already available.
+
+  @raises EVectorInvalidOp If V1 or V2 is zero. }
 function RotationAngleRadBetweenVectors(const V1, V2, Cross: TVector3): Single; overload;
-{ @groupEnd }
 
 { Rotate Point around the Axis by given Angle.
   Axis does not have to be normalized (it will be normalized internally).

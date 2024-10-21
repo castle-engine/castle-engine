@@ -56,7 +56,7 @@ const
       So it is simpler to just name all includes and units differently,
       even across system-specific dirs. }
 
-  EnginePaths: array [0..43] of String = (
+  EnginePaths: array [0..45] of String = (
     'base',
     'common_includes',
     'base/android',
@@ -77,6 +77,7 @@ const
     'scene/glsl/generated-pascal',
     'scene/x3d',
     'scene/load',
+    'scene/load/ifc',
     'scene/load/spine',
     'scene/load/md3',
     'scene/load/collada',
@@ -91,6 +92,7 @@ const
     'ui',
     'ui/windows',
     'services',
+    'services/steam',
     'physics',
     'physics/kraft',
     'deprecated_units',
@@ -472,7 +474,8 @@ procedure ProjectCreateFromTemplate(const EnginePath: String;
   end;
 
 var
-  ProjectDir, TemplateUrl, ProjectQualifiedName, ProjectPascalName: String;
+  ProjectDir, TemplateUrl, ProjectQualifiedName, ProjectPascalName,
+    DelphiExecutableName: String;
   CopyProcess: TTemplateCopyProcess;
   Macros: TStringStringMap;
 begin
@@ -497,6 +500,14 @@ begin
   ProjectQualifiedName := MakeQualifiedName(Options.ProjectName);
   ProjectPascalName := MakeProjectPascalName(Options.ProjectName);
 
+  { Note that our build tool has more involved implementation of this
+    in TCastleProject.DelphiExecutableName and
+    TCastleProject.ExplicitStandaloneFile .
+    But we don't need it: We know user didn't customize
+    the CastleEngineManifest.xml at this point, so we can assume
+    this is generated following the default code path. }
+  DelphiExecutableName := ProjectPascalName + '_standalone';
+
   Macros := TStringStringMap.Create;
   try
     Macros.Add('${PROJECT_NAME}', Options.ProjectName);
@@ -505,6 +516,7 @@ begin
     Macros.Add('${PROJECT_CAPTION}', Options.ProjectCaption);
     Macros.Add('${MAIN_VIEW}', Options.MainView);
     Macros.Add('${MAIN_VIEW_LOWERCASE}', LowerCase(Options.MainView));
+    Macros.Add('${DELPHI_EXECUTABLE_NAME}', DelphiExecutableName);
 
     { Generate versions of some macros with xml_quote function. }
     AddMacroXmlQuote(Macros, 'PROJECT_NAME');
