@@ -140,7 +140,8 @@ const
     {$ifdef CPUpowerpc64} powerpc64 {$endif}
     {$ifdef CPUavr} avr {$endif}
     {$ifdef CPUarmeb} armeb {$endif}
-    {$ifdef CPUmips} mips {$endif}
+    // On mipsel both CPUmips and CPUmipsel are defined by FPC
+    {$if defined(CPUmips) and not defined(CPUmipsel)} mips {$endif}
     {$ifdef CPUmipsel} mipsel {$endif}
     {$ifdef CPUjvm} jvm {$endif}
     {$ifdef CPUi8086} i8086 {$endif}
