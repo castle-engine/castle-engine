@@ -11,9 +11,13 @@ Note: This example runs much faster in the _Release_ mode (when optimizations ar
 
 More: [See example of a full game, using TCastleMoveAttack, engine editor, Sketchfab, Blender - demo for "Zlot Delphi 2024"](https://github.com/castle-engine/conference-zlot-delphi-2024). See also [slides from the related presentation (in Polish)](https://castle-engine.io/zlot2024).
 
-Using [Castle Game Engine](https://castle-engine.io/).
+## Screenshots
+
+![Playing at design-time](move_attack_design_time.png)
 
 ## Building
+
+Using [Castle Game Engine](https://castle-engine.io/).
 
 Compile by:
 
