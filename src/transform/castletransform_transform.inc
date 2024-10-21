@@ -321,6 +321,8 @@
 
     procedure SetParent(const Value: TCastleTransform);
     procedure UpdateBehaviorsNeedBeforeRender;
+    function GetWorldDirection: TVector3;
+    procedure SetWorldDirection(const Value: TVector3);
   protected
     { Returns list of TCastleTransform to render. By default, it just returns @link(List). }
     function GetRenderList(const Params: TRenderParams): TCastleTransformList; virtual;
@@ -654,7 +656,7 @@
         some timeout when they restore InternalMiddleForceBox to false.
 
         This is quite internal hack and you should not use this in your own programs.
-        This is used only by TWalkAttackCreature.
+        This is used only by TCastleMoveAttack.
         @exclude }
       InternalMiddleForceBox: boolean;
       { @exclude }
@@ -1156,9 +1158,15 @@
 
       This is expressed in the parent coordinate system
       (so it is close to the @link(Translation) value, but moved up, following GravityUp).
-      It ignores parent transformations (using @code(Transform.Parent.LocalToWorld(Transform.Middle))
+      So use @code(Transform.Parent.LocalToWorld(Transform.Middle))
       to convert this to world coordinates. }
     function Middle: TVector3; virtual;
+
+    { Our @link(Direction), in world coordinates. }
+    property WorldDirection: TVector3 read GetWorldDirection write SetWorldDirection;
+
+    { Our @link(Middle), in world coordinates. }
+    function WorldMiddle: TVector3;
 
     { Can the approximate sphere (around Middle point)
       be used for some collision-detection
@@ -4807,6 +4815,30 @@ end;
 function TCastleTransform.InternalBuildNodeInside: TObject;
 begin
   Result := nil;
+end;
+
+function TCastleTransform.GetWorldDirection: TVector3;
+begin
+  if Parent <> nil then
+    Result := Parent.LocalToWorldDirection(Direction)
+  else
+    Result := Direction;
+end;
+
+procedure TCastleTransform.SetWorldDirection(const Value: TVector3);
+begin
+  if Parent <> nil then
+    Direction := Parent.WorldToLocalDirection(Value)
+  else
+    Direction := Value;
+end;
+
+function TCastleTransform.WorldMiddle: TVector3;
+begin
+  if Parent <> nil then
+    Result := Parent.LocalToWorld(Middle)
+  else
+    Result := Middle;
 end;
 
 {$define read_implementation_methods}

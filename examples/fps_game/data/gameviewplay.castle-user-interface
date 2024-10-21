@@ -137,6 +137,7 @@
               {
                 "$$ClassName" : "TCastleScene",
                 "AutoAnimation" : "Idle",
+                "CollisionSphereRadius" : 2.5000000000000000E-001,
                 "DefaultAnimationTransition" : 2.5000000000000000E-001,
                 "ExposeTransforms" : [
                 ],
@@ -149,7 +150,28 @@
                   "$$ClassName" : "TCastleVector3Persistent",
                   "Z" : -2.6426731109619141E+001
                 },
-                "Url" : "castle-data:/enemy/knight.gltf"
+                "Url" : "castle-data:/enemy/knight.gltf",
+                "$Behaviors" : [
+                  {
+                    "$$ClassName" : "TCastleMoveAttack",
+                    "AnimationAttack" : "Attack",
+                    "AnimationDie" : "Die",
+                    "AnimationHurt" : "Damaged",
+                    "AnimationIdle" : "Idle",
+                    "AnimationMove" : "Walk",
+                    "AttackDamage" : {
+                      "$$ClassName" : "TCastleDamage"
+                    },
+                    "AttackMaxDistance" : 3.0000000000000000E+000,
+                    "Enemy" : "LivingPlayer",
+                    "Name" : "Knight2MoveAttack",
+                    "PreferredDistance" : 3.0000000000000000E+000
+                  },
+                  {
+                    "$$ClassName" : "TCastleLiving",
+                    "Name" : "Knight2Living"
+                  }
+                ]
               },
               {
                 "$$ClassName" : "TCastleScene",
@@ -984,6 +1006,12 @@
                   }
                 ]
               }
+            ],
+            "$Behaviors" : [
+              {
+                "$$ClassName" : "TCastleLiving",
+                "Name" : "LivingPlayer"
+              }
             ]
           },
           {
@@ -1225,16 +1253,16 @@
         },
         "RotationPersistent" : {
           "$$ClassName" : "TCastleVector4RotationPersistent",
-          "W" : 7.4790591001510620E-001,
-          "X" : -3.1391835212707520E-001,
-          "Y" : -9.4399070739746094E-001,
-          "Z" : -1.0167252272367477E-001
+          "W" : 7.7989715337753296E-001,
+          "X" : -7.3252427577972412E-001,
+          "Y" : 6.4848190546035767E-001,
+          "Z" : 2.0707386732101440E-001
         },
         "TranslationPersistent" : {
           "$$ClassName" : "TCastleVector3Persistent",
-          "X" : -3.6942558288574219E+001,
-          "Y" : 1.9878387451171875E+001,
-          "Z" : 1.6024291992187500E+001
+          "X" : 1.6916873931884766E+001,
+          "Y" : 1.1366394042968750E+001,
+          "Z" : -9.4209375381469727E+000
         }
       },
       "InternalDesignNavigations[dnFly]" : {

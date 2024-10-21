@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{82C9606C-77EE-44FE-BB71-F711382514EF}</ProjectGuid>
+        <ProjectGuid>{D441D0DD-8ECB-8D38-77E4-9D0A2B9851BE}</ProjectGuid>
         <MainSource>check_packages.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>
@@ -100,7 +100,7 @@
         <DCC_Namespace>System;Xml;Data;Datasnap;Web;Soap;$(DCC_Namespace)</DCC_Namespace>
         <Icon_MainIcon>$(BDS)\bin\delphi_PROJECTICON.ico</Icon_MainIcon>
         <Icns_MainIcns>$(BDS)\bin\delphi_PROJECTICNS.icns</Icns_MainIcns>
-        <DCC_UnitSearchPath>../../../src/base;../../../src/common_includes;../../../src/base/android;../../../src/base/windows;../../../src/base/unix;../../../src/base_rendering;../../../src/base_rendering/glsl/generated-pascal;../../../src/fonts;../../../src/window;../../../src/window/gtk;../../../src/window/windows;../../../src/window/unix;../../../src/window/deprecated_units;../../../src/images;../../../src/transform;../../../src/scene;../../../src/scene/glsl/generated-pascal;../../../src/scene/x3d;../../../src/scene/load;../../../src/scene/load/spine;../../../src/scene/load/md3;../../../src/scene/load/collada;../../../src/scene/load/pasgltf;../../../src/audio;../../../src/audio/fmod;../../../src/audio/openal;../../../src/audio/ogg_vorbis;../../../src/files;../../../src/files/indy;../../../src/castlescript;../../../src/ui;../../../src/ui/windows;../../../src/services;../../../src/physics;../../../src/physics/kraft;../../../src/deprecated_units;../../../src/vampyre_imaginglib/src/Source;../../../src/vampyre_imaginglib/src/Source/JpegLib;../../../src/vampyre_imaginglib/src/Source/ZLib;../../../src/vampyre_imaginglib/src/Extras/Extensions;../../../src/vampyre_imaginglib/src/Extensions/J2KObjects;../../../src/vampyre_imaginglib/src/Extensions/LibTiff;../../../src/vampyre_imaginglib/src/Extensions;../../../src/delphi;../../../src/compatibility/delphi-only;../../../src/compatibility/delphi-only/fcl-json;regexpr/;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
+        <DCC_UnitSearchPath>../../../src/base;../../../src/common_includes;../../../src/base/android;../../../src/base/windows;../../../src/base/unix;../../../src/base_rendering;../../../src/base_rendering/dglopengl;../../../src/base_rendering/glsl/generated-pascal;../../../src/fonts;../../../src/window;../../../src/window/gtk;../../../src/window/windows;../../../src/window/unix;../../../src/window/deprecated_units;../../../src/images;../../../src/transform;../../../src/scene;../../../src/scene/glsl/generated-pascal;../../../src/scene/x3d;../../../src/scene/load;../../../src/scene/load/ifc;../../../src/scene/load/spine;../../../src/scene/load/md3;../../../src/scene/load/collada;../../../src/scene/load/pasgltf;../../../src/audio;../../../src/audio/fmod;../../../src/audio/openal;../../../src/audio/ogg_vorbis;../../../src/files;../../../src/files/indy;../../../src/castlescript;../../../src/ui;../../../src/ui/windows;../../../src/services;../../../src/services/steam;../../../src/physics;../../../src/physics/kraft;../../../src/deprecated_units;../../../src/vampyre_imaginglib/src/Source;../../../src/vampyre_imaginglib/src/Source/JpegLib;../../../src/vampyre_imaginglib/src/Source/ZLib;../../../src/vampyre_imaginglib/src/Extras/Extensions;../../../src/vampyre_imaginglib/src/Extensions/J2KObjects;../../../src/vampyre_imaginglib/src/Extensions/LibTiff;../../../src/vampyre_imaginglib/src/Extensions;../../../src/delphi;../../../src/compatibility/delphi-only;../../../src/compatibility/delphi-only/fcl-json;regexpr/;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
         <DCC_DcuOutput>castle-engine-output\delphi\$(Platform)\$(Config)</DCC_DcuOutput>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base_Android)'!=''">
@@ -155,17 +155,17 @@
         <VerInfo_Locale>1033</VerInfo_Locale>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_1)'!=''">
-        <DCC_Define>RELEASE;$(DCC_Define)</DCC_Define>
-        <DCC_DebugInformation>0</DCC_DebugInformation>
-        <DCC_LocalDebugSymbols>false</DCC_LocalDebugSymbols>
-        <DCC_SymbolReferenceInfo>0</DCC_SymbolReferenceInfo>
-    </PropertyGroup>
-    <PropertyGroup Condition="'$(Cfg_2)'!=''">
         <DCC_Define>DEBUG;$(DCC_Define)</DCC_Define>
         <DCC_Optimize>false</DCC_Optimize>
         <DCC_GenerateStackFrames>true</DCC_GenerateStackFrames>
         <DCC_RangeChecking>true</DCC_RangeChecking>
         <DCC_IntegerOverflowCheck>true</DCC_IntegerOverflowCheck>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Cfg_2)'!=''">
+        <DCC_Define>RELEASE;$(DCC_Define)</DCC_Define>
+        <DCC_DebugInformation>0</DCC_DebugInformation>
+        <DCC_LocalDebugSymbols>false</DCC_LocalDebugSymbols>
+        <DCC_SymbolReferenceInfo>0</DCC_SymbolReferenceInfo>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_2_Android64)'!=''">
         <BT_BuildType>Debug</BT_BuildType>
@@ -183,15 +183,16 @@
         <DelphiCompile Include="$(MainSource)">
             <MainSource>MainSource</MainSource>
         </DelphiCompile>
-${DPROJ_INCLUDED_FILES}
+        <None Include="README.md"/>
+        <None Include="check_packages.dpr"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>
-        <BuildConfiguration Include="Release">
+        <BuildConfiguration Include="Debug">
             <Key>Cfg_1</Key>
             <CfgParent>Base</CfgParent>
         </BuildConfiguration>
-        <BuildConfiguration Include="Debug">
+        <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>
         </BuildConfiguration>
@@ -210,7 +211,8 @@ ${DPROJ_INCLUDED_FILES}
                     <Excluded_Packages Name="$(BDSBIN)\dcloffice2k280.bpl">Microsoft Office 2000 Sample Automation Server Wrapper Components</Excluded_Packages>
                     <Excluded_Packages Name="$(BDSBIN)\dclofficexp280.bpl">Microsoft Office XP Sample Automation Server Wrapper Components</Excluded_Packages>
                 </Excluded_Packages>
-${DPROJ_WELCOME_PAGE}
+                <WelcomePageFile Path="README.md"/>
+                <WelcomePageFolder/>
             </Delphi.Personality>
             <Deployment Version="4">
                 <DeployFile LocalName="$(BDS)\Redist\iossimulator\libcgunwind.1.0.dylib" Class="DependencyModule">
@@ -230,47 +232,47 @@ ${DPROJ_WELCOME_PAGE}
                 </DeployFile>
 
                 <!-- Deploy executables on all platforms, for Debug -->
-                <DeployFile LocalName="${DELPHI_EXECUTABLE_NAME}.exe" Configuration="Debug" Class="ProjectOutput">
+                <DeployFile LocalName="check_packages.exe" Configuration="Debug" Class="ProjectOutput">
                     <Platform Name="Win32">
-                        <RemoteName>${DELPHI_EXECUTABLE_NAME}.exe</RemoteName>
+                        <RemoteName>check_packages.exe</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="${DELPHI_EXECUTABLE_NAME}.exe" Configuration="Debug" Class="ProjectOutput">
+                <DeployFile LocalName="check_packages.exe" Configuration="Debug" Class="ProjectOutput">
                     <Platform Name="Win32">
-                        <RemoteName>${DELPHI_EXECUTABLE_NAME}.exe</RemoteName>
+                        <RemoteName>check_packages.exe</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="${DELPHI_EXECUTABLE_NAME}" Configuration="Debug" Class="ProjectOutput">
+                <DeployFile LocalName="check_packages" Configuration="Debug" Class="ProjectOutput">
                     <Platform Name="Linux64">
-                        <RemoteName>${DELPHI_EXECUTABLE_NAME}</RemoteName>
+                        <RemoteName>check_packages</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
 
                 <!-- Deploy executables on all platforms, for Release -->
-                <DeployFile LocalName="${DELPHI_EXECUTABLE_NAME}.exe" Configuration="Release" Class="ProjectOutput">
+                <DeployFile LocalName="check_packages.exe" Configuration="Release" Class="ProjectOutput">
                     <Platform Name="Win32">
-                        <RemoteName>${DELPHI_EXECUTABLE_NAME}.exe</RemoteName>
+                        <RemoteName>check_packages.exe</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="${DELPHI_EXECUTABLE_NAME}.exe" Configuration="Release" Class="ProjectOutput">
+                <DeployFile LocalName="check_packages.exe" Configuration="Release" Class="ProjectOutput">
                     <Platform Name="Win32">
-                        <RemoteName>${DELPHI_EXECUTABLE_NAME}.exe</RemoteName>
+                        <RemoteName>check_packages.exe</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="${DELPHI_EXECUTABLE_NAME}" Configuration="Release" Class="ProjectOutput">
+                <DeployFile LocalName="check_packages" Configuration="Release" Class="ProjectOutput">
                     <Platform Name="Linux64">
-                        <RemoteName>${DELPHI_EXECUTABLE_NAME}</RemoteName>
+                        <RemoteName>check_packages</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
 
                 <!-- Deploy data files -->
-${DPROJ_DEPLOY_FILES}
+
 
                 <DeployClass Name="AdditionalDebugSymbols">
                     <Platform Name="iOSSimulator">

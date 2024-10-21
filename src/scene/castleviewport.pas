@@ -561,12 +561,23 @@ type
       deprecated 'in most cases, you can instead read Camera parameters, like Camera.Orthographic.EffectiveWidth, Camera.Orthographic.EffectiveHeight';
     {$endif}
 
-    { Assign current camera vectors and projection.
-      This only fills existing @link(Camera) with contents, it doesn't change
-      the @link(Camera) to new component.
+    { Set current camera vectors and projection,
+      to best reflect current @link(MainScene) or current @link(Items)
+      bounding box.
 
-      This is automatically used at first rendering if @link(AutoCamera).
-      You can also use it explicitly. }
+      If @link(MainScene) is set and it has a preferred camera (TViewpointNode,
+      which can be specified in X3D, glTF, Collada files) then it will be used.
+      Otherwise we calculate camera using CameraViewpointForWholeScne
+      to see the whole world.
+
+      This method only fills existing @link(Camera) with contents,
+      it doesn't change the @link(Camera) to a new component.
+      It will do nothing if @link(Camera) is @nil.
+
+      This is automatically used at first rendering if @link(AutoCamera)
+      (deprecated, only sensible now if you make X3D browser
+      that must react to X3D events changing viewpoint).
+      You can also use it explicitly (this is recommended). }
     procedure AssignDefaultCamera; virtual;
 
     { Does the graphic card support our ScreenSpaceAmbientOcclusion shader.

@@ -449,7 +449,7 @@ end;
 
 function TCastleFloatSlider.ValueToStr(const AValue: Single): String;
 begin
-  Result := Format('%f', [AValue]);
+  Result := FloatToStrDisplay(AValue);
 end;
 
 procedure TCastleFloatSlider.SetMin(const AMin: Single);
