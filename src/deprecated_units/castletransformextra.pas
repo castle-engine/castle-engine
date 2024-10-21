@@ -316,7 +316,7 @@ type
     { Scales how far the knockback effect pushes this creature/player. }
     property KnockBackSpeed: Single read FKnockBackSpeed write FKnockBackSpeed
       {$ifdef FPC} default DefaultKnockBackSpeed{$endif};
-  end deprecated 'use TCastleAliveBehavior, or implement "being alive" logic in your own game';
+  end deprecated 'use TCastleLiving, or implement "being alive" logic in your own game';
 
   TCastleTransformDesign = CastleTransform.TCastleTransformDesign;
 

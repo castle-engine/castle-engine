@@ -716,8 +716,9 @@ uses
   CastleInternalUrlUtils, CastleInternalFileMonitor, X3DNodes,
   { CGE unit to keep in uses clause even if they are not explicitly used by FrameDesign,
     to register the core CGE components for (de)serialization. }
-  Castle2DSceneManager, CastleNotifications, CastleThirdPersonNavigation, CastleSoundEngine,
-  CastleBehaviors,
+  Castle2DSceneManager, CastleNotifications, CastleThirdPersonNavigation,
+  CastleSoundEngine, CastleBehaviors, CastleLivingBehaviors,
+  CastleFlashEffect,
   { Editor units }
   FormProject, CastleComponentEditorDesigner;
 

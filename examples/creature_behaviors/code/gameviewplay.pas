@@ -21,7 +21,8 @@ interface
 uses Classes,
   CastleComponentSerialize, CastleUIControls, CastleControls,
   CastleKeysMouse, CastleViewport, CastleScene, CastleVectors, CastleCameras,
-  CastleTransform, CastleBehaviors, CastleClassUtils;
+  CastleTransform, CastleBehaviors, CastleLivingBehaviors, CastleClassUtils,
+  CastleSoundEngine, CastleFlashEffect;
 
 type
   { Main "playing game" view, where most of the game logic takes place. }
@@ -32,9 +33,12 @@ type
     LabelFps: TCastleLabel;
     MainViewport: TCastleViewport;
     WalkNavigation: TCastleWalkNavigation;
+    SoundShoot: TCastleSound;
+    PlayerHurtFlash: TCastleFlashEffect;
+    LabelPlayerLife: TCastleLabel;
+    PlayerLiving: TCastleLiving;
   private
-    Enemies: TCastleTransformList;
-    PlayerAlive: TCastleAliveBehavior;
+    procedure PlayerHurt(Sender: TObject);
   public
     constructor Create(AOwner: TComponent); override;
     procedure Start; override;
@@ -49,8 +53,8 @@ var
 implementation
 
 uses SysUtils, Math,
-  CastleSoundEngine, CastleLog, CastleStringUtils, CastleFilesUtils,
-  GameViewMenu, GameSounds;
+  CastleLog, CastleStringUtils, CastleFilesUtils, CastleColors, CastleUtils,
+  GameViewMenu;
 
 { TViewPlay ----------------------------------------------------------------- }
 
@@ -61,42 +65,13 @@ begin
 end;
 
 procedure TViewPlay.Start;
-
-  procedure AddEnemy(const EnemyScene: TCastleScene);
-  // TODO MoveAttackBehavior: TCastleMoveAttack;
-  begin
-    Enemies.Add(EnemyScene);
-
-    // TODO: TCastleMoveAttack should take care of this
-    EnemyScene.PlayAnimation('walk', true);
-
-    EnemyScene.AddBehavior(TCastleAliveBehavior.Create(FreeAtStop));
-
-    // TODO
-    // MoveAttackBehavior := TCastleMoveAttack.Create(FreeAtStop);
-    // MoveAttackBehavior.Enemy := PlayerAlive;
-    // EnemyScene.AddBehavior(MoveAttackBehavior);
-  end;
-
-var
-  I: Integer;
 begin
   inherited;
-
-  PlayerAlive := TCastleAliveBehavior.Create(FreeAtStop);
-  MainViewport.Camera.AddBehavior(PlayerAlive);
-
-  { Initialize Enemies }
-  Enemies := TCastleTransformList.Create(false);
-  for I := 1 to 4 do
-    AddEnemy(DesignedComponent('SceneSoldier' + IntToStr(I)) as TCastleScene);
-  for I := 1 to 3 do
-    AddEnemy(DesignedComponent('SceneWolf' + IntToStr(I)) as TCastleScene);
+  PlayerLiving.OnHurt := {$ifdef FPC}@{$endif} PlayerHurt;
 end;
 
 procedure TViewPlay.Stop;
 begin
-  FreeAndNil(Enemies);
   inherited;
 end;
 
@@ -105,14 +80,20 @@ begin
   inherited;
   { This virtual method is executed every frame (many times per second). }
   LabelFps.Caption := 'FPS: ' + Container.Fps.ToString;
+  LabelPlayerLife.Caption := FormatDot('Life: %f', [PlayerLiving.Life]);
+
+  { Mouse look only active when right mouse button pressed.
+    This is nice for demo, allows to release mouse look easily.
+    For normal FPS games, you usually just keep MouseLook always true
+    during play, and only release it during a "pause" menu or such. }
   WalkNavigation.MouseLook := buttonRight in Container.MousePressed;
 end;
 
 function TViewPlay.Press(const Event: TInputPressRelease): Boolean;
 var
-  HitAlive: TCastleAliveBehavior;
-  EnemyScene: TCastleScene;
-  EnemySoundSource: TCastleSoundSource;
+  HitTransform: TCastleTransform;
+  HitLiving: TCastleLiving;
+  HitScene: TCastleScene;
 begin
   Result := inherited;
   if Result then Exit; // allow the ancestor to handle keys
@@ -132,32 +113,25 @@ begin
     SoundEngine.Play(SoundShoot);
 
     { We clicked on enemy if
-      - TransformUnderMouse indicates we hit something
-      - It has a behavior of TCastleAliveBehavior. }
-    if (MainViewport.TransformUnderMouse <> nil) and
-       (MainViewport.TransformUnderMouse.FindBehavior(TCastleAliveBehavior) <> nil) then
+      - MainViewport.TransformHit(...) indicates we hit something
+      - It has a behavior of TCastleLiving.
+
+      Note: we use TransformHit, not TransformUnderMouse,
+      because we want to shoot from viewport center, not from the mouse cursor
+      (regardless if MouseLook is on or off). We consistently always show
+      crosshair in the screen center. }
+    HitTransform := MainViewport.TransformHit(MainViewport.RenderRect.Center, true);
+    if (HitTransform <> nil) and
+       (HitTransform.FindBehavior(TCastleLiving) <> nil) then
     begin
-      // TODO: TCastleMoveAttack should take care of this
-      HitAlive := MainViewport.TransformUnderMouse.FindBehavior(TCastleAliveBehavior) as TCastleAliveBehavior;
-      HitAlive.Hurt(1000, MainViewport.Camera.Direction);
-      if HitAlive.Dead then
+      HitLiving := HitTransform.FindBehavior(TCastleLiving) as TCastleLiving;
+      HitLiving.Hurt(1000, MainViewport.Camera.WorldDirection);
+      if HitLiving.Dead then
       begin
-        EnemyScene := HitAlive.Parent as TCastleScene;
-
-        // play die animation
-        if EnemyScene.HasAnimation('die') then
-          EnemyScene.PlayAnimation('die', false);
-        if EnemyScene.HasAnimation('sit') then // wolf has 'sit', not 'die'
-          EnemyScene.PlayAnimation('sit', false);
-
-        // stop wolf howling
-        EnemySoundSource := EnemyScene.FindBehavior(TCastleSoundSource) as TCastleSoundSource;
-        if EnemySoundSource <> nil then
-          EnemySoundSource.Sound := nil;
-
+        HitScene := HitTransform as TCastleScene;
         // dead corpse no longer collides
-        EnemyScene.Pickable := false;
-        EnemyScene.Collides := false;
+        HitScene.Pickable := false;
+        HitScene.Collides := false;
       end;
     end;
 
@@ -175,6 +149,16 @@ begin
     Container.View := ViewMenu;
     Exit(true);
   end;
+end;
+
+procedure TViewPlay.PlayerHurt(Sender: TObject);
+begin
+  PlayerHurtFlash.Flash(Red, true);
+  if PlayerLiving.Attacker <> nil then
+    WritelnLog('Player hurt by ' + PlayerLiving.Attacker.Name);
+
+  // TODO: play some hurt sound
+  //SoundEngine.Play(SoundHurt);
 end;
 
 end.

@@ -45,7 +45,7 @@ implementation
 
 uses
   Math,
-  CastleUriUtils;
+  CastleUtils, CastleUriUtils;
 
 {$R *.lfm}
 
@@ -61,7 +61,7 @@ begin
     URLAnchor := '#anim-naming:trailing-number';
 
   if not SameValue(FloatSpinEditFPS.Value, 8.0) then
-    URLAnchor := URLAnchor + ',fps:' + Format('%f', [FloatSpinEditFPS.Value]);
+    URLAnchor := URLAnchor + ',fps:' + FloatToStrDisplay(FloatSpinEditFPS.Value);
 
   EditURL.Text := URIDeleteAnchor(EditURL.Text) + URLAnchor;
   EditURL.Hint := URIDeleteAnchor(EditURL.Text) + URLAnchor;
