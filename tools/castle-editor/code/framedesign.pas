@@ -6514,6 +6514,7 @@ procedure TDesignFrame.ExportToModel;
 var
   RootNode: TX3DRootNode;
   SaveUrl: String;
+  UrlProcessing: TUrlProcessing;
 begin
   if CurrentViewport = nil then
   begin
@@ -6525,7 +6526,20 @@ begin
   if ExportToModelDialog.Execute then
   begin
     SaveUrl := ExportToModelDialog.Url;
-    RootNode := CurrentViewport.InternalBuildNode(SaveUrl);
+    UrlProcessing := suChangeCastleDataToRelative;
+    { TODO: get UrlProcessing as parameter;
+
+      TODO: FormProject should allow user to choose UrlProcessing --
+      e.g. by selecting a menu item (radio), like
+
+        Data ->
+          Export to Model URL Behavior ->
+            None
+            Change castle-data:/ To Relative // default
+            Ember Resources using data URI (make self-contained X3D file)
+            Copy All Resources to exported-output Subdirectory
+    }
+    RootNode := CurrentViewport.InternalBuildNode(SaveUrl, UrlProcessing);
     try
       SaveNode(RootNode, SaveUrl);
     finally FreeAndNil(RootNode) end;

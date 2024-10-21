@@ -35,7 +35,7 @@ library castleengine;
 
 uses CTypes, Math, SysUtils, CastleUtils,
   Classes, CastleKeysMouse, CastleCameras, CastleVectors, CastleGLUtils, CastleGLVersion,
-  CastleImages, CastleSceneCore, CastleUIControls, X3DNodes, X3DFields, CastleLog,
+  CastleImages, CastleSceneCore, CastleUIControls, X3DNodes, X3DFields, X3DLoad, CastleLog,
   CastleBoxes, CastleControls, CastleInputs, CastleApplicationProperties,
   CastleWindow, CastleViewport, CastleScene, CastleTransform;
 
@@ -367,12 +367,34 @@ begin
   end;
 end;
 
-procedure CGE_SaveSceneToFile(szFile: pcchar); cdecl;
+procedure CGE_SaveSceneToFile(szFile: pcchar; eUrlProcessing: cInt32); cdecl;
+var
+  SaveFileName: string;
+  UrlProcessing: TUrlProcessing;
+  RootNodeCopy: TX3DRootNode;
 begin
   if not CGE_VerifyScene('CGE_SaveSceneToFile') then
     exit;
   try
-    MainScene.Save(StrPas(PChar(szFile)));
+    SaveFileName := StrPas(PChar(szFile));
+    case eUrlProcessing of
+      0: UrlProcessing := suNone;
+      1: UrlProcessing := suChangeCastleDataToRelative;
+      2: UrlProcessing := suChangeAllPathsToRelative;
+      3: UrlProcessing := suEmbedResources;
+      4: UrlProcessing := suCopyResourcesToSubdirectory;
+    end;
+    if UrlProcessing = suNone then
+      MainScene.Save(SaveFileName)
+    else begin
+      try
+        RootNodeCopy := MainScene.RootNode.DeepCopy as TX3DRootNode;
+        ProcessUrls(RootNodeCopy, SaveFileName, UrlProcessing);
+        SaveNode(RootNodeCopy, SaveFileName, 'cge_library');
+      finally
+        FreeAndNil(RootNodeCopy);
+      end;
+    end;
   except
     on E: TObject do WritelnWarning('Window', 'CGE_SaveSceneToFile: ' + ExceptMessage(E));
   end;
