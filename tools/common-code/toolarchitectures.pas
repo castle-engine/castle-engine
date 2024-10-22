@@ -33,6 +33,8 @@ type
     targetIOS,
     { Target all relevant Android combinations of OS/CPU. }
     targetAndroid,
+    { Target all relevant macOS combinations of OS/CPU. }
+    targetMacOS,
     { Build an application for Nintendo Switch. }
     targetNintendoSwitch
   );
@@ -228,6 +230,8 @@ function StringToOS(const S : String) : TOS;
 var
   I : Integer;
 begin
+  if SameText(S, 'macos') then
+    Exit(Darwin);
   I := GetEnumValue(TypeInfo(TOS), S);
   if I = -1 then
     raise Exception.CreateFmt(SErrInvalidOS, [S]);
@@ -235,7 +239,7 @@ begin
 end;
 
 const
-  TargetNames: array [TTarget] of string = ('custom', 'ios', 'android', 'nintendo-switch');
+  TargetNames: array [TTarget] of string = ('custom', 'ios', 'android', 'macos', 'nintendo-switch');
 
 function TargetToString(const Target : TTarget): string;
 begin
@@ -274,6 +278,8 @@ begin
     NL +
     '- "android": Build for all the platforms necessary for Android applications. This includes both 32-bit and 64-bit Android devices.' +NL+
     NL +
+    '- "macos": Build a universal executable or library for macos. This includes both Intel 64-bit and ARM 64-bit binary.' +NL+
+    NL +
     '- "nintendo-switch": Build an application for Nintendo Switch.' +NL+
     '');
 end;
@@ -311,7 +317,7 @@ begin
     begin
       case OS of
         macosclassic: Extra := ' (classic MacOS, that ended with MacOS 9)';
-        darwin: Extra := ' (modern macOS 10.x, caled also Mac OS X)';
+        darwin: Extra := ' (or macos; modern macOS 10.x+, called also Mac OS X)';
         else Extra := '';
       end;
       Description := Description + '  ' + OSToString(OS) + Extra + NL;

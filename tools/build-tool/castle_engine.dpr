@@ -30,7 +30,7 @@ uses SysUtils,
   CastleApplicationProperties,
   ToolPackageFormat, ToolProject, ToolCompile, ToolIOS, ToolAndroid, ToolManifest,
   ToolNintendoSwitch, ToolCommonUtils, ToolArchitectures, ToolUtils, ToolProcess,
-  ToolCache, ToolCompilerInfo;
+  ToolCache, ToolCompilerInfo, ToolMacOS;
 
 var
   Target: TTarget;
@@ -399,6 +399,7 @@ begin
         targetCustom        : Compile(OverrideCompiler, GetCurrentDir, FileName, SimpleCompileOptions);
         targetAndroid       : CompileAndroid(OverrideCompiler, nil, GetCurrentDir, FileName, SimpleCompileOptions);
         targetIOS           : CompileIOS(OverrideCompiler, GetCurrentDir, FileName, SimpleCompileOptions);
+        targetMacOS         : CompileMacOS(OverrideCompiler, GetCurrentDir, FileName, SimpleCompileOptions);
         targetNintendoSwitch: CompileNintendoSwitch(GetCurrentDir, FileName, SimpleCompileOptions);
         {$ifndef COMPILER_CASE_ANALYSIS}
         else raise EInternalError.Create('Operation not implemented for this target');
