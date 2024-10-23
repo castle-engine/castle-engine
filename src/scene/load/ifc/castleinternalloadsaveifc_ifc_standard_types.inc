@@ -2340,6 +2340,8 @@ begin
     IfcClasses.Add(TIfcRelDefinesByProperties);
     IfcClasses.Add(TIfcSIUnit);
     IfcClasses.Add(TIfcGeometricRepresentationContext);
+    IfcClasses.Add(TIfcConversionBasedUnit);
+    IfcClasses.Add(TIfcMeasureWithUnit);
   end;
 end;
 
