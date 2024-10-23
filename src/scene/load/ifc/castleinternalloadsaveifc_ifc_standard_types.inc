@@ -2446,11 +2446,13 @@ constructor TIfcTypeObject.Create(AOwner: TComponent);
 begin
   inherited;
   // TODO FHasPropertySets := TIfcRelDefinesByPropertiesList.Create(false);
+  FTypes := TIfcRelDefinesByTypeList.Create(false);
 end;
 
 destructor TIfcTypeObject.Destroy;
 begin
   // TODO FreeAndNil(FHasPropertySets);
+  FreeAndNil(FTypes);
   inherited;
 end;
 
@@ -2552,6 +2554,7 @@ begin
     IfcClasses.Add(TIfcRelContainedInSpatialStructure);
     IfcClasses.Add(TIfcRelDefinesByType);
     IfcClasses.Add(TIfcTypeObject);
+    IfcClasses.Add(TIfcWindowType);
   end;
 end;
 
