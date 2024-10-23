@@ -118,6 +118,7 @@
   TIfcObjectPlacementList = class;
   TIfcRelDeclaresList = class;
   TIfcRepresentationContextList = class;
+  TIfcRelDefinesByTypeList = class;
 
   { Float type used throughout IFC.
 
@@ -686,6 +687,25 @@
   TIfcRelAssociatesList = class({$ifdef FPC}specialize{$endif} TObjectList<TIfcRelAssociates>)
   end;
 
+  { Selection of either a material definition or a material usage definition
+    that can be assigned to an element, a resource or another entity within
+    this specification.
+
+    In IFC specification, this is a choice, not a class.
+    But we make it a class, as it is more convenient for our purposes. }
+  TIfcMaterialSelect = class(TIfcPersistent)
+  end;
+
+  { Objectified relationship between a material definition and elements
+    or element types to which this material definition applies. }
+  TIfcRelAssociatesMaterial = class(TIfcRelAssociates)
+  strict private
+    FRelatingMaterial: TIfcMaterialSelect;
+  published
+    { Material definition assigned to the elements or element types. }
+    property RelatingMaterial: TIfcMaterialSelect read FRelatingMaterial write FRelatingMaterial;
+  end;
+
   { Generalization of all characteristics (i.e. a grouping of individual
     properties), that may be assigned to objects. }
   TIfcPropertyDefinition = class(TIfcDefinitionSelect)
@@ -753,6 +773,125 @@
   { Any semantically treated thing or process. }
   TIfcObject = class abstract(TIfcObjectDefinition)
     // TODO
+  end;
+  TIfcObjectList = class({$ifdef FPC}specialize{$endif} TObjectList<TIfcObject>)
+  end;
+
+  { Information about a type, common to all occurrences of this type. }
+  TIfcTypeObject = class(TIfcObjectDefinition)
+  strict private
+    FApplicableOccurrence: TIfcIdentifier;
+    // TODO: FHasPropertySets: TIfcPropertySetDefinitionList;
+    FTypes: TIfcRelDefinesByTypeList;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+  published
+    { Data type of the occurrence object, to which the assigned type object can relate. }
+    property ApplicableOccurrence: TIfcIdentifier read FApplicableOccurrence write FApplicableOccurrence;
+
+    { Set of unique property sets, that are associated with the object type
+      and are common to all object occurrences referring to this object type. }
+    // TODO: property HasPropertySets: TIfcPropertySetDefinitionList read FHasPropertySets;
+
+    { Reference to the relationship IfcRelDefinesByType and thus
+      to those occurrence objects, which are defined by this type. }
+    property Types: TIfcRelDefinesByTypeList read FTypes;
+  end;
+
+  { Type definition of a product without being already inserted
+    into a project structure (without having a placement). }
+  TIfcTypeProduct = class(TIfcTypeObject)
+  strict private
+    //FRepresentationMaps: TIfcRepresentationMapList;
+    FTag: TIfcLabel;
+    //FReferencedBy: TIfcRelAssignsToProductList;
+  published
+    { List of unique representation maps. Each representation map describes
+      a block definition of the shape of the product style.
+      By providing more than one representation map, a multi-view
+      block definition can be given. }
+ 	  // TODO // property RepresentationMaps: TIfcRepresentationMapList read FRepresentationMaps;
+
+    { The tag (or label) identifier at the particular type of a product,
+      e.g. the article number (like the EAN). It is the identifier
+      at the specific level. }
+    property Tag: TIfcLabel read FTag write FTag;
+
+    { Reference to the IfcRelAssignsToProduct relationship,
+      by which other products, processes, controls, resources or actors
+      (as subtypes of IfcObjectDefinition) can be related to this product type. }
+    // TODO // property ReferencedBy: TIfcRelAssignsToProductList read FReferencedBy;
+  end;
+
+  { List of commonly shared property set definitions of an element and
+    an optional set of product representations. }
+  TIfcElementType = class abstract(TIfcTypeProduct)
+  strict private
+    FElementType: TIfcLabel;
+  published
+    { The type denotes a particular type that indicates the object further.
+      The use has to be established at the level of instantiable subtypes. }
+    property ElementType: TIfcLabel read FElementType write FElementType;
+  end;
+
+  { Common properties of a certain type of built element that are applied
+    to all occurrences of that type. }
+  TIfcBuiltElementType = class(TIfcElementType)
+  end;
+
+  { Used for @link(TIfcWindow.PredefinedType) and
+    @link(TIfcWindowType.PredefinedType). }
+  TIfcWindowTypeEnum = (NotDefined, LightDome, SkyLight, Window, UserDefined);
+
+  { Basic configuration of the window type in terms of the number of window
+    panels and the subdivision of the total window.
+    Used for @link(TIfcWindow.PartitioningType) and
+    @link(TIfcWindowType.PartitioningType).
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcWindowTypePartitioningEnum.htm }
+  TIfcWindowTypePartitioningEnum = (
+    NotDefined,
+    Double_Panel_Horizontal,
+    Double_Panel_Vertical,
+    Single_Panel,
+    Triple_Panel_Bottom,
+    Triple_Panel_Horizontal,
+    Triple_Panel_Left,
+    Triple_Panel_Right,
+    Triple_Panel_Top,
+    Triple_Panel_Vertical,
+    UserDefined
+  );
+
+  { Commonly shared information for occurrences of windows. }
+  TIfcWindowType = class(TIfcBuiltElementType)
+  strict private
+    FPredefinedType: TIfcWindowTypeEnum;
+    FPartitioningType: TIfcWindowTypePartitioningEnum;
+    FParameterTakesPrecedence: Boolean;
+    FUserDefinedPartitioningType: TIfcLabel;
+  published
+    { Predefined types of a window element from which the type required may be set. }
+    property PredefinedType: TIfcWindowTypeEnum read FPredefinedType write FPredefinedType
+      default TIfcWindowTypeEnum.NotDefined;
+
+    { Type defining the general layout of the window type in terms of the partitioning of panels. }
+    property PartitioningType: TIfcWindowTypePartitioningEnum read FPartitioningType write FPartitioningType
+      default TIfcWindowTypePartitioningEnum.NotDefined;
+
+    { Reflects, whether the parameter given in the attached lining and panel
+      properties exactly define the geometry (TRUE),
+      or whether the attached style shape take precedence (FALSE).
+      In the last case the parameter have only informative value.
+
+      TODO: Should be an enum with 3 values?
+      Since it is optional, and it seems "false" is not exactly equal to "not specified". }
+    property ParameterTakesPrecedence: Boolean read FParameterTakesPrecedence write FParameterTakesPrecedence default false;
+
+    { Designator for the user defined partitioning type, shall only be provided,
+      if the value of PartitioningType is set to UserDefined. }
+    property UserDefinedPartitioningType: TIfcLabel read FUserDefinedPartitioningType write FUserDefinedPartitioningType;
   end;
 
   { Define the object coordinate system. }
@@ -1243,28 +1382,6 @@
   TIfcWallStandardCase = class(TIfcWall)
   end;
 
-  { Used for TIfcWindow.PredefinedType. }
-  TIfcWindowTypeEnum = (NotDefined, LightDome, SkyLight, Window, UserDefined);
-
-  { Basic configuration of the window type in terms of the number of window
-    panels and the subdivision of the total window.
-    Used for TIfcWindow.PartitioningType.
-
-    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcWindowTypePartitioningEnum.htm }
-  TIfcWindowTypePartitioningEnum = (
-    NotDefined,
-    Double_Panel_Horizontal,
-    Double_Panel_Vertical,
-    Single_Panel,
-    Triple_Panel_Bottom,
-    Triple_Panel_Horizontal,
-    Triple_Panel_Left,
-    Triple_Panel_Right,
-    Triple_Panel_Top,
-    Triple_Panel_Vertical,
-    UserDefined
-  );
-
   { Window building element.
 
     Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcWindow.htm }
@@ -1734,6 +1851,25 @@
   TIfcRelDefinesByPropertiesList = class({$ifdef FPC}specialize{$endif} TObjectList<TIfcRelDefinesByProperties>)
   end;
 
+  { Relationship between an object type and object occurrences.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcRelDefinesByType.htm }
+  TIfcRelDefinesByType = class(TIfcRelDefines)
+  strict private
+    FRelatedObjects: TIfcObjectList;
+    FRelatingType: TIfcTypeObject;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+  published
+    property RelatedObjects: TIfcObjectList read FRelatedObjects;
+
+    { Reference to the type (or style) information for that object or set of objects. }
+    property RelatingType: TIfcTypeObject read FRelatingType write FRelatingType;
+  end;
+  TIfcRelDefinesByTypeList = class({$ifdef FPC}specialize{$endif} TObjectList<TIfcRelDefinesByType>)
+  end;
+
   { Project context in which objects, type objects, property sets,
     and properties are defined.
 
@@ -1774,6 +1910,10 @@
     { Reference to the IfcRelDeclares relationship that assigns the uppermost
       entities of included hierarchies to this context instance. }
     property Declares: TIfcRelDeclaresList read FDeclares;
+  end;
+
+  { Collects all library elements that are included within a referenced project data set. }
+  TIfcProjectLibrary = class(TIfcContext)
   end;
 
   { Context for information to be exchanged or shared,
@@ -1827,6 +1967,28 @@
   published
     property Name: TIfcLabel read FName write FName;
     property Description: TIfcText read FDescription write FDescription;
+    { Contained list of representations (including shape representations). }
+    property Representations: TIfcRepresentationList read FRepresentations;
+  end;
+
+  { Defines a representation of a product, including its (geometric or topological) representation.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcProductRepresentation.htm }
+  TIfcProductDefinitionShape = class(TIfcProductRepresentation)
+  strict private
+    FName: TIfcLabel;
+    FDescription: TIfcText;
+    FRepresentations: TIfcRepresentationList;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+  published
+    { The word or group of words by which the product representation is known. }
+    property Name: TIfcLabel read FName write FName;
+
+    { The word or group of words that characterize the product representation. }
+    property Description: TIfcText read FDescription write FDescription;
+
     { Contained list of representations (including shape representations). }
     property Representations: TIfcRepresentationList read FRepresentations;
   end;
@@ -2264,6 +2426,48 @@ begin
   inherited;
 end;
 
+{ TIfcProductDefinitionShape ------------------------------------------------- }
+
+constructor TIfcProductDefinitionShape.Create(AOwner: TComponent);
+begin
+  inherited;
+  FRepresentations := TIfcRepresentationList.Create(false);
+end;
+
+destructor TIfcProductDefinitionShape.Destroy;
+begin
+  FreeAndNil(FRepresentations);
+  inherited;
+end;
+
+{ TIfcTypeObject ------------------------------------------------------------- }
+
+constructor TIfcTypeObject.Create(AOwner: TComponent);
+begin
+  inherited;
+  // TODO FHasPropertySets := TIfcRelDefinesByPropertiesList.Create(false);
+end;
+
+destructor TIfcTypeObject.Destroy;
+begin
+  // TODO FreeAndNil(FHasPropertySets);
+  inherited;
+end;
+
+{ TIfcRelDefinesByType ------------------------------------------------------- }
+
+constructor TIfcRelDefinesByType.Create(AOwner: TComponent);
+begin
+  inherited;
+  FRelatedObjects := TIfcObjectList.Create(false);
+end;
+
+destructor TIfcRelDefinesByType.Destroy;
+begin
+  FreeAndNil(FRelatedObjects);
+  inherited;
+end;
+
 { initialization, finalization ----------------------------------------------- }
 
 procedure InitializeIfcClasses;
@@ -2342,6 +2546,12 @@ begin
     IfcClasses.Add(TIfcGeometricRepresentationContext);
     IfcClasses.Add(TIfcConversionBasedUnit);
     IfcClasses.Add(TIfcMeasureWithUnit);
+    IfcClasses.Add(TIfcProjectLibrary);
+    IfcClasses.Add(TIfcProductDefinitionShape);
+    IfcClasses.Add(TIfcRelAssociatesMaterial);
+    IfcClasses.Add(TIfcRelContainedInSpatialStructure);
+    IfcClasses.Add(TIfcRelDefinesByType);
+    IfcClasses.Add(TIfcTypeObject);
   end;
 end;
 
