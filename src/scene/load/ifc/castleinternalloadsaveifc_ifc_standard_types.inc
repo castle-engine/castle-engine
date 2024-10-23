@@ -569,6 +569,7 @@
   end;
 
   TIfcStateEnum = (
+    NotDefined, //< Enum value added in CGE.
     Locked,
     ReadOnly,
     ReadOnlyLocked,
@@ -605,12 +606,9 @@
       the owning user of the application. }
     property OwningApplication: TIfcApplication read FOwningApplication write FOwningApplication;
 
-    { Current access state of the object.
-
-      TODO: Unsure if TIfcStateEnum.Locked is a good default, IFC spec
-      doesn't clarify what should be assumed. }
+    { Current access state of the object. }
     property State: TIfcStateEnum read FState write FState
-      default TIfcStateEnum.Locked;
+      default TIfcStateEnum.NotDefined;
 
     { Actions associated with changes made to the object. }
     property ChangeAction: TIfcChangeActionEnum read FChangeAction write FChangeAction
@@ -1383,47 +1381,7 @@
     property Units: TIfcUnitList read FUnits;
   end;
 
-  { A derived unit is a unit that is formed from an expression of other units. }
-  TIfcDerivedUnit = class(TIfcUnit)
-    // TODO
-  end;
-
-  { Define currency for money. }
-  TIfcMonetaryUnit = class(TIfcUnit)
-  strict private
-    FCurrency: TIfcLabel;
-  published
-    { Code or name of the currency. Permissible values are the three-letter
-      alphabetic currency codes as per ISO 4217,for example
-      CNY, EUR, GBP, JPY, USD. }
-    property Currency: TIfcLabel read FCurrency write FCurrency;
-  end;
-
-  { The dimensionality of any quantity can be expressed as a product
-    of powers of the dimensions of base quantities. The dimensional exponents
-    entity defines the powers of the dimensions of the base quantities.
-    All the physical quantities are founded on seven base quantities
-    (ISO 31 (clause 2)). }
-  TIfcDimensionalExponents = class(TIfcPersistent)
-  strict private
-    FLengthExponent: Integer;
-    FMassExponent: Integer;
-    FTimeExponent: Integer;
-    FElectricCurrentExponent: Integer;
-    FThermodynamicTemperatureExponent: Integer;
-    FAmountOfSubstanceExponent: Integer;
-    FLuminousIntensityExponent: Integer;
-  published
-    property LengthExponent: Integer read FLengthExponent write FLengthExponent;
-    property MassExponent: Integer read FMassExponent write FMassExponent;
-    property TimeExponent: Integer read FTimeExponent write FTimeExponent;
-    property ElectricCurrentExponent: Integer read FElectricCurrentExponent write FElectricCurrentExponent;
-    property ThermodynamicTemperatureExponent: Integer read FThermodynamicTemperatureExponent write FThermodynamicTemperatureExponent;
-    property AmountOfSubstanceExponent: Integer read FAmountOfSubstanceExponent write FAmountOfSubstanceExponent;
-    property LuminousIntensityExponent: Integer read FLuminousIntensityExponent write FLuminousIntensityExponent;
-  end;
-
-  TIfcUnitEnum = (
+  TIfcDerivedUnitEnum = (
     UserDefined,
     AccelerationUnit,
     AngularVelocityUnit,
@@ -1479,6 +1437,100 @@
     WarpingMomentUnit
   );
 
+  { A derived unit is a unit that is formed from an expression of other units. }
+  TIfcDerivedUnit = class(TIfcUnit)
+  strict private
+    // TODO: FElements: TIfcDerivedUnitElementList;
+    FUnitType: TIfcDerivedUnitEnum;
+    FUserDefinedType: TIfcLabel;
+    FName: TIfcLabel;
+  published
+    { The group of units and their exponents that define the derived unit. }
+    // TODO: property Elements: TIfcDerivedUnitElementList read FElements;
+
+    { Type of the derived unit chosen from an enumeration of derived unit types
+      for use in IFC models. }
+    property UnitType: TIfcDerivedUnitEnum read FUnitType write FUnitType;
+
+    { Type of the derived unit if the UnitType attribute is set to UserDefined. }
+    property UserDefinedType: TIfcLabel read FUserDefinedType write FUserDefinedType;
+
+    { Name of the unit in addition to the unit type, particularly when the derived
+      unit elements refer to conversion or context based units. }
+    property Name: TIfcLabel read FName write FName;
+
+    { Dimensional exponents derived. }
+    // TODO: function Dimensions: TIfcDimensionalExponents;
+  end;
+
+  { Define currency for money. }
+  TIfcMonetaryUnit = class(TIfcUnit)
+  strict private
+    FCurrency: TIfcLabel;
+  published
+    { Code or name of the currency. Permissible values are the three-letter
+      alphabetic currency codes as per ISO 4217,for example
+      CNY, EUR, GBP, JPY, USD. }
+    property Currency: TIfcLabel read FCurrency write FCurrency;
+  end;
+
+  { The dimensionality of any quantity can be expressed as a product
+    of powers of the dimensions of base quantities. The dimensional exponents
+    entity defines the powers of the dimensions of the base quantities.
+    All the physical quantities are founded on seven base quantities
+    (ISO 31 (clause 2)). }
+  TIfcDimensionalExponents = class(TIfcPersistent)
+  strict private
+    FLengthExponent: Integer;
+    FMassExponent: Integer;
+    FTimeExponent: Integer;
+    FElectricCurrentExponent: Integer;
+    FThermodynamicTemperatureExponent: Integer;
+    FAmountOfSubstanceExponent: Integer;
+    FLuminousIntensityExponent: Integer;
+  published
+    property LengthExponent: Integer read FLengthExponent write FLengthExponent default 0;
+    property MassExponent: Integer read FMassExponent write FMassExponent default 0;
+    property TimeExponent: Integer read FTimeExponent write FTimeExponent default 0;
+    property ElectricCurrentExponent: Integer read FElectricCurrentExponent write FElectricCurrentExponent default 0;
+    property ThermodynamicTemperatureExponent: Integer read FThermodynamicTemperatureExponent write FThermodynamicTemperatureExponent default 0;
+    property AmountOfSubstanceExponent: Integer read FAmountOfSubstanceExponent write FAmountOfSubstanceExponent default 0;
+    property LuminousIntensityExponent: Integer read FLuminousIntensityExponent write FLuminousIntensityExponent default 0;
+  end;
+
+  TIfcUnitEnum = (
+    UserDefined,
+    AbsorbedDoseUnit,
+    AmountOfSubstanceUnit,
+    AreaUnit,
+    DoseEquivalentUnit,
+    ElectricCapacitanceUnit,
+    ElectricChargeUnit,
+    ElectricConductanceUnit,
+    ElectricCurrentUnit,
+    ElectricResistanceUnit,
+    ElectricVoltageUnit,
+    EnergyUnit,
+    ForceUnit,
+    FrequencyUnit,
+    IlluminanceUnit,
+    InductanceUnit,
+    LengthUnit,
+    LuminousFluxUnit,
+    LuminousIntensityUnit,
+    MagneticFluxDensityUnit,
+    MagneticFluxUnit,
+    MassUnit,
+    PlaneAngleUnit,
+    PowerUnit,
+    PressureUnit,
+    RadioactivityUnit,
+    SolidAngleUnit,
+    ThermodynamicTemperatureUnit,
+    TimeUnit,
+    VolumeUnit
+  );
+
   { A unit quantity associated with the word, or group of words,
     by which the unit is identified.
 
@@ -1493,6 +1545,78 @@
 
     { The type of the unit. }
     property UnitType: TIfcUnitEnum read FUnitType write FUnitType default TIfcUnitEnum.UserDefined;
+  end;
+
+  TIfcSIPrefix = (
+    NotDefined, //< Enum value added in CGE.
+    Atto,
+    Centi,
+    Deca,
+    Deci,
+    Exa,
+    Femto,
+    Giga,
+    Hecto,
+    Kilo,
+    Mega,
+    Micro,
+    Milli,
+    Nano,
+    Peta,
+    Pico,
+    Tera
+  );
+
+  TIfcSIUnitName = (
+    Ampere,
+    Becquerel,
+    Candela,
+    Coulomb,
+    Cubic_Metre,
+    Degree_Celsius,
+    Farad,
+    Gram,
+    Gray,
+    Henry,
+    Hertz,
+    Joule,
+    Kelvin,
+    Lumen,
+    Lux,
+    Metre,
+    Mole,
+    Newton,
+    Ohm,
+    Pascal,
+    Radian,
+    Second,
+    Siemens,
+    Sievert,
+    Square_Metre,
+    Steradian,
+    Tesla,
+    Volt,
+    Watt,
+    Weber
+  );
+
+  { Standard base SI units such as meter and second,
+    and derived SI units such as Pascal, square meter and cubic meter. }
+  TIfcSIUnit = class(TIfcNamedUnit)
+  strict private
+    FPrefix: TIfcSIPrefix;
+    FName: TIfcSIUnitName;
+  published
+    { The SI Prefix for defining decimal multiples and submultiples of the unit. }
+    property Prefix: TIfcSIPrefix read FPrefix write FPrefix
+      default TIfcSIPrefix.NotDefined;
+
+    { The word, or group of words, by which the SI unit is referred to. }
+    property Name: TIfcSIUnitName read FName write FName;
+
+    // TODO: We could calculate this:
+    // Dimensions: TIfcDimensionalExponents
+    // This attribute is formally derived.
   end;
 
   TIfcMeasureWithUnit = class(TIfcPersistent)
@@ -2181,6 +2305,7 @@ begin
     IfcClasses.Add(TIfcRepresentationContext);
     IfcClasses.Add(TIfcUnitAssignment);
     IfcClasses.Add(TIfcRelDefinesByProperties);
+    IfcClasses.Add(TIfcSIUnit);
   end;
 end;
 
