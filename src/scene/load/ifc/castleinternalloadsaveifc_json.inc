@@ -637,7 +637,7 @@ function IfcJsonSave(const IfcFile: TIfcFile): TJsonObject;
     I: Integer;
   begin
     Result := TJsonArray.Create;
-    for I := 0 to Result.Count - 1 do
+    for I := 0 to Vector.Value.Count - 1 do
       Result.Add(Vector.Value[I]);
   end;
 
@@ -647,7 +647,7 @@ function IfcJsonSave(const IfcFile: TIfcFile): TJsonObject;
     I: Integer;
   begin
     Result := TJsonArray.Create;
-    for I := 0 to Result.Count - 1 do
+    for I := 0 to Vector.Value.Count - 1 do
       Result.Add(Vector.Value[I]);
   end;
 
