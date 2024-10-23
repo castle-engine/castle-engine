@@ -474,7 +474,8 @@ procedure ProjectCreateFromTemplate(const EnginePath: String;
   end;
 
 var
-  ProjectDir, TemplateUrl, ProjectQualifiedName, ProjectPascalName: String;
+  ProjectDir, TemplateUrl, ProjectQualifiedName, ProjectPascalName,
+    DelphiExecutableName: String;
   CopyProcess: TTemplateCopyProcess;
   Macros: TStringStringMap;
 begin
@@ -499,6 +500,14 @@ begin
   ProjectQualifiedName := MakeQualifiedName(Options.ProjectName);
   ProjectPascalName := MakeProjectPascalName(Options.ProjectName);
 
+  { Note that our build tool has more involved implementation of this
+    in TCastleProject.DelphiExecutableName and
+    TCastleProject.ExplicitStandaloneFile .
+    But we don't need it: We know user didn't customize
+    the CastleEngineManifest.xml at this point, so we can assume
+    this is generated following the default code path. }
+  DelphiExecutableName := ProjectPascalName + '_standalone';
+
   Macros := TStringStringMap.Create;
   try
     Macros.Add('${PROJECT_NAME}', Options.ProjectName);
@@ -507,6 +516,7 @@ begin
     Macros.Add('${PROJECT_CAPTION}', Options.ProjectCaption);
     Macros.Add('${MAIN_VIEW}', Options.MainView);
     Macros.Add('${MAIN_VIEW_LOWERCASE}', LowerCase(Options.MainView));
+    Macros.Add('${DELPHI_EXECUTABLE_NAME}', DelphiExecutableName);
 
     { Generate versions of some macros with xml_quote function. }
     AddMacroXmlQuote(Macros, 'PROJECT_NAME');

@@ -752,7 +752,11 @@ begin
   if AddedCount <> 0 then
   begin
     GetActiveProject.ProjectOptions.Values['SrcDir'] := Paths;
-    ShowMessageFmt('Added %d paths to the project source directories', [AddedCount]);
+    ShowMessageFmt('Added %d paths to the project source directories.' + NL + NL +
+      'They refer to Castle Game Engine located in "%s".', [
+      AddedCount,
+      EnginePath
+    ]);
   end else
     ShowMessage('No paths added, the project already uses the engine correctly');
 end;
@@ -856,9 +860,12 @@ begin
 
   if AddedCount <> 0 then
   begin
-    ShowMessageFmt('Added paths to the Delphi "Library Path" (%d platforms, total %d paths added).' + NL + NL + 'Restart the Delphi IDE now to use the new settings.', [
+    ShowMessageFmt('Added paths to the Delphi "Library Path" (%d platforms, total %d paths added).' + NL + NL +
+      'They refer to Castle Game Engine located in "%s".' + NL + NL +
+      'Restart the Delphi IDE now to use the new settings.', [
       PlatformsCount,
-      AddedCount
+      AddedCount,
+      EnginePath
     ]);
   end else
     ShowMessage('No paths added, Delphi already refers to the engine correctly.');
@@ -896,7 +903,8 @@ begin
 
   if RemovedCount <> 0 then
   begin
-    ShowMessageFmt('Removed paths from the Delphi "Library Path" (%d platforms, total %d paths removed).' + NL + NL + 'Restart the Delphi IDE now to use the new settings.', [
+    ShowMessageFmt('Removed paths from the Delphi "Library Path" (%d platforms, total %d paths removed).' + NL + NL +
+      'Restart the Delphi IDE now to use the new settings.', [
       PlatformsCount,
       RemovedCount
     ]);

@@ -2,6 +2,11 @@
 
 This is a simple model viewer (glTF, X3D, etc.) in Lazarus, based on `TCastleControl` component. Something like [Castle Model Viewer](https://castle-engine.io/castle-model-viewer) but on a Lazarus (LCL) form.
 
+## Screenshots
+
+![Design-time (in Lazarus IDE)](lcl_viewer_design.png)
+![Run-time](lcl_viewer_run.png)
+
 ## Building
 
 1. Install Lazarus packages following https://castle-engine.io/control_on_form .

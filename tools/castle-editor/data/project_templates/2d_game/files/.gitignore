@@ -8,10 +8,28 @@ castle-engine-output
 *.lps
 *.dbg
 
+# Delphi
+*.identcache
+# https://docwiki.embarcadero.com/RADStudio/Sydney/en/API_(*.rsm)
+*.rsm
+*.local
+__recovery
+__history
+*.deployproj
+*.delphilsp.json
+# Auto-updated by Delphi IDE, unused for now (we use castle-auto-generated-resources.res)
+/${DELPHI_EXECUTABLE_NAME}.res
+
+# Blender
+*.blend?
+
 # Unix executable
 /${PROJECT_NAME}
 # Windows executable
 /${PROJECT_NAME}.exe
+# Executables (Windows, Unix) made when building from Delphi IDE, which doesn't rename to ${PROJECT_NAME}
+/${DELPHI_EXECUTABLE_NAME}.exe
+/${DELPHI_EXECUTABLE_NAME}
 # Library files placed alongside Windows executable
 *.dll
 # Auto-updated by CGE tools when compiling Windows build

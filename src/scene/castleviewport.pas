@@ -561,12 +561,23 @@ type
       deprecated 'in most cases, you can instead read Camera parameters, like Camera.Orthographic.EffectiveWidth, Camera.Orthographic.EffectiveHeight';
     {$endif}
 
-    { Assign current camera vectors and projection.
-      This only fills existing @link(Camera) with contents, it doesn't change
-      the @link(Camera) to new component.
+    { Set current camera vectors and projection,
+      to best reflect current @link(MainScene) or current @link(Items)
+      bounding box.
 
-      This is automatically used at first rendering if @link(AutoCamera).
-      You can also use it explicitly. }
+      If @link(MainScene) is set and it has a preferred camera (TViewpointNode,
+      which can be specified in X3D, glTF, Collada files) then it will be used.
+      Otherwise we calculate camera using CameraViewpointForWholeScne
+      to see the whole world.
+
+      This method only fills existing @link(Camera) with contents,
+      it doesn't change the @link(Camera) to a new component.
+      It will do nothing if @link(Camera) is @nil.
+
+      This is automatically used at first rendering if @link(AutoCamera)
+      (deprecated, only sensible now if you make X3D browser
+      that must react to X3D events changing viewpoint).
+      You can also use it explicitly (this is recommended). }
     procedure AssignDefaultCamera; virtual;
 
     { Does the graphic card support our ScreenSpaceAmbientOcclusion shader.
@@ -914,6 +925,40 @@ type
       @seealso MouseRayHit
       @seealso TRayCollision.Transform }
     function TransformUnderMouse: TCastleTransform;
+
+    { Current TCastleTransform hit by the ray from given Position over the viewport.
+
+      Position and ContainerCoordinates meaning is the same as for @link(PositionToRay):
+
+      @unorderedList(
+        @item(When ContainerCoordinates = @true,
+          then Position is in real device coordinates and relative to whole
+          container.
+
+          E.g. passing a @code(Position) equal to @code(MyViewport.RenderRect.Center)
+          means shooting a ray from the center of the viewport.
+
+          E.g. passing a @code(Position) equal to @code(Container.MousePosition)
+          means shooting a ray from the current mouse position.
+        )
+
+        @item(When ContainerCoordinates = @false,
+          then Position is in scaled UI coordinates and relative to the viewport.
+
+          E.g. passing a @code(Position) equal to
+          @code(Vector2(MyViewport.EffectiveWidth / 2, MyViewport.EffectiveHeight / 2))
+          means shooting a ray from the center of the viewport.
+
+          E.g. passing a @code(Position) equal to Vector2(0, 0)
+          means shooting a ray from the left-bottom corner of the viewport.
+        )
+      )
+
+      Similar to @link(TransformUnderMouse), this method returns the first
+      TCastleTransform hit by the ray.
+    }
+    function TransformHit(const Position: TVector2;
+      const ContainerCoordinates: Boolean): TCastleTransform;
 
     { Do not collide with this object when moving by @link(Navigation).
       It makes sense to put here player avatar (in 3rd person view)
@@ -2133,6 +2178,23 @@ begin
   if R <> nil then
     Result := R.Transform
   else
+    Result := nil;
+end;
+
+function TCastleViewport.TransformHit(const Position: TVector2;
+  const ContainerCoordinates: Boolean): TCastleTransform;
+var
+  RayOrigin, RayDirection: TVector3;
+  RayHit: TRayCollision;
+begin
+  PositionToRay(Position, ContainerCoordinates, RayOrigin, RayDirection);
+  RayHit := CameraRayCollision(RayOrigin, RayDirection);
+  if RayHit <> nil then
+  begin
+    try
+      Result := RayHit.Transform;
+    finally FreeAndNil(RayHit) end;
+  end else
     Result := nil;
 end;
 

@@ -165,8 +165,11 @@ procedure TTestCastleUtils.TestCheckIsMemCharFilled;
       WritelnLog(
         SpeedTest_FasterName + ' is faster than ' +
         SpeedTest_SlowerName + ' by ' +
-        Format('%f', [(SpeedTest_Time2-SpeedTest_Time0)/
-                      (SpeedTest_Time1-SpeedTest_Time0)]));
+        FloatToStrDisplay(
+          (SpeedTest_Time2-SpeedTest_Time0)/
+          (SpeedTest_Time1-SpeedTest_Time0)
+        )
+      );
 
     finally FreeMem(pa) end;
   end;

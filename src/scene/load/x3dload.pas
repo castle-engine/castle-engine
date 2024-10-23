@@ -506,10 +506,21 @@ procedure SaveNode(const Node: TX3DRootNode;
   const Source: String);
 var
   Stream: TStream;
+  SaveStreamOptions: TSaveStreamOptions;
+  Gzipped: Boolean;
+  MimeType: String;
 begin
-  Stream := UrlSaveStream(Url);
+  { If the extension indicates that content is gzipped, like .x3d.gz or .x3dvz,
+    then save it gzipped. This is performed by passing ssoGzip to UrlSaveStream. }
+  MimeType := UriMimeType(Url, Gzipped);
+  if Gzipped then
+    SaveStreamOptions := [ssoGzip]
+  else
+    SaveStreamOptions := [];
+
+  Stream := UrlSaveStream(Url, SaveStreamOptions);
   try
-    SaveNode(Node, Stream, UriMimeType(Url), Generator, Source);
+    SaveNode(Node, Stream, MimeType, Generator, Source);
   finally FreeAndNil(Stream) end;
 end;
 
