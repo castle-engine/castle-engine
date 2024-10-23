@@ -87,6 +87,8 @@
     to make things easier: first enum value should be the default.
     This allows to have simpler constructors,
     no need to initialize enum properties.
+    This in practice usually means you should place the last IFC value
+    ("NotDefined" or "UserDefined", usually) as the first enum value in Pascal.
 }
 
 {$ifdef read_interface}
@@ -114,6 +116,8 @@
   TIfcDefinitionSelectList = class;
   TIfcContext = class;
   TIfcObjectPlacementList = class;
+  TIfcRelDeclaresList = class;
+  TIfcRepresentationContextList = class;
 
   { Float type used throughout IFC.
 
@@ -723,6 +727,8 @@
       apply. }
     property RelatedDefinitions: TIfcDefinitionSelectList read FRelatedDefinitions;
   end;
+  TIfcRelDeclaresList = class({$ifdef FPC}specialize{$endif} TObjectList<TIfcRelDeclares>)
+  end;
 
   { Any semantically treated thing or process.
 
@@ -1331,13 +1337,286 @@
   TIfcRelAggregatesList = class({$ifdef FPC}specialize{$endif} TObjectList<TIfcRelAggregates>)
   end;
 
+  { Type for selecting between more specialised select types IfcSimpleValue,
+    IfcMeasureValue and IfcDerivedMeasureValue.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcValue.htm }
+  TIfcValue = class abstract(TIfcPersistent)
+  end;
+
+  TIfcMeasureValue = class(TIfcValue)
+  end;
+
+  { Value of an angle in a plane.
+
+    Usually measured in radian (rad, m/m = 1), but also grads may be used.
+    The grad unit has to be declared as a conversion based unit based on
+    radian unit. }
+  TIfcPlaneAngleMeasure = class(TIfcMeasureValue)
+  strict private
+    FValue: TIfcReal;
+  published
+    property Value: TIfcReal read FValue write FValue;
+  end;
+
+  { Abstract unit: a physical quantity, with a value of one, which is used as
+    a standard in terms of which other quantities are expressed.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcUnit.htm
+
+    This is not a class, but a type choice in IFC standard.
+    We express it as class, as this works: all 3 choices can just descend from this class. }
+  TIfcUnit = class abstract(TIfcPersistent)
+  end;
+  TIfcUnitList = class({$ifdef FPC}specialize{$endif} TObjectList<TIfcUnit>)
+  end;
+
+  { A set of units which may be assigned. }
+  TIfcUnitAssignment = class(TIfcPersistent)
+  strict private
+    FUnits: TIfcUnitList;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+  published
+    { Units to be included within a unit assignment. }
+    property Units: TIfcUnitList read FUnits;
+  end;
+
+  { A derived unit is a unit that is formed from an expression of other units. }
+  TIfcDerivedUnit = class(TIfcUnit)
+    // TODO
+  end;
+
+  { Define currency for money. }
+  TIfcMonetaryUnit = class(TIfcUnit)
+  strict private
+    FCurrency: TIfcLabel;
+  published
+    { Code or name of the currency. Permissible values are the three-letter
+      alphabetic currency codes as per ISO 4217,for example
+      CNY, EUR, GBP, JPY, USD. }
+    property Currency: TIfcLabel read FCurrency write FCurrency;
+  end;
+
+  { The dimensionality of any quantity can be expressed as a product
+    of powers of the dimensions of base quantities. The dimensional exponents
+    entity defines the powers of the dimensions of the base quantities.
+    All the physical quantities are founded on seven base quantities
+    (ISO 31 (clause 2)). }
+  TIfcDimensionalExponents = class(TIfcPersistent)
+  strict private
+    FLengthExponent: Integer;
+    FMassExponent: Integer;
+    FTimeExponent: Integer;
+    FElectricCurrentExponent: Integer;
+    FThermodynamicTemperatureExponent: Integer;
+    FAmountOfSubstanceExponent: Integer;
+    FLuminousIntensityExponent: Integer;
+  published
+    property LengthExponent: Integer read FLengthExponent write FLengthExponent;
+    property MassExponent: Integer read FMassExponent write FMassExponent;
+    property TimeExponent: Integer read FTimeExponent write FTimeExponent;
+    property ElectricCurrentExponent: Integer read FElectricCurrentExponent write FElectricCurrentExponent;
+    property ThermodynamicTemperatureExponent: Integer read FThermodynamicTemperatureExponent write FThermodynamicTemperatureExponent;
+    property AmountOfSubstanceExponent: Integer read FAmountOfSubstanceExponent write FAmountOfSubstanceExponent;
+    property LuminousIntensityExponent: Integer read FLuminousIntensityExponent write FLuminousIntensityExponent;
+  end;
+
+  TIfcUnitEnum = (
+    UserDefined,
+    AccelerationUnit,
+    AngularVelocityUnit,
+    AreaDensityUnit,
+    CompoundPlaneAngleUnit,
+    CurvatureUnit,
+    DynamicViscosityUnit,
+    HeatFluxDensityUnit,
+    HeatingValueUnit,
+    IntegerCountRateUnit,
+    IonConcentrationUnit,
+    IsothermalMoistureCapacityUnit,
+    KinematicViscosityUnit,
+    LinearForceUnit,
+    LinearMomentUnit,
+    LinearStiffnessUnit,
+    LinearVelocityUnit,
+    LuminousIntensityDistributionUnit,
+    MassDensityUnit,
+    MassFlowRateUnit,
+    MassPerLengthUnit,
+    ModulusOfElasticityUnit,
+    ModulusOfLinearSubgradeReactionUnit,
+    ModulusOfRotationalSubgradeReactionUnit,
+    ModulusOfSubgradeReactionUnit,
+    MoistureDiffusivityUnit,
+    MolecularWeightUnit,
+    MomentOfInertiaUnit,
+    pHUnit,
+    PlanarForceUnit,
+    RotationalFrequencyUnit,
+    RotationalMassUnit,
+    RotationalStiffnessUnit,
+    SectionAreaIntegralUnit,
+    SectionModulusUnit,
+    ShearModulusUnit,
+    SoundPowerLevelUnit,
+    SoundPowerUnit,
+    SoundPressureLevelUnit,
+    SoundPressureUnit,
+    SpecificHeatCapacityUnit,
+    TemperatureGradientUnit,
+    TemperatureRateOfChangeUnit,
+    ThermalAdmittanceUnit,
+    ThermalConductanceUnit,
+    ThermalExpansionCoefficientUnit,
+    ThermalResistanceUnit,
+    ThermalTransmittanceUnit,
+    TorqueUnit,
+    VaporPermeabilityUnit,
+    VolumetricFlowRateUnit,
+    WarpingConstantUnit,
+    WarpingMomentUnit
+  );
+
+  { A unit quantity associated with the word, or group of words,
+    by which the unit is identified.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcNamedUnit.htm }
+  TIfcNamedUnit = class(TIfcUnit)
+  strict private
+    FDimensions: TIfcDimensionalExponents;
+    FUnitType: TIfcUnitEnum;
+  published
+    { Dimensional exponents of the SI base units by which the named unit is defined. }
+    property Dimensions: TIfcDimensionalExponents read FDimensions write FDimensions;
+
+    { The type of the unit. }
+    property UnitType: TIfcUnitEnum read FUnitType write FUnitType default TIfcUnitEnum.UserDefined;
+  end;
+
+  TIfcMeasureWithUnit = class(TIfcPersistent)
+  strict private
+    FValueComponent: TIfcValue;
+    FUnitComponent: TIfcUnit;
+  published
+    { Value of the physical quantity when expressed in the specified units. }
+    property ValueComponent: TIfcValue read FValueComponent write FValueComponent;
+
+    { The unit in which the physical quantity is expressed. }
+    property UnitComponent: TIfcUnit read FUnitComponent write FUnitComponent;
+  end;
+
+  { A unit that has a conversion rate to a base unit. }
+  TIfcConversionBasedUnit = class(TIfcNamedUnit)
+  strict private
+    FName: TIfcLabel;
+    FConversionFactor: TIfcMeasureWithUnit;
+    // TODO // FHasExternalReference: TIfcExternalReferenceRelationshipList;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+  published
+    { Word, or group of words, by which the conversion based unit is referred to. }
+    property Name: TIfcLabel read FName write FName;
+
+    { The physical quantity from which the converted unit is derived. }
+    property ConversionFactor: TIfcMeasureWithUnit read FConversionFactor write FConversionFactor;
+
+    { Reference to external information, e.g. library, classification,
+      or document information, which is associated with the conversion-based unit. }
+    // TODO // property HasExternalReference: TIfcExternalReferenceRelationshipList read FHasExternalReference;
+  end;
+
+  { Context to which the IfcRepresentation of a product is related. }
+  TIfcRepresentationContext = class(TIfcPersistent)
+  strict private
+    FContextIdentifier: TIfcLabel;
+    FContextType: TIfcLabel;
+    FRepresentationsInContext: TIfcRepresentationList;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+  published
+    { The optional identifier of the representation context as used within a project. }
+    property ContextIdentifier: TIfcLabel read FContextIdentifier write FContextIdentifier;
+
+    { The description of the type of a representation context.
+      The supported values for context type are to be specified by implementers agreements. }
+    property ContextType: TIfcLabel read FContextType write FContextType;
+
+    { All shape representations that are defined in the same representation context. }
+    property RepresentationsInContext: TIfcRepresentationList read FRepresentationsInContext;
+  end;
+  TIfcRepresentationContextList = class({$ifdef FPC}specialize{$endif} TObjectList<TIfcRepresentationContext>)
+  end;
+
+  TIfcRelDefines = class(TIfcRelationship)
+  end;
+
+  { The objectified relationship IfcRelDefinesByProperties defines
+    the relationships between property set definitions and objects.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcRelDefinesByProperties.htm }
+  TIfcRelDefinesByProperties = class(TIfcRelDefines)
+  strict private
+    FRelatedObjects: TIfcObjectDefinitionList;
+    // TODO // FRelatingPropertyDefinition: TIfcPropertySetDefinitionSelect;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+  published
+    { Reference to the objects (or single object) to which
+      the property definition applies. }
+    property RelatedObjects: TIfcObjectDefinitionList read FRelatedObjects;
+
+    { Reference to the property set definition for that object
+      or set of objects. }
+    // TODO // property RelatingPropertyDefinition: TIfcPropertySetDefinitionSelect read FRelatingPropertyDefinition write FRelatingPropertyDefinition;
+  end;
+  TIfcRelDefinesByPropertiesList = class({$ifdef FPC}specialize{$endif} TObjectList<TIfcRelDefinesByProperties>)
+  end;
+
   { Project context in which objects, type objects, property sets,
     and properties are defined.
 
     Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcContext.htm }
   TIfcContext = class abstract(TIfcObjectDefinition)
+  strict private
+    FObjectType: TIfcLabel;
+    FLongName: TIfcLabel;
+    FPhase: TIfcLabel;
+    FRepresentationContexts: TIfcRepresentationContextList;
+    FUnitsInContext: TIfcUnitAssignment;
+    FIsDefinedBy: TIfcRelDefinesByPropertiesList;
+    FDeclares: TIfcRelDeclaresList;
   public
-    // TODO: rest
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+  published
+    { The object type denotes a particular type that indicates the object
+      further. The use has to be established at the level of instantiable
+      subtypes. }
+    property ObjectType: TIfcLabel read FObjectType write FObjectType;
+
+    { Long name for the context as used for reference purposes. }
+    property LongName: TIfcLabel read FLongName write FLongName;
+
+    { Current project phase, or life-cycle phase of this project. }
+    property Phase: TIfcLabel read FPhase write FPhase;
+
+    { Context of the representations used within the context. }
+    property RepresentationContexts: TIfcRepresentationContextList read FRepresentationContexts;
+
+    { Units globally assigned to measure types used within the context. }
+    property UnitsInContext: TIfcUnitAssignment read FUnitsInContext write FUnitsInContext;
+
+    { Set of relationships to property set definitions attached to this context. }
+    property IsDefinedBy: TIfcRelDefinesByPropertiesList read FIsDefinedBy;
+
+    { Reference to the IfcRelDeclares relationship that assigns the uppermost
+      entities of included hierarchies to this context instance. }
+    property Declares: TIfcRelDeclaresList read FDeclares;
   end;
 
   { Context for information to be exchanged or shared,
@@ -1753,6 +2032,81 @@ begin
   inherited;
 end;
 
+{ TIfcContext ---------------------------------------------------------------- }
+
+constructor TIfcContext.Create(AOwner: TComponent);
+begin
+  inherited;
+  FRepresentationContexts := TIfcRepresentationContextList.Create(false);
+  FIsDefinedBy := TIfcRelDefinesByPropertiesList.Create(false);
+  FDeclares := TIfcRelDeclaresList.Create(false);
+end;
+
+destructor TIfcContext.Destroy;
+begin
+  FreeAndNil(FRepresentationContexts);
+  FreeAndNil(FIsDefinedBy);
+  FreeAndNil(FDeclares);
+  inherited;
+end;
+
+{ TIfcRepresentationContext -------------------------------------------------- }
+
+constructor TIfcRepresentationContext.Create(AOwner: TComponent);
+begin
+  inherited;
+  FRepresentationsInContext := TIfcRepresentationList.Create(false);
+end;
+
+destructor TIfcRepresentationContext.Destroy;
+begin
+  FreeAndNil(FRepresentationsInContext);
+  inherited;
+end;
+
+{ TIfcUnitAssignment --------------------------------------------------------- }
+
+constructor TIfcUnitAssignment.Create(AOwner: TComponent);
+begin
+  inherited;
+  FUnits := TIfcUnitList.Create(false);
+end;
+
+destructor TIfcUnitAssignment.Destroy;
+begin
+  FreeAndNil(FUnits);
+  inherited;
+end;
+
+{ TIfcRelDefinesByProperties ------------------------------------------------- }
+
+constructor TIfcRelDefinesByProperties.Create(AOwner: TComponent);
+begin
+  inherited;
+  FRelatedObjects := TIfcObjectDefinitionList.Create(false);
+end;
+
+destructor TIfcRelDefinesByProperties.Destroy;
+begin
+  FreeAndNil(FRelatedObjects);
+  inherited;
+end;
+
+{ TIfcConversionBasedUnit ---------------------------------------------------- }
+
+constructor TIfcConversionBasedUnit.Create(AOwner: TComponent);
+begin
+  inherited;
+  // TODO
+  // FHasExternalReference := TIfcExternalReferenceRelationshipList.Create(false);
+end;
+
+destructor TIfcConversionBasedUnit.Destroy;
+begin
+  // FreeAndNil(FHasExternalReference);
+  inherited;
+end;
+
 { initialization, finalization ----------------------------------------------- }
 
 procedure InitializeIfcClasses;
@@ -1820,6 +2174,13 @@ begin
     IfcClasses.Add(TIfcPostalAddress);
     IfcClasses.Add(TIfcCompoundPlaneAngleMeasure);
     IfcClasses.Add(TIfcDefinitionSelect);
+    IfcClasses.Add(TIfcDimensionalExponents);
+    IfcClasses.Add(TIfcMonetaryUnit);
+    IfcClasses.Add(TIfcDerivedUnit);
+    IfcClasses.Add(TIfcPlaneAngleMeasure);
+    IfcClasses.Add(TIfcRepresentationContext);
+    IfcClasses.Add(TIfcUnitAssignment);
+    IfcClasses.Add(TIfcRelDefinesByProperties);
   end;
 end;
 
