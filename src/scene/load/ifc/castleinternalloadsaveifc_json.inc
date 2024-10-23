@@ -266,22 +266,45 @@ var
 
     { From JsonChildObj create and read Pascal class (or return ready instance from Refs).
       Returns @nil if not possible, which happens if "type" in IFC is not implemented
-      on our side. }
-    function CreateIfcInstance(const JsonChildObj: TJsonObject): TIfcPersistent;
+      on our side.
+
+      @param(SuggestedClass Optional (may be @nil) class that should be created
+        for reading this IFC instance, if it does not have "type" specified.
+
+        This workarounds invalid (as far as I know) IFC files,
+        since they should always have "type" specified,
+        but e.g. https://github.com/buildingSMART/Sample-Test-Files/blob/master/IFC%204.0/BuildingSMARTSpec/wall-with-opening-and-window.json
+        has 2 occurences when "type" is not specified.)
+    }
+    function CreateIfcInstance(const JsonChildObj: TJsonObject;
+      const SuggestedClass: TIfcPersistentClass = nil): TIfcPersistent;
     var
       IfcRef: String;
       IfcChildType: String;
       FindIfcClass: TIfcPersistentClass;
     begin
       IfcChildType:= JsonChildObj.Get('type', '');
-      FindIfcClass := IfcClasses.FindIfcType(IfcChildType);
-      if FindIfcClass = nil then
+      if IfcChildType = '' then
       begin
-        WritelnWarning('IFC', 'IFC type "%s" (inside IFC field "%s") not implemented as a Pascal class, ignoring', [
-          IfcChildType,
-          DebugJsonKey
-        ]);
-        Exit(nil);
+        FindIfcClass := SuggestedClass;
+        if FindIfcClass = nil then
+        begin
+          WritelnWarning('IFC', 'IFC class (inside IFC field "%s") does not have "type" specified and none could be guessed, ignoring', [
+            DebugJsonKey
+          ]);
+          Exit(nil);
+        end;
+      end else
+      begin
+        FindIfcClass := IfcClasses.FindIfcType(IfcChildType);
+        if FindIfcClass = nil then
+        begin
+          WritelnWarning('IFC', 'IFC type "%s" (inside IFC field "%s") not implemented as a Pascal class, ignoring', [
+            IfcChildType,
+            DebugJsonKey
+          ]);
+          Exit(nil);
+        end;
       end;
 
       IfcRef := JsonChildObj.Get('ref', '');
@@ -302,8 +325,10 @@ var
       const JsonChildObj: TJsonObject);
     var
       IfcChild: TIfcPersistent;
+      SuggestedClass: TIfcPersistentClass;
     begin
-      IfcChild := CreateIfcInstance(JsonChildObj);
+      SuggestedClass := TIfcPersistentClass(PropertyGetInstanceClass(Ifc, PropInfo));
+      IfcChild := CreateIfcInstance(JsonChildObj, SuggestedClass);
       PropertySetInstance(Ifc, PropInfo, IfcChild);
     end;
 
