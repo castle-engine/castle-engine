@@ -244,7 +244,7 @@ var
       begin
         // save the reference to resolve later
         Result := RequiredClass.Create(IfcOwner);
-        Result.Ref := IfcRef;
+        Result.UnresolvedRef := IfcRef;
         Exit;
       end;
 
@@ -596,9 +596,8 @@ var
       end;
     end;
 
-    if (Ifc is TIfcRoot) and
-        (TIfcRoot(Ifc).GlobalId <> '') then
-      Refs.AddObject(TIfcRoot(Ifc).GlobalId, Ifc);
+    if Ifc.GlobalId <> '' then
+      Refs.AddObject(Ifc.GlobalId, Ifc);
   end;
 
   { Recursively resolve all remaining unresolved references in the IFC graph.

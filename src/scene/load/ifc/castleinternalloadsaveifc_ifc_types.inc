@@ -35,12 +35,23 @@ type
       and should be replaced by the actual object later, once we know all
       references.
       Once parsing finished, i.e. IfcLoadJson returned,
-      no instance should have this non-empty.
-      TODO: Move to TIfcRoot? Since only it can have GlobalId, only it can be
-      referenced. }
-    Ref: String;
+      no instance should have this non-empty. }
+    UnresolvedRef: String;
+
+    FGlobalId: String; // actually TGUID;
   public
     //constructor Create(AOwner: TComponent); override; // not needed
+  published
+    { Globally unique identifier for the object instance.
+
+      Note: Not declared as TGUID, because TGUID cannot be published,
+      but also we don't really need it: for our purposes, this identifier
+      is just an arbitrary string.
+
+      Note: IFC 4.3 specification puts this only at IfcRoot, not at every IFC class.
+      But testcase https://github.com/buildingSMART/Sample-Test-Files/blob/master/IFC%204.0/BuildingSMARTSpec/wall-with-opening-and-window.json
+      (from IFC 4.0) shows this can be present at any IFC class. }
+    property GlobalId: String read FGlobalId write FGlobalId;
   end;
   {$M-}
 

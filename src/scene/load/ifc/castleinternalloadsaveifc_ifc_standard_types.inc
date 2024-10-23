@@ -632,22 +632,18 @@
 
   { Most abstract and root class for all entity definitions.
 
-    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcRoot.htm }
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcRoot.htm
+
+    Note: GlobalId is defined in TIfcPersistent already, to support some testcases.
+    Though IFC 4.3 specification says only IfcRoot has GlobalId. }
   TIfcRoot = class abstract(TIfcPersistent)
   strict private
     FOwnerHistory: TIfcOwnerHistory;
-    FGlobalId: String; // actually TGUID;
     FName: TIfcLabel;
     FDescription: TIfcText;
   published
     { Information about the current ownership of that object. }
     property OwnerHistory: TIfcOwnerHistory read FOwnerHistory write FOwnerHistory;
-
-    { Globally unique identifier for the object instance.
-      Note: Not declared as TGUID, because TGUID cannot be published,
-      but also we don't really need it: for our purposes, this identifier
-      is just an arbitrary string. }
-    property GlobalId: String read FGlobalId write FGlobalId;
 
     property Name: TIfcLabel read FName write FName;
     property Description: TIfcText read FDescription write FDescription;
