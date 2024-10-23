@@ -38,6 +38,18 @@ function IfcJsonSave(const IfcFile: TIfcFile): TJsonObject;
 
 {$ifdef read_implementation}
 
+function IsPrefixSuffix(const Prefix, Suffix, S: String; const IgnoreCase: Boolean): Boolean;
+begin
+  Result :=
+    IsPrefix(Prefix, S, IgnoreCase) and
+    IsSuffix(Suffix, S, IgnoreCase);
+end;
+
+function PrefixSuffixRemove(const Prefix, Suffix, S: String; const IgnoreCase: Boolean): String;
+begin
+  Result := PrefixRemove(Prefix, SuffixRemove(Suffix, S, IgnoreCase), IgnoreCase);
+end;
+
 { Simple hack to detect does given object is a TObjectList<xxx> specialization.
   They don't share any common ancestor in Generics.Collections in FPC,
   so there's no obvious "is" check to do this.
@@ -49,7 +61,31 @@ function ClassNameOfList(const PotentialListClassName: String): Boolean;
 begin
   Result :=
     IsSuffix('List', PotentialListClassName, false) or
-    IsPrefix('TObjectList<', PotentialListClassName, false);
+    IsPrefixSuffix('TObjectList<', '>', PotentialListClassName, false);
+end;
+
+{ For a list in castleinternalloadsaveifc_ifc_standard_types.inc,
+  return the class of the list children. }
+function ClassOfListChildren(const List: TObject): TIfcPersistentClass;
+var
+  ChildClassName: String;
+begin
+  if IsPrefixSuffix('TObjectList<', '>', List.ClassName, false) then
+    ChildClassName := PrefixSuffixRemove('TObjectList<', '>', List.ClassName, false)
+  else
+  if IsPrefixSuffix('T', 'List', List.ClassName, false) then
+    ChildClassName := PrefixSuffixRemove('T', 'List', List.ClassName, false)
+  else
+    raise EInvalidIfc.CreateFmt('Cannot determine list children class from list class: %s', [
+      List.ClassName
+    ]);
+
+  Result := IfcClasses.FindIfcType(ChildClassName);
+  if Result = nil then
+    raise EInvalidIfc.CreateFmt('Cannot find IFC class for list children class: %s (from list class %s)', [
+      ChildClassName,
+      List.ClassName
+    ]);
 end;
 
 (*Convert JSON value from IFC to string.
@@ -190,36 +226,30 @@ var
       - or @nil (in case of error -- this now happens if reference is ready
         but wrong class).
 
-      TODO: When RequiredClass is nil and we create a stub, we effectively
-      break Pascal type checking, by inserting TIfcRoot into something that
-      may require a more concrete type.
-      Extract the class type using RTTI and demand that RequiredClass
-      is non-nil instead.
-
-      @param (RequiredClass If non-nil, is used to check if resolved reference
-        is of the expected class, it also determines the stub type.)
+      @param (RequiredClass Used to check if resolved reference
+        is of the expected class, it also determines the stub type.
+        Cannot be @nil.)
     }
     function GetIfcReference(const IfcRef: String; const RequiredClass: TIfcPersistentClass): TIfcPersistent;
     var
       IfcRefIndex: Integer;
     begin
+      { We cannot allow RequiredClass to be nil.
+        It would mean that we cannot create a good "stub" (when reference
+        needs to be resolved later) that satisfies property required class. }
+      Assert(RequiredClass <> nil);
+
       IfcRefIndex := Refs.IndexOf(IfcRef);
       if IfcRefIndex = -1 then
       begin
         // save the reference to resolve later
-        if RequiredClass <> nil then
-          Result := RequiredClass.Create(IfcOwner)
-        else
-          // TODO: Should not create instance of abstract class TIfcPersistent
-          // We could have TIfcUnresolvedReference = class(TIfcPersistent),
-          // but better: require RequiredClass to be non-nil.
-          Result := TIfcPersistent.Create(IfcOwner);
+        Result := RequiredClass.Create(IfcOwner);
         Result.Ref := IfcRef;
         Exit;
       end;
 
       Result := Refs.Objects[IfcRefIndex] as TIfcPersistent;
-      if (RequiredClass <> nil) and (not (Result is RequiredClass)) then
+      if not (Result is RequiredClass) then
       begin
         WritelnWarning('IFC', 'IFC reference "%s" to class %s is not of the expected class, ignoring', [
           IfcRef,
@@ -257,6 +287,7 @@ var
       IfcRef := JsonChildObj.Get('ref', '');
       if IfcRef <> '' then
       begin
+        Assert(FindIfcClass <> nil);
         Result := GetIfcReference(IfcRef, FindIfcClass);
         Exit;
       end;
@@ -365,6 +396,7 @@ var
       I: Integer;
       IfcChild: TIfcPersistent;
       JsonChildObj: TJsonObject;
+      RequiredClass: TIfcPersistentClass;
     begin
       List := GetListProperty(PropInfo);
 
@@ -377,7 +409,8 @@ var
         end else
         if JsonChildArray.Items[I] is TJsonString then
         begin
-          IfcChild := GetIfcReference(JsonChildArray.Items[I].AsString, nil);
+          RequiredClass := ClassOfListChildren(List);
+          IfcChild := GetIfcReference(JsonChildArray.Items[I].AsString, RequiredClass);
         end else
         begin
           WritelnWarning('IFC', 'IFC array item %d (inside IFC field "%s") not a JSON object or string, ignoring', [
@@ -416,6 +449,7 @@ var
     procedure ReadInstanceProperty(const PropInfo: PPropInfo; JsonInstanceValue: TJsonData);
     var
       CurrentInstance: TObject;
+      RequiredClass: TIfcPersistentClass;
     begin
       CurrentInstance := PropertyGetInstance(Ifc, PropInfo);
 
@@ -471,7 +505,8 @@ var
       if JsonInstanceValue is TJsonString then
       begin
         // when a string is given, it's a reference to another object
-        PropertySetInstance(Ifc, PropInfo, GetIfcReference(JsonInstanceValue.AsString, nil));
+        RequiredClass := TIfcPersistentClass(PropertyGetInstanceClass(Ifc, PropInfo));
+        PropertySetInstance(Ifc, PropInfo, GetIfcReference(JsonInstanceValue.AsString, RequiredClass));
       end else
       begin
         WritelnWarning('IFC', 'IFC type "%s" expected to be a JSON object or array (because it is a Pascal class), ignoring', [
@@ -702,7 +737,7 @@ function IfcJsonSave(const IfcFile: TIfcFile): TJsonObject;
           ptString:
             Result.Add(JsonKey, PropertyGetString(Ifc, PropInfo));
           ptEnumeration:
-            Result.Add(JsonKey, PropertyGetEnumStr(Ifc, PropInfo));
+            Result.Add(JsonKey, UpperCase(PropertyGetEnumStr(Ifc, PropInfo)));
           ptInteger:
             Result.Add(JsonKey, PropertyGetInteger(Ifc, PropInfo));
           ptBoolean:

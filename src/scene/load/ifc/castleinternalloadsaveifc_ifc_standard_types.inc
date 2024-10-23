@@ -41,6 +41,7 @@
       - booleans,
       - floats,
       - strings,
+      - enums,
       - properties that refer to an optional instance of another IFC class.
       - properties that are a list of instances of another IFC class.
 
@@ -49,7 +50,10 @@
 
     - The list properties (that are JSON arrays) should be classes
       equal to, or descending from, TObjectList<Xxx> descendants.
+
       If it descends from TObjectList<Xxx>, keep the name with suffix "List".
+      The name of class is actually important for 2 hacks we need to do in JSON
+      (de)serialization, so make sure it is exactly the child class name + "List".
 
       Their published property should be read-only.
       (This avoids mistakes like reinitializing the list in descendant,
@@ -74,9 +78,15 @@
       and user code can access it like "MyIfcDirection.DirectionRatios.Value".
 
   - Enumerated values in Pascal should reflect IFC.
+
     Make them PascalCase for easier reading, but keep the underscores.
     That is, enum values must match IFC spec, but not in case-sensitive manner
     (because GetEnumValue and CGE PropertySetEnumStr do not care about case).
+
+    Change the order of enum values compared to IFC,
+    to make things easier: first enum value should be the default.
+    This allows to have simpler constructors,
+    no need to initialize enum properties.
 }
 
 {$ifdef read_interface}
@@ -563,11 +573,11 @@
   );
 
   TIfcChangeActionEnum =  (
+    NotDefined,
     Added,
     Deleted,
     Modified,
-    NoChange,
-    NotDefined
+    NoChange
   );
 
   { All history and identification related information.
@@ -591,11 +601,16 @@
       the owning user of the application. }
     property OwningApplication: TIfcApplication read FOwningApplication write FOwningApplication;
 
-    { Current access state of the object. }
-    property State: TIfcStateEnum read FState write FState;
+    { Current access state of the object.
+
+      TODO: Unsure if TIfcStateEnum.Locked is a good default, IFC spec
+      doesn't clarify what should be assumed. }
+    property State: TIfcStateEnum read FState write FState
+      default TIfcStateEnum.Locked;
 
     { Actions associated with changes made to the object. }
-    property ChangeAction: TIfcChangeActionEnum read FChangeAction write FChangeAction;
+    property ChangeAction: TIfcChangeActionEnum read FChangeAction write FChangeAction
+      default TIfcChangeActionEnum.NotDefined;
 
     { When the the last modification was made by LastModifyingUser
       and LastModifyingApplication.}
@@ -635,6 +650,23 @@
     property Description: TIfcText read FDescription write FDescription;
   end;
 
+  { Either TIfcObjectDefinition or TIfcPropertyDefinition.
+
+    This is not a class (it is a choice) in IFC standard,
+    but it makes sense to make it a regular class,
+    as both TIfcObjectDefinition and TIfcPropertyDefinition descend
+    directly from IfcRoot in the IFC standard, and it allows to have type-safe
+    TIfcDefinitionSelectList.
+
+    This is not abstract, because we may need to create "stubs" of this class
+    when resolving references in IFC file. }
+  TIfcDefinitionSelect = class abstract(TIfcRoot)
+  end;
+
+  { List of TIfcDefinitionSelect. }
+  TIfcDefinitionSelectList = class({$ifdef FPC}specialize{$endif} TObjectList<TIfcDefinitionSelect>)
+  end;
+
   TIfcRelationship = class abstract(TIfcRoot)
   end;
 
@@ -654,7 +686,7 @@
 
   { Generalization of all characteristics (i.e. a grouping of individual
     properties), that may be assigned to objects. }
-  TIfcPropertyDefinition = class(TIfcRoot)
+  TIfcPropertyDefinition = class(TIfcDefinitionSelect)
   strict private
     FHasContext: TIfcRelDeclares;
     FHasAssociations: TIfcRelAssociatesList;
@@ -670,13 +702,6 @@
       externally defined concepts, like classifications, documents,
       or library information, which are associated to the property definition. }
     property HasAssociations: TIfcRelAssociatesList read FHasAssociations;
-  end;
-
-  { Either TIfcObjectDefinition or TIfcPropertyDefinition. }
-  TIfcDefinitionSelect = TIfcRoot;
-
-  { List of TIfcDefinitionSelect. }
-  TIfcDefinitionSelectList = class({$ifdef FPC}specialize{$endif} TObjectList<TIfcDefinitionSelect>)
   end;
 
   { Declaration of objects (subtypes of IfcObject) or properties
@@ -702,7 +727,7 @@
   { Any semantically treated thing or process.
 
     Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcObjectDefinition.htm }
-  TIfcObjectDefinition = class abstract(TIfcRoot)
+  TIfcObjectDefinition = class abstract(TIfcDefinitionSelect)
   strict private
     FIsDecomposedBy: TIfcRelAggregatesList;
     FHasContext: TIfcRelDeclares;
@@ -1166,7 +1191,9 @@
   published
     { By default NotDefined if not specified, we deliberately made NotDefined
       the enum value with memory representation 0 in Pascal. }
-    property PredefinedType: TIfcOpeningElementTypeEnum read FPredefinedType write FPredefinedType;
+    property PredefinedType: TIfcOpeningElementTypeEnum read FPredefinedType write FPredefinedType
+      default TIfcOpeningElementTypeEnum.NotDefined;
+
     property HasFillings: TIfcRelFillsElementList read FHasFillings;
   end;
 
@@ -1178,6 +1205,7 @@
   end;
 
   TIfcWallTypeEnum = (
+    NotDefined,
     ElementedWall,
     Movable,
     Parapet,
@@ -1189,8 +1217,7 @@
     SolidWall,
     Standard,
     WaveWall,
-    UserDefined,
-    NotDefined
+    UserDefined
   );
 
   { Wall represents a vertical construction that may bound or subdivide spaces.
@@ -1201,7 +1228,8 @@
     FPredefinedType: TIfcWallTypeEnum;
   published
     { Predefined generic type for a wall. }
-    property PredefinedType: TIfcWallTypeEnum read FPredefinedType write FPredefinedType;
+    property PredefinedType: TIfcWallTypeEnum read FPredefinedType write FPredefinedType
+      default TIfcWallTypeEnum.NotDefined;
   end;
 
   { Wall with certain constraints for the provision of parameters and
@@ -1791,6 +1819,7 @@ begin
     IfcClasses.Add(TIfcRelDeclares);
     IfcClasses.Add(TIfcPostalAddress);
     IfcClasses.Add(TIfcCompoundPlaneAngleMeasure);
+    IfcClasses.Add(TIfcDefinitionSelect);
   end;
 end;
 
