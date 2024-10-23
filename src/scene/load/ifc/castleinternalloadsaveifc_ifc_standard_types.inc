@@ -1675,6 +1675,39 @@
   TIfcRepresentationContextList = class({$ifdef FPC}specialize{$endif} TObjectList<TIfcRepresentationContext>)
   end;
 
+  { Context that applies to several shape representations of products within a project. }
+  TIfcGeometricRepresentationContext = class(TIfcRepresentationContext)
+  strict private
+    FCoordinateSpaceDimension: TIfcDimensionCount;
+    FPrecision: TIfcReal;
+    FWorldCoordinateSystem: TIfcAxis2Placement;
+    FTrueNorth: TIfcDirection;
+    // TODO // FHasSubContexts: TIfcGeometricRepresentationSubContextList;
+    // TODO // FHasCoordinateOperation: TIfcCoordinateOperation;
+  published
+    { The integer dimension count of the coordinate space modeled
+      in a geometric representation context.}
+    property CoordinateSpaceDimension: TIfcDimensionCount read FCoordinateSpaceDimension write FCoordinateSpaceDimension;
+
+    { Value of the model precision for geometric models. }
+    property Precision: TIfcReal read FPrecision write FPrecision;
+
+    { Establishment of the engineering coordinate system
+      (often referred to as the world coordinate system in CAD)
+      for all representation contexts used by the project. }
+    property WorldCoordinateSystem: TIfcAxis2Placement read FWorldCoordinateSystem write FWorldCoordinateSystem;
+
+    { Direction of the true north, or geographic northing direction, relative to the underlying project coordinate system. }
+    property TrueNorth: TIfcDirection read FTrueNorth write FTrueNorth;
+
+    { The set of IfcGeometricRepresentationSubContexts that refer to this
+      IfcGeometricRepresentationContext. }
+    // TODO: property HasSubContexts: TIfcGeometricRepresentationSubContextList read FHasSubContexts;
+
+    { Indicates conversion between coordinate systems. }
+    // TODO: property HasCoordinateOperation: TIfcCoordinateOperation read FHasCoordinateOperation write FHasCoordinateOperation;
+  end;
+
   TIfcRelDefines = class(TIfcRelationship)
   end;
 
@@ -2306,6 +2339,7 @@ begin
     IfcClasses.Add(TIfcUnitAssignment);
     IfcClasses.Add(TIfcRelDefinesByProperties);
     IfcClasses.Add(TIfcSIUnit);
+    IfcClasses.Add(TIfcGeometricRepresentationContext);
   end;
 end;
 
