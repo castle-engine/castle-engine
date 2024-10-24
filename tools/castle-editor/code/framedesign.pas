@@ -5445,8 +5445,7 @@ procedure TDesignFrame.ControlsTreeDragDrop(Sender, Source: TObject; X,
 
   procedure MoveBehavior(const Src: TCastleBehavior; const Dst: TCastleComponent);
   var
-    Index, RemoveCount, I: Integer;
-    BehaviorArray: array of TCastleBehavior;
+    Index: Integer;
     Parent: TCastleTransform;
     DstAsBehavior: TCastleBehavior;
   begin
@@ -5476,23 +5475,7 @@ procedure TDesignFrame.ControlsTreeDragDrop(Sender, Source: TObject; X,
               Assert(Index <> -1);
               if ControlsTreeNodeUnderMouseSide = tnsBottom then
                 Inc(Index);
-              // Calculate the number of behaviors we need to remove from parent
-              // in order to re-add src at specific index
-              RemoveCount := DstAsBehavior.Parent.BehaviorsCount - Index;
-              Assert(RemoveCount > -1);
-              SetLength(BehaviorArray, RemoveCount);
-              // Temporary remove behaviors
-              for I := 0 to RemoveCount - 1 do
-              begin
-                BehaviorArray[I] := Parent.Behaviors[DstAsBehavior.Parent.BehaviorsCount - 1];
-                DstAsBehavior.Parent.RemoveBehavior(BehaviorArray[I]);
-              end;
-              // Re-add src and other behaviors back
-              Parent.AddBehavior(Src);
-              for I := RemoveCount - 1 downto 0 do
-              begin
-                Parent.AddBehavior(BehaviorArray[I]);
-              end;
+              Parent.InsertBehavior(Index, Src);
               // TODO: update tree in a simple way for now
               UpdateDesign;
             end;
