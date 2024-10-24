@@ -127,6 +127,7 @@
   TIfcRelDeclaresList = class;
   TIfcRepresentationContextList = class;
   TIfcRelDefinesByTypeList = class;
+  TIfcExternalReference = class;
 
   { Float type used throughout IFC.
 
@@ -168,6 +169,8 @@
 
     Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcTimeStamp.htm}
   TIfcTimeStamp = Int64;
+
+  TIfcURIReference = String;
 
   { Presentation information assigned to geometric representation items.
 
@@ -341,34 +344,122 @@
     Dim = 3;
   end;
 
-  { Represents the 3D shape by a sweeping representation scheme allowing
-    a two dimensional planar cross section to sweep through space.
+  { Selection of resource level objects that are to be related to
+    an resource level relationship object.
+    This must be one of the classes listed in spec on
+    https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcResourceObjectSelect.htm }
+  TIfcResourceObjectSelect = TIfcPersistent;
 
-    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcSweptAreaSolid.htm }
-  TIfcSweptAreaSolid = class abstract(TIfcSolidModel)
-    { The surface defining the area to be swept.
-      It is given as a profile definition within the xy plane
-      of the position coordinate system.}
-    // TODO: SweptArea: TIfcProfileDef;
+  { Base entity for relationships between resource-level entities.
 
-    { Position coordinate system for the resulting swept solid of the sweeping operation. }
-    // TODO: Position: TIfcAxis2Placement3D;
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcResourceLevelRelationship.htm }
+  TIfcResourceLevelRelationship = class abstract(TIfcPersistent)
+  strict private
+    FName: TIfcLabel;
+    FDescription: TIfcText;
+  published
+    { A name used to identify or qualify the relationship. }
+    property Name: TIfcLabel read FName write FName;
+
+    { A description that may apply additional information about the relationship. }
+    property Description: TIfcText read FDescription write FDescription;
   end;
 
-  { Defined by sweeping a cross section provided by a profile definition.
-
-    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcExtrudedAreaSolid.htm }
-  TIfcExtrudedAreaSolid = class(TIfcSweptAreaSolid)
+  { Abstract base entity for relationships between resource-level entities. }
+  TIfcExternalReferenceRelationship = class abstract(TIfcResourceLevelRelationship)
   strict private
-    FExtrudedDirection: TIfcDirection;
-    FDepth: TIfcPositiveLengthMeasure;
+    FRelatingReference: TIfcExternalReference;
+    // FRelatedResourceObjects: TIfcResourceObjectSelectList;
   published
-    { The direction in which the surface, provided by SweptArea is to be swept.
-      The ExtrudedDirection shall not be perpendicular to the local z-axis. }
-    property ExtrudedDirection: TIfcDirection read FExtrudedDirection write FExtrudedDirection;
+    { An external reference that can be used to tag an object
+      within the range of IfcResourceObjectSelect. }
+    property RelatingReference: TIfcExternalReference read FRelatingReference write FRelatingReference;
 
-    { The distance the surface is to be swept along the ExtrudedDirection. }
-    property Depth: TIfcPositiveLengthMeasure read FDepth write FDepth {$ifdef FPC}default 0.0{$endif};
+    { Objects within the list of IfcResourceObjectSelect
+      that can be tagged by an external reference to a dictionary,
+      library, catalogue, classification or documentation. }
+    // TODO: How to express it?
+    // TIfcResourceObjectSelect is not a normal class.
+    // Using just TIfcPersistentList means we could have list of abstract classes, which is not allowed, as sometimes at deserialization we need to know the type beforehand.
+    // TODO // property RelatedResourceObjects: TIfcResourceObjectSelectList read FRelatedResourceObjects;
+  end;
+  TIfcExternalReferenceRelationshipList = class({$ifdef FPC}specialize{$endif} TObjectList<TIfcExternalReferenceRelationship>)
+  end;
+
+  { Identification of information that is not explicitly represented
+    in the current model.
+    The Location (as a URL) is given to describe the place where
+    the information can be found.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcExternalReference.htm }
+  TIfcExternalReference = class(TIfcPersistent)
+  strict private
+    FLocation: TIfcURIReference;
+    FIdentification: TIfcIdentifier;
+    FName: TIfcLabel;
+    FHasExternalReferenceForResources: TIfcExternalReferenceRelationshipList;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+  published
+    { Location, where the external source (classification, document or library)
+      can be accessed by electronic means. The electronic location is
+      provided as an URI, and would normally be given as an URL location
+      string. }
+    property Location: TIfcURIReference read FLocation write FLocation;
+
+    { Unique identifier of the referenced item within the external source
+      (classification, document or library). }
+    property Identification: TIfcIdentifier read FIdentification write FIdentification;
+
+    { Optional name to further specify the reference. It can provide
+      a human readable identifier (which does not necessarily need to have
+      a counterpart in the internal structure of the document). }
+    property Name: TIfcLabel read FName write FName;
+
+    { Reference to all associations between this external reference
+      and objects within the IfcResourceObjectSelect that are tagged
+      by the external reference. }
+    property HasExternalReferenceForResources: TIfcExternalReferenceRelationshipList read FHasExternalReferenceForResources;
+  end;
+
+  { Supertype of all definitions of standard and arbitrary profiles within IFC.
+    It is used to define a standard set of commonly used section profiles
+    by their parameters or by their explicit curve geometry.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcProfileDef.htm }
+  TIfcProfileDef = class(TIfcPersistent)
+  published
+  (*
+TODO:
+1 	ProfileType 	IfcProfileTypeEnum
+
+Defines the type of geometry into which this profile definition shall be resolved, either a curve or a surface area. In case of curve the profile should be referenced by a swept surface, in case of area the profile should be referenced by a swept area solid.
+2 	ProfileName 	OPTIONAL IfcLabel
+
+Human-readable name of the profile, for example according to a standard profile table. As noted above, machine-readable standardized profile designations should be provided in IfcExternalReference.ItemReference.
+	HasExternalReference 	SET [0:?] OF IfcExternalReferenceRelationship FOR RelatedResourceObjects
+
+Reference to external information, e.g. library, classification, or document information, which is associated with the profile.
+IFC4-CHANGE New inverse attribute
+	HasProperties 	SET [0:?] OF IfcProfileProperties FOR ProfileDefinition
+
+Additional properties of the profile, for example mechanical properties.
+  *)
+  end;
+
+  { Closed profile IfcArbitraryClosedProfileDef defines an arbitrary
+    two-dimensional profile for the use within the swept surface geometry,
+    the swept area solid or a sectioned spine. It is given by an outer boundary
+    from which the surface or solid can be constructed.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcArbitraryClosedProfileDef.htm }
+  TIfcArbitraryClosedProfileDef = class(TIfcProfileDef)
+  strict private
+    FOuterCurve: TIfcCurve;
+  published
+    { Bounded curve, defining the outer boundaries of the arbitrary profile. }
+    property OuterCurve: TIfcCurve read FOuterCurve write FOuterCurve;
   end;
 
   { Person acting on behalf of an organization.
@@ -438,21 +529,6 @@
     property EngagedIn: TIfcPersonAndOrganizationList read FEngagedIn;
   end;
   TIfcPersonList = class({$ifdef FPC}specialize{$endif} TObjectList<TIfcPerson>)
-  end;
-
-  { Base entity for relationships between resource-level entities.
-
-    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcResourceLevelRelationship.htm }
-  TIfcResourceLevelRelationship = class abstract(TIfcPersistent)
-  strict private
-    FName: TIfcLabel;
-    FDescription: TIfcText;
-  published
-    { A name used to identify or qualify the relationship. }
-    property Name: TIfcLabel read FName write FName;
-
-    { A description that may apply additional information about the relationship. }
-    property Description: TIfcText read FDescription write FDescription;
   end;
 
   { Organization relationship.
@@ -1026,6 +1102,40 @@
         else raise EInternalError.Create('Invalid Axis');
       end;
     }
+  end;
+
+  { Represents the 3D shape by a sweeping representation scheme allowing
+    a two dimensional planar cross section to sweep through space.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcSweptAreaSolid.htm }
+  TIfcSweptAreaSolid = class abstract(TIfcSolidModel)
+  strict private
+    FSweptArea: TIfcProfileDef;
+    FPosition: TIfcAxis2Placement3D;
+  published
+    { The surface defining the area to be swept.
+      It is given as a profile definition within the xy plane
+      of the position coordinate system.}
+    property SweptArea: TIfcProfileDef read FSweptArea write FSweptArea;
+
+    { Position coordinate system for the resulting swept solid of the sweeping operation. }
+    property Position: TIfcAxis2Placement3D read FPosition write FPosition;
+  end;
+
+  { Defined by sweeping a cross section provided by a profile definition.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcExtrudedAreaSolid.htm }
+  TIfcExtrudedAreaSolid = class(TIfcSweptAreaSolid)
+  strict private
+    FExtrudedDirection: TIfcDirection;
+    FDepth: TIfcPositiveLengthMeasure;
+  published
+    { The direction in which the surface, provided by SweptArea is to be swept.
+      The ExtrudedDirection shall not be perpendicular to the local z-axis. }
+    property ExtrudedDirection: TIfcDirection read FExtrudedDirection write FExtrudedDirection;
+
+    { The distance the surface is to be swept along the ExtrudedDirection. }
+    property Depth: TIfcPositiveLengthMeasure read FDepth write FDepth {$ifdef FPC}default 0.0{$endif};
   end;
 
   { Always either TIfcAxis2Placement2D or TIfcAxis2Placement3D.
@@ -1766,7 +1876,7 @@
   strict private
     FName: TIfcLabel;
     FConversionFactor: TIfcMeasureWithUnit;
-    // TODO // FHasExternalReference: TIfcExternalReferenceRelationshipList;
+    FHasExternalReference: TIfcExternalReferenceRelationshipList;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -1779,7 +1889,7 @@
 
     { Reference to external information, e.g. library, classification,
       or document information, which is associated with the conversion-based unit. }
-    // TODO // property HasExternalReference: TIfcExternalReferenceRelationshipList read FHasExternalReference;
+    property HasExternalReference: TIfcExternalReferenceRelationshipList read FHasExternalReference;
   end;
 
   { Context to which the IfcRepresentation of a product is related. }
@@ -2004,7 +2114,7 @@
     FDescription: TIfcText;
     FPProductDefinitional: Boolean;
     // FPartOfProductDefinitionShape: TIfcProductRepresentationSelect;
-    // FHasExternalReferences: TIfcExternalReferenceRelationshipList;
+    FHasExternalReferences: TIfcExternalReferenceRelationshipList;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -2026,7 +2136,7 @@
 
     // TODO: property PartOfProductDefinitionShape: TIfcProductRepresentationSelect read FPartOfProductDefinitionShape write FPartOfProductDefinitionShape;
 
-    // TODO: property HasExternalReferences: TIfcExternalReferenceRelationshipList read FHasExternalReferences;
+    property HasExternalReferences: TIfcExternalReferenceRelationshipList read FHasExternalReferences;
   end;
 
   TIfcShapeAspectList = class({$ifdef FPC}specialize{$endif} TObjectList<TIfcShapeAspect>)
@@ -2473,13 +2583,12 @@ end;
 constructor TIfcConversionBasedUnit.Create(AOwner: TComponent);
 begin
   inherited;
-  // TODO
-  // FHasExternalReference := TIfcExternalReferenceRelationshipList.Create(false);
+  FHasExternalReference := TIfcExternalReferenceRelationshipList.Create(false);
 end;
 
 destructor TIfcConversionBasedUnit.Destroy;
 begin
-  // FreeAndNil(FHasExternalReference);
+  FreeAndNil(FHasExternalReference);
   inherited;
 end;
 
@@ -2535,13 +2644,27 @@ constructor TIfcShapeAspect.Create(AOwner: TComponent);
 begin
   inherited;
   FShapeRepresentations := TIfcShapeModelList.Create(false);
-  // TODO FHasExternalReferences := TIfcExternalReferenceRelationshipList.Create(false);
+  FHasExternalReferences := TIfcExternalReferenceRelationshipList.Create(false);
 end;
 
 destructor TIfcShapeAspect.Destroy;
 begin
   FreeAndNil(FShapeRepresentations);
-  // FreeAndNil(FHasExternalReferences);
+  FreeAndNil(FHasExternalReferences);
+  inherited;
+end;
+
+{ TIfcExternalReference ------------------------------------------------------ }
+
+constructor TIfcExternalReference.Create(AOwner: TComponent);
+begin
+  inherited;
+  FHasExternalReferenceForResources := TIfcExternalReferenceRelationshipList.Create(false);
+end;
+
+destructor TIfcExternalReference.Destroy;
+begin
+  FreeAndNil(FHasExternalReferenceForResources);
   inherited;
 end;
 
@@ -2631,6 +2754,9 @@ begin
     IfcClasses.Add(TIfcTypeObject);
     IfcClasses.Add(TIfcWindowType);
     IfcClasses.Add(TIfcShapeAspect);
+    IfcClasses.Add(TIfcExternalReference);
+    IfcClasses.Add(TIfcExternalReferenceRelationship);
+    IfcClasses.Add(TIfcArbitraryClosedProfileDef);
   end;
 end;
 
