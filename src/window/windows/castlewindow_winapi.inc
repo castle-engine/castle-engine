@@ -55,7 +55,7 @@ Winapi.Messages, Character,
 {$endif}
 Imm,
 { /note }
-Windows, CommDlg,
+Windows, CommDlg, ShellApi,
 {$endif}
 
 {$ifdef read_implementation_uses}
@@ -93,6 +93,15 @@ private
   { convert virtual key code (VK_xxx) to TKey. Returns keyNone if no conversion
     available. }
   function VirtualKeyToKey(VirtualKey: Byte): TKey;
+{$endif read_window_interface}
+
+  { procedures for dropping files }
+{$ifdef read_window_interface}
+  protected
+    procedure WMDropFiles(var DropH: HDROP); message WM_DROPFILES;
+  public
+    procedure UnregisterDropTarget;
+    procedure RegisterDropTarget;
 {$endif read_window_interface}
 
 {$ifdef read_application_interface}
@@ -199,6 +208,60 @@ const
   VK_OEM_7 = $DE;
   VK_OEM_8 = $DF;
   VK_OEM_102 = $E2;
+
+procedure TCastleWindow.WMDropFiles(var DropH: HDROP);
+var
+  DroppedFileCount: Integer;  // number of files dropped
+  FileNameLength: Integer;    // length of a dropped file name
+  FileName: string;           // a dropped file name
+  PFileName: PChar;
+  I: Integer;                 // loops thru all dropped files
+  // DropPoint: TPoint;       // point where files dropped
+  FileNames: array of AnsiString;
+begin
+  try
+    // Get count of files dropped
+    DroppedFileCount := DragQueryFile(DropH, $FFFFFFFF, nil, 0);
+    // Get name of each file dropped and process it
+    SetLength(FileNames, DroppedFileCount);
+    // go through all the files
+    for I := 0 to Pred(DroppedFileCount) do
+    begin
+      // get the filename length of the dropped file
+      FileNameLength := DragQueryFile(DropH, I, nil, 0);
+      // set the length of the filename buffer
+      SetLength(FileName, FileNameLength+1);
+      PFileName := PChar(FileName);
+      // get the filename
+      DragQueryFile(DropH, I, PFileName, FileNameLength+1);
+      // set the index in the filename array to the file name
+      FileNames[I] := AnsiString(PFileName);
+      SetLength(FileNames[I], FileNameLength);
+    end;
+    // DropPoint is where files were dropped
+    //DragQueryPoint(DropH, DropPoint);
+    DoDropFiles(FileNames);
+  finally
+    DragFinish(DropH);
+  end;
+  // we handled the message
+  DropH := 0;
+end;
+
+procedure TCastleWindow.UnregisterDropTarget();
+begin
+  MakeCurrent;
+  //writeln(h_Wnd);
+  DragAcceptFiles(h_Wnd, False);
+end;
+
+procedure TCastleWindow.RegisterDropTarget();
+begin
+  MakeCurrent;
+  //writeln(h_Wnd);
+  DragAcceptFiles(h_Wnd, True);
+end;  
+
 
 { convert virtual key code (VK_xxx) to TKey. Returns keyNone if no conversion
   available. }
@@ -1027,6 +1090,11 @@ begin
           //DBT_DEVNODES_CHANGED: WriteLnLog('Received a WM_DEVICECHANGE event with DBT_DEVNODES_CHANGED');
         end;
         Exit(1);
+      end;
+    WM_DROPFILES:
+      begin
+        WMDropFiles(HDROP(wParm));
+        Exit;
       end;
   end;
 
