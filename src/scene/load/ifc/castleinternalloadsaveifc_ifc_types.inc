@@ -39,8 +39,6 @@ type
     UnresolvedRef: String;
 
     FGlobalId: String; // actually TGUID;
-  public
-    //constructor Create(AOwner: TComponent); override; // not needed
   published
     { Globally unique identifier for the object instance.
 
@@ -133,14 +131,6 @@ type
 {$ifdef read_implementation}
 
 { TIfcPersistent ------------------------------------------------------------- }
-
-// Not needed anymore.
-// constructor TIfcPersistent.Create(AOwner: TComponent);
-// begin
-//   inherited;
-//   { Implemented only to not be abstract, to allow all descendants,
-//     direct or not, to just call "inherited". }
-// end;
 
 { TIfcPersistentList --------------------------------------------------------- }
 

@@ -28,6 +28,75 @@ function X3DToIfc(const RootNode: TX3DRootNode): TIfcFile;
 
 {$ifdef read_implementation}
 
+{ BuildNodes methods implementations ----------------------------------------- }
+
+procedure TIfcRepresentationItem.BuildNodes(const Parent: TAbstractGroupingNode);
+begin
+  // nothing to do in this abstract class
+end;
+
+procedure TIfcPolyline.BuildNodes(const Parent: TAbstractGroupingNode);
+var
+  Shape: TShapeNode;
+  LineSet: TLineSetNode;
+  Coord: TCoordinateNode;
+  I: Integer;
+begin
+  inherited;
+
+  Coord := TCoordinateNode.Create('', Parent.BaseUrl);
+  Coord.FdPoint.Count := Points.Count;
+  for I := 0 to Points.Count - 1 do
+    Coord.FdPoint.Items[I] := Points[I].Coordinates.Value;
+
+  LineSet := TLineSetNode.Create('', Parent.BaseUrl);
+  LineSet.Coord := Coord;
+  LineSet.SetVertexCount([Points.Count]);
+
+  Shape := TShapeNode.Create('', Parent.BaseUrl);
+  Shape.Geometry := LineSet;
+
+  Parent.AddChildren(Shape);
+end;
+
+procedure TIfcRepresentationItemList.BuildNodes(const Parent: TAbstractGroupingNode);
+var
+  RepresentationItem: TIfcRepresentationItem;
+begin
+  for RepresentationItem in Self do
+    RepresentationItem.BuildNodes(Parent);
+end;
+
+procedure TIfcRepresentationList.BuildNodes(const Parent: TAbstractGroupingNode);
+var
+  Representation: TIfcRepresentation;
+begin
+  for Representation in Self do
+    Representation.Items.BuildNodes(Parent);
+end;
+
+procedure TIfcProductRepresentation.BuildNodes(const Parent: TAbstractGroupingNode);
+var
+  Group: TGroupNode;
+begin
+  Group := TGroupNode.Create('', Parent.BaseUrl);
+  Parent.AddChildren(Group);
+  Group.MetadataString['IFC_ClassName'] := ClassName;
+  Group.MetadataString['IFC_Name'] := Name;
+  Group.MetadataString['IFC_Description'] := Description;
+  Group.MetadataString['IFC_GlobalId'] := GlobalId;
+
+  Representations.BuildNodes(Group);
+end;
+
+procedure TIfcProduct.BuildNodes(const Parent: TAbstractGroupingNode);
+begin
+  if Representation <> nil then
+    Representation.BuildNodes(Parent);
+end;
+
+{ IfcToX3D (dispatching work to BuildNodes) ---------------------------------- }
+
 function IfcToX3D(const Ifc: TIfcFile; const BaseUrl: String): TX3DRootNode;
 
   procedure ReadObjectDefinition(const Parent: TAbstractGroupingNode; const IfcObjDef: TIfcObjectDefinition); forward;
@@ -39,7 +108,7 @@ function IfcToX3D(const Ifc: TIfcFile; const BaseUrl: String): TX3DRootNode;
   begin
     Group := TGroupNode.Create('', BaseUrl);
     Parent.AddChildren(Group);
-    Group.MetadataString['IFC_Type'] := RelAggregates.ClassName;
+    Group.MetadataString['IFC_ClassName'] := RelAggregates.ClassName;
     Group.MetadataString['IFC_Name'] := RelAggregates.Name;
     Group.MetadataString['IFC_Description'] := RelAggregates.Description;
 
@@ -48,15 +117,16 @@ function IfcToX3D(const Ifc: TIfcFile; const BaseUrl: String): TX3DRootNode;
   end;
 
   procedure ReadProduct(const Parent: TAbstractGroupingNode; const Product: TIfcProduct);
-  var
-    Element: TIfcElement;
+  //var
+    //Element: TIfcElement;
+    //RelVoidsElement: TIfcRelVoidsElement;
   begin
-    // TODO: read Product.Representation - IfcProductDefinitionShape in testcase
+    Product.Representation.BuildNodes(Parent);
 
     if Product is TIfcElement then
     begin
-      Element := TIfcElement(Product);
-      // read Element.HasOpenings
+      //Element := TIfcElement(Product);
+      // for RelVoidsElement in Element.HasOpenings do // TODO
     end;
   end;
 
@@ -68,7 +138,7 @@ function IfcToX3D(const Ifc: TIfcFile; const BaseUrl: String): TX3DRootNode;
   begin
     Group := TGroupNode.Create('', BaseUrl);
     Parent.AddChildren(Group);
-    Group.MetadataString['IFC_Type'] := RelContainedInSpatialStructure.ClassName;
+    Group.MetadataString['IFC_ClassName'] := RelContainedInSpatialStructure.ClassName;
     Group.MetadataString['IFC_Name'] := RelContainedInSpatialStructure.Name;
     Group.MetadataString['IFC_Description'] := RelContainedInSpatialStructure.Description;
 
@@ -85,7 +155,7 @@ function IfcToX3D(const Ifc: TIfcFile; const BaseUrl: String): TX3DRootNode;
   begin
     Group := TGroupNode.Create('', BaseUrl);
     Parent.AddChildren(Group);
-    Group.MetadataString['IFC_Type'] := IfcObjDef.ClassName;
+    Group.MetadataString['IFC_ClassName'] := IfcObjDef.ClassName;
     Group.MetadataString['IFC_Name'] := IfcObjDef.Name;
     Group.MetadataString['IFC_Description'] := IfcObjDef.Description;
 

@@ -89,6 +89,14 @@
     no need to initialize enum properties.
     This in practice usually means you should place the last IFC value
     ("NotDefined" or "UserDefined", usually) as the first enum value in Pascal.
+
+  The only additional thing, beyond IFC standard, these classes have is the
+  "build nodes" method. This is a method that creates a Castle Game Engine
+  node to display given IFC entity. Adding these methods here
+  (instead of maintaining them independently in the code that generates X3D)
+  is beneficial, we can use IFC classes inheritance naturally (e.g. some "build
+  nodes" methods extend ancestor in natural way).
+  They are implemented in castleinternalloadsaveifc_x3d.inc .
 }
 
 {$ifdef read_interface}
@@ -218,6 +226,10 @@
   strict private
     FLayerAssignment: TIfcPresentationLayerAssignment;
     FStyledByItem: TIfcStyledItem;
+  public
+    { Build a node to display this using Castle Game Engine.
+      Does nothing (adds nothing to Parent) if not possible / not implemented. }
+    procedure BuildNodes(const Parent: TAbstractGroupingNode); virtual;
   published
     { Assignment of the representation item to a single or multiple layer(s).
       @nil if none. }
@@ -230,6 +242,8 @@
     property StyledByItem: TIfcStyledItem read FStyledByItem write FStyledByItem;
   end;
   TIfcRepresentationItemList = class({$ifdef FPC}specialize{$endif} TObjectList<TIfcRepresentationItem>)
+  public
+    procedure BuildNodes(const Parent: TAbstractGroupingNode);
   end;
 
   { Style information for products.
@@ -312,6 +326,7 @@
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
+    procedure BuildNodes(const Parent: TAbstractGroupingNode); override;
   published
     { Points defining the polyline. }
     property Points: TIfcCartesianPointList read FPoints;
@@ -1041,6 +1056,8 @@
   strict private
     FObjectPlacement: TIfcObjectPlacement;
     FRepresentation: TIfcProductRepresentation;
+  public
+    procedure BuildNodes(const Parent: TAbstractGroupingNode);
   published
     { Object coordinate system and placement of the product in space. }
     property ObjectPlacement: TIfcObjectPlacement read FObjectPlacement write FObjectPlacement;
@@ -1934,10 +1951,14 @@
 
   { List of TIfcRepresentation. }
   TIfcRepresentationList = class({$ifdef FPC}specialize{$endif} TObjectList<TIfcRepresentation>)
+  public
+    procedure BuildNodes(const Parent: TAbstractGroupingNode);
   end;
 
   TIfcShapeModel = class abstract(TIfcRepresentation)
     // TODO
+  end;
+  TIfcShapeModelList = class({$ifdef FPC}specialize{$endif} TObjectList<TIfcShapeModel>)
   end;
 
   { Representation of a product or a product component within a specific
@@ -1960,24 +1981,7 @@
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-  published
-    property Name: TIfcLabel read FName write FName;
-    property Description: TIfcText read FDescription write FDescription;
-    { Contained list of representations (including shape representations). }
-    property Representations: TIfcRepresentationList read FRepresentations;
-  end;
-
-  { Defines a representation of a product, including its (geometric or topological) representation.
-
-    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcProductRepresentation.htm }
-  TIfcProductDefinitionShape = class(TIfcProductRepresentation)
-  strict private
-    FName: TIfcLabel;
-    FDescription: TIfcText;
-    FRepresentations: TIfcRepresentationList;
-  public
-    constructor Create(AOwner: TComponent); override;
-    destructor Destroy; override;
+    procedure BuildNodes(const Parent: TAbstractGroupingNode);
   published
     { The word or group of words by which the product representation is known. }
     property Name: TIfcLabel read FName write FName;
@@ -1987,6 +1991,63 @@
 
     { Contained list of representations (including shape representations). }
     property Representations: TIfcRepresentationList read FRepresentations;
+  end;
+
+  { Grouping of shape representation items that represent aspects
+    (or components) of the shape of a product.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcShapeAspect.htm }
+  TIfcShapeAspect = class(TIfcPersistent)
+  strict private
+    FShapeRepresentations: TIfcShapeModelList;
+    FName: TIfcLabel;
+    FDescription: TIfcText;
+    FPProductDefinitional: Boolean;
+    // FPartOfProductDefinitionShape: TIfcProductRepresentationSelect;
+    // FHasExternalReferences: TIfcExternalReferenceRelationshipList;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+  published
+    { List of shape representations. Each member defines a valid
+      representation of a particular type within a particular
+      representation context as being an aspect (or part) of a product
+      definition. }
+    property ShapeRepresentations: TIfcShapeModelList read FShapeRepresentations;
+
+    { The word or group of words by which the shape aspect is known. }
+    property Name: TIfcLabel read FName write FName;
+
+    { The word or group of words that characterize the shape aspect. It can
+      be used to add additional meaning to the name of the aspect. }
+    property Description: TIfcText read FDescription write FDescription;
+
+    property ProductDefinitional: Boolean read FPProductDefinitional write FPProductDefinitional;
+
+    // TODO: property PartOfProductDefinitionShape: TIfcProductRepresentationSelect read FPartOfProductDefinitionShape write FPartOfProductDefinitionShape;
+
+    // TODO: property HasExternalReferences: TIfcExternalReferenceRelationshipList read FHasExternalReferences;
+  end;
+
+  TIfcShapeAspectList = class({$ifdef FPC}specialize{$endif} TObjectList<TIfcShapeAspect>)
+  end;
+
+  { Defines a representation of a product, including its (geometric or topological) representation.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcProductRepresentation.htm }
+  TIfcProductDefinitionShape = class(TIfcProductRepresentation)
+  strict private
+    FShapeOfProduct: TIfcProductList;
+    FHasShapeAspects: TIfcShapeAspectList;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+  published
+    property ShapeOfProduct: TIfcProductList read FShapeOfProduct;
+
+    { Reference to the shape aspect that represents part of
+      the shape or its feature distinctively. }
+    property HasShapeAspects: TIfcShapeAspectList read FHasShapeAspects;
   end;
 
 var
@@ -2427,12 +2488,14 @@ end;
 constructor TIfcProductDefinitionShape.Create(AOwner: TComponent);
 begin
   inherited;
-  FRepresentations := TIfcRepresentationList.Create(false);
+  FShapeOfProduct := TIfcProductList.Create(false);
+  FHasShapeAspects := TIfcShapeAspectList.Create(false);
 end;
 
 destructor TIfcProductDefinitionShape.Destroy;
 begin
-  FreeAndNil(FRepresentations);
+  FreeAndNil(FShapeOfProduct);
+  FreeAndNil(FHasShapeAspects);
   inherited;
 end;
 
@@ -2463,6 +2526,22 @@ end;
 destructor TIfcRelDefinesByType.Destroy;
 begin
   FreeAndNil(FRelatedObjects);
+  inherited;
+end;
+
+{ TIfcShapeAspect ------------------------------------------------------------ }
+
+constructor TIfcShapeAspect.Create(AOwner: TComponent);
+begin
+  inherited;
+  FShapeRepresentations := TIfcShapeModelList.Create(false);
+  // TODO FHasExternalReferences := TIfcExternalReferenceRelationshipList.Create(false);
+end;
+
+destructor TIfcShapeAspect.Destroy;
+begin
+  FreeAndNil(FShapeRepresentations);
+  // FreeAndNil(FHasExternalReferences);
   inherited;
 end;
 
@@ -2551,6 +2630,7 @@ begin
     IfcClasses.Add(TIfcRelDefinesByType);
     IfcClasses.Add(TIfcTypeObject);
     IfcClasses.Add(TIfcWindowType);
+    IfcClasses.Add(TIfcShapeAspect);
   end;
 end;
 

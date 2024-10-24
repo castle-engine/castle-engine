@@ -38,18 +38,6 @@ function IfcJsonSave(const IfcFile: TIfcFile): TJsonObject;
 
 {$ifdef read_implementation}
 
-function IsPrefixSuffix(const Prefix, Suffix, S: String; const IgnoreCase: Boolean): Boolean;
-begin
-  Result :=
-    IsPrefix(Prefix, S, IgnoreCase) and
-    IsSuffix(Suffix, S, IgnoreCase);
-end;
-
-function PrefixSuffixRemove(const Prefix, Suffix, S: String; const IgnoreCase: Boolean): String;
-begin
-  Result := PrefixRemove(Prefix, SuffixRemove(Suffix, S, IgnoreCase), IgnoreCase);
-end;
-
 { Simple hack to detect does given object is a TObjectList<xxx> specialization.
   They don't share any common ancestor in Generics.Collections in FPC,
   so there's no obvious "is" check to do this.

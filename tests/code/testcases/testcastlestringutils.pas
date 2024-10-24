@@ -42,6 +42,7 @@ type
     procedure TestIsWild;
     procedure TestSAppendPart;
     procedure TestStringListStrict;
+    procedure TestPrefixSuffix;
   end;
 
 implementation
@@ -554,6 +555,30 @@ begin
 
     AssertEquals(InputStr, List.DelimitedText);
   finally FreeAndNil(List) end;
+end;
+
+procedure TTestCastleStringUtils.TestPrefixSuffix;
+begin
+  // IsPrefixSuffix checks overlapping
+  AssertFalse(IsPrefixSuffix('bla', 'abc', 'blaaaaa'));
+  AssertTrue(IsPrefixSuffix('bla', 'abc', 'blaaaaabc'));
+  AssertTrue(IsPrefixSuffix('bla', 'abc', 'blaabc'));
+  AssertFalse(IsPrefixSuffix('bla', 'abc', 'blabc'));
+
+  // IsPrefixSuffix honors IgnoreCase
+  AssertTrue(IsPrefixSuffix('bla', 'ABC', 'blaaaaabc'));
+  AssertTrue(IsPrefixSuffix('bla', 'abc', 'blaaaaaBc'));
+  AssertTrue(IsPrefixSuffix('bla', 'ABC', 'blaaaaabc', true));
+  AssertTrue(IsPrefixSuffix('bla', 'abc', 'blaaaaaBc', true));
+  AssertFalse(IsPrefixSuffix('bla', 'ABC', 'blaaaaabc', false));
+  AssertFalse(IsPrefixSuffix('bla', 'abc', 'blaaaaaBc', false));
+
+  // PrefixSuffixRemove checks both, and overlapping
+  AssertEquals('blaaaaa', PrefixSuffixRemove('bla', 'abc', 'blaaaaa', true));
+  AssertEquals('aaa', PrefixSuffixRemove('bla', 'abc', 'blaaaaabc', true));
+  AssertEquals('MIDDLE', PrefixSuffixRemove('bla', 'abc', 'blaMIDDLEabc', true));
+  AssertEquals('', PrefixSuffixRemove('bla', 'abc', 'blaabc', true));
+  AssertEquals('blabc', PrefixSuffixRemove('bla', 'abc', 'blabc', true));
 end;
 
 initialization
