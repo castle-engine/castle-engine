@@ -5456,6 +5456,47 @@ procedure TDesignFrame.ControlsTreeDragDrop(Sender, Source: TObject; X,
     end;
   end;
 
+  procedure SortBehavior(const Src: TCastleBehavior; const Dst: TCastleBehavior);
+  var
+    Index, RemoveCount, I: Integer;
+    BehaviorArray: array of TCastleBehavior;
+    Parent: TCastleTransform;
+  begin
+    case ControlsTreeNodeUnderMouseSide of
+      tnsBottom, tnsTop:
+        begin
+          if (Dst.Parent <> nil) and (Src <> Dst) then
+          begin
+            Parent := Dst.Parent;
+            Src.Parent.RemoveBehavior(Src);
+            // Access the index of dst
+            Index := Dst.Parent.BehaviorIndex(Dst);
+            Assert(Index <> -1);
+            if ControlsTreeNodeUnderMouseSide = tnsBottom then
+              Inc(Index);
+            // Calculate the number of behaviors we need to remove from parent
+            // in order to re-add src at specific index
+            RemoveCount := Dst.Parent.BehaviorsCount - Index;
+            SetLength(BehaviorArray, RemoveCount);
+            // Temporary remove behaviors
+            for I := 0 to RemoveCount - 1 do
+            begin
+              BehaviorArray[I] := Parent.Behaviors[Dst.Parent.BehaviorsCount - 1];
+              Dst.Parent.RemoveBehavior(BehaviorArray[I]);
+            end;
+            // Re-add src and other behaviors back
+            Parent.AddBehavior(Src);
+            for I := RemoveCount - 1 downto 0 do
+            begin
+              Parent.AddBehavior(BehaviorArray[I]);
+            end;
+            // TODO: update tree in a simple way for now
+            UpdateDesign;
+          end;
+        end;
+    end;
+  end;
+
   procedure MoveNonVisual(
     const Src: TComponent;
     const Dst: TCastleComponent);
@@ -5582,6 +5623,13 @@ procedure TDesignFrame.ControlsTreeDragDrop(Sender, Source: TObject; X,
               MoveBehavior(
                 TCastleBehavior(SrcComponent),
                 TCastleTransform(DstComponent));
+            end else
+            if (SrcComponent is TCastleBehavior) and
+               (DstComponent is TCastleBehavior) then
+            begin
+              SortBehavior(
+                TCastleBehavior(SrcComponent),
+                TCastleBehavior(DstComponent));
             end else
             if (not ( (SrcComponent is TCastleBehavior) or
                       (SrcComponent is TCastleTransform) or
