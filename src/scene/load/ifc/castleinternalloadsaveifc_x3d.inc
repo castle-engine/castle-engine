@@ -58,6 +58,20 @@ begin
   Result := Shape;
 end;
 
+function TIfcExtrudedAreaSolid.BuildNodes(const BaseUrl: String): TAbstractChildNode;
+var
+  SweptAreaProf: TIfcArbitraryClosedProfileDef;
+begin
+  // TODO: Temporarily, render the outer curve, ignoring the 3D extrusion
+  Result := nil;
+  if SweptArea is TIfcArbitraryClosedProfileDef then // also checks is it <> nil
+  begin
+    SweptAreaProf := TIfcArbitraryClosedProfileDef(SweptArea);
+    if SweptAreaProf.OuterCurve <> nil then
+      Result := SweptAreaProf.OuterCurve.BuildNodes(BaseUrl);
+  end;
+end;
+
 function TIfcRepresentationItemList.BuildNodes(const BaseUrl: String): TAbstractChildNode;
 var
   RepresentationItem: TIfcRepresentationItem;

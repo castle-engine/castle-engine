@@ -1129,6 +1129,8 @@ Additional properties of the profile, for example mechanical properties.
   strict private
     FExtrudedDirection: TIfcDirection;
     FDepth: TIfcPositiveLengthMeasure;
+  public
+    function BuildNodes(const BaseUrl: String): TAbstractChildNode; override;
   published
     { The direction in which the surface, provided by SweptArea is to be swept.
       The ExtrudedDirection shall not be perpendicular to the local z-axis. }
