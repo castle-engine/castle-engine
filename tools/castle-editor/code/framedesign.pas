@@ -5479,8 +5479,8 @@ procedure TDesignFrame.ControlsTreeDragDrop(Sender, Source: TObject; X,
               // Calculate the number of behaviors we need to remove from parent
               // in order to re-add src at specific index
               RemoveCount := DstAsBehavior.Parent.BehaviorsCount - Index;
-              SetLength(BehaviorArray, RemoveCount);
               Assert(RemoveCount > -1);
+              SetLength(BehaviorArray, RemoveCount);
               // Temporary remove behaviors
               for I := 0 to RemoveCount - 1 do
               begin
