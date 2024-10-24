@@ -5446,7 +5446,7 @@ procedure TDesignFrame.ControlsTreeDragDrop(Sender, Source: TObject; X,
   procedure MoveBehavior(const Src: TCastleBehavior; const Dst: TCastleComponent);
   var
     Index: Integer;
-    Parent: TCastleTransform;
+    DstParent: TCastleTransform;
     DstAsBehavior: TCastleBehavior;
   begin
     if Dst is TCastleTransform then
@@ -5466,16 +5466,16 @@ procedure TDesignFrame.ControlsTreeDragDrop(Sender, Source: TObject; X,
         tnsBottom, tnsTop:
           begin
             DstAsBehavior := Dst as TCastleBehavior;
-            if (DstAsBehavior.Parent <> nil) and (Src <> Dst) then
+            DstParent := DstAsBehavior.Parent;
+            if (DstParent <> nil) and (Src <> Dst) then
             begin
-              Parent := DstAsBehavior.Parent;
               Src.Parent.RemoveBehavior(Src);
               // Access the index of dst
-              Index := DstAsBehavior.Parent.BehaviorIndex(DstAsBehavior);
+              Index := DstParent.BehaviorIndex(DstAsBehavior);
               Assert(Index <> -1);
               if ControlsTreeNodeUnderMouseSide = tnsBottom then
                 Inc(Index);
-              Parent.InsertBehavior(Index, Src);
+              DstParent.InsertBehavior(Index, Src);
               // TODO: update tree in a simple way for now
               UpdateDesign;
             end;
