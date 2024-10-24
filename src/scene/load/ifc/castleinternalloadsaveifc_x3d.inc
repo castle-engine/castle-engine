@@ -30,69 +30,88 @@ function X3DToIfc(const RootNode: TX3DRootNode): TIfcFile;
 
 { BuildNodes methods implementations ----------------------------------------- }
 
-procedure TIfcRepresentationItem.BuildNodes(const Parent: TAbstractGroupingNode);
+function TIfcRepresentationItem.BuildNodes(const BaseUrl: String): TAbstractChildNode;
 begin
-  // nothing to do in this abstract class
+  Result := nil;
 end;
 
-procedure TIfcPolyline.BuildNodes(const Parent: TAbstractGroupingNode);
+function TIfcPolyline.BuildNodes(const BaseUrl: String): TAbstractChildNode;
 var
   Shape: TShapeNode;
   LineSet: TLineSetNode;
   Coord: TCoordinateNode;
   I: Integer;
 begin
-  inherited;
-
-  Coord := TCoordinateNode.Create('', Parent.BaseUrl);
+  Coord := TCoordinateNode.Create('', BaseUrl);
   Coord.FdPoint.Count := Points.Count;
   for I := 0 to Points.Count - 1 do
     Coord.FdPoint.Items[I] := Points[I].Coordinates.Value;
 
-  LineSet := TLineSetNode.Create('', Parent.BaseUrl);
+  LineSet := TLineSetNode.Create('', BaseUrl);
   LineSet.Coord := Coord;
   LineSet.SetVertexCount([Points.Count]);
 
-  Shape := TShapeNode.Create('', Parent.BaseUrl);
+  Shape := TShapeNode.Create('', BaseUrl);
   Shape.Geometry := LineSet;
+  Shape.MetadataString['IFC_ClassName'] := ClassName;
 
-  Parent.AddChildren(Shape);
+  Result := Shape;
 end;
 
-procedure TIfcRepresentationItemList.BuildNodes(const Parent: TAbstractGroupingNode);
+function TIfcRepresentationItemList.BuildNodes(const BaseUrl: String): TAbstractChildNode;
 var
   RepresentationItem: TIfcRepresentationItem;
+  Group: TGroupNode;
+  Child: TAbstractChildNode;
 begin
+  Group := TGroupNode.Create('', BaseUrl);
+  // Group.MetadataString['IFC_ClassName'] := ClassName; // lists are not official IFC classes
+  Result := Group;
+
   for RepresentationItem in Self do
-    RepresentationItem.BuildNodes(Parent);
+  begin
+    Child := RepresentationItem.BuildNodes(BaseUrl);
+    if Child <> nil then
+      Group.AddChildren(Child);
+  end;
 end;
 
-procedure TIfcRepresentationList.BuildNodes(const Parent: TAbstractGroupingNode);
+function TIfcRepresentationList.BuildNodes(const BaseUrl: String): TAbstractChildNode;
 var
   Representation: TIfcRepresentation;
+  group: TGroupNode;
 begin
+  Group := TGroupNode.Create('', BaseUrl);
+  // Group.MetadataString['IFC_ClassName'] := ClassName; // lists are not official IFC classes
+  Result := Group;
+
   for Representation in Self do
-    Representation.Items.BuildNodes(Parent);
+    Group.AddChildren(Representation.Items.BuildNodes(BaseUrl));
 end;
 
-procedure TIfcProductRepresentation.BuildNodes(const Parent: TAbstractGroupingNode);
+function TIfcProductRepresentation.BuildNodes(const BaseUrl: String): TAbstractChildNode;
 var
   Group: TGroupNode;
 begin
-  Group := TGroupNode.Create('', Parent.BaseUrl);
-  Parent.AddChildren(Group);
+  Group := TGroupNode.Create('', BaseUrl);
   Group.MetadataString['IFC_ClassName'] := ClassName;
   Group.MetadataString['IFC_Name'] := Name;
   Group.MetadataString['IFC_Description'] := Description;
-  Group.MetadataString['IFC_GlobalId'] := GlobalId;
+  Result := Group;
 
-  Representations.BuildNodes(Group);
+  Group.AddChildren(Representations.BuildNodes(BaseUrl));
 end;
 
-procedure TIfcProduct.BuildNodes(const Parent: TAbstractGroupingNode);
+function TIfcProduct.BuildNodes(const BaseUrl: String): TAbstractChildNode;
+var
+  Group: TGroupNode;
 begin
+  Group := TGroupNode.Create('', BaseUrl);
+  Group.MetadataString['IFC_ClassName'] := ClassName;
+  Result := Group;
+
   if Representation <> nil then
-    Representation.BuildNodes(Parent);
+    Group.AddChildren(Representation.BuildNodes(BaseUrl));
 end;
 
 { IfcToX3D (dispatching work to BuildNodes) ---------------------------------- }
@@ -121,7 +140,7 @@ function IfcToX3D(const Ifc: TIfcFile; const BaseUrl: String): TX3DRootNode;
     //Element: TIfcElement;
     //RelVoidsElement: TIfcRelVoidsElement;
   begin
-    Product.Representation.BuildNodes(Parent);
+    Parent.AddChildren(Product.Representation.BuildNodes(BaseUrl));
 
     if Product is TIfcElement then
     begin

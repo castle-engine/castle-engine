@@ -229,7 +229,7 @@
   public
     { Build a node to display this using Castle Game Engine.
       Does nothing (adds nothing to Parent) if not possible / not implemented. }
-    procedure BuildNodes(const Parent: TAbstractGroupingNode); virtual;
+    function BuildNodes(const BaseUrl: String): TAbstractChildNode; virtual;
   published
     { Assignment of the representation item to a single or multiple layer(s).
       @nil if none. }
@@ -243,7 +243,7 @@
   end;
   TIfcRepresentationItemList = class({$ifdef FPC}specialize{$endif} TObjectList<TIfcRepresentationItem>)
   public
-    procedure BuildNodes(const Parent: TAbstractGroupingNode);
+    function BuildNodes(const BaseUrl: String): TAbstractChildNode;
   end;
 
   { Style information for products.
@@ -326,7 +326,7 @@
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    procedure BuildNodes(const Parent: TAbstractGroupingNode); override;
+    function BuildNodes(const BaseUrl: String): TAbstractChildNode; override;
   published
     { Points defining the polyline. }
     property Points: TIfcCartesianPointList read FPoints;
@@ -1057,7 +1057,7 @@
     FObjectPlacement: TIfcObjectPlacement;
     FRepresentation: TIfcProductRepresentation;
   public
-    procedure BuildNodes(const Parent: TAbstractGroupingNode);
+    function BuildNodes(const BaseUrl: String): TAbstractChildNode;
   published
     { Object coordinate system and placement of the product in space. }
     property ObjectPlacement: TIfcObjectPlacement read FObjectPlacement write FObjectPlacement;
@@ -1952,7 +1952,7 @@
   { List of TIfcRepresentation. }
   TIfcRepresentationList = class({$ifdef FPC}specialize{$endif} TObjectList<TIfcRepresentation>)
   public
-    procedure BuildNodes(const Parent: TAbstractGroupingNode);
+    function BuildNodes(const BaseUrl: String): TAbstractChildNode;
   end;
 
   TIfcShapeModel = class abstract(TIfcRepresentation)
@@ -1981,7 +1981,7 @@
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    procedure BuildNodes(const Parent: TAbstractGroupingNode);
+    function BuildNodes(const BaseUrl: String): TAbstractChildNode;
   published
     { The word or group of words by which the product representation is known. }
     property Name: TIfcLabel read FName write FName;
