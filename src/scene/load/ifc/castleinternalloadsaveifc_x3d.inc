@@ -118,14 +118,37 @@ end;
 
 function TIfcProduct.BuildNodes(const BaseUrl: String): TAbstractChildNode;
 var
-  Group: TGroupNode;
+  Transform: TTransformNode;
 begin
-  Group := TGroupNode.Create('', BaseUrl);
-  Group.MetadataString['IFC_ClassName'] := ClassName;
-  Result := Group;
+  Transform := TTransformNode.Create('', BaseUrl);
+  Transform.MetadataString['IFC_ClassName'] := ClassName;
+  Result := Transform;
+
+  if ObjectPlacement <> nil then
+    ObjectPlacement.UpdateNode(Transform);
 
   if Representation <> nil then
-    Group.AddChildren(Representation.BuildNodes(BaseUrl));
+    Transform.AddChildren(Representation.BuildNodes(BaseUrl));
+end;
+
+procedure TIfcObjectPlacement.UpdateNode(const Transform: TTransformNode);
+begin
+  // nothing to do in this class
+end;
+
+procedure TIfcLocalPlacement.UpdateNode(const Transform: TTransformNode);
+begin
+  if RelativePlacement <> nil then
+    RelativePlacement.UpdateNode(Transform);
+end;
+
+procedure TIfcPlacement.UpdateNode(const Transform: TTransformNode);
+begin
+  if Location is TIfcCartesianPoint then
+  begin
+    Transform.Translation := TIfcCartesianPoint(Location).Coordinates.Value;
+  end;
+  // TODO: TIfcAxis2Placement2D/3D may define axis and ref direction, should cause rotation?
 end;
 
 { IfcToX3D (dispatching work to BuildNodes) ---------------------------------- }
@@ -154,7 +177,7 @@ function IfcToX3D(const Ifc: TIfcFile; const BaseUrl: String): TX3DRootNode;
     //Element: TIfcElement;
     //RelVoidsElement: TIfcRelVoidsElement;
   begin
-    Parent.AddChildren(Product.Representation.BuildNodes(BaseUrl));
+    Parent.AddChildren(Product.BuildNodes(BaseUrl));
 
     if Product is TIfcElement then
     begin

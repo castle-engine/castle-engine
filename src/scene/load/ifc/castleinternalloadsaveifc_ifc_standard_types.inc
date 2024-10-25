@@ -990,6 +990,7 @@ Additional properties of the profile, for example mechanical properties.
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
+    procedure UpdateNode(const Transform: TTransformNode); virtual;
   published
     { Reference to object placement that provides the relative placement with
       its placement in a grid, local coordinate system or linear referenced
@@ -1046,6 +1047,8 @@ Additional properties of the profile, for example mechanical properties.
   TIfcPlacement = class abstract(TIfcRepresentationItem)
   strict private
     FLocation: TIfcPoint;
+  public
+    procedure UpdateNode(const Transform: TTransformNode); virtual;
   published
     property Location: TIfcPoint read FLocation write FLocation;
 
@@ -1157,6 +1160,8 @@ Additional properties of the profile, for example mechanical properties.
   TIfcLocalPlacement = class(TIfcObjectPlacement)
   strict private
     FRelativePlacement: TIfcAxis2Placement;
+  public
+    procedure UpdateNode(const Transform: TTransformNode); override;
   published
     property RelativePlacement: TIfcAxis2Placement read FRelativePlacement write FRelativePlacement;
   end;
