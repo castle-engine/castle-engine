@@ -90,13 +90,17 @@
     This in practice usually means you should place the last IFC value
     ("NotDefined" or "UserDefined", usually) as the first enum value in Pascal.
 
-  The only additional thing, beyond IFC standard, these classes have is the
-  "build nodes" method. This is a method that creates a Castle Game Engine
-  node to display given IFC entity. Adding these methods here
-  (instead of maintaining them independently in the code that generates X3D)
-  is beneficial, we can use IFC classes inheritance naturally (e.g. some "build
-  nodes" methods extend ancestor in natural way).
-  They are implemented in castleinternalloadsaveifc_x3d.inc .
+  These classes express
+
+  - Everything from the IFC standard that we handle.
+
+  - Moreover, they contain methods to build/update nodes used
+    by Castle Game Engine to display given IFC entities.
+    These methods are implemented in castleinternalloadsaveifc_x3d.inc
+    yet they are defined in this file, inside IFC classes.
+    Havine these methods inside IFC classes is beneficial,
+    as we can use IFC classes inheritance naturally (e.g. some "build
+    nodes" methods extend ancestor in natural way).
 }
 
 {$ifdef read_interface}
@@ -232,7 +236,7 @@
   public
     { Build a node to display this using Castle Game Engine.
       Does nothing (adds nothing to Parent) if not possible / not implemented. }
-    function BuildNodes(const BaseUrl: String): TAbstractChildNode; virtual;
+    function BuildNode(const BaseUrl: String): TAbstractChildNode; virtual;
   published
     { Assignment of the representation item to a single or multiple layer(s).
       @nil if none. }
@@ -246,7 +250,7 @@
   end;
   TIfcRepresentationItemList = class({$ifdef FPC}specialize{$endif} TObjectList<TIfcRepresentationItem>)
   public
-    function BuildNodes(const BaseUrl: String): TAbstractChildNode;
+    function BuildNode(const BaseUrl: String): TAbstractChildNode;
   end;
 
   { Style information for products.
@@ -329,7 +333,7 @@
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    function BuildNodes(const BaseUrl: String): TAbstractChildNode; override;
+    function BuildNode(const BaseUrl: String): TAbstractChildNode; override;
   published
     { Points defining the polyline. }
     property Points: TIfcCartesianPointList read FPoints;
@@ -846,6 +850,7 @@ Additional properties of the profile, for example mechanical properties.
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
+    function BuildNode(const BaseUrl: String): TTransformNode; virtual;
   published
     { References to the decomposition relationship being an aggregation. }
     property IsDecomposedBy: TIfcRelAggregatesList read FIsDecomposedBy;
@@ -1133,7 +1138,7 @@ Additional properties of the profile, for example mechanical properties.
     FExtrudedDirection: TIfcDirection;
     FDepth: TIfcPositiveLengthMeasure;
   public
-    function BuildNodes(const BaseUrl: String): TAbstractChildNode; override;
+    function BuildNode(const BaseUrl: String): TAbstractChildNode; override;
   published
     { The direction in which the surface, provided by SweptArea is to be swept.
       The ExtrudedDirection shall not be perpendicular to the local z-axis. }
@@ -1174,7 +1179,7 @@ Additional properties of the profile, for example mechanical properties.
     FObjectPlacement: TIfcObjectPlacement;
     FRepresentation: TIfcProductRepresentation;
   public
-    function BuildNodes(const BaseUrl: String): TAbstractChildNode;
+    function BuildNode(const BaseUrl: String): TTransformNode; override;
   published
     { Object coordinate system and placement of the product in space. }
     property ObjectPlacement: TIfcObjectPlacement read FObjectPlacement write FObjectPlacement;
@@ -1216,6 +1221,7 @@ Additional properties of the profile, for example mechanical properties.
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
+    function BuildNode(const BaseUrl: String): TAbstractChildNode;
   published
     { Set of products, which are contained within this level of
       the spatial structure hierarchy. }
@@ -1234,6 +1240,7 @@ Additional properties of the profile, for example mechanical properties.
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
+    function BuildNode(const BaseUrl: String): TTransformNode; override;
   published
     property ContainsElements: TIfcRelContainedInSpatialStructureList read FContainsElements;
   end;
@@ -1575,6 +1582,7 @@ Additional properties of the profile, for example mechanical properties.
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
+    function BuildNode(const BaseUrl: String): TAbstractChildNode;
   published
     property RelatingObject: TIfcObjectDefinition read FRelatingObject write FRelatingObject;
     property RelatedObjects: TIfcObjectDefinitionList read FRelatedObjects;
@@ -2016,6 +2024,7 @@ Additional properties of the profile, for example mechanical properties.
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
+    function BuildNode(const BaseUrl: String): TTransformNode; override;
   published
     { The object type denotes a particular type that indicates the object
       further. The use has to be established at the level of instantiable
@@ -2069,7 +2078,7 @@ Additional properties of the profile, for example mechanical properties.
   { List of TIfcRepresentation. }
   TIfcRepresentationList = class({$ifdef FPC}specialize{$endif} TObjectList<TIfcRepresentation>)
   public
-    function BuildNodes(const BaseUrl: String): TAbstractChildNode;
+    function BuildNode(const BaseUrl: String): TAbstractChildNode;
   end;
 
   TIfcShapeModel = class abstract(TIfcRepresentation)
@@ -2098,7 +2107,7 @@ Additional properties of the profile, for example mechanical properties.
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    function BuildNodes(const BaseUrl: String): TAbstractChildNode;
+    function BuildNode(const BaseUrl: String): TAbstractChildNode;
   published
     { The word or group of words by which the product representation is known. }
     property Name: TIfcLabel read FName write FName;

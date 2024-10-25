@@ -88,6 +88,7 @@ type
       @raises(EInvalidIfc If there is no TIfcProject instance in Data
         or there's more than one TIfcProject instance in Data.) }
     function Project: TIfcProject;
+    function BuildNode(const BaseUrl: String): TX3DRootNode;
   published
     property EncodingType: String read FEncodingType write FEncodingType;
     property Version: String read FVersion write FVersion;

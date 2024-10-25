@@ -28,14 +28,116 @@ function X3DToIfc(const RootNode: TX3DRootNode): TIfcFile;
 
 {$ifdef read_implementation}
 
-{ BuildNodes methods implementations ----------------------------------------- }
+{ Set metadata of a node. }
+procedure SetMetadata(const Node: TAbstractNode; const Key, Value: String);
+begin
+  if Value <> '' then // do not set empty (default in IFC) values, to keep X3D output smaller
+  begin
+    if Node is TX3DRootNode then
+      { TODO: "metadata" of TX3DRootNode is not serialized, but META is.
+        Yeah, there are effectively two ways to store metadata in X3D. }
+      TX3DRootNode(Node).Meta[Key] := Value
+    else
+      Node.MetadataString[Key] := Value;
+  end;
+end;
 
-function TIfcRepresentationItem.BuildNodes(const BaseUrl: String): TAbstractChildNode;
+{ BuildNode methods implementations ----------------------------------------- }
+
+function TIfcFile.BuildNode(const BaseUrl: String): TX3DRootNode;
+begin
+  Result := TX3DRootNode.Create('', BaseUrl);
+  SetMetadata(Result, 'IFC_Version', Version);
+  SetMetadata(Result, 'IFC_SchemaIdentifier', SchemaIdentifier);
+  SetMetadata(Result, 'IFC_OriginatingSystem', OriginatingSystem);
+  SetMetadata(Result, 'IFC_PreprocessorVersion', PreprocessorVersion);
+  SetMetadata(Result, 'IFC_TimeStamp', TimeStamp);
+
+  Result.AddChildren(Project.BuildNode(BaseUrl));
+end;
+
+function TIfcRepresentationItemList.BuildNode(const BaseUrl: String): TAbstractChildNode;
+var
+  RepresentationItem: TIfcRepresentationItem;
+  Group: TGroupNode;
+  Child: TAbstractChildNode;
+begin
+  Group := TGroupNode.Create('', BaseUrl);
+  SetMetadata(Group, 'IFC_ListOfChildren', ClassOfListChildren(Self).ClassName);
+  Result := Group;
+
+  for RepresentationItem in Self do
+  begin
+    Child := RepresentationItem.BuildNode(BaseUrl);
+    if Child <> nil then
+      Group.AddChildren(Child);
+  end;
+end;
+
+function TIfcRepresentationList.BuildNode(const BaseUrl: String): TAbstractChildNode;
+var
+  Representation: TIfcRepresentation;
+  Group: TGroupNode;
+begin
+  Group := TGroupNode.Create('', BaseUrl);
+  SetMetadata(Group, 'IFC_ListOfChildren', ClassOfListChildren(Self).ClassName);
+  Result := Group;
+
+  for Representation in Self do
+    Group.AddChildren(Representation.Items.BuildNode(BaseUrl));
+end;
+
+function TIfcProductRepresentation.BuildNode(const BaseUrl: String): TAbstractChildNode;
+var
+  Group: TGroupNode;
+begin
+  Group := TGroupNode.Create('', BaseUrl);
+  SetMetadata(Group, 'IFC_ClassName', ClassName);
+  SetMetadata(Group, 'IFC_Name', Name);
+  SetMetadata(Group, 'IFC_Description', Description);
+  Result := Group;
+
+  Group.AddChildren(Representations.BuildNode(BaseUrl));
+end;
+
+function TIfcRelAggregates.BuildNode(const BaseUrl: String): TAbstractChildNode;
+var
+  RelatedObject: TIfcObjectDefinition;
+  Group: TGroupNode;
+begin
+  Group := TGroupNode.Create('', BaseUrl);
+  SetMetadata(Group, 'IFC_ClassName', ClassName);
+  SetMetadata(Group, 'IFC_Name', Name);
+  SetMetadata(Group, 'IFC_Description', Description);
+  Result := Group;
+
+  for RelatedObject in RelatedObjects do
+    Group.AddChildren(RelatedObject.BuildNode(BaseUrl));
+end;
+
+function TIfcRelContainedInSpatialStructure.BuildNode(const BaseUrl: String): TAbstractChildNode;
+var
+  Product: TIfcProduct;
+  Group: TGroupNode;
+begin
+  Group := TGroupNode.Create('', BaseUrl);
+  SetMetadata(Group, 'IFC_ClassName', ClassName);
+  SetMetadata(Group, 'IFC_Name', Name);
+  SetMetadata(Group, 'IFC_Description', Description);
+  Result := Group;
+
+  for Product in RelatedElements do
+    Group.AddChildren(Product.BuildNode(BaseUrl));
+end;
+
+{ BuildNode of TIfcRepresentationItem and descendants ------------------------- }
+
+function TIfcRepresentationItem.BuildNode(const BaseUrl: String): TAbstractChildNode;
 begin
   Result := nil;
 end;
 
-function TIfcPolyline.BuildNodes(const BaseUrl: String): TAbstractChildNode;
+function TIfcPolyline.BuildNode(const BaseUrl: String): TAbstractChildNode;
 var
   Shape: TShapeNode;
   LineSet: TLineSetNode;
@@ -53,12 +155,12 @@ begin
 
   Shape := TShapeNode.Create('', BaseUrl);
   Shape.Geometry := LineSet;
-  Shape.MetadataString['IFC_ClassName'] := ClassName;
+  SetMetadata(Shape, 'IFC_ClassName', ClassName);
 
   Result := Shape;
 end;
 
-function TIfcExtrudedAreaSolid.BuildNodes(const BaseUrl: String): TAbstractChildNode;
+function TIfcExtrudedAreaSolid.BuildNode(const BaseUrl: String): TAbstractChildNode;
 var
   SweptAreaProf: TIfcArbitraryClosedProfileDef;
 begin
@@ -68,68 +170,54 @@ begin
   begin
     SweptAreaProf := TIfcArbitraryClosedProfileDef(SweptArea);
     if SweptAreaProf.OuterCurve <> nil then
-      Result := SweptAreaProf.OuterCurve.BuildNodes(BaseUrl);
+      Result := SweptAreaProf.OuterCurve.BuildNode(BaseUrl);
   end;
 end;
 
-function TIfcRepresentationItemList.BuildNodes(const BaseUrl: String): TAbstractChildNode;
-var
-  RepresentationItem: TIfcRepresentationItem;
-  Group: TGroupNode;
-  Child: TAbstractChildNode;
-begin
-  Group := TGroupNode.Create('', BaseUrl);
-  // Group.MetadataString['IFC_ClassName'] := ClassName; // lists are not official IFC classes
-  Result := Group;
+{ BuildNode of TIfcObjectDefinition and descendants -------------------------- }
 
-  for RepresentationItem in Self do
-  begin
-    Child := RepresentationItem.BuildNodes(BaseUrl);
-    if Child <> nil then
-      Group.AddChildren(Child);
-  end;
+function TIfcObjectDefinition.BuildNode(const BaseUrl: String): TTransformNode;
+var
+  RelAggregates: TIfcRelAggregates;
+begin
+  Result := TTransformNode.Create('', BaseUrl);
+  SetMetadata(Result, 'IFC_ClassName', ClassName);
+  SetMetadata(Result, 'IFC_Name', Name);
+  SetMetadata(Result, 'IFC_Description', Description);
+
+  for RelAggregates in IsDecomposedBy do
+    Result.AddChildren(RelAggregates.BuildNode(BaseUrl));
 end;
 
-function TIfcRepresentationList.BuildNodes(const BaseUrl: String): TAbstractChildNode;
+function TIfcSpatialStructureElement.BuildNode(const BaseUrl: String): TTransformNode;
 var
-  Representation: TIfcRepresentation;
-  group: TGroupNode;
+  RelContainedInSpatialStructure: TIfcRelContainedInSpatialStructure;
 begin
-  Group := TGroupNode.Create('', BaseUrl);
-  // Group.MetadataString['IFC_ClassName'] := ClassName; // lists are not official IFC classes
-  Result := Group;
-
-  for Representation in Self do
-    Group.AddChildren(Representation.Items.BuildNodes(BaseUrl));
+  Result := inherited;
+  for RelContainedInSpatialStructure in ContainsElements do
+    Result.AddChildren(RelContainedInSpatialStructure.BuildNode(BaseUrl));
 end;
 
-function TIfcProductRepresentation.BuildNodes(const BaseUrl: String): TAbstractChildNode;
-var
-  Group: TGroupNode;
+function TIfcProduct.BuildNode(const BaseUrl: String): TTransformNode;
 begin
-  Group := TGroupNode.Create('', BaseUrl);
-  Group.MetadataString['IFC_ClassName'] := ClassName;
-  Group.MetadataString['IFC_Name'] := Name;
-  Group.MetadataString['IFC_Description'] := Description;
-  Result := Group;
-
-  Group.AddChildren(Representations.BuildNodes(BaseUrl));
-end;
-
-function TIfcProduct.BuildNodes(const BaseUrl: String): TAbstractChildNode;
-var
-  Transform: TTransformNode;
-begin
-  Transform := TTransformNode.Create('', BaseUrl);
-  Transform.MetadataString['IFC_ClassName'] := ClassName;
-  Result := Transform;
+  Result := inherited;
 
   if ObjectPlacement <> nil then
-    ObjectPlacement.UpdateNode(Transform);
+    ObjectPlacement.UpdateNode(Result);
 
   if Representation <> nil then
-    Transform.AddChildren(Representation.BuildNodes(BaseUrl));
+    Result.AddChildren(Representation.BuildNode(BaseUrl));
 end;
+
+function TIfcContext.BuildNode(const BaseUrl: String): TTransformNode;
+begin
+  Result := inherited;
+  SetMetadata(Result, 'IFC_ObjectType', ObjectType);
+  SetMetadata(Result, 'IFC_LongName', LongName);
+  SetMetadata(Result, 'IFC_Phase', Phase);
+end;
+
+{ UpdateNode methods implementations ----------------------------------------- }
 
 procedure TIfcObjectPlacement.UpdateNode(const Transform: TTransformNode);
 begin
@@ -151,100 +239,11 @@ begin
   // TODO: TIfcAxis2Placement2D/3D may define axis and ref direction, should cause rotation?
 end;
 
-{ IfcToX3D (dispatching work to BuildNodes) ---------------------------------- }
+{ IfcToX3D and back ---------------------------------------------------------- }
 
 function IfcToX3D(const Ifc: TIfcFile; const BaseUrl: String): TX3DRootNode;
-
-  procedure ReadObjectDefinition(const Parent: TAbstractGroupingNode; const IfcObjDef: TIfcObjectDefinition); forward;
-
-  procedure ReadRelAggregates(const Parent: TAbstractGroupingNode; const RelAggregates: TIfcRelAggregates);
-  var
-    RelatedObject: TIfcObjectDefinition;
-    Group: TGroupNode;
-  begin
-    Group := TGroupNode.Create('', BaseUrl);
-    Parent.AddChildren(Group);
-    Group.MetadataString['IFC_ClassName'] := RelAggregates.ClassName;
-    Group.MetadataString['IFC_Name'] := RelAggregates.Name;
-    Group.MetadataString['IFC_Description'] := RelAggregates.Description;
-
-    for RelatedObject in RelAggregates.RelatedObjects do
-      ReadObjectDefinition(Group, RelatedObject);
-  end;
-
-  procedure ReadProduct(const Parent: TAbstractGroupingNode; const Product: TIfcProduct);
-  //var
-    //Element: TIfcElement;
-    //RelVoidsElement: TIfcRelVoidsElement;
-  begin
-    Parent.AddChildren(Product.BuildNodes(BaseUrl));
-
-    if Product is TIfcElement then
-    begin
-      //Element := TIfcElement(Product);
-      // for RelVoidsElement in Element.HasOpenings do // TODO
-    end;
-  end;
-
-  procedure ReadRelContainedInSpatialStructure(const Parent: TAbstractGroupingNode;
-    const RelContainedInSpatialStructure: TIfcRelContainedInSpatialStructure);
-  var
-    Product: TIfcProduct;
-    Group: TGroupNode;
-  begin
-    Group := TGroupNode.Create('', BaseUrl);
-    Parent.AddChildren(Group);
-    Group.MetadataString['IFC_ClassName'] := RelContainedInSpatialStructure.ClassName;
-    Group.MetadataString['IFC_Name'] := RelContainedInSpatialStructure.Name;
-    Group.MetadataString['IFC_Description'] := RelContainedInSpatialStructure.Description;
-
-    for Product in RelContainedInSpatialStructure.RelatedElements do
-      ReadProduct(Group, Product);
-  end;
-
-  procedure ReadObjectDefinition(const Parent: TAbstractGroupingNode; const IfcObjDef: TIfcObjectDefinition);
-  var
-    RelAggregates: TIfcRelAggregates;
-    Group: TGroupNode;
-    IfcSpatialStructureElement: TIfcSpatialStructureElement;
-    RelContainedInSpatialStructure: TIfcRelContainedInSpatialStructure;
-  begin
-    Group := TGroupNode.Create('', BaseUrl);
-    Parent.AddChildren(Group);
-    Group.MetadataString['IFC_ClassName'] := IfcObjDef.ClassName;
-    Group.MetadataString['IFC_Name'] := IfcObjDef.Name;
-    Group.MetadataString['IFC_Description'] := IfcObjDef.Description;
-
-    for RelAggregates in IfcObjDef.IsDecomposedBy do
-      ReadRelAggregates(Group, RelAggregates);
-
-    if IfcObjDef is TIfcSpatialStructureElement then
-    begin
-      IfcSpatialStructureElement := TIfcSpatialStructureElement(IfcObjDef);
-      for RelContainedInSpatialStructure in IfcSpatialStructureElement.ContainsElements do
-        ReadRelContainedInSpatialStructure(Group, RelContainedInSpatialStructure);
-    end;
-  end;
-
 begin
-  Result := TX3DRootNode.Create('', BaseUrl);
-  try
-    if Ifc.Version <> '' then
-      { TODO: "metadata" of TX3DRootNode is not serialized, but META is.
-        Yeah, there are effectively two ways to store metadata in X3D. }
-      //Result.MetadataString['IFC_Version'] := Ifc.Version;
-      Result.Meta['IFC_Version'] := Ifc.Version;
-    if Ifc.SchemaIdentifier <> '' then
-      Result.Meta['IFC_SchemaIdentifier'] := Ifc.SchemaIdentifier;
-    if Ifc.OriginatingSystem <> '' then
-      Result.Meta['IFC_OriginatingSystem'] := Ifc.OriginatingSystem;
-    if Ifc.PreprocessorVersion <> '' then
-      Result.Meta['IFC_PreprocessorVersion'] := Ifc.PreprocessorVersion;
-    if Ifc.TimeStamp <> '' then
-      Result.Meta['IFC_TimeStamp'] := Ifc.TimeStamp;
-
-    ReadObjectDefinition(Result, Ifc.Project);
-  except FreeAndNil(Result); raise end;
+  Result := Ifc.BuildNode(BaseUrl);
 end;
 
 function X3DToIfc(const RootNode: TX3DRootNode): TIfcFile;
