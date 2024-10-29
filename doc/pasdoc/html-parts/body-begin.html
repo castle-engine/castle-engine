@@ -1,46 +1,31 @@
 
-  <nav class="navbar navbar-default ">
-    <div class="container-fluid container-nav">
-      <!-- Uncomment this for toggable navbar -->
-      <!--
-      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#main-navbar-collapse-1" aria-expanded="false">
-        <span class="sr-only">Toggle navigation</span>
-        <span class="icon-bar"></span>
-        <span class="icon-bar"></span>
-        <span class="icon-bar"></span>
+  <nav class="navbar navbar-expand-lg bg-body-tertiary " data-bs-theme="dark">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="/">
+        <img alt="Castle Game Engine Logo" class="d-inline-block" src="images/castle_game_engine_icon.svg"  width="30" height="30" >
+        <!-- Hide it on large screens, as it takes too much space when it is adjacent to expanded navbar -->
+        <span class="d-lg-none">Castle Game Engine</span>
+      </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
       </button>
-      -->
 
-      <ul class="nav nav-tabs navbar-right">
-        <li>
-    <a href="https://patreon.com/castleengine" class="navbar-link"
-      style="display: inline-block; background-color: #FF424D; border-radius: 0; text-align: center;">
-      <div style="color: #ffffff; padding-left: 1em; padding-right: 1em;">
-        <span style="vertical-align: middle;">Support&nbsp;us&nbsp;on</span>&nbsp;<img src="images/patreon-brand/Digital-Patreon-Wordmark_White.webp"  width="80" height="16" 
-          alt="Patreon Wordmark"
-          style="display: inline-block; vertical-align: middle;"
-        >
-      </div></a></li>
-      </ul>
-
-      <!--button type="button" class="btn btn-default navbar-btn navbar-right" style="margin-right: 0px;"><a href="https://patreon.com/castleengine" class="navbar-link">Support us on<br><img style="height: 40px" src="images/patreonlogoorange.png" alt="Patreon"></a></button-->
-
-      <!--p class="navbar-text navbar-right"><a href="https://patreon.com/castleengine" class="navbar-link">Support us on<br><img style="height:50px" src="images/patreonlogoorange.png" alt="Patreon"></a></p-->
-
-      <div class="navbar-header navbar-brand">
-        <a href="/">
-          <img alt="Castle Game Engine Logo" src="images/header_icon.png"  width="32" height="32" >
-          Castle Game Engine
-        </a>
-      </div>
-      
-      
-    <!-- Uncomment this for toggable navbar -->
-    <!--div class="collapse navbar-collapse" id="main-navbar-collapse-1" -->
-    <ul class="nav nav-tabs"><li class=""><a href="https://castle-engine.io/download">Download</a></li><li class=""><a href="https://castle-engine.io/features">Features</a></li><li class=""><a href="https://castle-engine.io/wp/">News</a></li><li class=" active dropdown"><a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Documentation <span class="caret"></span></a><ul class="dropdown-menu"><li><a href="https://castle-engine.io/bad_chess">Recommended Tutorial: 3D Physics Fun</a></li><li><a href="https://castle-engine.io/manual_intro.php">Manual</a></li><li><a href="https://castle-engine.io/creating_data_intro.php">Creating Game Data</a></li><li><a href="https://castle-engine.io/apidoc/html/index.html">API Reference</a></li><li><a href="https://castle-engine.io/why_pascal">Why Pascal?</a></li><li><a href="https://castle-engine.io/modern_pascal">Modern Object Pascal Introduction</a></li><li><a href="https://castle-engine.io/castle_game_engine_for_unity_developers">Overview for Unity Developers</a></li><li><a href="https://castle-engine.io/vrml_x3d.php">Scene Graph (X3D)</a></li><li><a href="https://castle-engine.io/conferences">Conferences</a></li></ul></li><li class=""><a href="https://www.youtube.com/c/CastleGameEngine">Videos</a></li><li class=""><a href="https://castle-engine.io/castle-model-viewer" title="Viewer for glTF, X3D, Collada, sprite sheets and other 3D and 2D model formats">Model Viewer</a></li><li class=""><a href="https://castle-engine.io/talk.php" title="Ask for help, report bugs, discuss features">Forum, Discord...</a></li><li class=" dropdown"><a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Gallery <span class="caret"></span></a><ul class="dropdown-menu"><li><a href="https://castle-engine.io/gallery_games.php">Games</a></li><li><a href="https://castle-engine.io/gallery_tools.php">Tools</a></li><li><a href="https://castle-engine.io/additional_components.php">Additional Components</a></li><li><a href="https://castle-engine.io/assets.php">Assets (3D and 2D Graphics, Sound)</a></li></ul></li><li class=""><a href="https://castle-engine.io/credits" title="Credits"><span class="glyphicon glyphicon-heart" aria-hidden="true"></span></a></li>
-    </ul>
-    <!-- Uncomment this for toggable navbar -->
-    <!--/div-->
+      <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav me-auto mb-2 mb-lg-0"><li class="nav-item "><a href="https://castle-engine.io/download"class="nav-link">Download</a></li><li class="nav-item "><a href="https://castle-engine.io/features"class="nav-link">Features</a></li><li class="nav-item "><a href="https://castle-engine.io/wp/"class="nav-link">News</a></li><li class="nav-item  dropdown"><a href="#"class="nav-link active dropdown-toggle" aria-current="page" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">Documentation</a><ul class="dropdown-menu"><li><a class="dropdown-item" href="https://castle-engine.io/bad_chess">Tutorial: 3D physics fun</a></li><li><a class="dropdown-item" href="https://castle-engine.io/manual_intro.php">Manual</a></li><li><a class="dropdown-item" href="https://castle-engine.io/creating_data_intro.php">Creating Game Data</a></li><li><a class="dropdown-item" href="https://castle-engine.io/apidoc/html/index.html">API Reference</a></li><li><a class="dropdown-item" href="https://castle-engine.io/why_pascal">Why Pascal?</a></li><li><a class="dropdown-item" href="https://castle-engine.io/modern_pascal">Modern Object Pascal Introduction</a></li><li><a class="dropdown-item" href="https://castle-engine.io/castle_game_engine_for_unity_developers">Overview for Unity Developers</a></li><li><a class="dropdown-item" href="https://castle-engine.io/x3d">Scene Graph: X3D nodes</a></li><li><a class="dropdown-item" href="https://castle-engine.io/conferences">Conferences</a></li></ul></li><li class="nav-item "><a href="https://www.youtube.com/c/CastleGameEngine"class="nav-link">Videos</a></li><li class="nav-item "><a href="https://castle-engine.io/castle-model-viewer"class="nav-link" title="Viewer for glTF, X3D, Collada, sprite sheets and other 3D and 2D model formats">Model&nbsp;Viewer</a></li><li class="nav-item "><a href="https://castle-engine.io/talk.php"class="nav-link" title="Ask for help, report bugs, discuss features">Community</a></li><li class="nav-item  dropdown"><a href="#"class="nav-link dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">Gallery</a><ul class="dropdown-menu"><li><a class="dropdown-item" href="https://castle-engine.io/gallery_games.php">Games</a></li><li><a class="dropdown-item" href="https://castle-engine.io/gallery_tools.php">Tools</a></li><li><a class="dropdown-item" href="https://castle-engine.io/additional_components.php">Additional Components</a></li><li><a class="dropdown-item" href="https://castle-engine.io/assets.php">Assets (3D and 2D Graphics, Sound)</a></li></ul></li><li class="nav-item "><a href="https://castle-engine.io/credits"class="nav-link" title="Credits"><i class="bi bi-suit-heart-fill"></i></a></li><li class="nav-item  d-none"><a href="https://castle-engine.io/release"class="nav-link">Release notes</a></li></ul>
+    <form class="container-fluid justify-content-start d-flex castle-donate-button-form">
+      <a href="donate" class="btn btn-primary btn-success">Donate</a>
+    </form><form action="https://duckduckgo.com/" method="get" role="search">
+  <div class="input-group flex-nowrap">
+    <input type="text" class="form-control" name="q" placeholder="Search..." style="min-width: 8em">
+    <input type="hidden" name="sites" value="castle-engine.io">
+    <input type="hidden" name="kae" value="d">
+    <span class="input-group-btn">
+      <button type="submit" class="btn">
+        <i class="bi bi-search"></i>
+      </button>
+    </span>
+  </div><!-- /input-group -->
+</form>
     </div>
 
     

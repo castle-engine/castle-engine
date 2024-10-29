@@ -1,51 +1,33 @@
-body {
-  /* Override Bootstrap to add Inter https://fonts.google.com/specimen/Inter */
-  /* font-family: Inter,"Helvetica Neue",Helvetica,Arial,sans-serif !important; */
-  /* Override Bootstrap 14px */
-  font-size: 16px;
-  line-height: 1.5;
+/* Do not underline links until hover.
+   Looks a bit less noisy, AsciiDoctor CSS also does this. */
+a {
+  text-decoration: none;
+}
+a:hover,
+a:focus {
+  text-decoration: underline;
+}
+/* No underline in buttons, even on hover/focus -- buttons already show hover/focus */
+a.btn:hover,
+a.btn:focus,
+/* No underline in navbars, it already has styling */
+.navbar a:hover,
+.navbar a:focus {
+  text-decoration: none !important;
 }
 
-/* Makes reading much easier, like on
-   https://docs.asciidoctor.org/asciidoc/latest/macros/audio-and-video/
-   https://castle-engine.io/build_tool */
-p {
-  margin-bottom: 16px;
+/* Space from navbar to content,
+   except on main page (no space between navbar and banner). */
+.navbar {
+  margin-bottom: 1em;
+}
+.navbar.castle-navbar-main-page {
+  margin-bottom: 0;
 }
 
-/* Override Bootstrap default:
-
-   Remove "Courier New",
-   "Courier New" bold width doesn't match regular "Courier New",
-   this hurts our CommonSurfaceShader view on x3d_implementation_texturing_extensions.php .
-   It is also not nice on Linux according to
-   https://github.com/twbs/bootstrap/issues/18609
-*/
-code, kbd, pre, samp {
-  font-family: monospace !important;
-}
-
-@media only screen and (max-width : 767px) {
-    .sidebar {
-        /* vertical margin between sidebar and content,
-           on small devices when sidebar is at bottom */
-        margin-top: 1em;
-    }
-}
-
-@media only screen and (min-width : 768px) {
-    .content-near-sidebar {
-        /* horizontal margin from sidebar */
-        /* padding-left: 2em; */
-    }
-}
-
-.fixed-width-content {
-    /* Like Wordpress .wrap */
-    width: 1200px;
-    max-width: 100%;
-    margin-left: auto;
-    margin-right: auto;
+/* Margin from h1 to above content, like .book-header, see .../navigation */
+h1 {
+  margin-top: 0.25em;
 }
 
 /* all images, movies responsive */
@@ -60,7 +42,6 @@ code, kbd, pre, samp {
   height: auto;
 }
 
-
 .features-page h1,
 .features-page h2,
 .features-page h3 {
@@ -70,63 +51,39 @@ code, kbd, pre, samp {
   margin-bottom: 1em;
 }
 
-object.movie_thumbnail {
-  width: 200px;
-  height: 167px;
-}
-
-div.thumbs_cell_with_text_or_movie {
-  width: 210px;
-  background: #DDD;
-  margin: 0em;
-  padding: 0.2em;
-  font-size: small;
-  text-align: center;
-}
-
-/* Our <pre> must break, otherwise our right sidebar is shifted and looks bad */
 pre {
+  /* Our <pre> must break, otherwise our right sidebar is shifted and looks bad */
   white-space: pre-wrap;
+
+  /* border makes code blocks stand out better */
+  border: 1px solid #ccc;
+  border-radius: 4px;
+
+  padding: 0.5em;
 }
 
-a.kscript_func_docs { text-decoration: underline; }
-
-code { background-color: #f0f0f0; }
-/* Override above rule for x3d_component_intro. These <code> are in practice
-   surrounded by <b> now. */
-div.x3d_component_intro code { background-color: transparent; }
-
-pre.plug_declaration { border: thin solid #333; padding: 0.2em; }
-
-span.js_link { text-decoration: underline; color: #00F; cursor: pointer; }
-
-/* Style for note_box and note_title shamelessly stolen from CSS
-   of the Subversion book. (from .sidebar and .sidebar .title) */
-.note_box
-{
-    border-top: dotted 1px black;
-    border-left: dotted 1px black;
-    border-right: solid 2px black;
-    border-bottom: solid 2px black;
-    background: rgb(240,220,170);
-    padding: 0 0.12in;
-    margin: 0.5in;
+a.kscript_func_docs {
+  text-decoration: underline;
 }
 
-.note_box .note_title {
-  text-align: center;
-  font-size: 125%;
+/* Inline code (that we use often, for API links) clearly stands out --
+   background with some padding. */
+code {
+  background-color: #f0f0f0;
+  padding: .1875rem .375rem;
+}
+/* Exception to above:
+   do not customize code in AsciiDoctor multi-line code blocks (.highlight). */
+.highlight code {
+  background-color: transparent;
+  /* no padding, testcase: "RoadScene" on .../viewport_and_scenes_from_code */
+  padding: 0;
 }
 
-/* Tables with key controls should be done with
-   <table class="key_list"> */
-table.key_list {
-  width: 90%;
-  border: thin solid;
-  border-collapse: separate;
+/* Fix excessive space after last paragraph in castle-x3d-intro-block */
+.castle-x3d-intro-block p:last-child {
+  margin-bottom: 0;
 }
-table.key_list th { background: #eeeee0; border: thin solid white; }
-table.key_list td { background: #ddddd0; border: thin solid white; width: 50%; }
 
 /* Adapted from my pasdoc.css */
 table.thin_borders { border-collapse: collapse; }
@@ -156,30 +113,11 @@ span.command_line_option {
 
 dt { font-weight: bold; }
 
-.panel-footer {
+.castle-page-footer {
     font-size: smaller;
-    margin-top: 2rem;
 }
 
 span.version_number { font-size: small }
-
-.rss_link {
-  float: right;
-  background: red;
-  padding: 0.3em;
-  border: thin outset black;
-}
-.rss_link a {
-  color: white;
-  font-weight: bold
-}
-
-pre.vrml_extension_spec { }
-
-dl.vrml_ver_differences > dt {
-  font-weight: normal;
-  font-style: italic;
-}
 
 .cge-gallery-link {
   /* background: #e8d59a; */
@@ -258,25 +196,13 @@ a.screenshot:hover img { border: 2pt solid #888; }
     margin-bottom: 0.5em;
 }
 
-.main-page-action.btn-info {
+.main-page-action.castle-button-middle-actions {
     line-height: 2em; /* override height to be smaller */
 }
 
 .banner-container {
     width: 100%;
     margin-bottom: 3em !important;
-}
-
-.donate-photo {
-    float: right;
-    width: 300px;
-    max-width: 50%;
-    display: inline-block;
-    margin-bottom: 0.5rem;
-    margin-left: 0.5rem;
-}
-.donate-photo img {
-    width: 100%;
 }
 
 .preview-warning {
@@ -286,21 +212,6 @@ a.screenshot:hover img { border: 2pt solid #888; }
 
 a.download_code {
     text-decoration: underline;
-}
-
-/* make documentation.php lists look good */
-.content-near-sidebar       ol,
-.content-near-sidebar       ul,
-article.post .entry-content ol,
-article.post .entry-content ul {
-  margin-bottom: 10px !important;
-}
-/* Revert above change for class="list-no-margin" */
-.content-near-sidebar       ol.list-no-margin,
-.content-near-sidebar       ul.list-no-margin,
-article.post .entry-content ol.list-no-margin,
-article.post .entry-content ul.list-no-margin {
-  margin-bottom: 0 !important;
 }
 
 .message_404 {
@@ -333,27 +244,12 @@ h1, h2, code {
 
 /* main page stuff ----------------------------------------------------------- */
 
-.centered-wrapper {
-    text-align: center;
-}
-.centered {
-    display: inline-block;
-    text-align: left;
-}
 .centered-download-wrapper {
     text-align: center;
     margin-top: 1em;
 }
 .centered-download-wrapper .download {
     display: inline-block;
-}
-.download-hints {
-    margin-top: 1em;
-    margin-bottom: 1em;
-}
-.download-hints p {
-    margin-top: 0; /* .download-hints already makes margins */
-    margin-bottom: 0; /* .download-hints already makes margins */
 }
 
 .centered-download-wrapper .main-cge-download .btn-primary {
@@ -505,27 +401,6 @@ div.main_list_item {
   padding: 0.1em;
 }
 
-/* Don't set it float here, we may want to use it with various float values
-   or without float. */
-div.useful_link {
-  display: inline-block;
-  background: #EEE;
-  /* #ffff91; */
-  border: thin solid black;
-  padding: 0.3em;
-}
-
-div.x3d_component_intro {
-  display: block;
-  border: thin solid #333;
-  background: #fff4d2;
-  padding: 0.3em;
-}
-
-div.x3d_component_intro p.paragraph_first { margin-top: 0px; }
-div.x3d_component_intro p.paragraph_last { margin-bottom: 0px; }
-div.x3d_component_intro p.paragraph_first code { font-weight: bold; }
-
 dd { margin-left: 2em; }
 
 /* news --------------------------------------------------------------------- */
@@ -556,73 +431,7 @@ span.news_title.only_anchor {
   text-decoration: none;
 }
 
-.castle_rss_link {
-  float: right;
-  background: red;
-  padding: 0.3em;
-  border: thin outset black;
-  margin: 1em;
-}
-
-.castle_rss_link a {
-  color: white;
-  font-weight: bold
-}
-
-/* based on Bootstrap panel-footer */
-.panel-follow-us-old {
-  background-color: #f5f5f5;
-  border-bottom-left-radius: 3px;
-  border-bottom-right-radius: 3px;
-  border-top-left-radius: 3px;
-  border-top-right-radius: 3px;
-  border-top: 1px solid #ddd;
-  border-bottom: 1px solid #ddd;
-  padding: 10px 15px;
-  font-size: larger;
-}
-
-/* based on Bootstrap panel-footer */
-.panel-follow-us {
-  background-color: #f5f5f5;
-  border-bottom-left-radius: 3px;
-  border-bottom-right-radius: 3px;
-  border-top-left-radius: 3px;
-  border-top-right-radius: 3px;
-  border-top: 1px solid #ddd;
-  border-bottom: 1px solid #ddd;
-  padding: 10px 15px;
-  font-size: 1.5rem;
-}
-
 /* header ------------------------------------------------------------------- */
-
-.container-nav {
-  padding-left: 5px !important;
-}
-.navbar-brand {
-  padding: 5px !important;
-  margin-left: -5px !important;
-}
-.navbar-brand a {
-  display: block;
-  padding: 5px 10px;
-  color: #5e5e5e !important;
-}
-.navbar-brand a img {
-  margin-right: 0.25em;
-}
-/* present main page link similar to menu items, to communicate it is useful to click */
-.navbar-brand a:hover,
-.navbar-brand a:focus {
-  text-decoration: none !important;
-  background-color: #eeeeee !important;
-}
-
-/* override bottom margin on main page, to touch banner image */
-.navbar-main-page {
-  margin-bottom: 0 !important;
-}
 
 .header_breadcrumbs {
   color: #222;
@@ -631,38 +440,24 @@ span.news_title.only_anchor {
 .header_breadcrumbs a       { color: #5EB2E5; }
 .header_breadcrumbs a:hover { color: #39C; }
 
-.nav-tabs {
-  /* Separate brand from menu items on navbar */
-  clear: left;
-}
-/* Extra padding for navbar-collapse not needed, as we already have padding
-   from container-fluid.
-   This customization is necessary because of above "clear: both" on nav-tabs. */
-.navbar-collapse {
-  padding-left: 0;
-  padding-right: 0;
-}
-
-.nav-tabs.navbar-right {
-  border-bottom: 0 none;
-  /* In default bootstrap, it is aligned to right only when
-     "min-width: @grid-float-breakpoint".
-     We want it always, as we don't use collapsing, so @grid-float-breakpoint
-     doesn't apply to us. */
-  float: right;
-}
 .patreon-logo {
   height: 45px;
   margin-top: 5px;
 }
 
-/* --------------------------------------------------------------------------- */
-
-div.quote {
-  margin-left: 1em;
-  background: #FFD;
-  border: dotted 1px black;
+/*
+  Fix paddings when castle-donate-button-form is inside expanded menu,
+  this happens only for < large screens.
+  See https://getbootstrap.com/docs/5.0/layout/breakpoints/
+*/
+@media (max-width: 991.98px) {
+  .castle-donate-button-form {
+    padding-left: 0;
+    padding-bottom: 0.5em;
+  }
 }
+
+/* --------------------------------------------------------------------------- */
 
 .github-ribbon img {
   position: absolute;
@@ -715,80 +510,7 @@ div.quote {
   vertical-align: top;
 }
 
-/* google search box --------------------------------------------------------- */
-
-.google-search-container {
-  position: relative; /* to position gsc-search-button vs this */
-  width: 50%;
-  max-width: 400px;
-  float: right;
-  margin-top: 0.5em;
-  margin-right: 0.5em;
-}
-
-.has-github-ribbon .google-search-container {
-  margin-right: 140px; /* margin from GitHub ribbon */
-}
-
-.google-search-container .gsc-search-button {
-  position: absolute;
-  right: 0;
-  top: -1px;
-}
-
-.gsc-search-box-tools .gsc-search-box .gsc-input {
-  padding-right: 0px !important;
-}
-
-.cse .gsc-control-cse, .gsc-control-cse {
-  padding: 0 !important;
-}
-.form.gsc-search-box {
-  margin: 0 !important;
-}
-.gsc-control-cse {
-  background-color: transparent !important;
-  border-style: none !important;
-}
-
-.gsc-control-cse, .gsc-control-cse .gsc-table-result {
-  font-size: normal !important;
-}
-
-.google-search-results-container .gsc-expansionArea {
-  border-bottom: thin solid #aaaaaa;
-}
-
-/* Restore normal CSS behavior, overriding Bootstrap weirdness */
-.google-search-container {
-  line-height: normal;
-}
-.google-search-container {
-  box-sizing: content-box !important;
-}
-.google-search-container div {
-  box-sizing: content-box !important;
-}
-.gsc-search-button {
-  box-sizing: content-box !important;
-}
-
 /* Others ------------------------------------------------------------------- */
-
-#disqus_thread {
-  max-width: 800px;
-  /* margin-left: auto; */
-  /* margin-right: auto; */
-}
-
-.main-widgets {
-  float: left;
-  width: 300px;
-}
-
-.bottom-widget {
-  margin: 0.5em 0;
-}
 
 .kscript_func_docs .type { color: blue; }
 
@@ -804,10 +526,6 @@ div.thumbnails-align-right {
 }
 div.thumbnails-align-center {
     text-align: center;
-}
-div.thumbnails {
-    margin-top: 3rem;
-    margin-bottom: 3rem;
 }
 div.thumbnails a {
     display: inline-block;
@@ -856,7 +574,7 @@ div.thumbnails a {
 }
 
 /* ---------------------------------------------------------------------------
-   download and jumbotron (but not specific to main page) */
+   download (but not specific to main page) */
 
 div.download {
   display: inline-block;
@@ -884,7 +602,7 @@ div.download span.download_details { font-size: smaller; }
   margin: 0.1em 0.5em;
 }
 
-.jumbotron .btn-patreon {
+.download .btn-patreon {
   margin-right: auto;
   margin-left: auto;
   display: block;
@@ -894,6 +612,10 @@ div.download span.download_details { font-size: smaller; }
 
 .centered-download-wrapper .btn-primary .download-button-hint {
   font-size: x-small;
+}
+
+.btn-store-in-downloads {
+  margin: 0.5em;
 }
 
 /* convert stuff ------------------------------------------------------------- */
@@ -908,17 +630,8 @@ div.download span.download_details { font-size: smaller; }
   height: auto !important; /* override Bootstrap */
 }
 
-.convert-form .jumbotron {
-  padding: 30px !important;
-}
-
 .convert-form label {
   font-weight: inherit;
-}
-
-.convert-form p {
-  font-size: inherit !important; /* override Bootstrap */
-  font-weight: inherit !important; /* override Bootstrap */
 }
 
 .convert-form .output-format-title {
@@ -940,21 +653,17 @@ div.download span.download_details { font-size: smaller; }
   margin-right: auto;
 }
 
+.convert-form .output-format-group {
+  margin: 1em 0;
+}
+
 .convert-form .convert-patreon,
 .convert-form .another {
   margin-top: 2em;
 }
 
-.convert-form .convert-patreon a.btn {
-  max-width: 20em;
-}
-
-.convert-output p {
-  text-align: center;
-}
-
-.panel-body::after {
-  clear: none !important;
+.convert-form {
+  margin-bottom: 1em;
 }
 
 /* talk page ---------------------------------------------------------------- */
@@ -992,8 +701,6 @@ div.download span.download_details { font-size: smaller; }
   font-weight: bold;
   text-align: center;
   font-size: larger;
-}
-.feature-description {
 }
 .feature-image {
   width: 100%;

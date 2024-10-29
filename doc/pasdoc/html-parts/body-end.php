@@ -17,9 +17,9 @@ function read_cge_version()
     return trim($line, "\t\n'");
 }
 
-// Right now we only show 7.0-alpha.snapshot version
+// Right now we only show 7.0-alpha.XXX.snapshot version
 $cgeVersions = array(
-    '7.0-alpha.snapshot' => array('url' => CASTLE_PROD_URL . 'apidoc/html/'),
+    '7.0-alpha.3.snapshot' => array('url' => CASTLE_PROD_URL . 'apidoc/html/'),
 );
 
 $cgeCurrentVersion = read_cge_version();
