@@ -104,7 +104,7 @@ type
       loaded components. Like this:
 
       @longCode(#
-      MyButton := MyCastleControl.DesignedComponent('MyButton') as TCastleButton;
+      MyButton := MyCastleControl.Container.DesignedComponent('MyButton') as TCastleButton;
       #)
 
       When the name is not found, raises exception (unless Required is @false,
