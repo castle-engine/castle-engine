@@ -778,7 +778,7 @@ begin
           FpcOptions.Add('-CR'); // Verify method calls
           FpcOptions.Add('-g');  // Debug info (automatic), for debuggers
           if Options.CPU <> Wasm32 then
-            FpcOptions.Add('-gl'); // Line info (in backtraces)
+            FpcOptions.Add('-gl') // Line info (in backtraces)
           else
             { Without this, compiling
                 castle-engine compile --os=wasi --cpu=wasm32 --mode=debug
