@@ -112,7 +112,7 @@ begin
       Result := JsonObj.Get('value', '')
     else
     begin
-      WritelnWarning('IFC', 'IFC field "%s" is a JSON object, but not of type "IfcLabel" or "IfcText", ignoring', [
+      WritelnWarning('IFC', 'IFC field "%s" is a JSON object, but not of type "IfcLabel" or "IfcText" or "IfcIdentifier", ignoring', [
         DebugJsonKey
       ]);
       Result := '';
@@ -142,11 +142,12 @@ begin
   begin
     JsonObj := JsonValue as TJsonObject;
     JsonObjType := JsonObj.Get('type', '');
-    if JsonObjType = 'IfcTimeStamp' then
+    if (JsonObjType = 'IfcTimeStamp') or
+       (JsonObjType = 'IfcDimensionCount') then
       Result := JsonObj.Get('value', Int64(0))
     else
     begin
-      WritelnWarning('IFC', 'IFC field "%s" is a JSON object, but not of type "IfcTimeStamp", ignoring', [
+      WritelnWarning('IFC', 'IFC field "%s" is a JSON object, but not of type "IfcTimeStamp" or "IfcDimensionCount", ignoring', [
         DebugJsonKey
       ]);
       Result := 0;
@@ -181,8 +182,8 @@ begin
     JsonObj := JsonValue as TJsonObject;
     JsonObjType := JsonObj.Get('type', '');
     if (JsonObjType = 'IfcPositiveLengthMeasure') or
-        (JsonObjType = 'IfcLengthMeasure') or
-        (JsonObjType = 'IfcReal') then
+       (JsonObjType = 'IfcLengthMeasure') or
+       (JsonObjType = 'IfcReal') then
       Result := JsonObj.Get('value', 0.0)
     else
     begin
