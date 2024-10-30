@@ -576,16 +576,23 @@ begin
     { Set Navigation explicitly, otherwise SetNavigationType below could call
       ExamineNavigation / WalkNavigation that call AssignDefaultNavigation when Navigation = nil,
       and we would have infinite AssignDefaultNavigation calls loop. }
-    if NewNavigationType in [ntExamine, ntTurntable] then
-      Navigation := InternalExamineNavigation
-    else
-      Navigation := InternalWalkNavigation;
+    case NewNavigationType of
+      ntExamine, ntTurntable:
+        Navigation := InternalExamineNavigation;
+      nt2D:
+        Navigation := Internal2DNavigation;
+      else
+        Navigation := InternalWalkNavigation;
+    end;
+
     NavigationType := NewNavigationType;
-    { Call InternalUpdateNavigation on both internal navigation instances,
+
+    { Call InternalUpdateNavigation on all internal navigation instances,
       not only on current Navigation, to keep all properties, even the ones specific
       to a class (like TCastleWalkNavigation.PreferredHeight) always up-to-date. }
     Scene.InternalUpdateNavigation(InternalExamineNavigation);
     Scene.InternalUpdateNavigation(InternalWalkNavigation);
+    Scene.InternalUpdateNavigation(Internal2DNavigation);
   end else
   begin
     C := InternalExamineNavigation;
@@ -637,13 +644,16 @@ begin
     begin
       NavigationType := NavigationTypeFromNavigationInfo(Items.MainScene);
       Items.MainScene.InternalUpdateNavigation(Navigation);
-      { Call InternalUpdateNavigation also on both internal navigation instances,
+
+      { Call InternalUpdateNavigation on all internal navigation instances,
         to keep all properties, even the ones not copied by Assign (because specific
         to a class, like TCastleWalkNavigation.PreferredHeight) always up-to-date. }
       if Navigation <> InternalWalkNavigation then
         Items.MainScene.InternalUpdateNavigation(InternalWalkNavigation);
       if Navigation <> InternalExamineNavigation then
         Items.MainScene.InternalUpdateNavigation(InternalExamineNavigation);
+      if Navigation <> Internal2DNavigation then
+        Items.MainScene.InternalUpdateNavigation(Internal2DNavigation);
     end;
     {$warnings on}
     InsideBoundNavigationInfoChanged := false;

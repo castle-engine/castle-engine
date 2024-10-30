@@ -1,3 +1,5 @@
+{%MainUnit castleinternalefx.pas}
+
 { This contains translation of C header eax.h. }
 
 const

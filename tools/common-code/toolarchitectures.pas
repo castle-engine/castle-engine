@@ -20,6 +20,8 @@
   as FPMkUnit, so we're consistent with FPC and fpmake command-line options. }
 unit ToolArchitectures;
 
+{$I castleconf.inc}
+
 interface
 
 type
@@ -145,7 +147,8 @@ const
     {$ifdef CPUpowerpc64} powerpc64 {$endif}
     {$ifdef CPUavr} avr {$endif}
     {$ifdef CPUarmeb} armeb {$endif}
-    {$ifdef CPUmips} mips {$endif}
+    // On mipsel both CPUmips and CPUmipsel are defined by FPC
+    {$if defined(CPUmips) and not defined(CPUmipsel)} mips {$endif}
     {$ifdef CPUmipsel} mipsel {$endif}
     {$ifdef CPUjvm} jvm {$endif}
     {$ifdef CPUi8086} i8086 {$endif}
@@ -292,14 +295,14 @@ begin
   Description := 'Set the target processor for which we build/package.' +NL+
     'This is ignored if you used --target=<target>, with <target> being something else than "custom".' +NL+
     'Available <cpu> values: ' +NL;
-  for CPU in TCPU do
+  for CPU := Low(TCPU) to High(TCPU) do
     if CPU <> cpuNone then
     begin
       case CPU of
         aarch64: Extra := ' (64-bit ARM)';
         else Extra := '';
       end;
-      Description += '  ' + CPUToString(CPU) + Extra + NL;
+      Description := Description + '  ' + CPUToString(CPU) + Extra + NL;
     end;
   Result := OptionDescription('--cpu=<cpu>', Description);
 end;
@@ -312,7 +315,7 @@ begin
   Description := 'Set the target operating system for which we build/package.' +NL+
     'This is ignored if you used --target=<target>, with <target> being something else than "custom".' +NL+
     'Available <os> values: ' +NL;
-  for OS in TOS do
+  for OS := Low(TOS) to High(TOS) do
     if OS <> osNone then
     begin
       case OS of
@@ -320,7 +323,7 @@ begin
         darwin: Extra := ' (modern macOS 10.x, caled also Mac OS X)';
         else Extra := '';
       end;
-      Description += '  ' + OSToString(OS) + Extra + NL;
+      Description := Description + '  ' + OSToString(OS) + Extra + NL;
     end;
   Result := OptionDescription('--os=<os>', Description);
 end;

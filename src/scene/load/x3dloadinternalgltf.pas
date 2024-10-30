@@ -1,5 +1,5 @@
 {
-  Copyright 2018-2023 Michalis Kamburelis.
+  Copyright 2018-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -13,32 +13,28 @@
   ----------------------------------------------------------------------------
 }
 
-{ Load 3D models in the glTF 2.0 format (@link(LoadGltf)). }
+{ Load models in the glTF 2.0 format, converting them to an X3D nodes graph.
+  This routine is internally used by the @link(LoadNode) to load an Gltf file. }
 unit X3DLoadInternalGltf;
 
 {$I castleconf.inc}
 
 interface
 
-uses Classes,
-  CastleUtils, CastleVectors, X3DNodes, X3DFields;
-
-{ Load 3D model in the Gltf format, converting it to an X3D nodes graph.
-  This routine is internally used by the @link(LoadNode) to load an Gltf file. }
-function LoadGltf(const Stream: TStream; const BaseUrl: String): TX3DRootNode;
-
 implementation
 
-uses SysUtils, TypInfo, Math, PasGLTF, PasJSON, Generics.Collections,
-  CastleClassUtils, CastleDownload, CastleURIUtils, CastleLog,
+uses
+  // standard units
+  Classes,SysUtils, TypInfo, Math, Generics.Collections,
+  // PasGLTF units
+  CastlePasGLTF, CastlePasJSON,
+  // CGE units
+  CastleUtils, CastleVectors, X3DNodes, X3DLoad, X3DFields,
+  CastleClassUtils, CastleDownload, CastleUriUtils, CastleLog,
   CastleStringUtils, CastleTextureImages, CastleQuaternions,
   CastleImages, CastleVideos, CastleTimeUtils, CastleTransform,
   CastleLoadGltf, X3DLoadInternalUtils, CastleBoxes, CastleColors,
   CastleRenderOptions;
-
-{$ifndef FPC}
-{$POINTERMATH ON}
-{$endif}
 
 { This unit implements reading glTF into X3D.
   We're using PasGLTF from Bero: https://github.com/BeRo1985/pasgltf/
@@ -118,7 +114,7 @@ type
     to load URI using our CastleDownload, thus supporting all our URLs. }
   TMyGltfDocument = class(TPasGLTF.TDocument)
   strict private
-    function CastleGetUri(const aURI: TPasGLTFUTF8String): TStream;
+    function CastleGetUri(const aUri: TPasGLTFUTF8String): TStream;
   public
     constructor Create(const Stream: TStream; const BaseUrl: String); reintroduce;
   end;
@@ -130,17 +126,17 @@ begin
   { The interpretation of RootPath lies on our side, in GetUri implementation.
     Just use it to store BaseUrl then. }
   RootPath := BaseUrl;
-  GetURI := {$ifdef FPC}@{$endif}CastleGetUri;
+  GetUri := {$ifdef FPC}@{$endif}CastleGetUri;
 
   LoadFromStream(Stream);
 end;
 
-function TMyGltfDocument.CastleGetUri(const aURI: TPasGLTFUTF8String): TStream;
+function TMyGltfDocument.CastleGetUri(const aUri: TPasGLTFUTF8String): TStream;
 begin
   { Resolve and open URI using our CGE functions.
-    Without this, TPasGLTF.TDocument.DefaultGetURI would always use TFileStream.Create,
+    Without this, TPasGLTF.TDocument.DefaultGetUri would always use TFileStream.Create,
     and not work e.g. with Android assets. }
-  Result := Download(CombineURI(RootPath, aURI));
+  Result := Download(CombineUri(RootPath, aUri));
 end;
 
 { TGltfAppearanceNode -------------------------------------------------------- }
@@ -489,7 +485,7 @@ const
 
         In particular glossiness may be left as 1 (default),
         causing roughness 0, which results in black material,
-        for Bee from https://github.com/castle-engine/view3dscene/issues/27 .
+        for Bee from https://github.com/castle-engine/castle-model-viewer/issues/27 .
 
         For now just avoid having RoughnessFactor ridiculously low. }
       RoughnessFactor := Max(RoughnessFactor, 0.05);
@@ -698,7 +694,7 @@ procedure TPunctualLights.ReadLight(const LightObject: TPasJSONItemObject);
     begin
       ColorArray := TPasJSONItemArray(Item);
       for I := 0 to Min(2, ColorArray.Count - 1) do
-        Result.InternalData[I] := TPasJSON.GetNumber(ColorArray.Items[I], DefaultColor[I]);
+        Result.Data[I] := TPasJSON.GetNumber(ColorArray.Items[I], DefaultColor[I]);
     end;
   end;
 
@@ -1195,19 +1191,19 @@ var
         if Between(GltfTexture.Source, 0, Document.Images.Count - 1) then
         begin
           GltfImage := Document.Images[GltfTexture.Source];
-          if GltfImage.URI <> '' then
+          if GltfImage.Uri <> '' then
           begin
-            if FfmpegVideoMimeType(URIMimeType(GltfImage.URI), false) then
+            if FfmpegVideoMimeType(UriMimeType(GltfImage.Uri), false) then
             begin
               Texture := TMovieTextureNode.Create('', BaseUrl);
-              TMovieTextureNode(Texture).SetUrl([FixTextureUrl(GltfImage.URI)]);
+              TMovieTextureNode(Texture).SetUrl([FixTextureUrl(GltfImage.Uri)]);
               if CastleX3dExtensions then
                 TMovieTextureNode(Texture).FlipVertically := true;
               TMovieTextureNode(Texture).Loop := true;
             end else
             begin
               Texture := TImageTextureNode.Create('', BaseUrl);
-              TImageTextureNode(Texture).SetUrl([FixTextureUrl(GltfImage.URI)]);
+              TImageTextureNode(Texture).SetUrl([FixTextureUrl(GltfImage.Uri)]);
 
               { glTF specification defines (0,0) texture coord to be
                 at top-left corner, while X3D and OpenGL and OpenGLES expect it be
@@ -1542,7 +1538,7 @@ var
       Len := Length(A);
       Field.Count := Len;
       if Len <> 0 then
-        Move(A[0], Field.Items.List^[0], SizeOf(LongInt) * Len);
+        Move(A[0], Field.Items.L[0], SizeOf(Int32) * Len);
     end;
   end;
 
@@ -1560,7 +1556,7 @@ var
       Field.Count := Len;
       if Len <> 0 then
         // Both glTF and X3D call it "Float", it is "Single" in Pascal
-        Move(A[0], Field.Items.List^[0], SizeOf(Single) * Len);
+        Move(A[0], Field.Items.L[0], SizeOf(Single) * Len);
     end;
   end;
 
@@ -1577,7 +1573,7 @@ var
       Len := Length(A);
       Field.Count := Len;
       if Len <> 0 then
-        Move(A[0], Field.Items.List^[0], SizeOf(TVector2) * Len);
+        Move(A[0], Field.Items.L[0], SizeOf(TVector2) * Len);
     end;
   end;
 
@@ -1594,7 +1590,7 @@ var
       Len := Length(A);
       Field.Count := Len;
       if Len <> 0 then
-        Move(A[0], Field.Items.List^[0], SizeOf(TVector3) * Len);
+        Move(A[0], Field.Items.L[0], SizeOf(TVector3) * Len);
     end;
   end;
 
@@ -1612,7 +1608,7 @@ var
       Len := Length(A);
       Field.Count := Len;
       if Len <> 0 then
-        Move(A[0], Field.List^[0], SizeOf(TVector4) * Len);
+        Move(A[0], Field.L[0], SizeOf(TVector4) * Len);
     end;
   end;
 
@@ -1635,7 +1631,7 @@ var
       Len := Length(A);
       Field.Count := Len;
       if Len <> 0 then
-        Move(A[0], Field.List^[0], SizeOf(TVector4Integer) * Len);
+        Move(A[0], Field.L[0], SizeOf(TVector4Integer) * Len);
     end;
   end;
 
@@ -1652,7 +1648,7 @@ var
       Len := Length(A);
       List.Count := Len;
       if Len <> 0 then
-        Move(A[0], List.List^[0], SizeOf(TMatrix4) * Len);
+        Move(A[0], List.L[0], SizeOf(TMatrix4) * Len);
     end;
   end;
 
@@ -1674,12 +1670,12 @@ var
         { Return exact quaternions, without converting to axis-angle.
           This will cooperate with TOrientationInterpolatorNode.KeyValueQuaternions. }
         for I := 0 to Len - 1 do
-          Field.Items.List^[I] := Vector4FromGltf(A[I]);
+          Field.Items.L[I] := Vector4FromGltf(A[I]);
       end else
       begin
         // convert glTF rotation to X3D
         for I := 0 to Len - 1 do
-          Field.Items.List^[I] := RotationFromGltf(A[I]);
+          Field.Items.L[I] := RotationFromGltf(A[I]);
       end;
     end;
   end;
@@ -1718,7 +1714,7 @@ var
     I: Integer;
   begin
     for I := 0 to TexCoord.Count - 1 do
-      TexCoord.List^[I].Y := 1  - TexCoord.List^[I].Y;
+      TexCoord.L[I].Y := 1  - TexCoord.L[I].Y;
   end;
 
   function PossiblyLitGeometry(const Geometry: TAbstractGeometryNode): Boolean;
@@ -1800,122 +1796,143 @@ var
       end;
     end;
 
-    // read indexes
-    IndexField := Geometry.CoordIndexField;
-    if IndexField <> nil then
-    begin
-      Assert(Primitive.Indices <> -1);
-      AccessorToInt32(Primitive.Indices, IndexField, false);
-    end;
+    Appearance := nil; // may be used in "except" clause, so make sure it is defined
 
-    // parse attributes (initializing Coord, TexCoord and other such nodes)
-    // TODO: ForVertex true for all, or just for POSITION?
-    for AttributeName in Primitive.Attributes.Keys do
-    begin
-      if (AttributeName = 'POSITION') and (Geometry.CoordField <> nil) then
+    try
+      { We need to name shape nodes, to later have unique names for interpolators. }
+      Shape.X3DName :=
+        { mesh name } ParentGroup.X3DName +
+        { primitive index } '_Primitive' + IntToStr(ParentGroup.FdChildren.Count);
+
+      // read indexes
+      IndexField := Geometry.CoordIndexField;
+      if IndexField <> nil then
       begin
-        Coord := TCoordinateNode.Create;
-        AccessorToVector3(Primitive.Attributes[AttributeName], Coord.FdPoint, true);
-        Geometry.CoordField.Value := Coord;
-        Shape.BBox := TBox3D.FromPoints(Coord.FdPoint.Items);
-        { Do special fix for line strip and line loop: glTF specifies just one strip/loop,
-          put it in VertexCount. }
-        if (Geometry is TLineSetNode) and
-           (TLineSetNode(Geometry).Mode in [lmStrip, lmLoop]) then
-          TLineSetNode(Geometry).SetVertexCount([Coord.FdPoint.Count]);
-      end else
-      if IsPrefix('TEXCOORD_', AttributeName, false) and (Geometry.TexCoordField <> nil) then
+        Assert(Primitive.Indices <> -1);
+        AccessorToInt32(Primitive.Indices, IndexField, false);
+      end;
+
+      // parse attributes (initializing Coord, TexCoord and other such nodes)
+      // TODO: ForVertex true for all, or just for POSITION?
+      for AttributeName in Primitive.Attributes.Keys do
       begin
-        TexCoord := TTextureCoordinateNode.Create;
-        TexCoord.Mapping := AttributeName;
-        AccessorToVector2(Primitive.Attributes[AttributeName], TexCoord.FdPoint, false);
-        { We prefer to flip the texture, using TImageTextureNode.FlipVertically,
-          and not make a (slower) flipping of texture coordinates.
-          But when CastleX3dExtensions = false, we have no other choice right now but to flip them. }
-        if not CastleX3dExtensions then
-          FlipTextureCoordinates(TexCoord.FdPoint.Items);
-        SetMultiTextureCoordinate(Geometry, TexCoord);
-      end else
-      if (AttributeName = 'NORMAL') and (Geometry is TAbstractComposedGeometryNode) then
-      begin
-        Normal := TNormalNode.Create;
-        AccessorToVector3(Primitive.Attributes[AttributeName], Normal.FdVector, false);
-        TAbstractComposedGeometryNode(Geometry).FdNormal.Value := Normal;
-      end else
-      if (AttributeName = 'COLOR_0') and (Geometry.ColorField <> nil) then
-      begin
-        ColorAccessor := GetAccessor(Primitive.Attributes[AttributeName]);
-        if ColorAccessor.Type_ = TPasGLTF.TAccessor.TType.Vec4 then
+        if (AttributeName = 'POSITION') and (Geometry.CoordField <> nil) then
         begin
-          ColorRGBA := TColorRGBANode.Create;
-          ColorRGBA.Mode := cmModulate;
-          AccessorToVector4(Primitive.Attributes[AttributeName], ColorRGBA.FdColor, false);
-          Geometry.ColorField.Value := ColorRGBA;
+          Coord := TCoordinateNode.Create;
+          AccessorToVector3(Primitive.Attributes[AttributeName], Coord.FdPoint, true);
+          Geometry.CoordField.Value := Coord;
+          Shape.BBox := TBox3D.FromPoints(Coord.FdPoint.Items);
+          { Do special fix for line strip and line loop: glTF specifies just one strip/loop,
+            put it in VertexCount. }
+          if (Geometry is TLineSetNode) and
+            (TLineSetNode(Geometry).Mode in [lmStrip, lmLoop]) then
+            TLineSetNode(Geometry).SetVertexCount([Coord.FdPoint.Count]);
         end else
+        if IsPrefix('TEXCOORD_', AttributeName, false) and (Geometry.TexCoordField <> nil) then
         begin
-          Color := TColorNode.Create;
-          Color.Mode := cmModulate;
-          AccessorToVector3(Primitive.Attributes[AttributeName], Color.FdColor, false);
-          Geometry.ColorField.Value := Color;
-        end;
-      end else
-      if (AttributeName = 'TANGENT') and (Geometry is TAbstractComposedGeometryNode) then
-      begin
-        if CastleX3dExtensions then
+          TexCoord := TTextureCoordinateNode.Create;
+          TexCoord.Mapping := AttributeName;
+          AccessorToVector2(Primitive.Attributes[AttributeName], TexCoord.FdPoint, false);
+          { We prefer to flip the texture, using TImageTextureNode.FlipVertically,
+            and not make a (slower) flipping of texture coordinates.
+            But when CastleX3dExtensions = false, we have no other choice right now but to flip them. }
+          if not CastleX3dExtensions then
+            FlipTextureCoordinates(TexCoord.FdPoint.Items);
+          SetMultiTextureCoordinate(Geometry, TexCoord);
+        end else
+        if (AttributeName = 'NORMAL') and (Geometry is TAbstractComposedGeometryNode) then
         begin
-          Tangent := TTangentNode.Create;
-          Tangent4D := TVector4List.Create;
-          try
-            AccessorToVector4(Primitive.Attributes[AttributeName], Tangent4D, false);
-            Tangent.SetVector4D(Tangent4D);
-          finally FreeAndNil(Tangent4D) end;
-          TAbstractComposedGeometryNode(Geometry).FdTangent.Value := Tangent;
-        end;
-      end else
-      if (AttributeName = 'JOINTS_0') then
+          Normal := TNormalNode.Create;
+          AccessorToVector3(Primitive.Attributes[AttributeName], Normal.FdVector, false);
+          TAbstractComposedGeometryNode(Geometry).FdNormal.Value := Normal;
+        end else
+        if (AttributeName = 'COLOR_0') and (Geometry.ColorField <> nil) then
+        begin
+          ColorAccessor := GetAccessor(Primitive.Attributes[AttributeName]);
+          if ColorAccessor.Type_ = TPasGLTF.TAccessor.TType.Vec4 then
+          begin
+            ColorRGBA := TColorRGBANode.Create;
+            ColorRGBA.Mode := cmModulate;
+            AccessorToVector4(Primitive.Attributes[AttributeName], ColorRGBA.FdColor, false);
+            Geometry.ColorField.Value := ColorRGBA;
+          end else
+          begin
+            Color := TColorNode.Create;
+            Color.Mode := cmModulate;
+            AccessorToVector3(Primitive.Attributes[AttributeName], Color.FdColor, false);
+            Geometry.ColorField.Value := Color;
+          end;
+        end else
+        if (AttributeName = 'TANGENT') and (Geometry is TAbstractComposedGeometryNode) then
+        begin
+          if CastleX3dExtensions then
+          begin
+            Tangent := TTangentNode.Create;
+            Tangent4D := TVector4List.Create;
+            try
+              AccessorToVector4(Primitive.Attributes[AttributeName], Tangent4D, false);
+              Tangent.SetVector4D(Tangent4D);
+            finally FreeAndNil(Tangent4D) end;
+            TAbstractComposedGeometryNode(Geometry).FdTangent.Value := Tangent;
+          end;
+        end else
+        if (AttributeName = 'JOINTS_0') then
+        begin
+          Geometry.InternalSkinJoints := TVector4IntegerList.Create;
+          AccessorToVector4Integer(Primitive.Attributes[AttributeName], Geometry.InternalSkinJoints, false);
+        end else
+        if (AttributeName = 'WEIGHTS_0') then
+        begin
+          Geometry.InternalSkinWeights := TVector4List.Create;
+          AccessorToVector4(Primitive.Attributes[AttributeName], Geometry.InternalSkinWeights, false);
+        end else
+          WritelnLog('glTF', 'Ignoring vertex attribute ' + AttributeName + ', not implemented (for this primitive mode)');
+      end;
+
+      // determine Appearance
+      if Between(Primitive.Material, 0, Appearances.Count - 1) then
+        Appearance := Appearances[Primitive.Material] as TGltfAppearanceNode
+      else
       begin
-        Geometry.InternalSkinJoints := TVector4IntegerList.Create;
-        AccessorToVector4Integer(Primitive.Attributes[AttributeName], Geometry.InternalSkinJoints, false);
-      end else
-      if (AttributeName = 'WEIGHTS_0') then
-      begin
-        Geometry.InternalSkinWeights := TVector4List.Create;
-        AccessorToVector4(Primitive.Attributes[AttributeName], Geometry.InternalSkinWeights, false);
-      end else
-        WritelnLog('glTF', 'Ignoring vertex attribute ' + AttributeName + ', not implemented (for this primitive mode)');
+        Appearance := DefaultAppearance;
+        if Primitive.Material <> -1 then
+          WritelnWarning('glTF', 'Primitive specifies invalid material index %d',
+            [Primitive.Material]);
+      end;
+      Appearance.Used := true;
+      Appearance.UsedAsLit := Appearance.UsedAsLit or PossiblyLitGeometry(Geometry);
+      Shape.Appearance := Appearance;
+
+      // apply additional TGltfAppearanceNode parameters, specified in X3D at geometry
+      Geometry.Solid := not Appearance.DoubleSided;
+
+      if CastleX3dExtensions then
+        Shape.GenerateTangents;
+
+      MetadataCollision := ParentGroup.MetadataString['CastleCollision'];
+      if MetadataCollision = 'none' then
+        Shape.Collision := scNone
+      else
+      if MetadataCollision = 'box' then
+        Shape.Collision := scBox
+      else
+      if (MetadataCollision = '') or (MetadataCollision = 'default') then
+        Shape.Collision := scDefault
+      else
+        WritelnWarning('Invalid value for "CastleCollision" custom property, ignoring: %s', [MetadataCollision]);
+
+    except
+      { Free Shape, to not leak memory in case e.g. GenerateTangents
+        raises exception.
+        Protect Shape.Appearance from being freed, as it's shared in Appearances
+        array. }
+      if Appearance <> nil then
+        Appearance.KeepExistingBegin;
+      FreeAndNil(Shape);
+      if Appearance <> nil then
+        Appearance.KeepExistingEnd;
+      raise;
     end;
-
-    // determine Appearance
-    if Between(Primitive.Material, 0, Appearances.Count - 1) then
-      Appearance := Appearances[Primitive.Material] as TGltfAppearanceNode
-    else
-    begin
-      Appearance := DefaultAppearance;
-      if Primitive.Material <> -1 then
-        WritelnWarning('glTF', 'Primitive specifies invalid material index %d',
-          [Primitive.Material]);
-    end;
-    Appearance.Used := true;
-    Appearance.UsedAsLit := Appearance.UsedAsLit or PossiblyLitGeometry(Geometry);
-    Shape.Appearance := Appearance;
-
-    // apply additional TGltfAppearanceNode parameters, specified in X3D at geometry
-    Geometry.Solid := not Appearance.DoubleSided;
-
-    if CastleX3dExtensions then
-      Shape.GenerateTangents;
-
-    MetadataCollision := ParentGroup.MetadataString['CastleCollision'];
-    if MetadataCollision = 'none' then
-      Shape.Collision := scNone
-    else
-    if MetadataCollision = 'box' then
-      Shape.Collision := scBox
-    else
-    if (MetadataCollision = '') or (MetadataCollision = 'default') then
-      Shape.Collision := scDefault
-    else
-      WritelnWarning('Invalid value for "CastleCollision" custom property, ignoring: %s', [MetadataCollision]);
 
     // add to X3D
     ParentGroup.AddChildren(Shape);
@@ -1927,16 +1944,30 @@ var
   var
     Primitive: TPasGLTF.TMesh.TPrimitive;
     Group: TGroupNode;
+    I: Integer;
   begin
     Group := TGroupNode.Create;
     Group.X3DName := Mesh.Name;
+    { Assign name to more easily recognize this in X3D output,
+      and to have unique names for TShapeNode,
+      which implies unique names for animations.
+      Testcase: Quaternius monster glTF models,
+      https://quaternius.com/packs/ultimatemonsters.html ,
+      convert Bunny.gltf to X3D.
+      Should not make any warning. }
+    if Group.X3DName = '' then
+      Group.X3DName := 'Mesh' + IntToStr(ParentGroup.FdChildren.Count);
+
     ParentGroup.AddChildren(Group);
     ExportNodes.Add(Group);
 
     ReadMetadata(Mesh.Extras, Group);
 
-    for Primitive in Mesh.Primitives do
+    for I := 0 to Mesh.Primitives.Count - 1 do
+    begin
+      Primitive := Mesh.Primitives[I];
       ReadPrimitive(Primitive, Group);
+    end;
   end;
 
   procedure ReadMesh(const MeshIndex: Integer;
@@ -1960,7 +1991,10 @@ var
       OrthoViewpoint.X3DName := Camera.Name;
       OrthoViewpoint.Position := TVector3.Zero;
       if CastleX3dExtensions then
+      begin
+        OrthoViewpoint.AutoCenterOfRotation := true;
         OrthoViewpoint.GravityTransform := false;
+      end;
       ParentGroup.AddChildren(OrthoViewpoint);
 
       ReadMetadata(Camera.Extras, OrthoViewpoint);
@@ -1974,7 +2008,10 @@ var
       if Camera.Perspective.YFov <> 0 then
         Viewpoint.FieldOfView := Camera.Perspective.YFov;
       if CastleX3dExtensions then
+      begin
+        Viewpoint.AutoCenterOfRotation := true;
         Viewpoint.GravityTransform := false;
+      end;
       ParentGroup.AddChildren(Viewpoint);
 
       ReadMetadata(Camera.Extras, Viewpoint);
@@ -2374,7 +2411,7 @@ var
     AnimationSampler.SetTime(TimeFraction);
 
     if SkeletonRootIndex <> -1 then
-      SkeletonRootInverse := AnimationSampler.Transformations.List^[SkeletonRootIndex].InverseTransform
+      SkeletonRootInverse := AnimationSampler.Transformations.L[SkeletonRootIndex].InverseTransform
     else
       SkeletonRootInverse := TMatrix4.Identity;
 
@@ -2382,7 +2419,7 @@ var
       https://www.slideshare.net/Khronos_Group/gltf-20-reference-guide }
     for I := 0 to Joints.Count - 1 do
       JointMatrix[I] := SkeletonRootInverse *
-        AnimationSampler.Transformations.List^[JointsGltf[I]].Transform *
+        AnimationSampler.Transformations.L[JointsGltf[I]].Transform *
         InverseBindMatrices[I];
 
     { For each vertex, calculate SkinMatrix as linear combination of JointMatrix[...]
@@ -2404,20 +2441,25 @@ var
             """it's not exactly a satisfying fix, but in practice using 1, 0, 0, 0 when the weights would otherwise be zero has avoided these issues in threejs."""
           https://github.com/KhronosGroup/glTF/pull/1352
           https://github.com/Franck-Dernoncourt/NeuroNER/issues/91 }
-        SkinMatrix := JointMatrix.List^[0];
+        SkinMatrix := JointMatrix.L[0];
       end else
       begin
         SkinMatrix :=
-          JointMatrix.List^[VertexJoints.X] * VertexWeights.X +
-          JointMatrix.List^[VertexJoints.Y] * VertexWeights.Y +
-          JointMatrix.List^[VertexJoints.Z] * VertexWeights.Z +
-          JointMatrix.List^[VertexJoints.W] * VertexWeights.W;
+          JointMatrix.L[VertexJoints.X] * VertexWeights.X +
+          JointMatrix.L[VertexJoints.Y] * VertexWeights.Y +
+          JointMatrix.L[VertexJoints.Z] * VertexWeights.Z +
+          JointMatrix.L[VertexJoints.W] * VertexWeights.W;
       end;
-      AnimatedCoords.List^[KeyIndex * OriginalCoords.Count + I] := SkinMatrix.MultPoint(OriginalCoords[I]);
+      { Note: On Delphi, we *have to* use L[...] below and depend on $pointermath on,
+        instead of using List^[...].
+        That's because on Delphi, List^[...] may have too small (declared) upper size
+        due to Delphi not supporting SizeOf(T) in generics.
+        See https://github.com/castle-engine/castle-engine/issues/474 . }
+      AnimatedCoords.L[KeyIndex * OriginalCoords.Count + I] := SkinMatrix.MultPoint(OriginalCoords[I]);
       if AnimatedNormals <> nil then
-        AnimatedNormals.List^[KeyIndex * OriginalNormals.Count + I] := SkinMatrix.MultDirection(OriginalNormals[I]);
+        AnimatedNormals.L[KeyIndex * OriginalNormals.Count + I] := SkinMatrix.MultDirection(OriginalNormals[I]);
       if AnimatedTangents <> nil then
-        AnimatedTangents.List^[KeyIndex * OriginalTangents.Count + I] := SkinMatrix.MultDirection(OriginalTangents[I]);
+        AnimatedTangents.L[KeyIndex * OriginalTangents.Count + I] := SkinMatrix.MultDirection(OriginalTangents[I]);
     end;
   end;
 
@@ -2433,7 +2475,8 @@ var
     BBox.ToCenterSize(Center, Size);
 
     ValueTrigger := TValueTriggerNode.Create;
-    ValueTrigger.X3DName := 'ValueTrigger_setBBox_' + TimeSensor.X3DName;
+    ValueTrigger.X3DName := 'ValueTrigger_setBBox_' +
+      TimeSensor.X3DName + '_' + Shape.X3DName;
     ParentGroup.AddChildren(ValueTrigger);
     ParentGroup.AddRoute(TimeSensor.EventIsActive, ValueTrigger.EventTrigger);
 
@@ -2444,6 +2487,15 @@ var
     F := TSFVec3f.Create(nil, true, 'bboxSize', Size);
     ValueTrigger.AddCustomField(F);
     ParentGroup.AddRoute(F, Shape.FdBboxSize);
+  end;
+
+  function ShapeLit(const ShapeNode: TShapeNode): Boolean;
+  begin
+    Result := (ShapeNode.Appearance <> nil) and
+      (
+        (ShapeNode.Appearance.Material is TMaterialNode) or
+        (ShapeNode.Appearance.Material is TPhysicalMaterialNode)
+      );
   end;
 
   { Calculate skin interpolator nodes to deform this one shape.
@@ -2468,6 +2520,7 @@ var
     OriginalNormals, AnimatedNormals: TVector3List;
     OriginalTangents, AnimatedTangents: TVector3List;
     MemoryTaken: Int64;
+    InterpolatorNameSuffix: String;
   begin
     CoordField := Shape.Geometry.CoordField;
     if CoordField = nil then
@@ -2503,8 +2556,7 @@ var
       end;
     end else
     begin
-      if (Shape.Material is TMaterialNode) or
-         (Shape.Material is TPhysicalMaterialNode) then
+      if ShapeLit(Shape) then
         WritelnWarning('TODO: Normal vectors are not provided for a skinned geometry (using lit material), and in effect the resulting animation will be slow as we''ll recalculate normals more often than necessary. ' + 'For now it is adviced to generate glTF with normals included for skinned meshes.');
     end;
 
@@ -2524,9 +2576,8 @@ var
       end;
     end else
     begin
-      if ( (Shape.Material is TMaterialNode) or
-           (Shape.Material is TPhysicalMaterialNode) ) and
-         ((Shape.Material as TAbstractOneSidedMaterialNode).NormalTexture <> nil) then
+      if ShapeLit(Shape) and
+         ((Shape.Appearance.Material as TAbstractOneSidedMaterialNode).NormalTexture <> nil) then
         WritelnWarning('TODO: Tangent vectors are not provided for a skinned geometry (using lit material with normalmap), and in effect the resulting animation will be slow as we''ll recalculate tangents more often than necessary. ' + 'For now it is adviced to generate glTF with tangents included for skinned meshes.');
     end;
 
@@ -2541,8 +2592,13 @@ var
 
     for Anim in Animations do
     begin
+      InterpolatorNameSuffix :=
+        'SkinInterpolator_'
+        + Anim.TimeSensor.X3DName + '_'
+        + Shape.X3DName;
+
       CoordInterpolator := TCoordinateInterpolatorNode.Create;
-      CoordInterpolator.X3DName := 'SkinCoordInterpolator_' + Anim.TimeSensor.X3DName;
+      CoordInterpolator.X3DName := 'Coord' + InterpolatorNameSuffix;
       GatherAnimationKeysToSample(CoordInterpolator.FdKey.Items, Anim.Interpolators);
       { Assign count, avoids later reallocating memory when adding vectors (slow),
         and avoids Capacity >> Count (wasted memory).
@@ -2559,7 +2615,7 @@ var
       if Normal <> nil then
       begin
         NormalInterpolator := TCoordinateInterpolatorNode.Create;
-        NormalInterpolator.X3DName := 'SkinNormalInterpolator_' + Anim.TimeSensor.X3DName;
+        NormalInterpolator.X3DName := 'Normal' + InterpolatorNameSuffix;
         //GatherAnimationKeysToSample(NormalInterpolator.FdKey.Items, Anim.Interpolators);
         // faster:
         NormalInterpolator.FdKey.Assign(CoordInterpolator.FdKey);
@@ -2581,7 +2637,7 @@ var
       if Tangent <> nil then
       begin
         TangentInterpolator := TCoordinateInterpolatorNode.Create;
-        TangentInterpolator.X3DName := 'SkinTangentInterpolator_' + Anim.TimeSensor.X3DName;
+        TangentInterpolator.X3DName := 'Tangent' + InterpolatorNameSuffix;
         //GatherAnimationKeysToSample(TangentInterpolator.FdKey.Items, Anim.Interpolators);
         // faster:
         TangentInterpolator.FdKey.Assign(CoordInterpolator.FdKey);
@@ -2865,8 +2921,16 @@ begin
   except FreeAndNil(Result); raise end;
 end;
 
-{$ifndef FPC}
-{$POINTERMATH OFF}
-{$endif}
-
+var
+  ModelFormat: TModelFormat;
+initialization
+  ModelFormat := TModelFormat.Create;
+  ModelFormat.OnLoad := {$ifdef FPC}@{$endif} LoadGLTF;
+  ModelFormat.OnLoadForceMemoryStream := true;
+  ModelFormat.MimeTypes.Add('model/gltf+json');
+  ModelFormat.MimeTypes.Add('model/gltf-binary');
+  ModelFormat.FileFilterName := 'glTF (*.glb, *.gltf)';
+  ModelFormat.Extensions.Add('.glb');
+  ModelFormat.Extensions.Add('.gltf');
+  RegisterModelFormat(ModelFormat);
 end.

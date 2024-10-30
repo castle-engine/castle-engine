@@ -1,3 +1,4 @@
+{%MainUnit x3dnodes.pas}
 {
   Copyright 2002-2022 Michalis Kamburelis.
 
@@ -25,7 +26,7 @@
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
+    constructor Create(const AX3DName: string = ''; const ABaseUrl: String = ''); override;
 
     { Extract only rotation (axis-angle format) from the transformation. }
     function TransformRotation: TVector4;

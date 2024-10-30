@@ -1,8 +1,10 @@
-------------------------------------------------------------------------------
-character/soldier based on
-  https://opengameart.org/content/soldier-10
-  by killyoverdrive
-  License(s): CC-BY-SA 3.0
+-----------------------------------------------------------
+Skeleton from Quaternius:
+
+- https://quaternius.com/
+- https://quaternius.com/packs/piratekit.html
+- License: _public domain_. Literally do what you want.
+- [Support the creator on Patreon](https://www.patreon.com/quaternius)!
 
 ------------------------------------------------------------------------------
 level/dungeon-tileset-extended based on
@@ -39,9 +41,3 @@ audio/flaunch.wav from
   https://opengameart.org/content/dark-fallout
   by Michel Baradari
   License(s): CC-BY 3.0
-
-------------------------------------------------------------------------------
-audio/dark fallout.ogg
-  https://opengameart.org/content/4-projectile-launches
-  by remaxim
-  License(s): CC-BY-SA 3.0

@@ -1,0 +1,261 @@
+object ImportSketchfabForm: TImportSketchfabForm
+  Left = 800
+  Height = 635
+  Top = 229
+  Width = 1065
+  Caption = 'Import model from Sketchfab'
+  ClientHeight = 635
+  ClientWidth = 1065
+  DesignTimePPI = 120
+  OnClose = FormClose
+  OnCreate = FormCreate
+  OnDestroy = FormDestroy
+  OnHide = FormHide
+  OnShow = FormShow
+  Position = poMainFormCenter
+  ShowInTaskBar = stAlways
+  LCLVersion = '2.2.2.0'
+  object ButtonDownloadAndAddViewport: TButton
+    AnchorSideRight.Control = ButtonClose
+    AnchorSideRight.Side = asrBottom
+    AnchorSideBottom.Control = ButtonClose
+    Left = 779
+    Height = 38
+    Top = 549
+    Width = 276
+    Anchors = [akRight, akBottom]
+    AutoSize = True
+    BorderSpacing.Bottom = 4
+    Caption = 'Download and Add To Viewport'
+    OnClick = ButtonDownloadAndAddViewportClick
+    TabOrder = 8
+  end
+  object ButtonDownloadOnly: TButton
+    AnchorSideRight.Control = ButtonClose
+    AnchorSideRight.Side = asrBottom
+    AnchorSideBottom.Control = ButtonDownloadAndAddViewport
+    Left = 955
+    Height = 38
+    Top = 507
+    Width = 100
+    Anchors = [akRight, akBottom]
+    AutoSize = True
+    BorderSpacing.Bottom = 4
+    Caption = 'Download'
+    OnClick = ButtonDownloadOnlyClick
+    TabOrder = 7
+  end
+  object ButtonViewSketchfab: TButton
+    AnchorSideTop.Side = asrBottom
+    Left = 8
+    Height = 38
+    Top = 589
+    Width = 234
+    Anchors = [akLeft, akBottom]
+    AutoSize = True
+    BorderSpacing.Top = 4
+    Caption = 'View selected in Sketchfab'
+    OnClick = ButtonViewSketchfabClick
+    TabOrder = 6
+  end
+  object ButtonClose: TButton
+    Left = 994
+    Height = 38
+    Top = 591
+    Width = 61
+    Anchors = [akRight, akBottom]
+    AutoSize = True
+    Caption = 'Close'
+    OnClick = ButtonCloseClick
+    TabOrder = 9
+  end
+  object ButtonTokenUrl: TButton
+    AnchorSideLeft.Control = ButtonViewSketchfab
+    AnchorSideTop.Side = asrBottom
+    AnchorSideBottom.Control = ButtonViewSketchfab
+    Left = 8
+    Height = 38
+    Top = 547
+    Width = 362
+    Anchors = [akLeft, akBottom]
+    AutoSize = True
+    BorderSpacing.Top = 4
+    BorderSpacing.Bottom = 4
+    Caption = 'Open Sketchfab account to copy API token'
+    OnClick = ButtonTokenUrlClick
+    ParentFont = False
+    TabOrder = 5
+  end
+  object CheckBoxAnimated: TCheckBox
+    AnchorSideTop.Side = asrBottom
+    Left = 16
+    Height = 26
+    Top = 51
+    Width = 147
+    BorderSpacing.Top = 8
+    Caption = 'Only Animated'
+    OnChange = CheckBoxAnimatedChange
+    TabOrder = 2
+  end
+  object ButtonSearch: TButton
+    AnchorSideLeft.Control = EditQuery
+    AnchorSideLeft.Side = asrBottom
+    AnchorSideTop.Control = EditQuery
+    AnchorSideTop.Side = asrCenter
+    Left = 622
+    Height = 38
+    Top = 7
+    Width = 71
+    AutoSize = True
+    BorderSpacing.Left = 8
+    Caption = 'Search'
+    OnClick = ButtonSearchClick
+    TabOrder = 1
+  end
+  object ButtonList: TSpeedButton
+    AnchorSideTop.Side = asrCenter
+    AnchorSideRight.Control = ButtonGrid
+    AnchorSideBottom.Control = ListModels
+    Left = 985
+    Height = 36
+    Hint = 'List'
+    Top = 41
+    Width = 36
+    Anchors = [akRight, akBottom]
+    Down = True
+    GroupIndex = 99
+    Images = Icons.ToolbarIcons
+    ImageIndex = 18
+    OnClick = ButtonListClick
+  end
+  object ButtonGrid: TSpeedButton
+    AnchorSideRight.Control = ListModels
+    AnchorSideRight.Side = asrBottom
+    AnchorSideBottom.Control = ListModels
+    Left = 1021
+    Height = 36
+    Hint = 'Grid'
+    Top = 41
+    Width = 36
+    Anchors = [akRight, akBottom]
+    GroupIndex = 99
+    Images = Icons.ToolbarIcons
+    ImageIndex = 19
+    OnClick = ButtonGridClick
+  end
+  object ListModels: TListView
+    AnchorSideTop.Control = CheckBoxAnimated
+    AnchorSideTop.Side = asrBottom
+    Left = 8
+    Height = 411
+    Top = 85
+    Width = 1049
+    Anchors = [akTop, akLeft, akRight, akBottom]
+    BorderSpacing.Top = 8
+    Columns = <    
+      item
+        AutoSize = True
+        Caption = 'Name'
+        Width = 67
+      end    
+      item
+        AutoSize = True
+        Caption = 'Face Count'
+        Width = 113
+      end    
+      item
+        AutoSize = True
+        Caption = 'License'
+        Width = 82
+      end    
+      item
+        AutoSize = True
+        Caption = 'Description'
+        Width = 785
+      end>
+    LargeImages = ImageListModelThumbnails
+    LargeImagesWidth = 256
+    RowSelect = True
+    ScrollBars = ssAutoBoth
+    TabOrder = 3
+    ViewStyle = vsReport
+    OnSelectItem = ListModelsSelectItem
+  end
+  object EditQuery: TEdit
+    AnchorSideLeft.Control = LabelQuery
+    AnchorSideLeft.Side = asrBottom
+    AnchorSideTop.Control = LabelQuery
+    AnchorSideTop.Side = asrCenter
+    Left = 182
+    Height = 39
+    Top = 7
+    Width = 432
+    BorderSpacing.Left = 8
+    OnKeyDown = EditQueryKeyDown
+    TabOrder = 0
+  end
+  object LabelQuery: TLabel
+    Left = 16
+    Height = 22
+    Top = 15
+    Width = 158
+    Caption = '&Search for models: '
+    FocusControl = EditQuery
+    ParentColor = False
+  end
+  object EditApiToken: TEdit
+    AnchorSideLeft.Control = Label1
+    AnchorSideLeft.Side = asrBottom
+    AnchorSideBottom.Control = ButtonTokenUrl
+    Left = 190
+    Height = 39
+    Top = 504
+    Width = 392
+    Anchors = [akLeft, akBottom]
+    BorderSpacing.Left = 8
+    BorderSpacing.Bottom = 4
+    EchoMode = emPassword
+    PasswordChar = '*'
+    TabOrder = 4
+  end
+  object Label1: TLabel
+    AnchorSideTop.Control = EditApiToken
+    AnchorSideTop.Side = asrCenter
+    Left = 8
+    Height = 22
+    Top = 512
+    Width = 174
+    BorderSpacing.Top = 8
+    Caption = 'Sketchfab API token: '
+    ParentColor = False
+  end
+  object LabelDocs: TLabel
+    Cursor = crHandPoint
+    Left = 1016
+    Height = 22
+    Top = 7
+    Width = 41
+    Anchors = [akTop, akRight]
+    AutoSize = False
+    Caption = 'Docs'
+    Font.Color = clBlue
+    Font.Height = 19
+    Font.Style = [fsUnderline]
+    ParentColor = False
+    ParentFont = False
+    OnClick = LabelDocsClick
+  end
+  object Timer1: TTimer
+    Enabled = False
+    Interval = 1
+    OnTimer = Timer1Timer
+    Left = 895
+    Top = 22
+  end
+  object ImageListModelThumbnails: TImageList
+    Height = 256
+    Width = 256
+    Left = 768
+    Top = 22
+  end
+end

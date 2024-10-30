@@ -1,3 +1,4 @@
+{%MainUnit x3dnodes.pas}
 {
   Copyright 2008-2022 Michalis Kamburelis.
 
@@ -66,6 +67,13 @@ const
     'ALL',
     'ALL_SORTED'
   );
+
+{$I auto_generated_node_helpers/x3dnodes_x3dpicksensornode.inc}
+{$I auto_generated_node_helpers/x3dnodes_linepicksensor.inc}
+{$I auto_generated_node_helpers/x3dnodes_pickablegroup.inc}
+{$I auto_generated_node_helpers/x3dnodes_pointpicksensor.inc}
+{$I auto_generated_node_helpers/x3dnodes_primitivepicksensor.inc}
+{$I auto_generated_node_helpers/x3dnodes_volumepicksensor.inc}
 
 procedure RegisterPickingNodes;
 begin

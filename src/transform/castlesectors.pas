@@ -14,9 +14,7 @@
 }
 
 { Sectors and waypoints, to improve creature AI in 3D levels.
-  For user-oriented description what are sectors and waypoints,
-  see "The Castle" developer docs,
-  [https://castle-engine.io/castle-development.php]. }
+  This is a simple "navigation mesh". }
 unit CastleSectors;
 
 {$I castleconf.inc}
@@ -176,7 +174,7 @@ var
   I: Integer;
 begin
   for I := 0 to Boxes.Count - 1 do
-    if Boxes.List^[I].Contains(Point) then
+    if Boxes.L[I].Contains(Point) then
       Exit(true);
   Result := false;
 end;
@@ -186,7 +184,7 @@ var
   I: Integer;
 begin
   for I := 0 to Boxes.Count - 1 do
-    if Boxes.List^[I].Collision(Box) then
+    if Boxes.L[I].Collision(Box) then
       Exit(true);
   Result := false;
 end;

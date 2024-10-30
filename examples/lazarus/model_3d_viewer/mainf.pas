@@ -1,5 +1,5 @@
 {
-  Copyright 2008-2022 Michalis Kamburelis.
+  Copyright 2008-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -14,9 +14,7 @@
 }
 
 { Main form. }
-unit mainf;
-
-{$mode objfpc}{$H+}
+unit MainF;
 
 interface
 
@@ -26,6 +24,7 @@ uses Classes, SysUtils, LResources, Forms, Controls, Graphics, Dialogs,
   CastleViewport, CastleDialogs, CastleControls;
 
 type
+  { Main form. }
   TMain = class(TForm)
     ApplicationProperties1: TApplicationProperties;
     ButtonExamine: TSpeedButton;
@@ -34,6 +33,7 @@ type
     ButtonScreenshot: TBitBtn;
     ButtonChangeCamera: TButton;
     ButtonWalk: TSpeedButton;
+    ButtonWarnings: TButton;
     EditPositionX: TEdit;
     EditPositionY: TEdit;
     EditPositionZ: TEdit;
@@ -63,7 +63,7 @@ type
     MenuQuit: TMenuItem;
     MenuSep1: TMenuItem;
     MenuOpen: TMenuItem;
-    OpenDialog1: TCastleOpen3DDialog;
+    OpenDialog1: TCastleOpenSceneDialog;
     PanelBottom: TPanel;
     SaveScreenshotDialog: TCastleSaveImageDialog;
     Timer1: TTimer;
@@ -72,6 +72,7 @@ type
     procedure ButtonScreenshotClick(Sender: TObject);
     procedure BrowserCameraChanged(Camera: TObject);
     procedure ButtonChangeCameraClick(Sender: TObject);
+    procedure ButtonWarningsClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormDeactivate(Sender: TObject);
     procedure MenuAboutOpenGLClick(Sender: TObject);
@@ -84,7 +85,7 @@ type
     procedure MenuMouseLookToggleClick(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
   private
-    SceneURL: string;
+    SceneUrl: String;
     CameraChanged: boolean;
     ButtonsNavigationType: array [TNavigationType] of TSpeedButton;
     CrosshairCtl: TCastleCrosshair;
@@ -95,11 +96,11 @@ type
     NavigationType: TNavigationType;
     Navigation: TCastleNavigation;
 
-    procedure OpenScene(const URL: string);
+    procedure OpenScene(const Url: String);
     procedure UpdateCaption;
     procedure UpdateCrosshairImage;
-    procedure OnPointingDeviceSensorsChange(Sender: TObject);
-    procedure RecentFilesOpenRecent(const URL: string);
+    procedure PointingDeviceSensorsChange(Sender: TObject);
+    procedure RecentFilesOpenRecent(const Url: String);
     procedure ChangeNavigationType(const NewNavigationType: TNavigationType);
   public
     { public declarations }
@@ -111,84 +112,66 @@ var
 implementation
 
 uses LCLType, LCLIntf, CastleVectors, CastleBoxes, X3DNodes,
-  CastleClassUtils, CastleUtils, X3DLoad, CastleURIUtils,
+  CastleClassUtils, CastleUtils, X3DLoad, CastleUriUtils,
   CastleGLUtils, CastleSceneCore, CastleFilesUtils, CastleParameters,
   CastleApplicationProperties,
   OpenGLInformation, CastleLCLUtils, ConsoleF, CastleImages, CastleSoundEngine;
 
 {$R *.lfm}
 
-procedure TMain.OpenScene(const URL: string);
+procedure TMain.OpenScene(const Url: String);
 
-  procedure LoadScene(const URL: String);
+  procedure LoadScene(const Url: String);
   begin
     MainScene.Free; // free previous MainScene
 
     MainScene := TCastleScene.Create(Self);
-    MainScene.Load(URL);
+    MainScene.Load(Url);
     MainScene.PreciseCollisions := true;
     MainScene.ProcessEvents := true;
 
     Viewport.Items.Add(MainScene);
+    // deprecated, but must be set for AssignDefaultCamera to reflect current camera
+    Viewport.Items.MainScene := MainScene;
 
     Viewport.AssignDefaultCamera;
   end;
 
 begin
-  Console.WasWarnings := false;
-  Console.Memo1.Lines.Append('--- Loading ' + URL);
+  Console.WarningsCount := 0; // reset
+  ButtonWarnings.Visible := false;
+  ButtonWarnings.Enabled := false;
+  Console.Memo1.Lines.Append('--- Loading ' + Url);
 
-  LoadScene(URL);
+  LoadScene(Url);
 
-  SceneURL := URL;
+  SceneUrl := Url;
   UpdateCaption;
 
-  if Console.WasWarnings then
-  begin
-    MenuShowConsole.Checked := true;
-    Console.Visible := MenuShowConsole.Checked;
-  end;
+  ButtonWarnings.Caption := Format('Warnings (%d)', [Console.WarningsCount]);
+  ButtonWarnings.Visible := Console.WarningsCount <> 0;
+  ButtonWarnings.Enabled := Console.WarningsCount <> 0;
 
-  RecentFiles.Add(URL);
+  RecentFiles.Add(Url);
 
   { for changing the crosshair shape }
-  MainScene.OnPointingDeviceSensorsChange := @OnPointingDeviceSensorsChange;
-
-  { simple Browser.Load always recreates the Navigation each time, which means
-    that we have to restore all camera properties that should be
-    "persistent" when loading scenes.
-    For now, this means mouse look stuff.
-
-    TODO:
-    - is above still true?
-      Load() recreates camera vectors? probably no more. fix
-    - And fix this example and this comment, to not use deprecated Load().
-
-    Note that you can instead load your scene manually (see *trivial*
-    TCastleControl.Load implementation), and this way avoid recreating
-    the camera. But then, you will have the opposite problem, you will
-    have to explicitly update camera properties that *should* change when
-    new scene is loaded, like the default viewpoint and navigation mode.
-    Which isn't really a serious problem (you have comfortable
-    TCastleSceneCore.InternalUpdateNavigation and TCastleSceneCore.InternalUpdateCamera
-    to deal with it). It's your choice, anyway. }
-  MenuMouseLookToggleClick(MenuMouseLookToggle);
+  MainScene.OnPointingDeviceSensorsChange := @PointingDeviceSensorsChange;
 end;
 
 procedure TMain.MenuOpenClick(Sender: TObject);
 begin
-  if SceneURL <> '' then
-    OpenDialog1.URL := SceneURL;
+  if SceneUrl <> '' then
+    OpenDialog1.Url := SceneUrl;
   if OpenDialog1.Execute then
-    OpenScene(OpenDialog1.URL);
+    OpenScene(OpenDialog1.Url);
 end;
 
 procedure TMain.UpdateCaption;
 var
   S: string;
 begin
-  if SceneURL <> '' then
-    S := URICaption(SceneURL)
+  if SceneUrl <> '' then
+    S := UriCaption(SceneUrl)
   else
     S := 'No Scene';
   S := S + ' | Castle Game Engine - Lazarus Model Viewer';
@@ -202,12 +185,12 @@ end;
 
 procedure TMain.MenuShowConsoleClick(Sender: TObject);
 begin
-  Console.Visible := MenuShowConsole.Checked;
+  Console.Show;
 end;
 
 procedure TMain.MenuWebsiteClick(Sender: TObject);
 begin
-  if not OpenURL('https://castle-engine.io/') then
+  if not OpenUrl('https://castle-engine.io/') then
     MessageDlg('WWW browser not found on your system.', mtError, [mbClose], 0);
 end;
 
@@ -215,7 +198,7 @@ procedure TMain.Timer1Timer(Sender: TObject);
 var
   Pos, Dir, Up: TVector3;
 begin
-  LabelFps.Caption := 'FPS: ' + Browser.Fps.ToString;
+  LabelFps.Caption := 'FPS: ' + Browser.Container.Fps.ToString;
 
   { Update edit boxes about camera only from time to time.
     Otherwise, updating edit controls
@@ -228,17 +211,17 @@ begin
     Viewport.Camera.GetView(Pos, Dir, Up);
     { Note that Dir, Up returned here are always normalized }
 
-    EditPositionX.Text := Format('%f', [Pos[0]]);
-    EditPositionY.Text := Format('%f', [Pos[1]]);
-    EditPositionZ.Text := Format('%f', [Pos[2]]);
+    EditPositionX.Text := FloatToStrDisplay(Pos[0]);
+    EditPositionY.Text := FloatToStrDisplay(Pos[1]);
+    EditPositionZ.Text := FloatToStrDisplay(Pos[2]);
 
-    EditDirectionX.Text := Format('%f', [Dir[0]]);
-    EditDirectionY.Text := Format('%f', [Dir[1]]);
-    EditDirectionZ.Text := Format('%f', [Dir[2]]);
+    EditDirectionX.Text := FloatToStrDisplay(Dir[0]);
+    EditDirectionY.Text := FloatToStrDisplay(Dir[1]);
+    EditDirectionZ.Text := FloatToStrDisplay(Dir[2]);
 
-    EditUpX.Text := Format('%f', [Up[0]]);
-    EditUpY.Text := Format('%f', [Up[1]]);
-    EditUpZ.Text := Format('%f', [Up[2]]);
+    EditUpX.Text := FloatToStrDisplay(Up[0]);
+    EditUpY.Text := FloatToStrDisplay(Up[1]);
+    EditUpZ.Text := FloatToStrDisplay(Up[2]);
   end;
 end;
 
@@ -255,7 +238,7 @@ begin
   end;
 end;
 
-procedure TMain.OnPointingDeviceSensorsChange(Sender: TObject);
+procedure TMain.PointingDeviceSensorsChange(Sender: TObject);
 var
   OverSensor: Boolean;
   SensorList: TPointingDeviceSensorList;
@@ -297,6 +280,9 @@ end;
 
 procedure TMain.FormCreate(Sender: TObject);
 begin
+  ApplicationProperties.ApplicationName := 'model_3d_viewer';
+  InitializeLog;
+
   { load config settings }
   UserConfig.Load;
 
@@ -304,6 +290,7 @@ begin
   Viewport.FullSize := true;
   Viewport.OnCameraChanged := @BrowserCameraChanged;
   Viewport.Camera.Add(TCastleDirectionalLight.Create(Self)); // headlight
+  Viewport.PreventInfiniteFallingDown := true;
   Browser.Controls.InsertFront(Viewport);
 
   RecentFiles := TCastleRecentFiles.Create(Self);
@@ -343,9 +330,9 @@ begin
   UserConfig.Save;
 end;
 
-procedure TMain.RecentFilesOpenRecent(const URL: string);
+procedure TMain.RecentFilesOpenRecent(const Url: String);
 begin
-  OpenScene(URL);
+  OpenScene(Url);
 end;
 
 procedure TMain.FormDeactivate(Sender: TObject);
@@ -368,6 +355,11 @@ begin
       StrToFloatDot(EditUpX.Text),
       StrToFloatDot(EditUpY.Text),
       StrToFloatDot(EditUpZ.Text)));
+end;
+
+procedure TMain.ButtonWarningsClick(Sender: TObject);
+begin
+  Console.Show;
 end;
 
 procedure TMain.BrowserCameraChanged(Camera: TObject);
@@ -420,9 +412,9 @@ var
 begin
   if SaveScreenshotDialog.Execute then
   begin
-    Image := Browser.SaveScreen;
+    Image := Browser.Container.SaveScreen;
     try
-      SaveImage(Image, SaveScreenshotDialog.URL);
+      SaveImage(Image, SaveScreenshotDialog.Url);
     finally FreeAndNil(Image) end;
   end;
 end;

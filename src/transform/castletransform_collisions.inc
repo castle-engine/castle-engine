@@ -237,7 +237,7 @@ begin
     if Result <> nil then
     begin
       NewNode := PRayCollisionNode(Result.Add);
-      PreviousNode := @(Result.List^[Result.Count - 2]);
+      PreviousNode := PRayCollisionNode(Result.Ptr(Result.Count - 2));
       NewNode^.Item := Self;
       NewNode^.Point := PreviousNode^.Point;
       NewNode^.Triangle := nil;
@@ -533,7 +533,7 @@ begin
     Result := LocalRayCollision(RayOrigin - T, RayDirection, TrianglesToIgnoreFunc);
     if Result <> nil then
     begin
-      LastNode := @(Result.List^[Result.Count - 1]);
+      LastNode := PRayCollisionNode(Result.Ptr(Result.Count - 1));
       LastNode^.Point := LastNode^.Point + T;
       { untransform the ray }
       LastNode^.RayOrigin := RayOrigin;
@@ -547,7 +547,7 @@ begin
       Tr.InverseTransform.MultDirection(RayDirection), TrianglesToIgnoreFunc);
     if Result <> nil then
     begin
-      LastNode := @(Result.List^[Result.Count - 1]);
+      LastNode := PRayCollisionNode(Result.Ptr(Result.Count - 1));
       LastNode^.Point := Tr.Transform.MultPoint(LastNode^.Point);
       { untransform the ray }
       LastNode^.RayOrigin := RayOrigin;

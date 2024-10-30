@@ -125,7 +125,7 @@ type
       but you must manually take care to free (or pass elsewhere)
       the TAnimation.KeyNodes contents, or just call @link(TAnimationList.FreeKeyNodesContents).)
     }
-    class function LoadAnimFramesToKeyNodes(const URL: string): TAnimationList; overload;
+    class function LoadAnimFramesToKeyNodes(const Url: String): TAnimationList; overload;
     class function LoadAnimFramesToKeyNodes(const Stream: TStream; const BaseUrl: String): TAnimationList; overload;
 
     { From key nodes, create a series of baked nodes (with final
@@ -181,8 +181,8 @@ type
 implementation
 
 uses SysUtils, XMLRead, DOM, Math,
-  CastleLog, X3DFields, CastleXMLUtils, CastleFilesUtils, CastleVectors,
-  CastleDownload, CastleURIUtils, X3DLoad, CastleClassUtils, X3DLoadInternalUtils;
+  CastleLog, X3DFields, CastleXmlUtils, CastleFilesUtils, CastleVectors,
+  CastleDownload, CastleUriUtils, X3DLoad, CastleClassUtils, X3DLoadInternalUtils;
 
 { EModelsStructureDifferent -------------------------------------------------- }
 
@@ -382,7 +382,7 @@ end;
      even across different nodes right now (the only need is to have
      equal URLs).
 
-  4. And later the Shape cache of TGLRenderer can speed
+  4. And later the Shape cache in TRendererCache can speed
      up loading time and conserve memory use, if it sees the same
      reference to given GeometryNode twice. }
 function NodesMerge(Model1, Model2: TX3DNode;
@@ -754,17 +754,19 @@ begin
   except FreeAndNil(Result); raise end;
 end;
 
-class function TNodeInterpolator.LoadAnimFramesToKeyNodes(const URL: string): TAnimationList;
+class function TNodeInterpolator.LoadAnimFramesToKeyNodes(const Url: String): TAnimationList;
 var
   Stream: TStream;
 begin
-  Stream := Download(URL);
+  Stream := Download(Url);
   try
-    Result := LoadAnimFramesToKeyNodes(Stream, URL);
+    Result := LoadAnimFramesToKeyNodes(Stream, Url);
   finally FreeAndNil(Stream) end;
 end;
 
 class function TNodeInterpolator.LoadAnimFramesToKeyNodes(const Stream: TStream; const BaseUrl: String): TAnimationList;
+const
+  GltfJsonMimeType = 'model/gltf+json';
 
   function LoadGLTFFromString(const Contents: String; const BaseUrl: String): TX3DRootNode;
   var
@@ -772,7 +774,7 @@ class function TNodeInterpolator.LoadAnimFramesToKeyNodes(const Stream: TStream;
   begin
     SStream := TStringStream.Create(Contents);
     try
-      Result := LoadGLTF(SStream, BaseUrl);
+      Result := LoadNode(SStream, BaseUrl, GltfJsonMimeType);
     finally FreeAndNil(SStream) end;
   end;
 
@@ -787,12 +789,12 @@ class function TNodeInterpolator.LoadAnimFramesToKeyNodes(const Stream: TStream;
     DefaultLoop = false;
     DefaultBackwards = false;
   var
-    AbsoluteBaseUrl: string;
+    AbsoluteBaseUrl: String;
     FrameElement: TDOMElement;
     Children: TXMLElementIterator;
     I: Integer;
     FrameTime: Single;
-    FrameURL, MimeType: string;
+    FrameUrl, MimeType: string;
     NewNode: TX3DRootNode;
     Attr: TDOMAttr;
     FrameBoxCenter, FrameBoxSize: TVector3;
@@ -851,20 +853,20 @@ class function TNodeInterpolator.LoadAnimFramesToKeyNodes(const Stream: TStream;
             raise Exception.Create('Frames within <animation> element must be specified in an increasing time order');
           Result.KeyTimes.Add(FrameTime);
 
-          if FrameElement.AttributeString('url', FrameURL) or
-             FrameElement.AttributeString('file_name', FrameURL) then
+          if FrameElement.AttributeString('url', FrameUrl) or
+             FrameElement.AttributeString('file_name', FrameUrl) then
           begin
-            { Make FrameURL absolute, treating it as relative vs
+            { Make FrameUrl absolute, treating it as relative vs
               AbsoluteBaseUrl }
-            FrameURL := CombineURI(AbsoluteBaseUrl, FrameURL);
-            NewNode := LoadNode(FrameURL);
+            FrameUrl := CombineURI(AbsoluteBaseUrl, FrameUrl);
+            NewNode := LoadNode(FrameUrl);
           end else
           begin
             MimeType := FrameElement.AttributeStringDef('mime_type', '');
             if (MimeType = '') or (MimeType = 'model/x3d+xml') then
               NewNode := LoadX3DXmlInternal(FrameElement.ChildElement('X3D'), AbsoluteBaseUrl)
             else
-            if (MimeType = 'model/gltf+json') then
+            if (MimeType = GltfJsonMimeType) then
               NewNode := LoadGLTFFromString(FrameElement.TextData, AbsoluteBaseUrl)
             else
               raise Exception.CreateFmt('Cannot use mime_type "%s" for a frame in castle-anim-frames', [
@@ -928,7 +930,7 @@ end;
 
 class function TNodeInterpolator.LoadSequenceToX3D(const BakedAnimations: TBakedAnimationList): TX3DRootNode;
 var
-  BaseUrl: string;
+  BaseUrl: String;
 
   { For VRML 1.0, wrap the contents in SeparateGroup. Prevents leaking
     transformations between switch node children (testcase:
@@ -1149,4 +1151,24 @@ begin
   finally FreeAndNil(BakedAnimations) end;
 end;
 
+function LoadAnimFrames(const Stream: TStream; const BaseUrl: String): TX3DRootNode;
+var
+  Animations: TNodeInterpolator.TAnimationList;
+begin
+  Animations := TNodeInterpolator.LoadAnimFramesToKeyNodes(Stream, BaseUrl);
+  try
+    Result := TNodeInterpolator.LoadToX3D(Animations);
+  finally FreeAndNil(Animations) end;
+end;
+
+var
+  ModelFormat: TModelFormat;
+initialization
+  ModelFormat := TModelFormat.Create;
+  ModelFormat.OnLoad := {$ifdef FPC}@{$endif} LoadAnimFrames;
+  ModelFormat.MimeTypes.Add('application/x-castle-anim-frames');
+  ModelFormat.FileFilterName := 'Castle Animation Frames (*.castle-anim-frames, *.kanim)';
+  ModelFormat.Extensions.Add('.castle-anim-frames');
+  ModelFormat.Extensions.Add('.kanim');
+  RegisterModelFormat(ModelFormat);
 end.

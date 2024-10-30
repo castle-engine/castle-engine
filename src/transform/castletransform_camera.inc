@@ -272,6 +272,7 @@
 
     FGizmoCoord: TObject; //< This is TCoordinateNode but we cannot declare it as such
     LastGizmoEffectiveProjectionNear: Single;
+    LastGizmoEffectiveProjectionFar: Single;
     LastGizmoEffectiveRect: TFloatRectangle;
     LastGizmoEffectiveFov: TVector2;
 
@@ -291,6 +292,8 @@
     // @exclude
     procedure InternalSetEffectiveProjection(
       const AEffectiveProjectionNear, AEffectiveProjectionFar: Single);
+  protected
+    function InternalBuildNodeInside: TObject; override;
   public
     InternalOnSceneBoundViewpointChanged,
     InternalOnSceneBoundViewpointVectorsChanged,
@@ -299,10 +302,11 @@
 
     constructor Create(AOwner: TComponent); override;
     { @exclude Create camera that doesn't show any gizmo in CGE editor. }
-    constructor InternalCreateNonDesign(const AOwner: TComponent);
+    constructor InternalCreateNonDesign(const AOwner: TComponent; const Ignored: Integer);
     destructor Destroy; override;
     procedure Assign(Source: TPersistent); override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
+    procedure DesignerInfo(const SList: TStrings); override;
     procedure LocalRender(const Params: TRenderParams); override;
     procedure CustomSerialization(const SerializationProcess: TSerializationProcess); override;
 
@@ -419,7 +423,8 @@
       not necessary).
 
       @exclude }
-    function InternalProjection(const BoxEvent: TBox3DEvent;
+    function InternalProjection(
+      const BoxWithoutGizmosEvent, BoxWithGizmosEvent: TBox3DEvent;
       const ViewportWidth, ViewportHeight: Single;
       const DesignCamera: Boolean): TProjection; virtual;
   published
@@ -667,7 +672,7 @@ begin
   CommonCreate(AOwner, CastleDesignMode);
 end;
 
-constructor TCastleCamera.InternalCreateNonDesign(const AOwner: TComponent);
+constructor TCastleCamera.InternalCreateNonDesign(const AOwner: TComponent; const Ignored: Integer);
 begin
   CommonCreate(AOwner, false);
 end;
@@ -679,11 +684,7 @@ var
   function BuildGizmo: TX3DRootNode;
   begin
     Result := TX3DRootNode.Create;
-    Result.AddChildren(Gizmo.LinesShape(TCoordinateNode(FGizmoCoord), [
-      2, 2, 2, 2,
-      2, 2, 2, 2,
-      2, 2
-    ]));
+    Result.AddChildren(Gizmo.LinesShape(TCoordinateNode(FGizmoCoord)));
     UpdateGizmoCoord;
   end;
 
@@ -1033,70 +1034,131 @@ end;
 
 procedure TCastleCamera.UpdateGizmoCoord;
 const
-  { Camera plane is shown at EffectiveProjectionNear, unless it is smaller than this. }
-  MinDistanceToPlane = 1;
+  { Camera plane is shown at EffectiveProjectionNear,
+    unless it is smaller than this. }
+  PerspectiveMinDistanceToPlane = 1;
   UpArrowSize = 0.1; // fraction of upper plane line to take for arrow
 var
-  PlanePoints: array [0..3] of TVector3;
+  PlaneMinPoints, PlaneMaxPoints: array [0..3] of TVector3;
   UpArrowPoints: array [0..2] of TVector3;
-  PerspX, PerspY, PlaneZ: Single;
+  PerspX, PerspY, PlaneMinZ, PlaneMaxZ: Single;
+  I: Integer;
 begin
   { We use LastXxx to avoid repeating this calculation, and updating gizmo points,
     every frame. In practice gizmo changes seldom -- e.g. if camera params change
     or viewport sizes change. }
   if (LastGizmoEffectiveProjectionNear <> EffectiveProjectionNear) or
+     (LastGizmoEffectiveProjectionFar <> EffectiveProjectionFar) or
      (not LastGizmoEffectiveRect.PerfectlyEquals(Orthographic.EffectiveRect)) or
      (not TVector2.PerfectlyEquals(LastGizmoEffectiveFov, Perspective.EffectiveFieldOfView)) then
   begin
     LastGizmoEffectiveProjectionNear := EffectiveProjectionNear;
+    LastGizmoEffectiveProjectionFar := EffectiveProjectionFar;
     LastGizmoEffectiveRect := Orthographic.EffectiveRect;
     LastGizmoEffectiveFov := Perspective.EffectiveFieldOfView;
-    //WritelnLog('Camera %s gizmo update', [Name]);
 
-    PlaneZ := -Max(EffectiveProjectionNear, MinDistanceToPlane);
-
+    { calculate 4 PlaneMinPoints }
     case ProjectionType of
       ptOrthographic:
         begin
-          PlanePoints[0] := CastleVectors.Vector3(Orthographic.EffectiveRect.Left , Orthographic.EffectiveRect.Bottom, PlaneZ);
-          PlanePoints[1] := CastleVectors.Vector3(Orthographic.EffectiveRect.Right, Orthographic.EffectiveRect.Bottom, PlaneZ);
-          PlanePoints[2] := CastleVectors.Vector3(Orthographic.EffectiveRect.Right, Orthographic.EffectiveRect.Top   , PlaneZ);
-          PlanePoints[3] := CastleVectors.Vector3(Orthographic.EffectiveRect.Left , Orthographic.EffectiveRect.Top   , PlaneZ);
+          PlaneMinZ := -EffectiveProjectionNear;
+          PlaneMaxZ := -EffectiveProjectionFar;
+
+          PlaneMinPoints[0] := CastleVectors.Vector3(Orthographic.EffectiveRect.Left , Orthographic.EffectiveRect.Bottom, PlaneMinZ);
+          PlaneMinPoints[1] := CastleVectors.Vector3(Orthographic.EffectiveRect.Right, Orthographic.EffectiveRect.Bottom, PlaneMinZ);
+          PlaneMinPoints[2] := CastleVectors.Vector3(Orthographic.EffectiveRect.Right, Orthographic.EffectiveRect.Top   , PlaneMinZ);
+          PlaneMinPoints[3] := CastleVectors.Vector3(Orthographic.EffectiveRect.Left , Orthographic.EffectiveRect.Top   , PlaneMinZ);
         end;
       ptPerspective:
         begin
-          PerspX := Tan(Perspective.EffectiveFieldOfView.X / 2) * Abs(PlaneZ);
-          PerspY := Tan(Perspective.EffectiveFieldOfView.Y / 2) * Abs(PlaneZ);
-          PlanePoints[0] := CastleVectors.Vector3(-PerspX, -PerspY, PlaneZ);
-          PlanePoints[1] := CastleVectors.Vector3( PerspX, -PerspY, PlaneZ);
-          PlanePoints[2] := CastleVectors.Vector3( PerspX,  PerspY, PlaneZ);
-          PlanePoints[3] := CastleVectors.Vector3(-PerspX,  PerspY, PlaneZ);
+          PlaneMinZ := -Max(EffectiveProjectionNear, PerspectiveMinDistanceToPlane);
+          // PlaneMaxZ is unused with ptPerspective for now
+          PlaneMaxZ := -EffectiveProjectionFar;
+
+          PerspX := Tan(Perspective.EffectiveFieldOfView.X / 2) * Abs(PlaneMinZ);
+          PerspY := Tan(Perspective.EffectiveFieldOfView.Y / 2) * Abs(PlaneMinZ);
+          PlaneMinPoints[0] := CastleVectors.Vector3(-PerspX, -PerspY, PlaneMinZ);
+          PlaneMinPoints[1] := CastleVectors.Vector3( PerspX, -PerspY, PlaneMinZ);
+          PlaneMinPoints[2] := CastleVectors.Vector3( PerspX,  PerspY, PlaneMinZ);
+          PlaneMinPoints[3] := CastleVectors.Vector3(-PerspX,  PerspY, PlaneMinZ);
         end;
       {$ifndef COMPILER_CASE_ANALYSIS}
       else raise EInternalError.Create('TCastleCamera.UpdateGizmoCoord:ProjectionType?');
       {$endif}
     end;
-    UpArrowPoints[0] := CastleVectors.Vector3(Lerp(0.5 - UpArrowSize, PlanePoints[3].X, PlanePoints[2].X), PlanePoints[3].Y, PlaneZ);
-    UpArrowPoints[2] := CastleVectors.Vector3(Lerp(0.5 + UpArrowSize, PlanePoints[3].X, PlanePoints[2].X), PlanePoints[3].Y, PlaneZ);
-    UpArrowPoints[1] := CastleVectors.Vector3(Lerp(0.5              , PlanePoints[3].X, PlanePoints[2].X),
-      PlanePoints[3].Y + PointsDistance(UpArrowPoints[0], UpArrowPoints[2]) / 2,
-      PlaneZ);
-    TCoordinateNode(FGizmoCoord).SetPoint([
-      CastleVectors.Vector3(0, 0, 0), PlanePoints[0],
-      CastleVectors.Vector3(0, 0, 0), PlanePoints[1],
-      CastleVectors.Vector3(0, 0, 0), PlanePoints[2],
-      CastleVectors.Vector3(0, 0, 0), PlanePoints[3],
-      PlanePoints[0], PlanePoints[1],
-      PlanePoints[1], PlanePoints[2],
-      PlanePoints[2], PlanePoints[3],
-      PlanePoints[3], PlanePoints[0],
-      UpArrowPoints[0], UpArrowPoints[1],
-      UpArrowPoints[1], UpArrowPoints[2]
-    ]);
+
+    { calculate PlaneMaxPoints }
+    for I := 0 to High(PlaneMaxPoints) do
+    begin
+      PlaneMaxPoints[I] := PlaneMinPoints[I];
+      PlaneMaxPoints[I].Z := PlaneMaxZ;
+    end;
+
+    { calculate 3 UpArrowPoints }
+    UpArrowPoints[0] := CastleVectors.Vector3(Lerp(0.5 - UpArrowSize, PlaneMinPoints[3].X, PlaneMinPoints[2].X), PlaneMinPoints[3].Y, PlaneMinZ);
+    UpArrowPoints[2] := CastleVectors.Vector3(Lerp(0.5 + UpArrowSize, PlaneMinPoints[3].X, PlaneMinPoints[2].X), PlaneMinPoints[3].Y, PlaneMinZ);
+    UpArrowPoints[1] := CastleVectors.Vector3(Lerp(0.5              , PlaneMinPoints[3].X, PlaneMinPoints[2].X),
+      PlaneMinPoints[3].Y + PointsDistance(UpArrowPoints[0], UpArrowPoints[2]) / 2,
+      PlaneMinZ);
+
+    { call FGizmoCoord.SetPoint }
+    case ProjectionType of
+      ptOrthographic:
+        begin
+          TCoordinateNode(FGizmoCoord).SetPoint([
+            // rect at PlaneMinZ
+            PlaneMinPoints[0], PlaneMinPoints[1],
+            PlaneMinPoints[1], PlaneMinPoints[2],
+            PlaneMinPoints[2], PlaneMinPoints[3],
+            PlaneMinPoints[3], PlaneMinPoints[0],
+
+            // rect at PlaneMaxZ
+            PlaneMaxPoints[0], PlaneMaxPoints[1],
+            PlaneMaxPoints[1], PlaneMaxPoints[2],
+            PlaneMaxPoints[2], PlaneMaxPoints[3],
+            PlaneMaxPoints[3], PlaneMaxPoints[0],
+
+            // connect rects from PlaneMinZ to PlaneMaxZ
+            PlaneMinPoints[0], PlaneMaxPoints[0],
+            PlaneMinPoints[1], PlaneMaxPoints[1],
+            PlaneMinPoints[2], PlaneMaxPoints[2],
+            PlaneMinPoints[3], PlaneMaxPoints[3],
+
+            // arrow at PlaneMinZ
+            UpArrowPoints[0], UpArrowPoints[1],
+            UpArrowPoints[1], UpArrowPoints[2]
+          ]);
+        end;
+      ptPerspective:
+        begin
+          TCoordinateNode(FGizmoCoord).SetPoint([
+            // 4 lines connecting camera position -> rect at PlaneMinZ
+            TVector3.Zero, PlaneMinPoints[0],
+            TVector3.Zero, PlaneMinPoints[1],
+            TVector3.Zero, PlaneMinPoints[2],
+            TVector3.Zero, PlaneMinPoints[3],
+
+            // rect at PlaneMinZ
+            PlaneMinPoints[0], PlaneMinPoints[1],
+            PlaneMinPoints[1], PlaneMinPoints[2],
+            PlaneMinPoints[2], PlaneMinPoints[3],
+            PlaneMinPoints[3], PlaneMinPoints[0],
+
+            // arrow at PlaneMinZ
+            UpArrowPoints[0], UpArrowPoints[1],
+            UpArrowPoints[1], UpArrowPoints[2]
+          ]);
+        end;
+      {$ifndef COMPILER_CASE_ANALYSIS}
+      else raise EInternalError.Create('TCastleCamera.UpdateGizmoCoord:ProjectionType 2?');
+      {$endif}
+    end;
   end;
 end;
 
-function TCastleCamera.InternalProjection(const BoxEvent: TBox3DEvent; const ViewportWidth, ViewportHeight: Single;
+function TCastleCamera.InternalProjection(
+  const BoxWithoutGizmosEvent, BoxWithGizmosEvent: TBox3DEvent;
+  const ViewportWidth, ViewportHeight: Single;
   const DesignCamera: Boolean): TProjection;
 
   { Update Result.Dimensions and Orthographic.EffectiveXxx
@@ -1169,7 +1231,25 @@ function TCastleCamera.InternalProjection(const BoxEvent: TBox3DEvent; const Vie
     Box: TBox3D;
     Pos, Dir, Up: TVector3;
   begin
-    Box := BoxEvent();
+    { Which callback to use to calculate bbox of whole world?
+
+      - If this camera has a gizmo (which can happen at design-time
+        for non-internal cameras) then we have to use BoxWithoutGizmosEvent.
+        Otherwise camera would account for its own gizmo when trying to
+        auto-calculate projection near/far, but the gizmo reflects
+        the new projection near/far, thus the projection near/far would grow
+        to infinity.
+
+      - If this camera does not have gizmo, it may be an internal camera
+        used for viewing TCastleViewport at design-time.
+        (It may also be any camera at run-time.)
+        We should then use BoxWithGizmosEvent, because at design-time
+        we have to show gizmo of other cameras. }
+    if FGizmoCoord <> nil then
+      Box := BoxWithoutGizmosEvent()
+    else
+      Box := BoxWithGizmosEvent();
+
     if Box.IsEmpty then
     begin
       // any values are OK, as we'll not render anyhitng
@@ -1362,13 +1442,89 @@ begin
   if FGizmoCoord <> nil then
   begin
     { Update EffectiveProjection to show latest projection values. }
-    InternalProjection(Params.ProjectionBox,
-      Params.ProjectionViewportWidth, Params.ProjectionViewportHeight,
+    InternalProjection(
+      Params.ProjectionBoxWithoutGizmos,
+      Params.ProjectionBoxWithGizmos,
+      Params.ProjectionViewportWidth,
+      Params.ProjectionViewportHeight,
       false);
     UpdateGizmoCoord;
   end;
 
   inherited;
+end;
+
+procedure TCastleCamera.DesignerInfo(const SList: TStrings);
+begin
+  inherited;
+  SList.Add(Format('EffectiveProjectionNear: %f', [EffectiveProjectionNear]));
+  SList.Add(Format('EffectiveProjectionFar: %f%s', [
+    EffectiveProjectionFar,
+    Iff(EffectiveProjectionFar = ZFarInfinity, ' (infinity: no far clipping plane)', '')
+  ]));
+end;
+
+function TCastleCamera.InternalBuildNodeInside: TObject;
+var
+  OrthoViewpoint: TOrthoViewpointNode;
+  Viewpoint: TViewpointNode;
+  OrthoFovLeft, OrthoFovBottom, OrthoSize: Single;
+begin
+  case ProjectionType of
+    ptOrthographic:
+      begin
+        OrthoViewpoint := TOrthoViewpointNode.Create;
+        OrthoViewpoint.AutoCenterOfRotation := true; // make Examine navigation better
+        if (Orthographic.Width <> 0) and
+           (Orthographic.Height <> 0) then
+        begin
+          OrthoFovLeft   := -Orthographic.Origin.X * Orthographic.Width;
+          OrthoFovBottom := -Orthographic.Origin.Y * Orthographic.Height;
+          OrthoViewpoint.SetFieldOfView([
+            OrthoFovLeft,
+            OrthoFovBottom,
+            OrthoFovLeft + Orthographic.Width,
+            OrthoFovBottom + Orthographic.Height
+          ]);
+        end else
+        if (Orthographic.Width <> 0) or
+           (Orthographic.Height <> 0) then
+        begin
+          OrthoSize := Max(Orthographic.Width, Orthographic.Height);
+          { Unlike our TCastleOrthographic, X3D OrthoViewpoint needs
+            both width and height non-zero.
+            So use the one we have non-zero to determine both -- these are
+            minimal values for fov anyway, so it will result in sensible rendering. }
+          OrthoFovLeft   := -Orthographic.Origin.X * OrthoSize;
+          OrthoFovBottom := -Orthographic.Origin.Y * OrthoSize;
+          OrthoViewpoint.SetFieldOfView([
+            OrthoFovLeft,
+            OrthoFovBottom,
+            OrthoFovLeft + OrthoSize,
+            OrthoFovBottom + OrthoSize
+          ]);
+        end;
+        OrthoViewpoint.Position := TVector3.Zero;
+        Result := OrthoViewpoint;
+      end;
+    ptPerspective:
+      begin
+        Viewpoint := TViewpointNode.Create;
+        Viewpoint.AutoCenterOfRotation := true; // make Examine navigation better
+        Viewpoint.FieldOfView := Perspective.FieldOfView;
+        { X3D FieldOfViewForceVertical allows to express FieldOfViewAxis = faVertical
+          case.
+          Other FieldOfViewAxis = faVertical values are all treated
+          as default X3D behavior, which means faSmallest. }
+        Viewpoint.FieldOfViewForceVertical := Perspective.FieldOfViewAxis = faVertical;
+        Viewpoint.FieldOfView := Perspective.FieldOfView;
+        Viewpoint.Position := TVector3.Zero;
+        Result := Viewpoint;
+      end;
+    {$ifndef COMPILER_CASE_ANALYSIS}
+    else raise EInternalError.Create('TCastleCamera.InternalBuildNodeInside: PerspectiveType?');
+    {$endif}
+  end;
 end;
 
 {$define read_implementation_methods}

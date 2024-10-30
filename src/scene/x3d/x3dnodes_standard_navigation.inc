@@ -1,3 +1,4 @@
+{%MainUnit x3dnodes.pas}
 {
   Copyright 2002-2023 Michalis Kamburelis.
 
@@ -25,7 +26,7 @@
   strict protected
     function PositionField: TSFVec3f; virtual; abstract;
   public
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
+    constructor Create(const AX3DName: string = ''; const ABaseUrl: String = ''); override;
     function TransformationChange: TNodeTransformationChange; override;
 
     { Position of the viewpoint. }
@@ -58,7 +59,8 @@
       TODO: This may need transform to world space, not just scene space,
       just like TAbstractLightNode.GetView does.
       Test how it behaves in TCastleScene that has some transformation. }
-    procedure GetView(out CamPos, CamDir, CamUp, GravityUp: TVector3);
+    procedure GetView(out CamPos, CamDir, CamUp, GravityUp: TVector3); overload;
+    procedure GetView(out CamView: TViewVectors); overload;
 
     { Description generated smart (trying to use FdDescription field,
       falling back on other information to help user identify the node). }
@@ -81,10 +83,6 @@
 
   TX3DViewpointClassNode = class of TAbstractViewpointNode;
 
-  TCameraVectors = record
-    Position, Direction, Up: TVector3;
-  end;
-
   { Grouping node that transforms the coordinate system of its children
     so that they always turn towards the viewer.
     The local Z axis of the children faces the camera,
@@ -103,7 +101,7 @@
       end;
     var
       FTransformFunctionality: TBillboardNodeTransformFunctionality;
-      FCameraVectors: TCameraVectors;
+      FCameraVectors: TViewVectors;
       FCameraVectorsKnown: boolean;
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
@@ -112,7 +110,7 @@
     function TransformationChange: TNodeTransformationChange; override;
 
     { Change transformation to reflect current camera. @exclude }
-    procedure InternalCameraChanged(const ACameraVectors: TCameraVectors);
+    procedure InternalCameraChanged(const ACameraVectors: TViewVectors);
 
   {$I auto_generated_node_helpers/x3dnodes_billboard.inc}
   end;
@@ -126,7 +124,7 @@
       Func: TEnumerateChildrenFunction;
       StateStack: TX3DGraphTraverseStateStack): Pointer; override;
   public
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
+    constructor Create(const AX3DName: string = ''; const ABaseUrl: String = ''); override;
 
     { Setup this Collision node to collide as a Box.
 
@@ -152,37 +150,17 @@
   { Provides various levels of detail for a given object,
     only one of which will be visible at a given time.
 
-    Note that it follows X3D naming.
-    There were some differences between VRML 2.0 LOD and X3D LOD (TLODNode):
-    "level" -> "children", so also "level_changed" -> "children_changed".
-    In X3D "level_changed" indicates just integer.
-    We don't implement VRML 97 version due to low usage.
-  }
+    Compatibility note: We follow X3D specifications exactly.
+    If use older VRML 97, note: when the level changes, we send
+    "children_changed" (following X3D) not "level_changed" (which would follow VRML 97). }
   TLODNode = class(TAbstractGroupingNode)
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
+    constructor Create(const AX3DName: string = ''; const ABaseUrl: String = ''); override;
     function TransformationChange: TNodeTransformationChange; override;
-
   {$I auto_generated_node_helpers/x3dnodes_lod.inc}
   end;
-
-  { Blending sorting that may also be "default", which indicates to use TCastleRenderOptions.BlendingSort.
-    See TBlendingSort for description of all values except obsDefault. }
-  TOptionalBlendingSort = (
-    { Use current TCastleRenderOptions.BlendingSort value. }
-    obsDefault,
-    { Like TBlendingSort.bsNone. }
-    obsNone,
-    { Like TBlendingSort.bs2D. }
-    obs2D,
-    { Like TBlendingSort.bs3D. }
-    obs3D,
-    { Like TBlendingSort.bs3DOrigin. }
-    obs3DOrigin,
-    { Like TBlendingSort.bs3DGround. }
-    obs3DGround
-  );
 
   { Describe the physical characteristics of the viewer's avatar and navigation. }
   TNavigationInfoNode = class(TAbstractBindableNode)
@@ -190,7 +168,7 @@
     procedure EventSet_BindReceive(
       const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
   public
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
+    constructor Create(const AX3DName: string = ''; const ABaseUrl: String = ''); override;
 
   {$I auto_generated_node_helpers/x3dnodes_navigationinfo.inc}
   end;
@@ -292,12 +270,21 @@
 {$ifdef read_implementation}
 
 const
-  BlendingSortNames: array [TOptionalBlendingSort] of string =
-  ('DEFAULT', 'NONE', '2D', '3D', '3D_ORIGIN', '3D_GROUND');
+  ShapeSortNames: array [TShapeSort] of string =
+  ('AUTO', 'NONE', '2D', '3D', '3D_VERTICAL_BILLBOARDS', '3D_ORIGIN', '3D_GROUND', 'CUSTOM');
+
+{$I auto_generated_node_helpers/x3dnodes_x3dviewpointnode.inc}
+{$I auto_generated_node_helpers/x3dnodes_billboard.inc}
+{$I auto_generated_node_helpers/x3dnodes_collision.inc}
+{$I auto_generated_node_helpers/x3dnodes_lod.inc}
+{$I auto_generated_node_helpers/x3dnodes_navigationinfo.inc}
+{$I auto_generated_node_helpers/x3dnodes_orthoviewpoint.inc}
+{$I auto_generated_node_helpers/x3dnodes_viewpoint.inc}
+{$I auto_generated_node_helpers/x3dnodes_viewpointgroup.inc}
 
 { TAbstractViewpointNode -------------------------------------------------- }
 
-constructor TAbstractViewpointNode.Create(const AX3DName: string = ''; const ABaseUrl: string = '');
+constructor TAbstractViewpointNode.Create(const AX3DName: string = ''; const ABaseUrl: String = '');
 begin
   inherited;
   Eventset_bind.AddNotification({$ifdef FPC}@{$endif} EventSet_BindReceive);
@@ -308,13 +295,21 @@ begin
 end;
 
 procedure TAbstractViewpointNode.GetView(
+  out CamView: TViewVectors);
+var
+  IgnoredGravityUp: TVector3;
+begin
+  GetView(CamView.Translation, CamView.Direction, CamView.Up, IgnoredGravityUp);
+end;
+
+procedure TAbstractViewpointNode.GetView(
   out CamPos, CamDir, CamUp, GravityUp: TVector3);
 begin
   CamPos := Position;
 
   if FdDirection.Items.Count > 0 then
   begin
-    CamDir := FdDirection.Items.List^[0];
+    CamDir := FdDirection.Items.L[0];
     if CamDir.IsZero then
     begin
       WritelnWarning('VRML/X3D', 'Viewpoint "direction" must not be zero, assuming defaults');
@@ -325,7 +320,7 @@ begin
 
   if FdUp.Items.Count > 0 then
   begin
-    CamUp := FdUp.Items.List^[0];
+    CamUp := FdUp.Items.L[0];
     if CamUp.IsZero then
     begin
       WritelnWarning('VRML/X3D', 'Viewpoint "up" must not be zero, assuming defaults');
@@ -394,10 +389,10 @@ end;
 
 function TAbstractViewpointNode.ModelviewMatrix: TMatrix4;
 var
-  CamPos, CamDir, CamUp, CamGravityUp: TVector3;
+  CamView: TViewVectors;
 begin
-  GetView(CamPos, CamDir, CamUp, CamGravityUp);
-  Result := LookDirMatrix(CamPos, CamDir, CamUp);
+  GetView(CamView);
+  Result := CamView.Matrix;
 end;
 
 function TAbstractViewpointNode.GetProjectorMatrix: TMatrix4;
@@ -445,7 +440,8 @@ begin
     end else
     begin
       { vector from node origin to FCameraVectors.Position, in local coords }
-      BillboardToViewer := Transformation.InverseTransform.MultPoint(Parent.FCameraVectors.Position);
+      BillboardToViewer := Transformation.InverseTransform.MultPoint(
+        Parent.FCameraVectors.Translation);
 
       { plane of axisOfRotation }
       PlaneAxisDir := Parent.FdAxisOfRotation.Value;
@@ -505,7 +501,7 @@ begin
   if Result <> nil then Exit;
 end;
 
-procedure TBillboardNode.InternalCameraChanged(const ACameraVectors: TCameraVectors);
+procedure TBillboardNode.InternalCameraChanged(const ACameraVectors: TViewVectors);
 begin
   FCameraVectorsKnown := true;
   FCameraVectors := ACameraVectors;
@@ -611,6 +607,14 @@ begin
 end;
 
 { TLODNode ----------------------------------------------------------- }
+
+constructor TLODNode.Create(const AX3DName, ABaseUrl: String);
+begin
+  inherited;
+  { Testcase that "level" is necessary for VRML 97:
+    https://www.web3d.org/x3d/content/examples/Vrml2Sourcebook/Siggraph98Course/aTorchIndex.html }
+  FdChildren.AddAlternativeName('level', 2);
+end;
 
 function TLODNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
 begin

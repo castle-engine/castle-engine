@@ -1,6 +1,6 @@
 {%MainUnit castletransform.pas}
 {
-  Copyright 2010-2023 Michalis Kamburelis.
+  Copyright 2010-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -27,19 +27,22 @@
       TShape.Visible inside a TCastleTransform with TCastleTransform.Exists.
 
       When ShapesRendered is much smaller than ShapesVisible,
-      it means that the algorithm for removing invisible scene parts
-      works good.
-      This includes per-shape frustum culling (see @link(TCastleScene.FrustumCulling)),
+      it means that various algorithm(s) designed to reject invisible
+      scene parts do a good job.
+      This includes per-shape frustum culling (@link(TCastleScene.ShapeFrustumCulling)),
       distance culling (@link(TCastleScene.DistanceCulling)),
-      occlusion culling (see @link(
-      TCastleRenderOptions.OcclusionQuery)). }
+      occlusion culling (see @link(TCastleViewport.OcclusionCulling)). }
     ShapesRendered, ShapesVisible: Cardinal;
 
+    { Subset of shapes counted in ShapesRendered that have been rendered using
+      blending (partial transparency). }
+    ShapesRenderedBlending: Cardinal;
+
     { The number of shapes that were not rendered,
-      but their bounding box was rendered to check with occlusion query.
-      This is always zero when not using occlusion query (see
-      TCastleRenderOptions.OcclusionQuery).
-      Basically, this measures the "invisible overhead" of occlusion query. }
+      but their bounding box was rendered to check occlusion culling.
+      This is always zero when not using occlusion culling
+      (@link(TCastleViewport.OcclusionCulling)).
+      Basically, this measures the "invisible overhead" of occlusion culling. }
     BoxesOcclusionQueriedCount: Cardinal;
 
     { TCastleScene rendered vs all visible. }
@@ -113,10 +116,9 @@
   public
     Camera: TCastleCamera;
 
-    { Current camera position.
-      In world coordinates, i.e. this is equal TCastleCamera.WorldTranslation,
-      and in coordinates of whole TCastleViewport.Items. }
-    Position: TVector3;
+    { Current camera position, direction and up.
+      In the world coordinates (coordinates of whole TCastleViewport.Items). }
+    View: TViewVectors;
 
     { Current camera matrix. Transforms from world space (normal 3D space)
       to camera space (camera space is the space where you're always
@@ -168,17 +170,21 @@
     function RotationMatrix3: TMatrix3;
     function RotationInverseMatrix3: TMatrix3;
 
-    { Set all properties (except Target) from TCastleCamera instance in ACamera.
+    { Set all properties (except Target)
+      from TCastleCamera instance in ACamera.
       See @link(FromMatrix) for comments about @link(Target) property. }
     procedure FromCameraObject(const ACamera: TCastleCamera);
 
-    { Set all properties (except Target) from explict matrices (and explicit position,
-      makes it faster than extracting position from matrix).
+    { Set all properties (except Target) to reflect given
+      camera translation (position), direction, up.
       ProjectionMatrix is needed to calculate frustum.
       Sets @link(Camera) to @nil. }
-    procedure FromMatrix(
-      const APosition: TVector3;
-      const AMatrix, ARotationMatrix, ProjectionMatrix: TMatrix4);
+    procedure FromViewVectors(
+      const ATranslation, ADirection, AUp: TVector3;
+      const ProjectionMatrix: TMatrix4); overload;
+    procedure FromViewVectors(
+      const AViewVectors: TViewVectors;
+      const ProjectionMatrix: TMatrix4); overload;
 
     property Target: TRenderTarget read FTarget write FTarget;
 
@@ -189,7 +195,58 @@
     function CurrentMatrix: TMatrix4;
   end;
 
-  { Information that a TCastleTransform object needs to render.
+  { How to render a single pass, when the shapes are already collected. }
+  TRenderOnePassParams = record
+    { Should we use blending.
+
+      TCastleViewport.RenderOnePass does filtering shapes based on this,
+      before calling ShapesRenderer.Render.
+      Matches shape that are opaque (TGLShape.UseBlending = @false)
+      or transparent (TGLShape.UseBlending = @true).
+
+      Note: When UsingBlending = @true, always DisableShadowVolumeCastingLights = @false.
+      Shadow volumes simply don't allow transparent object
+      to function properly as shadow receivers.
+      Reading [http://developer.nvidia.com/object/fast_shadow_volumes.html]
+      notes: they also just do separate rendering pass to render the
+      partially-transparent parts, IOW they also note that transparent parts
+      simply don't work at all with shadow volumes. }
+    UsingBlending: Boolean;
+
+    { Render only shapes  that may receive shadow volumes, or ones that don't,
+      or both.
+
+      TCastleViewport.RenderOnePass does filtering shapes based on this,
+      before calling ShapesRenderer.Render.
+      This checks if TCastleScene.ReceiveShadowVolumes is within this set.
+
+      Default value (after @link(Init)) is [false, true].
+
+      Note: DisableShadowVolumeCastingLights is always @false
+      when FilterShadowVolumesReceivers is only [@false]
+      (to render only stuff that is never in shadow). }
+    FilterShadowVolumesReceivers: TBooleanSet;
+
+    { If @true, means that we're using multi-pass shadowing technique
+      (like shadow volumes) and currently doing the "shadowed" pass.
+
+      Which means that lights with shadowVolumes = TRUE
+      (see https://castle-engine.io/shadow_volumes#_x3d_fields_shadowvolumes_and_shadowvolumesmain )
+      should be turned off. }
+    DisableShadowVolumeCastingLights: Boolean;
+
+    InsideStencilTest: Boolean;
+
+    procedure Init;
+  end;
+
+  { Callback used by @link(TRenderParams.AddRenderEvent).
+    @seealso TRenderParams.AddRenderEvent }
+  TRenderEvent = procedure (const Transformation: TTransformation;
+    const PassParams: TRenderOnePassParams) of object;
+
+  { Information that a TCastleTransform.LocalRender needs to render.
+    "To render" means "just to collect shapes" for TCastleScene.LocalRender.
     Read-only for @link(TCastleTransform.LocalRender)
     (except @link(Statistics), which should be updated during rendering).
 
@@ -201,28 +258,6 @@
     @link(TCastleTransform.LocalRender) during normal engine usage.
     But it may be useful for special customized rendering. }
   TRenderParams = class
-    { Which parts should be rendered: opaque (@false) or transparent (@true).
-      This should "filter" the rendered parts by @link(TCastleTransform.LocalRender). }
-    Transparent: boolean;
-
-    { Should we render parts that may receive shadow volumes, or ones that don't, or both.
-      This should never be [].
-      During rendering, simply check does it match TCastleScene.ReceiveShadowVolumes.
-      This should "filter" the rendered parts by @link(TCastleTransform.LocalRender). }
-    ShadowVolumesReceivers: set of Boolean;
-
-    { If @true, means that we're using multi-pass
-      shadowing technique (like shadow volumes),
-      and currently doing the "shadowed" pass.
-
-      Which means that most lights (ones with shadowVolumes = TRUE)
-      should be turned off, see [https://castle-engine.io/x3d_extensions.php#section_ext_shadows].) }
-    InShadow: boolean;
-
-    { Value > 0 means we're inside some stencil test (like for
-      InShadow = @false pass of shadow volumes). }
-    StencilTest: Cardinal;
-
     { Rendering pass number, for internal multi-pass rendering,
       like for shadow volumes. }
     InternalPass: TInternalRenderingPass;
@@ -232,12 +267,8 @@
       that determines shaders used. }
     UserPass: TUserRenderingPass;
 
-    { Transformation that should be applied to the rendered result.
-      If TransformIdentity, then Transform and InverseTransform is always identity.
-      @groupBegin }
-    Transform, InverseTransform: PMatrix4;
-    TransformIdentity: boolean;
-    { @groupEnd }
+    { Transformation that should be applied to the rendered result. }
+    Transformation: PTransformation;
 
     { Current rendering statistics, should be updated by each
       @link(TCastleTransform.LocalRender) call. }
@@ -264,24 +295,58 @@
 
     { At design-time, cameras update their own projection, to show camera gizmo.
       These are parameters to do this. }
-    ProjectionBox: TBox3DEvent;
+    ProjectionBoxWithoutGizmos, ProjectionBoxWithGizmos: TBox3DEvent;
     ProjectionViewportWidth, ProjectionViewportHeight: Single;
+
+    { Always TShapesCollector at actual rendering. }
+    Collector: TObject;
+
+    { Always TRenderer, to prepare shapes.
+      This is useful to prepare shapes (rendering them with renderer
+      creates VBOs, shaders, and makes them "ready" for next fast rendering).
+
+      Note that shapes and scenes *should not* get associated with this TRenderer
+      instance when being prepared.
+      Shapes and scenes should remain independent of TRenderer instance,
+      to easily change them to a different renderer (like a
+      different TCastleViewport).
+      So this TRenderer instance is provided to be used, but do not keep
+      anywhere in shapes / scenes a reference to it.
+
+      See CastleInternalRenderer for more comments how are things associated. }
+    RendererToPrepareShapes: TObject;
+
+    { Depth range that should be used for rendering. }
+    DepthRange: TDepthRange;
 
     constructor Create;
 
     { Lights that shine on object (headlight and lights from all scenes with CastGlobalLights). }
     function GlobalLights: TAbstractLightInstancesList; virtual; abstract;
 
-    function RenderTransform: TMatrix4; deprecated 'use Transform';
-    function RenderTransformIdentity: boolean; deprecated 'use TransformIdentity';
+    { Add a custom rendering event.
+
+      Given RenderEvent will be called multiple times during this render pass,
+      with TRenderOnePassParams containing different values,
+      for example once to render opaque shapes
+      (with @link(TRenderOnePassParams.UsingBlending) = @false),
+      once to render transparent shapes
+      (with @link(TRenderOnePassParams.UsingBlending) = @true).
+
+      So be sure to filter what you're doing inside this callback by
+      @link(TRenderOnePassParams.UsingBlending) and
+      @link(TRenderOnePassParams.FilterShadowVolumesReceivers). }
+    procedure AddRenderEvent(const RenderEvent: TRenderEvent);
   end;
 
   { Information that a TCastleTransform object needs to prepare rendering.
 
-    This is @bold(mostly an internal class). You should not need to create it,
+    This is an internal class.
+
+    You should not need to create it,
     you should not need to read anything inside or deal with this class otherwise.
 
-    The only official usage allowed is to pass an instance of this class
+    The only usage allowed, but deprecated, is to pass an instance of this class
     taken from @link(TCastleViewport.PrepareParams)
     as a parameter to @link(TCastleTransform.PrepareResources).
     You should treat this class as a "black box" in normal applications. }
@@ -293,14 +358,20 @@
       And all the lighting is dynamic, so of course you can always
       turn on / off things like a headlight during the game.
       However, passing here the appropriate lights will mean that the shaders
-      are immediately prepared for the current lighting.
+      are immediately prepared for the current lighting. }
+    GlobalLights: TAbstractLightInstancesList;
 
-      @exclude }
-    InternalGlobalLights: TAbstractLightInstancesList;
+    { World fog, in any, to prepare for. }
+    GlobalFog: TAbstractFogNode;
 
-    { World fog, in any, to prepare for.
-      @exclude }
-    InternalGlobalFog: TAbstractFogNode;
+    { Always TRenderer, to prepare shapes.
+      This is useful to prepare shapes (rendering them with renderer
+      creates VBOs, shaders, and makes them "ready" for next fast rendering).
+
+      Note that shapes and scenes *should not* get associated with this TRenderer
+      instance when being prepared.
+      See @link(TRenderParams.RendererToPrepareShapes). }
+    RendererToPrepareShapes: TObject;
   end;
 
 {$endif read_interface}
@@ -320,8 +391,9 @@ begin
   else
     OcclusionStats := '';
 
-  Result := Format('Shapes %d%s / %d, Scenes: %d / %d, Draw calls: %d', [
+  Result := Format('Shapes %d (with blending: %d)%s / %d, Scenes: %d / %d, Draw calls: %d', [
     ShapesRendered,
+    ShapesRenderedBlending,
     OcclusionStats,
     ShapesVisible,
     ScenesRendered,
@@ -377,7 +449,7 @@ end;
 procedure TRenderingCamera.FromCameraObject(const ACamera: TCastleCamera);
 begin
   Camera := ACamera;
-  Position := ACamera.WorldTranslation;
+  View := ACamera.WorldView;
   Matrix := ACamera.Matrix;
   InverseMatrixDone := false;
   RotationMatrix := ACamera.RotationMatrix;
@@ -385,17 +457,29 @@ begin
   Frustum := ACamera.Frustum;
 end;
 
-procedure TRenderingCamera.FromMatrix(
-  const APosition: TVector3;
-  const AMatrix, ARotationMatrix, ProjectionMatrix: TMatrix4);
+procedure TRenderingCamera.FromViewVectors(
+  const ATranslation, ADirection, AUp: TVector3;
+  const ProjectionMatrix: TMatrix4);
+var
+  V: TViewVectors;
+begin
+  V.Translation := ATranslation;
+  V.Direction := ADirection;
+  V.Up := AUp;
+  FromViewVectors(V, ProjectionMatrix);
+end;
+
+procedure TRenderingCamera.FromViewVectors(
+  const AViewVectors: TViewVectors;
+  const ProjectionMatrix: TMatrix4);
 begin
   Camera := nil;
-  Position := APosition;
-  Matrix := AMatrix;
+  View := AViewVectors;
+  Matrix := View.Matrix;
   InverseMatrixDone := false;
-  RotationMatrix := ARotationMatrix;
+  RotationMatrix := View.RotationMatrix;
   RotationInverseMatrixDone := false;
-  Frustum.Init(ProjectionMatrix, AMatrix);
+  Frustum.Init(ProjectionMatrix, Matrix);
 end;
 
 procedure TRenderingCamera.Assign(const Source: TRenderingCamera);
@@ -422,25 +506,26 @@ end;
 { TRenderParams -------------------------------------------------------------- }
 
 var
-  GlobalIdentityMatrix: TMatrix4;
+  GlobalIdentityTransform: TTransformation;
 
 constructor TRenderParams.Create;
 begin
   inherited;
-  Transform := @GlobalIdentityMatrix;
-  InverseTransform := @GlobalIdentityMatrix;
-  TransformIdentity := true;
+  Transformation := @GlobalIdentityTransform;
   InMeaningfulParent := true;
 end;
 
-function TRenderParams.RenderTransform: TMatrix4;
+procedure TRenderParams.AddRenderEvent(const RenderEvent: TRenderEvent);
 begin
-  Result := Transform^;
+  (Collector as TShapesCollector).AddRenderEvent(Transformation^, RenderEvent);
 end;
 
-function TRenderParams.RenderTransformIdentity: boolean;
+{ TRenderOnePassParams ------------------------------------------------------- }
+
+procedure TRenderOnePassParams.Init;
 begin
-  Result := TransformIdentity;
+  FillChar(Self, SizeOf(Self), 0);
+  FilterShadowVolumesReceivers := [false, true];
 end;
 
 {$endif read_implementation}

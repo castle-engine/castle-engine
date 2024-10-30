@@ -21,13 +21,15 @@ unit CastleInternalGLShadowVolumes;
 interface
 
 uses
-  {$ifdef FPC} CastleGL, {$else} OpenGL, OpenGLext, {$endif}
+  {$ifdef OpenGLES} CastleGLES, {$else} CastleGL, {$endif}
   CastleTransform, CastleVectors, CastleBoxes, CastleGLUtils, CastleFrustum,
-  CastleRenderPrimitives;
+  CastleRenderPrimitives, CastleUtils;
 
 type
   TGLShadowVolumeRenderer = class;
 
+  TSVRenderOnePassProc = procedure (const Params: TRenderParams;
+    const PassParams: TRenderOnePassParams) of object;
   TSVRenderProc = procedure (const Params: TRenderParams) of object;
 
   { Shadow volume rendering in OpenGL.
@@ -69,6 +71,9 @@ type
   public
     constructor Create;
     destructor Destroy; override;
+
+    { Create resources that require rendering (OpenGL) context, like @link(Mesh). }
+    procedure PrepareRenderingResources;
 
     { Call this when camera frustum is known and light position (of the shadow
       casting light) is known, typically at the beginning of your drawing routine.
@@ -141,42 +146,12 @@ type
       You have to provide the appropriate callbacks that render given
       scene parts.
 
-      Params.Transparent and Params.ShadowVolumesReceivers and Params.InShadow
-      are changed here (their previous values are ignored).
-      They cannot be modified by our callbacks.
-
       RenderOnePass renders part of the scene.
-
-      @unorderedList(
-        @item(
-          When Params.ShadowVolumesReceivers includes @true, renders things that
-          may be in the shadow.
-          You should use Params.InShadow to either display the version
-          of the scene in the shadows (so probably darker, probably with some
-          lights off) or the version that is currently lighted
-          (probably brighter, with normal scene lights on).)
-
-        @item(
-          When Params.ShadowVolumesReceivers includes @true, renders things that
-          must never be considered in shadow (are not shadow receivers).
-          Params.InShadow is always @false when Params.ShadowVolumesReceivers is only [@false]
-          (to render only stuff that is never in shadow).)
-      )
-
-      RenderOnePass must also honour Params.Transparent,
-      rendering only opaque or only transparent parts.
-      For Transparent = @true, always Params.InShadow = @false.
-      Shadow volumes simply don't allow transparent object
-      to function properly as shadow receivers.
-      Reading [http://developer.nvidia.com/object/fast_shadow_volumes.html]
-      notes: they also just do separate rendering pass to render the
-      partially-transparent parts, IOW they also note that transparent parts
-      simply don't work at all with shadow volumes.
 
       RenderShadowVolumes renders shadow volumes from shadow casters. }
     procedure Render(
       const Params: TRenderParams;
-      const RenderOnePass: TSVRenderProc;
+      const RenderOnePass: TSVRenderOnePassProc;
       const RenderShadowVolumes: TSVRenderProc);
 
     { Use this to render shadow quads. }
@@ -190,13 +165,18 @@ type
 implementation
 
 uses SysUtils,
-  CastleUtils, CastleStringUtils, CastleLog, CastleGLVersion,
+  CastleStringUtils, CastleLog, CastleGLVersion,
   CastleTriangles, CastleRenderOptions, CastleRenderContext;
 
 constructor TGLShadowVolumeRenderer.Create;
 begin
   inherited;
   FCount := true;
+end;
+
+procedure TGLShadowVolumeRenderer.PrepareRenderingResources;
+begin
+  Assert(FMesh = nil, 'Call TGLShadowVolumeRenderer.PrepareRenderingResources only once');
   FMesh := TCastleRenderUnlitMesh.Create(DebugRender);
 end;
 
@@ -213,6 +193,7 @@ procedure TGLShadowVolumeRenderer.InitFrustumAndLight(
   procedure CalculateFrustumAndLightPlanes;
   var
     FP, LastPlane: TFrustumPlane;
+    LightPos: TVector4;
   begin
     FrustumAndLightPlanesCount := 0;
 
@@ -220,25 +201,34 @@ procedure TGLShadowVolumeRenderer.InitFrustumAndLight(
     Assert(LastPlane = fpFar);
 
     { if infinite far plane, then ignore it }
-    if Frustum.ZFarInfinity then
+    if Frustum.FarInfinity then
       LastPlane := Pred(LastPlane);
+
+    LightPos := LightPosition;
+    { For directional lights, as LightPos consider the light source
+      being at infinity at the position *from which* the light emanates.
+      We want to add to FrustumAndLightPlanes the planes the are further
+      from this light. }
+    if LightPos.W = 0 then
+      LightPos := -LightPos;
 
     for FP := Low(FP) to LastPlane do
     begin
-      { This checks that LightPosition is inside Frustum.Planes[FP] plane.
+      { This checks that LightPos is inside Frustum.Planes[FP] plane.
+        Remember that Frustum.Planes[FP] plane direction (XYZ) points inside
+        the frustum.
 
-        When LightPosition[3] = 1, this is normal test on which side
-        of plane lies a point, so then it's OK (frustum planes point inside
-        the frustum). For LightPosition[3] > 0 this is also  equivalent.
+        For positional lights (point, spot):
+        LightPosition.W <> 0 (usually LightPosition.W = 1.0), and then
+        this is normal test on which side of plane (Frustum.Planes[FP])
+        lies a point in homogeneous coordinates (LightPos).
 
-        For LightPosition[3] = 0 (directional light), this check dot product
-        between light direction and plane direction. So >= 0 means that they
-        point in the same dir (angle < 90 degs), so the light position
-        in infinity can also be considered inside this plane. }
-      if Frustum.Planes[FP][0] * LightPosition[0] +
-         Frustum.Planes[FP][1] * LightPosition[1] +
-         Frustum.Planes[FP][2] * LightPosition[2] +
-         Frustum.Planes[FP][3] * LightPosition[3] >= 0 then
+        For directional lights:
+        LightPosition.W = 0, and then this is a dot product between
+        plane direction (Frustum.Planes[FP]) and inverted light direction (LightPos,
+        equal -LightPosition in this case). So we check if light source position
+        is on the inside of the plane. }
+      if TVector4.DotProduct(Frustum.Planes[FP], LightPos) >= 0 then
       begin
         FrustumAndLightPlanes[FrustumAndLightPlanesCount] := Frustum.Planes[FP];
         Inc(FrustumAndLightPlanesCount);
@@ -250,8 +240,6 @@ procedure TGLShadowVolumeRenderer.InitFrustumAndLight(
       for this. Some pointers on [http://www.terathon.com/gdc06_lengyel.ppt]. }
   end;
 
-var
-  ALightPosition3: TVector3 absolute ALightPosition;
 begin
   FFrustum := Frustum;
   FLightPosition := ALightPosition;
@@ -273,7 +261,7 @@ function TGLShadowVolumeRenderer.GetCasterShadowPossiblyVisible(const CasterBox:
 var
   I: Integer;
 
-  function CheckPoint(const X, Y, Z: Integer): boolean;
+  function CasterCornerOutsideFrustum(const X, Y, Z: Integer): boolean;
   begin
     Result :=
       CasterBox.Data[X][0] * FrustumAndLightPlanes[I][0] +
@@ -287,14 +275,14 @@ begin
     Exit(false);
   for I := 0 to Integer(FrustumAndLightPlanesCount) - 1 do
   begin
-    if CheckPoint(0, 0, 0) and
-       CheckPoint(0, 0, 1) and
-       CheckPoint(0, 1, 0) and
-       CheckPoint(0, 1, 1) and
-       CheckPoint(1, 0, 0) and
-       CheckPoint(1, 0, 1) and
-       CheckPoint(1, 1, 0) and
-       CheckPoint(1, 1, 1) then
+    if CasterCornerOutsideFrustum(0, 0, 0) and
+       CasterCornerOutsideFrustum(0, 0, 1) and
+       CasterCornerOutsideFrustum(0, 1, 0) and
+       CasterCornerOutsideFrustum(0, 1, 1) and
+       CasterCornerOutsideFrustum(1, 0, 0) and
+       CasterCornerOutsideFrustum(1, 0, 1) and
+       CasterCornerOutsideFrustum(1, 1, 0) and
+       CasterCornerOutsideFrustum(1, 1, 1) then
       Exit(false);
   end;
   Result := true;
@@ -334,11 +322,9 @@ procedure TGLShadowVolumeRenderer.InitCaster(const CasterBox: TBox3D);
       end;
 
     var
-      LightPosition3: PVector3;
       NearPlane: TVector4;
     begin
-      LightPosition3 := @FLightPosition;
-      if LightPosition[3] <> 0 then
+      if LightPosition.W <> 0 then
       begin
         { Idea: calculate a pyramid between light position and near plane rectangle
           of the frustum. Assuming light point is positional and it does not
@@ -377,26 +363,23 @@ procedure TGLShadowVolumeRenderer.InitCaster(const CasterBox: TBox3D);
           flip NearPlane. Also, calculations of other side planes should
           generate flipped planes. }
 
-        if (NearPlane.X * LightPosition.X +
-            NearPlane.Y * LightPosition.Y +
-            NearPlane.Z * LightPosition.Z +
-            NearPlane.W * LightPosition.W) > 0 then
+        if TVector4.DotProduct(NearPlane, LightPosition) > 0 then
         begin
           NearPlane := -NearPlane;
           Result :=
             InsidePlane(NearPlane) and
-            InsidePlane(TrianglePlane(FrustumNearPoints[1].XYZ, FrustumNearPoints[0].XYZ, LightPosition3^)) and
-            InsidePlane(TrianglePlane(FrustumNearPoints[2].XYZ, FrustumNearPoints[1].XYZ, LightPosition3^)) and
-            InsidePlane(TrianglePlane(FrustumNearPoints[3].XYZ, FrustumNearPoints[2].XYZ, LightPosition3^)) and
-            InsidePlane(TrianglePlane(FrustumNearPoints[0].XYZ, FrustumNearPoints[3].XYZ, LightPosition3^));
+            InsidePlane(TrianglePlane(FrustumNearPoints[1].XYZ, FrustumNearPoints[0].XYZ, LightPosition.XYZ)) and
+            InsidePlane(TrianglePlane(FrustumNearPoints[2].XYZ, FrustumNearPoints[1].XYZ, LightPosition.XYZ)) and
+            InsidePlane(TrianglePlane(FrustumNearPoints[3].XYZ, FrustumNearPoints[2].XYZ, LightPosition.XYZ)) and
+            InsidePlane(TrianglePlane(FrustumNearPoints[0].XYZ, FrustumNearPoints[3].XYZ, LightPosition.XYZ));
         end else
         begin
           Result :=
             InsidePlane(NearPlane) and
-            InsidePlane(TrianglePlane(FrustumNearPoints[0].XYZ, FrustumNearPoints[1].XYZ, LightPosition3^)) and
-            InsidePlane(TrianglePlane(FrustumNearPoints[1].XYZ, FrustumNearPoints[2].XYZ, LightPosition3^)) and
-            InsidePlane(TrianglePlane(FrustumNearPoints[2].XYZ, FrustumNearPoints[3].XYZ, LightPosition3^)) and
-            InsidePlane(TrianglePlane(FrustumNearPoints[3].XYZ, FrustumNearPoints[0].XYZ, LightPosition3^));
+            InsidePlane(TrianglePlane(FrustumNearPoints[0].XYZ, FrustumNearPoints[1].XYZ, LightPosition.XYZ)) and
+            InsidePlane(TrianglePlane(FrustumNearPoints[1].XYZ, FrustumNearPoints[2].XYZ, LightPosition.XYZ)) and
+            InsidePlane(TrianglePlane(FrustumNearPoints[2].XYZ, FrustumNearPoints[3].XYZ, LightPosition.XYZ)) and
+            InsidePlane(TrianglePlane(FrustumNearPoints[3].XYZ, FrustumNearPoints[0].XYZ, LightPosition.XYZ));
         end;
       end else
       begin
@@ -416,22 +399,20 @@ procedure TGLShadowVolumeRenderer.InitCaster(const CasterBox: TBox3D);
         NearPlane := TrianglePlane(
           FrustumNearPoints[2].XYZ, FrustumNearPoints[1].XYZ, FrustumNearPoints[0].XYZ);
 
-        if (NearPlane.X * LightPosition.X +
-            NearPlane.Y * LightPosition.Y +
-            NearPlane.Z * LightPosition.Z) > 0 then
+        if TVector3.DotProduct(NearPlane.XYZ, LightPosition.XYZ) > 0 then
         begin
           Result :=
-            InsidePlane(TrianglePlane(FrustumNearPoints[0].XYZ, FrustumNearPoints[1].XYZ, (FrustumNearPoints[0].XYZ + LightPosition3^))) and
-            InsidePlane(TrianglePlane(FrustumNearPoints[1].XYZ, FrustumNearPoints[2].XYZ, (FrustumNearPoints[1].XYZ + LightPosition3^))) and
-            InsidePlane(TrianglePlane(FrustumNearPoints[2].XYZ, FrustumNearPoints[3].XYZ, (FrustumNearPoints[2].XYZ + LightPosition3^))) and
-            InsidePlane(TrianglePlane(FrustumNearPoints[3].XYZ, FrustumNearPoints[0].XYZ, (FrustumNearPoints[3].XYZ + LightPosition3^)));
+            InsidePlane(TrianglePlane(FrustumNearPoints[0].XYZ, FrustumNearPoints[1].XYZ, (FrustumNearPoints[0].XYZ + LightPosition.XYZ))) and
+            InsidePlane(TrianglePlane(FrustumNearPoints[1].XYZ, FrustumNearPoints[2].XYZ, (FrustumNearPoints[1].XYZ + LightPosition.XYZ))) and
+            InsidePlane(TrianglePlane(FrustumNearPoints[2].XYZ, FrustumNearPoints[3].XYZ, (FrustumNearPoints[2].XYZ + LightPosition.XYZ))) and
+            InsidePlane(TrianglePlane(FrustumNearPoints[3].XYZ, FrustumNearPoints[0].XYZ, (FrustumNearPoints[3].XYZ + LightPosition.XYZ)));
         end else
         begin
           Result :=
-            InsidePlane(TrianglePlane(FrustumNearPoints[1].XYZ, FrustumNearPoints[0].XYZ, (FrustumNearPoints[1].XYZ + LightPosition3^))) and
-            InsidePlane(TrianglePlane(FrustumNearPoints[2].XYZ, FrustumNearPoints[1].XYZ, (FrustumNearPoints[2].XYZ + LightPosition3^))) and
-            InsidePlane(TrianglePlane(FrustumNearPoints[3].XYZ, FrustumNearPoints[2].XYZ, (FrustumNearPoints[3].XYZ + LightPosition3^))) and
-            InsidePlane(TrianglePlane(FrustumNearPoints[0].XYZ, FrustumNearPoints[3].XYZ, (FrustumNearPoints[0].XYZ + LightPosition3^)));
+            InsidePlane(TrianglePlane(FrustumNearPoints[1].XYZ, FrustumNearPoints[0].XYZ, (FrustumNearPoints[1].XYZ + LightPosition.XYZ))) and
+            InsidePlane(TrianglePlane(FrustumNearPoints[2].XYZ, FrustumNearPoints[1].XYZ, (FrustumNearPoints[2].XYZ + LightPosition.XYZ))) and
+            InsidePlane(TrianglePlane(FrustumNearPoints[3].XYZ, FrustumNearPoints[2].XYZ, (FrustumNearPoints[3].XYZ + LightPosition.XYZ))) and
+            InsidePlane(TrianglePlane(FrustumNearPoints[0].XYZ, FrustumNearPoints[3].XYZ, (FrustumNearPoints[0].XYZ + LightPosition.XYZ)));
         end;
       end;
     end;
@@ -512,7 +493,7 @@ end;
 
 procedure TGLShadowVolumeRenderer.Render(
   const Params: TRenderParams;
-  const RenderOnePass: TSVRenderProc;
+  const RenderOnePass: TSVRenderOnePassProc;
   const RenderShadowVolumes: TSVRenderProc);
 
 const
@@ -541,18 +522,23 @@ var
   SavedColorChannels: TColorChannels;
   SavedDepthFunc: TDepthFunction;
   SavedCullFace, SavedDepthTest: Boolean;
+  PassParams: TRenderOnePassParams;
 begin
   Assert(GLFeatures.ShadowVolumesPossible);
 
-  Params.InShadow := false;
-  Params.Transparent := false;
-  Params.ShadowVolumesReceivers := [false];
-  RenderOnePass(Params);
+  // render opaque stuff that is never in shadow, because it does not receive shadows
+  PassParams.Init;
+  PassParams.UsingBlending := false;
+  PassParams.DisableShadowVolumeCastingLights := false;
+  PassParams.FilterShadowVolumesReceivers := [false];
+  RenderOnePass(Params, PassParams);
 
-  Params.InShadow := true;
-  Params.Transparent := false;
-  Params.ShadowVolumesReceivers := [true];
-  RenderOnePass(Params);
+  // render opaque stuff, assuming it is in shadow (but it does receive shadows, may be overdrawn later with lit version)
+  PassParams.Init;
+  PassParams.UsingBlending := false;
+  PassParams.DisableShadowVolumeCastingLights := true;
+  PassParams.FilterShadowVolumesReceivers := [true];
+  RenderOnePass(Params, PassParams);
 
   glEnable(GL_STENCIL_TEST);
     { Note that stencil buffer is set to all 0 now. }
@@ -601,8 +587,8 @@ begin
 
     This is easy doable for opaque parts. But what about transparent
     things? In other words, where should we call
-    RenderOnePass(Transparent=true, ShadowVolumesReceivers=false)
-    and RenderOnePass(Transparent=true, InShadow=false, ShadowVolumesReceivers=true)?
+    - RenderOnePass with UsingBlending=true, ShadowVolumesReceivers=[false]?
+    - RenderOnePass with UsingBlending=true, DisableShadowVolumeCastingLights=false, ShadowVolumesReceivers=[true]?
     They should be rendered but they don't affect depth buffer.
     Well, clearly, they have to be rendered
     before glClear(GL_DEPTH_BUFFER_BIT) (for the same reason that
@@ -647,12 +633,15 @@ begin
     glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
     glStencilFunc(GL_EQUAL, 0, StencilShadowBits);
     glEnable(GL_STENCIL_TEST);
-      Inc(Params.StencilTest);
-      Params.InShadow := false;
-      Params.Transparent := false;
-      Params.ShadowVolumesReceivers := [true];
-      RenderOnePass(Params);
-      Dec(Params.StencilTest);
+
+      // render opaque stuff that is *not* in shadow (because passes stencil test)
+      PassParams.Init;
+      PassParams.UsingBlending := false;
+      PassParams.FilterShadowVolumesReceivers := [true];
+      PassParams.DisableShadowVolumeCastingLights := false;
+      PassParams.InsideStencilTest := true;
+      RenderOnePass(Params, PassParams);
+
     glDisable(GL_STENCIL_TEST);
 
   RenderContext.DepthFunc := SavedDepthFunc;
@@ -678,15 +667,12 @@ begin
     Count := SavedCount;
   end;
 
-  Params.InShadow := false;
-  Params.Transparent := true;
-  Params.ShadowVolumesReceivers := [true];
-  RenderOnePass(Params);
-
-  Params.InShadow := false;
-  Params.Transparent := true;
-  Params.ShadowVolumesReceivers := [false];
-  RenderOnePass(Params);
+  // render all transparent stuff, never in shadow
+  PassParams.Init;
+  PassParams.UsingBlending := true;
+  PassParams.DisableShadowVolumeCastingLights := false;
+  PassParams.FilterShadowVolumesReceivers := [false, true];
+  RenderOnePass(Params, PassParams);
 end;
 
 procedure TGLShadowVolumeRenderer.SetDebugRender(const Value: Boolean);

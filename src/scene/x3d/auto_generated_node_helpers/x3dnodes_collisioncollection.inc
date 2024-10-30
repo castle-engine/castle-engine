@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2023 Michalis Kamburelis.
+  Copyright 2015-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -41,11 +41,12 @@
     function GetSurfaceSpeed: TVector2;
     procedure SetSurfaceSpeed(const Value: TVector2);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdAppliedParameters: TMFString;
-    { Internal wrapper for property @link(AppliedParameters). This wrapper API may change, we advise to access simpler @link(AppliedParameters) instead. }
+    { Internal wrapper for property @code(AppliedParameters). This wrapper API may change, we advise to access simpler @code(AppliedParameters) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdAppliedParameters: TMFString read FFdAppliedParameters;
     {  }
     procedure SetAppliedParameters(const Value: array of string); overload;
@@ -53,53 +54,55 @@
     procedure SetAppliedParameters(const Value: TCastleStringList); overload;
 
     strict private FFdBounce: TSFFloat;
-    { Internal wrapper for property @link(Bounce). This wrapper API may change, we advise to access simpler @link(Bounce) instead. }
+    { Internal wrapper for property @code(Bounce). This wrapper API may change, we advise to access simpler @code(Bounce) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdBounce: TSFFloat read FFdBounce;
     {  }
     property Bounce: Single read GetBounce write SetBounce;
 
     strict private FFdCollidables: TMFNode;
-    { Internal wrapper for property @link(Collidables). This wrapper API may change, we advise to access simpler @link(Collidables) instead. }
+    { Internal wrapper for property @code(Collidables). This wrapper API may change, we advise to access simpler @code(Collidables) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdCollidables: TMFNode read FFdCollidables;
+    {  }
+    procedure SetCollidables(const Value: array of TX3DNode);
 
     strict private FFdEnabled: TSFBool;
-    { Internal wrapper for property @link(Enabled). This wrapper API may change, we advise to access simpler @link(Enabled) instead. }
+    { Internal wrapper for property @code(Enabled). This wrapper API may change, we advise to access simpler @code(Enabled) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdEnabled: TSFBool read FFdEnabled;
     {  }
     property Enabled: Boolean read GetEnabled write SetEnabled;
 
     strict private FFdFrictionCoefficients: TSFVec2f;
-    { Internal wrapper for property @link(FrictionCoefficients). This wrapper API may change, we advise to access simpler @link(FrictionCoefficients) instead. }
+    { Internal wrapper for property @code(FrictionCoefficients). This wrapper API may change, we advise to access simpler @code(FrictionCoefficients) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdFrictionCoefficients: TSFVec2f read FFdFrictionCoefficients;
     {  }
     property FrictionCoefficients: TVector2 read GetFrictionCoefficients write SetFrictionCoefficients;
 
     strict private FFdMinBounceSpeed: TSFFloat;
-    { Internal wrapper for property @link(MinBounceSpeed). This wrapper API may change, we advise to access simpler @link(MinBounceSpeed) instead. }
+    { Internal wrapper for property @code(MinBounceSpeed). This wrapper API may change, we advise to access simpler @code(MinBounceSpeed) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdMinBounceSpeed: TSFFloat read FFdMinBounceSpeed;
     {  }
     property MinBounceSpeed: Single read GetMinBounceSpeed write SetMinBounceSpeed;
 
     strict private FFdSlipFactors: TSFVec2f;
-    { Internal wrapper for property @link(SlipFactors). This wrapper API may change, we advise to access simpler @link(SlipFactors) instead. }
+    { Internal wrapper for property @code(SlipFactors). This wrapper API may change, we advise to access simpler @code(SlipFactors) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdSlipFactors: TSFVec2f read FFdSlipFactors;
     {  }
     property SlipFactors: TVector2 read GetSlipFactors write SetSlipFactors;
 
     strict private FFdSoftnessConstantForceMix: TSFFloat;
-    { Internal wrapper for property @link(SoftnessConstantForceMix). This wrapper API may change, we advise to access simpler @link(SoftnessConstantForceMix) instead. }
+    { Internal wrapper for property @code(SoftnessConstantForceMix). This wrapper API may change, we advise to access simpler @code(SoftnessConstantForceMix) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdSoftnessConstantForceMix: TSFFloat read FFdSoftnessConstantForceMix;
     {  }
     property SoftnessConstantForceMix: Single read GetSoftnessConstantForceMix write SetSoftnessConstantForceMix;
 
     strict private FFdSoftnessErrorCorrection: TSFFloat;
-    { Internal wrapper for property @link(SoftnessErrorCorrection). This wrapper API may change, we advise to access simpler @link(SoftnessErrorCorrection) instead. }
+    { Internal wrapper for property @code(SoftnessErrorCorrection). This wrapper API may change, we advise to access simpler @code(SoftnessErrorCorrection) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdSoftnessErrorCorrection: TSFFloat read FFdSoftnessErrorCorrection;
     {  }
     property SoftnessErrorCorrection: Single read GetSoftnessErrorCorrection write SetSoftnessErrorCorrection;
 
     strict private FFdSurfaceSpeed: TSFVec2f;
-    { Internal wrapper for property @link(SurfaceSpeed). This wrapper API may change, we advise to access simpler @link(SurfaceSpeed) instead. }
+    { Internal wrapper for property @code(SurfaceSpeed). This wrapper API may change, we advise to access simpler @code(SurfaceSpeed) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdSurfaceSpeed: TSFVec2f read FFdSurfaceSpeed;
     {  }
     property SurfaceSpeed: TVector2 read GetSurfaceSpeed write SetSurfaceSpeed;
@@ -128,6 +131,18 @@ end;
 procedure TCollisionCollectionNode.SetBounce(const Value: Single);
 begin
   FdBounce.Send(Value);
+end;
+
+procedure TCollisionCollectionNode.SetCollidables(const Value: array of TX3DNode);
+var
+  L: Integer;
+  A: array of TX3DNode;
+begin
+  L := High(Value) + 1;
+  SetLength(A, L);
+  if L > 0 then
+    Move(Value[0], A[0], L * SizeOf(TX3DNode));
+  FdCollidables.Send(A);
 end;
 
 function TCollisionCollectionNode.GetEnabled: Boolean;

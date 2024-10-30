@@ -1,5 +1,5 @@
 /*
-  Copyright 2014 Jan Adamec, Michalis Kamburelis.
+  Copyright 2014-2024 Jan Adamec, Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -37,6 +37,11 @@ MainWindow::MainWindow(QWidget *parent) :
 
     QSurfaceFormat aFormat;
     aFormat.setSamples(4);
+    aFormat.setDepthBufferSize(24);
+    aFormat.setStencilBufferSize(8);
+    aFormat.setSwapBehavior(QSurfaceFormat::DoubleBuffer);
+    aFormat.setSwapInterval(1);
+    QSurfaceFormat::setDefaultFormat(aFormat);
 
     m_pGlWidget = new GLWidget(aFormat, this);    // init with multisampling
     setCentralWidget(m_pGlWidget);
@@ -124,6 +129,8 @@ void MainWindow::UpdateAfterSceneLoaded()
     ui->actionHead_Bobbing->setChecked(CGE_GetVariableInt(ecgevarWalkHeadBobbing)>0);
     ui->actionHeadlight->setChecked(CGE_GetVariableInt(ecgevarHeadlight)>0);
     ui->actionSSAO->setChecked(CGE_GetVariableInt(ecgevarEffectSSAO)>0);
+
+    CGE_SetVariableInt(ecgevarPreventInfiniteFallingDown, 1);
 
     if (m_aNavKeeper.ApplyState())  // when scene loading was caused by reloading (changing multisampling, etc)
         UpdateNavigationButtons();
@@ -234,8 +241,12 @@ void MainWindow::MenuShowWarningClick()
 
 void MainWindow::MenuOpenGLInfoClick()
 {
+    m_pGlWidget->makeCurrent();
+
     char szBuf[8192];
     CGE_GetOpenGLInformation(szBuf, 8192);
+
+    m_pGlWidget->doneCurrent();
 
     QDialog aDlg(this);
     aDlg.setWindowTitle(tr("OpenGL Information"));

@@ -1,0 +1,20 @@
+#!/bin/bash
+set -euo pipefail
+IFS=$'\n\t'
+
+# --------------------------------------------------------------------
+# Check LPG (Lazarus project group) compilation.
+# While lazbuild cannot compile LPG directly, we make a little hack extracting
+# project names from LPG and compiling them separately.
+# At least we detect simple mistakes like wrong path / filename of LPI
+# (in case we changed them, but forgot to update LPG).
+#
+# Assumes $CASTLE_ENGINE_PATH is set.
+# Current directory doesn't matter.
+# --------------------------------------------------------------------
+
+cd $CASTLE_ENGINE_PATH
+
+grep '<Target FileName="' 'most_important_lazarus_packages_and_tools.lpg' | \
+  sed 's|.*<Target FileName="\([^"]*\)".*|\1|' | \
+  xargs --max-args=1 lazbuild

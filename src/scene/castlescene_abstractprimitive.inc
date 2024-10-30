@@ -64,6 +64,8 @@ type
       This updates TCastleCollider with TCastleCollider.AutoSize.
       This also updates TCastleMeshCollider mesh, if it referred to us. }
     procedure UpdateCollider;
+
+    function InternalBuildNodeInside: TObject; override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -109,8 +111,7 @@ type
 
     { Resolve collisions precisely with the primitive geometry.
       When this is @false we will only consider the primitive bounding box for collisions,
-      so e.g. player will not be able to move within sphere's box corners.
-      This sets @link(TCastleSceneCore.Spatial). }
+      so e.g. player will not be able to move within sphere's box corners. }
     property PreciseCollisions: Boolean read FPreciseCollisions write SetPreciseCollisions default false;
 
     { Rendering options of the scene. }
@@ -320,14 +321,10 @@ begin
   if FPreciseCollisions <> Value then
   begin
     FPreciseCollisions := Value;
-    {$warnings off} // this uses deprecated Spatial, which should be Internal at some point
-    if Value then
-      FScene.Spatial := [ssDynamicCollisions]
-    else
-      FScene.Spatial := [];
-    {$warnings on}
-    { Note that we don't add ssRendering,
-      would be largely useless as primitives are usually just 1 shape in an internal scene. }
+    FScene.PreciseCollisions := Value;
+    { Note: This also adds ssRendering octree,
+      somewhat useless as primitives are usually just 1 shape in an internal scene.
+      But does not seem problematic either. }
   end;
 end;
 
@@ -343,6 +340,11 @@ begin
   C := FindBehavior(TCastleCollider) as TCastleCollider;
   if C <> nil then
     C.InternalTransformChanged(Self);
+end;
+
+function TCastleAbstractPrimitive.InternalBuildNodeInside: TObject;
+begin
+  Result := FShapeNode.DeepCopy;
 end;
 
 {$define read_implementation_methods}

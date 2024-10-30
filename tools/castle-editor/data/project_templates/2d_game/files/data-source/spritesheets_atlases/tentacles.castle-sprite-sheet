@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<TextureAtlas imagePath="tentacles.png">
+<TextureAtlas width="1024" height="1024" imagePath="tentacles.png">
   <SubTexture x="0" y="934" fps="8" name="spawn_1" width="25" height="90"/>
   <SubTexture x="25" y="934" name="spawn_2" width="25" height="90"/>
   <SubTexture x="50" y="934" name="spawn_3" width="25" height="90"/>

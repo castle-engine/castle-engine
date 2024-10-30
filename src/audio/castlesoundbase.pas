@@ -65,9 +65,6 @@ type
     property Name: string read FName;
     { Nice device name to show user. }
     property Caption: string read FCaption;
-    {$ifdef FPC}
-    property NiceName: string read FCaption; deprecated 'use Caption';
-    {$endif}
   end;
 
   TSoundDeviceList = class({$ifdef FPC}specialize{$endif} TObjectList<TSoundDevice>)

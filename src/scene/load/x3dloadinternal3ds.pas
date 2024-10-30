@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2022 Michalis Kamburelis.
+  Copyright 2002-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ 3DS loader (Load3DS procedure). }
+{ 3DS loader. }
 
 unit X3DLoadInternal3DS;
 
@@ -21,16 +21,11 @@ unit X3DLoadInternal3DS;
 
 interface
 
-uses SysUtils, Classes,
-  X3DNodes;
-
-function Load3DS(const Stream: TStream; const BaseUrl: String): TX3DRootNode;
-
 implementation
 
-uses Generics.Collections, Math,
-  CastleUtils, CastleClassUtils, CastleVectors, X3DCameraUtils,
-  X3DLoadInternalUtils, CastleLog, CastleDownload, CastleURIUtils,
+uses SysUtils, Classes, Generics.Collections, Math,
+  X3DNodes, X3DLoad, CastleUtils, CastleClassUtils, CastleVectors, X3DCameraUtils,
+  X3DLoadInternalUtils, CastleLog, CastleDownload, CastleUriUtils,
   CastleStreamUtils;
 
 { 3DS reading mostly based on spec from
@@ -75,7 +70,7 @@ type
 
   TMaterialMap3ds = record
     Exists: boolean;
-    MapURL: string;
+    MapUrl: String;
     Scale, Offset: TVector2;
   end;
 
@@ -246,7 +241,7 @@ type
     Materials: TMaterial3dsList;
     { @groupEnd }
     { Autodesk version used to create this 3DS. }
-    Version: LongWord;
+    Version: UInt32;
     constructor Create(const Stream: TStream);
     destructor Destroy; override;
   end;
@@ -349,7 +344,7 @@ const
 type
   TChunkHeader = packed record
     Id: Word;
-    Len: LongWord;
+    Len: UInt32;
     procedure ReadFromStream(const Stream: TStream);
   end;
 
@@ -434,11 +429,6 @@ begin
       CHUNK_RGBB, CHUNK_RGBB_GAMMA:
         begin
           Stream.ReadBuffer(Col3Byte, SizeOf(Col3Byte));
-          {$ifdef ENDIAN_BIG}
-          b := Col3Byte[0];
-          Col3Byte[0] := Col3Byte[2];
-          Col3Byte[2] := b;
-          {$endif ENDIAN_BIG}
           Col := Vector3(Col3Byte);
           result := true;
           break;
@@ -514,7 +504,7 @@ procedure TMaterial3ds.ReadFromStream(Stream: TStream; EndPos: Int64);
   function ReadMaterialMap(EndPos: Int64): TMaterialMap3ds;
   const
     InitialExistingMatMap: TMaterialMap3ds =
-    (Exists: true; MapURL: ''; Scale: (X: 1; Y: 1); Offset: (X: 0; Y: 0));
+    (Exists: true; MapUrl: ''; Scale: (X: 1; Y: 1); Offset: (X: 0; Y: 0));
   var
     h: TChunkHeader;
     hEnd: Int64;
@@ -527,7 +517,7 @@ procedure TMaterial3ds.ReadFromStream(Stream: TStream; EndPos: Int64);
       h.ReadFromStream(Stream);
       hEnd := Stream.Position -SizeOf(TChunkHeader) +h.len;
       case h.id of
-        CHUNK_MAP_FILE: Result.MapURL := StreamReadZeroEndString(Stream);
+        CHUNK_MAP_FILE: Result.MapUrl := StreamReadZeroEndString(Stream);
         CHUNK_MAP_USCALE: Stream.ReadLE(Result.Scale.X);
         CHUNK_MAP_VSCALE: Stream.ReadLE(Result.Scale.Y);
         CHUNK_MAP_UOFFSET: Stream.ReadLE(Result.Offset.X);
@@ -772,7 +762,7 @@ constructor TTrimesh3ds.Create(const AName: string; AScene: TScene3DS;
       { init face }
       Stream.ReadBuffer(Word3, SizeOf(Word3));
       for j := 0 to 2 do
-        VertsIndices.InternalData[j] := LEtoN(Word3[j]);
+        VertsIndices.Data[j] := LEtoN(Word3[j]);
       Stream.ReadLE(Flags);
       { decode Flags }
       for j := 0 to 2 do
@@ -1006,11 +996,17 @@ var
   begin
     for I := 0 to O3ds.Cameras.Count - 1 do
     begin
+      {$warnings off} // TODO: fix using deprecated MakeCameraNode
+      // TODO: what is 3DS convention for up? +Y or Z? Using GravityUp = Up below is uncomfortable.
+
       Viewpoint := MakeCameraNode(cvVrml2_X3d, BaseUrl,
         O3ds.Cameras[I].Position,
         O3ds.Cameras[I].Direction,
         O3ds.Cameras[I].Up,
         O3ds.Cameras[I].Up { GravityUp equals Up });
+
+      {$warnings on}
+
       Viewpoint.X3DName := ViewpointVRMLName(O3ds.Cameras[I].Name);
       Result.AddChildren(Viewpoint);
 
@@ -1054,7 +1050,7 @@ var
     if Material.TextureMap1.Exists then
     begin
       Tex := TImageTextureNode.Create('', BaseUrl);
-      Tex.SetUrl([SearchTextureFile(BaseUrl, Material.TextureMap1.MapURL)]);
+      Tex.SetUrl([SearchTextureFile(BaseUrl, Material.TextureMap1.MapUrl)]);
       Result.Texture := Tex;
 
       TexTransform := TTextureTransformNode.Create('', BaseUrl);
@@ -1064,7 +1060,7 @@ var
       if Material.TextureMapBump.Exists then
       begin
         Tex := TImageTextureNode.Create('', BaseUrl);
-        Tex.SetUrl([SearchTextureFile(BaseUrl, Material.TextureMapBump.MapURL)]);
+        Tex.SetUrl([SearchTextureFile(BaseUrl, Material.TextureMapBump.MapUrl)]);
         Result.NormalMap := Tex;
 
         { We don't have separate TextureTransform for bump map.
@@ -1128,7 +1124,7 @@ begin
         Coord := TCoordinateNode.Create('Coord_' + TrimeshVRMLName(Trimesh3ds.Name), BaseUrl);
         Coord.FdPoint.Count := Trimesh3ds.VertsCount;
         for J := 0 to Trimesh3ds.VertsCount-1 do
-          Coord.FdPoint.Items.List^[J] := Trimesh3ds.Verts^[J].Pos;
+          Coord.FdPoint.Items.L[J] := Trimesh3ds.Verts^[J].Pos;
 
         { Create TextureCoordinate node, or nil if not available }
         if Trimesh3ds.HasTexCoords then
@@ -1136,7 +1132,7 @@ begin
           TexCoord := TTextureCoordinateNode.Create('TexCoord_' + TrimeshVRMLName(Trimesh3ds.Name), BaseUrl);
           TexCoord.FdPoint.Count := Trimesh3ds.VertsCount;
           for j := 0 to Trimesh3ds.VertsCount - 1 do
-            TexCoord.FdPoint.Items.List^[J] := Trimesh3ds.Verts^[J].TexCoord;
+            TexCoord.FdPoint.Items.L[J] := Trimesh3ds.Verts^[J].TexCoord;
         end else
           TexCoord := nil;
 
@@ -1169,10 +1165,10 @@ begin
           begin
             with IFS.FdCoordIndex.Items do
             begin
-              List^[FaceNum * 4    ] := Trimesh3ds.Faces^[J].VertsIndices[0];
-              List^[FaceNum * 4 + 1] := Trimesh3ds.Faces^[J].VertsIndices[1];
-              List^[FaceNum * 4 + 2] := Trimesh3ds.Faces^[J].VertsIndices[2];
-              List^[FaceNum * 4 + 3] := -1;
+              L[FaceNum * 4    ] := Trimesh3ds.Faces^[J].VertsIndices[0];
+              L[FaceNum * 4 + 1] := Trimesh3ds.Faces^[J].VertsIndices[1];
+              L[FaceNum * 4 + 2] := Trimesh3ds.Faces^[J].VertsIndices[2];
+              L[FaceNum * 4 + 3] := -1;
             end;
             Inc(J);
           end;
@@ -1200,4 +1196,14 @@ begin
   end;
 end;
 
+var
+  ModelFormat: TModelFormat;
+initialization
+  ModelFormat := TModelFormat.Create;
+  ModelFormat.OnLoad := {$ifdef FPC}@{$endif} Load3DS;
+  ModelFormat.OnLoadForceMemoryStream := true;
+  ModelFormat.MimeTypes.Add('image/x-3ds');
+  ModelFormat.FileFilterName := '3D Studio (*.3ds)';
+  ModelFormat.Extensions.Add('.3ds');
+  RegisterModelFormat(ModelFormat);
 end.

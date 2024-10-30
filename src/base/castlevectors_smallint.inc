@@ -26,12 +26,16 @@ type
       TIndex = 0..1;
   strict private
     function GetItems(const Index: TIndex): SmallInt; inline;
-    procedure SetItems(const Index: TIndex; const Value: SmallInt); inline;
-    function GetItemsInt(const Index: Integer): SmallInt; inline;
-    procedure SetItemsInt(const Index: Integer; const Value: SmallInt); inline;
   public
-    var
-      Data: array [TIndex] of SmallInt;
+    { Get vector components by index.
+      This is a default property, so you can write @code(MyVector[0])
+      instead of @code(MyVector.Data[0]) or @code(MyVector.AsArray[0]).
+
+      But note that this is not writeable (because exposing writeable properties on vectors
+      would cause some subtle traps, see https://castle-engine.io/coding_traps ).
+      Use @code(MyVector.Data[0] := 123) if you want to set by index,
+      or @code(MyVector.X := 123). }
+    property AsArray [const Index: TIndex]: SmallInt read GetItems; default;
 
     class operator {$ifdef FPC}+{$else}Add{$endif} (const A, B: TVector2SmallInt): TVector2SmallInt; inline;
     class operator {$ifdef FPC}-{$else}Subtract{$endif} (const A, B: TVector2SmallInt): TVector2SmallInt; inline;
@@ -39,11 +43,11 @@ type
 
     function ToString: string;
 
-    property Items [const Index: TIndex]: SmallInt read GetItems write SetItems; default;
-    property X: SmallInt index 0 read GetItemsInt write SetItemsInt;
-    property Y: SmallInt index 1 read GetItemsInt write SetItemsInt;
-
     class function Zero: TVector2SmallInt; static; inline;
+
+    case Integer of
+      0: (X, Y: SmallInt);
+      1: (Data: array [TIndex] of SmallInt);
   end;
 
   PVector2SmallInt = ^TVector2SmallInt;
@@ -82,21 +86,6 @@ end;
 function TVector2SmallInt.GetItems(const Index: TIndex): SmallInt;
 begin
   Result := Data[Index];
-end;
-
-procedure TVector2SmallInt.SetItems(const Index: TIndex; const Value: SmallInt);
-begin
-  Data[Index] := Value;
-end;
-
-function TVector2SmallInt.GetItemsInt(const Index: Integer): SmallInt;
-begin
-  Result := Data[Index];
-end;
-
-procedure TVector2SmallInt.SetItemsInt(const Index: Integer; const Value: SmallInt);
-begin
-  Data[Index] := Value;
 end;
 
 class function TVector2SmallInt.Zero: TVector2SmallInt;

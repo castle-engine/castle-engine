@@ -20,8 +20,7 @@ unit TestCastleBoxes;
 interface
 
 uses
-  Classes, SysUtils{$ifndef CASTLE_TESTER}, FpcUnit, TestUtils, TestRegistry,
-  CastleTestCase{$else}, CastleTester{$endif};
+  Classes, SysUtils, CastleTester;
 
 type
   TTestCastleBoxes = class(TCastleTestCase)
@@ -260,12 +259,12 @@ var
     for I := 0 to 2 do
       if Plane[I] > 0 then
       begin
-        VMin.InternalData[I] := -BoxHalfSize[I];
-        VMax.InternalData[I] :=  BoxHalfSize[I];
+        VMin.Data[I] := -BoxHalfSize[I];
+        VMax.Data[I] :=  BoxHalfSize[I];
       end else
       begin
-        VMin.InternalData[I] :=  BoxHalfSize[I];
-        VMax.InternalData[I] := -BoxHalfSize[I];
+        VMin.Data[I] :=  BoxHalfSize[I];
+        VMax.Data[I] := -BoxHalfSize[I];
       end;
 
     { If VMin is above the plane (plane equation is > 0), then VMax
@@ -405,8 +404,8 @@ var
     { calculate BoxCenter and BoxHalfSize }
     for I := 0 to 2 do
     begin
-      BoxCenter.InternalData[I] := (Box.Data[0].Data[I] + Box.Data[1].Data[I]) / 2;
-      BoxHalfSize.InternalData[I] := (Box.Data[1].Data[I] - Box.Data[0].Data[I]) / 2;
+      BoxCenter.Data[I] := (Box.Data[0].Data[I] + Box.Data[1].Data[I]) / 2;
+      BoxHalfSize.Data[I] := (Box.Data[1].Data[I] - Box.Data[0].Data[I]) / 2;
     end;
 
     { calculate TriangleMoved (Triangle shifted by -BoxCenter,
@@ -680,9 +679,9 @@ procedure TTestCastleBoxes.TestBox3DTransform;
       until Abs(Val2 - Val1) > 1; // do not accept too close Val1 and Val2 values
       OrderUp(Val1, Val2);
       {$warnings off} // silence FPC warning about Normal uninitialized
-      Result.Data[0].InternalData[I] := Val1;
+      Result.Data[0].Data[I] := Val1;
       {$warnings on}
-      Result.Data[1].InternalData[I] := Val2;
+      Result.Data[1].Data[I] := Val2;
     end;
   end;
 
@@ -702,9 +701,13 @@ begin
       begin
         WritelnWarning('TestBox3DTransform failed at test with RandomMatrix:' + NL +
           'Box: %s' + NL +
-          'Matrix: %s', [
+          'Matrix: %s' + NL +
+          'Resulting BoxTransformSlower: %s' + NL +
+          'Resulting Box.Transform: %s', [
           Box.ToString,
-          Matrix.ToString
+          Matrix.ToString,
+          BoxTransformSlower(Box, Matrix).ToString,
+          Box.Transform(Matrix).ToString
         ]);
         raise;
       end;

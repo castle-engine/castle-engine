@@ -1,3 +1,4 @@
+{%MainUnit x3dfields.pas}
 {
   Copyright 2002-2023 Michalis Kamburelis.
 
@@ -343,8 +344,12 @@ begin
   if not WarningDoneInvalidIndex then
   begin
     WarningDoneInvalidIndex := true;
-    WritelnWarning('X3D', Format('Invalid index for field %s (%s)',
-      [NiceName, X3DType]));
+    WritelnWarning('X3D', Format('Invalid index %d (should be less than count %d) for field %s (type: %s)', [
+      Index,
+      ACount,
+      NiceName,
+      X3DType
+    ]));
   end;
 end;
 
@@ -370,7 +375,7 @@ constructor TX3DSimpleMultField{$ifndef FPC} <
   const AParentNode: TX3DFileItem; const AExposed: boolean; const AName: string;
   const InitialContent: array of TItem);
 begin
-  inherited Create(AParentNode, AExposed, AName);
+  CreateUndefined(AParentNode, AExposed, AName);
   Items.AddRange(InitialContent);
   AssignDefaultValueFromValue;
 end;

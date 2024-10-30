@@ -19,7 +19,7 @@ unit GameUnit;
 interface
 
 uses Classes, Contnrs,
-  CastleUIControls, CastleControls, CastleComponentSerialize, CastleVectors,
+  CastleTransform, CastleComponentSerialize, CastleVectors, CastleScene,
   CastleTiledMap;
 
 type
@@ -32,14 +32,14 @@ type
     FItems: array of array of TUnit;
     FUnits: TComponentList;
   strict private
-    FMapControl: TCastleTiledMapControl;
+    FMap: TCastleTiledMap;
     FUnitsCount: Integer;
     function GetUnitOnMap(const TilePosition: TVector2Integer): TUnit;
     function GetUnits(const Index: Integer): TUnit;
     procedure SetUnitsCount(const AValue: Integer);
   public
     constructor Create(const AOwner: TComponent;
-      const AMapControl: TCastleTiledMapControl); reintroduce;
+      const AMap: TCastleTiledMap); reintroduce;
     destructor Destroy; override;
 
     { What unit is present at each map tile (@nil if none).
@@ -55,7 +55,7 @@ type
     function UnitsCount: Integer;
     property Units[const Index: Integer]: TUnit read GetUnits;
 
-    property MapControl: TCastleTiledMapControl read FMapControl;
+    property Map: TCastleTiledMap read FMap;
 
     function IsWater(const TilePosition: TVector2Integer): Boolean;
   end;
@@ -63,17 +63,17 @@ type
   TUnit = class(TComponent)
   private
     class var
-      UiTemplate: TSerializedComponent;
+      TransformTemplate: TSerializedComponent;
   strict private
     var
       FKind: TUnitKind;
       FAttack, FLife, FMovement: Integer;
       FInitialMovement: Integer;
-      ImageIcon: TCastleImageControl;
-      LabelAttack: TCastleLabel;
-      LabelLife: TCastleLabel;
-      LabelMovement: TCastleLabel;
-      RectangleBackground: TCastleRectangleControl;
+      ImageIcon: TCastleImageTransform;
+      TextAttack: TCastleText;
+      TextLife: TCastleText;
+      TextMovement: TCastleText;
+      Background: TCastleImageTransform;
       FTilePosition: TVector2Integer;
       FUnitsOnMap: TUnitsOnMap;
     procedure SetTilePosition(const Value: TVector2Integer);
@@ -86,7 +86,7 @@ type
   protected
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
   public
-    Ui: TCastleUserInterface;
+    Transform: TCastleTransform;
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure Initialize(const AUnitsOnMap: TUnitsOnMap;
@@ -96,6 +96,10 @@ type
       const AKind: TUnitKind); overload;
     function ToString: String; override;
     function Human: Boolean;
+
+    { Can this unit move to given new position.
+      Returns @true if the tile is empty and possible to walk into (not water),
+      or occupied by the enemy (in which case we do attack).}
     function CanMove(const NewTilePosition: TVector2Integer): Boolean;
 
     property Kind: TUnitKind read FKind;
@@ -108,6 +112,10 @@ type
     property TilePosition: TVector2Integer read FTilePosition write SetTilePosition;
   end;
 
+const
+  ZUnit = 100.0;
+  ZHover = 200.0;
+
 implementation
 
 uses SysUtils, TypInfo, Math,
@@ -116,11 +124,11 @@ uses SysUtils, TypInfo, Math,
 { TUnitsOnMap ---------------------------------------------------------------- }
 
 constructor TUnitsOnMap.Create(const AOwner: TComponent;
-  const AMapControl: TCastleTiledMapControl);
+  const AMap: TCastleTiledMap);
 begin
   inherited Create(AOwner);
-  FMapControl := AMapControl;
-  SetLength(FItems, MapControl.Map.Width, MapControl.Map.Height);
+  FMap := AMap;
+  SetLength(FItems, Map.Data.Width, Map.Data.Height);
   FUnits := TComponentList.Create(false);
 end;
 
@@ -157,8 +165,8 @@ var
   Frame: Integer;
   HorizontalFlip, VerticalFlip, DiagonalFlip: Boolean;
 begin
-  Result := MapControl.Map.TileRenderData(TilePosition,
-    MapControl.Map.Layers[0],
+  Result := Map.Data.TileRenderData(TilePosition,
+    Map.Data.Layers[0],
     Tileset, Frame, HorizontalFlip, VerticalFlip, DiagonalFlip) and
     { Water is on 1, 5, 9 tiles (counting from 0) in data/maps/tileset-terrain.png . }
     ((Frame mod 4) = 1);
@@ -169,15 +177,15 @@ end;
 constructor TUnit.Create(AOwner: TComponent);
 begin
   inherited;
-  if UiTemplate = nil then
-    UiTemplate := TSerializedComponent.Create('castle-data:/unit.castle-user-interface');
-  Ui := UiTemplate.UserInterfaceLoad(Self);
+  if TransformTemplate = nil then
+    TransformTemplate := TSerializedComponent.Create('castle-data:/unit.castle-transform');
+  Transform := TransformTemplate.TransformLoad(Self);
 
-  RectangleBackground := FindRequiredComponent('RectangleBackground') as TCastleRectangleControl;
-  ImageIcon := FindRequiredComponent('ImageIcon') as TCastleImageControl;
-  LabelAttack := FindRequiredComponent('LabelAttack') as TCastleLabel;
-  LabelLife := FindRequiredComponent('LabelLife') as TCastleLabel;
-  LabelMovement := FindRequiredComponent('LabelMovement') as TCastleLabel;
+  Background := FindRequiredComponent('Background') as TCastleImageTransform;
+  ImageIcon := FindRequiredComponent('ImageIcon') as TCastleImageTransform;
+  TextAttack := FindRequiredComponent('TextAttack') as TCastleText;
+  TextLife := FindRequiredComponent('TextLife') as TCastleText;
+  TextMovement := FindRequiredComponent('TextMovement') as TCastleText;
 end;
 
 procedure TUnit.Initialize(const AUnitsOnMap: TUnitsOnMap;
@@ -197,26 +205,19 @@ begin
   FInitialMovement := AMovement;
   FMovement := AMovement;
 
-  // adjust UI
+  // adjust components in Transform
   ImageIcon.URL := UnitIconUrls[AKind];
+  // change Background.Color (RGB, leave alpha as it was)
   if Human then
-    RectangleBackground.Color := HexToColor('4CFF6B')
+    Background.Color := ColorOpacity(HexToColor('4CFF6B'), Background.Color.W)
   else
-    RectangleBackground.Color := HexToColor('FF664C');
-  LabelAttack.Caption := IntToStr(Attack);
-  LabelLife.Caption := IntToStr(Life);
-  LabelMovement.Caption := IntToStr(Movement);
+    Background.Color := ColorOpacity(HexToColor('FF664C'), Background.Color.W);
+  TextAttack.Caption := IntToStr(Attack);
+  TextLife.Caption := IntToStr(Life);
+  TextMovement.Caption := IntToStr(Movement);
 
   UnitsOnMap := AUnitsOnMap;
   UnitsOnMap.FUnits.Add(Self);
-
-  { In case of isometric map, the displayed units should be smaller,
-    otherwise it's too crowdy on the map. }
-  if UnitsOnMap.MapControl.Map.Orientation in [moIsometric, moIsometricStaggered] then
-  begin
-    Ui.Width := 75;
-    Ui.Height := 75;
-  end;
 
   PlaceOnMap;
 end;
@@ -247,16 +248,32 @@ end;
 procedure TUnit.PlaceOnMap;
 var
   R: TFloatRectangle;
+  Scale: Single;
+const
+  { Must correspond to the unit.castle-transform original size (see in editor at design-time). }
+  UnitDesignedSize = 256.0;
+  { Additional unit scale to look better. }
+  UnitScale = 0.8;
+  { Additional unit scale to look better on Isometric maps. }
+  UnitScaleIsometric = 0.75;
 begin
   if UnitsOnMap <> nil then
   begin
     UnitsOnMap.FItems[TilePosition.X, TilePosition.Y] := Self;
 
-    R := UnitsOnMap.MapControl.TileRectangle(TilePosition, false);
-    R := R.CenterInside(Ui.EffectiveWidth, Ui.EffectiveHeight);
-    Ui.Anchor(hpLeft, R.Left);
-    Ui.Anchor(vpBottom, R.Bottom);
-    Ui.Exists := true;
+    R := UnitsOnMap.Map.TileRectangle(TilePosition);
+    Transform.Translation := Vector3(R.Center, ZUnit);
+
+    { The unit.castle-transform is designed for tile size = 256.
+      Adjust it to match the actual tile size. }
+    Scale := UnitScale * R.Height / UnitDesignedSize;
+    { In case of isometric map, the displayed units should be smaller,
+      otherwise it's too crowdy on the map. }
+    if UnitsOnMap.Map.Data.Orientation in [moIsometric, moIsometricStaggered] then
+      Scale := Scale * UnitScaleIsometric;
+    Transform.Scale := Vector3(Scale, Scale, 1.0);
+
+    Transform.Exists := true;
   end;
 end;
 
@@ -266,7 +283,7 @@ begin
      (UnitsOnMap.FItems[TilePosition.X, TilePosition.Y] = Self) then
     UnitsOnMap.FItems[TilePosition.X, TilePosition.Y] := nil;
 
-  Ui.Exists := false;
+  Transform.Exists := false;
 end;
 
 procedure TUnit.SetTilePosition(const Value: TVector2Integer);
@@ -303,7 +320,7 @@ begin
     (UnitsOnMap <> nil) and
     (Movement > 0) and
     // can only move over neighbor tile, that is not water
-    (UnitsOnMap.MapControl.Map.TileNeighbor(
+    (UnitsOnMap.Map.Data.TileNeighbor(
       TilePosition, NewTilePosition, CornersAreNeighbors)) and
     not UnitsOnMap.IsWater(NewTilePosition);
 
@@ -342,7 +359,7 @@ begin
   begin
     FLife := Value;
     if Value > 0 then
-      LabelLife.Caption := IntToStr(Life)
+      TextLife.Caption := IntToStr(Life)
     else
       Self.Destroy;
   end;
@@ -353,12 +370,12 @@ begin
   if FMovement <> Value then
   begin
     FMovement := Value;
-    LabelMovement.Caption := IntToStr(Movement);
+    TextMovement.Caption := IntToStr(Movement);
   end;
 end;
 
 initialization
 
 finalization
-  FreeAndNil(TUnit.UiTemplate);
+  FreeAndNil(TUnit.TransformTemplate);
 end.

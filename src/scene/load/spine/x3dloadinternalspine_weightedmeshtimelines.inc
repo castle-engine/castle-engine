@@ -275,17 +275,17 @@ procedure TWeightedMeshTimeline.Parse;
               if BoneTimeline is TBoneTimelineTranslate then
               begin
                 BoneTimelineTranslate.Vectors.Insert(P,
-                    Lerp(T, BoneTimelineTranslate.BackupVectors.List^[T1], BoneTimelineTranslate.BackupVectors.List^[T2]));
+                    Lerp(T, BoneTimelineTranslate.BackupVectors.L[T1], BoneTimelineTranslate.BackupVectors.L[T2]));
               end else
               if BoneTimeline is TBoneTimelineRotate then
               begin
                 BoneTimelineRotate.Angles.Insert(P,
-                    Lerp(T, BoneTimelineRotate.BackupAngles.List^[T1], BoneTimelineRotate.BackupAngles.List^[T2]));
+                    Lerp(T, BoneTimelineRotate.BackupAngles.L[T1], BoneTimelineRotate.BackupAngles.L[T2]));
               end else
               if BoneTimeline is TBoneTimelineScale then
               begin
                 BoneTimelineScale.Vectors.Insert(P,
-                    Lerp(T, BoneTimelineScale.BackupVectors.List^[T1], BoneTimelineScale.BackupVectors.List^[T2]));
+                    Lerp(T, BoneTimelineScale.BackupVectors.L[T1], BoneTimelineScale.BackupVectors.L[T2]));
               end;
             end else
             begin
@@ -297,17 +297,17 @@ procedure TWeightedMeshTimeline.Parse;
               if BoneTimeline is TBoneTimelineTranslate then
               begin
                 BoneTimelineTranslate.Vectors.Insert(P,
-                    Lerp(T, BoneTimelineTranslate.Vectors.List^[T1], BoneTimelineTranslate.Vectors.List^[P]));
+                    Lerp(T, BoneTimelineTranslate.Vectors.L[T1], BoneTimelineTranslate.Vectors.L[P]));
               end else
               if BoneTimeline is TBoneTimelineRotate then
               begin
                 BoneTimelineRotate.Angles.Insert(P,
-                    Lerp(T, BoneTimelineRotate.Angles.List^[T1], BoneTimelineRotate.Angles.List^[P]));
+                    Lerp(T, BoneTimelineRotate.Angles.L[T1], BoneTimelineRotate.Angles.L[P]));
               end else
               if BoneTimeline is TBoneTimelineScale then
               begin
                 BoneTimelineScale.Vectors.Insert(P,
-                    Lerp(T, BoneTimelineScale.Vectors.List^[T1], BoneTimelineScale.Vectors.List^[P]));
+                    Lerp(T, BoneTimelineScale.Vectors.L[T1], BoneTimelineScale.Vectors.L[P]));
               end;
             end;
           end;

@@ -91,7 +91,7 @@ begin
   XorShift64(NewRandSeed);
   XorShift64(NewRandSeed);
   {$I norqcheckbegin.inc}
-  RandSeed := LongWord(NewRandSeed);
+  RandSeed := UInt32(NewRandSeed);
   {$I norqcheckend.inc}
 {$else}
 begin

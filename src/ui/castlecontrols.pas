@@ -20,12 +20,12 @@ unit CastleControls;
 
 interface
 
-uses Classes, Generics.Collections,
+uses SysUtils, Classes, Generics.Collections,
   CastleVectors, CastleUIControls, CastleFonts, CastleTextureFontData,
   CastleKeysMouse, CastleImages, CastleUtils, CastleGLImages, CastleRectangles,
   CastleColors, CastleTimeUtils, CastleInternalRichText, CastleGLUtils,
-  CastleURIUtils, CastleLog, CastleStringUtils, CastleGLShaders, CastleClassUtils,
-  CastleRenderContext;
+  CastleUriUtils, CastleLog, CastleStringUtils, CastleGLShaders, CastleClassUtils,
+  CastleRenderContext, CastleInternalFileMonitor;
 
 type
   {$define read_interface}
@@ -35,7 +35,6 @@ type
   {$I castlecontrols_button.inc}
   {$I castlecontrols_panel.inc}
   {$I castlecontrols_imagecontrol.inc}
-  {$I castlecontrols_touchcontrol.inc}
   {$I castlecontrols_rectanglecontrol.inc}
   {$I castlecontrols_shape.inc}
   {$I castlecontrols_simplebackground.inc}
@@ -45,7 +44,6 @@ type
   {$I castlecontrols_scrollview.inc}
   {$I castlecontrols_switchcontrol.inc}
   {$I castlecontrols_checkbox.inc}
-  {$I castlecontrols_tableview.inc}
   {$I castlecontrols_timer.inc}
   {$I castlecontrols_edit.inc}
   {$I castlecontrols_groups.inc}
@@ -60,11 +58,11 @@ type
 
 implementation
 
-uses SysUtils, Math, CastleTextureFont_DjvSans_20,
-  {$ifdef FPC} CastleGL, {$else} OpenGL, OpenGLext, {$endif}
-  CastleTextureFont_DejaVuSans_10, CastleTextureImages,
+uses Math, CastleTextureFont_DefaultUi,
+  {$ifdef OpenGLES} CastleGLES, {$else} CastleGL, {$endif}
+  CastleTextureImages,
   CastleApplicationProperties, CastleMessaging, CastleComponentSerialize,
-  CastleUnicode;
+  CastleUnicode, CastleRenderOptions;
 
 {$define read_implementation}
 {$I castlecontrols_uifont.inc} //< Keep this on top, to allow castlecontrols_userinterfacefont.inc to access internals
@@ -72,7 +70,6 @@ uses SysUtils, Math, CastleTextureFont_DjvSans_20,
 {$I castlecontrols_button.inc}
 {$I castlecontrols_panel.inc}
 {$I castlecontrols_imagecontrol.inc}
-{$I castlecontrols_touchcontrol.inc}
 {$I castlecontrols_rectanglecontrol.inc}
 {$I castlecontrols_shape.inc}
 {$I castlecontrols_simplebackground.inc}
@@ -82,7 +79,6 @@ uses SysUtils, Math, CastleTextureFont_DjvSans_20,
 {$I castlecontrols_scrollview.inc}
 {$I castlecontrols_switchcontrol.inc}
 {$I castlecontrols_checkbox.inc}
-{$I castlecontrols_tableview.inc}
 {$I castlecontrols_timer.inc}
 {$I castlecontrols_edit.inc}
 {$I castlecontrols_groups.inc}
@@ -91,8 +87,6 @@ uses SysUtils, Math, CastleTextureFont_DjvSans_20,
 {$I castlecontrols_clipboard.inc}
 {$undef read_implementation}
 
-var
-  R: TRegisteredComponent;
 initialization
   RegisterSerializableComponent(TCastleButton, 'Button');
   RegisterSerializableComponent(TCastleImageControl, 'Image');
@@ -113,14 +107,6 @@ initialization
   RegisterSerializableComponent(TCastleCheckbox, 'Checkbox');
   RegisterSerializableComponent(TCastleDesign, 'Design (Use Another castle-user-interface File)');
   RegisterSerializableComponent(TCastleMask, 'Mask');
-
-  R := TRegisteredComponent.Create;
-  {$warnings off} // using deprecated, to keep reading it from castle-user-interface working
-  R.ComponentClass := TCastleSwitchControl;
-  {$warnings on}
-  R.Caption := ['Switch'];
-  R.IsDeprecated := true;
-  RegisterSerializableComponent(R);
 finalization
   FinalizationUIFonts;
   FinalizationClipboard;

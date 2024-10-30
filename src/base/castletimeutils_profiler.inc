@@ -100,13 +100,13 @@ type
     // TODO: for PasDoc: Something here confuses PasDoc, although it generally can handle nested classes.
 
     type
-      TTimes = class;
+      // TTimes = class; // such forward declaration confuses C++ Builder
 
       TTime = class
         Description: String;
         Time, ProcessTime: TFloatTime;
         Finished: Boolean;
-        Children: TTimes; //< nil if empty
+        Children: TObject; // nil if empty; always TTimes, but declaring it as such confuses C++ Builder
         destructor Destroy; override;
         function Summary(const Indent: String): String;
       end;
@@ -244,7 +244,7 @@ begin
   else
     Result := Indent + Format('%f [%f] - %s', [Time, ProcessTime, Description]) + NL;
   if Children <> nil then
-    Result := Result + Children.Summary(Indent + '> ');
+    Result := Result + TTimes(Children).Summary(Indent + '> ');
 end;
 
 destructor TCastleProfiler.TTime.Destroy;
@@ -328,7 +328,7 @@ begin
     Last := CurrentStack.Last;
     if Last.Children = nil then
       Last.Children := TTimes.Create(true);
-    ParentTimes := Last.Children;
+    ParentTimes := TTimes(Last.Children);
   end else
     ParentTimes := Times;
 

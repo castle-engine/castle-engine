@@ -20,8 +20,8 @@ unit CastleRectangles;
 
 interface
 
-uses Generics.Collections,
-  CastleVectors, CastleUtils;
+uses Generics.Collections, Classes,
+  CastleVectors, CastleUtils, CastleClassUtils;
 
 type
   { Horizontal position of one control/rectangle
@@ -468,6 +468,12 @@ type
   end;
 
   TFloatRectangleList = {$ifdef FPC}specialize{$endif} TStructList<TFloatRectangle>;
+
+{$define read_interface}
+
+{$I castlerectangles_persistent.inc}
+
+{$undef read_interface}
 
 function Rectangle(const Left, Bottom: Integer;
   const Width, Height: Cardinal): TRectangle; overload;
@@ -1630,7 +1636,7 @@ end;
 function TRectangleList.FindRectangle(const X, Y: Integer): Integer;
 begin
   for Result := 0 to Count - 1 do
-    if List^[Result].Contains(X, Y) then
+    if L[Result].Contains(X, Y) then
       Exit;
   Result := -1;
 end;
@@ -1638,9 +1644,13 @@ end;
 function TRectangleList.FindRectangle(const Point: TVector2): Integer;
 begin
   for Result := 0 to Count - 1 do
-    if List^[Result].Contains(Point) then
+    if L[Result].Contains(Point) then
       Exit;
   Result := -1;
 end;
+
+{$define read_implementation}
+
+{$I castlerectangles_persistent.inc}
 
 end.

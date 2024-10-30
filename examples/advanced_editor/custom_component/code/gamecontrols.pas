@@ -25,7 +25,7 @@ type
   TImageGrid = class(TCastleUserInterface)
   strict private
     FRows, FColumns: Integer;
-    FURL: String;
+    FUrl: String;
     { While it would be possible to render the grid using multiple TCastleImageControl
       instances (see the version from
       https://github.com/castle-engine/castle-engine/commit/d2b20a608b01f87ff4e41db038393e7bbb3e90bb#diff-1d471baf18007e094eb060eec1873c36fc385ce7cea2af50b328db5059f39da3 )
@@ -34,7 +34,7 @@ type
     FImage: TDrawableImage;
     procedure SetRows(const Value: Integer);
     procedure SetColumns(const Value: Integer);
-    procedure SetURL(const Value: String);
+    procedure SetUrl(const Value: String);
   protected
     procedure PreferredSize(var PreferredWidth, PreferredHeight: Single); override;
   public
@@ -47,14 +47,14 @@ type
   published
     property Rows: Integer read FRows write SetRows default 1;
     property Columns: Integer read FColumns write SetColumns default 1;
-    property URL: String read FURL write SetURL;
+    property Url: String read FUrl write SetUrl;
   end;
 
 implementation
 
 uses SysUtils,
   CastleComponentSerialize, CastleImages, CastleRectangles, CastleStringUtils,
-  CastleUtils, CastleLog, CastleURIUtils
+  CastleUtils, CastleLog, CastleUriUtils
   { Use CastlePropEdits, and thus LCL and castle_components, only when part of the editor. }
   {$ifdef CASTLE_DESIGN_MODE} , PropEdits, ComponentEditors, CastlePropEdits {$endif};
 
@@ -92,7 +92,7 @@ function TImageGrid.PropertySections(const PropertyName: String): TPropertySecti
 begin
   if (PropertyName = 'Rows') or
      (PropertyName = 'Columns') or
-     (PropertyName = 'URL') then
+     (PropertyName = 'Url') then
     Result := [psBasic]
   else
     Result := inherited PropertySections(PropertyName);
@@ -132,13 +132,13 @@ begin
   end;
 end;
 
-procedure TImageGrid.SetURL(const Value: String);
+procedure TImageGrid.SetUrl(const Value: String);
 begin
-  if FURL <> Value then
+  if FUrl <> Value then
   begin
-    FURL := Value;
+    FUrl := Value;
     try
-      FImage.URL := Value;
+      FImage.Url := Value;
     except
       { If loading file failed, and we're inside CGE editor,
         merely report a warning. This allows deserializing in CGE editor
@@ -148,7 +148,7 @@ begin
         if CastleDesignMode then
         begin
           WritelnWarning('TImageGrid', 'Failed to load image "%s": %s',
-            [URIDisplay(Value), ExceptMessage(E)]);
+            [UriDisplay(Value), ExceptMessage(E)]);
         end else
           raise;
       end;
@@ -184,7 +184,7 @@ begin
   else
   if Index = InheritedCount then
   begin
-    Result := 'Reload URL';
+    Result := 'Reload Image File';
   end else
     Result := '';
 end;
@@ -212,7 +212,7 @@ end;
 initialization
   RegisterSerializableComponent(TImageGrid, 'Image Grid');
   {$ifdef CASTLE_DESIGN_MODE}
-  RegisterPropertyEditor(TypeInfo(AnsiString), TImageGrid, 'URL', TImageURLPropertyEditor);
+  RegisterPropertyEditor(TypeInfo(AnsiString), TImageGrid, 'Url', TImageUrlPropertyEditor);
   RegisterComponentEditor(TImageGrid, TImageGridEditor);
   {$endif}
 end.

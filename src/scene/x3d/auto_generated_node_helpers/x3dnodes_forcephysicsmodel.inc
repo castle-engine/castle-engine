@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2023 Michalis Kamburelis.
+  Copyright 2015-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -27,11 +27,12 @@
     function GetForce: TVector3;
     procedure SetForce(const Value: TVector3);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdForce: TSFVec3f;
-    { Internal wrapper for property @link(Force). This wrapper API may change, we advise to access simpler @link(Force) instead. }
+    { Internal wrapper for property @code(Force). This wrapper API may change, we advise to access simpler @code(Force) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdForce: TSFVec3f read FFdForce;
     {  }
     property Force: TVector3 read GetForce write SetForce;

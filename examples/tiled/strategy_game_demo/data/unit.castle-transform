@@ -1,0 +1,101 @@
+{
+  "$$ClassName" : "TCastleTransform",
+  "Name" : "UnitRoot",
+  "$Children" : [
+    {
+      "$$ClassName" : "TCastleImageTransform",
+      "ColorPersistent" : {
+        "$$ClassName" : "TCastleColorPersistent",
+        "Alpha" : 7.5000000000000000E-001,
+        "Blue" : 2.9803922772407532E-001,
+        "Green" : 4.0000000596046448E-001
+      },
+      "Name" : "Background",
+      "Url" : "castle-data:/units/unit_background_frame.png"
+    },
+    {
+      "$$ClassName" : "TCastleImageTransform",
+      "Name" : "ImageIcon",
+      "SizePersistent" : {
+        "$$ClassName" : "TCastleVector2Persistent",
+        "Y" : 2.0000000000000000E+002
+      },
+      "TranslationPersistent" : {
+        "$$ClassName" : "TCastleVector3Persistent",
+        "Z" : 1.0000000000000000E+001
+      },
+      "Url" : "castle-data:/units/human1.png"
+    },
+    {
+      "$$ClassName" : "TCastleText",
+      "ColorPersistent" : {
+        "$$ClassName" : "TCastleColorPersistent",
+        "Blue" : 0.0000000000000000E+000,
+        "Green" : 0.0000000000000000E+000,
+        "Red" : 0.0000000000000000E+000
+      },
+      "Name" : "TextAttack",
+      "RenderOptions" : {
+        "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+      },
+      "Size" : 4.0000000000000000E+001,
+      "Text" : [
+        "A"
+      ],
+      "TranslationPersistent" : {
+        "$$ClassName" : "TCastleVector3Persistent",
+        "X" : -1.1301948547363281E+002,
+        "Y" : 1.1185552978515625E+002,
+        "Z" : 2.0000000000000000E+001
+      },
+      "VerticalAlignment" : "vpTop"
+    },
+    {
+      "$$ClassName" : "TCastleText",
+      "ColorPersistent" : {
+        "$$ClassName" : "TCastleColorPersistent",
+        "Blue" : 0.0000000000000000E+000,
+        "Green" : 0.0000000000000000E+000,
+        "Red" : 0.0000000000000000E+000
+      },
+      "Name" : "TextLife",
+      "RenderOptions" : {
+        "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+      },
+      "Size" : 4.0000000000000000E+001,
+      "Text" : [
+        "L"
+      ],
+      "TranslationPersistent" : {
+        "$$ClassName" : "TCastleVector3Persistent",
+        "X" : -1.1301948547363281E+002,
+        "Y" : -1.1303272247314453E+002,
+        "Z" : 2.0000000000000000E+001
+      }
+    },
+    {
+      "$$ClassName" : "TCastleText",
+      "Alignment" : "hpRight",
+      "ColorPersistent" : {
+        "$$ClassName" : "TCastleColorPersistent",
+        "Blue" : 0.0000000000000000E+000,
+        "Green" : 0.0000000000000000E+000,
+        "Red" : 0.0000000000000000E+000
+      },
+      "Name" : "TextMovement",
+      "RenderOptions" : {
+        "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+      },
+      "Size" : 4.0000000000000000E+001,
+      "Text" : [
+        "M"
+      ],
+      "TranslationPersistent" : {
+        "$$ClassName" : "TCastleVector3Persistent",
+        "X" : 1.1108586883544922E+002,
+        "Y" : -1.1303272247314453E+002,
+        "Z" : 2.0000000000000000E+001
+      }
+    }
+  ]
+}

@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2023 Michalis Kamburelis.
+  Copyright 2015-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -27,8 +27,9 @@
     function GetLanguage: TShaderLanguage;
     procedure SetLanguage(const Value: TShaderLanguage);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FEventActivate: TSFBoolEvent;
     {  }
@@ -43,7 +44,7 @@
     public property EventIsValid: TSFBoolEvent read FEventIsValid;
 
     strict private FFdLanguage: TSFStringEnum;
-    { Internal wrapper for property @link(Language). This wrapper API may change, we advise to access simpler @link(Language) instead. }
+    { Internal wrapper for property @code(Language). This wrapper API may change, we advise to access simpler @code(Language) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdLanguage: TSFStringEnum read FFdLanguage;
     { Shading language. Only the GLSL (OpenGL Shading Language) is actually supported. The default value, empty string, is equivalent to GLSL. }
     property Language: TShaderLanguage read GetLanguage write SetLanguage;

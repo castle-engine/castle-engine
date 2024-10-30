@@ -149,7 +149,7 @@ function LoadGLTexture(const image: TEncodedImage;
   const CompositeForMipmaps: TCompositeImage = nil;
   const GUITexture: boolean = false): TGLTextureId; overload;
 
-function LoadGLTexture(const URL: string;
+function LoadGLTexture(const Url: String;
   const Filter: TTextureFilter;
   const Wrap: TTextureWrap2D;
   const CompositeForMipmaps: TCompositeImage = nil;
@@ -241,7 +241,7 @@ begin
   NewHeight := ResizeToTextureSize(R.Height, Sizing);
 
   WritelnLog('Textures', Format('Resizing 2D texture "%s" from %dx%d to %dx%d',
-    [URIDisplay(R.URL), R.Width, R.Height, NewWidth, NewHeight]));
+    [UriDisplay(R.Url), R.Width, R.Height, NewWidth, NewHeight]));
 
   result := r.MakeResized(NewWidth, NewHeight, riBilinear);
 end;
@@ -363,7 +363,7 @@ begin
     raise ETextureLoadError.Create('Cannot generate mipmaps on CPU for 3D texture (depth <> 1)');
 
   WritelnWarning('CastleBuild2DMipmaps', 'Generating mipmaps on CPU for texture "%s". This indicates very old GPU (not capable of glGenerateMipmap), and will be slow.', [
-    URIDisplay(Image.URL)
+    UriDisplay(Image.Url)
   ]);
 
   Level := 0;
@@ -371,7 +371,7 @@ begin
   H := ResizeToTextureSize(Image.Height, tsScalablePowerOf2);
 
   // WritelnLog('CastleBuild2DMipmaps', Format('Resizing 2D texture "%s" from %dx%d to %dx%d', [
-  //   URIDisplay(Image.URL),
+  //   UriDisplay(Image.Url),
   //   Image.Width,
   //   Image.Height,
   //   W,
@@ -389,7 +389,7 @@ begin
       Inc(Level);
 
       // WritelnLog('CastleBuild2DMipmaps', Format('Resizing 2D texture "%s" from %dx%d to %dx%d', [
-      //   URIDisplay(NewImage.URL),
+      //   UriDisplay(NewImage.Url),
       //   NewImage.Width,
       //   NewImage.Height,
       //   W,
@@ -410,13 +410,13 @@ begin
   LoadGLGeneratedTexture(result, image, Filter, Wrap, CompositeForMipmaps, GUITexture);
 end;
 
-function LoadGLTexture(const URL: string;
+function LoadGLTexture(const Url: String;
   const Filter: TTextureFilter; const Wrap: TTextureWrap2D;
   const CompositeForMipmaps: TCompositeImage; const GUITexture: boolean): TGLTextureId;
 var
   Image: TEncodedImage;
 begin
-  Image := LoadTextureImage(URL);
+  Image := LoadTextureImage(Url);
   try
     Result := LoadGLTexture(Image, Filter, Wrap, CompositeForMipmaps, GUITexture);
   finally Image.Free end;
@@ -588,7 +588,7 @@ begin
       else
         LoadNormal(ImageRightSize);
 
-      TextureMemoryProfiler.Allocate(TextureId, Image.URL, Image.ClassName, LoadedSize,
+      TextureMemoryProfiler.Allocate(TextureId, Image.Url, Image.ClassName, LoadedSize,
         Filter.NeedsMipmaps, ImageRightSize.Width, ImageRightSize.Height, 1);
     finally
       if ImageRightSizeFree then
@@ -647,11 +647,11 @@ begin
           Without doing anything, using compressed textures will be inconsistent
           with uncompressed, since the analogous code will succeed in creating
           mipmaps from uncompressed texture data. }
-        WritelnWarning('Texture', 'Generating mipmaps for compressed textures not possible. Turning off mipmaps for ' + Image.URL);
+        WritelnWarning('Texture', 'Generating mipmaps for compressed textures not possible. Turning off mipmaps for ' + Image.Url);
       end;
     end;
 
-    TextureMemoryProfiler.Allocate(TextureId, Image.URL, Image.ClassName, LoadedSize,
+    TextureMemoryProfiler.Allocate(TextureId, Image.Url, Image.ClassName, LoadedSize,
       Filter.NeedsMipmaps, Image.Width, Image.Height, 1);
   end else
     raise EInvalidImageForOpenGLTexture.CreateFmt('Cannot load to OpenGL texture image class %s', [Image.ClassName]);
@@ -682,7 +682,7 @@ begin
   try
     LoadedSize := 0;
     glCompressedTextureImage2D(Image, 0, LoadedSize);
-    TextureMemoryProfiler.Allocate(Tex, Image.URL, Image.ClassName,
+    TextureMemoryProfiler.Allocate(Tex, Image.Url, Image.ClassName,
       LoadedSize, false, Image.Width, Image.Height, 1);
   except
     { catch ECannotLoadCompressedTexture and change it to ECannotDecompressTexture }

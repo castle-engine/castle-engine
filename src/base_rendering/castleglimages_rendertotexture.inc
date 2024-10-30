@@ -217,15 +217,14 @@
     procedure RenderEnd(const RenderBeginFollows: boolean = false);
 
     { Generate mipmaps for the texture.
-      This will use glGenerateMipmap call, which is actually
-      a part of EXT_framebuffer_object extension (or GL core together
-      with framebuffer in GL core), so it will always
-      raise EGenerateMipmapNotAvailable if framebuffer is not available.
+      Uses GPU capability to generate mipmaps fast.
 
-      You should use HasGenerateMipmap and never call this
-      if not HasGenerateMipmap, if you don't want to get this exception.
+      This will raise an exception if necessary OpenGL(ES) version/extension
+      to do is not available (but it really indicates ancient
+      OpenGL(ES) version, all moden versions support this).
 
-      @raises(EGenerateMipmapNotAvailable If glGenerateMipmap not available.) }
+      Check HasGenerateMipmap before calling this, if you want to avoid
+      getting the exception. }
     procedure GenerateMipmap;
 
     { Color buffer name. Use only when Buffer = tbNone, between GLContextOpen
@@ -287,7 +286,7 @@ end;
 var
   { We may want to use an FBO, while another FBO is already used.
 
-    Right now, this situation happens only when we use view3dscene
+    Right now, this situation happens only when we use castle-model-viewer
     with --screenshot option, and we load a scene that uses a generated
     texture (like RenderedTexture or GeneratedShadowMap).
 
@@ -419,7 +418,7 @@ begin
   inherited Create;
 
   if not ApplicationProperties.IsGLContextOpen then
-    raise EFramebufferError.Create('Cannot create TGLRenderToTexture when OpenGL context is not available. Do this later -- e.g. from events like TCastleControl.OnOpen, TCastleWindow.OnOpen, Application.OnInitialize, or after an explicit call to TCastleWindow.Open.');
+    raise EFramebufferError.Create('Cannot create TGLRenderToTexture when OpenGL context is not available. Do this later, e.g. from events like TCastleUserInterface.Render, TCastleUserInterface.GLContextOpen, Application.OnInitialize.');
 
   FTextureTarget := GL_TEXTURE_2D;
   FCompleteTextureTarget := GL_TEXTURE_2D;
@@ -616,7 +615,7 @@ begin
       Status := glCheckFramebufferStatus(GL_FRAMEBUFFER);
       case Status of
         GL_FRAMEBUFFER_COMPLETE: Success := true;
-        GL_FRAMEBUFFER_UNSUPPORTED: WritelnWarning('FBO', 'Unsupported framebuffer configuration, will fallback to glCopyTexSubImage2D approach. If your window is invisible (like for "view3dscene --screenshot"), you may get only a black screen.');
+        GL_FRAMEBUFFER_UNSUPPORTED: WritelnWarning('FBO', 'Unsupported framebuffer configuration, will fallback to glCopyTexSubImage2D approach. If your window is invisible (like for "castle-model-viewer --screenshot"), you may get only a black screen.');
         else raise EFramebufferInvalid.CreateFmt('Framebuffer check failed: %s (FBO error number %d)',
           [ FramebufferStatusToString(Status), Status]);
       end;
@@ -700,7 +699,7 @@ end;
 procedure TGLRenderToTexture.RenderEnd(const RenderBeginFollows: boolean);
 
 {$ifdef DEBUG_SAVE_FRAMEBUFFER_COLOR}
-  procedure SaveColor(const URL: string);
+  procedure SaveColor(const Url: String);
   var
     Image: TCastleImage;
   begin
@@ -712,13 +711,13 @@ procedure TGLRenderToTexture.RenderEnd(const RenderBeginFollows: boolean);
           ImageGLType(Image), Image.RawPixels);
       finally AfterPackImage(Image) end;
 
-      SaveImage(Image, URL);
+      SaveImage(Image, Url);
     finally FreeAndNil(Image) end;
   end;
 {$endif DEBUG_SAVE_FRAMEBUFFER_COLOR}
 
 {$ifdef DEBUG_SAVE_FRAMEBUFFER_DEPTH}
-  procedure SaveDepth(const URL: string);
+  procedure SaveDepth(const Url: String);
   var
     Image: TGrayscaleImage;
   begin
@@ -730,7 +729,7 @@ procedure TGLRenderToTexture.RenderEnd(const RenderBeginFollows: boolean);
           ImageGLType(Image), Image.RawPixels);
       finally AfterPackImage(Image) end;
 
-      SaveImage(Image, URL);
+      SaveImage(Image, Url);
     finally FreeAndNil(Image) end;
   end;
 {$endif DEBUG_SAVE_FRAMEBUFFER_DEPTH}

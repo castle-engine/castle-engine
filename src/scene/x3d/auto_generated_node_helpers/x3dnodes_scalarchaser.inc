@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2023 Michalis Kamburelis.
+  Copyright 2015-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -29,8 +29,9 @@
     function GetInitialValue: Single;
     procedure SetInitialValue(const Value: Single);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FEventSet_destination: TSFFloatEvent;
     {  }
@@ -45,13 +46,13 @@
     public property EventValue_changed: TSFFloatEvent read FEventValue_changed;
 
     strict private FFdInitialDestination: TSFFloat;
-    { Internal wrapper for property @link(InitialDestination). This wrapper API may change, we advise to access simpler @link(InitialDestination) instead. }
+    { Internal wrapper for property @code(InitialDestination). This wrapper API may change, we advise to access simpler @code(InitialDestination) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdInitialDestination: TSFFloat read FFdInitialDestination;
     {  }
     property InitialDestination: Single read GetInitialDestination write SetInitialDestination;
 
     strict private FFdInitialValue: TSFFloat;
-    { Internal wrapper for property @link(InitialValue). This wrapper API may change, we advise to access simpler @link(InitialValue) instead. }
+    { Internal wrapper for property @code(InitialValue). This wrapper API may change, we advise to access simpler @code(InitialValue) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdInitialValue: TSFFloat read FFdInitialValue;
     {  }
     property InitialValue: Single read GetInitialValue write SetInitialValue;

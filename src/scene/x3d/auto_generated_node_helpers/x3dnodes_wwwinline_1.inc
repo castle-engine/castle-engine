@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2023 Michalis Kamburelis.
+  Copyright 2015-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -27,12 +27,13 @@
     function GetSeparate: Boolean;
     procedure SetSeparate(const Value: Boolean);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
     class function ForVRMLVersion(const Version: TX3DVersion): Boolean; override;
 
     strict private FFdSeparate: TSFBool;
-    { Internal wrapper for property @link(Separate). This wrapper API may change, we advise to access simpler @link(Separate) instead. }
+    { Internal wrapper for property @code(Separate). This wrapper API may change, we advise to access simpler @code(Separate) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdSeparate: TSFBool read FFdSeparate;
     {  }
     property Separate: Boolean read GetSeparate write SetSeparate;

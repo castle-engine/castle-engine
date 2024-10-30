@@ -19,8 +19,8 @@ unit TestCastleParameters;
 
 interface
 
-uses Classes, SysUtils, {$ifndef CASTLE_TESTER}FpcUnit, TestUtils, TestRegistry,
-  {$else}CastleTester,{$endif} CastleParameters, CastleUtils;
+uses Classes, SysUtils,
+  CastleTester, CastleParameters, CastleUtils;
 
 type
   TParsedOption = record
@@ -32,7 +32,7 @@ type
   PParsedOption = ^TParsedOption;
   TParsedOptionList = {$ifdef FPC}specialize{$endif} TStructList<TParsedOption>;
 
-  TTestParsingParameters = class({$ifndef CASTLE_TESTER}TTestCase{$else}TCastleTestCase{$endif})
+  TTestParsingParameters = class(TCastleTestCase)
   private
     procedure AssertParsEqual(const ParsValues: array of string; const ParsTestName: string);
     procedure AssertParsedParsEqual(const ParsedPars1: TParsedOptionList;
@@ -100,11 +100,11 @@ begin
   AssertEquals('Count at ' + ParsTestName, High(ParsedPars2), ParsedPars1.Count - 1);
   for I := 0 to ParsedPars1.Count - 1 do
   begin
-    AssertEquals('OptionNum at '   + ParsTestName, ParsedPars1.List^[I].OptionNum  , ParsedPars2[I].OptionNum  );
-    AssertEquals('HasArgument at ' + ParsTestName, ParsedPars1.List^[I].HasArgument, ParsedPars2[I].HasArgument);
-    AssertEquals('Argument at '    + ParsTestName, ParsedPars1.List^[I].Argument   , ParsedPars2[I].Argument   );
+    AssertEquals('OptionNum at '   + ParsTestName, ParsedPars1.L[I].OptionNum  , ParsedPars2[I].OptionNum  );
+    AssertEquals('HasArgument at ' + ParsTestName, ParsedPars1.L[I].HasArgument, ParsedPars2[I].HasArgument);
+    AssertEquals('Argument at '    + ParsTestName, ParsedPars1.L[I].Argument   , ParsedPars2[I].Argument   );
     for J := Low(TSeparateArgs) to High(TSeparateArgs) do
-      AssertEquals('SeparateArgs at ' + ParsTestName, ParsedPars1.List^[I].SeparateArgs[J], ParsedPars2[I].SeparateArgs[J]);
+      AssertEquals('SeparateArgs at ' + ParsTestName, ParsedPars1.L[I].SeparateArgs[J], ParsedPars2[I].SeparateArgs[J]);
   end;
 end;
 
@@ -119,9 +119,9 @@ procedure TTestParsingParameters.TestParsingParameters;
     for I := 0 to v.Count - 1 do
       Result := Result + Format('  [%d] OptionNum %d, HasArg %s, Argument "%s"',  [
         I,
-        v.List^[I].OptionNum,
-        BoolToStr(v.List^[I].HasArgument, true),
-        v.List^[I].Argument
+        v.L[I].OptionNum,
+        BoolToStr(v.L[I].HasArgument, true),
+        v.L[I].Argument
       ]) + NL;
   end;
 

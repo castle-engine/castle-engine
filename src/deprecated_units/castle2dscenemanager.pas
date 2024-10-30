@@ -140,9 +140,8 @@ type
     property Transparent default true;
   end deprecated 'use TCastleViewport. To have the same initial behavior call Setup2D method, and set FullSize:=true, and set Transparent:=true';
 
-  { Scene best suited for 2D models. Sets BlendingSort := bs2D,
-    good when your transparent objects have proper order along the Z axis
-    (useful e.g. for Spine animations). }
+  { Scene best suited for 2D models.
+    Does nothing now (used to control blending sort in this scene). }
   TCastle2DScene = class(TCastleScene)
   public
     constructor Create(AOwner: TComponent); override;
@@ -152,10 +151,10 @@ type
       like @link(ProcessEvents) or @link(Spatial) or rendering attributes
       in @link(RenderOptions). }
     function Clone(const AOwner: TComponent): TCastle2DScene;
-  end deprecated 'use TCastleScene, and call Setup2D right after creating';
+  end deprecated 'use TCastleScene, it is equivalent to TCastle2DScene now';
 
   {$warnings off} // refering to deprecated from deprecated
-  T2DScene = TCastle2DScene deprecated 'use TCastleScene, and call Setup2D right after creating';
+  T2DScene = TCastle2DScene deprecated 'use TCastleScene, it is equivalent to T2DScene now';
   {$warnings on}
 
 implementation
@@ -172,7 +171,7 @@ begin
   { When not deserializing, do Setup2D now.
     When deserializing, the camera should already be saved with 2D configuration. }
   if Camera <> nil then
-    Setup2D;
+    Setup2D; // sets AutoCamera := false
   AutoNavigation := false;
 end;
 
@@ -279,7 +278,6 @@ end;
 constructor TCastle2DScene.Create(AOwner: TComponent);
 begin
   inherited;
-  Setup2D;
 end;
 
 function TCastle2DScene.Clone(const AOwner: TComponent): TCastle2DScene;

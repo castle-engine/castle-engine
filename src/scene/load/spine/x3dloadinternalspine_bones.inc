@@ -44,7 +44,7 @@
     destructor Destroy; override;
     procedure Parse(const Json: TJSONObject;
       const PossibleParents: TBoneList; const ExpectedParent, DragonBonesFormat: boolean);
-    procedure BuildNodes(const BaseUrl: string);
+    procedure BuildNodes(const BaseUrl: String);
     function ToWorldSpace(const V: TVector2): TVector2;
     function ToLocalSpace(V: TVector2): TVector2; overload;
     function ToLocalSpace(const V: TVector3): TVector3; overload;
@@ -67,7 +67,7 @@
     function FindByName(const BoneName: string): TBone;
     procedure Parse(const Json: TJSONObject; var Root: TBone;
       const DragonBonesFormat: boolean);
-    procedure BuildNodes(const BaseUrl: string);
+    procedure BuildNodes(const BaseUrl: String);
     procedure Assign(const Source: TBoneList);
   end;
 {$endif}
@@ -138,7 +138,7 @@ begin
   inherited;
 end;
 
-procedure TBone.BuildNodes(const BaseUrl: string);
+procedure TBone.BuildNodes(const BaseUrl: String);
 begin
   Node := TTransformNode.Create('Bone_' + Name, BaseUrl);
   Node.FdTranslation.Value := Vector3(XY.X, XY.Y, 0);
@@ -153,7 +153,7 @@ end;
 
 procedure TBone.UpdateWorldTransform;
 var
-  C, S: Float;
+  C, S: Single;
 begin
   WorldXY := XY;
   WorldScale := Scale;
@@ -283,7 +283,7 @@ begin
     end;
 end;
 
-procedure TBoneList.BuildNodes(const BaseUrl: string);
+procedure TBoneList.BuildNodes(const BaseUrl: String);
 var
   I: Integer;
 begin

@@ -1,5 +1,5 @@
 /*
-  Copyright 2013-2023 Jan Adamec, Michalis Kamburelis.
+  Copyright 2013-2024 Jan Adamec, Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -62,8 +62,9 @@ enum ECgeVariable   // used for querying engine parameters in CGE_Set/GetVariabl
     ecgevarScenePaused     = 6,   // pause Viewport (int, 1 = on, 0 = off)
     ecgevarAutoRedisplay   = 7,   // automatically redraws the window all the time (int, 1 = on, 0 = off)
     ecgevarHeadlight       = 8,   // avatar's headlight (int, 1 = on, 0 = off)
-    ecgevarOcclusionQuery  = 9,   // occlusion query, ignored when hierarchical on (int, 1 = on, 0 = off)
+    ecgevarOcclusionCulling  = 9,   // occlusion culling (int, 1 = on, 0 = off)
     ecgevarPhongShading    = 10,  // phong shading (int, 1 = on, 0 = off)
+    ecgevarPreventInfiniteFallingDown = 11,  // prevent infinite falling down (int, 1 = on, 0 = off)
 };
 
 enum ECgeNavigationType
@@ -230,6 +231,53 @@ enum ECgeKey    // values for these constants have to be same as in unit CastleK
   kcge_Period      = 190,
 };
 
+enum ECgeMouseButton
+{
+  ecgemouseButtonNone   = 0,
+  ecgemouseButtonLeft   = 1,
+  ecgemouseButtonMiddle = 2,
+  ecgemouseButtonRight  = 3,
+  ecgemouseButtonExtra1 = 4,
+  ecgemouseButtonExtra2 = 5,
+};
+
+enum ECgeMouseWheelDirection
+{
+  ecgemouseWheelNone    = 0,
+  ecgemouseWheelUp      = 1,
+  ecgemouseWheelDown    = 2,
+  ecgemouseWheelLeft    = 3,
+  ecgemouseWheelRight   = 4,
+};
+
+enum ECgeNavigationInput
+{
+  // common for all navigation types
+  ecgeinputZoomIn       = 1,
+  ecgeinputZoomOut      = 2,
+  // for walk navigation
+  ecgeinputForward      = 11,
+  ecgeinputBackward     = 12,
+  ecgeinputLeftRotate   = 13,
+  ecgeinputRightRotate  = 14,
+  ecgeinputLeftStrafe   = 15,
+  ecgeinputRightStrafe  = 16,
+  ecgeinputUpRotate     = 17,
+  ecgeinputDownRotate   = 18,
+  ecgeinputIncreasePreferredHeight = 19,
+  ecgeinputDecreasePreferredHeight = 20,
+  ecgeinputGravityUp    = 21,
+  ecgeinputRun          = 22,
+  ecgeinputMoveSpeedInc = 23,
+  ecgeinputMoveSpeedDec = 24,
+  ecgeinputJump         = 25,
+  ecgeinputCrouch       = 26,
+  // for examine navigation
+  ecgeinputExRotate     = 31,
+  ecgeinputExMove       = 32,
+  ecgeinputExZoom       = 33,
+};
+
 typedef int (CDECL *TCgeLibraryCallback)(int /*ECgeLibCallbackCode*/eCode, int iParam1, int iParam2, const char *szParam);
 
 
@@ -246,6 +294,7 @@ extern void CGE_Finalize(void);
 extern void CGE_Open(unsigned uiFlags, unsigned initialWidth, unsigned initialHeight, unsigned uiDpi);
 extern void CGE_Close(bool quitWhenLastWindowClosed);
 extern void CGE_GetOpenGLInformation(char *szBuffer, int nBufSize);        // szBuffer is filled inside the function with max size of nBufSize
+extern void CGE_GetCastleEngineVersion(char *szBuffer, int nBufSize);      // szBuffer is filled inside the function with max size of nBufSize
 extern void CGE_SetUserInterface(bool bAutomaticTouchInterface); // should be called at the start of the program. Touch interface controls will be updated automatically then.
 
 extern void CGE_Resize(unsigned uiViewWidth, unsigned uiViewHeight);       // let the library know about the viewport size changes
@@ -256,13 +305,14 @@ extern void CGE_Update(void);                                                  /
 
 extern void CGE_MouseDown(int x, int y, bool bLeftBtn, int nFingerIdx);    // [0,0] is the bottom-left corner!
 extern void CGE_Motion(int x, int y, int nFingerIdx);
-extern void CGE_MouseUp(int x, int y, bool bLeftBtn, int nFingerIdx, bool trackReleased);
+extern void CGE_MouseUp(int x, int y, bool bLeftBtn, int nFingerIdx);
 extern void CGE_MouseWheel(float zDelta, bool bVertical);
 
 extern void CGE_KeyDown(int /*ECgeKey*/ eKey);
 extern void CGE_KeyUp(int /*ECgeKey*/ eKey);
 
 extern void CGE_LoadSceneFromFile(const char *szFile);                     // name od the file has to be utf-8 encoded
+extern void CGE_SaveSceneToFile(const char *szFile);
 
 extern int CGE_GetViewpointsCount(void);
 extern void CGE_GetViewpointName(int iViewpointIdx, char *szName, int nBufSize);    // szName is buffer of size nBufSize, and is filled with utf-8 encoded string
@@ -274,6 +324,11 @@ extern void CGE_GetViewCoords(float *pfPosX, float *pfPosY, float *pfPosZ, float
                               float *pfUpX, float *pfUpY, float *pfUpZ, float *pfGravX, float *pfGravY, float *pfGravZ);
 extern void CGE_MoveViewToCoords(float fPosX, float fPosY, float fPosZ, float fDirX, float fDirY, float fDirZ,
                                  float fUpX, float fUpY, float fUpZ, float fGravX, float fGravY, float fGravZ, bool bAnimated);
+
+extern void CGE_SetNavigationInputShortcut(int /*ECgeNavigationInput*/ eInput,
+                              int /*ECgeKey*/ eKey1, int /*ECgeKey*/ eKey2 /* = kcge_None */,
+                              int /*ECgeMouseButton*/ eMouseButton /* = ecgemouseButtonNone */,
+                              int /*ECgeMouseWheelDirection*/ eMouseWheel /* = ecgemouseWheelNone */); // set input controls for camera; parameters correspond to TInputShortcut.Assign
 
 extern int CGE_GetNavigationType(void);
 extern void CGE_SetNavigationType(int /*ECgeNavigationType*/ eNewType);

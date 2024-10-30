@@ -1,3 +1,4 @@
+{%MainUnit castleutils.pas}
 {
   Copyright 2002-2022 Michalis Kamburelis.
 
@@ -38,7 +39,7 @@ const
 
   @italic(It is not adviced to use this function,
   better to operate on URLs and MIME types instead of filenames
-  and extensions, see CastleURIUtils.) }
+  and extensions, see CastleUriUtils.) }
 function DeleteFileExt(const FileName: string): string;
 
 { Extracts @italic(two) last extensions from the filename, if it has two extensions.
@@ -52,7 +53,7 @@ function DeleteFileExt(const FileName: string): string;
 
   @italic(It is not adviced to use this function,
   better to operate on URLs and MIME types instead of filenames
-  and extensions, see CastleURIUtils.) }
+  and extensions, see CastleUriUtils.) }
 function ExtractFileDoubleExt(const FileName: string): string;
 
 { Extracts from FileName the name of file, without directory,

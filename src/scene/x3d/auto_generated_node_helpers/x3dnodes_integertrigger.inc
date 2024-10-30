@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2023 Michalis Kamburelis.
+  Copyright 2015-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -27,15 +27,16 @@
     function GetIntegerKey: Integer;
     procedure SetIntegerKey(const Value: Integer);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FEventSet_boolean: TSFBoolEvent;
     {  }
     public property EventSet_boolean: TSFBoolEvent read FEventSet_boolean;
 
     strict private FFdIntegerKey: TSFInt32;
-    { Internal wrapper for property @link(IntegerKey). This wrapper API may change, we advise to access simpler @link(IntegerKey) instead. }
+    { Internal wrapper for property @code(IntegerKey). This wrapper API may change, we advise to access simpler @code(IntegerKey) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdIntegerKey: TSFInt32 read FFdIntegerKey;
     {  }
     property IntegerKey: Integer read GetIntegerKey write SetIntegerKey;

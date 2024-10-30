@@ -63,12 +63,12 @@ procedure ApplicationInitialize;
     end;
 
     { Test reading file using URL (through CGE function). }
-    procedure TestReading(const URL: String);
+    procedure TestReading(const Url: String);
     var
       Stream: TStream;
       S: String;
     begin
-      Stream := Download(URL);
+      Stream := Download(Url);
       try
         S := StreamToString(Stream);
         AssertEquals('Testing.', Trim(S));
@@ -76,15 +76,15 @@ procedure ApplicationInitialize;
     end;
 
     { Test reading file, whose URL is written inside another file, in UTF-8 encoding. }
-    procedure TestReadingThroughReference(const URL: String);
+    procedure TestReadingThroughReference(const Url: String);
     var
       Stream: TStream;
-      ReferredURL: String;
+      ReferredUrl: String;
     begin
-      Stream := Download(URL);
+      Stream := Download(Url);
       try
-        ReferredURL := Trim(StreamToString(Stream));
-        TestReading(ReferredURL);
+        ReferredUrl := Trim(StreamToString(Stream));
+        TestReading(ReferredUrl);
       finally FreeAndNil(Stream) end;
     end;
 
@@ -111,7 +111,7 @@ procedure ApplicationInitialize;
 
     { This is an *extremely* simplified (only correct in simplest cases) implementation
       of determining application data directory
-      ( https://castle-engine.io/manual_data_directory.php ).
+      ( https://castle-engine.io/data ).
       We do it only for TestReadingRtl test here (that uses FPC functions
       *without* any CGE API, just for test).
       In real CGE applications, you should always use 'castle-data:/'

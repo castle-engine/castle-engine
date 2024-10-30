@@ -187,6 +187,7 @@ constructor TPlayer.Create(AKind: TCreatureKind);
   var
     Sphere: TSphereNode;
     Material: TMaterialNode;
+    Appearance: TAppearanceNode;
   begin
     Sphere := TSphereNode.Create;
     Sphere.Radius := 0.1;
@@ -194,8 +195,11 @@ constructor TPlayer.Create(AKind: TCreatureKind);
     Material := TMaterialNode.Create;
     Material.DiffuseColor := RedRGB;
 
+    Appearance := TAppearanceNode.Create;
+    Appearance.Material := Material;
+
     FTargetVisualizeShape := TShapeNode.Create;
-    FTargetVisualizeShape.Material := Material;
+    FTargetVisualizeShape.Appearance := Appearance;
     FTargetVisualizeShape.Geometry := Sphere;
 
     FTargetVisualize := TTransformNode.Create;
@@ -270,7 +274,16 @@ begin
     { TODO: check collisions with the scene before changing Translation }
 
     IsTargetPos := TVector3.Equals(Translation, WantsToWalkPos);
-    IsTargetDir := TVector3.Equals(Direction, WantsToWalkDir);
+
+    { When WantsToWalkDir is zero, consider IsTargetDir always true.
+      This avoids crash at
+
+        RotationAngleRadBetweenVectors(Direction, WantsToWalkDir, ...)
+
+      when WantsToWalkDir is zero. }
+    IsTargetDir :=
+      WantsToWalkDir.IsZero or
+      TVector3.Equals(Direction, WantsToWalkDir);
 
     if not IsTargetDir then
     begin

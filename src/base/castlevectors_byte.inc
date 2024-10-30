@@ -29,30 +29,35 @@ type
     function GetItems(const Index: TIndex): Byte; inline;
     procedure SetItems(const Index: TIndex; const Value: Byte); inline;
   public
-    var
-      X, Y: Byte;
+    { Get vector components by index.
+      This is a default property, so you can write @code(MyVector[0])
+      instead of @code(MyVector.Data[0]) or @code(MyVector.AsArray[0]).
 
-    { Access (get, set) vector components by index.
-      We discourage using it. Use X, Y to change vector components.
-      Use AsArray to access it by index, read-only. }
-    property Data [const Index: TIndex]: Byte read GetItems write SetItems;
-      {$ifdef FPC}deprecated 'use instead X, Y fields';{$endif}
-
-    { Get vector components by index. }
+      But note that this is not writeable (because exposing writeable properties on vectors
+      would cause some subtle traps, see https://castle-engine.io/coding_traps ).
+      Use @code(MyVector.Data[0] := 123) if you want to set by index,
+      or @code(MyVector.X := 123). }
     property AsArray [const Index: TIndex]: Byte read GetItems; default;
+
+    { @exclude
+      Access (get, set) vector components by index. }
+    property Items [const Index: TIndex]: Byte read GetItems write SetItems;
+      {$ifdef FPC}deprecated 'use Data or X, Y';{$endif}
 
     class operator {$ifdef FPC}+{$else}Add{$endif} (const A, B: TVector2Byte): TVector2Byte; inline;
     class operator {$ifdef FPC}-{$else}Subtract{$endif} (const A, B: TVector2Byte): TVector2Byte; inline;
     class operator {$ifdef FPC}-{$else}Negative{$endif} (const V: TVector2Byte): TVector2Byte; inline;
 
     function ToString: string;
-    property Items [const Index: TIndex]: Byte read GetItems write SetItems;
-      {$ifdef FPC}deprecated 'use instead X, Y fields';{$endif}
 
     function IsZero: boolean; inline;
     class function Equals(const V1, V2: TVector2Byte): boolean; static; inline;
 
     class function Zero: TVector2Byte; static; inline;
+
+    case Integer of
+      0: (X, Y: Byte);
+      1: (Data: array [TIndex] of Byte);
   end;
 
   { Vector of 3 Byte values. }
@@ -64,30 +69,36 @@ type
     function GetItems(const Index: TIndex): Byte; inline;
     procedure SetItems(const Index: TIndex; const Value: Byte); inline;
   public
-    var
-      X, Y, Z: Byte;
+    { Get vector components by index.
+      This is a default property, so you can write @code(MyVector[0])
+      instead of @code(MyVector.Data[0]) or @code(MyVector.AsArray[0]).
 
-    { Access (get, set) vector components by index.
-      We discourage using it. Use X, Y, Z to change vector components.
-      Use AsArray to access it by index, read-only. }
-    property Data [const Index: TIndex]: Byte read GetItems write SetItems;
-      {$ifdef FPC}deprecated 'use instead X, Y, Z fields';{$endif}
-
-    { Get vector components by index. }
+      But note that this is not writeable (because exposing writeable properties on vectors
+      would cause some subtle traps, see https://castle-engine.io/coding_traps ).
+      Use @code(MyVector.Data[0] := 123) if you want to set by index,
+      or @code(MyVector.X := 123). }
     property AsArray [const Index: TIndex]: Byte read GetItems; default;
+
+    { @exclude
+      Access (get, set) vector components by index. }
+    property Items [const Index: TIndex]: Byte read GetItems write SetItems;
+      {$ifdef FPC}deprecated 'use Data or X, Y, Z';{$endif}
 
     class operator {$ifdef FPC}+{$else}Add{$endif} (const A, B: TVector3Byte): TVector3Byte; inline;
     class operator {$ifdef FPC}-{$else}Subtract{$endif} (const A, B: TVector3Byte): TVector3Byte; inline;
     class operator {$ifdef FPC}-{$else}Negative{$endif} (const V: TVector3Byte): TVector3Byte; inline;
 
     function ToString: string;
-    property Items [const Index: TIndex]: Byte read GetItems write SetItems;
-      {$ifdef FPC}deprecated 'use instead X, Y, Z fields';{$endif}
 
     function IsZero: boolean; inline;
     class function Equals(const V1, V2: TVector3Byte): boolean; static; inline;
 
     class function Zero: TVector3Byte; static; inline;
+
+    case Integer of
+      0: (X, Y, Z: Byte);
+      1: (Data: array [TIndex] of Byte);
+      2: (XY: TVector2Byte);
   end;
 
   { Vector of 4 Byte values. }
@@ -99,30 +110,37 @@ type
     function GetItems(const Index: TIndex): Byte; inline;
     procedure SetItems(const Index: TIndex; const Value: Byte); inline;
   public
-    var
-      X, Y, Z, W: Byte;
+    { Get vector components by index.
+      This is a default property, so you can write @code(MyVector[0])
+      instead of @code(MyVector.Data[0]) or @code(MyVector.AsArray[0]).
 
-    { Access (get, set) vector components by index.
-      We discourage using it. Use X, Y, Z, W to change vector components.
-      Use AsArray to access it by index, read-only. }
-    property Data [const Index: TIndex]: Byte read GetItems write SetItems;
-      {$ifdef FPC}deprecated 'use instead X, Y, Z, W fields';{$endif}
-
-    { Get vector components by index. }
+      But note that this is not writeable (because exposing writeable properties on vectors
+      would cause some subtle traps, see https://castle-engine.io/coding_traps ).
+      Use @code(MyVector.Data[0] := 123) if you want to set by index,
+      or @code(MyVector.X := 123). }
     property AsArray [const Index: TIndex]: Byte read GetItems; default;
+
+    { @exclude
+      Access (get, set) vector components by index. }
+    property Items [const Index: TIndex]: Byte read GetItems write SetItems;
+      {$ifdef FPC}deprecated 'use Data or X, Y, Z, W';{$endif}
 
     class operator {$ifdef FPC}+{$else}Add{$endif} (const A, B: TVector4Byte): TVector4Byte; inline;
     class operator {$ifdef FPC}-{$else}Subtract{$endif} (const A, B: TVector4Byte): TVector4Byte; inline;
     class operator {$ifdef FPC}-{$else}Negative{$endif} (const V: TVector4Byte): TVector4Byte; inline;
 
     function ToString: string;
-    property Items [const Index: TIndex]: Byte read GetItems write SetItems;
-      {$ifdef FPC}deprecated 'use instead X, Y, Z, W fields';{$endif}
 
     function IsZero: boolean; inline;
     class function Equals(const V1, V2: TVector4Byte): boolean; static; inline;
 
     class function Zero: TVector4Byte; static;
+
+    case Integer of
+      0: (X, Y, Z, W: Byte);
+      1: (Data: array [TIndex] of Byte);
+      2: (XY: TVector2Byte; ZW: TVector2Byte);
+      3: (XYZ: TVector3Byte);
   end;
 
   PVector2Byte = ^TVector2Byte;

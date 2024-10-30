@@ -1,45 +1,51 @@
 object RestartCustomEditorForm: TRestartCustomEditorForm
-  Left = 464
-  Height = 119
-  Top = 154
-  Width = 546
+  Left = 901
+  Height = 149
+  Top = 370
+  Width = 682
   Caption = 'Rebuild and Restart Custom Editor?'
-  ClientHeight = 119
-  ClientWidth = 546
+  ClientHeight = 149
+  ClientWidth = 682
+  DesignTimePPI = 120
   Position = poMainFormCenter
   ShowInTaskBar = stAlways
   LCLVersion = '2.2.2.0'
   object LabelCaption: TLabel
-    Left = 8
-    Height = 45
-    Top = 8
-    Width = 277
+    Left = 10
+    Height = 44
+    Top = 10
+    Width = 426
     Caption = 'Project "%s" uses custom components.'#13#10#13#10'Rebuild and restart editor with custom components?'
     ParentColor = False
   end
   object ButtonPanel1: TButtonPanel
-    Left = 6
-    Height = 34
-    Top = 79
-    Width = 534
+    Left = 8
+    Height = 46
+    Top = 95
+    Width = 666
+    BorderSpacing.Around = 8
     OKButton.Name = 'OKButton'
-    OKButton.DefaultCaption = True
+    OKButton.Hint = 'Build editor with custom components and run it'
+    OKButton.Caption = '&Yes'
+    OKButton.ShowHint = True
     HelpButton.Name = 'HelpButton'
     HelpButton.Caption = 'Run Last Build Editor'
     CloseButton.Name = 'CloseButton'
     CloseButton.DefaultCaption = True
     CancelButton.Name = 'CancelButton'
-    CancelButton.DefaultCaption = True
+    CancelButton.Hint = 'Open the project with editor *without* custom components support; opening some designs may fail'
+    CancelButton.Caption = 'No'
+    CancelButton.ShowHint = True
     TabOrder = 0
     ShowButtons = [pbOK, pbCancel]
   end
-  object ButtonRunLastEditor: TBitBtn
+  object ButtonRunLastEditor: TButton
     AnchorSideTop.Control = ButtonPanel1
     AnchorSideTop.Side = asrCenter
-    Left = 6
-    Height = 25
-    Top = 88
-    Width = 230
+    Left = 8
+    Height = 38
+    Top = 104
+    Width = 337
     Anchors = [akLeft, akBottom]
     AutoSize = True
     Caption = 'Run Last Build Editor (2023 99 99 99:99)'

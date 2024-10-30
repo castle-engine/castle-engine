@@ -1,5 +1,6 @@
+{%MainUnit x3dnodes.pas}
 {
-  Copyright 2002-2023 Michalis Kamburelis.
+  Copyright 2002-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -112,7 +113,7 @@
     (IndexedFaceSet, IndexedTriangleMesh, IndexedLineSet). }
   TAbstractIndexedNode_1 = class(TAbstractGeometryNode_1)
   public
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
+    constructor Create(const AX3DName: string = ''; const ABaseUrl: String = ''); override;
     function InternalCoord(State: TX3DGraphTraverseState;
       out ACoord: TMFVec3f): boolean; override;
     function CoordIndexField: TMFLong; override;
@@ -154,7 +155,7 @@
   strict private
     CoordSubrange: TMFVec3f;
   public
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
+    constructor Create(const AX3DName: string = ''; const ABaseUrl: String = ''); override;
     destructor Destroy; override;
     function InternalCoord(State: TX3DGraphTraverseState;
       out ACoord: TMFVec3f): boolean; override;
@@ -200,7 +201,7 @@
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
+    constructor Create(const AX3DName: string = ''; const ABaseUrl: String = ''); override;
   {$I auto_generated_node_helpers/x3dnodes_lod_1.inc}
   end;
 
@@ -216,11 +217,12 @@
         procedure SetDiffuseColor(const Value: TVector3); override;
         function GetSpecularColor: TVector3; override;
         procedure SetSpecularColor(const Value: TVector3); override;
+        function GetEmissiveColor: TVector3; override;
+        procedure SetEmissiveColor(const Value: TVector3); override;
       public
         constructor Create(ANode: TMaterialNode_1; const Index: Integer);
 
         function AmbientColor: TVector3; override;
-        function EmissiveColor: TVector3; override;
         function Shininess: Single; override;
         function ReflectionColor: TVector3; override;
         function Transparency: Single; override;
@@ -367,7 +369,7 @@
 
   TPointLightNode_1 = class(TAbstractPointLightNode)
   public
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
+    constructor Create(const AX3DName: string = ''; const ABaseUrl: String = ''); override;
     function HasRadius: boolean; override;
     function Scope: TLightScope; override;
   {$I auto_generated_node_helpers/x3dnodes_pointlight_1.inc}
@@ -380,7 +382,7 @@
     function  GetProjectionDirectionLocal: TVector3; override;
     procedure SetProjectionDirectionLocal(const Value: TVector3); override;
   public
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
+    constructor Create(const AX3DName: string = ''; const ABaseUrl: String = ''); override;
 
     { Spot exponent (based on dropOffRate).
       Not normalized (i.e. is a real exponent, in VRML 1.0 expresses
@@ -414,7 +416,7 @@
 
   TGroupNode_1 = class(TAbstractChildNode)
   public
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
+    constructor Create(const AX3DName: string = ''; const ABaseUrl: String = ''); override;
   {$I auto_generated_node_helpers/x3dnodes_group_1.inc}
   end;
 
@@ -426,7 +428,7 @@
     procedure BeforeTraverse(StateStack: TX3DGraphTraverseStateStack); override;
     procedure AfterTraverse(StateStack: TX3DGraphTraverseStateStack); override;
   public
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
+    constructor Create(const AX3DName: string = ''; const ABaseUrl: String = ''); override;
   {$I auto_generated_node_helpers/x3dnodes_abstractvrml1separator_1.inc}
   end;
 
@@ -438,7 +440,7 @@
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
+    constructor Create(const AX3DName: string = ''; const ABaseUrl: String = ''); override;
   {$I auto_generated_node_helpers/x3dnodes_switch_1.inc}
   end;
 
@@ -449,7 +451,7 @@
     procedure BeforeTraverse(StateStack: TX3DGraphTraverseStateStack); override;
     procedure AfterTraverse(StateStack: TX3DGraphTraverseStateStack); override;
   public
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
+    constructor Create(const AX3DName: string = ''; const ABaseUrl: String = ''); override;
   {$I auto_generated_node_helpers/x3dnodes_transformseparator_1.inc}
   end;
 
@@ -468,7 +470,7 @@
   protected
     function SeparateGroup: boolean; override;
   public
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
+    constructor Create(const AX3DName: string = ''; const ABaseUrl: String = ''); override;
   {$I auto_generated_node_helpers/x3dnodes_wwwinline_1.inc}
   end;
 {$endif read_interface}
@@ -587,7 +589,7 @@ begin
   Result := true;
 end;
 
-constructor TAbstractIndexedNode_1.Create(const AX3DName: string = ''; const ABaseUrl: string = '');
+constructor TAbstractIndexedNode_1.Create(const AX3DName: string = ''; const ABaseUrl: String = '');
 begin
   inherited;
   FdCoordIndex.SaveToStreamLineUptoNegative := true;
@@ -634,7 +636,7 @@ begin
     BIND_PER_PART_INDEXED,
     BIND_PER_FACE_INDEXED:
       Result := (FdNormalIndex.Count <> 0) and
-                (FdNormalIndex.Items.List^[0] >= 0);
+                (FdNormalIndex.Items.L[0] >= 0);
     else
       Result := true;
   end;
@@ -645,7 +647,7 @@ begin
 end;
 {$warnings on}
 
-constructor TPointSetNode_1.Create(const AX3DName: string = ''; const ABaseUrl: string = '');
+constructor TPointSetNode_1.Create(const AX3DName: string = ''; const ABaseUrl: String = '');
 begin
   inherited;
   CoordSubrange := TMFVec3f.Create(Self, true, '', []);
@@ -744,7 +746,7 @@ begin
   Result := TFontStyleNode.GetDefaultFont(Family, Bold, Italic);
 end;
 
-constructor TLODNode_1.Create(const AX3DName: string = ''; const ABaseUrl: string = '');
+constructor TLODNode_1.Create(const AX3DName: string = ''; const ABaseUrl: String = '');
 begin
   inherited;
   VRML1ChildrenAllowed := true;
@@ -812,7 +814,7 @@ begin
   if A.Count = 0 then
     Result := TPhongMaterialInfo.DefaultAmbientColor
   else
-    Result := A.List^[Min(FIndex, A.Count - 1)];
+    Result := A.L[Min(FIndex, A.Count - 1)];
 end;
 
 function TMaterialNode_1.TMaterialInfo_1.GetDiffuseColor: TVector3;
@@ -823,7 +825,7 @@ begin
   if A.Count = 0 then
     Result := TPhongMaterialInfo.DefaultDiffuseColor
   else
-    Result := A.List^[Min(FIndex, A.Count - 1)];
+    Result := A.L[Min(FIndex, A.Count - 1)];
 end;
 
 procedure TMaterialNode_1.TMaterialInfo_1.SetDiffuseColor(const Value: TVector3);
@@ -839,7 +841,7 @@ begin
   if A.Count = 0 then
     Result := TPhongMaterialInfo.DefaultSpecularColor
   else
-    Result := A.List^[Min(FIndex, A.Count - 1)];
+    Result := A.L[Min(FIndex, A.Count - 1)];
 end;
 
 procedure TMaterialNode_1.TMaterialInfo_1.SetSpecularColor(const Value: TVector3);
@@ -847,7 +849,7 @@ begin
   FNode.FdSpecularColor.Send([Value]);
 end;
 
-function TMaterialNode_1.TMaterialInfo_1.EmissiveColor: TVector3;
+function TMaterialNode_1.TMaterialInfo_1.GetEmissiveColor: TVector3;
 var
   A: TVector3List;
 begin
@@ -855,7 +857,12 @@ begin
   if A.Count = 0 then
     Result := TPhongMaterialInfo.DefaultEmissiveColor
   else
-    Result := A.List^[Min(FIndex, A.Count - 1)];
+    Result := A.L[Min(FIndex, A.Count - 1)];
+end;
+
+procedure TMaterialNode_1.TMaterialInfo_1.SetEmissiveColor(const Value: TVector3);
+begin
+  FNode.FdEmissiveColor.Send([Value]);
 end;
 
 function TMaterialNode_1.TMaterialInfo_1.Shininess: Single;
@@ -866,7 +873,7 @@ begin
   if A.Count = 0 then
     Result := TPhongMaterialInfo.DefaultShininess
   else
-    Result := A.List^[Min(FIndex, A.Count - 1)];
+    Result := A.L[Min(FIndex, A.Count - 1)];
 end;
 
 function TMaterialNode_1.TMaterialInfo_1.ReflectionColor: TVector3;
@@ -878,7 +885,7 @@ begin
   if A.Count = 0 then
     M := 0.0 // TMaterialInfo.DefaultReflectionColor[0, 1 or 2]
   else
-    M := A.List^[Min(FIndex, A.Count - 1)];
+    M := A.L[Min(FIndex, A.Count - 1)];
 
   Result := Vector3(M, M, M);
 end;
@@ -891,7 +898,7 @@ begin
   if A.Count = 0 then
     Result := TMaterialInfo.DefaultTransparency
   else
-    Result := A.List^[Min(FIndex, A.Count - 1)];
+    Result := A.L[Min(FIndex, A.Count - 1)];
 end;
 
 function TMaterialNode_1.TMaterialInfo_1.ReflSpecular: TVector3;
@@ -902,7 +909,7 @@ begin
   if A.Count = 0 then
     Result := inherited
   else
-    Result := A.List^[Min(FIndex, A.Count - 1)];
+    Result := A.L[Min(FIndex, A.Count - 1)];
 end;
 
 function TMaterialNode_1.TMaterialInfo_1.ReflDiffuse: TVector3;
@@ -913,7 +920,7 @@ begin
   if A.Count = 0 then
     Result := inherited
   else
-    Result := A.List^[Min(FIndex, A.Count - 1)];
+    Result := A.L[Min(FIndex, A.Count - 1)];
 end;
 
 function TMaterialNode_1.TMaterialInfo_1.TransSpecular: TVector3;
@@ -924,7 +931,7 @@ begin
   if A.Count = 0 then
     Result := inherited
   else
-    Result := A.List^[Min(FIndex, A.Count - 1)];
+    Result := A.L[Min(FIndex, A.Count - 1)];
 end;
 
 function TMaterialNode_1.TMaterialInfo_1.TransDiffuse: TVector3;
@@ -935,7 +942,7 @@ begin
   if A.Count = 0 then
     Result := inherited
   else
-    Result := A.List^[Min(FIndex, A.Count - 1)];
+    Result := A.L[Min(FIndex, A.Count - 1)];
 end;
 
 function TMaterialNode_1.TMaterialInfo_1.ReflSpecularExp: Single;
@@ -946,7 +953,7 @@ begin
   if A.Count = 0 then
     Result := inherited
   else
-    Result := A.List^[Min(FIndex, A.Count - 1)];
+    Result := A.L[Min(FIndex, A.Count - 1)];
 end;
 
 function TMaterialNode_1.TMaterialInfo_1.TransSpecularExp: Single;
@@ -957,7 +964,7 @@ begin
   if A.Count = 0 then
     Result := inherited
   else
-    Result := A.List^[Min(FIndex, A.Count - 1)];
+    Result := A.L[Min(FIndex, A.Count - 1)];
 end;
 
 { TTexture2Node_1 ------------------------------------------------------------ }
@@ -988,7 +995,7 @@ end;
 
 procedure TTexture2Node_1.LoadTextureData(out CacheUsed: boolean);
 var
-  FullUrl: string;
+  FullUrl: String;
 begin
   CacheUsed := false;
   FTextureUsedFullUrl := '';
@@ -1006,7 +1013,7 @@ begin
     on E: Exception do
       { Remember that WritelnWarning *may* raise an exception. }
       WritelnWarning('Texture', Format(SLoadError,
-        [E.ClassName, 'texture', URIDisplay(FullUrl), E.Message]));
+        [E.ClassName, 'texture', UriDisplay(FullUrl), E.Message]));
   end;
 
   { Still not loaded (maybe FdFilename.Value is ''
@@ -1146,7 +1153,7 @@ begin
     Result := lsLocalVRML1;
 end;
 
-constructor TPointLightNode_1.Create(const AX3DName: string = ''; const ABaseUrl: string = '');
+constructor TPointLightNode_1.Create(const AX3DName: string = ''; const ABaseUrl: String = '');
 begin
   inherited;
   { Default location value for VRML 1.0, was changed in VRML >= 2.0 }
@@ -1166,7 +1173,7 @@ begin
     Result := lsLocalVRML1;
 end;
 
-constructor TSpotLightNode_1.Create(const AX3DName: string = ''; const ABaseUrl: string = '');
+constructor TSpotLightNode_1.Create(const AX3DName: string = ''; const ABaseUrl: String = '');
 begin
   inherited;
   { Default location value for VRML 1.0, was changed in VRML >= 2.0 }
@@ -1272,14 +1279,14 @@ begin
     Result := lsLocalVRML1;
 end;
 
-constructor TGroupNode_1.Create(const AX3DName: string = ''; const ABaseUrl: string = '');
+constructor TGroupNode_1.Create(const AX3DName: string = ''; const ABaseUrl: String = '');
 begin
   inherited;
   VRML1ChildrenAllowed := true;
   VRML1ChildrenParsingAllowed := true;
 end;
 
-constructor TAbstractSeparatorNode_1.Create(const AX3DName: string = ''; const ABaseUrl: string = '');
+constructor TAbstractSeparatorNode_1.Create(const AX3DName: string = ''; const ABaseUrl: String = '');
 begin
   inherited;
   VRML1ChildrenAllowed := true;
@@ -1322,7 +1329,7 @@ begin
   inherited;
 end;
 
-constructor TSwitchNode_1.Create(const AX3DName: string = ''; const ABaseUrl: string = '');
+constructor TSwitchNode_1.Create(const AX3DName: string = ''; const ABaseUrl: String = '');
 begin
   inherited;
   VRML1ChildrenAllowed := true;
@@ -1355,7 +1362,7 @@ begin
   end;
 end;
 
-constructor TTransformSeparatorNode_1.Create(const AX3DName: string = ''; const ABaseUrl: string = '');
+constructor TTransformSeparatorNode_1.Create(const AX3DName: string = ''; const ABaseUrl: String = '');
 begin
   inherited;
   VRML1ChildrenAllowed := true;
@@ -1378,7 +1385,7 @@ begin
   inherited;
 end;
 
-constructor TWWWInlineNode_1.Create(const AX3DName: string = ''; const ABaseUrl: string = '');
+constructor TWWWInlineNode_1.Create(const AX3DName: string = ''; const ABaseUrl: String = '');
 begin
   inherited;
 

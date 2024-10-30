@@ -1,5 +1,5 @@
 ﻿{
-  Copyright 2015-2018 Tomasz Wojtyś, Michalis Kamburelis.
+  Copyright 2015-2024 Tomasz Wojtyś, Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -13,14 +13,16 @@
   ----------------------------------------------------------------------------
 }
 
-{ Loading and rendering maps created in Tiled (see https://castle-engine.io/tiled_maps ).
+{ Loading and rendering maps created in Tiled.
+  See @url(https://castle-engine.io/tiled_maps manual about using Tiled maps)
+  for more details.
 
   Most basic usage is to add @link(TCastleTiledMap) component to a viewport
   and set @link(TCastleTiledMap.URL) to load your Tiled map (TMX file).
   You can test it using CGE editor.
 
-  See the [examples/tiled/](https://github.com/castle-engine/castle-engine/tree/master/examples/tiled)
-  directory of Castle Game Engine. }
+  See the examples in Castle Game Engine:
+  @url(https://github.com/castle-engine/castle-engine/tree/master/examples/tiled examples/tiled/). }
 unit CastleTiledMap;
 
 {$I castleconf.inc}
@@ -30,8 +32,8 @@ interface
 uses
   Classes, SysUtils, DOM, XMLRead, base64,
   {$ifdef FPC} zstream {$else} { from Vampyre } DZLib {$endif},
-  Generics.Collections,
-  CastleVectors, CastleColors, CastleUtils, CastleURIUtils, CastleXMLUtils,
+  Generics.Collections, CastleInternalFileMonitor,
+  CastleVectors, CastleColors, CastleUtils, CastleUriUtils, CastleXmlUtils,
   CastleLog, CastleStringUtils, CastleUIControls, CastleGLImages, CastleTransform,
   CastleRectangles, CastleClassUtils, CastleRenderOptions, CastleScene, X3DNodes;
 
@@ -40,6 +42,9 @@ uses
 {$I castletiledmap_control.inc}
 {$I castletiledmap_scene.inc}
 {$undef read_interface}
+
+const
+  LoadTiledMap_FileFilters = 'Tiled Map (*.tmx)|*.tmx|All Files|*';
 
 implementation
 

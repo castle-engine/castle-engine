@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2023 Michalis Kamburelis.
+  Copyright 2015-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -29,17 +29,18 @@
     function GetMustEvaluate: Boolean;
     procedure SetMustEvaluate(const Value: Boolean);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdDirectOutput: TSFBool;
-    { Internal wrapper for property @link(DirectOutput). This wrapper API may change, we advise to access simpler @link(DirectOutput) instead. }
+    { Internal wrapper for property @code(DirectOutput). This wrapper API may change, we advise to access simpler @code(DirectOutput) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdDirectOutput: TSFBool read FFdDirectOutput;
     {  }
     property DirectOutput: Boolean read GetDirectOutput write SetDirectOutput;
 
     strict private FFdMustEvaluate: TSFBool;
-    { Internal wrapper for property @link(MustEvaluate). This wrapper API may change, we advise to access simpler @link(MustEvaluate) instead. }
+    { Internal wrapper for property @code(MustEvaluate). This wrapper API may change, we advise to access simpler @code(MustEvaluate) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdMustEvaluate: TSFBool read FFdMustEvaluate;
     {  }
     property MustEvaluate: Boolean read GetMustEvaluate write SetMustEvaluate;

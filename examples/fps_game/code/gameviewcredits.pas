@@ -34,6 +34,7 @@ type
   public
     constructor Create(AOwner: TComponent); override;
     procedure Start; override;
+    procedure Stop; override;
   end;
 
 var
@@ -41,8 +42,8 @@ var
 
 implementation
 
-uses GameViewMenu,
-  CastleOpenDocument;
+uses CastleOpenDocument,
+  GameViewMenu, GameViewportUnderUi;
 
 procedure TViewCredits.ClickBack(Sender: TObject);
 begin
@@ -60,6 +61,13 @@ begin
   inherited;
   ButtonBack.OnClick  := {$ifdef FPC}@{$endif} ClickBack;
   ButtonCredits.OnClick  := {$ifdef FPC}@{$endif} ClickCredits;
+  InsertBack(ViewportUnderUi);
+end;
+
+procedure TViewCredits.Stop;
+begin
+  RemoveControl(ViewportUnderUi);
+  inherited;
 end;
 
 procedure TViewCredits.ClickCredits(Sender: TObject);

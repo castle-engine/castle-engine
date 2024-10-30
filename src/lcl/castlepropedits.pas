@@ -40,19 +40,35 @@ procedure Register;
 implementation
 
 uses // FPC and LCL units
-  SysUtils, Classes, TypInfo, Forms,
+  SysUtils, Classes, TypInfo, Forms, Math,
   LResources, Dialogs, Controls, LCLVersion, OpenGLContext, Graphics, ObjInspStrConsts,
   // Lazarus design-time (IDE) units
   ComponentEditors,
   // CGE units
   CastleSceneCore, CastleScene, CastleLCLUtils, X3DLoad, X3DNodes, CastleCameras,
   CastleUIControls, CastleControl, CastleControls, CastleImages, CastleTransform,
-  CastleVectors, CastleUtils, CastleViewport, CastleDialogs,
+  CastleVectors, CastleRectangles, CastleUtils, CastleColors, CastleViewport,
+  CastleDialogs,
   CastleTiledMap, CastleGLImages, CastleStringUtils, CastleFilesUtils,
   CastleInternalExposeTransformsDialog, CastleInternalTiledLayersDialog,
+  CastleInternalRegionDialog,
   CastleSoundEngine, CastleFonts,
   CastleScriptParser, CastleInternalLclDesign, CastleTerrain, CastleLog,
   CastleEditorAccess, CastleRenderOptions, CastleThirdPersonNavigation;
+
+{ Wrap given floating-point expression in CastleScript in "deg(...)".
+  If it's already wrapped, leave it as-is.}
+function WrapDegIfNeeded(const FloatExpression: String): String;
+begin
+  if IsPrefix('deg', Trim(FloatExpression), true) then
+    { If user explicitly left "deg(" marker, that's OK, leave it. }
+    Result := FloatExpression
+  else
+    { If user deleted "deg(" marker, interpret result as degrees
+      *anyway*. This is more user-friendly, Blender and Godot also do
+      it like this. }
+    Result := 'deg(' + FloatExpression + ')';
+end;
 
 {$define read_implementation}
 {$I castlepropedits_url.inc}
@@ -64,11 +80,13 @@ uses // FPC and LCL units
 {$I castlepropedits_meshcolliderscene.inc}
 {$I castlepropedits_vector.inc}
 {$I castlepropedits_image.inc}
-{$I castlepropedits_protectedsides.inc}
+{$I castlepropedits_region.inc}
 {$I castlepropedits_number.inc}
 {$I castlepropedits_exposetransforms.inc}
 {$I castlepropedits_tiledlayers.inc}
 {$I castlepropedits_rangeset.inc}
+{$I castlepropedits_3dcoords.inc}
+{$I castlepropedits_colorchannels.inc}
 {$I castlepropedits_component_transform.inc}
 {$I castlepropedits_component_scene.inc}
 {$I castlepropedits_component_imagetransform.inc}
@@ -139,6 +157,23 @@ begin
   {$endif}
   RegisterPropertyEditor(TypeInfo(Single), TCastleVector4RotationPersistent, 'W',
     TCastleFloatRotationPropertyEditor);
+  RegisterPropertyEditor(TypeInfo(Single), TCastleImagePersistent, 'Rotation',
+    TCastleFloatRotationPropertyEditor);
+  RegisterPropertyEditor(TypeInfo(Single), TCastleImageControl, 'Rotation',
+    TCastleFloatRotationPropertyEditor);
+  RegisterPropertyEditor(TypeInfo(Single), TCastleSpotLight, 'BeamWidth',
+    TCastleFloatRotationPropertyEditor);
+  RegisterPropertyEditor(TypeInfo(Single), TCastleSpotLight, 'CutOffAngle',
+    TCastleFloatRotationPropertyEditor);
+
+  { Handle using TCastleRegionEditor.
+    Note: TBorder rule with 'ProtectedSides' name is registered
+    before registering for TBorder with any name below.
+    (Not tested if it's really necessary, but seems safer). }
+  RegisterPropertyEditor(TypeInfo(TBorder), nil, 'ProtectedSides',
+    TCastleRegionEditor);
+  RegisterPropertyEditor(TypeInfo(TFloatRectanglePersistent), nil, 'RegionPersistent',
+    TCastleRegionEditor);
 
   { Properties that simply use TSubPropertiesEditor.
     Registering properties that use TSubPropertiesEditor
@@ -147,7 +182,7 @@ begin
   RegisterPropertyEditor(TypeInfo(TCastleRootTransform), TCastleViewport, 'Items',
     TSubPropertiesEditor);
   RegisterPropertyEditor(TypeInfo(TBorder), nil, '',
-    TCastleProtectedSidesEditor);
+    TSubPropertiesEditor);
 
   { Other properties }
   RegisterPropertyEditor(TypeInfo(TCastleImagePersistent), nil, '',
@@ -162,10 +197,14 @@ begin
     TScalePropertyEditor);
   RegisterPropertyEditor(TypeInfo(TCastleVector2Persistent), TCastlePlane, 'SizePersistent',
     TSize2DPropertyEditor);
+  RegisterPropertyEditor(TypeInfo(TCastleVector2Persistent), TCastleImageTransform, 'SizePersistent',
+    TSize2DPropertyEditor);
   RegisterPropertyEditor(TypeInfo(TCastleVector3Persistent), nil, '',
     TCastleVector3PropertyEditor);
   RegisterPropertyEditor(TypeInfo(TCastleVector4Persistent), nil, '',
     TCastleVector4PropertyEditor);
+  RegisterPropertyEditor(TypeInfo(TCastleVector4RotationPersistent), nil, '',
+    TCastleVectorRotationPropertyEditor);
   RegisterPropertyEditor(TypeInfo(AnsiString), TCastleSceneCore, 'AutoAnimation',
     TSceneAutoAnimationPropertyEditor);
   RegisterPropertyEditor(TypeInfo(TStrings), TCastleSceneCore, 'ExposeTransforms',
@@ -179,9 +218,11 @@ begin
   RegisterPropertyEditor(TypeInfo(TCastleTransform), TCastleAbstractTwoBodiesJoint, 'Connected',
     TConnectedPropertyEditor);
 
-  { used by LockRotation, LockTranslation }
+  { sets }
   RegisterPropertyEditor(TypeInfo(T3DCoords), nil, '',
     T3DCoordsRangeSetPropertyEditor);
+  RegisterPropertyEditor(TypeInfo(TColorChannels), nil, '',
+    TColorChannelsRangeSetPropertyEditor);
 
   { animations on TCastleThirdPersonNavigation }
   RegisterPropertyEditor(TypeInfo(AnsiString), TCastleThirdPersonNavigation, 'AnimationIdle',

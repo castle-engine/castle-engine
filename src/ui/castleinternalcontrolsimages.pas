@@ -37,10 +37,6 @@ function FrameThickWhite: TGrayscaleAlphaImage;
 
 function FrameThickYellow: TRGBAlphaImage;
 
-function ProgressBar: TRGBAlphaImage;
-
-function ProgressFill: TRGBAlphaImage;
-
 function TouchCtlInner: TRGBAlphaImage;
 
 function TouchCtlOuter: TRGBAlphaImage;
@@ -56,10 +52,6 @@ function Crosshair1: TRGBAlphaImage;
 function Crosshair2: TRGBAlphaImage;
 
 function ScrollbarSlider: TGrayscaleAlphaImage;
-
-function Checkmark: TRGBAlphaImage;
-
-function Disclosure: TRGBAlphaImage;
 
 function SquareEmpty: TRGBAlphaImage;
 
@@ -83,7 +75,7 @@ function Edit: TRGBImage;
 
 implementation
 
-uses SysUtils;
+uses SysUtils, CastleInternalDataCompression;
 
 { Actual image data is included from another file, with a deliberately
   non-Pascal file extension ".image_data". This way online code analysis
@@ -108,8 +100,6 @@ finalization
   FreeAndNil(FFrameYellowBlack);
   FreeAndNil(FFrameThickWhite);
   FreeAndNil(FFrameThickYellow);
-  FreeAndNil(FProgressBar);
-  FreeAndNil(FProgressFill);
   FreeAndNil(FTouchCtlInner);
   FreeAndNil(FTouchCtlOuter);
   FreeAndNil(FTouchCtlFlyInner);
@@ -118,8 +108,6 @@ finalization
   FreeAndNil(FCrosshair1);
   FreeAndNil(FCrosshair2);
   FreeAndNil(FScrollbarSlider);
-  FreeAndNil(FCheckmark);
-  FreeAndNil(FDisclosure);
   FreeAndNil(FSquareEmpty);
   FreeAndNil(FSquarePressedBackground);
   FreeAndNil(FSquareChecked);

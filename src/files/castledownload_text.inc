@@ -53,7 +53,7 @@ type
     function IncreaseReadBuf: boolean;
   public
     { Download and open a file. }
-    constructor Create(const URL: string); overload;
+    constructor Create(const Url: String); overload;
 
     { Read next line from Stream. Returned string does not contain
       any end-of-line characters. }
@@ -102,12 +102,12 @@ type
 
     You can write to an arbitrary TStream instance,
     or you can write to an URL. Writing to an URL supports all
-    URL protocols supportted by @link(URLSaveStream), which for now
+    URL protocols supportted by @link(UrlSaveStream), which for now
     doesn't include much: only @code(file) protocol. But it will produce
     a nice exception message in case of unsupprted URL protocol. }
   TTextWriter = class(TTextReaderWriter)
   public
-    constructor Create(const URL: string); overload;
+    constructor Create(const Url: String); overload;
     procedure Write(const S: string); overload;
     procedure Write(const S: string; const Args: array of const); overload;
     procedure Writeln(const S: string = ''); overload;
@@ -135,9 +135,9 @@ end;
 
 { TTextReader ---------------------------------------------------------------- }
 
-constructor TTextReader.Create(const URL: string);
+constructor TTextReader.Create(const Url: String);
 begin
-  inherited Create(Download(URL), true);
+  inherited Create(Download(Url), true);
 end;
 
 function TTextReader.IncreaseReadBuf: boolean;
@@ -253,9 +253,9 @@ end;
 
 { TTextWriter ---------------------------------------------------------------- }
 
-constructor TTextWriter.Create(const URL: string);
+constructor TTextWriter.Create(const Url: String);
 begin
-  inherited Create(URLSaveStream(URL), true);
+  inherited Create(UrlSaveStream(Url), true);
 end;
 
 procedure TTextWriter.Write(const S: string);

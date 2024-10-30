@@ -1,5 +1,5 @@
 {
-  Copyright 2000-2022 Michalis Kamburelis.
+  Copyright 2000-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -14,8 +14,8 @@
 }
 
 { String utilities.
-  Also some operations on chars and PChars.
-  And various conversions strings<->numbers.
+  Also some operations on Chars and PChars.
+  And various conversions strings <-> numbers.
 
   General comments for all procedures that have parameter like IgnoreCase:
   @unorderedList(
@@ -23,9 +23,9 @@
       If such parameter has some default value, this default value should be
       @definitionList(
         @itemLabel @true
-        @item for procedures that only read processed string
+        @item for procedures that only read processed String
         @itemLabel @false
-        @item(for procedures that can modify processed string (for safety,
+        @item(for procedures that can modify processed String (for safety,
           so that accidental modification should be harder))
       ))
 
@@ -47,10 +47,10 @@ uses SysUtils, Classes, Generics.Collections,
   CastleUtils;
 
 type
-  TDynamicStringArray = array of string;
+  TDynamicStringArray = array of String;
 
   TStringsHelper = class helper for TStrings
-    { Convert TStrings to a dynamic string array. }
+    { Convert TStrings to a dynamic String array. }
     function ToArray: TDynamicStringArray;
 
     { Split the argument into lines (honors any newline convention),
@@ -68,11 +68,11 @@ type
   private
     { Takes Integer, not TListSize -- in FPC, this is also defined as Integer, not TListSize. }
     procedure SetCount(const Value: Integer);
-    function GetL(const Index: TListSize): string;
-    procedure SetL(const Index: TListSize; const S: string);
+    function GetL(const Index: TListSize): String;
+    procedure SetL(const Index: TListSize; const S: String);
   {$ifndef FPC}
   protected
-    function DoCompareText(const A, B: string): Integer;
+    function DoCompareText(const A, B: String): Integer;
   {$endif}
   public
     constructor Create;
@@ -88,11 +88,11 @@ type
     procedure AddRange(const Source: TStrings); overload;
     procedure AddList(const Source: TStrings); deprecated 'use AddRange, consistent with other lists';
 
-    procedure AddRange(const A: array of string); overload;
-    procedure AddArray(const A: array of string); deprecated 'use AddRange, consistent with other lists';
+    procedure AddRange(const A: array of String); overload;
+    procedure AddArray(const A: array of String); deprecated 'use AddRange, consistent with other lists';
 
-    procedure AssignArray(const A: array of string); deprecated 'use Assign';
-    procedure Assign(const A: array of string); {$ifndef FPC} reintroduce; {$endif} overload;
+    procedure AssignArray(const A: array of String); deprecated 'use Assign';
+    procedure Assign(const A: array of String); {$ifndef FPC} reintroduce; {$endif} overload;
     {$ifndef FPC}
     procedure Assign(const Source: TStringList); reintroduce; overload;
     {$endif}
@@ -106,12 +106,12 @@ type
 
       The comparison is case-sensitive, or not, depending on the value
       of CaseSensitive property of this list. }
-    function Equals(SecondValue: TObject): boolean;
+    function Equals(SecondValue: TObject): Boolean;
       // In Delphi, they have non-virtual TStringList.Equals that hides virtual TObject.Equals...
       {$ifdef FPC} override; {$endif}
       overload;
 
-    function Equals(const A: array of string): boolean; overload;
+    function Equals(const A: array of String): Boolean; overload;
 
     { Does the SecondValue have equal length and content.
 
@@ -119,7 +119,7 @@ type
       It is defined for consistency -- on some lists, like @link(TSingleList),
       there is an important difference between Equals (compares with some
       epsilon tolerance) and PerfectlyEquals. }
-    function PerfectlyEquals(const SecondValue: TStringList): boolean;
+    function PerfectlyEquals(const SecondValue: TStringList): Boolean;
 
     { Reverse the order of items on the array. }
     procedure Reverse;
@@ -127,7 +127,7 @@ type
     { Access strings. This is exactly equivalent to just using standard
       TStringList.Strings property, and is useful only for implementing macros
       that work for both TCastleStringList and TStructList. }
-    property L[const Index: TListSize]: string read GetL write SetL;
+    property L[const Index: TListSize]: String read GetL write SetL;
   end;
 
   { String-to-string map. Note that in simple cases you can also
@@ -135,8 +135,8 @@ type
     but this is better if your key/values may be multiline. }
   TStringStringMap = class({$ifdef FPC}specialize{$endif} TDictionary<string, string>)
   strict private
-    function GetItems(const AKey: string): string;
-    procedure SetItems(const AKey: string; const AValue: string);
+    function GetItems(const AKey: String): String;
+    procedure SetItems(const AKey: String; const AValue: String);
   public
     { Set given key value, trying to preserve previous key value too.
       This is useful for safely setting X3D META values.
@@ -147,7 +147,7 @@ type
       @code(Name + '-previous') key.
       This way previous content value is preserved once (but not more,
       to not grow the X3D file indefinitely). }
-    procedure PutPreserve(const Name, Content: string);
+    procedure PutPreserve(const Name, Content: String);
 
     { Create another TStringStringMap with exactly the same contents at the beginning. }
     function CreateCopy: TStringStringMap;
@@ -165,7 +165,7 @@ type
 type
   { }
   TSearchOptions = set of (soMatchCase, soWholeWord, soBackwards);
-  { A set of chars. }
+  { A set of Chars. }
   TSetOfChars = SysUtils.TSysCharSet;
 
 const
@@ -174,7 +174,7 @@ const
   WhiteSpaces = [' ', #9, #10, #13];
   SimpleAsciiCharacters = [#32 .. #126];
 
-function RandomString: string;
+function RandomString: String;
 
 { Replace all occurrences of FromPattern string to ToPattern string,
   within another string S.
@@ -297,18 +297,39 @@ function FirstDelimiter(const Delimiters, S: string): Integer;
   Yes, this is simply equivalent to Copy(S, P, MaxInt). }
 function SEnding(const s: string; P: integer): string;
 
+{ Does given string S start with Prefix. }
 function IsPrefix(const Prefix, S: string;
   IgnoreCase: boolean = true): boolean; overload;
+
+{ Does given string S end with Suffix. }
 function IsSuffix(const Suffix, S: string;
   IgnoreCase: boolean = true): boolean; overload;
+
+{ Does given string S start with Prefix and end with Suffix,
+  moreover the prefix and suffix are not overlapping.
+
+  We check the "overlapping" condition to guarantee that the prefix and suffix
+  can be removed independently and their order of removal doesn't matter.
+  For example @code(IsPrefixSuffix('bla', 'abc', 'blaMIDDLEabc')) returns @true,
+  but @code(IsPrefixSuffix('bla', 'abc', 'blabc')) returns @false. }
+function IsPrefixSuffix(const Prefix, Suffix, S: String;
+  const IgnoreCase: Boolean = true): Boolean;
 
 { Removes the prefix, if it is present. More precisely, if
   IsPrefix(Prefix, S, IgnoreCase) then returns S with this prefix
   removed. Else returns S. }
 function PrefixRemove(const Prefix, S: string; IgnoreCase: boolean): string;
 
-{ Like PrefixRemove, but checks for and removes Suffix. }
+{ Removes the suffix, if it is present. }
 function SuffixRemove(const Suffix, S: string; IgnoreCase: boolean): string;
+
+{ Removes the prefix and suffix, if they are both present.
+
+  Just like @link(IsPrefixSuffix), we check the "overlapping" condition.
+  If the prefix and suffix overlap, we do nothing.
+  For example @code(PrefixSuffixRemove('bla', 'abc', 'blaMIDDLEabc')) returns @code('MIDDLE'),
+  but @code(IsPrefixSuffix('bla', 'abc', 'blabc')) returns unmodified @code('blabc'). }
+function PrefixSuffixRemove(const Prefix, Suffix, S: String; const IgnoreCase: Boolean): String;
 
 { Appends to a string S DataSize bytes from Data. }
 procedure SAppendData(var s: string; const Data; DataSize: integer); deprecated 'this function is not very useful';
@@ -327,9 +348,13 @@ function SCharIs(const S: String; const Index: Integer; const chars: TSetOfChars
 
 { Replace typically unreadable characters in string S with #number notation.
   Useful for printing strings with some unprintable chars for
-  debugging purposes. }
-function SReadableForm(const S: string): string; overload;
-function SReadableForm(const C: char): string; overload;
+  debugging purposes.
+
+  Note: In case String may contain Unicode characters, use
+  UnicodeCharToReadableString instead, after deconstructing the string
+  to Unicode characters using e.g. TCastleStringIterator. }
+function SReadableForm(const S: String): String; overload;
+function SReadableForm(const C: Char): String; overload;
 
 { Return S[StartPosition..EndPosition].
   This is similar to standard Copy procedure,
@@ -376,6 +401,10 @@ procedure DeletePos(var S: string; StartPosition, EndPosition: Integer);
   But this procedure gives you quite more flexibility. *)
 function NextToken(const S: string; var SeekPos: Integer;
   const TokenDelims: TSetOfChars = WhiteSpaces): string;
+
+{ Count the amount of tokens in the string }
+function CountTokens(const S: String;
+  const TokenDelims: TSetOfChars = WhiteSpaces): Integer;
 
 { NextTokenOnce works just like NextToken, but doesn't advance the SeekPos
   position. This means that it's quite useless when you're interested
@@ -594,48 +623,6 @@ function TryDeFormat(Data: string; const Format: string;
   const IgnoreCase: boolean = true;
   const RelaxedWhitespaceChecking: boolean = true): integer; overload;
 
-{$ifdef FPC}
-{ Extract file extensions from a file filter usually specified
-  a TOpenDialog.Filter value.
-
-  More precisely: expects FileFilter to be in the form of
-  @code('xxxx|name1.ext1;name2.ext2'). Where "xxxx" is just about anything
-  (it is ignored), and in fact whole "xxxx|" (with bar) may be omitted.
-  The rest (after "|") is treated as a filename list, separated by semicolon ";".
-
-  As Extensions contents, we set an array of all extensions extracted from these
-  filenames. For example above, we would set Extensions to array
-  with two items: @code(['.ext1', '.ext2']). }
-procedure GetFileFilterExts(const FileFilter: string; Extensions: TStringList);
-  deprecated 'use TFileFilter and TFileFilterList, and then you will not have to deconstruct your filters back from string';
-
-{ Extract file filter name, from a file filter usually specified
-  a TOpenDialog.Filter value.
-
-  More precisely: if we do not see bar "|" character, then this is
-  the filter name. Otherwise, everything on the right of "|" is "extensions"
-  and everything on the left is "filter name".
-
-  Additionally, if filter name ends with extensions value in parenthesis,
-  they are removed. In other words, for 'Pascal files (*.pas)|*.pas',
-  this will return just 'Pascal files'. The '(*.pas)' was removed
-  from the filter name, because we detected this just repeats the extensions
-  on the right of "|". Extensions on the right of "|" must be separated by
-  semicolons, extensions within parenthesis on the left of "|" may
-  be separated by semicolons ";" or colons ",". }
-function GetFileFilterName(const FileFilter: string): string;
-  deprecated 'use TFileFilter and TFileFilterList, and then you will not have to deconstruct your filters back from string';
-
-{ Search in FileFilter for the bar character "|", and return everything
-  after it. This is a simple basis for GetFileFilterExts.
-
-  If no "|" found, we return an empty string (in other words,
-  file filter without "|" is treated as just a filter name, without
-  any extensions). }
-function GetFileFilterExtsStr(const FileFilter: string): string;
-  deprecated 'use TFileFilter and TFileFilterList, and then you will not have to deconstruct your filters back from string';
-{$endif}
-
 { Replace all strings in Patterns with corresponding strings in Values.
   This is similar to standard StringReplace, but this does many
   replacements at once. This is just like StrUtils.StringsReplace in FPC.
@@ -669,6 +656,11 @@ function GetFileFilterExtsStr(const FileFilter: string): string;
 function SReplacePatterns(const s: string; const patterns, values: array of string; const IgnoreCase: boolean): string; overload;
 function SReplacePatterns(const s: string; const patterns, values: TStrings; const IgnoreCase: boolean): string; overload;
 function SReplacePatterns(const s: string; const Parameters: TStringStringMap; const IgnoreCase: boolean): string; overload;
+
+{$ifndef FPC}
+{ Does InputStr match Wildcards (with * and ?). }
+function IsWild(const InputStr, Wildcards: string; const IgnoreCase: Boolean): Boolean;
+{$endif}
 
 function SCharsCount(const s: string; c: char): Cardinal; overload;
 function SCharsCount(const s: string; const Chars: TSetOfChars): Cardinal; overload;
@@ -827,14 +819,14 @@ function HasNameCounter(const NamePattern: string;
 
 { Convert digit (like number 0) to character (like '0').
   Use only for arguments within 0..9 range. }
-function DigitAsChar(b: byte): char;
+function DigitAsChar(const b: byte): char;
 
 { Convert digit character (like '0') to a number (like 0).
   Use only for characters in '0'...'9' range. }
-function DigitAsByte(c: char): byte;
+function DigitAsByte(const c: char): byte;
 
 { Convert integer to string, padding string with zeros if needed. }
-function IntToStrZPad(n: integer; minLength: integer): string;
+function IntToStrZPad(n: integer; const MinLength: integer): string;
 
 { Convert integer to string, inserting additional Separator to visually delimit
   thousands, milions etc. }
@@ -854,10 +846,10 @@ function IntToStrThousands(const Value: Int64; const Separator: string): string;
   sign at the beginning then).
 
   @groupBegin }
-function IntToStrBase(const n: Int64; Base: Byte): string; overload;
-function IntToStrBase(      n: QWord; Base: Byte): string; overload;
-function IntToStrBase(const n: Int64; Base: Byte; minLength: Cardinal): string; overload;
-function IntToStrBase(const n: QWord; Base: Byte; minLength: Cardinal): string; overload;
+function IntToStrBase(const N: Int64; const Base: Byte): string; overload;
+function IntToStrBase(      N: QWord; const Base: Byte): string; overload;
+function IntToStrBase(const N: Int64; const Base: Byte; const MinLength: Cardinal): string; overload;
+function IntToStrBase(const N: QWord; const Base: Byte; const MinLength: Cardinal): string; overload;
 { @groupEnd }
 
 { Convert integer to binary (base-2 numeral system).
@@ -883,14 +875,14 @@ function IntToStr2(n: Int64;
   IntToStr16(-1) = '-1'.
 
   @groupBegin }
-function IntToStr16(const n: Int64; const minLength: Cardinal = 1): string; overload;
-function IntToStr16(const n: QWord; const minLength: Cardinal = 1): string; overload;
+function IntToStr16(const n: Int64; const MinLength: Cardinal = 1): string; overload;
+function IntToStr16(const n: QWord; const MinLength: Cardinal = 1): string; overload;
 { @groupEnd }
 
 { Returns Ptr as 0xXXX... hexadecimal value. "0x" is not a Pascal standard
   for coding hex values, but it's so popular that users are more likely
   to "get" 0x notation. }
-function PointerToStr(Ptr: Pointer): string;
+function PointerToStr(const Ptr: Pointer): string;
 
 { Convert string representing binary number to an integer.
   String must contain only '0', '1' (digits) and start with an optional sign
@@ -1249,7 +1241,7 @@ begin
   Result := inherited Items[AKey];
 end;
 
-procedure TStringStringMap.SetItems(const AKey: string; const AValue: string);
+procedure TStringStringMap.SetItems(const AKey: string; const AValue: String);
 begin
   AddOrSetValue(AKey, AValue);
 end;
@@ -1496,7 +1488,8 @@ end;
 function PrefixRemove(const Prefix, S: string; IgnoreCase: boolean): string;
 begin
   if IsPrefix(Prefix, S, IgnoreCase) then
-    Result := SEnding(S, Length(Prefix) + 1) else
+    Result := SEnding(S, Length(Prefix) + 1)
+  else
     Result := S;
 end;
 
@@ -1509,6 +1502,22 @@ begin
       than doing Result := Copy(S, 1, ...) }
     SetLength(Result, Length(s) - Length(Suffix));
   end;
+end;
+
+function IsPrefixSuffix(const Prefix, Suffix, S: String; const IgnoreCase: Boolean): Boolean;
+begin
+  Result :=
+    (Length(S) >= Length(Prefix) + Length(Suffix)) and
+    IsPrefix(Prefix, S, IgnoreCase) and
+    IsSuffix(Suffix, S, IgnoreCase);
+end;
+
+function PrefixSuffixRemove(const Prefix, Suffix, S: String; const IgnoreCase: Boolean): String;
+begin
+  if IsPrefixSuffix(Prefix, Suffix, S, IgnoreCase) then
+    Result := Copy(S, Length(Prefix) + 1, Length(S) - Length(Prefix) - Length(Suffix))
+  else
+    Result := S;
 end;
 
 procedure SAppendData(var s: string; const Data; DataSize: integer);
@@ -1540,7 +1549,7 @@ begin
   Result := (Index <= Length(S)) and CharInSet(S[Index], chars);
 end;
 
-function SReadableForm(const S: string): string;
+function SReadableForm(const S: String): String;
 var
   I: Integer;
 begin
@@ -1580,7 +1589,7 @@ begin
   until false;
   TokStart := SeekPos; { TokStart := first character not in TokenDelims }
 
-  while (SeekPos <= Length(s)) and
+  while (SeekPos <= Length(S)) and
     not CharInSet(S[SeekPos], TokenDelims) do
     Inc(SeekPos);
 
@@ -1590,6 +1599,32 @@ begin
   { We don't have to do Inc(seekPos) below. But it's obvious that searching
     for next token can skip SeekPos, since we know S[SeekPos] is TokenDelim. }
   Inc(SeekPos);
+end;
+
+function CountTokens(const S: String; const TokenDelims: TSetOfChars): Integer;
+var
+  I: Integer;
+  IsToken: Boolean;
+begin
+  Result := 0;
+  IsToken := false;
+  for I := 1 to Length(S) do
+  begin
+    if IsToken then
+    begin
+      { Inside token? Then detect token end. }
+      if CharInSet(S[I], TokenDelims) then
+        IsToken := false;
+    end else
+    begin
+      { Not inside token? Then detect token begin. }
+      if not CharInSet(S[I], TokenDelims) then
+      begin
+        IsToken := true;
+        Inc(Result);
+      end;
+    end;
+  end;
 end;
 
 function NextTokenOnce(const s: string; SeekPos: integer;
@@ -1748,11 +1783,12 @@ begin
   result := Copy(s, Length(s)-rpart+1, rpart);
 end;
 
-function SAppendPart(const s, PartSeparator, NextPart: string): string;
+function SAppendPart(const S, PartSeparator, NextPart: String): String;
 begin
- if s = '' then
-  result := NextPart else
-  result := s+PartSeparator+NextPart;
+  if S = '' then
+    Result := NextPart
+  else
+    Result := S + PartSeparator + NextPart;
 end;
 
 procedure DeFormat(Data: string; const Format: string;
@@ -1957,100 +1993,6 @@ begin
     'data ''%s'' too long - unexpected end of format ''%s''', [Data, Format]);
 end;
 
-{$ifdef FPC}
-procedure GetFileFilterExts(const FileFilter: string; Extensions: TStringList);
-var
-  p, SeekPos: integer;
-  ExtsStr, filemask: string;
-begin
-  Extensions.Clear;
-  {$warnings off} // using deprecated in deprecated
-  ExtsStr := GetFileFilterExtsStr(FileFilter);
-  {$warnings on}
-  SeekPos := 1;
-  repeat
-    filemask := NextToken(ExtsStr, SeekPos,[';']);
-    if filemask = '' then break;
-    p := Pos('.', filemask);
-    if p > 0 then
-      Delete(filemask, 1, p-1) else { delete name from filemask }
-      filemask := '.'+filemask; { it means there was no name and dot in filemask. So prepend dot. }
-    Extensions.Add(filemask);
-  until false;
-end;
-
-function GetFileFilterName(const FileFilter: string): string;
-var
-  Left, Right: string;
-  LeftUpperCase, RightUpperCase: string;
-  p, len: integer;
-begin
-  p := Pos('|', FileFilter);
-  if p = 0 then result := Trim(FileFilter) else
-  begin
-    Left := Trim(Copy(FileFilter, 1, p-1));
-    Right := Trim(SEnding(FileFilter, p+1));
-    if Right = '' then
-    begin
-      result := Left;
-      { if FileFilter = 'xxx()|' then it matches to pattern 'xxx(exts)|exts'
-        so we should return 'xxx', not 'xxx()'.
-        This is often really useful when FileFilter was constructed in an
-        automatic way (e.g. as in mine edytorek). }
-      if IsSuffix('()', Result) then
-      begin
-        SetLength(Result, Length(Result)-2);
-        { trim once again to delete rightmost whitespace (as in 'xxx ()|') }
-        Result := TrimRight(Result);
-      end;
-    end else
-    begin
-      // convert to uppercase to search ignoring case with RPos below
-      LeftUpperCase := AnsiUpperCase(Left);
-      RightUpperCase := AnsiUpperCase(Right);
-      p := RPos(RightUpperCase, LeftUpperCase);
-      if p = 0 then
-        p := RPos(SReplaceChars(RightUpperCase, ';', ','), LeftUpperCase);
-      if p = 0 then result := Left else
-      begin
-        len := Length(Right);
-        {zwieksz len tak zeby objelo biale znaki az do ')'}
-        while p+len <= Length(Left) do
-        begin
-          if Left[p+len] = ')' then
-            begin Inc(len); break end else
-          if Left[p+len] in WhiteSpaces then
-            Inc(len) else
-            break;
-        end;
-        {zmniejsz p tak zeby objelo biale znaki az do '('}
-        while p-1 >= 1 do
-        begin
-          if Left[p-1] = '(' then
-            begin Dec(p); Inc(len); break end else
-          if Left[p-1] in WhiteSpaces then
-            begin Dec(p); Inc(len) end else
-            break;
-        end;
-        {koniec; wypieprz p, len}
-        Delete(Left, p, len);
-        result := Trim(Left);
-      end;
-    end;
-  end;
-end;
-
-function GetFileFilterExtsStr(const FileFilter: string): string;
-var
-  p: integer;
-begin
-  p := Pos('|', FileFilter);
-  if p > 0 then
-    result := SEnding(FileFilter, p+1) else
-    result := '';
-end;
-{$endif}
-
 function SReplacePatterns(const S: string;
   const Patterns, Values: array of string; const IgnoreCase: boolean): string;
 begin
@@ -2070,6 +2012,24 @@ function SReplacePatterns(const S: string;
 begin
   Result := SReplacePatterns(S, Patterns.ToArray, Values.ToArray, IgnoreCase);
 end;
+
+{$ifndef FPC}
+function IsWild(const InputStr, Wildcards: string; const IgnoreCase: Boolean): Boolean;
+var
+  Regex: string;
+  RegexOptions: TRegExOptions;
+begin
+  { TODO: This is not perfect, as it doesn't handle all the quoting for special
+    characters in InputStr that could mean something special for regex.
+    But it's good enough for now.}
+  Regex := SReplacePatterns(Wildcards, ['.', '*', '?'], ['\.', '.*', '.'], IgnoreCase);
+  if IgnoreCase then
+    RegexOptions := [roIgnoreCase]
+  else
+    RegexOptions := [];
+  Result := TRegEx.IsMatch(InputStr, Regex, RegexOptions);
+end;
+{$endif}
 
 function SCharsCount(const S: string; C: char): Cardinal;
 var
@@ -2373,14 +2333,14 @@ end;
 
 { conversions ------------------------------------------------------------ }
 
-function DigitAsChar(b: byte): char;
+function DigitAsChar(const b: byte): char;
 begin Result := char(b+byte('0')) end;
 
-function DigitAsByte(c: char): byte;
+function DigitAsByte(const c: char): byte;
 begin Result := byte(c)-byte('0') end;
 
-function IntToStrZPad(n: integer; minLength: integer): string;
-begin result := SZeroPad(IntToStr(n), minLength) end;
+function IntToStrZPad(n: integer; const MinLength: integer): string;
+begin result := SZeroPad(IntToStr(n), MinLength) end;
 
 function IntToStrThousands(const Value: Int64; const Separator: char): string;
 begin
@@ -2396,51 +2356,59 @@ begin
     Result := IntToStr(Value);
 end;
 
-function IntToStrBase(n: QWord; Base: Byte): string;
+function IntToStrBase(N: QWord; const Base: Byte): string;
 
-  function TablZnakow(cyfra: Byte): char;
-  { result := symbol cyfry 'cyfra'. Zawsze cyfra < Base }
+  { Convert Digit (any number < Base) to a character.
+
+    Digits 0..9 and converted to '0'..'9' naturally,
+    further digits are converted to 'A'..'Z'.
+    In effect Base = 16 is a typical hexadecimal conversion. }
+  function GeneralDigitToChar(const Digit: Byte): Char;
   begin
-   if cyfra < 10 then
-    result := DigitAsChar(cyfra) else
-    result := Chr( cyfra-10+Ord('A') ); {'A'=10 , 'B'=11 itd.}
+    if Digit < 10 then
+      Result := DigitAsChar(Digit)
+    else
+      Result := Chr( Digit-10+Ord('A') ); {'A'=10 , 'B'=11 etc. }
   end;
 
 begin
- {Nasze symbole to 0..9, 'A' ..'Z'. Mamy wiec 10+'Z'-'A'+1 symboli na Base cyfr. }
- Assert(Base < 10+Ord('Z')-Ord('A')+1, 'too large Base in IntToStrBase');
- if n = 0 then result := '0' else
- begin
-  result := '';
-  while n <> 0 do
+  Assert(Base < 10 + Ord('Z')-Ord('A') +1, 'Too large Base for IntToStrBase');
+  if N = 0 then
+    Result := '0'
+  else
   begin
-   result := TablZnakow(n mod Base)+result;
-   n := n div Base;
+    Result := '';
+    while N <> 0 do
+    begin
+      Result := GeneralDigitToChar(N mod Base) + Result;
+      N := N div Base;
+    end;
   end;
- end;
 end;
 
-function IntToStrBase(const n: Int64; Base: Byte): string;
+function IntToStrBase(const N: Int64; const Base: Byte): string;
 begin
   if N < 0 then
-    Result := '-' + IntToStrBase(QWord(Abs(N)), Base) else
+    Result := '-' + IntToStrBase(QWord(Abs(N)), Base)
+  else
     Result := IntToStrBase(QWord(N), Base);
 end;
 
-function IntToStrBase(const n: Int64; Base: Byte; minLength: Cardinal): string;
-{wywoluje IntToStrBase, dodatkowo wypelniajac zerami z lewej, jesli trzeba}
+function IntToStrBase(const N: Int64; const Base: Byte; const MinLength: Cardinal): string;
 begin
- result := IntToStrBase(n, Base);
- if n < 0 then
-  result := '-'+SZeroPad(SEnding(result, 2), minLength) else
-  result := SZeroPad(result, minLength);
+  { Call IntToStrBase and (if needed) at zeroes at the beginning }
+  Result := IntToStrBase(n, Base);
+  if N < 0 then
+    Result := '-'+SZeroPad(SEnding(Result, 2), MinLength)
+  else
+    Result := SZeroPad(Result, MinLength);
 end;
 
-function IntToStrBase(const n: QWord; Base: Byte; minLength: Cardinal): string;
-{wywoluje IntToStrBase, dodatkowo wypelniajac zerami z lewej, jesli trzeba}
+function IntToStrBase(const N: QWord; const Base: Byte; const MinLength: Cardinal): string;
 begin
- result := IntToStrBase(n, Base);
- result := SZeroPad(result, minLength);
+  { Call IntToStrBase and (if needed) at zeroes at the beginning }
+  Result := IntToStrBase(n, Base);
+  Result := SZeroPad(Result, MinLength);
 end;
 
 function IntToStr2(n: Int64;
@@ -2448,109 +2416,117 @@ function IntToStr2(n: Int64;
   const ZeroDigit: char;
   const OneDigit: char;
   const MinusSign: char): string;
-var Negative: boolean;
-    i: Integer;
+var
+  Negative: boolean;
+  i: Integer;
 begin
- { Simple implementation : Result := IntToStrBase(n, 2, minLength) }
+  { Simple implementation : Result := IntToStrBase(n, 2, MinLength) }
 
- { Negative := n < 0, n := Abs(n) }
- Negative := n < 0;
- if Negative then n := -n;
+  { Negative := n < 0, n := Abs(n) }
+  Negative := n < 0;
+  if Negative then n := -n;
 
- Result := '';
+  Result := '';
 
- { from 0 .. SizeOf(n)*8-1 we have SizeOf(n)*8 values,
-   all possible bits positions. So we're taking SizeOf(n)*8-2,
-   to avoid most significant bit, the sign bit. }
- for i := SizeOf(n)*8-2 downto 0 do
+  { from 0 .. SizeOf(n)*8-1 we have SizeOf(n)*8 values,
+    all possible bits positions. So we're taking SizeOf(n)*8-2,
+    to avoid most significant bit, the sign bit. }
+  for i := SizeOf(n)*8-2 downto 0 do
   if ((Int64(1) shl i) and n) <> 0 then
-   Result := Result + OneDigit else
+    Result := Result + OneDigit else
   if Result <> '' then
-   Result := Result + ZeroDigit;
+    Result := Result + ZeroDigit;
 
- if Result = '' then Result := ZeroDigit;
+  if Result = '' then Result := ZeroDigit;
 
- Result := SPad(Result, MinLength, ZeroDigit);
+  Result := SPad(Result, MinLength, ZeroDigit);
 
- if Negative then Result := MinusSign + Result;
+  if Negative then Result := MinusSign + Result;
 end;
 
-function IntToStr16(const n: Int64; const minLength: Cardinal): string;
-begin result := IntToStrBase(n, 16, minLength) end;
+function IntToStr16(const n: Int64; const MinLength: Cardinal): string;
+begin
+  Result := IntToStrBase(n, 16, MinLength)
+end;
 
-function IntToStr16(const n: QWord; const minLength: Cardinal): string;
-begin result := IntToStrBase(n, 16, minLength) end;
+function IntToStr16(const n: QWord; const MinLength: Cardinal): string;
+begin
+  Result := IntToStrBase(n, 16, MinLength)
+end;
 
 function Str2ToInt(const s: string): integer;
 
   function BinInt(c: char): integer;
   begin
-   case c of
-    '0': result := 0;
-    '1': result := 1;
-    else raise EConvertError.Create('Invalid Str2ToInt argument, contains invalid chars: ' + s);
-   end;
+    case c of
+      '0': Result := 0;
+      '1': Result := 1;
+      else raise EConvertError.Create('Invalid Str2ToInt argument, contains invalid chars: ' + s);
+    end;
   end;
 
-var NextChar: integer;
+var
+  NextChar: integer;
 begin
- if s = '' then
-  raise EConvertError.Create('Invalid Str2ToInt argument: empty string');
- if s[1] = '-' then
- begin
-  if Length(s) = 1 then
-   raise EConvertError.Create('Invalid Str2ToInt argument: cannot convert single dash ''-'' to integer.');
-  result := -BinInt(s[2]);
-  NextChar := 3;
- end else
- begin
-  result := BinInt(s[1]);
-  NextChar := 2;
- end;
- while NextChar <= Length(s) do
- begin
-  result := result*2+binInt(s[NextChar]);
-  Inc(NextChar);
- end;
+  if s = '' then
+    raise EConvertError.Create('Invalid Str2ToInt argument: empty string');
+  if s[1] = '-' then
+  begin
+    if Length(s) = 1 then
+      raise EConvertError.Create('Invalid Str2ToInt argument: cannot convert single dash ''-'' to integer.');
+    Result := -BinInt(s[2]);
+    NextChar := 3;
+  end else
+  begin
+    Result := BinInt(s[1]);
+    NextChar := 2;
+  end;
+  while NextChar <= Length(s) do
+  begin
+    Result := Result * 2 + BinInt(s[NextChar]);
+    Inc(NextChar);
+  end;
 end;
 
 function StrHexToInt(const s: string): Int64;
-var ScanStart: integer;
+var
+  ScanStart: integer;
 
   procedure Scan;
-  var digit: Int64;
-      i: integer;
+  var
+    Digit: Int64;
+    i: integer;
   begin
-   if ScanStart > Length(s) then
-    raise EConvertError.Create('StrHexToInt found unexpected end of string: no digits');
-   result := 0;
-   for i := ScanStart to Length(s) do
-   begin
-    case S[I] of
-     '0'..'9':digit := Ord(S[I])-Ord('0');
-     'a'..'f':digit := Ord(S[I])-Ord('a')+10;
-     'A'..'F':digit := Ord(S[I])-Ord('A')+10;
-     else raise EConvertError.Create('Character "'+S[I]+
-       '" is not a hexadecimal digit');
+    if ScanStart > Length(s) then
+      raise EConvertError.Create('StrHexToInt found unexpected end of string: no digits');
+    Result := 0;
+    for i := ScanStart to Length(s) do
+    begin
+      case S[I] of
+        '0'..'9':Digit := Ord(S[I])-Ord('0');
+        'a'..'f':Digit := Ord(S[I])-Ord('a')+10;
+        'A'..'F':Digit := Ord(S[I])-Ord('A')+10;
+        else raise EConvertError.Create('Character "'+S[I]+
+          '" is not a hexadecimal digit');
+      end;
+      Result := Result * 16 + Digit;
     end;
-    result := result*16 + digit;
-   end;
   end;
 
 begin
- if SCharIs(s, 1, '-') then
- begin
-  ScanStart := 2;
-  Scan;
-  Result := -Result;
- end else
- begin
-  if SCharIs(s, 1, '+') then ScanStart := 2 else ScanStart := 1;
-  Scan;
- end;
+  if SCharIs(s, 1, '-') then
+  begin
+    ScanStart := 2;
+    Scan;
+    Result := -Result;
+  end else
+  begin
+    if SCharIs(s, 1, '+') then ScanStart := 2 else ScanStart := 1;
+    Scan;
+  end;
 end;
 
-function PointerToStr(Ptr: Pointer): string;
+function PointerToStr(const Ptr: Pointer): string;
 begin
   Result := '0x' + IntToStr16(PtrUInt(Ptr),
     {$ifdef CPU32} 8 {$endif}

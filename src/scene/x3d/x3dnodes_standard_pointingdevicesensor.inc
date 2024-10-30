@@ -1,3 +1,4 @@
+{%MainUnit x3dnodes.pas}
 {
   Copyright 2007-2023 Michalis Kamburelis.
 
@@ -59,7 +60,7 @@
   { Base type for all drag-style pointing device sensors. }
   TAbstractDragSensorNode = class(TAbstractPointingDeviceSensorNode)
   public
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
+    constructor Create(const AX3DName: string = ''; const ABaseUrl: String = ''); override;
 
     { Called by events engine (like TCastleSceneCore) when you move your mouse
       over the @italic(active) drag sensor. }
@@ -75,7 +76,7 @@
     procedure EventTouchTimeReceive(const Event: TX3DEvent; const AValue: TX3DField;
       const Time: TX3DTime);
   public
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
+    constructor Create(const AX3DName: string = ''; const ABaseUrl: String = ''); override;
 
     { Event generated when we register a "click" on the shapes within
       the same group as this TouchSensor node.

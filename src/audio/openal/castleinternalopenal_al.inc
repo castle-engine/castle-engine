@@ -1,3 +1,5 @@
+{%MainUnit castleinternalopenal.pas}
+
 { translation of AL/al.h }
 
 {**

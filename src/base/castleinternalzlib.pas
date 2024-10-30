@@ -45,17 +45,19 @@ interface
   {$ALIGN 4}
 {$endif}
 
+uses CTypes;
+
 const
   ZLIB_VERSION = '1.1.3';
 
 type
   { Compatible with paszlib }
   { }
-  Uint    = Longint;
-  Ulong   = Longint;
-  Ulongf  = Longint;
+  Uint    = CInt32;
+  Ulong   = CInt32;
+  Ulongf  = CInt32;
   Pulongf = ^Ulongf;
-  z_off_t = longint;
+  z_off_t = CInt32;
 
   TAllocfunc = function (opaque:pointer; items:uInt; size:uInt):pointer;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
   TFreeFunc = procedure (opaque:pointer; address:pointer);{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
@@ -76,7 +78,7 @@ type
     zalloc : TAllocFunc;
     zfree : TFreeFunc;
     opaque : pointer;
-    data_type : longint;
+    data_type : CInt32;
     adler : uLong;
     reserved : uLong;
   end;
@@ -120,25 +122,25 @@ const
 
 var
   zlibVersionpchar: function:PAnsiChar;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
-  deflate: function(var strm:TZStream; flush:longint):longint;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
-  deflateEnd: function(var strm:TZStream):longint;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
-  inflate: function(var strm:TZStream; flush:longint):longint;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
-  inflateEnd: function(var strm:TZStream):longint;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
-  deflateSetDictionary: function(var strm:TZStream;dictionary : PByte; dictLength:uInt):longint;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
-  deflateCopy: function(var dest,source:TZstream):longint;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
-  deflateReset: function(var strm:TZStream):longint;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
-  deflateParams: function(var strm:TZStream; level:longint; strategy:longint):longint;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
-  inflateSetDictionary: function(var strm:TZStream;dictionary : PByte; dictLength:uInt):longint;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
-  inflateSync: function(var strm:TZStream):longint;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
-  inflateReset: function(var strm:TZStream):longint;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
-  compress: function(dest:PByte;destLen:uLongf; source : PByte; sourceLen:uLong):longint;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
-  compress2: function(dest:PByte;destLen:uLongf; source : PByte; sourceLen:uLong; level:longint):longint;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
-  uncompress: function(dest:PByte;destLen:uLongf; source : PByte; sourceLen:uLong):longint;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
+  deflate: function(var strm:TZStream; flush:CInt32):CInt32;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
+  deflateEnd: function(var strm:TZStream):CInt32;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
+  inflate: function(var strm:TZStream; flush:CInt32):CInt32;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
+  inflateEnd: function(var strm:TZStream):CInt32;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
+  deflateSetDictionary: function(var strm:TZStream;dictionary : PByte; dictLength:uInt):CInt32;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
+  deflateCopy: function(var dest,source:TZstream):CInt32;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
+  deflateReset: function(var strm:TZStream):CInt32;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
+  deflateParams: function(var strm:TZStream; level:CInt32; strategy:CInt32):CInt32;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
+  inflateSetDictionary: function(var strm:TZStream;dictionary : PByte; dictLength:uInt):CInt32;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
+  inflateSync: function(var strm:TZStream):CInt32;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
+  inflateReset: function(var strm:TZStream):CInt32;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
+  compress: function(dest:PByte;destLen:uLongf; source : PByte; sourceLen:uLong):CInt32;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
+  compress2: function(dest:PByte;destLen:uLongf; source : PByte; sourceLen:uLong; level:CInt32):CInt32;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
+  uncompress: function(dest:PByte;destLen:uLongf; source : PByte; sourceLen:uLong):CInt32;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
   gzopen: function(path:PAnsiChar; mode:PAnsiChar):gzFile;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
-  gzdopen: function(fd:longint; mode:PAnsiChar):gzFile;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
-  gzsetparams: function(thefile:gzFile; level:longint; strategy:longint):longint;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
-  gzread: function(thefile:gzFile; buf:pointer; len:cardinal):longint;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
-  gzwrite: function(thefile:gzFile; buf:pointer; len:cardinal):longint;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
+  gzdopen: function(fd:CInt32; mode:PAnsiChar):gzFile;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
+  gzsetparams: function(thefile:gzFile; level:CInt32; strategy:CInt32):CInt32;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
+  gzread: function(thefile:gzFile; buf:pointer; len:cardinal):CInt32;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
+  gzwrite: function(thefile:gzFile; buf:pointer; len:cardinal):CInt32;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
   (* gzprintf commented out,
      FPC 2.2.0 warning "Warning: cdecl'ared functions have no high parameter"
      and on mailing list Jonas suggests that C varargs will never be reliably
@@ -146,37 +148,37 @@ var
      http://www.mail-archive.com/fpc-devel@lists.freepascal.org/msg09040.html
      (although the point of thread is about something else completely,
      and even the question was about "array of PChar" which is not varargs...) *)
-  //gzprintf: function(thefile:gzFile; format:PByte; args:array of const):longint;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
-  gzputs: function(thefile:gzFile; s:PByte):longint;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
-  gzgets: function(thefile:gzFile; buf:PByte; len:longint):PByte;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
+  //gzprintf: function(thefile:gzFile; format:PByte; args:array of const):CInt32;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
+  gzputs: function(thefile:gzFile; s:PByte):CInt32;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
+  gzgets: function(thefile:gzFile; buf:PByte; len:CInt32):PByte;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
   gzputc: function(thefile:gzFile; c:char):char;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
   gzgetc: function(thefile:gzFile):char;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
-  gzflush: function(thefile:gzFile; flush:longint):longint;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
-  gzseek: function(thefile:gzFile; offset:z_off_t; whence:longint):z_off_t;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
-  gzrewind: function(thefile:gzFile):longint;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
+  gzflush: function(thefile:gzFile; flush:CInt32):CInt32;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
+  gzseek: function(thefile:gzFile; offset:z_off_t; whence:CInt32):z_off_t;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
+  gzrewind: function(thefile:gzFile):CInt32;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
   gztell: function(thefile:gzFile):z_off_t;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
   gzeof: function(thefile:gzFile):longbool;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
-  gzclose: function(thefile:gzFile):longint;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
-  gzerror: function(thefile:gzFile; var errnum:longint):PByte;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
+  gzclose: function(thefile:gzFile):CInt32;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
+  gzerror: function(thefile:gzFile; var errnum:CInt32):PByte;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
   adler32: function(adler:uLong;buf : PByte; len:uInt):uLong;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
   crc32: function(crc:uLong;buf : PByte; len:uInt):uLong;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
-  deflateInit_: function(var strm:TZStream; level:longint; version:PAnsiChar; stream_size:longint):longint;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
-  inflateInit_: function(var strm:TZStream; version:PAnsiChar; stream_size:longint):longint;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
-  deflateInit2_: function(var strm:TZStream; level:longint; method:longint; windowBits:longint; memLevel:longint;strategy:longint; version:PAnsiChar; stream_size:longint):longint;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
-  inflateInit2_: function(var strm:TZStream; windowBits:longint; version:PAnsiChar; stream_size:longint):longint;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
-  zErrorpchar: function(err:longint):PAnsiChar;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
-  inflateSyncPoint: function(z:PZstream):longint;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
+  deflateInit_: function(var strm:TZStream; level:CInt32; version:PAnsiChar; stream_size:CInt32):CInt32;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
+  inflateInit_: function(var strm:TZStream; version:PAnsiChar; stream_size:CInt32):CInt32;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
+  deflateInit2_: function(var strm:TZStream; level:CInt32; method:CInt32; windowBits:CInt32; memLevel:CInt32;strategy:CInt32; version:PAnsiChar; stream_size:CInt32):CInt32;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
+  inflateInit2_: function(var strm:TZStream; windowBits:CInt32; version:PAnsiChar; stream_size:CInt32):CInt32;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
+  zErrorpchar: function(err:CInt32):PAnsiChar;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
+  inflateSyncPoint: function(z:PZstream):CInt32;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
   get_crc_table: function:pointer;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
 
 { These are simple comfortable Pascal wrappers above appropriate functions
   exported from zlib. }
 { }
 function zlibVersion:string;
-function deflateInit(var strm:TZStream;level : longint) : longint;
-function inflateInit(var strm:TZStream) : longint;
-function deflateInit2(var strm:TZStream;level,method,windowBits,memLevel,strategy : longint) : longint;
-function inflateInit2(var strm:TZStream;windowBits : longint) : longint;
-function zError(err:longint):string;
+function deflateInit(var strm:TZStream;level : CInt32) : CInt32;
+function inflateInit(var strm:TZStream) : CInt32;
+function deflateInit2(var strm:TZStream;level,method,windowBits,memLevel,strategy : CInt32) : CInt32;
+function inflateInit2(var strm:TZStream;windowBits : CInt32) : CInt32;
+function zError(err:CInt32):string;
 
 { Was zlib library found. If true that all function pointers in this unit
   are initialized and you can simply use zlib. If false then zlib was not
@@ -195,27 +197,27 @@ function zlibversion : string;
      zlibversion:=strpas(zlibversionpchar());
   end;
 
-function deflateInit(var strm:TZStream;level : longint) : longint;
+function deflateInit(var strm:TZStream;level : CInt32) : CInt32;
   begin
      deflateInit:=deflateInit_(strm,level,ZLIB_VERSION,sizeof(TZStream));
   end;
 
-function inflateInit(var strm:TZStream) : longint;
+function inflateInit(var strm:TZStream) : CInt32;
   begin
      inflateInit:=inflateInit_(strm,ZLIB_VERSION,sizeof(TZStream));
   end;
 
-function deflateInit2(var strm:TZStream;level,method,windowBits,memLevel,strategy : longint) : longint;
+function deflateInit2(var strm:TZStream;level,method,windowBits,memLevel,strategy : CInt32) : CInt32;
   begin
      deflateInit2:=deflateInit2_(strm,level,method,windowBits,memLevel,strategy,ZLIB_VERSION,sizeof(TZStream));
   end;
 
-function inflateInit2(var strm:TZStream;windowBits : longint) : longint;
+function inflateInit2(var strm:TZStream;windowBits : CInt32) : CInt32;
   begin
      inflateInit2:=inflateInit2_(strm,windowBits,ZLIB_VERSION,sizeof(TZStream));
   end;
 
-function zError(err:longint):string;
+function zError(err:CInt32):string;
   begin
      zerror:=Strpas(zErrorpchar(err));
   end;

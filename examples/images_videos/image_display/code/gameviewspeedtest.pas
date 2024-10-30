@@ -61,7 +61,7 @@ var
 implementation
 
 uses SysUtils,
-  CastleImages, CastleTimeUtils, CastleURIUtils,
+  CastleImages, CastleTimeUtils, CastleUriUtils,
   GameViewMain;
 
 constructor TViewSpeedTest.Create(AOwner: TComponent);
@@ -122,7 +122,7 @@ begin
   Seconds := TimeStart.ElapsedTime;
 
   LabelTestInfo.Text.Append(Format('%s: Loaded in %f secs (%d times). Image loaded as %s', [
-    URICaption(TestImages[TestIndex]),
+    UriCaption(TestImages[TestIndex]),
     Seconds,
     TestsCount,
     ImgInfo

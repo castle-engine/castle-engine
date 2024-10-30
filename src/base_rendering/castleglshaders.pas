@@ -1,5 +1,5 @@
 {
-  Copyright 2007-2023 Michalis Kamburelis.
+  Copyright 2007-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -63,8 +63,9 @@
     @item(
       Creating/destroying the TGLSLProgram instance immediately creates/destroys
       appropriate program on GPU. So be sure to create/destroy it only
-      when you have OpenGL context available (for example, create in TCastleWindow.OnOpen
-      and destroy in TCastleWindow.OnClose).)
+      when you have OpenGL context available (for example,
+      create in @link(TCastleUserInterface.GLContextOpen),
+      and destroy in @link(TCastleUserInterface.GLContextClose)).)
 
     @item(
       Upon creation, we check current OpenGL context abilities.
@@ -107,7 +108,7 @@ unit CastleGLShaders;
 interface
 
 uses SysUtils, Classes, Generics.Collections,
-  {$ifdef FPC} CastleGL, {$else} OpenGL, OpenGLext, {$endif}
+  {$ifdef OpenGLES} CastleGLES, {$else} CastleGL, {$endif}
   CastleGLUtils, CastleUtils, CastleVectors, CastleRenderOptions;
 
 type
@@ -275,15 +276,46 @@ type
     FUniformLocations, FAttributeLocations: TLocationCache;
     FUniformReportedMissing: TStringList;
 
+    // Given stage was attached and compiled by @link(AttachShader).
+    HasStage: array [TShaderType] of Boolean;
+
     {$ifdef CASTLE_COLLECT_SHADER_SOURCE}
     FSource: array [TShaderType] of TStringList;
     {$endif CASTLE_COLLECT_SHADER_SOURCE}
 
     class function GetCurrent: TGLSLProgram; static;
     class procedure SetCurrent(const Value: TGLSLProgram); static;
+
+    { Make sure all shaders are detached and deleted, to free all resources.
+      This may be called repeatedly, calling it the 2nd time will not free
+      any more resources.
+
+      Note that we don't support calling "Link" repeatedly,
+      this class assumes that TGLSLProgram is only linked once and then used,
+      for now.
+      So calling GLContextClose multiple times has really simple semantics:
+      2nd call just does nothing. The shader is not useful after the 1st
+      GLContextClose call. }
+    procedure GLContextClose;
+    procedure OnGlContextClose(Sender: TObject);
   public
     { Shader name is used in log messages. Any String is OK. }
     Name: String;
+
+    { Is fragment shader required to link successfully.
+
+      By default this is @false (for now) and you can attempt to link
+      a shader with only vertex shader, without fragment shader.
+      This makes sense on OpenGL
+      ( https://www.khronos.org/opengl/wiki/Fragment_Shader#Optional ).
+      Only OpenGLES, or OpenGL on macOS with Core profile,
+      strictly requires fragment shader to be present.
+
+      Setting this to @true is useful when you know shader really requires
+      fragment shader and you want to get more clear error message.
+      CGE then knows to abort linking early, with clear error message,
+      when fragment shader is missing. }
+    FragmentShaderRequired: Boolean;
 
     constructor Create;
     destructor Destroy; override;
@@ -326,7 +358,8 @@ type
 
     { Specify values to record in transform feedback buffers.
       This must be called before @link(Link) method. }
-    procedure SetTransformFeedbackVaryings(const Varyings: array of PChar; const IsSingleBufferMode: Boolean = True);
+    procedure SetTransformFeedbackVaryings(const Varyings: array of PAnsiChar;
+      const IsSingleBufferMode: Boolean = True);
 
     { Link the program, this should be done after attaching all shaders
       and before actually using the program.
@@ -366,7 +399,7 @@ type
       Reports whether shaders are supported,
       names of active uniform and attribute variables etc.
 
-      @raises EOpenGLError If any OpenGL error will be detected. }
+      @raises Exception If any OpenGL error will be detected. }
     function DebugInfo: string;
 
     { This is program info log, given to you from OpenGL after the program
@@ -605,7 +638,7 @@ var
 implementation
 
 uses CastleStringUtils, CastleLog, CastleGLVersion, CastleRenderContext,
-  CastleInternalGLUtils;
+  CastleInternalGLUtils, CastleApplicationProperties;
 
 { Wrapper around glGetShaderInfoLog.
   Based on Dean Ellis BasicShader.dpr, but somewhat fixed ? <> 0 not > 1. }
@@ -672,6 +705,12 @@ procedure InternalSetCurrentProgram(const Value: TGLSLProgram);
 begin
   if Value <> nil then
   begin
+    if Value.ProgramId = 0 then
+    begin
+      WritelnWarning('Trying to use a GLSL shader after the OpenGL context for which it was prepared closed; you have to create new TGLSLProgram instance');
+      glUseProgram(0);
+      Exit;
+    end;
     if GLFeatures.Shaders then
       glUseProgram(Value.ProgramId);
   end else
@@ -811,7 +850,7 @@ begin
 
     Unfortunately, there's no glUniform*ub (unsigned byte) or such function.
 
-    So convert to longints. }
+    So convert to 32 ints. }
   Ints := Value.ToInt32;
   try
     Owner.Enable;
@@ -1083,6 +1122,8 @@ begin
   if ProgramId = 0 then
     raise EGLSLError.Create('Cannot create GLSL shader program');
 
+  ApplicationProperties.OnGLContextCloseObject.Add({$ifdef FPC}@{$endif}OnGlContextClose);
+
   ShaderIds := TGLuintList.Create;
 
   FUniformMissing := umWarning;
@@ -1096,26 +1137,55 @@ begin
   {$endif CASTLE_COLLECT_SHADER_SOURCE}
 end;
 
+procedure TGLSLProgram.GLContextClose;
+begin
+  { This is called from destructor,
+    which may be called if exception is raised from constructor,
+    so be careful to check here things -- e.g. check that
+    ShaderIds was created.
+
+    Note that, if resources have already been freed, we try to not assume
+    that GLFeatures is <> nil. So you can free TGLSLProgram even after
+    context is closed.
+  }
+
+  if ShaderIds <> nil then
+    DetachAllShaders;
+
+  if ProgramId <> 0 then
+  begin
+    { ProgramId can be non-zero only if GLFeatures.Shaders,
+      and right now GLFeatures must be <> nil because we must free while
+      GL context is available. }
+    Assert(GLFeatures.Shaders);
+    glDeleteProgram(ProgramId);
+    ProgramId := 0;
+  end;
+
+  if FUniformLocations <> nil then
+    FUniformLocations.Clear;
+  if FAttributeLocations <> nil then
+    FAttributeLocations.Clear;
+end;
+
+procedure TGLSLProgram.OnGlContextClose(Sender: TObject);
+begin
+  GLContextClose;
+end;
+
 destructor TGLSLProgram.Destroy;
 {$ifdef CASTLE_COLLECT_SHADER_SOURCE}
 var
   ShaderType: TShaderType;
 {$endif CASTLE_COLLECT_SHADER_SOURCE}
 begin
-  { make sure all shaders are detached and deleted, to free all resources }
-
-  { Destructor may be called if exception raised from constructor,
-    so better check that ShaderIds was created. }
-  if ShaderIds <> nil then
-    DetachAllShaders;
+  ApplicationProperties.OnGLContextCloseObject.Remove({$ifdef FPC}@{$endif}OnGlContextClose);
+  GLContextClose;
 
   {$ifdef CASTLE_COLLECT_SHADER_SOURCE}
   for ShaderType := Low(TShaderType) to High(TShaderType) do
     FreeAndNil(FSource[ShaderType]);
   {$endif}
-
-  if GLFeatures.Shaders then
-    glDeleteProgram(ProgramId);
 
   FreeAndNil(ShaderIds);
   FreeAndNil(FUniformLocations);
@@ -1231,8 +1301,11 @@ function TGLSLProgram.DebugInfo: string;
       for I := 0 to UniformsCount - 1 do
       begin
         SetLength(Name, UniformMaxLength);
-        glGetActiveUniform(ProgramId, I, UniformMaxLength, @ReturnedLength,
-          @Size, @AType, PAnsiCharOrNil(Name));
+        glGetActiveUniform(ProgramId, I, UniformMaxLength,
+          {$ifndef USE_DGL}@{$endif} ReturnedLength,
+          {$ifndef USE_DGL}@{$endif} Size,
+          {$ifndef USE_DGL}@{$endif} AType,
+          PAnsiCharOrNil(Name));
         SetLength(Name, ReturnedLength);
         UniformNames.Append(Format('  %d: Name: %s, type: %s, size: %d',
           [I, Name, GLShaderVariableTypeName(AType), Size]));
@@ -1268,8 +1341,11 @@ function TGLSLProgram.DebugInfo: string;
       for I := 0 to AttribsCount - 1 do
       begin
         SetLength(Name, AttribMaxLength);
-        glGetActiveAttrib(ProgramId, I, AttribMaxLength, @ReturnedLength,
-          @Size, @AType, PAnsiCharOrNil(Name));
+        glGetActiveAttrib(ProgramId, I, AttribMaxLength,
+          {$ifndef USE_DGL}@{$endif} ReturnedLength,
+          {$ifndef USE_DGL}@{$endif} Size,
+          {$ifndef USE_DGL}@{$endif} AType,
+          PAnsiCharOrNil(Name));
         SetLength(Name, ReturnedLength);
         AttribNames.Append(Format('  %d: Name: %s, type: %s, size: %d',
           [I, Name, GLShaderVariableTypeName(AType), Size]));
@@ -1382,7 +1458,7 @@ var
       ShaderGetInfoLog naturally comes out multiline (it contains a
       couple of error messages) and it's best presented with line breaks.
       So a line break right before ShaderGetInfoLog contents looks good. }
-    if Compiled <> GL_TRUE then
+    if Compiled <> Ord(GL_TRUE) then
       ReportCompileError(GetShaderInfoLog(Result));
   end;
 
@@ -1402,7 +1478,12 @@ const
     { Otherwise each sampler2DShadow would have to contain precision specifier.
       EXT_shadow_samplers says that lowp is default, so presumably it is OK:
       https://registry.khronos.org/OpenGL/extensions/EXT/EXT_shadow_samplers.txt }
-    'precision lowp sampler2DShadow;' + NL,
+    'precision lowp sampler2DShadow;' + NL +
+    { Otherwise each sampler3D would have to contain precision specifier.
+      3D textures are part of OpenGLES 3.0 core, so it's OK to use sampler3D here.
+      Testcase that this is needed: castle-model-viewer, compiled with OpenGLES,
+      viewing demo-models/water/caustics/Barna29.x3dv . }
+    'precision lowp sampler3D;' + NL,
 
     // geometry - not supported by OpenGLES
     '#define CASTLE_GLSL_VERSION_UPGRADE' + NL,
@@ -1418,7 +1499,8 @@ const
     '#define texture3DProj textureProj' + NL +
     '#define gl_FragColor castle_FragColor' + NL +
     'out mediump vec4 castle_FragColor;' + NL +
-    'precision lowp sampler2DShadow;' + NL
+    'precision lowp sampler2DShadow;' + NL +
+    'precision lowp sampler3D;' + NL
   );
   {$else}
   GL31CoreHeader: array [TShaderType] of String = (
@@ -1512,6 +1594,7 @@ begin
   {$ifdef CASTLE_COLLECT_SHADER_SOURCE}
   FSource[ShaderType].Add(S);
   {$endif CASTLE_COLLECT_SHADER_SOURCE}
+  HasStage[ShaderType] := true;
 end;
 
 procedure TGLSLProgram.AttachShader(const ShaderType: TShaderType;
@@ -1549,7 +1632,8 @@ begin
   AttachShader(stGeometry, S);
 end;
 
-procedure TGLSLProgram.SetTransformFeedbackVaryings(const Varyings: array of PChar; const IsSingleBufferMode: Boolean);
+procedure TGLSLProgram.SetTransformFeedbackVaryings(
+  const Varyings: array of PAnsiChar; const IsSingleBufferMode: Boolean);
 var
   TransformFeedbackBufferMode, ErrorCode: TGLuint;
   VaryingLength: Cardinal;
@@ -1580,23 +1664,27 @@ end;
 procedure TGLSLProgram.DetachAllShaders;
 var
   I: Integer;
-  {$ifdef CASTLE_COLLECT_SHADER_SOURCE}
   ShaderType: TShaderType;
-  {$endif CASTLE_COLLECT_SHADER_SOURCE}
 begin
-  if GLFeatures.Shaders then
-    for I := 0 to ShaderIds.Count - 1 do
-    begin
-      glDetachShader   (ProgramId, ShaderIds[I]);
-      glDeleteShader   (ShaderIds[I]);
-    end;
+  for I := 0 to ShaderIds.Count - 1 do
+  begin
+    { ShaderIds can be non-empty only if GLFeatures.Shaders,
+      and right now GLFeatures must be <> nil because we must free while
+      GL context is available. }
+    Assert(GLFeatures.Shaders);
+    glDetachShader(ProgramId, ShaderIds[I]);
+    glDeleteShader(ShaderIds[I]);
+  end;
 
   ShaderIds.Count := 0;
 
-  {$ifdef CASTLE_COLLECT_SHADER_SOURCE}
   for ShaderType := Low(TShaderType) to High(TShaderType) do
+  begin
+    {$ifdef CASTLE_COLLECT_SHADER_SOURCE}
     FSource[ShaderType].Clear;
-  {$endif CASTLE_COLLECT_SHADER_SOURCE}
+    {$endif CASTLE_COLLECT_SHADER_SOURCE}
+    HasStage[ShaderType] := false;
+  end;
 end;
 
 procedure TGLSLProgram.Link;
@@ -1639,10 +1727,17 @@ var
 begin
   if GLFeatures.Shaders then
   begin
+    { Produce clear error messages, without waiting for OpenGL errors,
+      if required shaders are not attached. }
+    if not HasStage[stVertex] then
+      raise EGLSLProgramLinkError.Create('Vertex shader not attached');
+    if FragmentShaderRequired and (not HasStage[stFragment]) then
+      raise EGLSLProgramLinkError.Create('Fragment shader not attached');
+
     glLinkProgram(ProgramId);
     glGetProgramiv(ProgramId, GL_LINK_STATUS, @Linked);
 
-    if Linked <> GL_TRUE then
+    if Linked <> Ord(GL_TRUE) then
       // raises exception
       ReportLinkError(GetProgramInfoLog(ProgramId));
 

@@ -20,8 +20,7 @@ unit TestCastleViewport;
 interface
 
 uses
-  Classes, SysUtils, {$ifndef CASTLE_TESTER}FpcUnit, TestUtils, TestRegistry,
-  CastleTestCase{$else}CastleTester{$endif};
+  Classes, SysUtils, CastleTester;
 
 type
   TTestCastleViewport = class(TCastleTestCase)
@@ -30,13 +29,14 @@ type
     procedure TestCameraNonDesign;
     procedure TestAutoCameraIgnoresGizmos;
     procedure TestAutoProjection;
+    procedure TestEffectiveBlendingSort;
   end;
 
 implementation
 
 uses CastleComponentSerialize, CastleUIControls, CastleViewport, CastleCameras,
   Castle2DSceneManager, CastleProjection, CastleUtils, CastleTransform, CastleVectors,
-  CastleScene, CastleBoxes;
+  CastleScene, CastleBoxes, CastleRenderOptions;
 
 procedure TTestCastleViewport.TestReadingOldDesigns;
 
@@ -127,7 +127,7 @@ begin
   SavedApplicationMode := InternalCastleApplicationMode;
   InternalCastleApplicationMode := appDesign;
   try
-    V := TCastleViewport.InternalCreateNonDesign(nil);
+    V := TCastleViewport.InternalCreateNonDesign(nil, 0);
     try
       // V.Camera will be auto-created, but it will not have a bounding box or any children (so no gizmo)
       AssertTrue(V.Camera <> nil);
@@ -226,6 +226,42 @@ begin
     B2.Translation := Vector3(1000, 1000, 1000);
     ProjectionNear := V.Proj.ProjectionNear;
     AssertEquals(DefaultCameraRadius * RadiusToProjectionNear, ProjectionNear);
+  finally FreeAndNil(V) end;
+end;
+
+procedure TTestCastleViewport.TestEffectiveBlendingSort;
+
+  { Copy-pasted from CastleViewport.pas, to test it. }
+  function EffectiveBlendingSort(const V: TCastleViewport): TShapeSortNoAuto;
+  begin
+    if V.BlendingSort = sortAuto then
+    begin
+      if (V.Camera <> nil) and
+        (V.Camera.ProjectionType = ptOrthographic) and
+        (TVector3.Equals(V.Camera.Direction, DefaultCameraDirection)) then
+        Result := sort2D
+      else
+        Result := sort3D;
+    end else
+      Result := V.BlendingSort;
+  end;
+
+var
+  V: TCastleViewport;
+begin
+  V := TCastleViewport.Create(nil);
+  try
+    AssertTrue(V.BlendingSort = sortAuto);
+    AssertTrue(sort3D = EffectiveBlendingSort(V));
+
+    V.Setup2D;
+
+    // camera after Setup2D should cause sort2D detected, relied on e.g. by Escape, Unholy
+    AssertTrue(V.BlendingSort = sortAuto);
+    AssertTrue(sort2D = EffectiveBlendingSort(V));
+
+    V.BlendingSort := sort3DGround;
+    AssertTrue(sort3DGround = EffectiveBlendingSort(V));
   finally FreeAndNil(V) end;
 end;
 

@@ -1,6 +1,6 @@
 {%MainUnit castlevectors.pas}
 {
-  Copyright 2018-2022 Michalis Kamburelis.
+  Copyright 2018-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -14,7 +14,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ CastleVectors types wrapped as a TPersistent instance. }
+{ CastleVectors types wrapped as a TCastleComponent instance. }
 
 {$ifdef read_interface}
 
@@ -71,8 +71,9 @@ type
     InternalDefaultValue: TVector2;
     constructor Create(const AOwner: TComponent = nil); reintroduce;
     property Value: TVector2 read GetValue write SetValue;
-    function HasDefaultValue: Boolean;
+    function ValueIsStreamed: Boolean; override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
+    function ToString: String; override;
   published
     property X: Single read GetX write SetX stored XIsStored nodefault;
     property Y: Single read GetY write SetY stored YIsStored nodefault;
@@ -119,8 +120,9 @@ type
     InternalDefaultValue: TVector3;
     constructor Create(const AOwner: TComponent = nil); reintroduce;
     property Value: TVector3 read GetValue write SetValue;
-    function HasDefaultValue: Boolean;
+    function ValueIsStreamed: Boolean; override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
+    function ToString: String; override;
   published
     property X: Single read GetX write SetX stored XIsStored nodefault;
     property Y: Single read GetY write SetY stored YIsStored nodefault;
@@ -171,8 +173,9 @@ type
     InternalDefaultValue: TVector4;
     constructor Create(const AOwner: TComponent = nil); reintroduce;
     property Value: TVector4 read GetValue write SetValue;
-    function HasDefaultValue: Boolean;
+    function ValueIsStreamed: Boolean; override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
+    function ToString: String; override;
   published
     property X: Single read GetX write SetX stored XIsStored nodefault;
     property Y: Single read GetY write SetY stored YIsStored nodefault;
@@ -181,7 +184,8 @@ type
   end;
 
   { TCastleVector4Persistent descendant for castle editor
-    to change 'W' property name to 'Angle (W)' in inspector }
+    to display angle component nicer
+    (as 'Angle (W)' and 'Deg(90)' instead of as 'W' and in radians). }
   TCastleVector4RotationPersistent = class(TCastleVector4Persistent)
 
   end;
@@ -294,9 +298,9 @@ begin
   Result := Value.Y <> InternalDefaultValue.Y;
 end;
 
-function TCastleVector2Persistent.HasDefaultValue: Boolean;
+function TCastleVector2Persistent.ValueIsStreamed: Boolean;
 begin
-  Result := TVector2.PerfectlyEquals(Value, InternalDefaultValue);
+  Result := not TVector2.PerfectlyEquals(Value, InternalDefaultValue);
 end;
 
 function TCastleVector2Persistent.InitScheduledSetValue: PVector2;
@@ -326,6 +330,11 @@ begin
     Result := [psBasic, psLayout]
   else
     Result := inherited PropertySections(PropertyName);
+end;
+
+function TCastleVector2Persistent.ToString: String;
+begin
+  Result := Value.ToString;
 end;
 
 { TCastleVector3Persistent ---------------------------------------------------- }
@@ -422,9 +431,9 @@ begin
   Result := Value.Z <> InternalDefaultValue.Z;
 end;
 
-function TCastleVector3Persistent.HasDefaultValue: Boolean;
+function TCastleVector3Persistent.ValueIsStreamed: Boolean;
 begin
-  Result := TVector3.PerfectlyEquals(Value, InternalDefaultValue);
+  Result := not TVector3.PerfectlyEquals(Value, InternalDefaultValue);
 end;
 
 function TCastleVector3Persistent.InitScheduledSetValue: PVector3;
@@ -455,6 +464,11 @@ begin
     Result := [psBasic, psLayout]
   else
     Result := inherited PropertySections(PropertyName);
+end;
+
+function TCastleVector3Persistent.ToString: String;
+begin
+  Result := Value.ToString;
 end;
 
 { TCastleVector4Persistent ---------------------------------------------------- }
@@ -576,9 +590,9 @@ begin
   Result := Value.W <> InternalDefaultValue.W;
 end;
 
-function TCastleVector4Persistent.HasDefaultValue: Boolean;
+function TCastleVector4Persistent.ValueIsStreamed: Boolean;
 begin
-  Result := TVector4.PerfectlyEquals(Value, InternalDefaultValue);
+  Result := not TVector4.PerfectlyEquals(Value, InternalDefaultValue);
 end;
 
 function TCastleVector4Persistent.InitScheduledSetValue: PVector4;
@@ -610,6 +624,11 @@ begin
     Result := [psBasic, psLayout]
   else
     Result := inherited PropertySections(PropertyName);
+end;
+
+function TCastleVector4Persistent.ToString: String;
+begin
+  Result := Value.ToString;
 end;
 
 { TCastleVector2PersistentSimple -------------------------------------------- }

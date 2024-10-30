@@ -89,7 +89,7 @@
      for i := 0 to 2 do
       with PlaneIntersects[i] do
       begin
-       if SameValue(Box.Data[1].InternalData[I], Box.Data[0].InternalData[I]) then
+       if SameValue(Box.Data[1].Data[I], Box.Data[0].Data[I]) then
        begin
          { This means that the Box is practically flat, so all 3 planes
            (Box.Data[0].Data[I], MiddlePoint[I], Box.Data[1].Data[I]) are practically

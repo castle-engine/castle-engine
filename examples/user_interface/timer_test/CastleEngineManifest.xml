@@ -5,6 +5,9 @@ Specify basic information about the project, including how this project is build
 See https://castle-engine.io/project_manifest for documentation of this file.
 -->
 
-<project name="timer_test" standalone_source="timer_test.dpr">
+<project name="timer_test"
+  standalone_source="timer_test.dpr"
+  qualified_name="io.castleengine.timer.test"
+>
   <data exists="false" />
 </project>

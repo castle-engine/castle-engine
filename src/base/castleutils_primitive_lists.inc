@@ -1,3 +1,4 @@
+{%MainUnit castleutils.pas}
 {
   Copyright 2002-2023 Michalis Kamburelis.
 
@@ -46,13 +47,6 @@ type
     procedure Assign(const Source: TInt32List);
   end;
 
-  { Old name for TUInt32List.
-
-    Since Embarcadero made LongWord type so weirdly defined that it's usage should be avoided
-    ( https://castle-engine.io/coding_conventions#_do_not_use_longint_longword_use_int32_uint32_int64_uint64_integer_cardinal ),
-    you should rather use TUInt32List name. }
-  TLongWordList = TUInt32List deprecated 'use TUInt32List';
-
   { List of Float values (defined in Math unit as float with maximum precision).
     This is deprecated as precision of floats is not defined cross-platform,
     see https://castle-engine.io/coding_conventions#_do_not_use_extended_use_single_double . }
@@ -65,7 +59,6 @@ type
 
   { List of Single (single-precision floating point) values. }
   TSingleList = class({$ifdef FPC}specialize{$endif} TStructList<Single>)
-    procedure AppendFloats(Floats: TFloatList);
     function ToDouble: TDoubleList;
 
     { Assign value from TDoubleList, converting to single-precision. }
@@ -90,6 +83,10 @@ type
     { Sort and remove (exact) duplicates.
       Removal of duplicates is very fast, utilizing the fact that the list is sorted. }
     procedure SortAndRemoveDuplicates;
+
+    {$warnings off} // using deprecated, to keep it working
+    procedure AppendFloats(Floats: TFloatList);
+    {$warnings on}
   end;
 
   { List of Double (double-precision floating point) values. }
@@ -131,7 +128,6 @@ type
     procedure SetFalse(const Index: TListSize);
     procedure SetTrue(const Index: TListSize);
     { @groupEnd }
-    function ToLongInt: TInt32List; deprecated 'use ToInt32';
     function ToInt32: TInt32List;
 
     { Does the SecondValue have equal length and content.
@@ -157,16 +153,6 @@ type
       in case of Int32 list, that are always compared perfectly. }
     function Equals(SecondValue: TObject): boolean; override;
   end;
-
-  TLongIntArray = TInt32Array;
-  PLongIntArray = PInt32Array;
-
-  { Old name for TUInt32List.
-
-    Since Embarcadero made LongWord type so weirdly defined that it's usage should be avoided
-    ( https://castle-engine.io/coding_conventions#_do_not_use_longint_longword_use_int32_uint32_int64_uint64_integer_cardinal ),
-    you should rather use TUInt32List name. }
-  TLongIntList = TInt32List deprecated 'TInt32List';
 
   { List of Integer (signed) values.
 
@@ -244,7 +230,7 @@ begin
     But, in exchange, it's fast. }
   Count := Source.Count;
   if Count <> 0 then
-    System.Move(Source.List^[0], List^[0], SizeOf(UInt32) * Count);
+    System.Move(Source.L[0], L[0], SizeOf(UInt32) * Count);
 end;
 
 { TFloatList ------------------------------------------------------------ }
@@ -261,6 +247,7 @@ end;
 
 { TSingleList ------------------------------------------------------------ }
 
+{$warnings off} // using deprecated, to keep it working
 procedure TSingleList.AppendFloats(Floats: TFloatList);
 var
   OldCount, I: TListSize;
@@ -270,6 +257,7 @@ begin
   for i := 0 to Floats.Count - 1 do
     Items[OldCount+i] := Floats.Items[i];
 end;
+{$warnings on}
 
 function TSingleList.ToDouble: TDoubleList;
 begin
@@ -299,12 +287,12 @@ procedure TSingleList.AssignLerpRange(const Fraction: Single;
   const Index1, Index2, ACount: TListSize);
 var
   I: TListSize;
-  PtrTarget, Ptr1, Ptr2: PSingle;
+  PtrTarget, Ptr1, Ptr2: PtrT;
 begin
   Count := ACount;
-  PtrTarget := PSingle(List);
-  Ptr1 := @V1.List^[Index1];
-  Ptr2 := @V2.List^[Index2];
+  PtrTarget := L;
+  Ptr1 := V1.Ptr(Index1);
+  Ptr2 := V2.Ptr(Index2);
   for I := 0 to Count - 1 do
   begin
     PtrTarget^ := Lerp(Fraction, Ptr1^, Ptr2^);
@@ -330,7 +318,7 @@ begin
     Result := Count = TSingleList(SecondValue).Count;
     if Result then
       for I := 0 to Count - 1 do
-        if not SameValue(TSingleList(SecondValue).List^[I], List^[I]) then
+        if not SameValue(TSingleList(SecondValue).L[I], L[I]) then
         begin
           Result := false;
           Exit;
@@ -410,12 +398,12 @@ procedure TDoubleList.AssignLerpRange(const Fraction: Single;
   const Index1, Index2, ACount: TListSize);
 var
   I: TListSize;
-  PtrTarget, Ptr1, Ptr2: PDouble;
+  PtrTarget, Ptr1, Ptr2: PtrT;
 begin
   Count := ACount;
-  PtrTarget := PDouble(List);
-  Ptr1 := @V1.List^[Index1];
-  Ptr2 := @V2.List^[Index2];
+  PtrTarget := L;
+  Ptr1 := V1.Ptr(Index1);
+  Ptr2 := V2.Ptr(Index2);
   for I := 0 to Count - 1 do
   begin
     PtrTarget^ := Lerp(Fraction, Ptr1^, Ptr2^);
@@ -435,7 +423,7 @@ begin
     Result := Count = TDoubleList(SecondValue).Count;
     if Result then
       for I := 0 to Count - 1 do
-        if not SameValue(TDoubleList(SecondValue).List^[I], List^[I]) then
+        if not SameValue(TDoubleList(SecondValue).L[I], L[I]) then
         begin
           Result := false;
           Exit;
@@ -473,11 +461,6 @@ end;
 procedure TBooleanList.SetTrue(const Index: TListSize);
 begin
  Items[Index] := true;
-end;
-
-function TBooleanList.ToLongInt: TInt32List;
-begin
-  Result := ToInt32;
 end;
 
 function TBooleanList.ToInt32: TInt32List;

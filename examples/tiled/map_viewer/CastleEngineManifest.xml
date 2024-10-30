@@ -9,6 +9,7 @@ See https://castle-engine.io/project_manifest for documentation of this file.
   standalone_source="map_viewer_standalone.dpr"
   game_units="GameInitialize"
   qualified_name="io.castleengine.map.viewer"
+  caption="View Tiled map using TCastleTiledMap in TCastleViewport"
 >
   <compiler_options>
     <search_paths>

@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2023 Michalis Kamburelis.
+  Copyright 2015-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -37,41 +37,42 @@
     function GetNormalScale: Single;
     procedure SetNormalScale(const Value: Single);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdEmissiveColor: TSFColor;
-    { Internal wrapper for property @link(EmissiveColor). This wrapper API may change, we advise to access simpler @link(EmissiveColor) instead. }
+    { Internal wrapper for property @code(EmissiveColor). This wrapper API may change, we advise to access simpler @code(EmissiveColor) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdEmissiveColor: TSFColor read FFdEmissiveColor;
-    {  }
+    { Emissive color, multiplied by the @link(EmissiveTexture), makes the shape brighter regardless of the surrounding lights. Usually used to make things glow. }
     property EmissiveColor: TCastleColorRGB read GetEmissiveColor write SetEmissiveColor;
 
     strict private FFdEmissiveTexture: TSFNode;
-    { Internal wrapper for property @link(EmissiveTexture). This wrapper API may change, we advise to access simpler @link(EmissiveTexture) instead. }
+    { Internal wrapper for property @code(EmissiveTexture). This wrapper API may change, we advise to access simpler @code(EmissiveTexture) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdEmissiveTexture: TSFNode read FFdEmissiveTexture;
-    {  }
+    { Emissive texture is multiplied by the @link(EmissiveColor). It allows the perceived emissive factor depend on a texture, and thus vary across the surface. }
     property EmissiveTexture: TAbstractSingleTextureNode read GetEmissiveTexture write SetEmissiveTexture;
 
     strict private FFdEmissiveTextureMapping: TSFString;
-    { Internal wrapper for property @link(EmissiveTextureMapping). This wrapper API may change, we advise to access simpler @link(EmissiveTextureMapping) instead. }
+    { Internal wrapper for property @code(EmissiveTextureMapping). This wrapper API may change, we advise to access simpler @code(EmissiveTextureMapping) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdEmissiveTextureMapping: TSFString read FFdEmissiveTextureMapping;
-    {  }
+    { Determines texture coordinates used by @link(EmissiveTexture). }
     property EmissiveTextureMapping: String read GetEmissiveTextureMapping write SetEmissiveTextureMapping;
 
     strict private FFdNormalTexture: TSFNode;
-    { Internal wrapper for property @link(NormalTexture). This wrapper API may change, we advise to access simpler @link(NormalTexture) instead. }
+    { Internal wrapper for property @code(NormalTexture). This wrapper API may change, we advise to access simpler @code(NormalTexture) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdNormalTexture: TSFNode read FFdNormalTexture;
     { Normalmap texture to perform bump mapping. See https://castle-engine.io/bump_mapping . }
     property NormalTexture: TAbstractTexture2DNode read GetNormalTexture write SetNormalTexture;
 
     strict private FFdNormalTextureMapping: TSFString;
-    { Internal wrapper for property @link(NormalTextureMapping). This wrapper API may change, we advise to access simpler @link(NormalTextureMapping) instead. }
+    { Internal wrapper for property @code(NormalTextureMapping). This wrapper API may change, we advise to access simpler @code(NormalTextureMapping) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdNormalTextureMapping: TSFString read FFdNormalTextureMapping;
     { Determines texture coordinates used by @link(NormalTexture). }
     property NormalTextureMapping: String read GetNormalTextureMapping write SetNormalTextureMapping;
 
     strict private FFdNormalScale: TSFFloat;
-    { Internal wrapper for property @link(NormalScale). This wrapper API may change, we advise to access simpler @link(NormalScale) instead. }
+    { Internal wrapper for property @code(NormalScale). This wrapper API may change, we advise to access simpler @code(NormalScale) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdNormalScale: TSFFloat read FFdNormalScale;
     { Emphasize (when > 1) or deemphasize (< 1) the effect of @link(NormalTexture) on the model. }
     property NormalScale: Single read GetNormalScale write SetNormalScale;

@@ -1,3 +1,4 @@
+{%MainUnit x3dnodes.pas}
 {
   Copyright 2002-2023 Michalis Kamburelis.
 
@@ -16,6 +17,7 @@
 {$ifdef read_interface}
 
   TPixelTextureNode = class;
+  TInternalReusedPixelTextureNode = class;
 
   { Cache for font texture nodes (TPixelTextureNode that we need for each font).
     Descends from TX3DNodesCache, so can also cache textures, movies, any X3D nodes. }
@@ -93,7 +95,7 @@ begin
 
       if Log then
         WritelnLog('++', 'Font texture %s, blending %s : %d', [
-          URIDisplay(Image.URL),
+          UriDisplay(Image.URL),
           BoolToStr(Blending, true),
           C.References
         ]);
@@ -102,7 +104,7 @@ begin
     end;
   end;
 
-  Result := TPixelTextureNode.Create;
+  Result := TInternalReusedPixelTextureNode.Create;
   Result.KeepExistingBegin; // never free it using ref-counting
   { although repeat=TRUE seems counter-intuitive, in fact:
     - We *can* use it, since CastleTextureFontData surrounds each glyph from
@@ -130,7 +132,7 @@ begin
 
   if Log then
     WritelnLog('++', 'Font texture %s, blending %s : %d', [
-      URIDisplay(Image.URL),
+      UriDisplay(Image.URL),
       BoolToStr(Blending, true),
       1
     ]);
@@ -151,7 +153,7 @@ begin
       if Log then
         {$warnings off} // using FontData, will be internal in the future
         WritelnLog('--', 'Font texture %s, blending %s : %d', [
-          URIDisplay(C.Font.FontData.Image.URL),
+          UriDisplay(C.Font.FontData.Image.URL),
           BoolToStr(C.Blending, true),
           C.References - 1
         ]);
@@ -167,6 +169,8 @@ begin
           i.e. TX3DNode internal child-parent references are not set.)
           But for safety we use "nice way" with KeepExistingEnd + FreeIfUnusedAndNil. }
         C.FontTexture.KeepExistingEnd;
+        { Note that freeing C.FontTexture will also do
+          C.FontTexture.InternalRendererResourceFree, and that's good. }
         FreeIfUnusedAndNil(C.FontTexture);
 
         CachedFontTextures.Delete(I);

@@ -55,7 +55,7 @@ uses Math, SysUtils,
 procedure TViewPlay.Resize;
 begin
   inherited;
-  CurrentLocation.Scene.ViewportRect := Viewport.RenderRect.Round;
+  CurrentLocation.ImageTransform.ViewportRect := Viewport.RenderRect.Round;
 end;
 
 procedure TViewPlay.Start;
@@ -92,9 +92,10 @@ begin
     CreatureKind.Load(Viewport.PrepareParams);
   end;
 
+  Viewport.Items.Add(CurrentLocation.ImageTransform);
   Viewport.Items.Add(CurrentLocation.Scene);
   { set as MainScene, to allow location VRML / X3D file to determine
-    headlight, viewpoint, shadow volumes light... }
+    headlight, initial viewpoint, shadow volumes light... }
   Viewport.Items.MainScene := CurrentLocation.Scene;
 
   Player := TPlayer.Create(CreatureKinds.PlayerKind);
@@ -132,7 +133,7 @@ end;
 
 function TViewPlay.Press(const Event: TInputPressRelease): boolean;
 var
-  URL: string;
+  Url: String;
 begin
   Result := inherited;
 
@@ -144,13 +145,13 @@ begin
       { Debug keys }
       case Event.Key of
         keyF2:
-          CurrentLocation.Scene.RenderInternalModel :=
-            not CurrentLocation.Scene.RenderInternalModel;
+          CurrentLocation.RenderInternalModel :=
+            not CurrentLocation.RenderInternalModel;
         keyF5:
           begin
-            URL := Container.SaveScreenToDefaultFile;
-            if URL <> '' then
-              Notifications.Show(Format('Saved screenshot to "%s"', [URL]));
+            Url := Container.SaveScreenToDefaultFile;
+            if Url <> '' then
+              Notifications.Show(Format('Saved screenshot to "%s"', [Url]));
           end;
       end;
     itMouseButton:

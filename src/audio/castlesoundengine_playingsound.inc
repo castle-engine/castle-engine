@@ -47,6 +47,7 @@
     FInitialOffset: Single;
     FVolume: Single;
     FPitch: Single;
+    FPriority: Single;
     procedure SetSound(const Value: TCastleSound);
     function GetOffset: Single;
     procedure SetOffset(const Value: Single);
@@ -56,6 +57,7 @@
     procedure SourceRelease(Source: TInternalSoundSource);
     procedure SetVolume(const Value: Single);
     procedure SetPitch(const Value: Single);
+    procedure SetPriority(const Value: Single);
     { React to sound parameters changes during playback (when FSource <> nil). }
     procedure SoundChangeDuringPlayback(const Sender: TCastleSound; const Change: TSoundChange);
   private
@@ -88,6 +90,12 @@
       (if the sound is played through @link(TCastleSoundSource)).
       @exclude }
     function InternalFinalPitch: Single; virtual;
+
+    { Priority, a multiplication of @link(TCastleSound.Priority),
+      @link(TCastlePlayingSound.Priority) and @link(TCastleSoundSource.Priority)
+      (if the sound is played through @link(TCastleSoundSource)).
+      @exclude }
+    function InternalFinalPriority: Single; virtual;
 
     { If provided, we will call this event when sound stops playing.
 
@@ -145,6 +153,13 @@
 
       Any value > 0 is allowed. }
     property Pitch: Single read FPitch write SetPitch {$ifdef FPC}default 1.0{$endif};
+
+    { How important is the sound, between 0.0 (least important) to 1.0 (most important).
+
+      The effective priority is a multiplication of @link(TCastleSound.Priority),
+      @link(TCastlePlayingSound.Priority) and @link(TCastleSoundSource.Priority)
+      (if the sound is played through @link(TCastleSoundSource)). }
+     property Priority: Single read FPriority write SetPriority {$ifdef FPC}default 1.0{$endif};
 
     { Playback time of this sound, expressed in seconds.
 
@@ -204,6 +219,7 @@ begin
   inherited;
   FVolume := 1.0;
   FPitch := 1.0;
+  FPriority := 1.0;
 end;
 
 destructor TCastlePlayingSound.Destroy;
@@ -328,6 +344,7 @@ begin
       begin
         FSource.Volume := InternalFinalVolume;
         FSource.Pitch  := InternalFinalPitch;
+        FSource.Priority := InternalFinalPriority;
         {$warnings off} // using unportable symbols knowingly
         FSource.MinGain := FSound.MinGain;
         FSource.MaxGain := FSound.MaxGain;
@@ -355,6 +372,13 @@ begin
     Result := Result * Sound.Pitch;
 end;
 
+function TCastlePlayingSound.InternalFinalPriority: Single;
+begin
+  Result := FPriority;
+  if Sound <> nil then
+    Result := Result * Sound.Priority;
+end;
+
 procedure TCastlePlayingSound.SetVolume(const Value: Single);
 begin
   if FVolume <> Value then
@@ -372,6 +396,17 @@ begin
   begin
     FPitch := Value;
     // as InternalFinalPitch changed, update playback (InternalSource) properties
+    if FSource <> nil then
+      SoundChangeDuringPlayback(FSound, scAfterOther);
+  end;
+end;
+
+procedure TCastlePlayingSound.SetPriority(const Value: Single);
+begin
+  if FPriority <> Value then
+  begin
+    FPriority := Value;
+    // as InternalFinalPriority changed, update playback (InternalSource) properties
     if FSource <> nil then
       SoundChangeDuringPlayback(FSound, scAfterOther);
   end;

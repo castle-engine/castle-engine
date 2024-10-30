@@ -1,3 +1,4 @@
+{%MainUnit x3dnodes.pas}
 {
   Copyright 2008-2023 Michalis Kamburelis.
 
@@ -137,7 +138,7 @@
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
+    constructor Create(const AX3DName: string = ''; const ABaseUrl: String = ''); override;
   {$I auto_generated_node_helpers/x3dnodes_nurbsorientationinterpolator.inc}
   end;
 
@@ -154,7 +155,7 @@
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
+    constructor Create(const AX3DName: string = ''; const ABaseUrl: String = ''); override;
     class function ForVRMLVersion(const Version: TX3DVersion): boolean; override;
 
     {$I auto_generated_node_helpers/x3dnodes_nurbspositioninterpolator.inc}
@@ -183,7 +184,7 @@
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
+    constructor Create(const AX3DName: string = ''; const ABaseUrl: String = ''); override;
   {$I auto_generated_node_helpers/x3dnodes_nurbssurfaceinterpolator.inc}
   end;
 
@@ -287,7 +288,7 @@ end;
 procedure NurbsCurveProxy(
   const LS: TLineSetNode;
   const ControlPoint: TVector3List;
-  const Tessellation, Order: LongInt;
+  const Tessellation, Order: Integer;
   const FieldKnot, Weight: TDoubleList);
 var
   ResultCoord: TCoordinateNode;
@@ -327,7 +328,7 @@ begin
   NurbsCalculator := TNurbsCurveCalculator.Create(ControlPoint, Order, Knot, Weight);
   try
     for I := 0 to Tess - 1 do
-      ResultCoord.FdPoint.Items.List^[I] := NurbsCalculator.GetPoint(
+      ResultCoord.FdPoint.Items.L[I] := NurbsCalculator.GetPoint(
         Knot.First + Increase * I, nil);
   finally FreeAndNil(NurbsCalculator) end;
 
@@ -508,7 +509,7 @@ end;
 procedure NurbsPatchSurfaceProxy(
   const QS: TIndexedQuadSetNode;
   const ControlPoint: TVector3List;
-  const UTessellation, VTessellation, UDimension, VDimension, UOrder, VOrder: LongInt;
+  const UTessellation, VTessellation, UDimension, VDimension, UOrder, VOrder: Integer;
   const FieldUKnot, FieldVKnot, Weight: TDoubleList;
   const PossiblyUClosed, PossiblyVClosed, Solid, Ccw: boolean;
   const TexCoord: TX3DNode);
@@ -535,8 +536,8 @@ const
     begin
       for J := 0 to VDimension - 1 do
         if not TVector3.Equals(
-          ControlPoint.List^[                 J * UDimension],
-          ControlPoint.List^[UDimension - 1 + J * UDimension], ClosedCheckEpsilon) then
+          ControlPoint.L[                 J * UDimension],
+          ControlPoint.L[UDimension - 1 + J * UDimension], ClosedCheckEpsilon) then
         begin
           Result := false;
           Break;
@@ -554,8 +555,8 @@ const
     begin
       for I := 0 to UDimension - 1 do
         if not TVector3.Equals(
-          ControlPoint.List^[I                                ],
-          ControlPoint.List^[I + (VDimension - 1) * UDimension], ClosedCheckEpsilon) then
+          ControlPoint.L[I                                ],
+          ControlPoint.L[I + (VDimension - 1) * UDimension], ClosedCheckEpsilon) then
         begin
           Result := false;
           Break;
@@ -679,14 +680,14 @@ begin
     for I := 0 to UTess - 1 do
       for J := 0 to VTess - 1 do
       begin
-        ResultCoord.List^[I + J * UTess] :=
+        ResultCoord.L[I + J * UTess] :=
           NurbsCalculator.GetPoint(
             UKnot.First + UIncrease * I,
             VKnot.First + VIncrease * J,
             @Normal);
         if Ccw then
-          ResultNormal.List^[I + J * UTess] := Normal else
-          ResultNormal.List^[I + J * UTess] := -Normal;
+          ResultNormal.L[I + J * UTess] := Normal else
+          ResultNormal.L[I + J * UTess] := -Normal;
       end;
   finally FreeAndNil(NurbsCalculator) end;
 
@@ -703,10 +704,10 @@ begin
     begin
       { This order (important for solid = TRUE values) is compatible
         with white dune and octagaplayer. }
-      ResultIndex.List^[NextIndex] := MakeIndex(I  , J  ); Inc(NextIndex);
-      ResultIndex.List^[NextIndex] := MakeIndex(I-1, J  ); Inc(NextIndex);
-      ResultIndex.List^[NextIndex] := MakeIndex(I-1, J-1); Inc(NextIndex);
-      ResultIndex.List^[NextIndex] := MakeIndex(I  , J-1); Inc(NextIndex);
+      ResultIndex.L[NextIndex] := MakeIndex(I  , J  ); Inc(NextIndex);
+      ResultIndex.L[NextIndex] := MakeIndex(I-1, J  ); Inc(NextIndex);
+      ResultIndex.L[NextIndex] := MakeIndex(I-1, J-1); Inc(NextIndex);
+      ResultIndex.L[NextIndex] := MakeIndex(I  , J-1); Inc(NextIndex);
     end;
   Assert(NextIndex = Cardinal(ResultIndex.Count));
 
@@ -726,7 +727,7 @@ begin
     ResultTexCoord.Count := UTess * VTess;
     for I := 0 to UTess - 1 do
       for J := 0 to VTess - 1 do
-        ResultTexCoord.List^[I + J * UTess] := Vector2(
+        ResultTexCoord.L[I + J * UTess] := Vector2(
           I / (UTess - 1),
           J / (VTess - 1));
   end;

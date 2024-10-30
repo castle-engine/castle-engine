@@ -33,13 +33,14 @@
     Node: TTransformNode;
     NodeUsedAsChild: boolean;
     Material: TUnlitMaterialNode; //< initialized together with Node, always inside
+    Appearance: TAppearanceNode; //< initialized together with Node, always inside
     destructor Destroy; override;
     procedure Parse(const Json: TJSONObject; const Bones: TBoneList); virtual;
     { Create and parse correct TAttachment descendant.
       May return @nil if none possible. }
     class function CreateAndParse(const Json: TJSONObject;
       const ASlotName, AnAttachmentName: string; const Bones: TBoneList): TAttachment;
-    procedure BuildNodes(const BaseUrl: string; const TextureLoader: TTextureLoader); virtual; abstract;
+    procedure BuildNodes(const BaseUrl: String; const TextureLoader: TTextureLoader); virtual; abstract;
     { Some attachments (skinnedmesh) can be attached only to a single bone
       at a time, and must be transformed from world to bone space. }
     procedure TransformToBoneSpace(const Bone: TBone); virtual;
@@ -52,8 +53,8 @@
     Width, Height: Integer;
     Path: string;
     procedure Parse(const Json: TJSONObject; const Bones: TBoneList); override;
-    procedure BuildNodes(const BaseUrl: string; const TextureLoader: TTextureLoader); override;
-    function BuildGeometry(const BaseUrl: string;
+    procedure BuildNodes(const BaseUrl: String; const TextureLoader: TTextureLoader); override;
+    function BuildGeometry(const BaseUrl: String;
       const TexCoord: TQuadTexCoord; const TexRect: TQuadTexRect;
       const TexRotated: boolean): TAbstractGeometryNode; virtual;
   end;
@@ -73,7 +74,7 @@
     constructor Create;
     destructor Destroy; override;
     procedure Parse(const Json: TJSONObject; const Bones: TBoneList); override;
-    function BuildGeometry(const BaseUrl: string;
+    function BuildGeometry(const BaseUrl: String;
       const TexCoord: TQuadTexCoord; const TexRect: TQuadTexRect;
       const TexRotated: boolean): TAbstractGeometryNode; override;
   end;
@@ -115,7 +116,7 @@
     constructor Create;
     destructor Destroy; override;
     procedure Parse(const Json: TJSONObject; const Bones: TBoneList); override;
-    procedure BuildNodes(const BaseUrl: string; const TextureLoader: TTextureLoader); override;
+    procedure BuildNodes(const BaseUrl: String; const TextureLoader: TTextureLoader); override;
   end;
 
   TClippingAttachment = class(TAttachment)
@@ -123,7 +124,7 @@
     constructor Create;
     destructor Destroy; override;
     procedure Parse(const Json: TJSONObject; const Bones: TBoneList); override;
-    procedure BuildNodes(const BaseUrl: string; const TextureLoader: TTextureLoader); override;
+    procedure BuildNodes(const BaseUrl: String; const TextureLoader: TTextureLoader); override;
   end;
 
   TAttachmentList = class({$ifdef FPC}specialize{$endif} TObjectList<TAttachment>)
@@ -222,7 +223,7 @@ begin
   Path := Json.Get('path', '');
 end;
 
-procedure TRegionAttachment.BuildNodes(const BaseUrl: string;
+procedure TRegionAttachment.BuildNodes(const BaseUrl: String;
   const TextureLoader: TTextureLoader);
 var
   TexRect: TQuadTexRect;
@@ -244,11 +245,15 @@ begin
   Shape := TShapeNode.Create('', BaseUrl);
   Node.AddChildren(Shape);
 
-  Shape.Appearance := TAppearanceNode.Create('', BaseUrl);
+  Appearance := TAppearanceNode.Create(
+    Format('Appearance_Slot_%s_Attachment_%s', [SlotName, Name]),
+    BaseUrl);
+  Shape.Appearance := Appearance;
+
   AtlasRegionName := Name;
   if Path <> '' then
     AtlasRegionName := Path;
-  Shape.Appearance.Texture := TextureLoader.UseNode(AtlasRegionName,
+  Appearance.Texture := TextureLoader.UseNode(AtlasRegionName,
     TexCoord, TexRect, TexRotated);
 
   { Other alpha values are not really useful for Spine.
@@ -265,20 +270,19 @@ begin
 
     For TAtlas, it's just simpler. Why auto-detect, when we just know to use blending
     in all normal cases. }
-  Shape.Appearance.AlphaMode := amBlend;
+  Appearance.AlphaMode := amBlend;
 
-  if Shape.Appearance.Texture <> nil then
+  if Appearance.Texture <> nil then
     Shape.Geometry := BuildGeometry(BaseUrl, TexCoord, TexRect, TexRotated);
 
   Material := TUnlitMaterialNode.Create(
     Format('Material_Slot_%s_Attachment_%s', [SlotName, Name]),
     BaseUrl);
-  Material.EmissiveColor := Vector3(1, 1, 1);
-
-  Shape.Material := Material;
+  Material.EmissiveColor := WhiteRGB;
+  Appearance.Material := Material;
 end;
 
-function TRegionAttachment.BuildGeometry(const BaseUrl: string;
+function TRegionAttachment.BuildGeometry(const BaseUrl: String;
   const TexCoord: TQuadTexCoord; const TexRect: TQuadTexRect;
   const TexRotated: boolean): TAbstractGeometryNode;
 var
@@ -357,7 +361,7 @@ begin
   Hull := Json.Get('hull', 0);
 end;
 
-function TAbstractMeshAttachment.BuildGeometry(const BaseUrl: string;
+function TAbstractMeshAttachment.BuildGeometry(const BaseUrl: String;
   const TexCoord: TQuadTexCoord; const TexRect: TQuadTexRect;
   const TexRotated: boolean): TAbstractGeometryNode;
 var
@@ -406,7 +410,7 @@ begin
       [SlotName, Name]));
 
   if TexRotated then
-    WritelnWarning('Spine ' + URIDisplay(BaseUrl), 'Atlas region used for mesh attachment is rotated. This is not supported, texture will be applied incorrectly. Export with "Rotation" turned off in "Texture Packer Settings".');
+    WritelnWarning('Spine ' + UriDisplay(BaseUrl), 'Atlas region used for mesh attachment is rotated. This is not supported, texture will be applied incorrectly. Export with "Rotation" turned off in "Texture Packer Settings".');
 
   TexCoordNode := TTextureCoordinateNode.Create('', Faces.BaseUrl);
   UVRangeX.X := Min(TexCoord[0].X, TexCoord[2].X);
@@ -549,7 +553,7 @@ begin
 
   List := Coord.FdPoint.Items;
   for I := 0 to List.Count - 1 do
-    List.List^[I] := Bone.ToLocalSpace(List.List^[I]);
+    List.L[I] := Bone.ToLocalSpace(List.L[I]);
 end;
 
 { TPathAttachment ---------------------------------------------------------- }
@@ -582,7 +586,7 @@ begin
     WritelnWarning('Spine "path" attachment has unexpected "lengths" count: expected %d, has %d', [VertexCount div 3, Lengths.Count]);
 end;
 
-procedure TPathAttachment.BuildNodes(const BaseUrl: string;
+procedure TPathAttachment.BuildNodes(const BaseUrl: String;
   const TextureLoader: TTextureLoader);
 var
   Shape: TShapeNode;
@@ -604,9 +608,15 @@ begin
     Format('Material_Slot_%s_Attachment_%s', [SlotName, Name]),
     BaseUrl);
   Material.EmissiveColor := WhiteRGB;
-  Shape.Material := Material;
 
-  Shape.Render := false;
+  Appearance := TAppearanceNode.Create(
+    Format('Appearance_Slot_%s_Attachment_%s', [SlotName, Name]),
+    BaseUrl);
+  Appearance.Material := Material;
+
+  Shape.Appearance := Appearance;
+
+  Shape.Visible := false;
 
   ControlPoints := TCoordinateNode.Create('', BaseUrl);
   { we ignore first and last Vertices, they are only handles outside of
@@ -633,8 +643,8 @@ end;
 destructor TClippingAttachment.Destroy;
 begin
   FreeAndNil(Vertices);
-  // If you didn't call VisualizeClipPolygon in BuildNodes, Material node remains unused
-  FreeIfUnusedAndNil(Material);
+  // If you didn't call VisualizeClipPolygon in BuildNodes, Appearance node remains unused
+  FreeIfUnusedAndNil(Appearance);
   inherited;
 end;
 
@@ -649,7 +659,7 @@ begin
     WritelnWarning('Spine "clipping" attachment has unexpected "vertices" count: expected %d, has %d', [VertexCount, Vertices.Count]);
 end;
 
-procedure TClippingAttachment.BuildNodes(const BaseUrl: string;
+procedure TClippingAttachment.BuildNodes(const BaseUrl: String;
   const TextureLoader: TTextureLoader);
 
   procedure VisualizeClipPolygon;
@@ -660,7 +670,7 @@ procedure TClippingAttachment.BuildNodes(const BaseUrl: string;
     I: Integer;
   begin
     Shape := TShapeNode.Create('', BaseUrl);
-    Shape.Material := Material;
+    Shape.Appearance := Appearance;
     Node.AddChildren(Shape);
 
     Faces := TIndexedFaceSetNode.Create('', BaseUrl);
@@ -712,6 +722,11 @@ begin
     Format('Material_Slot_%s_Attachment_%s', [SlotName, Name]),
     BaseUrl);
   Material.EmissiveColor := WhiteRGB;
+
+  Appearance := TAppearanceNode.Create(
+    Format('Appearance_Slot_%s_Attachment_%s', [SlotName, Name]),
+    BaseUrl);
+  Appearance.Material := Material;
 
   // debug
   //VisualizeClipPolygon;

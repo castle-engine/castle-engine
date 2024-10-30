@@ -122,10 +122,8 @@
     property Position: TVector3 read FPosition write SetPosition;
     property Velocity: TVector3 read FVelocity write SetVelocity;
     property Loop: boolean read FLoop write SetLoop;
-    {$ifdef FPC}property Looping: boolean read FLoop write SetLoop; deprecated 'use Loop';{$endif}
     property Spatial: boolean read FSpatial write SetSpatial;
     property Volume: Single read FVolume write SetVolume;
-    {$ifdef FPC}property Gain: Single read FVolume write SetVolume; deprecated 'use Volume';{$endif}
     property MinGain: Single read FMinGain write SetMinGain;
     property MaxGain: Single read FMaxGain write SetMaxGain;
     property Buffer: TInternalSoundBuffer read FBuffer write SetBuffer;

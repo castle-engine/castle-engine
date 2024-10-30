@@ -43,8 +43,6 @@
     FMainCamera: TCastleCamera;
     FMainCameraObserver: TFreeNotificationObserver;
     FInternalPressReleaseListeners: TCastleTransformList;
-    FBlendingSort: TBlendingSort;
-    FSortedList: TCastleTransformList;
     procedure SetPaused(const Value: boolean);
     procedure SetMainCamera(const Value: TCastleCamera);
     procedure MainCameraFreeNotification(const Sender: TFreeNotificationObserver);
@@ -67,9 +65,8 @@
       this to RayCollision and such. }
     function IgnoreTransparentItem(
       const Sender: TObject; const Triangle: PTriangle): Boolean; virtual; abstract;
-    function GetRenderList(const Params: TRenderParams): TCastleTransformList; override;
   public
-    OnCursorChange: TNotifyEvent;
+    InternalOnNodesFree: TNotifyEvent;
 
     { Event to render whole world.
       Used by generated textures to update their contents.
@@ -97,6 +94,7 @@
     destructor Destroy; override;
     procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
+    procedure CustomSerialization(const SerializationProcess: TSerializationProcess); override;
 
     { @exclude
       TCastleTransform instances that listen on press/release.
@@ -186,7 +184,7 @@
       and @link(Exists) equal @true (using @link(CheckCollides)). }
     function WorldLineOfSight(const Pos1, Pos2: TVector3): boolean;
 
-    { What is hit by this ray.
+    { First object hit by the ray.
 
       This checks collisions with world
       (everything inside this @link(TCastleAbstractRootTransform)).
@@ -195,7 +193,8 @@
       and @link(Exists) equal @true (using @link(CheckCollides)). }
     function WorldRay(const RayOrigin, RayDirection: TVector3): TRayCollision;
 
-    { What is hit by this ray.
+    { First object hit by the ray.
+
       Returns the TCastleTransform that is hit (this is the "leaf" TCastleTransform
       in the TCastleTransform tree that is hit)
       and a distance from RayOrigin to the hit point.
@@ -256,7 +255,7 @@
       and @link(Exists) equal @true (using @link(CheckCollides)). }
     function WorldPointCollision2D(const Point: TVector2): boolean;
 
-    { Cast a ray using physics engine, see what is hit.
+    { First object hit by the ray, calculated using the physics engine.
 
       Returns the TPhysicsRayCastResult record.
       Read TPhysicsRayCastResult.Hit (boolean), TPhysicsRayCastResult.Transform
@@ -403,61 +402,6 @@
         )
       ) }
     property Paused: boolean read FPaused write SetPaused default false;
-
-    { When rendering, sort all the children,
-      making blending correct when there are multiple partially-transparent objects
-      in the world.
-
-      This is a simple way to achieve correct blending order when rendering multiple objects.
-      You need this when multiple objects (like TCastleScene and TCastleImageTransform)
-      use blending (partial transparency) within the world.
-      Note that inside each scene (TCastleScene) the partially-transparent
-      shapes are also sorted, following TCastleRenderOptions.BlendingSort,
-      with each TCastleScene having own TCastleRenderOptions instance.
-
-      TODO: This is a simple approach to have correct blending.
-      But it is not the most efficient approach, it is also not the most capable one.
-      However, it is really simple to use and likely is enough in many practical cases.
-
-      Future: We plan to have a rendering that gathers all partially-transparent shapes
-      from all the objects, and sorts them.
-      This will make the sorting process more efficient (it will only sort partially-transparent shapes)
-      and more capable (each shape will be ordered).
-
-      Drawbacks of current approach:
-
-      @unorderedList(
-
-        @item(
-          The sorting is repeated at every render call.
-          This is not optimal in case of 2D, where it would be more efficient
-          to only call @link(SortBackToFront2D) when necessary, e.g. when adding/removing
-          objects from the world.
-
-          To avoid this overhead, just leave this property at bsNone
-          and call @link(SortBackToFront2D) when necessary.
-        )
-
-        @item(
-          The sorting accounts for all objects (not only partially transparent).
-          This is not optimal (but we cannot be more efficient because each scene
-          may contain something partially transparent).)
-
-        @item(
-          The sorting puts each TCastleScene completely in front or completely behind
-          other TCastleScene. This is not good enough when multiple TCastleScene instances
-          have multiple partially-transparent shapes and the correct order would mix their
-          shapes.)
-
-        @item(
-          The sorting is not recursive (to avoid making it really not efficient, in particular
-          to recalculate camera for each transform and to sort in each tree TCastleTransform).
-
-          This means it is not capable of dealing with some cases. It assumes that all things
-          where the order matters are direct children of TCastleAbstractRootTransform.)
-      )
-    }
-    property BlendingSort: TBlendingSort read FBlendingSort write FBlendingSort default bsNone;
   end;
 
 {$endif read_interface}
@@ -490,7 +434,6 @@ destructor TCastleAbstractRootTransform.Destroy;
 begin
   DestroyPhysicsEngine;
   FreeAndNil(FInternalPressReleaseListeners);
-  FreeAndNil(FSortedList);
   inherited;
 end;
 
@@ -678,24 +621,49 @@ end;
 function TCastleAbstractRootTransform.PropertySections(const PropertyName: String): TPropertySections;
 begin
   if ArrayContainsString(PropertyName, [
-       'TimeScale', 'Paused', 'BlendingSort', 'PhysicsProperties'
+       'TimeScale', 'Paused', 'PhysicsProperties'
      ]) then
     Result := [psBasic]
   else
     Result := inherited PropertySections(PropertyName);
 end;
 
-function TCastleAbstractRootTransform.GetRenderList(const Params: TRenderParams): TCastleTransformList;
-begin
-  if BlendingSort <> bsNone then
+procedure TCastleAbstractRootTransform.CustomSerialization(
+  const SerializationProcess: TSerializationProcess);
+
+  function InternalViewport: TComponent;
   begin
-    if FSortedList = nil then // create on-demand
-      FSortedList := TCastleTransformList.Create(false);
-    FSortedList.Assign(List);
-    FSortedList.SortBackToFront(BlendingSort, Params.RenderingCamera.Position);
-    Result := FSortedList;
-  end else
-    Result := inherited;
+    { This is a quick hack, assuming Owner = containing TCastleViewport.
+      It's in practice mostly OK (the only case when TCastleAbstractRootTransform
+      is created is from TCastleViewport, TODO: unless user would create
+      it manually which is allowed).
+      And there's no big harm if we make mistake (only ViewportCaption will be wrong,
+      which is only used for debug message). }
+    Result := Owner;
+  end;
+
+  function ViewportCaption: String;
+  begin
+    if (InternalViewport <> nil) and
+       (InternalViewport.Name <> '') then
+      Result := '"' + InternalViewport.Name + '.Items"'
+    else
+      Result := 'TCastleViewport.Items';
+  end;
+
+var
+  BlendingSortStr: String;
+begin
+  inherited;
+  BlendingSortStr := '';
+  SerializationProcess.ReadWriteString('BlendingSort', BlendingSortStr, false);
+  if BlendingSortStr <> '' then
+  begin
+    WritelnWarning('%s uses "BlendingSort" = "%s", this is no longer supported on TCastleAbstractRootTransform (Viewport.Items). Instead set TCastleViewport.BlendingSort property.', [
+      ViewportCaption,
+      BlendingSortStr
+    ]);
+  end;
 end;
 
 {$endif read_implementation}

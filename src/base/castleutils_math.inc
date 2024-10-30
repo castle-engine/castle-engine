@@ -18,19 +18,6 @@
 
 {$ifdef read_interface}
 
-{ When using FPC, and Extended = Double, you cannot overload
-  for both Double and Extended as they are just equal.
-  Extended is just alias for Double.
-
-  Delphi, even when Extended = Double, still treats Extended
-  like a different type, for choosing overloads.
-  It even requires Extended overloads e.g. for MinVar(Extended, ...). }
-{$ifndef PASDOC}
-  {$if not (defined(FPC) and defined(EXTENDED_EQUALS_DOUBLE))}
-    {$define EXTENDED_OVERLOADS}
-  {$endif}
-{$endif}
-
 { Swap variables values.
   @groupBegin }
 procedure SwapValues(var a, b: Byte    ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
@@ -101,16 +88,6 @@ procedure MaxVar(var a: Double  ; const b: Double  ); overload; {$ifdef SUPPORTS
 procedure MaxVar(var a: Extended; const b: Extended); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 {$endif}
 { @groupEnd }
-
-{$ifndef FPC}
-{$ifndef MSWINDOWS}
-// TODO: why is this necessary on Linux with Delphi? What is Integer, Cardinal then?
-procedure MaxVar(var a: LongInt ; const b: LongInt ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-procedure MinVar(var a: LongInt ; const b: LongInt ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-procedure MaxVar(var a: LongWord; const b: LongWord); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-procedure MinVar(var a: LongWord; const b: LongWord); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-{$endif}
-{$endif}
 
 type
   { Index of axis in 3D. }
@@ -368,7 +345,7 @@ procedure MinMax(const x0, x1, x2: Double; out min, max: Double); overload;
 procedure MinMax(const x0, x1, x2: Single; out min, max: Single); overload;
 
 { Our version of CoTan, to workaround @url(http://www.freepascal.org/mantis/view.php?id=9944 old FPC bug). }
-function CastleCoTan(const Value: Float): Float;
+function CastleCoTan(const Value: Single): Single;
 
 { Floor from Sqrt(Value). }
 function IntSqrt(const Value: Cardinal): Cardinal;
@@ -383,12 +360,14 @@ function IntSqrt(const Value: Cardinal): Cardinal;
   http://www.khronos.org/opengles/sdk/docs/manglsl/xhtml/smoothstep.xml }
 function SmoothStep(const Edge0, Edge1, X: Single): Single;
 
-{ Utility functions to control the endianess of Single and Double values; no
-  support for Extended though as such values have yet to be encountered when
-  read from a file
+{ Utility functions to control the endianess.
+  Note: Floating-point versions support Single and Double, but not Extended
+  (which means different things on different platforms/compilers,
+  see https://castle-engine.io/coding_conventions#no_extended ,
+  and in practice binary files don't contain numbers >= Double).
 
   @groupBegin }
-function Swap32(Value: LongWord): LongWord;
+function Swap32(Value: UInt32): UInt32;
 function Swap64(Value: QWord): QWord;
 function SwapEndian(const Value: Single): Single; overload;
 function SwapEndian(const Value: Double): Double; overload;
@@ -432,6 +411,11 @@ function BEtoN(const Value: Int64): Int64; overload;
 function BEtoN(const Value: Single): Single; overload;
 function BEtoN(const Value: Double): Double; overload;
 { @groupEnd }
+
+{ Convert degrees to radians, consistent with CastleScript deg()
+  function and display of rotations in CGE editor.
+  In CGE, all functions take rotations in radians. }
+function Deg(const Degrees: Float): Float;
 
 type
   EVectorInvalidOp = class(Exception);
@@ -489,15 +473,6 @@ procedure MaxVar(var a: Single; const b: Single); begin if B > A then A := B end
 procedure MaxVar(var a: Double; const b: Double); begin if B > A then A := B end;
 {$ifdef EXTENDED_OVERLOADS}
 procedure MaxVar(var a: Extended; const b: Extended); begin if B > A then A := B end;
-{$endif}
-
-{$ifndef FPC}
-{$ifndef MSWINDOWS}
-procedure MaxVar(var a: LongInt ; const b: LongInt ); begin if B > A then A := B end;
-procedure MinVar(var a: LongInt ; const b: LongInt ); begin if B < A then A := B end;
-procedure MaxVar(var a: LongWord; const b: LongWord); begin if B > A then A := B end;
-procedure MinVar(var a: LongWord; const b: LongWord); begin if B < A then A := B end;
-{$endif}
 {$endif}
 
 function IndexMax(const a0, a1, a2: Double): T3DAxis;
@@ -752,7 +727,7 @@ begin
   if Value = 0 then begin result := -1; Exit end;
 
   for result := SizeOf(Value)*8-1 downto 0 do
-   if ((LongWord(1) shl result) and Value) <> 0 then Break;
+   if ((UInt32(1) shl result) and Value) <> 0 then Break;
 
   { since Value <> 0, so the above "for" is always finished by a Break.
     Now Result is the position of the "oldest" bit = 1 in Value.
@@ -969,32 +944,35 @@ end;
 
 procedure CastleDivMod(Dividend: Integer; Divisor: Word;
   out Result, Remainder: SmallInt);
-{$ifdef VER2_4_0}
-{ Workaround http://bugs.freepascal.org/view.php?id=15453.
-  DivMod overload with SmallInt params already exist in Math unit,
-  so this is not our concern. }
+var
+  UnsignedResult, UnsignedRemainder: Word;
 begin
+  { This should not be necessary for FPC, we support only
+    FPC >= 3.2.0 and http://bugs.freepascal.org/view.php?id=15453
+    (treatment of negative Dividend) is fixed since FPC 2.4.2.
+    So FPC could just call DivMod?
+
+    Still this is necessary for Delphi (that supports only unsigned
+    1st param for DivMod).
+
+    For consistency we use this code with both FPC and Delphi. }
+
   if Dividend < 0 then
   begin
     { Use DivMod with >=0 dividend }
-    DivMod(-Dividend, Divisor, Result, Remainder);
+    DivMod(-Dividend, Divisor, UnsignedResult, UnsignedRemainder);
     { The documented behavior of Pascal's div/mod operators and DivMod
       on negative dividends is to return Result closer to zero and
       a negative Remainder. Which means that we can just negate both
       Result and Remainder, and all it's Ok. }
-    Result := -Result;
-    Remainder := -Remainder;
+    Result := -UnsignedResult;
+    Remainder := -UnsignedRemainder;
   end else
-    DivMod(Dividend, Divisor, Result, Remainder);
-{$else}
-{ Workaround lack of DivMod overload with signed (SmallInt) params.
-  This is needed only for old FPC (at least older than 2.2.4). }
-var
-  UnsignedResult: Word absolute Result;
-  UnsignedRemainder: Word absolute Remainder;
-begin
-  DivMod(Dividend, Divisor, UnsignedResult, UnsignedRemainder);
-{$endif}
+  begin
+    DivMod(Dividend, Divisor, UnsignedResult, UnsignedRemainder);
+    Result := UnsignedResult;
+    Remainder := UnsignedRemainder;
+  end;
 end;
 
 procedure DivUnsignedMod(Dividend: Integer; Divisor: Word;
@@ -1099,9 +1077,9 @@ begin
     if x2 > max then max := x2;
 end;
 
-function CastleCoTan(const Value: Float): Float;
+function CastleCoTan(const Value: Single): Single;
 var
-  ASin, ACos: Float;
+  ASin, ACos: Single;
 begin
   SinCos(Value, ASin, ACos);
   Result := Acos / ASin;
@@ -1147,7 +1125,7 @@ end;
 { Use Swap32 / Swap64 names, instead of overloading one name like Swap
   or SwapEndian, to avoid easy mistakes. }
 
-function Swap32(Value: LongWord): LongWord;
+function Swap32(Value: UInt32): UInt32;
 begin
   {$ifndef FPC}
   // see
@@ -1165,8 +1143,8 @@ begin
   // see
   // https://stackoverflow.com/questions/3065335/how-to-convert-big-endian-numbers-to-native-numbers-delphi
   // https://stackoverflow.com/questions/2882434/how-to-convert-big-endian-and-how-to-flip-the-highest-bit
-  Result := Swap32(LongWord(Value));
-  Result := (Result shl 32) or Swap32(LongWord(Value shr 32));
+  Result := Swap32(UInt32(Value));
+  Result := (Result shl 32) or Swap32(UInt32(Value shr 32));
   {$else}
   Result := SwapEndian(Value);
   {$endif}
@@ -1174,7 +1152,7 @@ end;
 
 function SwapEndian(const Value: Single): Single;
 begin
-  PLongWord(@Result)^ := Swap32(PLongWord(@Value)^);
+  PUInt32(@Result)^ := Swap32(PUInt32(@Value)^);
 end;
 
 function SwapEndian(const Value: Double): Double;
@@ -1415,6 +1393,11 @@ begin
 {$else ENDIAN_BIG}
   Result := SwapEndian(Value);
 {$endif ENDIAN_BIG}
+end;
+
+function Deg(const Degrees: Float): Float;
+begin
+  Result := DegToRad(Degrees);
 end;
 
 {$endif read_implementation}

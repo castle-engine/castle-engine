@@ -6,20 +6,17 @@ Using this service is *not* necessary to use https://www.testfairy.com/[Test Fai
 
 Still, using this service enhances the experience. You will receive logs, videos, user can submit feedback (from the mobile application to your TestFairy application) and more. There's no need to do anything on the Pascal side, you merely use this service.
 
-To see the logs, make sure to turn _"Application logs"_ in the _"Metrics"_ section in the _"Insights"_ tab of your application [Build Settings](https://docs.testfairy.com/Getting_Started/Version_Settings.html). This can be done after the app was uploaded or the first session performed. They are enabled by default, so usually you don't have to do anything.
+To see the logs, make sure to turn _"Application logs"_ in the _"Metrics"_ section in the _"Insights"_ tab of your application. This can be done after the app was uploaded or the first session performed. They are enabled by default, so usually you don't have to do anything.
 
 ### Parameters
 
-You need to specify additional parameters inside `CastleEngineManifest.xml` when using this service:
+You need to specify _"SDK App Token"_ inside https://castle-engine.io/project_manifest[CastleEngineManifest.xml] when using this service:
 
 [source,xml]
 ----
 <service name="test_fairy">
-  <parameter key="domain" value="xxxxxx" />
   <parameter key="sdk_app_token" value="SDK-yyyyyy" />
 </service>
 ----
 
-The "domain" parameter above is the initial component of your TestFairy domain name. E.g. if you login to `https://catgames.testfairy.com/` , then use `<parameter name="domain" name="catgames" />`.
-
-Get your "SDK App Token" from your dashboard settings (accessible like `https://catgames.testfairy.com/settings` , but make sure to change the domain in this URL).
+Get your "SDK App Token" from your https://app.testfairy.com/settings[TestFairy dashboard settings].

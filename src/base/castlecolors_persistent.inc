@@ -1,3 +1,4 @@
+{%MainUnit castlecolors.pas}
 {
   Copyright 2018-2022 Michalis Kamburelis.
 
@@ -59,8 +60,9 @@ type
     InternalDefaultValue: TCastleColorRGB;
     constructor Create(const AOwner: TComponent = nil); reintroduce;
     property Value: TCastleColorRGB read GetValue write SetValue;
-    function HasDefaultValue: Boolean;
+    function ValueIsStreamed: Boolean; override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
+    function ToString: String; override;
   published
     property Red: Single read GetRed write SetRed stored RedIsStored nodefault;
     property Green: Single read GetGreen write SetGreen stored GreenIsStored nodefault;
@@ -111,8 +113,9 @@ type
     InternalDefaultValue: TCastleColor;
     constructor Create(const AOwner: TComponent = nil); reintroduce;
     property Value: TCastleColor read GetValue write SetValue;
-    function HasDefaultValue: Boolean;
+    function ValueIsStreamed: Boolean; override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
+    function ToString: String; override;
   published
     property Red: Single read GetRed write SetRed stored RedIsStored nodefault;
     property Green: Single read GetGreen write SetGreen stored GreenIsStored nodefault;
@@ -244,9 +247,9 @@ begin
   Result := Value.Z <> InternalDefaultValue.Z;
 end;
 
-function TCastleColorRGBPersistent.HasDefaultValue: Boolean;
+function TCastleColorRGBPersistent.ValueIsStreamed: Boolean;
 begin
-  Result := TVector3.PerfectlyEquals(Value, InternalDefaultValue);
+  Result := not TVector3.PerfectlyEquals(Value, InternalDefaultValue);
 end;
 
 function TCastleColorRGBPersistent.InitScheduledSetValue: PCastleColorRGB;
@@ -277,6 +280,11 @@ begin
     Result := [psBasic, psLayout]
   else
     Result := inherited PropertySections(PropertyName);
+end;
+
+function TCastleColorRGBPersistent.ToString: String;
+begin
+  Result := Value.ToString;
 end;
 
 { TCastleColorPersistent ---------------------------------------------------- }
@@ -398,9 +406,9 @@ begin
   Result := Value.W <> InternalDefaultValue.W;
 end;
 
-function TCastleColorPersistent.HasDefaultValue: Boolean;
+function TCastleColorPersistent.ValueIsStreamed: Boolean;
 begin
-  Result := TVector4.PerfectlyEquals(Value, InternalDefaultValue);
+  Result := not TVector4.PerfectlyEquals(Value, InternalDefaultValue);
 end;
 
 function TCastleColorPersistent.InitScheduledSetValue: PCastleColor;
@@ -432,6 +440,11 @@ begin
     Result := [psBasic, psLayout]
   else
     Result := inherited PropertySections(PropertyName);
+end;
+
+function TCastleColorPersistent.ToString: String;
+begin
+  Result := Value.ToString;
 end;
 
 { TCastleColorPersistentSimple -------------------------------------------- }

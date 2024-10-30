@@ -40,13 +40,21 @@ Usage in short:
     from the [CastleEngineManifest.xml](https://castle-engine.io/project_manifest)
     file.
 
+- You can also use [Visual Studio Code](https://castle-engine.io/vscode).
+
+    We have a [Castle Game Engine extension for VS Code](https://marketplace.visualstudio.com/items?itemName=castle-engine-team.castle-engine), that enables comfortable Pascal code editing (with completion, syntax highighting) and integration with CGE projects (so you can build, debug, run the projects straight from VS Code).
+
 - You can also use [Lazarus](https://www.lazarus-ide.org/).
 
-    Make sure to register in Lazarus our packages. It's easiest to do this using the button _"Register Lazarus Packages"_ in CGE editor _"Preferences -> FPC and Lazarus"_ (see https://castle-engine.io/install ).
+    Make sure to [register in Lazarus our packages](https://castle-engine.io/lazarus). It's easiest to do this using the button _"Register Lazarus Packages"_ in CGE editor _"Preferences -> FPC and Lazarus"_.
 
     You can install the `castle_components.lpk` package in Lazarus, to have LCL component `TCastleControl` (see https://castle-engine.io/control_on_form ).
 
-- You can also use [Visual Studio Code](https://castle-engine.io/vscode). We feature a Pascal LSP server that can do code completion for Pascal and CGE API.
+    You can build the most important CGE packages and tools (editor, build tool) using Lazarus [project group](https://wiki.freepascal.org/Project_Groups) called `most_important_lazarus_packages_and_tools.lpg`.
+
+- You can also use [Delphi](https://www.embarcadero.com/products/Delphi).
+
+    We recommend to install [our Delphi packages](https://castle-engine.io/delphi_packages) in Delphi. This will give you a comfortable menu in Delphi IDE _"Tools → Castle Game Engine"_, with useful commands like _"Set Engine Path..."_ and _"Configure Delphi to Use Engine"_.
 
 Documentation
 -------

@@ -237,7 +237,8 @@ function TShapeShadowVolumes.TrianglesListShadowCasters: TTrianglesShadowCasters
       try
         TriangleAdder.TriangleList := Result;
         if ShadowCaster(Shape) then
-          Shape.LocalTriangulate({$ifdef FPC}@{$endif}TriangleAdder.AddTriangle);
+          Shape.LocalTriangulate({$ifdef FPC}@{$endif}TriangleAdder.AddTriangle,
+            { FrontFaceAlwaysCcw should not matter } false);
         if LogShadowVolumes then
           WritelnLog('Shadow volumes', Format('Shadows casters triangles: %d',
             [Result.Count]));
@@ -291,7 +292,7 @@ procedure TShapeShadowVolumes.CalculateIfNeededManifoldAndBorderEdges;
     begin
       if EdgesSingle.Count <> 0 then
       begin
-        EdgePtr := PManifoldEdge(EdgesSingle.List);
+        EdgePtr := PManifoldEdge(EdgesSingle.L);
         for I := 0 to EdgesSingle.Count - 1 do
         begin
           { It would also be possible to get EdgePtr^.V0/1 by code like
@@ -321,7 +322,7 @@ procedure TShapeShadowVolumes.CalculateIfNeededManifoldAndBorderEdges;
               deleting only from the end (normal Delete would want to shift
               EdgesSingle contents in memory, to preserve order of items;
               but we don't care about order). }
-            EdgePtr^ := EdgesSingle.List^[EdgesSingle.Count - 1];
+            EdgePtr^ := EdgesSingle.L[EdgesSingle.Count - 1];
             EdgesSingle.Count := EdgesSingle.Count - 1;
 
             Exit;
@@ -364,7 +365,7 @@ procedure TShapeShadowVolumes.CalculateIfNeededManifoldAndBorderEdges;
     try
       EdgesSingle.Capacity := Triangles.Count * 3 div 2;
 
-      TrianglePtr := PTriangle3(Triangles.List);
+      TrianglePtr := PTriangle3(Triangles.L);
       for I := 0 to Triangles.Count - 1 do
       begin
         { TrianglePtr points to Triangles[I] now }
@@ -384,8 +385,8 @@ procedure TShapeShadowVolumes.CalculateIfNeededManifoldAndBorderEdges;
         FBorderEdges.Count := EdgesSingle.Count;
         for I := 0 to EdgesSingle.Count - 1 do
         begin
-          FBorderEdges.List^[I].VertexIndex := EdgesSingle.List^[I].VertexIndex;
-          FBorderEdges.List^[I].TriangleIndex := EdgesSingle.List^[I].Triangles[0];
+          FBorderEdges.L[I].VertexIndex := EdgesSingle.L[I].VertexIndex;
+          FBorderEdges.L[I].TriangleIndex := EdgesSingle.L[I].Triangles[0];
         end;
       end;
     finally FreeAndNil(EdgesSingle); end;

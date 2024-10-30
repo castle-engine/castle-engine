@@ -1,5 +1,5 @@
 {
-  Copyright 2014-2023 Michalis Kamburelis.
+  Copyright 2014-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -86,6 +86,10 @@ procedure ParametersAddMacros(const Macros, Parameters: TStringStringMap;
   Since FPC 3.2.2 it is linkfiles<id>.res (and we ignore link<id>.res and linksyms<id>.res). }
 function FindLinkRes(const Path: String): String;
 
+{ Delete all link<id>.res and linkfiles<id>.res files,
+  to make the job unambiguous for future FindLinkRes from future compilations. }
+procedure DeleteLinkRes(const Path: String);
+
 { Set Unix executable bit.
   It will not be able to perform the CHMOD operation on non-Unix OS
   and will log a corresponding warning instead. }
@@ -118,12 +122,32 @@ function CachePath: String;
   to make GUID stable. }
 function CreateGUIDFromHash(const Seed: String): TGuid;
 
+{ Create a .zip file named ZipFileName
+  containing all files (recursively) in the Directory.
+
+  Both ZipFileName and Directory may be absolute or relative filenames.
+  Directory may but doesn't have to end with PathDelim.
+
+  The Directory is added to the zip file as a top-level directory inside zip.
+  E.g. if Directory is '/home/michalis/mydir', then the zip file will contain
+  as top level 'mydir'. There shall be no trace of '/home/michalis/' in
+  the resulting zp file.
+
+  We gracefully handle the case when ZipFileName is inside Directory,
+  by not packing the ZipFileName in this case in itself (and making a warning),
+  to avoid possible reading and writing the file at the same time.
+  Though we don't rely on this feature in practice,
+  all curent usage of ZipDirectory in build tool places ZipFileName safely outside
+  of its input Directory. }
+procedure ZipDirectory(const ZipFileName: String; Directory: String);
+
 implementation
 
 uses {$ifdef UNIX} BaseUnix, {$endif}
   {$ifdef MSWINDOWS} Windows, {$endif}
+  Zipper,
   Classes, Process, SysUtils,
-  CastleFilesUtils, CastleURIUtils, CastleLog, CastleXMLUtils, CastleFindFiles,
+  CastleFilesUtils, CastleUriUtils, CastleLog, CastleXmlUtils, CastleFindFiles,
   ToolCommonUtils;
 
 procedure SmartCopyFile(const Source, Dest: string);
@@ -249,6 +273,30 @@ begin
   ]);
 end;
 
+type
+  TDeleteLinkResHandler = class
+    procedure FoundFile(const FileInfo: TFileInfo; var StopSearch: boolean);
+  end;
+
+procedure TDeleteLinkResHandler.FoundFile(const FileInfo: TFileInfo; var StopSearch: boolean);
+begin
+  if Verbose then
+    Writeln('Deleting linker input file (to later unambiguosly detect the one linker file that is relevant): ',
+      FileInfo.AbsoluteName);
+  DeleteFile(FileInfo.AbsoluteName);
+end;
+
+procedure DeleteLinkRes(const Path: String);
+var
+  Handler: TDeleteLinkResHandler;
+begin
+  Handler := TDeleteLinkResHandler.Create;
+  try
+    //FindFiles(Path, 'linkfiles*.res', false, @Handler.FoundFile, []);
+    FindFiles(Path, 'link*.res', false, @Handler.FoundFile, []);
+  finally FreeAndNil(Handler) end;
+end;
+
 procedure DoMakeExecutable(const PathAndName: String);
 {$ifdef UNIX}
 var
@@ -347,6 +395,90 @@ begin
   for I := Low(Result.D4) to High(Result.D4) do
     Result.D4[I] := HashString(Seed + 'D4' + IntToStr(I));
   {$I norqcheckend.inc}
+end;
+
+procedure ZipDirectory(const ZipFileName: String; Directory: String);
+
+  procedure ZipUsingExternalApplication;
+  var
+    DirectoryParentPath, DirectoryName: String;
+  begin
+    Directory := ExclPathDelim(Directory);
+    DirectoryName := ExtractFileName(Directory);
+    DirectoryParentPath := ExtractFilePath(Directory);
+
+    // be sure to first delete target zip, otherwise zip command will add to existing file
+    if FileExists(ZipFileName) then
+      CheckDeleteFile(ZipFileName);
+
+    RunCommandSimple(DirectoryParentPath, 'zip',
+      ['-q', '-r', ZipFileName, DirectoryName]);
+  end;
+
+var
+  Zipper: TZipper;
+  FilesList: TFileInfoList;
+  FileInfo: TFileInfo;
+  DirectoryParentPath: String;
+  ExpandedZipFileName: String;
+begin
+  { On macOS, FPC Zipper seems not able to preserve "executable" bit when packing.
+    Observed with FPC 3.2.2, Darwin/x86_64.
+
+    What is weird is that Zipper used on Linux/x86_64 with the same FPC version
+    3.2.2 preserves executable permissions fine.
+    And the Zipper code doesn't seem to do anything Linux/Darwin specific,
+    there are only general "UNIX" defines,
+    and I (Michalis) didn't even find where it actually scans file permissions
+    for executable bit.
+    But evidently it fails on Darwin.
+
+    I double-checked the problem is indeed at zipping.
+    - Input files to zip have executable permissions OK (our packaging
+      preserves executable bit when copying the executable to temp dir OK).
+    - It is a problem of zipping, not of unzipping. Copying the zip made
+      on macOS to another system confirms that files inside lack executable
+      permission.
+  }
+  {$ifdef DARWIN}
+  ZipUsingExternalApplication;
+  Exit;
+  {$endif}
+
+  ExpandedZipFileName := ExpandFileName(ZipFileName);
+
+  Zipper := TZipper.Create;
+  try
+    Zipper.FileName := ZipFileName;
+
+    Directory := ExclPathDelim(Directory);
+    DirectoryParentPath := ExtractFilePath(Directory);
+
+    FilesList := FindFilesList(Directory, '*', { FindDirectories } false, [ffRecursive]);
+    try
+      for FileInfo in FilesList do
+      begin
+        if SameFileName(ExpandedZipFileName, FileInfo.AbsoluteName) then
+        begin
+          WritelnWarning('Package', Format('Directory to zip contains also the target zip file "%s", not packing (to avoid possible reading and writing the file at the same time)', [
+            FileInfo.AbsoluteName
+          ]));
+          Continue;
+        end;
+        Zipper.Entries.AddFileEntry(
+          FileInfo.AbsoluteName,
+          ExtractRelativePath(DirectoryParentPath, FileInfo.AbsoluteName));
+      end;
+    finally FreeAndNil(FilesList) end;
+
+    { Store filenames using UTF-8 in zip,
+      see https://wiki.lazarus.freepascal.org/paszlib#TZipper }
+    {$ifndef VER3_0} // only for FPC >= 3.2.0
+    Zipper.UseLanguageEncoding := true;
+    {$endif}
+
+    Zipper.ZipAllFiles;
+  finally FreeAndNil(Zipper) end;
 end;
 
 end.

@@ -1,5 +1,6 @@
+{%MainUnit x3dnodes.pas}
 {
-  Copyright 2002-2022 Michalis Kamburelis.
+  Copyright 2002-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -88,14 +89,20 @@
   strict private
     procedure EventSet_HeightReceive(
       const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
+    class function ClassIsNotEmpty(
+      const AXDimension, AZDimension: Integer;
+      const AXSpacing, AZSpacing: Single;
+      const AHeight: TSingleList): Boolean;
   public
     constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
 
-    { This checks whether xDimension and zDimension are >= 2,
-      xSpacing and zSpacing are > 0 and height has at least the
-      required number of values. If this returns @false then
-      it is understood that ElevationGrid is not rendered, doesn't
-      have any vertices/triangles etc. }
+    { Do we have (correct) data to render.
+
+      Checks whether
+      - xDimension and zDimension are >= 2,
+      - xSpacing and zSpacing are > 0
+      - height list has at least the required number of values.
+    }
     function IsNotEmpty: boolean;
 
     function ColorField: TSFNode; override;
@@ -112,6 +119,18 @@
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
     function TrianglesCount(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
+
+    { Create triangle set to render the elevation grid.
+      Useful for
+      - Proxy in this class
+      - TCastleTerrain which wants direct TIndexedTriangleSetNode
+        (faster to later update than to maintain TElevationGridNode). }
+    class function InternalCreateTriangles(
+      const AXDimension, AZDimension: Integer;
+      const AXSpacing, AZSpacing: Single;
+      const AHeight: TSingleList;
+      const ATexCoord: TAbstractTextureCoordinateNode;
+      const TriangulationIgnoreHeights: Boolean): TIndexedTriangleSetNode;
 
   {$I auto_generated_node_helpers/x3dnodes_elevationgrid.inc}
   end;
@@ -274,7 +293,7 @@ end;
 
 function TConeNode.CalculateSlices: Cardinal;
 begin
-  // use default in case of -1 or invalid value
+  // use default in case of 0 or invalid value
   if FdSlices.Value < MinTriangulationSlices then
     Result := DefaultTriangulationSlices
   else
@@ -283,7 +302,7 @@ end;
 
 function TConeNode.CalculateStacks: Cardinal;
 begin
-  // use default in case of -1 or invalid value
+  // use default in case of 0 or invalid value
   if FdStacks.Value < MinTriangulationStacks then
     Result := DefaultTriangulationStacks
   else
@@ -323,7 +342,7 @@ end;
 
 function TCylinderNode.CalculateSlices: Cardinal;
 begin
-  // use default in case of -1 or invalid value
+  // use default in case of 0 or invalid value
   if FdSlices.Value < MinTriangulationSlices then
     Result := DefaultTriangulationSlices
   else
@@ -344,7 +363,7 @@ begin
 
 (*
 
-  // use default in case of -1 or invalid value
+  // use default in case of 0 or invalid value
   if FdStacks.Value < MinTriangulationStacks then
     Result := DefaultTriangulationStacks
   else
@@ -360,17 +379,27 @@ begin
   Eventset_height.AddNotification({$ifdef FPC}@{$endif} EventSet_HeightReceive);
 end;
 
-function TElevationGridNode.IsNotEmpty: boolean;
+class function TElevationGridNode.ClassIsNotEmpty(
+  const AXDimension, AZDimension: Integer;
+  const AXSpacing, AZSpacing: Single;
+  const AHeight: TSingleList): Boolean;
 begin
   Result :=
-    (FdXDimension.Value >= 2) and
-    (FdZDimension.Value >= 2) and
+    (AXDimension >= 2) and
+    (AZDimension >= 2) and
     { VRML spec says that xSpacing and ySpacing shall be > 0.
-      So I understand that when they are = 0 (or < 0) nothing
-      should be rendered. }
-    (FdXSpacing.Value > 0) and
-    (FdZSpacing.Value > 0) and
-    (FdHeight.Count >= FdXDimension.Value * FdZDimension.Value);
+      So when they are = 0 (or < 0) we don't render anything. }
+    (AXSpacing > 0) and
+    (AZSpacing > 0) and
+    (AHeight.Count >= AXDimension * AZDimension);
+end;
+
+function TElevationGridNode.IsNotEmpty: Boolean;
+begin
+  Result := ClassIsNotEmpty(
+    FdXDimension.Value, FdZDimension.Value,
+    FdXSpacing.Value, FdZSpacing.Value,
+    FdHeight.Items);
 end;
 
 function TElevationGridNode.ColorField: TSFNode;
@@ -426,9 +455,9 @@ end;
 
 function TExtrusionNode.CrossSection3D(Index: integer): TVector3;
 begin
-  Result.X := FdCrossSection.Items.List^[Index].X;
+  Result.X := FdCrossSection.Items.L[Index].X;
   Result.Y := 0;
-  Result.Z := FdCrossSection.Items.List^[Index].Y;
+  Result.Z := FdCrossSection.Items.L[Index].Y;
 end;
 
 function TExtrusionNode.SpineClosed: boolean;
@@ -507,8 +536,8 @@ var
     if TexCoords <> nil then
     begin
       if SpecialTex then
-        IFS.FdTexCoordIndex.Items.List^[Index] := SpecialTexIndex else
-        IFS.FdTexCoordIndex.Items.List^[Index] :=
+        IFS.FdTexCoordIndex.Items.L[Index] := SpecialTexIndex else
+        IFS.FdTexCoordIndex.Items.L[Index] :=
           SpineIndex * FdCrossSection.Count + CrossSectionIndex;
     end;
 
@@ -526,7 +555,7 @@ var
        E.CrossSectionClosed then
       CrossSectionIndex := 0;
 
-    IFS.FdCoordIndex.Items.List^[Index] :=
+    IFS.FdCoordIndex.Items.L[Index] :=
       SpineIndex * FdCrossSection.Count + CrossSectionIndex;
 
     Inc(Index);
@@ -534,9 +563,9 @@ var
 
   procedure NextIndexFaceDelimiter;
   begin
-    IFS.FdCoordIndex.Items.List^[Index] := -1;
+    IFS.FdCoordIndex.Items.L[Index] := -1;
     if TexCoords <> nil then
-      IFS.FdTexCoordIndex.Items.List^[Index] := -1;
+      IFS.FdTexCoordIndex.Items.L[Index] := -1;
     Inc(Index);
   end;
 
@@ -582,7 +611,7 @@ begin
         E.SpineTransformVar(I, LastY, LastZ, Transform);
         for J := 0 to FdCrossSection.Count - 1 do
         begin
-          CoordNode.FdPoint.Items.List^[I * FdCrossSection.Count + J] :=
+          CoordNode.FdPoint.Items.L[I * FdCrossSection.Count + J] :=
             Transform.MultPoint(CrossSection3D(J));
         end;
       end;
@@ -611,7 +640,7 @@ begin
 
         for I := 0 to E.High do
           for J := 0 to FdCrossSection.Count - 1 do
-            TexCoords.List^[I * FdCrossSection.Count + J] := SideTexCoord(I, J);
+            TexCoords.L[I * FdCrossSection.Count + J] := SideTexCoord(I, J);
 
         { calculate TexCapsTranslation, TexCapsScale }
         if FdBeginCap.Value or FdEndCap.Value then
@@ -643,9 +672,8 @@ begin
 
           for I := 0 to FdCrossSection.Count - 1 do
           begin
-            TexCoordNode.FdPoint.Items.List^[
-              SidesCount + I] :=
-                (FdCrossSection.Items.List^[I] +
+            TexCoordNode.FdPoint.Items.L[SidesCount + I] :=
+                (FdCrossSection.Items.L[I] +
                  Vector2(TexCapsTranslation, TexCapsTranslation))
                 * TexCapsScale;
           end;
@@ -857,7 +885,7 @@ end;
 
 function TSphereNode.CalculateSlices: Cardinal;
 begin
-  // use default in case of -1 or invalid value
+  // use default in case of 0 or invalid value
   if FdSlices.Value < MinTriangulationSlices then
     Result := DefaultTriangulationSlices
   else
@@ -866,7 +894,7 @@ end;
 
 function TSphereNode.CalculateStacks: Cardinal;
 begin
-  // use default in case of -1 or invalid value
+  // use default in case of 0 or invalid value
   if FdStacks.Value < MinTriangulationStacks then
     Result := DefaultTriangulationStacks
   else

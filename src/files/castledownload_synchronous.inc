@@ -88,7 +88,7 @@ type
       Set EnableBlockingDownloads to @true to support http and https protocols.
       The MIME type for such content is usually reported by the http server
       (but if the server doesn't report MIME type, we still try to determine it,
-      looking at URL using URIMimeType).
+      looking at URL using UriMimeType).
     )
   )
 
@@ -115,8 +115,8 @@ type
 
   @groupBegin
 }
-function Download(const Url: string; const Options: TStreamOptions = []): TStream; overload;
-function Download(const Url: string; const Options: TStreamOptions;
+function Download(const Url: String; const Options: TStreamOptions = []): TStream; overload;
+function Download(const Url: String; const Options: TStreamOptions;
   out MimeType: string): TStream; overload;
 { @groupEnd }
 
@@ -130,7 +130,7 @@ property EnableNetwork: Boolean read GetEnableNetwork write SetEnableNetwork;
 
 {$ifdef read_implementation}
 
-function Download(const Url: string; const Options: TStreamOptions;
+function Download(const Url: String; const Options: TStreamOptions;
   out MimeType: string): TStream;
 var
   D: TCastleDownload;
@@ -147,7 +147,7 @@ begin
     if D.Status = dsError then
     begin
       { D.Contents may be set non-nil even in case of error, testcase:
-        view3dscene https://x3dgraphics.com/examples/X3dForAdvancedModeling/GltfSampleModels/AlphaBlendModeTest_not_existent.x3d
+        castle-model-viewer https://x3dgraphics.com/examples/X3dForAdvancedModeling/GltfSampleModels/AlphaBlendModeTest_not_existent.x3d
         So make sure to free them.
       }
       D.OwnsContents := true;
@@ -161,7 +161,7 @@ begin
   finally FreeAndNil(D) end;
 end;
 
-function Download(const Url: string; const Options: TStreamOptions): TStream;
+function Download(const Url: String; const Options: TStreamOptions): TStream;
 var
   MimeType: string;
 begin

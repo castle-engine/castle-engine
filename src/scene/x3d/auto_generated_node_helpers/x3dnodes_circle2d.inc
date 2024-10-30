@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2023 Michalis Kamburelis.
+  Copyright 2015-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -29,19 +29,20 @@
     function GetSlices: Integer;
     procedure SetSlices(const Value: Integer);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdRadius: TSFFloat;
-    { Internal wrapper for property @link(Radius). This wrapper API may change, we advise to access simpler @link(Radius) instead. }
+    { Internal wrapper for property @code(Radius). This wrapper API may change, we advise to access simpler @code(Radius) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdRadius: TSFFloat read FFdRadius;
     {  }
     property Radius: Single read GetRadius write SetRadius;
 
     strict private FFdSlices: TSFInt32;
-    { Internal wrapper for property @link(Slices). This wrapper API may change, we advise to access simpler @link(Slices) instead. }
+    { Internal wrapper for property @code(Slices). This wrapper API may change, we advise to access simpler @code(Slices) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdSlices: TSFInt32 read FFdSlices;
-    {  }
+    { How much to subdivide the circle. Larger values result in a shape that looks smoother (like a correct circle), but also mean that we need to render more triangles. The default value, 0 means to use the global @link(DefaultTriangulationSlices) parameter. }
     property Slices: Integer read GetSlices write SetSlices;
 
 {$endif read_interface}
@@ -80,12 +81,12 @@ begin
   inherited;
 
   FFdRadius := TSFFloat.Create(Self, False, 'radius', 1);
-   FdRadius.ChangeAlways := chVisibleNonGeometry;
+   FdRadius.ChangeAlways := chGeometry;
    FdRadius.MustBeNonnegative := true;
   AddField(FFdRadius);
 
-  FFdSlices := TSFInt32.Create(Self, True, 'slices', -1);
-   FdSlices.ChangeAlways := chVisibleNonGeometry;
+  FFdSlices := TSFInt32.Create(Self, True, 'slices', 0);
+   FdSlices.ChangeAlways := chGeometry;
   AddField(FFdSlices);
 end;
 

@@ -1,6 +1,6 @@
 {%MainUnit castleglimages.pas}
 {
-  Copyright 2019-2023 Michalis Kamburelis.
+  Copyright 2019-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -68,7 +68,8 @@
   }
   TCastleImagePersistent = class(TPersistent)
   strict private
-    FURL: string;
+    FUrl: String;
+    FUrlMonitoring: TUrlMonitoring;
     FCache: boolean;
     FScaleFromUrl: Single;
     FDrawableImage: TDrawableImage;
@@ -95,6 +96,7 @@
 
     { Parameters used in Draw. }
     FProtectedSides: TBorder;
+    FRegion: TFloatRectangle;
     FFlipHorizontal: Boolean;
     FFlipVertical: Boolean;
     FProtectedSidesScaling: TProtectedSidesScaling;
@@ -103,7 +105,8 @@
     function GetOwnsImage: boolean;
     procedure SetOwnsImage(const Value: boolean);
     procedure SetCache(const Value: Boolean);
-    procedure SetURL(const Value: string);
+    procedure SetRegion(AValue: TFloatRectangle);
+    procedure SetUrl(const Value: String);
     procedure SetImage(const Value: TEncodedImage);
     procedure SetDrawableImage(const Value: TDrawableImage);
     procedure SetSmoothScaling(const Value: boolean);
@@ -128,11 +131,12 @@
   public
     constructor Create;
     destructor Destroy; override;
+    procedure BeforeDestruction; override;
 
     { Reserved for parent UI control to listen for changes. }
     property OnChange: TNotifyEvent read FOnChange write FOnChange;
 
-    { Image contents, or @nil if none. You can set it by setting @link(URL),
+    { Image contents, or @nil if none. You can set it by setting @link(Url),
       or by setting this property directly,
       or by setting @link(DrawableImage).
 
@@ -154,7 +158,7 @@
     { Whether the memory management of assigned @link(Image) is automatic.
       See @link(Image) documentation for details.
 
-      Note that setting @link(URL) changes @link(Image),
+      Note that setting @link(Url) changes @link(Image),
       and changes OwnsImage unconditionally to @true.
 
       Note that setting @link(DrawableImage) changes @link(Image) too,
@@ -165,7 +169,7 @@
       Always @link(TDrawableImage.Image) equals our @link(Image).
 
       Usually you do not want to change this property.
-      You can change @link(URL), or @link(Image), and the drawable
+      You can change @link(Url), or @link(Image), and the drawable
       image will reflect this.
       But there are good use-cases to change the @link(DrawableImage)
       directly: e.g. you can use fast image-to-image
@@ -221,6 +225,10 @@
       which means that image colors are unchanged. }
     property Color: TCastleColor read FColor write SetColor;
 
+    { Image region to which we should limit the display.
+      Empty (following @link(TFloatRectangle.Empty)) means using the whole image. }
+    property Region: TFloatRectangle read FRegion write SetRegion;
+
     property InternalVisualizeProtectedSides: Boolean
       read FInternalVisualizeProtectedSides write FInternalVisualizeProtectedSides default true;
 
@@ -230,8 +238,13 @@
       (colors, or maybe even image size) you need to call this. }
     procedure ImageChanged;
 
+    { Width of drawn image. This is like DrawableImage.Width, but limited by Region. }
     function Width: Cardinal;
+
+    { Height of drawn image. This is like DrawableImage.Height, but limited by Region. }
     function Height: Cardinal;
+
+    { Are both @link(Width) and @link(Height) equal to zero. }
     function Empty: Boolean;
 
     { Draw the image in given screen area. }
@@ -276,13 +289,22 @@
         @item(Restores OnChange and Color.)
       ) }
     procedure DrawUiEnd;
+
+    { Load again the image from current URL.
+      This makes sense to be used when underlying file on disk
+      changed, and you want to reload it.
+
+      TODO: In case image is shared with other TCastleImagePersistent instances,
+      for now this method will not load new image from disk.
+      That's because the previous image contents will "survive" in the cache. }
+    procedure ReloadUrl;
   published
     { URL of the image.
       Set this to load a new image, you can set to '' to clear the image.
 
       Changing this also changes @link(Image) and @link(DrawableImage).
       @link(OwnsDrawableImage) and @link(OwnsImage) always change to @true. }
-    property URL: String read FURL write SetURL;
+    property Url: String read FUrl write SetUrl;
 
     { How to treat alpha channel of the assigned image.
       By default, this is acAuto, which means that image contents
@@ -303,15 +325,15 @@
       (e.g. by using @link(TDrawableImage.RenderToImageBegin)),
       or you will change all shared images.
 
-      Note that if you assign @link(DrawableImage) (instead of @link(URL))
+      Note that if you assign @link(DrawableImage) (instead of @link(Url))
       and we should free it ourselves (because @link(OwnsDrawableImage))
       then we assume it was @italic(not) loaded through our internal cache.
 
-      Note that if you assign @link(Image) (instead of @link(URL))
+      Note that if you assign @link(Image) (instead of @link(Url))
       then we assume it was @italic(not) loaded through our internal cache.
       (We make sure to detach the TDrawableImage from cache too, in this case.)
 
-      Changing this property reloads the image (if some @link(URL) was set). }
+      Changing this property reloads the image (if some @link(Url) was set). }
     property Cache: Boolean read FCache write SetCache default true;
 
     { Is the image scaling mode smooth (bilinear filtering)
@@ -362,9 +384,14 @@ begin
   FScaleCorners := 1;
   FScaleFromUrl := 1;
   FInternalVisualizeProtectedSides := true;
+  FRegion := TFloatRectangle.Empty;
 
-  FProtectedSides := TBorder.Create({$ifdef FPC}@{$endif}ProtectedSidesChange);
+  FProtectedSides := TBorder.Create(nil);
+  FProtectedSides.SetSubComponent(true);
+  FProtectedSides.OnChange := {$ifdef FPC}@{$endif} ProtectedSidesChange;
   CreateDrawableImage;
+
+  FUrlMonitoring.Init({$ifdef FPC}@{$endif} ReloadUrl);
 
   {$define read_implementation_constructor}
   {$I auto_generated_persistent_vectors/tcastleimagepersistent_persistent_vectors.inc}
@@ -379,6 +406,12 @@ begin
   {$define read_implementation_destructor}
   {$I auto_generated_persistent_vectors/tcastleimagepersistent_persistent_vectors.inc}
   {$undef read_implementation_destructor}
+  inherited;
+end;
+
+procedure TCastleImagePersistent.BeforeDestruction;
+begin
+  FUrlMonitoring.Finish(FUrl);
   inherited;
 end;
 
@@ -407,7 +440,7 @@ begin
     FDrawableImage := nil;
 end;
 
-procedure TCastleImagePersistent.SetURL(const Value: string);
+procedure TCastleImagePersistent.SetUrl(const Value: String);
 
   function GetScaleFromUrl: Single;
   var
@@ -416,7 +449,7 @@ procedure TCastleImagePersistent.SetURL(const Value: string);
     Scale: Single;
   begin
     Result := 1;
-    BaseName := DeleteURIExt(ExtractURIName(URL));
+    BaseName := DeleteURIExt(ExtractURIName(Url));
     if (Length(BaseName) >= 4) and // BaseName must look like at least '?@4x'
        (BaseName[Length(BaseName)] = 'x') then
     begin
@@ -429,12 +462,12 @@ procedure TCastleImagePersistent.SetURL(const Value: string);
   end;
 
 begin
-  if FURL <> Value then
+  if FUrl <> Value then
   begin
     { We deliberately change URL even when loading image could fail.
       This way URL property is always correctly deserialized in CGE editor,
       even when loading the image failed. }
-    FURL := Value;
+    FUrlMonitoring.ChangeUrl(FUrl, Value);
     FScaleFromUrl := GetScaleFromUrl;
 
     FreeDrawableImage;
@@ -464,7 +497,7 @@ begin
           if CastleDesignMode then
           begin
             WritelnWarning('TCastleImagePersistent', 'Failed to load image "%s": %s',
-              [URIDisplay(Value), ExceptMessage(E)]);
+              [UriDisplay(Value), ExceptMessage(E)]);
             CreateDrawableImage;
             Exit;
           end else
@@ -482,19 +515,57 @@ end;
 
 procedure TCastleImagePersistent.SetCache(const Value: Boolean);
 var
-  OldURL: String;
+  OldUrl: String;
 begin
   if FCache <> Value then
   begin
     FCache := Value;
-    if URL <> '' then
+    if Url <> '' then
     begin
       // free and reload the image, following new Cache value
-      OldURL := URL;
-      URL := '';
-      URL := OldURL;
+      OldUrl := Url;
+      Url := '';
+      Url := OldUrl;
       DoChange; // this possibly changed rendered contents
     end;
+  end;
+end;
+
+procedure TCastleImagePersistent.SetRegion(AValue: TFloatRectangle);
+
+  function RectsEqual(const R1, R2: TFloatRectangle): boolean;
+  begin
+    Result :=
+      (R1.Left = R2.Left) and
+      (R1.Bottom = R2.Bottom) and
+      (R1.Width = R2.Width) and
+      (R1.Height = R2.Height);
+  end;
+
+begin
+  { Testing using "FRegion.PerfectlyEquals" would result in a bit weird
+    behavior:
+
+    Since multiple values can satisfy IsEmpty=true,
+    so setting some values to Region would be ignored
+    when both old and new values are IsEmpty=true.
+    Although in principle this is correct (since both old and new values
+    mean "empty"), but UX is weird:
+
+    - set some non-empty Region
+    - then change Width to -1
+    - and now you cannot change Height to -1...
+
+    Or:
+
+    - set Region to TFloadRectangle.Empty (both width and height = -1)
+    - try change Width to 100... and it's ignored, because rectangle is still
+      empty, because Height remains -1
+  }
+  if not RectsEqual(FRegion, AValue) then
+  begin
+    FRegion := AValue;
+    DoChange;
   end;
 end;
 
@@ -570,17 +641,23 @@ end;
 
 function TCastleImagePersistent.Width: Cardinal;
 begin
-  Result := FDrawableImage.Width;
+  if not FRegion.IsEmpty then
+    Result := Min(Floor(FRegion.Width), FDrawableImage.Width)
+  else
+    Result := FDrawableImage.Width;
 end;
 
 function TCastleImagePersistent.Height: Cardinal;
 begin
-  Result := FDrawableImage.Height;
+  if not FRegion.IsEmpty then
+    Result := Min(Floor(FRegion.Height), FDrawableImage.Height)
+  else
+    Result := FDrawableImage.Height;
 end;
 
 function TCastleImagePersistent.Empty: Boolean;
 begin
-  Result := (FDrawableImage.Width = 0) or (FDrawableImage.Height = 0);
+  Result := (Width = 0) or (Height = 0);
 end;
 
 procedure TCastleImagePersistent.DrawUiBegin(const NewScaleCorners: Single);
@@ -651,6 +728,14 @@ procedure TCastleImagePersistent.Draw(
     ], Vector4(1, 1, 0, 0.5));
   end;
 
+  function ImageRect: TFloatRectangle;
+  begin
+    if not FRegion.IsEmpty then
+      Result := FRegion
+    else
+      Result := FloatRectangle(FDrawableImage.Rect);
+  end;
+
 var
   ProtectedSidesVector: TVector4;
 begin
@@ -681,9 +766,9 @@ begin
   if not FProtectedSides.Exists then
   begin
     if FlipHorizontal or FlipVertical then
-      FDrawableImage.DrawFlipped(ScreenRectangle, FlipHorizontal, FlipVertical)
+      FDrawableImage.DrawFlipped(ScreenRectangle, ImageRect, FlipHorizontal, FlipVertical)
     else
-      FDrawableImage.Draw(ScreenRectangle);
+      FDrawableImage.Draw(ScreenRectangle, ImageRect);
   end else
   begin
     // TODO: FlipHorizontal, FlipVertical ignored in this case
@@ -693,7 +778,8 @@ begin
       ProtectedSides.TotalBottom,
       ProtectedSides.TotalLeft
     );
-    FDrawableImage.Draw3x3(ScreenRectangle, ProtectedSidesVector);
+
+    FDrawableImage.Draw3x3(ScreenRectangle, ProtectedSidesVector, FRegion);
 
     if CastleDesignMode and InternalVisualizeProtectedSides and ProtectedSides.Exists then
       VisualizeProtectedSides;
@@ -807,6 +893,15 @@ begin
     FProtectedSidesScaling := Value;
     DoChange;
   end;
+end;
+
+procedure TCastleImagePersistent.ReloadUrl;
+var
+  SavedUrl: String;
+begin
+  SavedUrl := Url;
+  Url := '';
+  Url := SavedUrl;
 end;
 
 {$define read_implementation_methods}

@@ -1,5 +1,5 @@
 {
-  Copyright 2018-2023 Michalis Kamburelis.
+  Copyright 2018-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -21,8 +21,8 @@ unit EditorUtils;
 interface
 
 uses Classes, Types, Controls, StdCtrls, Process, Menus, Generics.Collections,
-  Dialogs,
-  CastleStringUtils,
+  Dialogs, Contnrs,
+  CastleStringUtils, CastleInternalTools,
   ToolArchitectures, ToolManifest, ToolProcess;
 
 type
@@ -157,9 +157,10 @@ function YesNoBox(const Caption, Message: String): Boolean;
 procedure SetEnabledVisible(const C: TControl; const Value: Boolean);
 
 const
-  ApiReferenceUrl = 'https://castle-engine.io/apidoc/html/';
   FpcRtlApiReferenceUrl = 'https://www.freepascal.org/docs-html/rtl/';
   LclApiReferenceUrl = 'https://lazarus-ccr.sourceforge.io/docs/lcl/';
+
+function ApiReferenceUrl: String;
 
 { Get full URL to display API reference of a given property in the given
   PropertyObject.
@@ -271,13 +272,34 @@ type
 { Show last file modification time as nice string. }
 function FileDateTimeStr(const FileName: String): String;
 
+type
+  TComponentListEnumerator = record
+  strict private
+    FList: TComponentList;
+    FPosition: Integer;
+    function GetCurrent: TComponent; inline;
+  public
+    constructor Create(const AList: TComponentList);
+    function MoveNext: Boolean; inline;
+    property Current: TComponent read GetCurrent;
+  end;
+
+{ Useful "for in" iterator over TComponentList,
+  following FPC feature of custom enumerators:
+  https://wiki.freepascal.org/for-in_loop }
+operator Enumerator(const A: TComponentList): TComponentListEnumerator;
+
+var
+  { Path to Android SDK (for ANDROID_HOME), and Java (JAVA_HOME). }
+  AndroidHome, JavaHome: String;
+
 implementation
 
 uses
   SysUtils, Graphics, TypInfo, Generics.Defaults, Math, DateUtils,
   CastleUtils, CastleLog, CastleSoundEngine, CastleFilesUtils, CastleLclUtils,
   CastleComponentSerialize, CastleUiControls, CastleCameras, CastleTransform,
-  CastleColors, CastleTimeUtils,
+  CastleColors, CastleTimeUtils, CastleUriUtils,
   ToolCompilerInfo, ToolCommonUtils;
 
 procedure TMenuItemHelper.SetEnabledVisible(const Value: Boolean);
@@ -436,6 +458,11 @@ begin
     Environment.Values['CASTLE_ENGINE_PATH'] := CastleEnginePath;
     WritelnLog('Calling process with extended CASTLE_ENGINE_PATH: ' + Environment.Values['CASTLE_ENGINE_PATH']);
   end;
+
+  if AndroidHome <> '' then
+    Environment.Values['ANDROID_HOME'] := AndroidHome;
+  if JavaHome <> '' then
+    Environment.Values['JAVA_HOME'] := JavaHome;
 
   { create Process and call Process.Execute }
   Process := TProcess.Create(nil);
@@ -679,6 +706,7 @@ begin
           end;
         end;
       okError: C.Brush.Color := clRed;
+      else ; // no need to customize font/brush otherwise
     end;
   end else
   begin
@@ -819,6 +847,11 @@ procedure SetEnabledVisible(const C: TControl; const Value: Boolean);
 begin
   C.Enabled := Value;
   C.Visible := Value;
+end;
+
+function ApiReferenceUrl: String;
+begin
+  Result := ApiReferenceUrlCore(CastleEnginePath);
 end;
 
 function ApiReference(const PropertyObject: TObject;
@@ -1030,6 +1063,10 @@ begin
 end;
 
 function FindExeVSCode(const ExceptionWhenMissing: Boolean): String;
+{$ifdef DARWIN}
+const
+  MacVSCodePath = '/Applications/Visual Studio Code.app/Contents/MacOS/Electron';
+{$endif}
 begin
   Result := FindExe('code');
 
@@ -1043,6 +1080,11 @@ begin
     Result := ParentPath(ExtractFileDir(Result), false) + 'code.exe';
   {$endif}
   *)
+
+  {$ifdef DARWIN}
+  if (Result = '') and (FileExists(MacVSCodePath)) then
+    Result := MacVSCodePath;
+  {$endif}
 
   if (Result = '') and ExceptionWhenMissing then
     raise EExecutableNotFound.Create('Cannot find Visual Studio Code. Make sure it is installed, and available on environment variable $PATH (there should be an option to set this up during VS Code installlation).');
@@ -1243,6 +1285,30 @@ begin
     end;
   end else
     Result := 'Unknown';
+end;
+
+{ TComponentListEnumerator ------------------------------------------------- }
+
+function TComponentListEnumerator.GetCurrent: TComponent;
+begin
+  Result := FList[FPosition];
+end;
+
+constructor TComponentListEnumerator.Create(const AList: TComponentList);
+begin
+  FList := AList;
+  FPosition := -1;
+end;
+
+function TComponentListEnumerator.MoveNext: Boolean;
+begin
+  Inc(FPosition);
+  Result := FPosition < FList.Count;
+end;
+
+operator Enumerator(const A: TComponentList): TComponentListEnumerator;
+begin
+  Result := TComponentListEnumerator.Create(A);
 end;
 
 end.

@@ -26,8 +26,6 @@
   TPlaySoundParameters = class
   strict private
     FPriority: Single;
-    function GetImportance: Cardinal;
-    procedure SetImportance(const Value: Cardinal);
     procedure SetPriority(const Value: Single);
   public
     Buffer: TInternalSoundBuffer;
@@ -54,17 +52,9 @@
     { Offset is a position in time of the sound. }
     Offset: Single;
 
-    {$ifdef FPC}
-    property Gain: Single read Volume write Volume; deprecated 'use Volume';
-    property Looping: Boolean read Loop write Loop; deprecated 'use Loop';
-    {$endif}
-
     { See TCastleSound.Priority for range and meaning. }
     property Priority: Single read FPriority write SetPriority {$ifdef FPC}default 0.5{$endif};
 
-    {$ifdef FPC}
-    property Importance: Cardinal read GetImportance write SetImportance; deprecated 'use Priority (with priorities as float, in 0..1 range)';
-    {$endif}
     constructor Create;
   end;
 
@@ -87,16 +77,6 @@ begin
   Pitch := 1;
   ReferenceDistance := TCastleSound.DefaultReferenceDistance;
   MaxDistance       := TCastleSound.DefaultMaxDistance;
-end;
-
-function TPlaySoundParameters.GetImportance: Cardinal;
-begin
-  Result := PriorityToImportance(Priority);
-end;
-
-procedure TPlaySoundParameters.SetImportance(const Value: Cardinal);
-begin
-  Priority := ImportanceToPriority(Value);
 end;
 
 procedure TPlaySoundParameters.SetPriority(const Value: Single);

@@ -24,10 +24,17 @@ type
   TBase64DecodingMode = (bdmStrict, bdmMIME);
 
   { Decode base64 stream.
-    Underneath, in Delphi, the whole decoding (so, reading Source)
+
+    Note: Underneath, in Delphi, the whole decoding (so, reading Source)
     is done immediately at constructor.
 
-    Note: in Delphi, AMode is ignored. }
+    Note: in Delphi, AMode is ignored.
+
+    The base64 string of characters (input) is assumed to be String,
+    i.e. Delphi UTF-16 string.
+
+    The output is just binary data, what it is depends on what was
+    encoded. It may be UTF-8 characters in AnsiString. }
   TBase64DecodingStream = class(TMemoryStream)
   strict private
     FSource: TStream;
@@ -39,7 +46,30 @@ type
     property SourceOwner: Boolean read FSourceOwner write FSourceOwner default false;
   end;
 
+  { Encode base64 stream.
+
+    Note: Underneath, in Delphi, the whole encoding (so, writing to Destination)
+    is done at destructor.
+
+    The base64 string of characters (output) is assumed to be String,
+    i.e. Delphi UTF-16 string.
+
+    The input is just binary data, whatever you want to encode.
+    encoded. It may be UTF-8 characters in AnsiString, e.g. you can write
+    them using CastleClassUtils.WriteStr. }
+  TBase64EncodingStream = class(TMemoryStream)
+  strict private
+    FDestination: TStream;
+    FDestinationOwner: Boolean;
+  public
+    constructor Create(const ADestination: TStream);
+    destructor Destroy; override;
+    property DestinationOwner: Boolean read FDestinationOwner write FDestinationOwner default false;
+  end;
+
 implementation
+
+{ TBase64DecodingStream ------------------------------------------------------ }
 
 constructor TBase64DecodingStream.Create(const ASource: TStream);
 begin
@@ -59,6 +89,27 @@ destructor TBase64DecodingStream.Destroy;
 begin
   if SourceOwner then
     FreeAndNil(FSource);
+  inherited;
+end;
+
+{ TBase64EncodingStream ------------------------------------------------------ }
+
+constructor TBase64EncodingStream.Create(const ADestination: TStream);
+begin
+  inherited Create;
+  FDestination := ADestination;
+end;
+
+destructor TBase64EncodingStream.Destroy;
+begin
+  if FDestination <> nil then
+  begin
+    Position := 0;
+    while TNetEncoding.Base64.Encode(Self, FDestination) <> 0 do ;
+  end;
+
+  if DestinationOwner then
+    FreeAndNil(FDestination);
   inherited;
 end;
 

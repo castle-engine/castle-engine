@@ -1,6 +1,6 @@
 // -*- compile-command: "./test_single_testcase.sh TTestCastleStringUtils" -*-
 {
-  Copyright 2004-2021 Michalis Kamburelis.
+  Copyright 2004-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -16,16 +16,13 @@
 
 unit TestCastleStringUtils;
 
-{$ifdef FPC}{$mode objfpc}{$H+}{$endif}
-
 interface
 
 uses
-  Classes, SysUtils, {$ifndef CASTLE_TESTER}FpcUnit, TestUtils,
-  TestRegistry{$else}CastleTester{$endif};
+  Classes, SysUtils, CastleTester;
 
 type
-  TTestCastleStringUtils = class({$ifndef CASTLE_TESTER}TTestCase{$else}TCastleTestCase{$endif})
+  TTestCastleStringUtils = class(TCastleTestCase)
   published
     procedure TestIntToStrBase;
     procedure TestDeFormat;
@@ -37,15 +34,22 @@ type
     procedure TestCastleStringList;
     procedure TestCastleStringListNewlinesInside;
     procedure TestSReplacePatterns;
-    {$ifdef FPC}procedure TestGetFileFilter;{$endif}
+    procedure TestSReplacePatternsMenu;
     procedure TestSplitString;
     procedure TestTrimEndingNewline;
     procedure TestAddMultiLine;
+    procedure TestRegexpMatches;
+    procedure TestIsWild;
+    procedure TestSAppendPart;
+    procedure TestStringListStrict;
+    procedure TestPrefixSuffix;
   end;
 
 implementation
 
-uses CastleUtils, CastleStringUtils;
+uses StrUtils,
+  CastleUtils, CastleStringUtils,
+  CastleTestUtils;
 
 procedure TTestCastleStringUtils.TestIntToStrBase;
 var i: Integer;
@@ -193,11 +197,11 @@ begin
   { assertions below should work for both AllowOldPercentSyntax values }
   for AllowOldPercentSyntax := false to true do
   begin
-    AssertTrue(FormatNameCounter('', 0, AllowOldPercentSyntax, ReplacementsDone) = '');
-    AssertTrue(FormatNameCounter('a', 0, AllowOldPercentSyntax, ReplacementsDone) = 'a');
-    AssertTrue(FormatNameCounter('%again@counter(1)', 66, AllowOldPercentSyntax, ReplacementsDone) = '%again66');
-    AssertTrue(FormatNameCounter('%%again@counter(1)', 66, AllowOldPercentSyntax, ReplacementsDone) = '%%again66');
-    AssertTrue(FormatNameCounter('%%again@counter(4)', 66, AllowOldPercentSyntax, ReplacementsDone) = '%%again0066');
+    AssertEquals('', FormatNameCounter('', 0, AllowOldPercentSyntax, ReplacementsDone));
+    AssertEquals('a', FormatNameCounter('a', 0, AllowOldPercentSyntax, ReplacementsDone));
+    AssertEquals('%again66', FormatNameCounter('%again@counter(1)', 66, AllowOldPercentSyntax, ReplacementsDone));
+    AssertEquals('%%again66', FormatNameCounter('%%again@counter(1)', 66, AllowOldPercentSyntax, ReplacementsDone));
+    AssertEquals('%%again0066', FormatNameCounter('%%again@counter(4)', 66, AllowOldPercentSyntax, ReplacementsDone));
   end;
 end;
 
@@ -367,40 +371,14 @@ begin
   finally FreeAndNil(SMap) end;
 end;
 
-{$ifdef FPC}
-procedure TTestCastleStringUtils.TestGetFileFilter;
-var
-  Exts: TStringList;
+procedure TTestCastleStringUtils.TestSReplacePatternsMenu;
 begin
-  Exts := TStringList.Create;
-  try
-    GetFileFilterExts('xxxx|name1.ext1;name2.ext2', Exts);
-    AssertEquals(2, Exts.Count);
-    AssertEquals('.ext1', Exts[0]);
-    AssertEquals('.ext2', Exts[1]);
-
-    GetFileFilterExts('name1.ext1;name2.ext2', Exts);
-    AssertEquals(0, Exts.Count);
-
-    GetFileFilterExts('some name|*.ext1;*.ext2', Exts);
-    AssertEquals(2, Exts.Count);
-    AssertEquals('.ext1', Exts[0]);
-    AssertEquals('.ext2', Exts[1]);
-
-    GetFileFilterExts('some name|ext1;*.ext2', Exts);
-    AssertEquals(2, Exts.Count);
-    AssertEquals('.ext1', Exts[0]);
-    AssertEquals('.ext2', Exts[1]);
-  finally FreeAndNil(Exts) end;
-
-  AssertEquals('Pascal files', GetFileFilterName('Pascal files (*.pas)|*.pas'));
-  AssertEquals('Pascal files', GetFileFilterName('Pascal files (*.pas;*.inc)|*.pas;*.inc'));
-  AssertEquals('Pascal files', GetFileFilterName('Pascal files (*.pas,*.inc)|*.pas;*.inc'));
-  AssertEquals('Pascal files', GetFileFilterName('Pascal files|*.pas;*.inc'));
-  AssertEquals('Pascal files', GetFileFilterName('Pascal files'));
-  AssertEquals('Pascal files', GetFileFilterName('Pascal files ()|'));
+  { Test replacements done by TCastleWindow.MenuUpdateCaption }
+  AssertEquals('&Color', SReplacePatterns('_Color', ['__', '_', '&'], ['_', '&', '&&'], false));
+  AssertEquals('Gr&ay', SReplacePatterns('Gr_ay', ['__', '_', '&'], ['_', '&', '&&'], false));
+  AssertEquals('Somet_hing && ampersand', SReplacePatterns('Somet__hing & ampersand', ['__', '_', '&'], ['_', '&', '&&'], false));
+  AssertEquals('&foo with underscore : _', SReplacePatterns('_foo with underscore : __', ['__', '_', '&'], ['_', '&', '&&'], false));
 end;
-{$endif}
 
 procedure TTestCastleStringUtils.TestSplitString;
 
@@ -475,6 +453,132 @@ begin
     AssertEquals('simple', SList[7]);
     AssertEquals('', SList[8]);
   finally FreeAndNil(SList) end;
+end;
+
+procedure TTestCastleStringUtils.TestRegexpMatches;
+begin
+  AssertTrue(StringMatchesRegexp('blah', 'blah'));
+  AssertTrue(StringMatchesRegexp('notblah', 'blah'));
+  AssertFalse(StringMatchesRegexp('blah', 'notblah'));
+
+  // test range [0-9]
+  AssertTrue(StringMatchesRegexp('blah12', 'blah[0-9][0-9]'));
+  AssertTrue(StringMatchesRegexp('blah123', 'blah[0-9][0-9]'));
+  AssertFalse(StringMatchesRegexp('blah123', '^blah[0-9][0-9]$'));
+  AssertFalse(StringMatchesRegexp('blah1', 'blah[0-9][0-9]'));
+  AssertFalse(StringMatchesRegexp('blah[0-9][0-9]', 'blah[0-9][0-9]'));
+
+  // test range [\d]
+  AssertTrue(StringMatchesRegexp('blah12', 'blah[\d][\d]'));
+  AssertTrue(StringMatchesRegexp('blah123', 'blah[\d][\d]'));
+  AssertFalse(StringMatchesRegexp('blah123', '^blah[\d][\d]$'));
+  AssertFalse(StringMatchesRegexp('blah1', 'blah[\d][\d]'));
+  AssertFalse(StringMatchesRegexp('blah[\d][\d]', 'blah[\d][\d]'));
+
+  // test +
+  { First test unfortunately fails with FPC 3.2.0, fixed only in 3.2.2.
+
+    It's a rather important bug (the regexp tested is very simple),
+    but luckily CGE doesn't really use regexp much now (and probably never will),
+    so it's not a big issue in CGE case. }
+  {$ifndef VER3_2_0}
+  AssertTrue(StringMatchesRegexp('blah111foo', 'blah1+foo'));
+  {$endif}
+  AssertTrue(StringMatchesRegexp('blah1foo', 'blah1+foo'));
+  AssertFalse(StringMatchesRegexp('blahfoo', 'blah1+foo'));
+
+  // test *
+  {$ifndef VER3_2_0} // fails with FPC 3.2.0, fixed only in 3.2.2
+  AssertTrue(StringMatchesRegexp('blah111foo', 'blah1*foo'));
+  {$endif}
+  AssertTrue(StringMatchesRegexp('blah1foo', 'blah1*foo'));
+  AssertTrue(StringMatchesRegexp('blahfoo', 'blah1*foo'));
+end;
+
+procedure TTestCastleStringUtils.TestIsWild;
+begin
+  AssertFalse(IsWild('TTestCompiler.TestIs', '*testeventloop*', true));
+  AssertFalse(IsWild('TTestCompiler.TestSinglePrecision', '*testeventloop*', true));
+  AssertFalse(IsWild('TTestCompiler.TestCTypesSizes', '*testeventloop*', true));
+  AssertFalse(IsWild('TTestCompiler.TestSizes', '*testeventloop*', true));
+  AssertFalse(IsWild('TTestCompiler.TestPackedOpenArray', '*testeventloop*', true));
+  AssertFalse(IsWild('TTestSysUtils.TestDirectoryFileExists', '*testeventloop*', true));
+  AssertFalse(IsWild('TTestGenericsCollections.Test1', '*testeventloop*', true));
+
+  AssertTrue(IsWild('TTestEventLoop.Test1', '*testeventloop*', true));
+  AssertTrue(IsWild('TTestCastleWindow.TestEventLoop', '*testeventloop*', true));
+end;
+
+procedure TTestCastleStringUtils.TestSAppendPart;
+begin
+  AssertEquals('', SAppendPart('', '', ''));
+  AssertEquals('foo', SAppendPart('', ';', 'foo'));
+  AssertEquals('foo;foo', SAppendPart('foo', ';', 'foo'));
+  AssertEquals('foo;foo;foo', SAppendPart('foo;foo', ';', 'foo'));
+end;
+
+procedure TTestCastleStringUtils.TestStringListStrict;
+
+{ This code is similar to what CastleInternalDelphiDesign does in
+  TCastleDelphiIdeIntegration.AddPaths ,
+  TCastleDelphiIdeIntegration.RemovePaths . }
+
+const
+  InputStr = '$(BDSLIB)\$(Platform)\release;$(BDSUSERDIR)\Imports;$(BDSUSERDIR)\Imports\$(Platform);$(BDS)\Imports;$(BDSCOMMONDIR)\Dcp;$(BDS)\include;c:\path with spaces';
+  NewPath1 = 'C:\cygwin64\home\michalis\sources\castle-engine\castle-engine\src\base';
+  NewPath2 = 'C:\cygwin64\home\michalis\sources\castle-engine\castle-engine\src\common_includes';
+  OutputStr = InputStr + ';' + NewPath1 + ';' + NewPath2;
+var
+  List: TStringList;
+  I: Integer;
+begin
+  List := TStringList.Create;
+  try
+    List.Delimiter := ';';
+    { This is critically important to not break "c:\path with spaces" in InputStr.
+      See also https://github.com/castle-engine/castle-engine/issues/626 .
+      Another solution, aside from StrictDelimiter, would be to use
+      CGE SplitString + GlueString. }
+    List.StrictDelimiter := true;
+    List.DelimitedText := InputStr;
+    List.Add(NewPath1);
+    List.Add(NewPath2);
+    AssertEquals(OutputStr, List.DelimitedText);
+
+    I := List.IndexOf(NewPath1);
+    AssertFalse(I = -1);
+    List.Delete(I);
+
+    I := List.IndexOf(NewPath2);
+    AssertFalse(I = -1);
+    List.Delete(I);
+
+    AssertEquals(InputStr, List.DelimitedText);
+  finally FreeAndNil(List) end;
+end;
+
+procedure TTestCastleStringUtils.TestPrefixSuffix;
+begin
+  // IsPrefixSuffix checks overlapping
+  AssertFalse(IsPrefixSuffix('bla', 'abc', 'blaaaaa'));
+  AssertTrue(IsPrefixSuffix('bla', 'abc', 'blaaaaabc'));
+  AssertTrue(IsPrefixSuffix('bla', 'abc', 'blaabc'));
+  AssertFalse(IsPrefixSuffix('bla', 'abc', 'blabc'));
+
+  // IsPrefixSuffix honors IgnoreCase
+  AssertTrue(IsPrefixSuffix('bla', 'ABC', 'blaaaaabc'));
+  AssertTrue(IsPrefixSuffix('bla', 'abc', 'blaaaaaBc'));
+  AssertTrue(IsPrefixSuffix('bla', 'ABC', 'blaaaaabc', true));
+  AssertTrue(IsPrefixSuffix('bla', 'abc', 'blaaaaaBc', true));
+  AssertFalse(IsPrefixSuffix('bla', 'ABC', 'blaaaaabc', false));
+  AssertFalse(IsPrefixSuffix('bla', 'abc', 'blaaaaaBc', false));
+
+  // PrefixSuffixRemove checks both, and overlapping
+  AssertEquals('blaaaaa', PrefixSuffixRemove('bla', 'abc', 'blaaaaa', true));
+  AssertEquals('aaa', PrefixSuffixRemove('bla', 'abc', 'blaaaaabc', true));
+  AssertEquals('MIDDLE', PrefixSuffixRemove('bla', 'abc', 'blaMIDDLEabc', true));
+  AssertEquals('', PrefixSuffixRemove('bla', 'abc', 'blaabc', true));
+  AssertEquals('blabc', PrefixSuffixRemove('bla', 'abc', 'blabc', true));
 end;
 
 initialization

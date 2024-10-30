@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2023 Michalis Kamburelis.
+  Copyright 2015-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -31,23 +31,24 @@
     function GetStartAngle: Single;
     procedure SetStartAngle(const Value: Single);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdEndAngle: TSFFloat;
-    { Internal wrapper for property @link(EndAngle). This wrapper API may change, we advise to access simpler @link(EndAngle) instead. }
+    { Internal wrapper for property @code(EndAngle). This wrapper API may change, we advise to access simpler @code(EndAngle) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdEndAngle: TSFFloat read FFdEndAngle;
     {  }
     property EndAngle: Single read GetEndAngle write SetEndAngle;
 
     strict private FFdRadius: TSFFloat;
-    { Internal wrapper for property @link(Radius). This wrapper API may change, we advise to access simpler @link(Radius) instead. }
+    { Internal wrapper for property @code(Radius). This wrapper API may change, we advise to access simpler @code(Radius) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdRadius: TSFFloat read FFdRadius;
     {  }
     property Radius: Single read GetRadius write SetRadius;
 
     strict private FFdStartAngle: TSFFloat;
-    { Internal wrapper for property @link(StartAngle). This wrapper API may change, we advise to access simpler @link(StartAngle) instead. }
+    { Internal wrapper for property @code(StartAngle). This wrapper API may change, we advise to access simpler @code(StartAngle) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdStartAngle: TSFFloat read FFdStartAngle;
     {  }
     property StartAngle: Single read GetStartAngle write SetStartAngle;
@@ -98,16 +99,18 @@ begin
   inherited;
 
   FFdEndAngle := TSFFloat.Create(Self, False, 'endAngle', Pi/2);
-   FdEndAngle.ChangeAlways := chVisibleNonGeometry;
+   FdEndAngle.ChangeAlways := chGeometry;
+   FdEndAngle.Angle := true;
   AddField(FFdEndAngle);
 
   FFdRadius := TSFFloat.Create(Self, False, 'radius', 1);
-   FdRadius.ChangeAlways := chVisibleNonGeometry;
+   FdRadius.ChangeAlways := chGeometry;
    FdRadius.MustBeNonnegative := true;
   AddField(FFdRadius);
 
   FFdStartAngle := TSFFloat.Create(Self, False, 'startAngle', 0);
-   FdStartAngle.ChangeAlways := chVisibleNonGeometry;
+   FdStartAngle.ChangeAlways := chGeometry;
+   FdStartAngle.Angle := true;
   AddField(FFdStartAngle);
 end;
 

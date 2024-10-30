@@ -1,3 +1,4 @@
+{%MainUnit castleuicontrols.pas}
 {
   Copyright 2015-2023 Michalis Kamburelis.
 
@@ -95,7 +96,7 @@
       FDesignLoaded: TCastleUserInterface;
       FDesignLoadedOwner: TDesignOwner;
       FDesignPreload: Boolean;
-      FDesignPreloadedSerialized: TSerializedComponent;
+      FDesignPreloadedSerialized: TCastleComponentFactory;
       FDesignPreloaded: TCastleUserInterface;
       FDesignPreloadedOwner: TComponent;
 
@@ -137,7 +138,7 @@
     function PredictedContainer: TCastleContainer;
   protected
     { The container size is always known: we assume that view will be part
-      of GetMainContainer, if the view not yet started.
+      of PredictedContainer, if the view not yet started.
 
       So the view knows container size, regardless if we are between Start / Stop,
       regardless if the TCastleView is already added to some TCastleContainer.Children.
@@ -148,7 +149,7 @@
     function ContainerRect: TRectangle; override;
     function ContainerSizeKnown: boolean; override;
 
-    function StateContainer: TCastleContainer; deprecated 'use Container to get the container in which we are already started, use GetMainContainer to get global central container';
+    function StateContainer: TCastleContainer; deprecated 'use Container to get the container in which we are already started, use PredictedContainer if the state is not yet started';
 
     { The container in which the view works.
 
@@ -309,12 +310,9 @@
       More precisely, when this property is @true, then the
       @link(Press), @link(Release) and @link(Motion) events are marked as
       "handled" in this UI view. This means that they will not be processed
-      further, by UI controls under this view, in particular by UI views
-      that are underneath this view in @italic(view stack) (created
-      by @link(Push) method). They will also not be passed to final container
-      (TCastleWindow, TCastleControl) callbacks like
-      TCastleWindow.OnPress (as these callbacks are always used at the end,
-      when nothing else handled the event).
+      further, by UI controls behind this view, in particular by UI views
+      that are behind this view in @italic(view stack) (created
+      by @link(Push) method).
 
       Note that setting this to @true means that calling @code(inherited)
       from your @link(Press) overridden implementation will always return @true,
@@ -515,20 +513,20 @@ begin
     raise Exception.Create('Assign Application.MainWindow (if you use CastleWindow) or TCastleControl.MainControl (if you use CastleControl) before starting TCastleView');
 end;
 
-{ TSerializedComponentHelper ------------------------------------------------- }
+{ TCastleComponentFactoryHelper ------------------------------------------------- }
 
 type
-  { Helper methods extending TSerializedComponent.
-    Do not use TSerializedComponentHelper from CastleViewport,
+  { Helper methods extending TCastleComponentFactory.
+    Do not use TCastleComponentFactoryHelper from CastleViewport,
     to not complicate unit dependencies. }
-  TSerializedComponentHelper = class helper for TSerializedComponent
+  TCastleComponentFactoryHelper = class helper for TCastleComponentFactory
     { Instantiate component.
       Using this is equivalent to using global @link(UserInterfaceLoad),
       but it is much faster if you want to instantiate the same file many times. }
     function UserInterfaceLoad(const Owner: TComponent): TCastleUserInterface;
   end;
 
-function TSerializedComponentHelper.UserInterfaceLoad(const Owner: TComponent): TCastleUserInterface;
+function TCastleComponentFactoryHelper.UserInterfaceLoad(const Owner: TComponent): TCastleUserInterface;
 begin
   Result := ComponentLoad(Owner) as TCastleUserInterface;
 end;
@@ -546,7 +544,8 @@ begin
   case Operation of
     opInsert: ParentView.SetNameReference(AComponent, AComponent.Name, true);
     opRemove: ParentView.SetNameReference(AComponent, AComponent.Name, false);
-    else ;
+    // To write else or not? See https://castle-engine.io/coding_conventions#_if_you_dont_care_whether_you_exhaust_all_options_or_not_you_want_to_be_prepared_for_future_extensions_of_enum_type_but_you_dont_want_any_warnings
+    // else ;
   end;
   inherited;
 end;
@@ -840,7 +839,8 @@ begin
   if DesignUrl <> '' then
   begin
     // load FDesignPreloadedSerialized to be able to faster load design, without parsing JSON
-    FDesignPreloadedSerialized := TSerializedComponent.Create(DesignUrl);
+    FDesignPreloadedSerialized := TCastleComponentFactory.Create(nil);
+    FDesignPreloadedSerialized.Url :=DesignUrl;
     // load FDesignPreloaded to cache all that's possible,
     // like images used inside TCastleImageControl or TCastleScene.
     FDesignPreloadedOwner := TComponent.Create(nil);
@@ -920,17 +920,17 @@ end;
 
 function TCastleView.ContainerWidth: Cardinal;
 begin
-  Result := PredictedContainer.Width;
+  Result := PredictedContainer.PixelsWidth;
 end;
 
 function TCastleView.ContainerHeight: Cardinal;
 begin
-  Result := PredictedContainer.Height;
+  Result := PredictedContainer.PixelsHeight;
 end;
 
 function TCastleView.ContainerRect: TRectangle;
 begin
-  Result := PredictedContainer.Rect;
+  Result := PredictedContainer.PixelsRect;
 end;
 
 function TCastleView.ContainerSizeKnown: boolean;

@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2023 Michalis Kamburelis.
+  Copyright 2015-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -24,8 +24,9 @@
 {$ifdef read_interface}
 
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
 {$ifndef CASTLE_SLIM_NODES}
     strict private FEventSet_index: TMFInt32Event;
@@ -34,7 +35,7 @@
 {$endif not CASTLE_SLIM_NODES}
 
     strict private FFdIndex: TMFInt32;
-    { Internal wrapper for property @link(Index). This wrapper API may change, we advise to access simpler @link(Index) instead. }
+    { Internal wrapper for property @code(Index). This wrapper API may change, we advise to access simpler @code(Index) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdIndex: TMFInt32 read FFdIndex;
     {  }
     procedure SetIndex(const Value: array of Int32); overload;

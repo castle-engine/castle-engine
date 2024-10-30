@@ -195,7 +195,7 @@ begin
   FUseColor := AUseColor;
   FColor := White;
   PrepareShader(AUseColor);
-  Vao := TVertexArrayObject.Create;
+  Vao := TVertexArrayObject.Create(nil);
 end;
 
 destructor TCastleRenderUnlitMesh.Destroy;
@@ -279,9 +279,9 @@ procedure TCastleRenderUnlitMesh.Render(const Mode: TPrimitiveMode);
     RenderContext.CurrentProgram := Programs[UseColor].Shader;
     RenderContext.CurrentVao := Vao;
 
-    glBindBuffer(GL_ARRAY_BUFFER, VboVertex);
+    RenderContext.BindBuffer[btArray] := VboVertex;
     // do this even if VboIndex = 0, to set this to 0
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, VboIndex);
+    RenderContext.BindBuffer[btElementArray] := VboIndex;
 
     if FUseColor then
       Programs[UseColor].UniformColor.SetValue(Color);
@@ -292,8 +292,8 @@ procedure TCastleRenderUnlitMesh.Render(const Mode: TPrimitiveMode);
 
     Programs[UseColor].AttributeVertex.DisableArray;
 
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+    RenderContext.BindBuffer[btArray] := 0;
+    RenderContext.BindBuffer[btElementArray] := 0;
   end;
 
   {$ifndef OpenGLES}
@@ -301,6 +301,7 @@ procedure TCastleRenderUnlitMesh.Render(const Mode: TPrimitiveMode);
   procedure RenderFixedFunction;
   var
     SavedFixedFunctionLighting: Boolean;
+    IndexPtr: Pointer;
   begin
     if FUseColor then
       glColorv(Color);
@@ -317,12 +318,17 @@ procedure TCastleRenderUnlitMesh.Render(const Mode: TPrimitiveMode);
     glLoadMatrix(ModelViewProjection);
 
     glEnableClientState(GL_VERTEX_ARRAY);
-    glVertexPointer(4, GL_FLOAT, SizeOf(TVector4), @(FixedFunctionVertexes.List^[0]));
+    glVertexPointer(4, GL_FLOAT, SizeOf(TVector4), FixedFunctionVertexes.L);
 
     SavedFixedFunctionLighting := RenderContext.FixedFunctionLighting;
     RenderContext.FixedFunctionLighting := false;
 
-    RenderDrawCall(@(FixedFunctionIndexes.List^[0]));
+    if FixedFunctionIndexes = nil then
+      IndexPtr := nil
+    else
+      IndexPtr := FixedFunctionIndexes.L;
+
+    RenderDrawCall(IndexPtr);
 
     { Restore GL_PROJECTION matrix value, other drawing code may depend on it.
       Don't restore GL_MODELVIEW, no need, other drawing code has to be prepared
@@ -365,7 +371,7 @@ begin
     if NewVbo then
       glGenBuffers(1, @VboIndex);
 
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, VboIndex);
+    RenderContext.BindBuffer[btElementArray] := VboIndex;
 
     NewSize := IndexesCount * SizeOf(UInt16);
     if NewVbo or (NewSize <> IndexAllocatedBytes) then
@@ -383,7 +389,7 @@ begin
     if FixedFunctionIndexes = nil then
       FixedFunctionIndexes := TUInt16List.Create;
     FixedFunctionIndexes.Count := IndexesCount;
-    Move(Indexes^, FixedFunctionIndexes.List^, IndexAllocatedBytes);
+    Move(Indexes^, FixedFunctionIndexes.L^, IndexAllocatedBytes);
   end;
 end;
 
@@ -400,7 +406,7 @@ begin
     if NewVbo then
       glGenBuffers(1, @VboVertex);
 
-    glBindBuffer(GL_ARRAY_BUFFER, VboVertex);
+    RenderContext.BindBuffer[btArray] := VboVertex;
 
     NewSize := VertexesCount * SizeOf(TVector4);
     if NewVbo or (NewSize <> VertexAllocatedBytes) then
@@ -426,7 +432,7 @@ begin
     if FixedFunctionVertexes = nil then
       FixedFunctionVertexes := TVector4List.Create;
     FixedFunctionVertexes.Count := VertexesCount;
-    Move(Vertexes^, FixedFunctionVertexes.List^, VertexAllocatedBytes);
+    Move(Vertexes^, FixedFunctionVertexes.L^, VertexAllocatedBytes);
   end;
 end;
 

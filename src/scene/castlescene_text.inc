@@ -20,7 +20,12 @@
 
 type
   { Text that is displayed and transformed as TCastleTransform,
-    inside TCastleViewport, and can be manipulated in 3D. }
+    inside TCastleViewport, and can be manipulated in 3D.
+
+    See @url(https://castle-engine.io/manual_text.php
+    manual about displaying text and fonts).
+    See @url(https://castle-engine.io/viewport_and_scenes#_text_tcastletext
+    manual about TCastleText in a viewport). }
   TCastleText = class(TCastleAbstractPrimitive)
   strict private
     FText: TStrings;
@@ -298,10 +303,32 @@ begin
 end;
 
 procedure TCastleText.FontStyleFontChanged;
+
+  { Check and disable CustomFont.DistanceField.
+    TODO: Doing it here doesn't guarantee that we will capture it always.
+    We capture at CustomText assignment and size changes.
+    But it's better than nothing.
+    And we don't want to waste time in Render or Update on this check. }
+  procedure WarnDistanceFieldUnsupported;
+  begin
+    if (CustomFont <> nil) and
+       CustomFont.DistanceField then
+    begin
+      WritelnWarning('TODO: Distance field font rendering not supported by TCastleText (only TCastleLabel), on component "%s" using font "%s". Forcing "%s.DistanceField" to false, otherwise rendering result would be nonsense.', [
+        Name,
+        CustomFont.Name,
+        CustomFont.Name
+      ]);
+      CustomFont.DistanceField := false;
+    end;
+  end;
+
 var
   I: Integer;
   Shape: TShape;
 begin
+  WarnDistanceFieldUnsupported;
+
   // TextNode.FontChanged; // no need to, TShape.Changed will call it, also freeing TextProxy
   for I := 0 to TShapeTree.AssociatedShapesCount(TextNode) - 1 do
   begin

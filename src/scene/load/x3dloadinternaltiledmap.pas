@@ -1,5 +1,5 @@
-﻿{
-  Copyright 2020-2023 Matthias J. Molski, Michalis Kamburelis, Freedomax.
+{
+  Copyright 2020-2024 Matthias J. Molski, Michalis Kamburelis, Freedomax.
 
   This file is part of "Castle Game Engine".
 
@@ -32,8 +32,8 @@ unit X3DLoadInternalTiledMap;
 interface
 
 uses
-  Classes,
-  X3DNodes, CastleLog, CastleTiledMap, CastleVectors, Generics.Collections;
+  Classes, Generics.Collections,
+  X3DNodes, X3DLoad, CastleLog, CastleTiledMap, CastleVectors;
 
 { Load Tiled map into X3D node.
   This is used by LoadNode, which in turn is used by TCastleSceneCore.Load.
@@ -135,14 +135,53 @@ type
 implementation
 
 uses
-  SysUtils, Math,
+  SysUtils, Math, Generics.Defaults,
   CastleTransform, CastleColors, CastleRectangles, CastleUtils,
   CastleRenderOptions, CastleControls, CastleStringUtils,
-  CastleImages, CastleURIUtils;
+  CastleImages, CastleUriUtils;
+
+{ TUnicodeCharEqualityComparer ----------------------------------------------- }
+
+{$ifndef FPC}
+
+type
+  { This is necessary to workaround buggy TDictionary on early Delphi versions
+    (Delphi <= 10.2.3 has this bug, Delphi >= 10.4.2 has it fixed). }
+  TTilesetEqualityComparer = class(TCustomComparer<TCastleTiledMapData.TTileset>)
+    function Compare(const Left, Right: TCastleTiledMapData.TTileset): Integer; override;
+    function Equals(const Left, Right: TCastleTiledMapData.TTileset): Boolean; override;
+    function GetHashCode(const Value: TCastleTiledMapData.TTileset): Integer; override;
+  end;
+
+function TTilesetEqualityComparer.Compare(const Left, Right: TCastleTiledMapData.TTileset): Integer;
+begin
+  Result := Left.GetHashCode - Right.GetHashCode;
+end;
+
+function TTilesetEqualityComparer.Equals(const Left, Right: TCastleTiledMapData.TTileset): Boolean;
+begin
+  Result := Left = Right;
+end;
+
+function TTilesetEqualityComparer.GetHashCode(const Value: TCastleTiledMapData.TTileset): Integer;
+begin
+  Result := Value.GetHashCode;
+end;
+
+{$endif}
+
+{ TCastleTiledMapConverter -------------------------------------------------- }
 
 constructor TCastleTiledMapConverter.TLayerConversion.Create;
 begin
+  {$ifndef FPC}
+  { See CastleTextureFontData for explanation at the analogous workaround.
+    This is only necessary for older Delphis (<= 10.2.3),
+    but to ease testing we use it with all Delphi versions. }
+  inherited Create(TTilesetEqualityComparer.Create);
+  {$else}
   inherited;
+  {$endif}
   FLayerTimeSensors := TLayerTimeSensors.Create;
   FLayerAnimations := TLayerAnimations.Create;
 end;
@@ -257,7 +296,7 @@ var
       end;
 
       WritelnLog('Tiled', 'Added spacing to tileset image "%s", new margin %d, new spacing %d, old size %d x %d -> new size %d x %d', [
-        URIDisplay(AURL),
+        UriDisplay(AURL),
         NewMargin,
         NewSpacing,
         Tileset.Image.Width,
@@ -321,23 +360,24 @@ var
   Layer: TCastleTiledMapData.TLayer;
   LayerNode: TTransformNode;
   LayerZ: Single;
+  SwitchNode: TSwitchNode;
 const
   { Distance between Tiled layers in Z. Layers are rendered as 3D objects
     and need some distance to avoid Z-fighting.
 
-    This could be avoided when using RenderContext.DepthFunc := fdAlways,
+    This could be avoided when using RenderContext.DepthFunc := dfAlways,
     we even tried it at one point (TCastleTiledMap.AssumePerfectRenderingOrder),
     but it had with it's own disadvantages:
-    Rendering with RenderContext.DepthFunc = fdAlways
+    Rendering with RenderContext.DepthFunc = dfAlways
     assumes that really *everything*, including other things
     that could be behind / in front of this Tiled map, are arranged in the TCastleViewport.Items
     tree in the correct order. That is, things behind the Tiled map must be earlier than
     the TCastleTiledMap component in the transformation tree. And things in front of Tiled map must
     be after the TCastleTiledMap component in the transformation tree.
     And this assumption must be preserved by blending sorting done
-    by @link(TCastleAbstractRootTransform.BlendingSort), if any.
+    by @link(TCastleViewport.BlendingSort), if any.
 
-    So we don't use RenderContext.DepthFunc = fdAlways anymore.
+    So we don't use RenderContext.DepthFunc = dfAlways anymore.
     Instead we apply layer Z distance.
 
     Note: 1 is too small for examples/tiled/map_viewer/data/maps/desert_with_objects.tmx }
@@ -359,6 +399,12 @@ begin
 
     LayerNode := TTransformNode.Create;
 
+    // Create an intermediate switch node to enable showing/hiding of the layer via the Exists-property.
+    SwitchNode := TSwitchNode.Create;
+    SwitchNode.AddChildren(LayerNode);
+    SwitchNode.WhichChoice := Iff(Layer.Visible, 0, -1);
+    Layer.SwitchNode := SwitchNode;
+
     if Layer is TCastleTiledMapData.TObjectGroupLayer then
       BuildObjectGroupLayerNode(LayerNode, Layer)
     else
@@ -368,7 +414,8 @@ begin
     else }
       BuildTileLayerNode(LayerNode, Layer);
 
-    MapNode.AddChildren(LayerNode);
+    MapNode.AddChildren(SwitchNode);
+
     // flip -Layer.OffsetY, as Tiled Y goes down
     LayerNode.Translation := Vector3(Layer.OffsetX, -Layer.OffsetY, LayerZ);
     LayerZ := LayerZ + LayerZDistanceIncrease;
@@ -378,8 +425,9 @@ end;
 procedure TCastleTiledMapConverter.BuildObjectGroupLayerNode(const LayerNode: TTransformNode;
   const ALayer: TCastleTiledMapData.TLayer);
 var
-  // Material node of a Tiled obj.
-  TiledObjectMaterial: TMaterialNode;
+  // Appearance (refers also to TiledObjectMaterial) node of a Tiled obj.
+  TiledObjectAppearance: TAppearanceNode;
+  TiledObjectMaterial: TUnlitMaterialNode;
   // A Tiled object instance (as saved in TCastleTiledMapData).
   TiledObject: TCastleTiledMapData.TTiledObject;
   // Node of a Tiled object.
@@ -392,6 +440,7 @@ var
   AVector2List: TVector2List;
   I: Cardinal;
 begin
+  TiledObjectAppearance := nil;
   TiledObjectMaterial := nil;
   TiledObjectNode := nil;
   TiledObjectGeometry := nil;
@@ -407,10 +456,12 @@ begin
 
     { All Tiled objects of this layer share the same material node. The color
       depends on the layer color in accordance with handling of Tiled editor. }
-    if not Assigned(TiledObjectMaterial) then
+    if not Assigned(TiledObjectAppearance) then
     begin
-      TiledObjectMaterial := TMaterialNode.Create;
+      TiledObjectMaterial := TUnlitMaterialNode.Create;
       TiledObjectMaterial.EmissiveColor := ALayer.Color;
+      TiledObjectAppearance := TAppearanceNode.Create;
+      TiledObjectAppearance.Material := TiledObjectMaterial;
     end;
 
     { Every Tiled object is based on a transform node. }
@@ -466,7 +517,7 @@ begin
           WritelnWarning('Not supported yet: Ellipse object primitive. Ignored.');
         end;
     end;
-    TiledObjectShape.Material := TiledObjectMaterial;
+    TiledObjectShape.Appearance := TiledObjectAppearance;
     TiledObjectNode.AddChildren(TiledObjectShape);
     LayerNode.AddChildren(TiledObjectNode);
   end;
@@ -740,6 +791,22 @@ var
     if Map.TileRenderData(TilePosition, ALayer,
       Tileset, Frame, HorizontalFlip, VerticalFlip, DiagonalFlip) then
     begin
+      { Do not load image when there's no Url (no "source" attribute at <tileset>).
+        This is possible when each <tile> has its own <image> element,
+        we don't support it yet, TCastleTiledMapConverter will later warn and
+        skip such tileset.
+
+        Testcase: Phoenix bugreport,
+        https://discord.com/channels/389676745957310465/1204090530368327690/1247180638520606829 ,
+        Michalis has testcase in private. }
+      if Tileset.Columns = 0 then
+      begin
+        WritelnWarning('Tileset "%s" has zero columns, likely because the tileset does not specify the image with all tiles packed. This is not supported now, skipping the tileset.', [
+          Tileset.Name
+        ]);
+        Exit;
+      end;
+
       if not ValidTileId(Frame) then
       begin
         WritelnWarning('Invalid TileId:%d TilePosition:' + TilePosition.ToString, [Frame]);
@@ -827,4 +894,13 @@ begin
   finally FreeAndNil(TiledMapFromStream) end;
 end;
 
+var
+  ModelFormat: TModelFormat;
+initialization
+  ModelFormat := TModelFormat.Create;
+  ModelFormat.OnLoad := {$ifdef FPC}@{$endif} LoadTiledMap2d;
+  ModelFormat.MimeTypes.Add('application/x-tiled-map');
+  ModelFormat.FileFilterName := 'Tiled Map (*.tmx)';
+  ModelFormat.Extensions.Add('.tmx');
+  RegisterModelFormat(ModelFormat);
 end.

@@ -4,12 +4,6 @@
   "Name" : "RootGroup",
   "$Children" : [
     {
-      "$$ClassName" : "TCastleDesign",
-      "FullSize" : true,
-      "Name" : "ViewportUnderUi",
-      "URL" : "castle-data:/viewport_under_ui.castle-user-interface"
-    },
-    {
       "$$ClassName" : "TCastleRectangleControl",
       "ColorPersistent" : {
         "$$ClassName" : "TCastleColorPersistent",
@@ -135,6 +129,14 @@
                   "$$ClassName" : "TCastleIntegerSlider",
                   "Background" : {
                     "$$ClassName" : "TCastleImagePersistent",
+                    "ProtectedSides" : {
+                      "$$ClassName" : "TBorder",
+                      "Bottom" : 6.5000000000000000E+001,
+                      "Left" : 6.9000000000000000E+001,
+                      "Right" : 6.8000000000000000E+001,
+                      "Top" : 6.4000000000000000E+001
+                    },
+                    "ProtectedSidesScaling" : "pssMatchHeight",
                     "URL" : "castle-data:/hud/Slot_Bg2.png"
                   },
                   "DisplayValue" : false,
@@ -146,16 +148,20 @@
                     "$$ClassName" : "TCastleImagePersistent",
                     "URL" : "castle-data:/hud/slider_volume_thumb.png"
                   },
+                  "TranslationPersistent" : {
+                    "$$ClassName" : "TCastleVector2Persistent",
+                    "X" : 1.0000000000000000E+001
+                  },
                   "Value" : 7,
                   "VerticalAnchorParent" : "vpMiddle",
                   "VerticalAnchorSelf" : "vpMiddle",
-                  "Width" : 4.0000000000000000E+002
+                  "Width" : 6.0000000000000000E+002
                 }
               ]
             },
             {
               "$$ClassName" : "TCastleUserInterface",
-              "Height" : 3.0000000000000000E+002,
+              "Height" : 5.0000000000000000E+001,
               "HorizontalAnchorParent" : "hpMiddle",
               "HorizontalAnchorSelf" : "hpMiddle",
               "Name" : "Filler1",
@@ -229,7 +235,7 @@
               "PaddingHorizontal" : 1.0000000000000000E+002,
               "TranslationPersistent" : {
                 "$$ClassName" : "TCastleVector2Persistent",
-                "Y" : -5.3000000000000000E+002
+                "Y" : -2.8000000000000000E+002
               },
               "VerticalAnchorParent" : "vpTop",
               "VerticalAnchorSelf" : "vpTop",
@@ -275,7 +281,7 @@
               "Name" : "ButtonBackGame",
               "TranslationPersistent" : {
                 "$$ClassName" : "TCastleVector2Persistent",
-                "Y" : -6.4000000000000000E+002
+                "Y" : -3.9000000000000000E+002
               },
               "VerticalAnchorParent" : "vpTop",
               "VerticalAnchorSelf" : "vpTop",

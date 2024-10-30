@@ -1,3 +1,4 @@
+{%MainUnit x3dnodes.pas}
 {
   Copyright 2002-2022 Michalis Kamburelis.
 
@@ -24,8 +25,16 @@
   {$I auto_generated_node_helpers/x3dnodes_x3dsingletexturecoordinatenode.inc}
   end;
 
+  TInternalRendererResource = class
+  end;
+
   { Base for all nodes which specify a texture, possibly multi-texture. }
   TAbstractTextureNode = class(TAbstractAppearanceChildNode)
+  strict private
+    FInternalRendererResource: TInternalRendererResource;
+    FContextCloseEventSetup: Boolean;
+    procedure SetInternalRendererResource(const Value: TInternalRendererResource);
+    procedure GLContextCloseEvent(Sender: TObject);
   strict protected
     { Alpha channel detected from image contents (or children nodes),
       ignoring our FdAlphaChannel field.
@@ -34,6 +43,23 @@
       descendant). }
     function AlphaChannelData: TAlphaChannel; virtual;
   public
+    { Internal data stored here and used by the renderer.
+      Specific to this TX3DNode.
+
+      This holds a reference count to OpenGL resource in RendererCache,
+      freeing this InternalRendererResource decreases the reference count,
+      and it is done when destroying this node or when last GL context
+      is lost.
+
+      @exclude }
+    property InternalRendererResource: TInternalRendererResource
+      read FInternalRendererResource write SetInternalRendererResource;
+
+    { Free InternalRendererResource, if any. }
+    procedure InternalRendererResourceFree;
+
+    destructor Destroy; override;
+
     { Short description how texture is defined, is it inline or loaded
       from URL, is it video of simple image texture.
       "none" if it's not defined at all.
@@ -96,7 +122,7 @@
     procedure SetIsTextureLoaded(Value: boolean);
     procedure FreeAndNilTextureData;
   strict protected
-    FTextureUsedFullUrl: string;
+    FTextureUsedFullUrl: String;
 
     { Loads texture data (image or video file).
 
@@ -135,7 +161,7 @@
 
     function AlphaChannelData: TAlphaChannel; override;
   public
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
+    constructor Create(const AX3DName: string = ''; const ABaseUrl: String = ''); override;
     destructor Destroy; override;
 
     { TextureImage, TextureComposite and TextureVideo contain actual texture data.
@@ -208,7 +234,7 @@
       In case of data: URLs, this doesn't contain actual data (it would
       be too long then, and TextureUsedFullUrl is mainly for showing to the
       user), it's cutted. }
-    property TextureUsedFullUrl: string read FTextureUsedFullUrl;
+    property TextureUsedFullUrl: String read FTextureUsedFullUrl;
 
   {$I auto_generated_node_helpers/x3dnodes_x3dtexture2dnode.inc}
   end;
@@ -365,6 +391,14 @@
   {$I auto_generated_node_helpers/x3dnodes_pixeltexture.inc}
   end;
 
+  { Internal TPixelTextureNode descendant for nodes that may be used
+    by many scenes at once (right now this just means: FontTexture),
+    Such nodes need special protection to not free their rendering resources
+    too early (e.g. when TCastleScene using them is destroyed). }
+  TInternalReusedPixelTextureNode = class(TPixelTextureNode)
+
+  end;
+
   { 2D texture coordinates used by vertex-based geometry nodes. }
   TTextureCoordinateNode = class(TAbstractSingleTextureCoordinateNode)
   {$I auto_generated_node_helpers/x3dnodes_texturecoordinate.inc}
@@ -418,6 +452,39 @@
 
 { TAbstractTextureNode ------------------------------------------------------- }
 
+procedure TAbstractTextureNode.SetInternalRendererResource(const Value: TInternalRendererResource);
+begin
+  if FInternalRendererResource <> Value then
+  begin
+    FInternalRendererResource := Value;
+    if not FContextCloseEventSetup then
+    begin
+      FContextCloseEventSetup := true;
+      ApplicationProperties.OnGLContextCloseObject.Add(
+        {$ifdef FPC}@{$endif} GLContextCloseEvent);
+    end;
+  end;
+end;
+
+procedure TAbstractTextureNode.GLContextCloseEvent(Sender: TObject);
+begin
+  InternalRendererResourceFree;
+end;
+
+procedure TAbstractTextureNode.InternalRendererResourceFree;
+begin
+  FreeAndNil(FInternalRendererResource);
+end;
+
+destructor TAbstractTextureNode.Destroy;
+begin
+  GLContextCloseEvent(nil);
+  if FContextCloseEventSetup then
+    ApplicationProperties.OnGLContextCloseObject.Remove(
+      {$ifdef FPC}@{$endif} GLContextCloseEvent);
+  inherited;
+end;
+
 function TAbstractTextureNode.AlphaChannelData: TAlphaChannel;
 begin
   Result := acNone;
@@ -448,7 +515,7 @@ end;
 
 { TAbstractTexture2DNode ----------------------------------------------------------- }
 
-constructor TAbstractTexture2DNode.Create(const AX3DName: string = ''; const ABaseUrl: string = '');
+constructor TAbstractTexture2DNode.Create(const AX3DName: string = ''; const ABaseUrl: String = '');
 begin
   inherited;
   UsedCache := nil;
@@ -614,14 +681,14 @@ begin
            not BlenderRelativePath(FdUrl.Items[I]) then
           WritelnWarning('VRML/X3D', Format('Loaded data from an absolute filename "%s", this makes the data possibly unportable (it will probably not work on other systems/locations). Always use relative paths.',
             [FdUrl.Items[I]]));
-        FTextureUsedFullUrl := URIDisplay(FullUrl);
+        FTextureUsedFullUrl := UriDisplay(FullUrl);
         Success := true;
         Break;
       except
         on E: Exception do
           { Silence the Exception, continue trying to load more textures. }
           ErrorMessage := ErrorMessage + NL + '  ' + Format(SLoadError,
-            [E.ClassName, 'texture', URIDisplay(FullUrl), E.Message]);
+            [E.ClassName, 'texture', UriDisplay(FullUrl), E.Message]);
       end;
     end;
 
@@ -654,6 +721,8 @@ end;
 
 procedure TImageTextureNode.LoadFromImage(const Image: TEncodedImage;
   const TakeImageOwnership: Boolean; const UpdateUrl: String);
+var
+  SavedChanged: TX3DChange;
 begin
   FreeAndNilTextureData;
 
@@ -678,7 +747,18 @@ begin
   end;
 
   if Scene <> nil then
+  begin
+    { Call InternalChangedField(FdUrl) to update rendering resources
+      determined by the new TImageTextureNode.TextureImage.
+      But use special mode, chTextureRendererProperties,
+      instead of default chTextureImage, because chTextureImage unloads
+      image (set IsTextureLoaded:=false) which would reject the image contents
+      we just loaded. }
+    SavedChanged := FdUrl.ChangeAlways;
+    FdUrl.ChangeAlways := chTextureRendererProperties;
     Scene.InternalChangedField(FdUrl);
+    FdUrl.ChangeAlways := SavedChanged;
+  end;
 end;
 
 { TMovieTextureNode ---------------------------------------------------------- }
@@ -733,7 +813,7 @@ procedure TMovieTextureNode.LoadTextureData(out WasCacheUsed: boolean);
 
 var
   I: Integer;
-  FullUrl: string;
+  FullUrl: String;
 begin
   WasCacheUsed := true;
   FTextureUsedFullUrl := '';
@@ -756,7 +836,7 @@ begin
       on E: Exception do
         { Remember that WritelnWarning *may* raise an exception. }
         WritelnWarning('Video', Format(SLoadError,
-          [E.ClassName, 'video', URIDisplay(FullUrl), E.Message]));
+          [E.ClassName, 'video', UriDisplay(FullUrl), E.Message]));
     end;
   end;
 end;

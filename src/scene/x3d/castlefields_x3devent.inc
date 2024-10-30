@@ -1,3 +1,4 @@
+{%MainUnit x3dfields.pas}
 {
   Copyright 2007-2018 Michalis Kamburelis.
 

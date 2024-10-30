@@ -1,3 +1,4 @@
+{%MainUnit x3dnodes.pas}
 {
   Copyright 2008-2021 Michalis Kamburelis.
 
@@ -70,6 +71,20 @@
 {$endif read_interface}
 
 {$ifdef read_implementation}
+
+{$I auto_generated_node_helpers/x3dnodes_x3dfollowernode.inc}
+{$I auto_generated_node_helpers/x3dnodes_x3ddampernode.inc}
+{$I auto_generated_node_helpers/x3dnodes_x3dchasernode.inc}
+{$I auto_generated_node_helpers/x3dnodes_colordamper.inc}
+{$I auto_generated_node_helpers/x3dnodes_coordinatedamper.inc}
+{$I auto_generated_node_helpers/x3dnodes_orientationchaser.inc}
+{$I auto_generated_node_helpers/x3dnodes_orientationdamper.inc}
+{$I auto_generated_node_helpers/x3dnodes_positionchaser.inc}
+{$I auto_generated_node_helpers/x3dnodes_positionchaser2d.inc}
+{$I auto_generated_node_helpers/x3dnodes_positiondamper.inc}
+{$I auto_generated_node_helpers/x3dnodes_positiondamper2d.inc}
+{$I auto_generated_node_helpers/x3dnodes_scalarchaser.inc}
+{$I auto_generated_node_helpers/x3dnodes_texcoorddamper2d.inc}
 
 procedure RegisterFollowersNodes;
 begin

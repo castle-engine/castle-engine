@@ -1,6 +1,6 @@
 {%MainUnit castledownload.pas}
 {
-  Copyright 2013-2020 Michalis Kamburelis.
+  Copyright 2013-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -16,9 +16,13 @@
 
 { Handle http, https URLs using Android service. }
 
-{$ifdef read_implementation}
-
 {$ifdef ANDROID}
+
+{$ifdef read_implementation_uses}
+CastleAndroidInternalAssetStream, CastleMessaging,
+{$endif read_implementation_uses}
+
+{$ifdef read_implementation}
 
 { TUrlHttpAndroid ------------------------------------------------------------ }
 
@@ -56,30 +60,64 @@ procedure THttpAndroidReader.Start;
     end;
   end;
 
-  function HttpPostDataStr: String;
+  function HttpRequestBodyStr: String;
   begin
+    if HttpRequestBody <> nil then
+      Result := StreamToString(HttpRequestBody)
+    else
     if HttpPostData <> nil then
       Result := HttpPostData.Text
     else
       Result := '';
   end;
 
+  function HttpHeadersStr: String;
+  var
+    SL: TStringList;
+    I: Integer;
+  begin
+    if HttpHeadersKeys = nil then
+      Exit('');
+    Assert((HttpHeadersKeys <> nil) = (HttpHeadersValues <> nil));
+    Assert(HttpHeadersKeys.Count = HttpHeadersValues.Count);
+    SL := TStringList.Create;
+    try
+      for I := 0 to HttpHeadersKeys.Count - 1 do
+      begin
+        if Pos(':', HttpHeadersKeys[I]) <> 0 then
+          raise Exception.CreateFmt('HTTP header key "%s" contains colon (:), this is not allowed', [
+            HttpHeadersKeys[I]
+          ]);
+        if Pos(':', HttpHeadersValues[I]) <> 0 then
+          raise Exception.CreateFmt('HTTP header value "%s" contains colon (:), this is not allowed', [
+            HttpHeadersValues[I]
+          ]);
+        SL.Append(HttpHeadersKeys[I] + ':' + HttpHeadersValues[I]);
+      end;
+      Result := SL.Text;
+    finally
+      FreeAndNil(SL);
+    end;
+  end;
+
 begin
   inherited;
+  if not CheckNetworkAccess then
+    Exit;
 
   DownloadId := NextDownloadId;
   Inc(NextDownloadId);
 
   CheckFileAccessSafe(Url);
   WritelnLog('Network', 'Download service started for "%s", id %d', [
-    URIDisplay(Url),
+    UriDisplay(Url),
     DownloadId
   ]);
 
-  MimeType := URIMimeType(Url);
+  MimeType := UriMimeType(Url);
 
   Messaging.OnReceive.Add({$ifdef FPC}@{$endif} HandleDownloadMessages);
-  Messaging.Send(['download-url', IntToStr(DownloadId), Url, HttpMethodName, HttpPostDataStr]);
+  Messaging.Send(['download-url', IntToStr(DownloadId), Url, HttpMethodName, HttpRequestBodyStr, HttpHeadersStr]);
   Contents := TMemoryStream.Create;
 
   HttpResponseHeaders := TStringList.Create;
@@ -158,17 +196,12 @@ begin
   begin
     HttpResponseCode := StrToInt(Received[2]);
     // WritelnLog('Network', 'HTTP response for "%s" is %d: %s', [
-    //   URIDisplay(Url),
+    //   UriDisplay(Url),
     //   HttpResponseCode,
     //   Received[3]
     // ]);
     Result := true;
   end;
-
-  { TODO:
-    - HttpHeadersKeys, HttpHeadersValues not handled
-      use URLConnection API (setRequestProperty), https://docs.oracle.com/javase/7/docs/api/java/net/URLConnection.html
-  }
 end;
 
 destructor THttpAndroidReader.Destroy;
@@ -179,6 +212,7 @@ begin
   inherited;
 end;
 
+{$endif read_implementation}
+
 {$endif ANDROID}
 
-{$endif read_implementation}

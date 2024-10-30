@@ -50,7 +50,13 @@ end;
 {$endif read_implementation_methods}
 
 {$ifdef read_implementation_constructor}
-  FTextColorPersistent := TCastleColorPersistent.Create;
+  FTextColorPersistent := TCastleColorPersistent.Create(nil);
+  { Note that some classes (like TCastleVector3Persistent) call SetSubComponent(true)
+    on themselves, for backward compatibility. But we should not depend on it,
+    some classes (like TFloatRectanglePersisten) may not call it.
+    The responsibility of calling "SetSubComponent(true)" should be on the owner
+    in general (this is more functional, and more standard too). }
+  FTextColorPersistent.SetSubComponent(true);
   FTextColorPersistent.InternalGetValue := {$ifdef FPC}@{$endif}GetTextColorForPersistent;
   FTextColorPersistent.InternalSetValue := {$ifdef FPC}@{$endif}SetTextColorForPersistent;
   FTextColorPersistent.InternalDefaultValue := TextColor; // current value is default
@@ -112,7 +118,13 @@ end;
 {$endif read_implementation_methods}
 
 {$ifdef read_implementation_constructor}
-  FCheckboxColorPersistent := TCastleColorPersistent.Create;
+  FCheckboxColorPersistent := TCastleColorPersistent.Create(nil);
+  { Note that some classes (like TCastleVector3Persistent) call SetSubComponent(true)
+    on themselves, for backward compatibility. But we should not depend on it,
+    some classes (like TFloatRectanglePersisten) may not call it.
+    The responsibility of calling "SetSubComponent(true)" should be on the owner
+    in general (this is more functional, and more standard too). }
+  FCheckboxColorPersistent.SetSubComponent(true);
   FCheckboxColorPersistent.InternalGetValue := {$ifdef FPC}@{$endif}GetCheckboxColorForPersistent;
   FCheckboxColorPersistent.InternalSetValue := {$ifdef FPC}@{$endif}SetCheckboxColorForPersistent;
   FCheckboxColorPersistent.InternalDefaultValue := CheckboxColor; // current value is default

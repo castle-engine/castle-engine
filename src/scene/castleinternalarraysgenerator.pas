@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ Generating TGeometryArrays for VRML/X3D shapes (TArraysGenerator). }
+{ Generating TGeometryArrays for shapes (TArraysGenerator). }
 unit CastleInternalArraysGenerator;
 
 {$I castleconf.inc}
@@ -24,10 +24,8 @@ uses CastleShapes, X3DNodes, X3DFields, CastleUtils, CastleInternalGeometryArray
   CastleVectors;
 
 type
-  { Generate TGeometryArrays for a VRML/X3D shape. This is the basis
-    of our renderer: generate a TGeometryArrays for a shape,
-    then TGLRenderer will pass TGeometryArrays to OpenGL.
-
+  { Generate TGeometryArrays for a shape. This is the basis
+    of our renderer, TRenderer will pass such arrays to OpenGL.
     Geometry must be based on coordinates when using this,
     that is TAbstractGeometryNode.Coord must return @true. }
   TArraysGenerator = class
@@ -342,7 +340,7 @@ begin
 
   for I := 0 to CopyCount - 1 do
   begin
-    Index := Indexes.List^[I];
+    Index := Indexes.L[I];
     if Index >= SourceCount then
       raise EAssignInterleavedRangeError.CreateFmt('Invalid index: %d, but we have %d items in %s', [
         Index,
@@ -996,7 +994,7 @@ begin
   begin
     if Arrays.Indexes = nil then
       Inc(ArrayIndexNum) else
-      ArrayIndexNum := CoordIndex.Items.List^[IndexNum];
+      ArrayIndexNum := CoordIndex.Items.L[IndexNum];
   end else
     ArrayIndexNum := IndexNum;
 end;
@@ -1008,9 +1006,9 @@ begin
   Assert(IndexNum < CoordCount);
 
   if CoordIndex <> nil then
-    Result := Coord.ItemsSafe[CoordIndex.Items.List^[IndexNum]]
+    Result := Coord.ItemsSafe[CoordIndex.Items.L[IndexNum]]
   else
-    Result := Coord.Items.List^[IndexNum];
+    Result := Coord.Items.L[IndexNum];
 end;
 
 function TArraysGenerator.CoordCount: Integer;
@@ -1116,9 +1114,9 @@ procedure TAbstractTextureCoordinateGenerator.PrepareAttributes(
 
     begin
       FillChar(Gen, SizeOf(Gen), 0);
-      Gen.InternalData[Coord] := (GenEnd - GenStart) / LocalBBoxSize[Coord];
-      Gen.InternalData[3] :=
-        - LocalBBox.Data[0].InternalData[Coord] * (GenEnd - GenStart) / LocalBBoxSize[Coord]
+      Gen.Data[Coord] := (GenEnd - GenStart) / LocalBBoxSize[Coord];
+      Gen.Data[3] :=
+        - LocalBBox.Data[0].Data[Coord] * (GenEnd - GenStart) / LocalBBoxSize[Coord]
         + GenStart;
     end;
 
@@ -1601,11 +1599,11 @@ begin
             TexCoordIndex.Count >= CoordIndex.Count, so the IndexNum index
             is Ok for sure. That's why we don't do "ItemsSafe"
             for TexCoordIndex. }
-          SetTexFromTexCoordArray(Arrays.TexCoords[TextureUnit].Dimensions, TexCoordIndex.Items.List^[IndexNum]);
+          SetTexFromTexCoordArray(Arrays.TexCoords[TextureUnit].Dimensions, TexCoordIndex.Items.L[IndexNum]);
         tcCoordIndexed:
           { We already checked that IndexNum < CoordCount, so the first index
             is Ok for sure. }
-          SetTexFromTexCoordArray(Arrays.TexCoords[TextureUnit].Dimensions, CoordIndex.Items.List^[IndexNum]);
+          SetTexFromTexCoordArray(Arrays.TexCoords[TextureUnit].Dimensions, CoordIndex.Items.L[IndexNum]);
         tcNonIndexed:
           SetTexFromTexCoordArray(Arrays.TexCoords[TextureUnit].Dimensions, IndexNum);
         else raise EInternalError.Create('TAbstractTextureCoordinateGenerator.GetTextureCoord?');
@@ -1663,15 +1661,15 @@ begin
     - So it would require creating IndexesFromCoordIndexMap, that maps index of indexes -> where to find it.
       E.g. instead of this:
 
-        IndexesFromCoordIndex.List^[IFSNextIndex] := CoordIndex.Items.List^[BeginIndex]; Inc(IFSNextIndex);
-        IndexesFromCoordIndex.List^[IFSNextIndex] := CoordIndex.Items.List^[I + 1];      Inc(IFSNextIndex);
-        IndexesFromCoordIndex.List^[IFSNextIndex] := CoordIndex.Items.List^[I + 2];      Inc(IFSNextIndex);
+        IndexesFromCoordIndex.L[IFSNextIndex] := CoordIndex.Items.L[BeginIndex]; Inc(IFSNextIndex);
+        IndexesFromCoordIndex.L[IFSNextIndex] := CoordIndex.Items.L[I + 1];      Inc(IFSNextIndex);
+        IndexesFromCoordIndex.L[IFSNextIndex] := CoordIndex.Items.L[I + 2];      Inc(IFSNextIndex);
 
       => we would need this:
 
-        IndexesFromCoordIndexMap.List^[IFSNextIndex] := BeginIndex; Inc(IFSNextIndex);
-        IndexesFromCoordIndexMap.List^[IFSNextIndex] := I + 1;      Inc(IFSNextIndex);
-        IndexesFromCoordIndexMap.List^[IFSNextIndex] := I + 2;      Inc(IFSNextIndex);
+        IndexesFromCoordIndexMap.L[IFSNextIndex] := BeginIndex; Inc(IFSNextIndex);
+        IndexesFromCoordIndexMap.L[IFSNextIndex] := I + 1;      Inc(IFSNextIndex);
+        IndexesFromCoordIndexMap.L[IFSNextIndex] := I + 2;      Inc(IFSNextIndex);
 
     - However, in many cases this IndexesFromCoordIndexMap would be useless.
       For tcNonIndexed or tcCoordIndexed it would be useless.
@@ -1686,7 +1684,7 @@ begin
       to create IndexedTriangleSetNode.
   }
   if TexImplementation = tcTexIndexed then
-    DoTexCoord(TexCoordIndex.Items.List^[IndexNum]);
+    DoTexCoord(TexCoordIndex.Items.L[IndexNum]);
 end;
 
 { TAbstractMaterial1Generator ------------------------------------------ }
@@ -1708,7 +1706,7 @@ procedure TAbstractMaterial1Generator.UpdateMat1Implementation;
       { For VRML 1.0, [-1] value is default for materialIndex
         and should be treated as "empty", as far as I understand
         the spec. }
-      (not ((MFIndexes.Count = 1) and (MFIndexes.Items.List^[0] = -1)));
+      (not ((MFIndexes.Count = 1) and (MFIndexes.Items.L[0] = -1)));
   end;
 
 begin
@@ -1785,7 +1783,7 @@ begin
     miPerFace:
       FaceMaterial1Color := GetMaterial1Color(RangeNumber);
     miPerFaceMatIndexed:
-      FaceMaterial1Color := GetMaterial1Color(MaterialIndex.Items.List^[RangeNumber]);
+      FaceMaterial1Color := GetMaterial1Color(MaterialIndex.Items.L[RangeNumber]);
     else ;
   end;
 end;
@@ -1926,7 +1924,7 @@ begin
 
   case NormalBinding of
     BIND_DEFAULT, BIND_PER_VERTEX_INDEXED:
-      if (NormalIndex.Count > 0) and (NormalIndex.Items.List^[0] >= 0) then
+      if (NormalIndex.Count > 0) and (NormalIndex.Items.L[0] >= 0) then
         Result := niPerVertexNormalIndexed;
     BIND_PER_VERTEX:
       if CoordIndex <> nil then
@@ -1937,7 +1935,7 @@ begin
     BIND_PER_PART, BIND_PER_FACE:
       Result := niPerFace;
     BIND_PER_PART_INDEXED, BIND_PER_FACE_INDEXED:
-      if (NormalIndex.Count > 0) and (NormalIndex.Items.List^[0] >= 0) then
+      if (NormalIndex.Count > 0) and (NormalIndex.Items.L[0] >= 0) then
         Result := niPerFaceNormalIndexed;
   end;
 
@@ -1952,7 +1950,7 @@ end;
 function TAbstractNormalGenerator.NormalsSafe(const Index: Integer): TVector3;
 begin
   if Index < Normals.Count then
-    Result := Normals.List^[Index]
+    Result := Normals.L[Index]
   else
     Result := TVector3.Zero;
 end;
@@ -1962,19 +1960,19 @@ procedure TAbstractNormalGenerator.GetNormal(
 begin
   case NorImplementation of
     niOverall:
-      N := Normals.List^[0];
+      N := Normals.L[0];
     niUnlit:
       N := TVector3.Zero; // return anything defined
     niPerVertexNonIndexed:
-      N := Normals.List^[IndexNum];
+      N := Normals.L[IndexNum];
     niPerVertexCoordIndexed:
-      N := Normals.List^[CoordIndex.Items.List^[IndexNum]];
+      N := Normals.L[CoordIndex.Items.L[IndexNum]];
     niPerVertexNormalIndexed:
-      N := Normals.List^[NormalIndex.ItemsSafe[IndexNum]];
+      N := Normals.L[NormalIndex.ItemsSafe[IndexNum]];
     niPerFace:
-      N := Normals.List^[RangeNumber];
+      N := Normals.L[RangeNumber];
     niPerFaceNormalIndexed:
-      N := Normals.List^[NormalIndex.ItemsSafe[RangeNumber]];
+      N := Normals.L[NormalIndex.ItemsSafe[RangeNumber]];
     else
       raise EInternalError.CreateFmt('NorImplementation unknown (probably niNone, and not overridden GetNormal) in class %s',
         [ClassName]);
@@ -2081,11 +2079,11 @@ procedure TAbstractFogGenerator.GenerateVertex(
   begin
     { make IndexNum independent of coordIndex, always work like index to coords }
     if CoordIndex <> nil then
-      IndexNum := CoordIndex.Items.List^[IndexNum];
+      IndexNum := CoordIndex.Items.L[IndexNum];
 
     { calculate Fog, based on FogCoord and IndexNum }
     if IndexNum < FogCoord.Count then
-      Result := FogCoord.List^[IndexNum]
+      Result := FogCoord.L[IndexNum]
     else
     if FogCoord.Count <> 0 then
       Result := FogCoord.Last
@@ -2099,9 +2097,9 @@ procedure TAbstractFogGenerator.GenerateVertex(
   begin
     { calculate global vertex position }
     if CoordIndex <> nil then
-      Position := Coord.Items.List^[CoordIndex.Items.List^[IndexNum]]
+      Position := Coord.Items.L[CoordIndex.Items.L[IndexNum]]
     else
-      Position := Coord.Items.List^[IndexNum];
+      Position := Coord.Items.L[IndexNum];
     Position := State.Transformation.Transform.MultPoint(Position);
 
     Projected := PointOnLineClosestToPoint(

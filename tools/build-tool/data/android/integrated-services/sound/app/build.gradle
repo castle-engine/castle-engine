@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<build_gradle_merge>
+  <dependencies>
+    <!-- Following https://developer.android.com/games/sdk/oboe/update-build-settings  -->
+    <dependency>implementation 'com.google.oboe:oboe:1.7.0'</dependency>
+  </dependencies>
+</build_gradle_merge>

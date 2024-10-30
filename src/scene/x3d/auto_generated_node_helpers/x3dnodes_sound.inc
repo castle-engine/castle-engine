@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2023 Michalis Kamburelis.
+  Copyright 2015-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -40,70 +40,71 @@
     procedure SetMinFront(const Value: Single);
     function GetPriority: Single;
     procedure SetPriority(const Value: Single);
-    function GetSource: TAbstractSoundSourceNode;
-    procedure SetSource(const Value: TAbstractSoundSourceNode);
+    function GetSource: TX3DNode;
+    procedure SetSource(const Value: TX3DNode);
     function GetSpatialize: Boolean;
     procedure SetSpatialize(const Value: Boolean);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdDirection: TSFVec3f;
-    { Internal wrapper for property @link(Direction). This wrapper API may change, we advise to access simpler @link(Direction) instead. }
+    { Internal wrapper for property @code(Direction). This wrapper API may change, we advise to access simpler @code(Direction) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdDirection: TSFVec3f read FFdDirection;
     {  }
     property Direction: TVector3 read GetDirection write SetDirection;
 
     strict private FFdIntensity: TSFFloat;
-    { Internal wrapper for property @link(Intensity). This wrapper API may change, we advise to access simpler @link(Intensity) instead. }
+    { Internal wrapper for property @code(Intensity). This wrapper API may change, we advise to access simpler @code(Intensity) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdIntensity: TSFFloat read FFdIntensity;
     {  }
     property Intensity: Single read GetIntensity write SetIntensity;
 
     strict private FFdLocation: TSFVec3f;
-    { Internal wrapper for property @link(Location). This wrapper API may change, we advise to access simpler @link(Location) instead. }
+    { Internal wrapper for property @code(Location). This wrapper API may change, we advise to access simpler @code(Location) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdLocation: TSFVec3f read FFdLocation;
     {  }
     property Location: TVector3 read GetLocation write SetLocation;
 
     strict private FFdMaxBack: TSFFloat;
-    { Internal wrapper for property @link(MaxBack). This wrapper API may change, we advise to access simpler @link(MaxBack) instead. }
+    { Internal wrapper for property @code(MaxBack). This wrapper API may change, we advise to access simpler @code(MaxBack) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdMaxBack: TSFFloat read FFdMaxBack;
     {  }
     property MaxBack: Single read GetMaxBack write SetMaxBack;
 
     strict private FFdMaxFront: TSFFloat;
-    { Internal wrapper for property @link(MaxFront). This wrapper API may change, we advise to access simpler @link(MaxFront) instead. }
+    { Internal wrapper for property @code(MaxFront). This wrapper API may change, we advise to access simpler @code(MaxFront) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdMaxFront: TSFFloat read FFdMaxFront;
     {  }
     property MaxFront: Single read GetMaxFront write SetMaxFront;
 
     strict private FFdMinBack: TSFFloat;
-    { Internal wrapper for property @link(MinBack). This wrapper API may change, we advise to access simpler @link(MinBack) instead. }
+    { Internal wrapper for property @code(MinBack). This wrapper API may change, we advise to access simpler @code(MinBack) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdMinBack: TSFFloat read FFdMinBack;
     {  }
     property MinBack: Single read GetMinBack write SetMinBack;
 
     strict private FFdMinFront: TSFFloat;
-    { Internal wrapper for property @link(MinFront). This wrapper API may change, we advise to access simpler @link(MinFront) instead. }
+    { Internal wrapper for property @code(MinFront). This wrapper API may change, we advise to access simpler @code(MinFront) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdMinFront: TSFFloat read FFdMinFront;
     {  }
     property MinFront: Single read GetMinFront write SetMinFront;
 
     strict private FFdPriority: TSFFloat;
-    { Internal wrapper for property @link(Priority). This wrapper API may change, we advise to access simpler @link(Priority) instead. }
+    { Internal wrapper for property @code(Priority). This wrapper API may change, we advise to access simpler @code(Priority) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdPriority: TSFFloat read FFdPriority;
     {  }
     property Priority: Single read GetPriority write SetPriority;
 
     strict private FFdSource: TSFNode;
-    { Internal wrapper for property @link(Source). This wrapper API may change, we advise to access simpler @link(Source) instead. }
+    { Internal wrapper for property @code(Source). This wrapper API may change, we advise to access simpler @code(Source) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdSource: TSFNode read FFdSource;
     {  }
-    property Source: TAbstractSoundSourceNode read GetSource write SetSource;
+    property Source: TX3DNode read GetSource write SetSource;
 
     strict private FFdSpatialize: TSFBool;
-    { Internal wrapper for property @link(Spatialize). This wrapper API may change, we advise to access simpler @link(Spatialize) instead. }
+    { Internal wrapper for property @code(Spatialize). This wrapper API may change, we advise to access simpler @code(Spatialize) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdSpatialize: TSFBool read FFdSpatialize;
     {  }
     property Spatialize: Boolean read GetSpatialize write SetSpatialize;
@@ -194,15 +195,15 @@ begin
   FdPriority.Send(Value);
 end;
 
-function TSoundNode.GetSource: TAbstractSoundSourceNode;
+function TSoundNode.GetSource: TX3DNode;
 begin
-  if FdSource.Value is TAbstractSoundSourceNode then
-    Result := TAbstractSoundSourceNode(FdSource.Value)
+  if FdSource.Value is TX3DNode then
+    Result := TX3DNode(FdSource.Value)
   else
     Result := nil;
 end;
 
-procedure TSoundNode.SetSource(const Value: TAbstractSoundSourceNode);
+procedure TSoundNode.SetSource(const Value: TX3DNode);
 begin
   FdSource.Send(Value);
 end;
@@ -264,7 +265,7 @@ begin
    FdPriority.MustBeNonnegative := true;
   AddField(FFdPriority);
 
-  FFdSource := TSFNode.Create(Self, True, 'source', [TAbstractSoundSourceNode]);
+  FFdSource := TSFNode.Create(Self, True, 'source', [TAbstractSoundSourceNode, TMovieTextureNode]);
    FdSource.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdSource);
 

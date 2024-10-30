@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2023 Michalis Kamburelis.
+  Copyright 2015-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -31,23 +31,24 @@
     function GetEnabled: Boolean;
     procedure SetEnabled(const Value: Boolean);
   public
+    { Create node fields and events. }
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdLevel: TSFInt32;
-    { Internal wrapper for property @link(Level). This wrapper API may change, we advise to access simpler @link(Level) instead. }
+    { Internal wrapper for property @code(Level). This wrapper API may change, we advise to access simpler @code(Level) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdLevel: TSFInt32 read FFdLevel;
     {  }
     property Level: Integer read GetLevel write SetLevel;
 
     strict private FFdLogFile: TSFString;
-    { Internal wrapper for property @link(LogFile). This wrapper API may change, we advise to access simpler @link(LogFile) instead. }
+    { Internal wrapper for property @code(LogFile). This wrapper API may change, we advise to access simpler @code(LogFile) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdLogFile: TSFString read FFdLogFile;
     {  }
     property LogFile: String read GetLogFile write SetLogFile;
 
     strict private FFdEnabled: TSFBool;
-    { Internal wrapper for property @link(Enabled). This wrapper API may change, we advise to access simpler @link(Enabled) instead. }
+    { Internal wrapper for property @code(Enabled). This wrapper API may change, we advise to access simpler @code(Enabled) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdEnabled: TSFBool read FFdEnabled;
     {  }
     property Enabled: Boolean read GetEnabled write SetEnabled;

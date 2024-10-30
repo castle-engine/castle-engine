@@ -106,7 +106,13 @@
     float: left;
     width: 20em; /* must match .content margin-left */
     height: 100%;
-    position: fixed;
+    /* Cannot be position: fixed, as it means that footer could overlap
+       with the navigation (testcase:
+       https://castle-engine.io/apidoc/html/tipue_results.html?q=tcastledesign.stretch )
+       since clearfix would not be able to take into account
+       the floating element with position:fixed.
+    */
+    /* position: fixed; */
   }
   .pasdoc-container .content {
     margin-left: 20em; /* must match .navigation width */

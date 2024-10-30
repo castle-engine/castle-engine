@@ -172,9 +172,4 @@ begin
     result := XDisplayHeight(XDisplay, XScreen);
 end;
 
-function TCastleApplication.ScreenStatusBarScaledHeight: Cardinal;
-begin
-  Result := 0;
-end;
-
 {$endif read_implementation}

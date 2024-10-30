@@ -15,7 +15,7 @@ See https://castle-engine.io/project_manifest for documentation of this file.
   <package>
     <include path="README.txt" />
   </package>
-  <android project_type="integrated">
+  <android>
     <services>
       <service name="vibrate" />
     </services>
