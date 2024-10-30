@@ -123,7 +123,7 @@
         <DCCReference Include="IndySystem.dcp"/>
         <DCCReference Include="IndyProtocols.dcp"/>
         <DCCReference Include="IndyCore.dcp"/>
-        <DCCReference Include="..\..\src\delphi\castleinternalcontainer.pas"/>
+        <DCCReference Include="..\..\src\delphi\castlecontrolcontainer.pas"/>
         <DCCReference Include="..\..\src\delphi\castleinternaldelphiutils.pas"/>
         <DCCReference Include="..\..\src\base\castleapplicationproperties.pas"/>
         <DCCReference Include="..\..\src\base\castleclassutils.pas"/>

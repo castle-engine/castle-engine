@@ -57,16 +57,16 @@ uses // standard units
   FMX.Controls, FMX.Controls.Presentation, FMX.Types, UITypes,
   // cge
   CastleGLVersion, CastleGLUtils, CastleVectors, CastleKeysMouse,
-  CastleInternalContextBase, CastleInternalContainer, CastleInternalFmxUtils;
+  CastleInternalContextBase, CastleControlContainer, CastleInternalFmxUtils;
 
 type
   { Control rendering "Castle Game Engine" on FMX form. }
   TCastleControl = class(TPresentedControl)
   strict private
     type
-      { Non-abstract implementation of TCastleContainer that cooperates with
-        TCastleControl. }
-      TContainer = class(TCastleContainerEasy)
+      { Non-abstract implementation of TCastleControlContainer that cooperates with
+        TCastleControl for FMX. }
+      TContainer = class(TCastleControlContainer)
       private
         Parent: TCastleControl;
         {$ifdef USE_TIMER}
@@ -170,8 +170,8 @@ type
     class procedure ApplicationRun;
   published
     { Access Castle Game Engine container properties and events,
-      not specific for FMX. }
-    property Container: TContainer read FContainer;
+      not specific to FMX. }
+    property Container: TCastleControlContainer read FContainer;
 
     property Align;
     property Anchors;

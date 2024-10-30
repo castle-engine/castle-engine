@@ -37,7 +37,7 @@ requires
   IndyCore;
 
 contains
-  castleinternalcontainer in '..\..\src\delphi\castleinternalcontainer.pas',
+  castlecontrolcontainer in '..\..\src\delphi\castlecontrolcontainer.pas',
   castleinternaldelphiutils in '..\..\src\delphi\castleinternaldelphiutils.pas',
   castleapplicationproperties in '..\..\src\base\castleapplicationproperties.pas',
   castleclassutils in '..\..\src\base\castleclassutils.pas',
