@@ -132,6 +132,13 @@
   TIfcRepresentationContextList = class;
   TIfcRelDefinesByTypeList = class;
   TIfcExternalReference = class;
+  TIfcObject = class;
+  TIfcObjectList = class;
+  TIfcRelDefinesByPropertiesList = class;
+  TIfcShapeAspectList = class;
+  TIfcPoint = class;
+  TIfcRepresentation = class;
+  TIfcProductRepresentationList = class;
 
   { Float type used throughout IFC.
 
@@ -223,6 +230,8 @@
 
     { An (internal) identifier assigned to the layer. }
     property Identifier: TIfcIdentifier read FIdentifier write FIdentifier;
+  end;
+  TIfcPresentationLayerAssignmentList = class({$ifdef FPC}specialize{$endif} TObjectList<TIfcPresentationLayerAssignment>)
   end;
 
   { Geometric or topological representation items,
@@ -844,27 +853,107 @@ Additional properties of the profile, for example mechanical properties.
     Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcObjectDefinition.htm }
   TIfcObjectDefinition = class abstract(TIfcDefinitionSelect)
   strict private
-    FIsDecomposedBy: TIfcRelAggregatesList;
+    // TODO FHasAssignments: TIfcRelAssignsList;
+    // TODO FNests: TIfcRelNestsList;
+    // TODO FIsNestedBy: TIfcRelNestsList;
     FHasContext: TIfcRelDeclares;
-    // TODO: rest
+    FIsDecomposedBy: TIfcRelAggregatesList;
+    FDecomposes: TIfcRelAggregatesList;
+    FHasAssociations: TIfcRelAssociatesList;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     function BuildNode(const BaseUrl: String): TTransformNode; virtual;
   published
-    { References to the decomposition relationship being an aggregation. }
-    property IsDecomposedBy: TIfcRelAggregatesList read FIsDecomposedBy;
+    { Reference to the relationship objects, that assign
+      (by an association relationship) other subtypes of IfcObject to
+      this object instance. Examples are the association to products,
+      processes, controls, resources or groups. }
+    // TODO property HasAssignments: TIfcRelAssignsList read FHasAssignments;
+
+    { References to the decomposition relationship being a nesting. }
+    // TODO property Nests: TIfcRelNestsList read FNests;
+
+    { References to the decomposition relationship being a nesting. }
+    // TODO property IsNestedBy: TIfcRelNestsList read FIsNestedBy;
 
     { References to the context providing context information such as project
       unit or representation context. It should only be asserted for
       the uppermost non-spatial object. }
     property HasContext: TIfcRelDeclares read FHasContext write FHasContext;
+
+    { References to the decomposition relationship being an aggregation. }
+    property IsDecomposedBy: TIfcRelAggregatesList read FIsDecomposedBy;
+
+    { References to the decomposition relationship being an aggregation. }
+    property Decomposes: TIfcRelAggregatesList read FDecomposes;
+
+    { Reference to the relationship objects, that associates external
+      references or other resource definitions to the object.
+      Examples are the association to library, documentation or classification. }
+    property HasAssociations: TIfcRelAssociatesList read FHasAssociations;
   end;
   TIfcObjectDefinitionList = {$ifdef FPC}specialize{$endif} TObjectList<TIfcObjectDefinition>;
 
+  TIfcRelDefines = class(TIfcRelationship)
+  end;
+
+  { Relationship between an object taking part in an object type
+    decomposition and an object occurrence taking part in an occurrence
+    decomposition of that type.
+    The IfcRelDefinesByObject is a 1-to-N relationship, as it allows for
+    the assignment of one declaring object information to a single or
+    to many reflected objects.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcRelDefinesByObject.htm }
+  TIfcRelDefinesByObject = class(TIfcRelDefines)
+  strict private
+    FRelatedObjects: TIfcObjectList;
+    FRelatingObject: TIfcObject;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+  published
+    { Objects being part of an object occurrence decomposition,
+      acting as the "reflecting parts" in the relationship. }
+    property RelatedObjects: TIfcObjectList read FRelatedObjects;
+
+    { Object being part of an object type decomposition,
+      acting as the "declaring part" in the relationship. }
+    property RelatingObject: TIfcObject read FRelatingObject write FRelatingObject;
+  end;
+  TIfcRelDefinesByObjectList = class({$ifdef FPC}specialize{$endif} TObjectList<TIfcRelDefinesByObject>)
+  end;
+
   { Any semantically treated thing or process. }
   TIfcObject = class abstract(TIfcObjectDefinition)
-    // TODO
+  strict private
+    FObjectType: TIfcLabel;
+    FIsDeclaredBy: TIfcRelDefinesByObjectList;
+    FDeclares: TIfcRelDefinesByObjectList;
+    FIsTypedBy: TIfcRelDefinesByTypeList;
+    FIsDefinedBy: TIfcRelDefinesByPropertiesList;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+  published
+    { The type denotes a particular type that indicates the object further. }
+    property ObjectType: TIfcLabel read FObjectType write FObjectType;
+
+    { Link to the relationship object pointing to the declaring object that
+      provides the object definitions for this object occurrence. }
+    property IsDeclaredBy: TIfcRelDefinesByObjectList read FIsDeclaredBy;
+
+    { Link to the relationship object pointing to the reflected object(s)
+      that receives the object definitions. }
+    property Declares: TIfcRelDefinesByObjectList read FDeclares;
+
+    { Set of relationships to the object type that provides
+      the type definitions for this object occurrence. }
+    property IsTypedBy: TIfcRelDefinesByTypeList read FIsTypedBy;
+
+    { Set of relationships to property set definitions attached to this object. }
+    property IsDefinedBy: TIfcRelDefinesByPropertiesList read FIsDefinedBy;
   end;
   TIfcObjectList = class({$ifdef FPC}specialize{$endif} TObjectList<TIfcObject>)
   end;
@@ -891,19 +980,75 @@ Additional properties of the profile, for example mechanical properties.
     property Types: TIfcRelDefinesByTypeList read FTypes;
   end;
 
+  { Abstract supertype of placement subtypes that define the location of an item,
+    or an entire shape representation, and provide its orientation.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcPlacement.htm }
+  TIfcPlacement = class abstract(TIfcRepresentationItem)
+  strict private
+    FLocation: TIfcPoint;
+  public
+    procedure UpdateNode(const Transform: TTransformNode); virtual;
+  published
+    property Location: TIfcPoint read FLocation write FLocation;
+
+    // TODO: We could define this to be super-consistent with IFC standard:
+    // function Dim: TIfcDimensionCount; begin Result := Location.Dim; end;
+  end;
+
+  { Always either TIfcAxis2Placement2D or TIfcAxis2Placement3D.
+    This is not a class, but a choice in IFC standard.
+    So in Pascal we also don't define it as new class (to keep our inheritance
+    of classes consistent with IFC).
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcAxis2Placement.htm }
+  TIfcAxis2Placement = TIfcPlacement;
+
+  { Base definition (also referred to as block, cell or macro)
+    called MappedRepresentation within the MappingOrigin.
+    The MappingOrigin defines the coordinate system in which
+    the MappedRepresentation is defined. }
+  TIfcRepresentationMap = class(TIfcPersistent)
+  strict private
+    FMappingOrigin: TIfcAxis2Placement;
+    FMappedRepresentation: TIfcRepresentation;
+    FHasShapeAspects: TIfcShapeAspectList;
+    // TODO FMapUsage: TIfcMappedItemList;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+  published
+    { An axis2 placement that defines the position about which
+      the mapped representation is mapped. }
+    property MappingOrigin: TIfcAxis2Placement read FMappingOrigin write FMappingOrigin;
+
+    { A representation that is mapped to at least one mapped item. }
+    property MappedRepresentation: TIfcRepresentation read FMappedRepresentation write FMappedRepresentation;
+
+    { Reference to the shape aspect that represents part of the shape
+      or its feature distinctively. }
+    property HasShapeAspects: TIfcShapeAspectList read FHasShapeAspects;
+
+    // TODO property MapUsage: TIfcMappedItemList read FMapUsage;
+  end;
+  TIfcRepresentationMapList = {$ifdef FPC}specialize{$endif} TObjectList<TIfcRepresentationMap>;
+
   { Type definition of a product without being already inserted
     into a project structure (without having a placement). }
   TIfcTypeProduct = class(TIfcTypeObject)
   strict private
-    //FRepresentationMaps: TIfcRepresentationMapList;
+    FRepresentationMaps: TIfcRepresentationMapList;
     FTag: TIfcLabel;
     //FReferencedBy: TIfcRelAssignsToProductList;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
   published
     { List of unique representation maps. Each representation map describes
       a block definition of the shape of the product style.
       By providing more than one representation map, a multi-view
       block definition can be given. }
- 	  // TODO // property RepresentationMaps: TIfcRepresentationMapList read FRepresentationMaps;
+ 	  property RepresentationMaps: TIfcRepresentationMapList read FRepresentationMaps;
 
     { The tag (or label) identifier at the particular type of a product,
       e.g. the article number (like the EAN). It is the identifier
@@ -1045,22 +1190,6 @@ Additional properties of the profile, for example mechanical properties.
   TIfcCartesianPointList = class({$ifdef FPC}specialize{$endif} TObjectList<TIfcCartesianPoint>)
   end;
 
-  { Abstract supertype of placement subtypes that define the location of an item,
-    or an entire shape representation, and provide its orientation.
-
-    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcPlacement.htm }
-  TIfcPlacement = class abstract(TIfcRepresentationItem)
-  strict private
-    FLocation: TIfcPoint;
-  public
-    procedure UpdateNode(const Transform: TTransformNode); virtual;
-  published
-    property Location: TIfcPoint read FLocation write FLocation;
-
-    // TODO: We could define this to be super-consistent with IFC standard:
-    // function Dim: TIfcDimensionCount; begin Result := Location.Dim; end;
-  end;
-
   { Location and orientation to place items in a two-dimensional space.
 
     Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcAxis2Placement2D.htm }
@@ -1147,14 +1276,6 @@ Additional properties of the profile, for example mechanical properties.
     { The distance the surface is to be swept along the ExtrudedDirection. }
     property Depth: TIfcPositiveLengthMeasure read FDepth write FDepth {$ifdef FPC}default 0.0{$endif};
   end;
-
-  { Always either TIfcAxis2Placement2D or TIfcAxis2Placement3D.
-    This is not a class, but a choice in IFC standard.
-    So in Pascal we also don't define it as new class (to keep our inheritance
-    of classes consistent with IFC).
-
-    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcAxis2Placement.htm }
-  TIfcAxis2Placement = TIfcPlacement;
 
   { Relative placement of a product
     - in relation to the placement of another product
@@ -1963,9 +2084,6 @@ Additional properties of the profile, for example mechanical properties.
     // TODO: property HasCoordinateOperation: TIfcCoordinateOperation read FHasCoordinateOperation write FHasCoordinateOperation;
   end;
 
-  TIfcRelDefines = class(TIfcRelationship)
-  end;
-
   { The objectified relationship IfcRelDefinesByProperties defines
     the relationships between property set definitions and objects.
 
@@ -2065,14 +2183,39 @@ Additional properties of the profile, for example mechanical properties.
   { How to display the product. }
   TIfcRepresentation = class abstract(TIfcPersistent)
   strict private
+    FContextOfItems: TIfcRepresentationContext;
+    FRepresentationIdentifier: TIfcLabel;
+    FRepresentationType: TIfcLabel;
     FItems: TIfcRepresentationItemList;
-    // TODO rest
+    FRepresentationMap: TIfcRepresentationMapList;
+    FLayerAssignments: TIfcPresentationLayerAssignmentList;
+    FOfProductRepresentation: TIfcProductRepresentationList;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
   published
+    { Definition of the representation context for which
+      the different subtypes of representation are valid. }
+    property ContextOfItems: TIfcRepresentationContext read FContextOfItems write FContextOfItems;
+
+    { The optional identifier of the representation as used within a project. }
+    property RepresentationIdentifier: TIfcLabel read FRepresentationIdentifier write FRepresentationIdentifier;
+
+    { The description of the type of a representation context. }
+    property RepresentationType: TIfcLabel read FRepresentationType write FRepresentationType;
+
     { Set of geometric representation items that are defined for this representation. }
     property Items: TIfcRepresentationItemList read FItems;
+
+    { Use of the representation within an IfcRepresentationMap. }
+    property RepresentationMap: TIfcRepresentationMapList read FRepresentationMap;
+
+    { Assignment of the whole representation to a single or multiple layer(s).  }
+    property LayerAssignments: TIfcPresentationLayerAssignmentList read FLayerAssignments;
+
+    { Reference to the product representations to which
+      this individual representation applies. }
+    property OfProductRepresentation: TIfcProductRepresentationList read FOfProductRepresentation;
   end;
 
   { List of TIfcRepresentation. }
@@ -2118,6 +2261,8 @@ Additional properties of the profile, for example mechanical properties.
     { Contained list of representations (including shape representations). }
     property Representations: TIfcRepresentationList read FRepresentations;
   end;
+  TIfcProductRepresentationList = class({$ifdef FPC}specialize{$endif} TObjectList<TIfcProductRepresentation>)
+  end;
 
   { Grouping of shape representation items that represent aspects
     (or components) of the shape of a product.
@@ -2154,7 +2299,6 @@ Additional properties of the profile, for example mechanical properties.
 
     property HasExternalReferences: TIfcExternalReferenceRelationshipList read FHasExternalReferences;
   end;
-
   TIfcShapeAspectList = class({$ifdef FPC}specialize{$endif} TObjectList<TIfcShapeAspect>)
   end;
 
@@ -2226,12 +2370,18 @@ end;
 constructor TIfcObjectDefinition.Create(AOwner: TComponent);
 begin
   inherited;
+  // TODO FHasAssignments := TIfcRelAssignsList.Create(false);
   FIsDecomposedBy := TIfcRelAggregatesList.Create(false);
+  FDecomposes := TIfcRelAggregatesList.Create(false);
+  FHasAssociations := TIfcRelAssociatesList.Create(false);
 end;
 
 destructor TIfcObjectDefinition.Destroy;
 begin
+  // TODO FreeAndNil(FHasAssignments);
   FreeAndNil(FIsDecomposedBy);
+  FreeAndNil(FDecomposes);
+  FreeAndNil(FHasAssociations);
   inherited;
 end;
 
@@ -2332,11 +2482,17 @@ constructor TIfcRepresentation.Create(AOwner: TComponent);
 begin
   inherited;
   FItems := TIfcRepresentationItemList.Create(false);
+  FRepresentationMap := TIfcRepresentationMapList.Create(false);
+  FLayerAssignments := TIfcPresentationLayerAssignmentList.Create(false);
+  FOfProductRepresentation := TIfcProductRepresentationList.Create(false);
 end;
 
 destructor TIfcRepresentation.Destroy;
 begin
   FreeAndNil(FItems);
+  FreeAndNil(FRepresentationMap);
+  FreeAndNil(FLayerAssignments);
+  FreeAndNil(FOfProductRepresentation);
   inherited;
 end;
 
@@ -2624,6 +2780,40 @@ begin
   inherited;
 end;
 
+{ TIfcRelDefinesByObject ----------------------------------------------------- }
+
+constructor TIfcRelDefinesByObject.Create(AOwner: TComponent);
+begin
+  inherited;
+  FRelatedObjects := TIfcObjectList.Create(false);
+end;
+
+destructor TIfcRelDefinesByObject.Destroy;
+begin
+  FreeAndNil(FRelatedObjects);
+  inherited;
+end;
+
+{ TIfcObject ---------------------------------------------------------------- }
+
+constructor TIfcObject.Create(AOwner: TComponent);
+begin
+  inherited;
+  FIsDeclaredBy := TIfcRelDefinesByObjectList.Create(false);
+  FDeclares := TIfcRelDefinesByObjectList.Create(false);
+  FIsTypedBy := TIfcRelDefinesByTypeList.Create(false);
+  FIsDefinedBy := TIfcRelDefinesByPropertiesList.Create(false);
+end;
+
+destructor TIfcObject.Destroy;
+begin
+  FreeAndNil(FIsDeclaredBy);
+  FreeAndNil(FDeclares);
+  FreeAndNil(FIsTypedBy);
+  FreeAndNil(FIsDefinedBy);
+  inherited;
+end;
+
 { TIfcTypeObject ------------------------------------------------------------- }
 
 constructor TIfcTypeObject.Create(AOwner: TComponent);
@@ -2637,6 +2827,36 @@ destructor TIfcTypeObject.Destroy;
 begin
   // TODO FreeAndNil(FHasPropertySets);
   FreeAndNil(FTypes);
+  inherited;
+end;
+
+{ TIfcRepresentationMap ------------------------------------------------------ }
+
+constructor TIfcRepresentationMap.Create(AOwner: TComponent);
+begin
+  inherited;
+  FHasShapeAspects := TIfcShapeAspectList.Create(false);
+  // FMapUsage := TIfcMappedItemList.Create(false);
+end;
+
+destructor TIfcRepresentationMap.Destroy;
+begin
+  FreeAndNil(FHasShapeAspects);
+  // FreeAndNil(FMapUsage);
+  inherited;
+end;
+
+{ TIfcTypeProduct ------------------------------------------------------------ }
+
+constructor TIfcTypeProduct.Create(AOwner: TComponent);
+begin
+  inherited;
+  FRepresentationMaps := TIfcRepresentationMapList.Create(false);
+end;
+
+destructor TIfcTypeProduct.Destroy;
+begin
+  FreeAndNil(FRepresentationMaps);
   inherited;
 end;
 
@@ -2773,6 +2993,8 @@ begin
     IfcClasses.Add(TIfcExternalReference);
     IfcClasses.Add(TIfcExternalReferenceRelationship);
     IfcClasses.Add(TIfcArbitraryClosedProfileDef);
+    IfcClasses.Add(TIfcRelDefinesByObject);
+    IfcClasses.Add(TIfcRepresentationMap);
   end;
 end;
 

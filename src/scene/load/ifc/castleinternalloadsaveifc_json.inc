@@ -107,7 +107,8 @@ begin
     JsonObj := JsonValue as TJsonObject;
     JsonObjType := JsonObj.Get('type', '');
     if (JsonObjType = 'IfcLabel') or
-        (JsonObjType = 'IfcText') then
+       (JsonObjType = 'IfcText') or
+       (JsonObjType = 'IfcIdentifier') then
       Result := JsonObj.Get('value', '')
     else
     begin
