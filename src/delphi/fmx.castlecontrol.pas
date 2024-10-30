@@ -110,6 +110,7 @@ type
       read GetCurrentShift write SetCurrentShift;
 
     function MousePosToCastle(const X, Y: Single): TVector2;
+    function GetContainer: TCastleControlContainer;
   private
     procedure CreateHandle;
     procedure DestroyHandle;
@@ -171,7 +172,7 @@ type
   published
     { Access Castle Game Engine container properties and events,
       not specific to FMX. }
-    property Container: TCastleControlContainer read FContainer;
+    property Container: TCastleControlContainer read GetContainer;
 
     property Align;
     property Anchors;
@@ -758,6 +759,11 @@ begin
     We will recreate this handle later by FGLUtility.HandleNeeded,
     at first paint. }
   FGLUtility.HandleRelease;
+end;
+
+function TCastleControl.GetContainer: TCastleControlContainer;
+begin
+  Result := FContainer;
 end;
 
 (*

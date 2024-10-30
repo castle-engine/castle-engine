@@ -65,6 +65,7 @@ type
       To counteract this, call this method when Shift state is known,
       to update Pressed when needed. }
     procedure UpdateShiftState(const Shift: TShiftState);
+    function GetContainer: TCastleControlContainer;
   private
     procedure WMEraseBkgnd(var Message: TWMEraseBkgnd); message WM_ERASEBKGND;
   protected
@@ -97,7 +98,7 @@ type
   published
     { Access Castle Game Engine container properties and events,
       not specific to VCL. }
-    property Container: TCastleControlContainer read FContainer;
+    property Container: TCastleControlContainer read GetContainer;
 
     property Align;
     property Anchors;
@@ -422,6 +423,11 @@ procedure TCastleControl.KeyPress(var Key: Char);
 begin
   // TODO ignored now
   inherited;
+end;
+
+function TCastleControl.GetContainer: TCastleControlContainer;
+begin
+  Result := FContainer;
 end;
 
 end.
