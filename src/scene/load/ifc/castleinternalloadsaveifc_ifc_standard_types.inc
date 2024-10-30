@@ -139,6 +139,8 @@
   TIfcPoint = class;
   TIfcRepresentation = class;
   TIfcProductRepresentationList = class;
+  TIfcProfilePropertiesList = class;
+  TIfcPropertyList = class;
 
   { Float type used throughout IFC.
 
@@ -436,29 +438,40 @@
     property HasExternalReferenceForResources: TIfcExternalReferenceRelationshipList read FHasExternalReferenceForResources;
   end;
 
+  { Defines whether the definition of a profile shape shall be geometrically
+    resolved into a curve or into a surface. }
+  TIfcProfileTypeEnum = (
+    Area,
+    Curve
+  );
+
   { Supertype of all definitions of standard and arbitrary profiles within IFC.
     It is used to define a standard set of commonly used section profiles
     by their parameters or by their explicit curve geometry.
 
     Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcProfileDef.htm }
   TIfcProfileDef = class(TIfcPersistent)
+  strict private
+    FProfileType: TIfcProfileTypeEnum;
+    FProfileName: TIfcLabel;
+    FHasExternalReference: TIfcExternalReferenceRelationshipList;
+    FHasProperties: TIfcProfilePropertiesList;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
   published
-  (*
-TODO:
-1 	ProfileType 	IfcProfileTypeEnum
+    { Type of geometry into which this profile definition shall be resolved. }
+    property ProfileType: TIfcProfileTypeEnum read FProfileType write FProfileType;
 
-Defines the type of geometry into which this profile definition shall be resolved, either a curve or a surface area. In case of curve the profile should be referenced by a swept surface, in case of area the profile should be referenced by a swept area solid.
-2 	ProfileName 	OPTIONAL IfcLabel
+    { Human-readable name of the profile. }
+    property ProfileName: TIfcLabel read FProfileName write FProfileName;
 
-Human-readable name of the profile, for example according to a standard profile table. As noted above, machine-readable standardized profile designations should be provided in IfcExternalReference.ItemReference.
-	HasExternalReference 	SET [0:?] OF IfcExternalReferenceRelationship FOR RelatedResourceObjects
+    { Reference to external information, e.g. library, classification,
+      or document information, which is associated with the profile. }
+    property HasExternalReference: TIfcExternalReferenceRelationshipList read FHasExternalReference;
 
-Reference to external information, e.g. library, classification, or document information, which is associated with the profile.
-IFC4-CHANGE New inverse attribute
-	HasProperties 	SET [0:?] OF IfcProfileProperties FOR ProfileDefinition
-
-Additional properties of the profile, for example mechanical properties.
-  *)
+    { Additional properties of the profile, for example mechanical properties. }
+    property HasProperties: TIfcProfilePropertiesList read FHasProperties;
   end;
 
   { Closed profile IfcArbitraryClosedProfileDef defines an arbitrary
@@ -2320,6 +2333,58 @@ Additional properties of the profile, for example mechanical properties.
     property HasShapeAspects: TIfcShapeAspectList read FHasShapeAspects;
   end;
 
+  { Abstract supertype of all property related entities defined as
+    dependent resource entities within the specification. }
+  TIfcPropertyAbstraction = class abstract(TIfcPersistent)
+  strict private
+    FHasExternalReferences: TIfcExternalReferenceRelationshipList;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+  published
+    { Reference to an external reference, e.g. library, classification,
+      or document information, that is associated to the property definition. }
+    property HasExternalReferences: TIfcExternalReferenceRelationshipList read FHasExternalReferences;
+  end;
+
+  { Abstract supertype of all extensible property collections
+    that are applicable to certain characterized entities. }
+  TIfcExtendedProperties = class(TIfcPropertyAbstraction)
+  strict private
+    FName: TIfcIdentifier;
+    FDescription: TIfcText;
+    FProperties: TIfcPropertyList;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+  published
+    { The name given to the set of properties. }
+    property Name: TIfcIdentifier read FName write FName;
+
+    { Description for the set of properties. }
+    property Description: TIfcText read FDescription write FDescription;
+
+    { The set of properties provided for this extended property collection. }
+    property Properties: TIfcPropertyList read FProperties;
+  end;
+
+  TIfcProfileProperties = class(TIfcExtendedProperties)
+  strict private
+    FProfileDefinition: TIfcProfileDef;
+  published
+    property ProfileDefinition: TIfcProfileDef read FProfileDefinition write FProfileDefinition;
+  end;
+  TIfcProfilePropertiesList = class({$ifdef FPC}specialize{$endif} TObjectList<TIfcProfileProperties>)
+  end;
+
+  { Abstract generalization for all types of properties that can be
+    associated with IFC objects through the property set mechanism. }
+  TIfcProperty = class(TIfcPersistent)
+    // TODO
+  end;
+  TIfcPropertyList = class({$ifdef FPC}specialize{$endif} TObjectList<TIfcProperty>)
+  end;
+
 var
   { List of all (non-abstract) IFC classes that are defined in this unit.
 
@@ -2581,6 +2646,22 @@ destructor TIfcPerson.Destroy;
 begin
   FreeAndNil(FAddresses);
   FreeAndNil(FEngagedIn);
+  inherited;
+end;
+
+{ TIfcProfileDef ------------------------------------------------------------- }
+
+constructor TIfcProfileDef.Create(AOwner: TComponent);
+begin
+  inherited;
+  FHasExternalReference := TIfcExternalReferenceRelationshipList.Create(false);
+  FHasProperties := TIfcProfilePropertiesList.Create(false);
+end;
+
+destructor TIfcProfileDef.Destroy;
+begin
+  FreeAndNil(FHasExternalReference);
+  FreeAndNil(FHasProperties);
   inherited;
 end;
 
@@ -2904,6 +2985,34 @@ begin
   inherited;
 end;
 
+{ TIfcPropertyAbstraction ---------------------------------------------------- }
+
+constructor TIfcPropertyAbstraction.Create(AOwner: TComponent);
+begin
+  inherited;
+  FHasExternalReferences := TIfcExternalReferenceRelationshipList.Create(false);
+end;
+
+destructor TIfcPropertyAbstraction.Destroy;
+begin
+  FreeAndNil(FHasExternalReferences);
+  inherited;
+end;
+
+{ TIfcExtendedProperties ----------------------------------------------------- }
+
+constructor TIfcExtendedProperties.Create(AOwner: TComponent);
+begin
+  inherited;
+  FProperties := TIfcPropertyList.Create(false);
+end;
+
+destructor TIfcExtendedProperties.Destroy;
+begin
+  FreeAndNil(FProperties);
+  inherited;
+end;
+
 { initialization, finalization ----------------------------------------------- }
 
 procedure InitializeIfcClasses;
@@ -2959,6 +3068,7 @@ begin
     IfcClasses.Add(TIfcPersonAndOrganization);
     IfcClasses.Add(TIfcAddress);
     IfcClasses.Add(TIfcPerson);
+    IfcClasses.Add(TIfcProfileDef);
     IfcClasses.Add(TIfcOrganization);
     IfcClasses.Add(TIfcOrganizationRelationship);
     IfcClasses.Add(TIfcOwnerHistory);
@@ -2995,6 +3105,7 @@ begin
     IfcClasses.Add(TIfcArbitraryClosedProfileDef);
     IfcClasses.Add(TIfcRelDefinesByObject);
     IfcClasses.Add(TIfcRepresentationMap);
+    IfcClasses.Add(TIfcProfileProperties);
   end;
 end;
 
