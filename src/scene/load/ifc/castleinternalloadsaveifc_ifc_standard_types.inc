@@ -145,6 +145,9 @@
   TIfcProfilePropertiesList = class;
   TIfcPropertyList = class;
   TIfcRelContainedInSpatialStructureList = class;
+  TIfcRelFillsElementList = class;
+  TIfcElement = class;
+  TIfcElementList = class;
 
   { Float type used throughout IFC.
 
@@ -813,7 +816,7 @@
   TIfcMaterialSelect = class(TIfcPersistent)
   end;
 
-  { Objectified relationship between a material definition and elements
+  { Relationship between a material definition and elements
     or element types to which this material definition applies. }
   TIfcRelAssociatesMaterial = class(TIfcRelAssociates)
   strict private
@@ -1351,6 +1354,34 @@
     property ContainsElements: TIfcRelContainedInSpatialStructureList read FContainsElements;
   end;
 
+  TIfcSpatialZoneTypeEnum = (
+    NotDefined,
+    Construction,
+    FireSafety,
+    Interference,
+    Lighting,
+    Occupancy,
+    Reservation,
+    Security,
+    Thermal,
+    Transport,
+    Ventilation,
+    UserDefined
+  );
+
+  { Non-hierarchical and potentially overlapping decomposition of the project
+    under some functional consideration. A spatial zone might be used
+    to represent a thermal zone, a construction zone, a lighting zone,
+    a usable area zone. }
+  TIfcSpatialZone = class(TIfcSpatialElement)
+  strict private
+    FPredefinedType: TIfcSpatialZoneTypeEnum;
+  published
+    { Predefined types to define the particular type of the spatial zone. }
+    property PredefinedType: TIfcSpatialZoneTypeEnum read FPredefinedType write FPredefinedType
+      default TIfcSpatialZoneTypeEnum.NotDefined;
+  end;
+
   { Relationship that connects objects under some criteria. }
   TIfcRelConnects = class abstract(TIfcRelationship)
   end;
@@ -1521,25 +1552,202 @@
   TIfcRelDecomposes = class abstract(TIfcRelationship)
   end;
 
+  { Geometric and topological constraints that facilitate the physical connection of two objects. }
+  TIfcConnectionGeometry = class abstract(TIfcPersistent)
+  end;
+
+  { Relationship provides the generalization of the connectivity
+    between elements. It is a 1 to 1 relationship. }
+  TIfcRelConnectsElements = class(TIfcRelConnects)
+  strict private
+    FConnectionGeometry: TIfcConnectionGeometry;
+    FRelatingElement: TIfcElement;
+    FRelatedElement: TIfcElement;
+  published
+    { Geometric shape representation of the connection geometry
+      that is provided in the object coordinate system of the RelatingElement
+      (mandatory) and in the object coordinate system of the RelatedElement (optionally). }
+    property ConnectionGeometry: TIfcConnectionGeometry read FConnectionGeometry write FConnectionGeometry;
+
+    { Reference to a subtype of IfcElement that is connected by the connection relationship
+      in the role of RelatingElement. }
+    property RelatingElement: TIfcElement read FRelatingElement write FRelatingElement;
+
+    { Reference to a subtype of IfcElement that is connected by the connection relationship
+      in the role of RelatedElement. }
+    property RelatedElement: TIfcElement read FRelatedElement write FRelatedElement;
+  end;
+  TIfcRelConnectsElementsList = class({$ifdef FPC}specialize{$endif} TObjectList<TIfcRelConnectsElements>)
+  end;
+
+  TIfcRelInterferesElements = class(TIfcRelConnects)
+  strict private
+    // TODO FRelatingElement: TIfcInterferenceSelect;
+    // TODO FRelatedElement: TIfcInterferenceSelect;
+    FInterferenceGeometry: TIfcConnectionGeometry;
+    FInterferenceType: TIfcIdentifier;
+    FImpliedOrder: Boolean;
+    FInterferenceSpace: TIfcSpatialZone;
+  published
+    { Reference to a subtype of IfcElement or IfcSpatialElement that is
+      the RelatingElement in the interference relationship. }
+    // TODO property RelatingElement: TIfcInterferenceSelect read FRelatingElement write FRelatingElement;
+
+    { Reference to a subtype of IfcElement or IfcSpatialElement that is
+      the RelatedElement in the interference relationship. }
+    // TODO property RelatedElement: TIfcInterferenceSelect read FRelatedElement write FRelatedElement;
+
+    { The geometric shape representation of the interference geometry that is
+      provided in the object coordinate system of the RelatingElement (mandatory)
+      and in the object coordinate system of the RelatedElement (optionally). }
+    property InterferenceGeometry: TIfcConnectionGeometry read FInterferenceGeometry write FInterferenceGeometry;
+
+    { Optional identifier that describes the nature of the interference. }
+    property InterferenceType: TIfcIdentifier read FInterferenceType write FInterferenceType;
+
+    { Logical value indicating if the RelatingElement is considered a source and
+      the RelatedElement a target (giving a formal orientation to the relation).
+      It shall be provided in regards to InterferenceGeometry usage and InterferenceType declaration. }
+    property ImpliedOrder: Boolean read FImpliedOrder write FImpliedOrder;
+
+    { Optional attribute that expresses the interfering space for IfcSpatialElement occurrences. }
+    property InterferenceSpace: TIfcSpatialZone read FInterferenceSpace write FInterferenceSpace;
+  end;
+  TIfcRelInterferesElementsList = {$ifdef FPC}specialize{$endif} TObjectList<TIfcRelInterferesElements>;
+
+  { Relationship between an element and one projection element that creates a modifier to the shape of the element.}
+  TIfcRelProjectsElement = class(TIfcRelDecomposes)
+  strict private
+    FRelatingElement: TIfcElement;
+    // TODO FRelatedFeatureElement: TIfcFeatureElementAddition;
+  published
+    { Element at which a projection is created by the associated IfcProjectionElement. }
+    property RelatingElement: TIfcElement read FRelatingElement write FRelatingElement;
+
+    { Reference to the IfcFeatureElementAddition that defines an addition
+      to the volume of the element, by using a Boolean addition operation.
+      An example is a projection at the associated element. }
+    // TODO property RelatedFeatureElement: TIfcFeatureElementAddition read FRelatedFeatureElement write FRelatedFeatureElement;
+  end;
+  TIfcRelProjectsElementList = {$ifdef FPC}specialize{$endif} TObjectList<TIfcRelProjectsElement>;
+
+  { Relationship that is made between two elements that require the realization
+    of that relationship by means of further realizing elements. }
+  TIfcRelConnectsWithRealizingElements = class(TIfcRelConnectsElements)
+  strict private
+    FRealizingElements: TIfcElementList;
+    FConnectionType: TIfcLabel;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+  published
+    { Rlements that realize a connection relationship. }
+    property RealizingElements: TIfcElementList read FRealizingElements;
+
+    { The type of the connection given for informal purposes,
+      it may include labels, like 'joint', 'rigid joint', 'flexible joint', etc. }
+    property ConnectionType: TIfcLabel read FConnectionType write FConnectionType;
+  end;
+  TIfcRelConnectsWithRealizingElementsList = {$ifdef FPC}specialize{$endif} TObjectList<TIfcRelConnectsWithRealizingElements>;
+
+  TIfcPhysicalOrVirtualEnum = (
+    NotDefined,
+    Physical,
+    Virtual
+  );
+
+  TIfcInternalOrExternalEnum = (
+    NotDefined,
+    External,
+    External_Earth,
+    External_Fire,
+    External_Water,
+    Internal
+  );
+
+  { The space boundary defines the physical or virtual delimiter
+    of a space by the relationship IfcRelSpaceBoundary to the surrounding
+    elements. }
+  TIfcRelSpaceBoundary = class(TIfcRelConnects)
+  strict private
+    // TODO FRelatingSpace: TIfcSpaceBoundarySelect;
+    FRelatedBuildingElement: TIfcElement;
+    FConnectionGeometry: TIfcConnectionGeometry;
+    FPhysicalOrVirtualBoundary: TIfcPhysicalOrVirtualEnum;
+    FInternalOrExternalBoundary: TIfcInternalOrExternalEnum;
+  published
+    { Reference to one space that is delimited by this boundary. }
+    // TODO property RelatingSpace: TIfcSpaceBoundarySelect read FRelatingSpace write FRelatingSpace;
+
+    { Reference to the Element that defines the Space Boundaries. }
+    property RelatedBuildingElement: TIfcElement read FRelatedBuildingElement write FRelatedBuildingElement;
+
+    { Physical representation of the space boundary.
+      Provided as a curve or surface given within the LCS of the space. }
+    property ConnectionGeometry: TIfcConnectionGeometry read FConnectionGeometry write FConnectionGeometry;
+
+    { Defines whether the Space Boundary is PHYISICAL or VIRTUAL. }
+    property PhysicalOrVirtualBoundary: TIfcPhysicalOrVirtualEnum read FPhysicalOrVirtualBoundary write FPhysicalOrVirtualBoundary
+      default TIfcPhysicalOrVirtualEnum.NotDefined;
+
+    { Defines whether the Space Boundary is INTERNAL, or EXTERNAL, i.e. adjacent to open space that can be a partially enclosed space, such as terrace. }
+    property InternalOrExternalBoundary: TIfcInternalOrExternalEnum read FInternalOrExternalBoundary write FInternalOrExternalBoundary
+      default TIfcInternalOrExternalEnum.NotDefined;
+  end;
+  TIfcRelSpaceBoundaryList = {$ifdef FPC}specialize{$endif} TObjectList<TIfcRelSpaceBoundary>;
+
+  { Relationship between an element and one to many coverings,
+    which cover that element. }
+  TIfcRelCoversBldgElements = class(TIfcRelConnects)
+  strict private
+    FRelatingBuildingElement: TIfcElement;
+    // TODO FRelatedCoverings: TIfcCoveringList;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+  published
+    { Reference to the element that is covered. }
+    property RelatingBuildingElement: TIfcElement read FRelatingBuildingElement write FRelatingBuildingElement;
+
+    { Relationship to the set of coverings that are assigned to this element. }
+    // TODO property RelatedCoverings: TIfcCoveringList read FRelatedCoverings write FRelatedCoverings;
+  end;
+  TIfcRelCoversBldgElementsList = {$ifdef FPC}specialize{$endif} TObjectList<TIfcRelCoversBldgElements>;
+
+  { Relationship between an element and one to many surface feature elements
+    that adhere to the surface of the element. }
+  TIfcRelAdheresToElement = class(TIfcRelDecomposes)
+  strict private
+    FRelatingElement: TIfcElement;
+    // TODO FRelatedSurfaceFeatures: TIfcSurfaceFeatureList;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+  published
+    { Element to which the IfcSurfaceFeature is adhered to. }
+    property RelatingElement: TIfcElement read FRelatingElement write FRelatingElement;
+
+    { The IfcSurfaceFeature(s) that adheres to the surface of the parent element. }
+    // TODO property RelatedSurfaceFeatures: TIfcSurfaceFeatureList read FRelatedSurfaceFeatures write FRelatedSurfaceFeatures;
+  end;
+  TIfcRelAdheresToElementList = {$ifdef FPC}specialize{$endif} TObjectList<TIfcRelAdheresToElement>;
+
   { Generalization of all components that make up a facility. }
   TIfcElement = class abstract(TIfcProduct)
   strict private
     FTag: TIfcIdentifier;
-    // TODO
-    // FFillsVoids: TIfcRelFillsElement;
-    // FConnectedTo: TIfcRelConnectsElementsList;
-    // FIsInterferedByElements: TIfcRelInterferesElementsList;
-    // FInterferesElements: TIfcRelInterferesElementsList;
-    // FHasProjections: TIfcRelProjectsElementList;
+    FFillsVoids: TIfcRelFillsElementList;
+    FConnectedTo: TIfcRelConnectsElementsList;
+    FIsInterferedByElements: TIfcRelInterferesElementsList;
+    FInterferesElements: TIfcRelInterferesElementsList;
+    FHasProjections: TIfcRelProjectsElementList;
     FHasOpenings: TIfcRelVoidsElementList;
-    // TODO
-    // FIsConnectionRealization: TIfcRelConnectsWithRealizingElementsList;
-    // FProvidesBoundaries: TIfcRelSpaceBoundaryList;
-    // FConnectedFrom: TIfcRelConnectsElementsList;
-    // FContainedInStructure: TIfcRelContainedInSpatialStructure;
-    // TODO
-    // FHasCoverings: TIfcRelCoversBldgElementsList;
-    // FHasSurfaceFeatures: TIfcRelAdheresToElementList;
+    FIsConnectionRealization: TIfcRelConnectsWithRealizingElementsList;
+    FProvidesBoundaries: TIfcRelSpaceBoundaryList;
+    FConnectedFrom: TIfcRelConnectsElementsList;
+    FContainedInStructure: TIfcRelContainedInSpatialStructureList;
+    FHasCoverings: TIfcRelCoversBldgElementsList;
+    FHasSurfaceFeatures: TIfcRelAdheresToElementList;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -1549,45 +1757,43 @@
       Note: This obscures TComponent.Tag property. }
     property Tag: TIfcIdentifier read FTag write FTag;
 
-    // TODO
-    // { Reference to the IfcRelFillsElement relationship that puts the element as a filling into the opening created within another element. }
-    // property FillsVoids: TIfcRelFillsElement read FFillsVoids write FFillsVoids;
+    { Reference to the IfcRelFillsElement relationship that puts the element as a filling into the opening created within another element. }
+    property FillsVoids: TIfcRelFillsElementList read FFillsVoids write FFillsVoids;
 
-    // { Reference to the element connection relationship. }
-	  // property ConnectedTo: TIfcRelConnectsElementsList read FConnectedTo;
+    { Reference to the element connection relationship. }
+	  property ConnectedTo: TIfcRelConnectsElementsList read FConnectedTo;
 
-    // { Reference to the interference relationship to indicate the element that is interfered. }
-	  // property IsInterferedByElements: TIfcRelInterferesElementsList read FIsInterferedByElements;
+    { Reference to the interference relationship to indicate the element that is interfered. }
+	  property IsInterferedByElements: TIfcRelInterferesElementsList read FIsInterferedByElements;
 
-    // { Reference to the interference relationship to indicate the element that interferes. }
-	  // property InterferesElements: TIfcRelInterferesElementsList read FInterferesElements;
+    { Reference to the interference relationship to indicate the element that interferes. }
+	  property InterferesElements: TIfcRelInterferesElementsList read FInterferesElements;
 
-    // { Projection relationship that adds a feature (using a Boolean union) to the IfcBuiltElement. }
-	  // property HasProjections: TIfcRelProjectsElementList read FHasProjections;
+    { Projection relationship that adds a feature (using a Boolean union) to the IfcBuiltElement. }
+	  property HasProjections: TIfcRelProjectsElementList read FHasProjections;
 
     { List of openings associated with this element. }
 	  property HasOpenings: TIfcRelVoidsElementList read FHasOpenings;
 
-    // TODO
-    // { Reference to the connection relationship with realizing element. }
-    // property IsConnectionRealization: TIfcRelConnectsWithRealizingElementsList read FIsConnectionRealization;
+    { Reference to the connection relationship with realizing element. }
+    property IsConnectionRealization: TIfcRelConnectsWithRealizingElementsList read FIsConnectionRealization;
 
-    // { Space boundaries by virtue of the objectified relationship IfcRelSpaceBoundary. }
-    // property ProvidesBoundaries: TIfcRelSpaceBoundaryList read FProvidesBoundaries;
+    { Space boundaries by virtue of the relationship IfcRelSpaceBoundary. }
+    property ProvidesBoundaries: TIfcRelSpaceBoundaryList read FProvidesBoundaries;
 
-    // { Element connection relationship. }
-    // property ConnectedFrom: TIfcRelConnectsElementsList read FConnectedFrom;
+    { Element connection relationship. }
+    property ConnectedFrom: TIfcRelConnectsElementsList read FConnectedFrom;
 
     { Containment relationship to the spatial structure element, to which the element is primarily associated. }
-    // TODO: should be list according to one testcase?
-    // TODO property ContainedInStructure: TIfcRelContainedInSpatialStructure read FContainedInStructure write FContainedInStructure;
+    property ContainedInStructure: TIfcRelContainedInSpatialStructureList read FContainedInStructure;
 
-    // TODO
-    // { Reference to IfcCovering by virtue of the objectified relationship IfcRelCoversBldgElements. }
-    // property HasCoverings: TIfcRelCoversBldgElementsList read FHasCoverings;
+    // { Reference to IfcCovering by virtue of the relationship IfcRelCoversBldgElements. }
+    property HasCoverings: TIfcRelCoversBldgElementsList read FHasCoverings;
 
-    // { Reference to the IfcRelAdheresToElement relationship that adheres a IfcSurfaceFeature to an element. }
-    // property HasSurfaceFeatures: TIfcRelAdheresToElementList read FHasSurfaceFeatures;
+    { Reference to the IfcRelAdheresToElement relationship that adheres a IfcSurfaceFeature to an element. }
+    property HasSurfaceFeatures: TIfcRelAdheresToElementList read FHasSurfaceFeatures;
+  end;
+  TIfcElementList = class({$ifdef FPC}specialize{$endif} TObjectList<TIfcElement>)
   end;
 
   { All existence dependent elements which modify the shape and appearance
@@ -1625,7 +1831,8 @@
     { Reference to element that occupies fully or partially the associated opening. }
     property RelatedBuildingElement: TIfcElement read FRelatedBuildingElement write FRelatedBuildingElement;
   end;
-  TIfcRelFillsElementList = {$ifdef FPC}specialize{$endif} TObjectList<TIfcRelFillsElement>;
+  TIfcRelFillsElementList = class({$ifdef FPC}specialize{$endif} TObjectList<TIfcRelFillsElement>)
+  end;
 
   { Used by TIfcOpeningElement.PredefinedType. }
   TIfcOpeningElementTypeEnum = (NotDefined, Opening, Recess, UserDefined);
@@ -2135,8 +2342,7 @@
     // TODO: property HasCoordinateOperation: TIfcCoordinateOperation read FHasCoordinateOperation write FHasCoordinateOperation;
   end;
 
-  { The objectified relationship IfcRelDefinesByProperties defines
-    the relationships between property set definitions and objects.
+  { Relationships between property set definitions and objects.
 
     Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcRelDefinesByProperties.htm }
   TIfcRelDefinesByProperties = class(TIfcRelDefines)
@@ -2507,32 +2713,34 @@ end;
 constructor TIfcElement.Create(AOwner: TComponent);
 begin
   inherited;
-  // TODO
-  // FConnectedTo := TIfcRelConnectsElementsList.Create(false);
-  // FIsInterferedByElements := TIfcRelInterferesElementsList.Create(false);
-  // FInterferesElements := TIfcRelInterferesElementsList.Create(false);
-  // FHasProjections := TIfcRelProjectsElementList.Create(false);
+  FFillsVoids := TIfcRelFillsElementList.Create(false);
+  FConnectedTo := TIfcRelConnectsElementsList.Create(false);
+  FIsInterferedByElements := TIfcRelInterferesElementsList.Create(false);
+  FInterferesElements := TIfcRelInterferesElementsList.Create(false);
+  FHasProjections := TIfcRelProjectsElementList.Create(false);
   FHasOpenings := TIfcRelVoidsElementList.Create(false);
-  // TODO
-  // FIsConnectionRealization := TIfcRelConnectsWithRealizingElementsList.Create(false);
-  // FProvidesBoundaries := TIfcRelSpaceBoundaryList.Create(false);
-  // FConnectedFrom := TIfcRelConnectsElementsList.Create(false);
-  // FHasCoverings := TIfcRelCoversBldgElementsList.Create(false);
-  // FHasSurfaceFeatures := TIfcRelAdheresToElementList.Create(false);
+  FIsConnectionRealization := TIfcRelConnectsWithRealizingElementsList.Create(false);
+  FProvidesBoundaries := TIfcRelSpaceBoundaryList.Create(false);
+  FConnectedFrom := TIfcRelConnectsElementsList.Create(false);
+  FContainedInStructure := TIfcRelContainedInSpatialStructureList.Create(false);
+  FHasCoverings := TIfcRelCoversBldgElementsList.Create(false);
+  FHasSurfaceFeatures := TIfcRelAdheresToElementList.Create(false);
 end;
 
 destructor TIfcElement.Destroy;
 begin
-  // FreeAndNil(FConnectedTo);
-  // FreeAndNil(FIsInterferedByElements);
-  // FreeAndNil(FInterferesElements);
-  // FreeAndNil(FHasProjections);
+  FreeAndNil(FFillsVoids);
+  FreeAndNil(FConnectedTo);
+  FreeAndNil(FIsInterferedByElements);
+  FreeAndNil(FInterferesElements);
+  FreeAndNil(FHasProjections);
   FreeAndNil(FHasOpenings);
-  // FreeAndNil(FIsConnectionRealization);
-  // FreeAndNil(FProvidesBoundaries);
-  // FreeAndNil(FConnectedFrom);
-  // FreeAndNil(FHasCoverings);
-  // FreeAndNil(FHasSurfaceFeatures);
+  FreeAndNil(FIsConnectionRealization);
+  FreeAndNil(FProvidesBoundaries);
+  FreeAndNil(FConnectedFrom);
+  FreeAndNil(FContainedInStructure);
+  FreeAndNil(FHasCoverings);
+  FreeAndNil(FHasSurfaceFeatures);
   inherited;
 end;
 
@@ -2638,6 +2846,48 @@ end;
 destructor TIfcPostalAddress.Destroy;
 begin
   FreeAndNil(FAddressLines);
+  inherited;
+end;
+
+{ TIfcRelConnectsWithRealizingElements --------------------------------------- }
+
+constructor TIfcRelConnectsWithRealizingElements.Create(AOwner: TComponent);
+begin
+  inherited;
+  FRealizingElements := TIfcElementList.Create(false);
+end;
+
+destructor TIfcRelConnectsWithRealizingElements.Destroy;
+begin
+  FreeAndNil(FRealizingElements);
+  inherited;
+end;
+
+{ TIfcRelCoversBldgElements -------------------------------------------------- }
+
+constructor TIfcRelCoversBldgElements.Create(AOwner: TComponent);
+begin
+  inherited;
+  // TODO FRelatedCoverings := TIfcCoveringList.Create(false);
+end;
+
+destructor TIfcRelCoversBldgElements.Destroy;
+begin
+  // TODO FreeAndNil(FRelatedCoverings);
+  inherited;
+end;
+
+{ TIfcRelAdheresToElement --------------------------------------------------- }
+
+constructor TIfcRelAdheresToElement.Create(AOwner: TComponent);
+begin
+  inherited;
+  // TODO FRelatedSurfaceFeatures := TIfcSurfaceFeatureList.Create(false);
+end;
+
+destructor TIfcRelAdheresToElement.Destroy;
+begin
+  // TODO FreeAndNil(FRelatedSurfaceFeatures);
   inherited;
 end;
 
@@ -3158,6 +3408,14 @@ begin
     IfcClasses.Add(TIfcRelDefinesByObject);
     IfcClasses.Add(TIfcRepresentationMap);
     IfcClasses.Add(TIfcProfileProperties);
+    IfcClasses.Add(TIfcRelConnectsElements);
+    IfcClasses.Add(TIfcRelInterferesElements);
+    IfcClasses.Add(TIfcRelProjectsElement);
+    IfcClasses.Add(TIfcRelConnectsWithRealizingElements);
+    IfcClasses.Add(TIfcRelSpaceBoundary);
+    IfcClasses.Add(TIfcRelCoversBldgElements);
+    IfcClasses.Add(TIfcRelAdheresToElement);
+    IfcClasses.Add(TIfcSpatialZone);
   end;
 end;
 
