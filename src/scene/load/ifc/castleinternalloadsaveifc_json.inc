@@ -118,7 +118,9 @@ begin
     JsonObjType := JsonObj.Get('type', '');
     if (JsonObjType = 'IfcLabel') or
        (JsonObjType = 'IfcText') or
-       (JsonObjType = 'IfcIdentifier') then
+       (JsonObjType = 'IfcIdentifier') or
+       // hack to read IfcValue from TIfcPropertySingleValue.NominalValue into String
+       (DebugJsonKey = 'IfcPropertySingleValue.nominalValue') then
       Result := JsonObj.Get('value', '')
     else
     begin
