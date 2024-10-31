@@ -38,8 +38,11 @@ function IfcJsonSave(const IfcFile: TIfcFile): TJsonObject;
 
 {$ifdef read_implementation}
 
-{ Simple hack to detect does given object is a TObjectList<xxx> specialization.
-  They don't share any common ancestor in Generics.Collections in FPC,
+{ Simple hack to detect does given object is a TObjectList<xxx> specialization
+  and is a list of IFC classes.
+
+  Reason: TObjectList<xxx> don't share any common ancestor
+  in Generics.Collections in FPC,
   so there's no obvious "is" check to do this.
   This hack seems acceptable in this case -- as this is only internal
   and has to account only for classes inside
@@ -48,25 +51,32 @@ function IfcJsonSave(const IfcFile: TIfcFile): TJsonObject;
 function ClassNameOfList(const PotentialListClassName: String): Boolean;
 begin
   Result :=
-    IsSuffix('List', PotentialListClassName, false) or
-    IsPrefixSuffix('TObjectList<', '>', PotentialListClassName, false);
+    IsPrefixSuffix('TIfc', 'List', PotentialListClassName, false) or
+    IsPrefixSuffix('TObjectList<TIfc', '>', PotentialListClassName, false) or
+    IsPrefixSuffix('TObjectList<CastleInternalLoadSaveIfc.TIfc', '>', PotentialListClassName, false);
 end;
 
-{ For a list in castleinternalloadsaveifc_ifc_standard_types.inc,
+{ For a list of IFC classes in castleinternalloadsaveifc_ifc_standard_types.inc,
   return the class of the list children. }
 function ClassOfListChildren(const List: TObject): TIfcPersistentClass;
 var
   ChildClassName: String;
 begin
-  if IsPrefixSuffix('TObjectList<', '>', List.ClassName, false) then
-    ChildClassName := PrefixSuffixRemove('TObjectList<', '>', List.ClassName, false)
+  if IsPrefixSuffix('TIfc', 'List', List.ClassName, false) then
+    ChildClassName := PrefixSuffixRemove('TIfc', 'List', List.ClassName, false)
   else
-  if IsPrefixSuffix('T', 'List', List.ClassName, false) then
-    ChildClassName := PrefixSuffixRemove('T', 'List', List.ClassName, false)
+  if IsPrefixSuffix('TObjectList<TIfc', '>', List.ClassName, false) then
+    ChildClassName := PrefixSuffixRemove('TObjectList<TIfc', '>', List.ClassName, false)
+  else
+  if IsPrefixSuffix('TObjectList<CastleInternalLoadSaveIfc.TIfc', '>', List.ClassName, false) then
+    ChildClassName := PrefixSuffixRemove('TObjectList<CastleInternalLoadSaveIfc.TIfc', '>', List.ClassName, false)
   else
     raise EInvalidIfc.CreateFmt('Cannot determine list children class from list class: %s', [
       List.ClassName
     ]);
+
+  // readd "Ifc" prefix, we want it for FindIfcType
+  ChildClassName := 'Ifc' + ChildClassName;
 
   Result := IfcClasses.FindIfcType(ChildClassName);
   if Result = nil then
@@ -370,6 +380,23 @@ var
       VectorPersistent.Value := Vector;
     end;
 
+    { From elements of JsonChildArray read TCastleStringList contents
+      into property PropInfo of Ifc, which must be a TCastleStringList. }
+    procedure ReadIfcChildStringList(const PropInfo: PPropInfo;
+      const JsonChildArray: TJsonArray);
+    var
+      I: Integer;
+      StringList: TCastleStringList;
+    begin
+      StringList := PropertyGetInstance(Ifc, PropInfo) as TCastleStringList;
+      if StringList = nil then
+        raise EInvalidIfc.CreateFmt('Pascal property "%s" is supposed to be a TCastleStringList, but it is nil', [
+          PropInfo^.Name
+        ]);
+      for I := 0 to JsonChildArray.Count - 1 do
+        StringList.Add(JsonToString(JsonChildArray.Items[I], DebugJsonKey));
+    end;
+
     {$ifdef FPC}
       {$push}
       // Disable object check for our TIfcPersistentList cast hack
@@ -477,6 +504,7 @@ var
       if (JsonInstanceValue is TJsonArray) and
          (not (CurrentInstance is TCastleVector3Persistent)) and
          (not (CurrentInstance is TCastleVector4Persistent)) and
+         (not (CurrentInstance is TCastleStringList)) and
          (not ClassNameOfList(PropertyGetInstanceClass(Ifc, PropInfo).ClassName)) then
       begin
         case TJsonArray(JsonInstanceValue).Count of
@@ -509,6 +537,9 @@ var
       end else
       if JsonInstanceValue is TJsonArray then
       begin
+        if CurrentInstance is TCastleStringList then
+          ReadIfcChildStringList(PropInfo, JsonInstanceValue as TJsonArray)
+        else
         if CurrentInstance is TCastleVector3Persistent then
           ReadIfcChildVector3(PropInfo, JsonInstanceValue as TJsonArray)
         else
@@ -665,6 +696,16 @@ function IfcJsonSave(const IfcFile: TIfcFile): TJsonObject;
       Result.Add(Vector.Value[I]);
   end;
 
+  { Serialize TCastleStringList to JSON array. }
+  function SerializeJsonStringList(const StringList: TCastleStringList): TJsonArray;
+  var
+    I: Integer;
+  begin
+    Result := TJsonArray.Create;
+    for I := 0 to StringList.Count - 1 do
+      Result.Add(StringList[I]);
+  end;
+
   {$ifdef FPC}
     {$push}
     // Disable object check for our TIfcPersistentList cast hack
@@ -764,6 +805,9 @@ function IfcJsonSave(const IfcFile: TIfcFile): TJsonObject;
               if IfcObjProperty <> nil then
               begin
                 // TODO: avoid infinite recursion because of cycles, use ref=xxx
+                if IfcObjProperty is TCastleStringList then
+                  Result.Add(JsonKey, SerializeJsonStringList(TCastleStringList(IfcObjProperty)))
+                else
                 if IfcObjProperty is TCastleVector3Persistent then
                   Result.Add(JsonKey, SerializeJsonVector3(TCastleVector3Persistent(IfcObjProperty)))
                 else

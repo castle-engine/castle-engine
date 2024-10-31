@@ -100,7 +100,7 @@ interface
 
 uses Contnrs, Generics.Collections, SysUtils, Classes,
   FpJson, JSONParser, JSONScanner,
-  CastleVectors, X3DNodes, CastleUriUtils, CastleLog;
+  CastleVectors, X3DNodes, CastleUriUtils, CastleLog, CastleStringUtils;
 
 {$define read_interface}
 {$I castleinternalloadsaveifc_ifc_types.inc}
@@ -112,7 +112,7 @@ uses Contnrs, Generics.Collections, SysUtils, Classes,
 implementation
 
 uses TypInfo, RttiUtils,
-  X3DLoad, CastleInternalRttiUtils, CastleStringUtils, CastleClassUtils,
+  X3DLoad, CastleInternalRttiUtils, CastleClassUtils,
   CastleDownload;
 
 {$define read_implementation}

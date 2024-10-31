@@ -67,6 +67,9 @@
 
       The list instance is FreeAndNil'ed in destructor.
 
+      Supported lists are TObjectList<TIfcXxx> descendants,
+      and TCastleStringList (for lists of strings, like IfcLabel lists).
+
     - The vector properties should be treated using
       TCastleVector3PersistentSimple,
       TCastleVector4PersistentSimple (unused for now) etc.
@@ -1421,18 +1424,21 @@
   TIfcPostalAddress = class(TIfcAddress)
   strict private
     FInternalLocation: TIfcLabel;
-    // TODO: FAddressLines: TIfcLabelList;
+    FAddressLines: TCastleStringList;
     FPostalBox: TIfcLabel;
     FTown: TIfcLabel;
     FRegion: TIfcLabel;
     FPostalCode: TIfcLabel;
     FCountry: TIfcLabel;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
   published
     { Internal location for the address. }
     property InternalLocation: TIfcLabel read FInternalLocation write FInternalLocation;
 
     { The postal address. }
-    // property AddressLines: TIfcLabelList read FAddressLines; // TODO serialization/deserialization for string list needed
+    property AddressLines: TCastleStringList read FAddressLines;
 
     { An address that is implied by an identifiable mail drop. }
     property PostalBox: TIfcLabel read FPostalBox write FPostalBox;
@@ -1485,6 +1491,19 @@
 
     Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcBuilding.htm }
   TIfcBuilding = class(TIfcFacility)
+  strict private
+    FElevationOfRefHeight: TIfcLengthMeasure;
+    FElevationOfTerrain: TIfcLengthMeasure;
+    FBuildingAddress: TIfcPostalAddress;
+  published
+    { Elevation above sea level of the reference height used for all storey elevation measures. }
+    property ElevationOfRefHeight: TIfcLengthMeasure read FElevationOfRefHeight write FElevationOfRefHeight;
+
+    { Elevation above the minimal terrain level around the foot print of the building. }
+    property ElevationOfTerrain: TIfcLengthMeasure read FElevationOfTerrain write FElevationOfTerrain;
+
+    { Address given to the building for postal purposes. }
+    property BuildingAddress: TIfcPostalAddress read FBuildingAddress write FBuildingAddress;
   end;
 
   { Storey (~floor).
@@ -1714,7 +1733,7 @@
     the geometric bodies of the element and the opening.
 
     Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcRelVoidsElement.htm }
-  TIfcRelVoidsElement = class(TIfcPersistent)
+  TIfcRelVoidsElement = class(TIfcRoot)
   strict private
     FRelatingBuildingElement: TIfcElement;
     FRelatedOpeningElement: TIfcFeatureElementSubtraction;
@@ -2594,7 +2613,7 @@ begin
   inherited;
 end;
 
-{ TIfcRelContainedInSpatialStructure --------------------------------------- }
+{ TIfcRelContainedInSpatialStructure ----------------------------------------- }
 
 constructor TIfcRelContainedInSpatialStructure.Create(AOwner: TComponent);
 begin
@@ -2608,7 +2627,21 @@ begin
   inherited;
 end;
 
-{ TIfcCartesianPoint -------------------------------------------------------- }
+{ TIfcPostalAddress ---------------------------------------------------------- }
+
+constructor TIfcPostalAddress.Create(AOwner: TComponent);
+begin
+  inherited;
+  FAddressLines := TCastleStringList.Create;
+end;
+
+destructor TIfcPostalAddress.Destroy;
+begin
+  FreeAndNil(FAddressLines);
+  inherited;
+end;
+
+{ TIfcCartesianPoint --------------------------------------------------------- }
 
 constructor TIfcCartesianPoint.Create(AOwner: TComponent);
 begin
