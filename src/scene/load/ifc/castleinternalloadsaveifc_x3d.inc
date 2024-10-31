@@ -189,7 +189,7 @@ begin
     Result.AddChildren(RelAggregates.BuildNode(BaseUrl));
 end;
 
-function TIfcSpatialStructureElement.BuildNode(const BaseUrl: String): TTransformNode;
+function TIfcSpatialElement.BuildNode(const BaseUrl: String): TTransformNode;
 var
   RelContainedInSpatialStructure: TIfcRelContainedInSpatialStructure;
 begin

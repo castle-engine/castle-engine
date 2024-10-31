@@ -141,6 +141,7 @@
   TIfcProductRepresentationList = class;
   TIfcProfilePropertiesList = class;
   TIfcPropertyList = class;
+  TIfcRelContainedInSpatialStructureList = class;
 
   { Float type used throughout IFC.
 
@@ -1336,9 +1337,15 @@
   TIfcSpatialElement = class abstract(TIfcProduct)
   strict private
     FLongName: TIfcLabel;
+    FContainsElements: TIfcRelContainedInSpatialStructureList;
     // TODO: rest of fields
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+    function BuildNode(const BaseUrl: String): TTransformNode; override;
   published
     property LongName: TIfcLabel read FLongName write FLongName;
+    property ContainsElements: TIfcRelContainedInSpatialStructureList read FContainsElements;
   end;
 
   { Relationship that connects objects under some criteria. }
@@ -1364,19 +1371,31 @@
     { Spatial structure element, within which the element is contained. }
     property RelatingStructure: TIfcSpatialElement read FRelatingStructure write FRelatingStructure;
   end;
-  TIfcRelContainedInSpatialStructureList = {$ifdef FPC}specialize{$endif} TObjectList<TIfcRelContainedInSpatialStructure>;
+  TIfcRelContainedInSpatialStructureList = class({$ifdef FPC}specialize{$endif} TObjectList<TIfcRelContainedInSpatialStructure>)
+  end;
 
-  { Spatial structure can be used to provide a spatial organization of a project. }
+  TIfcElementCompositionEnum = (
+    Element,
+    Complex,
+    Partial
+  );
+
+  { Spatial structure can be used to provide a spatial organization of a project.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcSpatialStructureElement.htm }
   TIfcSpatialStructureElement = class abstract(TIfcSpatialElement)
   strict private
-    // TODO
-    FContainsElements: TIfcRelContainedInSpatialStructureList;
-  public
-    constructor Create(AOwner: TComponent); override;
-    destructor Destroy; override;
-    function BuildNode(const BaseUrl: String): TTransformNode; override;
+    FCompositionType: TIfcElementCompositionEnum;
   published
-    property ContainsElements: TIfcRelContainedInSpatialStructureList read FContainsElements;
+    { Denotes, whether the predefined spatial structure element represents
+      itself, or an aggregate (complex) or a part (part).
+      The interpretation is given separately for each subtype
+      of spatial structure element.
+
+      Pascal default Element matches IFC spec default:
+      If no CompositionType is asserted, the default value ''ELEMENT'' applies. }
+    property CompositionType: TIfcElementCompositionEnum
+      read FCompositionType write FCompositionType default TIfcElementCompositionEnum.Element;
   end;
 
   { Compound measure of plane angle in degrees, minutes, seconds,
@@ -2450,15 +2469,15 @@ begin
   inherited;
 end;
 
-{ TIfcSpatialStructureElement ------------------------------------------------ }
+{ TIfcSpatialElement --------------------------------------------------------- }
 
-constructor TIfcSpatialStructureElement.Create(AOwner: TComponent);
+constructor TIfcSpatialElement.Create(AOwner: TComponent);
 begin
   inherited;
   FContainsElements := TIfcRelContainedInSpatialStructureList.Create(false);
 end;
 
-destructor TIfcSpatialStructureElement.Destroy;
+destructor TIfcSpatialElement.Destroy;
 begin
   FreeAndNil(FContainsElements);
   inherited;
