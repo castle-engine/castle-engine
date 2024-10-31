@@ -440,7 +440,7 @@ type
     property AutoFocus: Boolean read FAutoFocus write FAutoFocus default false;
 
     { Access Castle Game Engine container properties and events,
-      not specific for Lazarus LCL. }
+      not specific to Lazarus LCL. }
     property Container: TCastleControlContainer read FContainer;
 
     { Should we automatically redraw the window all the time,
