@@ -789,6 +789,11 @@ function IfcJsonSave(const IfcFile: TIfcFile): TJsonObject;
         if HasDefaultValue then
           Continue;
 
+        { Do no serialize properties with "stored false",
+          like TIfcProperty.Description. }
+        if not IsStoredProp(Ifc, PropInfo) then
+          Continue;
+
         DebugPropName := IfcClassName + '.' + PropName;
         case PropType of
           ptString:
