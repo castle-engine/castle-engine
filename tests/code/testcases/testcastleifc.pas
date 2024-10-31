@@ -33,8 +33,11 @@ implementation
 uses TypInfo, RttiUtils,
   CastleStringUtils, CastleInternalLoadSaveIfc, CastleInternalRttiUtils;
 
-{ Simple hack to detect does given object is a TObjectList<xxx> specialization.
-  They don't share any common ancestor in Generics.Collections in FPC,
+{ Simple hack to detect does given object is a TObjectList<xxx> specialization
+  and is a list of IFC classes.
+
+  Reason: TObjectList<xxx> don't share any common ancestor
+  in Generics.Collections in FPC,
   so there's no obvious "is" check to do this.
   This hack seems acceptable in this case -- as this is only internal
   and has to account only for classes inside
@@ -43,8 +46,9 @@ uses TypInfo, RttiUtils,
 function ClassNameOfList(const PotentialListClassName: String): Boolean;
 begin
   Result :=
-    IsSuffix('List', PotentialListClassName, false) or
-    IsPrefixSuffix('TObjectList<', '>', PotentialListClassName, false);
+    IsPrefixSuffix('TIfc', 'List', PotentialListClassName, false) or
+    IsPrefixSuffix('TObjectList<TIfc', '>', PotentialListClassName, false) or
+    IsPrefixSuffix('TObjectList<CastleInternalLoadSaveIfc.TIfc', '>', PotentialListClassName, false);
 end;
 
 procedure TTestCastleIfc.TestIfcClasses;
@@ -84,7 +88,8 @@ procedure TTestCastleIfc.TestIfcClasses;
           if PropertyType(PropInfo) = ptInstance then
           begin
             PropClass := PropertyGetInstanceClass(Ifc, PropInfo);
-            if ClassNameOfList(PropClass.ClassName) then
+            if ClassNameOfList(PropClass.ClassName) or
+               PropClass.InheritsFrom(TStrings) then
             begin
               List := PropertyGetInstance(Ifc, PropInfo);
               if List = nil then
