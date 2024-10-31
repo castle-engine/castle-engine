@@ -26,6 +26,7 @@ type
   TTestCastleIfc = class(TCastleTestCase)
   published
     procedure TestIfcClasses;
+    procedure TestIfcClassesNoDuplicates;
   end;
 
 implementation
@@ -115,6 +116,21 @@ begin
     try
       TestIfcInstance(Ifc);
     finally FreeAndNil(Ifc) end;
+  end;
+end;
+
+procedure TTestCastleIfc.TestIfcClassesNoDuplicates;
+var
+  IfcClass: TIfcPersistentClass;
+  I, J: Integer;
+begin
+  InitializeIfcClasses;
+  for I := 0 to IfcClasses.Count - 1 do
+  begin
+    IfcClass := IfcClasses[I];
+    for J := I + 1 to IfcClasses.Count - 1 do
+      if IfcClass = IfcClasses[J] then
+        raise EInvalidIfc.CreateFmt('IFC class %s is duplicated in IfcClasses', [IfcClass.ClassName]);
   end;
 end;
 
