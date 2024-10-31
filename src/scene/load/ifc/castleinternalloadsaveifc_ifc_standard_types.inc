@@ -16,7 +16,26 @@
 
 { Types and classes that correspond to the IFC standard.
 
-  Some conventions:
+  Overview:
+
+  We strived to express IFC concepts using the most straghtforward / natural
+  Pascal concepts.
+
+  - So most IFC types and their inheritance are naturally expressed
+    using Pascal classes and their inheritance.
+
+  - The exceptions are:
+    - Simple types: strings, integers, floats. These map directly to Pascal types.
+    - Enumerations: they map to Pascal enums.
+    - Sets (lists): are expressed using generic TObjectList<xxx> descendants.
+      With the exception of string lists, which are TCastleStringList.
+
+  - Everything is RTTI friendly (classes have their properties published,
+    "default" and "stored" matter etc.), to allow our JSON
+    serialization / deserialization
+    use RTTI to handle all IFC classes in a uniform fashion.
+
+  Details how everything is defined:
 
   - All IFC classes descend from TIfcPersistent.
     It right now descends from TComponent,
@@ -28,8 +47,10 @@
 
     - Publish them as properties in "published" section.
 
-    - Use "default" as usual in Pascal. When the property equals default,
+    - Use "default" and "stored" as usual in Pascal.
+      When the property equals default, or is not stored,
       it will not be serialized to IFC JSON.
+
       Not using "default" (or "stored") means it is serialized always to IFC JSON.
       (Usual Pascal rules for "default" apply, e.g. all Strings implicitly
       have default '' always.)
@@ -93,7 +114,7 @@
     This in practice usually means you should place the last IFC value
     ("NotDefined" or "UserDefined", usually) as the first enum value in Pascal.
 
-  These classes express
+  These classes express:
 
   - Everything from the IFC standard that we handle.
 
@@ -154,6 +175,12 @@
   TIfcPropertyTemplateList = class;
   TIfcProperty = class;
   TIfcComplexPropertyList = class;
+  TIfcMaterial = class;
+  TIfcMaterialList = class;
+  TIfcMaterialConstituentSet = class;
+  TIfcMaterialDefinition = class;
+  TIfcMaterialPropertiesList = class;
+  TIfcMaterialLayerSet = class;
 
   { Float type used throughout IFC.
 
@@ -169,6 +196,8 @@
 
     Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcLengthMeasure.htm }
   TIfcLengthMeasure = Single;
+
+  TIfcNonNegativeLengthMeasure = Single;
 
   { Number of dimensions.
 
@@ -197,6 +226,13 @@
   TIfcTimeStamp = Int64;
 
   TIfcURIReference = String;
+
+  { Dimensionless measure to express ratio values ranging from 0.0 to 1.0.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcNormalisedRatioMeasure.htm }
+  TIfcNormalisedRatioMeasure = Single;
+
+  TIfcLogical = Boolean;
 
   { Presentation information assigned to geometric representation items.
 
@@ -858,6 +894,7 @@
     { Material definition assigned to the elements or element types. }
     property RelatingMaterial: TIfcMaterialSelect read FRelatingMaterial write FRelatingMaterial;
   end;
+  TIfcRelAssociatesMaterialList = {$ifdef FPC}specialize{$endif} TObjectList<TIfcRelAssociatesMaterial>;
 
   { Generalization of all characteristics (i.e. a grouping of individual
     properties), that may be assigned to objects. }
@@ -2896,7 +2933,283 @@
   TIfcComplexPropertyList = class({$ifdef FPC}specialize{$endif} TObjectList<TIfcComplexProperty>)
   end;
 
-  { Relationship between a property and a property set. }
+  { Set of material properties to associated material definitions.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcMaterialProperties.htm }
+  TIfcMaterialProperties = class(TIfcExtendedProperties)
+  strict private
+    FMaterial: TIfcMaterialDefinition;
+  published
+    { Reference to the material definition to which the set of properties is assigned. }
+    property Material: TIfcMaterialDefinition read FMaterial write FMaterial;
+  end;
+  TIfcMaterialPropertiesList = class({$ifdef FPC}specialize{$endif} TObjectList<TIfcMaterialProperties>)
+  end;
+
+  { General supertype for all material related information items in IFC
+    that have common material related properties that may include association
+    of material with some shape parameters or assignments to identified parts
+    of a component. }
+  TIfcMaterialDefinition = class abstract(TIfcPersistent)
+  strict private
+    FAssociatedTo: TIfcRelAssociatesMaterialList;
+    FHasExternalReferences: TIfcExternalReferenceRelationshipList;
+    FHasProperties: TIfcMaterialPropertiesList;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+  published
+    { Use of the IfcMaterialDefinition subtypes within the material association
+      of an element occurrence or element type. }
+ 	  property AssociatedTo: TIfcRelAssociatesMaterialList read FAssociatedTo;
+
+    { Reference to external references, e.g. library, classification,
+      or document information, that are associated to the material. }
+    property HasExternalReferences: TIfcExternalReferenceRelationshipList read FHasExternalReferences;
+
+    { Material properties assigned to instances of subtypes of IfcMaterialDefinition. }
+    property HasProperties: TIfcMaterialPropertiesList read FHasProperties;
+  end;
+
+  { Relationship between part and whole in material definitions (as in composite materials).
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcMaterialRelationship.htm }
+  TIfcMaterialRelationship = class(TIfcResourceLevelRelationship)
+  strict private
+    FRelatingMaterial: TIfcMaterial;
+    FRelatedMaterials: TIfcMaterialList;
+    FMaterialExpression: TIfcLabel;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+  published
+    { Reference to the relating material (the composite). }
+    property RelatingMaterial: TIfcMaterial read FRelatingMaterial write FRelatingMaterial;
+
+    { Reference to related materials (as constituents of composite material). }
+    property RelatedMaterials: TIfcMaterialList read FRelatedMaterials;
+
+    property MaterialExpression: TIfcLabel read FMaterialExpression write FMaterialExpression;
+  end;
+  TIfcMaterialRelationshipList = {$ifdef FPC}specialize{$endif} TObjectList<TIfcMaterialRelationship>;
+
+  { Defines presentation information relating to IfcMaterial.
+    It allows for multiple presentations of the same material
+    for different geometric representation contexts.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcMaterialDefinitionRepresentation.htm }
+  TIfcMaterialDefinitionRepresentation = class(TIfcProductRepresentation)
+  strict private
+    FRepresentedMaterial: TIfcMaterial;
+  published
+    { Reference to the material to which the representation applies. }
+    property RepresentedMaterial: TIfcMaterial read FRepresentedMaterial write FRepresentedMaterial;
+  end;
+  TIfcMaterialDefinitionRepresentationList = {$ifdef FPC}specialize{$endif} TObjectList<TIfcMaterialDefinitionRepresentation>;
+
+  { Homogeneous or inhomogeneous substance that can be used
+    to form elements (physical products or their components). }
+  TIfcMaterial = class(TIfcMaterialDefinition)
+  strict private
+    FName: TIfcLabel;
+    FDescription: TIfcText;
+    FCategory: TIfcLabel;
+    FHasRepresentation: TIfcMaterialDefinitionRepresentation;
+    FIsRelatedWith: TIfcMaterialRelationshipList;
+    FRelatesTo: TIfcMaterialRelationship;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+  published
+    { Name of the material. }
+    property Name: TIfcLabel read FName write FName;
+
+    { Definition of the material in more descriptive terms than given by attributes Name or Category. }
+    property Description: TIfcText read FDescription write FDescription;
+
+    { Definition of the category (group or type) of material, in more general terms than given by attribute Name. }
+    property Category: TIfcLabel read FCategory write FCategory;
+
+    { Reference to the IfcMaterialDefinitionRepresentation that
+      provides presentation information to a representation common
+      to this material in style definitions. }
+    property HasRepresentation: TIfcMaterialDefinitionRepresentation read FHasRepresentation write FHasRepresentation;
+
+    { Reference to a material relationship indicating that this material
+      is a part (or constituent) in a material composite. }
+    property IsRelatedWith: TIfcMaterialRelationshipList read FIsRelatedWith;
+
+    { Reference to a material relationship indicating that this material
+      composite has parts (or constituents). }
+    property RelatesTo: TIfcMaterialRelationship read FRelatesTo write FRelatesTo;
+  end;
+  TIfcMaterialList = class({$ifdef FPC}specialize{$endif} TObjectList<TIfcMaterial>)
+  end;
+
+  { Single and identifiable part of an element which is constructed of a
+    number of part (one or more) each having an individual material.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcMaterialConstituent.htm }
+  TIfcMaterialConstituent = class(TIfcMaterialDefinition)
+  strict private
+    FName: TIfcLabel;
+    FDescription: TIfcText;
+    FMaterial: TIfcMaterial;
+    FFraction: TIfcNormalisedRatioMeasure;
+    FCategory: TIfcLabel;
+    FToMaterialConstituentSet: TIfcMaterialConstituentSet;
+  published
+    { The name by which the material constituent is known. }
+    property Name: TIfcLabel read FName write FName;
+
+    { Definition of the material constituent in descriptive terms. }
+    property Description: TIfcText read FDescription write FDescription;
+
+    { Reference to the material from which the constituent is constructed. }
+    property Material: TIfcMaterial read FMaterial write FMaterial;
+
+    { Optional provision of a fraction of the total amount (volume or weight)
+      that applies to the IfcMaterialConstituentSet
+      that is contributed by this IfcMaterialConstituent. }
+    property Fraction: TIfcNormalisedRatioMeasure read FFraction write FFraction;
+
+    { Category of the material constituent, e.g. the role it has in the constituent set it belongs to. }
+    property Category: TIfcLabel read FCategory write FCategory;
+
+    { Material constituent set in which this material constituent is included. }
+    property ToMaterialConstituentSet: TIfcMaterialConstituentSet read FToMaterialConstituentSet write FToMaterialConstituentSet;
+  end;
+  TIfcMaterialConstituentList = {$ifdef FPC}specialize{$endif} TObjectList<TIfcMaterialConstituent>;
+
+  { Collection of individual material constituents, each assigning a material
+    to a part of an element. The parts are only identified by a keyword
+    (as opposed to an IfcMaterialLayerSet or IfcMaterialProfileSet where
+    each part has an individual shape parameter (layer thickness or layer profile). }
+  TIfcMaterialConstituentSet = class(TIfcMaterialDefinition)
+  strict private
+    FName: TIfcLabel;
+    FDescription: TIfcText;
+    FMaterialConstituents: TIfcMaterialConstituentList;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+  published
+    { Name by which the constituent set is known. }
+    property Name: TIfcLabel read FName write FName;
+
+    { Definition of the material constituent in descriptive terms. }
+    property Description: TIfcText read FDescription write FDescription;
+
+    { Identification of the constituents from which the material constituent set is composed. }
+    property MaterialConstituents: TIfcMaterialConstituentList read FMaterialConstituents;
+  end;
+
+  { Single and identifiable part of an element which is constructed
+    of a number of layers (one or more).
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcMaterialLayer.htm }
+  TIfcMaterialLayer = class(TIfcMaterialDefinition)
+  strict private
+    FMaterial: TIfcMaterial;
+    FLayerThickness: TIfcNonNegativeLengthMeasure;
+    FIsVentilated: TIfcLogical;
+    FName: TIfcLabel;
+    FDescription: TIfcText;
+    FCategory: TIfcLabel;
+    FPriority: Integer;
+    FToMaterialLayerSet: TIfcMaterialLayerSet;
+  published
+    { Optional reference to the material from which the layer is constructed. }
+    property Material: TIfcMaterial read FMaterial write FMaterial;
+
+    { The thickness of the material layer. }
+    property LayerThickness: TIfcNonNegativeLengthMeasure read FLayerThickness write FLayerThickness;
+
+    { Indication of whether the material layer represents an air layer (or cavity).
+
+      TODO: IFC specification says this is OPTIONAL, and default is "unknown",
+      so maybe this should be an enum with 3 values in Pascal? }
+    property IsVentilated: TIfcLogical read FIsVentilated write FIsVentilated default false;
+
+    { The name by which the material layer is known. }
+    property Name: TIfcLabel read FName write FName;
+
+    { Definition of the material layer in more descriptive terms than given by attributes Name or Category. }
+    property Description: TIfcText read FDescription write FDescription;
+
+    { Category of the material layer, e.g. the role it has in the layer set it belongs to. }
+    property Category: TIfcLabel read FCategory write FCategory;
+
+    { The relative priority of the layer, expressed as normalised integer range [0..100]. }
+    property Priority: Integer read FPriority write FPriority default 0;
+
+    { Reference to the IfcMaterialLayerSet in which the material layer is included. }
+    property ToMaterialLayerSet: TIfcMaterialLayerSet read FToMaterialLayerSet write FToMaterialLayerSet;
+  end;
+  TIfcMaterialLayerList = {$ifdef FPC}specialize{$endif} TObjectList<TIfcMaterialLayer>;
+
+  { Designation by which materials of an element constructed of a number
+    of material layers is known and through which the relative positioning
+    of individual layers can be expressed.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcMaterialLayerSet.htm }
+  TIfcMaterialLayerSet = class(TIfcMaterialDefinition)
+  strict private
+    FMaterialLayers: TIfcMaterialLayerList;
+    FLayerSetName: TIfcLabel;
+    FDescription: TIfcText;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+  published
+    { Identification of the IfcMaterialLayer's from which the IfcMaterialLayerSet is composed. }
+    property MaterialLayers: TIfcMaterialLayerList read FMaterialLayers;
+
+    { The name by which the IfcMaterialLayerSet is known. }
+    property LayerSetName: TIfcLabel read FLayerSetName write FLayerSetName;
+
+    { Definition of the IfcMaterialLayerSet in descriptive terms. }
+    property Description: TIfcText read FDescription write FDescription;
+  end;
+
+  TIfcLayerSetDirectionEnum = (
+    Axis1,
+    Axis2,
+    Axis3
+  );
+
+  TIfcDirectionSenseEnum = (
+    Positive,
+    Negative
+  );
+
+  { Determines the usage of IfcMaterialLayerSet in terms of its location
+    and orientation relative to the associated element geometry. }
+  TIfcMaterialLayerSetUsage = class(TIfcMaterialDefinition)
+  strict private
+    FForLayerSet: TIfcMaterialLayerSet;
+    FLayerSetDirection: TIfcLayerSetDirectionEnum;
+    FDirectionSense: TIfcDirectionSenseEnum;
+    FOffsetFromReferenceLine: TIfcLengthMeasure;
+    FReferenceExtent: TIfcPositiveLengthMeasure;
+  published
+    { The IfcMaterialLayerSet set to which the usage is applied. }
+    property ForLayerSet: TIfcMaterialLayerSet read FForLayerSet write FForLayerSet;
+
+    { Orientation of the material layer set relative to element reference geometry. }
+    property LayerSetDirection: TIfcLayerSetDirectionEnum read FLayerSetDirection write FLayerSetDirection;
+
+    { Denotes whether the material layer set is oriented in positive or negative sense
+      along the specified axis (defined by LayerSetDirection). }
+    property DirectionSense: TIfcDirectionSenseEnum read FDirectionSense write FDirectionSense;
+
+    { Offset of the material layer set base line from reference geometry of element. }
+    property OffsetFromReferenceLine: TIfcLengthMeasure read FOffsetFromReferenceLine write FOffsetFromReferenceLine;
+
+    { Extent of the extrusion of the elements body shape representation to which
+      the IfcMaterialLayerSetUsage applies. }
+    property ReferenceExtent: TIfcPositiveLengthMeasure read FReferenceExtent write FReferenceExtent;
+  end;
 
 var
   { List of all (non-abstract) IFC classes that are defined in this unit.
@@ -3702,6 +4015,80 @@ begin
   inherited;
 end;
 
+{ TIfcMaterialDefinition ----------------------------------------------------- }
+
+constructor TIfcMaterialDefinition.Create(AOwner: TComponent);
+begin
+  inherited;
+  FAssociatedTo := TIfcRelAssociatesMaterialList.Create(false);
+  FHasExternalReferences := TIfcExternalReferenceRelationshipList.Create(false);
+  FHasProperties := TIfcMaterialPropertiesList.Create(false);
+end;
+
+destructor TIfcMaterialDefinition.Destroy;
+begin
+  FreeAndNil(FAssociatedTo);
+  FreeAndNil(FHasExternalReferences);
+  FreeAndNil(FHasProperties);
+  inherited;
+end;
+
+{ TIfcMaterialRelationship --------------------------------------------------- }
+
+constructor TIfcMaterialRelationship.Create(AOwner: TComponent);
+begin
+  inherited;
+  FRelatedMaterials := TIfcMaterialList.Create(false);
+end;
+
+destructor TIfcMaterialRelationship.Destroy;
+begin
+  FreeAndNil(FRelatedMaterials);
+  inherited;
+end;
+
+{ TIfcMaterial --------------------------------------------------------------- }
+
+constructor TIfcMaterial.Create(AOwner: TComponent);
+begin
+  inherited;
+  FIsRelatedWith := TIfcMaterialRelationshipList.Create(false);
+end;
+
+destructor TIfcMaterial.Destroy;
+begin
+  FreeAndNil(FIsRelatedWith);
+  inherited;
+end;
+
+{ TIfcMaterialLayerSet ------------------------------------------------------- }
+
+constructor TIfcMaterialLayerSet.Create(AOwner: TComponent);
+begin
+  inherited;
+  FMaterialLayers := TIfcMaterialLayerList.Create(false);
+end;
+
+destructor TIfcMaterialLayerSet.Destroy;
+begin
+  FreeAndNil(FMaterialLayers);
+  inherited;
+end;
+
+{ TIfcMaterialConstituentSet ------------------------------------------------- }
+
+constructor TIfcMaterialConstituentSet.Create(AOwner: TComponent);
+begin
+  inherited;
+  FMaterialConstituents := TIfcMaterialConstituentList.Create(false);
+end;
+
+destructor TIfcMaterialConstituentSet.Destroy;
+begin
+  FreeAndNil(FMaterialConstituents);
+  inherited;
+end;
+
 { initialization, finalization ----------------------------------------------- }
 
 procedure InitializeIfcClasses;
@@ -3807,6 +4194,14 @@ begin
     IfcClasses.Add(TIfcRelDefinesByTemplate);
     IfcClasses.Add(TIfcPropertySingleValue);
     IfcClasses.Add(TIfcComplexProperty);
+    IfcClasses.Add(TIfcMaterialLayerSet);
+    IfcClasses.Add(TIfcMaterialLayer);
+    IfcClasses.Add(TIfcMaterialLayerSetUsage);
+    IfcClasses.Add(TIfcMaterial);
+    IfcClasses.Add(TIfcMaterialDefinitionRepresentation);
+    IfcClasses.Add(TIfcMaterialRelationship);
+    IfcClasses.Add(TIfcMaterialConstituent);
+    IfcClasses.Add(TIfcMaterialConstituentSet);
   end;
 end;
 

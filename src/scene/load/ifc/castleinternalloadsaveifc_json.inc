@@ -194,6 +194,7 @@ begin
     JsonObj := JsonValue as TJsonObject;
     JsonObjType := JsonObj.Get('type', '');
     if (JsonObjType = 'IfcPositiveLengthMeasure') or
+       (JsonObjType = 'IfcNonNegativeLengthMeasure') or
        (JsonObjType = 'IfcLengthMeasure') or
        (JsonObjType = 'IfcReal') then
       Result := JsonObj.Get('value', 0.0)
