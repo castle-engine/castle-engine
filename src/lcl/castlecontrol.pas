@@ -366,7 +366,7 @@ type
     function DesignedComponent(const ComponentName: String): TComponent;
       deprecated 'use Container.DesignedComponent';
 
-    { Be cafeful about comments in the published section.
+    { Be careful about comments in the published section.
       They are picked up and shown automatically by Lazarus Object Inspector,
       and it has it's own logic, much much dumber than what PasDoc sees.
       There seems no way to hide comment there.
@@ -398,6 +398,7 @@ type
         property AutoResizeViewport;
     }
   published
+    { }
     property Align;
     property Anchors;
     property BorderSpacing;
