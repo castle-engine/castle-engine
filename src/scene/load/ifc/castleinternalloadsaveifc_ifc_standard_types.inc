@@ -152,6 +152,8 @@
   TIfcTypeObjectList = class;
   TIfcPropertySetTemplateList = class;
   TIfcPropertyTemplateList = class;
+  TIfcProperty = class;
+  TIfcComplexPropertyList = class;
 
   { Float type used throughout IFC.
 
@@ -390,6 +392,33 @@
     { A description that may apply additional information about the relationship. }
     property Description: TIfcText read FDescription write FDescription;
   end;
+
+  { Whilst the IfcPropertyDependencyRelationship may be used to describe
+    the dependency, and it may do so in terms of the expression of how
+    the dependency operates, it is not possible through the current IFC model
+    for the value of the related property to be actually derived from
+    the value of the relating property.
+    The determination of value according to the dependency is required
+    to be performed by an application that can then use the Expression attribute
+    to flag the form of the dependency.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcPropertyDependencyRelationship.htm }
+  TIfcPropertyDependencyRelationship = class(TIfcResourceLevelRelationship)
+  strict private
+    FDependingProperty: TIfcProperty;
+    FDependantProperty: TIfcProperty;
+    FExpression: TIfcText;
+  published
+    { The property on which the relationship depends. }
+    property DependingProperty: TIfcProperty read FDependingProperty write FDependingProperty;
+
+    { The dependant property. }
+    property DependantProperty: TIfcProperty read FDependantProperty write FDependantProperty;
+
+    { Further describe the nature of the dependency relation. }
+    property Expression: TIfcText read FExpression write FExpression;
+  end;
+  TIfcPropertyDependencyRelationshipList = {$ifdef FPC}specialize{$endif} TObjectList<TIfcPropertyDependencyRelationship>;
 
   { Abstract base entity for relationships between resource-level entities. }
   TIfcExternalReferenceRelationship = class abstract(TIfcResourceLevelRelationship)
@@ -1022,6 +1051,7 @@
     { Contained set of properties. }
     property HasProperties: TIfcPropertyList read FHasProperties;
   end;
+  TIfcPropertySetList = {$ifdef FPC}specialize{$endif} TObjectList<TIfcPropertySet>;
 
   { Information about a type, common to all occurrences of this type. }
   TIfcTypeObject = class(TIfcObjectDefinition)
@@ -2775,11 +2805,98 @@
 
   { Abstract generalization for all types of properties that can be
     associated with IFC objects through the property set mechanism. }
-  TIfcProperty = class(TIfcPersistent)
-    // TODO
+  TIfcProperty = class abstract(TIfcPersistent)
+  strict private
+    FName: TIfcIdentifier;
+    FSpecification: TIfcText;
+    FPartOfPset: TIfcPropertySetList;
+    FPropertyForDependance: TIfcPropertyDependencyRelationshipList;
+    FPropertyDependsOn: TIfcPropertyDependencyRelationshipList;
+    FPartOfComplex: TIfcComplexPropertyList;
+    // TODO FHasConstraints: TIfcResourceConstraintRelationshipList;
+    // TODO FHasApprovals: TIfcResourceApprovalRelationshipList;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+  published
+    { Name for this property. This label is the significant name string
+      that defines the semantic meaning for the property. }
+    property Name: TIfcIdentifier read FName write FName;
+
+    { URI reference to a location with semantic definition or informative
+      text to explain the property. }
+    property Specification: TIfcText read FSpecification write FSpecification;
+
+    { Deprecated name for @link(Specification).
+      IFC 4.3 changed the name to @link(Specification). }
+    property Description: TIfcText read FSpecification write FSpecification stored false;
+
+    { Reference to the IfcPropertySet by which the IfcProperty is referenced. }
+    property PartOfPset: TIfcPropertySetList read FPartOfPset write FPartOfPset;
+
+    { Property on whose value that of another property depends. }
+    property PropertyForDependance: TIfcPropertyDependencyRelationshipList read FPropertyForDependance;
+
+    { Relating property on which the value of the property depends. }
+    property PropertyDependsOn: TIfcPropertyDependencyRelationshipList read FPropertyDependsOn;
+
+    { Reference to the IfcComplexProperty in which the IfcProperty is contained. }
+    property PartOfComplex: TIfcComplexPropertyList read FPartOfComplex;
+
+    { User-defined constraints for the property. }
+	  // TODO property HasConstraints: TIfcResourceConstraintRelationshipList read FHasConstraints;
+
+    { User-defined approvals for the property. }
+    // TODO property HasApprovals: TIfcResourceApprovalRelationshipList read FHasApprovals;
   end;
   TIfcPropertyList = class({$ifdef FPC}specialize{$endif} TObjectList<TIfcProperty>)
   end;
+
+  { Generalization of a single property object. }
+  TIfcSimpleProperty = class abstract(TIfcProperty)
+  end;
+
+  { Property with a single (numeric or descriptive) value assigned. }
+  TIfcPropertySingleValue = class(TIfcSimpleProperty)
+  strict private
+    FNominalValue: String;
+    FUnit: TIfcUnit;
+  published
+    { Value and measure type of this property.
+
+      TODO: This is IfcValue in IFC standard,
+      https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcValue.htm .
+      It's just String in Pascal, our JSON reader will convert other simple types
+      to strings. }
+    property NominalValue: String read FNominalValue write FNominalValue;
+
+    { Unit for the nominal value, if not given. }
+    property &Unit: TIfcUnit read FUnit write FUnit;
+  end;
+
+  { Define complex properties to be handled completely within a property set.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcComplexProperty.htm }
+  TIfcComplexProperty = class(TIfcProperty)
+  strict private
+    FUsageName: TIfcIdentifier;
+    FHasProperties: TIfcPropertyList;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+  published
+    { Usage description of the IfcComplexProperty within the property
+      set which references the IfcComplexProperty. }
+    property UsageName: TIfcIdentifier read FUsageName write FUsageName;
+
+    { Set of properties that can be used within this complex property
+      (may include other complex properties). }
+    property HasProperties: TIfcPropertyList read FHasProperties;
+  end;
+  TIfcComplexPropertyList = class({$ifdef FPC}specialize{$endif} TObjectList<TIfcComplexProperty>)
+  end;
+
+  { Relationship between a property and a property set. }
 
 var
   { List of all (non-abstract) IFC classes that are defined in this unit.
@@ -3547,6 +3664,44 @@ begin
   inherited;
 end;
 
+{ TIfcProperty --------------------------------------------------------------- }
+
+constructor TIfcProperty.Create(AOwner: TComponent);
+begin
+  inherited;
+  FPartOfPset := TIfcPropertySetList.Create(false);
+  FPropertyForDependance := TIfcPropertyDependencyRelationshipList.Create(false);
+  FPropertyDependsOn := TIfcPropertyDependencyRelationshipList.Create(false);
+  FPartOfComplex := TIfcComplexPropertyList.Create(false);
+  // TODO FHasConstraints := TIfcResourceConstraintRelationshipList.Create(false);
+  // TODO FHasApprovals := TIfcResourceApprovalRelationshipList.Create(false);
+end;
+
+destructor TIfcProperty.Destroy;
+begin
+  FreeAndNil(FPartOfPset);
+  FreeAndNil(FPropertyForDependance);
+  FreeAndNil(FPropertyDependsOn);
+  FreeAndNil(FPartOfComplex);
+  // TODO FreeAndNil(FHasConstraints);
+  // TODO FreeAndNil(FHasApprovals);
+  inherited;
+end;
+
+{ TIfcComplexProperty ------------------------------------------------------- }
+
+constructor TIfcComplexProperty.Create(AOwner: TComponent);
+begin
+  inherited;
+  FHasProperties := TIfcPropertyList.Create(false);
+end;
+
+destructor TIfcComplexProperty.Destroy;
+begin
+  FreeAndNil(FHasProperties);
+  inherited;
+end;
+
 { initialization, finalization ----------------------------------------------- }
 
 procedure InitializeIfcClasses;
@@ -3650,6 +3805,8 @@ begin
     IfcClasses.Add(TIfcPropertyTemplate);
     IfcClasses.Add(TIfcPropertySetTemplate);
     IfcClasses.Add(TIfcRelDefinesByTemplate);
+    IfcClasses.Add(TIfcPropertySingleValue);
+    IfcClasses.Add(TIfcComplexProperty);
   end;
 end;
 
