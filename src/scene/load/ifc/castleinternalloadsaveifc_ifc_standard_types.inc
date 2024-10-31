@@ -138,6 +138,7 @@
   TIfcObject = class;
   TIfcObjectList = class;
   TIfcRelDefinesByPropertiesList = class;
+  TIfcRelDefinesByTemplateList = class;
   TIfcShapeAspectList = class;
   TIfcPoint = class;
   TIfcRepresentation = class;
@@ -148,6 +149,9 @@
   TIfcRelFillsElementList = class;
   TIfcElement = class;
   TIfcElementList = class;
+  TIfcTypeObjectList = class;
+  TIfcPropertySetTemplateList = class;
+  TIfcPropertyTemplateList = class;
 
   { Float type used throughout IFC.
 
@@ -978,11 +982,52 @@
   TIfcObjectList = class({$ifdef FPC}specialize{$endif} TObjectList<TIfcObject>)
   end;
 
+  { Generalization of all individual property sets that can be assigned to
+    an object or type object.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcPropertySetDefinition.htm }
+  TIfcPropertySetDefinition = class(TIfcPropertyDefinition)
+  strict private
+    FDefinesType: TIfcTypeObjectList;
+    FIsDefinedBy: TIfcRelDefinesByTemplateList;
+    FDefinesOccurrence: TIfcRelDefinesByPropertiesList;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+  published
+    { The type object to which the property set is assigned. }
+    property DefinesType: TIfcTypeObjectList read FDefinesType;
+
+    { Relation to the property set template, via the objectified relationship
+      IfcRelDefinesByTemplate, that, if given, provides the definition template
+      for the property set or quantity set and its properties. }
+    property IsDefinedBy: TIfcRelDefinesByTemplateList read FIsDefinedBy;
+
+    { Reference to the relation to one or many object occurrences that are
+      characterized by the property set definition. A single property set can be
+      assigned to multiple object occurrences using the objectified relationship
+      IfcRefDefinesByProperties. }
+    property DefinesOccurrence: TIfcRelDefinesByPropertiesList read FDefinesOccurrence;
+  end;
+  TIfcPropertySetDefinitionList = {$ifdef FPC}specialize{$endif} TObjectList<TIfcPropertySetDefinition>;
+
+  { Container that holds properties within a property tree. }
+  TIfcPropertySet = class(TIfcPropertySetDefinition)
+  strict private
+    FHasProperties: TIfcPropertyList;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+  published
+    { Contained set of properties. }
+    property HasProperties: TIfcPropertyList read FHasProperties;
+  end;
+
   { Information about a type, common to all occurrences of this type. }
   TIfcTypeObject = class(TIfcObjectDefinition)
   strict private
     FApplicableOccurrence: TIfcIdentifier;
-    // TODO: FHasPropertySets: TIfcPropertySetDefinitionList;
+    FHasPropertySets: TIfcPropertySetDefinitionList;
     FTypes: TIfcRelDefinesByTypeList;
   public
     constructor Create(AOwner: TComponent); override;
@@ -993,11 +1038,13 @@
 
     { Set of unique property sets, that are associated with the object type
       and are common to all object occurrences referring to this object type. }
-    // TODO: property HasPropertySets: TIfcPropertySetDefinitionList read FHasPropertySets;
+    property HasPropertySets: TIfcPropertySetDefinitionList read FHasPropertySets;
 
     { Reference to the relationship IfcRelDefinesByType and thus
       to those occurrence objects, which are defined by this type. }
     property Types: TIfcRelDefinesByTypeList read FTypes;
+  end;
+  TIfcTypeObjectList = class({$ifdef FPC}specialize{$endif} TObjectList<TIfcTypeObject>)
   end;
 
   { Abstract supertype of placement subtypes that define the location of an item,
@@ -2348,7 +2395,7 @@
   TIfcRelDefinesByProperties = class(TIfcRelDefines)
   strict private
     FRelatedObjects: TIfcObjectDefinitionList;
-    // TODO // FRelatingPropertyDefinition: TIfcPropertySetDefinitionSelect;
+    FRelatingPropertyDefinition: TIfcPropertySetDefinitionList;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -2358,10 +2405,115 @@
     property RelatedObjects: TIfcObjectDefinitionList read FRelatedObjects;
 
     { Reference to the property set definition for that object
-      or set of objects. }
-    // TODO // property RelatingPropertyDefinition: TIfcPropertySetDefinitionSelect read FRelatingPropertyDefinition write FRelatingPropertyDefinition;
+      or set of objects.
+
+      Note: In IFC specification, this is IfcPropertySetDefinitionSelect,
+      which is a choice between IfcPropertySetDefinition and
+      IfcPropertySetDefinitionSet (equal to TIfcPropertySetDefinitionList,
+      it is just list of IfcPropertySetDefinition). To make it simple in Pascal,
+      we only allow the latter, TIfcPropertySetDefinitionList. }
+    property RelatingPropertyDefinition: TIfcPropertySetDefinitionList read FRelatingPropertyDefinition write FRelatingPropertyDefinition;
   end;
   TIfcRelDefinesByPropertiesList = class({$ifdef FPC}specialize{$endif} TObjectList<TIfcRelDefinesByProperties>)
+  end;
+
+  { Generalization of all property and property set templates.
+    Templates define the collection, types, names, applicable measure types
+    and units of individual properties used in a project.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcPropertyTemplateDefinition.htm}
+  TIfcPropertyTemplateDefinition = class(TIfcPropertyDefinition)
+  end;
+
+  TIfcPropertySetTemplateTypeEnum = (
+    NotDefined,
+    PSet_MaterialDriven,
+    PSet_OccurrenceDriven,
+    PSet_PerformanceDriven,
+    PSet_ProfileDriven,
+    PSet_TypeDrivenOnly,
+    PSet_TypeDrivenOverride,
+    Qto_OccurrenceDriven,
+    Qto_TypeDrivenOnly,
+    Qto_TypeDrivenOverride
+  );
+
+  { Abstract supertype comprising the templates for all dynamically extensible
+    properties, either as an IfcComplexPropertyTemplate, or an
+    IfcSimplePropertyTemplate. }
+  TIfcPropertyTemplate = class abstract(TIfcPropertyTemplateDefinition)
+  strict private
+    // TODO FPartOfComplexTemplate: TIfcComplexPropertyTemplateList;
+    FPartOfPsetTemplate: TIfcPropertySetTemplateList;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+  published
+    { Reference to a complex property template. }
+    // TODO property PartOfComplexTemplate: TIfcComplexPropertyTemplateList read FPartOfComplexTemplate;
+
+    { Reference to the IfcPropertySetTemplate that defines the scope for
+      the IfcPropertyTemplate. }
+    property PartOfPsetTemplate: TIfcPropertySetTemplateList read FPartOfPsetTemplate;
+  end;
+  TIfcPropertyTemplateList = class({$ifdef FPC}specialize{$endif} TObjectList<TIfcPropertyTemplate>)
+  end;
+
+  { Template for all dynamically extensible property sets represented by IfcPropertySet.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcPropertySetTemplate.htm}
+  TIfcPropertySetTemplate = class(TIfcPropertyTemplateDefinition)
+  strict private
+    FTemplateType: TIfcPropertySetTemplateTypeEnum;
+    FApplicableEntity: TIfcIdentifier;
+    FHasPropertyTemplates: TIfcPropertyTemplateList;
+    FDefines: TIfcRelDefinesByTemplateList;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+  published
+    { Property set type defining whether the property set is applicable to
+      a type (subtypes of IfcTypeObject), to an occurrence (subtypes of IfcObject),
+      or as a special case to a performance history.
+
+      The attribute ApplicableEntity may further refine the applicability
+      to a single or multiple entity type(s). }
+    property TemplateType: TIfcPropertySetTemplateTypeEnum read FTemplateType write FTemplateType
+      default TIfcPropertySetTemplateTypeEnum.NotDefined;
+
+    { The attribute optionally defines the data type of the applicable type
+      or occurrence object. }
+    property ApplicableEntity: TIfcIdentifier read FApplicableEntity write FApplicableEntity;
+
+    { Set of IfcPropertyTemplate's that are defined within the scope of
+      the IfcPropertySetTemplate. }
+    property HasPropertyTemplates: TIfcPropertyTemplateList read FHasPropertyTemplates;
+
+    { Relation to the property sets, via the objectified relationship
+      IfcRelDefinesByTemplate, that, if given, utilize the definition template. }
+    property Defines: TIfcRelDefinesByTemplateList read FDefines;
+  end;
+  TIfcPropertySetTemplateList = class({$ifdef FPC}specialize{$endif} TObjectList<TIfcPropertySetTemplate>)
+  end;
+
+  { Relationship between property set template and property sets..}
+  TIfcRelDefinesByTemplate = class(TIfcRelDefines)
+  strict private
+    FRelatedPropertySets: TIfcPropertySetDefinitionList;
+    FRelatingTemplate: TIfcPropertySetTemplate;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+  published
+    { One or many property sets or quantity sets that obtain
+      their definitions from the single property set template. }
+    property RelatedPropertySets: TIfcPropertySetDefinitionList read FRelatedPropertySets;
+
+    { Property set template that provides the common definition
+      of related property sets. }
+    property RelatingTemplate: TIfcPropertySetTemplate read FRelatingTemplate write FRelatingTemplate;
+  end;
+  TIfcRelDefinesByTemplateList = class({$ifdef FPC}specialize{$endif} TObjectList<TIfcRelDefinesByTemplate>)
   end;
 
   { Relationship between an object type and object occurrences.
@@ -3133,6 +3285,52 @@ begin
   inherited;
 end;
 
+{ TIfcPropertyTemplate ------------------------------------------------------- }
+
+constructor TIfcPropertyTemplate.Create(AOwner: TComponent);
+begin
+  inherited;
+  // TODO FPartOfComplexTemplate := TIfcComplexPropertyTemplateList.Create(false);
+  FPartOfPsetTemplate := TIfcPropertySetTemplateList.Create(false);
+end;
+
+destructor TIfcPropertyTemplate.Destroy;
+begin
+  // TODO FreeAndNil(FPartOfComplexTemplate);
+  FreeAndNil(FPartOfPsetTemplate);
+  inherited;
+end;
+
+{ TIfcPropertySetTemplate ---------------------------------------------------- }
+
+constructor TIfcPropertySetTemplate.Create(AOwner: TComponent);
+begin
+  inherited;
+  FHasPropertyTemplates := TIfcPropertyTemplateList.Create(false);
+  FDefines := TIfcRelDefinesByTemplateList.Create(false);
+end;
+
+destructor TIfcPropertySetTemplate.Destroy;
+begin
+  FreeAndNil(FHasPropertyTemplates);
+  FreeAndNil(FDefines);
+  inherited;
+end;
+
+{ TIfcRelDefinesByTemplate --------------------------------------------------- }
+
+constructor TIfcRelDefinesByTemplate.Create(AOwner: TComponent);
+begin
+  inherited;
+  FRelatedPropertySets := TIfcPropertySetDefinitionList.Create(false);
+end;
+
+destructor TIfcRelDefinesByTemplate.Destroy;
+begin
+  FreeAndNil(FRelatedPropertySets);
+  inherited;
+end;
+
 { TIfcConversionBasedUnit ---------------------------------------------------- }
 
 constructor TIfcConversionBasedUnit.Create(AOwner: TComponent);
@@ -3177,7 +3375,25 @@ begin
   inherited;
 end;
 
-{ TIfcObject ---------------------------------------------------------------- }
+{ TIfcPropertySetDefinition -------------------------------------------------- }
+
+constructor TIfcPropertySetDefinition.Create(AOwner: TComponent);
+begin
+  inherited;
+  FDefinesType := TIfcTypeObjectList.Create(false);
+  FIsDefinedBy := TIfcRelDefinesByTemplateList.Create(false);
+  FDefinesOccurrence := TIfcRelDefinesByPropertiesList.Create(false);
+end;
+
+destructor TIfcPropertySetDefinition.Destroy;
+begin
+  FreeAndNil(FDefinesType);
+  FreeAndNil(FIsDefinedBy);
+  FreeAndNil(FDefinesOccurrence);
+  inherited;
+end;
+
+{ TIfcObject ----------------------------------------------------------------- }
 
 constructor TIfcObject.Create(AOwner: TComponent);
 begin
@@ -3197,18 +3413,32 @@ begin
   inherited;
 end;
 
+{ TIfcPropertySet ------------------------------------------------------------ }
+
+constructor TIfcPropertySet.Create(AOwner: TComponent);
+begin
+  inherited;
+  FHasProperties := TIfcPropertyList.Create(false);
+end;
+
+destructor TIfcPropertySet.Destroy;
+begin
+  FreeAndNil(FHasProperties);
+  inherited;
+end;
+
 { TIfcTypeObject ------------------------------------------------------------- }
 
 constructor TIfcTypeObject.Create(AOwner: TComponent);
 begin
   inherited;
-  // TODO FHasPropertySets := TIfcRelDefinesByPropertiesList.Create(false);
+  FHasPropertySets := TIfcPropertySetDefinitionList.Create(false);
   FTypes := TIfcRelDefinesByTypeList.Create(false);
 end;
 
 destructor TIfcTypeObject.Destroy;
 begin
-  // TODO FreeAndNil(FHasPropertySets);
+  FreeAndNil(FHasPropertySets);
   FreeAndNil(FTypes);
   inherited;
 end;
@@ -3416,6 +3646,11 @@ begin
     IfcClasses.Add(TIfcRelCoversBldgElements);
     IfcClasses.Add(TIfcRelAdheresToElement);
     IfcClasses.Add(TIfcSpatialZone);
+    IfcClasses.Add(TIfcPropertySetDefinition);
+    IfcClasses.Add(TIfcPropertySet);
+    IfcClasses.Add(TIfcPropertyTemplate);
+    IfcClasses.Add(TIfcPropertySetTemplate);
+    IfcClasses.Add(TIfcRelDefinesByTemplate);
   end;
 end;
 
