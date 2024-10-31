@@ -399,6 +399,61 @@ var
         StringList.Add(JsonToString(JsonChildArray.Items[I], DebugJsonKey));
     end;
 
+    (*From elements of JsonChildArray read TIfcCompoundPlaneAngleMeasure instance
+      into property PropInfo of Ifc. The property must accept instances of
+      TIfcCompoundPlaneAngleMeasure.
+      This is necessary as CompoundPlaneAngleMeasure may be recorded in IFC as
+      object:
+
+        "refLatitude" : {
+          "type" : "IfcCompoundPlaneAngleMeasure",
+          "degrees" : 24,
+          "minutes" : 28,
+          "seconds" : 0,
+          "microSeconds" : 0
+        },
+        "refLongitude" : {
+          "type" : "IfcCompoundPlaneAngleMeasure",
+          "degrees" : 54,
+          "minutes" : 25,
+          "seconds" : 0,
+          "microSeconds" : 0
+        },
+
+      or as integers array:
+
+        "refLatitude": [
+            24,
+            28,
+            0
+        ],
+        "refLongitude": [
+            54,
+            25,
+            0
+        ],
+
+      This function takes care of handling the 2nd form. *)
+    procedure ReadIfcChildArrayCompoundPlaneAngleMeasure(const PropInfo: PPropInfo;
+      const JsonChildArray: TJsonArray);
+    var
+      AngleMeasure: TIfcCompoundPlaneAngleMeasure;
+      OldPropValue: TObject;
+    begin
+      AngleMeasure := TIfcCompoundPlaneAngleMeasure.Create(IfcOwner);
+      if JsonChildArray.Count >= 1 then
+        AngleMeasure.Degrees := JsonToInteger(JsonChildArray.Items[0], DebugJsonKey);
+      if JsonChildArray.Count >= 2 then
+        AngleMeasure.Minutes := JsonToInteger(JsonChildArray.Items[1], DebugJsonKey);
+      if JsonChildArray.Count >= 3 then
+        AngleMeasure.Seconds := JsonToInteger(JsonChildArray.Items[2], DebugJsonKey);
+      if JsonChildArray.Count >= 4 then
+        AngleMeasure.MicroSeconds := JsonToInteger(JsonChildArray.Items[3], DebugJsonKey);
+      OldPropValue := PropertyGetInstance(Ifc, PropInfo);
+      FreeAndNil(OldPropValue);
+      PropertySetInstance(Ifc, PropInfo, AngleMeasure);
+    end;
+
     {$ifdef FPC}
       {$push}
       // Disable object check for our TIfcPersistentList cast hack
@@ -496,6 +551,7 @@ var
       RequiredClass: TIfcPersistentClass;
     begin
       CurrentInstance := PropertyGetInstance(Ifc, PropInfo);
+      RequiredClass := TIfcPersistentClass(PropertyGetInstanceClass(Ifc, PropInfo));
 
       { Sometimes JSON gives a 1-item array when actually spec has "SET [0:1]",
         so it's not a list in Pascal.
@@ -507,6 +563,7 @@ var
          (not (CurrentInstance is TCastleVector3Persistent)) and
          (not (CurrentInstance is TCastleVector4Persistent)) and
          (not (CurrentInstance is TCastleStringList)) and
+         (not RequiredClass.InheritsFrom(TIfcCompoundPlaneAngleMeasure)) and
          (not ClassNameOfList(PropertyGetInstanceClass(Ifc, PropInfo).ClassName)) then
       begin
         case TJsonArray(JsonInstanceValue).Count of
@@ -539,6 +596,9 @@ var
       end else
       if JsonInstanceValue is TJsonArray then
       begin
+        if RequiredClass.InheritsFrom(TIfcCompoundPlaneAngleMeasure) then
+          ReadIfcChildArrayCompoundPlaneAngleMeasure(PropInfo, JsonInstanceValue as TJsonArray)
+        else
         if CurrentInstance is TCastleStringList then
           ReadIfcChildStringList(PropInfo, JsonInstanceValue as TJsonArray)
         else
@@ -553,7 +613,6 @@ var
       if JsonInstanceValue is TJsonString then
       begin
         // when a string is given, it's a reference to another object
-        RequiredClass := TIfcPersistentClass(PropertyGetInstanceClass(Ifc, PropInfo));
         PropertySetInstance(Ifc, PropInfo, GetIfcReference(JsonInstanceValue.AsString, RequiredClass));
       end else
       begin
