@@ -95,7 +95,7 @@ procedure TTestCastleIfc.TestIfcClasses;
               List := PropertyGetInstance(Ifc, PropInfo);
               if List = nil then
                 raise EInvalidIfc.CreateFmt('IFC property "%s.%s" is a list, but it has not been created in constructor', [
-                  ClassName,
+                  Ifc.ClassName,
                   PropName
                 ]);
             end;

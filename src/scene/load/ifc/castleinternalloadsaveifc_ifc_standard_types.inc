@@ -3277,11 +3277,13 @@ constructor TIfcRelDefinesByProperties.Create(AOwner: TComponent);
 begin
   inherited;
   FRelatedObjects := TIfcObjectDefinitionList.Create(false);
+  FRelatingPropertyDefinition := TIfcPropertySetDefinitionList.Create(false);
 end;
 
 destructor TIfcRelDefinesByProperties.Destroy;
 begin
   FreeAndNil(FRelatedObjects);
+  FreeAndNil(FRelatingPropertyDefinition);
   inherited;
 end;
 
@@ -3555,7 +3557,6 @@ begin
     IfcClasses.Add(TIfcPresentationStyle);
     IfcClasses.Add(TIfcPresentationLayerAssignment);
     IfcClasses.Add(TIfcRepresentationItem);
-    IfcClasses.Add(TIfcStyledItem);
     IfcClasses.Add(TIfcDirection);
     IfcClasses.Add(TIfcGeometricRepresentationItem);
     IfcClasses.Add(TIfcSolidModel);
@@ -3570,7 +3571,6 @@ begin
     IfcClasses.Add(TIfcPlacement);
     IfcClasses.Add(TIfcAxis2Placement2D);
     IfcClasses.Add(TIfcAxis2Placement3D);
-    IfcClasses.Add(TIfcAxis2Placement);
     IfcClasses.Add(TIfcLocalPlacement);
     IfcClasses.Add(TIfcProduct);
     IfcClasses.Add(TIfcSpatialElement);
@@ -3596,7 +3596,6 @@ begin
     IfcClasses.Add(TIfcShapeRepresentation);
     IfcClasses.Add(TIfcProductRepresentation);
     IfcClasses.Add(TIfcStyledItem);
-    IfcClasses.Add(TIfcPresentationLayerAssignment);
     IfcClasses.Add(TIfcPersonAndOrganization);
     IfcClasses.Add(TIfcAddress);
     IfcClasses.Add(TIfcPerson);
