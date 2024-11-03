@@ -1,6 +1,6 @@
 {%MainUnit castlewindow.pas}
 {
-  Copyright 2004-2023 Michalis Kamburelis.
+  Copyright 2004-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -156,10 +156,9 @@ begin
   Result := { TODO } true;
 end;
 
-procedure TCastleWindow.SetMousePosition(const Value: TVector2);
+procedure TCastleWindow.SystemSetMousePosition(const Value: TVector2);
 begin
-  if not Closed then
-    { TODO };
+  { TODO }
 end;
 
 procedure TCastleWindow.UpdateFullScreenBackend;
@@ -168,6 +167,10 @@ begin
   SimpleUpdateFullScreenBackend;
   { Some backends may provide a better way of doing this.
     Remove the above line then, and put better implementation here. }
+end;
+
+procedure TCastleWindow.BackendInsideUpdate;
+begin
 end;
 
 { TCastleWindow dialogs -------------------------------------------------- }
@@ -271,17 +274,8 @@ begin
   while ProcessMessage(true, true) do ;
 end;
 
-procedure TCastleApplication.QuitWhenNoOpenWindows;
+procedure TCastleApplication.BackendTerminate;
 begin
-  { TODO: Do also anything necessary to make
-      TCastleApplication.ProcessMessage
-    calls to exit with false.
-    In the simplest case, TCastleApplication.ProcessMessage can just do
-      if Terminated then Exit(false);
-    and then you don't need to do here anything extra.
-  }
-
-  Terminate; // set Terminated := true
 end;
 
 function TCastleApplication.ScreenWidth: integer;
@@ -294,11 +288,6 @@ function TCastleApplication.ScreenHeight: integer;
 begin
   { TODO }
   Result := 200;
-end;
-
-function TCastleApplication.ScreenStatusBarScaledHeight: Cardinal;
-begin
-  Result := 0;
 end;
 
 function TCastleApplication.BackendName: string;
