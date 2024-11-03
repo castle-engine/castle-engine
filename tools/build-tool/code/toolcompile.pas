@@ -313,12 +313,20 @@ begin
   Result := not (
     { Occur without -vb }
     IsPrefix('generics.collections.pas(', LineLower, false) or
+    // generics.dictionaries.inc -> generics.dictionariesh.inc in FPC 3.3.1
     IsPrefix('generics.dictionaries.inc(', LineLower, false) or
+    IsPrefix('generics.dictionariesh.inc(', LineLower, false) or
     IsPrefix('generics.defaults.pas(', LineLower, false) or
     { Occur with -vb }
     (Pos('generics.collections.ppu:generics.collections.pas(', LineLower) <> 0) or
     (Pos('generics.collections.ppu:generics.dictionaries.inc(', LineLower) <> 0) or
+    (Pos('generics.collections.ppu:generics.dictionariesh.inc(', LineLower) <> 0) or
     (Pos('generics.defaults.ppu:generics.defaults.pas(', LineLower) <> 0) or
+    // with -vb and FPC 3.3.1 and our own generics collections copy
+    (Pos('generics.collections/generics.collections.pas(', LineLower) <> 0) or
+    (Pos('generics.collections/inc/generics.dictionaries.inc(', LineLower) <> 0) or
+    (Pos('generics.collections/inc/generics.dictionariesh.inc(', LineLower) <> 0) or
+    (Pos('generics.defaults/generics.defaults.pas(', LineLower) <> 0) or
     { Others }
     IsSuffix('warning: section "__datacoal_nt" is deprecated', LineLower, false) or
     IsSuffix('note: change section name to "__data"', LineLower, false) or
