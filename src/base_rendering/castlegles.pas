@@ -35,7 +35,7 @@ unit CastleGLES;
 
 interface
 
-uses CTypes, SysUtils, DynLibs;
+uses CTypes, SysUtils {$ifndef WASI}, DynLibs {$endif};
 
 type
   PGLubyte = ^GLubyte;
@@ -1438,7 +1438,11 @@ uses CastleInternalEgl;
 { Load from given library or using eglGetProcAddress. }
 function glGetProcAddress(ahlib:tlibhandle;ProcName:PAnsiChar):pointer;
 begin
+  {$ifndef WASI}
   result:=dynlibs.GetProcAddress(ahlib,ProcName);
+  {$else}
+  result:=nil;
+  {$endif}
   if assigned(eglGetProcAddress) and not assigned(result) then
     result:=eglGetProcAddress(ProcName);
 end;
