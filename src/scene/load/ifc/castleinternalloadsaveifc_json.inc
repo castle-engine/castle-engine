@@ -209,6 +209,16 @@ begin
     Result := JsonValue.AsFloat;
 end;
 
+{ Return random GUID, formatted as common in IFC JSON encoding. }
+function RandomGuidIfc: String;
+var
+  MyGuid: TGUID;
+begin
+  CreateGUID(MyGuid);
+  Result := PrefixRemove('{', SuffixRemove('}', GUIDToString(MyGuid), false), false);
+  Result := LowerCase(Result);
+end;
+
 function IfcJsonLoad(const Json: TJsonData): TIfcFile;
 var
   { All TIfcPersistent instances are created with this owner.
@@ -735,6 +745,11 @@ begin
 end;
 
 function IfcJsonSave(const IfcFile: TIfcFile): TJsonObject;
+var
+  { List of currently saved TIfcPersistent instances.
+    This is used to decide when to write out only reference
+    (when given instance is already saved) and when full instance. }
+  Refs: TIfcPersistentList;
 
   function SerializeJson(const Ifc: TIfcPersistent): TJsonObject; forward;
 
@@ -804,6 +819,7 @@ function IfcJsonSave(const IfcFile: TIfcFile): TJsonObject;
     {$pop}
   {$endif}
 
+  { Serialize TIfcPersistent instance to JSON object. }
   function SerializeJson(const Ifc: TIfcPersistent): TJsonObject;
   var
     PropInfos: TPropInfoList;
@@ -812,7 +828,7 @@ function IfcJsonSave(const IfcFile: TIfcFile): TJsonObject;
     I: Integer;
     IfcObjProperty: TObject;
     PropType: TPropertyType;
-    HasDefaultValue: Boolean;
+    RefsContains, HasDefaultValue: Boolean;
   begin
     Result := TJsonObject.Create;
 
@@ -822,6 +838,29 @@ function IfcJsonSave(const IfcFile: TIfcFile): TJsonObject;
       Result.Add('type', 'IFC.JSON')
     else
       Result.Add('type', IfcClassName);
+
+    { Serialize TIfcPersistent instance to JSON object using Ifc.GlobalId. }
+    RefsContains := Refs.Contains(Ifc);
+    if RefsContains and (Ifc.GlobalId <> '') then
+    begin
+      Result.Add('ref', Ifc.GlobalId);
+      Exit;
+    end;
+
+    // update Refs
+    if RefsContains then
+      raise EInvalidIfc.CreateFmt('IFC instance of "%s" (GUID "%s") was already saved to IFC file so our logic to avoid writing full class more than once (and avoid infinite recursion when writing) is faulty, or maybe we need to generate GUIDs for any TIfcPersistent', [
+        Ifc.ClassName,
+        Ifc.GlobalId
+      ]);
+    { Create GlobalId only for TIfcRoot, because IFC spec allows it only
+      on TIfcRoot. Our implementation allows it on any TIfcPersistent
+      as some IFC files actually have it. }
+    if (Ifc.GlobalId = '') and (Ifc is TIfcRoot) then
+      Ifc.GlobalId := RandomGuidIfc;
+    { Update Refs for any object, not only TIfcRoot.
+      So Ifc.GlobalId may be '' here. }
+    Refs.Add(Ifc);
 
     PropInfos := TPropInfoList.Create(Ifc, tkProperties);
     try
@@ -871,7 +910,6 @@ function IfcJsonSave(const IfcFile: TIfcFile): TJsonObject;
               IfcObjProperty := PropertyGetInstance(Ifc, PropInfo);
               if IfcObjProperty <> nil then
               begin
-                // TODO: avoid infinite recursion because of cycles, use ref=xxx
                 if IfcObjProperty is TCastleStringList then
                   Result.Add(JsonKey, SerializeJsonStringList(TCastleStringList(IfcObjProperty)))
                 else
@@ -908,7 +946,10 @@ function IfcJsonSave(const IfcFile: TIfcFile): TJsonObject;
   end;
 
 begin
-  Result := SerializeJson(IfcFile);
+  Refs := TIfcPersistentList.Create(false);
+  try
+    Result := SerializeJson(IfcFile);
+  finally FreeAndNil(Refs) end;
 end;
 
 {$endif read_implementation}
