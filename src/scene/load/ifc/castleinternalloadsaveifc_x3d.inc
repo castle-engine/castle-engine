@@ -92,28 +92,60 @@ end;
 
 procedure TCastleIfcMapping.FixParentChildRelationships;
 
-  function GetParentNode(const Node: TTransformNode): TAbstractGroupingNode;
-  begin
-    Result := nil;
+  { Go up the nodes hierachy, returning direct parent (any TAbstractGroupingNode)
+    and possibly non-direct TransformParent (TTransformNode) parent.
+    Returns @true and for sure non-nil DirectParent, TransformParent on success.
+    On failure returns @false and DirectParent, TransformParent are undefined.
 
-    if Node.ParentFieldsCount > 1 then
+    This way of searching for 2 parents accounts for the fact that
+    things in TIfcProduct are wrapped in additional groups related to 'Representation'.
+    We don't need to move things out of these groups,
+    if ultimately they are placed in the right TTransformNode. }
+  function GetParentNode(const Node: TTransformNode;
+    out DirectParent: TAbstractGroupingNode; out TransformParent: TTransformNode): Boolean;
+
+    function GetDirectParent(const Node: TAbstractGroupingNode): TAbstractGroupingNode;
     begin
-      WritelnWarning('IFC', 'Corresponding X3D node has more than one parent field, cannot fix parents to follow placementRelTo', [
-        Node.NiceName
-      ]);
-    end else
-    if Node.ParentFieldsCount = 1 then
-    begin
-      if Node.ParentFields[0].ParentNode is TAbstractGroupingNode then
+      Result := nil;
+      if Node.ParentFieldsCount > 1 then
       begin
-        Result := TAbstractGroupingNode(Node.ParentFields[0].ParentNode)
-      end else
-      begin
-        WritelnWarning('IFC', 'Corresponding X3D node has parent field that is not a TAbstractGroupingNode, cannot fix parents to follow placementRelTo', [
+        WritelnWarning('IFC', 'Corresponding X3D node has more than one parent field, cannot fix parents to follow placementRelTo', [
           Node.NiceName
         ]);
+      end else
+      if Node.ParentFieldsCount = 1 then
+      begin
+        if Node.ParentFields[0].ParentNode is TAbstractGroupingNode then
+        begin
+          Result := TAbstractGroupingNode(Node.ParentFields[0].ParentNode)
+        end else
+        begin
+          WritelnWarning('IFC', 'Corresponding X3D node has parent field that is not a TAbstractGroupingNode, cannot fix parents to follow placementRelTo', [
+            Node.NiceName
+          ]);
+        end;
       end;
     end;
+
+  var
+    PotentialTransformParent: TAbstractGroupingNode;
+  begin
+    Result := false;
+    DirectParent := GetDirectParent(Node);
+    TransformParent := nil; // initialize to nil
+    if DirectParent = nil then
+      Exit; // exit with Result = false
+
+    PotentialTransformParent := DirectParent;
+    while not (PotentialTransformParent is TTransformNode) do
+    begin
+      PotentialTransformParent := GetDirectParent(PotentialTransformParent);
+      if PotentialTransformParent = nil then
+        Exit; // exit with Result = false
+    end;
+    Assert(PotentialTransformParent is TTransformNode);
+    TransformParent := TTransformNode(PotentialTransformParent);
+    Result := true;
   end;
 
 var
@@ -121,27 +153,23 @@ var
     {$ifdef FPC}TChildrenNodesToObjectPlacement.TDictionaryPair
     {$else}TPair<TTransformNode, TIfcObjectPlacement>
     {$endif};
-  Child, NewParent: TTransformNode;
-  OldParent: TAbstractGroupingNode;
+  Child, OldParentTransform, NewParent: TTransformNode;
+  OldParentDirect: TAbstractGroupingNode;
 begin
   for ChildToPlacement in ChildrenNodesToObjectPlacement do
   begin
     Child := ChildToPlacement.Key;
-    OldParent := GetParentNode(Child);
-    if OldParent <> nil then
+    if GetParentNode(Child, OldParentDirect, OldParentTransform) then
     begin
-      { Note: Currently almost always "OldParent <> NewParent",
-        even if it was already in the proper transformation, because things
-        in TIfcProduct are wrapped in additional groups related to 'Representation'.
-        This moving around moves them out of these groups.
-        This is acceptable now, no real harm, except the 'Representation'
-        groups are made mostly useless (we could simplify X3D generation later)
-        by not creating them. }
       if ObjectPlacementToParentNodes.TryGetValue(ChildToPlacement.Value, NewParent) and
-         (OldParent <> NewParent) then
+         (OldParentTransform <> NewParent) then
       begin
+        WritelnLog('IFC', 'Fixing parent of "%s" to be relative to ObjectPlacement GUID "%s" to follow placementRelTo', [
+          Child.NiceName,
+          ChildToPlacement.Value.GlobalId
+        ]);
         Child.KeepExistingBegin; // do not free Child because ref count temporarily drops to zero below
-        OldParent.RemoveChildren(Child);
+        OldParentDirect.RemoveChildren(Child);
         NewParent.AddChildren(Child);
         Child.KeepExistingEnd;
       end;
