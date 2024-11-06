@@ -693,17 +693,115 @@ var
       Refs.AddObject(Ifc.GlobalId, Ifc);
   end;
 
+  {$ifdef FPC}
+    {$push}
+    // Disable object check for our TIfcPersistentList cast hack
+    {$objectchecks off}
+  {$endif}
+
   { Recursively resolve all remaining unresolved references in the IFC graph.
 
-    This means we find all TIfcPersistent instances with Ref non-empty,
+    This means we find all TIfcPersistent instances with UnresolvedRef non-empty,
     and either resolve them (replacing with proper objects)
-    or make a warning and set Ref to '' if not possible.
+    or make a warning and set UnresolvedRef to '' if not possible.
 
-    By the end of this, Ref should be empty in all TIfcPersistent instances. }
+    By the end of this, UnresolvedRef should be empty in all TIfcPersistent instances. }
   procedure ResolveReferences(const Ifc: TIfcPersistent);
+  var
+    Visited: TIfcPersistentList;
+
+    { Recursive subroutine of ResolveReferences. }
+    procedure ResolveReferencesCore(const Ifc: TIfcPersistent);
+
+      { Resolve reference indicated by IfcToResolve,
+        which must have UnresolvedRef non-empty.
+        Sets NewIfc to the resolved reference (if success)
+        or makes a warning and sets to IfcToResolve (if failure). }
+      procedure ResolveRef(const IfcToResolve: TIfcPersistent; out NewIfc: TIfcPersistent);
+      var
+        IfcRefIndex: Integer;
+      begin
+        Assert(IfcToResolve.UnresolvedRef <> '');
+        IfcRefIndex := Refs.IndexOf(IfcToResolve.UnresolvedRef);
+        if IfcRefIndex = -1 then
+        begin
+          WritelnWarning('IFC', 'IFC reference "%s" (class "%s") not found, leaving unresolved', [
+            IfcToResolve.UnresolvedRef,
+            IfcToResolve.ClassName
+          ]);
+          IfcToResolve.UnresolvedRef := '';
+          NewIfc := IfcToResolve;
+        end else
+        begin
+          NewIfc := Refs.Objects[IfcRefIndex] as TIfcPersistent;
+          Assert(NewIfc <> nil);
+        end;
+      end;
+
+    var
+      PropInfos: TPropInfoList;
+      PropInfo: PPropInfo;
+      PropType: TPropertyType;
+      IfcObjProperty: TObject;
+      IfcObjPropertyPersistent, NewIfcObjProperty: TIfcPersistent;
+      List: TIfcPersistentList;
+      I, J: Integer;
+    begin
+      if Visited.Contains(Ifc) then
+        Exit; // already visited, exit early to avoid cycles
+      Visited.Add(Ifc);
+
+      PropInfos := TPropInfoList.Create(Ifc, tkProperties);
+      try
+        for I := 0 to PropInfos.Count - 1 do
+        begin
+          PropInfo := PropInfos.Items[I];
+          PropType := PropertyType(PropInfo);
+          if PropType = ptInstance then
+          begin
+            IfcObjProperty := PropertyGetInstance(Ifc, PropInfo);
+            if (IfcObjProperty <> nil) and
+              ClassNameOfList(IfcObjProperty.ClassName) then
+            begin
+              { List of instances. Resolve references in each of them. }
+              List := TIfcPersistentList(IfcObjProperty);
+              for J := 0 to List.Count - 1 do
+              begin
+                IfcObjPropertyPersistent := List[J];
+                if IfcObjPropertyPersistent.UnresolvedRef <> '' then
+                begin
+                  ResolveRef(IfcObjPropertyPersistent, NewIfcObjProperty);
+                  List[J] := NewIfcObjProperty;
+                end else
+                  ResolveReferencesCore(IfcObjPropertyPersistent);
+              end;
+            end else
+            if IfcObjProperty is TIfcPersistent then
+            begin
+              { Single instance. Resolve it, or recursively resolve references in it. }
+              IfcObjPropertyPersistent := TIfcPersistent(IfcObjProperty);
+              if IfcObjPropertyPersistent.UnresolvedRef <> '' then
+              begin
+                ResolveRef(IfcObjPropertyPersistent, NewIfcObjProperty);
+                PropertySetInstance(Ifc, PropInfo, NewIfcObjProperty);
+              end else
+                ResolveReferencesCore(IfcObjPropertyPersistent);
+            end;
+          end;
+        end;
+      finally FreeAndNil(PropInfos) end;
+    end;
+
   begin
-    // TODO
+    Visited := TIfcPersistentList.Create(false);
+    try
+      ResolveReferencesCore(Ifc);
+    finally FreeAndNil(Visited) end;
   end;
+
+  {$ifdef FPC}
+    {$pop}
+  {$endif}
 
 var
   JsonObj: TJsonObject;
