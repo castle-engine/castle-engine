@@ -16,10 +16,11 @@
 
 { Types and classes related to the IFC, but not from IFC standard. }
 
-{$ifdef read_interface}
+{$ifdef read_interface_types}
 
-type
+  // forward declarations
   TIfcProject = class;
+  TCastleIfcMapping = class; //< Resolved in castleinternalloadsaveifc_x3d.inc
 
   {$M+}
   { Abstract class that can be serialized to / deserialized from an IFC file.
@@ -88,7 +89,7 @@ type
       @raises(EInvalidIfc If there is no TIfcProject instance in Data
         or there's more than one TIfcProject instance in Data.) }
     function Project: TIfcProject;
-    function BuildNode(const BaseUrl: String): TX3DRootNode;
+    function BuildNode(const Mapping: TCastleIfcMapping): TX3DRootNode;
   published
     property EncodingType: String read FEncodingType write FEncodingType;
     property Version: String read FVersion write FVersion;
@@ -127,7 +128,7 @@ type
     constructor Create(const AOwner: TComponent = nil);
   end;
 
-{$endif read_interface}
+{$endif read_interface_type}
 
 {$ifdef read_implementation}
 

@@ -102,6 +102,14 @@ uses Contnrs, Generics.Collections, SysUtils, Classes,
   FpJson, JSONParser, JSONScanner,
   CastleVectors, X3DNodes, CastleUriUtils, CastleLog, CastleStringUtils;
 
+type
+  {$define read_interface_types}
+  {$I castleinternalloadsaveifc_ifc_types.inc}
+  {$I castleinternalloadsaveifc_ifc_standard_types.inc}
+  {$I castleinternalloadsaveifc_json.inc}
+  {$I castleinternalloadsaveifc_x3d.inc}
+  {$undef read_interface_types}
+
 {$define read_interface}
 {$I castleinternalloadsaveifc_ifc_types.inc}
 {$I castleinternalloadsaveifc_ifc_standard_types.inc}
