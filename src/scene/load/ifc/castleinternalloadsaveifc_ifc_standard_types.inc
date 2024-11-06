@@ -394,6 +394,7 @@
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     function BuildNode(const BaseUrl: String): TAbstractChildNode; override;
+    procedure UpdateCrossSection(const Extrusion: TExtrusionNode);
   published
     { Points defining the polyline. }
     property Points: TIfcCartesianPointList read FPoints;
