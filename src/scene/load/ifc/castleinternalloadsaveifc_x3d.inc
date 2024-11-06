@@ -160,18 +160,47 @@ begin
   Result := Shape;
 end;
 
+procedure TIfcPolyline.UpdateCrossSection(const Extrusion: TExtrusionNode);
+var
+  CrossSection: TVector2List;
+  I: Integer;
+begin
+  CrossSection := TVector2List.Create;
+  try
+    CrossSection.Count := Points.Count;
+    for I := 0 to Points.Count - 1 do
+      CrossSection[I] := Points[I].Coordinates.Value.XY;
+    Extrusion.SetCrossSection(CrossSection);
+  finally FreeAndNil(CrossSection) end;
+end;
+
 function TIfcExtrudedAreaSolid.BuildNode(const BaseUrl: String): TAbstractChildNode;
 var
+  Extrusion: TExtrusionNode;
   SweptAreaProf: TIfcArbitraryClosedProfileDef;
+  SweptAreaCurvePolyline: TIfcPolyline;
+  Shape: TShapeNode;
 begin
-  // TODO: Temporarily, render the outer curve, ignoring the 3D extrusion
-  Result := nil;
+  Extrusion := TExtrusionNode.Create('', BaseUrl);
+  Extrusion.SetSpine([
+    TVector3.Zero,
+    ExtrudedDirection.DirectionRatios.Value * Depth
+  ]);
   if SweptArea is TIfcArbitraryClosedProfileDef then // also checks is it <> nil
   begin
     SweptAreaProf := TIfcArbitraryClosedProfileDef(SweptArea);
-    if SweptAreaProf.OuterCurve <> nil then
-      Result := SweptAreaProf.OuterCurve.BuildNode(BaseUrl);
+    if SweptAreaProf.OuterCurve is TIfcPolyline then
+    begin
+      SweptAreaCurvePolyline := TIfcPolyline(SweptAreaProf.OuterCurve);
+      SweptAreaCurvePolyline.UpdateCrossSection(Extrusion);
+    end;
   end;
+
+  Shape := TShapeNode.Create('', BaseUrl);
+  Shape.Geometry := Extrusion;
+  SetMetadata(Shape, 'IFC_ClassName', ClassName);
+
+  Result := Shape;
 end;
 
 { BuildNode of TIfcObjectDefinition and descendants -------------------------- }
