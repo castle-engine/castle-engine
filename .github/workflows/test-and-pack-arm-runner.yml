@@ -69,7 +69,7 @@ jobs:
 
             # Install FPC+Lazarus and other Linux dependencies
             sudo apt-get update
-            sudo apt-get --no-install-recommends -y install libgl-dev fpc lazarus git git-lfs
+            sudo apt-get --no-install-recommends -y install libgl-dev fpc lazarus git git-lfs make
 
             # Set environment
             export ARM_RUNNER_WORKSPACE=`pwd`
