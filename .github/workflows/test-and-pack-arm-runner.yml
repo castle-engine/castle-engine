@@ -77,6 +77,8 @@ jobs:
             export "PATH=${PATH}:${CASTLE_ENGINE_PATH}/installed/bin/:${ARM_RUNNER_WORKSPACE}/pasdoc/bin/"
             export "FPC_OS="`fpc -iTO`
             export "FPC_CPU="`fpc -iTP`
+            # Disable FPC version check (32-bit rpi is using bullseye with FPC 3.2.0 now)
+            if FPC_CPU = 'arm'; then export "CASTLE_PACK_DISABLE_FPC_VERSION_CHECK=true"; fi
 
             # Check versions (and availability) of our requirements early
             fpc -iV
