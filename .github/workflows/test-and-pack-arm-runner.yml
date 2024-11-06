@@ -79,6 +79,8 @@ jobs:
             export "FPC_CPU="`fpc -iTP`
             # Disable FPC version check (32-bit rpi is using bullseye with FPC 3.2.0 now)
             if [ "${FPC_CPU}" = 'arm' ]; then export "CASTLE_PACK_DISABLE_FPC_VERSION_CHECK=true"; fi
+            # We use Lazarus from Raspberry Pi OS packages
+            export CASTLE_PACK_DISABLE_LAZARUS_VERSION_CHECK=true
 
             # Check versions (and availability) of our requirements early
             fpc -iV
