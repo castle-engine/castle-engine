@@ -1121,7 +1121,8 @@
   strict private
     FLocation: TIfcPoint;
   public
-    procedure UpdateNode(const Transform: TTransformNode); virtual;
+    procedure UpdateNode(const Mapping: TCastleIfcMapping;
+      const Transform: TTransformNode); virtual;
   published
     property Location: TIfcPoint read FLocation write FLocation;
 
@@ -1273,7 +1274,8 @@
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    procedure UpdateNode(const Transform: TTransformNode); virtual;
+    procedure UpdateNode(const Mapping: TCastleIfcMapping;
+      const Transform: TTransformNode); virtual;
   published
     { Reference to object placement that provides the relative placement with
       its placement in a grid, local coordinate system or linear referenced
@@ -1420,7 +1422,8 @@
   strict private
     FRelativePlacement: TIfcAxis2Placement;
   public
-    procedure UpdateNode(const Transform: TTransformNode); override;
+    procedure UpdateNode(const Mapping: TCastleIfcMapping;
+      const Transform: TTransformNode); override;
   published
     property RelativePlacement: TIfcAxis2Placement read FRelativePlacement write FRelativePlacement;
   end;

@@ -20,17 +20,23 @@
   TObjectPlacementToParentNodes =
     {$ifdef FPC}specialize{$endif} TDictionary<TIfcObjectPlacement, TTransformNode>;
   TChildrenNodesToObjectPlacement =
-    {$ifdef FPC}specialize{$endif} TDictionary<TAbstractChildNode, TIfcObjectPlacement>;
+    {$ifdef FPC}specialize{$endif} TDictionary<TTransformNode, TIfcObjectPlacement>;
 
   { Information and actions useful to all node-building routines
     that build/update X3D stuff from IFC. }
   TCastleIfcMapping = class
+  private
+    { Use ObjectPlacementToParentNodes and ChildrenNodesToObjectPlacement
+      to move the nodes (change parents) to reflect
+      TIfcObjectPlacement.PlacementRelTo instructions. }
+    procedure FixParentChildRelationships;
+  public
     BaseUrl: String;
 
     { Map each encountered TIfcObjectPlacement to an X3D TTransformNode. }
     ObjectPlacementToParentNodes: TObjectPlacementToParentNodes;
 
-    { Map each children node (TAbstractChildNode) to a desired parent,
+    { Map each children node (TTransformNode) to a desired parent,
       expressed as TIfcObjectPlacement.
       Together, ObjectPlacementToParentNodes and ChildrenNodesToObjectPlacement
       allow to set the visual transformation (parent-child relationships
@@ -82,6 +88,65 @@ begin
   FreeAndNil(ObjectPlacementToParentNodes);
   FreeAndNil(ChildrenNodesToObjectPlacement);
   inherited;
+end;
+
+procedure TCastleIfcMapping.FixParentChildRelationships;
+
+  function GetParentNode(const Node: TTransformNode): TAbstractGroupingNode;
+  begin
+    Result := nil;
+
+    if Node.ParentFieldsCount > 1 then
+    begin
+      WritelnWarning('IFC', 'Corresponding X3D node has more than one parent field, cannot fix parents to follow placementRelTo', [
+        Node.NiceName
+      ]);
+    end else
+    if Node.ParentFieldsCount = 1 then
+    begin
+      if Node.ParentFields[0].ParentNode is TAbstractGroupingNode then
+      begin
+        Result := TAbstractGroupingNode(Node.ParentFields[0].ParentNode)
+      end else
+      begin
+        WritelnWarning('IFC', 'Corresponding X3D node has parent field that is not a TAbstractGroupingNode, cannot fix parents to follow placementRelTo', [
+          Node.NiceName
+        ]);
+      end;
+    end;
+  end;
+
+var
+  ChildToPlacement:
+    {$ifdef FPC}TChildrenNodesToObjectPlacement.TDictionaryPair
+    {$else}TPair<TTransformNode, TIfcObjectPlacement>
+    {$endif};
+  Child, NewParent: TTransformNode;
+  OldParent: TAbstractGroupingNode;
+begin
+  for ChildToPlacement in ChildrenNodesToObjectPlacement do
+  begin
+    Child := ChildToPlacement.Key;
+    OldParent := GetParentNode(Child);
+    if OldParent <> nil then
+    begin
+      { Note: Currently almost always "OldParent <> NewParent",
+        even if it was already in the proper transformation, because things
+        in TIfcProduct are wrapped in additional groups related to 'Representation'.
+        This moving around moves them out of these groups.
+        This is acceptable now, no real harm, except the 'Representation'
+        groups are made mostly useless (we could simplify X3D generation later)
+        by not creating them. }
+      if ObjectPlacementToParentNodes.TryGetValue(ChildToPlacement.Value, NewParent) and
+         (OldParent <> NewParent) then
+      begin
+        Child.KeepExistingBegin; // do not free Child because ref count temporarily drops to zero below
+        OldParent.RemoveChildren(Child);
+        NewParent.AddChildren(Child);
+        Child.KeepExistingEnd;
+      end;
+    end;
+  end;
 end;
 
 { BuildNode methods implementations ----------------------------------------- }
@@ -286,7 +351,7 @@ begin
   Result := inherited;
 
   if ObjectPlacement <> nil then
-    ObjectPlacement.UpdateNode(Result);
+    ObjectPlacement.UpdateNode(Mapping, Result);
 
   if Representation <> nil then
     Result.AddChildren(Representation.BuildNode(Mapping));
@@ -314,19 +379,29 @@ end;
 
 { UpdateNode methods implementations ----------------------------------------- }
 
-procedure TIfcObjectPlacement.UpdateNode(const Transform: TTransformNode);
+procedure TIfcObjectPlacement.UpdateNode(const Mapping: TCastleIfcMapping;
+  const Transform: TTransformNode);
 begin
-  // nothing to do in this class
+  // inherited; // no UpdateNode in ancestor
+
+  Mapping.ObjectPlacementToParentNodes.AddOrSetValue(Self, Transform);
+  if PlacementRelTo <> nil then
+    Mapping.ChildrenNodesToObjectPlacement.AddOrSetValue(Transform, PlacementRelTo);
 end;
 
-procedure TIfcLocalPlacement.UpdateNode(const Transform: TTransformNode);
+procedure TIfcLocalPlacement.UpdateNode(const Mapping: TCastleIfcMapping;
+  const Transform: TTransformNode);
 begin
+  inherited;
   if RelativePlacement <> nil then
-    RelativePlacement.UpdateNode(Transform);
+    RelativePlacement.UpdateNode(Mapping, Transform);
 end;
 
-procedure TIfcPlacement.UpdateNode(const Transform: TTransformNode);
+procedure TIfcPlacement.UpdateNode(const Mapping: TCastleIfcMapping;
+  const Transform: TTransformNode);
 begin
+  // inherited; // no UpdateNode in ancestor
+
   if Location is TIfcCartesianPoint then
   begin
     Transform.Translation := TIfcCartesianPoint(Location).Coordinates.Value;
@@ -344,6 +419,7 @@ begin
   try
     Mapping.BaseUrl := BaseUrl;
     Result := Ifc.BuildNode(Mapping);
+    Mapping.FixParentChildRelationships;
   finally FreeAndNil(Mapping) end;
 end;
 
