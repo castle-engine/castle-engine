@@ -130,6 +130,19 @@ begin
     Group.AddChildren(Product.BuildNode(BaseUrl));
 end;
 
+function TIfcRelVoidsElement.BuildNode(const BaseUrl: String): TAbstractChildNode;
+var
+  OpeningElement: TIfcElement;
+  Group: TGroupNode;
+begin
+  Group := TGroupNode.Create('', BaseUrl);
+  SetMetadata(Group, 'IFC_ClassName', ClassName);
+  Result := Group;
+
+  if RelatedOpeningElement <> nil then
+    Group.AddChildren(RelatedOpeningElement.BuildNode(BaseUrl));
+end;
+
 { BuildNode of TIfcRepresentationItem and descendants ------------------------- }
 
 function TIfcRepresentationItem.BuildNode(const BaseUrl: String): TAbstractChildNode;
@@ -236,6 +249,18 @@ begin
 
   if Representation <> nil then
     Result.AddChildren(Representation.BuildNode(BaseUrl));
+end;
+
+function TIfcElement.BuildNode(const BaseUrl: String): TTransformNode;
+var
+  RelVoidsElement: TIfcRelVoidsElement;
+begin
+  Result := inherited;
+  SetMetadata(Result, 'IFC_Tag', Tag);
+
+  // TODO: This is just for debug, the things in HasOpenings should actually subtract geometry
+  for RelVoidsElement in HasOpenings do
+    Result.AddChildren(RelVoidsElement.BuildNode(BaseUrl));
 end;
 
 function TIfcContext.BuildNode(const BaseUrl: String): TTransformNode;
