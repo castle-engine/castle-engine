@@ -127,9 +127,7 @@
     nodes" methods extend ancestor in natural way).
 }
 
-{$ifdef read_interface}
-
-//type // continues "type" from castleinternalloadsaveifc_ifc_types.inc
+{$ifdef read_interface_types}
 
   // forward declarations
   TIfcRepresentationItem = class;
@@ -296,7 +294,7 @@
   public
     { Build a node to display this using Castle Game Engine.
       Does nothing (adds nothing to Parent) if not possible / not implemented. }
-    function BuildNode(const BaseUrl: String): TAbstractChildNode; virtual;
+    function BuildNode(const Mapping: TCastleIfcMapping): TAbstractChildNode; virtual;
   published
     { Assignment of the representation item to a single or multiple layer(s).
       @nil if none. }
@@ -310,7 +308,7 @@
   end;
   TIfcRepresentationItemList = class({$ifdef FPC}specialize{$endif} TObjectList<TIfcRepresentationItem>)
   public
-    function BuildNode(const BaseUrl: String): TAbstractChildNode;
+    function BuildNode(const Mapping: TCastleIfcMapping): TAbstractChildNode;
   end;
 
   { Style information for products.
@@ -393,7 +391,7 @@
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    function BuildNode(const BaseUrl: String): TAbstractChildNode; override;
+    function BuildNode(const Mapping: TCastleIfcMapping): TAbstractChildNode; override;
     procedure UpdateCrossSection(const Extrusion: TExtrusionNode);
   published
     { Points defining the polyline. }
@@ -954,7 +952,7 @@
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    function BuildNode(const BaseUrl: String): TTransformNode; virtual;
+    function BuildNode(const Mapping: TCastleIfcMapping): TTransformNode; virtual;
   published
     { Reference to the relationship objects, that assign
       (by an association relationship) other subtypes of IfcObject to
@@ -1402,7 +1400,7 @@
     FExtrudedDirection: TIfcDirection;
     FDepth: TIfcPositiveLengthMeasure;
   public
-    function BuildNode(const BaseUrl: String): TAbstractChildNode; override;
+    function BuildNode(const Mapping: TCastleIfcMapping): TAbstractChildNode; override;
   published
     { The direction in which the surface, provided by SweptArea is to be swept.
       The ExtrudedDirection shall not be perpendicular to the local z-axis. }
@@ -1435,7 +1433,7 @@
     FObjectPlacement: TIfcObjectPlacement;
     FRepresentation: TIfcProductRepresentation;
   public
-    function BuildNode(const BaseUrl: String): TTransformNode; override;
+    function BuildNode(const Mapping: TCastleIfcMapping): TTransformNode; override;
   published
     { Object coordinate system and placement of the product in space. }
     property ObjectPlacement: TIfcObjectPlacement read FObjectPlacement write FObjectPlacement;
@@ -1463,7 +1461,7 @@
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    function BuildNode(const BaseUrl: String): TTransformNode; override;
+    function BuildNode(const Mapping: TCastleIfcMapping): TTransformNode; override;
   published
     property LongName: TIfcLabel read FLongName write FLongName;
     property ContainsElements: TIfcRelContainedInSpatialStructureList read FContainsElements;
@@ -1511,7 +1509,7 @@
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    function BuildNode(const BaseUrl: String): TAbstractChildNode;
+    function BuildNode(const Mapping: TCastleIfcMapping): TAbstractChildNode;
   published
     { Set of products, which are contained within this level of
       the spatial structure hierarchy. }
@@ -1866,7 +1864,7 @@
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    function BuildNode(const BaseUrl: String): TTransformNode; override;
+    function BuildNode(const Mapping: TCastleIfcMapping): TTransformNode; override;
   published
     { The tag (or label) identifier at the particular instance of a product,
       e.g. the serial number, or the position number.
@@ -2061,7 +2059,7 @@
     FRelatingBuildingElement: TIfcElement;
     FRelatedOpeningElement: TIfcFeatureElementSubtraction;
   public
-    function BuildNode(const BaseUrl: String): TAbstractChildNode;
+    function BuildNode(const Mapping: TCastleIfcMapping): TAbstractChildNode;
   published
     property RelatingBuildingElement: TIfcElement read FRelatingBuildingElement write FRelatingBuildingElement;
     property RelatedOpeningElement: TIfcFeatureElementSubtraction read FRelatedOpeningElement write FRelatedOpeningElement;
@@ -2079,7 +2077,7 @@
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    function BuildNode(const BaseUrl: String): TAbstractChildNode;
+    function BuildNode(const Mapping: TCastleIfcMapping): TAbstractChildNode;
   published
     property RelatingObject: TIfcObjectDefinition read FRelatingObject write FRelatingObject;
     property RelatedObjects: TIfcObjectDefinitionList read FRelatedObjects;
@@ -2622,7 +2620,7 @@
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    function BuildNode(const BaseUrl: String): TTransformNode; override;
+    function BuildNode(const Mapping: TCastleIfcMapping): TTransformNode; override;
   published
     { The object type denotes a particular type that indicates the object
       further. The use has to be established at the level of instantiable
@@ -2701,7 +2699,7 @@
   { List of TIfcRepresentation. }
   TIfcRepresentationList = class({$ifdef FPC}specialize{$endif} TObjectList<TIfcRepresentation>)
   public
-    function BuildNode(const BaseUrl: String): TAbstractChildNode;
+    function BuildNode(const Mapping: TCastleIfcMapping): TAbstractChildNode;
   end;
 
   TIfcShapeModel = class abstract(TIfcRepresentation)
@@ -2730,7 +2728,7 @@
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    function BuildNode(const BaseUrl: String): TAbstractChildNode;
+    function BuildNode(const Mapping: TCastleIfcMapping): TAbstractChildNode;
   published
     { The word or group of words by which the product representation is known. }
     property Name: TIfcLabel read FName write FName;
@@ -3214,6 +3212,10 @@
       the IfcMaterialLayerSetUsage applies. }
     property ReferenceExtent: TIfcPositiveLengthMeasure read FReferenceExtent write FReferenceExtent;
   end;
+
+{$endif read_interface_types}
+
+{$ifdef read_interface}
 
 var
   { List of all (non-abstract) IFC classes that are defined in this unit.

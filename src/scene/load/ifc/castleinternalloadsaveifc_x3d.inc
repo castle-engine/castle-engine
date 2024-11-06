@@ -16,6 +16,32 @@
 
 { IFC conversion to X3D. }
 
+{$ifdef read_interface_types}
+  TObjectPlacementToParentNodes =
+    {$ifdef FPC}specialize{$endif} TDictionary<TIfcObjectPlacement, TTransformNode>;
+  TChildrenNodesToObjectPlacement =
+    {$ifdef FPC}specialize{$endif} TDictionary<TAbstractChildNode, TIfcObjectPlacement>;
+
+  { Information and actions useful to all node-building routines
+    that build/update X3D stuff from IFC. }
+  TCastleIfcMapping = class
+    BaseUrl: String;
+
+    { Map each encountered TIfcObjectPlacement to an X3D TTransformNode. }
+    ObjectPlacementToParentNodes: TObjectPlacementToParentNodes;
+
+    { Map each children node (TAbstractChildNode) to a desired parent,
+      expressed as TIfcObjectPlacement.
+      Together, ObjectPlacementToParentNodes and ChildrenNodesToObjectPlacement
+      allow to set the visual transformation (parent-child relationships
+      between X3D nodes) to follow IFC TIfcObjectPlacement.PlacementRelTo idea. }
+    ChildrenNodesToObjectPlacement: TChildrenNodesToObjectPlacement;
+
+    constructor Create;
+    destructor Destroy; override;
+  end;
+{$endif read_interface_types}
+
 {$ifdef read_interface}
 
 { Convert IFC file to X3D. }
@@ -42,131 +68,146 @@ begin
   end;
 end;
 
+{ TCastleIfcMapping ---------------------------------------------------------- }
+
+constructor TCastleIfcMapping.Create;
+begin
+  inherited;
+  ObjectPlacementToParentNodes := TObjectPlacementToParentNodes.Create;
+  ChildrenNodesToObjectPlacement := TChildrenNodesToObjectPlacement.Create;
+end;
+
+destructor TCastleIfcMapping.Destroy;
+begin
+  FreeAndNil(ObjectPlacementToParentNodes);
+  FreeAndNil(ChildrenNodesToObjectPlacement);
+  inherited;
+end;
+
 { BuildNode methods implementations ----------------------------------------- }
 
-function TIfcFile.BuildNode(const BaseUrl: String): TX3DRootNode;
+function TIfcFile.BuildNode(const Mapping: TCastleIfcMapping): TX3DRootNode;
 begin
-  Result := TX3DRootNode.Create('', BaseUrl);
+  Result := TX3DRootNode.Create('', Mapping.BaseUrl);
   SetMetadata(Result, 'IFC_Version', Version);
   SetMetadata(Result, 'IFC_SchemaIdentifier', SchemaIdentifier);
   SetMetadata(Result, 'IFC_OriginatingSystem', OriginatingSystem);
   SetMetadata(Result, 'IFC_PreprocessorVersion', PreprocessorVersion);
   SetMetadata(Result, 'IFC_TimeStamp', TimeStamp);
 
-  Result.AddChildren(Project.BuildNode(BaseUrl));
+  Result.AddChildren(Project.BuildNode(Mapping));
 end;
 
-function TIfcRepresentationItemList.BuildNode(const BaseUrl: String): TAbstractChildNode;
+function TIfcRepresentationItemList.BuildNode(const Mapping: TCastleIfcMapping): TAbstractChildNode;
 var
   RepresentationItem: TIfcRepresentationItem;
   Group: TGroupNode;
   Child: TAbstractChildNode;
 begin
-  Group := TGroupNode.Create('', BaseUrl);
+  Group := TGroupNode.Create('', Mapping.BaseUrl);
   SetMetadata(Group, 'IFC_ListOfChildren', ClassOfListChildren(Self).ClassName);
   Result := Group;
 
   for RepresentationItem in Self do
   begin
-    Child := RepresentationItem.BuildNode(BaseUrl);
+    Child := RepresentationItem.BuildNode(Mapping);
     if Child <> nil then
       Group.AddChildren(Child);
   end;
 end;
 
-function TIfcRepresentationList.BuildNode(const BaseUrl: String): TAbstractChildNode;
+function TIfcRepresentationList.BuildNode(const Mapping: TCastleIfcMapping): TAbstractChildNode;
 var
   Representation: TIfcRepresentation;
   Group: TGroupNode;
 begin
-  Group := TGroupNode.Create('', BaseUrl);
+  Group := TGroupNode.Create('', Mapping.BaseUrl);
   SetMetadata(Group, 'IFC_ListOfChildren', ClassOfListChildren(Self).ClassName);
   Result := Group;
 
   for Representation in Self do
-    Group.AddChildren(Representation.Items.BuildNode(BaseUrl));
+    Group.AddChildren(Representation.Items.BuildNode(Mapping));
 end;
 
-function TIfcProductRepresentation.BuildNode(const BaseUrl: String): TAbstractChildNode;
+function TIfcProductRepresentation.BuildNode(const Mapping: TCastleIfcMapping): TAbstractChildNode;
 var
   Group: TGroupNode;
 begin
-  Group := TGroupNode.Create('', BaseUrl);
+  Group := TGroupNode.Create('', Mapping.BaseUrl);
   SetMetadata(Group, 'IFC_ClassName', ClassName);
   SetMetadata(Group, 'IFC_Name', Name);
   SetMetadata(Group, 'IFC_Description', Description);
   Result := Group;
 
-  Group.AddChildren(Representations.BuildNode(BaseUrl));
+  Group.AddChildren(Representations.BuildNode(Mapping));
 end;
 
-function TIfcRelAggregates.BuildNode(const BaseUrl: String): TAbstractChildNode;
+function TIfcRelAggregates.BuildNode(const Mapping: TCastleIfcMapping): TAbstractChildNode;
 var
   RelatedObject: TIfcObjectDefinition;
   Group: TGroupNode;
 begin
-  Group := TGroupNode.Create('', BaseUrl);
+  Group := TGroupNode.Create('', Mapping.BaseUrl);
   SetMetadata(Group, 'IFC_ClassName', ClassName);
   SetMetadata(Group, 'IFC_Name', Name);
   SetMetadata(Group, 'IFC_Description', Description);
   Result := Group;
 
   for RelatedObject in RelatedObjects do
-    Group.AddChildren(RelatedObject.BuildNode(BaseUrl));
+    Group.AddChildren(RelatedObject.BuildNode(Mapping));
 end;
 
-function TIfcRelContainedInSpatialStructure.BuildNode(const BaseUrl: String): TAbstractChildNode;
+function TIfcRelContainedInSpatialStructure.BuildNode(const Mapping: TCastleIfcMapping): TAbstractChildNode;
 var
   Product: TIfcProduct;
   Group: TGroupNode;
 begin
-  Group := TGroupNode.Create('', BaseUrl);
+  Group := TGroupNode.Create('', Mapping.BaseUrl);
   SetMetadata(Group, 'IFC_ClassName', ClassName);
   SetMetadata(Group, 'IFC_Name', Name);
   SetMetadata(Group, 'IFC_Description', Description);
   Result := Group;
 
   for Product in RelatedElements do
-    Group.AddChildren(Product.BuildNode(BaseUrl));
+    Group.AddChildren(Product.BuildNode(Mapping));
 end;
 
-function TIfcRelVoidsElement.BuildNode(const BaseUrl: String): TAbstractChildNode;
+function TIfcRelVoidsElement.BuildNode(const Mapping: TCastleIfcMapping): TAbstractChildNode;
 var
-  OpeningElement: TIfcElement;
   Group: TGroupNode;
 begin
-  Group := TGroupNode.Create('', BaseUrl);
+  Group := TGroupNode.Create('', Mapping.BaseUrl);
   SetMetadata(Group, 'IFC_ClassName', ClassName);
   Result := Group;
 
   if RelatedOpeningElement <> nil then
-    Group.AddChildren(RelatedOpeningElement.BuildNode(BaseUrl));
+    Group.AddChildren(RelatedOpeningElement.BuildNode(Mapping));
 end;
 
 { BuildNode of TIfcRepresentationItem and descendants ------------------------- }
 
-function TIfcRepresentationItem.BuildNode(const BaseUrl: String): TAbstractChildNode;
+function TIfcRepresentationItem.BuildNode(const Mapping: TCastleIfcMapping): TAbstractChildNode;
 begin
   Result := nil;
 end;
 
-function TIfcPolyline.BuildNode(const BaseUrl: String): TAbstractChildNode;
+function TIfcPolyline.BuildNode(const Mapping: TCastleIfcMapping): TAbstractChildNode;
 var
   Shape: TShapeNode;
   LineSet: TLineSetNode;
   Coord: TCoordinateNode;
   I: Integer;
 begin
-  Coord := TCoordinateNode.Create('', BaseUrl);
+  Coord := TCoordinateNode.Create('', Mapping.BaseUrl);
   Coord.FdPoint.Count := Points.Count;
   for I := 0 to Points.Count - 1 do
     Coord.FdPoint.Items[I] := Points[I].Coordinates.Value;
 
-  LineSet := TLineSetNode.Create('', BaseUrl);
+  LineSet := TLineSetNode.Create('', Mapping.BaseUrl);
   LineSet.Coord := Coord;
   LineSet.SetVertexCount([Points.Count]);
 
-  Shape := TShapeNode.Create('', BaseUrl);
+  Shape := TShapeNode.Create('', Mapping.BaseUrl);
   Shape.Geometry := LineSet;
   SetMetadata(Shape, 'IFC_ClassName', ClassName);
 
@@ -187,14 +228,14 @@ begin
   finally FreeAndNil(CrossSection) end;
 end;
 
-function TIfcExtrudedAreaSolid.BuildNode(const BaseUrl: String): TAbstractChildNode;
+function TIfcExtrudedAreaSolid.BuildNode(const Mapping: TCastleIfcMapping): TAbstractChildNode;
 var
   Extrusion: TExtrusionNode;
   SweptAreaProf: TIfcArbitraryClosedProfileDef;
   SweptAreaCurvePolyline: TIfcPolyline;
   Shape: TShapeNode;
 begin
-  Extrusion := TExtrusionNode.Create('', BaseUrl);
+  Extrusion := TExtrusionNode.Create('', Mapping.BaseUrl);
   Extrusion.SetSpine([
     TVector3.Zero,
     ExtrudedDirection.DirectionRatios.Value * Depth
@@ -209,7 +250,7 @@ begin
     end;
   end;
 
-  Shape := TShapeNode.Create('', BaseUrl);
+  Shape := TShapeNode.Create('', Mapping.BaseUrl);
   Shape.Geometry := Extrusion;
   SetMetadata(Shape, 'IFC_ClassName', ClassName);
 
@@ -218,29 +259,29 @@ end;
 
 { BuildNode of TIfcObjectDefinition and descendants -------------------------- }
 
-function TIfcObjectDefinition.BuildNode(const BaseUrl: String): TTransformNode;
+function TIfcObjectDefinition.BuildNode(const Mapping: TCastleIfcMapping): TTransformNode;
 var
   RelAggregates: TIfcRelAggregates;
 begin
-  Result := TTransformNode.Create('', BaseUrl);
+  Result := TTransformNode.Create('', Mapping.BaseUrl);
   SetMetadata(Result, 'IFC_ClassName', ClassName);
   SetMetadata(Result, 'IFC_Name', Name);
   SetMetadata(Result, 'IFC_Description', Description);
 
   for RelAggregates in IsDecomposedBy do
-    Result.AddChildren(RelAggregates.BuildNode(BaseUrl));
+    Result.AddChildren(RelAggregates.BuildNode(Mapping));
 end;
 
-function TIfcSpatialElement.BuildNode(const BaseUrl: String): TTransformNode;
+function TIfcSpatialElement.BuildNode(const Mapping: TCastleIfcMapping): TTransformNode;
 var
   RelContainedInSpatialStructure: TIfcRelContainedInSpatialStructure;
 begin
   Result := inherited;
   for RelContainedInSpatialStructure in ContainsElements do
-    Result.AddChildren(RelContainedInSpatialStructure.BuildNode(BaseUrl));
+    Result.AddChildren(RelContainedInSpatialStructure.BuildNode(Mapping));
 end;
 
-function TIfcProduct.BuildNode(const BaseUrl: String): TTransformNode;
+function TIfcProduct.BuildNode(const Mapping: TCastleIfcMapping): TTransformNode;
 begin
   Result := inherited;
 
@@ -248,10 +289,10 @@ begin
     ObjectPlacement.UpdateNode(Result);
 
   if Representation <> nil then
-    Result.AddChildren(Representation.BuildNode(BaseUrl));
+    Result.AddChildren(Representation.BuildNode(Mapping));
 end;
 
-function TIfcElement.BuildNode(const BaseUrl: String): TTransformNode;
+function TIfcElement.BuildNode(const Mapping: TCastleIfcMapping): TTransformNode;
 var
   RelVoidsElement: TIfcRelVoidsElement;
 begin
@@ -260,10 +301,10 @@ begin
 
   // TODO: This is just for debug, the things in HasOpenings should actually subtract geometry
   for RelVoidsElement in HasOpenings do
-    Result.AddChildren(RelVoidsElement.BuildNode(BaseUrl));
+    Result.AddChildren(RelVoidsElement.BuildNode(Mapping));
 end;
 
-function TIfcContext.BuildNode(const BaseUrl: String): TTransformNode;
+function TIfcContext.BuildNode(const Mapping: TCastleIfcMapping): TTransformNode;
 begin
   Result := inherited;
   SetMetadata(Result, 'IFC_ObjectType', ObjectType);
@@ -296,8 +337,14 @@ end;
 { IfcToX3D and back ---------------------------------------------------------- }
 
 function IfcToX3D(const Ifc: TIfcFile; const BaseUrl: String): TX3DRootNode;
+var
+  Mapping: TCastleIfcMapping;
 begin
-  Result := Ifc.BuildNode(BaseUrl);
+  Mapping := TCastleIfcMapping.Create;
+  try
+    Mapping.BaseUrl := BaseUrl;
+    Result := Ifc.BuildNode(Mapping);
+  finally FreeAndNil(Mapping) end;
 end;
 
 function X3DToIfc(const RootNode: TX3DRootNode): TIfcFile;
