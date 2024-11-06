@@ -1866,6 +1866,7 @@
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
+    function BuildNode(const BaseUrl: String): TTransformNode; override;
   published
     { The tag (or label) identifier at the particular instance of a product,
       e.g. the serial number, or the position number.
@@ -2059,6 +2060,8 @@
   strict private
     FRelatingBuildingElement: TIfcElement;
     FRelatedOpeningElement: TIfcFeatureElementSubtraction;
+  public
+    function BuildNode(const BaseUrl: String): TAbstractChildNode;
   published
     property RelatingBuildingElement: TIfcElement read FRelatingBuildingElement write FRelatingBuildingElement;
     property RelatedOpeningElement: TIfcFeatureElementSubtraction read FRelatedOpeningElement write FRelatedOpeningElement;
