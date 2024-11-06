@@ -49,10 +49,13 @@ jobs:
         runner: [macos_x64, ubuntu-22.04, windows-latest]
         include:
           # To not overload the slower RPi, use it only with master
-          - if: ${{ github.ref == 'refs/heads/master' }}
-            runner: raspberry_pi_64
-          - if: ${{ github.ref == 'refs/heads/master' }}
-            runner: raspberry_pi_32
+          # Later: removed using self-hosted runners for RPi, to cut costs.
+          # Use test-and-pack-arm-runner.yml for RPi instead.
+          #
+          # - if: ${{ github.ref == 'refs/heads/master' }}
+          #   runner: raspberry_pi_64
+          # - if: ${{ github.ref == 'refs/heads/master' }}
+          #   runner: raspberry_pi_32
 
           # Add is_macos variable to easily check for any macOS.
           # Default is false, and then we override it to true for macos runners.
