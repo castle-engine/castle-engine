@@ -36,17 +36,17 @@
   @orderedList(
     @item(Load using LoadNode, save using SaveNode.
 
-       This means you load / save X3D nodes graph, rooted in TX3DRootNode.
+      This means you load / save X3D nodes graph, rooted in TX3DRootNode.
     )
 
     @item(Use TCastleScene: TCastleScene.Load, TCastleScene.Save, setting TCastleScene.Url.
 
-       This is the most common way to load and save models in Castle Game Engine.
-       See https://castle-engine.io/viewport_and_scenes
-       about viewports and TCastleScene.
+      This is the most common way to load and save models in Castle Game Engine.
+      See https://castle-engine.io/viewport_and_scenes
+      about viewports and TCastleScene.
 
-       Underneath, TCastleScene methods just use LoadNode / SaveNode,
-       and the X3D nodes graph is exposed in TCastleScene.RootNode.
+      Underneath, TCastleScene methods just use LoadNode / SaveNode,
+      and the X3D nodes graph is exposed in TCastleScene.RootNode.
     )
   )
 
