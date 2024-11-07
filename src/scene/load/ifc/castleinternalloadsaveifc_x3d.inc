@@ -350,6 +350,41 @@ begin
   Result := Shape;
 end;
 
+function TIfcPolygonalFaceSet.BuildNode(const Mapping: TCastleIfcMapping): TAbstractChildNode;
+var
+  IndexedFaceSet: TIndexedFaceSetNode;
+  Coord: TCoordinateNode;
+  Face: TIfcIndexedPolygonalFace;
+  I, Index: Integer;
+  Shape: TShapeNode;
+begin
+  Coord := TCoordinateNode.Create('', Mapping.BaseUrl);
+  if Coordinates <> nil then
+    Coord.SetPoint(Coordinates.CoordList);
+
+  IndexedFaceSet := TIndexedFaceSetNode.Create('', Mapping.BaseUrl);
+  IndexedFaceSet.Coord := Coord;
+
+  for Face in Faces do
+  begin
+    for I := 0 to Face.CoordIndex.Count - 1 do
+    begin
+      Index := Face.CoordIndex[I];
+      if Index < PnIndex.Count then
+        Index := PnIndex[Index];
+      Dec(Index); // IFC indices are 1-based
+      IndexedFaceSet.FdCoordIndex.Items.Add(Index);
+    end;
+    IndexedFaceSet.FdCoordIndex.Items.Add(-1);
+  end;
+
+  Shape := TShapeNode.Create('', Mapping.BaseUrl);
+  Shape.Geometry := IndexedFaceSet;
+  SetMetadata(Shape, 'IFC_ClassName', ClassName);
+
+  Result := Shape;
+end;
+
 { BuildNode of TIfcObjectDefinition and descendants -------------------------- }
 
 function TIfcObjectDefinition.BuildNode(const Mapping: TCastleIfcMapping): TTransformNode;

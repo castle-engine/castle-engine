@@ -209,6 +209,28 @@ begin
     Result := JsonValue.AsFloat;
 end;
 
+{ Read JSON array into TVector3 }
+function JsonToVector3(const JsonChildArray: TJsonArray; const DebugJsonKey: String): TVector3;
+var
+  I: Integer;
+begin
+  Result := TVector3.Zero;
+  for I := 0 to Result.Count - 1 do
+    if I < JsonChildArray.Count then
+      Result.Data[I] := JsonToFloat(JsonChildArray.Items[I], DebugJsonKey);
+end;
+
+{ Read JSON array into TVector4 }
+function JsonToVector4(const JsonChildArray: TJsonArray; const DebugJsonKey: String): TVector4;
+var
+  I: Integer;
+begin
+  Result := TVector4.Zero;
+  for I := 0 to Result.Count - 1 do
+    if I < JsonChildArray.Count then
+      Result.Data[I] := JsonToFloat(JsonChildArray.Items[I], DebugJsonKey);
+end;
+
 { Return random GUID, formatted as common in IFC JSON encoding. }
 function RandomGuidIfc: String;
 var
@@ -350,23 +372,14 @@ var
     procedure ReadIfcChildVector3(const PropInfo: PPropInfo;
       const JsonChildArray: TJsonArray);
     var
-      I: Integer;
       VectorPersistent: TCastleVector3Persistent;
-      Vector: TVector3;
     begin
       VectorPersistent := PropertyGetInstance(Ifc, PropInfo) as TCastleVector3Persistent;
       if VectorPersistent = nil then
         raise EInvalidIfc.CreateFmt('Pascal property "%s" is supposed to be a TCastleVector3Persistent, but it is nil', [
           PropInfo^.Name
         ]);
-
-      // read JSON array into Vector:TVector3
-      Vector := TVector3.Zero;
-      for I := 0 to Vector.Count - 1 do
-        if I < JsonChildArray.Count then
-          Vector.Data[I] := JsonToFloat(JsonChildArray.Items[I], DebugJsonKey);
-
-      VectorPersistent.Value := Vector;
+      VectorPersistent.Value := JsonToVector3(JsonChildArray, DebugJsonKey);
     end;
 
     { From elements of JsonChildArray read TVector4 and place it in
@@ -374,23 +387,14 @@ var
     procedure ReadIfcChildVector4(const PropInfo: PPropInfo;
       const JsonChildArray: TJsonArray);
     var
-      I: Integer;
       VectorPersistent: TCastleVector4Persistent;
-      Vector: TVector4;
     begin
       VectorPersistent := PropertyGetInstance(Ifc, PropInfo) as TCastleVector4Persistent;
       if VectorPersistent = nil then
         raise EInvalidIfc.CreateFmt('Pascal property "%s" is supposed to be a TCastleVector4Persistent, but it is nil', [
           PropInfo^.Name
         ]);
-
-      // read JSON array into Vector:TVector4
-      Vector := TVector4.Zero;
-      for I := 0 to Vector.Count - 1 do
-        if I < JsonChildArray.Count then
-          Vector.Data[I] := JsonToFloat(JsonChildArray.Items[I], DebugJsonKey);
-
-      VectorPersistent.Value := Vector;
+      VectorPersistent.Value := JsonToVector4(JsonChildArray, DebugJsonKey);
     end;
 
     { From elements of JsonChildArray read TCastleStringList contents
@@ -406,8 +410,45 @@ var
         raise EInvalidIfc.CreateFmt('Pascal property "%s" is supposed to be a TCastleStringList, but it is nil', [
           PropInfo^.Name
         ]);
+      StringList.Clear;
       for I := 0 to JsonChildArray.Count - 1 do
         StringList.Add(JsonToString(JsonChildArray.Items[I], DebugJsonKey));
+    end;
+
+    { From elements of JsonChildArray read TIntegerList contents
+      into property PropInfo of Ifc, which must be a TIntegerList. }
+    procedure ReadIfcChildIntegerList(const PropInfo: PPropInfo;
+      const JsonChildArray: TJsonArray);
+    var
+      I: Integer;
+      IntegerList: TIntegerList;
+    begin
+      IntegerList := PropertyGetInstance(Ifc, PropInfo) as TIntegerList;
+      if IntegerList = nil then
+        raise EInvalidIfc.CreateFmt('Pascal property "%s" is supposed to be a TIntegerList, but it is nil', [
+          PropInfo^.Name
+        ]);
+      IntegerList.Clear;
+      for I := 0 to JsonChildArray.Count - 1 do
+        IntegerList.Add(JsonToInteger(JsonChildArray.Items[I], DebugJsonKey));
+    end;
+
+    { From elements of JsonChildArray read TVector3List contents
+      into property PropInfo of Ifc, which must be a TVector3List. }
+    procedure ReadIfcChildVector3List(const PropInfo: PPropInfo;
+      const JsonChildArray: TJsonArray);
+    var
+      I: Integer;
+      Vector3List: TVector3List;
+    begin
+      Vector3List := PropertyGetInstance(Ifc, PropInfo) as TVector3List;
+      if Vector3List = nil then
+        raise EInvalidIfc.CreateFmt('Pascal property "%s" is supposed to be a TVector3List, but it is nil', [
+          PropInfo^.Name
+        ]);
+      Vector3List.Clear;
+      for I := 0 to JsonChildArray.Count - 1 do
+        Vector3List.Add(JsonToVector3(JsonChildArray.Items[I] as TJsonArray, DebugJsonKey));
     end;
 
     (*From elements of JsonChildArray read TIfcCompoundPlaneAngleMeasure instance
@@ -574,6 +615,8 @@ var
          (not (CurrentInstance is TCastleVector3Persistent)) and
          (not (CurrentInstance is TCastleVector4Persistent)) and
          (not (CurrentInstance is TCastleStringList)) and
+         (not (CurrentInstance is TIntegerList)) and
+         (not (CurrentInstance is TVector3List)) and
          (not RequiredClass.InheritsFrom(TIfcCompoundPlaneAngleMeasure)) and
          (not ClassNameOfList(PropertyGetInstanceClass(Ifc, PropInfo).ClassName)) then
       begin
@@ -612,6 +655,12 @@ var
         else
         if CurrentInstance is TCastleStringList then
           ReadIfcChildStringList(PropInfo, JsonInstanceValue as TJsonArray)
+        else
+        if CurrentInstance is TIntegerList then
+          ReadIfcChildIntegerList(PropInfo, JsonInstanceValue as TJsonArray)
+        else
+        if CurrentInstance is TVector3List then
+          ReadIfcChildVector3List(PropInfo, JsonInstanceValue as TJsonArray)
         else
         if CurrentInstance is TCastleVector3Persistent then
           ReadIfcChildVector3(PropInfo, JsonInstanceValue as TJsonArray)
@@ -852,23 +901,33 @@ var
   function SerializeJson(const Ifc: TIfcPersistent): TJsonObject; forward;
 
   { Serialize TVector3 to JSON array. }
-  function SerializeJsonVector3(const Vector: TCastleVector3Persistent): TJsonArray;
+  function SerializeJsonVector3(const Vector: TVector3): TJsonArray; overload;
   var
     I: Integer;
   begin
     Result := TJsonArray.Create;
-    for I := 0 to Vector.Value.Count - 1 do
-      Result.Add(Vector.Value[I]);
+    for I := 0 to Vector.Count - 1 do
+      Result.Add(Vector.Data[I]);
+  end;
+
+  function SerializeJsonVector3(const Vector: TCastleVector3Persistent): TJsonArray; overload;
+  begin
+    Result := SerializeJsonVector3(Vector.Value);
   end;
 
   { Serialize TVector4 to JSON array. }
-  function SerializeJsonVector4(const Vector: TCastleVector4Persistent): TJsonArray;
+  function SerializeJsonVector4(const Vector: TVector4): TJsonArray; overload;
   var
     I: Integer;
   begin
     Result := TJsonArray.Create;
-    for I := 0 to Vector.Value.Count - 1 do
-      Result.Add(Vector.Value[I]);
+    for I := 0 to Vector.Count - 1 do
+      Result.Add(Vector.Data[I]);
+  end;
+
+  function SerializeJsonVector4(const Vector: TCastleVector4Persistent): TJsonArray; overload;
+  begin
+    Result := SerializeJsonVector4(Vector.Value);
   end;
 
   { Serialize TCastleStringList to JSON array. }
@@ -879,6 +938,26 @@ var
     Result := TJsonArray.Create;
     for I := 0 to StringList.Count - 1 do
       Result.Add(StringList[I]);
+  end;
+
+  { Serialize TIntegerList to JSON array. }
+  function SerializeJsonIntegerList(const IntegerList: TIntegerList): TJsonArray;
+  var
+    I: Integer;
+  begin
+    Result := TJsonArray.Create;
+    for I := 0 to IntegerList.Count - 1 do
+      Result.Add(IntegerList[I]);
+  end;
+
+  { Serialize TVector3List to JSON array. }
+  function SerializeJsonVector3List(const Vector3List: TVector3List): TJsonArray;
+  var
+    I: Integer;
+  begin
+    Result := TJsonArray.Create;
+    for I := 0 to Vector3List.Count - 1 do
+      Result.Add(SerializeJsonVector3(Vector3List[I]));
   end;
 
   {$ifdef FPC}
@@ -1010,6 +1089,12 @@ var
               begin
                 if IfcObjProperty is TCastleStringList then
                   Result.Add(JsonKey, SerializeJsonStringList(TCastleStringList(IfcObjProperty)))
+                else
+                if IfcObjProperty is TIntegerList then
+                  Result.Add(JsonKey, SerializeJsonIntegerList(TIntegerList(IfcObjProperty)))
+                else
+                if IfcObjProperty is TVector3List then
+                  Result.Add(JsonKey, SerializeJsonVector3List(TVector3List(IfcObjProperty)))
                 else
                 if IfcObjProperty is TCastleVector3Persistent then
                   Result.Add(JsonKey, SerializeJsonVector3(TCastleVector3Persistent(IfcObjProperty)))
