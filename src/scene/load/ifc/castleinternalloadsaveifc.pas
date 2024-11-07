@@ -100,7 +100,8 @@ interface
 
 uses Contnrs, Generics.Collections, SysUtils, Classes,
   FpJson, JSONParser, JSONScanner,
-  CastleVectors, X3DNodes, CastleUriUtils, CastleLog, CastleStringUtils;
+  CastleUtils, CastleVectors, X3DNodes, CastleUriUtils, CastleLog,
+  CastleStringUtils;
 
 type
   {$define read_interface_types}

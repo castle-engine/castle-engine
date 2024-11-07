@@ -368,6 +368,144 @@
   TIfcGeometricRepresentationItem = class abstract(TIfcRepresentationItem)
   end;
 
+  { Abstract supertype of all tessellated geometric models.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcTessellatedItem.htm }
+  TIfcTessellatedItem = class abstract(TIfcGeometricRepresentationItem)
+  strict private
+    FLayerAssignment: TIfcPresentationLayerAssignmentList;
+    FStyledByItem: TIfcStyledItem;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+  published
+    { Assignment of the representation item to a single or multiple layer(s). }
+    property LayerAssignment: TIfcPresentationLayerAssignmentList
+      read FLayerAssignment;
+
+    { Reference to the IfcStyledItem that provides presentation information
+      to the representation, e.g. a curve style, including colour
+      and thickness to a geometric curve. }
+    property StyledByItem: TIfcStyledItem read FStyledByItem write FStyledByItem;
+  end;
+
+  { Abstract supertype of list of points.
+
+    Note: The name in Pascal has suffix "Spec" (as for "specification class")
+    to differentiate from @link(TIfcCartesianPointList) which is a list of
+    @link(TIfcCartesianPoint) using @code(TObjectList<TIfcCartesianPoint>).
+    We need both list types. Luckily, we can name this class however we want,
+    as it's abstract and thus not used in IFC files.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcCartesianPointList.htm }
+  TIfcCartesianPointListSpec = class abstract(TIfcGeometricRepresentationItem)
+  end;
+
+  { Ordered collection of three-dimentional Cartesian points.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcCartesianPointList3D.htm }
+  TIfcCartesianPointList3D = class(TIfcCartesianPointListSpec)
+  strict private
+    FCoordList: TVector3List;
+    FTagList: TCastleStringList;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+  published
+    { Lst of Cartesian points provided by three coordinates. }
+    property CoordList: TVector3List read FCoordList;
+
+    { List of tags corresponding to each point that may be used to
+      identify a basis curve according to the Tag attribute at
+      IfcOffsetCurveByDistances. }
+    property TagList: TCastleStringList read FTagList;
+  end;
+
+  { Representation of a planar face being part of a face set.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcIndexedPolygonalFace.htm }
+  TIfcIndexedPolygonalFace = class(TIfcTessellatedItem)
+  strict private
+    FCoordIndex: TIntegerList;
+    // TODO FToFaceSet: TIfcPolygonalFaceSetList;
+    // TODO FHasTexCoords: TIfcTextureCoordinateIndices;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+  published
+    { One-dimensional list with the indices for the three or more points,
+      that define the vertices of the outer loop. If the tessellated face
+      set is closed, indicated by @link(TIfcTessellatedFaceSetNode.Closed),
+      then the points, defining the outer loop, shall connect counter clockwise,
+      as seen from the outside of the body, so that the resulting normal
+      will point outwards. }
+    property CoordIndex: TIntegerList read FCoordIndex;
+
+    { Reference to the IfcPolygonalFaceSet for which this face is associated. }
+    // TODO property ToFaceSet: TIfcPolygonalFaceSetList read FToFaceSet;
+
+    { Optional reference to the IfcTextureCoordinateIndices that provide
+      the texture coordinates for applying textures to this face. }
+    // TODO property HasTexCoords: TIfcTextureCoordinateIndices read FHasTexCoords write FHasTexCoords;
+  end;
+  TIfcIndexedPolygonalFaceList = {$ifdef FPC}specialize{$endif} TObjectList<TIfcIndexedPolygonalFace>;
+
+  { Topological model limited to planar faces and straight edges.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcTessellatedFaceSet.htm }
+  TIfcTessellatedFaceSet = class abstract(TIfcTessellatedItem)
+  strict private
+    FCoordinates: TIfcCartesianPointList3D;
+    // TODO FHasColours: TIfcIndexedColourMap;
+    // TODO FHasTextures: TIfcIndexedTextureMapList;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+  published
+    { Ordered list of Cartesian points. }
+    property Coordinates: TIfcCartesianPointList3D read FCoordinates write FCoordinates;
+
+    { Reference to the indexed colour map providing the corresponding
+      colour RGB values to the faces. }
+    // TODO property HasColours: TIfcIndexedColourMap read FHasColours write FHasColours;
+
+    { Reference to the indexed texture map providing the corresponding
+      texture coordinates to the vertices. }
+    // TODO property HasTextures: TIfcIndexedTextureMapList read FHasTextures;
+  end;
+
+  { Tessellated face set with all faces being bound by polygons.
+    This is what is most commonly referred to as "a mesh" in 3D.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcPolygonalFaceSet.htm }
+  TIfcPolygonalFaceSet = class(TIfcTessellatedFaceSet)
+  strict private
+    FClosed: Boolean;
+    FFaces: TIfcIndexedPolygonalFaceList;
+    FPnIndex: TIntegerList;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+    function BuildNode(const Mapping: TCastleIfcMapping): TAbstractChildNode; override;
+  published
+    { Indication whether the face set is a closed shell (TRUE)
+      or an open shell (FALSE).
+
+      IFC spec says: If omitted no such information can be asserted.
+      For our implementation, "no such information can be asserted" means
+      it shall be treated as an open shell, so we don't introduce a 3rd state. }
+    property Closed: Boolean read FClosed write FClosed default false;
+
+    { List of polygonal faces. }
+    property Faces: TIfcIndexedPolygonalFaceList read FFaces;
+
+    { The list of integers defining the locations in the IfcCartesianPointList3D
+      to obtain the point coordinates for the indices at the indexed
+      polygonal faces. If the PnIndex is not provided the indices
+      at the indexed polygonal faces point directly into the IfcCartesianPointList3D. }
+    property PnIndex: TIntegerList read FPnIndex;
+  end;
+
   { Curve in 2D or 3D.
 
     Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcCurve.htm }
@@ -1211,6 +1349,42 @@
   TIfcBuiltElementType = class(TIfcElementType)
   end;
 
+  { Defines a list of commonly shared property set definitions of an element
+    and an optional set of product representations.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcDistributionControlElementType.htm }
+  TIfcDistributionControlElementType = class(TIfcElementType)
+  strict private
+    FElementType: TIfcLabel;
+  published
+    { The type denotes a particular type that indicates the object further. }
+    property ElementType: TIfcLabel read FElementType write FElementType;
+  end;
+
+  { Range of different types of actuator that can be specified.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcActuatorTypeEnum.htm }
+  TIfcActuatorTypeEnum = (
+    NotDefined,
+    ElectricActuator,
+    HandOperatedActuator,
+    HydraulicActuator,
+    PneumaticActuator,
+    ThermostaticActuator,
+    UserDefined
+  );
+
+  { Commonly shared information for occurrences of actuators.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcActuatorType.htm }
+  TIfcActuatorType = class(TIfcDistributionControlElementType)
+  strict private
+    FPredefinedType: TIfcActuatorTypeEnum;
+  published
+    property PredefinedType: TIfcActuatorTypeEnum read FPredefinedType write FPredefinedType
+      default TIfcActuatorTypeEnum.NotDefined;
+  end;
+
   { Used for @link(TIfcWindow.PredefinedType) and
     @link(TIfcWindowType.PredefinedType). }
   TIfcWindowTypeEnum = (NotDefined, LightDome, SkyLight, Window, UserDefined);
@@ -1978,6 +2152,29 @@
 
     Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcBuiltElement.htm }
   TIfcBuiltElement = class(TIfcElement)
+  end;
+
+  TIfcColumnTypeEnum = (
+    NotDefined,
+    Column,
+    PierStem,
+    PierStem_Segment,
+    Pilaster,
+    StandColumn,
+    UserDefined
+  );
+
+  { Vertical structural or architectural member which often is aligned with
+    a structural grid intersection.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcColumn.htm }
+  TIfcColumn = class(TIfcBuiltElement)
+  strict private
+    FPredefinedType: TIfcColumnTypeEnum;
+  published
+    { Predefined generic type for a column that is specified in an enumeration. }
+    property PredefinedType: TIfcColumnTypeEnum read FPredefinedType write FPredefinedType
+      default TIfcColumnTypeEnum.NotDefined;
   end;
 
   TIfcWallTypeEnum = (
@@ -3592,6 +3789,81 @@ begin
   inherited;
 end;
 
+{ TIfcTessellatedItem -------------------------------------------------------- }
+
+constructor TIfcTessellatedItem.Create(AOwner: TComponent);
+begin
+  inherited;
+  FLayerAssignment := TIfcPresentationLayerAssignmentList.Create(false);
+end;
+
+destructor TIfcTessellatedItem.Destroy;
+begin
+  FreeAndNil(FLayerAssignment);
+  inherited;
+end;
+
+{ TIfcCartesianPointList3D --------------------------------------------------- }
+
+constructor TIfcCartesianPointList3D.Create(AOwner: TComponent);
+begin
+  inherited;
+  FCoordList := TVector3List.Create;
+  FTagList := TCastleStringList.Create;
+end;
+
+destructor TIfcCartesianPointList3D.Destroy;
+begin
+  FreeAndNil(FCoordList);
+  FreeAndNil(FTagList);
+  inherited;
+end;
+
+{ TIfcIndexedPolygonalFace --------------------------------------------------- }
+
+constructor TIfcIndexedPolygonalFace.Create(AOwner: TComponent);
+begin
+  inherited;
+  FCoordIndex := TIntegerList.Create;
+  // TODO FToFaceSet := TIfcPolygonalFaceSetList.Create(false);
+end;
+
+destructor TIfcIndexedPolygonalFace.Destroy;
+begin
+  FreeAndNil(FCoordIndex);
+  // TODO FreeAndNil(FToFaceSet);
+  inherited;
+end;
+
+{ TIfcTessellatedFaceSet ----------------------------------------------------- }
+
+constructor TIfcTessellatedFaceSet.Create(AOwner: TComponent);
+begin
+  inherited;
+  // TODO FToFaceSet := TIfcPolygonalFaceSetList.Create(false);
+end;
+
+destructor TIfcTessellatedFaceSet.Destroy;
+begin
+  // TODO FreeAndNil(FToFaceSet);
+  inherited;
+end;
+
+{ TIfcPolygonalFaceSet ------------------------------------------------------- }
+
+constructor TIfcPolygonalFaceSet.Create(AOwner: TComponent);
+begin
+  inherited;
+  FFaces := TIfcIndexedPolygonalFaceList.Create(false);
+  FPnIndex := TIntegerList.Create;
+end;
+
+destructor TIfcPolygonalFaceSet.Destroy;
+begin
+  FreeAndNil(FFaces);
+  FreeAndNil(FPnIndex);
+end;
+
 { TIfcPolyline ------------------------------------------------------------- }
 
 constructor TIfcPolyline.Create(AOwner: TComponent);
@@ -4211,6 +4483,11 @@ begin
     IfcClasses.Add(TIfcMaterialRelationship);
     IfcClasses.Add(TIfcMaterialConstituent);
     IfcClasses.Add(TIfcMaterialConstituentSet);
+    IfcClasses.Add(TIfcActuatorType);
+    IfcClasses.Add(TIfcColumn);
+    IfcClasses.Add(TIfcPolygonalFaceSet);
+    IfcClasses.Add(TIfcIndexedPolygonalFace);
+    IfcClasses.Add(TIfcCartesianPointList3D);
   end;
 end;
 
