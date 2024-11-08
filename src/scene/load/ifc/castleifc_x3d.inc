@@ -43,7 +43,9 @@
       between X3D nodes) to follow IFC TIfcObjectPlacement.PlacementRelTo idea. }
     ChildrenNodesToObjectPlacement: TChildrenNodesToObjectPlacement;
 
-    { Apperance of the current object definition being built. }
+    { Apperance of the current object definition being built.
+      TODO: keeping one current appearance like this is a simplification,
+      materials should be passed down to product children and only to them. }
     CurrentAppearance: TAppearanceNode;
 
     constructor Create;
@@ -465,7 +467,11 @@ begin
 
   // TODO: This is just for debug, the things in HasOpenings should actually subtract geometry
   for RelVoidsElement in HasOpenings do
+  begin
+    // debug: make material transparent if something has holes
+    (Mapping.CurrentAppearance.Material as TMaterialNode).Transparency := 0.75;
     Result.AddChildren(RelVoidsElement.BuildNode(Mapping));
+  end;
 end;
 
 function TIfcContext.BuildNode(const Mapping: TCastleIfcMapping): TTransformNode;
