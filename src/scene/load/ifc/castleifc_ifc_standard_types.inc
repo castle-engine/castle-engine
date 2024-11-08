@@ -1,4 +1,4 @@
-{%MainUnit castleinternalloadsaveifc.pas}
+{%MainUnit castleifc.pas}
 {
   Copyright 2024-2024 Michalis Kamburelis.
 
@@ -120,7 +120,7 @@
 
   - Moreover, they contain methods to build/update nodes used
     by Castle Game Engine to display given IFC entities.
-    These methods are implemented in castleinternalloadsaveifc_x3d.inc
+    These methods are implemented in castleifc_x3d.inc
     yet they are defined in this file, inside IFC classes.
     Havine these methods inside IFC classes is beneficial,
     as we can use IFC classes inheritance naturally (e.g. some "build

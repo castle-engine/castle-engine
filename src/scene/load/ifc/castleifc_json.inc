@@ -1,4 +1,4 @@
-{%MainUnit castleinternalloadsaveifc.pas}
+{%MainUnit castleifc.pas}
 {
   Copyright 2024-2024 Michalis Kamburelis.
 
@@ -46,17 +46,17 @@ function IfcJsonSave(const IfcFile: TIfcFile): TJsonObject;
   so there's no obvious "is" check to do this.
   This hack seems acceptable in this case -- as this is only internal
   and has to account only for classes inside
-  our own castleinternalloadsaveifc_ifc_standard_types.inc,
+  our own castleifc_ifc_standard_types.inc,
   so we can rely on our own naming conventions. }
 function ClassNameOfList(const PotentialListClassName: String): Boolean;
 begin
   Result :=
     IsPrefixSuffix('TIfc', 'List', PotentialListClassName, false) or
     IsPrefixSuffix('TObjectList<TIfc', '>', PotentialListClassName, false) or
-    IsPrefixSuffix('TObjectList<CastleInternalLoadSaveIfc.TIfc', '>', PotentialListClassName, false);
+    IsPrefixSuffix('TObjectList<CastleIfc.TIfc', '>', PotentialListClassName, false);
 end;
 
-{ For a list of IFC classes in castleinternalloadsaveifc_ifc_standard_types.inc,
+{ For a list of IFC classes in castleifc_ifc_standard_types.inc,
   return the class of the list children. }
 function ClassOfListChildren(const List: TObject): TIfcPersistentClass;
 var
@@ -68,8 +68,8 @@ begin
   if IsPrefixSuffix('TObjectList<TIfc', '>', List.ClassName, false) then
     ChildClassName := PrefixSuffixRemove('TObjectList<TIfc', '>', List.ClassName, false)
   else
-  if IsPrefixSuffix('TObjectList<CastleInternalLoadSaveIfc.TIfc', '>', List.ClassName, false) then
-    ChildClassName := PrefixSuffixRemove('TObjectList<CastleInternalLoadSaveIfc.TIfc', '>', List.ClassName, false)
+  if IsPrefixSuffix('TObjectList<CastleIfc.TIfc', '>', List.ClassName, false) then
+    ChildClassName := PrefixSuffixRemove('TObjectList<CastleIfc.TIfc', '>', List.ClassName, false)
   else
     raise EInvalidIfc.CreateFmt('Cannot determine list children class from list class: %s', [
       List.ClassName
@@ -529,7 +529,7 @@ var
         ]);
 
       { To be at least a bit safer, we check whether class name looks like a list.
-        This is satisfied by all lists in castleinternalloadsaveifc_ifc_types.inc. }
+        This is satisfied by all lists in castleifc_ifc_types.inc. }
       if not ClassNameOfList(Result.ClassName) then
         raise EInvalidIfc.CreateFmt('Pascal property "%s" is supposed to be a list, but the class name does not end with "List": %s', [
           PropInfo^.Name,
