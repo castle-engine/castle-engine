@@ -315,6 +315,52 @@ begin
   Result := Shape;
 end;
 
+function TIfcIndexedPolyCurve.BuildNode(const Mapping: TCastleIfcMapping): TAbstractChildNode;
+var
+  Shape: TShapeNode;
+  IndexedLineSet: TIndexedLineSetNode;
+  Coord: TCoordinateNode;
+  I: Integer;
+  Segment: TIfcSegmentIndexSelect;
+  LineIndex: TIfcLineIndex;
+  ArcIndex: TIfcArcIndex;
+begin
+  Coord := TCoordinateNode.Create('', Mapping.BaseUrl);
+  Coord.FdPoint.Count := Points.Count;
+  for I := 0 to Points.Count - 1 do
+    Coord.FdPoint.Items[I] := Points[I].Coordinates.Value;
+
+  IndexedLineSet := TIndexedLineSetNode.Create('', Mapping.BaseUrl);
+  IndexedLineSet.Coord := Coord;
+  IndexedLineSet.Mode := lmStrip;
+
+  for Segment in Segments do
+  begin
+    if Segment is TIfcLineIndex then
+    begin
+      LineIndex := TIfcLineIndex(Segment);
+      for I := 0 to LineIndex.Value.Count - 1 do
+        IndexedLineSet.FdCoordIndex.Items.Add(LineIndex.Value[I]);
+      IndexedLineSet.FdCoordIndex.Items.Add(-1);
+    end else
+    if Segment is TIfcArcIndex then
+    begin
+      ArcIndex := TIfcArcIndex(Segment);
+      for I := 0 to ArcIndex.Value.Count - 1 do
+        IndexedLineSet.FdCoordIndex.Items.Add(ArcIndex.Value[I]);
+      IndexedLineSet.FdCoordIndex.Items.Add(-1);
+    end;
+  end;
+
+  Shape := TShapeNode.Create('', Mapping.BaseUrl);
+  Shape.Geometry := IndexedLineSet;
+  // lines are best displayed as unlit geometry, different material would be useful
+  // Shape.Appearance := Mapping.CurrentAppearance;
+  SetMetadata(Shape, 'IFC_ClassName', ClassName);
+
+  Result := Shape;
+end;
+
 procedure TIfcPolyline.UpdateCrossSection(const Extrusion: TExtrusionNode);
 var
   CrossSection: TVector2List;
@@ -469,7 +515,7 @@ begin
   for RelVoidsElement in HasOpenings do
   begin
     // debug: make material transparent if something has holes
-    (Mapping.CurrentAppearance.Material as TMaterialNode).Transparency := 0.75;
+    (Mapping.CurrentAppearance.Material as TMaterialNode).Transparency := 0.2;
     Result.AddChildren(RelVoidsElement.BuildNode(Mapping));
   end;
 end;

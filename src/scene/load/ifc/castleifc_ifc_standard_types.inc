@@ -536,6 +536,65 @@
     property Points: TIfcCartesianPointList read FPoints;
   end;
 
+  { Choice between IfcArcIndex and IfcLineIndex. }
+  TIfcSegmentIndexSelect = class(TIfcPersistent)
+  end;
+  TIfcSegmentIndexSelectList = {$ifdef FPC}specialize{$endif} TObjectList<TIfcSegmentIndexSelect>;
+
+  { Single or multiple straight segments within a poly curve.
+    Can have 2 or more points.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcLineIndex.htm}
+  TIfcLineIndex = class(TIfcSegmentIndexSelect)
+  strict private
+    FValue: TIntegerList;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+  published
+    property Value: TIntegerList read FValue;
+  end;
+
+  { Single circular arc segment within a poly curve.
+    Should always have 3 points.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcArcIndex.htm }
+  TIfcArcIndex = class(TIfcSegmentIndexSelect)
+  strict private
+    FValue: TIntegerList;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+  published
+    property Value: TIntegerList read FValue;
+  end;
+
+  { Bounded curve with only linear and circular arc segments defined by a
+    Cartesian point list and an optional list of segments.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcIndexedPolyCurve.htm }
+  TIfcIndexedPolyCurve = class(TIfcBoundedCurve)
+  strict private
+    FPoints: TIfcCartesianPointList;
+    FSegments: TIfcSegmentIndexSelectList;
+    FSelfIntersect: Boolean;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+    function BuildNode(const Mapping: TCastleIfcMapping): TAbstractChildNode; override;
+  published
+    { Points defining the polyline. }
+    property Points: TIfcCartesianPointList read FPoints;
+
+    { List of straight line and circular arc segments, each providing a list
+      of indices into the Cartesian point list. }
+    property Segments: TIfcSegmentIndexSelectList read FSegments;
+
+    { Indication of whether the curve intersects itself or not;
+      this is for information only. }
+    property SelfIntersect: Boolean read FSelfIntersect write FSelfIntersect default false;
+  end;
+
   { 3D shape.
 
     Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcSolidModel.htm }
@@ -2247,6 +2306,33 @@
 
     Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcBuiltElement.htm }
   TIfcBuiltElement = class(TIfcElement)
+  end;
+
+  TIfcSlabTypeEnum = (
+    NotDefined,
+    Approach_Slab,
+    BaseSlab,
+    Floor,
+    Landing,
+    Paving,
+    Roof,
+    Sidewalk,
+    TrackSlab,
+    Wearing,
+    UserDefined
+  );
+
+  { Component of the construction that may enclose a space vertically.
+    The slab may provide the lower support (floor) or upper construction
+    (roof slab) in any space in a building.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcSlab.htm }
+  TIfcSlab = class(TIfcBuiltElement)
+  strict private
+    FPredefinedType: TIfcSlabTypeEnum;
+  published
+    property PredefinedType: TIfcSlabTypeEnum read FPredefinedType write FPredefinedType
+      default TIfcSlabTypeEnum.NotDefined;
   end;
 
   TIfcColumnTypeEnum = (
@@ -4367,6 +4453,50 @@ destructor TIfcShapeAspect.Destroy;
 begin
   FreeAndNil(FShapeRepresentations);
   FreeAndNil(FHasExternalReferences);
+  inherited;
+end;
+
+{ TIfcLineIndex ------------------------------------------------------------- }
+
+constructor TIfcLineIndex.Create(AOwner: TComponent);
+begin
+  inherited;
+  FValue := TIntegerList.Create;
+end;
+
+destructor TIfcLineIndex.Destroy;
+begin
+  FreeAndNil(FValue);
+  inherited;
+end;
+
+{ TIfcArcIndex --------------------------------------------------------------- }
+
+constructor TIfcArcIndex.Create(AOwner: TComponent);
+begin
+  inherited;
+  FValue := TIntegerList.Create;
+end;
+
+destructor TIfcArcIndex.Destroy;
+begin
+  FreeAndNil(FValue);
+  inherited;
+end;
+
+{ TIfcIndexedPolyCurve ------------------------------------------------------- }
+
+constructor TIfcIndexedPolyCurve.Create(AOwner: TComponent);
+begin
+  inherited;
+  FPoints := TIfcCartesianPointList.Create(false);
+  FSegments := TIfcSegmentIndexSelectList.Create(false);
+end;
+
+destructor TIfcIndexedPolyCurve.Destroy;
+begin
+  FreeAndNil(FPoints);
+  FreeAndNil(FSegments);
   inherited;
 end;
 
