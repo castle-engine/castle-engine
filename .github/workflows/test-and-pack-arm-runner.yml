@@ -67,20 +67,23 @@ jobs:
             cat /proc/cpuinfo
             dpkg -l libc-bin
 
-            # Install FPC+Lazarus and other Linux dependencies
+            # Install FPC and other Linux dependencies
             sudo apt-get update
-            sudo apt-get --no-install-recommends -y install libgl-dev fpc lazarus git git-lfs make
+            sudo apt-get --no-install-recommends -y install libgl-dev fpc git git-lfs make
 
             # Set environment
             export ARM_RUNNER_WORKSPACE=`pwd`
             export CASTLE_ENGINE_PATH=$ARM_RUNNER_WORKSPACE
-            export "PATH=${PATH}:${CASTLE_ENGINE_PATH}/installed/bin/:${ARM_RUNNER_WORKSPACE}/pasdoc/bin/"
+            export "PATH=${PATH}:${CASTLE_ENGINE_PATH}/installed/bin/:${ARM_RUNNER_WORKSPACE}/pasdoc/bin/:${ARM_RUNNER_WORKSPACE}/lazarus/"
             export "FPC_OS="`fpc -iTO`
             export "FPC_CPU="`fpc -iTP`
             # Disable FPC version check (32-bit rpi is using bullseye with FPC 3.2.0 now)
             if [ "${FPC_CPU}" = 'arm' ]; then export "CASTLE_PACK_DISABLE_FPC_VERSION_CHECK=true"; fi
-            # We use Lazarus from Raspberry Pi OS packages
-            export CASTLE_PACK_DISABLE_LAZARUS_VERSION_CHECK=true
+
+            # Install Lazarus from https://github.com/castle-engine/cge-lazarus/
+            # (because Lazarus in repos is too old).
+            wget https://github.com/castle-engine/cge-lazarus/releases/download/snapshot/lazarus-${{ matrix.arch }}-snapshot.zip --output-document lazarus-snapshot.zip
+            unzip lazarus-snapshot.zip
 
             # Check versions (and availability) of our requirements early
             fpc -iV
