@@ -43,6 +43,9 @@
       between X3D nodes) to follow IFC TIfcObjectPlacement.PlacementRelTo idea. }
     ChildrenNodesToObjectPlacement: TChildrenNodesToObjectPlacement;
 
+    { Apperance of the current object definition being built. }
+    CurrentAppearance: TAppearanceNode;
+
     constructor Create;
     destructor Destroy; override;
   end;
@@ -87,6 +90,7 @@ destructor TCastleIfcMapping.Destroy;
 begin
   FreeAndNil(ObjectPlacementToParentNodes);
   FreeAndNil(ChildrenNodesToObjectPlacement);
+  FreeIfUnusedAndNil(CurrentAppearance);
   inherited;
 end;
 
@@ -302,6 +306,8 @@ begin
 
   Shape := TShapeNode.Create('', Mapping.BaseUrl);
   Shape.Geometry := LineSet;
+  // lines are best displayed as unlit geometry, different material would be useful
+  // Shape.Appearance := Mapping.CurrentAppearance;
   SetMetadata(Shape, 'IFC_ClassName', ClassName);
 
   Result := Shape;
@@ -345,6 +351,7 @@ begin
 
   Shape := TShapeNode.Create('', Mapping.BaseUrl);
   Shape.Geometry := Extrusion;
+  Shape.Appearance := Mapping.CurrentAppearance;
   SetMetadata(Shape, 'IFC_ClassName', ClassName);
 
   Result := Shape;
@@ -380,6 +387,7 @@ begin
 
   Shape := TShapeNode.Create('', Mapping.BaseUrl);
   Shape.Geometry := IndexedFaceSet;
+  Shape.Appearance := Mapping.CurrentAppearance;
   SetMetadata(Shape, 'IFC_ClassName', ClassName);
 
   Result := Shape;
@@ -388,6 +396,30 @@ end;
 { BuildNode of TIfcObjectDefinition and descendants -------------------------- }
 
 function TIfcObjectDefinition.BuildNode(const Mapping: TCastleIfcMapping): TTransformNode;
+
+  { Derive X3D TAppearanceNode from IFC TIfcObjectDefinition.HasAssociations. }
+  function AppearanceFromAssociations(const Associations: TIfcRelAssociatesList): TAppearanceNode;
+  begin
+    (*
+    for Rel in Associations do
+    begin
+      if Rel is TIfcRelAssociatesMaterial then
+      begin
+        RelMat := TIfcRelAssociatesMaterial(Rel);
+        Result := TAppearanceNode.Create('', Mapping.BaseUrl);
+        Result.Material := TPhysicalMaterialNode.Create('', Mapping.BaseUrl);
+        // we would like to set Result.Material.BaseColor based on IFC information,
+        // but it seems IFC materials don't specify simple color
+        Exit;
+      end;
+    *)
+
+    Result := TAppearanceNode.Create('', Mapping.BaseUrl);
+    //Result.Material := TPhysicalMaterialNode.Create('', Mapping.BaseUrl);
+    // Phong material looks better alone, with default color and lighting
+    Result.Material := TMaterialNode.Create('', Mapping.BaseUrl);
+  end;
+
 var
   RelAggregates: TIfcRelAggregates;
 begin
@@ -395,6 +427,10 @@ begin
   SetMetadata(Result, 'IFC_ClassName', ClassName);
   SetMetadata(Result, 'IFC_Name', Name);
   SetMetadata(Result, 'IFC_Description', Description);
+
+  // Things inside IsDecomposedBy are affected by given material
+  FreeIfUnusedAndNil(Mapping.CurrentAppearance);
+  Mapping.CurrentAppearance := AppearanceFromAssociations(HasAssociations);
 
   for RelAggregates in IsDecomposedBy do
     Result.AddChildren(RelAggregates.BuildNode(Mapping));
