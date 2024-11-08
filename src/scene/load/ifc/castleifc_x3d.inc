@@ -315,6 +315,8 @@ var
   Coord: TCoordinateNode;
   I: Integer;
 begin
+  Exit(nil);
+
   Coord := TCoordinateNode.Create('', Mapping.BaseUrl);
   Coord.FdPoint.Count := Points.Count;
   for I := 0 to Points.Count - 1 do
@@ -365,7 +367,8 @@ begin
       for I := 0 to ArcIndex.Value.Count - 1 do
         IndexedLineSet.FdCoordIndex.Items.Add(ArcIndex.Value[I]);
       IndexedLineSet.FdCoordIndex.Items.Add(-1);
-    end;
+    end else
+      WritelnWarning('IFC', 'Unsupported Segment class: ' + Segment.ClassName);
   end;
 
   Shape := TShapeNode.Create('', Mapping.BaseUrl);
@@ -410,7 +413,8 @@ begin
     begin
       SweptAreaCurvePolyline := TIfcPolyline(SweptAreaProf.OuterCurve);
       SweptAreaCurvePolyline.UpdateCrossSection(Extrusion);
-    end;
+    end else
+      WritelnWarning('IFC', 'Unsupported SweptArea.OuterCurve class: ' + SweptAreaProf.OuterCurve.ClassName);
   end;
 
   Shape := TShapeNode.Create('', Mapping.BaseUrl);
