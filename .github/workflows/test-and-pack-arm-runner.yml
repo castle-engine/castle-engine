@@ -84,6 +84,7 @@ jobs:
             # (because Lazarus in repos is too old).
             wget https://github.com/castle-engine/cge-lazarus/releases/download/snapshot/lazarus-${FPC_OS}-${FPC_CPU}.zip --output-document lazarus.zip
             unzip lazarus.zip
+            mkdir -p ~/.config/lazarus/
             cp .github/workflows/lazarus_environmentoptions_template.xml ~/.config/lazarus/environmentoptions.xml
             LAZARUS_DIR="${ARM_RUNNER_WORKSPACE}/lazarus/"
             sed -i "s|LAZARUS-DIRECTORY-PLACEHOLDER|${LAZARUS_DIR}|g" ~/.config/lazarus/environmentoptions.xml
