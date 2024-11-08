@@ -701,6 +701,58 @@
     property OuterCurve: TIfcCurve read FOuterCurve write FOuterCurve;
   end;
 
+  TIfcRoleEnum = (
+    Architect,
+    BuildingOperator,
+    BuildingOwner,
+    CivilEngineer,
+    Client,
+    CommissioningEngineer,
+    ConstructionManager,
+    Consultant,
+    Contractor,
+    CostEngineer,
+    ElectricalEngineer,
+    Engineer,
+    FacilitiesManager,
+    FieldConstructionManager,
+    Manufacturer,
+    MechanicalEngineer,
+    Owner,
+    ProjectManager,
+    Reseller,
+    StructuralEngineer,
+    Subcontractor,
+    Supplier,
+    UserDefined
+  );
+
+  TIfcActorRole = class(TIfcPersistent)
+  strict private
+    FRole: TIfcRoleEnum;
+    FUserDefinedRole: TIfcLabel;
+    FDescription: TIfcText;
+    FHasExternalReference: TIfcExternalReferenceRelationshipList;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+  published
+    { The name of the role played by an actor. }
+    property Role: TIfcRoleEnum read FRole write FRole;
+
+    { Allows for specification of user defined roles
+      beyond the enumeration values provided by @link(Role). }
+    property UserDefinedRole: TIfcLabel read FUserDefinedRole write FUserDefinedRole;
+
+    { A textual description relating the nature of the role played by an actor. }
+    property Description: TIfcText read FDescription write FDescription;
+
+    { Reference to external information, e.g. library, classification,
+      or document information, which is associated with the actor role. }
+    property HasExternalReference: TIfcExternalReferenceRelationshipList read FHasExternalReference;
+  end;
+  TIfcActorRoleList = {$ifdef FPC}specialize{$endif} TObjectList<TIfcActorRole>;
+
   { Person acting on behalf of an organization.
 
     Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcPersonAndOrganization.htm }
@@ -708,7 +760,10 @@
   strict private
     FThePerson: TIfcPerson;
     FTheOrganization: TIfcOrganization;
-    //FRoles: TIfcActorRoleList; // TODO
+    FRoles: TIfcActorRoleList;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
   published
     { Person who is related to the organization. }
     property ThePerson: TIfcPerson read FThePerson write FThePerson;
@@ -717,7 +772,7 @@
     property TheOrganization: TIfcOrganization read FTheOrganization write FTheOrganization;
 
     { Roles played by the person within the context of an organization. }
-    // property Roles: TIfcActorRoleList read FRoles; // TODO
+    property Roles: TIfcActorRoleList read FRoles;
   end;
   TIfcPersonAndOrganizationList = class({$ifdef FPC}specialize{$endif} TObjectList<TIfcPersonAndOrganization>)
   end;
@@ -730,10 +785,10 @@
     FIdentification: TIfcIdentifier;
     FFamilyName: TIfcLabel;
     FGivenName: TIfcLabel;
-    //FMiddleNames: TIfcLabelList;
-    //FPrefixTitles: TIfcLabelList;
-    //FSuffixTitles: TIfcLabelList;
-    //FRoles: TIfcActorRoleList;
+    FMiddleNames: TCastleStringList;
+    FPrefixTitles: TCastleStringList;
+    FSuffixTitles: TCastleStringList;
+    FRoles: TIfcActorRoleList;
     FAddresses: TIfcAddressList;
     FEngagedIn: TIfcPersonAndOrganizationList;
   public
@@ -750,16 +805,18 @@
     property GivenName: TIfcLabel read FGivenName write FGivenName;
 
     { Additional names given to a person. }
-    //property MiddleNames: TIfcLabelList read FMiddleNames; // TODO serialization/deserialization for string list needed
+    property MiddleNames: TCastleStringList read FMiddleNames;
 
-    { The word, or group of words, which specify the person's social and/or professional standing and appear before his/her names. }
-    //property PrefixTitles: TIfcLabelList read FPrefixTitles; // TODO serialization/deserialization for string list needed
+    { The word, or group of words, which specify the person's social
+      and/or professional standing and appear before his/her names. }
+    property PrefixTitles: TCastleStringList read FPrefixTitles;
 
-    { The word, or group of words, which specify the person's social and/or professional standing and appear after his/her names.}
-    //property SuffixTitles: TIfcLabelList read FSuffixTitles; // TODO serialization/deserialization for string list needed
+    { The word, or group of words, which specify the person's social
+      and/or professional standing and appear after his/her names.}
+    property SuffixTitles: TCastleStringList read FSuffixTitles;
 
     { Roles played by the person. }
-    //property Roles: TIfcActorRoleList read FRoles; // TODO
+    property Roles: TIfcActorRoleList read FRoles;
 
     { Postal and telecommunication addresses of a person. }
     property Addresses: TIfcAddressList read FAddresses;
@@ -798,7 +855,7 @@
     FIdentification: TIfcIdentifier;
     FName: TIfcLabel;
     FDescription: TIfcText;
-    //FRoles: TIfcActorRoleList;
+    FRoles: TIfcActorRoleList;
     FAddresses: TIfcAddressList;
     FIsRelatedBy: TIfcOrganizationRelationshipList;
     FRelates: TIfcOrganizationRelationshipList;
@@ -817,7 +874,7 @@
     property Description: TIfcText read FDescription write FDescription;
 
     { Roles played by the organization. }
-    //property Roles: TIfcActorRoleList read FRoles; // TODO
+    property Roles: TIfcActorRoleList read FRoles;
 
     { Postal and telecom addresses of an organization. }
     property Addresses: TIfcAddressList read FAddresses;
@@ -3782,6 +3839,34 @@ begin
   inherited;
 end;
 
+{ TIfcActorRole -------------------------------------------------------------- }
+
+constructor TIfcActorRole.Create(AOwner: TComponent);
+begin
+  inherited;
+  FHasExternalReference := TIfcExternalReferenceRelationshipList.Create(false);
+end;
+
+destructor TIfcActorRole.Destroy;
+begin
+  FreeAndNil(FHasExternalReference);
+  inherited;
+end;
+
+{ TIfcPersonAndOrganization -------------------------------------------------- }
+
+constructor TIfcPersonAndOrganization.Create(AOwner: TComponent);
+begin
+  inherited;
+  FRoles := TIfcActorRoleList.Create(false);
+end;
+
+destructor TIfcPersonAndOrganization.Destroy;
+begin
+  FreeAndNil(FRoles);
+  inherited;
+end;
+
 { TIfcPerson --------------------------------------------------------------- }
 
 constructor TIfcPerson.Create(AOwner: TComponent);
@@ -3789,12 +3874,20 @@ begin
   inherited;
   FAddresses := TIfcAddressList.Create(false);
   FEngagedIn := TIfcPersonAndOrganizationList.Create(false);
+  FRoles := TIfcActorRoleList.Create(false);
+  FMiddleNames := TCastleStringList.Create;
+  FPrefixTitles := TCastleStringList.Create;
+  FSuffixTitles := TCastleStringList.Create;
 end;
 
 destructor TIfcPerson.Destroy;
 begin
   FreeAndNil(FAddresses);
   FreeAndNil(FEngagedIn);
+  FreeAndNil(FRoles);
+  FreeAndNil(FMiddleNames);
+  FreeAndNil(FPrefixTitles);
+  FreeAndNil(FSuffixTitles);
   inherited;
 end;
 
@@ -3823,6 +3916,7 @@ begin
   FIsRelatedBy := TIfcOrganizationRelationshipList.Create(false);
   FRelates := TIfcOrganizationRelationshipList.Create(false);
   FEngages := TIfcPersonAndOrganizationList.Create(false);
+  FRoles := TIfcActorRoleList.Create(false);
 end;
 
 destructor TIfcOrganization.Destroy;
@@ -3831,6 +3925,7 @@ begin
   FreeAndNil(FIsRelatedBy);
   FreeAndNil(FRelates);
   FreeAndNil(FEngages);
+  FreeAndNil(FRoles);
   inherited;
 end;
 
@@ -4548,6 +4643,7 @@ begin
     IfcClasses.Add(TIfcIndexedPolygonalFace);
     IfcClasses.Add(TIfcCartesianPointList3D);
     IfcClasses.Add(TIfcTelecomAddress);
+    IfcClasses.Add(TIfcActorRole);
   end;
 end;
 
