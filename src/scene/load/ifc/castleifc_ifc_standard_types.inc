@@ -4142,6 +4142,7 @@ destructor TIfcPolygonalFaceSet.Destroy;
 begin
   FreeAndNil(FFaces);
   FreeAndNil(FPnIndex);
+  inherited;
 end;
 
 { TIfcPolyline ------------------------------------------------------------- }
