@@ -104,7 +104,7 @@ end;
     },
 
   Both forms are found in practice, see
-  https://github.com/buildingSMART/Sample-Test-Files/blob/master/IFC%204.0/BuildingSMARTSpec/wall-with-opening-and-window.json
+  https://github.com/buildingsmart-community/Community-Sample-Test-Files/blob/main/IFC%204.0.2.1%20(IFC%204)/ISO%20Spec%20archive/wall-with-opening-and-window.json
   and a version of it imported + exported by Bonsai BIM.
 *)
 function JsonToString(const JsonValue: TJsonData; const DebugJsonKey: String): String;
@@ -181,7 +181,7 @@ end;
     }
 
   Both forms are found in practice, see
-  https://github.com/buildingSMART/Sample-Test-Files/blob/master/IFC%204.0/BuildingSMARTSpec/wall-with-opening-and-window.json
+  https://github.com/buildingsmart-community/Community-Sample-Test-Files/blob/main/IFC%204.0.2.1%20(IFC%204)/ISO%20Spec%20archive/wall-with-opening-and-window.json
   and a version of it imported + exported by Bonsai BIM.
 *)
 function JsonToFloat(const JsonValue: TJsonData; const DebugJsonKey: String): Single;
@@ -319,7 +319,7 @@ var
 
         This workarounds invalid (as far as I know) IFC files,
         since they should always have "type" specified,
-        but e.g. https://github.com/buildingSMART/Sample-Test-Files/blob/master/IFC%204.0/BuildingSMARTSpec/wall-with-opening-and-window.json
+        but e.g. https://github.com/buildingsmart-community/Community-Sample-Test-Files/blob/main/IFC%204.0.2.1%20(IFC%204)/ISO%20Spec%20archive/wall-with-opening-and-window.json
         has 2 occurences when "type" is not specified.)
     }
     function CreateIfcInstance(const JsonChildObj: TJsonObject;
@@ -607,7 +607,7 @@ var
     { Read one JSON object, add it as the only item to the list property PropInfo of Ifc.
 
       This is sometimes used by IFC JSON, see
-      https://github.com/buildingSMART/Sample-Test-Files/blob/master/IFC%204.0/BuildingSMARTSpec/wall-with-opening-and-window.json#L70
+      https://github.com/buildingsmart-community/Community-Sample-Test-Files/blob/main/IFC%204.0.2.1%20(IFC%204)/ISO%20Spec%20archive/wall-with-opening-and-window.json#L70
       where "isDecomposedBy" (a list of IfcRelAggregates) is just a single
       instance of IfcRelAggregates. }
     procedure ReadIfcChildArrayOneItem(const PropInfo: PPropInfo;
@@ -637,7 +637,7 @@ var
       { Sometimes JSON gives a 1-item array when actually spec has "SET [0:1]",
         so it's not a list in Pascal.
         Example: TIfcProject.HasContext in
-        https://github.com/buildingSMART/Sample-Test-Files/blob/master/IFC%204.0/BuildingSMARTSpec/wall-with-opening-and-window.json
+        https://github.com/buildingsmart-community/Community-Sample-Test-Files/blob/main/IFC%204.0.2.1%20(IFC%204)/ISO%20Spec%20archive/wall-with-opening-and-window.json
         Tolerate it.
       }
       if (JsonInstanceValue is TJsonArray) and
@@ -902,7 +902,7 @@ begin
   Refs := TCastleStringList.Create;
   try
     { Some JSON files use "IfcProject" at top-level
-      (see https://github.com/buildingSMART/Sample-Test-Files/blob/master/IFC%204.0/BuildingSMARTSpec/wall-with-opening-and-window.json ),
+      (see https://github.com/buildingsmart-community/Community-Sample-Test-Files/blob/main/IFC%204.0.2.1%20(IFC%204)/ISO%20Spec%20archive/wall-with-opening-and-window.json ),
       some use "IFC.JSON" at top-level and then "IfcProject" is inside "data".
       Account for both cases. }
     TopLevelType := JsonObj.Get('type', '');
