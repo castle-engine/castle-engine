@@ -878,6 +878,44 @@
   TIfcAddressList = class({$ifdef FPC}specialize{$endif} TObjectList<TIfcAddress>)
   end;
 
+  { Address to which telephone, electronic mail and other forms of
+    telecommunications should be addressed.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcTelecomAddress.htm }
+  TIfcTelecomAddress = class(TIfcAddress)
+  strict private
+    FTelephoneNumbers: TCastleStringList;
+    FFacsimileNumbers: TCastleStringList;
+    FPagerNumber: TIfcLabel;
+    FElectronicMailAddresses: TCastleStringList;
+    FWWWHomePageURL: TIfcURIReference;
+    FMessagingIDs: TCastleStringList;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+  published
+    { The list of telephone numbers at which telephone messages may be received. }
+    property TelephoneNumbers: TCastleStringList read FTelephoneNumbers;
+
+    { The list of fax numbers at which fax messages may be received. }
+    property FacsimileNumbers: TCastleStringList read FFacsimileNumbers;
+
+    { The pager number at which paging messages may be received. }
+    property PagerNumber: TIfcLabel read FPagerNumber write FPagerNumber;
+
+    { The list of Email addresses at which Email messages may be received. }
+    property ElectronicMailAddresses: TCastleStringList read FElectronicMailAddresses;
+
+    { The world wide web address at which the preliminary page of information for the person or organization can be located. }
+    property WWWHomePageURL: TIfcURIReference read FWWWHomePageURL write FWWWHomePageURL;
+
+    { IDs or addresses for any other means of telecommunication, for example
+      instant messaging, voice-over-IP, or file transfer protocols.
+      The communication protocol is indicated by the URI value with
+      scheme designations such as irc:, sip:, or ftp:. }
+    property MessagingIDs: TCastleStringList read FMessagingIDs;
+  end;
+
   { IFC compliant application developed by an application developer. }
   TIfcApplication = class(TIfcPersistent)
   strict private
@@ -3724,6 +3762,26 @@ begin
   inherited;
 end;
 
+{ TIfcTelecomAddress --------------------------------------------------------- }
+
+constructor TIfcTelecomAddress.Create(AOwner: TComponent);
+begin
+  inherited;
+  FTelephoneNumbers := TCastleStringList.Create;
+  FFacsimileNumbers := TCastleStringList.Create;
+  FElectronicMailAddresses := TCastleStringList.Create;
+  FMessagingIDs := TCastleStringList.Create;
+end;
+
+destructor TIfcTelecomAddress.Destroy;
+begin
+  FreeAndNil(FTelephoneNumbers);
+  FreeAndNil(FFacsimileNumbers);
+  FreeAndNil(FElectronicMailAddresses);
+  FreeAndNil(FMessagingIDs);
+  inherited;
+end;
+
 { TIfcPerson --------------------------------------------------------------- }
 
 constructor TIfcPerson.Create(AOwner: TComponent);
@@ -4489,6 +4547,7 @@ begin
     IfcClasses.Add(TIfcPolygonalFaceSet);
     IfcClasses.Add(TIfcIndexedPolygonalFace);
     IfcClasses.Add(TIfcCartesianPointList3D);
+    IfcClasses.Add(TIfcTelecomAddress);
   end;
 end;
 
