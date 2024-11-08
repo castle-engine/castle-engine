@@ -446,6 +446,8 @@ seconds
 sector
 sectors
 seek
+segment
+segments
 selected
 send
 sending
