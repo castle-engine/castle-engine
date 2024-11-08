@@ -82,8 +82,8 @@ jobs:
 
             # Install Lazarus from https://github.com/castle-engine/cge-lazarus/
             # (because Lazarus in repos is too old).
-            wget https://github.com/castle-engine/cge-lazarus/releases/download/snapshot/lazarus-${{ matrix.arch }}-snapshot.zip --output-document lazarus-snapshot.zip
-            unzip lazarus-snapshot.zip
+            wget https://github.com/castle-engine/cge-lazarus/releases/download/snapshot/lazarus-${FPC_OS}-${FPC_CPU}.zip --output-document lazarus.zip
+            unzip lazarus.zip
 
             # Check versions (and availability) of our requirements early
             fpc -iV
