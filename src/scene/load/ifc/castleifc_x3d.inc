@@ -315,8 +315,6 @@ var
   Coord: TCoordinateNode;
   I: Integer;
 begin
-  Exit(nil);
-
   Coord := TCoordinateNode.Create('', Mapping.BaseUrl);
   Coord.FdPoint.Count := Points.Count;
   for I := 0 to Points.Count - 1 do
