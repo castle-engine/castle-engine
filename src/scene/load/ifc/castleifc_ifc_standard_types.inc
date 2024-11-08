@@ -3418,10 +3418,11 @@
 {$ifdef read_interface}
 
 var
-  { List of all (non-abstract) IFC classes that are defined in this unit.
+  { List of all IFC classes that are defined in this unit.
 
-    TODO: We didn't strictly check if all classes on this list are non-abstract.
-    In practice, it doesn't matter for current code. }
+    This includes all IFC non-abstract classes
+    and also some abstract classes that are referred to by lists
+    (because, to resolve references in IFC files, we need to know about them). }
   IfcClasses: TIfcPersistentClassList;
 
 { Make sure IfcClasses is assigned and filled with contents. }

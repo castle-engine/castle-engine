@@ -24,9 +24,9 @@ attributes
 avatar
 avatars
 background
+barycentric
 behavior
 behaviors
-barycentric
 between
 bind
 black
@@ -65,20 +65,23 @@ collision
 color
 colors
 comments
+complex
 compose
 compression
 config
+construction
 consume
 container
 contents
 contribution
 controls
 convex
-corners
 coordinates
+corners
 count
 create
 current
+currrency
 cursor
 curve
 data
@@ -109,6 +112,7 @@ draw
 duration
 effects
 efx
+element
 emission
 empty
 enable
@@ -222,8 +226,8 @@ long
 loop
 looping
 major
-mask
 map
+mask
 material
 materials
 matrix
@@ -261,6 +265,7 @@ opacity
 open
 openal
 opened
+opening
 orientation
 orthographic
 outline
@@ -269,10 +274,12 @@ parameters
 parent
 parse
 parse
+pascal
 pass
 paused
 periodic
 perspective
+physical
 pitch
 plane
 planes
@@ -296,6 +303,7 @@ profile
 profiler
 progress
 projection
+properties
 prototype
 prototypes
 proxy
@@ -321,6 +329,7 @@ release
 remove
 render
 renderer
+representation
 reset
 resize
 resource
@@ -338,6 +347,7 @@ scene
 scenes
 scope
 screen
+second
 seconds
 sector
 sectors
@@ -361,6 +371,7 @@ sound
 sounds
 spatial
 sphere
+standard
 start
 state
 static
@@ -399,6 +410,7 @@ triangulate
 trigger
 uniform
 uniforms
+units
 unprepare
 up
 update
@@ -416,9 +428,9 @@ verts
 vibrate
 videos
 view
-views
 viewport
 viewports
+views
 visible
 volume
 walk
