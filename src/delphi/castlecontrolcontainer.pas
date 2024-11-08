@@ -126,8 +126,8 @@ type
       property to @false, and make sure that you call
       @link(Invalidate) always when you need to redraw the screen.
       Note that the engine components always call @link(Invalidate) when
-      necessary, so usually you should only call it yourself if you provide
-      a custom @link(OnRender) implementation. }
+      necessary, so usually you should only call it yourself if you do custom
+      rendering in overridden @link(TCastleUserInterface.Render) implementation. }
     property AutoRedisplay: Boolean read FAutoRedisplay write SetAutoRedisplay
       default true;
 
