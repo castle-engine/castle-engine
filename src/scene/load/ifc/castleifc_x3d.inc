@@ -283,6 +283,24 @@ begin
     Group.AddChildren(RelatedOpeningElement.BuildNode(Mapping));
 end;
 
+procedure TIfcCartesianPointList2D.UpdateCoordinate(const Coord: TCoordinateNode);
+var
+  I: Integer;
+begin
+  Coord.FdPoint.Count := CoordList.Count;
+  for I := 0 to CoordList.Count - 1 do
+    Coord.FdPoint.Items[I] := Vector3(CoordList[I], 0);
+end;
+
+procedure TIfcCartesianPointList3D.UpdateCoordinate(const Coord: TCoordinateNode);
+var
+  I: Integer;
+begin
+  Coord.FdPoint.Count := CoordList.Count;
+  for I := 0 to CoordList.Count - 1 do
+    Coord.FdPoint.Items[I] := CoordList[I];
+end;
+
 { BuildNode of TIfcRepresentationItem and descendants ------------------------- }
 
 function TIfcRepresentationItem.BuildNode(const Mapping: TCastleIfcMapping): TAbstractChildNode;
@@ -326,9 +344,7 @@ var
   ArcIndex: TIfcArcIndex;
 begin
   Coord := TCoordinateNode.Create('', Mapping.BaseUrl);
-  Coord.FdPoint.Count := Points.Count;
-  for I := 0 to Points.Count - 1 do
-    Coord.FdPoint.Items[I] := Points[I].Coordinates.Value;
+  Points.UpdateCoordinate(Coord);
 
   IndexedLineSet := TIndexedLineSetNode.Create('', Mapping.BaseUrl);
   IndexedLineSet.Coord := Coord;

@@ -209,6 +209,17 @@ begin
     Result := JsonValue.AsFloat;
 end;
 
+{ Read JSON array into TVector2 }
+function JsonToVector2(const JsonChildArray: TJsonArray; const DebugJsonKey: String): TVector2;
+var
+  I: Integer;
+begin
+  Result := TVector2.Zero;
+  for I := 0 to Result.Count - 1 do
+    if I < JsonChildArray.Count then
+      Result.Data[I] := JsonToFloat(JsonChildArray.Items[I], DebugJsonKey);
+end;
+
 { Read JSON array into TVector3 }
 function JsonToVector3(const JsonChildArray: TJsonArray; const DebugJsonKey: String): TVector3;
 var
@@ -433,6 +444,24 @@ var
         IntegerList.Add(JsonToInteger(JsonChildArray.Items[I], DebugJsonKey));
     end;
 
+    { From elements of JsonChildArray read TVector2List contents
+      into property PropInfo of Ifc, which must be a TVector2List. }
+    procedure ReadIfcChildVector2List(const PropInfo: PPropInfo;
+      const JsonChildArray: TJsonArray);
+    var
+      I: Integer;
+      Vector2List: TVector2List;
+    begin
+      Vector2List := PropertyGetInstance(Ifc, PropInfo) as TVector2List;
+      if Vector2List = nil then
+        raise EInvalidIfc.CreateFmt('Pascal property "%s" is supposed to be a TVector2List, but it is nil', [
+          PropInfo^.Name
+        ]);
+      Vector2List.Clear;
+      for I := 0 to JsonChildArray.Count - 1 do
+        Vector2List.Add(JsonToVector2(JsonChildArray.Items[I] as TJsonArray, DebugJsonKey));
+    end;
+
     { From elements of JsonChildArray read TVector3List contents
       into property PropInfo of Ifc, which must be a TVector3List. }
     procedure ReadIfcChildVector3List(const PropInfo: PPropInfo;
@@ -616,6 +645,7 @@ var
          (not (CurrentInstance is TCastleVector4Persistent)) and
          (not (CurrentInstance is TCastleStringList)) and
          (not (CurrentInstance is TIntegerList)) and
+         (not (CurrentInstance is TVector2List)) and
          (not (CurrentInstance is TVector3List)) and
          (not RequiredClass.InheritsFrom(TIfcCompoundPlaneAngleMeasure)) and
          (not ClassNameOfList(PropertyGetInstanceClass(Ifc, PropInfo).ClassName)) then
@@ -658,6 +688,9 @@ var
         else
         if CurrentInstance is TIntegerList then
           ReadIfcChildIntegerList(PropInfo, JsonInstanceValue as TJsonArray)
+        else
+        if CurrentInstance is TVector2List then
+          ReadIfcChildVector2List(PropInfo, JsonInstanceValue as TJsonArray)
         else
         if CurrentInstance is TVector3List then
           ReadIfcChildVector3List(PropInfo, JsonInstanceValue as TJsonArray)
@@ -900,6 +933,16 @@ var
 
   function SerializeJson(const Ifc: TIfcPersistent): TJsonObject; forward;
 
+  { Serialize TVector2 to JSON array. }
+  function SerializeJsonVector2(const Vector: TVector2): TJsonArray; overload;
+  var
+    I: Integer;
+  begin
+    Result := TJsonArray.Create;
+    for I := 0 to Vector.Count - 1 do
+      Result.Add(Vector.Data[I]);
+  end;
+
   { Serialize TVector3 to JSON array. }
   function SerializeJsonVector3(const Vector: TVector3): TJsonArray; overload;
   var
@@ -948,6 +991,16 @@ var
     Result := TJsonArray.Create;
     for I := 0 to IntegerList.Count - 1 do
       Result.Add(IntegerList[I]);
+  end;
+
+  { Serialize TVector2List to JSON array. }
+  function SerializeJsonVector2List(const Vector2List: TVector2List): TJsonArray;
+  var
+    I: Integer;
+  begin
+    Result := TJsonArray.Create;
+    for I := 0 to Vector2List.Count - 1 do
+      Result.Add(SerializeJsonVector2(Vector2List[I]));
   end;
 
   { Serialize TVector3List to JSON array. }
@@ -1092,6 +1145,9 @@ var
                 else
                 if IfcObjProperty is TIntegerList then
                   Result.Add(JsonKey, SerializeJsonIntegerList(TIntegerList(IfcObjProperty)))
+                else
+                if IfcObjProperty is TVector2List then
+                  Result.Add(JsonKey, SerializeJsonVector2List(TVector2List(IfcObjProperty)))
                 else
                 if IfcObjProperty is TVector3List then
                   Result.Add(JsonKey, SerializeJsonVector3List(TVector3List(IfcObjProperty)))

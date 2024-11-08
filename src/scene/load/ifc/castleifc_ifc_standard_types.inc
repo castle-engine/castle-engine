@@ -399,6 +399,29 @@
 
     Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcCartesianPointList.htm }
   TIfcCartesianPointListSpec = class abstract(TIfcGeometricRepresentationItem)
+  public
+    procedure UpdateCoordinate(const Coord: TCoordinateNode); virtual; abstract;
+  end;
+
+  { Ordered collection of two-dimentional Cartesian points.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcCartesianPointList2D.htm }
+  TIfcCartesianPointList2D = class(TIfcCartesianPointListSpec)
+  strict private
+    FCoordList: TVector2List;
+    FTagList: TCastleStringList;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+    procedure UpdateCoordinate(const Coord: TCoordinateNode); override;
+  published
+    { Lst of Cartesian points provided by two coordinates. }
+    property CoordList: TVector2List read FCoordList;
+
+    { List of tags corresponding to each point that may be used to
+      identify a basis curve according to the Tag attribute at
+      IfcOffsetCurveByDistances. }
+    property TagList: TCastleStringList read FTagList;
   end;
 
   { Ordered collection of three-dimentional Cartesian points.
@@ -411,6 +434,7 @@
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
+    procedure UpdateCoordinate(const Coord: TCoordinateNode); override;
   published
     { Lst of Cartesian points provided by three coordinates. }
     property CoordList: TVector3List read FCoordList;
@@ -575,7 +599,7 @@
     Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcIndexedPolyCurve.htm }
   TIfcIndexedPolyCurve = class(TIfcBoundedCurve)
   strict private
-    FPoints: TIfcCartesianPointList;
+    FPoints: TIfcCartesianPointListSpec;
     FSegments: TIfcSegmentIndexSelectList;
     FSelfIntersect: Boolean;
   public
@@ -584,7 +608,7 @@
     function BuildNode(const Mapping: TCastleIfcMapping): TAbstractChildNode; override;
   published
     { Points defining the polyline. }
-    property Points: TIfcCartesianPointList read FPoints;
+    property Points: TIfcCartesianPointListSpec read FPoints write FPoints;
 
     { List of straight line and circular arc segments, each providing a list
       of indices into the Cartesian point list. }
@@ -4043,6 +4067,22 @@ begin
   inherited;
 end;
 
+{ TIfcCartesianPointList2D --------------------------------------------------- }
+
+constructor TIfcCartesianPointList2D.Create(AOwner: TComponent);
+begin
+  inherited;
+  FCoordList := TVector2List.Create;
+  FTagList := TCastleStringList.Create;
+end;
+
+destructor TIfcCartesianPointList2D.Destroy;
+begin
+  FreeAndNil(FCoordList);
+  FreeAndNil(FTagList);
+  inherited;
+end;
+
 { TIfcCartesianPointList3D --------------------------------------------------- }
 
 constructor TIfcCartesianPointList3D.Create(AOwner: TComponent);
@@ -4489,13 +4529,11 @@ end;
 constructor TIfcIndexedPolyCurve.Create(AOwner: TComponent);
 begin
   inherited;
-  FPoints := TIfcCartesianPointList.Create(false);
   FSegments := TIfcSegmentIndexSelectList.Create(false);
 end;
 
 destructor TIfcIndexedPolyCurve.Destroy;
 begin
-  FreeAndNil(FPoints);
   FreeAndNil(FSegments);
   inherited;
 end;
@@ -4774,6 +4812,11 @@ begin
     IfcClasses.Add(TIfcCartesianPointList3D);
     IfcClasses.Add(TIfcTelecomAddress);
     IfcClasses.Add(TIfcActorRole);
+    IfcClasses.Add(TIfcSlab);
+    IfcClasses.Add(TIfcIndexedPolyCurve);
+    IfcClasses.Add(TIfcLineIndex);
+    IfcClasses.Add(TIfcArcIndex);
+    IfcClasses.Add(TIfcCartesianPointList2D);
   end;
 end;
 
