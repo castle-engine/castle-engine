@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CONFIG>
+  <EnvironmentOptions>
+    <Version Lazarus="3.4" Value="110"/>
+    <Language ID="en"/>
+    <LazarusDirectory Value="LAZARUS-DIRECTORY-PLACEHOLDER">
+    </LazarusDirectory>
+  </EnvironmentOptions>
+</CONFIG>
