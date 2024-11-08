@@ -520,7 +520,7 @@ begin
     P.Targets.AddUnit('x3dloadinternalmd3.pas');
 
     P.SourcePath.Add('src/scene/load/ifc');
-    P.Targets.AddUnit('castleinternalloadsaveifc.pas');
+    P.Targets.AddUnit('castleifc.pas');
 
     P.SourcePath.Add('src/scene/load/collada');
     P.Targets.AddUnit('x3dloadinternalcollada.pas');

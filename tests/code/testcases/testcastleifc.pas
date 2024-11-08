@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ Test CastleInternalLoadSaveIfc (TODO: just CastleIfc) unit. }
+{ Test CastleIfc unit. }
 unit TestCastleIfc;
 
 interface
@@ -32,7 +32,7 @@ type
 implementation
 
 uses TypInfo, RttiUtils,
-  CastleStringUtils, CastleInternalLoadSaveIfc, CastleInternalRttiUtils;
+  CastleStringUtils, CastleIfc, CastleInternalRttiUtils;
 
 { Simple hack to detect does given object is a TObjectList<xxx> specialization
   and is a list of IFC classes.
@@ -42,14 +42,14 @@ uses TypInfo, RttiUtils,
   so there's no obvious "is" check to do this.
   This hack seems acceptable in this case -- as this is only internal
   and has to account only for classes inside
-  our own castleinternalloadsaveifc_ifc_standard_types.inc,
+  our own castleifc_ifc_standard_types.inc,
   so we can rely on our own naming conventions. }
 function ClassNameOfList(const PotentialListClassName: String): Boolean;
 begin
   Result :=
     IsPrefixSuffix('TIfc', 'List', PotentialListClassName, false) or
     IsPrefixSuffix('TObjectList<TIfc', '>', PotentialListClassName, false) or
-    IsPrefixSuffix('TObjectList<CastleInternalLoadSaveIfc.TIfc', '>', PotentialListClassName, false);
+    IsPrefixSuffix('TObjectList<CastleIfc.TIfc', '>', PotentialListClassName, false);
 end;
 
 procedure TTestCastleIfc.TestIfcClasses;

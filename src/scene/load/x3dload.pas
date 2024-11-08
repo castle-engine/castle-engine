@@ -294,7 +294,7 @@ uses Generics.Collections,
   X3DLoadInternalMD3, X3DLoadInternalGLTF, X3DLoadInternalImage,
   X3DLoadInternalCocos2d, CastleInternalNodeInterpolator,
   CastleInternalSpritesheet, CastleDownload, X3DLoadInternalTiledMap,
-  CastleInternalLoadSaveIfc;
+  CastleIfc;
 
 { declare FRegisteredModelFormats early ------------------------------------- }
 
