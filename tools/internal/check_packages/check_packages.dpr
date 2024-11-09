@@ -49,7 +49,10 @@ end;
 { TPackage ------------------------------------------------------------------- }
 
 type
-  { Abstract class that represents Lazarus or Delphi package.
+  { Abstract class that represents
+    - Lazarus package or
+    - Delphi package or
+    - fpmake.pp file following our conventions.
 
     Descendants:
     - Must implement constructor to read PackageFileName file and fill Files.
@@ -474,6 +477,56 @@ begin
   ReadDproj;
 end;
 
+{ fpmake.pp file ------------------------------------------------------------- }
+
+type
+  { Represents fpmake.pp file following CGE conventions. }
+  TFpmakePackage = class(TPackage)
+  public
+    constructor Create(const APackageFileName: String);
+  end;
+
+constructor TFpmakePackage.Create(const APackageFileName: String);
+var
+  Reader: TTextReader;
+  Matches: TCastleStringList;
+  Line, LastSourcePath: String;
+begin
+  inherited;
+  Reader := TTextReader.Create(PackageFileName);
+  try
+    Matches := TCastleStringList.Create;
+    try
+      LastSourcePath := '';
+      while not Reader.Eof do
+      begin
+        Line := Reader.Readln;
+        Matches.Clear;
+        // match lines like P.SourcePath.Add('src/scene/load/pasgltf');
+        if StringMatchesRegexp(Line, '^ *P.SourcePath.Add\(''([/a-zA-Z0-9_-]+)''\);', Matches) then
+        begin
+          Check(Matches.Count = 2, '2 matches expected for P.SourcePath.Add');
+          LastSourcePath := Matches[1];
+          if not IsSuffix('/', LastSourcePath) then
+            LastSourcePath := LastSourcePath + '/';
+        end else
+        // match lines like P.Targets.AddUnit('x3dloadinternalcollada.pas');
+        if StringMatchesRegexp(Line, '^ *P.Targets.AddUnit\(''([a-zA-Z0-9_]+.pas)''\);', Matches) then
+        begin
+          Check(Matches.Count = 2, '2 matches expected for P.Targets.AddUnit');
+          if LastSourcePath = '' then
+            raise Exception.CreateFmt('Failed parsing fpmake.pp correctly, no P.SourcePath.Add before P.Targets.AddUnit for "%s"', [
+              Line
+            ]);
+          Files.Append(LastSourcePath + Matches[1]);
+        end;
+      end;
+    finally FreeAndNil(Matches) end;
+  finally FreeAndNil(Reader) end;
+
+  Writeln(Format('fpmake %s: %d files', [PackageFileName, Files.Count]));
+end;
+
 { main routine --------------------------------------------------------------- }
 
 var
@@ -672,6 +725,33 @@ begin
     ],
     [ ],
     [ ]);
+  finally FreeAndNil(Package) end;
+
+  Package := TFpmakePackage.Create(CgePathExpanded + 'fpmake.pp');
+  try
+    Package.CheckFiles([
+      'src/common_includes/',
+      'src/transform/',
+      'src/audio/',
+      'src/base/',
+      'src/base_rendering/',
+      'src/castlescript/',
+      'src/files/',
+      'src/fonts/',
+      'src/images/',
+      'src/physics/',
+      'src/services/',
+      'src/ui/',
+      'src/scene/',
+      'src/deprecated_units/',
+      'src/window/'
+    ],
+    [
+      'src/files/indy/'
+    ],
+    [
+      'src/vampyre_imaginglib/'
+    ]);
   finally FreeAndNil(Package) end;
 
   if WarningsCount <> 0 then

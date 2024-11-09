@@ -245,9 +245,9 @@ function TExtrusionNode.TrianglesCount(
   State: TX3DGraphTraverseState;
   ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal;
 var
-  E: TVRMLExtrusion;
+  E: TExtrusionUtility;
 begin
-  E := TVRMLExtrusion.Create;
+  E := TExtrusionUtility.Create;
   try
     E.Node := Self;
     Result := (E.High + 1) * (FdCrossSection.Count - 1) * 2;
