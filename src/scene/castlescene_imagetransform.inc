@@ -42,6 +42,7 @@ type
     FMipmaps: Boolean;
 
     FUrlMonitoring: TUrlMonitoring;
+    FImageWidth, FImageHeight: Cardinal;
 
     { Update X3D TCoordinateNode, TTextureCoordinateNode. }
     procedure UpdateCoordinateNodes;
@@ -109,6 +110,24 @@ type
       for now this method will not load new image from disk.
       That's because the previous image contents will "survive" in the cache. }
     procedure ReloadUrl;
+
+    { Loaded image width.
+
+      This is not affected by any resizing done by @link(Size)
+      or scaling done by @link(TCastleTransform.Scale).
+      This property reflects the underlying image size.
+
+      Zero if no image is loaded. }
+    property ImageWidth: Cardinal read FImageWidth;
+
+    { Loaded image height.
+
+      This is not affected by any resizing done by @link(Size)
+      or scaling done by @link(TCastleTransform.Scale).
+      This property reflects the underlying image size.
+
+      Zero if no image is loaded. }
+    property ImageHeight: Cardinal read FImageHeight;
   published
     { How is the image scaled.
       Determines scaling done both by @link(Size) and TCastleTransform.Scale. }
@@ -280,8 +299,10 @@ begin
   FShapeNode.Visible := FTextureNode.IsTextureImage;
   if FTextureNode.IsTextureImage then
   begin
-    W := FTextureNode.TextureImage.Width;
-    H := FTextureNode.TextureImage.Height;
+    FImageWidth := FTextureNode.TextureImage.Width;
+    FImageHeight := FTextureNode.TextureImage.Height;
+    W := FImageWidth;
+    H := FImageHeight;
 
     { change W, H according to Size }
     if not ((Size.X = 0) and (Size.Y = 0)) then
@@ -333,6 +354,9 @@ begin
     FTexPropertiesNode.BoundaryModeT := BoolRepeatToBoundaryMode[(FShift.Y <> 0) or (FRepeatImage.Y > 1)];
   end else
   begin
+    FImageWidth := 0;
+    FImageHeight := 0;
+
     FCoordinateNode.SetPoint([
       TVector3.Zero,
       TVector3.Zero,
