@@ -85,7 +85,7 @@ jobs:
             wget https://github.com/castle-engine/cge-lazarus/releases/download/snapshot/lazarus-${FPC_OS}-${FPC_CPU}.zip --output-document lazarus.zip
             unzip lazarus.zip
 
-            mv lazarus/lazbuild mv lazarus/lazbuild-real
+            mv lazarus/lazbuild lazarus/lazbuild-real
             cp .github/workflows/lazbuild-template lazarus/lazbuild
             sed -i "s|LAZARUS-DIRECTORY-PLACEHOLDER|${LAZARUS_DIR}|g" lazarus/lazbuild
             cat lazarus/lazbuild
