@@ -74,7 +74,8 @@ jobs:
             # Set environment
             export ARM_RUNNER_WORKSPACE=`pwd`
             export CASTLE_ENGINE_PATH=$ARM_RUNNER_WORKSPACE
-            export "PATH=${PATH}:${CASTLE_ENGINE_PATH}/installed/bin/:${ARM_RUNNER_WORKSPACE}/pasdoc/bin/:${ARM_RUNNER_WORKSPACE}/lazarus/"
+            LAZARUS_DIR="${ARM_RUNNER_WORKSPACE}/lazarus/"
+            export "PATH=${PATH}:${CASTLE_ENGINE_PATH}/installed/bin/:${ARM_RUNNER_WORKSPACE}/pasdoc/bin/:${LAZARUS_DIR}"
             export "FPC_OS="`fpc -iTO`
             export "FPC_CPU="`fpc -iTP`
             # Disable FPC version check (32-bit rpi is using bullseye with FPC 3.2.0 now)
