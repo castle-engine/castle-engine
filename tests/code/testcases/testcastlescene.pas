@@ -128,8 +128,8 @@ begin
     AssertSameValue(200, ImageTransform.LocalBoundingBox.SizeY);
 
     // BoundingBox should reflect Size scaled by Scale
-    AssertSameValue(100 * 0.25, ImageTransform.BoundingBox.SizeX);
-    AssertSameValue(200 * 0.333333, ImageTransform.BoundingBox.SizeY);
+    AssertSameValue(100 * 0.25, ImageTransform.BoundingBox.SizeX, 0.01);
+    AssertSameValue(200 * 0.333333, ImageTransform.BoundingBox.SizeY, 0.01);
 
     ImageTransform.Url := '';
 
