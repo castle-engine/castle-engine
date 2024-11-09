@@ -69,45 +69,53 @@ jobs:
 
             # Install FPC and other Linux dependencies
             sudo apt-get update
-            sudo apt-get --no-install-recommends -y install libgl-dev fpc git git-lfs make
+            sudo apt-get --no-install-recommends -y install libgl-dev fpc git git-lfs make wget unzip sed
 
             # Set environment
-            export ARM_RUNNER_WORKSPACE=`pwd`
+            ARM_RUNNER_WORKSPACE=`pwd`
             export CASTLE_ENGINE_PATH=$ARM_RUNNER_WORKSPACE
-            LAZARUS_DIR="${ARM_RUNNER_WORKSPACE}/lazarus/"
-            export "PATH=${PATH}:${CASTLE_ENGINE_PATH}/installed/bin/:${ARM_RUNNER_WORKSPACE}/pasdoc/bin/:${LAZARUS_DIR}"
-            export "FPC_OS="`fpc -iTO`
-            export "FPC_CPU="`fpc -iTP`
+            LAZARUS_DIR="/cge-work/lazarus/"
+            export "PATH=${PATH}:/cge-work/installed/bin/:/cge-work/pasdoc/bin/:${LAZARUS_DIR}"
+            FPC_OS=`fpc -iTO`
+            FPC_CPU=`fpc -iTP`
             # Disable FPC version check (32-bit rpi is using bullseye with FPC 3.2.0 now)
             if [ "${FPC_CPU}" = 'arm' ]; then export "CASTLE_PACK_DISABLE_FPC_VERSION_CHECK=true"; fi
 
+            # Put various things like other projects (Lazarus and PasDoc)
+            # and installed CGE binaries in directory /cge-work/,
+            # outside of $CASTLE_ENGINE_PATH.
+            #
+            # Reason:
+            # This way "make clean" and "pack_release.sh" cleanups in CGE
+            # will not touch them.
+            # Otherwise, our "pack_release.sh" would e.g. clean .res important
+            # for Lazarus, causing later errors when building Lazarus packages:
+            #   /castle-engine/lazarus/lcl/forms.pp(2440,1) Error: (9031) Can't open resource file "/castle-engine/lazarus/lcl/cursors.res"
+            mkdir -p /cge-work/
+
             # Install Lazarus from https://github.com/castle-engine/cge-lazarus/
             # (because Lazarus in repos is too old).
+            cd /cge-work/
             wget https://github.com/castle-engine/cge-lazarus/releases/download/snapshot/lazarus-${FPC_OS}-${FPC_CPU}.zip --output-document lazarus.zip
             unzip lazarus.zip
-
             mv lazarus/lazbuild lazarus/lazbuild-real
-            cp .github/workflows/lazbuild-template lazarus/lazbuild
+            cp "${ARM_RUNNER_WORKSPACE}/.github/workflows/lazbuild-template" lazarus/lazbuild
             sed -i "s|LAZARUS-DIRECTORY-PLACEHOLDER|${LAZARUS_DIR}|g" lazarus/lazbuild
             cat lazarus/lazbuild
             chmod +x lazarus/lazbuild
 
-            # Doesn't work OK, unknown reason
-            # mkdir -p ~/.config/lazarus/
-            # cp .github/workflows/lazarus_environmentoptions_template.xml ~/.config/lazarus/environmentoptions.xml
-            # LAZARUS_DIR="${ARM_RUNNER_WORKSPACE}/lazarus/"
-            # sed -i "s|LAZARUS-DIRECTORY-PLACEHOLDER|${LAZARUS_DIR}|g" ~/.config/lazarus/environmentoptions.xml
-
             # Check versions (and availability) of our requirements early
+            cd / # current dir should not matter below
             fpc -iV
             lazbuild --version
             make --version
             sed --version
 
             # Build Tools
-            rm -Rf installed/
-            mkdir -p installed/
-            make clean tools install PREFIX=${CASTLE_ENGINE_PATH}/installed/
+            cd "${CASTLE_ENGINE_PATH}"
+            rm -Rf /cge-work/installed/
+            mkdir -p /cge-work/installed/
+            make clean tools install PREFIX=/cge-work/installed/
 
             # Build Examples
             # Too slow on RPi
@@ -124,14 +132,15 @@ jobs:
             lazbuild packages/alternative_castle_window_based_on_lcl.lpk
 
             # Build and Install PasDoc
+            cd /cge-work/
             wget https://github.com/pasdoc/pasdoc/archive/refs/heads/master.zip --output-document pasdoc-master.zip
             unzip pasdoc-master.zip
             mv pasdoc-master pasdoc
-            cd pasdoc
-            make
-            cd ../
+            make -C /cge-work/pasdoc/
+            pasdoc --version # check it's OK
 
             # Pack Release
+            cd "${CASTLE_ENGINE_PATH}"
             ./tools/internal/pack_release/pack_release.sh ${FPC_OS} ${FPC_CPU}
 
       - name: Archive Artifacts
