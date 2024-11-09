@@ -22,7 +22,7 @@ type
    is non-trivial enough to be separated into this file. We want to reuse
    this by TExtrusionNode.BoundingBox calculation,
    TExtrusionNode.Triangulate etc. }
-  TVRMLExtrusion = class
+  TExtrusionUtility = class
   strict private
     FHigh: Integer;
     FNode: TExtrusionNode;
@@ -67,7 +67,7 @@ type
       guaranteed the same at the beginning and end. The Extrusion rules are such
       that closed spine -> always produces the same automatic orientation
       calculated at the beginning and end (X, Y, Z vectors in
-      TVRMLExtrusion.SpineTransformVar implementation). But we also
+      TExtrusionUtility.SpineTransformVar implementation). But we also
       have to compare Orientation and Scale factors --- only when they
       also match, the caps match. }
     property BeginEndCapsMatching: boolean read FBeginEndCapsMatching;
@@ -85,12 +85,12 @@ type
       out Orientation: TVector4);
   end;
 
-constructor TVRMLExtrusion.Create;
+constructor TExtrusionUtility.Create;
 begin
   inherited;
 end;
 
-procedure TVRMLExtrusion.SetNode(Value: TExtrusionNode);
+procedure TExtrusionUtility.SetNode(Value: TExtrusionNode);
 var
   BeginOrientation, EndOrientation: TVector4;
   BeginScale, EndScale: TVector2;
@@ -150,7 +150,7 @@ begin
     FBeginEndCapsMatching := false;
 end;
 
-procedure TVRMLExtrusion.SpineScaleVar(Spine: Cardinal;
+procedure TExtrusionUtility.SpineScaleVar(Spine: Cardinal;
   out Scale: TVector2);
 begin
   Assert(Between(Spine, 0, High));
@@ -162,7 +162,7 @@ begin
     Scale := Node.FdScale.Items.L[Spine];
 end;
 
-procedure TVRMLExtrusion.SpineOrientationVar(Spine: Cardinal;
+procedure TExtrusionUtility.SpineOrientationVar(Spine: Cardinal;
   out Orientation: TVector4);
 begin
   Assert(Between(Spine, 0, High));
@@ -174,7 +174,7 @@ begin
     Orientation := Node.FdOrientation.Items.L[Spine];
 end;
 
-procedure TVRMLExtrusion.SpineTransformVar(Spine: Cardinal;
+procedure TExtrusionUtility.SpineTransformVar(Spine: Cardinal;
   var LastY, LastZ: TVector3;
   out Transform: TMatrix4);
 var

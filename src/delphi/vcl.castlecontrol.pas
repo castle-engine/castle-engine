@@ -22,7 +22,7 @@ interface
 
 uses SysUtils, Classes, Vcl.Controls, Vcl.ExtCtrls, Types,  WinApi.Messages,
   CastleGLVersion, CastleGLUtils,
-  CastleInternalContextBase, CastleInternalContextWgl, CastleInternalContainer,
+  CastleInternalContextBase, CastleInternalContextWgl, CastleControlContainer,
   CastleVectors, CastleKeysMouse;
 
 type
@@ -30,9 +30,9 @@ type
   TCastleControl = class(TCustomControl)
   strict private
     type
-      { Non-abstract implementation of TCastleContainer that cooperates with
-        TCastleControl. }
-      TContainer = class(TCastleContainerEasy)
+      { Non-abstract implementation of TCastleControlContainer that cooperates with
+        TCastleControl for VCL. }
+      TContainer = class(TCastleControlContainer)
       private
         Parent: TCastleControl;
         class var
@@ -65,6 +65,7 @@ type
       To counteract this, call this method when Shift state is known,
       to update Pressed when needed. }
     procedure UpdateShiftState(const Shift: TShiftState);
+    function GetContainer: TCastleControlContainer;
   private
     procedure WMEraseBkgnd(var Message: TWMEraseBkgnd); message WM_ERASEBKGND;
   protected
@@ -96,8 +97,8 @@ type
     procedure PreviewFormKeyUp(var Key: Word; Shift: TShiftState);
   published
     { Access Castle Game Engine container properties and events,
-      not specific for FMX. }
-    property Container: TContainer read FContainer;
+      not specific to VCL. }
+    property Container: TCastleControlContainer read GetContainer;
 
     property Align;
     property Anchors;
@@ -218,7 +219,7 @@ destructor TCastleControl.Destroy;
 begin
   { Looks like VCL doesn't (always?) call DestroyHandle.
     While FContainer would be destroyed anyway,
-    but we need TCastleContainerEasy.DestroyContext call,
+    but we need TCastleControlContainer.DestroyContext call,
     to e.g. make ApplicationProperties.OnGLContextClose call,
     that frees various CGE things when last GL context is released. }
 
@@ -422,6 +423,11 @@ procedure TCastleControl.KeyPress(var Key: Char);
 begin
   // TODO ignored now
   inherited;
+end;
+
+function TCastleControl.GetContainer: TCastleControlContainer;
+begin
+  Result := FContainer;
 end;
 
 end.

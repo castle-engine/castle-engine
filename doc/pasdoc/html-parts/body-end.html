@@ -3,15 +3,20 @@
 
 </div> <!-- behave like castle_footer when $castle_sidebar is empty -->
 
+  <!-- Clear floats, e.g. MacStadium float image on main page, before footer -->
+  <div class="clearfix">
+  </div>
 
-  <div class="panel-footer">
-    <p>Copyright <a href="https://michalis.xyz/">Michalis Kamburelis</a> and <a href="https://github.com/castle-engine/castle-engine/graphs/contributors">Castle Game Engine Contributors</a>.
+  <div class="card">
+    <div class="card-footer castle-page-footer">
+      <p>Copyright <a href="https://michalis.xyz/">Michalis Kamburelis</a> and <a href="https://github.com/castle-engine/castle-engine/graphs/contributors">Castle Game Engine Contributors</a>.
 
-    <p>This <a href="https://github.com/castle-engine/cge-www">webpage is also open-source and we welcome pull requests to improve it</a>.
+      <p>This <a href="https://github.com/castle-engine/cge-www">webpage is also open-source and we welcome pull requests to improve it</a>.
 
-        <p>We use cookies for analytics. See our <a href="https://castle-engine.io/privacy_policy.php">privacy policy</a>.
+            <p>We use cookies for analytics. See our <a href="https://castle-engine.io/privacy_policy">privacy policy</a>.
 
-      </div>
+          </div>
+  </div>
 
   <!-- jQuery (necessary for Bootstrap's JavaScript plugins).
      Used also by colorbox.
@@ -46,9 +51,9 @@
 <script type="text/javascript" src="castle-engine-website-base/castle-engine.js"></script>
 
 <script type='text/javascript'>
-var cgeCurrentVersion = '7.0-alpha.snapshot';
+var cgeCurrentVersion = '7.0-alpha.3.snapshot';
 var cgeVersions = [
-    {'id': '7.0-alpha.snapshot', 'url': 'https://castle-engine.io/apidoc/html/'}
+    {'id': '7.0-alpha.3.snapshot', 'url': 'https://castle-engine.io/apidoc/html/'}
 ];
 </script>
 <script type="text/javascript" src="cge-pasdoc.js"></script>

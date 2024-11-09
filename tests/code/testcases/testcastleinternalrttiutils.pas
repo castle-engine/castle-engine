@@ -113,6 +113,7 @@ type
     FMyBool: Boolean;
     FMyChildObject: TMyChildObject;
     FMyEnum: TMyEnum;
+    FMyVariant: Variant;
   published
     property MyInt: Integer read FMyInt write FMyInt;
     property MyInt64: Int64 read FMyInt64 write FMyInt64;
@@ -121,6 +122,7 @@ type
     property MyBool: Boolean read FMyBool write FMyBool;
     property MyChildObject: TMyChildObject read FMyChildObject write FMyChildObject;
     property MyEnum: TMyEnum read FMyEnum write FMyEnum;
+    property MyVariant: Variant read FMyVariant write FMyVariant;
   end;
 
 procedure TTestCastleInternalRttiUtils.TestPropertyTypeAndGetSet;
@@ -184,7 +186,17 @@ begin
     PropertySetInstance(MyObject, GetPropInfo(MyObject, 'MyChildObject'), nil);
     AssertTrue(MyObject.MyChildObject = nil);
 
-    AssertTrue(PropertyType(GetPropInfo(MyObject, 'MyEnum')) = ptOther);
+    AssertTrue(PropertyType(GetPropInfo(MyObject, 'MyEnum')) = ptEnumeration);
+    AssertEquals(Ord(meTwo), PropertyGetEnum(MyObject, GetPropInfo(MyObject, 'MyEnum')));
+    AssertEquals('meTwo', PropertyGetEnumStr(MyObject, GetPropInfo(MyObject, 'MyEnum')));
+
+    PropertySetEnum(MyObject, GetPropInfo(MyObject, 'MyEnum'), Ord(meThree));
+    AssertTrue(meThree = MyObject.MyEnum);
+
+    PropertySetEnumStr(MyObject, GetPropInfo(MyObject, 'MyEnum'), 'meOne');
+    AssertTrue(meOne = MyObject.MyEnum);
+
+    AssertTrue(PropertyType(GetPropInfo(MyObject, 'MyVariant')) = ptOther);
   finally
     FreeAndNil(MyObject);
     FreeAndNil(Child1);

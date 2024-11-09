@@ -37,7 +37,7 @@ requires
   IndyCore;
 
 contains
-  castleinternalcontainer in '..\..\src\delphi\castleinternalcontainer.pas',
+  castlecontrolcontainer in '..\..\src\delphi\castlecontrolcontainer.pas',
   castleinternaldelphiutils in '..\..\src\delphi\castleinternaldelphiutils.pas',
   castleapplicationproperties in '..\..\src\base\castleapplicationproperties.pas',
   castleclassutils in '..\..\src\base\castleclassutils.pas',
@@ -94,7 +94,7 @@ contains
   x3dloadinternalgltf in '..\..\src\scene\load\x3dloadinternalgltf.pas',
   x3dloadinternalimage in '..\..\src\scene\load\x3dloadinternalimage.pas',
   x3dloadinternalmd3 in '..\..\src\scene\load\md3\x3dloadinternalmd3.pas',
-  castleinternalloadsaveifc in '..\..\src\scene\load\ifc\castleinternalloadsaveifc.pas',
+  castleifc in '..\..\src\scene\load\ifc\castleifc.pas',
   x3dloadinternalobj in '..\..\src\scene\load\x3dloadinternalobj.pas',
   x3dloadinternalstl in '..\..\src\scene\load\x3dloadinternalstl.pas',
   x3dloadinternaltiledmap in '..\..\src\scene\load\x3dloadinternaltiledmap.pas',

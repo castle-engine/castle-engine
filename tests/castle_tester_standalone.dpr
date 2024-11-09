@@ -101,7 +101,8 @@ uses
   TestCastleWindowOpen,
   TestCastleInternalEgl,
   TestCastleInternalTools,
-  TestX3DLoadInternalCocos2d;
+  TestX3DLoadInternalCocos2d,
+  TestCastleIfc;
 
 var
   ConsoleTester: TCastleConsoleTester;

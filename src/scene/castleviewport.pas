@@ -562,10 +562,11 @@ type
     {$endif}
 
     { Set current camera vectors and projection,
-      to best reflect current @link(MainScene) or current @link(Items)
-      bounding box.
+      to best reflect current @link(TCastleRootTransform.MainScene Items.MainScene)
+      or current @link(Items) bounding box.
 
-      If @link(MainScene) is set and it has a preferred camera (TViewpointNode,
+      If @link(TCastleRootTransform.MainScene Items.MainScene)
+      is set and it has a preferred camera (TViewpointNode,
       which can be specified in X3D, glTF, Collada files) then it will be used.
       Otherwise we calculate camera using CameraViewpointForWholeScne
       to see the whole world.
