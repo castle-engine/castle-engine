@@ -112,7 +112,8 @@ check_lazarus_version ()
     if [ "${LAZARUS_VERSION}" '!=' '3.0' -a \
         "${LAZARUS_VERSION}" '!=' '3.2' -a \
         "${LAZARUS_VERSION}" '!=' '3.4' -a \
-        "${LAZARUS_VERSION}" '!=' '3.5' ]; then
+        "${LAZARUS_VERSION}" '!=' '3.5' -a \
+        "${LAZARUS_VERSION}" '!=' '3.6' ]; then
       echo "pack_release: Incorrect Lazarus version to pack release, see ${LAZARUS_VERSION}"
       exit 1
     fi
@@ -120,7 +121,8 @@ check_lazarus_version ()
     # To avoid https://gitlab.com/freepascal.org/lazarus/lazarus/-/merge_requests/291
     # we need Lazarus 3.5 on macOS.
     if [ "`uname -s`" '=' 'Darwin' ]; then
-      if [ "${LAZARUS_VERSION}" '!=' '3.5' ]; then
+      if [ "${LAZARUS_VERSION}" '!=' '3.5' -a \
+           "${LAZARUS_VERSION}" '!=' '3.6' ]; then
         echo "pack_release: macOS: Incorrect Lazarus version to pack release, see ${LAZARUS_VERSION}"
         exit 1
       fi
