@@ -578,7 +578,6 @@
 {$ifdef WASI}
   {$undef HAS_FP_HTTP_CLIENT}
   {$undef USE_VAMPYRE_IMAGING} // Vampyre Imaging doesn't work with WASI
-  {$define GENERICS_CONSTREF} // We use Generics.Collections fork by Kagamma for WASI, not yet with constref->const change from FPC
 {$endif}
 
 {$endif not CASTLE_CONF_INCLUDED}
