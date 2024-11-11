@@ -1,0 +1,103 @@
+{
+  Copyright 2024-2024 Michalis Kamburelis.
+
+  This file is part of "Castle Game Engine".
+
+  "Castle Game Engine" is free software; see the file COPYING.txt,
+  included in this distribution, for details about the copyright.
+
+  "Castle Game Engine" is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+  ----------------------------------------------------------------------------
+}
+
+{ Utilities specific to web target.
+  See https://castle-engine.io/web for an overview how this works. }
+unit ToolWeb;
+
+interface
+
+uses Classes,
+  ToolProject, ToolCompile;
+
+procedure CompileWeb(const Project: TCastleProject;
+  const CompilerOptions: TCompilerOptions; const MainWebProgramFile: String);
+procedure RunWeb(const Project: TCastleProject);
+
+implementation
+
+uses SysUtils,
+  CastleUtils, CastleUriUtils, CastleFilesUtils, CastleOpenDocument,
+  ToolUtils, ToolCommonUtils, ToolArchitectures, ToolManifest;
+
+procedure CompileWeb(const Project: TCastleProject;
+  const CompilerOptions: TCompilerOptions; const MainWebProgramFile: String);
+var
+  OutputPath, DistPath, Pas2jsExe, SourceExe, DestExe: String;
+begin
+  OutputPath := TempOutputPath(Project.Path) + 'web' + PathDelim;
+  DistPath := OutputPath + 'dist' + PathDelim;
+
+  // always start clean
+  if DirectoryExists(OutputPath) then
+    RemoveNonEmptyDir(OutputPath);
+
+  Project.ExtractTemplate('web/', OutputPath);
+
+  Pas2jsExe := FindExe('pas2js');
+  if Pas2jsExe = '' then
+    raise Exception.Create('Cannot find "pas2js" executable on $PATH');
+
+  RunCommandSimple(OutputPath, Pas2jsExe, [
+    '-Jc', '-Jirtl.js',
+    '-Tbrowser',
+    // no hints -- just like FPC, pas2js displays excessive hints
+    '-vh-',
+    // avoid warning we cannot do anything about: ".../pas2js/packages/rtl/src/js.pas(1012,15) Warning: Symbol "Int64" is not implemented"
+    // TODO: fails to hide them, maybe becaue fcl-passrc generates it? sSymbolXIsNotImplemented
+    '-vm5055',
+    // avoid warnings from standard units we cannot do anything about like ".../rtl/src/sysutils.pas(3106,24) Warning: Symbol "substr" is deprecated"
+    '-vm5043',
+    'program_js.dpr']);
+  CheckRenameFile(OutputPath + 'program_js.js', DistPath + Project.ExecutableName + '.js');
+
+  { Compile the main application, standalone version, just like
+    "castle-engine compile --os=wasi --cpu=wasm32". }
+  CompilerOptions.OS := Wasi;
+  CompilerOptions.CPU := Wasm32;
+  Compile(coFpc, Project.Path, MainWebProgramFile, CompilerOptions);
+
+  // move and rename to castle-engine-output/web/dist/xxx.wasm
+  SourceExe := ChangeFileExt(MainWebProgramFile, ExeExtensionOS(CompilerOptions.OS));
+  DestExe := ChangeFileExt(Project.ExecutableName, ExeExtensionOS(CompilerOptions.OS));
+  if not SameFileName(SourceExe, DestExe) then
+  begin
+    { move exe to top-level (in case MainSource is in subdirectory
+      like code/) and eventually rename to follow ExecutableName }
+    Writeln('Moving ', SourceExe, ' to ', DestExe);
+    CheckRenameFile(
+      CombinePaths(Project.Path, SourceExe),
+      CombinePaths(DistPath, DestExe));
+  end;
+end;
+
+procedure RunWeb(const Project: TCastleProject);
+var
+  OutputPath, DistPath, CompileServerExe: String;
+begin
+  OutputPath := TempOutputPath(Project.Path) + 'web' + PathDelim;
+  DistPath := OutputPath + 'dist' + PathDelim;
+
+  CompileServerExe := FindExe('compileserver');
+  if CompileServerExe = '' then
+    raise Exception.Create('Cannot find "compileserver" executable (part of Pa2js utilities) on $PATH');
+
+  OpenUrl('http://localhost:3000/');
+
+  // must be run last; Ctrl+C on our build tool should kill the compileserver too
+  RunCommandSimple(DistPath, CompileServerExe, []);
+end;
+
+end.

@@ -293,7 +293,7 @@ uses {$ifdef UNIX} BaseUnix, {$endif}
   StrUtils, DOM, Process,
   CastleUriUtils, CastleXmlUtils, CastleLog, CastleFilesUtils, CastleImages,
   CastleTimeUtils,
-  ToolResources, ToolAndroid, ToolMacOS,
+  ToolResources, ToolAndroid, ToolMacOS, ToolWeb,
   ToolTextureGeneration, ToolIOS, ToolAndroidMerging, ToolNintendoSwitch,
   ToolCommonUtils, ToolMacros, ToolCompilerInfo, ToolPackageCollectFiles,
   ToolProjectUnusedData;
@@ -564,6 +564,10 @@ begin
         begin
           CompileNintendoSwitchLibrary(Self, Path,
             NXSourceFile(true, true), NXLibraryFile(true), CompilerOptions);
+        end;
+      targetWeb:
+        begin
+          CompileWeb(Self, CompilerOptions, StandaloneSourceFile(false, true));
         end;
       targetCustom:
         begin
@@ -973,30 +977,34 @@ begin
   Writeln(Format('Running project "%s" for %s.',
     [Name, TargetCompleteToString(Target, OS, CPU)]));
 
-  if Target = targetIOS then
-    RunIOS(Self)
-  else
-  if (Target = targetAndroid) or (OS = Android) then
-    RunAndroid(Self)
-  else
-  if Target = targetCustom then
-  begin
-    ExeName := Path + ChangeFileExt(ExecutableName, ExeExtensionOS(OS));
-    RunWorkingDir := Path;
+  case Target of
+    targetIOS: RunIOS(Self);
+    targetAndroid: RunAndroid(Self);
+    targetWeb: RunWeb(Self);
+    targetCustom:
+      begin
+        if OS = Android then
+          RunAndroid(Self)
+        else
+        begin
+          ExeName := Path + ChangeFileExt(ExecutableName, ExeExtensionOS(OS));
+          RunWorkingDir := Path;
 
-    MaybeUseWrapperToRun(ExeName);
-    Writeln('Running ' + ExeName);
-    NewParams := TCastleStringList.Create;
-    try
-      NewParams.Assign(Params);
-      MaybeUseWineToRun(ExeName, NewParams);
-      MaybeRunThroughMacAppBundle(RunWorkingDir, ExeName, NewParams);
-      Flush(Output); // needed to see "Running Windows EXE on Unix, trying to use WINE." in right order in editor
-      { We set current path to Path, not OutputPath, because data/ subdirectory is under Path. }
-      RunCommandSimple(RunWorkingDir, ExeName, NewParams.ToArray, 'CASTLE_LOG', 'stdout');
-    finally FreeAndNil(NewParams) end;
-  end else
-    raise Exception.Create('The "run" command is not useful for this OS / CPU right now. Run the application manually.');
+          MaybeUseWrapperToRun(ExeName);
+          Writeln('Running ' + ExeName);
+          NewParams := TCastleStringList.Create;
+          try
+            NewParams.Assign(Params);
+            MaybeUseWineToRun(ExeName, NewParams);
+            MaybeRunThroughMacAppBundle(RunWorkingDir, ExeName, NewParams);
+            Flush(Output); // needed to see "Running Windows EXE on Unix, trying to use WINE." in right order in editor
+            { We set current path to Path, not OutputPath, because data/ subdirectory is under Path. }
+            RunCommandSimple(RunWorkingDir, ExeName, NewParams.ToArray, 'CASTLE_LOG', 'stdout');
+          finally FreeAndNil(NewParams) end;
+        end;
+      end;
+    else raise Exception.Create('The "run" command is not useful for this OS / CPU right now. Run the application manually.');
+  end;
 end;
 
 procedure TCastleProject.DoPackageSource(const PackageFormat: TPackageFormat;

@@ -34,7 +34,9 @@ type
     { Target all relevant Android combinations of OS/CPU. }
     targetAndroid,
     { Build an application for Nintendo Switch. }
-    targetNintendoSwitch
+    targetNintendoSwitch,
+    { Target web browser (Pas2js and FPC + WebAssembly). }
+    targetWeb
   );
 
   { Processor architectures supported by FPC. Copied from FPMkUnit. }
@@ -244,7 +246,13 @@ begin
 end;
 
 const
-  TargetNames: array [TTarget] of string = ('custom', 'ios', 'android', 'nintendo-switch');
+  TargetNames: array [TTarget] of string = (
+    'custom',
+    'ios',
+    'android',
+    'nintendo-switch',
+    'web'
+  );
 
 function TargetToString(const Target : TTarget): string;
 begin

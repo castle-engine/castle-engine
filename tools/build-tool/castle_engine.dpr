@@ -400,6 +400,12 @@ begin
         targetAndroid       : CompileAndroid(OverrideCompiler, nil, GetCurrentDir, FileName, SimpleCompileOptions);
         targetIOS           : CompileIOS(OverrideCompiler, GetCurrentDir, FileName, SimpleCompileOptions);
         targetNintendoSwitch: CompileNintendoSwitch(GetCurrentDir, FileName, SimpleCompileOptions);
+        targetWeb           :
+          begin
+            SimpleCompileOptions.OS := Wasi;
+            SimpleCompileOptions.CPU := Wasm32;
+            Compile(OverrideCompiler, GetCurrentDir, FileName, SimpleCompileOptions);
+          end;
         {$ifndef COMPILER_CASE_ANALYSIS}
         else raise EInternalError.Create('Operation not implemented for this target');
         {$endif}
