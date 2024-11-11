@@ -293,12 +293,13 @@ begin
 end;
 
 procedure TIfcCartesianPointList3D.UpdateCoordinate(const Coord: TCoordinateNode);
-var
-  I: Integer;
+// var
+//   I: Integer;
 begin
-  Coord.FdPoint.Count := CoordList.Count;
-  for I := 0 to CoordList.Count - 1 do
-    Coord.FdPoint.Items[I] := CoordList[I];
+  Coord.FdPoint.Items.Assign(CoordList);
+  // Coord.FdPoint.Count := CoordList.Count;
+  // for I := 0 to CoordList.Count - 1 do
+  //   Coord.FdPoint.Items[I] := CoordList[I];
 end;
 
 { BuildNode of TIfcRepresentationItem and descendants ------------------------- }
@@ -355,15 +356,17 @@ begin
     if Segment is TIfcLineIndex then
     begin
       LineIndex := TIfcLineIndex(Segment);
-      for I := 0 to LineIndex.Value.Count - 1 do
-        IndexedLineSet.FdCoordIndex.Items.Add(LineIndex.Value[I]);
+      // for I := 0 to LineIndex.Value.Count - 1 do
+      //   IndexedLineSet.FdCoordIndex.Items.Add(LineIndex.Value[I]);
+      IndexedLineSet.FdCoordIndex.Items.AddRange(LineIndex.Value);
       IndexedLineSet.FdCoordIndex.Items.Add(-1);
     end else
     if Segment is TIfcArcIndex then
     begin
       ArcIndex := TIfcArcIndex(Segment);
-      for I := 0 to ArcIndex.Value.Count - 1 do
-        IndexedLineSet.FdCoordIndex.Items.Add(ArcIndex.Value[I]);
+      // for I := 0 to ArcIndex.Value.Count - 1 do
+      //   IndexedLineSet.FdCoordIndex.Items.Add(ArcIndex.Value[I]);
+      IndexedLineSet.FdCoordIndex.Items.AddRange(ArcIndex.Value);
       IndexedLineSet.FdCoordIndex.Items.Add(-1);
     end else
       WritelnWarning('IFC', 'Unsupported Segment class: ' + Segment.ClassName);
