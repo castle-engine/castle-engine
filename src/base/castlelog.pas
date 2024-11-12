@@ -1,5 +1,5 @@
 {
-  Copyright 2006-2022 Michalis Kamburelis.
+  Copyright 2006-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -298,7 +298,7 @@ begin
     LogStream := ALogStream;
     FLogOutput := '<custom-stream>';
   end
-  {$ifndef CASTLE_NINTENDO_SWITCH}
+  {$if not (defined(CASTLE_NINTENDO_SWITCH) or defined(WASI))}
   else
   if WantsLogToStandardOutput and EnableStandardOutput and (StdOutStream <> nil) then
   begin
@@ -342,7 +342,7 @@ begin
     LogStream := StdOutStream;
     FLogOutput := '<stdout>';
   end
-  {$endif CASTLE_NINTENDO_SWITCH}
+  {$endif not (defined(CASTLE_NINTENDO_SWITCH) or defined(WASI))}
   ;
 
   { Note: on CASTLE_NINTENDO_SWITCH, it is possible to leave LogStream = nil.
@@ -394,7 +394,10 @@ begin
   OutputDebugString(PChar(S));
   {$endif}
 
-  {$ifdef CASTLE_NINTENDO_SWITCH}
+  {$ifdef WASI}
+  // Writeln is captured by Pas2js code and send to console (F12, and visible on page)
+  Write(S);
+  {$elseif defined(CASTLE_NINTENDO_SWITCH)}
   cgeNxLog(PChar(S));
   {$else}
   // we know that LogStream <> nil when FLog = true
