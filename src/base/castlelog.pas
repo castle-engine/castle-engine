@@ -394,7 +394,7 @@ begin
   OutputDebugString(PChar(S));
   {$endif}
 
-  {$ifdef WASI}
+  {$if defined(WASI)}
   // Writeln is captured by Pas2js code and send to console (F12, and visible on page)
   Write(S);
   {$elseif defined(CASTLE_NINTENDO_SWITCH)}
@@ -402,7 +402,7 @@ begin
   {$else}
   // we know that LogStream <> nil when FLog = true
   WriteStr(LogStream, S);
-  {$endif CASTLE_NINTENDO_SWITCH}
+  {$endif}
 end;
 
 { Add the String to log contents.
