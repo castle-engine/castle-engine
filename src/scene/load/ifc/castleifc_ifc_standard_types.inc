@@ -2424,6 +2424,35 @@
     property UserDefinedOperationType: TIfcLabel read FUserDefinedOperationType write FUserDefinedOperationType;
   end;
 
+  { Shared information for occurrences of doors. }
+  TIfcDoorType = class(TIfcBuiltElementType)
+  strict private
+    FPredefinedType: TIfcDoorTypeEnum;
+    FOperationType: TIfcDoorTypeOperationEnum;
+    FParameterTakesPrecedence: Boolean;
+    FUserDefinedOperationType: TIfcLabel;
+  published
+    { A list of types to further identify the object. }
+    property PredefinedType: TIfcDoorTypeEnum read FPredefinedType write FPredefinedType default TIfcDoorTypeEnum.NotDefined;
+
+    { Type defining the general layout and operation of the door type
+      in terms of the partitioning of panels and panel operations. }
+    property OperationType: TIfcDoorTypeOperationEnum read FOperationType write FOperationType default TIfcDoorTypeOperationEnum.NotDefined;
+
+    { Does the parameter given in the attached
+      lining and panel properties exactly define the geometry (TRUE),
+      or whether the attached style shape take precedence (FALSE).
+      In the last case the parameter have only informative value.
+
+      TODO: If not provided, no such information can be inferred.
+      Should we have 3rd value and make this enum? }
+    property ParameterTakesPrecedence: Boolean read FParameterTakesPrecedence write FParameterTakesPrecedence default false;
+
+    { Designator for the user defined operation type, shall only be provided,
+      if the value of OperationType is set to TIfcDoorTypeOperationEnum.UserDefined. }
+    property UserDefinedOperationType: TIfcLabel read FUserDefinedOperationType write FUserDefinedOperationType;
+  end;
+
   TIfcSlabTypeEnum = (
     NotDefined,
     Approach_Slab,
@@ -4917,6 +4946,7 @@ begin
     IfcClasses.Add(TIfcRelAssociates);
     IfcClasses.Add(TIfcProperty);
     IfcClasses.Add(TIfcSegmentIndexSelect);
+    IfcClasses.Add(TIfcDoorType);
   end;
 end;
 
