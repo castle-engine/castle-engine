@@ -534,6 +534,13 @@
 
     Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcCurve.htm }
   TIfcCurve = class abstract(TIfcGeometricRepresentationItem)
+  public
+    { Update Extrusion.FdCrossSection.
+      In the base class, this reuses BuildNode and extracts cross section
+      information from a temporary node.
+      Override to provide more optimized implementation. }
+    procedure UpdateCrossSection(const Extrusion: TExtrusionNode); virtual;
+
     { Space dimensionality of this abstract class, defined differently for all
       subtypes. }
     // TODO: derived: function Dim: TIfcDimensionCount; abstract;
@@ -554,7 +561,7 @@
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     function BuildNode(const Mapping: TCastleIfcMapping): TAbstractChildNode; override;
-    procedure UpdateCrossSection(const Extrusion: TExtrusionNode);
+    procedure UpdateCrossSection(const Extrusion: TExtrusionNode); override;
   published
     { Points defining the polyline. }
     property Points: TIfcCartesianPointList read FPoints;

@@ -302,6 +302,82 @@ begin
   //   Coord.FdPoint.Items[I] := CoordList[I];
 end;
 
+{ UpdateCrossSection method overrides ---------------------------------------- }
+
+procedure TIfcCurve.UpdateCrossSection(const Extrusion: TExtrusionNode);
+var
+  CrossSection: TVector2List;
+
+  procedure HandleIndexedLineSetNode(const IndexedLineSet: TIndexedLineSetNode);
+  var
+    Coord: TCoordinateNode;
+    I, Index: Integer;
+  begin
+    Coord := IndexedLineSet.Coord as TCoordinateNode;
+    for I := 0 to IndexedLineSet.FdCoordIndex.Count - 1 do
+    begin
+      Index := IndexedLineSet.FdCoordIndex.Items[I];
+      if Index < 0 then
+      begin
+        WritelnWarning('IFC', 'TODO: Unsupported IfcIndexedPolyCurve for extrusion cross section (we need to split into multiple X3D Extrusions to handle disjoint sections)');
+      end else
+        CrossSection.Add(Coord.FdPoint.Items[Index].XY);
+    end;
+  end;
+
+  procedure HandleLineSetNode(const LineSet: TLineSetNode);
+  var
+    Coord: TCoordinateNode;
+    I: Integer;
+  begin
+    Coord := LineSet.Coord as TCoordinateNode;
+    for I := 0 to Coord.FdPoint.Count - 1 do
+      CrossSection.Add(Coord.FdPoint.Items[I].XY);
+  end;
+
+var
+  Shape: TShapeNode;
+  Mapping: TCastleIfcMapping;
+begin
+  CrossSection := TVector2List.Create;
+  try
+    Mapping := TCastleIfcMapping.Create;
+    try
+      Shape := BuildNode(Mapping) as TShapeNode;
+      try
+        if Shape.Geometry <> nil then
+        begin
+          if Shape.Geometry is TIndexedLineSetNode then
+            HandleIndexedLineSetNode(TIndexedLineSetNode(Shape.Geometry))
+          else
+          if Shape.Geometry is TLineSetNode then
+            HandleLineSetNode(TLineSetNode(Shape.Geometry))
+          else
+          if Shape.Geometry <> nil then
+            WritelnWarning('IFC', 'Unsupported Shape.Geometry class for TIfcCurve.UpdateCrossSection: ' + Shape.Geometry.ClassName);
+        end;
+      finally FreeIfUnusedAndNil(Shape) end;
+    finally FreeAndNil(Mapping) end;
+
+    // actually use our CrossSection contents, this is all we wanted to calculate
+    Extrusion.SetCrossSection(CrossSection);
+  finally FreeAndNil(CrossSection) end;
+end;
+
+procedure TIfcPolyline.UpdateCrossSection(const Extrusion: TExtrusionNode);
+var
+  CrossSection: TVector2List;
+  I: Integer;
+begin
+  CrossSection := TVector2List.Create;
+  try
+    CrossSection.Count := Points.Count;
+    for I := 0 to Points.Count - 1 do
+      CrossSection[I] := Points[I].Coordinates.Value.XY;
+    Extrusion.SetCrossSection(CrossSection);
+  finally FreeAndNil(CrossSection) end;
+end;
+
 { BuildNode of TIfcRepresentationItem and descendants ------------------------- }
 
 function TIfcRepresentationItem.BuildNode(const Mapping: TCastleIfcMapping): TAbstractChildNode;
@@ -338,6 +414,7 @@ function TIfcIndexedPolyCurve.BuildNode(const Mapping: TCastleIfcMapping): TAbst
 var
   Shape: TShapeNode;
   IndexedLineSet: TIndexedLineSetNode;
+  LineSet: TLineSetNode;
   Coord: TCoordinateNode;
   Segment: TIfcSegmentIndexSelect;
   LineIndex: TIfcLineIndex;
@@ -346,55 +423,54 @@ begin
   Coord := TCoordinateNode.Create('', Mapping.BaseUrl);
   Points.UpdateCoordinate(Coord);
 
-  IndexedLineSet := TIndexedLineSetNode.Create('', Mapping.BaseUrl);
-  IndexedLineSet.Coord := Coord;
-  IndexedLineSet.Mode := lmStrip;
-
-  for Segment in Segments do
-  begin
-    if Segment is TIfcLineIndex then
-    begin
-      LineIndex := TIfcLineIndex(Segment);
-      IndexedLineSet.FdCoordIndex.Items.AddRange(LineIndex.Value);
-      IndexedLineSet.FdCoordIndex.Items.Add(-1);
-    end else
-    if Segment is TIfcArcIndex then
-    begin
-      ArcIndex := TIfcArcIndex(Segment);
-      IndexedLineSet.FdCoordIndex.Items.AddRange(ArcIndex.Value);
-      IndexedLineSet.FdCoordIndex.Items.Add(-1);
-    end else
-      WritelnWarning('IFC', 'Unsupported Segment class: ' + Segment.ClassName);
-  end;
-
   Shape := TShapeNode.Create('', Mapping.BaseUrl);
-  Shape.Geometry := IndexedLineSet;
   // lines are best displayed as unlit geometry, different material would be useful
   // Shape.Appearance := Mapping.CurrentAppearance;
   SetMetadata(Shape, 'IFC_ClassName', ClassName);
 
-  Result := Shape;
-end;
+  if Segments.Count = 0 then
+  begin
+    { IFC spec says that Segments are optional:
+      "In the case that the list of Segments is not provided,
+      all points in the IfcCartesianPointList are connected by straight
+      line segments in the order they appear in the IfcCartesianPointList." }
 
-procedure TIfcPolyline.UpdateCrossSection(const Extrusion: TExtrusionNode);
-var
-  CrossSection: TVector2List;
-  I: Integer;
-begin
-  CrossSection := TVector2List.Create;
-  try
-    CrossSection.Count := Points.Count;
-    for I := 0 to Points.Count - 1 do
-      CrossSection[I] := Points[I].Coordinates.Value.XY;
-    Extrusion.SetCrossSection(CrossSection);
-  finally FreeAndNil(CrossSection) end;
+    LineSet := TLineSetNode.Create('', Mapping.BaseUrl);
+    LineSet.Coord := Coord;
+    LineSet.SetVertexCount([Coord.FdPoint.Count]);
+    Shape.Geometry := LineSet;
+  end else
+  begin
+    IndexedLineSet := TIndexedLineSetNode.Create('', Mapping.BaseUrl);
+    IndexedLineSet.Coord := Coord;
+    IndexedLineSet.Mode := lmStrip;
+    Shape.Geometry := IndexedLineSet;
+
+    for Segment in Segments do
+    begin
+      if Segment is TIfcLineIndex then
+      begin
+        LineIndex := TIfcLineIndex(Segment);
+        IndexedLineSet.FdCoordIndex.Items.AddRange(LineIndex.Value);
+        IndexedLineSet.FdCoordIndex.Items.Add(-1);
+      end else
+      if Segment is TIfcArcIndex then
+      begin
+        ArcIndex := TIfcArcIndex(Segment);
+        IndexedLineSet.FdCoordIndex.Items.AddRange(ArcIndex.Value);
+        IndexedLineSet.FdCoordIndex.Items.Add(-1);
+      end else
+        WritelnWarning('IFC', 'Unsupported Segment class: ' + Segment.ClassName);
+    end;
+  end;
+
+  Result := Shape;
 end;
 
 function TIfcExtrudedAreaSolid.BuildNode(const Mapping: TCastleIfcMapping): TAbstractChildNode;
 var
   Extrusion: TExtrusionNode;
   SweptAreaProf: TIfcArbitraryClosedProfileDef;
-  SweptAreaCurvePolyline: TIfcPolyline;
   Shape: TShapeNode;
 begin
   Extrusion := TExtrusionNode.Create('', Mapping.BaseUrl);
@@ -405,13 +481,10 @@ begin
   if SweptArea is TIfcArbitraryClosedProfileDef then // also checks is it <> nil
   begin
     SweptAreaProf := TIfcArbitraryClosedProfileDef(SweptArea);
-    if SweptAreaProf.OuterCurve is TIfcPolyline then
-    begin
-      SweptAreaCurvePolyline := TIfcPolyline(SweptAreaProf.OuterCurve);
-      SweptAreaCurvePolyline.UpdateCrossSection(Extrusion);
-    end else
-      WritelnWarning('IFC', 'Unsupported SweptArea.OuterCurve class: ' + SweptAreaProf.OuterCurve.ClassName);
-  end;
+    SweptAreaProf.OuterCurve.UpdateCrossSection(Extrusion);
+  end else
+  if SweptArea <> nil then
+    WritelnWarning('IFC', 'Unsupported IfcExtrudedAreaSolid.SweptArea class: ' + SweptArea.ClassName);
 
   Shape := TShapeNode.Create('', Mapping.BaseUrl);
   Shape.Geometry := Extrusion;
