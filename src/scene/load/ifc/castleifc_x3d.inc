@@ -339,7 +339,6 @@ var
   Shape: TShapeNode;
   IndexedLineSet: TIndexedLineSetNode;
   Coord: TCoordinateNode;
-  I: Integer;
   Segment: TIfcSegmentIndexSelect;
   LineIndex: TIfcLineIndex;
   ArcIndex: TIfcArcIndex;
@@ -356,16 +355,12 @@ begin
     if Segment is TIfcLineIndex then
     begin
       LineIndex := TIfcLineIndex(Segment);
-      // for I := 0 to LineIndex.Value.Count - 1 do
-      //   IndexedLineSet.FdCoordIndex.Items.Add(LineIndex.Value[I]);
       IndexedLineSet.FdCoordIndex.Items.AddRange(LineIndex.Value);
       IndexedLineSet.FdCoordIndex.Items.Add(-1);
     end else
     if Segment is TIfcArcIndex then
     begin
       ArcIndex := TIfcArcIndex(Segment);
-      // for I := 0 to ArcIndex.Value.Count - 1 do
-      //   IndexedLineSet.FdCoordIndex.Items.Add(ArcIndex.Value[I]);
       IndexedLineSet.FdCoordIndex.Items.AddRange(ArcIndex.Value);
       IndexedLineSet.FdCoordIndex.Items.Add(-1);
     end else
