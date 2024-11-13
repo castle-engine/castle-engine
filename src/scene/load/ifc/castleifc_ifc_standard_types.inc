@@ -2339,6 +2339,91 @@
   TIfcBuiltElement = class(TIfcElement)
   end;
 
+  TIfcDoorTypeEnum = (
+    NotDefined,
+    Boom_Barrier,
+    Door,
+    Gate,
+    Trapdoor,
+    Turnstile,
+    UserDefined
+  );
+
+  TIfcDoorTypeOperationEnum = (
+    NotDefined,
+    Double_Door_Double_Swing,
+    Double_Door_Folding,
+    Double_Door_Lifting_Vertical,
+    Double_Door_Single_Swing,
+    Double_Door_Single_Swing_Opposite_Left,
+    Double_Door_Single_Swing_Opposite_Right,
+    Double_Door_Sliding,
+    Double_Swing_Left,
+    Double_Swing_Right,
+    Folding_To_Left,
+    Folding_To_Right,
+    Lifting_Horizontal,
+    Lifting_Vertical_Left,
+    Lifting_Vertical_Right,
+    Revolving,
+    Revolving_Vertical,
+    RollingUp,
+    Single_Swing_Left,
+    Single_Swing_Right,
+    Sliding_To_Left,
+    Sliding_To_Right,
+    Swing_Fixed_Left,
+    Swing_Fixed_Right,
+    UserDefined
+  );
+
+  { Door. }
+  TIfcDoor = class(TIfcBuiltElement)
+  strict private
+    FOverallHeight: TIfcPositiveLengthMeasure;
+    FOverallWidth: TIfcPositiveLengthMeasure;
+    FPredefinedType: TIfcDoorTypeEnum;
+    FOperationType: TIfcDoorTypeOperationEnum;
+    FUserDefinedOperationType: TIfcLabel;
+  published
+    { Overall measure of the height, it reflects the Z Dimension of
+      a bounding box, enclosing the body of the door opening.
+      If omitted, the OverallHeight should be taken from the geometric
+      representation of the IfcOpeningElement in which the door is inserted.
+
+      NOTE The body of the door might be taller then the door opening
+      (e.g. in cases where the door lining includes a casing).
+      In these cases the OverallHeight shall still be given
+      as the door opening height, and not as the total height of the door lining. }
+    property OverallHeight: TIfcPositiveLengthMeasure read FOverallHeight write FOverallHeight;
+
+    { Overall measure of the width, it reflects the X Dimension of
+      a bounding box, enclosing the body of the door opening.
+      If omitted, the OverallWidth should be taken from the geometric
+      representation of the IfcOpeningElement in which the door is inserted.
+
+      NOTE The body of the door might be wider then the door opening
+      (e.g. in cases where the door lining includes a casing).
+      In these cases the OverallWidth shall still be given
+      as the door opening width, and not as the total width of the door lining. }
+    property OverallWidth: TIfcPositiveLengthMeasure read FOverallWidth write FOverallWidth;
+
+    { A list of types to further identify the object.
+      Some property sets may be specifically applicable to one of these types. }
+    property PredefinedType: TIfcDoorTypeEnum read FPredefinedType write FPredefinedType;
+
+    { Type defining the general layout and operation of the door type
+      in terms of the partitioning of panels and panel operations.
+
+      NOTE The OperationType shall only be used, if no type object IfcDoorType
+      is assigned, providing its own IfcDoorType.OperationType. }
+    property OperationType: TIfcDoorTypeOperationEnum read FOperationType write FOperationType;
+
+    { Designator for the user defined operation type, shall only be provided,
+      if the value of OperationType is set to TIfcDoorTypeOperationEnum.UserDefined. }
+    property UserDefinedOperationType: TIfcLabel read FUserDefinedOperationType write FUserDefinedOperationType;
+  end;
+
   TIfcSlabTypeEnum = (
     NotDefined,
     Approach_Slab,
@@ -3634,7 +3719,8 @@ var
 
     This includes all IFC non-abstract classes
     and also some abstract classes that are referred to by lists
-    (because, to resolve references in IFC files, we need to know about them). }
+    (because, to check and resolve references in IFC files,
+    we need to know about them). }
   IfcClasses: TIfcPersistentClassList;
 
 { Make sure IfcClasses is assigned and filled with contents. }
@@ -4825,6 +4911,12 @@ begin
     IfcClasses.Add(TIfcLineIndex);
     IfcClasses.Add(TIfcArcIndex);
     IfcClasses.Add(TIfcCartesianPointList2D);
+    IfcClasses.Add(TIfcDoor);
+    IfcClasses.Add(TIfcUnit);
+    IfcClasses.Add(TIfcPersistent);
+    IfcClasses.Add(TIfcRelAssociates);
+    IfcClasses.Add(TIfcProperty);
+    IfcClasses.Add(TIfcSegmentIndexSelect);
   end;
 end;
 

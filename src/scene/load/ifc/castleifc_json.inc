@@ -600,7 +600,17 @@ var
           Continue;
         end;
         if IfcChild <> nil then // if nil, then CreateIfcInstance already made warning
+        begin
+          RequiredClass := ClassOfListChildren(List);
+          if not IfcChild.InheritsFrom(RequiredClass) then
+            WritelnWarning('IFC array item of class %s (index %d, inside IFC field "%s") is not of the expected class (%s), ignoring', [
+              IfcChild.ClassName,
+              I,
+              DebugJsonKey,
+              RequiredClass.ClassName
+            ]) else
           List.Add(IfcChild);
+        end;
       end;
     end;
 
@@ -615,11 +625,21 @@ var
     var
       List: TIfcPersistentList;
       IfcChild: TIfcPersistent;
+      RequiredClass: TIfcPersistentClass;
     begin
       List := GetListProperty(PropInfo);
       IfcChild := CreateIfcInstance(JsonChildObj);
       if IfcChild <> nil then // if nil, then CreateIfcInstance already made warning
-        List.Add(IfcChild);
+      begin
+        RequiredClass := ClassOfListChildren(List);
+        if not IfcChild.InheritsFrom(RequiredClass) then
+            WritelnWarning('IFC array item of class %s (inside IFC field "%s") is not of the expected class (%s), ignoring', [
+              IfcChild.ClassName,
+              DebugJsonKey,
+              RequiredClass.ClassName
+            ]) else
+          List.Add(IfcChild);
+      end;
     end;
 
     {$ifdef FPC}
