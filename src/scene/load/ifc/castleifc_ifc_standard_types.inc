@@ -190,6 +190,11 @@
     Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcPositiveLengthMeasure.htm }
   TIfcPositiveLengthMeasure = Single;
 
+  { Ratio measure that is greater than zero.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcPositiveRatioMeasure.htm }
+  TIfcPositiveRatioMeasure = Single;
+
   { Distance.
 
     Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcLengthMeasure.htm }
@@ -2998,6 +3003,52 @@
     // TODO: property HasCoordinateOperation: TIfcCoordinateOperation read FHasCoordinateOperation write FHasCoordinateOperation;
   end;
 
+  TIfcGeometricProjectionEnum = (
+    NotDefined,
+    Elevation_View,
+    Graph_View,
+    Model_View,
+    Plan_View,
+    Reflected_Plan_View,
+    Section_View,
+    Sketch_View,
+    UserDefined
+  );
+
+  { Context that applies to several shape representations of a product
+    being a sub context, sharing the WorldCoordinateSystem,
+    CoordinateSpaceDimension, Precision and TrueNorth attributes with
+    the parent IfcGeometricRepresentationContext.  }
+  TIfcGeometricRepresentationSubContext = class(TIfcRepresentationContext)
+  strict private
+    FParentContext: TIfcGeometricRepresentationContext;
+    FTargetScale: TIfcPositiveRatioMeasure;
+    FTargetView: TIfcGeometricProjectionEnum;
+    FUserDefinedTargetView: TIfcLabel;
+  published
+    { Parent context from which the sub context derives its world coordinate system,
+      precision, space coordinate dimension and true north. }
+    property ParentContext: TIfcGeometricRepresentationContext read FParentContext write FParentContext;
+
+    { The target plot scale of the representation to which
+      this representation context applies.
+
+      NOTE Scale indicates the target plot scale for the representation
+      sub context, all annotation styles are given in plot dimensions
+      according to this target plot scale.
+      If multiple instances of IfcGeometricRepresentationSubContext
+      are given having the same TargetView value, the target plot scale
+      applies up to the next smaller scale, or up to unlimited small scale. }
+    property TargetScale: TIfcPositiveRatioMeasure read FTargetScale write FTargetScale;
+
+    { Target view of the representation to which this representation context applies. }
+    property TargetView: TIfcGeometricProjectionEnum read FTargetView write FTargetView;
+
+    { User defined target view, this attribute value shall be given,
+      if the TargetView attribute is set to @link(TIfcGeometricProjectionEnum.UserDefined). }
+    property UserDefinedTargetView: TIfcLabel read FUserDefinedTargetView write FUserDefinedTargetView;
+  end;
+
   { Relationships between property set definitions and objects.
 
     Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcRelDefinesByProperties.htm }
@@ -4962,6 +5013,7 @@ begin
     IfcClasses.Add(TIfcSegmentIndexSelect);
     IfcClasses.Add(TIfcDoorType);
     IfcClasses.Add(TIfcWallType);
+    IfcClasses.Add(TIfcGeometricRepresentationSubContext);
   end;
 end;
 
