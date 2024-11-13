@@ -555,6 +555,8 @@ begin
     E := TExtrusionUtility.Create;
     try
       E.Node := Self;
+      if E.Empty then
+        Exit;
 
       { calculate SidesCount = number of verts on sides, often used number }
       SidesCount := (E.High + 1) * FdCrossSection.Count;

@@ -250,6 +250,9 @@ begin
   E := TExtrusionUtility.Create;
   try
     E.Node := Self;
+    if E.Empty then
+      Exit(0);
+
     Result := (E.High + 1) * (FdCrossSection.Count - 1) * 2;
     if FdCrossSection.Count >= 2 then
     begin
