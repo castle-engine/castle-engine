@@ -81,7 +81,7 @@ type
     const
       DefaultLimitFPS = 120.0;
 
-      { Some platforms do not support Application.ProcessMessages, which means you
+      { Some platforms do not support Application.ProcessMessage, which means you
         cannot just write a function like MessageYesNo that waits until user clicks
         something.
         You *have* to implement modal boxes then using views,
