@@ -2424,7 +2424,9 @@
     property UserDefinedOperationType: TIfcLabel read FUserDefinedOperationType write FUserDefinedOperationType;
   end;
 
-  { Shared information for occurrences of doors. }
+  { Shared information for occurrences of doors.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcDoorType.htm }
   TIfcDoorType = class(TIfcBuiltElementType)
   strict private
     FPredefinedType: TIfcDoorTypeEnum;
@@ -2529,6 +2531,18 @@
     { Predefined generic type for a wall. }
     property PredefinedType: TIfcWallTypeEnum read FPredefinedType write FPredefinedType
       default TIfcWallTypeEnum.NotDefined;
+  end;
+
+  { Shared information for occurrences of walls.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcWallType.htm }
+  TIfcWallType = class(TIfcBuiltElementType)
+  strict private
+    FPredefinedType: TIfcWallTypeEnum;
+  published
+    { Identifies the predefined types of a wall element from which
+      the type required may be set. }
+    property PredefinedType: TIfcWallTypeEnum read FPredefinedType write FPredefinedType default TIfcWallTypeEnum.NotDefined;
   end;
 
   { Wall with certain constraints for the provision of parameters and
@@ -4947,6 +4961,7 @@ begin
     IfcClasses.Add(TIfcProperty);
     IfcClasses.Add(TIfcSegmentIndexSelect);
     IfcClasses.Add(TIfcDoorType);
+    IfcClasses.Add(TIfcWallType);
   end;
 end;
 
