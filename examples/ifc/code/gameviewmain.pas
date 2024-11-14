@@ -19,7 +19,7 @@ unit GameViewMain;
 interface
 
 uses Classes,
-  CastleVectors, CastleComponentSerialize,
+  CastleVectors, CastleComponentSerialize, CastleScene,
   CastleUIControls, CastleControls, CastleKeysMouse, CastleIfc;
 
 type
@@ -49,6 +49,7 @@ type
   public
     constructor Create(AOwner: TComponent); override;
     procedure Start; override;
+    procedure Stop; override;
     procedure Update(const SecondsPassed: Single; var HandleInput: Boolean); override;
   end;
 
@@ -58,7 +59,7 @@ var
 implementation
 
 uses SysUtils,
-  CastleIfc, CastleUtils, CastleUriUtils, CastleWindow;
+  CastleUtils, CastleUriUtils, CastleWindow;
 
 { TViewMain ----------------------------------------------------------------- }
 
@@ -103,14 +104,21 @@ begin
 end;
 
 procedure TViewMain.ClickNew(Sender: TObject);
+var
+  IfcProject: TIfcProject;
 begin
   FreeAndNil(IfcFile);
 
-  IfcFile := TIfcFile.Create;
+  IfcFile := TIfcFile.Create(nil);
   IfcFile.EncodingType := 'IFC.JSON';
   IfcFile.Version := '0.0.1';
   IfcFile.SchemaIdentifier := 'IFC4';
   IfcFile.OriginatingSystem := 'Castle Game Engine ' + CastleEngineVersion;
+
+  // we must create also TIfcProject to have valid IFC
+  IfcProject := TIfcProject.Create(IfcFile);
+  IfcFile.Data.Add(IfcProject);
+  Assert(IfcFile.Project = IfcProject);
 
   NewIfcMapping(IfcFile);
 end;

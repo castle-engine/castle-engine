@@ -75,7 +75,7 @@
       it is not freed automatically by this class (because in all practical
       use-cases, you want to keep the X3D node around,
       e.g. to be owned by TCastleScene or freed manually later). }
-    procedure Load(const Ifc: TIfcFile; const BaseUrl: String);
+    procedure Load(const Ifc: TIfcFile; const ABaseUrl: String);
 
     { Latest X3D root node, built from the latest IFC instance. }
     property RootNode: TX3DRootNode read FRootNode;
@@ -215,7 +215,7 @@ begin
   ObjectPlacementToParentNodes := TObjectPlacementToParentNodes.Create;
   ChildrenNodesToObjectPlacement := TChildrenNodesToObjectPlacement.Create;
   try
-    FBaseUrl := BaseUrl;
+    FBaseUrl := ABaseUrl;
 
     // do the actual work
     FRootNode := Ifc.BuildNode(Self);

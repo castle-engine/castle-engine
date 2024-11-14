@@ -1197,9 +1197,9 @@ end;
 
 function IfcJsonLoad(const Url: String): TIfcFile;
 var
+  Stream: TStream;
   JsonParser: TJsonParser;
   Json: TJsonData;
-  IfcFile: TIfcFile;
 begin
   Stream := Download(Url);
   try
