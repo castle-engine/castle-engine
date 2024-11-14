@@ -82,7 +82,7 @@ jobs:
     - name: Install macOS dependencies (on GH hosted macs)
       # We do this only on GH hosted macs, not on our macos_x64, because on our mac: 1. this is already installed, 2. ci user doesn't have permissions to install more.
       if: ${{ matrix.runner == 'macos-latest' || matrix.runner == 'macos-12'}}
-      run: brew install gnu-sed coreutils
+      run: brew install gnu-sed coreutils findutils
     - name: Install Windows dependencies
       if: ${{ matrix.runner == 'windows-latest' }}
       # We need Inno Setup for creating Windows installer.
