@@ -17,40 +17,79 @@
 { IFC conversion to X3D. }
 
 {$ifdef read_interface_types}
-  TObjectPlacementToParentNodes =
-    {$ifdef FPC}specialize{$endif} TDictionary<TIfcObjectPlacement, TTransformNode>;
-  TChildrenNodesToObjectPlacement =
-    {$ifdef FPC}specialize{$endif} TDictionary<TTransformNode, TIfcObjectPlacement>;
 
-  { Information and actions useful to all node-building routines
-    that build/update X3D stuff from IFC. }
+  { Maintains mapping between IFC concepts and X3D nodes.
+    Allows to comfortably load IFC file and convert it to X3D multple
+    times (using @link(Load), @link(Update), @link(RootNode)).
+    Allows also to resolve X3D nodes back to IFC concepts
+    (using @link(NodeToProduct)). }
   TCastleIfcMapping = class
-  private
+  strict private
+    FBaseUrl: String;
+    FRootNode: TX3DRootNode;
+
     { Use ObjectPlacementToParentNodes and ChildrenNodesToObjectPlacement
       to move the nodes (change parents) to reflect
       TIfcObjectPlacement.PlacementRelTo instructions. }
     procedure FixParentChildRelationships;
+  private
+    { Within the CastleIfc unit, this class is a container for information
+      and actions useful to all
+      node-building routines that build/update X3D stuff from IFC.
+      The things below are used by BuildNode methods of IFC classes. }
+
+    type
+      TObjectPlacementToParentNodes =
+        {$ifdef FPC}specialize{$endif} TDictionary<TIfcObjectPlacement, TTransformNode>;
+      TChildrenNodesToObjectPlacement =
+        {$ifdef FPC}specialize{$endif} TDictionary<TTransformNode, TIfcObjectPlacement>;
+
+    var
+      { Map each encountered TIfcObjectPlacement to an X3D TTransformNode. }
+      ObjectPlacementToParentNodes: TObjectPlacementToParentNodes;
+
+      { Map each children node (TTransformNode) to a desired parent,
+        expressed as TIfcObjectPlacement.
+        Together, ObjectPlacementToParentNodes and ChildrenNodesToObjectPlacement
+        allow to set the visual transformation (parent-child relationships
+        between X3D nodes) to follow IFC TIfcObjectPlacement.PlacementRelTo idea. }
+      ChildrenNodesToObjectPlacement: TChildrenNodesToObjectPlacement;
+
+      { Appearance of the current object definition being built.
+        TODO: keeping one current appearance like this is a simplification,
+        materials should be passed down to product children and only to them. }
+      CurrentAppearance: TAppearanceNode;
+
+    { BaseUrl should be passed to all X3D nodes created by this class,
+      so they have TX3DRootNode.BaseUrl equal to this. }
+    property BaseUrl: String read FBaseUrl;
   public
-    BaseUrl: String;
+    { Load IFC instance (TIfcFile) converting it to a new X3D node
+      (available in @link(RootNode)).
 
-    { Map each encountered TIfcObjectPlacement to an X3D TTransformNode. }
-    ObjectPlacementToParentNodes: TObjectPlacementToParentNodes;
+      The BaseUrl will be used to resolve relative URLs,
+      e.g. texture URLs mentioned in IFC information.
 
-    { Map each children node (TTransformNode) to a desired parent,
-      expressed as TIfcObjectPlacement.
-      Together, ObjectPlacementToParentNodes and ChildrenNodesToObjectPlacement
-      allow to set the visual transformation (parent-child relationships
-      between X3D nodes) to follow IFC TIfcObjectPlacement.PlacementRelTo idea. }
-    ChildrenNodesToObjectPlacement: TChildrenNodesToObjectPlacement;
+      After calling this (and before destroying this class or calling
+      @link(Load) again) remember to free the resulting @link(RootNode),
+      it is not freed automatically by this class (because in all practical
+      use-cases, you want to keep the X3D node around,
+      e.g. to be owned by TCastleScene or freed manually later). }
+    procedure Load(const Ifc: TIfcFile; const ABaseUrl: String);
 
-    { Apperance of the current object definition being built.
-      TODO: keeping one current appearance like this is a simplification,
-      materials should be passed down to product children and only to them. }
-    CurrentAppearance: TAppearanceNode;
+    { Latest X3D root node, built from the latest IFC instance. }
+    property RootNode: TX3DRootNode read FRootNode;
 
-    constructor Create;
-    destructor Destroy; override;
+    { Update the nodes in @link(RootNode) based on the new IFC contents.
+      Call this only after calling @link(Load) once.
+
+      Tries to be efficient and do as little work as possible
+      and update X3D graph in @link(RootNode) to reflect the new IFC contents.
+      For example, changing a translation in IFC will just change the corresponding
+      @link(TTransformNode.Translation), without recreating any X3D nodes. }
+    procedure Update(const Ifc: TIfcFile);
   end;
+
 {$endif read_interface_types}
 
 {$ifdef read_interface}
@@ -80,21 +119,6 @@ begin
 end;
 
 { TCastleIfcMapping ---------------------------------------------------------- }
-
-constructor TCastleIfcMapping.Create;
-begin
-  inherited;
-  ObjectPlacementToParentNodes := TObjectPlacementToParentNodes.Create;
-  ChildrenNodesToObjectPlacement := TChildrenNodesToObjectPlacement.Create;
-end;
-
-destructor TCastleIfcMapping.Destroy;
-begin
-  FreeAndNil(ObjectPlacementToParentNodes);
-  FreeAndNil(ChildrenNodesToObjectPlacement);
-  FreeIfUnusedAndNil(CurrentAppearance);
-  inherited;
-end;
 
 procedure TCastleIfcMapping.FixParentChildRelationships;
 
@@ -181,6 +205,31 @@ begin
       end;
     end;
   end;
+end;
+
+procedure TCastleIfcMapping.Load(const Ifc: TIfcFile; const ABaseUrl: String);
+begin
+  { Node that we don't free previous FRootNode, we don't own it. }
+
+  { Initialize things used only temporarily during Load. }
+  ObjectPlacementToParentNodes := TObjectPlacementToParentNodes.Create;
+  ChildrenNodesToObjectPlacement := TChildrenNodesToObjectPlacement.Create;
+  try
+    FBaseUrl := ABaseUrl;
+
+    // do the actual work
+    FRootNode := Ifc.BuildNode(Self);
+    FixParentChildRelationships;
+  finally
+    FreeAndNil(ObjectPlacementToParentNodes);
+    FreeAndNil(ChildrenNodesToObjectPlacement);
+    FreeIfUnusedAndNil(CurrentAppearance);
+  end;
+end;
+
+procedure TCastleIfcMapping.Update(const Ifc: TIfcFile);
+begin
+  // TODO, decide also do we take new BaseUrl
 end;
 
 { BuildNode methods implementations ----------------------------------------- }
@@ -657,9 +706,8 @@ var
 begin
   Mapping := TCastleIfcMapping.Create;
   try
-    Mapping.BaseUrl := BaseUrl;
-    Result := Ifc.BuildNode(Mapping);
-    Mapping.FixParentChildRelationships;
+    Mapping.Load(Ifc, BaseUrl);
+    Result := Mapping.RootNode;
   finally FreeAndNil(Mapping) end;
 end;
 
