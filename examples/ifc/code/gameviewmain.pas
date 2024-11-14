@@ -20,7 +20,7 @@ interface
 
 uses Classes,
   CastleVectors, CastleComponentSerialize,
-  CastleUIControls, CastleControls, CastleKeysMouse;
+  CastleUIControls, CastleControls, CastleKeysMouse, CastleIfc;
 
 type
   { Main view, where most of the application logic takes place. }
@@ -29,11 +29,27 @@ type
     { Components designed using CGE editor.
       These fields will be automatically initialized at Start. }
     LabelFps: TCastleLabel;
+    ButtonNew, ButtonLoad, ButtonSave, ButtonAddWall, ButtonModifyWall: TCastleButton;
+    IfcScene: TCastleScene;
+  private
+    IfcFile: TIfcFile;
+    IfcMapping: TCastleIfcMapping;
+
+    { Create new IfcMapping instance and update what IfcScene shows,
+      based on IfcFile contents.
+      Use this after completely changing the IfcFile contents
+      (like loading new file, or creating new file). }
+    procedure NewIfcMapping(const NewIfcFile: TIfcFile);
+
+    procedure ClickNew(Sender: TObject);
+    procedure ClickLoad(Sender: TObject);
+    procedure ClickSave(Sender: TObject);
+    procedure ClickAddWall(Sender: TObject);
+    procedure ClickModifyWall(Sender: TObject);
   public
     constructor Create(AOwner: TComponent); override;
     procedure Start; override;
     procedure Update(const SecondsPassed: Single; var HandleInput: Boolean); override;
-    function Press(const Event: TInputPressRelease): Boolean; override;
   end;
 
 var
@@ -41,7 +57,8 @@ var
 
 implementation
 
-uses SysUtils;
+uses SysUtils,
+  CastleIfc, CastleUtils, CastleUriUtils, CastleWindow;
 
 { TViewMain ----------------------------------------------------------------- }
 
@@ -54,6 +71,14 @@ end;
 procedure TViewMain.Start;
 begin
   inherited;
+  ClickNew(nil);
+end;
+
+procedure TViewMain.Stop;
+begin
+  FreeAndNil(IfcFile);
+  FreeAndNil(IfcMapping);
+  inherited;
 end;
 
 procedure TViewMain.Update(const SecondsPassed: Single; var HandleInput: Boolean);
@@ -64,29 +89,69 @@ begin
   LabelFps.Caption := 'FPS: ' + Container.Fps.ToString;
 end;
 
-function TViewMain.Press(const Event: TInputPressRelease): Boolean;
+procedure TViewMain.NewIfcMapping(const NewIfcFile: TIfcFile);
 begin
-  Result := inherited;
-  if Result then Exit; // allow the ancestor to handle keys
+  FreeAndNil(IfcMapping);
 
-  { This virtual method is executed when user presses
-    a key, a mouse button, or touches a touch-screen.
+  IfcMapping := TCastleIfcMapping.Create;
+  { The 'castle-data:/' below will be used as base URL to resolve any texture
+    URLs inside IFC. As they are not possible in this demo for now,
+    this value doesn't really matter. }
+  IfcMapping.Load(IfcFile, 'castle-data:/');
 
-    Note that each UI control has also events like OnPress and OnClick.
-    These events can be used to handle the "press", if it should do something
-    specific when used in that UI control.
-    The TViewMain.Press method should be used to handle keys
-    not handled in children controls.
-  }
+  IfcScene.Load(IfcMapping.RootNode, true);
+end;
 
-  // Use this to handle keys:
-  {
-  if Event.IsKey(keyXxx) then
+procedure TViewMain.ClickNew(Sender: TObject);
+begin
+  FreeAndNil(IfcFile);
+
+  IfcFile := TIfcFile.Create;
+  IfcFile.EncodingType := 'IFC.JSON';
+  IfcFile.Version := '0.0.1';
+  IfcFile.SchemaIdentifier := 'IFC4';
+  IfcFile.OriginatingSystem := 'Castle Game Engine ' + CastleEngineVersion;
+
+  NewIfcMapping(IfcFile);
+end;
+
+const
+  IfcFileFilter = 'IFC JSON (*.ifcjson)|*.ifcjson|All Files|*';
+
+procedure TViewMain.ClickLoad(Sender: TObject);
+var
+  Url: string;
+begin
+  Url := 'castle-data:/';
+  if Application.MainWindow.FileDialog('Load IFC file', Url, true, IfcFileFilter) then
   begin
-    // DoSomething;
-    Exit(true); // key was handled
+    FreeAndNil(IfcFile);
+    IfcFile := IfcJsonLoad(Url);
+    NewIfcMapping(IfcFile);
   end;
-  }
+end;
+
+procedure TViewMain.ClickSave(Sender: TObject);
+var
+  Url: string;
+begin
+  Url := 'castle-data:/';
+  if Application.MainWindow.FileDialog('Save IFC file', Url, false, IfcFileFilter) then
+  begin
+    IfcJsonSave(IfcFile, Url);
+  end;
+end;
+
+procedure TViewMain.ClickAddWall(Sender: TObject);
+begin
+  // IfcFile.Project.... // TODO
+  IfcMapping.Update(IfcFile);
+end;
+
+procedure TViewMain.ClickModifyWall(Sender: TObject);
+begin
+  // IfcFile.Project.... // TODO
+  IfcMapping.Update(IfcFile);
 end;
 
 end.

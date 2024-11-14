@@ -29,10 +29,12 @@
   and you want to free everything by just freeing the resulting
   TIfcFile instance, then just create all IFC instances with the owner
   being the returned TIfcFile instance. }
-function IfcJsonLoad(const Json: TJsonData): TIfcFile;
+function IfcJsonLoad(const Json: TJsonData): TIfcFile; overload;
+function IfcJsonLoad(const Url: String): TIfcFile; overload;
 
 { Save IFC to JSON. }
-function IfcJsonSave(const IfcFile: TIfcFile): TJsonObject;
+function IfcJsonSave(const IfcFile: TIfcFile): TJsonObject; overload;
+procedure IfcJsonSave(const IfcFile: TIfcFile; const Url: String); overload;
 
 {$endif read_interface}
 
@@ -1189,6 +1191,42 @@ begin
   try
     Result := SerializeJson(IfcFile);
   finally FreeAndNil(Refs) end;
+end;
+
+{ convenience overloads that load/save from/to URL --------------------------- }
+
+function IfcJsonLoad(const Url: String): TIfcFile;
+var
+  JsonParser: TJsonParser;
+  Json: TJsonData;
+  IfcFile: TIfcFile;
+begin
+  Stream := Download(Url);
+  try
+    JsonParser := TJsonParser.Create(Stream, [joComments]);
+    try
+      Json := JsonParser.Parse;
+      try
+        Result := IfcJsonLoad(Json);
+      finally FreeAndNil(Json) end;
+    finally FreeAndNil(JsonParser) end;
+  finally FreeAndNil(Stream) end;
+end;
+
+procedure IfcJsonSave(const IfcFile: TIfcFile; const Url: String);
+var
+  JsonObj: TJsonObject;
+  JsonString: String;
+  Stream: TStream;
+begin
+  Stream := UrlSaveStream(Url);
+  try
+    JsonObj := IfcJsonSave(IfcFile);
+    try
+      JsonString := JsonObj.FormatJSON;
+      WriteStr(Stream, JsonString);
+    finally FreeAndNil(JsonObj) end;
+  finally FreeAndNil(Stream) end;
 end;
 
 {$endif read_implementation}

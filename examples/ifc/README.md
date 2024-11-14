@@ -10,6 +10,8 @@ IFC is a standard 3D model format used in architecture and construction. As a de
 
     It allows to access (read and write) all the IFC information and operate on it using Pascal classes that directly correspond to the IFC concepts. For example, there's a Pascal class [TIfcWall](https://castle-engine.io/apidoc/html/CastleIfc.TIfcWall.html) that corresponds to the [IFC specification definition of a wall](https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcWall.htm). This example shows how to add a wall to an IFC model, display the change, and save the result to an IFC file.
 
+    The idea is to demonstrate that you can make a a full-featured, IFC-native, 3D editor or analysis tool using _Castle Game Engine_.
+
     The [documentation about IFC](https://castle-engine.io/ifc) provides more information about the IFC format and how to use it in Castle Game Engine.
 
 ![Screenshot](screenshot.png)
