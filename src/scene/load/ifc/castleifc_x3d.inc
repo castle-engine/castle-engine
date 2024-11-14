@@ -88,6 +88,13 @@
       For example, changing a translation in IFC will just change the corresponding
       @link(TTransformNode.Translation), without recreating any X3D nodes. }
     procedure Update(const Ifc: TIfcFile);
+
+    { For a shape node (TShapeNode), return the corresponding IFC product
+      (TIfcProduct descendant, like a TIfcWall, TIfcWindow, TIfcDoor).
+      Returns @nil if cannot be determined.
+      Assumes that the nodes have been updated to reflect the latest state
+      of the IFC classes using @link(Update). }
+    function NodeToProduct(const Node: TShapeNode): TIfcProduct;
   end;
 
 {$endif read_interface_types}
@@ -230,6 +237,12 @@ end;
 procedure TCastleIfcMapping.Update(const Ifc: TIfcFile);
 begin
   // TODO, decide also do we take new BaseUrl
+end;
+
+function TCastleIfcMapping.NodeToProduct(const Node: TShapeNode): TIfcProduct;
+begin
+  // TODO
+  Result := nil;
 end;
 
 { BuildNode methods implementations ----------------------------------------- }
