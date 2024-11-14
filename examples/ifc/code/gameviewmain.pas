@@ -73,6 +73,11 @@ procedure TViewMain.Start;
 begin
   inherited;
   ClickNew(nil);
+  ButtonNew.OnClick := {$ifdef FPC}@{$endif} ClickNew;
+  ButtonLoad.OnClick := {$ifdef FPC}@{$endif} ClickLoad;
+  ButtonSave.OnClick := {$ifdef FPC}@{$endif} ClickSave;
+  ButtonAddWall.OnClick := {$ifdef FPC}@{$endif} ClickAddWall;
+  ButtonModifyWall.OnClick := {$ifdef FPC}@{$endif} ClickModifyWall;
 end;
 
 procedure TViewMain.Stop;
