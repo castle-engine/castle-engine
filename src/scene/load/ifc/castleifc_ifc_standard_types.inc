@@ -179,6 +179,7 @@
   TIfcMaterialDefinition = class;
   TIfcMaterialPropertiesList = class;
   TIfcMaterialLayerSet = class;
+  TIfcGeometricRepresentationSubContextList = class;
 
   { Float type used throughout IFC.
 
@@ -2977,8 +2978,11 @@
     FPrecision: TIfcReal;
     FWorldCoordinateSystem: TIfcAxis2Placement;
     FTrueNorth: TIfcDirection;
-    // TODO // FHasSubContexts: TIfcGeometricRepresentationSubContextList;
+    FHasSubContexts: TIfcGeometricRepresentationSubContextList;
     // TODO // FHasCoordinateOperation: TIfcCoordinateOperation;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
   published
     { The integer dimension count of the coordinate space modeled
       in a geometric representation context.}
@@ -2997,7 +3001,7 @@
 
     { The set of IfcGeometricRepresentationSubContexts that refer to this
       IfcGeometricRepresentationContext. }
-    // TODO: property HasSubContexts: TIfcGeometricRepresentationSubContextList read FHasSubContexts;
+    property HasSubContexts: TIfcGeometricRepresentationSubContextList read FHasSubContexts;
 
     { Indicates conversion between coordinate systems. }
     // TODO: property HasCoordinateOperation: TIfcCoordinateOperation read FHasCoordinateOperation write FHasCoordinateOperation;
@@ -3047,6 +3051,8 @@
     { User defined target view, this attribute value shall be given,
       if the TargetView attribute is set to @link(TIfcGeometricProjectionEnum.UserDefined). }
     property UserDefinedTargetView: TIfcLabel read FUserDefinedTargetView write FUserDefinedTargetView;
+  end;
+  TIfcGeometricRepresentationSubContextList = class({$ifdef FPC}specialize{$endif} TObjectList<TIfcGeometricRepresentationSubContext>)
   end;
 
   { Relationships between property set definitions and objects.
@@ -4433,6 +4439,20 @@ end;
 destructor TIfcRepresentationContext.Destroy;
 begin
   FreeAndNil(FRepresentationsInContext);
+  inherited;
+end;
+
+{ TIfcGeometricRepresentationContext ----------------------------------------- }
+
+constructor TIfcGeometricRepresentationContext.Create(AOwner: TComponent);
+begin
+  inherited;
+  FHasSubContexts := TIfcGeometricRepresentationSubContextList.Create(false);
+end;
+
+destructor TIfcGeometricRepresentationContext.Destroy;
+begin
+  FreeAndNil(FHasSubContexts);
   inherited;
 end;
 
