@@ -29,10 +29,12 @@
   and you want to free everything by just freeing the resulting
   TIfcFile instance, then just create all IFC instances with the owner
   being the returned TIfcFile instance. }
-function IfcJsonLoad(const Json: TJsonData): TIfcFile;
+function IfcJsonLoad(const Json: TJsonData): TIfcFile; overload;
+function IfcJsonLoad(const Url: String): TIfcFile; overload;
 
 { Save IFC to JSON. }
-function IfcJsonSave(const IfcFile: TIfcFile): TJsonObject;
+function IfcJsonSave(const IfcFile: TIfcFile): TJsonObject; overload;
+procedure IfcJsonSave(const IfcFile: TIfcFile; const Url: String); overload;
 
 {$endif read_interface}
 
@@ -104,7 +106,7 @@ end;
     },
 
   Both forms are found in practice, see
-  https://github.com/buildingSMART/Sample-Test-Files/blob/master/IFC%204.0/BuildingSMARTSpec/wall-with-opening-and-window.json
+  https://github.com/buildingsmart-community/Community-Sample-Test-Files/blob/main/IFC%204.0.2.1%20(IFC%204)/ISO%20Spec%20archive/wall-with-opening-and-window.json
   and a version of it imported + exported by Bonsai BIM.
 *)
 function JsonToString(const JsonValue: TJsonData; const DebugJsonKey: String): String;
@@ -181,7 +183,7 @@ end;
     }
 
   Both forms are found in practice, see
-  https://github.com/buildingSMART/Sample-Test-Files/blob/master/IFC%204.0/BuildingSMARTSpec/wall-with-opening-and-window.json
+  https://github.com/buildingsmart-community/Community-Sample-Test-Files/blob/main/IFC%204.0.2.1%20(IFC%204)/ISO%20Spec%20archive/wall-with-opening-and-window.json
   and a version of it imported + exported by Bonsai BIM.
 *)
 function JsonToFloat(const JsonValue: TJsonData; const DebugJsonKey: String): Single;
@@ -207,6 +209,17 @@ begin
     end;
   end else
     Result := JsonValue.AsFloat;
+end;
+
+{ Read JSON array into TVector2 }
+function JsonToVector2(const JsonChildArray: TJsonArray; const DebugJsonKey: String): TVector2;
+var
+  I: Integer;
+begin
+  Result := TVector2.Zero;
+  for I := 0 to Result.Count - 1 do
+    if I < JsonChildArray.Count then
+      Result.Data[I] := JsonToFloat(JsonChildArray.Items[I], DebugJsonKey);
 end;
 
 { Read JSON array into TVector3 }
@@ -308,7 +321,7 @@ var
 
         This workarounds invalid (as far as I know) IFC files,
         since they should always have "type" specified,
-        but e.g. https://github.com/buildingSMART/Sample-Test-Files/blob/master/IFC%204.0/BuildingSMARTSpec/wall-with-opening-and-window.json
+        but e.g. https://github.com/buildingsmart-community/Community-Sample-Test-Files/blob/main/IFC%204.0.2.1%20(IFC%204)/ISO%20Spec%20archive/wall-with-opening-and-window.json
         has 2 occurences when "type" is not specified.)
     }
     function CreateIfcInstance(const JsonChildObj: TJsonObject;
@@ -431,6 +444,24 @@ var
       IntegerList.Clear;
       for I := 0 to JsonChildArray.Count - 1 do
         IntegerList.Add(JsonToInteger(JsonChildArray.Items[I], DebugJsonKey));
+    end;
+
+    { From elements of JsonChildArray read TVector2List contents
+      into property PropInfo of Ifc, which must be a TVector2List. }
+    procedure ReadIfcChildVector2List(const PropInfo: PPropInfo;
+      const JsonChildArray: TJsonArray);
+    var
+      I: Integer;
+      Vector2List: TVector2List;
+    begin
+      Vector2List := PropertyGetInstance(Ifc, PropInfo) as TVector2List;
+      if Vector2List = nil then
+        raise EInvalidIfc.CreateFmt('Pascal property "%s" is supposed to be a TVector2List, but it is nil', [
+          PropInfo^.Name
+        ]);
+      Vector2List.Clear;
+      for I := 0 to JsonChildArray.Count - 1 do
+        Vector2List.Add(JsonToVector2(JsonChildArray.Items[I] as TJsonArray, DebugJsonKey));
     end;
 
     { From elements of JsonChildArray read TVector3List contents
@@ -571,14 +602,24 @@ var
           Continue;
         end;
         if IfcChild <> nil then // if nil, then CreateIfcInstance already made warning
+        begin
+          RequiredClass := ClassOfListChildren(List);
+          if not IfcChild.InheritsFrom(RequiredClass) then
+            WritelnWarning('IFC array item of class %s (index %d, inside IFC field "%s") is not of the expected class (%s), ignoring', [
+              IfcChild.ClassName,
+              I,
+              DebugJsonKey,
+              RequiredClass.ClassName
+            ]) else
           List.Add(IfcChild);
+        end;
       end;
     end;
 
     { Read one JSON object, add it as the only item to the list property PropInfo of Ifc.
 
       This is sometimes used by IFC JSON, see
-      https://github.com/buildingSMART/Sample-Test-Files/blob/master/IFC%204.0/BuildingSMARTSpec/wall-with-opening-and-window.json#L70
+      https://github.com/buildingsmart-community/Community-Sample-Test-Files/blob/main/IFC%204.0.2.1%20(IFC%204)/ISO%20Spec%20archive/wall-with-opening-and-window.json#L70
       where "isDecomposedBy" (a list of IfcRelAggregates) is just a single
       instance of IfcRelAggregates. }
     procedure ReadIfcChildArrayOneItem(const PropInfo: PPropInfo;
@@ -586,11 +627,21 @@ var
     var
       List: TIfcPersistentList;
       IfcChild: TIfcPersistent;
+      RequiredClass: TIfcPersistentClass;
     begin
       List := GetListProperty(PropInfo);
       IfcChild := CreateIfcInstance(JsonChildObj);
       if IfcChild <> nil then // if nil, then CreateIfcInstance already made warning
-        List.Add(IfcChild);
+      begin
+        RequiredClass := ClassOfListChildren(List);
+        if not IfcChild.InheritsFrom(RequiredClass) then
+            WritelnWarning('IFC array item of class %s (inside IFC field "%s") is not of the expected class (%s), ignoring', [
+              IfcChild.ClassName,
+              DebugJsonKey,
+              RequiredClass.ClassName
+            ]) else
+          List.Add(IfcChild);
+      end;
     end;
 
     {$ifdef FPC}
@@ -608,7 +659,7 @@ var
       { Sometimes JSON gives a 1-item array when actually spec has "SET [0:1]",
         so it's not a list in Pascal.
         Example: TIfcProject.HasContext in
-        https://github.com/buildingSMART/Sample-Test-Files/blob/master/IFC%204.0/BuildingSMARTSpec/wall-with-opening-and-window.json
+        https://github.com/buildingsmart-community/Community-Sample-Test-Files/blob/main/IFC%204.0.2.1%20(IFC%204)/ISO%20Spec%20archive/wall-with-opening-and-window.json
         Tolerate it.
       }
       if (JsonInstanceValue is TJsonArray) and
@@ -616,6 +667,7 @@ var
          (not (CurrentInstance is TCastleVector4Persistent)) and
          (not (CurrentInstance is TCastleStringList)) and
          (not (CurrentInstance is TIntegerList)) and
+         (not (CurrentInstance is TVector2List)) and
          (not (CurrentInstance is TVector3List)) and
          (not RequiredClass.InheritsFrom(TIfcCompoundPlaneAngleMeasure)) and
          (not ClassNameOfList(PropertyGetInstanceClass(Ifc, PropInfo).ClassName)) then
@@ -658,6 +710,9 @@ var
         else
         if CurrentInstance is TIntegerList then
           ReadIfcChildIntegerList(PropInfo, JsonInstanceValue as TJsonArray)
+        else
+        if CurrentInstance is TVector2List then
+          ReadIfcChildVector2List(PropInfo, JsonInstanceValue as TJsonArray)
         else
         if CurrentInstance is TVector3List then
           ReadIfcChildVector3List(PropInfo, JsonInstanceValue as TJsonArray)
@@ -869,7 +924,7 @@ begin
   Refs := TCastleStringList.Create;
   try
     { Some JSON files use "IfcProject" at top-level
-      (see https://github.com/buildingSMART/Sample-Test-Files/blob/master/IFC%204.0/BuildingSMARTSpec/wall-with-opening-and-window.json ),
+      (see https://github.com/buildingsmart-community/Community-Sample-Test-Files/blob/main/IFC%204.0.2.1%20(IFC%204)/ISO%20Spec%20archive/wall-with-opening-and-window.json ),
       some use "IFC.JSON" at top-level and then "IfcProject" is inside "data".
       Account for both cases. }
     TopLevelType := JsonObj.Get('type', '');
@@ -899,6 +954,16 @@ var
   Refs: TIfcPersistentList;
 
   function SerializeJson(const Ifc: TIfcPersistent): TJsonObject; forward;
+
+  { Serialize TVector2 to JSON array. }
+  function SerializeJsonVector2(const Vector: TVector2): TJsonArray; overload;
+  var
+    I: Integer;
+  begin
+    Result := TJsonArray.Create;
+    for I := 0 to Vector.Count - 1 do
+      Result.Add(Vector.Data[I]);
+  end;
 
   { Serialize TVector3 to JSON array. }
   function SerializeJsonVector3(const Vector: TVector3): TJsonArray; overload;
@@ -948,6 +1013,16 @@ var
     Result := TJsonArray.Create;
     for I := 0 to IntegerList.Count - 1 do
       Result.Add(IntegerList[I]);
+  end;
+
+  { Serialize TVector2List to JSON array. }
+  function SerializeJsonVector2List(const Vector2List: TVector2List): TJsonArray;
+  var
+    I: Integer;
+  begin
+    Result := TJsonArray.Create;
+    for I := 0 to Vector2List.Count - 1 do
+      Result.Add(SerializeJsonVector2(Vector2List[I]));
   end;
 
   { Serialize TVector3List to JSON array. }
@@ -1093,6 +1168,9 @@ var
                 if IfcObjProperty is TIntegerList then
                   Result.Add(JsonKey, SerializeJsonIntegerList(TIntegerList(IfcObjProperty)))
                 else
+                if IfcObjProperty is TVector2List then
+                  Result.Add(JsonKey, SerializeJsonVector2List(TVector2List(IfcObjProperty)))
+                else
                 if IfcObjProperty is TVector3List then
                   Result.Add(JsonKey, SerializeJsonVector3List(TVector3List(IfcObjProperty)))
                 else
@@ -1133,6 +1211,42 @@ begin
   try
     Result := SerializeJson(IfcFile);
   finally FreeAndNil(Refs) end;
+end;
+
+{ convenience overloads that load/save from/to URL --------------------------- }
+
+function IfcJsonLoad(const Url: String): TIfcFile;
+var
+  Stream: TStream;
+  JsonParser: TJsonParser;
+  Json: TJsonData;
+begin
+  Stream := Download(Url);
+  try
+    JsonParser := TJsonParser.Create(Stream, [joComments]);
+    try
+      Json := JsonParser.Parse;
+      try
+        Result := IfcJsonLoad(Json);
+      finally FreeAndNil(Json) end;
+    finally FreeAndNil(JsonParser) end;
+  finally FreeAndNil(Stream) end;
+end;
+
+procedure IfcJsonSave(const IfcFile: TIfcFile; const Url: String);
+var
+  JsonObj: TJsonObject;
+  JsonString: String;
+  Stream: TStream;
+begin
+  Stream := UrlSaveStream(Url);
+  try
+    JsonObj := IfcJsonSave(IfcFile);
+    try
+      JsonString := JsonObj.FormatJSON;
+      WriteStr(Stream, JsonString);
+    finally FreeAndNil(JsonObj) end;
+  finally FreeAndNil(Stream) end;
 end;
 
 {$endif read_implementation}
