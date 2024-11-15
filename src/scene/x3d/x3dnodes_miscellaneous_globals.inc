@@ -270,7 +270,8 @@ function KeyRange(Key: TSingleList;
   const Fraction: Single; out T: Single): Integer;
 
 { Free TX3DNode if it is unused (see TX3DNode.FreeIfUnused),
-  setting reference to @nil. Analogous to standard FreeAndNil,
+  setting reference to @nil (whether it was unused or not).
+  This is analogous to standard Pascal FreeAndNil,
   but checks if node is used first. }
 procedure FreeIfUnusedAndNil(var Obj);
 

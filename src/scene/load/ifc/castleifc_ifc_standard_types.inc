@@ -1,4 +1,4 @@
-{%MainUnit castleinternalloadsaveifc.pas}
+{%MainUnit castleifc.pas}
 {
   Copyright 2024-2024 Michalis Kamburelis.
 
@@ -120,16 +120,14 @@
 
   - Moreover, they contain methods to build/update nodes used
     by Castle Game Engine to display given IFC entities.
-    These methods are implemented in castleinternalloadsaveifc_x3d.inc
+    These methods are implemented in castleifc_x3d.inc
     yet they are defined in this file, inside IFC classes.
     Havine these methods inside IFC classes is beneficial,
     as we can use IFC classes inheritance naturally (e.g. some "build
     nodes" methods extend ancestor in natural way).
 }
 
-{$ifdef read_interface}
-
-//type // continues "type" from castleinternalloadsaveifc_ifc_types.inc
+{$ifdef read_interface_types}
 
   // forward declarations
   TIfcRepresentationItem = class;
@@ -181,6 +179,7 @@
   TIfcMaterialDefinition = class;
   TIfcMaterialPropertiesList = class;
   TIfcMaterialLayerSet = class;
+  TIfcGeometricRepresentationSubContextList = class;
 
   { Float type used throughout IFC.
 
@@ -191,6 +190,11 @@
 
     Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcPositiveLengthMeasure.htm }
   TIfcPositiveLengthMeasure = Single;
+
+  { Ratio measure that is greater than zero.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcPositiveRatioMeasure.htm }
+  TIfcPositiveRatioMeasure = Single;
 
   { Distance.
 
@@ -296,7 +300,7 @@
   public
     { Build a node to display this using Castle Game Engine.
       Does nothing (adds nothing to Parent) if not possible / not implemented. }
-    function BuildNode(const BaseUrl: String): TAbstractChildNode; virtual;
+    function BuildNode(const Mapping: TCastleIfcMapping): TAbstractChildNode; virtual;
   published
     { Assignment of the representation item to a single or multiple layer(s).
       @nil if none. }
@@ -310,7 +314,7 @@
   end;
   TIfcRepresentationItemList = class({$ifdef FPC}specialize{$endif} TObjectList<TIfcRepresentationItem>)
   public
-    function BuildNode(const BaseUrl: String): TAbstractChildNode;
+    function BuildNode(const Mapping: TCastleIfcMapping): TAbstractChildNode;
   end;
 
   { Style information for products.
@@ -370,10 +374,179 @@
   TIfcGeometricRepresentationItem = class abstract(TIfcRepresentationItem)
   end;
 
+  { Abstract supertype of all tessellated geometric models.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcTessellatedItem.htm }
+  TIfcTessellatedItem = class abstract(TIfcGeometricRepresentationItem)
+  strict private
+    FLayerAssignment: TIfcPresentationLayerAssignmentList;
+    FStyledByItem: TIfcStyledItem;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+  published
+    { Assignment of the representation item to a single or multiple layer(s). }
+    property LayerAssignment: TIfcPresentationLayerAssignmentList
+      read FLayerAssignment;
+
+    { Reference to the IfcStyledItem that provides presentation information
+      to the representation, e.g. a curve style, including colour
+      and thickness to a geometric curve. }
+    property StyledByItem: TIfcStyledItem read FStyledByItem write FStyledByItem;
+  end;
+
+  { Abstract supertype of list of points.
+
+    Note: The name in Pascal has suffix "Spec" (as for "specification class")
+    to differentiate from @link(TIfcCartesianPointList) which is a list of
+    @link(TIfcCartesianPoint) using @code(TObjectList<TIfcCartesianPoint>).
+    We need both list types. Luckily, we can name this class however we want,
+    as it's abstract and thus not used in IFC files.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcCartesianPointList.htm }
+  TIfcCartesianPointListSpec = class abstract(TIfcGeometricRepresentationItem)
+  public
+    procedure UpdateCoordinate(const Coord: TCoordinateNode); virtual; abstract;
+  end;
+
+  { Ordered collection of two-dimentional Cartesian points.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcCartesianPointList2D.htm }
+  TIfcCartesianPointList2D = class(TIfcCartesianPointListSpec)
+  strict private
+    FCoordList: TVector2List;
+    FTagList: TCastleStringList;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+    procedure UpdateCoordinate(const Coord: TCoordinateNode); override;
+  published
+    { Lst of Cartesian points provided by two coordinates. }
+    property CoordList: TVector2List read FCoordList;
+
+    { List of tags corresponding to each point that may be used to
+      identify a basis curve according to the Tag attribute at
+      IfcOffsetCurveByDistances. }
+    property TagList: TCastleStringList read FTagList;
+  end;
+
+  { Ordered collection of three-dimentional Cartesian points.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcCartesianPointList3D.htm }
+  TIfcCartesianPointList3D = class(TIfcCartesianPointListSpec)
+  strict private
+    FCoordList: TVector3List;
+    FTagList: TCastleStringList;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+    procedure UpdateCoordinate(const Coord: TCoordinateNode); override;
+  published
+    { Lst of Cartesian points provided by three coordinates. }
+    property CoordList: TVector3List read FCoordList;
+
+    { List of tags corresponding to each point that may be used to
+      identify a basis curve according to the Tag attribute at
+      IfcOffsetCurveByDistances. }
+    property TagList: TCastleStringList read FTagList;
+  end;
+
+  { Representation of a planar face being part of a face set.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcIndexedPolygonalFace.htm }
+  TIfcIndexedPolygonalFace = class(TIfcTessellatedItem)
+  strict private
+    FCoordIndex: TIntegerList;
+    // TODO FToFaceSet: TIfcPolygonalFaceSetList;
+    // TODO FHasTexCoords: TIfcTextureCoordinateIndices;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+  published
+    { One-dimensional list with the indices for the three or more points,
+      that define the vertices of the outer loop. If the tessellated face
+      set is closed, indicated by @link(TIfcPolygonalFaceSet.Closed),
+      then the points, defining the outer loop, shall connect counter clockwise,
+      as seen from the outside of the body, so that the resulting normal
+      will point outwards. }
+    property CoordIndex: TIntegerList read FCoordIndex;
+
+    { Reference to the IfcPolygonalFaceSet for which this face is associated. }
+    // TODO property ToFaceSet: TIfcPolygonalFaceSetList read FToFaceSet;
+
+    { Optional reference to the IfcTextureCoordinateIndices that provide
+      the texture coordinates for applying textures to this face. }
+    // TODO property HasTexCoords: TIfcTextureCoordinateIndices read FHasTexCoords write FHasTexCoords;
+  end;
+  TIfcIndexedPolygonalFaceList = {$ifdef FPC}specialize{$endif} TObjectList<TIfcIndexedPolygonalFace>;
+
+  { Topological model limited to planar faces and straight edges.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcTessellatedFaceSet.htm }
+  TIfcTessellatedFaceSet = class abstract(TIfcTessellatedItem)
+  strict private
+    FCoordinates: TIfcCartesianPointList3D;
+    // TODO FHasColours: TIfcIndexedColourMap;
+    // TODO FHasTextures: TIfcIndexedTextureMapList;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+  published
+    { Ordered list of Cartesian points. }
+    property Coordinates: TIfcCartesianPointList3D read FCoordinates write FCoordinates;
+
+    { Reference to the indexed colour map providing the corresponding
+      colour RGB values to the faces. }
+    // TODO property HasColours: TIfcIndexedColourMap read FHasColours write FHasColours;
+
+    { Reference to the indexed texture map providing the corresponding
+      texture coordinates to the vertices. }
+    // TODO property HasTextures: TIfcIndexedTextureMapList read FHasTextures;
+  end;
+
+  { Tessellated face set with all faces being bound by polygons.
+    This is what is most commonly referred to as "a mesh" in 3D.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcPolygonalFaceSet.htm }
+  TIfcPolygonalFaceSet = class(TIfcTessellatedFaceSet)
+  strict private
+    FClosed: Boolean;
+    FFaces: TIfcIndexedPolygonalFaceList;
+    FPnIndex: TIntegerList;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+    function BuildNode(const Mapping: TCastleIfcMapping): TAbstractChildNode; override;
+  published
+    { Indication whether the face set is a closed shell (TRUE)
+      or an open shell (FALSE).
+
+      IFC spec says: If omitted no such information can be asserted.
+      For our implementation, "no such information can be asserted" means
+      it shall be treated as an open shell, so we don't introduce a 3rd state. }
+    property Closed: Boolean read FClosed write FClosed default false;
+
+    { List of polygonal faces. }
+    property Faces: TIfcIndexedPolygonalFaceList read FFaces;
+
+    { The list of integers defining the locations in the IfcCartesianPointList3D
+      to obtain the point coordinates for the indices at the indexed
+      polygonal faces. If the PnIndex is not provided the indices
+      at the indexed polygonal faces point directly into the IfcCartesianPointList3D. }
+    property PnIndex: TIntegerList read FPnIndex;
+  end;
+
   { Curve in 2D or 3D.
 
     Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcCurve.htm }
   TIfcCurve = class abstract(TIfcGeometricRepresentationItem)
+  public
+    { Update Extrusion.FdCrossSection.
+      In the base class, this reuses BuildNode and extracts cross section
+      information from a temporary node.
+      Override to provide more optimized implementation. }
+    procedure UpdateCrossSection(const Extrusion: TExtrusionNode); virtual;
+
     { Space dimensionality of this abstract class, defined differently for all
       subtypes. }
     // TODO: derived: function Dim: TIfcDimensionCount; abstract;
@@ -393,10 +566,70 @@
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    function BuildNode(const BaseUrl: String): TAbstractChildNode; override;
+    function BuildNode(const Mapping: TCastleIfcMapping): TAbstractChildNode; override;
+    procedure UpdateCrossSection(const Extrusion: TExtrusionNode); override;
   published
     { Points defining the polyline. }
     property Points: TIfcCartesianPointList read FPoints;
+  end;
+
+  { Choice between IfcArcIndex and IfcLineIndex. }
+  TIfcSegmentIndexSelect = class(TIfcPersistent)
+  end;
+  TIfcSegmentIndexSelectList = {$ifdef FPC}specialize{$endif} TObjectList<TIfcSegmentIndexSelect>;
+
+  { Single or multiple straight segments within a poly curve.
+    Can have 2 or more points.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcLineIndex.htm}
+  TIfcLineIndex = class(TIfcSegmentIndexSelect)
+  strict private
+    FValue: TIntegerList;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+  published
+    property Value: TIntegerList read FValue;
+  end;
+
+  { Single circular arc segment within a poly curve.
+    Should always have 3 points.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcArcIndex.htm }
+  TIfcArcIndex = class(TIfcSegmentIndexSelect)
+  strict private
+    FValue: TIntegerList;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+  published
+    property Value: TIntegerList read FValue;
+  end;
+
+  { Bounded curve with only linear and circular arc segments defined by a
+    Cartesian point list and an optional list of segments.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcIndexedPolyCurve.htm }
+  TIfcIndexedPolyCurve = class(TIfcBoundedCurve)
+  strict private
+    FPoints: TIfcCartesianPointListSpec;
+    FSegments: TIfcSegmentIndexSelectList;
+    FSelfIntersect: Boolean;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+    function BuildNode(const Mapping: TCastleIfcMapping): TAbstractChildNode; override;
+  published
+    { Points defining the polyline. }
+    property Points: TIfcCartesianPointListSpec read FPoints write FPoints;
+
+    { List of straight line and circular arc segments, each providing a list
+      of indices into the Cartesian point list. }
+    property Segments: TIfcSegmentIndexSelectList read FSegments;
+
+    { Indication of whether the curve intersects itself or not;
+      this is for information only. }
+    property SelfIntersect: Boolean read FSelfIntersect write FSelfIntersect default false;
   end;
 
   { 3D shape.
@@ -564,6 +797,58 @@
     property OuterCurve: TIfcCurve read FOuterCurve write FOuterCurve;
   end;
 
+  TIfcRoleEnum = (
+    Architect,
+    BuildingOperator,
+    BuildingOwner,
+    CivilEngineer,
+    Client,
+    CommissioningEngineer,
+    ConstructionManager,
+    Consultant,
+    Contractor,
+    CostEngineer,
+    ElectricalEngineer,
+    Engineer,
+    FacilitiesManager,
+    FieldConstructionManager,
+    Manufacturer,
+    MechanicalEngineer,
+    Owner,
+    ProjectManager,
+    Reseller,
+    StructuralEngineer,
+    Subcontractor,
+    Supplier,
+    UserDefined
+  );
+
+  TIfcActorRole = class(TIfcPersistent)
+  strict private
+    FRole: TIfcRoleEnum;
+    FUserDefinedRole: TIfcLabel;
+    FDescription: TIfcText;
+    FHasExternalReference: TIfcExternalReferenceRelationshipList;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+  published
+    { The name of the role played by an actor. }
+    property Role: TIfcRoleEnum read FRole write FRole;
+
+    { Allows for specification of user defined roles
+      beyond the enumeration values provided by @link(Role). }
+    property UserDefinedRole: TIfcLabel read FUserDefinedRole write FUserDefinedRole;
+
+    { A textual description relating the nature of the role played by an actor. }
+    property Description: TIfcText read FDescription write FDescription;
+
+    { Reference to external information, e.g. library, classification,
+      or document information, which is associated with the actor role. }
+    property HasExternalReference: TIfcExternalReferenceRelationshipList read FHasExternalReference;
+  end;
+  TIfcActorRoleList = {$ifdef FPC}specialize{$endif} TObjectList<TIfcActorRole>;
+
   { Person acting on behalf of an organization.
 
     Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcPersonAndOrganization.htm }
@@ -571,7 +856,10 @@
   strict private
     FThePerson: TIfcPerson;
     FTheOrganization: TIfcOrganization;
-    //FRoles: TIfcActorRoleList; // TODO
+    FRoles: TIfcActorRoleList;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
   published
     { Person who is related to the organization. }
     property ThePerson: TIfcPerson read FThePerson write FThePerson;
@@ -580,7 +868,7 @@
     property TheOrganization: TIfcOrganization read FTheOrganization write FTheOrganization;
 
     { Roles played by the person within the context of an organization. }
-    // property Roles: TIfcActorRoleList read FRoles; // TODO
+    property Roles: TIfcActorRoleList read FRoles;
   end;
   TIfcPersonAndOrganizationList = class({$ifdef FPC}specialize{$endif} TObjectList<TIfcPersonAndOrganization>)
   end;
@@ -593,10 +881,10 @@
     FIdentification: TIfcIdentifier;
     FFamilyName: TIfcLabel;
     FGivenName: TIfcLabel;
-    //FMiddleNames: TIfcLabelList;
-    //FPrefixTitles: TIfcLabelList;
-    //FSuffixTitles: TIfcLabelList;
-    //FRoles: TIfcActorRoleList;
+    FMiddleNames: TCastleStringList;
+    FPrefixTitles: TCastleStringList;
+    FSuffixTitles: TCastleStringList;
+    FRoles: TIfcActorRoleList;
     FAddresses: TIfcAddressList;
     FEngagedIn: TIfcPersonAndOrganizationList;
   public
@@ -613,16 +901,18 @@
     property GivenName: TIfcLabel read FGivenName write FGivenName;
 
     { Additional names given to a person. }
-    //property MiddleNames: TIfcLabelList read FMiddleNames; // TODO serialization/deserialization for string list needed
+    property MiddleNames: TCastleStringList read FMiddleNames;
 
-    { The word, or group of words, which specify the person's social and/or professional standing and appear before his/her names. }
-    //property PrefixTitles: TIfcLabelList read FPrefixTitles; // TODO serialization/deserialization for string list needed
+    { The word, or group of words, which specify the person's social
+      and/or professional standing and appear before his/her names. }
+    property PrefixTitles: TCastleStringList read FPrefixTitles;
 
-    { The word, or group of words, which specify the person's social and/or professional standing and appear after his/her names.}
-    //property SuffixTitles: TIfcLabelList read FSuffixTitles; // TODO serialization/deserialization for string list needed
+    { The word, or group of words, which specify the person's social
+      and/or professional standing and appear after his/her names.}
+    property SuffixTitles: TCastleStringList read FSuffixTitles;
 
     { Roles played by the person. }
-    //property Roles: TIfcActorRoleList read FRoles; // TODO
+    property Roles: TIfcActorRoleList read FRoles;
 
     { Postal and telecommunication addresses of a person. }
     property Addresses: TIfcAddressList read FAddresses;
@@ -661,7 +951,7 @@
     FIdentification: TIfcIdentifier;
     FName: TIfcLabel;
     FDescription: TIfcText;
-    //FRoles: TIfcActorRoleList;
+    FRoles: TIfcActorRoleList;
     FAddresses: TIfcAddressList;
     FIsRelatedBy: TIfcOrganizationRelationshipList;
     FRelates: TIfcOrganizationRelationshipList;
@@ -680,7 +970,7 @@
     property Description: TIfcText read FDescription write FDescription;
 
     { Roles played by the organization. }
-    //property Roles: TIfcActorRoleList read FRoles; // TODO
+    property Roles: TIfcActorRoleList read FRoles;
 
     { Postal and telecom addresses of an organization. }
     property Addresses: TIfcAddressList read FAddresses;
@@ -739,6 +1029,44 @@
     property OfOrganization: TIfcOrganizationList read FOfOrganization;
   end;
   TIfcAddressList = class({$ifdef FPC}specialize{$endif} TObjectList<TIfcAddress>)
+  end;
+
+  { Address to which telephone, electronic mail and other forms of
+    telecommunications should be addressed.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcTelecomAddress.htm }
+  TIfcTelecomAddress = class(TIfcAddress)
+  strict private
+    FTelephoneNumbers: TCastleStringList;
+    FFacsimileNumbers: TCastleStringList;
+    FPagerNumber: TIfcLabel;
+    FElectronicMailAddresses: TCastleStringList;
+    FWWWHomePageURL: TIfcURIReference;
+    FMessagingIDs: TCastleStringList;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+  published
+    { The list of telephone numbers at which telephone messages may be received. }
+    property TelephoneNumbers: TCastleStringList read FTelephoneNumbers;
+
+    { The list of fax numbers at which fax messages may be received. }
+    property FacsimileNumbers: TCastleStringList read FFacsimileNumbers;
+
+    { The pager number at which paging messages may be received. }
+    property PagerNumber: TIfcLabel read FPagerNumber write FPagerNumber;
+
+    { The list of Email addresses at which Email messages may be received. }
+    property ElectronicMailAddresses: TCastleStringList read FElectronicMailAddresses;
+
+    { The world wide web address at which the preliminary page of information for the person or organization can be located. }
+    property WWWHomePageURL: TIfcURIReference read FWWWHomePageURL write FWWWHomePageURL;
+
+    { IDs or addresses for any other means of telecommunication, for example
+      instant messaging, voice-over-IP, or file transfer protocols.
+      The communication protocol is indicated by the URI value with
+      scheme designations such as irc:, sip:, or ftp:. }
+    property MessagingIDs: TCastleStringList read FMessagingIDs;
   end;
 
   { IFC compliant application developed by an application developer. }
@@ -953,7 +1281,7 @@
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    function BuildNode(const BaseUrl: String): TTransformNode; virtual;
+    function BuildNode(const Mapping: TCastleIfcMapping): TTransformNode; virtual;
   published
     { Reference to the relationship objects, that assign
       (by an association relationship) other subtypes of IfcObject to
@@ -1122,7 +1450,8 @@
   strict private
     FLocation: TIfcPoint;
   public
-    procedure UpdateNode(const Transform: TTransformNode); virtual;
+    procedure UpdateNode(const Mapping: TCastleIfcMapping;
+      const Transform: TTransformNode); virtual;
   published
     property Location: TIfcPoint read FLocation write FLocation;
 
@@ -1211,6 +1540,42 @@
   TIfcBuiltElementType = class(TIfcElementType)
   end;
 
+  { Defines a list of commonly shared property set definitions of an element
+    and an optional set of product representations.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcDistributionControlElementType.htm }
+  TIfcDistributionControlElementType = class(TIfcElementType)
+  strict private
+    FElementType: TIfcLabel;
+  published
+    { The type denotes a particular type that indicates the object further. }
+    property ElementType: TIfcLabel read FElementType write FElementType;
+  end;
+
+  { Range of different types of actuator that can be specified.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcActuatorTypeEnum.htm }
+  TIfcActuatorTypeEnum = (
+    NotDefined,
+    ElectricActuator,
+    HandOperatedActuator,
+    HydraulicActuator,
+    PneumaticActuator,
+    ThermostaticActuator,
+    UserDefined
+  );
+
+  { Commonly shared information for occurrences of actuators.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcActuatorType.htm }
+  TIfcActuatorType = class(TIfcDistributionControlElementType)
+  strict private
+    FPredefinedType: TIfcActuatorTypeEnum;
+  published
+    property PredefinedType: TIfcActuatorTypeEnum read FPredefinedType write FPredefinedType
+      default TIfcActuatorTypeEnum.NotDefined;
+  end;
+
   { Used for @link(TIfcWindow.PredefinedType) and
     @link(TIfcWindowType.PredefinedType). }
   TIfcWindowTypeEnum = (NotDefined, LightDome, SkyLight, Window, UserDefined);
@@ -1274,7 +1639,8 @@
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    procedure UpdateNode(const Transform: TTransformNode); virtual;
+    procedure UpdateNode(const Mapping: TCastleIfcMapping;
+      const Transform: TTransformNode); virtual;
   published
     { Reference to object placement that provides the relative placement with
       its placement in a grid, local coordinate system or linear referenced
@@ -1401,7 +1767,7 @@
     FExtrudedDirection: TIfcDirection;
     FDepth: TIfcPositiveLengthMeasure;
   public
-    function BuildNode(const BaseUrl: String): TAbstractChildNode; override;
+    function BuildNode(const Mapping: TCastleIfcMapping): TAbstractChildNode; override;
   published
     { The direction in which the surface, provided by SweptArea is to be swept.
       The ExtrudedDirection shall not be perpendicular to the local z-axis. }
@@ -1421,7 +1787,8 @@
   strict private
     FRelativePlacement: TIfcAxis2Placement;
   public
-    procedure UpdateNode(const Transform: TTransformNode); override;
+    procedure UpdateNode(const Mapping: TCastleIfcMapping;
+      const Transform: TTransformNode); override;
   published
     property RelativePlacement: TIfcAxis2Placement read FRelativePlacement write FRelativePlacement;
   end;
@@ -1434,7 +1801,7 @@
     FObjectPlacement: TIfcObjectPlacement;
     FRepresentation: TIfcProductRepresentation;
   public
-    function BuildNode(const BaseUrl: String): TTransformNode; override;
+    function BuildNode(const Mapping: TCastleIfcMapping): TTransformNode; override;
   published
     { Object coordinate system and placement of the product in space. }
     property ObjectPlacement: TIfcObjectPlacement read FObjectPlacement write FObjectPlacement;
@@ -1462,7 +1829,7 @@
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    function BuildNode(const BaseUrl: String): TTransformNode; override;
+    function BuildNode(const Mapping: TCastleIfcMapping): TTransformNode; override;
   published
     property LongName: TIfcLabel read FLongName write FLongName;
     property ContainsElements: TIfcRelContainedInSpatialStructureList read FContainsElements;
@@ -1510,7 +1877,7 @@
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    function BuildNode(const BaseUrl: String): TAbstractChildNode;
+    function BuildNode(const Mapping: TCastleIfcMapping): TAbstractChildNode;
   published
     { Set of products, which are contained within this level of
       the spatial structure hierarchy. }
@@ -1865,6 +2232,7 @@
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
+    function BuildNode(const Mapping: TCastleIfcMapping): TTransformNode; override;
   published
     { The tag (or label) identifier at the particular instance of a product,
       e.g. the serial number, or the position number.
@@ -1977,6 +2345,172 @@
   TIfcBuiltElement = class(TIfcElement)
   end;
 
+  TIfcDoorTypeEnum = (
+    NotDefined,
+    Boom_Barrier,
+    Door,
+    Gate,
+    Trapdoor,
+    Turnstile,
+    UserDefined
+  );
+
+  TIfcDoorTypeOperationEnum = (
+    NotDefined,
+    Double_Door_Double_Swing,
+    Double_Door_Folding,
+    Double_Door_Lifting_Vertical,
+    Double_Door_Single_Swing,
+    Double_Door_Single_Swing_Opposite_Left,
+    Double_Door_Single_Swing_Opposite_Right,
+    Double_Door_Sliding,
+    Double_Swing_Left,
+    Double_Swing_Right,
+    Folding_To_Left,
+    Folding_To_Right,
+    Lifting_Horizontal,
+    Lifting_Vertical_Left,
+    Lifting_Vertical_Right,
+    Revolving,
+    Revolving_Vertical,
+    RollingUp,
+    Single_Swing_Left,
+    Single_Swing_Right,
+    Sliding_To_Left,
+    Sliding_To_Right,
+    Swing_Fixed_Left,
+    Swing_Fixed_Right,
+    UserDefined
+  );
+
+  { Door. }
+  TIfcDoor = class(TIfcBuiltElement)
+  strict private
+    FOverallHeight: TIfcPositiveLengthMeasure;
+    FOverallWidth: TIfcPositiveLengthMeasure;
+    FPredefinedType: TIfcDoorTypeEnum;
+    FOperationType: TIfcDoorTypeOperationEnum;
+    FUserDefinedOperationType: TIfcLabel;
+  published
+    { Overall measure of the height, it reflects the Z Dimension of
+      a bounding box, enclosing the body of the door opening.
+      If omitted, the OverallHeight should be taken from the geometric
+      representation of the IfcOpeningElement in which the door is inserted.
+
+      NOTE The body of the door might be taller then the door opening
+      (e.g. in cases where the door lining includes a casing).
+      In these cases the OverallHeight shall still be given
+      as the door opening height, and not as the total height of the door lining. }
+    property OverallHeight: TIfcPositiveLengthMeasure read FOverallHeight write FOverallHeight;
+
+    { Overall measure of the width, it reflects the X Dimension of
+      a bounding box, enclosing the body of the door opening.
+      If omitted, the OverallWidth should be taken from the geometric
+      representation of the IfcOpeningElement in which the door is inserted.
+
+      NOTE The body of the door might be wider then the door opening
+      (e.g. in cases where the door lining includes a casing).
+      In these cases the OverallWidth shall still be given
+      as the door opening width, and not as the total width of the door lining. }
+    property OverallWidth: TIfcPositiveLengthMeasure read FOverallWidth write FOverallWidth;
+
+    { A list of types to further identify the object.
+      Some property sets may be specifically applicable to one of these types. }
+    property PredefinedType: TIfcDoorTypeEnum read FPredefinedType write FPredefinedType;
+
+    { Type defining the general layout and operation of the door type
+      in terms of the partitioning of panels and panel operations.
+
+      NOTE The OperationType shall only be used, if no type object IfcDoorType
+      is assigned, providing its own IfcDoorType.OperationType. }
+    property OperationType: TIfcDoorTypeOperationEnum read FOperationType write FOperationType;
+
+    { Designator for the user defined operation type, shall only be provided,
+      if the value of OperationType is set to TIfcDoorTypeOperationEnum.UserDefined. }
+    property UserDefinedOperationType: TIfcLabel read FUserDefinedOperationType write FUserDefinedOperationType;
+  end;
+
+  { Shared information for occurrences of doors.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcDoorType.htm }
+  TIfcDoorType = class(TIfcBuiltElementType)
+  strict private
+    FPredefinedType: TIfcDoorTypeEnum;
+    FOperationType: TIfcDoorTypeOperationEnum;
+    FParameterTakesPrecedence: Boolean;
+    FUserDefinedOperationType: TIfcLabel;
+  published
+    { A list of types to further identify the object. }
+    property PredefinedType: TIfcDoorTypeEnum read FPredefinedType write FPredefinedType default TIfcDoorTypeEnum.NotDefined;
+
+    { Type defining the general layout and operation of the door type
+      in terms of the partitioning of panels and panel operations. }
+    property OperationType: TIfcDoorTypeOperationEnum read FOperationType write FOperationType default TIfcDoorTypeOperationEnum.NotDefined;
+
+    { Does the parameter given in the attached
+      lining and panel properties exactly define the geometry (TRUE),
+      or whether the attached style shape take precedence (FALSE).
+      In the last case the parameter have only informative value.
+
+      TODO: If not provided, no such information can be inferred.
+      Should we have 3rd value and make this enum? }
+    property ParameterTakesPrecedence: Boolean read FParameterTakesPrecedence write FParameterTakesPrecedence default false;
+
+    { Designator for the user defined operation type, shall only be provided,
+      if the value of OperationType is set to TIfcDoorTypeOperationEnum.UserDefined. }
+    property UserDefinedOperationType: TIfcLabel read FUserDefinedOperationType write FUserDefinedOperationType;
+  end;
+
+  TIfcSlabTypeEnum = (
+    NotDefined,
+    Approach_Slab,
+    BaseSlab,
+    Floor,
+    Landing,
+    Paving,
+    Roof,
+    Sidewalk,
+    TrackSlab,
+    Wearing,
+    UserDefined
+  );
+
+  { Component of the construction that may enclose a space vertically.
+    The slab may provide the lower support (floor) or upper construction
+    (roof slab) in any space in a building.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcSlab.htm }
+  TIfcSlab = class(TIfcBuiltElement)
+  strict private
+    FPredefinedType: TIfcSlabTypeEnum;
+  published
+    property PredefinedType: TIfcSlabTypeEnum read FPredefinedType write FPredefinedType
+      default TIfcSlabTypeEnum.NotDefined;
+  end;
+
+  TIfcColumnTypeEnum = (
+    NotDefined,
+    Column,
+    PierStem,
+    PierStem_Segment,
+    Pilaster,
+    StandColumn,
+    UserDefined
+  );
+
+  { Vertical structural or architectural member which often is aligned with
+    a structural grid intersection.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcColumn.htm }
+  TIfcColumn = class(TIfcBuiltElement)
+  strict private
+    FPredefinedType: TIfcColumnTypeEnum;
+  published
+    { Predefined generic type for a column that is specified in an enumeration. }
+    property PredefinedType: TIfcColumnTypeEnum read FPredefinedType write FPredefinedType
+      default TIfcColumnTypeEnum.NotDefined;
+  end;
+
   TIfcWallTypeEnum = (
     NotDefined,
     ElementedWall,
@@ -2003,6 +2537,18 @@
     { Predefined generic type for a wall. }
     property PredefinedType: TIfcWallTypeEnum read FPredefinedType write FPredefinedType
       default TIfcWallTypeEnum.NotDefined;
+  end;
+
+  { Shared information for occurrences of walls.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcWallType.htm }
+  TIfcWallType = class(TIfcBuiltElementType)
+  strict private
+    FPredefinedType: TIfcWallTypeEnum;
+  published
+    { Identifies the predefined types of a wall element from which
+      the type required may be set. }
+    property PredefinedType: TIfcWallTypeEnum read FPredefinedType write FPredefinedType default TIfcWallTypeEnum.NotDefined;
   end;
 
   { Wall with certain constraints for the provision of parameters and
@@ -2058,6 +2604,8 @@
   strict private
     FRelatingBuildingElement: TIfcElement;
     FRelatedOpeningElement: TIfcFeatureElementSubtraction;
+  public
+    function BuildNode(const Mapping: TCastleIfcMapping): TAbstractChildNode;
   published
     property RelatingBuildingElement: TIfcElement read FRelatingBuildingElement write FRelatingBuildingElement;
     property RelatedOpeningElement: TIfcFeatureElementSubtraction read FRelatedOpeningElement write FRelatedOpeningElement;
@@ -2075,7 +2623,7 @@
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    function BuildNode(const BaseUrl: String): TAbstractChildNode;
+    function BuildNode(const Mapping: TCastleIfcMapping): TAbstractChildNode;
   published
     property RelatingObject: TIfcObjectDefinition read FRelatingObject write FRelatingObject;
     property RelatedObjects: TIfcObjectDefinitionList read FRelatedObjects;
@@ -2430,8 +2978,11 @@
     FPrecision: TIfcReal;
     FWorldCoordinateSystem: TIfcAxis2Placement;
     FTrueNorth: TIfcDirection;
-    // TODO // FHasSubContexts: TIfcGeometricRepresentationSubContextList;
+    FHasSubContexts: TIfcGeometricRepresentationSubContextList;
     // TODO // FHasCoordinateOperation: TIfcCoordinateOperation;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
   published
     { The integer dimension count of the coordinate space modeled
       in a geometric representation context.}
@@ -2450,10 +3001,58 @@
 
     { The set of IfcGeometricRepresentationSubContexts that refer to this
       IfcGeometricRepresentationContext. }
-    // TODO: property HasSubContexts: TIfcGeometricRepresentationSubContextList read FHasSubContexts;
+    property HasSubContexts: TIfcGeometricRepresentationSubContextList read FHasSubContexts;
 
     { Indicates conversion between coordinate systems. }
     // TODO: property HasCoordinateOperation: TIfcCoordinateOperation read FHasCoordinateOperation write FHasCoordinateOperation;
+  end;
+
+  TIfcGeometricProjectionEnum = (
+    NotDefined,
+    Elevation_View,
+    Graph_View,
+    Model_View,
+    Plan_View,
+    Reflected_Plan_View,
+    Section_View,
+    Sketch_View,
+    UserDefined
+  );
+
+  { Context that applies to several shape representations of a product
+    being a sub context, sharing the WorldCoordinateSystem,
+    CoordinateSpaceDimension, Precision and TrueNorth attributes with
+    the parent IfcGeometricRepresentationContext.  }
+  TIfcGeometricRepresentationSubContext = class(TIfcRepresentationContext)
+  strict private
+    FParentContext: TIfcGeometricRepresentationContext;
+    FTargetScale: TIfcPositiveRatioMeasure;
+    FTargetView: TIfcGeometricProjectionEnum;
+    FUserDefinedTargetView: TIfcLabel;
+  published
+    { Parent context from which the sub context derives its world coordinate system,
+      precision, space coordinate dimension and true north. }
+    property ParentContext: TIfcGeometricRepresentationContext read FParentContext write FParentContext;
+
+    { The target plot scale of the representation to which
+      this representation context applies.
+
+      NOTE Scale indicates the target plot scale for the representation
+      sub context, all annotation styles are given in plot dimensions
+      according to this target plot scale.
+      If multiple instances of IfcGeometricRepresentationSubContext
+      are given having the same TargetView value, the target plot scale
+      applies up to the next smaller scale, or up to unlimited small scale. }
+    property TargetScale: TIfcPositiveRatioMeasure read FTargetScale write FTargetScale;
+
+    { Target view of the representation to which this representation context applies. }
+    property TargetView: TIfcGeometricProjectionEnum read FTargetView write FTargetView;
+
+    { User defined target view, this attribute value shall be given,
+      if the TargetView attribute is set to @link(TIfcGeometricProjectionEnum.UserDefined). }
+    property UserDefinedTargetView: TIfcLabel read FUserDefinedTargetView write FUserDefinedTargetView;
+  end;
+  TIfcGeometricRepresentationSubContextList = class({$ifdef FPC}specialize{$endif} TObjectList<TIfcGeometricRepresentationSubContext>)
   end;
 
   { Relationships between property set definitions and objects.
@@ -2618,7 +3217,7 @@
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    function BuildNode(const BaseUrl: String): TTransformNode; override;
+    function BuildNode(const Mapping: TCastleIfcMapping): TTransformNode; override;
   published
     { The object type denotes a particular type that indicates the object
       further. The use has to be established at the level of instantiable
@@ -2697,7 +3296,7 @@
   { List of TIfcRepresentation. }
   TIfcRepresentationList = class({$ifdef FPC}specialize{$endif} TObjectList<TIfcRepresentation>)
   public
-    function BuildNode(const BaseUrl: String): TAbstractChildNode;
+    function BuildNode(const Mapping: TCastleIfcMapping): TAbstractChildNode;
   end;
 
   TIfcShapeModel = class abstract(TIfcRepresentation)
@@ -2726,7 +3325,7 @@
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    function BuildNode(const BaseUrl: String): TAbstractChildNode;
+    function BuildNode(const Mapping: TCastleIfcMapping): TAbstractChildNode;
   published
     { The word or group of words by which the product representation is known. }
     property Name: TIfcLabel read FName write FName;
@@ -3211,11 +3810,17 @@
     property ReferenceExtent: TIfcPositiveLengthMeasure read FReferenceExtent write FReferenceExtent;
   end;
 
-var
-  { List of all (non-abstract) IFC classes that are defined in this unit.
+{$endif read_interface_types}
 
-    TODO: We didn't strictly check if all classes on this list are non-abstract.
-    In practice, it doesn't matter for current code. }
+{$ifdef read_interface}
+
+var
+  { List of all IFC classes that are defined in this unit.
+
+    This includes all IFC non-abstract classes
+    and also some abstract classes that are referred to by lists
+    (because, to check and resolve references in IFC files,
+    we need to know about them). }
   IfcClasses: TIfcPersistentClassList;
 
 { Make sure IfcClasses is assigned and filled with contents. }
@@ -3517,6 +4122,54 @@ begin
   inherited;
 end;
 
+{ TIfcTelecomAddress --------------------------------------------------------- }
+
+constructor TIfcTelecomAddress.Create(AOwner: TComponent);
+begin
+  inherited;
+  FTelephoneNumbers := TCastleStringList.Create;
+  FFacsimileNumbers := TCastleStringList.Create;
+  FElectronicMailAddresses := TCastleStringList.Create;
+  FMessagingIDs := TCastleStringList.Create;
+end;
+
+destructor TIfcTelecomAddress.Destroy;
+begin
+  FreeAndNil(FTelephoneNumbers);
+  FreeAndNil(FFacsimileNumbers);
+  FreeAndNil(FElectronicMailAddresses);
+  FreeAndNil(FMessagingIDs);
+  inherited;
+end;
+
+{ TIfcActorRole -------------------------------------------------------------- }
+
+constructor TIfcActorRole.Create(AOwner: TComponent);
+begin
+  inherited;
+  FHasExternalReference := TIfcExternalReferenceRelationshipList.Create(false);
+end;
+
+destructor TIfcActorRole.Destroy;
+begin
+  FreeAndNil(FHasExternalReference);
+  inherited;
+end;
+
+{ TIfcPersonAndOrganization -------------------------------------------------- }
+
+constructor TIfcPersonAndOrganization.Create(AOwner: TComponent);
+begin
+  inherited;
+  FRoles := TIfcActorRoleList.Create(false);
+end;
+
+destructor TIfcPersonAndOrganization.Destroy;
+begin
+  FreeAndNil(FRoles);
+  inherited;
+end;
+
 { TIfcPerson --------------------------------------------------------------- }
 
 constructor TIfcPerson.Create(AOwner: TComponent);
@@ -3524,12 +4177,20 @@ begin
   inherited;
   FAddresses := TIfcAddressList.Create(false);
   FEngagedIn := TIfcPersonAndOrganizationList.Create(false);
+  FRoles := TIfcActorRoleList.Create(false);
+  FMiddleNames := TCastleStringList.Create;
+  FPrefixTitles := TCastleStringList.Create;
+  FSuffixTitles := TCastleStringList.Create;
 end;
 
 destructor TIfcPerson.Destroy;
 begin
   FreeAndNil(FAddresses);
   FreeAndNil(FEngagedIn);
+  FreeAndNil(FRoles);
+  FreeAndNil(FMiddleNames);
+  FreeAndNil(FPrefixTitles);
+  FreeAndNil(FSuffixTitles);
   inherited;
 end;
 
@@ -3558,6 +4219,7 @@ begin
   FIsRelatedBy := TIfcOrganizationRelationshipList.Create(false);
   FRelates := TIfcOrganizationRelationshipList.Create(false);
   FEngages := TIfcPersonAndOrganizationList.Create(false);
+  FRoles := TIfcActorRoleList.Create(false);
 end;
 
 destructor TIfcOrganization.Destroy;
@@ -3566,6 +4228,7 @@ begin
   FreeAndNil(FIsRelatedBy);
   FreeAndNil(FRelates);
   FreeAndNil(FEngages);
+  FreeAndNil(FRoles);
   inherited;
 end;
 
@@ -3580,6 +4243,98 @@ end;
 destructor TIfcOrganizationRelationship.Destroy;
 begin
   FreeAndNil(FRelatedOrganizations);
+  inherited;
+end;
+
+{ TIfcTessellatedItem -------------------------------------------------------- }
+
+constructor TIfcTessellatedItem.Create(AOwner: TComponent);
+begin
+  inherited;
+  FLayerAssignment := TIfcPresentationLayerAssignmentList.Create(false);
+end;
+
+destructor TIfcTessellatedItem.Destroy;
+begin
+  FreeAndNil(FLayerAssignment);
+  inherited;
+end;
+
+{ TIfcCartesianPointList2D --------------------------------------------------- }
+
+constructor TIfcCartesianPointList2D.Create(AOwner: TComponent);
+begin
+  inherited;
+  FCoordList := TVector2List.Create;
+  FTagList := TCastleStringList.Create;
+end;
+
+destructor TIfcCartesianPointList2D.Destroy;
+begin
+  FreeAndNil(FCoordList);
+  FreeAndNil(FTagList);
+  inherited;
+end;
+
+{ TIfcCartesianPointList3D --------------------------------------------------- }
+
+constructor TIfcCartesianPointList3D.Create(AOwner: TComponent);
+begin
+  inherited;
+  FCoordList := TVector3List.Create;
+  FTagList := TCastleStringList.Create;
+end;
+
+destructor TIfcCartesianPointList3D.Destroy;
+begin
+  FreeAndNil(FCoordList);
+  FreeAndNil(FTagList);
+  inherited;
+end;
+
+{ TIfcIndexedPolygonalFace --------------------------------------------------- }
+
+constructor TIfcIndexedPolygonalFace.Create(AOwner: TComponent);
+begin
+  inherited;
+  FCoordIndex := TIntegerList.Create;
+  // TODO FToFaceSet := TIfcPolygonalFaceSetList.Create(false);
+end;
+
+destructor TIfcIndexedPolygonalFace.Destroy;
+begin
+  FreeAndNil(FCoordIndex);
+  // TODO FreeAndNil(FToFaceSet);
+  inherited;
+end;
+
+{ TIfcTessellatedFaceSet ----------------------------------------------------- }
+
+constructor TIfcTessellatedFaceSet.Create(AOwner: TComponent);
+begin
+  inherited;
+  // TODO FToFaceSet := TIfcPolygonalFaceSetList.Create(false);
+end;
+
+destructor TIfcTessellatedFaceSet.Destroy;
+begin
+  // TODO FreeAndNil(FToFaceSet);
+  inherited;
+end;
+
+{ TIfcPolygonalFaceSet ------------------------------------------------------- }
+
+constructor TIfcPolygonalFaceSet.Create(AOwner: TComponent);
+begin
+  inherited;
+  FFaces := TIfcIndexedPolygonalFaceList.Create(false);
+  FPnIndex := TIntegerList.Create;
+end;
+
+destructor TIfcPolygonalFaceSet.Destroy;
+begin
+  FreeAndNil(FFaces);
+  FreeAndNil(FPnIndex);
   inherited;
 end;
 
@@ -3684,6 +4439,20 @@ end;
 destructor TIfcRepresentationContext.Destroy;
 begin
   FreeAndNil(FRepresentationsInContext);
+  inherited;
+end;
+
+{ TIfcGeometricRepresentationContext ----------------------------------------- }
+
+constructor TIfcGeometricRepresentationContext.Create(AOwner: TComponent);
+begin
+  inherited;
+  FHasSubContexts := TIfcGeometricRepresentationSubContextList.Create(false);
+end;
+
+destructor TIfcGeometricRepresentationContext.Destroy;
+begin
+  FreeAndNil(FHasSubContexts);
   inherited;
 end;
 
@@ -3932,6 +4701,48 @@ destructor TIfcShapeAspect.Destroy;
 begin
   FreeAndNil(FShapeRepresentations);
   FreeAndNil(FHasExternalReferences);
+  inherited;
+end;
+
+{ TIfcLineIndex ------------------------------------------------------------- }
+
+constructor TIfcLineIndex.Create(AOwner: TComponent);
+begin
+  inherited;
+  FValue := TIntegerList.Create;
+end;
+
+destructor TIfcLineIndex.Destroy;
+begin
+  FreeAndNil(FValue);
+  inherited;
+end;
+
+{ TIfcArcIndex --------------------------------------------------------------- }
+
+constructor TIfcArcIndex.Create(AOwner: TComponent);
+begin
+  inherited;
+  FValue := TIntegerList.Create;
+end;
+
+destructor TIfcArcIndex.Destroy;
+begin
+  FreeAndNil(FValue);
+  inherited;
+end;
+
+{ TIfcIndexedPolyCurve ------------------------------------------------------- }
+
+constructor TIfcIndexedPolyCurve.Create(AOwner: TComponent);
+begin
+  inherited;
+  FSegments := TIfcSegmentIndexSelectList.Create(false);
+end;
+
+destructor TIfcIndexedPolyCurve.Destroy;
+begin
+  FreeAndNil(FSegments);
   inherited;
 end;
 
@@ -4202,6 +5013,27 @@ begin
     IfcClasses.Add(TIfcMaterialRelationship);
     IfcClasses.Add(TIfcMaterialConstituent);
     IfcClasses.Add(TIfcMaterialConstituentSet);
+    IfcClasses.Add(TIfcActuatorType);
+    IfcClasses.Add(TIfcColumn);
+    IfcClasses.Add(TIfcPolygonalFaceSet);
+    IfcClasses.Add(TIfcIndexedPolygonalFace);
+    IfcClasses.Add(TIfcCartesianPointList3D);
+    IfcClasses.Add(TIfcTelecomAddress);
+    IfcClasses.Add(TIfcActorRole);
+    IfcClasses.Add(TIfcSlab);
+    IfcClasses.Add(TIfcIndexedPolyCurve);
+    IfcClasses.Add(TIfcLineIndex);
+    IfcClasses.Add(TIfcArcIndex);
+    IfcClasses.Add(TIfcCartesianPointList2D);
+    IfcClasses.Add(TIfcDoor);
+    IfcClasses.Add(TIfcUnit);
+    IfcClasses.Add(TIfcPersistent);
+    IfcClasses.Add(TIfcRelAssociates);
+    IfcClasses.Add(TIfcProperty);
+    IfcClasses.Add(TIfcSegmentIndexSelect);
+    IfcClasses.Add(TIfcDoorType);
+    IfcClasses.Add(TIfcWallType);
+    IfcClasses.Add(TIfcGeometricRepresentationSubContext);
   end;
 end;
 

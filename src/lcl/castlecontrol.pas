@@ -338,7 +338,7 @@ type
 
     { Current mouse position.
       See @link(TTouch.Position) for a documentation how this is expressed.
-      @deprecated Get and set @link(Container.MousePosition) instead. }
+      @deprecated Get and set @link(TCastleContainer.MousePosition Container.MousePosition) instead. }
     property MousePosition: TVector2 read GetMousePosition write SetMousePosition;
       {$ifdef FPC} deprecated 'use Container.MousePosition' {$endif};
 
@@ -433,8 +433,9 @@ type
     { Automatically make this control focused (receiving key input)
       when user clicks on it.
 
-      If this is @true, consider showing it in some way, e.g. draw something special
-      in OnRender when this control is focused. You can check "Focused" property
+      If this is @true, consider showing it in some way to the user,
+      e.g. show some rectangle frame when this control is focused.
+      You can check "Focused" property
       ( https://lazarus-ccr.sourceforge.io/docs/lcl/controls/twincontrol.focused.html )
       or FormXxx.ActiveControl or register OnEnter / OnExit LCL events. }
     property AutoFocus: Boolean read FAutoFocus write FAutoFocus default false;
@@ -455,7 +456,7 @@ type
       @link(Invalidate) always when you need to redraw the screen.
       Note that the engine components always call @link(Invalidate) when
       necessary, so you really only need to call @link(Invalidate) yourself
-      if you make custom rendering in some @link(TCastleUserInterface.OnRender). }
+      if you make custom rendering in some @link(TCastleUserInterface.Render). }
     property AutoRedisplay: boolean read FAutoRedisplay write SetAutoRedisplay
       default true;
 
@@ -1206,7 +1207,7 @@ begin
   { Note that we don't call here inherited, instead doing everything ourselves. }
   if MakeCurrent then
   begin
-    { clear Invalidated before rendering, so that calling Invalidate in OnRender works }
+    { clear Invalidated before rendering, so that calling Invalidate in TCastleUserInterface.Render works }
     Invalidated := false;
     Container.EventBeforeRender;
     Container.Fps.InternalRenderBegin;

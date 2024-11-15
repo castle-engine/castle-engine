@@ -83,6 +83,10 @@ type
 
     procedure SpineOrientationVar(Spine: Cardinal;
       out Orientation: TVector4);
+
+    { If extrusion is empty, it has no vertexes, no triangles,
+      nothing useful to render. }
+    function Empty: Boolean;
   end;
 
 constructor TExtrusionUtility.Create;
@@ -372,4 +376,9 @@ begin
     RotationMatrixRad(Orientation[3],
       Orientation[0], Orientation[1], Orientation[2]) *
     ScalingMatrix(Vector3(Scale[0], 1, Scale[1]));
+end;
+
+function TExtrusionUtility.Empty: Boolean;
+begin
+  Result := Node.FdCrossSection.Count = 0;
 end;

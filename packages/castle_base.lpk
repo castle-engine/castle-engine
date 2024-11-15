@@ -4564,24 +4564,24 @@ See https://castle-engine.io/license for details.
         <Type Value="Include"/>
       </Item1118>
       <Item1119>
-        <Filename Value="../src/scene/load/ifc/castleinternalloadsaveifc_ifc_types.inc"/>
+        <Filename Value="../src/scene/load/ifc/castleifc_ifc_types.inc"/>
         <Type Value="Include"/>
       </Item1119>
       <Item1120>
-        <Filename Value="../src/scene/load/ifc/castleinternalloadsaveifc_json.inc"/>
+        <Filename Value="../src/scene/load/ifc/castleifc_json.inc"/>
         <Type Value="Include"/>
       </Item1120>
       <Item1121>
-        <Filename Value="../src/scene/load/ifc/castleinternalloadsaveifc_ifc_standard_types.inc"/>
+        <Filename Value="../src/scene/load/ifc/castleifc_ifc_standard_types.inc"/>
         <Type Value="Include"/>
       </Item1121>
       <Item1122>
-        <Filename Value="../src/scene/load/ifc/castleinternalloadsaveifc_x3d.inc"/>
+        <Filename Value="../src/scene/load/ifc/castleifc_x3d.inc"/>
         <Type Value="Include"/>
       </Item1122>
       <Item1123>
-        <Filename Value="../src/scene/load/ifc/castleinternalloadsaveifc.pas"/>
-        <UnitName Value="CastleInternalLoadSaveIfc"/>
+        <Filename Value="../src/scene/load/ifc/castleifc.pas"/>
+        <UnitName Value="CastleIfc"/>
       </Item1123>
       <Item1124>
         <Filename Value="../src/services/steam/castleinternalsteamapi.pas"/>
