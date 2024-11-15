@@ -26,50 +26,15 @@ $cgeCurrentVersion = read_cge_version();
 if (!array_key_exists($cgeCurrentVersion, $cgeVersions)) {
     throw new Exception('Current version ' . $cgeCurrentVersion . ' has no entry in cgeVersions table');
 }
-?>
 
-</div> <!-- .pasdoc-container -->
+echo '</div> <!-- .pasdoc-container -->';
 
-</div> <!-- behave like castle_footer when $castle_sidebar is empty -->
+// end div, just like castle_footer when $castle_sidebar is empty.
+// Note: This is not included in echo_shared_body_end,
+// though it is required to match echo_shared_body_begin.
+echo '</div>';
 
-<?php
-echo_footer();
-
-/* Below is copied from castle-engine-website-base/kambi_common.php */
-?>
-<!-- jQuery (necessary for Bootstrap's JavaScript plugins).
-     Used also by colorbox.
-
-     For API reference: load jQuery only if not loaded yet, otherwise
-     Tipue search results are broken (since they load a duplicate jQuery earlier).
-     The code to load jQuery conditionally is from
-     http://stackoverflow.com/questions/10371211/include-jquery-if-not-included-already
--->
-<script type="text/javascript">
-    if(typeof jQuery == 'undefined'){
-        document.write('<script type="text/javascript" src="<?php echo page_requisite('castle-engine-website-base/node_modules/jquery/dist/jquery.min.js'); ?>"></'+'script>');
-
-        /* This looks nicer, but to make it work, also the following colorbox and bootstrap JS
-           have to be loaded the same way. Otherwise, colorbox and bootstrap JS are loaded
-           too early, and they don't work.
-        var oScriptElem = document.createElement("script");
-        oScriptElem.type = "text/javascript";
-        oScriptElem.src = "<?php echo page_requisite('castle-engine-website-base/node_modules/jquery/dist/jquery.min.js'); ?>";
-        document.head.insertBefore(oScriptElem, document.head.getElementsByTagName("script")[0])
-        */
-    }
-</script>
-<!-- Include colorbox after jQuery is known -->
-<script src="<?php echo page_requisite('castle-engine-website-base/node_modules/jquery-colorbox/jquery.colorbox-min.js'); ?>" type="text/javascript"></script>
-<script type="text/javascript">
-  jQuery('a.screenshot').colorbox({opacity: 0.9, rel:'screenshot', maxWidth:'90%', maxHeight:'90%'});
-</script>
-<!-- Include all compiled plugins (below), or include individual files as needed -->
-<script src="<?php echo page_requisite('castle-engine-website-base/node_modules/bootstrap/dist/js/bootstrap.min.js'); ?>"></script>
-<!-- JS using jquery -->
-<script type="text/javascript" src="<?php echo page_requisite('castle-engine-website-base/castle-engine.js'); ?>"></script>
-
-<?php
+echo_shared_body_end();
 
 /* Add JavaScript code specially for PasDoc docs. */
 echo "<script type='text/javascript'>
