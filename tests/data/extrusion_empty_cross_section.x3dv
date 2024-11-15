@@ -1,0 +1,10 @@
+#X3D V3.2 utf8
+PROFILE Interchange
+
+# This used to cause errors, fixed on 2024-11-13
+
+Shape {
+  geometry Extrusion {
+    crossSection [ ]
+  }
+}

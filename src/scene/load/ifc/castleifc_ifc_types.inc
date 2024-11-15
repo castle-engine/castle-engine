@@ -48,7 +48,7 @@
       is just an arbitrary string.
 
       Note: IFC 4.3 specification puts this only at IfcRoot, not at every IFC class.
-      But testcase https://github.com/buildingSMART/Sample-Test-Files/blob/master/IFC%204.0/BuildingSMARTSpec/wall-with-opening-and-window.json
+      But testcase https://github.com/buildingsmart-community/Community-Sample-Test-Files/blob/main/IFC%204.0.2.1%20(IFC%204)/ISO%20Spec%20archive/wall-with-opening-and-window.json
       (from IFC 4.0) shows this can be present at any IFC class. }
     property GlobalId: String read FGlobalId write FGlobalId;
   end;

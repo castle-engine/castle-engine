@@ -17,35 +17,86 @@
 { IFC conversion to X3D. }
 
 {$ifdef read_interface_types}
-  TObjectPlacementToParentNodes =
-    {$ifdef FPC}specialize{$endif} TDictionary<TIfcObjectPlacement, TTransformNode>;
-  TChildrenNodesToObjectPlacement =
-    {$ifdef FPC}specialize{$endif} TDictionary<TTransformNode, TIfcObjectPlacement>;
 
-  { Information and actions useful to all node-building routines
-    that build/update X3D stuff from IFC. }
+  { Maintains mapping between IFC concepts and X3D nodes.
+    Allows to comfortably load IFC file and convert it to X3D multple
+    times (using @link(Load), @link(Update), @link(RootNode)).
+    Allows also to resolve X3D nodes back to IFC concepts
+    (using @link(NodeToProduct)). }
   TCastleIfcMapping = class
-  private
+  strict private
+    FBaseUrl: String;
+    FRootNode: TX3DRootNode;
+
     { Use ObjectPlacementToParentNodes and ChildrenNodesToObjectPlacement
       to move the nodes (change parents) to reflect
       TIfcObjectPlacement.PlacementRelTo instructions. }
     procedure FixParentChildRelationships;
+  private
+    { Within the CastleIfc unit, this class is a container for information
+      and actions useful to all
+      node-building routines that build/update X3D stuff from IFC.
+      The things below are used by BuildNode methods of IFC classes. }
+
+    type
+      TObjectPlacementToParentNodes =
+        {$ifdef FPC}specialize{$endif} TDictionary<TIfcObjectPlacement, TTransformNode>;
+      TChildrenNodesToObjectPlacement =
+        {$ifdef FPC}specialize{$endif} TDictionary<TTransformNode, TIfcObjectPlacement>;
+
+    var
+      { Map each encountered TIfcObjectPlacement to an X3D TTransformNode. }
+      ObjectPlacementToParentNodes: TObjectPlacementToParentNodes;
+
+      { Map each children node (TTransformNode) to a desired parent,
+        expressed as TIfcObjectPlacement.
+        Together, ObjectPlacementToParentNodes and ChildrenNodesToObjectPlacement
+        allow to set the visual transformation (parent-child relationships
+        between X3D nodes) to follow IFC TIfcObjectPlacement.PlacementRelTo idea. }
+      ChildrenNodesToObjectPlacement: TChildrenNodesToObjectPlacement;
+
+      { Appearance of the current object definition being built.
+        TODO: keeping one current appearance like this is a simplification,
+        materials should be passed down to product children and only to them. }
+      CurrentAppearance: TAppearanceNode;
+
+    { BaseUrl should be passed to all X3D nodes created by this class,
+      so they have TX3DRootNode.BaseUrl equal to this. }
+    property BaseUrl: String read FBaseUrl;
   public
-    BaseUrl: String;
+    { Load IFC instance (TIfcFile) converting it to a new X3D node
+      (available in @link(RootNode)).
 
-    { Map each encountered TIfcObjectPlacement to an X3D TTransformNode. }
-    ObjectPlacementToParentNodes: TObjectPlacementToParentNodes;
+      The BaseUrl will be used to resolve relative URLs,
+      e.g. texture URLs mentioned in IFC information.
 
-    { Map each children node (TTransformNode) to a desired parent,
-      expressed as TIfcObjectPlacement.
-      Together, ObjectPlacementToParentNodes and ChildrenNodesToObjectPlacement
-      allow to set the visual transformation (parent-child relationships
-      between X3D nodes) to follow IFC TIfcObjectPlacement.PlacementRelTo idea. }
-    ChildrenNodesToObjectPlacement: TChildrenNodesToObjectPlacement;
+      After calling this (and before destroying this class or calling
+      @link(Load) again) remember to free the resulting @link(RootNode),
+      it is not freed automatically by this class (because in all practical
+      use-cases, you want to keep the X3D node around,
+      e.g. to be owned by TCastleScene or freed manually later). }
+    procedure Load(const Ifc: TIfcFile; const ABaseUrl: String);
 
-    constructor Create;
-    destructor Destroy; override;
+    { Latest X3D root node, built from the latest IFC instance. }
+    property RootNode: TX3DRootNode read FRootNode;
+
+    { Update the nodes in @link(RootNode) based on the new IFC contents.
+      Call this only after calling @link(Load) once.
+
+      Tries to be efficient and do as little work as possible
+      and update X3D graph in @link(RootNode) to reflect the new IFC contents.
+      For example, changing a translation in IFC will just change the corresponding
+      @link(TTransformNode.Translation), without recreating any X3D nodes. }
+    procedure Update(const Ifc: TIfcFile);
+
+    { For a shape node (TShapeNode), return the corresponding IFC product
+      (TIfcProduct descendant, like a TIfcWall, TIfcWindow, TIfcDoor).
+      Returns @nil if cannot be determined.
+      Assumes that the nodes have been updated to reflect the latest state
+      of the IFC classes using @link(Update). }
+    function NodeToProduct(const Node: TShapeNode): TIfcProduct;
   end;
+
 {$endif read_interface_types}
 
 {$ifdef read_interface}
@@ -75,20 +126,6 @@ begin
 end;
 
 { TCastleIfcMapping ---------------------------------------------------------- }
-
-constructor TCastleIfcMapping.Create;
-begin
-  inherited;
-  ObjectPlacementToParentNodes := TObjectPlacementToParentNodes.Create;
-  ChildrenNodesToObjectPlacement := TChildrenNodesToObjectPlacement.Create;
-end;
-
-destructor TCastleIfcMapping.Destroy;
-begin
-  FreeAndNil(ObjectPlacementToParentNodes);
-  FreeAndNil(ChildrenNodesToObjectPlacement);
-  inherited;
-end;
 
 procedure TCastleIfcMapping.FixParentChildRelationships;
 
@@ -175,6 +212,37 @@ begin
       end;
     end;
   end;
+end;
+
+procedure TCastleIfcMapping.Load(const Ifc: TIfcFile; const ABaseUrl: String);
+begin
+  { Node that we don't free previous FRootNode, we don't own it. }
+
+  { Initialize things used only temporarily during Load. }
+  ObjectPlacementToParentNodes := TObjectPlacementToParentNodes.Create;
+  ChildrenNodesToObjectPlacement := TChildrenNodesToObjectPlacement.Create;
+  try
+    FBaseUrl := ABaseUrl;
+
+    // do the actual work
+    FRootNode := Ifc.BuildNode(Self);
+    FixParentChildRelationships;
+  finally
+    FreeAndNil(ObjectPlacementToParentNodes);
+    FreeAndNil(ChildrenNodesToObjectPlacement);
+    FreeIfUnusedAndNil(CurrentAppearance);
+  end;
+end;
+
+procedure TCastleIfcMapping.Update(const Ifc: TIfcFile);
+begin
+  // TODO, decide also do we take new BaseUrl
+end;
+
+function TCastleIfcMapping.NodeToProduct(const Node: TShapeNode): TIfcProduct;
+begin
+  // TODO
+  Result := nil;
 end;
 
 { BuildNode methods implementations ----------------------------------------- }
@@ -277,6 +345,101 @@ begin
     Group.AddChildren(RelatedOpeningElement.BuildNode(Mapping));
 end;
 
+procedure TIfcCartesianPointList2D.UpdateCoordinate(const Coord: TCoordinateNode);
+var
+  I: Integer;
+begin
+  Coord.FdPoint.Count := CoordList.Count;
+  for I := 0 to CoordList.Count - 1 do
+    Coord.FdPoint.Items[I] := Vector3(CoordList[I], 0);
+end;
+
+procedure TIfcCartesianPointList3D.UpdateCoordinate(const Coord: TCoordinateNode);
+// var
+//   I: Integer;
+begin
+  Coord.FdPoint.Items.Assign(CoordList);
+  // Coord.FdPoint.Count := CoordList.Count;
+  // for I := 0 to CoordList.Count - 1 do
+  //   Coord.FdPoint.Items[I] := CoordList[I];
+end;
+
+{ UpdateCrossSection method overrides ---------------------------------------- }
+
+procedure TIfcCurve.UpdateCrossSection(const Extrusion: TExtrusionNode);
+var
+  CrossSection: TVector2List;
+
+  procedure HandleIndexedLineSetNode(const IndexedLineSet: TIndexedLineSetNode);
+  var
+    Coord: TCoordinateNode;
+    I, Index: Integer;
+  begin
+    Coord := IndexedLineSet.Coord as TCoordinateNode;
+    for I := 0 to IndexedLineSet.FdCoordIndex.Count - 1 do
+    begin
+      Index := IndexedLineSet.FdCoordIndex.Items[I];
+      if Index < 0 then
+      begin
+        WritelnWarning('IFC', 'TODO: Unsupported IfcIndexedPolyCurve for extrusion cross section (we need to split into multiple X3D Extrusions to handle disjoint sections)');
+      end else
+        CrossSection.Add(Coord.FdPoint.Items[Index].XY);
+    end;
+  end;
+
+  procedure HandleLineSetNode(const LineSet: TLineSetNode);
+  var
+    Coord: TCoordinateNode;
+    I: Integer;
+  begin
+    Coord := LineSet.Coord as TCoordinateNode;
+    for I := 0 to Coord.FdPoint.Count - 1 do
+      CrossSection.Add(Coord.FdPoint.Items[I].XY);
+  end;
+
+var
+  Shape: TShapeNode;
+  Mapping: TCastleIfcMapping;
+begin
+  CrossSection := TVector2List.Create;
+  try
+    Mapping := TCastleIfcMapping.Create;
+    try
+      Shape := BuildNode(Mapping) as TShapeNode;
+      try
+        if Shape.Geometry <> nil then
+        begin
+          if Shape.Geometry is TIndexedLineSetNode then
+            HandleIndexedLineSetNode(TIndexedLineSetNode(Shape.Geometry))
+          else
+          if Shape.Geometry is TLineSetNode then
+            HandleLineSetNode(TLineSetNode(Shape.Geometry))
+          else
+          if Shape.Geometry <> nil then
+            WritelnWarning('IFC', 'Unsupported Shape.Geometry class for TIfcCurve.UpdateCrossSection: ' + Shape.Geometry.ClassName);
+        end;
+      finally FreeIfUnusedAndNil(Shape) end;
+    finally FreeAndNil(Mapping) end;
+
+    // actually use our CrossSection contents, this is all we wanted to calculate
+    Extrusion.SetCrossSection(CrossSection);
+  finally FreeAndNil(CrossSection) end;
+end;
+
+procedure TIfcPolyline.UpdateCrossSection(const Extrusion: TExtrusionNode);
+var
+  CrossSection: TVector2List;
+  I: Integer;
+begin
+  CrossSection := TVector2List.Create;
+  try
+    CrossSection.Count := Points.Count;
+    for I := 0 to Points.Count - 1 do
+      CrossSection[I] := Points[I].Coordinates.Value.XY;
+    Extrusion.SetCrossSection(CrossSection);
+  finally FreeAndNil(CrossSection) end;
+end;
+
 { BuildNode of TIfcRepresentationItem and descendants ------------------------- }
 
 function TIfcRepresentationItem.BuildNode(const Mapping: TCastleIfcMapping): TAbstractChildNode;
@@ -302,30 +465,74 @@ begin
 
   Shape := TShapeNode.Create('', Mapping.BaseUrl);
   Shape.Geometry := LineSet;
+  // lines are best displayed as unlit geometry, different material would be useful
+  // Shape.Appearance := Mapping.CurrentAppearance;
   SetMetadata(Shape, 'IFC_ClassName', ClassName);
 
   Result := Shape;
 end;
 
-procedure TIfcPolyline.UpdateCrossSection(const Extrusion: TExtrusionNode);
+function TIfcIndexedPolyCurve.BuildNode(const Mapping: TCastleIfcMapping): TAbstractChildNode;
 var
-  CrossSection: TVector2List;
-  I: Integer;
+  Shape: TShapeNode;
+  IndexedLineSet: TIndexedLineSetNode;
+  LineSet: TLineSetNode;
+  Coord: TCoordinateNode;
+  Segment: TIfcSegmentIndexSelect;
+  LineIndex: TIfcLineIndex;
+  ArcIndex: TIfcArcIndex;
 begin
-  CrossSection := TVector2List.Create;
-  try
-    CrossSection.Count := Points.Count;
-    for I := 0 to Points.Count - 1 do
-      CrossSection[I] := Points[I].Coordinates.Value.XY;
-    Extrusion.SetCrossSection(CrossSection);
-  finally FreeAndNil(CrossSection) end;
+  Coord := TCoordinateNode.Create('', Mapping.BaseUrl);
+  Points.UpdateCoordinate(Coord);
+
+  Shape := TShapeNode.Create('', Mapping.BaseUrl);
+  // lines are best displayed as unlit geometry, different material would be useful
+  // Shape.Appearance := Mapping.CurrentAppearance;
+  SetMetadata(Shape, 'IFC_ClassName', ClassName);
+
+  if Segments.Count = 0 then
+  begin
+    { IFC spec says that Segments are optional:
+      "In the case that the list of Segments is not provided,
+      all points in the IfcCartesianPointList are connected by straight
+      line segments in the order they appear in the IfcCartesianPointList." }
+
+    LineSet := TLineSetNode.Create('', Mapping.BaseUrl);
+    LineSet.Coord := Coord;
+    LineSet.SetVertexCount([Coord.FdPoint.Count]);
+    Shape.Geometry := LineSet;
+  end else
+  begin
+    IndexedLineSet := TIndexedLineSetNode.Create('', Mapping.BaseUrl);
+    IndexedLineSet.Coord := Coord;
+    IndexedLineSet.Mode := lmStrip;
+    Shape.Geometry := IndexedLineSet;
+
+    for Segment in Segments do
+    begin
+      if Segment is TIfcLineIndex then
+      begin
+        LineIndex := TIfcLineIndex(Segment);
+        IndexedLineSet.FdCoordIndex.Items.AddRange(LineIndex.Value);
+        IndexedLineSet.FdCoordIndex.Items.Add(-1);
+      end else
+      if Segment is TIfcArcIndex then
+      begin
+        ArcIndex := TIfcArcIndex(Segment);
+        IndexedLineSet.FdCoordIndex.Items.AddRange(ArcIndex.Value);
+        IndexedLineSet.FdCoordIndex.Items.Add(-1);
+      end else
+        WritelnWarning('IFC', 'Unsupported Segment class: ' + Segment.ClassName);
+    end;
+  end;
+
+  Result := Shape;
 end;
 
 function TIfcExtrudedAreaSolid.BuildNode(const Mapping: TCastleIfcMapping): TAbstractChildNode;
 var
   Extrusion: TExtrusionNode;
   SweptAreaProf: TIfcArbitraryClosedProfileDef;
-  SweptAreaCurvePolyline: TIfcPolyline;
   Shape: TShapeNode;
 begin
   Extrusion := TExtrusionNode.Create('', Mapping.BaseUrl);
@@ -336,15 +543,14 @@ begin
   if SweptArea is TIfcArbitraryClosedProfileDef then // also checks is it <> nil
   begin
     SweptAreaProf := TIfcArbitraryClosedProfileDef(SweptArea);
-    if SweptAreaProf.OuterCurve is TIfcPolyline then
-    begin
-      SweptAreaCurvePolyline := TIfcPolyline(SweptAreaProf.OuterCurve);
-      SweptAreaCurvePolyline.UpdateCrossSection(Extrusion);
-    end;
-  end;
+    SweptAreaProf.OuterCurve.UpdateCrossSection(Extrusion);
+  end else
+  if SweptArea <> nil then
+    WritelnWarning('IFC', 'Unsupported IfcExtrudedAreaSolid.SweptArea class: ' + SweptArea.ClassName);
 
   Shape := TShapeNode.Create('', Mapping.BaseUrl);
   Shape.Geometry := Extrusion;
+  Shape.Appearance := Mapping.CurrentAppearance;
   SetMetadata(Shape, 'IFC_ClassName', ClassName);
 
   Result := Shape;
@@ -380,6 +586,7 @@ begin
 
   Shape := TShapeNode.Create('', Mapping.BaseUrl);
   Shape.Geometry := IndexedFaceSet;
+  Shape.Appearance := Mapping.CurrentAppearance;
   SetMetadata(Shape, 'IFC_ClassName', ClassName);
 
   Result := Shape;
@@ -388,6 +595,30 @@ end;
 { BuildNode of TIfcObjectDefinition and descendants -------------------------- }
 
 function TIfcObjectDefinition.BuildNode(const Mapping: TCastleIfcMapping): TTransformNode;
+
+  { Derive X3D TAppearanceNode from IFC TIfcObjectDefinition.HasAssociations. }
+  function AppearanceFromAssociations(const Associations: TIfcRelAssociatesList): TAppearanceNode;
+  begin
+    (*
+    for Rel in Associations do
+    begin
+      if Rel is TIfcRelAssociatesMaterial then
+      begin
+        RelMat := TIfcRelAssociatesMaterial(Rel);
+        Result := TAppearanceNode.Create('', Mapping.BaseUrl);
+        Result.Material := TPhysicalMaterialNode.Create('', Mapping.BaseUrl);
+        // we would like to set Result.Material.BaseColor based on IFC information,
+        // but it seems IFC materials don't specify simple color
+        Exit;
+      end;
+    *)
+
+    Result := TAppearanceNode.Create('', Mapping.BaseUrl);
+    //Result.Material := TPhysicalMaterialNode.Create('', Mapping.BaseUrl);
+    // Phong material looks better alone, with default color and lighting
+    Result.Material := TMaterialNode.Create('', Mapping.BaseUrl);
+  end;
+
 var
   RelAggregates: TIfcRelAggregates;
 begin
@@ -395,6 +626,10 @@ begin
   SetMetadata(Result, 'IFC_ClassName', ClassName);
   SetMetadata(Result, 'IFC_Name', Name);
   SetMetadata(Result, 'IFC_Description', Description);
+
+  // Things inside IsDecomposedBy are affected by given material
+  FreeIfUnusedAndNil(Mapping.CurrentAppearance);
+  Mapping.CurrentAppearance := AppearanceFromAssociations(HasAssociations);
 
   for RelAggregates in IsDecomposedBy do
     Result.AddChildren(RelAggregates.BuildNode(Mapping));
@@ -429,7 +664,11 @@ begin
 
   // TODO: This is just for debug, the things in HasOpenings should actually subtract geometry
   for RelVoidsElement in HasOpenings do
+  begin
+    // debug: make material transparent if something has holes
+    (Mapping.CurrentAppearance.Material as TMaterialNode).Transparency := 0.2;
     Result.AddChildren(RelVoidsElement.BuildNode(Mapping));
+  end;
 end;
 
 function TIfcContext.BuildNode(const Mapping: TCastleIfcMapping): TTransformNode;
@@ -480,9 +719,8 @@ var
 begin
   Mapping := TCastleIfcMapping.Create;
   try
-    Mapping.BaseUrl := BaseUrl;
-    Result := Ifc.BuildNode(Mapping);
-    Mapping.FixParentChildRelationships;
+    Mapping.Load(Ifc, BaseUrl);
+    Result := Mapping.RootNode;
   finally FreeAndNil(Mapping) end;
 end;
 
