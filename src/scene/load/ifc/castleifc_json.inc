@@ -1,4 +1,4 @@
-{%MainUnit castleinternalloadsaveifc.pas}
+{%MainUnit castleifc.pas}
 {
   Copyright 2024-2024 Michalis Kamburelis.
 
@@ -29,44 +29,56 @@
   and you want to free everything by just freeing the resulting
   TIfcFile instance, then just create all IFC instances with the owner
   being the returned TIfcFile instance. }
-function IfcJsonLoad(const Json: TJsonData): TIfcFile;
+function IfcJsonLoad(const Json: TJsonData): TIfcFile; overload;
+function IfcJsonLoad(const Url: String): TIfcFile; overload;
 
 { Save IFC to JSON. }
-function IfcJsonSave(const IfcFile: TIfcFile): TJsonObject;
+function IfcJsonSave(const IfcFile: TIfcFile): TJsonObject; overload;
+procedure IfcJsonSave(const IfcFile: TIfcFile; const Url: String); overload;
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
-{ Simple hack to detect does given object is a TObjectList<xxx> specialization.
-  They don't share any common ancestor in Generics.Collections in FPC,
+{ Simple hack to detect does given object is a TObjectList<xxx> specialization
+  and is a list of IFC classes.
+
+  Reason: TObjectList<xxx> don't share any common ancestor
+  in Generics.Collections in FPC,
   so there's no obvious "is" check to do this.
   This hack seems acceptable in this case -- as this is only internal
   and has to account only for classes inside
-  our own castleinternalloadsaveifc_ifc_standard_types.inc,
+  our own castleifc_ifc_standard_types.inc,
   so we can rely on our own naming conventions. }
 function ClassNameOfList(const PotentialListClassName: String): Boolean;
 begin
   Result :=
-    IsSuffix('List', PotentialListClassName, false) or
-    IsPrefixSuffix('TObjectList<', '>', PotentialListClassName, false);
+    IsPrefixSuffix('TIfc', 'List', PotentialListClassName, false) or
+    IsPrefixSuffix('TObjectList<TIfc', '>', PotentialListClassName, false) or
+    IsPrefixSuffix('TObjectList<CastleIfc.TIfc', '>', PotentialListClassName, false);
 end;
 
-{ For a list in castleinternalloadsaveifc_ifc_standard_types.inc,
+{ For a list of IFC classes in castleifc_ifc_standard_types.inc,
   return the class of the list children. }
 function ClassOfListChildren(const List: TObject): TIfcPersistentClass;
 var
   ChildClassName: String;
 begin
-  if IsPrefixSuffix('TObjectList<', '>', List.ClassName, false) then
-    ChildClassName := PrefixSuffixRemove('TObjectList<', '>', List.ClassName, false)
+  if IsPrefixSuffix('TIfc', 'List', List.ClassName, false) then
+    ChildClassName := PrefixSuffixRemove('TIfc', 'List', List.ClassName, false)
   else
-  if IsPrefixSuffix('T', 'List', List.ClassName, false) then
-    ChildClassName := PrefixSuffixRemove('T', 'List', List.ClassName, false)
+  if IsPrefixSuffix('TObjectList<TIfc', '>', List.ClassName, false) then
+    ChildClassName := PrefixSuffixRemove('TObjectList<TIfc', '>', List.ClassName, false)
+  else
+  if IsPrefixSuffix('TObjectList<CastleIfc.TIfc', '>', List.ClassName, false) then
+    ChildClassName := PrefixSuffixRemove('TObjectList<CastleIfc.TIfc', '>', List.ClassName, false)
   else
     raise EInvalidIfc.CreateFmt('Cannot determine list children class from list class: %s', [
       List.ClassName
     ]);
+
+  // readd "Ifc" prefix, we want it for FindIfcType
+  ChildClassName := 'Ifc' + ChildClassName;
 
   Result := IfcClasses.FindIfcType(ChildClassName);
   if Result = nil then
@@ -94,7 +106,7 @@ end;
     },
 
   Both forms are found in practice, see
-  https://github.com/buildingSMART/Sample-Test-Files/blob/master/IFC%204.0/BuildingSMARTSpec/wall-with-opening-and-window.json
+  https://github.com/buildingsmart-community/Community-Sample-Test-Files/blob/main/IFC%204.0.2.1%20(IFC%204)/ISO%20Spec%20archive/wall-with-opening-and-window.json
   and a version of it imported + exported by Bonsai BIM.
 *)
 function JsonToString(const JsonValue: TJsonData; const DebugJsonKey: String): String;
@@ -107,11 +119,14 @@ begin
     JsonObj := JsonValue as TJsonObject;
     JsonObjType := JsonObj.Get('type', '');
     if (JsonObjType = 'IfcLabel') or
-        (JsonObjType = 'IfcText') then
+       (JsonObjType = 'IfcText') or
+       (JsonObjType = 'IfcIdentifier') or
+       // hack to read IfcValue from TIfcPropertySingleValue.NominalValue into String
+       (DebugJsonKey = 'IfcPropertySingleValue.nominalValue') then
       Result := JsonObj.Get('value', '')
     else
     begin
-      WritelnWarning('IFC', 'IFC field "%s" is a JSON object, but not of type "IfcLabel" or "IfcText", ignoring', [
+      WritelnWarning('IFC', 'IFC field "%s" is a JSON object, but not of type "IfcLabel" or "IfcText" or "IfcIdentifier", ignoring', [
         DebugJsonKey
       ]);
       Result := '';
@@ -141,11 +156,12 @@ begin
   begin
     JsonObj := JsonValue as TJsonObject;
     JsonObjType := JsonObj.Get('type', '');
-    if JsonObjType = 'IfcTimeStamp' then
+    if (JsonObjType = 'IfcTimeStamp') or
+       (JsonObjType = 'IfcDimensionCount') then
       Result := JsonObj.Get('value', Int64(0))
     else
     begin
-      WritelnWarning('IFC', 'IFC field "%s" is a JSON object, but not of type "IfcTimeStamp", ignoring', [
+      WritelnWarning('IFC', 'IFC field "%s" is a JSON object, but not of type "IfcTimeStamp" or "IfcDimensionCount", ignoring', [
         DebugJsonKey
       ]);
       Result := 0;
@@ -167,7 +183,7 @@ end;
     }
 
   Both forms are found in practice, see
-  https://github.com/buildingSMART/Sample-Test-Files/blob/master/IFC%204.0/BuildingSMARTSpec/wall-with-opening-and-window.json
+  https://github.com/buildingsmart-community/Community-Sample-Test-Files/blob/main/IFC%204.0.2.1%20(IFC%204)/ISO%20Spec%20archive/wall-with-opening-and-window.json
   and a version of it imported + exported by Bonsai BIM.
 *)
 function JsonToFloat(const JsonValue: TJsonData; const DebugJsonKey: String): Single;
@@ -180,8 +196,9 @@ begin
     JsonObj := JsonValue as TJsonObject;
     JsonObjType := JsonObj.Get('type', '');
     if (JsonObjType = 'IfcPositiveLengthMeasure') or
-        (JsonObjType = 'IfcLengthMeasure') or
-        (JsonObjType = 'IfcReal') then
+       (JsonObjType = 'IfcNonNegativeLengthMeasure') or
+       (JsonObjType = 'IfcLengthMeasure') or
+       (JsonObjType = 'IfcReal') then
       Result := JsonObj.Get('value', 0.0)
     else
     begin
@@ -192,6 +209,49 @@ begin
     end;
   end else
     Result := JsonValue.AsFloat;
+end;
+
+{ Read JSON array into TVector2 }
+function JsonToVector2(const JsonChildArray: TJsonArray; const DebugJsonKey: String): TVector2;
+var
+  I: Integer;
+begin
+  Result := TVector2.Zero;
+  for I := 0 to Result.Count - 1 do
+    if I < JsonChildArray.Count then
+      Result.Data[I] := JsonToFloat(JsonChildArray.Items[I], DebugJsonKey);
+end;
+
+{ Read JSON array into TVector3 }
+function JsonToVector3(const JsonChildArray: TJsonArray; const DebugJsonKey: String): TVector3;
+var
+  I: Integer;
+begin
+  Result := TVector3.Zero;
+  for I := 0 to Result.Count - 1 do
+    if I < JsonChildArray.Count then
+      Result.Data[I] := JsonToFloat(JsonChildArray.Items[I], DebugJsonKey);
+end;
+
+{ Read JSON array into TVector4 }
+function JsonToVector4(const JsonChildArray: TJsonArray; const DebugJsonKey: String): TVector4;
+var
+  I: Integer;
+begin
+  Result := TVector4.Zero;
+  for I := 0 to Result.Count - 1 do
+    if I < JsonChildArray.Count then
+      Result.Data[I] := JsonToFloat(JsonChildArray.Items[I], DebugJsonKey);
+end;
+
+{ Return random GUID, formatted as common in IFC JSON encoding. }
+function RandomGuidIfc: String;
+var
+  MyGuid: TGUID;
+begin
+  CreateGUID(MyGuid);
+  Result := PrefixRemove('{', SuffixRemove('}', GUIDToString(MyGuid), false), false);
+  Result := LowerCase(Result);
 end;
 
 function IfcJsonLoad(const Json: TJsonData): TIfcFile;
@@ -261,7 +321,7 @@ var
 
         This workarounds invalid (as far as I know) IFC files,
         since they should always have "type" specified,
-        but e.g. https://github.com/buildingSMART/Sample-Test-Files/blob/master/IFC%204.0/BuildingSMARTSpec/wall-with-opening-and-window.json
+        but e.g. https://github.com/buildingsmart-community/Community-Sample-Test-Files/blob/main/IFC%204.0.2.1%20(IFC%204)/ISO%20Spec%20archive/wall-with-opening-and-window.json
         has 2 occurences when "type" is not specified.)
     }
     function CreateIfcInstance(const JsonChildObj: TJsonObject;
@@ -325,23 +385,14 @@ var
     procedure ReadIfcChildVector3(const PropInfo: PPropInfo;
       const JsonChildArray: TJsonArray);
     var
-      I: Integer;
       VectorPersistent: TCastleVector3Persistent;
-      Vector: TVector3;
     begin
       VectorPersistent := PropertyGetInstance(Ifc, PropInfo) as TCastleVector3Persistent;
       if VectorPersistent = nil then
         raise EInvalidIfc.CreateFmt('Pascal property "%s" is supposed to be a TCastleVector3Persistent, but it is nil', [
           PropInfo^.Name
         ]);
-
-      // read JSON array into Vector:TVector3
-      Vector := TVector3.Zero;
-      for I := 0 to Vector.Count - 1 do
-        if I < JsonChildArray.Count then
-          Vector.Data[I] := JsonToFloat(JsonChildArray.Items[I], DebugJsonKey);
-
-      VectorPersistent.Value := Vector;
+      VectorPersistent.Value := JsonToVector3(JsonChildArray, DebugJsonKey);
     end;
 
     { From elements of JsonChildArray read TVector4 and place it in
@@ -349,23 +400,141 @@ var
     procedure ReadIfcChildVector4(const PropInfo: PPropInfo;
       const JsonChildArray: TJsonArray);
     var
-      I: Integer;
       VectorPersistent: TCastleVector4Persistent;
-      Vector: TVector4;
     begin
       VectorPersistent := PropertyGetInstance(Ifc, PropInfo) as TCastleVector4Persistent;
       if VectorPersistent = nil then
         raise EInvalidIfc.CreateFmt('Pascal property "%s" is supposed to be a TCastleVector4Persistent, but it is nil', [
           PropInfo^.Name
         ]);
+      VectorPersistent.Value := JsonToVector4(JsonChildArray, DebugJsonKey);
+    end;
 
-      // read JSON array into Vector:TVector4
-      Vector := TVector4.Zero;
-      for I := 0 to Vector.Count - 1 do
-        if I < JsonChildArray.Count then
-          Vector.Data[I] := JsonToFloat(JsonChildArray.Items[I], DebugJsonKey);
+    { From elements of JsonChildArray read TCastleStringList contents
+      into property PropInfo of Ifc, which must be a TCastleStringList. }
+    procedure ReadIfcChildStringList(const PropInfo: PPropInfo;
+      const JsonChildArray: TJsonArray);
+    var
+      I: Integer;
+      StringList: TCastleStringList;
+    begin
+      StringList := PropertyGetInstance(Ifc, PropInfo) as TCastleStringList;
+      if StringList = nil then
+        raise EInvalidIfc.CreateFmt('Pascal property "%s" is supposed to be a TCastleStringList, but it is nil', [
+          PropInfo^.Name
+        ]);
+      StringList.Clear;
+      for I := 0 to JsonChildArray.Count - 1 do
+        StringList.Add(JsonToString(JsonChildArray.Items[I], DebugJsonKey));
+    end;
 
-      VectorPersistent.Value := Vector;
+    { From elements of JsonChildArray read TIntegerList contents
+      into property PropInfo of Ifc, which must be a TIntegerList. }
+    procedure ReadIfcChildIntegerList(const PropInfo: PPropInfo;
+      const JsonChildArray: TJsonArray);
+    var
+      I: Integer;
+      IntegerList: TIntegerList;
+    begin
+      IntegerList := PropertyGetInstance(Ifc, PropInfo) as TIntegerList;
+      if IntegerList = nil then
+        raise EInvalidIfc.CreateFmt('Pascal property "%s" is supposed to be a TIntegerList, but it is nil', [
+          PropInfo^.Name
+        ]);
+      IntegerList.Clear;
+      for I := 0 to JsonChildArray.Count - 1 do
+        IntegerList.Add(JsonToInteger(JsonChildArray.Items[I], DebugJsonKey));
+    end;
+
+    { From elements of JsonChildArray read TVector2List contents
+      into property PropInfo of Ifc, which must be a TVector2List. }
+    procedure ReadIfcChildVector2List(const PropInfo: PPropInfo;
+      const JsonChildArray: TJsonArray);
+    var
+      I: Integer;
+      Vector2List: TVector2List;
+    begin
+      Vector2List := PropertyGetInstance(Ifc, PropInfo) as TVector2List;
+      if Vector2List = nil then
+        raise EInvalidIfc.CreateFmt('Pascal property "%s" is supposed to be a TVector2List, but it is nil', [
+          PropInfo^.Name
+        ]);
+      Vector2List.Clear;
+      for I := 0 to JsonChildArray.Count - 1 do
+        Vector2List.Add(JsonToVector2(JsonChildArray.Items[I] as TJsonArray, DebugJsonKey));
+    end;
+
+    { From elements of JsonChildArray read TVector3List contents
+      into property PropInfo of Ifc, which must be a TVector3List. }
+    procedure ReadIfcChildVector3List(const PropInfo: PPropInfo;
+      const JsonChildArray: TJsonArray);
+    var
+      I: Integer;
+      Vector3List: TVector3List;
+    begin
+      Vector3List := PropertyGetInstance(Ifc, PropInfo) as TVector3List;
+      if Vector3List = nil then
+        raise EInvalidIfc.CreateFmt('Pascal property "%s" is supposed to be a TVector3List, but it is nil', [
+          PropInfo^.Name
+        ]);
+      Vector3List.Clear;
+      for I := 0 to JsonChildArray.Count - 1 do
+        Vector3List.Add(JsonToVector3(JsonChildArray.Items[I] as TJsonArray, DebugJsonKey));
+    end;
+
+    (*From elements of JsonChildArray read TIfcCompoundPlaneAngleMeasure instance
+      into property PropInfo of Ifc. The property must accept instances of
+      TIfcCompoundPlaneAngleMeasure.
+      This is necessary as CompoundPlaneAngleMeasure may be recorded in IFC as
+      object:
+
+        "refLatitude" : {
+          "type" : "IfcCompoundPlaneAngleMeasure",
+          "degrees" : 24,
+          "minutes" : 28,
+          "seconds" : 0,
+          "microSeconds" : 0
+        },
+        "refLongitude" : {
+          "type" : "IfcCompoundPlaneAngleMeasure",
+          "degrees" : 54,
+          "minutes" : 25,
+          "seconds" : 0,
+          "microSeconds" : 0
+        },
+
+      or as integers array:
+
+        "refLatitude": [
+            24,
+            28,
+            0
+        ],
+        "refLongitude": [
+            54,
+            25,
+            0
+        ],
+
+      This function takes care of handling the 2nd form. *)
+    procedure ReadIfcChildArrayCompoundPlaneAngleMeasure(const PropInfo: PPropInfo;
+      const JsonChildArray: TJsonArray);
+    var
+      AngleMeasure: TIfcCompoundPlaneAngleMeasure;
+      OldPropValue: TObject;
+    begin
+      AngleMeasure := TIfcCompoundPlaneAngleMeasure.Create(IfcOwner);
+      if JsonChildArray.Count >= 1 then
+        AngleMeasure.Degrees := JsonToInteger(JsonChildArray.Items[0], DebugJsonKey);
+      if JsonChildArray.Count >= 2 then
+        AngleMeasure.Minutes := JsonToInteger(JsonChildArray.Items[1], DebugJsonKey);
+      if JsonChildArray.Count >= 3 then
+        AngleMeasure.Seconds := JsonToInteger(JsonChildArray.Items[2], DebugJsonKey);
+      if JsonChildArray.Count >= 4 then
+        AngleMeasure.MicroSeconds := JsonToInteger(JsonChildArray.Items[3], DebugJsonKey);
+      OldPropValue := PropertyGetInstance(Ifc, PropInfo);
+      FreeAndNil(OldPropValue);
+      PropertySetInstance(Ifc, PropInfo, AngleMeasure);
     end;
 
     {$ifdef FPC}
@@ -391,7 +560,7 @@ var
         ]);
 
       { To be at least a bit safer, we check whether class name looks like a list.
-        This is satisfied by all lists in castleinternalloadsaveifc_ifc_types.inc. }
+        This is satisfied by all lists in castleifc_ifc_types.inc. }
       if not ClassNameOfList(Result.ClassName) then
         raise EInvalidIfc.CreateFmt('Pascal property "%s" is supposed to be a list, but the class name does not end with "List": %s', [
           PropInfo^.Name,
@@ -433,14 +602,24 @@ var
           Continue;
         end;
         if IfcChild <> nil then // if nil, then CreateIfcInstance already made warning
+        begin
+          RequiredClass := ClassOfListChildren(List);
+          if not IfcChild.InheritsFrom(RequiredClass) then
+            WritelnWarning('IFC array item of class %s (index %d, inside IFC field "%s") is not of the expected class (%s), ignoring', [
+              IfcChild.ClassName,
+              I,
+              DebugJsonKey,
+              RequiredClass.ClassName
+            ]) else
           List.Add(IfcChild);
+        end;
       end;
     end;
 
     { Read one JSON object, add it as the only item to the list property PropInfo of Ifc.
 
       This is sometimes used by IFC JSON, see
-      https://github.com/buildingSMART/Sample-Test-Files/blob/master/IFC%204.0/BuildingSMARTSpec/wall-with-opening-and-window.json#L70
+      https://github.com/buildingsmart-community/Community-Sample-Test-Files/blob/main/IFC%204.0.2.1%20(IFC%204)/ISO%20Spec%20archive/wall-with-opening-and-window.json#L70
       where "isDecomposedBy" (a list of IfcRelAggregates) is just a single
       instance of IfcRelAggregates. }
     procedure ReadIfcChildArrayOneItem(const PropInfo: PPropInfo;
@@ -448,11 +627,21 @@ var
     var
       List: TIfcPersistentList;
       IfcChild: TIfcPersistent;
+      RequiredClass: TIfcPersistentClass;
     begin
       List := GetListProperty(PropInfo);
       IfcChild := CreateIfcInstance(JsonChildObj);
       if IfcChild <> nil then // if nil, then CreateIfcInstance already made warning
-        List.Add(IfcChild);
+      begin
+        RequiredClass := ClassOfListChildren(List);
+        if not IfcChild.InheritsFrom(RequiredClass) then
+            WritelnWarning('IFC array item of class %s (inside IFC field "%s") is not of the expected class (%s), ignoring', [
+              IfcChild.ClassName,
+              DebugJsonKey,
+              RequiredClass.ClassName
+            ]) else
+          List.Add(IfcChild);
+      end;
     end;
 
     {$ifdef FPC}
@@ -465,16 +654,22 @@ var
       RequiredClass: TIfcPersistentClass;
     begin
       CurrentInstance := PropertyGetInstance(Ifc, PropInfo);
+      RequiredClass := TIfcPersistentClass(PropertyGetInstanceClass(Ifc, PropInfo));
 
       { Sometimes JSON gives a 1-item array when actually spec has "SET [0:1]",
         so it's not a list in Pascal.
         Example: TIfcProject.HasContext in
-        https://github.com/buildingSMART/Sample-Test-Files/blob/master/IFC%204.0/BuildingSMARTSpec/wall-with-opening-and-window.json
+        https://github.com/buildingsmart-community/Community-Sample-Test-Files/blob/main/IFC%204.0.2.1%20(IFC%204)/ISO%20Spec%20archive/wall-with-opening-and-window.json
         Tolerate it.
       }
       if (JsonInstanceValue is TJsonArray) and
          (not (CurrentInstance is TCastleVector3Persistent)) and
          (not (CurrentInstance is TCastleVector4Persistent)) and
+         (not (CurrentInstance is TCastleStringList)) and
+         (not (CurrentInstance is TIntegerList)) and
+         (not (CurrentInstance is TVector2List)) and
+         (not (CurrentInstance is TVector3List)) and
+         (not RequiredClass.InheritsFrom(TIfcCompoundPlaneAngleMeasure)) and
          (not ClassNameOfList(PropertyGetInstanceClass(Ifc, PropInfo).ClassName)) then
       begin
         case TJsonArray(JsonInstanceValue).Count of
@@ -507,6 +702,21 @@ var
       end else
       if JsonInstanceValue is TJsonArray then
       begin
+        if RequiredClass.InheritsFrom(TIfcCompoundPlaneAngleMeasure) then
+          ReadIfcChildArrayCompoundPlaneAngleMeasure(PropInfo, JsonInstanceValue as TJsonArray)
+        else
+        if CurrentInstance is TCastleStringList then
+          ReadIfcChildStringList(PropInfo, JsonInstanceValue as TJsonArray)
+        else
+        if CurrentInstance is TIntegerList then
+          ReadIfcChildIntegerList(PropInfo, JsonInstanceValue as TJsonArray)
+        else
+        if CurrentInstance is TVector2List then
+          ReadIfcChildVector2List(PropInfo, JsonInstanceValue as TJsonArray)
+        else
+        if CurrentInstance is TVector3List then
+          ReadIfcChildVector3List(PropInfo, JsonInstanceValue as TJsonArray)
+        else
         if CurrentInstance is TCastleVector3Persistent then
           ReadIfcChildVector3(PropInfo, JsonInstanceValue as TJsonArray)
         else
@@ -518,7 +728,6 @@ var
       if JsonInstanceValue is TJsonString then
       begin
         // when a string is given, it's a reference to another object
-        RequiredClass := TIfcPersistentClass(PropertyGetInstanceClass(Ifc, PropInfo));
         PropertySetInstance(Ifc, PropInfo, GetIfcReference(JsonInstanceValue.AsString, RequiredClass));
       end else
       begin
@@ -588,17 +797,115 @@ var
       Refs.AddObject(Ifc.GlobalId, Ifc);
   end;
 
+  {$ifdef FPC}
+    {$push}
+    // Disable object check for our TIfcPersistentList cast hack
+    {$objectchecks off}
+  {$endif}
+
   { Recursively resolve all remaining unresolved references in the IFC graph.
 
-    This means we find all TIfcPersistent instances with Ref non-empty,
+    This means we find all TIfcPersistent instances with UnresolvedRef non-empty,
     and either resolve them (replacing with proper objects)
-    or make a warning and set Ref to '' if not possible.
+    or make a warning and set UnresolvedRef to '' if not possible.
 
-    By the end of this, Ref should be empty in all TIfcPersistent instances. }
+    By the end of this, UnresolvedRef should be empty in all TIfcPersistent instances. }
   procedure ResolveReferences(const Ifc: TIfcPersistent);
+  var
+    Visited: TIfcPersistentList;
+
+    { Recursive subroutine of ResolveReferences. }
+    procedure ResolveReferencesCore(const Ifc: TIfcPersistent);
+
+      { Resolve reference indicated by IfcToResolve,
+        which must have UnresolvedRef non-empty.
+        Sets NewIfc to the resolved reference (if success)
+        or makes a warning and sets to IfcToResolve (if failure). }
+      procedure ResolveRef(const IfcToResolve: TIfcPersistent; out NewIfc: TIfcPersistent);
+      var
+        IfcRefIndex: Integer;
+      begin
+        Assert(IfcToResolve.UnresolvedRef <> '');
+        IfcRefIndex := Refs.IndexOf(IfcToResolve.UnresolvedRef);
+        if IfcRefIndex = -1 then
+        begin
+          WritelnWarning('IFC', 'IFC reference "%s" (class "%s") not found, leaving unresolved', [
+            IfcToResolve.UnresolvedRef,
+            IfcToResolve.ClassName
+          ]);
+          IfcToResolve.UnresolvedRef := '';
+          NewIfc := IfcToResolve;
+        end else
+        begin
+          NewIfc := Refs.Objects[IfcRefIndex] as TIfcPersistent;
+          Assert(NewIfc <> nil);
+        end;
+      end;
+
+    var
+      PropInfos: TPropInfoList;
+      PropInfo: PPropInfo;
+      PropType: TPropertyType;
+      IfcObjProperty: TObject;
+      IfcObjPropertyPersistent, NewIfcObjProperty: TIfcPersistent;
+      List: TIfcPersistentList;
+      I, J: Integer;
+    begin
+      if Visited.Contains(Ifc) then
+        Exit; // already visited, exit early to avoid cycles
+      Visited.Add(Ifc);
+
+      PropInfos := TPropInfoList.Create(Ifc, tkProperties);
+      try
+        for I := 0 to PropInfos.Count - 1 do
+        begin
+          PropInfo := PropInfos.Items[I];
+          PropType := PropertyType(PropInfo);
+          if PropType = ptInstance then
+          begin
+            IfcObjProperty := PropertyGetInstance(Ifc, PropInfo);
+            if (IfcObjProperty <> nil) and
+              ClassNameOfList(IfcObjProperty.ClassName) then
+            begin
+              { List of instances. Resolve references in each of them. }
+              List := TIfcPersistentList(IfcObjProperty);
+              for J := 0 to List.Count - 1 do
+              begin
+                IfcObjPropertyPersistent := List[J];
+                if IfcObjPropertyPersistent.UnresolvedRef <> '' then
+                begin
+                  ResolveRef(IfcObjPropertyPersistent, NewIfcObjProperty);
+                  List[J] := NewIfcObjProperty;
+                end else
+                  ResolveReferencesCore(IfcObjPropertyPersistent);
+              end;
+            end else
+            if IfcObjProperty is TIfcPersistent then
+            begin
+              { Single instance. Resolve it, or recursively resolve references in it. }
+              IfcObjPropertyPersistent := TIfcPersistent(IfcObjProperty);
+              if IfcObjPropertyPersistent.UnresolvedRef <> '' then
+              begin
+                ResolveRef(IfcObjPropertyPersistent, NewIfcObjProperty);
+                PropertySetInstance(Ifc, PropInfo, NewIfcObjProperty);
+              end else
+                ResolveReferencesCore(IfcObjPropertyPersistent);
+            end;
+          end;
+        end;
+      finally FreeAndNil(PropInfos) end;
+    end;
+
   begin
-    // TODO
+    Visited := TIfcPersistentList.Create(false);
+    try
+      ResolveReferencesCore(Ifc);
+    finally FreeAndNil(Visited) end;
   end;
+
+  {$ifdef FPC}
+    {$pop}
+  {$endif}
 
 var
   JsonObj: TJsonObject;
@@ -617,7 +924,7 @@ begin
   Refs := TCastleStringList.Create;
   try
     { Some JSON files use "IfcProject" at top-level
-      (see https://github.com/buildingSMART/Sample-Test-Files/blob/master/IFC%204.0/BuildingSMARTSpec/wall-with-opening-and-window.json ),
+      (see https://github.com/buildingsmart-community/Community-Sample-Test-Files/blob/main/IFC%204.0.2.1%20(IFC%204)/ISO%20Spec%20archive/wall-with-opening-and-window.json ),
       some use "IFC.JSON" at top-level and then "IfcProject" is inside "data".
       Account for both cases. }
     TopLevelType := JsonObj.Get('type', '');
@@ -640,27 +947,92 @@ begin
 end;
 
 function IfcJsonSave(const IfcFile: TIfcFile): TJsonObject;
+var
+  { List of currently saved TIfcPersistent instances.
+    This is used to decide when to write out only reference
+    (when given instance is already saved) and when full instance. }
+  Refs: TIfcPersistentList;
 
   function SerializeJson(const Ifc: TIfcPersistent): TJsonObject; forward;
 
-  { Serialize TVector3 to JSON array. }
-  function SerializeJsonVector3(const Vector: TCastleVector3Persistent): TJsonArray;
+  { Serialize TVector2 to JSON array. }
+  function SerializeJsonVector2(const Vector: TVector2): TJsonArray; overload;
   var
     I: Integer;
   begin
     Result := TJsonArray.Create;
-    for I := 0 to Vector.Value.Count - 1 do
-      Result.Add(Vector.Value[I]);
+    for I := 0 to Vector.Count - 1 do
+      Result.Add(Vector.Data[I]);
+  end;
+
+  { Serialize TVector3 to JSON array. }
+  function SerializeJsonVector3(const Vector: TVector3): TJsonArray; overload;
+  var
+    I: Integer;
+  begin
+    Result := TJsonArray.Create;
+    for I := 0 to Vector.Count - 1 do
+      Result.Add(Vector.Data[I]);
+  end;
+
+  function SerializeJsonVector3(const Vector: TCastleVector3Persistent): TJsonArray; overload;
+  begin
+    Result := SerializeJsonVector3(Vector.Value);
   end;
 
   { Serialize TVector4 to JSON array. }
-  function SerializeJsonVector4(const Vector: TCastleVector4Persistent): TJsonArray;
+  function SerializeJsonVector4(const Vector: TVector4): TJsonArray; overload;
   var
     I: Integer;
   begin
     Result := TJsonArray.Create;
-    for I := 0 to Vector.Value.Count - 1 do
-      Result.Add(Vector.Value[I]);
+    for I := 0 to Vector.Count - 1 do
+      Result.Add(Vector.Data[I]);
+  end;
+
+  function SerializeJsonVector4(const Vector: TCastleVector4Persistent): TJsonArray; overload;
+  begin
+    Result := SerializeJsonVector4(Vector.Value);
+  end;
+
+  { Serialize TCastleStringList to JSON array. }
+  function SerializeJsonStringList(const StringList: TCastleStringList): TJsonArray;
+  var
+    I: Integer;
+  begin
+    Result := TJsonArray.Create;
+    for I := 0 to StringList.Count - 1 do
+      Result.Add(StringList[I]);
+  end;
+
+  { Serialize TIntegerList to JSON array. }
+  function SerializeJsonIntegerList(const IntegerList: TIntegerList): TJsonArray;
+  var
+    I: Integer;
+  begin
+    Result := TJsonArray.Create;
+    for I := 0 to IntegerList.Count - 1 do
+      Result.Add(IntegerList[I]);
+  end;
+
+  { Serialize TVector2List to JSON array. }
+  function SerializeJsonVector2List(const Vector2List: TVector2List): TJsonArray;
+  var
+    I: Integer;
+  begin
+    Result := TJsonArray.Create;
+    for I := 0 to Vector2List.Count - 1 do
+      Result.Add(SerializeJsonVector2(Vector2List[I]));
+  end;
+
+  { Serialize TVector3List to JSON array. }
+  function SerializeJsonVector3List(const Vector3List: TVector3List): TJsonArray;
+  var
+    I: Integer;
+  begin
+    Result := TJsonArray.Create;
+    for I := 0 to Vector3List.Count - 1 do
+      Result.Add(SerializeJsonVector3(Vector3List[I]));
   end;
 
   {$ifdef FPC}
@@ -699,6 +1071,7 @@ function IfcJsonSave(const IfcFile: TIfcFile): TJsonObject;
     {$pop}
   {$endif}
 
+  { Serialize TIfcPersistent instance to JSON object. }
   function SerializeJson(const Ifc: TIfcPersistent): TJsonObject;
   var
     PropInfos: TPropInfoList;
@@ -707,7 +1080,7 @@ function IfcJsonSave(const IfcFile: TIfcFile): TJsonObject;
     I: Integer;
     IfcObjProperty: TObject;
     PropType: TPropertyType;
-    HasDefaultValue: Boolean;
+    RefsContains, HasDefaultValue: Boolean;
   begin
     Result := TJsonObject.Create;
 
@@ -717,6 +1090,29 @@ function IfcJsonSave(const IfcFile: TIfcFile): TJsonObject;
       Result.Add('type', 'IFC.JSON')
     else
       Result.Add('type', IfcClassName);
+
+    { Serialize TIfcPersistent instance to JSON object using Ifc.GlobalId. }
+    RefsContains := Refs.Contains(Ifc);
+    if RefsContains and (Ifc.GlobalId <> '') then
+    begin
+      Result.Add('ref', Ifc.GlobalId);
+      Exit;
+    end;
+
+    // update Refs
+    if RefsContains then
+      raise EInvalidIfc.CreateFmt('IFC instance of "%s" (GUID "%s") was already saved to IFC file so our logic to avoid writing full class more than once (and avoid infinite recursion when writing) is faulty, or maybe we need to generate GUIDs for any TIfcPersistent', [
+        Ifc.ClassName,
+        Ifc.GlobalId
+      ]);
+    { Create GlobalId only for TIfcRoot, because IFC spec allows it only
+      on TIfcRoot. Our implementation allows it on any TIfcPersistent
+      as some IFC files actually have it. }
+    if (Ifc.GlobalId = '') and (Ifc is TIfcRoot) then
+      Ifc.GlobalId := RandomGuidIfc;
+    { Update Refs for any object, not only TIfcRoot.
+      So Ifc.GlobalId may be '' here. }
+    Refs.Add(Ifc);
 
     PropInfos := TPropInfoList.Create(Ifc, tkProperties);
     try
@@ -744,6 +1140,11 @@ function IfcJsonSave(const IfcFile: TIfcFile): TJsonObject;
         if HasDefaultValue then
           Continue;
 
+        { Do no serialize properties with "stored false",
+          like TIfcProperty.Description. }
+        if not IsStoredProp(Ifc, PropInfo) then
+          Continue;
+
         DebugPropName := IfcClassName + '.' + PropName;
         case PropType of
           ptString:
@@ -761,7 +1162,18 @@ function IfcJsonSave(const IfcFile: TIfcFile): TJsonObject;
               IfcObjProperty := PropertyGetInstance(Ifc, PropInfo);
               if IfcObjProperty <> nil then
               begin
-                // TODO: avoid infinite recursion because of cycles, use ref=xxx
+                if IfcObjProperty is TCastleStringList then
+                  Result.Add(JsonKey, SerializeJsonStringList(TCastleStringList(IfcObjProperty)))
+                else
+                if IfcObjProperty is TIntegerList then
+                  Result.Add(JsonKey, SerializeJsonIntegerList(TIntegerList(IfcObjProperty)))
+                else
+                if IfcObjProperty is TVector2List then
+                  Result.Add(JsonKey, SerializeJsonVector2List(TVector2List(IfcObjProperty)))
+                else
+                if IfcObjProperty is TVector3List then
+                  Result.Add(JsonKey, SerializeJsonVector3List(TVector3List(IfcObjProperty)))
+                else
                 if IfcObjProperty is TCastleVector3Persistent then
                   Result.Add(JsonKey, SerializeJsonVector3(TCastleVector3Persistent(IfcObjProperty)))
                 else
@@ -795,7 +1207,46 @@ function IfcJsonSave(const IfcFile: TIfcFile): TJsonObject;
   end;
 
 begin
-  Result := SerializeJson(IfcFile);
+  Refs := TIfcPersistentList.Create(false);
+  try
+    Result := SerializeJson(IfcFile);
+  finally FreeAndNil(Refs) end;
+end;
+
+{ convenience overloads that load/save from/to URL --------------------------- }
+
+function IfcJsonLoad(const Url: String): TIfcFile;
+var
+  Stream: TStream;
+  JsonParser: TJsonParser;
+  Json: TJsonData;
+begin
+  Stream := Download(Url);
+  try
+    JsonParser := TJsonParser.Create(Stream, [joComments]);
+    try
+      Json := JsonParser.Parse;
+      try
+        Result := IfcJsonLoad(Json);
+      finally FreeAndNil(Json) end;
+    finally FreeAndNil(JsonParser) end;
+  finally FreeAndNil(Stream) end;
+end;
+
+procedure IfcJsonSave(const IfcFile: TIfcFile; const Url: String);
+var
+  JsonObj: TJsonObject;
+  JsonString: String;
+  Stream: TStream;
+begin
+  Stream := UrlSaveStream(Url);
+  try
+    JsonObj := IfcJsonSave(IfcFile);
+    try
+      JsonString := JsonObj.FormatJSON;
+      WriteStr(Stream, JsonString);
+    finally FreeAndNil(JsonObj) end;
+  finally FreeAndNil(Stream) end;
 end;
 
 {$endif read_implementation}

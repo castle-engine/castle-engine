@@ -1,8 +1,4 @@
-
-</div> <!-- .pasdoc-container -->
-
-</div> <!-- behave like castle_footer when $castle_sidebar is empty -->
-
+</div> <!-- .pasdoc-container --></div>
   <!-- Clear floats, e.g. MacStadium float image on main page, before footer -->
   <div class="clearfix">
   </div>
@@ -18,42 +14,70 @@
           </div>
   </div>
 
-  <!-- jQuery (necessary for Bootstrap's JavaScript plugins).
-     Used also by colorbox.
+  
+<!-- jQuery. Used also by colorbox. -->
+<script src="castle-engine-website-base/node_modules/jquery/dist/jquery.min.js"></script>
 
-     For API reference: load jQuery only if not loaded yet, otherwise
-     Tipue search results are broken (since they load a duplicate jQuery earlier).
-     The code to load jQuery conditionally is from
-     http://stackoverflow.com/questions/10371211/include-jquery-if-not-included-already
+<!-- Using passive event listeners can improve scrolling performance, according to
+     https://web.dev/uses-passive-event-listeners/
+     (linked from Lighthouse).
+     Solution for jQuery from
+     https://stackoverflow.com/questions/60357083/does-not-use-passive-listeners-to-improve-scrolling-performance-lighthouse-repo
+
+     This must be really right after jquery.min.js, in castle-engine.js it would be too late.
 -->
-<script type="text/javascript">
-    if(typeof jQuery == 'undefined'){
-        document.write('<script type="text/javascript" src="castle-engine-website-base/node_modules/jquery/dist/jquery.min.js"></'+'script>');
-
-        /* This looks nicer, but to make it work, also the following colorbox and bootstrap JS
-           have to be loaded the same way. Otherwise, colorbox and bootstrap JS are loaded
-           too early, and they don't work.
-        var oScriptElem = document.createElement("script");
-        oScriptElem.type = "text/javascript";
-        oScriptElem.src = "castle-engine-website-base/node_modules/jquery/dist/jquery.min.js";
-        document.head.insertBefore(oScriptElem, document.head.getElementsByTagName("script")[0])
-        */
+<script>
+jQuery.event.special.touchstart = {
+    setup: function( _, ns, handle ) {
+        this.addEventListener("touchstart", handle, { passive: !ns.includes("noPreventDefault") });
     }
+};
+jQuery.event.special.touchmove = {
+    setup: function( _, ns, handle ) {
+        this.addEventListener("touchmove", handle, { passive: !ns.includes("noPreventDefault") });
+    }
+};
+jQuery.event.special.wheel = {
+    setup: function( _, ns, handle ){
+        this.addEventListener("wheel", handle, { passive: true });
+    }
+};
+jQuery.event.special.mousewheel = {
+    setup: function( _, ns, handle ){
+        this.addEventListener("mousewheel", handle, { passive: true });
+    }
+};
 </script>
-<!-- Include colorbox after jQuery is known -->
-<script src="castle-engine-website-base/node_modules/jquery-colorbox/jquery.colorbox-min.js" type="text/javascript"></script>
-<script type="text/javascript">
-  jQuery('a.screenshot').colorbox({opacity: 0.9, rel:'screenshot', maxWidth:'90%', maxHeight:'90%'});
-</script>
-<!-- Include all compiled plugins (below), or include individual files as needed -->
-<script src="castle-engine-website-base/node_modules/bootstrap/dist/js/bootstrap.min.js"></script>
-<!-- JS using jquery -->
-<script type="text/javascript" src="castle-engine-website-base/castle-engine.js"></script>
 
-<script type='text/javascript'>
-var cgeCurrentVersion = '7.0-alpha.3.snapshot';
-var cgeVersions = [
-    {'id': '7.0-alpha.3.snapshot', 'url': 'https://castle-engine.io/apidoc/html/'}
-];
+<!-- Include colorbox after jQuery is known -->
+<script src="castle-engine-website-base/node_modules/jquery-colorbox/jquery.colorbox-min.js"></script>
+<script>
+  jQuery('a.screenshot').colorbox({opacity: 0.9, rel:'screenshot', maxWidth:'90%', maxHeight:'90%'});
+  // For AsciiDoctor images with role=screnshot
+  jQuery('.screenshot a').colorbox({opacity: 0.9, rel:'screenshot', maxWidth:'90%', maxHeight:'90%'});
 </script>
-<script type="text/javascript" src="cge-pasdoc.js"></script>
+
+<!-- Bootstrap JS (bundled, with Popper) -->
+<script src="castle-engine-website-base/node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- slick carousel https://github.com/kenwheeler/slick/ -->
+<script src="castle-engine-website-base/node_modules/slick-carousel/slick/slick.min.js"></script>
+<script>
+$('.banner-container').on('init', function(event, slick){
+  /* Make images visible after slick initialization.
+     Don't make images visible immediately (before Slick initializes)
+     to avoid CLS. */
+  $(".banner-container img").css("display", "block");
+});
+jQuery(".banner-container").slick({
+  arrows: false,
+  dots: true,
+  autoplay: true,
+  fade: true,
+  pauseOnFocus: false,
+  pauseOnHover: false
+//  autoplaySpeed: 2000
+});
+</script>
+
+<script src="castle-engine-website-base/castle-engine.js"></script>

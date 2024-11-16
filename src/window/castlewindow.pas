@@ -2232,7 +2232,7 @@ end.
 
       @longCode(#
         while not SomethingHappened do
-          Application.ProcessMessages(...);
+          Application.ProcessMessage(...);
       #)
 
       This can used to implement routines that wait until a modal dialog box
@@ -2707,7 +2707,7 @@ procedure TCastleWindow.OpenCore;
       { Call first EventOpen and then EventResize.
         Note that DoOpen and DoResize must be done after the OpenGL context
         is initialized and everything is ready.
-        Even the 1st OnOpen / OnResize event may call Application.ProcessMessages,
+        Even the 1st OnOpen / OnResize event may call Application.ProcessMessage,
         e.g. because user calls CastleMessages.MessageOk. }
       EventOpenCalled := true;
       Container.EventOpen(Application.OpenWindowsCount);

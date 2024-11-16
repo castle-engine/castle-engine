@@ -1,4 +1,4 @@
-{%MainUnit castleinternalloadsaveifc.pas}
+{%MainUnit castleifc.pas}
 {
   Copyright 2024-2024 Michalis Kamburelis.
 
@@ -16,10 +16,11 @@
 
 { Types and classes related to the IFC, but not from IFC standard. }
 
-{$ifdef read_interface}
+{$ifdef read_interface_types}
 
-type
+  // forward declarations
   TIfcProject = class;
+  TCastleIfcMapping = class; // < Resolved in castleifc_x3d.inc
 
   {$M+}
   { Abstract class that can be serialized to / deserialized from an IFC file.
@@ -47,7 +48,7 @@ type
       is just an arbitrary string.
 
       Note: IFC 4.3 specification puts this only at IfcRoot, not at every IFC class.
-      But testcase https://github.com/buildingSMART/Sample-Test-Files/blob/master/IFC%204.0/BuildingSMARTSpec/wall-with-opening-and-window.json
+      But testcase https://github.com/buildingsmart-community/Community-Sample-Test-Files/blob/main/IFC%204.0.2.1%20(IFC%204)/ISO%20Spec%20archive/wall-with-opening-and-window.json
       (from IFC 4.0) shows this can be present at any IFC class. }
     property GlobalId: String read FGlobalId write FGlobalId;
   end;
@@ -88,7 +89,7 @@ type
       @raises(EInvalidIfc If there is no TIfcProject instance in Data
         or there's more than one TIfcProject instance in Data.) }
     function Project: TIfcProject;
-    function BuildNode(const BaseUrl: String): TX3DRootNode;
+    function BuildNode(const Mapping: TCastleIfcMapping): TX3DRootNode;
   published
     property EncodingType: String read FEncodingType write FEncodingType;
     property Version: String read FVersion write FVersion;
@@ -127,7 +128,7 @@ type
     constructor Create(const AOwner: TComponent = nil);
   end;
 
-{$endif read_interface}
+{$endif read_interface_type}
 
 {$ifdef read_implementation}
 

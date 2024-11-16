@@ -35,12 +35,13 @@ function PropertyGet(const PropObject: TObject; const PropInfo: PPropInfo;
   You should also check @code(IsStoredProp(PropObject, PropInfo))
   in case the property has a "stored" method.
   IsStoredProp works in all cases (whether "stored" indicates a constant,
-  field or some method) and it is @true if there was no "stored" value.
-  So the full check is
+  field or some method) and it is @true if there was no "stored" directive.
+  So the full check whether to serialize something should be
 
   @longCode(#
-    PropertyHasDefaultValue(PropObject, PropInfo) and
-    IsStoredProp(PropObject, PropInfo)
+  SerializeThisProperty :=
+    (not PropertyHasDefaultValue(PropObject, PropInfo)) and
+    IsStoredProp(PropObject, PropInfo);
   #)
 
   @param(TreatSubComponentAsDefault

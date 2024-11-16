@@ -1,5 +1,5 @@
 {
-  Copyright 2022-2023 Michalis Kamburelis.
+  Copyright 2022-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -13,15 +13,18 @@
   ----------------------------------------------------------------------------
 }
 
-{ Container class TCastleContainerEasy,
-  that is easier to use than TCastleContainer.
-  In particular it relies on
+{ Container class TCastleControlContainer used inside FMX and VCL TCastleControl. }
+unit CastleControlContainer;
+
+{ Implementation notes:
+  This is easier to use than bare TCastleContainer.
+  This relies on
 
   - private OpenGL(ES) context handled by TGLContext descendants
 
   - with requirements expressed by public TGLContextRequirements.
 
-  TODO: It is our long-term plan to merge TCastleContainerEasy capabilities
+  TODO: It is our long-term plan to merge TCastleControlContainer capabilities
   into TCastleContainer. Thus, the implementation done here will be shared
   by TCastleWindow (all backends) and LCL TCastleControl,
   unifying them more.
@@ -35,9 +38,7 @@
 
   - Container also should delegate to TCastleView and in turn to TCastleUserInterface
     for everything reasonable.
-
 }
-unit CastleInternalContainer;
 
 {$I castleconf.inc}
 
@@ -50,7 +51,7 @@ uses Classes, Generics.Collections,
   CastleUIControls, CastleInternalContextBase;
 
 type
-  TCastleContainerEasy = class(TCastleContainer)
+  TCastleControlContainer = class(TCastleContainer)
   strict private
     FRequirements: TGLContextRequirements;
     { Internal platform-specific context data and initialization/finalization.
@@ -74,7 +75,7 @@ type
     { Adjust context parameters right before usage. }
     procedure AdjustContext(const PlatformContext: TGLContext); virtual;
 
-    { Call these methods from final components that wrap TCastleContainerEasy,
+    { Call these methods from final components that wrap TCastleControlContainer,
       like TCastleControl, TCastleWindow. }
     procedure InitializeContext;
     procedure FinalizeContext;
@@ -104,7 +105,7 @@ type
       loaded components. Like this:
 
       @longCode(#
-      MyButton := MyCastleControl.DesignedComponent('MyButton') as TCastleButton;
+      MyButton := MyCastleControl.Container.DesignedComponent('MyButton') as TCastleButton;
       #)
 
       When the name is not found, raises exception (unless Required is @false,
@@ -125,8 +126,8 @@ type
       property to @false, and make sure that you call
       @link(Invalidate) always when you need to redraw the screen.
       Note that the engine components always call @link(Invalidate) when
-      necessary, so usually you should only call it yourself if you provide
-      a custom @link(OnRender) implementation. }
+      necessary, so usually you should only call it yourself if you do custom
+      rendering in overridden @link(TCastleUserInterface.Render) implementation. }
     property AutoRedisplay: Boolean read FAutoRedisplay write SetAutoRedisplay
       default true;
 
@@ -152,7 +153,7 @@ type
     property DesignUrl: String read FDesignUrl write SetDesignUrl;
   end;
 
-  TCastleContainerEasyList = {$ifdef FPC}specialize{$endif} TObjectList<TCastleContainerEasy>;
+  TCastleControlContainerList = {$ifdef FPC}specialize{$endif} TObjectList<TCastleControlContainer>;
 
 implementation
 
@@ -162,12 +163,12 @@ uses SysUtils,
   CastleComponentSerialize, CastleInternalDelphiUtils, CastleFilesUtils;
 
 var
-  { All TCastleContainerEasy instances created. }
-  ContainersList: TCastleContainerEasyList;
+  { All TCastleControlContainer instances created. }
+  ContainersList: TCastleControlContainerList;
 
   LastLimitFPSTime: TTimerResult;
 
-constructor TCastleContainerEasy.Create(AOwner: TComponent);
+constructor TCastleControlContainer.Create(AOwner: TComponent);
 begin
   inherited;
 
@@ -182,7 +183,7 @@ begin
   ContainersList.Add(Self);
 end;
 
-destructor TCastleContainerEasy.Destroy;
+destructor TCastleControlContainer.Destroy;
 begin
   UnLoadDesign;
   FreeAndNil(FPlatformContext);
@@ -191,14 +192,14 @@ begin
   inherited;
 end;
 
-procedure TCastleContainerEasy.MakeContextCurrent;
+procedure TCastleControlContainer.MakeContextCurrent;
 begin
   Assert(GLInitialized);
   RenderContext := Context;
   FPlatformContext.MakeCurrent;
 end;
 
-function TCastleContainerEasy.SaveScreen(const SaveRect: TRectangle): TRGBImage;
+function TCastleControlContainer.SaveScreen(const SaveRect: TRectangle): TRGBImage;
 
   { Color buffer where we draw, and from which it makes sense to grab pixels. }
   function SaveScreenBuffer: TColorBuffer;
@@ -216,7 +217,7 @@ begin
   Result := SaveScreen_NoFlush(Rect, SaveScreenBuffer);
 end;
 
-procedure TCastleContainerEasy.InitializeContext;
+procedure TCastleControlContainer.InitializeContext;
 begin
   if not FGLInitialized then
   begin
@@ -248,11 +249,11 @@ begin
   end;
 end;
 
-procedure TCastleContainerEasy.AdjustContext(const PlatformContext: TGLContext);
+procedure TCastleControlContainer.AdjustContext(const PlatformContext: TGLContext);
 begin
 end;
 
-procedure TCastleContainerEasy.FinalizeContext;
+procedure TCastleControlContainer.FinalizeContext;
 begin
   if FGLInitialized then
   begin
@@ -269,12 +270,12 @@ begin
   inherited;
 end;
 
-function TCastleContainerEasy.GLInitialized: boolean;
+function TCastleControlContainer.GLInitialized: boolean;
 begin
   Result := FGLInitialized;
 end;
 
-procedure TCastleContainerEasy.DoRender;
+procedure TCastleControlContainer.DoRender;
 begin
   MakeContextCurrent;
 
@@ -292,7 +293,7 @@ begin
   finally Fps.InternalRenderEnd end;
 end;
 
-procedure TCastleContainerEasy.DoUpdate;
+procedure TCastleControlContainer.DoUpdate;
 begin
   if AutoRedisplay then
     Invalidate;
@@ -317,7 +318,7 @@ begin
   EventUpdate;
 end;
 
-procedure TCastleContainerEasy.SetAutoRedisplay(const Value: boolean);
+procedure TCastleControlContainer.SetAutoRedisplay(const Value: boolean);
 begin
   if FAutoRedisplay <> Value then
   begin
@@ -327,7 +328,7 @@ begin
   end;
 end;
 
-class procedure TCastleContainerEasy.DoUpdateEverything;
+class procedure TCastleControlContainer.DoUpdateEverything;
 
   procedure DoLimitFPS;
   var
@@ -369,7 +370,7 @@ class procedure TCastleContainerEasy.DoUpdateEverything;
 
 var
   I: Integer;
-  C: TCastleContainerEasy;
+  C: TCastleControlContainer;
 begin
   { Be extra careful about processing here, so check ContainersList <> nil.
 
@@ -401,7 +402,7 @@ begin
       buttons react to clicks unreliably.
 
       Note: in case of Linux, this code is only used when Delphi + Linux + FMX.
-      Because TCastleContainerEasy is only used with Delphi for FMX and VCL,
+      Because TCastleControlContainer is only used with Delphi for FMX and VCL,
       and on Linux only FMX is possible. }
     {$ifndef LINUX}
     DoLimitFPS;
@@ -410,7 +411,7 @@ begin
 
 end;
 
-procedure TCastleContainerEasy.LoadDesign;
+procedure TCastleControlContainer.LoadDesign;
 
 { Note: implementation of LoadDesign, UnLoadDesign and friends follow similar
   methods in TCastleView. Here they are much simplified, as we have no concept
@@ -487,13 +488,13 @@ begin
   end;
 end;
 
-procedure TCastleContainerEasy.UnLoadDesign;
+procedure TCastleControlContainer.UnLoadDesign;
 begin
   FreeAndNil(FDesignLoadedOwner);
   FDesignLoaded := nil; // freeing FDesignLoadedOwner must have freed this too
 end;
 
-procedure TCastleContainerEasy.SetDesignUrl(const Value: String);
+procedure TCastleControlContainer.SetDesignUrl(const Value: String);
 begin
   if FDesignUrl <> Value then
   begin
@@ -503,7 +504,7 @@ begin
   end;
 end;
 
-function TCastleContainerEasy.DesignedComponent(const ComponentName: String;
+function TCastleControlContainer.DesignedComponent(const ComponentName: String;
   const Required: Boolean = true): TComponent;
 begin
   if FDesignLoaded <> nil then
@@ -526,7 +527,7 @@ initialization
   InitializeLog;
   }
 
-  ContainersList := TCastleContainerEasyList.Create(false);
+  ContainersList := TCastleControlContainerList.Create(false);
   //TODO: InitializeClipboard;
   //TODO: OnMainContainer := @TCastleControl(nil).GetMainContainer;
 finalization

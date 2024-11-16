@@ -25,9 +25,18 @@ a.btn:focus,
   margin-bottom: 0;
 }
 
-/* Margin from h1 to above content, like .book-header, see .../navigation */
-h1 {
-  margin-top: 0.25em;
+/* Non-zero margin from h1/etc. to the content above.
+   Reboot used in Bootstrap 5 sets this to zero, and relies on other things
+   having bottom margin to distance themselves from h1/etc.
+   but it's not nice for us, reasons:
+   - we want space between .book-header, see .../navigation
+   - we want space between h1/etc. sections and image/video above,
+     see .../physics, .../viewport_3d
+   - we want space between h1/etc. sections and tables above,
+     see https://castle-engine.io/apidoc/html/CastleControl.TCastleControl.html
+*/
+.h1, .h2, .h3, .h4, .h5, .h6, h1, h2, h3, h4, h5, h6 {
+  margin-top: .5rem;
 }
 
 /* all images, movies responsive */
@@ -291,9 +300,6 @@ div.main-cge-download {
     text-align: center;
 }
 .news-row-wrapper .row {
-    width: 1200px;
-    max-width: 100%;
-    display: inline-block;
     text-align: left;
 }
 .news-row-wrapper img.wp-post-image {
@@ -455,29 +461,6 @@ span.news_title.only_anchor {
     padding-left: 0;
     padding-bottom: 0.5em;
   }
-}
-
-/* --------------------------------------------------------------------------- */
-
-.github-ribbon img {
-  position: absolute;
-  top: 100%;
-  right: 0;
-  border: 0;
-  z-index: 100;
-}
-
-.has-github-ribbon .thumbnails-align-right {
-  margin-top: 60px;
-}
-
-.engine-icon {
-  float: right;
-  clear: right;
-  margin-top: 1em;
-}
-.has-github-ribbon .engine-icon {
-  margin-top: 60px;
 }
 
 /* books (manual and such) ------------------------------------------------- */

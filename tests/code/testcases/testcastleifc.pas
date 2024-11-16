@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ Test CastleInternalLoadSaveIfc (TODO: just CastleIfc) unit. }
+{ Test CastleIfc unit. }
 unit TestCastleIfc;
 
 interface
@@ -26,25 +26,30 @@ type
   TTestCastleIfc = class(TCastleTestCase)
   published
     procedure TestIfcClasses;
+    procedure TestIfcClassesNoDuplicates;
   end;
 
 implementation
 
 uses TypInfo, RttiUtils,
-  CastleStringUtils, CastleInternalLoadSaveIfc, CastleInternalRttiUtils;
+  CastleStringUtils, CastleIfc, CastleInternalRttiUtils;
 
-{ Simple hack to detect does given object is a TObjectList<xxx> specialization.
-  They don't share any common ancestor in Generics.Collections in FPC,
+{ Simple hack to detect does given object is a TObjectList<xxx> specialization
+  and is a list of IFC classes.
+
+  Reason: TObjectList<xxx> don't share any common ancestor
+  in Generics.Collections in FPC,
   so there's no obvious "is" check to do this.
   This hack seems acceptable in this case -- as this is only internal
   and has to account only for classes inside
-  our own castleinternalloadsaveifc_ifc_standard_types.inc,
+  our own castleifc_ifc_standard_types.inc,
   so we can rely on our own naming conventions. }
 function ClassNameOfList(const PotentialListClassName: String): Boolean;
 begin
   Result :=
-    IsSuffix('List', PotentialListClassName, false) or
-    IsPrefixSuffix('TObjectList<', '>', PotentialListClassName, false);
+    IsPrefixSuffix('TIfc', 'List', PotentialListClassName, false) or
+    IsPrefixSuffix('TObjectList<TIfc', '>', PotentialListClassName, false) or
+    IsPrefixSuffix('TObjectList<CastleIfc.TIfc', '>', PotentialListClassName, false);
 end;
 
 procedure TTestCastleIfc.TestIfcClasses;
@@ -84,12 +89,13 @@ procedure TTestCastleIfc.TestIfcClasses;
           if PropertyType(PropInfo) = ptInstance then
           begin
             PropClass := PropertyGetInstanceClass(Ifc, PropInfo);
-            if ClassNameOfList(PropClass.ClassName) then
+            if ClassNameOfList(PropClass.ClassName) or
+               PropClass.InheritsFrom(TStrings) then
             begin
               List := PropertyGetInstance(Ifc, PropInfo);
               if List = nil then
                 raise EInvalidIfc.CreateFmt('IFC property "%s.%s" is a list, but it has not been created in constructor', [
-                  ClassName,
+                  Ifc.ClassName,
                   PropName
                 ]);
             end;
@@ -110,6 +116,21 @@ begin
     try
       TestIfcInstance(Ifc);
     finally FreeAndNil(Ifc) end;
+  end;
+end;
+
+procedure TTestCastleIfc.TestIfcClassesNoDuplicates;
+var
+  IfcClass: TIfcPersistentClass;
+  I, J: Integer;
+begin
+  InitializeIfcClasses;
+  for I := 0 to IfcClasses.Count - 1 do
+  begin
+    IfcClass := IfcClasses[I];
+    for J := I + 1 to IfcClasses.Count - 1 do
+      if IfcClass = IfcClasses[J] then
+        raise EInvalidIfc.CreateFmt('IFC class %s is duplicated in IfcClasses', [IfcClass.ClassName]);
   end;
 end;
 
