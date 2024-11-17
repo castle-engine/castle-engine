@@ -120,7 +120,8 @@ end;
 
 function CastleGetTickCount64: QWord;
 begin
-  Result := 1; // TODO: WebAssembly: time not implemented
+  // rely on FPC SysUtils.GetTickCount64 (uses __wasi_clock_time_get)
+  Result := GetTickCount64;
 end;
 
 {$endif UNIX}

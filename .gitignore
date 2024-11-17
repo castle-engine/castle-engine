@@ -266,6 +266,7 @@ castle-game-engine-*.fpm
 /src/deprecated_library/libcastleengine.so
 /tests/castle-tester
 /tests/test_castle_game_engine
+/tests/time_measurements_tests/time_measurements_tests
 /tools/build-tool/castle-engine
 /tools/build-tool/data/android/integrated-services/chartboost/app/libs/*.jar
 /tools/build-tool/data/android/integrated-services/game_analytics/app/libs/*.jar

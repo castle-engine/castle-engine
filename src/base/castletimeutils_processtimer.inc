@@ -93,7 +93,7 @@ function ProcessTimerEnd: TFloatTime; deprecated 'instead of this, better to use
 {$ifdef read_implementation}
 
 function ProcessTimer: TProcessTimerResult;
-{$if defined(MSWINDOWS) or defined(CASTLE_NINTENDO_SWITCH)}
+{$if defined(MSWINDOWS) or defined(CASTLE_NINTENDO_SWITCH) or defined(WASI)}
 begin
   Result.Value := CastleGetTickCount64;
 {$elseif defined(UNIX)}
@@ -109,9 +109,7 @@ begin
 
   Result.Value := {$ifdef FPC} FpTimes {$else} Times {$endif} (Dummy);
 {$else}
-  // TODO: WebAssembly: time not implemented yet
-begin
-  Result.Value := 1;
+  {$message fatal 'ProcessTimer not implemented for this platform'}
 {$endif}
 end;
 
@@ -124,7 +122,7 @@ function ProcessTimerSeconds(const a, b: TProcessTimerResult): TFloatTime;
 const
   { Resolution of the timer used by @link(ProcessTimer). }
   ProcessTimersPerSec =
-    {$if defined(MSWINDOWS) or defined(CASTLE_NINTENDO_SWITCH)}
+    {$if defined(MSWINDOWS) or defined(CASTLE_NINTENDO_SWITCH) or defined(WASI)}
       1000 // miliseconds from CastleGetTickCount64
     {$else}
       { What is the frequency of FpTimes ?

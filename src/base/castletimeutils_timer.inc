@@ -111,7 +111,10 @@ begin
 end;
 
 
-{$elseif defined(CASTLE_NINTENDO_SWITCH)}
+{$elseif defined(CASTLE_NINTENDO_SWITCH) or defined(WASI)}
+
+// rely on CastleGetTickCount64 implementation
+
 const
   TimerFrequency = 1000;
 
@@ -204,22 +207,8 @@ begin
     LastTimerValue := Result.Value;
 end;
 
-{$elseif defined(WASI)}
-// TODO: WebAssembly: time not implemented yet
-
-type
-  TTimerFrequency = LongWord;
-const
-  TimerFrequency: TTimerFrequency = 1000000;
-
-var
-  LastTimerValue: QWord;
-
-function Timer: TTimerResult;
-begin
-  Result.Value := 1;
-end;
-
+{$else}
+  {$message fatal 'Timer not implemented for this platform'}
 {$endif}
 
 function TimerSeconds(const A, B: TTimerResult): TFloatTime;
