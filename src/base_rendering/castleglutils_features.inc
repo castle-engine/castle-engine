@@ -581,9 +581,10 @@ begin
   if GL_LibHandle = nil then
     InitOpenGL;
   ReadOpenGLCore;
-  if not Assigned(glGetString) then
-    raise Exception.Create('Failed to load OpenGL library');
   {$endif}
+
+  if not Assigned(glGetString) then
+    raise Exception.Create('Failed to load OpenGL(ES) library');
 
   FreeAndNil(GLVersion);
   GLVersion := TGLVersion.Create(
