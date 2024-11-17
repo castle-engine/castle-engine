@@ -4017,6 +4017,15 @@ end;
 procedure TCastleApplication.OpenWindowsRemove(Window: TCastleWindow;
   QuitWhenLastWindowClosed: boolean);
 begin
+  if FOpenWindows = nil then
+  begin
+    { This is possible now in case of errors with WASI.
+      Handle it gracefully, to not cause further errors that would obscure
+      original problem. }
+    WritelnWarning('OpenWindowsRemove called when FOpenWindows = nil, which usually indicates that window is destroyed and closed late from TCastleApplication.Destroy, which should not happen except if an exception happened at window creation');
+    Exit;
+  end;
+
   if (FOpenWindows.Remove(Window) <> -1) and
      (OpenWindowsCount = 0) and
      QuitWhenLastWindowClosed then
