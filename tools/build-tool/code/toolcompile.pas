@@ -702,7 +702,19 @@ begin
       cmDebug:
         begin
           FpcOptions.Add('-Cr'); // Range checking, see https://github.com/michaliskambi/modern-pascal-introduction/wiki/What-are-range-and-overflow-checks-(and-errors)-in-Pascal
-          FpcOptions.Add('-Co'); // Overflow checking, see https://github.com/michaliskambi/modern-pascal-introduction/wiki/What-are-range-and-overflow-checks-(and-errors)-in-Pascal
+          if Options.CPU <> Wasm32 then
+            FpcOptions.Add('-Co') // Overflow checking, see https://github.com/michaliskambi/modern-pascal-introduction/wiki/What-are-range-and-overflow-checks-(and-errors)-in-Pascal
+          else
+            { It seems that Overflow Checking is broken with WebAssembly,
+              it causes exceptions
+                EIntOverflow: Arithmetic overflow
+                  $EEEEEEEE
+              on definitely innocent operations, like TCastleWindow.GetColorBits
+              when it sums up 0 + 0 + 0 (on Cardinal; are the unsigned Cardinal
+              the reason for the problem?).
+              Simplifying TCastleWindow.GetColorBits only causes EIntOverflow
+              further down. }
+            FpcOptions.Add('-Co-');
           FpcOptions.Add('-Sa'); // Assertions
           FpcOptions.Add('-CR'); // Verify method calls
           FpcOptions.Add('-g');  // Debug info (automatic), for debuggers
