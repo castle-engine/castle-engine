@@ -25,7 +25,6 @@ uses Classes, PropEdits, Forms, CastleColors, CastleTransform, CastlePropEdits;
 {$define read_interface}
 {$I castleeditorpropedits_color.inc}
 {$I castleeditorpropedits_physics_layer.inc}
-{$I castleeditorpropedits_float.inc}
 {$undef read_interface}
 
 procedure Register;
@@ -38,13 +37,11 @@ uses // FPC and LCL units
   ComponentEditors,
   // CGE units
   FormCastleColorPicker, FormLayerCollisionsPropertyEditor,
-  FormPhysicsLayerNamesPropertyEditor, CastleStringUtils,
-  CastleUtils;
+  FormPhysicsLayerNamesPropertyEditor, CastleStringUtils;
 
 {$define read_implementation}
 {$I castleeditorpropedits_color.inc}
 {$I castleeditorpropedits_physics_layer.inc}
-{$I castleeditorpropedits_float.inc}
 
 procedure Register;
 begin
@@ -59,13 +56,6 @@ begin
     TPhysicsLayerCollisionsPropertyEditor);
   RegisterPropertyEditor(TypeInfo(TCastleLayerNames), nil, '',
     TPhysicsLayerNamesPropertyEditor);
-
-  RegisterPropertyEditor(TypeInfo(Single), nil, '',
-    TCastleFloatPropertyEditor);
-  RegisterPropertyEditor(TypeInfo(Double), nil, '',
-    TCastleFloatPropertyEditor);
-  RegisterPropertyEditor(TypeInfo(Extended), nil, '',
-    TCastleFloatPropertyEditor);
 end;
 
 end.
