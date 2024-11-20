@@ -55,9 +55,13 @@ end;
 function TCastleVector2PropertyEditor.GetValue: String;
 var
   VectorPersistent: TCastleVector2Persistent;
+  Vector: TVector2;
 begin
   VectorPersistent := (GetObjectValue as TCastleVector2Persistent);
-  Result := VectorPersistent.Value.ToString;
+  Vector := VectorPersistent.Value;
+  Result :=
+    FloatToStrDisplay(Vector.X, 5) + ' ' +
+    FloatToStrDisplay(Vector.Y, 5);
 end;
 
 procedure TCastleVector2PropertyEditor.SetAllValues(const NewValue: TVector2);
@@ -148,9 +152,14 @@ end;
 function TCastleVector3PropertyEditor.GetValue: String;
 var
   VectorPersistent: TCastleVector3Persistent;
+  Vector: TVector3;
 begin
   VectorPersistent := (GetObjectValue as TCastleVector3Persistent);
-  Result := VectorPersistent.Value.ToString;
+  Vector := VectorPersistent.Value;
+  Result :=
+    FloatToStrDisplay(Vector.X, 5) + ' ' +
+    FloatToStrDisplay(Vector.Y, 5) + ' ' +
+    FloatToStrDisplay(Vector.Z, 5);
 end;
 
 procedure TCastleVector3PropertyEditor.SetAllValues(const NewValue: TVector3);
@@ -394,9 +403,9 @@ begin
   ]);
   *)
   Result := FormatDot('%s %s %s deg(%s)', [
-    FloatToStrDisplay(Value.X),
-    FloatToStrDisplay(Value.Y),
-    FloatToStrDisplay(Value.Z),
-    FloatToStrDisplay(RadToDeg(Value.W))
+    FloatToStrDisplay(Value.X, 5),
+    FloatToStrDisplay(Value.Y, 5),
+    FloatToStrDisplay(Value.Z, 5),
+    FloatToStrDisplay(RadToDeg(Value.W), 5)
   ]);
 end;
