@@ -157,11 +157,11 @@ function FloatToStrFDot(const Value: Extended;
   absolute precision):
   always decimal,
   no digits after dot if not necessary,
-  show some digits (but not too many - right now 2) after dot if they are meaningful.
+  show some digits (default is 2) after dot if they are meaningful.
 
   Like other ...Dot routines, always uses dot (.) as a decimal separator,
   regardless of the user's locale settings. }
-function FloatToStrDisplay(const AValue: Extended): String;
+function FloatToStrDisplay(const AValue: Extended; const ADigits: Byte = 2): String;
 
 { Like standard TryStrToFloat, but always uses dot (.) as a decimal separator
   for the floating point numbers, regardless of the user's locale settings.
@@ -439,14 +439,14 @@ begin
   Result := FloatToStrF(Value, FloatFormat, Precision, Digits, FormatSettings);
 end;
 
-function FloatToStrDisplay(const AValue: Extended): String;
+function FloatToStrDisplay(const AValue: Extended; const ADigits: Byte = 2): String;
 begin
   Result := FloatToStrFDot(AValue, ffFixed,
     { With FPC, Precision = 0 is also OK, but with Delphi it's not,
       it will use scientific notation then early, e.g. for 123.0.
       See TTestCastleUtils.TestFloatToStrDisplay testcase. }
     20,
-    2);
+    ADigits);
 
   { We remove trailing zeroes after decimal separator, we don't need them.
     A less hacky way (that doesn't involve string fixing) would be nicer,
