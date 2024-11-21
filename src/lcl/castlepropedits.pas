@@ -56,6 +56,10 @@ uses // FPC and LCL units
   CastleScriptParser, CastleInternalLclDesign, CastleTerrain, CastleLog,
   CastleEditorAccess, CastleRenderOptions, CastleThirdPersonNavigation;
 
+const
+  { The number of digits after the decimal point we want to show in the inspector. }
+  FloatPropDigits = 5;
+
 { Wrap given floating-point expression in CastleScript in "deg(...)".
   If it's already wrapped, leave it as-is.}
 function WrapDegIfNeeded(const FloatExpression: String): String;
