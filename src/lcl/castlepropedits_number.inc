@@ -59,7 +59,7 @@ begin
   { Using FloatToStrDisplay for consistency, so that e.g. expanding
     TCastleTransform.Rotation will show same precision for each row (X, Y...)
     as in 4D vector display. }
-  Result := FloatToStrDisplay(AValue, FloatPropDigits);
+  Result := FloatToStrDisplay(AValue);
   //inherited FormatValue(AValue);
 end;
 

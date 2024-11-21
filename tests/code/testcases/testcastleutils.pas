@@ -708,15 +708,18 @@ begin
   AssertEquals('123', FloatToStrDisplay(123.000));
   AssertEquals('123.4', FloatToStrDisplay(123.400));
   AssertEquals('123.45', FloatToStrDisplay(123.450));
-  AssertEquals('123.46', FloatToStrDisplay(123.456));
+  AssertEquals('123.456', FloatToStrDisplay(123.456));
+  AssertEquals('123.46', FloatToStrDisplay(123.456, 2));
 
   AssertEquals('0', FloatToStrDisplay(0.000));
   AssertEquals('0.4', FloatToStrDisplay(0.400));
   AssertEquals('0.45', FloatToStrDisplay(0.450));
-  AssertEquals('0.46', FloatToStrDisplay(0.456));
+  AssertEquals('0.456', FloatToStrDisplay(0.456));
+  AssertEquals('0.46', FloatToStrDisplay(0.456, 2));
 
   AssertEquals('99.99', FloatToStrDisplay(99.99));
-  AssertEquals('100', FloatToStrDisplay(99.999));
+  AssertEquals('99.999', FloatToStrDisplay(99.999));
+  AssertEquals('100', FloatToStrDisplay(99.999, 2));
 end;
 
 procedure TTestCastleUtils.TestDeg;
