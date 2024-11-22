@@ -591,17 +591,19 @@ begin
 
                 Compile(FinalCompiler, Path, MainSource, CompilerOptions);
 
-                SourceExe := ChangeFileExt(MainSource, ExeExtensionOS(OS));
-                DestExe := ChangeFileExt(ExecutableName, ExeExtensionOS(OS));
+                SourceExe := CombinePaths(Path,
+                  ChangeFileExt(MainSource, ExeExtensionOS(OS)));
+                DestExe := CombinePaths(OutputPath,
+                  ChangeFileExt(ExecutableName, ExeExtensionOS(OS)));
                 AddExternalLibraries(OutputPath);
                 if not SameFileName(SourceExe, DestExe) then
                 begin
                   { move exe to top-level (in case MainSource is in subdirectory
                     like code/) and eventually rename to follow ExecutableName }
-                  Writeln('Moving ', SourceExe, ' to ', DestExe);
-                  CheckRenameFile(
-                    CombinePaths(Path, SourceExe),
-                    CombinePaths(OutputPath, DestExe));
+                  Writeln('Moving ' + NL +
+                    '  ' + SourceExe + ' to ' + NL +
+                    '  ' + DestExe);
+                  CheckRenameFile(SourceExe, DestExe);
                 end;
               end;
           end;

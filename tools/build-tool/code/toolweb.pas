@@ -70,16 +70,17 @@ begin
   Compile(coFpc, Project.Path, MainWebProgramFile, CompilerOptions);
 
   // move and rename to castle-engine-output/web/dist/xxx.wasm
-  SourceExe := ChangeFileExt(MainWebProgramFile, ExeExtensionOS(CompilerOptions.OS));
-  DestExe := ChangeFileExt(Project.ExecutableName, ExeExtensionOS(CompilerOptions.OS));
+  SourceExe := CombinePaths(Project.Path,
+    ChangeFileExt(MainWebProgramFile, ExeExtensionOS(CompilerOptions.OS)));
+  DestExe := CombinePaths(DistPath,
+    ChangeFileExt(Project.ExecutableName, ExeExtensionOS(CompilerOptions.OS)));
   if not SameFileName(SourceExe, DestExe) then
   begin
-    { move exe to top-level (in case MainSource is in subdirectory
-      like code/) and eventually rename to follow ExecutableName }
-    Writeln('Moving ', SourceExe, ' to ', DestExe);
-    CheckRenameFile(
-      CombinePaths(Project.Path, SourceExe),
-      CombinePaths(DistPath, DestExe));
+    { move exe to dist/ and eventually rename to follow ExecutableName }
+    Writeln('Moving ' + NL +
+      '  ' + SourceExe + ' to ' + NL +
+      '  ' + DestExe);
+    CheckRenameFile(SourceExe, DestExe);
   end;
 end;
 
