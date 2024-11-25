@@ -427,9 +427,8 @@ begin
   try
     if not CGE_VerifyScene('CGE_AddViewpointFromCurrentView') then exit;
 
-    if Viewport.Navigation <> nil then
-      MainScene.AddViewpointFromNavigation(
-        Viewport.Navigation, StrPas(PChar(szName)));
+    MainScene.AddViewpointFromNavigation(
+      Viewport.RequiredNavigation, StrPas(PChar(szName)));
   except
     on E: TObject do WritelnWarning('Window', 'CGE_AddViewpointFromCurrentView: ' + ExceptMessage(E));
   end;
@@ -530,7 +529,7 @@ begin
     end;
 
     InputShortcut := nil;
-    Nav := Viewport.Navigation;
+    Nav := Viewport.RequiredNavigation;
     if Nav is TCastleWalkNavigation then
     begin
       WalkNavigation := TCastleWalkNavigation(Nav);
@@ -658,6 +657,10 @@ procedure CGE_SetUserInterface(bAutomaticTouchInterface: cBool); cdecl;
 begin
   try
     TouchNavigation.AutoTouchInterface := bAutomaticTouchInterface;
+    if bAutomaticTouchInterface then
+       Viewport.InternalWalkNavigation.MouseDragMode := mdRotate
+    else
+       Viewport.InternalWalkNavigation.MouseDragMode := mdWalkRotate;
   except
     on E: TObject do WritelnWarning('Window', 'CGE_SetUserInterface: ' + ExceptMessage(E));
   end;
@@ -680,7 +683,7 @@ function GetWalkNavigation: TCastleWalkNavigation;
 var
   Nav: TCastleNavigation;
 begin
-  Nav := Viewport.Navigation;
+  Nav := Viewport.RequiredNavigation;
   if Nav is TCastleWalkNavigation then
     Result := TCastleWalkNavigation(Nav)
   else
