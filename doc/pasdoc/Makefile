@@ -40,7 +40,6 @@ html:
 	cp -R logo/castle_game_engine_icon.png \
 	      html-parts/images/ \
 	      html-parts/castle-engine-website-base/ \
-	      html-parts/cge-pasdoc.js \
 	      ../reference/
 
 # Just some shortcuts to "Helpful targets" below

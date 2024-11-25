@@ -29,10 +29,12 @@
   and you want to free everything by just freeing the resulting
   TIfcFile instance, then just create all IFC instances with the owner
   being the returned TIfcFile instance. }
-function IfcJsonLoad(const Json: TJsonData): TIfcFile;
+function IfcJsonLoad(const Json: TJsonData): TIfcFile; overload;
+function IfcJsonLoad(const Url: String): TIfcFile; overload;
 
 { Save IFC to JSON. }
-function IfcJsonSave(const IfcFile: TIfcFile): TJsonObject;
+function IfcJsonSave(const IfcFile: TIfcFile): TJsonObject; overload;
+procedure IfcJsonSave(const IfcFile: TIfcFile; const Url: String); overload;
 
 {$endif read_interface}
 
@@ -600,7 +602,17 @@ var
           Continue;
         end;
         if IfcChild <> nil then // if nil, then CreateIfcInstance already made warning
+        begin
+          RequiredClass := ClassOfListChildren(List);
+          if not IfcChild.InheritsFrom(RequiredClass) then
+            WritelnWarning('IFC array item of class %s (index %d, inside IFC field "%s") is not of the expected class (%s), ignoring', [
+              IfcChild.ClassName,
+              I,
+              DebugJsonKey,
+              RequiredClass.ClassName
+            ]) else
           List.Add(IfcChild);
+        end;
       end;
     end;
 
@@ -615,11 +627,21 @@ var
     var
       List: TIfcPersistentList;
       IfcChild: TIfcPersistent;
+      RequiredClass: TIfcPersistentClass;
     begin
       List := GetListProperty(PropInfo);
       IfcChild := CreateIfcInstance(JsonChildObj);
       if IfcChild <> nil then // if nil, then CreateIfcInstance already made warning
-        List.Add(IfcChild);
+      begin
+        RequiredClass := ClassOfListChildren(List);
+        if not IfcChild.InheritsFrom(RequiredClass) then
+            WritelnWarning('IFC array item of class %s (inside IFC field "%s") is not of the expected class (%s), ignoring', [
+              IfcChild.ClassName,
+              DebugJsonKey,
+              RequiredClass.ClassName
+            ]) else
+          List.Add(IfcChild);
+      end;
     end;
 
     {$ifdef FPC}
@@ -1189,6 +1211,42 @@ begin
   try
     Result := SerializeJson(IfcFile);
   finally FreeAndNil(Refs) end;
+end;
+
+{ convenience overloads that load/save from/to URL --------------------------- }
+
+function IfcJsonLoad(const Url: String): TIfcFile;
+var
+  Stream: TStream;
+  JsonParser: TJsonParser;
+  Json: TJsonData;
+begin
+  Stream := Download(Url);
+  try
+    JsonParser := TJsonParser.Create(Stream, [joComments]);
+    try
+      Json := JsonParser.Parse;
+      try
+        Result := IfcJsonLoad(Json);
+      finally FreeAndNil(Json) end;
+    finally FreeAndNil(JsonParser) end;
+  finally FreeAndNil(Stream) end;
+end;
+
+procedure IfcJsonSave(const IfcFile: TIfcFile; const Url: String);
+var
+  JsonObj: TJsonObject;
+  JsonString: String;
+  Stream: TStream;
+begin
+  Stream := UrlSaveStream(Url);
+  try
+    JsonObj := IfcJsonSave(IfcFile);
+    try
+      JsonString := JsonObj.FormatJSON;
+      WriteStr(Stream, JsonString);
+    finally FreeAndNil(JsonObj) end;
+  finally FreeAndNil(Stream) end;
 end;
 
 {$endif read_implementation}

@@ -1,5 +1,5 @@
 /*
-  Copyright 1998-2023 Michalis Kamburelis, PasDoc developers.
+  Copyright 1998-2024 Michalis Kamburelis, PasDoc developers.
 
   This file was part of "PasDoc" and is adapted to "Castle Game Engine".
 
@@ -26,14 +26,7 @@
    files).
 */
 
-.cge-version-form {
-  margin-top: 2em;
-}
-.cge-version-form label {
-  font-weight: normal;
-}
-
-/* Remove Bootstrap (used by Castle Game Engine header) customizations of <code> in .itemcode */
+/* Remove default CGE CSS customizations of <code> in .itemcode */
 .pasdoc-container .itemcode code {
   background: transparent;
   color: inherit;
@@ -46,19 +39,6 @@
 .pasdoc-container th {
   text-align: center;
   padding: 0.2em;
-}
-
-/* Counter the padding of Bootstrap container-fluid around us.
-   We cannot just remove padding from container-fluid, as it's needed
-   for navbar to look right. */
-.pasdoc-container {
-  margin-left: -15px;
-  /* margin-right: -15px; */
-  /* The value -15px is what we precisely want.
-     But Google Chrome does not calculate everything precisely then
-     (the outer padding 15px, this margin -15px),
-     and shows a useless horizontal scrollbar at the bottom of the page. */
-  margin-right: -14px;
 }
 
 /* Match CGE sidebar size and look */
@@ -75,11 +55,6 @@
 /* Disable the max-width 100% rule which breaks these images. */
 .pasdoc-container img {
   max-width: none !important;
-}
-
-/* Our default left-aligned footer is obscured by PasDoc navigation */
-.panel-footer {
-  text-align: right;
 }
 
 /* Adjusted original pasdoc.css below ---------------------------------------- */

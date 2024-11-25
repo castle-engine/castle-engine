@@ -60,6 +60,9 @@ uses TypInfo, RttiUtils,
 { Main routine that converts IFC -> X3D nodes, doing most of the work. }
 function LoadIfc(const Stream: TStream; const BaseUrl: String): TX3DRootNode;
 
+  {.$define DEBUG_IFC_ROUND_TRIP}
+
+  {$ifdef DEBUG_IFC_ROUND_TRIP}
   { Only for debugging purposes: save back the IFC data to JSON.
     This is an easy test whether IfcJsonLoad understood everything correctly,
     and whether IfcJsonSave saves everything correctly. }
@@ -78,6 +81,7 @@ function LoadIfc(const Stream: TStream; const BaseUrl: String): TX3DRootNode;
       finally FreeAndNil(JsonObj) end;
     finally FreeAndNil(Stream) end;
   end;
+  {$endif DEBUG_IFC_ROUND_TRIP}
 
 var
   JsonParser: TJsonParser;
@@ -91,7 +95,9 @@ begin
       IfcFile := IfcJsonLoad(Json);
       try
         Result := IfcToX3D(IfcFile, BaseUrl);
+        {$ifdef DEBUG_IFC_ROUND_TRIP}
         DebugSaveBack(IfcFile);
+        {$endif DEBUG_IFC_ROUND_TRIP}
       finally FreeAndNil(IfcFile) end;
     finally FreeAndNil(Json) end;
   finally FreeAndNil(JsonParser) end;

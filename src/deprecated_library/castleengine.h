@@ -65,6 +65,7 @@ enum ECgeVariable   // used for querying engine parameters in CGE_Set/GetVariabl
     ecgevarOcclusionCulling  = 9,   // occlusion culling (int, 1 = on, 0 = off)
     ecgevarPhongShading    = 10,  // phong shading (int, 1 = on, 0 = off)
     ecgevarPreventInfiniteFallingDown = 11,  // prevent infinite falling down (int, 1 = on, 0 = off)
+    ecgevarUIScaling       = 12,  // UI scaling method (int, one of ECgeUIScaling)
 };
 
 enum ECgeNavigationType
@@ -83,6 +84,16 @@ enum ECgeTouchCtlInterface
     ecgetciCtlWalkDragRotate = 2,
     etciCtlFlyCtlWalkDragRotate = 3,
     etciCtlPanXYDragRotate   = 4,
+};
+
+enum ECgeUIScaling
+{
+    ecgeusNone                  = 0,
+    ecgeusEncloseReferenceSize  = 1,
+    ecgeusEncloseReferenceSizeAutoOrientation = 2,
+    ecgeusFitReferenceSize      = 3,
+    ecgeusExplicitScale         = 4,
+    ecgeusDpiScale              = 5,
 };
 
 enum ECgeMouseCursor
