@@ -690,6 +690,7 @@ end;
 procedure CGE_SetVariableInt(eVar: cInt32; nValue: cInt32); cdecl;
 var
   WalkNavigation: TCastleWalkNavigation;
+  NewUIScaling: TUIScaling;
 begin
   if Window = nil then exit;
   try
@@ -755,8 +756,22 @@ begin
             if MainScene <> nil then
                MainScene.RenderOptions.PhongShading := (nValue > 0);
           end;
+
       11: begin    // ecgevarPreventInfiniteFallingDown
             Viewport.PreventInfiniteFallingDown := (nValue > 0);
+          end;
+
+      12: begin    // ecgevarUIScaling
+            case nValue of
+              0: NewUIScaling := usNone;
+              1: NewUIScaling := usEncloseReferenceSize;
+              2: NewUIScaling := usEncloseReferenceSizeAutoOrientation;
+              3: NewUIScaling := usFitReferenceSize;
+              4: NewUIScaling := usExplicitScale;
+              5: NewUIScaling := usDpiScale;
+              else raise EInternalError.CreateFmt('Invalid UIScaling mode %d', [nValue]);
+            end;
+            Window.Container.UIScaling := NewUIScaling;
           end;
     end;
   except
@@ -849,10 +864,28 @@ begin
          end;
 
       10: begin    // ecgevarPhongShading
-        if (MainScene <> nil) and MainScene.RenderOptions.PhongShading then
-          Result := 1 else
-          Result := 0;
-      end;
+            if (MainScene <> nil) and MainScene.RenderOptions.PhongShading then
+              Result := 1 else
+              Result := 0;
+          end;
+
+      11: begin    // ecgevarPreventInfiniteFallingDown
+            if Viewport.PreventInfiniteFallingDown then
+              Result := 1 else
+              Result := 0;
+          end;
+
+      12: begin    // ecgevarUIScaling
+            case Window.Container.UIScaling of
+              usNone:                 Result := 0;
+              usEncloseReferenceSize: Result := 1;
+              usEncloseReferenceSizeAutoOrientation: Result := 2;
+              usFitReferenceSize:     Result := 3;
+              usExplicitScale:        Result := 4;
+              usDpiScale:             Result := 5;
+              else Result := 0;
+            end;
+          end;
 
       else Result := -1; // unsupported variable
     end;

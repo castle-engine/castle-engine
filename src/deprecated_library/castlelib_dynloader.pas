@@ -63,6 +63,7 @@ const
   ecgevarOcclusionCulling = 9;  // occlusion culling (int, 1 = on, 0 = off)
   ecgevarPhongShading    = 10;  // phong shading (int, 1 = on, 0 = off)
   ecgevarPreventInfiniteFallingDown = 11;  // prevent infinite falling down (int, 1 = on, 0 = off)
+  ecgevarUIScaling       = 12;  // UI scaling method (int, one of ECgeUIScaling)
 
   // navigation types (ECgeNavigationType enum)
   ecgenavWalk      = 0;
@@ -77,6 +78,14 @@ const
   tiCtlWalkDragRotate = 2;
   tiCtlFlyCtlWalkDragRotate = 3;
   tiCtlPanXYDragRotate   = 4;
+
+  // UI Scaling (ECgeUIScaling enum)
+  ecgeusNone                  = 0;
+  ecgeusEncloseReferenceSize  = 1;
+  ecgeusEncloseReferenceSizeAutoOrientation = 2;
+  ecgeusFitReferenceSize      = 3;
+  ecgeusExplicitScale         = 4;
+  ecgeusDpiScale              = 5;
 
   // library callback codes
   ecgelibNeedsDisplay     = 0;
