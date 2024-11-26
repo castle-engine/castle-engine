@@ -56,7 +56,7 @@ const
   ecgevarMouseLook       = 2;   // activate mouse look viewing mode, desktop interface only (int, 1 or 0)
   ecgevarCrossHair       = 3;   // show crosshair in the center of the screen (int, 1 or 0)
   ecgevarAnimationRunning = 4;  // (read-only) engine would like to progress with the animation (int, 1 or 0)
-  ecgevarWalkTouchCtl    = 5;   // walking touch control (int, one of ECgeTouchCtlInterface values)
+  ecgevarAutoWalkTouchInterface = 5;   // walking touch control (int, one of ECgeTouchCtlInterface values)
   ecgevarScenePaused     = 6;   // pause Viewport (int, 1 = on, 0 = off)
   ecgevarAutoRedisplay   = 7;   // automatically redraws the window all the time (int, 1 = on, 0 = off)
   ecgevarHeadlight       = 8;   // avatar's headlight (int, 1 = on, 0 = off)
@@ -72,12 +72,12 @@ const
   ecgenavTurntable = 3;
   ecgenavNone      = 4;
 
-  // touch interface modes
-  tiNone              = 0;
-  tiCtlWalkCtlRotate  = 1;
-  tiCtlWalkDragRotate = 2;
-  tiCtlFlyCtlWalkDragRotate = 3;
-  tiCtlPanXYDragRotate   = 4;
+  // touch interface modes (ECgeTouchInterface enum)
+  ecgetiNone       = 0;
+  ecgetiWalk       = 1;
+  ecgetiWalkRotate = 2;
+  ecgetiFlyWalk    = 3;
+  ecgetiPan        = 4;
 
   // UI Scaling (ECgeUIScaling enum)
   ecgeusNone                  = 0;
@@ -301,7 +301,8 @@ procedure CGE_SetNavigationInputShortcut(eInput, eKey1, eKey2, eMouseButton, eMo
 function CGE_GetNavigationType(): cInt32; cdecl; external 'castleengine';
 procedure CGE_SetNavigationType(NewType: cInt32); cdecl; external 'castleengine';
 procedure CGE_SetTouchInterface(eMode: cInt32); cdecl; external 'castleengine';
-procedure CGE_SetUserInterface(AutomaticTouchInterface: cBool); cdecl; external 'castleengine';
+procedure CGE_SetAutoTouchInterface(AutomaticTouchInterface: cBool); cdecl; external 'castleengine';
+procedure CGE_SetWalkNavigationMouseDragMode(eMode: cInt32); cdecl; external 'castleengine';
 
 procedure CGE_SetVariableInt(eVar: cInt32; nValue: cInt32); cdecl; external 'castleengine';
 function CGE_GetVariableInt(eVar: cInt32): cInt32; cdecl; external 'castleengine';
