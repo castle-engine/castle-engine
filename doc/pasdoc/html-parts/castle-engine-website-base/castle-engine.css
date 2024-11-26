@@ -463,29 +463,6 @@ span.news_title.only_anchor {
   }
 }
 
-/* --------------------------------------------------------------------------- */
-
-.github-ribbon img {
-  position: absolute;
-  top: 100%;
-  right: 0;
-  border: 0;
-  z-index: 100;
-}
-
-.has-github-ribbon .thumbnails-align-right {
-  margin-top: 60px;
-}
-
-.engine-icon {
-  float: right;
-  clear: right;
-  margin-top: 1em;
-}
-.has-github-ribbon .engine-icon {
-  margin-top: 60px;
-}
-
 /* books (manual and such) ------------------------------------------------- */
 
 .book-header {

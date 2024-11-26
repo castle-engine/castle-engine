@@ -483,6 +483,33 @@ begin
                              CrossSectionPoints[0]);
 end;
 
+{ Save the TAbstractGeometryNode to a file.
+  Useful to debug Proxy methods. }
+{.$define CASTLE_DEBUG_PROXY_EXTRUSION}
+{$ifdef CASTLE_DEBUG_PROXY_EXTRUSION}
+procedure DebugSaveGeometry(const Geometry: TAbstractGeometryNode);
+var
+  Shape: TShapeNode;
+  Appearance: TAppearanceNode;
+  Material: TMaterialNode;
+  Root: TX3DRootNode;
+begin
+  Material := TMaterialNode.Create;
+
+  Appearance := TAppearanceNode.Create;
+  Appearance.Material := Material;
+
+  Shape := TShapeNode.Create;
+  Shape.Geometry := Geometry;
+  Shape.Appearance := Appearance;
+
+  Root := TX3DRootNode.Create;
+  Root.AddChildren(Shape);
+
+  SaveNode(Root, '/tmp/debug_geometry.x3dv');
+end;
+{$endif}
+
 function TExtrusionNode.Proxy(var State: TX3DGraphTraverseState): TAbstractGeometryNode;
 var
   IFS: TIndexedFaceSetNode absolute Result;
@@ -555,6 +582,8 @@ begin
     E := TExtrusionUtility.Create;
     try
       E.Node := Self;
+      if E.Empty then
+        Exit;
 
       { calculate SidesCount = number of verts on sides, often used number }
       SidesCount := (E.High + 1) * FdCrossSection.Count;
@@ -665,7 +694,7 @@ begin
               spine[1](crossSection[1], crossSection[0])
             This is important, because we want faces to be ordered just
             like the specification requires. This makes using "ccw"
-            and "solid" fields predictable for VRML author, since he
+            and "solid" fields predictable for VRML / X3D author, since (s)he
             knows which side will be CCW and which CW.
 
             So below we produce the same order. }
@@ -707,6 +736,10 @@ begin
       However, the caps may be non-convex.
       So we need to set IFS.FdConvex.Value to more secure value, false. }
     IFS.FdConvex.Value := FdConvex.Value;
+
+    {$ifdef CASTLE_DEBUG_PROXY_EXTRUSION}
+    DebugSaveGeometry(IFS);
+    {$endif}
   except FreeAndNil(Result); raise end;
 end;
 

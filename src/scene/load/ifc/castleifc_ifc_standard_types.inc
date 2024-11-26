@@ -179,6 +179,7 @@
   TIfcMaterialDefinition = class;
   TIfcMaterialPropertiesList = class;
   TIfcMaterialLayerSet = class;
+  TIfcGeometricRepresentationSubContextList = class;
 
   { Float type used throughout IFC.
 
@@ -189,6 +190,11 @@
 
     Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcPositiveLengthMeasure.htm }
   TIfcPositiveLengthMeasure = Single;
+
+  { Ratio measure that is greater than zero.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcPositiveRatioMeasure.htm }
+  TIfcPositiveRatioMeasure = Single;
 
   { Distance.
 
@@ -534,6 +540,13 @@
 
     Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcCurve.htm }
   TIfcCurve = class abstract(TIfcGeometricRepresentationItem)
+  public
+    { Update Extrusion.FdCrossSection.
+      In the base class, this reuses BuildNode and extracts cross section
+      information from a temporary node.
+      Override to provide more optimized implementation. }
+    procedure UpdateCrossSection(const Extrusion: TExtrusionNode); virtual;
+
     { Space dimensionality of this abstract class, defined differently for all
       subtypes. }
     // TODO: derived: function Dim: TIfcDimensionCount; abstract;
@@ -554,7 +567,7 @@
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     function BuildNode(const Mapping: TCastleIfcMapping): TAbstractChildNode; override;
-    procedure UpdateCrossSection(const Extrusion: TExtrusionNode);
+    procedure UpdateCrossSection(const Extrusion: TExtrusionNode); override;
   published
     { Points defining the polyline. }
     property Points: TIfcCartesianPointList read FPoints;
@@ -2332,6 +2345,122 @@
   TIfcBuiltElement = class(TIfcElement)
   end;
 
+  TIfcDoorTypeEnum = (
+    NotDefined,
+    Boom_Barrier,
+    Door,
+    Gate,
+    Trapdoor,
+    Turnstile,
+    UserDefined
+  );
+
+  TIfcDoorTypeOperationEnum = (
+    NotDefined,
+    Double_Door_Double_Swing,
+    Double_Door_Folding,
+    Double_Door_Lifting_Vertical,
+    Double_Door_Single_Swing,
+    Double_Door_Single_Swing_Opposite_Left,
+    Double_Door_Single_Swing_Opposite_Right,
+    Double_Door_Sliding,
+    Double_Swing_Left,
+    Double_Swing_Right,
+    Folding_To_Left,
+    Folding_To_Right,
+    Lifting_Horizontal,
+    Lifting_Vertical_Left,
+    Lifting_Vertical_Right,
+    Revolving,
+    Revolving_Vertical,
+    RollingUp,
+    Single_Swing_Left,
+    Single_Swing_Right,
+    Sliding_To_Left,
+    Sliding_To_Right,
+    Swing_Fixed_Left,
+    Swing_Fixed_Right,
+    UserDefined
+  );
+
+  { Door. }
+  TIfcDoor = class(TIfcBuiltElement)
+  strict private
+    FOverallHeight: TIfcPositiveLengthMeasure;
+    FOverallWidth: TIfcPositiveLengthMeasure;
+    FPredefinedType: TIfcDoorTypeEnum;
+    FOperationType: TIfcDoorTypeOperationEnum;
+    FUserDefinedOperationType: TIfcLabel;
+  published
+    { Overall measure of the height, it reflects the Z Dimension of
+      a bounding box, enclosing the body of the door opening.
+      If omitted, the OverallHeight should be taken from the geometric
+      representation of the IfcOpeningElement in which the door is inserted.
+
+      NOTE The body of the door might be taller then the door opening
+      (e.g. in cases where the door lining includes a casing).
+      In these cases the OverallHeight shall still be given
+      as the door opening height, and not as the total height of the door lining. }
+    property OverallHeight: TIfcPositiveLengthMeasure read FOverallHeight write FOverallHeight;
+
+    { Overall measure of the width, it reflects the X Dimension of
+      a bounding box, enclosing the body of the door opening.
+      If omitted, the OverallWidth should be taken from the geometric
+      representation of the IfcOpeningElement in which the door is inserted.
+
+      NOTE The body of the door might be wider then the door opening
+      (e.g. in cases where the door lining includes a casing).
+      In these cases the OverallWidth shall still be given
+      as the door opening width, and not as the total width of the door lining. }
+    property OverallWidth: TIfcPositiveLengthMeasure read FOverallWidth write FOverallWidth;
+
+    { A list of types to further identify the object.
+      Some property sets may be specifically applicable to one of these types. }
+    property PredefinedType: TIfcDoorTypeEnum read FPredefinedType write FPredefinedType;
+
+    { Type defining the general layout and operation of the door type
+      in terms of the partitioning of panels and panel operations.
+
+      NOTE The OperationType shall only be used, if no type object IfcDoorType
+      is assigned, providing its own IfcDoorType.OperationType. }
+    property OperationType: TIfcDoorTypeOperationEnum read FOperationType write FOperationType;
+
+    { Designator for the user defined operation type, shall only be provided,
+      if the value of OperationType is set to TIfcDoorTypeOperationEnum.UserDefined. }
+    property UserDefinedOperationType: TIfcLabel read FUserDefinedOperationType write FUserDefinedOperationType;
+  end;
+
+  { Shared information for occurrences of doors.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcDoorType.htm }
+  TIfcDoorType = class(TIfcBuiltElementType)
+  strict private
+    FPredefinedType: TIfcDoorTypeEnum;
+    FOperationType: TIfcDoorTypeOperationEnum;
+    FParameterTakesPrecedence: Boolean;
+    FUserDefinedOperationType: TIfcLabel;
+  published
+    { A list of types to further identify the object. }
+    property PredefinedType: TIfcDoorTypeEnum read FPredefinedType write FPredefinedType default TIfcDoorTypeEnum.NotDefined;
+
+    { Type defining the general layout and operation of the door type
+      in terms of the partitioning of panels and panel operations. }
+    property OperationType: TIfcDoorTypeOperationEnum read FOperationType write FOperationType default TIfcDoorTypeOperationEnum.NotDefined;
+
+    { Does the parameter given in the attached
+      lining and panel properties exactly define the geometry (TRUE),
+      or whether the attached style shape take precedence (FALSE).
+      In the last case the parameter have only informative value.
+
+      TODO: If not provided, no such information can be inferred.
+      Should we have 3rd value and make this enum? }
+    property ParameterTakesPrecedence: Boolean read FParameterTakesPrecedence write FParameterTakesPrecedence default false;
+
+    { Designator for the user defined operation type, shall only be provided,
+      if the value of OperationType is set to TIfcDoorTypeOperationEnum.UserDefined. }
+    property UserDefinedOperationType: TIfcLabel read FUserDefinedOperationType write FUserDefinedOperationType;
+  end;
+
   TIfcSlabTypeEnum = (
     NotDefined,
     Approach_Slab,
@@ -2408,6 +2537,18 @@
     { Predefined generic type for a wall. }
     property PredefinedType: TIfcWallTypeEnum read FPredefinedType write FPredefinedType
       default TIfcWallTypeEnum.NotDefined;
+  end;
+
+  { Shared information for occurrences of walls.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcWallType.htm }
+  TIfcWallType = class(TIfcBuiltElementType)
+  strict private
+    FPredefinedType: TIfcWallTypeEnum;
+  published
+    { Identifies the predefined types of a wall element from which
+      the type required may be set. }
+    property PredefinedType: TIfcWallTypeEnum read FPredefinedType write FPredefinedType default TIfcWallTypeEnum.NotDefined;
   end;
 
   { Wall with certain constraints for the provision of parameters and
@@ -2837,8 +2978,11 @@
     FPrecision: TIfcReal;
     FWorldCoordinateSystem: TIfcAxis2Placement;
     FTrueNorth: TIfcDirection;
-    // TODO // FHasSubContexts: TIfcGeometricRepresentationSubContextList;
+    FHasSubContexts: TIfcGeometricRepresentationSubContextList;
     // TODO // FHasCoordinateOperation: TIfcCoordinateOperation;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
   published
     { The integer dimension count of the coordinate space modeled
       in a geometric representation context.}
@@ -2857,10 +3001,58 @@
 
     { The set of IfcGeometricRepresentationSubContexts that refer to this
       IfcGeometricRepresentationContext. }
-    // TODO: property HasSubContexts: TIfcGeometricRepresentationSubContextList read FHasSubContexts;
+    property HasSubContexts: TIfcGeometricRepresentationSubContextList read FHasSubContexts;
 
     { Indicates conversion between coordinate systems. }
     // TODO: property HasCoordinateOperation: TIfcCoordinateOperation read FHasCoordinateOperation write FHasCoordinateOperation;
+  end;
+
+  TIfcGeometricProjectionEnum = (
+    NotDefined,
+    Elevation_View,
+    Graph_View,
+    Model_View,
+    Plan_View,
+    Reflected_Plan_View,
+    Section_View,
+    Sketch_View,
+    UserDefined
+  );
+
+  { Context that applies to several shape representations of a product
+    being a sub context, sharing the WorldCoordinateSystem,
+    CoordinateSpaceDimension, Precision and TrueNorth attributes with
+    the parent IfcGeometricRepresentationContext.  }
+  TIfcGeometricRepresentationSubContext = class(TIfcRepresentationContext)
+  strict private
+    FParentContext: TIfcGeometricRepresentationContext;
+    FTargetScale: TIfcPositiveRatioMeasure;
+    FTargetView: TIfcGeometricProjectionEnum;
+    FUserDefinedTargetView: TIfcLabel;
+  published
+    { Parent context from which the sub context derives its world coordinate system,
+      precision, space coordinate dimension and true north. }
+    property ParentContext: TIfcGeometricRepresentationContext read FParentContext write FParentContext;
+
+    { The target plot scale of the representation to which
+      this representation context applies.
+
+      NOTE Scale indicates the target plot scale for the representation
+      sub context, all annotation styles are given in plot dimensions
+      according to this target plot scale.
+      If multiple instances of IfcGeometricRepresentationSubContext
+      are given having the same TargetView value, the target plot scale
+      applies up to the next smaller scale, or up to unlimited small scale. }
+    property TargetScale: TIfcPositiveRatioMeasure read FTargetScale write FTargetScale;
+
+    { Target view of the representation to which this representation context applies. }
+    property TargetView: TIfcGeometricProjectionEnum read FTargetView write FTargetView;
+
+    { User defined target view, this attribute value shall be given,
+      if the TargetView attribute is set to @link(TIfcGeometricProjectionEnum.UserDefined). }
+    property UserDefinedTargetView: TIfcLabel read FUserDefinedTargetView write FUserDefinedTargetView;
+  end;
+  TIfcGeometricRepresentationSubContextList = class({$ifdef FPC}specialize{$endif} TObjectList<TIfcGeometricRepresentationSubContext>)
   end;
 
   { Relationships between property set definitions and objects.
@@ -3627,7 +3819,8 @@ var
 
     This includes all IFC non-abstract classes
     and also some abstract classes that are referred to by lists
-    (because, to resolve references in IFC files, we need to know about them). }
+    (because, to check and resolve references in IFC files,
+    we need to know about them). }
   IfcClasses: TIfcPersistentClassList;
 
 { Make sure IfcClasses is assigned and filled with contents. }
@@ -4249,6 +4442,20 @@ begin
   inherited;
 end;
 
+{ TIfcGeometricRepresentationContext ----------------------------------------- }
+
+constructor TIfcGeometricRepresentationContext.Create(AOwner: TComponent);
+begin
+  inherited;
+  FHasSubContexts := TIfcGeometricRepresentationSubContextList.Create(false);
+end;
+
+destructor TIfcGeometricRepresentationContext.Destroy;
+begin
+  FreeAndNil(FHasSubContexts);
+  inherited;
+end;
+
 { TIfcUnitAssignment --------------------------------------------------------- }
 
 constructor TIfcUnitAssignment.Create(AOwner: TComponent);
@@ -4818,6 +5025,15 @@ begin
     IfcClasses.Add(TIfcLineIndex);
     IfcClasses.Add(TIfcArcIndex);
     IfcClasses.Add(TIfcCartesianPointList2D);
+    IfcClasses.Add(TIfcDoor);
+    IfcClasses.Add(TIfcUnit);
+    IfcClasses.Add(TIfcPersistent);
+    IfcClasses.Add(TIfcRelAssociates);
+    IfcClasses.Add(TIfcProperty);
+    IfcClasses.Add(TIfcSegmentIndexSelect);
+    IfcClasses.Add(TIfcDoorType);
+    IfcClasses.Add(TIfcWallType);
+    IfcClasses.Add(TIfcGeometricRepresentationSubContext);
   end;
 end;
 

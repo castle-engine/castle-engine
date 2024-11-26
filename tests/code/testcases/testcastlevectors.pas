@@ -1265,13 +1265,22 @@ var
   M4: TMatrix4;
 begin
   V2 := Vector2(0, 123.456);
-  AssertEquals('0 123.46', V2.ToString);
+  AssertEquals('0 123.456', V2.ToString);
+
+  V2 := Vector2(0, 123.12345678);
+  AssertEquals('0 123.12346', V2.ToString); // 5 digits after dot are kept now
 
   V3 := Vector3(0, 123.456, 78.9);
-  AssertEquals('0 123.46 78.9', V3.ToString);
+  AssertEquals('0 123.456 78.9', V3.ToString);
+
+  V3 := Vector3(0, 123.12345678, 78.9);
+  AssertEquals('0 123.12346 78.9', V3.ToString);
 
   V4 := Vector4(0, 123.456, 78.9, 99.99);
-  AssertEquals('0 123.46 78.9 99.99', V4.ToString);
+  AssertEquals('0 123.456 78.9 99.99', V4.ToString);
+
+  V4 := Vector4(0, 123.12345678, 78.9, 99.99);
+  AssertEquals('0 123.12346 78.9 99.99', V4.ToString);
 
   M2.Rows[0] := Vector2(1, 2);
   M2.Rows[1] := Vector2(3, 4);

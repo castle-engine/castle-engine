@@ -70,6 +70,7 @@ type
     procedure TestGeometryNodesInShape;
     procedure TestExposedTransforms;
     //procedure TestInternalNodesReadOnly;
+    procedure TestValidScene;
   end;
 
 implementation
@@ -192,6 +193,7 @@ begin
   CheckIterator('castle-data:/switches_and_transforms_2.x3dv');
   CheckIterator('castle-data:/key_sensor_2.x3dv');
   CheckIterator('castle-data:/extrusion_empty_spine.x3dv');
+  CheckIterator('castle-data:/extrusion_empty_cross_section.x3dv');
   CheckIterator('castle-data:/extrusion_empty_spine_concave.x3dv');
   CheckIterator('castle-data:/extrusion_empty_spine_smooth.x3dv');
 
@@ -1265,6 +1267,36 @@ begin
   AssertTrue(SomeShape.Scene = nil);
 end;
 *)
+
+procedure TTestSceneCore.TestValidScene;
+
+  procedure CheckScene(const Url: String);
+  var
+    Scene: TCastleSceneCore;
+  begin
+    Scene := TCastleSceneCore.Create(nil);
+    try
+      try
+        Scene.Load(Url);
+        Scene.TrianglesCount;
+        Scene.VerticesCount;
+        Scene.BoundingBox;
+      except
+        on E: Exception do
+        begin
+          E.Message := E.Message + ' (TestValidScene with Url: ' + Url + ')';
+          raise;
+        end;
+      end;
+    finally FreeAndNil(Scene) end;
+  end;
+
+begin
+  CheckScene('castle-data:/extrusion_empty_spine.x3dv');
+  CheckScene('castle-data:/extrusion_empty_cross_section.x3dv');
+  CheckScene('castle-data:/extrusion_empty_spine_concave.x3dv');
+  CheckScene('castle-data:/extrusion_empty_spine_smooth.x3dv');
+end;
 
 initialization
   RegisterTest(TTestSceneCore);

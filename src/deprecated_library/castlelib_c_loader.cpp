@@ -83,7 +83,8 @@ typedef void (CDECL *PFNRD_CGE_SetNavigationInputShortcut)(int eInput, int eKey1
 typedef int (CDECL *PFNRD_CGE_GetNavigationType)();
 typedef void (CDECL *PFNRD_CGE_SetNavigationType)(int eNewType);
 typedef void (CDECL *PFNRD_CGE_SetTouchInterface)(int eMode);
-typedef void (CDECL *PFNRD_CGE_SetUserInterface)(bool bAutomaticTouchInterface);
+typedef void (CDECL *PFNRD_CGE_SetAutoTouchInterface)(bool bAutomaticTouchInterface);
+typedef void (CDECL *PFNRD_CGE_SetWalkNavigationMouseDragMode)(int eMode);
 
 typedef void (CDECL *PFNRD_CGE_SetVariableInt)(int eVar, int nValue);
 typedef int (CDECL *PFNRD_CGE_GetVariableInt)(int eVar);
@@ -122,7 +123,8 @@ PFNRD_CGE_SetNavigationInputShortcut pfrd_CGE_SetNavigationInputShortcut = NULL;
 PFNRD_CGE_GetNavigationType pfrd_CGE_GetNavigationType = NULL;
 PFNRD_CGE_SetNavigationType pfrd_CGE_SetNavigationType = NULL;
 PFNRD_CGE_SetTouchInterface pfrd_CGE_SetTouchInterface = NULL;
-PFNRD_CGE_SetUserInterface pfrd_CGE_SetUserInterface = NULL;
+PFNRD_CGE_SetAutoTouchInterface pfrd_CGE_SetAutoTouchInterface = NULL;
+PFNRD_CGE_SetWalkNavigationMouseDragMode pfrd_CGE_SetWalkNavigationMouseDragMode = NULL;
 PFNRD_CGE_SetVariableInt pfrd_CGE_SetVariableInt = NULL;
 PFNRD_CGE_GetVariableInt pfrd_CGE_GetVariableInt = NULL;
 PFNRD_CGE_SetNodeFieldValue pfrd_CGE_SetNodeFieldValue = NULL;
@@ -195,7 +197,8 @@ void CGE_LoadLibrary()
     pfrd_CGE_GetNavigationType = (PFNRD_CGE_GetNavigationType)cge_GetProc(hCgeDll, "CGE_GetNavigationType");
     pfrd_CGE_SetNavigationType = (PFNRD_CGE_SetNavigationType)cge_GetProc(hCgeDll, "CGE_SetNavigationType");
     pfrd_CGE_SetTouchInterface = (PFNRD_CGE_SetTouchInterface)cge_GetProc(hCgeDll, "CGE_SetTouchInterface");
-    pfrd_CGE_SetUserInterface = (PFNRD_CGE_SetUserInterface)cge_GetProc(hCgeDll, "CGE_SetUserInterface");
+    pfrd_CGE_SetAutoTouchInterface = (PFNRD_CGE_SetAutoTouchInterface)cge_GetProc(hCgeDll, "CGE_SetAutoTouchInterface");
+    pfrd_CGE_SetWalkNavigationMouseDragMode = (PFNRD_CGE_SetWalkNavigationMouseDragMode)cge_GetProc(hCgeDll, "CGE_SetWalkNavigationMouseDragMode");
     pfrd_CGE_SetVariableInt = (PFNRD_CGE_SetVariableInt)cge_GetProc(hCgeDll, "CGE_SetVariableInt");
     pfrd_CGE_GetVariableInt = (PFNRD_CGE_GetVariableInt)cge_GetProc(hCgeDll, "CGE_GetVariableInt");
     pfrd_CGE_SetNodeFieldValue = (PFNRD_CGE_SetNodeFieldValue)cge_GetProc(hCgeDll, "CGE_SetNodeFieldValue");
@@ -419,10 +422,17 @@ void CGE_SetTouchInterface(int /*ECgeTouchCtlInterface*/ eMode)
 }
 
 //-----------------------------------------------------------------------------
-void CGE_SetUserInterface(bool bAutomaticTouchInterface)
+void CGE_SetAutoTouchInterface(bool bAutomaticTouchInterface)
 {
-    if (pfrd_CGE_SetUserInterface!=NULL)
-        (*pfrd_CGE_SetUserInterface)(bAutomaticTouchInterface);
+    if (pfrd_CGE_SetAutoTouchInterface!=NULL)
+        (*pfrd_CGE_SetAutoTouchInterface)(bAutomaticTouchInterface);
+}
+
+//-----------------------------------------------------------------------------
+void CGE_SetWalkNavigationMouseDragMode(int /*ECgeMouseDragMode*/ eMode)
+{
+    if (pfrd_CGE_SetWalkNavigationMouseDragMode!=NULL)
+        (*pfrd_CGE_SetWalkNavigationMouseDragMode)(eMode);
 }
 
 //-----------------------------------------------------------------------------
