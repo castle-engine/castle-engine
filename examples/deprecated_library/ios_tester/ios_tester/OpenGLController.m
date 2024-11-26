@@ -1,5 +1,5 @@
 /*
-  Copyright 2013-2017 Jan Adamec, Michalis Kamburelis.
+  Copyright 2013-2024 Jan Adamec, Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -174,10 +174,19 @@
 
     CGE_Initialize([libraryDirectory fileSystemRepresentation]);
     CGE_Open(ecgeofLog, m_oldViewWidth * m_fScale, m_oldViewHeight * m_fScale, (unsigned)(dpi * m_fScale));
-    CGE_SetUserInterface(true);
+    CGE_SetAutoTouchInterface(true);
 
     Options *opt = [Options sharedOptions];
-    CGE_SetVariableInt(ecgevarWalkTouchCtl, opt.walkTwoControls ? ecgetciCtlWalkCtlRotate : ecgetciCtlWalkDragRotate);
+    if (opt.walkTwoControls)
+    {
+        CGE_SetVariableInt(ecgevarAutoWalkTouchInterface, ecgetiWalkRotate);
+        CGE_SetWalkNavigationMouseDragMode(ecgemdNone);
+    }
+    else
+    {
+        CGE_SetVariableInt(ecgevarAutoWalkTouchInterface, ecgetiWalk);
+        CGE_SetWalkNavigationMouseDragMode(ecgemdRotate);
+    }
 
     [self LoadSceneFile];
 
@@ -203,7 +212,7 @@
 {
     [EAGLContext setCurrentContext:self.context];
 
-    CGE_Close();
+    CGE_Close(true);
     CGE_Finalize();
 }
 
@@ -406,12 +415,6 @@
 #pragma mark - interface
 
 //-----------------------------------------------------------------
-- (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation
-{
-    return YES;
-}
-
-//-----------------------------------------------------------------
 - (void)updateViewpointButtons
 {
     m_btnViewpointPrev.enabled = (m_nCurrentViewpoint > 0);
@@ -560,13 +563,12 @@
 //-----------------------------------------------------------------
 - (void)OnBtnInfo:(id)sender
 {
-    int nInfoTextMax = 4096;
+    int nInfoTextMax = 10000;
     char *szInfo = malloc(nInfoTextMax);
     szInfo[0] = 0;
     CGE_GetOpenGLInformation(szInfo, nInfoTextMax);
-    free(szInfo);
-
     NSString *sInfo = [NSString stringWithUTF8String:szInfo];
+    free(szInfo);
 
     UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Main" bundle:nil];
     UINavigationController *pNavCtl = [storyboard instantiateViewControllerWithIdentifier:@"OpenGLInfoNav"];

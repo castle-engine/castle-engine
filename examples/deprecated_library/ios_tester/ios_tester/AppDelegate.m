@@ -1,5 +1,5 @@
 /*
-  Copyright 2013-2014 Jan Adamec, Michalis Kamburelis.
+  Copyright 2013-2024 Jan Adamec, Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -33,6 +33,7 @@
     viewController.preferredFramesPerSecond = 60;
     
     UINavigationController *navCtl = [[UINavigationController alloc] initWithRootViewController:viewController];
+    navCtl.navigationBar.translucent = NO;
     self.window.rootViewController = navCtl;
     
     [viewController viewDidLoad];
