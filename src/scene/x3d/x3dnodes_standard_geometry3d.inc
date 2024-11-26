@@ -667,7 +667,7 @@ begin
               spine[1](crossSection[1], crossSection[0])
             This is important, because we want faces to be ordered just
             like the specification requires. This makes using "ccw"
-            and "solid" fields predictable for VRML author, since he
+            and "solid" fields predictable for VRML / X3D author, since (s)he
             knows which side will be CCW and which CW.
 
             So below we produce the same order. }
