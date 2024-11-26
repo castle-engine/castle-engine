@@ -34,11 +34,13 @@
     
     UINavigationController *navCtl = [[UINavigationController alloc] initWithRootViewController:viewController];
     navCtl.navigationBar.translucent = NO;
+    navCtl.navigationBar.barStyle = UIBarStyleBlackOpaque;
+        
     self.window.rootViewController = navCtl;
     
     [viewController viewDidLoad];
 
-    self.window.backgroundColor = [UIColor whiteColor];
+    //self.window.backgroundColor = [UIColor whiteColor];
     [self.window makeKeyAndVisible];
     return YES;
 }

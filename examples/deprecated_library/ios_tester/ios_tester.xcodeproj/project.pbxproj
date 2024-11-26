@@ -7,8 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		16AD4F1300D3A33E503B2E0D /* libPods-ios_tester.a in Frameworks */ = {isa = PBXBuildFile; fileRef = F2A6F7F2523AE76A3655E51B /* libPods-ios_tester.a */; };
 		2C8C07B32CF5FFCB002D6AE5 /* libcastleengine.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 2C8C07B22CF5FFCB002D6AE5 /* libcastleengine.a */; };
-		2C8C07B52CF6030A002D6AE5 /* libfreetype.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 2C8C07B42CF6030A002D6AE5 /* libfreetype.a */; };
 		2C8C083E2CF6090C002D6AE5 /* floor1.c in Sources */ = {isa = PBXBuildFile; fileRef = 2C8C08252CF6090C002D6AE5 /* floor1.c */; settings = {COMPILER_FLAGS = "-w"; }; };
 		2C8C083F2CF6090C002D6AE5 /* info.c in Sources */ = {isa = PBXBuildFile; fileRef = 2C8C08272CF6090C002D6AE5 /* info.c */; settings = {COMPILER_FLAGS = "-w"; }; };
 		2C8C08402CF6090C002D6AE5 /* res012.c in Sources */ = {isa = PBXBuildFile; fileRef = 2C8C08342CF6090C002D6AE5 /* res012.c */; settings = {COMPILER_FLAGS = "-w"; }; };
@@ -49,7 +49,6 @@
 
 /* Begin PBXFileReference section */
 		2C8C07B22CF5FFCB002D6AE5 /* libcastleengine.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcastleengine.a; path = "/Users/janadamec/projekty/castle-engine/src/deprecated_library/libcastleengine.a"; sourceTree = "<absolute>"; };
-		2C8C07B42CF6030A002D6AE5 /* libfreetype.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libfreetype.a; sourceTree = "<group>"; };
 		2C8C081C2CF6090C002D6AE5 /* asm_arm.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = asm_arm.h; sourceTree = "<group>"; };
 		2C8C081D2CF6090C002D6AE5 /* bitwise.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = bitwise.c; sourceTree = "<group>"; };
 		2C8C081E2CF6090C002D6AE5 /* codebook.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = codebook.h; sourceTree = "<group>"; };
@@ -111,6 +110,9 @@
 		4DCB39AD183A3255001A708D /* sampledata */ = {isa = PBXFileReference; lastKnownFileType = folder; path = sampledata; sourceTree = "<group>"; };
 		4DCB39B5183A70F3001A708D /* ViewpointsController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ViewpointsController.h; sourceTree = "<group>"; };
 		4DCB39B6183A70F3001A708D /* ViewpointsController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ViewpointsController.m; sourceTree = "<group>"; };
+		5C4E0EC09FE9B8EF3DB77AC0 /* Pods-ios_tester.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ios_tester.release.xcconfig"; path = "Target Support Files/Pods-ios_tester/Pods-ios_tester.release.xcconfig"; sourceTree = "<group>"; };
+		A3EAC36F33173540CF7E61A2 /* Pods-ios_tester.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ios_tester.debug.xcconfig"; path = "Target Support Files/Pods-ios_tester/Pods-ios_tester.debug.xcconfig"; sourceTree = "<group>"; };
+		F2A6F7F2523AE76A3655E51B /* libPods-ios_tester.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-ios_tester.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -125,7 +127,7 @@
 				4DCB3970183A2A46001A708D /* CoreGraphics.framework in Frameworks */,
 				4DCB3972183A2A46001A708D /* UIKit.framework in Frameworks */,
 				4DCB396E183A2A46001A708D /* Foundation.framework in Frameworks */,
-				2C8C07B52CF6030A002D6AE5 /* libfreetype.a in Frameworks */,
+				16AD4F1300D3A33E503B2E0D /* libPods-ios_tester.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -180,12 +182,22 @@
 			path = "/Users/janadamec/projekty/castle-engine/tools/build-tool/data/ios/services/ogg_vorbis/cge_project_name/tremolo";
 			sourceTree = "<absolute>";
 		};
+		3AF29D6B2B87F0E549231114 /* Pods */ = {
+			isa = PBXGroup;
+			children = (
+				A3EAC36F33173540CF7E61A2 /* Pods-ios_tester.debug.xcconfig */,
+				5C4E0EC09FE9B8EF3DB77AC0 /* Pods-ios_tester.release.xcconfig */,
+			);
+			path = Pods;
+			sourceTree = "<group>";
+		};
 		4DCB3961183A2A46001A708D = {
 			isa = PBXGroup;
 			children = (
 				4DCB3973183A2A46001A708D /* ios_tester */,
 				4DCB396C183A2A46001A708D /* Frameworks */,
 				4DCB396B183A2A46001A708D /* Products */,
+				3AF29D6B2B87F0E549231114 /* Pods */,
 			);
 			sourceTree = "<group>";
 		};
@@ -206,6 +218,7 @@
 				4DCB396D183A2A46001A708D /* Foundation.framework */,
 				4DCB396F183A2A46001A708D /* CoreGraphics.framework */,
 				4DCB3971183A2A46001A708D /* UIKit.framework */,
+				F2A6F7F2523AE76A3655E51B /* libPods-ios_tester.a */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -251,7 +264,6 @@
 			isa = PBXGroup;
 			children = (
 				2C8C083D2CF6090C002D6AE5 /* tremolo */,
-				2C8C07B42CF6030A002D6AE5 /* libfreetype.a */,
 				2C8C07B22CF5FFCB002D6AE5 /* libcastleengine.a */,
 				4D1BD228187D70590067AA02 /* castleengine.h */,
 			);
@@ -265,6 +277,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 4DCB399C183A2A46001A708D /* Build configuration list for PBXNativeTarget "ios_tester" */;
 			buildPhases = (
+				98CC32CF19B27833C7424A36 /* [CP] Check Pods Manifest.lock */,
 				4DCB3966183A2A46001A708D /* Sources */,
 				4DCB3967183A2A46001A708D /* Frameworks */,
 				4DCB3968183A2A46001A708D /* Resources */,
@@ -325,6 +338,31 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		98CC32CF19B27833C7424A36 /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-ios_tester-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		4DCB3966183A2A46001A708D /* Sources */ = {
@@ -482,9 +520,11 @@
 		};
 		4DCB399D183A2A46001A708D /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = A3EAC36F33173540CF7E61A2 /* Pods-ios_tester.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "Apple Development";
 				DEVELOPMENT_TEAM = "";
 				ENABLE_BITCODE = NO;
 				FRAMEWORK_SEARCH_PATHS = "$(inherited)";
@@ -512,10 +552,11 @@
 		};
 		4DCB399E183A2A46001A708D /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 5C4E0EC09FE9B8EF3DB77AC0 /* Pods-ios_tester.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
-				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "Apple Development";
 				DEVELOPMENT_TEAM = "";
 				ENABLE_BITCODE = NO;
 				FRAMEWORK_SEARCH_PATHS = "$(inherited)";
