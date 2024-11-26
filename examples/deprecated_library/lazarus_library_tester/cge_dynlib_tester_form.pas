@@ -144,7 +144,7 @@ begin
   CGE_Initialize(PCChar(PChar(GetAppConfigDir(false))));
   CGE_Open(ecgeofLog, OpenGLControl1.Width, OpenGLControl1.Height, 96);
   CGE_SetLibraryCallbackProc(@OpenGlLibraryCallback);
-  CGE_SetUserInterface(true);
+  CGE_SetAutoTouchInterface(false);
   sFile := 'data/bridge_level/bridge_final.x3dv';
   CGE_LoadSceneFromFile(@sFile[1]);
   UpdateUIAfterOpen;
