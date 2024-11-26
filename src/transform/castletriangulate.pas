@@ -115,6 +115,16 @@ implementation
 uses Math,
   CastleLog, CastleStringUtils;
 
+const
+  { Must be smaller than 1e-6, to handle correctly rail.wrl testcase
+    from Ulrich Visua (email to Michalis 2024-11-26). }
+  EqualityEpsilon = 1e-8;
+
+  { Must be smaller than 1e-32, to handle correctly rail.wrl testcase
+    from Ulrich Visua (email to Michalis 2024-11-26).
+    I didn't find a non-zero value that would be goood for rail.wrl testcase. }
+  EpsilonForEmptyCheck = 0.0;
+
 { Do additional operations (normalize some vectors etc.)
   that in theory should improve numerical stability of this algorithm.
   These operations do not seem to make any impact in practice in our tests.
@@ -220,7 +230,7 @@ var
     Previous := Middle;
     repeat
       Previous := PreviousNotOut(Previous);
-    until (Previous = Middle) or not TVector3.Equals(Verts(Previous), Verts(Middle));
+    until (Previous = Middle) or not TVector3.Equals(Verts(Previous), Verts(Middle), EqualityEpsilon);
     if Previous = Middle then
     begin
       WritelnLog('Triangulator', 'All vertexes of given polygon are equal. So polygon doesn''t contain any non-empty triangles.');
@@ -234,7 +244,7 @@ var
       EarDir := TriangleDirection(Verts(Previous), Verts(Middle), Verts(Next));
       { note: no need to check for TVector3.Equals(Verts(Next), Verts(Middle)) anywhere,
         because if EarDir is non-zero then they had to be different. }
-    until (Next = Previous) or not EarDir.IsZero;
+    until (Next = Previous) or not EarDir.IsZero(EqualityEpsilon);
     if Next = Previous then
     begin
       WritelnLog('Triangulator', 'All vertexes of given polygon are collinear. So polygon doesn''t contain any non-empty triangles.');
@@ -250,9 +260,6 @@ var
   begin
     Result := EarAround(Middle, Previous, Next, EarDirIgnored);
   end;
-
-var
-  EpsilonForEmptyCheck: Single;
 
   { Should vertex Border (lying on the border of triangle V0,V1,V2)
     be treated as lying inside this triangle (and causing it non-empty).
@@ -318,7 +325,7 @@ var
       RDirection.X := TVector3.DotProduct(RayDirection, XDirection) / XDirectionLenSqr;
       RDirection.Y := TVector3.DotProduct(RayDirection, YDirection) / YDirectionLenSqr;
 
-      if IsZero(RDirection.Y) then Exit(false);
+      if IsZero(RDirection.Y, EqualityEpsilon) then Exit(false);
 
       { we're interested now in intersection on OX axis with ray.
         R0 + RDirection * T = (X, 0), so
@@ -397,7 +404,6 @@ begin
     NewTriangle(0, 1, 2) else
   if Count > 3 then
   begin
-    EpsilonForEmptyCheck := SingleEpsilon;
     FailureWarningDone := false;
 
     { calculate Center := average of all vertexes }
@@ -431,7 +437,7 @@ begin
         (they do not determine triangulation in any other way). }
       P1 := GetMostDistantVertex(Center);
       if not EarAround(P1, P0, P2, PolygonNormal) then Exit;
-      Assert(not PolygonNormal.IsZero);
+      Assert(not PolygonNormal.IsZero(EqualityEpsilon));
       PolygonNormal := PolygonNormal.Normalize;
 
       if LogTriangulation then
@@ -488,7 +494,7 @@ begin
           end;
 
           EarNormal := TriangleDirection(V0, V1, V2);
-          if EarNormal.IsZero then
+          if EarNormal.IsZero(EqualityEpsilon) then
           begin
             if LogTriangulation then
               WritelnLog('Triangulation', Format('Triangle %d - %d - %d is colinear, removing.', [P0, P1, P2]));
@@ -693,7 +699,7 @@ begin
   P0 := P1;
   repeat
     P0 := Previous(P0);
-  until (P0 = P1) or not TVector3.Equals(Verts(P0), Verts(P1));
+  until (P0 = P1) or not TVector3.Equals(Verts(P0), Verts(P1), EqualityEpsilon);
   if P0 = P1 then
   begin
     { All vertexes of given polygon are equal. }
