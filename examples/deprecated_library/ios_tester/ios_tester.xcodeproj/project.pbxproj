@@ -8,6 +8,8 @@
 
 /* Begin PBXBuildFile section */
 		16AD4F1300D3A33E503B2E0D /* libPods-ios_tester.a in Frameworks */ = {isa = PBXBuildFile; fileRef = F2A6F7F2523AE76A3655E51B /* libPods-ios_tester.a */; };
+		2C7440D92CF8744000968A74 /* Launch Screen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 2C7440D82CF8744000968A74 /* Launch Screen.storyboard */; };
+		2C7440DB2CF875F800968A74 /* LaunchImage.png in Resources */ = {isa = PBXBuildFile; fileRef = 2C7440DA2CF875F800968A74 /* LaunchImage.png */; };
 		2C8C07B32CF5FFCB002D6AE5 /* libcastleengine.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 2C8C07B22CF5FFCB002D6AE5 /* libcastleengine.a */; };
 		2C8C083E2CF6090C002D6AE5 /* floor1.c in Sources */ = {isa = PBXBuildFile; fileRef = 2C8C08252CF6090C002D6AE5 /* floor1.c */; settings = {COMPILER_FLAGS = "-w"; }; };
 		2C8C083F2CF6090C002D6AE5 /* info.c in Sources */ = {isa = PBXBuildFile; fileRef = 2C8C08272CF6090C002D6AE5 /* info.c */; settings = {COMPILER_FLAGS = "-w"; }; };
@@ -48,6 +50,8 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		2C7440D82CF8744000968A74 /* Launch Screen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = "Launch Screen.storyboard"; sourceTree = "<group>"; };
+		2C7440DA2CF875F800968A74 /* LaunchImage.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = LaunchImage.png; sourceTree = "<group>"; };
 		2C8C07B22CF5FFCB002D6AE5 /* libcastleengine.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcastleengine.a; path = "/Users/janadamec/projekty/castle-engine/src/deprecated_library/libcastleengine.a"; sourceTree = "<absolute>"; };
 		2C8C081C2CF6090C002D6AE5 /* asm_arm.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = asm_arm.h; sourceTree = "<group>"; };
 		2C8C081D2CF6090C002D6AE5 /* bitwise.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = bitwise.c; sourceTree = "<group>"; };
@@ -228,6 +232,7 @@
 			children = (
 				4DCB397C183A2A46001A708D /* AppDelegate.h */,
 				4DCB397D183A2A46001A708D /* AppDelegate.m */,
+				2C7440D82CF8744000968A74 /* Launch Screen.storyboard */,
 				4DCB397F183A2A46001A708D /* Main.storyboard */,
 				4DCB39A2183A2B69001A708D /* OpenGLController.h */,
 				4DCB39A3183A2B69001A708D /* OpenGLController.m */,
@@ -253,6 +258,7 @@
 			isa = PBXGroup;
 			children = (
 				4DCB3975183A2A46001A708D /* ios_tester-Info.plist */,
+				2C7440DA2CF875F800968A74 /* LaunchImage.png */,
 				4DCB3976183A2A46001A708D /* InfoPlist.strings */,
 				4DCB3979183A2A46001A708D /* main.m */,
 				4DCB397B183A2A46001A708D /* ios_tester-Prefix.pch */,
@@ -333,7 +339,9 @@
 				4DCB3986183A2A46001A708D /* Images.xcassets in Resources */,
 				4DCB3978183A2A46001A708D /* InfoPlist.strings in Resources */,
 				4DCB39AE183A3255001A708D /* sampledata in Resources */,
+				2C7440D92CF8744000968A74 /* Launch Screen.storyboard in Resources */,
 				4DCB3981183A2A46001A708D /* Main.storyboard in Resources */,
+				2C7440DB2CF875F800968A74 /* LaunchImage.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

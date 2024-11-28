@@ -110,7 +110,17 @@
     UIBarButtonItem *btnBarInfo =[[UIBarButtonItem alloc] initWithCustomView:btnInfo];
 
     self.navigationItem.leftBarButtonItem = btnOpenFile;
-    self.navigationItem.rightBarButtonItems = @[btnBarInfo, m_btnOptions, m_btnViewpointNext, m_btnViewpointPopup, m_btnViewpointPrev, itemSegm];
+    if (UIDevice.currentDevice.userInterfaceIdiom == UIUserInterfaceIdiomPad)
+    {
+        self.navigationItem.rightBarButtonItems = @[btnBarInfo, m_btnOptions, m_btnViewpointNext, m_btnViewpointPopup, m_btnViewpointPrev, itemSegm];
+    }
+    else
+    {
+        // put Navigation options to bottom toolbar on iPhone
+        self.navigationItem.rightBarButtonItems = @[btnBarInfo, m_btnOptions, m_btnViewpointNext, m_btnViewpointPopup, m_btnViewpointPrev];
+        self.toolbarItems = @[itemSegm];
+        [self.navigationController setToolbarHidden:NO];
+    }
 
     [self setupGL];
 }

@@ -35,6 +35,8 @@
     UINavigationController *navCtl = [[UINavigationController alloc] initWithRootViewController:viewController];
     navCtl.navigationBar.translucent = NO;
     navCtl.navigationBar.barStyle = UIBarStyleBlackOpaque;
+    navCtl.toolbar.translucent = NO;
+    navCtl.toolbar.barStyle = UIBarStyleBlackOpaque;
         
     self.window.rootViewController = navCtl;
     
