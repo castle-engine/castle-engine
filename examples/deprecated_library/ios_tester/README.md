@@ -1,6 +1,14 @@
-# iOS example using CGE as a dynamic library to load and visualize 3D models
+# iOS example using CGE as a static library with C API to load and visualize 3D models
 
-To compile, you need to install CocoaPods, see [the Manual](https://castle-engine.io/ios).
+The ios_tester project is prepared in Xcode, written in Objective-C.
+Before you begin, please compile the CGE library:
+
+1. go to `src/deprecated_library`
+2. run `sh compile-iOS.sh`
+
+This produces libcastleengine.a file. Just leave it inside its directory.
+
+To compile ios_tester, you also need to install CocoaPods, see [the Manual](https://castle-engine.io/ios).
 
 Then,
 
