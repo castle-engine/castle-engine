@@ -4016,7 +4016,7 @@ var
   NewObjectPlacement: TIfcLocalPlacement;
 begin
   Location := TIfcCartesianPoint.Create(Owner);
-  Location.Coordinates.Value := Vector3(Random(10), Random(10), 0);
+  Location.Coordinates.Value := Translation;
 
   RelativePlacement := TIfcAxis2Placement3D.Create(Owner);
   RelativePlacement.Location := Location;

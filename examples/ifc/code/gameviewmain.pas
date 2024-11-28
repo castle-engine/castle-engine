@@ -177,14 +177,18 @@ end;
 procedure TViewMain.ClickAddWall(Sender: TObject);
 var
   Wall: TIfcWall;
+  SizeX, SizeY, WallHeight: Single;
 begin
   Wall := TIfcWall.Create(IfcFile);
   Wall.Name := 'Wall' + IntToStr(NextWallNumber);
   Inc(NextWallNumber);
 
+  SizeX := RandomFloatRange(1, 4);
+  SizeY := RandomFloatRange(1, 4);
+  WallHeight := RandomFloatRange(1.5, 2.5); // Z is "up", by convention, in IFC
   Wall.AddBoxRepresentation(Box3D(
-    Vector3(0, 0, 0),
-    Vector3(10, 0.5, 2) // Z is "up", by convention, in IFC
+    Vector3(-SizeX / 2, -SizeY / 2, 0),
+    Vector3( SizeX / 2,  SizeY / 2, WallHeight)
   ));
 
   Wall.SetRelativePlacement(Vector3(
