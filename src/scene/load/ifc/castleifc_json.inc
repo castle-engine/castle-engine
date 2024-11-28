@@ -912,8 +912,6 @@ var
   TopLevelType: String;
   Project: TIfcProject;
 begin
-  InitializeIfcClasses; // make sure IfcClasses ready
-
   Result := TIfcFile.Create(nil);
   IfcOwner := Result;
 

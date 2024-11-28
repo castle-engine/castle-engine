@@ -29,11 +29,15 @@ type
     { Components designed using CGE editor.
       These fields will be automatically initialized at Start. }
     LabelFps: TCastleLabel;
-    ButtonNew, ButtonLoad, ButtonSave, ButtonAddWall, ButtonModifyWall: TCastleButton;
+    ButtonNew, ButtonLoad, ButtonSaveIfc, ButtonSaveNode,
+      ButtonAddWall, ButtonModifyWall: TCastleButton;
     IfcScene: TCastleScene;
   private
     IfcFile: TIfcFile;
     IfcMapping: TCastleIfcMapping;
+
+    { Used to assing unique names to walls. }
+    NextWallNumber: Cardinal;
 
     { Create new IfcMapping instance and update what IfcScene shows,
       based on IfcFile contents.
@@ -43,7 +47,8 @@ type
 
     procedure ClickNew(Sender: TObject);
     procedure ClickLoad(Sender: TObject);
-    procedure ClickSave(Sender: TObject);
+    procedure ClickSaveIfc(Sender: TObject);
+    procedure ClickSaveNode(Sender: TObject);
     procedure ClickAddWall(Sender: TObject);
     procedure ClickModifyWall(Sender: TObject);
   public
@@ -59,7 +64,7 @@ var
 implementation
 
 uses SysUtils,
-  CastleUtils, CastleUriUtils, CastleWindow;
+  CastleUtils, CastleUriUtils, CastleWindow, CastleBoxes, X3DLoad;
 
 { TViewMain ----------------------------------------------------------------- }
 
@@ -75,7 +80,8 @@ begin
   ClickNew(nil);
   ButtonNew.OnClick := {$ifdef FPC}@{$endif} ClickNew;
   ButtonLoad.OnClick := {$ifdef FPC}@{$endif} ClickLoad;
-  ButtonSave.OnClick := {$ifdef FPC}@{$endif} ClickSave;
+  ButtonSaveIfc.OnClick := {$ifdef FPC}@{$endif} ClickSaveIfc;
+  ButtonSaveNode.OnClick := {$ifdef FPC}@{$endif} ClickSaveNode;
   ButtonAddWall.OnClick := {$ifdef FPC}@{$endif} ClickAddWall;
   ButtonModifyWall.OnClick := {$ifdef FPC}@{$endif} ClickModifyWall;
 end;
@@ -144,20 +150,50 @@ begin
   end;
 end;
 
-procedure TViewMain.ClickSave(Sender: TObject);
+procedure TViewMain.ClickSaveIfc(Sender: TObject);
 var
   Url: string;
 begin
   Url := 'castle-data:/';
-  if Application.MainWindow.FileDialog('Save IFC file', Url, false, IfcFileFilter) then
+  if Application.MainWindow.FileDialog('Save IFC file',
+      Url, false, IfcFileFilter) then
   begin
     IfcJsonSave(IfcFile, Url);
   end;
 end;
 
-procedure TViewMain.ClickAddWall(Sender: TObject);
+procedure TViewMain.ClickSaveNode(Sender: TObject);
+var
+  Url: string;
 begin
-  // IfcFile.Project.... // TODO
+  Url := 'castle-data:/out.x3d';
+  if Application.MainWindow.FileDialog('Save Node To X3D or STL',
+      Url, false, SaveNode_FileFilters) then
+  begin
+    SaveNode(IfcMapping.RootNode, Url);
+  end;
+end;
+
+procedure TViewMain.ClickAddWall(Sender: TObject);
+var
+  Wall: TIfcWall;
+begin
+  Wall := TIfcWall.Create(IfcFile);
+  Wall.Name := 'Wall' + IntToStr(NextWallNumber);
+  Inc(NextWallNumber);
+
+  Wall.AddBoxRepresentation(Box3D(
+    Vector3(0, 0, 0),
+    Vector3(10, 0.5, 2) // Z is "up", by convention, in IFC
+  ));
+
+  Wall.SetRelativePlacement(Vector3(
+    RandomFloatRange(-5, 5),
+    RandomFloatRange(-5, 5),
+    0
+  ));
+
+  IfcFile.Project.AddIsDecomposedBy(Wall);
   IfcMapping.Update(IfcFile);
 end;
 
