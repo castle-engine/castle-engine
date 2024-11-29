@@ -3277,8 +3277,15 @@
   { Context for information to be exchanged or shared,
     it may represent a construction project but does not have to.
 
+    Note that this initializes property @link(Name) to 'New Project',
+    as the project name must be non-empty (at least for conversion scripts
+    on https://github.com/buildingsmart-community/ifcJSON and
+    https://github.com/michaliskambi/ifcJSON ).
+
     Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcProject.htm }
   TIfcProject = class(TIfcContext)
+  public
+    constructor Create(AOwner: TComponent); override;
   end;
 
   { How to display the product. }
@@ -4117,6 +4124,14 @@ destructor TIfcProductRepresentation.Destroy;
 begin
   FreeAndNil(FRepresentations);
   inherited;
+end;
+
+{ TIfcProject -------------------------------------------------------------- }
+
+constructor TIfcProject.Create(AOwner: TComponent);
+begin
+  inherited;
+  Name := 'New Project;'
 end;
 
 { TIfcRepresentation -------------------------------------------------------- }

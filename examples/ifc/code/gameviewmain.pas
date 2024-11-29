@@ -121,10 +121,6 @@ begin
   FreeAndNil(IfcFile);
 
   IfcFile := TIfcFile.Create(nil);
-  IfcFile.EncodingType := 'IFC.JSON';
-  IfcFile.Version := '0.0.1';
-  IfcFile.SchemaIdentifier := 'IFC4';
-  IfcFile.OriginatingSystem := 'Castle Game Engine ' + CastleEngineVersion;
 
   // we must create also TIfcProject to have valid IFC
   IfcProject := TIfcProject.Create(IfcFile);
