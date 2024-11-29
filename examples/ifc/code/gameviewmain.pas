@@ -127,6 +127,9 @@ begin
   IfcFile.Data.Add(IfcProject);
   Assert(IfcFile.Project = IfcProject);
 
+  // valid IFC project requires units
+  IfcProject.SetupUnits;
+
   NewIfcMapping(IfcFile);
 end;
 

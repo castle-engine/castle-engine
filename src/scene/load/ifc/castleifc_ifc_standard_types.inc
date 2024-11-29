@@ -3286,6 +3286,14 @@
   TIfcProject = class(TIfcContext)
   public
     constructor Create(AOwner: TComponent); override;
+
+    { Setup units, following metric system and radians.
+      This matches glTF, X3D and CGE conventions.
+
+      Valid IFC project must have units defined.
+      BonsaiBIM expects it.
+      See also valid notes on https://stackoverflow.com/questions/51665572/required-data-for-ifc . }
+    procedure SetupUnits;
   end;
 
   { How to display the product. }
@@ -4132,6 +4140,52 @@ constructor TIfcProject.Create(AOwner: TComponent);
 begin
   inherited;
   Name := 'New Project;'
+end;
+
+procedure TIfcProject.SetupUnits;
+var
+  UnitAssignment: TIfcUnitAssignment;
+  DimensionalExponents: TIfcDimensionalExponents;
+  IfcUnit: TIfcSIUnit;
+begin
+  UnitAssignment := TIfcUnitAssignment.Create(Owner);
+
+  DimensionalExponents := TIfcDimensionalExponents.Create(Owner);
+
+  IfcUnit := TIfcSIUnit.Create(Owner);
+  IfcUnit.UnitType := TIfcUnitEnum.PlaneAngleUnit;
+  IfcUnit.Name := TIfcSIUnitName.Radian;
+  IfcUnit.Dimensions := DimensionalExponents;
+  UnitAssignment.Units.Add(IfcUnit);
+
+  DimensionalExponents := TIfcDimensionalExponents.Create(Owner);
+  DimensionalExponents.LengthExponent := 1;
+
+  IfcUnit := TIfcSIUnit.Create(Owner);
+  IfcUnit.UnitType := TIfcUnitEnum.LengthUnit;
+  IfcUnit.Name := TIfcSIUnitName.Metre;
+  IfcUnit.Dimensions := DimensionalExponents;
+  UnitAssignment.Units.Add(IfcUnit);
+
+  DimensionalExponents := TIfcDimensionalExponents.Create(Owner);
+  DimensionalExponents.LengthExponent := 2;
+
+  IfcUnit := TIfcSIUnit.Create(Owner);
+  IfcUnit.UnitType := TIfcUnitEnum.AreaUnit;
+  IfcUnit.Name := TIfcSIUnitName.Square_Metre;
+  IfcUnit.Dimensions := DimensionalExponents;
+  UnitAssignment.Units.Add(IfcUnit);
+
+  DimensionalExponents := TIfcDimensionalExponents.Create(Owner);
+  DimensionalExponents.LengthExponent := 3;
+
+  IfcUnit := TIfcSIUnit.Create(Owner);
+  IfcUnit.UnitType := TIfcUnitEnum.VolumeUnit;
+  IfcUnit.Name := TIfcSIUnitName.Cubic_Metre;
+  IfcUnit.Dimensions := DimensionalExponents;
+  UnitAssignment.Units.Add(IfcUnit);
+
+  UnitsInContext := UnitAssignment;
 end;
 
 { TIfcRepresentation -------------------------------------------------------- }
