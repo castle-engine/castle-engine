@@ -213,7 +213,7 @@
       simply don't work at all with shadow volumes. }
     UsingBlending: Boolean;
 
-    { Render only shapes  that may receive shadow volumes, or ones that don't,
+    { Render only shapes that may receive shadow volumes, or ones that don't,
       or both.
 
       TCastleViewport.RenderOnePass does filtering shapes based on this,

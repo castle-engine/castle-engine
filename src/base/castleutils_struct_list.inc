@@ -72,9 +72,9 @@ type
       (see https://docwiki.embarcadero.com/RADStudio/Sydney/en/Pointer_Math_(Delphi) ).
       These are CGE default settings when being compiled with FPC or Delphi,
       so you can depend on them at least in CGE implementation.
-      Note that Delphi applications just using L don't actually have pointermath "on",
-      it is enough that this unit is compiled with pointermath "on" and then one can use
-      math on PtrT.
+      Note that Delphi code using this doesn't need to be compiled with
+      pointermath "on", it is enough that this unit is compiled with
+      pointermath "on" and then one can use math on PtrT.
 
       This is in particular useful if you have a list of records and you would like
       to set their fields. E.g. this is incorrect (and should not even compile if
@@ -100,8 +100,9 @@ type
         MyList.L[I].MyField := 123;
       #)
 
-      Using @link(L) is preferred over this @link(List), because it avoids "fake infinite list"
-      type TTypeList, that in particular on Delphi may have too small size.
+      Using @link(L) is preferred over this @link(List), because it avoids
+      "fake infinite list" type TTypeList, that in particular on Delphi
+      may have too small size.
 
       @seealso List }
     function L: PtrT;
