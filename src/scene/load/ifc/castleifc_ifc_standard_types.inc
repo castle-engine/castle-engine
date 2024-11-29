@@ -3277,10 +3277,11 @@
   { Context for information to be exchanged or shared,
     it may represent a construction project but does not have to.
 
-    Note that this initializes property @link(Name) to 'New Project',
+    Note that this initializes property @link(Name) to 'My Project',
     as the project name must be non-empty (at least for conversion scripts
     on https://github.com/buildingsmart-community/ifcJSON and
     https://github.com/michaliskambi/ifcJSON ).
+    This is the same initial project name as used by BonsaiBIM.
 
     Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcProject.htm }
   TIfcProject = class(TIfcContext)
@@ -4139,7 +4140,7 @@ end;
 constructor TIfcProject.Create(AOwner: TComponent);
 begin
   inherited;
-  Name := 'New Project;'
+  Name := 'My Project';
 end;
 
 procedure TIfcProject.SetupUnits;
