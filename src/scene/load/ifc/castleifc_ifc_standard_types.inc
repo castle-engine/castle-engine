@@ -3921,10 +3921,11 @@ var
   RelAggregates: TIfcRelAggregates;
 begin
   RelAggregates := TIfcRelAggregates.Create(Owner);
-  // TODO: uncomment, make sure save works:
-  //RelAggregates.RelatingObject := Self;
+  RelAggregates.RelatingObject := Self;
   RelAggregates.RelatedObjects.Add(ChildObject);
   IsDecomposedBy.Add(RelAggregates);
+
+  ChildObject.Decomposes.Add(RelAggregates);
 end;
 
 { TIfcProduct --------------------------------------------------------------- }
