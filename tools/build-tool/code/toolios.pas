@@ -142,7 +142,7 @@ begin
   if (not IosSimulatorSupport) and (not IosArm32Support) then
   begin
     { the only remaining target is aarch64, not need to connect, just copy to output }
-    CheckCopyFile(OutputFile, CompilationOutputPath(Compiler, iOS   , aarch64, CompilationWorkingDirectory) + IOSPartialLibraryName);
+    CheckCopyFile(CompilationOutputPath(Compiler, iOS, aarch64, CompilationWorkingDirectory) + IOSPartialLibraryName, OutputFile);
     exit;
   end;
 
