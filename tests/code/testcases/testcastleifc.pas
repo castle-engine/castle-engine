@@ -109,7 +109,6 @@ var
   IfcClass: TIfcPersistentClass;
   Ifc: TIfcPersistent;
 begin
-  InitializeIfcClasses;
   for IfcClass in IfcClasses do
   begin
     Ifc := IfcClass.Create(nil);
@@ -124,7 +123,6 @@ var
   IfcClass: TIfcPersistentClass;
   I, J: Integer;
 begin
-  InitializeIfcClasses;
   for I := 0 to IfcClasses.Count - 1 do
   begin
     IfcClass := IfcClasses[I];

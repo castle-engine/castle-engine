@@ -1310,6 +1310,10 @@
       references or other resource definitions to the object.
       Examples are the association to library, documentation or classification. }
     property HasAssociations: TIfcRelAssociatesList read FHasAssociations;
+
+    { Add given TIfcObjectDefinition instance to the @link(IsDecomposedBy) list
+      of this object. Adds also new intermediate TIfcRelAggregates instance. }
+    procedure AddIsDecomposedBy(const ChildObject: TIfcObjectDefinition);
   end;
   TIfcObjectDefinitionList = {$ifdef FPC}specialize{$endif} TObjectList<TIfcObjectDefinition>;
 
@@ -1814,6 +1818,28 @@
     // TODO // property PositionedRelativeTo: TIfcRelPositionsList read FPositionedRelativeTo;
 
     // TODO // property ReferencedInStructures: TIfcRelReferencedInSpatialStructure read FReferencedInStructures;
+
+    { Add mesh representation to the given product.
+
+      The mesh is expressed as a set of 3D points (Coordinates)
+      and indexes to these coordinates (Indexes) that determine polygons.
+      The indexes are 0-based and can be separated by -1 to delimit polygons.
+
+      See examples/ifc/ for an example usage of this routine to
+      define walls and floors. }
+    procedure AddMeshRepresentation(const Coordinates: array of TVector3;
+      const Indexes: array of Integer);
+
+    { Add box representation to the given product.
+
+      Right now, the Box is transformed into a proper mesh representation,
+      so this is just equivalent to calling AddMeshRepresentation with
+      the 8 box corners and proper indexes to define 6 box sides. }
+    procedure AddBoxRepresentation(const Box: TBox3D);
+
+    { Move this product by given 3D translation.
+      This sets @link(ObjectPlacement) to a new instance. }
+    procedure SetRelativePlacement(const Translation: TVector3);
   end;
   TIfcProductList = class({$ifdef FPC}specialize{$endif} TObjectList<TIfcProduct>)
   end;
@@ -3251,8 +3277,24 @@
   { Context for information to be exchanged or shared,
     it may represent a construction project but does not have to.
 
+    Note that this initializes property @link(Name) to 'My Project',
+    as the project name must be non-empty (at least for conversion scripts
+    on https://github.com/buildingsmart-community/ifcJSON and
+    https://github.com/michaliskambi/ifcJSON ).
+    This is the same initial project name as used by BonsaiBIM.
+
     Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcProject.htm }
   TIfcProject = class(TIfcContext)
+  public
+    constructor Create(AOwner: TComponent); override;
+
+    { Setup units, following metric system and radians.
+      This matches glTF, X3D and CGE conventions.
+
+      Valid IFC project must have units defined.
+      BonsaiBIM expects it.
+      See also valid notes on https://stackoverflow.com/questions/51665572/required-data-for-ifc . }
+    procedure SetupUnits;
   end;
 
   { How to display the product. }
@@ -3814,20 +3856,13 @@
 
 {$ifdef read_interface}
 
-var
-  { List of all IFC classes that are defined in this unit.
+{ List of all IFC classes that are defined in this unit.
 
-    This includes all IFC non-abstract classes
-    and also some abstract classes that are referred to by lists
-    (because, to check and resolve references in IFC files,
-    we need to know about them). }
-  IfcClasses: TIfcPersistentClassList;
-
-{ Make sure IfcClasses is assigned and filled with contents. }
-procedure InitializeIfcClasses;
-
-{ Free and nil IfcClasses. }
-procedure FinalizeIfcClasses;
+  This includes all IFC non-abstract classes
+  and also some abstract classes that are referred to by lists
+  (because, to check and resolve references in IFC files,
+  we need to know about them). }
+function IfcClasses: TIfcPersistentClassList;
 
 {$endif read_interface}
 
@@ -3879,6 +3914,133 @@ begin
   FreeAndNil(FDecomposes);
   FreeAndNil(FHasAssociations);
   inherited;
+end;
+
+procedure TIfcObjectDefinition.AddIsDecomposedBy(const ChildObject: TIfcObjectDefinition);
+var
+  RelAggregates: TIfcRelAggregates;
+begin
+  RelAggregates := TIfcRelAggregates.Create(Owner);
+  RelAggregates.RelatingObject := Self;
+  RelAggregates.RelatedObjects.Add(ChildObject);
+  IsDecomposedBy.Add(RelAggregates);
+
+  ChildObject.Decomposes.Add(RelAggregates);
+end;
+
+{ TIfcProduct --------------------------------------------------------------- }
+
+procedure TIfcProduct.AddMeshRepresentation(const Coordinates: array of TVector3;
+  const Indexes: array of Integer);
+var
+  PolygonalFaceSet: TIfcPolygonalFaceSet;
+  NewRepresentation: TIfcRepresentation;
+  IfcCoordinates: TIfcCartesianPointList3D;
+  FaceBegin, FaceEnd, I: Integer;
+  Face: TIfcIndexedPolygonalFace;
+begin
+  IfcCoordinates := TIfcCartesianPointList3D.Create(Owner);
+  IfcCoordinates.CoordList.AddRange(Coordinates);
+
+  PolygonalFaceSet := TIfcPolygonalFaceSet.Create(Owner);
+  PolygonalFaceSet.Coordinates := IfcCoordinates;
+
+  // split Indexes into faces
+  FaceBegin := 0;
+  while FaceBegin < Length(Indexes) do
+  begin
+    // move FaceBegin to point to next index >= 0
+    while (FaceBegin < Length(Indexes)) and
+          (Indexes[FaceBegin] < 0) do
+      Inc(FaceBegin);
+    if FaceBegin >= Length(Indexes) then Break;
+    Assert(Indexes[FaceBegin] >= 0);
+
+    // move FaceEnd to point to next < 0 (or beyond the end)
+    FaceEnd := FaceBegin;
+    while (FaceEnd < Length(Indexes)) and
+          (Indexes[FaceEnd] >= 0) do
+      Inc(FaceEnd);
+
+    { FaceEnd always moves at least 1 step, because it steps over
+      at least one index >= 0.
+      This is important, it also means that our loop (doing "FaceBegin := FaceEnd"
+      at the end) will always move forward, never hang. }
+    Assert(FaceEnd > FaceBegin);
+
+    if FaceEnd - FaceBegin < 3 then
+    begin
+      WritelnWarning('IFC', 'Degenerate face with less than 3 vertices');
+    end else
+    begin
+      Face := TIfcIndexedPolygonalFace.Create(Owner);
+      for I := FaceBegin to FaceEnd - 1 do
+        Face.CoordIndex.Add(Indexes[I] + 1); // indexes are 1-based in IFC
+      PolygonalFaceSet.Faces.Add(Face);
+    end;
+
+    FaceBegin := FaceEnd;
+  end;
+
+  NewRepresentation := TIfcShapeRepresentation.Create(Owner);
+  NewRepresentation.Items.Add(PolygonalFaceSet);
+
+  if Representation = nil then
+    Representation := TIfcProductDefinitionShape.Create(Owner);
+  Representation.Representations.Add(NewRepresentation);
+
+  // link back from NewRepresentation -> (product) Representation
+  // TODO: uncomment, make sure save works:
+  //NewRepresentation.OfProductRepresentation.Add(Representation);
+end;
+
+procedure TIfcProduct.AddBoxRepresentation(const Box: TBox3D);
+var
+  Coordinates: array [0..7] of TVector3;
+begin
+  { Coordinate index in octal notation indicates which of 8 corners it is. }
+  Coordinates[0] := Box.Data[0];
+  Coordinates[1] := Box.Data[0]; Coordinates[1].Data[0] := Box.Data[1][0];
+  Coordinates[2] := Box.Data[0]; Coordinates[2].Data[1] := Box.Data[1][1];
+  Coordinates[4] := Box.Data[0]; Coordinates[4].Data[2] := Box.Data[1][2];
+
+  Coordinates[3] := Box.Data[1]; Coordinates[3].Data[2] := Box.Data[0][2];
+  Coordinates[5] := Box.Data[1]; Coordinates[5].Data[1] := Box.Data[0][1];
+  Coordinates[6] := Box.Data[1]; Coordinates[6].Data[0] := Box.Data[0][0];
+  Coordinates[7] := Box.Data[1];
+
+  AddMeshRepresentation(Coordinates, [
+    // Quads that form the box
+    { TODO: This is inverse order than TOcclusionCullingUtilsRenderer.GLContextOpen,
+      and it seems necessary to be CCW outside.
+      - Double-check below is good for CCW outside.
+      - Possibly adjust TOcclusionCullingUtilsRenderer.GLContextOpen
+        or document why it doesn't matter there.
+    }
+    2, 3, 1, 0, -1,
+    3, 7, 5, 1, -1,
+    7, 6, 4, 5, -1,
+    6, 2, 0, 4, -1,
+    6, 7, 3, 2, -1,
+    1, 5, 4, 0, -1
+  ]);
+end;
+
+procedure TIfcProduct.SetRelativePlacement(const Translation: TVector3);
+var
+  Location: TIfcCartesianPoint;
+  RelativePlacement: TIfcAxis2Placement3D;
+  NewObjectPlacement: TIfcLocalPlacement;
+begin
+  Location := TIfcCartesianPoint.Create(Owner);
+  Location.Coordinates.Value := Translation;
+
+  RelativePlacement := TIfcAxis2Placement3D.Create(Owner);
+  RelativePlacement.Location := Location;
+
+  NewObjectPlacement := TIfcLocalPlacement.Create(Owner);
+  NewObjectPlacement.RelativePlacement := RelativePlacement;
+  ObjectPlacement := NewObjectPlacement;
 end;
 
 { TIfcSpatialElement --------------------------------------------------------- }
@@ -3972,6 +4134,60 @@ destructor TIfcProductRepresentation.Destroy;
 begin
   FreeAndNil(FRepresentations);
   inherited;
+end;
+
+{ TIfcProject -------------------------------------------------------------- }
+
+constructor TIfcProject.Create(AOwner: TComponent);
+begin
+  inherited;
+  Name := 'My Project';
+end;
+
+procedure TIfcProject.SetupUnits;
+var
+  UnitAssignment: TIfcUnitAssignment;
+  DimensionalExponents: TIfcDimensionalExponents;
+  IfcUnit: TIfcSIUnit;
+begin
+  UnitAssignment := TIfcUnitAssignment.Create(Owner);
+
+  DimensionalExponents := TIfcDimensionalExponents.Create(Owner);
+
+  IfcUnit := TIfcSIUnit.Create(Owner);
+  IfcUnit.UnitType := TIfcUnitEnum.PlaneAngleUnit;
+  IfcUnit.Name := TIfcSIUnitName.Radian;
+  IfcUnit.Dimensions := DimensionalExponents;
+  UnitAssignment.Units.Add(IfcUnit);
+
+  DimensionalExponents := TIfcDimensionalExponents.Create(Owner);
+  DimensionalExponents.LengthExponent := 1;
+
+  IfcUnit := TIfcSIUnit.Create(Owner);
+  IfcUnit.UnitType := TIfcUnitEnum.LengthUnit;
+  IfcUnit.Name := TIfcSIUnitName.Metre;
+  IfcUnit.Dimensions := DimensionalExponents;
+  UnitAssignment.Units.Add(IfcUnit);
+
+  DimensionalExponents := TIfcDimensionalExponents.Create(Owner);
+  DimensionalExponents.LengthExponent := 2;
+
+  IfcUnit := TIfcSIUnit.Create(Owner);
+  IfcUnit.UnitType := TIfcUnitEnum.AreaUnit;
+  IfcUnit.Name := TIfcSIUnitName.Square_Metre;
+  IfcUnit.Dimensions := DimensionalExponents;
+  UnitAssignment.Units.Add(IfcUnit);
+
+  DimensionalExponents := TIfcDimensionalExponents.Create(Owner);
+  DimensionalExponents.LengthExponent := 3;
+
+  IfcUnit := TIfcSIUnit.Create(Owner);
+  IfcUnit.UnitType := TIfcUnitEnum.VolumeUnit;
+  IfcUnit.Name := TIfcSIUnitName.Cubic_Metre;
+  IfcUnit.Dimensions := DimensionalExponents;
+  UnitAssignment.Units.Add(IfcUnit);
+
+  UnitsInContext := UnitAssignment;
 end;
 
 { TIfcRepresentation -------------------------------------------------------- }
@@ -4902,144 +5118,147 @@ end;
 
 { initialization, finalization ----------------------------------------------- }
 
-procedure InitializeIfcClasses;
-begin
-  if IfcClasses = nil then
-  begin
-    IfcClasses := TIfcPersistentClassList.Create;
-    IfcClasses.Add(TIfcPresentationStyle);
-    IfcClasses.Add(TIfcPresentationLayerAssignment);
-    IfcClasses.Add(TIfcRepresentationItem);
-    IfcClasses.Add(TIfcDirection);
-    IfcClasses.Add(TIfcGeometricRepresentationItem);
-    IfcClasses.Add(TIfcSolidModel);
-    IfcClasses.Add(TIfcSweptAreaSolid);
-    IfcClasses.Add(TIfcExtrudedAreaSolid);
-    IfcClasses.Add(TIfcRoot);
-    IfcClasses.Add(TIfcObjectDefinition);
-    IfcClasses.Add(TIfcObject);
-    IfcClasses.Add(TIfcObjectPlacement);
-    IfcClasses.Add(TIfcPoint);
-    IfcClasses.Add(TIfcCartesianPoint);
-    IfcClasses.Add(TIfcPlacement);
-    IfcClasses.Add(TIfcAxis2Placement2D);
-    IfcClasses.Add(TIfcAxis2Placement3D);
-    IfcClasses.Add(TIfcLocalPlacement);
-    IfcClasses.Add(TIfcProduct);
-    IfcClasses.Add(TIfcSpatialElement);
-    IfcClasses.Add(TIfcSpatialStructureElement);
-    IfcClasses.Add(TIfcSite);
-    IfcClasses.Add(TIfcFacility);
-    IfcClasses.Add(TIfcBuilding);
-    IfcClasses.Add(TIfcBuildingStorey);
-    IfcClasses.Add(TIfcRelDecomposes);
-    IfcClasses.Add(TIfcElement);
-    IfcClasses.Add(TIfcFeatureElement);
-    IfcClasses.Add(TIfcFeatureElementSubtraction);
-    IfcClasses.Add(TIfcWindow);
-    IfcClasses.Add(TIfcRelVoidsElement);
-    IfcClasses.Add(TIfcRelFillsElement);
-    IfcClasses.Add(TIfcBuiltElement);
-    IfcClasses.Add(TIfcOpeningElement);
-    IfcClasses.Add(TIfcRelAggregates);
-    IfcClasses.Add(TIfcContext);
-    IfcClasses.Add(TIfcProject);
-    IfcClasses.Add(TIfcRepresentation);
-    IfcClasses.Add(TIfcShapeModel);
-    IfcClasses.Add(TIfcShapeRepresentation);
-    IfcClasses.Add(TIfcProductRepresentation);
-    IfcClasses.Add(TIfcStyledItem);
-    IfcClasses.Add(TIfcPersonAndOrganization);
-    IfcClasses.Add(TIfcAddress);
-    IfcClasses.Add(TIfcPerson);
-    IfcClasses.Add(TIfcProfileDef);
-    IfcClasses.Add(TIfcOrganization);
-    IfcClasses.Add(TIfcOrganizationRelationship);
-    IfcClasses.Add(TIfcOwnerHistory);
-    IfcClasses.Add(TIfcApplication);
-    IfcClasses.Add(TIfcWall);
-    IfcClasses.Add(TIfcWallStandardCase);
-    IfcClasses.Add(TIfcPolyline);
-    IfcClasses.Add(TIfcPropertyDefinition);
-    IfcClasses.Add(TIfcRelDeclares);
-    IfcClasses.Add(TIfcPostalAddress);
-    IfcClasses.Add(TIfcCompoundPlaneAngleMeasure);
-    IfcClasses.Add(TIfcDefinitionSelect);
-    IfcClasses.Add(TIfcDimensionalExponents);
-    IfcClasses.Add(TIfcMonetaryUnit);
-    IfcClasses.Add(TIfcDerivedUnit);
-    IfcClasses.Add(TIfcPlaneAngleMeasure);
-    IfcClasses.Add(TIfcRepresentationContext);
-    IfcClasses.Add(TIfcUnitAssignment);
-    IfcClasses.Add(TIfcRelDefinesByProperties);
-    IfcClasses.Add(TIfcSIUnit);
-    IfcClasses.Add(TIfcGeometricRepresentationContext);
-    IfcClasses.Add(TIfcConversionBasedUnit);
-    IfcClasses.Add(TIfcMeasureWithUnit);
-    IfcClasses.Add(TIfcProjectLibrary);
-    IfcClasses.Add(TIfcProductDefinitionShape);
-    IfcClasses.Add(TIfcRelAssociatesMaterial);
-    IfcClasses.Add(TIfcRelContainedInSpatialStructure);
-    IfcClasses.Add(TIfcRelDefinesByType);
-    IfcClasses.Add(TIfcTypeObject);
-    IfcClasses.Add(TIfcWindowType);
-    IfcClasses.Add(TIfcShapeAspect);
-    IfcClasses.Add(TIfcExternalReference);
-    IfcClasses.Add(TIfcExternalReferenceRelationship);
-    IfcClasses.Add(TIfcArbitraryClosedProfileDef);
-    IfcClasses.Add(TIfcRelDefinesByObject);
-    IfcClasses.Add(TIfcRepresentationMap);
-    IfcClasses.Add(TIfcProfileProperties);
-    IfcClasses.Add(TIfcRelConnectsElements);
-    IfcClasses.Add(TIfcRelInterferesElements);
-    IfcClasses.Add(TIfcRelProjectsElement);
-    IfcClasses.Add(TIfcRelConnectsWithRealizingElements);
-    IfcClasses.Add(TIfcRelSpaceBoundary);
-    IfcClasses.Add(TIfcRelCoversBldgElements);
-    IfcClasses.Add(TIfcRelAdheresToElement);
-    IfcClasses.Add(TIfcSpatialZone);
-    IfcClasses.Add(TIfcPropertySetDefinition);
-    IfcClasses.Add(TIfcPropertySet);
-    IfcClasses.Add(TIfcPropertyTemplate);
-    IfcClasses.Add(TIfcPropertySetTemplate);
-    IfcClasses.Add(TIfcRelDefinesByTemplate);
-    IfcClasses.Add(TIfcPropertySingleValue);
-    IfcClasses.Add(TIfcComplexProperty);
-    IfcClasses.Add(TIfcMaterialLayerSet);
-    IfcClasses.Add(TIfcMaterialLayer);
-    IfcClasses.Add(TIfcMaterialLayerSetUsage);
-    IfcClasses.Add(TIfcMaterial);
-    IfcClasses.Add(TIfcMaterialDefinitionRepresentation);
-    IfcClasses.Add(TIfcMaterialRelationship);
-    IfcClasses.Add(TIfcMaterialConstituent);
-    IfcClasses.Add(TIfcMaterialConstituentSet);
-    IfcClasses.Add(TIfcActuatorType);
-    IfcClasses.Add(TIfcColumn);
-    IfcClasses.Add(TIfcPolygonalFaceSet);
-    IfcClasses.Add(TIfcIndexedPolygonalFace);
-    IfcClasses.Add(TIfcCartesianPointList3D);
-    IfcClasses.Add(TIfcTelecomAddress);
-    IfcClasses.Add(TIfcActorRole);
-    IfcClasses.Add(TIfcSlab);
-    IfcClasses.Add(TIfcIndexedPolyCurve);
-    IfcClasses.Add(TIfcLineIndex);
-    IfcClasses.Add(TIfcArcIndex);
-    IfcClasses.Add(TIfcCartesianPointList2D);
-    IfcClasses.Add(TIfcDoor);
-    IfcClasses.Add(TIfcUnit);
-    IfcClasses.Add(TIfcPersistent);
-    IfcClasses.Add(TIfcRelAssociates);
-    IfcClasses.Add(TIfcProperty);
-    IfcClasses.Add(TIfcSegmentIndexSelect);
-    IfcClasses.Add(TIfcDoorType);
-    IfcClasses.Add(TIfcWallType);
-    IfcClasses.Add(TIfcGeometricRepresentationSubContext);
-  end;
-end;
+var
+  FIfcClasses: TIfcPersistentClassList;
 
-procedure FinalizeIfcClasses;
+function IfcClasses: TIfcPersistentClassList;
+
+  procedure InitializeIfcClasses;
+  begin
+    FIfcClasses := TIfcPersistentClassList.Create;
+    FIfcClasses.Add(TIfcPresentationStyle);
+    FIfcClasses.Add(TIfcPresentationLayerAssignment);
+    FIfcClasses.Add(TIfcRepresentationItem);
+    FIfcClasses.Add(TIfcDirection);
+    FIfcClasses.Add(TIfcGeometricRepresentationItem);
+    FIfcClasses.Add(TIfcSolidModel);
+    FIfcClasses.Add(TIfcSweptAreaSolid);
+    FIfcClasses.Add(TIfcExtrudedAreaSolid);
+    FIfcClasses.Add(TIfcRoot);
+    FIfcClasses.Add(TIfcObjectDefinition);
+    FIfcClasses.Add(TIfcObject);
+    FIfcClasses.Add(TIfcObjectPlacement);
+    FIfcClasses.Add(TIfcPoint);
+    FIfcClasses.Add(TIfcCartesianPoint);
+    FIfcClasses.Add(TIfcPlacement);
+    FIfcClasses.Add(TIfcAxis2Placement2D);
+    FIfcClasses.Add(TIfcAxis2Placement3D);
+    FIfcClasses.Add(TIfcLocalPlacement);
+    FIfcClasses.Add(TIfcProduct);
+    FIfcClasses.Add(TIfcSpatialElement);
+    FIfcClasses.Add(TIfcSpatialStructureElement);
+    FIfcClasses.Add(TIfcSite);
+    FIfcClasses.Add(TIfcFacility);
+    FIfcClasses.Add(TIfcBuilding);
+    FIfcClasses.Add(TIfcBuildingStorey);
+    FIfcClasses.Add(TIfcRelDecomposes);
+    FIfcClasses.Add(TIfcElement);
+    FIfcClasses.Add(TIfcFeatureElement);
+    FIfcClasses.Add(TIfcFeatureElementSubtraction);
+    FIfcClasses.Add(TIfcWindow);
+    FIfcClasses.Add(TIfcRelVoidsElement);
+    FIfcClasses.Add(TIfcRelFillsElement);
+    FIfcClasses.Add(TIfcBuiltElement);
+    FIfcClasses.Add(TIfcOpeningElement);
+    FIfcClasses.Add(TIfcRelAggregates);
+    FIfcClasses.Add(TIfcContext);
+    FIfcClasses.Add(TIfcProject);
+    FIfcClasses.Add(TIfcRepresentation);
+    FIfcClasses.Add(TIfcShapeModel);
+    FIfcClasses.Add(TIfcShapeRepresentation);
+    FIfcClasses.Add(TIfcProductRepresentation);
+    FIfcClasses.Add(TIfcStyledItem);
+    FIfcClasses.Add(TIfcPersonAndOrganization);
+    FIfcClasses.Add(TIfcAddress);
+    FIfcClasses.Add(TIfcPerson);
+    FIfcClasses.Add(TIfcProfileDef);
+    FIfcClasses.Add(TIfcOrganization);
+    FIfcClasses.Add(TIfcOrganizationRelationship);
+    FIfcClasses.Add(TIfcOwnerHistory);
+    FIfcClasses.Add(TIfcApplication);
+    FIfcClasses.Add(TIfcWall);
+    FIfcClasses.Add(TIfcWallStandardCase);
+    FIfcClasses.Add(TIfcPolyline);
+    FIfcClasses.Add(TIfcPropertyDefinition);
+    FIfcClasses.Add(TIfcRelDeclares);
+    FIfcClasses.Add(TIfcPostalAddress);
+    FIfcClasses.Add(TIfcCompoundPlaneAngleMeasure);
+    FIfcClasses.Add(TIfcDefinitionSelect);
+    FIfcClasses.Add(TIfcDimensionalExponents);
+    FIfcClasses.Add(TIfcMonetaryUnit);
+    FIfcClasses.Add(TIfcDerivedUnit);
+    FIfcClasses.Add(TIfcPlaneAngleMeasure);
+    FIfcClasses.Add(TIfcRepresentationContext);
+    FIfcClasses.Add(TIfcUnitAssignment);
+    FIfcClasses.Add(TIfcRelDefinesByProperties);
+    FIfcClasses.Add(TIfcSIUnit);
+    FIfcClasses.Add(TIfcGeometricRepresentationContext);
+    FIfcClasses.Add(TIfcConversionBasedUnit);
+    FIfcClasses.Add(TIfcMeasureWithUnit);
+    FIfcClasses.Add(TIfcProjectLibrary);
+    FIfcClasses.Add(TIfcProductDefinitionShape);
+    FIfcClasses.Add(TIfcRelAssociatesMaterial);
+    FIfcClasses.Add(TIfcRelContainedInSpatialStructure);
+    FIfcClasses.Add(TIfcRelDefinesByType);
+    FIfcClasses.Add(TIfcTypeObject);
+    FIfcClasses.Add(TIfcWindowType);
+    FIfcClasses.Add(TIfcShapeAspect);
+    FIfcClasses.Add(TIfcExternalReference);
+    FIfcClasses.Add(TIfcExternalReferenceRelationship);
+    FIfcClasses.Add(TIfcArbitraryClosedProfileDef);
+    FIfcClasses.Add(TIfcRelDefinesByObject);
+    FIfcClasses.Add(TIfcRepresentationMap);
+    FIfcClasses.Add(TIfcProfileProperties);
+    FIfcClasses.Add(TIfcRelConnectsElements);
+    FIfcClasses.Add(TIfcRelInterferesElements);
+    FIfcClasses.Add(TIfcRelProjectsElement);
+    FIfcClasses.Add(TIfcRelConnectsWithRealizingElements);
+    FIfcClasses.Add(TIfcRelSpaceBoundary);
+    FIfcClasses.Add(TIfcRelCoversBldgElements);
+    FIfcClasses.Add(TIfcRelAdheresToElement);
+    FIfcClasses.Add(TIfcSpatialZone);
+    FIfcClasses.Add(TIfcPropertySetDefinition);
+    FIfcClasses.Add(TIfcPropertySet);
+    FIfcClasses.Add(TIfcPropertyTemplate);
+    FIfcClasses.Add(TIfcPropertySetTemplate);
+    FIfcClasses.Add(TIfcRelDefinesByTemplate);
+    FIfcClasses.Add(TIfcPropertySingleValue);
+    FIfcClasses.Add(TIfcComplexProperty);
+    FIfcClasses.Add(TIfcMaterialLayerSet);
+    FIfcClasses.Add(TIfcMaterialLayer);
+    FIfcClasses.Add(TIfcMaterialLayerSetUsage);
+    FIfcClasses.Add(TIfcMaterial);
+    FIfcClasses.Add(TIfcMaterialDefinitionRepresentation);
+    FIfcClasses.Add(TIfcMaterialRelationship);
+    FIfcClasses.Add(TIfcMaterialConstituent);
+    FIfcClasses.Add(TIfcMaterialConstituentSet);
+    FIfcClasses.Add(TIfcActuatorType);
+    FIfcClasses.Add(TIfcColumn);
+    FIfcClasses.Add(TIfcPolygonalFaceSet);
+    FIfcClasses.Add(TIfcIndexedPolygonalFace);
+    FIfcClasses.Add(TIfcCartesianPointList3D);
+    FIfcClasses.Add(TIfcTelecomAddress);
+    FIfcClasses.Add(TIfcActorRole);
+    FIfcClasses.Add(TIfcSlab);
+    FIfcClasses.Add(TIfcIndexedPolyCurve);
+    FIfcClasses.Add(TIfcLineIndex);
+    FIfcClasses.Add(TIfcArcIndex);
+    FIfcClasses.Add(TIfcCartesianPointList2D);
+    FIfcClasses.Add(TIfcDoor);
+    FIfcClasses.Add(TIfcUnit);
+    FIfcClasses.Add(TIfcPersistent);
+    FIfcClasses.Add(TIfcRelAssociates);
+    FIfcClasses.Add(TIfcProperty);
+    FIfcClasses.Add(TIfcSegmentIndexSelect);
+    FIfcClasses.Add(TIfcDoorType);
+    FIfcClasses.Add(TIfcWallType);
+    FIfcClasses.Add(TIfcGeometricRepresentationSubContext);
+  end;
+
 begin
-  FreeAndNil(IfcClasses);
+  if FIfcClasses = nil then
+    InitializeIfcClasses;
+  Result := FIfcClasses;
 end;
 
 {$endif read_implementation}
