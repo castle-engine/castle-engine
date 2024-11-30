@@ -34,6 +34,11 @@ type
     IfcScene: TCastleScene;
   private
     IfcFile: TIfcFile;
+    { New products can be added to this container.
+      You cannot just add them to IfcFile.Project,
+      IFC specification constaints what can be the top-level spatial element.
+      TODO: initilalize for new files. }
+    IfcContainer: TIfcProduct;
     IfcMapping: TCastleIfcMapping;
 
     { Used to assing unique names to walls. }
@@ -84,6 +89,11 @@ begin
   ButtonSaveNode.OnClick := {$ifdef FPC}@{$endif} ClickSaveNode;
   ButtonAddWall.OnClick := {$ifdef FPC}@{$endif} ClickAddWall;
   ButtonModifyWall.OnClick := {$ifdef FPC}@{$endif} ClickModifyWall;
+
+  {$ifdef QUIET_AUTOTEST}
+  ClickAddWall(nil);
+  IfcJsonSave(IfcFile, '/home/michalis/Desktop/autotest.ifcjson');
+  {$endif}
 end;
 
 procedure TViewMain.Stop;
@@ -117,6 +127,9 @@ end;
 procedure TViewMain.ClickNew(Sender: TObject);
 var
   IfcProject: TIfcProject;
+  IfcSite: TIfcSite;
+  IfcBuilding: TIfcBuilding;
+  IfcBuildingStorey: TIfcBuildingStorey;
 begin
   FreeAndNil(IfcFile);
 
@@ -129,6 +142,25 @@ begin
 
   // valid IFC project requires units
   IfcProject.SetupUnits;
+
+  { We need IfcContainer inside the project.
+    Reason: We cannot add products directly to IfcProject, we need
+    to add them to a spatial root element: (IfcSite || IfcBuilding || IfcSpatialZone)
+    (see https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcProject.htm ) }
+
+  IfcSite := TIfcSite.Create(IfcFile);
+  IfcSite.Name := 'My Site';
+  IfcProject.AddIsDecomposedBy(IfcSite);
+
+  IfcBuilding := TIfcBuilding.Create(IfcFile);
+  IfcBuilding.Name := 'My Building';
+  IfcSite.AddIsDecomposedBy(IfcBuilding);
+
+  IfcBuildingStorey := TIfcBuildingStorey.Create(IfcFile);
+  IfcBuildingStorey.Name := 'My Building Storey';
+  IfcBuilding.AddIsDecomposedBy(IfcBuildingStorey);
+
+  IfcContainer := IfcBuildingStorey;
 
   NewIfcMapping(IfcFile);
 end;
@@ -196,7 +228,7 @@ begin
     0
   ));
 
-  IfcFile.Project.AddIsDecomposedBy(Wall);
+  IfcContainer.AddIsDecomposedBy(Wall);
   IfcMapping.Update(IfcFile);
 end;
 
