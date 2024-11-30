@@ -912,8 +912,6 @@ var
   TopLevelType: String;
   Project: TIfcProject;
 begin
-  InitializeIfcClasses; // make sure IfcClasses ready
-
   Result := TIfcFile.Create(nil);
   IfcOwner := Result;
 
@@ -935,8 +933,15 @@ begin
       DeserializeJson(JsonObj, Project);
     end else
     begin
-      if TopLevelType <> 'IFC.JSON' then
-        WritelnWarning('IFC', 'Top-level JSON object should have "type" = "IfcProject" or "IFC.JSON", but is "%s"', [
+      { BonsaiBIM, and CGE own saving, set IFC.JSON.
+        Converters on
+          https://github.com/buildingsmart-community/ifcJSON ,
+          https://github.com/michaliskambi/ifcJSON
+        set ifcJSON.
+        Accept both }
+      if (TopLevelType <> 'IFC.JSON') and
+         (TopLevelType <> 'ifcJSON') then
+        WritelnWarning('IFC', 'Top-level JSON object should have "type" = "IfcProject", "IFC.JSON", "ifcJSON", but is "%s"', [
           TopLevelType
         ]);
       DeserializeJson(JsonObj, Result);

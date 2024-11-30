@@ -32,6 +32,8 @@
       to move the nodes (change parents) to reflect
       TIfcObjectPlacement.PlacementRelTo instructions. }
     procedure FixParentChildRelationships;
+
+    function CreateRootNode(const Ifc: TIfcFile): TX3DRootNode;
   private
     { Within the CastleIfc unit, this class is a container for information
       and actions useful to all
@@ -214,18 +216,13 @@ begin
   end;
 end;
 
-procedure TCastleIfcMapping.Load(const Ifc: TIfcFile; const ABaseUrl: String);
+function TCastleIfcMapping.CreateRootNode(const Ifc: TIfcFile): TX3DRootNode;
 begin
-  { Node that we don't free previous FRootNode, we don't own it. }
-
   { Initialize things used only temporarily during Load. }
   ObjectPlacementToParentNodes := TObjectPlacementToParentNodes.Create;
   ChildrenNodesToObjectPlacement := TChildrenNodesToObjectPlacement.Create;
   try
-    FBaseUrl := ABaseUrl;
-
-    // do the actual work
-    FRootNode := Ifc.BuildNode(Self);
+    Result := Ifc.BuildNode(Self);
     FixParentChildRelationships;
   finally
     FreeAndNil(ObjectPlacementToParentNodes);
@@ -234,9 +231,29 @@ begin
   end;
 end;
 
-procedure TCastleIfcMapping.Update(const Ifc: TIfcFile);
+procedure TCastleIfcMapping.Load(const Ifc: TIfcFile; const ABaseUrl: String);
 begin
-  // TODO, decide also do we take new BaseUrl
+  { Node that we don't free previous FRootNode, we don't own it. }
+  FBaseUrl := ABaseUrl;
+  FRootNode := CreateRootNode(Ifc);
+end;
+
+procedure TCastleIfcMapping.Update(const Ifc: TIfcFile);
+var
+  NewRootNode: TX3DRootNode;
+  ChildNode: TAbstractChildNode;
+  I: Integer;
+begin
+  // TODO: very inefficient implementation that removes old, adds new
+  NewRootNode := CreateRootNode(Ifc);
+  try
+    FRootNode.ClearChildren;
+    for I := 0 to NewRootNode.FdChildren.Count - 1 do
+    begin
+      ChildNode := NewRootNode.FdChildren[I] as TAbstractChildNode;
+      FRootNode.AddChildren(ChildNode);
+    end;
+  finally FreeAndNil(NewRootNode) end;
 end;
 
 function TCastleIfcMapping.NodeToProduct(const Node: TShapeNode): TIfcProduct;
