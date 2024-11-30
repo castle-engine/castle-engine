@@ -25,7 +25,7 @@ interface
 uses Contnrs, Generics.Collections, SysUtils, Classes,
   FpJson, JSONParser, JSONScanner,
   CastleUtils, CastleVectors, X3DNodes, CastleUriUtils, CastleLog,
-  CastleStringUtils;
+  CastleStringUtils, CastleBoxes;
 
 type
   {$define read_interface_types}
@@ -122,5 +122,5 @@ initialization
 
   UriMimeExtensions['.ifcjson'] := 'application/x-ifc-json';
 finalization
-  FinalizeIfcClasses;
+  FreeAndNil(FIfcClasses);
 end.
