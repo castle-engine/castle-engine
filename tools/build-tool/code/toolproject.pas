@@ -1939,7 +1939,7 @@ begin
   else
     Macros.Add('IOS_CODE_SIGN_ENTITLEMENTS', '');
 
-  GccPreprocessorDefinitions := '';
+  GccPreprocessorDefinitions := '"GLES_SILENCE_DEPRECATION=1",';
   // Since right now we always compile with CASTLE_TREMOLO_STATIC,
   // we just always behave like ogg_vorbis service was included.
   //if depOggVorbis in Dependencies then

@@ -34,7 +34,7 @@ void receiveMessageFromPascal(const char* message)
     [appDelegateSingleton messageReceived:message];
 }
 
-AppDelegate* getAppDelegate()
+AppDelegate* getAppDelegate(void)
 {
     return appDelegateSingleton;
 }
