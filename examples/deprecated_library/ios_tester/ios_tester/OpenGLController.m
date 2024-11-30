@@ -58,7 +58,10 @@
     m_nViewpointCount = 0;
     m_bIsPanning = false;
 
-    self.context = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES2];
+    EAGLContext *context = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES3];
+    if (context == nil)
+        context = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES2];
+    self.context = context;
 
     if (!self.context) {
         NSLog(@"Failed to create ES context");
