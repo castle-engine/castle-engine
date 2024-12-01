@@ -62,6 +62,8 @@
 		<string>armv7</string>
 ${IOS_REQUIRED_DEVICE_CAPABILITIES}
 	</array>
+	<key>LSSupportsOpeningDocumentsInPlace</key>
+	<false/>
 	<key>UIRequiresFullScreen</key>
 	<true/>
 	<key>UIStatusBarHidden</key>
