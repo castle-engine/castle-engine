@@ -148,7 +148,21 @@ typedef struct TouchInfo {
 //-----------------------------------------------------------------
 - (int)statusBarHeight
 {
-    CGSize statusBarSize = [[UIApplication sharedApplication] statusBarFrame].size;
+    CGSize statusBarSize;
+    if (@available(iOS 13, *))
+    {
+        UIWindow *firstWindow = [[UIApplication sharedApplication] windows].firstObject;
+        if (firstWindow == nil)
+            return 0;
+        UIWindowScene *windowScene = firstWindow.windowScene;
+        if (windowScene == nil)
+            return 0;
+        statusBarSize = windowScene.statusBarManager.statusBarFrame.size;
+    }
+    else
+    {
+        statusBarSize = [[UIApplication sharedApplication] statusBarFrame].size;
+    }
     return MIN(statusBarSize.width, statusBarSize.height) * m_fScale;
 }
 
