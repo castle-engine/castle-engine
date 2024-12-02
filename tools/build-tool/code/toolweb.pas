@@ -98,7 +98,7 @@ begin
   OpenUrl('http://localhost:3000/');
 
   // must be run last; Ctrl+C on our build tool should kill the compileserver too
-  RunCommandSimple(DistPath, CompileServerExe, []);
+  RunCommandSimple(DistPath, CompileServerExe, ['--port=3000']);
 end;
 
 end.
