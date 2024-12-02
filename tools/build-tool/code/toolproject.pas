@@ -292,7 +292,7 @@ implementation
 uses {$ifdef UNIX} BaseUnix, {$endif}
   StrUtils, DOM, Process,
   CastleUriUtils, CastleXmlUtils, CastleLog, CastleFilesUtils, CastleImages,
-  CastleTimeUtils,
+  CastleTimeUtils, CastleColors,
   ToolResources, ToolAndroid, ToolMacOS,
   ToolTextureGeneration, ToolIOS, ToolAndroidMerging, ToolNintendoSwitch,
   ToolCommonUtils, ToolMacros, ToolCompilerInfo, ToolPackageCollectFiles,
@@ -1831,6 +1831,14 @@ const
     Img: TCastleImage;
     StoryboardFileName: String;
   begin
+    // iOS requires to have Launch Screens since iOS 13, so let's use our default image for it
+    if Manifest.LaunchImageStoryboard.Path = '' then
+    begin
+      Manifest.LaunchImageStoryboard.Path := 'castle-data:/default_launch_images/DefaultLaunchImageCentered.png';
+      Manifest.LaunchImageStoryboard.Scale := 1;
+      Manifest.LaunchImageStoryboard.BackgroundColor := Black;
+    end;
+
     if Manifest.LaunchImageStoryboard.Path <> '' then
     begin
       if ExtractFileExt(Manifest.LaunchImageStoryboard.Path) <> '.png' then
@@ -1840,7 +1848,10 @@ const
       { Note: Using "StoryboardFileName := Manifest.LaunchImageStoryboard.Path"
         would be wrong, as "castle-engine compile" may be executed in subdirectory
         of the project, not the project's top-level directory. }
-      StoryboardFileName := CombinePaths(Path, Manifest.LaunchImageStoryboard.Path);
+      if UriProtocol(Manifest.LaunchImageStoryboard.Path) = 'castle-data' then
+        StoryboardFileName := Manifest.LaunchImageStoryboard.Path
+      else
+        StoryboardFileName := CombinePaths(Path, Manifest.LaunchImageStoryboard.Path);
       Img := LoadImage(StoryboardFileName);
       try
         FLaunchImageStoryboardWidth := Img.Width;
@@ -1875,7 +1886,7 @@ begin
     Macros.Add('IOS_LAUNCH_BACKGROUND_BLUE' , FloatToStrDot(Manifest.LaunchImageStoryboard.BackgroundColor[2]));
     Macros.Add('IOS_LAUNCH_BACKGROUND_ALPHA', FloatToStrDot(Manifest.LaunchImageStoryboard.BackgroundColor[3]));
     InfoPList := SAppendPart(InfoPList, NL,
-      '<key>UILaunchStoryboardName</key> <string>Launch Screen</string>');
+      '<key>UILaunchStoryboardName</key> <string>Launch Screen.storyboard</string>');
   end;
 
   if Manifest.IOSOverrideVersion <> nil then
