@@ -67,6 +67,7 @@ typedef struct TouchInfo {
        Eventually we can add a flag, like IOS_ENABLE_ES3, to make it optional decision
        per-application.
     */
+    EAGLContext *context = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES2];
 
     self.context = context;
 
