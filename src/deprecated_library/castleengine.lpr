@@ -187,7 +187,7 @@ procedure CGE_Resize(uiViewWidth, uiViewHeight: cUInt32); cdecl;
 begin
   try
     if not CGE_VerifyWindow('CGE_Resize') then exit;
-    CGEApp_Resize(uiViewWidth, uiViewHeight, 0);
+    CGEApp_Resize(uiViewWidth, uiViewHeight, 0, 0, 0, 0);
   except
     on E: TObject do WritelnWarning('Window', 'CGE_Resize: ' + ExceptMessage(E));
   end;
