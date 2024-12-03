@@ -134,7 +134,7 @@ begin
 
     PreviousNavigationType := Viewport.NavigationType;
 
-    CGEApp_Open(InitialWidth, InitialHeight, 0, Dpi);
+    CGEApp_Open(InitialWidth, InitialHeight, 0, 0, 0, 0, Dpi);
 
     Crosshair := TCrosshairManager.Create;
   except

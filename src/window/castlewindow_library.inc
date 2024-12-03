@@ -58,9 +58,11 @@ procedure CGEApp_ContextProperties(RedBits, GreenBits, BlueBits, AlphaBits, Dept
 
 { Notifications from the external process about various events:
   rendering context was opened, closed, resized etc. }
-procedure CGEApp_Open(InitialWidth, InitialHeight, InitialStatusBarHeight, ADpi: cUInt32); cdecl;
+procedure CGEApp_Open(InitialWidth, InitialHeight, uiSafeBorderTop, uiSafeBorderRight,
+                      uiSafeBorderBottom, uiSafeBorderLeft, ADpi: cUInt32); cdecl;
 procedure CGEApp_Close(QuitWhenLastWindowClosed: CBool); cdecl;
-procedure CGEApp_Resize(uiViewWidth, uiViewHeight, uiStatusBarHeight: cUInt32); cdecl;
+procedure CGEApp_Resize(uiViewWidth, uiViewHeight, uiSafeBorderTop, uiSafeBorderRight,
+                        uiSafeBorderBottom, uiSafeBorderLeft: cUInt32); cdecl;
 procedure CGEApp_Render; cdecl;
 procedure CGEApp_SetLibraryCallbackProc(aProc: TLibraryCallbackProc); cdecl;
 procedure CGEApp_Update; cdecl;
@@ -392,15 +394,8 @@ begin
   end;
 end;
 
-{ Safe border (as 4D vector: top, right, bottom, left) with only
-  a status bar (top) non-zero.
-  This is passed from our Objective-C code on iOS to Pascal now. }
-function SafeBorderWithStatusBar(const StatusBarHeight: Single): TVector4;
-begin
-  Result := Vector4(StatusBarHeight, 0, 0, 0);
-end;
-
-procedure CGEApp_Open(InitialWidth, InitialHeight, InitialStatusBarHeight, ADpi: cUInt32); cdecl;
+procedure CGEApp_Open(InitialWidth, InitialHeight, uiSafeBorderTop, uiSafeBorderRight,
+                      uiSafeBorderBottom, uiSafeBorderLeft, ADpi: cUInt32); cdecl;
 begin
   try
     CheckMainWindow;
@@ -420,7 +415,7 @@ begin
     Application.MainWindow.FHeight := InitialHeight;
     Application.MainWindow.Container.Dpi := ADpi;
     Application.MainWindow.Container.InternalSetSafeBorderScaled(
-      SafeBorderWithStatusBar(InitialStatusBarHeight));
+      Vector4(uiSafeBorderTop, uiSafeBorderRight, uiSafeBorderBottom, uiSafeBorderLeft));
     Application.MainWindow.Open;
   except
     on E: TObject do WritelnWarning('CGEApp_Open', ExceptMessage(E));
@@ -437,14 +432,15 @@ begin
   end;
 end;
 
-procedure CGEApp_Resize(uiViewWidth, uiViewHeight, uiStatusBarHeight: cUInt32); cdecl;
+procedure CGEApp_Resize(uiViewWidth, uiViewHeight, uiSafeBorderTop, uiSafeBorderRight,
+                        uiSafeBorderBottom, uiSafeBorderLeft: cUInt32); cdecl;
 begin
   try
     CheckMainWindow;
     Application.FScreenWidth  := uiViewWidth;
     Application.FScreenHeight := uiViewHeight;
     Application.MainWindow.Container.InternalSetSafeBorderScaled(
-      SafeBorderWithStatusBar(uiStatusBarHeight));
+      Vector4(uiSafeBorderTop, uiSafeBorderRight, uiSafeBorderBottom, uiSafeBorderLeft));
     Application.MainWindow.DoResize(uiViewWidth, uiViewHeight, false);
   except
     on E: TObject do WritelnWarning('CGEApp_Resize', ExceptMessage(E));

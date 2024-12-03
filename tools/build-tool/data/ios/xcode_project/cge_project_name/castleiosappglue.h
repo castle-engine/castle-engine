@@ -192,10 +192,13 @@ extern void CGEApp_Finalize(void);
 
 extern int CGEApp_ContextProperties(int* redBits, int* greenBits, int* blueBits, int* alphaBits, int* depthBits, int* stencilBits, int* multiSampling);
 
-extern void CGEApp_Open(unsigned initialWidth, unsigned initialHeight, unsigned initialStatusBarHeight, unsigned nDpi);
+extern void CGEApp_Open(unsigned initialWidth, unsigned initialHeight, unsigned uiSafeBorderTop,
+                        unsigned uiSafeBorderRight, unsigned uiSafeBorderBottom, unsigned uiSafeBorderLeft, unsigned nDpi);
 extern void CGEApp_Close(bool quitWhenLastWindowClosed);
 
-extern void CGEApp_Resize(unsigned uiViewWidth, unsigned uiViewHeight, unsigned uiStatusBarHeight);       // let the library know about the viewport size changes
+extern void CGEApp_Resize(unsigned uiViewWidth, unsigned uiViewHeight,
+                          unsigned uiSafeBorderTop, unsigned uiSafeBorderRight,
+                          unsigned uiSafeBorderBottom, unsigned uiSafeBorderLeft);// let the library know about the viewport size changes
 extern void CGEApp_Render(void);                                                  // paints the 3d scene into the context
 extern void CGEApp_SetLibraryCallbackProc(TCgeLibraryCallback pProc);     // set callback function
 extern void CGEApp_Update(void);                                                  // let the 3d engine perform the animations, etc
