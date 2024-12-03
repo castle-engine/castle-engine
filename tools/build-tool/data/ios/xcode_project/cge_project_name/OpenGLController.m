@@ -48,12 +48,14 @@ typedef struct TouchInfo {
 
     // Try to initialize OpenGLES 3, fallback on version 2
     // (following https://developer.apple.com/library/archive/documentation/3DDrawing/Conceptual/OpenGLES_ProgrammingGuide/WorkingwithOpenGLESContexts/WorkingwithOpenGLESContexts.html )
+    /*
     EAGLContext *context = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES3];
     if (context == nil) {
         context = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES2];
     }
-
-    /* TODO: RETEST: OpenGLES 3 breaks Unholy rendering of "evil plane".
+    */
+    /* TODO: OpenGLES 3 commented out for now.
+       It breaks Unholy rendering of "evil plane".
        Looks like on iOS, something in OpenGLES3 is subtly broken compared to OpenGLES2,
        maybe related to ScreenFbo which is already weird (non-zero) in OpenGLES2,
        see
@@ -65,6 +67,7 @@ typedef struct TouchInfo {
        Eventually we can add a flag, like IOS_ENABLE_ES3, to make it optional decision
        per-application.
     */
+    EAGLContext *context = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES2];
 
     self.context = context;
 
