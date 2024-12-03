@@ -21,29 +21,38 @@ procedure TestJobWeb;
 
 implementation
 
-uses JOB.Shared, JOB_Web, JOB.JS;
+uses SysUtils, JOB.Shared, JOB_Web, JOB.JS,
+  CastleLog, CastleUtils;
 
 procedure TestJobWeb;
 var
-  JSDiv: IJSHTMLDivElement;
-  JSButton: IJSHTMLButtonElement;
+  Canvas: IJSHTMLCanvasElement;
+  GL: IJSWebGLRenderingContext;
+  ContextWidth, ContextHeight: TGLSizeI;
 begin
-  writeln('TestJobWeb getElementById "pas2js-console" ...');
-  // get reference of HTML element "pas2js-console" and type cast it to Div
-  // note: we over-use pas2js-console div, just for test
-  JSDiv:=TJSHTMLDivElement.Cast(JSDocument.getElementById('pas2js-console'));
+  Canvas := TJSHTMLCanvasElement.Cast(JSDocument.getElementById('castle-canvas'));
 
-  // create button
-  writeln('TestJobWeb create button ...');
-  JSButton:=TJSHTMLButtonElement.Cast(JSDocument.createElement('button'));
-  writeln('TestJobWeb set button caption ...');
-  JSButton.InnerHTML:='Click me!';
+  GL := TJSWebGLRenderingContext.Cast(canvas.getContext('webgl'));
+  if GL = nil then
+    raise Exception.Create('Failed to load WebGL context from WASM');
 
-  // add button to div
-  writeln('TestJobWeb add button to div ...');
-  JSDiv.append(JSButton);
+  ContextWidth := GL.drawingBufferWidth;
+  ContextHeight := GL.drawingBufferHeight;
 
-  writeln('TestJobWeb END');
+  WritelnLog(Format('Wasm: Context Width x Height: %d x %d', [
+    ContextWidth,
+    ContextHeight
+  ]));
+  WritelnLog(Format('Wasm: Context basic information:' + NL +
+    '  Version: %s' + NL +
+    '  Shading Language Version: %s' + NL +
+    '  Renderer: %s' + NL +
+    '  Vendor: %s', [
+    GL.GetParameter(TJSWebGLRenderingContext.SHADING_LANGUAGE_VERSION),
+    GL.GetParameter(TJSWebGLRenderingContext.RENDERER),
+    GL.GetParameter(TJSWebGLRenderingContext.VENDOR),
+    GL.GetParameter(TJSWebGLRenderingContext.VERSION)
+  ]));
 end;
 
 end.

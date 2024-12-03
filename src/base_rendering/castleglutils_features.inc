@@ -584,7 +584,6 @@ begin
   {$endif}
 
   {$ifdef WASI}
-  WritelnLog('TestJobWeb');
   TestJobWeb;
   {$endif}
 
