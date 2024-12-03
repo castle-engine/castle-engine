@@ -203,15 +203,43 @@ uses {$ifdef CASTLE_LOG_TO_WINDOWS_EVENT_LOG} Windows, {$endif} SysUtils,
   CastleStringUtils
   {$ifdef ANDROID}, CastleAndroidInternalLog {$endif};
 
-{ On mobile platforms, do not place the log in GetAppConfigDir.
-  GetAppConfigDir may be '' and creating a subdirectory there may fail.
-  Although GetAppConfigDir is fixed in FPC trunk
-  (see too http://wiki.freepascal.org/Android )
-  but we still need to work with FPC 3.0.x.
+{ If this symbol is defined, and InitializeLog is called with ALogStream = nil
+  (which happens for most CGE applications),
+  then we initialize LogStream always to non-nil following some reasonable
+  rules:
 
-  ApplicationConfig has better logic for this,
-  using ApplicationConfigOverride, but it's set only from castlewindow_android.inc
-  once the activity starts. }
+  - Use stdout if appropriate (includes the case when we run in build tool)
+  - Use LogFileName if <> ''
+  - Use a filename inside GetAppConfigDir
+
+  If this is not defined, LogStream may remain nil in some cases.
+}
+{$define CASTLE_DEFAULT_LOG}
+{$ifdef CASTLE_NINTENDO_SWITCH} {$undef CASTLE_DEFAULT_LOG} {$endif}
+{$ifdef WASI} {$undef CASTLE_DEFAULT_LOG} {$endif}
+
+{ If this symbol is defined, and CASTLE_DEFAULT_LOG,
+  we may place the log in GetAppConfigDir.
+
+  Right now, this is undefined on mobile platforms.
+  Reasons:
+
+  - On Android, we send logs to logcat anyway (using AndroidLogRobust).
+
+      We don't need to send them to any additional file.
+      logcat is OK, "adb logcat" and "castle-engine run --target=android" show them.
+
+      Historically: (at FPC 3.0.x times) GetAppConfigDir on Android was also
+      not reliable, it could return ''.
+      ( Our ApplicationConfig has better logic for this,
+      using ApplicationConfigOverride, but it's set only from castlewindow_android.inc
+      once the activity starts. )
+      But this has been fixed in FPC, and we don't support FPC 3.0.x anymore
+      ( https://castle-engine.io/supported_compilers.php ),
+      so this is not a concern anymore.
+
+  - On iOS, sending logs to stdout is standard, and they are visible in Xcode.
+}
 {$define CASTLE_USE_GETAPPCONFIGDIR_FOR_LOG}
 {$ifdef ANDROID} {$undef CASTLE_USE_GETAPPCONFIGDIR_FOR_LOG} {$endif}
 {$ifdef CASTLE_IOS} {$undef CASTLE_USE_GETAPPCONFIGDIR_FOR_LOG} {$endif}
@@ -298,7 +326,7 @@ begin
     LogStream := ALogStream;
     FLogOutput := '<custom-stream>';
   end
-  {$if not (defined(CASTLE_NINTENDO_SWITCH) or defined(WASI))}
+  {$ifdef CASTLE_DEFAULT_LOG}
   else
   if WantsLogToStandardOutput and EnableStandardOutput and (StdOutStream <> nil) then
   begin
@@ -342,11 +370,8 @@ begin
     LogStream := StdOutStream;
     FLogOutput := '<stdout>';
   end
-  {$endif not (defined(CASTLE_NINTENDO_SWITCH) or defined(WASI))}
+  {$endif CASTLE_DEFAULT_LOG}
   ;
-
-  { Note: on CASTLE_NINTENDO_SWITCH, it is possible to leave LogStream = nil.
-    It doesn't matter, we will log to cgeNxLog anyway. }
 
   WriteLogCoreCore('Log for "' + ApplicationName + '".' + NL);
   if ApplicationProperties.Version <> '' then
@@ -377,9 +402,12 @@ begin
     Result := FLogOutput;
 end;
 
-{ Add the String to log contents.
+{ Add the String to log contents. Provided String S should end with a newline.
   Assumes that log is initialized.
-  Sends it to AndroidLog and LogStream and ApplicationProperties._Log. }
+  Sends it to
+  - LogStream
+  - ApplicationProperties._Log
+  - other system-specific log APIs. }
 procedure WriteLogCoreCore(const S: string);
 begin
   // Assert(FLog); // do not check it, as InitializeLog uses it before FLog := true
@@ -394,21 +422,26 @@ begin
   OutputDebugString(PChar(S));
   {$endif}
 
-  {$if defined(WASI)}
-  // Writeln is captured by Pas2js code and send to console (F12, and visible on page)
+  {$ifdef WASI}
+  // Write / Writeln is captured by Pas2js code and send to console (F12, and visible on page)
   Write(S);
-  {$elseif defined(CASTLE_NINTENDO_SWITCH)}
-  cgeNxLog(PChar(S));
-  {$else}
-  // we know that LogStream <> nil when FLog = true
-  WriteStr(LogStream, S);
   {$endif}
+
+  {$ifdef CASTLE_NINTENDO_SWITCH}
+  cgeNxLog(PChar(S));
+  {$endif}
+
+  { We check LogStream <> nil because when CASTLE_DEFAULT_LOG
+    is not defined (for some platforms now), LogStream may be nil. }
+  if LogStream <> nil then
+    WriteStr(LogStream, S);
 end;
 
 { Add the String to log contents.
   - Optionally adds backtrace to the String.
   - Adds the String to LastLog.
-  - If log initialized, sends it to AndroidLog and LogStream and ApplicationProperties._Log
+  - If log initialized, sends it to LogStream, ApplicationProperties._Log
+    and other system-specific log APIs.
 }
 procedure WriteLogCore(const S: string);
 var

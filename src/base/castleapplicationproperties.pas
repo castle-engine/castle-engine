@@ -48,13 +48,20 @@ type
     procedure ExecuteAll(const Message: String);
   end;
 
-  { Events and properties of the Castle Game Engine application,
-    usually accessed through the @link(ApplicationProperties) singleton.
+  { Events and properties of each Castle Game Engine application,
+    always accessed through the @link(ApplicationProperties) singleton.
 
-    These members work regardless if you use CastleWindow or CastleControl.
-    For more fine-grained application control,
-    see TCastleApplication (in case you use CastleWindow)
-    or Lazarus (LCL) TApplication (in case you use CastleControl). }
+    The members of this class work regardless of how is the rendering context
+    initialized, in particular regardless of whether
+    you use CastleWindow or CastleControl.
+    For various other application properties and methods use
+
+    @unorderedList(
+      @item(TCastleApplication class, using the @link(CastleWindow.Application)
+        singleton (if you use CastleWindow).)
+      @item(@code(TApplication) class, using the @code(Application) singleton,
+        in Lazarus LCL or Delphi VCL or FMX (in case you use CastleControl).
+    ) }
   TCastleApplicationProperties = class
   private
     FIsGLContextOpen, FFileAccessSafe: boolean;
