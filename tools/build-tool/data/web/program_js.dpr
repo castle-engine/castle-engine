@@ -36,7 +36,7 @@
 uses Classes, SysUtils, Math,
   // pas2js-specific units
   WasiEnv, Web, BrowserApp, WebWidget, HtmlWidgets, JS,
-  WebAssembly, WasiHostApp, BrowserConsole, WebGL;
+  WebAssembly, WasiHostApp, BrowserConsole, WebGL, JOB_Browser;
 
 { Rendering and animation using WebGL from Pas2js -------------------------- }
 
@@ -168,6 +168,9 @@ end;
 type
   TMyApplication = class(TWASIHostApplication)
   private
+    FJsBridge : TJSObjectBridge;
+    function DoBeforeStart(Sender: TObject;
+      ADescriptor: TWebAssemblyStartDescriptor): Boolean;
     procedure DoWrite(Sender: TObject; aOutput: String);
   protected
     procedure DoRun; override;
@@ -179,6 +182,7 @@ type
 constructor TMyApplication.Create(aOwner: TComponent);
 begin
   inherited Create(aOwner);
+  FJsBridge := TJSObjectBridge.Create(WasiEnvironment);
   OnConsoleWrite := @DoWrite;
 end;
 
@@ -192,10 +196,23 @@ begin
   inherited;
 end;
 
+function TMyApplication.DoBeforeStart(Sender: TObject;
+  ADescriptor: TWebAssemblyStartDescriptor): Boolean;
+begin
+  { Initialize FJsBridge.InstanceExports, just like
+    pas2js/demo/wasienv/button/BrowserButton1.lpr does.
+    Initializing FJsBridge makes the Job_Web (on top of Job.JS)
+    functional in WebAssembly, which allows WebAssembly to call various
+    JS APIs like DOM or WebGL. }
+  FJsBridge.InstanceExports := ADescriptor.Exported;
+  Result := true;
+end;
+
 procedure TMyApplication.DoRun;
 begin
   WriteLn('Starting WebAssembly program from ${EXECUTABLE_NAME}.wasm');
-  StartWebAssembly('${EXECUTABLE_NAME}.wasm${RANDOM_URL_SUFFIX}');
+  StartWebAssembly('${EXECUTABLE_NAME}.wasm${RANDOM_URL_SUFFIX}',
+    true, @DoBeforeStart);
   RunWebGLAnimation;
 
   { Terminate doesn't really do anything we critically need

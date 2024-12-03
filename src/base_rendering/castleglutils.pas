@@ -44,7 +44,9 @@ implementation
 uses
   CastleFilesUtils, CastleStringUtils, CastleGLVersion, CastleGLShaders,
   CastleLog, CastleApplicationProperties, CastleRenderContext, CastleGLImages,
-  CastleInternalGLUtils, CastleTimeUtils;
+  CastleInternalGLUtils, CastleTimeUtils
+  // TODO: instead make CastleGLES:=CastleWebGL on web in castleconf.inc
+  {$ifdef WASI}, CastleWebGL {$endif};
 
 {$I castleglutils_types.inc}
 {$I castleglutils_features.inc}

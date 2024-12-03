@@ -583,6 +583,11 @@ begin
   ReadOpenGLCore;
   {$endif}
 
+  {$ifdef WASI}
+  WritelnLog('TestJobWeb');
+  TestJobWeb;
+  {$endif}
+
   if not Assigned(glGetString) then
     raise Exception.Create('Failed to load OpenGL(ES) library');
 
