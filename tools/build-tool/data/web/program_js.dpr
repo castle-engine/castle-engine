@@ -195,7 +195,7 @@ end;
 procedure TMyApplication.DoRun;
 begin
   WriteLn('Starting WebAssembly program from ${EXECUTABLE_NAME}.wasm');
-  StartWebAssembly('${EXECUTABLE_NAME}.wasm');
+  StartWebAssembly('${EXECUTABLE_NAME}.wasm${RANDOM_URL_SUFFIX}');
   RunWebGLAnimation;
 
   { Terminate doesn't really do anything we critically need

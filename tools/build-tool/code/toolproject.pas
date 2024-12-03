@@ -2345,6 +2345,7 @@ begin
     Macros.Add('PROJECT_GUID', ProjectGuid);
     Macros.Add('APPLE_BUNDLE_SIGNATURE', Copy(ExecutableName + '????', 1, 4));
     Macros.Add('APPLE_ASSOCIATE_DOCUMENT_TYPES', AssociateDocumentTypes.ToPListSection(QualifiedName, Name));
+    Macros.Add('RANDOM_URL_SUFFIX', '?random_suffix_to_avoid_cache=' + RandomString);
 
     AddMacrosAndroid(Macros);
     AddMacrosIOS(Macros);
