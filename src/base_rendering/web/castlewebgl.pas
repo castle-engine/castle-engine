@@ -21,8 +21,8 @@ procedure TestJobWeb;
 
 implementation
 
-uses SysUtils, JOB.Shared, JOB_Web, JOB.JS,
-  CastleLog, CastleUtils;
+uses SysUtils, JOB.Shared, JOB.JS,
+  CastleJobWeb, CastleLog, CastleUtils;
 
 procedure TestJobWeb;
 var
