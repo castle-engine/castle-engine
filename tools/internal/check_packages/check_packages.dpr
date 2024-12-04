@@ -564,7 +564,8 @@ begin
     ],
     [
       'src/base/android/',
-      'src/files/indy/'
+      'src/files/indy/',
+      'src/base_rendering/web/'
     ],
     [
       'src/vampyre_imaginglib/'
@@ -644,6 +645,7 @@ begin
       'src/delphi/castleinternaldelphidesign.pas',
       'src/base/android/',
       'src/files/indy/',
+      'src/base_rendering/web/',
 
       // This is in castle_engine_vcl package
       'src/delphi/vcl.castlecontrol.pas',
@@ -747,7 +749,8 @@ begin
       'src/window/'
     ],
     [
-      'src/files/indy/'
+      'src/files/indy/',
+      'src/base_rendering/web/'
     ],
     [
       'src/vampyre_imaginglib/'
