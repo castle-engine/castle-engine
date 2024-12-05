@@ -1312,7 +1312,18 @@
     property HasAssociations: TIfcRelAssociatesList read FHasAssociations;
 
     { Add given TIfcObjectDefinition instance to the @link(IsDecomposedBy) list
-      of this object. Adds also new intermediate TIfcRelAggregates instance. }
+      of this object. Adds also new intermediate TIfcRelAggregates instance.
+
+      This shall be used to add top-level IfcSpatialStructureElement
+      instances to the project, e.g.:
+
+      @unorderedList(
+        @item TIfcSite instance inside IfcProject,
+        @item IfcBuilding instance inside TIfcSite,
+        @item IfcBuildingStorey instance inside IfcBuilding
+      )
+
+      @seealso AddContainedElement }
     procedure AddIsDecomposedBy(const ChildObject: TIfcObjectDefinition);
   end;
   TIfcObjectDefinitionList = {$ifdef FPC}specialize{$endif} TObjectList<TIfcObjectDefinition>;
@@ -1859,6 +1870,21 @@
   published
     property LongName: TIfcLabel read FLongName write FLongName;
     property ContainsElements: TIfcRelContainedInSpatialStructureList read FContainsElements;
+
+    { Add given Element (TIfcElement, descendant of TIfcProduct)
+      to the @link(ContainsElements) list of this spatial element.
+
+      This adds an intermediate TIfcRelContainedInSpatialStructure instance,
+      and expands the @link(ContainsElements) list of this spatial element,
+      and expands the @link(TIfcElement.ContainedInStructure) of the given Element.
+
+      It may reuse existing TIfcRelContainedInSpatialStructure instance
+      (BonsaiBIM also does this, using one TIfcRelContainedInSpatialStructure
+      to refer to multiple children).
+
+      This should be used to add smaller elements, like TIfcWall, TIfcWindow
+      into larger spatial elements, like TIfcBuildingStorey, TIfcSpace. }
+    procedure AddContainedElement(const Element: TIfcElement);
   end;
 
   TIfcSpatialZoneTypeEnum = (
@@ -3923,6 +3949,7 @@ begin
   RelAggregates := TIfcRelAggregates.Create(Owner);
   RelAggregates.RelatingObject := Self;
   RelAggregates.RelatedObjects.Add(ChildObject);
+
   IsDecomposedBy.Add(RelAggregates);
 
   ChildObject.Decomposes.Add(RelAggregates);
@@ -4055,6 +4082,28 @@ destructor TIfcSpatialElement.Destroy;
 begin
   FreeAndNil(FContainsElements);
   inherited;
+end;
+
+procedure TIfcSpatialElement.AddContainedElement(const Element: TIfcElement);
+var
+  Relation: TIfcRelContainedInSpatialStructure;
+begin
+  if (ContainsElements.Count = 1) and
+     (ContainsElements[0] is TIfcRelContainedInSpatialStructure) and
+     ((ContainsElements[0] as TIfcRelContainedInSpatialStructure).RelatingStructure = Self) then
+  begin
+    { Reuse existing TIfcRelContainedInSpatialStructure instance }
+    Relation := ContainsElements[0] as TIfcRelContainedInSpatialStructure;
+  end else
+  begin
+    Relation := TIfcRelContainedInSpatialStructure.Create(Owner);
+    Relation.RelatingStructure := Self;
+    ContainsElements.Add(Relation);
+  end;
+
+  Relation.RelatedElements.Add(Element);
+
+  Element.ContainedInStructure.Add(Relation);
 end;
 
 { TIfcElement --------------------------------------------------------------- }

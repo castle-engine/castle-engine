@@ -34,11 +34,11 @@ type
     IfcScene: TCastleScene;
   private
     IfcFile: TIfcFile;
-    { New products can be added to this container.
+    { New products have to be added to this container.
       You cannot just add them to IfcFile.Project,
       IFC specification constaints what can be the top-level spatial element.
-      TODO: initilalize for new files. }
-    IfcContainer: TIfcProduct;
+      TODO: initilalize this for new files. }
+    IfcContainer: TIfcSpatialElement;
     IfcMapping: TCastleIfcMapping;
 
     { Used to assing unique names to walls. }
@@ -146,7 +146,17 @@ begin
   { We need IfcContainer inside the project.
     Reason: We cannot add products directly to IfcProject, we need
     to add them to a spatial root element: (IfcSite || IfcBuilding || IfcSpatialZone)
-    (see https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcProject.htm ) }
+    (see https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcProject.htm ).
+
+    The IfcSpatialStructureElement
+    (see https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcSpatialStructureElement.htm )
+    defines the hierarchy of root classes, and implies that root hierarchy
+    can be (one case, seems most common -- BlenderBIM also follows it):
+
+    - IfcSite inside IfcProject,
+    - with IfcBuilding inside,
+    - with IfcBuildingStorey inside,
+    inserted into each other using "is composed by" relationship. }
 
   IfcSite := TIfcSite.Create(IfcFile);
   IfcSite.Name := 'My Site';
@@ -228,7 +238,7 @@ begin
     0
   ));
 
-  IfcContainer.AddIsDecomposedBy(Wall);
+  IfcContainer.AddContainedElement(Wall);
   IfcMapping.Update(IfcFile);
 end;
 
