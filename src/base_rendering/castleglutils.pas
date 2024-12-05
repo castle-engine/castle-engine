@@ -45,8 +45,8 @@ uses
   CastleFilesUtils, CastleStringUtils, CastleGLVersion, CastleGLShaders,
   CastleLog, CastleApplicationProperties, CastleRenderContext, CastleGLImages,
   CastleInternalGLUtils, CastleTimeUtils
-  // TODO: instead make CastleGLES:=CastleWebGL on web in castleconf.inc
-  {$ifdef WASI}, CastleWebGL {$endif};
+  // TODO: instead make CastleGLES:=CastleInternalWebGL on web in castleconf.inc
+  {$ifdef WASI}, CastleInternalWebGL {$endif};
 
 {$I castleglutils_types.inc}
 {$I castleglutils_features.inc}

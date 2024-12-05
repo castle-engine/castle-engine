@@ -201,7 +201,7 @@ function TMyApplication.DoBeforeStart(Sender: TObject;
 begin
   { Initialize FJsBridge.InstanceExports, just like
     pas2js/demo/wasienv/button/BrowserButton1.lpr does.
-    Initializing FJsBridge makes the CastleJobWeb (on top of Job.JS)
+    Initializing FJsBridge makes the CastleInternalJobWeb (on top of Job.JS)
     functional in WebAssembly, which allows WebAssembly to call various
     JS APIs like DOM or WebGL. }
   FJsBridge.InstanceExports := ADescriptor.Exported;
