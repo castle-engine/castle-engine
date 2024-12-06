@@ -28,17 +28,17 @@ type
   published
     { Components designed using CGE editor.
       These fields will be automatically initialized at Start. }
-    LabelFps: TCastleLabel;
+    LabelFps, LabelWireframeEffect, LabelHierarchy: TCastleLabel;
     ButtonNew, ButtonLoad, ButtonSaveIfc, ButtonSaveNode,
-      ButtonAddWall, ButtonModifyWall: TCastleButton;
+      ButtonAddWall, ButtonModifyWall, ButtonChangeWireframeEffect: TCastleButton;
     IfcScene: TCastleScene;
   private
     IfcFile: TIfcFile;
-    { New products can be added to this container.
+    { New products have to be added to this container.
       You cannot just add them to IfcFile.Project,
       IFC specification constaints what can be the top-level spatial element.
-      TODO: initilalize for new files. }
-    IfcContainer: TIfcProduct;
+      TODO: initilalize this for new files. }
+    IfcContainer: TIfcSpatialElement;
     IfcMapping: TCastleIfcMapping;
 
     { Used to assing unique names to walls. }
@@ -50,12 +50,16 @@ type
       (like loading new file, or creating new file). }
     procedure NewIfcMapping(const NewIfcFile: TIfcFile);
 
+    { Update LabelHierarchy.Caption to debug state of IfcFile. }
+    procedure UpdateLabelHierarchy;
+
     procedure ClickNew(Sender: TObject);
     procedure ClickLoad(Sender: TObject);
     procedure ClickSaveIfc(Sender: TObject);
     procedure ClickSaveNode(Sender: TObject);
     procedure ClickAddWall(Sender: TObject);
     procedure ClickModifyWall(Sender: TObject);
+    procedure ClickChangeWireframeEffect(Sender: TObject);
   public
     constructor Create(AOwner: TComponent); override;
     procedure Start; override;
@@ -68,8 +72,14 @@ var
 
 implementation
 
-uses SysUtils,
-  CastleUtils, CastleUriUtils, CastleWindow, CastleBoxes, X3DLoad;
+uses SysUtils, TypInfo,
+  CastleUtils, CastleUriUtils, CastleWindow, CastleBoxes, X3DLoad, CastleLog,
+  CastleRenderOptions;
+
+function WireframeEffectToStr(const WireframeEffect: TWireframeEffect): String;
+begin
+  Result := GetEnumName(TypeInfo(TWireframeEffect), Ord(WireframeEffect));
+end;
 
 { TViewMain ----------------------------------------------------------------- }
 
@@ -89,11 +99,9 @@ begin
   ButtonSaveNode.OnClick := {$ifdef FPC}@{$endif} ClickSaveNode;
   ButtonAddWall.OnClick := {$ifdef FPC}@{$endif} ClickAddWall;
   ButtonModifyWall.OnClick := {$ifdef FPC}@{$endif} ClickModifyWall;
+  ButtonChangeWireframeEffect.OnClick := {$ifdef FPC}@{$endif} ClickChangeWireframeEffect;
 
-  {$ifdef QUIET_AUTOTEST}
-  ClickAddWall(nil);
-  IfcJsonSave(IfcFile, '/home/michalis/Desktop/autotest.ifcjson');
-  {$endif}
+  LabelWireframeEffect.Caption := WireframeEffectToStr(IfcScene.RenderOptions.WireframeEffect);
 end;
 
 procedure TViewMain.Stop;
@@ -122,35 +130,70 @@ begin
   IfcMapping.Load(IfcFile, 'castle-data:/');
 
   IfcScene.Load(IfcMapping.RootNode, true);
+
+  UpdateLabelHierarchy;
 end;
 
 procedure TViewMain.ClickNew(Sender: TObject);
+
+  procedure AddFloor;
+  const
+    FloorSize = 10;
+  var
+    Slab: TIfcSlab;
+  begin
+    Slab := TIfcSlab.Create(IfcFile);
+    Slab.Name := 'Floor';
+    Slab.PredefinedType := TIfcSlabTypeEnum.Floor;
+    Slab.AddMeshRepresentation(IfcFile.Project.ModelContext, [
+      Vector3(-FloorSize / 2, -FloorSize / 2, 0),
+      Vector3( FloorSize / 2, -FloorSize / 2, 0),
+      Vector3( FloorSize / 2,  FloorSize / 2, 0),
+      Vector3(-FloorSize / 2,  FloorSize / 2, 0)
+    ], [0, 1, 2, 3]);
+
+    IfcContainer.AddContainedElement(Slab);
+
+    { Note: one needs to call IfcMapping.Update(IfcFile) after the changes.
+      But in this case, we call NewIfcMapping after AddFloor,
+      so no need for extra update. }
+  end;
+
 var
-  IfcProject: TIfcProject;
   IfcSite: TIfcSite;
   IfcBuilding: TIfcBuilding;
   IfcBuildingStorey: TIfcBuildingStorey;
 begin
-  FreeAndNil(IfcFile);
+  FreeAndNil(IfcFile); // owns all other IFC classes, so this frees everything
 
   IfcFile := TIfcFile.Create(nil);
 
-  // we must create also TIfcProject to have valid IFC
-  IfcProject := TIfcProject.Create(IfcFile);
-  IfcFile.Data.Add(IfcProject);
-  Assert(IfcFile.Project = IfcProject);
-
-  // valid IFC project requires units
-  IfcProject.SetupUnits;
+  { Obligatory initialization of new IFC files structure.
+    We must set IfcFile.Project,
+    each project must have units,
+    and each project must have a 3D model context. }
+  IfcFile.Project := TIfcProject.Create(IfcFile);
+  IfcFile.Project.SetupUnits;
+  IfcFile.Project.SetupModelContext;
 
   { We need IfcContainer inside the project.
     Reason: We cannot add products directly to IfcProject, we need
     to add them to a spatial root element: (IfcSite || IfcBuilding || IfcSpatialZone)
-    (see https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcProject.htm ) }
+    (see https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcProject.htm ).
+
+    The IfcSpatialStructureElement
+    (see https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcSpatialStructureElement.htm )
+    defines the hierarchy of root classes, and implies that root hierarchy
+    can be (one case, seems most common -- BlenderBIM also follows it):
+
+    - IfcSite inside IfcProject,
+    - with IfcBuilding inside,
+    - with IfcBuildingStorey inside,
+    inserted into each other using "is composed by" relationship. }
 
   IfcSite := TIfcSite.Create(IfcFile);
   IfcSite.Name := 'My Site';
-  IfcProject.AddIsDecomposedBy(IfcSite);
+  IfcFile.Project.AddIsDecomposedBy(IfcSite);
 
   IfcBuilding := TIfcBuilding.Create(IfcFile);
   IfcBuilding.Name := 'My Building';
@@ -162,6 +205,8 @@ begin
 
   IfcContainer := IfcBuildingStorey;
 
+  AddFloor;
+
   NewIfcMapping(IfcFile);
 end;
 
@@ -171,12 +216,52 @@ const
 procedure TViewMain.ClickLoad(Sender: TObject);
 var
   Url: string;
+  IfcSite: TIfcSite;
+  IfcBuilding: TIfcBuilding;
+  IfcBuildingStorey: TIfcBuildingStorey;
 begin
   Url := 'castle-data:/';
   if Application.MainWindow.FileDialog('Load IFC file', Url, true, IfcFileFilter) then
   begin
     FreeAndNil(IfcFile);
     IfcFile := IfcJsonLoad(Url);
+
+    // initialize IfcContainer, needed as parent for new walls
+    IfcContainer := IfcFile.Project.BestContainer;
+    if IfcContainer = nil then
+    begin
+      WritelnWarning('IFC model "%s" is missing a spatial root element (IfcSite, IfcBuilding, IfcBuildingStorey), adding a dummy one', [
+        Url
+      ]);
+
+      IfcSite := TIfcSite.Create(IfcFile);
+      IfcSite.Name := 'My Site';
+      IfcFile.Project.AddIsDecomposedBy(IfcSite);
+
+      IfcBuilding := TIfcBuilding.Create(IfcFile);
+      IfcBuilding.Name := 'My Building';
+      IfcSite.AddIsDecomposedBy(IfcBuilding);
+
+      IfcBuildingStorey := TIfcBuildingStorey.Create(IfcFile);
+      IfcBuildingStorey.Name := 'My Building Storey';
+      IfcBuilding.AddIsDecomposedBy(IfcBuildingStorey);
+
+      IfcContainer := IfcBuildingStorey;
+    end;
+
+    WritelnLog('IFC best container in "%s" guessed as "%s"', [
+      Url,
+      IfcContainer.ClassName
+    ]);
+
+    // make sure we have ModelContext to add new walls
+    if IfcFile.Project.ModelContext = nil then
+    begin
+      WritelnWarning('IFC model "%s" is missing a "Model" context in project.representationContexts, this can happen for IFC exported from BonsaiBIM', [
+        Url
+      ]);
+      IfcFile.Project.SetupModelContext;
+    end;
     NewIfcMapping(IfcFile);
   end;
 end;
@@ -217,10 +302,11 @@ begin
   SizeX := RandomFloatRange(1, 4);
   SizeY := RandomFloatRange(1, 4);
   WallHeight := RandomFloatRange(1.5, 2.5); // Z is "up", by convention, in IFC
-  Wall.AddBoxRepresentation(Box3D(
-    Vector3(-SizeX / 2, -SizeY / 2, 0),
-    Vector3( SizeX / 2,  SizeY / 2, WallHeight)
-  ));
+  Wall.AddBoxRepresentation(IfcFile.Project.ModelContext,
+    Box3D(
+      Vector3(-SizeX / 2, -SizeY / 2, 0),
+      Vector3( SizeX / 2,  SizeY / 2, WallHeight)
+    ));
 
   Wall.SetRelativePlacement(Vector3(
     RandomFloatRange(-5, 5),
@@ -228,14 +314,85 @@ begin
     0
   ));
 
-  IfcContainer.AddIsDecomposedBy(Wall);
+  IfcContainer.AddContainedElement(Wall);
   IfcMapping.Update(IfcFile);
+  UpdateLabelHierarchy;
 end;
 
 procedure TViewMain.ClickModifyWall(Sender: TObject);
 begin
   // IfcFile.Project.... // TODO
   IfcMapping.Update(IfcFile);
+end;
+
+procedure TViewMain.ClickChangeWireframeEffect(Sender: TObject);
+begin
+  if IfcScene.RenderOptions.WireframeEffect = High(TWireframeEffect) then
+    IfcScene.RenderOptions.WireframeEffect := Low(TWireframeEffect)
+  else
+    IfcScene.RenderOptions.WireframeEffect := Succ(IfcScene.RenderOptions.WireframeEffect);
+  LabelWireframeEffect.Caption := WireframeEffectToStr(IfcScene.RenderOptions.WireframeEffect);
+end;
+
+procedure TViewMain.UpdateLabelHierarchy;
+const
+  Indent = '  ';
+var
+  SList: TStringList;
+
+  procedure ShowHierarchy(const Parent: TIfcObjectDefinition; const NowIndent: String);
+  var
+    ParentSpatial: TIfcSpatialElement;
+    RelAggregates: TIfcRelAggregates;
+    RelatedObject: TIfcObjectDefinition;
+    RelContained: TIfcRelContainedInSpatialStructure;
+    RelatedElement: TIfcProduct;
+  begin
+    SList.Add(NowIndent + Parent.ClassName + ' "' + Parent.Name + '"');
+    if Parent = IfcFile.Project.BestContainer then
+      SList.Add(NowIndent + Indent + '<font color="#0000aa">(^detected best container)</font>');
+
+    for RelAggregates in Parent.IsDecomposedBy do
+      for RelatedObject in RelAggregates.RelatedObjects do
+        ShowHierarchy(RelatedObject, NowIndent + Indent);
+
+    if Parent is TIfcSpatialElement then
+    begin
+      ParentSpatial := TIfcSpatialElement(Parent);
+      for RelContained in ParentSpatial.ContainsElements do
+        for RelatedElement in RelContained.RelatedElements do
+          ShowHierarchy(RelatedElement, NowIndent + Indent);
+    end;
+  end;
+
+var
+  RepresentationContext: TIfcRepresentationContext;
+begin
+  { Showing the IFC hierarchy, as seen by Castle Game Engine,
+    is a useful debug tool (both for CGE and for your IFC models).
+    We show various relations (like IsDecomposedBy, ContainsElements),
+    we show the representation contexts, we mark what was detected
+    as Project.ModelContext, Project.PlanContext, Project.BestContainer. }
+
+  SList := TStringList.Create;
+  try
+    SList.Add('<font color="#008800">Representation contexts:</font>');
+
+    for RepresentationContext in IfcFile.Project.RepresentationContexts do
+    begin
+      SList.Add(Indent + RepresentationContext.ClassName);
+      if RepresentationContext = IfcFile.Project.ModelContext then
+        SList.Add(Indent + Indent + '<font color="#0000aa">(^detected 3D ModelContext)</font>');
+      if RepresentationContext = IfcFile.Project.PlanContext then
+        SList.Add(Indent + Indent + '<font color="#0000aa">(^detected 2D PlanContext)</font>');
+    end;
+
+    SList.Add('');
+    SList.Add('<font color="#008800">Project Hierarchy:</font>');
+    ShowHierarchy(IfcFile.Project, Indent);
+
+    LabelHierarchy.Text.Assign(SList);
+  finally FreeAndNil(SList) end;
 end;
 
 end.

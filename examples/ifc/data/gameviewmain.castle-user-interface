@@ -101,18 +101,6 @@
             }
           },
           {
-            "$$ClassName" : "TCastlePlane",
-            "Name" : "Plane1",
-            "RenderOptions" : {
-              "$$ClassName" : "TCastleScene.TSceneRenderOptions"
-            },
-            "SizePersistent" : {
-              "$$ClassName" : "TCastleVector2Persistent",
-              "X" : 1.0000000000000000E+001,
-              "Y" : 1.0000000000000000E+001
-            }
-          },
-          {
             "$$ClassName" : "TCastleScene",
             "ExposeTransforms" : [
             ],
@@ -350,6 +338,111 @@
           },
           "VerticalAnchorParent" : "vpTop",
           "VerticalAnchorSelf" : "vpTop"
+        },
+        {
+          "$$ClassName" : "TCastleHorizontalGroup",
+          "Name" : "HorizontalGroup1",
+          "Spacing" : 2.0000000000000000E+001,
+          "TranslationPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent",
+            "X" : 1.0000000000000000E+001,
+            "Y" : -3.0400000000000000E+002
+          },
+          "VerticalAnchorParent" : "vpTop",
+          "VerticalAnchorSelf" : "vpTop",
+          "$Children" : [
+            {
+              "$$ClassName" : "TCastleButton",
+              "Caption" : "Change Wireframe Effect",
+              "CustomBackgroundDisabled" : {
+                "$$ClassName" : "TCastleImagePersistent"
+              },
+              "CustomBackgroundFocused" : {
+                "$$ClassName" : "TCastleImagePersistent"
+              },
+              "CustomBackgroundNormal" : {
+                "$$ClassName" : "TCastleImagePersistent"
+              },
+              "CustomBackgroundPressed" : {
+                "$$ClassName" : "TCastleImagePersistent"
+              },
+              "Image" : {
+                "$$ClassName" : "TCastleImagePersistent"
+              },
+              "Name" : "ButtonChangeWireframeEffect",
+              "VerticalAnchorParent" : "vpMiddle",
+              "VerticalAnchorSelf" : "vpMiddle"
+            },
+            {
+              "$$ClassName" : "TCastleLabel",
+              "ColorPersistent" : {
+                "$$ClassName" : "TCastleColorPersistent",
+                "Blue" : 1.1764706112444401E-002,
+                "Green" : 7.6078432798385620E-001
+              },
+              "Name" : "LabelWireframeEffect",
+              "Text" : [
+                "LabelWireframeEffect"
+              ],
+              "TranslationPersistent" : {
+                "$$ClassName" : "TCastleVector2Persistent",
+                "X" : 2.9100000000000000E+002
+              },
+              "VerticalAnchorParent" : "vpMiddle",
+              "VerticalAnchorSelf" : "vpMiddle"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "$$ClassName" : "TCastleRectangleControl",
+      "Border" : {
+        "$$ClassName" : "TBorder",
+        "AllSides" : 2.0000000000000000E+001
+      },
+      "ColorPersistent" : {
+        "$$ClassName" : "TCastleColorPersistent",
+        "Alpha" : 5.9607845544815063E-001
+      },
+      "HeightFraction" : 1.0000000000000000E+000,
+      "HorizontalAnchorParent" : "hpRight",
+      "HorizontalAnchorSelf" : "hpRight",
+      "Name" : "RectangleControl1",
+      "VerticalAnchorParent" : "vpMiddle",
+      "VerticalAnchorSelf" : "vpMiddle",
+      "Width" : 4.0000000000000000E+002,
+      "$Children" : [
+        {
+          "$$ClassName" : "TCastleScrollView",
+          "Border" : {
+            "$$ClassName" : "TBorder",
+            "AllSides" : 1.0000000000000000E+001
+          },
+          "FullSize" : true,
+          "Name" : "ScrollView1",
+          "ScrollArea" : {
+            "$$ClassName" : "TCastleScrollArea",
+            "$Children" : [
+              {
+                "$$ClassName" : "TCastleLabel",
+                "FontSize" : 1.5000000000000000E+001,
+                "Html" : true,
+                "Name" : "LabelHierarchy",
+                "Text" : [
+                  "LabelHierarchy"
+                ],
+                "VerticalAnchorParent" : "vpTop",
+                "VerticalAnchorSelf" : "vpTop"
+              }
+            ]
+          },
+          "ScrollbarFrame" : {
+            "$$ClassName" : "TCastleImagePersistent"
+          },
+          "ScrollbarSlider" : {
+            "$$ClassName" : "TCastleImagePersistent"
+          }
         }
       ]
     }
