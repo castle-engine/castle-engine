@@ -28,9 +28,9 @@ type
   published
     { Components designed using CGE editor.
       These fields will be automatically initialized at Start. }
-    LabelFps: TCastleLabel;
+    LabelFps, LabelWireframeEffect: TCastleLabel;
     ButtonNew, ButtonLoad, ButtonSaveIfc, ButtonSaveNode,
-      ButtonAddWall, ButtonModifyWall: TCastleButton;
+      ButtonAddWall, ButtonModifyWall, ButtonChangeWireframeEffect: TCastleButton;
     IfcScene: TCastleScene;
   private
     IfcFile: TIfcFile;
@@ -56,6 +56,7 @@ type
     procedure ClickSaveNode(Sender: TObject);
     procedure ClickAddWall(Sender: TObject);
     procedure ClickModifyWall(Sender: TObject);
+    procedure ClickChangeWireframeEffect(Sender: TObject);
   public
     constructor Create(AOwner: TComponent); override;
     procedure Start; override;
@@ -68,8 +69,14 @@ var
 
 implementation
 
-uses SysUtils,
-  CastleUtils, CastleUriUtils, CastleWindow, CastleBoxes, X3DLoad, CastleLog;
+uses SysUtils, TypInfo,
+  CastleUtils, CastleUriUtils, CastleWindow, CastleBoxes, X3DLoad, CastleLog,
+  CastleRenderOptions;
+
+function WireframeEffectToStr(const WireframeEffect: TWireframeEffect): String;
+begin
+  Result := GetEnumName(TypeInfo(TWireframeEffect), Ord(WireframeEffect));
+end;
 
 { TViewMain ----------------------------------------------------------------- }
 
@@ -89,6 +96,9 @@ begin
   ButtonSaveNode.OnClick := {$ifdef FPC}@{$endif} ClickSaveNode;
   ButtonAddWall.OnClick := {$ifdef FPC}@{$endif} ClickAddWall;
   ButtonModifyWall.OnClick := {$ifdef FPC}@{$endif} ClickModifyWall;
+  ButtonChangeWireframeEffect.OnClick := {$ifdef FPC}@{$endif} ClickChangeWireframeEffect;
+
+  LabelWireframeEffect.Caption := WireframeEffectToStr(IfcScene.RenderOptions.WireframeEffect);
 end;
 
 procedure TViewMain.Stop;
@@ -307,6 +317,15 @@ procedure TViewMain.ClickModifyWall(Sender: TObject);
 begin
   // IfcFile.Project.... // TODO
   IfcMapping.Update(IfcFile);
+end;
+
+procedure TViewMain.ClickChangeWireframeEffect(Sender: TObject);
+begin
+  if IfcScene.RenderOptions.WireframeEffect = High(TWireframeEffect) then
+    IfcScene.RenderOptions.WireframeEffect := Low(TWireframeEffect)
+  else
+    IfcScene.RenderOptions.WireframeEffect := Succ(IfcScene.RenderOptions.WireframeEffect);
+  LabelWireframeEffect.Caption := WireframeEffectToStr(IfcScene.RenderOptions.WireframeEffect);
 end;
 
 end.
