@@ -89,8 +89,10 @@
     FOriginatingSystem: String;
     FPreprocessorVersion: String;
     FTimeStamp: String;
-    FData: TIfcPersistentList;
   private
+    { Used during loading. }
+    TemporaryData: TIfcPersistentList;
+
     { Create a list of all TIfcRoot instances inside @link(Project),
       and make sure they all have GlobalId set.
       This list should be saved into the IFC files (JSON, STEP) as the "data"
@@ -107,7 +109,7 @@
     { Return one and only TIfcProject instance from Data.
       @raises(EInvalidIfc If there is no TIfcProject instance in Data
         or there's more than one TIfcProject instance in Data.) }
-    function ProjectFromDataList(const Data: TIfcPersistentList): TIfcProject;
+    class function ProjectFromDataList(const Data: TIfcPersistentList): TIfcProject;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -186,7 +188,6 @@ end;
 constructor TIfcFile.Create(AOwner: TComponent);
 begin
   inherited;
-  FData := TIfcPersistentList.Create(false);
 
   // reasonable defaults
   EncodingType := 'IFC.JSON'; // we can only save IFC JSON now
@@ -197,11 +198,10 @@ end;
 
 destructor TIfcFile.Destroy;
 begin
-  FreeAndNil(FData);
   inherited;
 end;
 
-function TIfcFile.ProjectFromDataList(const Data: TIfcPersistentList): TIfcProject;
+class function TIfcFile.ProjectFromDataList(const Data: TIfcPersistentList): TIfcProject;
 var
   I: Integer;
 begin

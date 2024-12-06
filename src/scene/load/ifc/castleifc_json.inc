@@ -569,19 +569,15 @@ var
     end;
 
     { For all elements on JsonChildArray create and read Pascal class,
-      and add it to property PropInfo of Ifc,
-      which should be a list descendant. }
-    procedure ReadIfcChildArray(const PropInfo: PPropInfo;
-      const JsonChildArray: TJsonArray);
+      and add it to List. }
+    procedure ReadIfcChildArray(const List: TIfcPersistentList;
+      const JsonChildArray: TJsonArray); overload;
     var
-      List: TIfcPersistentList;
       I: Integer;
       IfcChild: TIfcPersistent;
       JsonChildObj: TJsonObject;
       RequiredClass: TIfcPersistentClass;
     begin
-      List := GetListProperty(PropInfo);
-
       for I := 0 to JsonChildArray.Count - 1 do
       begin
         if JsonChildArray.Items[I] is TJsonObject then
@@ -614,6 +610,15 @@ var
           List.Add(IfcChild);
         end;
       end;
+    end;
+
+    { For all elements on JsonChildArray create and read Pascal class,
+      and add it to property PropInfo of Ifc,
+      which should be a list descendant. }
+    procedure ReadIfcChildArray(const PropInfo: PPropInfo;
+      const JsonChildArray: TJsonArray); overload;
+    begin
+      ReadIfcChildArray(GetListProperty(PropInfo), JsonChildArray);
     end;
 
     { Read one JSON object, add it as the only item to the list property PropInfo of Ifc.
@@ -737,6 +742,16 @@ var
       end;
     end;
 
+    { Read "data" list to TIfcFile.TemporaryData. }
+    procedure ReadFileData(const IfcFile: TIfcFile; const JsonArray: TJsonArray);
+    begin
+      if IfcFile.TemporaryData <> nil then
+        raise EInvalidIfc.Create('Duplicate "data" field in IFC file');
+      IfcFile.TemporaryData := TIfcPersistentList.Create(false);
+      ReadIfcChildArray(IfcFile.TemporaryData, JsonArray);
+      IfcFile.Project := TIfcFile.ProjectFromDataList(IfcFile.TemporaryData);
+    end;
+
   var
     I: Integer;
     JsonKey: String;
@@ -748,6 +763,17 @@ var
       if JsonKey = 'type' then // special field, handled by code that calls DeserializeJson
         Continue;
       DebugJsonKey := PrefixRemove('T', Ifc.ClassName, false) + '.' + JsonKey;
+
+      { Special handling of "data" list within TIfcFile.
+        TIfcFile.Data is not a published property (because it would make sense
+        only temporarily during loading), so we load it with dedicated code here. }
+      if (JsonKey = 'data') and
+         (Json.Items[I] is TJsonArray) and
+         (Ifc is TIfcFile) then
+      begin
+        ReadFileData(TIfcFile(Ifc), Json.Items[I] as TJsonArray);
+        Continue;
+      end;
 
       PropInfo := GetPropInfo(Ifc.ClassInfo, JsonKey);
       if PropInfo = nil then
@@ -810,46 +836,63 @@ var
     or make a warning and set UnresolvedRef to '' if not possible.
 
     By the end of this, UnresolvedRef should be empty in all TIfcPersistent instances. }
-  procedure ResolveReferences(const Ifc: TIfcPersistent);
+  procedure ResolveReferences(const IfcFile: TIfcFile);
   var
     Visited: TIfcPersistentList;
 
+    { Resolve reference indicated by IfcToResolve,
+      which must have UnresolvedRef non-empty.
+      Sets NewIfc to the resolved reference (if success)
+      or makes a warning and sets to IfcToResolve (if failure). }
+    procedure ResolveRef(const IfcToResolve: TIfcPersistent; out NewIfc: TIfcPersistent);
+    var
+      IfcRefIndex: Integer;
+    begin
+      Assert(IfcToResolve.UnresolvedRef <> '');
+      IfcRefIndex := Refs.IndexOf(IfcToResolve.UnresolvedRef);
+      if IfcRefIndex = -1 then
+      begin
+        WritelnWarning('IFC', 'IFC reference "%s" (class "%s") not found, leaving unresolved', [
+          IfcToResolve.UnresolvedRef,
+          IfcToResolve.ClassName
+        ]);
+        IfcToResolve.UnresolvedRef := '';
+        NewIfc := IfcToResolve;
+      end else
+      begin
+        NewIfc := Refs.Objects[IfcRefIndex] as TIfcPersistent;
+        Assert(NewIfc <> nil);
+      end;
+    end;
+
+    procedure ResolveReferencesCore(const Ifc: TIfcPersistent); forward;
+
+    procedure ResolveReferencesList(const List: TIfcPersistentList);
+    var
+      J: Integer;
+      IfcObjPropertyPersistent, NewIfcObjProperty: TIfcPersistent;
+    begin
+      for J := 0 to List.Count - 1 do
+      begin
+        IfcObjPropertyPersistent := List[J];
+        if IfcObjPropertyPersistent.UnresolvedRef <> '' then
+        begin
+          ResolveRef(IfcObjPropertyPersistent, NewIfcObjProperty);
+          List[J] := NewIfcObjProperty;
+        end else
+          ResolveReferencesCore(IfcObjPropertyPersistent);
+      end;
+    end;
+
     { Recursive subroutine of ResolveReferences. }
     procedure ResolveReferencesCore(const Ifc: TIfcPersistent);
-
-      { Resolve reference indicated by IfcToResolve,
-        which must have UnresolvedRef non-empty.
-        Sets NewIfc to the resolved reference (if success)
-        or makes a warning and sets to IfcToResolve (if failure). }
-      procedure ResolveRef(const IfcToResolve: TIfcPersistent; out NewIfc: TIfcPersistent);
-      var
-        IfcRefIndex: Integer;
-      begin
-        Assert(IfcToResolve.UnresolvedRef <> '');
-        IfcRefIndex := Refs.IndexOf(IfcToResolve.UnresolvedRef);
-        if IfcRefIndex = -1 then
-        begin
-          WritelnWarning('IFC', 'IFC reference "%s" (class "%s") not found, leaving unresolved', [
-            IfcToResolve.UnresolvedRef,
-            IfcToResolve.ClassName
-          ]);
-          IfcToResolve.UnresolvedRef := '';
-          NewIfc := IfcToResolve;
-        end else
-        begin
-          NewIfc := Refs.Objects[IfcRefIndex] as TIfcPersistent;
-          Assert(NewIfc <> nil);
-        end;
-      end;
-
     var
       PropInfos: TPropInfoList;
       PropInfo: PPropInfo;
       PropType: TPropertyType;
       IfcObjProperty: TObject;
       IfcObjPropertyPersistent, NewIfcObjProperty: TIfcPersistent;
-      List: TIfcPersistentList;
-      I, J: Integer;
+      I: Integer;
     begin
       if Visited.Contains(Ifc) then
         Exit; // already visited, exit early to avoid cycles
@@ -868,17 +911,7 @@ var
               ClassNameOfList(IfcObjProperty.ClassName) then
             begin
               { List of instances. Resolve references in each of them. }
-              List := TIfcPersistentList(IfcObjProperty);
-              for J := 0 to List.Count - 1 do
-              begin
-                IfcObjPropertyPersistent := List[J];
-                if IfcObjPropertyPersistent.UnresolvedRef <> '' then
-                begin
-                  ResolveRef(IfcObjPropertyPersistent, NewIfcObjProperty);
-                  List[J] := NewIfcObjProperty;
-                end else
-                  ResolveReferencesCore(IfcObjPropertyPersistent);
-              end;
+              ResolveReferencesList(TIfcPersistentList(IfcObjProperty));
             end else
             if IfcObjProperty is TIfcPersistent then
             begin
@@ -899,7 +932,14 @@ var
   begin
     Visited := TIfcPersistentList.Create(false);
     try
-      ResolveReferencesCore(Ifc);
+      ResolveReferencesCore(IfcFile);
+
+      { Special handling for unpublished TIfcFile.TemporaryData,
+        where we also need to resolve references,
+        to have everything in TIfcFile.Project (that refers to one item
+        on this list) resolved. }
+      if IfcFile.TemporaryData <> nil then
+        ResolveReferencesList(IfcFile.TemporaryData);
     finally FreeAndNil(Visited) end;
   end;
 
@@ -948,6 +988,8 @@ begin
     end;
 
     ResolveReferences(Result);
+
+    FreeAndNil(Result.TemporaryData);
   finally FreeAndNil(Refs) end;
 end;
 
