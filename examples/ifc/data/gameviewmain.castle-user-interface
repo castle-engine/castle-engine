@@ -101,18 +101,6 @@
             }
           },
           {
-            "$$ClassName" : "TCastlePlane",
-            "Name" : "Plane1",
-            "RenderOptions" : {
-              "$$ClassName" : "TCastleScene.TSceneRenderOptions"
-            },
-            "SizePersistent" : {
-              "$$ClassName" : "TCastleVector2Persistent",
-              "X" : 1.0000000000000000E+001,
-              "Y" : 1.0000000000000000E+001
-            }
-          },
-          {
             "$$ClassName" : "TCastleScene",
             "ExposeTransforms" : [
             ],

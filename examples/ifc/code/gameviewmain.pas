@@ -125,6 +125,30 @@ begin
 end;
 
 procedure TViewMain.ClickNew(Sender: TObject);
+
+  procedure AddFloor;
+  const
+    FloorSize = 10;
+  var
+    Slab: TIfcSlab;
+  begin
+    Slab := TIfcSlab.Create(IfcFile);
+    Slab.Name := 'Floor';
+    Slab.PredefinedType := TIfcSlabTypeEnum.Floor;
+    Slab.AddMeshRepresentation(IfcFile.Project.ModelContext, [
+      Vector3(-FloorSize / 2, -FloorSize / 2, 0),
+      Vector3( FloorSize / 2, -FloorSize / 2, 0),
+      Vector3( FloorSize / 2,  FloorSize / 2, 0),
+      Vector3(-FloorSize / 2,  FloorSize / 2, 0)
+    ], [0, 1, 2, 3]);
+
+    IfcContainer.AddContainedElement(Slab);
+
+    { Note: one needs to call IfcMapping.Update(IfcFile) after the changes.
+      But in this case, we call NewIfcMapping after AddFloor,
+      so no need for extra update. }
+  end;
+
 var
   IfcSite: TIfcSite;
   IfcBuilding: TIfcBuilding;
@@ -170,6 +194,8 @@ begin
   IfcBuilding.AddIsDecomposedBy(IfcBuildingStorey);
 
   IfcContainer := IfcBuildingStorey;
+
+  AddFloor;
 
   NewIfcMapping(IfcFile);
 end;
@@ -233,10 +259,10 @@ begin
     ));
 
   Wall.SetRelativePlacement(Vector3(
-      RandomFloatRange(-5, 5),
-      RandomFloatRange(-5, 5),
-      0
-    ));
+    RandomFloatRange(-5, 5),
+    RandomFloatRange(-5, 5),
+    0
+  ));
 
   IfcContainer.AddContainedElement(Wall);
   IfcMapping.Update(IfcFile);
