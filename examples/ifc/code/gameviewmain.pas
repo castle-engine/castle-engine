@@ -126,22 +126,19 @@ end;
 
 procedure TViewMain.ClickNew(Sender: TObject);
 var
-  IfcProject: TIfcProject;
   IfcSite: TIfcSite;
   IfcBuilding: TIfcBuilding;
   IfcBuildingStorey: TIfcBuildingStorey;
 begin
-  FreeAndNil(IfcFile);
+  FreeAndNil(IfcFile); // owns all other IFC classes, so this frees everything
 
   IfcFile := TIfcFile.Create(nil);
 
-  // we must create also TIfcProject to have valid IFC
-  IfcProject := TIfcProject.Create(IfcFile);
-  IfcFile.Data.Add(IfcProject);
-  Assert(IfcFile.Project = IfcProject);
+  // we must set IfcFile.Project to have valid IFC
+  IfcFile.Project := TIfcProject.Create(IfcFile);
 
   // valid IFC project requires units
-  IfcProject.SetupUnits;
+  IfcFile.Project.SetupUnits;
 
   { We need IfcContainer inside the project.
     Reason: We cannot add products directly to IfcProject, we need
@@ -160,7 +157,7 @@ begin
 
   IfcSite := TIfcSite.Create(IfcFile);
   IfcSite.Name := 'My Site';
-  IfcProject.AddIsDecomposedBy(IfcSite);
+  IfcFile.Project.AddIsDecomposedBy(IfcSite);
 
   IfcBuilding := TIfcBuilding.Create(IfcFile);
   IfcBuilding.Name := 'My Building';

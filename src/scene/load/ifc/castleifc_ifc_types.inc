@@ -82,6 +82,7 @@
     and then follows the "data" which is TIfcProject instance. }
   TIfcFile = class(TIfcPersistent)
   strict private
+    FProject: TIfcProject;
     FEncodingType: String;
     FVersion: String;
     FSchemaIdentifier: String;
@@ -89,15 +90,7 @@
     FPreprocessorVersion: String;
     FTimeStamp: String;
     FData: TIfcPersistentList;
-  public
-    constructor Create(AOwner: TComponent); override;
-    destructor Destroy; override;
-    { Return one and only TIfcProject instance from Data.
-      @raises(EInvalidIfc If there is no TIfcProject instance in Data
-        or there's more than one TIfcProject instance in Data.) }
-    function Project: TIfcProject;
-    function BuildNode(const Mapping: TCastleIfcMapping): TX3DRootNode;
-
+  private
     { Create a list of all TIfcRoot instances inside @link(Project),
       and make sure they all have GlobalId set.
       This list should be saved into the IFC files (JSON, STEP) as the "data"
@@ -110,6 +103,21 @@
       converters cannot handle such files, they require everything on
       "data", and the "data" objects cannot be references. }
     function CreateDataList: TIfcPersistentList;
+
+    { Return one and only TIfcProject instance from Data.
+      @raises(EInvalidIfc If there is no TIfcProject instance in Data
+        or there's more than one TIfcProject instance in Data.) }
+    function ProjectFromDataList(const Data: TIfcPersistentList): TIfcProject;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+
+    function BuildNode(const Mapping: TCastleIfcMapping): TX3DRootNode;
+
+    { Project, always exactly one TIfcProject instance inside IFC file.
+      May be temporarily @nil when building a new IFC file,
+      but all valid IFC files should have this assigned. }
+    property Project: TIfcProject read FProject write FProject;
   published
     property EncodingType: String read FEncodingType write FEncodingType;
     property Version: String read FVersion write FVersion;
@@ -118,9 +126,6 @@
     property PreprocessorVersion: String read FPreprocessorVersion write FPreprocessorVersion;
     // TODO: If ever necessary, convert this to TDateTime
     property TimeStamp: String read FTimeStamp write FTimeStamp;
-
-    // TODO: remove from API, make Project persistent
-    property Data: TIfcPersistentList read FData stored false;
   end;
 
   { Invalid IFC file exception.
@@ -196,18 +201,18 @@ begin
   inherited;
 end;
 
-function TIfcFile.Project: TIfcProject;
+function TIfcFile.ProjectFromDataList(const Data: TIfcPersistentList): TIfcProject;
 var
   I: Integer;
 begin
   Result := nil;
-  for I := 0 to FData.Count - 1 do
+  for I := 0 to Data.Count - 1 do
   begin
-    if FData[I] is TIfcProject then
+    if Data[I] is TIfcProject then
     begin
       if Result <> nil then
         raise EInvalidIfc.Create('IFC file contains more than one TIfcProject');
-      Result := TIfcProject(FData[I]);
+      Result := TIfcProject(Data[I]);
     end;
   end;
   if Result = nil then

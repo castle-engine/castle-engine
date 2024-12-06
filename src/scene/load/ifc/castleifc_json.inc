@@ -929,7 +929,7 @@ begin
     if TopLevelType = 'IfcProject' then
     begin
       Project := TIfcProject.Create(IfcOwner);
-      Result.Data.Add(Project);
+      Result.Project := Project;
       DeserializeJson(JsonObj, Project);
     end else
     begin
