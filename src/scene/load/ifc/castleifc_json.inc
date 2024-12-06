@@ -958,7 +958,8 @@ var
     (when given instance is already saved) and when full instance. }
   Refs: TIfcPersistentList;
 
-  function SerializeJson(const Ifc: TIfcPersistent): TJsonObject; forward;
+  function SerializeJson(const Ifc: TIfcPersistent;
+    const SerializingFileData: Boolean): TJsonObject; forward;
 
   { Serialize TVector2 to JSON array. }
   function SerializeJsonVector2(const Vector: TVector2): TJsonArray; overload;
@@ -1049,7 +1050,8 @@ var
   { For all elements on JsonChildArray create and read Pascal class,
     and add it to property PropInfo of Ifc,
     which should be a list descendant. }
-  function SerializeJsonList(const ListRaw: TObject): TJsonArray;
+  function SerializeJsonList(const ListRaw: TObject;
+    const SerializingFileData: Boolean): TJsonArray;
   var
     I: Integer;
     List: TIfcPersistentList;
@@ -1057,7 +1059,7 @@ var
     List := TIfcPersistentList(ListRaw);
     Result := TJsonArray.Create;
     for I := 0 to List.Count - 1 do
-      Result.Add(SerializeJson(List[I]));
+      Result.Add(SerializeJson(List[I], SerializingFileData));
   end;
 
   { Is given ListRaw a list, and it is not empty. }
@@ -1072,12 +1074,19 @@ var
       (List.Count <> 0);
   end;
 
+var
+  { Result of TIfcFile.CreateDataList. }
+  FileData: TIfcPersistentList;
+
   {$ifdef FPC}
     {$pop}
   {$endif}
 
-  { Serialize TIfcPersistent instance to JSON object. }
-  function SerializeJson(const Ifc: TIfcPersistent): TJsonObject;
+  { Serialize TIfcPersistent instance to JSON object.
+    @param(SerializingFileData When we iterate over data list
+      returned by TIfcFile.CreateDataList) }
+  function SerializeJson(const Ifc: TIfcPersistent;
+    const SerializingFileData: Boolean): TJsonObject;
   var
     PropInfos: TPropInfoList;
     PropInfo: PPropInfo;
@@ -1099,6 +1108,18 @@ var
     { Serialize TIfcPersistent instance to JSON object using Ifc.GlobalId. }
     RefsContains := Refs.Contains(Ifc);
     if RefsContains and (Ifc.GlobalId <> '') then
+    begin
+      Result.Add('ref', Ifc.GlobalId);
+      Exit;
+    end;
+
+    { All IFC objects must be listed (not as references)
+      on the "data" list. This make JSON read correctly by conversion scripts
+      in https://github.com/buildingsmart-community/ifcJSON .
+      This implies that we only write a reference to an object,
+      if it should be instead present on the "data" list. }
+    if (FileData.IndexOf(Ifc) <> -1) and
+       (not SerializingFileData) then
     begin
       Result.Add('ref', Ifc.GlobalId);
       Exit;
@@ -1186,13 +1207,13 @@ var
                   Result.Add(JsonKey, SerializeJsonVector4(TCastleVector4Persistent(IfcObjProperty)))
                 else
                 if IfcObjProperty is TIfcPersistent then
-                  Result.Add(JsonKey, SerializeJson(TIfcPersistent(IfcObjProperty)))
+                  Result.Add(JsonKey, SerializeJson(TIfcPersistent(IfcObjProperty), false))
                 else
                 if ClassNameOfList(IfcObjProperty.ClassName) then
                 begin
                   // don't save empty lists, just for shorter output
                   if NonEmptyList(IfcObjProperty) then
-                    Result.Add(JsonKey, SerializeJsonList(IfcObjProperty));
+                    Result.Add(JsonKey, SerializeJsonList(IfcObjProperty, false));
                 end else
                   WritelnWarning('IFC', 'IFC field "%s" has unsupported class "%s", ignoring', [
                     DebugPropName,
@@ -1212,10 +1233,21 @@ var
   end;
 
 begin
-  Refs := TIfcPersistentList.Create(false);
+  FileData := IfcFile.CreateDataList;
   try
-    Result := SerializeJson(IfcFile);
-  finally FreeAndNil(Refs) end;
+    Refs := TIfcPersistentList.Create(false);
+    try
+      Result := SerializeJson(IfcFile, false);
+
+      { Serialize IfcFile.CreateDataList result.
+        Note that we could also define "Data: TIfcPersistentList" at TIfcFile,
+        to have simpler load / save code, and in fact we had this in the past.
+        But then it was bad TIfcFile API: the Data should not be ever
+        manipulated except during loading / saving, normal IFC operations
+        should always work on TIfcFile.Project. }
+      Result.Add('data', SerializeJsonList(FileData, true));
+    finally FreeAndNil(Refs) end;
+  finally FreeAndNil(FileData) end;
 end;
 
 { convenience overloads that load/save from/to URL --------------------------- }
