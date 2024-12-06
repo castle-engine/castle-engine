@@ -3443,6 +3443,8 @@
     FName: TIfcLabel;
     FDescription: TIfcText;
     FRepresentations: TIfcRepresentationList;
+  protected
+    function WantsGlobalId: Boolean; override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -4088,8 +4090,7 @@ begin
   Context.RepresentationsInContext.Add(NewRepresentation);
 
   // link back from NewRepresentation -> (product) Representation
-  // TODO: uncomment, make sure save works:
-  //NewRepresentation.OfProductRepresentation.Add(Representation);
+  NewRepresentation.OfProductRepresentation.Add(Representation);
 end;
 
 procedure TIfcProduct.AddBoxRepresentation(
@@ -4263,6 +4264,11 @@ destructor TIfcProductRepresentation.Destroy;
 begin
   FreeAndNil(FRepresentations);
   inherited;
+end;
+
+function TIfcProductRepresentation.WantsGlobalId: Boolean;
+begin
+  Result := true;
 end;
 
 { TIfcProject -------------------------------------------------------------- }
