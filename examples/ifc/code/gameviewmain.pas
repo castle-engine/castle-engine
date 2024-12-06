@@ -28,7 +28,7 @@ type
   published
     { Components designed using CGE editor.
       These fields will be automatically initialized at Start. }
-    LabelFps, LabelWireframeEffect: TCastleLabel;
+    LabelFps, LabelWireframeEffect, LabelHierarchy: TCastleLabel;
     ButtonNew, ButtonLoad, ButtonSaveIfc, ButtonSaveNode,
       ButtonAddWall, ButtonModifyWall, ButtonChangeWireframeEffect: TCastleButton;
     IfcScene: TCastleScene;
@@ -49,6 +49,9 @@ type
       Use this after completely changing the IfcFile contents
       (like loading new file, or creating new file). }
     procedure NewIfcMapping(const NewIfcFile: TIfcFile);
+
+    { Update LabelHierarchy.Caption to debug state of IfcFile. }
+    procedure UpdateLabelHierarchy;
 
     procedure ClickNew(Sender: TObject);
     procedure ClickLoad(Sender: TObject);
@@ -127,6 +130,8 @@ begin
   IfcMapping.Load(IfcFile, 'castle-data:/');
 
   IfcScene.Load(IfcMapping.RootNode, true);
+
+  UpdateLabelHierarchy;
 end;
 
 procedure TViewMain.ClickNew(Sender: TObject);
@@ -311,6 +316,7 @@ begin
 
   IfcContainer.AddContainedElement(Wall);
   IfcMapping.Update(IfcFile);
+  UpdateLabelHierarchy;
 end;
 
 procedure TViewMain.ClickModifyWall(Sender: TObject);
@@ -326,6 +332,67 @@ begin
   else
     IfcScene.RenderOptions.WireframeEffect := Succ(IfcScene.RenderOptions.WireframeEffect);
   LabelWireframeEffect.Caption := WireframeEffectToStr(IfcScene.RenderOptions.WireframeEffect);
+end;
+
+procedure TViewMain.UpdateLabelHierarchy;
+const
+  Indent = '  ';
+var
+  SList: TStringList;
+
+  procedure ShowHierarchy(const Parent: TIfcObjectDefinition; const NowIndent: String);
+  var
+    ParentSpatial: TIfcSpatialElement;
+    RelAggregates: TIfcRelAggregates;
+    RelatedObject: TIfcObjectDefinition;
+    RelContained: TIfcRelContainedInSpatialStructure;
+    RelatedElement: TIfcProduct;
+  begin
+    SList.Add(NowIndent + Parent.ClassName + ' "' + Parent.Name + '"');
+    if Parent = IfcFile.Project.BestContainer then
+      SList.Add(NowIndent + Indent + '<font color="#0000aa">(^detected best container)</font>');
+
+    for RelAggregates in Parent.IsDecomposedBy do
+      for RelatedObject in RelAggregates.RelatedObjects do
+        ShowHierarchy(RelatedObject, NowIndent + Indent);
+
+    if Parent is TIfcSpatialElement then
+    begin
+      ParentSpatial := TIfcSpatialElement(Parent);
+      for RelContained in ParentSpatial.ContainsElements do
+        for RelatedElement in RelContained.RelatedElements do
+          ShowHierarchy(RelatedElement, NowIndent + Indent);
+    end;
+  end;
+
+var
+  RepresentationContext: TIfcRepresentationContext;
+begin
+  { Showing the IFC hierarchy, as seen by Castle Game Engine,
+    is a useful debug tool (both for CGE and for your IFC models).
+    We show various relations (like IsDecomposedBy, ContainsElements),
+    we show the representation contexts, we mark what was detected
+    as Project.ModelContext, Project.PlanContext, Project.BestContainer. }
+
+  SList := TStringList.Create;
+  try
+    SList.Add('<font color="#008800">Representation contexts:</font>');
+
+    for RepresentationContext in IfcFile.Project.RepresentationContexts do
+    begin
+      SList.Add(Indent + RepresentationContext.ClassName);
+      if RepresentationContext = IfcFile.Project.ModelContext then
+        SList.Add(Indent + Indent + '<font color="#0000aa">(^detected 3D ModelContext)</font>');
+      if RepresentationContext = IfcFile.Project.PlanContext then
+        SList.Add(Indent + Indent + '<font color="#0000aa">(^detected 2D PlanContext)</font>');
+    end;
+
+    SList.Add('');
+    SList.Add('<font color="#008800">Project Hierarchy:</font>');
+    ShowHierarchy(IfcFile.Project, Indent);
+
+    LabelHierarchy.Text.Assign(SList);
+  finally FreeAndNil(SList) end;
 end;
 
 end.

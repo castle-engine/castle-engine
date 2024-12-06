@@ -394,6 +394,57 @@
           ]
         }
       ]
+    },
+    {
+      "$$ClassName" : "TCastleRectangleControl",
+      "Border" : {
+        "$$ClassName" : "TBorder",
+        "AllSides" : 2.0000000000000000E+001
+      },
+      "ColorPersistent" : {
+        "$$ClassName" : "TCastleColorPersistent",
+        "Alpha" : 5.9607845544815063E-001
+      },
+      "HeightFraction" : 1.0000000000000000E+000,
+      "HorizontalAnchorParent" : "hpRight",
+      "HorizontalAnchorSelf" : "hpRight",
+      "Name" : "RectangleControl1",
+      "VerticalAnchorParent" : "vpMiddle",
+      "VerticalAnchorSelf" : "vpMiddle",
+      "Width" : 4.0000000000000000E+002,
+      "$Children" : [
+        {
+          "$$ClassName" : "TCastleScrollView",
+          "Border" : {
+            "$$ClassName" : "TBorder",
+            "AllSides" : 1.0000000000000000E+001
+          },
+          "FullSize" : true,
+          "Name" : "ScrollView1",
+          "ScrollArea" : {
+            "$$ClassName" : "TCastleScrollArea",
+            "$Children" : [
+              {
+                "$$ClassName" : "TCastleLabel",
+                "FontSize" : 1.5000000000000000E+001,
+                "Html" : true,
+                "Name" : "LabelHierarchy",
+                "Text" : [
+                  "LabelHierarchy"
+                ],
+                "VerticalAnchorParent" : "vpTop",
+                "VerticalAnchorSelf" : "vpTop"
+              }
+            ]
+          },
+          "ScrollbarFrame" : {
+            "$$ClassName" : "TCastleImagePersistent"
+          },
+          "ScrollbarSlider" : {
+            "$$ClassName" : "TCastleImagePersistent"
+          }
+        }
+      ]
     }
   ]
 }
