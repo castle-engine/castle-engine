@@ -1173,10 +1173,11 @@ var
         Ifc.ClassName,
         Ifc.GlobalId
       ]);
-    { Create GlobalId only for TIfcRoot, because IFC spec allows it only
-      on TIfcRoot. Our implementation allows it on any TIfcPersistent
-      as some IFC files actually have it. }
-    if (Ifc.GlobalId = '') and (Ifc is TIfcRoot) then
+    { Create GlobalId only when WantsGlobalId.
+      IFC spec allows it only on TIfcRoot, though IFC JSON spec encourages
+      "broader use" and in practice it is used, and really necessary,
+      on other classes too. }
+    if (Ifc.GlobalId = '') and Ifc.WantsGlobalId then
       Ifc.GlobalId := RandomGuidIfc;
     { Update Refs for any object, not only TIfcRoot.
       So Ifc.GlobalId may be '' here. }

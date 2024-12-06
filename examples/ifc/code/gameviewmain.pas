@@ -134,11 +134,13 @@ begin
 
   IfcFile := TIfcFile.Create(nil);
 
-  // we must set IfcFile.Project to have valid IFC
+  { Obligatory initialization of new IFC files structure.
+    We must set IfcFile.Project,
+    each project must have units,
+    and each project must have a 3D model context. }
   IfcFile.Project := TIfcProject.Create(IfcFile);
-
-  // valid IFC project requires units
   IfcFile.Project.SetupUnits;
+  IfcFile.Project.SetupModelContext;
 
   { We need IfcContainer inside the project.
     Reason: We cannot add products directly to IfcProject, we need
@@ -224,16 +226,17 @@ begin
   SizeX := RandomFloatRange(1, 4);
   SizeY := RandomFloatRange(1, 4);
   WallHeight := RandomFloatRange(1.5, 2.5); // Z is "up", by convention, in IFC
-  Wall.AddBoxRepresentation(Box3D(
-    Vector3(-SizeX / 2, -SizeY / 2, 0),
-    Vector3( SizeX / 2,  SizeY / 2, WallHeight)
-  ));
+  Wall.AddBoxRepresentation(IfcFile.Project.ModelContext,
+    Box3D(
+      Vector3(-SizeX / 2, -SizeY / 2, 0),
+      Vector3( SizeX / 2,  SizeY / 2, WallHeight)
+    ));
 
   Wall.SetRelativePlacement(Vector3(
-    RandomFloatRange(-5, 5),
-    RandomFloatRange(-5, 5),
-    0
-  ));
+      RandomFloatRange(-5, 5),
+      RandomFloatRange(-5, 5),
+      0
+    ));
 
   IfcContainer.AddContainedElement(Wall);
   IfcMapping.Update(IfcFile);

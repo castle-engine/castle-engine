@@ -40,6 +40,16 @@
     UnresolvedRef: String;
 
     FGlobalId: String; // actually TGUID;
+  protected
+    { If @true, instances of this class will have @link(GlobalId)
+      auto-assigned at saving, and they will be saved as part of the "data"
+      list in IFC JSON files.
+
+      Strictly following the spec, this should be only defined for TIfcRoot,
+      because only IfcRoot has GlobalId. In reality, we need GlobalId at
+      TIfcPersistent to load some files,
+      and we sometimes need WantsGlobalId = @true to save some files. }
+    function WantsGlobalId: Boolean; virtual;
   published
     { Globally unique identifier for the object instance.
 
@@ -49,7 +59,12 @@
 
       Note: IFC 4.3 specification puts this only at IfcRoot, not at every IFC class.
       But testcase https://github.com/buildingsmart-community/Community-Sample-Test-Files/blob/main/IFC%204.0.2.1%20(IFC%204)/ISO%20Spec%20archive/wall-with-opening-and-window.json
-      (from IFC 4.0) shows this can be present at any IFC class.
+      (from IFC 4.0) shows this can be present at any IFC class,
+      in particular TIfcGeometricRepresentationContext.
+
+      In fact, TIfcGeometricRepresentationContext @italic(needs) to have GlobalId
+      to be successfully saved (avoid recursively trying to serialize it)
+      in some cases. We indicate such classes with @link(WantsGlobalId).
 
       IFC JSON documentation says this, which seems to (unfortunately it is not
       unambiguous enough...) allow this at any IFC class:
@@ -166,6 +181,11 @@ function RandomGuidIfc: String; forward;
 
 { TIfcPersistent ------------------------------------------------------------- }
 
+function TIfcPersistent.WantsGlobalId: Boolean;
+begin
+  Result := false;
+end;
+
 { TIfcPersistentList --------------------------------------------------------- }
 
 function TIfcPersistentClassList.FindIfcType(const IfcType: String): TIfcPersistentClass;
@@ -244,10 +264,10 @@ var
     Visited.Add(Ifc);
 
     // Add Ifc to Result, if it's not there yet
-    if Ifc is TIfcRoot then
+    if Ifc.WantsGlobalId then
     begin
-      { All objects on he need GlobalId, as we will use it to reference them
-        from other places during JSON saving. }
+      { All objects on the "data" list need GlobalId, as we will use it
+        to reference them from other places during JSON saving. }
       if Ifc.GlobalId = '' then
         Ifc.GlobalId := RandomGuidIfc;
       Result.Add(Ifc);

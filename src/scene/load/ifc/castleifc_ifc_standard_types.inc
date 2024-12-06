@@ -179,6 +179,7 @@
   TIfcMaterialDefinition = class;
   TIfcMaterialPropertiesList = class;
   TIfcMaterialLayerSet = class;
+  TIfcGeometricRepresentationContext = class;
   TIfcGeometricRepresentationSubContextList = class;
 
   { Float type used throughout IFC.
@@ -355,6 +356,9 @@
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
+
+    { Create instance with given direction ratios. }
+    constructor CreateVector(const AOwner: TComponent; const AVector: TVector3);
 
     { The number of dimensions specified in the IFC file, 2 or 3.
       Regardless of it, DirectionRatios always has the Z value defined:
@@ -1162,6 +1166,8 @@
     FOwnerHistory: TIfcOwnerHistory;
     FName: TIfcLabel;
     FDescription: TIfcText;
+  protected
+    function WantsGlobalId: Boolean; override;
   published
     { Information about the current ownership of that object. }
     property OwnerHistory: TIfcOwnerHistory read FOwnerHistory write FOwnerHistory;
@@ -1698,6 +1704,9 @@
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
+
+    { Create a new instance with given coordinates. }
+    constructor CreateVector(const AOwner: TComponent; const AVector: TVector3);
   published
     { Actual 3D point value. }
     property Coordinates: TCastleVector3PersistentSimple read FCoordinates;
@@ -1837,8 +1846,16 @@
       The indexes are 0-based and can be separated by -1 to delimit polygons.
 
       See examples/ifc/ for an example usage of this routine to
-      define walls and floors. }
-    procedure AddMeshRepresentation(const Coordinates: array of TVector3;
+      define walls and floors.
+
+      @param(Context Geometric representation context instance,
+        usually @link(TIfcProject.ModelContext) (for 3D models) or
+        @link(TIfcProject.PlanContext) (for 2D floor plans).
+      )
+    }
+    procedure AddMeshRepresentation(
+      const Context: TIfcGeometricRepresentationContext;
+      const Coordinates: array of TVector3;
       const Indexes: array of Integer);
 
     { Add box representation to the given product.
@@ -1846,7 +1863,9 @@
       Right now, the Box is transformed into a proper mesh representation,
       so this is just equivalent to calling AddMeshRepresentation with
       the 8 box corners and proper indexes to define 6 box sides. }
-    procedure AddBoxRepresentation(const Box: TBox3D);
+    procedure AddBoxRepresentation(
+      const Context: TIfcGeometricRepresentationContext;
+      const Box: TBox3D);
 
     { Move this product by given 3D translation.
       This sets @link(ObjectPlacement) to a new instance. }
@@ -3032,7 +3051,15 @@
     FTrueNorth: TIfcDirection;
     FHasSubContexts: TIfcGeometricRepresentationSubContextList;
     // TODO // FHasCoordinateOperation: TIfcCoordinateOperation;
+  protected
+    function WantsGlobalId: Boolean; override;
   public
+    const
+      { The following values for @link(ContextType) are limited
+        to these 3 constants for TIfcGeometricRepresentationContext. }
+      TypeModel = 'Model';
+      TypePlan = 'Plan';
+      TypeNotDefined = 'NotDefined';
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
   published
@@ -3321,6 +3348,30 @@
       BonsaiBIM expects it.
       See also valid notes on https://stackoverflow.com/questions/51665572/required-data-for-ifc . }
     procedure SetupUnits;
+
+    { Find a 3D TIfcGeometricRepresentationContext called "Model" in the project.
+      This should be used to add all new 3D models to the project.
+
+      Returns @nil if not found, which can happen only temporarily when the IFC
+      file is constructed -- eventually, all valid IFC files should have
+      a mandatory 3D context, see
+      https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcGeometricRepresentationContext.htm .
+
+      Call @link(SetupModelContext) to make sure this is non-nil. }
+    function ModelContext: TIfcGeometricRepresentationContext;
+
+    { Find a 2D TIfcGeometricRepresentationContext called "Plan" in the project.
+      This should be used to add new 2D plans to the project.
+
+      Returns @nil if not found. This is normal, 2D (plan) context is optional
+      in IFC. }
+    function PlanContext: TIfcGeometricRepresentationContext;
+
+    { Add a 3D geometric representation context named "Model" to the project,
+      which should be used for models displayed in 3D view.
+      Does not add it if the project already has a suitable 3D context with this name.
+      Makes @link(ModelContext) non-nil. }
+    procedure SetupModelContext;
   end;
 
   { How to display the product. }
@@ -3378,6 +3429,8 @@
 
     Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcShapeRepresentation.htm }
   TIfcShapeRepresentation = class(TIfcShapeModel)
+  protected
+    function WantsGlobalId: Boolean; override;
     // TODO
   end;
 
@@ -3894,6 +3947,13 @@ function IfcClasses: TIfcPersistentClassList;
 
 {$ifdef read_implementation}
 
+{ TIfcRoot --------------------------------------------------------------- }
+
+function TIfcRoot.WantsGlobalId: Boolean;
+begin
+  Result := true;
+end;
+
 { TIfcStyledItem ------------------------------------------------------------- }
 
 constructor TIfcStyledItem.Create(AOwner: TComponent);
@@ -3957,7 +4017,9 @@ end;
 
 { TIfcProduct --------------------------------------------------------------- }
 
-procedure TIfcProduct.AddMeshRepresentation(const Coordinates: array of TVector3;
+procedure TIfcProduct.AddMeshRepresentation(
+  const Context: TIfcGeometricRepresentationContext;
+  const Coordinates: array of TVector3;
   const Indexes: array of Integer);
 var
   PolygonalFaceSet: TIfcPolygonalFaceSet;
@@ -3966,6 +4028,8 @@ var
   FaceBegin, FaceEnd, I: Integer;
   Face: TIfcIndexedPolygonalFace;
 begin
+  Assert(Context <> nil);
+
   IfcCoordinates := TIfcCartesianPointList3D.Create(Owner);
   IfcCoordinates.CoordList.AddRange(Coordinates);
 
@@ -4010,18 +4074,27 @@ begin
   end;
 
   NewRepresentation := TIfcShapeRepresentation.Create(Owner);
+  NewRepresentation.RepresentationIdentifier := 'Body';
+  { Seems like RepresentationType=Tesselation best matches mesh data,
+    https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcShapeRepresentation.htm . }
+  NewRepresentation.RepresentationType := 'Tessellation';
+  NewRepresentation.ContextOfItems := Context;
   NewRepresentation.Items.Add(PolygonalFaceSet);
 
   if Representation = nil then
     Representation := TIfcProductDefinitionShape.Create(Owner);
   Representation.Representations.Add(NewRepresentation);
 
+  Context.RepresentationsInContext.Add(NewRepresentation);
+
   // link back from NewRepresentation -> (product) Representation
   // TODO: uncomment, make sure save works:
   //NewRepresentation.OfProductRepresentation.Add(Representation);
 end;
 
-procedure TIfcProduct.AddBoxRepresentation(const Box: TBox3D);
+procedure TIfcProduct.AddBoxRepresentation(
+  const Context: TIfcGeometricRepresentationContext;
+  const Box: TBox3D);
 var
   Coordinates: array [0..7] of TVector3;
 begin
@@ -4036,7 +4109,7 @@ begin
   Coordinates[6] := Box.Data[1]; Coordinates[6].Data[0] := Box.Data[0][0];
   Coordinates[7] := Box.Data[1];
 
-  AddMeshRepresentation(Coordinates, [
+  AddMeshRepresentation(Context, Coordinates, [
     // Quads that form the box
     { TODO: This is inverse order than TOcclusionCullingUtilsRenderer.GLContextOpen,
       and it seems necessary to be CCW outside.
@@ -4171,6 +4244,13 @@ begin
   inherited;
 end;
 
+{ TIfcShapeRepresentation --------------------------------------------------- }
+
+function TIfcShapeRepresentation.WantsGlobalId: Boolean;
+begin
+  Result := true;
+end;
+
 { TIfcProductRepresentation ------------------------------------------------- }
 
 constructor TIfcProductRepresentation.Create(AOwner: TComponent);
@@ -4237,6 +4317,58 @@ begin
   UnitAssignment.Units.Add(IfcUnit);
 
   UnitsInContext := UnitAssignment;
+end;
+
+function TIfcProject.ModelContext: TIfcGeometricRepresentationContext;
+var
+  C: TIfcRepresentationContext;
+begin
+  for C in RepresentationContexts do
+  begin
+    if (C is TIfcGeometricRepresentationContext) and
+       (C.ContextType = TIfcGeometricRepresentationContext.TypeModel) and
+       (TIfcGeometricRepresentationContext(C).CoordinateSpaceDimension = 3) then
+      Exit(TIfcGeometricRepresentationContext(C));
+  end;
+  Result := nil;
+end;
+
+function TIfcProject.PlanContext: TIfcGeometricRepresentationContext;
+var
+  C: TIfcRepresentationContext;
+begin
+  for C in RepresentationContexts do
+  begin
+    if (C is TIfcGeometricRepresentationContext) and
+       (C.ContextType = TIfcGeometricRepresentationContext.TypePlan) and
+       (TIfcGeometricRepresentationContext(C).CoordinateSpaceDimension = 2) then
+      Exit(TIfcGeometricRepresentationContext(C));
+  end;
+  Result := nil;
+end;
+
+procedure TIfcProject.SetupModelContext;
+var
+  NewContext: TIfcGeometricRepresentationContext;
+  WorldCoordinateSystem: TIfcAxis2Placement3D;
+begin
+  if ModelContext <> nil then
+    Exit; // nothing needs to be done
+
+  WorldCoordinateSystem := TIfcAxis2Placement3D.Create(Owner);
+  WorldCoordinateSystem.Location := TIfcCartesianPoint.CreateVector(Owner, TVector3.Zero);
+  WorldCoordinateSystem.Axis := TIfcDirection.CreateVector(Owner, TVector3.One[2]);
+  WorldCoordinateSystem.RefDirection := TIfcDirection.CreateVector(Owner, TVector3.One[0]);
+
+  NewContext := TIfcGeometricRepresentationContext.Create(Owner);
+  NewContext.ContextType := TIfcGeometricRepresentationContext.TypeModel;
+  NewContext.CoordinateSpaceDimension := 3;
+  NewContext.Precision := SingleEpsilon;
+  NewContext.WorldCoordinateSystem := WorldCoordinateSystem;
+
+  RepresentationContexts.Add(NewContext);
+
+  Assert(ModelContext <> nil);
 end;
 
 { TIfcRepresentation -------------------------------------------------------- }
@@ -4351,6 +4483,12 @@ begin
   FCoordinates := TCastleVector3PersistentSimple.Create;
 end;
 
+constructor TIfcCartesianPoint.CreateVector(const AOwner: TComponent; const AVector: TVector3);
+begin
+  Create(AOwner); // calling virtual constructor, so may call descendant
+  Coordinates.Value := AVector;
+end;
+
 destructor TIfcCartesianPoint.Destroy;
 begin
   FreeAndNil(FCoordinates);
@@ -4363,6 +4501,12 @@ constructor TIfcDirection.Create(AOwner: TComponent);
 begin
   inherited;
   FDirectionRatios := TCastleVector3PersistentSimple.Create;
+end;
+
+constructor TIfcDirection.CreateVector(const AOwner: TComponent; const AVector: TVector3);
+begin
+  Create(AOwner); // calling virtual constructor, so may call descendant
+  DirectionRatios.Value := AVector;
 end;
 
 destructor TIfcDirection.Destroy;
@@ -4719,6 +4863,11 @@ destructor TIfcGeometricRepresentationContext.Destroy;
 begin
   FreeAndNil(FHasSubContexts);
   inherited;
+end;
+
+function TIfcGeometricRepresentationContext.WantsGlobalId: Boolean;
+begin
+  Result := true;
 end;
 
 { TIfcUnitAssignment --------------------------------------------------------- }
