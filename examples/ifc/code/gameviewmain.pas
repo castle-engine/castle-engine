@@ -69,7 +69,7 @@ var
 implementation
 
 uses SysUtils,
-  CastleUtils, CastleUriUtils, CastleWindow, CastleBoxes, X3DLoad;
+  CastleUtils, CastleUriUtils, CastleWindow, CastleBoxes, X3DLoad, CastleLog;
 
 { TViewMain ----------------------------------------------------------------- }
 
@@ -206,12 +206,52 @@ const
 procedure TViewMain.ClickLoad(Sender: TObject);
 var
   Url: string;
+  IfcSite: TIfcSite;
+  IfcBuilding: TIfcBuilding;
+  IfcBuildingStorey: TIfcBuildingStorey;
 begin
   Url := 'castle-data:/';
   if Application.MainWindow.FileDialog('Load IFC file', Url, true, IfcFileFilter) then
   begin
     FreeAndNil(IfcFile);
     IfcFile := IfcJsonLoad(Url);
+
+    // initialize IfcContainer, needed as parent for new walls
+    IfcContainer := IfcFile.Project.BestContainer;
+    if IfcContainer = nil then
+    begin
+      WritelnWarning('IFC model "%s" is missing a spatial root element (IfcSite, IfcBuilding, IfcBuildingStorey), adding a dummy one', [
+        Url
+      ]);
+
+      IfcSite := TIfcSite.Create(IfcFile);
+      IfcSite.Name := 'My Site';
+      IfcFile.Project.AddIsDecomposedBy(IfcSite);
+
+      IfcBuilding := TIfcBuilding.Create(IfcFile);
+      IfcBuilding.Name := 'My Building';
+      IfcSite.AddIsDecomposedBy(IfcBuilding);
+
+      IfcBuildingStorey := TIfcBuildingStorey.Create(IfcFile);
+      IfcBuildingStorey.Name := 'My Building Storey';
+      IfcBuilding.AddIsDecomposedBy(IfcBuildingStorey);
+
+      IfcContainer := IfcBuildingStorey;
+    end;
+
+    WritelnLog('IFC best container in "%s" guessed as "%s"', [
+      Url,
+      IfcContainer.ClassName
+    ]);
+
+    // make sure we have ModelContext to add new walls
+    if IfcFile.Project.ModelContext = nil then
+    begin
+      WritelnWarning('IFC model "%s" is missing a "Model" context in project.representationContexts, this can happen for IFC exported from BonsaiBIM', [
+        Url
+      ]);
+      IfcFile.Project.SetupModelContext;
+    end;
     NewIfcMapping(IfcFile);
   end;
 end;

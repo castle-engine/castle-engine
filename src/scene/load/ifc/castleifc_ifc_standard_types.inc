@@ -3372,6 +3372,14 @@
       Does not add it if the project already has a suitable 3D context with this name.
       Makes @link(ModelContext) non-nil. }
     procedure SetupModelContext;
+
+    { Find TIfcSpatialElement where it seems most suitable to insert new elements.
+      This is just a guess, a proper IFC editor should allow user to choose it,
+      as there may be multiple valid choices (e.g. TIfcSite, TIfcBuilding,
+      TIfcBuldingStorey).
+
+      Returns @nil if we cannot determine it. }
+    function BestContainer: TIfcSpatialElement;
   end;
 
   { How to display the product. }
@@ -4375,6 +4383,32 @@ begin
   RepresentationContexts.Add(NewContext);
 
   Assert(ModelContext <> nil);
+end;
+
+function TIfcProject.BestContainer: TIfcSpatialElement;
+
+  function SpatialElementInside(const Parent: TIfcObjectDefinition): TIfcSpatialElement;
+  var
+    RelAggregates: TIfcRelAggregates;
+    RelatedObject: TIfcObjectDefinition;
+  begin
+    for RelAggregates in Parent.IsDecomposedBy do
+      for RelatedObject in RelAggregates.RelatedObjects do
+        if RelatedObject is TIfcSpatialElement then
+          Exit(TIfcSpatialElement(RelatedObject));
+    Result := nil;
+  end;
+
+var
+  NextResult: TIfcSpatialElement;
+begin
+  Result := nil;
+  NextResult := SpatialElementInside(Self);
+  while NextResult <> nil do
+  begin
+    Result := NextResult;
+    NextResult := SpatialElementInside(Result);
+  end;
 end;
 
 { TIfcRepresentation -------------------------------------------------------- }
