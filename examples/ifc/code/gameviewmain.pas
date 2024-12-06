@@ -89,11 +89,6 @@ begin
   ButtonSaveNode.OnClick := {$ifdef FPC}@{$endif} ClickSaveNode;
   ButtonAddWall.OnClick := {$ifdef FPC}@{$endif} ClickAddWall;
   ButtonModifyWall.OnClick := {$ifdef FPC}@{$endif} ClickModifyWall;
-
-  {$ifdef QUIET_AUTOTEST}
-  ClickAddWall(nil);
-  IfcJsonSave(IfcFile, '/home/michalis/Desktop/autotest.ifcjson');
-  {$endif}
 end;
 
 procedure TViewMain.Stop;
