@@ -49,7 +49,14 @@
 
       Note: IFC 4.3 specification puts this only at IfcRoot, not at every IFC class.
       But testcase https://github.com/buildingsmart-community/Community-Sample-Test-Files/blob/main/IFC%204.0.2.1%20(IFC%204)/ISO%20Spec%20archive/wall-with-opening-and-window.json
-      (from IFC 4.0) shows this can be present at any IFC class. }
+      (from IFC 4.0) shows this can be present at any IFC class.
+
+      IFC JSON documentation says this, which seems to (unfortunately it is not
+      unambiguous enough...) allow this at any IFC class:
+      @italic("Whereas the globalId attribute is only available to those elements
+      that are descendent of the IfcRoot entity in the EXPRESS schema,
+      we encourage a broader use of this globalId,
+      to enable referencing between objects in a JSON file when useful."). }
     property GlobalId: String read FGlobalId write FGlobalId;
   end;
   {$M-}
