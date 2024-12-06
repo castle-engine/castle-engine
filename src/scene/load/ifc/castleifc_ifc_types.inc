@@ -157,6 +157,12 @@ constructor TIfcFile.Create(AOwner: TComponent);
 begin
   inherited;
   FData := TIfcPersistentList.Create(false);
+
+  // reasonable defaults
+  EncodingType := 'IFC.JSON'; // we can only save IFC JSON now
+  Version := '0.0.1';
+  SchemaIdentifier := 'IFC4';
+  OriginatingSystem := 'Castle Game Engine ' + CastleEngineVersion;
 end;
 
 destructor TIfcFile.Destroy;

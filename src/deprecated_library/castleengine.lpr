@@ -427,9 +427,8 @@ begin
   try
     if not CGE_VerifyScene('CGE_AddViewpointFromCurrentView') then exit;
 
-    if Viewport.Navigation <> nil then
-      MainScene.AddViewpointFromNavigation(
-        Viewport.Navigation, StrPas(PChar(szName)));
+    MainScene.AddViewpointFromNavigation(
+      Viewport.RequiredNavigation, StrPas(PChar(szName)));
   except
     on E: TObject do WritelnWarning('Window', 'CGE_AddViewpointFromCurrentView: ' + ExceptMessage(E));
   end;
@@ -530,7 +529,7 @@ begin
     end;
 
     InputShortcut := nil;
-    Nav := Viewport.Navigation;
+    Nav := Viewport.RequiredNavigation;
     if Nav is TCastleWalkNavigation then
     begin
       WalkNavigation := TCastleWalkNavigation(Nav);
@@ -654,12 +653,29 @@ begin
   end;
 end;
 
-procedure CGE_SetUserInterface(bAutomaticTouchInterface: cBool); cdecl;
+procedure CGE_SetAutoTouchInterface(bAutomaticTouchInterface: cBool); cdecl;
 begin
   try
     TouchNavigation.AutoTouchInterface := bAutomaticTouchInterface;
   except
-    on E: TObject do WritelnWarning('Window', 'CGE_SetUserInterface: ' + ExceptMessage(E));
+    on E: TObject do WritelnWarning('Window', 'CGE_SetAutoTouchInterface: ' + ExceptMessage(E));
+  end;
+end;
+
+procedure CGE_SetWalkNavigationMouseDragMode(eMode: cInt32); cdecl;
+var
+  NewMode: TMouseDragMode;
+begin
+  try
+    case eMode of
+      0: NewMode := mdWalkRotate;
+      1: NewMode := mdRotate;
+      2: NewMode := mdNone;
+      else raise EInternalError.CreateFmt('Invalid MouseDragMode mode %d', [eMode]);
+    end;
+    Viewport.InternalWalkNavigation.MouseDragMode := NewMode;
+  except
+    on E: TObject do WritelnWarning('Window', 'CGE_SetWalkNavigationMouseDragMode: ' + ExceptMessage(E));
   end;
 end;
 
@@ -680,7 +696,7 @@ function GetWalkNavigation: TCastleWalkNavigation;
 var
   Nav: TCastleNavigation;
 begin
-  Nav := Viewport.Navigation;
+  Nav := Viewport.RequiredNavigation;
   if Nav is TCastleWalkNavigation then
     Result := TCastleWalkNavigation(Nav)
   else
@@ -690,6 +706,7 @@ end;
 procedure CGE_SetVariableInt(eVar: cInt32; nValue: cInt32); cdecl;
 var
   WalkNavigation: TCastleWalkNavigation;
+  NewUIScaling: TUIScaling;
 begin
   if Window = nil then exit;
   try
@@ -729,7 +746,7 @@ begin
            end;
          end;
 
-      5: begin    // ecgevarWalkTouchCtl
+      5: begin    // ecgevarAutoWalkTouchInterface
            TouchNavigation.AutoWalkTouchInterface := cgehelper_TouchInterfaceFromConst(nValue);
          end;
 
@@ -755,8 +772,22 @@ begin
             if MainScene <> nil then
                MainScene.RenderOptions.PhongShading := (nValue > 0);
           end;
+
       11: begin    // ecgevarPreventInfiniteFallingDown
             Viewport.PreventInfiniteFallingDown := (nValue > 0);
+          end;
+
+      12: begin    // ecgevarUIScaling
+            case nValue of
+              0: NewUIScaling := usNone;
+              1: NewUIScaling := usEncloseReferenceSize;
+              2: NewUIScaling := usEncloseReferenceSizeAutoOrientation;
+              3: NewUIScaling := usFitReferenceSize;
+              4: NewUIScaling := usExplicitScale;
+              5: NewUIScaling := usDpiScale;
+              else raise EInternalError.CreateFmt('Invalid UIScaling mode %d', [nValue]);
+            end;
+            Window.Container.UIScaling := NewUIScaling;
           end;
     end;
   except
@@ -816,7 +847,7 @@ begin
              Result := 0;
          end;
 
-      5: begin    // ecgevarWalkTouchCtl
+      5: begin    // ecgevarAutoWalkTouchInterface
            Result := cgehelper_ConstFromTouchInterface(TouchNavigation.AutoWalkTouchInterface);
          end;
 
@@ -849,10 +880,28 @@ begin
          end;
 
       10: begin    // ecgevarPhongShading
-        if (MainScene <> nil) and MainScene.RenderOptions.PhongShading then
-          Result := 1 else
-          Result := 0;
-      end;
+            if (MainScene <> nil) and MainScene.RenderOptions.PhongShading then
+              Result := 1 else
+              Result := 0;
+          end;
+
+      11: begin    // ecgevarPreventInfiniteFallingDown
+            if Viewport.PreventInfiniteFallingDown then
+              Result := 1 else
+              Result := 0;
+          end;
+
+      12: begin    // ecgevarUIScaling
+            case Window.Container.UIScaling of
+              usNone:                 Result := 0;
+              usEncloseReferenceSize: Result := 1;
+              usEncloseReferenceSizeAutoOrientation: Result := 2;
+              usFitReferenceSize:     Result := 3;
+              usExplicitScale:        Result := 4;
+              usDpiScale:             Result := 5;
+              else Result := 0;
+            end;
+          end;
 
       else Result := -1; // unsupported variable
     end;
@@ -986,7 +1035,8 @@ exports
   CGE_MoveViewToCoords,
   CGE_SaveScreenshotToFile,
   CGE_SetTouchInterface,
-  CGE_SetUserInterface,
+  CGE_SetAutoTouchInterface,
+  CGE_SetWalkNavigationMouseDragMode,
   CGE_IncreaseSceneTime,
   CGE_SetVariableInt,
   CGE_GetVariableInt,
