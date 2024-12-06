@@ -393,6 +393,7 @@ var
     I, Index: Integer;
   begin
     Coord := IndexedLineSet.Coord as TCoordinateNode;
+    Assert(Coord <> nil); // these X3D nodes are build by us, so we know they have Coord
     for I := 0 to IndexedLineSet.FdCoordIndex.Count - 1 do
     begin
       Index := IndexedLineSet.FdCoordIndex.Items[I];
@@ -400,7 +401,10 @@ var
       begin
         WritelnWarning('IFC', 'TODO: Unsupported IfcIndexedPolyCurve for extrusion cross section (we need to split into multiple X3D Extrusions to handle disjoint sections)');
       end else
+      begin
+        Assert(Index < Coord.FdPoint.Count);
         CrossSection.Add(Coord.FdPoint.Items[Index].XY);
+      end;
     end;
   end;
 
@@ -490,6 +494,26 @@ begin
 end;
 
 function TIfcIndexedPolyCurve.BuildNode(const Mapping: TCastleIfcMapping): TAbstractChildNode;
+
+  { Add integers for NewIndexes to Indexes, decrementing all values
+    on NewIndexes by 1.
+    Useful as IFC indices are 1-based, X3D is 0-based.
+    So instead of
+
+      IndexedLineSet.FdCoordIndex.Items.AddRange(LineIndex.Value);
+
+    you must do
+
+      AddRangeDecrement(IndexedLineSet.FdCoordIndex.Items, LineIndex.Value);
+  }
+  procedure AddRangeDecrement(const Indexes: TInt32List; const NewIndexes: TIntegerList);
+  var
+    I: Integer;
+  begin
+    for I := 0 to NewIndexes.Count - 1 do
+      Indexes.Add(NewIndexes[I] - 1);
+  end;
+
 var
   Shape: TShapeNode;
   IndexedLineSet: TIndexedLineSetNode;
@@ -530,13 +554,13 @@ begin
       if Segment is TIfcLineIndex then
       begin
         LineIndex := TIfcLineIndex(Segment);
-        IndexedLineSet.FdCoordIndex.Items.AddRange(LineIndex.Value);
+        AddRangeDecrement(IndexedLineSet.FdCoordIndex.Items, LineIndex.Value);
         IndexedLineSet.FdCoordIndex.Items.Add(-1);
       end else
       if Segment is TIfcArcIndex then
       begin
         ArcIndex := TIfcArcIndex(Segment);
-        IndexedLineSet.FdCoordIndex.Items.AddRange(ArcIndex.Value);
+        AddRangeDecrement(IndexedLineSet.FdCoordIndex.Items, ArcIndex.Value);
         IndexedLineSet.FdCoordIndex.Items.Add(-1);
       end else
         WritelnWarning('IFC', 'Unsupported Segment class: ' + Segment.ClassName);
