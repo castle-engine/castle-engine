@@ -40,7 +40,7 @@ procedure GLContextOpen;
 	begin
 		Result := '';
 		for I := 0 to A.Length - 1 do
-      // TODO: TJSArray._GetStrings error, should Exit when result is string, submit
+      // TODO: TJSArray._GetStrings is not OK, see https://gitlab.com/freepascal.org/fpc/source/-/merge_requests/893
 			// Result += A.Strings[I] + ', ';
       Result += A.Elements[I].AsString + ', ';
 	end;
