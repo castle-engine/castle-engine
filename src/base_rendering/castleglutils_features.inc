@@ -584,7 +584,7 @@ begin
   {$endif}
 
   {$ifdef WASI}
-  TestJobWeb;
+  RunWebGLAnimation;
   {$endif}
 
   if not Assigned(glGetString) then

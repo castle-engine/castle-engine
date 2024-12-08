@@ -14,7 +14,7 @@ uses SysUtils, Job.JS;
 {$ENDIF FPC_DOTTEDUNITS}
 
 {
-  Automatically generated file by TWebIDLToPasWasmJob on 2024-12-08 01:30:31
+  Automatically generated file by TWebIDLToPasWasmJob on 2024-12-08 01:44:19
   
   Used command-line options: 
   --input=castleinternaljobweb.webidl
