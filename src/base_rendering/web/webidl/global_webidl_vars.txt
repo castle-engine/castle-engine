@@ -1,0 +1,2 @@
+JSDocument=Document,document
+JSWindow=Window,window
