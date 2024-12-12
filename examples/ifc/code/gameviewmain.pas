@@ -36,8 +36,7 @@ type
     IfcFile: TIfcFile;
     { New products have to be added to this container.
       You cannot just add them to IfcFile.Project,
-      IFC specification constaints what can be the top-level spatial element.
-      TODO: initilalize this for new files. }
+      IFC specification constaints what can be the top-level spatial element. }
     IfcContainer: TIfcSpatialElement;
     IfcMapping: TCastleIfcMapping;
 
