@@ -181,6 +181,7 @@
   TIfcMaterialLayerSet = class;
   TIfcGeometricRepresentationContext = class;
   TIfcGeometricRepresentationSubContextList = class;
+  TIfcProduct = class;
 
   { Float type used throughout IFC.
 
@@ -300,8 +301,22 @@
     FStyledByItem: TIfcStyledItem;
   public
     { Build a node to display this using Castle Game Engine.
-      Does nothing (adds nothing to Parent) if not possible / not implemented. }
-    function BuildNode(const Mapping: TCastleIfcMapping): TAbstractChildNode; virtual;
+      Returns @nil if not possible / not implemented.
+
+      @param(ParentProduct Parent TIfcProduct, to be used with
+        TCastleIfcMapping.AssociateProductShape call.
+
+        It can be @nil (and TCastleIfcMapping.AssociateProductShape
+        is already prepared to handle it too) if not particular TIfcProduct
+        is parent of this, which (right now) only happens for some internal
+        usage in UpdateCrossSection for throw-away shape instances.
+      )
+
+      @param(Appearance Appearance that should be used for all shapes created
+        here.)
+    }
+    function BuildNode(const Mapping: TCastleIfcMapping;
+      const ParentProduct: TIfcProduct; const Appearance: TAppearanceNode): TAbstractChildNode; virtual;
   published
     { Assignment of the representation item to a single or multiple layer(s).
       @nil if none. }
@@ -315,7 +330,8 @@
   end;
   TIfcRepresentationItemList = class({$ifdef FPC}specialize{$endif} TObjectList<TIfcRepresentationItem>)
   public
-    function BuildNode(const Mapping: TCastleIfcMapping): TAbstractChildNode;
+    function BuildNode(const Mapping: TCastleIfcMapping;
+      const ParentProduct: TIfcProduct; const Appearance: TAppearanceNode): TAbstractChildNode;
   end;
 
   { Style information for products.
@@ -520,7 +536,8 @@
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    function BuildNode(const Mapping: TCastleIfcMapping): TAbstractChildNode; override;
+    function BuildNode(const Mapping: TCastleIfcMapping;
+      const ParentProduct: TIfcProduct; const Appearance: TAppearanceNode): TAbstractChildNode; override;
   published
     { Indication whether the face set is a closed shell (TRUE)
       or an open shell (FALSE).
@@ -570,7 +587,8 @@
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    function BuildNode(const Mapping: TCastleIfcMapping): TAbstractChildNode; override;
+    function BuildNode(const Mapping: TCastleIfcMapping;
+      const ParentProduct: TIfcProduct; const Appearance: TAppearanceNode): TAbstractChildNode; override;
     procedure UpdateCrossSection(const Extrusion: TExtrusionNode); override;
   published
     { Points defining the polyline. }
@@ -622,7 +640,8 @@
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    function BuildNode(const Mapping: TCastleIfcMapping): TAbstractChildNode; override;
+    function BuildNode(const Mapping: TCastleIfcMapping;
+      const ParentProduct: TIfcProduct; const Appearance: TAppearanceNode): TAbstractChildNode; override;
   published
     { Points defining the polyline. }
     property Points: TIfcCartesianPointListSpec read FPoints write FPoints;
@@ -1791,7 +1810,8 @@
     FExtrudedDirection: TIfcDirection;
     FDepth: TIfcPositiveLengthMeasure;
   public
-    function BuildNode(const Mapping: TCastleIfcMapping): TAbstractChildNode; override;
+    function BuildNode(const Mapping: TCastleIfcMapping;
+      const ParentProduct: TIfcProduct; const Appearance: TAppearanceNode): TAbstractChildNode; override;
   published
     { The direction in which the surface, provided by SweptArea is to be swept.
       The ExtrudedDirection shall not be perpendicular to the local z-axis. }
@@ -3435,7 +3455,8 @@
   { List of TIfcRepresentation. }
   TIfcRepresentationList = class({$ifdef FPC}specialize{$endif} TObjectList<TIfcRepresentation>)
   public
-    function BuildNode(const Mapping: TCastleIfcMapping): TAbstractChildNode;
+    function BuildNode(const Mapping: TCastleIfcMapping;
+      const ParentProduct: TIfcProduct; const Appearance: TAppearanceNode): TAbstractChildNode;
   end;
 
   TIfcShapeModel = class abstract(TIfcRepresentation)
@@ -3468,7 +3489,8 @@
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    function BuildNode(const Mapping: TCastleIfcMapping): TAbstractChildNode;
+    function BuildNode(const Mapping: TCastleIfcMapping;
+      const ParentProduct: TIfcProduct; const Appearance: TAppearanceNode): TAbstractChildNode;
   published
     { The word or group of words by which the product representation is known. }
     property Name: TIfcLabel read FName write FName;

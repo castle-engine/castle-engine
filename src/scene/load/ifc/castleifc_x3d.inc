@@ -57,11 +57,6 @@
         between X3D nodes) to follow IFC TIfcObjectPlacement.PlacementRelTo idea. }
       ChildrenNodesToObjectPlacement: TChildrenNodesToObjectPlacement;
 
-      { Appearance of the current object definition being built.
-        TODO: keeping one current appearance like this is a simplification,
-        materials should be passed down to product children and only to them. }
-      CurrentAppearance: TAppearanceNode;
-
     { BaseUrl should be passed to all X3D nodes created by this class,
       so they have TX3DRootNode.BaseUrl equal to this. }
     property BaseUrl: String read FBaseUrl;
@@ -227,7 +222,6 @@ begin
   finally
     FreeAndNil(ObjectPlacementToParentNodes);
     FreeAndNil(ChildrenNodesToObjectPlacement);
-    FreeIfUnusedAndNil(CurrentAppearance);
   end;
 end;
 
@@ -276,7 +270,8 @@ begin
   Result.AddChildren(Project.BuildNode(Mapping));
 end;
 
-function TIfcRepresentationItemList.BuildNode(const Mapping: TCastleIfcMapping): TAbstractChildNode;
+function TIfcRepresentationItemList.BuildNode(const Mapping: TCastleIfcMapping;
+  const ParentProduct: TIfcProduct; const Appearance: TAppearanceNode): TAbstractChildNode;
 var
   RepresentationItem: TIfcRepresentationItem;
   Group: TGroupNode;
@@ -288,13 +283,14 @@ begin
 
   for RepresentationItem in Self do
   begin
-    Child := RepresentationItem.BuildNode(Mapping);
+    Child := RepresentationItem.BuildNode(Mapping, ParentProduct, Appearance);
     if Child <> nil then
       Group.AddChildren(Child);
   end;
 end;
 
-function TIfcRepresentationList.BuildNode(const Mapping: TCastleIfcMapping): TAbstractChildNode;
+function TIfcRepresentationList.BuildNode(const Mapping: TCastleIfcMapping;
+  const ParentProduct: TIfcProduct; const Appearance: TAppearanceNode): TAbstractChildNode;
 var
   Representation: TIfcRepresentation;
   Group: TGroupNode;
@@ -304,10 +300,11 @@ begin
   Result := Group;
 
   for Representation in Self do
-    Group.AddChildren(Representation.Items.BuildNode(Mapping));
+    Group.AddChildren(Representation.Items.BuildNode(Mapping, ParentProduct, Appearance));
 end;
 
-function TIfcProductRepresentation.BuildNode(const Mapping: TCastleIfcMapping): TAbstractChildNode;
+function TIfcProductRepresentation.BuildNode(const Mapping: TCastleIfcMapping;
+  const ParentProduct: TIfcProduct; const Appearance: TAppearanceNode): TAbstractChildNode;
 var
   Group: TGroupNode;
 begin
@@ -317,7 +314,7 @@ begin
   SetMetadata(Group, 'IFC_Description', Description);
   Result := Group;
 
-  Group.AddChildren(Representations.BuildNode(Mapping));
+  Group.AddChildren(Representations.BuildNode(Mapping, ParentProduct, Appearance));
 end;
 
 function TIfcRelAggregates.BuildNode(const Mapping: TCastleIfcMapping): TAbstractChildNode;
@@ -426,7 +423,7 @@ begin
   try
     Mapping := TCastleIfcMapping.Create;
     try
-      Shape := BuildNode(Mapping) as TShapeNode;
+      Shape := BuildNode(Mapping, nil, nil) as TShapeNode;
       try
         if Shape.Geometry <> nil then
         begin
@@ -463,12 +460,14 @@ end;
 
 { BuildNode of TIfcRepresentationItem and descendants ------------------------- }
 
-function TIfcRepresentationItem.BuildNode(const Mapping: TCastleIfcMapping): TAbstractChildNode;
+function TIfcRepresentationItem.BuildNode(const Mapping: TCastleIfcMapping;
+  const ParentProduct: TIfcProduct; const Appearance: TAppearanceNode): TAbstractChildNode;
 begin
   Result := nil;
 end;
 
-function TIfcPolyline.BuildNode(const Mapping: TCastleIfcMapping): TAbstractChildNode;
+function TIfcPolyline.BuildNode(const Mapping: TCastleIfcMapping;
+  const ParentProduct: TIfcProduct; const Appearance: TAppearanceNode): TAbstractChildNode;
 var
   Shape: TShapeNode;
   LineSet: TLineSetNode;
@@ -487,13 +486,14 @@ begin
   Shape := TShapeNode.Create('', Mapping.BaseUrl);
   Shape.Geometry := LineSet;
   // lines are best displayed as unlit geometry, different material would be useful
-  // Shape.Appearance := Mapping.CurrentAppearance;
+  // Shape.Appearance := Appearance;
   SetMetadata(Shape, 'IFC_ClassName', ClassName);
 
   Result := Shape;
 end;
 
-function TIfcIndexedPolyCurve.BuildNode(const Mapping: TCastleIfcMapping): TAbstractChildNode;
+function TIfcIndexedPolyCurve.BuildNode(const Mapping: TCastleIfcMapping;
+  const ParentProduct: TIfcProduct; const Appearance: TAppearanceNode): TAbstractChildNode;
 
   { Add integers for NewIndexes to Indexes, decrementing all values
     on NewIndexes by 1.
@@ -528,7 +528,7 @@ begin
 
   Shape := TShapeNode.Create('', Mapping.BaseUrl);
   // lines are best displayed as unlit geometry, different material would be useful
-  // Shape.Appearance := Mapping.CurrentAppearance;
+  // Shape.Appearance := Appearance;
   SetMetadata(Shape, 'IFC_ClassName', ClassName);
 
   if Segments.Count = 0 then
@@ -570,7 +570,8 @@ begin
   Result := Shape;
 end;
 
-function TIfcExtrudedAreaSolid.BuildNode(const Mapping: TCastleIfcMapping): TAbstractChildNode;
+function TIfcExtrudedAreaSolid.BuildNode(const Mapping: TCastleIfcMapping;
+  const ParentProduct: TIfcProduct; const Appearance: TAppearanceNode): TAbstractChildNode;
 var
   Extrusion: TExtrusionNode;
   SweptAreaProf: TIfcArbitraryClosedProfileDef;
@@ -591,13 +592,14 @@ begin
 
   Shape := TShapeNode.Create('', Mapping.BaseUrl);
   Shape.Geometry := Extrusion;
-  Shape.Appearance := Mapping.CurrentAppearance;
+  Shape.Appearance := Appearance;
   SetMetadata(Shape, 'IFC_ClassName', ClassName);
 
   Result := Shape;
 end;
 
-function TIfcPolygonalFaceSet.BuildNode(const Mapping: TCastleIfcMapping): TAbstractChildNode;
+function TIfcPolygonalFaceSet.BuildNode(const Mapping: TCastleIfcMapping;
+  const ParentProduct: TIfcProduct; const Appearance: TAppearanceNode): TAbstractChildNode;
 var
   IndexedFaceSet: TIndexedFaceSetNode;
   Coord: TCoordinateNode;
@@ -627,7 +629,7 @@ begin
 
   Shape := TShapeNode.Create('', Mapping.BaseUrl);
   Shape.Geometry := IndexedFaceSet;
-  Shape.Appearance := Mapping.CurrentAppearance;
+  Shape.Appearance := Appearance;
   SetMetadata(Shape, 'IFC_ClassName', ClassName);
 
   Result := Shape;
@@ -636,6 +638,28 @@ end;
 { BuildNode of TIfcObjectDefinition and descendants -------------------------- }
 
 function TIfcObjectDefinition.BuildNode(const Mapping: TCastleIfcMapping): TTransformNode;
+var
+  RelAggregates: TIfcRelAggregates;
+begin
+  Result := TTransformNode.Create('', Mapping.BaseUrl);
+  SetMetadata(Result, 'IFC_ClassName', ClassName);
+  SetMetadata(Result, 'IFC_Name', Name);
+  SetMetadata(Result, 'IFC_Description', Description);
+
+  for RelAggregates in IsDecomposedBy do
+    Result.AddChildren(RelAggregates.BuildNode(Mapping));
+end;
+
+function TIfcSpatialElement.BuildNode(const Mapping: TCastleIfcMapping): TTransformNode;
+var
+  RelContainedInSpatialStructure: TIfcRelContainedInSpatialStructure;
+begin
+  Result := inherited;
+  for RelContainedInSpatialStructure in ContainsElements do
+    Result.AddChildren(RelContainedInSpatialStructure.BuildNode(Mapping));
+end;
+
+function TIfcProduct.BuildNode(const Mapping: TCastleIfcMapping): TTransformNode;
 
   { Derive X3D TAppearanceNode from IFC TIfcObjectDefinition.HasAssociations. }
   function AppearanceFromAssociations(const Associations: TIfcRelAssociatesList): TAppearanceNode;
@@ -661,31 +685,7 @@ function TIfcObjectDefinition.BuildNode(const Mapping: TCastleIfcMapping): TTran
   end;
 
 var
-  RelAggregates: TIfcRelAggregates;
-begin
-  Result := TTransformNode.Create('', Mapping.BaseUrl);
-  SetMetadata(Result, 'IFC_ClassName', ClassName);
-  SetMetadata(Result, 'IFC_Name', Name);
-  SetMetadata(Result, 'IFC_Description', Description);
-
-  // Things inside IsDecomposedBy are affected by given material
-  FreeIfUnusedAndNil(Mapping.CurrentAppearance);
-  Mapping.CurrentAppearance := AppearanceFromAssociations(HasAssociations);
-
-  for RelAggregates in IsDecomposedBy do
-    Result.AddChildren(RelAggregates.BuildNode(Mapping));
-end;
-
-function TIfcSpatialElement.BuildNode(const Mapping: TCastleIfcMapping): TTransformNode;
-var
-  RelContainedInSpatialStructure: TIfcRelContainedInSpatialStructure;
-begin
-  Result := inherited;
-  for RelContainedInSpatialStructure in ContainsElements do
-    Result.AddChildren(RelContainedInSpatialStructure.BuildNode(Mapping));
-end;
-
-function TIfcProduct.BuildNode(const Mapping: TCastleIfcMapping): TTransformNode;
+  Appearance: TAppearanceNode;
 begin
   Result := inherited;
 
@@ -693,23 +693,83 @@ begin
     ObjectPlacement.UpdateNode(Mapping, Result);
 
   if Representation <> nil then
-    Result.AddChildren(Representation.BuildNode(Mapping));
+  begin
+    // Things inside are affected by given material
+    Appearance := AppearanceFromAssociations(HasAssociations);
+    try
+      Result.AddChildren(Representation.BuildNode(Mapping, Self, Appearance));
+    finally
+      FreeIfUnusedAndNil(Appearance);
+    end;
+  end;
 end;
 
 function TIfcElement.BuildNode(const Mapping: TCastleIfcMapping): TTransformNode;
+
+  procedure SetTransparency(const Node: TAbstractChildNode; const Transparency: Single);
+  var
+    Shape: TShapeNode;
+    Group: TAbstractGroupingNode;
+    ChildNode: TAbstractChildNode;
+    I: Integer;
+  begin
+    if Node is TShapeNode then
+    begin
+      Shape := TShapeNode(Node);
+
+      if Shape.Appearance = nil then
+        Shape.Appearance := TAppearanceNode.Create('', Mapping.BaseUrl);
+      Assert(Shape.Appearance <> nil);
+
+      if Shape.Appearance.Material = nil then
+        // Material equal to nil implies white unlit in X3D
+        Shape.Appearance.Material := TUnlitMaterialNode.Create('', Mapping.BaseUrl);
+      Assert(Shape.Appearance.Material <> nil);
+
+      if Shape.Appearance.Material is TMaterialNode then
+        TMaterialNode(Shape.Appearance.Material).Transparency := Transparency
+      else
+      if Shape.Appearance.Material is TPhysicalMaterialNode then
+        TPhysicalMaterialNode(Shape.Appearance.Material).Transparency := Transparency
+      else
+      if Shape.Appearance.Material is TUnlitMaterialNode then
+        TUnlitMaterialNode(Shape.Appearance.Material).Transparency := Transparency
+      else
+        WritelnWarning('IFC', 'SetTransparent: Unsupported Shape.Appearance.Material class: ' + Shape.Appearance.Material.ClassName);
+    end;
+
+    if Node is TAbstractGroupingNode then
+    begin
+      Group := TAbstractGroupingNode(Node);
+      for I := 0 to Group.FdChildren.Count - 1 do
+        if Group.FdChildren[I] is TAbstractChildNode then
+        begin
+          ChildNode := TAbstractChildNode(Group.FdChildren[I]);
+          SetTransparency(ChildNode, Transparency);
+        end;
+    end;
+  end;
+
 var
   RelVoidsElement: TIfcRelVoidsElement;
 begin
   Result := inherited;
   SetMetadata(Result, 'IFC_Tag', Tag);
 
-  // TODO: This is just for debug, the things in HasOpenings should actually subtract geometry
+  { TODO: We don't support CSG for now. So, for debug,
+
+    1. We just display the geometry inside HasOpenings.
+       It actually should subtract geometry.
+
+    2, We set our own geometry (but not the one in HasOpenings)
+       to be transparent, to see-through the geometry inside HasOpenings,
+       and other geometry that should be visible (e.g. window geometry in wall). }
+
+  if HasOpenings.Count > 0 then
+    SetTransparency(Result, 0.2);
+
   for RelVoidsElement in HasOpenings do
-  begin
-    // debug: make material transparent if something has holes
-    (Mapping.CurrentAppearance.Material as TMaterialNode).Transparency := 0.2;
     Result.AddChildren(RelVoidsElement.BuildNode(Mapping));
-  end;
 end;
 
 function TIfcContext.BuildNode(const Mapping: TCastleIfcMapping): TTransformNode;
