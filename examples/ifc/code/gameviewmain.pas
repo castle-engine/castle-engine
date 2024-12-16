@@ -19,7 +19,7 @@ unit GameViewMain;
 interface
 
 uses Classes,
-  CastleVectors, CastleComponentSerialize, CastleScene,
+  CastleVectors, CastleComponentSerialize, CastleScene, CastleViewport,
   CastleUIControls, CastleControls, CastleKeysMouse, CastleIfc;
 
 type
@@ -30,11 +30,12 @@ type
       These fields will be automatically initialized at Start. }
     LabelFps, LabelWireframeEffect, LabelHierarchy: TCastleLabel;
     ButtonNew, ButtonLoad, ButtonSaveIfc, ButtonSaveNode,
-      ButtonAddWall, ButtonModifyWall, ButtonChangeWireframeEffect: TCastleButton;
+      ButtonAddWall, ButtonModifyRandomElement, ButtonChangeWireframeEffect: TCastleButton;
     IfcScene: TCastleScene;
+    MainViewport: TCastleViewport;
   private
     IfcFile: TIfcFile;
-    { New products have to be added to this container.
+    { New elements (TIfcElement instances) have to be added to this container.
       You cannot just add them to IfcFile.Project,
       IFC specification constaints what can be the top-level spatial element. }
     IfcContainer: TIfcSpatialElement;
@@ -57,8 +58,10 @@ type
     procedure ClickSaveIfc(Sender: TObject);
     procedure ClickSaveNode(Sender: TObject);
     procedure ClickAddWall(Sender: TObject);
-    procedure ClickModifyWall(Sender: TObject);
+    procedure ClickModifyRandomElement(Sender: TObject);
     procedure ClickChangeWireframeEffect(Sender: TObject);
+    procedure MainViewportPress(const Sender: TCastleUserInterface;
+      const Event: TInputPressRelease; var Handled: Boolean);
   public
     constructor Create(AOwner: TComponent); override;
     procedure Start; override;
@@ -73,7 +76,7 @@ implementation
 
 uses SysUtils, TypInfo,
   CastleUtils, CastleUriUtils, CastleWindow, CastleBoxes, X3DLoad, CastleLog,
-  CastleRenderOptions;
+  CastleRenderOptions, CastleTransform, CastleShapes, X3DNodes;
 
 function WireframeEffectToStr(const WireframeEffect: TWireframeEffect): String;
 begin
@@ -97,8 +100,10 @@ begin
   ButtonSaveIfc.OnClick := {$ifdef FPC}@{$endif} ClickSaveIfc;
   ButtonSaveNode.OnClick := {$ifdef FPC}@{$endif} ClickSaveNode;
   ButtonAddWall.OnClick := {$ifdef FPC}@{$endif} ClickAddWall;
-  ButtonModifyWall.OnClick := {$ifdef FPC}@{$endif} ClickModifyWall;
+  ButtonModifyRandomElement.OnClick := {$ifdef FPC}@{$endif} ClickModifyRandomElement;
   ButtonChangeWireframeEffect.OnClick := {$ifdef FPC}@{$endif} ClickChangeWireframeEffect;
+
+  MainViewport.OnPress := {$ifdef FPC}@{$endif} MainViewportPress;
 
   LabelWireframeEffect.Caption := WireframeEffectToStr(IfcScene.RenderOptions.WireframeEffect);
 end;
@@ -176,7 +181,7 @@ begin
   IfcFile.Project.SetupModelContext;
 
   { We need IfcContainer inside the project.
-    Reason: We cannot add products directly to IfcProject, we need
+    Reason: We cannot add elements directly to IfcProject, we need
     to add them to a spatial root element: (IfcSite || IfcBuilding || IfcSpatialZone)
     (see https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcProject.htm ).
 
@@ -318,9 +323,25 @@ begin
   UpdateLabelHierarchy;
 end;
 
-procedure TViewMain.ClickModifyWall(Sender: TObject);
+procedure TViewMain.ClickModifyRandomElement(Sender: TObject);
+var
+  ElementList: TIfcElementList;
+  RandomElement: TIfcElement;
 begin
-  // IfcFile.Project.... // TODO
+  ElementList := TIfcElementList.Create(false);
+  try
+    IfcContainer.GetContainedElements(ElementList);
+    if ElementList.Count = 0 then
+      Exit;
+    RandomElement := ElementList[Random(ElementList.Count)];
+    RandomElement.SetRelativePlacement(Vector3(
+      RandomFloatRange(-5, 5),
+      RandomFloatRange(-5, 5),
+      0
+    ));
+    WritelnLog('Modified element "%s" placement', [RandomElement.Name]);
+  finally FreeAndNil(ElementList) end;
+
   IfcMapping.Update(IfcFile);
 end;
 
@@ -345,7 +366,7 @@ var
     RelAggregates: TIfcRelAggregates;
     RelatedObject: TIfcObjectDefinition;
     RelContained: TIfcRelContainedInSpatialStructure;
-    RelatedElement: TIfcProduct;
+    RelatedProduct: TIfcProduct;
   begin
     SList.Add(NowIndent + Parent.ClassName + ' "' + Parent.Name + '"');
     if Parent = IfcFile.Project.BestContainer then
@@ -359,8 +380,8 @@ var
     begin
       ParentSpatial := TIfcSpatialElement(Parent);
       for RelContained in ParentSpatial.ContainsElements do
-        for RelatedElement in RelContained.RelatedElements do
-          ShowHierarchy(RelatedElement, NowIndent + Indent);
+        for RelatedProduct in RelContained.RelatedElements do
+          ShowHierarchy(RelatedProduct, NowIndent + Indent);
     end;
   end;
 
@@ -392,6 +413,27 @@ begin
 
     LabelHierarchy.Text.Assign(SList);
   finally FreeAndNil(SList) end;
+end;
+
+procedure TViewMain.MainViewportPress(const Sender: TCastleUserInterface;
+  const Event: TInputPressRelease; var Handled: Boolean);
+var
+  HitInfo: TRayCollisionNode;
+  HitShape: TAbstractShapeNode;
+begin
+  if Event.IsMouseButton(buttonLeft) then
+  begin
+    if (MainViewport.MouseRayHit <> nil) and
+       MainViewport.MouseRayHit.Info(HitInfo) and
+       (HitInfo.Item = IfcScene) and
+       (HitInfo.Triangle <> nil) and
+       (HitInfo.Triangle^.ShapeNode <> nil) then
+    begin
+      HitShape := HitInfo.Triangle^.ShapeNode;
+      // TODO
+      Handled := true;
+    end;
+  end;
 end;
 
 end.

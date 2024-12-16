@@ -116,7 +116,7 @@
           }
         ]
       },
-      "Name" : "Viewport1",
+      "Name" : "MainViewport",
       "$NonVisualComponents" : [
         {
           "$$ClassName" : "TCastleBackground",
@@ -314,7 +314,7 @@
         },
         {
           "$$ClassName" : "TCastleButton",
-          "Caption" : "Move Random Wall",
+          "Caption" : "Move Random Element (like a Wall)",
           "CustomBackgroundDisabled" : {
             "$$ClassName" : "TCastleImagePersistent"
           },
@@ -330,7 +330,7 @@
           "Image" : {
             "$$ClassName" : "TCastleImagePersistent"
           },
-          "Name" : "ButtonModifyWall",
+          "Name" : "ButtonModifyRandomElement",
           "TranslationPersistent" : {
             "$$ClassName" : "TCastleVector2Persistent",
             "X" : 1.0000000000000000E+001,

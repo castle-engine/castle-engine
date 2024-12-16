@@ -1868,7 +1868,7 @@
       const Box: TBox3D);
 
     { Move this product by given 3D translation.
-      This sets @link(ObjectPlacement) to a new instance. }
+      This modifies or sets @link(ObjectPlacement) to a new instance. }
     procedure SetRelativePlacement(const Translation: TVector3);
   end;
   TIfcProductList = class({$ifdef FPC}specialize{$endif} TObjectList<TIfcProduct>)
@@ -1904,6 +1904,14 @@
       This should be used to add smaller elements, like TIfcWall, TIfcWindow
       into larger spatial elements, like TIfcBuildingStorey, TIfcSpace. }
     procedure AddContainedElement(const Element: TIfcElement);
+
+    { Add all contained elemenents to the List.
+      This enumerates relations inside @link(ContainsElements)
+      and the elements they refer to.
+
+      This is not recursive, it does not go into elements that are children
+      of other elements. }
+    procedure GetContainedElements(const List: TIfcElementList);
   end;
 
   TIfcSpatialZoneTypeEnum = (
@@ -1951,7 +1959,11 @@
     function BuildNode(const Mapping: TCastleIfcMapping): TAbstractChildNode;
   published
     { Set of products, which are contained within this level of
-      the spatial structure hierarchy. }
+      the spatial structure hierarchy.
+
+      Note: The name is a bit confusing, it's actually a list of TIfcProduct
+      instances, not TIfcElement instances. TIfcElement is a descendant of TIfcProduct.
+      This all follows IFC 4.3 spec. }
     property RelatedElements: TIfcProductList read FRelatedElements;
 
     { Spatial structure element, within which the element is contained. }
@@ -4137,19 +4149,48 @@ end;
 
 procedure TIfcProduct.SetRelativePlacement(const Translation: TVector3);
 var
-  Location: TIfcCartesianPoint;
-  RelativePlacement: TIfcAxis2Placement3D;
+  NewLocation: TIfcCartesianPoint;
+  NewRelativePlacement: TIfcAxis2Placement3D;
   NewObjectPlacement: TIfcLocalPlacement;
 begin
-  Location := TIfcCartesianPoint.Create(Owner);
-  Location.Coordinates.Value := Translation;
+  // create NewObjectPlacement and assign it to ObjectPlacement
+  if (ObjectPlacement <> nil) and
+     (ObjectPlacement is TIfcLocalPlacement) and
+     (TIfcLocalPlacement(ObjectPlacement).PlacementRelTo = nil) and
+     (TIfcLocalPlacement(ObjectPlacement).PlacesObject.Count = 1) and
+     (TIfcLocalPlacement(ObjectPlacement).PlacesObject[0] = Self) then
+  begin
+    NewObjectPlacement := TIfcLocalPlacement(ObjectPlacement);
+  end else
+  begin
+    NewObjectPlacement := TIfcLocalPlacement.Create(Owner);
+    NewObjectPlacement.PlacesObject.Add(Self);
+    ObjectPlacement := NewObjectPlacement;
+  end;
 
-  RelativePlacement := TIfcAxis2Placement3D.Create(Owner);
-  RelativePlacement.Location := Location;
+  // create NewRelativePlacement and assign it to NewObjectPlacement.RelativePlacement
+  if (NewObjectPlacement.RelativePlacement <> nil) and
+     (NewObjectPlacement.RelativePlacement is TIfcAxis2Placement3D) then
+  begin
+    NewRelativePlacement := TIfcAxis2Placement3D(NewObjectPlacement.RelativePlacement);
+  end else
+  begin
+    NewRelativePlacement := TIfcAxis2Placement3D.Create(Owner);
+    NewObjectPlacement.RelativePlacement := NewRelativePlacement;
+  end;
 
-  NewObjectPlacement := TIfcLocalPlacement.Create(Owner);
-  NewObjectPlacement.RelativePlacement := RelativePlacement;
-  ObjectPlacement := NewObjectPlacement;
+  // create NewLocation and assign it to NewRelativePlacement.Location
+  if (NewRelativePlacement.Location <> nil) and
+     (NewRelativePlacement.Location is TIfcCartesianPoint) then
+  begin
+    NewLocation := TIfcCartesianPoint(NewRelativePlacement.Location);
+  end else
+  begin
+    NewLocation := TIfcCartesianPoint.Create(Owner);
+    NewRelativePlacement.Location := NewLocation;
+  end;
+
+  NewLocation.Coordinates.Value := Translation;
 end;
 
 { TIfcSpatialElement --------------------------------------------------------- }
@@ -4186,6 +4227,21 @@ begin
   Relation.RelatedElements.Add(Element);
 
   Element.ContainedInStructure.Add(Relation);
+end;
+
+procedure TIfcSpatialElement.GetContainedElements(const List: TIfcElementList);
+var
+  RelContainedInSpatialStructure: TIfcRelContainedInSpatialStructure;
+  Product: TIfcProduct;
+begin
+  for RelContainedInSpatialStructure in ContainsElements do
+    for Product in RelContainedInSpatialStructure.RelatedElements do
+      { The RelatedElements name is confusing, it actually contains any
+        TIfcProduct instances, not just TIfcElement instances.
+        We filter them for TIfcElement, to make us consistent with
+        AddContainedElement. }
+      if Product is TIfcElement then
+        List.Add(TIfcElement(Product));
 end;
 
 { TIfcElement --------------------------------------------------------------- }
