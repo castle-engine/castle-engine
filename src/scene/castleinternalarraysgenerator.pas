@@ -1754,7 +1754,9 @@ var
   M: TPhongMaterialInfo; // VRML 1.0 has only Phong lighting model
 begin
   M := State.VRML1State.Material.MaterialInfo(MaterialIndex);
+  {$warnings off} // do not warn about PureEmissive, whole VRML 1.0 is deprecated now
   if M.PureEmissive then
+  {$warnings on}
     Result := Vector4(M.EmissiveColor, M.Opacity)
   else
     Result := Vector4(M.DiffuseColor, M.Opacity);

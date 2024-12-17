@@ -25,23 +25,31 @@
   TMaterialInfo = class abstract
   strict private
     FNode: TX3DNode;
+    function GetOpacity: Single;
+    procedure SetOpacity(const Value: Single);
   protected
     function GetMainColor: TVector3; virtual; abstract;
     procedure SetMainColor(const Value: TVector3); virtual; abstract;
     function GetEmissiveColor: TVector3; virtual; abstract;
     procedure SetEmissiveColor(const Value: TVector3); virtual; abstract;
+    function GetTransparency: Single; virtual; abstract;
+    procedure SetTransparency(const Value: Single); virtual; abstract;
   public
     const
       DefaultTransparency = 0.0;
 
     constructor Create(ANode: TX3DNode);
 
-    function Transparency: Single; virtual; abstract;
-    { Opacity is just @code(1 - Transparency). }
-    function Opacity: Single;
-
     { Associated material node. }
     property Node: TX3DNode read FNode;
+
+    { Transparency of the material determines how much is it "see-through".
+      Value 0 (DefaultTransparency) means fully opaque, 1 means fully transparent. }
+    property Transparency: Single read GetTransparency write SetTransparency;
+
+    { Opacity of the material, just @code(1 - @link(Transparency)).
+      Sometimes it is more intuitive to use this than Transparency. }
+    property Opacity: Single read GetOpacity write SetOpacity;
 
     { Single color that is the best approximation of this material look.
 
@@ -109,8 +117,12 @@
 
       This checks that ambient and diffuse and specular colors are all zero.
       It's an important information about the material sometimes.
-      We can optimize this case when rendering. }
-    function PureEmissive: boolean;
+
+      This way of achieving "something like unlit material" has issues, see
+      https://github.com/michaliskambi/x3d-tests/wiki/Why-is-UnlitMaterial-useful .
+      For this reason, we recommend to use (and detect, for optimization)
+      the TUnlitMaterialNode instead of this "special case of Phong material". }
+    function PureEmissive: boolean; deprecated 'use TUnlitMaterialNode for unlit materials';
 
     function Shininess: Single; virtual; abstract;
 
@@ -175,9 +187,14 @@ begin
   FNode := ANode;
 end;
 
-function TMaterialInfo.Opacity: Single;
+function TMaterialInfo.GetOpacity: Single;
 begin
   Result := 1 - Transparency;
+end;
+
+procedure TMaterialInfo.SetOpacity(const Value: Single);
+begin
+  Transparency := 1 - Value;
 end;
 
 { TPhongMaterialInfo --------------------------------------------------------- }

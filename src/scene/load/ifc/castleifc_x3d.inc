@@ -706,12 +706,15 @@ end;
 
 function TIfcElement.BuildNode(const Mapping: TCastleIfcMapping): TTransformNode;
 
-  procedure SetTransparency(const Node: TAbstractChildNode; const Transparency: Single);
+  { For all shapes within Node, multiply their main color (RGB) and opacity. }
+  procedure MaterialMultiply(const Node: TAbstractChildNode;
+    const Color: TCastleColorRgb; const Opacity: Single);
   var
     Shape: TShapeNode;
     Group: TAbstractGroupingNode;
     ChildNode: TAbstractChildNode;
     I: Integer;
+    MatInfo: TMaterialInfo;
   begin
     if Node is TShapeNode then
     begin
@@ -726,16 +729,9 @@ function TIfcElement.BuildNode(const Mapping: TCastleIfcMapping): TTransformNode
         Shape.Appearance.Material := TUnlitMaterialNode.Create('', Mapping.BaseUrl);
       Assert(Shape.Appearance.Material <> nil);
 
-      if Shape.Appearance.Material is TMaterialNode then
-        TMaterialNode(Shape.Appearance.Material).Transparency := Transparency
-      else
-      if Shape.Appearance.Material is TPhysicalMaterialNode then
-        TPhysicalMaterialNode(Shape.Appearance.Material).Transparency := Transparency
-      else
-      if Shape.Appearance.Material is TUnlitMaterialNode then
-        TUnlitMaterialNode(Shape.Appearance.Material).Transparency := Transparency
-      else
-        WritelnWarning('IFC', 'SetTransparent: Unsupported Shape.Appearance.Material class: ' + Shape.Appearance.Material.ClassName);
+      MatInfo := Shape.Appearance.Material.MaterialInfo;
+      MatInfo.MainColor := MatInfo.MainColor * Color;
+      MatInfo.Opacity := MatInfo.Opacity * Opacity;
     end;
 
     if Node is TAbstractGroupingNode then
@@ -745,13 +741,16 @@ function TIfcElement.BuildNode(const Mapping: TCastleIfcMapping): TTransformNode
         if Group.FdChildren[I] is TAbstractChildNode then
         begin
           ChildNode := TAbstractChildNode(Group.FdChildren[I]);
-          SetTransparency(ChildNode, Transparency);
+          MaterialMultiply(ChildNode, Color, Opacity);
         end;
     end;
   end;
 
+const
+  LihgtRedRgb: TCastleColorRgb = (X: 1.0; Y: 0.33; Z: 0.33);
 var
   RelVoidsElement: TIfcRelVoidsElement;
+  ChildNode: TAbstractChildNode;
 begin
   Result := inherited;
   SetMetadata(Result, 'IFC_Tag', Tag);
@@ -760,16 +759,21 @@ begin
 
     1. We just display the geometry inside HasOpenings.
        It actually should subtract geometry.
+       We mark it light-red, to signify this is not the final geometry.
 
     2, We set our own geometry (but not the one in HasOpenings)
        to be transparent, to see-through the geometry inside HasOpenings,
        and other geometry that should be visible (e.g. window geometry in wall). }
 
   if HasOpenings.Count > 0 then
-    SetTransparency(Result, 0.2);
+    MaterialMultiply(Result, WhiteRgb, 0.2);
 
   for RelVoidsElement in HasOpenings do
-    Result.AddChildren(RelVoidsElement.BuildNode(Mapping));
+  begin
+    ChildNode := RelVoidsElement.BuildNode(Mapping);
+    MaterialMultiply(ChildNode, LihgtRedRgb, 1.0);
+    Result.AddChildren(ChildNode);
+  end;
 end;
 
 function TIfcContext.BuildNode(const Mapping: TCastleIfcMapping): TTransformNode;
