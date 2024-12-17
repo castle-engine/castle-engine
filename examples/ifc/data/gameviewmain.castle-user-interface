@@ -314,7 +314,7 @@
         },
         {
           "$$ClassName" : "TCastleButton",
-          "Caption" : "Move Random Element (like a Wall)",
+          "Caption" : "Move Random Element (like a Wall or Floor)",
           "CustomBackgroundDisabled" : {
             "$$ClassName" : "TCastleImagePersistent"
           },
