@@ -45,6 +45,8 @@
         {$ifdef FPC}specialize{$endif} TDictionary<TIfcObjectPlacement, TTransformNode>;
       TChildrenNodesToObjectPlacement =
         {$ifdef FPC}specialize{$endif} TDictionary<TTransformNode, TIfcObjectPlacement>;
+      TShapeToProduct =
+        {$ifdef FPC}specialize{$endif} TDictionary<TAbstractShapeNode, TIfcProduct>;
 
     var
       { Map each encountered TIfcObjectPlacement to an X3D TTransformNode. }
@@ -57,10 +59,16 @@
         between X3D nodes) to follow IFC TIfcObjectPlacement.PlacementRelTo idea. }
       ChildrenNodesToObjectPlacement: TChildrenNodesToObjectPlacement;
 
+      { Map X3D shape nodes to IFC products. Allows to implement NodeToProduct. }
+      ShapeToProduct: TShapeToProduct;
+
     { BaseUrl should be passed to all X3D nodes created by this class,
       so they have TX3DRootNode.BaseUrl equal to this. }
     property BaseUrl: String read FBaseUrl;
   public
+    constructor Create;
+    destructor Destroy; override;
+
     { Load IFC instance (TIfcFile) converting it to a new X3D node
       (available in @link(RootNode)).
 
@@ -86,12 +94,12 @@
       @link(TTransformNode.Translation), without recreating any X3D nodes. }
     procedure Update(const Ifc: TIfcFile);
 
-    { For a shape node (TShapeNode), return the corresponding IFC product
+    { For a shape node (TAbstractShapeNode), return the corresponding IFC product
       (TIfcProduct descendant, like a TIfcWall, TIfcWindow, TIfcDoor).
       Returns @nil if cannot be determined.
       Assumes that the nodes have been updated to reflect the latest state
       of the IFC classes using @link(Update). }
-    function NodeToProduct(const Node: TShapeNode): TIfcProduct;
+    function NodeToProduct(const Node: TAbstractShapeNode): TIfcProduct;
   end;
 
 {$endif read_interface_types}
@@ -123,6 +131,18 @@ begin
 end;
 
 { TCastleIfcMapping ---------------------------------------------------------- }
+
+constructor TCastleIfcMapping.Create;
+begin
+  inherited;
+  ShapeToProduct := TShapeToProduct.Create;
+end;
+
+destructor TCastleIfcMapping.Destroy;
+begin
+  FreeAndNil(ShapeToProduct);
+  inherited;
+end;
 
 procedure TCastleIfcMapping.FixParentChildRelationships;
 
@@ -213,6 +233,8 @@ end;
 
 function TCastleIfcMapping.CreateRootNode(const Ifc: TIfcFile): TX3DRootNode;
 begin
+  ShapeToProduct.Clear; // will be reinitialized by BuildNode methods
+
   { Initialize things used only temporarily during Load. }
   ObjectPlacementToParentNodes := TObjectPlacementToParentNodes.Create;
   ChildrenNodesToObjectPlacement := TChildrenNodesToObjectPlacement.Create;
@@ -250,10 +272,10 @@ begin
   finally FreeAndNil(NewRootNode) end;
 end;
 
-function TCastleIfcMapping.NodeToProduct(const Node: TShapeNode): TIfcProduct;
+function TCastleIfcMapping.NodeToProduct(const Node: TAbstractShapeNode): TIfcProduct;
 begin
-  // TODO
-  Result := nil;
+  if not ShapeToProduct.TryGetValue(Node, Result) then
+    Result := nil;
 end;
 
 { BuildNode methods implementations ----------------------------------------- }
@@ -489,6 +511,7 @@ begin
   // Shape.Appearance := Appearance;
   SetMetadata(Shape, 'IFC_ClassName', ClassName);
 
+  Mapping.ShapeToProduct.Add(Shape, ParentProduct);
   Result := Shape;
 end;
 
@@ -567,6 +590,7 @@ begin
     end;
   end;
 
+  Mapping.ShapeToProduct.Add(Shape, ParentProduct);
   Result := Shape;
 end;
 
@@ -595,6 +619,7 @@ begin
   Shape.Appearance := Appearance;
   SetMetadata(Shape, 'IFC_ClassName', ClassName);
 
+  Mapping.ShapeToProduct.Add(Shape, ParentProduct);
   Result := Shape;
 end;
 
@@ -632,6 +657,7 @@ begin
   Shape.Appearance := Appearance;
   SetMetadata(Shape, 'IFC_ClassName', ClassName);
 
+  Mapping.ShapeToProduct.Add(Shape, ParentProduct);
   Result := Shape;
 end;
 

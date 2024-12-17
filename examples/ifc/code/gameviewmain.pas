@@ -20,7 +20,8 @@ interface
 
 uses Classes,
   CastleVectors, CastleComponentSerialize, CastleScene, CastleViewport,
-  CastleUIControls, CastleControls, CastleKeysMouse, CastleIfc;
+  CastleUIControls, CastleControls, CastleKeysMouse, CastleIfc,
+  CastleCameras;
 
 type
   { Main view, where most of the application logic takes place. }
@@ -33,6 +34,7 @@ type
       ButtonAddWall, ButtonModifyRandomElement, ButtonChangeWireframeEffect: TCastleButton;
     IfcScene: TCastleScene;
     MainViewport: TCastleViewport;
+    ExamineNavigation: TCastleExamineNavigation;
   private
     IfcFile: TIfcFile;
     { New elements (TIfcElement instances) have to be added to this container.
@@ -40,6 +42,7 @@ type
       IFC specification constaints what can be the top-level spatial element. }
     IfcContainer: TIfcSpatialElement;
     IfcMapping: TCastleIfcMapping;
+    IfcSelectedProduct: TIfcProduct;
 
     { Used to assing unique names to walls. }
     NextWallNumber: Cardinal;
@@ -106,6 +109,11 @@ begin
   MainViewport.OnPress := {$ifdef FPC}@{$endif} MainViewportPress;
 
   LabelWireframeEffect.Caption := WireframeEffectToStr(IfcScene.RenderOptions.WireframeEffect);
+
+  { Rotate by dragging with right mouse button,
+    because we use left mouse button for selection. }
+  ExamineNavigation.Input_Rotate.MouseButton := buttonRight;
+  ExamineNavigation.Input_Zoom.MouseButtonUse := false;
 end;
 
 procedure TViewMain.Stop;
@@ -367,8 +375,13 @@ var
     RelatedObject: TIfcObjectDefinition;
     RelContained: TIfcRelContainedInSpatialStructure;
     RelatedProduct: TIfcProduct;
+    S: String;
   begin
-    SList.Add(NowIndent + Parent.ClassName + ' "' + Parent.Name + '"');
+    S := NowIndent + Parent.ClassName + ' "' + Parent.Name + '"';
+    if Parent = IfcSelectedProduct then
+      S := '<font color="#ffff00">' + S + '</font>';
+    SList.Add(S);
+
     if Parent = IfcFile.Project.BestContainer then
       SList.Add(NowIndent + Indent + '<font color="#0000aa">(^detected best container)</font>');
 
@@ -420,6 +433,7 @@ procedure TViewMain.MainViewportPress(const Sender: TCastleUserInterface;
 var
   HitInfo: TRayCollisionNode;
   HitShape: TAbstractShapeNode;
+  NewSelectedProduct: TIfcProduct;
 begin
   if Event.IsMouseButton(buttonLeft) then
   begin
@@ -430,9 +444,17 @@ begin
        (HitInfo.Triangle^.ShapeNode <> nil) then
     begin
       HitShape := HitInfo.Triangle^.ShapeNode;
-      // TODO
-      Handled := true;
+      NewSelectedProduct := IfcMapping.NodeToProduct(HitShape);
+    end else
+      NewSelectedProduct := nil;
+
+    if NewSelectedProduct <> IfcSelectedProduct then
+    begin
+      IfcSelectedProduct := NewSelectedProduct;
+      UpdateLabelHierarchy;
     end;
+
+    Handled := true;
   end;
 end;
 

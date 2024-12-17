@@ -105,6 +105,7 @@
             "ExposeTransforms" : [
             ],
             "Name" : "IfcScene",
+            "PreciseCollisions" : true,
             "RenderOptions" : {
               "$$ClassName" : "TCastleScene.TSceneRenderOptions"
             },
@@ -126,7 +127,7 @@
       "$Children" : [
         {
           "$$ClassName" : "TCastleExamineNavigation",
-          "Name" : "ExamineNavigation1"
+          "Name" : "ExamineNavigation"
         }
       ],
       "InternalDesignCamera" : {
