@@ -1844,20 +1844,10 @@
   strict private
     FObjectPlacement: TIfcObjectPlacement;
     FRepresentation: TIfcProductRepresentation;
+    function GetRelativePlacement: TVector3;
+    procedure SetRelativePlacement(const Translation: TVector3);
   public
     function BuildNode(const Mapping: TCastleIfcMapping): TTransformNode; override;
-  published
-    { Object coordinate system and placement of the product in space. }
-    property ObjectPlacement: TIfcObjectPlacement read FObjectPlacement write FObjectPlacement;
-
-    { Representations of the product. }
-    property Representation: TIfcProductRepresentation read FRepresentation write FRepresentation;
-
-    // TODO // property ReferencedBy: TIfcRelAssignsToProductList read FReferencedBy;
-
-    // TODO // property PositionedRelativeTo: TIfcRelPositionsList read FPositionedRelativeTo;
-
-    // TODO // property ReferencedInStructures: TIfcRelReferencedInSpatialStructure read FReferencedInStructures;
 
     { Add mesh representation to the given product.
 
@@ -1888,8 +1878,28 @@
       const Box: TBox3D);
 
     { Move this product by given 3D translation.
-      This modifies or sets @link(ObjectPlacement) to a new instance. }
-    procedure SetRelativePlacement(const Translation: TVector3);
+
+      This is a simplified way to read / write the @link(ObjectPlacement) value.
+      IFC offers various possibilities to define the placement of an object,
+      relative to various parents. This property returns relative translation
+      with respect to the parent in the hierarchy, or TVector3.Zero if
+      the @link(ObjectPlacement) defines placement in any other complicated way
+      (e.g. with respect to some other object).
+      Upon setting, it sets @link(ObjectPlacement) to be relative to
+      the parent in the hierarchy. }
+    property RelativePlacement: TVector3 read GetRelativePlacement write SetRelativePlacement;
+  published
+    { Object coordinate system and placement of the product in space. }
+    property ObjectPlacement: TIfcObjectPlacement read FObjectPlacement write FObjectPlacement;
+
+    { Representations of the product. }
+    property Representation: TIfcProductRepresentation read FRepresentation write FRepresentation;
+
+    // TODO // property ReferencedBy: TIfcRelAssignsToProductList read FReferencedBy;
+
+    // TODO // property PositionedRelativeTo: TIfcRelPositionsList read FPositionedRelativeTo;
+
+    // TODO // property ReferencedInStructures: TIfcRelReferencedInSpatialStructure read FReferencedInStructures;
   end;
   TIfcProductList = class({$ifdef FPC}specialize{$endif} TObjectList<TIfcProduct>)
   end;
@@ -4167,6 +4177,42 @@ begin
     6, 7, 3, 2, -1,
     1, 5, 4, 0, -1
   ]);
+end;
+
+function TIfcProduct.GetRelativePlacement: TVector3;
+var
+  UseLocation: TIfcCartesianPoint;
+  UseRelativePlacement: TIfcAxis2Placement3D;
+  UseObjectPlacement: TIfcLocalPlacement;
+begin
+  // calculate UseObjectPlacement
+  if (ObjectPlacement <> nil) and
+     (ObjectPlacement is TIfcLocalPlacement) and
+     (TIfcLocalPlacement(ObjectPlacement).PlacementRelTo = nil) and
+     (TIfcLocalPlacement(ObjectPlacement).PlacesObject.Count = 1) and
+     (TIfcLocalPlacement(ObjectPlacement).PlacesObject[0] = Self) then
+  begin
+    UseObjectPlacement := TIfcLocalPlacement(ObjectPlacement);
+  end else
+    Exit(TVector3.Zero);
+
+  // calculate UseRelativePlacement
+  if (UseObjectPlacement.RelativePlacement <> nil) and
+     (UseObjectPlacement.RelativePlacement is TIfcAxis2Placement3D) then
+  begin
+    UseRelativePlacement := TIfcAxis2Placement3D(UseObjectPlacement.RelativePlacement);
+  end else
+    Exit(TVector3.Zero);
+
+  // calculate UseLocation
+  if (UseRelativePlacement.Location <> nil) and
+     (UseRelativePlacement.Location is TIfcCartesianPoint) then
+  begin
+    UseLocation := TIfcCartesianPoint(UseRelativePlacement.Location);
+  end else
+    Exit(TVector3.Zero);
+
+  Result := UseLocation.Coordinates.Value;
 end;
 
 procedure TIfcProduct.SetRelativePlacement(const Translation: TVector3);

@@ -113,7 +113,13 @@
               "$$ClassName" : "TCastleVector4RotationPersistent",
               "W" : -1.5707963705062866E+000,
               "X" : 1.0000000000000000E+000
-            }
+            },
+            "$Children" : [
+              {
+                "$$ClassName" : "TCastleTransform",
+                "Name" : "TransformSelectedProduct"
+              }
+            ]
           }
         ]
       },
