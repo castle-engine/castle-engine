@@ -1846,6 +1846,10 @@
     FRepresentation: TIfcProductRepresentation;
     function GetRelativePlacement: TVector3;
     procedure SetRelativePlacement(const Translation: TVector3);
+    { Return the value of @link(PlacementRelativeToParent),
+      and if it's @true -> set Translation to
+      the value of @link(RelativePlacement). }
+    function GetRelativePlacementCore(out Translation: TVector3): Boolean;
   public
     function BuildNode(const Mapping: TCastleIfcMapping): TTransformNode; override;
 
@@ -1877,16 +1881,41 @@
       const Context: TIfcGeometricRepresentationContext;
       const Box: TBox3D);
 
-    { Move this product by given 3D translation.
+    { Does @link(ObjectPlacement) express a simple translation relative
+      to the parent.
+      This implies that using @link(RelativePlacement) to operate indirectly
+      on @link(ObjectPlacement) makes sense, i.e. you do not loose information
+      this way. }
+    function PlacementRelativeToParent: Boolean;
 
-      This is a simplified way to read / write the @link(ObjectPlacement) value.
-      IFC offers various possibilities to define the placement of an object,
-      relative to various parents. This property returns relative translation
-      with respect to the parent in the hierarchy, or TVector3.Zero if
-      the @link(ObjectPlacement) defines placement in any other complicated way
-      (e.g. with respect to some other object).
-      Upon setting, it sets @link(ObjectPlacement) to be relative to
-      the parent in the hierarchy. }
+    { Position of this product relative to parent.
+
+      Check @link(PlacementRelativeToParent) before using this property.
+
+      @unorderedList(
+        @item(
+          Using this property when @link(PlacementRelativeToParent) is @true
+          makes most sense: it means that this simple property represents really
+          everything interesting about the placement.
+        )
+        @item(
+          Using this property when @link(PlacementRelativeToParent) is @false
+          means that reading it returns TVector.Zero, and setting it overrides
+          the previous placement setup. This may or may not be intuitive to your
+          usage.
+
+          In general, IFC offers various possibilities to define the placement
+          of an object, relative to various parents.
+          This property offers a simple way to change translation in the most common
+          case, when the placement is relative to our parent in the hierarchy.
+          If the @link(ObjectPlacement) defines placement in any other complicated way
+          (e.g. with respect to some other object) then this property returns
+          TVector3.Zero and @link(PlacementRelativeToParent) is @false.
+          Setting this property in such case will override the previous placement,
+          which may result in object "jumping" suddenly to unexpected place.
+        )
+      )
+    }
     property RelativePlacement: TVector3 read GetRelativePlacement write SetRelativePlacement;
   published
     { Object coordinate system and placement of the product in space. }
@@ -4179,7 +4208,7 @@ begin
   ]);
 end;
 
-function TIfcProduct.GetRelativePlacement: TVector3;
+function TIfcProduct.GetRelativePlacementCore(out Translation: TVector3): Boolean;
 var
   UseLocation: TIfcCartesianPoint;
   UseRelativePlacement: TIfcAxis2Placement3D;
@@ -4194,7 +4223,12 @@ begin
   begin
     UseObjectPlacement := TIfcLocalPlacement(ObjectPlacement);
   end else
-    Exit(TVector3.Zero);
+  if ObjectPlacement = nil then
+  begin
+    Translation := TVector3.Zero;
+    Exit(true);
+  end else
+    Exit(false);
 
   // calculate UseRelativePlacement
   if (UseObjectPlacement.RelativePlacement <> nil) and
@@ -4202,7 +4236,12 @@ begin
   begin
     UseRelativePlacement := TIfcAxis2Placement3D(UseObjectPlacement.RelativePlacement);
   end else
-    Exit(TVector3.Zero);
+  if UseObjectPlacement.RelativePlacement = nil then
+  begin
+    Translation := TVector3.Zero;
+    Exit(true);
+  end else
+    Exit(false);
 
   // calculate UseLocation
   if (UseRelativePlacement.Location <> nil) and
@@ -4210,9 +4249,28 @@ begin
   begin
     UseLocation := TIfcCartesianPoint(UseRelativePlacement.Location);
   end else
-    Exit(TVector3.Zero);
+  if UseRelativePlacement.Location = nil then
+  begin
+    Translation := TVector3.Zero;
+    Exit(true);
+  end else
+    Exit(false);
 
-  Result := UseLocation.Coordinates.Value;
+  Translation := UseLocation.Coordinates.Value;
+  Result := true;
+end;
+
+function TIfcProduct.PlacementRelativeToParent: Boolean;
+var
+  DummyTranslation: TVector3;
+begin
+  Result := GetRelativePlacementCore(DummyTranslation);
+end;
+
+function TIfcProduct.GetRelativePlacement: TVector3;
+begin
+  if not GetRelativePlacementCore(Result) then
+    Result := TVector3.Zero;
 end;
 
 procedure TIfcProduct.SetRelativePlacement(const Translation: TVector3);

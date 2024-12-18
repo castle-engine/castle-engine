@@ -368,12 +368,18 @@ begin
     if ElementList.Count = 0 then
       Exit;
     RandomElement := ElementList[Random(ElementList.Count)];
-    RandomElement.RelativePlacement := Vector3(
-      RandomFloatRange(-5, 5),
-      RandomFloatRange(-5, 5),
-      0
-    );
-    WritelnLog('Modified element "%s" placement', [RandomElement.Name]);
+    if RandomElement.PlacementRelativeToParent then
+    begin
+      RandomElement.RelativePlacement := Vector3(
+        RandomFloatRange(-5, 5),
+        RandomFloatRange(-5, 5),
+        0
+      );
+      WritelnLog('Modified element "%s" placement', [RandomElement.Name]);
+    end else
+      WritelnWarning('Element "%s" is not positioned relative to parent, cannot modify', [
+        RandomElement.Name
+      ]);
   finally FreeAndNil(ElementList) end;
 
   IfcMapping.Update(IfcFile);
@@ -418,6 +424,9 @@ var
 
     if Parent = IfcFile.Project.BestContainer then
       SList.Add(NowIndent + Indent + '<font color="#0000aa">(^detected best container)</font>');
+    if (Parent is TIfcProduct) and
+       (not TIfcProduct(Parent).PlacementRelativeToParent) then
+      SList.Add(NowIndent + Indent + '<font color="#aa0000">(^placement complicated, cannot drag)</font>');
 
     for RelAggregates in Parent.IsDecomposedBy do
       for RelatedObject in RelAggregates.RelatedObjects do
@@ -499,7 +508,9 @@ begin
       UpdateLabelHierarchy;
 
       // update TransformManipulate, to allow dragging selected product
-      if (IfcSelectedProduct <> nil) and not (HitShape.BoundingBox.IsEmpty) then
+      if (IfcSelectedProduct <> nil) and
+         IfcSelectedProduct.PlacementRelativeToParent and
+         (not HitShape.BoundingBox.IsEmpty) then
       begin
         TransformSelectedProduct.Translation := HitShape.BoundingBox.Center;
         IfcSelectedProductShapeTranslation := TransformSelectedProduct.Translation;
