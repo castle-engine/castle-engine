@@ -59,7 +59,14 @@
         between X3D nodes) to follow IFC TIfcObjectPlacement.PlacementRelTo idea. }
       ChildrenNodesToObjectPlacement: TChildrenNodesToObjectPlacement;
 
-      { Map X3D shape nodes to IFC products. Allows to implement NodeToProduct. }
+      { Map X3D shape nodes to IFC products. Allows to implement NodeToProduct.
+        Use this only to map TShapeNode instances (pointers)
+        that definitely exist and are valid.
+
+        Due to how we manage this list (each TCastleIfcMapping.Update
+        adds new TShape instances as keys, without removing previous,
+        because maybe some previous will survive) we may have invalid
+        pointers as keys in this dictionary. }
       ShapeToProduct: TShapeToProduct;
 
     { BaseUrl should be passed to all X3D nodes created by this class,
@@ -233,7 +240,14 @@ end;
 
 function TCastleIfcMapping.CreateRootNode(const Ifc: TIfcFile): TX3DRootNode;
 begin
-  ShapeToProduct.Clear; // will be reinitialized by BuildNode methods
+  { Do not do call ShapeToProduct.Clear, as older shapes still exist,
+    and (due to how smart TCastleIfcMapping.Update works) may stil exist.
+    So they should still map to IFC products.
+    If we would do
+
+      ShapeToProduct.Clear; // will be reinitialized by BuildNode methods
+
+    now, our NodeToProduct would no longer enable to pick shapes that survived. }
 
   { Initialize things used only temporarily during Load. }
   ObjectPlacementToParentNodes := TObjectPlacementToParentNodes.Create;
@@ -255,20 +269,144 @@ begin
 end;
 
 procedure TCastleIfcMapping.Update(const Ifc: TIfcFile);
+
+  function MergeNodesList(const TargetNodes, SourceNodes: TX3DNodeList): Boolean; forward;
+
+  { Merge contents of two nodes, checking also is it possible to merge.
+    One or both of the nodes may be @nil.
+
+    When TargetNode and SourceNode are not of the same class
+    we return @false (impossible to merge) without any changes.
+    Otherwise, we may return @false (if impossible to merge),
+    but some undefined changes to TargetNode may be done anyway.
+    Or we will make all necessary changes to TargetNode to reflect SourceNode
+    and return @true.
+
+    Some of the contents of SourceNode may become referenced from the TargetNode
+    structure as an effect of this call.
+
+    When the nodes cannot be merged, returns @false.
+    The circumstances of it may change.
+    For now, any structural change -> @false.
+
+    TODO:
+    In the future, we may add / remove children to reconcile the structural change.
+    For now, it would be of little use, as TAbstractGroupingNode.AddChildren
+    and the like are not optimized at TCastleSceneCore anyway (they result
+    in ChangedAll) so there's little gain from trying to be smart when
+    structural changes happen (well, the gain would be "stable node instances",
+    but update time would not improve). }
+  function MergeNodes(const TargetNode, SourceNode: TX3DNode): Boolean;
+  var
+    I: Integer;
+    TargetField, SourceField: TX3DField;
+  begin
+    if (TargetNode = nil) <> (SourceNode = nil) then
+      Exit(false);
+
+    if TargetNode = nil then
+    begin
+      Assert(SourceNode = nil);
+      Exit(true); // nothing more to do
+    end;
+
+    if TargetNode.ClassType <> SourceNode.ClassType then
+      Exit(false);
+
+    // load TInlineNode contents before merging
+    if TargetNode is TInlineNode then
+    begin
+      Assert(SourceNode is TInlineNode);
+      TInlineNode(TargetNode).LoadInlined(false);
+      TInlineNode(SourceNode).LoadInlined(false);
+    end;
+
+    // copy TX3DRootNode specials
+    if TargetNode is TX3DRootNode then
+    begin
+      Assert(SourceNode is TX3DRootNode);
+      TX3DRootNode(TargetNode).InternalAssignRootNodeProps(TX3DRootNode(SourceNode));
+    end;
+
+    // copy TX3DNode stuff
+    TargetNode.X3DName := SourceNode.X3DName;
+    TargetNode.BaseUrl := SourceNode.BaseUrl;
+
+    // merge VRML 1 children, recursively
+    if TargetNode.VRML1ChildrenCount <> SourceNode.VRML1ChildrenCount then
+      Exit(false);
+    for I := 0 to TargetNode.VRML1ChildrenCount - 1 do
+    begin
+      if not MergeNodes(TargetNode.VRML1Children[I], SourceNode.VRML1Children[I]) then
+        Exit(false);
+    end;
+
+    // merge fields; SFNode and MFNode mean merging recursively
+    if TargetNode.FieldsCount <> SourceNode.FieldsCount then
+      Exit(false);
+    for I := 0 to TargetNode.FieldsCount - 1 do
+    begin
+      TargetField := TargetNode.Fields[I];
+      SourceField := SourceNode.Fields[I];
+      if TargetField.ClassType <> SourceField.ClassType then
+        Exit(false);
+
+      if TargetField is TSFNode then
+      begin
+        Assert(SourceField is TSFNode);
+        if not MergeNodes(TSFNode(TargetField).Value, TSFNode(SourceField).Value) then
+          Exit(false);
+      end else
+      if TargetField is TMFNode then
+      begin
+        Assert(SourceField is TMFNode);
+        if not MergeNodesList(
+            TMFNode(TargetField).InternalItems,
+            TMFNode(SourceField).InternalItems) then
+          Exit(false);
+      end else
+        TargetNode.Fields[I].Send(SourceNode.Fields[I]);
+    end;
+
+    Result := true;
+  end;
+
+  { Like MergeNode, but merge all nodes on the lists. }
+  function MergeNodesList(const TargetNodes, SourceNodes: TX3DNodeList): Boolean;
+  var
+    I: Integer;
+  begin
+    if TargetNodes.Count <> SourceNodes.Count then
+      Exit(false);
+    for I := 0 to TargetNodes.Count - 1 do
+      if not MergeNodes(TargetNodes[I], SourceNodes[I]) then
+        Exit(false);
+    Result := true;
+  end;
+
+  procedure ReplaceRootContents(const TargetRoot, SourceRoot: TX3DRootNode);
+  var
+    ChildNode: TAbstractChildNode;
+    I: Integer;
+  begin
+    TargetRoot.ClearChildren;
+    for I := 0 to SourceRoot.FdChildren.Count - 1 do
+    begin
+      ChildNode := SourceRoot.FdChildren[I] as TAbstractChildNode;
+      TargetRoot.AddChildren(ChildNode);
+    end;
+    { This is justifiable now when structure changes, e.g. new wall is added.
+      Not justifiable when only transformation, like translation, changes. }
+    // WritelnLog('IFC', 'TCastleIfcMapping.Update fallback on unoptimal implementation: Replaced root contents');
+  end;
+
 var
   NewRootNode: TX3DRootNode;
-  ChildNode: TAbstractChildNode;
-  I: Integer;
 begin
-  // TODO: very inefficient implementation that removes old, adds new
   NewRootNode := CreateRootNode(Ifc);
   try
-    FRootNode.ClearChildren;
-    for I := 0 to NewRootNode.FdChildren.Count - 1 do
-    begin
-      ChildNode := NewRootNode.FdChildren[I] as TAbstractChildNode;
-      FRootNode.AddChildren(ChildNode);
-    end;
+    if not MergeNodes(FRootNode, NewRootNode) then
+      ReplaceRootContents(FRootNode, NewRootNode);
   finally FreeAndNil(NewRootNode) end;
 end;
 
@@ -511,7 +649,7 @@ begin
   // Shape.Appearance := Appearance;
   SetMetadata(Shape, 'IFC_ClassName', ClassName);
 
-  Mapping.ShapeToProduct.Add(Shape, ParentProduct);
+  Mapping.ShapeToProduct.AddOrSetValue(Shape, ParentProduct);
   Result := Shape;
 end;
 
@@ -590,7 +728,7 @@ begin
     end;
   end;
 
-  Mapping.ShapeToProduct.Add(Shape, ParentProduct);
+  Mapping.ShapeToProduct.AddOrSetValue(Shape, ParentProduct);
   Result := Shape;
 end;
 
@@ -619,7 +757,7 @@ begin
   Shape.Appearance := Appearance;
   SetMetadata(Shape, 'IFC_ClassName', ClassName);
 
-  Mapping.ShapeToProduct.Add(Shape, ParentProduct);
+  Mapping.ShapeToProduct.AddOrSetValue(Shape, ParentProduct);
   Result := Shape;
 end;
 
@@ -657,7 +795,7 @@ begin
   Shape.Appearance := Appearance;
   SetMetadata(Shape, 'IFC_ClassName', ClassName);
 
-  Mapping.ShapeToProduct.Add(Shape, ParentProduct);
+  Mapping.ShapeToProduct.AddOrSetValue(Shape, ParentProduct);
   Result := Shape;
 end;
 
