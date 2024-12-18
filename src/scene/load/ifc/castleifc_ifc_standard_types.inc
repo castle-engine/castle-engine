@@ -4218,8 +4218,14 @@ begin
   if (ObjectPlacement <> nil) and
      (ObjectPlacement is TIfcLocalPlacement) and
      (TIfcLocalPlacement(ObjectPlacement).PlacementRelTo = nil) and
-     (TIfcLocalPlacement(ObjectPlacement).PlacesObject.Count = 1) and
-     (TIfcLocalPlacement(ObjectPlacement).PlacesObject[0] = Self) then
+     (
+       { Check PlacesObject that should include Self, or be empty.
+        https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcObjectPlacement.htm
+        allows placesObject to be empty, from what I understand, BonsaiBIM
+        also can generate such placement. }
+       (TIfcLocalPlacement(ObjectPlacement).PlacesObject.IndexOf(Self) <> -1) or
+       (TIfcLocalPlacement(ObjectPlacement).PlacesObject.Count = 0)
+     ) then
   begin
     UseObjectPlacement := TIfcLocalPlacement(ObjectPlacement);
   end else
@@ -4283,8 +4289,14 @@ begin
   if (ObjectPlacement <> nil) and
      (ObjectPlacement is TIfcLocalPlacement) and
      (TIfcLocalPlacement(ObjectPlacement).PlacementRelTo = nil) and
-     (TIfcLocalPlacement(ObjectPlacement).PlacesObject.Count = 1) and
-     (TIfcLocalPlacement(ObjectPlacement).PlacesObject[0] = Self) then
+     (
+       { Check PlacesObject that should include Self, or be empty.
+        https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcObjectPlacement.htm
+        allows placesObject to be empty, from what I understand, BonsaiBIM
+        also can generate such placement. }
+       (TIfcLocalPlacement(ObjectPlacement).PlacesObject.IndexOf(Self) <> -1) or
+       (TIfcLocalPlacement(ObjectPlacement).PlacesObject.Count = 0)
+     ) then
   begin
     NewObjectPlacement := TIfcLocalPlacement(ObjectPlacement);
   end else
