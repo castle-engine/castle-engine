@@ -870,9 +870,11 @@ end;
 
 function TIfcElement.BuildNode(const Mapping: TCastleIfcMapping): TTransformNode;
 
-  { For all shapes within Node, multiply their main color (RGB) and opacity. }
+  { For all shapes within Node, multiply their main color (RGB) and opacity.
+    Also potentially turn shape into unlit. }
   procedure MaterialMultiply(const Node: TAbstractChildNode;
-    const Color: TCastleColorRgb; const Opacity: Single);
+    const Color: TCastleColorRgb; const Opacity: Single;
+    const MakeUnlit: Boolean);
   var
     Shape: TShapeNode;
     Group: TAbstractGroupingNode;
@@ -883,6 +885,8 @@ function TIfcElement.BuildNode(const Mapping: TCastleIfcMapping): TTransformNode
     if Node is TShapeNode then
     begin
       Shape := TShapeNode(Node);
+      if MakeUnlit then
+        Shape.Shading := shWireframe;
 
       if Shape.Appearance = nil then
         Shape.Appearance := TAppearanceNode.Create('', Mapping.BaseUrl);
@@ -896,6 +900,8 @@ function TIfcElement.BuildNode(const Mapping: TCastleIfcMapping): TTransformNode
       MatInfo := Shape.Appearance.Material.MaterialInfo;
       MatInfo.MainColor := MatInfo.MainColor * Color;
       MatInfo.Opacity := MatInfo.Opacity * Opacity;
+      if MakeUnlit then
+        MatInfo.EmissiveColor := MatInfo.MainColor;
     end;
 
     if Node is TAbstractGroupingNode then
@@ -905,13 +911,13 @@ function TIfcElement.BuildNode(const Mapping: TCastleIfcMapping): TTransformNode
         if Group.FdChildren[I] is TAbstractChildNode then
         begin
           ChildNode := TAbstractChildNode(Group.FdChildren[I]);
-          MaterialMultiply(ChildNode, Color, Opacity);
+          MaterialMultiply(ChildNode, Color, Opacity, MakeUnlit);
         end;
     end;
   end;
 
 const
-  LihgtRedRgb: TCastleColorRgb = (X: 1.0; Y: 0.33; Z: 0.33);
+  LightRedRgb: TCastleColorRgb = (X: 1.0; Y: 0.33; Z: 0.33);
 var
   RelVoidsElement: TIfcRelVoidsElement;
   ChildNode: TAbstractChildNode;
@@ -930,12 +936,12 @@ begin
        and other geometry that should be visible (e.g. window geometry in wall). }
 
   if HasOpenings.Count > 0 then
-    MaterialMultiply(Result, WhiteRgb, 0.2);
+    MaterialMultiply(Result, WhiteRgb, 0.2, false);
 
   for RelVoidsElement in HasOpenings do
   begin
     ChildNode := RelVoidsElement.BuildNode(Mapping);
-    MaterialMultiply(ChildNode, LihgtRedRgb, 1.0);
+    MaterialMultiply(ChildNode, LightRedRgb, 1.0, true);
     Result.AddChildren(ChildNode);
   end;
 end;
