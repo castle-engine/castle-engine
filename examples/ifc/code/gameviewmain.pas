@@ -426,7 +426,7 @@ var
       SList.Add(NowIndent + Indent + '<font color="#0000aa">(^detected best container)</font>');
     if (Parent is TIfcProduct) and
        (not TIfcProduct(Parent).PlacementRelativeToParent) then
-      SList.Add(NowIndent + Indent + '<font color="#aa0000">(^placement complicated, cannot drag)</font>');
+      SList.Add(NowIndent + Indent + '<font color="#aa0000">(^cannot drag placement)</font>');
 
     for RelAggregates in Parent.IsDecomposedBy do
       for RelatedObject in RelAggregates.RelatedObjects do
