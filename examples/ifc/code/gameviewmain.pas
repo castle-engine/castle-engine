@@ -308,7 +308,7 @@ procedure TViewMain.ClickSaveIfc(Sender: TObject);
 var
   Url: string;
 begin
-  Url := 'castle-data:/';
+  Url := 'castle-data:/out.ifcjson';
   if Application.MainWindow.FileDialog('Save IFC file',
       Url, false, IfcFileFilter) then
   begin
