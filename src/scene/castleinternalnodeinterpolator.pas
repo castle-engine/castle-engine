@@ -512,10 +512,15 @@ begin
     Model1.BaseUrl);
   try
     { We already loaded all inlines (in CheckNodesStructurallyEqual).
-      We have to mark it now, by setting Loaded := true field as necessary
-      inside inline nodes --- otherwise, they could be loaded again
-      (adding content to already existing nodes, making content loaded
-      more than once). }
+
+      In case targer Inline content was effectively loaded by using
+      VRML1Children from source Inline,
+      we have to use LoadedInlineDirectly, to
+      - have InlineLoaded := true
+      - have TInlineNode.FInlined correct.
+
+      Otherwise, target Inline would not realize that contents are loaded.
+      (And e.g. they would be loaded again, duplicating content). }
     if Result is TInlineNode then
     begin
       TInlineNode(Result).LoadedInlineDirectly;
@@ -523,14 +528,9 @@ begin
 
     if Result is TX3DRootNode then
     begin
-      { copy TX3DRootNode special fields, like TX3DRootNode.DeepCopyCore.
+      { Assign TX3DRootNode special fields.
         This is necessary for WrapRootNode working Ok lower in this file. }
-      TX3DRootNode(Result).HasForceVersion := (Model1 as TX3DRootNode).HasForceVersion;
-      TX3DRootNode(Result).ForceVersion := (Model1 as TX3DRootNode).ForceVersion;
-      TX3DRootNode(Result).Scale := (Model1 as TX3DRootNode).Scale;
-      TX3DRootNode(Result).Profile := (Model1 as TX3DRootNode).Profile;
-      TX3DRootNode(Result).Components.Assign((Model1 as TX3DRootNode).Components);
-      TX3DRootNode(Result).Meta.Assign((Model1 as TX3DRootNode).Meta);
+      TX3DRootNode(Result).InternalAssignRootNodeProps(Model1 as TX3DRootNode);
     end;
 
     { TODO: the code below doesn't deal efficiently with the situation when single
