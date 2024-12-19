@@ -1123,8 +1123,12 @@
       and react when they change. }
     procedure VisibleChangeHere(const Changes: TVisibleChanges); virtual;
 
-    { Root transformation (TCastleAbstractRootTransform) containing us.
-      @nil if we are not (yet) part of some hierarchy rooted in TCastleAbstractRootTransform. }
+    { Reference to the root transformation (typically matching the
+      @link(TCastleViewport.Items) value) containing us.
+
+      May be @nil if we are not (yet) part of some hierarchy rooted in
+      TCastleAbstractRootTransform. In simple words, it means that
+      TCastleTransform is not added to the viewport yet. }
     property World: TCastleAbstractRootTransform read FWorld;
 
     { Called when rendering context is destroyed.
