@@ -3792,7 +3792,7 @@ procedure TDesignFrame.GizmoTransformModifyEnd(Sender: TObject);
 begin
   if UndoSystem.ScheduleRecordUndoOnRelease then
     RecordUndo('Transform ' +
-      (Sender as TCastleTransformManipulate).MainSelected.Name +
+      (Sender as TCastleTransformManipulate).SelectionCaption +
       ' with Gizmo', ucHigh);
 end;
 
@@ -4947,16 +4947,6 @@ begin
     *)
 
     TransformManipulate.SetSelected(Selected);
-    if T is TCastleAbstractRootTransform then
-    begin
-      { Special case to disallow editing TCastleAbstractRootTransform transformation.
-        See InspectorFilter for explanation, in short: editing TCastleAbstractRootTransform
-        transformation is very unintuitive. }
-      TransformManipulate.MainSelected := nil
-    end else
-    begin
-      TransformManipulate.MainSelected := T; // works also in case SelectedTransform is nil
-    end;
   finally FreeAndNil(Selected) end;
 
   if CameraPreview <> nil then

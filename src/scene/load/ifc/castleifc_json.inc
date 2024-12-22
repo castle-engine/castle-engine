@@ -569,19 +569,15 @@ var
     end;
 
     { For all elements on JsonChildArray create and read Pascal class,
-      and add it to property PropInfo of Ifc,
-      which should be a list descendant. }
-    procedure ReadIfcChildArray(const PropInfo: PPropInfo;
-      const JsonChildArray: TJsonArray);
+      and add it to List. }
+    procedure ReadIfcChildArray(const List: TIfcPersistentList;
+      const JsonChildArray: TJsonArray); overload;
     var
-      List: TIfcPersistentList;
       I: Integer;
       IfcChild: TIfcPersistent;
       JsonChildObj: TJsonObject;
       RequiredClass: TIfcPersistentClass;
     begin
-      List := GetListProperty(PropInfo);
-
       for I := 0 to JsonChildArray.Count - 1 do
       begin
         if JsonChildArray.Items[I] is TJsonObject then
@@ -614,6 +610,15 @@ var
           List.Add(IfcChild);
         end;
       end;
+    end;
+
+    { For all elements on JsonChildArray create and read Pascal class,
+      and add it to property PropInfo of Ifc,
+      which should be a list descendant. }
+    procedure ReadIfcChildArray(const PropInfo: PPropInfo;
+      const JsonChildArray: TJsonArray); overload;
+    begin
+      ReadIfcChildArray(GetListProperty(PropInfo), JsonChildArray);
     end;
 
     { Read one JSON object, add it as the only item to the list property PropInfo of Ifc.
@@ -737,6 +742,16 @@ var
       end;
     end;
 
+    { Read "data" list to TIfcFile.TemporaryData. }
+    procedure ReadFileData(const IfcFile: TIfcFile; const JsonArray: TJsonArray);
+    begin
+      if IfcFile.TemporaryData <> nil then
+        raise EInvalidIfc.Create('Duplicate "data" field in IFC file');
+      IfcFile.TemporaryData := TIfcPersistentList.Create(false);
+      ReadIfcChildArray(IfcFile.TemporaryData, JsonArray);
+      IfcFile.Project := TIfcFile.ProjectFromDataList(IfcFile.TemporaryData);
+    end;
+
   var
     I: Integer;
     JsonKey: String;
@@ -748,6 +763,17 @@ var
       if JsonKey = 'type' then // special field, handled by code that calls DeserializeJson
         Continue;
       DebugJsonKey := PrefixRemove('T', Ifc.ClassName, false) + '.' + JsonKey;
+
+      { Special handling of "data" list within TIfcFile.
+        TIfcFile.Data is not a published property (because it would make sense
+        only temporarily during loading), so we load it with dedicated code here. }
+      if (JsonKey = 'data') and
+         (Json.Items[I] is TJsonArray) and
+         (Ifc is TIfcFile) then
+      begin
+        ReadFileData(TIfcFile(Ifc), Json.Items[I] as TJsonArray);
+        Continue;
+      end;
 
       PropInfo := GetPropInfo(Ifc.ClassInfo, JsonKey);
       if PropInfo = nil then
@@ -810,46 +836,63 @@ var
     or make a warning and set UnresolvedRef to '' if not possible.
 
     By the end of this, UnresolvedRef should be empty in all TIfcPersistent instances. }
-  procedure ResolveReferences(const Ifc: TIfcPersistent);
+  procedure ResolveReferences(const IfcFile: TIfcFile);
   var
     Visited: TIfcPersistentList;
 
+    { Resolve reference indicated by IfcToResolve,
+      which must have UnresolvedRef non-empty.
+      Sets NewIfc to the resolved reference (if success)
+      or makes a warning and sets to IfcToResolve (if failure). }
+    procedure ResolveRef(const IfcToResolve: TIfcPersistent; out NewIfc: TIfcPersistent);
+    var
+      IfcRefIndex: Integer;
+    begin
+      Assert(IfcToResolve.UnresolvedRef <> '');
+      IfcRefIndex := Refs.IndexOf(IfcToResolve.UnresolvedRef);
+      if IfcRefIndex = -1 then
+      begin
+        WritelnWarning('IFC', 'IFC reference "%s" (class "%s") not found, leaving unresolved', [
+          IfcToResolve.UnresolvedRef,
+          IfcToResolve.ClassName
+        ]);
+        IfcToResolve.UnresolvedRef := '';
+        NewIfc := IfcToResolve;
+      end else
+      begin
+        NewIfc := Refs.Objects[IfcRefIndex] as TIfcPersistent;
+        Assert(NewIfc <> nil);
+      end;
+    end;
+
+    procedure ResolveReferencesCore(const Ifc: TIfcPersistent); forward;
+
+    procedure ResolveReferencesList(const List: TIfcPersistentList);
+    var
+      J: Integer;
+      IfcObjPropertyPersistent, NewIfcObjProperty: TIfcPersistent;
+    begin
+      for J := 0 to List.Count - 1 do
+      begin
+        IfcObjPropertyPersistent := List[J];
+        if IfcObjPropertyPersistent.UnresolvedRef <> '' then
+        begin
+          ResolveRef(IfcObjPropertyPersistent, NewIfcObjProperty);
+          List[J] := NewIfcObjProperty;
+        end else
+          ResolveReferencesCore(IfcObjPropertyPersistent);
+      end;
+    end;
+
     { Recursive subroutine of ResolveReferences. }
     procedure ResolveReferencesCore(const Ifc: TIfcPersistent);
-
-      { Resolve reference indicated by IfcToResolve,
-        which must have UnresolvedRef non-empty.
-        Sets NewIfc to the resolved reference (if success)
-        or makes a warning and sets to IfcToResolve (if failure). }
-      procedure ResolveRef(const IfcToResolve: TIfcPersistent; out NewIfc: TIfcPersistent);
-      var
-        IfcRefIndex: Integer;
-      begin
-        Assert(IfcToResolve.UnresolvedRef <> '');
-        IfcRefIndex := Refs.IndexOf(IfcToResolve.UnresolvedRef);
-        if IfcRefIndex = -1 then
-        begin
-          WritelnWarning('IFC', 'IFC reference "%s" (class "%s") not found, leaving unresolved', [
-            IfcToResolve.UnresolvedRef,
-            IfcToResolve.ClassName
-          ]);
-          IfcToResolve.UnresolvedRef := '';
-          NewIfc := IfcToResolve;
-        end else
-        begin
-          NewIfc := Refs.Objects[IfcRefIndex] as TIfcPersistent;
-          Assert(NewIfc <> nil);
-        end;
-      end;
-
     var
       PropInfos: TPropInfoList;
       PropInfo: PPropInfo;
       PropType: TPropertyType;
       IfcObjProperty: TObject;
       IfcObjPropertyPersistent, NewIfcObjProperty: TIfcPersistent;
-      List: TIfcPersistentList;
-      I, J: Integer;
+      I: Integer;
     begin
       if Visited.Contains(Ifc) then
         Exit; // already visited, exit early to avoid cycles
@@ -868,17 +911,7 @@ var
               ClassNameOfList(IfcObjProperty.ClassName) then
             begin
               { List of instances. Resolve references in each of them. }
-              List := TIfcPersistentList(IfcObjProperty);
-              for J := 0 to List.Count - 1 do
-              begin
-                IfcObjPropertyPersistent := List[J];
-                if IfcObjPropertyPersistent.UnresolvedRef <> '' then
-                begin
-                  ResolveRef(IfcObjPropertyPersistent, NewIfcObjProperty);
-                  List[J] := NewIfcObjProperty;
-                end else
-                  ResolveReferencesCore(IfcObjPropertyPersistent);
-              end;
+              ResolveReferencesList(TIfcPersistentList(IfcObjProperty));
             end else
             if IfcObjProperty is TIfcPersistent then
             begin
@@ -899,7 +932,14 @@ var
   begin
     Visited := TIfcPersistentList.Create(false);
     try
-      ResolveReferencesCore(Ifc);
+      ResolveReferencesCore(IfcFile);
+
+      { Special handling for unpublished TIfcFile.TemporaryData,
+        where we also need to resolve references,
+        to have everything in TIfcFile.Project (that refers to one item
+        on this list) resolved. }
+      if IfcFile.TemporaryData <> nil then
+        ResolveReferencesList(IfcFile.TemporaryData);
     finally FreeAndNil(Visited) end;
   end;
 
@@ -929,7 +969,7 @@ begin
     if TopLevelType = 'IfcProject' then
     begin
       Project := TIfcProject.Create(IfcOwner);
-      Result.Data.Add(Project);
+      Result.Project := Project;
       DeserializeJson(JsonObj, Project);
     end else
     begin
@@ -948,6 +988,8 @@ begin
     end;
 
     ResolveReferences(Result);
+
+    FreeAndNil(Result.TemporaryData);
   finally FreeAndNil(Refs) end;
 end;
 
@@ -958,7 +1000,8 @@ var
     (when given instance is already saved) and when full instance. }
   Refs: TIfcPersistentList;
 
-  function SerializeJson(const Ifc: TIfcPersistent): TJsonObject; forward;
+  function SerializeJson(const Ifc: TIfcPersistent;
+    const SerializingFileData: Boolean): TJsonObject; forward;
 
   { Serialize TVector2 to JSON array. }
   function SerializeJsonVector2(const Vector: TVector2): TJsonArray; overload;
@@ -1049,7 +1092,8 @@ var
   { For all elements on JsonChildArray create and read Pascal class,
     and add it to property PropInfo of Ifc,
     which should be a list descendant. }
-  function SerializeJsonList(const ListRaw: TObject): TJsonArray;
+  function SerializeJsonList(const ListRaw: TObject;
+    const SerializingFileData: Boolean): TJsonArray;
   var
     I: Integer;
     List: TIfcPersistentList;
@@ -1057,7 +1101,7 @@ var
     List := TIfcPersistentList(ListRaw);
     Result := TJsonArray.Create;
     for I := 0 to List.Count - 1 do
-      Result.Add(SerializeJson(List[I]));
+      Result.Add(SerializeJson(List[I], SerializingFileData));
   end;
 
   { Is given ListRaw a list, and it is not empty. }
@@ -1072,12 +1116,19 @@ var
       (List.Count <> 0);
   end;
 
+var
+  { Result of TIfcFile.CreateDataList. }
+  FileData: TIfcPersistentList;
+
   {$ifdef FPC}
     {$pop}
   {$endif}
 
-  { Serialize TIfcPersistent instance to JSON object. }
-  function SerializeJson(const Ifc: TIfcPersistent): TJsonObject;
+  { Serialize TIfcPersistent instance to JSON object.
+    @param(SerializingFileData When we iterate over data list
+      returned by TIfcFile.CreateDataList) }
+  function SerializeJson(const Ifc: TIfcPersistent;
+    const SerializingFileData: Boolean): TJsonObject;
   var
     PropInfos: TPropInfoList;
     PropInfo: PPropInfo;
@@ -1104,16 +1155,29 @@ var
       Exit;
     end;
 
+    { All IFC objects must be listed (not as references)
+      on the "data" list. This make JSON read correctly by conversion scripts
+      in https://github.com/buildingsmart-community/ifcJSON .
+      This implies that we only write a reference to an object,
+      if it should be instead present on the "data" list. }
+    if (FileData.IndexOf(Ifc) <> -1) and
+       (not SerializingFileData) then
+    begin
+      Result.Add('ref', Ifc.GlobalId);
+      Exit;
+    end;
+
     // update Refs
     if RefsContains then
       raise EInvalidIfc.CreateFmt('IFC instance of "%s" (GUID "%s") was already saved to IFC file so our logic to avoid writing full class more than once (and avoid infinite recursion when writing) is faulty, or maybe we need to generate GUIDs for any TIfcPersistent', [
         Ifc.ClassName,
         Ifc.GlobalId
       ]);
-    { Create GlobalId only for TIfcRoot, because IFC spec allows it only
-      on TIfcRoot. Our implementation allows it on any TIfcPersistent
-      as some IFC files actually have it. }
-    if (Ifc.GlobalId = '') and (Ifc is TIfcRoot) then
+    { Create GlobalId only when WantsGlobalId.
+      IFC spec allows it only on TIfcRoot, though IFC JSON spec encourages
+      "broader use" and in practice it is used, and really necessary,
+      on other classes too. }
+    if (Ifc.GlobalId = '') and Ifc.WantsGlobalId then
       Ifc.GlobalId := RandomGuidIfc;
     { Update Refs for any object, not only TIfcRoot.
       So Ifc.GlobalId may be '' here. }
@@ -1186,13 +1250,13 @@ var
                   Result.Add(JsonKey, SerializeJsonVector4(TCastleVector4Persistent(IfcObjProperty)))
                 else
                 if IfcObjProperty is TIfcPersistent then
-                  Result.Add(JsonKey, SerializeJson(TIfcPersistent(IfcObjProperty)))
+                  Result.Add(JsonKey, SerializeJson(TIfcPersistent(IfcObjProperty), false))
                 else
                 if ClassNameOfList(IfcObjProperty.ClassName) then
                 begin
                   // don't save empty lists, just for shorter output
                   if NonEmptyList(IfcObjProperty) then
-                    Result.Add(JsonKey, SerializeJsonList(IfcObjProperty));
+                    Result.Add(JsonKey, SerializeJsonList(IfcObjProperty, false));
                 end else
                   WritelnWarning('IFC', 'IFC field "%s" has unsupported class "%s", ignoring', [
                     DebugPropName,
@@ -1212,10 +1276,21 @@ var
   end;
 
 begin
-  Refs := TIfcPersistentList.Create(false);
+  FileData := IfcFile.CreateDataList;
   try
-    Result := SerializeJson(IfcFile);
-  finally FreeAndNil(Refs) end;
+    Refs := TIfcPersistentList.Create(false);
+    try
+      Result := SerializeJson(IfcFile, false);
+
+      { Serialize IfcFile.CreateDataList result.
+        Note that we could also define "Data: TIfcPersistentList" at TIfcFile,
+        to have simpler load / save code, and in fact we had this in the past.
+        But then it was bad TIfcFile API: the Data should not be ever
+        manipulated except during loading / saving, normal IFC operations
+        should always work on TIfcFile.Project. }
+      Result.Add('data', SerializeJsonList(FileData, true));
+    finally FreeAndNil(Refs) end;
+  finally FreeAndNil(FileData) end;
 end;
 
 { convenience overloads that load/save from/to URL --------------------------- }

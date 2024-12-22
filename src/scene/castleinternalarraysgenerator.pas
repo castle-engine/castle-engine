@@ -232,6 +232,11 @@ type
     procedure AssignCoordinate(const AttributeName: String;
       const TargetPtr, SourcePtr: Pointer; const SourceItemSize, SourceCount: SizeInt;
       const TrivialIndex: Boolean = false);
+
+    { @true if TShapeNode.Shading is shWireframe,
+      see https://castle-engine.io/x3d_implementation_shape_extensions.php#section_ext_shading ,
+      to force wireframe rendering. }
+    function WireframeShape: Boolean;
   public
     { Assign these before calling GenerateArrays.
       @groupBegin }
@@ -1030,6 +1035,11 @@ begin
   Result := false;
 end;
 
+function TArraysGenerator.WireframeShape: Boolean;
+begin
+  Result := (State.ShapeNode <> nil) and (State.ShapeNode.Shading = shWireframe);
+end;
+
 { TAbstractTextureCoordinateGenerator ----------------------------------------- }
 
 constructor TAbstractTextureCoordinateGenerator.Create(AShape: TShape);
@@ -1754,7 +1764,9 @@ var
   M: TPhongMaterialInfo; // VRML 1.0 has only Phong lighting model
 begin
   M := State.VRML1State.Material.MaterialInfo(MaterialIndex);
+  {$warnings off} // do not warn about PureEmissive, whole VRML 1.0 is deprecated now
   if M.PureEmissive then
+  {$warnings on}
     Result := Vector4(M.EmissiveColor, M.Opacity)
   else
     Result := Vector4(M.DiffuseColor, M.Opacity);

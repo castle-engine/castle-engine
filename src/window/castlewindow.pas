@@ -1753,8 +1753,6 @@ type
 
     { Select a file to open or save, using native (looks familiar on a given system) dialog box.
       Accepts and returns argument as an URL.
-      Passing a filename as an URL is also allowed (as everywhere),
-      it may be changed into an URL on return.
 
       This dialog may also allow user for some typical file-management
       operations by the way (create some directories, rename some files etc.).
@@ -1766,22 +1764,50 @@ type
 
       @param(URL Specifies default file as an URL (or simple filename).
 
-        In short, things are designed such that for normal file viewers,
-        you can give here the URL of last opened file, or '' if none.
+        Things are designed such that it's reasonable to pass here:
 
-        This URL can be absolute or relative, may include a path, may include a name.
+        @unorderedList(
+          @item URL of last opened/saved file.
+          @item @code('') (empty string) if you don't want to suggest anything.
+          @item(Proposed filename (without directory) of new file to save,
+            like @code('output.gltf').)
+          @item(Proposed directory of new file to save,
+            like @code(FilenameToUriSafe('c:/tmp/')).)
+          @item(Proposed filename and directory of new file to save,
+            like @code(FilenameToUriSafe('c:/tmp/output.gltf')).)
+        )
+
+        Given URL can be absolute or relative, may include a path,
+        may include a name.
         If you specify only a path (remember to end it with the slash),
         then it's the default path where to save the file.
         If you specify the name (component after final slash), then it's the
         proposed file name for saving (for OpenDialog, this proposed file name
         is ignored, since that's more natural for open dialogs).
 
+        When saving to a new file, we advise to provide a proposed filename with extension.
+        So e.g. @code('output.gltf') or @code(FilenameToUriSafe('c:/tmp/output.gltf')).
+
+        @italic(Do not rely on the FileFilters argument to imply a reasonable
+        extension for the output URL.) The filters on FileFilters are used
+        to filter the displayed contents, but it is undefined whether they also
+        help determine the saved file extension.
+        For example, with GTK backend, f you provide FileFilters that contain
+        only @code(*.gltf), and your
+        proposed URL is @code(''), and user types @code('aaa') -> then URL is just
+        @code('aaa'), not @code('aaa.gltf').
+        So it's better to provide proposed URL like @code('output.gltf').
+
+        Passing a filename as an URL is also allowed (as everywhere in our engine),
+        it may be changed into an URL on return.
+
         Empty value ('') always means the same as "current directory", guaranteed.
-        So it's equivalent to @code(URICurrentPath).
+        So it's equivalent to @linke(UriCurrentPath).
 
         Note that the path must end with a slash. Otherwise '/tmp/blah' would be
         ambigous (it could mean either file name 'blah' in the dir '/tmp/' dir,
-        or dir '/tmp/blah' without a proposed file name).)
+        or dir '/tmp/blah' without a proposed file name).
+      )
 
       @param(OpenDialog Is this an open (@true) or save (@false) file dialog.
 

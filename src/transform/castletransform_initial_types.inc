@@ -191,7 +191,12 @@
       This way it doesn't return internal components, like internal TCastleScene
       inside TCastleBox or TCastleTiledMap.
 
-      Returns @false if nothing was hit (Count is zero),
+      Returned HitInfo (TRayCollisionNode) is a record, which proved to be
+      more comfortable in this case. So (unlike a class instance) you
+      don't need to worry "who will free it" or "if it's @nil".
+
+      Returns @false if nothing was hit (so Count is zero or all items
+      are internal TCastleTransform instances).
       HitInfo is undefined in this case. }
     function Info(out HitInfo: TRayCollisionNode): Boolean;
   end;
