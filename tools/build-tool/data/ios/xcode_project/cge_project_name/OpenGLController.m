@@ -250,6 +250,7 @@ typedef struct TouchInfo {
     {
         m_currentViewWidth  = newViewWidth;
         m_currentViewHeight = newViewHeight;
+        m_currentSafeAreaBorders = newSafeAreaBorders;
         
         CGEApp_Resize(newViewWidth, newViewHeight, (unsigned)newSafeAreaBorders.top, (unsigned)newSafeAreaBorders.right, (unsigned)newSafeAreaBorders.bottom, (unsigned)newSafeAreaBorders.left);
     }
