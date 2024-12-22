@@ -1655,16 +1655,17 @@
       and the last component is the rotation angle @italic(in radians).
 
       Note: the Rotation axis (first 3 components) must not be a zero vector,
-      however as a special case the rotation value @code(TVector4.Zero) (so all components,
-      axis and angle, are zero) is also allowed.
+      however as a special case the rotation value @code(TVector4.Zero)
+      (so all the components, axis and angle, are zero) is also allowed.
 
-      Rotation is done around @link(Center).
+      Rotation is done around @link(Center) (which is by default zero, so it doesn't matter).
 
-      Set it like this:
+      Set the rotation like this:
 
       @longCode(#
-        Scene.Rotation := Vector4(0, 0, 1, Pi / 10);
-        Scene.Rotation := Scene.Rotation + Vector4(0, 0, 0, Pi / 10);
+        Scene.Rotation := Vector4(0, 0, 1, Pi / 2);
+        Scene.Rotation := Vector4(0, 0, 1, Deg(90)); // Deg is a useful shortcut for DegToRad
+        Scene.Rotation := Scene.Rotation + Vector4(0, 0, 0, Pi / 2);
       #)
 
       To combine multiple rotations, you can use @italic(quaternion multiplication).
@@ -1675,15 +1676,15 @@
       var
         Q, Q1, Q2: TQuaternion;
       begin
-        Q1 := QuatFromAxisAngle(Vector3(0, 1, 0), 0.123);
-        Q2 := QuatFromAxisAngle(Vector3(0, 0, 1), 0.456);
+        Q1 := QuatFromAxisAngle(Vector3(0, 1, 0), Deg(30));
+        Q2 := QuatFromAxisAngle(Vector3(0, 0, 1), Deg(45));
         Q := Q1 * Q2;
         MyTransform.Rotation := Q.ToAxisAngle;
       end;
       #)
 
-      Combining rotations this way is very flexible. You can combine
-      as many as you want, and it is clear (you define it yourself)
+      Combining rotations using quaternions is very flexible. You can combine
+      as many rotations as you want, and it is clear (you define it yourself)
       in which order each rotation is applied.
       Note that you can also just nest one TCastleTransform within
       another TCastleTransform, and set different rotations on each of them,

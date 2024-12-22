@@ -24,7 +24,9 @@ procedure RenderMaterialsBegin;
   begin
     Result :=
       (Material is TPhongMaterialInfo) and
+      {$warnings off} // do not warn about PureEmissive usage, for now we keep this optimization working
       TPhongMaterialInfo(Material).PureEmissive and
+      {$warnings on}
       { Existence of Color/ColorRGBA nodes means that we cannot rely on simple
         "only emissive" lighting calculation, because Color/ColorRGBA
         nodes replace the diffuse factor, in case of Phong Material. }

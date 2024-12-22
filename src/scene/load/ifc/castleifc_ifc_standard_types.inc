@@ -181,6 +181,7 @@
   TIfcMaterialLayerSet = class;
   TIfcGeometricRepresentationContext = class;
   TIfcGeometricRepresentationSubContextList = class;
+  TIfcProduct = class;
 
   { Float type used throughout IFC.
 
@@ -300,8 +301,22 @@
     FStyledByItem: TIfcStyledItem;
   public
     { Build a node to display this using Castle Game Engine.
-      Does nothing (adds nothing to Parent) if not possible / not implemented. }
-    function BuildNode(const Mapping: TCastleIfcMapping): TAbstractChildNode; virtual;
+      Returns @nil if not possible / not implemented.
+
+      @param(ParentProduct Parent TIfcProduct, to be used with
+        TCastleIfcMapping.AssociateProductShape call.
+
+        It can be @nil (and TCastleIfcMapping.AssociateProductShape
+        is already prepared to handle it too) if not particular TIfcProduct
+        is parent of this, which (right now) only happens for some internal
+        usage in UpdateCrossSection for throw-away shape instances.
+      )
+
+      @param(Appearance Appearance that should be used for all shapes created
+        here.)
+    }
+    function BuildNode(const Mapping: TCastleIfcMapping;
+      const ParentProduct: TIfcProduct; const Appearance: TAppearanceNode): TAbstractChildNode; virtual;
   published
     { Assignment of the representation item to a single or multiple layer(s).
       @nil if none. }
@@ -315,7 +330,8 @@
   end;
   TIfcRepresentationItemList = class({$ifdef FPC}specialize{$endif} TObjectList<TIfcRepresentationItem>)
   public
-    function BuildNode(const Mapping: TCastleIfcMapping): TAbstractChildNode;
+    function BuildNode(const Mapping: TCastleIfcMapping;
+      const ParentProduct: TIfcProduct; const Appearance: TAppearanceNode): TAbstractChildNode;
   end;
 
   { Style information for products.
@@ -520,7 +536,8 @@
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    function BuildNode(const Mapping: TCastleIfcMapping): TAbstractChildNode; override;
+    function BuildNode(const Mapping: TCastleIfcMapping;
+      const ParentProduct: TIfcProduct; const Appearance: TAppearanceNode): TAbstractChildNode; override;
   published
     { Indication whether the face set is a closed shell (TRUE)
       or an open shell (FALSE).
@@ -570,7 +587,8 @@
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    function BuildNode(const Mapping: TCastleIfcMapping): TAbstractChildNode; override;
+    function BuildNode(const Mapping: TCastleIfcMapping;
+      const ParentProduct: TIfcProduct; const Appearance: TAppearanceNode): TAbstractChildNode; override;
     procedure UpdateCrossSection(const Extrusion: TExtrusionNode); override;
   published
     { Points defining the polyline. }
@@ -622,7 +640,8 @@
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    function BuildNode(const Mapping: TCastleIfcMapping): TAbstractChildNode; override;
+    function BuildNode(const Mapping: TCastleIfcMapping;
+      const ParentProduct: TIfcProduct; const Appearance: TAppearanceNode): TAbstractChildNode; override;
   published
     { Points defining the polyline. }
     property Points: TIfcCartesianPointListSpec read FPoints write FPoints;
@@ -1791,7 +1810,8 @@
     FExtrudedDirection: TIfcDirection;
     FDepth: TIfcPositiveLengthMeasure;
   public
-    function BuildNode(const Mapping: TCastleIfcMapping): TAbstractChildNode; override;
+    function BuildNode(const Mapping: TCastleIfcMapping;
+      const ParentProduct: TIfcProduct; const Appearance: TAppearanceNode): TAbstractChildNode; override;
   published
     { The direction in which the surface, provided by SweptArea is to be swept.
       The ExtrudedDirection shall not be perpendicular to the local z-axis. }
@@ -1824,20 +1844,14 @@
   strict private
     FObjectPlacement: TIfcObjectPlacement;
     FRepresentation: TIfcProductRepresentation;
+    function GetRelativePlacement: TVector3;
+    procedure SetRelativePlacement(const Translation: TVector3);
+    { Return the value of @link(PlacementRelativeToParent),
+      and if it's @true -> set Translation to
+      the value of @link(RelativePlacement). }
+    function GetRelativePlacementCore(out Translation: TVector3): Boolean;
   public
     function BuildNode(const Mapping: TCastleIfcMapping): TTransformNode; override;
-  published
-    { Object coordinate system and placement of the product in space. }
-    property ObjectPlacement: TIfcObjectPlacement read FObjectPlacement write FObjectPlacement;
-
-    { Representations of the product. }
-    property Representation: TIfcProductRepresentation read FRepresentation write FRepresentation;
-
-    // TODO // property ReferencedBy: TIfcRelAssignsToProductList read FReferencedBy;
-
-    // TODO // property PositionedRelativeTo: TIfcRelPositionsList read FPositionedRelativeTo;
-
-    // TODO // property ReferencedInStructures: TIfcRelReferencedInSpatialStructure read FReferencedInStructures;
 
     { Add mesh representation to the given product.
 
@@ -1867,9 +1881,54 @@
       const Context: TIfcGeometricRepresentationContext;
       const Box: TBox3D);
 
-    { Move this product by given 3D translation.
-      This sets @link(ObjectPlacement) to a new instance. }
-    procedure SetRelativePlacement(const Translation: TVector3);
+    { Does @link(ObjectPlacement) express a simple translation relative
+      to the parent.
+      This implies that using @link(RelativePlacement) to operate indirectly
+      on @link(ObjectPlacement) makes sense, i.e. you do not loose information
+      this way. }
+    function PlacementRelativeToParent: Boolean;
+
+    { Position of this product relative to parent.
+
+      Check @link(PlacementRelativeToParent) before using this property.
+
+      @unorderedList(
+        @item(
+          Using this property when @link(PlacementRelativeToParent) is @true
+          makes most sense: it means that this simple property represents really
+          everything interesting about the placement.
+        )
+        @item(
+          Using this property when @link(PlacementRelativeToParent) is @false
+          means that reading it returns TVector.Zero, and setting it overrides
+          the previous placement setup. This may or may not be intuitive to your
+          usage.
+
+          In general, IFC offers various possibilities to define the placement
+          of an object, relative to various parents.
+          This property offers a simple way to change translation in the most common
+          case, when the placement is relative to our parent in the hierarchy.
+          If the @link(ObjectPlacement) defines placement in any other complicated way
+          (e.g. with respect to some other object) then this property returns
+          TVector3.Zero and @link(PlacementRelativeToParent) is @false.
+          Setting this property in such case will override the previous placement,
+          which may result in object "jumping" suddenly to unexpected place.
+        )
+      )
+    }
+    property RelativePlacement: TVector3 read GetRelativePlacement write SetRelativePlacement;
+  published
+    { Object coordinate system and placement of the product in space. }
+    property ObjectPlacement: TIfcObjectPlacement read FObjectPlacement write FObjectPlacement;
+
+    { Representations of the product. }
+    property Representation: TIfcProductRepresentation read FRepresentation write FRepresentation;
+
+    // TODO // property ReferencedBy: TIfcRelAssignsToProductList read FReferencedBy;
+
+    // TODO // property PositionedRelativeTo: TIfcRelPositionsList read FPositionedRelativeTo;
+
+    // TODO // property ReferencedInStructures: TIfcRelReferencedInSpatialStructure read FReferencedInStructures;
   end;
   TIfcProductList = class({$ifdef FPC}specialize{$endif} TObjectList<TIfcProduct>)
   end;
@@ -1904,6 +1963,14 @@
       This should be used to add smaller elements, like TIfcWall, TIfcWindow
       into larger spatial elements, like TIfcBuildingStorey, TIfcSpace. }
     procedure AddContainedElement(const Element: TIfcElement);
+
+    { Add all contained elemenents to the List.
+      This enumerates relations inside @link(ContainsElements)
+      and the elements they refer to.
+
+      This is not recursive, it does not go into elements that are children
+      of other elements. }
+    procedure GetContainedElements(const List: TIfcElementList);
   end;
 
   TIfcSpatialZoneTypeEnum = (
@@ -1951,7 +2018,11 @@
     function BuildNode(const Mapping: TCastleIfcMapping): TAbstractChildNode;
   published
     { Set of products, which are contained within this level of
-      the spatial structure hierarchy. }
+      the spatial structure hierarchy.
+
+      Note: The name is a bit confusing, it's actually a list of TIfcProduct
+      instances, not TIfcElement instances. TIfcElement is a descendant of TIfcProduct.
+      This all follows IFC 4.3 spec. }
     property RelatedElements: TIfcProductList read FRelatedElements;
 
     { Spatial structure element, within which the element is contained. }
@@ -3423,7 +3494,8 @@
   { List of TIfcRepresentation. }
   TIfcRepresentationList = class({$ifdef FPC}specialize{$endif} TObjectList<TIfcRepresentation>)
   public
-    function BuildNode(const Mapping: TCastleIfcMapping): TAbstractChildNode;
+    function BuildNode(const Mapping: TCastleIfcMapping;
+      const ParentProduct: TIfcProduct; const Appearance: TAppearanceNode): TAbstractChildNode;
   end;
 
   TIfcShapeModel = class abstract(TIfcRepresentation)
@@ -3456,7 +3528,8 @@
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    function BuildNode(const Mapping: TCastleIfcMapping): TAbstractChildNode;
+    function BuildNode(const Mapping: TCastleIfcMapping;
+      const ParentProduct: TIfcProduct; const Appearance: TAppearanceNode): TAbstractChildNode;
   published
     { The word or group of words by which the product representation is known. }
     property Name: TIfcLabel read FName write FName;
@@ -4135,21 +4208,127 @@ begin
   ]);
 end;
 
+function TIfcProduct.GetRelativePlacementCore(out Translation: TVector3): Boolean;
+var
+  UseLocation: TIfcCartesianPoint;
+  UseRelativePlacement: TIfcAxis2Placement3D;
+  UseObjectPlacement: TIfcLocalPlacement;
+begin
+  // calculate UseObjectPlacement
+  if (ObjectPlacement <> nil) and
+     (ObjectPlacement is TIfcLocalPlacement) and
+     (TIfcLocalPlacement(ObjectPlacement).PlacementRelTo = nil) and
+     (
+       { Check PlacesObject that should include Self, or be empty.
+        https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcObjectPlacement.htm
+        allows placesObject to be empty, from what I understand, BonsaiBIM
+        also can generate such placement. }
+       (TIfcLocalPlacement(ObjectPlacement).PlacesObject.IndexOf(Self) <> -1) or
+       (TIfcLocalPlacement(ObjectPlacement).PlacesObject.Count = 0)
+     ) then
+  begin
+    UseObjectPlacement := TIfcLocalPlacement(ObjectPlacement);
+  end else
+  if ObjectPlacement = nil then
+  begin
+    Translation := TVector3.Zero;
+    Exit(true);
+  end else
+    Exit(false);
+
+  // calculate UseRelativePlacement
+  if (UseObjectPlacement.RelativePlacement <> nil) and
+     (UseObjectPlacement.RelativePlacement is TIfcAxis2Placement3D) then
+  begin
+    UseRelativePlacement := TIfcAxis2Placement3D(UseObjectPlacement.RelativePlacement);
+  end else
+  if UseObjectPlacement.RelativePlacement = nil then
+  begin
+    Translation := TVector3.Zero;
+    Exit(true);
+  end else
+    Exit(false);
+
+  // calculate UseLocation
+  if (UseRelativePlacement.Location <> nil) and
+     (UseRelativePlacement.Location is TIfcCartesianPoint) then
+  begin
+    UseLocation := TIfcCartesianPoint(UseRelativePlacement.Location);
+  end else
+  if UseRelativePlacement.Location = nil then
+  begin
+    Translation := TVector3.Zero;
+    Exit(true);
+  end else
+    Exit(false);
+
+  Translation := UseLocation.Coordinates.Value;
+  Result := true;
+end;
+
+function TIfcProduct.PlacementRelativeToParent: Boolean;
+var
+  DummyTranslation: TVector3;
+begin
+  Result := GetRelativePlacementCore(DummyTranslation);
+end;
+
+function TIfcProduct.GetRelativePlacement: TVector3;
+begin
+  if not GetRelativePlacementCore(Result) then
+    Result := TVector3.Zero;
+end;
+
 procedure TIfcProduct.SetRelativePlacement(const Translation: TVector3);
 var
-  Location: TIfcCartesianPoint;
-  RelativePlacement: TIfcAxis2Placement3D;
+  NewLocation: TIfcCartesianPoint;
+  NewRelativePlacement: TIfcAxis2Placement3D;
   NewObjectPlacement: TIfcLocalPlacement;
 begin
-  Location := TIfcCartesianPoint.Create(Owner);
-  Location.Coordinates.Value := Translation;
+  // create NewObjectPlacement and assign it to ObjectPlacement
+  if (ObjectPlacement <> nil) and
+     (ObjectPlacement is TIfcLocalPlacement) and
+     (TIfcLocalPlacement(ObjectPlacement).PlacementRelTo = nil) and
+     (
+       { Check PlacesObject that should include Self, or be empty.
+        https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcObjectPlacement.htm
+        allows placesObject to be empty, from what I understand, BonsaiBIM
+        also can generate such placement. }
+       (TIfcLocalPlacement(ObjectPlacement).PlacesObject.IndexOf(Self) <> -1) or
+       (TIfcLocalPlacement(ObjectPlacement).PlacesObject.Count = 0)
+     ) then
+  begin
+    NewObjectPlacement := TIfcLocalPlacement(ObjectPlacement);
+  end else
+  begin
+    NewObjectPlacement := TIfcLocalPlacement.Create(Owner);
+    NewObjectPlacement.PlacesObject.Add(Self);
+    ObjectPlacement := NewObjectPlacement;
+  end;
 
-  RelativePlacement := TIfcAxis2Placement3D.Create(Owner);
-  RelativePlacement.Location := Location;
+  // create NewRelativePlacement and assign it to NewObjectPlacement.RelativePlacement
+  if (NewObjectPlacement.RelativePlacement <> nil) and
+     (NewObjectPlacement.RelativePlacement is TIfcAxis2Placement3D) then
+  begin
+    NewRelativePlacement := TIfcAxis2Placement3D(NewObjectPlacement.RelativePlacement);
+  end else
+  begin
+    NewRelativePlacement := TIfcAxis2Placement3D.Create(Owner);
+    NewObjectPlacement.RelativePlacement := NewRelativePlacement;
+  end;
 
-  NewObjectPlacement := TIfcLocalPlacement.Create(Owner);
-  NewObjectPlacement.RelativePlacement := RelativePlacement;
-  ObjectPlacement := NewObjectPlacement;
+  // create NewLocation and assign it to NewRelativePlacement.Location
+  if (NewRelativePlacement.Location <> nil) and
+     (NewRelativePlacement.Location is TIfcCartesianPoint) then
+  begin
+    NewLocation := TIfcCartesianPoint(NewRelativePlacement.Location);
+  end else
+  begin
+    NewLocation := TIfcCartesianPoint.Create(Owner);
+    NewRelativePlacement.Location := NewLocation;
+  end;
+
+  NewLocation.Coordinates.Value := Translation;
 end;
 
 { TIfcSpatialElement --------------------------------------------------------- }
@@ -4186,6 +4365,21 @@ begin
   Relation.RelatedElements.Add(Element);
 
   Element.ContainedInStructure.Add(Relation);
+end;
+
+procedure TIfcSpatialElement.GetContainedElements(const List: TIfcElementList);
+var
+  RelContainedInSpatialStructure: TIfcRelContainedInSpatialStructure;
+  Product: TIfcProduct;
+begin
+  for RelContainedInSpatialStructure in ContainsElements do
+    for Product in RelContainedInSpatialStructure.RelatedElements do
+      { The RelatedElements name is confusing, it actually contains any
+        TIfcProduct instances, not just TIfcElement instances.
+        We filter them for TIfcElement, to make us consistent with
+        AddContainedElement. }
+      if Product is TIfcElement then
+        List.Add(TIfcElement(Product));
 end;
 
 { TIfcElement --------------------------------------------------------------- }

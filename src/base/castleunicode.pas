@@ -74,15 +74,21 @@ function StringLength(const S: String): Integer;
   StartIndex is 1-based, i.e. the first Unicode character in String has index 1,
   last Unicode character has index StringLength(S).
 
-  In case CountToCopy, it is guaranteed to only copy the maximum possible
-  characters, without causing any memory overruns.
+  In case the parameters indicate that we would copy more characters than there
+  exist, this routine guarantees to only copy the maximum possible
+  characters (without causing any issues like memory overruns).
+  For example, @code(StringCopy('foobar', 4, 100)) will return @code('bar').
 
-  Note that it doesn't try to deal with strings that may end abruptly
-  in the middle of a Unicode character (that may span multiple Pascal Char
+  The result is undefined when the string ends abruptly
+  in the middle of a Unicode character (that spans multiple Pascal Char
   (AnsiChar or WideChar) values, possible both in case
   of UTF-8 in AnsiString and UTF-16 in UnicodeString).
-  The results of such abrupt ending are undefined: this routine may copy the partial
-  (unfinished) Unicode character, or it may reject the unfinished partial character altogether.
+  The input string is considered incorrect in this case, and results are undefined:
+  maybe we will copy the partial (unfinished) Unicode character
+  (thus making also the output incorrect),
+  maybe we will reject the unfinished partial character.
+  However, we guarantee that we will not cause any memory overruns (thus, potential
+  crashes or security issues) in this case.
 
   This works taking into account that:
   @unorderedList(

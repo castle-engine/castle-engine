@@ -105,6 +105,7 @@
             "ExposeTransforms" : [
             ],
             "Name" : "IfcScene",
+            "PreciseCollisions" : true,
             "RenderOptions" : {
               "$$ClassName" : "TCastleScene.TSceneRenderOptions"
             },
@@ -112,11 +113,17 @@
               "$$ClassName" : "TCastleVector4RotationPersistent",
               "W" : -1.5707963705062866E+000,
               "X" : 1.0000000000000000E+000
-            }
+            },
+            "$Children" : [
+              {
+                "$$ClassName" : "TCastleTransform",
+                "Name" : "TransformSelectedProduct"
+              }
+            ]
           }
         ]
       },
-      "Name" : "Viewport1",
+      "Name" : "MainViewport",
       "$NonVisualComponents" : [
         {
           "$$ClassName" : "TCastleBackground",
@@ -126,7 +133,7 @@
       "$Children" : [
         {
           "$$ClassName" : "TCastleExamineNavigation",
-          "Name" : "ExamineNavigation1"
+          "Name" : "ExamineNavigation"
         }
       ],
       "InternalDesignCamera" : {
@@ -314,7 +321,7 @@
         },
         {
           "$$ClassName" : "TCastleButton",
-          "Caption" : "Move Random Wall",
+          "Caption" : "Move Random Element (like a Wall or Floor)",
           "CustomBackgroundDisabled" : {
             "$$ClassName" : "TCastleImagePersistent"
           },
@@ -330,7 +337,7 @@
           "Image" : {
             "$$ClassName" : "TCastleImagePersistent"
           },
-          "Name" : "ButtonModifyWall",
+          "Name" : "ButtonModifyRandomElement",
           "TranslationPersistent" : {
             "$$ClassName" : "TCastleVector2Persistent",
             "X" : 1.0000000000000000E+001,

@@ -19,8 +19,9 @@ unit GameViewMain;
 interface
 
 uses Classes,
-  CastleVectors, CastleComponentSerialize, CastleScene,
-  CastleUIControls, CastleControls, CastleKeysMouse, CastleIfc;
+  CastleVectors, CastleComponentSerialize, CastleScene, CastleViewport,
+  CastleUIControls, CastleControls, CastleKeysMouse, CastleIfc,
+  CastleCameras, CastleTransform, CastleTransformManipulate;
 
 type
   { Main view, where most of the application logic takes place. }
@@ -30,19 +31,31 @@ type
       These fields will be automatically initialized at Start. }
     LabelFps, LabelWireframeEffect, LabelHierarchy: TCastleLabel;
     ButtonNew, ButtonLoad, ButtonSaveIfc, ButtonSaveNode,
-      ButtonAddWall, ButtonModifyWall, ButtonChangeWireframeEffect: TCastleButton;
+      ButtonAddWall, ButtonModifyRandomElement, ButtonChangeWireframeEffect: TCastleButton;
     IfcScene: TCastleScene;
+    MainViewport: TCastleViewport;
+    ExamineNavigation: TCastleExamineNavigation;
+    TransformSelectedProduct: TCastleTransform;
   private
     IfcFile: TIfcFile;
-    { New products have to be added to this container.
+    { New elements (TIfcElement instances) have to be added to this container.
       You cannot just add them to IfcFile.Project,
-      IFC specification constaints what can be the top-level spatial element.
-      TODO: initilalize this for new files. }
+      IFC specification constaints what can be the top-level spatial element. }
     IfcContainer: TIfcSpatialElement;
     IfcMapping: TCastleIfcMapping;
 
+    { Selected IFC product. }
+    IfcSelectedProduct: TIfcProduct;
+    { Value of TransformSelectedProduct.Translation
+      that corresponds to the IfcSelectedProduct current position.
+      Only meaningful when IfcSelectedProduct <> nil, undefined and unused otherwise. }
+    IfcSelectedProductShapeTranslation: TVector3;
+
     { Used to assing unique names to walls. }
     NextWallNumber: Cardinal;
+
+    //TransformHover: TCastleTransformHover; //< TODO, show hover
+    TransformManipulate: TCastleTransformManipulate;
 
     { Create new IfcMapping instance and update what IfcScene shows,
       based on IfcFile contents.
@@ -58,8 +71,11 @@ type
     procedure ClickSaveIfc(Sender: TObject);
     procedure ClickSaveNode(Sender: TObject);
     procedure ClickAddWall(Sender: TObject);
-    procedure ClickModifyWall(Sender: TObject);
+    procedure ClickModifyRandomElement(Sender: TObject);
     procedure ClickChangeWireframeEffect(Sender: TObject);
+    procedure MainViewportPress(const Sender: TCastleUserInterface;
+      const Event: TInputPressRelease; var Handled: Boolean);
+    procedure TransformManipulateTransformModified(Sender: TObject);
   public
     constructor Create(AOwner: TComponent); override;
     procedure Start; override;
@@ -74,7 +90,7 @@ implementation
 
 uses SysUtils, TypInfo,
   CastleUtils, CastleUriUtils, CastleWindow, CastleBoxes, X3DLoad, CastleLog,
-  CastleRenderOptions;
+  CastleRenderOptions, CastleShapes, X3DNodes;
 
 function WireframeEffectToStr(const WireframeEffect: TWireframeEffect): String;
 begin
@@ -92,16 +108,35 @@ end;
 procedure TViewMain.Start;
 begin
   inherited;
+
+  TransformManipulate := TCastleTransformManipulate.Create(FreeAtStop);
+  TransformManipulate.Mode := mmTranslate;
+  TransformManipulate.OnTransformModified := {$ifdef FPC}@{$endif} TransformManipulateTransformModified;
+
+  { Initialize empty model.
+    TransformManipulate must be set earlier. }
   ClickNew(nil);
+
   ButtonNew.OnClick := {$ifdef FPC}@{$endif} ClickNew;
   ButtonLoad.OnClick := {$ifdef FPC}@{$endif} ClickLoad;
   ButtonSaveIfc.OnClick := {$ifdef FPC}@{$endif} ClickSaveIfc;
   ButtonSaveNode.OnClick := {$ifdef FPC}@{$endif} ClickSaveNode;
   ButtonAddWall.OnClick := {$ifdef FPC}@{$endif} ClickAddWall;
-  ButtonModifyWall.OnClick := {$ifdef FPC}@{$endif} ClickModifyWall;
+  ButtonModifyRandomElement.OnClick := {$ifdef FPC}@{$endif} ClickModifyRandomElement;
   ButtonChangeWireframeEffect.OnClick := {$ifdef FPC}@{$endif} ClickChangeWireframeEffect;
 
+  MainViewport.OnPress := {$ifdef FPC}@{$endif} MainViewportPress;
+
   LabelWireframeEffect.Caption := WireframeEffectToStr(IfcScene.RenderOptions.WireframeEffect);
+
+  { Rotate by dragging with right mouse button,
+    because we use left mouse button for selection. }
+  ExamineNavigation.Input_Rotate.MouseButton := buttonRight;
+  ExamineNavigation.Input_Zoom.MouseButtonUse := false;
+
+  // TODO: show on hover
+  // TransformHover := TCastleTransformHover.Create(FreeAtStop);
+  // TransformHover.Current := TransformSelectedProduct;
 end;
 
 procedure TViewMain.Stop;
@@ -132,6 +167,9 @@ begin
   IfcScene.Load(IfcMapping.RootNode, true);
 
   UpdateLabelHierarchy;
+
+  IfcSelectedProduct := nil;
+  TransformManipulate.SetSelected([]);
 end;
 
 procedure TViewMain.ClickNew(Sender: TObject);
@@ -177,7 +215,7 @@ begin
   IfcFile.Project.SetupModelContext;
 
   { We need IfcContainer inside the project.
-    Reason: We cannot add products directly to IfcProject, we need
+    Reason: We cannot add elements directly to IfcProject, we need
     to add them to a spatial root element: (IfcSite || IfcBuilding || IfcSpatialZone)
     (see https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcProject.htm ).
 
@@ -270,7 +308,7 @@ procedure TViewMain.ClickSaveIfc(Sender: TObject);
 var
   Url: string;
 begin
-  Url := 'castle-data:/';
+  Url := 'castle-data:/out.ifcjson';
   if Application.MainWindow.FileDialog('Save IFC file',
       Url, false, IfcFileFilter) then
   begin
@@ -308,21 +346,51 @@ begin
       Vector3( SizeX / 2,  SizeY / 2, WallHeight)
     ));
 
-  Wall.SetRelativePlacement(Vector3(
+  Wall.RelativePlacement := Vector3(
     RandomFloatRange(-5, 5),
     RandomFloatRange(-5, 5),
     0
-  ));
+  );
 
   IfcContainer.AddContainedElement(Wall);
   IfcMapping.Update(IfcFile);
   UpdateLabelHierarchy;
 end;
 
-procedure TViewMain.ClickModifyWall(Sender: TObject);
+procedure TViewMain.ClickModifyRandomElement(Sender: TObject);
+var
+  ElementList: TIfcElementList;
+  RandomElement: TIfcElement;
 begin
-  // IfcFile.Project.... // TODO
+  ElementList := TIfcElementList.Create(false);
+  try
+    IfcContainer.GetContainedElements(ElementList);
+    if ElementList.Count = 0 then
+      Exit;
+    RandomElement := ElementList[Random(ElementList.Count)];
+    if RandomElement.PlacementRelativeToParent then
+    begin
+      RandomElement.RelativePlacement := Vector3(
+        RandomFloatRange(-5, 5),
+        RandomFloatRange(-5, 5),
+        0
+      );
+      WritelnLog('Modified element "%s" placement', [RandomElement.Name]);
+    end else
+      WritelnWarning('Element "%s" is not positioned relative to parent, cannot modify', [
+        RandomElement.Name
+      ]);
+  finally FreeAndNil(ElementList) end;
+
   IfcMapping.Update(IfcFile);
+
+  { IfcSelectedProductShapeTranslation is no longer valid because
+    IfcSelectedProduct moved, so cancel selection. }
+  if RandomElement = IfcSelectedProduct then
+  begin
+    IfcSelectedProduct := nil;
+    TransformManipulate.SetSelected([]);
+  end;
 end;
 
 procedure TViewMain.ClickChangeWireframeEffect(Sender: TObject);
@@ -346,11 +414,19 @@ var
     RelAggregates: TIfcRelAggregates;
     RelatedObject: TIfcObjectDefinition;
     RelContained: TIfcRelContainedInSpatialStructure;
-    RelatedElement: TIfcProduct;
+    RelatedProduct: TIfcProduct;
+    S: String;
   begin
-    SList.Add(NowIndent + Parent.ClassName + ' "' + Parent.Name + '"');
+    S := NowIndent + Parent.ClassName + ' "' + Parent.Name + '"';
+    if Parent = IfcSelectedProduct then
+      S := '<font color="#ffff00">' + S + '</font>';
+    SList.Add(S);
+
     if Parent = IfcFile.Project.BestContainer then
       SList.Add(NowIndent + Indent + '<font color="#0000aa">(^detected best container)</font>');
+    if (Parent is TIfcProduct) and
+       (not TIfcProduct(Parent).PlacementRelativeToParent) then
+      SList.Add(NowIndent + Indent + '<font color="#aa0000">(^cannot drag placement)</font>');
 
     for RelAggregates in Parent.IsDecomposedBy do
       for RelatedObject in RelAggregates.RelatedObjects do
@@ -360,8 +436,8 @@ var
     begin
       ParentSpatial := TIfcSpatialElement(Parent);
       for RelContained in ParentSpatial.ContainsElements do
-        for RelatedElement in RelContained.RelatedElements do
-          ShowHierarchy(RelatedElement, NowIndent + Indent);
+        for RelatedProduct in RelContained.RelatedElements do
+          ShowHierarchy(RelatedProduct, NowIndent + Indent);
     end;
   end;
 
@@ -393,6 +469,73 @@ begin
 
     LabelHierarchy.Text.Assign(SList);
   finally FreeAndNil(SList) end;
+end;
+
+procedure TViewMain.MainViewportPress(const Sender: TCastleUserInterface;
+  const Event: TInputPressRelease; var Handled: Boolean);
+var
+  HitInfo: TRayCollisionNode;
+  HitShape: TShape;
+  HitShapeNode: TAbstractShapeNode;
+  NewSelectedProduct: TIfcProduct;
+begin
+  if Event.IsMouseButton(buttonLeft) then
+  begin
+    { Select new IFC product by extracting from MainViewport.MouseRayHit
+      information the selected X3D shape (HitShape) and then converting it
+      to the IFC product (using IfcMapping.NodeToProduct). }
+    if (MainViewport.MouseRayHit <> nil) and
+       MainViewport.MouseRayHit.Info(HitInfo) then
+    begin
+      if (HitInfo.Item = IfcScene) and
+         (HitInfo.Triangle <> nil) and
+          (HitInfo.Triangle^.ShapeNode <> nil) then
+      begin
+        HitShape := HitInfo.Triangle^.Shape;
+        HitShapeNode := HitShape.Node;
+        NewSelectedProduct := IfcMapping.NodeToProduct(HitShapeNode);
+      end else
+        { If we hit something, but it's not IFC scene, abort handling
+          this click. This may be a start of dragging on TransformManipulate,
+          we don't want to interfere with it. }
+        Exit;
+    end else
+      NewSelectedProduct := nil;
+
+    if NewSelectedProduct <> IfcSelectedProduct then
+    begin
+      IfcSelectedProduct := NewSelectedProduct;
+      UpdateLabelHierarchy;
+
+      // update TransformManipulate, to allow dragging selected product
+      if (IfcSelectedProduct <> nil) and
+         IfcSelectedProduct.PlacementRelativeToParent and
+         (not HitShape.BoundingBox.IsEmpty) then
+      begin
+        TransformSelectedProduct.Translation := HitShape.BoundingBox.Center;
+        IfcSelectedProductShapeTranslation := TransformSelectedProduct.Translation;
+        TransformManipulate.SetSelected([TransformSelectedProduct]);
+      end else
+        TransformManipulate.SetSelected([]);
+    end;
+
+    Handled := true;
+  end;
+end;
+
+procedure TViewMain.TransformManipulateTransformModified(Sender: TObject);
+begin
+  Assert(IfcSelectedProduct <> nil, 'TransformManipulateTransformModified called without IfcSelectedProduct, should not happen');
+
+  { Update IfcSelectedProduct.RelativePlacement based on
+    difference in shift of TransformSelectedProduct. Note that this simple way
+    to update translation assumes we don't have rotations or scale in IFC. }
+  IfcSelectedProduct.RelativePlacement :=
+    IfcSelectedProduct.RelativePlacement +
+    TransformSelectedProduct.Translation -
+    IfcSelectedProductShapeTranslation;
+  IfcMapping.Update(IfcFile);
+  IfcSelectedProductShapeTranslation := TransformSelectedProduct.Translation;
 end;
 
 end.

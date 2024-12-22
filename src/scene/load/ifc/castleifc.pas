@@ -45,8 +45,8 @@ type
 implementation
 
 uses TypInfo, RttiUtils,
-  X3DLoad, CastleInternalRttiUtils, CastleClassUtils,
-  CastleDownload;
+  X3DLoad, X3DFields, CastleInternalRttiUtils, CastleClassUtils,
+  CastleDownload, CastleColors;
 
 {$define read_implementation}
 {$I castleifc_ifc_types.inc}
