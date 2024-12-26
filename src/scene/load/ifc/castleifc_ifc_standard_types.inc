@@ -179,7 +179,9 @@
   TIfcMaterialDefinition = class;
   TIfcMaterialPropertiesList = class;
   TIfcMaterialLayerSet = class;
+  TIfcGeometricRepresentationContext = class;
   TIfcGeometricRepresentationSubContextList = class;
+  TIfcProduct = class;
 
   { Float type used throughout IFC.
 
@@ -299,8 +301,22 @@
     FStyledByItem: TIfcStyledItem;
   public
     { Build a node to display this using Castle Game Engine.
-      Does nothing (adds nothing to Parent) if not possible / not implemented. }
-    function BuildNode(const Mapping: TCastleIfcMapping): TAbstractChildNode; virtual;
+      Returns @nil if not possible / not implemented.
+
+      @param(ParentProduct Parent TIfcProduct, to be used with
+        TCastleIfcMapping.AssociateProductShape call.
+
+        It can be @nil (and TCastleIfcMapping.AssociateProductShape
+        is already prepared to handle it too) if not particular TIfcProduct
+        is parent of this, which (right now) only happens for some internal
+        usage in UpdateCrossSection for throw-away shape instances.
+      )
+
+      @param(Appearance Appearance that should be used for all shapes created
+        here.)
+    }
+    function BuildNode(const Mapping: TCastleIfcMapping;
+      const ParentProduct: TIfcProduct; const Appearance: TAppearanceNode): TAbstractChildNode; virtual;
   published
     { Assignment of the representation item to a single or multiple layer(s).
       @nil if none. }
@@ -314,7 +330,8 @@
   end;
   TIfcRepresentationItemList = class({$ifdef FPC}specialize{$endif} TObjectList<TIfcRepresentationItem>)
   public
-    function BuildNode(const Mapping: TCastleIfcMapping): TAbstractChildNode;
+    function BuildNode(const Mapping: TCastleIfcMapping;
+      const ParentProduct: TIfcProduct; const Appearance: TAppearanceNode): TAbstractChildNode;
   end;
 
   { Style information for products.
@@ -355,6 +372,9 @@
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
+
+    { Create instance with given direction ratios. }
+    constructor CreateVector(const AOwner: TComponent; const AVector: TVector3);
 
     { The number of dimensions specified in the IFC file, 2 or 3.
       Regardless of it, DirectionRatios always has the Z value defined:
@@ -516,7 +536,8 @@
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    function BuildNode(const Mapping: TCastleIfcMapping): TAbstractChildNode; override;
+    function BuildNode(const Mapping: TCastleIfcMapping;
+      const ParentProduct: TIfcProduct; const Appearance: TAppearanceNode): TAbstractChildNode; override;
   published
     { Indication whether the face set is a closed shell (TRUE)
       or an open shell (FALSE).
@@ -566,7 +587,8 @@
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    function BuildNode(const Mapping: TCastleIfcMapping): TAbstractChildNode; override;
+    function BuildNode(const Mapping: TCastleIfcMapping;
+      const ParentProduct: TIfcProduct; const Appearance: TAppearanceNode): TAbstractChildNode; override;
     procedure UpdateCrossSection(const Extrusion: TExtrusionNode); override;
   published
     { Points defining the polyline. }
@@ -618,7 +640,8 @@
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    function BuildNode(const Mapping: TCastleIfcMapping): TAbstractChildNode; override;
+    function BuildNode(const Mapping: TCastleIfcMapping;
+      const ParentProduct: TIfcProduct; const Appearance: TAppearanceNode): TAbstractChildNode; override;
   published
     { Points defining the polyline. }
     property Points: TIfcCartesianPointListSpec read FPoints write FPoints;
@@ -1162,6 +1185,8 @@
     FOwnerHistory: TIfcOwnerHistory;
     FName: TIfcLabel;
     FDescription: TIfcText;
+  protected
+    function WantsGlobalId: Boolean; override;
   published
     { Information about the current ownership of that object. }
     property OwnerHistory: TIfcOwnerHistory read FOwnerHistory write FOwnerHistory;
@@ -1312,7 +1337,18 @@
     property HasAssociations: TIfcRelAssociatesList read FHasAssociations;
 
     { Add given TIfcObjectDefinition instance to the @link(IsDecomposedBy) list
-      of this object. Adds also new intermediate TIfcRelAggregates instance. }
+      of this object. Adds also new intermediate TIfcRelAggregates instance.
+
+      This shall be used to add top-level IfcSpatialStructureElement
+      instances to the project, e.g.:
+
+      @unorderedList(
+        @item TIfcSite instance inside IfcProject,
+        @item IfcBuilding instance inside TIfcSite,
+        @item IfcBuildingStorey instance inside IfcBuilding
+      )
+
+      @seealso AddContainedElement }
     procedure AddIsDecomposedBy(const ChildObject: TIfcObjectDefinition);
   end;
   TIfcObjectDefinitionList = {$ifdef FPC}specialize{$endif} TObjectList<TIfcObjectDefinition>;
@@ -1687,6 +1723,9 @@
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
+
+    { Create a new instance with given coordinates. }
+    constructor CreateVector(const AOwner: TComponent; const AVector: TVector3);
   published
     { Actual 3D point value. }
     property Coordinates: TCastleVector3PersistentSimple read FCoordinates;
@@ -1771,7 +1810,8 @@
     FExtrudedDirection: TIfcDirection;
     FDepth: TIfcPositiveLengthMeasure;
   public
-    function BuildNode(const Mapping: TCastleIfcMapping): TAbstractChildNode; override;
+    function BuildNode(const Mapping: TCastleIfcMapping;
+      const ParentProduct: TIfcProduct; const Appearance: TAppearanceNode): TAbstractChildNode; override;
   published
     { The direction in which the surface, provided by SweptArea is to be swept.
       The ExtrudedDirection shall not be perpendicular to the local z-axis. }
@@ -1804,8 +1844,79 @@
   strict private
     FObjectPlacement: TIfcObjectPlacement;
     FRepresentation: TIfcProductRepresentation;
+    function GetRelativePlacement: TVector3;
+    procedure SetRelativePlacement(const Translation: TVector3);
+    { Return the value of @link(PlacementRelativeToParent),
+      and if it's @true -> set Translation to
+      the value of @link(RelativePlacement). }
+    function GetRelativePlacementCore(out Translation: TVector3): Boolean;
   public
     function BuildNode(const Mapping: TCastleIfcMapping): TTransformNode; override;
+
+    { Add mesh representation to the given product.
+
+      The mesh is expressed as a set of 3D points (Coordinates)
+      and indexes to these coordinates (Indexes) that determine polygons.
+      The indexes are 0-based and can be separated by -1 to delimit polygons.
+
+      See examples/ifc/ for an example usage of this routine to
+      define walls and floors.
+
+      @param(Context Geometric representation context instance,
+        usually @link(TIfcProject.ModelContext) (for 3D models) or
+        @link(TIfcProject.PlanContext) (for 2D floor plans).
+      )
+    }
+    procedure AddMeshRepresentation(
+      const Context: TIfcGeometricRepresentationContext;
+      const Coordinates: array of TVector3;
+      const Indexes: array of Integer);
+
+    { Add box representation to the given product.
+
+      Right now, the Box is transformed into a proper mesh representation,
+      so this is just equivalent to calling AddMeshRepresentation with
+      the 8 box corners and proper indexes to define 6 box sides. }
+    procedure AddBoxRepresentation(
+      const Context: TIfcGeometricRepresentationContext;
+      const Box: TBox3D);
+
+    { Does @link(ObjectPlacement) express a simple translation relative
+      to the parent.
+      This implies that using @link(RelativePlacement) to operate indirectly
+      on @link(ObjectPlacement) makes sense, i.e. you do not loose information
+      this way. }
+    function PlacementRelativeToParent: Boolean;
+
+    { Position of this product relative to parent.
+
+      Check @link(PlacementRelativeToParent) before using this property.
+
+      @unorderedList(
+        @item(
+          Using this property when @link(PlacementRelativeToParent) is @true
+          makes most sense: it means that this simple property represents really
+          everything interesting about the placement.
+        )
+        @item(
+          Using this property when @link(PlacementRelativeToParent) is @false
+          means that reading it returns TVector.Zero, and setting it overrides
+          the previous placement setup. This may or may not be intuitive to your
+          usage.
+
+          In general, IFC offers various possibilities to define the placement
+          of an object, relative to various parents.
+          This property offers a simple way to change translation in the most common
+          case, when the placement is relative to our parent in the hierarchy.
+          If the @link(ObjectPlacement) defines placement in any other complicated way
+          (e.g. with respect to some other object) then this property returns
+          TVector3.Zero and @link(PlacementRelativeToParent) is @false.
+          Setting this property in such case will override the previous placement,
+          which may result in object "jumping" suddenly to unexpected place.
+        )
+      )
+    }
+    property RelativePlacement: TVector3 read GetRelativePlacement write SetRelativePlacement;
   published
     { Object coordinate system and placement of the product in space. }
     property ObjectPlacement: TIfcObjectPlacement read FObjectPlacement write FObjectPlacement;
@@ -1818,28 +1929,6 @@
     // TODO // property PositionedRelativeTo: TIfcRelPositionsList read FPositionedRelativeTo;
 
     // TODO // property ReferencedInStructures: TIfcRelReferencedInSpatialStructure read FReferencedInStructures;
-
-    { Add mesh representation to the given product.
-
-      The mesh is expressed as a set of 3D points (Coordinates)
-      and indexes to these coordinates (Indexes) that determine polygons.
-      The indexes are 0-based and can be separated by -1 to delimit polygons.
-
-      See examples/ifc/ for an example usage of this routine to
-      define walls and floors. }
-    procedure AddMeshRepresentation(const Coordinates: array of TVector3;
-      const Indexes: array of Integer);
-
-    { Add box representation to the given product.
-
-      Right now, the Box is transformed into a proper mesh representation,
-      so this is just equivalent to calling AddMeshRepresentation with
-      the 8 box corners and proper indexes to define 6 box sides. }
-    procedure AddBoxRepresentation(const Box: TBox3D);
-
-    { Move this product by given 3D translation.
-      This sets @link(ObjectPlacement) to a new instance. }
-    procedure SetRelativePlacement(const Translation: TVector3);
   end;
   TIfcProductList = class({$ifdef FPC}specialize{$endif} TObjectList<TIfcProduct>)
   end;
@@ -1859,6 +1948,29 @@
   published
     property LongName: TIfcLabel read FLongName write FLongName;
     property ContainsElements: TIfcRelContainedInSpatialStructureList read FContainsElements;
+
+    { Add given Element (TIfcElement, descendant of TIfcProduct)
+      to the @link(ContainsElements) list of this spatial element.
+
+      This adds an intermediate TIfcRelContainedInSpatialStructure instance,
+      and expands the @link(ContainsElements) list of this spatial element,
+      and expands the @link(TIfcElement.ContainedInStructure) of the given Element.
+
+      It may reuse existing TIfcRelContainedInSpatialStructure instance
+      (BonsaiBIM also does this, using one TIfcRelContainedInSpatialStructure
+      to refer to multiple children).
+
+      This should be used to add smaller elements, like TIfcWall, TIfcWindow
+      into larger spatial elements, like TIfcBuildingStorey, TIfcSpace. }
+    procedure AddContainedElement(const Element: TIfcElement);
+
+    { Add all contained elemenents to the List.
+      This enumerates relations inside @link(ContainsElements)
+      and the elements they refer to.
+
+      This is not recursive, it does not go into elements that are children
+      of other elements. }
+    procedure GetContainedElements(const List: TIfcElementList);
   end;
 
   TIfcSpatialZoneTypeEnum = (
@@ -1906,7 +2018,11 @@
     function BuildNode(const Mapping: TCastleIfcMapping): TAbstractChildNode;
   published
     { Set of products, which are contained within this level of
-      the spatial structure hierarchy. }
+      the spatial structure hierarchy.
+
+      Note: The name is a bit confusing, it's actually a list of TIfcProduct
+      instances, not TIfcElement instances. TIfcElement is a descendant of TIfcProduct.
+      This all follows IFC 4.3 spec. }
     property RelatedElements: TIfcProductList read FRelatedElements;
 
     { Spatial structure element, within which the element is contained. }
@@ -3006,7 +3122,15 @@
     FTrueNorth: TIfcDirection;
     FHasSubContexts: TIfcGeometricRepresentationSubContextList;
     // TODO // FHasCoordinateOperation: TIfcCoordinateOperation;
+  protected
+    function WantsGlobalId: Boolean; override;
   public
+    const
+      { The following values for @link(ContextType) are limited
+        to these 3 constants for TIfcGeometricRepresentationContext. }
+      TypeModel = 'Model';
+      TypePlan = 'Plan';
+      TypeNotDefined = 'NotDefined';
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
   published
@@ -3295,6 +3419,38 @@
       BonsaiBIM expects it.
       See also valid notes on https://stackoverflow.com/questions/51665572/required-data-for-ifc . }
     procedure SetupUnits;
+
+    { Find a 3D TIfcGeometricRepresentationContext called "Model" in the project.
+      This should be used to add all new 3D models to the project.
+
+      Returns @nil if not found, which can happen only temporarily when the IFC
+      file is constructed -- eventually, all valid IFC files should have
+      a mandatory 3D context, see
+      https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcGeometricRepresentationContext.htm .
+
+      Call @link(SetupModelContext) to make sure this is non-nil. }
+    function ModelContext: TIfcGeometricRepresentationContext;
+
+    { Find a 2D TIfcGeometricRepresentationContext called "Plan" in the project.
+      This should be used to add new 2D plans to the project.
+
+      Returns @nil if not found. This is normal, 2D (plan) context is optional
+      in IFC. }
+    function PlanContext: TIfcGeometricRepresentationContext;
+
+    { Add a 3D geometric representation context named "Model" to the project,
+      which should be used for models displayed in 3D view.
+      Does not add it if the project already has a suitable 3D context with this name.
+      Makes @link(ModelContext) non-nil. }
+    procedure SetupModelContext;
+
+    { Find TIfcSpatialElement where it seems most suitable to insert new elements.
+      This is just a guess, a proper IFC editor should allow user to choose it,
+      as there may be multiple valid choices (e.g. TIfcSite, TIfcBuilding,
+      TIfcBuldingStorey).
+
+      Returns @nil if we cannot determine it. }
+    function BestContainer: TIfcSpatialElement;
   end;
 
   { How to display the product. }
@@ -3338,7 +3494,8 @@
   { List of TIfcRepresentation. }
   TIfcRepresentationList = class({$ifdef FPC}specialize{$endif} TObjectList<TIfcRepresentation>)
   public
-    function BuildNode(const Mapping: TCastleIfcMapping): TAbstractChildNode;
+    function BuildNode(const Mapping: TCastleIfcMapping;
+      const ParentProduct: TIfcProduct; const Appearance: TAppearanceNode): TAbstractChildNode;
   end;
 
   TIfcShapeModel = class abstract(TIfcRepresentation)
@@ -3352,6 +3509,8 @@
 
     Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcShapeRepresentation.htm }
   TIfcShapeRepresentation = class(TIfcShapeModel)
+  protected
+    function WantsGlobalId: Boolean; override;
     // TODO
   end;
 
@@ -3364,10 +3523,13 @@
     FName: TIfcLabel;
     FDescription: TIfcText;
     FRepresentations: TIfcRepresentationList;
+  protected
+    function WantsGlobalId: Boolean; override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    function BuildNode(const Mapping: TCastleIfcMapping): TAbstractChildNode;
+    function BuildNode(const Mapping: TCastleIfcMapping;
+      const ParentProduct: TIfcProduct; const Appearance: TAppearanceNode): TAbstractChildNode;
   published
     { The word or group of words by which the product representation is known. }
     property Name: TIfcLabel read FName write FName;
@@ -3868,6 +4030,13 @@ function IfcClasses: TIfcPersistentClassList;
 
 {$ifdef read_implementation}
 
+{ TIfcRoot --------------------------------------------------------------- }
+
+function TIfcRoot.WantsGlobalId: Boolean;
+begin
+  Result := true;
+end;
+
 { TIfcStyledItem ------------------------------------------------------------- }
 
 constructor TIfcStyledItem.Create(AOwner: TComponent);
@@ -3923,6 +4092,7 @@ begin
   RelAggregates := TIfcRelAggregates.Create(Owner);
   RelAggregates.RelatingObject := Self;
   RelAggregates.RelatedObjects.Add(ChildObject);
+
   IsDecomposedBy.Add(RelAggregates);
 
   ChildObject.Decomposes.Add(RelAggregates);
@@ -3930,7 +4100,9 @@ end;
 
 { TIfcProduct --------------------------------------------------------------- }
 
-procedure TIfcProduct.AddMeshRepresentation(const Coordinates: array of TVector3;
+procedure TIfcProduct.AddMeshRepresentation(
+  const Context: TIfcGeometricRepresentationContext;
+  const Coordinates: array of TVector3;
   const Indexes: array of Integer);
 var
   PolygonalFaceSet: TIfcPolygonalFaceSet;
@@ -3939,6 +4111,8 @@ var
   FaceBegin, FaceEnd, I: Integer;
   Face: TIfcIndexedPolygonalFace;
 begin
+  Assert(Context <> nil);
+
   IfcCoordinates := TIfcCartesianPointList3D.Create(Owner);
   IfcCoordinates.CoordList.AddRange(Coordinates);
 
@@ -3983,18 +4157,26 @@ begin
   end;
 
   NewRepresentation := TIfcShapeRepresentation.Create(Owner);
+  NewRepresentation.RepresentationIdentifier := 'Body';
+  { Seems like RepresentationType=Tesselation best matches mesh data,
+    https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcShapeRepresentation.htm . }
+  NewRepresentation.RepresentationType := 'Tessellation';
+  NewRepresentation.ContextOfItems := Context;
   NewRepresentation.Items.Add(PolygonalFaceSet);
 
   if Representation = nil then
     Representation := TIfcProductDefinitionShape.Create(Owner);
   Representation.Representations.Add(NewRepresentation);
 
+  Context.RepresentationsInContext.Add(NewRepresentation);
+
   // link back from NewRepresentation -> (product) Representation
-  // TODO: uncomment, make sure save works:
-  //NewRepresentation.OfProductRepresentation.Add(Representation);
+  NewRepresentation.OfProductRepresentation.Add(Representation);
 end;
 
-procedure TIfcProduct.AddBoxRepresentation(const Box: TBox3D);
+procedure TIfcProduct.AddBoxRepresentation(
+  const Context: TIfcGeometricRepresentationContext;
+  const Box: TBox3D);
 var
   Coordinates: array [0..7] of TVector3;
 begin
@@ -4009,7 +4191,7 @@ begin
   Coordinates[6] := Box.Data[1]; Coordinates[6].Data[0] := Box.Data[0][0];
   Coordinates[7] := Box.Data[1];
 
-  AddMeshRepresentation(Coordinates, [
+  AddMeshRepresentation(Context, Coordinates, [
     // Quads that form the box
     { TODO: This is inverse order than TOcclusionCullingUtilsRenderer.GLContextOpen,
       and it seems necessary to be CCW outside.
@@ -4026,21 +4208,127 @@ begin
   ]);
 end;
 
+function TIfcProduct.GetRelativePlacementCore(out Translation: TVector3): Boolean;
+var
+  UseLocation: TIfcCartesianPoint;
+  UseRelativePlacement: TIfcAxis2Placement3D;
+  UseObjectPlacement: TIfcLocalPlacement;
+begin
+  // calculate UseObjectPlacement
+  if (ObjectPlacement <> nil) and
+     (ObjectPlacement is TIfcLocalPlacement) and
+     (TIfcLocalPlacement(ObjectPlacement).PlacementRelTo = nil) and
+     (
+       { Check PlacesObject that should include Self, or be empty.
+        https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcObjectPlacement.htm
+        allows placesObject to be empty, from what I understand, BonsaiBIM
+        also can generate such placement. }
+       (TIfcLocalPlacement(ObjectPlacement).PlacesObject.IndexOf(Self) <> -1) or
+       (TIfcLocalPlacement(ObjectPlacement).PlacesObject.Count = 0)
+     ) then
+  begin
+    UseObjectPlacement := TIfcLocalPlacement(ObjectPlacement);
+  end else
+  if ObjectPlacement = nil then
+  begin
+    Translation := TVector3.Zero;
+    Exit(true);
+  end else
+    Exit(false);
+
+  // calculate UseRelativePlacement
+  if (UseObjectPlacement.RelativePlacement <> nil) and
+     (UseObjectPlacement.RelativePlacement is TIfcAxis2Placement3D) then
+  begin
+    UseRelativePlacement := TIfcAxis2Placement3D(UseObjectPlacement.RelativePlacement);
+  end else
+  if UseObjectPlacement.RelativePlacement = nil then
+  begin
+    Translation := TVector3.Zero;
+    Exit(true);
+  end else
+    Exit(false);
+
+  // calculate UseLocation
+  if (UseRelativePlacement.Location <> nil) and
+     (UseRelativePlacement.Location is TIfcCartesianPoint) then
+  begin
+    UseLocation := TIfcCartesianPoint(UseRelativePlacement.Location);
+  end else
+  if UseRelativePlacement.Location = nil then
+  begin
+    Translation := TVector3.Zero;
+    Exit(true);
+  end else
+    Exit(false);
+
+  Translation := UseLocation.Coordinates.Value;
+  Result := true;
+end;
+
+function TIfcProduct.PlacementRelativeToParent: Boolean;
+var
+  DummyTranslation: TVector3;
+begin
+  Result := GetRelativePlacementCore(DummyTranslation);
+end;
+
+function TIfcProduct.GetRelativePlacement: TVector3;
+begin
+  if not GetRelativePlacementCore(Result) then
+    Result := TVector3.Zero;
+end;
+
 procedure TIfcProduct.SetRelativePlacement(const Translation: TVector3);
 var
-  Location: TIfcCartesianPoint;
-  RelativePlacement: TIfcAxis2Placement3D;
+  NewLocation: TIfcCartesianPoint;
+  NewRelativePlacement: TIfcAxis2Placement3D;
   NewObjectPlacement: TIfcLocalPlacement;
 begin
-  Location := TIfcCartesianPoint.Create(Owner);
-  Location.Coordinates.Value := Translation;
+  // create NewObjectPlacement and assign it to ObjectPlacement
+  if (ObjectPlacement <> nil) and
+     (ObjectPlacement is TIfcLocalPlacement) and
+     (TIfcLocalPlacement(ObjectPlacement).PlacementRelTo = nil) and
+     (
+       { Check PlacesObject that should include Self, or be empty.
+        https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcObjectPlacement.htm
+        allows placesObject to be empty, from what I understand, BonsaiBIM
+        also can generate such placement. }
+       (TIfcLocalPlacement(ObjectPlacement).PlacesObject.IndexOf(Self) <> -1) or
+       (TIfcLocalPlacement(ObjectPlacement).PlacesObject.Count = 0)
+     ) then
+  begin
+    NewObjectPlacement := TIfcLocalPlacement(ObjectPlacement);
+  end else
+  begin
+    NewObjectPlacement := TIfcLocalPlacement.Create(Owner);
+    NewObjectPlacement.PlacesObject.Add(Self);
+    ObjectPlacement := NewObjectPlacement;
+  end;
 
-  RelativePlacement := TIfcAxis2Placement3D.Create(Owner);
-  RelativePlacement.Location := Location;
+  // create NewRelativePlacement and assign it to NewObjectPlacement.RelativePlacement
+  if (NewObjectPlacement.RelativePlacement <> nil) and
+     (NewObjectPlacement.RelativePlacement is TIfcAxis2Placement3D) then
+  begin
+    NewRelativePlacement := TIfcAxis2Placement3D(NewObjectPlacement.RelativePlacement);
+  end else
+  begin
+    NewRelativePlacement := TIfcAxis2Placement3D.Create(Owner);
+    NewObjectPlacement.RelativePlacement := NewRelativePlacement;
+  end;
 
-  NewObjectPlacement := TIfcLocalPlacement.Create(Owner);
-  NewObjectPlacement.RelativePlacement := RelativePlacement;
-  ObjectPlacement := NewObjectPlacement;
+  // create NewLocation and assign it to NewRelativePlacement.Location
+  if (NewRelativePlacement.Location <> nil) and
+     (NewRelativePlacement.Location is TIfcCartesianPoint) then
+  begin
+    NewLocation := TIfcCartesianPoint(NewRelativePlacement.Location);
+  end else
+  begin
+    NewLocation := TIfcCartesianPoint.Create(Owner);
+    NewRelativePlacement.Location := NewLocation;
+  end;
+
+  NewLocation.Coordinates.Value := Translation;
 end;
 
 { TIfcSpatialElement --------------------------------------------------------- }
@@ -4055,6 +4343,43 @@ destructor TIfcSpatialElement.Destroy;
 begin
   FreeAndNil(FContainsElements);
   inherited;
+end;
+
+procedure TIfcSpatialElement.AddContainedElement(const Element: TIfcElement);
+var
+  Relation: TIfcRelContainedInSpatialStructure;
+begin
+  if (ContainsElements.Count = 1) and
+     (ContainsElements[0] is TIfcRelContainedInSpatialStructure) and
+     ((ContainsElements[0] as TIfcRelContainedInSpatialStructure).RelatingStructure = Self) then
+  begin
+    { Reuse existing TIfcRelContainedInSpatialStructure instance }
+    Relation := ContainsElements[0] as TIfcRelContainedInSpatialStructure;
+  end else
+  begin
+    Relation := TIfcRelContainedInSpatialStructure.Create(Owner);
+    Relation.RelatingStructure := Self;
+    ContainsElements.Add(Relation);
+  end;
+
+  Relation.RelatedElements.Add(Element);
+
+  Element.ContainedInStructure.Add(Relation);
+end;
+
+procedure TIfcSpatialElement.GetContainedElements(const List: TIfcElementList);
+var
+  RelContainedInSpatialStructure: TIfcRelContainedInSpatialStructure;
+  Product: TIfcProduct;
+begin
+  for RelContainedInSpatialStructure in ContainsElements do
+    for Product in RelContainedInSpatialStructure.RelatedElements do
+      { The RelatedElements name is confusing, it actually contains any
+        TIfcProduct instances, not just TIfcElement instances.
+        We filter them for TIfcElement, to make us consistent with
+        AddContainedElement. }
+      if Product is TIfcElement then
+        List.Add(TIfcElement(Product));
 end;
 
 { TIfcElement --------------------------------------------------------------- }
@@ -4122,6 +4447,13 @@ begin
   inherited;
 end;
 
+{ TIfcShapeRepresentation --------------------------------------------------- }
+
+function TIfcShapeRepresentation.WantsGlobalId: Boolean;
+begin
+  Result := true;
+end;
+
 { TIfcProductRepresentation ------------------------------------------------- }
 
 constructor TIfcProductRepresentation.Create(AOwner: TComponent);
@@ -4134,6 +4466,11 @@ destructor TIfcProductRepresentation.Destroy;
 begin
   FreeAndNil(FRepresentations);
   inherited;
+end;
+
+function TIfcProductRepresentation.WantsGlobalId: Boolean;
+begin
+  Result := true;
 end;
 
 { TIfcProject -------------------------------------------------------------- }
@@ -4188,6 +4525,84 @@ begin
   UnitAssignment.Units.Add(IfcUnit);
 
   UnitsInContext := UnitAssignment;
+end;
+
+function TIfcProject.ModelContext: TIfcGeometricRepresentationContext;
+var
+  C: TIfcRepresentationContext;
+begin
+  for C in RepresentationContexts do
+  begin
+    if (C is TIfcGeometricRepresentationContext) and
+       (C.ContextType = TIfcGeometricRepresentationContext.TypeModel) and
+       (TIfcGeometricRepresentationContext(C).CoordinateSpaceDimension = 3) then
+      Exit(TIfcGeometricRepresentationContext(C));
+  end;
+  Result := nil;
+end;
+
+function TIfcProject.PlanContext: TIfcGeometricRepresentationContext;
+var
+  C: TIfcRepresentationContext;
+begin
+  for C in RepresentationContexts do
+  begin
+    if (C is TIfcGeometricRepresentationContext) and
+       (C.ContextType = TIfcGeometricRepresentationContext.TypePlan) and
+       (TIfcGeometricRepresentationContext(C).CoordinateSpaceDimension = 2) then
+      Exit(TIfcGeometricRepresentationContext(C));
+  end;
+  Result := nil;
+end;
+
+procedure TIfcProject.SetupModelContext;
+var
+  NewContext: TIfcGeometricRepresentationContext;
+  WorldCoordinateSystem: TIfcAxis2Placement3D;
+begin
+  if ModelContext <> nil then
+    Exit; // nothing needs to be done
+
+  WorldCoordinateSystem := TIfcAxis2Placement3D.Create(Owner);
+  WorldCoordinateSystem.Location := TIfcCartesianPoint.CreateVector(Owner, TVector3.Zero);
+  WorldCoordinateSystem.Axis := TIfcDirection.CreateVector(Owner, TVector3.One[2]);
+  WorldCoordinateSystem.RefDirection := TIfcDirection.CreateVector(Owner, TVector3.One[0]);
+
+  NewContext := TIfcGeometricRepresentationContext.Create(Owner);
+  NewContext.ContextType := TIfcGeometricRepresentationContext.TypeModel;
+  NewContext.CoordinateSpaceDimension := 3;
+  NewContext.Precision := SingleEpsilon;
+  NewContext.WorldCoordinateSystem := WorldCoordinateSystem;
+
+  RepresentationContexts.Add(NewContext);
+
+  Assert(ModelContext <> nil);
+end;
+
+function TIfcProject.BestContainer: TIfcSpatialElement;
+
+  function SpatialElementInside(const Parent: TIfcObjectDefinition): TIfcSpatialElement;
+  var
+    RelAggregates: TIfcRelAggregates;
+    RelatedObject: TIfcObjectDefinition;
+  begin
+    for RelAggregates in Parent.IsDecomposedBy do
+      for RelatedObject in RelAggregates.RelatedObjects do
+        if RelatedObject is TIfcSpatialElement then
+          Exit(TIfcSpatialElement(RelatedObject));
+    Result := nil;
+  end;
+
+var
+  NextResult: TIfcSpatialElement;
+begin
+  Result := nil;
+  NextResult := SpatialElementInside(Self);
+  while NextResult <> nil do
+  begin
+    Result := NextResult;
+    NextResult := SpatialElementInside(Result);
+  end;
 end;
 
 { TIfcRepresentation -------------------------------------------------------- }
@@ -4302,6 +4717,12 @@ begin
   FCoordinates := TCastleVector3PersistentSimple.Create;
 end;
 
+constructor TIfcCartesianPoint.CreateVector(const AOwner: TComponent; const AVector: TVector3);
+begin
+  Create(AOwner); // calling virtual constructor, so may call descendant
+  Coordinates.Value := AVector;
+end;
+
 destructor TIfcCartesianPoint.Destroy;
 begin
   FreeAndNil(FCoordinates);
@@ -4314,6 +4735,12 @@ constructor TIfcDirection.Create(AOwner: TComponent);
 begin
   inherited;
   FDirectionRatios := TCastleVector3PersistentSimple.Create;
+end;
+
+constructor TIfcDirection.CreateVector(const AOwner: TComponent; const AVector: TVector3);
+begin
+  Create(AOwner); // calling virtual constructor, so may call descendant
+  DirectionRatios.Value := AVector;
 end;
 
 destructor TIfcDirection.Destroy;
@@ -4670,6 +5097,11 @@ destructor TIfcGeometricRepresentationContext.Destroy;
 begin
   FreeAndNil(FHasSubContexts);
   inherited;
+end;
+
+function TIfcGeometricRepresentationContext.WantsGlobalId: Boolean;
+begin
+  Result := true;
 end;
 
 { TIfcUnitAssignment --------------------------------------------------------- }

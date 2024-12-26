@@ -20,12 +20,6 @@ unit CastleSteam;
 
 {$I castleconf.inc}
 
-{ Do not warn at PAnsiChar(String) typecasts here,
-  they are OK -- we cast strings to 8-bit for Steam API usage. }
-{$ifndef FPC}
-  {$warn SUSPICIOUS_TYPECAST off}
-{$endif}
-
 interface
 
 uses Classes,
@@ -190,8 +184,11 @@ uses SysUtils, CTypes,
   CastleLog, CastleUtils, CastleApplicationProperties;
 
 procedure WarningHook(nSeverity: Integer; pchDebugText: PAnsiChar); Cdecl;
+var
+  DebugTextAnsi: AnsiString;
 begin
-  WriteLnLog('Steam Warning: "%s" (Severity: %d)', [pchDebugText^, NSeverity]);
+  DebugTextAnsi := pchDebugText;
+  WriteLnLog('Steam Warning: "%s" (Severity: %d)', [DebugTextAnsi, NSeverity]);
 end;
 
 { TCastleSteam --------------------------------------------------------------- }
@@ -321,12 +318,15 @@ const
   SUserStatsNotReceived = 'User stats not received yet from Steam (wait for TCastleSteam.UserStatsReceived or observe TCastleSteam.OnUserStatsReceived).';
 
 procedure TCastleSteam.SetAchievement(const AchievementId: String);
+var
+  AchievementIdAnsi: AnsiString;
 begin
   if not Enabled then
     Exit;
   if UserStatsReceived then
   begin
-    if not SteamAPI_ISteamUserStats_SetAchievement(SteamUserStats, PAnsiChar(AchievementId)) then
+    AchievementIdAnsi := AchievementId;
+    if not SteamAPI_ISteamUserStats_SetAchievement(SteamUserStats, PAnsiChar(AchievementIdAnsi)) then
       SteamError('Failed to SteamAPI_ISteamUserStats_SetAchievement');
     StoreStats := true;
   end else
@@ -336,14 +336,16 @@ end;
 function TCastleSteam.GetAchievement(const AchievementId: String): Boolean;
 var
   CAchieved: TSteamBool;
+  AchievementIdAnsi: AnsiString;
 begin
   Result := false;
   if not Enabled then
     Exit;
   if UserStatsReceived then
   begin
+    AchievementIdAnsi := AchievementId;
     if SteamAPI_ISteamUserStats_GetAchievement(SteamUserStats,
-        PAnsiChar(AchievementId), @CAchieved) then
+        PAnsiChar(AchievementIdAnsi), @CAchieved) then
     begin
       Result := CAchieved;
     end else
@@ -353,12 +355,15 @@ begin
 end;
 
 procedure TCastleSteam.ClearAchievement(const AchievementId: String);
+var
+  AchievementIdAnsi: AnsiString;
 begin
   if not Enabled then
     Exit;
   if UserStatsReceived then
   begin
-    if not SteamAPI_ISteamUserStats_ClearAchievement(SteamUserStats, PAnsiChar(AchievementId)) then
+    AchievementIdAnsi := AchievementId;
+    if not SteamAPI_ISteamUserStats_ClearAchievement(SteamUserStats, PAnsiChar(AchievementIdAnsi)) then
       SteamError('Failed to SteamAPI_ISteamUserStats_ClearAchievement');
     StoreStats := true;
   end else
@@ -381,12 +386,16 @@ end;
 
 procedure TCastleSteam.IndicateAchievementProgress(const AchievementId: String;
   const CurrentProgress, MaxProgress: UInt32);
+var
+  AchievementIdAnsi: AnsiString;
 begin
   if not Enabled then
     Exit;
   if UserStatsReceived then
   begin
-    if not SteamAPI_ISteamUserStats_IndicateAchievementProgress(SteamUserStats, PAnsiChar(AchievementId), CurrentProgress, MaxProgress) then
+    AchievementIdAnsi := AchievementId;
+    if not SteamAPI_ISteamUserStats_IndicateAchievementProgress(SteamUserStats,
+       PAnsiChar(AchievementIdAnsi), CurrentProgress, MaxProgress) then
       SteamError('Failed to SteamAPI_ISteamUserStats_IndicateAchievementProgress');
     StoreStats := true; // not really necessary it seems
   end else
