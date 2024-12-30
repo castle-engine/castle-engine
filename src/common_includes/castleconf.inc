@@ -294,6 +294,10 @@
 
 { OpenGL[ES] ------------------------------------------------------------------ }
 
+{ OpenGL / OpenGLES calls are callbacks, so e.g. writing
+  "Assert(Assigned(glGenerateMipmap))" is valid. }
+{$define CASTLE_GL_USES_CALLBACKS}
+
 (*Whether we use OpenGL ES or normal OpenGL.
   OpenGL ES is by default used for mobile devices.
   For testing, you can also use OpenGL ES on normal desktop OSes
@@ -322,6 +326,7 @@
 {$ifdef WASI}
   {$define OpenGLES}
   {$define CastleGLES := CastleInternalWebGL}
+  {$undef CASTLE_GL_USES_CALLBACKS}
 {$endif}
 
 { NX supports OpenGL and OpenGLES (that's public information,

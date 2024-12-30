@@ -38,7 +38,15 @@ type
   TGLfloat = CastleInternalJobWeb.TGLfloat;
   TGLclampf = CastleInternalJobWeb.TGLclampf;
 
+const
+  { Define GL_TRUE/FALSE for compatibility with CastleGLES.
+    In WebGL, as defined in CastleInternalJobWeb, these are just Pascal booleans. }
+  GL_TRUE = true;
+  GL_FALSE = false;
+
+{$define read_interface}
 {$I castleinternalwebgl_flat_api.inc}
+{$undef read_interface}
 
 procedure RunWebGLAnimation;
 
@@ -47,12 +55,18 @@ implementation
 uses SysUtils, JOB.Shared, JOB.JS,
   CastleLog, CastleUtils;
 
+var
+  GL: IJSWebGLRenderingContext;
+
+{$define read_implementation}
+{$I castleinternalwebgl_flat_api.inc}
+{$undef read_implementation}
+
 { Rendering and animation using WebGL ---------------------------------------- }
 
 var
   { Variables set by GLContextOpen, read-only (for now) by other code }
   Canvas: IJSHTMLCanvasElement;
-  GL: IJSWebGLRenderingContext;
   ContextWidth, ContextHeight: TGLSizeI;
 
 procedure GLContextOpen;

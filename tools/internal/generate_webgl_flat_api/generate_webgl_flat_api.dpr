@@ -16,7 +16,8 @@
 
 uses SysUtils, Classes,
   WebidlParser, WebidlScanner, WebidlDefs,
-  CastleUtils, CastleUriUtils, CastleDownload, CastleClassUtils;
+  CastleUtils, CastleUriUtils, CastleDownload, CastleClassUtils,
+  CastleStringUtils;
 
 { Only for debug: Writeln all definitions. }
 procedure DebugWriteDefinitions(const Definitions: TIDLDefinitionList);
@@ -82,6 +83,7 @@ begin
         MemberName := MemberName + '_';
       if not AnyOutput then
       begin
+        WritelnStr(OutputStream, '');
         WritelnStr(OutputStream, Format('{ Constants from %s }', [InterfaceName]));
         WritelnStr(OutputStream, 'const');
         AnyOutput := true;
@@ -95,11 +97,142 @@ begin
   end;
 end;
 
+{ Add to OutputStream Pascal code that exposes functions
+  from the given WEBIDL interface. }
+procedure ExposeFunctions(const Context: TWebIDLContext;
+  const OutputStream, OutputStreamImplementation: TStream;
+  const InterfaceName: String);
+
+  function PascalType(const IdlType: TIDLTypeDefDefinition): String;
+  begin
+    if SameText(IdlType.TypeName, 'boolean') then
+      Result := 'Boolean'
+    else
+    if SameText(IdlType.TypeName, 'domstring') then
+      Result := 'String'
+    else
+      Result := 'T' + IdlType.TypeName;
+  end;
+
+  { In flat API, we cannot expose functions that take/return some types. }
+  function UnsupportedType(const IdlType: TIDLTypeDefDefinition): Boolean;
+  begin
+    Result :=
+      (NameToWebIDLBaseType(IdlType.TypeName) = wibtAny) or
+      (IdlType is TIDLSequenceTypeDefDefinition) or
+      (IsPrefix('WebGL', IdlType.TypeName)) or
+      SameText('object', IdlType.TypeName) or
+      SameText('Float32List', IdlType.TypeName);
+  end;
+
+var
+  Definition: TIDLInterfaceDefinition;
+  I, J: Integer;
+  Func: TIDLFunctionDefinition;
+  AnyOutput, HasReturnValue, Unsupported: Boolean;
+  FlatName, ArgumentsDeclare, ArgumentsCall, ArgumentName: String;
+begin
+  Writeln('Exposing functions from ', InterfaceName);
+  AnyOutput := false;
+
+  Definition := FindInterface(Context, InterfaceName);
+
+  for I := 0 to Definition.Members.Count - 1 do
+  begin
+    if Definition.Members[I] is TIDLFunctionDefinition then
+    begin
+      Func := Definition.Members[I] as TIDLFunctionDefinition;
+      FlatName := 'gl' + UpCase(Func.Name[1]) + SEnding(Func.Name, 2);
+      if not AnyOutput then
+      begin
+        WritelnStr(OutputStream, '');
+        WritelnStr(OutputStream, Format('{ Functions from %s }', [InterfaceName]));
+        AnyOutput := true;
+      end;
+
+      Unsupported := false;
+
+      // calculate ArgumentsDeclare, ArgumentsCall
+      ArgumentsDeclare := '';
+      ArgumentsCall := '';
+      for J := 0 to Func.Arguments.Count - 1 do
+      begin
+        Unsupported := Unsupported or
+          UnsupportedType(Func.Argument[J].ArgumentType);
+        ArgumentName := Func.Argument[J].Name;
+        if SameText(ArgumentName, 'type') then
+          ArgumentName := 'type_';
+        ArgumentsDeclare := SAppendPart(ArgumentsDeclare, '; ',
+          Format('const %s: %s', [
+            ArgumentName,
+            PascalType(Func.Argument[J].ArgumentType)
+          ]));
+        ArgumentsCall := SAppendPart(ArgumentsCall, ', ',
+          ArgumentName);
+      end;
+
+      HasReturnValue :=
+        (Func.ReturnType <> nil) and
+        (NameToWebIDLBaseType(Func.ReturnType.TypeName) <> wibtVoid) and
+        (NameToWebIDLBaseType(Func.ReturnType.TypeName) <> wibtUndefined);
+
+      Unsupported := Unsupported or
+        (HasReturnValue and UnsupportedType(Func.ReturnType));
+
+      if Unsupported then
+      begin
+        WriteStr(OutputStream, '// Not in auto-generated flat WebGL API: ');
+        WritelnStr(OutputStreamImplementation, '{ Not in auto-generated flat WebGL API:');
+      end;
+
+      if HasReturnValue then
+      begin
+        WritelnStr(OutputStream, Format('function %s(%s): %s;', [
+          FlatName,
+          ArgumentsDeclare,
+          PascalType(Func.ReturnType)
+        ]));
+        WritelnStr(OutputStreamImplementation, Format(
+          'function %s(%s): %s;' + NL +
+          'begin' + NL +
+          '  Result := GL.%s(%s);' + NL +
+          'end;' + NL, [
+          FlatName,
+          ArgumentsDeclare,
+          PascalType(Func.ReturnType),
+          Func.Name,
+          ArgumentsCall
+        ]));
+      end else
+      begin
+        WritelnStr(OutputStream, Format('procedure %s(%s);', [
+          FlatName,
+          ArgumentsDeclare
+        ]));
+        WritelnStr(OutputStreamImplementation, Format(
+          'procedure %s(%s);' + NL +
+          'begin' + NL +
+          '  GL.%s(%s);' + NL +
+          'end;' + NL, [
+          FlatName,
+          ArgumentsDeclare,
+          Func.Name,
+          ArgumentsCall
+        ]));
+      end;
+
+      if Unsupported then
+        WritelnStr(OutputStreamImplementation, '}');
+    end;
+  end;
+end;
+
 { main program }
 
 var
   WebidlFileName, OutputFileName: String;
   InputStream, OutputStream: TStream;
+  OutputStreamImplementation: TStringStream;
   Scanner: TWebIDLScanner;
   Parser: TWebIDLParser;
   Context: TWebIDLContext;
@@ -115,6 +248,9 @@ begin
   try
     OutputStream := UrlSaveStream(FilenameToUriSafe(OutputFileName));
     WritelnStr(OutputStream, '{ This file is automatically generated by generate_webgl_flat_api. }');
+    WritelnStr(OutputStream, '{$ifdef read_interface}');
+
+    OutputStreamImplementation := TStringStream.Create('');
 
     Context := TWebIDLContext.Create;
     InputStream := Download(FilenameToUriSafe(WebidlFileName));
@@ -134,7 +270,18 @@ begin
     // DebugWriteDefinitions(Context.Definitions);
 
     ExposeConstants(Context, OutputStream, 'WebGLRenderingContextBase');
-    ExposeConstants(Context, OutputStream, 'WebGL2RenderingContext');
+    ExposeFunctions(Context, OutputStream, OutputStreamImplementation,
+      'WebGLRenderingContextBase');
+    // nothing
+    //ExposeConstants(Context, OutputStream, 'WebGL2RenderingContext');
+
+    // write implementation
+    WritelnStr(OutputStream,
+      '{$endif read_interface}' + NL +
+      NL +
+      '{$ifdef read_implementation}');
+    WriteStr(OutputStream, OutputStreamImplementation.DataString);
+    WritelnStr(OutputStream, '{$endif read_implementation}');
   finally
     FreeAndNil(OutputStream);
     FreeAndNil(Parser);
