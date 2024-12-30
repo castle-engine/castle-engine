@@ -127,7 +127,7 @@ type
   public
     Owner: TGLSLProgram;
     Name: string;
-    Location: TGLint;
+    Location: TGLUniformLocation;
 
     { Calling @link(TGLSLUniform.SetValue) of this is ignored. }
     class function NotExisting: TGLSLUniform; static;
@@ -186,7 +186,7 @@ type
     var
     Owner: TGLSLProgram;
     Name: string;
-    Location: TGLint;
+    Location: TGLAttribLocation;
     LocationOffsetsToDisable: array [TLocationOffset] of boolean;
 
     { Enable an array of arbitary OpenGL type.
@@ -540,7 +540,7 @@ type
     { Get the attribute instance. It can be used to make repeated
       @link(TGLSLAttribute.SetValue) and @link(TGLSLAttribute.EnableArray).
 
-      Returned attribute has @link(TGLSLAttribute.Location) equal to -1.
+      Returned attribute has @link(TGLSLAttribute.Location) equal to GLAttribLocationNone.
       All the calls to @link(TGLSLAttribute.SetValue)
       or @link(TGLSLAttribute.EnableArray) or @link(TGLSLAttribute.DisableArray)
       methods are silently ignored. }
@@ -640,9 +640,15 @@ implementation
 uses CastleStringUtils, CastleLog, CastleGLVersion, CastleRenderContext,
   CastleInternalGLUtils, CastleApplicationProperties;
 
-{ Wrapper around glGetShaderInfoLog.
-  Based on Dean Ellis BasicShader.dpr, but somewhat fixed ? <> 0 not > 1. }
-function GetShaderInfoLog(ShaderId: TGLuint): String;
+{ Wrapper around glGetShaderInfoLog. }
+function GetShaderInfoLog(const ShaderId: TGLShader): String;
+{$ifdef CASTLE_WEBGL}
+begin
+  Result := glGetShaderInfoLog(ShaderId);
+{$else}
+{ OpenGL version based on Dean Ellis BasicShader.dpr
+  (with some changes, e.g. fixed ? <> 0 not > 1, adjusted to both FPC / Delphi
+  and our CastleGL header). }
 var
   Len, Len2: TGLint;
 {$ifndef FPC}
@@ -664,10 +670,15 @@ begin
     StringReplaceAllVar(Result, #0, NL);
   end else
     Result := '';
+{$endif}
 end;
 
 { Wrapper around glGetProgramInfoLog. }
-function GetProgramInfoLog(ProgramId: TGLuint): String;
+function GetProgramInfoLog(const ProgramId: TGLProgram): String;
+{$ifdef CASTLE_WEBGL}
+begin
+  Result := glGetProgramInfoLog(ProgramId);
+{$else}
 var
   Len, Len2: TGLint;
 {$ifndef FPC}
@@ -689,6 +700,7 @@ begin
     StringReplaceAllVar(Result, #0, NL);
   end else
     Result := '';
+{$endif}
 end;
 
 function GetCurrentProgram: TGLSLProgram;
@@ -705,10 +717,10 @@ procedure InternalSetCurrentProgram(const Value: TGLSLProgram);
 begin
   if Value <> nil then
   begin
-    if Value.ProgramId = 0 then
+    if Value.ProgramId = GLObjectNone then
     begin
       WritelnWarning('Trying to use a GLSL shader after the OpenGL context for which it was prepared closed; you have to create new TGLSLProgram instance');
-      glUseProgram(0);
+      glUseProgram(GLObjectNone);
       Exit;
     end;
     if GLFeatures.Shaders then
@@ -716,7 +728,7 @@ begin
   end else
   begin
     if GLFeatures.Shaders then
-      glUseProgram(0);
+      glUseProgram(GLObjectNone);
   end;
 end;
 
@@ -724,14 +736,14 @@ end;
 
 class function TGLSLUniform.NotExisting: TGLSLUniform; {$ifdef FPC} static;{$endif}
 const
-  R: TGLSLUniform = (Owner: nil; Name: ''; Location: -1);
+  R: TGLSLUniform = (Owner: nil; Name: ''; Location: GLUniformLocationNone);
 begin
   Result := R;
 end;
 
 procedure TGLSLUniform.SetValue(const Value: boolean);
 begin
-  if Location = -1 then Exit; // ignore non-existing uniform here
+  if Location = GLUniformLocationNone then Exit; // ignore non-existing uniform here
 
   { GLSL "bool" types are set using the "i" version. From manpage:
 
@@ -751,7 +763,7 @@ end;
 
 procedure TGLSLUniform.SetValue(const Value: TGLint);
 begin
-  if Location = -1 then Exit; // ignore non-existing uniform here
+  if Location = GLUniformLocationNone then Exit; // ignore non-existing uniform here
   Owner.Enable;
   if GLFeatures.Shaders then
     glUniform1i(Location, Value);
@@ -759,7 +771,7 @@ end;
 
 procedure TGLSLUniform.SetValue(const Value: TVector2Integer);
 begin
-  if Location = -1 then Exit; // ignore non-existing uniform here
+  if Location = GLUniformLocationNone then Exit; // ignore non-existing uniform here
   Owner.Enable;
   if GLFeatures.Shaders then
     glUniform2iv(Location, 1, @Value);
@@ -767,7 +779,7 @@ end;
 
 procedure TGLSLUniform.SetValue(const Value: TVector3Integer);
 begin
-  if Location = -1 then Exit; // ignore non-existing uniform here
+  if Location = GLUniformLocationNone then Exit; // ignore non-existing uniform here
   Owner.Enable;
   if GLFeatures.Shaders then
     glUniform3iv(Location, 1, @Value);
@@ -775,7 +787,7 @@ end;
 
 procedure TGLSLUniform.SetValue(const Value: TVector4Integer);
 begin
-  if Location = -1 then Exit; // ignore non-existing uniform here
+  if Location = GLUniformLocationNone then Exit; // ignore non-existing uniform here
   Owner.Enable;
   if GLFeatures.Shaders then
     glUniform4iv(Location, 1, @Value);
@@ -783,7 +795,7 @@ end;
 
 procedure TGLSLUniform.SetValue(const Value: TGLfloat);
 begin
-  if Location = -1 then Exit; // ignore non-existing uniform here
+  if Location = GLUniformLocationNone then Exit; // ignore non-existing uniform here
   Owner.Enable;
   if GLFeatures.Shaders then
     glUniform1f(Location, Value);
@@ -791,7 +803,7 @@ end;
 
 procedure TGLSLUniform.SetValue(const Value: TVector2);
 begin
-  if Location = -1 then Exit; // ignore non-existing uniform here
+  if Location = GLUniformLocationNone then Exit; // ignore non-existing uniform here
   Owner.Enable;
   if GLFeatures.Shaders then
     glUniform2fv(Location, 1, @Value);
@@ -799,7 +811,7 @@ end;
 
 procedure TGLSLUniform.SetValue(const Value: TVector3);
 begin
-  if Location = -1 then Exit; // ignore non-existing uniform here
+  if Location = GLUniformLocationNone then Exit; // ignore non-existing uniform here
   Owner.Enable;
   if GLFeatures.Shaders then
     glUniform3fv(Location, 1, @Value);
@@ -807,7 +819,7 @@ end;
 
 procedure TGLSLUniform.SetValue(const Value: TVector4);
 begin
-  if Location = -1 then Exit; // ignore non-existing uniform here
+  if Location = GLUniformLocationNone then Exit; // ignore non-existing uniform here
   Owner.Enable;
   if GLFeatures.Shaders then
     glUniform4fv(Location, 1, @Value);
@@ -815,7 +827,7 @@ end;
 
 procedure TGLSLUniform.SetValue(const Value: TMatrix2);
 begin
-  if Location = -1 then Exit; // ignore non-existing uniform here
+  if Location = GLUniformLocationNone then Exit; // ignore non-existing uniform here
   Owner.Enable;
   if GLFeatures.Shaders then
     glUniformMatrix2fv(Location, 1, GL_FALSE, @Value);
@@ -823,7 +835,7 @@ end;
 
 procedure TGLSLUniform.SetValue(const Value: TMatrix3);
 begin
-  if Location = -1 then Exit; // ignore non-existing uniform here
+  if Location = GLUniformLocationNone then Exit; // ignore non-existing uniform here
   Owner.Enable;
   if GLFeatures.Shaders then
     glUniformMatrix3fv(Location, 1, GL_FALSE, @Value);
@@ -831,7 +843,7 @@ end;
 
 procedure TGLSLUniform.SetValue(const Value: TMatrix4);
 begin
-  if Location = -1 then Exit; // ignore non-existing uniform here
+  if Location = GLUniformLocationNone then Exit; // ignore non-existing uniform here
   Owner.Enable;
   if GLFeatures.Shaders then
     glUniformMatrix4fv(Location, 1, GL_FALSE, @Value);
@@ -841,7 +853,7 @@ procedure TGLSLUniform.SetValue(const Value: TBooleanList);
 var
   Ints: TInt32List;
 begin
-  if Location = -1 then Exit; // ignore non-existing uniform here
+  if Location = GLUniformLocationNone then Exit; // ignore non-existing uniform here
 
   { We cannot pass Value.List, as Pascal booleans do not have 4 bytes
     (well, actually I could change this by compiler directive or
@@ -861,7 +873,7 @@ end;
 
 procedure TGLSLUniform.SetValue(const Value: TInt32List);
 begin
-  if Location = -1 then Exit; // ignore non-existing uniform here
+  if Location = GLUniformLocationNone then Exit; // ignore non-existing uniform here
   Assert(SizeOf(Int32) = SizeOf(TGLint));
   Owner.Enable;
   if GLFeatures.Shaders then
@@ -870,7 +882,7 @@ end;
 
 procedure TGLSLUniform.SetValue(const Value: TSingleList);
 begin
-  if Location = -1 then Exit; // ignore non-existing uniform here
+  if Location = GLUniformLocationNone then Exit; // ignore non-existing uniform here
   Owner.Enable;
   if GLFeatures.Shaders then
     glUniform1fv(Location, Value.Count, PGLfloat(Value.L));
@@ -878,7 +890,7 @@ end;
 
 procedure TGLSLUniform.SetValue(const Value: TVector2List);
 begin
-  if Location = -1 then Exit; // ignore non-existing uniform here
+  if Location = GLUniformLocationNone then Exit; // ignore non-existing uniform here
   Owner.Enable;
   if GLFeatures.Shaders then
     glUniform2fv(Location, Value.Count, PGLfloat(Value.L));
@@ -886,7 +898,7 @@ end;
 
 procedure TGLSLUniform.SetValue(const Value: TVector3List);
 begin
-  if Location = -1 then Exit; // ignore non-existing uniform here
+  if Location = GLUniformLocationNone then Exit; // ignore non-existing uniform here
   Owner.Enable;
   if GLFeatures.Shaders then
     glUniform3fv(Location, Value.Count, PGLfloat(Value.L));
@@ -894,7 +906,7 @@ end;
 
 procedure TGLSLUniform.SetValue(const Value: TVector4List);
 begin
-  if Location = -1 then Exit; // ignore non-existing uniform here
+  if Location = GLUniformLocationNone then Exit; // ignore non-existing uniform here
   Owner.Enable;
   if GLFeatures.Shaders then
     glUniform4fv(Location, Value.Count, PGLfloat(Value.L));
@@ -902,7 +914,7 @@ end;
 
 procedure TGLSLUniform.SetValue(const Value: TMatrix3List);
 begin
-  if Location = -1 then Exit; // ignore non-existing uniform here
+  if Location = GLUniformLocationNone then Exit; // ignore non-existing uniform here
   Owner.Enable;
   if GLFeatures.Shaders then
     glUniformMatrix3fv(Location, Value.Count, GL_FALSE, PGLfloat(Value.L));
@@ -910,7 +922,7 @@ end;
 
 procedure TGLSLUniform.SetValue(const Value: TMatrix4List);
 begin
-  if Location = -1 then Exit; // ignore non-existing uniform here
+  if Location = GLUniformLocationNone then Exit; // ignore non-existing uniform here
   Owner.Enable;
   if GLFeatures.Shaders then
     glUniformMatrix4fv(Location, Value.Count, GL_FALSE, PGLfloat(Value.L));
@@ -920,7 +932,7 @@ end;
 
 procedure TGLSLAttribute.SetValue(const Value: TGLfloat);
 begin
-  if Location = -1 then Exit; // ignore non-existing attribute here
+  if Location = GLAttribLocationNone then Exit; // ignore non-existing attribute here
   Owner.Enable;
   if GLFeatures.Shaders then
     glVertexAttrib1f(Location, Value);
@@ -928,7 +940,7 @@ end;
 
 procedure TGLSLAttribute.SetValue(const Value: TVector2);
 begin
-  if Location = -1 then Exit; // ignore non-existing attribute here
+  if Location = GLAttribLocationNone then Exit; // ignore non-existing attribute here
   Owner.Enable;
   if GLFeatures.Shaders then
     glVertexAttrib2fv(Location, @Value);
@@ -936,7 +948,7 @@ end;
 
 procedure TGLSLAttribute.SetValue(const Value: TVector3);
 begin
-  if Location = -1 then Exit; // ignore non-existing attribute here
+  if Location = GLAttribLocationNone then Exit; // ignore non-existing attribute here
   Owner.Enable;
   if GLFeatures.Shaders then
     glVertexAttrib3fv(Location, @Value);
@@ -944,7 +956,7 @@ end;
 
 procedure TGLSLAttribute.SetValue(const Value: TVector4);
 begin
-  if Location = -1 then Exit; // ignore non-existing attribute here
+  if Location = GLAttribLocationNone then Exit; // ignore non-existing attribute here
   Owner.Enable;
   if GLFeatures.Shaders then
     glVertexAttrib4fv(Location, @Value);
@@ -952,7 +964,7 @@ end;
 
 procedure TGLSLAttribute.SetValue(const Value: TMatrix3);
 begin
-  if Location = -1 then Exit; // ignore non-existing attribute here
+  if Location = GLAttribLocationNone then Exit; // ignore non-existing attribute here
   Owner.Enable;
   if GLFeatures.Shaders then
   begin
@@ -964,7 +976,7 @@ end;
 
 procedure TGLSLAttribute.SetValue(const Value: TMatrix4);
 begin
-  if Location = -1 then Exit; // ignore non-existing attribute here
+  if Location = GLAttribLocationNone then Exit; // ignore non-existing attribute here
   Owner.Enable;
   if GLFeatures.Shaders then
   begin
@@ -978,7 +990,7 @@ end;
 {$ifndef OpenGLES}
 procedure TGLSLAttribute.SetValue(const Value: TVector4Integer);
 begin
-  if Location = -1 then Exit; // ignore non-existing attribute here
+  if Location = GLAttribLocationNone then Exit; // ignore non-existing attribute here
   Owner.Enable;
   if GLFeatures.Shaders then
     glVertexAttrib4iv(Location, @Value);
@@ -986,7 +998,7 @@ end;
 
 procedure TGLSLAttribute.SetValue(const Value: TVector4Byte);
 begin
-  if Location = -1 then Exit; // ignore non-existing attribute here
+  if Location = GLAttribLocationNone then Exit; // ignore non-existing attribute here
   Owner.Enable;
   if GLFeatures.Shaders then
     glVertexAttrib4ubv(Location, @Value);
@@ -994,7 +1006,7 @@ end;
 
 procedure TGLSLAttribute.SetValue(const Value: TGLdouble);
 begin
-  if Location = -1 then Exit; // ignore non-existing attribute here
+  if Location = GLAttribLocationNone then Exit; // ignore non-existing attribute here
   Owner.Enable;
   if GLFeatures.Shaders then
     glVertexAttrib1d(Location, Value);
@@ -1004,7 +1016,7 @@ end;
 {
 procedure TGLSLAttribute.SetValue(const Value: TVector2Double);
 begin
-  if Location = -1 then Exit; // ignore non-existing attribute here
+  if Location = GLAttribLocationNone then Exit; // ignore non-existing attribute here
   Owner.Enable;
   if GLFeatures.Shaders then
     glVertexAttrib2dv(Location, @Value);
@@ -1012,7 +1024,7 @@ end;
 
 procedure TGLSLAttribute.SetValue(const Value: TVector3Double);
 begin
-  if Location = -1 then Exit; // ignore non-existing attribute here
+  if Location = GLAttribLocationNone then Exit; // ignore non-existing attribute here
   Owner.Enable;
   if GLFeatures.Shaders then
     glVertexAttrib3dv(Location, @Value);
@@ -1020,7 +1032,7 @@ end;
 
 procedure TGLSLAttribute.SetValue(const Value: TVector4Double);
 begin
-  if Location = -1 then Exit; // ignore non-existing attribute here
+  if Location = GLAttribLocationNone then Exit; // ignore non-existing attribute here
   Owner.Enable;
   if GLFeatures.Shaders then
     glVertexAttrib4dv(Location, @Value);
@@ -1033,7 +1045,7 @@ procedure TGLSLAttribute.EnableArray(const Vao: TVertexArrayObject;
   const Size: TGLint; const AType: TGLenum; const Normalized: TGLboolean; const Stride: TGLsizei;
   const Ptr: PtrUInt);
 begin
-  if Location = -1 then Exit; // ignore non-existing attribute here
+  if Location = GLAttribLocationNone then Exit; // ignore non-existing attribute here
   if GLFeatures.Shaders then
   begin
     RenderContext.CurrentVao := Vao;
@@ -1090,7 +1102,7 @@ procedure TGLSLAttribute.DisableArray;
 var
   Offset: TLocationOffset;
 begin
-  if Location = -1 then Exit; // ignore non-existing attribute here
+  if Location = GLAttribLocationNone then Exit; // ignore non-existing attribute here
 
   if GLFeatures.Shaders then
     for Offset := Low(TLocationOffset) to High(TLocationOffset) do
@@ -1119,7 +1131,7 @@ begin
     So I just have to raise enigmatic error that creating GLSL program failed.
   }
 
-  if ProgramId = 0 then
+  if ProgramId = GLObjectNone then
     raise EGLSLError.Create('Cannot create GLSL shader program');
 
   ApplicationProperties.OnGLContextCloseObject.Add({$ifdef FPC}@{$endif}OnGlContextClose);
@@ -1152,14 +1164,14 @@ begin
   if ShaderIds <> nil then
     DetachAllShaders;
 
-  if ProgramId <> 0 then
+  if ProgramId <> GLObjectNone then
   begin
     { ProgramId can be non-zero only if GLFeatures.Shaders,
       and right now GLFeatures must be <> nil because we must free while
       GL context is available. }
     Assert(GLFeatures.Shaders);
     glDeleteProgram(ProgramId);
-    ProgramId := 0;
+    ProgramId := GLObjectNone;
   end;
 
   if FUniformLocations <> nil then
@@ -1353,7 +1365,7 @@ function TGLSLProgram.DebugInfo: string;
     end;
   end;
 
-  function ShaderInfoLog(ShaderId: TGLuint): string;
+  function ShaderInfoLog(ShaderId: TGLShader): string;
   begin
     if GLFeatures.Shaders then
       Result := GetShaderInfoLog(ShaderId);
@@ -1429,7 +1441,7 @@ var
   end;
 
   { Based on Dean Ellis BasicShader.dpr }
-  function CreateShader(const S: string): TGLuint;
+  function CreateShader(const S: string): TGLshader;
   var
     SrcPtr: PGLChar;
     SrcLength: Cardinal;
@@ -1823,7 +1835,7 @@ begin
     if GLFeatures.Shaders then
       Result.Location := glGetUniformLocation(ProgramId, PAnsiCharOrNil(AName))
     else
-      Result.Location := -1;
+      Result.Location := GLUniformLocationNone;
 
     {$ifdef CASTLE_LOG_GET_LOCATIONS}
     WritelnLog('Doing (potentially expensive) glGetUniformLocation: ' + AName);
@@ -1831,7 +1843,7 @@ begin
     FUniformLocations.Add(AName, Result.Location);
   end;
 
-  if Result.Location = -1 then
+  if Result.Location = GLUniformLocationNone then
     ReportUniformMissing;
 end;
 
@@ -2045,7 +2057,7 @@ begin
     if GLFeatures.Shaders then
       Result.Location := glGetAttribLocation(ProgramId, PAnsiCharOrNil(AName))
     else
-      Result.Location := -1;
+      Result.Location := GLAttribLocationNone;
 
     {$ifdef CASTLE_LOG_GET_LOCATIONS}
     WritelnLog('Doing (potentially expensive) glGetAttribLocation: ' + AName);
@@ -2057,7 +2069,7 @@ end;
 function TGLSLProgram.Attribute(const AName: string): TGLSLAttribute;
 begin
   Result := AttributeOptional(AName);
-  if Result.Location = -1 then
+  if Result.Location = GLAttribLocationNone then
     raise EGLSLAttributeNotFound.CreateFmt('Attribute variable "%s" not found', [AName]);
 end;
 

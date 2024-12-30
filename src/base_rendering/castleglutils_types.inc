@@ -21,16 +21,35 @@
 type
   { Types (invented in our engine) that correspond to WebGL objects,
     but maps to simple types (like TGLuint) for OpenGL / OpenGLES. }
+  { }
   TGLBuffer = {$ifndef CASTLE_WEBGL} TGLuint {$else} CastleInternalJobWeb.IJSWebGLBuffer {$endif};
   TGLFramebuffer = {$ifndef CASTLE_WEBGL} TGLuint {$else} CastleInternalJobWeb.IJSWebGLFramebuffer {$endif};
   TGLProgram = {$ifndef CASTLE_WEBGL} TGLuint {$else} CastleInternalJobWeb.IJSWebGLProgram {$endif};
   TGLShader = {$ifndef CASTLE_WEBGL} TGLuint {$else} CastleInternalJobWeb.IJSWebGLShader {$endif};
   TGLTexture = {$ifndef CASTLE_WEBGL} TGLuint {$else} CastleInternalJobWeb.IJSWebGLTexture {$endif};
-  TGLUniformLocation = {$ifndef CASTLE_WEBGL} TGLint {$else} CastleInternalJobWeb.IJSWebGLUniformLocation {$endif};
   TGLVertexArrayObject = {$ifndef CASTLE_WEBGL} TGLuint {$else} CastleInternalJobWeb.IJSWebGLVertexArrayObject {$endif};
+
+  { Uniform location in WebGL / OpenGL / OpenGLES.
+
+    Note: This is *signed*, TGLint, deliberately.
+    glGetUniformLocation returns -1 when uniform not found
+    ( https://registry.khronos.org/OpenGL-Refpages/gl4/html/glGetUniformLocation.xhtml ),
+    and our API in CastleGLShaders checks for it. }
+  TGLUniformLocation = {$ifndef CASTLE_WEBGL} TGLint {$else} CastleInternalJobWeb.IJSWebGLUniformLocation {$endif};
+
+  { Attribute location in WebGL / OpenGL / OpenGLES.
+
+    Note: Attribute location is TGLint in both WebGL and OpenGL / OpenGLES and can be -1.
+    See https://developer.mozilla.org/en-US/docs/Web/API/WebGLRenderingContext/getAttribLocation .
+    So it's inconsistent with uniform location in WebGL.
+    We define TGLAttribLocation and GLAttribLocationNone to make
+    it look consistent. }
+  TGLAttribLocation = TGLint;
 
 const
   GLObjectNone = {$ifndef CASTLE_WEBGL} 0 {$else} nil {$endif};
+  GLUniformLocationNone = {$ifndef CASTLE_WEBGL} -1 {$else} nil {$endif};
+  GLAttribLocationNone = -1;
 
 {$endif read_interface}
 
