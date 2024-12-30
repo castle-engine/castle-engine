@@ -316,7 +316,7 @@ begin
   if (BoundFboStack.Count = 0) and (not ScreenFboQueried) then
   begin
     ScreenFboQueried := true;
-    glGetIntegerv(GL_FRAMEBUFFER_BINDING, @ScreenFbo);
+    ScreenFbo := glGetInteger(GL_FRAMEBUFFER_BINDING);
     if ScreenFbo <> 0 then
       { See about GTK3:
         https://stackoverflow.com/questions/62422683/framebuffer-issue-render-to-texture-with-gtk3-glarea-vs-glfw-identical-opengl#62436181

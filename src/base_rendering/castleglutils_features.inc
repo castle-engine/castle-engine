@@ -784,15 +784,6 @@ end;
 
 constructor TGLFeatures.Create;
 
-  function GetVector2Integer(const Param: TGLenum): TVector2Integer;
-  var
-    V: packed array [0..1] of TGLInt;
-  begin
-    glGetIntegerv(Param, @V);
-    Result.X := V[0];
-    Result.Y := V[1];
-  end;
-
   procedure InitializeDebug;
   begin
     if HasExtension('GL_KHR_debug') then
@@ -1266,7 +1257,7 @@ begin
   FMaxClipPlanes := 8;
   {$endif}
 
-  FMaxViewportDimensions := GetVector2Integer(GL_MAX_VIEWPORT_DIMS);
+  FMaxViewportDimensions := glGetInteger2(GL_MAX_VIEWPORT_DIMS);
 
   FTextureModernFormatsAndSwizzle :=
     { when EnableFixedFunction, so we don't use shaders, don't rely
@@ -1394,10 +1385,11 @@ begin
   // http://developer.download.nvidia.com/opengl/specs/GL_NVX_gpu_memory_info.txt
   if ExtensionNVidia then
   begin
-    glGetIntegerv(GL_GPU_MEM_INFO_TOTAL_AVAILABLE_MEM_NVX, @Total);
-    glGetIntegerv(GL_GPU_MEM_INFO_CURRENT_AVAILABLE_MEM_NVX, @Current);
+    Total := glGetInteger(GL_GPU_MEM_INFO_TOTAL_AVAILABLE_MEM_NVX);
+    Current := glGetInteger(GL_GPU_MEM_INFO_CURRENT_AVAILABLE_MEM_NVX);
   end;
 
+  {$ifndef CASTLE_WEBGL}
   // https://www.khronos.org/registry/OpenGL/extensions/ATI/ATI_meminfo.txt
   if ExtensionATI then
   begin
@@ -1416,6 +1408,7 @@ begin
       CurrentRenderbuffer := FreeMemory[0];
     end;
   end;
+  {$endif}
 end;
 
 function TGLMemoryInfo.LessTextureMemoryThan(const RequiredMemoryKb: Integer): Boolean;
