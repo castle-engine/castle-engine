@@ -319,7 +319,10 @@
 { $define OpenGLES}
 {$ifdef ANDROID} {$define OpenGLES} {$endif}
 {$ifdef CASTLE_IOS} {$define OpenGLES} {$endif}
-{$ifdef WASI} {$define OpenGLES} {$endif}
+{$ifdef WASI}
+  {$define OpenGLES}
+  {$define CastleGLES := CastleInternalWebGL}
+{$endif}
 
 { NX supports OpenGL and OpenGLES (that's public information,
   https://wccftech.com/nintendo-switch-supports-vulkan/ ).

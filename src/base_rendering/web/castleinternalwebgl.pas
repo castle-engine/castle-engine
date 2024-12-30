@@ -12,17 +12,40 @@
 
   ----------------------------------------------------------------------------
 }
-{ Access WebGL API from Castle Game Engine compiled in WebAssembly. }
+{ Access WebGL API from Castle Game Engine compiled in WebAssembly.
+
+  The API is deliberately made to be compatible CastleGLES unit,
+  to use this unit as a "drop-in replacement" as much as possible. }
 unit CastleInternalWebGL;
 
 interface
+
+uses CastleInternalJobWeb;
+
+type
+  TGLenum = CastleInternalJobWeb.TGLenum;
+  TGLboolean = CastleInternalJobWeb.TGLboolean;
+  TGLbitfield = CastleInternalJobWeb.TGLbitfield;
+  TGLbyte = CastleInternalJobWeb.TGLbyte;
+  TGLshort = CastleInternalJobWeb.TGLshort;
+  TGLint = CastleInternalJobWeb.TGLint;
+  TGLsizei = CastleInternalJobWeb.TGLsizei;
+  TGLintptr = CastleInternalJobWeb.TGLintptr;
+  TGLsizeiptr = CastleInternalJobWeb.TGLsizeiptr;
+  TGLubyte = CastleInternalJobWeb.TGLubyte;
+  TGLushort = CastleInternalJobWeb.TGLushort;
+  TGLuint = CastleInternalJobWeb.TGLuint;
+  TGLfloat = CastleInternalJobWeb.TGLfloat;
+  TGLclampf = CastleInternalJobWeb.TGLclampf;
+
+{$I castleinternalwebgl_flat_api.inc}
 
 procedure RunWebGLAnimation;
 
 implementation
 
 uses SysUtils, JOB.Shared, JOB.JS,
-  CastleInternalJobWeb, CastleLog, CastleUtils;
+  CastleLog, CastleUtils;
 
 { Rendering and animation using WebGL ---------------------------------------- }
 
@@ -34,7 +57,7 @@ var
 
 procedure GLContextOpen;
 
-	function StrArrayJoin(const A: TUnicodeStringDynArray): String;
+	function StrArrayJoin(const A: CastleInternalJobWeb.TUnicodeStringDynArray): String;
 	var
 		I: Integer;
 	begin

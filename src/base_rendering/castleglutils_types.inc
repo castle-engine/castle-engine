@@ -18,24 +18,7 @@
 
 {$ifdef read_interface}
 
-type
-  { Types with leading "T" } { }
-  TGLenum     = GLenum;
-  TGLboolean  = GLboolean;
-  TGLbitfield = GLbitfield;
-  TGLbyte     = GLbyte;
-  TGLshort    = GLshort;
-  TGLint      = GLint;
-  TGLsizei    = GLsizei;
-  TGLubyte    = GLubyte;
-  TGLushort   = GLushort;
-  TGLuint     = GLuint;
-  TGLfloat    = GLfloat;
-  TGLclampf   = GLclampf;
-  {$ifndef OpenGLES}
-  TGLdouble   = GLdouble;
-  TGLclampd   = GLclampd;
-  {$endif not OpenGLES}
+// Nothing now.
 
 {$endif read_interface}
 
