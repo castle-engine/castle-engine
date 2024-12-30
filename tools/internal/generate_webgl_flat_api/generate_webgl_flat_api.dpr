@@ -63,10 +63,10 @@ var
   I: Integer;
   Constant: TIDLConstDefinition;
   MemberName: String;
+  AnyOutput: Boolean;
 begin
   Writeln('Exposing constants from ', InterfaceName);
-  WritelnStr(OutputStream, Format('{ Constants from %s }', [InterfaceName]));
-  WritelnStr(OutputStream, 'const');
+  AnyOutput := false;
 
   Definition := FindInterface(Context, InterfaceName);
 
@@ -80,6 +80,12 @@ begin
       // add _ suffix, to match what webidl2pas is doing
       if ArrayContainsString(MemberName, ['VIEWPORT', 'REPEAT']) then
         MemberName := MemberName + '_';
+      if not AnyOutput then
+      begin
+        WritelnStr(OutputStream, Format('{ Constants from %s }', [InterfaceName]));
+        WritelnStr(OutputStream, 'const');
+        AnyOutput := true;
+      end;
       WritelnStr(OutputStream, Format('  GL_%s = TJS%s.%s;', [
         Constant.Name,
         InterfaceName,
@@ -119,15 +125,16 @@ begin
     Writeln('Parsing ', WebidlFileName);
     Parser.Parse;
 
-    // doesn't append mixins to WebGLRenderingContextBase
-    // Writeln('Appending partials to interfaces.');
-    // Context.AppendPartials;
-    // Writeln('Appending includes to interfaces.');
-    // Context.AppendIncludes;
+    // These make sense, but don't seem to actually have any effect in our case
+    Writeln('Appending partials to interfaces.');
+    Context.AppendPartials;
+    Writeln('Appending includes to interfaces.');
+    Context.AppendIncludes;
 
     // DebugWriteDefinitions(Context.Definitions);
 
     ExposeConstants(Context, OutputStream, 'WebGLRenderingContextBase');
+    ExposeConstants(Context, OutputStream, 'WebGL2RenderingContext');
   finally
     FreeAndNil(OutputStream);
     FreeAndNil(Parser);
