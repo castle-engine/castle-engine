@@ -23,6 +23,7 @@ interface
 uses CastleInternalJobWeb;
 
 type
+  { Alias simple types to CastleInternalJobWeb types. }
   TGLenum = CastleInternalJobWeb.TGLenum;
   TGLboolean = CastleInternalJobWeb.TGLboolean;
   TGLbitfield = CastleInternalJobWeb.TGLbitfield;

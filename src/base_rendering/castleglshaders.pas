@@ -120,8 +120,6 @@ type
   EGLSLAttributeNotFound = class(EGLSLError);
   EGLSLTransformFeedbackError = class(EGLSLError);
 
-  TGLuintList = TCardinalList;
-
   TGLSLProgram = class;
 
   { GLSL uniform provides information to shader that is constant for a given shader execution. }
@@ -266,11 +264,13 @@ type
 
   TLocationCache = {$ifdef FPC}specialize{$endif} TDictionary<String, TGLint>;
 
+  TGLShaderList = {$ifdef FPC}specialize{$endif} TList<TGLShader>;
+
   { Manage (build, use) a program in GLSL (OpenGL Shading Language). }
   TGLSLProgram = class
   private
-    ProgramId: TGLuint;
-    ShaderIds: TGLuintList;
+    ProgramId: TGLprogram;
+    ShaderIds: TGLShaderList;
 
     FUniformMissing: TUniformMissing;
     FUniformLocations, FAttributeLocations: TLocationCache;
@@ -1124,7 +1124,7 @@ begin
 
   ApplicationProperties.OnGLContextCloseObject.Add({$ifdef FPC}@{$endif}OnGlContextClose);
 
-  ShaderIds := TGLuintList.Create;
+  ShaderIds := TGLShaderList.Create;
 
   FUniformMissing := umWarning;
 

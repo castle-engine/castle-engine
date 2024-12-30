@@ -18,6 +18,19 @@
 
 {$ifdef read_interface}
 
+type
+  { Types (invented in our engine) that correspond to WebGL objects,
+    but maps to simple types (like TGLuint) for OpenGL / OpenGLES. }
+  TGLbuffer = {$ifndef CASTLE_WEBGL} TGLuint {$else} CastleInternalJobWeb.IJSWebGLBuffer {$endif};
+  TGLFramebuffer = {$ifndef CASTLE_WEBGL} TGLuint {$else} CastleInternalJobWeb.IJSWebGLFramebuffer {$endif};
+  TGLProgram = {$ifndef CASTLE_WEBGL} TGLuint {$else} CastleInternalJobWeb.IJSWebGLProgram {$endif};
+  TGLShader = {$ifndef CASTLE_WEBGL} TGLuint {$else} CastleInternalJobWeb.IJSWebGLShader {$endif};
+  TGLTexture = {$ifndef CASTLE_WEBGL} TGLuint {$else} CastleInternalJobWeb.IJSWebGLTexture {$endif};
+  TGLUniformLocation = {$ifndef CASTLE_WEBGL} TGLint {$else} CastleInternalJobWeb.IJSWebGLUniformLocation {$endif};
+
+const
+  GLbufferNone = {$ifndef CASTLE_WEBGL} 0 {$else} nil {$endif};
+
 { Get OpenGL / OpenGLES / WebGL value.
 
   Prefer to use these over directly glGetFloatv etc. functions,
@@ -131,8 +144,8 @@ var
 { Enable or disable given OpenGL flag. }
 procedure GLSetEnabled(Value: TGLenum; IsEnabled: boolean);
 
-{ If Buffer <> 0 then it does glDeleteBuffers and sets Buffer to 0. }
-procedure glFreeBuffer(var Buffer: TGLuint);
+{ If Buffer <> GLbufferNone then it does glDeleteBuffers and sets Buffer to GLbufferNone. }
+procedure glFreeBuffer(var Buffer: TGLbuffer);
 
 { If Vao <> 0 then it does glDeleteVertexArrays and sets Vao to 0. }
 procedure glFreeVertexArray(var Vao: TGLuint);
@@ -342,12 +355,12 @@ begin
   if IsEnabled then glEnable(Value) else glDisable(Value);
 end;
 
-procedure glFreeBuffer(var Buffer: TGLuint);
+procedure glFreeBuffer(var Buffer: TGLbuffer);
 begin
-  if Buffer <> 0 then
+  if Buffer <> GLbufferNone then
   begin
     glDeleteBuffers(1, @Buffer);
-    Buffer := 0;
+    Buffer := GLbufferNone;
   end;
 end;
 
