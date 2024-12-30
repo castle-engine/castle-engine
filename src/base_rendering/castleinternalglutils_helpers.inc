@@ -131,7 +131,7 @@ var
 { Enable or disable given OpenGL flag. }
 procedure GLSetEnabled(Value: TGLenum; IsEnabled: boolean);
 
-{ If Buffer <> GLbufferNone then it does glDeleteBuffers and sets Buffer to GLbufferNone. }
+{ If Buffer <> GLbufferNone then it does glDeleteBuffer(s) and sets Buffer to GLbufferNone. }
 procedure glFreeBuffer(var Buffer: TGLbuffer);
 
 { If Vao <> 0 then it does glDeleteVertexArrays and sets Vao to 0. }
@@ -346,7 +346,11 @@ procedure glFreeBuffer(var Buffer: TGLbuffer);
 begin
   if Buffer <> GLbufferNone then
   begin
+    {$ifdef CASTLE_WEBGL}
+    glDeleteBuffer(Buffer);
+    {$else}
     glDeleteBuffers(1, @Buffer);
+    {$endif}
     Buffer := GLbufferNone;
   end;
 end;
