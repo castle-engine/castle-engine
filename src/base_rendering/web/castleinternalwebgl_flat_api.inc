@@ -301,17 +301,17 @@ const
   GL_BROWSER_DEFAULT_WEBGL = TJSWebGLRenderingContextBase.BROWSER_DEFAULT_WEBGL;
 
 { Functions from WebGLRenderingContextBase }
-// Not in auto-generated flat WebGL API: function glGetContextAttributes(): TWebGLContextAttributes;
+function glGetContextAttributes(): IJSWebGLContextAttributes;
 function glIsContextLost(): Boolean;
 // Not in auto-generated flat WebGL API: function glGetSupportedExtensions(): Tsequence;
 // Not in auto-generated flat WebGL API: function glGetExtension(const name: String): Tobject;
 procedure glActiveTexture(const texture: TGLenum);
-// Not in auto-generated flat WebGL API: procedure glAttachShader(const program: TWebGLProgram; const shader: TWebGLShader);
-// Not in auto-generated flat WebGL API: procedure glBindAttribLocation(const program: TWebGLProgram; const index: TGLuint; const name: String);
-// Not in auto-generated flat WebGL API: procedure glBindBuffer(const target: TGLenum; const buffer: TWebGLBuffer);
-// Not in auto-generated flat WebGL API: procedure glBindFramebuffer(const target: TGLenum; const framebuffer: TWebGLFramebuffer);
-// Not in auto-generated flat WebGL API: procedure glBindRenderbuffer(const target: TGLenum; const renderbuffer: TWebGLRenderbuffer);
-// Not in auto-generated flat WebGL API: procedure glBindTexture(const target: TGLenum; const texture: TWebGLTexture);
+procedure glAttachShader(const type_: IJSWebGLProgram; const shader: IJSWebGLShader);
+procedure glBindAttribLocation(const type_: IJSWebGLProgram; const index: TGLuint; const name: String);
+procedure glBindBuffer(const target: TGLenum; const buffer: IJSWebGLBuffer);
+procedure glBindFramebuffer(const target: TGLenum; const framebuffer: IJSWebGLFramebuffer);
+procedure glBindRenderbuffer(const target: TGLenum; const renderbuffer: IJSWebGLRenderbuffer);
+procedure glBindTexture(const target: TGLenum; const texture: IJSWebGLTexture);
 procedure glBlendColor(const red: TGLfloat; const green: TGLfloat; const blue: TGLfloat; const alpha: TGLfloat);
 procedure glBlendEquation(const mode: TGLenum);
 procedure glBlendEquationSeparate(const modeRGB: TGLenum; const modeAlpha: TGLenum);
@@ -323,26 +323,26 @@ procedure glClearColor(const red: TGLfloat; const green: TGLfloat; const blue: T
 procedure glClearDepth(const depth: TGLclampf);
 procedure glClearStencil(const s: TGLint);
 procedure glColorMask(const red: TGLboolean; const green: TGLboolean; const blue: TGLboolean; const alpha: TGLboolean);
-// Not in auto-generated flat WebGL API: procedure glCompileShader(const shader: TWebGLShader);
+procedure glCompileShader(const shader: IJSWebGLShader);
 procedure glCopyTexImage2D(const target: TGLenum; const level: TGLint; const internalformat: TGLenum; const x: TGLint; const y: TGLint; const width: TGLsizei; const height: TGLsizei; const border: TGLint);
 procedure glCopyTexSubImage2D(const target: TGLenum; const level: TGLint; const xoffset: TGLint; const yoffset: TGLint; const x: TGLint; const y: TGLint; const width: TGLsizei; const height: TGLsizei);
-// Not in auto-generated flat WebGL API: function glCreateBuffer(): TWebGLBuffer;
-// Not in auto-generated flat WebGL API: function glCreateFramebuffer(): TWebGLFramebuffer;
-// Not in auto-generated flat WebGL API: function glCreateProgram(): TWebGLProgram;
-// Not in auto-generated flat WebGL API: function glCreateRenderbuffer(): TWebGLRenderbuffer;
-// Not in auto-generated flat WebGL API: function glCreateShader(const type_: TGLenum): TWebGLShader;
-// Not in auto-generated flat WebGL API: function glCreateTexture(): TWebGLTexture;
+function glCreateBuffer(): IJSWebGLBuffer;
+function glCreateFramebuffer(): IJSWebGLFramebuffer;
+function glCreateProgram(): IJSWebGLProgram;
+function glCreateRenderbuffer(): IJSWebGLRenderbuffer;
+function glCreateShader(const type_: TGLenum): IJSWebGLShader;
+function glCreateTexture(): IJSWebGLTexture;
 procedure glCullFace(const mode: TGLenum);
-// Not in auto-generated flat WebGL API: procedure glDeleteBuffer(const buffer: TWebGLBuffer);
-// Not in auto-generated flat WebGL API: procedure glDeleteFramebuffer(const framebuffer: TWebGLFramebuffer);
-// Not in auto-generated flat WebGL API: procedure glDeleteProgram(const program: TWebGLProgram);
-// Not in auto-generated flat WebGL API: procedure glDeleteRenderbuffer(const renderbuffer: TWebGLRenderbuffer);
-// Not in auto-generated flat WebGL API: procedure glDeleteShader(const shader: TWebGLShader);
-// Not in auto-generated flat WebGL API: procedure glDeleteTexture(const texture: TWebGLTexture);
+procedure glDeleteBuffer(const buffer: IJSWebGLBuffer);
+procedure glDeleteFramebuffer(const framebuffer: IJSWebGLFramebuffer);
+procedure glDeleteProgram(const type_: IJSWebGLProgram);
+procedure glDeleteRenderbuffer(const renderbuffer: IJSWebGLRenderbuffer);
+procedure glDeleteShader(const shader: IJSWebGLShader);
+procedure glDeleteTexture(const texture: IJSWebGLTexture);
 procedure glDepthFunc(const func: TGLenum);
 procedure glDepthMask(const flag: TGLboolean);
 procedure glDepthRange(const zNear: TGLclampf; const zFar: TGLclampf);
-// Not in auto-generated flat WebGL API: procedure glDetachShader(const program: TWebGLProgram; const shader: TWebGLShader);
+procedure glDetachShader(const type_: IJSWebGLProgram; const shader: IJSWebGLShader);
 procedure glDisable(const cap: TGLenum);
 procedure glDisableVertexAttribArray(const index: TGLuint);
 procedure glDrawArrays(const mode: TGLenum; const first: TGLint; const count: TGLsizei);
@@ -351,46 +351,46 @@ procedure glEnable(const cap: TGLenum);
 procedure glEnableVertexAttribArray(const index: TGLuint);
 procedure glFinish();
 procedure glFlush();
-// Not in auto-generated flat WebGL API: procedure glFramebufferRenderbuffer(const target: TGLenum; const attachment: TGLenum; const renderbuffertarget: TGLenum; const renderbuffer: TWebGLRenderbuffer);
-// Not in auto-generated flat WebGL API: procedure glFramebufferTexture2D(const target: TGLenum; const attachment: TGLenum; const textarget: TGLenum; const texture: TWebGLTexture; const level: TGLint);
+procedure glFramebufferRenderbuffer(const target: TGLenum; const attachment: TGLenum; const renderbuffertarget: TGLenum; const renderbuffer: IJSWebGLRenderbuffer);
+procedure glFramebufferTexture2D(const target: TGLenum; const attachment: TGLenum; const textarget: TGLenum; const texture: IJSWebGLTexture; const level: TGLint);
 procedure glFrontFace(const mode: TGLenum);
 procedure glGenerateMipmap(const target: TGLenum);
-// Not in auto-generated flat WebGL API: function glGetActiveAttrib(const program: TWebGLProgram; const index: TGLuint): TWebGLActiveInfo;
-// Not in auto-generated flat WebGL API: function glGetActiveUniform(const program: TWebGLProgram; const index: TGLuint): TWebGLActiveInfo;
-// Not in auto-generated flat WebGL API: function glGetAttachedShaders(const program: TWebGLProgram): Tsequence;
-// Not in auto-generated flat WebGL API: function glGetAttribLocation(const program: TWebGLProgram; const name: String): TGLint;
+function glGetActiveAttrib(const type_: IJSWebGLProgram; const index: TGLuint): IJSWebGLActiveInfo;
+function glGetActiveUniform(const type_: IJSWebGLProgram; const index: TGLuint): IJSWebGLActiveInfo;
+// Not in auto-generated flat WebGL API: function glGetAttachedShaders(const type_: IJSWebGLProgram): Tsequence;
+function glGetAttribLocation(const type_: IJSWebGLProgram; const name: String): TGLint;
 // Not in auto-generated flat WebGL API: function glGetBufferParameter(const target: TGLenum; const pname: TGLenum): Tany;
 // Not in auto-generated flat WebGL API: function glGetParameter(const pname: TGLenum): Tany;
 function glGetError(): TGLenum;
 // Not in auto-generated flat WebGL API: function glGetFramebufferAttachmentParameter(const target: TGLenum; const attachment: TGLenum; const pname: TGLenum): Tany;
-// Not in auto-generated flat WebGL API: function glGetProgramParameter(const program: TWebGLProgram; const pname: TGLenum): Tany;
-// Not in auto-generated flat WebGL API: function glGetProgramInfoLog(const program: TWebGLProgram): String;
+// Not in auto-generated flat WebGL API: function glGetProgramParameter(const type_: IJSWebGLProgram; const pname: TGLenum): Tany;
+function glGetProgramInfoLog(const type_: IJSWebGLProgram): String;
 // Not in auto-generated flat WebGL API: function glGetRenderbufferParameter(const target: TGLenum; const pname: TGLenum): Tany;
-// Not in auto-generated flat WebGL API: function glGetShaderParameter(const shader: TWebGLShader; const pname: TGLenum): Tany;
-// Not in auto-generated flat WebGL API: function glGetShaderPrecisionFormat(const shadertype: TGLenum; const precisiontype: TGLenum): TWebGLShaderPrecisionFormat;
-// Not in auto-generated flat WebGL API: function glGetShaderInfoLog(const shader: TWebGLShader): String;
-// Not in auto-generated flat WebGL API: function glGetShaderSource(const shader: TWebGLShader): String;
+// Not in auto-generated flat WebGL API: function glGetShaderParameter(const shader: IJSWebGLShader; const pname: TGLenum): Tany;
+function glGetShaderPrecisionFormat(const shadertype: TGLenum; const precisiontype: TGLenum): IJSWebGLShaderPrecisionFormat;
+function glGetShaderInfoLog(const shader: IJSWebGLShader): String;
+function glGetShaderSource(const shader: IJSWebGLShader): String;
 // Not in auto-generated flat WebGL API: function glGetTexParameter(const target: TGLenum; const pname: TGLenum): Tany;
-// Not in auto-generated flat WebGL API: function glGetUniform(const program: TWebGLProgram; const location: TWebGLUniformLocation): Tany;
-// Not in auto-generated flat WebGL API: function glGetUniformLocation(const program: TWebGLProgram; const name: String): TWebGLUniformLocation;
+// Not in auto-generated flat WebGL API: function glGetUniform(const type_: IJSWebGLProgram; const location: IJSWebGLUniformLocation): Tany;
+function glGetUniformLocation(const type_: IJSWebGLProgram; const name: String): IJSWebGLUniformLocation;
 // Not in auto-generated flat WebGL API: function glGetVertexAttrib(const index: TGLuint; const pname: TGLenum): Tany;
 function glGetVertexAttribOffset(const index: TGLuint; const pname: TGLenum): TGLintptr;
 procedure glHint(const target: TGLenum; const mode: TGLenum);
-// Not in auto-generated flat WebGL API: function glIsBuffer(const buffer: TWebGLBuffer): TGLboolean;
+function glIsBuffer(const buffer: IJSWebGLBuffer): TGLboolean;
 function glIsEnabled(const cap: TGLenum): TGLboolean;
-// Not in auto-generated flat WebGL API: function glIsFramebuffer(const framebuffer: TWebGLFramebuffer): TGLboolean;
-// Not in auto-generated flat WebGL API: function glIsProgram(const program: TWebGLProgram): TGLboolean;
-// Not in auto-generated flat WebGL API: function glIsRenderbuffer(const renderbuffer: TWebGLRenderbuffer): TGLboolean;
-// Not in auto-generated flat WebGL API: function glIsShader(const shader: TWebGLShader): TGLboolean;
-// Not in auto-generated flat WebGL API: function glIsTexture(const texture: TWebGLTexture): TGLboolean;
+function glIsFramebuffer(const framebuffer: IJSWebGLFramebuffer): TGLboolean;
+function glIsProgram(const type_: IJSWebGLProgram): TGLboolean;
+function glIsRenderbuffer(const renderbuffer: IJSWebGLRenderbuffer): TGLboolean;
+function glIsShader(const shader: IJSWebGLShader): TGLboolean;
+function glIsTexture(const texture: IJSWebGLTexture): TGLboolean;
 procedure glLineWidth(const width: TGLfloat);
-// Not in auto-generated flat WebGL API: procedure glLinkProgram(const program: TWebGLProgram);
+procedure glLinkProgram(const type_: IJSWebGLProgram);
 procedure glPixelStorei(const pname: TGLenum; const param: TGLint);
 procedure glPolygonOffset(const factor: TGLfloat; const units: TGLfloat);
 procedure glRenderbufferStorage(const target: TGLenum; const internalformat: TGLenum; const width: TGLsizei; const height: TGLsizei);
 procedure glSampleCoverage(const value: TGLclampf; const invert: TGLboolean);
 procedure glScissor(const x: TGLint; const y: TGLint; const width: TGLsizei; const height: TGLsizei);
-// Not in auto-generated flat WebGL API: procedure glShaderSource(const shader: TWebGLShader; const source: String);
+procedure glShaderSource(const shader: IJSWebGLShader; const source: String);
 procedure glStencilFunc(const func: TGLenum; const ref: TGLint; const mask: TGLuint);
 procedure glStencilFuncSeparate(const face: TGLenum; const func: TGLenum; const ref: TGLint; const mask: TGLuint);
 procedure glStencilMask(const mask: TGLuint);
@@ -399,16 +399,16 @@ procedure glStencilOp(const fail: TGLenum; const zfail: TGLenum; const zpass: TG
 procedure glStencilOpSeparate(const face: TGLenum; const fail: TGLenum; const zfail: TGLenum; const zpass: TGLenum);
 procedure glTexParameterf(const target: TGLenum; const pname: TGLenum; const param: TGLfloat);
 procedure glTexParameteri(const target: TGLenum; const pname: TGLenum; const param: TGLint);
-// Not in auto-generated flat WebGL API: procedure glUniform1f(const location: TWebGLUniformLocation; const x: TGLfloat);
-// Not in auto-generated flat WebGL API: procedure glUniform2f(const location: TWebGLUniformLocation; const x: TGLfloat; const y: TGLfloat);
-// Not in auto-generated flat WebGL API: procedure glUniform3f(const location: TWebGLUniformLocation; const x: TGLfloat; const y: TGLfloat; const z: TGLfloat);
-// Not in auto-generated flat WebGL API: procedure glUniform4f(const location: TWebGLUniformLocation; const x: TGLfloat; const y: TGLfloat; const z: TGLfloat; const w: TGLfloat);
-// Not in auto-generated flat WebGL API: procedure glUniform1i(const location: TWebGLUniformLocation; const x: TGLint);
-// Not in auto-generated flat WebGL API: procedure glUniform2i(const location: TWebGLUniformLocation; const x: TGLint; const y: TGLint);
-// Not in auto-generated flat WebGL API: procedure glUniform3i(const location: TWebGLUniformLocation; const x: TGLint; const y: TGLint; const z: TGLint);
-// Not in auto-generated flat WebGL API: procedure glUniform4i(const location: TWebGLUniformLocation; const x: TGLint; const y: TGLint; const z: TGLint; const w: TGLint);
-// Not in auto-generated flat WebGL API: procedure glUseProgram(const program: TWebGLProgram);
-// Not in auto-generated flat WebGL API: procedure glValidateProgram(const program: TWebGLProgram);
+procedure glUniform1f(const location: IJSWebGLUniformLocation; const x: TGLfloat);
+procedure glUniform2f(const location: IJSWebGLUniformLocation; const x: TGLfloat; const y: TGLfloat);
+procedure glUniform3f(const location: IJSWebGLUniformLocation; const x: TGLfloat; const y: TGLfloat; const z: TGLfloat);
+procedure glUniform4f(const location: IJSWebGLUniformLocation; const x: TGLfloat; const y: TGLfloat; const z: TGLfloat; const w: TGLfloat);
+procedure glUniform1i(const location: IJSWebGLUniformLocation; const x: TGLint);
+procedure glUniform2i(const location: IJSWebGLUniformLocation; const x: TGLint; const y: TGLint);
+procedure glUniform3i(const location: IJSWebGLUniformLocation; const x: TGLint; const y: TGLint; const z: TGLint);
+procedure glUniform4i(const location: IJSWebGLUniformLocation; const x: TGLint; const y: TGLint; const z: TGLint; const w: TGLint);
+procedure glUseProgram(const type_: IJSWebGLProgram);
+procedure glValidateProgram(const type_: IJSWebGLProgram);
 procedure glVertexAttrib1f(const indx: TGLuint; const x: TGLfloat);
 // Not in auto-generated flat WebGL API: procedure glVertexAttrib1fv(const indx: TGLuint; const values: TFloat32List);
 procedure glVertexAttrib2f(const indx: TGLuint; const x: TGLfloat; const y: TGLfloat);
@@ -422,13 +422,11 @@ procedure glViewport(const x: TGLint; const y: TGLint; const width: TGLsizei; co
 {$endif read_interface}
 
 {$ifdef read_implementation}
-{ Not in auto-generated flat WebGL API:
-function glGetContextAttributes(): TWebGLContextAttributes;
+function glGetContextAttributes(): IJSWebGLContextAttributes;
 begin
   Result := GL.getContextAttributes();
 end;
 
-}
 function glIsContextLost(): Boolean;
 begin
   Result := GL.isContextLost();
@@ -453,48 +451,36 @@ begin
   GL.activeTexture(texture);
 end;
 
-{ Not in auto-generated flat WebGL API:
-procedure glAttachShader(const program: TWebGLProgram; const shader: TWebGLShader);
+procedure glAttachShader(const type_: IJSWebGLProgram; const shader: IJSWebGLShader);
 begin
-  GL.attachShader(program, shader);
+  GL.attachShader(type_, shader);
 end;
 
-}
-{ Not in auto-generated flat WebGL API:
-procedure glBindAttribLocation(const program: TWebGLProgram; const index: TGLuint; const name: String);
+procedure glBindAttribLocation(const type_: IJSWebGLProgram; const index: TGLuint; const name: String);
 begin
-  GL.bindAttribLocation(program, index, name);
+  GL.bindAttribLocation(type_, index, name);
 end;
 
-}
-{ Not in auto-generated flat WebGL API:
-procedure glBindBuffer(const target: TGLenum; const buffer: TWebGLBuffer);
+procedure glBindBuffer(const target: TGLenum; const buffer: IJSWebGLBuffer);
 begin
   GL.bindBuffer(target, buffer);
 end;
 
-}
-{ Not in auto-generated flat WebGL API:
-procedure glBindFramebuffer(const target: TGLenum; const framebuffer: TWebGLFramebuffer);
+procedure glBindFramebuffer(const target: TGLenum; const framebuffer: IJSWebGLFramebuffer);
 begin
   GL.bindFramebuffer(target, framebuffer);
 end;
 
-}
-{ Not in auto-generated flat WebGL API:
-procedure glBindRenderbuffer(const target: TGLenum; const renderbuffer: TWebGLRenderbuffer);
+procedure glBindRenderbuffer(const target: TGLenum; const renderbuffer: IJSWebGLRenderbuffer);
 begin
   GL.bindRenderbuffer(target, renderbuffer);
 end;
 
-}
-{ Not in auto-generated flat WebGL API:
-procedure glBindTexture(const target: TGLenum; const texture: TWebGLTexture);
+procedure glBindTexture(const target: TGLenum; const texture: IJSWebGLTexture);
 begin
   GL.bindTexture(target, texture);
 end;
 
-}
 procedure glBlendColor(const red: TGLfloat; const green: TGLfloat; const blue: TGLfloat; const alpha: TGLfloat);
 begin
   GL.blendColor(red, green, blue, alpha);
@@ -550,13 +536,11 @@ begin
   GL.colorMask(red, green, blue, alpha);
 end;
 
-{ Not in auto-generated flat WebGL API:
-procedure glCompileShader(const shader: TWebGLShader);
+procedure glCompileShader(const shader: IJSWebGLShader);
 begin
   GL.compileShader(shader);
 end;
 
-}
 procedure glCopyTexImage2D(const target: TGLenum; const level: TGLint; const internalformat: TGLenum; const x: TGLint; const y: TGLint; const width: TGLsizei; const height: TGLsizei; const border: TGLint);
 begin
   GL.copyTexImage2D(target, level, internalformat, x, y, width, height, border);
@@ -567,95 +551,71 @@ begin
   GL.copyTexSubImage2D(target, level, xoffset, yoffset, x, y, width, height);
 end;
 
-{ Not in auto-generated flat WebGL API:
-function glCreateBuffer(): TWebGLBuffer;
+function glCreateBuffer(): IJSWebGLBuffer;
 begin
   Result := GL.createBuffer();
 end;
 
-}
-{ Not in auto-generated flat WebGL API:
-function glCreateFramebuffer(): TWebGLFramebuffer;
+function glCreateFramebuffer(): IJSWebGLFramebuffer;
 begin
   Result := GL.createFramebuffer();
 end;
 
-}
-{ Not in auto-generated flat WebGL API:
-function glCreateProgram(): TWebGLProgram;
+function glCreateProgram(): IJSWebGLProgram;
 begin
   Result := GL.createProgram();
 end;
 
-}
-{ Not in auto-generated flat WebGL API:
-function glCreateRenderbuffer(): TWebGLRenderbuffer;
+function glCreateRenderbuffer(): IJSWebGLRenderbuffer;
 begin
   Result := GL.createRenderbuffer();
 end;
 
-}
-{ Not in auto-generated flat WebGL API:
-function glCreateShader(const type_: TGLenum): TWebGLShader;
+function glCreateShader(const type_: TGLenum): IJSWebGLShader;
 begin
   Result := GL.createShader(type_);
 end;
 
-}
-{ Not in auto-generated flat WebGL API:
-function glCreateTexture(): TWebGLTexture;
+function glCreateTexture(): IJSWebGLTexture;
 begin
   Result := GL.createTexture();
 end;
 
-}
 procedure glCullFace(const mode: TGLenum);
 begin
   GL.cullFace(mode);
 end;
 
-{ Not in auto-generated flat WebGL API:
-procedure glDeleteBuffer(const buffer: TWebGLBuffer);
+procedure glDeleteBuffer(const buffer: IJSWebGLBuffer);
 begin
   GL.deleteBuffer(buffer);
 end;
 
-}
-{ Not in auto-generated flat WebGL API:
-procedure glDeleteFramebuffer(const framebuffer: TWebGLFramebuffer);
+procedure glDeleteFramebuffer(const framebuffer: IJSWebGLFramebuffer);
 begin
   GL.deleteFramebuffer(framebuffer);
 end;
 
-}
-{ Not in auto-generated flat WebGL API:
-procedure glDeleteProgram(const program: TWebGLProgram);
+procedure glDeleteProgram(const type_: IJSWebGLProgram);
 begin
-  GL.deleteProgram(program);
+  GL.deleteProgram(type_);
 end;
 
-}
-{ Not in auto-generated flat WebGL API:
-procedure glDeleteRenderbuffer(const renderbuffer: TWebGLRenderbuffer);
+procedure glDeleteRenderbuffer(const renderbuffer: IJSWebGLRenderbuffer);
 begin
   GL.deleteRenderbuffer(renderbuffer);
 end;
 
-}
-{ Not in auto-generated flat WebGL API:
-procedure glDeleteShader(const shader: TWebGLShader);
+procedure glDeleteShader(const shader: IJSWebGLShader);
 begin
   GL.deleteShader(shader);
 end;
 
-}
-{ Not in auto-generated flat WebGL API:
-procedure glDeleteTexture(const texture: TWebGLTexture);
+procedure glDeleteTexture(const texture: IJSWebGLTexture);
 begin
   GL.deleteTexture(texture);
 end;
 
-}
 procedure glDepthFunc(const func: TGLenum);
 begin
   GL.depthFunc(func);
@@ -671,13 +631,11 @@ begin
   GL.depthRange(zNear, zFar);
 end;
 
-{ Not in auto-generated flat WebGL API:
-procedure glDetachShader(const program: TWebGLProgram; const shader: TWebGLShader);
+procedure glDetachShader(const type_: IJSWebGLProgram; const shader: IJSWebGLShader);
 begin
-  GL.detachShader(program, shader);
+  GL.detachShader(type_, shader);
 end;
 
-}
 procedure glDisable(const cap: TGLenum);
 begin
   GL.disable(cap);
@@ -718,20 +676,16 @@ begin
   GL.flush();
 end;
 
-{ Not in auto-generated flat WebGL API:
-procedure glFramebufferRenderbuffer(const target: TGLenum; const attachment: TGLenum; const renderbuffertarget: TGLenum; const renderbuffer: TWebGLRenderbuffer);
+procedure glFramebufferRenderbuffer(const target: TGLenum; const attachment: TGLenum; const renderbuffertarget: TGLenum; const renderbuffer: IJSWebGLRenderbuffer);
 begin
   GL.framebufferRenderbuffer(target, attachment, renderbuffertarget, renderbuffer);
 end;
 
-}
-{ Not in auto-generated flat WebGL API:
-procedure glFramebufferTexture2D(const target: TGLenum; const attachment: TGLenum; const textarget: TGLenum; const texture: TWebGLTexture; const level: TGLint);
+procedure glFramebufferTexture2D(const target: TGLenum; const attachment: TGLenum; const textarget: TGLenum; const texture: IJSWebGLTexture; const level: TGLint);
 begin
   GL.framebufferTexture2D(target, attachment, textarget, texture, level);
 end;
 
-}
 procedure glFrontFace(const mode: TGLenum);
 begin
   GL.frontFace(mode);
@@ -742,34 +696,28 @@ begin
   GL.generateMipmap(target);
 end;
 
-{ Not in auto-generated flat WebGL API:
-function glGetActiveAttrib(const program: TWebGLProgram; const index: TGLuint): TWebGLActiveInfo;
+function glGetActiveAttrib(const type_: IJSWebGLProgram; const index: TGLuint): IJSWebGLActiveInfo;
 begin
-  Result := GL.getActiveAttrib(program, index);
+  Result := GL.getActiveAttrib(type_, index);
+end;
+
+function glGetActiveUniform(const type_: IJSWebGLProgram; const index: TGLuint): IJSWebGLActiveInfo;
+begin
+  Result := GL.getActiveUniform(type_, index);
+end;
+
+{ Not in auto-generated flat WebGL API:
+function glGetAttachedShaders(const type_: IJSWebGLProgram): Tsequence;
+begin
+  Result := GL.getAttachedShaders(type_);
 end;
 
 }
-{ Not in auto-generated flat WebGL API:
-function glGetActiveUniform(const program: TWebGLProgram; const index: TGLuint): TWebGLActiveInfo;
+function glGetAttribLocation(const type_: IJSWebGLProgram; const name: String): TGLint;
 begin
-  Result := GL.getActiveUniform(program, index);
+  Result := GL.getAttribLocation(type_, name);
 end;
 
-}
-{ Not in auto-generated flat WebGL API:
-function glGetAttachedShaders(const program: TWebGLProgram): Tsequence;
-begin
-  Result := GL.getAttachedShaders(program);
-end;
-
-}
-{ Not in auto-generated flat WebGL API:
-function glGetAttribLocation(const program: TWebGLProgram; const name: String): TGLint;
-begin
-  Result := GL.getAttribLocation(program, name);
-end;
-
-}
 { Not in auto-generated flat WebGL API:
 function glGetBufferParameter(const target: TGLenum; const pname: TGLenum): Tany;
 begin
@@ -797,19 +745,17 @@ end;
 
 }
 { Not in auto-generated flat WebGL API:
-function glGetProgramParameter(const program: TWebGLProgram; const pname: TGLenum): Tany;
+function glGetProgramParameter(const type_: IJSWebGLProgram; const pname: TGLenum): Tany;
 begin
-  Result := GL.getProgramParameter(program, pname);
+  Result := GL.getProgramParameter(type_, pname);
 end;
 
 }
-{ Not in auto-generated flat WebGL API:
-function glGetProgramInfoLog(const program: TWebGLProgram): String;
+function glGetProgramInfoLog(const type_: IJSWebGLProgram): String;
 begin
-  Result := GL.getProgramInfoLog(program);
+  Result := GL.getProgramInfoLog(type_);
 end;
 
-}
 { Not in auto-generated flat WebGL API:
 function glGetRenderbufferParameter(const target: TGLenum; const pname: TGLenum): Tany;
 begin
@@ -818,33 +764,27 @@ end;
 
 }
 { Not in auto-generated flat WebGL API:
-function glGetShaderParameter(const shader: TWebGLShader; const pname: TGLenum): Tany;
+function glGetShaderParameter(const shader: IJSWebGLShader; const pname: TGLenum): Tany;
 begin
   Result := GL.getShaderParameter(shader, pname);
 end;
 
 }
-{ Not in auto-generated flat WebGL API:
-function glGetShaderPrecisionFormat(const shadertype: TGLenum; const precisiontype: TGLenum): TWebGLShaderPrecisionFormat;
+function glGetShaderPrecisionFormat(const shadertype: TGLenum; const precisiontype: TGLenum): IJSWebGLShaderPrecisionFormat;
 begin
   Result := GL.getShaderPrecisionFormat(shadertype, precisiontype);
 end;
 
-}
-{ Not in auto-generated flat WebGL API:
-function glGetShaderInfoLog(const shader: TWebGLShader): String;
+function glGetShaderInfoLog(const shader: IJSWebGLShader): String;
 begin
   Result := GL.getShaderInfoLog(shader);
 end;
 
-}
-{ Not in auto-generated flat WebGL API:
-function glGetShaderSource(const shader: TWebGLShader): String;
+function glGetShaderSource(const shader: IJSWebGLShader): String;
 begin
   Result := GL.getShaderSource(shader);
 end;
 
-}
 { Not in auto-generated flat WebGL API:
 function glGetTexParameter(const target: TGLenum; const pname: TGLenum): Tany;
 begin
@@ -853,19 +793,17 @@ end;
 
 }
 { Not in auto-generated flat WebGL API:
-function glGetUniform(const program: TWebGLProgram; const location: TWebGLUniformLocation): Tany;
+function glGetUniform(const type_: IJSWebGLProgram; const location: IJSWebGLUniformLocation): Tany;
 begin
-  Result := GL.getUniform(program, location);
+  Result := GL.getUniform(type_, location);
 end;
 
 }
-{ Not in auto-generated flat WebGL API:
-function glGetUniformLocation(const program: TWebGLProgram; const name: String): TWebGLUniformLocation;
+function glGetUniformLocation(const type_: IJSWebGLProgram; const name: String): IJSWebGLUniformLocation;
 begin
-  Result := GL.getUniformLocation(program, name);
+  Result := GL.getUniformLocation(type_, name);
 end;
 
-}
 { Not in auto-generated flat WebGL API:
 function glGetVertexAttrib(const index: TGLuint; const pname: TGLenum): Tany;
 begin
@@ -883,65 +821,51 @@ begin
   GL.hint(target, mode);
 end;
 
-{ Not in auto-generated flat WebGL API:
-function glIsBuffer(const buffer: TWebGLBuffer): TGLboolean;
+function glIsBuffer(const buffer: IJSWebGLBuffer): TGLboolean;
 begin
   Result := GL.isBuffer(buffer);
 end;
 
-}
 function glIsEnabled(const cap: TGLenum): TGLboolean;
 begin
   Result := GL.isEnabled(cap);
 end;
 
-{ Not in auto-generated flat WebGL API:
-function glIsFramebuffer(const framebuffer: TWebGLFramebuffer): TGLboolean;
+function glIsFramebuffer(const framebuffer: IJSWebGLFramebuffer): TGLboolean;
 begin
   Result := GL.isFramebuffer(framebuffer);
 end;
 
-}
-{ Not in auto-generated flat WebGL API:
-function glIsProgram(const program: TWebGLProgram): TGLboolean;
+function glIsProgram(const type_: IJSWebGLProgram): TGLboolean;
 begin
-  Result := GL.isProgram(program);
+  Result := GL.isProgram(type_);
 end;
 
-}
-{ Not in auto-generated flat WebGL API:
-function glIsRenderbuffer(const renderbuffer: TWebGLRenderbuffer): TGLboolean;
+function glIsRenderbuffer(const renderbuffer: IJSWebGLRenderbuffer): TGLboolean;
 begin
   Result := GL.isRenderbuffer(renderbuffer);
 end;
 
-}
-{ Not in auto-generated flat WebGL API:
-function glIsShader(const shader: TWebGLShader): TGLboolean;
+function glIsShader(const shader: IJSWebGLShader): TGLboolean;
 begin
   Result := GL.isShader(shader);
 end;
 
-}
-{ Not in auto-generated flat WebGL API:
-function glIsTexture(const texture: TWebGLTexture): TGLboolean;
+function glIsTexture(const texture: IJSWebGLTexture): TGLboolean;
 begin
   Result := GL.isTexture(texture);
 end;
 
-}
 procedure glLineWidth(const width: TGLfloat);
 begin
   GL.lineWidth(width);
 end;
 
-{ Not in auto-generated flat WebGL API:
-procedure glLinkProgram(const program: TWebGLProgram);
+procedure glLinkProgram(const type_: IJSWebGLProgram);
 begin
-  GL.linkProgram(program);
+  GL.linkProgram(type_);
 end;
 
-}
 procedure glPixelStorei(const pname: TGLenum; const param: TGLint);
 begin
   GL.pixelStorei(pname, param);
@@ -967,13 +891,11 @@ begin
   GL.scissor(x, y, width, height);
 end;
 
-{ Not in auto-generated flat WebGL API:
-procedure glShaderSource(const shader: TWebGLShader; const source: String);
+procedure glShaderSource(const shader: IJSWebGLShader; const source: String);
 begin
   GL.shaderSource(shader, source);
 end;
 
-}
 procedure glStencilFunc(const func: TGLenum; const ref: TGLint; const mask: TGLuint);
 begin
   GL.stencilFunc(func, ref, mask);
@@ -1014,76 +936,56 @@ begin
   GL.texParameteri(target, pname, param);
 end;
 
-{ Not in auto-generated flat WebGL API:
-procedure glUniform1f(const location: TWebGLUniformLocation; const x: TGLfloat);
+procedure glUniform1f(const location: IJSWebGLUniformLocation; const x: TGLfloat);
 begin
   GL.uniform1f(location, x);
 end;
 
-}
-{ Not in auto-generated flat WebGL API:
-procedure glUniform2f(const location: TWebGLUniformLocation; const x: TGLfloat; const y: TGLfloat);
+procedure glUniform2f(const location: IJSWebGLUniformLocation; const x: TGLfloat; const y: TGLfloat);
 begin
   GL.uniform2f(location, x, y);
 end;
 
-}
-{ Not in auto-generated flat WebGL API:
-procedure glUniform3f(const location: TWebGLUniformLocation; const x: TGLfloat; const y: TGLfloat; const z: TGLfloat);
+procedure glUniform3f(const location: IJSWebGLUniformLocation; const x: TGLfloat; const y: TGLfloat; const z: TGLfloat);
 begin
   GL.uniform3f(location, x, y, z);
 end;
 
-}
-{ Not in auto-generated flat WebGL API:
-procedure glUniform4f(const location: TWebGLUniformLocation; const x: TGLfloat; const y: TGLfloat; const z: TGLfloat; const w: TGLfloat);
+procedure glUniform4f(const location: IJSWebGLUniformLocation; const x: TGLfloat; const y: TGLfloat; const z: TGLfloat; const w: TGLfloat);
 begin
   GL.uniform4f(location, x, y, z, w);
 end;
 
-}
-{ Not in auto-generated flat WebGL API:
-procedure glUniform1i(const location: TWebGLUniformLocation; const x: TGLint);
+procedure glUniform1i(const location: IJSWebGLUniformLocation; const x: TGLint);
 begin
   GL.uniform1i(location, x);
 end;
 
-}
-{ Not in auto-generated flat WebGL API:
-procedure glUniform2i(const location: TWebGLUniformLocation; const x: TGLint; const y: TGLint);
+procedure glUniform2i(const location: IJSWebGLUniformLocation; const x: TGLint; const y: TGLint);
 begin
   GL.uniform2i(location, x, y);
 end;
 
-}
-{ Not in auto-generated flat WebGL API:
-procedure glUniform3i(const location: TWebGLUniformLocation; const x: TGLint; const y: TGLint; const z: TGLint);
+procedure glUniform3i(const location: IJSWebGLUniformLocation; const x: TGLint; const y: TGLint; const z: TGLint);
 begin
   GL.uniform3i(location, x, y, z);
 end;
 
-}
-{ Not in auto-generated flat WebGL API:
-procedure glUniform4i(const location: TWebGLUniformLocation; const x: TGLint; const y: TGLint; const z: TGLint; const w: TGLint);
+procedure glUniform4i(const location: IJSWebGLUniformLocation; const x: TGLint; const y: TGLint; const z: TGLint; const w: TGLint);
 begin
   GL.uniform4i(location, x, y, z, w);
 end;
 
-}
-{ Not in auto-generated flat WebGL API:
-procedure glUseProgram(const program: TWebGLProgram);
+procedure glUseProgram(const type_: IJSWebGLProgram);
 begin
-  GL.useProgram(program);
+  GL.useProgram(type_);
 end;
 
-}
-{ Not in auto-generated flat WebGL API:
-procedure glValidateProgram(const program: TWebGLProgram);
+procedure glValidateProgram(const type_: IJSWebGLProgram);
 begin
-  GL.validateProgram(program);
+  GL.validateProgram(type_);
 end;
 
-}
 procedure glVertexAttrib1f(const indx: TGLuint; const x: TGLfloat);
 begin
   GL.vertexAttrib1f(indx, x);

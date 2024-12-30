@@ -66,9 +66,16 @@ uses SysUtils, JOB.Shared, JOB.JS,
   // TODO: not necessary in the future? only for some test queries below
   CastleInternalGLUtils;
 
-{$define read_implementation}
-{$I castleinternalwebgl_flat_api.inc}
-{$undef read_implementation}
+{$push}
+  // Hide: Warning: Implicit string type conversion from "AnsiString" to "UnicodeString"
+  {$warn 4105 off}
+  // Hide: Warning: Implicit string type conversion with potential data loss from "UnicodeString" to "AnsiString"
+  {$warn 4104 off}
+
+  {$define read_implementation}
+  {$I castleinternalwebgl_flat_api.inc}
+  {$undef read_implementation}
+{$pop}
 
 function glGetString(const Param: TGLenum): String;
 begin

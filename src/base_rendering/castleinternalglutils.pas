@@ -24,7 +24,6 @@ interface
 uses
   SysUtils, Math, Generics.Collections,
   {$ifdef OpenGLES} CastleGLES, {$else} CastleGL, {$endif}
-  {$ifdef CASTLE_WEBGL} CastleInternalJobWeb, {$endif}
   CastleImages, CastleUtils, CastleVectors, CastleRectangles,
   CastleColors, CastleProjection, CastleRenderOptions, CastleGLShaders,
   CastleGLUtils;

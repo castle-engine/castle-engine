@@ -111,6 +111,10 @@ procedure ExposeFunctions(const Context: TWebIDLContext;
     if SameText(IdlType.TypeName, 'domstring') then
       Result := 'String'
     else
+    // WebGL objects
+    if IsPrefix('WebGL', IdlType.TypeName) then
+      Result := 'IJS' + IdlType.TypeName
+    else
       Result := 'T' + IdlType.TypeName;
   end;
 
@@ -120,9 +124,8 @@ procedure ExposeFunctions(const Context: TWebIDLContext;
     Result :=
       (NameToWebIDLBaseType(IdlType.TypeName) = wibtAny) or
       (IdlType is TIDLSequenceTypeDefDefinition) or
-      (IsPrefix('WebGL', IdlType.TypeName)) or
       SameText('object', IdlType.TypeName) or
-      SameText('Float32List', IdlType.TypeName);
+      SameText('Float32list', IdlType.TypeName);
   end;
 
 var
@@ -160,7 +163,7 @@ begin
         Unsupported := Unsupported or
           UnsupportedType(Func.Argument[J].ArgumentType);
         ArgumentName := Func.Argument[J].Name;
-        if SameText(ArgumentName, 'type') then
+        if ArrayContainsString(ArgumentName, ['type', 'program']) then
           ArgumentName := 'type_';
         ArgumentsDeclare := SAppendPart(ArgumentsDeclare, '; ',
           Format('const %s: %s', [

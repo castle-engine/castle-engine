@@ -18,19 +18,6 @@
 
 {$ifdef read_interface}
 
-type
-  { Types (invented in our engine) that correspond to WebGL objects,
-    but maps to simple types (like TGLuint) for OpenGL / OpenGLES. }
-  TGLbuffer = {$ifndef CASTLE_WEBGL} TGLuint {$else} CastleInternalJobWeb.IJSWebGLBuffer {$endif};
-  TGLFramebuffer = {$ifndef CASTLE_WEBGL} TGLuint {$else} CastleInternalJobWeb.IJSWebGLFramebuffer {$endif};
-  TGLProgram = {$ifndef CASTLE_WEBGL} TGLuint {$else} CastleInternalJobWeb.IJSWebGLProgram {$endif};
-  TGLShader = {$ifndef CASTLE_WEBGL} TGLuint {$else} CastleInternalJobWeb.IJSWebGLShader {$endif};
-  TGLTexture = {$ifndef CASTLE_WEBGL} TGLuint {$else} CastleInternalJobWeb.IJSWebGLTexture {$endif};
-  TGLUniformLocation = {$ifndef CASTLE_WEBGL} TGLint {$else} CastleInternalJobWeb.IJSWebGLUniformLocation {$endif};
-
-const
-  GLbufferNone = {$ifndef CASTLE_WEBGL} 0 {$else} nil {$endif};
-
 { Get OpenGL / OpenGLES / WebGL value.
 
   Prefer to use these over directly glGetFloatv etc. functions,
