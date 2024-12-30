@@ -671,7 +671,7 @@ procedure TRenderContext.WarningViewportTooLarge;
 begin
   if not WarningViewportTooLargeDone then
   begin
-    WritelnWarning('Setting viewport %s, with has dimensions larger than maximum allowed %s. (Further warnings of the same type will not be shown.)', [
+    WritelnWarning('Setting viewport to %s, which has dimensions larger than maximum allowed %s. (Further warnings of the same type will not be shown.)', [
       FViewport.ToString,
       GLFeatures.MaxViewportDimensions.ToString
     ]);
