@@ -48,19 +48,31 @@ const
 {$I castleinternalwebgl_flat_api.inc}
 {$undef read_interface}
 
+{ Routines providing WebGL "flat" API that looks deliberately similar to
+  CastleGLES unit. }
+
+function glGetString(const Param: TGLenum): String;
+
 procedure RunWebGLAnimation;
-
-implementation
-
-uses SysUtils, JOB.Shared, JOB.JS,
-  CastleLog, CastleUtils;
 
 var
   GL: IJSWebGLRenderingContext;
 
+implementation
+
+uses SysUtils, JOB.Shared, JOB.JS,
+  CastleLog, CastleUtils,
+  // TODO: not necessary in the future? only for some test queries below
+  CastleInternalGLUtils;
+
 {$define read_implementation}
 {$I castleinternalwebgl_flat_api.inc}
 {$undef read_implementation}
+
+function glGetString(const Param: TGLenum): String;
+begin
+  Result := GL.GetParameter(Param);
+end;
 
 { Rendering and animation using WebGL ---------------------------------------- }
 
@@ -102,13 +114,13 @@ begin
     '  Shading Language Version: %s' + NL +
     '  Renderer: %s' + NL +
     '  Vendor: %s', [
-    GL.GetParameter(TJSWebGLRenderingContext.SHADING_LANGUAGE_VERSION),
-    GL.GetParameter(TJSWebGLRenderingContext.RENDERER),
-    GL.GetParameter(TJSWebGLRenderingContext.VENDOR),
-    GL.GetParameter(TJSWebGLRenderingContext.VERSION)
+    glGetString(TJSWebGLRenderingContext.SHADING_LANGUAGE_VERSION),
+    glGetString(TJSWebGLRenderingContext.RENDERER),
+    glGetString(TJSWebGLRenderingContext.VENDOR),
+    glGetString(TJSWebGLRenderingContext.VERSION)
   ]));
   WritelnLog('Context limits:' + NL +
-    //'  Max Viewport Dimensions: %d' + NL +
+    '  Max Viewport Dimensions: %s' + NL +
     '  Max Texture Size: %d' + NL +
     '  Max Texture Image Units: %d' + NL +
     '  Max Vertex Texture Image Units: %d' + NL +
@@ -117,15 +129,15 @@ begin
     '  Max Fragment Uniform Vectors: %d' + NL +
     '  Max Varying Vectors: %d' + NL +
     '  Max Vertex Attributes: %d', [
-    //Integer(GL.GetParameter(TJSWebGLRenderingContext.MAX_VIEWPORT_DIMS)), // how to get 2D int vector?
-    Integer(GL.GetParameter(TJSWebGLRenderingContext.MAX_TEXTURE_SIZE)),
-    Integer(GL.GetParameter(TJSWebGLRenderingContext.MAX_TEXTURE_IMAGE_UNITS)),
-    Integer(GL.GetParameter(TJSWebGLRenderingContext.MAX_VERTEX_TEXTURE_IMAGE_UNITS)),
-    Integer(GL.GetParameter(TJSWebGLRenderingContext.MAX_COMBINED_TEXTURE_IMAGE_UNITS)),
-    Integer(GL.GetParameter(TJSWebGLRenderingContext.MAX_VERTEX_UNIFORM_VECTORS)),
-    Integer(GL.GetParameter(TJSWebGLRenderingContext.MAX_FRAGMENT_UNIFORM_VECTORS)),
-    Integer(GL.GetParameter(TJSWebGLRenderingContext.MAX_VARYING_VECTORS)),
-    Integer(GL.GetParameter(TJSWebGLRenderingContext.MAX_VERTEX_ATTRIBS))
+    glGetInteger2(TJSWebGLRenderingContext.MAX_VIEWPORT_DIMS).ToString,
+    glGetInteger(TJSWebGLRenderingContext.MAX_TEXTURE_SIZE),
+    glGetInteger(TJSWebGLRenderingContext.MAX_TEXTURE_IMAGE_UNITS),
+    glGetInteger(TJSWebGLRenderingContext.MAX_VERTEX_TEXTURE_IMAGE_UNITS),
+    glGetInteger(TJSWebGLRenderingContext.MAX_COMBINED_TEXTURE_IMAGE_UNITS),
+    glGetInteger(TJSWebGLRenderingContext.MAX_VERTEX_UNIFORM_VECTORS),
+    glGetInteger(TJSWebGLRenderingContext.MAX_FRAGMENT_UNIFORM_VECTORS),
+    glGetInteger(TJSWebGLRenderingContext.MAX_VARYING_VECTORS),
+    glGetInteger(TJSWebGLRenderingContext.MAX_VERTEX_ATTRIBS)
   ]);
   WritelnLog('Context attributes:' + NL +
     '  Alpha: %s' + NL +

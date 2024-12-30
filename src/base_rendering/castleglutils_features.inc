@@ -1285,8 +1285,7 @@ begin
   else
   {$endif}
   begin
-    Assert(SizeOf(TGLFloat) = SizeOf(Single));
-    glGetFloatv(GL_ALIASED_LINE_WIDTH_RANGE, @FLineWidth);
+    FLineWidth := glGetFloat(GL_ALIASED_LINE_WIDTH_RANGE);
   end;
 
   FTextureMaxLevel :=

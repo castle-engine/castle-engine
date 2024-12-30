@@ -327,6 +327,11 @@
   {$define OpenGLES}
   {$define CastleGLES := CastleInternalWebGL}
   {$undef CASTLE_GL_USES_CALLBACKS}
+  { Using WebGL API for rendering. Use this symbol when necessary to do
+    something different between WebGL and OpenGLES.
+    We try to hide many differences at the CastleInternalWebGL unit,
+    but not everything is handled there. }
+  {$define CASTLE_WEBGL}
 {$endif}
 
 { NX supports OpenGL and OpenGLES (that's public information,

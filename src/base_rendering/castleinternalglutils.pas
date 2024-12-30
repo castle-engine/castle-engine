@@ -42,7 +42,8 @@ implementation
 
 uses
   CastleFilesUtils, CastleStringUtils, CastleGLVersion,
-  CastleLog, CastleApplicationProperties, CastleRenderContext;
+  CastleLog, CastleApplicationProperties, CastleRenderContext
+  {$ifdef WASI}, Variants, Job.Js {$endif};
 
 {$I castleinternalglutils_errors.inc}
 {$I castleinternalglutils_helpers.inc}

@@ -40,11 +40,11 @@ const
 
   function GetFloat2(const Param: TGLenum; const Available: Boolean): String;
   var
-    V: packed array [0..1] of TGLFloat;
+    V: TVector2;
   begin
     if not Available then
       Exit('Not Available');
-    glGetFloatv(Param, @V);
+    V := glGetFloat2(Param);
     Result := Format('%f %f', [V[0], V[1]]);
   end;
 
