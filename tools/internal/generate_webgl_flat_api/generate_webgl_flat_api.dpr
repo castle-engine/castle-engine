@@ -105,11 +105,14 @@ procedure ExposeFunctions(const Context: TWebIDLContext;
 
   function PascalType(const IdlType: TIDLTypeDefDefinition): String;
   begin
+    if NameToWebIDLBaseType(IdlType.TypeName) = wibtAny then
+      Result := 'Variant'
+    else
     if SameText(IdlType.TypeName, 'boolean') then
       Result := 'Boolean'
     else
     if SameText(IdlType.TypeName, 'domstring') then
-      Result := 'String'
+      Result := 'String' // Note that our flat API converts UnicodeString (TDOMString) <-> AnsiString (String)
     else
     // WebGL objects
     if IsPrefix('WebGL', IdlType.TypeName) then
@@ -122,7 +125,6 @@ procedure ExposeFunctions(const Context: TWebIDLContext;
   function UnsupportedType(const IdlType: TIDLTypeDefDefinition): Boolean;
   begin
     Result :=
-      (NameToWebIDLBaseType(IdlType.TypeName) = wibtAny) or
       (IdlType is TIDLSequenceTypeDefDefinition) or
       SameText('object', IdlType.TypeName) or
       SameText('Float32list', IdlType.TypeName);

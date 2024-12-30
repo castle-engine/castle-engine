@@ -359,21 +359,21 @@ function glGetActiveAttrib(const type_: IJSWebGLProgram; const index: TGLuint): 
 function glGetActiveUniform(const type_: IJSWebGLProgram; const index: TGLuint): IJSWebGLActiveInfo;
 // Not in auto-generated flat WebGL API: function glGetAttachedShaders(const type_: IJSWebGLProgram): Tsequence;
 function glGetAttribLocation(const type_: IJSWebGLProgram; const name: String): TGLint;
-// Not in auto-generated flat WebGL API: function glGetBufferParameter(const target: TGLenum; const pname: TGLenum): Tany;
-// Not in auto-generated flat WebGL API: function glGetParameter(const pname: TGLenum): Tany;
+function glGetBufferParameter(const target: TGLenum; const pname: TGLenum): Variant;
+function glGetParameter(const pname: TGLenum): Variant;
 function glGetError(): TGLenum;
-// Not in auto-generated flat WebGL API: function glGetFramebufferAttachmentParameter(const target: TGLenum; const attachment: TGLenum; const pname: TGLenum): Tany;
-// Not in auto-generated flat WebGL API: function glGetProgramParameter(const type_: IJSWebGLProgram; const pname: TGLenum): Tany;
+function glGetFramebufferAttachmentParameter(const target: TGLenum; const attachment: TGLenum; const pname: TGLenum): Variant;
+function glGetProgramParameter(const type_: IJSWebGLProgram; const pname: TGLenum): Variant;
 function glGetProgramInfoLog(const type_: IJSWebGLProgram): String;
-// Not in auto-generated flat WebGL API: function glGetRenderbufferParameter(const target: TGLenum; const pname: TGLenum): Tany;
-// Not in auto-generated flat WebGL API: function glGetShaderParameter(const shader: IJSWebGLShader; const pname: TGLenum): Tany;
+function glGetRenderbufferParameter(const target: TGLenum; const pname: TGLenum): Variant;
+function glGetShaderParameter(const shader: IJSWebGLShader; const pname: TGLenum): Variant;
 function glGetShaderPrecisionFormat(const shadertype: TGLenum; const precisiontype: TGLenum): IJSWebGLShaderPrecisionFormat;
 function glGetShaderInfoLog(const shader: IJSWebGLShader): String;
 function glGetShaderSource(const shader: IJSWebGLShader): String;
-// Not in auto-generated flat WebGL API: function glGetTexParameter(const target: TGLenum; const pname: TGLenum): Tany;
-// Not in auto-generated flat WebGL API: function glGetUniform(const type_: IJSWebGLProgram; const location: IJSWebGLUniformLocation): Tany;
+function glGetTexParameter(const target: TGLenum; const pname: TGLenum): Variant;
+function glGetUniform(const type_: IJSWebGLProgram; const location: IJSWebGLUniformLocation): Variant;
 function glGetUniformLocation(const type_: IJSWebGLProgram; const name: String): IJSWebGLUniformLocation;
-// Not in auto-generated flat WebGL API: function glGetVertexAttrib(const index: TGLuint; const pname: TGLenum): Tany;
+function glGetVertexAttrib(const index: TGLuint; const pname: TGLenum): Variant;
 function glGetVertexAttribOffset(const index: TGLuint; const pname: TGLenum): TGLintptr;
 procedure glHint(const target: TGLenum; const mode: TGLenum);
 function glIsBuffer(const buffer: IJSWebGLBuffer): TGLboolean;
@@ -718,58 +718,46 @@ begin
   Result := GL.getAttribLocation(type_, name);
 end;
 
-{ Not in auto-generated flat WebGL API:
-function glGetBufferParameter(const target: TGLenum; const pname: TGLenum): Tany;
+function glGetBufferParameter(const target: TGLenum; const pname: TGLenum): Variant;
 begin
   Result := GL.getBufferParameter(target, pname);
 end;
 
-}
-{ Not in auto-generated flat WebGL API:
-function glGetParameter(const pname: TGLenum): Tany;
+function glGetParameter(const pname: TGLenum): Variant;
 begin
   Result := GL.getParameter(pname);
 end;
 
-}
 function glGetError(): TGLenum;
 begin
   Result := GL.getError();
 end;
 
-{ Not in auto-generated flat WebGL API:
-function glGetFramebufferAttachmentParameter(const target: TGLenum; const attachment: TGLenum; const pname: TGLenum): Tany;
+function glGetFramebufferAttachmentParameter(const target: TGLenum; const attachment: TGLenum; const pname: TGLenum): Variant;
 begin
   Result := GL.getFramebufferAttachmentParameter(target, attachment, pname);
 end;
 
-}
-{ Not in auto-generated flat WebGL API:
-function glGetProgramParameter(const type_: IJSWebGLProgram; const pname: TGLenum): Tany;
+function glGetProgramParameter(const type_: IJSWebGLProgram; const pname: TGLenum): Variant;
 begin
   Result := GL.getProgramParameter(type_, pname);
 end;
 
-}
 function glGetProgramInfoLog(const type_: IJSWebGLProgram): String;
 begin
   Result := GL.getProgramInfoLog(type_);
 end;
 
-{ Not in auto-generated flat WebGL API:
-function glGetRenderbufferParameter(const target: TGLenum; const pname: TGLenum): Tany;
+function glGetRenderbufferParameter(const target: TGLenum; const pname: TGLenum): Variant;
 begin
   Result := GL.getRenderbufferParameter(target, pname);
 end;
 
-}
-{ Not in auto-generated flat WebGL API:
-function glGetShaderParameter(const shader: IJSWebGLShader; const pname: TGLenum): Tany;
+function glGetShaderParameter(const shader: IJSWebGLShader; const pname: TGLenum): Variant;
 begin
   Result := GL.getShaderParameter(shader, pname);
 end;
 
-}
 function glGetShaderPrecisionFormat(const shadertype: TGLenum; const precisiontype: TGLenum): IJSWebGLShaderPrecisionFormat;
 begin
   Result := GL.getShaderPrecisionFormat(shadertype, precisiontype);
@@ -785,32 +773,26 @@ begin
   Result := GL.getShaderSource(shader);
 end;
 
-{ Not in auto-generated flat WebGL API:
-function glGetTexParameter(const target: TGLenum; const pname: TGLenum): Tany;
+function glGetTexParameter(const target: TGLenum; const pname: TGLenum): Variant;
 begin
   Result := GL.getTexParameter(target, pname);
 end;
 
-}
-{ Not in auto-generated flat WebGL API:
-function glGetUniform(const type_: IJSWebGLProgram; const location: IJSWebGLUniformLocation): Tany;
+function glGetUniform(const type_: IJSWebGLProgram; const location: IJSWebGLUniformLocation): Variant;
 begin
   Result := GL.getUniform(type_, location);
 end;
 
-}
 function glGetUniformLocation(const type_: IJSWebGLProgram; const name: String): IJSWebGLUniformLocation;
 begin
   Result := GL.getUniformLocation(type_, name);
 end;
 
-{ Not in auto-generated flat WebGL API:
-function glGetVertexAttrib(const index: TGLuint; const pname: TGLenum): Tany;
+function glGetVertexAttrib(const index: TGLuint; const pname: TGLenum): Variant;
 begin
   Result := GL.getVertexAttrib(index, pname);
 end;
 
-}
 function glGetVertexAttribOffset(const index: TGLuint; const pname: TGLenum): TGLintptr;
 begin
   Result := GL.getVertexAttribOffset(index, pname);
