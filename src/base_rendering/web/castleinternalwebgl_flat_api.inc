@@ -300,14 +300,280 @@ const
   GL_UNPACK_COLORSPACE_CONVERSION_WEBGL = TJSWebGLRenderingContextBase.UNPACK_COLORSPACE_CONVERSION_WEBGL;
   GL_BROWSER_DEFAULT_WEBGL = TJSWebGLRenderingContextBase.BROWSER_DEFAULT_WEBGL;
 
+{ Constants from WebGL2RenderingContextBase }
+const
+  GL_READ_BUFFER = TJSWebGL2RenderingContextBase.READ_BUFFER;
+  GL_UNPACK_ROW_LENGTH = TJSWebGL2RenderingContextBase.UNPACK_ROW_LENGTH;
+  GL_UNPACK_SKIP_ROWS = TJSWebGL2RenderingContextBase.UNPACK_SKIP_ROWS;
+  GL_UNPACK_SKIP_PIXELS = TJSWebGL2RenderingContextBase.UNPACK_SKIP_PIXELS;
+  GL_PACK_ROW_LENGTH = TJSWebGL2RenderingContextBase.PACK_ROW_LENGTH;
+  GL_PACK_SKIP_ROWS = TJSWebGL2RenderingContextBase.PACK_SKIP_ROWS;
+  GL_PACK_SKIP_PIXELS = TJSWebGL2RenderingContextBase.PACK_SKIP_PIXELS;
+  GL_COLOR = TJSWebGL2RenderingContextBase.COLOR;
+  GL_DEPTH = TJSWebGL2RenderingContextBase.DEPTH;
+  GL_STENCIL = TJSWebGL2RenderingContextBase.STENCIL;
+  GL_RED = TJSWebGL2RenderingContextBase.RED;
+  GL_RGB8 = TJSWebGL2RenderingContextBase.RGB8;
+  GL_RGBA8 = TJSWebGL2RenderingContextBase.RGBA8;
+  GL_RGB10_A2 = TJSWebGL2RenderingContextBase.RGB10_A2;
+  GL_TEXTURE_BINDING_3D = TJSWebGL2RenderingContextBase.TEXTURE_BINDING_3D;
+  GL_UNPACK_SKIP_IMAGES = TJSWebGL2RenderingContextBase.UNPACK_SKIP_IMAGES;
+  GL_UNPACK_IMAGE_HEIGHT = TJSWebGL2RenderingContextBase.UNPACK_IMAGE_HEIGHT;
+  GL_TEXTURE_3D = TJSWebGL2RenderingContextBase.TEXTURE_3D;
+  GL_TEXTURE_WRAP_R = TJSWebGL2RenderingContextBase.TEXTURE_WRAP_R;
+  GL_MAX_3D_TEXTURE_SIZE = TJSWebGL2RenderingContextBase.MAX_3D_TEXTURE_SIZE;
+  GL_UNSIGNED_INT_2_10_10_10_REV = TJSWebGL2RenderingContextBase.UNSIGNED_INT_2_10_10_10_REV;
+  GL_MAX_ELEMENTS_VERTICES = TJSWebGL2RenderingContextBase.MAX_ELEMENTS_VERTICES;
+  GL_MAX_ELEMENTS_INDICES = TJSWebGL2RenderingContextBase.MAX_ELEMENTS_INDICES;
+  GL_TEXTURE_MIN_LOD = TJSWebGL2RenderingContextBase.TEXTURE_MIN_LOD;
+  GL_TEXTURE_MAX_LOD = TJSWebGL2RenderingContextBase.TEXTURE_MAX_LOD;
+  GL_TEXTURE_BASE_LEVEL = TJSWebGL2RenderingContextBase.TEXTURE_BASE_LEVEL;
+  GL_TEXTURE_MAX_LEVEL = TJSWebGL2RenderingContextBase.TEXTURE_MAX_LEVEL;
+  GL_MIN = TJSWebGL2RenderingContextBase.MIN;
+  GL_MAX = TJSWebGL2RenderingContextBase.MAX;
+  GL_DEPTH_COMPONENT24 = TJSWebGL2RenderingContextBase.DEPTH_COMPONENT24;
+  GL_MAX_TEXTURE_LOD_BIAS = TJSWebGL2RenderingContextBase.MAX_TEXTURE_LOD_BIAS;
+  GL_TEXTURE_COMPARE_MODE = TJSWebGL2RenderingContextBase.TEXTURE_COMPARE_MODE;
+  GL_TEXTURE_COMPARE_FUNC = TJSWebGL2RenderingContextBase.TEXTURE_COMPARE_FUNC;
+  GL_CURRENT_QUERY = TJSWebGL2RenderingContextBase.CURRENT_QUERY;
+  GL_QUERY_RESULT = TJSWebGL2RenderingContextBase.QUERY_RESULT;
+  GL_QUERY_RESULT_AVAILABLE = TJSWebGL2RenderingContextBase.QUERY_RESULT_AVAILABLE;
+  GL_STREAM_READ = TJSWebGL2RenderingContextBase.STREAM_READ;
+  GL_STREAM_COPY = TJSWebGL2RenderingContextBase.STREAM_COPY;
+  GL_STATIC_READ = TJSWebGL2RenderingContextBase.STATIC_READ;
+  GL_STATIC_COPY = TJSWebGL2RenderingContextBase.STATIC_COPY;
+  GL_DYNAMIC_READ = TJSWebGL2RenderingContextBase.DYNAMIC_READ;
+  GL_DYNAMIC_COPY = TJSWebGL2RenderingContextBase.DYNAMIC_COPY;
+  GL_MAX_DRAW_BUFFERS = TJSWebGL2RenderingContextBase.MAX_DRAW_BUFFERS;
+  GL_DRAW_BUFFER0 = TJSWebGL2RenderingContextBase.DRAW_BUFFER0;
+  GL_DRAW_BUFFER1 = TJSWebGL2RenderingContextBase.DRAW_BUFFER1;
+  GL_DRAW_BUFFER2 = TJSWebGL2RenderingContextBase.DRAW_BUFFER2;
+  GL_DRAW_BUFFER3 = TJSWebGL2RenderingContextBase.DRAW_BUFFER3;
+  GL_DRAW_BUFFER4 = TJSWebGL2RenderingContextBase.DRAW_BUFFER4;
+  GL_DRAW_BUFFER5 = TJSWebGL2RenderingContextBase.DRAW_BUFFER5;
+  GL_DRAW_BUFFER6 = TJSWebGL2RenderingContextBase.DRAW_BUFFER6;
+  GL_DRAW_BUFFER7 = TJSWebGL2RenderingContextBase.DRAW_BUFFER7;
+  GL_DRAW_BUFFER8 = TJSWebGL2RenderingContextBase.DRAW_BUFFER8;
+  GL_DRAW_BUFFER9 = TJSWebGL2RenderingContextBase.DRAW_BUFFER9;
+  GL_DRAW_BUFFER10 = TJSWebGL2RenderingContextBase.DRAW_BUFFER10;
+  GL_DRAW_BUFFER11 = TJSWebGL2RenderingContextBase.DRAW_BUFFER11;
+  GL_DRAW_BUFFER12 = TJSWebGL2RenderingContextBase.DRAW_BUFFER12;
+  GL_DRAW_BUFFER13 = TJSWebGL2RenderingContextBase.DRAW_BUFFER13;
+  GL_DRAW_BUFFER14 = TJSWebGL2RenderingContextBase.DRAW_BUFFER14;
+  GL_DRAW_BUFFER15 = TJSWebGL2RenderingContextBase.DRAW_BUFFER15;
+  GL_MAX_FRAGMENT_UNIFORM_COMPONENTS = TJSWebGL2RenderingContextBase.MAX_FRAGMENT_UNIFORM_COMPONENTS;
+  GL_MAX_VERTEX_UNIFORM_COMPONENTS = TJSWebGL2RenderingContextBase.MAX_VERTEX_UNIFORM_COMPONENTS;
+  GL_SAMPLER_3D = TJSWebGL2RenderingContextBase.SAMPLER_3D;
+  GL_SAMPLER_2D_SHADOW = TJSWebGL2RenderingContextBase.SAMPLER_2D_SHADOW;
+  GL_FRAGMENT_SHADER_DERIVATIVE_HINT = TJSWebGL2RenderingContextBase.FRAGMENT_SHADER_DERIVATIVE_HINT;
+  GL_PIXEL_PACK_BUFFER = TJSWebGL2RenderingContextBase.PIXEL_PACK_BUFFER;
+  GL_PIXEL_UNPACK_BUFFER = TJSWebGL2RenderingContextBase.PIXEL_UNPACK_BUFFER;
+  GL_PIXEL_PACK_BUFFER_BINDING = TJSWebGL2RenderingContextBase.PIXEL_PACK_BUFFER_BINDING;
+  GL_PIXEL_UNPACK_BUFFER_BINDING = TJSWebGL2RenderingContextBase.PIXEL_UNPACK_BUFFER_BINDING;
+  GL_FLOAT_MAT2x3 = TJSWebGL2RenderingContextBase.FLOAT_MAT2x3;
+  GL_FLOAT_MAT2x4 = TJSWebGL2RenderingContextBase.FLOAT_MAT2x4;
+  GL_FLOAT_MAT3x2 = TJSWebGL2RenderingContextBase.FLOAT_MAT3x2;
+  GL_FLOAT_MAT3x4 = TJSWebGL2RenderingContextBase.FLOAT_MAT3x4;
+  GL_FLOAT_MAT4x2 = TJSWebGL2RenderingContextBase.FLOAT_MAT4x2;
+  GL_FLOAT_MAT4x3 = TJSWebGL2RenderingContextBase.FLOAT_MAT4x3;
+  GL_SRGB = TJSWebGL2RenderingContextBase.SRGB;
+  GL_SRGB8 = TJSWebGL2RenderingContextBase.SRGB8;
+  GL_SRGB8_ALPHA8 = TJSWebGL2RenderingContextBase.SRGB8_ALPHA8;
+  GL_COMPARE_REF_TO_TEXTURE = TJSWebGL2RenderingContextBase.COMPARE_REF_TO_TEXTURE;
+  GL_RGBA32F = TJSWebGL2RenderingContextBase.RGBA32F;
+  GL_RGB32F = TJSWebGL2RenderingContextBase.RGB32F;
+  GL_RGBA16F = TJSWebGL2RenderingContextBase.RGBA16F;
+  GL_RGB16F = TJSWebGL2RenderingContextBase.RGB16F;
+  GL_VERTEX_ATTRIB_ARRAY_INTEGER = TJSWebGL2RenderingContextBase.VERTEX_ATTRIB_ARRAY_INTEGER;
+  GL_MAX_ARRAY_TEXTURE_LAYERS = TJSWebGL2RenderingContextBase.MAX_ARRAY_TEXTURE_LAYERS;
+  GL_MIN_PROGRAM_TEXEL_OFFSET = TJSWebGL2RenderingContextBase.MIN_PROGRAM_TEXEL_OFFSET;
+  GL_MAX_PROGRAM_TEXEL_OFFSET = TJSWebGL2RenderingContextBase.MAX_PROGRAM_TEXEL_OFFSET;
+  GL_MAX_VARYING_COMPONENTS = TJSWebGL2RenderingContextBase.MAX_VARYING_COMPONENTS;
+  GL_TEXTURE_2D_ARRAY = TJSWebGL2RenderingContextBase.TEXTURE_2D_ARRAY;
+  GL_TEXTURE_BINDING_2D_ARRAY = TJSWebGL2RenderingContextBase.TEXTURE_BINDING_2D_ARRAY;
+  GL_R11F_G11F_B10F = TJSWebGL2RenderingContextBase.R11F_G11F_B10F;
+  GL_UNSIGNED_INT_10F_11F_11F_REV = TJSWebGL2RenderingContextBase.UNSIGNED_INT_10F_11F_11F_REV;
+  GL_RGB9_E5 = TJSWebGL2RenderingContextBase.RGB9_E5;
+  GL_UNSIGNED_INT_5_9_9_9_REV = TJSWebGL2RenderingContextBase.UNSIGNED_INT_5_9_9_9_REV;
+  GL_TRANSFORM_FEEDBACK_BUFFER_MODE = TJSWebGL2RenderingContextBase.TRANSFORM_FEEDBACK_BUFFER_MODE;
+  GL_MAX_TRANSFORM_FEEDBACK_SEPARATE_COMPONENTS = TJSWebGL2RenderingContextBase.MAX_TRANSFORM_FEEDBACK_SEPARATE_COMPONENTS;
+  GL_TRANSFORM_FEEDBACK_VARYINGS = TJSWebGL2RenderingContextBase.TRANSFORM_FEEDBACK_VARYINGS;
+  GL_TRANSFORM_FEEDBACK_BUFFER_START = TJSWebGL2RenderingContextBase.TRANSFORM_FEEDBACK_BUFFER_START;
+  GL_TRANSFORM_FEEDBACK_BUFFER_SIZE = TJSWebGL2RenderingContextBase.TRANSFORM_FEEDBACK_BUFFER_SIZE;
+  GL_TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN = TJSWebGL2RenderingContextBase.TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN;
+  GL_RASTERIZER_DISCARD = TJSWebGL2RenderingContextBase.RASTERIZER_DISCARD;
+  GL_MAX_TRANSFORM_FEEDBACK_INTERLEAVED_COMPONENTS = TJSWebGL2RenderingContextBase.MAX_TRANSFORM_FEEDBACK_INTERLEAVED_COMPONENTS;
+  GL_MAX_TRANSFORM_FEEDBACK_SEPARATE_ATTRIBS = TJSWebGL2RenderingContextBase.MAX_TRANSFORM_FEEDBACK_SEPARATE_ATTRIBS;
+  GL_INTERLEAVED_ATTRIBS = TJSWebGL2RenderingContextBase.INTERLEAVED_ATTRIBS;
+  GL_SEPARATE_ATTRIBS = TJSWebGL2RenderingContextBase.SEPARATE_ATTRIBS;
+  GL_TRANSFORM_FEEDBACK_BUFFER = TJSWebGL2RenderingContextBase.TRANSFORM_FEEDBACK_BUFFER;
+  GL_TRANSFORM_FEEDBACK_BUFFER_BINDING = TJSWebGL2RenderingContextBase.TRANSFORM_FEEDBACK_BUFFER_BINDING;
+  GL_RGBA32UI = TJSWebGL2RenderingContextBase.RGBA32UI;
+  GL_RGB32UI = TJSWebGL2RenderingContextBase.RGB32UI;
+  GL_RGBA16UI = TJSWebGL2RenderingContextBase.RGBA16UI;
+  GL_RGB16UI = TJSWebGL2RenderingContextBase.RGB16UI;
+  GL_RGBA8UI = TJSWebGL2RenderingContextBase.RGBA8UI;
+  GL_RGB8UI = TJSWebGL2RenderingContextBase.RGB8UI;
+  GL_RGBA32I = TJSWebGL2RenderingContextBase.RGBA32I;
+  GL_RGB32I = TJSWebGL2RenderingContextBase.RGB32I;
+  GL_RGBA16I = TJSWebGL2RenderingContextBase.RGBA16I;
+  GL_RGB16I = TJSWebGL2RenderingContextBase.RGB16I;
+  GL_RGBA8I = TJSWebGL2RenderingContextBase.RGBA8I;
+  GL_RGB8I = TJSWebGL2RenderingContextBase.RGB8I;
+  GL_RED_INTEGER = TJSWebGL2RenderingContextBase.RED_INTEGER;
+  GL_RGB_INTEGER = TJSWebGL2RenderingContextBase.RGB_INTEGER;
+  GL_RGBA_INTEGER = TJSWebGL2RenderingContextBase.RGBA_INTEGER;
+  GL_SAMPLER_2D_ARRAY = TJSWebGL2RenderingContextBase.SAMPLER_2D_ARRAY;
+  GL_SAMPLER_2D_ARRAY_SHADOW = TJSWebGL2RenderingContextBase.SAMPLER_2D_ARRAY_SHADOW;
+  GL_SAMPLER_CUBE_SHADOW = TJSWebGL2RenderingContextBase.SAMPLER_CUBE_SHADOW;
+  GL_UNSIGNED_INT_VEC2 = TJSWebGL2RenderingContextBase.UNSIGNED_INT_VEC2;
+  GL_UNSIGNED_INT_VEC3 = TJSWebGL2RenderingContextBase.UNSIGNED_INT_VEC3;
+  GL_UNSIGNED_INT_VEC4 = TJSWebGL2RenderingContextBase.UNSIGNED_INT_VEC4;
+  GL_INT_SAMPLER_2D = TJSWebGL2RenderingContextBase.INT_SAMPLER_2D;
+  GL_INT_SAMPLER_3D = TJSWebGL2RenderingContextBase.INT_SAMPLER_3D;
+  GL_INT_SAMPLER_CUBE = TJSWebGL2RenderingContextBase.INT_SAMPLER_CUBE;
+  GL_INT_SAMPLER_2D_ARRAY = TJSWebGL2RenderingContextBase.INT_SAMPLER_2D_ARRAY;
+  GL_UNSIGNED_INT_SAMPLER_2D = TJSWebGL2RenderingContextBase.UNSIGNED_INT_SAMPLER_2D;
+  GL_UNSIGNED_INT_SAMPLER_3D = TJSWebGL2RenderingContextBase.UNSIGNED_INT_SAMPLER_3D;
+  GL_UNSIGNED_INT_SAMPLER_CUBE = TJSWebGL2RenderingContextBase.UNSIGNED_INT_SAMPLER_CUBE;
+  GL_UNSIGNED_INT_SAMPLER_2D_ARRAY = TJSWebGL2RenderingContextBase.UNSIGNED_INT_SAMPLER_2D_ARRAY;
+  GL_DEPTH_COMPONENT32F = TJSWebGL2RenderingContextBase.DEPTH_COMPONENT32F;
+  GL_DEPTH32F_STENCIL8 = TJSWebGL2RenderingContextBase.DEPTH32F_STENCIL8;
+  GL_FLOAT_32_UNSIGNED_INT_24_8_REV = TJSWebGL2RenderingContextBase.FLOAT_32_UNSIGNED_INT_24_8_REV;
+  GL_FRAMEBUFFER_ATTACHMENT_COLOR_ENCODING = TJSWebGL2RenderingContextBase.FRAMEBUFFER_ATTACHMENT_COLOR_ENCODING;
+  GL_FRAMEBUFFER_ATTACHMENT_COMPONENT_TYPE = TJSWebGL2RenderingContextBase.FRAMEBUFFER_ATTACHMENT_COMPONENT_TYPE;
+  GL_FRAMEBUFFER_ATTACHMENT_RED_SIZE = TJSWebGL2RenderingContextBase.FRAMEBUFFER_ATTACHMENT_RED_SIZE;
+  GL_FRAMEBUFFER_ATTACHMENT_GREEN_SIZE = TJSWebGL2RenderingContextBase.FRAMEBUFFER_ATTACHMENT_GREEN_SIZE;
+  GL_FRAMEBUFFER_ATTACHMENT_BLUE_SIZE = TJSWebGL2RenderingContextBase.FRAMEBUFFER_ATTACHMENT_BLUE_SIZE;
+  GL_FRAMEBUFFER_ATTACHMENT_ALPHA_SIZE = TJSWebGL2RenderingContextBase.FRAMEBUFFER_ATTACHMENT_ALPHA_SIZE;
+  GL_FRAMEBUFFER_ATTACHMENT_DEPTH_SIZE = TJSWebGL2RenderingContextBase.FRAMEBUFFER_ATTACHMENT_DEPTH_SIZE;
+  GL_FRAMEBUFFER_ATTACHMENT_STENCIL_SIZE = TJSWebGL2RenderingContextBase.FRAMEBUFFER_ATTACHMENT_STENCIL_SIZE;
+  GL_FRAMEBUFFER_DEFAULT = TJSWebGL2RenderingContextBase.FRAMEBUFFER_DEFAULT;
+  GL_UNSIGNED_INT_24_8 = TJSWebGL2RenderingContextBase.UNSIGNED_INT_24_8;
+  GL_DEPTH24_STENCIL8 = TJSWebGL2RenderingContextBase.DEPTH24_STENCIL8;
+  GL_UNSIGNED_NORMALIZED = TJSWebGL2RenderingContextBase.UNSIGNED_NORMALIZED;
+  GL_DRAW_FRAMEBUFFER_BINDING = TJSWebGL2RenderingContextBase.DRAW_FRAMEBUFFER_BINDING;
+  GL_READ_FRAMEBUFFER = TJSWebGL2RenderingContextBase.READ_FRAMEBUFFER;
+  GL_DRAW_FRAMEBUFFER = TJSWebGL2RenderingContextBase.DRAW_FRAMEBUFFER;
+  GL_READ_FRAMEBUFFER_BINDING = TJSWebGL2RenderingContextBase.READ_FRAMEBUFFER_BINDING;
+  GL_RENDERBUFFER_SAMPLES = TJSWebGL2RenderingContextBase.RENDERBUFFER_SAMPLES;
+  GL_FRAMEBUFFER_ATTACHMENT_TEXTURE_LAYER = TJSWebGL2RenderingContextBase.FRAMEBUFFER_ATTACHMENT_TEXTURE_LAYER;
+  GL_MAX_COLOR_ATTACHMENTS = TJSWebGL2RenderingContextBase.MAX_COLOR_ATTACHMENTS;
+  GL_COLOR_ATTACHMENT1 = TJSWebGL2RenderingContextBase.COLOR_ATTACHMENT1;
+  GL_COLOR_ATTACHMENT2 = TJSWebGL2RenderingContextBase.COLOR_ATTACHMENT2;
+  GL_COLOR_ATTACHMENT3 = TJSWebGL2RenderingContextBase.COLOR_ATTACHMENT3;
+  GL_COLOR_ATTACHMENT4 = TJSWebGL2RenderingContextBase.COLOR_ATTACHMENT4;
+  GL_COLOR_ATTACHMENT5 = TJSWebGL2RenderingContextBase.COLOR_ATTACHMENT5;
+  GL_COLOR_ATTACHMENT6 = TJSWebGL2RenderingContextBase.COLOR_ATTACHMENT6;
+  GL_COLOR_ATTACHMENT7 = TJSWebGL2RenderingContextBase.COLOR_ATTACHMENT7;
+  GL_COLOR_ATTACHMENT8 = TJSWebGL2RenderingContextBase.COLOR_ATTACHMENT8;
+  GL_COLOR_ATTACHMENT9 = TJSWebGL2RenderingContextBase.COLOR_ATTACHMENT9;
+  GL_COLOR_ATTACHMENT10 = TJSWebGL2RenderingContextBase.COLOR_ATTACHMENT10;
+  GL_COLOR_ATTACHMENT11 = TJSWebGL2RenderingContextBase.COLOR_ATTACHMENT11;
+  GL_COLOR_ATTACHMENT12 = TJSWebGL2RenderingContextBase.COLOR_ATTACHMENT12;
+  GL_COLOR_ATTACHMENT13 = TJSWebGL2RenderingContextBase.COLOR_ATTACHMENT13;
+  GL_COLOR_ATTACHMENT14 = TJSWebGL2RenderingContextBase.COLOR_ATTACHMENT14;
+  GL_COLOR_ATTACHMENT15 = TJSWebGL2RenderingContextBase.COLOR_ATTACHMENT15;
+  GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE = TJSWebGL2RenderingContextBase.FRAMEBUFFER_INCOMPLETE_MULTISAMPLE;
+  GL_MAX_SAMPLES = TJSWebGL2RenderingContextBase.MAX_SAMPLES;
+  GL_HALF_FLOAT = TJSWebGL2RenderingContextBase.HALF_FLOAT;
+  GL_RG = TJSWebGL2RenderingContextBase.RG;
+  GL_RG_INTEGER = TJSWebGL2RenderingContextBase.RG_INTEGER;
+  GL_R8 = TJSWebGL2RenderingContextBase.R8;
+  GL_RG8 = TJSWebGL2RenderingContextBase.RG8;
+  GL_R16F = TJSWebGL2RenderingContextBase.R16F;
+  GL_R32F = TJSWebGL2RenderingContextBase.R32F;
+  GL_RG16F = TJSWebGL2RenderingContextBase.RG16F;
+  GL_RG32F = TJSWebGL2RenderingContextBase.RG32F;
+  GL_R8I = TJSWebGL2RenderingContextBase.R8I;
+  GL_R8UI = TJSWebGL2RenderingContextBase.R8UI;
+  GL_R16I = TJSWebGL2RenderingContextBase.R16I;
+  GL_R16UI = TJSWebGL2RenderingContextBase.R16UI;
+  GL_R32I = TJSWebGL2RenderingContextBase.R32I;
+  GL_R32UI = TJSWebGL2RenderingContextBase.R32UI;
+  GL_RG8I = TJSWebGL2RenderingContextBase.RG8I;
+  GL_RG8UI = TJSWebGL2RenderingContextBase.RG8UI;
+  GL_RG16I = TJSWebGL2RenderingContextBase.RG16I;
+  GL_RG16UI = TJSWebGL2RenderingContextBase.RG16UI;
+  GL_RG32I = TJSWebGL2RenderingContextBase.RG32I;
+  GL_RG32UI = TJSWebGL2RenderingContextBase.RG32UI;
+  GL_VERTEX_ARRAY_BINDING = TJSWebGL2RenderingContextBase.VERTEX_ARRAY_BINDING;
+  GL_R8_SNORM = TJSWebGL2RenderingContextBase.R8_SNORM;
+  GL_RG8_SNORM = TJSWebGL2RenderingContextBase.RG8_SNORM;
+  GL_RGB8_SNORM = TJSWebGL2RenderingContextBase.RGB8_SNORM;
+  GL_RGBA8_SNORM = TJSWebGL2RenderingContextBase.RGBA8_SNORM;
+  GL_SIGNED_NORMALIZED = TJSWebGL2RenderingContextBase.SIGNED_NORMALIZED;
+  GL_COPY_READ_BUFFER = TJSWebGL2RenderingContextBase.COPY_READ_BUFFER;
+  GL_COPY_WRITE_BUFFER = TJSWebGL2RenderingContextBase.COPY_WRITE_BUFFER;
+  GL_COPY_READ_BUFFER_BINDING = TJSWebGL2RenderingContextBase.COPY_READ_BUFFER_BINDING;
+  GL_COPY_WRITE_BUFFER_BINDING = TJSWebGL2RenderingContextBase.COPY_WRITE_BUFFER_BINDING;
+  GL_UNIFORM_BUFFER = TJSWebGL2RenderingContextBase.UNIFORM_BUFFER;
+  GL_UNIFORM_BUFFER_BINDING = TJSWebGL2RenderingContextBase.UNIFORM_BUFFER_BINDING;
+  GL_UNIFORM_BUFFER_START = TJSWebGL2RenderingContextBase.UNIFORM_BUFFER_START;
+  GL_UNIFORM_BUFFER_SIZE = TJSWebGL2RenderingContextBase.UNIFORM_BUFFER_SIZE;
+  GL_MAX_VERTEX_UNIFORM_BLOCKS = TJSWebGL2RenderingContextBase.MAX_VERTEX_UNIFORM_BLOCKS;
+  GL_MAX_FRAGMENT_UNIFORM_BLOCKS = TJSWebGL2RenderingContextBase.MAX_FRAGMENT_UNIFORM_BLOCKS;
+  GL_MAX_COMBINED_UNIFORM_BLOCKS = TJSWebGL2RenderingContextBase.MAX_COMBINED_UNIFORM_BLOCKS;
+  GL_MAX_UNIFORM_BUFFER_BINDINGS = TJSWebGL2RenderingContextBase.MAX_UNIFORM_BUFFER_BINDINGS;
+  GL_MAX_UNIFORM_BLOCK_SIZE = TJSWebGL2RenderingContextBase.MAX_UNIFORM_BLOCK_SIZE;
+  GL_MAX_COMBINED_VERTEX_UNIFORM_COMPONENTS = TJSWebGL2RenderingContextBase.MAX_COMBINED_VERTEX_UNIFORM_COMPONENTS;
+  GL_MAX_COMBINED_FRAGMENT_UNIFORM_COMPONENTS = TJSWebGL2RenderingContextBase.MAX_COMBINED_FRAGMENT_UNIFORM_COMPONENTS;
+  GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT = TJSWebGL2RenderingContextBase.UNIFORM_BUFFER_OFFSET_ALIGNMENT;
+  GL_ACTIVE_UNIFORM_BLOCKS = TJSWebGL2RenderingContextBase.ACTIVE_UNIFORM_BLOCKS;
+  GL_UNIFORM_TYPE = TJSWebGL2RenderingContextBase.UNIFORM_TYPE;
+  GL_UNIFORM_SIZE = TJSWebGL2RenderingContextBase.UNIFORM_SIZE;
+  GL_UNIFORM_BLOCK_INDEX = TJSWebGL2RenderingContextBase.UNIFORM_BLOCK_INDEX;
+  GL_UNIFORM_OFFSET = TJSWebGL2RenderingContextBase.UNIFORM_OFFSET;
+  GL_UNIFORM_ARRAY_STRIDE = TJSWebGL2RenderingContextBase.UNIFORM_ARRAY_STRIDE;
+  GL_UNIFORM_MATRIX_STRIDE = TJSWebGL2RenderingContextBase.UNIFORM_MATRIX_STRIDE;
+  GL_UNIFORM_IS_ROW_MAJOR = TJSWebGL2RenderingContextBase.UNIFORM_IS_ROW_MAJOR;
+  GL_UNIFORM_BLOCK_BINDING = TJSWebGL2RenderingContextBase.UNIFORM_BLOCK_BINDING;
+  GL_UNIFORM_BLOCK_DATA_SIZE = TJSWebGL2RenderingContextBase.UNIFORM_BLOCK_DATA_SIZE;
+  GL_UNIFORM_BLOCK_ACTIVE_UNIFORMS = TJSWebGL2RenderingContextBase.UNIFORM_BLOCK_ACTIVE_UNIFORMS;
+  GL_UNIFORM_BLOCK_ACTIVE_UNIFORM_INDICES = TJSWebGL2RenderingContextBase.UNIFORM_BLOCK_ACTIVE_UNIFORM_INDICES;
+  GL_UNIFORM_BLOCK_REFERENCED_BY_VERTEX_SHADER = TJSWebGL2RenderingContextBase.UNIFORM_BLOCK_REFERENCED_BY_VERTEX_SHADER;
+  GL_UNIFORM_BLOCK_REFERENCED_BY_FRAGMENT_SHADER = TJSWebGL2RenderingContextBase.UNIFORM_BLOCK_REFERENCED_BY_FRAGMENT_SHADER;
+  GL_INVALID_INDEX = TJSWebGL2RenderingContextBase.INVALID_INDEX;
+  GL_MAX_VERTEX_OUTPUT_COMPONENTS = TJSWebGL2RenderingContextBase.MAX_VERTEX_OUTPUT_COMPONENTS;
+  GL_MAX_FRAGMENT_INPUT_COMPONENTS = TJSWebGL2RenderingContextBase.MAX_FRAGMENT_INPUT_COMPONENTS;
+  GL_MAX_SERVER_WAIT_TIMEOUT = TJSWebGL2RenderingContextBase.MAX_SERVER_WAIT_TIMEOUT;
+  GL_OBJECT_TYPE = TJSWebGL2RenderingContextBase.OBJECT_TYPE;
+  GL_SYNC_CONDITION = TJSWebGL2RenderingContextBase.SYNC_CONDITION;
+  GL_SYNC_STATUS = TJSWebGL2RenderingContextBase.SYNC_STATUS;
+  GL_SYNC_FLAGS = TJSWebGL2RenderingContextBase.SYNC_FLAGS;
+  GL_SYNC_FENCE = TJSWebGL2RenderingContextBase.SYNC_FENCE;
+  GL_SYNC_GPU_COMMANDS_COMPLETE = TJSWebGL2RenderingContextBase.SYNC_GPU_COMMANDS_COMPLETE;
+  GL_UNSIGNALED = TJSWebGL2RenderingContextBase.UNSIGNALED;
+  GL_SIGNALED = TJSWebGL2RenderingContextBase.SIGNALED;
+  GL_ALREADY_SIGNALED = TJSWebGL2RenderingContextBase.ALREADY_SIGNALED;
+  GL_TIMEOUT_EXPIRED = TJSWebGL2RenderingContextBase.TIMEOUT_EXPIRED;
+  GL_CONDITION_SATISFIED = TJSWebGL2RenderingContextBase.CONDITION_SATISFIED;
+  GL_WAIT_FAILED = TJSWebGL2RenderingContextBase.WAIT_FAILED;
+  GL_SYNC_FLUSH_COMMANDS_BIT = TJSWebGL2RenderingContextBase.SYNC_FLUSH_COMMANDS_BIT;
+  GL_VERTEX_ATTRIB_ARRAY_DIVISOR = TJSWebGL2RenderingContextBase.VERTEX_ATTRIB_ARRAY_DIVISOR;
+  GL_ANY_SAMPLES_PASSED = TJSWebGL2RenderingContextBase.ANY_SAMPLES_PASSED;
+  GL_ANY_SAMPLES_PASSED_CONSERVATIVE = TJSWebGL2RenderingContextBase.ANY_SAMPLES_PASSED_CONSERVATIVE;
+  GL_SAMPLER_BINDING = TJSWebGL2RenderingContextBase.SAMPLER_BINDING;
+  GL_RGB10_A2UI = TJSWebGL2RenderingContextBase.RGB10_A2UI;
+  GL_INT_2_10_10_10_REV = TJSWebGL2RenderingContextBase.INT_2_10_10_10_REV;
+  GL_TRANSFORM_FEEDBACK = TJSWebGL2RenderingContextBase.TRANSFORM_FEEDBACK;
+  GL_TRANSFORM_FEEDBACK_PAUSED = TJSWebGL2RenderingContextBase.TRANSFORM_FEEDBACK_PAUSED;
+  GL_TRANSFORM_FEEDBACK_ACTIVE = TJSWebGL2RenderingContextBase.TRANSFORM_FEEDBACK_ACTIVE;
+  GL_TRANSFORM_FEEDBACK_BINDING = TJSWebGL2RenderingContextBase.TRANSFORM_FEEDBACK_BINDING;
+  GL_TEXTURE_IMMUTABLE_FORMAT = TJSWebGL2RenderingContextBase.TEXTURE_IMMUTABLE_FORMAT;
+  GL_MAX_ELEMENT_INDEX = TJSWebGL2RenderingContextBase.MAX_ELEMENT_INDEX;
+  GL_TEXTURE_IMMUTABLE_LEVELS = TJSWebGL2RenderingContextBase.TEXTURE_IMMUTABLE_LEVELS;
+  GL_TIMEOUT_IGNORED = TJSWebGL2RenderingContextBase.TIMEOUT_IGNORED;
+  GL_MAX_CLIENT_WAIT_TIMEOUT_WEBGL = TJSWebGL2RenderingContextBase.MAX_CLIENT_WAIT_TIMEOUT_WEBGL;
+
 { Functions from WebGLRenderingContextBase }
 function glGetContextAttributes(): IJSWebGLContextAttributes;
 function glIsContextLost(): Boolean;
 // Not in auto-generated flat WebGL API: function glGetSupportedExtensions(): Tsequence;
 // Not in auto-generated flat WebGL API: function glGetExtension(const name: String): Tobject;
 procedure glActiveTexture(const texture: TGLenum);
-procedure glAttachShader(const type_: IJSWebGLProgram; const shader: IJSWebGLShader);
-procedure glBindAttribLocation(const type_: IJSWebGLProgram; const index: TGLuint; const name: String);
+procedure glAttachShader(const program_: IJSWebGLProgram; const shader: IJSWebGLShader);
+procedure glBindAttribLocation(const program_: IJSWebGLProgram; const index: TGLuint; const name: String);
 procedure glBindBuffer(const target: TGLenum; const buffer: IJSWebGLBuffer);
 procedure glBindFramebuffer(const target: TGLenum; const framebuffer: IJSWebGLFramebuffer);
 procedure glBindRenderbuffer(const target: TGLenum; const renderbuffer: IJSWebGLRenderbuffer);
@@ -335,14 +601,14 @@ function glCreateTexture(): IJSWebGLTexture;
 procedure glCullFace(const mode: TGLenum);
 procedure glDeleteBuffer(const buffer: IJSWebGLBuffer);
 procedure glDeleteFramebuffer(const framebuffer: IJSWebGLFramebuffer);
-procedure glDeleteProgram(const type_: IJSWebGLProgram);
+procedure glDeleteProgram(const program_: IJSWebGLProgram);
 procedure glDeleteRenderbuffer(const renderbuffer: IJSWebGLRenderbuffer);
 procedure glDeleteShader(const shader: IJSWebGLShader);
 procedure glDeleteTexture(const texture: IJSWebGLTexture);
 procedure glDepthFunc(const func: TGLenum);
 procedure glDepthMask(const flag: TGLboolean);
 procedure glDepthRange(const zNear: TGLclampf; const zFar: TGLclampf);
-procedure glDetachShader(const type_: IJSWebGLProgram; const shader: IJSWebGLShader);
+procedure glDetachShader(const program_: IJSWebGLProgram; const shader: IJSWebGLShader);
 procedure glDisable(const cap: TGLenum);
 procedure glDisableVertexAttribArray(const index: TGLuint);
 procedure glDrawArrays(const mode: TGLenum; const first: TGLint; const count: TGLsizei);
@@ -355,36 +621,36 @@ procedure glFramebufferRenderbuffer(const target: TGLenum; const attachment: TGL
 procedure glFramebufferTexture2D(const target: TGLenum; const attachment: TGLenum; const textarget: TGLenum; const texture: IJSWebGLTexture; const level: TGLint);
 procedure glFrontFace(const mode: TGLenum);
 procedure glGenerateMipmap(const target: TGLenum);
-function glGetActiveAttrib(const type_: IJSWebGLProgram; const index: TGLuint): IJSWebGLActiveInfo;
-function glGetActiveUniform(const type_: IJSWebGLProgram; const index: TGLuint): IJSWebGLActiveInfo;
-// Not in auto-generated flat WebGL API: function glGetAttachedShaders(const type_: IJSWebGLProgram): Tsequence;
-function glGetAttribLocation(const type_: IJSWebGLProgram; const name: String): TGLint;
+function glGetActiveAttrib(const program_: IJSWebGLProgram; const index: TGLuint): IJSWebGLActiveInfo;
+function glGetActiveUniform(const program_: IJSWebGLProgram; const index: TGLuint): IJSWebGLActiveInfo;
+// Not in auto-generated flat WebGL API: function glGetAttachedShaders(const program_: IJSWebGLProgram): Tsequence;
+function glGetAttribLocation(const program_: IJSWebGLProgram; const name: String): TGLint;
 function glGetBufferParameter(const target: TGLenum; const pname: TGLenum): Variant;
 function glGetParameter(const pname: TGLenum): Variant;
 function glGetError(): TGLenum;
 function glGetFramebufferAttachmentParameter(const target: TGLenum; const attachment: TGLenum; const pname: TGLenum): Variant;
-function glGetProgramParameter(const type_: IJSWebGLProgram; const pname: TGLenum): Variant;
-function glGetProgramInfoLog(const type_: IJSWebGLProgram): String;
+function glGetProgramParameter(const program_: IJSWebGLProgram; const pname: TGLenum): Variant;
+function glGetProgramInfoLog(const program_: IJSWebGLProgram): String;
 function glGetRenderbufferParameter(const target: TGLenum; const pname: TGLenum): Variant;
 function glGetShaderParameter(const shader: IJSWebGLShader; const pname: TGLenum): Variant;
 function glGetShaderPrecisionFormat(const shadertype: TGLenum; const precisiontype: TGLenum): IJSWebGLShaderPrecisionFormat;
 function glGetShaderInfoLog(const shader: IJSWebGLShader): String;
 function glGetShaderSource(const shader: IJSWebGLShader): String;
 function glGetTexParameter(const target: TGLenum; const pname: TGLenum): Variant;
-function glGetUniform(const type_: IJSWebGLProgram; const location: IJSWebGLUniformLocation): Variant;
-function glGetUniformLocation(const type_: IJSWebGLProgram; const name: String): IJSWebGLUniformLocation;
+function glGetUniform(const program_: IJSWebGLProgram; const location: IJSWebGLUniformLocation): Variant;
+function glGetUniformLocation(const program_: IJSWebGLProgram; const name: String): IJSWebGLUniformLocation;
 function glGetVertexAttrib(const index: TGLuint; const pname: TGLenum): Variant;
 function glGetVertexAttribOffset(const index: TGLuint; const pname: TGLenum): TGLintptr;
 procedure glHint(const target: TGLenum; const mode: TGLenum);
 function glIsBuffer(const buffer: IJSWebGLBuffer): TGLboolean;
 function glIsEnabled(const cap: TGLenum): TGLboolean;
 function glIsFramebuffer(const framebuffer: IJSWebGLFramebuffer): TGLboolean;
-function glIsProgram(const type_: IJSWebGLProgram): TGLboolean;
+function glIsProgram(const program_: IJSWebGLProgram): TGLboolean;
 function glIsRenderbuffer(const renderbuffer: IJSWebGLRenderbuffer): TGLboolean;
 function glIsShader(const shader: IJSWebGLShader): TGLboolean;
 function glIsTexture(const texture: IJSWebGLTexture): TGLboolean;
 procedure glLineWidth(const width: TGLfloat);
-procedure glLinkProgram(const type_: IJSWebGLProgram);
+procedure glLinkProgram(const program_: IJSWebGLProgram);
 procedure glPixelStorei(const pname: TGLenum; const param: TGLint);
 procedure glPolygonOffset(const factor: TGLfloat; const units: TGLfloat);
 procedure glRenderbufferStorage(const target: TGLenum; const internalformat: TGLenum; const width: TGLsizei; const height: TGLsizei);
@@ -407,8 +673,8 @@ procedure glUniform1i(const location: IJSWebGLUniformLocation; const x: TGLint);
 procedure glUniform2i(const location: IJSWebGLUniformLocation; const x: TGLint; const y: TGLint);
 procedure glUniform3i(const location: IJSWebGLUniformLocation; const x: TGLint; const y: TGLint; const z: TGLint);
 procedure glUniform4i(const location: IJSWebGLUniformLocation; const x: TGLint; const y: TGLint; const z: TGLint; const w: TGLint);
-procedure glUseProgram(const type_: IJSWebGLProgram);
-procedure glValidateProgram(const type_: IJSWebGLProgram);
+procedure glUseProgram(const program_: IJSWebGLProgram);
+procedure glValidateProgram(const program_: IJSWebGLProgram);
 procedure glVertexAttrib1f(const indx: TGLuint; const x: TGLfloat);
 // Not in auto-generated flat WebGL API: procedure glVertexAttrib1fv(const indx: TGLuint; const values: TFloat32List);
 procedure glVertexAttrib2f(const indx: TGLuint; const x: TGLfloat; const y: TGLfloat);
@@ -419,22 +685,193 @@ procedure glVertexAttrib4f(const indx: TGLuint; const x: TGLfloat; const y: TGLf
 // Not in auto-generated flat WebGL API: procedure glVertexAttrib4fv(const indx: TGLuint; const values: TFloat32List);
 procedure glVertexAttribPointer(const indx: TGLuint; const size: TGLint; const type_: TGLenum; const normalized: TGLboolean; const stride: TGLsizei; const offset: TGLintptr);
 procedure glViewport(const x: TGLint; const y: TGLint; const width: TGLsizei; const height: TGLsizei);
+
+{ Functions from WebGL2RenderingContextBase }
+procedure glBufferData(const target: TGLenum; const size: TGLsizeiptr; const usage: TGLenum);
+procedure glBufferData(const target: TGLenum; const srcData: IJSArrayBuffer; const usage: TGLenum);
+procedure glBufferData(const target: TGLenum; const srcData: IJSArrayBufferView; const usage: TGLenum);
+procedure glBufferSubData(const target: TGLenum; const offset: TGLintptr; const srcData: IJSArrayBuffer);
+procedure glBufferSubData(const target: TGLenum; const offset: TGLintptr; const srcData: IJSArrayBufferView);
+procedure glBufferData(const target: TGLenum; const srcData: IJSArrayBufferView; const usage: TGLenum; const srcOffset: TGLuint; const length_: TGLuint);
+procedure glBufferSubData(const target: TGLenum; const dstByteOffset: TGLintptr; const srcData: IJSArrayBufferView; const srcOffset: TGLuint; const length_: TGLuint);
+procedure glCopyBufferSubData(const readTarget: TGLenum; const writeTarget: TGLenum; const readOffset: TGLintptr; const writeOffset: TGLintptr; const size: TGLsizeiptr);
+procedure glGetBufferSubData(const target: TGLenum; const srcByteOffset: TGLintptr; const dstData: IJSArrayBufferView; const dstOffset: TGLuint; const length_: TGLuint);
+procedure glBlitFramebuffer(const srcX0: TGLint; const srcY0: TGLint; const srcX1: TGLint; const srcY1: TGLint; const dstX0: TGLint; const dstY0: TGLint; const dstX1: TGLint; const dstY1: TGLint; const mask: TGLbitfield; const filter: TGLenum);
+procedure glFramebufferTextureLayer(const target: TGLenum; const attachment: TGLenum; const texture: IJSWebGLTexture; const level: TGLint; const layer: TGLint);
+// Not in auto-generated flat WebGL API: procedure glInvalidateFramebuffer(const target: TGLenum; const attachments: Tsequence);
+// Not in auto-generated flat WebGL API: procedure glInvalidateSubFramebuffer(const target: TGLenum; const attachments: Tsequence; const x: TGLint; const y: TGLint; const width: TGLsizei; const height: TGLsizei);
+procedure glReadBuffer(const src: TGLenum);
+function glGetInternalformatParameter(const target: TGLenum; const internalformat: TGLenum; const pname: TGLenum): Variant;
+procedure glRenderbufferStorageMultisample(const target: TGLenum; const samples: TGLsizei; const internalformat: TGLenum; const width: TGLsizei; const height: TGLsizei);
+procedure glTexStorage2D(const target: TGLenum; const levels: TGLsizei; const internalformat: TGLenum; const width: TGLsizei; const height: TGLsizei);
+procedure glTexStorage3D(const target: TGLenum; const levels: TGLsizei; const internalformat: TGLenum; const width: TGLsizei; const height: TGLsizei; const depth: TGLsizei);
+procedure glTexImage2D(const target: TGLenum; const level: TGLint; const internalformat: TGLint; const width: TGLsizei; const height: TGLsizei; const border: TGLint; const format: TGLenum; const type_: TGLenum; const pixels: IJSArrayBufferView);
+procedure glTexImage2D(const target: TGLenum; const level: TGLint; const internalformat: TGLint; const format: TGLenum; const type_: TGLenum; const source: IJSHTMLCanvasElement);
+procedure glTexImage2D(const target: TGLenum; const level: TGLint; const internalformat: TGLint; const format: TGLenum; const type_: TGLenum; const source: IJSHTMLImageElement);
+procedure glTexImage2D(const target: TGLenum; const level: TGLint; const internalformat: TGLint; const format: TGLenum; const type_: TGLenum; const source: IJSHTMLVideoElement);
+procedure glTexImage2D(const target: TGLenum; const level: TGLint; const internalformat: TGLint; const format: TGLenum; const type_: TGLenum; const source: IJSImageBitmap);
+procedure glTexImage2D(const target: TGLenum; const level: TGLint; const internalformat: TGLint; const format: TGLenum; const type_: TGLenum; const source: IJSImageData);
+procedure glTexImage2D(const target: TGLenum; const level: TGLint; const internalformat: TGLint; const format: TGLenum; const type_: TGLenum; const source: IJSOffscreenCanvas);
+procedure glTexImage2D(const target: TGLenum; const level: TGLint; const internalformat: TGLint; const format: TGLenum; const type_: TGLenum; const source: IJSVideoFrame);
+procedure glTexSubImage2D(const target: TGLenum; const level: TGLint; const xoffset: TGLint; const yoffset: TGLint; const width: TGLsizei; const height: TGLsizei; const format: TGLenum; const type_: TGLenum; const pixels: IJSArrayBufferView);
+procedure glTexSubImage2D(const target: TGLenum; const level: TGLint; const xoffset: TGLint; const yoffset: TGLint; const format: TGLenum; const type_: TGLenum; const source: IJSHTMLCanvasElement);
+procedure glTexSubImage2D(const target: TGLenum; const level: TGLint; const xoffset: TGLint; const yoffset: TGLint; const format: TGLenum; const type_: TGLenum; const source: IJSHTMLImageElement);
+procedure glTexSubImage2D(const target: TGLenum; const level: TGLint; const xoffset: TGLint; const yoffset: TGLint; const format: TGLenum; const type_: TGLenum; const source: IJSHTMLVideoElement);
+procedure glTexSubImage2D(const target: TGLenum; const level: TGLint; const xoffset: TGLint; const yoffset: TGLint; const format: TGLenum; const type_: TGLenum; const source: IJSImageBitmap);
+procedure glTexSubImage2D(const target: TGLenum; const level: TGLint; const xoffset: TGLint; const yoffset: TGLint; const format: TGLenum; const type_: TGLenum; const source: IJSImageData);
+procedure glTexSubImage2D(const target: TGLenum; const level: TGLint; const xoffset: TGLint; const yoffset: TGLint; const format: TGLenum; const type_: TGLenum; const source: IJSOffscreenCanvas);
+procedure glTexSubImage2D(const target: TGLenum; const level: TGLint; const xoffset: TGLint; const yoffset: TGLint; const format: TGLenum; const type_: TGLenum; const source: IJSVideoFrame);
+procedure glTexImage2D(const target: TGLenum; const level: TGLint; const internalformat: TGLint; const width: TGLsizei; const height: TGLsizei; const border: TGLint; const format: TGLenum; const type_: TGLenum; const pboOffset: TGLintptr);
+procedure glTexImage2D(const target: TGLenum; const level: TGLint; const internalformat: TGLint; const width: TGLsizei; const height: TGLsizei; const border: TGLint; const format: TGLenum; const type_: TGLenum; const source: IJSHTMLCanvasElement);
+procedure glTexImage2D(const target: TGLenum; const level: TGLint; const internalformat: TGLint; const width: TGLsizei; const height: TGLsizei; const border: TGLint; const format: TGLenum; const type_: TGLenum; const source: IJSHTMLImageElement);
+procedure glTexImage2D(const target: TGLenum; const level: TGLint; const internalformat: TGLint; const width: TGLsizei; const height: TGLsizei; const border: TGLint; const format: TGLenum; const type_: TGLenum; const source: IJSHTMLVideoElement);
+procedure glTexImage2D(const target: TGLenum; const level: TGLint; const internalformat: TGLint; const width: TGLsizei; const height: TGLsizei; const border: TGLint; const format: TGLenum; const type_: TGLenum; const source: IJSImageBitmap);
+procedure glTexImage2D(const target: TGLenum; const level: TGLint; const internalformat: TGLint; const width: TGLsizei; const height: TGLsizei; const border: TGLint; const format: TGLenum; const type_: TGLenum; const source: IJSImageData);
+procedure glTexImage2D(const target: TGLenum; const level: TGLint; const internalformat: TGLint; const width: TGLsizei; const height: TGLsizei; const border: TGLint; const format: TGLenum; const type_: TGLenum; const source: IJSOffscreenCanvas);
+procedure glTexImage2D(const target: TGLenum; const level: TGLint; const internalformat: TGLint; const width: TGLsizei; const height: TGLsizei; const border: TGLint; const format: TGLenum; const type_: TGLenum; const source: IJSVideoFrame);
+procedure glTexImage2D(const target: TGLenum; const level: TGLint; const internalformat: TGLint; const width: TGLsizei; const height: TGLsizei; const border: TGLint; const format: TGLenum; const type_: TGLenum; const srcData: IJSArrayBufferView; const srcOffset: TGLuint);
+procedure glTexImage3D(const target: TGLenum; const level: TGLint; const internalformat: TGLint; const width: TGLsizei; const height: TGLsizei; const depth: TGLsizei; const border: TGLint; const format: TGLenum; const type_: TGLenum; const pboOffset: TGLintptr);
+procedure glTexImage3D(const target: TGLenum; const level: TGLint; const internalformat: TGLint; const width: TGLsizei; const height: TGLsizei; const depth: TGLsizei; const border: TGLint; const format: TGLenum; const type_: TGLenum; const source: IJSHTMLCanvasElement);
+procedure glTexImage3D(const target: TGLenum; const level: TGLint; const internalformat: TGLint; const width: TGLsizei; const height: TGLsizei; const depth: TGLsizei; const border: TGLint; const format: TGLenum; const type_: TGLenum; const source: IJSHTMLImageElement);
+procedure glTexImage3D(const target: TGLenum; const level: TGLint; const internalformat: TGLint; const width: TGLsizei; const height: TGLsizei; const depth: TGLsizei; const border: TGLint; const format: TGLenum; const type_: TGLenum; const source: IJSHTMLVideoElement);
+procedure glTexImage3D(const target: TGLenum; const level: TGLint; const internalformat: TGLint; const width: TGLsizei; const height: TGLsizei; const depth: TGLsizei; const border: TGLint; const format: TGLenum; const type_: TGLenum; const source: IJSImageBitmap);
+procedure glTexImage3D(const target: TGLenum; const level: TGLint; const internalformat: TGLint; const width: TGLsizei; const height: TGLsizei; const depth: TGLsizei; const border: TGLint; const format: TGLenum; const type_: TGLenum; const source: IJSImageData);
+procedure glTexImage3D(const target: TGLenum; const level: TGLint; const internalformat: TGLint; const width: TGLsizei; const height: TGLsizei; const depth: TGLsizei; const border: TGLint; const format: TGLenum; const type_: TGLenum; const source: IJSOffscreenCanvas);
+procedure glTexImage3D(const target: TGLenum; const level: TGLint; const internalformat: TGLint; const width: TGLsizei; const height: TGLsizei; const depth: TGLsizei; const border: TGLint; const format: TGLenum; const type_: TGLenum; const source: IJSVideoFrame);
+procedure glTexImage3D(const target: TGLenum; const level: TGLint; const internalformat: TGLint; const width: TGLsizei; const height: TGLsizei; const depth: TGLsizei; const border: TGLint; const format: TGLenum; const type_: TGLenum; const srcData: IJSArrayBufferView);
+procedure glTexImage3D(const target: TGLenum; const level: TGLint; const internalformat: TGLint; const width: TGLsizei; const height: TGLsizei; const depth: TGLsizei; const border: TGLint; const format: TGLenum; const type_: TGLenum; const srcData: IJSArrayBufferView; const srcOffset: TGLuint);
+procedure glTexSubImage2D(const target: TGLenum; const level: TGLint; const xoffset: TGLint; const yoffset: TGLint; const width: TGLsizei; const height: TGLsizei; const format: TGLenum; const type_: TGLenum; const pboOffset: TGLintptr);
+procedure glTexSubImage2D(const target: TGLenum; const level: TGLint; const xoffset: TGLint; const yoffset: TGLint; const width: TGLsizei; const height: TGLsizei; const format: TGLenum; const type_: TGLenum; const source: IJSHTMLCanvasElement);
+procedure glTexSubImage2D(const target: TGLenum; const level: TGLint; const xoffset: TGLint; const yoffset: TGLint; const width: TGLsizei; const height: TGLsizei; const format: TGLenum; const type_: TGLenum; const source: IJSHTMLImageElement);
+procedure glTexSubImage2D(const target: TGLenum; const level: TGLint; const xoffset: TGLint; const yoffset: TGLint; const width: TGLsizei; const height: TGLsizei; const format: TGLenum; const type_: TGLenum; const source: IJSHTMLVideoElement);
+procedure glTexSubImage2D(const target: TGLenum; const level: TGLint; const xoffset: TGLint; const yoffset: TGLint; const width: TGLsizei; const height: TGLsizei; const format: TGLenum; const type_: TGLenum; const source: IJSImageBitmap);
+procedure glTexSubImage2D(const target: TGLenum; const level: TGLint; const xoffset: TGLint; const yoffset: TGLint; const width: TGLsizei; const height: TGLsizei; const format: TGLenum; const type_: TGLenum; const source: IJSImageData);
+procedure glTexSubImage2D(const target: TGLenum; const level: TGLint; const xoffset: TGLint; const yoffset: TGLint; const width: TGLsizei; const height: TGLsizei; const format: TGLenum; const type_: TGLenum; const source: IJSOffscreenCanvas);
+procedure glTexSubImage2D(const target: TGLenum; const level: TGLint; const xoffset: TGLint; const yoffset: TGLint; const width: TGLsizei; const height: TGLsizei; const format: TGLenum; const type_: TGLenum; const source: IJSVideoFrame);
+procedure glTexSubImage2D(const target: TGLenum; const level: TGLint; const xoffset: TGLint; const yoffset: TGLint; const width: TGLsizei; const height: TGLsizei; const format: TGLenum; const type_: TGLenum; const srcData: IJSArrayBufferView; const srcOffset: TGLuint);
+procedure glTexSubImage3D(const target: TGLenum; const level: TGLint; const xoffset: TGLint; const yoffset: TGLint; const zoffset: TGLint; const width: TGLsizei; const height: TGLsizei; const depth: TGLsizei; const format: TGLenum; const type_: TGLenum; const pboOffset: TGLintptr);
+procedure glTexSubImage3D(const target: TGLenum; const level: TGLint; const xoffset: TGLint; const yoffset: TGLint; const zoffset: TGLint; const width: TGLsizei; const height: TGLsizei; const depth: TGLsizei; const format: TGLenum; const type_: TGLenum; const source: IJSHTMLCanvasElement);
+procedure glTexSubImage3D(const target: TGLenum; const level: TGLint; const xoffset: TGLint; const yoffset: TGLint; const zoffset: TGLint; const width: TGLsizei; const height: TGLsizei; const depth: TGLsizei; const format: TGLenum; const type_: TGLenum; const source: IJSHTMLImageElement);
+procedure glTexSubImage3D(const target: TGLenum; const level: TGLint; const xoffset: TGLint; const yoffset: TGLint; const zoffset: TGLint; const width: TGLsizei; const height: TGLsizei; const depth: TGLsizei; const format: TGLenum; const type_: TGLenum; const source: IJSHTMLVideoElement);
+procedure glTexSubImage3D(const target: TGLenum; const level: TGLint; const xoffset: TGLint; const yoffset: TGLint; const zoffset: TGLint; const width: TGLsizei; const height: TGLsizei; const depth: TGLsizei; const format: TGLenum; const type_: TGLenum; const source: IJSImageBitmap);
+procedure glTexSubImage3D(const target: TGLenum; const level: TGLint; const xoffset: TGLint; const yoffset: TGLint; const zoffset: TGLint; const width: TGLsizei; const height: TGLsizei; const depth: TGLsizei; const format: TGLenum; const type_: TGLenum; const source: IJSImageData);
+procedure glTexSubImage3D(const target: TGLenum; const level: TGLint; const xoffset: TGLint; const yoffset: TGLint; const zoffset: TGLint; const width: TGLsizei; const height: TGLsizei; const depth: TGLsizei; const format: TGLenum; const type_: TGLenum; const source: IJSOffscreenCanvas);
+procedure glTexSubImage3D(const target: TGLenum; const level: TGLint; const xoffset: TGLint; const yoffset: TGLint; const zoffset: TGLint; const width: TGLsizei; const height: TGLsizei; const depth: TGLsizei; const format: TGLenum; const type_: TGLenum; const source: IJSVideoFrame);
+procedure glTexSubImage3D(const target: TGLenum; const level: TGLint; const xoffset: TGLint; const yoffset: TGLint; const zoffset: TGLint; const width: TGLsizei; const height: TGLsizei; const depth: TGLsizei; const format: TGLenum; const type_: TGLenum; const srcData: IJSArrayBufferView; const srcOffset: TGLuint);
+procedure glCopyTexSubImage3D(const target: TGLenum; const level: TGLint; const xoffset: TGLint; const yoffset: TGLint; const zoffset: TGLint; const x: TGLint; const y: TGLint; const width: TGLsizei; const height: TGLsizei);
+procedure glCompressedTexImage2D(const target: TGLenum; const level: TGLint; const internalformat: TGLenum; const width: TGLsizei; const height: TGLsizei; const border: TGLint; const imageSize: TGLsizei; const offset: TGLintptr);
+procedure glCompressedTexImage2D(const target: TGLenum; const level: TGLint; const internalformat: TGLenum; const width: TGLsizei; const height: TGLsizei; const border: TGLint; const srcData: IJSArrayBufferView; const srcOffset: TGLuint; const srcLengthOverride: TGLuint);
+procedure glCompressedTexImage3D(const target: TGLenum; const level: TGLint; const internalformat: TGLenum; const width: TGLsizei; const height: TGLsizei; const depth: TGLsizei; const border: TGLint; const imageSize: TGLsizei; const offset: TGLintptr);
+procedure glCompressedTexImage3D(const target: TGLenum; const level: TGLint; const internalformat: TGLenum; const width: TGLsizei; const height: TGLsizei; const depth: TGLsizei; const border: TGLint; const srcData: IJSArrayBufferView; const srcOffset: TGLuint; const srcLengthOverride: TGLuint);
+procedure glCompressedTexSubImage2D(const target: TGLenum; const level: TGLint; const xoffset: TGLint; const yoffset: TGLint; const width: TGLsizei; const height: TGLsizei; const format: TGLenum; const imageSize: TGLsizei; const offset: TGLintptr);
+procedure glCompressedTexSubImage2D(const target: TGLenum; const level: TGLint; const xoffset: TGLint; const yoffset: TGLint; const width: TGLsizei; const height: TGLsizei; const format: TGLenum; const srcData: IJSArrayBufferView; const srcOffset: TGLuint; const srcLengthOverride: TGLuint);
+procedure glCompressedTexSubImage3D(const target: TGLenum; const level: TGLint; const xoffset: TGLint; const yoffset: TGLint; const zoffset: TGLint; const width: TGLsizei; const height: TGLsizei; const depth: TGLsizei; const format: TGLenum; const imageSize: TGLsizei; const offset: TGLintptr);
+procedure glCompressedTexSubImage3D(const target: TGLenum; const level: TGLint; const xoffset: TGLint; const yoffset: TGLint; const zoffset: TGLint; const width: TGLsizei; const height: TGLsizei; const depth: TGLsizei; const format: TGLenum; const srcData: IJSArrayBufferView; const srcOffset: TGLuint; const srcLengthOverride: TGLuint);
+function glGetFragDataLocation(const program_: IJSWebGLProgram; const name: String): TGLint;
+procedure glUniform1ui(const location: IJSWebGLUniformLocation; const v0: TGLuint);
+procedure glUniform2ui(const location: IJSWebGLUniformLocation; const v0: TGLuint; const v1: TGLuint);
+procedure glUniform3ui(const location: IJSWebGLUniformLocation; const v0: TGLuint; const v1: TGLuint; const v2: TGLuint);
+procedure glUniform4ui(const location: IJSWebGLUniformLocation; const v0: TGLuint; const v1: TGLuint; const v2: TGLuint; const v3: TGLuint);
+// Not in auto-generated flat WebGL API: procedure glUniform1fv(const location: IJSWebGLUniformLocation; const data: TFloat32List; const srcOffset: TGLuint; const srcLength: TGLuint);
+// Not in auto-generated flat WebGL API: procedure glUniform2fv(const location: IJSWebGLUniformLocation; const data: TFloat32List; const srcOffset: TGLuint; const srcLength: TGLuint);
+// Not in auto-generated flat WebGL API: procedure glUniform3fv(const location: IJSWebGLUniformLocation; const data: TFloat32List; const srcOffset: TGLuint; const srcLength: TGLuint);
+// Not in auto-generated flat WebGL API: procedure glUniform4fv(const location: IJSWebGLUniformLocation; const data: TFloat32List; const srcOffset: TGLuint; const srcLength: TGLuint);
+// Not in auto-generated flat WebGL API: procedure glUniform1iv(const location: IJSWebGLUniformLocation; const data: TInt32List; const srcOffset: TGLuint; const srcLength: TGLuint);
+// Not in auto-generated flat WebGL API: procedure glUniform2iv(const location: IJSWebGLUniformLocation; const data: TInt32List; const srcOffset: TGLuint; const srcLength: TGLuint);
+// Not in auto-generated flat WebGL API: procedure glUniform3iv(const location: IJSWebGLUniformLocation; const data: TInt32List; const srcOffset: TGLuint; const srcLength: TGLuint);
+// Not in auto-generated flat WebGL API: procedure glUniform4iv(const location: IJSWebGLUniformLocation; const data: TInt32List; const srcOffset: TGLuint; const srcLength: TGLuint);
+// Not in auto-generated flat WebGL API: procedure glUniform1uiv(const location: IJSWebGLUniformLocation; const data: TUint32List; const srcOffset: TGLuint; const srcLength: TGLuint);
+// Not in auto-generated flat WebGL API: procedure glUniform2uiv(const location: IJSWebGLUniformLocation; const data: TUint32List; const srcOffset: TGLuint; const srcLength: TGLuint);
+// Not in auto-generated flat WebGL API: procedure glUniform3uiv(const location: IJSWebGLUniformLocation; const data: TUint32List; const srcOffset: TGLuint; const srcLength: TGLuint);
+// Not in auto-generated flat WebGL API: procedure glUniform4uiv(const location: IJSWebGLUniformLocation; const data: TUint32List; const srcOffset: TGLuint; const srcLength: TGLuint);
+// Not in auto-generated flat WebGL API: procedure glUniformMatrix2fv(const location: IJSWebGLUniformLocation; const transpose: TGLboolean; const data: TFloat32List; const srcOffset: TGLuint; const srcLength: TGLuint);
+// Not in auto-generated flat WebGL API: procedure glUniformMatrix3x2fv(const location: IJSWebGLUniformLocation; const transpose: TGLboolean; const data: TFloat32List; const srcOffset: TGLuint; const srcLength: TGLuint);
+// Not in auto-generated flat WebGL API: procedure glUniformMatrix4x2fv(const location: IJSWebGLUniformLocation; const transpose: TGLboolean; const data: TFloat32List; const srcOffset: TGLuint; const srcLength: TGLuint);
+// Not in auto-generated flat WebGL API: procedure glUniformMatrix2x3fv(const location: IJSWebGLUniformLocation; const transpose: TGLboolean; const data: TFloat32List; const srcOffset: TGLuint; const srcLength: TGLuint);
+// Not in auto-generated flat WebGL API: procedure glUniformMatrix3fv(const location: IJSWebGLUniformLocation; const transpose: TGLboolean; const data: TFloat32List; const srcOffset: TGLuint; const srcLength: TGLuint);
+// Not in auto-generated flat WebGL API: procedure glUniformMatrix4x3fv(const location: IJSWebGLUniformLocation; const transpose: TGLboolean; const data: TFloat32List; const srcOffset: TGLuint; const srcLength: TGLuint);
+// Not in auto-generated flat WebGL API: procedure glUniformMatrix2x4fv(const location: IJSWebGLUniformLocation; const transpose: TGLboolean; const data: TFloat32List; const srcOffset: TGLuint; const srcLength: TGLuint);
+// Not in auto-generated flat WebGL API: procedure glUniformMatrix3x4fv(const location: IJSWebGLUniformLocation; const transpose: TGLboolean; const data: TFloat32List; const srcOffset: TGLuint; const srcLength: TGLuint);
+// Not in auto-generated flat WebGL API: procedure glUniformMatrix4fv(const location: IJSWebGLUniformLocation; const transpose: TGLboolean; const data: TFloat32List; const srcOffset: TGLuint; const srcLength: TGLuint);
+procedure glVertexAttribI4i(const index: TGLuint; const x: TGLint; const y: TGLint; const z: TGLint; const w: TGLint);
+// Not in auto-generated flat WebGL API: procedure glVertexAttribI4iv(const index: TGLuint; const values: TInt32List);
+procedure glVertexAttribI4ui(const index: TGLuint; const x: TGLuint; const y: TGLuint; const z: TGLuint; const w: TGLuint);
+// Not in auto-generated flat WebGL API: procedure glVertexAttribI4uiv(const index: TGLuint; const values: TUint32List);
+procedure glVertexAttribIPointer(const index: TGLuint; const size: TGLint; const type_: TGLenum; const stride: TGLsizei; const offset: TGLintptr);
+procedure glVertexAttribDivisor(const index: TGLuint; const divisor: TGLuint);
+procedure glDrawArraysInstanced(const mode: TGLenum; const first: TGLint; const count: TGLsizei; const instanceCount: TGLsizei);
+procedure glDrawElementsInstanced(const mode: TGLenum; const count: TGLsizei; const type_: TGLenum; const offset: TGLintptr; const instanceCount: TGLsizei);
+procedure glDrawRangeElements(const mode: TGLenum; const start: TGLuint; const end_: TGLuint; const count: TGLsizei; const type_: TGLenum; const offset: TGLintptr);
+procedure glReadPixels(const x: TGLint; const y: TGLint; const width: TGLsizei; const height: TGLsizei; const format: TGLenum; const type_: TGLenum; const dstData: IJSArrayBufferView);
+procedure glReadPixels(const x: TGLint; const y: TGLint; const width: TGLsizei; const height: TGLsizei; const format: TGLenum; const type_: TGLenum; const offset: TGLintptr);
+procedure glReadPixels(const x: TGLint; const y: TGLint; const width: TGLsizei; const height: TGLsizei; const format: TGLenum; const type_: TGLenum; const dstData: IJSArrayBufferView; const dstOffset: TGLuint);
+// Not in auto-generated flat WebGL API: procedure glDrawBuffers(const buffers: Tsequence);
+// Not in auto-generated flat WebGL API: procedure glClearBufferfv(const buffer: TGLenum; const drawbuffer: TGLint; const values: TFloat32List; const srcOffset: TGLuint);
+// Not in auto-generated flat WebGL API: procedure glClearBufferiv(const buffer: TGLenum; const drawbuffer: TGLint; const values: TInt32List; const srcOffset: TGLuint);
+// Not in auto-generated flat WebGL API: procedure glClearBufferuiv(const buffer: TGLenum; const drawbuffer: TGLint; const values: TUint32List; const srcOffset: TGLuint);
+procedure glClearBufferfi(const buffer: TGLenum; const drawbuffer: TGLint; const depth: TGLfloat; const stencil: TGLint);
+function glCreateQuery(): IJSWebGLQuery;
+procedure glDeleteQuery(const query: IJSWebGLQuery);
+function glIsQuery(const query: IJSWebGLQuery): TGLboolean;
+procedure glBeginQuery(const target: TGLenum; const query: IJSWebGLQuery);
+procedure glEndQuery(const target: TGLenum);
+function glGetQuery(const target: TGLenum; const pname: TGLenum): Variant;
+function glGetQueryParameter(const query: IJSWebGLQuery; const pname: TGLenum): Variant;
+function glCreateSampler(): IJSWebGLSampler;
+procedure glDeleteSampler(const sampler: IJSWebGLSampler);
+function glIsSampler(const sampler: IJSWebGLSampler): TGLboolean;
+procedure glBindSampler(const unit_: TGLuint; const sampler: IJSWebGLSampler);
+procedure glSamplerParameteri(const sampler: IJSWebGLSampler; const pname: TGLenum; const param: TGLint);
+procedure glSamplerParameterf(const sampler: IJSWebGLSampler; const pname: TGLenum; const param: TGLfloat);
+function glGetSamplerParameter(const sampler: IJSWebGLSampler; const pname: TGLenum): Variant;
+function glFenceSync(const condition: TGLenum; const flags: TGLbitfield): IJSWebGLSync;
+function glIsSync(const sync: IJSWebGLSync): TGLboolean;
+procedure glDeleteSync(const sync: IJSWebGLSync);
+function glClientWaitSync(const sync: IJSWebGLSync; const flags: TGLbitfield; const timeout: TGLuint64): TGLenum;
+procedure glWaitSync(const sync: IJSWebGLSync; const flags: TGLbitfield; const timeout: TGLint64);
+function glGetSyncParameter(const sync: IJSWebGLSync; const pname: TGLenum): Variant;
+function glCreateTransformFeedback(): IJSWebGLTransformFeedback;
+procedure glDeleteTransformFeedback(const tf: IJSWebGLTransformFeedback);
+function glIsTransformFeedback(const tf: IJSWebGLTransformFeedback): TGLboolean;
+procedure glBindTransformFeedback(const target: TGLenum; const tf: IJSWebGLTransformFeedback);
+procedure glBeginTransformFeedback(const primitiveMode: TGLenum);
+procedure glEndTransformFeedback();
+// Not in auto-generated flat WebGL API: procedure glTransformFeedbackVaryings(const program_: IJSWebGLProgram; const varyings: Tsequence; const bufferMode: TGLenum);
+function glGetTransformFeedbackVarying(const program_: IJSWebGLProgram; const index: TGLuint): IJSWebGLActiveInfo;
+procedure glPauseTransformFeedback();
+procedure glResumeTransformFeedback();
+procedure glBindBufferBase(const target: TGLenum; const index: TGLuint; const buffer: IJSWebGLBuffer);
+procedure glBindBufferRange(const target: TGLenum; const index: TGLuint; const buffer: IJSWebGLBuffer; const offset: TGLintptr; const size: TGLsizeiptr);
+function glGetIndexedParameter(const target: TGLenum; const index: TGLuint): Variant;
+// Not in auto-generated flat WebGL API: function glGetUniformIndices(const program_: IJSWebGLProgram; const uniformNames: Tsequence): Tsequence;
+// Not in auto-generated flat WebGL API: function glGetActiveUniforms(const program_: IJSWebGLProgram; const uniformIndices: Tsequence; const pname: TGLenum): Variant;
+function glGetUniformBlockIndex(const program_: IJSWebGLProgram; const uniformBlockName: String): TGLuint;
+function glGetActiveUniformBlockParameter(const program_: IJSWebGLProgram; const uniformBlockIndex: TGLuint; const pname: TGLenum): Variant;
+function glGetActiveUniformBlockName(const program_: IJSWebGLProgram; const uniformBlockIndex: TGLuint): String;
+procedure glUniformBlockBinding(const program_: IJSWebGLProgram; const uniformBlockIndex: TGLuint; const uniformBlockBinding: TGLuint);
+function glCreateVertexArray(): IJSWebGLVertexArrayObject;
+procedure glDeleteVertexArray(const vertexArray: IJSWebGLVertexArrayObject);
+function glIsVertexArray(const vertexArray: IJSWebGLVertexArrayObject): TGLboolean;
+procedure glBindVertexArray(const array_: IJSWebGLVertexArrayObject);
 {$endif read_interface}
 
 {$ifdef read_implementation}
 function glGetContextAttributes(): IJSWebGLContextAttributes;
 begin
+  if GL = nil then raise Exception.Create('Failed to load WebGL context (version 1.0), which is necessary to call getContextAttributes');
   Result := GL.getContextAttributes();
 end;
 
 function glIsContextLost(): Boolean;
 begin
+  if GL = nil then raise Exception.Create('Failed to load WebGL context (version 1.0), which is necessary to call isContextLost');
   Result := GL.isContextLost();
 end;
 
 { Not in auto-generated flat WebGL API:
 function glGetSupportedExtensions(): Tsequence;
 begin
+  if GL = nil then raise Exception.Create('Failed to load WebGL context (version 1.0), which is necessary to call getSupportedExtensions');
   Result := GL.getSupportedExtensions();
 end;
 
@@ -442,588 +879,1763 @@ end;
 { Not in auto-generated flat WebGL API:
 function glGetExtension(const name: String): Tobject;
 begin
+  if GL = nil then raise Exception.Create('Failed to load WebGL context (version 1.0), which is necessary to call getExtension');
   Result := GL.getExtension(name);
 end;
 
 }
 procedure glActiveTexture(const texture: TGLenum);
 begin
+  if GL = nil then raise Exception.Create('Failed to load WebGL context (version 1.0), which is necessary to call activeTexture');
   GL.activeTexture(texture);
 end;
 
-procedure glAttachShader(const type_: IJSWebGLProgram; const shader: IJSWebGLShader);
+procedure glAttachShader(const program_: IJSWebGLProgram; const shader: IJSWebGLShader);
 begin
-  GL.attachShader(type_, shader);
+  if GL = nil then raise Exception.Create('Failed to load WebGL context (version 1.0), which is necessary to call attachShader');
+  GL.attachShader(program_, shader);
 end;
 
-procedure glBindAttribLocation(const type_: IJSWebGLProgram; const index: TGLuint; const name: String);
+procedure glBindAttribLocation(const program_: IJSWebGLProgram; const index: TGLuint; const name: String);
 begin
-  GL.bindAttribLocation(type_, index, name);
+  if GL = nil then raise Exception.Create('Failed to load WebGL context (version 1.0), which is necessary to call bindAttribLocation');
+  GL.bindAttribLocation(program_, index, name);
 end;
 
 procedure glBindBuffer(const target: TGLenum; const buffer: IJSWebGLBuffer);
 begin
+  if GL = nil then raise Exception.Create('Failed to load WebGL context (version 1.0), which is necessary to call bindBuffer');
   GL.bindBuffer(target, buffer);
 end;
 
 procedure glBindFramebuffer(const target: TGLenum; const framebuffer: IJSWebGLFramebuffer);
 begin
+  if GL = nil then raise Exception.Create('Failed to load WebGL context (version 1.0), which is necessary to call bindFramebuffer');
   GL.bindFramebuffer(target, framebuffer);
 end;
 
 procedure glBindRenderbuffer(const target: TGLenum; const renderbuffer: IJSWebGLRenderbuffer);
 begin
+  if GL = nil then raise Exception.Create('Failed to load WebGL context (version 1.0), which is necessary to call bindRenderbuffer');
   GL.bindRenderbuffer(target, renderbuffer);
 end;
 
 procedure glBindTexture(const target: TGLenum; const texture: IJSWebGLTexture);
 begin
+  if GL = nil then raise Exception.Create('Failed to load WebGL context (version 1.0), which is necessary to call bindTexture');
   GL.bindTexture(target, texture);
 end;
 
 procedure glBlendColor(const red: TGLfloat; const green: TGLfloat; const blue: TGLfloat; const alpha: TGLfloat);
 begin
+  if GL = nil then raise Exception.Create('Failed to load WebGL context (version 1.0), which is necessary to call blendColor');
   GL.blendColor(red, green, blue, alpha);
 end;
 
 procedure glBlendEquation(const mode: TGLenum);
 begin
+  if GL = nil then raise Exception.Create('Failed to load WebGL context (version 1.0), which is necessary to call blendEquation');
   GL.blendEquation(mode);
 end;
 
 procedure glBlendEquationSeparate(const modeRGB: TGLenum; const modeAlpha: TGLenum);
 begin
+  if GL = nil then raise Exception.Create('Failed to load WebGL context (version 1.0), which is necessary to call blendEquationSeparate');
   GL.blendEquationSeparate(modeRGB, modeAlpha);
 end;
 
 procedure glBlendFunc(const sfactor: TGLenum; const dfactor: TGLenum);
 begin
+  if GL = nil then raise Exception.Create('Failed to load WebGL context (version 1.0), which is necessary to call blendFunc');
   GL.blendFunc(sfactor, dfactor);
 end;
 
 procedure glBlendFuncSeparate(const srcRGB: TGLenum; const dstRGB: TGLenum; const srcAlpha: TGLenum; const dstAlpha: TGLenum);
 begin
+  if GL = nil then raise Exception.Create('Failed to load WebGL context (version 1.0), which is necessary to call blendFuncSeparate');
   GL.blendFuncSeparate(srcRGB, dstRGB, srcAlpha, dstAlpha);
 end;
 
 function glCheckFramebufferStatus(const target: TGLenum): TGLenum;
 begin
+  if GL = nil then raise Exception.Create('Failed to load WebGL context (version 1.0), which is necessary to call checkFramebufferStatus');
   Result := GL.checkFramebufferStatus(target);
 end;
 
 procedure glClear(const mask: TGLbitfield);
 begin
+  if GL = nil then raise Exception.Create('Failed to load WebGL context (version 1.0), which is necessary to call clear');
   GL.clear(mask);
 end;
 
 procedure glClearColor(const red: TGLfloat; const green: TGLfloat; const blue: TGLfloat; const alpha: TGLfloat);
 begin
+  if GL = nil then raise Exception.Create('Failed to load WebGL context (version 1.0), which is necessary to call clearColor');
   GL.clearColor(red, green, blue, alpha);
 end;
 
 procedure glClearDepth(const depth: TGLclampf);
 begin
+  if GL = nil then raise Exception.Create('Failed to load WebGL context (version 1.0), which is necessary to call clearDepth');
   GL.clearDepth(depth);
 end;
 
 procedure glClearStencil(const s: TGLint);
 begin
+  if GL = nil then raise Exception.Create('Failed to load WebGL context (version 1.0), which is necessary to call clearStencil');
   GL.clearStencil(s);
 end;
 
 procedure glColorMask(const red: TGLboolean; const green: TGLboolean; const blue: TGLboolean; const alpha: TGLboolean);
 begin
+  if GL = nil then raise Exception.Create('Failed to load WebGL context (version 1.0), which is necessary to call colorMask');
   GL.colorMask(red, green, blue, alpha);
 end;
 
 procedure glCompileShader(const shader: IJSWebGLShader);
 begin
+  if GL = nil then raise Exception.Create('Failed to load WebGL context (version 1.0), which is necessary to call compileShader');
   GL.compileShader(shader);
 end;
 
 procedure glCopyTexImage2D(const target: TGLenum; const level: TGLint; const internalformat: TGLenum; const x: TGLint; const y: TGLint; const width: TGLsizei; const height: TGLsizei; const border: TGLint);
 begin
+  if GL = nil then raise Exception.Create('Failed to load WebGL context (version 1.0), which is necessary to call copyTexImage2D');
   GL.copyTexImage2D(target, level, internalformat, x, y, width, height, border);
 end;
 
 procedure glCopyTexSubImage2D(const target: TGLenum; const level: TGLint; const xoffset: TGLint; const yoffset: TGLint; const x: TGLint; const y: TGLint; const width: TGLsizei; const height: TGLsizei);
 begin
+  if GL = nil then raise Exception.Create('Failed to load WebGL context (version 1.0), which is necessary to call copyTexSubImage2D');
   GL.copyTexSubImage2D(target, level, xoffset, yoffset, x, y, width, height);
 end;
 
 function glCreateBuffer(): IJSWebGLBuffer;
 begin
+  if GL = nil then raise Exception.Create('Failed to load WebGL context (version 1.0), which is necessary to call createBuffer');
   Result := GL.createBuffer();
 end;
 
 function glCreateFramebuffer(): IJSWebGLFramebuffer;
 begin
+  if GL = nil then raise Exception.Create('Failed to load WebGL context (version 1.0), which is necessary to call createFramebuffer');
   Result := GL.createFramebuffer();
 end;
 
 function glCreateProgram(): IJSWebGLProgram;
 begin
+  if GL = nil then raise Exception.Create('Failed to load WebGL context (version 1.0), which is necessary to call createProgram');
   Result := GL.createProgram();
 end;
 
 function glCreateRenderbuffer(): IJSWebGLRenderbuffer;
 begin
+  if GL = nil then raise Exception.Create('Failed to load WebGL context (version 1.0), which is necessary to call createRenderbuffer');
   Result := GL.createRenderbuffer();
 end;
 
 function glCreateShader(const type_: TGLenum): IJSWebGLShader;
 begin
+  if GL = nil then raise Exception.Create('Failed to load WebGL context (version 1.0), which is necessary to call createShader');
   Result := GL.createShader(type_);
 end;
 
 function glCreateTexture(): IJSWebGLTexture;
 begin
+  if GL = nil then raise Exception.Create('Failed to load WebGL context (version 1.0), which is necessary to call createTexture');
   Result := GL.createTexture();
 end;
 
 procedure glCullFace(const mode: TGLenum);
 begin
+  if GL = nil then raise Exception.Create('Failed to load WebGL context (version 1.0), which is necessary to call cullFace');
   GL.cullFace(mode);
 end;
 
 procedure glDeleteBuffer(const buffer: IJSWebGLBuffer);
 begin
+  if GL = nil then raise Exception.Create('Failed to load WebGL context (version 1.0), which is necessary to call deleteBuffer');
   GL.deleteBuffer(buffer);
 end;
 
 procedure glDeleteFramebuffer(const framebuffer: IJSWebGLFramebuffer);
 begin
+  if GL = nil then raise Exception.Create('Failed to load WebGL context (version 1.0), which is necessary to call deleteFramebuffer');
   GL.deleteFramebuffer(framebuffer);
 end;
 
-procedure glDeleteProgram(const type_: IJSWebGLProgram);
+procedure glDeleteProgram(const program_: IJSWebGLProgram);
 begin
-  GL.deleteProgram(type_);
+  if GL = nil then raise Exception.Create('Failed to load WebGL context (version 1.0), which is necessary to call deleteProgram');
+  GL.deleteProgram(program_);
 end;
 
 procedure glDeleteRenderbuffer(const renderbuffer: IJSWebGLRenderbuffer);
 begin
+  if GL = nil then raise Exception.Create('Failed to load WebGL context (version 1.0), which is necessary to call deleteRenderbuffer');
   GL.deleteRenderbuffer(renderbuffer);
 end;
 
 procedure glDeleteShader(const shader: IJSWebGLShader);
 begin
+  if GL = nil then raise Exception.Create('Failed to load WebGL context (version 1.0), which is necessary to call deleteShader');
   GL.deleteShader(shader);
 end;
 
 procedure glDeleteTexture(const texture: IJSWebGLTexture);
 begin
+  if GL = nil then raise Exception.Create('Failed to load WebGL context (version 1.0), which is necessary to call deleteTexture');
   GL.deleteTexture(texture);
 end;
 
 procedure glDepthFunc(const func: TGLenum);
 begin
+  if GL = nil then raise Exception.Create('Failed to load WebGL context (version 1.0), which is necessary to call depthFunc');
   GL.depthFunc(func);
 end;
 
 procedure glDepthMask(const flag: TGLboolean);
 begin
+  if GL = nil then raise Exception.Create('Failed to load WebGL context (version 1.0), which is necessary to call depthMask');
   GL.depthMask(flag);
 end;
 
 procedure glDepthRange(const zNear: TGLclampf; const zFar: TGLclampf);
 begin
+  if GL = nil then raise Exception.Create('Failed to load WebGL context (version 1.0), which is necessary to call depthRange');
   GL.depthRange(zNear, zFar);
 end;
 
-procedure glDetachShader(const type_: IJSWebGLProgram; const shader: IJSWebGLShader);
+procedure glDetachShader(const program_: IJSWebGLProgram; const shader: IJSWebGLShader);
 begin
-  GL.detachShader(type_, shader);
+  if GL = nil then raise Exception.Create('Failed to load WebGL context (version 1.0), which is necessary to call detachShader');
+  GL.detachShader(program_, shader);
 end;
 
 procedure glDisable(const cap: TGLenum);
 begin
+  if GL = nil then raise Exception.Create('Failed to load WebGL context (version 1.0), which is necessary to call disable');
   GL.disable(cap);
 end;
 
 procedure glDisableVertexAttribArray(const index: TGLuint);
 begin
+  if GL = nil then raise Exception.Create('Failed to load WebGL context (version 1.0), which is necessary to call disableVertexAttribArray');
   GL.disableVertexAttribArray(index);
 end;
 
 procedure glDrawArrays(const mode: TGLenum; const first: TGLint; const count: TGLsizei);
 begin
+  if GL = nil then raise Exception.Create('Failed to load WebGL context (version 1.0), which is necessary to call drawArrays');
   GL.drawArrays(mode, first, count);
 end;
 
 procedure glDrawElements(const mode: TGLenum; const count: TGLsizei; const type_: TGLenum; const offset: TGLintptr);
 begin
+  if GL = nil then raise Exception.Create('Failed to load WebGL context (version 1.0), which is necessary to call drawElements');
   GL.drawElements(mode, count, type_, offset);
 end;
 
 procedure glEnable(const cap: TGLenum);
 begin
+  if GL = nil then raise Exception.Create('Failed to load WebGL context (version 1.0), which is necessary to call enable');
   GL.enable(cap);
 end;
 
 procedure glEnableVertexAttribArray(const index: TGLuint);
 begin
+  if GL = nil then raise Exception.Create('Failed to load WebGL context (version 1.0), which is necessary to call enableVertexAttribArray');
   GL.enableVertexAttribArray(index);
 end;
 
 procedure glFinish();
 begin
+  if GL = nil then raise Exception.Create('Failed to load WebGL context (version 1.0), which is necessary to call finish');
   GL.finish();
 end;
 
 procedure glFlush();
 begin
+  if GL = nil then raise Exception.Create('Failed to load WebGL context (version 1.0), which is necessary to call flush');
   GL.flush();
 end;
 
 procedure glFramebufferRenderbuffer(const target: TGLenum; const attachment: TGLenum; const renderbuffertarget: TGLenum; const renderbuffer: IJSWebGLRenderbuffer);
 begin
+  if GL = nil then raise Exception.Create('Failed to load WebGL context (version 1.0), which is necessary to call framebufferRenderbuffer');
   GL.framebufferRenderbuffer(target, attachment, renderbuffertarget, renderbuffer);
 end;
 
 procedure glFramebufferTexture2D(const target: TGLenum; const attachment: TGLenum; const textarget: TGLenum; const texture: IJSWebGLTexture; const level: TGLint);
 begin
+  if GL = nil then raise Exception.Create('Failed to load WebGL context (version 1.0), which is necessary to call framebufferTexture2D');
   GL.framebufferTexture2D(target, attachment, textarget, texture, level);
 end;
 
 procedure glFrontFace(const mode: TGLenum);
 begin
+  if GL = nil then raise Exception.Create('Failed to load WebGL context (version 1.0), which is necessary to call frontFace');
   GL.frontFace(mode);
 end;
 
 procedure glGenerateMipmap(const target: TGLenum);
 begin
+  if GL = nil then raise Exception.Create('Failed to load WebGL context (version 1.0), which is necessary to call generateMipmap');
   GL.generateMipmap(target);
 end;
 
-function glGetActiveAttrib(const type_: IJSWebGLProgram; const index: TGLuint): IJSWebGLActiveInfo;
+function glGetActiveAttrib(const program_: IJSWebGLProgram; const index: TGLuint): IJSWebGLActiveInfo;
 begin
-  Result := GL.getActiveAttrib(type_, index);
+  if GL = nil then raise Exception.Create('Failed to load WebGL context (version 1.0), which is necessary to call getActiveAttrib');
+  Result := GL.getActiveAttrib(program_, index);
 end;
 
-function glGetActiveUniform(const type_: IJSWebGLProgram; const index: TGLuint): IJSWebGLActiveInfo;
+function glGetActiveUniform(const program_: IJSWebGLProgram; const index: TGLuint): IJSWebGLActiveInfo;
 begin
-  Result := GL.getActiveUniform(type_, index);
+  if GL = nil then raise Exception.Create('Failed to load WebGL context (version 1.0), which is necessary to call getActiveUniform');
+  Result := GL.getActiveUniform(program_, index);
 end;
 
 { Not in auto-generated flat WebGL API:
-function glGetAttachedShaders(const type_: IJSWebGLProgram): Tsequence;
+function glGetAttachedShaders(const program_: IJSWebGLProgram): Tsequence;
 begin
-  Result := GL.getAttachedShaders(type_);
+  if GL = nil then raise Exception.Create('Failed to load WebGL context (version 1.0), which is necessary to call getAttachedShaders');
+  Result := GL.getAttachedShaders(program_);
 end;
 
 }
-function glGetAttribLocation(const type_: IJSWebGLProgram; const name: String): TGLint;
+function glGetAttribLocation(const program_: IJSWebGLProgram; const name: String): TGLint;
 begin
-  Result := GL.getAttribLocation(type_, name);
+  if GL = nil then raise Exception.Create('Failed to load WebGL context (version 1.0), which is necessary to call getAttribLocation');
+  Result := GL.getAttribLocation(program_, name);
 end;
 
 function glGetBufferParameter(const target: TGLenum; const pname: TGLenum): Variant;
 begin
+  if GL = nil then raise Exception.Create('Failed to load WebGL context (version 1.0), which is necessary to call getBufferParameter');
   Result := GL.getBufferParameter(target, pname);
 end;
 
 function glGetParameter(const pname: TGLenum): Variant;
 begin
+  if GL = nil then raise Exception.Create('Failed to load WebGL context (version 1.0), which is necessary to call getParameter');
   Result := GL.getParameter(pname);
 end;
 
 function glGetError(): TGLenum;
 begin
+  if GL = nil then raise Exception.Create('Failed to load WebGL context (version 1.0), which is necessary to call getError');
   Result := GL.getError();
 end;
 
 function glGetFramebufferAttachmentParameter(const target: TGLenum; const attachment: TGLenum; const pname: TGLenum): Variant;
 begin
+  if GL = nil then raise Exception.Create('Failed to load WebGL context (version 1.0), which is necessary to call getFramebufferAttachmentParameter');
   Result := GL.getFramebufferAttachmentParameter(target, attachment, pname);
 end;
 
-function glGetProgramParameter(const type_: IJSWebGLProgram; const pname: TGLenum): Variant;
+function glGetProgramParameter(const program_: IJSWebGLProgram; const pname: TGLenum): Variant;
 begin
-  Result := GL.getProgramParameter(type_, pname);
+  if GL = nil then raise Exception.Create('Failed to load WebGL context (version 1.0), which is necessary to call getProgramParameter');
+  Result := GL.getProgramParameter(program_, pname);
 end;
 
-function glGetProgramInfoLog(const type_: IJSWebGLProgram): String;
+function glGetProgramInfoLog(const program_: IJSWebGLProgram): String;
 begin
-  Result := GL.getProgramInfoLog(type_);
+  if GL = nil then raise Exception.Create('Failed to load WebGL context (version 1.0), which is necessary to call getProgramInfoLog');
+  Result := GL.getProgramInfoLog(program_);
 end;
 
 function glGetRenderbufferParameter(const target: TGLenum; const pname: TGLenum): Variant;
 begin
+  if GL = nil then raise Exception.Create('Failed to load WebGL context (version 1.0), which is necessary to call getRenderbufferParameter');
   Result := GL.getRenderbufferParameter(target, pname);
 end;
 
 function glGetShaderParameter(const shader: IJSWebGLShader; const pname: TGLenum): Variant;
 begin
+  if GL = nil then raise Exception.Create('Failed to load WebGL context (version 1.0), which is necessary to call getShaderParameter');
   Result := GL.getShaderParameter(shader, pname);
 end;
 
 function glGetShaderPrecisionFormat(const shadertype: TGLenum; const precisiontype: TGLenum): IJSWebGLShaderPrecisionFormat;
 begin
+  if GL = nil then raise Exception.Create('Failed to load WebGL context (version 1.0), which is necessary to call getShaderPrecisionFormat');
   Result := GL.getShaderPrecisionFormat(shadertype, precisiontype);
 end;
 
 function glGetShaderInfoLog(const shader: IJSWebGLShader): String;
 begin
+  if GL = nil then raise Exception.Create('Failed to load WebGL context (version 1.0), which is necessary to call getShaderInfoLog');
   Result := GL.getShaderInfoLog(shader);
 end;
 
 function glGetShaderSource(const shader: IJSWebGLShader): String;
 begin
+  if GL = nil then raise Exception.Create('Failed to load WebGL context (version 1.0), which is necessary to call getShaderSource');
   Result := GL.getShaderSource(shader);
 end;
 
 function glGetTexParameter(const target: TGLenum; const pname: TGLenum): Variant;
 begin
+  if GL = nil then raise Exception.Create('Failed to load WebGL context (version 1.0), which is necessary to call getTexParameter');
   Result := GL.getTexParameter(target, pname);
 end;
 
-function glGetUniform(const type_: IJSWebGLProgram; const location: IJSWebGLUniformLocation): Variant;
+function glGetUniform(const program_: IJSWebGLProgram; const location: IJSWebGLUniformLocation): Variant;
 begin
-  Result := GL.getUniform(type_, location);
+  if GL = nil then raise Exception.Create('Failed to load WebGL context (version 1.0), which is necessary to call getUniform');
+  Result := GL.getUniform(program_, location);
 end;
 
-function glGetUniformLocation(const type_: IJSWebGLProgram; const name: String): IJSWebGLUniformLocation;
+function glGetUniformLocation(const program_: IJSWebGLProgram; const name: String): IJSWebGLUniformLocation;
 begin
-  Result := GL.getUniformLocation(type_, name);
+  if GL = nil then raise Exception.Create('Failed to load WebGL context (version 1.0), which is necessary to call getUniformLocation');
+  Result := GL.getUniformLocation(program_, name);
 end;
 
 function glGetVertexAttrib(const index: TGLuint; const pname: TGLenum): Variant;
 begin
+  if GL = nil then raise Exception.Create('Failed to load WebGL context (version 1.0), which is necessary to call getVertexAttrib');
   Result := GL.getVertexAttrib(index, pname);
 end;
 
 function glGetVertexAttribOffset(const index: TGLuint; const pname: TGLenum): TGLintptr;
 begin
+  if GL = nil then raise Exception.Create('Failed to load WebGL context (version 1.0), which is necessary to call getVertexAttribOffset');
   Result := GL.getVertexAttribOffset(index, pname);
 end;
 
 procedure glHint(const target: TGLenum; const mode: TGLenum);
 begin
+  if GL = nil then raise Exception.Create('Failed to load WebGL context (version 1.0), which is necessary to call hint');
   GL.hint(target, mode);
 end;
 
 function glIsBuffer(const buffer: IJSWebGLBuffer): TGLboolean;
 begin
+  if GL = nil then raise Exception.Create('Failed to load WebGL context (version 1.0), which is necessary to call isBuffer');
   Result := GL.isBuffer(buffer);
 end;
 
 function glIsEnabled(const cap: TGLenum): TGLboolean;
 begin
+  if GL = nil then raise Exception.Create('Failed to load WebGL context (version 1.0), which is necessary to call isEnabled');
   Result := GL.isEnabled(cap);
 end;
 
 function glIsFramebuffer(const framebuffer: IJSWebGLFramebuffer): TGLboolean;
 begin
+  if GL = nil then raise Exception.Create('Failed to load WebGL context (version 1.0), which is necessary to call isFramebuffer');
   Result := GL.isFramebuffer(framebuffer);
 end;
 
-function glIsProgram(const type_: IJSWebGLProgram): TGLboolean;
+function glIsProgram(const program_: IJSWebGLProgram): TGLboolean;
 begin
-  Result := GL.isProgram(type_);
+  if GL = nil then raise Exception.Create('Failed to load WebGL context (version 1.0), which is necessary to call isProgram');
+  Result := GL.isProgram(program_);
 end;
 
 function glIsRenderbuffer(const renderbuffer: IJSWebGLRenderbuffer): TGLboolean;
 begin
+  if GL = nil then raise Exception.Create('Failed to load WebGL context (version 1.0), which is necessary to call isRenderbuffer');
   Result := GL.isRenderbuffer(renderbuffer);
 end;
 
 function glIsShader(const shader: IJSWebGLShader): TGLboolean;
 begin
+  if GL = nil then raise Exception.Create('Failed to load WebGL context (version 1.0), which is necessary to call isShader');
   Result := GL.isShader(shader);
 end;
 
 function glIsTexture(const texture: IJSWebGLTexture): TGLboolean;
 begin
+  if GL = nil then raise Exception.Create('Failed to load WebGL context (version 1.0), which is necessary to call isTexture');
   Result := GL.isTexture(texture);
 end;
 
 procedure glLineWidth(const width: TGLfloat);
 begin
+  if GL = nil then raise Exception.Create('Failed to load WebGL context (version 1.0), which is necessary to call lineWidth');
   GL.lineWidth(width);
 end;
 
-procedure glLinkProgram(const type_: IJSWebGLProgram);
+procedure glLinkProgram(const program_: IJSWebGLProgram);
 begin
-  GL.linkProgram(type_);
+  if GL = nil then raise Exception.Create('Failed to load WebGL context (version 1.0), which is necessary to call linkProgram');
+  GL.linkProgram(program_);
 end;
 
 procedure glPixelStorei(const pname: TGLenum; const param: TGLint);
 begin
+  if GL = nil then raise Exception.Create('Failed to load WebGL context (version 1.0), which is necessary to call pixelStorei');
   GL.pixelStorei(pname, param);
 end;
 
 procedure glPolygonOffset(const factor: TGLfloat; const units: TGLfloat);
 begin
+  if GL = nil then raise Exception.Create('Failed to load WebGL context (version 1.0), which is necessary to call polygonOffset');
   GL.polygonOffset(factor, units);
 end;
 
 procedure glRenderbufferStorage(const target: TGLenum; const internalformat: TGLenum; const width: TGLsizei; const height: TGLsizei);
 begin
+  if GL = nil then raise Exception.Create('Failed to load WebGL context (version 1.0), which is necessary to call renderbufferStorage');
   GL.renderbufferStorage(target, internalformat, width, height);
 end;
 
 procedure glSampleCoverage(const value: TGLclampf; const invert: TGLboolean);
 begin
+  if GL = nil then raise Exception.Create('Failed to load WebGL context (version 1.0), which is necessary to call sampleCoverage');
   GL.sampleCoverage(value, invert);
 end;
 
 procedure glScissor(const x: TGLint; const y: TGLint; const width: TGLsizei; const height: TGLsizei);
 begin
+  if GL = nil then raise Exception.Create('Failed to load WebGL context (version 1.0), which is necessary to call scissor');
   GL.scissor(x, y, width, height);
 end;
 
 procedure glShaderSource(const shader: IJSWebGLShader; const source: String);
 begin
+  if GL = nil then raise Exception.Create('Failed to load WebGL context (version 1.0), which is necessary to call shaderSource');
   GL.shaderSource(shader, source);
 end;
 
 procedure glStencilFunc(const func: TGLenum; const ref: TGLint; const mask: TGLuint);
 begin
+  if GL = nil then raise Exception.Create('Failed to load WebGL context (version 1.0), which is necessary to call stencilFunc');
   GL.stencilFunc(func, ref, mask);
 end;
 
 procedure glStencilFuncSeparate(const face: TGLenum; const func: TGLenum; const ref: TGLint; const mask: TGLuint);
 begin
+  if GL = nil then raise Exception.Create('Failed to load WebGL context (version 1.0), which is necessary to call stencilFuncSeparate');
   GL.stencilFuncSeparate(face, func, ref, mask);
 end;
 
 procedure glStencilMask(const mask: TGLuint);
 begin
+  if GL = nil then raise Exception.Create('Failed to load WebGL context (version 1.0), which is necessary to call stencilMask');
   GL.stencilMask(mask);
 end;
 
 procedure glStencilMaskSeparate(const face: TGLenum; const mask: TGLuint);
 begin
+  if GL = nil then raise Exception.Create('Failed to load WebGL context (version 1.0), which is necessary to call stencilMaskSeparate');
   GL.stencilMaskSeparate(face, mask);
 end;
 
 procedure glStencilOp(const fail: TGLenum; const zfail: TGLenum; const zpass: TGLenum);
 begin
+  if GL = nil then raise Exception.Create('Failed to load WebGL context (version 1.0), which is necessary to call stencilOp');
   GL.stencilOp(fail, zfail, zpass);
 end;
 
 procedure glStencilOpSeparate(const face: TGLenum; const fail: TGLenum; const zfail: TGLenum; const zpass: TGLenum);
 begin
+  if GL = nil then raise Exception.Create('Failed to load WebGL context (version 1.0), which is necessary to call stencilOpSeparate');
   GL.stencilOpSeparate(face, fail, zfail, zpass);
 end;
 
 procedure glTexParameterf(const target: TGLenum; const pname: TGLenum; const param: TGLfloat);
 begin
+  if GL = nil then raise Exception.Create('Failed to load WebGL context (version 1.0), which is necessary to call texParameterf');
   GL.texParameterf(target, pname, param);
 end;
 
 procedure glTexParameteri(const target: TGLenum; const pname: TGLenum; const param: TGLint);
 begin
+  if GL = nil then raise Exception.Create('Failed to load WebGL context (version 1.0), which is necessary to call texParameteri');
   GL.texParameteri(target, pname, param);
 end;
 
 procedure glUniform1f(const location: IJSWebGLUniformLocation; const x: TGLfloat);
 begin
+  if GL = nil then raise Exception.Create('Failed to load WebGL context (version 1.0), which is necessary to call uniform1f');
   GL.uniform1f(location, x);
 end;
 
 procedure glUniform2f(const location: IJSWebGLUniformLocation; const x: TGLfloat; const y: TGLfloat);
 begin
+  if GL = nil then raise Exception.Create('Failed to load WebGL context (version 1.0), which is necessary to call uniform2f');
   GL.uniform2f(location, x, y);
 end;
 
 procedure glUniform3f(const location: IJSWebGLUniformLocation; const x: TGLfloat; const y: TGLfloat; const z: TGLfloat);
 begin
+  if GL = nil then raise Exception.Create('Failed to load WebGL context (version 1.0), which is necessary to call uniform3f');
   GL.uniform3f(location, x, y, z);
 end;
 
 procedure glUniform4f(const location: IJSWebGLUniformLocation; const x: TGLfloat; const y: TGLfloat; const z: TGLfloat; const w: TGLfloat);
 begin
+  if GL = nil then raise Exception.Create('Failed to load WebGL context (version 1.0), which is necessary to call uniform4f');
   GL.uniform4f(location, x, y, z, w);
 end;
 
 procedure glUniform1i(const location: IJSWebGLUniformLocation; const x: TGLint);
 begin
+  if GL = nil then raise Exception.Create('Failed to load WebGL context (version 1.0), which is necessary to call uniform1i');
   GL.uniform1i(location, x);
 end;
 
 procedure glUniform2i(const location: IJSWebGLUniformLocation; const x: TGLint; const y: TGLint);
 begin
+  if GL = nil then raise Exception.Create('Failed to load WebGL context (version 1.0), which is necessary to call uniform2i');
   GL.uniform2i(location, x, y);
 end;
 
 procedure glUniform3i(const location: IJSWebGLUniformLocation; const x: TGLint; const y: TGLint; const z: TGLint);
 begin
+  if GL = nil then raise Exception.Create('Failed to load WebGL context (version 1.0), which is necessary to call uniform3i');
   GL.uniform3i(location, x, y, z);
 end;
 
 procedure glUniform4i(const location: IJSWebGLUniformLocation; const x: TGLint; const y: TGLint; const z: TGLint; const w: TGLint);
 begin
+  if GL = nil then raise Exception.Create('Failed to load WebGL context (version 1.0), which is necessary to call uniform4i');
   GL.uniform4i(location, x, y, z, w);
 end;
 
-procedure glUseProgram(const type_: IJSWebGLProgram);
+procedure glUseProgram(const program_: IJSWebGLProgram);
 begin
-  GL.useProgram(type_);
+  if GL = nil then raise Exception.Create('Failed to load WebGL context (version 1.0), which is necessary to call useProgram');
+  GL.useProgram(program_);
 end;
 
-procedure glValidateProgram(const type_: IJSWebGLProgram);
+procedure glValidateProgram(const program_: IJSWebGLProgram);
 begin
-  GL.validateProgram(type_);
+  if GL = nil then raise Exception.Create('Failed to load WebGL context (version 1.0), which is necessary to call validateProgram');
+  GL.validateProgram(program_);
 end;
 
 procedure glVertexAttrib1f(const indx: TGLuint; const x: TGLfloat);
 begin
+  if GL = nil then raise Exception.Create('Failed to load WebGL context (version 1.0), which is necessary to call vertexAttrib1f');
   GL.vertexAttrib1f(indx, x);
 end;
 
 { Not in auto-generated flat WebGL API:
 procedure glVertexAttrib1fv(const indx: TGLuint; const values: TFloat32List);
 begin
+  if GL = nil then raise Exception.Create('Failed to load WebGL context (version 1.0), which is necessary to call vertexAttrib1fv');
   GL.vertexAttrib1fv(indx, values);
 end;
 
 }
 procedure glVertexAttrib2f(const indx: TGLuint; const x: TGLfloat; const y: TGLfloat);
 begin
+  if GL = nil then raise Exception.Create('Failed to load WebGL context (version 1.0), which is necessary to call vertexAttrib2f');
   GL.vertexAttrib2f(indx, x, y);
 end;
 
 { Not in auto-generated flat WebGL API:
 procedure glVertexAttrib2fv(const indx: TGLuint; const values: TFloat32List);
 begin
+  if GL = nil then raise Exception.Create('Failed to load WebGL context (version 1.0), which is necessary to call vertexAttrib2fv');
   GL.vertexAttrib2fv(indx, values);
 end;
 
 }
 procedure glVertexAttrib3f(const indx: TGLuint; const x: TGLfloat; const y: TGLfloat; const z: TGLfloat);
 begin
+  if GL = nil then raise Exception.Create('Failed to load WebGL context (version 1.0), which is necessary to call vertexAttrib3f');
   GL.vertexAttrib3f(indx, x, y, z);
 end;
 
 { Not in auto-generated flat WebGL API:
 procedure glVertexAttrib3fv(const indx: TGLuint; const values: TFloat32List);
 begin
+  if GL = nil then raise Exception.Create('Failed to load WebGL context (version 1.0), which is necessary to call vertexAttrib3fv');
   GL.vertexAttrib3fv(indx, values);
 end;
 
 }
 procedure glVertexAttrib4f(const indx: TGLuint; const x: TGLfloat; const y: TGLfloat; const z: TGLfloat; const w: TGLfloat);
 begin
+  if GL = nil then raise Exception.Create('Failed to load WebGL context (version 1.0), which is necessary to call vertexAttrib4f');
   GL.vertexAttrib4f(indx, x, y, z, w);
 end;
 
 { Not in auto-generated flat WebGL API:
 procedure glVertexAttrib4fv(const indx: TGLuint; const values: TFloat32List);
 begin
+  if GL = nil then raise Exception.Create('Failed to load WebGL context (version 1.0), which is necessary to call vertexAttrib4fv');
   GL.vertexAttrib4fv(indx, values);
 end;
 
 }
 procedure glVertexAttribPointer(const indx: TGLuint; const size: TGLint; const type_: TGLenum; const normalized: TGLboolean; const stride: TGLsizei; const offset: TGLintptr);
 begin
+  if GL = nil then raise Exception.Create('Failed to load WebGL context (version 1.0), which is necessary to call vertexAttribPointer');
   GL.vertexAttribPointer(indx, size, type_, normalized, stride, offset);
 end;
 
 procedure glViewport(const x: TGLint; const y: TGLint; const width: TGLsizei; const height: TGLsizei);
 begin
+  if GL = nil then raise Exception.Create('Failed to load WebGL context (version 1.0), which is necessary to call viewport');
   GL.viewport(x, y, width, height);
+end;
+
+procedure glBufferData(const target: TGLenum; const size: TGLsizeiptr; const usage: TGLenum);
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call bufferData');
+  GL2.bufferData(target, size, usage);
+end;
+
+procedure glBufferData(const target: TGLenum; const srcData: IJSArrayBuffer; const usage: TGLenum);
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call bufferData');
+  GL2.bufferData(target, srcData, usage);
+end;
+
+procedure glBufferData(const target: TGLenum; const srcData: IJSArrayBufferView; const usage: TGLenum);
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call bufferData');
+  GL2.bufferData(target, srcData, usage);
+end;
+
+procedure glBufferSubData(const target: TGLenum; const offset: TGLintptr; const srcData: IJSArrayBuffer);
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call bufferSubData');
+  GL2.bufferSubData(target, offset, srcData);
+end;
+
+procedure glBufferSubData(const target: TGLenum; const offset: TGLintptr; const srcData: IJSArrayBufferView);
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call bufferSubData');
+  GL2.bufferSubData(target, offset, srcData);
+end;
+
+procedure glBufferData(const target: TGLenum; const srcData: IJSArrayBufferView; const usage: TGLenum; const srcOffset: TGLuint; const length_: TGLuint);
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call bufferData');
+  GL2.bufferData(target, srcData, usage, srcOffset, length_);
+end;
+
+procedure glBufferSubData(const target: TGLenum; const dstByteOffset: TGLintptr; const srcData: IJSArrayBufferView; const srcOffset: TGLuint; const length_: TGLuint);
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call bufferSubData');
+  GL2.bufferSubData(target, dstByteOffset, srcData, srcOffset, length_);
+end;
+
+procedure glCopyBufferSubData(const readTarget: TGLenum; const writeTarget: TGLenum; const readOffset: TGLintptr; const writeOffset: TGLintptr; const size: TGLsizeiptr);
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call copyBufferSubData');
+  GL2.copyBufferSubData(readTarget, writeTarget, readOffset, writeOffset, size);
+end;
+
+procedure glGetBufferSubData(const target: TGLenum; const srcByteOffset: TGLintptr; const dstData: IJSArrayBufferView; const dstOffset: TGLuint; const length_: TGLuint);
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call getBufferSubData');
+  GL2.getBufferSubData(target, srcByteOffset, dstData, dstOffset, length_);
+end;
+
+procedure glBlitFramebuffer(const srcX0: TGLint; const srcY0: TGLint; const srcX1: TGLint; const srcY1: TGLint; const dstX0: TGLint; const dstY0: TGLint; const dstX1: TGLint; const dstY1: TGLint; const mask: TGLbitfield; const filter: TGLenum);
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call blitFramebuffer');
+  GL2.blitFramebuffer(srcX0, srcY0, srcX1, srcY1, dstX0, dstY0, dstX1, dstY1, mask, filter);
+end;
+
+procedure glFramebufferTextureLayer(const target: TGLenum; const attachment: TGLenum; const texture: IJSWebGLTexture; const level: TGLint; const layer: TGLint);
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call framebufferTextureLayer');
+  GL2.framebufferTextureLayer(target, attachment, texture, level, layer);
+end;
+
+{ Not in auto-generated flat WebGL API:
+procedure glInvalidateFramebuffer(const target: TGLenum; const attachments: Tsequence);
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call invalidateFramebuffer');
+  GL2.invalidateFramebuffer(target, attachments);
+end;
+
+}
+{ Not in auto-generated flat WebGL API:
+procedure glInvalidateSubFramebuffer(const target: TGLenum; const attachments: Tsequence; const x: TGLint; const y: TGLint; const width: TGLsizei; const height: TGLsizei);
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call invalidateSubFramebuffer');
+  GL2.invalidateSubFramebuffer(target, attachments, x, y, width, height);
+end;
+
+}
+procedure glReadBuffer(const src: TGLenum);
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call readBuffer');
+  GL2.readBuffer(src);
+end;
+
+function glGetInternalformatParameter(const target: TGLenum; const internalformat: TGLenum; const pname: TGLenum): Variant;
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call getInternalformatParameter');
+  Result := GL2.getInternalformatParameter(target, internalformat, pname);
+end;
+
+procedure glRenderbufferStorageMultisample(const target: TGLenum; const samples: TGLsizei; const internalformat: TGLenum; const width: TGLsizei; const height: TGLsizei);
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call renderbufferStorageMultisample');
+  GL2.renderbufferStorageMultisample(target, samples, internalformat, width, height);
+end;
+
+procedure glTexStorage2D(const target: TGLenum; const levels: TGLsizei; const internalformat: TGLenum; const width: TGLsizei; const height: TGLsizei);
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call texStorage2D');
+  GL2.texStorage2D(target, levels, internalformat, width, height);
+end;
+
+procedure glTexStorage3D(const target: TGLenum; const levels: TGLsizei; const internalformat: TGLenum; const width: TGLsizei; const height: TGLsizei; const depth: TGLsizei);
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call texStorage3D');
+  GL2.texStorage3D(target, levels, internalformat, width, height, depth);
+end;
+
+procedure glTexImage2D(const target: TGLenum; const level: TGLint; const internalformat: TGLint; const width: TGLsizei; const height: TGLsizei; const border: TGLint; const format: TGLenum; const type_: TGLenum; const pixels: IJSArrayBufferView);
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call texImage2D');
+  GL2.texImage2D(target, level, internalformat, width, height, border, format, type_, pixels);
+end;
+
+procedure glTexImage2D(const target: TGLenum; const level: TGLint; const internalformat: TGLint; const format: TGLenum; const type_: TGLenum; const source: IJSHTMLCanvasElement);
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call texImage2D');
+  GL2.texImage2D(target, level, internalformat, format, type_, source);
+end;
+
+procedure glTexImage2D(const target: TGLenum; const level: TGLint; const internalformat: TGLint; const format: TGLenum; const type_: TGLenum; const source: IJSHTMLImageElement);
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call texImage2D');
+  GL2.texImage2D(target, level, internalformat, format, type_, source);
+end;
+
+procedure glTexImage2D(const target: TGLenum; const level: TGLint; const internalformat: TGLint; const format: TGLenum; const type_: TGLenum; const source: IJSHTMLVideoElement);
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call texImage2D');
+  GL2.texImage2D(target, level, internalformat, format, type_, source);
+end;
+
+procedure glTexImage2D(const target: TGLenum; const level: TGLint; const internalformat: TGLint; const format: TGLenum; const type_: TGLenum; const source: IJSImageBitmap);
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call texImage2D');
+  GL2.texImage2D(target, level, internalformat, format, type_, source);
+end;
+
+procedure glTexImage2D(const target: TGLenum; const level: TGLint; const internalformat: TGLint; const format: TGLenum; const type_: TGLenum; const source: IJSImageData);
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call texImage2D');
+  GL2.texImage2D(target, level, internalformat, format, type_, source);
+end;
+
+procedure glTexImage2D(const target: TGLenum; const level: TGLint; const internalformat: TGLint; const format: TGLenum; const type_: TGLenum; const source: IJSOffscreenCanvas);
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call texImage2D');
+  GL2.texImage2D(target, level, internalformat, format, type_, source);
+end;
+
+procedure glTexImage2D(const target: TGLenum; const level: TGLint; const internalformat: TGLint; const format: TGLenum; const type_: TGLenum; const source: IJSVideoFrame);
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call texImage2D');
+  GL2.texImage2D(target, level, internalformat, format, type_, source);
+end;
+
+procedure glTexSubImage2D(const target: TGLenum; const level: TGLint; const xoffset: TGLint; const yoffset: TGLint; const width: TGLsizei; const height: TGLsizei; const format: TGLenum; const type_: TGLenum; const pixels: IJSArrayBufferView);
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call texSubImage2D');
+  GL2.texSubImage2D(target, level, xoffset, yoffset, width, height, format, type_, pixels);
+end;
+
+procedure glTexSubImage2D(const target: TGLenum; const level: TGLint; const xoffset: TGLint; const yoffset: TGLint; const format: TGLenum; const type_: TGLenum; const source: IJSHTMLCanvasElement);
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call texSubImage2D');
+  GL2.texSubImage2D(target, level, xoffset, yoffset, format, type_, source);
+end;
+
+procedure glTexSubImage2D(const target: TGLenum; const level: TGLint; const xoffset: TGLint; const yoffset: TGLint; const format: TGLenum; const type_: TGLenum; const source: IJSHTMLImageElement);
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call texSubImage2D');
+  GL2.texSubImage2D(target, level, xoffset, yoffset, format, type_, source);
+end;
+
+procedure glTexSubImage2D(const target: TGLenum; const level: TGLint; const xoffset: TGLint; const yoffset: TGLint; const format: TGLenum; const type_: TGLenum; const source: IJSHTMLVideoElement);
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call texSubImage2D');
+  GL2.texSubImage2D(target, level, xoffset, yoffset, format, type_, source);
+end;
+
+procedure glTexSubImage2D(const target: TGLenum; const level: TGLint; const xoffset: TGLint; const yoffset: TGLint; const format: TGLenum; const type_: TGLenum; const source: IJSImageBitmap);
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call texSubImage2D');
+  GL2.texSubImage2D(target, level, xoffset, yoffset, format, type_, source);
+end;
+
+procedure glTexSubImage2D(const target: TGLenum; const level: TGLint; const xoffset: TGLint; const yoffset: TGLint; const format: TGLenum; const type_: TGLenum; const source: IJSImageData);
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call texSubImage2D');
+  GL2.texSubImage2D(target, level, xoffset, yoffset, format, type_, source);
+end;
+
+procedure glTexSubImage2D(const target: TGLenum; const level: TGLint; const xoffset: TGLint; const yoffset: TGLint; const format: TGLenum; const type_: TGLenum; const source: IJSOffscreenCanvas);
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call texSubImage2D');
+  GL2.texSubImage2D(target, level, xoffset, yoffset, format, type_, source);
+end;
+
+procedure glTexSubImage2D(const target: TGLenum; const level: TGLint; const xoffset: TGLint; const yoffset: TGLint; const format: TGLenum; const type_: TGLenum; const source: IJSVideoFrame);
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call texSubImage2D');
+  GL2.texSubImage2D(target, level, xoffset, yoffset, format, type_, source);
+end;
+
+procedure glTexImage2D(const target: TGLenum; const level: TGLint; const internalformat: TGLint; const width: TGLsizei; const height: TGLsizei; const border: TGLint; const format: TGLenum; const type_: TGLenum; const pboOffset: TGLintptr);
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call texImage2D');
+  GL2.texImage2D(target, level, internalformat, width, height, border, format, type_, pboOffset);
+end;
+
+procedure glTexImage2D(const target: TGLenum; const level: TGLint; const internalformat: TGLint; const width: TGLsizei; const height: TGLsizei; const border: TGLint; const format: TGLenum; const type_: TGLenum; const source: IJSHTMLCanvasElement);
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call texImage2D');
+  GL2.texImage2D(target, level, internalformat, width, height, border, format, type_, source);
+end;
+
+procedure glTexImage2D(const target: TGLenum; const level: TGLint; const internalformat: TGLint; const width: TGLsizei; const height: TGLsizei; const border: TGLint; const format: TGLenum; const type_: TGLenum; const source: IJSHTMLImageElement);
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call texImage2D');
+  GL2.texImage2D(target, level, internalformat, width, height, border, format, type_, source);
+end;
+
+procedure glTexImage2D(const target: TGLenum; const level: TGLint; const internalformat: TGLint; const width: TGLsizei; const height: TGLsizei; const border: TGLint; const format: TGLenum; const type_: TGLenum; const source: IJSHTMLVideoElement);
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call texImage2D');
+  GL2.texImage2D(target, level, internalformat, width, height, border, format, type_, source);
+end;
+
+procedure glTexImage2D(const target: TGLenum; const level: TGLint; const internalformat: TGLint; const width: TGLsizei; const height: TGLsizei; const border: TGLint; const format: TGLenum; const type_: TGLenum; const source: IJSImageBitmap);
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call texImage2D');
+  GL2.texImage2D(target, level, internalformat, width, height, border, format, type_, source);
+end;
+
+procedure glTexImage2D(const target: TGLenum; const level: TGLint; const internalformat: TGLint; const width: TGLsizei; const height: TGLsizei; const border: TGLint; const format: TGLenum; const type_: TGLenum; const source: IJSImageData);
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call texImage2D');
+  GL2.texImage2D(target, level, internalformat, width, height, border, format, type_, source);
+end;
+
+procedure glTexImage2D(const target: TGLenum; const level: TGLint; const internalformat: TGLint; const width: TGLsizei; const height: TGLsizei; const border: TGLint; const format: TGLenum; const type_: TGLenum; const source: IJSOffscreenCanvas);
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call texImage2D');
+  GL2.texImage2D(target, level, internalformat, width, height, border, format, type_, source);
+end;
+
+procedure glTexImage2D(const target: TGLenum; const level: TGLint; const internalformat: TGLint; const width: TGLsizei; const height: TGLsizei; const border: TGLint; const format: TGLenum; const type_: TGLenum; const source: IJSVideoFrame);
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call texImage2D');
+  GL2.texImage2D(target, level, internalformat, width, height, border, format, type_, source);
+end;
+
+procedure glTexImage2D(const target: TGLenum; const level: TGLint; const internalformat: TGLint; const width: TGLsizei; const height: TGLsizei; const border: TGLint; const format: TGLenum; const type_: TGLenum; const srcData: IJSArrayBufferView; const srcOffset: TGLuint);
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call texImage2D');
+  GL2.texImage2D(target, level, internalformat, width, height, border, format, type_, srcData, srcOffset);
+end;
+
+procedure glTexImage3D(const target: TGLenum; const level: TGLint; const internalformat: TGLint; const width: TGLsizei; const height: TGLsizei; const depth: TGLsizei; const border: TGLint; const format: TGLenum; const type_: TGLenum; const pboOffset: TGLintptr);
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call texImage3D');
+  GL2.texImage3D(target, level, internalformat, width, height, depth, border, format, type_, pboOffset);
+end;
+
+procedure glTexImage3D(const target: TGLenum; const level: TGLint; const internalformat: TGLint; const width: TGLsizei; const height: TGLsizei; const depth: TGLsizei; const border: TGLint; const format: TGLenum; const type_: TGLenum; const source: IJSHTMLCanvasElement);
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call texImage3D');
+  GL2.texImage3D(target, level, internalformat, width, height, depth, border, format, type_, source);
+end;
+
+procedure glTexImage3D(const target: TGLenum; const level: TGLint; const internalformat: TGLint; const width: TGLsizei; const height: TGLsizei; const depth: TGLsizei; const border: TGLint; const format: TGLenum; const type_: TGLenum; const source: IJSHTMLImageElement);
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call texImage3D');
+  GL2.texImage3D(target, level, internalformat, width, height, depth, border, format, type_, source);
+end;
+
+procedure glTexImage3D(const target: TGLenum; const level: TGLint; const internalformat: TGLint; const width: TGLsizei; const height: TGLsizei; const depth: TGLsizei; const border: TGLint; const format: TGLenum; const type_: TGLenum; const source: IJSHTMLVideoElement);
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call texImage3D');
+  GL2.texImage3D(target, level, internalformat, width, height, depth, border, format, type_, source);
+end;
+
+procedure glTexImage3D(const target: TGLenum; const level: TGLint; const internalformat: TGLint; const width: TGLsizei; const height: TGLsizei; const depth: TGLsizei; const border: TGLint; const format: TGLenum; const type_: TGLenum; const source: IJSImageBitmap);
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call texImage3D');
+  GL2.texImage3D(target, level, internalformat, width, height, depth, border, format, type_, source);
+end;
+
+procedure glTexImage3D(const target: TGLenum; const level: TGLint; const internalformat: TGLint; const width: TGLsizei; const height: TGLsizei; const depth: TGLsizei; const border: TGLint; const format: TGLenum; const type_: TGLenum; const source: IJSImageData);
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call texImage3D');
+  GL2.texImage3D(target, level, internalformat, width, height, depth, border, format, type_, source);
+end;
+
+procedure glTexImage3D(const target: TGLenum; const level: TGLint; const internalformat: TGLint; const width: TGLsizei; const height: TGLsizei; const depth: TGLsizei; const border: TGLint; const format: TGLenum; const type_: TGLenum; const source: IJSOffscreenCanvas);
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call texImage3D');
+  GL2.texImage3D(target, level, internalformat, width, height, depth, border, format, type_, source);
+end;
+
+procedure glTexImage3D(const target: TGLenum; const level: TGLint; const internalformat: TGLint; const width: TGLsizei; const height: TGLsizei; const depth: TGLsizei; const border: TGLint; const format: TGLenum; const type_: TGLenum; const source: IJSVideoFrame);
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call texImage3D');
+  GL2.texImage3D(target, level, internalformat, width, height, depth, border, format, type_, source);
+end;
+
+procedure glTexImage3D(const target: TGLenum; const level: TGLint; const internalformat: TGLint; const width: TGLsizei; const height: TGLsizei; const depth: TGLsizei; const border: TGLint; const format: TGLenum; const type_: TGLenum; const srcData: IJSArrayBufferView);
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call texImage3D');
+  GL2.texImage3D(target, level, internalformat, width, height, depth, border, format, type_, srcData);
+end;
+
+procedure glTexImage3D(const target: TGLenum; const level: TGLint; const internalformat: TGLint; const width: TGLsizei; const height: TGLsizei; const depth: TGLsizei; const border: TGLint; const format: TGLenum; const type_: TGLenum; const srcData: IJSArrayBufferView; const srcOffset: TGLuint);
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call texImage3D');
+  GL2.texImage3D(target, level, internalformat, width, height, depth, border, format, type_, srcData, srcOffset);
+end;
+
+procedure glTexSubImage2D(const target: TGLenum; const level: TGLint; const xoffset: TGLint; const yoffset: TGLint; const width: TGLsizei; const height: TGLsizei; const format: TGLenum; const type_: TGLenum; const pboOffset: TGLintptr);
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call texSubImage2D');
+  GL2.texSubImage2D(target, level, xoffset, yoffset, width, height, format, type_, pboOffset);
+end;
+
+procedure glTexSubImage2D(const target: TGLenum; const level: TGLint; const xoffset: TGLint; const yoffset: TGLint; const width: TGLsizei; const height: TGLsizei; const format: TGLenum; const type_: TGLenum; const source: IJSHTMLCanvasElement);
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call texSubImage2D');
+  GL2.texSubImage2D(target, level, xoffset, yoffset, width, height, format, type_, source);
+end;
+
+procedure glTexSubImage2D(const target: TGLenum; const level: TGLint; const xoffset: TGLint; const yoffset: TGLint; const width: TGLsizei; const height: TGLsizei; const format: TGLenum; const type_: TGLenum; const source: IJSHTMLImageElement);
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call texSubImage2D');
+  GL2.texSubImage2D(target, level, xoffset, yoffset, width, height, format, type_, source);
+end;
+
+procedure glTexSubImage2D(const target: TGLenum; const level: TGLint; const xoffset: TGLint; const yoffset: TGLint; const width: TGLsizei; const height: TGLsizei; const format: TGLenum; const type_: TGLenum; const source: IJSHTMLVideoElement);
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call texSubImage2D');
+  GL2.texSubImage2D(target, level, xoffset, yoffset, width, height, format, type_, source);
+end;
+
+procedure glTexSubImage2D(const target: TGLenum; const level: TGLint; const xoffset: TGLint; const yoffset: TGLint; const width: TGLsizei; const height: TGLsizei; const format: TGLenum; const type_: TGLenum; const source: IJSImageBitmap);
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call texSubImage2D');
+  GL2.texSubImage2D(target, level, xoffset, yoffset, width, height, format, type_, source);
+end;
+
+procedure glTexSubImage2D(const target: TGLenum; const level: TGLint; const xoffset: TGLint; const yoffset: TGLint; const width: TGLsizei; const height: TGLsizei; const format: TGLenum; const type_: TGLenum; const source: IJSImageData);
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call texSubImage2D');
+  GL2.texSubImage2D(target, level, xoffset, yoffset, width, height, format, type_, source);
+end;
+
+procedure glTexSubImage2D(const target: TGLenum; const level: TGLint; const xoffset: TGLint; const yoffset: TGLint; const width: TGLsizei; const height: TGLsizei; const format: TGLenum; const type_: TGLenum; const source: IJSOffscreenCanvas);
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call texSubImage2D');
+  GL2.texSubImage2D(target, level, xoffset, yoffset, width, height, format, type_, source);
+end;
+
+procedure glTexSubImage2D(const target: TGLenum; const level: TGLint; const xoffset: TGLint; const yoffset: TGLint; const width: TGLsizei; const height: TGLsizei; const format: TGLenum; const type_: TGLenum; const source: IJSVideoFrame);
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call texSubImage2D');
+  GL2.texSubImage2D(target, level, xoffset, yoffset, width, height, format, type_, source);
+end;
+
+procedure glTexSubImage2D(const target: TGLenum; const level: TGLint; const xoffset: TGLint; const yoffset: TGLint; const width: TGLsizei; const height: TGLsizei; const format: TGLenum; const type_: TGLenum; const srcData: IJSArrayBufferView; const srcOffset: TGLuint);
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call texSubImage2D');
+  GL2.texSubImage2D(target, level, xoffset, yoffset, width, height, format, type_, srcData, srcOffset);
+end;
+
+procedure glTexSubImage3D(const target: TGLenum; const level: TGLint; const xoffset: TGLint; const yoffset: TGLint; const zoffset: TGLint; const width: TGLsizei; const height: TGLsizei; const depth: TGLsizei; const format: TGLenum; const type_: TGLenum; const pboOffset: TGLintptr);
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call texSubImage3D');
+  GL2.texSubImage3D(target, level, xoffset, yoffset, zoffset, width, height, depth, format, type_, pboOffset);
+end;
+
+procedure glTexSubImage3D(const target: TGLenum; const level: TGLint; const xoffset: TGLint; const yoffset: TGLint; const zoffset: TGLint; const width: TGLsizei; const height: TGLsizei; const depth: TGLsizei; const format: TGLenum; const type_: TGLenum; const source: IJSHTMLCanvasElement);
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call texSubImage3D');
+  GL2.texSubImage3D(target, level, xoffset, yoffset, zoffset, width, height, depth, format, type_, source);
+end;
+
+procedure glTexSubImage3D(const target: TGLenum; const level: TGLint; const xoffset: TGLint; const yoffset: TGLint; const zoffset: TGLint; const width: TGLsizei; const height: TGLsizei; const depth: TGLsizei; const format: TGLenum; const type_: TGLenum; const source: IJSHTMLImageElement);
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call texSubImage3D');
+  GL2.texSubImage3D(target, level, xoffset, yoffset, zoffset, width, height, depth, format, type_, source);
+end;
+
+procedure glTexSubImage3D(const target: TGLenum; const level: TGLint; const xoffset: TGLint; const yoffset: TGLint; const zoffset: TGLint; const width: TGLsizei; const height: TGLsizei; const depth: TGLsizei; const format: TGLenum; const type_: TGLenum; const source: IJSHTMLVideoElement);
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call texSubImage3D');
+  GL2.texSubImage3D(target, level, xoffset, yoffset, zoffset, width, height, depth, format, type_, source);
+end;
+
+procedure glTexSubImage3D(const target: TGLenum; const level: TGLint; const xoffset: TGLint; const yoffset: TGLint; const zoffset: TGLint; const width: TGLsizei; const height: TGLsizei; const depth: TGLsizei; const format: TGLenum; const type_: TGLenum; const source: IJSImageBitmap);
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call texSubImage3D');
+  GL2.texSubImage3D(target, level, xoffset, yoffset, zoffset, width, height, depth, format, type_, source);
+end;
+
+procedure glTexSubImage3D(const target: TGLenum; const level: TGLint; const xoffset: TGLint; const yoffset: TGLint; const zoffset: TGLint; const width: TGLsizei; const height: TGLsizei; const depth: TGLsizei; const format: TGLenum; const type_: TGLenum; const source: IJSImageData);
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call texSubImage3D');
+  GL2.texSubImage3D(target, level, xoffset, yoffset, zoffset, width, height, depth, format, type_, source);
+end;
+
+procedure glTexSubImage3D(const target: TGLenum; const level: TGLint; const xoffset: TGLint; const yoffset: TGLint; const zoffset: TGLint; const width: TGLsizei; const height: TGLsizei; const depth: TGLsizei; const format: TGLenum; const type_: TGLenum; const source: IJSOffscreenCanvas);
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call texSubImage3D');
+  GL2.texSubImage3D(target, level, xoffset, yoffset, zoffset, width, height, depth, format, type_, source);
+end;
+
+procedure glTexSubImage3D(const target: TGLenum; const level: TGLint; const xoffset: TGLint; const yoffset: TGLint; const zoffset: TGLint; const width: TGLsizei; const height: TGLsizei; const depth: TGLsizei; const format: TGLenum; const type_: TGLenum; const source: IJSVideoFrame);
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call texSubImage3D');
+  GL2.texSubImage3D(target, level, xoffset, yoffset, zoffset, width, height, depth, format, type_, source);
+end;
+
+procedure glTexSubImage3D(const target: TGLenum; const level: TGLint; const xoffset: TGLint; const yoffset: TGLint; const zoffset: TGLint; const width: TGLsizei; const height: TGLsizei; const depth: TGLsizei; const format: TGLenum; const type_: TGLenum; const srcData: IJSArrayBufferView; const srcOffset: TGLuint);
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call texSubImage3D');
+  GL2.texSubImage3D(target, level, xoffset, yoffset, zoffset, width, height, depth, format, type_, srcData, srcOffset);
+end;
+
+procedure glCopyTexSubImage3D(const target: TGLenum; const level: TGLint; const xoffset: TGLint; const yoffset: TGLint; const zoffset: TGLint; const x: TGLint; const y: TGLint; const width: TGLsizei; const height: TGLsizei);
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call copyTexSubImage3D');
+  GL2.copyTexSubImage3D(target, level, xoffset, yoffset, zoffset, x, y, width, height);
+end;
+
+procedure glCompressedTexImage2D(const target: TGLenum; const level: TGLint; const internalformat: TGLenum; const width: TGLsizei; const height: TGLsizei; const border: TGLint; const imageSize: TGLsizei; const offset: TGLintptr);
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call compressedTexImage2D');
+  GL2.compressedTexImage2D(target, level, internalformat, width, height, border, imageSize, offset);
+end;
+
+procedure glCompressedTexImage2D(const target: TGLenum; const level: TGLint; const internalformat: TGLenum; const width: TGLsizei; const height: TGLsizei; const border: TGLint; const srcData: IJSArrayBufferView; const srcOffset: TGLuint; const srcLengthOverride: TGLuint);
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call compressedTexImage2D');
+  GL2.compressedTexImage2D(target, level, internalformat, width, height, border, srcData, srcOffset, srcLengthOverride);
+end;
+
+procedure glCompressedTexImage3D(const target: TGLenum; const level: TGLint; const internalformat: TGLenum; const width: TGLsizei; const height: TGLsizei; const depth: TGLsizei; const border: TGLint; const imageSize: TGLsizei; const offset: TGLintptr);
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call compressedTexImage3D');
+  GL2.compressedTexImage3D(target, level, internalformat, width, height, depth, border, imageSize, offset);
+end;
+
+procedure glCompressedTexImage3D(const target: TGLenum; const level: TGLint; const internalformat: TGLenum; const width: TGLsizei; const height: TGLsizei; const depth: TGLsizei; const border: TGLint; const srcData: IJSArrayBufferView; const srcOffset: TGLuint; const srcLengthOverride: TGLuint);
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call compressedTexImage3D');
+  GL2.compressedTexImage3D(target, level, internalformat, width, height, depth, border, srcData, srcOffset, srcLengthOverride);
+end;
+
+procedure glCompressedTexSubImage2D(const target: TGLenum; const level: TGLint; const xoffset: TGLint; const yoffset: TGLint; const width: TGLsizei; const height: TGLsizei; const format: TGLenum; const imageSize: TGLsizei; const offset: TGLintptr);
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call compressedTexSubImage2D');
+  GL2.compressedTexSubImage2D(target, level, xoffset, yoffset, width, height, format, imageSize, offset);
+end;
+
+procedure glCompressedTexSubImage2D(const target: TGLenum; const level: TGLint; const xoffset: TGLint; const yoffset: TGLint; const width: TGLsizei; const height: TGLsizei; const format: TGLenum; const srcData: IJSArrayBufferView; const srcOffset: TGLuint; const srcLengthOverride: TGLuint);
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call compressedTexSubImage2D');
+  GL2.compressedTexSubImage2D(target, level, xoffset, yoffset, width, height, format, srcData, srcOffset, srcLengthOverride);
+end;
+
+procedure glCompressedTexSubImage3D(const target: TGLenum; const level: TGLint; const xoffset: TGLint; const yoffset: TGLint; const zoffset: TGLint; const width: TGLsizei; const height: TGLsizei; const depth: TGLsizei; const format: TGLenum; const imageSize: TGLsizei; const offset: TGLintptr);
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call compressedTexSubImage3D');
+  GL2.compressedTexSubImage3D(target, level, xoffset, yoffset, zoffset, width, height, depth, format, imageSize, offset);
+end;
+
+procedure glCompressedTexSubImage3D(const target: TGLenum; const level: TGLint; const xoffset: TGLint; const yoffset: TGLint; const zoffset: TGLint; const width: TGLsizei; const height: TGLsizei; const depth: TGLsizei; const format: TGLenum; const srcData: IJSArrayBufferView; const srcOffset: TGLuint; const srcLengthOverride: TGLuint);
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call compressedTexSubImage3D');
+  GL2.compressedTexSubImage3D(target, level, xoffset, yoffset, zoffset, width, height, depth, format, srcData, srcOffset, srcLengthOverride);
+end;
+
+function glGetFragDataLocation(const program_: IJSWebGLProgram; const name: String): TGLint;
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call getFragDataLocation');
+  Result := GL2.getFragDataLocation(program_, name);
+end;
+
+procedure glUniform1ui(const location: IJSWebGLUniformLocation; const v0: TGLuint);
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call uniform1ui');
+  GL2.uniform1ui(location, v0);
+end;
+
+procedure glUniform2ui(const location: IJSWebGLUniformLocation; const v0: TGLuint; const v1: TGLuint);
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call uniform2ui');
+  GL2.uniform2ui(location, v0, v1);
+end;
+
+procedure glUniform3ui(const location: IJSWebGLUniformLocation; const v0: TGLuint; const v1: TGLuint; const v2: TGLuint);
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call uniform3ui');
+  GL2.uniform3ui(location, v0, v1, v2);
+end;
+
+procedure glUniform4ui(const location: IJSWebGLUniformLocation; const v0: TGLuint; const v1: TGLuint; const v2: TGLuint; const v3: TGLuint);
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call uniform4ui');
+  GL2.uniform4ui(location, v0, v1, v2, v3);
+end;
+
+{ Not in auto-generated flat WebGL API:
+procedure glUniform1fv(const location: IJSWebGLUniformLocation; const data: TFloat32List; const srcOffset: TGLuint; const srcLength: TGLuint);
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call uniform1fv');
+  GL2.uniform1fv(location, data, srcOffset, srcLength);
+end;
+
+}
+{ Not in auto-generated flat WebGL API:
+procedure glUniform2fv(const location: IJSWebGLUniformLocation; const data: TFloat32List; const srcOffset: TGLuint; const srcLength: TGLuint);
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call uniform2fv');
+  GL2.uniform2fv(location, data, srcOffset, srcLength);
+end;
+
+}
+{ Not in auto-generated flat WebGL API:
+procedure glUniform3fv(const location: IJSWebGLUniformLocation; const data: TFloat32List; const srcOffset: TGLuint; const srcLength: TGLuint);
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call uniform3fv');
+  GL2.uniform3fv(location, data, srcOffset, srcLength);
+end;
+
+}
+{ Not in auto-generated flat WebGL API:
+procedure glUniform4fv(const location: IJSWebGLUniformLocation; const data: TFloat32List; const srcOffset: TGLuint; const srcLength: TGLuint);
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call uniform4fv');
+  GL2.uniform4fv(location, data, srcOffset, srcLength);
+end;
+
+}
+{ Not in auto-generated flat WebGL API:
+procedure glUniform1iv(const location: IJSWebGLUniformLocation; const data: TInt32List; const srcOffset: TGLuint; const srcLength: TGLuint);
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call uniform1iv');
+  GL2.uniform1iv(location, data, srcOffset, srcLength);
+end;
+
+}
+{ Not in auto-generated flat WebGL API:
+procedure glUniform2iv(const location: IJSWebGLUniformLocation; const data: TInt32List; const srcOffset: TGLuint; const srcLength: TGLuint);
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call uniform2iv');
+  GL2.uniform2iv(location, data, srcOffset, srcLength);
+end;
+
+}
+{ Not in auto-generated flat WebGL API:
+procedure glUniform3iv(const location: IJSWebGLUniformLocation; const data: TInt32List; const srcOffset: TGLuint; const srcLength: TGLuint);
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call uniform3iv');
+  GL2.uniform3iv(location, data, srcOffset, srcLength);
+end;
+
+}
+{ Not in auto-generated flat WebGL API:
+procedure glUniform4iv(const location: IJSWebGLUniformLocation; const data: TInt32List; const srcOffset: TGLuint; const srcLength: TGLuint);
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call uniform4iv');
+  GL2.uniform4iv(location, data, srcOffset, srcLength);
+end;
+
+}
+{ Not in auto-generated flat WebGL API:
+procedure glUniform1uiv(const location: IJSWebGLUniformLocation; const data: TUint32List; const srcOffset: TGLuint; const srcLength: TGLuint);
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call uniform1uiv');
+  GL2.uniform1uiv(location, data, srcOffset, srcLength);
+end;
+
+}
+{ Not in auto-generated flat WebGL API:
+procedure glUniform2uiv(const location: IJSWebGLUniformLocation; const data: TUint32List; const srcOffset: TGLuint; const srcLength: TGLuint);
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call uniform2uiv');
+  GL2.uniform2uiv(location, data, srcOffset, srcLength);
+end;
+
+}
+{ Not in auto-generated flat WebGL API:
+procedure glUniform3uiv(const location: IJSWebGLUniformLocation; const data: TUint32List; const srcOffset: TGLuint; const srcLength: TGLuint);
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call uniform3uiv');
+  GL2.uniform3uiv(location, data, srcOffset, srcLength);
+end;
+
+}
+{ Not in auto-generated flat WebGL API:
+procedure glUniform4uiv(const location: IJSWebGLUniformLocation; const data: TUint32List; const srcOffset: TGLuint; const srcLength: TGLuint);
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call uniform4uiv');
+  GL2.uniform4uiv(location, data, srcOffset, srcLength);
+end;
+
+}
+{ Not in auto-generated flat WebGL API:
+procedure glUniformMatrix2fv(const location: IJSWebGLUniformLocation; const transpose: TGLboolean; const data: TFloat32List; const srcOffset: TGLuint; const srcLength: TGLuint);
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call uniformMatrix2fv');
+  GL2.uniformMatrix2fv(location, transpose, data, srcOffset, srcLength);
+end;
+
+}
+{ Not in auto-generated flat WebGL API:
+procedure glUniformMatrix3x2fv(const location: IJSWebGLUniformLocation; const transpose: TGLboolean; const data: TFloat32List; const srcOffset: TGLuint; const srcLength: TGLuint);
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call uniformMatrix3x2fv');
+  GL2.uniformMatrix3x2fv(location, transpose, data, srcOffset, srcLength);
+end;
+
+}
+{ Not in auto-generated flat WebGL API:
+procedure glUniformMatrix4x2fv(const location: IJSWebGLUniformLocation; const transpose: TGLboolean; const data: TFloat32List; const srcOffset: TGLuint; const srcLength: TGLuint);
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call uniformMatrix4x2fv');
+  GL2.uniformMatrix4x2fv(location, transpose, data, srcOffset, srcLength);
+end;
+
+}
+{ Not in auto-generated flat WebGL API:
+procedure glUniformMatrix2x3fv(const location: IJSWebGLUniformLocation; const transpose: TGLboolean; const data: TFloat32List; const srcOffset: TGLuint; const srcLength: TGLuint);
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call uniformMatrix2x3fv');
+  GL2.uniformMatrix2x3fv(location, transpose, data, srcOffset, srcLength);
+end;
+
+}
+{ Not in auto-generated flat WebGL API:
+procedure glUniformMatrix3fv(const location: IJSWebGLUniformLocation; const transpose: TGLboolean; const data: TFloat32List; const srcOffset: TGLuint; const srcLength: TGLuint);
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call uniformMatrix3fv');
+  GL2.uniformMatrix3fv(location, transpose, data, srcOffset, srcLength);
+end;
+
+}
+{ Not in auto-generated flat WebGL API:
+procedure glUniformMatrix4x3fv(const location: IJSWebGLUniformLocation; const transpose: TGLboolean; const data: TFloat32List; const srcOffset: TGLuint; const srcLength: TGLuint);
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call uniformMatrix4x3fv');
+  GL2.uniformMatrix4x3fv(location, transpose, data, srcOffset, srcLength);
+end;
+
+}
+{ Not in auto-generated flat WebGL API:
+procedure glUniformMatrix2x4fv(const location: IJSWebGLUniformLocation; const transpose: TGLboolean; const data: TFloat32List; const srcOffset: TGLuint; const srcLength: TGLuint);
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call uniformMatrix2x4fv');
+  GL2.uniformMatrix2x4fv(location, transpose, data, srcOffset, srcLength);
+end;
+
+}
+{ Not in auto-generated flat WebGL API:
+procedure glUniformMatrix3x4fv(const location: IJSWebGLUniformLocation; const transpose: TGLboolean; const data: TFloat32List; const srcOffset: TGLuint; const srcLength: TGLuint);
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call uniformMatrix3x4fv');
+  GL2.uniformMatrix3x4fv(location, transpose, data, srcOffset, srcLength);
+end;
+
+}
+{ Not in auto-generated flat WebGL API:
+procedure glUniformMatrix4fv(const location: IJSWebGLUniformLocation; const transpose: TGLboolean; const data: TFloat32List; const srcOffset: TGLuint; const srcLength: TGLuint);
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call uniformMatrix4fv');
+  GL2.uniformMatrix4fv(location, transpose, data, srcOffset, srcLength);
+end;
+
+}
+procedure glVertexAttribI4i(const index: TGLuint; const x: TGLint; const y: TGLint; const z: TGLint; const w: TGLint);
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call vertexAttribI4i');
+  GL2.vertexAttribI4i(index, x, y, z, w);
+end;
+
+{ Not in auto-generated flat WebGL API:
+procedure glVertexAttribI4iv(const index: TGLuint; const values: TInt32List);
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call vertexAttribI4iv');
+  GL2.vertexAttribI4iv(index, values);
+end;
+
+}
+procedure glVertexAttribI4ui(const index: TGLuint; const x: TGLuint; const y: TGLuint; const z: TGLuint; const w: TGLuint);
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call vertexAttribI4ui');
+  GL2.vertexAttribI4ui(index, x, y, z, w);
+end;
+
+{ Not in auto-generated flat WebGL API:
+procedure glVertexAttribI4uiv(const index: TGLuint; const values: TUint32List);
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call vertexAttribI4uiv');
+  GL2.vertexAttribI4uiv(index, values);
+end;
+
+}
+procedure glVertexAttribIPointer(const index: TGLuint; const size: TGLint; const type_: TGLenum; const stride: TGLsizei; const offset: TGLintptr);
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call vertexAttribIPointer');
+  GL2.vertexAttribIPointer(index, size, type_, stride, offset);
+end;
+
+procedure glVertexAttribDivisor(const index: TGLuint; const divisor: TGLuint);
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call vertexAttribDivisor');
+  GL2.vertexAttribDivisor(index, divisor);
+end;
+
+procedure glDrawArraysInstanced(const mode: TGLenum; const first: TGLint; const count: TGLsizei; const instanceCount: TGLsizei);
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call drawArraysInstanced');
+  GL2.drawArraysInstanced(mode, first, count, instanceCount);
+end;
+
+procedure glDrawElementsInstanced(const mode: TGLenum; const count: TGLsizei; const type_: TGLenum; const offset: TGLintptr; const instanceCount: TGLsizei);
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call drawElementsInstanced');
+  GL2.drawElementsInstanced(mode, count, type_, offset, instanceCount);
+end;
+
+procedure glDrawRangeElements(const mode: TGLenum; const start: TGLuint; const end_: TGLuint; const count: TGLsizei; const type_: TGLenum; const offset: TGLintptr);
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call drawRangeElements');
+  GL2.drawRangeElements(mode, start, end_, count, type_, offset);
+end;
+
+procedure glReadPixels(const x: TGLint; const y: TGLint; const width: TGLsizei; const height: TGLsizei; const format: TGLenum; const type_: TGLenum; const dstData: IJSArrayBufferView);
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call readPixels');
+  GL2.readPixels(x, y, width, height, format, type_, dstData);
+end;
+
+procedure glReadPixels(const x: TGLint; const y: TGLint; const width: TGLsizei; const height: TGLsizei; const format: TGLenum; const type_: TGLenum; const offset: TGLintptr);
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call readPixels');
+  GL2.readPixels(x, y, width, height, format, type_, offset);
+end;
+
+procedure glReadPixels(const x: TGLint; const y: TGLint; const width: TGLsizei; const height: TGLsizei; const format: TGLenum; const type_: TGLenum; const dstData: IJSArrayBufferView; const dstOffset: TGLuint);
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call readPixels');
+  GL2.readPixels(x, y, width, height, format, type_, dstData, dstOffset);
+end;
+
+{ Not in auto-generated flat WebGL API:
+procedure glDrawBuffers(const buffers: Tsequence);
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call drawBuffers');
+  GL2.drawBuffers(buffers);
+end;
+
+}
+{ Not in auto-generated flat WebGL API:
+procedure glClearBufferfv(const buffer: TGLenum; const drawbuffer: TGLint; const values: TFloat32List; const srcOffset: TGLuint);
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call clearBufferfv');
+  GL2.clearBufferfv(buffer, drawbuffer, values, srcOffset);
+end;
+
+}
+{ Not in auto-generated flat WebGL API:
+procedure glClearBufferiv(const buffer: TGLenum; const drawbuffer: TGLint; const values: TInt32List; const srcOffset: TGLuint);
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call clearBufferiv');
+  GL2.clearBufferiv(buffer, drawbuffer, values, srcOffset);
+end;
+
+}
+{ Not in auto-generated flat WebGL API:
+procedure glClearBufferuiv(const buffer: TGLenum; const drawbuffer: TGLint; const values: TUint32List; const srcOffset: TGLuint);
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call clearBufferuiv');
+  GL2.clearBufferuiv(buffer, drawbuffer, values, srcOffset);
+end;
+
+}
+procedure glClearBufferfi(const buffer: TGLenum; const drawbuffer: TGLint; const depth: TGLfloat; const stencil: TGLint);
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call clearBufferfi');
+  GL2.clearBufferfi(buffer, drawbuffer, depth, stencil);
+end;
+
+function glCreateQuery(): IJSWebGLQuery;
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call createQuery');
+  Result := GL2.createQuery();
+end;
+
+procedure glDeleteQuery(const query: IJSWebGLQuery);
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call deleteQuery');
+  GL2.deleteQuery(query);
+end;
+
+function glIsQuery(const query: IJSWebGLQuery): TGLboolean;
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call isQuery');
+  Result := GL2.isQuery(query);
+end;
+
+procedure glBeginQuery(const target: TGLenum; const query: IJSWebGLQuery);
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call beginQuery');
+  GL2.beginQuery(target, query);
+end;
+
+procedure glEndQuery(const target: TGLenum);
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call endQuery');
+  GL2.endQuery(target);
+end;
+
+function glGetQuery(const target: TGLenum; const pname: TGLenum): Variant;
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call getQuery');
+  Result := GL2.getQuery(target, pname);
+end;
+
+function glGetQueryParameter(const query: IJSWebGLQuery; const pname: TGLenum): Variant;
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call getQueryParameter');
+  Result := GL2.getQueryParameter(query, pname);
+end;
+
+function glCreateSampler(): IJSWebGLSampler;
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call createSampler');
+  Result := GL2.createSampler();
+end;
+
+procedure glDeleteSampler(const sampler: IJSWebGLSampler);
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call deleteSampler');
+  GL2.deleteSampler(sampler);
+end;
+
+function glIsSampler(const sampler: IJSWebGLSampler): TGLboolean;
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call isSampler');
+  Result := GL2.isSampler(sampler);
+end;
+
+procedure glBindSampler(const unit_: TGLuint; const sampler: IJSWebGLSampler);
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call bindSampler');
+  GL2.bindSampler(unit_, sampler);
+end;
+
+procedure glSamplerParameteri(const sampler: IJSWebGLSampler; const pname: TGLenum; const param: TGLint);
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call samplerParameteri');
+  GL2.samplerParameteri(sampler, pname, param);
+end;
+
+procedure glSamplerParameterf(const sampler: IJSWebGLSampler; const pname: TGLenum; const param: TGLfloat);
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call samplerParameterf');
+  GL2.samplerParameterf(sampler, pname, param);
+end;
+
+function glGetSamplerParameter(const sampler: IJSWebGLSampler; const pname: TGLenum): Variant;
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call getSamplerParameter');
+  Result := GL2.getSamplerParameter(sampler, pname);
+end;
+
+function glFenceSync(const condition: TGLenum; const flags: TGLbitfield): IJSWebGLSync;
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call fenceSync');
+  Result := GL2.fenceSync(condition, flags);
+end;
+
+function glIsSync(const sync: IJSWebGLSync): TGLboolean;
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call isSync');
+  Result := GL2.isSync(sync);
+end;
+
+procedure glDeleteSync(const sync: IJSWebGLSync);
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call deleteSync');
+  GL2.deleteSync(sync);
+end;
+
+function glClientWaitSync(const sync: IJSWebGLSync; const flags: TGLbitfield; const timeout: TGLuint64): TGLenum;
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call clientWaitSync');
+  Result := GL2.clientWaitSync(sync, flags, timeout);
+end;
+
+procedure glWaitSync(const sync: IJSWebGLSync; const flags: TGLbitfield; const timeout: TGLint64);
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call waitSync');
+  GL2.waitSync(sync, flags, timeout);
+end;
+
+function glGetSyncParameter(const sync: IJSWebGLSync; const pname: TGLenum): Variant;
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call getSyncParameter');
+  Result := GL2.getSyncParameter(sync, pname);
+end;
+
+function glCreateTransformFeedback(): IJSWebGLTransformFeedback;
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call createTransformFeedback');
+  Result := GL2.createTransformFeedback();
+end;
+
+procedure glDeleteTransformFeedback(const tf: IJSWebGLTransformFeedback);
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call deleteTransformFeedback');
+  GL2.deleteTransformFeedback(tf);
+end;
+
+function glIsTransformFeedback(const tf: IJSWebGLTransformFeedback): TGLboolean;
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call isTransformFeedback');
+  Result := GL2.isTransformFeedback(tf);
+end;
+
+procedure glBindTransformFeedback(const target: TGLenum; const tf: IJSWebGLTransformFeedback);
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call bindTransformFeedback');
+  GL2.bindTransformFeedback(target, tf);
+end;
+
+procedure glBeginTransformFeedback(const primitiveMode: TGLenum);
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call beginTransformFeedback');
+  GL2.beginTransformFeedback(primitiveMode);
+end;
+
+procedure glEndTransformFeedback();
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call endTransformFeedback');
+  GL2.endTransformFeedback();
+end;
+
+{ Not in auto-generated flat WebGL API:
+procedure glTransformFeedbackVaryings(const program_: IJSWebGLProgram; const varyings: Tsequence; const bufferMode: TGLenum);
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call transformFeedbackVaryings');
+  GL2.transformFeedbackVaryings(program_, varyings, bufferMode);
+end;
+
+}
+function glGetTransformFeedbackVarying(const program_: IJSWebGLProgram; const index: TGLuint): IJSWebGLActiveInfo;
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call getTransformFeedbackVarying');
+  Result := GL2.getTransformFeedbackVarying(program_, index);
+end;
+
+procedure glPauseTransformFeedback();
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call pauseTransformFeedback');
+  GL2.pauseTransformFeedback();
+end;
+
+procedure glResumeTransformFeedback();
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call resumeTransformFeedback');
+  GL2.resumeTransformFeedback();
+end;
+
+procedure glBindBufferBase(const target: TGLenum; const index: TGLuint; const buffer: IJSWebGLBuffer);
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call bindBufferBase');
+  GL2.bindBufferBase(target, index, buffer);
+end;
+
+procedure glBindBufferRange(const target: TGLenum; const index: TGLuint; const buffer: IJSWebGLBuffer; const offset: TGLintptr; const size: TGLsizeiptr);
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call bindBufferRange');
+  GL2.bindBufferRange(target, index, buffer, offset, size);
+end;
+
+function glGetIndexedParameter(const target: TGLenum; const index: TGLuint): Variant;
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call getIndexedParameter');
+  Result := GL2.getIndexedParameter(target, index);
+end;
+
+{ Not in auto-generated flat WebGL API:
+function glGetUniformIndices(const program_: IJSWebGLProgram; const uniformNames: Tsequence): Tsequence;
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call getUniformIndices');
+  Result := GL2.getUniformIndices(program_, uniformNames);
+end;
+
+}
+{ Not in auto-generated flat WebGL API:
+function glGetActiveUniforms(const program_: IJSWebGLProgram; const uniformIndices: Tsequence; const pname: TGLenum): Variant;
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call getActiveUniforms');
+  Result := GL2.getActiveUniforms(program_, uniformIndices, pname);
+end;
+
+}
+function glGetUniformBlockIndex(const program_: IJSWebGLProgram; const uniformBlockName: String): TGLuint;
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call getUniformBlockIndex');
+  Result := GL2.getUniformBlockIndex(program_, uniformBlockName);
+end;
+
+function glGetActiveUniformBlockParameter(const program_: IJSWebGLProgram; const uniformBlockIndex: TGLuint; const pname: TGLenum): Variant;
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call getActiveUniformBlockParameter');
+  Result := GL2.getActiveUniformBlockParameter(program_, uniformBlockIndex, pname);
+end;
+
+function glGetActiveUniformBlockName(const program_: IJSWebGLProgram; const uniformBlockIndex: TGLuint): String;
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call getActiveUniformBlockName');
+  Result := GL2.getActiveUniformBlockName(program_, uniformBlockIndex);
+end;
+
+procedure glUniformBlockBinding(const program_: IJSWebGLProgram; const uniformBlockIndex: TGLuint; const uniformBlockBinding: TGLuint);
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call uniformBlockBinding');
+  GL2.uniformBlockBinding(program_, uniformBlockIndex, uniformBlockBinding);
+end;
+
+function glCreateVertexArray(): IJSWebGLVertexArrayObject;
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call createVertexArray');
+  Result := GL2.createVertexArray();
+end;
+
+procedure glDeleteVertexArray(const vertexArray: IJSWebGLVertexArrayObject);
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call deleteVertexArray');
+  GL2.deleteVertexArray(vertexArray);
+end;
+
+function glIsVertexArray(const vertexArray: IJSWebGLVertexArrayObject): TGLboolean;
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call isVertexArray');
+  Result := GL2.isVertexArray(vertexArray);
+end;
+
+procedure glBindVertexArray(const array_: IJSWebGLVertexArrayObject);
+begin
+  if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call bindVertexArray');
+  GL2.bindVertexArray(array_);
 end;
 
 {$endif read_implementation}

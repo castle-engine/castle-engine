@@ -14,7 +14,7 @@
 }
 { Generate Pascal code with "flat" WebGL API. See README.md for details. }
 
-uses SysUtils, Classes,
+uses SysUtils, Classes, StrUtils,
   WebidlParser, WebidlScanner, WebidlDefs,
   CastleUtils, CastleUriUtils, CastleDownload, CastleClassUtils,
   CastleStringUtils;
@@ -101,7 +101,7 @@ end;
   from the given WEBIDL interface. }
 procedure ExposeFunctions(const Context: TWebIDLContext;
   const OutputStream, OutputStreamImplementation: TStream;
-  const InterfaceName: String);
+  const InterfaceName: String; const WebGL2: Boolean);
 
   function PascalType(const IdlType: TIDLTypeDefDefinition): String;
   begin
@@ -114,8 +114,15 @@ procedure ExposeFunctions(const Context: TWebIDLContext;
     if SameText(IdlType.TypeName, 'domstring') then
       Result := 'String' // Note that our flat API converts UnicodeString (TDOMString) <-> AnsiString (String)
     else
-    // WebGL objects
-    if IsPrefix('WebGL', IdlType.TypeName) then
+    // JS objects
+    if IsPrefix('WebGL', IdlType.TypeName) or
+       IsPrefix('HTML', IdlType.TypeName) or
+       SameText('ArrayBuffer', IdlType.TypeName) or
+       SameText('ArrayBufferView', IdlType.TypeName) or
+       SameText('VideoFrame', IdlType.TypeName) or
+       SameText('ImageData', IdlType.TypeName) or
+       SameText('ImageBitmap', IdlType.TypeName) or
+       SameText('OffscreenCanvas', IdlType.TypeName) then
       Result := 'IJS' + IdlType.TypeName
     else
       Result := 'T' + IdlType.TypeName;
@@ -127,7 +134,27 @@ procedure ExposeFunctions(const Context: TWebIDLContext;
     Result :=
       (IdlType is TIDLSequenceTypeDefDefinition) or
       SameText('object', IdlType.TypeName) or
-      SameText('Float32list', IdlType.TypeName);
+      SameText('Float32list', IdlType.TypeName) or
+      SameText('Int32list', IdlType.TypeName) or
+      SameText('Uint32list', IdlType.TypeName);
+  end;
+
+  { Is S a keyword in Pascal.
+    Ignores case.
+    Implementation copied from FPC TPascalCodeGenerator.IsKeyWord
+    (same license as CGE). }
+  function IsKeyWord(const S: String): Boolean;
+  const
+    KW=';absolute;and;array;asm;begin;case;const;constructor;destructor;div;do;'+
+      'downto;else;end;file;for;function;goto;if;implementation;in;inherited;'+
+      'inline;interface;label;mod;nil;not;object;of;on;operator;or;packed;'+
+      'procedure;program;record;reintroduce;repeat;self;set;shl;shr;string;then;'+
+      'to;type;unit;until;uses;var;while;with;xor;dispose;exit;false;new;true;'+
+      'as;class;dispinterface;except;exports;finalization;finally;initialization;'+
+      'inline;is;library;on;out;packed;property;raise;resourcestring;threadvar;try;'+
+      'private;published;length;setlength;';
+  begin
+    Result := Pos(';' + LowerCase(S) + ';', KW) <> 0;
   end;
 
 var
@@ -136,6 +163,7 @@ var
   Func: TIDLFunctionDefinition;
   AnyOutput, HasReturnValue, Unsupported: Boolean;
   FlatName, ArgumentsDeclare, ArgumentsCall, ArgumentName: String;
+  GLObject, GLVersion, GLObjectCheck: String;
 begin
   Writeln('Exposing functions from ', InterfaceName);
   AnyOutput := false;
@@ -165,8 +193,8 @@ begin
         Unsupported := Unsupported or
           UnsupportedType(Func.Argument[J].ArgumentType);
         ArgumentName := Func.Argument[J].Name;
-        if ArrayContainsString(ArgumentName, ['type', 'program']) then
-          ArgumentName := 'type_';
+        if IsKeyWord(ArgumentName) then
+          ArgumentName := ArgumentName + '_';
         ArgumentsDeclare := SAppendPart(ArgumentsDeclare, '; ',
           Format('const %s: %s', [
             ArgumentName,
@@ -190,6 +218,14 @@ begin
         WritelnStr(OutputStreamImplementation, '{ Not in auto-generated flat WebGL API:');
       end;
 
+      GLObject := IfThen(WebGL2, 'GL2', 'GL');
+      GLVersion := IfThen(WebGL2, '2', '1');
+      GLObjectCheck := Format('if %s = nil then raise Exception.Create(''Failed to load WebGL context (version %s.0), which is necessary to call %s'');', [
+        GLObject,
+        GLVersion,
+        Func.Name
+      ]);
+
       if HasReturnValue then
       begin
         WritelnStr(OutputStream, Format('function %s(%s): %s;', [
@@ -200,11 +236,14 @@ begin
         WritelnStr(OutputStreamImplementation, Format(
           'function %s(%s): %s;' + NL +
           'begin' + NL +
-          '  Result := GL.%s(%s);' + NL +
+          '  %s' + NL +
+          '  Result := %s.%s(%s);' + NL +
           'end;' + NL, [
           FlatName,
           ArgumentsDeclare,
           PascalType(Func.ReturnType),
+          GLObjectCheck,
+          GLObject,
           Func.Name,
           ArgumentsCall
         ]));
@@ -217,10 +256,13 @@ begin
         WritelnStr(OutputStreamImplementation, Format(
           'procedure %s(%s);' + NL +
           'begin' + NL +
-          '  GL.%s(%s);' + NL +
+          '  %s' + NL +
+          '  %s.%s(%s);' + NL +
           'end;' + NL, [
           FlatName,
           ArgumentsDeclare,
+          GLObjectCheck,
+          GLObject,
           Func.Name,
           ArgumentsCall
         ]));
@@ -275,10 +317,11 @@ begin
     // DebugWriteDefinitions(Context.Definitions);
 
     ExposeConstants(Context, OutputStream, 'WebGLRenderingContextBase');
+    ExposeConstants(Context, OutputStream, 'WebGL2RenderingContextBase');
     ExposeFunctions(Context, OutputStream, OutputStreamImplementation,
-      'WebGLRenderingContextBase');
-    // nothing
-    //ExposeConstants(Context, OutputStream, 'WebGL2RenderingContext');
+      'WebGLRenderingContextBase', false);
+    ExposeFunctions(Context, OutputStream, OutputStreamImplementation,
+      'WebGL2RenderingContextBase', true);
 
     // write implementation
     WritelnStr(OutputStream,

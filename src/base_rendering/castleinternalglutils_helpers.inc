@@ -131,11 +131,13 @@ var
 { Enable or disable given OpenGL flag. }
 procedure GLSetEnabled(Value: TGLenum; IsEnabled: boolean);
 
-{ If Buffer <> GLbufferNone then it does glDeleteBuffer(s) and sets Buffer to GLbufferNone. }
-procedure glFreeBuffer(var Buffer: TGLbuffer);
+{ If Buffer <> GLObjectNone then it does glDeleteBuffer(s)
+  and sets Buffer to GLObjectNone. }
+procedure glFreeBuffer(var Buffer: TGLBuffer);
 
-{ If Vao <> 0 then it does glDeleteVertexArrays and sets Vao to 0. }
-procedure glFreeVertexArray(var Vao: TGLuint);
+{ If Vao <> GLObjectNone then it does glDeleteVertexArray(s)
+  and sets Vao to GLObjectNone. }
+procedure glFreeVertexArray(var Vao: TGLVertexArrayObject);
 
 { Global position for drawing 2D stuff.
   @deprecated Do this use this.
@@ -342,25 +344,29 @@ begin
   if IsEnabled then glEnable(Value) else glDisable(Value);
 end;
 
-procedure glFreeBuffer(var Buffer: TGLbuffer);
+procedure glFreeBuffer(var Buffer: TGLBuffer);
 begin
-  if Buffer <> GLbufferNone then
+  if Buffer <> GLObjectNone then
   begin
     {$ifdef CASTLE_WEBGL}
     glDeleteBuffer(Buffer);
     {$else}
     glDeleteBuffers(1, @Buffer);
     {$endif}
-    Buffer := GLbufferNone;
+    Buffer := GLObjectNone;
   end;
 end;
 
-procedure glFreeVertexArray(var Vao: TGLuint);
+procedure glFreeVertexArray(var Vao: TGLVertexArrayObject);
 begin
-  if Vao <> 0 then
+  if Vao <> GLObjectNone then
   begin
+    {$ifdef CASTLE_WEBGL}
+    glDeleteVertexArray(Vao);
+    {$else}
     glDeleteVertexArrays(1, @Vao);
-    Vao := 0;
+    {$endif}
+    Vao := GLObjectNone;
   end;
 end;
 

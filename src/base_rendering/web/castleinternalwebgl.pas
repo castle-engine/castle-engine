@@ -20,7 +20,8 @@ unit CastleInternalWebGL;
 
 interface
 
-uses CastleInternalJobWeb;
+uses JOB.JS,
+  CastleInternalJobWeb;
 
 type
   { Alias simple types to CastleInternalJobWeb types. }
@@ -58,10 +59,11 @@ procedure RunWebGLAnimation;
 
 var
   GL: IJSWebGLRenderingContext;
+  GL2: IJSWebGL2RenderingContext;
 
 implementation
 
-uses SysUtils, JOB.Shared, JOB.JS,
+uses SysUtils, JOB.Shared,
   CastleLog, CastleUtils,
   // TODO: not necessary in the future? only for some test queries below
   CastleInternalGLUtils;
@@ -105,9 +107,19 @@ procedure GLContextOpen;
 begin
   Canvas := TJSHTMLCanvasElement.Cast(JSDocument.getElementById('castle-canvas'));
 
-  GL := TJSWebGLRenderingContext.Cast(canvas.getContext('webgl'));
-  if GL = nil then
-    raise Exception.Create('Failed to load WebGL context from WASM');
+  GL2 := TJSWebGL2RenderingContext.Cast(canvas.getContext('webgl2'));
+  if GL2 <> nil then
+  begin
+    // WebGL 2.0 is a superset of WebGL 1.0
+    GL := TJSWebGLRenderingContext.Cast(GL2);
+    WritelnLog('WebGL 2.0 context initialized from WebAssembly');
+  end else
+  begin
+    GL := TJSWebGLRenderingContext.Cast(canvas.getContext('webgl'));
+    if GL = nil then
+      raise Exception.Create('Failed to load WebGL context (2.0 or 1.0) from WebAssembly');
+    WritelnLog('WebGL 1.0 context initialized from WebAssembly');
+  end;
 
   ContextWidth := GL.drawingBufferWidth;
   ContextHeight := GL.drawingBufferHeight;
