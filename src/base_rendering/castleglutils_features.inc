@@ -1276,7 +1276,7 @@ begin
   else
   {$endif}
   begin
-    FLineWidth := glGetFloat(GL_ALIASED_LINE_WIDTH_RANGE);
+    FLineWidth := glGetFloat2(GL_ALIASED_LINE_WIDTH_RANGE);
   end;
 
   FTextureMaxLevel :=
