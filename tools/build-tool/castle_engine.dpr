@@ -36,6 +36,8 @@ var
   Target: TTarget;
   OS: TOS;
   CPU: TCPU;
+  { Was platform (either --target, --os, --cpu) specified on the command-line. }
+  PlatformFromCommandLine: Boolean = false;
   Mode: TCompilationMode = cmRelease;
   AssumeCompiled: boolean = false;
   Fast: boolean = false;
@@ -288,9 +290,18 @@ begin
           Writeln(ApplicationName + ' ' + ApplicationProperties.Version);
           Halt;
         end;
-    2 : Target := StringToTarget(Argument);
-    3 : OS := StringToOS(Argument);
-    4 : CPU := StringToCPU(Argument);
+    2 : begin
+          Target := StringToTarget(Argument);
+          PlatformFromCommandLine := true;
+        end;
+    3 : begin
+          OS := StringToOS(Argument);
+          PlatformFromCommandLine := true;
+        end;
+    4 : begin
+          CPU := StringToCPU(Argument);
+          PlatformFromCommandLine := true;
+        end;
     5 : Verbose := true;
     6 : Mode := StringToMode(Argument);
     7 : AssumeCompiled := true;
@@ -445,6 +456,8 @@ begin
       Parameters.CheckHigh(1);
     Project := TCastleProject.Create;
     try
+      if not PlatformFromCommandLine then
+        Project.OverridePlatform(Target, OS, CPU);
       if Command = 'create-manifest' then
         Project.DoCreateManifest
       else

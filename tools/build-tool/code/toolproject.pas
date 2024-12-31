@@ -285,6 +285,10 @@ type
     function PackageOutput(const FileName: String): Boolean;
 
     function IOSHasLaunchImageStoryboard: Boolean;
+
+    { Optionally adjust the given platform specification
+      if project has a file defining @link(TCastleProjectLocalSettings). }
+    procedure OverridePlatform(var Target: TTarget; var OS: TOS; var CPU: TCPU);
   end;
 
 implementation
@@ -292,11 +296,11 @@ implementation
 uses {$ifdef UNIX} BaseUnix, {$endif}
   StrUtils, DOM, Process,
   CastleUriUtils, CastleXmlUtils, CastleLog, CastleFilesUtils, CastleImages,
-  CastleTimeUtils,
+  CastleTimeUtils, CastleComponentSerialize,
   ToolResources, ToolAndroid, ToolMacOS, ToolWeb,
   ToolTextureGeneration, ToolIOS, ToolAndroidMerging, ToolNintendoSwitch,
   ToolCommonUtils, ToolMacros, ToolCompilerInfo, ToolPackageCollectFiles,
-  ToolProjectUnusedData;
+  ToolProjectUnusedData, ToolProjectLocalSettings;
 
 const
   SErrDataDir = 'Make sure you have installed the data files of the Castle Game Engine build tool. Usually it is easiest to set the $CASTLE_ENGINE_PATH environment variable to the location of castle_game_engine/ or castle-engine/ directory, the build tool will then find its data correctly.'
@@ -2690,6 +2694,29 @@ end;
 function TCastleProject.LaunchImageStoryboard: TLaunchImageStoryboard;
 begin
   Result := Manifest.LaunchImageStoryboard;
+end;
+
+procedure TCastleProject.OverridePlatform(var Target: TTarget; var OS: TOS; var CPU: TCPU);
+var
+  LocalSettings: TCastleProjectLocalSettings;
+  LocalSettingsOwner: TComponent;
+  LocalSettingsUri: String;
+begin
+  LocalSettingsUri := FilenameToUriSafe(Path + 'CastleProjectLocalSettings.json');
+  if UriFileExists(LocalSettingsUri) then
+  begin
+    LocalSettingsOwner := TComponent.Create(nil);
+    LocalSettings := ComponentLoad(LocalSettingsUri, LocalSettingsOwner) as
+      TCastleProjectLocalSettings;
+    if LocalSettings.UsePlatformDefaults then
+    begin
+      Target := LocalSettings.DefaultTarget;
+      if LocalSettings.DefaultOS <> osNone then
+        OS := LocalSettings.DefaultOS;
+      if LocalSettings.DefaultCPU <> cpuNone then
+        CPU := LocalSettings.DefaultCPU;
+    end;
+  end;
 end;
 
 end.

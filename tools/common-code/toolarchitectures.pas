@@ -27,15 +27,23 @@ interface
 type
   { Target of the compilation, which may include many OS/CPU combinations. }
   TTarget = (
-    { Target a specific chosen OS/CPU. }
+    { Build for a specific OS and CPU (indicated by other parameters). }
     targetCustom,
-    { Target all relevant iOS combinations of OS/CPU. }
+    { Build application for iOS (iPhone, iPad).
+      This target implies all relevant OS/CPU combinations to run on modern
+      iOS devices.
+      See https://castle-engine.io/ios . }
     targetIOS,
-    { Target all relevant Android combinations of OS/CPU. }
+    { Build application for Android.
+      This target implies all relevant OS/CPU combinations to run on modern
+      Android devices.
+      See https://castle-engine.io/android . }
     targetAndroid,
-    { Build an application for Nintendo Switch. }
+    { Build an application for Nintendo Switch.
+      See https://castle-engine.io/nintendo_switch . }
     targetNintendoSwitch,
-    { Target web browser (Pas2js and FPC + WebAssembly). }
+    { Build an application that runs in a web browser.
+      See https://castle-engine.io/web . }
     targetWeb
   );
 
