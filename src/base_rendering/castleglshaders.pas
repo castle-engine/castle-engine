@@ -262,7 +262,8 @@ type
 
   TGLSLAttributeList = {$ifdef FPC}specialize{$endif} TList<TGLSLAttribute>;
 
-  TLocationCache = {$ifdef FPC}specialize{$endif} TDictionary<String, TGLint>;
+  TUniformLocationCache = {$ifdef FPC}specialize{$endif} TDictionary<String, TGLUniformLocation>;
+  TAttribLocationCache = {$ifdef FPC}specialize{$endif} TDictionary<String, TGLAttribLocation>;
 
   TGLShaderList = {$ifdef FPC}specialize{$endif} TList<TGLShader>;
 
@@ -273,7 +274,8 @@ type
     ShaderIds: TGLShaderList;
 
     FUniformMissing: TUniformMissing;
-    FUniformLocations, FAttributeLocations: TLocationCache;
+    FUniformLocations: TUniformLocationCache;
+    FAttributeLocations: TAttribLocationCache;
     FUniformReportedMissing: TStringList;
 
     // Given stage was attached and compiled by @link(AttachShader).
@@ -774,7 +776,11 @@ begin
   if Location = GLUniformLocationNone then Exit; // ignore non-existing uniform here
   Owner.Enable;
   if GLFeatures.Shaders then
+    {$ifdef CASTLE_WEBGL}
+    glUniform2i(Location, Value[0], Value[1]);
+    {$else}
     glUniform2iv(Location, 1, @Value);
+    {$endif}
 end;
 
 procedure TGLSLUniform.SetValue(const Value: TVector3Integer);
@@ -782,7 +788,11 @@ begin
   if Location = GLUniformLocationNone then Exit; // ignore non-existing uniform here
   Owner.Enable;
   if GLFeatures.Shaders then
+    {$ifdef CASTLE_WEBGL}
+    glUniform3i(Location, Value[0], Value[1], Value[2]);
+    {$else}
     glUniform3iv(Location, 1, @Value);
+    {$endif}
 end;
 
 procedure TGLSLUniform.SetValue(const Value: TVector4Integer);
@@ -790,7 +800,11 @@ begin
   if Location = GLUniformLocationNone then Exit; // ignore non-existing uniform here
   Owner.Enable;
   if GLFeatures.Shaders then
+    {$ifdef CASTLE_WEBGL}
+    glUniform4i(Location, Value[0], Value[1], Value[2], Value[3]);
+    {$else}
     glUniform4iv(Location, 1, @Value);
+    {$endif}
 end;
 
 procedure TGLSLUniform.SetValue(const Value: TGLfloat);
@@ -806,7 +820,11 @@ begin
   if Location = GLUniformLocationNone then Exit; // ignore non-existing uniform here
   Owner.Enable;
   if GLFeatures.Shaders then
+    {$ifdef CASTLE_WEBGL}
+    glUniform2f(Location, Value[0], Value[1]);
+    {$else}
     glUniform2fv(Location, 1, @Value);
+    {$endif}
 end;
 
 procedure TGLSLUniform.SetValue(const Value: TVector3);
@@ -814,7 +832,11 @@ begin
   if Location = GLUniformLocationNone then Exit; // ignore non-existing uniform here
   Owner.Enable;
   if GLFeatures.Shaders then
+    {$ifdef CASTLE_WEBGL}
+    glUniform3f(Location, Value[0], Value[1], Value[2]);
+    {$else}
     glUniform3fv(Location, 1, @Value);
+    {$endif}
 end;
 
 procedure TGLSLUniform.SetValue(const Value: TVector4);
@@ -822,7 +844,11 @@ begin
   if Location = GLUniformLocationNone then Exit; // ignore non-existing uniform here
   Owner.Enable;
   if GLFeatures.Shaders then
+    {$ifdef CASTLE_WEBGL}
+    glUniform4f(Location, Value[0], Value[1], Value[2], Value[3]);
+    {$else}
     glUniform4fv(Location, 1, @Value);
+    {$endif}
 end;
 
 procedure TGLSLUniform.SetValue(const Value: TMatrix2);
@@ -1140,8 +1166,8 @@ begin
 
   FUniformMissing := umWarning;
 
-  FUniformLocations := TLocationCache.Create;
-  FAttributeLocations := TLocationCache.Create;
+  FUniformLocations := TUniformLocationCache.Create;
+  FAttributeLocations := TAttribLocationCache.Create;
 
   {$ifdef CASTLE_COLLECT_SHADER_SOURCE}
   for ShaderType := Low(TShaderType) to High(TShaderType) do
@@ -1440,17 +1466,32 @@ var
     raise EGLSLShaderCompileError.Create(Message);
   end;
 
-  { Based on Dean Ellis BasicShader.dpr }
+  { Create a shader, adding sources and compiling it.
+
+    Based on OpenGL code by Dean Ellis BasicShader.dpr,
+    many adjustments later - to work with OpenGL / OpenGL ES / WebGL,
+    using our CastleGL unit, FPC / Delphi compatibility. }
   function CreateShader(const S: string): TGLshader;
   var
+    {$ifndef CASTLE_WEBGL}
     SrcPtr: PGLChar;
     SrcLength: Cardinal;
-    Compiled: TGLint;
     {$ifndef FPC}
     AnsiS: AnsiString;
     {$endif}
+    CompiledInt: TGLint;
+    {$endif not CASTLE_WEBGL}
+    Compiled: Boolean;
   begin
     Result := glCreateShader(AType);
+
+    { Call glShaderSource to pass source code S to shader.
+      This is trivial in WebGL, but requires some work for OpenGL / OpenGLES
+      to express string data as needed (and for Delphi, extra work needed
+      to convert UnicodeString to 8-bit AnsiString). }
+    {$ifdef CASTLE_WEBGL}
+    glShaderSource(Result, S);
+    {$else}
     {$ifdef FPC}
     SrcPtr := PGLChar(S);
     SrcLength := Length(S);
@@ -1460,17 +1501,26 @@ var
     SrcLength := Length(AnsiS);
     {$endif}
     glShaderSource(Result, 1, @SrcPtr, @SrcLength);
+    {$endif}
+
     try
       glCompileShader(Result);
     except
       on E: EAccessViolation do ReportCompileAccessViolation;
     end;
-    glGetShaderiv(Result, GL_COMPILE_STATUS, @Compiled);
-    { Although I generally avoid creating multiline exception messages,
+
+    {$ifdef CASTLE_WEBGL}
+    Compiled := glGetShaderParameter(Result, GL_COMPILE_STATUS);
+    {$else}
+    glGetShaderiv(Result, GL_COMPILE_STATUS, @CompiledInt);
+    Compiled := CompiledInt = Ord(GL_TRUE);
+    {$endif}
+
+    { Although we generally avoid creating multiline exception messages,
       ShaderGetInfoLog naturally comes out multiline (it contains a
       couple of error messages) and it's best presented with line breaks.
       So a line break right before ShaderGetInfoLog contents looks good. }
-    if Compiled <> Ord(GL_TRUE) then
+    if not Compiled then
       ReportCompileError(GetShaderInfoLog(Result));
   end;
 
@@ -1558,7 +1608,7 @@ const
   { FPC < 2.4.4 doesn't have it defined }
   GL_GEOMETRY_SHADER = $8DD9;
 var
-  ShaderId: TGLuint;
+  ShaderId: TGLShader;
 begin
   { When shaders not supported, TGLSLProgram does nothing, silently. }
   if not GLFeatures.Shaders then
@@ -1735,7 +1785,10 @@ procedure TGLSLProgram.Link;
   end;
 
 var
-  Linked: TGLuint;
+  {$ifndef CASTLE_WEBGL}
+  LinkedInt: TGLuint;
+  {$endif}
+  Linked: Boolean;
 begin
   if GLFeatures.Shaders then
   begin
@@ -1747,9 +1800,15 @@ begin
       raise EGLSLProgramLinkError.Create('Fragment shader not attached');
 
     glLinkProgram(ProgramId);
-    glGetProgramiv(ProgramId, GL_LINK_STATUS, @Linked);
 
-    if Linked <> Ord(GL_TRUE) then
+    {$ifdef CASTLE_WEBGL}
+    Linked := glGetProgramParameter(ProgramId, GL_LINK_STATUS);
+    {$else}
+    glGetProgramiv(ProgramId, GL_LINK_STATUS, @LinkedInt);
+    Linked := LinkedInt = Ord(GL_TRUE);
+    {$endif}
+
+    if not Linked then
       // raises exception
       ReportLinkError(GetProgramInfoLog(ProgramId));
 
