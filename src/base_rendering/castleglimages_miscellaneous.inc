@@ -375,9 +375,46 @@ end;
 
 function ImageGLData(const Img: TEncodedImage): {$ifdef CASTLE_WEBGL} IJSTypedArray {$else} Pointer {$endif};
 {$ifdef CASTLE_WEBGL}
+var
+  I: TCastleImage;
+  X, Y, Z, ImageDataCount: Integer;
+  ResultUInt8: IJSUint8Array;
+  ResultFloat32: IJSFloat32Array;
 begin
-  Result := // TODO
-end;
+  if Img is TCastleImage then
+  begin
+    I := TCastleImage(Img);
+    ImageDataCount := Img.Width * Img.Height * Img.Depth * I.ColorComponentsCount;
+    case ImageGLType(I) of
+      GL_UNSIGNED_BYTE:
+        begin
+          ResultUInt8 := TJSUInt8Array.Create(ImageDataCount);
+          for Z := 0 to Img.Depth - 1 do
+            for Y := 0 to Img.Height - 1 do
+              for X := 0 to Img.Width - 1 do
+                ResultUInt8[Z * Img.Width * Img.Height + Y * Img.Width + X] :=
+                  PByte(I.PixelPtr(X, Y, Z))^;
+          Result := ResultUInt8;
+        end;
+      GL_FLOAT:
+        begin
+          ResultFloat32 := TJSFloat32Array.Create(ImageDataCount);
+          for Z := 0 to Img.Depth - 1 do
+            for Y := 0 to Img.Height - 1 do
+              for X := 0 to Img.Width - 1 do
+                ResultFloat32[Z * Img.Width * Img.Height + Y * Img.Width + X] :=
+                  PSingle(I.PixelPtr(X, Y, Z))^;
+          Result := ResultFloat32;
+        end;
+      else
+        raise EImageClassNotSupportedForOpenGL.CreateFmt('Image class %s cannot be loaded to WebGL', [
+          Img.ClassName
+        ]);
+    end;
+  end else
+    raise EImageClassNotSupportedForOpenGL.CreateFmt('Image class %s cannot be loaded to WebGL', [
+      Img.ClassName
+    ]);
 {$else}
 begin
   Result := Img.RawPixels;

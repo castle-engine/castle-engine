@@ -306,7 +306,7 @@ begin
     UncompressedGLFormatAndInternalFormat(Image, ImageFormat, ImageInternalFormat, ImageSwizzle);
     glTexImage2D(Target, Level, ImageInternalFormat,
       Image.Width, Image.Height, 0, ImageFormat, ImageGLType(Image),
-      Image.RawPixels);
+      ImageGLData(Image));
     LoadedSize := LoadedSize + Image.Size;
 
     if GLFeatures.TextureModernFormatsAndSwizzle then
@@ -451,8 +451,12 @@ begin
   { Pixel packing parameters (stuff changed by Before/AfterUnpackImage)
     doesn't affect loading compressed textures, as far as I understand.
     So no need to call it. }
+  {$ifdef CASTLE_WEBGL}
+  // TODO: loading compressed textures in WebGL
+  {$else}
   glCompressedTexImage2D(GL_TEXTURE_2D, Level, ImageGLInternalFormat(Image),
     Image.Width, Image.Height, 0, Image.Size, Image.RawPixels);
+  {$endif}
   LoadedSize := LoadedSize + Image.Size;
 end;
 
