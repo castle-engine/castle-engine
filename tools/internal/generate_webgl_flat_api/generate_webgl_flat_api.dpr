@@ -14,6 +14,13 @@
 }
 { Generate Pascal code with "flat" WebGL API. See README.md for details. }
 
+{$ifndef FPC}
+  {$error This program requires FPC.}
+{$endif}
+{$if defined(VER3_0) or defined(VER3_2)}
+  {$error This program requires FPC > 3.2, with WEBIDL support.}
+{$endif}
+
 uses SysUtils, Classes, StrUtils,
   WebidlParser, WebidlScanner, WebidlDefs,
   CastleUtils, CastleUriUtils, CastleDownload, CastleClassUtils,
