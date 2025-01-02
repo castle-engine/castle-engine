@@ -324,6 +324,7 @@ begin
 
     ExposeConstants(Context, OutputStream, 'WebGLRenderingContextBase');
     ExposeConstants(Context, OutputStream, 'WebGL2RenderingContextBase');
+    ExposeConstants(Context, OutputStream, 'EXT_texture_filter_anisotropic');
     ExposeFunctions(Context, OutputStream, OutputStreamImplementation,
       'WebGLRenderingContextBase', false);
     ExposeFunctions(Context, OutputStream, OutputStreamImplementation,

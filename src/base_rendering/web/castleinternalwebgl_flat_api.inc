@@ -566,6 +566,11 @@ const
   GL_TIMEOUT_IGNORED = TJSWebGL2RenderingContextBase.TIMEOUT_IGNORED;
   GL_MAX_CLIENT_WAIT_TIMEOUT_WEBGL = TJSWebGL2RenderingContextBase.MAX_CLIENT_WAIT_TIMEOUT_WEBGL;
 
+{ Constants from EXT_texture_filter_anisotropic }
+const
+  GL_TEXTURE_MAX_ANISOTROPY_EXT = TJSEXT_texture_filter_anisotropic.TEXTURE_MAX_ANISOTROPY_EXT;
+  GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT = TJSEXT_texture_filter_anisotropic.MAX_TEXTURE_MAX_ANISOTROPY_EXT;
+
 { Functions from WebGLRenderingContextBase }
 function glGetContextAttributes(): IJSWebGLContextAttributes;
 function glIsContextLost(): Boolean;
