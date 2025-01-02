@@ -676,13 +676,13 @@ procedure glUniform4i(const location: IJSWebGLUniformLocation; const x: TGLint; 
 procedure glUseProgram(const program_: IJSWebGLProgram);
 procedure glValidateProgram(const program_: IJSWebGLProgram);
 procedure glVertexAttrib1f(const indx: TGLuint; const x: TGLfloat);
-// Not in auto-generated flat WebGL API: procedure glVertexAttrib1fv(const indx: TGLuint; const values: TFloat32List);
+procedure glVertexAttrib1fv(const indx: TGLuint; const values: IJSFloat32Array);
 procedure glVertexAttrib2f(const indx: TGLuint; const x: TGLfloat; const y: TGLfloat);
-// Not in auto-generated flat WebGL API: procedure glVertexAttrib2fv(const indx: TGLuint; const values: TFloat32List);
+procedure glVertexAttrib2fv(const indx: TGLuint; const values: IJSFloat32Array);
 procedure glVertexAttrib3f(const indx: TGLuint; const x: TGLfloat; const y: TGLfloat; const z: TGLfloat);
-// Not in auto-generated flat WebGL API: procedure glVertexAttrib3fv(const indx: TGLuint; const values: TFloat32List);
+procedure glVertexAttrib3fv(const indx: TGLuint; const values: IJSFloat32Array);
 procedure glVertexAttrib4f(const indx: TGLuint; const x: TGLfloat; const y: TGLfloat; const z: TGLfloat; const w: TGLfloat);
-// Not in auto-generated flat WebGL API: procedure glVertexAttrib4fv(const indx: TGLuint; const values: TFloat32List);
+procedure glVertexAttrib4fv(const indx: TGLuint; const values: IJSFloat32Array);
 procedure glVertexAttribPointer(const indx: TGLuint; const size: TGLint; const type_: TGLenum; const normalized: TGLboolean; const stride: TGLsizei; const offset: TGLintptr);
 procedure glViewport(const x: TGLint; const y: TGLint; const width: TGLsizei; const height: TGLsizei);
 
@@ -772,31 +772,31 @@ procedure glUniform1ui(const location: IJSWebGLUniformLocation; const v0: TGLuin
 procedure glUniform2ui(const location: IJSWebGLUniformLocation; const v0: TGLuint; const v1: TGLuint);
 procedure glUniform3ui(const location: IJSWebGLUniformLocation; const v0: TGLuint; const v1: TGLuint; const v2: TGLuint);
 procedure glUniform4ui(const location: IJSWebGLUniformLocation; const v0: TGLuint; const v1: TGLuint; const v2: TGLuint; const v3: TGLuint);
-// Not in auto-generated flat WebGL API: procedure glUniform1fv(const location: IJSWebGLUniformLocation; const data: TFloat32List; const srcOffset: TGLuint; const srcLength: TGLuint);
-// Not in auto-generated flat WebGL API: procedure glUniform2fv(const location: IJSWebGLUniformLocation; const data: TFloat32List; const srcOffset: TGLuint; const srcLength: TGLuint);
-// Not in auto-generated flat WebGL API: procedure glUniform3fv(const location: IJSWebGLUniformLocation; const data: TFloat32List; const srcOffset: TGLuint; const srcLength: TGLuint);
-// Not in auto-generated flat WebGL API: procedure glUniform4fv(const location: IJSWebGLUniformLocation; const data: TFloat32List; const srcOffset: TGLuint; const srcLength: TGLuint);
-// Not in auto-generated flat WebGL API: procedure glUniform1iv(const location: IJSWebGLUniformLocation; const data: TInt32List; const srcOffset: TGLuint; const srcLength: TGLuint);
-// Not in auto-generated flat WebGL API: procedure glUniform2iv(const location: IJSWebGLUniformLocation; const data: TInt32List; const srcOffset: TGLuint; const srcLength: TGLuint);
-// Not in auto-generated flat WebGL API: procedure glUniform3iv(const location: IJSWebGLUniformLocation; const data: TInt32List; const srcOffset: TGLuint; const srcLength: TGLuint);
-// Not in auto-generated flat WebGL API: procedure glUniform4iv(const location: IJSWebGLUniformLocation; const data: TInt32List; const srcOffset: TGLuint; const srcLength: TGLuint);
-// Not in auto-generated flat WebGL API: procedure glUniform1uiv(const location: IJSWebGLUniformLocation; const data: TUint32List; const srcOffset: TGLuint; const srcLength: TGLuint);
-// Not in auto-generated flat WebGL API: procedure glUniform2uiv(const location: IJSWebGLUniformLocation; const data: TUint32List; const srcOffset: TGLuint; const srcLength: TGLuint);
-// Not in auto-generated flat WebGL API: procedure glUniform3uiv(const location: IJSWebGLUniformLocation; const data: TUint32List; const srcOffset: TGLuint; const srcLength: TGLuint);
-// Not in auto-generated flat WebGL API: procedure glUniform4uiv(const location: IJSWebGLUniformLocation; const data: TUint32List; const srcOffset: TGLuint; const srcLength: TGLuint);
-// Not in auto-generated flat WebGL API: procedure glUniformMatrix2fv(const location: IJSWebGLUniformLocation; const transpose: TGLboolean; const data: TFloat32List; const srcOffset: TGLuint; const srcLength: TGLuint);
-// Not in auto-generated flat WebGL API: procedure glUniformMatrix3x2fv(const location: IJSWebGLUniformLocation; const transpose: TGLboolean; const data: TFloat32List; const srcOffset: TGLuint; const srcLength: TGLuint);
-// Not in auto-generated flat WebGL API: procedure glUniformMatrix4x2fv(const location: IJSWebGLUniformLocation; const transpose: TGLboolean; const data: TFloat32List; const srcOffset: TGLuint; const srcLength: TGLuint);
-// Not in auto-generated flat WebGL API: procedure glUniformMatrix2x3fv(const location: IJSWebGLUniformLocation; const transpose: TGLboolean; const data: TFloat32List; const srcOffset: TGLuint; const srcLength: TGLuint);
-// Not in auto-generated flat WebGL API: procedure glUniformMatrix3fv(const location: IJSWebGLUniformLocation; const transpose: TGLboolean; const data: TFloat32List; const srcOffset: TGLuint; const srcLength: TGLuint);
-// Not in auto-generated flat WebGL API: procedure glUniformMatrix4x3fv(const location: IJSWebGLUniformLocation; const transpose: TGLboolean; const data: TFloat32List; const srcOffset: TGLuint; const srcLength: TGLuint);
-// Not in auto-generated flat WebGL API: procedure glUniformMatrix2x4fv(const location: IJSWebGLUniformLocation; const transpose: TGLboolean; const data: TFloat32List; const srcOffset: TGLuint; const srcLength: TGLuint);
-// Not in auto-generated flat WebGL API: procedure glUniformMatrix3x4fv(const location: IJSWebGLUniformLocation; const transpose: TGLboolean; const data: TFloat32List; const srcOffset: TGLuint; const srcLength: TGLuint);
-// Not in auto-generated flat WebGL API: procedure glUniformMatrix4fv(const location: IJSWebGLUniformLocation; const transpose: TGLboolean; const data: TFloat32List; const srcOffset: TGLuint; const srcLength: TGLuint);
+procedure glUniform1fv(const location: IJSWebGLUniformLocation; const data: IJSFloat32Array; const srcOffset: TGLuint; const srcLength: TGLuint);
+procedure glUniform2fv(const location: IJSWebGLUniformLocation; const data: IJSFloat32Array; const srcOffset: TGLuint; const srcLength: TGLuint);
+procedure glUniform3fv(const location: IJSWebGLUniformLocation; const data: IJSFloat32Array; const srcOffset: TGLuint; const srcLength: TGLuint);
+procedure glUniform4fv(const location: IJSWebGLUniformLocation; const data: IJSFloat32Array; const srcOffset: TGLuint; const srcLength: TGLuint);
+procedure glUniform1iv(const location: IJSWebGLUniformLocation; const data: IJSInt32Array; const srcOffset: TGLuint; const srcLength: TGLuint);
+procedure glUniform2iv(const location: IJSWebGLUniformLocation; const data: IJSInt32Array; const srcOffset: TGLuint; const srcLength: TGLuint);
+procedure glUniform3iv(const location: IJSWebGLUniformLocation; const data: IJSInt32Array; const srcOffset: TGLuint; const srcLength: TGLuint);
+procedure glUniform4iv(const location: IJSWebGLUniformLocation; const data: IJSInt32Array; const srcOffset: TGLuint; const srcLength: TGLuint);
+procedure glUniform1uiv(const location: IJSWebGLUniformLocation; const data: IJSUint32Array; const srcOffset: TGLuint; const srcLength: TGLuint);
+procedure glUniform2uiv(const location: IJSWebGLUniformLocation; const data: IJSUint32Array; const srcOffset: TGLuint; const srcLength: TGLuint);
+procedure glUniform3uiv(const location: IJSWebGLUniformLocation; const data: IJSUint32Array; const srcOffset: TGLuint; const srcLength: TGLuint);
+procedure glUniform4uiv(const location: IJSWebGLUniformLocation; const data: IJSUint32Array; const srcOffset: TGLuint; const srcLength: TGLuint);
+procedure glUniformMatrix2fv(const location: IJSWebGLUniformLocation; const transpose: TGLboolean; const data: IJSFloat32Array; const srcOffset: TGLuint; const srcLength: TGLuint);
+procedure glUniformMatrix3x2fv(const location: IJSWebGLUniformLocation; const transpose: TGLboolean; const data: IJSFloat32Array; const srcOffset: TGLuint; const srcLength: TGLuint);
+procedure glUniformMatrix4x2fv(const location: IJSWebGLUniformLocation; const transpose: TGLboolean; const data: IJSFloat32Array; const srcOffset: TGLuint; const srcLength: TGLuint);
+procedure glUniformMatrix2x3fv(const location: IJSWebGLUniformLocation; const transpose: TGLboolean; const data: IJSFloat32Array; const srcOffset: TGLuint; const srcLength: TGLuint);
+procedure glUniformMatrix3fv(const location: IJSWebGLUniformLocation; const transpose: TGLboolean; const data: IJSFloat32Array; const srcOffset: TGLuint; const srcLength: TGLuint);
+procedure glUniformMatrix4x3fv(const location: IJSWebGLUniformLocation; const transpose: TGLboolean; const data: IJSFloat32Array; const srcOffset: TGLuint; const srcLength: TGLuint);
+procedure glUniformMatrix2x4fv(const location: IJSWebGLUniformLocation; const transpose: TGLboolean; const data: IJSFloat32Array; const srcOffset: TGLuint; const srcLength: TGLuint);
+procedure glUniformMatrix3x4fv(const location: IJSWebGLUniformLocation; const transpose: TGLboolean; const data: IJSFloat32Array; const srcOffset: TGLuint; const srcLength: TGLuint);
+procedure glUniformMatrix4fv(const location: IJSWebGLUniformLocation; const transpose: TGLboolean; const data: IJSFloat32Array; const srcOffset: TGLuint; const srcLength: TGLuint);
 procedure glVertexAttribI4i(const index: TGLuint; const x: TGLint; const y: TGLint; const z: TGLint; const w: TGLint);
-// Not in auto-generated flat WebGL API: procedure glVertexAttribI4iv(const index: TGLuint; const values: TInt32List);
+procedure glVertexAttribI4iv(const index: TGLuint; const values: IJSInt32Array);
 procedure glVertexAttribI4ui(const index: TGLuint; const x: TGLuint; const y: TGLuint; const z: TGLuint; const w: TGLuint);
-// Not in auto-generated flat WebGL API: procedure glVertexAttribI4uiv(const index: TGLuint; const values: TUint32List);
+procedure glVertexAttribI4uiv(const index: TGLuint; const values: IJSUint32Array);
 procedure glVertexAttribIPointer(const index: TGLuint; const size: TGLint; const type_: TGLenum; const stride: TGLsizei; const offset: TGLintptr);
 procedure glVertexAttribDivisor(const index: TGLuint; const divisor: TGLuint);
 procedure glDrawArraysInstanced(const mode: TGLenum; const first: TGLint; const count: TGLsizei; const instanceCount: TGLsizei);
@@ -806,9 +806,9 @@ procedure glReadPixels(const x: TGLint; const y: TGLint; const width: TGLsizei; 
 procedure glReadPixels(const x: TGLint; const y: TGLint; const width: TGLsizei; const height: TGLsizei; const format: TGLenum; const type_: TGLenum; const offset: TGLintptr);
 procedure glReadPixels(const x: TGLint; const y: TGLint; const width: TGLsizei; const height: TGLsizei; const format: TGLenum; const type_: TGLenum; const dstData: IJSArrayBufferView; const dstOffset: TGLuint);
 // Not in auto-generated flat WebGL API: procedure glDrawBuffers(const buffers: Tsequence);
-// Not in auto-generated flat WebGL API: procedure glClearBufferfv(const buffer: TGLenum; const drawbuffer: TGLint; const values: TFloat32List; const srcOffset: TGLuint);
-// Not in auto-generated flat WebGL API: procedure glClearBufferiv(const buffer: TGLenum; const drawbuffer: TGLint; const values: TInt32List; const srcOffset: TGLuint);
-// Not in auto-generated flat WebGL API: procedure glClearBufferuiv(const buffer: TGLenum; const drawbuffer: TGLint; const values: TUint32List; const srcOffset: TGLuint);
+procedure glClearBufferfv(const buffer: TGLenum; const drawbuffer: TGLint; const values: IJSFloat32Array; const srcOffset: TGLuint);
+procedure glClearBufferiv(const buffer: TGLenum; const drawbuffer: TGLint; const values: IJSInt32Array; const srcOffset: TGLuint);
+procedure glClearBufferuiv(const buffer: TGLenum; const drawbuffer: TGLint; const values: IJSUint32Array; const srcOffset: TGLuint);
 procedure glClearBufferfi(const buffer: TGLenum; const drawbuffer: TGLint; const depth: TGLfloat; const stencil: TGLint);
 function glCreateQuery(): IJSWebGLQuery;
 procedure glDeleteQuery(const query: IJSWebGLQuery);
@@ -1516,56 +1516,48 @@ begin
   GL.vertexAttrib1f(indx, x);
 end;
 
-{ Not in auto-generated flat WebGL API:
-procedure glVertexAttrib1fv(const indx: TGLuint; const values: TFloat32List);
+procedure glVertexAttrib1fv(const indx: TGLuint; const values: IJSFloat32Array);
 begin
   if GL = nil then raise Exception.Create('Failed to load WebGL context (version 1.0), which is necessary to call vertexAttrib1fv');
   GL.vertexAttrib1fv(indx, values);
 end;
 
-}
 procedure glVertexAttrib2f(const indx: TGLuint; const x: TGLfloat; const y: TGLfloat);
 begin
   if GL = nil then raise Exception.Create('Failed to load WebGL context (version 1.0), which is necessary to call vertexAttrib2f');
   GL.vertexAttrib2f(indx, x, y);
 end;
 
-{ Not in auto-generated flat WebGL API:
-procedure glVertexAttrib2fv(const indx: TGLuint; const values: TFloat32List);
+procedure glVertexAttrib2fv(const indx: TGLuint; const values: IJSFloat32Array);
 begin
   if GL = nil then raise Exception.Create('Failed to load WebGL context (version 1.0), which is necessary to call vertexAttrib2fv');
   GL.vertexAttrib2fv(indx, values);
 end;
 
-}
 procedure glVertexAttrib3f(const indx: TGLuint; const x: TGLfloat; const y: TGLfloat; const z: TGLfloat);
 begin
   if GL = nil then raise Exception.Create('Failed to load WebGL context (version 1.0), which is necessary to call vertexAttrib3f');
   GL.vertexAttrib3f(indx, x, y, z);
 end;
 
-{ Not in auto-generated flat WebGL API:
-procedure glVertexAttrib3fv(const indx: TGLuint; const values: TFloat32List);
+procedure glVertexAttrib3fv(const indx: TGLuint; const values: IJSFloat32Array);
 begin
   if GL = nil then raise Exception.Create('Failed to load WebGL context (version 1.0), which is necessary to call vertexAttrib3fv');
   GL.vertexAttrib3fv(indx, values);
 end;
 
-}
 procedure glVertexAttrib4f(const indx: TGLuint; const x: TGLfloat; const y: TGLfloat; const z: TGLfloat; const w: TGLfloat);
 begin
   if GL = nil then raise Exception.Create('Failed to load WebGL context (version 1.0), which is necessary to call vertexAttrib4f');
   GL.vertexAttrib4f(indx, x, y, z, w);
 end;
 
-{ Not in auto-generated flat WebGL API:
-procedure glVertexAttrib4fv(const indx: TGLuint; const values: TFloat32List);
+procedure glVertexAttrib4fv(const indx: TGLuint; const values: IJSFloat32Array);
 begin
   if GL = nil then raise Exception.Create('Failed to load WebGL context (version 1.0), which is necessary to call vertexAttrib4fv');
   GL.vertexAttrib4fv(indx, values);
 end;
 
-}
 procedure glVertexAttribPointer(const indx: TGLuint; const size: TGLint; const type_: TGLenum; const normalized: TGLboolean; const stride: TGLsizei; const offset: TGLintptr);
 begin
   if GL = nil then raise Exception.Create('Failed to load WebGL context (version 1.0), which is necessary to call vertexAttribPointer');
@@ -2092,202 +2084,156 @@ begin
   GL2.uniform4ui(location, v0, v1, v2, v3);
 end;
 
-{ Not in auto-generated flat WebGL API:
-procedure glUniform1fv(const location: IJSWebGLUniformLocation; const data: TFloat32List; const srcOffset: TGLuint; const srcLength: TGLuint);
+procedure glUniform1fv(const location: IJSWebGLUniformLocation; const data: IJSFloat32Array; const srcOffset: TGLuint; const srcLength: TGLuint);
 begin
   if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call uniform1fv');
   GL2.uniform1fv(location, data, srcOffset, srcLength);
 end;
 
-}
-{ Not in auto-generated flat WebGL API:
-procedure glUniform2fv(const location: IJSWebGLUniformLocation; const data: TFloat32List; const srcOffset: TGLuint; const srcLength: TGLuint);
+procedure glUniform2fv(const location: IJSWebGLUniformLocation; const data: IJSFloat32Array; const srcOffset: TGLuint; const srcLength: TGLuint);
 begin
   if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call uniform2fv');
   GL2.uniform2fv(location, data, srcOffset, srcLength);
 end;
 
-}
-{ Not in auto-generated flat WebGL API:
-procedure glUniform3fv(const location: IJSWebGLUniformLocation; const data: TFloat32List; const srcOffset: TGLuint; const srcLength: TGLuint);
+procedure glUniform3fv(const location: IJSWebGLUniformLocation; const data: IJSFloat32Array; const srcOffset: TGLuint; const srcLength: TGLuint);
 begin
   if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call uniform3fv');
   GL2.uniform3fv(location, data, srcOffset, srcLength);
 end;
 
-}
-{ Not in auto-generated flat WebGL API:
-procedure glUniform4fv(const location: IJSWebGLUniformLocation; const data: TFloat32List; const srcOffset: TGLuint; const srcLength: TGLuint);
+procedure glUniform4fv(const location: IJSWebGLUniformLocation; const data: IJSFloat32Array; const srcOffset: TGLuint; const srcLength: TGLuint);
 begin
   if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call uniform4fv');
   GL2.uniform4fv(location, data, srcOffset, srcLength);
 end;
 
-}
-{ Not in auto-generated flat WebGL API:
-procedure glUniform1iv(const location: IJSWebGLUniformLocation; const data: TInt32List; const srcOffset: TGLuint; const srcLength: TGLuint);
+procedure glUniform1iv(const location: IJSWebGLUniformLocation; const data: IJSInt32Array; const srcOffset: TGLuint; const srcLength: TGLuint);
 begin
   if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call uniform1iv');
   GL2.uniform1iv(location, data, srcOffset, srcLength);
 end;
 
-}
-{ Not in auto-generated flat WebGL API:
-procedure glUniform2iv(const location: IJSWebGLUniformLocation; const data: TInt32List; const srcOffset: TGLuint; const srcLength: TGLuint);
+procedure glUniform2iv(const location: IJSWebGLUniformLocation; const data: IJSInt32Array; const srcOffset: TGLuint; const srcLength: TGLuint);
 begin
   if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call uniform2iv');
   GL2.uniform2iv(location, data, srcOffset, srcLength);
 end;
 
-}
-{ Not in auto-generated flat WebGL API:
-procedure glUniform3iv(const location: IJSWebGLUniformLocation; const data: TInt32List; const srcOffset: TGLuint; const srcLength: TGLuint);
+procedure glUniform3iv(const location: IJSWebGLUniformLocation; const data: IJSInt32Array; const srcOffset: TGLuint; const srcLength: TGLuint);
 begin
   if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call uniform3iv');
   GL2.uniform3iv(location, data, srcOffset, srcLength);
 end;
 
-}
-{ Not in auto-generated flat WebGL API:
-procedure glUniform4iv(const location: IJSWebGLUniformLocation; const data: TInt32List; const srcOffset: TGLuint; const srcLength: TGLuint);
+procedure glUniform4iv(const location: IJSWebGLUniformLocation; const data: IJSInt32Array; const srcOffset: TGLuint; const srcLength: TGLuint);
 begin
   if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call uniform4iv');
   GL2.uniform4iv(location, data, srcOffset, srcLength);
 end;
 
-}
-{ Not in auto-generated flat WebGL API:
-procedure glUniform1uiv(const location: IJSWebGLUniformLocation; const data: TUint32List; const srcOffset: TGLuint; const srcLength: TGLuint);
+procedure glUniform1uiv(const location: IJSWebGLUniformLocation; const data: IJSUint32Array; const srcOffset: TGLuint; const srcLength: TGLuint);
 begin
   if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call uniform1uiv');
   GL2.uniform1uiv(location, data, srcOffset, srcLength);
 end;
 
-}
-{ Not in auto-generated flat WebGL API:
-procedure glUniform2uiv(const location: IJSWebGLUniformLocation; const data: TUint32List; const srcOffset: TGLuint; const srcLength: TGLuint);
+procedure glUniform2uiv(const location: IJSWebGLUniformLocation; const data: IJSUint32Array; const srcOffset: TGLuint; const srcLength: TGLuint);
 begin
   if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call uniform2uiv');
   GL2.uniform2uiv(location, data, srcOffset, srcLength);
 end;
 
-}
-{ Not in auto-generated flat WebGL API:
-procedure glUniform3uiv(const location: IJSWebGLUniformLocation; const data: TUint32List; const srcOffset: TGLuint; const srcLength: TGLuint);
+procedure glUniform3uiv(const location: IJSWebGLUniformLocation; const data: IJSUint32Array; const srcOffset: TGLuint; const srcLength: TGLuint);
 begin
   if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call uniform3uiv');
   GL2.uniform3uiv(location, data, srcOffset, srcLength);
 end;
 
-}
-{ Not in auto-generated flat WebGL API:
-procedure glUniform4uiv(const location: IJSWebGLUniformLocation; const data: TUint32List; const srcOffset: TGLuint; const srcLength: TGLuint);
+procedure glUniform4uiv(const location: IJSWebGLUniformLocation; const data: IJSUint32Array; const srcOffset: TGLuint; const srcLength: TGLuint);
 begin
   if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call uniform4uiv');
   GL2.uniform4uiv(location, data, srcOffset, srcLength);
 end;
 
-}
-{ Not in auto-generated flat WebGL API:
-procedure glUniformMatrix2fv(const location: IJSWebGLUniformLocation; const transpose: TGLboolean; const data: TFloat32List; const srcOffset: TGLuint; const srcLength: TGLuint);
+procedure glUniformMatrix2fv(const location: IJSWebGLUniformLocation; const transpose: TGLboolean; const data: IJSFloat32Array; const srcOffset: TGLuint; const srcLength: TGLuint);
 begin
   if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call uniformMatrix2fv');
   GL2.uniformMatrix2fv(location, transpose, data, srcOffset, srcLength);
 end;
 
-}
-{ Not in auto-generated flat WebGL API:
-procedure glUniformMatrix3x2fv(const location: IJSWebGLUniformLocation; const transpose: TGLboolean; const data: TFloat32List; const srcOffset: TGLuint; const srcLength: TGLuint);
+procedure glUniformMatrix3x2fv(const location: IJSWebGLUniformLocation; const transpose: TGLboolean; const data: IJSFloat32Array; const srcOffset: TGLuint; const srcLength: TGLuint);
 begin
   if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call uniformMatrix3x2fv');
   GL2.uniformMatrix3x2fv(location, transpose, data, srcOffset, srcLength);
 end;
 
-}
-{ Not in auto-generated flat WebGL API:
-procedure glUniformMatrix4x2fv(const location: IJSWebGLUniformLocation; const transpose: TGLboolean; const data: TFloat32List; const srcOffset: TGLuint; const srcLength: TGLuint);
+procedure glUniformMatrix4x2fv(const location: IJSWebGLUniformLocation; const transpose: TGLboolean; const data: IJSFloat32Array; const srcOffset: TGLuint; const srcLength: TGLuint);
 begin
   if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call uniformMatrix4x2fv');
   GL2.uniformMatrix4x2fv(location, transpose, data, srcOffset, srcLength);
 end;
 
-}
-{ Not in auto-generated flat WebGL API:
-procedure glUniformMatrix2x3fv(const location: IJSWebGLUniformLocation; const transpose: TGLboolean; const data: TFloat32List; const srcOffset: TGLuint; const srcLength: TGLuint);
+procedure glUniformMatrix2x3fv(const location: IJSWebGLUniformLocation; const transpose: TGLboolean; const data: IJSFloat32Array; const srcOffset: TGLuint; const srcLength: TGLuint);
 begin
   if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call uniformMatrix2x3fv');
   GL2.uniformMatrix2x3fv(location, transpose, data, srcOffset, srcLength);
 end;
 
-}
-{ Not in auto-generated flat WebGL API:
-procedure glUniformMatrix3fv(const location: IJSWebGLUniformLocation; const transpose: TGLboolean; const data: TFloat32List; const srcOffset: TGLuint; const srcLength: TGLuint);
+procedure glUniformMatrix3fv(const location: IJSWebGLUniformLocation; const transpose: TGLboolean; const data: IJSFloat32Array; const srcOffset: TGLuint; const srcLength: TGLuint);
 begin
   if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call uniformMatrix3fv');
   GL2.uniformMatrix3fv(location, transpose, data, srcOffset, srcLength);
 end;
 
-}
-{ Not in auto-generated flat WebGL API:
-procedure glUniformMatrix4x3fv(const location: IJSWebGLUniformLocation; const transpose: TGLboolean; const data: TFloat32List; const srcOffset: TGLuint; const srcLength: TGLuint);
+procedure glUniformMatrix4x3fv(const location: IJSWebGLUniformLocation; const transpose: TGLboolean; const data: IJSFloat32Array; const srcOffset: TGLuint; const srcLength: TGLuint);
 begin
   if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call uniformMatrix4x3fv');
   GL2.uniformMatrix4x3fv(location, transpose, data, srcOffset, srcLength);
 end;
 
-}
-{ Not in auto-generated flat WebGL API:
-procedure glUniformMatrix2x4fv(const location: IJSWebGLUniformLocation; const transpose: TGLboolean; const data: TFloat32List; const srcOffset: TGLuint; const srcLength: TGLuint);
+procedure glUniformMatrix2x4fv(const location: IJSWebGLUniformLocation; const transpose: TGLboolean; const data: IJSFloat32Array; const srcOffset: TGLuint; const srcLength: TGLuint);
 begin
   if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call uniformMatrix2x4fv');
   GL2.uniformMatrix2x4fv(location, transpose, data, srcOffset, srcLength);
 end;
 
-}
-{ Not in auto-generated flat WebGL API:
-procedure glUniformMatrix3x4fv(const location: IJSWebGLUniformLocation; const transpose: TGLboolean; const data: TFloat32List; const srcOffset: TGLuint; const srcLength: TGLuint);
+procedure glUniformMatrix3x4fv(const location: IJSWebGLUniformLocation; const transpose: TGLboolean; const data: IJSFloat32Array; const srcOffset: TGLuint; const srcLength: TGLuint);
 begin
   if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call uniformMatrix3x4fv');
   GL2.uniformMatrix3x4fv(location, transpose, data, srcOffset, srcLength);
 end;
 
-}
-{ Not in auto-generated flat WebGL API:
-procedure glUniformMatrix4fv(const location: IJSWebGLUniformLocation; const transpose: TGLboolean; const data: TFloat32List; const srcOffset: TGLuint; const srcLength: TGLuint);
+procedure glUniformMatrix4fv(const location: IJSWebGLUniformLocation; const transpose: TGLboolean; const data: IJSFloat32Array; const srcOffset: TGLuint; const srcLength: TGLuint);
 begin
   if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call uniformMatrix4fv');
   GL2.uniformMatrix4fv(location, transpose, data, srcOffset, srcLength);
 end;
 
-}
 procedure glVertexAttribI4i(const index: TGLuint; const x: TGLint; const y: TGLint; const z: TGLint; const w: TGLint);
 begin
   if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call vertexAttribI4i');
   GL2.vertexAttribI4i(index, x, y, z, w);
 end;
 
-{ Not in auto-generated flat WebGL API:
-procedure glVertexAttribI4iv(const index: TGLuint; const values: TInt32List);
+procedure glVertexAttribI4iv(const index: TGLuint; const values: IJSInt32Array);
 begin
   if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call vertexAttribI4iv');
   GL2.vertexAttribI4iv(index, values);
 end;
 
-}
 procedure glVertexAttribI4ui(const index: TGLuint; const x: TGLuint; const y: TGLuint; const z: TGLuint; const w: TGLuint);
 begin
   if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call vertexAttribI4ui');
   GL2.vertexAttribI4ui(index, x, y, z, w);
 end;
 
-{ Not in auto-generated flat WebGL API:
-procedure glVertexAttribI4uiv(const index: TGLuint; const values: TUint32List);
+procedure glVertexAttribI4uiv(const index: TGLuint; const values: IJSUint32Array);
 begin
   if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call vertexAttribI4uiv');
   GL2.vertexAttribI4uiv(index, values);
 end;
 
-}
 procedure glVertexAttribIPointer(const index: TGLuint; const size: TGLint; const type_: TGLenum; const stride: TGLsizei; const offset: TGLintptr);
 begin
   if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call vertexAttribIPointer');
@@ -2344,30 +2290,24 @@ begin
 end;
 
 }
-{ Not in auto-generated flat WebGL API:
-procedure glClearBufferfv(const buffer: TGLenum; const drawbuffer: TGLint; const values: TFloat32List; const srcOffset: TGLuint);
+procedure glClearBufferfv(const buffer: TGLenum; const drawbuffer: TGLint; const values: IJSFloat32Array; const srcOffset: TGLuint);
 begin
   if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call clearBufferfv');
   GL2.clearBufferfv(buffer, drawbuffer, values, srcOffset);
 end;
 
-}
-{ Not in auto-generated flat WebGL API:
-procedure glClearBufferiv(const buffer: TGLenum; const drawbuffer: TGLint; const values: TInt32List; const srcOffset: TGLuint);
+procedure glClearBufferiv(const buffer: TGLenum; const drawbuffer: TGLint; const values: IJSInt32Array; const srcOffset: TGLuint);
 begin
   if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call clearBufferiv');
   GL2.clearBufferiv(buffer, drawbuffer, values, srcOffset);
 end;
 
-}
-{ Not in auto-generated flat WebGL API:
-procedure glClearBufferuiv(const buffer: TGLenum; const drawbuffer: TGLint; const values: TUint32List; const srcOffset: TGLuint);
+procedure glClearBufferuiv(const buffer: TGLenum; const drawbuffer: TGLint; const values: IJSUint32Array; const srcOffset: TGLuint);
 begin
   if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call clearBufferuiv');
   GL2.clearBufferuiv(buffer, drawbuffer, values, srcOffset);
 end;
 
-}
 procedure glClearBufferfi(const buffer: TGLenum; const drawbuffer: TGLint; const depth: TGLfloat; const stencil: TGLint);
 begin
   if GL2 = nil then raise Exception.Create('Failed to load WebGL context (version 2.0), which is necessary to call clearBufferfi');

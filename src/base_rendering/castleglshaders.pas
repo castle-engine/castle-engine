@@ -856,7 +856,11 @@ begin
   if Location = GLUniformLocationNone then Exit; // ignore non-existing uniform here
   Owner.Enable;
   if GLFeatures.Shaders then
+    {$ifdef CASTLE_WEBGL}
+    glUniformMatrix2fv(Location, GL_FALSE, MatrixToWebGL(Value), 0, 0);
+    {$else}
     glUniformMatrix2fv(Location, 1, GL_FALSE, @Value);
+    {$endif}
 end;
 
 procedure TGLSLUniform.SetValue(const Value: TMatrix3);
@@ -864,7 +868,11 @@ begin
   if Location = GLUniformLocationNone then Exit; // ignore non-existing uniform here
   Owner.Enable;
   if GLFeatures.Shaders then
+    {$ifdef CASTLE_WEBGL}
+    glUniformMatrix3fv(Location, GL_FALSE, MatrixToWebGL(Value), 0, 0);
+    {$else}
     glUniformMatrix3fv(Location, 1, GL_FALSE, @Value);
+    {$endif}
 end;
 
 procedure TGLSLUniform.SetValue(const Value: TMatrix4);
@@ -872,7 +880,11 @@ begin
   if Location = GLUniformLocationNone then Exit; // ignore non-existing uniform here
   Owner.Enable;
   if GLFeatures.Shaders then
+    {$ifdef CASTLE_WEBGL}
+    glUniformMatrix4fv(Location, GL_FALSE, MatrixToWebGL(Value), 0, 0);
+    {$else}
     glUniformMatrix4fv(Location, 1, GL_FALSE, @Value);
+    {$endif}
 end;
 
 procedure TGLSLUniform.SetValue(const Value: TBooleanList);

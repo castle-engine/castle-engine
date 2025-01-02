@@ -21,7 +21,7 @@ unit CastleInternalWebGL;
 interface
 
 uses JOB.JS,
-  CastleInternalJobWeb;
+  CastleInternalJobWeb, CastleVectors;
 
 type
   { Alias simple types to CastleInternalJobWeb types. }
@@ -55,11 +55,17 @@ const
 
 function glGetString(const Param: TGLenum): String;
 
+{ Helper routines specific to WebGL }
+
 procedure RunWebGLAnimation;
 
 var
   GL: IJSWebGLRenderingContext;
   GL2: IJSWebGL2RenderingContext;
+
+function MatrixToWebGL(const M: TMatrix2): IJSFloat32Array;
+function MatrixToWebGL(const M: TMatrix3): IJSFloat32Array;
+function MatrixToWebGL(const M: TMatrix4): IJSFloat32Array;
 
 implementation
 
@@ -254,6 +260,51 @@ begin
 
   // TODO
 	//CanvasAnimationHandler := window.requestAnimationFrame(@AnimationFrame);
+end;
+
+function MatrixToWebGL(const M: TMatrix2): IJSFloat32Array;
+var
+  Cols, Rows, Col, Row: Integer;
+begin
+  Cols := High(TMatrix2.TIndex) + 1;
+  Rows := Cols; // square matrix
+  Result := TJSFloat32Array.Create(Cols * Rows);
+
+  { Convert to a list of values in column-major order, as expected by WebGL:
+    https://developer.mozilla.org/en-US/docs/Web/API/WebGLRenderingContext/uniformMatrix }
+  for Col := 0 to Cols -1 do
+    for Row := 0 to Rows - 1 do
+      Result[Col * Cols + Row] := M[Col, Row];
+end;
+
+function MatrixToWebGL(const M: TMatrix3): IJSFloat32Array;
+var
+  Cols, Rows, Col, Row: Integer;
+begin
+  Cols := High(TMatrix3.TIndex) + 1;
+  Rows := Cols; // square matrix
+  Result := TJSFloat32Array.Create(Cols * Rows);
+
+  { Convert to a list of values in column-major order, as expected by WebGL:
+    https://developer.mozilla.org/en-US/docs/Web/API/WebGLRenderingContext/uniformMatrix }
+  for Col := 0 to Cols -1 do
+    for Row := 0 to Rows - 1 do
+      Result[Col * Cols + Row] := M[Col, Row];
+end;
+
+function MatrixToWebGL(const M: TMatrix4): IJSFloat32Array;
+var
+  Cols, Rows, Col, Row: Integer;
+begin
+  Cols := High(TMatrix4.TIndex) + 1;
+  Rows := Cols; // square matrix
+  Result := TJSFloat32Array.Create(Cols * Rows);
+
+  { Convert to a list of values in column-major order, as expected by WebGL:
+    https://developer.mozilla.org/en-US/docs/Web/API/WebGLRenderingContext/uniformMatrix }
+  for Col := 0 to Cols -1 do
+    for Row := 0 to Rows - 1 do
+      Result[Col * Cols + Row] := M[Col, Row];
 end;
 
 end.

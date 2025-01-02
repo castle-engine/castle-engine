@@ -125,6 +125,15 @@ procedure ExposeFunctions(const Context: TWebIDLContext;
        SameText('OffscreenCanvas', IdlType.TypeName) then
       Result := 'IJS' + IdlType.TypeName
     else
+    if SameText('Float32List', IdlType.TypeName) then
+      Result := 'IJSFloat32Array'
+    else
+    if SameText('Int32List', IdlType.TypeName) then
+      Result := 'IJSInt32Array'
+    else
+    if SameText('Uint32List', IdlType.TypeName) then
+      Result := 'IJSUint32Array'
+    else
       Result := 'T' + IdlType.TypeName;
   end;
 
@@ -133,10 +142,7 @@ procedure ExposeFunctions(const Context: TWebIDLContext;
   begin
     Result :=
       (IdlType is TIDLSequenceTypeDefDefinition) or
-      SameText('object', IdlType.TypeName) or
-      SameText('Float32list', IdlType.TypeName) or
-      SameText('Int32list', IdlType.TypeName) or
-      SameText('Uint32list', IdlType.TypeName);
+      SameText('object', IdlType.TypeName);
   end;
 
   { Is S a keyword in Pascal.
