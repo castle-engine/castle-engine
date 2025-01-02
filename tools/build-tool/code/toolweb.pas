@@ -56,9 +56,9 @@ begin
     '-Tbrowser',
     // no hints -- just like FPC, pas2js displays excessive hints
     '-vh-',
+    // Note: to easily find the error message number, pass -vq .
     // avoid warning we cannot do anything about: ".../pas2js/packages/rtl/src/js.pas(1012,15) Warning: Symbol "Int64" is not implemented"
-    // TODO: fails to hide them, maybe becaue fcl-passrc generates it? sSymbolXIsNotImplemented
-    '-vm5055',
+    '-vm5078',
     // avoid warnings from standard units we cannot do anything about like ".../rtl/src/sysutils.pas(3106,24) Warning: Symbol "substr" is deprecated"
     '-vm5043',
     'program_js.dpr']);
