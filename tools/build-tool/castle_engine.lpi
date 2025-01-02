@@ -37,7 +37,7 @@
         <PackageName Value="castle_base"/>
       </Item1>
     </RequiredPackages>
-    <Units Count="24">
+    <Units Count="23">
       <Unit0>
         <Filename Value="castle_engine.dpr"/>
         <IsPartOfProject Value="True"/>
@@ -57,11 +57,6 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="ToolProject"/>
       </Unit3>
-      <Unit4>
-        <Filename Value="../common-code/toolarchitectures.pas"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="ToolArchitectures"/>
-      </Unit4>
       <Unit5>
         <Filename Value="code/toolutils.pas"/>
         <IsPartOfProject Value="True"/>
@@ -138,11 +133,11 @@
         <Filename Value="../common-code/toolservices.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit22>
-      <Unit23>
+      <Unit4>
         <Filename Value="code/tooldebian.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="ToolDebian"/>
-      </Unit23>
+      </Unit4>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

@@ -15,7 +15,7 @@
 
 { Functionality useful for CGE tools and design-time operations.
 
-  Practically, this is a shared code between
+  Practically, this is a shared code between:
 
   @unorderedList(
     @item(CGE build tool, in tools/build-tool/)
@@ -56,7 +56,7 @@ const
       So it is simpler to just name all includes and units differently,
       even across system-specific dirs. }
 
-  EnginePaths: array [0..47] of String = (
+  EnginePaths: array [0..48] of String = (
     'base',
     'common_includes',
     'base/android',
@@ -90,6 +90,7 @@ const
     'audio/ogg_vorbis',
     'files',
     'files/indy',
+    'files/tools',
     'castlescript',
     'ui',
     'ui/windows',

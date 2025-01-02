@@ -22,7 +22,8 @@ interface
 
 uses SysUtils, Classes, Generics.Collections,
   CastleFindFiles, CastleStringUtils, CastleUtils, CastleInternalTools,
-  ToolArchitectures, ToolCompile, ToolUtils, ToolServices, ToolAssocDocTypes,
+  CastleInternalArchitectures,
+  ToolCompile, ToolUtils, ToolServices, ToolAssocDocTypes,
   ToolPackage, ToolManifest, ToolProcess, ToolPackageFormat;
 
 type
@@ -285,10 +286,6 @@ type
     function PackageOutput(const FileName: String): Boolean;
 
     function IOSHasLaunchImageStoryboard: Boolean;
-
-    { Optionally adjust the given platform specification
-      if project has a file defining @link(TCastleProjectLocalSettings). }
-    procedure OverridePlatform(var Target: TTarget; var OS: TOS; var CPU: TCPU);
   end;
 
 implementation
@@ -2694,29 +2691,6 @@ end;
 function TCastleProject.LaunchImageStoryboard: TLaunchImageStoryboard;
 begin
   Result := Manifest.LaunchImageStoryboard;
-end;
-
-procedure TCastleProject.OverridePlatform(var Target: TTarget; var OS: TOS; var CPU: TCPU);
-var
-  LocalSettings: TCastleProjectLocalSettings;
-  LocalSettingsOwner: TComponent;
-  LocalSettingsUri: String;
-begin
-  LocalSettingsUri := FilenameToUriSafe(Path + 'CastleProjectLocalSettings.json');
-  if UriFileExists(LocalSettingsUri) then
-  begin
-    LocalSettingsOwner := TComponent.Create(nil);
-    LocalSettings := ComponentLoad(LocalSettingsUri, LocalSettingsOwner) as
-      TCastleProjectLocalSettings;
-    if LocalSettings.UsePlatformDefaults then
-    begin
-      Target := LocalSettings.DefaultTarget;
-      if LocalSettings.DefaultOS <> osNone then
-        OS := LocalSettings.DefaultOS;
-      if LocalSettings.DefaultCPU <> cpuNone then
-        CPU := LocalSettings.DefaultCPU;
-    end;
-  end;
 end;
 
 end.

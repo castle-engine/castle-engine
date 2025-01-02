@@ -171,7 +171,7 @@ implementation
 
 uses SysUtils, Process,
   CastleFilesUtils, CastleUtils, CastleUriUtils, CastleLog,
-  ToolArchitectures;
+  CastleInternalArchitectures;
 
 procedure WritelnVerbose(const S: String);
 begin

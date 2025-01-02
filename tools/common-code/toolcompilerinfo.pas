@@ -88,8 +88,9 @@ function FindDelphiPath(const ExceptionWhenMissing: Boolean; out AppExe: String)
 implementation
 
 uses CastleFilesUtils, CastleStringUtils, CastleLog,
+  CastleInternalArchitectures,
   {$ifdef MSWINDOWS} Registry, {$endif}
-  ToolArchitectures, ToolCommonUtils;
+  ToolCommonUtils;
 
 function FindExeFpc(const ExeName: String): String;
 begin

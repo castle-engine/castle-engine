@@ -1348,7 +1348,7 @@
         @item IfcBuildingStorey instance inside IfcBuilding
       )
 
-      @seealso AddContainedElement }
+      @seealso TIfcSpatialElement.AddContainedElement }
     procedure AddIsDecomposedBy(const ChildObject: TIfcObjectDefinition);
   end;
   TIfcObjectDefinitionList = {$ifdef FPC}specialize{$endif} TObjectList<TIfcObjectDefinition>;

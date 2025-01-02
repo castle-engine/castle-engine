@@ -21,7 +21,7 @@
         <PackageName Value="castle_base"/>
       </Item2>
     </RequiredPackages>
-    <Units Count="95">
+    <Units Count="94">
       <Unit0>
         <Filename Value="castle_tester_standalone.dpr"/>
         <IsPartOfProject Value="True"/>
@@ -448,11 +448,6 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="gameviewmain"/>
       </Unit85>
-      <Unit86>
-        <Filename Value="../tools/common-code/toolarchitectures.pas"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="toolarchitectures"/>
-      </Unit86>
       <Unit87>
         <Filename Value="../tools/common-code/toolassocdoctypes.pas"/>
         <IsPartOfProject Value="True"/>
@@ -488,11 +483,11 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="toolprocess"/>
       </Unit93>
-      <Unit94>
+      <Unit86>
         <Filename Value="../tools/common-code/toolservices.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="toolservices"/>
-      </Unit94>
+      </Unit86>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

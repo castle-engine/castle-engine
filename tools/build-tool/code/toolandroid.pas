@@ -21,8 +21,8 @@ unit ToolAndroid;
 interface
 
 uses Classes,
-  CastleUtils, CastleStringUtils,
-  ToolArchitectures, ToolCompile, ToolPackageFormat, ToolProject,
+  CastleUtils, CastleStringUtils, CastleInternalArchitectures,
+  ToolCompile, ToolPackageFormat, ToolProject,
   ToolManifest;
 
 { Compile (for all possible Android CPUs) Android unit or library.

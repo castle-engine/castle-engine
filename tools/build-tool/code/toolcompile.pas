@@ -21,8 +21,8 @@ unit ToolCompile;
 interface
 
 uses Classes,
-  CastleStringUtils,
-  ToolManifest, ToolArchitectures;
+  CastleStringUtils, CastleInternalArchitectures,
+  ToolManifest;
 
 type
   TCompilationMode = (cmRelease, cmValgrind, cmDebug);

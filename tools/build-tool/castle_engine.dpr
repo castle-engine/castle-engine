@@ -1,5 +1,5 @@
 {
-  Copyright 2014-2023 Michalis Kamburelis.
+  Copyright 2014-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -27,9 +27,10 @@ uses SysUtils,
   ToolDisableDynamicLibraries, //< use this unit early, before any other CGE unit
   CastleUtils, CastleParameters, CastleFindFiles, CastleLog,
   CastleFilesUtils, CastleUriUtils, CastleStringUtils,
-  CastleApplicationProperties,
+  CastleApplicationProperties, CastleInternalProjectLocalSettings,
+  CastleInternalArchitectures,
   ToolPackageFormat, ToolProject, ToolCompile, ToolIOS, ToolAndroid, ToolManifest,
-  ToolNintendoSwitch, ToolCommonUtils, ToolArchitectures, ToolUtils, ToolProcess,
+  ToolNintendoSwitch, ToolCommonUtils, ToolUtils, ToolProcess,
   ToolCache, ToolCompilerInfo;
 
 var
@@ -457,7 +458,7 @@ begin
     Project := TCastleProject.Create;
     try
       if not PlatformFromCommandLine then
-        Project.OverridePlatform(Target, OS, CPU);
+        ProjectOverridePlatform(Project.Path, Target, OS, CPU);
       if Command = 'create-manifest' then
         Project.DoCreateManifest
       else

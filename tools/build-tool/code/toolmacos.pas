@@ -50,7 +50,8 @@ implementation
 
 uses {$ifdef UNIX} BaseUnix, {$endif} SysUtils,
   CastleFilesUtils, CastleLog, CastleImages, CastleFindFiles,
-  ToolArchitectures, ToolCommonUtils, ToolUtils, ToolEmbeddedImages;
+  CastleInternalArchitectures,
+  ToolCommonUtils, ToolUtils, ToolEmbeddedImages;
 
 procedure SaveResized(const Image: TCastleImage; const Size: Integer; const OutputFileName: string);
 var

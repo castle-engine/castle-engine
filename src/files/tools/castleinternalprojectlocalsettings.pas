@@ -12,13 +12,17 @@
 
   ----------------------------------------------------------------------------
 }
-{ Local (user/machine-specific) project settings (TCastleProjectLocalSettings). }
-unit ToolProjectLocalSettings;
+{ Local (user/machine-specific) project settings (TCastleProjectLocalSettings).
+
+  @italic(Do not use this unit in your own applications.)
+  This unit is only directly used by CGE tools (build tool, editor).
+  However, do consult API documentation of this unit if you want to
+  write @code(CastleProjectLocalSettings.json) file by hand. }
+unit CastleInternalProjectLocalSettings;
 
 interface
 
-uses CastleClassUtils,
-  ToolArchitectures;
+uses CastleClassUtils, CastleInternalArchitectures;
 
 type
   { Local (user/machine-specific) project settings. }
@@ -53,9 +57,45 @@ type
       read FDefaultCPU write FDefaultCPU default cpuNone;
   end;
 
+{ Optionally adjust the given platform specification
+  if project has a file called
+  @code(CastleProjectLocalSettings.json)
+  defining @link(TCastleProjectLocalSettings).
+
+  Project is in path given as ProjectPath (must be absolute path ending
+  with path delimiter). }
+procedure ProjectOverridePlatform(const ProjectPath: String;
+  var Target: TTarget; var OS: TOS; var CPU: TCPU);
+
 implementation
 
-uses CastleComponentSerialize;
+uses Classes,
+  CastleComponentSerialize, CastleUriUtils;
+
+procedure ProjectOverridePlatform(const ProjectPath: String;
+  var Target: TTarget; var OS: TOS; var CPU: TCPU);
+var
+  LocalSettings: TCastleProjectLocalSettings;
+  LocalSettingsOwner: TComponent;
+  LocalSettingsUri: String;
+begin
+  LocalSettingsUri :=
+    FilenameToUriSafe(ProjectPath + 'CastleProjectLocalSettings.json');
+  if UriFileExists(LocalSettingsUri) then
+  begin
+    LocalSettingsOwner := TComponent.Create(nil);
+    LocalSettings := ComponentLoad(LocalSettingsUri, LocalSettingsOwner) as
+      TCastleProjectLocalSettings;
+    if LocalSettings.UsePlatformDefaults then
+    begin
+      Target := LocalSettings.DefaultTarget;
+      if LocalSettings.DefaultOS <> osNone then
+        OS := LocalSettings.DefaultOS;
+      if LocalSettings.DefaultCPU <> cpuNone then
+        CPU := LocalSettings.DefaultCPU;
+    end;
+  end;
+end;
 
 initialization
   RegisterSerializableComponent(TCastleProjectLocalSettings, 'Local Project Settings');

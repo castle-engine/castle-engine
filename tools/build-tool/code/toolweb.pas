@@ -30,7 +30,8 @@ implementation
 
 uses SysUtils,
   CastleUtils, CastleUriUtils, CastleFilesUtils, CastleOpenDocument,
-  ToolUtils, ToolCommonUtils, ToolArchitectures, ToolManifest;
+  CastleInternalArchitectures,
+  ToolUtils, ToolCommonUtils, ToolManifest;
 
 procedure CompileWeb(const Project: TCastleProject;
   const CompilerOptions: TCompilerOptions; const MainWebProgramFile: String);

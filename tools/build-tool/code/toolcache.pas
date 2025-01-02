@@ -20,7 +20,8 @@ unit ToolCache;
 
 interface
 
-uses ToolArchitectures, ToolCompile, ToolManifest;
+uses CastleInternalArchitectures,
+  ToolCompile, ToolManifest;
 
 procedure CacheCreate(const OverrideCompiler: TCompiler;
   const Target: TTarget; const OS: TOS; const CPU: TCPU);

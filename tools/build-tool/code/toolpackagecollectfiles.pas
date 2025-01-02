@@ -69,8 +69,8 @@ type
 implementation
 
 uses SysUtils, StrUtils,
-  CastleUriUtils, CastleLog, CastleFilesUtils,
-  ToolCommonUtils, ToolArchitectures, ToolPackage;
+  CastleUriUtils, CastleLog, CastleFilesUtils, CastleInternalArchitectures,
+  ToolCommonUtils, ToolPackage;
 
 { TBinaryPackageFiles ------------------------------------------------------- }
 

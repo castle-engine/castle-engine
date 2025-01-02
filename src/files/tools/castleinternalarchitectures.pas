@@ -1,5 +1,5 @@
 {
-  Copyright 2014-2023 Michalis Kamburelis and FPC team.
+  Copyright 2014-2024 Michalis Kamburelis and FPC team.
 
   This file is part of "Castle Game Engine".
 
@@ -18,7 +18,7 @@
 { Architectures (OS and CPU) definitions.
   Parts of this are based on FPMkUnit code, this way we use the same names
   as FPMkUnit, so we're consistent with FPC and fpmake command-line options. }
-unit ToolArchitectures;
+unit CastleInternalArchitectures;
 
 {$I castleconf.inc}
 

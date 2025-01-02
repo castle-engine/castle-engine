@@ -519,6 +519,9 @@ type
         preview window (ViewFileFrame). }
       ShellListViewUpdating: Cardinal;
       PlatformsInfo: TPlatformInfoList;
+      { TMenuItem that corresponds to TPlatformInfo
+        with TPlatformInfo.UseDefault. }
+      MenuItemDefaultPlatform: TMenuItem;
       CurrentPlatformInfo: Integer; //< Index to PlatformsInfo
       CurrentPackageFormat: TPackageFormat;
       ListOpenExistingViewStr: TStringList;
@@ -600,6 +603,8 @@ type
     function SaveDuringPhysicsSimulation: Boolean;
     function IsCreatingNewDesignAvailable: Boolean;
     procedure DesignObserverFreeNotification(const Sender: TFreeNotificationObserver);
+    { Based on project (in ProjectPath), update MenuItemDefaultPlatform.Caption. }
+    procedure UpdateMenuItemDefaultPlatform;
   public
     { Open a project, given an absolute path to CastleEngineManifest.xml }
     procedure OpenProject(const ManifestUrl: String);
@@ -628,10 +633,11 @@ uses TypInfo, LCLType, RegExpr, StrUtils, LCLVersion,
   CastleLog, CastleComponentSerialize, CastleSceneCore, CastleStringUtils,
   CastleFonts, X3DLoad, CastleFileFilters, CastleImages, CastleSoundEngine,
   CastleLclEditHack, CastleRenderOptions, CastleTimeUtils,
-  CastleInternalFileMonitor,
+  CastleInternalFileMonitor, CastleInternalProjectLocalSettings,
+  CastleInternalArchitectures,
   FormAbout, FormChooseProject, FormPreferences, FormSpriteSheetEditor,
   FormSystemInformation, FormRestartCustomEditor, FormImportSketchfab,
-  ToolCompilerInfo, ToolCommonUtils, ToolArchitectures, ToolProcess,
+  ToolCompilerInfo, ToolCommonUtils, ToolProcess,
   ToolFpcVersion;
 
 {$warnings on}
@@ -1646,6 +1652,27 @@ begin
   end;
 end;
 
+procedure TProjectForm.UpdateMenuItemDefaultPlatform;
+var
+  Target: TTarget;
+  OS: TOS;
+  CPU: TCPU;
+  MiCaption: String;
+begin
+  { Determine the Target / OS / CPU just like the build tool }
+  Target := targetCustom;
+  OS := DefaultOS;
+  CPU := DefaultCPU;
+  ProjectOverridePlatform(ProjectPath, Target, OS, CPU);
+
+  MiCaption := 'Default';
+  if Target = targetCustom then
+    MiCaption += ' (' + OSToString(OS) + ' / ' + CPUToString(CPU) + ')'
+  else
+    MiCaption += ' (' + TargetToString(Target) + ')';
+  MenuItemDefaultPlatform.Caption := MiCaption;
+end;
+
 procedure TProjectForm.FormCreate(Sender: TObject);
 
   { We create some components by code, this way we don't have to put
@@ -1702,7 +1729,9 @@ procedure TProjectForm.FormCreate(Sender: TObject);
 
   procedure BuildPlatformsMenu;
 
-    procedure AddPlatform(const Name: String; const Target: TTarget; const OS: TOS; const CPU: TCPU);
+    procedure AddPlatform(const Name: String;
+      const UseDefault: Boolean;
+      const Target: TTarget; const OS: TOS; const CPU: TCPU);
     var
       Mi: TMenuItem;
       MiCaption: String;
@@ -1710,7 +1739,7 @@ procedure TProjectForm.FormCreate(Sender: TObject);
     begin
       Mi := TMenuItem.Create(MenuItemPlatform);
       MiCaption := Name;
-      if Target = targetCustom then
+      if (not UseDefault) and (Target = targetCustom) then
         MiCaption += ' (' + OSToString(OS) + ' / ' + CPUToString(CPU) + ')';
       Mi.Caption := MiCaption;
       Mi.Tag := PlatformsInfo.Count;
@@ -1721,7 +1750,11 @@ procedure TProjectForm.FormCreate(Sender: TObject);
       Mi.Checked := Mi.Tag = CurrentPlatformInfo;
       MenuItemPlatform.Add(Mi);
 
+      if UseDefault then
+        MenuItemDefaultPlatform := Mi;
+
       P := TPlatformInfo.Create;
+      P.UseDefault := UseDefault;
       P.Target := Target;
       P.OS := OS;
       P.CPU := CPU;
@@ -1739,29 +1772,33 @@ procedure TProjectForm.FormCreate(Sender: TObject);
 
   begin
     PlatformsInfo := TPlatformInfoList.Create(true);
-    AddPlatform('Default', targetCustom, DefaultOS, DefaultCPU);
+    AddPlatform('Default', true, targetCustom, DefaultOS, DefaultCPU);
     AddPlatformSeparator;
-    AddPlatform('Android (Arm 32-bit and 64-bit)', targetAndroid, { OS and CPU ignored } DefaultOS, DefaultCPU);
-    AddPlatform('Android (emulator 32-bit)', targetCustom, Android, i386);
-    AddPlatform('Android (emulator 64-bit)', targetCustom, Android, x86_64);
+    AddPlatform('Same As Editor', false, targetCustom, DefaultOS, DefaultCPU);
     AddPlatformSeparator;
-    AddPlatform('iOS (Arm 32-bit and 64-bit)', targetIOS, { OS and CPU ignored } DefaultOS, DefaultCPU);
+    AddPlatform('Web', false, targetWeb, { OS and CPU ignored } DefaultOS, DefaultCPU);
     AddPlatformSeparator;
-    AddPlatform('Linux 32-bit', targetCustom, Linux, i386);
-    AddPlatform('Linux 64-bit', targetCustom, Linux, x86_64);
-    AddPlatform('Linux Arm 32-bit', targetCustom, Linux, Arm);
-    AddPlatform('Linux Arm 64-bit', targetCustom, Linux, Aarch64);
+    AddPlatform('Android (Arm 32-bit and 64-bit)', false, targetAndroid, { OS and CPU ignored } DefaultOS, DefaultCPU);
+    AddPlatform('Android (emulator 32-bit)', false, targetCustom, Android, i386);
+    AddPlatform('Android (emulator 64-bit)', false, targetCustom, Android, x86_64);
     AddPlatformSeparator;
-    AddPlatform('Windows 32-bit', targetCustom, Win32, i386);
-    AddPlatform('Windows 64-bit', targetCustom, Win64, x86_64);
+    AddPlatform('iOS (Arm 32-bit and 64-bit)', false, targetIOS, { OS and CPU ignored } DefaultOS, DefaultCPU);
     AddPlatformSeparator;
-    AddPlatform('macOS 64-bit', targetCustom, Darwin, x86_64);
-    AddPlatform('macOS Arm 64-bit', targetCustom, Darwin, Aarch64);
+    AddPlatform('Linux 32-bit', false, targetCustom, Linux, i386);
+    AddPlatform('Linux 64-bit', false, targetCustom, Linux, x86_64);
+    AddPlatform('Linux Arm 32-bit', false, targetCustom, Linux, Arm);
+    AddPlatform('Linux Arm 64-bit', false, targetCustom, Linux, Aarch64);
     AddPlatformSeparator;
-    AddPlatform('FreeBSD 32-bit', targetCustom, FreeBSD, i386);
-    AddPlatform('FreeBSD 64-bit', targetCustom, FreeBSD, x86_64);
+    AddPlatform('Windows 32-bit', false, targetCustom, Win32, i386);
+    AddPlatform('Windows 64-bit', false, targetCustom, Win64, x86_64);
     AddPlatformSeparator;
-    AddPlatform('Nintendo Switch', targetNintendoSwitch, { OS and CPU ignored } DefaultOS, DefaultCPU);
+    AddPlatform('macOS 64-bit', false, targetCustom, Darwin, x86_64);
+    AddPlatform('macOS Arm 64-bit', false, targetCustom, Darwin, Aarch64);
+    AddPlatformSeparator;
+    AddPlatform('FreeBSD 32-bit', false, targetCustom, FreeBSD, i386);
+    AddPlatform('FreeBSD 64-bit', false, targetCustom, FreeBSD, x86_64);
+    AddPlatformSeparator;
+    AddPlatform('Nintendo Switch', false, targetNintendoSwitch, { OS and CPU ignored } DefaultOS, DefaultCPU);
   end;
 
   procedure BuildPackageFormatsMenu;
@@ -3252,10 +3289,8 @@ procedure TProjectForm.BuildToolCall(const Commands: array of String;
 
   procedure AddPlatformParameters(const Params: TStrings; const PlatformInfo: TPlatformInfo);
   begin
-    if (PlatformInfo.Target = targetCustom) and
-       (PlatformInfo.OS = DefaultOS) and
-       (PlatformInfo.CPU = DefaultCPU) then
-      // keep command-line simple, to be simpler for user; no point is adding extra parameters
+    if PlatformInfo.UseDefault then
+      // do not add extra parameters
       Exit;
 
     if PlatformInfo.Target <> targetCustom then
@@ -3567,6 +3602,7 @@ begin
 
   DesignExistenceChanged;
   UpdateFormCaption(nil); // make form Caption reflect project name (although this is now done also by DesignExistenceChanged)
+  UpdateMenuItemDefaultPlatform;
 
   if (Manifest.EditorUnits <> '') and
      (ProjectName <> InternalCustomComponentsForProject) then
