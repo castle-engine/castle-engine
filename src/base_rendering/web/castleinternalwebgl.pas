@@ -53,6 +53,11 @@ const
 { Routines providing WebGL "flat" API that looks deliberately similar to
   CastleGLES unit. }
 
+const
+  { WebGL has only STENCIL_INDEX8, expose more generic name STENCIL_INDEX.
+    See https://developer.mozilla.org/en-US/docs/Web/API/WebGLRenderingContext/renderbufferStorage }
+  GL_STENCIL_INDEX = GL_STENCIL_INDEX8;
+
 function glGetString(const Param: TGLenum): String;
 
 { Helper routines specific to WebGL }
