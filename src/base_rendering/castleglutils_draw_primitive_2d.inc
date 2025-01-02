@@ -313,7 +313,7 @@ type
 
 destructor TPrimitive2DResources.Destroy;
 begin
-  glFreeBuffer(Vbo);
+  FreeBuffer(Vbo);
   FreeAndNil(Vao);
   FreeAndNil(Prog);
   FreeMem(PointPtr); // not tied to OpenGL, but freed together anyway
@@ -382,7 +382,7 @@ begin
     if Primitive2DRes.Vbo = 0 then
     begin
       Assert(GLFeatures.VertexBufferObject);
-      glGenBuffers(1, @Primitive2DRes.Vbo);
+      Primitive2DRes.Vbo := glCreateBuffer();
     end;
 
     if Primitive2DRes.Vao = nil then

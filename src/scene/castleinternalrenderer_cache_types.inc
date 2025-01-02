@@ -276,6 +276,14 @@ var
     Result := '[' + Result + ']';
   end;
 
+  procedure CreateVbo;
+  var
+    VboType: TVboType;
+  begin
+    for VboType := Low(VboType) to High(VboType) do
+      Vbo[VboType] := glCreateBuffer();
+  end;
+
 begin
   if GLFeatures.VertexBufferObject then
   begin
@@ -286,7 +294,7 @@ begin
     NewVbos := Vbo[vtCoordinate] = 0;
     if NewVbos then
     begin
-      glGenBuffers(Ord(High(Vbo)) + 1, @Vbo);
+      CreateVbo;
       if LogRenderer then
         WritelnLog('Renderer', Format('Creating and loading data to VBOs (%d,%d,%d)',
           [Vbo[vtCoordinate], Vbo[vtAttribute], Vbo[vtIndex]]));

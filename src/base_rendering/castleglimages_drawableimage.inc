@@ -872,7 +872,7 @@ begin
   if AImage <> nil then
   begin
     if FTexture = GLObjectNone then
-      glGenTextures(1, @FTexture);
+      FTexture := glCreateTexture();
     LoadGLGeneratedTexture(FTexture, AImage, CurrentFilter,
       CurrentWrap, nil, true);
   end;
@@ -932,9 +932,9 @@ begin
     for I := Low(VboStorage) to High(VboStorage) do
     begin
       if VboStorage[I].PointsVbo = GLObjectNone then
-        glGenBuffers(1, @VboStorage[I].PointsVbo);
+        VboStorage[I].PointsVbo := glCreateBuffer();
       if VboStorage[I].IndexesVbo = GLObjectNone then
-        glGenBuffers(1, @VboStorage[I].IndexesVbo);
+        VboStorage[I].IndexesVbo := glCreateBuffer();
       if VboStorage[I].Vao = nil then
         VboStorage[I].Vao := TVertexArrayObject.Create(nil);
     end;
@@ -975,8 +975,8 @@ var
 begin
   for I := Low(VboStorage) to High(VboStorage) do
   begin
-    glFreeBuffer(VboStorage[I].PointsVbo);
-    glFreeBuffer(VboStorage[I].IndexesVbo);
+    FreeBuffer(VboStorage[I].PointsVbo);
+    FreeBuffer(VboStorage[I].IndexesVbo);
     FreeAndNil(VboStorage[I].Vao);
     VboStorage[I].PointsVboSize := 0;
     VboStorage[I].IndexesVboSize := 0;
@@ -1371,9 +1371,9 @@ begin
     Prog.AttribVertex.DisableArray;
     Prog.AttribTexCoord.DisableArray;
 
-    RenderContext.BindBuffer[btArray] := 0;
+    RenderContext.BindBuffer[btArray] := GLObjectNone;
     if UseIndex then // optimize out glBindBuffer call when not necessary
-      RenderContext.BindBuffer[btElementArray] := 0;
+      RenderContext.BindBuffer[btElementArray] := GLObjectNone;
   end else
   begin
     {$ifndef OpenGLES}

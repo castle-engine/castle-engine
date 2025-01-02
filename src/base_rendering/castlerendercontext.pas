@@ -131,7 +131,7 @@ type
       FFixedFunctionLighting: boolean;
       FLineType: TLineType;
       FPolygonOffset: TPolygonOffset;
-      FBoundBuffer: array [TBufferTarget] of TGLuint;
+      FBoundBuffer: array [TBufferTarget] of TGLBuffer;
 
     procedure SetLineWidth(const Value: Single);
     procedure SetPointSize(const Value: Single);
@@ -156,8 +156,8 @@ type
     procedure SetFixedFunctionLighting(const Value: boolean);
     procedure SetLineType(const Value: TLineType);
     procedure SetPolygonOffset(const Value: TPolygonOffset);
-    function GetBoundBuffer(const Target: TBufferTarget): TGLuint;
-    procedure SetBoundBuffer(const Target: TBufferTarget; const Value: TGLuint);
+    function GetBoundBuffer(const Target: TBufferTarget): TGLBuffer;
+    procedure SetBoundBuffer(const Target: TBufferTarget; const Value: TGLBuffer);
   private
     FEnabledScissors: TScissorList;
   public
@@ -338,7 +338,7 @@ type
       This optimization actually matters for optimization (Android Samsung Galaxy Tab,
       castle-model-viewer-mobile displaying inspector).
       Without it, TDrawableImage does a lot of redundant glBindBuffer calls. }
-    property BindBuffer[const Target: TBufferTarget]: TGLuint
+    property BindBuffer[const Target: TBufferTarget]: TGLBuffer
       read GetBoundBuffer write SetBoundBuffer;
   end;
 
@@ -891,12 +891,12 @@ begin
   PolygonOffset := NewState;
 end;
 
-function TRenderContext.GetBoundBuffer(const Target: TBufferTarget): TGLuint;
+function TRenderContext.GetBoundBuffer(const Target: TBufferTarget): TGLBuffer;
 begin
   Result := FBoundBuffer[Target];
 end;
 
-procedure TRenderContext.SetBoundBuffer(const Target: TBufferTarget; const Value: TGLuint);
+procedure TRenderContext.SetBoundBuffer(const Target: TBufferTarget; const Value: TGLBuffer);
 begin
   { TODO: Optimization (avoiding glBindBuffer) disabled.
     Reason: castle-model-viewer (rock.gltf, triangulatio.x3dv) shows

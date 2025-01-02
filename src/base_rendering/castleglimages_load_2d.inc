@@ -406,7 +406,7 @@ function LoadGLTexture(const image: TEncodedImage;
   const Filter: TTextureFilter; const Wrap: TTextureWrap2D;
   const CompositeForMipmaps: TCompositeImage; const GUITexture: boolean): TGLTextureId;
 begin
-  glGenTextures(1, @result);
+  Result := glCreateTexture();
   LoadGLGeneratedTexture(result, image, Filter, Wrap, CompositeForMipmaps, GUITexture);
 end;
 
@@ -666,7 +666,7 @@ var
   Tex: TGLTextureId;
   LoadedSize: Int64;
 begin
-  glGenTextures(1, @Tex);
+  Tex := glCreateTexture();
   glBindTexture(GL_TEXTURE_2D, Tex);
 
   { Testcase that fails on Radeon chantal (ATI Radeon X1600) Linux:

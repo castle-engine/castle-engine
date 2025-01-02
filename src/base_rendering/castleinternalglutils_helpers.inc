@@ -131,14 +131,6 @@ var
 { Enable or disable given OpenGL flag. }
 procedure GLSetEnabled(Value: TGLenum; IsEnabled: boolean);
 
-{ If Buffer <> GLObjectNone then it does glDeleteBuffer(s)
-  and sets Buffer to GLObjectNone. }
-procedure glFreeBuffer(var Buffer: TGLBuffer);
-
-{ If Vao <> GLObjectNone then it does glDeleteVertexArray(s)
-  and sets Vao to GLObjectNone. }
-procedure glFreeVertexArray(var Vao: TGLVertexArrayObject);
-
 { Global position for drawing 2D stuff.
   @deprecated Do this use this.
   Instead of this, use drawing routines that take position as parameters,
@@ -342,32 +334,6 @@ procedure glTexEnvv(target, Param: TGLEnum; const params: TVector4); begin glTex
 procedure GLSetEnabled(Value: TGLenum; IsEnabled: boolean);
 begin
   if IsEnabled then glEnable(Value) else glDisable(Value);
-end;
-
-procedure glFreeBuffer(var Buffer: TGLBuffer);
-begin
-  if Buffer <> GLObjectNone then
-  begin
-    {$ifdef CASTLE_WEBGL}
-    glDeleteBuffer(Buffer);
-    {$else}
-    glDeleteBuffers(1, @Buffer);
-    {$endif}
-    Buffer := GLObjectNone;
-  end;
-end;
-
-procedure glFreeVertexArray(var Vao: TGLVertexArrayObject);
-begin
-  if Vao <> GLObjectNone then
-  begin
-    {$ifdef CASTLE_WEBGL}
-    glDeleteVertexArray(Vao);
-    {$else}
-    glDeleteVertexArrays(1, @Vao);
-    {$endif}
-    Vao := GLObjectNone;
-  end;
 end;
 
 function BoolToGL(const Value: boolean): TGLboolean;

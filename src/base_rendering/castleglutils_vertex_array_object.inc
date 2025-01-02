@@ -86,7 +86,7 @@ begin
   if Operation = opRemove then
     if ConvextsVao.TryGetValue(AComponent, Vao) then
     begin
-      glFreeVertexArray(Vao);
+      FreeVertexArray(Vao);
       ConvextsVao.Remove(AComponent);
     end;
 end;
@@ -98,9 +98,9 @@ begin
   if not ConvextsVao.TryGetValue(Context, Result) then
   begin
     if GLFeatures.VertexArrayObject then
-      glGenVertexArrays(1, @Result)
+      Result := glCreateVertexArray()
     else
-      Result := 0;
+      Result := GLObjectNone;
     Context.FreeNotification(Self);
     ConvextsVao.Add(Context, Result);
   end;

@@ -509,7 +509,7 @@ procedure TGLRenderToTexture.GLContextOpen;
   begin
     if GLFeatures.Framebuffer then
     begin
-      glGenRenderbuffers(1, @RenderbufferId);
+      RenderbufferId := glCreateRenderbuffer();
       glBindRenderbuffer(GL_RENDERBUFFER, RenderbufferId);
       {$ifndef OpenGLES}
       if (MultiSampling > 1) and GLFeatures.FBOMultiSampling then
@@ -553,7 +553,7 @@ begin
       raise EFramebufferSizeTooLow.CreateFmt('Maximum renderbuffer (within framebuffer) size is %d x %d in your OpenGL implementation, while we require %d x %d',
         [ GLFeatures.MaxRenderbufferSize, GLFeatures.MaxRenderbufferSize, Width, Height ]);
 
-    glGenFramebuffers(1, @Framebuffer);
+    Framebuffer := glCreateFramebuffer();
     BindFramebuffer(Framebuffer);
 
     { When GLFeatures.PackedDepthStencil and stencil is wanted
@@ -656,35 +656,6 @@ begin
 end;
 
 procedure TGLRenderToTexture.GLContextClose;
-
-  procedure FreeRenderbuffer(var Buf: TGLRenderbuffer);
-  begin
-    if Buf <> GLObjectNone then
-    begin
-      if GLFeatures.Framebuffer then
-        {$ifdef CASTLE_WEBGL}
-        glDeleteRenderbuffer(Buf);
-        {$else}
-        glDeleteRenderbuffers(1, @Buf);
-        {$endif}
-      Buf := GLObjectNone;
-    end;
-  end;
-
-  procedure FreeFramebuffer(var Buf: TGLFramebuffer);
-  begin
-    if Buf <> GLObjectNone then
-    begin
-      if GLFeatures.Framebuffer then
-        {$ifdef CASTLE_WEBGL}
-        glDeleteFramebuffer(Buf);
-        {$else}
-        glDeleteFramebuffers(1, @Buf);
-        {$endif}
-      Buf := GLObjectNone;
-    end;
-  end;
-
 begin
   FreeRenderbuffer(RenderbufferColor);
   FreeRenderbuffer(RenderbufferDepth);

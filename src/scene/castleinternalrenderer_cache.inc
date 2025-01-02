@@ -476,7 +476,7 @@ begin
       end;
     end;
 
-  glGenTextures(1, @Result);
+  Result := glCreateTexture();
   glBindTexture(GL_TEXTURE_CUBE_MAP, Result);
 
   SetTextureFilter(GL_TEXTURE_CUBE_MAP, Filter);
@@ -570,7 +570,7 @@ begin
   if not GLFeatures.Texture3D then
     raise Exception.Create('3D textures not supported by OpenGL(ES)');
 
-  glGenTextures(1, @Result);
+  Result := glCreateTexture();
   glBindTexture(GL_TEXTURE_3D, Result);
 
   glTextureImage3d(Result, Image, Filter, Composite);
@@ -655,7 +655,7 @@ begin
   Assert(GLFeatures.TextureDepth);
   Assert(GLFeatures.TextureDepthCompare);
 
-  glGenTextures(1, @Result);
+  Result := glCreateTexture();
   glBindTexture(GL_TEXTURE_2D, Result);
 
   Filter.Minification := minLinear;
@@ -753,7 +753,7 @@ begin
     end;
   end;
 
-  glGenTextures(1, @Result);
+  Result := glCreateTexture();
   glBindTexture(GL_TEXTURE_2D, Result);
   SetTextureFilter(GL_TEXTURE_2D, Filter);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, TextureWrap.Data[0]);

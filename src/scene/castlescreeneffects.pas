@@ -431,7 +431,7 @@ var
     end;
 
   begin
-    glGenTextures(1, @Result);
+    Result := glCreateTexture();
     glBindTexture(ScreenEffectTextureTarget, Result);
     {$ifndef OpenGLES}
     { for multisample texture, these cannot be configured (OpenGL makes
@@ -571,7 +571,7 @@ var
       if ScreenPointVbo = 0 then
       begin
         { generate and fill ScreenPointVbo. It's contents are constant. }
-        glGenBuffers(1, @ScreenPointVbo);
+        ScreenPointVbo := glCreateBuffer();
         ScreenPoint[0].TexCoord := Vector2(0, 0);
         ScreenPoint[0].Position := Vector2(-1, -1);
         ScreenPoint[1].TexCoord := Vector2(1, 0);
@@ -719,7 +719,7 @@ begin
   glFreeTexture(ScreenEffectTextureDepth);
   ScreenEffectTextureTarget := 0; //< clear, for safety
   FreeAndNil(ScreenEffectRTT);
-  glFreeBuffer(ScreenPointVbo);
+  FreeBuffer(ScreenPointVbo);
   FreeAndNil(ScreenPointVao);
   inherited;
 end;

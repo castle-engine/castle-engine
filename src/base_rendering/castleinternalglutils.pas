@@ -32,6 +32,7 @@ uses
 
 {$I castleinternalglutils_errors.inc}
 {$I castleinternalglutils_helpers.inc}
+{$I castleinternalglutils_create_delete.inc}
 {$I castleinternalglutils_mipmaps.inc}
 
 {$undef read_interface}
@@ -47,6 +48,7 @@ uses
 
 {$I castleinternalglutils_errors.inc}
 {$I castleinternalglutils_helpers.inc}
+{$I castleinternalglutils_create_delete.inc}
 {$I castleinternalglutils_mipmaps.inc}
 
 end.

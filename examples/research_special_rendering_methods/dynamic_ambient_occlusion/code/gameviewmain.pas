@@ -205,7 +205,7 @@ procedure TViewMain.TMyViewport.RenderFromView3D(const Params: TRenderParams);
       RenderContext.CurrentVao := RectVao;
 
       if RectVbo = 0 then
-        glGenBuffers(1, @RectVbo);
+        RectVbo := glCreateBuffer();
       RenderContext.BindBuffer[btArray] := RectVbo;
       glBufferData(GL_ARRAY_BUFFER, SizeOf(Points), @Points, GL_DYNAMIC_DRAW);
 
@@ -796,7 +796,7 @@ begin
 
   { Prepare OpenGL texture for shaders output (and also input to 2nd pass
     of algorithm). }
-  glGenTextures(1, @GLElementsIntensityTex);
+  GLElementsIntensityTex := glCreateTexture();
   glBindTexture(GL_TEXTURE_2D, GLElementsIntensityTex);
 
   { Texture data is not initialized at this point,

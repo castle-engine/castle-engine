@@ -201,8 +201,8 @@ end;
 destructor TCastleRenderUnlitMesh.Destroy;
 begin
   FreeAndNil(Vao);
-  glFreeBuffer(VboIndex);
-  glFreeBuffer(VboVertex);
+  FreeBuffer(VboIndex);
+  FreeBuffer(VboVertex);
   inherited;
 end;
 
@@ -369,7 +369,7 @@ begin
   begin
     NewVbo := VboIndex = 0;
     if NewVbo then
-      glGenBuffers(1, @VboIndex);
+      VboIndex := glCreateBuffer();
 
     RenderContext.BindBuffer[btElementArray] := VboIndex;
 
@@ -404,7 +404,7 @@ begin
   begin
     NewVbo := VboVertex = 0;
     if NewVbo then
-      glGenBuffers(1, @VboVertex);
+      VboVertex := glCreateBuffer();
 
     RenderContext.BindBuffer[btArray] := VboVertex;
 
