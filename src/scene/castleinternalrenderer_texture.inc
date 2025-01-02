@@ -234,14 +234,14 @@
   { Renderer resource for 2D texture with static image (not a video). }
   TImageTextureResource = class(T2DTextureResource)
   strict private
-    FGLName: TGLuint;
+    FGLName: TGLTexture;
   protected
     class function IsClassForTextureNode(ANode: TAbstractTextureNode): boolean; override;
     procedure PrepareCore(
       const RenderOptions: TCastleRenderOptions); override;
     procedure UnprepareCore; override;
   public
-    NormalMap, HeightMap: TGLuint;
+    NormalMap, HeightMap: TGLTexture;
     HeightMapScale: Single;
 
     function TextureNode: TAbstractTexture2DNode;
@@ -273,7 +273,7 @@
   { Renderer resource for TRenderedTextureNode. }
   TRenderedTextureResource = class(T2DTextureResource)
   strict private
-    FGLName: TGLuint;
+    FGLName: TGLTexture;
     RenderToTexture: TGLRenderToTexture;
   protected
     class function IsClassForTextureNode(ANode: TAbstractTextureNode): boolean; override;
@@ -309,7 +309,7 @@
       TextureCubeMap_IncReference. }
     procedure UnprepareCore; override;
   public
-    GLName: TGLuint;
+    GLName: TGLTexture;
 
     function TextureNode: TAbstractEnvironmentTextureNode;
 
@@ -372,7 +372,7 @@
       const RenderOptions: TCastleRenderOptions); override;
     procedure UnprepareCore; override;
   public
-    GLName: TGLuint;
+    GLName: TGLTexture;
 
     function TextureNode: TAbstractTexture3DNode;
 
@@ -388,7 +388,7 @@
     { VarianceShadowMaps calculated at the PrepareCore time. }
     VarianceShadowMaps: boolean;
     NeedsMipmaps: boolean;
-    FGLName: TGLuint;
+    FGLName: TGLTexture;
     WarninigDoneCannotEnable: Boolean;
   protected
     class function IsClassForTextureNode(ANode: TAbstractTextureNode): boolean; override;
@@ -1026,16 +1026,16 @@ end;
 
 procedure TImageTextureResource.UnprepareCore;
 begin
-  if FGLName <> 0 then
+  if FGLName <> GLObjectNone then
   begin
     RendererCache.TextureImage_DecReference(FGLName);
-    FGLName := 0;
+    FGLName := GLObjectNone;
   end;
 end;
 
 function TImageTextureResource.Bind(const TextureUnit: Cardinal): boolean;
 begin
-  Result := FGLName <> 0;
+  Result := FGLName <> GLObjectNone;
   if not Result then Exit;
 
   TRenderer.ActiveTexture(TextureUnit);
@@ -1135,7 +1135,7 @@ begin
       VideoUnscaledTime := TextureNode.Duration + VideoUnscaledTime;
     Result := GLVideo.GLTextureFromTime(VideoUnscaledTime);
   end else
-    Result := 0;
+    Result := GLObjectNone;
 end;
 
 function TMovieTextureResource.Bind(const TextureUnit: Cardinal): boolean;
@@ -1143,7 +1143,7 @@ var
   N: TGLTextureId;
 begin
   N := GLName;
-  Result := N <> 0;
+  Result := N <> GLObjectNone;
   if Result then
   begin
     TRenderer.ActiveTexture(TextureUnit);
@@ -1259,8 +1259,8 @@ begin
     { RenderedTexture never has any normal / height map
       (Hm, although it would be possible to generate some in theory
       --- after all, we generate it from 3D data. Idea for the future.)
-    NormalMap := 0;
-    HeightMap := 0;
+    NormalMap := GLObjectNone;
+    HeightMap := GLObjectNone;
     }
   finally FreeAndNil(InitialImage) end;
 
@@ -1275,16 +1275,16 @@ procedure TRenderedTextureResource.UnprepareCore;
 begin
   FreeAndNil(RenderToTexture);
 
-  if FGLName <> 0 then
+  if FGLName <> GLObjectNone then
   begin
     RendererCache.TextureImage_DecReference(FGLName);
-    FGLName := 0;
+    FGLName := GLObjectNone;
   end;
 end;
 
 function TRenderedTextureResource.Bind(const TextureUnit: Cardinal): boolean;
 begin
-  Result := FGLName <> 0;
+  Result := FGLName <> GLObjectNone;
   if not Result then Exit;
 
   TRenderer.ActiveTexture(TextureUnit);
@@ -1599,7 +1599,7 @@ var
   Camera: TRenderingCamera;
   SavedViewport: TRectangle;
 begin
-  if FGLName = 0 then Exit;
+  if FGLName = GLObjectNone then Exit;
 
   { calculate matrices to use when rendering,
     using algorithm based on TextureNode.Viewpoint }
@@ -1662,16 +1662,16 @@ end;
 
 procedure TCubeMapTextureResource.UnprepareCore;
 begin
-  if GLName <> 0 then
+  if GLName <> GLObjectNone then
   begin
     RendererCache.TextureCubeMap_DecReference(GLName);
-    GLName := 0;
+    GLName := GLObjectNone;
   end;
 end;
 
 function TCubeMapTextureResource.Bind(const TextureUnit: Cardinal): boolean;
 begin
-  Result := GLName <> 0;
+  Result := GLName <> GLObjectNone;
   if not Result then Exit;
 
   TRenderer.ActiveTexture(TextureUnit);
@@ -1929,7 +1929,7 @@ procedure TGeneratedCubeMapTextureResource.Update(
   const ProjectionNear, ProjectionFar: Single;
   const CubeMiddle: TVector3);
 begin
-  if GLName = 0 then Exit;
+  if GLName = GLObjectNone then Exit;
 
   if GLVersion.BuggyGenerateCubeMap then Exit;
 
@@ -1996,16 +1996,16 @@ end;
 
 procedure T3DTextureResource.UnprepareCore;
 begin
-  if GLName <> 0 then
+  if GLName <> GLObjectNone then
   begin
     RendererCache.Texture3D_DecReference(GLName);
-    GLName := 0;
+    GLName := GLObjectNone;
   end;
 end;
 
 function T3DTextureResource.Bind(const TextureUnit: Cardinal): boolean;
 begin
-  Result := GLName <> 0;
+  Result := GLName <> GLObjectNone;
   if not Result then Exit;
 
   TRenderer.ActiveTexture(TextureUnit);
@@ -2122,19 +2122,19 @@ procedure TGeneratedShadowMapResource.UnprepareCore;
 begin
   FreeAndNil(RenderToTexture);
 
-  if FGLName <> 0 then
+  if FGLName <> GLObjectNone then
   begin
     if VarianceShadowMaps then
       RendererCache.TextureFloat_DecReference(FGLName)
     else
       RendererCache.TextureDepth_DecReference(FGLName);
-    FGLName := 0;
+    FGLName := GLObjectNone;
   end;
 end;
 
 function TGeneratedShadowMapResource.Bind(const TextureUnit: Cardinal): boolean;
 begin
-  Result := FGLName <> 0;
+  Result := FGLName <> GLObjectNone;
   if not Result then Exit;
 
   TRenderer.ActiveTexture(TextureUnit);
@@ -2165,7 +2165,7 @@ var
   SavedPolygonOffset: TPolygonOffset;
   CameraRender: TViewVectors;
 begin
-  if FGLName = 0 then Exit;
+  if FGLName = GLObjectNone then Exit;
 
   { Render view for shadow map }
   NewProjectionMatrix := Light.ProjectionMatrix;

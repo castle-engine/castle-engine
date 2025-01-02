@@ -48,6 +48,7 @@ uses
   CastleInternalGLUtils, CastleTimeUtils;
 
 {$I castleglutils_types.inc}
+{$I castleglutils_features_debug.inc} // only implementation
 {$I castleglutils_features.inc}
 {$I castleglutils_draw_primitive_2d.inc}
 {$I castleglutils_information.inc}

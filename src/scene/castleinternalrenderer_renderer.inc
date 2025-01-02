@@ -1496,7 +1496,7 @@ begin
     begin
       { Shape.Arrays contents are already loaded,
         so Vbo contents are already loaded too }
-      Assert(Shape.Cache.Vbo[vtCoordinate] <> 0);
+      Assert(Shape.Cache.Vbo[vtCoordinate] <> GLObjectNone);
       CoordinateRenderer.Vbo := Shape.Cache.Vbo;
       CoordinateRenderer.Vao := Shape.Cache.Vao;
     end;
@@ -1517,8 +1517,8 @@ begin
     { unbind arrays, to have a clean state on exit.
       TODO: this should not be needed, instead move to RenderEnd.
       Check does occlusion query work Ok when some vbo is bound. }
-    RenderContext.BindBuffer[btArray] := 0;
-    RenderContext.BindBuffer[btElementArray] := 0;
+    RenderContext.BindBuffer[btArray] := GLObjectNone;
+    RenderContext.BindBuffer[btElementArray] := GLObjectNone;
   end;
 end;
 

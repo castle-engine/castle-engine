@@ -187,7 +187,9 @@ type
     FMemory: TGLMemoryInfo;
     FMaxViewportDimensions: TVector2Integer;
     FTextureModernFormatsAndSwizzle: Boolean;
+    {$ifndef CASTLE_WEBGL}
     SupportedExtensions: AnsiString;
+    {$endif}
     FRedBits, FGreenBits, FBlueBits, FAlphaBits, FDepthBits, FStencilBits: TGLint;
     FDoubleBuffer: Boolean;
     FLineWidth: TVector2;
@@ -197,6 +199,7 @@ type
       FDebug: Boolean;
     class procedure SetRequestCapabilities(const Value: TGLRequestCapabilities); static;
     class procedure SetDebug(const Value: Boolean); static;
+    procedure InitializeDebug;
   private
     function HasExtension(const Extension: String): Boolean;
     function AllExtensions: String;
@@ -587,14 +590,16 @@ begin
   RunWebGLAnimation;
   {$endif}
 
+  {$ifdef CASTLE_GL_USES_CALLBACKS}
   if not Assigned(glGetString) then
     raise Exception.Create('Failed to load OpenGL(ES) library');
+  {$endif}
 
   FreeAndNil(GLVersion);
   GLVersion := TGLVersion.Create(
-    PGLChar(glGetString(GL_VERSION)),
-    PGLChar(glGetString(GL_VENDOR)),
-    PGLChar(glGetString(GL_RENDERER)));
+    {$ifndef CASTLE_WEBGL} PGLChar {$endif} (glGetString(GL_VERSION)),
+    {$ifndef CASTLE_WEBGL} PGLChar {$endif} (glGetString(GL_VENDOR)),
+    {$ifndef CASTLE_WEBGL} PGLChar {$endif} (glGetString(GL_RENDERER)));
 
   FreeAndNil(GLFeatures);
   GLFeatures := TGLFeatures.Create;
@@ -608,7 +613,7 @@ end;
 
 function TGLFeatures.HasExtension(const Extension: String): Boolean;
 
-  {$ifdef OpenGLES}
+  {$if defined(OpenGLES) and not defined(CASTLE_WEBGL)}
   { Based on GLExt unit in FPC. This function is missing from GLES header,
     which does not check for extensions presence at all. }
   function glext_ExtensionSupported(const extension: String;
@@ -657,15 +662,22 @@ function TGLFeatures.HasExtension(const Extension: String): Boolean;
   end;
   {$endif}
 
+{$ifndef CASTLE_WEBGL}
 var
   SupportedExt: AnsiString;
   I: Integer;
+{$endif}
+
 begin
   { Catch an often mistake in Extension name. }
   if not IsPrefix('GL_', Extension, false) then
     raise Exception.CreateFmt('Using TGLFeatures.HasExtension with extension name without GL_ prefix: %s', [
       Extension
     ]);
+
+  {$ifdef CASTLE_WEBGL}
+  Result := WebGLExtensions.IndexOf(Extension) <> -1;
+  {$else}
 
   if {$ifdef OpenGLES} VersionES_3_0 {$else} Version_3_0 {$endif} then
   begin
@@ -687,9 +699,17 @@ begin
       SupportedExtensions := PAnsiChar(glGetString(GL_EXTENSIONS));
     Result := glext_ExtensionSupported(Extension, SupportedExtensions);
   end;
+
+  {$endif}
 end;
 
 function TGLFeatures.AllExtensions: String;
+{$ifdef CASTLE_WEBGL}
+begin
+  Result :=
+    Format('%d extensions: ', [WebGLExtensions.Count]) +
+    GlueStrings(WebGLExtensions, ' ');
+{$else}
 var
   NumExtensions: TGLint;
   SupportedExt: AnsiString;
@@ -712,94 +732,10 @@ begin
       SupportedExtensions := PAnsiChar(glGetString(GL_EXTENSIONS));
     Result := SupportedExtensions;
   end;
-end;
-
-procedure CallbackGLDebug(Source: TGLenum; AType: TGLenum; Id: TGLuint; Severity: TGLenum;
-  Length: TGLsizei; Message: PAnsiChar; UserParam: Pointer);
-  {$if     defined(OPENGL_CALLBACK_STDCALL)} stdcall;
-  {$elseif defined(OPENGL_CALLBACK_CDECL)} cdecl;
-  {$else} {$fatal Include openglmac.inc that should define OPENGL_CALLBACK_xxx}
-  {$endif}
-var
-  SourceStr, TypeStr, SeverityStr, MessageStr, MessageWhole: String;
-begin
-  case Source of
-    GL_DEBUG_SOURCE_API            : SourceStr := 'API';
-    GL_DEBUG_SOURCE_WINDOW_SYSTEM  : SourceStr := 'Window System';
-    GL_DEBUG_SOURCE_SHADER_COMPILER: SourceStr := 'Shader Compiler';
-    GL_DEBUG_SOURCE_THIRD_PARTY    : SourceStr := '3rd Party';
-    GL_DEBUG_SOURCE_APPLICATION    : SourceStr := 'Application';
-    GL_DEBUG_SOURCE_OTHER          : SourceStr := 'Other';
-    else                             SourceStr := 'Unknown';
-  end;
-
-  case AType of
-    GL_DEBUG_TYPE_ERROR              : TypeStr := 'GL error';
-    GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR: TypeStr := 'Attempted use of deprecated features';
-    GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR : TypeStr := 'Triggering of undefined behavior';
-    GL_DEBUG_TYPE_PORTABILITY        : TypeStr := 'Portability issue';
-    GL_DEBUG_TYPE_PERFORMANCE        : TypeStr := 'Performance notification';
-    GL_DEBUG_TYPE_MARKER             : TypeStr := 'Marker';
-    GL_DEBUG_TYPE_PUSH_GROUP         : TypeStr := 'Group push';
-    GL_DEBUG_TYPE_POP_GROUP          : TypeStr := 'Group pop';
-    GL_DEBUG_TYPE_OTHER              : TypeStr := 'Other';
-    else                               TypeStr := 'Unknown';
-  end;
-
-  case Severity of
-    GL_DEBUG_SEVERITY_LOW         : SeverityStr := 'Low';
-    GL_DEBUG_SEVERITY_MEDIUM      : SeverityStr := 'Medium';
-    GL_DEBUG_SEVERITY_HIGH        : SeverityStr := 'High';
-    GL_DEBUG_SEVERITY_NOTIFICATION: SeverityStr := 'Notification';
-    else                            SeverityStr := 'Unknown';
-  end;
-
-  MessageStr := Message;
-
-  MessageWhole := Format('OpenGL debug: %s, %s, %d, %s: %s', [
-    SourceStr,
-    TypeStr,
-    Id,
-    SeverityStr,
-    MessageStr
-  ]);
-
-  if AType = GL_DEBUG_TYPE_ERROR then
-    raise EOpenGLError.Create(MessageWhole)
-  else
-  // Don't output notifcations, too much log every frame
-  if Severity <> GL_DEBUG_SEVERITY_NOTIFICATION then
-    WritelnLog(MessageWhole);
-end;
-
-{$ifdef USE_DGL}
-type
-  GLDEBUGPROC = TGLDEBUGPROC;
-
-function Load_GL_ARB_texture_multisample: Boolean;
-begin
-  Result := dglCheckExtension('GL_ARB_texture_multisample');
-end;
 {$endif}
+end;
 
 constructor TGLFeatures.Create;
-
-  procedure InitializeDebug;
-  begin
-    if HasExtension('GL_KHR_debug') then
-    begin
-      if not Assigned(glDebugMessageCallback) then raise Exception.Create('glDebugMessageCallback missing');
-      if not Assigned(glDebugMessageControl) then raise Exception.Create('glDebugMessageControl missing');
-
-      glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
-      glDebugMessageCallback(
-        {$ifdef USE_DGL} GLDEBUGPROC(@CallbackGLDebug)
-        {$else} @CallbackGLDebug
-        {$endif}, nil);
-      WritelnLog('OpenGL(ES) debugging enabled, expect extra log messages');
-    end;
-  end;
-
 {$ifndef OpenGLES}
 var
   ErrorCode: TGLenum;
@@ -1377,8 +1313,10 @@ const
   GL_VBO_FREE_MEMORY_ATI          = $87FB;
   GL_TEXTURE_FREE_MEMORY_ATI      = $87FC;
   GL_RENDERBUFFER_FREE_MEMORY_ATI = $87FD;
+{$ifndef CASTLE_WEBGL}
 var
   FreeMemory: TVector4Integer;
+{$endif}
 begin
   // see http://nasutechtips.blogspot.com/2011/02/how-to-get-gpu-memory-size-and-usage-in.html
 

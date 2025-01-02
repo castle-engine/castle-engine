@@ -29,7 +29,7 @@ unit CastleInternalWebGL;
 
 interface
 
-uses JOB.JS,
+uses JOB.JS, Classes,
   CastleInternalJobWeb, CastleVectors, CastleUtils;
 
 type
@@ -80,6 +80,10 @@ var
   GL: IJSWebGLRenderingContext;
   GL2: IJSWebGL2RenderingContext;
 
+  { All WebGL extensions. Always non-nil if GL is non-nil,
+    so WebGL context was initialized. }
+  WebGLExtensions: TStrings;
+
 { Convert various types to WebGL arrays, e.g. to provide uniform value to shaders. }
 
 function MatrixToWebGL(const M: TMatrix2): IJSFloat32Array;
@@ -98,7 +102,7 @@ function ListToWebGL(const Values: array of PAnsiChar): IJSArray;
 implementation
 
 uses SysUtils, JOB.Shared,
-  CastleLog,
+  CastleLog, CastleStringUtils,
   // TODO: not necessary in the future? only for some test queries below
   CastleInternalGLUtils;
 
@@ -147,15 +151,23 @@ var
 
 procedure GLContextOpen;
 
-	function StrArrayJoin(const A: CastleInternalJobWeb.TUnicodeStringDynArray): String;
+  { Initialize WebGLExtensions. }
+	procedure ReadExtensions;
 	var
+    A: CastleInternalJobWeb.TUnicodeStringDynArray;
 		I: Integer;
+    Ext: String;
 	begin
-		Result := '';
+    A := GL.getSupportedExtensions;
+    WebGLExtensions := TStringList.Create;
 		for I := 0 to A.Length - 1 do
+    begin
       // TODO: TJSArray._GetStrings is not OK, see https://gitlab.com/freepascal.org/fpc/source/-/merge_requests/893
-			// Result += A.Strings[I] + ', ';
-      Result += A.Elements[I].AsString + ', ';
+			// Ext := A.Strings[I];
+      // Workaround:
+      Ext := PrefixSuffixRemove('"', '"', A.Elements[I].AsString, false);
+      WebGLExtensions.Add(Ext);
+    end;
 	end;
 
 begin
@@ -231,11 +243,13 @@ begin
     GL.getContextAttributes.powerPreference,
     BoolToStr(GL.getContextAttributes.failIfMajorPerformanceCaveat, true)
   ]);
+
+  ReadExtensions;
   WritelnLog('Supported Extensions: ' + NL +
     '  Count: %d' + NL +
     '  List: %s', [
-    GL.getSupportedExtensions.Length,
-    StrArrayJoin(GL.getSupportedExtensions)
+    WebGLExtensions.Count,
+    GlueStrings(WebGLExtensions, ', ')
   ]);
 end;
 
@@ -451,4 +465,6 @@ begin
   Result.CopyFromMemory(Ptr, Size);
 end;
 
+finalization
+  FreeAndNil(WebGLExtensions);
 end.

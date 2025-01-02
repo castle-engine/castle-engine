@@ -33,7 +33,7 @@ type
   TVertexArrayObject = class(TComponent)
   strict private
     type
-      TContextVaoDictionary = {$ifdef FPC}specialize{$endif} TDictionary<TComponent, TGLuint>;
+      TContextVaoDictionary = {$ifdef FPC}specialize{$endif} TDictionary<TComponent, TGLVertexArrayObject>;
     var
       ContextsVao: TContextVaoDictionary;
   protected
@@ -67,8 +67,8 @@ begin
       Pair.Key.RemoveFreeNotification(Self);
       if GLFeatures.VertexArrayObject then
       begin
-        Assert(Pair.Value <> 0);
-        glDeleteVertexArrays(1, @Pair.Value);
+        Assert(Pair.Value <> GLObjectNone);
+        glDeleteVertexArray(Pair.Value);
       end;
     end;
     FreeAndNil(ContextsVao);
@@ -78,7 +78,7 @@ end;
 
 procedure TVertexArrayObject.Notification(AComponent: TComponent; Operation: TOperation);
 var
-  Vao: TGLuint;
+  Vao: TGLVertexArrayObject;
 begin
   inherited;
 

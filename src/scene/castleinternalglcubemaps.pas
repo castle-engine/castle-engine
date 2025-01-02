@@ -104,7 +104,7 @@ function GLCaptureCubeMapComposite(
   It uses RenderToTexture to render to the texture, so it will use
   framebuffer if available, and it's fast. }
 procedure GLCaptureCubeMapTexture(
-  const Tex: TGLuint;
+  const Tex: TGLTexture;
   const Size: Cardinal;
   const CapturePoint: TVector3;
   const Render: TRenderFromViewFunction;
@@ -299,7 +299,7 @@ begin
 end;
 
 procedure GLCaptureCubeMapTexture(
-  const Tex: TGLuint;
+  const Tex: TGLTexture;
   const Size: Cardinal;
   const CapturePoint: TVector3;
   const Render: TRenderFromViewFunction;

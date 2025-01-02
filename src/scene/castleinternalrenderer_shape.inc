@@ -179,7 +179,7 @@ begin
   { When VBO of coordinates is 0 then
     - VBOs not supported (ancient GPU) -> we need to really update Arrays contents each time
     - or VBO of coordinates was not initialized yet }
-  if Cache.Vbo[vtCoordinate] = 0 then
+  if Cache.Vbo[vtCoordinate] = GLObjectNone then
     Exit;
   if Cache.Arrays = nil then // not initialized yet
     Exit;

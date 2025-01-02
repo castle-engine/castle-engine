@@ -28,7 +28,7 @@
     Wrap: TTextureWrap2D;
     GUITexture: boolean;
     References: Cardinal;
-    GLName: TGLuint;
+    GLName: TGLTexture;
   end;
   TTextureImageCacheList = {$ifdef FPC}specialize{$endif} TObjectList<TTextureImageCache>;
 
@@ -53,7 +53,7 @@
     Filter: TTextureFilter;
     Anisotropy: TGLfloat;
     References: Cardinal;
-    GLName: TGLuint;
+    GLName: TGLTexture;
   end;
   TTextureCubeMapCacheList = {$ifdef FPC}specialize{$endif} TObjectList<TTextureCubeMapCache>;
 
@@ -65,7 +65,7 @@
     Anisotropy: TGLfloat;
     Wrap: TTextureWrap3D;
     References: Cardinal;
-    GLName: TGLuint;
+    GLName: TGLTexture;
   end;
   TTexture3DCacheList = {$ifdef FPC}specialize{$endif} TObjectList<TTexture3DCache>;
 
@@ -77,14 +77,14 @@
     FullUrl: String;
     Wrap: TTextureWrap2D;
     References: Cardinal;
-    GLName: TGLuint;
+    GLName: TGLTexture;
   end;
   TTextureDepthOrFloatCacheList = {$ifdef FPC}specialize{$endif} TObjectList<TTextureDepthOrFloatCache>;
 
   TX3DRendererShape = class;
   TVboType = (vtCoordinate, vtAttribute, vtIndex);
   TVboTypes = set of TVboType;
-  TVboArrays = array [TVboType] of TGLuint;
+  TVboArrays = array [TVboType] of TGLBuffer;
 
   { Cached shape resources. }
   TShapeCache = class
@@ -178,16 +178,14 @@ procedure TShapeCache.GLContextClose;
 var
   I: TVboType;
 begin
-  if Vbo[vtCoordinate] <> 0 then
+  if Vbo[vtCoordinate] <> GLObjectNone then
   begin
-    { All Vbo must be zero, or none. }
     for I := Low(I) to High(I) do
-      Assert(Vbo[I] <> 0);
-
-    glDeleteBuffers(Ord(High(Vbo)) + 1, @Vbo);
-
-    for I := Low(I) to High(I) do
-      Vbo[I] := 0;
+    begin
+      { All Vbo must be zero, or none. }
+      Assert(Vbo[I] <> GLObjectNone);
+      FreeBuffer(Vbo[I]);
+    end;
   end;
 
   FreeAndNil(Vao);
@@ -291,7 +289,7 @@ begin
       it will be used to provide data at each draw call. }
     Assert(not Arrays.DataFreed);
 
-    NewVbos := Vbo[vtCoordinate] = 0;
+    NewVbos := Vbo[vtCoordinate] = GLObjectNone;
     if NewVbos then
     begin
       CreateVbo;
