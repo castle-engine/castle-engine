@@ -1007,7 +1007,11 @@ begin
   if Location = GLAttribLocationNone then Exit; // ignore non-existing attribute here
   Owner.Enable;
   if GLFeatures.Shaders then
+    {$ifdef CASTLE_WEBGL}
+    glVertexAttrib2f(Location, Value[0], Value[1]);
+    {$else}
     glVertexAttrib2fv(Location, @Value);
+    {$endif}
 end;
 
 procedure TGLSLAttribute.SetValue(const Value: TVector3);
@@ -1015,7 +1019,11 @@ begin
   if Location = GLAttribLocationNone then Exit; // ignore non-existing attribute here
   Owner.Enable;
   if GLFeatures.Shaders then
+    {$ifdef CASTLE_WEBGL}
+    glVertexAttrib3f(Location, Value[0], Value[1], Value[2]);
+    {$else}
     glVertexAttrib3fv(Location, @Value);
+    {$endif}
 end;
 
 procedure TGLSLAttribute.SetValue(const Value: TVector4);
@@ -1023,31 +1031,55 @@ begin
   if Location = GLAttribLocationNone then Exit; // ignore non-existing attribute here
   Owner.Enable;
   if GLFeatures.Shaders then
+    {$ifdef CASTLE_WEBGL}
+    glVertexAttrib4f(Location, Value[0], Value[1], Value[2], Value[3]);
+    {$else}
     glVertexAttrib4fv(Location, @Value);
+    {$endif}
 end;
 
 procedure TGLSLAttribute.SetValue(const Value: TMatrix3);
+
+  procedure SetColumn(const Column: Integer; const Value: TMatrix3.TIndexArray);
+  begin
+    {$ifdef CASTLE_WEBGL}
+    glVertexAttrib3f(Location + Column, Value[0], Value[1], Value[2]);
+    {$else}
+    glVertexAttrib3fv(Location + Column, @Value);
+    {$endif}
+  end;
+
 begin
   if Location = GLAttribLocationNone then Exit; // ignore non-existing attribute here
   Owner.Enable;
   if GLFeatures.Shaders then
   begin
-    glVertexAttrib3fv(Location    , @Value.Data[0]);
-    glVertexAttrib3fv(Location + 1, @Value.Data[1]);
-    glVertexAttrib3fv(Location + 2, @Value.Data[2]);
+    SetColumn(0, Value.Data[0]);
+    SetColumn(1, Value.Data[1]);
+    SetColumn(2, Value.Data[2]);
   end;
 end;
 
 procedure TGLSLAttribute.SetValue(const Value: TMatrix4);
+
+  procedure SetColumn(const Column: Integer; const Value: TMatrix4.TIndexArray);
+  begin
+    {$ifdef CASTLE_WEBGL}
+    glVertexAttrib4f(Location + Column, Value[0], Value[1], Value[2], Value[3]);
+    {$else}
+    glVertexAttrib4fv(Location + Column, @Value);
+    {$endif}
+  end;
+
 begin
   if Location = GLAttribLocationNone then Exit; // ignore non-existing attribute here
   Owner.Enable;
   if GLFeatures.Shaders then
   begin
-    glVertexAttrib4fv   (Location    , @Value.Data[0]);
-    glVertexAttrib4fv   (Location + 1, @Value.Data[1]);
-    glVertexAttrib4fv   (Location + 2, @Value.Data[2]);
-    glVertexAttrib4fv   (Location + 3, @Value.Data[3]);
+    SetColumn(0, Value.Data[0]);
+    SetColumn(1, Value.Data[1]);
+    SetColumn(2, Value.Data[2]);
+    SetColumn(3, Value.Data[3]);
   end;
 end;
 
@@ -1117,7 +1149,8 @@ begin
 
     LocationOffsetsToDisable[LocationOffset] := true;
     glEnableVertexAttribArray(Location + LocationOffset);
-    glVertexAttribPointer    (Location + LocationOffset, Size, AType, Normalized, Stride, Pointer(Ptr));
+    glVertexAttribPointer    (Location + LocationOffset, Size, AType,
+      Normalized, Stride, {$ifndef CASTLE_WEBGL} Pointer {$endif} (Ptr));
   end;
 end;
 
@@ -1280,6 +1313,12 @@ begin
 end;
 
 function TGLSLProgram.DebugInfo: string;
+{$ifdef CASTLE_WEBGL}
+begin
+  Result := 'GLSL program support: ' + BoolToStr(GLFeatures.Shaders, true);
+
+  // TODO: Restore full DebugInfo functionality with WebGL
+{$else}
 
   function GLShaderVariableTypeName(AType: TGLenum): string;
   begin
@@ -1354,7 +1393,11 @@ function TGLSLProgram.DebugInfo: string;
   begin
     if GLFeatures.Shaders then
     begin
+      {$ifdef CASTLE_WEBGL}
+      UniformsCount := glGetProgramParameter(ProgramId, GL_ACTIVE_UNIFORMS);
+      {$else}
       glGetProgramiv(ProgramId, GL_ACTIVE_UNIFORMS, @UniformsCount);
+      {$endif}
 
       { fglrx (Radeon closed-source OpenGL drivers) are buggy (that's not
         news, I know...) and they report GL_INVALID_ENUM on some queries
@@ -1460,10 +1503,11 @@ begin
       ShaderInfoLog(ShaderIds[I]) ;
   end;
 
-  Result := Result +  NL + 'Program info log:' + NL + ProgramInfoLog ;
+  Result := Result +  NL + 'Program info log:' + NL + ProgramInfoLog;
 
   Result := Result + NL + 'Program detected as running in hardware: ' +
-    BoolToStr(RunningInHardware, true) ;
+    BoolToStr(RunningInHardware, true);
+{$endif CASTLE_WEBGL}
 end;
 
 procedure TGLSLProgram.AttachShader(const ShaderType: TShaderType; S: string);
@@ -1752,7 +1796,11 @@ begin;
       TransformFeedbackBufferMode := GL_INTERLEAVED_ATTRIBS
     else
       TransformFeedbackBufferMode := GL_SEPARATE_ATTRIBS;
+    {$ifdef CASTLE_WEBGL}
+    GL2.transformFeedbackVaryings(ProgramId, ListToWebGL(varyings), TransformFeedbackBufferMode);
+    {$else}
     glTransformFeedbackVaryings(ProgramId, VaryingLength, @Varyings[0], TransformFeedbackBufferMode);
+    {$endif}
     ErrorCode := glGetError();
     if ErrorCode = GL_INVALID_VALUE then
     begin

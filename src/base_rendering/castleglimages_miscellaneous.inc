@@ -58,7 +58,7 @@ function ImageGLType(const Img: TCastleImage): TGLenum;
 
 {$ifdef read_interface_type}
 //type - don't add type Delphi can't parse that correctly
-  TGLTextureId = TGLuint;
+  TGLTextureId = TGLTexture;
 
   ETextureLoadError = class(Exception);
   EImageClassNotSupportedForOpenGL = class(ETextureLoadError);
@@ -366,11 +366,15 @@ end;
 
 procedure glFreeTexture(var Tex: TGLTextureId);
 begin
-  if Tex <> 0 then
+  if Tex <> GLObjectNone then
   begin
     TextureMemoryProfiler.Deallocate(Tex);
+    {$ifdef CASTLE_WEBGL}
+    glDeleteTexture(Tex);
+    {$else}
     glDeleteTextures(1, @Tex);
-    Tex := 0;
+    {$endif}
+    Tex := GLObjectNone;
   end;
 end;
 

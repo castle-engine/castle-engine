@@ -75,6 +75,7 @@ function ListToWebGL(const L: TVector3List): IJSFloat32Array;
 function ListToWebGL(const L: TVector4List): IJSFloat32Array;
 function ListToWebGL(const L: TMatrix3List): IJSFloat32Array;
 function ListToWebGL(const L: TMatrix4List): IJSFloat32Array;
+function ListToWebGL(const Values: array of PAnsiChar): IJSArray;
 
 implementation
 
@@ -395,6 +396,15 @@ begin
   Result := TJSFloat32Array.Create(L.Count * 16);
   for I := 0 to L.Count - 1 do
     MatrixToWebGLAdd(L[I], Result, I * 16);
+end;
+
+function ListToWebGL(const Values: array of PAnsiChar): IJSArray;
+var
+  I: Integer;
+begin
+  Result := TJSArray.Create([]);
+  for I := 0 to High(Values) do
+    Result.Push(Values[I]);
 end;
 
 end.

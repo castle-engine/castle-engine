@@ -24,6 +24,7 @@ type
   { }
   TGLBuffer = {$ifndef CASTLE_WEBGL} TGLuint {$else} CastleInternalJobWeb.IJSWebGLBuffer {$endif};
   TGLFramebuffer = {$ifndef CASTLE_WEBGL} TGLuint {$else} CastleInternalJobWeb.IJSWebGLFramebuffer {$endif};
+  TGLRenderbuffer = {$ifndef CASTLE_WEBGL} TGLuint {$else} CastleInternalJobWeb.IJSWebGLRenderbuffer {$endif};
   TGLProgram = {$ifndef CASTLE_WEBGL} TGLuint {$else} CastleInternalJobWeb.IJSWebGLProgram {$endif};
   TGLShader = {$ifndef CASTLE_WEBGL} TGLuint {$else} CastleInternalJobWeb.IJSWebGLShader {$endif};
   TGLTexture = {$ifndef CASTLE_WEBGL} TGLuint {$else} CastleInternalJobWeb.IJSWebGLTexture {$endif};
