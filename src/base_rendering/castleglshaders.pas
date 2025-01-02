@@ -925,7 +925,11 @@ begin
   if Location = GLUniformLocationNone then Exit; // ignore non-existing uniform here
   Owner.Enable;
   if GLFeatures.Shaders then
+    {$ifdef CASTLE_WEBGL}
+    glUniform1fv(Location, ListToWebGL(Value), 0, 0);
+    {$else}
     glUniform1fv(Location, Value.Count, PGLfloat(Value.L));
+    {$endif}
 end;
 
 procedure TGLSLUniform.SetValue(const Value: TVector2List);
@@ -933,7 +937,11 @@ begin
   if Location = GLUniformLocationNone then Exit; // ignore non-existing uniform here
   Owner.Enable;
   if GLFeatures.Shaders then
+    {$ifdef CASTLE_WEBGL}
+    glUniform2fv(Location, ListToWebGL(Value), 0, 0);
+    {$else}
     glUniform2fv(Location, Value.Count, PGLfloat(Value.L));
+    {$endif}
 end;
 
 procedure TGLSLUniform.SetValue(const Value: TVector3List);
@@ -941,7 +949,11 @@ begin
   if Location = GLUniformLocationNone then Exit; // ignore non-existing uniform here
   Owner.Enable;
   if GLFeatures.Shaders then
+    {$ifdef CASTLE_WEBGL}
+    glUniform3fv(Location, ListToWebGL(Value), 0, 0);
+    {$else}
     glUniform3fv(Location, Value.Count, PGLfloat(Value.L));
+    {$endif}
 end;
 
 procedure TGLSLUniform.SetValue(const Value: TVector4List);
@@ -949,7 +961,11 @@ begin
   if Location = GLUniformLocationNone then Exit; // ignore non-existing uniform here
   Owner.Enable;
   if GLFeatures.Shaders then
+    {$ifdef CASTLE_WEBGL}
+    glUniform4fv(Location, ListToWebGL(Value), 0, 0);
+    {$else}
     glUniform4fv(Location, Value.Count, PGLfloat(Value.L));
+    {$endif}
 end;
 
 procedure TGLSLUniform.SetValue(const Value: TMatrix3List);
@@ -957,7 +973,11 @@ begin
   if Location = GLUniformLocationNone then Exit; // ignore non-existing uniform here
   Owner.Enable;
   if GLFeatures.Shaders then
+    {$ifdef CASTLE_WEBGL}
+    glUniformMatrix3fv(Location, GL_FALSE, ListToWebGL(Value), 0, 0);
+    {$else}
     glUniformMatrix3fv(Location, Value.Count, GL_FALSE, PGLfloat(Value.L));
+    {$endif}
 end;
 
 procedure TGLSLUniform.SetValue(const Value: TMatrix4List);
@@ -965,7 +985,11 @@ begin
   if Location = GLUniformLocationNone then Exit; // ignore non-existing uniform here
   Owner.Enable;
   if GLFeatures.Shaders then
+    {$ifdef CASTLE_WEBGL}
+    glUniformMatrix4fv(Location, GL_FALSE, ListToWebGL(Value), 0, 0);
+    {$else}
     glUniformMatrix4fv(Location, Value.Count, GL_FALSE, PGLfloat(Value.L));
+    {$endif}
 end;
 
 { TGLSLAttribute ------------------------------------------------------------- }

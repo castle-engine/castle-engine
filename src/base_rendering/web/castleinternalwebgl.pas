@@ -63,10 +63,18 @@ var
   GL: IJSWebGLRenderingContext;
   GL2: IJSWebGL2RenderingContext;
 
+{ Convert various types to WebGL arrays, e.g. to provide uniform value to shaders. }
+
 function MatrixToWebGL(const M: TMatrix2): IJSFloat32Array;
 function MatrixToWebGL(const M: TMatrix3): IJSFloat32Array;
 function MatrixToWebGL(const M: TMatrix4): IJSFloat32Array;
 function ListToWebGL(const L: CastleUtils.TInt32List): IJSInt32Array;
+function ListToWebGL(const L: CastleUtils.TSingleList): IJSFloat32Array;
+function ListToWebGL(const L: TVector2List): IJSFloat32Array;
+function ListToWebGL(const L: TVector3List): IJSFloat32Array;
+function ListToWebGL(const L: TVector4List): IJSFloat32Array;
+function ListToWebGL(const L: TMatrix3List): IJSFloat32Array;
+function ListToWebGL(const L: TMatrix4List): IJSFloat32Array;
 
 implementation
 
@@ -141,10 +149,10 @@ begin
     '  Shading Language Version: %s' + NL +
     '  Renderer: %s' + NL +
     '  Vendor: %s', [
-    glGetString(TJSWebGLRenderingContext.SHADING_LANGUAGE_VERSION),
-    glGetString(TJSWebGLRenderingContext.RENDERER),
-    glGetString(TJSWebGLRenderingContext.VENDOR),
-    glGetString(TJSWebGLRenderingContext.VERSION)
+    glGetString(GL_SHADING_LANGUAGE_VERSION),
+    glGetString(GL_RENDERER),
+    glGetString(GL_VENDOR),
+    glGetString(GL_VERSION)
   ]));
   WritelnLog('Context limits:' + NL +
     '  Max Viewport Dimensions: %s' + NL +
@@ -156,15 +164,15 @@ begin
     '  Max Fragment Uniform Vectors: %d' + NL +
     '  Max Varying Vectors: %d' + NL +
     '  Max Vertex Attributes: %d', [
-    glGetInteger2(TJSWebGLRenderingContext.MAX_VIEWPORT_DIMS).ToString,
-    glGetInteger(TJSWebGLRenderingContext.MAX_TEXTURE_SIZE),
-    glGetInteger(TJSWebGLRenderingContext.MAX_TEXTURE_IMAGE_UNITS),
-    glGetInteger(TJSWebGLRenderingContext.MAX_VERTEX_TEXTURE_IMAGE_UNITS),
-    glGetInteger(TJSWebGLRenderingContext.MAX_COMBINED_TEXTURE_IMAGE_UNITS),
-    glGetInteger(TJSWebGLRenderingContext.MAX_VERTEX_UNIFORM_VECTORS),
-    glGetInteger(TJSWebGLRenderingContext.MAX_FRAGMENT_UNIFORM_VECTORS),
-    glGetInteger(TJSWebGLRenderingContext.MAX_VARYING_VECTORS),
-    glGetInteger(TJSWebGLRenderingContext.MAX_VERTEX_ATTRIBS)
+    glGetInteger2(GL_MAX_VIEWPORT_DIMS).ToString,
+    glGetInteger(GL_MAX_TEXTURE_SIZE),
+    glGetInteger(GL_MAX_TEXTURE_IMAGE_UNITS),
+    glGetInteger(GL_MAX_VERTEX_TEXTURE_IMAGE_UNITS),
+    glGetInteger(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS),
+    glGetInteger(GL_MAX_VERTEX_UNIFORM_VECTORS),
+    glGetInteger(GL_MAX_FRAGMENT_UNIFORM_VECTORS),
+    glGetInteger(GL_MAX_VARYING_VECTORS),
+    glGetInteger(GL_MAX_VERTEX_ATTRIBS)
   ]);
   WritelnLog('Context attributes:' + NL +
     '  Alpha: %s' + NL +
@@ -207,10 +215,10 @@ begin
   //Col := Frac(LifeTime); // TODO: animate
   Col := 1.0;
 
-  GL.clearColor(Col, Col, 0.0, 1);
-  GL.viewport(0, 0, ContextWidth, ContextHeight);
-  GL.clear(TJSWebGLRenderingContext.COLOR_BUFFER_BIT);
-  GL.flush; // TODO: remove later, pointless when using requestAnimationFrame, according to MDN
+  glClearColor(Col, Col, 0.0, 1);
+  glViewport(0, 0, ContextWidth, ContextHeight);
+  glClear(GL_COLOR_BUFFER_BIT);
+  glFlush; // TODO: remove later, pointless when using requestAnimationFrame, according to MDN
 end;
 
 // TODO
@@ -263,49 +271,55 @@ begin
 	//CanvasAnimationHandler := window.requestAnimationFrame(@AnimationFrame);
 end;
 
-function MatrixToWebGL(const M: TMatrix2): IJSFloat32Array;
+procedure MatrixToWebGLAdd(const M: TMatrix2; const List: IJSFloat32Array; const Offset: Integer);
 var
-  Cols, Rows, Col, Row: Integer;
+  Col, Row: TMatrix2.TIndex;
 begin
-  Cols := High(TMatrix2.TIndex) + 1;
-  Rows := Cols; // square matrix
-  Result := TJSFloat32Array.Create(Cols * Rows);
-
   { Convert to a list of values in column-major order, as expected by WebGL:
     https://developer.mozilla.org/en-US/docs/Web/API/WebGLRenderingContext/uniformMatrix }
-  for Col := 0 to Cols -1 do
-    for Row := 0 to Rows - 1 do
-      Result[Col * Cols + Row] := M[Col, Row];
+  for Col := Low(Col) to High(Col) do
+    for Row := Low(Row) to High(Row) do
+      List[Offset + Col * 2 + Row] := M[Col, Row];
+end;
+
+procedure MatrixToWebGLAdd(const M: TMatrix3; const List: IJSFloat32Array; const Offset: Integer);
+var
+  Col, Row: TMatrix3.TIndex;
+begin
+  { Convert to a list of values in column-major order, as expected by WebGL:
+    https://developer.mozilla.org/en-US/docs/Web/API/WebGLRenderingContext/uniformMatrix }
+  for Col := Low(Col) to High(Col) do
+    for Row := Low(Row) to High(Row) do
+      List[Offset + Col * 3 + Row] := M[Col, Row];
+end;
+
+procedure MatrixToWebGLAdd(const M: TMatrix4; const List: IJSFloat32Array; const Offset: Integer);
+var
+  Col, Row: TMatrix4.TIndex;
+begin
+  { Convert to a list of values in column-major order, as expected by WebGL:
+    https://developer.mozilla.org/en-US/docs/Web/API/WebGLRenderingContext/uniformMatrix }
+  for Col := Low(Col) to High(Col) do
+    for Row := Low(Row) to High(Row) do
+      List[Offset + Col * 4 + Row] := M[Col, Row];
+end;
+
+function MatrixToWebGL(const M: TMatrix2): IJSFloat32Array;
+begin
+  Result := TJSFloat32Array.Create(2 * 2);
+  MatrixToWebGLAdd(M, Result, 0);
 end;
 
 function MatrixToWebGL(const M: TMatrix3): IJSFloat32Array;
-var
-  Cols, Rows, Col, Row: Integer;
 begin
-  Cols := High(TMatrix3.TIndex) + 1;
-  Rows := Cols; // square matrix
-  Result := TJSFloat32Array.Create(Cols * Rows);
-
-  { Convert to a list of values in column-major order, as expected by WebGL:
-    https://developer.mozilla.org/en-US/docs/Web/API/WebGLRenderingContext/uniformMatrix }
-  for Col := 0 to Cols -1 do
-    for Row := 0 to Rows - 1 do
-      Result[Col * Cols + Row] := M[Col, Row];
+  Result := TJSFloat32Array.Create(3 * 3);
+  MatrixToWebGLAdd(M, Result, 0);
 end;
 
 function MatrixToWebGL(const M: TMatrix4): IJSFloat32Array;
-var
-  Cols, Rows, Col, Row: Integer;
 begin
-  Cols := High(TMatrix4.TIndex) + 1;
-  Rows := Cols; // square matrix
-  Result := TJSFloat32Array.Create(Cols * Rows);
-
-  { Convert to a list of values in column-major order, as expected by WebGL:
-    https://developer.mozilla.org/en-US/docs/Web/API/WebGLRenderingContext/uniformMatrix }
-  for Col := 0 to Cols -1 do
-    for Row := 0 to Rows - 1 do
-      Result[Col * Cols + Row] := M[Col, Row];
+  Result := TJSFloat32Array.Create(4 * 4);
+  MatrixToWebGLAdd(M, Result, 0);
 end;
 
 function ListToWebGL(const L: CastleUtils.TInt32List): IJSInt32Array;
@@ -315,6 +329,72 @@ begin
   Result := TJSInt32Array.Create(L.Count);
   for I := 0 to L.Count - 1 do
     Result[I] := L[I];
+end;
+
+function ListToWebGL(const L: CastleUtils.TSingleList): IJSFloat32Array;
+var
+  I: Integer;
+begin
+  Result := TJSFloat32Array.Create(L.Count);
+  for I := 0 to L.Count - 1 do
+    Result[I] := L[I];
+end;
+
+function ListToWebGL(const L: TVector2List): IJSFloat32Array;
+var
+  I: Integer;
+begin
+  Result := TJSFloat32Array.Create(L.Count * 2);
+  for I := 0 to L.Count - 1 do
+  begin
+    Result[I * 2] := L[I].Data[0];
+    Result[I * 2 + 1] := L[I].Data[1];
+  end;
+end;
+
+function ListToWebGL(const L: TVector3List): IJSFloat32Array;
+var
+  I: Integer;
+begin
+  Result := TJSFloat32Array.Create(L.Count * 3);
+  for I := 0 to L.Count - 1 do
+  begin
+    Result[I * 3] := L[I].Data[0];
+    Result[I * 3 + 1] := L[I].Data[1];
+    Result[I * 3 + 2] := L[I].Data[2];
+  end;
+end;
+
+function ListToWebGL(const L: TVector4List): IJSFloat32Array;
+var
+  I: Integer;
+begin
+  Result := TJSFloat32Array.Create(L.Count * 4);
+  for I := 0 to L.Count - 1 do
+  begin
+    Result[I * 4] := L[I].Data[0];
+    Result[I * 4 + 1] := L[I].Data[1];
+    Result[I * 4 + 2] := L[I].Data[2];
+    Result[I * 4 + 3] := L[I].Data[3];
+  end;
+end;
+
+function ListToWebGL(const L: TMatrix3List): IJSFloat32Array;
+var
+  I: Integer;
+begin
+  Result := TJSFloat32Array.Create(L.Count * 9);
+  for I := 0 to L.Count - 1 do
+    MatrixToWebGLAdd(L[I], Result, I * 9);
+end;
+
+function ListToWebGL(const L: TMatrix4List): IJSFloat32Array;
+var
+  I: Integer;
+begin
+  Result := TJSFloat32Array.Create(L.Count * 16);
+  for I := 0 to L.Count - 1 do
+    MatrixToWebGLAdd(L[I], Result, I * 16);
 end;
 
 end.
