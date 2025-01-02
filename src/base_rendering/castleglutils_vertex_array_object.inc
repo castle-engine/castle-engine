@@ -33,16 +33,16 @@ type
   TVertexArrayObject = class(TComponent)
   strict private
     type
-      TConvextVaoDictionary = {$ifdef FPC}specialize{$endif} TDictionary<TComponent, TGLuint>;
+      TContextVaoDictionary = {$ifdef FPC}specialize{$endif} TDictionary<TComponent, TGLuint>;
     var
-      ConvextsVao: TConvextVaoDictionary;
+      ContextsVao: TContextVaoDictionary;
   protected
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     { OpenGL VAO identifier, for given context (must be @link(TRenderContext)). }
-    function InternalHandle(const Context: TComponent): TGLuint;
+    function InternalHandle(const Context: TComponent): TGLVertexArrayObject;
   end;
 
 {$endif read_interface}
@@ -52,17 +52,17 @@ type
 constructor TVertexArrayObject.Create(AOwner: TComponent);
 begin
   inherited;
-  ConvextsVao := TConvextVaoDictionary.Create;
+  ContextsVao := TContextVaoDictionary.Create;
 end;
 
 destructor TVertexArrayObject.Destroy;
 var
-  Pair: {$ifdef FPC}TConvextVaoDictionary.TDictionaryPair{$else}
-    TPair<TComponent, TGLuint>{$endif};
+  Pair: {$ifdef FPC}TContextVaoDictionary.TDictionaryPair{$else}
+    TPair<TComponent, TGLVertexArrayObject>{$endif};
 begin
-  if ConvextsVao <> nil then
+  if ContextsVao <> nil then
   begin
-    for Pair in ConvextsVao do
+    for Pair in ContextsVao do
     begin
       Pair.Key.RemoveFreeNotification(Self);
       if GLFeatures.VertexArrayObject then
@@ -71,7 +71,7 @@ begin
         glDeleteVertexArrays(1, @Pair.Value);
       end;
     end;
-    FreeAndNil(ConvextsVao);
+    FreeAndNil(ContextsVao);
   end;
   inherited;
 end;
@@ -84,25 +84,25 @@ begin
 
   { When TRenderContext is freed, we must free VAOs associated with it. }
   if Operation = opRemove then
-    if ConvextsVao.TryGetValue(AComponent, Vao) then
+    if ContextsVao.TryGetValue(AComponent, Vao) then
     begin
       FreeVertexArray(Vao);
-      ConvextsVao.Remove(AComponent);
+      ContextsVao.Remove(AComponent);
     end;
 end;
 
-function TVertexArrayObject.InternalHandle(const Context: TComponent): TGLuint;
+function TVertexArrayObject.InternalHandle(const Context: TComponent): TGLVertexArrayObject;
 begin
   Assert(Context is TRenderContext);
 
-  if not ConvextsVao.TryGetValue(Context, Result) then
+  if not ContextsVao.TryGetValue(Context, Result) then
   begin
     if GLFeatures.VertexArrayObject then
       Result := glCreateVertexArray()
     else
       Result := GLObjectNone;
     Context.FreeNotification(Self);
-    ConvextsVao.Add(Context, Result);
+    ContextsVao.Add(Context, Result);
   end;
 end;
 

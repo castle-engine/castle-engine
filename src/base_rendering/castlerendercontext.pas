@@ -555,7 +555,9 @@ begin
 
   if FDepthRange <> Value then
   begin
-    {$ifdef OpenGLES} {$define glDepthRange := glDepthRangef} {$endif}
+    {$if defined(OpenGLES) and not defined(CASTLE_WEBGL)}
+      {$define glDepthRange := glDepthRangef}
+    {$endif}
     FDepthRange := Value;
     case Value of
       drFull: glDepthRange(0  , 1);
@@ -736,7 +738,7 @@ begin
       if Value <> nil then
         glBindVertexArray(Value.InternalHandle(Self))
       else
-        glBindVertexArray(0);
+        glBindVertexArray(GLObjectNone);
     end;
   end;
 end;
