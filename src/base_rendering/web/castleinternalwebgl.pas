@@ -15,7 +15,16 @@
 { Access WebGL API from Castle Game Engine compiled in WebAssembly.
 
   The API is deliberately made to be compatible CastleGLES unit,
-  to use this unit as a "drop-in replacement" as much as possible. }
+  to use this unit as a "drop-in replacement" as much as possible.
+
+  But note that we don't try to force 100% compatibility with CastleGLES,
+  in some cases we leave things incompatible and rendering code has to do
+  "ifdef CASTLE_WEBGL". We mostly leave things incompatible when it seems
+  we would lose some type safety (e.g. C API wants to use pointers for some
+  uniform data, WebGL is sometimes nicer in this regard).
+  We also in some cases decided to expose for OpenGL/OpenGLES an API
+  to make them consistent with WebGL: this applies to
+  castleinternalglutils_create_delete.inc . }
 unit CastleInternalWebGL;
 
 interface
@@ -59,6 +68,8 @@ const
   GL_STENCIL_INDEX = GL_STENCIL_INDEX8;
 
 function glGetString(const Param: TGLenum): String;
+procedure glBufferData(const Target: TGLenum; const Size: PtrUInt; const Data: Pointer; const Usage: TGLenum);
+procedure glBufferSubData(const Target: TGLenum; const DstOffset: TGLintptr; const Size: PtrUInt; const Data: Pointer);
 
 { Helper routines specific to WebGL }
 
@@ -73,6 +84,7 @@ var
 function MatrixToWebGL(const M: TMatrix2): IJSFloat32Array;
 function MatrixToWebGL(const M: TMatrix3): IJSFloat32Array;
 function MatrixToWebGL(const M: TMatrix4): IJSFloat32Array;
+
 function ListToWebGL(const L: CastleUtils.TInt32List): IJSInt32Array;
 function ListToWebGL(const L: CastleUtils.TSingleList): IJSFloat32Array;
 function ListToWebGL(const L: TVector2List): IJSFloat32Array;
@@ -103,6 +115,20 @@ uses SysUtils, JOB.Shared,
 function glGetString(const Param: TGLenum): String;
 begin
   Result := GL.GetParameter(Param);
+end;
+
+function MemoryToWebGL(const Ptr: Pointer; const Size: PtrUInt): IJSArrayBuffer; forward;
+
+procedure glBufferData(const Target: TGLenum;
+  const Size: PtrUInt; const Data: Pointer; const Usage: TGLenum);
+begin
+  glBufferData(Target, MemoryToWebGL(Data, Size), Usage);
+end;
+
+procedure glBufferSubData(const Target: TGLenum; const DstOffset: TGLintptr;
+  const Size: PtrUInt; const Data: Pointer);
+begin
+  glBufferSubData(Target, DstOffset, MemoryToWebGL(Data, Size));
 end;
 
 { Rendering and animation using WebGL ---------------------------------------- }
@@ -410,6 +436,12 @@ begin
   Result := TJSArray.Create([]);
   for I := 0 to High(Values) do
     Result.Push(Values[I]);
+end;
+
+function MemoryToWebGL(const Ptr: Pointer; const Size: PtrUInt): IJSArrayBuffer;
+begin
+  Result := TJSArrayBuffer.Create(Size);
+  Result.CopyFromMemory(Ptr, Size);
 end;
 
 end.
