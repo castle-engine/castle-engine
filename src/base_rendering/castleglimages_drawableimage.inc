@@ -667,7 +667,7 @@
 
     { Internal OpenGL texture identifier.
 
-      You cannot free it (e.g. by glFreeTexture), and you cannot change it's
+      You cannot free it (e.g. by FreeTexture), and you cannot change it's
       parameters (because TDrawableImage assumes it controls all the texture
       parameters). For normal drawing, you do not need this (use @link(Draw)
       or other rendering routines in this class), but it may be useful to
@@ -880,7 +880,7 @@ end;
 
 procedure TDrawableImage.GLContextClose;
 begin
-  glFreeTexture(FTexture);
+  FreeTexture(FTexture);
 end;
 
 procedure TDrawableImage.Load(const AImage: TEncodedImage);

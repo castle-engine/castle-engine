@@ -44,10 +44,15 @@
 {$ifdef read_interface}
 
 {$ifndef CASTLE_WEBGL}
+{ Create TGLBuffer using OpenGL / OpenGLES / WebGL. }
 function glCreateBuffer: TGLBuffer;
+{ Create TGLVertexArrayObject using OpenGL / OpenGLES / WebGL. }
 function glCreateVertexArray: TGLVertexArrayObject;
+{ Create TGLTexture using OpenGL / OpenGLES / WebGL. }
 function glCreateTexture: TGLTexture;
+{ Create TGLRenderbuffer using OpenGL / OpenGLES / WebGL. }
 function glCreateRenderbuffer: TGLRenderbuffer;
+{ Create TGLFramebuffer using OpenGL / OpenGLES / WebGL. }
 function glCreateFramebuffer: TGLFramebuffer;
 
 procedure glDeleteBuffer(const Buffer: TGLBuffer);
@@ -57,10 +62,15 @@ procedure glDeleteRenderbuffer(const Buf: TGLRenderbuffer);
 procedure glDeleteFramebuffer(const Buf: TGLFramebuffer);
 {$endif}
 
+{ Free TGLBuffer, setting it to GLObjectNone. }
 procedure FreeBuffer(var Buffer: TGLBuffer);
+{ Free TGLVertexArrayObject, setting it to GLObjectNone. }
 procedure FreeVertexArray(var Vao: TGLVertexArrayObject);
-procedure FreeTexture(var Texture: TGLTexture);
+// In CastleGLImages:
+// procedure FreeTexture(var Texture: TGLTexture);
+{ Free TGLRenderbuffer, setting it to GLObjectNone. }
 procedure FreeRenderbuffer(var Buf: TGLRenderbuffer);
+{ Free TGLFramebuffer, setting it to GLObjectNone. }
 procedure FreeFramebuffer(var Buf: TGLFramebuffer);
 
 {$endif read_interface}
@@ -134,15 +144,6 @@ begin
   begin
     glDeleteVertexArray(Vao);
     Vao := GLObjectNone;
-  end;
-end;
-
-procedure FreeTexture(var Texture: TGLTexture);
-begin
-  if Texture <> GLObjectNone then
-  begin
-    glDeleteTexture(Texture);
-    Texture := GLObjectNone;
   end;
 end;
 

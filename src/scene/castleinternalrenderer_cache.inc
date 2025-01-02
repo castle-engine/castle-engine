@@ -352,7 +352,7 @@ begin
                                     TextureImageCaches[I].References]);
       if TextureImageCaches[I].References = 0 then
       begin
-        glFreeTexture(TextureImageCaches[I].GLName);
+        FreeTexture(TextureImageCaches[I].GLName);
         TextureImageCaches.Delete(I);
       end;
       CheckFreeWhenEmpty;
@@ -527,7 +527,7 @@ begin
         ]);
       if TextureCubeMapCaches[I].References = 0 then
       begin
-        glFreeTexture(TextureCubeMapCaches[I].GLName);
+        FreeTexture(TextureCubeMapCaches[I].GLName);
         TextureCubeMapCaches.Delete(I);
       end;
       CheckFreeWhenEmpty;
@@ -610,7 +610,7 @@ begin
         ]);
       if Texture3DCaches[I].References = 0 then
       begin
-        glFreeTexture(Texture3DCaches[I].GLName);
+        FreeTexture(Texture3DCaches[I].GLName);
         Texture3DCaches.Delete(I);
       end;
       CheckFreeWhenEmpty;
@@ -714,7 +714,7 @@ begin
         ]);
       if TextureDepthOrFloatCaches[I].References = 0 then
       begin
-        glFreeTexture(TextureDepthOrFloatCaches[I].GLName);
+        FreeTexture(TextureDepthOrFloatCaches[I].GLName);
         TextureDepthOrFloatCaches.Delete(I);
       end;
       CheckFreeWhenEmpty;
@@ -804,7 +804,7 @@ begin
         ]);
       if TextureDepthOrFloatCaches[I].References = 0 then
       begin
-        glFreeTexture(TextureDepthOrFloatCaches[I].GLName);
+        FreeTexture(TextureDepthOrFloatCaches[I].GLName);
         TextureDepthOrFloatCaches.Delete(I);
       end;
       CheckFreeWhenEmpty;

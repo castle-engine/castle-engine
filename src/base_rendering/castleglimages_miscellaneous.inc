@@ -67,13 +67,13 @@ function ImageGLType(const Img: TCastleImage): TGLenum;
 {$endif read_interface_type}
 
 {$ifdef read_interface_func}
-{ If Tex <> 0 then it does glDeleteTextures on Tex and sets Tex to 0.
-  In other words, this is a simple wrapper over glDeleteTextures that
-  @orderedList(
-    @item checks if Tex really should be deleted
-    @item sets Tex to 0 to not free it once again
-  ) }
-procedure glFreeTexture(var Tex: TGLTextureId);
+
+{ Delete texture object and set it to GLObjectNone.
+
+  - Before doing anything, checks is it GLObjectNone.
+  - After freeing, sets it to GLObjectNone.
+  - Also takes care to call TextureMemoryProfiler.Deallocate . }
+procedure FreeTexture(var Tex: TGLTextureId);
 
 { Call glTexParameterf to set GL_TEXTURE_MAX_ANISOTROPY_EXT on given texture
   target.
@@ -373,16 +373,23 @@ begin
       [Img.ClassName]);
 end;
 
-procedure glFreeTexture(var Tex: TGLTextureId);
+function ImageGLData(const Img: TEncodedImage): {$ifdef CASTLE_WEBGL} IJSTypedArray {$else} Pointer {$endif};
+{$ifdef CASTLE_WEBGL}
+begin
+  Result := // TODO
+end;
+{$else}
+begin
+  Result := Img.RawPixels;
+{$endif}
+end;
+
+procedure FreeTexture(var Tex: TGLTextureId);
 begin
   if Tex <> GLObjectNone then
   begin
     TextureMemoryProfiler.Deallocate(Tex);
-    {$ifdef CASTLE_WEBGL}
     glDeleteTexture(Tex);
-    {$else}
-    glDeleteTextures(1, @Tex);
-    {$endif}
     Tex := GLObjectNone;
   end;
 end;

@@ -70,6 +70,7 @@ const
 function glGetString(const Param: TGLenum): String;
 procedure glBufferData(const Target: TGLenum; const Size: PtrUInt; const Data: Pointer; const Usage: TGLenum);
 procedure glBufferSubData(const Target: TGLenum; const DstOffset: TGLintptr; const Size: PtrUInt; const Data: Pointer);
+procedure glDrawElements(const mode: TGLenum; const count: TGLsizei; const type_: TGLenum; const offset: Pointer);
 
 { Helper routines specific to WebGL }
 
@@ -129,6 +130,12 @@ procedure glBufferSubData(const Target: TGLenum; const DstOffset: TGLintptr;
   const Size: PtrUInt; const Data: Pointer);
 begin
   glBufferSubData(Target, DstOffset, MemoryToWebGL(Data, Size));
+end;
+
+procedure glDrawElements(const mode: TGLenum; const count: TGLsizei;
+  const type_: TGLenum; const offset: Pointer);
+begin
+  glDrawElements(mode, count, type_, PtrUInt(offset));
 end;
 
 { Rendering and animation using WebGL ---------------------------------------- }

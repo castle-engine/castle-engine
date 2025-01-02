@@ -699,7 +699,7 @@ begin
     Result := TRGBImage.Create(Image.Width, Image.Height, Image.Depth);
 
   SaveTextureContents(Result, Tex);
-  glFreeTexture(Tex);
+  FreeTexture(Tex);
 end;
 
 {$else}

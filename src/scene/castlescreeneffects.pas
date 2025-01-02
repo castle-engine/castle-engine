@@ -479,9 +479,9 @@ var
        (ScreenEffectTextureWidth  <> SR.Width ) or
        (ScreenEffectTextureHeight <> SR.Height) then
     begin
-      glFreeTexture(ScreenEffectTextureDest);
-      glFreeTexture(ScreenEffectTextureSrc);
-      glFreeTexture(ScreenEffectTextureDepth);
+      FreeTexture(ScreenEffectTextureDest);
+      FreeTexture(ScreenEffectTextureSrc);
+      FreeTexture(ScreenEffectTextureDepth);
       FreeAndNil(ScreenEffectRTT);
 
       {$ifndef OpenGLES}
@@ -714,9 +714,9 @@ end;
 
 procedure TCastleScreenEffects.GLContextClose;
 begin
-  glFreeTexture(ScreenEffectTextureDest);
-  glFreeTexture(ScreenEffectTextureSrc);
-  glFreeTexture(ScreenEffectTextureDepth);
+  FreeTexture(ScreenEffectTextureDest);
+  FreeTexture(ScreenEffectTextureSrc);
+  FreeTexture(ScreenEffectTextureDepth);
   ScreenEffectTextureTarget := 0; //< clear, for safety
   FreeAndNil(ScreenEffectRTT);
   FreeBuffer(ScreenPointVbo);
