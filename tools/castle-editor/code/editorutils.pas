@@ -146,7 +146,7 @@ type
 
       This by default implies targetCustom, DefaultOS, DefaultCPU,
       but may be customized if project has
-      @url(https://castle-engine.io/web#_run_the_project_by_default_for_the_web
+      @url(https://castle-engine.io/web#platform_default
       CastleProjectLocalSettings.json file). }
     UseDefault: Boolean;
 
