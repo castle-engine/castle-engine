@@ -169,8 +169,12 @@ begin
   if not GLFeatures.Texture3D then
     raise Exception.Create('3D textures not supported by OpenGL(ES)');
 
+  {$ifdef CASTLE_WEBGL}
+  // TODO: WebGL does not support swizzle, http://www.g-truc.net/post-0734.html
+  {$else}
   if GLFeatures.TextureModernFormatsAndSwizzle then
     glTexParameteriv(GL_TEXTURE_3D, GL_TEXTURE_SWIZZLE_RGBA, @ImageSwizzle);
+  {$endif}
 
   if Filter.NeedsMipmaps then
   begin

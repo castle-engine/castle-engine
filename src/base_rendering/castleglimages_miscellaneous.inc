@@ -124,6 +124,15 @@ const
     anymore.
 }
 
+{$ifdef CASTLE_WEBGL}
+{ TODO: WebGL does not support swizzle, http://www.g-truc.net/post-0734.html
+  Below are dummy values (takes from CastleGL, but they don't really matter,
+  should not be used by anything) just to make this code compile. }
+const
+  GL_GREEN = $1904;
+  GL_BLUE = $1905;
+{$endif}
+
 begin
   { ImageSwizzle passing depends on it. }
   Assert(SizeOf(Integer) = SizeOf(TGLint));

@@ -317,7 +317,11 @@ begin
       SwizzleTarget := Target;
       if TargetIsCubeMapSide(SwizzleTarget) then
         SwizzleTarget := GL_TEXTURE_CUBE_MAP;
+      {$ifdef CASTLE_WEBGL}
+      // TODO: WebGL does not support swizzle, http://www.g-truc.net/post-0734.html
+      {$else}
       glTexParameteriv(SwizzleTarget, GL_TEXTURE_SWIZZLE_RGBA, @ImageSwizzle);
+      {$endif}
     end;
 
     {$ifndef OpenGLES}
