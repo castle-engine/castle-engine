@@ -903,9 +903,7 @@ begin
     So convert to 32 ints. }
   Ints := Value.ToInt32;
   try
-    Owner.Enable;
-    if GLFeatures.Shaders then
-      glUniform1iv(Location, Value.Count, PGLInt(Ints.L));
+    SetValue(Ints);
   finally FreeAndNil(Ints) end;
 end;
 
@@ -915,7 +913,11 @@ begin
   Assert(SizeOf(Int32) = SizeOf(TGLint));
   Owner.Enable;
   if GLFeatures.Shaders then
+    {$ifdef CASTLE_WEBGL}
+    glUniform1iv(Location, ListToWebGL(Value), 0, 0);
+    {$else}
     glUniform1iv(Location, Value.Count, PGLInt(Value.L));
+    {$endif}
 end;
 
 procedure TGLSLUniform.SetValue(const Value: TSingleList);

@@ -21,7 +21,7 @@ unit CastleInternalWebGL;
 interface
 
 uses JOB.JS,
-  CastleInternalJobWeb, CastleVectors;
+  CastleInternalJobWeb, CastleVectors, CastleUtils;
 
 type
   { Alias simple types to CastleInternalJobWeb types. }
@@ -66,11 +66,12 @@ var
 function MatrixToWebGL(const M: TMatrix2): IJSFloat32Array;
 function MatrixToWebGL(const M: TMatrix3): IJSFloat32Array;
 function MatrixToWebGL(const M: TMatrix4): IJSFloat32Array;
+function ListToWebGL(const L: CastleUtils.TInt32List): IJSInt32Array;
 
 implementation
 
 uses SysUtils, JOB.Shared,
-  CastleLog, CastleUtils,
+  CastleLog,
   // TODO: not necessary in the future? only for some test queries below
   CastleInternalGLUtils;
 
@@ -305,6 +306,15 @@ begin
   for Col := 0 to Cols -1 do
     for Row := 0 to Rows - 1 do
       Result[Col * Cols + Row] := M[Col, Row];
+end;
+
+function ListToWebGL(const L: CastleUtils.TInt32List): IJSInt32Array;
+var
+  I: Integer;
+begin
+  Result := TJSInt32Array.Create(L.Count);
+  for I := 0 to L.Count - 1 do
+    Result[I] := L[I];
 end;
 
 end.
