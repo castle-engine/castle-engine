@@ -34,6 +34,13 @@ function GLInformationStringSummary: String;
 
 {$ifdef read_implementation}
 
+const
+  RenderingApiName =
+    {$if defined(CASTLE_WEBGL)} 'WebGL'
+    {$elseif defined(OpenGLES)} 'OpenGLES'
+    {$else} 'OpenGL'
+    {$endif};
+
 function GLInformationString: string;
 const
   Section = '----------------------------------------';
@@ -149,7 +156,7 @@ const
 
 begin
   Result :=
-    {$ifdef OpenGLES} 'OpenGLES' {$else} 'OpenGL' {$endif} +
+    RenderingApiName +
     ' information (detected by ' + ApplicationName + '):' + NL +
     NL +
 
@@ -167,7 +174,11 @@ begin
     'Confirmed versions:' + NL +
     '(checks both version string and actual functions availability in the library, to secure from buggy implementations)' + NL +
     NL +
-    {$ifdef OpenGLES}
+    {$if defined(CASTLE_WEBGL)}
+    '  2_0: ' + BoolToStr(GLFeatures.VersionWebGL_2, true) + NL +
+    NL +
+
+    {$elseif defined(OpenGLES)}
     '  2_0: ' + BoolToStr(GLFeatures.VersionES_2_0, true) + NL +
     '  3.0: ' + BoolToStr(GLFeatures.VersionES_3_0, true) + NL +
     '  3.1: ' + BoolToStr(GLFeatures.VersionES_3_1, true) + NL +
@@ -187,6 +198,7 @@ begin
     '  3.3: ' + BoolToStr(GLFeatures.Version_3_3, true) + NL +
     '  4.0: ' + BoolToStr(GLFeatures.Version_4_0, true) + NL +
     NL +
+
     {$endif}
 
     Section + NL +
@@ -272,7 +284,7 @@ end;
 function GLInformationStringSummary: String;
 begin
   Result := Format('%s %d.%d (%s) (modern rendering: %s)', [
-    {$ifdef OpenGLES} 'OpenGLES' {$else} 'OpenGL' {$endif},
+    RenderingApiName,
     GLVersion.Major,
     GLVersion.Minor,
     VendorTypeToStr(GLVersion.VendorType),
