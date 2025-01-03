@@ -132,31 +132,9 @@ begin
 end;
 
 destructor TCastleSceneManager.Destroy;
-var
-  I: Integer;
 begin
   if FViewports <> nil then
-  begin
-    for I := 0 to FViewports.Count - 1 do
-      if FViewports[I] is TCastleViewport then
-      begin
-        {$ifdef FPC}
-        {$warnings off} // using deprecated in deprecated
-        Assert(
-          (TCastleViewport(FViewports[I]).SceneManager = Self) or
-          (TCastleViewport(FViewports[I]).SceneManager = nil)
-        );
-        {$warnings on}
-        {$endif}
-
-        { Set SceneManager by direct field (FSceneManager),
-          otherwise TCastleViewport.SetSceneManager would try to update
-          our Viewports list, that we iterate over right now... }
-        TCastleViewport(FViewports[I]).FSceneManager := nil;
-      end;
     FreeAndNil(FViewports);
-  end;
-
   inherited;
 end;
 
