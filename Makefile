@@ -276,7 +276,7 @@ examples:
 #
 # - generate_webgl_flat_api: because it requires FPC > 3.2
 	"$(FIND)" . \
-		'(' -path ./internal/tools/generate_webgl_flat_api -prune ')' -o \
+		'(' -path ./tools/internal/generate_webgl_flat_api -prune ')' -o \
 	  '(' -path ./examples/network/tcp_connection -prune ')' -o \
 	  '(' -path ./tools/castle-editor/data/project_templates -prune ')' -o \
 	  '(' -path ./tools/build-tool -prune ')' -o \
@@ -332,7 +332,7 @@ examples-laz:
 	  ./tools/internal/lazbuild_retry $${PROJECT_LPI}.lpi; \
 	done
 	"$(FIND)" . \
-		'(' -path ./internal/tools/generate_webgl_flat_api -prune ')' -o \
+		'(' -path ./tools/internal/generate_webgl_flat_api -prune ')' -o \
 	  '(' -path ./examples/network/tcp_connection -prune ')' -o \
 	  '(' -path ./src/vampyre_imaginglib -prune ')' -o \
 	  '(' -path ./tools/castle-editor/data/project_templates -prune ')' -o \
