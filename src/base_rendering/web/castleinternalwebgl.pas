@@ -97,7 +97,7 @@ function ListToWebGL(const L: TVector3List): IJSFloat32Array;
 function ListToWebGL(const L: TVector4List): IJSFloat32Array;
 function ListToWebGL(const L: TMatrix3List): IJSFloat32Array;
 function ListToWebGL(const L: TMatrix4List): IJSFloat32Array;
-function ListToWebGL(const Values: array of PAnsiChar): IJSArray;
+function ListToWebGL(const Values: array of String): IJSArray;
 
 implementation
 
@@ -450,7 +450,7 @@ begin
     MatrixToWebGLAdd(L[I], Result, I * 16);
 end;
 
-function ListToWebGL(const Values: array of PAnsiChar): IJSArray;
+function ListToWebGL(const Values: array of String): IJSArray;
 var
   I: Integer;
 begin
