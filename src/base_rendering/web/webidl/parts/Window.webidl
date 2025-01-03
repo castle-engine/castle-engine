@@ -38,3 +38,5 @@ interface nsIPrintSettings;
 
 interface Window : EventTarget {
 };
+
+Window includes AnimationFrameProvider;

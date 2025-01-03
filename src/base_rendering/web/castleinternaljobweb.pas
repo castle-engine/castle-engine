@@ -14,7 +14,7 @@ uses SysUtils, Job.JS;
 {$ENDIF FPC_DOTTEDUNITS}
 
 {
-  Automatically generated file by TWebIDLToPasWasmJob on 2024-12-08 01:44:19
+  Automatically generated file by TWebIDLToPasWasmJob on 2025-01-03 09:09:42
   
   Used command-line options: 
   --input=castleinternaljobweb.webidl
@@ -58,6 +58,8 @@ uses SysUtils, Job.JS;
 }
 Type
   // Forward class definitions
+  IJSAnimationFrameProvider = interface;
+  TJSAnimationFrameProvider = class;
   IJSContentSecurityPolicy = interface;
   TJSContentSecurityPolicy = class;
   IJSPrincipal = interface;
@@ -316,6 +318,7 @@ Type
   TFloat32List = Variant;
   // Union of Int32Array, sequence
   TInt32List = Variant;
+  TFrameRequestCallback = procedure (time: TDOMHighResTimeStamp) of object;
   TEventHandlerNonNull = function (event: IJSEvent): Variant of object;
   TEventHandler = TEventHandlerNonNull;
   TOnBeforeUnloadEventHandlerNonNull = function (event: IJSEvent): UnicodeString of object;
@@ -794,6 +797,26 @@ Type
     class function JSClassName: UnicodeString; override;
     class function Cast(const Intf: IJSObject): IJSWebGLContextEventInit;
     property statusMessage: UnicodeString read _GetstatusMessage write _SetstatusMessage;
+  end;
+  
+  { --------------------------------------------------------------------
+    TJSAnimationFrameProvider
+    --------------------------------------------------------------------}
+  
+  IJSAnimationFrameProvider = interface(IJSObject)
+    ['{7685FDC3-774D-3963-9FF2-0ED5389D80ED}']
+    function requestAnimationFrame(const aCallback: TFrameRequestCallback): LongInt;
+    procedure cancelAnimationFrame(aHandle: LongInt);
+  end;
+  
+  TJSAnimationFrameProvider = class(TJSObject,IJSAnimationFrameProvider)
+  Private
+  Protected
+  Public
+    function requestAnimationFrame(const aCallback: TFrameRequestCallback): LongInt; overload;
+    procedure cancelAnimationFrame(aHandle: LongInt); overload;
+    class function JSClassName: UnicodeString; override;
+    class function Cast(const Intf: IJSObject): IJSAnimationFrameProvider;
   end;
   
   { --------------------------------------------------------------------
@@ -6507,13 +6530,17 @@ Type
     --------------------------------------------------------------------}
   
   IJSWindow = interface(IJSEventTarget)
-    ['{8CB27E25-9951-3064-86E5-A94862296AA9}']
+    ['{2980D848-A64A-32FE-ADB6-3C80740D0FDB}']
+    function requestAnimationFrame(const aCallback: TFrameRequestCallback): LongInt;
+    procedure cancelAnimationFrame(aHandle: LongInt);
   end;
   
   TJSWindow = class(TJSEventTarget,IJSWindow)
   Private
   Protected
   Public
+    function requestAnimationFrame(const aCallback: TFrameRequestCallback): LongInt; overload;
+    procedure cancelAnimationFrame(aHandle: LongInt); overload;
     class function JSClassName: UnicodeString; override;
     class function Cast(const Intf: IJSObject): IJSWindow;
   end;
@@ -7054,6 +7081,15 @@ var
 implementation
 
 
+function JOBCallFrameRequestCallback(const aMethod: TMethod; var H: TJOBCallbackHelper): PByte;
+var
+  time: TDOMHighResTimeStamp;
+begin
+  time:=H.GetDouble;
+  TFrameRequestCallback(aMethod)(time);
+  Result:=H.AllocUndefined;
+end;
+
 function JOBCallEventHandlerNonNull(const aMethod: TMethod; var H: TJOBCallbackHelper): PByte;
 var
   event: IJSEvent;
@@ -7093,6 +7129,33 @@ begin
   event:=H.GetObject(TJSEvent) as IJSEvent;
   TEventListener(aMethod)(event);
   Result:=H.AllocUndefined;
+end;
+
+function TJSAnimationFrameProvider.requestAnimationFrame(const aCallback: TFrameRequestCallback): LongInt;
+var
+  m: TJOB_Method;
+begin
+  m:=TJOB_Method.Create(TMethod(aCallback),@JOBCallFrameRequestCallback);
+  try
+    Result:=InvokeJSLongIntResult('requestAnimationFrame',[m]);
+  finally
+    m.free;
+  end;
+end;
+
+procedure TJSAnimationFrameProvider.cancelAnimationFrame(aHandle: LongInt);
+begin
+  InvokeJSNoResult('cancelAnimationFrame',[aHandle]);
+end;
+
+class function TJSAnimationFrameProvider.JSClassName: UnicodeString;
+begin
+  Result:='AnimationFrameProvider';
+end;
+
+class function TJSAnimationFrameProvider.Cast(const Intf: IJSObject): IJSAnimationFrameProvider;
+begin
+  Result:=TJSAnimationFrameProvider.JOBCast(Intf);
 end;
 
 class function TJSContentSecurityPolicy.JSClassName: UnicodeString;
@@ -16594,6 +16657,23 @@ end;
 class function TJSnsIPrintSettings.Cast(const Intf: IJSObject): IJSnsIPrintSettings;
 begin
   Result:=TJSnsIPrintSettings.JOBCast(Intf);
+end;
+
+function TJSWindow.requestAnimationFrame(const aCallback: TFrameRequestCallback): LongInt;
+var
+  m: TJOB_Method;
+begin
+  m:=TJOB_Method.Create(TMethod(aCallback),@JOBCallFrameRequestCallback);
+  try
+    Result:=InvokeJSLongIntResult('requestAnimationFrame',[m]);
+  finally
+    m.free;
+  end;
+end;
+
+procedure TJSWindow.cancelAnimationFrame(aHandle: LongInt);
+begin
+  InvokeJSNoResult('cancelAnimationFrame',[aHandle]);
 end;
 
 class function TJSWindow.JSClassName: UnicodeString;
