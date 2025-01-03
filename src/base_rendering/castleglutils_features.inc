@@ -670,7 +670,7 @@ begin
     ]);
 
   {$ifdef CASTLE_WEBGL}
-  Result := WebGLExtensions.IndexOf(Extension) <> -1;
+  Result := WebGLExtensions.IndexOf(PrefixRemove('GL_', Extension, false)) <> -1;
   {$else}
 
   if {$ifdef OpenGLES} VersionES_3_0 {$else} Version_3_0 {$endif} then
