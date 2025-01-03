@@ -1,6 +1,6 @@
 {%MainUnit castleglutils.pas}
 {
-  Copyright 2016-2023 Michalis Kamburelis.
+  Copyright 2016-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -133,7 +133,7 @@ type
     and have equal features. }
   TGLFeatures = class
   strict private
-    {$ifndef OpenGLES}
+    {$if not defined(OpenGLES)}
     FVersion_1_2: Boolean;
     FVersion_1_3: Boolean;
     FVersion_1_4: Boolean;
@@ -145,6 +145,8 @@ type
     FVersion_3_2: Boolean;
     FVersion_3_3: Boolean;
     FVersion_4_0: Boolean;
+    {$elseif defined(CASTLE_WEBGL)}
+    FVersionWebGL_2: Boolean;
     {$else}
     FVersionES_2_0: Boolean;
     FVersionES_3_0: Boolean;
@@ -208,7 +210,7 @@ type
     constructor Create;
     destructor Destroy; override;
 
-    {$ifndef OpenGLES}
+    {$if not defined(OpenGLES)}
     const
       { OpenGL version considered "modern" for us,
         that we can use with its "core" profile.
@@ -223,21 +225,7 @@ type
       ModernVersionMajor = 3;
       ModernVersionMinor = 3;
 
-    { OpenGL versions supported. Checked by looking at GL version string
-      @italic(and) by checking whether actual entry points are available.
-
-      This is important because bad OpenGL implementations
-      (like the horrible ATI Linux closed drivers) sometimes lie,
-      claiming support in the GL version string but actually lacking proper
-      function entry points.
-      We check the actual presence of entry points (GLExt.Load_GL_version_x_x
-      do that).
-
-      We *also* check version string (TGLVersion.AtLeast),
-      since OpenGL may have some buggy entry point in case of work-in-progress
-      features (not yet advertised in GL version string),
-      e.g. Mesa 6.x had such buggy glStencilOpSeparate. This is correct OpenGL
-      behavior AFAIK, and we handle it. }
+    { OpenGL versions supported. }
     property Version_1_2: Boolean read FVersion_1_2;
     property Version_1_3: Boolean read FVersion_1_3;
     property Version_1_4: Boolean read FVersion_1_4;
@@ -249,6 +237,8 @@ type
     property Version_3_2: Boolean read FVersion_3_2;
     property Version_3_3: Boolean read FVersion_3_3;
     property Version_4_0: Boolean read FVersion_4_0;
+    {$elseif defined(CASTLE_WEBGL)}
+    property VersionWebGL_2: Boolean read FVersionWebGL_2;
     {$else}
     property VersionES_2_0: Boolean read FVersionES_2_0;
     property VersionES_3_0: Boolean read FVersionES_3_0;
@@ -748,16 +738,38 @@ begin
   inherited;
 
   {$ifndef OpenGLES}
-  { With dglOpenGL (our CastleGL) the Version_X_Y just reflect
-    whether GL_VERSION is at least X.Y.
+  { Historic note: In the past, we checked OpenGL versions by looking
+    at GL_VERSION @italic(and) by checking whether actual entry points
+    are available.
 
-    dglOpenGL doesn't have any function to check if all entry points
-    for X.Y are defined, it only has "Read_xxx" for 4.x stuff.
+      This is important because bad OpenGL implementations
+      (like ATI Linux closed drivers) sometimes lie,
+      claiming support in the GL version string but actually lacking proper
+      function entry points.
+      We check the actual presence of entry points (GLExt.Load_GL_version_x_x
+      do that).
 
-    The Version_X_Y are somewhat unclear anyway,
-    since having core/forward-compatible context
-    means we may have version > X.Y, but still not have entry points for X.Y.
-    In practice they are always used as "at least X.Y". }
+      We *also* check version string (TGLVersion.AtLeast),
+      since OpenGL may have some buggy entry point in case of work-in-progress
+      features (not yet advertised in GL version string),
+      e.g. Mesa 6.x had such buggy glStencilOpSeparate. This is correct OpenGL
+      behavior AFAIK, and we handle it.
+
+    Later:
+
+      With dglOpenGL (our CastleGL) the Version_X_Y just reflect
+      whether GL_VERSION is at least X.Y.
+      dglOpenGL doesn't have any function to check if all entry points
+      for X.Y are defined, it only has "Read_xxx" for 4.x stuff.
+
+      The really bad OpenGL implementations (like ATI Linux closed drivers),
+      mentioned in argumentation above,
+      are thankfully no longer in wide use.
+
+      Note: The Version_X_Y are somewhat unclear anyway,
+      since having core/forward-compatible context
+      means we may have version > X.Y, but still not have entry points for X.Y.
+      In practice they are always used as "at least X.Y". }
   FVersion_1_2 := GLVersion.AtLeast(1, 2);
   FVersion_1_3 := GLVersion.AtLeast(1, 3);
   FVersion_1_4 := GLVersion.AtLeast(1, 4);
@@ -774,6 +786,8 @@ begin
   end;
   ReadImplementationProperties;
   ReadExtensions;
+  {$elseif defined(CASTLE_WEBGL)}
+  FVersionWebGL_2 := GL2 <> nil;
   {$else}
   FVersionES_2_0 := GLVersion.AtLeast(2, 0);
   FVersionES_3_0 := GLVersion.AtLeast(3, 0);

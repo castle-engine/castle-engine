@@ -1726,7 +1726,11 @@ begin
     Done after adding "precision ..." for OpenGLES fragment shader,
     as #version must be earlier. }
   if InternalUpgradeGlslVersion and
-     GLFeatures. {$ifdef OpenGLES} VersionES_3_0 {$else} Version_3_1 {$endif} and
+     GLFeatures.
+       {$if defined(CASTLE_WEBGL)} VersionWebGL_2
+       {$elseif defined(OpenGLES)} VersionES_3_0
+       {$else} Version_3_1
+       {$endif} and
      (not HasLine('#version ', S)) then
     S := {$ifdef OpenGLES} GLES30CoreHeader {$else} GL31CoreHeader {$endif}
       [ShaderType] + S;
