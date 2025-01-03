@@ -252,6 +252,21 @@ begin
     '    Current: ' + IntToStr(GLFeatures.CurrentMultiSampling) + ' samples per pixel' + NL +
     NL +
 
+    {$ifdef CASTLE_WEBGL}
+    Section + NL +
+    'WebGL context attributes:' + NL +
+    NL +
+    '  Alpha: ' + BoolToStr(GL.getContextAttributes.alpha, true) + NL +
+    '  Depth: ' + BoolToStr(GL.getContextAttributes.depth, true) + NL +
+    '  Stencil: ' + BoolToStr(GL.getContextAttributes.stencil, true) + NL +
+    '  Antialias: ' + BoolToStr(GL.getContextAttributes.antialias, true) + NL +
+    '  PremultipliedAlpha: ' + BoolToStr(GL.getContextAttributes.premultipliedAlpha, true) + NL +
+    '  PreserveDrawingBuffer: ' + BoolToStr(GL.getContextAttributes.preserveDrawingBuffer, true) + NL +
+    '  PowerPreference: ' + GL.getContextAttributes.powerPreference + NL +
+    '  FailIfMajorPerformanceCaveat: ' + BoolToStr(GL.getContextAttributes.failIfMajorPerformanceCaveat, true) + NL +
+    NL +
+    {$endif}
+
     Section + NL +
     'Limits:' + NL +
     NL +

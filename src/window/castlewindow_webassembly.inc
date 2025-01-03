@@ -15,15 +15,25 @@
 }
 
 {$ifdef read_interface_uses}
+CastleInternalJobWeb,
 {$endif}
 
 {$ifdef read_implementation_uses}
 {$endif}
 
 {$ifdef read_window_interface}
+strict private
+  Canvas: IJSHTMLCanvasElement;
 {$endif read_window_interface}
 
 {$ifdef read_application_interface}
+strict private
+  CanvasAnimationHandler: Integer;
+  HasPreviousTime: Boolean;
+  PreviousTime: TDOMHighResTimeStamp;
+  { Callback for requestAnimationFrame
+    ( https://developer.mozilla.org/en-US/docs/Web/API/Window/requestAnimationFrame ) }
+  procedure AnimationFrame(Time: TDOMHighResTimeStamp);
 {$endif read_application_interface}
 
 {$ifdef read_implementation}
@@ -32,44 +42,31 @@
 
 procedure TCastleWindow.CreateBackend;
 begin
-  { TODO (initialize backend-specific per-window stuff; may do nothing) }
 end;
 
 procedure TCastleWindow.BackendMenuInitialize;
 begin
-  { TODO (may do nothing if you do not care about displaying menu) }
+  // Menu not supported by WebAssembly TCastleWindow backend
 end;
 
 procedure TCastleWindow.BackendMenuFinalize;
 begin
-  { TODO (may do nothing if you do not care about displaying menu) }
+  // Menu not supported by WebAssembly TCastleWindow backend
 end;
 
 procedure TCastleWindow.MenuUpdateCaption(Entry: TMenuEntryWithCaption);
 begin
-  { TODO (may do nothing if you do not care about displaying menu;
-    may do MenuFinalize + MenuInitialize if you display menu,
-    but don't care about updating it fast) }
-  MenuFinalize;
-  MenuInitialize;
+  // Menu not supported by WebAssembly TCastleWindow backend
 end;
 
 procedure TCastleWindow.MenuUpdateEnabled(Entry: TMenuEntryWithCaption);
 begin
-  { TODO (may do nothing if you do not care about displaying menu;
-    may do MenuFinalize + MenuInitialize if you display menu,
-    but don't care about updating it fast) }
-  MenuFinalize;
-  MenuInitialize;
+  // Menu not supported by WebAssembly TCastleWindow backend
 end;
 
 procedure TCastleWindow.MenuUpdateChecked(Entry: TMenuItemChecked);
 begin
-  { TODO (may do nothing if you do not care about displaying menu;
-    may do MenuFinalize + MenuInitialize if you display menu,
-    but don't care about updating it fast) }
-  MenuFinalize;
-  MenuInitialize;
+  // Menu not supported by WebAssembly TCastleWindow backend
 end;
 
 function TCastleWindow.MenuUpdateCheckedFast: boolean;
@@ -80,42 +77,53 @@ end;
 procedure TCastleWindow.MenuInsert(const Parent: TMenu;
   const ParentPosition: Integer; const Entry: TMenuEntry);
 begin
-  { TODO (may do nothing if you do not care about displaying menu;
-    may do MenuFinalize + MenuInitialize if you display menu,
-    but don't care about updating it fast) }
-  MenuFinalize;
-  MenuInitialize;
+  // Menu not supported by WebAssembly TCastleWindow backend
 end;
 
 procedure TCastleWindow.MenuDelete(const Parent: TMenu;
   const ParentPosition: Integer; const Entry: TMenuEntry);
 begin
-  { TODO (may do nothing if you do not care about displaying menu;
-    may do MenuFinalize + MenuInitialize if you display menu,
-    but don't care about updating it fast) }
-  MenuFinalize;
-  MenuInitialize;
+  // Menu not supported by WebAssembly TCastleWindow backend
 end;
 
 procedure TCastleWindow.SwapBuffers;
 begin
-  { TODO }
+  { No need to do anything, according to MDN we don't even need to do glFlush
+    when using RequestAnimationFrame. }
 end;
 
 procedure TCastleWindow.OpenBackend;
-begin
-  { TODO (create OpenGL context, show window with this context) }
 
-  { Update position/size in case window is fullscreen.
-    If the backend always creates a fullscreen window for some reason
-    (e.g. typical on mobile), then you can remove the condition
-    "if FullScreen then" and just do this always, regardless of FullScreen value. }
-  if FullScreen then
+  procedure DebugLog;
   begin
-    FLeft := 0;
-    FTop := 0;
-    DoResize(Application.ScreenWidth, Application.ScreenHeight, false);
+    // LogGLInformationVerbose := true;
+    WritelnLog(Format('Initial WebGL context Width x Height: %d x %d', [
+      Integer(GL.DrawingBufferWidth),
+      Integer(GL.DrawingBufferHeight)
+    ]));
   end;
+
+begin
+  Canvas := TJSHTMLCanvasElement.Cast(JSDocument.getElementById('castle-canvas'));
+
+  GL2 := TJSWebGL2RenderingContext.Cast(Canvas.getContext('webgl2'));
+  if GL2 <> nil then
+  begin
+    // WebGL 2.0 is a superset of WebGL 1.0
+    GL := TJSWebGLRenderingContext.Cast(GL2);
+    WritelnLog('WebGL 2.0 context initialized from WebAssembly');
+  end else
+  begin
+    GL := TJSWebGLRenderingContext.Cast(Canvas.getContext('webgl'));
+    if GL = nil then
+      raise Exception.Create('Failed to load WebGL context (2.0 or 1.0) from WebAssembly');
+    WritelnLog('WebGL 1.0 context initialized from WebAssembly');
+  end;
+
+  // Tell TCastleWindow about the real window size
+  DoResize(GL.DrawingBufferWidth, GL.DrawingBufferHeight, false);
+
+  DebugLog;
 
   Application.OpenWindowsAdd(Self);
 
@@ -127,18 +135,19 @@ end;
 
 procedure TCastleWindow.CloseBackend;
 begin
-  { TODO (destroy OpenGL context, hide window; counterpart to OpenBackend) }
+  { One doesn't close WebGL context. }
 end;
 
 procedure TCastleWindow.SetCaption(const Part: TCaptionPart; const Value: string);
 begin
   FCaption[Part] := Value;
-  if not Closed then { TODO: use GetWholeCaption };
+  // No typical way to use Window.Caption from WASM
+  // if not Closed then Something := GetWholeCaption
 end;
 
 procedure TCastleWindow.BackendMakeCurrent;
 begin
-  { TODO }
+  // No need for this, we always call WebGL through GL/GL2 which are context
 end;
 
 procedure TCastleWindow.SetCursor(const Value: TMouseCursor);
@@ -167,6 +176,7 @@ begin
   SimpleUpdateFullScreenBackend;
   { Some backends may provide a better way of doing this.
     Remove the above line then, and put better implementation here. }
+  // TODO: go to fullscreen in WebGL
 end;
 
 procedure TCastleWindow.BackendInsideUpdate;
@@ -207,71 +217,60 @@ end;
 
 procedure TCastleApplication.CreateBackend;
 begin
-  { TODO (initialize backend-specific stuff for the whole application;
-    may do nothing if you don't need anything) }
 end;
 
 procedure TCastleApplication.DestroyBackend;
 begin
-  { TODO }
 end;
 
 function TCastleApplication.ProcessMessage(WaitForMessage, WaitToLimitFPS: boolean): boolean;
 begin
-  if Terminated then Exit(false);
-
-  { TODO:
-    Here process *one* window system message, if it's available in the queue.
-    Like a key press, mouse clicks etc.
-    Call DoKeyDown, DoMouseDown and other DoXxx methods when these events occur.
-
-    If WaitForMessage then you can (but don't have to) hang until new message arrives.
-
-    Be sure to recheck the "Terminated" state after calling any DoXxx method.
-    That's why below we have again a check for this. }
-
-  if Terminated then Exit(false);
-
-  { TODO: UpdateAndRenderEverything should be called only if no message was in the queue.
-
-    This follows castlewindow_winsystem.inc approach, and works very good
-    to prevent doing Update / Render when we're clogged with events
-    (typically happens when walking with mouse look, then we're clogged
-    with mouse move events). }
-
+  { Simplest implementation. This will be done in a loop using RequestAnimationFrame. }
   UpdateAndRenderEverything;
   Result := not Terminated;
-
-  { TODO:
-  if (not WasAnyMessage) and
-     (not Terminated) and
-     (not WaitForMessage) and
-     WaitToLimitFPS then
-    DoLimitFPS;
-  }
 end;
 
 function TCastleApplication.ProcessAllMessages: boolean;
 begin
-  { This implementation is valid for start: }
+  { Simplest implementation. }
   Result := ProcessMessage(false, false);
+end;
 
-  { In general, ProcessAllMessages should make sure that all messages
-    are handled, calling "ProcessMessage(false, false)" as long as some
-    message exists in window system queue.
-    Then it should call UpdateAndRenderEverything.
-    See the GTK backend for example. }
+procedure TCastleApplication.AnimationFrame(Time: TDOMHighResTimeStamp);
+var
+  DeltaTime: Float;
+begin
+  { TODO: recreate context.
+    See https://developer.mozilla.org/en-US/docs/Web/API/WebGLRenderingContext/isContextLost }
+	if GL.isContextLost then
+    raise Exception.Create('Context has been lost');
+
+  // calculate DeltaTime, update HasPreviousTime and PreviousTime
+  if HasPreviousTime then
+    DeltaTime := (Time - PreviousTime) / 1000
+  else
+  begin
+    DeltaTime := 1 / 60; // arbitrary initial value
+    HasPreviousTime := True;
+  end;
+  PreviousTime := Time;
+
+  // TODO: Pass DeltaTime to our FPS, passing Time to measure time
+
+  // Call Update, Render on all TCastleWindow
+  ProcessAllMessages;
+
+  // schedule next frame
+	if CanvasAnimationHandler <> 0 then
+		CanvasAnimationHandler := JSWindow.RequestAnimationFrame(@AnimationFrame);
 end;
 
 procedure TCastleApplication.Run;
 begin
-  if OpenWindowsCount = 0 then Exit;
+  if OpenWindowsCount = 0 then
+    Exit;
 
-  { Implementing Run by calling ProcessMessage in a loop (like below)
-    is a valid and good implementation. Make sure your ProcessMessage
-    honours WaitForMessage and WaitToLimitFPS = true,
-    to avoid wasting CPU on "busy waiting". }
-  while ProcessMessage(true, true) do ;
+  CanvasAnimationHandler := JSWindow.RequestAnimationFrame(@AnimationFrame);
 end;
 
 procedure TCastleApplication.BackendTerminate;
@@ -280,19 +279,28 @@ end;
 
 function TCastleApplication.ScreenWidth: integer;
 begin
-  { TODO }
-  Result := 200;
+  if GL <> nil then
+    Result := GL.DrawingBufferWidth
+  else
+  begin
+    WritelnWarning('Querying Application.ScreenWidth before GL context is initialized returns arbitrary value 64');
+    Result := 64;
+  end;
 end;
 
 function TCastleApplication.ScreenHeight: integer;
 begin
-  { TODO }
-  Result := 200;
+  if GL <> nil then
+    Result := GL.DrawingBufferHeight
+  else
+  begin
+    WritelnWarning('Querying Application.ScreenHeight before GL context is initialized returns arbitrary value 64');
+    Result := 64;
+  end;
 end;
 
 function TCastleApplication.BackendName: string;
 begin
-  { TODO }
   Result := 'WebAssembly';
 end;
 
@@ -300,7 +308,7 @@ end;
 
 function TWindowContainer.SettingMousePositionCausesMotion: Boolean;
 begin
-  { You should check, using window_events example, what is the correct value
+  { TODO: check, using window_events example, what is the correct value
     (press "5", see if OnMotion is generated). }
   Result := true;
 end;

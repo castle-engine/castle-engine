@@ -580,10 +580,14 @@ begin
   ReadOpenGLCore;
   {$endif}
 
-  {$ifdef WASI}
-  RunWebGLAnimation;
+  { Do basic checks, to report with a clear exception if we completely failed
+    to initialize OpenGL / OpenGLES / WebGL for whatever reason.
+    This should already be reported too by other code, here we just do "sanity
+    check". }
+  {$ifdef CASTLE_WEBGL}
+  if GL = nil then
+    raise Exception.Create('WebGL context not initialized');
   {$endif}
-
   {$ifdef CASTLE_GL_USES_CALLBACKS}
   if not Assigned(glGetString) then
     raise Exception.Create('Failed to load OpenGL(ES) library');
@@ -787,9 +791,10 @@ begin
     FVersion_4_0 := GLVersion.AtLeast(4, 0);
   end;
   ReadImplementationProperties;
-  ReadExtensions;
+  ReadExtensions; // using CastleGL unit
   {$elseif defined(CASTLE_WEBGL)}
   FVersionWebGL_2 := GL2 <> nil;
+  ReadExtensions; // using CastleInternalWebGL unit
   {$else}
   FVersionES_2_0 := GLVersion.AtLeast(2, 0);
   FVersionES_3_0 := GLVersion.AtLeast(3, 0);

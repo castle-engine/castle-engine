@@ -74,8 +74,6 @@ procedure glDrawElements(const mode: TGLenum; const count: TGLsizei; const type_
 
 { Helper routines specific to WebGL }
 
-procedure RunWebGLAnimation;
-
 var
   GL: IJSWebGLRenderingContext;
   GL2: IJSWebGL2RenderingContext;
@@ -83,6 +81,9 @@ var
   { All WebGL extensions. Always non-nil if GL is non-nil,
     so WebGL context was initialized. }
   WebGLExtensions: TStrings;
+
+{ Initialize WebGLExtensions. }
+procedure ReadExtensions;
 
 { Convert various types to WebGL arrays, e.g. to provide uniform value to shaders. }
 
@@ -144,184 +145,29 @@ end;
 
 { Rendering and animation using WebGL ---------------------------------------- }
 
+procedure ReadExtensions;
 var
-  { Variables set by GLContextOpen, read-only (for now) by other code }
-  Canvas: IJSHTMLCanvasElement;
-  ContextWidth, ContextHeight: TGLSizeI;
-
-procedure GLContextOpen;
-
-  { Initialize WebGLExtensions. }
-	procedure ReadExtensions;
-	var
-    A: CastleInternalJobWeb.TUnicodeStringDynArray;
-		I: Integer;
-    Ext: String;
-	begin
-    A := GL.getSupportedExtensions;
-    WebGLExtensions := TStringList.Create;
-		for I := 0 to A.Length - 1 do
-    begin
-      // TODO: TJSArray._GetStrings is not OK, see https://gitlab.com/freepascal.org/fpc/source/-/merge_requests/893
-			// Ext := A.Strings[I];
-      // Workaround:
-      Ext := PrefixSuffixRemove('"', '"', A.Elements[I].AsString, false);
-      WebGLExtensions.Add(Ext);
-    end;
-	end;
-
+  A: CastleInternalJobWeb.TUnicodeStringDynArray;
+  I: Integer;
+  Ext: String;
 begin
-  Canvas := TJSHTMLCanvasElement.Cast(JSDocument.getElementById('castle-canvas'));
-
-  GL2 := TJSWebGL2RenderingContext.Cast(canvas.getContext('webgl2'));
-  if GL2 <> nil then
+  A := GL.getSupportedExtensions;
+  WebGLExtensions := TStringList.Create;
+  for I := 0 to A.Length - 1 do
   begin
-    // WebGL 2.0 is a superset of WebGL 1.0
-    GL := TJSWebGLRenderingContext.Cast(GL2);
-    WritelnLog('WebGL 2.0 context initialized from WebAssembly');
-  end else
-  begin
-    GL := TJSWebGLRenderingContext.Cast(canvas.getContext('webgl'));
-    if GL = nil then
-      raise Exception.Create('Failed to load WebGL context (2.0 or 1.0) from WebAssembly');
-    WritelnLog('WebGL 1.0 context initialized from WebAssembly');
+    // TODO: TJSArray._GetStrings is not OK, see https://gitlab.com/freepascal.org/fpc/source/-/merge_requests/893
+    // Ext := A.Strings[I];
+    // Workaround:
+    Ext := PrefixSuffixRemove('"', '"', A.Elements[I].AsString, false);
+    WebGLExtensions.Add(Ext);
   end;
 
-  ContextWidth := GL.drawingBufferWidth;
-  ContextHeight := GL.drawingBufferHeight;
-
-  WritelnLog('WebGL context initialized from WebAssembly');
-  WritelnLog(Format('Context Width x Height: %d x %d', [
-    ContextWidth,
-    ContextHeight
-  ]));
-  WritelnLog(Format('Context basic information:' + NL +
-    '  Version: %s' + NL +
-    '  Shading Language Version: %s' + NL +
-    '  Renderer: %s' + NL +
-    '  Vendor: %s', [
-    glGetString(GL_VERSION),
-    glGetString(GL_SHADING_LANGUAGE_VERSION),
-    glGetString(GL_RENDERER),
-    glGetString(GL_VENDOR)
-  ]));
-  WritelnLog('Context limits:' + NL +
-    '  Max Viewport Dimensions: %s' + NL +
-    '  Max Texture Size: %d' + NL +
-    '  Max Texture Image Units: %d' + NL +
-    '  Max Vertex Texture Image Units: %d' + NL +
-    '  Max Combined Texture Image Units: %d' + NL +
-    '  Max Vertex Uniform Vectors: %d' + NL +
-    '  Max Fragment Uniform Vectors: %d' + NL +
-    '  Max Varying Vectors: %d' + NL +
-    '  Max Vertex Attributes: %d', [
-    glGetInteger2(GL_MAX_VIEWPORT_DIMS).ToString,
-    glGetInteger(GL_MAX_TEXTURE_SIZE),
-    glGetInteger(GL_MAX_TEXTURE_IMAGE_UNITS),
-    glGetInteger(GL_MAX_VERTEX_TEXTURE_IMAGE_UNITS),
-    glGetInteger(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS),
-    glGetInteger(GL_MAX_VERTEX_UNIFORM_VECTORS),
-    glGetInteger(GL_MAX_FRAGMENT_UNIFORM_VECTORS),
-    glGetInteger(GL_MAX_VARYING_VECTORS),
-    glGetInteger(GL_MAX_VERTEX_ATTRIBS)
-  ]);
-  WritelnLog('Context attributes:' + NL +
-    '  Alpha: %s' + NL +
-    '  Depth: %s' + NL +
-    '  Stencil: %s' + NL +
-    '  Antialias: %s' + NL +
-    '  PremultipliedAlpha: %s' + NL +
-    '  PreserveDrawingBuffer: %s' + NL +
-    '  PowerPreference: %s' + NL +
-    '  FailIfMajorPerformanceCaveat: %s', [
-    BoolToStr(GL.getContextAttributes.alpha, true),
-    BoolToStr(GL.getContextAttributes.depth, true),
-    BoolToStr(GL.getContextAttributes.stencil, true),
-    BoolToStr(GL.getContextAttributes.antialias, true),
-    BoolToStr(GL.getContextAttributes.premultipliedAlpha, true),
-    BoolToStr(GL.getContextAttributes.preserveDrawingBuffer, true),
-    GL.getContextAttributes.powerPreference,
-    BoolToStr(GL.getContextAttributes.failIfMajorPerformanceCaveat, true)
-  ]);
-
-  ReadExtensions;
   WritelnLog('Supported Extensions: ' + NL +
     '  Count: %d' + NL +
     '  List: %s', [
     WebGLExtensions.Count,
     GlueStrings(WebGLExtensions, ', ')
   ]);
-end;
-
-var
-  LifeTime: Double = 0;
-
-procedure Update(const DeltaTime: Float);
-begin
-  LifeTime += DeltaTime;
-end;
-
-procedure Render;
-var
-  Col: Float;
-begin
-  //Col := Frac(LifeTime); // TODO: animate
-  Col := 1.0;
-
-  glClearColor(Col, Col, 0.0, 1);
-  glViewport(0, 0, ContextWidth, ContextHeight);
-  glClear(GL_COLOR_BUFFER_BIT);
-  glFlush; // TODO: remove later, pointless when using requestAnimationFrame, according to MDN
-end;
-
-// TODO
-
-(*
-
-var
-  CanvasAnimationHandler: Integer = 0;
-  HasPreviousTime: Boolean = False;
-  PreviousTime: TJSDOMHighResTimeStamp;
-
-{ Callback for requestAnimationFrame
-  ( https://developer.mozilla.org/en-US/docs/Web/API/Window/requestAnimationFrame ) }
-procedure AnimationFrame(Time: TJSDOMHighResTimeStamp);
-var
-  DeltaTime: Float;
-begin
-  { TODO: recreate context.
-    See https://developer.mozilla.org/en-US/docs/Web/API/WebGLRenderingContext/isContextLost }
-	if GL.isContextLost then
-    raise Exception.Create('Context has been lost');
-
-  // calculate DeltaTime, update HasPreviousTime and PreviousTime
-  if HasPreviousTime then
-    DeltaTime := (Time - PreviousTime) / 1000
-  else
-  begin
-    DeltaTime := 1 / 60; // arbitrary initial value
-    HasPreviousTime := True;
-  end;
-  PreviousTime := Time;
-
-  // update and render
-	Update(DeltaTime);
-	Render;
-
-  // schedule next frame
-	if CanvasAnimationHandler <> 0 then
-		CanvasAnimationHandler := window.requestAnimationFrame(@AnimationFrame);
-end;
-*)
-procedure RunWebGLAnimation;
-begin
-  GLContextOpen;
-
-  // TODO: just run once Render, for now
-  Render;
-
-  // TODO
-	//CanvasAnimationHandler := window.requestAnimationFrame(@AnimationFrame);
 end;
 
 procedure MatrixToWebGLAdd(const M: TMatrix2; const List: IJSFloat32Array; const Offset: Integer);
