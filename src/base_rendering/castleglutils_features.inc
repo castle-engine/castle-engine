@@ -548,7 +548,7 @@ type
     { Line width granularity and maximum width. }
     property LineWidth: TVector2 read FLineWidth;
 
-    { Supports glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAX_LEVEL, ...); }
+    { Supports glTexParameteri(GL_TEXTURE_xxx, GL_TEXTURE_MAX_LEVEL, ...); }
     property TextureMaxLevel: Boolean read FTextureMaxLevel;
 
     { Supports glTransformFeedbackVaryings }
@@ -835,7 +835,9 @@ begin
   { OpenGLES: Since 3.0, https://registry.khronos.org/OpenGL-Refpages/es3.0/html/glTexImage3D.xhtml .
     OpenGL: Since 1.2, https://registry.khronos.org/OpenGL-Refpages/gl4/html/glTexImage3D.xhtml
     (actually they don't show there OpenGL 1.x anymore) }
-  FTexture3D := {$ifdef OpenGLES} VersionES_3_0
+  FTexture3D :=
+    {$if defined(CASTLE_WEBGL)} VersionWebGL_2
+    {$elseif defined(OpenGLES)} VersionES_3_0
     {$else} Version_1_2
     {$endif};
 
@@ -862,7 +864,8 @@ begin
     FMaxTextureMaxAnisotropy := 0.0;
 
   FOcclusionQuery :=
-    {$ifdef OpenGLES} VersionES_3_0
+    {$if defined(CASTLE_WEBGL)} VersionWebGL_2
+    {$elseif defined(OpenGLES)} VersionES_3_0
     {$else} Version_1_5
     {$endif};
 
@@ -877,7 +880,8 @@ begin
     FOcclusionQueryCounterBits := 0;
 
   { calculate Framebuffer }
-  FFramebuffer := {$ifdef OpenGLES} true // OpenGLES >= 2 includes FBO
+  FFramebuffer :=
+    {$ifdef OpenGLES} true // OpenGLES >= 2 or WebGL >= 1.0 -> include FBO
     {$else} Version_3_0 or GL_ARB_framebuffer_object
     {$endif};
 
@@ -894,8 +898,12 @@ begin
 
   { - In case of OpenGLES: while OpenGLES 2 includes base FBO,
       only OpenGLES 3 has glBlitFramebuffer.
-    - In case of OpenGL: OpenGL 3 core includes both base FBO and glBlitFramebuffer. }
-  FFramebufferBlit := {$ifdef OpenGLES} VersionES_3_0
+    - In case of OpenGL: OpenGL 3 core includes both base FBO and glBlitFramebuffer.
+    - WebGL 2.0 has blitFramebuffer,
+      https://developer.mozilla.org/en-US/docs/Web/API/WebGL2RenderingContext/blitFramebuffer }
+  FFramebufferBlit :=
+    {$if defined(CASTLE_WEBGL)} VersionWebGL_2
+    {$elseif defined(OpenGLES)} VersionES_3_0
     {$else} Version_3_0
     {$endif};
 
@@ -1119,19 +1127,24 @@ begin
     {$endif};
 
   FTextureFloat :=
-    {$ifdef OpenGLES} false
+    {$if defined(CASTLE_WEBGL)} HasExtension('GL_OES_texture_float')
+    {$elseif defined(OpenGLES)} false
     {$else} HasExtension('GL_ATI_texture_float') or HasExtension('GL_ARB_texture_float')
     {$endif};
 
   FTextureDepth :=
-    {$ifdef OpenGLES} VersionES_3_0
+    {$if defined(CASTLE_WEBGL)} HasExtension('GL_WEBGL_depth_texture')
+    {$elseif defined(OpenGLES)} VersionES_3_0
     {$else} Version_1_4 or HasExtension('GL_ARB_depth_texture')
     {$endif};
 
   FTextureDepthCompare :=
+    { https://developer.mozilla.org/en-US/docs/Web/API/WebGLRenderingContext/texParameter
+      says TEXTURE_COMPARE_FUNC, TEXTURE_COMPARE_MODE are since WebGL 2.0. }
+    {$if defined(CASTLE_WEBGL)} VersionWebGL_2
     { Note that we don't look at GL_EXT_shadow_samplers, we need GLSL "300 es" anyway
       to access shadow samplers from GLSL. }
-    {$ifdef OpenGLES} VersionES_3_0
+    {$elseif defined(OpenGLES)} VersionES_3_0
     {$else} Version_1_4 or HasExtension('GL_ARB_shadow')
     {$endif};
 
@@ -1234,7 +1247,8 @@ begin
   end;
 
   FTextureMaxLevel :=
-    {$ifdef OpenGLES} VersionES_3_0
+    {$if defined(CASTLE_WEBGL)} VersionWebGL_2
+    {$elseif defined(OpenGLES)} VersionES_3_0
     {$else} Version_1_2
     {$endif};
 
