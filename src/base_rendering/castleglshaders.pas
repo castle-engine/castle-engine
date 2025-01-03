@@ -360,7 +360,7 @@ type
 
     { Specify values to record in transform feedback buffers.
       This must be called before @link(Link) method. }
-    procedure SetTransformFeedbackVaryings(const Varyings: array of PAnsiChar;
+    procedure SetTransformFeedbackVaryings(const Varyings: array of String;
       const IsSingleBufferMode: Boolean = True);
 
     { Link the program, this should be done after attaching all shaders
@@ -1777,30 +1777,40 @@ begin
 end;
 
 procedure TGLSLProgram.SetTransformFeedbackVaryings(
-  const Varyings: array of PAnsiChar; const IsSingleBufferMode: Boolean);
+  const Varyings: array of String; const IsSingleBufferMode: Boolean);
 var
   TransformFeedbackBufferMode, ErrorCode: TGLuint;
   VaryingLength: Cardinal;
+  {$ifndef CASTLE_WEBGL}
+  I: Integer;
+  VaryingsAnsi: array of AnsiString;
+  VaryingsAnsiPtr: array of PAnsiChar;
+  {$endif}
 begin;
   VaryingLength := Length(Varyings);
   if VaryingLength > 0 then
   begin
-    {$ifdef OpenGLES}
-    if not (GLFeatures.VersionES_3_0) then
-      raise EGLSLTransformFeedbackError.Create('OpenGL ES 2.0 doesn''t support Transform Feedback');
-    {$else}
-    if not (GLFeatures.Version_3_0 and GLFeatures.Shaders) then
-      raise EGLSLTransformFeedbackError.Create('Transform feedback not supported by your OpenGL(ES) version');
-    {$endif}
+    if not GLFeatures.TransformFeedbackVaryings then
+      raise EGLSLTransformFeedbackError.Create('Transform Feedback not supported by this context (too low OpenGL / OpenGLES / WebGL version)');
     if IsSingleBufferMode then
       TransformFeedbackBufferMode := GL_INTERLEAVED_ATTRIBS
     else
       TransformFeedbackBufferMode := GL_SEPARATE_ATTRIBS;
+
+    // call transformFeedbackVaryings
     {$ifdef CASTLE_WEBGL}
-    GL2.transformFeedbackVaryings(ProgramId, ListToWebGL(varyings), TransformFeedbackBufferMode);
+    GL2.transformFeedbackVaryings(ProgramId, ListToWebGL(Varyings), TransformFeedbackBufferMode);
     {$else}
-    glTransformFeedbackVaryings(ProgramId, VaryingLength, @Varyings[0], TransformFeedbackBufferMode);
+    SetLength(VaryingsAnsi, VaryingLength);
+    SetLength(VaryingsAnsiPtr, VaryingLength);
+    for I := 0 to VaryingLength - 1 do
+    begin
+      VaryingsAnsi[I] := Varyings[I];
+      VaryingsAnsiPtr[I] := PAnsiChar(VaryingsAnsi[I]);
+    end;
+    glTransformFeedbackVaryings(ProgramId, VaryingLength, @VaryingsAnsiPtr[0], TransformFeedbackBufferMode);
     {$endif}
+
     ErrorCode := glGetError();
     if ErrorCode = GL_INVALID_VALUE then
     begin

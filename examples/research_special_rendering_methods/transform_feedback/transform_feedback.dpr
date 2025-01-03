@@ -22,7 +22,7 @@ uses
   CastleVectors, X3DNodes, CastleWindow, CastleLog,
   CastleUtils, SysUtils, CastleApplicationProperties, CastleUiControls,
   CastleViewport, CastleTimeUtils, CastleGLShaders, CastleGLUtils,
-  CastleRenderContext;
+  CastleRenderContext, CastleInternalGLUtils;
 
 var
   Window: TCastleWindow;

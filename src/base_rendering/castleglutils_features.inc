@@ -194,6 +194,7 @@ type
     FDoubleBuffer: Boolean;
     FLineWidth: TVector2;
     FTextureMaxLevel: Boolean;
+    FTransformFeedbackVaryings: Boolean;
     class var
       FRequestCapabilities: TGLRequestCapabilities;
       FDebug: Boolean;
@@ -559,6 +560,9 @@ type
 
     { Supports glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAX_LEVEL, ...); }
     property TextureMaxLevel: Boolean read FTextureMaxLevel;
+
+    { Supports glTransformFeedbackVaryings }
+    property TransformFeedbackVaryings: Boolean read FTransformFeedbackVaryings;
   end;
 
 { Initialize GLVersion and GLFeatures. }
@@ -1218,6 +1222,12 @@ begin
   FTextureMaxLevel :=
     {$ifdef OpenGLES} VersionES_3_0
     {$else} Version_1_2
+    {$endif};
+
+  FTransformFeedbackVaryings :=
+    {$if defined(CASTLE_WEBGL)} VersionWebGL_2
+    {$elseif defined(OpenGLES)} VersionES_3_0
+    {$else} Version_3_0 and Shaders
     {$endif};
 
   // set GLFeatures singleton, TGLMemoryInfo.Create and TGLMemoryInfo.Refresh depend on it
