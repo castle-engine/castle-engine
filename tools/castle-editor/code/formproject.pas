@@ -43,6 +43,7 @@ const
 type
   { Main project management. }
   TProjectForm = class(TForm)
+    ActionSavePlatformAsDefault: TAction;
     ActionExportToModel: TAction;
     ActionCopyUrl: TAction;
     ActionRunParameterPretendTouchDevice: TAction;
@@ -117,6 +118,8 @@ type
     MenuItem19: TMenuItem;
     MenuItem43: TMenuItem;
     MenuItem44: TMenuItem;
+    Separator16: TMenuItem;
+    MenuItem47: TMenuItem;
     Separator15: TMenuItem;
     MenuItem46: TMenuItem;
     MenuItemRunParameterPretendTouchDevice: TMenuItem;
@@ -365,6 +368,8 @@ type
     procedure ActionRunParameterPretendTouchDeviceExecute(Sender: TObject);
     procedure ActionRunParameterRequestFullScreenExecute(Sender: TObject);
     procedure ActionRunParameterRequestWindowExecute(Sender: TObject);
+    procedure ActionSavePlatformAsDefaultExecute(Sender: TObject);
+    procedure ActionSavePlatformAsDefaultUpdate(Sender: TObject);
     procedure ActionShowCollidersExecute(Sender: TObject);
     procedure ActionSimulationPauseUnpauseExecute(Sender: TObject);
     procedure ActionSimulationPauseUnpauseUpdate(Sender: TObject);
@@ -522,6 +527,8 @@ type
       { TMenuItem that corresponds to TPlatformInfo
         with TPlatformInfo.UseDefault. }
       MenuItemDefaultPlatform: TMenuItem;
+      { TMenuItem that corresponds to "Same As Editor" platform }
+      MenuItemSameAsEditorPlatform: TMenuItem;
       CurrentPlatformInfo: Integer; //< Index to PlatformsInfo
       CurrentPackageFormat: TPackageFormat;
       ListOpenExistingViewStr: TStringList;
@@ -1167,6 +1174,57 @@ begin
   (Sender as TAction).Checked := true; // GroupIndex will make others unselected
 end;
 
+procedure TProjectForm.ActionSavePlatformAsDefaultExecute(Sender: TObject);
+var
+  LocalProjectSettingsOwner: TComponent;
+  LocalProjectSettings: TCastleProjectLocalSettings;
+  P: TPlatformInfo;
+begin
+  P := PlatformsInfo[CurrentPlatformInfo];
+
+  if P.UseDefault then
+    raise EInternalError.Create('Cannot save "Default" as the new platform, it would make no sense (would be confusing if saving default changes what the default implies)');
+
+  LocalProjectSettingsOwner := TComponent.Create(nil);
+  try
+    LocalProjectSettings := ProjectGetLocalSettings(ProjectPath, true, LocalProjectSettingsOwner);
+
+    if MenuItemSameAsEditorPlatform.Checked then
+    begin
+      { "Same As Editor" platform.
+        Note that we detect this using MenuItemSameAsEditorPlatform,
+        not rule like
+
+          (P.Target = targetCustom) and
+          (P.OS = DefaultOS) and
+          (P.CPU = DefaultCPU)
+
+        because the rule above would prevent from setting current platform
+        explicitly (like "Linux / x86_64") as the default. }
+
+      LocalProjectSettings.UsePlatformDefaults := false;
+    end else
+    begin
+      { Other explicit platform }
+      LocalProjectSettings.UsePlatformDefaults := true;
+      LocalProjectSettings.DefaultTarget := P.Target;
+      LocalProjectSettings.DefaultOS := P.OS;
+      LocalProjectSettings.DefaultCPU := P.CPU;
+    end;
+
+    ProjectSetLocalSettings(ProjectPath, LocalProjectSettings);
+  finally FreeAndNil(LocalProjectSettingsOwner) end;
+
+  UpdateMenuItemDefaultPlatform;
+end;
+
+procedure TProjectForm.ActionSavePlatformAsDefaultUpdate(Sender: TObject);
+begin
+  ActionSavePlatformAsDefault.Enabled :=
+    Between(CurrentPlatformInfo, 0, PlatformsInfo.Count - 1) and
+    (not PlatformsInfo[CurrentPlatformInfo].UseDefault);
+end;
+
 procedure TProjectForm.ActionShowCollidersExecute(Sender: TObject);
 begin
   Assert(Design <> nil); // menu item is disabled otherwise
@@ -1729,9 +1787,9 @@ procedure TProjectForm.FormCreate(Sender: TObject);
 
   procedure BuildPlatformsMenu;
 
-    procedure AddPlatform(const Name: String;
+    function AddPlatform(const Name: String;
       const UseDefault: Boolean;
-      const Target: TTarget; const OS: TOS; const CPU: TCPU);
+      const Target: TTarget; const OS: TOS; const CPU: TCPU): TMenuItem;
     var
       Mi: TMenuItem;
       MiCaption: String;
@@ -1748,10 +1806,12 @@ procedure TProjectForm.FormCreate(Sender: TObject);
       Mi.RadioItem := true;
       Mi.ShowAlwaysCheckable := true;
       Mi.Checked := Mi.Tag = CurrentPlatformInfo;
-      MenuItemPlatform.Add(Mi);
 
-      if UseDefault then
-        MenuItemDefaultPlatform := Mi;
+      // Insert new menu item before the "Save Chosen Platform..." item
+      MenuItemPlatform.Insert(MenuItemPlatform.Count - 2, Mi);
+      //MenuItemPlatform.Add(Mi);
+
+      Result := Mi;
 
       P := TPlatformInfo.Create;
       P.UseDefault := UseDefault;
@@ -1767,14 +1827,19 @@ procedure TProjectForm.FormCreate(Sender: TObject);
     begin
       Mi := TMenuItem.Create(MenuItemPlatform);
       Mi.Caption := '-';
-      MenuItemPlatform.Add(Mi);
+
+      // Insert new menu item before the "Save Chosen Platform..." item
+      MenuItemPlatform.Insert(MenuItemPlatform.Count - 2, Mi);
+      //MenuItemPlatform.Add(Mi);
     end;
 
   begin
     PlatformsInfo := TPlatformInfoList.Create(true);
-    AddPlatform('Default', true, targetCustom, DefaultOS, DefaultCPU);
+    MenuItemDefaultPlatform :=
+      AddPlatform('Default', true, targetCustom, DefaultOS, DefaultCPU);
     AddPlatformSeparator;
-    AddPlatform('Same As Editor', false, targetCustom, DefaultOS, DefaultCPU);
+    MenuItemSameAsEditorPlatform :=
+      AddPlatform('Same As Editor', false, targetCustom, DefaultOS, DefaultCPU);
     AddPlatformSeparator;
     AddPlatform('Web', false, targetWeb, { OS and CPU ignored } DefaultOS, DefaultCPU);
     AddPlatformSeparator;

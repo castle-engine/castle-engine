@@ -22,7 +22,8 @@ unit CastleInternalProjectLocalSettings;
 
 interface
 
-uses CastleClassUtils, CastleInternalArchitectures;
+uses Classes,
+  CastleClassUtils, CastleInternalArchitectures;
 
 type
   { Local (user/machine-specific) project settings. }
@@ -67,26 +68,47 @@ type
 procedure ProjectOverridePlatform(const ProjectPath: String;
   var Target: TTarget; var OS: TOS; var CPU: TCPU);
 
+{ Read (or create new) local settings for the project in ProjectPath.
+  ProjectPath must be an absolute path ending with path delimiter.
+
+  @param(CreateNew Determines what to do when the local settings file
+    (CastleProjectLocalSettings.json) does not exist. If @true,
+    we create new instance of TCastleProjectLocalSettings with default values,
+    so in effect we never return @nil.
+    If @false, we return @nil when the file does not exist.)
+
+  @param(AOwner Owner of the created TCastleProjectLocalSettings instance.
+    Also owner of any other loaded components, which may happen if you use
+    TCastleComponent.NonVisualComponents to store more components
+    attached to the TCastleProjectLocalSettings instance.
+    Or when TCastleProjectLocalSettings will have subcomponents.) }
+function ProjectGetLocalSettings(const ProjectPath: String;
+  const CreateNew: Boolean; const AOwner: TComponent): TCastleProjectLocalSettings;
+
+{ Write local settings for the project in ProjectPath.
+  ProjectPath must be an absolute path ending with path delimiter. }
+procedure ProjectSetLocalSettings(const ProjectPath: String;
+  const LocalSettings: TCastleProjectLocalSettings);
+
 implementation
 
-uses Classes,
+uses SysUtils,
   CastleComponentSerialize, CastleUriUtils;
+
+const
+  SettingsFileBaseName = 'CastleProjectLocalSettings.json';
 
 procedure ProjectOverridePlatform(const ProjectPath: String;
   var Target: TTarget; var OS: TOS; var CPU: TCPU);
 var
   LocalSettings: TCastleProjectLocalSettings;
   LocalSettingsOwner: TComponent;
-  LocalSettingsUri: String;
 begin
-  LocalSettingsUri :=
-    FilenameToUriSafe(ProjectPath + 'CastleProjectLocalSettings.json');
-  if UriFileExists(LocalSettingsUri) then
-  begin
-    LocalSettingsOwner := TComponent.Create(nil);
-    LocalSettings := ComponentLoad(LocalSettingsUri, LocalSettingsOwner) as
-      TCastleProjectLocalSettings;
-    if LocalSettings.UsePlatformDefaults then
+  LocalSettingsOwner := TComponent.Create(nil);
+  try
+    LocalSettings := ProjectGetLocalSettings(ProjectPath, false, LocalSettingsOwner);
+    if (LocalSettings <> nil) and
+       LocalSettings.UsePlatformDefaults then
     begin
       Target := LocalSettings.DefaultTarget;
       if LocalSettings.DefaultOS <> osNone then
@@ -94,7 +116,31 @@ begin
       if LocalSettings.DefaultCPU <> cpuNone then
         CPU := LocalSettings.DefaultCPU;
     end;
-  end;
+  finally FreeAndNil(LocalSettingsOwner) end;
+end;
+
+function ProjectGetLocalSettings(const ProjectPath: String;
+  const CreateNew: Boolean; const AOwner: TComponent): TCastleProjectLocalSettings;
+var
+  LocalSettingsUri: String;
+begin
+  LocalSettingsUri := FilenameToUriSafe(ProjectPath + SettingsFileBaseName);
+  if UriFileExists(LocalSettingsUri) then
+    Result := ComponentLoad(LocalSettingsUri, AOwner) as TCastleProjectLocalSettings
+  else
+  if CreateNew then
+    Result := TCastleProjectLocalSettings.Create(AOwner)
+  else
+    Result := nil;
+end;
+
+procedure ProjectSetLocalSettings(const ProjectPath: String;
+  const LocalSettings: TCastleProjectLocalSettings);
+var
+  LocalSettingsUri: String;
+begin
+  LocalSettingsUri := FilenameToUriSafe(ProjectPath + SettingsFileBaseName);
+  ComponentSave(LocalSettings, LocalSettingsUri);
 end;
 
 initialization

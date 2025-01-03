@@ -658,6 +658,12 @@ object ProjectForm: TProjectForm
       end
       object MenuItemPlatform: TMenuItem
         Caption = 'Platform (To Compile and Run)'
+        object Separator16: TMenuItem
+          Caption = '-'
+        end
+        object MenuItem47: TMenuItem
+          Action = ActionSavePlatformAsDefault
+        end
       end
       object MenuItemSeparator2: TMenuItem
         Caption = '-'
@@ -1404,6 +1410,12 @@ object ProjectForm: TProjectForm
       Category = 'Data'
       Caption = 'Export Viewport to X3D, STL...'
       OnExecute = ActionExportToModelExecute
+    end
+    object ActionSavePlatformAsDefault: TAction
+      Category = 'Run'
+      Caption = 'Save Chosen Platform As Default (in Project Local Settings)'
+      OnExecute = ActionSavePlatformAsDefaultExecute
+      OnUpdate = ActionSavePlatformAsDefaultUpdate
     end
   end
   object OpenPascalUnitDialog: TCastleOpenPascalUnitDialog

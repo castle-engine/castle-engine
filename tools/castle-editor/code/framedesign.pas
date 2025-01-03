@@ -2068,7 +2068,9 @@ begin
     if Mime = 'text/x-castle-transform' then
       NewDesignRoot := TransformLoad(NewDesignUrl, NewDesignOwner)
     else
-    if Mime = 'text/x-castle-component' then
+    if (Mime = 'text/x-castle-component') or
+       // open CastleLocalProjectSettings.json, and future CastleProject.json
+       (Mime = 'application/json') then
       NewDesignRoot := ComponentLoad(NewDesignUrl, NewDesignOwner)
     else
       raise Exception.CreateFmt('Unrecognized file extension %s (MIME type %s)',
