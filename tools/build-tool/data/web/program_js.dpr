@@ -104,7 +104,7 @@ begin
   Application.Initialize; // doesn't do anything by default
   Application.Run;
 
-  WriteLn('Normal flow of Pas2js program finished (though registered callbacks, like requestAnimationFrame and when WASM accesses environment exposed by JS, may still run).');
+  WriteLn('Normal flow of Pas2js program finished (though registered callbacks, like when WASM accesses environment exposed by JS, may still run).');
 
   { Important: *Do not* free Application instance here!
     It would make WebAssembly program fail, as it tries to acccess
