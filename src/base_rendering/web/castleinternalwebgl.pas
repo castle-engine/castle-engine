@@ -200,10 +200,10 @@ begin
     '  Shading Language Version: %s' + NL +
     '  Renderer: %s' + NL +
     '  Vendor: %s', [
+    glGetString(GL_VERSION),
     glGetString(GL_SHADING_LANGUAGE_VERSION),
     glGetString(GL_RENDERER),
-    glGetString(GL_VENDOR),
-    glGetString(GL_VERSION)
+    glGetString(GL_VENDOR)
   ]));
   WritelnLog('Context limits:' + NL +
     '  Max Viewport Dimensions: %s' + NL +

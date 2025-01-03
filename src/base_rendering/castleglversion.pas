@@ -297,7 +297,12 @@ begin
 
     ParseWhiteSpaces(VersionString, I);
 
-    {$ifdef OpenGLES}
+    {$if defined(CASTLE_WEBGL)}
+    if ParseString(VersionString, I) <> 'WebGL' then
+      WritelnWarning('WebGL', 'WebGL version string 1st component must be "WebGL"');
+    ParseWhiteSpaces(VersionString, I);
+
+    {$elseif defined(OpenGLES)}
     if ParseString(VersionString, I) <> 'OpenGL' then
       WritelnWarning('OpenGL', 'OpenGL ES version string 1st component must be "OpenGL"');
     ParseWhiteSpaces(VersionString, I);
