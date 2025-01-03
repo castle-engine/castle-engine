@@ -29,6 +29,7 @@ type
   TGLShader = {$ifndef CASTLE_WEBGL} TGLuint {$else} CastleInternalJobWeb.IJSWebGLShader {$endif};
   TGLTexture = {$ifndef CASTLE_WEBGL} TGLuint {$else} CastleInternalJobWeb.IJSWebGLTexture {$endif};
   TGLVertexArrayObject = {$ifndef CASTLE_WEBGL} TGLuint {$else} CastleInternalJobWeb.IJSWebGLVertexArrayObject {$endif};
+  TGLQuery = {$ifndef CASTLE_WEBGL} TGLuint {$else} CastleInternalJobWeb.IJSWebGLQuery {$endif};
 
   { Uniform location in WebGL / OpenGL / OpenGLES.
 

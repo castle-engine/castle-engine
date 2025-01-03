@@ -42,11 +42,11 @@ type
     PassedFrustumAndDistanceCulling: Boolean;
 
     { Used only when TCastleViewport.OcclusionCulling.
-      OcclusionQueryId is 0 if not initialized yet.
-      When it's 0, value of OcclusionQueryAsked doesn't matter,
+      OcclusionQueryId is GLObjectNone if not initialized yet.
+      When it's GLObjectNone, value of OcclusionQueryAsked doesn't matter,
       OcclusionQueryAsked is always reset to @false when initializing
       OcclusionQueryId. }
-    OcclusionQueryId: TGLint;
+    OcclusionQueryId: TGLQuery;
     OcclusionQueryAsked: boolean;
 
     { For Hierarchical Occlusion Culling. }
@@ -125,7 +125,7 @@ type
 implementation
 
 uses Generics.Defaults, Math, SysUtils,
-  CastleScene, CastleBoxes;
+  CastleScene, CastleBoxes, CastleInternalGLUtils;
 
 { TGLShape --------------------------------------------------------------- }
 
@@ -288,12 +288,7 @@ begin
   end;
 
   FreeCaches;
-
-  if OcclusionQueryId <> 0 then
-  begin
-    glDeleteQueries(1, @OcclusionQueryId);
-    OcclusionQueryId := 0;
-  end;
+  FreeQuery(OcclusionQueryId);
 end;
 
 procedure TGLShape.SchedulePrepareResources;

@@ -54,12 +54,15 @@ function glCreateTexture: TGLTexture;
 function glCreateRenderbuffer: TGLRenderbuffer;
 { Create TGLFramebuffer using OpenGL / OpenGLES / WebGL. }
 function glCreateFramebuffer: TGLFramebuffer;
+{ Delete TGLQuery using OpenGL / OpenGLES / WebGL. }
+function glCreateQuery: TGLQuery;
 
 procedure glDeleteBuffer(const Buffer: TGLBuffer);
 procedure glDeleteVertexArray(const Vao: TGLVertexArrayObject);
 procedure glDeleteTexture(const Texture: TGLTexture);
 procedure glDeleteRenderbuffer(const Buf: TGLRenderbuffer);
 procedure glDeleteFramebuffer(const Buf: TGLFramebuffer);
+procedure glDeleteQuery(const Query: TGLQuery);
 {$endif}
 
 { Free TGLBuffer, setting it to GLObjectNone. }
@@ -72,6 +75,8 @@ procedure FreeVertexArray(var Vao: TGLVertexArrayObject);
 procedure FreeRenderbuffer(var Buf: TGLRenderbuffer);
 { Free TGLFramebuffer, setting it to GLObjectNone. }
 procedure FreeFramebuffer(var Buf: TGLFramebuffer);
+{ Free TGLQuery, setting it to GLObjectNone. }
+procedure FreeQuery(var Query: TGLQuery);
 
 {$endif read_interface}
 
@@ -103,6 +108,11 @@ begin
   glGenFramebuffers(1, @Result);
 end;
 
+function glCreateQuery: TGLQuery;
+begin
+  glGenQueries(1, @Result);
+end;
+
 procedure glDeleteBuffer(const Buffer: TGLBuffer);
 begin
   glDeleteBuffers(1, @Buffer);
@@ -126,6 +136,11 @@ end;
 procedure glDeleteFramebuffer(const Buf: TGLFramebuffer);
 begin
   glDeleteFramebuffers(1, @Buf);
+end;
+
+procedure glDeleteQuery(const Query: TGLQuery);
+begin
+  glDeleteQueries(1, @Query);
 end;
 {$endif}
 
@@ -164,6 +179,15 @@ begin
     if GLFeatures.Framebuffer then
       glDeleteFramebuffer(Buf);
     Buf := GLObjectNone;
+  end;
+end;
+
+procedure FreeQuery(var Query: TGLQuery);
+begin
+  if Query <> GLObjectNone then
+  begin
+    glDeleteQuery(Query);
+    Query := GLObjectNone;
   end;
 end;
 

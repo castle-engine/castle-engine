@@ -65,7 +65,7 @@ type
 implementation
 
 uses SysUtils,
-  CastleClassUtils, CastleInternalShapeOctree,
+  CastleClassUtils, CastleInternalShapeOctree, CastleInternalGLUtils,
   CastleUtils;
 
 { TOcclusionCullingUtilsRenderer ------------------------------------------------- }
@@ -194,12 +194,15 @@ procedure TOcclusionCullingRenderer.Render(const CollectedShape: TCollectedShape
 
   { Read OpenGL(ES) occlusion query result, return if hit > 0 samples
     (was visible). }
-  function OcclusionQueryHit(const OcclusionQueryId: TGLint): Boolean;
+  function OcclusionQueryHit(const OcclusionQueryId: TGLQuery): Boolean;
   var
     SampleCount: TGLuint;
   begin
-    glGetQueryObjectuiv(OcclusionQueryId, GL_QUERY_RESULT,
-      @SampleCount);
+    {$ifdef CASTLE_WEBGL}
+    SampleCount := glGetQueryParameter(OcclusionQueryId, GL_QUERY_RESULT);
+    {$else}
+    glGetQueryObjectuiv(OcclusionQueryId, GL_QUERY_RESULT, @SampleCount);
+    {$endif}
     Result := SampleCount > 0;
   end;
 
@@ -227,7 +230,7 @@ begin
 
   { Get occlusion query result from previous render. }
   if Shape.OcclusionQueryAsked and
-     (Shape.OcclusionQueryId <> 0) then
+     (Shape.OcclusionQueryId <> GLObjectNone) then
   begin
     WasVisible := OcclusionQueryHit(Shape.OcclusionQueryId);
   end else
@@ -245,8 +248,8 @@ begin
 
   if Shape.OcclusionQueryAsked then
   begin
-    if Shape.OcclusionQueryId = 0 then
-      glGenQueries(1, @Shape.OcclusionQueryId);
+    if Shape.OcclusionQueryId = GLObjectNone then
+      Shape.OcclusionQueryId := glCreateQuery();
 
     glBeginQuery(QueryTarget, Shape.OcclusionQueryId);
 
