@@ -27,6 +27,8 @@ uses {$ifdef OpenGLES} CastleGLES, {$else} CastleGL, {$endif}
 type
   TCubeMapRenderEvent = procedure (const RenderParams: TRenderParams) of object; {$ifdef FPC}experimental;{$endif}
 
+{$warnings off} // silence FPC 3.3.1 warnings, using experimental in experimental
+
 { Calculate spherical harmonics basis describing environment rendered
   by OpenGL. Environment is rendered by
   Render(true) callback, from the
@@ -48,6 +50,8 @@ procedure SHVectorGLCapture(
   const Render: TCubeMapRenderEvent;
   const MapScreenX, MapScreenY: Integer;
   const ScaleColor: Single); experimental;
+
+{$warnings on}
 
 { Capture cube map by rendering environment from CapturePoint.
 
@@ -116,12 +120,15 @@ implementation
 uses SysUtils, CastleInternalSphericalHarmonics, CastleRectangles, CastleRenderContext,
   CastleProjection, CastleScene, CastleInternalShapesRenderer;
 
+{$warnings off} // silence FPC 3.3.1 warnings, using experimental in experimental
 procedure SHVectorGLCapture(
   var SHVector: array of Single;
   const CapturePoint: TVector3;
   const Render: TCubeMapRenderEvent;
   const MapScreenX, MapScreenY: Integer;
   const ScaleColor: Single);
+{$warnings on}
+
 var
   ShapesCollector: TShapesCollector;
   ShapesRenderer: TShapesRenderer;
