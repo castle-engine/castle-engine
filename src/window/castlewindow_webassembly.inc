@@ -29,8 +29,6 @@ strict private
 {$ifdef read_application_interface}
 strict private
   CanvasAnimationHandler: Integer;
-  HasPreviousTime: Boolean;
-  PreviousTime: TDOMHighResTimeStamp;
   { Callback for requestAnimationFrame
     ( https://developer.mozilla.org/en-US/docs/Web/API/Window/requestAnimationFrame ) }
   procedure AnimationFrame(Time: TDOMHighResTimeStamp);
@@ -237,14 +235,15 @@ begin
 end;
 
 procedure TCastleApplication.AnimationFrame(Time: TDOMHighResTimeStamp);
-var
-  DeltaTime: Float;
 begin
   { TODO: recreate context.
     See https://developer.mozilla.org/en-US/docs/Web/API/WebGLRenderingContext/isContextLost }
 	if GL.isContextLost then
     raise Exception.Create('Context has been lost');
 
+  // This is completely not necessary anymore:
+  // CGE gets time by FPC GetTickCount64, we don't need this Time parameter
+  (*
   // calculate DeltaTime, update HasPreviousTime and PreviousTime
   if HasPreviousTime then
     DeltaTime := (Time - PreviousTime) / 1000
@@ -254,8 +253,7 @@ begin
     HasPreviousTime := True;
   end;
   PreviousTime := Time;
-
-  // TODO: Pass DeltaTime to our FPS, passing Time to measure time
+  *)
 
   // Call Update, Render on all TCastleWindow
   ProcessAllMessages;

@@ -16,7 +16,8 @@ type
   TViewMain = class(TCastleView)
   published
     { Components designed using CGE editor.
-      These fields will be automatically initialized at Start. }
+      These fields will be automatically initialized at Start.
+      TODO: No, for now this is created by hand. }
     LabelFps: TCastleLabel;
   private
     LifeTime: Double;
@@ -48,6 +49,11 @@ end;
 procedure TViewMain.Start;
 begin
   inherited;
+  LabelFps := TCastleLabel.Create(Self);
+  LabelFps.Anchor(hpLeft, 5);
+  LabelFps.Anchor(vpTop, -5);
+  LabelFps.Color := Gray;
+  InsertFront(LabelFps);
 end;
 
 procedure TViewMain.Render;
@@ -73,14 +79,11 @@ end;
 procedure TViewMain.Update(const SecondsPassed: Single; var HandleInput: Boolean);
 begin
   inherited;
-
-  //LifeTime := LifeTime + SecondsPassed;
-  // TODO
-  LifeTime := LifeTime + 1/60;
-
   { This virtual method is executed every frame (many times per second). }
-  //Assert(LabelFps <> nil, 'If you remove LabelFps from the design, remember to remove also the assignment "LabelFps.Caption := ..." from code');
-  //LabelFps.Caption := 'FPS: ' + Container.Fps.ToString;
+
+  LifeTime := LifeTime + SecondsPassed;
+
+  LabelFps.Caption := 'FPS: ' + Container.Fps.ToString;
 end;
 
 function TViewMain.Press(const Event: TInputPressRelease): Boolean;
