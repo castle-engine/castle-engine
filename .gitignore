@@ -255,6 +255,8 @@ castle-game-engine-*.fpm
 /examples/window/multiple_windows_and_viewports/multiple_windows_and_viewports
 /examples/window/window_menu/window_menu
 /examples/web/simplest/webgl-tests
+/examples/web/simplest_viewport/simplest_viewport
+/examples/web/simplest_invaders/simplest_invaders
 /packages/alternative_castle_window_based_on_lcl.pas
 /packages/castle_base.pas
 /packages/castle_components.pas

@@ -1221,6 +1221,7 @@ end;
 procedure TProjectForm.ActionSavePlatformAsDefaultUpdate(Sender: TObject);
 begin
   ActionSavePlatformAsDefault.Enabled :=
+    (PlatformsInfo <> nil) and // this can be called before FormCreate
     Between(CurrentPlatformInfo, 0, PlatformsInfo.Count - 1) and
     (not PlatformsInfo[CurrentPlatformInfo].UseDefault);
 end;
