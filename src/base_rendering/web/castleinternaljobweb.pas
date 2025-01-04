@@ -14,7 +14,7 @@ uses SysUtils, Job.JS;
 {$ENDIF FPC_DOTTEDUNITS}
 
 {
-  Automatically generated file by TWebIDLToPasWasmJob on 2025-01-04 03:48:34
+  Automatically generated file by TWebIDLToPasWasmJob on 2025-01-04 23:59:23
   
   Used command-line options: 
   --input=castleinternaljobweb.webidl
@@ -60,6 +60,8 @@ Type
   // Forward class definitions
   IJSAnimationFrameProvider = interface;
   TJSAnimationFrameProvider = class;
+  IJSCSSStyleDeclaration = interface;
+  TJSCSSStyleDeclaration = class;
   IJSContentSecurityPolicy = interface;
   TJSContentSecurityPolicy = class;
   IJSPrincipal = interface;
@@ -88,6 +90,8 @@ Type
   TJSnsIScreen = class;
   IJSElement = interface;
   TJSElement = class;
+  IJSElementCSSInlineStyle = interface;
+  TJSElementCSSInlineStyle = class;
   IJSGlobalEventHandlers = interface;
   TJSGlobalEventHandlers = class;
   IJSWindowEventHandlers = interface;
@@ -1332,6 +1336,44 @@ Type
   end;
   
   { --------------------------------------------------------------------
+    TJSCSSStyleDeclaration
+    --------------------------------------------------------------------}
+  
+  IJSCSSStyleDeclaration = interface(IJSObject)
+    ['{F6EBDCB3-BEBB-3837-B388-6847C13B52DD}']
+    function _GetcssText: UTF8String; 
+    function _Getlength_: Cardinal; 
+    procedure _SetcssText(const aValue: UTF8String);
+    function item(aIndex: Cardinal): UTF8String;
+    function getPropertyValue(const aProperty_: UTF8String): UTF8String;
+    function getPropertyPriority(const aProperty_: UTF8String): UTF8String;
+    procedure setProperty(const aProperty_: UTF8String; const aValue: UTF8String; const aPriority: UTF8String);
+    procedure setProperty(const aProperty_: UTF8String; const aValue: UTF8String);
+    function removeProperty(const aProperty_: UTF8String): UTF8String;
+    property cssText: UTF8String read _GetcssText write _SetcssText;
+    property length_: Cardinal read _Getlength_;
+  end;
+  
+  TJSCSSStyleDeclaration = class(TJSObject,IJSCSSStyleDeclaration)
+  Private
+  Protected
+    function _GetcssText: UTF8String; 
+    function _Getlength_: Cardinal; 
+    procedure _SetcssText(const aValue: UTF8String);
+  Public
+    function item(aIndex: Cardinal): UTF8String; overload;
+    function getPropertyValue(const aProperty_: UTF8String): UTF8String; overload;
+    function getPropertyPriority(const aProperty_: UTF8String): UTF8String; overload;
+    procedure setProperty(const aProperty_: UTF8String; const aValue: UTF8String; const aPriority: UTF8String); overload;
+    procedure setProperty(const aProperty_: UTF8String; const aValue: UTF8String); overload;
+    function removeProperty(const aProperty_: UTF8String): UTF8String; overload;
+    class function JSClassName: UnicodeString; override;
+    class function Cast(const Intf: IJSObject): IJSCSSStyleDeclaration;
+    property cssText: UTF8String read _GetcssText write _SetcssText;
+    property length_: Cardinal read _Getlength_;
+  end;
+  
+  { --------------------------------------------------------------------
     TJSContentSecurityPolicy
     --------------------------------------------------------------------}
   
@@ -1521,6 +1563,26 @@ Type
   Public
     class function JSClassName: UnicodeString; override;
     class function Cast(const Intf: IJSObject): IJSnsIScreen;
+  end;
+  
+  { --------------------------------------------------------------------
+    TJSElementCSSInlineStyle
+    --------------------------------------------------------------------}
+  
+  IJSElementCSSInlineStyle = interface(IJSObject)
+    ['{A68CE660-BA16-3C6A-855A-0663A9D0E1BF}']
+    function _Getstyle: IJSCSSStyleDeclaration; 
+    property style: IJSCSSStyleDeclaration read _Getstyle;
+  end;
+  
+  TJSElementCSSInlineStyle = class(TJSObject,IJSElementCSSInlineStyle)
+  Private
+  Protected
+    function _Getstyle: IJSCSSStyleDeclaration; 
+  Public
+    class function JSClassName: UnicodeString; override;
+    class function Cast(const Intf: IJSObject): IJSElementCSSInlineStyle;
+    property style: IJSCSSStyleDeclaration read _Getstyle;
   end;
   
   { --------------------------------------------------------------------
@@ -7451,7 +7513,7 @@ Type
     --------------------------------------------------------------------}
   
   IJSHTMLElement = interface(IJSElement)
-    ['{BB3506FF-4D7F-3B60-BD6E-352AC16F86B9}']
+    ['{467DF9C2-BC10-32BA-A54D-363BE382F3A9}']
     function _Gettitle: UnicodeString; 
     function _Getlang: UnicodeString; 
     function _Gettranslate: Boolean; 
@@ -7472,6 +7534,7 @@ Type
     function _Getautocapitalize: UnicodeString; 
     function _Getautocorrect: Boolean; 
     function _Getnonce: UnicodeString; 
+    function _Getstyle: IJSCSSStyleDeclaration; 
     procedure _Settitle(const aValue: UnicodeString);
     procedure _Setlang(const aValue: UnicodeString);
     procedure _Settranslate(const aValue: Boolean);
@@ -7511,6 +7574,7 @@ Type
     property autocapitalize: UnicodeString read _Getautocapitalize write _Setautocapitalize;
     property autocorrect: Boolean read _Getautocorrect write _Setautocorrect;
     property nonce: UnicodeString read _Getnonce write _Setnonce;
+    property style: IJSCSSStyleDeclaration read _Getstyle;
   end;
   
   TJSHTMLElement = class(TJSElement,IJSHTMLElement)
@@ -7536,6 +7600,7 @@ Type
     function _Getautocapitalize: UnicodeString; 
     function _Getautocorrect: Boolean; 
     function _Getnonce: UnicodeString; 
+    function _Getstyle: IJSCSSStyleDeclaration; 
     procedure _Settitle(const aValue: UnicodeString);
     procedure _Setlang(const aValue: UnicodeString);
     procedure _Settranslate(const aValue: Boolean);
@@ -7579,6 +7644,7 @@ Type
     property autocapitalize: UnicodeString read _Getautocapitalize write _Setautocapitalize;
     property autocorrect: Boolean read _Getautocorrect write _Setautocorrect;
     property nonce: UnicodeString read _Getnonce write _Setnonce;
+    property style: IJSCSSStyleDeclaration read _Getstyle;
   end;
   
   { --------------------------------------------------------------------
@@ -8066,6 +8132,61 @@ begin
   Result:=TJSAnimationFrameProvider.JOBCast(Intf);
 end;
 
+function TJSCSSStyleDeclaration._GetcssText: UTF8String;
+begin
+  Result:=ReadJSPropertyUTF8String('cssText');
+end;
+
+function TJSCSSStyleDeclaration._Getlength_: Cardinal;
+begin
+  Result:=ReadJSPropertyInt64('length');
+end;
+
+procedure TJSCSSStyleDeclaration._SetcssText(const aValue : UTF8String);
+begin
+  WriteJSPropertyUTF8String('cssText',aValue);
+end;
+
+function TJSCSSStyleDeclaration.item(aIndex: Cardinal): UTF8String;
+begin
+  Result:=InvokeJSUTF8StringResult('item',[aIndex]);
+end;
+
+function TJSCSSStyleDeclaration.getPropertyValue(const aProperty_: UTF8String): UTF8String;
+begin
+  Result:=InvokeJSUTF8StringResult('getPropertyValue',[aProperty_]);
+end;
+
+function TJSCSSStyleDeclaration.getPropertyPriority(const aProperty_: UTF8String): UTF8String;
+begin
+  Result:=InvokeJSUTF8StringResult('getPropertyPriority',[aProperty_]);
+end;
+
+procedure TJSCSSStyleDeclaration.setProperty(const aProperty_: UTF8String; const aValue: UTF8String; const aPriority: UTF8String);
+begin
+  InvokeJSNoResult('setProperty',[aProperty_,aValue,aPriority]);
+end;
+
+procedure TJSCSSStyleDeclaration.setProperty(const aProperty_: UTF8String; const aValue: UTF8String);
+begin
+  InvokeJSNoResult('setProperty',[aProperty_,aValue]);
+end;
+
+function TJSCSSStyleDeclaration.removeProperty(const aProperty_: UTF8String): UTF8String;
+begin
+  Result:=InvokeJSUTF8StringResult('removeProperty',[aProperty_]);
+end;
+
+class function TJSCSSStyleDeclaration.JSClassName: UnicodeString;
+begin
+  Result:='CSSStyleDeclaration';
+end;
+
+class function TJSCSSStyleDeclaration.Cast(const Intf: IJSObject): IJSCSSStyleDeclaration;
+begin
+  Result:=TJSCSSStyleDeclaration.JOBCast(Intf);
+end;
+
 class function TJSContentSecurityPolicy.JSClassName: UnicodeString;
 begin
   Result:='ContentSecurityPolicy';
@@ -8249,6 +8370,21 @@ end;
 class function TJSElement.Cast(const Intf: IJSObject): IJSElement;
 begin
   Result:=TJSElement.JOBCast(Intf);
+end;
+
+function TJSElementCSSInlineStyle._Getstyle: IJSCSSStyleDeclaration;
+begin
+  Result:=ReadJSPropertyObject('style',TJSCSSStyleDeclaration) as IJSCSSStyleDeclaration;
+end;
+
+class function TJSElementCSSInlineStyle.JSClassName: UnicodeString;
+begin
+  Result:='ElementCSSInlineStyle';
+end;
+
+class function TJSElementCSSInlineStyle.Cast(const Intf: IJSObject): IJSElementCSSInlineStyle;
+begin
+  Result:=TJSElementCSSInlineStyle.JOBCast(Intf);
 end;
 
 function TJSGlobalEventHandlers._Getonabort: TEventHandler;
@@ -10833,6 +10969,11 @@ end;
 function TJSHTMLElement._Getnonce: UnicodeString;
 begin
   Result:=ReadJSPropertyUnicodeString('nonce');
+end;
+
+function TJSHTMLElement._Getstyle: IJSCSSStyleDeclaration;
+begin
+  Result:=ReadJSPropertyObject('style',TJSCSSStyleDeclaration) as IJSCSSStyleDeclaration;
 end;
 
 procedure TJSHTMLElement._Settitle(const aValue : UnicodeString);

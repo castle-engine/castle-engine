@@ -33,6 +33,7 @@ strict private
 {$ifdef read_application_interface}
 strict private
   CanvasAnimationHandler: Integer;
+  WasFrameRendered: Boolean;
   { Callback for requestAnimationFrame
     ( https://developer.mozilla.org/en-US/docs/Web/API/Window/requestAnimationFrame ) }
   procedure AnimationFrame(Time: TDOMHighResTimeStamp);
@@ -105,20 +106,30 @@ procedure TCastleWindow.OpenBackend;
     ]));
   end;
 
+var
+  GLBase, GL2Base: IJSnsISupports;
+  CanvasBase: IJSElement;
 begin
-  Canvas := TJSHTMLCanvasElement.Cast(JSDocument.getElementById('castle-canvas'));
+  { Note that we first check if something is nil, only later we use Cast.
+    Because the Cast seems to fail if original is nil, unlike "as" operator. }
+  CanvasBase := JSDocument.getElementById('castle-canvas');
+  if CanvasBase = nil then
+    raise Exception.Create('Failed to find canvas element with id="castle-canvas"');
+  Canvas := TJSHTMLCanvasElement.Cast(CanvasBase);
 
-  GL2 := TJSWebGL2RenderingContext.Cast(Canvas.getContext('webgl2'));
-  if GL2 <> nil then
+  GL2Base := Canvas.getContext('webgl2');
+  if GL2Base <> nil then
   begin
+    GL2 := TJSWebGL2RenderingContext.Cast(GL2Base);
     // WebGL 2.0 is a superset of WebGL 1.0
     GL := TJSWebGLRenderingContext.Cast(GL2);
     WritelnLog('WebGL 2.0 context initialized from WebAssembly');
   end else
   begin
-    GL := TJSWebGLRenderingContext.Cast(Canvas.getContext('webgl'));
-    if GL = nil then
+    GLBase := Canvas.getContext('webgl');
+    if GLBase = nil then
       raise Exception.Create('Failed to load WebGL context (2.0 or 1.0) from WebAssembly');
+    GL := TJSWebGLRenderingContext.Cast(GLBase);
     WritelnLog('WebGL 1.0 context initialized from WebAssembly');
   end;
 
@@ -356,8 +367,8 @@ var
   KeyString: String;
 begin
   Event := TJSKeyboardEvent.Cast(BaseEvent);
-  KeyString := Event.Key;
-  JsKeyCodeToCastle(Event.Code, Key, KeyString);
+  KeyString := String(Event.Key);
+  JsKeyCodeToCastle(String(Event.Code), Key, KeyString);
   if (Key <> keyNone) or (KeyString <> '') then
     DoKeyDown(Key, KeyString);
   Result := false;
@@ -449,9 +460,30 @@ begin
 end;
 
 function TCastleApplication.ProcessMessage(WaitForMessage, WaitToLimitFPS: boolean): boolean;
+
+  procedure HideLoadingInfo;
+  var
+    DivLoadingInfoBase: IJSElement;
+    DivLoadingInfo: IJSHTMLDivElement;
+  begin
+    DivLoadingInfoBase := JSDocument.getElementById('castle-loading-info');
+    if DivLoadingInfoBase = nil then
+      Exit;
+    DivLoadingInfo := TJSHTMLDivElement.Cast(DivLoadingInfoBase);
+    { Setting style should be enough, but we also update text --
+      just in case some HTML/CSS rule (not our) makes it visible at any point. }
+    DivLoadingInfo.InnerText := 'Application loaded OK.';
+    DivLoadingInfo.Style.CssText := 'display: none';
+  end;
+
 begin
   { Simplest implementation. This will be done in a loop using RequestAnimationFrame. }
   UpdateAndRenderEverything;
+  if not WasFrameRendered then
+  begin
+    WasFrameRendered := true;
+    HideLoadingInfo;
+  end;
   Result := not Terminated;
 end;
 

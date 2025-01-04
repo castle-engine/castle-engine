@@ -43,3 +43,11 @@ interface Element : Node {
   [CEReactions, Pure]
            attribute DOMString className;
 };
+
+// https://drafts.csswg.org/cssom/#the-elementcssinlinestyle-mixin
+interface mixin ElementCSSInlineStyle {
+  [SameObject, PutForwards=cssText]
+  readonly attribute CSSStyleDeclaration style;
+};
+
+HTMLElement includes ElementCSSInlineStyle;
