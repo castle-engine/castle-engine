@@ -756,6 +756,9 @@ type
     { Finger that is moving, on touch devices.
       If you use mouse, this is always just 0. }
     FingerIndex: TFingerIndex;
+
+    { Textual description of this event. }
+    function ToString: string;
   end;
 
 { Construct TInputPressRelease corresponding to given event.
@@ -1281,6 +1284,14 @@ end;
 function TInputPressRelease.Description: string;
 begin
   Result := ToString;
+end;
+
+function TInputMotion.ToString: string;
+begin
+  Result := Format('motion from %s to %s',[
+    OldPosition.ToString,
+    Position.ToString
+  ]);
 end;
 
 function InputKey(const Position: TVector2; const Key: TKey;

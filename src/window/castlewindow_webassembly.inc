@@ -24,6 +24,10 @@ CastleInternalJobWeb,
 {$ifdef read_window_interface}
 strict private
   Canvas: IJSHTMLCanvasElement;
+  function PointerDown(BaseEvent: IJSEvent): Boolean;
+  function PointerUp(BaseEvent: IJSEvent): Boolean;
+  function PointerMove(BaseEvent: IJSEvent): Boolean;
+  function KeyDown(BaseEvent: IJSEvent): Boolean;
 {$endif read_window_interface}
 
 {$ifdef read_application_interface}
@@ -125,6 +129,11 @@ begin
 
   Application.OpenWindowsAdd(Self);
 
+  Canvas.addEventListener('pointerdown', @PointerDown);
+  Canvas.addEventListener('pointerup', @PointerUp);
+  Canvas.addEventListener('pointermove', @PointerMove);
+  Canvas.addEventListener('keydown', @KeyDown);
+
   // TODO
   // GetInitialCursorPos;
   // UpdateCursor;
@@ -134,6 +143,224 @@ end;
 procedure TCastleWindow.CloseBackend;
 begin
   { One doesn't close WebGL context. }
+end;
+
+function JsMouseButtonToCastle(const JsButton: Integer;
+  out Button: TCastleMouseButton): Boolean;
+begin
+  Result := true;
+  case JsButton of
+    0: Button := buttonLeft;
+    1: Button := buttonMiddle;
+    2: Button := buttonRight;
+    else
+      begin
+        WritelnWarning('Web', 'Ignoring PointerDown with unhandled button %d', [
+          JsButton
+        ]);
+        Exit(false);
+      end;
+  end;
+end;
+
+function JsMousePositionToCastle(const Event: IJSPointerEvent): TVector2;
+begin
+  { Some info about various positions:
+    https://stephendoddtech.com/blog/game-design/mouse-event-listener-input-html-canvas }
+  Result := Vector2(Event.OffsetX, GL.DrawingBufferHeight - Event.OffsetY);
+end;
+
+function TCastleWindow.PointerDown(BaseEvent: IJSEvent): Boolean;
+var
+  Event: IJSPointerEvent;
+  Button: TCastleMouseButton;
+  FingerIndex: TFingerIndex;
+  Position: TVector2;
+begin
+  Result := true; // assume not handled, in case of early exit
+  Event := TJSPointerEvent.Cast(BaseEvent);
+
+  if not JsMouseButtonToCastle(Event.Button, Button) then
+    Exit;
+  { TODO: Get FingerIndex from pointer event
+    ( https://developer.mozilla.org/en-US/docs/Web/API/Element/pointerdown_event ),
+    maybe use Event.PointerId,
+    to support multi-touch on mobiles. }
+  FingerIndex := 0;
+  Position := JsMousePositionToCastle(Event);
+  DoMouseDown(Position, Button, FingerIndex);
+
+  { Prevent default action, like selecting text.
+    See https://stackoverflow.com/questions/128923/whats-the-effect-of-adding-return-false-to-a-click-event-listener }
+  Result := false;
+end;
+
+function TCastleWindow.PointerUp(BaseEvent: IJSEvent): Boolean;
+var
+  Event: IJSPointerEvent;
+  Button: TCastleMouseButton;
+  FingerIndex: TFingerIndex;
+  Position: TVector2;
+begin
+  Result := true; // assume not handled, in case of early exit
+  Event := TJSPointerEvent.Cast(BaseEvent);
+
+  if not JsMouseButtonToCastle(Event.Button, Button) then
+    Exit;
+  FingerIndex := 0;
+  Position := JsMousePositionToCastle(Event);
+  DoMouseUp(Position, Button, FingerIndex);
+
+  Result := false;
+end;
+
+function TCastleWindow.PointerMove(BaseEvent: IJSEvent): Boolean;
+var
+  Event: IJSPointerEvent;
+  FingerIndex: TFingerIndex;
+  Position: TVector2;
+begin
+  Result := true; // assume not handled, in case of early exit
+  Event := TJSPointerEvent.Cast(BaseEvent);
+
+  FingerIndex := 0;
+  Position := JsMousePositionToCastle(Event);
+  DoMotion(InputMotion(Container.MousePosition, Position, Container.MousePressed, FingerIndex));
+
+  Result := false;
+end;
+
+{ Convert JS key codes to our (TKey) codes.
+  Also, sometimes override KeyString to what we expect.
+  https://developer.mozilla.org/en-US/docs/Web/API/UI_Events/Keyboard_event_code_values }
+procedure JsKeyCodeToCastle(const JsKeyCode: String; out Key: TKey; var KeyString: String);
+begin
+  case JsKeyCode of
+    'Escape': begin Key := keyEscape; KeyString := CharEscape; end;
+    'Digit1': Key := key1;
+    'Digit2': Key := key2;
+    'Digit3': Key := key3;
+    'Digit4': Key := key4;
+    'Digit5': Key := key5;
+    'Digit6': Key := key6;
+    'Digit7': Key := key7;
+    'Digit8': Key := key8;
+    'Digit9': Key := key9;
+    'Digit0': Key := key0;
+    'Minus': Key := keyMinus;
+    'Equal': Key := keyEqual;
+    'Backspace': begin Key := keyBackSpace; KeyString := CharBackSpace; end;
+    'Tab': begin Key := keyTab; KeyString := CharTab; end;
+    'KeyQ': Key := keyQ;
+    'KeyW': Key := keyW;
+    'KeyE': Key := keyE;
+    'KeyR': Key := keyR;
+    'KeyT': Key := keyT;
+    'KeyY': Key := keyY;
+    'KeyU': Key := keyU;
+    'KeyI': Key := keyI;
+    'KeyO': Key := keyO;
+    'KeyP': Key := keyP;
+    'BracketLeft': Key := keyLeftBracket;
+    'BracketRight': Key := keyRightBracket;
+    'Enter': begin Key := keyEnter; KeyString := CharEnter; end;
+    'ControlLeft': Key := keyCtrl;
+    'KeyA': Key := keyA;
+    'KeyS': Key := keyS;
+    'KeyD': Key := keyD;
+    'KeyF': Key := keyF;
+    'KeyG': Key := keyG;
+    'KeyH': Key := keyH;
+    'KeyJ': Key := keyJ;
+    'KeyK': Key := keyK;
+    'KeyL': Key := keyL;
+    'Semicolon': Key := keySemicolon;
+    // 'Quote': Key := keyQuote;
+    'Backquote': Key := keyBackQuote;
+    'ShiftLeft': Key := keyShift;
+    'Backslash': Key := keyBackSlash;
+    'KeyZ': Key := keyZ;
+    'KeyX': Key := keyX;
+    'KeyC': Key := keyC;
+    'KeyV': Key := keyV;
+    'KeyB': Key := keyB;
+    'KeyN': Key := keyN;
+    'KeyM': Key := keyM;
+    'Comma': Key := keyComma;
+    'Period': Key := keyPeriod;
+    'Slash': Key := keySlash;
+    'ShiftRight': Key := keyShift;
+    'NumpadMultiply': Key := keyNumpadMultiply;
+    'AltLeft': Key := keyAlt;
+    'Space': Key := keySpace;
+    //'CapsLock': Key := keyCapsLock;
+    'F1': Key := keyF1;
+    'F2': Key := keyF2;
+    'F3': Key := keyF3;
+    'F4': Key := keyF4;
+    'F5': Key := keyF5;
+    'F6': Key := keyF6;
+    'F7': Key := keyF7;
+    'F8': Key := keyF8;
+    'F9': Key := keyF9;
+    'F10': Key := keyF10;
+    'Pause': Key := keyPause;
+    //'ScrollLock': Key := keyScrollLock;
+    'Numpad7': Key := keyNumpad7;
+    'Numpad8': Key := keyNumpad8;
+    'Numpad9': Key := keyNumpad9;
+    'NumpadSubtract': Key := keyNumpadMinus;
+    'Numpad4': Key := keyNumpad4;
+    'Numpad5': Key := keyNumpad5;
+    'Numpad6': Key := keyNumpad6;
+    'NumpadAdd': Key := keyNumpadPlus;
+    'Numpad1': Key := keyNumpad1;
+    'Numpad2': Key := keyNumpad2;
+    'Numpad3': Key := keyNumpad3;
+    'Numpad0': Key := keyNumpad0;
+    //'NumpadDecimal': Key :=
+    'F11': Key := keyF11;
+    'F12': Key := keyF12;
+    'NumpadEnter': Key := keyNumpadEnter;
+    'ControlRight': Key := keyCtrl;
+    'NumpadDivide': Key := keyNumpadDivide;
+    'PrintScreen': Key := keyPrintScreen;
+    'AltRight': Key := keyAlt;
+    'Home': Key := keyHome;
+    'ArrowUp': Key := keyArrowUp;
+    'PageUp': Key := keyPageUp;
+    'ArrowLeft': Key := keyArrowLeft;
+    'ArrowRight': Key := keyArrowRight;
+    'End': Key := keyEnd;
+    'ArrowDown': Key := keyArrowDown;
+    'PageDown': Key := keyPageDown;
+    'Insert': Key := keyInsert;
+    'Delete': Key := keyDelete;
+    //'MetaLeft': Key := keyMeta;
+    //'MetaRight': Key := keyMeta;
+    //'ContextMenu': Key := keyContextMenu;
+    else
+      begin
+        WritelnWarning('Web', 'Ignoring KeyDown with unhandled code %s', [
+          JsKeyCode
+        ]);
+        Key := keyNone;
+      end;
+  end;
+end;
+
+function TCastleWindow.KeyDown(BaseEvent: IJSEvent): Boolean;
+var
+  Event: IJSKeyboardEvent;
+  Key: TKey;
+  KeyString: String;
+begin
+  Event := TJSKeyboardEvent.Cast(BaseEvent);
+  KeyString := Event.Key;
+  JsKeyCodeToCastle(Event.Code, Key, KeyString);
+  if (Key <> keyNone) or (KeyString <> '') then
+    DoKeyDown(Key, KeyString);
+  Result := false;
 end;
 
 procedure TCastleWindow.SetCaption(const Part: TCaptionPart; const Value: string);

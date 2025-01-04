@@ -21,6 +21,11 @@
  */
 
 [Exposed=Window]
-callback interface EventListener {
-  undefined handleEvent(Event event);
-};
+// Michalis: We edit it just like Mattias did for FPC Job_Web,
+// to have in Pascal TEventListener as a function that returns Boolean.
+//
+// Mattias:
+//callback interface EventListener {
+//  void handleEvent(Event event);
+//};
+callback EventListener = boolean (Event event);

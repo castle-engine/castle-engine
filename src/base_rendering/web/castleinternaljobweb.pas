@@ -14,7 +14,7 @@ uses SysUtils, Job.JS;
 {$ENDIF FPC_DOTTEDUNITS}
 
 {
-  Automatically generated file by TWebIDLToPasWasmJob on 2025-01-03 09:09:42
+  Automatically generated file by TWebIDLToPasWasmJob on 2025-01-04 03:48:34
   
   Used command-line options: 
   --input=castleinternaljobweb.webidl
@@ -126,12 +126,20 @@ Type
   TJSImageBitmap = class;
   IJSImageData = interface;
   TJSImageData = class;
+  IJSKeyboardEvent = interface;
+  TJSKeyboardEvent = class;
+  IJSMouseEvent = interface;
+  TJSMouseEvent = class;
   IJSNode = interface;
   TJSNode = class;
   IJSNonElementParentNode = interface;
   TJSNonElementParentNode = class;
   IJSOffscreenCanvas = interface;
   TJSOffscreenCanvas = class;
+  IJSPointerEvent = interface;
+  TJSPointerEvent = class;
+  IJSUIEvent = interface;
+  TJSUIEvent = class;
   IJSVideoFrame = interface;
   TJSVideoFrame = class;
   IJSWebGLSampler = interface;
@@ -266,8 +274,18 @@ Type
   TJSAddEventListenerOptions = class;
   IJSEventInit = interface;
   TJSEventInit = class;
+  IJSKeyboardEventInit = interface;
+  TJSKeyboardEventInit = class;
+  IJSMouseEventInit = interface;
+  TJSMouseEventInit = class;
   IJSImageEncodeOptions = interface;
   TJSImageEncodeOptions = class;
+  IJSPointerEventInit = interface;
+  TJSPointerEventInit = class;
+  IJSUIEventInit = interface;
+  TJSUIEventInit = class;
+  IJSEventModifierInit = interface;
+  TJSEventModifierInit = class;
   IJSVideoFrameInit = interface;
   TJSVideoFrameInit = class;
   IJSVideoFrameBufferInit = interface;
@@ -325,7 +343,7 @@ Type
   TOnBeforeUnloadEventHandler = TOnBeforeUnloadEventHandlerNonNull;
   TOnErrorEventHandlerNonNull = function (const event: TOnErrorEventHandlerNonNull_event_Type; const source: UTF8String; lineno: Cardinal; column: Cardinal; const error: Variant): Variant of object;
   TOnErrorEventHandler = TOnErrorEventHandlerNonNull;
-  TEventListener = procedure (event: IJSEvent) of object;
+  TEventListener = function (event: IJSEvent): Boolean of object;
   
   { --------------------------------------------------------------------
     TJSEventListenerOptions
@@ -770,6 +788,43 @@ Type
   end;
   
   { --------------------------------------------------------------------
+    TJSUIEventInit
+    --------------------------------------------------------------------}
+  
+  TJSUIEventInitRec = record
+    view: TJSWindow;
+    detail: LongInt;
+    bubbles: Boolean;
+    cancelable: Boolean;
+    composed: Boolean;
+  end;
+  
+  IJSUIEventInit = interface(IJSEventInit)
+    ['{7A60C9B8-69FA-3FC6-BDA8-E8AD03E09E8A}']
+    function _Getview: IJSWindow; 
+    function _Getdetail: LongInt; 
+    procedure _Setview(const aValue: IJSWindow);
+    procedure _Setdetail(const aValue: LongInt);
+    property view: IJSWindow read _Getview write _Setview;
+    property detail: LongInt read _Getdetail write _Setdetail;
+  end;
+  
+  TJSUIEventInit = class(TJSEventInit,IJSUIEventInit)
+  Private
+  Protected
+    function _Getview: IJSWindow; 
+    function _Getdetail: LongInt; 
+    procedure _Setview(const aValue: IJSWindow);
+    procedure _Setdetail(const aValue: LongInt);
+  Public
+    constructor create(const aDict : TJSUIEventInitRec); overload;
+    class function JSClassName: UnicodeString; override;
+    class function Cast(const Intf: IJSObject): IJSUIEventInit;
+    property view: IJSWindow read _Getview write _Setview;
+    property detail: LongInt read _Getdetail write _Setdetail;
+  end;
+  
+  { --------------------------------------------------------------------
     TJSWebGLContextEventInit
     --------------------------------------------------------------------}
   
@@ -797,6 +852,463 @@ Type
     class function JSClassName: UnicodeString; override;
     class function Cast(const Intf: IJSObject): IJSWebGLContextEventInit;
     property statusMessage: UnicodeString read _GetstatusMessage write _SetstatusMessage;
+  end;
+  
+  { --------------------------------------------------------------------
+    TJSEventModifierInit
+    --------------------------------------------------------------------}
+  
+  TJSEventModifierInitRec = record
+    ctrlKey: Boolean;
+    shiftKey: Boolean;
+    altKey: Boolean;
+    metaKey: Boolean;
+    modifierAltGraph: Boolean;
+    modifierCapsLock: Boolean;
+    modifierFn: Boolean;
+    modifierFnLock: Boolean;
+    modifierNumLock: Boolean;
+    modifierOS: Boolean;
+    modifierScrollLock: Boolean;
+    modifierSymbol: Boolean;
+    modifierSymbolLock: Boolean;
+    view: TJSWindow;
+    detail: LongInt;
+    bubbles: Boolean;
+    cancelable: Boolean;
+    composed: Boolean;
+  end;
+  
+  IJSEventModifierInit = interface(IJSUIEventInit)
+    ['{2CEC0442-6DC0-3932-9972-C79F1BE13412}']
+    function _GetctrlKey: Boolean; 
+    function _GetshiftKey: Boolean; 
+    function _GetaltKey: Boolean; 
+    function _GetmetaKey: Boolean; 
+    function _GetmodifierAltGraph: Boolean; 
+    function _GetmodifierCapsLock: Boolean; 
+    function _GetmodifierFn: Boolean; 
+    function _GetmodifierFnLock: Boolean; 
+    function _GetmodifierNumLock: Boolean; 
+    function _GetmodifierOS: Boolean; 
+    function _GetmodifierScrollLock: Boolean; 
+    function _GetmodifierSymbol: Boolean; 
+    function _GetmodifierSymbolLock: Boolean; 
+    procedure _SetctrlKey(const aValue: Boolean);
+    procedure _SetshiftKey(const aValue: Boolean);
+    procedure _SetaltKey(const aValue: Boolean);
+    procedure _SetmetaKey(const aValue: Boolean);
+    procedure _SetmodifierAltGraph(const aValue: Boolean);
+    procedure _SetmodifierCapsLock(const aValue: Boolean);
+    procedure _SetmodifierFn(const aValue: Boolean);
+    procedure _SetmodifierFnLock(const aValue: Boolean);
+    procedure _SetmodifierNumLock(const aValue: Boolean);
+    procedure _SetmodifierOS(const aValue: Boolean);
+    procedure _SetmodifierScrollLock(const aValue: Boolean);
+    procedure _SetmodifierSymbol(const aValue: Boolean);
+    procedure _SetmodifierSymbolLock(const aValue: Boolean);
+    property ctrlKey: Boolean read _GetctrlKey write _SetctrlKey;
+    property shiftKey: Boolean read _GetshiftKey write _SetshiftKey;
+    property altKey: Boolean read _GetaltKey write _SetaltKey;
+    property metaKey: Boolean read _GetmetaKey write _SetmetaKey;
+    property modifierAltGraph: Boolean read _GetmodifierAltGraph write _SetmodifierAltGraph;
+    property modifierCapsLock: Boolean read _GetmodifierCapsLock write _SetmodifierCapsLock;
+    property modifierFn: Boolean read _GetmodifierFn write _SetmodifierFn;
+    property modifierFnLock: Boolean read _GetmodifierFnLock write _SetmodifierFnLock;
+    property modifierNumLock: Boolean read _GetmodifierNumLock write _SetmodifierNumLock;
+    property modifierOS: Boolean read _GetmodifierOS write _SetmodifierOS;
+    property modifierScrollLock: Boolean read _GetmodifierScrollLock write _SetmodifierScrollLock;
+    property modifierSymbol: Boolean read _GetmodifierSymbol write _SetmodifierSymbol;
+    property modifierSymbolLock: Boolean read _GetmodifierSymbolLock write _SetmodifierSymbolLock;
+  end;
+  
+  TJSEventModifierInit = class(TJSUIEventInit,IJSEventModifierInit)
+  Private
+  Protected
+    function _GetctrlKey: Boolean; 
+    function _GetshiftKey: Boolean; 
+    function _GetaltKey: Boolean; 
+    function _GetmetaKey: Boolean; 
+    function _GetmodifierAltGraph: Boolean; 
+    function _GetmodifierCapsLock: Boolean; 
+    function _GetmodifierFn: Boolean; 
+    function _GetmodifierFnLock: Boolean; 
+    function _GetmodifierNumLock: Boolean; 
+    function _GetmodifierOS: Boolean; 
+    function _GetmodifierScrollLock: Boolean; 
+    function _GetmodifierSymbol: Boolean; 
+    function _GetmodifierSymbolLock: Boolean; 
+    procedure _SetctrlKey(const aValue: Boolean);
+    procedure _SetshiftKey(const aValue: Boolean);
+    procedure _SetaltKey(const aValue: Boolean);
+    procedure _SetmetaKey(const aValue: Boolean);
+    procedure _SetmodifierAltGraph(const aValue: Boolean);
+    procedure _SetmodifierCapsLock(const aValue: Boolean);
+    procedure _SetmodifierFn(const aValue: Boolean);
+    procedure _SetmodifierFnLock(const aValue: Boolean);
+    procedure _SetmodifierNumLock(const aValue: Boolean);
+    procedure _SetmodifierOS(const aValue: Boolean);
+    procedure _SetmodifierScrollLock(const aValue: Boolean);
+    procedure _SetmodifierSymbol(const aValue: Boolean);
+    procedure _SetmodifierSymbolLock(const aValue: Boolean);
+  Public
+    constructor create(const aDict : TJSEventModifierInitRec); overload;
+    class function JSClassName: UnicodeString; override;
+    class function Cast(const Intf: IJSObject): IJSEventModifierInit;
+    property ctrlKey: Boolean read _GetctrlKey write _SetctrlKey;
+    property shiftKey: Boolean read _GetshiftKey write _SetshiftKey;
+    property altKey: Boolean read _GetaltKey write _SetaltKey;
+    property metaKey: Boolean read _GetmetaKey write _SetmetaKey;
+    property modifierAltGraph: Boolean read _GetmodifierAltGraph write _SetmodifierAltGraph;
+    property modifierCapsLock: Boolean read _GetmodifierCapsLock write _SetmodifierCapsLock;
+    property modifierFn: Boolean read _GetmodifierFn write _SetmodifierFn;
+    property modifierFnLock: Boolean read _GetmodifierFnLock write _SetmodifierFnLock;
+    property modifierNumLock: Boolean read _GetmodifierNumLock write _SetmodifierNumLock;
+    property modifierOS: Boolean read _GetmodifierOS write _SetmodifierOS;
+    property modifierScrollLock: Boolean read _GetmodifierScrollLock write _SetmodifierScrollLock;
+    property modifierSymbol: Boolean read _GetmodifierSymbol write _SetmodifierSymbol;
+    property modifierSymbolLock: Boolean read _GetmodifierSymbolLock write _SetmodifierSymbolLock;
+  end;
+  
+  { --------------------------------------------------------------------
+    TJSKeyboardEventInit
+    --------------------------------------------------------------------}
+  
+  TJSKeyboardEventInitRec = record
+    key: UnicodeString;
+    code: UnicodeString;
+    location: Cardinal;
+    repeat_: Boolean;
+    isComposing: Boolean;
+    charCode: Cardinal;
+    keyCode: Cardinal;
+    which: Cardinal;
+    ctrlKey: Boolean;
+    shiftKey: Boolean;
+    altKey: Boolean;
+    metaKey: Boolean;
+    modifierAltGraph: Boolean;
+    modifierCapsLock: Boolean;
+    modifierFn: Boolean;
+    modifierFnLock: Boolean;
+    modifierNumLock: Boolean;
+    modifierOS: Boolean;
+    modifierScrollLock: Boolean;
+    modifierSymbol: Boolean;
+    modifierSymbolLock: Boolean;
+    view: TJSWindow;
+    detail: LongInt;
+    bubbles: Boolean;
+    cancelable: Boolean;
+    composed: Boolean;
+  end;
+  
+  IJSKeyboardEventInit = interface(IJSEventModifierInit)
+    ['{40F8318E-16C5-3E3D-8CFE-37F939DF7424}']
+    function _Getkey: UnicodeString; 
+    function _Getcode: UnicodeString; 
+    function _Getlocation: Cardinal; 
+    function _Getrepeat_: Boolean; 
+    function _GetisComposing: Boolean; 
+    function _GetcharCode: Cardinal; 
+    function _GetkeyCode: Cardinal; 
+    function _Getwhich: Cardinal; 
+    procedure _Setkey(const aValue: UnicodeString);
+    procedure _Setcode(const aValue: UnicodeString);
+    procedure _Setlocation(const aValue: Cardinal);
+    procedure _Setrepeat_(const aValue: Boolean);
+    procedure _SetisComposing(const aValue: Boolean);
+    procedure _SetcharCode(const aValue: Cardinal);
+    procedure _SetkeyCode(const aValue: Cardinal);
+    procedure _Setwhich(const aValue: Cardinal);
+    property key: UnicodeString read _Getkey write _Setkey;
+    property code: UnicodeString read _Getcode write _Setcode;
+    property location: Cardinal read _Getlocation write _Setlocation;
+    property repeat_: Boolean read _Getrepeat_ write _Setrepeat_;
+    property isComposing: Boolean read _GetisComposing write _SetisComposing;
+    property charCode: Cardinal read _GetcharCode write _SetcharCode;
+    property keyCode: Cardinal read _GetkeyCode write _SetkeyCode;
+    property which: Cardinal read _Getwhich write _Setwhich;
+  end;
+  
+  TJSKeyboardEventInit = class(TJSEventModifierInit,IJSKeyboardEventInit)
+  Private
+  Protected
+    function _Getkey: UnicodeString; 
+    function _Getcode: UnicodeString; 
+    function _Getlocation: Cardinal; 
+    function _Getrepeat_: Boolean; 
+    function _GetisComposing: Boolean; 
+    function _GetcharCode: Cardinal; 
+    function _GetkeyCode: Cardinal; 
+    function _Getwhich: Cardinal; 
+    procedure _Setkey(const aValue: UnicodeString);
+    procedure _Setcode(const aValue: UnicodeString);
+    procedure _Setlocation(const aValue: Cardinal);
+    procedure _Setrepeat_(const aValue: Boolean);
+    procedure _SetisComposing(const aValue: Boolean);
+    procedure _SetcharCode(const aValue: Cardinal);
+    procedure _SetkeyCode(const aValue: Cardinal);
+    procedure _Setwhich(const aValue: Cardinal);
+  Public
+    constructor create(const aDict : TJSKeyboardEventInitRec); overload;
+    class function JSClassName: UnicodeString; override;
+    class function Cast(const Intf: IJSObject): IJSKeyboardEventInit;
+    property key: UnicodeString read _Getkey write _Setkey;
+    property code: UnicodeString read _Getcode write _Setcode;
+    property location: Cardinal read _Getlocation write _Setlocation;
+    property repeat_: Boolean read _Getrepeat_ write _Setrepeat_;
+    property isComposing: Boolean read _GetisComposing write _SetisComposing;
+    property charCode: Cardinal read _GetcharCode write _SetcharCode;
+    property keyCode: Cardinal read _GetkeyCode write _SetkeyCode;
+    property which: Cardinal read _Getwhich write _Setwhich;
+  end;
+  
+  { --------------------------------------------------------------------
+    TJSMouseEventInit
+    --------------------------------------------------------------------}
+  
+  TJSMouseEventInitRec = record
+    screenX: Double;
+    screenY: Double;
+    clientX: Double;
+    clientY: Double;
+    button: SmallInt;
+    buttons: Word;
+    relatedTarget: TJSEventTarget;
+    movementX: LongInt;
+    movementY: LongInt;
+    ctrlKey: Boolean;
+    shiftKey: Boolean;
+    altKey: Boolean;
+    metaKey: Boolean;
+    modifierAltGraph: Boolean;
+    modifierCapsLock: Boolean;
+    modifierFn: Boolean;
+    modifierFnLock: Boolean;
+    modifierNumLock: Boolean;
+    modifierOS: Boolean;
+    modifierScrollLock: Boolean;
+    modifierSymbol: Boolean;
+    modifierSymbolLock: Boolean;
+    view: TJSWindow;
+    detail: LongInt;
+    bubbles: Boolean;
+    cancelable: Boolean;
+    composed: Boolean;
+  end;
+  
+  IJSMouseEventInit = interface(IJSEventModifierInit)
+    ['{AA62FC06-A487-33BE-81F6-2D34E48E438D}']
+    function _GetscreenX: Double; 
+    function _GetscreenY: Double; 
+    function _GetclientX: Double; 
+    function _GetclientY: Double; 
+    function _Getbutton: SmallInt; 
+    function _Getbuttons: Word; 
+    function _GetrelatedTarget: IJSEventTarget; 
+    function _GetmovementX: LongInt; 
+    function _GetmovementY: LongInt; 
+    procedure _SetscreenX(const aValue: Double);
+    procedure _SetscreenY(const aValue: Double);
+    procedure _SetclientX(const aValue: Double);
+    procedure _SetclientY(const aValue: Double);
+    procedure _Setbutton(const aValue: SmallInt);
+    procedure _Setbuttons(const aValue: Word);
+    procedure _SetrelatedTarget(const aValue: IJSEventTarget);
+    procedure _SetmovementX(const aValue: LongInt);
+    procedure _SetmovementY(const aValue: LongInt);
+    property screenX: Double read _GetscreenX write _SetscreenX;
+    property screenY: Double read _GetscreenY write _SetscreenY;
+    property clientX: Double read _GetclientX write _SetclientX;
+    property clientY: Double read _GetclientY write _SetclientY;
+    property button: SmallInt read _Getbutton write _Setbutton;
+    property buttons: Word read _Getbuttons write _Setbuttons;
+    property relatedTarget: IJSEventTarget read _GetrelatedTarget write _SetrelatedTarget;
+    property movementX: LongInt read _GetmovementX write _SetmovementX;
+    property movementY: LongInt read _GetmovementY write _SetmovementY;
+  end;
+  
+  TJSMouseEventInit = class(TJSEventModifierInit,IJSMouseEventInit)
+  Private
+  Protected
+    function _GetscreenX: Double; 
+    function _GetscreenY: Double; 
+    function _GetclientX: Double; 
+    function _GetclientY: Double; 
+    function _Getbutton: SmallInt; 
+    function _Getbuttons: Word; 
+    function _GetrelatedTarget: IJSEventTarget; 
+    function _GetmovementX: LongInt; 
+    function _GetmovementY: LongInt; 
+    procedure _SetscreenX(const aValue: Double);
+    procedure _SetscreenY(const aValue: Double);
+    procedure _SetclientX(const aValue: Double);
+    procedure _SetclientY(const aValue: Double);
+    procedure _Setbutton(const aValue: SmallInt);
+    procedure _Setbuttons(const aValue: Word);
+    procedure _SetrelatedTarget(const aValue: IJSEventTarget);
+    procedure _SetmovementX(const aValue: LongInt);
+    procedure _SetmovementY(const aValue: LongInt);
+  Public
+    constructor create(const aDict : TJSMouseEventInitRec); overload;
+    class function JSClassName: UnicodeString; override;
+    class function Cast(const Intf: IJSObject): IJSMouseEventInit;
+    property screenX: Double read _GetscreenX write _SetscreenX;
+    property screenY: Double read _GetscreenY write _SetscreenY;
+    property clientX: Double read _GetclientX write _SetclientX;
+    property clientY: Double read _GetclientY write _SetclientY;
+    property button: SmallInt read _Getbutton write _Setbutton;
+    property buttons: Word read _Getbuttons write _Setbuttons;
+    property relatedTarget: IJSEventTarget read _GetrelatedTarget write _SetrelatedTarget;
+    property movementX: LongInt read _GetmovementX write _SetmovementX;
+    property movementY: LongInt read _GetmovementY write _SetmovementY;
+  end;
+  
+  { --------------------------------------------------------------------
+    TJSPointerEventInit
+    --------------------------------------------------------------------}
+  
+  TJSPointerEventDynArray = IJSArray; // array of PointerEvent
+  TJSPointerEventInitRec = record
+    pointerId: LongInt;
+    width: Double;
+    height: Double;
+    pressure: Single;
+    tangentialPressure: Single;
+    tiltX: LongInt;
+    tiltY: LongInt;
+    twist: LongInt;
+    altitudeAngle: Double;
+    azimuthAngle: Double;
+    pointerType: UnicodeString;
+    isPrimary: Boolean;
+    coalescedEvents: TJSPointerEventDynArray;
+    predictedEvents: TJSPointerEventDynArray;
+    screenX: Double;
+    screenY: Double;
+    clientX: Double;
+    clientY: Double;
+    button: SmallInt;
+    buttons: Word;
+    relatedTarget: TJSEventTarget;
+    movementX: LongInt;
+    movementY: LongInt;
+    ctrlKey: Boolean;
+    shiftKey: Boolean;
+    altKey: Boolean;
+    metaKey: Boolean;
+    modifierAltGraph: Boolean;
+    modifierCapsLock: Boolean;
+    modifierFn: Boolean;
+    modifierFnLock: Boolean;
+    modifierNumLock: Boolean;
+    modifierOS: Boolean;
+    modifierScrollLock: Boolean;
+    modifierSymbol: Boolean;
+    modifierSymbolLock: Boolean;
+    view: TJSWindow;
+    detail: LongInt;
+    bubbles: Boolean;
+    cancelable: Boolean;
+    composed: Boolean;
+  end;
+  
+  IJSPointerEventInit = interface(IJSMouseEventInit)
+    ['{BAD619C0-3444-3B5C-B079-B975554E00D0}']
+    function _GetpointerId: LongInt; 
+    function _Getwidth: Double; 
+    function _Getheight: Double; 
+    function _Getpressure: Single; 
+    function _GettangentialPressure: Single; 
+    function _GettiltX: LongInt; 
+    function _GettiltY: LongInt; 
+    function _Gettwist: LongInt; 
+    function _GetaltitudeAngle: Double; 
+    function _GetazimuthAngle: Double; 
+    function _GetpointerType: UnicodeString; 
+    function _GetisPrimary: Boolean; 
+    function _GetcoalescedEvents: TJSPointerEventDynArray; 
+    function _GetpredictedEvents: TJSPointerEventDynArray; 
+    procedure _SetpointerId(const aValue: LongInt);
+    procedure _Setwidth(const aValue: Double);
+    procedure _Setheight(const aValue: Double);
+    procedure _Setpressure(const aValue: Single);
+    procedure _SettangentialPressure(const aValue: Single);
+    procedure _SettiltX(const aValue: LongInt);
+    procedure _SettiltY(const aValue: LongInt);
+    procedure _Settwist(const aValue: LongInt);
+    procedure _SetaltitudeAngle(const aValue: Double);
+    procedure _SetazimuthAngle(const aValue: Double);
+    procedure _SetpointerType(const aValue: UnicodeString);
+    procedure _SetisPrimary(const aValue: Boolean);
+    procedure _SetcoalescedEvents(const aValue: TJSPointerEventDynArray);
+    procedure _SetpredictedEvents(const aValue: TJSPointerEventDynArray);
+    property pointerId: LongInt read _GetpointerId write _SetpointerId;
+    property width: Double read _Getwidth write _Setwidth;
+    property height: Double read _Getheight write _Setheight;
+    property pressure: Single read _Getpressure write _Setpressure;
+    property tangentialPressure: Single read _GettangentialPressure write _SettangentialPressure;
+    property tiltX: LongInt read _GettiltX write _SettiltX;
+    property tiltY: LongInt read _GettiltY write _SettiltY;
+    property twist: LongInt read _Gettwist write _Settwist;
+    property altitudeAngle: Double read _GetaltitudeAngle write _SetaltitudeAngle;
+    property azimuthAngle: Double read _GetazimuthAngle write _SetazimuthAngle;
+    property pointerType: UnicodeString read _GetpointerType write _SetpointerType;
+    property isPrimary: Boolean read _GetisPrimary write _SetisPrimary;
+    property coalescedEvents: TJSPointerEventDynArray read _GetcoalescedEvents write _SetcoalescedEvents;
+    property predictedEvents: TJSPointerEventDynArray read _GetpredictedEvents write _SetpredictedEvents;
+  end;
+  
+  TJSPointerEventInit = class(TJSMouseEventInit,IJSPointerEventInit)
+  Private
+  Protected
+    function _GetpointerId: LongInt; 
+    function _Getwidth: Double; 
+    function _Getheight: Double; 
+    function _Getpressure: Single; 
+    function _GettangentialPressure: Single; 
+    function _GettiltX: LongInt; 
+    function _GettiltY: LongInt; 
+    function _Gettwist: LongInt; 
+    function _GetaltitudeAngle: Double; 
+    function _GetazimuthAngle: Double; 
+    function _GetpointerType: UnicodeString; 
+    function _GetisPrimary: Boolean; 
+    function _GetcoalescedEvents: TJSPointerEventDynArray; 
+    function _GetpredictedEvents: TJSPointerEventDynArray; 
+    procedure _SetpointerId(const aValue: LongInt);
+    procedure _Setwidth(const aValue: Double);
+    procedure _Setheight(const aValue: Double);
+    procedure _Setpressure(const aValue: Single);
+    procedure _SettangentialPressure(const aValue: Single);
+    procedure _SettiltX(const aValue: LongInt);
+    procedure _SettiltY(const aValue: LongInt);
+    procedure _Settwist(const aValue: LongInt);
+    procedure _SetaltitudeAngle(const aValue: Double);
+    procedure _SetazimuthAngle(const aValue: Double);
+    procedure _SetpointerType(const aValue: UnicodeString);
+    procedure _SetisPrimary(const aValue: Boolean);
+    procedure _SetcoalescedEvents(const aValue: TJSPointerEventDynArray);
+    procedure _SetpredictedEvents(const aValue: TJSPointerEventDynArray);
+  Public
+    constructor create(const aDict : TJSPointerEventInitRec); overload;
+    class function JSClassName: UnicodeString; override;
+    class function Cast(const Intf: IJSObject): IJSPointerEventInit;
+    property pointerId: LongInt read _GetpointerId write _SetpointerId;
+    property width: Double read _Getwidth write _Setwidth;
+    property height: Double read _Getheight write _Setheight;
+    property pressure: Single read _Getpressure write _Setpressure;
+    property tangentialPressure: Single read _GettangentialPressure write _SettangentialPressure;
+    property tiltX: LongInt read _GettiltX write _SettiltX;
+    property tiltY: LongInt read _GettiltY write _SettiltY;
+    property twist: LongInt read _Gettwist write _Settwist;
+    property altitudeAngle: Double read _GetaltitudeAngle write _SetaltitudeAngle;
+    property azimuthAngle: Double read _GetazimuthAngle write _SetazimuthAngle;
+    property pointerType: UnicodeString read _GetpointerType write _SetpointerType;
+    property isPrimary: Boolean read _GetisPrimary write _SetisPrimary;
+    property coalescedEvents: TJSPointerEventDynArray read _GetcoalescedEvents write _SetcoalescedEvents;
+    property predictedEvents: TJSPointerEventDynArray read _GetpredictedEvents write _SetpredictedEvents;
   end;
   
   { --------------------------------------------------------------------
@@ -6396,6 +6908,66 @@ Type
   end;
   
   { --------------------------------------------------------------------
+    TJSUIEvent
+    --------------------------------------------------------------------}
+  
+  IJSUIEvent = interface(IJSEvent)
+    ['{E1117B61-9923-311E-BFA0-D6A31F90F3F4}']
+    function _Getview: IJSWindowProxy; 
+    function _Getdetail: LongInt; 
+    function _GetlayerX: LongInt; 
+    function _GetlayerY: LongInt; 
+    function _Getwhich: Cardinal; 
+    function _GetrangeParent: IJSNode; 
+    function _GetrangeOffset: LongInt; 
+    procedure initUIEvent(const aAType: UnicodeString; aACanBubble: Boolean; aACancelable: Boolean; aAView: IJSWindow; aADetail: LongInt);
+    procedure initUIEvent(const aAType: UnicodeString);
+    procedure initUIEvent(const aAType: UnicodeString; aACanBubble: Boolean);
+    procedure initUIEvent(const aAType: UnicodeString; aACanBubble: Boolean; aACancelable: Boolean);
+    procedure initUIEvent(const aAType: UnicodeString; aACanBubble: Boolean; aACancelable: Boolean; aAView: IJSWindow);
+    property view: IJSWindowProxy read _Getview;
+    property detail: LongInt read _Getdetail;
+    property layerX: LongInt read _GetlayerX;
+    property layerY: LongInt read _GetlayerY;
+    property which: Cardinal read _Getwhich;
+    property rangeParent: IJSNode read _GetrangeParent;
+    property rangeOffset: LongInt read _GetrangeOffset;
+  end;
+  
+  TJSUIEvent = class(TJSEvent,IJSUIEvent)
+  Private
+  Protected
+    function _Getview: IJSWindowProxy; 
+    function _Getdetail: LongInt; 
+    function _GetlayerX: LongInt; 
+    function _GetlayerY: LongInt; 
+    function _Getwhich: Cardinal; 
+    function _GetrangeParent: IJSNode; 
+    function _GetrangeOffset: LongInt; 
+  Public
+    Const
+      SCROLL_PAGE_UP = -32768;
+      SCROLL_PAGE_DOWN = 32768;
+  Public
+    constructor Create(const aType_: UnicodeString; const aEventInitDict: IJSUIEventInit); overload;
+    constructor Create(const aType_: UnicodeString); overload;
+    procedure initUIEvent(const aAType: UnicodeString; aACanBubble: Boolean; aACancelable: Boolean; aAView: IJSWindow; aADetail: LongInt); overload;
+    procedure initUIEvent(const aAType: UnicodeString); overload;
+    procedure initUIEvent(const aAType: UnicodeString; aACanBubble: Boolean); overload;
+    procedure initUIEvent(const aAType: UnicodeString; aACanBubble: Boolean; aACancelable: Boolean); overload;
+    procedure initUIEvent(const aAType: UnicodeString; aACanBubble: Boolean; aACancelable: Boolean; aAView: IJSWindow); overload;
+    class function JSClassName: UnicodeString; override;
+    class function Cast(const Intf: IJSObject): IJSUIEvent;
+    property view: IJSWindowProxy read _Getview;
+    property detail: LongInt read _Getdetail;
+    property layerX: LongInt read _GetlayerX;
+    property layerY: LongInt read _GetlayerY;
+    property which: Cardinal read _Getwhich;
+    property rangeParent: IJSNode read _GetrangeParent;
+    property rangeOffset: LongInt read _GetrangeOffset;
+  end;
+  
+  { --------------------------------------------------------------------
     TJSWebGLContextEvent
     --------------------------------------------------------------------}
   
@@ -6608,6 +7180,273 @@ Type
   end;
   
   { --------------------------------------------------------------------
+    TJSKeyboardEvent
+    --------------------------------------------------------------------}
+  
+  IJSKeyboardEvent = interface(IJSUIEvent)
+    ['{E4815410-81F4-3460-9137-25F38B8CCB57}']
+    function _GetcharCode: Cardinal; 
+    function _GetkeyCode: Cardinal; 
+    function _GetaltKey: Boolean; 
+    function _GetctrlKey: Boolean; 
+    function _GetshiftKey: Boolean; 
+    function _GetmetaKey: Boolean; 
+    function _Getlocation: Cardinal; 
+    function _Getrepeat_: Boolean; 
+    function _GetisComposing: Boolean; 
+    function _Getkey: UnicodeString; 
+    function _Getcode: UnicodeString; 
+    function getModifierState(const aKey: UnicodeString): Boolean;
+    procedure initKeyboardEvent(const aTypeArg: UnicodeString; aBubblesArg: Boolean; aCancelableArg: Boolean; aViewArg: IJSWindow; const aKeyArg: UnicodeString; aLocationArg: Cardinal; aCtrlKey: Boolean; aAltKey: Boolean; aShiftKey: Boolean; aMetaKey: Boolean);
+    procedure initKeyboardEvent(const aTypeArg: UnicodeString);
+    procedure initKeyboardEvent(const aTypeArg: UnicodeString; aBubblesArg: Boolean);
+    procedure initKeyboardEvent(const aTypeArg: UnicodeString; aBubblesArg: Boolean; aCancelableArg: Boolean);
+    procedure initKeyboardEvent(const aTypeArg: UnicodeString; aBubblesArg: Boolean; aCancelableArg: Boolean; aViewArg: IJSWindow);
+    procedure initKeyboardEvent(const aTypeArg: UnicodeString; aBubblesArg: Boolean; aCancelableArg: Boolean; aViewArg: IJSWindow; const aKeyArg: UnicodeString);
+    procedure initKeyboardEvent(const aTypeArg: UnicodeString; aBubblesArg: Boolean; aCancelableArg: Boolean; aViewArg: IJSWindow; const aKeyArg: UnicodeString; aLocationArg: Cardinal);
+    procedure initKeyboardEvent(const aTypeArg: UnicodeString; aBubblesArg: Boolean; aCancelableArg: Boolean; aViewArg: IJSWindow; const aKeyArg: UnicodeString; aLocationArg: Cardinal; aCtrlKey: Boolean);
+    procedure initKeyboardEvent(const aTypeArg: UnicodeString; aBubblesArg: Boolean; aCancelableArg: Boolean; aViewArg: IJSWindow; const aKeyArg: UnicodeString; aLocationArg: Cardinal; aCtrlKey: Boolean; aAltKey: Boolean);
+    procedure initKeyboardEvent(const aTypeArg: UnicodeString; aBubblesArg: Boolean; aCancelableArg: Boolean; aViewArg: IJSWindow; const aKeyArg: UnicodeString; aLocationArg: Cardinal; aCtrlKey: Boolean; aAltKey: Boolean; aShiftKey: Boolean);
+    property charCode: Cardinal read _GetcharCode;
+    property keyCode: Cardinal read _GetkeyCode;
+    property altKey: Boolean read _GetaltKey;
+    property ctrlKey: Boolean read _GetctrlKey;
+    property shiftKey: Boolean read _GetshiftKey;
+    property metaKey: Boolean read _GetmetaKey;
+    property location: Cardinal read _Getlocation;
+    property repeat_: Boolean read _Getrepeat_;
+    property isComposing: Boolean read _GetisComposing;
+    property key: UnicodeString read _Getkey;
+    property code: UnicodeString read _Getcode;
+  end;
+  
+  TJSKeyboardEvent = class(TJSUIEvent,IJSKeyboardEvent)
+  Private
+  Protected
+    function _GetcharCode: Cardinal; 
+    function _GetkeyCode: Cardinal; 
+    function _GetaltKey: Boolean; 
+    function _GetctrlKey: Boolean; 
+    function _GetshiftKey: Boolean; 
+    function _GetmetaKey: Boolean; 
+    function _Getlocation: Cardinal; 
+    function _Getrepeat_: Boolean; 
+    function _GetisComposing: Boolean; 
+    function _Getkey: UnicodeString; 
+    function _Getcode: UnicodeString; 
+  Public
+    Const
+      DOM_KEY_LOCATION_STANDARD = $00;
+      DOM_KEY_LOCATION_LEFT = $01;
+      DOM_KEY_LOCATION_RIGHT = $02;
+      DOM_KEY_LOCATION_NUMPAD = $03;
+  Public
+    constructor Create(const aTypeArg: UnicodeString; const aKeyboardEventInitDict: IJSKeyboardEventInit); overload;
+    constructor Create(const aTypeArg: UnicodeString); overload;
+    function getModifierState(const aKey: UnicodeString): Boolean; overload;
+    procedure initKeyboardEvent(const aTypeArg: UnicodeString; aBubblesArg: Boolean; aCancelableArg: Boolean; aViewArg: IJSWindow; const aKeyArg: UnicodeString; aLocationArg: Cardinal; aCtrlKey: Boolean; aAltKey: Boolean; aShiftKey: Boolean; aMetaKey: Boolean); overload;
+    procedure initKeyboardEvent(const aTypeArg: UnicodeString); overload;
+    procedure initKeyboardEvent(const aTypeArg: UnicodeString; aBubblesArg: Boolean); overload;
+    procedure initKeyboardEvent(const aTypeArg: UnicodeString; aBubblesArg: Boolean; aCancelableArg: Boolean); overload;
+    procedure initKeyboardEvent(const aTypeArg: UnicodeString; aBubblesArg: Boolean; aCancelableArg: Boolean; aViewArg: IJSWindow); overload;
+    procedure initKeyboardEvent(const aTypeArg: UnicodeString; aBubblesArg: Boolean; aCancelableArg: Boolean; aViewArg: IJSWindow; const aKeyArg: UnicodeString); overload;
+    procedure initKeyboardEvent(const aTypeArg: UnicodeString; aBubblesArg: Boolean; aCancelableArg: Boolean; aViewArg: IJSWindow; const aKeyArg: UnicodeString; aLocationArg: Cardinal); overload;
+    procedure initKeyboardEvent(const aTypeArg: UnicodeString; aBubblesArg: Boolean; aCancelableArg: Boolean; aViewArg: IJSWindow; const aKeyArg: UnicodeString; aLocationArg: Cardinal; aCtrlKey: Boolean); overload;
+    procedure initKeyboardEvent(const aTypeArg: UnicodeString; aBubblesArg: Boolean; aCancelableArg: Boolean; aViewArg: IJSWindow; const aKeyArg: UnicodeString; aLocationArg: Cardinal; aCtrlKey: Boolean; aAltKey: Boolean); overload;
+    procedure initKeyboardEvent(const aTypeArg: UnicodeString; aBubblesArg: Boolean; aCancelableArg: Boolean; aViewArg: IJSWindow; const aKeyArg: UnicodeString; aLocationArg: Cardinal; aCtrlKey: Boolean; aAltKey: Boolean; aShiftKey: Boolean); overload;
+    class function JSClassName: UnicodeString; override;
+    class function Cast(const Intf: IJSObject): IJSKeyboardEvent;
+    property charCode: Cardinal read _GetcharCode;
+    property keyCode: Cardinal read _GetkeyCode;
+    property altKey: Boolean read _GetaltKey;
+    property ctrlKey: Boolean read _GetctrlKey;
+    property shiftKey: Boolean read _GetshiftKey;
+    property metaKey: Boolean read _GetmetaKey;
+    property location: Cardinal read _Getlocation;
+    property repeat_: Boolean read _Getrepeat_;
+    property isComposing: Boolean read _GetisComposing;
+    property key: UnicodeString read _Getkey;
+    property code: UnicodeString read _Getcode;
+  end;
+  
+  { --------------------------------------------------------------------
+    TJSMouseEvent
+    --------------------------------------------------------------------}
+  
+  IJSMouseEvent = interface(IJSUIEvent)
+    ['{FEAE5AEA-A8E7-3CA8-BD34-D58191B0F886}']
+    function _GetscreenX: Double; 
+    function _GetscreenY: Double; 
+    function _GetpageX: Double; 
+    function _GetpageY: Double; 
+    function _GetclientX: Double; 
+    function _GetclientY: Double; 
+    function _Getx: Double; 
+    function _Gety: Double; 
+    function _GetoffsetX: Double; 
+    function _GetoffsetY: Double; 
+    function _GetctrlKey: Boolean; 
+    function _GetshiftKey: Boolean; 
+    function _GetaltKey: Boolean; 
+    function _GetmetaKey: Boolean; 
+    function _Getbutton: SmallInt; 
+    function _Getbuttons: Word; 
+    function _GetrelatedTarget: IJSEventTarget; 
+    function _GetmovementX: LongInt; 
+    function _GetmovementY: LongInt; 
+    function _GetmozPressure: Single; 
+    function _GetmozInputSource: Word; 
+    procedure initMouseEvent(const aTypeArg: UnicodeString; aCanBubbleArg: Boolean; aCancelableArg: Boolean; aViewArg: IJSWindow; aDetailArg: LongInt; aScreenXArg: LongInt; aScreenYArg: LongInt; aClientXArg: LongInt; aClientYArg: LongInt; aCtrlKeyArg: Boolean; aAltKeyArg: Boolean; aShiftKeyArg: Boolean; aMetaKeyArg: Boolean; aButtonArg: SmallInt; aRelatedTargetArg: IJSEventTarget);
+    procedure initMouseEvent(const aTypeArg: UnicodeString);
+    procedure initMouseEvent(const aTypeArg: UnicodeString; aCanBubbleArg: Boolean);
+    procedure initMouseEvent(const aTypeArg: UnicodeString; aCanBubbleArg: Boolean; aCancelableArg: Boolean);
+    procedure initMouseEvent(const aTypeArg: UnicodeString; aCanBubbleArg: Boolean; aCancelableArg: Boolean; aViewArg: IJSWindow);
+    procedure initMouseEvent(const aTypeArg: UnicodeString; aCanBubbleArg: Boolean; aCancelableArg: Boolean; aViewArg: IJSWindow; aDetailArg: LongInt);
+    procedure initMouseEvent(const aTypeArg: UnicodeString; aCanBubbleArg: Boolean; aCancelableArg: Boolean; aViewArg: IJSWindow; aDetailArg: LongInt; aScreenXArg: LongInt);
+    procedure initMouseEvent(const aTypeArg: UnicodeString; aCanBubbleArg: Boolean; aCancelableArg: Boolean; aViewArg: IJSWindow; aDetailArg: LongInt; aScreenXArg: LongInt; aScreenYArg: LongInt);
+    procedure initMouseEvent(const aTypeArg: UnicodeString; aCanBubbleArg: Boolean; aCancelableArg: Boolean; aViewArg: IJSWindow; aDetailArg: LongInt; aScreenXArg: LongInt; aScreenYArg: LongInt; aClientXArg: LongInt);
+    procedure initMouseEvent(const aTypeArg: UnicodeString; aCanBubbleArg: Boolean; aCancelableArg: Boolean; aViewArg: IJSWindow; aDetailArg: LongInt; aScreenXArg: LongInt; aScreenYArg: LongInt; aClientXArg: LongInt; aClientYArg: LongInt);
+    procedure initMouseEvent(const aTypeArg: UnicodeString; aCanBubbleArg: Boolean; aCancelableArg: Boolean; aViewArg: IJSWindow; aDetailArg: LongInt; aScreenXArg: LongInt; aScreenYArg: LongInt; aClientXArg: LongInt; aClientYArg: LongInt; aCtrlKeyArg: Boolean);
+    procedure initMouseEvent(const aTypeArg: UnicodeString; aCanBubbleArg: Boolean; aCancelableArg: Boolean; aViewArg: IJSWindow; aDetailArg: LongInt; aScreenXArg: LongInt; aScreenYArg: LongInt; aClientXArg: LongInt; aClientYArg: LongInt; aCtrlKeyArg: Boolean; aAltKeyArg: Boolean);
+    procedure initMouseEvent(const aTypeArg: UnicodeString; aCanBubbleArg: Boolean; aCancelableArg: Boolean; aViewArg: IJSWindow; aDetailArg: LongInt; aScreenXArg: LongInt; aScreenYArg: LongInt; aClientXArg: LongInt; aClientYArg: LongInt; aCtrlKeyArg: Boolean; aAltKeyArg: Boolean; aShiftKeyArg: Boolean);
+    procedure initMouseEvent(const aTypeArg: UnicodeString; aCanBubbleArg: Boolean; aCancelableArg: Boolean; aViewArg: IJSWindow; aDetailArg: LongInt; aScreenXArg: LongInt; aScreenYArg: LongInt; aClientXArg: LongInt; aClientYArg: LongInt; aCtrlKeyArg: Boolean; aAltKeyArg: Boolean; aShiftKeyArg: Boolean; aMetaKeyArg: Boolean);
+    procedure initMouseEvent(const aTypeArg: UnicodeString; aCanBubbleArg: Boolean; aCancelableArg: Boolean; aViewArg: IJSWindow; aDetailArg: LongInt; aScreenXArg: LongInt; aScreenYArg: LongInt; aClientXArg: LongInt; aClientYArg: LongInt; aCtrlKeyArg: Boolean; aAltKeyArg: Boolean; aShiftKeyArg: Boolean; aMetaKeyArg: Boolean; aButtonArg: SmallInt);
+    function getModifierState(const aKeyArg: UnicodeString): Boolean;
+    procedure initNSMouseEvent(const aTypeArg: UnicodeString; aCanBubbleArg: Boolean; aCancelableArg: Boolean; aViewArg: IJSWindow; aDetailArg: LongInt; aScreenXArg: LongInt; aScreenYArg: LongInt; aClientXArg: LongInt; aClientYArg: LongInt; aCtrlKeyArg: Boolean; aAltKeyArg: Boolean; aShiftKeyArg: Boolean; aMetaKeyArg: Boolean; aButtonArg: SmallInt; aRelatedTargetArg: IJSEventTarget; aPressure: Single; aInputSourceArg: Word);
+    procedure initNSMouseEvent(const aTypeArg: UnicodeString);
+    procedure initNSMouseEvent(const aTypeArg: UnicodeString; aCanBubbleArg: Boolean);
+    procedure initNSMouseEvent(const aTypeArg: UnicodeString; aCanBubbleArg: Boolean; aCancelableArg: Boolean);
+    procedure initNSMouseEvent(const aTypeArg: UnicodeString; aCanBubbleArg: Boolean; aCancelableArg: Boolean; aViewArg: IJSWindow);
+    procedure initNSMouseEvent(const aTypeArg: UnicodeString; aCanBubbleArg: Boolean; aCancelableArg: Boolean; aViewArg: IJSWindow; aDetailArg: LongInt);
+    procedure initNSMouseEvent(const aTypeArg: UnicodeString; aCanBubbleArg: Boolean; aCancelableArg: Boolean; aViewArg: IJSWindow; aDetailArg: LongInt; aScreenXArg: LongInt);
+    procedure initNSMouseEvent(const aTypeArg: UnicodeString; aCanBubbleArg: Boolean; aCancelableArg: Boolean; aViewArg: IJSWindow; aDetailArg: LongInt; aScreenXArg: LongInt; aScreenYArg: LongInt);
+    procedure initNSMouseEvent(const aTypeArg: UnicodeString; aCanBubbleArg: Boolean; aCancelableArg: Boolean; aViewArg: IJSWindow; aDetailArg: LongInt; aScreenXArg: LongInt; aScreenYArg: LongInt; aClientXArg: LongInt);
+    procedure initNSMouseEvent(const aTypeArg: UnicodeString; aCanBubbleArg: Boolean; aCancelableArg: Boolean; aViewArg: IJSWindow; aDetailArg: LongInt; aScreenXArg: LongInt; aScreenYArg: LongInt; aClientXArg: LongInt; aClientYArg: LongInt);
+    procedure initNSMouseEvent(const aTypeArg: UnicodeString; aCanBubbleArg: Boolean; aCancelableArg: Boolean; aViewArg: IJSWindow; aDetailArg: LongInt; aScreenXArg: LongInt; aScreenYArg: LongInt; aClientXArg: LongInt; aClientYArg: LongInt; aCtrlKeyArg: Boolean);
+    procedure initNSMouseEvent(const aTypeArg: UnicodeString; aCanBubbleArg: Boolean; aCancelableArg: Boolean; aViewArg: IJSWindow; aDetailArg: LongInt; aScreenXArg: LongInt; aScreenYArg: LongInt; aClientXArg: LongInt; aClientYArg: LongInt; aCtrlKeyArg: Boolean; aAltKeyArg: Boolean);
+    procedure initNSMouseEvent(const aTypeArg: UnicodeString; aCanBubbleArg: Boolean; aCancelableArg: Boolean; aViewArg: IJSWindow; aDetailArg: LongInt; aScreenXArg: LongInt; aScreenYArg: LongInt; aClientXArg: LongInt; aClientYArg: LongInt; aCtrlKeyArg: Boolean; aAltKeyArg: Boolean; aShiftKeyArg: Boolean);
+    procedure initNSMouseEvent(const aTypeArg: UnicodeString; aCanBubbleArg: Boolean; aCancelableArg: Boolean; aViewArg: IJSWindow; aDetailArg: LongInt; aScreenXArg: LongInt; aScreenYArg: LongInt; aClientXArg: LongInt; aClientYArg: LongInt; aCtrlKeyArg: Boolean; aAltKeyArg: Boolean; aShiftKeyArg: Boolean; aMetaKeyArg: Boolean);
+    procedure initNSMouseEvent(const aTypeArg: UnicodeString; aCanBubbleArg: Boolean; aCancelableArg: Boolean; aViewArg: IJSWindow; aDetailArg: LongInt; aScreenXArg: LongInt; aScreenYArg: LongInt; aClientXArg: LongInt; aClientYArg: LongInt; aCtrlKeyArg: Boolean; aAltKeyArg: Boolean; aShiftKeyArg: Boolean; aMetaKeyArg: Boolean; aButtonArg: SmallInt);
+    procedure initNSMouseEvent(const aTypeArg: UnicodeString; aCanBubbleArg: Boolean; aCancelableArg: Boolean; aViewArg: IJSWindow; aDetailArg: LongInt; aScreenXArg: LongInt; aScreenYArg: LongInt; aClientXArg: LongInt; aClientYArg: LongInt; aCtrlKeyArg: Boolean; aAltKeyArg: Boolean; aShiftKeyArg: Boolean; aMetaKeyArg: Boolean; aButtonArg: SmallInt; aRelatedTargetArg: IJSEventTarget);
+    procedure initNSMouseEvent(const aTypeArg: UnicodeString; aCanBubbleArg: Boolean; aCancelableArg: Boolean; aViewArg: IJSWindow; aDetailArg: LongInt; aScreenXArg: LongInt; aScreenYArg: LongInt; aClientXArg: LongInt; aClientYArg: LongInt; aCtrlKeyArg: Boolean; aAltKeyArg: Boolean; aShiftKeyArg: Boolean; aMetaKeyArg: Boolean; aButtonArg: SmallInt; aRelatedTargetArg: IJSEventTarget; aPressure: Single);
+    property screenX: Double read _GetscreenX;
+    property screenY: Double read _GetscreenY;
+    property pageX: Double read _GetpageX;
+    property pageY: Double read _GetpageY;
+    property clientX: Double read _GetclientX;
+    property clientY: Double read _GetclientY;
+    property x: Double read _Getx;
+    property y: Double read _Gety;
+    property offsetX: Double read _GetoffsetX;
+    property offsetY: Double read _GetoffsetY;
+    property ctrlKey: Boolean read _GetctrlKey;
+    property shiftKey: Boolean read _GetshiftKey;
+    property altKey: Boolean read _GetaltKey;
+    property metaKey: Boolean read _GetmetaKey;
+    property button: SmallInt read _Getbutton;
+    property buttons: Word read _Getbuttons;
+    property relatedTarget: IJSEventTarget read _GetrelatedTarget;
+    property movementX: LongInt read _GetmovementX;
+    property movementY: LongInt read _GetmovementY;
+    property mozPressure: Single read _GetmozPressure;
+    property mozInputSource: Word read _GetmozInputSource;
+  end;
+  
+  TJSMouseEvent = class(TJSUIEvent,IJSMouseEvent)
+  Private
+  Protected
+    function _GetscreenX: Double; 
+    function _GetscreenY: Double; 
+    function _GetpageX: Double; 
+    function _GetpageY: Double; 
+    function _GetclientX: Double; 
+    function _GetclientY: Double; 
+    function _Getx: Double; 
+    function _Gety: Double; 
+    function _GetoffsetX: Double; 
+    function _GetoffsetY: Double; 
+    function _GetctrlKey: Boolean; 
+    function _GetshiftKey: Boolean; 
+    function _GetaltKey: Boolean; 
+    function _GetmetaKey: Boolean; 
+    function _Getbutton: SmallInt; 
+    function _Getbuttons: Word; 
+    function _GetrelatedTarget: IJSEventTarget; 
+    function _GetmovementX: LongInt; 
+    function _GetmovementY: LongInt; 
+    function _GetmozPressure: Single; 
+    function _GetmozInputSource: Word; 
+  Public
+    Const
+      MOZ_SOURCE_UNKNOWN = 0;
+      MOZ_SOURCE_MOUSE = 1;
+      MOZ_SOURCE_PEN = 2;
+      MOZ_SOURCE_ERASER = 3;
+      MOZ_SOURCE_CURSOR = 4;
+      MOZ_SOURCE_TOUCH = 5;
+      MOZ_SOURCE_KEYBOARD = 6;
+  Public
+    constructor Create(const aTypeArg: UnicodeString; const aMouseEventInitDict: IJSMouseEventInit); overload;
+    constructor Create(const aTypeArg: UnicodeString); overload;
+    procedure initMouseEvent(const aTypeArg: UnicodeString; aCanBubbleArg: Boolean; aCancelableArg: Boolean; aViewArg: IJSWindow; aDetailArg: LongInt; aScreenXArg: LongInt; aScreenYArg: LongInt; aClientXArg: LongInt; aClientYArg: LongInt; aCtrlKeyArg: Boolean; aAltKeyArg: Boolean; aShiftKeyArg: Boolean; aMetaKeyArg: Boolean; aButtonArg: SmallInt; aRelatedTargetArg: IJSEventTarget); overload;
+    procedure initMouseEvent(const aTypeArg: UnicodeString); overload;
+    procedure initMouseEvent(const aTypeArg: UnicodeString; aCanBubbleArg: Boolean); overload;
+    procedure initMouseEvent(const aTypeArg: UnicodeString; aCanBubbleArg: Boolean; aCancelableArg: Boolean); overload;
+    procedure initMouseEvent(const aTypeArg: UnicodeString; aCanBubbleArg: Boolean; aCancelableArg: Boolean; aViewArg: IJSWindow); overload;
+    procedure initMouseEvent(const aTypeArg: UnicodeString; aCanBubbleArg: Boolean; aCancelableArg: Boolean; aViewArg: IJSWindow; aDetailArg: LongInt); overload;
+    procedure initMouseEvent(const aTypeArg: UnicodeString; aCanBubbleArg: Boolean; aCancelableArg: Boolean; aViewArg: IJSWindow; aDetailArg: LongInt; aScreenXArg: LongInt); overload;
+    procedure initMouseEvent(const aTypeArg: UnicodeString; aCanBubbleArg: Boolean; aCancelableArg: Boolean; aViewArg: IJSWindow; aDetailArg: LongInt; aScreenXArg: LongInt; aScreenYArg: LongInt); overload;
+    procedure initMouseEvent(const aTypeArg: UnicodeString; aCanBubbleArg: Boolean; aCancelableArg: Boolean; aViewArg: IJSWindow; aDetailArg: LongInt; aScreenXArg: LongInt; aScreenYArg: LongInt; aClientXArg: LongInt); overload;
+    procedure initMouseEvent(const aTypeArg: UnicodeString; aCanBubbleArg: Boolean; aCancelableArg: Boolean; aViewArg: IJSWindow; aDetailArg: LongInt; aScreenXArg: LongInt; aScreenYArg: LongInt; aClientXArg: LongInt; aClientYArg: LongInt); overload;
+    procedure initMouseEvent(const aTypeArg: UnicodeString; aCanBubbleArg: Boolean; aCancelableArg: Boolean; aViewArg: IJSWindow; aDetailArg: LongInt; aScreenXArg: LongInt; aScreenYArg: LongInt; aClientXArg: LongInt; aClientYArg: LongInt; aCtrlKeyArg: Boolean); overload;
+    procedure initMouseEvent(const aTypeArg: UnicodeString; aCanBubbleArg: Boolean; aCancelableArg: Boolean; aViewArg: IJSWindow; aDetailArg: LongInt; aScreenXArg: LongInt; aScreenYArg: LongInt; aClientXArg: LongInt; aClientYArg: LongInt; aCtrlKeyArg: Boolean; aAltKeyArg: Boolean); overload;
+    procedure initMouseEvent(const aTypeArg: UnicodeString; aCanBubbleArg: Boolean; aCancelableArg: Boolean; aViewArg: IJSWindow; aDetailArg: LongInt; aScreenXArg: LongInt; aScreenYArg: LongInt; aClientXArg: LongInt; aClientYArg: LongInt; aCtrlKeyArg: Boolean; aAltKeyArg: Boolean; aShiftKeyArg: Boolean); overload;
+    procedure initMouseEvent(const aTypeArg: UnicodeString; aCanBubbleArg: Boolean; aCancelableArg: Boolean; aViewArg: IJSWindow; aDetailArg: LongInt; aScreenXArg: LongInt; aScreenYArg: LongInt; aClientXArg: LongInt; aClientYArg: LongInt; aCtrlKeyArg: Boolean; aAltKeyArg: Boolean; aShiftKeyArg: Boolean; aMetaKeyArg: Boolean); overload;
+    procedure initMouseEvent(const aTypeArg: UnicodeString; aCanBubbleArg: Boolean; aCancelableArg: Boolean; aViewArg: IJSWindow; aDetailArg: LongInt; aScreenXArg: LongInt; aScreenYArg: LongInt; aClientXArg: LongInt; aClientYArg: LongInt; aCtrlKeyArg: Boolean; aAltKeyArg: Boolean; aShiftKeyArg: Boolean; aMetaKeyArg: Boolean; aButtonArg: SmallInt); overload;
+    function getModifierState(const aKeyArg: UnicodeString): Boolean; overload;
+    procedure initNSMouseEvent(const aTypeArg: UnicodeString; aCanBubbleArg: Boolean; aCancelableArg: Boolean; aViewArg: IJSWindow; aDetailArg: LongInt; aScreenXArg: LongInt; aScreenYArg: LongInt; aClientXArg: LongInt; aClientYArg: LongInt; aCtrlKeyArg: Boolean; aAltKeyArg: Boolean; aShiftKeyArg: Boolean; aMetaKeyArg: Boolean; aButtonArg: SmallInt; aRelatedTargetArg: IJSEventTarget; aPressure: Single; aInputSourceArg: Word); overload;
+    procedure initNSMouseEvent(const aTypeArg: UnicodeString); overload;
+    procedure initNSMouseEvent(const aTypeArg: UnicodeString; aCanBubbleArg: Boolean); overload;
+    procedure initNSMouseEvent(const aTypeArg: UnicodeString; aCanBubbleArg: Boolean; aCancelableArg: Boolean); overload;
+    procedure initNSMouseEvent(const aTypeArg: UnicodeString; aCanBubbleArg: Boolean; aCancelableArg: Boolean; aViewArg: IJSWindow); overload;
+    procedure initNSMouseEvent(const aTypeArg: UnicodeString; aCanBubbleArg: Boolean; aCancelableArg: Boolean; aViewArg: IJSWindow; aDetailArg: LongInt); overload;
+    procedure initNSMouseEvent(const aTypeArg: UnicodeString; aCanBubbleArg: Boolean; aCancelableArg: Boolean; aViewArg: IJSWindow; aDetailArg: LongInt; aScreenXArg: LongInt); overload;
+    procedure initNSMouseEvent(const aTypeArg: UnicodeString; aCanBubbleArg: Boolean; aCancelableArg: Boolean; aViewArg: IJSWindow; aDetailArg: LongInt; aScreenXArg: LongInt; aScreenYArg: LongInt); overload;
+    procedure initNSMouseEvent(const aTypeArg: UnicodeString; aCanBubbleArg: Boolean; aCancelableArg: Boolean; aViewArg: IJSWindow; aDetailArg: LongInt; aScreenXArg: LongInt; aScreenYArg: LongInt; aClientXArg: LongInt); overload;
+    procedure initNSMouseEvent(const aTypeArg: UnicodeString; aCanBubbleArg: Boolean; aCancelableArg: Boolean; aViewArg: IJSWindow; aDetailArg: LongInt; aScreenXArg: LongInt; aScreenYArg: LongInt; aClientXArg: LongInt; aClientYArg: LongInt); overload;
+    procedure initNSMouseEvent(const aTypeArg: UnicodeString; aCanBubbleArg: Boolean; aCancelableArg: Boolean; aViewArg: IJSWindow; aDetailArg: LongInt; aScreenXArg: LongInt; aScreenYArg: LongInt; aClientXArg: LongInt; aClientYArg: LongInt; aCtrlKeyArg: Boolean); overload;
+    procedure initNSMouseEvent(const aTypeArg: UnicodeString; aCanBubbleArg: Boolean; aCancelableArg: Boolean; aViewArg: IJSWindow; aDetailArg: LongInt; aScreenXArg: LongInt; aScreenYArg: LongInt; aClientXArg: LongInt; aClientYArg: LongInt; aCtrlKeyArg: Boolean; aAltKeyArg: Boolean); overload;
+    procedure initNSMouseEvent(const aTypeArg: UnicodeString; aCanBubbleArg: Boolean; aCancelableArg: Boolean; aViewArg: IJSWindow; aDetailArg: LongInt; aScreenXArg: LongInt; aScreenYArg: LongInt; aClientXArg: LongInt; aClientYArg: LongInt; aCtrlKeyArg: Boolean; aAltKeyArg: Boolean; aShiftKeyArg: Boolean); overload;
+    procedure initNSMouseEvent(const aTypeArg: UnicodeString; aCanBubbleArg: Boolean; aCancelableArg: Boolean; aViewArg: IJSWindow; aDetailArg: LongInt; aScreenXArg: LongInt; aScreenYArg: LongInt; aClientXArg: LongInt; aClientYArg: LongInt; aCtrlKeyArg: Boolean; aAltKeyArg: Boolean; aShiftKeyArg: Boolean; aMetaKeyArg: Boolean); overload;
+    procedure initNSMouseEvent(const aTypeArg: UnicodeString; aCanBubbleArg: Boolean; aCancelableArg: Boolean; aViewArg: IJSWindow; aDetailArg: LongInt; aScreenXArg: LongInt; aScreenYArg: LongInt; aClientXArg: LongInt; aClientYArg: LongInt; aCtrlKeyArg: Boolean; aAltKeyArg: Boolean; aShiftKeyArg: Boolean; aMetaKeyArg: Boolean; aButtonArg: SmallInt); overload;
+    procedure initNSMouseEvent(const aTypeArg: UnicodeString; aCanBubbleArg: Boolean; aCancelableArg: Boolean; aViewArg: IJSWindow; aDetailArg: LongInt; aScreenXArg: LongInt; aScreenYArg: LongInt; aClientXArg: LongInt; aClientYArg: LongInt; aCtrlKeyArg: Boolean; aAltKeyArg: Boolean; aShiftKeyArg: Boolean; aMetaKeyArg: Boolean; aButtonArg: SmallInt; aRelatedTargetArg: IJSEventTarget); overload;
+    procedure initNSMouseEvent(const aTypeArg: UnicodeString; aCanBubbleArg: Boolean; aCancelableArg: Boolean; aViewArg: IJSWindow; aDetailArg: LongInt; aScreenXArg: LongInt; aScreenYArg: LongInt; aClientXArg: LongInt; aClientYArg: LongInt; aCtrlKeyArg: Boolean; aAltKeyArg: Boolean; aShiftKeyArg: Boolean; aMetaKeyArg: Boolean; aButtonArg: SmallInt; aRelatedTargetArg: IJSEventTarget; aPressure: Single); overload;
+    class function JSClassName: UnicodeString; override;
+    class function Cast(const Intf: IJSObject): IJSMouseEvent;
+    property screenX: Double read _GetscreenX;
+    property screenY: Double read _GetscreenY;
+    property pageX: Double read _GetpageX;
+    property pageY: Double read _GetpageY;
+    property clientX: Double read _GetclientX;
+    property clientY: Double read _GetclientY;
+    property x: Double read _Getx;
+    property y: Double read _Gety;
+    property offsetX: Double read _GetoffsetX;
+    property offsetY: Double read _GetoffsetY;
+    property ctrlKey: Boolean read _GetctrlKey;
+    property shiftKey: Boolean read _GetshiftKey;
+    property altKey: Boolean read _GetaltKey;
+    property metaKey: Boolean read _GetmetaKey;
+    property button: SmallInt read _Getbutton;
+    property buttons: Word read _Getbuttons;
+    property relatedTarget: IJSEventTarget read _GetrelatedTarget;
+    property movementX: LongInt read _GetmovementX;
+    property movementY: LongInt read _GetmovementY;
+    property mozPressure: Single read _GetmozPressure;
+    property mozInputSource: Word read _GetmozInputSource;
+  end;
+  
+  { --------------------------------------------------------------------
     TJSHTMLElement
     --------------------------------------------------------------------}
   
@@ -6740,6 +7579,76 @@ Type
     property autocapitalize: UnicodeString read _Getautocapitalize write _Setautocapitalize;
     property autocorrect: Boolean read _Getautocorrect write _Setautocorrect;
     property nonce: UnicodeString read _Getnonce write _Setnonce;
+  end;
+  
+  { --------------------------------------------------------------------
+    TJSPointerEvent
+    --------------------------------------------------------------------}
+  
+  IJSPointerEvent = interface(IJSMouseEvent)
+    ['{7F83339C-7E97-30CD-B986-3FD153C09D32}']
+    function _GetpointerId: LongInt; 
+    function _Getwidth: Double; 
+    function _Getheight: Double; 
+    function _Getpressure: Single; 
+    function _GettangentialPressure: Single; 
+    function _GettiltX: LongInt; 
+    function _GettiltY: LongInt; 
+    function _Gettwist: LongInt; 
+    function _GetaltitudeAngle: Double; 
+    function _GetazimuthAngle: Double; 
+    function _GetpointerType: UnicodeString; 
+    function _GetisPrimary: Boolean; 
+    function getCoalescedEvents: TJSPointerEventDynArray;
+    function getPredictedEvents: TJSPointerEventDynArray;
+    property pointerId: LongInt read _GetpointerId;
+    property width: Double read _Getwidth;
+    property height: Double read _Getheight;
+    property pressure: Single read _Getpressure;
+    property tangentialPressure: Single read _GettangentialPressure;
+    property tiltX: LongInt read _GettiltX;
+    property tiltY: LongInt read _GettiltY;
+    property twist: LongInt read _Gettwist;
+    property altitudeAngle: Double read _GetaltitudeAngle;
+    property azimuthAngle: Double read _GetazimuthAngle;
+    property pointerType: UnicodeString read _GetpointerType;
+    property isPrimary: Boolean read _GetisPrimary;
+  end;
+  
+  TJSPointerEvent = class(TJSMouseEvent,IJSPointerEvent)
+  Private
+  Protected
+    function _GetpointerId: LongInt; 
+    function _Getwidth: Double; 
+    function _Getheight: Double; 
+    function _Getpressure: Single; 
+    function _GettangentialPressure: Single; 
+    function _GettiltX: LongInt; 
+    function _GettiltY: LongInt; 
+    function _Gettwist: LongInt; 
+    function _GetaltitudeAngle: Double; 
+    function _GetazimuthAngle: Double; 
+    function _GetpointerType: UnicodeString; 
+    function _GetisPrimary: Boolean; 
+  Public
+    constructor Create(const aType_: UnicodeString; const aEventInitDict: IJSPointerEventInit); overload;
+    constructor Create(const aType_: UnicodeString); overload;
+    function getCoalescedEvents: TJSPointerEventDynArray; overload;
+    function getPredictedEvents: TJSPointerEventDynArray; overload;
+    class function JSClassName: UnicodeString; override;
+    class function Cast(const Intf: IJSObject): IJSPointerEvent;
+    property pointerId: LongInt read _GetpointerId;
+    property width: Double read _Getwidth;
+    property height: Double read _Getheight;
+    property pressure: Single read _Getpressure;
+    property tangentialPressure: Single read _GettangentialPressure;
+    property tiltX: LongInt read _GettiltX;
+    property tiltY: LongInt read _GettiltY;
+    property twist: LongInt read _Gettwist;
+    property altitudeAngle: Double read _GetaltitudeAngle;
+    property azimuthAngle: Double read _GetazimuthAngle;
+    property pointerType: UnicodeString read _GetpointerType;
+    property isPrimary: Boolean read _GetisPrimary;
   end;
   
   { --------------------------------------------------------------------
@@ -7127,8 +8036,7 @@ var
   event: IJSEvent;
 begin
   event:=H.GetObject(TJSEvent) as IJSEvent;
-  TEventListener(aMethod)(event);
-  Result:=H.AllocUndefined;
+  Result:=H.AllocBool(TEventListener(aMethod)(event));
 end;
 
 function TJSAnimationFrameProvider.requestAnimationFrame(const aCallback: TFrameRequestCallback): LongInt;
@@ -10507,6 +11415,641 @@ begin
   Result:=TJSImageData.JOBCast(Intf);
 end;
 
+function TJSKeyboardEvent._GetcharCode: Cardinal;
+begin
+  Result:=ReadJSPropertyInt64('charCode');
+end;
+
+function TJSKeyboardEvent._GetkeyCode: Cardinal;
+begin
+  Result:=ReadJSPropertyInt64('keyCode');
+end;
+
+function TJSKeyboardEvent._GetaltKey: Boolean;
+begin
+  Result:=ReadJSPropertyBoolean('altKey');
+end;
+
+function TJSKeyboardEvent._GetctrlKey: Boolean;
+begin
+  Result:=ReadJSPropertyBoolean('ctrlKey');
+end;
+
+function TJSKeyboardEvent._GetshiftKey: Boolean;
+begin
+  Result:=ReadJSPropertyBoolean('shiftKey');
+end;
+
+function TJSKeyboardEvent._GetmetaKey: Boolean;
+begin
+  Result:=ReadJSPropertyBoolean('metaKey');
+end;
+
+function TJSKeyboardEvent._Getlocation: Cardinal;
+begin
+  Result:=ReadJSPropertyInt64('location');
+end;
+
+function TJSKeyboardEvent._Getrepeat_: Boolean;
+begin
+  Result:=ReadJSPropertyBoolean('repeat');
+end;
+
+function TJSKeyboardEvent._GetisComposing: Boolean;
+begin
+  Result:=ReadJSPropertyBoolean('isComposing');
+end;
+
+function TJSKeyboardEvent._Getkey: UnicodeString;
+begin
+  Result:=ReadJSPropertyUnicodeString('key');
+end;
+
+function TJSKeyboardEvent._Getcode: UnicodeString;
+begin
+  Result:=ReadJSPropertyUnicodeString('code');
+end;
+
+constructor TJSKeyboardEvent.Create(const aTypeArg: UnicodeString; const aKeyboardEventInitDict: IJSKeyboardEventInit);
+begin
+  JOBCreate([aTypeArg,aKeyboardEventInitDict]);
+end;
+
+constructor TJSKeyboardEvent.Create(const aTypeArg: UnicodeString);
+begin
+  JOBCreate([aTypeArg]);
+end;
+
+function TJSKeyboardEvent.getModifierState(const aKey: UnicodeString): Boolean;
+begin
+  Result:=InvokeJSBooleanResult('getModifierState',[aKey]);
+end;
+
+procedure TJSKeyboardEvent.initKeyboardEvent(const aTypeArg: UnicodeString; aBubblesArg: Boolean; aCancelableArg: Boolean; aViewArg: IJSWindow; const aKeyArg: UnicodeString; aLocationArg: Cardinal; aCtrlKey: Boolean; aAltKey: Boolean; aShiftKey: Boolean; aMetaKey: Boolean);
+begin
+  InvokeJSNoResult('initKeyboardEvent',[aTypeArg,aBubblesArg,aCancelableArg,aViewArg,aKeyArg,aLocationArg,aCtrlKey,aAltKey,aShiftKey,aMetaKey]);
+end;
+
+procedure TJSKeyboardEvent.initKeyboardEvent(const aTypeArg: UnicodeString);
+begin
+  InvokeJSNoResult('initKeyboardEvent',[aTypeArg]);
+end;
+
+procedure TJSKeyboardEvent.initKeyboardEvent(const aTypeArg: UnicodeString; aBubblesArg: Boolean);
+begin
+  InvokeJSNoResult('initKeyboardEvent',[aTypeArg,aBubblesArg]);
+end;
+
+procedure TJSKeyboardEvent.initKeyboardEvent(const aTypeArg: UnicodeString; aBubblesArg: Boolean; aCancelableArg: Boolean);
+begin
+  InvokeJSNoResult('initKeyboardEvent',[aTypeArg,aBubblesArg,aCancelableArg]);
+end;
+
+procedure TJSKeyboardEvent.initKeyboardEvent(const aTypeArg: UnicodeString; aBubblesArg: Boolean; aCancelableArg: Boolean; aViewArg: IJSWindow);
+begin
+  InvokeJSNoResult('initKeyboardEvent',[aTypeArg,aBubblesArg,aCancelableArg,aViewArg]);
+end;
+
+procedure TJSKeyboardEvent.initKeyboardEvent(const aTypeArg: UnicodeString; aBubblesArg: Boolean; aCancelableArg: Boolean; aViewArg: IJSWindow; const aKeyArg: UnicodeString);
+begin
+  InvokeJSNoResult('initKeyboardEvent',[aTypeArg,aBubblesArg,aCancelableArg,aViewArg,aKeyArg]);
+end;
+
+procedure TJSKeyboardEvent.initKeyboardEvent(const aTypeArg: UnicodeString; aBubblesArg: Boolean; aCancelableArg: Boolean; aViewArg: IJSWindow; const aKeyArg: UnicodeString; aLocationArg: Cardinal);
+begin
+  InvokeJSNoResult('initKeyboardEvent',[aTypeArg,aBubblesArg,aCancelableArg,aViewArg,aKeyArg,aLocationArg]);
+end;
+
+procedure TJSKeyboardEvent.initKeyboardEvent(const aTypeArg: UnicodeString; aBubblesArg: Boolean; aCancelableArg: Boolean; aViewArg: IJSWindow; const aKeyArg: UnicodeString; aLocationArg: Cardinal; aCtrlKey: Boolean);
+begin
+  InvokeJSNoResult('initKeyboardEvent',[aTypeArg,aBubblesArg,aCancelableArg,aViewArg,aKeyArg,aLocationArg,aCtrlKey]);
+end;
+
+procedure TJSKeyboardEvent.initKeyboardEvent(const aTypeArg: UnicodeString; aBubblesArg: Boolean; aCancelableArg: Boolean; aViewArg: IJSWindow; const aKeyArg: UnicodeString; aLocationArg: Cardinal; aCtrlKey: Boolean; aAltKey: Boolean);
+begin
+  InvokeJSNoResult('initKeyboardEvent',[aTypeArg,aBubblesArg,aCancelableArg,aViewArg,aKeyArg,aLocationArg,aCtrlKey,aAltKey]);
+end;
+
+procedure TJSKeyboardEvent.initKeyboardEvent(const aTypeArg: UnicodeString; aBubblesArg: Boolean; aCancelableArg: Boolean; aViewArg: IJSWindow; const aKeyArg: UnicodeString; aLocationArg: Cardinal; aCtrlKey: Boolean; aAltKey: Boolean; aShiftKey: Boolean);
+begin
+  InvokeJSNoResult('initKeyboardEvent',[aTypeArg,aBubblesArg,aCancelableArg,aViewArg,aKeyArg,aLocationArg,aCtrlKey,aAltKey,aShiftKey]);
+end;
+
+class function TJSKeyboardEvent.JSClassName: UnicodeString;
+begin
+  Result:='KeyboardEvent';
+end;
+
+class function TJSKeyboardEvent.Cast(const Intf: IJSObject): IJSKeyboardEvent;
+begin
+  Result:=TJSKeyboardEvent.JOBCast(Intf);
+end;
+
+function TJSKeyboardEventInit._Getkey: UnicodeString;
+begin
+  Result:=ReadJSPropertyUnicodeString('key');
+end;
+
+function TJSKeyboardEventInit._Getcode: UnicodeString;
+begin
+  Result:=ReadJSPropertyUnicodeString('code');
+end;
+
+function TJSKeyboardEventInit._Getlocation: Cardinal;
+begin
+  Result:=ReadJSPropertyInt64('location');
+end;
+
+function TJSKeyboardEventInit._Getrepeat_: Boolean;
+begin
+  Result:=ReadJSPropertyBoolean('repeat');
+end;
+
+function TJSKeyboardEventInit._GetisComposing: Boolean;
+begin
+  Result:=ReadJSPropertyBoolean('isComposing');
+end;
+
+function TJSKeyboardEventInit._GetcharCode: Cardinal;
+begin
+  Result:=ReadJSPropertyInt64('charCode');
+end;
+
+function TJSKeyboardEventInit._GetkeyCode: Cardinal;
+begin
+  Result:=ReadJSPropertyInt64('keyCode');
+end;
+
+function TJSKeyboardEventInit._Getwhich: Cardinal;
+begin
+  Result:=ReadJSPropertyInt64('which');
+end;
+
+procedure TJSKeyboardEventInit._Setkey(const aValue : UnicodeString);
+begin
+  WriteJSPropertyUnicodeString('key',aValue);
+end;
+
+procedure TJSKeyboardEventInit._Setcode(const aValue : UnicodeString);
+begin
+  WriteJSPropertyUnicodeString('code',aValue);
+end;
+
+procedure TJSKeyboardEventInit._Setlocation(const aValue : Cardinal);
+begin
+  WriteJSPropertyDouble('location',aValue);
+end;
+
+procedure TJSKeyboardEventInit._Setrepeat_(const aValue : Boolean);
+begin
+  WriteJSPropertyBoolean('repeat',aValue);
+end;
+
+procedure TJSKeyboardEventInit._SetisComposing(const aValue : Boolean);
+begin
+  WriteJSPropertyBoolean('isComposing',aValue);
+end;
+
+procedure TJSKeyboardEventInit._SetcharCode(const aValue : Cardinal);
+begin
+  WriteJSPropertyDouble('charCode',aValue);
+end;
+
+procedure TJSKeyboardEventInit._SetkeyCode(const aValue : Cardinal);
+begin
+  WriteJSPropertyDouble('keyCode',aValue);
+end;
+
+procedure TJSKeyboardEventInit._Setwhich(const aValue : Cardinal);
+begin
+  WriteJSPropertyDouble('which',aValue);
+end;
+
+constructor TJSKeyboardEventInit.create(const aDict : TJSKeyboardEventInitRec); overload;
+begin
+  Self.key:=aDict.key;
+  Self.code:=aDict.code;
+  Self.location:=aDict.location;
+  Self.repeat_:=aDict.repeat_;
+  Self.isComposing:=aDict.isComposing;
+  Self.charCode:=aDict.charCode;
+  Self.keyCode:=aDict.keyCode;
+  Self.which:=aDict.which;
+end;
+
+class function TJSKeyboardEventInit.JSClassName: UnicodeString;
+begin
+  Result:='Object';
+end;
+
+class function TJSKeyboardEventInit.Cast(const Intf: IJSObject): IJSKeyboardEventInit;
+begin
+  Result:=TJSKeyboardEventInit.JOBCast(Intf);
+end;
+
+function TJSMouseEvent._GetscreenX: Double;
+begin
+  Result:=ReadJSPropertyDouble('screenX');
+end;
+
+function TJSMouseEvent._GetscreenY: Double;
+begin
+  Result:=ReadJSPropertyDouble('screenY');
+end;
+
+function TJSMouseEvent._GetpageX: Double;
+begin
+  Result:=ReadJSPropertyDouble('pageX');
+end;
+
+function TJSMouseEvent._GetpageY: Double;
+begin
+  Result:=ReadJSPropertyDouble('pageY');
+end;
+
+function TJSMouseEvent._GetclientX: Double;
+begin
+  Result:=ReadJSPropertyDouble('clientX');
+end;
+
+function TJSMouseEvent._GetclientY: Double;
+begin
+  Result:=ReadJSPropertyDouble('clientY');
+end;
+
+function TJSMouseEvent._Getx: Double;
+begin
+  Result:=ReadJSPropertyDouble('x');
+end;
+
+function TJSMouseEvent._Gety: Double;
+begin
+  Result:=ReadJSPropertyDouble('y');
+end;
+
+function TJSMouseEvent._GetoffsetX: Double;
+begin
+  Result:=ReadJSPropertyDouble('offsetX');
+end;
+
+function TJSMouseEvent._GetoffsetY: Double;
+begin
+  Result:=ReadJSPropertyDouble('offsetY');
+end;
+
+function TJSMouseEvent._GetctrlKey: Boolean;
+begin
+  Result:=ReadJSPropertyBoolean('ctrlKey');
+end;
+
+function TJSMouseEvent._GetshiftKey: Boolean;
+begin
+  Result:=ReadJSPropertyBoolean('shiftKey');
+end;
+
+function TJSMouseEvent._GetaltKey: Boolean;
+begin
+  Result:=ReadJSPropertyBoolean('altKey');
+end;
+
+function TJSMouseEvent._GetmetaKey: Boolean;
+begin
+  Result:=ReadJSPropertyBoolean('metaKey');
+end;
+
+function TJSMouseEvent._Getbutton: SmallInt;
+begin
+  Result:=ReadJSPropertyLongInt('button');
+end;
+
+function TJSMouseEvent._Getbuttons: Word;
+begin
+  Result:=ReadJSPropertyLongInt('buttons');
+end;
+
+function TJSMouseEvent._GetrelatedTarget: IJSEventTarget;
+begin
+  Result:=ReadJSPropertyObject('relatedTarget',TJSEventTarget) as IJSEventTarget;
+end;
+
+function TJSMouseEvent._GetmovementX: LongInt;
+begin
+  Result:=ReadJSPropertyLongInt('movementX');
+end;
+
+function TJSMouseEvent._GetmovementY: LongInt;
+begin
+  Result:=ReadJSPropertyLongInt('movementY');
+end;
+
+function TJSMouseEvent._GetmozPressure: Single;
+begin
+  Result:=ReadJSPropertyDouble('mozPressure');
+end;
+
+function TJSMouseEvent._GetmozInputSource: Word;
+begin
+  Result:=ReadJSPropertyLongInt('mozInputSource');
+end;
+
+constructor TJSMouseEvent.Create(const aTypeArg: UnicodeString; const aMouseEventInitDict: IJSMouseEventInit);
+begin
+  JOBCreate([aTypeArg,aMouseEventInitDict]);
+end;
+
+constructor TJSMouseEvent.Create(const aTypeArg: UnicodeString);
+begin
+  JOBCreate([aTypeArg]);
+end;
+
+procedure TJSMouseEvent.initMouseEvent(const aTypeArg: UnicodeString; aCanBubbleArg: Boolean; aCancelableArg: Boolean; aViewArg: IJSWindow; aDetailArg: LongInt; aScreenXArg: LongInt; aScreenYArg: LongInt; aClientXArg: LongInt; aClientYArg: LongInt; aCtrlKeyArg: Boolean; aAltKeyArg: Boolean; aShiftKeyArg: Boolean; aMetaKeyArg: Boolean; aButtonArg: SmallInt; aRelatedTargetArg: IJSEventTarget);
+begin
+  InvokeJSNoResult('initMouseEvent',[aTypeArg,aCanBubbleArg,aCancelableArg,aViewArg,aDetailArg,aScreenXArg,aScreenYArg,aClientXArg,aClientYArg,aCtrlKeyArg,aAltKeyArg,aShiftKeyArg,aMetaKeyArg,aButtonArg,aRelatedTargetArg]);
+end;
+
+procedure TJSMouseEvent.initMouseEvent(const aTypeArg: UnicodeString);
+begin
+  InvokeJSNoResult('initMouseEvent',[aTypeArg]);
+end;
+
+procedure TJSMouseEvent.initMouseEvent(const aTypeArg: UnicodeString; aCanBubbleArg: Boolean);
+begin
+  InvokeJSNoResult('initMouseEvent',[aTypeArg,aCanBubbleArg]);
+end;
+
+procedure TJSMouseEvent.initMouseEvent(const aTypeArg: UnicodeString; aCanBubbleArg: Boolean; aCancelableArg: Boolean);
+begin
+  InvokeJSNoResult('initMouseEvent',[aTypeArg,aCanBubbleArg,aCancelableArg]);
+end;
+
+procedure TJSMouseEvent.initMouseEvent(const aTypeArg: UnicodeString; aCanBubbleArg: Boolean; aCancelableArg: Boolean; aViewArg: IJSWindow);
+begin
+  InvokeJSNoResult('initMouseEvent',[aTypeArg,aCanBubbleArg,aCancelableArg,aViewArg]);
+end;
+
+procedure TJSMouseEvent.initMouseEvent(const aTypeArg: UnicodeString; aCanBubbleArg: Boolean; aCancelableArg: Boolean; aViewArg: IJSWindow; aDetailArg: LongInt);
+begin
+  InvokeJSNoResult('initMouseEvent',[aTypeArg,aCanBubbleArg,aCancelableArg,aViewArg,aDetailArg]);
+end;
+
+procedure TJSMouseEvent.initMouseEvent(const aTypeArg: UnicodeString; aCanBubbleArg: Boolean; aCancelableArg: Boolean; aViewArg: IJSWindow; aDetailArg: LongInt; aScreenXArg: LongInt);
+begin
+  InvokeJSNoResult('initMouseEvent',[aTypeArg,aCanBubbleArg,aCancelableArg,aViewArg,aDetailArg,aScreenXArg]);
+end;
+
+procedure TJSMouseEvent.initMouseEvent(const aTypeArg: UnicodeString; aCanBubbleArg: Boolean; aCancelableArg: Boolean; aViewArg: IJSWindow; aDetailArg: LongInt; aScreenXArg: LongInt; aScreenYArg: LongInt);
+begin
+  InvokeJSNoResult('initMouseEvent',[aTypeArg,aCanBubbleArg,aCancelableArg,aViewArg,aDetailArg,aScreenXArg,aScreenYArg]);
+end;
+
+procedure TJSMouseEvent.initMouseEvent(const aTypeArg: UnicodeString; aCanBubbleArg: Boolean; aCancelableArg: Boolean; aViewArg: IJSWindow; aDetailArg: LongInt; aScreenXArg: LongInt; aScreenYArg: LongInt; aClientXArg: LongInt);
+begin
+  InvokeJSNoResult('initMouseEvent',[aTypeArg,aCanBubbleArg,aCancelableArg,aViewArg,aDetailArg,aScreenXArg,aScreenYArg,aClientXArg]);
+end;
+
+procedure TJSMouseEvent.initMouseEvent(const aTypeArg: UnicodeString; aCanBubbleArg: Boolean; aCancelableArg: Boolean; aViewArg: IJSWindow; aDetailArg: LongInt; aScreenXArg: LongInt; aScreenYArg: LongInt; aClientXArg: LongInt; aClientYArg: LongInt);
+begin
+  InvokeJSNoResult('initMouseEvent',[aTypeArg,aCanBubbleArg,aCancelableArg,aViewArg,aDetailArg,aScreenXArg,aScreenYArg,aClientXArg,aClientYArg]);
+end;
+
+procedure TJSMouseEvent.initMouseEvent(const aTypeArg: UnicodeString; aCanBubbleArg: Boolean; aCancelableArg: Boolean; aViewArg: IJSWindow; aDetailArg: LongInt; aScreenXArg: LongInt; aScreenYArg: LongInt; aClientXArg: LongInt; aClientYArg: LongInt; aCtrlKeyArg: Boolean);
+begin
+  InvokeJSNoResult('initMouseEvent',[aTypeArg,aCanBubbleArg,aCancelableArg,aViewArg,aDetailArg,aScreenXArg,aScreenYArg,aClientXArg,aClientYArg,aCtrlKeyArg]);
+end;
+
+procedure TJSMouseEvent.initMouseEvent(const aTypeArg: UnicodeString; aCanBubbleArg: Boolean; aCancelableArg: Boolean; aViewArg: IJSWindow; aDetailArg: LongInt; aScreenXArg: LongInt; aScreenYArg: LongInt; aClientXArg: LongInt; aClientYArg: LongInt; aCtrlKeyArg: Boolean; aAltKeyArg: Boolean);
+begin
+  InvokeJSNoResult('initMouseEvent',[aTypeArg,aCanBubbleArg,aCancelableArg,aViewArg,aDetailArg,aScreenXArg,aScreenYArg,aClientXArg,aClientYArg,aCtrlKeyArg,aAltKeyArg]);
+end;
+
+procedure TJSMouseEvent.initMouseEvent(const aTypeArg: UnicodeString; aCanBubbleArg: Boolean; aCancelableArg: Boolean; aViewArg: IJSWindow; aDetailArg: LongInt; aScreenXArg: LongInt; aScreenYArg: LongInt; aClientXArg: LongInt; aClientYArg: LongInt; aCtrlKeyArg: Boolean; aAltKeyArg: Boolean; aShiftKeyArg: Boolean);
+begin
+  InvokeJSNoResult('initMouseEvent',[aTypeArg,aCanBubbleArg,aCancelableArg,aViewArg,aDetailArg,aScreenXArg,aScreenYArg,aClientXArg,aClientYArg,aCtrlKeyArg,aAltKeyArg,aShiftKeyArg]);
+end;
+
+procedure TJSMouseEvent.initMouseEvent(const aTypeArg: UnicodeString; aCanBubbleArg: Boolean; aCancelableArg: Boolean; aViewArg: IJSWindow; aDetailArg: LongInt; aScreenXArg: LongInt; aScreenYArg: LongInt; aClientXArg: LongInt; aClientYArg: LongInt; aCtrlKeyArg: Boolean; aAltKeyArg: Boolean; aShiftKeyArg: Boolean; aMetaKeyArg: Boolean);
+begin
+  InvokeJSNoResult('initMouseEvent',[aTypeArg,aCanBubbleArg,aCancelableArg,aViewArg,aDetailArg,aScreenXArg,aScreenYArg,aClientXArg,aClientYArg,aCtrlKeyArg,aAltKeyArg,aShiftKeyArg,aMetaKeyArg]);
+end;
+
+procedure TJSMouseEvent.initMouseEvent(const aTypeArg: UnicodeString; aCanBubbleArg: Boolean; aCancelableArg: Boolean; aViewArg: IJSWindow; aDetailArg: LongInt; aScreenXArg: LongInt; aScreenYArg: LongInt; aClientXArg: LongInt; aClientYArg: LongInt; aCtrlKeyArg: Boolean; aAltKeyArg: Boolean; aShiftKeyArg: Boolean; aMetaKeyArg: Boolean; aButtonArg: SmallInt);
+begin
+  InvokeJSNoResult('initMouseEvent',[aTypeArg,aCanBubbleArg,aCancelableArg,aViewArg,aDetailArg,aScreenXArg,aScreenYArg,aClientXArg,aClientYArg,aCtrlKeyArg,aAltKeyArg,aShiftKeyArg,aMetaKeyArg,aButtonArg]);
+end;
+
+function TJSMouseEvent.getModifierState(const aKeyArg: UnicodeString): Boolean;
+begin
+  Result:=InvokeJSBooleanResult('getModifierState',[aKeyArg]);
+end;
+
+procedure TJSMouseEvent.initNSMouseEvent(const aTypeArg: UnicodeString; aCanBubbleArg: Boolean; aCancelableArg: Boolean; aViewArg: IJSWindow; aDetailArg: LongInt; aScreenXArg: LongInt; aScreenYArg: LongInt; aClientXArg: LongInt; aClientYArg: LongInt; aCtrlKeyArg: Boolean; aAltKeyArg: Boolean; aShiftKeyArg: Boolean; aMetaKeyArg: Boolean; aButtonArg: SmallInt; aRelatedTargetArg: IJSEventTarget; aPressure: Single; aInputSourceArg: Word);
+begin
+  InvokeJSNoResult('initNSMouseEvent',[aTypeArg,aCanBubbleArg,aCancelableArg,aViewArg,aDetailArg,aScreenXArg,aScreenYArg,aClientXArg,aClientYArg,aCtrlKeyArg,aAltKeyArg,aShiftKeyArg,aMetaKeyArg,aButtonArg,aRelatedTargetArg,aPressure,aInputSourceArg]);
+end;
+
+procedure TJSMouseEvent.initNSMouseEvent(const aTypeArg: UnicodeString);
+begin
+  InvokeJSNoResult('initNSMouseEvent',[aTypeArg]);
+end;
+
+procedure TJSMouseEvent.initNSMouseEvent(const aTypeArg: UnicodeString; aCanBubbleArg: Boolean);
+begin
+  InvokeJSNoResult('initNSMouseEvent',[aTypeArg,aCanBubbleArg]);
+end;
+
+procedure TJSMouseEvent.initNSMouseEvent(const aTypeArg: UnicodeString; aCanBubbleArg: Boolean; aCancelableArg: Boolean);
+begin
+  InvokeJSNoResult('initNSMouseEvent',[aTypeArg,aCanBubbleArg,aCancelableArg]);
+end;
+
+procedure TJSMouseEvent.initNSMouseEvent(const aTypeArg: UnicodeString; aCanBubbleArg: Boolean; aCancelableArg: Boolean; aViewArg: IJSWindow);
+begin
+  InvokeJSNoResult('initNSMouseEvent',[aTypeArg,aCanBubbleArg,aCancelableArg,aViewArg]);
+end;
+
+procedure TJSMouseEvent.initNSMouseEvent(const aTypeArg: UnicodeString; aCanBubbleArg: Boolean; aCancelableArg: Boolean; aViewArg: IJSWindow; aDetailArg: LongInt);
+begin
+  InvokeJSNoResult('initNSMouseEvent',[aTypeArg,aCanBubbleArg,aCancelableArg,aViewArg,aDetailArg]);
+end;
+
+procedure TJSMouseEvent.initNSMouseEvent(const aTypeArg: UnicodeString; aCanBubbleArg: Boolean; aCancelableArg: Boolean; aViewArg: IJSWindow; aDetailArg: LongInt; aScreenXArg: LongInt);
+begin
+  InvokeJSNoResult('initNSMouseEvent',[aTypeArg,aCanBubbleArg,aCancelableArg,aViewArg,aDetailArg,aScreenXArg]);
+end;
+
+procedure TJSMouseEvent.initNSMouseEvent(const aTypeArg: UnicodeString; aCanBubbleArg: Boolean; aCancelableArg: Boolean; aViewArg: IJSWindow; aDetailArg: LongInt; aScreenXArg: LongInt; aScreenYArg: LongInt);
+begin
+  InvokeJSNoResult('initNSMouseEvent',[aTypeArg,aCanBubbleArg,aCancelableArg,aViewArg,aDetailArg,aScreenXArg,aScreenYArg]);
+end;
+
+procedure TJSMouseEvent.initNSMouseEvent(const aTypeArg: UnicodeString; aCanBubbleArg: Boolean; aCancelableArg: Boolean; aViewArg: IJSWindow; aDetailArg: LongInt; aScreenXArg: LongInt; aScreenYArg: LongInt; aClientXArg: LongInt);
+begin
+  InvokeJSNoResult('initNSMouseEvent',[aTypeArg,aCanBubbleArg,aCancelableArg,aViewArg,aDetailArg,aScreenXArg,aScreenYArg,aClientXArg]);
+end;
+
+procedure TJSMouseEvent.initNSMouseEvent(const aTypeArg: UnicodeString; aCanBubbleArg: Boolean; aCancelableArg: Boolean; aViewArg: IJSWindow; aDetailArg: LongInt; aScreenXArg: LongInt; aScreenYArg: LongInt; aClientXArg: LongInt; aClientYArg: LongInt);
+begin
+  InvokeJSNoResult('initNSMouseEvent',[aTypeArg,aCanBubbleArg,aCancelableArg,aViewArg,aDetailArg,aScreenXArg,aScreenYArg,aClientXArg,aClientYArg]);
+end;
+
+procedure TJSMouseEvent.initNSMouseEvent(const aTypeArg: UnicodeString; aCanBubbleArg: Boolean; aCancelableArg: Boolean; aViewArg: IJSWindow; aDetailArg: LongInt; aScreenXArg: LongInt; aScreenYArg: LongInt; aClientXArg: LongInt; aClientYArg: LongInt; aCtrlKeyArg: Boolean);
+begin
+  InvokeJSNoResult('initNSMouseEvent',[aTypeArg,aCanBubbleArg,aCancelableArg,aViewArg,aDetailArg,aScreenXArg,aScreenYArg,aClientXArg,aClientYArg,aCtrlKeyArg]);
+end;
+
+procedure TJSMouseEvent.initNSMouseEvent(const aTypeArg: UnicodeString; aCanBubbleArg: Boolean; aCancelableArg: Boolean; aViewArg: IJSWindow; aDetailArg: LongInt; aScreenXArg: LongInt; aScreenYArg: LongInt; aClientXArg: LongInt; aClientYArg: LongInt; aCtrlKeyArg: Boolean; aAltKeyArg: Boolean);
+begin
+  InvokeJSNoResult('initNSMouseEvent',[aTypeArg,aCanBubbleArg,aCancelableArg,aViewArg,aDetailArg,aScreenXArg,aScreenYArg,aClientXArg,aClientYArg,aCtrlKeyArg,aAltKeyArg]);
+end;
+
+procedure TJSMouseEvent.initNSMouseEvent(const aTypeArg: UnicodeString; aCanBubbleArg: Boolean; aCancelableArg: Boolean; aViewArg: IJSWindow; aDetailArg: LongInt; aScreenXArg: LongInt; aScreenYArg: LongInt; aClientXArg: LongInt; aClientYArg: LongInt; aCtrlKeyArg: Boolean; aAltKeyArg: Boolean; aShiftKeyArg: Boolean);
+begin
+  InvokeJSNoResult('initNSMouseEvent',[aTypeArg,aCanBubbleArg,aCancelableArg,aViewArg,aDetailArg,aScreenXArg,aScreenYArg,aClientXArg,aClientYArg,aCtrlKeyArg,aAltKeyArg,aShiftKeyArg]);
+end;
+
+procedure TJSMouseEvent.initNSMouseEvent(const aTypeArg: UnicodeString; aCanBubbleArg: Boolean; aCancelableArg: Boolean; aViewArg: IJSWindow; aDetailArg: LongInt; aScreenXArg: LongInt; aScreenYArg: LongInt; aClientXArg: LongInt; aClientYArg: LongInt; aCtrlKeyArg: Boolean; aAltKeyArg: Boolean; aShiftKeyArg: Boolean; aMetaKeyArg: Boolean);
+begin
+  InvokeJSNoResult('initNSMouseEvent',[aTypeArg,aCanBubbleArg,aCancelableArg,aViewArg,aDetailArg,aScreenXArg,aScreenYArg,aClientXArg,aClientYArg,aCtrlKeyArg,aAltKeyArg,aShiftKeyArg,aMetaKeyArg]);
+end;
+
+procedure TJSMouseEvent.initNSMouseEvent(const aTypeArg: UnicodeString; aCanBubbleArg: Boolean; aCancelableArg: Boolean; aViewArg: IJSWindow; aDetailArg: LongInt; aScreenXArg: LongInt; aScreenYArg: LongInt; aClientXArg: LongInt; aClientYArg: LongInt; aCtrlKeyArg: Boolean; aAltKeyArg: Boolean; aShiftKeyArg: Boolean; aMetaKeyArg: Boolean; aButtonArg: SmallInt);
+begin
+  InvokeJSNoResult('initNSMouseEvent',[aTypeArg,aCanBubbleArg,aCancelableArg,aViewArg,aDetailArg,aScreenXArg,aScreenYArg,aClientXArg,aClientYArg,aCtrlKeyArg,aAltKeyArg,aShiftKeyArg,aMetaKeyArg,aButtonArg]);
+end;
+
+procedure TJSMouseEvent.initNSMouseEvent(const aTypeArg: UnicodeString; aCanBubbleArg: Boolean; aCancelableArg: Boolean; aViewArg: IJSWindow; aDetailArg: LongInt; aScreenXArg: LongInt; aScreenYArg: LongInt; aClientXArg: LongInt; aClientYArg: LongInt; aCtrlKeyArg: Boolean; aAltKeyArg: Boolean; aShiftKeyArg: Boolean; aMetaKeyArg: Boolean; aButtonArg: SmallInt; aRelatedTargetArg: IJSEventTarget);
+begin
+  InvokeJSNoResult('initNSMouseEvent',[aTypeArg,aCanBubbleArg,aCancelableArg,aViewArg,aDetailArg,aScreenXArg,aScreenYArg,aClientXArg,aClientYArg,aCtrlKeyArg,aAltKeyArg,aShiftKeyArg,aMetaKeyArg,aButtonArg,aRelatedTargetArg]);
+end;
+
+procedure TJSMouseEvent.initNSMouseEvent(const aTypeArg: UnicodeString; aCanBubbleArg: Boolean; aCancelableArg: Boolean; aViewArg: IJSWindow; aDetailArg: LongInt; aScreenXArg: LongInt; aScreenYArg: LongInt; aClientXArg: LongInt; aClientYArg: LongInt; aCtrlKeyArg: Boolean; aAltKeyArg: Boolean; aShiftKeyArg: Boolean; aMetaKeyArg: Boolean; aButtonArg: SmallInt; aRelatedTargetArg: IJSEventTarget; aPressure: Single);
+begin
+  InvokeJSNoResult('initNSMouseEvent',[aTypeArg,aCanBubbleArg,aCancelableArg,aViewArg,aDetailArg,aScreenXArg,aScreenYArg,aClientXArg,aClientYArg,aCtrlKeyArg,aAltKeyArg,aShiftKeyArg,aMetaKeyArg,aButtonArg,aRelatedTargetArg,aPressure]);
+end;
+
+class function TJSMouseEvent.JSClassName: UnicodeString;
+begin
+  Result:='MouseEvent';
+end;
+
+class function TJSMouseEvent.Cast(const Intf: IJSObject): IJSMouseEvent;
+begin
+  Result:=TJSMouseEvent.JOBCast(Intf);
+end;
+
+function TJSMouseEventInit._GetscreenX: Double;
+begin
+  Result:=ReadJSPropertyDouble('screenX');
+end;
+
+function TJSMouseEventInit._GetscreenY: Double;
+begin
+  Result:=ReadJSPropertyDouble('screenY');
+end;
+
+function TJSMouseEventInit._GetclientX: Double;
+begin
+  Result:=ReadJSPropertyDouble('clientX');
+end;
+
+function TJSMouseEventInit._GetclientY: Double;
+begin
+  Result:=ReadJSPropertyDouble('clientY');
+end;
+
+function TJSMouseEventInit._Getbutton: SmallInt;
+begin
+  Result:=ReadJSPropertyLongInt('button');
+end;
+
+function TJSMouseEventInit._Getbuttons: Word;
+begin
+  Result:=ReadJSPropertyLongInt('buttons');
+end;
+
+function TJSMouseEventInit._GetrelatedTarget: IJSEventTarget;
+begin
+  Result:=ReadJSPropertyObject('relatedTarget',TJSEventTarget) as IJSEventTarget;
+end;
+
+function TJSMouseEventInit._GetmovementX: LongInt;
+begin
+  Result:=ReadJSPropertyLongInt('movementX');
+end;
+
+function TJSMouseEventInit._GetmovementY: LongInt;
+begin
+  Result:=ReadJSPropertyLongInt('movementY');
+end;
+
+procedure TJSMouseEventInit._SetscreenX(const aValue : Double);
+begin
+  WriteJSPropertyDouble('screenX',aValue);
+end;
+
+procedure TJSMouseEventInit._SetscreenY(const aValue : Double);
+begin
+  WriteJSPropertyDouble('screenY',aValue);
+end;
+
+procedure TJSMouseEventInit._SetclientX(const aValue : Double);
+begin
+  WriteJSPropertyDouble('clientX',aValue);
+end;
+
+procedure TJSMouseEventInit._SetclientY(const aValue : Double);
+begin
+  WriteJSPropertyDouble('clientY',aValue);
+end;
+
+procedure TJSMouseEventInit._Setbutton(const aValue : SmallInt);
+begin
+  WriteJSPropertyLongInt('button',aValue);
+end;
+
+procedure TJSMouseEventInit._Setbuttons(const aValue : Word);
+begin
+  WriteJSPropertyLongInt('buttons',aValue);
+end;
+
+procedure TJSMouseEventInit._SetrelatedTarget(const aValue : IJSEventTarget);
+begin
+  WriteJSPropertyObject('relatedTarget',aValue);
+end;
+
+procedure TJSMouseEventInit._SetmovementX(const aValue : LongInt);
+begin
+  WriteJSPropertyLongInt('movementX',aValue);
+end;
+
+procedure TJSMouseEventInit._SetmovementY(const aValue : LongInt);
+begin
+  WriteJSPropertyLongInt('movementY',aValue);
+end;
+
+constructor TJSMouseEventInit.create(const aDict : TJSMouseEventInitRec); overload;
+begin
+  Self.screenX:=aDict.screenX;
+  Self.screenY:=aDict.screenY;
+  Self.clientX:=aDict.clientX;
+  Self.clientY:=aDict.clientY;
+  Self.button:=aDict.button;
+  Self.buttons:=aDict.buttons;
+  Self.relatedTarget:=aDict.relatedTarget;
+  Self.movementX:=aDict.movementX;
+  Self.movementY:=aDict.movementY;
+end;
+
+class function TJSMouseEventInit.JSClassName: UnicodeString;
+begin
+  Result:='Object';
+end;
+
+class function TJSMouseEventInit.Cast(const Intf: IJSObject): IJSMouseEventInit;
+begin
+  Result:=TJSMouseEventInit.JOBCast(Intf);
+end;
+
 function TJSNode._GetnodeType: Word;
 begin
   Result:=ReadJSPropertyLongInt('nodeType');
@@ -10800,6 +12343,537 @@ end;
 class function TJSOffscreenCanvas.Cast(const Intf: IJSObject): IJSOffscreenCanvas;
 begin
   Result:=TJSOffscreenCanvas.JOBCast(Intf);
+end;
+
+function TJSPointerEvent._GetpointerId: LongInt;
+begin
+  Result:=ReadJSPropertyLongInt('pointerId');
+end;
+
+function TJSPointerEvent._Getwidth: Double;
+begin
+  Result:=ReadJSPropertyDouble('width');
+end;
+
+function TJSPointerEvent._Getheight: Double;
+begin
+  Result:=ReadJSPropertyDouble('height');
+end;
+
+function TJSPointerEvent._Getpressure: Single;
+begin
+  Result:=ReadJSPropertyDouble('pressure');
+end;
+
+function TJSPointerEvent._GettangentialPressure: Single;
+begin
+  Result:=ReadJSPropertyDouble('tangentialPressure');
+end;
+
+function TJSPointerEvent._GettiltX: LongInt;
+begin
+  Result:=ReadJSPropertyLongInt('tiltX');
+end;
+
+function TJSPointerEvent._GettiltY: LongInt;
+begin
+  Result:=ReadJSPropertyLongInt('tiltY');
+end;
+
+function TJSPointerEvent._Gettwist: LongInt;
+begin
+  Result:=ReadJSPropertyLongInt('twist');
+end;
+
+function TJSPointerEvent._GetaltitudeAngle: Double;
+begin
+  Result:=ReadJSPropertyDouble('altitudeAngle');
+end;
+
+function TJSPointerEvent._GetazimuthAngle: Double;
+begin
+  Result:=ReadJSPropertyDouble('azimuthAngle');
+end;
+
+function TJSPointerEvent._GetpointerType: UnicodeString;
+begin
+  Result:=ReadJSPropertyUnicodeString('pointerType');
+end;
+
+function TJSPointerEvent._GetisPrimary: Boolean;
+begin
+  Result:=ReadJSPropertyBoolean('isPrimary');
+end;
+
+constructor TJSPointerEvent.Create(const aType_: UnicodeString; const aEventInitDict: IJSPointerEventInit);
+begin
+  JOBCreate([aType_,aEventInitDict]);
+end;
+
+constructor TJSPointerEvent.Create(const aType_: UnicodeString);
+begin
+  JOBCreate([aType_]);
+end;
+
+function TJSPointerEvent.getCoalescedEvents: TJSPointerEventDynArray;
+begin
+  Result:=InvokeJSObjectResult('getCoalescedEvents',[],TJSArray) as TJSPointerEventDynArray;
+end;
+
+function TJSPointerEvent.getPredictedEvents: TJSPointerEventDynArray;
+begin
+  Result:=InvokeJSObjectResult('getPredictedEvents',[],TJSArray) as TJSPointerEventDynArray;
+end;
+
+class function TJSPointerEvent.JSClassName: UnicodeString;
+begin
+  Result:='PointerEvent';
+end;
+
+class function TJSPointerEvent.Cast(const Intf: IJSObject): IJSPointerEvent;
+begin
+  Result:=TJSPointerEvent.JOBCast(Intf);
+end;
+
+function TJSPointerEventInit._GetpointerId: LongInt;
+begin
+  Result:=ReadJSPropertyLongInt('pointerId');
+end;
+
+function TJSPointerEventInit._Getwidth: Double;
+begin
+  Result:=ReadJSPropertyDouble('width');
+end;
+
+function TJSPointerEventInit._Getheight: Double;
+begin
+  Result:=ReadJSPropertyDouble('height');
+end;
+
+function TJSPointerEventInit._Getpressure: Single;
+begin
+  Result:=ReadJSPropertyDouble('pressure');
+end;
+
+function TJSPointerEventInit._GettangentialPressure: Single;
+begin
+  Result:=ReadJSPropertyDouble('tangentialPressure');
+end;
+
+function TJSPointerEventInit._GettiltX: LongInt;
+begin
+  Result:=ReadJSPropertyLongInt('tiltX');
+end;
+
+function TJSPointerEventInit._GettiltY: LongInt;
+begin
+  Result:=ReadJSPropertyLongInt('tiltY');
+end;
+
+function TJSPointerEventInit._Gettwist: LongInt;
+begin
+  Result:=ReadJSPropertyLongInt('twist');
+end;
+
+function TJSPointerEventInit._GetaltitudeAngle: Double;
+begin
+  Result:=ReadJSPropertyDouble('altitudeAngle');
+end;
+
+function TJSPointerEventInit._GetazimuthAngle: Double;
+begin
+  Result:=ReadJSPropertyDouble('azimuthAngle');
+end;
+
+function TJSPointerEventInit._GetpointerType: UnicodeString;
+begin
+  Result:=ReadJSPropertyUnicodeString('pointerType');
+end;
+
+function TJSPointerEventInit._GetisPrimary: Boolean;
+begin
+  Result:=ReadJSPropertyBoolean('isPrimary');
+end;
+
+function TJSPointerEventInit._GetcoalescedEvents: TJSPointerEventDynArray;
+begin
+  Result:=ReadJSPropertyObject('coalescedEvents',TJSArray) as TJSPointerEventDynArray;
+end;
+
+function TJSPointerEventInit._GetpredictedEvents: TJSPointerEventDynArray;
+begin
+  Result:=ReadJSPropertyObject('predictedEvents',TJSArray) as TJSPointerEventDynArray;
+end;
+
+procedure TJSPointerEventInit._SetpointerId(const aValue : LongInt);
+begin
+  WriteJSPropertyLongInt('pointerId',aValue);
+end;
+
+procedure TJSPointerEventInit._Setwidth(const aValue : Double);
+begin
+  WriteJSPropertyDouble('width',aValue);
+end;
+
+procedure TJSPointerEventInit._Setheight(const aValue : Double);
+begin
+  WriteJSPropertyDouble('height',aValue);
+end;
+
+procedure TJSPointerEventInit._Setpressure(const aValue : Single);
+begin
+  WriteJSPropertyDouble('pressure',aValue);
+end;
+
+procedure TJSPointerEventInit._SettangentialPressure(const aValue : Single);
+begin
+  WriteJSPropertyDouble('tangentialPressure',aValue);
+end;
+
+procedure TJSPointerEventInit._SettiltX(const aValue : LongInt);
+begin
+  WriteJSPropertyLongInt('tiltX',aValue);
+end;
+
+procedure TJSPointerEventInit._SettiltY(const aValue : LongInt);
+begin
+  WriteJSPropertyLongInt('tiltY',aValue);
+end;
+
+procedure TJSPointerEventInit._Settwist(const aValue : LongInt);
+begin
+  WriteJSPropertyLongInt('twist',aValue);
+end;
+
+procedure TJSPointerEventInit._SetaltitudeAngle(const aValue : Double);
+begin
+  WriteJSPropertyDouble('altitudeAngle',aValue);
+end;
+
+procedure TJSPointerEventInit._SetazimuthAngle(const aValue : Double);
+begin
+  WriteJSPropertyDouble('azimuthAngle',aValue);
+end;
+
+procedure TJSPointerEventInit._SetpointerType(const aValue : UnicodeString);
+begin
+  WriteJSPropertyUnicodeString('pointerType',aValue);
+end;
+
+procedure TJSPointerEventInit._SetisPrimary(const aValue : Boolean);
+begin
+  WriteJSPropertyBoolean('isPrimary',aValue);
+end;
+
+procedure TJSPointerEventInit._SetcoalescedEvents(const aValue : TJSPointerEventDynArray);
+begin
+  WriteJSPropertyObject('coalescedEvents',aValue);
+end;
+
+procedure TJSPointerEventInit._SetpredictedEvents(const aValue : TJSPointerEventDynArray);
+begin
+  WriteJSPropertyObject('predictedEvents',aValue);
+end;
+
+constructor TJSPointerEventInit.create(const aDict : TJSPointerEventInitRec); overload;
+begin
+  Self.pointerId:=aDict.pointerId;
+  Self.width:=aDict.width;
+  Self.height:=aDict.height;
+  Self.pressure:=aDict.pressure;
+  Self.tangentialPressure:=aDict.tangentialPressure;
+  Self.tiltX:=aDict.tiltX;
+  Self.tiltY:=aDict.tiltY;
+  Self.twist:=aDict.twist;
+  Self.altitudeAngle:=aDict.altitudeAngle;
+  Self.azimuthAngle:=aDict.azimuthAngle;
+  Self.pointerType:=aDict.pointerType;
+  Self.isPrimary:=aDict.isPrimary;
+  Self.coalescedEvents:=aDict.coalescedEvents;
+  Self.predictedEvents:=aDict.predictedEvents;
+end;
+
+class function TJSPointerEventInit.JSClassName: UnicodeString;
+begin
+  Result:='Object';
+end;
+
+class function TJSPointerEventInit.Cast(const Intf: IJSObject): IJSPointerEventInit;
+begin
+  Result:=TJSPointerEventInit.JOBCast(Intf);
+end;
+
+function TJSUIEvent._Getview: IJSWindowProxy;
+begin
+  Result:=ReadJSPropertyObject('view',TJSWindowProxy) as IJSWindowProxy;
+end;
+
+function TJSUIEvent._Getdetail: LongInt;
+begin
+  Result:=ReadJSPropertyLongInt('detail');
+end;
+
+function TJSUIEvent._GetlayerX: LongInt;
+begin
+  Result:=ReadJSPropertyLongInt('layerX');
+end;
+
+function TJSUIEvent._GetlayerY: LongInt;
+begin
+  Result:=ReadJSPropertyLongInt('layerY');
+end;
+
+function TJSUIEvent._Getwhich: Cardinal;
+begin
+  Result:=ReadJSPropertyInt64('which');
+end;
+
+function TJSUIEvent._GetrangeParent: IJSNode;
+begin
+  Result:=ReadJSPropertyObject('rangeParent',TJSNode) as IJSNode;
+end;
+
+function TJSUIEvent._GetrangeOffset: LongInt;
+begin
+  Result:=ReadJSPropertyLongInt('rangeOffset');
+end;
+
+constructor TJSUIEvent.Create(const aType_: UnicodeString; const aEventInitDict: IJSUIEventInit);
+begin
+  JOBCreate([aType_,aEventInitDict]);
+end;
+
+constructor TJSUIEvent.Create(const aType_: UnicodeString);
+begin
+  JOBCreate([aType_]);
+end;
+
+procedure TJSUIEvent.initUIEvent(const aAType: UnicodeString; aACanBubble: Boolean; aACancelable: Boolean; aAView: IJSWindow; aADetail: LongInt);
+begin
+  InvokeJSNoResult('initUIEvent',[aAType,aACanBubble,aACancelable,aAView,aADetail]);
+end;
+
+procedure TJSUIEvent.initUIEvent(const aAType: UnicodeString);
+begin
+  InvokeJSNoResult('initUIEvent',[aAType]);
+end;
+
+procedure TJSUIEvent.initUIEvent(const aAType: UnicodeString; aACanBubble: Boolean);
+begin
+  InvokeJSNoResult('initUIEvent',[aAType,aACanBubble]);
+end;
+
+procedure TJSUIEvent.initUIEvent(const aAType: UnicodeString; aACanBubble: Boolean; aACancelable: Boolean);
+begin
+  InvokeJSNoResult('initUIEvent',[aAType,aACanBubble,aACancelable]);
+end;
+
+procedure TJSUIEvent.initUIEvent(const aAType: UnicodeString; aACanBubble: Boolean; aACancelable: Boolean; aAView: IJSWindow);
+begin
+  InvokeJSNoResult('initUIEvent',[aAType,aACanBubble,aACancelable,aAView]);
+end;
+
+class function TJSUIEvent.JSClassName: UnicodeString;
+begin
+  Result:='UIEvent';
+end;
+
+class function TJSUIEvent.Cast(const Intf: IJSObject): IJSUIEvent;
+begin
+  Result:=TJSUIEvent.JOBCast(Intf);
+end;
+
+function TJSUIEventInit._Getview: IJSWindow;
+begin
+  Result:=ReadJSPropertyObject('view',TJSWindow) as IJSWindow;
+end;
+
+function TJSUIEventInit._Getdetail: LongInt;
+begin
+  Result:=ReadJSPropertyLongInt('detail');
+end;
+
+procedure TJSUIEventInit._Setview(const aValue : IJSWindow);
+begin
+  WriteJSPropertyObject('view',aValue);
+end;
+
+procedure TJSUIEventInit._Setdetail(const aValue : LongInt);
+begin
+  WriteJSPropertyLongInt('detail',aValue);
+end;
+
+constructor TJSUIEventInit.create(const aDict : TJSUIEventInitRec); overload;
+begin
+  Self.view:=aDict.view;
+  Self.detail:=aDict.detail;
+end;
+
+class function TJSUIEventInit.JSClassName: UnicodeString;
+begin
+  Result:='Object';
+end;
+
+class function TJSUIEventInit.Cast(const Intf: IJSObject): IJSUIEventInit;
+begin
+  Result:=TJSUIEventInit.JOBCast(Intf);
+end;
+
+function TJSEventModifierInit._GetctrlKey: Boolean;
+begin
+  Result:=ReadJSPropertyBoolean('ctrlKey');
+end;
+
+function TJSEventModifierInit._GetshiftKey: Boolean;
+begin
+  Result:=ReadJSPropertyBoolean('shiftKey');
+end;
+
+function TJSEventModifierInit._GetaltKey: Boolean;
+begin
+  Result:=ReadJSPropertyBoolean('altKey');
+end;
+
+function TJSEventModifierInit._GetmetaKey: Boolean;
+begin
+  Result:=ReadJSPropertyBoolean('metaKey');
+end;
+
+function TJSEventModifierInit._GetmodifierAltGraph: Boolean;
+begin
+  Result:=ReadJSPropertyBoolean('modifierAltGraph');
+end;
+
+function TJSEventModifierInit._GetmodifierCapsLock: Boolean;
+begin
+  Result:=ReadJSPropertyBoolean('modifierCapsLock');
+end;
+
+function TJSEventModifierInit._GetmodifierFn: Boolean;
+begin
+  Result:=ReadJSPropertyBoolean('modifierFn');
+end;
+
+function TJSEventModifierInit._GetmodifierFnLock: Boolean;
+begin
+  Result:=ReadJSPropertyBoolean('modifierFnLock');
+end;
+
+function TJSEventModifierInit._GetmodifierNumLock: Boolean;
+begin
+  Result:=ReadJSPropertyBoolean('modifierNumLock');
+end;
+
+function TJSEventModifierInit._GetmodifierOS: Boolean;
+begin
+  Result:=ReadJSPropertyBoolean('modifierOS');
+end;
+
+function TJSEventModifierInit._GetmodifierScrollLock: Boolean;
+begin
+  Result:=ReadJSPropertyBoolean('modifierScrollLock');
+end;
+
+function TJSEventModifierInit._GetmodifierSymbol: Boolean;
+begin
+  Result:=ReadJSPropertyBoolean('modifierSymbol');
+end;
+
+function TJSEventModifierInit._GetmodifierSymbolLock: Boolean;
+begin
+  Result:=ReadJSPropertyBoolean('modifierSymbolLock');
+end;
+
+procedure TJSEventModifierInit._SetctrlKey(const aValue : Boolean);
+begin
+  WriteJSPropertyBoolean('ctrlKey',aValue);
+end;
+
+procedure TJSEventModifierInit._SetshiftKey(const aValue : Boolean);
+begin
+  WriteJSPropertyBoolean('shiftKey',aValue);
+end;
+
+procedure TJSEventModifierInit._SetaltKey(const aValue : Boolean);
+begin
+  WriteJSPropertyBoolean('altKey',aValue);
+end;
+
+procedure TJSEventModifierInit._SetmetaKey(const aValue : Boolean);
+begin
+  WriteJSPropertyBoolean('metaKey',aValue);
+end;
+
+procedure TJSEventModifierInit._SetmodifierAltGraph(const aValue : Boolean);
+begin
+  WriteJSPropertyBoolean('modifierAltGraph',aValue);
+end;
+
+procedure TJSEventModifierInit._SetmodifierCapsLock(const aValue : Boolean);
+begin
+  WriteJSPropertyBoolean('modifierCapsLock',aValue);
+end;
+
+procedure TJSEventModifierInit._SetmodifierFn(const aValue : Boolean);
+begin
+  WriteJSPropertyBoolean('modifierFn',aValue);
+end;
+
+procedure TJSEventModifierInit._SetmodifierFnLock(const aValue : Boolean);
+begin
+  WriteJSPropertyBoolean('modifierFnLock',aValue);
+end;
+
+procedure TJSEventModifierInit._SetmodifierNumLock(const aValue : Boolean);
+begin
+  WriteJSPropertyBoolean('modifierNumLock',aValue);
+end;
+
+procedure TJSEventModifierInit._SetmodifierOS(const aValue : Boolean);
+begin
+  WriteJSPropertyBoolean('modifierOS',aValue);
+end;
+
+procedure TJSEventModifierInit._SetmodifierScrollLock(const aValue : Boolean);
+begin
+  WriteJSPropertyBoolean('modifierScrollLock',aValue);
+end;
+
+procedure TJSEventModifierInit._SetmodifierSymbol(const aValue : Boolean);
+begin
+  WriteJSPropertyBoolean('modifierSymbol',aValue);
+end;
+
+procedure TJSEventModifierInit._SetmodifierSymbolLock(const aValue : Boolean);
+begin
+  WriteJSPropertyBoolean('modifierSymbolLock',aValue);
+end;
+
+constructor TJSEventModifierInit.create(const aDict : TJSEventModifierInitRec); overload;
+begin
+  Self.ctrlKey:=aDict.ctrlKey;
+  Self.shiftKey:=aDict.shiftKey;
+  Self.altKey:=aDict.altKey;
+  Self.metaKey:=aDict.metaKey;
+  Self.modifierAltGraph:=aDict.modifierAltGraph;
+  Self.modifierCapsLock:=aDict.modifierCapsLock;
+  Self.modifierFn:=aDict.modifierFn;
+  Self.modifierFnLock:=aDict.modifierFnLock;
+  Self.modifierNumLock:=aDict.modifierNumLock;
+  Self.modifierOS:=aDict.modifierOS;
+  Self.modifierScrollLock:=aDict.modifierScrollLock;
+  Self.modifierSymbol:=aDict.modifierSymbol;
+  Self.modifierSymbolLock:=aDict.modifierSymbolLock;
+end;
+
+class function TJSEventModifierInit.JSClassName: UnicodeString;
+begin
+  Result:='Object';
+end;
+
+class function TJSEventModifierInit.Cast(const Intf: IJSObject): IJSEventModifierInit;
+begin
+  Result:=TJSEventModifierInit.JOBCast(Intf);
 end;
 
 function TJSVideoFrame._Getformat: TVideoPixelFormat;
