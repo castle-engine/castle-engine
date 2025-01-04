@@ -22,7 +22,7 @@ uses CastleApplicationProperties, CastleWindow, CastleLog;
 
 initialization
   ApplicationProperties.ApplicationName := 'webgl-tests';
-  ApplicationProperties.Caption := 'My New Project';
+  ApplicationProperties.Caption := 'Simplest Web Application Using Castle Game Engine';
   ApplicationProperties.Version := '0.1';
 
   if not IsLibrary then

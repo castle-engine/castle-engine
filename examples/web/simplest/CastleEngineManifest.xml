@@ -8,8 +8,8 @@ See https://castle-engine.io/project_manifest for documentation of this file.
 <project name="webgl-tests"
   standalone_source="webgl_tests_standalone.dpr"
   game_units="GameInitialize"
-  qualified_name="com.mycompany.webgltests"
-  caption="My New Project"
+  qualified_name="io.castleengine.webgltests"
+  caption="Simplest Web Application Using Castle Game Engine"
 >
   <compiler_options>
     <search_paths>

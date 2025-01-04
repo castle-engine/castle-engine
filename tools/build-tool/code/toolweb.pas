@@ -23,7 +23,7 @@ uses Classes,
   ToolProject, ToolCompile;
 
 procedure CompileWeb(const Project: TCastleProject;
-  const CompilerOptions: TCompilerOptions; const MainWebProgramFile: String);
+  const CompilerOptions: TCompilerOptions);
 procedure RunWeb(const Project: TCastleProject);
 
 implementation
@@ -34,9 +34,10 @@ uses SysUtils,
   ToolUtils, ToolCommonUtils, ToolManifest;
 
 procedure CompileWeb(const Project: TCastleProject;
-  const CompilerOptions: TCompilerOptions; const MainWebProgramFile: String);
+  const CompilerOptions: TCompilerOptions);
 var
-  OutputPath, DistPath, Pas2jsExe, SourceExe, DestExe: String;
+  OutputPath, DistPath, Pas2jsExe, SourceExe, DestExe,
+    LibraryFileName: String;
 begin
   OutputPath := TempOutputPath(Project.Path) + 'web' + PathDelim;
   DistPath := OutputPath + 'dist' + PathDelim;
@@ -61,18 +62,21 @@ begin
     '-vm5078',
     // avoid warnings from standard units we cannot do anything about like ".../rtl/src/sysutils.pas(3106,24) Warning: Symbol "substr" is deprecated"
     '-vm5043',
-    'program_js.dpr']);
+    'program_js.lpr']);
   CheckRenameFile(OutputPath + 'program_js.js', DistPath + Project.ExecutableName + '.js');
 
-  { Compile the main application, standalone version, just like
-    "castle-engine compile --os=wasi --cpu=wasm32". }
+  { Compile library. }
+  LibraryFileName := OutputPath + 'library_template.lpr';
   CompilerOptions.OS := Wasi;
   CompilerOptions.CPU := Wasm32;
-  Compile(coFpc, Project.Path, MainWebProgramFile, CompilerOptions);
+  Compile(coFpc, Project.Path, LibraryFileName, CompilerOptions);
 
   // move and rename to castle-engine-output/web/dist/xxx.wasm
   SourceExe := CombinePaths(Project.Path,
-    ChangeFileExt(MainWebProgramFile, ExeExtensionOS(CompilerOptions.OS)));
+    { We build "library", not "program" now for web
+      and FPC by default doesn't add .wasm extension to the produced library file. }
+    //ChangeFileExt(LibraryFileName, ExeExtensionOS(CompilerOptions.OS)));
+    ChangeFileExt(LibraryFileName, ''));
   DestExe := CombinePaths(DistPath,
     ChangeFileExt(Project.ExecutableName, ExeExtensionOS(CompilerOptions.OS)));
   if not SameFileName(SourceExe, DestExe) then

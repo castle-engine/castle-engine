@@ -54,6 +54,8 @@ constructor TMyApplication.Create(aOwner: TComponent);
 begin
   inherited Create(aOwner);
   FJsBridge := TJSObjectBridge.Create(WasiEnvironment);
+  // Necessary when the WASM we run is "library", not "program"
+  RunEntryFunction := '_initialize';
   OnConsoleWrite := @DoWrite;
 end;
 
@@ -104,7 +106,7 @@ begin
   Application.Initialize; // doesn't do anything by default
   Application.Run;
 
-  WriteLn('Normal flow of Pas2js program finished (though registered callbacks, like when WASM accesses environment exposed by JS, may still run).');
+  WriteLn('Pas2js program finished. (But registered callbacks, like when WebAssembly accesses environment exposed by JS, may still execute our code.)');
 
   { Important: *Do not* free Application instance here!
     It would make WebAssembly program fail, as it tries to acccess

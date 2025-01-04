@@ -568,7 +568,7 @@ begin
         end;
       targetWeb:
         begin
-          CompileWeb(Self, CompilerOptions, StandaloneSourceFile(false, true));
+          CompileWeb(Self, CompilerOptions);
         end;
       targetCustom:
         begin

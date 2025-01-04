@@ -269,11 +269,8 @@ begin
   if OpenWindowsCount = 0 then
     Exit;
 
-  // TODO just once for now
-  ProcessAllMessages;
-
-  // TODO make loop
-  //CanvasAnimationHandler := JSWindow.RequestAnimationFrame(@AnimationFrame);
+  // Do first Render/Update, and schedule next frame using RequestAnimationFrame
+  AnimationFrame(0);
 end;
 
 procedure TCastleApplication.BackendTerminate;

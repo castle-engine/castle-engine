@@ -1,4 +1,8 @@
-# My New Project
+# Simplest Web Application Using Castle Game Engine
+
+First application running with CGE [web target](https://castle-engine.io/web).
+
+Does not load any data (images, designs) because we don't support `castle-data:/` yet. Which explains why it looks so simplistic :)
 
 Using [Castle Game Engine](https://castle-engine.io/).
 
