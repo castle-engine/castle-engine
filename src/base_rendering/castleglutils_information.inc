@@ -262,7 +262,7 @@ begin
     '  Antialias: ' + BoolToStr(GL.getContextAttributes.antialias, true) + NL +
     '  PremultipliedAlpha: ' + BoolToStr(GL.getContextAttributes.premultipliedAlpha, true) + NL +
     '  PreserveDrawingBuffer: ' + BoolToStr(GL.getContextAttributes.preserveDrawingBuffer, true) + NL +
-    '  PowerPreference: ' + GL.getContextAttributes.powerPreference + NL +
+    '  PowerPreference: ' + String(GL.getContextAttributes.powerPreference) + NL +
     '  FailIfMajorPerformanceCaveat: ' + BoolToStr(GL.getContextAttributes.failIfMajorPerformanceCaveat, true) + NL +
     NL +
     {$endif}
@@ -297,12 +297,22 @@ begin
 end;
 
 function GLInformationStringSummary: String;
+var
+  VendorStrOrNone: String;
 begin
-  Result := Format('%s %d.%d (%s) (modern rendering: %s)', [
+  { Show detected vendor type or nothing if we don't know vendor type.
+    We show nothing when vendor type is gvOther, to not confuse the user
+    ("other" just means we didn't have code to recognize this vendor). }
+  if GLVersion.VendorType = gvOther then
+    VendorStrOrNone := ''
+  else
+    VendorStrOrNone := ' (' + VendorTypeToStr(GLVersion.VendorType) + ')';
+
+  Result := Format('%s %d.%d%s (modern rendering: %s)', [
     RenderingApiName,
     GLVersion.Major,
     GLVersion.Minor,
-    VendorTypeToStr(GLVersion.VendorType),
+    VendorStrOrNone,
     BoolToStr(not GLFeatures.EnableFixedFunction, true)
   ]);
 end;
