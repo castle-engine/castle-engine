@@ -18,16 +18,22 @@ unit GameViewMain;
 interface
 
 uses Classes,
-  CastleVectors, CastleComponentSerialize,
-  CastleUIControls, CastleControls, CastleKeysMouse;
+  CastleVectors, CastleComponentSerialize, CastleViewport, CastleScene,
+  CastleUIControls, CastleControls, CastleKeysMouse, CastleTimeUtils,
+  CastleCameras;
 
 type
   { Main view, where most of the application logic takes place. }
   TViewMain = class(TCastleView)
   published
     { Components designed using CGE editor.
-      These fields will be automatically initialized at Start. }
+      These fields will be automatically initialized at Start.
+      TODO: For now they are created manually in Start, not loaded. }
     LabelFps: TCastleLabel;
+    MainViewport: TCastleViewport;
+    SpotLight: TCastleSpotLight;
+  private
+    LifeTime: TFloatTime;
   public
     constructor Create(AOwner: TComponent); override;
     procedure Start; override;
@@ -40,7 +46,8 @@ var
 
 implementation
 
-uses SysUtils;
+uses SysUtils, Math,
+  CastleColors, CastleUtils, CastleLog;
 
 { TViewMain ----------------------------------------------------------------- }
 
@@ -52,41 +59,138 @@ begin
 end;
 
 procedure TViewMain.Start;
+var
+  PointLight: TCastlePointLight;
+  Plane: TCastlePlane;
+  Background: TCastleBackground;
+  Navigation: TCastleExamineNavigation;
+  Cone: TCastleCone;
+  I: Integer;
+  LabelInfo: TCastleLabel;
 begin
   inherited;
+
+  // TODO: Would be easier to design this in gameviewmain.castle-user-interface
+  // and just load here, but web target cannot load data files yet.
+
+  MainViewport := TCastleViewport.Create(FreeAtStop);
+  MainViewport.FullSize := true;
+  // MainViewport.Camera.Translation := Vector3(0.00, 2.00, 4.00);
+  MainViewport.Camera.SetWorldView(
+    Vector3(14.38, 6.97, 21.14), // position
+    Vector3(-0.54, -0.28, -0.80), // direction
+    Vector3(-0.11, 0.96, -0.26)  // up
+  );
+  InsertFront(MainViewport);
+
+  PointLight := TCastlePointLight.Create(FreeAtStop);
+  PointLight.Translation := Vector3(4.00, 3.00, 1.00);
+  MainViewport.Items.Add(PointLight);
+
+  SpotLight := TCastleSpotLight.Create(FreeAtStop);
+  SpotLight.Shadows := true;
+  SpotLight.Color := YellowRgb;
+  SpotLight.Translation := Vector3(0, 1, 0);
+  MainViewport.Items.Add(SpotLight);
+
+  Plane := TCastlePlane.Create(FreeAtStop);
+  Plane.Size := Vector2(30, 30);
+  MainViewport.Items.Add(Plane);
+
+  Background := TCastleBackground.Create(FreeAtStop);
+  MainViewport.Background := Background;
+
+  Navigation := TCastleExamineNavigation.Create(FreeAtStop);
+  MainViewport.InsertFront(Navigation);
+
+  for I := 0 to 10 do
+  begin
+    Cone := TCastleCone.Create(FreeAtStop);
+    // random position with Y = 0 (ground level)
+    Cone.Translation := Vector3(
+      RandomFloatRange(-10, 10),
+      1,
+      RandomFloatRange(-10, 10)
+    );
+    // random light color
+    Cone.Color := Vector4(
+      RandomFloatRange(0.5, 1),
+      RandomFloatRange(0.5, 1),
+      RandomFloatRange(0.5, 1),
+      1
+    );
+    MainViewport.Items.Add(Cone);
+  end;
+
+  LabelFps := TCastleLabel.Create(FreeAtStop);
+  LabelFps.Anchor(hpRight, -5);
+  LabelFps.Anchor(vpTop, -5);
+  LabelFps.Color := Vector4(0.1, 0.5, 0.1, 1); // dark green
+  InsertFront(LabelFps);
+
+  LabelInfo := TCastleLabel.Create(FreeAtStop);
+  LabelInfo.Anchor(hpRight, -5);
+  LabelInfo.Anchor(vpTop, -30);
+  LabelInfo.Caption := 'Drag with mouse, pressing left button, to rotate the camera.' + NL +
+    'Drag with mouse, pressing middle button, to move the camera.' + NL +
+    'Other camera manipulation: see Castle Model Viewer docs for Examine mode.' + NL +
+    'Press C to print camera settings (to console).';
+  LabelInfo.Color := Vector4(0.1, 0.1, 0.1, 1); // almost black
+  LabelInfo.Alignment := hpRight;
+  InsertFront(LabelInfo);
 end;
 
 procedure TViewMain.Update(const SecondsPassed: Single; var HandleInput: Boolean);
+var
+  S, C: Single;
 begin
   inherited;
   { This virtual method is executed every frame (many times per second). }
   Assert(LabelFps <> nil, 'If you remove LabelFps from the design, remember to remove also the assignment "LabelFps.Caption := ..." from code');
   LabelFps.Caption := 'FPS: ' + Container.Fps.ToString;
+
+  LifeTime += SecondsPassed;
+  SinCos(LifeTime, S, C);
+  SpotLight.Direction := Vector3(S, -0.3 { a little downward }, C);
 end;
 
 function TViewMain.Press(const Event: TInputPressRelease): Boolean;
+
+  { Print Pascal code to set given camera position/direction/up,
+    useful to copy-paste to have the desired initial camera. }
+  procedure PrintCameraSettings;
+
+    function Vector3ToPascal(const V: TVector3): String;
+    begin
+      Result := FormatDot('Vector3(%f, %f, %f)', [V[0], V[1], V[2]]);
+    end;
+
+  var
+    Pos, Dir, Up: TVector3;
+  begin
+    MainViewport.Camera.GetWorldView(Pos, Dir, Up);
+    WritelnLog(Format('// Set camera vectors using Castle Game Engine.' + NL +
+      'MainViewport.Camera.SetWorldView(' + NL +
+      '  %s, // position' + NL +
+      '  %s, // direction' + NL +
+      '  %s  // up' + NL +
+      ');', [
+        Vector3ToPascal(Pos),
+        Vector3ToPascal(Dir),
+        Vector3ToPascal(Up)
+      ]));
+  end;
+
+
 begin
   Result := inherited;
   if Result then Exit; // allow the ancestor to handle keys
 
-  { This virtual method is executed when user presses
-    a key, a mouse button, or touches a touch-screen.
-
-    Note that each UI control has also events like OnPress and OnClick.
-    These events can be used to handle the "press", if it should do something
-    specific when used in that UI control.
-    The TViewMain.Press method should be used to handle keys
-    not handled in children controls.
-  }
-
-  // Use this to handle keys:
-  {
-  if Event.IsKey(keyXxx) then
+  if Event.IsKey(keyC) then
   begin
-    // DoSomething;
+    PrintCameraSettings;
     Exit(true); // key was handled
   end;
-  }
 end;
 
 end.
