@@ -8,7 +8,7 @@ See https://castle-engine.io/project_manifest for documentation of this file.
 <project name="simplest_viewport"
   standalone_source="simplest_viewport_standalone.dpr"
   game_units="GameInitialize"
-  qualified_name="com.mycompany.simplestviewport"
+  qualified_name="io.castleengine.simplest.viewport"
   caption="Viewport with 3D fun"
 >
   <compiler_options>

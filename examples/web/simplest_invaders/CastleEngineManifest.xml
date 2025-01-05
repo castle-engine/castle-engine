@@ -8,7 +8,7 @@ See https://castle-engine.io/project_manifest for documentation of this file.
 <project name="simplest_invaders"
   standalone_source="simplest_invaders_standalone.dpr"
   game_units="GameInitialize"
-  qualified_name="com.mycompany.simplestinvaders"
+  qualified_name="io.castleengine.simplest.invaders"
   caption="Invaders"
 >
   <compiler_options>
