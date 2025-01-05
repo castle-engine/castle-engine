@@ -63,7 +63,11 @@ end;
 procedure TViewMain.Start;
 begin
   inherited;
-  LabelFps := TCastleLabel.Create(Self);
+
+  // TODO: Would be easier to design this in gameviewmain.castle-user-interface
+  // and just load here, but web target cannot load data files yet.
+
+  LabelFps := TCastleLabel.Create(FreeAtStop);
   LabelFps.Anchor(hpLeft, 5);
   LabelFps.Anchor(vpTop, -5);
   LabelFps.Color := Gray;
