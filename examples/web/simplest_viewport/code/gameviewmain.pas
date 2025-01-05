@@ -142,23 +142,37 @@ begin
   end;
 
   LabelFps := TCastleLabel.Create(FreeAtStop);
+  { smaller font, because web area is smaller, also lack of "texture swizzle"
+    makes it look worse on web now. }
+  LabelFps.FontSize := 15;
   LabelFps.Anchor(hpRight, -5);
   LabelFps.Anchor(vpTop, -5);
   LabelFps.Color := Vector4(0.1, 0.5, 0.1, 1); // dark green
   InsertFront(LabelFps);
 
   LabelInfo := TCastleLabel.Create(FreeAtStop);
+  { smaller font, because web area is smaller, also lack of "texture swizzle"
+    makes it look worse on web now. }
+  LabelInfo.FontSize := 15;
   LabelInfo.Anchor(hpRight, -5);
   LabelInfo.Anchor(vpTop, -30);
   LabelInfo.Caption := 'Drag with mouse, pressing left button, to rotate the camera.' + NL +
     'Drag with mouse, pressing middle button, to move the camera.' + NL +
-    'Other camera manipulation: see Castle Model Viewer docs for Examine mode.' + NL +
-    'Press C to print camera settings (to console).';
+    'See also: Castle Model Viewer docs about Examine mode.'; // + NL +
+    // TODO: key not yet handled on web
+    // 'Press C to print camera settings (to console).';
   LabelInfo.Color := Vector4(0.1, 0.1, 0.1, 1); // almost black
   LabelInfo.Alignment := hpRight;
   InsertFront(LabelInfo);
 
   ButtonDropBox := TCastleButton.Create(FreeAtStop);
+  { smaller font, because web area is smaller, also lack of "texture swizzle"
+    makes it look worse on web now. }
+  ButtonDropBox.FontSize := 15;
+  ButtonDropBox.CustomBackground := true;
+  ButtonDropBox.CustomColorNormal := HexToColor('CCCCCC');
+  ButtonDropBox.CustomColorFocused := HexToColor('EEEEEE');
+  ButtonDropBox.CustomColorPressed := HexToColor('A9A9A9');
   ButtonDropBox.Caption := 'Drop Box (With Physics)';
   ButtonDropBox.OnClick := {$ifdef FPC}@{$endif} ClickDropBox;
   ButtonDropBox.Anchor(hpLeft, 5);
