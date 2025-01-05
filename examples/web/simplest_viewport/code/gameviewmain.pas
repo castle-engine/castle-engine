@@ -32,8 +32,10 @@ type
     LabelFps: TCastleLabel;
     MainViewport: TCastleViewport;
     SpotLight: TCastleSpotLight;
+    ButtonDropBox: TCastleButton;
   private
     LifeTime: TFloatTime;
+    procedure ClickDropBox(Sender: TObject);
   public
     constructor Create(AOwner: TComponent); override;
     procedure Start; override;
@@ -47,7 +49,7 @@ var
 implementation
 
 uses SysUtils, Math,
-  CastleColors, CastleUtils, CastleLog;
+  CastleColors, CastleUtils, CastleLog, CastleTransform;
 
 { TViewMain ----------------------------------------------------------------- }
 
@@ -62,6 +64,9 @@ procedure TViewMain.Start;
 var
   PointLight: TCastlePointLight;
   Plane: TCastlePlane;
+  PlaneBody, ConeBody: TCastleRigidBody;
+  PlaneCollider: TCastlePlaneCollider;
+  ConeCollider: TCastleSphereCollider; // close enough for cone
   Background: TCastleBackground;
   Navigation: TCastleExamineNavigation;
   Cone: TCastleCone;
@@ -97,6 +102,13 @@ begin
   Plane.Size := Vector2(30, 30);
   MainViewport.Items.Add(Plane);
 
+  { Add TCastleRigidBody and TCastlePlaneCollider to Plane,
+    to make it collide with physical boxes (dropped by ClickDropBox) OK. }
+  PlaneBody := TCastleRigidBody.Create(FreeAtStop);
+  Plane.AddBehavior(PlaneBody);
+  PlaneCollider := TCastlePlaneCollider.Create(FreeAtStop);
+  Plane.AddBehavior(PlaneCollider);
+
   Background := TCastleBackground.Create(FreeAtStop);
   MainViewport.Background := Background;
 
@@ -119,6 +131,13 @@ begin
       RandomFloatRange(0.5, 1),
       1
     );
+    { Add TCastleRigidBody and TCastlePlaneCollider to Cone,
+      to make it collide with physical boxes (dropped by ClickDropBox) OK. }
+    ConeBody := TCastleRigidBody.Create(FreeAtStop);
+    Cone.AddBehavior(ConeBody);
+    ConeCollider := TCastleSphereCollider.Create(FreeAtStop);
+    Cone.AddBehavior(ConeCollider);
+
     MainViewport.Items.Add(Cone);
   end;
 
@@ -138,6 +157,13 @@ begin
   LabelInfo.Color := Vector4(0.1, 0.1, 0.1, 1); // almost black
   LabelInfo.Alignment := hpRight;
   InsertFront(LabelInfo);
+
+  ButtonDropBox := TCastleButton.Create(FreeAtStop);
+  ButtonDropBox.Caption := 'Drop Box (With Physics)';
+  ButtonDropBox.OnClick := {$ifdef FPC}@{$endif} ClickDropBox;
+  ButtonDropBox.Anchor(hpLeft, 5);
+  ButtonDropBox.Anchor(vpBottom, 5);
+  InsertFront(ButtonDropBox);
 end;
 
 procedure TViewMain.Update(const SecondsPassed: Single; var HandleInput: Boolean);
@@ -191,6 +217,28 @@ begin
     PrintCameraSettings;
     Exit(true); // key was handled
   end;
+end;
+
+procedure TViewMain.ClickDropBox(Sender: TObject);
+var
+  Box: TCastleBox;
+  Body: TCastleRigidBody;
+  Collider: TCastleBoxCollider;
+begin
+  Box := TCastleBox.Create(FreeAtStop);
+  Box.Translation := Vector3(
+    RandomFloatRange(-10, 10),
+    10,
+    RandomFloatRange(-10, 10)
+  );
+
+  Body := TCastleRigidBody.Create(FreeAtStop);
+  Box.AddBehavior(Body);
+
+  Collider := TCastleBoxCollider.Create(FreeAtStop);
+  Box.AddBehavior(Collider);
+
+  MainViewport.Items.Add(Box);
 end;
 
 end.

@@ -1,6 +1,9 @@
 # Viewport with 3D fun
 
-Test `TCastleViewport` with 3D animated things, lights.
+Test `TCastleViewport` with:
+- 3D things like planes, cones, boxes.
+- Lights, with animated spot light direction and shadows.
+- Physics (boxes fall down with physics).
 
 This can be run on any platform, though was made specifically to test our [web](https://castle-engine.io/web) target.
 
