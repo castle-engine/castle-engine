@@ -75,8 +75,8 @@ begin
   LabelInfo.Caption := 'Invaders!' + NL +
     NL +
     'Keys:' + NL +
-    '- Move: A / D (or left / right arrows).' + NL +
-    '- Shoot: W (or Space).';
+    '- Move: A / D' + NL +
+    '- Shoot: W';
   LabelInfo.Alignment := hpMiddle;
   VerticalGroup.InsertFront(LabelInfo);
 

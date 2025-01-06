@@ -239,7 +239,9 @@ begin
   Result := inherited;
   if Result then Exit;
 
-  if (Event.IsKey(keySpace) or Event.IsKey(keyW)) and
+  if (// space is already used by web browsers to scroll the page
+      {$ifndef CASTLE_WEBGL} Event.IsKey(keySpace) or {$endif}
+      Event.IsKey(keyW)) and
      (PlayerRockets.Count < MaxRockets) then
   begin
     NewRocket := TRocket.Create;
@@ -305,13 +307,12 @@ begin
   inherited;
 
   // move player
-  if //ButtonMoveLeft.Pressed or
-     Container.Pressed[keyA] or
-     Container.Pressed[keyArrowLeft] then
+  if Container.Pressed[keyA]
+     // arrows are already used by browser to scroll the page
+     {$ifndef CASTLE_WEBGL} or Container.Pressed[keyArrowLeft] {$endif} then
     Player.Position.X -= SecondsPassed * PlayerSpeed;
-  if //ButtonMoveRight.Pressed or
-     Container.Pressed[keyD] or
-     Container.Pressed[keyArrowRight] then
+  if Container.Pressed[keyD]
+     {$ifndef CASTLE_WEBGL} or Container.Pressed[keyArrowRight] {$endif} then
     Player.Position.X += SecondsPassed * PlayerSpeed;
 
   // move player rockets and check did they hit enemies
