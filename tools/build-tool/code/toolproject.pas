@@ -2347,6 +2347,8 @@ begin
     Macros.Add('APPLE_BUNDLE_SIGNATURE', Copy(ExecutableName + '????', 1, 4));
     Macros.Add('APPLE_ASSOCIATE_DOCUMENT_TYPES', AssociateDocumentTypes.ToPListSection(QualifiedName, Name));
     Macros.Add('RANDOM_URL_SUFFIX', '?random_suffix_to_avoid_cache=' + RandomString);
+    Macros.Add('WEB_CANVAS_WIDTH', IntToStr(Manifest.WebCanvasWidth));
+    Macros.Add('WEB_CANVAS_HEIGHT', IntToStr(Manifest.WebCanvasHeight));
 
     AddMacrosAndroid(Macros);
     AddMacrosIOS(Macros);
