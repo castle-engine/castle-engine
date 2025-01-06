@@ -84,6 +84,10 @@ initialization
     Note that some platforms (like mobile) ignore these window sizes.
   }
 
+  // optimal size for this game
+  Window.Width := 800;
+  Window.Height := 600;
+
   { Handle command-line parameters like --fullscreen and --window.
     By doing this last, you let user to override your fullscreen / mode setup. }
   Window.ParseParameters;

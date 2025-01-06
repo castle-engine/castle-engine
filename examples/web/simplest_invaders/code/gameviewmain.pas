@@ -19,15 +19,19 @@ interface
 
 uses Classes,
   CastleVectors, CastleComponentSerialize,
-  CastleUIControls, CastleControls, CastleKeysMouse;
+  CastleUIControls, CastleControls, CastleKeysMouse,
+  GameInvaders;
 
 type
   { Main view, where most of the application logic takes place. }
   TViewMain = class(TCastleView)
   published
     { Components designed using CGE editor.
-      These fields will be automatically initialized at Start. }
+      These fields will be automatically initialized at Start.
+      TODO: For now they are created manually in Start, not loaded. }
     LabelFps: TCastleLabel;
+  private
+    Invaders: TInvadersGame;
   public
     constructor Create(AOwner: TComponent); override;
     procedure Start; override;
@@ -40,7 +44,8 @@ var
 
 implementation
 
-uses SysUtils;
+uses SysUtils,
+  CastleColors;
 
 { TViewMain ----------------------------------------------------------------- }
 
@@ -54,6 +59,16 @@ end;
 procedure TViewMain.Start;
 begin
   inherited;
+  Invaders := TInvadersGame.Create(FreeAtStop);
+  Invaders.FullSize := true;
+  InsertFront(Invaders);
+
+  LabelFps := TCastleLabel.Create(FreeAtStop);
+  LabelFps.FontSize := 15;
+  LabelFps.Anchor(hpRight, -5);
+  LabelFps.Anchor(vpTop, -5);
+  LabelFps.Color := Green;
+  InsertFront(LabelFps);
 end;
 
 procedure TViewMain.Update(const SecondsPassed: Single; var HandleInput: Boolean);
@@ -62,31 +77,15 @@ begin
   { This virtual method is executed every frame (many times per second). }
   Assert(LabelFps <> nil, 'If you remove LabelFps from the design, remember to remove also the assignment "LabelFps.Caption := ..." from code');
   LabelFps.Caption := 'FPS: ' + Container.Fps.ToString;
+
+  // TODO: react to PlayerAlive, SomeEnemyAlive = false
+  // TODO: use buttons, pass input to Invaders component externally
 end;
 
 function TViewMain.Press(const Event: TInputPressRelease): Boolean;
 begin
   Result := inherited;
   if Result then Exit; // allow the ancestor to handle keys
-
-  { This virtual method is executed when user presses
-    a key, a mouse button, or touches a touch-screen.
-
-    Note that each UI control has also events like OnPress and OnClick.
-    These events can be used to handle the "press", if it should do something
-    specific when used in that UI control.
-    The TViewMain.Press method should be used to handle keys
-    not handled in children controls.
-  }
-
-  // Use this to handle keys:
-  {
-  if Event.IsKey(keyXxx) then
-  begin
-    // DoSomething;
-    Exit(true); // key was handled
-  end;
-  }
 end;
 
 end.
