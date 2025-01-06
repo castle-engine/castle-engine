@@ -240,7 +240,7 @@ begin
   if Result then Exit;
 
   if (// space is already used by web browsers to scroll the page
-      {$ifndef CASTLE_WEBGL} Event.IsKey(keySpace) or {$endif}
+      {$ifndef WASI} Event.IsKey(keySpace) or {$endif}
       Event.IsKey(keyW)) and
      (PlayerRockets.Count < MaxRockets) then
   begin
@@ -309,10 +309,10 @@ begin
   // move player
   if Container.Pressed[keyA]
      // arrows are already used by browser to scroll the page
-     {$ifndef CASTLE_WEBGL} or Container.Pressed[keyArrowLeft] {$endif} then
+     {$ifndef WASI} or Container.Pressed[keyArrowLeft] {$endif} then
     Player.Position.X -= SecondsPassed * PlayerSpeed;
   if Container.Pressed[keyD]
-     {$ifndef CASTLE_WEBGL} or Container.Pressed[keyArrowRight] {$endif} then
+     {$ifndef WASI} or Container.Pressed[keyArrowRight] {$endif} then
     Player.Position.X += SecondsPassed * PlayerSpeed;
 
   // move player rockets and check did they hit enemies
