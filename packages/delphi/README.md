@@ -1,8 +1,14 @@
 # Delphi packages
 
-Installing these packages in Delphi is necessary to [register TCastleControl component, that you can drop on a VCL or FMX form](https://castle-engine.io/control_on_form).
+Installing these packages in Delphi is recommended for a few reasons:
 
-NOTE: These packages are *not* necessary for developing applications using `TCastleWindow`. And `TCastleWindow` is recommended if you want to create a typical game using CGE, with everything (including UI) designed using CGE. Our _"New Project"_ templates and most examples use `TCastleWindow`, not `TCastleControl`.
+- [Register TCastleControl component, that you can drop on a VCL or FMX form](https://castle-engine.io/control_on_form).
+
+- Add menu items _"Tools -> Castle Game Engine -> ..."_ to the Delphi IDE.
+
+- Automatically place DLLs alongside your application executable, for Windows.
+
+See [Delphi packages](https://castle-engine.io/delphi_packages) for details.
 
 ## Installation in Delphi
 
@@ -12,9 +18,7 @@ This is duplicated in [Delphi packages installation docs](https://castle-engine.
 
 - Right-click on all packages (except `castle_engine_window.bpl`) in succession and click _"Install"_.
 
-**Most users can stop reading at this point. You have [TCastleControl component, that you can drop on a VCL or FMX form](https://castle-engine.io/control_on_form).**
-
-The rest of this package is only for the developers of CGE itself, or if you want to better understand how CGE packages work.
+**Most users can stop reading at this point.** The rest of this README is only for the developers of CGE itself, or if you want to better understand how CGE packages work.
 
 ## Optional: Building packages in Delphi IDE, for all platforms
 
@@ -28,7 +32,7 @@ While this is not necessary for installation, you can make sure that all package
 
   Again, right-click on _"AllPackages"_ and select _"Build All"_.
 
-- Switch platform of all packages (except `castle_engine_design.bpl` and `castle_engine_vcl.bpl`) to _"Linux 64-bit"_. Do this if you want to use link:delphi_linux[Delphi on Linux].
+- Switch platform of all packages (except `castle_engine_design.bpl` and `castle_engine_vcl.bpl`) to _"Linux 64-bit"_. Do this if you want to use [Delphi on Linux](https://castle-engine.io/delphi_linux).
 
   To make it work, first [add FMXLinux to "Library Paths"](https://castle-engine.io/delphi_linux#library_paths).
 
@@ -48,13 +52,13 @@ If anything fails, please [submit a bug](https://github.com/castle-engine/castle
 
 - `castle_engine_design.bpl` contains additional design-time features for CGE components.
 
-Run-time and design-time:
+Which package is run-time, which is design-time?
 
 - `castle_engine_design.bpl` is design-time only. It only contains things that are useful in Delphi IDE, everything else is in other packages.
 
 - `castle_engine_window.bpl` is run-time only. It cannot be installed in Delphi IDE. See below for an explanation why -- it secures us from an important mistake.
 
-- Other packages are design-time and run-time. You can install them all in Delphi IDE.
+- Other packages are both design-time and run-time. You can install them all in Delphi IDE.
 
 Platforms:
 
@@ -84,7 +88,7 @@ Platforms:
 
 - Note about Win32 vs Win64: We generally recommend to build your Windows applications for 64-bit, as this is what users expect nowadays. But we fully support both 32-bit and 64-bit Windows versions, with any compiler.
 
-### Why castle_engine_window not design-time?
+### Why castle_engine_window should not be used at design-time?
 
 - `castle_engine_window.bpl` cannot be installed in Delphi IDE, to secure us from an important mistake:
 
@@ -92,7 +96,7 @@ Platforms:
 
     Note: We actually do not talk to widgetsets until `Application` singleton is initialized, and even then we defer any "dangerous" initialization to when it is really necessary (usually creation of `TCastleWindow`, eventually querying e.g. `Application.ScreenWidth`). And from Delphi IDE, neither `TCastleWindow` nor `TCastleApplication` should ever need to be created, nothing should call `Application` making the singleton initialized.
 
-    ... But just in case we'll make a mistake (e.g. `CastleWindow` initialization does, by mistake, some call to WinAPI, maybe indirectly) it is better to keep these units to never be installed in Delphi IDE. They should never be needed at design-time anyway.
+    ... But just in case we'll make a mistake (e.g. `CastleWindow` initialization will, by mistake, make some call to WinAPI, maybe indirectly) it is better to keep these units to never be installed in Delphi IDE. They should never be needed at design-time anyway.
 
 ### Dependencies
 
@@ -108,19 +112,19 @@ Platforms:
 
 - Right now `castle_engine_window.bpl` depends on FMX and on `castle_engine_fmx.bpl`. But this may not be necessary in the future.
 
-    The dependency is there because link:delphi_linux[Delphi on Linux] currently uses FMX. More precisely, it uses `TCastleWindow` backend called `CASTLE_WINDOW_FORM` which uses `TOpenGLControl` from `Fmx.CastleInternalGLControl` unit (`castle_engine_fmx.bpl`) which in turm uses FMX.
+    The dependency is there because [Delphi on Linux](https://castle-engine.io/delphi_linux) currently uses FMX. More precisely, it uses `TCastleWindow` backend called `CASTLE_WINDOW_FORM` which uses `TOpenGLControl` from `Fmx.CastleInternalGLControl` unit (`castle_engine_fmx.bpl`) which in turm uses FMX.
 
-    It is possible we will remove this dependency in the future. Some `TCastleWindow` backends access system APIs (like WinAPI or GTK) directly, wihtout the need for FMX, VCL (or LCL in case of FPC/Lazarus). For now it's not a problem, but we want to keep this possibility open for the future, e.g. to support future platforms that may not have FMX.
+    It is possible we will remove this dependency in the future. Some `TCastleWindow` backends access system APIs (like WinAPI or GTK) directly, without the need for FMX, VCL (or LCL in case of FPC/Lazarus). For now it's not a problem, but we want to keep this possibility open for the future, e.g. to support future platforms that may not have FMX.
 
 ### Other notes
 
-- Note that we don't add deprecated units, from `src/deprecated_units` or `src/window/deprecated_units`, like `CastleProgress`, to the Delphi packages. At least for now. This makes building the packages look clean in Delphi IDE -- important, as we don't want new users to be confused by warnings when building packages, warnings about things they'll likely should not care about.
+- Note that we don't add deprecated units, from `src/deprecated_units` or `src/window/deprecated_units`, like `CastleProgress`, to the Delphi packages. At least for now. This makes building the packages look clean in Delphi IDE -- important, as we don't want new users to be confused by warnings when building packages, warnings about things that users should not care about (like the fact that we have some deprecated units).
 
 - The packages are not useful with Delphinus at this point, due to https://github.com/Memnarch/Delphinus/issues/93 .
 
-    Hopefully this will be fixed eventually, we'd love to recommend to use install our packages using [Delphinus](https://castle-engine.io/download#delphinus). It should install the package and extend your Delphi settings, to make CGE units available for all applications.
+    Hopefully this will be fixed eventually, we'd love to recommend to use / install our packages using [Delphinus](https://castle-engine.io/download#delphinus). It should install the package and extend your Delphi settings, to make CGE units available for all applications.
 
-- There is automatic checked of these packages in `tools/internal/check_packages/`. You can run it manually whenever you want, Jenkins and GitHub Actions also run it automatically.
+- There is automatic check of these packages in `tools/internal/check_packages/`. You can run it manually whenever you want, our GitHub Actions also run it automatically.
 
     We also have some checks in `tools/internal/cge_shell_tests` (just a bash script).
 

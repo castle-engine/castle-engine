@@ -54,8 +54,8 @@ type
 
     @unorderedList(
       @item(Selection (when @link(Mode) = mmSelect).
-        To use this, call @link(SetSelected). Multiple transform
-        instances can be selected at once.
+        To use this, call @link(SetSelected) with any number of transforms.
+        Multiple transform instances can be selected at once.
 
         This component does never itself change the selected objects.
         It relies on external code to call @link(SetSelected) whenever
@@ -65,8 +65,8 @@ type
       )
 
       @item(Move, rotate or scale a selected transformation.
-        To use this, set @link(MainSelected) to the transformation that
-        should be modified, and set @link(Mode) to the desired operation.
+        To use this, call @link(SetSelected) with exactly one transform.
+        And set @link(Mode) to the desired operation, like @link(mmTranslate).
 
         This component fully implements moving, rotating and scaling.
         It displays a proper "gizmo" to perform this for user,
@@ -74,11 +74,8 @@ type
         Use events like @link(OnTransformModified) and @link(OnTransformModifyEnd)
         to get notified when the transformation is modified.
 
-        TODO: Right now we allow to move/rotate/scale only a single
-        transformation, that's why we rely on the @link(MainSelected) property.
-        In the future, we should allow to move/rotate/scale multiple transforms,
-        and then @link(MainSelected) property will be removed, and we will just
-        transform all instances given as @link(SetSelected).
+        TODO: Right now we allow to move/rotate/scale only a single transformation.
+        In the future, we plan to allow to move/rotate/scale multiple transforms.
       )
     )
   }
@@ -148,6 +145,7 @@ type
       Gizmo: array [TManipulateMode] of TGizmoScene;
       FOnTransformModified: TNotifyEvent;
       FOnTransformModifyEnd: TNotifyEvent;
+      FSelectedCount: Cardinal;
 
     procedure SetMode(const AValue: TManipulateMode);
     procedure SetMainSelected(const AValue: TCastleTransform);
@@ -156,19 +154,7 @@ type
     procedure GizmoHasTransformModifyEnd(Sender: TObject);
     procedure MainSelectedFreeNotification(const Sender: TFreeNotificationObserver);
     procedure CreateMoreBoxes;
-  public
-    constructor Create(AOwner: TComponent); override;
-    destructor Destroy; override;
-
-    { Called whenever we modify the @link(MainSelected) state by moving/rotating/scaling.
-      Useful e.g. to mark the design as "modified". }
-    property OnTransformModified: TNotifyEvent
-      read FOnTransformModified write FOnTransformModified;
-
-    { Called when we stop dragging (to move/rotate/scale).
-      Useful e.g. to mark new state as "next undo step". }
-    property OnTransformModifyEnd: TNotifyEvent
-      read FOnTransformModifyEnd write FOnTransformModifyEnd;
+    function GetSelected(const Index: Integer): TCastleTransform;
 
     { Current TCastleTransform for potential move/rotate/scale
       (depending on @link(Mode)).
@@ -178,6 +164,20 @@ type
       gizmos to transform should work on multi-selection too,
       thus rely on SetSelected. }
     property MainSelected: TCastleTransform read FMainSelected write SetMainSelected;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+
+    { Called whenever we modify the transformation of selected transformations
+      by moving/rotating/scaling.
+      Useful e.g. to mark the design as "modified". }
+    property OnTransformModified: TNotifyEvent
+      read FOnTransformModified write FOnTransformModified;
+
+    { Called when we stop dragging (to move/rotate/scale).
+      Useful e.g. to mark new state as "next undo step". }
+    property OnTransformModifyEnd: TNotifyEvent
+      read FOnTransformModifyEnd write FOnTransformModifyEnd;
 
     { Modify this property temporarily to influnce ray collisions.
       If your code uses ray collisions (non-physical) using
@@ -190,20 +190,34 @@ type
     property Mode: TManipulateMode read FMode write SetMode
       default mmSelect;
 
-    { Pass a list of TCastleTransform instances to visualize them as selected.
-      In the future, these will also be used to move/rotate/scale.
+    { Pass a list of TCastleTransform instances to visualize them as selected
+      and to manipulate them (move/rotate/scale).
 
-      The argument Selected may be @nil, which is treated just like passing an
+      TODO: Right now, manipulating (move/rotate/scale) works only for a single
+      transform. You cannot pass more than one item on the NewSelected list
+      if you want to have move/rotate/scale working.
+
+      The argument NewSelected may be @nil, which is treated just like passing an
       empty list.
 
-      Instance of other classes on the Selected list are allowed,
+      Instance of other classes on the NewSelected list are allowed,
       and they are just ignored.
 
-      The list Selected does not become owned by this class.
+      The list NewSelected does not become owned by this class.
       You can free it whenever you want, even immediately after calling this method,
       we don't keep any reference to it -- we copy the contents. }
-    procedure SetSelected(const Selected: TComponentList); overload;
-    procedure SetSelected(const Selected: array of TComponent); overload;
+    procedure SetSelected(const NewSelected: TComponentList); overload;
+    procedure SetSelected(const NewSelected: array of TComponent); overload;
+
+    { Currently selected items, use indexes from 0 to SelectedCount - 1.
+      This is equivalent to the contents of last SetSelected call,
+      but filtered to contain only TCastleTransform instances that
+      can be manipulated. }
+    property Selected[const Index: Integer]: TCastleTransform read GetSelected;
+
+    { Count of currently selected items.
+      @seealso Selected }
+    function SelectedCount: Integer;
   end;
 
 var
@@ -851,32 +865,39 @@ begin
   end;
 end;
 
-procedure TCastleTransformManipulate.SetSelected(const Selected: array of TComponent);
+procedure TCastleTransformManipulate.SetSelected(const NewSelected: array of TComponent);
 var
   List: TComponentList;
   C: TComponent;
 begin
   List := TComponentList.Create(false);
   try
-    for C in Selected do
+    for C in NewSelected do
       List.Add(C);
+    SetSelected(List);
   finally FreeAndNil(List) end;
 end;
 
-procedure TCastleTransformManipulate.SetSelected(const Selected: TComponentList);
+procedure TCastleTransformManipulate.SetSelected(const NewSelected: TComponentList);
 var
-  NextBox, I: Integer;
+  I: Integer;
 begin
-  NextBox := 0;
-  if Selected <> nil then
-    for I := 0 to Selected.Count - 1 do
-      if Selected[I] is TCastleTransform then
+  FSelectedCount := 0;
+  if NewSelected <> nil then
+    for I := 0 to NewSelected.Count - 1 do
+      if (NewSelected[I] is TCastleTransform) and
+         { Disallow editing TCastleAbstractRootTransform transformation.
+           See InspectorFilter in CGE editor for explanation, in short:
+           editing TCastleAbstractRootTransform transformation is very
+           unintuitive, as you transform both objects and the camera...
+           so actually nothing visible happens. }
+         (not (NewSelected[I] is TCastleAbstractRootTransform)) then
       begin
-        if NextBox >= Boxes.Count then
+        if FSelectedCount >= Boxes.Count then
           CreateMoreBoxes;
-        Assert(NextBox < Boxes.Count);
-        Boxes[NextBox].Parent := TCastleTransform(Selected[I]);
-        Inc(NextBox);
+        Assert(FSelectedCount < Boxes.Count);
+        Boxes[FSelectedCount].Parent := TCastleTransform(NewSelected[I]);
+        Inc(FSelectedCount);
       end;
 
   { Note: each TDebugTransformBox already observes its Parent,
@@ -884,8 +905,14 @@ begin
     So there's no need to worry about it here anymore. }
 
   { Detach remaining Boxes from any parent, to not show them }
-  for I := NextBox to Boxes.Count - 1 do
+  for I := FSelectedCount to Boxes.Count - 1 do
     Boxes[I].Parent := nil;
+
+  { Update MainSelected }
+  if SelectedCount = 1 then
+    MainSelected := Selected[0]
+  else
+    MainSelected := nil;
 end;
 
 procedure TCastleTransformManipulate.SetMainSelected(const AValue: TCastleTransform);
@@ -949,6 +976,24 @@ begin
 
   if (FMainSelected <> nil) and (Gizmo[Mode] <> nil) then
     FMainSelected.Add(Gizmo[Mode]);
+end;
+
+function TCastleTransformManipulate.SelectedCount: Integer;
+begin
+  Result := FSelectedCount;
+end;
+
+function TCastleTransformManipulate.GetSelected(const Index: Integer): TCastleTransform;
+begin
+  if (Index >= 0) and (Index < FSelectedCount) then
+  begin
+    Result := Boxes[Index].Parent;
+    Assert(Result <> nil);
+  end else
+    raise EListError.CreateFmt('Index %d out of bounds for %d items (TCastleTransformManipulate.Selected)', [
+      Index,
+      FSelectedCount
+    ]);
 end;
 
 initialization
