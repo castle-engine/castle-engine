@@ -21,22 +21,10 @@ do_project ()
   cp -R castle-engine-output/web/dist "${CGE_WWW_DIST}"
 }
 
-# Edit index.html of given project to change canvas size
-# $1 - project name
-# $2 - width
-# $3 - height
-change_canvas_size ()
-{
-  HTML="${CGE_WWW_DEMOS}/${1}/index.html"
-  sed -i "s/width="512" height="512"/width="${2}" height="${3}"/" "${HTML}"
-}
-
 # main code
 
 do_project simplest
 do_project simplest_viewport
 do_project simplest_invaders
-
-change_canvas_size simplest_invaders 800 600
 
 # now in cge-www: commit + push, and update website
