@@ -89,14 +89,19 @@ type
       EnemiesHorizMoveOdd: Boolean;
       TimeToEnemiesHorizMoveSwitch: Single;
       FSomeEnemyAlive: Boolean;
+      FEnemiesGotToPlayer: Boolean;
+      FEasy: Boolean;
   public
-    constructor Create(AOwner: TComponent); override;
+    constructor Create(const AOwner: TComponent; const AEasy: Boolean); reintroduce;
     destructor Destroy; override;
     function Press(const Event: TInputPressRelease): Boolean; override;
     procedure Update(const SecondsPassed: Single; var HandleInput: Boolean); override;
     procedure Render; override;
+
+    { Observe these values to know when game ended. }
     property SomeEnemyAlive: Boolean read FSomeEnemyAlive;
     function PlayerAlive: Boolean;
+    property EnemiesGotToPlayer: Boolean read FEnemiesGotToPlayer;
   end;
 
 implementation
@@ -189,11 +194,13 @@ end;
 
 { TInvadersGame -------------------------------------------------------------- }
 
-constructor TInvadersGame.Create(AOwner: TComponent);
+constructor TInvadersGame.Create(const AOwner: TComponent; const AEasy: Boolean);
 var
   X, Y: Integer;
 begin
-  inherited;
+  inherited Create(AOwner);
+
+  FEasy := AEasy;
 
   Player := TPlayer.Create;
   Player.Alive := true;
@@ -283,7 +290,10 @@ procedure TInvadersGame.Update(const SecondsPassed: Single; var HandleInput: Boo
 const
   PlayerSpeed = 300;
   PlayerRocketSpeed = 500;
-  EnemyRocketSpeed = 500;
+  EnemyRocketSpeedEasy = 250;
+  EnemyRocketSpeedHard = 500;
+  EnemyRocketSpeedChanceEasy = 1 / 120;
+  EnemyRocketSpeedChanceHard = 1 / 80;
   EnemiesVertSpeed = 10;
   EnemiesHorizSpeed = 10;
 var
@@ -318,7 +328,8 @@ begin
   I := 0;
   while I < EnemyRockets.Count do // while, not for loop, as the Count may change
   begin
-    EnemyRockets[I].Position.Y -= SecondsPassed * EnemyRocketSpeed;
+    EnemyRockets[I].Position.Y -=
+      SecondsPassed * Iff(FEasy, EnemyRocketSpeedEasy, EnemyRocketSpeedHard);
     if RocketHitsPlayer(EnemyRockets[I]) then
       EnemyRockets.DeleteFast(I)
     else
@@ -344,13 +355,17 @@ begin
 
         if Enemies[X, Y].Position.Y < 100 then
         begin
-          Player.Alive := false;
-          WritelnLog('Enemies got to the bottom!');
+          FEnemiesGotToPlayer := true;
+          Exit;
         end;
 
         if (EnemyRockets.Count < MaxRockets) and
            (TimeToEnemyRocket <= 0) and
-           (Random(80) = 0 { TODO: haaaaack! }) then
+           { TODO: This way of making rockets less often isn't completely
+             time-independent, because in case there are few enemies,
+             it will be retried next frame, and often this happens -> depends
+             on SecondsPassed. }
+           (Random < Iff(FEasy, EnemyRocketSpeedChanceEasy, EnemyRocketSpeedChanceHard)) then
         begin
           NewRocket := TRocket.Create;
           NewRocket.Position := Enemies[X, Y].Rect.Center;

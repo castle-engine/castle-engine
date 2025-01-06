@@ -33,6 +33,7 @@ type
   private
     Invaders: TInvadersGame;
   public
+    Easy: Boolean; //< Set before view starts.
     constructor Create(AOwner: TComponent); override;
     procedure Start; override;
     procedure Update(const SecondsPassed: Single; var HandleInput: Boolean); override;
@@ -45,7 +46,8 @@ var
 implementation
 
 uses SysUtils,
-  CastleColors;
+  CastleColors, CastleUtils,
+  GameViewEnd;
 
 { TViewMain ----------------------------------------------------------------- }
 
@@ -57,9 +59,11 @@ begin
 end;
 
 procedure TViewMain.Start;
+var
+  LabelInfo: TCastleLabel;
 begin
   inherited;
-  Invaders := TInvadersGame.Create(FreeAtStop);
+  Invaders := TInvadersGame.Create(FreeAtStop, Easy);
   Invaders.FullSize := true;
   InsertFront(Invaders);
 
@@ -69,6 +73,14 @@ begin
   LabelFps.Anchor(vpTop, -5);
   LabelFps.Color := Green;
   InsertFront(LabelFps);
+
+  LabelInfo := TCastleLabel.Create(FreeAtStop);
+  LabelInfo.FontSize := 15;
+  LabelInfo.Caption := 'Mode: '  + Iff(Easy, 'Easy', 'Hard');
+  LabelInfo.Color := Gray;
+  LabelInfo.Anchor(hpLeft, 5);
+  LabelInfo.Anchor(vpTop, -5);
+  InsertFront(LabelInfo);
 end;
 
 procedure TViewMain.Update(const SecondsPassed: Single; var HandleInput: Boolean);
@@ -78,7 +90,27 @@ begin
   Assert(LabelFps <> nil, 'If you remove LabelFps from the design, remember to remove also the assignment "LabelFps.Caption := ..." from code');
   LabelFps.Caption := 'FPS: ' + Container.Fps.ToString;
 
-  // TODO: react to PlayerAlive, SomeEnemyAlive = false
+  if not Invaders.PlayerAlive then
+  begin
+    ViewEnd.Won := false;
+    ViewEnd.Message := 'You lost!' + NL + '(Hit by enemy rocket)';
+    Container.View := ViewEnd;
+  end else
+  if Invaders.EnemiesGotToPlayer then
+  begin
+    ViewEnd.Won := false;
+    ViewEnd.Message := 'You lost!' + NL +
+      '(Enemy got too close to your ship.' + NL +
+      'Shoot the closest enemies first!)';
+    Container.View := ViewEnd;
+  end else
+  if not Invaders.SomeEnemyAlive then
+  begin
+    ViewEnd.Won := true;
+    ViewEnd.Message := 'You won!' + NL + '(All the enemies destroyed)';
+    Container.View := ViewEnd;
+  end;
+
   // TODO: use buttons, pass input to Invaders component externally
 end;
 
