@@ -27,6 +27,7 @@ uses SysUtils,
   // The content here may be automatically updated by CGE editor.
   , GameViewMain
   , GameViewEnd
+  , GameViewInitial
   {$endregion 'Castle Initialization Uses'};
 
 var
@@ -42,11 +43,12 @@ begin
   { Create views (see https://castle-engine.io/views ). }
   {$region 'Castle View Creation'}
   // The content here may be automatically updated by CGE editor.
+  ViewInitial := TViewInitial.Create(Application);
   ViewMain := TViewMain.Create(Application);
   ViewEnd := TViewEnd.Create(Application);
   {$endregion 'Castle View Creation'}
 
-  Window.Container.View := ViewMain;
+  Window.Container.View := ViewInitial;
 end;
 
 initialization

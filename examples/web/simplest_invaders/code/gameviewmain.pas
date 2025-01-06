@@ -110,8 +110,6 @@ begin
     ViewEnd.Message := 'You won!' + NL + '(All the enemies destroyed)';
     Container.View := ViewEnd;
   end;
-
-  // TODO: use buttons, pass input to Invaders component externally
 end;
 
 function TViewMain.Press(const Event: TInputPressRelease): Boolean;

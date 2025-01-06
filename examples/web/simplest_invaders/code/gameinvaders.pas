@@ -239,7 +239,8 @@ begin
   Result := inherited;
   if Result then Exit;
 
-  if Event.IsKey(keySpace) and (PlayerRockets.Count < MaxRockets) then
+  if (Event.IsKey(keySpace) or Event.IsKey(keyW)) and
+     (PlayerRockets.Count < MaxRockets) then
   begin
     NewRocket := TRocket.Create;
     NewRocket.Position := Player.Rect.Center;
