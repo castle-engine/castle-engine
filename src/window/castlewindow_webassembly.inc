@@ -27,7 +27,9 @@ strict private
   function PointerDown(BaseEvent: IJSEvent): Boolean;
   function PointerUp(BaseEvent: IJSEvent): Boolean;
   function PointerMove(BaseEvent: IJSEvent): Boolean;
+  function LostPointerCapture(BaseEvent: IJSEvent): Boolean;
   function KeyDown(BaseEvent: IJSEvent): Boolean;
+  function KeyUp(BaseEvent: IJSEvent): Boolean;
 {$endif read_window_interface}
 
 {$ifdef read_application_interface}
@@ -142,8 +144,14 @@ begin
 
   Canvas.addEventListener('pointerdown', @PointerDown);
   Canvas.addEventListener('pointerup', @PointerUp);
+  Canvas.addEventListener('lostpointercapture', @LostPointerCapture);
   Canvas.addEventListener('pointermove', @PointerMove);
-  Canvas.addEventListener('keydown', @KeyDown);
+
+  { Catching key events on canvas doesn't work, as the canvas needs to be focused,
+    see https://developer.mozilla.org/en-US/docs/Web/API/Element/keydown_event .
+    For now, we catch key events on the whole window. }
+  JSWindow.addEventListener('keydown', @KeyDown);
+  JSWindow.addEventListener('keyup', @KeyUp);
 
   // TODO
   // GetInitialCursorPos;
@@ -223,6 +231,20 @@ begin
   DoMouseUp(Position, Button, FingerIndex);
 
   Result := false;
+end;
+
+function TCastleWindow.LostPointerCapture(BaseEvent: IJSEvent): Boolean;
+var
+  B: TCastleMouseButton;
+begin
+  Result := true; // assume not handled
+
+  if MousePressed <> [] then
+  begin
+    WritelnLog('LostPointerCapture while some buttons pressed, simulating MouseUp for all buttons');
+    for B in MousePressed do
+      DoMouseUp(Container.MousePosition, B, 0);
+  end;
 end;
 
 function TCastleWindow.PointerMove(BaseEvent: IJSEvent): Boolean;
@@ -371,6 +393,21 @@ begin
   JsKeyCodeToCastle(String(Event.Code), Key, KeyString);
   if (Key <> keyNone) or (KeyString <> '') then
     DoKeyDown(Key, KeyString);
+  Result := false;
+end;
+
+function TCastleWindow.KeyUp(BaseEvent: IJSEvent): Boolean;
+var
+  Event: IJSKeyboardEvent;
+  Key: TKey;
+  KeyString: String;
+begin
+  Event := TJSKeyboardEvent.Cast(BaseEvent);
+  KeyString := String(Event.Key);
+  JsKeyCodeToCastle(String(Event.Code), Key, KeyString);
+  // actually KeyString is not used in KeyUp, but we had it calculated anyway
+  if Key <> keyNone then
+    DoKeyUp(Key);
   Result := false;
 end;
 
