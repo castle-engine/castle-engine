@@ -9,6 +9,8 @@ This can be run on any platform, though was made specifically to test our [web](
 
 We do not load anything from files here (which explains the simple look of this) because it's not yet supported.
 
+![Screenshot](screenshot.png)
+
 Using [Castle Game Engine](https://castle-engine.io/).
 
 ## Building

@@ -8,6 +8,8 @@ We do not load anything from files here (which explains the simple look of this)
 
 Note that drawing here doesn't account for any screen scaling. And we draw manually, drawing triangles. This is both more work, and less flexible, than our usual approach of drawing (using TCastleTransform inside TCastleViewport, or using TCastleUserInterface components). However, "manual drawing" fits current web platform constraints nicely (no loading from files, and we hardcode canvas size).
 
+![Screenshot](screenshot.png)
+
 Using [Castle Game Engine](https://castle-engine.io/).
 
 ## Building
