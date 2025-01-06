@@ -157,11 +157,10 @@ var
 implementation
 
 uses SysUtils, Math,
-  CastleTriangles, CastleClassUtils, CastleParameters,
-  CastleFilesUtils, CastleStringUtils,
-  X3DFields, X3DNodes, CastleGLImages, CastleMessages, CastleLog,
-  CastleGLVersion, CastleRectangles, CastleApplicationProperties,
-  CastleRenderContext, CastleCameras,
+  CastleTriangles, CastleClassUtils, CastleParameters, CastleInternalGLUtils,
+  CastleFilesUtils, CastleStringUtils, X3DFields, X3DNodes, CastleGLImages,
+  CastleMessages, CastleLog, CastleGLVersion, CastleRectangles,
+  CastleApplicationProperties, CastleRenderContext, CastleCameras,
   SceneUtilities;
 
 { TMyViewport ---------------------------------------------------------------- }
