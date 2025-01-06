@@ -154,15 +154,16 @@ begin
   { smaller font, because web area is smaller, also lack of "texture swizzle"
     makes it look worse on web now. }
   LabelInfo.FontSize := 15;
-  LabelInfo.Anchor(hpRight, -5);
-  LabelInfo.Anchor(vpTop, -30);
-  LabelInfo.Caption := 'Drag with mouse, pressing left button, to rotate the camera.' + NL +
-    'Drag with mouse, pressing middle button, to move the camera.' + NL +
-    'See also: Castle Model Viewer docs about Examine mode.'; // + NL +
-    // TODO: key not yet handled on web
-    // 'Press C to print camera settings (to console).';
+  LabelInfo.Anchor(hpLeft, 5);
+  LabelInfo.Anchor(vpTop, -5);
+  LabelInfo.Caption := 'Drag with mouse to:' + NL +
+    '- Rotate: left button' + NL +
+    '- Move: middle button (or left button and hold Shift)' + NL +
+    '- Zoom: left button and hold Ctrl' + NL +
+    '- See also: Castle Model Viewer docs about Examine mode.' + NL +
+    '- Press C to print camera settings (to console).';
   LabelInfo.Color := Vector4(0.1, 0.1, 0.1, 1); // almost black
-  LabelInfo.Alignment := hpRight;
+  //LabelInfo.Alignment := hpRight;
   InsertFront(LabelInfo);
 
   ButtonDropBox := TCastleButton.Create(FreeAtStop);
