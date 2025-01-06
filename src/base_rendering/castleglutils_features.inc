@@ -743,7 +743,8 @@ var
 begin
   inherited;
 
-  {$ifndef OpenGLES}
+  {$if not defined(OpenGLES)}
+  // handle (desktop) OpenGL
   { Historic note: In the past, we checked OpenGL versions by looking
     at GL_VERSION @italic(and) by checking whether actual entry points
     are available.
@@ -792,10 +793,15 @@ begin
   end;
   ReadImplementationProperties;
   ReadExtensions; // using CastleGL unit
+
   {$elseif defined(CASTLE_WEBGL)}
+  // handle WebGL
   FVersionWebGL_2 := GL2 <> nil;
   ReadExtensions; // using CastleInternalWebGL unit
+
   {$else}
+  // handle OpenGLES (usually mobile)
+
   FVersionES_2_0 := GLVersion.AtLeast(2, 0);
   FVersionES_3_0 := GLVersion.AtLeast(3, 0);
   FVersionES_3_1 := GLVersion.AtLeast(3, 1);
