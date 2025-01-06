@@ -1,5 +1,5 @@
 /*
-  Copyright 2013-2024 Jan Adamec, Michalis Kamburelis.
+  Copyright 2013-2025 Jan Adamec, Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -69,6 +69,10 @@
 
     GLKView *view = (GLKView *)self.view;
     view.context = self.context;
+    view.drawableColorFormat = GLKViewDrawableColorFormatRGBA8888;
+    view.drawableDepthFormat = GLKViewDrawableDepthFormat24;
+    view.drawableStencilFormat = GLKViewDrawableStencilFormat8;
+    self.preferredFramesPerSecond = 60;
 
     // setup recognizers
 #ifdef USE_GESTURE_RECOGNIZERS
@@ -252,9 +256,9 @@
     if (m_oldViewWidth  != newViewWidth ||
         m_oldViewHeight != newViewHeight)
     {
-	m_oldViewWidth  = newViewWidth;
-	m_oldViewHeight = newViewHeight;
-	CGE_Resize(newViewWidth * m_fScale, newViewHeight * m_fScale);
+        m_oldViewWidth  = newViewWidth;
+        m_oldViewHeight = newViewHeight;
+        CGE_Resize(newViewWidth * m_fScale, newViewHeight * m_fScale);
     }
 
     // send accumulated touch positions (sending them right away jams the engine)
