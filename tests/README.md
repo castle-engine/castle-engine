@@ -6,7 +6,7 @@ Using [Castle Game Engine](https://castle-engine.io/).
 
 This application runs a number of automatic tests defined in `code/testcases/`.
 
-It uses _Castle Game Engine_ testing framework, which is based on https://wiki.freepascal.org/fpcunit[FPCUnit] which is in turn inspired by DUnit, JUnit. Features above FPCUnit:
+It uses _Castle Game Engine_ testing framework, which is based on [FPCUnit](https://wiki.freepascal.org/fpcunit) which is in turn inspired by DUnit, JUnit. Features above FPCUnit:
 
 - We add some CGE-specific assertions (to compare vectors, matrices),
 - We add a way to display test output using `TCastleWindow`,

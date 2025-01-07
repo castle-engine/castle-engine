@@ -3789,10 +3789,22 @@ begin
 end;
 
 procedure TDesignFrame.GizmoTransformModifyEnd(Sender: TObject);
+
+  { Short summary of current selection passed to @link(SetSelected).
+    Useful to show user in UI. }
+  function SelectionCaption(const M: TCastleTransformManipulate): String;
+  begin
+    case M.SelectedCount of
+      0: Result := 'nothing';
+      1: Result := M.Selected[0].Name;
+      else Result := Format('%d objects', [M.SelectedCount])
+    end;
+  end;
+
 begin
   if UndoSystem.ScheduleRecordUndoOnRelease then
     RecordUndo('Transform ' +
-      (Sender as TCastleTransformManipulate).SelectionCaption +
+      SelectionCaption(Sender as TCastleTransformManipulate) +
       ' with Gizmo', ucHigh);
 end;
 
