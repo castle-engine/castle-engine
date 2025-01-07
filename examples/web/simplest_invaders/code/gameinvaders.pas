@@ -310,16 +310,17 @@ begin
   if Container.Pressed[keyA]
      // arrows are already used by browser to scroll the page
      {$ifndef WASI} or Container.Pressed[keyArrowLeft] {$endif} then
-    Player.Position.X -= SecondsPassed * PlayerSpeed;
+    Player.Position.X := Player.Position.X - SecondsPassed * PlayerSpeed;
   if Container.Pressed[keyD]
      {$ifndef WASI} or Container.Pressed[keyArrowRight] {$endif} then
-    Player.Position.X += SecondsPassed * PlayerSpeed;
+    Player.Position.X := Player.Position.X + SecondsPassed * PlayerSpeed;
 
   // move player rockets and check did they hit enemies
   I := 0;
   while I < PlayerRockets.Count do // while, not for loop, as the Count may change
   begin
-    PlayerRockets[I].Position.Y += SecondsPassed * PlayerRocketSpeed;
+    PlayerRockets[I].Position.Y := PlayerRockets[I].Position.Y
+      + SecondsPassed * PlayerRocketSpeed;
     if RocketHitsEnemy(PlayerRockets[I]) then
       PlayerRockets.DeleteFast(I)
     else
@@ -330,15 +331,15 @@ begin
   I := 0;
   while I < EnemyRockets.Count do // while, not for loop, as the Count may change
   begin
-    EnemyRockets[I].Position.Y -=
-      SecondsPassed * Iff(FEasy, EnemyRocketSpeedEasy, EnemyRocketSpeedHard);
+    EnemyRockets[I].Position.Y := EnemyRockets[I].Position.Y
+      - SecondsPassed * Iff(FEasy, EnemyRocketSpeedEasy, EnemyRocketSpeedHard);
     if RocketHitsPlayer(EnemyRockets[I]) then
       EnemyRockets.DeleteFast(I)
     else
       Inc(I);
   end;
 
-  TimeToEnemyRocket -= SecondsPassed;
+  TimeToEnemyRocket := TimeToEnemyRocket - SecondsPassed;
 
   FSomeEnemyAlive := false;
   for X := 0 to EnemiesCountX - 1 do
@@ -350,10 +351,13 @@ begin
         if EnemiesHorizMoveOdd then
           OddY := not OddY;
         if OddY then
-          Enemies[X, Y].Position.X -= SecondsPassed * EnemiesHorizSpeed
+          Enemies[X, Y].Position.X := Enemies[X, Y].Position.X
+            - SecondsPassed * EnemiesHorizSpeed
         else
-          Enemies[X, Y].Position.X += SecondsPassed * EnemiesHorizSpeed;
-        Enemies[X, Y].Position.Y -= SecondsPassed * EnemiesVertSpeed;
+          Enemies[X, Y].Position.X := Enemies[X, Y].Position.X
+            + SecondsPassed * EnemiesHorizSpeed;
+        Enemies[X, Y].Position.Y := Enemies[X, Y].Position.Y
+          - SecondsPassed * EnemiesVertSpeed;
 
         if Enemies[X, Y].Position.Y < 100 then
         begin
@@ -377,7 +381,7 @@ begin
         end;
       end;
 
-  TimeToEnemiesHorizMoveSwitch -= SecondsPassed;
+  TimeToEnemiesHorizMoveSwitch := TimeToEnemiesHorizMoveSwitch - SecondsPassed;
   if TimeToEnemiesHorizMoveSwitch <= 0 then
   begin
     EnemiesHorizMoveOdd := not EnemiesHorizMoveOdd;
