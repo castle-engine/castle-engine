@@ -1,5 +1,5 @@
 /*
-  Copyright 2013-2017 Jan Adamec, Michalis Kamburelis.
+  Copyright 2013-2025 Jan Adamec, Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -33,8 +33,10 @@
     UITouch* m_arrTouches[MAX_TOUCHES];
 
     UISegmentedControl *m_segmNavigation;
+    UIBarButtonItem *m_btnViewpointPopup;
     UIBarButtonItem *m_btnViewpointPrev;
     UIBarButtonItem *m_btnViewpointNext;
+    UIBarButtonItem *m_btnOptions;
 
     int m_nViewpointCount, m_nCurrentViewpoint;
 
@@ -56,7 +58,10 @@
     m_nViewpointCount = 0;
     m_bIsPanning = false;
 
-    self.context = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES2];
+    EAGLContext *context = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES3];
+    if (context == nil)
+        context = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES2];
+    self.context = context;
 
     if (!self.context) {
         NSLog(@"Failed to create ES context");
@@ -64,6 +69,10 @@
 
     GLKView *view = (GLKView *)self.view;
     view.context = self.context;
+    view.drawableColorFormat = GLKViewDrawableColorFormatRGBA8888;
+    view.drawableDepthFormat = GLKViewDrawableDepthFormat24;
+    view.drawableStencilFormat = GLKViewDrawableStencilFormat8;
+    self.preferredFramesPerSecond = 60;
 
     // setup recognizers
 #ifdef USE_GESTURE_RECOGNIZERS
@@ -86,18 +95,39 @@
 
     m_btnViewpointPrev = [[UIBarButtonItem alloc] initWithTitle:@" < " style:UIBarButtonItemStylePlain target:self action:@selector(OnBtnViewpointPrev:)];
     m_btnViewpointNext = [[UIBarButtonItem alloc] initWithTitle:@" > " style:UIBarButtonItemStylePlain target:self action:@selector(OnBtnViewpointNext:)];
-    UIBarButtonItem *btnViewpointPopup = [[UIBarButtonItem alloc] initWithTitle:@"Viewpoints" style:UIBarButtonItemStylePlain target:self action:@selector(OnBtnViewpointPopup:)];
 
-    UIBarButtonItem *btnOptions = [[UIBarButtonItem alloc] initWithTitle:@"Options" style:UIBarButtonItemStylePlain target:self action:@selector(OnBtnOptions:)];
-
+    UIBarButtonItem *btnOpenFile;
+    if (@available(iOS 14,*))
+    {
+        // menus as UIMenu
+        m_btnViewpointPopup = [[UIBarButtonItem alloc] initWithTitle:@"Viewpoint" menu:[self createViewpointsMenu]];
+        btnOpenFile = [[UIBarButtonItem alloc] initWithTitle:@"Open" menu:[self createFileOpenMenu]];
+        m_btnOptions = [[UIBarButtonItem alloc] initWithTitle:@"Options" menu:[self createOptionsMenu]];
+    }
+    else
+    {
+        // use as popovers for menus
+        btnOpenFile = [[UIBarButtonItem alloc] initWithTitle:@"Open" style:UIBarButtonItemStylePlain target:self action:@selector(OnBtnOpenFile:)];
+        m_btnViewpointPopup = [[UIBarButtonItem alloc] initWithTitle:@"Viewpoint" style:UIBarButtonItemStylePlain target:self action:@selector(OnBtnViewpointPopup:)];
+        m_btnOptions = [[UIBarButtonItem alloc] initWithTitle:@"Options" style:UIBarButtonItemStylePlain target:self action:@selector(OnBtnOptions:)];
+    }
+    
     UIButton *btnInfo = [UIButton buttonWithType:UIButtonTypeInfoLight];
     [btnInfo addTarget:self action:@selector(OnBtnInfo:) forControlEvents:UIControlEventTouchUpInside];
     UIBarButtonItem *btnBarInfo =[[UIBarButtonItem alloc] initWithCustomView:btnInfo];
 
-    UIBarButtonItem *btnOpenFile = [[UIBarButtonItem alloc] initWithTitle:@"Open" style:UIBarButtonItemStylePlain target:self action:@selector(OnBtnOpenFile:)];
-
     self.navigationItem.leftBarButtonItem = btnOpenFile;
-    self.navigationItem.rightBarButtonItems = @[btnBarInfo, btnOptions, m_btnViewpointNext, btnViewpointPopup, m_btnViewpointPrev, itemSegm];
+    if (UIDevice.currentDevice.userInterfaceIdiom == UIUserInterfaceIdiomPad)
+    {
+        self.navigationItem.rightBarButtonItems = @[btnBarInfo, m_btnOptions, m_btnViewpointNext, m_btnViewpointPopup, m_btnViewpointPrev, itemSegm];
+    }
+    else
+    {
+        // put Navigation options to bottom toolbar on iPhone
+        self.navigationItem.rightBarButtonItems = @[btnBarInfo, m_btnOptions, m_btnViewpointNext, m_btnViewpointPopup, m_btnViewpointPrev];
+        self.toolbarItems = @[itemSegm];
+        [self.navigationController setToolbarHidden:NO];
+    }
 
     [self setupGL];
 }
@@ -174,10 +204,19 @@
 
     CGE_Initialize([libraryDirectory fileSystemRepresentation]);
     CGE_Open(ecgeofLog, m_oldViewWidth * m_fScale, m_oldViewHeight * m_fScale, (unsigned)(dpi * m_fScale));
-    CGE_SetUserInterface(true);
+    CGE_SetAutoTouchInterface(true);
 
     Options *opt = [Options sharedOptions];
-    CGE_SetVariableInt(ecgevarWalkTouchCtl, opt.walkTwoControls ? ecgetciCtlWalkCtlRotate : ecgetciCtlWalkDragRotate);
+    if (opt.walkTwoControls)
+    {
+        CGE_SetVariableInt(ecgevarAutoWalkTouchInterface, ecgetiWalkRotate);
+        CGE_SetWalkNavigationMouseDragMode(ecgemdNone);
+    }
+    else
+    {
+        CGE_SetVariableInt(ecgevarAutoWalkTouchInterface, ecgetiWalk);
+        CGE_SetWalkNavigationMouseDragMode(ecgemdRotate);
+    }
 
     [self LoadSceneFile];
 
@@ -203,7 +242,7 @@
 {
     [EAGLContext setCurrentContext:self.context];
 
-    CGE_Close();
+    CGE_Close(true);
     CGE_Finalize();
 }
 
@@ -217,9 +256,9 @@
     if (m_oldViewWidth  != newViewWidth ||
         m_oldViewHeight != newViewHeight)
     {
-	m_oldViewWidth  = newViewWidth;
-	m_oldViewHeight = newViewHeight;
-	CGE_Resize(newViewWidth * m_fScale, newViewHeight * m_fScale);
+        m_oldViewWidth  = newViewWidth;
+        m_oldViewHeight = newViewHeight;
+        CGE_Resize(newViewWidth * m_fScale, newViewHeight * m_fScale);
     }
 
     // send accumulated touch positions (sending them right away jams the engine)
@@ -406,16 +445,15 @@
 #pragma mark - interface
 
 //-----------------------------------------------------------------
-- (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation
-{
-    return YES;
-}
-
-//-----------------------------------------------------------------
 - (void)updateViewpointButtons
 {
     m_btnViewpointPrev.enabled = (m_nCurrentViewpoint > 0);
     m_btnViewpointNext.enabled = (m_nCurrentViewpoint < m_nViewpointCount-1);
+    
+    if (@available(iOS 14,*))
+    {
+        [m_btnViewpointPopup setMenu:[self createViewpointsMenu]];
+    }
 
     enum ECgeNavigationType eNav = CGE_GetNavigationType();
     int nSegment;
@@ -501,11 +539,75 @@
 }
 
 //-----------------------------------------------------------------
+- (UIMenu*)createViewpointsMenu API_AVAILABLE(ios(14.0))
+{
+    __unsafe_unretained OpenGLController *weakSelf = self;   // retaining self makes dealloc never called
+    NSMutableArray *arrViewpointActions = [[NSMutableArray alloc] initWithCapacity:m_nViewpointCount];
+    for (int i = 0; i < m_nViewpointCount; i++)
+    {
+        char szName[64];
+        szName[0] = 0;
+        CGE_GetViewpointName(i, szName, 64);
+        NSString *sName = [NSString stringWithUTF8String:szName];
+        UIAction *act = [UIAction actionWithTitle:sName image:NULL identifier:NULL handler:^(__kindof UIAction * _Nonnull action) {
+            [weakSelf viewpointDidChange:i];
+        }];
+        act.state = (m_nCurrentViewpoint == i ? UIMenuElementStateOn : UIMenuElementStateOff);
+        [arrViewpointActions addObject:act];
+    }
+    return [UIMenu menuWithChildren:arrViewpointActions];
+}
+
+//-----------------------------------------------------------------
 - (void)viewpointDidChange:(int)nNewViewpoint
 {
     m_nCurrentViewpoint = nNewViewpoint;
     CGE_MoveToViewpoint(m_nCurrentViewpoint, true);
     [self updateViewpointButtons];
+}
+
+//-----------------------------------------------------------------
+- (UIMenu*)createFileOpenMenu API_AVAILABLE(ios(14.0))
+{
+    NSMutableArray *arrayFiles = [[NSMutableArray alloc] init];
+    
+    // documents folder
+    NSFileManager *fm = [NSFileManager defaultManager];
+    NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+    NSString *sFolder = [paths objectAtIndex:0];
+    NSArray *dirContents = [fm contentsOfDirectoryAtPath:sFolder error:nil];
+    for (NSString *item in dirContents)
+    {
+        NSString *sFileExt = item.pathExtension;
+        if ([sFileExt isEqualToString:@"wrl"]
+            || [sFileExt isEqualToString:@"x3dv"]
+            || [sFileExt isEqualToString:@"x3d"])
+            [arrayFiles addObject:[sFolder stringByAppendingPathComponent:item]];
+    }
+    
+    // sampledata folder
+    NSString *sBundlePath = [[NSBundle mainBundle] bundlePath];
+    sFolder = [sBundlePath stringByAppendingPathComponent:@"sampledata"];
+    dirContents = [fm contentsOfDirectoryAtPath:sFolder error:nil];
+    for (NSString *item in dirContents)
+    {
+        NSString *sFileExt = item.pathExtension;
+        if ([sFileExt isEqualToString:@"wrl"]
+            || [sFileExt isEqualToString:@"x3dv"]
+            || [sFileExt isEqualToString:@"x3d"])
+            [arrayFiles addObject:[sFolder stringByAppendingPathComponent:item]];
+    }
+    
+    __unsafe_unretained OpenGLController *weakSelf = self;   // retaining self makes dealloc never called
+    NSMutableArray *arrMenuActions = [[NSMutableArray alloc] initWithCapacity:m_nViewpointCount];
+    for (NSString* sFile in arrayFiles)
+    {
+        UIAction *act = [UIAction actionWithTitle:[sFile lastPathComponent] image:NULL identifier:NULL handler:^(__kindof UIAction * _Nonnull action) {
+            [weakSelf fileSelectedToOpen:sFile];
+        }];
+        [arrMenuActions addObject:act];
+    }
+    return [UIMenu menuWithChildren:arrMenuActions];
 }
 
 //-----------------------------------------------------------------
@@ -558,15 +660,67 @@
 }
 
 //-----------------------------------------------------------------
+- (UIMenu*)createOptionsMenu API_AVAILABLE(ios(14.0))
+{
+    __unsafe_unretained OpenGLController *weakSelf = self;   // retaining self makes dealloc never called
+    NSMutableArray *arrOptActions = [[NSMutableArray alloc] initWithCapacity:m_nViewpointCount];
+    
+    __unsafe_unretained Options *opt = [Options sharedOptions];
+    //---
+    UIAction *actWalkCtl = [UIAction actionWithTitle:@"Two Touch Controls" image:NULL identifier:NULL handler:^(__kindof UIAction * _Nonnull action) {
+        opt.walkTwoControls = !opt.walkTwoControls;
+        if (opt.walkTwoControls)
+        {
+            CGE_SetVariableInt(ecgevarAutoWalkTouchInterface, ecgetiWalkRotate);
+            CGE_SetWalkNavigationMouseDragMode(ecgemdNone);
+        }
+        else
+        {
+            CGE_SetVariableInt(ecgevarAutoWalkTouchInterface, ecgetiWalk);
+            CGE_SetWalkNavigationMouseDragMode(ecgemdRotate);
+        }
+        [weakSelf updateOptionsMenu];
+    }];
+    actWalkCtl.state = (opt.walkTwoControls ? UIMenuElementStateOn : UIMenuElementStateOff);
+    [arrOptActions addObject:actWalkCtl];
+    
+    //---
+    UIAction *actHeadBobbing = [UIAction actionWithTitle:@"Walk Head Bobbing" image:NULL identifier:NULL handler:^(__kindof UIAction * _Nonnull action) {
+        opt.walkHeadBobbing = !opt.walkHeadBobbing;
+        CGE_SetVariableInt(ecgevarWalkHeadBobbing, opt.walkHeadBobbing ? 1 : 0);
+        [weakSelf updateOptionsMenu];
+    }];
+    actHeadBobbing.state = (opt.walkHeadBobbing ? UIMenuElementStateOn : UIMenuElementStateOff);
+    [arrOptActions addObject:actHeadBobbing];
+    
+    //---
+    UIAction *actSSAO = [UIAction actionWithTitle:@"SSAO" image:NULL identifier:NULL handler:^(__kindof UIAction * _Nonnull action) {
+        opt.ssao = !opt.ssao;
+        CGE_SetVariableInt(ecgevarEffectSSAO, opt.ssao ? 1 : 0);
+        [weakSelf updateOptionsMenu];
+    }];
+    actSSAO.state = (opt.ssao ? UIMenuElementStateOn : UIMenuElementStateOff);
+    [arrOptActions addObject:actSSAO];
+
+    return [UIMenu menuWithChildren:arrOptActions];
+}
+
+//-----------------------------------------------------------------
+- (void)updateOptionsMenu API_AVAILABLE(ios(14.0))
+{
+    // we need to recreate the menu in order to update checkmarks
+    [m_btnOptions setMenu:[self createOptionsMenu]];
+}
+
+//-----------------------------------------------------------------
 - (void)OnBtnInfo:(id)sender
 {
-    int nInfoTextMax = 4096;
+    int nInfoTextMax = 10000;
     char *szInfo = malloc(nInfoTextMax);
     szInfo[0] = 0;
     CGE_GetOpenGLInformation(szInfo, nInfoTextMax);
-    free(szInfo);
-
     NSString *sInfo = [NSString stringWithUTF8String:szInfo];
+    free(szInfo);
 
     UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Main" bundle:nil];
     UINavigationController *pNavCtl = [storyboard instantiateViewControllerWithIdentifier:@"OpenGLInfoNav"];
