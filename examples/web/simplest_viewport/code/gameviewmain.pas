@@ -190,7 +190,7 @@ begin
   Assert(LabelFps <> nil, 'If you remove LabelFps from the design, remember to remove also the assignment "LabelFps.Caption := ..." from code');
   LabelFps.Caption := 'FPS: ' + Container.Fps.ToString;
 
-  LifeTime += SecondsPassed;
+  LifeTime := LifeTime + SecondsPassed;
   SinCos(LifeTime, S, C);
   SpotLight.Direction := Vector3(S, -0.3 { a little downward }, C);
 end;
