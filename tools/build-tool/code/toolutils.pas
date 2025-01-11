@@ -141,6 +141,11 @@ function CreateGUIDFromHash(const Seed: String): TGuid;
   of its input Directory. }
 procedure ZipDirectory(const ZipFileName: String; Directory: String);
 
+{ Move/rename Source to Dest. Given filenames may be relative or absolute,
+  just like for regular file-system routines.
+  Makes a concise Writeln informing user what was moved -> and where. }
+procedure MoveFileVerbose(const Source, Dest: String);
+
 implementation
 
 uses {$ifdef UNIX} BaseUnix, {$endif}
@@ -479,6 +484,32 @@ begin
 
     Zipper.ZipAllFiles;
   finally FreeAndNil(Zipper) end;
+end;
+
+procedure MoveFileVerbose(const Source, Dest: String);
+var
+  SourcePath, DestPath: String;
+begin
+  if not SameFileName(Source, Dest) then
+  begin
+    SourcePath := ExtractFilePath(Source);
+    DestPath := ExtractFilePath(Dest);
+    { Try to make concise message, if possible. }
+    if SourcePath = DestPath then
+    begin
+      Writeln(Format('Moving %s to %s' + NL + '  inside: %s', [
+        ExtractFileName(Source),
+        ExtractFileName(Dest),
+        SourcePath
+      ]));
+    end else
+    begin
+      Writeln('Moving ' + NL +
+        '  ' + Source + ' to ' + NL +
+        '  ' + Dest);
+    end;
+    CheckRenameFile(Source, Dest);
+  end;
 end;
 
 end.

@@ -597,15 +597,9 @@ begin
                 DestExe := CombinePaths(OutputPath,
                   ChangeFileExt(ExecutableName, ExeExtensionOS(OS)));
                 AddExternalLibraries(OutputPath);
-                if not SameFileName(SourceExe, DestExe) then
-                begin
-                  { move exe to top-level (in case MainSource is in subdirectory
-                    like code/) and eventually rename to follow ExecutableName }
-                  Writeln('Moving ' + NL +
-                    '  ' + SourceExe + ' to ' + NL +
-                    '  ' + DestExe);
-                  CheckRenameFile(SourceExe, DestExe);
-                end;
+                { move exe to top-level (in case MainSource is in subdirectory
+                  like code/) and eventually rename to follow ExecutableName }
+                MoveFileVerbose(SourceExe, DestExe);
               end;
           end;
         end;

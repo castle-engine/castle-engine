@@ -79,14 +79,8 @@ begin
     ChangeFileExt(LibraryFileName, ''));
   DestExe := CombinePaths(DistPath,
     ChangeFileExt(Project.ExecutableName, ExeExtensionOS(CompilerOptions.OS)));
-  if not SameFileName(SourceExe, DestExe) then
-  begin
-    { move exe to dist/ and eventually rename to follow ExecutableName }
-    Writeln('Moving ' + NL +
-      '  ' + SourceExe + ' to ' + NL +
-      '  ' + DestExe);
-    CheckRenameFile(SourceExe, DestExe);
-  end;
+  { move exe to dist/ and eventually rename to follow ExecutableName }
+  MoveFileVerbose(SourceExe, DestExe);
 end;
 
 procedure RunWeb(const Project: TCastleProject);
