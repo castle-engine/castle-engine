@@ -18,7 +18,7 @@ unit GameViewMain;
 interface
 
 uses Classes,
-  CastleVectors, CastleComponentSerialize,
+  CastleVectors, CastleComponentSerialize, CastleGLImages,
   CastleUIControls, CastleControls, CastleKeysMouse;
 
 type
@@ -33,9 +33,11 @@ type
     LifeTime: Double;
     HasLastEventPosition: Boolean;
     LastEventPosition: TVector2;
+    Image1, Image2, Image3: TDrawableImage;
   public
     constructor Create(AOwner: TComponent); override;
     procedure Start; override;
+    procedure Stop; override;
     procedure Update(const SecondsPassed: Single; var HandleInput: Boolean); override;
     function Press(const Event: TInputPressRelease): Boolean; override;
     function Release(const Event: TInputPressRelease): Boolean; override;
@@ -49,7 +51,8 @@ var
 implementation
 
 uses SysUtils,
-  CastleGLUtils, CastleRectangles, CastleColors, CastleLog;
+  CastleGLUtils, CastleRectangles, CastleColors, CastleLog,
+  GameImages;
 
 { TViewMain ----------------------------------------------------------------- }
 
@@ -64,6 +67,9 @@ procedure TViewMain.Start;
 begin
   inherited;
 
+  // non-black, to see that blending is ok
+  Container.BackgroundColor := Vector4(0.1, 0.1, 0.25, 1);
+
   // TODO: Would be easier to design this in gameviewmain.castle-user-interface
   // and just load here, but web target cannot load data files yet.
 
@@ -72,11 +78,27 @@ begin
   LabelFps.Anchor(vpTop, -5);
   LabelFps.Color := Gray;
   InsertFront(LabelFps);
+
+  Image1 := TDrawableImage.Create(Test_texture_grayscale, true, false);
+  Image2 := TDrawableImage.Create(Test_texture, true, false);
+  Image3 := TDrawableImage.Create(Texture_alpha, true, false);
+end;
+
+procedure TViewMain.Stop;
+begin
+  FreeAndNil(Image1);
+  FreeAndNil(Image2);
+  FreeAndNil(Image3);
+  inherited;
 end;
 
 procedure TViewMain.Render;
 begin
   inherited;
+
+  Image1.Draw(10, 120);
+  Image2.Draw(80, 120);
+  Image3.Draw(160, 120);
 
   // visualize something moving (frames are processed)
   DrawCircle(
