@@ -1249,6 +1249,11 @@ begin
       HasExtension('GL_EXT_texture_swizzle')
     );
 
+  {$ifdef CASTLE_WEBGL}
+  if TextureModernFormatsAndSwizzle then
+    WritelnLog('WebGL *with* texture swizzle support detected. This is surprising, but good! Please report your environment (web browser version, OS, CPU) so that we can adapt CGE to this.');
+  {$endif}
+
   {$ifndef OpenGLES}
   // set LineWidth to some reasonable default when it cannot be queried on old OpenGL
   if not Version_2_0 then
