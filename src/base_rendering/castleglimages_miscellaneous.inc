@@ -377,12 +377,15 @@ function ImageGLData(const Img: TEncodedImage): {$ifdef CASTLE_WEBGL} IJSTypedAr
 {$ifdef CASTLE_WEBGL}
 var
   I: TCastleImage;
-  X, Y, Z, ImageDataCount: Integer;
+  X, Y, Z, C, ImageDataCount: Integer;
   ResultUInt8: IJSUint8Array;
   ResultFloat32: IJSFloat32Array;
 begin
   if Img is TCastleImage then
   begin
+    { TODO: optimize to copy whole memory blocks.
+      For now we copy one-by-one to enable to change the order
+      of any dimension / color component, to match WebGL }
     I := TCastleImage(Img);
     ImageDataCount := Img.Width * Img.Height * Img.Depth * I.ColorComponentsCount;
     case ImageGLType(I) of
@@ -392,8 +395,13 @@ begin
           for Z := 0 to Img.Depth - 1 do
             for Y := 0 to Img.Height - 1 do
               for X := 0 to Img.Width - 1 do
-                ResultUInt8[Z * Img.Width * Img.Height + Y * Img.Width + X] :=
-                  PByte(I.PixelPtr(X, Y, Z))^;
+                for C := 0 to I.ColorComponentsCount - 1 do
+                  ResultUInt8[
+                    Z * Img.Width * Img.Height * I.ColorComponentsCount +
+                    Y * Img.Width * I.ColorComponentsCount +
+                    X * I.ColorComponentsCount +
+                    C] :=
+                  PByte(I.PixelPtr(X, Y, Z))[C];
           Result := ResultUInt8;
         end;
       GL_FLOAT:
@@ -402,8 +410,13 @@ begin
           for Z := 0 to Img.Depth - 1 do
             for Y := 0 to Img.Height - 1 do
               for X := 0 to Img.Width - 1 do
-                ResultFloat32[Z * Img.Width * Img.Height + Y * Img.Width + X] :=
-                  PSingle(I.PixelPtr(X, Y, Z))^;
+                for C := 0 to I.ColorComponentsCount - 1 do
+                  ResultFloat32[
+                    Z * Img.Width * Img.Height * I.ColorComponentsCount +
+                    Y * Img.Width * I.ColorComponentsCount +
+                    X * I.ColorComponentsCount +
+                    C] :=
+                  PSingle(I.PixelPtr(X, Y, Z))[C];
           Result := ResultFloat32;
         end;
       else
