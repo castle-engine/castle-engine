@@ -290,4 +290,8 @@ initialization
 finalization
   FreeAndNil(Localization);
 
+// Avoid invalid Generics.Collections notes from FPC 3.3.1 .
+// See https://gitlab.com/freepascal.org/fpc/source/-/issues/40222#note_2292775237
+{$NOTES OFF}
+
 end.
