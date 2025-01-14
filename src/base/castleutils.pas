@@ -75,6 +75,7 @@ interface
 uses
   {$ifdef MSWINDOWS} Windows, {$ifndef FPC} ShlObj, {$endif} {$endif}
   {$ifdef UNIX} {$ifdef FPC} BaseUnix, Unix, Dl, {$else} Posix.Unistd, {$endif} {$endif}
+  {$ifdef MACOS} {$ifdef FPC} BaseUnix, Unix, Dl, {$else} Posix.Unistd, {$endif} {$endif}
   {$ifndef FPC} Classes, {$endif}
   Variants, SysUtils, Math, Generics.Collections;
 
@@ -90,6 +91,7 @@ uses
 {$I castleutils_primitive_lists.inc}
 {$I castleutils_program_exit.inc}
 {$ifdef UNIX}      {$I castleutils_os_specific_unix.inc}    {$endif}
+{$ifdef MACOS}     {$I castleutils_os_specific_unix.inc}    {$endif}
 {$ifdef MSWINDOWS} {$I castleutils_os_specific_windows.inc} {$endif}
 {$I castleutils_math.inc}
 {$I castleutils_filenames.inc}
@@ -119,6 +121,7 @@ implementation
   For Lazarus package this would prevent maintaining single .lpk file,
   see ../packages/README. }
 {$ifdef UNIX}      {$I castleutils_os_specific_unix.inc}    {$endif}
+{$ifdef MACOS}     {$I castleutils_os_specific_unix.inc}    {$endif}
 {$ifdef MSWINDOWS} {$I castleutils_os_specific_windows.inc} {$endif}
 
 {$I castleutils_pointers.inc}
