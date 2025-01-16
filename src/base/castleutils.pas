@@ -75,6 +75,7 @@ interface
 uses
   {$ifdef MSWINDOWS} Windows, {$ifndef FPC} ShlObj, {$endif} {$endif}
   {$ifdef UNIX} {$ifdef FPC} BaseUnix, Unix, Dl, {$else} Posix.Unistd, {$endif} {$endif}
+  {$ifndef FPC} {$ifdef MACOS} Posix.Unistd, {$endif} {$endif}
   {$ifndef FPC} Classes, {$endif}
   Variants, SysUtils, Math, Generics.Collections;
 
@@ -89,6 +90,9 @@ uses
 {$I castleutils_struct_list.inc}
 {$I castleutils_primitive_lists.inc}
 {$I castleutils_program_exit.inc}
+{$ifndef FPC}
+{$ifdef MACOS}     {$I castleutils_os_specific_unix.inc}    {$endif}
+{$endif}
 {$ifdef UNIX}      {$I castleutils_os_specific_unix.inc}    {$endif}
 {$ifdef MSWINDOWS} {$I castleutils_os_specific_windows.inc} {$endif}
 {$I castleutils_math.inc}
@@ -118,6 +122,9 @@ implementation
   and depend on paths to choose proper one:
   For Lazarus package this would prevent maintaining single .lpk file,
   see ../packages/README. }
+{$ifndef FPC}
+  {$ifdef MACOS} {$I castleutils_os_specific_unix.inc} {$endif}
+{$endif}
 {$ifdef UNIX}      {$I castleutils_os_specific_unix.inc}    {$endif}
 {$ifdef MSWINDOWS} {$I castleutils_os_specific_windows.inc} {$endif}
 

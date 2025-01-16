@@ -300,6 +300,7 @@
         <DCCReference Include="..\..\src\vampyre_imaginglib\src\Extensions\ImagingExtFileFormats.pas"/>
         <DCCReference Include="..\..\src\compatibility\delphi-only\base64.pas"/>
         <DCCReference Include="..\..\src\compatibility\delphi-only\ctypes.pas"/>
+        <DCCReference Include="..\..\src\compatibility\delphi-only\delphisteam.pas"/>
         <DCCReference Include="..\..\src\compatibility\delphi-only\custapp.pas"/>
         <DCCReference Include="..\..\src\compatibility\delphi-only\dom.pas"/>
         <DCCReference Include="..\..\src\compatibility\delphi-only\FPHashCompatibility.pas"/>

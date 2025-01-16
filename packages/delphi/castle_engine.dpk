@@ -214,6 +214,7 @@ contains
   ImagingExtFileFormats in '..\..\src\vampyre_imaginglib\src\Extensions\ImagingExtFileFormats.pas',
   base64 in '..\..\src\compatibility\delphi-only\base64.pas',
   ctypes in '..\..\src\compatibility\delphi-only\ctypes.pas',
+  delphisteam in '..\..\src\compatibility\delphi-only\delphisteam.pas',
   custapp in '..\..\src\compatibility\delphi-only\custapp.pas',
   dom in '..\..\src\compatibility\delphi-only\dom.pas',
   FPHashCompatibility in '..\..\src\compatibility\delphi-only\FPHashCompatibility.pas',

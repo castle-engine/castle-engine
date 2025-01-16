@@ -281,6 +281,8 @@ const
   SteamLibraryName =
     {$if defined(DARWIN)} // macOS
     'libsteam_api.dylib'
+    {$elseif not defined(FPC) and defined(MACOS)}
+    'libsteam_api.dylib'
     {$elseif defined(UNIX)}
     'libsteam_api.so'
     {$elseif defined(MSWINDOWS) and defined(CPUX64)}

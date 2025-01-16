@@ -190,6 +190,7 @@ implementation
 
 uses CastleUtils, CastleLog,
   // for BundlePath on Darwin
+  {$ifndef FPC}DelphiSteam,{$endif}
   CastleFilesUtils;
 
 constructor TDynLib.Create(const AName: string; AHandle: TDynLibHandle);
@@ -268,6 +269,9 @@ begin
       This fallback makes sense for libpng, libvorbisfile, libsteam_api...
       It seems that for everything, so just do it always. }
     {$ifdef DARWIN}
+    if (Handle = InvalidDynLibHandle) and (BundlePath <> '') then
+      Handle := LoadLibrary(PChar(BundlePath + 'Contents/MacOS/' + AName));
+    {$elseif not defined(FPC) and defined(MACOS)}
     if (Handle = InvalidDynLibHandle) and (BundlePath <> '') then
       Handle := LoadLibrary(PChar(BundlePath + 'Contents/MacOS/' + AName));
     {$endif}
