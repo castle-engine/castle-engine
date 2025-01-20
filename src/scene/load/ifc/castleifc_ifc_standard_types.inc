@@ -2780,6 +2780,16 @@
   TIfcValue = class abstract(TIfcPersistent)
   end;
 
+  { Real (float) value wrapped in a class, so it can be used where TIfcValue is expected. }
+  TIfcReal_Boxed = class(TIfcValue)
+  strict private
+    FValue: TIfcReal;
+  protected
+    class function IfcClassName: String; override;
+  published
+    property Value: TIfcReal read FValue write FValue;
+  end;
+
   TIfcMeasureValue = class(TIfcValue)
   end;
 
@@ -4023,7 +4033,10 @@
   This includes all IFC non-abstract classes
   and also some abstract classes that are referred to by lists
   (because, to check and resolve references in IFC files,
-  we need to know about them). }
+  we need to know about them).
+
+  To register new, custom IFC classes, just add new items to this list,
+  like @code(IfcClasses.Add(TIfcMyNewClass)). }
 function IfcClasses: TIfcPersistentClassList;
 
 {$endif read_interface}
@@ -4430,6 +4443,13 @@ destructor TIfcRelAggregates.Destroy;
 begin
   FreeAndNil(FRelatedObjects);
   inherited;
+end;
+
+{ TIfcReal_Boxed ----------------------------------------------------------- }
+
+class function TIfcReal_Boxed.IfcClassName: String;
+begin
+  Result := 'IfcReal';
 end;
 
 { TIfcOpeningElement -------------------------------------------------------- }
@@ -5685,6 +5705,7 @@ function IfcClasses: TIfcPersistentClassList;
     FIfcClasses.Add(TIfcDoorType);
     FIfcClasses.Add(TIfcWallType);
     FIfcClasses.Add(TIfcGeometricRepresentationSubContext);
+    FIfcClasses.Add(TIfcReal_Boxed);
   end;
 
 begin
