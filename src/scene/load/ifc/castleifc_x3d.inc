@@ -538,7 +538,36 @@ begin
   //   Coord.FdPoint.Items[I] := CoordList[I];
 end;
 
-{ UpdateCrossSection method overrides ---------------------------------------- }
+{ TIfcProfileDef.UpdateCrossSection method overrides -------------------------- }
+
+procedure TIfcProfileDef.UpdateCrossSection(
+  const Extrusion: TExtrusionNode; const ParentName: String);
+begin
+  WritelnWarning('IFC', 'Unsupported class used for %s: %s', [
+    ParentName,
+    ClassName
+  ]);
+end;
+
+procedure TIfcArbitraryClosedProfileDef.UpdateCrossSection(
+  const Extrusion: TExtrusionNode; const ParentName: String);
+begin
+  OuterCurve.UpdateCrossSection(Extrusion);
+end;
+
+procedure TIfcRectangleProfileDef.UpdateCrossSection(
+  const Extrusion: TExtrusionNode; const ParentName: String);
+begin
+  // TODO: Position:TIfcAxis2Placement2D may define position, axis and ref direction, should cause translation/rotation?
+  Extrusion.SetCrossSection([
+    Vector2(-XDim / 2, -YDim / 2),
+    Vector2( XDim / 2, -YDim / 2),
+    Vector2( XDim / 2,  YDim / 2),
+    Vector2(-XDim / 2,  YDim / 2)
+  ]);
+end;
+
+{ TIfcCurve.UpdateCrossSection method overrides ---------------------------------------- }
 
 procedure TIfcCurve.UpdateCrossSection(const Extrusion: TExtrusionNode);
 var
@@ -736,7 +765,6 @@ function TIfcExtrudedAreaSolid.BuildNode(const Mapping: TCastleIfcMapping;
   const ParentProduct: TIfcProduct; const Appearance: TAppearanceNode): TAbstractChildNode;
 var
   Extrusion: TExtrusionNode;
-  SweptAreaProf: TIfcArbitraryClosedProfileDef;
   Shape: TShapeNode;
 begin
   Extrusion := TExtrusionNode.Create('', Mapping.BaseUrl);
@@ -744,13 +772,8 @@ begin
     TVector3.Zero,
     ExtrudedDirection.DirectionRatios.Value * Depth
   ]);
-  if SweptArea is TIfcArbitraryClosedProfileDef then // also checks is it <> nil
-  begin
-    SweptAreaProf := TIfcArbitraryClosedProfileDef(SweptArea);
-    SweptAreaProf.OuterCurve.UpdateCrossSection(Extrusion);
-  end else
   if SweptArea <> nil then
-    WritelnWarning('IFC', 'Unsupported IfcExtrudedAreaSolid.SweptArea class: ' + SweptArea.ClassName);
+    SweptArea.UpdateCrossSection(Extrusion, 'IfcExtrudedAreaSolid.SweptArea');
 
   Shape := TShapeNode.Create('', Mapping.BaseUrl);
   Shape.Geometry := Extrusion;

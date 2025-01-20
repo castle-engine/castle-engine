@@ -791,6 +791,10 @@
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
+    { Update Extrusion.FdCrossSection.
+      In the base class, this makes a warning "not implemented".
+      Override (and do not call "inherited") to provide a useful implementation. }
+    procedure UpdateCrossSection(const Extrusion: TExtrusionNode; const ParentName: String); virtual;
   published
     { Type of geometry into which this profile definition shall be resolved. }
     property ProfileType: TIfcProfileTypeEnum read FProfileType write FProfileType;
@@ -815,6 +819,8 @@
   TIfcArbitraryClosedProfileDef = class(TIfcProfileDef)
   strict private
     FOuterCurve: TIfcCurve;
+  public
+    procedure UpdateCrossSection(const Extrusion: TExtrusionNode; const ParentName: String); override;
   published
     { Bounded curve, defining the outer boundaries of the arbitrary profile. }
     property OuterCurve: TIfcCurve read FOuterCurve write FOuterCurve;
@@ -1829,6 +1835,36 @@
         else raise EInternalError.Create('Invalid Axis');
       end;
     }
+  end;
+
+  { 2D position coordinate system to which the parameters of the different profiles relate to.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcParameterizedProfileDef.htm }
+  TIfcParameterizedProfileDef = class(TIfcProfileDef)
+  strict private
+    FPosition: TIfcAxis2Placement2D;
+  public
+    { Position coordinate system of the parameterized profile definition.
+      If unspecified, no translation and no rotation is applied. }
+    property Position: TIfcAxis2Placement2D read FPosition write FPosition;
+  end;
+
+  { Rectangle as the profile definition used by the swept surface geometry
+    or the swept area solid.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcRectangleProfileDef.htm }
+  TIfcRectangleProfileDef = class(TIfcProfileDef)
+  strict private
+    FXDim: TIfcPositiveLengthMeasure;
+    FYDim: TIfcPositiveLengthMeasure;
+  public
+    procedure UpdateCrossSection(const Extrusion: TExtrusionNode; const ParentName: String); override;
+  published
+    { The extent of the rectangle in the direction of the x-axis.. }
+    property XDim: TIfcPositiveLengthMeasure read FXDim write FXDim;
+
+    { The extent of the rectangle in the direction of the y-axis. }
+    property YDim: TIfcPositiveLengthMeasure read FYDim write FYDim;
   end;
 
   { Represents the 3D shape by a sweeping representation scheme allowing
@@ -5755,6 +5791,7 @@ function IfcClasses: TIfcPersistentClassList;
     FIfcClasses.Add(TIfcSlabType);
     FIfcClasses.Add(TIfcBuildingElementProxy);
     FIfcClasses.Add(TIfcBuildingElementProxyType);
+    FIfcClasses.Add(TIfcRectangleProfileDef);
   end;
 
 begin
