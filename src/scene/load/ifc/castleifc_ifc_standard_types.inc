@@ -1616,6 +1616,53 @@
       default TIfcActuatorTypeEnum.NotDefined;
   end;
 
+  TIfcSlabTypeEnum = (
+    NotDefined,
+    Approach_Slab,
+    BaseSlab,
+    Floor,
+    Landing,
+    Paving,
+    Roof,
+    Sidewalk,
+    TrackSlab,
+    Wearing,
+    UserDefined
+  );
+
+  { Commonly shared information for occurrences of slabs.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcSlabType.htm }
+  TIfcSlabType = class(TIfcBuiltElementType)
+  strict private
+    FPredefinedType: TIfcSlabTypeEnum;
+  published
+    property PredefinedType: TIfcSlabTypeEnum read FPredefinedType write FPredefinedType
+      default TIfcSlabTypeEnum.NotDefined;
+  end;
+
+  TIfcBuildingElementProxyTypeEnum = (
+    NotDefined,
+    Complex,
+    Element,
+    Partial,
+    ProvisionForSpace,
+    ProvisionForVoid,
+    UserDefined
+  );
+
+  { Commonly shared property set definitions of a building element proxy
+    and an optional set of product representations.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcBuildingElementProxyType.htm }
+  TIfcBuildingElementProxyType = class(TIfcBuiltElementType)
+  strict private
+    FPredefinedType: TIfcBuildingElementProxyTypeEnum;
+  published
+    property PredefinedType: TIfcBuildingElementProxyTypeEnum read FPredefinedType write FPredefinedType
+      default TIfcBuildingElementProxyTypeEnum.NotDefined;
+  end;
+
   { Used for @link(TIfcWindow.PredefinedType) and
     @link(TIfcWindowType.PredefinedType). }
   TIfcWindowTypeEnum = (NotDefined, LightDome, SkyLight, Window, UserDefined);
@@ -2603,20 +2650,6 @@
     property UserDefinedOperationType: TIfcLabel read FUserDefinedOperationType write FUserDefinedOperationType;
   end;
 
-  TIfcSlabTypeEnum = (
-    NotDefined,
-    Approach_Slab,
-    BaseSlab,
-    Floor,
-    Landing,
-    Paving,
-    Roof,
-    Sidewalk,
-    TrackSlab,
-    Wearing,
-    UserDefined
-  );
-
   { Component of the construction that may enclose a space vertically.
     The slab may provide the lower support (floor) or upper construction
     (roof slab) in any space in a building.
@@ -2628,6 +2661,19 @@
   published
     property PredefinedType: TIfcSlabTypeEnum read FPredefinedType write FPredefinedType
       default TIfcSlabTypeEnum.NotDefined;
+  end;
+
+  { Proxy definition that provides the same functionality as subtypes of
+    IfcBuiltElement, but without having a predefined meaning
+    of the special type of building element it represents.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcBuildingElementProxy.htm }
+  TIfcBuildingElementProxy = class(TIfcBuiltElement)
+  strict private
+    FPredefinedType: TIfcBuildingElementProxyTypeEnum;
+  published
+    property PredefinedType: TIfcBuildingElementProxyTypeEnum read FPredefinedType write FPredefinedType
+      default TIfcBuildingElementProxyTypeEnum.NotDefined;
   end;
 
   TIfcColumnTypeEnum = (
@@ -5706,6 +5752,9 @@ function IfcClasses: TIfcPersistentClassList;
     FIfcClasses.Add(TIfcWallType);
     FIfcClasses.Add(TIfcGeometricRepresentationSubContext);
     FIfcClasses.Add(TIfcReal_Boxed);
+    FIfcClasses.Add(TIfcSlabType);
+    FIfcClasses.Add(TIfcBuildingElementProxy);
+    FIfcClasses.Add(TIfcBuildingElementProxyType);
   end;
 
 begin
