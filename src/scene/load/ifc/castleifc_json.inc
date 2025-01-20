@@ -762,7 +762,7 @@ var
       JsonKey := Json.Names[I];
       if JsonKey = 'type' then // special field, handled by code that calls DeserializeJson
         Continue;
-      DebugJsonKey := PrefixRemove('T', Ifc.ClassName, false) + '.' + JsonKey;
+      DebugJsonKey := Ifc.IfcClassName + '.' + JsonKey;
 
       { Special handling of "data" list within TIfcFile.
         TIfcFile.Data is not a published property (because it would make sense
@@ -1141,7 +1141,7 @@ var
     Result := TJsonObject.Create;
 
     // save "type" in IFC
-    IfcClassName := PrefixRemove('T', Ifc.ClassName, false);
+    IfcClassName := Ifc.IfcClassName;
     if Ifc is TIfcFile then
       Result.Add('type', 'IFC.JSON')
     else
