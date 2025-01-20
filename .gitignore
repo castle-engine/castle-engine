@@ -59,6 +59,7 @@ castle-engine-output
 # Already included by *.res above
 #automatic-windows-resources.res
 #castle-auto-generated-resources.res
+CastleProjectLocalSettings.json
 
 # fpmake stuff
 castle-game-engine-*.fpm
