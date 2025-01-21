@@ -1,6 +1,6 @@
 {%MainUnit castleifc.pas}
 {
-  Copyright 2024-2024 Michalis Kamburelis.
+  Copyright 2024-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -182,6 +182,7 @@
   TIfcGeometricRepresentationContext = class;
   TIfcGeometricRepresentationSubContextList = class;
   TIfcProduct = class;
+  TIfcCartesianPoint = class;
 
   { Float type used throughout IFC.
 
@@ -392,6 +393,29 @@
 
     Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcGeometricRepresentationItem.htm }
   TIfcGeometricRepresentationItem = class abstract(TIfcRepresentationItem)
+  end;
+
+  TIfcBoundingBox = class(TIfcGeometricRepresentationItem)
+  strict private
+    FCorner: TIfcCartesianPoint;
+    FXDim: TIfcPositiveLengthMeasure;
+    FYDim: TIfcPositiveLengthMeasure;
+    FZDim: TIfcPositiveLengthMeasure;
+  public
+    function BuildNode(const Mapping: TCastleIfcMapping;
+      const ParentProduct: TIfcProduct; const Appearance: TAppearanceNode): TAbstractChildNode; override;
+  published
+    { Location of the bottom left corner (having the minimum values). }
+    property Corner: TIfcCartesianPoint read FCorner write FCorner;
+
+    { Length attribute (measured along the edge parallel to the X Axis). }
+    property XDim: TIfcPositiveLengthMeasure read FXDim write FXDim;
+
+    { Width attribute (measured along the edge parallel to the Y Axis). }
+    property YDim: TIfcPositiveLengthMeasure read FYDim write FYDim;
+
+    { Height attribute (measured along the edge parallel to the Z Axis). }
+    property ZDim: TIfcPositiveLengthMeasure read FZDim write FZDim;
   end;
 
   { Abstract supertype of all tessellated geometric models.
@@ -5792,6 +5816,7 @@ function IfcClasses: TIfcPersistentClassList;
     FIfcClasses.Add(TIfcBuildingElementProxy);
     FIfcClasses.Add(TIfcBuildingElementProxyType);
     FIfcClasses.Add(TIfcRectangleProfileDef);
+    FIfcClasses.Add(TIfcBoundingBox);
   end;
 
 begin

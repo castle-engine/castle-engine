@@ -822,6 +822,48 @@ begin
   Result := Shape;
 end;
 
+function TIfcBoundingBox.BuildNode(const Mapping: TCastleIfcMapping;
+  const ParentProduct: TIfcProduct; const Appearance: TAppearanceNode): TAbstractChildNode;
+var
+  Box: TBoxNode;
+  Shape: TShapeNode;
+  Transform: TTransformNode;
+  CornerPoint: TVector3;
+  UnlitMaterial: TUnlitMaterialNode;
+  UnlitAppearance: TAppearanceNode;
+begin
+  Box := TBoxNode.Create('', Mapping.BaseUrl);
+  Box.Size := Vector3(XDim, YDim, ZDim);
+
+  Shape := TShapeNode.Create('', Mapping.BaseUrl);
+  Shape.Geometry := Box;
+
+  // bounding box is not the final geometry, so show only wireframe
+  Shape.Shading := shWireframe;
+
+  // bounding box is not the final geometry, so show only unlit material
+  UnlitMaterial := TUnlitMaterialNode.Create('', Mapping.BaseUrl);
+  UnlitMaterial.EmissiveColor := WhiteRgb;
+  UnlitMaterial.Transparency := 0.5;
+  UnlitAppearance := TAppearanceNode.Create('', Mapping.BaseUrl);
+  UnlitAppearance.Material := UnlitMaterial;
+  Shape.Appearance := UnlitAppearance;
+
+  // move the box by CornerPoint + (X3D box position) Box.Size / 2
+  CornerPoint := TVector3.Zero;
+  if Corner <> nil then
+    CornerPoint := Corner.Coordinates.Value;
+
+  Transform := TTransformNode.Create('', Mapping.BaseUrl);
+  Transform.Translation := CornerPoint + Box.Size / 2;
+  Transform.AddChildren(Shape);
+
+  SetMetadata(Transform, 'IFC_ClassName', ClassName);
+
+  Mapping.ShapeToProduct.AddOrSetValue(Shape, ParentProduct);
+  Result := Transform;
+end;
+
 { BuildNode of TIfcObjectDefinition and descendants -------------------------- }
 
 function TIfcObjectDefinition.BuildNode(const Mapping: TCastleIfcMapping): TTransformNode;
