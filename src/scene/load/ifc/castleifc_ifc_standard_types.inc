@@ -1816,19 +1816,12 @@
   TIfcAxis2Placement2D = class(TIfcPlacement)
   strict private
     FRefDirection: TIfcDirection;
+  public
+    { Axes of the created coordinate system. }
+    function P(const AxisCoord: T2DAxis): TVector2;
   published
     { Direction of the local X axis. May be @nil. }
     property RefDirection: TIfcDirection read FRefDirection write FRefDirection;
-
-    // TODO: We could define something like this to be super-consistent with IFC standard:
-    {
-    function P(const Axis: Integer): TVector3;
-      case
-        0: Result := RefDirection.DirectionRatios;
-        1: Result := RefDirection.DirectionRatios rotate around Z by 90 degrees;
-        else raise EInternalError.Create('Invalid Axis');
-      end;
-    }
   end;
 
   { Location and orientations to place items in a three-dimensional space.
@@ -1838,6 +1831,9 @@
   strict private
     FAxis: TIfcDirection;
     FRefDirection: TIfcDirection;
+  public
+    { Axes of the created coordinate system. }
+    function P(const AxisCoord: T3DAxis): TVector3;
   published
     { Direction of the local Z axis. May be @nil. }
     property Axis: TIfcDirection read FAxis write FAxis;
@@ -1848,17 +1844,6 @@
       If Axis and/or RefDirection is omitted, these directions are taken from
       the geometric coordinate system. }
     property RefDirection: TIfcDirection read FRefDirection write FRefDirection;
-
-    // TODO: We could define something like this to be super-consistent with IFC standard:
-    {
-    function P(const Axis: Integer): TVector3;
-      case
-        0: Result := RefDirection.DirectionRatios;
-        1: Result := TVector3.CrossProduct(Axis.DirectionRatios, RefDirection.DirectionRatios);
-        2: Result := Axis.DirectionRatios;
-        else raise EInternalError.Create('Invalid Axis');
-      end;
-    }
   end;
 
   { 2D position coordinate system to which the parameters of the different profiles relate to.
@@ -4853,6 +4838,72 @@ destructor TIfcCartesianPoint.Destroy;
 begin
   FreeAndNil(FCoordinates);
   inherited;
+end;
+
+{ TIfcAxis2Placement2D ------------------------------------------------------ }
+
+function TIfcAxis2Placement2D.P(const AxisCoord: T2DAxis): TVector2;
+
+  { Derive orthogonal complement of a 2D vector.
+    Follows https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcOrthogonalComplement.htm }
+  function IfcOrthogonalComplement(const V: TVector2): TVector2;
+  begin
+    Result := Vector2(-V.Y, V.X);
+  end;
+
+var
+  D: TVector2;
+begin
+  { See
+    https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcAxis2Placement2D.htm
+    https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcBuild2Axes.htm }
+  if RefDirection <> nil then
+    D := RefDirection.DirectionRatios.Value.XY.Normalize
+  else
+    D := Vector2(1, 0);
+
+  case AxisCoord of
+    0: Result := D;
+    1: Result := IfcOrthogonalComplement(D);
+    else raise EInternalError.Create('TIfcAxis2Placement2D.P: Invalid Axis');
+  end;
+end;
+
+{ TIfcAxis2Placement3D ------------------------------------------------------ }
+
+function TIfcAxis2Placement3D.P(const AxisCoord: T3DAxis): TVector3;
+var
+  D1: TVector3; // Z Axis fixed and normalized, from Axis
+  D2: TVector3; // X axis fixed and normalized, from RefDirection
+  RefDirectionNormalized, XVec: TVector3;
+begin
+  { See https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcBuildAxes.htm }
+  if Axis <> nil then
+    D1 := Axis.DirectionRatios.Value.Normalize
+  else
+    D1 := TVector3.One[2];
+
+  { See https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcFirstProjAxis.htm,
+    we effectively implement it, but simplifying -- the formal definition doesn't account for
+    where it's actually used. }
+  if RefDirection <> nil then
+    RefDirectionNormalized := RefDirection.DirectionRatios.Value.Normalize
+  else
+  if not TVector3.Equals(D1, TVector3.One[0]) then
+    RefDirectionNormalized := TVector3.One[0]
+  else
+    RefDirectionNormalized := TVector3.One[1];
+  { Note: this should be 0 when RefDirectionNormalized and D1 are orthogonal,
+    which is the most common case. }
+  XVec := TVector3.DotProduct(RefDirectionNormalized, D1) * D1;
+  D2 := (RefDirectionNormalized - XVec).Normalize;
+
+  case AxisCoord of
+    0: Result := D2;
+    1: Result := TVector3.CrossProduct(D1, D2);
+    2: Result := D1;
+    else raise EInternalError.Create('TIfcAxis2Placement3D.P: Invalid AxisCoord');
+  end;
 end;
 
 { TIfcDirection ------------------------------------------------------------- }

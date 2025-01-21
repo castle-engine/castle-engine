@@ -27,12 +27,14 @@ type
   published
     procedure TestIfcClasses;
     procedure TestIfcClassesNoDuplicates;
+    procedure TestAxis2Placement2D;
+    procedure TestAxis2Placement3D;
   end;
 
 implementation
 
 uses TypInfo, RttiUtils,
-  CastleStringUtils, CastleIfc, CastleInternalRttiUtils;
+  CastleStringUtils, CastleIfc, CastleInternalRttiUtils, CastleVectors;
 
 { Simple hack to detect does given object is a TObjectList<xxx> specialization
   and is a list of IFC classes.
@@ -130,6 +132,51 @@ begin
       if IfcClass = IfcClasses[J] then
         raise EInvalidIfc.CreateFmt('IFC class %s is duplicated in IfcClasses', [IfcClass.ClassName]);
   end;
+end;
+
+procedure TTestCastleIfc.TestAxis2Placement2D;
+var
+  Axis2Placement2D: TIfcAxis2Placement2D;
+  X, Y: TVector2;
+begin
+  Axis2Placement2D := TIfcAxis2Placement2D.Create(nil);
+  try
+    AssertTrue(Axis2Placement2D.RefDirection = nil);
+    AssertVectorEquals(Vector2(1, 0), Axis2Placement2D.P(0));
+    AssertVectorEquals(Vector2(0, 1), Axis2Placement2D.P(1));
+
+    Axis2Placement2D.RefDirection := TIfcDirection.Create(Axis2Placement2D);
+    Axis2Placement2D.RefDirection.DirectionRatios.Value := Vector3(1, 1, 0);
+    X := Vector2(1, 1).Normalize;
+    AssertVectorEquals(X, Axis2Placement2D.P(0), 0.01);
+    //Writeln('Axis2Placement2D.P(1) = ' + Axis2Placement2D.P(1).ToString);
+    Y := Vector2(-1, 1).Normalize;
+    AssertVectorEquals(Y, Axis2Placement2D.P(1), 0.01);
+  finally FreeAndNil(Axis2Placement2D) end;
+end;
+
+procedure TTestCastleIfc.TestAxis2Placement3D;
+var
+  Axis2Placement3D: TIfcAxis2Placement3D;
+  X, Y, Z: TVector3;
+begin
+  Axis2Placement3D := TIfcAxis2Placement3D.Create(nil);
+  try
+    AssertTrue(Axis2Placement3D.RefDirection = nil);
+    AssertTrue(Axis2Placement3D.Axis = nil);
+    AssertVectorEquals(Vector3(1, 0, 0), Axis2Placement3D.P(0));
+    AssertVectorEquals(Vector3(0, 1, 0), Axis2Placement3D.P(1));
+    AssertVectorEquals(Vector3(0, 0, 1), Axis2Placement3D.P(2));
+
+    Axis2Placement3D.RefDirection := TIfcDirection.Create(Axis2Placement3D);
+    Axis2Placement3D.RefDirection.DirectionRatios.Value := Vector3(1, 1, 0);
+    X := Vector3(1, 1, 0).Normalize;
+    AssertVectorEquals(X, Axis2Placement3D.P(0), 0.01);
+    Y := Vector3(-1, 1, 0).Normalize;
+    AssertVectorEquals(Y, Axis2Placement3D.P(1), 0.01);
+    Z := Vector3(0, 0, 1);
+    AssertVectorEquals(Z, Axis2Placement3D.P(2), 0.01);
+  finally FreeAndNil(Axis2Placement3D) end;
 end;
 
 initialization
