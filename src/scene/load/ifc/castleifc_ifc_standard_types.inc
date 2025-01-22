@@ -1943,12 +1943,12 @@
   strict private
     FObjectPlacement: TIfcObjectPlacement;
     FRepresentation: TIfcProductRepresentation;
-    function GetRelativePlacement: TVector3;
-    procedure SetRelativePlacement(const Translation: TVector3);
-    { Return the value of @link(PlacementRelativeToParent),
-      and if it's @true -> set Translation to
-      the value of @link(RelativePlacement). }
-    function GetRelativePlacementCore(out Translation: TVector3): Boolean;
+    function GetTranslation: TVector3;
+    procedure SetTranslation(const Value: TVector3);
+    { Return the value of @link(TransformRelativeToParent)
+      and regardless of it's value,
+      set Translation and Rotation to our transformation. }
+    function GetTransform(out Translation: TVector3; out Rotation: TVector4): Boolean;
   public
     function BuildNode(const Mapping: TCastleIfcMapping): TTransformNode; override;
 
@@ -1980,25 +1980,31 @@
       const Context: TIfcGeometricRepresentationContext;
       const Box: TBox3D);
 
-    { Does @link(ObjectPlacement) express a simple translation relative
+    { Does @link(ObjectPlacement) express a simple 3D transformation relative
       to the parent.
-      This implies that using @link(RelativePlacement) to operate indirectly
+
+      This implies that using @link(Translation) to operate indirectly
       on @link(ObjectPlacement) makes sense, i.e. you do not loose information
-      this way. }
-    function PlacementRelativeToParent: Boolean;
+      by getting and setting it. }
+    function TransformRelativeToParent: Boolean;
 
-    { Position of this product relative to parent.
+    { Position of this product relative to the parent.
 
-      Check @link(PlacementRelativeToParent) before using this property.
+      Check @link(TransformRelativeToParent) before using this property
+      to make sure you're using it in a defined way.
 
       @unorderedList(
         @item(
-          Using this property when @link(PlacementRelativeToParent) is @true
+          Using this property when @link(TransformRelativeToParent) is @true
           makes most sense: it means that this simple property represents really
-          everything interesting about the placement.
+          everything interesting about the translation.
         )
+
         @item(
           Using this property when @link(PlacementRelativeToParent) is @false
+          is undefined.
+          We return the translation anyway, and you can even set it,
+
           means that reading it returns TVector.Zero, and setting it overrides
           the previous placement setup. This may or may not be intuitive to your
           usage.
@@ -2015,7 +2021,7 @@
         )
       )
     }
-    property RelativePlacement: TVector3 read GetRelativePlacement write SetRelativePlacement;
+    property Translation: TVector3 read GetTranslation write SetTranslation;
   published
     { Object coordinate system and placement of the product in space. }
     property ObjectPlacement: TIfcObjectPlacement read FObjectPlacement write FObjectPlacement;
@@ -4340,78 +4346,82 @@ begin
   ]);
 end;
 
-function TIfcProduct.GetRelativePlacementCore(out Translation: TVector3): Boolean;
+function TIfcProduct.GetTransform(
+  out Translation: TVector3; out Rotation: TVector4): Boolean;
 var
-  UseLocation: TIfcCartesianPoint;
-  UseRelativePlacement: TIfcAxis2Placement3D;
+  UseRelativePlacement: TIfcAxis2Placement;
   UseObjectPlacement: TIfcLocalPlacement;
 begin
-  // calculate UseObjectPlacement
-  if (ObjectPlacement <> nil) and
-     (ObjectPlacement is TIfcLocalPlacement) and
-     (TIfcLocalPlacement(ObjectPlacement).PlacementRelTo = nil) and
-     (
-       { Check PlacesObject that should include Self, or be empty.
-        https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcObjectPlacement.htm
-        allows placesObject to be empty, from what I understand, BonsaiBIM
-        also can generate such placement. }
-       (TIfcLocalPlacement(ObjectPlacement).PlacesObject.IndexOf(Self) <> -1) or
-       (TIfcLocalPlacement(ObjectPlacement).PlacesObject.Count = 0)
-     ) then
-  begin
-    UseObjectPlacement := TIfcLocalPlacement(ObjectPlacement);
-  end else
+  Result := false;
+  Translation := TVector3.Zero;
+  Rotation := TVector4.Zero;
+
+  // check ObjectPlacement
   if ObjectPlacement = nil then
   begin
-    Translation := TVector3.Zero;
-    Exit(true);
+    { Nothing more to calculate, but it's all OK --
+      ObjectPlacement=nil means that we're relative to parent.
+      TIfcProduct.SetTransform can deal with it, it will create new
+      ObjectPlacement. }
+    Result := true;
   end else
-    Exit(false);
+  if ObjectPlacement is TIfcLocalPlacement then
+  begin
+    { We can continue, because we have TIfcLocalPlacement.
+      But is this TIfcLocalPlacement really relative to parent?
+      Check it and set Result.
+      But still, continue, even when Result=false, to allow
+      implementations to work even when Result=false. }
+    UseObjectPlacement := TIfcLocalPlacement(ObjectPlacement);
+    Result :=
+      (UseObjectPlacement.PlacementRelTo = nil) and
+      (
+        { Check PlacesObject that should include Self, or be empty.
+          https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcObjectPlacement.htm
+          allows placesObject to be empty, from what I understand, BonsaiBIM
+          also can generate such placement. }
+        (UseObjectPlacement.PlacesObject.IndexOf(Self) <> -1) or
+        (UseObjectPlacement.PlacesObject.Count = 0)
+      );
 
-  // calculate UseRelativePlacement
-  if (UseObjectPlacement.RelativePlacement <> nil) and
-     (UseObjectPlacement.RelativePlacement is TIfcAxis2Placement3D) then
-  begin
-    UseRelativePlacement := TIfcAxis2Placement3D(UseObjectPlacement.RelativePlacement);
-  end else
-  if UseObjectPlacement.RelativePlacement = nil then
-  begin
-    Translation := TVector3.Zero;
-    Exit(true);
-  end else
-    Exit(false);
+    { If UseObjectPlacement.RelativePlacement = nil, no problem,
+      TIfcProduct.SetTransform, it will create new
+      UseObjectPlacement.RelativePlacement . }
+    UseRelativePlacement := UseObjectPlacement.RelativePlacement;
+    if UseRelativePlacement <> nil then
+    begin
+      UseRelativePlacement.GetTransform(Translation, Rotation);
 
-  // calculate UseLocation
-  if (UseRelativePlacement.Location <> nil) and
-     (UseRelativePlacement.Location is TIfcCartesianPoint) then
-  begin
-    UseLocation := TIfcCartesianPoint(UseRelativePlacement.Location);
+      { While GetTransform is defined for any valid UseRelativePlacement
+        class, but our SetTranslation can handle only TIfcAxis2Placement3D
+        (since 2D version cannot express all 3D positions/rotations,
+        naturally). }
+      Result := Result and (UseRelativePlacement is TIfcAxis2Placement3D);
+    end;
   end else
-  if UseRelativePlacement.Location = nil then
   begin
-    Translation := TVector3.Zero;
-    Exit(true);
-  end else
-    Exit(false);
-
-  Translation := UseLocation.Coordinates.Value;
-  Result := true;
+    { We cannot continue, because ObjectPlacement is something else
+      than TIfcLocalPlacement.
+      We cannot calculate relative transform for it. }
+  end;
 end;
 
-function TIfcProduct.PlacementRelativeToParent: Boolean;
+function TIfcProduct.TransformRelativeToParent: Boolean;
 var
   DummyTranslation: TVector3;
+  DummyRotation: TVector4;
 begin
-  Result := GetRelativePlacementCore(DummyTranslation);
+  Result := GetTransform(DummyTranslation, DummyRotation);
 end;
 
-function TIfcProduct.GetRelativePlacement: TVector3;
+function TIfcProduct.GetTranslation: TVector3;
+var
+  DummyRotation: TVector4;
 begin
-  if not GetRelativePlacementCore(Result) then
-    Result := TVector3.Zero;
+  GetTransform(Result, DummyRotation);
 end;
 
-procedure TIfcProduct.SetRelativePlacement(const Translation: TVector3);
+procedure TIfcProduct.SetTranslation(const Value: TVector3);
 var
   NewLocation: TIfcCartesianPoint;
   NewRelativePlacement: TIfcAxis2Placement3D;
@@ -4419,7 +4429,13 @@ var
 begin
   // create NewObjectPlacement and assign it to ObjectPlacement
   if (ObjectPlacement <> nil) and
-     (ObjectPlacement is TIfcLocalPlacement) and
+     (ObjectPlacement is TIfcLocalPlacement)
+     (*
+     { Do not check it below.
+       If developer wants to set TIfcProduct.SetTranslation even
+       when TransformRelativeToParent is false, let them,
+       and don't change the object with respect to which we have placement. }
+     and
      (TIfcLocalPlacement(ObjectPlacement).PlacementRelTo = nil) and
      (
        { Check PlacesObject that should include Self, or be empty.
@@ -4428,7 +4444,9 @@ begin
         also can generate such placement. }
        (TIfcLocalPlacement(ObjectPlacement).PlacesObject.IndexOf(Self) <> -1) or
        (TIfcLocalPlacement(ObjectPlacement).PlacesObject.Count = 0)
-     ) then
+     )
+     *)
+     then
   begin
     NewObjectPlacement := TIfcLocalPlacement(ObjectPlacement);
   end else
@@ -4460,7 +4478,7 @@ begin
     NewRelativePlacement.Location := NewLocation;
   end;
 
-  NewLocation.Coordinates.Value := Translation;
+  NewLocation.Coordinates.Value := Value;
 end;
 
 { TIfcSpatialElement --------------------------------------------------------- }

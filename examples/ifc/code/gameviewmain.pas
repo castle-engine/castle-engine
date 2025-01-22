@@ -349,7 +349,7 @@ begin
       Vector3( SizeX / 2,  SizeY / 2, WallHeight)
     ));
 
-  Wall.RelativePlacement := Vector3(
+  Wall.Translation := Vector3(
     RandomFloatRange(-5, 5),
     RandomFloatRange(-5, 5),
     0
@@ -393,7 +393,7 @@ begin
       Vector3(-WallSize.X / 2, -WallSize.Y / 2, 0),
       Vector3( WallSize.X / 2,  WallSize.Y / 2, WallHeight)
     ));
-  Wall.RelativePlacement := Vector3(
+  Wall.Translation := Vector3(
     RandomFloatRange(-5, 5),
     RandomFloatRange(-5, 5),
     0
@@ -408,7 +408,7 @@ begin
       Vector3(- WindowSize.X / 2, -WallSize.Y / 2, - WindowSize.Y / 2),
       Vector3(  WindowSize.X / 2,  WallSize.Y / 2,   WindowSize.Y / 2)
     ));
-  Opening.RelativePlacement := Vector3(
+  Opening.Translation := Vector3(
     WindowPosition.X,
     0,
     WindowPosition.Y
@@ -424,7 +424,7 @@ begin
       Vector3(- WindowSize.X / 2, -WallSize.Y / 2, - WindowSize.Y / 2),
       Vector3(  WindowSize.X / 2,  WallSize.Y / 2,   WindowSize.Y / 2)
     ));
-  Window.RelativePlacement := Wall.RelativePlacement + Opening.RelativePlacement;
+  Window.Translation := Wall.Translation + Opening.Translation;
   IfcContainer.AddContainedElement(Window);
 
   { Connect wall and window, as spec suggests
@@ -449,9 +449,9 @@ begin
     if ElementList.Count = 0 then
       Exit;
     RandomElement := ElementList[Random(ElementList.Count)];
-    if RandomElement.PlacementRelativeToParent then
+    if RandomElement.TransformRelativeToParent then
     begin
-      RandomElement.RelativePlacement := Vector3(
+      RandomElement.Translation := Vector3(
         RandomFloatRange(-5, 5),
         RandomFloatRange(-5, 5),
         0
@@ -512,8 +512,8 @@ var
     if Parent = IfcFile.Project.BestContainer then
       SList.Add(NowIndent + Indent + '<font color="#0000aa">(^detected best container)</font>');
     if (Parent is TIfcProduct) and
-       (not TIfcProduct(Parent).PlacementRelativeToParent) then
-      SList.Add(NowIndent + Indent + '<font color="#aa0000">(^cannot drag placement)</font>');
+       (not TIfcProduct(Parent).TransformRelativeToParent) then
+      SList.Add(NowIndent + Indent + '<font color="#aa0000">(^dragging may be not reliable)</font>');
 
     for RelAggregates in Parent.IsDecomposedBy do
       for RelatedObject in RelAggregates.RelatedObjects do
@@ -603,7 +603,9 @@ begin
 
       // update TransformManipulate, to allow dragging selected product
       if (IfcSelectedProduct <> nil) and
-         IfcSelectedProduct.PlacementRelativeToParent and
+         { Allow dragging anyway, user can see
+           TransformRelativeToParent=false in sidebar. }
+         //IfcSelectedProduct.TransformRelativeToParent and
          (not HitShape.BoundingBox.IsEmpty) then
       begin
         TransformSelectedProduct.Translation := HitShape.BoundingBox.Center;
@@ -621,11 +623,11 @@ procedure TViewMain.TransformManipulateTransformModified(Sender: TObject);
 begin
   Assert(IfcSelectedProduct <> nil, 'TransformManipulateTransformModified called without IfcSelectedProduct, should not happen');
 
-  { Update IfcSelectedProduct.RelativePlacement based on
+  { Update IfcSelectedProduct.Translation based on
     difference in shift of TransformSelectedProduct. Note that this simple way
     to update translation assumes we don't have rotations or scale in IFC. }
-  IfcSelectedProduct.RelativePlacement :=
-    IfcSelectedProduct.RelativePlacement +
+  IfcSelectedProduct.Translation :=
+    IfcSelectedProduct.Translation +
     TransformSelectedProduct.Translation -
     IfcSelectedProductShapeTranslation;
   IfcMapping.Update(IfcFile);
