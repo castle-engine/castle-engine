@@ -449,7 +449,7 @@ begin
     if ElementList.Count = 0 then
       Exit;
     RandomElement := ElementList[Random(ElementList.Count)];
-    if RandomElement.TransformRelativeToParent then
+    if RandomElement.TransformSimple then
     begin
       RandomElement.Translation := Vector3(
         RandomFloatRange(-5, 5),
@@ -512,8 +512,8 @@ var
     if Parent = IfcFile.Project.BestContainer then
       SList.Add(NowIndent + Indent + '<font color="#0000aa">(^detected best container)</font>');
     if (Parent is TIfcProduct) and
-       (not TIfcProduct(Parent).TransformRelativeToParent) then
-      SList.Add(NowIndent + Indent + '<font color="#aa0000">(^dragging may be not reliable)</font>');
+       (not TIfcProduct(Parent).TransformSimple) then
+      SList.Add(NowIndent + Indent + '<font color="#aa0000">(^dragging may be not intuitive)</font>');
 
     for RelAggregates in Parent.IsDecomposedBy do
       for RelatedObject in RelAggregates.RelatedObjects do
@@ -603,9 +603,8 @@ begin
 
       // update TransformManipulate, to allow dragging selected product
       if (IfcSelectedProduct <> nil) and
-         { Allow dragging anyway, user can see
-           TransformRelativeToParent=false in sidebar. }
-         //IfcSelectedProduct.TransformRelativeToParent and
+         { Allow dragging anyway, user can see TransformSimple=false in sidebar. }
+         //IfcSelectedProduct.TransformSimple and
          (not HitShape.BoundingBox.IsEmpty) then
       begin
         TransformSelectedProduct.Translation := HitShape.BoundingBox.Center;

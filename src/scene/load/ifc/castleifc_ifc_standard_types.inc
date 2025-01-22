@@ -1945,7 +1945,7 @@
     FRepresentation: TIfcProductRepresentation;
     function GetTranslation: TVector3;
     procedure SetTranslation(const Value: TVector3);
-    { Return the value of @link(TransformRelativeToParent)
+    { Return the value of @link(TransformSimple)
       and regardless of it's value,
       set Translation and Rotation to our transformation. }
     function GetTransform(out Translation: TVector3; out Rotation: TVector4): Boolean;
@@ -1984,40 +1984,43 @@
       to the parent.
 
       This implies that using @link(Translation) to operate indirectly
-      on @link(ObjectPlacement) makes sense, i.e. you do not loose information
-      by getting and setting it. }
-    function TransformRelativeToParent: Boolean;
+      on @link(ObjectPlacement) is most intuitive.
+      It is a translation versus the parent coordinate system,
+      and all 3D translations are possible to be expressed. }
+    function TransformSimple: Boolean;
 
-    { Position of this product relative to the parent.
+    { Translation of this product.
 
-      Check @link(TransformRelativeToParent) before using this property
-      to make sure you're using it in a defined way.
+      Check @link(TransformSimple) before using this property
+      to make sure that you can set any 3D translation and its interpreted
+      relative to the parent coordinate system.
 
       @unorderedList(
         @item(
-          Using this property when @link(TransformRelativeToParent) is @true
-          makes most sense: it means that this simple property represents really
-          everything interesting about the translation.
+          Using this property when @link(TransformSimple) is @true
+          is most intuitive.
+
+          It means that this simple property represents
+          everything interesting about the translation
+          and getting and setting it (to any 3D value) preserves everything.
         )
 
         @item(
-          Using this property when @link(PlacementRelativeToParent) is @false
-          is undefined.
-          We return the translation anyway, and you can even set it,
+          Using this property when @link(TransformSimple) is @false
+          is still possible.
 
-          means that reading it returns TVector.Zero, and setting it overrides
-          the previous placement setup. This may or may not be intuitive to your
-          usage.
-
+          The interpretation depends on the configuration of the @link(ObjectPlacement).
+          @link(ObjectPlacement) may specify that transformation
+          is done with respect to some
+          other object. Or it may specify that it's a 2D transformation
+          (so setting a translation may change it to 3D, and right now it may
+          not preserve 2D rotation).
           In general, IFC offers various possibilities to define the placement
           of an object, relative to various parents.
-          This property offers a simple way to change translation in the most common
-          case, when the placement is relative to our parent in the hierarchy.
-          If the @link(ObjectPlacement) defines placement in any other complicated way
-          (e.g. with respect to some other object) then this property returns
-          TVector3.Zero and @link(PlacementRelativeToParent) is @false.
-          Setting this property in such case will override the previous placement,
-          which may result in object "jumping" suddenly to unexpected place.
+
+          If in doubt, just don't use this property when @link(TransformSimple)
+          is @false. Instead, investigate and change the @link(ObjectPlacement)
+          properties.
         )
       )
     }
@@ -4406,7 +4409,7 @@ begin
   end;
 end;
 
-function TIfcProduct.TransformRelativeToParent: Boolean;
+function TIfcProduct.TransformSimple: Boolean;
 var
   DummyTranslation: TVector3;
   DummyRotation: TVector4;
@@ -4433,7 +4436,7 @@ begin
      (*
      { Do not check it below.
        If developer wants to set TIfcProduct.SetTranslation even
-       when TransformRelativeToParent is false, let them,
+       when TransformSimple is false, let them,
        and don't change the object with respect to which we have placement. }
      and
      (TIfcLocalPlacement(ObjectPlacement).PlacementRelTo = nil) and
