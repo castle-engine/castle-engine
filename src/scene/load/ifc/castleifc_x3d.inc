@@ -552,7 +552,8 @@ end;
 procedure TIfcArbitraryClosedProfileDef.UpdateCrossSection(
   const Extrusion: TExtrusionNode; const ParentName: String);
 begin
-  OuterCurve.UpdateCrossSection(Extrusion);
+  if OuterCurve <> nil then
+    OuterCurve.UpdateCrossSection(Extrusion);
 end;
 
 procedure TIfcRectangleProfileDef.UpdateCrossSection(
@@ -774,6 +775,19 @@ begin
   ]);
   if SweptArea <> nil then
     SweptArea.UpdateCrossSection(Extrusion, 'IfcExtrudedAreaSolid.SweptArea');
+  { The extrusion curves in IFC may be provided in an arbitrary order.
+    We have samples where both extrusions use TIfcCurve.UpdateCrossSection,
+    and sometimes it would need (with Solid=true) to do CrossSection.Reverse,
+    sometimes not.
+
+    Testcases made using BonsaiBIM, add slabs and walls, and save to IFC JSON:
+      ifc_window_test/4_rotations_scale/simplest_slab.ifcjson
+      ifc_window_test/4_rotations_scale/blend_simple_rotations_and_scale.ifcjson
+      ifc_window_test/4_rotations_scale/rotate_scale_slabs.ifcjson
+
+    The simplest solution to render them all OK seems to just disable
+    backface culling for all extrusions. }
+  Extrusion.Solid := false;
 
   Shape := TShapeNode.Create('', Mapping.BaseUrl);
   Shape.Geometry := Extrusion;
