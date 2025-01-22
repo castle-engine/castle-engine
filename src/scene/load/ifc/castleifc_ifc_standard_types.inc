@@ -590,7 +590,7 @@
       In the base class, this reuses BuildNode and extracts cross section
       information from a temporary node.
       Override to provide more optimized implementation. }
-    procedure UpdateCrossSection(const Extrusion: TExtrusionNode); virtual;
+    procedure UpdateCrossSection(const CrossSection: TVector2List); virtual;
 
     { Space dimensionality of this abstract class, defined differently for all
       subtypes. }
@@ -613,7 +613,7 @@
     destructor Destroy; override;
     function BuildNode(const Mapping: TCastleIfcMapping;
       const ParentProduct: TIfcProduct; const Appearance: TAppearanceNode): TAbstractChildNode; override;
-    procedure UpdateCrossSection(const Extrusion: TExtrusionNode); override;
+    procedure UpdateCrossSection(const CrossSection: TVector2List); override;
   published
     { Points defining the polyline. }
     property Points: TIfcCartesianPointList read FPoints;
@@ -818,7 +818,7 @@
     { Update Extrusion.FdCrossSection.
       In the base class, this makes a warning "not implemented".
       Override (and do not call "inherited") to provide a useful implementation. }
-    procedure UpdateCrossSection(const Extrusion: TExtrusionNode; const ParentName: String); virtual;
+    procedure UpdateCrossSection(const CrossSection: TVector2List; const ParentName: String); virtual;
   published
     { Type of geometry into which this profile definition shall be resolved. }
     property ProfileType: TIfcProfileTypeEnum read FProfileType write FProfileType;
@@ -844,7 +844,7 @@
   strict private
     FOuterCurve: TIfcCurve;
   public
-    procedure UpdateCrossSection(const Extrusion: TExtrusionNode; const ParentName: String); override;
+    procedure UpdateCrossSection(const CrossSection: TVector2List; const ParentName: String); override;
   published
     { Bounded curve, defining the outer boundaries of the arbitrary profile. }
     property OuterCurve: TIfcCurve read FOuterCurve write FOuterCurve;
@@ -1873,7 +1873,7 @@
     FXDim: TIfcPositiveLengthMeasure;
     FYDim: TIfcPositiveLengthMeasure;
   public
-    procedure UpdateCrossSection(const Extrusion: TExtrusionNode; const ParentName: String); override;
+    procedure UpdateCrossSection(const CrossSection: TVector2List; const ParentName: String); override;
   published
     { The extent of the rectangle in the direction of the x-axis.. }
     property XDim: TIfcPositiveLengthMeasure read FXDim write FXDim;

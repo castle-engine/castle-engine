@@ -541,7 +541,7 @@ end;
 { TIfcProfileDef.UpdateCrossSection method overrides -------------------------- }
 
 procedure TIfcProfileDef.UpdateCrossSection(
-  const Extrusion: TExtrusionNode; const ParentName: String);
+  const CrossSection: TVector2List; const ParentName: String);
 begin
   WritelnWarning('IFC', 'Unsupported class used for %s: %s', [
     ParentName,
@@ -550,52 +550,44 @@ begin
 end;
 
 procedure TIfcArbitraryClosedProfileDef.UpdateCrossSection(
-  const Extrusion: TExtrusionNode; const ParentName: String);
+  const CrossSection: TVector2List; const ParentName: String);
 begin
   if OuterCurve <> nil then
-    OuterCurve.UpdateCrossSection(Extrusion);
+    OuterCurve.UpdateCrossSection(CrossSection);
 end;
 
 procedure TIfcRectangleProfileDef.UpdateCrossSection(
-  const Extrusion: TExtrusionNode; const ParentName: String);
+  const CrossSection: TVector2List; const ParentName: String);
 var
   Translation: TVector3;
   Rotation: TVector4;
-  CrossSection: TVector2List;
   V: TVector3;
   I: Integer;
 begin
-  CrossSection := TVector2List.Create;
-  try
-    CrossSection.AddRange([
-      Vector2(-XDim / 2, -YDim / 2),
-      Vector2( XDim / 2, -YDim / 2),
-      Vector2( XDim / 2,  YDim / 2),
-      Vector2(-XDim / 2,  YDim / 2)
-    ]);
+  CrossSection.AddRange([
+    Vector2(-XDim / 2, -YDim / 2),
+    Vector2( XDim / 2, -YDim / 2),
+    Vector2( XDim / 2,  YDim / 2),
+    Vector2(-XDim / 2,  YDim / 2)
+  ]);
 
-    if Position <> nil then
+  if Position <> nil then
+  begin
+    WritelnLog('IfcRectangleProfileDef.Position assigned - TODO: should work, but untested');
+    Position.GetTransform(Translation, Rotation);
+    for I := 0 to CrossSection.Count - 1 do
     begin
-      WritelnLog('IfcRectangleProfileDef.Position assigned - TODO: should work, but untested');
-      Position.GetTransform(Translation, Rotation);
-      for I := 0 to CrossSection.Count - 1 do
-      begin
-        V := Vector3(CrossSection[I], 0);
-        V := RotatePointAroundAxis(Rotation, V);
-        V := V + Translation;
-        CrossSection[I] := V.XY;
-      end;
+      V := Vector3(CrossSection[I], 0);
+      V := RotatePointAroundAxis(Rotation, V);
+      V := V + Translation;
+      CrossSection[I] := V.XY;
     end;
-
-    Extrusion.SetCrossSection(CrossSection);
-  finally FreeAndNil(CrossSection) end;
+  end;
 end;
 
 { TIfcCurve.UpdateCrossSection method overrides ---------------------------------------- }
 
-procedure TIfcCurve.UpdateCrossSection(const Extrusion: TExtrusionNode);
-var
-  CrossSection: TVector2List;
+procedure TIfcCurve.UpdateCrossSection(const CrossSection: TVector2List);
 
   procedure HandleIndexedLineSetNode(const IndexedLineSet: TIndexedLineSetNode);
   var
@@ -632,43 +624,33 @@ var
   Shape: TShapeNode;
   Mapping: TCastleIfcMapping;
 begin
-  CrossSection := TVector2List.Create;
+  Mapping := TCastleIfcMapping.Create;
   try
-    Mapping := TCastleIfcMapping.Create;
+    Shape := BuildNode(Mapping, nil, nil) as TShapeNode;
     try
-      Shape := BuildNode(Mapping, nil, nil) as TShapeNode;
-      try
+      if Shape.Geometry <> nil then
+      begin
+        if Shape.Geometry is TIndexedLineSetNode then
+          HandleIndexedLineSetNode(TIndexedLineSetNode(Shape.Geometry))
+        else
+        if Shape.Geometry is TLineSetNode then
+          HandleLineSetNode(TLineSetNode(Shape.Geometry))
+        else
         if Shape.Geometry <> nil then
-        begin
-          if Shape.Geometry is TIndexedLineSetNode then
-            HandleIndexedLineSetNode(TIndexedLineSetNode(Shape.Geometry))
-          else
-          if Shape.Geometry is TLineSetNode then
-            HandleLineSetNode(TLineSetNode(Shape.Geometry))
-          else
-          if Shape.Geometry <> nil then
-            WritelnWarning('IFC', 'Unsupported Shape.Geometry class for TIfcCurve.UpdateCrossSection: ' + Shape.Geometry.ClassName);
-        end;
-      finally FreeIfUnusedAndNil(Shape) end;
-    finally FreeAndNil(Mapping) end;
+          WritelnWarning('IFC', 'Unsupported Shape.Geometry class for TIfcCurve.UpdateCrossSection: ' + Shape.Geometry.ClassName);
+      end;
+    finally FreeIfUnusedAndNil(Shape) end;
+  finally FreeAndNil(Mapping) end;
 
-    // actually use our CrossSection contents, this is all we wanted to calculate
-    Extrusion.SetCrossSection(CrossSection);
-  finally FreeAndNil(CrossSection) end;
 end;
 
-procedure TIfcPolyline.UpdateCrossSection(const Extrusion: TExtrusionNode);
+procedure TIfcPolyline.UpdateCrossSection(const CrossSection: TVector2List);
 var
-  CrossSection: TVector2List;
   I: Integer;
 begin
-  CrossSection := TVector2List.Create;
-  try
-    CrossSection.Count := Points.Count;
-    for I := 0 to Points.Count - 1 do
-      CrossSection[I] := Points[I].Coordinates.Value.XY;
-    Extrusion.SetCrossSection(CrossSection);
-  finally FreeAndNil(CrossSection) end;
+  CrossSection.Count := Points.Count;
+  for I := 0 to Points.Count - 1 do
+    CrossSection[I] := Points[I].Coordinates.Value.XY;
 end;
 
 { BuildNode of TIfcRepresentationItem and descendants ------------------------- }
@@ -790,14 +772,22 @@ function TIfcExtrudedAreaSolid.BuildNode(const Mapping: TCastleIfcMapping;
 var
   Extrusion: TExtrusionNode;
   Shape: TShapeNode;
+  CrossSection: TVector2List;
 begin
   Extrusion := TExtrusionNode.Create('', Mapping.BaseUrl);
   Extrusion.SetSpine([
     TVector3.Zero,
     ExtrudedDirection.DirectionRatios.Value * Depth
   ]);
+
+  { Pass Extrusion.FdCrossSection.Items reference around.
+    Maybe in the future it will make sense to create temporary TVector2List
+    and then use Extrusion.SetCrossSection, but for now it's not needed. }
+  CrossSection := Extrusion.FdCrossSection.Items;
+  CrossSection.Clear; // default TExtrusionNode.CrossSection is not empty
   if SweptArea <> nil then
-    SweptArea.UpdateCrossSection(Extrusion, 'IfcExtrudedAreaSolid.SweptArea');
+    SweptArea.UpdateCrossSection(CrossSection, 'IfcExtrudedAreaSolid.SweptArea');
+
   { The extrusion curves in IFC may be provided in an arbitrary order.
     We have samples where both extrusions use TIfcCurve.UpdateCrossSection,
     and sometimes it would need (with Solid=true) to do CrossSection.Reverse,
