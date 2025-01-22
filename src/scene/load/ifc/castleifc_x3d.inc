@@ -1051,6 +1051,41 @@ begin
   // TODO: TIfcAxis2Placement2D/3D may define axis and ref direction, should cause rotation?
 end;
 
+procedure TIfcAxis2Placement2D.UpdateNode(const Mapping: TCastleIfcMapping;
+  const Transform: TTransformNode);
+begin
+  inherited; // let TIfcPlacement.UpdateNode set Transform.Translation
+
+  // set Transform.Rotation based on P()
+  Transform.Rotation := Vector4(0, 0, 1,
+    RotationAngleRadBetweenVectors(
+      Vector3(1, 0, 0), // original X axis
+      Vector3(P(0), 0), // desired X axis
+      Vector3(0, 0, 1)  // rotation axis, same as given above for Transform.Rotation.XYZ
+    )
+  );
+end;
+
+procedure TIfcAxis2Placement3D.UpdateNode(const Mapping: TCastleIfcMapping;
+  const Transform: TTransformNode);
+var
+  RotationMatrix: TMatrix3;
+  I, J: Integer;
+  NewAxis: array [0..2] of TVector3;
+  RotationQuat: TQuaternion;
+begin
+  inherited; // let TIfcPlacement.UpdateNode set Transform.Translation
+
+  // set Transform.Rotation based on P()
+  for I := 0 to 2 do
+    NewAxis[I] := P(I);
+  for I := 0 to 2 do
+    for J := 0 to 2 do
+      RotationMatrix.Data[I, J] := NewAxis[I][J]; // TODO: or transpose
+  RotationQuat := QuatFromRotationMatrix(RotationMatrix);
+  Transform.Rotation := RotationQuat.ToAxisAngle;
+end;
+
 { IfcToX3D and back ---------------------------------------------------------- }
 
 function IfcToX3D(const Ifc: TIfcFile; const BaseUrl: String): TX3DRootNode;

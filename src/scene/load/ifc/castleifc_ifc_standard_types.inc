@@ -1817,8 +1817,11 @@
   strict private
     FRefDirection: TIfcDirection;
   public
-    { Axes of the created coordinate system. }
+    { Axes of the created coordinate system. Always normalized and orthogonal. }
     function P(const AxisCoord: T2DAxis): TVector2;
+
+    procedure UpdateNode(const Mapping: TCastleIfcMapping;
+      const Transform: TTransformNode); override;
   published
     { Direction of the local X axis. May be @nil. }
     property RefDirection: TIfcDirection read FRefDirection write FRefDirection;
@@ -1832,8 +1835,11 @@
     FAxis: TIfcDirection;
     FRefDirection: TIfcDirection;
   public
-    { Axes of the created coordinate system. }
+    { Axes of the created coordinate system. Always normalized and orthogonal. }
     function P(const AxisCoord: T3DAxis): TVector3;
+
+    procedure UpdateNode(const Mapping: TCastleIfcMapping;
+      const Transform: TTransformNode); override;
   published
     { Direction of the local Z axis. May be @nil. }
     property Axis: TIfcDirection read FAxis write FAxis;
