@@ -31,7 +31,8 @@ type
       These fields will be automatically initialized at Start. }
     LabelFps, LabelWireframeEffect, LabelHierarchy: TCastleLabel;
     ButtonNew, ButtonLoad, ButtonSaveIfc, ButtonSaveNode,
-      ButtonAddWall, ButtonModifyRandomElement, ButtonChangeWireframeEffect: TCastleButton;
+      ButtonAddWall, ButtonAddWallAndWindow,
+      ButtonModifyRandomElement, ButtonChangeWireframeEffect: TCastleButton;
     IfcScene: TCastleScene;
     MainViewport: TCastleViewport;
     ExamineNavigation: TCastleExamineNavigation;
@@ -71,6 +72,7 @@ type
     procedure ClickSaveIfc(Sender: TObject);
     procedure ClickSaveNode(Sender: TObject);
     procedure ClickAddWall(Sender: TObject);
+    procedure ClickAddWallAndWindow(Sender: TObject);
     procedure ClickModifyRandomElement(Sender: TObject);
     procedure ClickChangeWireframeEffect(Sender: TObject);
     procedure MainViewportPress(const Sender: TCastleUserInterface;
@@ -122,6 +124,7 @@ begin
   ButtonSaveIfc.OnClick := {$ifdef FPC}@{$endif} ClickSaveIfc;
   ButtonSaveNode.OnClick := {$ifdef FPC}@{$endif} ClickSaveNode;
   ButtonAddWall.OnClick := {$ifdef FPC}@{$endif} ClickAddWall;
+  ButtonAddWallAndWindow.OnClick := {$ifdef FPC}@{$endif} ClickAddWallAndWindow;
   ButtonModifyRandomElement.OnClick := {$ifdef FPC}@{$endif} ClickModifyRandomElement;
   ButtonChangeWireframeEffect.OnClick := {$ifdef FPC}@{$endif} ClickChangeWireframeEffect;
 
@@ -357,6 +360,69 @@ begin
   UpdateLabelHierarchy;
 end;
 
+procedure TViewMain.ClickAddWallAndWindow(Sender: TObject);
+var
+  Wall: TIfcWall;
+  WallHeight: Single;
+  WallSize, WindowSize, WindowPosition: TVector2;
+  Opening: TIfcOpeningElement;
+begin
+  Wall := TIfcWall.Create(IfcFile);
+  Wall.Name := 'WallWithWindow' + IntToStr(NextWallNumber);
+  Inc(NextWallNumber);
+
+  WallSize := Vector2(
+    RandomFloatRange(4, 6), // large X, this is wall's width
+    RandomFloatRange(0.5, 1) // small Y, this is wall's thickness in this case
+  );
+  WallHeight := RandomFloatRange(1.5, 2.5); // Z is "up", by convention, in IFC
+  Wall.AddBoxRepresentation(IfcFile.Project.ModelContext,
+    Box3D(
+      Vector3(-WallSize.X / 2, -WallSize.Y / 2, 0),
+      Vector3( WallSize.X / 2,  WallSize.Y / 2, WallHeight)
+    ));
+  Wall.RelativePlacement := Vector3(
+    RandomFloatRange(-5, 5),
+    RandomFloatRange(-5, 5),
+    0
+  );
+
+  // add opening to the wall
+  { Window sizes randomized, always much smaller than wall
+    width (WallSize.X) and WallHeight.
+    Note that WindowSize.Y and WindowPosition.Y are going to affect the
+    Z axis (height) along the wall, because Z is "up" in IFC. }
+  WindowSize := Vector2(
+    RandomFloatRange(0.25, 1),
+    RandomFloatRange(0.25, 1)
+  );
+  WindowPosition := Vector2(0, 0.66 * WallHeight);
+  Opening := TIfcOpeningElement.Create(IfcFile);
+  Opening.PredefinedType := TIfcOpeningElementTypeEnum.Opening;
+  Opening.AddBoxRepresentation(IfcFile.Project.ModelContext,
+    Box3D(
+      Vector3({WindowPosition.X} - WindowSize.X / 2,
+              -WallSize.Y / 2,
+              {WindowPosition.Y} - WindowSize.Y / 2),
+      Vector3({WindowPosition.X} + WindowSize.X / 2,
+               WallSize.Y / 2,
+              {WindowPosition.Y} + WindowSize.Y / 2)
+    ));
+  Opening.RelativePlacement := Vector3(
+    WindowPosition.X,
+    0,
+    WindowPosition.Y
+  );
+  Wall.AddOpening(Opening);
+
+  // Add window
+  // TODO
+
+  IfcContainer.AddContainedElement(Wall);
+  IfcMapping.Update(IfcFile);
+  UpdateLabelHierarchy;
+end;
+
 procedure TViewMain.ClickModifyRandomElement(Sender: TObject);
 var
   ElementList: TIfcElementList;
@@ -408,18 +474,24 @@ const
 var
   SList: TStringList;
 
-  procedure ShowHierarchy(const Parent: TIfcObjectDefinition; const NowIndent: String);
+  procedure ShowHierarchy(const RelationName: String;
+    const Parent: TIfcObjectDefinition; const NowIndent: String);
   var
     ParentSpatial: TIfcSpatialElement;
     RelAggregates: TIfcRelAggregates;
     RelatedObject: TIfcObjectDefinition;
     RelContained: TIfcRelContainedInSpatialStructure;
     RelatedProduct: TIfcProduct;
+    ParentElement: TIfcElement;
+    RelVoidsElement: TIfcRelVoidsElement;
     S: String;
   begin
-    S := NowIndent + Parent.ClassName + ' "' + Parent.Name + '"';
+    S := Parent.ClassName + ' "' + Parent.Name + '"';
     if Parent = IfcSelectedProduct then
       S := '<font color="#ffff00">' + S + '</font>';
+    if RelationName <> '' then
+      S := RelationName + ': ' + S;
+    S := NowIndent + S;
     SList.Add(S);
 
     if Parent = IfcFile.Project.BestContainer then
@@ -430,14 +502,21 @@ var
 
     for RelAggregates in Parent.IsDecomposedBy do
       for RelatedObject in RelAggregates.RelatedObjects do
-        ShowHierarchy(RelatedObject, NowIndent + Indent);
+        ShowHierarchy('IsDecomposedBy', RelatedObject, NowIndent + Indent);
 
     if Parent is TIfcSpatialElement then
     begin
       ParentSpatial := TIfcSpatialElement(Parent);
       for RelContained in ParentSpatial.ContainsElements do
         for RelatedProduct in RelContained.RelatedElements do
-          ShowHierarchy(RelatedProduct, NowIndent + Indent);
+          ShowHierarchy('ContainsElements', RelatedProduct, NowIndent + Indent);
+    end;
+
+    if Parent is TIfcElement then
+    begin
+      ParentElement := TIfcElement(Parent);
+      for RelVoidsElement in ParentElement.HasOpenings do
+        ShowHierarchy('HasOpenings', RelVoidsElement.RelatedOpeningElement, NowIndent + Indent);
     end;
   end;
 
@@ -465,7 +544,7 @@ begin
 
     SList.Add('');
     SList.Add('<font color="#008800">Project Hierarchy:</font>');
-    ShowHierarchy(IfcFile.Project, Indent);
+    ShowHierarchy('', IfcFile.Project, Indent);
 
     LabelHierarchy.Text.Assign(SList);
   finally FreeAndNil(SList) end;

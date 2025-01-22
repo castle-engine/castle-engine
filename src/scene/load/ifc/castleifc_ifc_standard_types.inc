@@ -183,6 +183,7 @@
   TIfcGeometricRepresentationSubContextList = class;
   TIfcProduct = class;
   TIfcCartesianPoint = class;
+  TIfcFeatureElementSubtraction = class;
 
   { Float type used throughout IFC.
 
@@ -2473,6 +2474,13 @@
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     function BuildNode(const Mapping: TCastleIfcMapping): TTransformNode; override;
+
+    { Add an opening that creates a hole (or just niche) in this element.
+      You can add any TIfcFeatureElementSubtraction, but typically you will
+      add TIfcOpeningElement.
+      This automatically creates TIfcRelVoidsElement relationship between
+      this element and the opening. }
+    procedure AddOpening(const Opening: TIfcFeatureElementSubtraction);
   published
     { The tag (or label) identifier at the particular instance of a product,
       e.g. the serial number, or the position number.
@@ -4526,6 +4534,19 @@ begin
   FreeAndNil(FHasCoverings);
   FreeAndNil(FHasSurfaceFeatures);
   inherited;
+end;
+
+procedure TIfcElement.AddOpening(const Opening: TIfcFeatureElementSubtraction);
+var
+  RelVoidsElement: TIfcRelVoidsElement;
+begin
+  RelVoidsElement := TIfcRelVoidsElement.Create(Owner);
+  RelVoidsElement.RelatingBuildingElement := Self;
+  RelVoidsElement.RelatedOpeningElement := Opening;
+
+  HasOpenings.Add(RelVoidsElement);
+
+  Opening.VoidsElements.Add(RelVoidsElement);
 end;
 
 { TIfcRelAggregates --------------------------------------------------------- }
