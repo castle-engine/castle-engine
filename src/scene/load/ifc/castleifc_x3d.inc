@@ -769,6 +769,16 @@ end;
 
 function TIfcExtrudedAreaSolid.BuildNode(const Mapping: TCastleIfcMapping;
   const ParentProduct: TIfcProduct; const Appearance: TAppearanceNode): TAbstractChildNode;
+
+  { Negate Y coordinates of all points in List. }
+  procedure NegateY(const List: TVector2List);
+  var
+    I: Integer;
+  begin
+    for I := 0 to List.Count - 1 do
+      List.L[I].Y := -List.L[I].Y;
+  end;
+
 var
   Extrusion: TExtrusionNode;
   Shape: TShapeNode;
@@ -786,7 +796,19 @@ begin
   CrossSection := Extrusion.FdCrossSection.Items;
   CrossSection.Clear; // default TExtrusionNode.CrossSection is not empty
   if SweptArea <> nil then
+  begin
     SweptArea.UpdateCrossSection(CrossSection, 'IfcExtrudedAreaSolid.SweptArea');
+    { Experiments show this is necessary, see
+        ifc_window_test/4_rotations_scale/test_relative_positions_orientations*.ifcjson
+        ifc_window_test/4_rotations_scale/move_edit_mode_test.ifcjson
+      Reproduce by moving the rectangle of slab in *edit mode* in BonsaiBIM,
+      the X movement is OK, the Y is inverted. BonsaiBIM translates this into
+      moving actual points on the list.
+
+      This is different from doing it in *object mode* when the movement
+      translates to Axis2Placement3D, where Y remains OK. }
+    NegateY(CrossSection);
+  end;
 
   { The extrusion curves in IFC may be provided in an arbitrary order.
     We have samples where both extrusions use TIfcCurve.UpdateCrossSection,
