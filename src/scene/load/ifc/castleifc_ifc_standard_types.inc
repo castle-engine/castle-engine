@@ -1945,7 +1945,7 @@
     FRepresentation: TIfcProductRepresentation;
     function GetTranslation: TVector3;
     procedure SetTranslation(const Value: TVector3);
-    { Return the value of @link(TransformSimple)
+    { Return the value of @link(TransformSupported)
       and regardless of it's value,
       set Translation and Rotation to our transformation. }
     function GetTransform(out Translation: TVector3; out Rotation: TVector4): Boolean;
@@ -1980,51 +1980,44 @@
       const Context: TIfcGeometricRepresentationContext;
       const Box: TBox3D);
 
-    { Does @link(ObjectPlacement) express a simple 3D transformation relative
-      to the parent.
-
-      This implies that using @link(Translation) to operate indirectly
-      on @link(ObjectPlacement) is most intuitive.
-      It is a translation versus the parent coordinate system,
-      and all 3D translations are possible to be expressed. }
-    function TransformSimple: Boolean;
+    { Does @link(ObjectPlacement) express a 3D transformation we can
+      handle and @link(Translation) reliably gets and sets it. }
+    function TransformSupported: Boolean;
 
     { Translation of this product.
 
-      Check @link(TransformSimple) before using this property
-      to make sure that you can set any 3D translation and its interpreted
-      relative to the parent coordinate system.
-
       @unorderedList(
         @item(
-          Using this property when @link(TransformSimple) is @true
-          is most intuitive.
-
-          It means that this simple property represents
-          everything interesting about the translation
-          and getting and setting it (to any 3D value) preserves everything.
+          Using this property when @link(TransformSupported) is @true
+          is most intuitive. It can then reliably get and set 3D translation.
+          The translation is relative to the parent or to other object
+          (determined by @link(TIfcObjectPlacement.PlacementRelTo),
+          can be set using @link(SetTransformRelativeTo).)
         )
 
         @item(
-          Using this property when @link(TransformSimple) is @false
+          Using this property when @link(TransformSupported) is @false
           is still possible.
 
           The interpretation depends on the configuration of the @link(ObjectPlacement).
-          @link(ObjectPlacement) may specify that transformation
-          is done with respect to some
-          other object. Or it may specify that it's a 2D transformation
+          E.g. it may specify that it's a 2D transformation
           (so setting a translation may change it to 3D, and right now it may
           not preserve 2D rotation).
           In general, IFC offers various possibilities to define the placement
           of an object, relative to various parents.
 
-          If in doubt, just don't use this property when @link(TransformSimple)
+          If in doubt, just don't use this property when @link(TransformSupported)
           is @false. Instead, investigate and change the @link(ObjectPlacement)
           properties.
         )
       )
     }
     property Translation: TVector3 read GetTranslation write SetTranslation;
+
+    { Make @link(Translation) of this product relative to
+      a given different product.
+      This sets @link(TIfcObjectPlacement.PlacementRelTo) underneath. }
+    procedure SetTransformRelativeTo(const OtherProduct: TIfcProduct);
   published
     { Object coordinate system and placement of the product in space. }
     property ObjectPlacement: TIfcObjectPlacement read FObjectPlacement write FObjectPlacement;
@@ -4377,7 +4370,6 @@ begin
       implementations to work even when Result=false. }
     UseObjectPlacement := TIfcLocalPlacement(ObjectPlacement);
     Result :=
-      (UseObjectPlacement.PlacementRelTo = nil) and
       (
         { Check PlacesObject that should include Self, or be empty.
           https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcObjectPlacement.htm
@@ -4409,7 +4401,28 @@ begin
   end;
 end;
 
-function TIfcProduct.TransformSimple: Boolean;
+procedure TIfcProduct.SetTransformRelativeTo(const OtherProduct: TIfcProduct);
+begin
+  if (OtherProduct = nil) or (OtherProduct = Self) then
+  begin
+    { In this case, this TIfcProduct is not relative to anythign non-standard.
+      So just set ObjectPlacement.PlacementRelTo to nil.
+      Or leave ObjectPlacement as nil. }
+    if ObjectPlacement is TIfcLocalPlacement then
+      TIfcLocalPlacement(ObjectPlacement).PlacementRelTo := nil;
+  end else
+  begin
+    // make sure OtherProduct.ObjectPlacement <> nil
+    if OtherProduct.ObjectPlacement = nil then
+      OtherProduct.ObjectPlacement := TIfcLocalPlacement.Create(Owner);
+    // make sure ObjectPlacement <> nil
+    if ObjectPlacement = nil then
+      ObjectPlacement := TIfcLocalPlacement.Create(Owner);
+    ObjectPlacement.PlacementRelTo := OtherProduct.ObjectPlacement;
+  end;
+end;
+
+function TIfcProduct.TransformSupported: Boolean;
 var
   DummyTranslation: TVector3;
   DummyRotation: TVector4;
@@ -4436,8 +4449,7 @@ begin
      (*
      { Do not check it below.
        If developer wants to set TIfcProduct.SetTranslation even
-       when TransformSimple is false, let them,
-       and don't change the object with respect to which we have placement. }
+       when we're relative to something else, let them. }
      and
      (TIfcLocalPlacement(ObjectPlacement).PlacementRelTo = nil) and
      (

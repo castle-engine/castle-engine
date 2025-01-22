@@ -424,7 +424,10 @@ begin
       Vector3(- WindowSize.X / 2, -WallSize.Y / 2, - WindowSize.Y / 2),
       Vector3(  WindowSize.X / 2,  WallSize.Y / 2,   WindowSize.Y / 2)
     ));
-  Window.Translation := Wall.Translation + Opening.Translation;
+  Window.SetTransformRelativeTo(Opening);
+  { If didn't use SetTransformRelativeTo, we would have to calculate
+    translation manually: }
+  //Window.Translation := Wall.Translation + Opening.Translation;
   IfcContainer.AddContainedElement(Window);
 
   { Connect wall and window, as spec suggests
@@ -449,7 +452,7 @@ begin
     if ElementList.Count = 0 then
       Exit;
     RandomElement := ElementList[Random(ElementList.Count)];
-    if RandomElement.TransformSimple then
+    if RandomElement.TransformSupported then
     begin
       RandomElement.Translation := Vector3(
         RandomFloatRange(-5, 5),
@@ -512,7 +515,7 @@ var
     if Parent = IfcFile.Project.BestContainer then
       SList.Add(NowIndent + Indent + '<font color="#0000aa">(^detected best container)</font>');
     if (Parent is TIfcProduct) and
-       (not TIfcProduct(Parent).TransformSimple) then
+       (not TIfcProduct(Parent).TransformSupported) then
       SList.Add(NowIndent + Indent + '<font color="#aa0000">(^dragging may be not intuitive)</font>');
 
     for RelAggregates in Parent.IsDecomposedBy do
@@ -603,8 +606,8 @@ begin
 
       // update TransformManipulate, to allow dragging selected product
       if (IfcSelectedProduct <> nil) and
-         { Allow dragging anyway, user can see TransformSimple=false in sidebar. }
-         //IfcSelectedProduct.TransformSimple and
+         { Allow dragging anyway, user can see TransformSupported=false in sidebar. }
+         //IfcSelectedProduct.TransformSupported and
          (not HitShape.BoundingBox.IsEmpty) then
       begin
         TransformSelectedProduct.Translation := HitShape.BoundingBox.Center;
