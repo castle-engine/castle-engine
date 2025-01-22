@@ -1520,8 +1520,10 @@
   strict private
     FLocation: TIfcPoint;
   public
-    procedure UpdateNode(const Mapping: TCastleIfcMapping;
-      const Transform: TTransformNode); virtual;
+    { Get translation and rotation defined here.
+      Rotation is expressed just like @link(TCastleTransform.Rotation)
+      and @link(TTransformNode.Rotation), so it's axis and angle (in radians). }
+    procedure GetTransform(out Translation: TVector3; out Rotation: TVector4); virtual;
   published
     property Location: TIfcPoint read FLocation write FLocation;
 
@@ -1820,8 +1822,7 @@
     { Axes of the created coordinate system. Always normalized and orthogonal. }
     function P(const AxisCoord: T2DAxis): TVector2;
 
-    procedure UpdateNode(const Mapping: TCastleIfcMapping;
-      const Transform: TTransformNode); override;
+    procedure GetTransform(out Translation: TVector3; out Rotation: TVector4); override;
   published
     { Direction of the local X axis. May be @nil. }
     property RefDirection: TIfcDirection read FRefDirection write FRefDirection;
@@ -1838,8 +1839,7 @@
     { Axes of the created coordinate system. Always normalized and orthogonal. }
     function P(const AxisCoord: T3DAxis): TVector3;
 
-    procedure UpdateNode(const Mapping: TCastleIfcMapping;
-      const Transform: TTransformNode); override;
+    procedure GetTransform(out Translation: TVector3; out Rotation: TVector4); override;
   published
     { Direction of the local Z axis. May be @nil. }
     property Axis: TIfcDirection read FAxis write FAxis;
@@ -1868,7 +1868,7 @@
     or the swept area solid.
 
     Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcRectangleProfileDef.htm }
-  TIfcRectangleProfileDef = class(TIfcProfileDef)
+  TIfcRectangleProfileDef = class(TIfcParameterizedProfileDef)
   strict private
     FXDim: TIfcPositiveLengthMeasure;
     FYDim: TIfcPositiveLengthMeasure;

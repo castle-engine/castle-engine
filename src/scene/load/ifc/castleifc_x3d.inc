@@ -558,14 +558,37 @@ end;
 
 procedure TIfcRectangleProfileDef.UpdateCrossSection(
   const Extrusion: TExtrusionNode; const ParentName: String);
+var
+  Translation: TVector3;
+  Rotation: TVector4;
+  CrossSection: TVector2List;
+  V: TVector3;
+  I: Integer;
 begin
-  // TODO: Position:TIfcAxis2Placement2D may define position, axis and ref direction, should cause translation/rotation?
-  Extrusion.SetCrossSection([
-    Vector2(-XDim / 2, -YDim / 2),
-    Vector2( XDim / 2, -YDim / 2),
-    Vector2( XDim / 2,  YDim / 2),
-    Vector2(-XDim / 2,  YDim / 2)
-  ]);
+  CrossSection := TVector2List.Create;
+  try
+    CrossSection.AddRange([
+      Vector2(-XDim / 2, -YDim / 2),
+      Vector2( XDim / 2, -YDim / 2),
+      Vector2( XDim / 2,  YDim / 2),
+      Vector2(-XDim / 2,  YDim / 2)
+    ]);
+
+    if Position <> nil then
+    begin
+      WritelnLog('IfcRectangleProfileDef.Position assigned - TODO: should work, but untested');
+      Position.GetTransform(Translation, Rotation);
+      for I := 0 to CrossSection.Count - 1 do
+      begin
+        V := Vector3(CrossSection[I], 0);
+        V := RotatePointAroundAxis(Rotation, V);
+        V := V + Translation;
+        CrossSection[I] := V.XY;
+      end;
+    end;
+
+    Extrusion.SetCrossSection(CrossSection);
+  finally FreeAndNil(CrossSection) end;
 end;
 
 { TIfcCurve.UpdateCrossSection method overrides ---------------------------------------- }
@@ -1047,31 +1070,45 @@ end;
 
 procedure TIfcLocalPlacement.UpdateNode(const Mapping: TCastleIfcMapping;
   const Transform: TTransformNode);
+var
+  Translation: TVector3;
+  Rotation: TVector4;
 begin
   inherited;
   if RelativePlacement <> nil then
-    RelativePlacement.UpdateNode(Mapping, Transform);
+  begin
+    RelativePlacement.GetTransform(Translation, Rotation);
+    Transform.Translation := Translation;
+    Transform.Rotation := Rotation;
+  end;
 end;
 
-procedure TIfcPlacement.UpdateNode(const Mapping: TCastleIfcMapping;
-  const Transform: TTransformNode);
+{ TIfcPlacement.GetTransform and overrides ----------------------------------- }
+
+procedure TIfcPlacement.GetTransform(out Translation: TVector3;
+  out Rotation: TVector4);
 begin
-  // inherited; // no UpdateNode in ancestor
+  // inherited; // no GetTransform in ancestor
 
   if Location is TIfcCartesianPoint then
-  begin
-    Transform.Translation := TIfcCartesianPoint(Location).Coordinates.Value;
-  end;
-  // TODO: TIfcAxis2Placement2D/3D may define axis and ref direction, should cause rotation?
+    Translation := TIfcCartesianPoint(Location).Coordinates.Value
+  else
+    Translation := TVector3.Zero;
+
+  // descendants should set non-zero Rotation
+  Rotation := TVector4.Zero;
 end;
 
-procedure TIfcAxis2Placement2D.UpdateNode(const Mapping: TCastleIfcMapping;
-  const Transform: TTransformNode);
+procedure TIfcAxis2Placement2D.GetTransform(out Translation: TVector3;
+  out Rotation: TVector4);
 begin
-  inherited; // let TIfcPlacement.UpdateNode set Transform.Translation
+  inherited; // let TIfcPlacement.GetTransform set Translation
 
-  // set Transform.Rotation based on P()
-  Transform.Rotation := Vector4(0, 0, 1,
+  if not TVector2.Equals(P(0), Vector2(1, 0)) then
+    WritelnLog('Axis2Placement2D.GetTransform with P(0) not X axis - TODO: should work, but untested');
+
+  // set Rotation based on P()
+  Rotation := Vector4(0, 0, 1,
     RotationAngleRadBetweenVectors(
       Vector3(1, 0, 0), // original X axis
       Vector3(P(0), 0), // desired X axis
@@ -1080,24 +1117,24 @@ begin
   );
 end;
 
-procedure TIfcAxis2Placement3D.UpdateNode(const Mapping: TCastleIfcMapping;
-  const Transform: TTransformNode);
+procedure TIfcAxis2Placement3D.GetTransform(out Translation: TVector3;
+  out Rotation: TVector4);
 var
   RotationMatrix: TMatrix3;
   I, J: Integer;
   NewAxis: array [0..2] of TVector3;
   RotationQuat: TQuaternion;
 begin
-  inherited; // let TIfcPlacement.UpdateNode set Transform.Translation
+  inherited; // let TIfcPlacement.GetTransform set Translation
 
-  // set Transform.Rotation based on P()
+  // set Rotation based on P()
   for I := 0 to 2 do
     NewAxis[I] := P(I);
   for I := 0 to 2 do
     for J := 0 to 2 do
-      RotationMatrix.Data[I, J] := NewAxis[I][J]; // TODO: or transpose
+      RotationMatrix.Data[I, J] := NewAxis[I][J];
   RotationQuat := QuatFromRotationMatrix(RotationMatrix);
-  Transform.Rotation := RotationQuat.ToAxisAngle;
+  Rotation := RotationQuat.ToAxisAngle;
 end;
 
 { IfcToX3D and back ---------------------------------------------------------- }
