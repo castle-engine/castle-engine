@@ -52,8 +52,8 @@ type
       Only meaningful when IfcSelectedProduct <> nil, undefined and unused otherwise. }
     IfcSelectedProductShapeTranslation: TVector3;
 
-    { Used to assing unique names to walls. }
-    NextWallNumber: Cardinal;
+    { Used to assing unique names to products. }
+    NextProductNumber: Cardinal;
 
     //TransformHover: TCastleTransformHover; //< TODO, show hover
     TransformManipulate: TCastleTransformManipulate;
@@ -337,8 +337,8 @@ var
   SizeX, SizeY, WallHeight: Single;
 begin
   Wall := TIfcWall.Create(IfcFile);
-  Wall.Name := 'Wall' + IntToStr(NextWallNumber);
-  Inc(NextWallNumber);
+  Wall.Name := 'Wall' + IntToStr(NextProductNumber);
+  Inc(NextProductNumber);
 
   SizeX := RandomFloatRange(1, 4);
   SizeY := RandomFloatRange(1, 4);
@@ -363,19 +363,31 @@ end;
 procedure TViewMain.ClickAddWallAndWindow(Sender: TObject);
 var
   Wall: TIfcWall;
+  Window: TIfcWindow;
   WallHeight: Single;
   WallSize, WindowSize, WindowPosition: TVector2;
   Opening: TIfcOpeningElement;
 begin
-  Wall := TIfcWall.Create(IfcFile);
-  Wall.Name := 'WallWithWindow' + IntToStr(NextWallNumber);
-  Inc(NextWallNumber);
-
+  // randomize sizes / positions of wall and window
   WallSize := Vector2(
     RandomFloatRange(4, 6), // large X, this is wall's width
     RandomFloatRange(0.5, 1) // small Y, this is wall's thickness in this case
   );
   WallHeight := RandomFloatRange(1.5, 2.5); // Z is "up", by convention, in IFC
+  { Window sizes randomized, always much smaller than wall
+    width (WallSize.X) and WallHeight.
+    Note that WindowSize.Y and WindowPosition.Y are going to affect the
+    Z axis (height) along the wall, because Z is "up" in IFC. }
+  WindowSize := Vector2(
+    RandomFloatRange(0.25, 1),
+    RandomFloatRange(0.25, 1)
+  );
+  WindowPosition := Vector2(0, 0.66 * WallHeight);
+
+  // add wall
+  Wall := TIfcWall.Create(IfcFile);
+  Wall.Name := 'WallWithWindow' + IntToStr(NextProductNumber);
+  Inc(NextProductNumber);
   Wall.AddBoxRepresentation(IfcFile.Project.ModelContext,
     Box3D(
       Vector3(-WallSize.X / 2, -WallSize.Y / 2, 0),
@@ -386,27 +398,15 @@ begin
     RandomFloatRange(-5, 5),
     0
   );
+  IfcContainer.AddContainedElement(Wall);
 
   // add opening to the wall
-  { Window sizes randomized, always much smaller than wall
-    width (WallSize.X) and WallHeight.
-    Note that WindowSize.Y and WindowPosition.Y are going to affect the
-    Z axis (height) along the wall, because Z is "up" in IFC. }
-  WindowSize := Vector2(
-    RandomFloatRange(0.25, 1),
-    RandomFloatRange(0.25, 1)
-  );
-  WindowPosition := Vector2(0, 0.66 * WallHeight);
   Opening := TIfcOpeningElement.Create(IfcFile);
   Opening.PredefinedType := TIfcOpeningElementTypeEnum.Opening;
   Opening.AddBoxRepresentation(IfcFile.Project.ModelContext,
     Box3D(
-      Vector3({WindowPosition.X} - WindowSize.X / 2,
-              -WallSize.Y / 2,
-              {WindowPosition.Y} - WindowSize.Y / 2),
-      Vector3({WindowPosition.X} + WindowSize.X / 2,
-               WallSize.Y / 2,
-              {WindowPosition.Y} + WindowSize.Y / 2)
+      Vector3(- WindowSize.X / 2, -WallSize.Y / 2, - WindowSize.Y / 2),
+      Vector3(  WindowSize.X / 2,  WallSize.Y / 2,   WindowSize.Y / 2)
     ));
   Opening.RelativePlacement := Vector3(
     WindowPosition.X,
@@ -416,9 +416,17 @@ begin
   Wall.AddOpening(Opening);
 
   // Add window
-  // TODO
+  Window := TIfcWindow.Create(IfcFile);
+  Window.Name := 'Window' + IntToStr(NextProductNumber);
+  Inc(NextProductNumber);
+  Window.AddBoxRepresentation(IfcFile.Project.ModelContext,
+    Box3D(
+      Vector3(- WindowSize.X / 2, -WallSize.Y / 2, - WindowSize.Y / 2),
+      Vector3(  WindowSize.X / 2,  WallSize.Y / 2,   WindowSize.Y / 2)
+    ));
+  Window.RelativePlacement := Wall.RelativePlacement + Opening.RelativePlacement;
+  IfcContainer.AddContainedElement(Window);
 
-  IfcContainer.AddContainedElement(Wall);
   IfcMapping.Update(IfcFile);
   UpdateLabelHierarchy;
 end;
