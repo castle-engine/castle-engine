@@ -427,6 +427,13 @@ begin
   Window.RelativePlacement := Wall.RelativePlacement + Opening.RelativePlacement;
   IfcContainer.AddContainedElement(Window);
 
+  { Connect wall and window, as spec suggests
+    https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcWall.htm :
+    "Walls with openings that have already been modeled within
+    the enclosing geometry may use the relationship IfcRelConnectsElements
+    to associate the wall with embedded elements such as doors and windows." }
+  Wall.AddConnected(Window);
+
   IfcMapping.Update(IfcFile);
   UpdateLabelHierarchy;
 end;

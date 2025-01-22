@@ -2481,6 +2481,20 @@
       This automatically creates TIfcRelVoidsElement relationship between
       this element and the opening. }
     procedure AddOpening(const Opening: TIfcFeatureElementSubtraction);
+
+    { Add a connected element, e.g. window should be connected to the wall.
+      This adds TIfcRelConnectsElements relationship and extends the ConnectedTo,
+      ConnectedFrom lists.
+
+      Spec of https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcWall.htm
+      says: " Walls with openings that have already been modeled within
+      the enclosing geometry may use the relationship IfcRelConnectsElements
+      to associate the wall with embedded elements such as doors and windows."
+
+      The connected element is not rendered just because it is connected.
+      It should still be also added using e.g.
+      @link(TIfcSpatialElement.AddContainedElement) to be rendered. }
+    procedure AddConnected(const Connected: TIfcElement);
   published
     { The tag (or label) identifier at the particular instance of a product,
       e.g. the serial number, or the position number.
@@ -4547,6 +4561,19 @@ begin
   HasOpenings.Add(RelVoidsElement);
 
   Opening.VoidsElements.Add(RelVoidsElement);
+end;
+
+procedure TIfcElement.AddConnected(const Connected: TIfcElement);
+var
+  RelConnectsElements: TIfcRelConnectsElements;
+begin
+  RelConnectsElements := TIfcRelConnectsElements.Create(Owner);
+  RelConnectsElements.RelatingElement := Self;
+  RelConnectsElements.RelatedElement := Connected;
+
+  ConnectedTo.Add(RelConnectsElements);
+
+  Connected.ConnectedFrom.Add(RelConnectsElements);
 end;
 
 { TIfcRelAggregates --------------------------------------------------------- }
