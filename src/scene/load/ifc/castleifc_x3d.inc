@@ -688,6 +688,39 @@ begin
   Result := Shape;
 end;
 
+function TIfcTrimmedCurve.BuildNode(const Mapping: TCastleIfcMapping;
+  const ParentProduct: TIfcProduct; const Appearance: TAppearanceNode): TAbstractChildNode;
+begin
+  if BasisCurve <> nil then
+  begin
+    WritelnWarning('TODO: IfcTrimmedCurve is only partially supported now. We ignore trim1, trim2, we display whole curve.');
+    Result := BasisCurve.BuildNode(Mapping, ParentProduct, Appearance)
+  end else
+    Result := nil;
+end;
+
+function TIfcEllipse.BuildNode(const Mapping: TCastleIfcMapping;
+  const ParentProduct: TIfcProduct; const Appearance: TAppearanceNode): TAbstractChildNode;
+var
+  Shape: TShapeNode;
+  Circle: TCircle2DNode;
+begin
+  WritelnLog('IfcEllipse - TODO: should work, but untested');
+
+  Circle := TCircle2DNode.Create('', Mapping.BaseUrl);
+  Circle.Radius := SemiAxis1;
+  Circle.RadiusY := SemiAxis2;
+
+  Shape := TShapeNode.Create('', Mapping.BaseUrl);
+  Shape.Geometry := Circle;
+  // circle is best displayed as unlit geometry, different material would be useful
+  // Shape.Appearance := Appearance;
+  SetMetadata(Shape, 'IFC_ClassName', ClassName);
+
+  Mapping.ShapeToProduct.AddOrSetValue(Shape, ParentProduct);
+  Result := Shape;
+end;
+
 function TIfcIndexedPolyCurve.BuildNode(const Mapping: TCastleIfcMapping;
   const ParentProduct: TIfcProduct; const Appearance: TAppearanceNode): TAbstractChildNode;
 

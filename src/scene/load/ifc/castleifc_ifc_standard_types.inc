@@ -601,6 +601,58 @@
   TIfcBoundedCurve = class abstract(TIfcCurve)
   end;
 
+  { Preferred way of trimming.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcTrimmingPreference.htm }
+  TIfcTrimmingPreference = (
+    Unspecified,
+    Cartesian,
+    Parameter
+  );
+
+  { Bounded curve that is trimmed at both ends.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcTrimmedCurve.htm }
+  TIfcTrimmedCurve = class(TIfcBoundedCurve)
+  strict private
+    FBasisCurve: TIfcCurve;
+    FTrim1: TIfcCartesianPointList;
+    FTrim2: TIfcCartesianPointList;
+    FSenseAgreement: Boolean;
+    FMasterRepresentation: TIfcTrimmingPreference;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+    function BuildNode(const Mapping: TCastleIfcMapping;
+      const ParentProduct: TIfcProduct; const Appearance: TAppearanceNode): TAbstractChildNode; override;
+  published
+    { The curve to be trimmed. For curves with multiple representations
+      any parameter values given as Trim1 or Trim2 refer to the
+      master representation of the BasisCurve only. }
+    property BasisCurve: TIfcCurve read FBasisCurve write FBasisCurve;
+
+    { The first trimming point.
+      TODO: We support only TIfcCartesianPoint, but IFC spec allows more,
+      IfcTrimmingSelect. }
+    property Trim1: TIfcCartesianPointList read FTrim1;
+
+    { The second trimming point.
+      TODO: We support only TIfcCartesianPoint, but IFC spec allows more,
+      IfcTrimmingSelect. }
+    property Trim2: TIfcCartesianPointList read FTrim2;
+
+    { Flag to indicate whether the direction of the trimmed curve agrees
+      with or is opposed to the direction of the basis curve. }
+    property SenseAgreement: Boolean
+      read FSenseAgreement write FSenseAgreement default false;
+
+    { Where both parameter and point are present at either end of the curve
+      this indicates the preferred form. }
+    property MasterRepresentation: TIfcTrimmingPreference
+      read FMasterRepresentation write FMasterRepresentation
+      default TIfcTrimmingPreference.Unspecified;
+  end;
+
   { Bounded curve with only linear segments defined by a list of Cartesian points.
     If the first and the last Cartesian point in the list are identical,
     then the polyline is a closed curve, otherwise it is an open curve.
@@ -1539,6 +1591,35 @@
 
     Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcAxis2Placement.htm }
   TIfcAxis2Placement = TIfcPlacement;
+
+  { Parameterized planar curve.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcConic.htm }
+  TIfcConic = class abstract(TIfcCurve)
+  strict private
+    FPosition: TIfcAxis2Placement;
+  published
+    { The location and orientation of the conic. }
+    property Position: TIfcAxis2Placement read FPosition write FPosition;
+  end;
+
+  { Ellipse.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcEllipse.htm }
+  TIfcEllipse = class(TIfcConic)
+  strict private
+    FSemiAxis1: TIfcPositiveLengthMeasure;
+    FSemiAxis2: TIfcPositiveLengthMeasure;
+  public
+    function BuildNode(const Mapping: TCastleIfcMapping;
+      const ParentProduct: TIfcProduct; const Appearance: TAppearanceNode): TAbstractChildNode; override;
+  published
+    { The first radius of the ellipse. }
+    property SemiAxis1: TIfcPositiveLengthMeasure read FSemiAxis1 write FSemiAxis1;
+
+    { The second radius of the ellipse. }
+    property SemiAxis2: TIfcPositiveLengthMeasure read FSemiAxis2 write FSemiAxis2;
+  end;
 
   { Base definition (also referred to as block, cell or macro)
     called MappedRepresentation within the MappingOrigin.
@@ -5259,6 +5340,22 @@ begin
   inherited;
 end;
 
+{ TIfcTrimmedCurve ----------------------------------------------------------- }
+
+constructor TIfcTrimmedCurve.Create(AOwner: TComponent);
+begin
+  inherited;
+  FTrim1 := TIfcCartesianPointList.Create(false);
+  FTrim2 := TIfcCartesianPointList.Create(false);
+end;
+
+destructor TIfcTrimmedCurve.Destroy;
+begin
+  FreeAndNil(FTrim1);
+  FreeAndNil(FTrim2);
+  inherited;
+end;
+
 { TIfcPropertyDefinition ----------------------------------------------------- }
 
 constructor TIfcPropertyDefinition.Create(AOwner: TComponent);
@@ -5955,6 +6052,8 @@ function IfcClasses: TIfcPersistentClassList;
     FIfcClasses.Add(TIfcBuildingElementProxyType);
     FIfcClasses.Add(TIfcRectangleProfileDef);
     FIfcClasses.Add(TIfcBoundingBox);
+    FIfcClasses.Add(TIfcTrimmedCurve);
+    FIfcClasses.Add(TIfcEllipse);
   end;
 
 begin
