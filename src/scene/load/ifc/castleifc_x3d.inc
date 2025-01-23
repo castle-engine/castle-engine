@@ -946,6 +946,52 @@ begin
   Result := Transform;
 end;
 
+function TIfcMappedItem.BuildNode(const Mapping: TCastleIfcMapping;
+  const ParentProduct: TIfcProduct; const Appearance: TAppearanceNode): TAbstractChildNode;
+var
+  TransformMappingTarget, TransformMappingOrigin: TTransformNode;
+  OriginTranslation: TVector3;
+  OriginRotation: TVector4;
+begin
+  // create TransformMappingTarget that expresses IFC MappingTarget transformation
+  TransformMappingTarget := TTransformNode.Create('', Mapping.BaseUrl);
+  SetMetadata(TransformMappingTarget, 'IFC_ClassName', ClassName);
+  SetMetadata(TransformMappingTarget, 'IFC_MappedItem_Purpose', 'MappingTarget');
+  if MappingTarget <> nil then
+  begin
+    // TODO
+    // MappingTarget.GetTransform(TargetTranslation, TargetRotation, TargetScale);
+    // TransformMappingTarget.Translation := TargetTranslation;
+    // TransformMappingTarget.Rotation := TargetRotation;
+    // TransformMappingTarget.Scale := Vector3(TargetScale, TargetScale, TargetScale);
+  end;
+
+  if MappingSource <> nil then
+  begin
+    // create TransformMappingOrigin that expresses negated IFC MappingSource.MappingOrigin transformation
+    TransformMappingOrigin := TTransformNode.Create('', Mapping.BaseUrl);
+    SetMetadata(TransformMappingOrigin, 'IFC_ClassName', ClassName);
+    SetMetadata(TransformMappingOrigin, 'IFC_MappedItem_Purpose', 'MappingSource.MappingOrigin');
+    if MappingSource.MappingOrigin <> nil then
+    begin
+      // TODO
+      // MappingSource.MappingOrigin.GetTransform(OriginTranslation, OriginRotation);
+      // TransformMappingOrigin.Translation := -OriginTranslation;
+      // TransformMappingOrigin.Rotation := Vector4(OriginRotation.XYZ, -OriginRotation.W);
+    end;
+    TransformMappingTarget.AddChildren(TransformMappingOrigin);
+
+    // add objects from MappingSource.MappedRepresentation to TransformMappingOrigin
+    if MappingSource.MappedRepresentation <> nil then
+    begin
+      TransformMappingOrigin.AddChildren(
+        MappingSource.MappedRepresentation.Items.BuildNode(Mapping, ParentProduct, Appearance));
+    end;
+  end;
+
+  Result := TransformMappingTarget;
+end;
+
 { BuildNode of TIfcObjectDefinition and descendants -------------------------- }
 
 function TIfcObjectDefinition.BuildNode(const Mapping: TCastleIfcMapping): TTransformNode;

@@ -184,6 +184,7 @@
   TIfcProduct = class;
   TIfcCartesianPoint = class;
   TIfcFeatureElementSubtraction = class;
+  TIfcRepresentationMap = class;
 
   { Float type used throughout IFC.
 
@@ -1621,6 +1622,69 @@
     property SemiAxis2: TIfcPositiveLengthMeasure read FSemiAxis2 write FSemiAxis2;
   end;
 
+  { An abstract supertype of different kinds of geometric transformations. }
+  TIfcCartesianTransformationOperator = class(TIfcRepresentationItem)
+  strict private
+    FAxis1: TIfcDirection;
+    FAxis2: TIfcDirection;
+    FLocalOrigin: TIfcCartesianPoint;
+    FScale: TIfcReal;
+  public
+    procedure GetTransform(out Translation: TVector3;
+      out Rotation: TVector4; out AScale: Single); virtual;
+  published
+    { The direction used to determine U[1], the derived X axis direction. }
+    property Axis1: TIfcDirection read FAxis1 write FAxis1;
+
+    { The direction used to determine U[2], the derived Y axis direction. }
+    property Axis2: TIfcDirection read FAxis2 write FAxis2;
+
+    { The required translation, specified as a cartesian point.
+      The actual translation included in the transformation is
+      from the geometric origin to the local origin. }
+    property LocalOrigin: TIfcCartesianPoint read FLocalOrigin write FLocalOrigin;
+
+    { The scaling value specified for the transformation. }
+    property Scale: TIfcReal read FScale write FScale;
+  end;
+
+  { Geometric transformation in three-dimensional space.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcCartesianTransformationOperator3D.htm }
+  TIfcCartesianTransformationOperator3D = class(TIfcCartesianTransformationOperator)
+  strict private
+    FAxis3: TIfcDirection;
+  public
+    procedure GetTransform(out Translation: TVector3;
+      out Rotation: TVector4; out AScale: Single); override;
+  published
+    { The direction used to determine U[3], the derived Z axis direction. }
+    property Axis3: TIfcDirection read FAxis3 write FAxis3;
+  end;
+
+  { Inserted instance of a source definition (to be compared with a block /
+    shared cell / macro definition). The instance is inserted by applying
+    a Cartesian transformation operator as the MappingTarget.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcMappedItem.htm }
+  TIfcMappedItem = class(TIfcRepresentationItem)
+  strict private
+    FMappingSource: TIfcRepresentationMap;
+    FMappingTarget: TIfcCartesianTransformationOperator;
+  public
+    function BuildNode(const Mapping: TCastleIfcMapping;
+      const ParentProduct: TIfcProduct; const Appearance: TAppearanceNode): TAbstractChildNode; override;
+  published
+    { A representation map that is the source of the mapped item.
+      It can be seen as a block (or cell or marco) definition. }
+    property MappingSource: TIfcRepresentationMap read FMappingSource write FMappingSource;
+
+    { A representation item that is the target onto which the mapping source
+      is mapped. It is constraint to be a Cartesian transformation operator. }
+    property MappingTarget: TIfcCartesianTransformationOperator read FMappingTarget write FMappingTarget;
+  end;
+  TIfcMappedItemList = {$ifdef FPC}specialize{$endif} TObjectList<TIfcMappedItem>;
+
   { Base definition (also referred to as block, cell or macro)
     called MappedRepresentation within the MappingOrigin.
     The MappingOrigin defines the coordinate system in which
@@ -1630,7 +1694,7 @@
     FMappingOrigin: TIfcAxis2Placement;
     FMappedRepresentation: TIfcRepresentation;
     FHasShapeAspects: TIfcShapeAspectList;
-    // TODO FMapUsage: TIfcMappedItemList;
+    FMapUsage: TIfcMappedItemList;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -1646,7 +1710,7 @@
       or its feature distinctively. }
     property HasShapeAspects: TIfcShapeAspectList read FHasShapeAspects;
 
-    // TODO property MapUsage: TIfcMappedItemList read FMapUsage;
+    property MapUsage: TIfcMappedItemList read FMapUsage;
   end;
   TIfcRepresentationMapList = {$ifdef FPC}specialize{$endif} TObjectList<TIfcRepresentationMap>;
 
@@ -5653,19 +5717,53 @@ begin
   inherited;
 end;
 
+{ TIfcCartesianTransformationOperator ---------------------------------------- }
+
+procedure TIfcCartesianTransformationOperator.GetTransform(
+  out Translation: TVector3; out Rotation: TVector4; out AScale: Single);
+begin
+  if LocalOrigin <> nil then
+    Translation := LocalOrigin.Coordinates.Value
+  else
+    Translation := TVector3.Zero;
+
+  Rotation := TVector4.Zero;
+  if ( (Axis1 <> nil) and (not TVector3.Equals(Axis1.DirectionRatios.Value, TVector3.One[0])) ) or
+     ( (Axis2 <> nil) and (not TVector3.Equals(Axis2.DirectionRatios.Value, TVector3.One[1])) ) then
+    WritelnWarning('TODO: Rotation in IfcCartesianTransformationOperator not supported');
+
+  { Scl in IFC:
+    The derived scale S of the transformation, equal to scale
+    if that is non-zero (it is zero if not specified in file), or 1.0 otherwise. }
+  AScale := Scale;
+  if AScale = 0 then
+    AScale := 1;
+end;
+
+{ TIfcCartesianTransformationOperator3D -------------------------------------- }
+
+procedure TIfcCartesianTransformationOperator3D.GetTransform(
+  out Translation: TVector3; out Rotation: TVector4; out AScale: Single);
+begin
+  inherited;
+
+  if (Axis3 <> nil) and (not TVector3.Equals(Axis3.DirectionRatios.Value, TVector3.One[2])) then
+    WritelnWarning('TODO: Rotation in IfcCartesianTransformationOperator3D not supported');
+end;
+
 { TIfcRepresentationMap ------------------------------------------------------ }
 
 constructor TIfcRepresentationMap.Create(AOwner: TComponent);
 begin
   inherited;
   FHasShapeAspects := TIfcShapeAspectList.Create(false);
-  // FMapUsage := TIfcMappedItemList.Create(false);
+  FMapUsage := TIfcMappedItemList.Create(false);
 end;
 
 destructor TIfcRepresentationMap.Destroy;
 begin
   FreeAndNil(FHasShapeAspects);
-  // FreeAndNil(FMapUsage);
+  FreeAndNil(FMapUsage);
   inherited;
 end;
 
@@ -6054,6 +6152,8 @@ function IfcClasses: TIfcPersistentClassList;
     FIfcClasses.Add(TIfcBoundingBox);
     FIfcClasses.Add(TIfcTrimmedCurve);
     FIfcClasses.Add(TIfcEllipse);
+    FIfcClasses.Add(TIfcMappedItem);
+    FIfcClasses.Add(TIfcCartesianTransformationOperator3D);
   end;
 
 begin
