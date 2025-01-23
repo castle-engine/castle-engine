@@ -20,13 +20,44 @@
 {$ifdef read_interface}
 
 { Convert X3D content to IFC. }
-function X3DToIfc(const RootNode: TX3DRootNode): TIfcFile;
+function X3DToIfc(const Node: TX3DRootNode): TIfcFile;
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
-function X3DToIfc(const RootNode: TX3DRootNode): TIfcFile;
+type
+  { Helper class to save IFC.
+    Enumerates all triangle and add them to Vertexes, Indexes.
+    This is rather unoptimal and simple way to save IFC.
+    For each triangle, we just expand the Vertexes and Indexes. }
+  TSaveTriangulateHelper = class
+    Vertexes: TVector3List;
+    Indexes: TIntegerList;
+    procedure ProcessTriangle(Shape: TObject;
+      const Triangle: TTriangle3;
+      const Normal: TTriangle3; const TexCoord: TTriangle4;
+      const Face: TFaceIndex);
+  end;
+
+procedure TSaveTriangulateHelper.ProcessTriangle(Shape: TObject;
+  const Triangle: TTriangle3;
+  const Normal: TTriangle3; const TexCoord: TTriangle4;
+  const Face: TFaceIndex);
+begin
+  Indexes.Add(Vertexes.Count);
+  Vertexes.Add(Triangle.Data[0]);
+
+  Indexes.Add(Vertexes.Count);
+  Vertexes.Add(Triangle.Data[1]);
+
+  Indexes.Add(Vertexes.Count);
+  Vertexes.Add(Triangle.Data[2]);
+
+  Indexes.Add(-1);
+end;
+
+function X3DToIfc(const Node: TX3DRootNode): TIfcFile;
 var
   IfcSite: TIfcSite;
   IfcBuilding: TIfcBuilding;
@@ -34,6 +65,9 @@ var
   IfcContainer: TIfcSpatialElement;
   Element: TIfcBuildingElementProxy;
   Owner: TComponent;
+  Scene: TCastleSceneCore;
+  Shape: TShape;
+  Helper: TSaveTriangulateHelper;
 begin
   Result := TIfcFile.Create(nil);
   Owner := Result; // all IFC classes are owned by the TIfcFile
@@ -76,7 +110,35 @@ begin
   IfcContainer := IfcBuildingStorey;
 
   Element := TIfcBuildingElementProxy.Create(Owner);
-  //Element.AddMeshRepresentation(IfcFile.Project.ModelContext, Vertexes, ...);
+
+  { Create temporary scene to enumerate triangles in Node.
+    See STL saving code for similar trick. }
+  Scene := TCastleSceneCore.Create(nil);
+  try
+    if Node.Scene <> nil then
+    begin
+      { Do DeepCopy, to not change nodes (Scene, associated nodes in shapes...). }
+      Scene.Load(Node.DeepCopy as TX3DRootNode, true);
+    end else
+    begin
+      // more efficient: use Node directly, we will unassociate from it later
+      Scene.Load(Node, false);
+    end;
+
+    Helper := TSaveTriangulateHelper.Create;
+    try
+      Helper.Vertexes := TVector3List.Create;
+      Helper.Indexes := TIntegerList.Create;
+      for Shape in Scene.Shapes.TraverseList(true) do
+        Shape.Triangulate({$ifdef FPC}@{$endif} Helper.ProcessTriangle,
+          { FrontFaceAlwaysCcw necessary,
+            since IFC always make backface culling from CCW }
+          true);
+      Element.AddMeshRepresentation(Result.Project.ModelContext,
+        Helper.Vertexes.ToArray, Helper.Indexes.ToArray);
+    finally FreeAndNil(Helper) end;
+  finally FreeAndNil(Scene) end;
+
   IfcContainer.AddContainedElement(Element);
 end;
 

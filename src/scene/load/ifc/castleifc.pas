@@ -48,7 +48,9 @@ implementation
 
 uses TypInfo, RttiUtils,
   X3DLoad, X3DFields, CastleInternalRttiUtils, CastleClassUtils,
-  CastleDownload, CastleColors, CastleQuaternions;
+  CastleDownload, CastleColors, CastleQuaternions,
+  // units below useful only for triangulation in saving
+  CastleTriangles, CastleShapes, CastleSceneCore;
 
 {$define read_implementation}
 {$I castleifc_ifc_types.inc}
