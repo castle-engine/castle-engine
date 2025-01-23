@@ -598,6 +598,7 @@
       subtypes. }
     // TODO: derived: function Dim: TIfcDimensionCount; abstract;
   end;
+  TIfcCurveList = {$ifdef FPC}specialize{$endif} TObjectList<TIfcCurve>;
 
   TIfcBoundedCurve = class abstract(TIfcCurve)
   end;
@@ -902,6 +903,22 @@
   published
     { Bounded curve, defining the outer boundaries of the arbitrary profile. }
     property OuterCurve: TIfcCurve read FOuterCurve write FOuterCurve;
+  end;
+
+  { Arbitrary closed two-dimensional profile with holes.
+    It is given by an outer boundary and inner boundaries.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcArbitraryProfileDefWithVoids.htm }
+  TIfcArbitraryProfileDefWithVoids = class(TIfcArbitraryClosedProfileDef)
+  strict private
+    FInnerCurves: TIfcCurveList;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+    procedure UpdateCrossSection(const CrossSection: TVector2List; const ParentName: String); override;
+  published
+    { Set of bounded curves, defining the inner boundaries of the arbitrary profile. }
+    property InnerCurves: TIfcCurveList read FInnerCurves;
   end;
 
   TIfcRoleEnum = (
@@ -5292,6 +5309,20 @@ begin
   inherited;
 end;
 
+{ TIfcArbitraryProfileDefWithVoids ------------------------------------------- }
+
+constructor TIfcArbitraryProfileDefWithVoids.Create(AOwner: TComponent);
+begin
+  inherited;
+  FInnerCurves := TIfcCurveList.Create(false);
+end;
+
+destructor TIfcArbitraryProfileDefWithVoids.Destroy;
+begin
+  FreeAndNil(FInnerCurves);
+  inherited;
+end;
+
 { TIfcOrganization --------------------------------------------------------- }
 
 constructor TIfcOrganization.Create(AOwner: TComponent);
@@ -6214,6 +6245,8 @@ function IfcClasses: TIfcPersistentClassList;
     FIfcClasses.Add(TIfcMappedItem);
     FIfcClasses.Add(TIfcCartesianTransformationOperator3D);
     FIfcClasses.Add(TIfcCartesianTransformationOperator3DnonUniform);
+    FIfcClasses.Add(TIfcCurve);
+    FIfcClasses.Add(TIfcArbitraryProfileDefWithVoids);
   end;
 
 begin

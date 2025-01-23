@@ -556,6 +556,14 @@ begin
     OuterCurve.UpdateCrossSection(CrossSection);
 end;
 
+procedure TIfcArbitraryProfileDefWithVoids.UpdateCrossSection(
+  const CrossSection: TVector2List; const ParentName: String);
+begin
+  inherited;
+  if InnerCurves.Count <> 0 then
+    WritelnWarning('IFC', 'TODO: IfcArbitraryProfileDefWithVoids.InnerCurves not implemented, we do not create holes');
+end;
+
 procedure TIfcRectangleProfileDef.UpdateCrossSection(
   const CrossSection: TVector2List; const ParentName: String);
 var
@@ -601,7 +609,7 @@ procedure TIfcCurve.UpdateCrossSection(const CrossSection: TVector2List);
       Index := IndexedLineSet.FdCoordIndex.Items[I];
       if Index < 0 then
       begin
-        WritelnWarning('IFC', 'TODO: Unsupported IfcIndexedPolyCurve for extrusion cross section (we need to split into multiple X3D Extrusions to handle disjoint sections)');
+        WritelnWarning('IFC', 'TODO: IfcIndexedPolyCurve with multiple disjoint sections not supported, rendering as one connected curve');
       end else
       begin
         Assert(Index < Coord.FdPoint.Count);
