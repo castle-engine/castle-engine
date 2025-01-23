@@ -1,6 +1,6 @@
 {%MainUnit castleifc.pas}
 {
-  Copyright 2024-2024 Michalis Kamburelis.
+  Copyright 2024-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -14,7 +14,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ IFC conversion to X3D. }
+{ IFC conversion to X3D. Allows to load IFC in our engine. }
 
 {$ifdef read_interface_types}
 
@@ -115,9 +115,6 @@
 
 { Convert IFC file to X3D. }
 function IfcToX3D(const Ifc: TIfcFile; const BaseUrl: String): TX3DRootNode;
-
-{ Convert IFC file to X3D. }
-function X3DToIfc(const RootNode: TX3DRootNode): TIfcFile;
 
 {$endif read_interface}
 
@@ -1249,7 +1246,7 @@ begin
   Rotation := RotationFrom3Axis(NewAxis);
 end;
 
-{ IfcToX3D and back ---------------------------------------------------------- }
+{ IfcToX3D ----------------------------------------------------------------- }
 
 function IfcToX3D(const Ifc: TIfcFile; const BaseUrl: String): TX3DRootNode;
 var
@@ -1262,10 +1259,50 @@ begin
   finally FreeAndNil(Mapping) end;
 end;
 
-function X3DToIfc(const RootNode: TX3DRootNode): TIfcFile;
+{ Main routine that converts IFC -> X3D nodes, doing most of the work. }
+function LoadIfc(const Stream: TStream; const BaseUrl: String): TX3DRootNode;
+
+  {.$define DEBUG_IFC_ROUND_TRIP}
+
+  {$ifdef DEBUG_IFC_ROUND_TRIP}
+  { Only for debugging purposes: save back the IFC data to JSON.
+    This is an easy test whether IfcJsonLoad understood everything correctly,
+    and whether IfcJsonSave saves everything correctly. }
+  procedure DebugSaveBack(const IfcFile: TIfcFile);
+  var
+    JsonObj: TJsonObject;
+    JsonString: String;
+    Stream: TStream;
+  begin
+    Stream := UrlSaveStream(DeleteUriExt(BaseUrl) + '-debug-roundtrip.ifcjson');
+    try
+      JsonObj := IfcJsonSave(IfcFile);
+      try
+        JsonString := JsonObj.FormatJSON;
+        WriteStr(Stream, JsonString);
+      finally FreeAndNil(JsonObj) end;
+    finally FreeAndNil(Stream) end;
+  end;
+  {$endif DEBUG_IFC_ROUND_TRIP}
+
+var
+  JsonParser: TJsonParser;
+  Json: TJsonData;
+  IfcFile: TIfcFile;
 begin
-  Result := TIfcFile.Create(nil);
-  // TODO
+  JsonParser := TJsonParser.Create(Stream, [joComments]);
+  try
+    Json := JsonParser.Parse;
+    try
+      IfcFile := IfcJsonLoad(Json);
+      try
+        Result := IfcToX3D(IfcFile, BaseUrl);
+        {$ifdef DEBUG_IFC_ROUND_TRIP}
+        DebugSaveBack(IfcFile);
+        {$endif DEBUG_IFC_ROUND_TRIP}
+      finally FreeAndNil(IfcFile) end;
+    finally FreeAndNil(Json) end;
+  finally FreeAndNil(JsonParser) end;
 end;
 
 {$endif read_implementation}

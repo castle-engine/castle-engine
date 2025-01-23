@@ -20,7 +20,7 @@
 
   // forward declarations
   TIfcProject = class;
-  TCastleIfcMapping = class; // < Resolved in castleifc_x3d.inc
+  TCastleIfcMapping = class; // < Resolved in castleifc_load_to_x3d.inc
 
   {$M+}
   { Abstract class that can be serialized to / deserialized from an IFC file.
