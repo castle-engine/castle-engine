@@ -952,7 +952,7 @@ var
   TransformMappingTarget, TransformMappingOrigin: TTransformNode;
   OriginTranslation, TargetTranslation: TVector3;
   OriginRotation, TargetRotation: TVector4;
-  TargetScale: Single;
+  TargetScale: TVector3;
 begin
   // create TransformMappingTarget that expresses IFC MappingTarget transformation
   TransformMappingTarget := TTransformNode.Create('', Mapping.BaseUrl);
@@ -963,7 +963,7 @@ begin
     MappingTarget.GetTransform(TargetTranslation, TargetRotation, TargetScale);
     TransformMappingTarget.Translation := TargetTranslation;
     TransformMappingTarget.Rotation := TargetRotation;
-    TransformMappingTarget.Scale := Vector3(TargetScale, TargetScale, TargetScale);
+    TransformMappingTarget.Scale := TargetScale;
   end;
 
   if MappingSource <> nil then

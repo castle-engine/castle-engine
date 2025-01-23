@@ -1629,9 +1629,19 @@
     FAxis2: TIfcDirection;
     FLocalOrigin: TIfcCartesianPoint;
     FScale: TIfcReal;
+  protected
+    { The derived scale of the transformation, equal to scale
+      if that is non-zero (it is zero if not specified in file), or 1.0 otherwise. }
+    function Scl: Single;
+
+    { The derived scale of the transformation along the axis 2 (normally the y axis). }
+    function Scl2: Single; virtual;
+
+    { The derived scale of the transformation along the axis 3 (normally the z axis). }
+    function Scl3: Single; virtual;
   public
     procedure GetTransform(out Translation: TVector3;
-      out Rotation: TVector4; out AScale: Single); virtual;
+      out Rotation: TVector4; out AScale: TVector3); virtual;
   published
     { The direction used to determine U[1], the derived X axis direction. }
     property Axis1: TIfcDirection read FAxis1 write FAxis1;
@@ -1656,10 +1666,30 @@
     FAxis3: TIfcDirection;
   public
     procedure GetTransform(out Translation: TVector3;
-      out Rotation: TVector4; out AScale: Single); override;
+      out Rotation: TVector4; out AScale: TVector3); override;
   published
     { The direction used to determine U[3], the derived Z axis direction. }
     property Axis3: TIfcDirection read FAxis3 write FAxis3;
+  end;
+
+  { Transformation operator in 3D that allows non uniform scaling.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcCartesianTransformationOperator3DnonUniform.htm }
+  TIfcCartesianTransformationOperator3DnonUniform = class(TIfcCartesianTransformationOperator3D)
+  strict private
+    FScale2: TIfcReal;
+    FScale3: TIfcReal;
+  protected
+    function Scl2: Single; override;
+    function Scl3: Single; override;
+  published
+    { The scaling value specified for the transformation in the direction of Axis2.
+      This is normally the Y scale factor. }
+    property Scale2: TIfcReal read FScale2 write FScale2;
+
+    { The scaling value specified for the transformation in the direction of Axis3.
+      This is normally the Z scale factor. }
+    property Scale3: TIfcReal read FScale3 write FScale3;
   end;
 
   { Inserted instance of a source definition (to be compared with a block /
@@ -5719,8 +5749,26 @@ end;
 
 { TIfcCartesianTransformationOperator ---------------------------------------- }
 
+function TIfcCartesianTransformationOperator.Scl: Single;
+begin
+  if Scale <> 0 then
+    Result := Scale
+  else
+    Result := 1;
+end;
+
+function TIfcCartesianTransformationOperator.Scl2: Single;
+begin
+  Result := Scl; // in this classs, Scl2 is equal Scl
+end;
+
+function TIfcCartesianTransformationOperator.Scl3: Single;
+begin
+  Result := Scl; // in this classs, Scl3 is equal Scl
+end;
+
 procedure TIfcCartesianTransformationOperator.GetTransform(
-  out Translation: TVector3; out Rotation: TVector4; out AScale: Single);
+  out Translation: TVector3; out Rotation: TVector4; out AScale: TVector3);
 begin
   if LocalOrigin <> nil then
     Translation := LocalOrigin.Coordinates.Value
@@ -5732,23 +5780,34 @@ begin
      ( (Axis2 <> nil) and (not TVector3.Equals(Axis2.DirectionRatios.Value, TVector3.One[1])) ) then
     WritelnWarning('TODO: Rotation in IfcCartesianTransformationOperator not supported');
 
-  { Scl in IFC:
-    The derived scale S of the transformation, equal to scale
-    if that is non-zero (it is zero if not specified in file), or 1.0 otherwise. }
-  AScale := Scale;
-  if AScale = 0 then
-    AScale := 1;
+  AScale := Vector3(Scl, Scl2, Scl3);
 end;
 
 { TIfcCartesianTransformationOperator3D -------------------------------------- }
 
 procedure TIfcCartesianTransformationOperator3D.GetTransform(
-  out Translation: TVector3; out Rotation: TVector4; out AScale: Single);
+  out Translation: TVector3; out Rotation: TVector4; out AScale: TVector3);
 begin
   inherited;
 
   if (Axis3 <> nil) and (not TVector3.Equals(Axis3.DirectionRatios.Value, TVector3.One[2])) then
     WritelnWarning('TODO: Rotation in IfcCartesianTransformationOperator3D not supported');
+end;
+
+function TIfcCartesianTransformationOperator3DnonUniform.Scl2: Single;
+begin
+  if Scale2 <> 0 then
+    Result := Scale2
+  else
+    Result := Scl;
+end;
+
+function TIfcCartesianTransformationOperator3DnonUniform.Scl3: Single;
+begin
+  if Scale3 <> 0 then
+    Result := Scale3
+  else
+    Result := Scl;
 end;
 
 { TIfcRepresentationMap ------------------------------------------------------ }
@@ -6154,6 +6213,7 @@ function IfcClasses: TIfcPersistentClassList;
     FIfcClasses.Add(TIfcEllipse);
     FIfcClasses.Add(TIfcMappedItem);
     FIfcClasses.Add(TIfcCartesianTransformationOperator3D);
+    FIfcClasses.Add(TIfcCartesianTransformationOperator3DnonUniform);
   end;
 
 begin
