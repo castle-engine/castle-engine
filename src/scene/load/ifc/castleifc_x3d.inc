@@ -950,8 +950,9 @@ function TIfcMappedItem.BuildNode(const Mapping: TCastleIfcMapping;
   const ParentProduct: TIfcProduct; const Appearance: TAppearanceNode): TAbstractChildNode;
 var
   TransformMappingTarget, TransformMappingOrigin: TTransformNode;
-  OriginTranslation: TVector3;
-  OriginRotation: TVector4;
+  OriginTranslation, TargetTranslation: TVector3;
+  OriginRotation, TargetRotation: TVector4;
+  TargetScale: Single;
 begin
   // create TransformMappingTarget that expresses IFC MappingTarget transformation
   TransformMappingTarget := TTransformNode.Create('', Mapping.BaseUrl);
@@ -959,11 +960,10 @@ begin
   SetMetadata(TransformMappingTarget, 'IFC_MappedItem_Purpose', 'MappingTarget');
   if MappingTarget <> nil then
   begin
-    // TODO
-    // MappingTarget.GetTransform(TargetTranslation, TargetRotation, TargetScale);
-    // TransformMappingTarget.Translation := TargetTranslation;
-    // TransformMappingTarget.Rotation := TargetRotation;
-    // TransformMappingTarget.Scale := Vector3(TargetScale, TargetScale, TargetScale);
+    MappingTarget.GetTransform(TargetTranslation, TargetRotation, TargetScale);
+    TransformMappingTarget.Translation := TargetTranslation;
+    TransformMappingTarget.Rotation := TargetRotation;
+    TransformMappingTarget.Scale := Vector3(TargetScale, TargetScale, TargetScale);
   end;
 
   if MappingSource <> nil then
@@ -974,10 +974,9 @@ begin
     SetMetadata(TransformMappingOrigin, 'IFC_MappedItem_Purpose', 'MappingSource.MappingOrigin');
     if MappingSource.MappingOrigin <> nil then
     begin
-      // TODO
-      // MappingSource.MappingOrigin.GetTransform(OriginTranslation, OriginRotation);
-      // TransformMappingOrigin.Translation := -OriginTranslation;
-      // TransformMappingOrigin.Rotation := Vector4(OriginRotation.XYZ, -OriginRotation.W);
+      MappingSource.MappingOrigin.GetTransform(OriginTranslation, OriginRotation);
+      TransformMappingOrigin.Translation := -OriginTranslation;
+      TransformMappingOrigin.Rotation := Vector4(OriginRotation.XYZ, -OriginRotation.W);
     end;
     TransformMappingTarget.AddChildren(TransformMappingOrigin);
 
