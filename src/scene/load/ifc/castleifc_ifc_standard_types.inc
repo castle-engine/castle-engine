@@ -1656,6 +1656,10 @@
 
     { The derived scale of the transformation along the axis 3 (normally the z axis). }
     function Scl3: Single; virtual;
+
+    function Axis1Vector: TVector3;
+    function Axis2Vector: TVector3;
+    function Axis3Vector: TVector3; virtual;
   public
     procedure GetTransform(out Translation: TVector3;
       out Rotation: TVector4; out AScale: TVector3); virtual;
@@ -1681,6 +1685,8 @@
   TIfcCartesianTransformationOperator3D = class(TIfcCartesianTransformationOperator)
   strict private
     FAxis3: TIfcDirection;
+  protected
+    function Axis3Vector: TVector3; override;
   public
     procedure GetTransform(out Translation: TVector3;
       out Rotation: TVector4; out AScale: TVector3); override;
@@ -5780,6 +5786,30 @@ end;
 
 { TIfcCartesianTransformationOperator ---------------------------------------- }
 
+type
+  T3Axis = array [0..2] of TVector3;
+
+{ Get rotation as axis-angle (X3D) from 3 axes of the new coordinate system
+  (IFC convention). }
+function RotationFrom3Axis(const NewAxis: T3Axis): TVector4;
+var
+  RotationMatrix: TMatrix3;
+  I, J: Integer;
+  RotationQuat: TQuaternion;
+begin
+  // optimize: early exit in the most common case (no rotation)
+  if TVector3.Equals(NewAxis[0], TVector3.One[0]) and
+     TVector3.Equals(NewAxis[1], TVector3.One[1]) and
+     TVector3.Equals(NewAxis[2], TVector3.One[2]) then
+    Exit(TVector4.Zero);
+
+  for I := 0 to 2 do
+    for J := 0 to 2 do
+      RotationMatrix.Data[I, J] := NewAxis[I][J];
+  RotationQuat := QuatFromRotationMatrix(RotationMatrix);
+  Result := RotationQuat.ToAxisAngle;
+end;
+
 function TIfcCartesianTransformationOperator.Scl: Single;
 begin
   if Scale <> 0 then
@@ -5798,23 +5828,54 @@ begin
   Result := Scl; // in this classs, Scl3 is equal Scl
 end;
 
+function TIfcCartesianTransformationOperator.Axis1Vector: TVector3;
+begin
+  if Axis1 <> nil then
+    Result := Axis1.DirectionRatios.Value
+  else
+    Result := TVector3.One[0];
+end;
+
+function TIfcCartesianTransformationOperator.Axis2Vector: TVector3;
+begin
+  if Axis2 <> nil then
+    Result := Axis2.DirectionRatios.Value
+  else
+    Result := TVector3.One[1];
+end;
+
+function TIfcCartesianTransformationOperator.Axis3Vector: TVector3;
+begin
+  Result := TVector3.One[2]; // will be customized by TIfcCartesianTransformationOperator3D
+end;
+
 procedure TIfcCartesianTransformationOperator.GetTransform(
   out Translation: TVector3; out Rotation: TVector4; out AScale: TVector3);
+var
+  NewAxis: T3Axis;
 begin
   if LocalOrigin <> nil then
     Translation := LocalOrigin.Coordinates.Value
   else
     Translation := TVector3.Zero;
 
-  Rotation := TVector4.Zero;
-  if ( (Axis1 <> nil) and (not TVector3.Equals(Axis1.DirectionRatios.Value, TVector3.One[0])) ) or
-     ( (Axis2 <> nil) and (not TVector3.Equals(Axis2.DirectionRatios.Value, TVector3.One[1])) ) then
-    WritelnWarning('TODO: Rotation in IfcCartesianTransformationOperator not supported');
+  NewAxis[0] := Axis1Vector;
+  NewAxis[1] := Axis2Vector;
+  NewAxis[2] := Axis3Vector;
+  Rotation := RotationFrom3Axis(NewAxis);
 
   AScale := Vector3(Scl, Scl2, Scl3);
 end;
 
 { TIfcCartesianTransformationOperator3D -------------------------------------- }
+
+function TIfcCartesianTransformationOperator3D.Axis3Vector: TVector3;
+begin
+  if Axis3 <> nil then
+    Result := Axis3.DirectionRatios.Value
+  else
+    Result := TVector3.One[2];
+end;
 
 procedure TIfcCartesianTransformationOperator3D.GetTransform(
   out Translation: TVector3; out Rotation: TVector4; out AScale: TVector3);

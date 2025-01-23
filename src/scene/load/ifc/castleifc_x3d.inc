@@ -1238,21 +1238,15 @@ end;
 procedure TIfcAxis2Placement3D.GetTransform(out Translation: TVector3;
   out Rotation: TVector4);
 var
-  RotationMatrix: TMatrix3;
-  I, J: Integer;
-  NewAxis: array [0..2] of TVector3;
-  RotationQuat: TQuaternion;
+  NewAxis: T3Axis;
+  I: Integer;
 begin
   inherited; // let TIfcPlacement.GetTransform set Translation
 
   // set Rotation based on P()
   for I := 0 to 2 do
     NewAxis[I] := P(I);
-  for I := 0 to 2 do
-    for J := 0 to 2 do
-      RotationMatrix.Data[I, J] := NewAxis[I][J];
-  RotationQuat := QuatFromRotationMatrix(RotationMatrix);
-  Rotation := RotationQuat.ToAxisAngle;
+  Rotation := RotationFrom3Axis(NewAxis);
 end;
 
 { IfcToX3D and back ---------------------------------------------------------- }
