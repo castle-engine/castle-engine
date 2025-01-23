@@ -558,10 +558,29 @@ end;
 
 procedure TIfcArbitraryProfileDefWithVoids.UpdateCrossSection(
   const CrossSection: TVector2List; const ParentName: String);
+{.$define CASTLE_DEBUG_IFC_CURVE_HOLES}
+{$ifdef CASTLE_DEBUG_IFC_CURVE_HOLES}
+var
+  I: Integer;
+  NewCrossSection: TVector2List;
+{$endif}
 begin
   inherited;
   if InnerCurves.Count <> 0 then
+  begin
     WritelnWarning('IFC', 'TODO: IfcArbitraryProfileDefWithVoids.InnerCurves not implemented, we do not create holes');
+
+    {$ifdef CASTLE_DEBUG_IFC_CURVE_HOLES}
+    for I := 0 to InnerCurves.Count - 1 do
+    begin
+      NewCrossSection := TVector2List.Create;
+      try
+        InnerCurves[I].UpdateCrossSection(NewCrossSection);
+        CrossSection.AddRange(NewCrossSection);
+      finally FreeAndNil(NewCrossSection) end;
+    end;
+    {$endif}
+  end;
 end;
 
 procedure TIfcRectangleProfileDef.UpdateCrossSection(
