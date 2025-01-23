@@ -732,8 +732,6 @@ var
   Shape: TShapeNode;
   Circle: TCircle2DNode;
 begin
-  WritelnLog('IfcEllipse - TODO: should work, but untested');
-
   Circle := TCircle2DNode.Create('', Mapping.BaseUrl);
   Circle.Radius := SemiAxis1;
   Circle.RadiusY := SemiAxis2;
