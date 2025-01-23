@@ -595,7 +595,10 @@ begin
     Vector2(-XDim / 2, -YDim / 2),
     Vector2( XDim / 2, -YDim / 2),
     Vector2( XDim / 2,  YDim / 2),
-    Vector2(-XDim / 2,  YDim / 2)
+    Vector2(-XDim / 2,  YDim / 2),
+    // repeat 1st point to close
+    // testcase: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/annex_e/mapped-geometric-shape/mapped-shape-with-transformation.html
+    Vector2(-XDim / 2, -YDim / 2)
   ]);
 
   if Position <> nil then
