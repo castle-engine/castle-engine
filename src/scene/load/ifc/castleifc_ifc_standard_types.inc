@@ -1948,7 +1948,9 @@
     property UserDefinedPartitioningType: TIfcLabel read FUserDefinedPartitioningType write FUserDefinedPartitioningType;
   end;
 
-  { Define the object coordinate system. }
+  { Define the object coordinate system.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcObjectPlacement.htm }
   TIfcObjectPlacement = class abstract(TIfcPersistent)
   strict private
     FPlacementRelTo: TIfcObjectPlacement;
@@ -1969,6 +1971,7 @@
       and an object coordinate system for instances of IfcProduct. }
     property PlacesObject: TIfcProductList read FPlacesObject;
 
+    { Inverse of @link(PlacementRelTo). }
     property ReferencedByPlacements: TIfcObjectPlacementList read FReferencedByPlacements;
   end;
   TIfcObjectPlacementList = class({$ifdef FPC}specialize{$endif} TObjectList<TIfcObjectPlacement>)
@@ -4626,6 +4629,10 @@ begin
     if ObjectPlacement = nil then
       ObjectPlacement := TIfcLocalPlacement.Create(Owner);
     ObjectPlacement.PlacementRelTo := OtherProduct.ObjectPlacement;
+
+    { Inverse of PlacementRelTo, according to spec of IfcObjectPlacement.
+      Seems unused by BonsaiBIM and FreeCAD, but spec says it's there. }
+    OtherProduct.ObjectPlacement.ReferencedByPlacements.Add(ObjectPlacement);
   end;
 end;
 
