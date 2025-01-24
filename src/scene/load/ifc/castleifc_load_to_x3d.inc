@@ -222,10 +222,11 @@ begin
       if ObjectPlacementToParentNodes.TryGetValue(ChildToPlacement.Value, NewParent) and
          (OldParentTransform <> NewParent) then
       begin
-        WritelnLog('IFC', 'Fixing parent of "%s" to be relative to ObjectPlacement GUID "%s" to follow placementRelTo', [
-          Child.NiceName,
-          ChildToPlacement.Value.GlobalId
-        ]);
+        // This is normal (and even used in examples/ifc/ to attach window to wall), don't log.
+        // WritelnLog('IFC', 'Fixing parent of "%s" to be relative to ObjectPlacement GUID "%s" to follow placementRelTo', [
+        //   Child.NiceName,
+        //   ChildToPlacement.Value.GlobalId
+        // ]);
         Child.KeepExistingBegin; // do not free Child because ref count temporarily drops to zero below
         OldParentDirect.RemoveChildren(Child);
         NewParent.AddChildren(Child);
