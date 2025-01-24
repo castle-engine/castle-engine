@@ -2127,6 +2127,8 @@
   TIfcLocalPlacement = class(TIfcObjectPlacement)
   strict private
     FRelativePlacement: TIfcAxis2Placement;
+  protected
+    function WantsGlobalId: Boolean; override;
   public
     procedure UpdateNode(const Mapping: TCastleIfcMapping;
       const Transform: TTransformNode); override;
@@ -4428,6 +4430,13 @@ begin
   IsDecomposedBy.Add(RelAggregates);
 
   ChildObject.Decomposes.Add(RelAggregates);
+end;
+
+{ TIfcLocalPlacement --------------------------------------------------------- }
+
+function TIfcLocalPlacement.WantsGlobalId: Boolean;
+begin
+  Result := true;
 end;
 
 { TIfcProduct --------------------------------------------------------------- }

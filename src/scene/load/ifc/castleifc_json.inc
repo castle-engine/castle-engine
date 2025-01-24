@@ -1169,10 +1169,27 @@ var
 
     // update Refs
     if RefsContains then
-      raise EInvalidIfc.CreateFmt('IFC instance of "%s" (GUID "%s") was already saved to IFC file so our logic to avoid writing full class more than once (and avoid infinite recursion when writing) is faulty, or maybe we need to generate GUIDs for any TIfcPersistent', [
+    begin
+      {$ifdef CASTLE_DEBUG_IFC_MISSING_GUID}
+      WritelnWarning
+      {$else}
+      raise EInvalidIfc.CreateFmt
+      {$endif}
+      ('IFC instance of "%s" (GUID "%s") was already saved to IFC file.' + NL +
+        '  If the GUID is empty then maybe the %s class, or one of things that contain it in IFC file, needs WantsGlobalId = true.' + NL +
+        '  If GUID is not empty, then our logic to avoid writing full class more than once (and avoid infinite recursion when writing) is faulty.' + NL +
+        '  Report a bug with testcase either way.', [
+        Ifc.ClassName,
+        Ifc.GlobalId,
+        Ifc.ClassName
+      ]);
+      Result.Add('warning', Format('IFC instance of "%s" (GUID "%s") was already saved to IFC file', [
         Ifc.ClassName,
         Ifc.GlobalId
-      ]);
+      ]));
+      Exit;
+    end;
+
     { Create GlobalId only when WantsGlobalId.
       IFC spec allows it only on TIfcRoot, though IFC JSON spec encourages
       "broader use" and in practice it is used, and really necessary,
