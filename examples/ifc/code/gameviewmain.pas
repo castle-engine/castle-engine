@@ -440,9 +440,8 @@ begin
 
       Valid and seems most functional.
 
-    3. Relative to opening:
-
-        Window.Translation := Wall.Translation + Opening.Translation;
+    3. Relative to the opening:
+        // no need to set this: Window.Translation := ...
         Window.SetTransformRelativeTo(Opening);
 
       Seems not valid.
