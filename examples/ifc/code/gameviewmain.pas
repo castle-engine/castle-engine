@@ -424,10 +424,34 @@ begin
       Vector3(- WindowSize.X / 2, -WallSize.Y / 2, - WindowSize.Y / 2),
       Vector3(  WindowSize.X / 2,  WallSize.Y / 2,   WindowSize.Y / 2)
     ));
-  Window.SetTransformRelativeTo(Opening);
-  { If didn't use SetTransformRelativeTo, we would have to calculate
-    translation manually: }
-  //Window.Translation := Wall.Translation + Opening.Translation;
+
+  { How to position window?
+
+    1. Completely manually:
+        Window.Translation := Wall.Translation + Opening.Translation;
+        // no Window.SetTransformRelativeTo(...)
+
+      Valid, but then changing the wall position leaves the window behind
+      "hanging in the air".
+
+    2. Relative to wall:
+        Window.Translation := Opening.Translation;
+        Window.SetTransformRelativeTo(Wall);
+
+      Valid and seems most functional.
+
+    3. Relative to opening:
+
+        Window.Translation := Wall.Translation + Opening.Translation;
+        Window.SetTransformRelativeTo(Opening);
+
+      Seems not valid.
+      Crashes BonsaiBIM.
+      In FreeCAD, no crash, but window is not visible.
+  }
+  Window.Translation := Opening.Translation;
+  Window.SetTransformRelativeTo(Wall);
+
   IfcContainer.AddContainedElement(Window);
 
   { Connect wall and window, as spec suggests
