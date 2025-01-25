@@ -27,7 +27,8 @@ procedure CallbackGLDebug(Source: TGLenum; AType: TGLenum; Id: TGLuint; Severity
   Length: TGLsizei; Message: PAnsiChar; UserParam: Pointer);
   {$if     defined(OPENGL_CALLBACK_STDCALL)} stdcall;
   {$elseif defined(OPENGL_CALLBACK_CDECL)} cdecl;
-  {$else} {$fatal Include openglmac.inc that should define OPENGL_CALLBACK_xxx}
+  {$elseif defined(OPENGL_CALLBACK_DEFAULT)}
+  {$else} {$message fatal 'Include openglmac.inc that should define OPENGL_CALLBACK_xxx'}
   {$endif}
 var
   SourceStr, TypeStr, SeverityStr, MessageStr, MessageWhole: String;

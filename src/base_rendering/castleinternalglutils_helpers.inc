@@ -45,12 +45,10 @@ function glGetBoolean(const Param: TGLEnum): TGLboolean;
   function call overhead), by importing these functions from so/dll
   under different names, like
 
-    procedure glVertexv(const V: TVector3);
-      {$ifdef OPENGL_CDECL} cdecl; {$endif}
-      {$ifdef OPENGL_STDCALL} stdcall; {$endif}
+    procedure glVertexv(const V: TVector3); cdecl / stdcall;
       overload; external OpenGLDLL name 'glVertex3fv';
 
-  But this is problematic: it assumes that TVector3 will be passed
+  But this was problematic: it assumes that TVector3 will be passed
   by reference. Which actually is not guaranteed by a compiler (FPC sometimes
   doesn't). In newer FPC versions, we could use "constref" for this.
   Or we could just declare these functions as "inline".
