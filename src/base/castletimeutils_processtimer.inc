@@ -1,6 +1,6 @@
 {%MainUnit castletimeutils.pas}
 {
-  Copyright 2000-2022 Michalis Kamburelis.
+  Copyright 2000-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -22,7 +22,7 @@
   Note that we don't fallback to CastleGetTickCount64, as it's worse on Windows
   than QueryPerformanceCounter, and on other platforms ->
   let Timer fallback to CastleGetTickCount64. }
-{$if defined(MSWINDOWS) or defined(CASTLE_NINTENDO_SWITCH)}
+{$if defined(MSWINDOWS) or defined(CASTLE_NINTENDO_SWITCH) or defined(WASI)}
   {$define CASTLE_PROCESS_TIMER_IS_TIMER}
 {$endif}
 
@@ -104,7 +104,7 @@ function ProcessTimer: TProcessTimerResult;
 {$if defined(CASTLE_PROCESS_TIMER_IS_TIMER)}
 begin
   Result.Value := Timer;
-{$else}
+{$elseif defined(UNIX)}
 // other Unixes
 var
   Dummy: tms;
@@ -131,7 +131,7 @@ function ProcessTimerSeconds(const a, b: TProcessTimerResult): TFloatTime;
 begin
   Result := TimerSeconds(a.Value, b.Value);
 
-{$else}
+{$elseif defined(UNIX)}
 const
   { Resolution of the timer used by @link(ProcessTimer). }
   ProcessTimersPerSec =
@@ -155,6 +155,9 @@ begin
   {$I norqcheckbegin.inc}
   Result := (A.Value - B.Value) / ProcessTimersPerSec;
   {$I norqcheckend.inc}
+
+{$else}
+  {$message fatal 'ProcessTimer not implemented for this platform'}
 {$endif}
 
 end;
