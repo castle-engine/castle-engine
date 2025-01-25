@@ -369,11 +369,6 @@ var
       FpcOptions.Add('-dCASTLE_ENGINE_PATHS_ALREADY_DEFINED');
       FpcOptions.Add('@' + InclPathDelim(CastleEnginePath) + 'castle_game_engine(or castle-engine)/castle-fpc.cfg');
       }
-
-      // No need for EnginePathsWebAssembly now
-      // if Options.CPU = Wasm32 then
-      //   for S in EnginePathsWebAssembly do
-      //     AddEnginePath(S);
     end;
   end;
 

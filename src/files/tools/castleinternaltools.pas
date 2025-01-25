@@ -116,11 +116,6 @@ const
     'compatibility/delphi-only/fcl-json'
   );
 
-  { Additional include/units paths, only for WebAssembly target. }
-  // Nothing now
-  // EnginePathsWebAssembly: array [0..] of String = (
-  // );
-
   { Paths for library (object) files.
     For FPC these are passed using -Fl. }
   EngineLibraryPaths: array [0..1] of String = (
