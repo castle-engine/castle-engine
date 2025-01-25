@@ -674,7 +674,7 @@ begin
     ]);
 
   {$ifdef CASTLE_WEBGL}
-  // TODO - once we use extensions, something breaks
+  // TODO: web: once we use extensions, something breaks
   Exit(false);
   Result := WebGLExtensions.IndexOf(PrefixRemove('GL_', Extension, false)) <> -1;
   {$else}

@@ -22,7 +22,7 @@ const
   { Root dir name. Empty if not applicable to this OS. }
   RootDir = {$ifdef UNIX} '/' {$endif}
             {$ifdef MSWINDOWS} '' {$endif}
-            // TODO: WebAssembly: filesystem not yet implemented
+            // TODO: web: filesystem not yet implemented
             {$ifdef WASI} '' {$endif};
 
   ExeExtension = {$ifdef MSWINDOWS} '.exe' {$else} '' {$endif};
@@ -180,7 +180,7 @@ function IsPathAbsolute(const Path: string): boolean;
 begin
   Result := {$ifdef UNIX} SCharIs(Path, 1, PathDelim) {$endif}
             {$ifdef MSWINDOWS} SCharIs(Path, 2, DriveDelim) {$endif}
-            // TODO: WebAssembly: filesystem not yet implemented
+            // TODO: web: filesystem not yet implemented
             {$ifdef WASI} SCharIs(Path, 1, PathDelim) {$endif};
 end;
 

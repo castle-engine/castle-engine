@@ -214,7 +214,7 @@ procedure glTextureCubeMapSide(
       doesn't affect loading compressed textures, as far as I understand.
       So no need to call it. }
     {$ifdef CASTLE_WEBGL}
-    // TODO: loading compressed textures in WebGL
+    // TODO: web: loading compressed textures in WebGL
     {$else}
     glCompressedTexImage2D(Target, Level, ImageGLInternalFormat(Image),
       Image.Width, Image.Height, 0, Image.Size, Image.RawPixels);

@@ -452,7 +452,7 @@ begin
     doesn't affect loading compressed textures, as far as I understand.
     So no need to call it. }
   {$ifdef CASTLE_WEBGL}
-  // TODO: loading compressed textures in WebGL
+  // TODO: web: loading compressed textures in WebGL
   {$else}
   glCompressedTexImage2D(GL_TEXTURE_2D, Level, ImageGLInternalFormat(Image),
     Image.Width, Image.Height, 0, Image.Size, Image.RawPixels);
@@ -499,7 +499,7 @@ begin
   begin
     Result := TRGBAlphaImage.Create;
     TRGBAlphaImage(Result).Assign(OriginalImage as TCastleImage);
-    // TODO: Maybe it's not necessary in every case, e.g. leave RGB?
+    // TODO: web: Maybe it's not necessary in every case, e.g. leave RGB?
     WritelnWarning('Converting to RGBA (because renderer does not support texture swizzle but uses shaders -- normal with WebGL): %s (original format %s, new format %s)', [
       UriDisplay(OriginalImage.Url),
       ReportFormat(OriginalImage),
@@ -512,7 +512,7 @@ begin
   begin
     Result := TRGBAlphaFloatImage.Create;
     TRGBAlphaFloatImage(Result).Assign(OriginalImage as TCastleImage);
-    // TODO: Maybe it's not necessary in every case, e.g. leave RGB?
+    // TODO: web: Maybe it's not necessary in every case, e.g. leave RGB?
     WritelnWarning('Converting to RGBA (because renderer does not support texture swizzle but uses shaders -- normal with WebGL): %s (original format %s, new format %s)', [
       UriDisplay(OriginalImage.Url),
       ReportFormat(OriginalImage),
@@ -678,9 +678,9 @@ begin
   OriginalImage := Image;
   try
     { fix image format for WebGL that doesn't have "texture swizzle".
-      TODO: analyze is this possible on other platforms? and maybe makes sense? }
+      TODO: web: analyze is this possible on other platforms? and maybe makes sense? }
     {$ifdef CASTLE_WEBGL}
-      // TODO: Not used for now, doesn't affect font rendering, isn't actually needed for simple tests
+      // TODO: web: Not used for now, doesn't affect font rendering, isn't actually needed for simple tests
       {.$define FIX_TEXTURE_TO_NOT_NEED_SWIZZLE}
     {$endif}
     {$ifdef FIX_TEXTURE_TO_NOT_NEED_SWIZZLE}

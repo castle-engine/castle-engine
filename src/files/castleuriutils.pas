@@ -1489,7 +1489,7 @@ function ApplicationDataCore(const Path: string): string;
   {$endif UNIX}
   {$ifdef WASI}
   begin
-    // TODO: WebAssembly: filesystem not implemented
+    // TODO: web: filesystem not implemented
     Result := '/data/';
   {$endif}
   end;

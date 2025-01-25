@@ -383,7 +383,7 @@ var
 begin
   if Img is TCastleImage then
   begin
-    { TODO: optimize to copy whole memory blocks.
+    { TODO: web: optimize to copy whole memory blocks.
       For now we copy one-by-one to enable to change the order
       of any dimension / color component, to match WebGL }
     I := TCastleImage(Img);

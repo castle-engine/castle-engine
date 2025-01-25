@@ -233,7 +233,7 @@ begin
     {$endif}
 
     {$ifdef WASI}
-    nil; // TODO: WebAssembly: OggVorbis reading not implemented yet
+    nil; // TODO: web: OggVorbis reading not implemented yet
     {$endif}
 
   if VorbisFileLibrary <> nil then

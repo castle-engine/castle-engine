@@ -176,7 +176,7 @@ begin
   { Be sure to start with a "clean" state. }
   OpenALFinalization;
 
-  // TODO: WebAssembly: OpenAL is not available on WebAssembly,
+  // TODO: web: OpenAL is not available on WebAssembly,
   // no backend to play sound for now.
   // Planned: using WebAudio (see also https://castle-engine.io/x3d_implementation_sound.php#section_x3d4 )
 

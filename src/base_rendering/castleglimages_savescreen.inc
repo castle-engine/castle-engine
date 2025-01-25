@@ -103,7 +103,7 @@ procedure SaveScreen_NoFlush(const Image: TCastleImage;
     try
       SetReadBuffer(ColorBufferGL[ReadBuffer]);
       {$ifdef CASTLE_WEBGL}
-      // TODO: Implement getting RawPixels (using Uint8Array) from WebGL, https://developer.mozilla.org/en-US/docs/Web/API/WebGLRenderingContext/readPixels
+      // TODO: web: Implement getting RawPixels (using Uint8Array) from WebGL, https://developer.mozilla.org/en-US/docs/Web/API/WebGLRenderingContext/readPixels
       {$else}
       glReadPixels(Left, Bottom, Image.Width, Image.Height, ImageGLFormat(Image),
         ImageGLType(Image), Image.RawPixels);
@@ -169,7 +169,7 @@ begin
     BeforePackImage(Result);
     try
       {$ifdef CASTLE_WEBGL}
-      // TODO: Implement getting RawPixels (using Uint8Array) from WebGL, https://developer.mozilla.org/en-US/docs/Web/API/WebGLRenderingContext/readPixels
+      // TODO: web: Implement getting RawPixels (using Uint8Array) from WebGL, https://developer.mozilla.org/en-US/docs/Web/API/WebGLRenderingContext/readPixels
       {$else}
       glReadPixels(Rect.Left, Rect.Bottom, Rect.Width, Rect.Height, GL_DEPTH_COMPONENT,
         ImageGLType(Result), Result.RawPixels);
