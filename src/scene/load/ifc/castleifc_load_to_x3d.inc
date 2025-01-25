@@ -1,6 +1,6 @@
 {%MainUnit castleifc.pas}
 {
-  Copyright 2024-2024 Michalis Kamburelis.
+  Copyright 2024-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -14,7 +14,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ IFC conversion to X3D. }
+{ IFC conversion to X3D. Allows to load IFC in our engine. }
 
 {$ifdef read_interface_types}
 
@@ -115,9 +115,6 @@
 
 { Convert IFC file to X3D. }
 function IfcToX3D(const Ifc: TIfcFile; const BaseUrl: String): TX3DRootNode;
-
-{ Convert IFC file to X3D. }
-function X3DToIfc(const RootNode: TX3DRootNode): TIfcFile;
 
 {$endif read_interface}
 
@@ -225,10 +222,11 @@ begin
       if ObjectPlacementToParentNodes.TryGetValue(ChildToPlacement.Value, NewParent) and
          (OldParentTransform <> NewParent) then
       begin
-        WritelnLog('IFC', 'Fixing parent of "%s" to be relative to ObjectPlacement GUID "%s" to follow placementRelTo', [
-          Child.NiceName,
-          ChildToPlacement.Value.GlobalId
-        ]);
+        // This is normal (and even used in examples/ifc/ to attach window to wall), don't log.
+        // WritelnLog('IFC', 'Fixing parent of "%s" to be relative to ObjectPlacement GUID "%s" to follow placementRelTo', [
+        //   Child.NiceName,
+        //   ChildToPlacement.Value.GlobalId
+        // ]);
         Child.KeepExistingBegin; // do not free Child because ref count temporarily drops to zero below
         OldParentDirect.RemoveChildren(Child);
         NewParent.AddChildren(Child);
@@ -538,11 +536,86 @@ begin
   //   Coord.FdPoint.Items[I] := CoordList[I];
 end;
 
-{ UpdateCrossSection method overrides ---------------------------------------- }
+{ TIfcProfileDef.UpdateCrossSection method overrides -------------------------- }
 
-procedure TIfcCurve.UpdateCrossSection(const Extrusion: TExtrusionNode);
+procedure TIfcProfileDef.UpdateCrossSection(
+  const CrossSection: TVector2List; const ParentName: String);
+begin
+  WritelnWarning('IFC', 'Unsupported class used for %s: %s', [
+    ParentName,
+    ClassName
+  ]);
+end;
+
+procedure TIfcArbitraryClosedProfileDef.UpdateCrossSection(
+  const CrossSection: TVector2List; const ParentName: String);
+begin
+  if OuterCurve <> nil then
+    OuterCurve.UpdateCrossSection(CrossSection);
+end;
+
+procedure TIfcArbitraryProfileDefWithVoids.UpdateCrossSection(
+  const CrossSection: TVector2List; const ParentName: String);
+{.$define CASTLE_DEBUG_IFC_CURVE_HOLES}
+{$ifdef CASTLE_DEBUG_IFC_CURVE_HOLES}
 var
-  CrossSection: TVector2List;
+  I: Integer;
+  NewCrossSection: TVector2List;
+{$endif}
+begin
+  inherited;
+  if InnerCurves.Count <> 0 then
+  begin
+    WritelnWarning('IFC', 'TODO: IfcArbitraryProfileDefWithVoids.InnerCurves not implemented, we do not create holes');
+
+    {$ifdef CASTLE_DEBUG_IFC_CURVE_HOLES}
+    for I := 0 to InnerCurves.Count - 1 do
+    begin
+      NewCrossSection := TVector2List.Create;
+      try
+        InnerCurves[I].UpdateCrossSection(NewCrossSection);
+        CrossSection.AddRange(NewCrossSection);
+      finally FreeAndNil(NewCrossSection) end;
+    end;
+    {$endif}
+  end;
+end;
+
+procedure TIfcRectangleProfileDef.UpdateCrossSection(
+  const CrossSection: TVector2List; const ParentName: String);
+var
+  Translation: TVector3;
+  Rotation: TVector4;
+  V: TVector3;
+  I: Integer;
+begin
+  CrossSection.AddRange([
+    Vector2(-XDim / 2, -YDim / 2),
+    Vector2( XDim / 2, -YDim / 2),
+    Vector2( XDim / 2,  YDim / 2),
+    Vector2(-XDim / 2,  YDim / 2),
+    // repeat 1st point to close
+    // testcase: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/annex_e/mapped-geometric-shape/mapped-shape-with-transformation.html
+    Vector2(-XDim / 2, -YDim / 2)
+  ]);
+
+  if Position <> nil then
+  begin
+    WritelnLog('IfcRectangleProfileDef.Position assigned - TODO: should work, but untested');
+    Position.GetTransform(Translation, Rotation);
+    for I := 0 to CrossSection.Count - 1 do
+    begin
+      V := Vector3(CrossSection[I], 0);
+      V := RotatePointAroundAxis(Rotation, V);
+      V := V + Translation;
+      CrossSection[I] := V.XY;
+    end;
+  end;
+end;
+
+{ TIfcCurve.UpdateCrossSection method overrides ---------------------------------------- }
+
+procedure TIfcCurve.UpdateCrossSection(const CrossSection: TVector2List);
 
   procedure HandleIndexedLineSetNode(const IndexedLineSet: TIndexedLineSetNode);
   var
@@ -556,7 +629,7 @@ var
       Index := IndexedLineSet.FdCoordIndex.Items[I];
       if Index < 0 then
       begin
-        WritelnWarning('IFC', 'TODO: Unsupported IfcIndexedPolyCurve for extrusion cross section (we need to split into multiple X3D Extrusions to handle disjoint sections)');
+        WritelnWarning('IFC', 'TODO: IfcIndexedPolyCurve with multiple disjoint sections not supported, rendering as one connected curve');
       end else
       begin
         Assert(Index < Coord.FdPoint.Count);
@@ -579,43 +652,33 @@ var
   Shape: TShapeNode;
   Mapping: TCastleIfcMapping;
 begin
-  CrossSection := TVector2List.Create;
+  Mapping := TCastleIfcMapping.Create;
   try
-    Mapping := TCastleIfcMapping.Create;
+    Shape := BuildNode(Mapping, nil, nil) as TShapeNode;
     try
-      Shape := BuildNode(Mapping, nil, nil) as TShapeNode;
-      try
+      if Shape.Geometry <> nil then
+      begin
+        if Shape.Geometry is TIndexedLineSetNode then
+          HandleIndexedLineSetNode(TIndexedLineSetNode(Shape.Geometry))
+        else
+        if Shape.Geometry is TLineSetNode then
+          HandleLineSetNode(TLineSetNode(Shape.Geometry))
+        else
         if Shape.Geometry <> nil then
-        begin
-          if Shape.Geometry is TIndexedLineSetNode then
-            HandleIndexedLineSetNode(TIndexedLineSetNode(Shape.Geometry))
-          else
-          if Shape.Geometry is TLineSetNode then
-            HandleLineSetNode(TLineSetNode(Shape.Geometry))
-          else
-          if Shape.Geometry <> nil then
-            WritelnWarning('IFC', 'Unsupported Shape.Geometry class for TIfcCurve.UpdateCrossSection: ' + Shape.Geometry.ClassName);
-        end;
-      finally FreeIfUnusedAndNil(Shape) end;
-    finally FreeAndNil(Mapping) end;
+          WritelnWarning('IFC', 'Unsupported Shape.Geometry class for TIfcCurve.UpdateCrossSection: ' + Shape.Geometry.ClassName);
+      end;
+    finally FreeIfUnusedAndNil(Shape) end;
+  finally FreeAndNil(Mapping) end;
 
-    // actually use our CrossSection contents, this is all we wanted to calculate
-    Extrusion.SetCrossSection(CrossSection);
-  finally FreeAndNil(CrossSection) end;
 end;
 
-procedure TIfcPolyline.UpdateCrossSection(const Extrusion: TExtrusionNode);
+procedure TIfcPolyline.UpdateCrossSection(const CrossSection: TVector2List);
 var
-  CrossSection: TVector2List;
   I: Integer;
 begin
-  CrossSection := TVector2List.Create;
-  try
-    CrossSection.Count := Points.Count;
-    for I := 0 to Points.Count - 1 do
-      CrossSection[I] := Points[I].Coordinates.Value.XY;
-    Extrusion.SetCrossSection(CrossSection);
-  finally FreeAndNil(CrossSection) end;
+  CrossSection.Count := Points.Count;
+  for I := 0 to Points.Count - 1 do
+    CrossSection[I] := Points[I].Coordinates.Value.XY;
 end;
 
 { BuildNode of TIfcRepresentationItem and descendants ------------------------- }
@@ -646,6 +709,37 @@ begin
   Shape := TShapeNode.Create('', Mapping.BaseUrl);
   Shape.Geometry := LineSet;
   // lines are best displayed as unlit geometry, different material would be useful
+  // Shape.Appearance := Appearance;
+  SetMetadata(Shape, 'IFC_ClassName', ClassName);
+
+  Mapping.ShapeToProduct.AddOrSetValue(Shape, ParentProduct);
+  Result := Shape;
+end;
+
+function TIfcTrimmedCurve.BuildNode(const Mapping: TCastleIfcMapping;
+  const ParentProduct: TIfcProduct; const Appearance: TAppearanceNode): TAbstractChildNode;
+begin
+  if BasisCurve <> nil then
+  begin
+    WritelnWarning('TODO: IfcTrimmedCurve is only partially supported now. We ignore trim1, trim2, we display whole curve.');
+    Result := BasisCurve.BuildNode(Mapping, ParentProduct, Appearance)
+  end else
+    Result := nil;
+end;
+
+function TIfcEllipse.BuildNode(const Mapping: TCastleIfcMapping;
+  const ParentProduct: TIfcProduct; const Appearance: TAppearanceNode): TAbstractChildNode;
+var
+  Shape: TShapeNode;
+  Circle: TCircle2DNode;
+begin
+  Circle := TCircle2DNode.Create('', Mapping.BaseUrl);
+  Circle.Radius := SemiAxis1;
+  Circle.RadiusY := SemiAxis2;
+
+  Shape := TShapeNode.Create('', Mapping.BaseUrl);
+  Shape.Geometry := Circle;
+  // circle is best displayed as unlit geometry, different material would be useful
   // Shape.Appearance := Appearance;
   SetMetadata(Shape, 'IFC_ClassName', ClassName);
 
@@ -734,23 +828,60 @@ end;
 
 function TIfcExtrudedAreaSolid.BuildNode(const Mapping: TCastleIfcMapping;
   const ParentProduct: TIfcProduct; const Appearance: TAppearanceNode): TAbstractChildNode;
+
+  { Negate Y coordinates of all points in List. }
+  procedure NegateY(const List: TVector2List);
+  var
+    I: Integer;
+  begin
+    for I := 0 to List.Count - 1 do
+      List.L[I].Y := -List.L[I].Y;
+  end;
+
 var
   Extrusion: TExtrusionNode;
-  SweptAreaProf: TIfcArbitraryClosedProfileDef;
   Shape: TShapeNode;
+  CrossSection: TVector2List;
 begin
   Extrusion := TExtrusionNode.Create('', Mapping.BaseUrl);
   Extrusion.SetSpine([
     TVector3.Zero,
     ExtrudedDirection.DirectionRatios.Value * Depth
   ]);
-  if SweptArea is TIfcArbitraryClosedProfileDef then // also checks is it <> nil
-  begin
-    SweptAreaProf := TIfcArbitraryClosedProfileDef(SweptArea);
-    SweptAreaProf.OuterCurve.UpdateCrossSection(Extrusion);
-  end else
+
+  { Pass Extrusion.FdCrossSection.Items reference around.
+    Maybe in the future it will make sense to create temporary TVector2List
+    and then use Extrusion.SetCrossSection, but for now it's not needed. }
+  CrossSection := Extrusion.FdCrossSection.Items;
+  CrossSection.Clear; // default TExtrusionNode.CrossSection is not empty
   if SweptArea <> nil then
-    WritelnWarning('IFC', 'Unsupported IfcExtrudedAreaSolid.SweptArea class: ' + SweptArea.ClassName);
+  begin
+    SweptArea.UpdateCrossSection(CrossSection, 'IfcExtrudedAreaSolid.SweptArea');
+    { Experiments show this is necessary, see
+        ifc_window_test/4_rotations_scale/test_relative_positions_orientations*.ifcjson
+        ifc_window_test/4_rotations_scale/move_edit_mode_test.ifcjson
+      Reproduce by moving the rectangle of slab in *edit mode* in BonsaiBIM,
+      the X movement is OK, the Y is inverted. BonsaiBIM translates this into
+      moving actual points on the list.
+
+      This is different from doing it in *object mode* when the movement
+      translates to Axis2Placement3D, where Y remains OK. }
+    NegateY(CrossSection);
+  end;
+
+  { The extrusion curves in IFC may be provided in an arbitrary order.
+    We have samples where both extrusions use TIfcCurve.UpdateCrossSection,
+    and sometimes it would need (with Solid=true) to do CrossSection.Reverse,
+    sometimes not.
+
+    Testcases made using BonsaiBIM, add slabs and walls, and save to IFC JSON:
+      ifc_window_test/4_rotations_scale/simplest_slab.ifcjson
+      ifc_window_test/4_rotations_scale/blend_simple_rotations_and_scale.ifcjson
+      ifc_window_test/4_rotations_scale/rotate_scale_slabs.ifcjson
+
+    The simplest solution to render them all OK seems to just disable
+    backface culling for all extrusions. }
+  Extrusion.Solid := false;
 
   Shape := TShapeNode.Create('', Mapping.BaseUrl);
   Shape.Geometry := Extrusion;
@@ -797,6 +928,93 @@ begin
 
   Mapping.ShapeToProduct.AddOrSetValue(Shape, ParentProduct);
   Result := Shape;
+end;
+
+function TIfcBoundingBox.BuildNode(const Mapping: TCastleIfcMapping;
+  const ParentProduct: TIfcProduct; const Appearance: TAppearanceNode): TAbstractChildNode;
+var
+  Box: TBoxNode;
+  Shape: TShapeNode;
+  Transform: TTransformNode;
+  CornerPoint: TVector3;
+  UnlitMaterial: TUnlitMaterialNode;
+  UnlitAppearance: TAppearanceNode;
+begin
+  Box := TBoxNode.Create('', Mapping.BaseUrl);
+  Box.Size := Vector3(XDim, YDim, ZDim);
+
+  Shape := TShapeNode.Create('', Mapping.BaseUrl);
+  Shape.Geometry := Box;
+
+  // bounding box is not the final geometry, so show only wireframe
+  Shape.Shading := shWireframe;
+
+  // bounding box is not the final geometry, so show only unlit material
+  UnlitMaterial := TUnlitMaterialNode.Create('', Mapping.BaseUrl);
+  UnlitMaterial.EmissiveColor := WhiteRgb;
+  UnlitMaterial.Transparency := 0.5;
+  UnlitAppearance := TAppearanceNode.Create('', Mapping.BaseUrl);
+  UnlitAppearance.Material := UnlitMaterial;
+  Shape.Appearance := UnlitAppearance;
+
+  // move the box by CornerPoint + (X3D box position) Box.Size / 2
+  CornerPoint := TVector3.Zero;
+  if Corner <> nil then
+    CornerPoint := Corner.Coordinates.Value;
+
+  Transform := TTransformNode.Create('', Mapping.BaseUrl);
+  Transform.Translation := CornerPoint + Box.Size / 2;
+  Transform.AddChildren(Shape);
+
+  SetMetadata(Transform, 'IFC_ClassName', ClassName);
+
+  Mapping.ShapeToProduct.AddOrSetValue(Shape, ParentProduct);
+  Result := Transform;
+end;
+
+function TIfcMappedItem.BuildNode(const Mapping: TCastleIfcMapping;
+  const ParentProduct: TIfcProduct; const Appearance: TAppearanceNode): TAbstractChildNode;
+var
+  TransformMappingTarget, TransformMappingOrigin: TTransformNode;
+  OriginTranslation, TargetTranslation: TVector3;
+  OriginRotation, TargetRotation: TVector4;
+  TargetScale: TVector3;
+begin
+  // create TransformMappingTarget that expresses IFC MappingTarget transformation
+  TransformMappingTarget := TTransformNode.Create('', Mapping.BaseUrl);
+  SetMetadata(TransformMappingTarget, 'IFC_ClassName', ClassName);
+  SetMetadata(TransformMappingTarget, 'IFC_MappedItem_Purpose', 'MappingTarget');
+  if MappingTarget <> nil then
+  begin
+    MappingTarget.GetTransform(TargetTranslation, TargetRotation, TargetScale);
+    TransformMappingTarget.Translation := TargetTranslation;
+    TransformMappingTarget.Rotation := TargetRotation;
+    TransformMappingTarget.Scale := TargetScale;
+  end;
+
+  if MappingSource <> nil then
+  begin
+    // create TransformMappingOrigin that expresses negated IFC MappingSource.MappingOrigin transformation
+    TransformMappingOrigin := TTransformNode.Create('', Mapping.BaseUrl);
+    SetMetadata(TransformMappingOrigin, 'IFC_ClassName', ClassName);
+    SetMetadata(TransformMappingOrigin, 'IFC_MappedItem_Purpose', 'MappingSource.MappingOrigin');
+    if MappingSource.MappingOrigin <> nil then
+    begin
+      MappingSource.MappingOrigin.GetTransform(OriginTranslation, OriginRotation);
+      TransformMappingOrigin.Translation := -OriginTranslation;
+      TransformMappingOrigin.Rotation := Vector4(OriginRotation.XYZ, -OriginRotation.W);
+    end;
+    TransformMappingTarget.AddChildren(TransformMappingOrigin);
+
+    // add objects from MappingSource.MappedRepresentation to TransformMappingOrigin
+    if MappingSource.MappedRepresentation <> nil then
+    begin
+      TransformMappingOrigin.AddChildren(
+        MappingSource.MappedRepresentation.Items.BuildNode(Mapping, ParentProduct, Appearance));
+    end;
+  end;
+
+  Result := TransformMappingTarget;
 end;
 
 { BuildNode of TIfcObjectDefinition and descendants -------------------------- }
@@ -968,25 +1186,68 @@ end;
 
 procedure TIfcLocalPlacement.UpdateNode(const Mapping: TCastleIfcMapping;
   const Transform: TTransformNode);
+var
+  Translation: TVector3;
+  Rotation: TVector4;
 begin
   inherited;
   if RelativePlacement <> nil then
-    RelativePlacement.UpdateNode(Mapping, Transform);
+  begin
+    RelativePlacement.GetTransform(Translation, Rotation);
+    Transform.Translation := Translation;
+    Transform.Rotation := Rotation;
+  end;
 end;
 
-procedure TIfcPlacement.UpdateNode(const Mapping: TCastleIfcMapping;
-  const Transform: TTransformNode);
+{ TIfcPlacement.GetTransform and overrides ----------------------------------- }
+
+procedure TIfcPlacement.GetTransform(out Translation: TVector3;
+  out Rotation: TVector4);
 begin
-  // inherited; // no UpdateNode in ancestor
+  // inherited; // no GetTransform in ancestor
 
   if Location is TIfcCartesianPoint then
-  begin
-    Transform.Translation := TIfcCartesianPoint(Location).Coordinates.Value;
-  end;
-  // TODO: TIfcAxis2Placement2D/3D may define axis and ref direction, should cause rotation?
+    Translation := TIfcCartesianPoint(Location).Coordinates.Value
+  else
+    Translation := TVector3.Zero;
+
+  // descendants should set non-zero Rotation
+  Rotation := TVector4.Zero;
 end;
 
-{ IfcToX3D and back ---------------------------------------------------------- }
+procedure TIfcAxis2Placement2D.GetTransform(out Translation: TVector3;
+  out Rotation: TVector4);
+begin
+  inherited; // let TIfcPlacement.GetTransform set Translation
+
+  if not TVector2.Equals(P(0), Vector2(1, 0)) then
+    WritelnLog('Axis2Placement2D.GetTransform with P(0) not X axis - TODO: should work, but untested');
+
+  // set Rotation based on P()
+  Rotation := Vector4(0, 0, 1,
+    RotationAngleRadBetweenVectors(
+      Vector3(1, 0, 0), // original X axis
+      Vector3(P(0), 0), // desired X axis
+      Vector3(0, 0, 1)  // rotation axis, same as given above for Transform.Rotation.XYZ
+    )
+  );
+end;
+
+procedure TIfcAxis2Placement3D.GetTransform(out Translation: TVector3;
+  out Rotation: TVector4);
+var
+  NewAxis: T3Axis;
+  I: Integer;
+begin
+  inherited; // let TIfcPlacement.GetTransform set Translation
+
+  // set Rotation based on P()
+  for I := 0 to 2 do
+    NewAxis[I] := P(I);
+  Rotation := RotationFrom3Axis(NewAxis);
+end;
+
+{ IfcToX3D ----------------------------------------------------------------- }
 
 function IfcToX3D(const Ifc: TIfcFile; const BaseUrl: String): TX3DRootNode;
 var
@@ -999,10 +1260,50 @@ begin
   finally FreeAndNil(Mapping) end;
 end;
 
-function X3DToIfc(const RootNode: TX3DRootNode): TIfcFile;
+{ Main routine that converts IFC -> X3D nodes, doing most of the work. }
+function LoadIfc(const Stream: TStream; const BaseUrl: String): TX3DRootNode;
+
+  {.$define DEBUG_IFC_ROUND_TRIP}
+
+  {$ifdef DEBUG_IFC_ROUND_TRIP}
+  { Only for debugging purposes: save back the IFC data to JSON.
+    This is an easy test whether IfcJsonLoad understood everything correctly,
+    and whether IfcJsonSave saves everything correctly. }
+  procedure DebugSaveBack(const IfcFile: TIfcFile);
+  var
+    JsonObj: TJsonObject;
+    JsonString: String;
+    Stream: TStream;
+  begin
+    Stream := UrlSaveStream(DeleteUriExt(BaseUrl) + '-debug-roundtrip.ifcjson');
+    try
+      JsonObj := IfcJsonSave(IfcFile);
+      try
+        JsonString := JsonObj.FormatJSON;
+        WriteStr(Stream, JsonString);
+      finally FreeAndNil(JsonObj) end;
+    finally FreeAndNil(Stream) end;
+  end;
+  {$endif DEBUG_IFC_ROUND_TRIP}
+
+var
+  JsonParser: TJsonParser;
+  Json: TJsonData;
+  IfcFile: TIfcFile;
 begin
-  Result := TIfcFile.Create(nil);
-  // TODO
+  JsonParser := TJsonParser.Create(Stream, [joComments]);
+  try
+    Json := JsonParser.Parse;
+    try
+      IfcFile := IfcJsonLoad(Json);
+      try
+        Result := IfcToX3D(IfcFile, BaseUrl);
+        {$ifdef DEBUG_IFC_ROUND_TRIP}
+        DebugSaveBack(IfcFile);
+        {$endif DEBUG_IFC_ROUND_TRIP}
+      finally FreeAndNil(IfcFile) end;
+    finally FreeAndNil(Json) end;
+  finally FreeAndNil(JsonParser) end;
 end;
 
 {$endif read_implementation}

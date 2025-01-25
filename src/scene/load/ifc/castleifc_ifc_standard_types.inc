@@ -1,6 +1,6 @@
 {%MainUnit castleifc.pas}
 {
-  Copyright 2024-2024 Michalis Kamburelis.
+  Copyright 2024-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -120,7 +120,7 @@
 
   - Moreover, they contain methods to build/update nodes used
     by Castle Game Engine to display given IFC entities.
-    These methods are implemented in castleifc_x3d.inc
+    These methods are implemented in castleifc_load_to_x3d.inc
     yet they are defined in this file, inside IFC classes.
     Havine these methods inside IFC classes is beneficial,
     as we can use IFC classes inheritance naturally (e.g. some "build
@@ -182,6 +182,9 @@
   TIfcGeometricRepresentationContext = class;
   TIfcGeometricRepresentationSubContextList = class;
   TIfcProduct = class;
+  TIfcCartesianPoint = class;
+  TIfcFeatureElementSubtraction = class;
+  TIfcRepresentationMap = class;
 
   { Float type used throughout IFC.
 
@@ -394,6 +397,29 @@
   TIfcGeometricRepresentationItem = class abstract(TIfcRepresentationItem)
   end;
 
+  TIfcBoundingBox = class(TIfcGeometricRepresentationItem)
+  strict private
+    FCorner: TIfcCartesianPoint;
+    FXDim: TIfcPositiveLengthMeasure;
+    FYDim: TIfcPositiveLengthMeasure;
+    FZDim: TIfcPositiveLengthMeasure;
+  public
+    function BuildNode(const Mapping: TCastleIfcMapping;
+      const ParentProduct: TIfcProduct; const Appearance: TAppearanceNode): TAbstractChildNode; override;
+  published
+    { Location of the bottom left corner (having the minimum values). }
+    property Corner: TIfcCartesianPoint read FCorner write FCorner;
+
+    { Length attribute (measured along the edge parallel to the X Axis). }
+    property XDim: TIfcPositiveLengthMeasure read FXDim write FXDim;
+
+    { Width attribute (measured along the edge parallel to the Y Axis). }
+    property YDim: TIfcPositiveLengthMeasure read FYDim write FYDim;
+
+    { Height attribute (measured along the edge parallel to the Z Axis). }
+    property ZDim: TIfcPositiveLengthMeasure read FZDim write FZDim;
+  end;
+
   { Abstract supertype of all tessellated geometric models.
 
     Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcTessellatedItem.htm }
@@ -566,14 +592,67 @@
       In the base class, this reuses BuildNode and extracts cross section
       information from a temporary node.
       Override to provide more optimized implementation. }
-    procedure UpdateCrossSection(const Extrusion: TExtrusionNode); virtual;
+    procedure UpdateCrossSection(const CrossSection: TVector2List); virtual;
 
     { Space dimensionality of this abstract class, defined differently for all
       subtypes. }
     // TODO: derived: function Dim: TIfcDimensionCount; abstract;
   end;
+  TIfcCurveList = {$ifdef FPC}specialize{$endif} TObjectList<TIfcCurve>;
 
   TIfcBoundedCurve = class abstract(TIfcCurve)
+  end;
+
+  { Preferred way of trimming.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcTrimmingPreference.htm }
+  TIfcTrimmingPreference = (
+    Unspecified,
+    Cartesian,
+    Parameter
+  );
+
+  { Bounded curve that is trimmed at both ends.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcTrimmedCurve.htm }
+  TIfcTrimmedCurve = class(TIfcBoundedCurve)
+  strict private
+    FBasisCurve: TIfcCurve;
+    FTrim1: TIfcCartesianPointList;
+    FTrim2: TIfcCartesianPointList;
+    FSenseAgreement: Boolean;
+    FMasterRepresentation: TIfcTrimmingPreference;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+    function BuildNode(const Mapping: TCastleIfcMapping;
+      const ParentProduct: TIfcProduct; const Appearance: TAppearanceNode): TAbstractChildNode; override;
+  published
+    { The curve to be trimmed. For curves with multiple representations
+      any parameter values given as Trim1 or Trim2 refer to the
+      master representation of the BasisCurve only. }
+    property BasisCurve: TIfcCurve read FBasisCurve write FBasisCurve;
+
+    { The first trimming point.
+      TODO: We support only TIfcCartesianPoint, but IFC spec allows more,
+      IfcTrimmingSelect. }
+    property Trim1: TIfcCartesianPointList read FTrim1;
+
+    { The second trimming point.
+      TODO: We support only TIfcCartesianPoint, but IFC spec allows more,
+      IfcTrimmingSelect. }
+    property Trim2: TIfcCartesianPointList read FTrim2;
+
+    { Flag to indicate whether the direction of the trimmed curve agrees
+      with or is opposed to the direction of the basis curve. }
+    property SenseAgreement: Boolean
+      read FSenseAgreement write FSenseAgreement default false;
+
+    { Where both parameter and point are present at either end of the curve
+      this indicates the preferred form. }
+    property MasterRepresentation: TIfcTrimmingPreference
+      read FMasterRepresentation write FMasterRepresentation
+      default TIfcTrimmingPreference.Unspecified;
   end;
 
   { Bounded curve with only linear segments defined by a list of Cartesian points.
@@ -589,7 +668,7 @@
     destructor Destroy; override;
     function BuildNode(const Mapping: TCastleIfcMapping;
       const ParentProduct: TIfcProduct; const Appearance: TAppearanceNode): TAbstractChildNode; override;
-    procedure UpdateCrossSection(const Extrusion: TExtrusionNode); override;
+    procedure UpdateCrossSection(const CrossSection: TVector2List); override;
   published
     { Points defining the polyline. }
     property Points: TIfcCartesianPointList read FPoints;
@@ -791,6 +870,10 @@
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
+    { Update Extrusion.FdCrossSection.
+      In the base class, this makes a warning "not implemented".
+      Override (and do not call "inherited") to provide a useful implementation. }
+    procedure UpdateCrossSection(const CrossSection: TVector2List; const ParentName: String); virtual;
   published
     { Type of geometry into which this profile definition shall be resolved. }
     property ProfileType: TIfcProfileTypeEnum read FProfileType write FProfileType;
@@ -815,9 +898,27 @@
   TIfcArbitraryClosedProfileDef = class(TIfcProfileDef)
   strict private
     FOuterCurve: TIfcCurve;
+  public
+    procedure UpdateCrossSection(const CrossSection: TVector2List; const ParentName: String); override;
   published
     { Bounded curve, defining the outer boundaries of the arbitrary profile. }
     property OuterCurve: TIfcCurve read FOuterCurve write FOuterCurve;
+  end;
+
+  { Arbitrary closed two-dimensional profile with holes.
+    It is given by an outer boundary and inner boundaries.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcArbitraryProfileDefWithVoids.htm }
+  TIfcArbitraryProfileDefWithVoids = class(TIfcArbitraryClosedProfileDef)
+  strict private
+    FInnerCurves: TIfcCurveList;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+    procedure UpdateCrossSection(const CrossSection: TVector2List; const ParentName: String); override;
+  published
+    { Set of bounded curves, defining the inner boundaries of the arbitrary profile. }
+    property InnerCurves: TIfcCurveList read FInnerCurves;
   end;
 
   TIfcRoleEnum = (
@@ -1490,8 +1591,10 @@
   strict private
     FLocation: TIfcPoint;
   public
-    procedure UpdateNode(const Mapping: TCastleIfcMapping;
-      const Transform: TTransformNode); virtual;
+    { Get translation and rotation defined here.
+      Rotation is expressed just like @link(TCastleTransform.Rotation)
+      and @link(TTransformNode.Rotation), so it's axis and angle (in radians). }
+    procedure GetTransform(out Translation: TVector3; out Rotation: TVector4); virtual;
   published
     property Location: TIfcPoint read FLocation write FLocation;
 
@@ -1507,6 +1610,134 @@
     Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcAxis2Placement.htm }
   TIfcAxis2Placement = TIfcPlacement;
 
+  { Parameterized planar curve.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcConic.htm }
+  TIfcConic = class abstract(TIfcCurve)
+  strict private
+    FPosition: TIfcAxis2Placement;
+  published
+    { The location and orientation of the conic. }
+    property Position: TIfcAxis2Placement read FPosition write FPosition;
+  end;
+
+  { Ellipse.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcEllipse.htm }
+  TIfcEllipse = class(TIfcConic)
+  strict private
+    FSemiAxis1: TIfcPositiveLengthMeasure;
+    FSemiAxis2: TIfcPositiveLengthMeasure;
+  public
+    function BuildNode(const Mapping: TCastleIfcMapping;
+      const ParentProduct: TIfcProduct; const Appearance: TAppearanceNode): TAbstractChildNode; override;
+  published
+    { The first radius of the ellipse. }
+    property SemiAxis1: TIfcPositiveLengthMeasure read FSemiAxis1 write FSemiAxis1;
+
+    { The second radius of the ellipse. }
+    property SemiAxis2: TIfcPositiveLengthMeasure read FSemiAxis2 write FSemiAxis2;
+  end;
+
+  { An abstract supertype of different kinds of geometric transformations. }
+  TIfcCartesianTransformationOperator = class(TIfcRepresentationItem)
+  strict private
+    FAxis1: TIfcDirection;
+    FAxis2: TIfcDirection;
+    FLocalOrigin: TIfcCartesianPoint;
+    FScale: TIfcReal;
+  protected
+    { The derived scale of the transformation, equal to scale
+      if that is non-zero (it is zero if not specified in file), or 1.0 otherwise. }
+    function Scl: Single;
+
+    { The derived scale of the transformation along the axis 2 (normally the y axis). }
+    function Scl2: Single; virtual;
+
+    { The derived scale of the transformation along the axis 3 (normally the z axis). }
+    function Scl3: Single; virtual;
+
+    function Axis1Vector: TVector3;
+    function Axis2Vector: TVector3;
+    function Axis3Vector: TVector3; virtual;
+  public
+    procedure GetTransform(out Translation: TVector3;
+      out Rotation: TVector4; out AScale: TVector3); virtual;
+  published
+    { The direction used to determine U[1], the derived X axis direction. }
+    property Axis1: TIfcDirection read FAxis1 write FAxis1;
+
+    { The direction used to determine U[2], the derived Y axis direction. }
+    property Axis2: TIfcDirection read FAxis2 write FAxis2;
+
+    { The required translation, specified as a cartesian point.
+      The actual translation included in the transformation is
+      from the geometric origin to the local origin. }
+    property LocalOrigin: TIfcCartesianPoint read FLocalOrigin write FLocalOrigin;
+
+    { The scaling value specified for the transformation. }
+    property Scale: TIfcReal read FScale write FScale;
+  end;
+
+  { Geometric transformation in three-dimensional space.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcCartesianTransformationOperator3D.htm }
+  TIfcCartesianTransformationOperator3D = class(TIfcCartesianTransformationOperator)
+  strict private
+    FAxis3: TIfcDirection;
+  protected
+    function Axis3Vector: TVector3; override;
+  public
+    procedure GetTransform(out Translation: TVector3;
+      out Rotation: TVector4; out AScale: TVector3); override;
+  published
+    { The direction used to determine U[3], the derived Z axis direction. }
+    property Axis3: TIfcDirection read FAxis3 write FAxis3;
+  end;
+
+  { Transformation operator in 3D that allows non uniform scaling.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcCartesianTransformationOperator3DnonUniform.htm }
+  TIfcCartesianTransformationOperator3DnonUniform = class(TIfcCartesianTransformationOperator3D)
+  strict private
+    FScale2: TIfcReal;
+    FScale3: TIfcReal;
+  protected
+    function Scl2: Single; override;
+    function Scl3: Single; override;
+  published
+    { The scaling value specified for the transformation in the direction of Axis2.
+      This is normally the Y scale factor. }
+    property Scale2: TIfcReal read FScale2 write FScale2;
+
+    { The scaling value specified for the transformation in the direction of Axis3.
+      This is normally the Z scale factor. }
+    property Scale3: TIfcReal read FScale3 write FScale3;
+  end;
+
+  { Inserted instance of a source definition (to be compared with a block /
+    shared cell / macro definition). The instance is inserted by applying
+    a Cartesian transformation operator as the MappingTarget.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcMappedItem.htm }
+  TIfcMappedItem = class(TIfcRepresentationItem)
+  strict private
+    FMappingSource: TIfcRepresentationMap;
+    FMappingTarget: TIfcCartesianTransformationOperator;
+  public
+    function BuildNode(const Mapping: TCastleIfcMapping;
+      const ParentProduct: TIfcProduct; const Appearance: TAppearanceNode): TAbstractChildNode; override;
+  published
+    { A representation map that is the source of the mapped item.
+      It can be seen as a block (or cell or marco) definition. }
+    property MappingSource: TIfcRepresentationMap read FMappingSource write FMappingSource;
+
+    { A representation item that is the target onto which the mapping source
+      is mapped. It is constraint to be a Cartesian transformation operator. }
+    property MappingTarget: TIfcCartesianTransformationOperator read FMappingTarget write FMappingTarget;
+  end;
+  TIfcMappedItemList = {$ifdef FPC}specialize{$endif} TObjectList<TIfcMappedItem>;
+
   { Base definition (also referred to as block, cell or macro)
     called MappedRepresentation within the MappingOrigin.
     The MappingOrigin defines the coordinate system in which
@@ -1516,7 +1747,7 @@
     FMappingOrigin: TIfcAxis2Placement;
     FMappedRepresentation: TIfcRepresentation;
     FHasShapeAspects: TIfcShapeAspectList;
-    // TODO FMapUsage: TIfcMappedItemList;
+    FMapUsage: TIfcMappedItemList;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -1532,7 +1763,7 @@
       or its feature distinctively. }
     property HasShapeAspects: TIfcShapeAspectList read FHasShapeAspects;
 
-    // TODO property MapUsage: TIfcMappedItemList read FMapUsage;
+    property MapUsage: TIfcMappedItemList read FMapUsage;
   end;
   TIfcRepresentationMapList = {$ifdef FPC}specialize{$endif} TObjectList<TIfcRepresentationMap>;
 
@@ -1616,6 +1847,53 @@
       default TIfcActuatorTypeEnum.NotDefined;
   end;
 
+  TIfcSlabTypeEnum = (
+    NotDefined,
+    Approach_Slab,
+    BaseSlab,
+    Floor,
+    Landing,
+    Paving,
+    Roof,
+    Sidewalk,
+    TrackSlab,
+    Wearing,
+    UserDefined
+  );
+
+  { Commonly shared information for occurrences of slabs.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcSlabType.htm }
+  TIfcSlabType = class(TIfcBuiltElementType)
+  strict private
+    FPredefinedType: TIfcSlabTypeEnum;
+  published
+    property PredefinedType: TIfcSlabTypeEnum read FPredefinedType write FPredefinedType
+      default TIfcSlabTypeEnum.NotDefined;
+  end;
+
+  TIfcBuildingElementProxyTypeEnum = (
+    NotDefined,
+    Complex,
+    Element,
+    Partial,
+    ProvisionForSpace,
+    ProvisionForVoid,
+    UserDefined
+  );
+
+  { Commonly shared property set definitions of a building element proxy
+    and an optional set of product representations.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcBuildingElementProxyType.htm }
+  TIfcBuildingElementProxyType = class(TIfcBuiltElementType)
+  strict private
+    FPredefinedType: TIfcBuildingElementProxyTypeEnum;
+  published
+    property PredefinedType: TIfcBuildingElementProxyTypeEnum read FPredefinedType write FPredefinedType
+      default TIfcBuildingElementProxyTypeEnum.NotDefined;
+  end;
+
   { Used for @link(TIfcWindow.PredefinedType) and
     @link(TIfcWindowType.PredefinedType). }
   TIfcWindowTypeEnum = (NotDefined, LightDome, SkyLight, Window, UserDefined);
@@ -1670,7 +1948,9 @@
     property UserDefinedPartitioningType: TIfcLabel read FUserDefinedPartitioningType write FUserDefinedPartitioningType;
   end;
 
-  { Define the object coordinate system. }
+  { Define the object coordinate system.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcObjectPlacement.htm }
   TIfcObjectPlacement = class abstract(TIfcPersistent)
   strict private
     FPlacementRelTo: TIfcObjectPlacement;
@@ -1691,6 +1971,7 @@
       and an object coordinate system for instances of IfcProduct. }
     property PlacesObject: TIfcProductList read FPlacesObject;
 
+    { Inverse of @link(PlacementRelTo). }
     property ReferencedByPlacements: TIfcObjectPlacementList read FReferencedByPlacements;
   end;
   TIfcObjectPlacementList = class({$ifdef FPC}specialize{$endif} TObjectList<TIfcObjectPlacement>)
@@ -1739,19 +2020,14 @@
   TIfcAxis2Placement2D = class(TIfcPlacement)
   strict private
     FRefDirection: TIfcDirection;
+  public
+    { Axes of the created coordinate system. Always normalized and orthogonal. }
+    function P(const AxisCoord: T2DAxis): TVector2;
+
+    procedure GetTransform(out Translation: TVector3; out Rotation: TVector4); override;
   published
     { Direction of the local X axis. May be @nil. }
     property RefDirection: TIfcDirection read FRefDirection write FRefDirection;
-
-    // TODO: We could define something like this to be super-consistent with IFC standard:
-    {
-    function P(const Axis: Integer): TVector3;
-      case
-        0: Result := RefDirection.DirectionRatios;
-        1: Result := RefDirection.DirectionRatios rotate around Z by 90 degrees;
-        else raise EInternalError.Create('Invalid Axis');
-      end;
-    }
   end;
 
   { Location and orientations to place items in a three-dimensional space.
@@ -1761,6 +2037,11 @@
   strict private
     FAxis: TIfcDirection;
     FRefDirection: TIfcDirection;
+  public
+    { Axes of the created coordinate system. Always normalized and orthogonal. }
+    function P(const AxisCoord: T3DAxis): TVector3;
+
+    procedure GetTransform(out Translation: TVector3; out Rotation: TVector4); override;
   published
     { Direction of the local Z axis. May be @nil. }
     property Axis: TIfcDirection read FAxis write FAxis;
@@ -1771,17 +2052,36 @@
       If Axis and/or RefDirection is omitted, these directions are taken from
       the geometric coordinate system. }
     property RefDirection: TIfcDirection read FRefDirection write FRefDirection;
+  end;
 
-    // TODO: We could define something like this to be super-consistent with IFC standard:
-    {
-    function P(const Axis: Integer): TVector3;
-      case
-        0: Result := RefDirection.DirectionRatios;
-        1: Result := TVector3.CrossProduct(Axis.DirectionRatios, RefDirection.DirectionRatios);
-        2: Result := Axis.DirectionRatios;
-        else raise EInternalError.Create('Invalid Axis');
-      end;
-    }
+  { 2D position coordinate system to which the parameters of the different profiles relate to.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcParameterizedProfileDef.htm }
+  TIfcParameterizedProfileDef = class(TIfcProfileDef)
+  strict private
+    FPosition: TIfcAxis2Placement2D;
+  public
+    { Position coordinate system of the parameterized profile definition.
+      If unspecified, no translation and no rotation is applied. }
+    property Position: TIfcAxis2Placement2D read FPosition write FPosition;
+  end;
+
+  { Rectangle as the profile definition used by the swept surface geometry
+    or the swept area solid.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcRectangleProfileDef.htm }
+  TIfcRectangleProfileDef = class(TIfcParameterizedProfileDef)
+  strict private
+    FXDim: TIfcPositiveLengthMeasure;
+    FYDim: TIfcPositiveLengthMeasure;
+  public
+    procedure UpdateCrossSection(const CrossSection: TVector2List; const ParentName: String); override;
+  published
+    { The extent of the rectangle in the direction of the x-axis.. }
+    property XDim: TIfcPositiveLengthMeasure read FXDim write FXDim;
+
+    { The extent of the rectangle in the direction of the y-axis. }
+    property YDim: TIfcPositiveLengthMeasure read FYDim write FYDim;
   end;
 
   { Represents the 3D shape by a sweeping representation scheme allowing
@@ -1830,6 +2130,8 @@
   TIfcLocalPlacement = class(TIfcObjectPlacement)
   strict private
     FRelativePlacement: TIfcAxis2Placement;
+  protected
+    function WantsGlobalId: Boolean; override;
   public
     procedure UpdateNode(const Mapping: TCastleIfcMapping;
       const Transform: TTransformNode); override;
@@ -1844,12 +2146,12 @@
   strict private
     FObjectPlacement: TIfcObjectPlacement;
     FRepresentation: TIfcProductRepresentation;
-    function GetRelativePlacement: TVector3;
-    procedure SetRelativePlacement(const Translation: TVector3);
-    { Return the value of @link(PlacementRelativeToParent),
-      and if it's @true -> set Translation to
-      the value of @link(RelativePlacement). }
-    function GetRelativePlacementCore(out Translation: TVector3): Boolean;
+    function GetTranslation: TVector3;
+    procedure SetTranslation(const Value: TVector3);
+    { Return the value of @link(TransformSupported)
+      and regardless of it's value,
+      set Translation and Rotation to our transformation. }
+    function GetTransform(out Translation: TVector3; out Rotation: TVector4): Boolean;
   public
     function BuildNode(const Mapping: TCastleIfcMapping): TTransformNode; override;
 
@@ -1881,42 +2183,44 @@
       const Context: TIfcGeometricRepresentationContext;
       const Box: TBox3D);
 
-    { Does @link(ObjectPlacement) express a simple translation relative
-      to the parent.
-      This implies that using @link(RelativePlacement) to operate indirectly
-      on @link(ObjectPlacement) makes sense, i.e. you do not loose information
-      this way. }
-    function PlacementRelativeToParent: Boolean;
+    { Does @link(ObjectPlacement) express a 3D transformation we can
+      handle and @link(Translation) reliably gets and sets it. }
+    function TransformSupported: Boolean;
 
-    { Position of this product relative to parent.
-
-      Check @link(PlacementRelativeToParent) before using this property.
+    { Translation of this product.
 
       @unorderedList(
         @item(
-          Using this property when @link(PlacementRelativeToParent) is @true
-          makes most sense: it means that this simple property represents really
-          everything interesting about the placement.
+          Using this property when @link(TransformSupported) is @true
+          is most intuitive. It can then reliably get and set 3D translation.
+          The translation is relative to the parent or to other object
+          (determined by @link(TIfcObjectPlacement.PlacementRelTo),
+          can be set using @link(SetTransformRelativeTo).)
         )
-        @item(
-          Using this property when @link(PlacementRelativeToParent) is @false
-          means that reading it returns TVector.Zero, and setting it overrides
-          the previous placement setup. This may or may not be intuitive to your
-          usage.
 
+        @item(
+          Using this property when @link(TransformSupported) is @false
+          is still possible.
+
+          The interpretation depends on the configuration of the @link(ObjectPlacement).
+          E.g. it may specify that it's a 2D transformation
+          (so setting a translation may change it to 3D, and right now it may
+          not preserve 2D rotation).
           In general, IFC offers various possibilities to define the placement
           of an object, relative to various parents.
-          This property offers a simple way to change translation in the most common
-          case, when the placement is relative to our parent in the hierarchy.
-          If the @link(ObjectPlacement) defines placement in any other complicated way
-          (e.g. with respect to some other object) then this property returns
-          TVector3.Zero and @link(PlacementRelativeToParent) is @false.
-          Setting this property in such case will override the previous placement,
-          which may result in object "jumping" suddenly to unexpected place.
+
+          If in doubt, just don't use this property when @link(TransformSupported)
+          is @false. Instead, investigate and change the @link(ObjectPlacement)
+          properties.
         )
       )
     }
-    property RelativePlacement: TVector3 read GetRelativePlacement write SetRelativePlacement;
+    property Translation: TVector3 read GetTranslation write SetTranslation;
+
+    { Make @link(Translation) of this product relative to
+      a given different product.
+      This sets @link(TIfcObjectPlacement.PlacementRelTo) underneath. }
+    procedure SetTransformRelativeTo(const OtherProduct: TIfcProduct);
   published
     { Object coordinate system and placement of the product in space. }
     property ObjectPlacement: TIfcObjectPlacement read FObjectPlacement write FObjectPlacement;
@@ -2375,6 +2679,27 @@
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     function BuildNode(const Mapping: TCastleIfcMapping): TTransformNode; override;
+
+    { Add an opening that creates a hole (or just niche) in this element.
+      You can add any TIfcFeatureElementSubtraction, but typically you will
+      add TIfcOpeningElement.
+      This automatically creates TIfcRelVoidsElement relationship between
+      this element and the opening. }
+    procedure AddOpening(const Opening: TIfcFeatureElementSubtraction);
+
+    { Add a connected element, e.g. window should be connected to the wall.
+      This adds TIfcRelConnectsElements relationship and extends the ConnectedTo,
+      ConnectedFrom lists.
+
+      Spec of https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcWall.htm
+      says: " Walls with openings that have already been modeled within
+      the enclosing geometry may use the relationship IfcRelConnectsElements
+      to associate the wall with embedded elements such as doors and windows."
+
+      The connected element is not rendered just because it is connected.
+      It should still be also added using e.g.
+      @link(TIfcSpatialElement.AddContainedElement) to be rendered. }
+    procedure AddConnected(const Connected: TIfcElement);
   published
     { The tag (or label) identifier at the particular instance of a product,
       e.g. the serial number, or the position number.
@@ -2603,20 +2928,6 @@
     property UserDefinedOperationType: TIfcLabel read FUserDefinedOperationType write FUserDefinedOperationType;
   end;
 
-  TIfcSlabTypeEnum = (
-    NotDefined,
-    Approach_Slab,
-    BaseSlab,
-    Floor,
-    Landing,
-    Paving,
-    Roof,
-    Sidewalk,
-    TrackSlab,
-    Wearing,
-    UserDefined
-  );
-
   { Component of the construction that may enclose a space vertically.
     The slab may provide the lower support (floor) or upper construction
     (roof slab) in any space in a building.
@@ -2628,6 +2939,19 @@
   published
     property PredefinedType: TIfcSlabTypeEnum read FPredefinedType write FPredefinedType
       default TIfcSlabTypeEnum.NotDefined;
+  end;
+
+  { Proxy definition that provides the same functionality as subtypes of
+    IfcBuiltElement, but without having a predefined meaning
+    of the special type of building element it represents.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcBuildingElementProxy.htm }
+  TIfcBuildingElementProxy = class(TIfcBuiltElement)
+  strict private
+    FPredefinedType: TIfcBuildingElementProxyTypeEnum;
+  published
+    property PredefinedType: TIfcBuildingElementProxyTypeEnum read FPredefinedType write FPredefinedType
+      default TIfcBuildingElementProxyTypeEnum.NotDefined;
   end;
 
   TIfcColumnTypeEnum = (
@@ -2778,6 +3102,16 @@
 
     Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcValue.htm }
   TIfcValue = class abstract(TIfcPersistent)
+  end;
+
+  { Real (float) value wrapped in a class, so it can be used where TIfcValue is expected. }
+  TIfcReal_Boxed = class(TIfcValue)
+  strict private
+    FValue: TIfcReal;
+  protected
+    class function IfcClassName: String; override;
+  published
+    property Value: TIfcReal read FValue write FValue;
   end;
 
   TIfcMeasureValue = class(TIfcValue)
@@ -4023,7 +4357,10 @@
   This includes all IFC non-abstract classes
   and also some abstract classes that are referred to by lists
   (because, to check and resolve references in IFC files,
-  we need to know about them). }
+  we need to know about them).
+
+  To register new, custom IFC classes, just add new items to this list,
+  like @code(IfcClasses.Add(TIfcMyNewClass)). }
 function IfcClasses: TIfcPersistentClassList;
 
 {$endif read_interface}
@@ -4096,6 +4433,13 @@ begin
   IsDecomposedBy.Add(RelAggregates);
 
   ChildObject.Decomposes.Add(RelAggregates);
+end;
+
+{ TIfcLocalPlacement --------------------------------------------------------- }
+
+function TIfcLocalPlacement.WantsGlobalId: Boolean;
+begin
+  Result := true;
 end;
 
 { TIfcProduct --------------------------------------------------------------- }
@@ -4208,78 +4552,106 @@ begin
   ]);
 end;
 
-function TIfcProduct.GetRelativePlacementCore(out Translation: TVector3): Boolean;
+function TIfcProduct.GetTransform(
+  out Translation: TVector3; out Rotation: TVector4): Boolean;
 var
-  UseLocation: TIfcCartesianPoint;
-  UseRelativePlacement: TIfcAxis2Placement3D;
+  UseRelativePlacement: TIfcAxis2Placement;
   UseObjectPlacement: TIfcLocalPlacement;
 begin
-  // calculate UseObjectPlacement
-  if (ObjectPlacement <> nil) and
-     (ObjectPlacement is TIfcLocalPlacement) and
-     (TIfcLocalPlacement(ObjectPlacement).PlacementRelTo = nil) and
-     (
-       { Check PlacesObject that should include Self, or be empty.
-        https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcObjectPlacement.htm
-        allows placesObject to be empty, from what I understand, BonsaiBIM
-        also can generate such placement. }
-       (TIfcLocalPlacement(ObjectPlacement).PlacesObject.IndexOf(Self) <> -1) or
-       (TIfcLocalPlacement(ObjectPlacement).PlacesObject.Count = 0)
-     ) then
-  begin
-    UseObjectPlacement := TIfcLocalPlacement(ObjectPlacement);
-  end else
+  Result := false;
+  Translation := TVector3.Zero;
+  Rotation := TVector4.Zero;
+
+  // check ObjectPlacement
   if ObjectPlacement = nil then
   begin
-    Translation := TVector3.Zero;
-    Exit(true);
+    { Nothing more to calculate, but it's all OK --
+      ObjectPlacement=nil means that we're relative to parent.
+      TIfcProduct.SetTransform can deal with it, it will create new
+      ObjectPlacement. }
+    Result := true;
   end else
-    Exit(false);
+  if ObjectPlacement is TIfcLocalPlacement then
+  begin
+    { We can continue, because we have TIfcLocalPlacement.
+      But is this TIfcLocalPlacement really relative to parent?
+      Check it and set Result.
+      But still, continue, even when Result=false, to allow
+      implementations to work even when Result=false. }
+    UseObjectPlacement := TIfcLocalPlacement(ObjectPlacement);
+    Result :=
+      (
+        { Check PlacesObject that should include Self, or be empty.
+          https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcObjectPlacement.htm
+          allows placesObject to be empty, from what I understand, BonsaiBIM
+          also can generate such placement. }
+        (UseObjectPlacement.PlacesObject.IndexOf(Self) <> -1) or
+        (UseObjectPlacement.PlacesObject.Count = 0)
+      );
 
-  // calculate UseRelativePlacement
-  if (UseObjectPlacement.RelativePlacement <> nil) and
-     (UseObjectPlacement.RelativePlacement is TIfcAxis2Placement3D) then
-  begin
-    UseRelativePlacement := TIfcAxis2Placement3D(UseObjectPlacement.RelativePlacement);
-  end else
-  if UseObjectPlacement.RelativePlacement = nil then
-  begin
-    Translation := TVector3.Zero;
-    Exit(true);
-  end else
-    Exit(false);
+    { If UseObjectPlacement.RelativePlacement = nil, no problem,
+      TIfcProduct.SetTransform, it will create new
+      UseObjectPlacement.RelativePlacement . }
+    UseRelativePlacement := UseObjectPlacement.RelativePlacement;
+    if UseRelativePlacement <> nil then
+    begin
+      UseRelativePlacement.GetTransform(Translation, Rotation);
 
-  // calculate UseLocation
-  if (UseRelativePlacement.Location <> nil) and
-     (UseRelativePlacement.Location is TIfcCartesianPoint) then
-  begin
-    UseLocation := TIfcCartesianPoint(UseRelativePlacement.Location);
+      { While GetTransform is defined for any valid UseRelativePlacement
+        class, but our SetTranslation can handle only TIfcAxis2Placement3D
+        (since 2D version cannot express all 3D positions/rotations,
+        naturally). }
+      Result := Result and (UseRelativePlacement is TIfcAxis2Placement3D);
+    end;
   end else
-  if UseRelativePlacement.Location = nil then
   begin
-    Translation := TVector3.Zero;
-    Exit(true);
-  end else
-    Exit(false);
-
-  Translation := UseLocation.Coordinates.Value;
-  Result := true;
+    { We cannot continue, because ObjectPlacement is something else
+      than TIfcLocalPlacement.
+      We cannot calculate relative transform for it. }
+  end;
 end;
 
-function TIfcProduct.PlacementRelativeToParent: Boolean;
+procedure TIfcProduct.SetTransformRelativeTo(const OtherProduct: TIfcProduct);
+begin
+  if (OtherProduct = nil) or (OtherProduct = Self) then
+  begin
+    { In this case, this TIfcProduct is not relative to anythign non-standard.
+      So just set ObjectPlacement.PlacementRelTo to nil.
+      Or leave ObjectPlacement as nil. }
+    if ObjectPlacement is TIfcLocalPlacement then
+      TIfcLocalPlacement(ObjectPlacement).PlacementRelTo := nil;
+  end else
+  begin
+    // make sure OtherProduct.ObjectPlacement <> nil
+    if OtherProduct.ObjectPlacement = nil then
+      OtherProduct.ObjectPlacement := TIfcLocalPlacement.Create(Owner);
+    // make sure ObjectPlacement <> nil
+    if ObjectPlacement = nil then
+      ObjectPlacement := TIfcLocalPlacement.Create(Owner);
+    ObjectPlacement.PlacementRelTo := OtherProduct.ObjectPlacement;
+
+    { Inverse of PlacementRelTo, according to spec of IfcObjectPlacement.
+      Seems unused by BonsaiBIM and FreeCAD, but spec says it's there. }
+    OtherProduct.ObjectPlacement.ReferencedByPlacements.Add(ObjectPlacement);
+  end;
+end;
+
+function TIfcProduct.TransformSupported: Boolean;
 var
   DummyTranslation: TVector3;
+  DummyRotation: TVector4;
 begin
-  Result := GetRelativePlacementCore(DummyTranslation);
+  Result := GetTransform(DummyTranslation, DummyRotation);
 end;
 
-function TIfcProduct.GetRelativePlacement: TVector3;
+function TIfcProduct.GetTranslation: TVector3;
+var
+  DummyRotation: TVector4;
 begin
-  if not GetRelativePlacementCore(Result) then
-    Result := TVector3.Zero;
+  GetTransform(Result, DummyRotation);
 end;
 
-procedure TIfcProduct.SetRelativePlacement(const Translation: TVector3);
+procedure TIfcProduct.SetTranslation(const Value: TVector3);
 var
   NewLocation: TIfcCartesianPoint;
   NewRelativePlacement: TIfcAxis2Placement3D;
@@ -4287,7 +4659,12 @@ var
 begin
   // create NewObjectPlacement and assign it to ObjectPlacement
   if (ObjectPlacement <> nil) and
-     (ObjectPlacement is TIfcLocalPlacement) and
+     (ObjectPlacement is TIfcLocalPlacement)
+     (*
+     { Do not check it below.
+       If developer wants to set TIfcProduct.SetTranslation even
+       when we're relative to something else, let them. }
+     and
      (TIfcLocalPlacement(ObjectPlacement).PlacementRelTo = nil) and
      (
        { Check PlacesObject that should include Self, or be empty.
@@ -4296,7 +4673,9 @@ begin
         also can generate such placement. }
        (TIfcLocalPlacement(ObjectPlacement).PlacesObject.IndexOf(Self) <> -1) or
        (TIfcLocalPlacement(ObjectPlacement).PlacesObject.Count = 0)
-     ) then
+     )
+     *)
+     then
   begin
     NewObjectPlacement := TIfcLocalPlacement(ObjectPlacement);
   end else
@@ -4328,7 +4707,7 @@ begin
     NewRelativePlacement.Location := NewLocation;
   end;
 
-  NewLocation.Coordinates.Value := Translation;
+  NewLocation.Coordinates.Value := Value;
 end;
 
 { TIfcSpatialElement --------------------------------------------------------- }
@@ -4418,6 +4797,32 @@ begin
   inherited;
 end;
 
+procedure TIfcElement.AddOpening(const Opening: TIfcFeatureElementSubtraction);
+var
+  RelVoidsElement: TIfcRelVoidsElement;
+begin
+  RelVoidsElement := TIfcRelVoidsElement.Create(Owner);
+  RelVoidsElement.RelatingBuildingElement := Self;
+  RelVoidsElement.RelatedOpeningElement := Opening;
+
+  HasOpenings.Add(RelVoidsElement);
+
+  Opening.VoidsElements.Add(RelVoidsElement);
+end;
+
+procedure TIfcElement.AddConnected(const Connected: TIfcElement);
+var
+  RelConnectsElements: TIfcRelConnectsElements;
+begin
+  RelConnectsElements := TIfcRelConnectsElements.Create(Owner);
+  RelConnectsElements.RelatingElement := Self;
+  RelConnectsElements.RelatedElement := Connected;
+
+  ConnectedTo.Add(RelConnectsElements);
+
+  Connected.ConnectedFrom.Add(RelConnectsElements);
+end;
+
 { TIfcRelAggregates --------------------------------------------------------- }
 
 constructor TIfcRelAggregates.Create(AOwner: TComponent);
@@ -4430,6 +4835,13 @@ destructor TIfcRelAggregates.Destroy;
 begin
   FreeAndNil(FRelatedObjects);
   inherited;
+end;
+
+{ TIfcReal_Boxed ----------------------------------------------------------- }
+
+class function TIfcReal_Boxed.IfcClassName: String;
+begin
+  Result := 'IfcReal';
 end;
 
 { TIfcOpeningElement -------------------------------------------------------- }
@@ -4729,6 +5141,72 @@ begin
   inherited;
 end;
 
+{ TIfcAxis2Placement2D ------------------------------------------------------ }
+
+function TIfcAxis2Placement2D.P(const AxisCoord: T2DAxis): TVector2;
+
+  { Derive orthogonal complement of a 2D vector.
+    Follows https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcOrthogonalComplement.htm }
+  function IfcOrthogonalComplement(const V: TVector2): TVector2;
+  begin
+    Result := Vector2(-V.Y, V.X);
+  end;
+
+var
+  D: TVector2;
+begin
+  { See
+    https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcAxis2Placement2D.htm
+    https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcBuild2Axes.htm }
+  if RefDirection <> nil then
+    D := RefDirection.DirectionRatios.Value.XY.Normalize
+  else
+    D := Vector2(1, 0);
+
+  case AxisCoord of
+    0: Result := D;
+    1: Result := IfcOrthogonalComplement(D);
+    else raise EInternalError.Create('TIfcAxis2Placement2D.P: Invalid Axis');
+  end;
+end;
+
+{ TIfcAxis2Placement3D ------------------------------------------------------ }
+
+function TIfcAxis2Placement3D.P(const AxisCoord: T3DAxis): TVector3;
+var
+  D1: TVector3; // Z Axis fixed and normalized, from Axis
+  D2: TVector3; // X axis fixed and normalized, from RefDirection
+  RefDirectionNormalized, XVec: TVector3;
+begin
+  { See https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcBuildAxes.htm }
+  if Axis <> nil then
+    D1 := Axis.DirectionRatios.Value.Normalize
+  else
+    D1 := TVector3.One[2];
+
+  { See https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcFirstProjAxis.htm,
+    we effectively implement it, but simplifying -- the formal definition doesn't account for
+    where it's actually used. }
+  if RefDirection <> nil then
+    RefDirectionNormalized := RefDirection.DirectionRatios.Value.Normalize
+  else
+  if not TVector3.Equals(D1, TVector3.One[0]) then
+    RefDirectionNormalized := TVector3.One[0]
+  else
+    RefDirectionNormalized := TVector3.One[1];
+  { Note: this should be 0 when RefDirectionNormalized and D1 are orthogonal,
+    which is the most common case. }
+  XVec := TVector3.DotProduct(RefDirectionNormalized, D1) * D1;
+  D2 := (RefDirectionNormalized - XVec).Normalize;
+
+  case AxisCoord of
+    0: Result := D2;
+    1: Result := TVector3.CrossProduct(D1, D2);
+    2: Result := D1;
+    else raise EInternalError.Create('TIfcAxis2Placement3D.P: Invalid AxisCoord');
+  end;
+end;
+
 { TIfcDirection ------------------------------------------------------------- }
 
 constructor TIfcDirection.Create(AOwner: TComponent);
@@ -4850,6 +5328,20 @@ destructor TIfcProfileDef.Destroy;
 begin
   FreeAndNil(FHasExternalReference);
   FreeAndNil(FHasProperties);
+  inherited;
+end;
+
+{ TIfcArbitraryProfileDefWithVoids ------------------------------------------- }
+
+constructor TIfcArbitraryProfileDefWithVoids.Create(AOwner: TComponent);
+begin
+  inherited;
+  FInnerCurves := TIfcCurveList.Create(false);
+end;
+
+destructor TIfcArbitraryProfileDefWithVoids.Destroy;
+begin
+  FreeAndNil(FInnerCurves);
   inherited;
 end;
 
@@ -4992,6 +5484,22 @@ end;
 destructor TIfcPolyline.Destroy;
 begin
   FreeAndNil(FPoints);
+  inherited;
+end;
+
+{ TIfcTrimmedCurve ----------------------------------------------------------- }
+
+constructor TIfcTrimmedCurve.Create(AOwner: TComponent);
+begin
+  inherited;
+  FTrim1 := TIfcCartesianPointList.Create(false);
+  FTrim2 := TIfcCartesianPointList.Create(false);
+end;
+
+destructor TIfcTrimmedCurve.Destroy;
+begin
+  FreeAndNil(FTrim1);
+  FreeAndNil(FTrim2);
   inherited;
 end;
 
@@ -5292,19 +5800,137 @@ begin
   inherited;
 end;
 
+{ TIfcCartesianTransformationOperator ---------------------------------------- }
+
+type
+  T3Axis = array [0..2] of TVector3;
+
+{ Get rotation as axis-angle (X3D) from 3 axes of the new coordinate system
+  (IFC convention). }
+function RotationFrom3Axis(const NewAxis: T3Axis): TVector4;
+var
+  RotationMatrix: TMatrix3;
+  I, J: Integer;
+  RotationQuat: TQuaternion;
+begin
+  // optimize: early exit in the most common case (no rotation)
+  if TVector3.Equals(NewAxis[0], TVector3.One[0]) and
+     TVector3.Equals(NewAxis[1], TVector3.One[1]) and
+     TVector3.Equals(NewAxis[2], TVector3.One[2]) then
+    Exit(TVector4.Zero);
+
+  for I := 0 to 2 do
+    for J := 0 to 2 do
+      RotationMatrix.Data[I, J] := NewAxis[I][J];
+  RotationQuat := QuatFromRotationMatrix(RotationMatrix);
+  Result := RotationQuat.ToAxisAngle;
+end;
+
+function TIfcCartesianTransformationOperator.Scl: Single;
+begin
+  if Scale <> 0 then
+    Result := Scale
+  else
+    Result := 1;
+end;
+
+function TIfcCartesianTransformationOperator.Scl2: Single;
+begin
+  Result := Scl; // in this classs, Scl2 is equal Scl
+end;
+
+function TIfcCartesianTransformationOperator.Scl3: Single;
+begin
+  Result := Scl; // in this classs, Scl3 is equal Scl
+end;
+
+function TIfcCartesianTransformationOperator.Axis1Vector: TVector3;
+begin
+  if Axis1 <> nil then
+    Result := Axis1.DirectionRatios.Value
+  else
+    Result := TVector3.One[0];
+end;
+
+function TIfcCartesianTransformationOperator.Axis2Vector: TVector3;
+begin
+  if Axis2 <> nil then
+    Result := Axis2.DirectionRatios.Value
+  else
+    Result := TVector3.One[1];
+end;
+
+function TIfcCartesianTransformationOperator.Axis3Vector: TVector3;
+begin
+  Result := TVector3.One[2]; // will be customized by TIfcCartesianTransformationOperator3D
+end;
+
+procedure TIfcCartesianTransformationOperator.GetTransform(
+  out Translation: TVector3; out Rotation: TVector4; out AScale: TVector3);
+var
+  NewAxis: T3Axis;
+begin
+  if LocalOrigin <> nil then
+    Translation := LocalOrigin.Coordinates.Value
+  else
+    Translation := TVector3.Zero;
+
+  NewAxis[0] := Axis1Vector;
+  NewAxis[1] := Axis2Vector;
+  NewAxis[2] := Axis3Vector;
+  Rotation := RotationFrom3Axis(NewAxis);
+
+  AScale := Vector3(Scl, Scl2, Scl3);
+end;
+
+{ TIfcCartesianTransformationOperator3D -------------------------------------- }
+
+function TIfcCartesianTransformationOperator3D.Axis3Vector: TVector3;
+begin
+  if Axis3 <> nil then
+    Result := Axis3.DirectionRatios.Value
+  else
+    Result := TVector3.One[2];
+end;
+
+procedure TIfcCartesianTransformationOperator3D.GetTransform(
+  out Translation: TVector3; out Rotation: TVector4; out AScale: TVector3);
+begin
+  inherited;
+
+  if (Axis3 <> nil) and (not TVector3.Equals(Axis3.DirectionRatios.Value, TVector3.One[2])) then
+    WritelnWarning('TODO: Rotation in IfcCartesianTransformationOperator3D not supported');
+end;
+
+function TIfcCartesianTransformationOperator3DnonUniform.Scl2: Single;
+begin
+  if Scale2 <> 0 then
+    Result := Scale2
+  else
+    Result := Scl;
+end;
+
+function TIfcCartesianTransformationOperator3DnonUniform.Scl3: Single;
+begin
+  if Scale3 <> 0 then
+    Result := Scale3
+  else
+    Result := Scl;
+end;
+
 { TIfcRepresentationMap ------------------------------------------------------ }
 
 constructor TIfcRepresentationMap.Create(AOwner: TComponent);
 begin
   inherited;
   FHasShapeAspects := TIfcShapeAspectList.Create(false);
-  // FMapUsage := TIfcMappedItemList.Create(false);
+  FMapUsage := TIfcMappedItemList.Create(false);
 end;
 
 destructor TIfcRepresentationMap.Destroy;
 begin
   FreeAndNil(FHasShapeAspects);
-  // FreeAndNil(FMapUsage);
+  FreeAndNil(FMapUsage);
   inherited;
 end;
 
@@ -5685,6 +6311,19 @@ function IfcClasses: TIfcPersistentClassList;
     FIfcClasses.Add(TIfcDoorType);
     FIfcClasses.Add(TIfcWallType);
     FIfcClasses.Add(TIfcGeometricRepresentationSubContext);
+    FIfcClasses.Add(TIfcReal_Boxed);
+    FIfcClasses.Add(TIfcSlabType);
+    FIfcClasses.Add(TIfcBuildingElementProxy);
+    FIfcClasses.Add(TIfcBuildingElementProxyType);
+    FIfcClasses.Add(TIfcRectangleProfileDef);
+    FIfcClasses.Add(TIfcBoundingBox);
+    FIfcClasses.Add(TIfcTrimmedCurve);
+    FIfcClasses.Add(TIfcEllipse);
+    FIfcClasses.Add(TIfcMappedItem);
+    FIfcClasses.Add(TIfcCartesianTransformationOperator3D);
+    FIfcClasses.Add(TIfcCartesianTransformationOperator3DnonUniform);
+    FIfcClasses.Add(TIfcCurve);
+    FIfcClasses.Add(TIfcArbitraryProfileDefWithVoids);
   end;
 
 begin

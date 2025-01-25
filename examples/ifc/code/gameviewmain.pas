@@ -31,7 +31,8 @@ type
       These fields will be automatically initialized at Start. }
     LabelFps, LabelWireframeEffect, LabelHierarchy: TCastleLabel;
     ButtonNew, ButtonLoad, ButtonSaveIfc, ButtonSaveNode,
-      ButtonAddWall, ButtonModifyRandomElement, ButtonChangeWireframeEffect: TCastleButton;
+      ButtonAddWall, ButtonAddWallAndWindow,
+      ButtonModifyRandomElement, ButtonChangeWireframeEffect: TCastleButton;
     IfcScene: TCastleScene;
     MainViewport: TCastleViewport;
     ExamineNavigation: TCastleExamineNavigation;
@@ -51,8 +52,8 @@ type
       Only meaningful when IfcSelectedProduct <> nil, undefined and unused otherwise. }
     IfcSelectedProductShapeTranslation: TVector3;
 
-    { Used to assing unique names to walls. }
-    NextWallNumber: Cardinal;
+    { Used to assing unique names to products. }
+    NextProductNumber: Cardinal;
 
     //TransformHover: TCastleTransformHover; //< TODO, show hover
     TransformManipulate: TCastleTransformManipulate;
@@ -71,6 +72,7 @@ type
     procedure ClickSaveIfc(Sender: TObject);
     procedure ClickSaveNode(Sender: TObject);
     procedure ClickAddWall(Sender: TObject);
+    procedure ClickAddWallAndWindow(Sender: TObject);
     procedure ClickModifyRandomElement(Sender: TObject);
     procedure ClickChangeWireframeEffect(Sender: TObject);
     procedure MainViewportPress(const Sender: TCastleUserInterface;
@@ -122,6 +124,7 @@ begin
   ButtonSaveIfc.OnClick := {$ifdef FPC}@{$endif} ClickSaveIfc;
   ButtonSaveNode.OnClick := {$ifdef FPC}@{$endif} ClickSaveNode;
   ButtonAddWall.OnClick := {$ifdef FPC}@{$endif} ClickAddWall;
+  ButtonAddWallAndWindow.OnClick := {$ifdef FPC}@{$endif} ClickAddWallAndWindow;
   ButtonModifyRandomElement.OnClick := {$ifdef FPC}@{$endif} ClickModifyRandomElement;
   ButtonChangeWireframeEffect.OnClick := {$ifdef FPC}@{$endif} ClickChangeWireframeEffect;
 
@@ -334,8 +337,8 @@ var
   SizeX, SizeY, WallHeight: Single;
 begin
   Wall := TIfcWall.Create(IfcFile);
-  Wall.Name := 'Wall' + IntToStr(NextWallNumber);
-  Inc(NextWallNumber);
+  Wall.Name := 'Wall' + IntToStr(NextProductNumber);
+  Inc(NextProductNumber);
 
   SizeX := RandomFloatRange(1, 4);
   SizeY := RandomFloatRange(1, 4);
@@ -346,13 +349,117 @@ begin
       Vector3( SizeX / 2,  SizeY / 2, WallHeight)
     ));
 
-  Wall.RelativePlacement := Vector3(
+  Wall.Translation := Vector3(
     RandomFloatRange(-5, 5),
     RandomFloatRange(-5, 5),
     0
   );
 
   IfcContainer.AddContainedElement(Wall);
+  IfcMapping.Update(IfcFile);
+  UpdateLabelHierarchy;
+end;
+
+procedure TViewMain.ClickAddWallAndWindow(Sender: TObject);
+var
+  Wall: TIfcWall;
+  Window: TIfcWindow;
+  WallHeight: Single;
+  WallSize, WindowSize, WindowPosition: TVector2;
+  Opening: TIfcOpeningElement;
+begin
+  // randomize sizes / positions of wall and window
+  WallSize := Vector2(
+    RandomFloatRange(4, 6), // large X, this is wall's width
+    RandomFloatRange(0.5, 1) // small Y, this is wall's thickness in this case
+  );
+  WallHeight := RandomFloatRange(1.5, 2.5); // Z is "up", by convention, in IFC
+  { Window sizes randomized, always much smaller than wall
+    width (WallSize.X) and WallHeight.
+    Note that WindowSize.Y and WindowPosition.Y are going to affect the
+    Z axis (height) along the wall, because Z is "up" in IFC. }
+  WindowSize := Vector2(
+    RandomFloatRange(0.25, 1),
+    RandomFloatRange(0.25, 1)
+  );
+  WindowPosition := Vector2(0, 0.66 * WallHeight);
+
+  // add wall
+  Wall := TIfcWall.Create(IfcFile);
+  Wall.Name := 'WallWithWindow' + IntToStr(NextProductNumber);
+  Inc(NextProductNumber);
+  Wall.AddBoxRepresentation(IfcFile.Project.ModelContext,
+    Box3D(
+      Vector3(-WallSize.X / 2, -WallSize.Y / 2, 0),
+      Vector3( WallSize.X / 2,  WallSize.Y / 2, WallHeight)
+    ));
+  Wall.Translation := Vector3(
+    RandomFloatRange(-5, 5),
+    RandomFloatRange(-5, 5),
+    0
+  );
+  IfcContainer.AddContainedElement(Wall);
+
+  // add opening to the wall
+  Opening := TIfcOpeningElement.Create(IfcFile);
+  Opening.PredefinedType := TIfcOpeningElementTypeEnum.Opening;
+  Opening.AddBoxRepresentation(IfcFile.Project.ModelContext,
+    Box3D(
+      Vector3(- WindowSize.X / 2, -WallSize.Y / 2, - WindowSize.Y / 2),
+      Vector3(  WindowSize.X / 2,  WallSize.Y / 2,   WindowSize.Y / 2)
+    ));
+  Opening.Translation := Vector3(
+    WindowPosition.X,
+    0,
+    WindowPosition.Y
+  );
+  Wall.AddOpening(Opening);
+
+  // Add window
+  Window := TIfcWindow.Create(IfcFile);
+  Window.Name := 'Window' + IntToStr(NextProductNumber);
+  Inc(NextProductNumber);
+  Window.AddBoxRepresentation(IfcFile.Project.ModelContext,
+    Box3D(
+      Vector3(- WindowSize.X / 2, -WallSize.Y / 2, - WindowSize.Y / 2),
+      Vector3(  WindowSize.X / 2,  WallSize.Y / 2,   WindowSize.Y / 2)
+    ));
+
+  { How to position window?
+
+    1. Completely manually:
+        Window.Translation := Wall.Translation + Opening.Translation;
+        // no Window.SetTransformRelativeTo(...)
+
+      Valid, but then changing the wall position leaves the window behind
+      "hanging in the air".
+
+    2. Relative to wall:
+        Window.Translation := Opening.Translation;
+        Window.SetTransformRelativeTo(Wall);
+
+      Valid and seems most functional.
+
+    3. Relative to the opening:
+        // no need to set this: Window.Translation := ...
+        Window.SetTransformRelativeTo(Opening);
+
+      Seems not valid.
+      Crashes BonsaiBIM.
+      In FreeCAD, no crash, but window is not visible.
+  }
+  Window.Translation := Opening.Translation;
+  Window.SetTransformRelativeTo(Wall);
+
+  IfcContainer.AddContainedElement(Window);
+
+  { Connect wall and window, as spec suggests
+    https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcWall.htm :
+    "Walls with openings that have already been modeled within
+    the enclosing geometry may use the relationship IfcRelConnectsElements
+    to associate the wall with embedded elements such as doors and windows." }
+  Wall.AddConnected(Window);
+
   IfcMapping.Update(IfcFile);
   UpdateLabelHierarchy;
 end;
@@ -368,9 +475,9 @@ begin
     if ElementList.Count = 0 then
       Exit;
     RandomElement := ElementList[Random(ElementList.Count)];
-    if RandomElement.PlacementRelativeToParent then
+    if RandomElement.TransformSupported then
     begin
-      RandomElement.RelativePlacement := Vector3(
+      RandomElement.Translation := Vector3(
         RandomFloatRange(-5, 5),
         RandomFloatRange(-5, 5),
         0
@@ -408,36 +515,49 @@ const
 var
   SList: TStringList;
 
-  procedure ShowHierarchy(const Parent: TIfcObjectDefinition; const NowIndent: String);
+  procedure ShowHierarchy(const RelationName: String;
+    const Parent: TIfcObjectDefinition; const NowIndent: String);
   var
     ParentSpatial: TIfcSpatialElement;
     RelAggregates: TIfcRelAggregates;
     RelatedObject: TIfcObjectDefinition;
     RelContained: TIfcRelContainedInSpatialStructure;
     RelatedProduct: TIfcProduct;
+    ParentElement: TIfcElement;
+    RelVoidsElement: TIfcRelVoidsElement;
     S: String;
   begin
-    S := NowIndent + Parent.ClassName + ' "' + Parent.Name + '"';
+    S := Parent.ClassName + ' "' + Parent.Name + '"';
     if Parent = IfcSelectedProduct then
       S := '<font color="#ffff00">' + S + '</font>';
+    if RelationName <> '' then
+      S := RelationName + ': ' + S;
+    S := NowIndent + S;
     SList.Add(S);
 
     if Parent = IfcFile.Project.BestContainer then
       SList.Add(NowIndent + Indent + '<font color="#0000aa">(^detected best container)</font>');
     if (Parent is TIfcProduct) and
-       (not TIfcProduct(Parent).PlacementRelativeToParent) then
-      SList.Add(NowIndent + Indent + '<font color="#aa0000">(^cannot drag placement)</font>');
+       (not TIfcProduct(Parent).TransformSupported) then
+      SList.Add(NowIndent + Indent + '<font color="#aa0000">(^dragging may be not intuitive)</font>');
 
     for RelAggregates in Parent.IsDecomposedBy do
       for RelatedObject in RelAggregates.RelatedObjects do
-        ShowHierarchy(RelatedObject, NowIndent + Indent);
+        ShowHierarchy('IsDecomposedBy', RelatedObject, NowIndent + Indent);
 
     if Parent is TIfcSpatialElement then
     begin
       ParentSpatial := TIfcSpatialElement(Parent);
       for RelContained in ParentSpatial.ContainsElements do
         for RelatedProduct in RelContained.RelatedElements do
-          ShowHierarchy(RelatedProduct, NowIndent + Indent);
+          ShowHierarchy('ContainsElements', RelatedProduct, NowIndent + Indent);
+    end;
+
+    if Parent is TIfcElement then
+    begin
+      ParentElement := TIfcElement(Parent);
+      for RelVoidsElement in ParentElement.HasOpenings do
+        ShowHierarchy('HasOpenings', RelVoidsElement.RelatedOpeningElement, NowIndent + Indent);
     end;
   end;
 
@@ -465,7 +585,7 @@ begin
 
     SList.Add('');
     SList.Add('<font color="#008800">Project Hierarchy:</font>');
-    ShowHierarchy(IfcFile.Project, Indent);
+    ShowHierarchy('', IfcFile.Project, Indent);
 
     LabelHierarchy.Text.Assign(SList);
   finally FreeAndNil(SList) end;
@@ -509,7 +629,8 @@ begin
 
       // update TransformManipulate, to allow dragging selected product
       if (IfcSelectedProduct <> nil) and
-         IfcSelectedProduct.PlacementRelativeToParent and
+         { Allow dragging anyway, user can see TransformSupported=false in sidebar. }
+         //IfcSelectedProduct.TransformSupported and
          (not HitShape.BoundingBox.IsEmpty) then
       begin
         TransformSelectedProduct.Translation := HitShape.BoundingBox.Center;
@@ -527,11 +648,11 @@ procedure TViewMain.TransformManipulateTransformModified(Sender: TObject);
 begin
   Assert(IfcSelectedProduct <> nil, 'TransformManipulateTransformModified called without IfcSelectedProduct, should not happen');
 
-  { Update IfcSelectedProduct.RelativePlacement based on
+  { Update IfcSelectedProduct.Translation based on
     difference in shift of TransformSelectedProduct. Note that this simple way
     to update translation assumes we don't have rotations or scale in IFC. }
-  IfcSelectedProduct.RelativePlacement :=
-    IfcSelectedProduct.RelativePlacement +
+  IfcSelectedProduct.Translation :=
+    IfcSelectedProduct.Translation +
     TransformSelectedProduct.Translation -
     IfcSelectedProductShapeTranslation;
   IfcMapping.Update(IfcFile);

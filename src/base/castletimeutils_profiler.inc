@@ -238,11 +238,16 @@ end;
 { TCastleProfiler.TTime ------------------------------------------------------ }
 
 function TCastleProfiler.TTime.Summary(const Indent: String): String;
+const
+  FloatFormat = '%f';
+  // Want more precision? Use this:
+  //FloatFormat = '%.4f';
 begin
   if not Finished then
     Result := Indent + Format('UNFINISHED - %s', [Description]) + NL
   else
-    Result := Indent + Format('%f [%f] - %s', [Time, ProcessTime, Description]) + NL;
+    Result := Indent + FormatDot(FloatFormat + ' [' + FloatFormat + '] - %s',
+      [Time, ProcessTime, Description]) + NL;
   if Children <> nil then
     Result := Result + TTimes(Children).Summary(Indent + '> ');
 end;

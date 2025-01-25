@@ -321,6 +321,33 @@
         },
         {
           "$$ClassName" : "TCastleButton",
+          "Caption" : "Add Random Wall And Window",
+          "CustomBackgroundDisabled" : {
+            "$$ClassName" : "TCastleImagePersistent"
+          },
+          "CustomBackgroundFocused" : {
+            "$$ClassName" : "TCastleImagePersistent"
+          },
+          "CustomBackgroundNormal" : {
+            "$$ClassName" : "TCastleImagePersistent"
+          },
+          "CustomBackgroundPressed" : {
+            "$$ClassName" : "TCastleImagePersistent"
+          },
+          "Image" : {
+            "$$ClassName" : "TCastleImagePersistent"
+          },
+          "Name" : "ButtonAddWallAndWindow",
+          "TranslationPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent",
+            "X" : 1.0000000000000000E+001,
+            "Y" : -2.5500000000000000E+002
+          },
+          "VerticalAnchorParent" : "vpTop",
+          "VerticalAnchorSelf" : "vpTop"
+        },
+        {
+          "$$ClassName" : "TCastleButton",
           "Caption" : "Move Random Element (like a Wall or Floor)",
           "CustomBackgroundDisabled" : {
             "$$ClassName" : "TCastleImagePersistent"
@@ -341,7 +368,7 @@
           "TranslationPersistent" : {
             "$$ClassName" : "TCastleVector2Persistent",
             "X" : 1.0000000000000000E+001,
-            "Y" : -2.5500000000000000E+002
+            "Y" : -3.0400000000000000E+002
           },
           "VerticalAnchorParent" : "vpTop",
           "VerticalAnchorSelf" : "vpTop"
@@ -353,7 +380,7 @@
           "TranslationPersistent" : {
             "$$ClassName" : "TCastleVector2Persistent",
             "X" : 1.0000000000000000E+001,
-            "Y" : -3.0400000000000000E+002
+            "Y" : -3.5300000000000000E+002
           },
           "VerticalAnchorParent" : "vpTop",
           "VerticalAnchorSelf" : "vpTop",
@@ -393,7 +420,7 @@
               ],
               "TranslationPersistent" : {
                 "$$ClassName" : "TCastleVector2Persistent",
-                "X" : 2.9100000000000000E+002
+                "X" : 2.9100003051757812E+002
               },
               "VerticalAnchorParent" : "vpMiddle",
               "VerticalAnchorSelf" : "vpMiddle"
@@ -418,7 +445,7 @@
       "Name" : "RectangleControl1",
       "VerticalAnchorParent" : "vpMiddle",
       "VerticalAnchorSelf" : "vpMiddle",
-      "Width" : 4.0000000000000000E+002,
+      "Width" : 6.0000000000000000E+002,
       "$Children" : [
         {
           "$$ClassName" : "TCastleScrollView",

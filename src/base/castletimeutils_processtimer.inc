@@ -16,6 +16,16 @@
 
 { Part of CastleTimeUtils unit: ProcessTimer, measuring CPU usage of this process. }
 
+{ Define CASTLE_PROCESS_TIMER_IS_TIMER if ProcessTimer implementation
+  should just use Timer. This is used when OS has no way to measure time
+  of this process.
+  Note that we don't fallback to CastleGetTickCount64, as it's worse on Windows
+  than QueryPerformanceCounter, and on other platforms ->
+  let Timer fallback to CastleGetTickCount64. }
+{$if defined(MSWINDOWS) or defined(CASTLE_NINTENDO_SWITCH)}
+  {$define CASTLE_PROCESS_TIMER_IS_TIMER}
+{$endif}
+
 {$ifdef read_interface}
 
 type
@@ -24,10 +34,8 @@ type
   TProcessTimerResult = record
   private
     Value:
-      {$if defined(MSWINDOWS) or defined(CASTLE_NINTENDO_SWITCH)}
-      QWord // ProcessTimer just does CastleGetTickCount64
-      {$elseif defined(UNIX)}
-      clock_t
+      {$if defined(CASTLE_PROCESS_TIMER_IS_TIMER)}
+      TTimerResult
       {$else}
       QWord // TODO: WebAssembly: time not implemented yet
       {$endif};
@@ -93,10 +101,10 @@ function ProcessTimerEnd: TFloatTime; deprecated 'instead of this, better to use
 {$ifdef read_implementation}
 
 function ProcessTimer: TProcessTimerResult;
-{$if defined(MSWINDOWS) or defined(CASTLE_NINTENDO_SWITCH) or defined(WASI)}
+{$if defined(CASTLE_PROCESS_TIMER_IS_TIMER)}
 begin
-  Result.Value := CastleGetTickCount64;
-{$elseif defined(UNIX)}
+  Result.Value := Timer;
+{$else}
 // other Unixes
 var
   Dummy: tms;
@@ -119,33 +127,36 @@ begin
 end;
 
 function ProcessTimerSeconds(const a, b: TProcessTimerResult): TFloatTime;
+{$if defined(CASTLE_PROCESS_TIMER_IS_TIMER)}
+begin
+  Result := TimerSeconds(a.Value, b.Value);
+
+{$else}
 const
   { Resolution of the timer used by @link(ProcessTimer). }
   ProcessTimersPerSec =
-    {$if defined(MSWINDOWS) or defined(CASTLE_NINTENDO_SWITCH) or defined(WASI)}
-      1000 // miliseconds from CastleGetTickCount64
-    {$else}
-      { What is the frequency of FpTimes ?
-        sysconf (_SC_CLK_TCK) ?
-        Or does sysconf exist only in Libc ? }
-      { Values below were choosen experimentally for Linux and FreeBSD
-        (and I know that on most UNIXes it should be 128, that's
-        a traditional value) }
-      {$ifdef LINUX} 100 {$else}
-        {$ifdef DARWIN}
-          { In /usr/include/ppc/_limits.h and
-               /usr/include/i386/_limits.h
-            __DARWIN_CLK_TCK is defined to 100. }
-          100
-        {$else}
-          128
-        {$endif}
+    { What is the frequency of FpTimes ?
+      sysconf (_SC_CLK_TCK) ?
+      Or does sysconf exist only in Libc ? }
+    { Values below were choosen experimentally for Linux and FreeBSD
+      (and I know that on most UNIXes it should be 128, that's
+      a traditional value) }
+    {$ifdef LINUX} 100 {$else}
+      {$ifdef DARWIN}
+        { In /usr/include/ppc/_limits.h and
+              /usr/include/i386/_limits.h
+          __DARWIN_CLK_TCK is defined to 100. }
+        100
+      {$else}
+        128
       {$endif}
     {$endif};
 begin
   {$I norqcheckbegin.inc}
   Result := (A.Value - B.Value) / ProcessTimersPerSec;
   {$I norqcheckend.inc}
+{$endif}
+
 end;
 
 var

@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2024 Michalis Kamburelis.
+  Copyright 2015-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -26,6 +26,8 @@
   strict private
     function GetRadius: Single;
     procedure SetRadius(const Value: Single);
+    function GetRadiusY: Single;
+    procedure SetRadiusY(const Value: Single);
     function GetSlices: Integer;
     procedure SetSlices(const Value: Integer);
   public
@@ -36,8 +38,14 @@
     strict private FFdRadius: TSFFloat;
     { Internal wrapper for property @code(Radius). This wrapper API may change, we advise to access simpler @code(Radius) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdRadius: TSFFloat read FFdRadius;
-    {  }
+    { Radius of the circle. If the @link(RadiusY) is non-zero (so we have ellipse, not a circle) then this is the radius along the X axis. }
     property Radius: Single read GetRadius write SetRadius;
+
+    strict private FFdRadiusY: TSFFloat;
+    { Internal wrapper for property @code(RadiusY). This wrapper API may change, we advise to access simpler @code(RadiusY) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
+    public property FdRadiusY: TSFFloat read FFdRadiusY;
+    { Radius of the circle along the Y axis. Leave zero (default) to have a circle using @link(Radius) for both X and Y. Set to non-zero to have an ellipse, with @link(Radius) along X and this value along Y. }
+    property RadiusY: Single read GetRadiusY write SetRadiusY;
 
     strict private FFdSlices: TSFInt32;
     { Internal wrapper for property @code(Slices). This wrapper API may change, we advise to access simpler @code(Slices) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
@@ -59,6 +67,16 @@ end;
 procedure TCircle2DNode.SetRadius(const Value: Single);
 begin
   FdRadius.Send(Value);
+end;
+
+function TCircle2DNode.GetRadiusY: Single;
+begin
+  Result := FdRadiusY.Value;
+end;
+
+procedure TCircle2DNode.SetRadiusY(const Value: Single);
+begin
+  FdRadiusY.Send(Value);
 end;
 
 function TCircle2DNode.GetSlices: Integer;
@@ -84,6 +102,11 @@ begin
    FdRadius.ChangeAlways := chGeometry;
    FdRadius.MustBeNonnegative := true;
   AddField(FFdRadius);
+
+  FFdRadiusY := TSFFloat.Create(Self, False, 'radiusY', 0);
+   FdRadiusY.ChangeAlways := chGeometry;
+   FdRadiusY.MustBeNonnegative := true;
+  AddField(FFdRadiusY);
 
   FFdSlices := TSFInt32.Create(Self, True, 'slices', 0);
    FdSlices.ChangeAlways := chGeometry;

@@ -20,7 +20,7 @@
 
   // forward declarations
   TIfcProject = class;
-  TCastleIfcMapping = class; // < Resolved in castleifc_x3d.inc
+  TCastleIfcMapping = class; // < Resolved in castleifc_load_to_x3d.inc
 
   {$M+}
   { Abstract class that can be serialized to / deserialized from an IFC file.
@@ -50,6 +50,10 @@
       TIfcPersistent to load some files,
       and we sometimes need WantsGlobalId = @true to save some files. }
     function WantsGlobalId: Boolean; virtual;
+
+    { Name for the IFC standard, used in IFC files.
+      By default, this is just ClassName with prefix 'T' removed. }
+    class function IfcClassName: String; virtual;
   published
     { Globally unique identifier for the object instance.
 
@@ -85,6 +89,7 @@
   TIfcPersistentClassList = class({$ifdef FPC}specialize{$endif} TList<TIfcPersistentClass>)
   public
     { Find class corresponding to the given IFC type.
+      Compares with TIfcPersistent.IfcClassName.
       Returns @nil if not found. }
     function FindIfcType(const IfcType: String): TIfcPersistentClass;
   end;
@@ -186,16 +191,26 @@ begin
   Result := false;
 end;
 
+class function TIfcPersistent.IfcClassName: String;
+begin
+  // Result := PrefixRemove('T', Ifc.ClassName, false)
+  // Slightly optimized version:
+  if SCharIs(ClassName, 1, ['T', 't']) then
+    Result := SEnding(ClassName, 2)
+  else
+    Result := ClassName;
+end;
+
 { TIfcPersistentList --------------------------------------------------------- }
 
 function TIfcPersistentClassList.FindIfcType(const IfcType: String): TIfcPersistentClass;
 var
   I: Integer;
-  FindClassName: String;
 begin
-  FindClassName := 'T' + IfcType;
   for I := 0 to Count - 1 do
-    if Items[I].ClassName = FindClassName then
+    { All IFC files we've seen treat IFC class names as case-sensitive,
+      so we can compare directly, case-sensitive. }
+    if Items[I].IfcClassName = IfcType then
     begin
       Result := Items[I];
       Exit;
