@@ -28,6 +28,10 @@ unit CastleGLES;
   {$packrecords C}
 {$endif}
 
+{$ifdef WASI}
+  {$message fatal 'This unit should not be used with WebAssembly, instead the CastleInternalWebGL provides compatible API'}
+{$endif}
+
 interface
 
 uses CTypes, SysUtils,
@@ -1727,7 +1731,6 @@ procedure LoadGLES(const Lib: string; const AltLibName: string = '');
 begin
   FreeGLES;
   {$ifdef OpenGLES}
-  // TODO: WebAssembly: We should load WebGL here
   GLESLib := TDynLib.Load(Lib);
   if (GLESLib = nil) and (AltLibName <> '') then
     GLESLib := TDynLib.Load(AltLibName);
