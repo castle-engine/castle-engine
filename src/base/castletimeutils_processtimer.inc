@@ -37,7 +37,7 @@ type
       {$if defined(CASTLE_PROCESS_TIMER_IS_TIMER)}
       TTimerResult
       {$else}
-      QWord // TODO: WebAssembly: time not implemented yet
+      clock_t // Unix
       {$endif};
   public
     { Seconds passed since this time sample up to now.
