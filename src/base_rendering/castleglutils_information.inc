@@ -175,11 +175,11 @@ begin
     '(checks both version string and actual functions availability in the library, to secure from buggy implementations)' + NL +
     NL +
     {$if defined(CASTLE_WEBGL)}
-    '  2_0: ' + BoolToStr(GLFeatures.VersionWebGL_2, true) + NL +
+    '  2.0: ' + BoolToStr(GLFeatures.VersionWebGL_2, true) + NL +
     NL +
 
     {$elseif defined(OpenGLES)}
-    '  2_0: ' + BoolToStr(GLFeatures.VersionES_2_0, true) + NL +
+    '  2.0: ' + BoolToStr(GLFeatures.VersionES_2_0, true) + NL +
     '  3.0: ' + BoolToStr(GLFeatures.VersionES_3_0, true) + NL +
     '  3.1: ' + BoolToStr(GLFeatures.VersionES_3_1, true) + NL +
     '  3.2: ' + BoolToStr(GLFeatures.VersionES_3_2, true) + NL +
