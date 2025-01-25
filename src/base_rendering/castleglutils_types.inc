@@ -20,7 +20,7 @@
 
 type
   { Types (invented in our engine) that correspond to WebGL objects,
-    but maps to simple types (like TGLuint) for OpenGL / OpenGLES. }
+    but map to simple types (like TGLuint) for OpenGL / OpenGLES. }
   { }
   TGLBuffer = {$ifndef CASTLE_WEBGL} TGLuint {$else} CastleInternalJobWeb.IJSWebGLBuffer {$endif};
   TGLFramebuffer = {$ifndef CASTLE_WEBGL} TGLuint {$else} CastleInternalJobWeb.IJSWebGLFramebuffer {$endif};
