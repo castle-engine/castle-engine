@@ -172,7 +172,7 @@ uses {$ifdef windows}
        {$ifend}
       {$else}
        // Use CGE cross-platform routines for time, instead of relying on SDL.
-       // Good for Nintendo Switch and future web target.
+       // Good for Nintendo Switch and web target.
        // SDL,
        CastleTimeUtils,
        {$define USE_CASTLE_TIME_UTILS}
@@ -10516,9 +10516,6 @@ begin
   ia:=int64(tv.tv_sec)*int64(1000000);
   ib:=tv.tv_usec;
   result:=ia+ib;
-{$elseif defined(WASI)}
- // TODO: WebAssembly: Time not implemented
- result:=1;
 {$else}
  result:=SDL_GetTicks;
 {$ifend}
@@ -10601,9 +10598,6 @@ begin
   while NowTime<EndTime do begin
    NowTime:=GetTime;
   end;
-{$elseif defined(WASI)}
-  // TODO: WebAssembly: Time not implemented.
-  // .. but also, this Sleep should be never used by anything.
 {$else}
   NowTime:=GetTime;
   EndTime:=NowTime+Delay;
