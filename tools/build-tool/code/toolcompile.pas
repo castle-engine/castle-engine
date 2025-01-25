@@ -672,7 +672,7 @@ begin
           FPC crashes with
             x3dnodes_coordinate3_1.inc(69,3) Fatal: Internal error 2018042601
           I assume this is known, even wiki page about Wasm32 says to use -O-
-        }
+          TODO: web: submit FPC bug }
         FpcOptions.Add('-O-');
       end else
         FpcOptions.Add('-O2');
@@ -708,7 +708,8 @@ begin
               when it sums up 0 + 0 + 0 (on Cardinal; are the unsigned Cardinal
               the reason for the problem?).
               Simplifying TCastleWindow.GetColorBits only causes EIntOverflow
-              further down. }
+              further down.
+              TODO: web: submit FPC bug }
             FpcOptions.Add('-Co-');
           FpcOptions.Add('-Sa'); // Assertions
           FpcOptions.Add('-CR'); // Verify method calls

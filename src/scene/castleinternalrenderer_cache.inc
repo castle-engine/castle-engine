@@ -676,7 +676,7 @@ begin
     and both internal and external formats to GL_DEPTH_COMPONENT_ARB
     (will match depth buffer precision). }
   {$ifdef CASTLE_WEBGL}
-  // TODO: Fix initializing empty depth texture on WebGL
+  // TODO: web: Fix initializing empty depth texture on WebGL
   {$else}
   glTexImage2d(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT,
     Width, Height, 0, GL_DEPTH_COMPONENT, ImageType, nil);
