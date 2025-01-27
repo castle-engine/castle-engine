@@ -43,6 +43,7 @@ const
 type
   { Main project management. }
   TProjectForm = class(TForm)
+    ActionRunDevices: TAction;
     ActionExportToModel: TAction;
     ActionCopyUrl: TAction;
     ActionRunParameterPretendTouchDevice: TAction;
@@ -117,6 +118,9 @@ type
     MenuItem19: TMenuItem;
     MenuItem43: TMenuItem;
     MenuItem44: TMenuItem;
+    MenuItem45: TMenuItem;
+    MenuItemInstall: TMenuItem;
+    MenuItemAndroid: TMenuItem;
     Separator15: TMenuItem;
     MenuItem46: TMenuItem;
     MenuItemRunParameterPretendTouchDevice: TMenuItem;
@@ -214,7 +218,6 @@ type
     MenuItemWindow: TMenuItem;
     MenuItemPackageFormat: TMenuItem;
     MenuItemSeparator12312332424: TMenuItem;
-    MenuItemInstall: TMenuItem;
     MenuItemSeparator12312131: TMenuItem;
     MenuItemPlatform: TMenuItem;
     MenuItemDesignNewNonVisualCustomRoot: TMenuItem;
@@ -354,6 +357,7 @@ type
     procedure ActionModeTranslateExecute(Sender: TObject);
     procedure ActionPlayStopExecute(Sender: TObject);
     procedure ActionPlayStopUpdate(Sender: TObject);
+    procedure ActionRunDevicesExecute(Sender: TObject);
     procedure ActionRunParameterCapabilitiesDefaultExecute(Sender: TObject);
     procedure ActionRunParameterCapabilitiesForceFixedFunctionExecute(
       Sender: TObject);
@@ -1108,6 +1112,11 @@ begin
     BitBtnPlayStop.Hint := 'Compile and Run (F9)';
   end;
   //BitBtnPlayStop.Checked := NowIsRunning;
+end;
+
+procedure TProjectForm.ActionRunDevicesExecute(Sender: TObject);
+begin
+  BuildToolCall(['devices']);
 end;
 
 procedure TProjectForm.ActionRunParameterCapabilitiesDefaultExecute(
@@ -3468,6 +3477,7 @@ begin
   MenuItemCache.Enabled := EnableRun;
   MenuItemCacheClean.Enabled := EnableRun;
   ActionRegenerateProject.Enabled := EnableRun;
+  ActionRunDevices.Enabled := EnableRun;
 
   MenuItemStopProcess.Enabled := not EnableRun;
 

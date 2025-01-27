@@ -683,9 +683,15 @@ object ProjectForm: TProjectForm
       object MenuItemSeparator12312332424: TMenuItem
         Caption = '-'
       end
-      object MenuItemInstall: TMenuItem
-        Caption = 'Install (only Android now)'
-        OnClick = MenuItemInstallClick
+      object MenuItemAndroid: TMenuItem
+        Caption = 'Android'
+        object MenuItemInstall: TMenuItem
+          Caption = 'Install'
+          OnClick = MenuItemInstallClick
+        end
+        object MenuItem45: TMenuItem
+          Action = ActionRunDevices
+        end
       end
       object MenuItemSeparator3: TMenuItem
         Caption = '-'
@@ -1402,8 +1408,13 @@ object ProjectForm: TProjectForm
     end
     object ActionExportToModel: TAction
       Category = 'Data'
-      Caption = 'Export Viewport to X3D, STL...'
+      Caption = 'Export Viewport to X3D, STL, IFC...'
       OnExecute = ActionExportToModelExecute
+    end
+    object ActionRunDevices: TAction
+      Category = 'Run'
+      Caption = 'Detect Devices'
+      OnExecute = ActionRunDevicesExecute
     end
   end
   object OpenPascalUnitDialog: TCastleOpenPascalUnitDialog
