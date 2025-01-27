@@ -1,6 +1,6 @@
 {%MainUnit x3dnodes.pas}
 {
-  Copyright 2002-2022 Michalis Kamburelis.
+  Copyright 2002-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -77,6 +77,72 @@
       (see https://castle-engine.io/x3d_extensions.php#section_ext_alpha_channel_detection ).
       In case of MultiTexture node, looks at children. }
     function AlphaChannelFinal: TAlphaChannel; virtual;
+
+    { Query pixel color of the texture at the given texture coordinates.
+
+      Texture coordinates can be given as 2D or 4D vector.
+
+      @unorderedList(
+        @item(2D texture coordinates are most common way to address 2D textures.
+
+          The X coordinate is horizontal, going from left to right, in the range 0..1.
+          The Y coordinate is vertical, going from bottom to top, in the range 0..1
+          For example, @code(Vector2(0, 0)) is the bottom-left corner of the texture,
+          @code(Vector2(1, 1)) is the top-right corner of the texture,
+          @code(Vector2(0.5, 0.5)) is the center of the texture.)
+
+        @item(4D texture coordinates can be used to address 2D or 3D textures
+          using homogeneous coordinates.)
+
+        @item(Using 2D coordinates is just a shortcut for 4D coordinates
+          with Z = 0, W = 1.
+          So @code(MyTexture.Color(Vector2(0.123, 0.456)))
+          is equivalent to @code(MyTexture.Color(Vector4(0.123, 0.456, 0, 1))).)
+      )
+
+      This method replicates (doing on CPU) what the GPU is doing
+      when rendering a shape with this texture set as the main texture
+      (@link(TX3DGraphTraverseState.MainTexture)). We handle the most common
+      texture setups, but we do not handle all the possibilities that
+      OpenGL rendering supports. Details:
+
+      @unorderedList(
+        @item(We support texture filtering using either "nearest" or "bilinear"
+          modes.
+
+          We do not support texture filtering using mipmaps, we ignore mipmaps
+          for now. We do not support different filtering along different axes,
+          e.g. X axis doing "nearest" while Y axis doing "bilinear".
+          We do not support anisotropic filtering (this would actually need
+          additional information to be given as input).)
+
+        @item(We handle single textures (not TMultiTextureNode).
+
+          When the TMultiTextureNode is used, we only consider the first texture.)
+
+        @item(We handle TAbstractTexture2DNode (like TImageTextureNode,
+          TPixelTextureNode).
+
+          We do not handle TMovieTextureNode for now.
+          We do not handle 3D textures or cubemap textures, for now.
+          Though they could be added --- as you see, we allow 3D and even 4D
+          texture coordinates.)
+
+        @item(We only handle the situation when the image defined is @italic(not)
+          GPU compressed. That is, image must be @link(TCastleImage),
+          not @link(TGPUCompressedImage).)
+
+        @item(In case of situations mentioned above that are not implemented
+          (e.g. TGPUCompressedImage),
+          this method will return opaque @link(White) color.)
+      )
+
+      See https://forum.castle-engine.io/t/transformundermouse-with-alpha-pixels-check-for-quad-based-transforms/1494/3
+      for a practical usage example of this.
+    }
+    function Color(const TexCoord: TVector2): TCastleColor; overload;
+    function Color(const TexCoord: TVector4): TCastleColor; overload;
+
   {$I auto_generated_node_helpers/x3dnodes_x3dtexturenode.inc}
   end;
 
@@ -498,6 +564,179 @@ end;
 function TAbstractTextureNode.TextureDescription: string;
 begin
   Result := X3DType;
+end;
+
+function TAbstractTextureNode.Color(const TexCoord: TVector2): TCastleColor;
+begin
+  Result := Color(Vector4(TexCoord.X, TexCoord.Y, 0, 1));
+end;
+
+function TAbstractTextureNode.Color(const TexCoord: TVector4): TCastleColor;
+
+  function DivUnsignedModulo(const Dividend: Integer; const Divisor: Integer): Integer;
+  var
+    DivResult: Smallint;
+    DivRemainder: Word;
+  begin
+    DivUnsignedMod(Dividend, Divisor, DivResult, DivRemainder);
+    Result := DivRemainder;
+  end;
+
+var
+  RepeatCoord: array [0..2] of boolean;
+
+  function SampleNearest(const Image: TCastleImage; const Pixel: TVector3): TCastleColor;
+  var
+    I: Integer;
+    Dimensions: TVector3Cardinal;
+    PixelInt: TVector3Integer;
+  begin
+    Dimensions := Image.Dimensions;
+    for I := 0 to 2 do
+    begin
+      PixelInt.Data[I] := Round(Pixel[I] - 0.5);
+      if RepeatCoord[I] then
+        PixelInt.Data[I] := DivUnsignedModulo(PixelInt[I], Dimensions[I])
+      else
+        PixelInt.Data[I] := Clamped(PixelInt[I], 0, Dimensions[I] - 1);
+    end;
+    Result := Image.Colors[PixelInt[0], PixelInt[1], PixelInt[2]];
+  end;
+
+  // This works OK, but is not needed now (as it ~2 times slower than SampleLinear2D).
+  {
+  function SampleLinear(const Image: TCastleImage; Pixel: TVector3): TCastleColor;
+  var
+    I: Integer;
+    Dimensions: TVector3Cardinal;
+    PixelInt: array [boolean, 0..2] of Integer;
+    PixelFrac: TVector3;
+  begin
+    Dimensions := Image.Dimensions;
+    for I := 0 to 2 do
+    begin
+      if RepeatCoord[I] then
+        Pixel[I] := FloatModulo(Pixel[I], Dimensions[I])
+      else
+        Pixel[I] := Clamped(Pixel[I], 0, Dimensions[I]);
+    end;
+
+    for I := 0 to 2 do
+    begin
+      PixelInt[false][I] := Clamped(Floor(Pixel[I]), 0, Dimensions[I] - 1);
+      PixelInt[true ][I] := Min(PixelInt[false][I] + 1, Dimensions[I] - 1);
+      PixelFrac[I] := Clamped(Pixel[I] - PixelInt[false][I], 0.0, 1.0);
+    end;
+
+    Result :=
+      Image.Colors[PixelInt[false][0], PixelInt[false][1], PixelInt[false][2]] * (1 - PixelFrac[0]) * (1 - PixelFrac[1]) * (1 - PixelFrac[2]) +
+      Image.Colors[PixelInt[false][0], PixelInt[false][1], PixelInt[ true][2]] * (1 - PixelFrac[0]) * (1 - PixelFrac[1]) * (    PixelFrac[2]) +
+      Image.Colors[PixelInt[false][0], PixelInt[ true][1], PixelInt[false][2]] * (1 - PixelFrac[0]) * (    PixelFrac[1]) * (1 - PixelFrac[2]) +
+      Image.Colors[PixelInt[false][0], PixelInt[ true][1], PixelInt[ true][2]] * (1 - PixelFrac[0]) * (    PixelFrac[1]) * (    PixelFrac[2]) +
+      Image.Colors[PixelInt[ true][0], PixelInt[false][1], PixelInt[false][2]] * (    PixelFrac[0]) * (1 - PixelFrac[1]) * (1 - PixelFrac[2]) +
+      Image.Colors[PixelInt[ true][0], PixelInt[false][1], PixelInt[ true][2]] * (    PixelFrac[0]) * (1 - PixelFrac[1]) * (    PixelFrac[2]) +
+      Image.Colors[PixelInt[ true][0], PixelInt[ true][1], PixelInt[false][2]] * (    PixelFrac[0]) * (    PixelFrac[1]) * (1 - PixelFrac[2]) +
+      Image.Colors[PixelInt[ true][0], PixelInt[ true][1], PixelInt[ true][2]] * (    PixelFrac[0]) * (    PixelFrac[1]) * (    PixelFrac[2]);
+  end;
+  }
+
+  function SampleLinear2D(const Image: TCastleImage; Pixel: TVector3): TCastleColor;
+  var
+    I: Integer;
+    Dimensions: TVector3Cardinal;
+    PixelInt: array [boolean, 0..1] of Integer;
+    PixelFrac: TVector2;
+  begin
+    Dimensions := Image.Dimensions;
+    for I := 0 to 1 do
+    begin
+      if RepeatCoord[I] then
+        Pixel.Data[I] := FloatModulo(Pixel[I], Dimensions[I])
+      else
+        Pixel.Data[I] := Clamped(Pixel[I], 0, Dimensions[I]);
+    end;
+
+    for I := 0 to 1 do
+    begin
+      // TODO: this is not correct in case RepeatCoord[I],
+      // it will not filter 100% nicely on the border pixels
+      PixelInt[false][I] := Clamped(Floor(Pixel[I]), 0, Dimensions[I] - 1);
+      PixelInt[true ][I] := Min(PixelInt[false][I] + 1, Dimensions[I] - 1);
+      PixelFrac.Data[I] := Clamped(Pixel[I] - PixelInt[false][I], 0.0, 1.0);
+    end;
+
+    Result :=
+      Image.Colors[PixelInt[false][0], PixelInt[false][1], 0] * (1 - PixelFrac[0]) * (1 - PixelFrac[1]) +
+      Image.Colors[PixelInt[ true][0], PixelInt[false][1], 0] * (    PixelFrac[0]) * (1 - PixelFrac[1]) +
+      Image.Colors[PixelInt[false][0], PixelInt[ true][1], 0] * (1 - PixelFrac[0]) * (    PixelFrac[1]) +
+      Image.Colors[PixelInt[ true][0], PixelInt[ true][1], 0] * (    PixelFrac[0]) * (    PixelFrac[1]);
+  end;
+
+var
+  SingleTexture: TX3DNode;
+  Texture2D: TAbstractTexture2DNode;
+  EncodedImage: TEncodedImage;
+  Image: TCastleImage;
+  TexCoord3D: TVector3;
+  Pixel: TVector3;
+  Bilinear: boolean;
+begin
+  Result := White;
+
+  SingleTexture := nil;
+  if Self is TMultiTextureNode { also makes sure Texture <> nil } then
+  begin
+    if TMultiTextureNode(Self).FdTexture.Count > 0 then
+      SingleTexture := TMultiTextureNode(Self).FdTexture[0];
+  end else
+    SingleTexture := Self;
+
+  if SingleTexture is TAbstractTexture2DNode { also makes sure SingleTexture <> nil } then
+  begin
+    // TODO: 3D textures could be handled easily too!
+    Texture2D := TAbstractTexture2DNode(SingleTexture);
+    if Texture2D.IsTextureImage then
+    begin
+      EncodedImage := Texture2D.TextureImage;
+      if (EncodedImage is TCastleImage) and
+         (not EncodedImage.IsEmpty) and
+         (not IsZero(TexCoord[3])) then
+      begin
+        Image := TCastleImage(EncodedImage);
+        TexCoord3D := TexCoord.ToPosition;
+        Pixel := Vector3(
+          TexCoord3D[0] * Image.Width,
+          TexCoord3D[1] * Image.Height,
+          TexCoord3D[2] * Image.Depth
+        );
+        if IsNan(TexCoord[0]) then
+        begin
+          // TODO: bug on demo-models/bump_mapping/bump_mapping_leaf_test.wrl
+          {
+          Writeln(Pixel.ToRawString);
+          Writeln(TexCoord3D.ToRawString);
+          Writeln(TexCoord.ToRawString);
+          Writeln(Image.Width, ' ', Image.Height, ' ', Image.Depth);
+          }
+          Exit;
+        end;
+
+        RepeatCoord[0] := Texture2D.RepeatS;
+        RepeatCoord[1] := Texture2D.RepeatT;
+        RepeatCoord[2] := false { Texture2D.RepeatR };
+
+        Bilinear := not (
+          (Texture2D.TextureProperties <> nil) and
+          // TODO: we should look either at MagnificationFilter or MinificationFilter
+          (Texture2D.TextureProperties.MagnificationFilter = magNearest)
+        );
+        if Bilinear then
+          Result := SampleLinear2D(Image, Pixel)
+        else
+          Result := SampleNearest(Image, Pixel);
+      end;
+    end;
+  end;
 end;
 
 { TAbstractSingleTextureNode -------------------------------------------------------- }
