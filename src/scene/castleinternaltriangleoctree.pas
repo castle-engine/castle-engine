@@ -198,9 +198,11 @@ type
       const Normal: TTriangle3; const TexCoord: TTriangle4;
       const Face: TFaceIndex);
 
-    { Internal for cooperation with TShapeOctree.
+    { For every triangle, call TTriangle.UpdateSceneSpace and then
+      EnumerateTriangleFunc.
+      Internal for cooperation with TShapeOctree.
       @exclude }
-    procedure EnumerateTrianglesUpdateWorld(
+    procedure EnumerateTrianglesUpdateSceneSpace(
       EnumerateTriangleFunc: TEnumerateTriangleFunc);
   end;
 
@@ -601,7 +603,7 @@ begin
   end;
 end;
 
-procedure TTriangleOctree.EnumerateTrianglesUpdateWorld(
+procedure TTriangleOctree.EnumerateTrianglesUpdateSceneSpace(
   EnumerateTriangleFunc: TEnumerateTriangleFunc);
 var
   I: Integer;
@@ -610,7 +612,7 @@ begin
   T := PTriangle(Triangles.L);
   for I := 0 to Triangles.Count - 1 do
   begin
-    T^.UpdateWorld;
+    T^.UpdateSceneSpace;
     EnumerateTriangleFunc(T);
     Inc(T);
   end;

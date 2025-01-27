@@ -760,9 +760,9 @@ var
 
     IntersectNormal :=
       {$ifdef CONSERVE_TRIANGLE_MEMORY}
-      IntersectNode^.World.Plane.XYZ
+      IntersectNode^.SceneSpace.Plane.XYZ
       {$else}
-      IntersectNode^.INormalWorldSpace(Intersection)
+      IntersectNode^.INormalCore(Intersection)
       {$endif};
 
     MaterialInfo := IntersectNode^.MaterialInfo;
@@ -1082,8 +1082,8 @@ const
        (CachedShadower <> Item) then
     begin
       Inc(TriangleCollisionTestsCounter);
-      if IsTriangleSegmentCollision(CachedShadower^.World.Triangle,
-        CachedShadower^.World.Plane, ItemPoint, LightSourcePoint) then
+      if IsTriangleSegmentCollision(CachedShadower^.SceneSpace.Triangle,
+        CachedShadower^.SceneSpace.Plane, ItemPoint, LightSourcePoint) then
         Exit(true);
 
       { powyzej zapominamy o marginesie epsilonowym wokol ItemPoint i
@@ -1205,7 +1205,7 @@ const
             Lepiej pozniej sprawdz ze SampleLightPoint jest
             rozny od Intersection (poniewaz SampleLightPoint jest losowy to na
             nieprawidlowo skonstruowanym modelu wszystko moze sie zdarzyc...)  }
-          SampleLightPoint := LightSource^.World.Triangle.RandomPoint;
+          SampleLightPoint := LightSource^.SceneSpace.Triangle.RandomPoint;
           if TVector3.Equals(SampleLightPoint, Intersection) then Continue;
 
           { calculate LigtDirNorm (nieznormalizowane).
@@ -1235,20 +1235,20 @@ const
           { Wymnoz DirectColor
             1) przez GeometryFunction czyli
                  cos(LightDirNorm, IntersectNormal)
-                   * cos(-LightDirNorm, LightSource.World.Normal) /
+                   * cos(-LightDirNorm, LightSource.SceneSpace.Normal) /
                    PointsDistanceSqr(SampleLightPoint, Intersection).
                Cosinusy naturalnie licz uzywajac dot product.
             2) przez TriangleArea
 
             Mozna zauwazyc ze czlon
               TriangleArea *
-              cos(-LightDirNorm, LightSource.World.Normal) /
+              cos(-LightDirNorm, LightSource.SceneSpace.Normal) /
                 PointsDistanceSqr(SampleLightPoint, Intersection)
             liczy po prostu solid angle swiatla with respect to Intersection
             (no, mowiac scisle pewne bardzo dobre przyblizenie tego solid angle).
 
             Moze byc tutaj pouczajace zobaczyc jak to dziala gdy usuniemy mnozenie
-              przez cos(-LightDirNorm, LightSource.World.Normal)
+              przez cos(-LightDirNorm, LightSource.SceneSpace.Normal)
               (swiatlo bedzie wtedy jasniej swiecilo jakby "w bok"),
             pouczajace moze tez byc usuniecie dzielenia przez
               PointsDistanceSqr(SampleLightPoint, Intersection) i jednoczesnie
@@ -1263,9 +1263,9 @@ const
           DirectColor *=
             TVector3.DotProduct(LightDirNorm, IntersectNormal) *
             TVector3.DotProduct(NegatedLightDirNorm,
-              PlaneDirInDirection(LightSource^.World.Plane,
+              PlaneDirInDirection(LightSource^.SceneSpace.Plane,
                 NegatedLightDirNorm)) *
-            LightSource^.World.Area /
+            LightSource^.SceneSpace.Area /
             PointsDistanceSqr(SampleLightPoint, Intersection);
 
           Result := Result + DirectColor;
@@ -1355,9 +1355,9 @@ const
         begin
           IntersectNormal :=
             {$ifdef CONSERVE_TRIANGLE_MEMORY}
-            IntersectNode^.World.Plane.XYZ
+            IntersectNode^.SceneSpace.Plane.XYZ
             {$else}
-            IntersectNode^.INormalWorldSpace(Intersection)
+            IntersectNode^.INormalCore(Intersection)
             {$endif};
           { choose normal at Intersection pointing in the direction of RayOrigin }
           IntersectNormal := PlaneDirNotInDirection(IntersectNormal, RayDirection);
