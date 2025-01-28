@@ -131,11 +131,12 @@ begin
       Helper.Indexes := TIntegerList.Create;
       for Shape in Scene.Shapes.TraverseList(true) do
         Shape.Triangulate({$ifdef FPC}@{$endif} Helper.ProcessTriangle,
-          { FrontFaceAlwaysCcw necessary,
-            since IFC always make backface culling from CCW }
-          true);
+          { FrontFaceAlwaysCcw unnecessary,
+            as we pass Solid = false below to AddMeshRepresentation,
+            so backface culling is disabled. }
+          false);
       Element.AddMeshRepresentation(Result.Project.ModelContext,
-        Helper.Vertexes.ToArray, Helper.Indexes.ToArray);
+        Helper.Vertexes.ToArray, Helper.Indexes.ToArray, false);
     finally FreeAndNil(Helper) end;
   finally FreeAndNil(Scene) end;
 

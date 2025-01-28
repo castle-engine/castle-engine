@@ -907,6 +907,7 @@ begin
 
   IndexedFaceSet := TIndexedFaceSetNode.Create('', Mapping.BaseUrl);
   IndexedFaceSet.Coord := Coord;
+  IndexedFaceSet.Solid := Closed;
 
   for Face in Faces do
   begin
