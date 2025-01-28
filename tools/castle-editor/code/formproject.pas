@@ -3463,6 +3463,7 @@ begin
     QueueItem.Parameters.Add(Command);
     // add --mode=xxx parameter
     if not (
+        // we list the few commands that ignore --mode below
         (Command = 'package-source') or
         (Command = 'clean') or
         (Command = 'auto-generate-textures') or
@@ -3471,7 +3472,8 @@ begin
         (Command = 'editor') or
         (Command = 'editor-rebuild-if-needed') or
         (Command = 'editor-run') or
-        (Command = 'cache')
+        (Command = 'cache') or
+        (Command = 'devices')
       ) then
       AddModeParameters(QueueItem.Parameters);
     // add --compiler parameter
@@ -3483,6 +3485,7 @@ begin
        (Command = 'run') or
        (Command = 'package') or
        (Command = 'install') or
+       (Command = 'uninstall') or
        (Command = 'cache') then
       AddPlatformParameters(QueueItem.Parameters, PlatformsInfo[CurrentPlatformInfo]);
     // add --package-format
