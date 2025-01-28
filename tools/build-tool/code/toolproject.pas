@@ -884,7 +884,9 @@ begin
     pfAndroidApk, pfAndroidAppBundle:
       InstallAndroid(Self, Mode, PackageFormatFinal, PackageNameIncludeVersion);
     else
-      raise Exception.Create('The "install" command is not useful for this target / OS / CPU right now. Install the application manually.');
+      //raise Exception.Create('The "install" command is not useful for this target / OS / CPU right now. Install the application manually.');
+      // Less generic message, hardcoding that only Android makes sense now.
+      raise Exception.Create('The "install" command is only useful on Android now (change target platform to Android)');
   end;
 end;
 
@@ -895,7 +897,11 @@ begin
     [Name, TargetCompleteToString(Target, OS, CPU)]));
 
   if (Target = targetAndroid) or (OS = Android) then
-    UninstallAndroid(Self);
+    UninstallAndroid(Self)
+  else
+    //raise Exception.Create('The "uninstall" command is not useful for this target / OS / CPU right now.');
+    // Less generic message, hardcoding that only Android makes sense now.
+    raise Exception.Create('The "uninstall" command is only useful on Android now (change target platform to Android)');
 end;
 
 procedure TCastleProject.DoRun(const Target: TTarget;
