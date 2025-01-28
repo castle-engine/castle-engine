@@ -185,6 +185,7 @@
   TIfcCartesianPoint = class;
   TIfcFeatureElementSubtraction = class;
   TIfcRepresentationMap = class;
+  TIfcPolygonalFaceSetList = class;
 
   { Float type used throughout IFC.
 
@@ -503,7 +504,7 @@
   TIfcIndexedPolygonalFace = class(TIfcTessellatedItem)
   strict private
     FCoordIndex: TIntegerList;
-    // TODO FToFaceSet: TIfcPolygonalFaceSetList;
+    FToFaceSet: TIfcPolygonalFaceSetList;
     // TODO FHasTexCoords: TIfcTextureCoordinateIndices;
   public
     constructor Create(AOwner: TComponent); override;
@@ -518,7 +519,7 @@
     property CoordIndex: TIntegerList read FCoordIndex;
 
     { Reference to the IfcPolygonalFaceSet for which this face is associated. }
-    // TODO property ToFaceSet: TIfcPolygonalFaceSetList read FToFaceSet;
+    property ToFaceSet: TIfcPolygonalFaceSetList read FToFaceSet;
 
     { Optional reference to the IfcTextureCoordinateIndices that provide
       the texture coordinates for applying textures to this face. }
@@ -559,6 +560,8 @@
     FClosed: Boolean;
     FFaces: TIfcIndexedPolygonalFaceList;
     FPnIndex: TIntegerList;
+  protected
+    function WantsGlobalId: Boolean; override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -581,6 +584,8 @@
       polygonal faces. If the PnIndex is not provided the indices
       at the indexed polygonal faces point directly into the IfcCartesianPointList3D. }
     property PnIndex: TIntegerList read FPnIndex;
+  end;
+  TIfcPolygonalFaceSetList = class({$ifdef FPC}specialize{$endif} TObjectList<TIfcPolygonalFaceSet>)
   end;
 
   { Curve in 2D or 3D.
@@ -2172,7 +2177,8 @@
     procedure AddMeshRepresentation(
       const Context: TIfcGeometricRepresentationContext;
       const Coordinates: array of TVector3;
-      const Indexes: array of Integer);
+      const Indexes: array of Integer;
+      const Solid: Boolean = true);
 
     { Add box representation to the given product.
 
@@ -4447,7 +4453,8 @@ end;
 procedure TIfcProduct.AddMeshRepresentation(
   const Context: TIfcGeometricRepresentationContext;
   const Coordinates: array of TVector3;
-  const Indexes: array of Integer);
+  const Indexes: array of Integer;
+  const Solid: Boolean);
 var
   PolygonalFaceSet: TIfcPolygonalFaceSet;
   NewRepresentation: TIfcRepresentation;
@@ -4462,6 +4469,7 @@ begin
 
   PolygonalFaceSet := TIfcPolygonalFaceSet.Create(Owner);
   PolygonalFaceSet.Coordinates := IfcCoordinates;
+  PolygonalFaceSet.Closed := Solid;
 
   // split Indexes into faces
   FaceBegin := 0;
@@ -4492,6 +4500,7 @@ begin
     end else
     begin
       Face := TIfcIndexedPolygonalFace.Create(Owner);
+      Face.ToFaceSet.Add(PolygonalFaceSet);
       for I := FaceBegin to FaceEnd - 1 do
         Face.CoordIndex.Add(Indexes[I] + 1); // indexes are 1-based in IFC
       PolygonalFaceSet.Faces.Add(Face);
@@ -5433,13 +5442,13 @@ constructor TIfcIndexedPolygonalFace.Create(AOwner: TComponent);
 begin
   inherited;
   FCoordIndex := TIntegerList.Create;
-  // TODO FToFaceSet := TIfcPolygonalFaceSetList.Create(false);
+  FToFaceSet := TIfcPolygonalFaceSetList.Create(false);
 end;
 
 destructor TIfcIndexedPolygonalFace.Destroy;
 begin
   FreeAndNil(FCoordIndex);
-  // TODO FreeAndNil(FToFaceSet);
+  FreeAndNil(FToFaceSet);
   inherited;
 end;
 
@@ -5448,12 +5457,10 @@ end;
 constructor TIfcTessellatedFaceSet.Create(AOwner: TComponent);
 begin
   inherited;
-  // TODO FToFaceSet := TIfcPolygonalFaceSetList.Create(false);
 end;
 
 destructor TIfcTessellatedFaceSet.Destroy;
 begin
-  // TODO FreeAndNil(FToFaceSet);
   inherited;
 end;
 
@@ -5471,6 +5478,13 @@ begin
   FreeAndNil(FFaces);
   FreeAndNil(FPnIndex);
   inherited;
+end;
+
+function TIfcPolygonalFaceSet.WantsGlobalId: Boolean;
+begin
+  { Needed to make IfcIndexedPolygonalFace.ToFaceSet be a reference.
+    Testcase: save any model with non-empty IfcPolygonalFaceSet. }
+  Result := true;
 end;
 
 { TIfcPolyline ------------------------------------------------------------- }

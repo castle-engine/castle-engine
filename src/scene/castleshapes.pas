@@ -138,9 +138,11 @@ type
       This is a shortcut for @link(Shape).State. }
     function State: TX3DGraphTraverseState;
 
-    { Use State.Transform to update triangle @link(TTriangle.World) geometry
-      from triangle @link(TTriangle.Local) geometry. }
-    procedure UpdateWorld;
+    { Use State.Transform to update @link(TTriangle.SceneSpace) geometry
+      from @link(TTriangle.Local) geometry. }
+    procedure UpdateSceneSpace;
+
+    procedure UpdateWorld; deprecated 'use UpdateSceneSpace';
 
     { X3D shape node of this triangle. May be @nil in case of VRML 1.0. }
     function ShapeNode: TAbstractShapeNode;
@@ -167,15 +169,6 @@ type
       (with Material.Transparency > 0) and non-shadow-casting triangles
       (with Appearance.shadowCaster = FALSE). }
     function IgnoreForShadowRays: boolean;
-
-    {$ifndef CONSERVE_TRIANGLE_MEMORY}
-    { For a given position (in world coordinates), return the smooth
-      normal vector at this point, with the resulting normal vector
-      in world coordinates.
-
-      @seealso TTriangle.INormal }
-    function INormalWorldSpace(const Point: TVector3): TVector3;
-    {$endif}
   end;
 
   { Tree of shapes.
@@ -1146,13 +1139,18 @@ begin
   Result := TShape(InternalShape).State;
 end;
 
+procedure TTriangleHelper.UpdateSceneSpace;
+begin
+  SceneSpace.Triangle := Local.Triangle.Transform(State.Transformation.Transform);
+  {$ifndef CONSERVE_TRIANGLE_MEMORY_MORE}
+  SceneSpace.Plane := SceneSpace.Triangle.NormalizedPlane;
+  SceneSpace.Area := SceneSpace.Triangle.Area;
+  {$endif}
+end;
+
 procedure TTriangleHelper.UpdateWorld;
 begin
-  World.Triangle := Local.Triangle.Transform(State.Transformation.Transform);
-  {$ifndef CONSERVE_TRIANGLE_MEMORY_MORE}
-  World.Plane := World.Triangle.NormalizedPlane;
-  World.Area := World.Triangle.Area;
-  {$endif}
+  UpdateSceneSpace;
 end;
 
 function TTriangleHelper.ShapeNode: TAbstractShapeNode;
@@ -1198,13 +1196,6 @@ begin
   Result := ({ IsTransparent } Transparency > SingleEpsilon) or
     NonShadowCaster(State);
 end;
-
-{$ifndef CONSERVE_TRIANGLE_MEMORY}
-function TTriangleHelper.INormalWorldSpace(const Point: TVector3): TVector3;
-begin
-  Result := State.Transformation.Transform.MultDirection(INormalCore(Point)).Normalize;
-end;
-{$endif not CONSERVE_TRIANGLE_MEMORY}
 
 { TShapeTree ------------------------------------------------------------ }
 

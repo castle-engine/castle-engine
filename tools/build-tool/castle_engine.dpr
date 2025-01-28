@@ -1,5 +1,5 @@
 {
-  Copyright 2014-2024 Michalis Kamburelis.
+  Copyright 2014-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -210,6 +210,10 @@ begin
             NL+
             'cache-clean' +NL+
             '    Remove the cache directory.' + NL +
+            NL+
+            'devices' +NL+
+            '    Available devices (independent of any project).' + NL +
+            '    For now, only lists Android devices.' + NL +
             NL+
             'create-manifest' +NL+
             '    (Deprecated) Creates simple CastleEngineManifest.xml with guessed values.' +NL+
@@ -438,6 +442,11 @@ begin
   begin
     Parameters.CheckHigh(2);
     DoOutputEnvironment(Parameters[2]);
+  end else
+  if Command = 'devices' then
+  begin
+    Parameters.CheckHigh(1);
+    WritelnAndroidDevices;
   end else
   if Command = 'create' then
   begin

@@ -53,6 +53,10 @@ procedure InstallAndroid(const Project: TCastleProject;
 
 procedure RunAndroid(const Project: TCastleProject);
 
+{ Output list of Android devices, like "adb devices" does.
+  This detects adb executable and runs it. }
+procedure WritelnAndroidDevices;
+
 implementation
 
 uses SysUtils, DOM, XMLWrite,
@@ -663,6 +667,12 @@ begin
   }
   //ExecuteProcess(AdbExe, ['logcat', '-s', LogTag + ':V']);
   RunCommandSimple(AdbExe, ['logcat', '-s', LogTag + ':V']);
+end;
+
+procedure WritelnAndroidDevices;
+begin
+  Writeln('Detecting Android devices:');
+  RunCommandSimple(AdbExe, ['devices']);
 end;
 
 end.

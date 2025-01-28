@@ -83,8 +83,8 @@
     { Colliding object. }
     Item: TCastleTransform;
 
-    { Position, in local coordinate system of this 3D object,
-      of the picked 3D point.
+    { Position of the picked point.
+      Expressed in the parent coordinate system of the TCastleTransform in @link(Item).
 
       If the ray hit empty space (@link(Triangle) field is @nil),
       then this is undefined.

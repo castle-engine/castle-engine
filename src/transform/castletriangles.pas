@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2022 Michalis Kamburelis.
+  Copyright 2003-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -228,22 +228,24 @@ type
           TBaseTrianglesOctree.SphereCollision, TBaseTrianglesOctree.RayCollision
           and such expect parameters in the same coord space.
 
-          This may be local coord space of this shape (this is used
-          by TShape.OctreeTriangles) or world coord space
+          This may be "local coordinate space of this TShape" (this is used
+          by TShape.OctreeTriangles) or "TCastleScene coordinate space"
           (this is used by TCastleSceneCore.OctreeTriangles).)
 
-        @item(World is the geometry of Local transformed to be in world
-          coordinates. Initially, World is just a copy of Local.
+        @item(SceneSpace is the geometry of Local transformed to be in "TCastleScene
+          coordinates space". Initially, SceneSpace is just a copy of Local.
 
-          If Local already contains world-space geometry, then World
-          can just remain constant, and so is always Local copy.
+          If Local already contains the geometry in TCastleScene coordinates,
+          then SceneSpace can just remain constant, and so is always a copy of
+          Local.
 
-          If Local contains local shape-space geometry, then World
-          will have to be updated by TTriangle.UpdateWorld whenever some octree item's
-          geometry will be needed in world coords. This will have to be
-          done e.g. by TBaseTrianglesOctree.XxxCollision for each returned item.)
+          If Local contains the geometry in "TShape coordinate space", then SceneSpace
+          will have to be updated by TTriangle.UpdateSceneSpace whenever
+          some octree item's geometry will be needed in TCastleScene coords.
+          This will have to be done e.g. by
+          TBaseTrianglesOctree.XxxCollision for each returned item.)
       ) }
-    Local, World: TTriangleGeometry;
+    Local, SceneSpace: TTriangleGeometry;
 
     { Shape containing this triangle.
       This is always an instance of TShape class, but due
@@ -315,6 +317,9 @@ type
       const ANormal: TTriangle3; const ATexCoord: TTriangle4;
       const AFace: TFaceIndex);
 
+    property World: TTriangleGeometry read SceneSpace write SceneSpace;
+      {$ifdef FPC} deprecated 'use SceneSpace'; {$endif}
+
     { Check collisions between TTriangle and ray/segment.
 
       Always use these routines to check for collisions,
@@ -340,7 +345,7 @@ type
 
     {$ifndef CONSERVE_TRIANGLE_MEMORY}
 
-    { For a given position (in world coordinates), return the texture
+    { For a given position (in local TCastleScene coordinates), return the texture
       coordinate at this point. It is an interpolated texture coordinate
       from our per-vertex texture coordinates in @link(TexCoord) field.
 
@@ -353,18 +358,16 @@ type
     function ITexCoord2D(const Point: TVector3): TVector2;
     { @groupEnd }
 
-    { For a given position (in world coordinates), return the smooth
+    { For a given position (in local TCastleScene coordinates), return the smooth
       normal vector at this point. It is an interpolated normal
       from our per-vertex normals in the @link(Normal) field,
       thus is supports also the case when you have smooth shading
       (normals change throughout the triangle).
 
-      Like the @link(Normal) field, the returned vector is
-      a normal vector in the local coordinates.
-      Use @link(TTriangleHelper.INormalWorldSpace) to get a normal vector in scene
-      coordinates.
+      The returned vector is a normal vector,
+      also in the local TCastleScene coordinates (just like Point).
 
-      This assumes that Position actally lies within the triangle. }
+      This assumes that Point actally lies within the triangle. }
     function INormal(const Point: TVector3): TVector3;
 
     { Like INormal, but not necessarily normalized. }
@@ -854,7 +857,7 @@ begin
   Local.Area := ATriangle.Area;
   {$endif}
 
-  World := Local;
+  SceneSpace := Local;
 
   InternalShape := AShape;
 
@@ -954,7 +957,7 @@ function TTriangle.ITexCoord(const Point: TVector3): TVector4;
 var
   B: TVector3;
 begin
-  B := World.Triangle.Barycentric(Point);
+  B := SceneSpace.Triangle.Barycentric(Point);
   Result := TexCoord.Data[0] * B[0] +
             TexCoord.Data[1] * B[1] +
             TexCoord.Data[2] * B[2];
@@ -972,7 +975,7 @@ function TTriangle.INormalCore(const Point: TVector3): TVector3;
 var
   B: TVector3;
 begin
-  B := World.Triangle.Barycentric(Point);
+  B := SceneSpace.Triangle.Barycentric(Point);
   Result := Normal[0] * B[0] +
             Normal[1] * B[1] +
             Normal[2] * B[2];

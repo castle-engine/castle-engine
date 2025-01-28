@@ -201,17 +201,17 @@ object ProjectForm: TProjectForm
           AutoSortIndicator = True
           AutoWidthLastColumn = True
           BorderSpacing.Around = 10
-          Columns = <          
+          Columns = <
             item
               AutoSize = True
               Caption = 'Name'
               MinWidth = 209
               Width = 209
-            end          
+            end
             item
               Caption = 'File'
               Width = 626
-            end          
+            end
             item
               Caption = 'Last Modified'
               Width = 378
@@ -689,9 +689,15 @@ object ProjectForm: TProjectForm
       object MenuItemSeparator12312332424: TMenuItem
         Caption = '-'
       end
-      object MenuItemInstall: TMenuItem
-        Caption = 'Install (only Android now)'
-        OnClick = MenuItemInstallClick
+      object MenuItemAndroid: TMenuItem
+        Caption = 'Android'
+        object MenuItemInstall: TMenuItem
+          Caption = 'Install'
+          OnClick = MenuItemInstallClick
+        end
+        object MenuItem45: TMenuItem
+          Action = ActionRunDevices
+        end
       end
       object MenuItemSeparator3: TMenuItem
         Caption = '-'
@@ -1408,8 +1414,13 @@ object ProjectForm: TProjectForm
     end
     object ActionExportToModel: TAction
       Category = 'Data'
-      Caption = 'Export Viewport to X3D, STL...'
+      Caption = 'Export Viewport to X3D, STL, IFC...'
       OnExecute = ActionExportToModelExecute
+    end
+    object ActionRunDevices: TAction
+      Category = 'Run'
+      Caption = 'Detect Devices'
+      OnExecute = ActionRunDevicesExecute
     end
     object ActionSavePlatformAsDefault: TAction
       Category = 'Run'
