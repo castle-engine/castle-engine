@@ -695,8 +695,11 @@ object ProjectForm: TProjectForm
           Caption = 'Install'
           OnClick = MenuItemInstallClick
         end
+        object MenuItem48: TMenuItem
+          Action = ActionUnInstall
+        end
         object MenuItem45: TMenuItem
-          Action = ActionRunDevices
+          Action = ActionDevices
         end
       end
       object MenuItemSeparator3: TMenuItem
@@ -1417,16 +1420,21 @@ object ProjectForm: TProjectForm
       Caption = 'Export Viewport to X3D, STL, IFC...'
       OnExecute = ActionExportToModelExecute
     end
-    object ActionRunDevices: TAction
+    object ActionDevices: TAction
       Category = 'Run'
       Caption = 'Detect Devices'
-      OnExecute = ActionRunDevicesExecute
+      OnExecute = ActionDevicesExecute
     end
     object ActionSavePlatformAsDefault: TAction
       Category = 'Run'
       Caption = 'Save Chosen Platform As Default (in Project Local Settings)'
       OnExecute = ActionSavePlatformAsDefaultExecute
       OnUpdate = ActionSavePlatformAsDefaultUpdate
+    end
+    object ActionUnInstall: TAction
+      Category = 'Run'
+      Caption = 'Uninstall'
+      OnExecute = ActionUnInstallExecute
     end
   end
   object OpenPascalUnitDialog: TCastleOpenPascalUnitDialog

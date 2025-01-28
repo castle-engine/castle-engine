@@ -43,7 +43,8 @@ const
 type
   { Main project management. }
   TProjectForm = class(TForm)
-    ActionRunDevices: TAction;
+    ActionUnInstall: TAction;
+    ActionDevices: TAction;
     ActionSavePlatformAsDefault: TAction;
     ActionExportToModel: TAction;
     ActionCopyUrl: TAction;
@@ -120,6 +121,7 @@ type
     MenuItem43: TMenuItem;
     MenuItem44: TMenuItem;
     MenuItem45: TMenuItem;
+    MenuItem48: TMenuItem;
     MenuItemInstall: TMenuItem;
     MenuItemAndroid: TMenuItem;
     Separator16: TMenuItem;
@@ -360,7 +362,7 @@ type
     procedure ActionModeTranslateExecute(Sender: TObject);
     procedure ActionPlayStopExecute(Sender: TObject);
     procedure ActionPlayStopUpdate(Sender: TObject);
-    procedure ActionRunDevicesExecute(Sender: TObject);
+    procedure ActionDevicesExecute(Sender: TObject);
     procedure ActionRunParameterCapabilitiesDefaultExecute(Sender: TObject);
     procedure ActionRunParameterCapabilitiesForceFixedFunctionExecute(
       Sender: TObject);
@@ -379,6 +381,7 @@ type
     procedure ActionSimulationPauseUnpauseUpdate(Sender: TObject);
     procedure ActionSimulationPlayStopExecute(Sender: TObject);
     procedure ActionSimulationPlayStopUpdate(Sender: TObject);
+    procedure ActionUnInstallExecute(Sender: TObject);
     procedure ActionViewportGridAxisExecute(Sender: TObject);
     procedure ActionComponentCutExecute(Sender: TObject);
     procedure ActionComponentSaveSelectedExecute(Sender: TObject);
@@ -1127,7 +1130,7 @@ begin
   //BitBtnPlayStop.Checked := NowIsRunning;
 end;
 
-procedure TProjectForm.ActionRunDevicesExecute(Sender: TObject);
+procedure TProjectForm.ActionDevicesExecute(Sender: TObject);
 begin
   BuildToolCall(['devices']);
 end;
@@ -1267,6 +1270,11 @@ begin
   ActionSimulationPlayStop.Enabled := Design <> nil;
   ActionSimulationPlayStop.Checked := (Design <> nil) and
     (CastleApplicationMode in [appSimulation, appSimulationPaused]);
+end;
+
+procedure TProjectForm.ActionUnInstallExecute(Sender: TObject);
+begin
+  BuildToolCall(['uninstall']);
 end;
 
 procedure TProjectForm.ActionComponentSaveSelectedExecute(Sender: TObject);
@@ -3578,7 +3586,8 @@ begin
   MenuItemCache.Enabled := EnableRun;
   MenuItemCacheClean.Enabled := EnableRun;
   ActionRegenerateProject.Enabled := EnableRun;
-  ActionRunDevices.Enabled := EnableRun;
+  ActionDevices.Enabled := EnableRun;
+  ActionUnInstall.Enabled := EnableRun;
 
   MenuItemStopProcess.Enabled := not EnableRun;
 
