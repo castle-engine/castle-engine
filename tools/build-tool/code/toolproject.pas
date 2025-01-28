@@ -157,6 +157,7 @@ type
       const Mode: TCompilationMode;
       const PackageFormat: TPackageFormat;
       const PackageNameIncludeVersion: Boolean);
+    procedure DoUnInstall(const Target: TTarget; const OS: TOS; const CPU: TCPU);
     procedure DoRun(const Target: TTarget; const OS: TOS; const CPU: TCPU;
       const Params: TCastleStringList);
     procedure DoPackageSource(
@@ -885,6 +886,16 @@ begin
     else
       raise Exception.Create('The "install" command is not useful for this target / OS / CPU right now. Install the application manually.');
   end;
+end;
+
+procedure TCastleProject.DoUnInstall(const Target: TTarget;
+  const OS: TOS; const CPU: TCPU);
+begin
+  Writeln(Format('Uninstalling project "%s" for %s.',
+    [Name, TargetCompleteToString(Target, OS, CPU)]));
+
+  if (Target = targetAndroid) or (OS = Android) then
+    UninstallAndroid(Self);
 end;
 
 procedure TCastleProject.DoRun(const Target: TTarget;

@@ -135,11 +135,21 @@ begin
             '    The OS, CPU and "target" can be changed just like at "compile".' +NL+
             NL+
             'install' +NL+
-            '    Install the application created by previous "package" call.' +NL+
-            '    Useful when OS is "android", it installs' +NL+
-            '    the apk package created by previous "package" call' +NL+
-            '    for Android. Useful for quick testing of your app on a device' +NL+
-            '    connected through USB.' +NL+
+            '    Install the application created by the previous "package" call.' +NL+
+            '    Useful right now only on Android (--target=android).' +NL+
+            '    Installs the APK file on a device connected by USB,' +NL+
+            '    or paired over Wi-Fi, or an emulated device.' +NL+
+            NL+
+            'uninstall' +NL+
+            '    Uninstall the application installed by the previous "install" call.' +NL+
+            '    Useful right now only on Android (--target=android).' +NL+
+            '    You usually do not need this, as "install" automatically' +NL+
+            '    overwrites the previous installation,' +NL+
+            '    if only it was installed with the same key..' +NL+
+            NL+
+            'devices' +NL+
+            '    Available devices (independent of any project).' + NL +
+            '    For now, only lists Android devices.' + NL +
             NL+
             'run' +NL+
             '    Run the application. ' +NL+
@@ -210,10 +220,6 @@ begin
             NL+
             'cache-clean' +NL+
             '    Remove the cache directory.' + NL +
-            NL+
-            'devices' +NL+
-            '    Available devices (independent of any project).' + NL +
-            '    For now, only lists Android devices.' + NL +
             NL+
             'create-manifest' +NL+
             '    (Deprecated) Creates simple CastleEngineManifest.xml with guessed values.' +NL+
@@ -486,6 +492,9 @@ begin
       end else
       if Command = 'install' then
         Project.DoInstall(Target, OS, CPU, Mode, PackageFormat, PackageNameIncludeVersion)
+      else
+      if Command = 'uninstall' then
+        Project.DoUnInstall(Target, OS, CPU)
       else
       if Command = 'run' then
       begin
