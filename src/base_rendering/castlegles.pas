@@ -1731,9 +1731,9 @@ procedure LoadGLES(const Lib: string; const AltLibName: string = '');
 begin
   FreeGLES;
   {$ifdef OpenGLES}
-  GLESLib := TDynLib.Load(Lib);
+  GLESLib := TDynLib.Load(Lib, false);
   if (GLESLib = nil) and (AltLibName <> '') then
-    GLESLib := TDynLib.Load(AltLibName);
+    GLESLib := TDynLib.Load(AltLibName, false);
   if GLESLib = nil then
     raise Exception.Create(format('Could not load library: %s',[Lib]));
   {$else}
