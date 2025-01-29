@@ -56,7 +56,7 @@ uses SysUtils, Math,
 constructor TViewMain.Create(AOwner: TComponent);
 begin
   inherited;
-  // TODO: Loading castle-data:/ not supported yet on web
+  // TODO: web: Loading castle-data:/ not supported yet on web
   // DesignUrl := 'castle-data:/gameviewmain.castle-user-interface';
 end;
 
@@ -75,7 +75,8 @@ var
 begin
   inherited;
 
-  // TODO: Would be easier to design this in gameviewmain.castle-user-interface
+  // TODO: web: No file reading on web yet, https://castle-engine.io/web
+  // Would be easier to design this in gameviewmain.castle-user-interface
   // and just load here, but web target cannot load data files yet.
 
   MainViewport := TCastleViewport.Create(FreeAtStop);

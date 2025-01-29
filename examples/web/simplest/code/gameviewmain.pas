@@ -59,7 +59,7 @@ uses SysUtils,
 constructor TViewMain.Create(AOwner: TComponent);
 begin
   inherited;
-  // TODO: No file reading with WebGL
+  // TODO: web: No file reading on web yet, https://castle-engine.io/web
   // DesignUrl := 'castle-data:/gameviewmain.castle-user-interface';
 end;
 
@@ -70,7 +70,8 @@ begin
   // non-black, to see that blending is ok
   Container.BackgroundColor := Vector4(0.1, 0.1, 0.25, 1);
 
-  // TODO: Would be easier to design this in gameviewmain.castle-user-interface
+  // TODO: web: No file reading on web yet, https://castle-engine.io/web
+  // Would be easier to design this in gameviewmain.castle-user-interface
   // and just load here, but web target cannot load data files yet.
 
   LabelFps := TCastleLabel.Create(FreeAtStop);

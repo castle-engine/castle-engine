@@ -54,7 +54,7 @@ uses SysUtils,
 constructor TViewMain.Create(AOwner: TComponent);
 begin
   inherited;
-  // TODO: Loading castle-data:/ not supported yet on web
+  // TODO: web: Loading castle-data:/ not supported yet on web
   // DesignUrl := 'castle-data:/gameviewmain.castle-user-interface';
 end;
 

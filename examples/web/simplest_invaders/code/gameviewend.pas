@@ -50,7 +50,7 @@ uses SysUtils,
 constructor TViewEnd.Create(AOwner: TComponent);
 begin
   inherited;
-  // TODO: Loading castle-data:/ not supported yet on web
+  // TODO: web: Loading castle-data:/ not supported yet on web
   // DesignUrl := 'castle-data:/gameviewend.castle-user-interface';
 end;
 

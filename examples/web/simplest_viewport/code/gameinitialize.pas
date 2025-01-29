@@ -35,7 +35,7 @@ var
 procedure ApplicationInitialize;
 begin
   { Adjust container settings for a scalable UI (adjusts to any window size in a smart way). }
-  // TODO: Loading castle-data:/ not supported yet on web
+  // TODO: web: Loading castle-data:/ not supported yet on web
   // Window.Container.LoadSettings('castle-data:/CastleSettings.xml');
 
   { Create views (see https://castle-engine.io/views ). }

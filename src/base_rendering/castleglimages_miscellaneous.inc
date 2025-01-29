@@ -125,7 +125,7 @@ const
 }
 
 {$ifdef CASTLE_WEBGL}
-{ TODO: WebGL does not support swizzle, http://www.g-truc.net/post-0734.html
+{ TODO: web: WebGL does not support swizzle, http://www.g-truc.net/post-0734.html
   Below are dummy values (takes from CastleGL, but they don't really matter,
   should not be used by anything) just to make this code compile. }
 const

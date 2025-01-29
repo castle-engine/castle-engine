@@ -49,7 +49,7 @@ uses SysUtils,
 constructor TViewInitial.Create(AOwner: TComponent);
 begin
   inherited;
-  // TODO: Loading castle-data:/ not supported yet on web
+  // TODO: web: Loading castle-data:/ not supported yet on web
   // DesignUrl := 'castle-data:/gameViewInitial.castle-user-interface';
 end;
 
