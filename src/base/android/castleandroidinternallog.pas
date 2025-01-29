@@ -25,7 +25,7 @@ type
 procedure AndroidLog(const Priority: TAndroidLogPriority; const S: string);
 procedure AndroidLog(const Priority: TAndroidLogPriority; const S: string; const Args: array of const);
 
-{ Like AndroidLog, but works better for log strings (> 4076 characters),
+{ Like AndroidLog, but works better for long strings (> 4076 characters),
   otherwise the default AndroidLog seems to cut them off. }
 procedure AndroidLogRobust(const Priority: TAndroidLogPriority; const S: string);
 
