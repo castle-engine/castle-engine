@@ -153,7 +153,7 @@ begin
   JSWindow.addEventListener('keydown', @KeyDown);
   JSWindow.addEventListener('keyup', @KeyUp);
 
-  // TODO
+  // TODO: web: initialize initial cursor position, set initial cursor, initialize DPI if possible
   // GetInitialCursorPos;
   // UpdateCursor;
   // InitializeDpi;
@@ -201,7 +201,7 @@ begin
 
   if not JsMouseButtonToCastle(Event.Button, Button) then
     Exit;
-  { TODO: Get FingerIndex from pointer event
+  { TODO: web: Get FingerIndex from pointer event
     ( https://developer.mozilla.org/en-US/docs/Web/API/Element/pointerdown_event ),
     maybe use Event.PointerId,
     to support multi-touch on mobiles. }
@@ -429,18 +429,18 @@ begin
   begin
     FCursor := Value;
     if not Closed then
-      { TODO UpdateCursor };
+      { TODO: web: UpdateCursor - is this possible on web at all? };
   end;
 end;
 
 function TCastleWindow.RedirectKeyDownToMenuClick: boolean;
 begin
-  Result := { TODO } true;
+  Result := { TODO: web: what is correct here } true;
 end;
 
 procedure TCastleWindow.SystemSetMousePosition(const Value: TVector2);
 begin
-  { TODO }
+  { TODO: web: is this possible? we need it for MouseLook. }
 end;
 
 procedure TCastleWindow.UpdateFullScreenBackend;
@@ -449,7 +449,7 @@ begin
   SimpleUpdateFullScreenBackend;
   { Some backends may provide a better way of doing this.
     Remove the above line then, and put better implementation here. }
-  // TODO: go to fullscreen in WebGL
+  // TODO: web: go to fullscreen in WebGL
 end;
 
 procedure TCastleWindow.BackendInsideUpdate;
@@ -467,23 +467,23 @@ end;
 function TCastleWindow.BackendFileDialog(const Title: string; var FileName: string;
   OpenDialog: boolean; FileFilters: TFileFilterList): boolean;
 begin
-  { TODO } Result := false;
+  { TODO: web: browser dialog } Result := false;
 end;
 
 function TCastleWindow.ColorDialog(var Color: TCastleColor): Boolean;
 begin
-  { TODO } Result := false;
+  { TODO: web: browser dialog, if possible? } Result := false;
 end;
 
 procedure TCastleWindow.MessageOK(const S: string; const MessageType: TWindowMessageType);
 begin
-  { TODO }
+  { TODO: web: just alert? }
 end;
 
 function TCastleWindow.MessageYesNo(const S: string;
   const MessageType: TWindowMessageType): boolean;
 begin
-  { TODO } Result := true;
+  { TODO: web: browser dialog, if possible? } Result := true;
 end;
 
 { TCastleApplication ---------------------------------------------------------- }
@@ -532,7 +532,7 @@ end;
 
 procedure TCastleApplication.AnimationFrame(Time: TDOMHighResTimeStamp);
 begin
-  { TODO: recreate context.
+  { TODO: web: recreate context if necessary.
     See https://developer.mozilla.org/en-US/docs/Web/API/WebGLRenderingContext/isContextLost }
 	if GL.isContextLost then
     raise Exception.Create('Context has been lost');
@@ -602,7 +602,7 @@ end;
 
 function TWindowContainer.SettingMousePositionCausesMotion: Boolean;
 begin
-  { TODO: check, using window_events example, what is the correct value
+  { TODO: web: check, using window_events example, what is the correct value
     (press "5", see if OnMotion is generated). }
   Result := true;
 end;

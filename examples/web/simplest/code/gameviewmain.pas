@@ -27,7 +27,7 @@ type
   published
     { Components designed using CGE editor.
       These fields will be automatically initialized at Start.
-      TODO: No, for now this is created by hand. }
+      TODO: web: No, for now this is created by hand. }
     LabelFps: TCastleLabel;
   private
     LifeTime: Double;
@@ -122,7 +122,7 @@ begin
     30,
     30), Blue);
 
-  // visualize current time (TODO: this is UTC)
+  // visualize current time (TODO: web: this is UTC)
   FallbackFont.Print(5, 40, Red, FormatDateTime('yyyy-mm-dd, hh:nn:ss', Now));
 
   // visualize text

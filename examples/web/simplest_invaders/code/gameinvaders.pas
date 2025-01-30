@@ -369,8 +369,8 @@ begin
            (TimeToEnemyRocket <= 0) and
            { TODO: This way of making rockets less often isn't completely
              time-independent, because in case there are few enemies,
-             it will be retried next frame, and often this happens -> depends
-             on SecondsPassed. }
+             it will be retried next frame, so "how often this happens" ->
+             depends on SecondsPassed, which depends on the machine speed. }
            (Random < Iff(FEasy, EnemyRocketSpeedChanceEasy, EnemyRocketSpeedChanceHard)) then
         begin
           NewRocket := TRocket.Create;

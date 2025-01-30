@@ -28,7 +28,7 @@ type
   published
     { Components designed using CGE editor.
       These fields will be automatically initialized at Start.
-      TODO: For now they are created manually in Start, not loaded. }
+      TODO: web: For now they are created manually in Start, not loaded. }
     LabelFps: TCastleLabel;
     MainViewport: TCastleViewport;
     SpotLight: TCastleSpotLight;

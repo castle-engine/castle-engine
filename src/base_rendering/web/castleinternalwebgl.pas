@@ -104,7 +104,7 @@ implementation
 
 uses SysUtils, JOB.Shared,
   CastleLog, CastleStringUtils,
-  // TODO: not necessary in the future? only for some test queries below
+  // TODO: web: not necessary in the future? only for some test queries below
   CastleInternalGLUtils;
 
 {$push}
@@ -155,7 +155,7 @@ begin
   WebGLExtensions := TStringList.Create;
   for I := 0 to A.Length - 1 do
   begin
-    // TODO: TJSArray._GetStrings is not OK, see https://gitlab.com/freepascal.org/fpc/source/-/merge_requests/893
+    // TODO: web: TJSArray._GetStrings is not OK, see https://gitlab.com/freepascal.org/fpc/source/-/merge_requests/893
     // Ext := A.Strings[I];
     // Workaround:
     Ext := PrefixSuffixRemove('"', '"', A.Elements[I].AsString, false);

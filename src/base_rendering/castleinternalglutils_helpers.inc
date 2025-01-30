@@ -185,7 +185,7 @@ var
   ResultArray: IJSFloat32Array;
   I: Integer;
 begin
-  Exit(Vector2(0, 10)); // TODO fix it properly
+  Exit(Vector2(0, 10)); // TODO: web: fix it properly
   ResultVariant := GL.GetParameter(Param);
   if not VarSupports(ResultVariant, IJSFloat32Array, ResultArray) then
     raise Exception.CreateFmt('Expected Float32Array return value for glGetFloat2(%d)', [
@@ -230,7 +230,7 @@ var
   ResultArray: IJSInt32Array;
   I: Integer;
 begin
-  Exit(Vector2Integer(0, 10)); // TODO fix it properly
+  Exit(Vector2Integer(0, 10)); // TODO: web: fix it properly
   ResultVariant := GL.GetParameter(Param);
   // ResultArray := TJSInt32Array.Cast(ResultVariant);
   (*

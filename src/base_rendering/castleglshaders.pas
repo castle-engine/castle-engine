@@ -1317,7 +1317,7 @@ function TGLSLProgram.DebugInfo: string;
 begin
   Result := 'GLSL program support: ' + BoolToStr(GLFeatures.Shaders, true);
 
-  // TODO: Restore full DebugInfo functionality with WebGL
+  // TODO: web: Restore full DebugInfo functionality with WebGL
 {$else}
 
   function GLShaderVariableTypeName(AType: TGLenum): string;

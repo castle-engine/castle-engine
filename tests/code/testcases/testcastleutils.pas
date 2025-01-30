@@ -275,7 +275,7 @@ end;
 procedure TTestCastleUtils.TestOSError;
 begin
   // TODO: add some test for Delphi + Linux
-  // TODO: add some test for WASI
+  // TODO: web: add some test for WASI
   {$if (defined(MSWINDOWS) or defined(FPC)) and (not defined(WASI))}
   try
     OSCheck(
