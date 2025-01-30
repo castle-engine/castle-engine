@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2023 Michalis Kamburelis.
+  Copyright 2002-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -612,5 +612,19 @@
   // CastleDynLibs on WASI not tested
   {$undef ALLOW_DLOPEN_FROM_UNIT_INITIALIZATION}
 {$endif}
+
+{ Workaround ParamStr issue -------------------------------------------------- }
+
+{$ifdef ANDROID}
+  { Android 15, Google Pixel 6a:
+    Argv[...] are invalid pointers, and so using ParamStr(...) crashes.
+    See CastleParameters unit, InitializationParams comments for more
+    information. }
+  {$define CASTLE_PARAMSTR_BUGGY}
+{$endif}
+
+{ Log Argv reading in CastleParameters, to investigate bugs like
+  CASTLE_PARAMSTR_BUGGY. }
+{.$define CASTLE_ANDROID_ARGV_LOGGING}
 
 {$endif not CASTLE_CONF_INCLUDED}

@@ -1160,9 +1160,10 @@ var
 begin
   { Initialize FExeName. }
   FExeName :=
-    {$ifdef MSWINDOWS} ExeNameFromGetModule
+    {$if defined(MSWINDOWS)} ExeNameFromGetModule
     // On non-Windows OSes, using ParamStr(0) for this is not reliable, but at least it's some default
-    {$else} ParamStr(0)
+    {$elseif not defined(CASTLE_PARAMSTR_BUGGY)} ParamStr(0)
+    {$else} 'application-name-unknown'
     {$endif};
 
   {$if defined(LINUX) and defined(FPC)}
