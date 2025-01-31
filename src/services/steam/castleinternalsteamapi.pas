@@ -565,8 +565,8 @@ begin
   end;
 end;
 
-Initialization
-Finalization
+initialization
+finalization
   FinalizeSteamLibrary;
 
 end.
