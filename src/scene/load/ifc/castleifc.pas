@@ -46,7 +46,7 @@ type
 
 implementation
 
-uses TypInfo, RttiUtils,
+uses TypInfo,
   X3DLoad, X3DFields, CastleInternalRttiUtils, CastleClassUtils,
   CastleDownload, CastleColors, CastleQuaternions,
   // units below useful only for triangulation in saving

@@ -33,7 +33,7 @@ type
 
 implementation
 
-uses TypInfo, RttiUtils,
+uses TypInfo,
   CastleStringUtils, CastleIfc, CastleInternalRttiUtils, CastleVectors;
 
 { Simple hack to detect does given object is a TObjectList<xxx> specialization
