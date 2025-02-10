@@ -601,6 +601,8 @@ var
 begin
   if Event.IsMouseButton(buttonLeft) then
   begin
+    HitShape := nil; // silence Delphi (spurious in this case) warning
+
     { Select new IFC product by extracting from MainViewport.MouseRayHit
       information the selected X3D shape (HitShape) and then converting it
       to the IFC product (using IfcMapping.NodeToProduct). }

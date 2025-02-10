@@ -18,6 +18,8 @@
   Use this unit to implement 3D editing operations in your application. }
 unit CastleTransformManipulate;
 
+{$I castleconf.inc}
+
 interface
 
 uses Classes, SysUtils, Contnrs, Generics.Collections,
