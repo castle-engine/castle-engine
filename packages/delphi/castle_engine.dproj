@@ -303,7 +303,6 @@
         <DCCReference Include="..\..\src\compatibility\delphi-only\custapp.pas"/>
         <DCCReference Include="..\..\src\compatibility\delphi-only\dom.pas"/>
         <DCCReference Include="..\..\src\compatibility\delphi-only\FPHashCompatibility.pas"/>
-        <DCCReference Include="..\..\src\compatibility\delphi-only\rttiutils.pas"/>
         <DCCReference Include="..\..\src\compatibility\delphi-only\singleinstance.pas"/>
         <DCCReference Include="..\..\src\compatibility\delphi-only\uriparser.pas"/>
         <DCCReference Include="..\..\src\compatibility\delphi-only\xmlread.pas"/>
