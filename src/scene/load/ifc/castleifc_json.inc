@@ -193,7 +193,8 @@ begin
   begin
     JsonObj := JsonValue as TJsonObject;
     JsonObjType := JsonObj.Get('type', '');
-    if (JsonObjType = 'IfcLogical') then
+    if (JsonObjType = 'IfcLogical') or
+       (JsonObjType = 'IfcBoolean') then
       Result := JsonObj.Get('value', false)
     else
     begin
