@@ -186,6 +186,12 @@
   TIfcFeatureElementSubtraction = class;
   TIfcRepresentationMap = class;
   TIfcPolygonalFaceSetList = class;
+  TIfcIndexedPolygonalFace = class;
+  TIfcTextureCoordinateList = class;
+  TIfcCartesianTransformationOperator2D = class;
+  TIfcSurfaceTextureList = class;
+  TIfcTessellatedFaceSet = class;
+  TIfcTextureCoordinateIndicesList = class;
 
   { Float type used throughout IFC.
 
@@ -498,6 +504,195 @@
     property TagList: TCastleStringList read FTagList;
   end;
 
+  { Abstract supertype of all entities used for presentation appearance definitions. }
+  TIfcPresentationItem = class abstract(TIfcPersistent)
+  end;
+
+  { Include image textures in surface styles.
+    These image textures can be applied repeating across the surface
+    or mapped with a particular scale upon the surface.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcSurfaceStyleWithTextures.htm }
+  TIfcSurfaceStyleWithTextures = class(TIfcPresentationItem)
+  strict private
+    FTextures: TIfcSurfaceTextureList;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+  published
+    { The textures applied to the surface. In case of more than one
+      surface texture is included, the IfcSurfaceStyleWithTextures defines
+      a multi texture. }
+    property Textures: TIfcSurfaceTextureList read FTextures;
+  end;
+  TIfcSurfaceStyleWithTexturesList = {$ifdef FPC}specialize{$endif} TObjectList<TIfcSurfaceStyleWithTextures>;
+
+  { 2-dimensional image-based texture map.
+    It can either be given by referencing an external image file through an
+    URL reference (@link(TIfcImageTexture)),
+    including the image file as a blob (long binary) into the data set
+    (TODO: IfcBlobTexture),
+    or by explicitly including an array of pixels (TODO: IfcPixelTexture). }
+  TIfcSurfaceTexture = class abstract(TIfcPresentationItem)
+  strict private
+    FRepeatS: Boolean;
+    FRepeatT: Boolean;
+    FMode: TIfcIdentifier;
+    FTextureTransform: TIfcCartesianTransformationOperator2D;
+    FParameter: TCastleStringList;
+    FIsMappedBy: TIfcTextureCoordinateList;
+    FUsedInStyles: TIfcSurfaceStyleWithTexturesList;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+  published
+    { How the texture wraps in the S direction, @true by default. }
+    property RepeatS: Boolean read FRepeatS write FRepeatS default true;
+
+    { How the texture wraps in the T direction, @true by default. }
+    property RepeatT: Boolean read FRepeatT write FRepeatT default true;
+
+    { Hold the type of map this corresponds to, chosen from the following list:
+      AMBIENT, NORMAL, EMISSIVE, METALLICROUGHNESS, OCCLUSION, SHININESS, SPECULAR, DIFFUSE.
+      If Mode is omitted, DIFFUSE is assumed. }
+    property Mode: TIfcIdentifier read FMode write FMode;
+
+    { 2D transformation that is applied to the texture coordinates.
+      It affects the way texture coordinates are applied to the surfaces
+      of geometric representation items.
+      The 2D transformation supports changes to the size, orientation,
+      and position of textures on shapes. Mirroring is not allowed to be used
+      in the IfcCartesianTransformationOperator. }
+    property TextureTransform: TIfcCartesianTransformationOperator2D read FTextureTransform write FTextureTransform;
+
+    { This attribute is deprecated and shall no longer be used. }
+    property Parameter: TCastleStringList read FParameter write FParameter;
+
+    { Texture coordinates, either provided by a corresponding list of texture vertices
+      to vertex-based geometric items or by a texture coordinate generator,
+      that applies the surface texture to the surfaces of the geometric items. }
+    property IsMappedBy: TIfcTextureCoordinateList read FIsMappedBy write FIsMappedBy;
+
+    property UsedInStyles: TIfcSurfaceStyleWithTexturesList read FUsedInStyles;
+  end;
+  TIfcSurfaceTextureList = class({$ifdef FPC}specialize{$endif} TObjectList<TIfcSurfaceTexture>)
+  end;
+
+  { 2-dimensional texture, defined by an URL.
+
+    See https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcImageTexture.htm }
+  TIfcImageTexture = class(TIfcSurfaceTexture)
+  strict private
+    FURLReference: TIfcURIReference;
+  published
+    { Location, provided as an URI, at which the image texture is
+      electronically published. }
+    property URLReference: TIfcURIReference read FURLReference write FURLReference;
+  end;
+
+  { An abstract supertype of the different kinds to apply texture coordinates
+    to geometries. For vertex based geometries an explicit assignment
+    of 2D texture vertices to the 3D geometry points is supported by
+    the subtype IfcTextureMap, in addition there can be a procedural
+    description of how texture coordinates shall be applied to geometric items.
+    If no IfcTextureCoordinate is provided for the IfcSurfaceTexture,
+    the default mapping shall be used.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcTextureCoordinate.htm }
+  TIfcTextureCoordinate = class abstract(TIfcPresentationItem)
+  strict private
+    FMaps: TIfcSurfaceTextureList;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+  published
+    { Reference to the one (or many in case of multi textures
+      with identity transformation to geometric surfaces) subtype(s)
+      of @link(TIfcSurfaceTexture) that are mapped to a geometric
+      surface by the texture coordinate transformation. }
+    property Maps: TIfcSurfaceTextureList read FMaps;
+  end;
+  TIfcTextureCoordinateList = class({$ifdef FPC}specialize{$endif} TObjectList<TIfcTextureCoordinate>)
+  end;
+
+  { Ordered collection of 2D texture coordinates.
+
+    Name in Pascal is with "Spec" suffix to clarify this is "specification
+    defined list-like class" and not just TObjectList<TIfcTextureVertexList>.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcTextureVertexList.htm }
+  TIfcTextureVertexListSpec = class(TIfcPresentationItem)
+  strict private
+    FTexCoordsList: TVector2List;
+  protected
+    class function IfcClassName: String; override;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+  published
+    { List of texture vertices defined by S-coordinate and T-coordinate. }
+    property TexCoordsList: TVector2List read FTexCoordsList;
+  end;
+
+  { Mapping of the 2-dimensional texture coordinates to the surface onto which
+    it is mapped.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcIndexedTextureMap.htm }
+  TIfcIndexedTextureMap = class abstract(TIfcTextureCoordinate)
+  strict private
+    FMappedTo: TIfcTessellatedFaceSet;
+    FTexCoords: TIfcTextureVertexListSpec;
+  published
+    { Reference to the IfcTessellatedFaceSet to which it applies
+      the texture map. }
+    property MappedTo: TIfcTessellatedFaceSet read FMappedTo write FMappedTo;
+
+    { Indexable list of texture vertices. }
+    property TexCoords: TIfcTextureVertexListSpec read FTexCoords write FTexCoords;
+  end;
+  TIfcIndexedTextureMapList = {$ifdef FPC}specialize{$endif} TObjectList<TIfcIndexedTextureMap>;
+
+  { Mapping of the 2-dimensional texture coordinates to a set of polygonal
+    bounded faces onto which it is mapped. It is used for mapping the texture
+    to faces of an IfcPolygonalFaceSet. Such faces may have inner loops.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcIndexedPolygonalTextureMap.htm }
+  TIfcIndexedPolygonalTextureMap = class(TIfcIndexedTextureMap)
+  strict private
+    FTexCoordIndices: TIfcTextureCoordinateIndicesList;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+  published
+    { Set of texture coordinate indices for polygonal faces
+      with and without inner loops. }
+    property TexCoordIndices: TIfcTextureCoordinateIndicesList read FTexCoordIndices;
+  end;
+
+  { Provide the texture coordinates for an @link(TIfcIndexedPolygonalFace).
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcTextureCoordinateIndices.htm }
+  TIfcTextureCoordinateIndices = class(TIfcPersistent)
+  strict private
+    FTexCoordIndex: TIntegerList;
+    FTexCoordsOf: TIfcIndexedPolygonalFace;
+    FToTexMap: TIfcIndexedPolygonalTextureMap;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+  published
+    { List of index pointers into the @link(TIfcTextureVertexList). }
+    property TexCoordIndex: TIntegerList read FTexCoordIndex;
+
+    { The @link(TIfcIndexedPolygonalFace) for which the texture
+      coordinate are provided. }
+    property TexCoordsOf: TIfcIndexedPolygonalFace read FTexCoordsOf write FTexCoordsOf;
+
+    property ToTexMap: TIfcIndexedPolygonalTextureMap read FToTexMap write FToTexMap;
+  end;
+  TIfcTextureCoordinateIndicesList = class({$ifdef FPC}specialize{$endif} TObjectList<TIfcTextureCoordinateIndices>)
+  end;
+
   { Representation of a planar face being part of a face set.
 
     Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcIndexedPolygonalFace.htm }
@@ -505,7 +700,7 @@
   strict private
     FCoordIndex: TIntegerList;
     FToFaceSet: TIfcPolygonalFaceSetList;
-    // TODO FHasTexCoords: TIfcTextureCoordinateIndices;
+    FHasTexCoords: TIfcTextureCoordinateIndices;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -523,7 +718,7 @@
 
     { Optional reference to the IfcTextureCoordinateIndices that provide
       the texture coordinates for applying textures to this face. }
-    // TODO property HasTexCoords: TIfcTextureCoordinateIndices read FHasTexCoords write FHasTexCoords;
+    property HasTexCoords: TIfcTextureCoordinateIndices read FHasTexCoords write FHasTexCoords;
   end;
   TIfcIndexedPolygonalFaceList = {$ifdef FPC}specialize{$endif} TObjectList<TIfcIndexedPolygonalFace>;
 
@@ -534,7 +729,7 @@
   strict private
     FCoordinates: TIfcCartesianPointList3D;
     // TODO FHasColours: TIfcIndexedColourMap;
-    // TODO FHasTextures: TIfcIndexedTextureMapList;
+    FHasTextures: TIfcIndexedTextureMapList;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -548,7 +743,7 @@
 
     { Reference to the indexed texture map providing the corresponding
       texture coordinates to the vertices. }
-    // TODO property HasTextures: TIfcIndexedTextureMapList read FHasTextures;
+    property HasTextures: TIfcIndexedTextureMapList read FHasTextures;
   end;
 
   { Tessellated face set with all faces being bound by polygons.
@@ -1646,8 +1841,10 @@
     property SemiAxis2: TIfcPositiveLengthMeasure read FSemiAxis2 write FSemiAxis2;
   end;
 
-  { An abstract supertype of different kinds of geometric transformations. }
-  TIfcCartesianTransformationOperator = class(TIfcRepresentationItem)
+  { An abstract supertype of different kinds of geometric transformations.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcCartesianTransformationOperator.htm }
+  TIfcCartesianTransformationOperator = class abstract(TIfcRepresentationItem)
   strict private
     FAxis1: TIfcDirection;
     FAxis2: TIfcDirection;
@@ -1684,6 +1881,12 @@
 
     { The scaling value specified for the transformation. }
     property Scale: TIfcReal read FScale write FScale;
+  end;
+
+  { Geometric transformation in 2D.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcCartesianTransformationOperator2D.htm }
+  TIfcCartesianTransformationOperator2D = class(TIfcCartesianTransformationOperator)
   end;
 
   { Geometric transformation in three-dimensional space.
@@ -5501,6 +5704,101 @@ begin
   inherited;
 end;
 
+{ TIfcSurfaceStyleWithTextures ----------------------------------------------- }
+
+constructor TIfcSurfaceStyleWithTextures.Create(AOwner: TComponent);
+begin
+  inherited;
+  FTextures := TIfcSurfaceTextureList.Create(false);
+end;
+
+destructor TIfcSurfaceStyleWithTextures.Destroy;
+begin
+  FreeAndNil(FTextures);
+  inherited;
+end;
+
+{ TIfcSurfaceTexture -------------------------------------------------------- }
+
+constructor TIfcSurfaceTexture.Create(AOwner: TComponent);
+begin
+  inherited;
+  FRepeatS := true;
+  FRepeatT := true;
+  FParameter := TCastleStringList.Create;
+  FIsMappedBy := TIfcTextureCoordinateList.Create(false);
+  FUsedInStyles := TIfcSurfaceStyleWithTexturesList.Create(false);
+end;
+
+destructor TIfcSurfaceTexture.Destroy;
+begin
+  FreeAndNil(FParameter);
+  FreeAndNil(FIsMappedBy);
+  FreeAndNil(FUsedInStyles);
+  inherited;
+end;
+
+{ TIfcTextureCoordinateIndices ----------------------------------------------- }
+
+constructor TIfcTextureCoordinateIndices.Create(AOwner: TComponent);
+begin
+  inherited;
+  FTexCoordIndex := TIntegerList.Create;
+end;
+
+destructor TIfcTextureCoordinateIndices.Destroy;
+begin
+  FreeAndNil(FTexCoordIndex);
+  inherited;
+end;
+
+{ TIfcTextureCoordinate ----------------------------------------------------- }
+
+constructor TIfcTextureCoordinate.Create(AOwner: TComponent);
+begin
+  inherited;
+  FMaps := TIfcSurfaceTextureList.Create(false);
+end;
+
+destructor TIfcTextureCoordinate.Destroy;
+begin
+  FreeAndNil(FMaps);
+  inherited;
+end;
+
+{ TIfcTextureVertexListSpec -------------------------------------------------- }
+
+constructor TIfcTextureVertexListSpec.Create(AOwner: TComponent);
+begin
+  inherited;
+  FTexCoordsList := TVector2List.Create;
+end;
+
+destructor TIfcTextureVertexListSpec.Destroy;
+begin
+  FreeAndNil(FTexCoordsList);
+  inherited;
+end;
+
+class function TIfcTextureVertexListSpec.IfcClassName: String;
+begin
+  Result := 'IfcTextureVertexList';
+end;
+
+{ TIfcIndexedPolygonalTextureMap --------------------------------------------- }
+
+constructor TIfcIndexedPolygonalTextureMap.Create(AOwner: TComponent);
+begin
+  inherited;
+  FTexCoordIndices := TIfcTextureCoordinateIndicesList.Create(false);
+end;
+
+destructor TIfcIndexedPolygonalTextureMap.Destroy;
+begin
+  FreeAndNil(FTexCoordIndices);
+  inherited;
+end;
+
 { TIfcIndexedPolygonalFace --------------------------------------------------- }
 
 constructor TIfcIndexedPolygonalFace.Create(AOwner: TComponent);
@@ -5522,10 +5820,14 @@ end;
 constructor TIfcTessellatedFaceSet.Create(AOwner: TComponent);
 begin
   inherited;
+  // TODO FHasColours := TIfcIndexedColourMapList.Create(false);
+  FHasTextures := TIfcIndexedTextureMapList.Create(false);
 end;
 
 destructor TIfcTessellatedFaceSet.Destroy;
 begin
+  // TODO FreeAndNil(FHasColours);
+  FreeAndNil(FHasTextures);
   inherited;
 end;
 
@@ -6367,6 +6669,12 @@ function IfcClasses: TIfcPersistentClassList;
     FIfcClasses.Add(TIfcActuatorType);
     FIfcClasses.Add(TIfcColumn);
     FIfcClasses.Add(TIfcPolygonalFaceSet);
+    FIfcClasses.Add(TIfcSurfaceTexture);
+    FIfcClasses.Add(TIfcImageTexture);
+    FIfcClasses.Add(TIfcTextureVertexListSpec);
+    FIfcClasses.Add(TIfcIndexedTextureMap);
+    FIfcClasses.Add(TIfcIndexedPolygonalTextureMap);
+    FIfcClasses.Add(TIfcTextureCoordinateIndices);
     FIfcClasses.Add(TIfcIndexedPolygonalFace);
     FIfcClasses.Add(TIfcCartesianPointList3D);
     FIfcClasses.Add(TIfcTelecomAddress);
@@ -6395,10 +6703,12 @@ function IfcClasses: TIfcPersistentClassList;
     FIfcClasses.Add(TIfcTrimmedCurve);
     FIfcClasses.Add(TIfcEllipse);
     FIfcClasses.Add(TIfcMappedItem);
+    FIfcClasses.Add(TIfcCartesianTransformationOperator2D);
     FIfcClasses.Add(TIfcCartesianTransformationOperator3D);
     FIfcClasses.Add(TIfcCartesianTransformationOperator3DnonUniform);
     FIfcClasses.Add(TIfcCurve);
     FIfcClasses.Add(TIfcArbitraryProfileDefWithVoids);
+    FIfcClasses.Add(TIfcSurfaceStyleWithTextures);
   end;
 
 begin
