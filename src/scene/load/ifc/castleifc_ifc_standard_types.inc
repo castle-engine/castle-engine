@@ -1692,9 +1692,6 @@
     FAxis3: TIfcDirection;
   protected
     function Axis3Vector: TVector3; override;
-  public
-    procedure GetTransform(out Translation: TVector3;
-      out Rotation: TVector4; out AScale: TVector3); override;
   published
     { The direction used to determine U[3], the derived Z axis direction. }
     property Axis3: TIfcDirection read FAxis3 write FAxis3;
