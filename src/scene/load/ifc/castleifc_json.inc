@@ -170,6 +170,42 @@ begin
     Result := JsonValue.AsInt64;
 end;
 
+(*Convert JSON value from IFC to Boolean.
+  Accounts both for values specified directly, e.g.
+
+    "isVentilated" : false
+
+  and wrapped in JSON objects e.g.
+
+    "isVentilated" : {
+      "type" : "IfcLogical",
+      "value" : false
+    },
+
+  Testcase: wall-standard-case.ifcjson from IFC spec examples.
+*)
+function JsonToBoolean(const JsonValue: TJsonData; const DebugJsonKey: String): Boolean;
+var
+  JsonObj: TJsonObject;
+  JsonObjType: String;
+begin
+  if JsonValue is TJsonObject then
+  begin
+    JsonObj := JsonValue as TJsonObject;
+    JsonObjType := JsonObj.Get('type', '');
+    if (JsonObjType = 'IfcLogical') then
+      Result := JsonObj.Get('value', false)
+    else
+    begin
+      WritelnWarning('IFC', 'IFC field "%s" is a JSON object, but not of type "IfcLogical", ignoring', [
+        DebugJsonKey
+      ]);
+      Result := false;
+    end;
+  end else
+    Result := JsonValue.AsBoolean;
+end;
+
 (*Convert JSON value from IFC to string.
   Account for both wrapped and not values:
 
@@ -794,7 +830,7 @@ var
           ptInteger:
             PropertySetInteger(Ifc, PropInfo, JsonToInteger(Json.Items[I], DebugJsonKey));
           ptBoolean:
-            PropertySetBoolean(Ifc, PropInfo, Json.Items[I].AsBoolean);
+            PropertySetBoolean(Ifc, PropInfo, JsonToBoolean(Json.Items[I], DebugJsonKey));
           ptFloat:
             PropertySetFloat(Ifc, PropInfo, JsonToFloat(Json.Items[I], DebugJsonKey));
           ptInstance:
