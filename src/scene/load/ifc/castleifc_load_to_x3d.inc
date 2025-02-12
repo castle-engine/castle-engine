@@ -951,6 +951,46 @@ begin
   Result := Shape;
 end;
 
+function TIfcTriangulatedFaceSet.BuildNode(const Mapping: TCastleIfcMapping;
+  const ParentProduct: TIfcProduct; const Appearance: TAppearanceNode): TAbstractChildNode;
+var
+  IndexedTriangleSet: TIndexedTriangleSetNode;
+  Coord: TCoordinateNode;
+  I, Index, TriangleIndex: Integer;
+  Shape: TShapeNode;
+begin
+  Coord := TCoordinateNode.Create('', Mapping.BaseUrl);
+  if Coordinates <> nil then
+    Coord.SetPoint(Coordinates.CoordList);
+
+  IndexedTriangleSet := TIndexedTriangleSetNode.Create('', Mapping.BaseUrl);
+  IndexedTriangleSet.Coord := Coord;
+  IndexedTriangleSet.Solid := Closed;
+
+  // TODO: Use Normals
+
+  IndexedTriangleSet.FdIndex.Count := CoordIndex.Count * 3;
+  for TriangleIndex := 0 to CoordIndex.Count - 1 do
+  begin
+    for I := 0 to 2 do
+    begin
+      Index := CoordIndex[TriangleIndex][I];
+      if Index < PnIndex.Count then
+        Index := PnIndex[Index];
+      Dec(Index); // IFC indices are 1-based
+      IndexedTriangleSet.FdIndex.Items[TriangleIndex * 3 + I] := Index;
+    end;
+  end;
+
+  Shape := TShapeNode.Create('', Mapping.BaseUrl);
+  Shape.Geometry := IndexedTriangleSet;
+  Shape.Appearance := Appearance;
+  SetMetadata(Shape, 'IFC_ClassName', ClassName);
+
+  Mapping.ShapeToProduct.AddOrSetValue(Shape, ParentProduct);
+  Result := Shape;
+end;
+
 function TIfcBoundingBox.BuildNode(const Mapping: TCastleIfcMapping;
   const ParentProduct: TIfcProduct; const Appearance: TAppearanceNode): TAbstractChildNode;
 var

@@ -797,9 +797,8 @@
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    // TODO
-    // function BuildNode(const Mapping: TCastleIfcMapping;
-    //   const ParentProduct: TIfcProduct; const Appearance: TAppearanceNode): TAbstractChildNode; override;
+    function BuildNode(const Mapping: TCastleIfcMapping;
+      const ParentProduct: TIfcProduct; const Appearance: TAppearanceNode): TAbstractChildNode; override;
   published
     { Ordered list of three directions for normals. }
     property Normals: TVector3List read FNormals;
