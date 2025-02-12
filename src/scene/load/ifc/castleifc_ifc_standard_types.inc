@@ -376,9 +376,10 @@
   strict private
     FDirectionRatios: TCastleVector3PersistentSimple;
 
-    { TODO: Dim is not explicitly specified in IFC, but it is derived from
+    { Not necessary in CGE now:
+      Dim is not explicitly specified in IFC, but it is derived from
       the contents of IFC. Needs special logic, if ever needed in CGE. }
-    //FDim: TIfcDimensionCount;
+    // FDim: TIfcDimensionCount;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -386,10 +387,11 @@
     { Create instance with given direction ratios. }
     constructor CreateVector(const AOwner: TComponent; const AVector: TVector3);
 
-    { The number of dimensions specified in the IFC file, 2 or 3.
+    { Not necessary in CGE now:
+      The number of dimensions specified in the IFC file, 2 or 3.
       Regardless of it, DirectionRatios always has the Z value defined:
       we set Z to 0 when it is not defined in IFC. }
-    //TODO: property Dim: TIfcDimensionCount read FDim write FDim;
+    // property Dim: TIfcDimensionCount read FDim write FDim;
   published
     { Defined as 2 or 3 values of TIfcReal type.
       In practice, this is just a 3D vector for our engine. }
@@ -796,7 +798,7 @@
 
     { Space dimensionality of this abstract class, defined differently for all
       subtypes. }
-    // TODO: derived: function Dim: TIfcDimensionCount; abstract;
+    // Not necessary in CGE now: derived: function Dim: TIfcDimensionCount; abstract;
   end;
   TIfcCurveList = {$ifdef FPC}specialize{$endif} TObjectList<TIfcCurve>;
 
@@ -1800,7 +1802,7 @@
   published
     property Location: TIfcPoint read FLocation write FLocation;
 
-    // TODO: We could define this to be super-consistent with IFC standard:
+    // Not necessary in CGE now:
     // function Dim: TIfcDimensionCount; begin Result := Location.Dim; end;
   end;
 
@@ -2269,7 +2271,8 @@
 
     Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcPoint.htm }
   TIfcPoint = class abstract(TIfcGeometricRepresentationItem)
-  (*TODO: Dim is not explicitly specified in IFC, but it is derived from
+  (*Not necessary in CGE now:
+    Dim is not explicitly specified in IFC, but it is derived from
     the contents of IFC. Needs special logic, if ever needed in CGE.
 
   strict private
@@ -3628,7 +3631,7 @@
     property Name: TIfcLabel read FName write FName;
 
     { Dimensional exponents derived. }
-    // TODO: function Dimensions: TIfcDimensionalExponents;
+    // Not necessary in CGE now: function Dimensions: TIfcDimensionalExponents;
   end;
 
   { Define currency for money. }
@@ -3782,7 +3785,7 @@
     { The word, or group of words, by which the SI unit is referred to. }
     property Name: TIfcSIUnitName read FName write FName;
 
-    // TODO: We could calculate this:
+    // Not necessary in CGE now: We could calculate this:
     // Dimensions: TIfcDimensionalExponents
     // This attribute is formally derived.
   end;
@@ -4252,7 +4255,7 @@
   end;
 
   TIfcShapeModel = class abstract(TIfcRepresentation)
-    // TODO
+    // TODO rest of IFC properties from spec
   end;
   TIfcShapeModelList = class({$ifdef FPC}specialize{$endif} TObjectList<TIfcShapeModel>)
   end;
@@ -4264,7 +4267,7 @@
   TIfcShapeRepresentation = class(TIfcShapeModel)
   protected
     function WantsGlobalId: Boolean; override;
-    // TODO
+    // TODO rest of IFC properties from spec
   end;
 
   { Representation of a product, including its (geometric or topological)
