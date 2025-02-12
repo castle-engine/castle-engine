@@ -2064,7 +2064,7 @@
   TIfcParameterizedProfileDef = class(TIfcProfileDef)
   strict private
     FPosition: TIfcAxis2Placement2D;
-  public
+  published
     { Position coordinate system of the parameterized profile definition.
       If unspecified, no translation and no rotation is applied. }
     property Position: TIfcAxis2Placement2D read FPosition write FPosition;

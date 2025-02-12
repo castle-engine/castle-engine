@@ -601,7 +601,8 @@ begin
 
   if Position <> nil then
   begin
-    WritelnLog('IfcRectangleProfileDef.Position assigned - TODO: should work, but untested');
+    { Testcase with TIfcParameterizedProfileDef.Position:
+      Community-Sample-Test-Files-main/IFC 4.0.2.1 (IFC 4)/ISO Spec archive/wall-standard-case.ifcjson }
     Position.GetTransform(Translation, Rotation);
     for I := 0 to CrossSection.Count - 1 do
     begin
