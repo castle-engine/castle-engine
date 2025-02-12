@@ -2013,6 +2013,57 @@
     property ElementType: TIfcLabel read FElementType write FElementType;
   end;
 
+  { A distribution element type is used to define the common properties
+    of a certain type of a distribution element that may be applied
+    to many instances of that feature type to assign a specific style.
+    Distribution element types (or the instantiable subtypes) may
+    be exchanged without being already assigned to occurrences.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcDistributionElementType.htm }
+  TIfcDistributionElementType = class(TIfcElementType)
+  end;
+
+  { Distribution flow element types (or the instantiable subtypes)
+    may be exchanged without being already assigned to occurrences.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcDistributionFlowElementType.htm }
+  TIfcDistributionFlowElementType = class abstract(TIfcDistributionElementType)
+  end;
+
+  { A energy conversion type is used to define the common properties
+    of a energy conversion device that may be applied to many occurrences
+    of that type. An energy conversion device is a building systems device
+    that converts energy from one form into another such as a boiler
+    (combusting gas to heat water), chiller
+    (using a refrigeration cycle to cool a liquid), or a cooling coil
+    (using the phase-change characteristics of a refrigerant to cool air).
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcEnergyConversionDeviceType.htm }
+  TIfcEnergyConversionDeviceType = class abstract(TIfcDistributionFlowElementType)
+  end;
+
+  { Typical types of boilers.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcBoilerTypeEnum.htm }
+  TIfcBoilerTypeEnum = (
+    NotDefined,
+    Steam,
+    Water,
+    UserDefined
+  );
+
+  { Used to define a boiler type specification indicating the specific product
+    information that is common to all occurrences of that product type.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcBoilerType.htm }
+  TIfcBoilerType = class(TIfcEnergyConversionDeviceType)
+  strict private
+    FPredefinedType: TIfcBoilerTypeEnum;
+  published
+    { Defines types of boilers. }
+    property PredefinedType: TIfcBoilerTypeEnum read FPredefinedType write FPredefinedType default TIfcBoilerTypeEnum.NotDefined;
+  end;
+
   { Common properties of a certain type of built element that are applied
     to all occurrences of that type. }
   TIfcBuiltElementType = class(TIfcElementType)
@@ -6819,6 +6870,8 @@ function IfcClasses: TIfcPersistentClassList;
     FIfcClasses.Add(TIfcCurve);
     FIfcClasses.Add(TIfcArbitraryProfileDefWithVoids);
     FIfcClasses.Add(TIfcSurfaceStyleWithTextures);
+    FIfcClasses.Add(TIfcDistributionElementType);
+    FIfcClasses.Add(TIfcBoilerType);
   end;
 
 begin
