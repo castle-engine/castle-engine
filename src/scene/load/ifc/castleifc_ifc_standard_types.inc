@@ -3393,8 +3393,70 @@
 
     Usually measured in radian (rad, m/m = 1), but also grads may be used.
     The grad unit has to be declared as a conversion based unit based on
-    radian unit. }
+    radian unit.
+
+    In IFC spec, this is not a class. But in Pascal we express it as class
+    descending from @url(https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcMeasureValue.htm
+    IfcMeasureValue) as this makes sense looking at IFC JSON structure.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcPlaneAngleMeasure.htm }
   TIfcPlaneAngleMeasure = class(TIfcMeasureValue)
+  strict private
+    FValue: TIfcReal;
+  published
+    property Value: TIfcReal read FValue write FValue;
+  end;
+
+  { An area measure is the value of the extent of a surface.
+    Usually measured in square metre (m2).
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcAreaMeasure.htm }
+  TIfcAreaMeasure = class(TIfcMeasureValue)
+  strict private
+    FValue: TIfcReal;
+  published
+    property Value: TIfcReal read FValue write FValue;
+  end;
+
+  { Value of the amount of matter that a body contains.
+    Usually measured in kilograms (kg) or grams (g).
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcMassMeasure.htm }
+  TIfcMassMeasure = class(TIfcMeasureValue)
+  strict private
+    FValue: TIfcReal;
+  published
+    property Value: TIfcReal read FValue write FValue;
+  end;
+
+  { Value of a distance.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcLengthMeasure.htm }
+  TIfcLengthMeasure_Boxed = class(TIfcMeasureValue)
+  strict private
+    FValue: TIfcReal;
+  protected
+    class function IfcClassName: String; override;
+  published
+    property Value: TIfcReal read FValue write FValue;
+  end;
+
+  { Measure of the quantity of a medium acting on a unit area.
+    Usually measured in Pascals (Pa, N/m2).
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcPressureMeasure.htm }
+  TIfcPressureMeasure = class(TIfcMeasureValue)
+  strict private
+    FValue: TIfcReal;
+  published
+    property Value: TIfcReal read FValue write FValue;
+  end;
+
+  { Value of the solid content of a body.
+    Usually measured in cubic metre (m3).
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcVolumeMeasure.htm }
+  TIfcVolumeMeasure = class(TIfcMeasureValue)
   strict private
     FValue: TIfcReal;
   published
@@ -3663,6 +3725,15 @@
     // This attribute is formally derived.
   end;
 
+  { This has two usages:
+
+    1. For representing measure value together with its unit on the
+    entity type attribute level; thus overriding the IFC model global
+    unit assignments.
+
+    2. For conversion based unit to give the conversion rate and its base.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcMeasureWithUnit.htm }
   TIfcMeasureWithUnit = class(TIfcPersistent)
   strict private
     FValueComponent: TIfcValue;
@@ -5114,11 +5185,18 @@ begin
   inherited;
 end;
 
-{ TIfcReal_Boxed ----------------------------------------------------------- }
+{ TIfcReal_Boxed ------------------------------------------------------------- }
 
 class function TIfcReal_Boxed.IfcClassName: String;
 begin
   Result := 'IfcReal';
+end;
+
+{ TIfcLengthMeasure_Boxed ---------------------------------------------------- }
+
+class function TIfcLengthMeasure_Boxed.IfcClassName: String;
+begin
+  Result := 'IfcLengthMeasure';
 end;
 
 { TIfcOpeningElement -------------------------------------------------------- }
@@ -6622,6 +6700,11 @@ function IfcClasses: TIfcPersistentClassList;
     FIfcClasses.Add(TIfcMonetaryUnit);
     FIfcClasses.Add(TIfcDerivedUnit);
     FIfcClasses.Add(TIfcPlaneAngleMeasure);
+    FIfcClasses.Add(TIfcAreaMeasure);
+    FIfcClasses.Add(TIfcMassMeasure);
+    FIfcClasses.Add(TIfcLengthMeasure_Boxed);
+    FIfcClasses.Add(TIfcPressureMeasure);
+    FIfcClasses.Add(TIfcVolumeMeasure);
     FIfcClasses.Add(TIfcRepresentationContext);
     FIfcClasses.Add(TIfcUnitAssignment);
     FIfcClasses.Add(TIfcRelDefinesByProperties);
