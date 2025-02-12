@@ -1815,6 +1815,36 @@
   TIfcBuiltElementType = class(TIfcElementType)
   end;
 
+  { Predefined types of beams that can further specify an
+    @link(TIfcBeam) or @link(TIfcBeamType).}
+  TIfcBeamTypeEnum = (
+    NotDefined,
+    Beam,
+    Cornice,
+    Diaphragm,
+    EdgeBeam,
+    Girder_Segment,
+    Hatstone,
+    Hollowcore,
+    Joist,
+    Lintel,
+    Piercap,
+    Spandrel,
+    T_Beam,
+    UserDefined
+  );
+
+  { Commonly shared information for occurrences of beams.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcBeamType.htm }
+  TIfcBeamType = class(TIfcBuiltElementType)
+  strict private
+    FPredefinedType: TIfcBeamTypeEnum;
+  published
+    { Predefined generic type for a beam that is specified in an enumeration. }
+    property PredefinedType: TIfcBeamTypeEnum read FPredefinedType write FPredefinedType default TIfcBeamTypeEnum.NotDefined;
+  end;
+
   { Defines a list of commonly shared property set definitions of an element
     and an optional set of product representations.
 
@@ -2815,6 +2845,24 @@
 
     Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcBuiltElement.htm }
   TIfcBuiltElement = class(TIfcElement)
+  end;
+
+  { Beam is a horizontal, or nearly horizontal, structural member that is
+    capable of withstanding load primarily by resisting bending.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcBeam.htm }
+  TIfcBeam = class(TIfcBuiltElement)
+  strict private
+    FPredefinedType: TIfcBeamTypeEnum;
+  published
+    { Predefined generic type for a beam that is specified in an enumeration. }
+    property PredefinedType: TIfcBeamTypeEnum read FPredefinedType write FPredefinedType default TIfcBeamTypeEnum.NotDefined;
+  end;
+
+  { @deprecated Removed in IFC4.3.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_1/FINAL/HTML/schema/ifcsharedbldgelements/lexical/ifcbeamstandardcase.htm }
+  TIfcBeamStandardCase = class(TIfcBeam)
   end;
 
   TIfcDoorTypeEnum = (
@@ -6239,6 +6287,9 @@ function IfcClasses: TIfcPersistentClassList;
     FIfcClasses.Add(TIfcRelVoidsElement);
     FIfcClasses.Add(TIfcRelFillsElement);
     FIfcClasses.Add(TIfcBuiltElement);
+    FIfcClasses.Add(TIfcBeam);
+    FIfcClasses.Add(TIfcBeamType);
+    FIfcClasses.Add(TIfcBeamStandardCase);
     FIfcClasses.Add(TIfcOpeningElement);
     FIfcClasses.Add(TIfcRelAggregates);
     FIfcClasses.Add(TIfcContext);
