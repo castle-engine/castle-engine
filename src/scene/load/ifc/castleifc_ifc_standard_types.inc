@@ -5907,15 +5907,6 @@ begin
     Result := TVector3.One[2];
 end;
 
-procedure TIfcCartesianTransformationOperator3D.GetTransform(
-  out Translation: TVector3; out Rotation: TVector4; out AScale: TVector3);
-begin
-  inherited;
-
-  if (Axis3 <> nil) and (not TVector3.Equals(Axis3.DirectionRatios.Value, TVector3.One[2])) then
-    WritelnWarning('TODO: Rotation in IfcCartesianTransformationOperator3D not supported');
-end;
-
 function TIfcCartesianTransformationOperator3DnonUniform.Scl2: Single;
 begin
   if Scale2 <> 0 then
