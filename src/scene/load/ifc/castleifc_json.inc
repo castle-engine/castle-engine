@@ -489,6 +489,7 @@ var
     var
       I: Integer;
       Vector2List: TVector2List;
+      JsonArrayItem: TJsonData;
     begin
       Vector2List := PropertyGetInstance(Ifc, PropInfo) as TVector2List;
       if Vector2List = nil then
@@ -497,7 +498,19 @@ var
         ]);
       Vector2List.Clear;
       for I := 0 to JsonChildArray.Count - 1 do
-        Vector2List.Add(JsonToVector2(JsonChildArray.Items[I] as TJsonArray, DebugJsonKey));
+      begin
+        JsonArrayItem := JsonChildArray.Items[I];
+        if not (JsonArrayItem is TJsonArray) then
+        begin
+          WritelnWarning('Expected JSON array to represent TVector2 inside array for IFC field "%s", but found %s.' + NL +
+            '  This may happen if the file relies on an outdated IFC definition e.g. of IfcCartesianPointList2D.coordList to be IfcCartesianPoint[]. In this case upgrade the file to IFC >= 4.3.', [
+            DebugJsonKey,
+            JsonArrayItem.ClassName
+          ]);
+          Exit;
+        end;
+        Vector2List.Add(JsonToVector2(JsonArrayItem as TJsonArray, DebugJsonKey));
+      end;
     end;
 
     { From elements of JsonChildArray read TVector3List contents
