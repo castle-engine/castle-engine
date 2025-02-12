@@ -3463,6 +3463,17 @@
     property Value: TIfcReal read FValue write FValue;
   end;
 
+  { Value for the degree of heat of a body.
+    Usually measured in degrees Kelvin (K).
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcThermodynamicTemperatureMeasure.htm }
+  TIfcThermodynamicTemperatureMeasure = class(TIfcMeasureValue)
+  strict private
+    FValue: TIfcReal;
+  published
+    property Value: TIfcReal read FValue write FValue;
+  end;
+
   { Abstract unit: a physical quantity, with a value of one, which is used as
     a standard in terms of which other quantities are expressed.
 
@@ -3746,7 +3757,9 @@
     property UnitComponent: TIfcUnit read FUnitComponent write FUnitComponent;
   end;
 
-  { A unit that has a conversion rate to a base unit. }
+  { A unit that has a conversion rate to a base unit.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcConversionBasedUnit.htm }
   TIfcConversionBasedUnit = class(TIfcNamedUnit)
   strict private
     FName: TIfcLabel;
@@ -3765,6 +3778,18 @@
     { Reference to external information, e.g. library, classification,
       or document information, which is associated with the conversion-based unit. }
     property HasExternalReference: TIfcExternalReferenceRelationshipList read FHasExternalReference;
+  end;
+
+  { Unit which is converted from another unit by applying a conversion factor and an offset.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcConversionBasedUnitWithOffset.htm }
+  TIfcConversionBasedUnitWithOffset = class(TIfcConversionBasedUnit)
+  strict private
+    FConversionOffset: TIfcReal;
+  published
+    { A positive or negative offset to add after the inherited
+      @link(ConversionFactor) was applied. }
+    property ConversionOffset: TIfcReal read FConversionOffset write FConversionOffset;
   end;
 
   { Context to which the IfcRepresentation of a product is related. }
@@ -6705,12 +6730,14 @@ function IfcClasses: TIfcPersistentClassList;
     FIfcClasses.Add(TIfcLengthMeasure_Boxed);
     FIfcClasses.Add(TIfcPressureMeasure);
     FIfcClasses.Add(TIfcVolumeMeasure);
+    FIfcClasses.Add(TIfcThermodynamicTemperatureMeasure);
     FIfcClasses.Add(TIfcRepresentationContext);
     FIfcClasses.Add(TIfcUnitAssignment);
     FIfcClasses.Add(TIfcRelDefinesByProperties);
     FIfcClasses.Add(TIfcSIUnit);
     FIfcClasses.Add(TIfcGeometricRepresentationContext);
     FIfcClasses.Add(TIfcConversionBasedUnit);
+    FIfcClasses.Add(TIfcConversionBasedUnitWithOffset);
     FIfcClasses.Add(TIfcMeasureWithUnit);
     FIfcClasses.Add(TIfcProjectLibrary);
     FIfcClasses.Add(TIfcProductDefinitionShape);
