@@ -785,6 +785,44 @@
   TIfcPolygonalFaceSetList = class({$ifdef FPC}specialize{$endif} TObjectList<TIfcPolygonalFaceSet>)
   end;
 
+  { Tessellated face set with all faces being bound by triangles.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcTriangulatedFaceSet.htm }
+  TIfcTriangulatedFaceSet = class(TIfcTessellatedFaceSet)
+  strict private
+    FNormals: TVector3List;
+    FClosed: Boolean;
+    FCoordIndex: TVector3IntegerList;
+    FPnIndex: TIntegerList;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+    // TODO
+    // function BuildNode(const Mapping: TCastleIfcMapping;
+    //   const ParentProduct: TIfcProduct; const Appearance: TAppearanceNode): TAbstractChildNode; override;
+  published
+    { Ordered list of three directions for normals. }
+    property Normals: TVector3List read FNormals;
+
+    { Indication whether the face set is a closed shell (@true)
+      or an open shell (@false).
+
+      IFC spec says: If omitted no such information can be asserted.
+      For our implementation, "no such information can be asserted" means
+      it shall be treated as an open shell, so the default is just @false,
+      we don't introduce a 3rd state. }
+    property Closed: Boolean read FClosed write FClosed default false;
+
+    { List of indices for the vertices of the triangles. }
+    property CoordIndex: TVector3IntegerList read FCoordIndex;
+
+    { The list of integers defining the locations in the
+      @link(TIfcCartesianPointList3D) to obtain the point coordinates for
+      the indices withint the CoordIndex. If the PnIndex is not provided
+      the indices point directly into the @link(IfcCartesianPointList3D). }
+    property PnIndex: TIntegerList read FPnIndex;
+  end;
+
   { Curve in 2D or 3D.
 
     Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcCurve.htm }
@@ -6011,6 +6049,24 @@ begin
   Result := true;
 end;
 
+{ TIfcTriangulatedFaceSet ---------------------------------------------------- }
+
+constructor TIfcTriangulatedFaceSet.Create(AOwner: TComponent);
+begin
+  inherited;
+  FNormals := TVector3List.Create;
+  FCoordIndex := TVector3IntegerList.Create;
+  FPnIndex := TIntegerList.Create;
+end;
+
+destructor TIfcTriangulatedFaceSet.Destroy;
+begin
+  FreeAndNil(FNormals);
+  FreeAndNil(FCoordIndex);
+  FreeAndNil(FPnIndex);
+  inherited;
+end;
+
 { TIfcPolyline ------------------------------------------------------------- }
 
 constructor TIfcPolyline.Create(AOwner: TComponent);
@@ -6833,6 +6889,7 @@ function IfcClasses: TIfcPersistentClassList;
     FIfcClasses.Add(TIfcActuatorType);
     FIfcClasses.Add(TIfcColumn);
     FIfcClasses.Add(TIfcPolygonalFaceSet);
+    FIfcClasses.Add(TIfcTriangulatedFaceSet);
     FIfcClasses.Add(TIfcSurfaceTexture);
     FIfcClasses.Add(TIfcImageTexture);
     FIfcClasses.Add(TIfcTextureVertexListSpec);
