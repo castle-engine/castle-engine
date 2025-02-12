@@ -2946,6 +2946,14 @@
       default TIfcSlabTypeEnum.NotDefined;
   end;
 
+  { @deprecated Deprecated and later removed in IFC 4.3.
+    Defined only to handle old IFC models,
+    testcase: Community-Sample-Test-Files-main/IFC 4.0.2.1 (IFC 4)/ISO Spec archive/slab-standard-case.ifcjson
+
+    Old spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_1/FINAL/HTML/schema/ifcsharedbldgelements/lexical/ifcslabstandardcase.htm }
+  TIfcSlabStandardCase = class(TIfcSlab)
+  end;
+
   { Proxy definition that provides the same functionality as subtypes of
     IfcBuiltElement, but without having a predefined meaning
     of the special type of building element it represents.
@@ -6313,6 +6321,7 @@ function IfcClasses: TIfcPersistentClassList;
     FIfcClasses.Add(TIfcTelecomAddress);
     FIfcClasses.Add(TIfcActorRole);
     FIfcClasses.Add(TIfcSlab);
+    FIfcClasses.Add(TIfcSlabStandardCase);
     FIfcClasses.Add(TIfcIndexedPolyCurve);
     FIfcClasses.Add(TIfcLineIndex);
     FIfcClasses.Add(TIfcArcIndex);
