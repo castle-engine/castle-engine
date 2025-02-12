@@ -60,7 +60,7 @@ type
       @item(TCastleApplication class, using the @link(CastleWindow.Application)
         singleton (if you use CastleWindow).)
       @item(@code(TApplication) class, using the @code(Application) singleton,
-        in Lazarus LCL or Delphi VCL or FMX (in case you use CastleControl).
+        in Lazarus LCL or Delphi VCL or FMX (in case you use CastleControl).)
     ) }
   TCastleApplicationProperties = class
   private

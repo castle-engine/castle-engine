@@ -1805,7 +1805,7 @@ type
         it may be changed into an URL on return.
 
         Empty value ('') always means the same as "current directory", guaranteed.
-        So it's equivalent to @linke(UriCurrentPath).
+        So it's equivalent to @link(UriCurrentPath).
 
         Note that the path must end with a slash. Otherwise '/tmp/blah' would be
         ambigous (it could mean either file name 'blah' in the dir '/tmp/' dir,

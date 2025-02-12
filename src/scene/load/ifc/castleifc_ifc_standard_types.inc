@@ -683,7 +683,7 @@
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
   published
-    { List of index pointers into the @link(TIfcTextureVertexList). }
+    { List of index pointers into the @link(TIfcTextureVertexListSpec). }
     property TexCoordIndex: TIntegerList read FTexCoordIndex;
 
     { The @link(TIfcIndexedPolygonalFace) for which the texture
@@ -818,7 +818,7 @@
     { The list of integers defining the locations in the
       @link(TIfcCartesianPointList3D) to obtain the point coordinates for
       the indices withint the CoordIndex. If the PnIndex is not provided
-      the indices point directly into the @link(IfcCartesianPointList3D). }
+      the indices point directly into the @link(TIfcCartesianPointList3D). }
     property PnIndex: TIntegerList read FPnIndex;
   end;
 
