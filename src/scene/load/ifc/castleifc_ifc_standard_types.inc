@@ -1340,7 +1340,9 @@
     this specification.
 
     In IFC specification, this is a choice, not a class.
-    But we make it a class, as it is more convenient for our purposes. }
+    But we make it a class, as it is more convenient for our purposes.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcMaterialSelect.htm }
   TIfcMaterialSelect = class(TIfcPersistent)
   end;
 
@@ -4089,8 +4091,10 @@
   { General supertype for all material related information items in IFC
     that have common material related properties that may include association
     of material with some shape parameters or assignments to identified parts
-    of a component. }
-  TIfcMaterialDefinition = class abstract(TIfcPersistent)
+    of a component.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcMaterialDefinition.htm }
+  TIfcMaterialDefinition = class abstract(TIfcMaterialSelect)
   strict private
     FAssociatedTo: TIfcRelAssociatesMaterialList;
     FHasExternalReferences: TIfcExternalReferenceRelationshipList;
