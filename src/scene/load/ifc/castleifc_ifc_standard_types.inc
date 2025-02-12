@@ -3010,6 +3010,14 @@
       default TIfcWallTypeEnum.NotDefined;
   end;
 
+  { @deprecated Deprecated and later removed in IFC 4.3.
+    Defined only to handle old IFC models,
+    testcase: Community-Sample-Test-Files-main/IFC 4.0.2.1 (IFC 4)/ISO Spec archive/wall-elemented-case.ifcjson .
+
+    Old spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_1/FINAL/HTML/schema/ifcsharedbldgelements/lexical/ifcwallelementedcase.htm }
+  TIfcWallElementedCase = class(TIfcWall)
+  end;
+
   { Shared information for occurrences of walls.
 
     Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcWallType.htm }
@@ -6242,6 +6250,7 @@ function IfcClasses: TIfcPersistentClassList;
     FIfcClasses.Add(TIfcApplication);
     FIfcClasses.Add(TIfcWall);
     FIfcClasses.Add(TIfcWallStandardCase);
+    FIfcClasses.Add(TIfcWallElementedCase);
     FIfcClasses.Add(TIfcPolyline);
     FIfcClasses.Add(TIfcPropertyDefinition);
     FIfcClasses.Add(TIfcRelDeclares);
