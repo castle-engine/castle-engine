@@ -842,6 +842,9 @@ var
   Extrusion: TExtrusionNode;
   Shape: TShapeNode;
   CrossSection: TVector2List;
+  Transform: TTransformNode;
+  Translation: TVector3;
+  Rotation: TVector4;
 begin
   Extrusion := TExtrusionNode.Create('', Mapping.BaseUrl);
   Extrusion.SetSpine([
@@ -887,9 +890,25 @@ begin
   Shape.Geometry := Extrusion;
   Shape.Appearance := Appearance;
   SetMetadata(Shape, 'IFC_ClassName', ClassName);
-
   Mapping.ShapeToProduct.AddOrSetValue(Shape, ParentProduct);
-  Result := Shape;
+
+  Transform := TTransformNode.Create('', Mapping.BaseUrl);
+  // handle TIfcSweptAreaSolid.Position (this is a transformation, may contain rotation too)
+  if Position <> nil then
+  begin
+    Position.GetTransform(Translation, Rotation);
+    WritelnLog('IfcExtrudedAreaSolid.Position translation %s, rotation %s', [Translation.ToString, Rotation.ToString]);
+    Transform.Translation := Translation;
+    { TODO why is - needed below?
+      Testcase: windows made by BonsaiBIM, see
+        ifc_window_test/5_window_by_bonsaibim/window_simple.ifcjson
+        ifc_window_test/5_window_by_bonsaibim/window_rotated.ifcjson }
+    Rotation.W := -Rotation.W;
+    Transform.Rotation := Rotation;
+  end;
+  Transform.AddChildren(Shape);
+
+  Result := Transform;
 end;
 
 function TIfcPolygonalFaceSet.BuildNode(const Mapping: TCastleIfcMapping;
@@ -988,6 +1007,7 @@ begin
   if MappingTarget <> nil then
   begin
     MappingTarget.GetTransform(TargetTranslation, TargetRotation, TargetScale);
+    //WritelnLog('MappingTarget is translation %s, rotation %s', [TargetTranslation.ToString, TargetRotation.ToString]);
     TransformMappingTarget.Translation := TargetTranslation;
     TransformMappingTarget.Rotation := TargetRotation;
     TransformMappingTarget.Scale := TargetScale;
@@ -1002,6 +1022,7 @@ begin
     if MappingSource.MappingOrigin <> nil then
     begin
       MappingSource.MappingOrigin.GetTransform(OriginTranslation, OriginRotation);
+      //WritelnLog('MappingOrigin is translation %s, rotation %s', [OriginTranslation.ToString, OriginRotation.ToString]);
       TransformMappingOrigin.Translation := -OriginTranslation;
       TransformMappingOrigin.Rotation := Vector4(OriginRotation.XYZ, -OriginRotation.W);
     end;
