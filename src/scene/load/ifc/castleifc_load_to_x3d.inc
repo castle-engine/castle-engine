@@ -88,7 +88,11 @@
     property BaseUrl: String read FBaseUrl;
 
     { Remember association between X3D Shape and IFC Product.
-      This is used to implement NodeToProduct, ProductToNode. }
+      This is used to implement NodeToProduct, ProductToNode.
+
+      When Product is @nil, this is ignored.
+      This is comfortable when used from TIfcRepresentationItem.BuildNode
+      overrides, that may get @nil Product. }
     procedure ConnectShapeAndProduct(const Shape: TAbstractShapeNode;
       const Product: TIfcProduct);
   public
@@ -459,6 +463,7 @@ end;
 procedure TCastleIfcMapping.ConnectShapeAndProduct(const Shape: TAbstractShapeNode;
   const Product: TIfcProduct);
 begin
+  if Product = nil then Exit;
   Shape.AddDestructionNotification({$ifdef FPC}@{$endif} ShapeDestroyed);
   ShapeToProduct.AddOrSetValue(Shape, Product);
 end;

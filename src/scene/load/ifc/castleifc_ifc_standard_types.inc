@@ -314,10 +314,10 @@
       Returns @nil if not possible / not implemented.
 
       @param(ParentProduct Parent TIfcProduct, to be used with
-        TCastleIfcMapping.AssociateProductShape call.
+        TCastleIfcMapping.ConnectShapeAndProduct call.
 
-        It can be @nil (and TCastleIfcMapping.AssociateProductShape
-        is already prepared to handle it too) if not particular TIfcProduct
+        It can be @nil (and TCastleIfcMapping.ConnectShapeAndProduct
+        is already prepared to handle it too) if no particular TIfcProduct
         is parent of this, which (right now) only happens for some internal
         usage in UpdateCrossSection for throw-away shape instances.
       )
