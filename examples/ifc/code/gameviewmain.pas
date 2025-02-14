@@ -78,7 +78,7 @@ type
       NewSelectedProductShape is some shape known to map to given product.
       Must be non-nil when NewSelectedProduct is non-nil. }
     procedure ChangeSelectedProduct(const NewSelectedProduct: TIfcProduct;
-      const NewSelectedProductShape: TShape);
+      const NewSelectedProductShape: TAbstractShapeNode);
 
     procedure ClickNew(Sender: TObject);
     procedure ClickLoad(Sender: TObject);
@@ -531,22 +531,15 @@ procedure TViewMain.ButtonHierarchyClick(Sender: TObject);
 var
   NewSelectedObject: TIfcObjectDefinition;
   NewSelectedProduct: TIfcProduct;
-  ShapeNode: TAbstractShapeNode;
-  Shape: TShape;
+  Shape: TAbstractShapeNode;
 begin
   NewSelectedObject := TIfcObjectDefinition(TCastleButton(Sender).Tag);
   if NewSelectedObject is TIfcProduct then
   begin
     NewSelectedProduct := TIfcProduct(NewSelectedObject);
-    ShapeNode := IfcMapping.ProductToNode(NewSelectedProduct);
-    if ShapeNode <> nil then
-    begin
-      if TShapeTree.AssociatedShapesCount(ShapeNode) = 1 then
-      begin
-        Shape := TShapeTree.AssociatedShape(ShapeNode, 0) as TShape;
-        ChangeSelectedProduct(NewSelectedProduct, Shape);
-      end;
-    end;
+    Shape := IfcMapping.ProductToNode(NewSelectedProduct);
+    if Shape <> nil then
+      ChangeSelectedProduct(NewSelectedProduct, Shape);
   end;
 end;
 
@@ -647,7 +640,9 @@ begin
 end;
 
 procedure TViewMain.ChangeSelectedProduct(const NewSelectedProduct: TIfcProduct;
-  const NewSelectedProductShape: TShape);
+  const NewSelectedProductShape: TAbstractShapeNode);
+var
+  ShapeBox: TBox3D;
 begin
   Assert(not ( (NewSelectedProduct <> nil) and (NewSelectedProductShape = nil) ) );
 
@@ -656,13 +651,18 @@ begin
     IfcSelectedProduct := NewSelectedProduct;
     UpdateHierarchy;
 
+    if NewSelectedProductShape <> nil then
+      ShapeBox := IfcScene.ShapeBoundingBox(NewSelectedProductShape)
+    else
+      ShapeBox := TBox3D.Empty;
+
     // update TransformManipulate, to allow dragging selected product
     if (IfcSelectedProduct <> nil) and
         { Allow dragging anyway, user can see TransformSupported=false in sidebar. }
         //IfcSelectedProduct.TransformSupported and
-        (not NewSelectedProductShape.BoundingBox.IsEmpty) then
+        (not ShapeBox.IsEmpty) then
     begin
-      TransformSelectedProduct.Translation := NewSelectedProductShape.BoundingBox.Center;
+      TransformSelectedProduct.Translation := ShapeBox.Center;
       IfcSelectedProductShapeTranslation := TransformSelectedProduct.Translation;
       TransformManipulate.SetSelected([TransformSelectedProduct]);
     end else
@@ -674,8 +674,7 @@ procedure TViewMain.MainViewportPress(const Sender: TCastleUserInterface;
   const Event: TInputPressRelease; var Handled: Boolean);
 var
   HitInfo: TRayCollisionNode;
-  HitShape: TShape;
-  HitShapeNode: TAbstractShapeNode;
+  HitShape: TAbstractShapeNode;
   NewSelectedProduct: TIfcProduct;
 begin
   if Event.IsMouseButton(buttonLeft) then
@@ -690,11 +689,10 @@ begin
     begin
       if (HitInfo.Item = IfcScene) and
          (HitInfo.Triangle <> nil) and
-          (HitInfo.Triangle^.ShapeNode <> nil) then
+         (HitInfo.Triangle^.ShapeNode <> nil) then
       begin
-        HitShape := HitInfo.Triangle^.Shape;
-        HitShapeNode := HitShape.Node;
-        NewSelectedProduct := IfcMapping.NodeToProduct(HitShapeNode);
+        HitShape := HitInfo.Triangle^.ShapeNode;
+        NewSelectedProduct := IfcMapping.NodeToProduct(HitShape);
       end else
         { If we hit something, but it's not IFC scene, abort handling
           this click. This may be a start of dragging on TransformManipulate,
