@@ -66,6 +66,14 @@ type
         AddItem(String, Object)
         ClearItems
         etc.
+
+      TODO: own storage would allow to keep multi-line string for each item.
+      Or is this possible with Tstrings too? Autotest on both FPC and Delphi,
+      that we can add, read, get whole, set whole text (with speciali delimiter)
+      and keep multi-line.
+
+      TODO: If we resign from TStrings, we'll need own prop editor to edit in
+      editor.
     }
     property Items: TStrings read FItems write SetItems;
 
@@ -146,13 +154,19 @@ type
           set @link(TCastleUserInterface.WidthFraction) to 1.0,
           and have constant non-zero @link(TCastleUserInterface.Height),
           (or determine height by auto-sizing to content size,
-          which should be affected by the text height).)
+          which should be affected by the text height).
+
+          Unless you use @link(AutoSize), then both width and height must
+          be constant or determined by the content.)
 
         @item(When the list is horizontal, you usually want to set
           @link(TCastleUserInterface.HeightFraction) to 1.0,
           and have constant non-zero @link(TCastleUserInterface.Width),
           (or determine width by auto-sizing to content size,
-          which should be affected by the text width).)
+          which should be affected by the text width).
+
+          Unless you use @link(AutoSize), then both width and height must
+          be constant or determined by the content.)
       )
 
       TODO: Is above true? We have issues with one dimension depending on parent,
@@ -167,11 +181,16 @@ type
       to set the text, but in most typical case this is just @link(TCastleLabel). }
     property TemplateLabelName: String read FTemplateLabelName write SetTemplateLabelName;
 
-    { Use a vertical (@true, default) or horizontal (@false) layout. }
+    { Use a vertical (@true, default) or horizontal (@false) layout.
+
+      TODO: No scrolling support when the list is horizontal for now.
+      Just make sure the list contents fit within, or use @link(AutoSize). }
     property Vertical: Boolean read FVertical write SetVertical default true;
 
-    // TODO: MultiSelect, just like in LCL/VCL/FMX
-    // TODO: AutoSize, to adjust list size to items count and size.
+    { Adjust the control size to account for all the children. }
+    property AutoSize: Boolean read FAutoSize write SetAutoSize;
+
+    // TODO: MultiSelect, just like in LCL/VCL/FMX - see what ItemIndex means then, and how item selection is get/set
   end;
 
 implementation
@@ -183,6 +202,7 @@ begin
   FItemIndex := -1;
   FItems := TStringList.Create;
   TStringList(FItems).OnChange := {$ifdef FPC}@{$endif} ItemsChange;
+  RebuildGroup;
 end;
 
 destructor TCastleListBox.Destroy;
