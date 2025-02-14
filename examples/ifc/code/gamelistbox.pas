@@ -95,14 +95,19 @@ type
             @itemSpacing Compact
             @item @link(TCastleButton.Caption),
             @item @link(TCastleButton.OnClick),
-            @item @link(TCastleButton.Pressed)
+            @item @link(TCastleButton.Pressed),
+            @item @link(TCastleButton.Toggle).
           )
         )
 
         @item(you cannot change some things of the label referenced
           by @link(TemplateLabelName): @link(TCastleLabel.Caption).
         )
-      ) }
+      )
+
+      TODO: Or just hide this property, and disable modification,
+      because it's inherently broken with how we cache items (to not recreate them
+      on rebuilding). }
     property ItemsUi[const Index: Integer]: TCastleUserInterface read GetItemsUi;
 
     { Currently selected item, -1 if none.
