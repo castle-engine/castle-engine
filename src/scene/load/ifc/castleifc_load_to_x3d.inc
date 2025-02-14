@@ -745,9 +745,27 @@ procedure TIfcCurve.UpdateCrossSection(const CrossSection: TVector2List);
       CrossSection.Add(Coord.FdPoint.Items[I].XY);
   end;
 
+  { Returns @false if Geometry class was not handled or was @nil. }
+  function HandleGeometry(const Geometry: TAbstractGeometryNode): Boolean;
+  begin
+    if Geometry is TIndexedLineSetNode then
+    begin
+      Result := true;
+      HandleIndexedLineSetNode(TIndexedLineSetNode(Geometry))
+    end else
+    if Geometry is TLineSetNode then
+    begin
+      Result := true;
+      HandleLineSetNode(TLineSetNode(Geometry))
+    end else
+      Result := false;
+  end;
+
 var
   Shape: TShapeNode;
   Mapping: TCastleIfcMapping;
+  ProxyState: TX3DGraphTraverseState;
+  ProxyGeometry: TAbstractGeometryNode;
 begin
   Mapping := TCastleIfcMapping.Create;
   try
@@ -755,18 +773,31 @@ begin
     try
       if Shape.Geometry <> nil then
       begin
-        if Shape.Geometry is TIndexedLineSetNode then
-          HandleIndexedLineSetNode(TIndexedLineSetNode(Shape.Geometry))
-        else
-        if Shape.Geometry is TLineSetNode then
-          HandleLineSetNode(TLineSetNode(Shape.Geometry))
-        else
-        if Shape.Geometry <> nil then
-          WritelnWarning('IFC', 'Unsupported Shape.Geometry class for TIfcCurve.UpdateCrossSection: ' + Shape.Geometry.ClassName);
+        if not HandleGeometry(Shape.Geometry) then
+        begin
+          { Try using Proxy and handling this.
+            This allows us to deal e.g. with TCircle2DNode,
+            which in turn appears from IfcCircle, IfcEllipse. }
+          ProxyState := TX3DGraphTraverseState.Create;
+          ProxyState.ShapeNode := Shape;
+          ProxyGeometry := Shape.Geometry.Proxy(ProxyState);
+          if ProxyGeometry <> nil then
+          begin
+            if not HandleGeometry(ProxyGeometry) then
+              WritelnWarning('IFC', 'Unsupported geometry class for TIfcCurve.UpdateCrossSection: %s, proxy to %s', [
+                Shape.Geometry.ClassName,
+                ProxyGeometry.ClassName
+              ]);
+          end else
+          begin
+            WritelnWarning('IFC', 'Unsupported geometry class for TIfcCurve.UpdateCrossSection: %s, no proxy', [
+              Shape.Geometry.ClassName
+            ]);
+          end;
+        end;
       end;
     finally FreeIfUnusedAndNil(Shape) end;
   finally FreeAndNil(Mapping) end;
-
 end;
 
 procedure TIfcPolyline.UpdateCrossSection(const CrossSection: TVector2List);
