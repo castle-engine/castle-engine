@@ -691,20 +691,46 @@ procedure TIfcCurve.UpdateCrossSection(const CrossSection: TVector2List);
   procedure HandleIndexedLineSetNode(const IndexedLineSet: TIndexedLineSetNode);
   var
     Coord: TCoordinateNode;
-    I, Index: Integer;
+    I, LastIndex, Index: Integer;
+    ConnectNextPointToPreviousSegment: Boolean;
   begin
     Coord := IndexedLineSet.Coord as TCoordinateNode;
     Assert(Coord <> nil); // these X3D nodes are build by us, so we know they have Coord
+    LastIndex := -1;
+    ConnectNextPointToPreviousSegment := false;
     for I := 0 to IndexedLineSet.FdCoordIndex.Count - 1 do
     begin
       Index := IndexedLineSet.FdCoordIndex.Items[I];
       if Index < 0 then
       begin
-        WritelnWarning('IFC', 'TODO: IfcIndexedPolyCurve with multiple disjoint sections not supported, rendering as one connected curve');
+        { Negative index *does not* imply that we should start a new cross-section.
+
+          All the segments of IfcIndexedPolyCurve
+          ( https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcIndexedPolyCurve.htm )
+          are supposed to be connected, and IfcSweptAreaSolid has
+          *one* cross-section, not many
+          ( https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcSweptAreaSolid.htm
+          """The swept area is defined by a cross section,
+          represented by a subtype if IfcProfileDef, that is provided as
+          a closed two-dimensional boundary on an implicit plane. """
+
+          So we just make sure that segments indeed connect, and then
+          we generate a single CrossSection as a list of points. }
+        ConnectNextPointToPreviousSegment := true;
       end else
       begin
-        Assert(Index < Coord.FdPoint.Count);
-        CrossSection.Add(Coord.FdPoint.Items[Index].XY);
+        if ConnectNextPointToPreviousSegment and (LastIndex <> -1) then
+        begin
+          if Index <> LastIndex then
+            WritelnWarning('Cross-section segments, from IfcIndexedPolyCurve, are not connected. This is either invalid IFC (disconnected IfcIndexedPolyCurve segments) or a bug in our code.');
+          ConnectNextPointToPreviousSegment := false;
+          // ignore this point, as it should equal to the last point
+        end else
+        begin
+          Assert(Index < Coord.FdPoint.Count);
+          CrossSection.Add(Coord.FdPoint.Items[Index].XY);
+          LastIndex := Index;
+        end;
       end;
     end;
   end;
