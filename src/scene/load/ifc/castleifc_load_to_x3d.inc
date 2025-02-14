@@ -994,7 +994,7 @@ begin
   if Position <> nil then
   begin
     Position.GetTransform(Translation, Rotation);
-    WritelnLog('IfcExtrudedAreaSolid.Position translation %s, rotation %s', [Translation.ToString, Rotation.ToString]);
+    //WritelnLog('IfcExtrudedAreaSolid.Position translation %s, rotation %s', [Translation.ToString, Rotation.ToString]);
     Transform.Translation := Translation;
     { TODO why is - needed below?
       Testcase: windows made by BonsaiBIM, see
