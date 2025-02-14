@@ -844,6 +844,25 @@ begin
   Result := Shape;
 end;
 
+function TIfcCircle.BuildNode(const Mapping: TCastleIfcMapping;
+  const ParentProduct: TIfcProduct; const Appearance: TAppearanceNode): TAbstractChildNode;
+var
+  Shape: TShapeNode;
+  Circle: TCircle2DNode;
+begin
+  Circle := TCircle2DNode.Create('', Mapping.BaseUrl);
+  Circle.Radius := Radius;
+
+  Shape := TShapeNode.Create('', Mapping.BaseUrl);
+  Shape.Geometry := Circle;
+  // circle is best displayed as unlit geometry, different material would be useful
+  // Shape.Appearance := Appearance;
+  SetMetadata(Shape, 'IFC_ClassName', ClassName);
+
+  Mapping.ConnectShapeAndProduct(Shape, ParentProduct);
+  Result := Shape;
+end;
+
 function TIfcIndexedPolyCurve.BuildNode(const Mapping: TCastleIfcMapping;
   const ParentProduct: TIfcProduct; const Appearance: TAppearanceNode): TAbstractChildNode;
 

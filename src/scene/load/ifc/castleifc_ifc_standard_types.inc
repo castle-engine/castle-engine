@@ -1880,6 +1880,20 @@
     property SemiAxis2: TIfcPositiveLengthMeasure read FSemiAxis2 write FSemiAxis2;
   end;
 
+  { Circle.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcCircle.htm }
+  TIfcCircle = class(TIfcConic)
+  strict private
+    FRadius: TIfcPositiveLengthMeasure;
+  public
+    function BuildNode(const Mapping: TCastleIfcMapping;
+      const ParentProduct: TIfcProduct; const Appearance: TAppearanceNode): TAbstractChildNode; override;
+  published
+    { Radius of the circle, greater than zero. }
+    property Radius: TIfcPositiveLengthMeasure read FRadius write FRadius;
+  end;
+
   { An abstract supertype of different kinds of geometric transformations.
 
     Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcCartesianTransformationOperator.htm }
@@ -7043,6 +7057,7 @@ function IfcClasses: TIfcPersistentClassList;
     FIfcClasses.Add(TIfcFurnishingElement);
     FIfcClasses.Add(TIfcSystemFurnitureElement);
     FIfcClasses.Add(TIfcFurniture);
+    FIfcClasses.Add(TIfcCircle);
   end;
 
 begin
