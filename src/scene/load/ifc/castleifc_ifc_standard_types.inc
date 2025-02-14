@@ -2052,6 +2052,80 @@
     property ElementType: TIfcLabel read FElementType write FElementType;
   end;
 
+  { Commonly shared property set definitions of @link(TIfcFurnishingElement).
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcFurnishingElementType.htm }
+  TIfcFurnishingElementType = class(TIfcElementType)
+  end;
+
+  { Types of system furniture, used by
+    @link(TIfcSystemFurnitureElementType.PredefinedType),
+    @link(TIfcSystemFurnitureElement.PredefinedType).
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcSystemFurnitureElementTypeEnum.htm }
+  TIfcSystemFurnitureElementTypeEnum = (
+    NotDefined,
+    Panel,
+    Subrack,
+    Worksurface,
+    UserDefined
+  );
+
+  { Commonly shared property set definitions of @link(TIfcSystemFurnitureElement).
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcSystemFurnitureElementType.htm }
+  TIfcSystemFurnitureElementType = class(TIfcFurnishingElementType)
+  strict private
+    FPredefinedType: TIfcSystemFurnitureElementTypeEnum;
+  published
+    { Predefined types of system furniture. }
+    property PredefinedType: TIfcSystemFurnitureElementTypeEnum read FPredefinedType write FPredefinedType
+      default TIfcSystemFurnitureElementTypeEnum.NotDefined;
+  end;
+
+  { Types of furniture from which the type required can be selected.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcFurnitureTypeEnum.htm }
+  TIfcFurnitureTypeEnum = (
+    NotDefined,
+    Bed,
+    Chair,
+    Desk,
+    FileCabinet,
+    Shelf,
+    Sofa,
+    Table,
+    TechnicalCabinet,
+    UserDefined
+  );
+
+  { Where the assembly is intended to take place, either in a factory
+    or on the building site.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcAssemblyPlaceEnum.htm }
+  TIfcAssemblyPlaceEnum = (
+    NotDefined,
+    Factory,
+    Site
+  );
+
+  { Commonly shared property set definitions of @link(TIfcFurniture).
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcFurnitureType.htm }
+  TIfcFurnitureType = class(TIfcFurnishingElementType)
+  strict private
+    FPredefinedType: TIfcFurnitureTypeEnum;
+    FAssemblyPlace: TIfcAssemblyPlaceEnum;
+  published
+    { Designation of where the assembly is intended to take place. }
+    property AssemblyPlace: TIfcAssemblyPlaceEnum read FAssemblyPlace write FAssemblyPlace
+      default TIfcAssemblyPlaceEnum.NotDefined;
+
+    { Predefined types of furniture. }
+    property PredefinedType: TIfcFurnitureTypeEnum read FPredefinedType write FPredefinedType
+      default TIfcFurnitureTypeEnum.NotDefined;
+  end;
+
   { A distribution element type is used to define the common properties
     of a certain type of a distribution element that may be applied
     to many instances of that feature type to assign a specific style.
@@ -3072,6 +3146,38 @@
     property HasSurfaceFeatures: TIfcRelAdheresToElementList read FHasSurfaceFeatures;
   end;
   TIfcElementList = class({$ifdef FPC}specialize{$endif} TObjectList<TIfcElement>)
+  end;
+
+  { Generalization of all furniture related objects.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcFurnishingElement.htm }
+  TIfcFurnishingElement = class(TIfcElement)
+  end;
+
+  { Components of modular furniture which are not directly placed
+    in a building structure but aggregated inside furniture.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcSystemFurnitureElement.htm }
+  TIfcSystemFurnitureElement = class(TIfcFurnishingElement)
+  strict private
+    FPredefinedType: TIfcSystemFurnitureElementTypeEnum;
+  published
+    { List of types to further identify the object. }
+    property PredefinedType: TIfcSystemFurnitureElementTypeEnum read FPredefinedType write FPredefinedType
+      default TIfcSystemFurnitureElementTypeEnum.NotDefined;
+  end;
+
+  { Complete furnishings such as a table, desk, chair, or cabinet,
+    which may or may not be permanently attached to a building structure.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcFurniture.htm }
+  TIfcFurniture = class(TIfcFurnishingElement)
+  strict private
+    FPredefinedType: TIfcFurnitureTypeEnum;
+  published
+    { List of types to further identify the object. }
+    property PredefinedType: TIfcFurnitureTypeEnum read FPredefinedType write FPredefinedType
+      default TIfcFurnitureTypeEnum.NotDefined;
   end;
 
   { All existence dependent elements which modify the shape and appearance
@@ -6931,6 +7037,12 @@ function IfcClasses: TIfcPersistentClassList;
     FIfcClasses.Add(TIfcSurfaceStyleWithTextures);
     FIfcClasses.Add(TIfcDistributionElementType);
     FIfcClasses.Add(TIfcBoilerType);
+    FIfcClasses.Add(TIfcFurnishingElementType);
+    FIfcClasses.Add(TIfcSystemFurnitureElementType);
+    FIfcClasses.Add(TIfcFurnitureType);
+    FIfcClasses.Add(TIfcFurnishingElement);
+    FIfcClasses.Add(TIfcSystemFurnitureElement);
+    FIfcClasses.Add(TIfcFurniture);
   end;
 
 begin
