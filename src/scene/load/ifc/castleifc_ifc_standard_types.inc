@@ -127,6 +127,10 @@
     nodes" methods extend ancestor in natural way).
 }
 
+{ Define all inverse properties from IFC.
+  Keep defined, undefine only for testing now. }
+{$define CASTLE_IFC_INVERSE_PROPS}
+
 {$ifdef read_interface_types}
 
   // forward declarations
@@ -192,6 +196,10 @@
   TIfcSurfaceTextureList = class;
   TIfcTessellatedFaceSet = class;
   TIfcTextureCoordinateIndicesList = class;
+  TIfcRelContainedInSpatialStructure = class;
+  TIfcRelPositionsList = class;
+  TIfcGridAxisList = class;
+  TIfcGrid = class;
 
   { Float type used throughout IFC.
 
@@ -2562,6 +2570,7 @@
   strict private
     FObjectPlacement: TIfcObjectPlacement;
     FRepresentation: TIfcProductRepresentation;
+    FPositionedRelativeTo: TIfcRelPositionsList;
     function GetTranslation: TVector3;
     procedure SetTranslation(const Value: TVector3);
     { Return the value of @link(TransformSupported)
@@ -2569,6 +2578,8 @@
       set Translation and Rotation to our transformation. }
     function GetTransform(out Translation: TVector3; out Rotation: TVector4): Boolean;
   public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
     function BuildNode(const Mapping: TCastleIfcMapping): TTransformNode; override;
 
     { Add mesh representation to the given product.
@@ -2647,11 +2658,137 @@
 
     // TODO // property ReferencedBy: TIfcRelAssignsToProductList read FReferencedBy;
 
-    // TODO // property PositionedRelativeTo: TIfcRelPositionsList read FPositionedRelativeTo;
+    property PositionedRelativeTo: TIfcRelPositionsList read FPositionedRelativeTo;
 
     // TODO // property ReferencedInStructures: TIfcRelReferencedInSpatialStructure read FReferencedInStructures;
   end;
   TIfcProductList = class({$ifdef FPC}specialize{$endif} TObjectList<TIfcProduct>)
+  end;
+
+  { Abstract entity definition for positioning and annotating elements that
+    are used to position other elements relatively.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcPositioningElement.htm }
+  TIfcPositioningElement = class abstract(TIfcProduct)
+  strict private
+    {$ifdef CASTLE_IFC_INVERSE_PROPS}
+    FContainedInStructure: TIfcRelContainedInSpatialStructure;
+    FPositions: TIfcRelPositionsList;
+    {$endif CASTLE_IFC_INVERSE_PROPS}
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+  published
+    {$ifdef CASTLE_IFC_INVERSE_PROPS}
+    { Relationship to a spatial structure element, to which the
+      positioning element is primarily associated. }
+    property ContainedInStructure: TIfcRelContainedInSpatialStructure read FContainedInStructure write FContainedInStructure;
+
+    property Positions: TIfcRelPositionsList read FPositions;
+    {$endif CASTLE_IFC_INVERSE_PROPS}
+  end;
+
+  TIfcGridTypeEnum = (
+    NotDefined,
+    Irregular,
+    Radial,
+    Rectangular,
+    Triangular,
+    UserDefined
+  );
+
+  { Derived location of the intersection between two grid axes.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcVirtualGridIntersection.htm }
+  TIfcVirtualGridIntersection = class(TIfcPersistent)
+  strict private
+    FIntersectingAxes: TIfcGridAxisList;
+    FOffsetDistances: TCastleVector3PersistentSimple;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+  published
+    { Two grid axes which intersects at exactly one intersection. }
+    property IntersectingAxes: TIfcGridAxisList read FIntersectingAxes;
+
+    { Offset distances to the grid axes. }
+    property OffsetDistances: TCastleVector3PersistentSimple read FOffsetDistances;
+  end;
+  TIfcVirtualGridIntersectionList = {$ifdef FPC}specialize{$endif} TObjectList<TIfcVirtualGridIntersection>;
+
+  { An individual axis in the context of a design grid.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcGridAxis.htm }
+  TIfcGridAxis = class(TIfcPersistent)
+  strict private
+    FAxisTag: TIfcLabel;
+    FAxisCurve: TIfcCurve;
+    FSameSense: Boolean;
+    {$ifdef CASTLE_IFC_INVERSE_PROPS}
+    FPartOfU: TIfcGrid;
+    FPartOfV: TIfcGrid;
+    FPartOfW: TIfcGrid;
+    FHasIntersections: TIfcVirtualGridIntersectionList;
+    {$endif CASTLE_IFC_INVERSE_PROPS}
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+  published
+    { The tag or name for this grid axis. }
+    property AxisTag: TIfcLabel read FAxisTag write FAxisTag;
+
+    { Underlying curve which provides the geometry for this grid axis. }
+    property AxisCurve: TIfcCurve read FAxisCurve write FAxisCurve;
+
+    { Defines whether the original sense of curve is used or whether
+      it is reversed in the context of the grid axis. }
+    property SameSense: Boolean read FSameSense write FSameSense;
+
+    {$ifdef CASTLE_IFC_INVERSE_PROPS}
+    { If provided, the IfcGridAxis is part of the UAxes of IfcGrid. }
+    property PartOfU: TIfcGrid read FPartOfU write FPartOfU;
+
+    { If provided, the IfcGridAxis is part of the VAxes of IfcGrid. }
+    property PartOfV: TIfcGrid read FPartOfV write FPartOfV;
+
+    { If provided, the IfcGridAxis is part of the WAxes of IfcGrid. }
+    property PartOfW: TIfcGrid read FPartOfW write FPartOfW;
+
+    { The reference to a set of @link(TIfcVirtualGridIntersection)s,
+      that connect other grid axes to this grid axis. }
+    property HasIntersections: TIfcVirtualGridIntersectionList read FHasIntersections;
+    {$endif CASTLE_IFC_INVERSE_PROPS}
+  end;
+  TIfcGridAxisList = class({$ifdef FPC}specialize{$endif} TObjectList<TIfcGridAxis>)
+  end;
+
+  { Planar design grid defined in 3D space used as an aid in locating
+    structural and design elements.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcGrid.htm }
+  TIfcGrid = class(TIfcPositioningElement)
+  strict private
+    FUAxes: TIfcGridAxisList;
+    FVAxes: TIfcGridAxisList;
+    FWAxes: TIfcGridAxisList;
+    FPredefinedType: TIfcGridTypeEnum;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+  published
+    { List of grid axes defining the first row of grid lines. }
+    property UAxes: TIfcGridAxisList read FUAxes;
+
+    { List of grid axes defining the second row of grid lines. }
+    property VAxes: TIfcGridAxisList read FVAxes;
+
+    { List of grid axes defining the third row of grid lines.
+      It may be given in the case of a triangular grid. }
+    property WAxes: TIfcGridAxisList read FWAxes;
+
+    { Predefined types to define the particular type of the grid. }
+    property PredefinedType: TIfcGridTypeEnum read FPredefinedType write FPredefinedType
+      default TIfcGridTypeEnum.NotDefined;
   end;
 
   { Elements that might be used to define a spatial structure.
@@ -2724,6 +2861,27 @@
 
   { Relationship that connects objects under some criteria. }
   TIfcRelConnects = class abstract(TIfcRelationship)
+  end;
+
+  { Relationship informs on the positioning dependency between
+    a product and a positioning element.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcRelPositions.htm }
+  TIfcRelPositions = class(TIfcRelConnects)
+  strict private
+    FRelatingPositioningElement: TIfcPositioningElement;
+    FRelatedProducts: TIfcProductList;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+  published
+    { Positioning element defining the source of the relative position. }
+    property RelatingPositioningElement: TIfcPositioningElement read FRelatingPositioningElement write FRelatingPositioningElement;
+
+    { Relatively positioned product. }
+    property RelatedProducts: TIfcProductList read FRelatedProducts;
+  end;
+  TIfcRelPositionsList = class({$ifdef FPC}specialize{$endif} TObjectList<TIfcRelPositions>)
   end;
 
   { Relationship to assign elements to a certain level of the spatial project structure.
@@ -5025,6 +5183,18 @@ end;
 
 { TIfcProduct --------------------------------------------------------------- }
 
+constructor TIfcProduct.Create(AOwner: TComponent);
+begin
+  inherited;
+  FPositionedRelativeTo := TIfcRelPositionsList.Create(false);
+end;
+
+destructor TIfcProduct.Destroy;
+begin
+  FreeAndNil(FPositionedRelativeTo);
+  inherited;
+end;
+
 procedure TIfcProduct.AddMeshRepresentation(
   const Context: TIfcGeometricRepresentationContext;
   const Coordinates: array of TVector3;
@@ -5294,6 +5464,74 @@ begin
   NewLocation.Coordinates.Value := Value;
 end;
 
+{ TIfcPositioningElement ----------------------------------------------------- }
+
+constructor TIfcPositioningElement.Create(AOwner: TComponent);
+begin
+  inherited;
+  {$ifdef CASTLE_IFC_INVERSE_PROPS}
+  FPositions := TIfcRelPositionsList.Create(false);
+  {$endif}
+end;
+
+destructor TIfcPositioningElement.Destroy;
+begin
+  {$ifdef CASTLE_IFC_INVERSE_PROPS}
+  FreeAndNil(FPositions);
+  {$endif}
+  inherited;
+end;
+
+{ TIfcVirtualGridIntersection ------------------------------------------------ }
+
+constructor TIfcVirtualGridIntersection.Create(AOwner: TComponent);
+begin
+  inherited;
+  FIntersectingAxes := TIfcGridAxisList.Create(false);
+end;
+
+destructor TIfcVirtualGridIntersection.Destroy;
+begin
+  FreeAndNil(FIntersectingAxes);
+  inherited;
+end;
+
+{ TIfcGridAxis -------------------------------------------------------------- }
+
+constructor TIfcGridAxis.Create(AOwner: TComponent);
+begin
+  inherited;
+  {$ifdef CASTLE_IFC_INVERSE_PROPS}
+  FHasIntersections := TIfcVirtualGridIntersectionList.Create(false);
+  {$endif}
+end;
+
+destructor TIfcGridAxis.Destroy;
+begin
+  {$ifdef CASTLE_IFC_INVERSE_PROPS}
+  FreeAndNil(FHasIntersections);
+  {$endif}
+  inherited;
+end;
+
+{ TIfcGrid ------------------------------------------------------------------- }
+
+constructor TIfcGrid.Create(AOwner: TComponent);
+begin
+  inherited;
+  FUAxes := TIfcGridAxisList.Create(false);
+  FVAxes := TIfcGridAxisList.Create(false);
+  FWAxes := TIfcGridAxisList.Create(false);
+end;
+
+destructor TIfcGrid.Destroy;
+begin
+  FreeAndNil(FUAxes);
+  FreeAndNil(FVAxes);
+  FreeAndNil(FWAxes);
+  inherited;
+end;
+
 { TIfcSpatialElement --------------------------------------------------------- }
 
 constructor TIfcSpatialElement.Create(AOwner: TComponent);
@@ -5343,6 +5581,20 @@ begin
         AddContainedElement. }
       if Product is TIfcElement then
         List.Add(TIfcElement(Product));
+end;
+
+{ TIfcRelPositions ----------------------------------------------------------- }
+
+constructor TIfcRelPositions.Create(AOwner: TComponent);
+begin
+  inherited;
+  FRelatedProducts := TIfcProductList.Create(false);
+end;
+
+destructor TIfcRelPositions.Destroy;
+begin
+  FreeAndNil(FRelatedProducts);
+  inherited;
 end;
 
 { TIfcElement --------------------------------------------------------------- }
@@ -7058,6 +7310,11 @@ function IfcClasses: TIfcPersistentClassList;
     FIfcClasses.Add(TIfcSystemFurnitureElement);
     FIfcClasses.Add(TIfcFurniture);
     FIfcClasses.Add(TIfcCircle);
+    FIfcClasses.Add(TIfcPositioningElement);
+    FIfcClasses.Add(TIfcVirtualGridIntersection);
+    FIfcClasses.Add(TIfcGridAxis);
+    FIfcClasses.Add(TIfcGrid);
+    FIfcClasses.Add(TIfcRelPositions);
   end;
 
 begin
