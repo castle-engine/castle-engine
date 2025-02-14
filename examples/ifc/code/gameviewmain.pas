@@ -21,7 +21,8 @@ interface
 uses Classes,
   CastleVectors, CastleComponentSerialize, CastleScene, CastleViewport,
   CastleUIControls, CastleControls, CastleKeysMouse, CastleIfc,
-  CastleCameras, CastleTransform, CastleTransformManipulate;
+  CastleCameras, CastleTransform, CastleTransformManipulate, X3DNodes,
+  CastleShapes;
 
 type
   { Main view, where most of the application logic takes place. }
@@ -37,6 +38,8 @@ type
     MainViewport: TCastleViewport;
     ExamineNavigation: TCastleExamineNavigation;
     TransformSelectedProduct: TCastleTransform;
+    ButtonHierarchyTemplate: TCastleButton;
+    GroupHierarchy: TCastleVerticalGroup;
   private
     IfcFile: TIfcFile;
     { New elements (TIfcElement instances) have to be added to this container.
@@ -45,7 +48,8 @@ type
     IfcContainer: TIfcSpatialElement;
     IfcMapping: TCastleIfcMapping;
 
-    { Selected IFC product. }
+    { Selected IFC product.
+      Change by ChangeSelectedProduct. }
     IfcSelectedProduct: TIfcProduct;
     { Value of TransformSelectedProduct.Translation
       that corresponds to the IfcSelectedProduct current position.
@@ -58,14 +62,23 @@ type
     //TransformHover: TCastleTransformHover; //< TODO, show hover
     TransformManipulate: TCastleTransformManipulate;
 
+    ButtonHierarchyFactory: TCastleComponentFactory;
+
     { Create new IfcMapping instance and update what IfcScene shows,
       based on IfcFile contents.
       Use this after completely changing the IfcFile contents
       (like loading new file, or creating new file). }
     procedure NewIfcMapping(const NewIfcFile: TIfcFile);
 
-    { Update LabelHierarchy.Caption to debug state of IfcFile. }
-    procedure UpdateLabelHierarchy;
+    { Update hierarchy sidebar to show state of IfcFile. }
+    procedure UpdateHierarchy;
+
+    { Change IfcSelectedProduct and update hierarchy sidebar.
+
+      NewSelectedProductShape is some shape known to map to given product.
+      Must be non-nil when NewSelectedProduct is non-nil. }
+    procedure ChangeSelectedProduct(const NewSelectedProduct: TIfcProduct;
+      const NewSelectedProductShape: TShape);
 
     procedure ClickNew(Sender: TObject);
     procedure ClickLoad(Sender: TObject);
@@ -78,6 +91,7 @@ type
     procedure MainViewportPress(const Sender: TCastleUserInterface;
       const Event: TInputPressRelease; var Handled: Boolean);
     procedure TransformManipulateTransformModified(Sender: TObject);
+    procedure ButtonHierarchyClick(Sender: TObject);
   public
     constructor Create(AOwner: TComponent); override;
     procedure Start; override;
@@ -92,7 +106,7 @@ implementation
 
 uses SysUtils, TypInfo,
   CastleUtils, CastleUriUtils, CastleWindow, CastleBoxes, X3DLoad, CastleLog,
-  CastleRenderOptions, CastleShapes, X3DNodes;
+  CastleRenderOptions;
 
 function WireframeEffectToStr(const WireframeEffect: TWireframeEffect): String;
 begin
@@ -115,8 +129,12 @@ begin
   TransformManipulate.Mode := mmTranslate;
   TransformManipulate.OnTransformModified := {$ifdef FPC}@{$endif} TransformManipulateTransformModified;
 
+  ButtonHierarchyFactory := TCastleComponentFactory.Create(FreeAtStop);
+  ButtonHierarchyFactory.LoadFromComponent(ButtonHierarchyTemplate);
+  FreeAndNil(ButtonHierarchyTemplate);
+
   { Initialize empty model.
-    TransformManipulate must be set earlier. }
+    TransformManipulate, ButtonHierarchyFactory must be set earlier. }
   ClickNew(nil);
 
   ButtonNew.OnClick := {$ifdef FPC}@{$endif} ClickNew;
@@ -169,7 +187,7 @@ begin
 
   IfcScene.Load(IfcMapping.RootNode, true);
 
-  UpdateLabelHierarchy;
+  UpdateHierarchy;
 
   IfcSelectedProduct := nil;
   TransformManipulate.SetSelected([]);
@@ -357,7 +375,7 @@ begin
 
   IfcContainer.AddContainedElement(Wall);
   IfcMapping.Update(IfcFile);
-  UpdateLabelHierarchy;
+  UpdateHierarchy;
 end;
 
 procedure TViewMain.ClickAddWallAndWindow(Sender: TObject);
@@ -461,7 +479,7 @@ begin
   Wall.AddConnected(Window);
 
   IfcMapping.Update(IfcFile);
-  UpdateLabelHierarchy;
+  UpdateHierarchy;
 end;
 
 procedure TViewMain.ClickModifyRandomElement(Sender: TObject);
@@ -509,11 +527,38 @@ begin
   LabelWireframeEffect.Caption := WireframeEffectToStr(IfcScene.RenderOptions.WireframeEffect);
 end;
 
-procedure TViewMain.UpdateLabelHierarchy;
+procedure TViewMain.ButtonHierarchyClick(Sender: TObject);
+var
+  NewSelectedObject: TIfcObjectDefinition;
+  NewSelectedProduct: TIfcProduct;
+  ShapeNode: TAbstractShapeNode;
+  Shape: TShape;
+begin
+  NewSelectedObject := TIfcObjectDefinition(TCastleButton(Sender).Tag);
+  if NewSelectedObject is TIfcProduct then
+  begin
+    NewSelectedProduct := TIfcProduct(NewSelectedObject);
+    ShapeNode := IfcMapping.ProductToNode(NewSelectedProduct);
+    if ShapeNode <> nil then
+    begin
+      if TShapeTree.AssociatedShapesCount(ShapeNode) = 1 then
+      begin
+        Shape := TShapeTree.AssociatedShape(ShapeNode, 0) as TShape;
+        ChangeSelectedProduct(NewSelectedProduct, Shape);
+      end;
+    end;
+  end;
+end;
+
+type
+  TButtonHierarchyDesign = class(TPersistent)
+  published
+    LabelHierarchyItemName: TCastleLabel;
+  end;
+
+procedure TViewMain.UpdateHierarchy;
 const
   Indent = '  ';
-var
-  SList: TStringList;
 
   procedure ShowHierarchy(const RelationName: String;
     const Parent: TIfcObjectDefinition; const NowIndent: String);
@@ -526,20 +571,28 @@ var
     ParentElement: TIfcElement;
     RelVoidsElement: TIfcRelVoidsElement;
     S: String;
+    Button: TCastleButton;
+    ButtonHierarchybDesign: TButtonHierarchyDesign;
   begin
     S := Parent.ClassName + ' "' + Parent.Name + '"';
-    if Parent = IfcSelectedProduct then
-      S := '<font color="#ffff00">' + S + '</font>';
     if RelationName <> '' then
       S := RelationName + ': ' + S;
     S := NowIndent + S;
-    SList.Add(S);
-
     if Parent = IfcFile.Project.BestContainer then
-      SList.Add(NowIndent + Indent + '<font color="#0000aa">(^detected best container)</font>');
+      S := S + NL + NowIndent + Indent + '<font color="#0000aa">(^detected best container)</font>';
     if (Parent is TIfcProduct) and
        (not TIfcProduct(Parent).TransformSupported) then
-      SList.Add(NowIndent + Indent + '<font color="#aa0000">(^dragging may be not intuitive)</font>');
+      S := S + NL + NowIndent + Indent + '<font color="#aa0000">(^dragging may be not intuitive)</font>';
+
+    ButtonHierarchybDesign := TButtonHierarchyDesign.Create;
+    try
+      Button := ButtonHierarchyFactory.ComponentLoad(FreeAtStop, ButtonHierarchybDesign) as TCastleButton;
+      ButtonHierarchybDesign.LabelHierarchyItemName.Caption := S;
+    finally FreeAndNil(ButtonHierarchybDesign) end;
+    Button.Pressed := Parent = IfcSelectedProduct;
+    Button.OnClick := {$ifdef FPC}@{$endif} ButtonHierarchyClick;
+    Button.Tag := PtrInt(Parent);
+    GroupHierarchy.InsertFront(Button);
 
     for RelAggregates in Parent.IsDecomposedBy do
       for RelatedObject in RelAggregates.RelatedObjects do
@@ -563,6 +616,7 @@ var
 
 var
   RepresentationContext: TIfcRepresentationContext;
+  SList: TStringList;
 begin
   { Showing the IFC hierarchy, as seen by Castle Game Engine,
     is a useful debug tool (both for CGE and for your IFC models).
@@ -585,10 +639,35 @@ begin
 
     SList.Add('');
     SList.Add('<font color="#008800">Project Hierarchy:</font>');
-    ShowHierarchy('', IfcFile.Project, Indent);
-
     LabelHierarchy.Text.Assign(SList);
   finally FreeAndNil(SList) end;
+
+  GroupHierarchy.ClearControls;
+  ShowHierarchy('', IfcFile.Project, Indent);
+end;
+
+procedure TViewMain.ChangeSelectedProduct(const NewSelectedProduct: TIfcProduct;
+  const NewSelectedProductShape: TShape);
+begin
+  Assert(not ( (NewSelectedProduct <> nil) and (NewSelectedProductShape = nil) ) );
+
+  if NewSelectedProduct <> IfcSelectedProduct then
+  begin
+    IfcSelectedProduct := NewSelectedProduct;
+    UpdateHierarchy;
+
+    // update TransformManipulate, to allow dragging selected product
+    if (IfcSelectedProduct <> nil) and
+        { Allow dragging anyway, user can see TransformSupported=false in sidebar. }
+        //IfcSelectedProduct.TransformSupported and
+        (not NewSelectedProductShape.BoundingBox.IsEmpty) then
+    begin
+      TransformSelectedProduct.Translation := NewSelectedProductShape.BoundingBox.Center;
+      IfcSelectedProductShapeTranslation := TransformSelectedProduct.Translation;
+      TransformManipulate.SetSelected([TransformSelectedProduct]);
+    end else
+      TransformManipulate.SetSelected([]);
+  end;
 end;
 
 procedure TViewMain.MainViewportPress(const Sender: TCastleUserInterface;
@@ -601,7 +680,7 @@ var
 begin
   if Event.IsMouseButton(buttonLeft) then
   begin
-    HitShape := nil; // silence Delphi (spurious in this case) warning
+    HitShape := nil;
 
     { Select new IFC product by extracting from MainViewport.MouseRayHit
       information the selected X3D shape (HitShape) and then converting it
@@ -624,23 +703,7 @@ begin
     end else
       NewSelectedProduct := nil;
 
-    if NewSelectedProduct <> IfcSelectedProduct then
-    begin
-      IfcSelectedProduct := NewSelectedProduct;
-      UpdateLabelHierarchy;
-
-      // update TransformManipulate, to allow dragging selected product
-      if (IfcSelectedProduct <> nil) and
-         { Allow dragging anyway, user can see TransformSupported=false in sidebar. }
-         //IfcSelectedProduct.TransformSupported and
-         (not HitShape.BoundingBox.IsEmpty) then
-      begin
-        TransformSelectedProduct.Translation := HitShape.BoundingBox.Center;
-        IfcSelectedProductShapeTranslation := TransformSelectedProduct.Translation;
-        TransformManipulate.SetSelected([TransformSelectedProduct]);
-      end else
-        TransformManipulate.SetSelected([]);
-    end;
+    ChangeSelectedProduct(NewSelectedProduct, HitShape);
 
     Handled := true;
   end;

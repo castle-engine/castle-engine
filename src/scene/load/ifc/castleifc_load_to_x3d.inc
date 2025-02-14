@@ -25,8 +25,33 @@
     (using @link(NodeToProduct)). }
   TCastleIfcMapping = class
   strict private
-    FBaseUrl: String;
-    FRootNode: TX3DRootNode;
+    type
+      TShapeToProduct =
+        {$ifdef FPC}specialize{$endif} TDictionary<TAbstractShapeNode, TIfcProduct>;
+    var
+      FBaseUrl: String;
+      FRootNode: TX3DRootNode;
+
+      { Map X3D shape nodes to IFC products.
+
+        Allows to implement NodeToProduct, ProductToNode.
+        Use this only to map TShapeNode instances (pointers)
+        that definitely exist and are valid.
+
+        We cleanup freed TShapeNode instances from this dictionary,
+        so only valid TShapeNode instances are keys.
+        This accounts for the fact that @link(Update) may recycle
+        some, but not all, TShapeNode instances, and it frees unused ones.
+
+        Note that we cannot maintain inverse dictionary
+        product -> shape because
+
+        1. during Update, products may point to multiple
+           shapes (the ones from previous update, and the new ones),
+           and we don't know which ones will survive until we finish updating.
+
+        2. moreover, the product may really be represented by multiple shapes. }
+      ShapeToProduct: TShapeToProduct;
 
     { Use ObjectPlacementToParentNodes and ChildrenNodesToObjectPlacement
       to move the nodes (change parents) to reflect
@@ -34,6 +59,7 @@
     procedure FixParentChildRelationships;
 
     function CreateRootNode(const Ifc: TIfcFile): TX3DRootNode;
+    procedure ShapeDestroyed(const Node: TX3DNode);
   private
     { Within the CastleIfc unit, this class is a container for information
       and actions useful to all
@@ -45,8 +71,6 @@
         {$ifdef FPC}specialize{$endif} TDictionary<TIfcObjectPlacement, TTransformNode>;
       TChildrenNodesToObjectPlacement =
         {$ifdef FPC}specialize{$endif} TDictionary<TTransformNode, TIfcObjectPlacement>;
-      TShapeToProduct =
-        {$ifdef FPC}specialize{$endif} TDictionary<TAbstractShapeNode, TIfcProduct>;
 
     var
       { Map each encountered TIfcObjectPlacement to an X3D TTransformNode. }
@@ -59,19 +83,14 @@
         between X3D nodes) to follow IFC TIfcObjectPlacement.PlacementRelTo idea. }
       ChildrenNodesToObjectPlacement: TChildrenNodesToObjectPlacement;
 
-      { Map X3D shape nodes to IFC products. Allows to implement NodeToProduct.
-        Use this only to map TShapeNode instances (pointers)
-        that definitely exist and are valid.
-
-        Due to how we manage this list (each TCastleIfcMapping.Update
-        adds new TShape instances as keys, without removing previous,
-        because maybe some previous will survive) we may have invalid
-        pointers as keys in this dictionary. }
-      ShapeToProduct: TShapeToProduct;
-
     { BaseUrl should be passed to all X3D nodes created by this class,
       so they have TX3DRootNode.BaseUrl equal to this. }
     property BaseUrl: String read FBaseUrl;
+
+    { Remember association between X3D Shape and IFC Product.
+      This is used to implement NodeToProduct, ProductToNode. }
+    procedure ConnectShapeAndProduct(const Shape: TAbstractShapeNode;
+      const Product: TIfcProduct);
   public
     constructor Create;
     destructor Destroy; override;
@@ -105,8 +124,23 @@
       (TIfcProduct descendant, like a TIfcWall, TIfcWindow, TIfcDoor).
       Returns @nil if cannot be determined.
       Assumes that the nodes have been updated to reflect the latest state
-      of the IFC classes using @link(Update). }
+      of the IFC classes using @link(Update).
+
+      @seealso ProductToNode }
     function NodeToProduct(const Node: TAbstractShapeNode): TIfcProduct;
+
+    { For IFC product, return the corresponding shape node.
+      Returns @nil if cannot be determined.
+      Assumes that the nodes have been updated to reflect the latest state
+      of the IFC classes using @link(Update).
+
+      Note that a single IFC product may be represented by multiple shapes.
+      It is undefined in this case which shape will be returned here.
+      But at least it's a shape that maps back to the given product
+      using @link(NodeToProduct).
+
+      @seealso NodeToProduct }
+    function ProductToNode(const Product: TIfcProduct): TAbstractShapeNode;
   end;
 
 {$endif read_interface_types}
@@ -143,8 +177,16 @@ begin
 end;
 
 destructor TCastleIfcMapping.Destroy;
+var
+  Shape: TAbstractShapeNode;
 begin
-  FreeAndNil(ShapeToProduct);
+  if ShapeToProduct <> nil then
+  begin
+    { We must remove all destruction notifications leading to Self. }
+    for Shape in ShapeToProduct.Keys do
+      Shape.RemoveDestructionNotification({$ifdef FPC}@{$endif} ShapeDestroyed);
+    FreeAndNil(ShapeToProduct);
+  end;
   inherited;
 end;
 
@@ -239,7 +281,8 @@ end;
 function TCastleIfcMapping.CreateRootNode(const Ifc: TIfcFile): TX3DRootNode;
 begin
   { Do not do call ShapeToProduct.Clear, as older shapes still exist,
-    and (due to how smart TCastleIfcMapping.Update works) may stil exist.
+    and (due to how smart TCastleIfcMapping.Update works) may stil exist
+    after updating.
     So they should still map to IFC products.
     If we would do
 
@@ -408,10 +451,32 @@ begin
   finally FreeAndNil(NewRootNode) end;
 end;
 
+procedure TCastleIfcMapping.ShapeDestroyed(const Node: TX3DNode);
+begin
+  ShapeToProduct.Remove(Node as TAbstractShapeNode);
+end;
+
+procedure TCastleIfcMapping.ConnectShapeAndProduct(const Shape: TAbstractShapeNode;
+  const Product: TIfcProduct);
+begin
+  Shape.AddDestructionNotification({$ifdef FPC}@{$endif} ShapeDestroyed);
+  ShapeToProduct.AddOrSetValue(Shape, Product);
+end;
+
 function TCastleIfcMapping.NodeToProduct(const Node: TAbstractShapeNode): TIfcProduct;
 begin
   if not ShapeToProduct.TryGetValue(Node, Result) then
     Result := nil;
+end;
+
+function TCastleIfcMapping.ProductToNode(const Product: TIfcProduct): TAbstractShapeNode;
+var
+  Pair: {$ifdef FPC} TShapeToProduct.TDictionaryPair {$else} TPair<TAbstractShapeNode, TIfcProduct> {$endif};
+begin
+  for Pair in ShapeToProduct do
+    if Pair.Value = Product then
+      Exit(Pair.Key);
+  Result := nil;
 end;
 
 { BuildNode methods implementations ----------------------------------------- }
@@ -713,7 +778,7 @@ begin
   // Shape.Appearance := Appearance;
   SetMetadata(Shape, 'IFC_ClassName', ClassName);
 
-  Mapping.ShapeToProduct.AddOrSetValue(Shape, ParentProduct);
+  Mapping.ConnectShapeAndProduct(Shape, ParentProduct);
   Result := Shape;
 end;
 
@@ -744,7 +809,7 @@ begin
   // Shape.Appearance := Appearance;
   SetMetadata(Shape, 'IFC_ClassName', ClassName);
 
-  Mapping.ShapeToProduct.AddOrSetValue(Shape, ParentProduct);
+  Mapping.ConnectShapeAndProduct(Shape, ParentProduct);
   Result := Shape;
 end;
 
@@ -823,7 +888,7 @@ begin
     end;
   end;
 
-  Mapping.ShapeToProduct.AddOrSetValue(Shape, ParentProduct);
+  Mapping.ConnectShapeAndProduct(Shape, ParentProduct);
   Result := Shape;
 end;
 
@@ -891,7 +956,7 @@ begin
   Shape.Geometry := Extrusion;
   Shape.Appearance := Appearance;
   SetMetadata(Shape, 'IFC_ClassName', ClassName);
-  Mapping.ShapeToProduct.AddOrSetValue(Shape, ParentProduct);
+  Mapping.ConnectShapeAndProduct(Shape, ParentProduct);
 
   Transform := TTransformNode.Create('', Mapping.BaseUrl);
   // handle TIfcSweptAreaSolid.Position (this is a transformation, may contain rotation too)
@@ -947,7 +1012,7 @@ begin
   Shape.Appearance := Appearance;
   SetMetadata(Shape, 'IFC_ClassName', ClassName);
 
-  Mapping.ShapeToProduct.AddOrSetValue(Shape, ParentProduct);
+  Mapping.ConnectShapeAndProduct(Shape, ParentProduct);
   Result := Shape;
 end;
 
@@ -987,7 +1052,7 @@ begin
   Shape.Appearance := Appearance;
   SetMetadata(Shape, 'IFC_ClassName', ClassName);
 
-  Mapping.ShapeToProduct.AddOrSetValue(Shape, ParentProduct);
+  Mapping.ConnectShapeAndProduct(Shape, ParentProduct);
   Result := Shape;
 end;
 
@@ -1029,7 +1094,7 @@ begin
 
   SetMetadata(Transform, 'IFC_ClassName', ClassName);
 
-  Mapping.ShapeToProduct.AddOrSetValue(Shape, ParentProduct);
+  Mapping.ConnectShapeAndProduct(Shape, ParentProduct);
   Result := Transform;
 end;
 
