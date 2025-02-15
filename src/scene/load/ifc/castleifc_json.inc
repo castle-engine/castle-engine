@@ -157,7 +157,11 @@ begin
     JsonObj := JsonValue as TJsonObject;
     JsonObjType := JsonObj.Get('type', '');
     if (JsonObjType = 'IfcTimeStamp') or
-       (JsonObjType = 'IfcDimensionCount') then
+       (JsonObjType = 'IfcDimensionCount') or
+       // Testcase: Community-Sample-Test-Files-main/IFC 4.0.2.1 (IFC 4)/ISO Spec archive/beam-varying-profiles.ifcjson
+       (JsonObjType = 'IfcCardinalPointReference') or
+       // Testcase: Community-Sample-Test-Files-main/IFC 4.0.2.1 (IFC 4)/ISO Spec archive/beam-varying-profiles.ifcjson
+       (JsonObjType = 'IfcInteger') then
       Result := JsonObj.Get('value', Int64(0))
     else
     begin
