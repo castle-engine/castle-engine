@@ -536,6 +536,7 @@ var
     var
       I: Integer;
       VecList: TVector3List;
+      JsonArrayItem: TJsonData;
     begin
       VecList := PropertyGetInstance(Ifc, PropInfo) as TVector3List;
       if VecList = nil then
@@ -544,7 +545,19 @@ var
         ]);
       VecList.Clear;
       for I := 0 to JsonChildArray.Count - 1 do
-        VecList.Add(JsonToVector3(JsonChildArray.Items[I] as TJsonArray, DebugJsonKey));
+      begin
+        JsonArrayItem := JsonChildArray.Items[I];
+        if not (JsonArrayItem is TJsonArray) then
+        begin
+          WritelnWarning('Expected JSON array to represent TVector3 inside array for IFC field "%s", but found %s.' + NL +
+            '  This may happen if the file relies on an outdated IFC definition e.g. of IfcCartesianPointList2D.coordList to be IfcCartesianPoint[]. In this case upgrade the file to IFC >= 4.3.', [
+            DebugJsonKey,
+            JsonArrayItem.ClassName
+          ]);
+          Exit;
+        end;
+        VecList.Add(JsonToVector3(JsonArrayItem as TJsonArray, DebugJsonKey));
+      end;
     end;
 
     { From elements of JsonChildArray read TVector3IntegerList contents
@@ -554,6 +567,7 @@ var
     var
       I: Integer;
       VecList: TVector3IntegerList;
+      JsonArrayItem: TJsonData;
     begin
       VecList := PropertyGetInstance(Ifc, PropInfo) as TVector3IntegerList;
       if VecList = nil then
@@ -562,7 +576,19 @@ var
         ]);
       VecList.Clear;
       for I := 0 to JsonChildArray.Count - 1 do
-        VecList.Add(JsonToVector3Integer(JsonChildArray.Items[I] as TJsonArray, DebugJsonKey));
+      begin
+        JsonArrayItem := JsonChildArray.Items[I];
+        if not (JsonArrayItem is TJsonArray) then
+        begin
+          WritelnWarning('Expected JSON array to represent TVector3Integer inside array for IFC field "%s", but found %s.' + NL +
+            '  This may happen if the file relies on an outdated IFC definition e.g. of IfcCartesianPointList2D.coordList to be IfcCartesianPoint[]. In this case upgrade the file to IFC >= 4.3.', [
+            DebugJsonKey,
+            JsonArrayItem.ClassName
+          ]);
+          Exit;
+        end;
+        VecList.Add(JsonToVector3Integer(JsonArrayItem as TJsonArray, DebugJsonKey));
+      end;
     end;
 
     (*From elements of JsonChildArray read TIfcCompoundPlaneAngleMeasure instance
