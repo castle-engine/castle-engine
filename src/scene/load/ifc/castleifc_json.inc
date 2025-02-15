@@ -252,48 +252,153 @@ begin
     Result := JsonValue.AsFloat;
 end;
 
-{ Read JSON array into TVector2 }
-function JsonToVector2(const JsonChildArray: TJsonArray; const DebugJsonKey: String): TVector2;
+(*Read JSON into TVector2, TVector3 or TVector4.
+  Json can be an array, like [1, 2, 3].
+  Or an object like
+
+  {
+    "type" : "IfcCartesianPoint",
+    "coordinates" : [ {
+      "type" : "IfcLengthMeasure",
+      "value" : -0.0796551778912544
+    }, {
+      "type" : "IfcLengthMeasure",
+      "value" : 0.0758620649576187
+    }, {
+      "type" : "IfcLengthMeasure",
+      "value" : -0.28099998831749
+    } ]
+  }
+
+  See testcase
+  Community-Sample-Test-Files-main/IFC 4.0.2.1 (IFC 4)/ISO Spec archive/slab-openings.ifcjson,
+  to test 2D version, for IfcCartesianPointList2D.
+*)
+procedure JsonToVectorGeneric(const Json: TJsonData; const DebugJsonKey: String;
+  const Vector: PSingle; const VectorCount: Integer);
 var
   I: Integer;
+  JsonArray: TJsonArray;
+  JsonObj: TJsonObject;
+  JsonObjType: String;
+  JsonObjValue: TJsonData;
 begin
-  Result := TVector2.Zero;
-  for I := 0 to Result.Count - 1 do
-    if I < JsonChildArray.Count then
-      Result.Data[I] := JsonToFloat(JsonChildArray.Items[I], DebugJsonKey);
+  for I := 0 to VectorCount - 1 do
+    Vector[I] := 0.0;
+
+  if Json is TJsonArray then
+  begin
+    JsonArray := TJsonArray(Json);
+    for I := 0 to Min(VectorCount, JsonArray.Count) - 1 do
+      Vector[I] := JsonToFloat(JsonArray.Items[I], DebugJsonKey);
+  end else
+  if Json is TJsonObject then
+  begin
+    JsonObj := TJsonObject(Json);
+    JsonObjType := JsonObj.Get('type', '');
+    JsonObjValue := JsonObj.Find('coordinates') ;
+    if (JsonObjType = 'IfcCartesianPoint') and
+       (JsonObjValue is TJsonArray) then // also checks JsonObjValue is not nil
+    begin
+      // recursive call to read from "coordinates" field
+      JsonToVectorGeneric(JsonObjValue, DebugJsonKey, Vector, VectorCount);
+    end else
+    begin
+      WritelnWarning('IFC', 'Cannot read vector: IFC field "%s" is a JSON object, but not of type "IfcCartesianPoint"', [
+        DebugJsonKey
+      ]);
+    end;
+  end else
+  begin
+    WritelnWarning('IFC', 'Cannot read vector: IFC field "%s" is not a JSON array or object', [
+      DebugJsonKey
+    ]);
+  end;
 end;
 
-{ Read JSON array into TVector3 }
-function JsonToVector3(const JsonChildArray: TJsonArray; const DebugJsonKey: String): TVector3;
-var
-  I: Integer;
+function JsonToVector2(const Json: TJsonData; const DebugJsonKey: String): TVector2;
 begin
-  Result := TVector3.Zero;
-  for I := 0 to Result.Count - 1 do
-    if I < JsonChildArray.Count then
-      Result.Data[I] := JsonToFloat(JsonChildArray.Items[I], DebugJsonKey);
+  JsonToVectorGeneric(Json, DebugJsonKey, @Result.Data, 2);
 end;
 
-{ Read JSON array into TVector4 }
-function JsonToVector4(const JsonChildArray: TJsonArray; const DebugJsonKey: String): TVector4;
-var
-  I: Integer;
+function JsonToVector3(const Json: TJsonData; const DebugJsonKey: String): TVector3;
 begin
-  Result := TVector4.Zero;
-  for I := 0 to Result.Count - 1 do
-    if I < JsonChildArray.Count then
-      Result.Data[I] := JsonToFloat(JsonChildArray.Items[I], DebugJsonKey);
+  JsonToVectorGeneric(Json, DebugJsonKey, @Result.Data, 3);
 end;
 
-{ Read JSON array into TVector3Integer. }
-function JsonToVector3Integer(const JsonChildArray: TJsonArray; const DebugJsonKey: String): TVector3Integer;
+function JsonToVector4(const Json: TJsonData; const DebugJsonKey: String): TVector4;
+begin
+  JsonToVectorGeneric(Json, DebugJsonKey, @Result.Data, 4);
+end;
+
+(*Read JSON into TVector2Integer, TVector3Integer or TVector4Integer.
+  Json can be an array, like [1, 2, 3].
+  Or an object like
+
+  Or an object like
+
+  {
+    "positiveIntegers" : [ {
+      "type" : "IfcPositiveInteger",
+      "value" : 57
+    }, {
+      "type" : "IfcPositiveInteger",
+      "value" : 6
+    }, {
+      "type" : "IfcPositiveInteger",
+      "value" : 59
+    } ]
+  }
+
+  Testcase:
+  Community-Sample-Test-Files-main/IFC 4.0.2.1 (IFC 4)/ISO Spec archive/beam-curved-i-shape-tessellated.ifcjson
+*)
+procedure JsonToVectorIntegerGeneric(const Json: TJsonData; const DebugJsonKey: String;
+  const Vector: PSingle; const VectorCount: Integer);
 var
   I: Integer;
+  JsonArray: TJsonArray;
+  JsonObj: TJsonObject;
+  JsonObjType: String;
+  JsonObjValue: TJsonData;
 begin
-  Result := TVector3Integer.Zero;
-  for I := 0 to Result.Count - 1 do
-    if I < JsonChildArray.Count then
-      Result.Data[I] := JsonToInteger(JsonChildArray.Items[I], DebugJsonKey);
+  for I := 0 to VectorCount - 1 do
+    Vector[I] := 0.0;
+
+  if Json is TJsonArray then
+  begin
+    JsonArray := TJsonArray(Json);
+    for I := 0 to Min(VectorCount, JsonArray.Count) - 1 do
+      Vector[I] := JsonToInteger(JsonArray.Items[I], DebugJsonKey);
+  end else
+  if Json is TJsonObject then
+  begin
+    JsonObj := TJsonObject(Json);
+    JsonObjType := JsonObj.Get('type', '');
+    JsonObjValue := JsonObj.Find('positiveIntegers') ;
+    if (JsonObjType = '') and
+       (JsonObjValue is TJsonArray) then // also checks JsonObjValue is not nil
+    begin
+      // recursive call to read from "coordinates" field
+      JsonToVectorIntegerGeneric(JsonObjValue, DebugJsonKey, Vector, VectorCount);
+    end else
+    begin
+      WritelnWarning('IFC', 'Cannot read vector: IFC field "%s" is a JSON object, but not of type "IfcCartesianPoint"', [
+        DebugJsonKey
+      ]);
+    end;
+  end else
+  begin
+    WritelnWarning('IFC', 'Cannot read vector: IFC field "%s" is not a JSON array or object', [
+      DebugJsonKey
+    ]);
+  end;
+end;
+
+{ Read JSON into TVector3Integer. }
+function JsonToVector3Integer(const Json: TJsonData; const DebugJsonKey: String): TVector3Integer;
+begin
+  JsonToVectorIntegerGeneric(Json, DebugJsonKey, @Result.Data, 3);
 end;
 
 { Return random GUID, formatted as common in IFC JSON encoding. }
@@ -505,7 +610,6 @@ var
     var
       I: Integer;
       Vector2List: TVector2List;
-      JsonArrayItem: TJsonData;
     begin
       Vector2List := PropertyGetInstance(Ifc, PropInfo) as TVector2List;
       if Vector2List = nil then
@@ -514,19 +618,7 @@ var
         ]);
       Vector2List.Clear;
       for I := 0 to JsonChildArray.Count - 1 do
-      begin
-        JsonArrayItem := JsonChildArray.Items[I];
-        if not (JsonArrayItem is TJsonArray) then
-        begin
-          WritelnWarning('Expected JSON array to represent TVector2 inside array for IFC field "%s", but found %s.' + NL +
-            '  This may happen if the file relies on an outdated IFC definition e.g. of IfcCartesianPointList2D.coordList to be IfcCartesianPoint[]. In this case upgrade the file to IFC >= 4.3.', [
-            DebugJsonKey,
-            JsonArrayItem.ClassName
-          ]);
-          Exit;
-        end;
-        Vector2List.Add(JsonToVector2(JsonArrayItem as TJsonArray, DebugJsonKey));
-      end;
+        Vector2List.Add(JsonToVector2(JsonChildArray.Items[I], DebugJsonKey));
     end;
 
     { From elements of JsonChildArray read TVector3List contents
@@ -536,7 +628,6 @@ var
     var
       I: Integer;
       VecList: TVector3List;
-      JsonArrayItem: TJsonData;
     begin
       VecList := PropertyGetInstance(Ifc, PropInfo) as TVector3List;
       if VecList = nil then
@@ -545,19 +636,7 @@ var
         ]);
       VecList.Clear;
       for I := 0 to JsonChildArray.Count - 1 do
-      begin
-        JsonArrayItem := JsonChildArray.Items[I];
-        if not (JsonArrayItem is TJsonArray) then
-        begin
-          WritelnWarning('Expected JSON array to represent TVector3 inside array for IFC field "%s", but found %s.' + NL +
-            '  This may happen if the file relies on an outdated IFC definition e.g. of IfcCartesianPointList2D.coordList to be IfcCartesianPoint[]. In this case upgrade the file to IFC >= 4.3.', [
-            DebugJsonKey,
-            JsonArrayItem.ClassName
-          ]);
-          Exit;
-        end;
-        VecList.Add(JsonToVector3(JsonArrayItem as TJsonArray, DebugJsonKey));
-      end;
+        VecList.Add(JsonToVector3(JsonChildArray.Items[I], DebugJsonKey));
     end;
 
     { From elements of JsonChildArray read TVector3IntegerList contents
@@ -567,7 +646,6 @@ var
     var
       I: Integer;
       VecList: TVector3IntegerList;
-      JsonArrayItem: TJsonData;
     begin
       VecList := PropertyGetInstance(Ifc, PropInfo) as TVector3IntegerList;
       if VecList = nil then
@@ -576,19 +654,7 @@ var
         ]);
       VecList.Clear;
       for I := 0 to JsonChildArray.Count - 1 do
-      begin
-        JsonArrayItem := JsonChildArray.Items[I];
-        if not (JsonArrayItem is TJsonArray) then
-        begin
-          WritelnWarning('Expected JSON array to represent TVector3Integer inside array for IFC field "%s", but found %s.' + NL +
-            '  This may happen if the file relies on an outdated IFC definition e.g. of IfcCartesianPointList2D.coordList to be IfcCartesianPoint[]. In this case upgrade the file to IFC >= 4.3.', [
-            DebugJsonKey,
-            JsonArrayItem.ClassName
-          ]);
-          Exit;
-        end;
-        VecList.Add(JsonToVector3Integer(JsonArrayItem as TJsonArray, DebugJsonKey));
-      end;
+        VecList.Add(JsonToVector3Integer(JsonChildArray.Items[I], DebugJsonKey));
     end;
 
     (*From elements of JsonChildArray read TIfcCompoundPlaneAngleMeasure instance
