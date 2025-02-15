@@ -1135,39 +1135,41 @@ begin
       ExtrusionDir := ExtrudedDirection.DirectionRatios.Value * Depth;
 
       C := CrossSection.Count;
-
-      Coord := TCoordinateNode.Create('', Mapping.BaseUrl);
-      Coord.FdPoint.Count := C * 2;
-      for I := 0 to C - 1 do
+      if C <> 0 then
       begin
-        Coord.FdPoint.Items[I * 2    ] := Vector3(CrossSection[I], 0);
-        Coord.FdPoint.Items[I * 2 + 1] := Vector3(CrossSection[I], 0) + ExtrusionDir;
-      end;
+        Coord := TCoordinateNode.Create('', Mapping.BaseUrl);
+        Coord.FdPoint.Count := C * 2;
+        for I := 0 to C - 1 do
+        begin
+          Coord.FdPoint.Items[I * 2    ] := Vector3(CrossSection[I], 0);
+          Coord.FdPoint.Items[I * 2 + 1] := Vector3(CrossSection[I], 0) + ExtrusionDir;
+        end;
 
-      // both sides and top/bottom caps reuse the same TCoordinateNode
-      SideQuads.Coord := Coord;
-      TopBottomCaps.Coord := Coord;
+        // both sides and top/bottom caps reuse the same TCoordinateNode
+        SideQuads.Coord := Coord;
+        TopBottomCaps.Coord := Coord;
 
-      SideQuads.FdIndex.Count := (C - 1) * 4;
-      for I := 0 to C - 2 do
-      begin
-        SideQuads.FdIndex.Items[I * 4    ] := I * 2;
-        SideQuads.FdIndex.Items[I * 4 + 1] := (I + 1) * 2;
-        SideQuads.FdIndex.Items[I * 4 + 2] := (I + 1) * 2 + 1;
-        SideQuads.FdIndex.Items[I * 4 + 3] := I * 2 + 1;
-      end;
-
-      // show caps only if CrossSection is closed
-      if (C > 1) and
-         (TVector2.PerfectlyEquals(CrossSection[0], CrossSection[C - 1])) then
-      begin
-        TopBottomCaps.FdCoordIndex.Count := (C - 1) * 2 + 1;
-        // indxed dividing between top and bottom caps
-        TopBottomCaps.FdCoordIndex.Items[C - 1] := -1;
+        SideQuads.FdIndex.Count := (C - 1) * 4;
         for I := 0 to C - 2 do
         begin
-          TopBottomCaps.FdCoordIndex.Items[I] := I * 2;
-          TopBottomCaps.FdCoordIndex.Items[I + C] := I * 2 + 1;
+          SideQuads.FdIndex.Items[I * 4    ] := I * 2;
+          SideQuads.FdIndex.Items[I * 4 + 1] := (I + 1) * 2;
+          SideQuads.FdIndex.Items[I * 4 + 2] := (I + 1) * 2 + 1;
+          SideQuads.FdIndex.Items[I * 4 + 3] := I * 2 + 1;
+        end;
+
+        // show caps only if CrossSection is closed
+        if (C > 1) and
+           (TVector2.PerfectlyEquals(CrossSection[0], CrossSection[C - 1])) then
+        begin
+          TopBottomCaps.FdCoordIndex.Count := (C - 1) * 2 + 1;
+          // indxed dividing between top and bottom caps
+          TopBottomCaps.FdCoordIndex.Items[C - 1] := -1;
+          for I := 0 to C - 2 do
+          begin
+            TopBottomCaps.FdCoordIndex.Items[I] := I * 2;
+            TopBottomCaps.FdCoordIndex.Items[I + C] := I * 2 + 1;
+          end;
         end;
       end;
     finally FreeAndNil(CrossSection) end;
