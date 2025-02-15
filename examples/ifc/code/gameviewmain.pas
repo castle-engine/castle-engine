@@ -22,7 +22,7 @@ uses Classes,
   CastleVectors, CastleComponentSerialize, CastleScene, CastleViewport,
   CastleUIControls, CastleControls, CastleKeysMouse, CastleIfc,
   CastleCameras, CastleTransform, CastleTransformManipulate, X3DNodes,
-  CastleShapes;
+  CastleShapes, CastleBoxes;
 
 type
   { Main view, where most of the application logic takes place. }
@@ -73,12 +73,12 @@ type
     { Update hierarchy sidebar to show state of IfcFile. }
     procedure UpdateHierarchy;
 
-    { Change IfcSelectedProduct and update hierarchy sidebar.
+    { Change IfcSelectedProduct and update hierarchy sidebar. }
+    procedure ChangeSelectedProduct(const NewSelectedProduct: TIfcProduct);
 
-      NewSelectedProductShape is some shape known to map to given product.
-      Must be non-nil when NewSelectedProduct is non-nil. }
-    procedure ChangeSelectedProduct(const NewSelectedProduct: TIfcProduct;
-      const NewSelectedProductShape: TAbstractShapeNode);
+    { Bounding box, in the scene space, of all representations of the product.
+      The box is empty (TBox3D.IsEmpty) if no representations. }
+    function ProductBoundingBox(const Product: TIfcProduct): TBox3D;
 
     procedure ClickNew(Sender: TObject);
     procedure ClickLoad(Sender: TObject);
@@ -105,7 +105,7 @@ var
 implementation
 
 uses SysUtils, TypInfo,
-  CastleUtils, CastleUriUtils, CastleWindow, CastleBoxes, X3DLoad, CastleLog,
+  CastleUtils, CastleUriUtils, CastleWindow, X3DLoad, CastleLog,
   CastleRenderOptions;
 
 function WireframeEffectToStr(const WireframeEffect: TWireframeEffect): String;
@@ -531,15 +531,12 @@ procedure TViewMain.ButtonHierarchyClick(Sender: TObject);
 var
   NewSelectedObject: TIfcObjectDefinition;
   NewSelectedProduct: TIfcProduct;
-  Shape: TAbstractShapeNode;
 begin
   NewSelectedObject := TIfcObjectDefinition(TCastleButton(Sender).Tag);
   if NewSelectedObject is TIfcProduct then
   begin
     NewSelectedProduct := TIfcProduct(NewSelectedObject);
-    Shape := IfcMapping.ProductToNode(NewSelectedProduct);
-    if Shape <> nil then
-      ChangeSelectedProduct(NewSelectedProduct, Shape);
+    ChangeSelectedProduct(NewSelectedProduct);
   end;
 end;
 
@@ -639,32 +636,44 @@ begin
   ShowHierarchy('', IfcFile.Project, Indent);
 end;
 
-procedure TViewMain.ChangeSelectedProduct(const NewSelectedProduct: TIfcProduct;
-  const NewSelectedProductShape: TAbstractShapeNode);
+function TViewMain.ProductBoundingBox(const Product: TIfcProduct): TBox3D;
 var
-  ShapeBox: TBox3D;
+  Shapes: TX3DNodeList;
+  Shape: TX3DNode;
 begin
-  Assert(not ( (NewSelectedProduct <> nil) and (NewSelectedProductShape = nil) ) );
+  Result := TBox3D.Empty;
+  Shapes := IfcMapping.ProductToNodes(Product);
+  try
+    for Shape in Shapes do
+      Result.Include(IfcScene.ShapeBoundingBox(Shape as TAbstractShapeNode));
+  finally FreeAndNil(Shapes) end;
+end;
 
+procedure TViewMain.ChangeSelectedProduct(const NewSelectedProduct: TIfcProduct);
+var
+  ProductBox: TBox3D;
+begin
   if NewSelectedProduct <> IfcSelectedProduct then
   begin
     IfcSelectedProduct := NewSelectedProduct;
     UpdateHierarchy;
 
-    if NewSelectedProductShape <> nil then
-      ShapeBox := IfcScene.ShapeBoundingBox(NewSelectedProductShape)
-    else
-      ShapeBox := TBox3D.Empty;
+    // Update TransformManipulate, to allow dragging selected product, if any
 
-    // update TransformManipulate, to allow dragging selected product
-    if (IfcSelectedProduct <> nil) and
-        { Allow dragging anyway, user can see TransformSupported=false in sidebar. }
-        //IfcSelectedProduct.TransformSupported and
-        (not ShapeBox.IsEmpty) then
+    if IfcSelectedProduct <> nil then
     begin
-      TransformSelectedProduct.Translation := ShapeBox.Center;
-      IfcSelectedProductShapeTranslation := TransformSelectedProduct.Translation;
-      TransformManipulate.SetSelected([TransformSelectedProduct]);
+      ProductBox := ProductBoundingBox(IfcSelectedProduct);
+      if not ProductBox.IsEmpty then
+      begin
+        { Note that we ignore IfcSelectedProduct.TransformSupported,
+          allow dragging always.
+          User can see TransformSupported=false in sidebar, if we have weird
+          transformation situation. }
+        TransformSelectedProduct.Translation := ProductBox.Center;
+        IfcSelectedProductShapeTranslation := TransformSelectedProduct.Translation;
+        TransformManipulate.SetSelected([TransformSelectedProduct]);
+      end else
+        TransformManipulate.SetSelected([]);
     end else
       TransformManipulate.SetSelected([]);
   end;
@@ -701,7 +710,7 @@ begin
     end else
       NewSelectedProduct := nil;
 
-    ChangeSelectedProduct(NewSelectedProduct, HitShape);
+    ChangeSelectedProduct(NewSelectedProduct);
 
     Handled := true;
   end;

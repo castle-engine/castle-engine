@@ -133,18 +133,17 @@
       @seealso ProductToNode }
     function NodeToProduct(const Node: TAbstractShapeNode): TIfcProduct;
 
-    { For IFC product, return the corresponding shape node.
-      Returns @nil if cannot be determined.
+    { For IFC product, return the corresponding shape nodes.
       Assumes that the nodes have been updated to reflect the latest state
       of the IFC classes using @link(Update).
+      All the nodes returned are of TAbstractShapeNode class
+      and map back (using @link(NodeToProduct)) to the given product.
 
-      Note that a single IFC product may be represented by multiple shapes.
-      It is undefined in this case which shape will be returned here.
-      But at least it's a shape that maps back to the given product
-      using @link(NodeToProduct).
+      It is the caller's responsibility to free the resulting list.
+      The TX3DNodeList does not own the children.
 
       @seealso NodeToProduct }
-    function ProductToNode(const Product: TIfcProduct): TAbstractShapeNode;
+    function ProductToNodes(const Product: TIfcProduct): TX3DNodeList;
   end;
 
 {$endif read_interface_types}
@@ -477,14 +476,14 @@ begin
     Result := nil;
 end;
 
-function TCastleIfcMapping.ProductToNode(const Product: TIfcProduct): TAbstractShapeNode;
+function TCastleIfcMapping.ProductToNodes(const Product: TIfcProduct): TX3DNodeList;
 var
   Pair: {$ifdef FPC} TShapeToProduct.TDictionaryPair {$else} TPair<TAbstractShapeNode, TIfcProduct> {$endif};
 begin
+  Result := TX3DNodeList.Create(false);
   for Pair in ShapeToProduct do
     if Pair.Value = Product then
-      Exit(Pair.Key);
-  Result := nil;
+      Result.Add(Pair.Key);
 end;
 
 { BuildNode methods implementations ----------------------------------------- }
