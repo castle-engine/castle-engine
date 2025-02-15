@@ -1058,47 +1058,119 @@ function TIfcExtrudedAreaSolid.BuildNode(const Mapping: TCastleIfcMapping;
   const ParentProduct: TIfcProduct;
   const LitAppearance, UnlitAppearance: TAppearanceNode): TAbstractChildNode;
 
-  { Negate Y coordinates of all points in List. }
-  procedure NegateY(const List: TVector2List);
+  procedure AddGeometry(const Transform: TTransformNode; const Geometry: TAbstractGeometryNode);
   var
-    I: Integer;
+    Shape: TShapeNode;
   begin
-    for I := 0 to List.Count - 1 do
-      List.L[I].Y := -List.L[I].Y;
+    Shape := TShapeNode.Create('', Mapping.BaseUrl);
+    Shape.Geometry := Geometry;
+    Shape.Appearance := LitAppearance;
+    SetMetadata(Shape, 'IFC_ClassName', ClassName);
+    Mapping.ConnectShapeAndProduct(Shape, ParentProduct);
+    Transform.AddChildren(Shape);
   end;
 
 var
-  Extrusion: TExtrusionNode;
-  Shape: TShapeNode;
+  SideQuads: TIndexedQuadSetNode;
+  TopBottomCaps: TIndexedFaceSetNode;
+  Coord: TCoordinateNode;
   CrossSection: TVector2List;
   Transform: TTransformNode;
-  Translation: TVector3;
+  ExtrusionDir, Translation: TVector3;
   Rotation: TVector4;
+  C, I: Integer;
 begin
-  Extrusion := TExtrusionNode.Create('', Mapping.BaseUrl);
-  Extrusion.SetSpine([
-    TVector3.Zero,
-    ExtrudedDirection.DirectionRatios.Value * Depth
-  ]);
+  { Note: Not using TExtrusionNode, as it tries to rotate the cross-section
+    around spine, resulting in various errors e.g. when DirectionRatios is -Z.
 
-  { Pass Extrusion.FdCrossSection.Items reference around.
-    Maybe in the future it will make sense to create temporary TVector2List
-    and then use Extrusion.SetCrossSection, but for now it's not needed. }
-  CrossSection := Extrusion.FdCrossSection.Items;
-  CrossSection.Clear; // default TExtrusionNode.CrossSection is not empty
+    Instead we build geometry on our side:
+    - quads for sides
+    - polygons (potentially concave) for top and bottom caps
+
+    Testcases:
+    - ifc_window_test/4_rotations_scale/test_relative_positions_orientations*.ifcjson
+      ifc_window_test/4_rotations_scale/move_edit_mode_test.ifcjson
+
+      Reproduce by moving the rectangle of slab in *edit mode* in BonsaiBIM.
+      If we would use TExtrusionNode, the X movement is OK, the Y is inverted.
+      In the past we had an ugly hack for this, that worked in some cases:
+      negate Y coordinates of cross-section points.
+      BonsaiBIM translates this into moving actual points on the list.
+
+      With new approach -> no hacks, this testcase is handled correctly.
+
+    - ifc_window_test/5_window_by_bonsaibim/window_simple.ifcjson
+      ifc_window_test/5_window_by_bonsaibim/window_rotated.ifcjson
+
+      Reproduce by adding default window geometry from BonsaiBIM.
+      If we would use TExtrusionNode, there's weird rotation for a part of the
+      window, and we needed to counter this by ugly hack
+      "Rotation.W := -Rotation.W;"
+
+      With new approach -> no hacks, this testcase is handled correctly.
+      We apply rotation in a regular way.
+
+    - ifc_window_test/8_link/chairs_rotations.ifcjson
+
+      Reproduce by adding a furniture from BonsaiBIM library,
+      with circular table and 14 chairs around.
+      Each chair has 6 extrusions, 4 legs (with DirectionRatios.Z positive)
+      and 2 other quads (1 for sitting, 1 for chair back,
+      with DirectionRatios.Z negative).
+
+      If we would use TExtrusionNode... this just seems too uncontrollable
+      to do correctly.
+      OTOH, it's easy with current approach, we move points by ExtrusionDir,
+      and this is just correct for any ExtrusionDir.
+  }
+
+  SideQuads := TIndexedQuadSetNode.Create('', Mapping.BaseUrl);
+  TopBottomCaps := TIndexedFaceSetNode.Create('', Mapping.BaseUrl);
+
   if SweptArea <> nil then
   begin
-    SweptArea.UpdateCrossSection(CrossSection, 'IfcExtrudedAreaSolid.SweptArea');
-    { Experiments show this is necessary, see
-        ifc_window_test/4_rotations_scale/test_relative_positions_orientations*.ifcjson
-        ifc_window_test/4_rotations_scale/move_edit_mode_test.ifcjson
-      Reproduce by moving the rectangle of slab in *edit mode* in BonsaiBIM,
-      the X movement is OK, the Y is inverted. BonsaiBIM translates this into
-      moving actual points on the list.
+    CrossSection := TVector2List.Create;
+    try
+      SweptArea.UpdateCrossSection(CrossSection, 'IfcExtrudedAreaSolid.SweptArea');
+      ExtrusionDir := ExtrudedDirection.DirectionRatios.Value * Depth;
 
-      This is different from doing it in *object mode* when the movement
-      translates to Axis2Placement3D, where Y remains OK. }
-    NegateY(CrossSection);
+      C := CrossSection.Count;
+
+      Coord := TCoordinateNode.Create('', Mapping.BaseUrl);
+      Coord.FdPoint.Count := C * 2;
+      for I := 0 to C - 1 do
+      begin
+        Coord.FdPoint.Items[I * 2    ] := Vector3(CrossSection[I], 0);
+        Coord.FdPoint.Items[I * 2 + 1] := Vector3(CrossSection[I], 0) + ExtrusionDir;
+      end;
+
+      // both sides and top/bottom caps reuse the same TCoordinateNode
+      SideQuads.Coord := Coord;
+      TopBottomCaps.Coord := Coord;
+
+      SideQuads.FdIndex.Count := (C - 1) * 4;
+      for I := 0 to C - 2 do
+      begin
+        SideQuads.FdIndex.Items[I * 4    ] := I * 2;
+        SideQuads.FdIndex.Items[I * 4 + 1] := (I + 1) * 2;
+        SideQuads.FdIndex.Items[I * 4 + 2] := (I + 1) * 2 + 1;
+        SideQuads.FdIndex.Items[I * 4 + 3] := I * 2 + 1;
+      end;
+
+      // show caps only if CrossSection is closed
+      if (C > 1) and
+         (TVector2.PerfectlyEquals(CrossSection[0], CrossSection[C - 1])) then
+      begin
+        TopBottomCaps.FdCoordIndex.Count := (C - 1) * 2 + 1;
+        // indxed dividing between top and bottom caps
+        TopBottomCaps.FdCoordIndex.Items[C - 1] := -1;
+        for I := 0 to C - 2 do
+        begin
+          TopBottomCaps.FdCoordIndex.Items[I] := I * 2;
+          TopBottomCaps.FdCoordIndex.Items[I + C] := I * 2 + 1;
+        end;
+      end;
+    finally FreeAndNil(CrossSection) end;
   end;
 
   { The extrusion curves in IFC may be provided in an arbitrary order.
@@ -1113,15 +1185,18 @@ begin
 
     The simplest solution to render them all OK seems to just disable
     backface culling for all extrusions. }
-  Extrusion.Solid := false;
+  SideQuads.Solid := false;
+  TopBottomCaps.Solid := false;
 
-  Shape := TShapeNode.Create('', Mapping.BaseUrl);
-  Shape.Geometry := Extrusion;
-  Shape.Appearance := LitAppearance;
-  SetMetadata(Shape, 'IFC_ClassName', ClassName);
-  Mapping.ConnectShapeAndProduct(Shape, ParentProduct);
+  // don't smooth normals, as extrusions may have sharp edges, e.g. rectangular chair legs
+  SideQuads.NormalPerVertex := false;
+  TopBottomCaps.CreaseAngle := 0;
+
+  // top and bottom caps may be concave
+  TopBottomCaps.Convex := false;
 
   Transform := TTransformNode.Create('', Mapping.BaseUrl);
+
   // handle TIfcSweptAreaSolid.Position (this is a transformation, may contain rotation too)
   if Position <> nil then
   begin
@@ -1130,14 +1205,11 @@ begin
     WritelnLog('IfcExtrudedAreaSolid.Position translation %s, rotation %s', [Translation.ToString, Rotation.ToString]);
     {$endif CASTLE_DEBUG_IFC_TRANSFORM}
     Transform.Translation := Translation;
-    { TODO why is - needed below?
-      Testcase: windows made by BonsaiBIM, see
-        ifc_window_test/5_window_by_bonsaibim/window_simple.ifcjson
-        ifc_window_test/5_window_by_bonsaibim/window_rotated.ifcjson }
-    Rotation.W := -Rotation.W;
     Transform.Rotation := Rotation;
   end;
-  Transform.AddChildren(Shape);
+
+  AddGeometry(Transform, SideQuads);
+  AddGeometry(Transform, TopBottomCaps);
 
   Result := Transform;
 end;
