@@ -158,6 +158,9 @@ function IfcToX3D(const Ifc: TIfcFile; const BaseUrl: String): TX3DRootNode;
 
 {$ifdef read_implementation}
 
+{ Debug transformations (translation, rotation, scale). }
+{.$define CASTLE_DEBUG_IFC_TRANSFORM}
+
 { Set metadata of a node. }
 procedure SetMetadata(const Node: TAbstractNode; const Key, Value: String);
 begin
@@ -1124,7 +1127,9 @@ begin
   if Position <> nil then
   begin
     Position.GetTransform(Translation, Rotation);
-    //WritelnLog('IfcExtrudedAreaSolid.Position translation %s, rotation %s', [Translation.ToString, Rotation.ToString]);
+    {$ifdef CASTLE_DEBUG_IFC_TRANSFORM}
+    WritelnLog('IfcExtrudedAreaSolid.Position translation %s, rotation %s', [Translation.ToString, Rotation.ToString]);
+    {$endif CASTLE_DEBUG_IFC_TRANSFORM}
     Transform.Translation := Translation;
     { TODO why is - needed below?
       Testcase: windows made by BonsaiBIM, see
@@ -1270,7 +1275,9 @@ begin
   if MappingTarget <> nil then
   begin
     MappingTarget.GetTransform(TargetTranslation, TargetRotation, TargetScale);
-    //WritelnLog('MappingTarget is translation %s, rotation %s', [TargetTranslation.ToString, TargetRotation.ToString]);
+    {$ifdef CASTLE_DEBUG_IFC_TRANSFORM}
+    WritelnLog('MappingTarget is translation %s, rotation %s', [TargetTranslation.ToString, TargetRotation.ToString]);
+    {$endif CASTLE_DEBUG_IFC_TRANSFORM}
     TransformMappingTarget.Translation := TargetTranslation;
     TransformMappingTarget.Rotation := TargetRotation;
     TransformMappingTarget.Scale := TargetScale;
@@ -1285,7 +1292,9 @@ begin
     if MappingSource.MappingOrigin <> nil then
     begin
       MappingSource.MappingOrigin.GetTransform(OriginTranslation, OriginRotation);
-      //WritelnLog('MappingOrigin is translation %s, rotation %s', [OriginTranslation.ToString, OriginRotation.ToString]);
+      {$ifdef CASTLE_DEBUG_IFC_TRANSFORM}
+      WritelnLog('MappingOrigin is translation %s, rotation %s', [OriginTranslation.ToString, OriginRotation.ToString]);
+      {$endif CASTLE_DEBUG_IFC_TRANSFORM}
       TransformMappingOrigin.Translation := -OriginTranslation;
       TransformMappingOrigin.Rotation := Vector4(OriginRotation.XYZ, -OriginRotation.W);
     end;
@@ -1533,6 +1542,9 @@ begin
   if RelativePlacement <> nil then
   begin
     RelativePlacement.GetTransform(Translation, Rotation);
+    {$ifdef CASTLE_DEBUG_IFC_TRANSFORM}
+    WritelnLog('LocalPlacement translation %s, rotation %s', [Translation.ToString, Rotation.ToString]);
+    {$endif CASTLE_DEBUG_IFC_TRANSFORM}
     Transform.Translation := Translation;
     Transform.Rotation := Rotation;
   end;
