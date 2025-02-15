@@ -1697,7 +1697,7 @@ function LoadIfc(const Stream: TStream; const BaseUrl: String): TX3DRootNode;
   { Debug save back IFC and X3D.
     Save URL is similar to BaseUrl but with -debug-roundtrip.ifcjson,
     -debug-roundtrip.x3d. }
-  {$define DEBUG_IFC_ROUND_TRIP}
+  {.$define DEBUG_IFC_ROUND_TRIP}
 
   {$ifdef DEBUG_IFC_ROUND_TRIP}
   { Only for debugging purposes: save back the IFC data to JSON.
