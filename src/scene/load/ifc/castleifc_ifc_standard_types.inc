@@ -202,6 +202,7 @@
   TIfcGrid = class;
   TIfcRelAssociatesMaterialList = class;
   TIfcMaterialProfileSet = class;
+  TIfcNamedUnit = class;
 
   { Float type used throughout IFC.
 
@@ -3968,6 +3969,23 @@
     property Units: TIfcUnitList read FUnits;
   end;
 
+  { A derived unit element is one of the unit quantities which makes
+    up a derived unit.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcDerivedUnitElement.htm }
+  TIfcDerivedUnitElement = class(TIfcPersistent)
+  strict private
+    FUnit: TIfcNamedUnit;
+    FExponent: Integer;
+  published
+    { The fixed quantity which is used as the mathematical factor. }
+    property &Unit: TIfcNamedUnit read FUnit write FUnit;
+
+    { The power that is applied to the unit attribute. }
+    property Exponent: Integer read FExponent write FExponent;
+  end;
+  TIfcDerivedUnitElementList = {$ifdef FPC}specialize{$endif} TObjectList<TIfcDerivedUnitElement>;
+
   TIfcDerivedUnitEnum = (
     UserDefined,
     AccelerationUnit,
@@ -4027,13 +4045,16 @@
   { A derived unit is a unit that is formed from an expression of other units. }
   TIfcDerivedUnit = class(TIfcUnit)
   strict private
-    // TODO: FElements: TIfcDerivedUnitElementList;
+    FElements: TIfcDerivedUnitElementList;
     FUnitType: TIfcDerivedUnitEnum;
     FUserDefinedType: TIfcLabel;
     FName: TIfcLabel;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
   published
     { The group of units and their exponents that define the derived unit. }
-    // TODO: property Elements: TIfcDerivedUnitElementList read FElements;
+    property Elements: TIfcDerivedUnitElementList read FElements;
 
     { Type of the derived unit chosen from an enumeration of derived unit types
       for use in IFC models. }
@@ -7351,6 +7372,20 @@ begin
   inherited;
 end;
 
+{ TIfcDerivedUnit ------------------------------------------------------------ }
+
+constructor TIfcDerivedUnit.Create(AOwner: TComponent);
+begin
+  inherited;
+  FElements := TIfcDerivedUnitElementList.Create(false);
+end;
+
+destructor TIfcDerivedUnit.Destroy;
+begin
+  FreeAndNil(FElements);
+  inherited;
+end;
+
 { initialization, finalization ----------------------------------------------- }
 
 var
@@ -7541,6 +7576,7 @@ function IfcClasses: TIfcPersistentClassList;
     FIfcClasses.Add(TIfcMaterialProfileSet);
     FIfcClasses.Add(TIfcMaterialUsageDefinition);
     FIfcClasses.Add(TIfcMaterialProfileSetUsage);
+    FIfcClasses.Add(TIfcDerivedUnitElement);
   end;
 
 begin

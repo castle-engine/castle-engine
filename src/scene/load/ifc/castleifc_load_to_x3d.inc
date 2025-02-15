@@ -1692,7 +1692,10 @@ end;
 { Main routine that converts IFC -> X3D nodes, doing most of the work. }
 function LoadIfc(const Stream: TStream; const BaseUrl: String): TX3DRootNode;
 
-  {.$define DEBUG_IFC_ROUND_TRIP}
+  { Debug save back IFC and X3D.
+    Save URL is similar to BaseUrl but with -debug-roundtrip.ifcjson,
+    -debug-roundtrip.x3d. }
+  {$define DEBUG_IFC_ROUND_TRIP}
 
   {$ifdef DEBUG_IFC_ROUND_TRIP}
   { Only for debugging purposes: save back the IFC data to JSON.
@@ -1729,6 +1732,7 @@ begin
         Result := IfcToX3D(IfcFile, BaseUrl);
         {$ifdef DEBUG_IFC_ROUND_TRIP}
         DebugSaveBack(IfcFile);
+        SaveNode(Result, DeleteUriExt(BaseUrl) + '-debug-roundtrip.x3d');
         {$endif DEBUG_IFC_ROUND_TRIP}
       finally FreeAndNil(IfcFile) end;
     finally FreeAndNil(Json) end;
