@@ -499,7 +499,8 @@ begin
 end;
 
 function TIfcRepresentationItemList.BuildNode(const Mapping: TCastleIfcMapping;
-  const ParentProduct: TIfcProduct; const Appearance: TAppearanceNode): TAbstractChildNode;
+  const ParentProduct: TIfcProduct;
+  const LitAppearance, UnlitAppearance: TAppearanceNode): TAbstractChildNode;
 var
   RepresentationItem: TIfcRepresentationItem;
   Group: TGroupNode;
@@ -511,14 +512,16 @@ begin
 
   for RepresentationItem in Self do
   begin
-    Child := RepresentationItem.BuildNode(Mapping, ParentProduct, Appearance);
+    Child := RepresentationItem.BuildNode(Mapping, ParentProduct,
+      LitAppearance, UnlitAppearance);
     if Child <> nil then
       Group.AddChildren(Child);
   end;
 end;
 
 function TIfcRepresentationList.BuildNode(const Mapping: TCastleIfcMapping;
-  const ParentProduct: TIfcProduct; const Appearance: TAppearanceNode): TAbstractChildNode;
+  const ParentProduct: TIfcProduct;
+  const LitAppearance, UnlitAppearance: TAppearanceNode): TAbstractChildNode;
 var
   Representation: TIfcRepresentation;
   Group: TGroupNode;
@@ -528,11 +531,13 @@ begin
   Result := Group;
 
   for Representation in Self do
-    Group.AddChildren(Representation.Items.BuildNode(Mapping, ParentProduct, Appearance));
+    Group.AddChildren(Representation.Items.BuildNode(Mapping, ParentProduct,
+      LitAppearance, UnlitAppearance));
 end;
 
 function TIfcProductRepresentation.BuildNode(const Mapping: TCastleIfcMapping;
-  const ParentProduct: TIfcProduct; const Appearance: TAppearanceNode): TAbstractChildNode;
+  const ParentProduct: TIfcProduct;
+  const LitAppearance, UnlitAppearance: TAppearanceNode): TAbstractChildNode;
 var
   Group: TGroupNode;
 begin
@@ -542,7 +547,8 @@ begin
   SetMetadata(Group, 'IFC_Description', Description);
   Result := Group;
 
-  Group.AddChildren(Representations.BuildNode(Mapping, ParentProduct, Appearance));
+  Group.AddChildren(Representations.BuildNode(Mapping, ParentProduct,
+    LitAppearance, UnlitAppearance));
 end;
 
 function TIfcRelAggregates.BuildNode(const Mapping: TCastleIfcMapping): TAbstractChildNode;
@@ -604,6 +610,17 @@ begin
   // Coord.FdPoint.Count := CoordList.Count;
   // for I := 0 to CoordList.Count - 1 do
   //   Coord.FdPoint.Items[I] := CoordList[I];
+end;
+
+function TIfcGridAxis.BuildNode(const Mapping: TCastleIfcMapping;
+  const ParentProduct: TIfcProduct;
+  const LitAppearance, UnlitAppearance: TAppearanceNode): TAbstractChildNode;
+begin
+  if AxisCurve <> nil then
+    Result := AxisCurve.BuildNode(Mapping, ParentProduct,
+      LitAppearance, UnlitAppearance)
+  else
+    Result := nil;
 end;
 
 { TIfcProfileDef.UpdateCrossSection method overrides -------------------------- }
@@ -769,7 +786,7 @@ var
 begin
   Mapping := TCastleIfcMapping.Create;
   try
-    Shape := BuildNode(Mapping, nil, nil) as TShapeNode;
+    Shape := BuildNode(Mapping, nil, nil, nil) as TShapeNode;
     try
       if Shape.Geometry <> nil then
       begin
@@ -812,13 +829,15 @@ end;
 { BuildNode of TIfcRepresentationItem and descendants ------------------------- }
 
 function TIfcRepresentationItem.BuildNode(const Mapping: TCastleIfcMapping;
-  const ParentProduct: TIfcProduct; const Appearance: TAppearanceNode): TAbstractChildNode;
+  const ParentProduct: TIfcProduct;
+  const LitAppearance, UnlitAppearance: TAppearanceNode): TAbstractChildNode;
 begin
   Result := nil;
 end;
 
 function TIfcPolyline.BuildNode(const Mapping: TCastleIfcMapping;
-  const ParentProduct: TIfcProduct; const Appearance: TAppearanceNode): TAbstractChildNode;
+  const ParentProduct: TIfcProduct;
+  const LitAppearance, UnlitAppearance: TAppearanceNode): TAbstractChildNode;
 var
   Shape: TShapeNode;
   LineSet: TLineSetNode;
@@ -836,8 +855,7 @@ begin
 
   Shape := TShapeNode.Create('', Mapping.BaseUrl);
   Shape.Geometry := LineSet;
-  // lines are best displayed as unlit geometry, different material would be useful
-  // Shape.Appearance := Appearance;
+  Shape.Appearance := UnlitAppearance;
   SetMetadata(Shape, 'IFC_ClassName', ClassName);
 
   Mapping.ConnectShapeAndProduct(Shape, ParentProduct);
@@ -845,18 +863,20 @@ begin
 end;
 
 function TIfcTrimmedCurve.BuildNode(const Mapping: TCastleIfcMapping;
-  const ParentProduct: TIfcProduct; const Appearance: TAppearanceNode): TAbstractChildNode;
+  const ParentProduct: TIfcProduct;
+  const LitAppearance, UnlitAppearance: TAppearanceNode): TAbstractChildNode;
 begin
   if BasisCurve <> nil then
   begin
     WritelnWarning('TODO: IfcTrimmedCurve is only partially supported now. We ignore trim1, trim2, we display whole curve.');
-    Result := BasisCurve.BuildNode(Mapping, ParentProduct, Appearance)
+    Result := BasisCurve.BuildNode(Mapping, ParentProduct,
+      LitAppearance, UnlitAppearance);
   end else
     Result := nil;
 end;
 
 function TIfcEllipse.BuildNode(const Mapping: TCastleIfcMapping;
-  const ParentProduct: TIfcProduct; const Appearance: TAppearanceNode): TAbstractChildNode;
+  const ParentProduct: TIfcProduct; const LitAppearance, UnlitAppearance: TAppearanceNode): TAbstractChildNode;
 var
   Shape: TShapeNode;
   Circle: TCircle2DNode;
@@ -867,8 +887,7 @@ begin
 
   Shape := TShapeNode.Create('', Mapping.BaseUrl);
   Shape.Geometry := Circle;
-  // circle is best displayed as unlit geometry, different material would be useful
-  // Shape.Appearance := Appearance;
+  Shape.Appearance := UnlitAppearance;
   SetMetadata(Shape, 'IFC_ClassName', ClassName);
 
   Mapping.ConnectShapeAndProduct(Shape, ParentProduct);
@@ -876,7 +895,8 @@ begin
 end;
 
 function TIfcCircle.BuildNode(const Mapping: TCastleIfcMapping;
-  const ParentProduct: TIfcProduct; const Appearance: TAppearanceNode): TAbstractChildNode;
+  const ParentProduct: TIfcProduct;
+  const LitAppearance, UnlitAppearance: TAppearanceNode): TAbstractChildNode;
 var
   Shape: TShapeNode;
   Circle: TCircle2DNode;
@@ -886,8 +906,7 @@ begin
 
   Shape := TShapeNode.Create('', Mapping.BaseUrl);
   Shape.Geometry := Circle;
-  // circle is best displayed as unlit geometry, different material would be useful
-  // Shape.Appearance := Appearance;
+  Shape.Appearance := UnlitAppearance;
   SetMetadata(Shape, 'IFC_ClassName', ClassName);
 
   Mapping.ConnectShapeAndProduct(Shape, ParentProduct);
@@ -895,7 +914,8 @@ begin
 end;
 
 function TIfcIndexedPolyCurve.BuildNode(const Mapping: TCastleIfcMapping;
-  const ParentProduct: TIfcProduct; const Appearance: TAppearanceNode): TAbstractChildNode;
+  const ParentProduct: TIfcProduct;
+  const LitAppearance, UnlitAppearance: TAppearanceNode): TAbstractChildNode;
 
   { Add integers for NewIndexes to Indexes, decrementing all values
     on NewIndexes by 1.
@@ -929,8 +949,7 @@ begin
   Points.UpdateCoordinate(Coord);
 
   Shape := TShapeNode.Create('', Mapping.BaseUrl);
-  // lines are best displayed as unlit geometry, different material would be useful
-  // Shape.Appearance := Appearance;
+  Shape.Appearance := UnlitAppearance;
   SetMetadata(Shape, 'IFC_ClassName', ClassName);
 
   if Segments.Count = 0 then
@@ -974,7 +993,8 @@ begin
 end;
 
 function TIfcExtrudedAreaSolid.BuildNode(const Mapping: TCastleIfcMapping;
-  const ParentProduct: TIfcProduct; const Appearance: TAppearanceNode): TAbstractChildNode;
+  const ParentProduct: TIfcProduct;
+  const LitAppearance, UnlitAppearance: TAppearanceNode): TAbstractChildNode;
 
   { Negate Y coordinates of all points in List. }
   procedure NegateY(const List: TVector2List);
@@ -1035,7 +1055,7 @@ begin
 
   Shape := TShapeNode.Create('', Mapping.BaseUrl);
   Shape.Geometry := Extrusion;
-  Shape.Appearance := Appearance;
+  Shape.Appearance := LitAppearance;
   SetMetadata(Shape, 'IFC_ClassName', ClassName);
   Mapping.ConnectShapeAndProduct(Shape, ParentProduct);
 
@@ -1059,7 +1079,8 @@ begin
 end;
 
 function TIfcPolygonalFaceSet.BuildNode(const Mapping: TCastleIfcMapping;
-  const ParentProduct: TIfcProduct; const Appearance: TAppearanceNode): TAbstractChildNode;
+  const ParentProduct: TIfcProduct;
+  const LitAppearance, UnlitAppearance: TAppearanceNode): TAbstractChildNode;
 var
   IndexedFaceSet: TIndexedFaceSetNode;
   Coord: TCoordinateNode;
@@ -1090,7 +1111,7 @@ begin
 
   Shape := TShapeNode.Create('', Mapping.BaseUrl);
   Shape.Geometry := IndexedFaceSet;
-  Shape.Appearance := Appearance;
+  Shape.Appearance := LitAppearance;
   SetMetadata(Shape, 'IFC_ClassName', ClassName);
 
   Mapping.ConnectShapeAndProduct(Shape, ParentProduct);
@@ -1098,7 +1119,8 @@ begin
 end;
 
 function TIfcTriangulatedFaceSet.BuildNode(const Mapping: TCastleIfcMapping;
-  const ParentProduct: TIfcProduct; const Appearance: TAppearanceNode): TAbstractChildNode;
+  const ParentProduct: TIfcProduct;
+  const LitAppearance, UnlitAppearance: TAppearanceNode): TAbstractChildNode;
 var
   IndexedTriangleSet: TIndexedTriangleSetNode;
   Coord: TCoordinateNode;
@@ -1130,7 +1152,7 @@ begin
 
   Shape := TShapeNode.Create('', Mapping.BaseUrl);
   Shape.Geometry := IndexedTriangleSet;
-  Shape.Appearance := Appearance;
+  Shape.Appearance := LitAppearance;
   SetMetadata(Shape, 'IFC_ClassName', ClassName);
 
   Mapping.ConnectShapeAndProduct(Shape, ParentProduct);
@@ -1138,31 +1160,24 @@ begin
 end;
 
 function TIfcBoundingBox.BuildNode(const Mapping: TCastleIfcMapping;
-  const ParentProduct: TIfcProduct; const Appearance: TAppearanceNode): TAbstractChildNode;
+  const ParentProduct: TIfcProduct;
+  const LitAppearance, UnlitAppearance: TAppearanceNode): TAbstractChildNode;
 var
   Box: TBoxNode;
   Shape: TShapeNode;
   Transform: TTransformNode;
   CornerPoint: TVector3;
-  UnlitMaterial: TUnlitMaterialNode;
-  UnlitAppearance: TAppearanceNode;
 begin
   Box := TBoxNode.Create('', Mapping.BaseUrl);
   Box.Size := Vector3(XDim, YDim, ZDim);
 
   Shape := TShapeNode.Create('', Mapping.BaseUrl);
   Shape.Geometry := Box;
+  Shape.Appearance := UnlitAppearance;
 
   // bounding box is not the final geometry, so show only wireframe
   Shape.Shading := shWireframe;
 
-  // bounding box is not the final geometry, so show only unlit material
-  UnlitMaterial := TUnlitMaterialNode.Create('', Mapping.BaseUrl);
-  UnlitMaterial.EmissiveColor := WhiteRgb;
-  UnlitMaterial.Transparency := 0.5;
-  UnlitAppearance := TAppearanceNode.Create('', Mapping.BaseUrl);
-  UnlitAppearance.Material := UnlitMaterial;
-  Shape.Appearance := UnlitAppearance;
 
   // move the box by CornerPoint + (X3D box position) Box.Size / 2
   CornerPoint := TVector3.Zero;
@@ -1180,7 +1195,8 @@ begin
 end;
 
 function TIfcMappedItem.BuildNode(const Mapping: TCastleIfcMapping;
-  const ParentProduct: TIfcProduct; const Appearance: TAppearanceNode): TAbstractChildNode;
+  const ParentProduct: TIfcProduct;
+  const LitAppearance, UnlitAppearance: TAppearanceNode): TAbstractChildNode;
 var
   TransformMappingTarget, TransformMappingOrigin: TTransformNode;
   OriginTranslation, TargetTranslation: TVector3;
@@ -1219,7 +1235,8 @@ begin
     if MappingSource.MappedRepresentation <> nil then
     begin
       TransformMappingOrigin.AddChildren(
-        MappingSource.MappedRepresentation.Items.BuildNode(Mapping, ParentProduct, Appearance));
+        MappingSource.MappedRepresentation.Items.BuildNode(Mapping, ParentProduct,
+          LitAppearance, UnlitAppearance));
     end;
   end;
 
@@ -1275,8 +1292,21 @@ function TIfcProduct.BuildNode(const Mapping: TCastleIfcMapping): TTransformNode
     Result.Material := TMaterialNode.Create('', Mapping.BaseUrl);
   end;
 
+  { Unlit appearance, good for unlit thigns -- lines, bboxes etc. }
+  function CreateDefaultUnlitAppearance: TAppearanceNode;
+  var
+    UnlitMaterial: TUnlitMaterialNode;
+  begin
+    UnlitMaterial := TUnlitMaterialNode.Create('', Mapping.BaseUrl);
+    UnlitMaterial.EmissiveColor := WhiteRgb;
+    UnlitMaterial.Transparency := 0.5;
+
+    Result := TAppearanceNode.Create('', Mapping.BaseUrl);
+    Result.Material := UnlitMaterial;
+  end;
+
 var
-  Appearance: TAppearanceNode;
+  LitAppearance, UnlitAppearance: TAppearanceNode;
 begin
   Result := inherited;
 
@@ -1285,13 +1315,15 @@ begin
 
   if Representation <> nil then
   begin
-    // Things inside are affected by given material
-    Appearance := AppearanceFromAssociations(HasAssociations);
+    // Things inside are affected by given appearances
+    LitAppearance := AppearanceFromAssociations(HasAssociations);
     try
-      Result.AddChildren(Representation.BuildNode(Mapping, Self, Appearance));
-    finally
-      FreeIfUnusedAndNil(Appearance);
-    end;
+      UnlitAppearance := CreateDefaultUnlitAppearance;
+      try
+        Result.AddChildren(Representation.BuildNode(Mapping, Self,
+          LitAppearance, UnlitAppearance));
+      finally FreeIfUnusedAndNil(UnlitAppearance) end;
+    finally FreeIfUnusedAndNil(LitAppearance) end;
   end;
 end;
 
@@ -1379,6 +1411,44 @@ begin
   SetMetadata(Result, 'IFC_ObjectType', ObjectType);
   SetMetadata(Result, 'IFC_LongName', LongName);
   SetMetadata(Result, 'IFC_Phase', Phase);
+end;
+
+function TIfcGrid.BuildNode(const Mapping: TCastleIfcMapping): TTransformNode;
+
+  procedure ProcessList(const Axes: TIfcGridAxisList; const AxisCoord: Integer);
+  var
+    Axis: TIfcGridAxis;
+    AxisNode: TAbstractChildNode;
+    Color: TCastleColorRgb;
+    GridMaterial: TUnlitMaterialNode;
+    GridAppearance: TAppearanceNode;
+  begin
+    // Let color correspond to the axis U/V/W.
+    Color := BlackRgb;
+    Color.Data[AxisCoord] := 1.0;
+
+    // Grid is not the final geometry, so show only unlit material.
+    GridMaterial := TUnlitMaterialNode.Create('', Mapping.BaseUrl);
+    GridMaterial.EmissiveColor := Color;
+    GridMaterial.Transparency := 0.5;
+    GridAppearance := TAppearanceNode.Create('', Mapping.BaseUrl);
+    GridAppearance.Material := GridMaterial;
+
+    try
+      for Axis in Axes do
+      begin
+        AxisNode := Axis.BuildNode(Mapping, Self, nil, GridAppearance);
+        if AxisNode <> nil then
+          Result.AddChildren(AxisNode);
+      end;
+    finally FreeIfUnusedAndNil(GridAppearance) end;
+  end;
+
+begin
+  Result := inherited;
+  ProcessList(UAxes, 0);
+  ProcessList(VAxes, 1);
+  ProcessList(WAxes, 2);
 end;
 
 { UpdateNode methods implementations ----------------------------------------- }

@@ -330,11 +330,17 @@
         usage in UpdateCrossSection for throw-away shape instances.
       )
 
-      @param(Appearance Appearance that should be used for all shapes created
-        here.)
+      @param(LitAppearance Appearance that should be used for all shapes created
+        here, if they are supposed to be lit (made of polygons).
+        May be given as @nil.)
+
+      @param(UnlitAppearance Appearance that should be used for all shapes created
+        here, if they are supposed to be unlit (made of lines, points).
+        May be given as @nil.)
     }
     function BuildNode(const Mapping: TCastleIfcMapping;
-      const ParentProduct: TIfcProduct; const Appearance: TAppearanceNode): TAbstractChildNode; virtual;
+      const ParentProduct: TIfcProduct;
+      const LitAppearance, UnlitAppearance: TAppearanceNode): TAbstractChildNode; virtual;
   published
     { Assignment of the representation item to a single or multiple layer(s).
       @nil if none. }
@@ -349,7 +355,8 @@
   TIfcRepresentationItemList = class({$ifdef FPC}specialize{$endif} TObjectList<TIfcRepresentationItem>)
   public
     function BuildNode(const Mapping: TCastleIfcMapping;
-      const ParentProduct: TIfcProduct; const Appearance: TAppearanceNode): TAbstractChildNode;
+      const ParentProduct: TIfcProduct;
+      const LitAppearance, UnlitAppearance: TAppearanceNode): TAbstractChildNode;
   end;
 
   { Style information for products.
@@ -422,7 +429,8 @@
     FZDim: TIfcPositiveLengthMeasure;
   public
     function BuildNode(const Mapping: TCastleIfcMapping;
-      const ParentProduct: TIfcProduct; const Appearance: TAppearanceNode): TAbstractChildNode; override;
+      const ParentProduct: TIfcProduct;
+      const LitAppearance, UnlitAppearance: TAppearanceNode): TAbstractChildNode; override;
   published
     { Location of the bottom left corner (having the minimum values). }
     property Corner: TIfcCartesianPoint read FCorner write FCorner;
@@ -771,7 +779,8 @@
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     function BuildNode(const Mapping: TCastleIfcMapping;
-      const ParentProduct: TIfcProduct; const Appearance: TAppearanceNode): TAbstractChildNode; override;
+      const ParentProduct: TIfcProduct;
+      const LitAppearance, UnlitAppearance: TAppearanceNode): TAbstractChildNode; override;
   published
     { Indication whether the face set is a closed shell (TRUE)
       or an open shell (FALSE).
@@ -806,7 +815,8 @@
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     function BuildNode(const Mapping: TCastleIfcMapping;
-      const ParentProduct: TIfcProduct; const Appearance: TAppearanceNode): TAbstractChildNode; override;
+      const ParentProduct: TIfcProduct;
+      const LitAppearance, UnlitAppearance: TAppearanceNode): TAbstractChildNode; override;
   published
     { Ordered list of three directions for normals. }
     property Normals: TVector3List read FNormals;
@@ -873,7 +883,8 @@
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     function BuildNode(const Mapping: TCastleIfcMapping;
-      const ParentProduct: TIfcProduct; const Appearance: TAppearanceNode): TAbstractChildNode; override;
+      const ParentProduct: TIfcProduct;
+      const LitAppearance, UnlitAppearance: TAppearanceNode): TAbstractChildNode; override;
   published
     { The curve to be trimmed. For curves with multiple representations
       any parameter values given as Trim1 or Trim2 refer to the
@@ -914,7 +925,8 @@
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     function BuildNode(const Mapping: TCastleIfcMapping;
-      const ParentProduct: TIfcProduct; const Appearance: TAppearanceNode): TAbstractChildNode; override;
+      const ParentProduct: TIfcProduct;
+      const LitAppearance, UnlitAppearance: TAppearanceNode): TAbstractChildNode; override;
     procedure UpdateCrossSection(const CrossSection: TVector2List); override;
   published
     { Points defining the polyline. }
@@ -967,7 +979,8 @@
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     function BuildNode(const Mapping: TCastleIfcMapping;
-      const ParentProduct: TIfcProduct; const Appearance: TAppearanceNode): TAbstractChildNode; override;
+      const ParentProduct: TIfcProduct;
+      const LitAppearance, UnlitAppearance: TAppearanceNode): TAbstractChildNode; override;
   published
     { Points defining the polyline. }
     property Points: TIfcCartesianPointListSpec read FPoints write FPoints;
@@ -1879,7 +1892,8 @@
     FSemiAxis2: TIfcPositiveLengthMeasure;
   public
     function BuildNode(const Mapping: TCastleIfcMapping;
-      const ParentProduct: TIfcProduct; const Appearance: TAppearanceNode): TAbstractChildNode; override;
+      const ParentProduct: TIfcProduct;
+      const LitAppearance, UnlitAppearance: TAppearanceNode): TAbstractChildNode; override;
   published
     { The first radius of the ellipse. }
     property SemiAxis1: TIfcPositiveLengthMeasure read FSemiAxis1 write FSemiAxis1;
@@ -1896,7 +1910,8 @@
     FRadius: TIfcPositiveLengthMeasure;
   public
     function BuildNode(const Mapping: TCastleIfcMapping;
-      const ParentProduct: TIfcProduct; const Appearance: TAppearanceNode): TAbstractChildNode; override;
+      const ParentProduct: TIfcProduct;
+      const LitAppearance, UnlitAppearance: TAppearanceNode): TAbstractChildNode; override;
   published
     { Radius of the circle, greater than zero. }
     property Radius: TIfcPositiveLengthMeasure read FRadius write FRadius;
@@ -1994,7 +2009,8 @@
     FMappingTarget: TIfcCartesianTransformationOperator;
   public
     function BuildNode(const Mapping: TCastleIfcMapping;
-      const ParentProduct: TIfcProduct; const Appearance: TAppearanceNode): TAbstractChildNode; override;
+      const ParentProduct: TIfcProduct;
+      const LitAppearance, UnlitAppearance: TAppearanceNode): TAbstractChildNode; override;
   published
     { A representation map that is the source of the mapped item.
       It can be seen as a block (or cell or marco) definition. }
@@ -2535,7 +2551,8 @@
     FDepth: TIfcPositiveLengthMeasure;
   public
     function BuildNode(const Mapping: TCastleIfcMapping;
-      const ParentProduct: TIfcProduct; const Appearance: TAppearanceNode): TAbstractChildNode; override;
+      const ParentProduct: TIfcProduct;
+      const LitAppearance, UnlitAppearance: TAppearanceNode): TAbstractChildNode; override;
   published
     { The direction in which the surface, provided by SweptArea is to be swept.
       The ExtrudedDirection shall not be perpendicular to the local z-axis. }
@@ -2733,6 +2750,9 @@
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
+    function BuildNode(const Mapping: TCastleIfcMapping;
+      const ParentProduct: TIfcProduct;
+      const LitAppearance, UnlitAppearance: TAppearanceNode): TAbstractChildNode;
   published
     { The tag or name for this grid axis. }
     property AxisTag: TIfcLabel read FAxisTag write FAxisTag;
@@ -2775,6 +2795,7 @@
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
+    function BuildNode(const Mapping: TCastleIfcMapping): TTransformNode; override;
   published
     { List of grid axes defining the first row of grid lines. }
     property UAxes: TIfcGridAxisList read FUAxes;
@@ -4566,7 +4587,8 @@
   TIfcRepresentationList = class({$ifdef FPC}specialize{$endif} TObjectList<TIfcRepresentation>)
   public
     function BuildNode(const Mapping: TCastleIfcMapping;
-      const ParentProduct: TIfcProduct; const Appearance: TAppearanceNode): TAbstractChildNode;
+      const ParentProduct: TIfcProduct;
+      const LitAppearance, UnlitAppearance: TAppearanceNode): TAbstractChildNode;
   end;
 
   TIfcShapeModel = class abstract(TIfcRepresentation)
@@ -4600,7 +4622,8 @@
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     function BuildNode(const Mapping: TCastleIfcMapping;
-      const ParentProduct: TIfcProduct; const Appearance: TAppearanceNode): TAbstractChildNode;
+      const ParentProduct: TIfcProduct;
+      const LitAppearance, UnlitAppearance: TAppearanceNode): TAbstractChildNode;
   published
     { The word or group of words by which the product representation is known. }
     property Name: TIfcLabel read FName write FName;
