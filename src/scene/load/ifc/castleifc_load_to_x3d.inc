@@ -1232,6 +1232,9 @@ begin
   IndexedFaceSet.Coord := Coord;
   IndexedFaceSet.Solid := Closed;
 
+  // do not smooth, we don't know how smooth is the mesh, using flat shading is safer
+  IndexedFaceSet.CreaseAngle := 0;
+
   for Face in Faces do
   begin
     for I := 0 to Face.CoordIndex.Count - 1 do
@@ -1270,6 +1273,10 @@ begin
   IndexedTriangleSet := TIndexedTriangleSetNode.Create('', Mapping.BaseUrl);
   IndexedTriangleSet.Coord := Coord;
   IndexedTriangleSet.Solid := Closed;
+  { Do not smooth, we don't know how smooth is the mesh,
+    using flat shading is safest.
+    And consistent with TIfcExtrudedAreaSolid.BuildNode. }
+  IndexedTriangleSet.NormalPerVertex := false;
 
   // TODO: Use Normals
 
