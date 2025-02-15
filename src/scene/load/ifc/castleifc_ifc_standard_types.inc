@@ -200,6 +200,8 @@
   TIfcRelPositionsList = class;
   TIfcGridAxisList = class;
   TIfcGrid = class;
+  TIfcRelAssociatesMaterialList = class;
+  TIfcMaterialProfileSet = class;
 
   { Float type used throughout IFC.
 
@@ -1148,6 +1150,25 @@
     { Additional properties of the profile, for example mechanical properties. }
     property HasProperties: TIfcProfilePropertiesList read FHasProperties;
   end;
+  TIfcProfileDefList = {$ifdef FPC}specialize{$endif} TObjectList<TIfcProfileDef>;
+
+  { Defines profile by composition of other profiles.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcCompositeProfileDef.htm }
+  TIfcCompositeProfileDef = class(TIfcProfileDef)
+  strict private
+    FProfiles: TIfcProfileDefList;
+    FLabel: TIfcLabel;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+  published
+    { The profiles which are used to define the composite profile. }
+    property Profiles: TIfcProfileDefList read FProfiles;
+
+    { The name by which the composition may be referred. }
+    property &Label: TIfcLabel read FLabel write FLabel;
+  end;
 
   { Closed profile IfcArbitraryClosedProfileDef defines an arbitrary
     two-dimensional profile for the use within the swept surface geometry,
@@ -1590,6 +1611,57 @@
   TIfcRelAssociatesList = class({$ifdef FPC}specialize{$endif} TObjectList<TIfcRelAssociates>)
   end;
 
+  { eneral supertype for all material related information items in IFC
+    that have occurrence specific assignment parameters to assign a set
+    of materials with shape parameters to a reference geometry item of that
+    component.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcMaterialUsageDefinition.htm }
+  TIfcMaterialUsageDefinition = class abstract(TIfcPersistent)
+  strict private
+    {$ifdef CASTLE_IFC_INVERSE_PROPS}
+    FAssociatedTo: TIfcRelAssociatesMaterialList;
+    {$endif CASTLE_IFC_INVERSE_PROPS}
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+  published
+    {$ifdef CASTLE_IFC_INVERSE_PROPS}
+    { Use of the IfcMaterialUsageDefinition subtypes within the material
+      association of an element occurrence. The association is established
+      by the IfcRelAssociatesMaterial relationship. }
+    property AssociatedTo: TIfcRelAssociatesMaterialList read FAssociatedTo;
+    {$endif CASTLE_IFC_INVERSE_PROPS}
+  end;
+
+  { Usage of IfcMaterialProfileSet in terms of its location relative
+    to the associated element geometry.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcMaterialProfileSetUsage.htm }
+  TIfcMaterialProfileSetUsage = class(TIfcMaterialUsageDefinition)
+  strict private
+    FForProfileSet: TIfcMaterialProfileSet;
+    FCardinalPoint: Integer;
+    FReferenceExtent: TIfcPositiveLengthMeasure;
+  published
+    { The IfcMaterialProfileSet set to which the usage is applied. }
+    property ForProfileSet: TIfcMaterialProfileSet read FForProfileSet write FForProfileSet;
+
+    { Index reference to a significant point in the section profile.
+      Describes how the section is aligned relative to the (longitudinal)
+      axis of the member it is associated with.
+      This parametric specification of profile alignment can be provided
+      redundantly to the explicit alignment defined by
+      ForProfileSet.MaterialProfiles[*].Profile. }
+    property CardinalPoint: Integer read FCardinalPoint write FCardinalPoint;
+
+    { Extent of the extrusion of the elements body shape representation to
+      which the IfcMaterialProfileSetUsage applies. It is used as the reference
+      value for the upper OffsetValues[2] provided by
+      the IfcMaterialProfileWithOffsets subtype for included material profiles. }
+    property ReferenceExtent: TIfcPositiveLengthMeasure read FReferenceExtent write FReferenceExtent;
+  end;
+
   { Selection of either a material definition or a material usage definition
     that can be assigned to an element, a resource or another entity within
     this specification.
@@ -1610,7 +1682,8 @@
     { Material definition assigned to the elements or element types. }
     property RelatingMaterial: TIfcMaterialSelect read FRelatingMaterial write FRelatingMaterial;
   end;
-  TIfcRelAssociatesMaterialList = {$ifdef FPC}specialize{$endif} TObjectList<TIfcRelAssociatesMaterial>;
+  TIfcRelAssociatesMaterialList = class({$ifdef FPC}specialize{$endif} TObjectList<TIfcRelAssociatesMaterial>)
+  end;
 
   { Generalization of all characteristics (i.e. a grouping of individual
     properties), that may be assigned to objects. }
@@ -4877,6 +4950,78 @@
     property HasProperties: TIfcMaterialPropertiesList read FHasProperties;
   end;
 
+  { Single and identifiable cross section of an element which is constructed
+    of a number of profiles (one or more).
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcMaterialProfile.htm }
+  TIfcMaterialProfile = class(TIfcMaterialDefinition)
+  strict private
+    FName: TIfcLabel;
+    FDescription: TIfcText;
+    FMaterial: TIfcMaterial;
+    FProfile: TIfcProfileDef;
+    FPriority: Integer;
+    FCategory: TIfcLabel;
+    {$ifdef CASTLE_IFC_INVERSE_PROPS}
+    FToMaterialProfileSet: TIfcMaterialProfileSet;
+    {$endif CASTLE_IFC_INVERSE_PROPS}
+  published
+    { The name by which the material profile is known. }
+    property Name: TIfcLabel read FName write FName;
+
+    { Definition of the material profile in descriptive terms. }
+    property Description: TIfcText read FDescription write FDescription;
+
+    { Optional reference to the material from which the profile is constructed. }
+    property Material: TIfcMaterial read FMaterial write FMaterial;
+
+    { Identification of the profile for which this material profile is associating material. }
+    property Profile: TIfcProfileDef read FProfile write FProfile;
+
+    { The relative priority of the profile, expressed as normalised integer range [0..100]. Controls how profiles intersect in connections and corners of building elements: A profile from one element protrudes into (i.e. displaces) a profile from another element in a joint of these elements if the former element's profile has higher priority than the latter. The priority value for a material profile in an element has to be set and maintained by software applications in relation to the material profiles in connected elements. }
+    property Priority: Integer read FPriority write FPriority;
+
+    { Category of the material profile, e.g. the role it has in the profile set it belongs to. The list of keywords might be extended by model view definitions, however the following keywords shall apply in general: * 'LoadBearing' — the material profile having a load bearing function. * 'Insulation' — the material profile having an insolating function. * 'Finish' — the material profile being the finish. }
+    property Category: TIfcLabel read FCategory write FCategory;
+
+    {$ifdef CASTLE_IFC_INVERSE_PROPS}
+    { Material profile set in which this material profile is included. }
+    property ToMaterialProfileSet: TIfcMaterialProfileSet read FToMaterialProfileSet write FToMaterialProfileSet;
+    {$endif CASTLE_IFC_INVERSE_PROPS}
+  end;
+  TIfcMaterialProfileList = {$ifdef FPC}specialize{$endif} TObjectList<TIfcMaterialProfile>;
+
+  { Designation by which individual material(s) of a prismatic element
+    (for example, beam or column) constructed of a single or multiple
+    material profiles is known.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcMaterialProfileSet.htm }
+  TIfcMaterialProfileSet = class(TIfcMaterialDefinition)
+  strict private
+    FName: TIfcLabel;
+    FDescription: TIfcText;
+    FMaterialProfiles: TIfcMaterialProfileList;
+    FCompositeProfile: TIfcCompositeProfileDef;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+  published
+    { The name by which the material profile set is known. }
+ 	  property Name: TIfcLabel read FName write FName;
+
+    { Definition of the material profile set in descriptive terms. }
+    property Description: TIfcText read FDescription write FDescription;
+
+    { Identification of the profiles from which the material profile set is composed. }
+    property MaterialProfiles: TIfcMaterialProfileList read FMaterialProfiles;
+
+    { Reference to the composite profile definition for which this
+      material profile set associates material to each of its individual profiles.
+      If only a single material profile is used (the most typical case)
+      then no CompositeProfile is asserted.  }
+    property CompositeProfile: TIfcCompositeProfileDef read FCompositeProfile write FCompositeProfile;
+  end;
+
   { Relationship between part and whole in material definitions (as in composite materials).
 
     Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcMaterialRelationship.htm }
@@ -7160,6 +7305,52 @@ begin
   inherited;
 end;
 
+{ TIfcCompositeProfileDef ---------------------------------------------------- }
+
+constructor TIfcCompositeProfileDef.Create(AOwner: TComponent);
+begin
+  inherited;
+  FProfiles := TIfcProfileDefList.Create(false);
+end;
+
+destructor TIfcCompositeProfileDef.Destroy;
+begin
+  FreeAndNil(FProfiles);
+  inherited;
+end;
+
+{ TIfcMaterialProfileSet ----------------------------------------------------- }
+
+constructor TIfcMaterialProfileSet.Create(AOwner: TComponent);
+begin
+  inherited;
+  FMaterialProfiles := TIfcMaterialProfileList.Create(false);
+end;
+
+destructor TIfcMaterialProfileSet.Destroy;
+begin
+  FreeAndNil(FMaterialProfiles);
+  inherited;
+end;
+
+{ TIfcMaterialUsageDefinition ------------------------------------------------ }
+
+constructor TIfcMaterialUsageDefinition.Create(AOwner: TComponent);
+begin
+  inherited;
+  {$ifdef CASTLE_IFC_INVERSE_PROPS}
+  FAssociatedTo := TIfcRelAssociatesMaterialList.Create(false);
+  {$endif CASTLE_IFC_INVERSE_PROPS}
+end;
+
+destructor TIfcMaterialUsageDefinition.Destroy;
+begin
+  {$ifdef CASTLE_IFC_INVERSE_PROPS}
+  FreeAndNil(FAssociatedTo);
+  {$endif CASTLE_IFC_INVERSE_PROPS}
+  inherited;
+end;
+
 { initialization, finalization ----------------------------------------------- }
 
 var
@@ -7345,6 +7536,11 @@ function IfcClasses: TIfcPersistentClassList;
     FIfcClasses.Add(TIfcGridAxis);
     FIfcClasses.Add(TIfcGrid);
     FIfcClasses.Add(TIfcRelPositions);
+    FIfcClasses.Add(TIfcCompositeProfileDef);
+    FIfcClasses.Add(TIfcMaterialProfile);
+    FIfcClasses.Add(TIfcMaterialProfileSet);
+    FIfcClasses.Add(TIfcMaterialUsageDefinition);
+    FIfcClasses.Add(TIfcMaterialProfileSetUsage);
   end;
 
 begin
