@@ -2018,7 +2018,7 @@
 
       @seealso FindBehavior
       @seealso BehaviorsEnumerate }
-    //procedure InsertBehavior(const Index: Integer; const Behavior: TCastleBehavior);
+    procedure InsertBehavior(const Index: Integer; const Behavior: TCastleBehavior);
 
     { Returns behavior index, -1 means not found. }
     function BehaviorIndex(const Behavior: TCastleBehavior): Integer;
@@ -4366,65 +4366,16 @@ begin
 end;
 
 procedure TCastleTransform.AddBehavior(const Behavior: TCastleBehavior);
-var
-  ReasonWhyCannot: String;
 begin
-  if Behavior.FParent <> Self then
-  begin
-    if not Behavior.CanAttachToParent(Self, ReasonWhyCannot) then
-      raise Exception.CreateFmt('Cannot add behavior %s (%s) to %s (%s) because: %s', [
-        Behavior.Name,
-        Behavior.ClassName,
-        Name,
-        ClassName,
-        ReasonWhyCannot
-      ]);
-
-    { As a first action (after the check CanAttachToParent has passed) remove
-      from previous parent. This will also cause necessary virtual method calls,
-      like ParentBeforeDetach, WorldBeforeDetach. }
-    if Behavior.FParent <> nil then
-      Behavior.FParent.RemoveBehavior(Behavior);
-    Assert(Behavior.FParent = nil);
-
-    { Add to new parent }
-
-    FBehaviors.Add(Behavior);
-    Behavior.FParent := Self;
-    Behavior.ParentAfterAttach;
-    {$warnings off}
-    Behavior.ParentChanged; // call at end, when state is consistent
-    {$warnings on}
-
-    { Call WorldAfterAttach }
-    if Behavior.ListenWorldChange then
-    begin
-      AddWorldChangeNotification(Behavior);
-      if FWorld <> nil then
-        Behavior.WorldAfterAttach;
-    end;
-    NotifyBehaviorAdded(Behavior);
-
-    UpdateBehaviorsNeedBeforeRender;
-    UpdateCachedBehaviors;
-  end;
+  InsertBehavior(FBehaviors.Count, Behavior);
 end;
-
-(*
-This is only for unused MoveBehaviorBeforeAfterAnotherBehavior now.
-TODO: Cannot be implemented like this, as copy-paste of AddBehavior -- to easy
-to introduce mistakes when maintaining (it already happened at merge).
-Should be implemented by adjusting AddBehavior, and then
-AddBehavior should jus call InsertBehavior.
 
 procedure TCastleTransform.InsertBehavior(const Index: Integer;
   const Behavior: TCastleBehavior);
 var
   ReasonWhyCannot: String;
 begin
-  // TODO: A lot of code copied form AddBehavior()
   // TODO: What to do when Behavior.FParent = Self only move on list or? remove and insert?
-  // TODO:  maybe should be Internal
   if Behavior.FParent <> Self then
   begin
     if not Behavior.CanAttachToParent(Self, ReasonWhyCannot) then
@@ -4443,7 +4394,7 @@ begin
       Behavior.FParent.RemoveBehavior(Behavior);
     Assert(Behavior.FParent = nil);
 
-    { Inseert to new parent }
+    { Insert to new parent }
     FBehaviors.Insert(Index, Behavior);
     Behavior.FParent := Self;
     Behavior.ParentAfterAttach;
@@ -4464,7 +4415,6 @@ begin
     UpdateCachedBehaviors;
   end;
 end;
-*)
 
 function TCastleTransform.BehaviorIndex(const Behavior: TCastleBehavior
   ): Integer;
