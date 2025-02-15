@@ -1878,6 +1878,13 @@
   TIfcConic = class abstract(TIfcCurve)
   strict private
     FPosition: TIfcAxis2Placement;
+  private
+    { Helper to implement BuildNode for TIfcEllipse and TIfcCircle.
+      Radius and RadiusY meaning is just like to TCircle2DNode. }
+    function BuildEllipseOrCircle(const Mapping: TCastleIfcMapping;
+      const ParentProduct: TIfcProduct;
+      const LitAppearance, UnlitAppearance: TAppearanceNode;
+      const Radius, RadiusY: Single): TAbstractChildNode;
   published
     { The location and orientation of the conic. }
     property Position: TIfcAxis2Placement read FPosition write FPosition;

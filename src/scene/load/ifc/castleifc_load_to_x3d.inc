@@ -778,42 +778,78 @@ procedure TIfcCurve.UpdateCrossSection(const CrossSection: TVector2List);
       Result := false;
   end;
 
+  procedure HandleShape(const Shape: TShapeNode);
+  var
+    ProxyState: TX3DGraphTraverseState;
+    ProxyGeometry: TAbstractGeometryNode;
+  begin
+    if Shape.Geometry <> nil then
+    begin
+      if not HandleGeometry(Shape.Geometry) then
+      begin
+        { Try using Proxy and handling this.
+          This allows us to deal e.g. with TCircle2DNode,
+          which in turn appears from IfcCircle, IfcEllipse. }
+        ProxyState := TX3DGraphTraverseState.Create;
+        ProxyState.ShapeNode := Shape;
+        ProxyGeometry := Shape.Geometry.Proxy(ProxyState);
+        if ProxyGeometry <> nil then
+        begin
+          if not HandleGeometry(ProxyGeometry) then
+            WritelnWarning('IFC', 'Unsupported geometry class for TIfcCurve.UpdateCrossSection: %s, proxy to %s', [
+              Shape.Geometry.ClassName,
+              ProxyGeometry.ClassName
+            ]);
+        end else
+        begin
+          WritelnWarning('IFC', 'Unsupported geometry class for TIfcCurve.UpdateCrossSection: %s, no proxy', [
+            Shape.Geometry.ClassName
+          ]);
+        end;
+      end;
+    end;
+  end;
+
+  procedure TransformCrossSection(const Transform: TTransformNode; const CrossSection: TVector2List);
+  var
+    T: TTransformation;
+    I: Integer;
+    V: TVector3;
+  begin
+    T.Init;
+    Transform.TransformFunctionality.ApplyTransform(T);
+    for I := 0 to CrossSection.Count - 1 do
+    begin
+      V := Vector3(CrossSection[I], 0);
+      V := T.Transform.MultPoint(V);
+      CrossSection[I] := V.XY;
+    end;
+  end;
+
 var
-  Shape: TShapeNode;
   Mapping: TCastleIfcMapping;
-  ProxyState: TX3DGraphTraverseState;
-  ProxyGeometry: TAbstractGeometryNode;
+  ShapeOrTransform: TAbstractChildNode;
+  Transform: TTransformNode;
 begin
   Mapping := TCastleIfcMapping.Create;
   try
-    Shape := BuildNode(Mapping, nil, nil, nil) as TShapeNode;
+    ShapeOrTransform := BuildNode(Mapping, nil, nil, nil);
     try
-      if Shape.Geometry <> nil then
+      if ShapeOrTransform is TShapeNode then
+        HandleShape(TShapeNode(ShapeOrTransform))
+      else
+      if (ShapeOrTransform is TTransformNode) and
+         (TTransformNode(ShapeOrTransform).FdChildren.Count = 1) and
+         (TTransformNode(ShapeOrTransform).FdChildren[0] is TShapeNode) then
       begin
-        if not HandleGeometry(Shape.Geometry) then
-        begin
-          { Try using Proxy and handling this.
-            This allows us to deal e.g. with TCircle2DNode,
-            which in turn appears from IfcCircle, IfcEllipse. }
-          ProxyState := TX3DGraphTraverseState.Create;
-          ProxyState.ShapeNode := Shape;
-          ProxyGeometry := Shape.Geometry.Proxy(ProxyState);
-          if ProxyGeometry <> nil then
-          begin
-            if not HandleGeometry(ProxyGeometry) then
-              WritelnWarning('IFC', 'Unsupported geometry class for TIfcCurve.UpdateCrossSection: %s, proxy to %s', [
-                Shape.Geometry.ClassName,
-                ProxyGeometry.ClassName
-              ]);
-          end else
-          begin
-            WritelnWarning('IFC', 'Unsupported geometry class for TIfcCurve.UpdateCrossSection: %s, no proxy', [
-              Shape.Geometry.ClassName
-            ]);
-          end;
-        end;
-      end;
-    finally FreeIfUnusedAndNil(Shape) end;
+        Transform := TTransformNode(ShapeOrTransform);
+        HandleShape(TShapeNode(Transform.FdChildren[0]));
+        TransformCrossSection(Transform, CrossSection);
+      end else
+        WritelnWarning('IFC', 'Unsupported class for TIfcCurve.UpdateCrossSection: %s', [
+          ShapeOrTransform.ClassName
+        ]);
+    finally FreeIfUnusedAndNil(ShapeOrTransform) end;
   finally FreeAndNil(Mapping) end;
 end;
 
@@ -875,34 +911,20 @@ begin
     Result := nil;
 end;
 
-function TIfcEllipse.BuildNode(const Mapping: TCastleIfcMapping;
-  const ParentProduct: TIfcProduct; const LitAppearance, UnlitAppearance: TAppearanceNode): TAbstractChildNode;
-var
-  Shape: TShapeNode;
-  Circle: TCircle2DNode;
-begin
-  Circle := TCircle2DNode.Create('', Mapping.BaseUrl);
-  Circle.Radius := SemiAxis1;
-  Circle.RadiusY := SemiAxis2;
-
-  Shape := TShapeNode.Create('', Mapping.BaseUrl);
-  Shape.Geometry := Circle;
-  Shape.Appearance := UnlitAppearance;
-  SetMetadata(Shape, 'IFC_ClassName', ClassName);
-
-  Mapping.ConnectShapeAndProduct(Shape, ParentProduct);
-  Result := Shape;
-end;
-
-function TIfcCircle.BuildNode(const Mapping: TCastleIfcMapping;
+function TIfcConic.BuildEllipseOrCircle(const Mapping: TCastleIfcMapping;
   const ParentProduct: TIfcProduct;
-  const LitAppearance, UnlitAppearance: TAppearanceNode): TAbstractChildNode;
+  const LitAppearance, UnlitAppearance: TAppearanceNode;
+  const Radius, RadiusY: Single): TAbstractChildNode;
 var
+  Transform: TTransformNode;
+  Translation: TVector3;
+  Rotation: TVector4;
   Shape: TShapeNode;
   Circle: TCircle2DNode;
 begin
   Circle := TCircle2DNode.Create('', Mapping.BaseUrl);
   Circle.Radius := Radius;
+  Circle.RadiusY := RadiusY;
 
   Shape := TShapeNode.Create('', Mapping.BaseUrl);
   Shape.Geometry := Circle;
@@ -910,7 +932,45 @@ begin
   SetMetadata(Shape, 'IFC_ClassName', ClassName);
 
   Mapping.ConnectShapeAndProduct(Shape, ParentProduct);
-  Result := Shape;
+
+  { We optimize below common case, when IfcConic doesn't need extra
+    TTransformNode (this also means we don't need later to
+    TransformCrossSection in TIfcCurve.UpdateCrossSection). }
+  if Position <> nil then
+  begin
+    Position.GetTransform(Translation, Rotation);
+    if (not Translation.IsZero) or (not IsZero(Rotation.W)) then
+    begin
+      Transform := TTransformNode.Create('', Mapping.BaseUrl);
+      Transform.Translation := Translation;
+      Transform.Rotation := Rotation;
+      Transform.AddChildren(Shape);
+      Result := Transform;
+    end else
+    begin
+      {$ifdef CASTLE_DEBUG_IFC_TRANSFORM}
+      WritelnLog('IFC', 'Optimizing away TTransformNode for IfcConic.Position');
+      {$endif CASTLE_DEBUG_IFC_TRANSFORM}
+      Result := Shape;
+    end;
+  end else
+    Result := Shape;
+end;
+
+function TIfcEllipse.BuildNode(const Mapping: TCastleIfcMapping;
+  const ParentProduct: TIfcProduct;
+  const LitAppearance, UnlitAppearance: TAppearanceNode): TAbstractChildNode;
+begin
+  Result := BuildEllipseOrCircle(Mapping, ParentProduct,
+    LitAppearance, UnlitAppearance, SemiAxis1, SemiAxis2);
+end;
+
+function TIfcCircle.BuildNode(const Mapping: TCastleIfcMapping;
+  const ParentProduct: TIfcProduct;
+  const LitAppearance, UnlitAppearance: TAppearanceNode): TAbstractChildNode;
+begin
+  Result := BuildEllipseOrCircle(Mapping, ParentProduct,
+    LitAppearance, UnlitAppearance, Radius, 0);
 end;
 
 function TIfcIndexedPolyCurve.BuildNode(const Mapping: TCastleIfcMapping;
