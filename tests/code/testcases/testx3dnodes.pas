@@ -21,12 +21,23 @@ interface
 
 uses
   Classes, SysUtils,
-  CastleTester, CastleVectors, X3DNodes;
+  CastleTester, CastleVectors, X3DNodes, CastleUtils;
 
 type
   TTestX3DNodes = class(TCastleTestCase)
   private
+    type
+      TGatheredCoordRange = record
+        RangeNumber: Cardinal;
+        BeginIndex, EndIndex: Integer;
+      end;
+      TGatheredCoordRanges = {$ifdef FPC}specialize{$endif} TStructList<TGatheredCoordRange>;
+
+    var
+      GatheredCoordRanges: TGatheredCoordRanges;
+
     procedure WeakLinkUnusedWarning(const Category, S: string);
+    procedure GatherCoordRanges(const RangeNumber: Cardinal; BeginIndex, EndIndex: Integer);
   protected
     { Every possible X3D nodes that makes no errors when instantiated.
       Above NodesManager, this also includes some abstract node classes
@@ -112,12 +123,13 @@ type
     procedure TestGltfConversion;
     procedure TestLoadWithoutWarning;
     procedure TestNodeClassesList;
+    procedure TestCoordRanges;
   end;
 
 implementation
 
 uses Generics.Collections, Math,
-  CastleUtils, CastleInternalX3DLexer, CastleClassUtils, CastleFilesUtils,
+  CastleInternalX3DLexer, CastleClassUtils, CastleFilesUtils,
   X3DFields, CastleTimeUtils, CastleDownload, X3DLoad, X3DTime, CastleColors,
   CastleApplicationProperties, CastleTextureImages, CastleStringUtils,
   CastleUriUtils, CastleInternalNodesUnsupported, CastleLog,
@@ -2660,6 +2672,134 @@ begin
       AssertEquals(1, ClassesList.IndexOfAnyAncestor(Node));
     finally FreeAndNil(Node) end;
   finally FreeAndNil(ClassesList) end;
+end;
+
+procedure TTestX3DNodes.GatherCoordRanges(const RangeNumber: Cardinal;
+  BeginIndex, EndIndex: Integer);
+var
+  GatheredCoordRange: TGatheredCoordRange;
+begin
+  GatheredCoordRange.RangeNumber := RangeNumber;
+  GatheredCoordRange.BeginIndex := BeginIndex;
+  GatheredCoordRange.EndIndex := EndIndex;
+  GatheredCoordRanges.Add(GatheredCoordRange);
+  // Writeln('GatheredCoordRange: ', GatheredCoordRange.RangeNumber, ' ',
+  //   GatheredCoordRange.BeginIndex, ' ', GatheredCoordRange.EndIndex);
+end;
+
+procedure TTestX3DNodes.TestCoordRanges;
+var
+  Coord: TCoordinateNode;
+  Ifs: TIndexedFaceSetNode;
+  Shape: TShapeNode;
+  State: TX3DGraphTraverseState;
+begin
+  Coord := TCoordinateNode.Create;
+  Coord.SetPoint([
+    Vector3(0, 0, 0),
+    Vector3(1, 0, 0),
+    Vector3(0, 1, 0),
+    Vector3(0, 0, 1)
+  ]);
+
+  Ifs := TIndexedFaceSetNode.Create;
+  Ifs.Coord := Coord;
+
+  Shape := TShapeNode.Create;
+  Shape.Geometry := Ifs;
+
+  State := TX3DGraphTraverseState.Create;
+  State.ShapeNode := Shape;
+
+  try
+    GatheredCoordRanges := TGatheredCoordRanges.Create;
+    try
+      Ifs.InternalMakeCoordRanges(State, {$ifdef FPC}@{$endif} GatherCoordRanges);
+      AssertEquals(0, GatheredCoordRanges.Count);
+    finally FreeAndNil(GatheredCoordRanges) end;
+
+    Ifs.SetCoordIndex([0, 1, 2, -1, 0, 2, 3, -1]);
+    GatheredCoordRanges := TGatheredCoordRanges.Create;
+    try
+      Ifs.InternalMakeCoordRanges(State, {$ifdef FPC}@{$endif} GatherCoordRanges);
+      AssertEquals(2, GatheredCoordRanges.Count);
+      AssertEquals(0, GatheredCoordRanges[0].RangeNumber);
+      AssertEquals(0, GatheredCoordRanges[0].BeginIndex);
+      AssertEquals(3, GatheredCoordRanges[0].EndIndex);
+      AssertEquals(1, GatheredCoordRanges[1].RangeNumber);
+      AssertEquals(4, GatheredCoordRanges[1].BeginIndex);
+      AssertEquals(7, GatheredCoordRanges[1].EndIndex);
+    finally FreeAndNil(GatheredCoordRanges) end;
+
+    // without final -1, the same result
+    Ifs.SetCoordIndex([0, 1, 2, -1, 0, 2, 3]);
+    GatheredCoordRanges := TGatheredCoordRanges.Create;
+    try
+      Ifs.InternalMakeCoordRanges(State, {$ifdef FPC}@{$endif} GatherCoordRanges);
+      AssertEquals(2, GatheredCoordRanges.Count);
+      AssertEquals(0, GatheredCoordRanges[0].RangeNumber);
+      AssertEquals(0, GatheredCoordRanges[0].BeginIndex);
+      AssertEquals(3, GatheredCoordRanges[0].EndIndex);
+      AssertEquals(1, GatheredCoordRanges[1].RangeNumber);
+      AssertEquals(4, GatheredCoordRanges[1].BeginIndex);
+      AssertEquals(7, GatheredCoordRanges[1].EndIndex);
+    finally FreeAndNil(GatheredCoordRanges) end;
+
+    // with leading -1
+    Ifs.SetCoordIndex([-1, 0, 1, 2, -1, 0, 2, 3]);
+    GatheredCoordRanges := TGatheredCoordRanges.Create;
+    try
+      Ifs.InternalMakeCoordRanges(State, {$ifdef FPC}@{$endif} GatherCoordRanges);
+      AssertEquals(2, GatheredCoordRanges.Count);
+      AssertEquals(0, GatheredCoordRanges[0].RangeNumber);
+      AssertEquals(1, GatheredCoordRanges[0].BeginIndex);
+      AssertEquals(4, GatheredCoordRanges[0].EndIndex);
+      AssertEquals(1, GatheredCoordRanges[1].RangeNumber);
+      AssertEquals(5, GatheredCoordRanges[1].BeginIndex);
+      AssertEquals(8, GatheredCoordRanges[1].EndIndex);
+    finally FreeAndNil(GatheredCoordRanges) end;
+
+    // leading, trailing, and inside multiple -1
+    Ifs.SetCoordIndex([-1, 0, 1, 2, -1, -1, -1, 0, 2, 3, -1]);
+    GatheredCoordRanges := TGatheredCoordRanges.Create;
+    try
+      Ifs.InternalMakeCoordRanges(State, {$ifdef FPC}@{$endif} GatherCoordRanges);
+      AssertEquals(2, GatheredCoordRanges.Count);
+      AssertEquals(0, GatheredCoordRanges[0].RangeNumber);
+      AssertEquals(1, GatheredCoordRanges[0].BeginIndex);
+      AssertEquals(4, GatheredCoordRanges[0].EndIndex);
+      AssertEquals(1, GatheredCoordRanges[1].RangeNumber);
+      AssertEquals(7, GatheredCoordRanges[1].BeginIndex);
+      AssertEquals(10, GatheredCoordRanges[1].EndIndex);
+    finally FreeAndNil(GatheredCoordRanges) end;
+
+    // nothing
+    Ifs.SetCoordIndex([]);
+    GatheredCoordRanges := TGatheredCoordRanges.Create;
+    try
+      Ifs.InternalMakeCoordRanges(State, {$ifdef FPC}@{$endif} GatherCoordRanges);
+      AssertEquals(0, GatheredCoordRanges.Count);
+    finally FreeAndNil(GatheredCoordRanges) end;
+
+    // only -1 are like nothing
+    Ifs.SetCoordIndex([-1]);
+    GatheredCoordRanges := TGatheredCoordRanges.Create;
+    try
+      Ifs.InternalMakeCoordRanges(State, {$ifdef FPC}@{$endif} GatherCoordRanges);
+      AssertEquals(0, GatheredCoordRanges.Count);
+    finally FreeAndNil(GatheredCoordRanges) end;
+
+    // only -1 are like nothing
+    Ifs.SetCoordIndex([-1, -1, -1, -1]);
+    GatheredCoordRanges := TGatheredCoordRanges.Create;
+    try
+      Ifs.InternalMakeCoordRanges(State, {$ifdef FPC}@{$endif} GatherCoordRanges);
+      AssertEquals(0, GatheredCoordRanges.Count);
+    finally FreeAndNil(GatheredCoordRanges) end;
+  finally
+    FreeAndNil(State);
+    FreeAndNil(Shape);
+  end;
 end;
 
 initialization
