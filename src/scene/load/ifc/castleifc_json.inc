@@ -161,7 +161,9 @@ begin
        // Testcase: Community-Sample-Test-Files-main/IFC 4.0.2.1 (IFC 4)/ISO Spec archive/beam-varying-profiles.ifcjson
        (JsonObjType = 'IfcCardinalPointReference') or
        // Testcase: Community-Sample-Test-Files-main/IFC 4.0.2.1 (IFC 4)/ISO Spec archive/beam-varying-profiles.ifcjson
-       (JsonObjType = 'IfcInteger') then
+       (JsonObjType = 'IfcInteger') or
+       // Testcase: Community-Sample-Test-Files-main/IFC 4.0.2.1 (IFC 4)/ISO Spec archive/beam-curved-i-shape-tessellated.ifcjson
+       (JsonObjType = 'IfcPositiveInteger') then
       Result := JsonObj.Get('value', Int64(0))
     else
     begin
@@ -375,7 +377,7 @@ begin
   begin
     JsonObj := TJsonObject(Json);
     JsonObjType := JsonObj.Get('type', '');
-    JsonObjValue := JsonObj.Find('positiveIntegers') ;
+    JsonObjValue := JsonObj.Find('positiveIntegers');
     if (JsonObjType = '') and
        (JsonObjValue is TJsonArray) then // also checks JsonObjValue is not nil
     begin
