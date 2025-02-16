@@ -628,7 +628,8 @@ end;
 { TIfcProfileDef.UpdateCrossSection method overrides -------------------------- }
 
 procedure TIfcProfileDef.UpdateCrossSection(
-  const CrossSection: TVector2List; const ParentName: String);
+  const CrossSection: TVector2List; var CrossSectionConvex: Boolean;
+  const ParentName: String);
 begin
   WritelnWarning('IFC', 'Unsupported class used for %s: %s', [
     ParentName,
@@ -637,14 +638,16 @@ begin
 end;
 
 procedure TIfcArbitraryClosedProfileDef.UpdateCrossSection(
-  const CrossSection: TVector2List; const ParentName: String);
+  const CrossSection: TVector2List; var CrossSectionConvex: Boolean;
+  const ParentName: String);
 begin
   if OuterCurve <> nil then
-    OuterCurve.UpdateCrossSection(CrossSection);
+    OuterCurve.UpdateCrossSection(CrossSection, CrossSectionConvex);
 end;
 
 procedure TIfcArbitraryProfileDefWithVoids.UpdateCrossSection(
-  const CrossSection: TVector2List; const ParentName: String);
+  const CrossSection: TVector2List; var CrossSectionConvex: Boolean;
+  const ParentName: String);
 {.$define CASTLE_DEBUG_IFC_CURVE_HOLES}
 {$ifdef CASTLE_DEBUG_IFC_CURVE_HOLES}
 var
@@ -658,6 +661,7 @@ begin
     WritelnWarning('IFC', 'TODO: IfcArbitraryProfileDefWithVoids.InnerCurves not implemented, we do not create holes');
 
     {$ifdef CASTLE_DEBUG_IFC_CURVE_HOLES}
+    // TODO: add holes, set also CrossSectionConvex:=false
     for I := 0 to InnerCurves.Count - 1 do
     begin
       NewCrossSection := TVector2List.Create;
@@ -671,7 +675,8 @@ begin
 end;
 
 procedure TIfcRectangleProfileDef.UpdateCrossSection(
-  const CrossSection: TVector2List; const ParentName: String);
+  const CrossSection: TVector2List; var CrossSectionConvex: Boolean;
+  const ParentName: String);
 var
   Translation: TVector3;
   Rotation: TVector4;
@@ -705,7 +710,8 @@ end;
 
 { TIfcCurve.UpdateCrossSection method overrides ---------------------------------------- }
 
-procedure TIfcCurve.UpdateCrossSection(const CrossSection: TVector2List);
+procedure TIfcCurve.UpdateCrossSection(const CrossSection: TVector2List;
+  var CrossSectionConvex: Boolean);
 
   procedure HandleIndexedLineSetNode(const IndexedLineSet: TIndexedLineSetNode);
   var
@@ -765,16 +771,19 @@ procedure TIfcCurve.UpdateCrossSection(const CrossSection: TVector2List);
   end;
 
   { Returns @false if Geometry class was not handled or was @nil. }
-  function HandleGeometry(const Geometry: TAbstractGeometryNode): Boolean;
+  function HandleGeometry(const Geometry: TAbstractGeometryNode;
+    const ResultingCrossSectionWillBeConvex: Boolean): Boolean;
   begin
     if Geometry is TIndexedLineSetNode then
     begin
       Result := true;
+      CrossSectionConvex := ResultingCrossSectionWillBeConvex;
       HandleIndexedLineSetNode(TIndexedLineSetNode(Geometry))
     end else
     if Geometry is TLineSetNode then
     begin
       Result := true;
+      CrossSectionConvex := ResultingCrossSectionWillBeConvex;
       HandleLineSetNode(TLineSetNode(Geometry))
     end else
       Result := false;
@@ -784,10 +793,11 @@ procedure TIfcCurve.UpdateCrossSection(const CrossSection: TVector2List);
   var
     ProxyState: TX3DGraphTraverseState;
     ProxyGeometry: TAbstractGeometryNode;
+    OriginalGeometryConvex: Boolean;
   begin
     if Shape.Geometry <> nil then
     begin
-      if not HandleGeometry(Shape.Geometry) then
+      if not HandleGeometry(Shape.Geometry, false) then
       begin
         { Try using Proxy and handling this.
           This allows us to deal e.g. with TCircle2DNode,
@@ -795,9 +805,19 @@ procedure TIfcCurve.UpdateCrossSection(const CrossSection: TVector2List);
         ProxyState := TX3DGraphTraverseState.Create;
         ProxyState.ShapeNode := Shape;
         ProxyGeometry := Shape.Geometry.Proxy(ProxyState);
+        { When the geometry is known to be convex,
+          keep CrossSectionConvex = true.
+          This allows to avoid costly triangulation of IfcExtrudedAreaSolid
+          top/bottom caps, which is costly but also can remove some
+          almost-degenerate triangles (testcase: thin triangles
+          at the bottom of table legs in
+          https://github.com/castle-engine/demo-models/blob/master/ifc/created_using_bonsaibim/chairs_rotations_from_furniture_library.ifcjson ) }
+        OriginalGeometryConvex :=
+          (Shape.Geometry is TCircle2DNode) or
+          (Shape.Geometry is TRectangle2DNode);
         if ProxyGeometry <> nil then
         begin
-          if not HandleGeometry(ProxyGeometry) then
+          if not HandleGeometry(ProxyGeometry, OriginalGeometryConvex) then
             WritelnWarning('IFC', 'Unsupported geometry class for TIfcCurve.UpdateCrossSection: %s, proxy to %s', [
               Shape.Geometry.ClassName,
               ProxyGeometry.ClassName
@@ -855,10 +875,12 @@ begin
   finally FreeAndNil(Mapping) end;
 end;
 
-procedure TIfcPolyline.UpdateCrossSection(const CrossSection: TVector2List);
+procedure TIfcPolyline.UpdateCrossSection(const CrossSection: TVector2List;
+  var CrossSectionConvex: Boolean);
 var
   I: Integer;
 begin
+  CrossSectionConvex := false;
   CrossSection.Count := Points.Count;
   for I := 0 to Points.Count - 1 do
     CrossSection[I] := Points[I].Coordinates.Value.XY;
@@ -1075,6 +1097,7 @@ var
   TopBottomCaps: TIndexedFaceSetNode;
   Coord: TCoordinateNode;
   CrossSection: TVector2List;
+  CrossSectionConvex: Boolean;
   Transform: TTransformNode;
   ExtrusionDir, Translation: TVector3;
   Rotation: TVector4;
@@ -1127,11 +1150,16 @@ begin
   SideQuads := TIndexedQuadSetNode.Create('', Mapping.BaseUrl);
   TopBottomCaps := TIndexedFaceSetNode.Create('', Mapping.BaseUrl);
 
+  { Default value results in more efficient rendering, and matches
+    TIndexedFaceSetNode.Convex default. }
+  CrossSectionConvex := true;
+
   if SweptArea <> nil then
   begin
     CrossSection := TVector2List.Create;
     try
-      SweptArea.UpdateCrossSection(CrossSection, 'IfcExtrudedAreaSolid.SweptArea');
+      SweptArea.UpdateCrossSection(CrossSection, CrossSectionConvex,
+        'IfcExtrudedAreaSolid.SweptArea');
       ExtrusionDir := ExtrudedDirection.DirectionRatios.Value * Depth;
 
       C := CrossSection.Count;
@@ -1194,8 +1222,8 @@ begin
   SideQuads.NormalPerVertex := false;
   TopBottomCaps.CreaseAngle := 0;
 
-  // top and bottom caps may be concave
-  TopBottomCaps.Convex := false;
+  // top and bottom caps may be concave if CrossSectionConvex=false
+  TopBottomCaps.Convex := CrossSectionConvex;
 
   Transform := TTransformNode.Create('', Mapping.BaseUrl);
 

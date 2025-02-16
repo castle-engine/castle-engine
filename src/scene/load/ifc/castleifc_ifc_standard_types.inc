@@ -850,11 +850,15 @@
     Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcCurve.htm }
   TIfcCurve = class abstract(TIfcGeometricRepresentationItem)
   public
-    { Update Extrusion.FdCrossSection.
+    { Update CrossSection to be used by IfcExtrudedAreaSolid.
       In the base class, this reuses BuildNode and extracts cross section
       information from a temporary node.
-      Override to provide more optimized implementation. }
-    procedure UpdateCrossSection(const CrossSection: TVector2List); virtual;
+      Override to provide more optimized implementation.
+
+      Set CrossSectionConvex to @false if the cross-section
+      is potentially concave. By default we assume faster @true, so convex. }
+    procedure UpdateCrossSection(const CrossSection: TVector2List;
+      var CrossSectionConvex: Boolean); virtual;
 
     { Space dimensionality of this abstract class, defined differently for all
       subtypes. }
@@ -932,7 +936,8 @@
     function BuildNode(const Mapping: TCastleIfcMapping;
       const ParentProduct: TIfcProduct;
       const LitAppearance, UnlitAppearance: TAppearanceNode): TAbstractChildNode; override;
-    procedure UpdateCrossSection(const CrossSection: TVector2List); override;
+    procedure UpdateCrossSection(const CrossSection: TVector2List;
+      var CrossSectionConvex: Boolean); override;
   published
     { Points defining the polyline. }
     property Points: TIfcCartesianPointList read FPoints;
@@ -1135,10 +1140,11 @@
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    { Update Extrusion.FdCrossSection.
+    { Update CrossSection to be used by IfcExtrudedAreaSolid.
       In the base class, this makes a warning "not implemented".
       Override (and do not call "inherited") to provide a useful implementation. }
-    procedure UpdateCrossSection(const CrossSection: TVector2List; const ParentName: String); virtual;
+    procedure UpdateCrossSection(const CrossSection: TVector2List;
+      var CrossSectionConvex: Boolean; const ParentName: String); virtual;
   published
     { Type of geometry into which this profile definition shall be resolved. }
     property ProfileType: TIfcProfileTypeEnum read FProfileType write FProfileType;
@@ -1183,7 +1189,8 @@
   strict private
     FOuterCurve: TIfcCurve;
   public
-    procedure UpdateCrossSection(const CrossSection: TVector2List; const ParentName: String); override;
+    procedure UpdateCrossSection(const CrossSection: TVector2List;
+      var CrossSectionConvex: Boolean; const ParentName: String); override;
   published
     { Bounded curve, defining the outer boundaries of the arbitrary profile. }
     property OuterCurve: TIfcCurve read FOuterCurve write FOuterCurve;
@@ -1199,7 +1206,8 @@
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    procedure UpdateCrossSection(const CrossSection: TVector2List; const ParentName: String); override;
+    procedure UpdateCrossSection(const CrossSection: TVector2List;
+      var CrossSectionConvex: Boolean; const ParentName: String); override;
   published
     { Set of bounded curves, defining the inner boundaries of the arbitrary profile. }
     property InnerCurves: TIfcCurveList read FInnerCurves;
@@ -2796,7 +2804,8 @@
     FXDim: TIfcPositiveLengthMeasure;
     FYDim: TIfcPositiveLengthMeasure;
   public
-    procedure UpdateCrossSection(const CrossSection: TVector2List; const ParentName: String); override;
+    procedure UpdateCrossSection(const CrossSection: TVector2List;
+      var CrossSectionConvex: Boolean; const ParentName: String); override;
   published
     { The extent of the rectangle in the direction of the x-axis.. }
     property XDim: TIfcPositiveLengthMeasure read FXDim write FXDim;
