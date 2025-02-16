@@ -242,6 +242,7 @@ begin
        (JsonObjType = 'IfcNonNegativeLengthMeasure') or
        (JsonObjType = 'IfcLengthMeasure') or
        (JsonObjType = 'IfcReal') or
+       (JsonObjType = 'IfcAreaMeasure') or
        // Testcase: Community-Sample-Test-Files-main/IFC 4.0.2.1 (IFC 4)/ISO Spec archive/column-straight-rectangle-tessellation.ifcjson
        (JsonObjType = 'IfcParameterValue') then
       Result := JsonObj.Get('value', 0.0)

@@ -226,6 +226,8 @@
 
   TIfcNonNegativeLengthMeasure = Single;
 
+  TIfcAreaMeasure = Single;
+
   { Number of dimensions.
 
     Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcDimensionCount.htm }
@@ -2260,6 +2262,67 @@
     property ElementType: TIfcLabel read FElementType write FElementType;
   end;
 
+  TIfcReinforcingBarTypeEnum = (
+    NotDefined,
+    Anchoring,
+    Edge,
+    Ligature,
+    Main,
+    Punching,
+    Ring,
+    Shear,
+    SpaceBar,
+    Stud,
+    UserDefined
+  );
+
+  TIfcReinforcingBarSurfaceEnum = (
+    Plain,
+    Textured
+  );
+
+  { Commonly shared property set definitions of @link(TIfcReinforcingElement).
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcReinforcingElementType.htm }
+  TIfcReinforcingElementType = class(TIfcElementComponentType)
+  end;
+
+  { Commonly shared property set definitions of @link(TIfcReinforcingBar).
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcReinforcingBarType.htm }
+  TIfcReinforcingBarType = class(TIfcReinforcingElementType)
+  strict private
+    FNominalDiameter: TIfcPositiveLengthMeasure;
+    FCrossSectionArea: TIfcAreaMeasure;
+    FBarLength: TIfcPositiveLengthMeasure;
+    FPredefinedType: TIfcReinforcingBarTypeEnum;
+    FBarSurface: TIfcReinforcingBarSurfaceEnum;
+    FBendingShapeCode: TIfcLabel;
+    // TODO: FBendingParameters
+  published
+    { The role, purpose or usage of the bar. }
+    property PredefinedType: TIfcReinforcingBarTypeEnum read FPredefinedType write FPredefinedType;
+
+    { The nominal diameter defining the cross-section size of the reinforcing bar. }
+    property NominalDiameter: TIfcPositiveLengthMeasure read FNominalDiameter write FNominalDiameter;
+
+    { The effective cross-section area of the reinforcing bar or group of bars. }
+    property CrossSectionArea: TIfcAreaMeasure read FCrossSectionArea write FCrossSectionArea;
+
+    { The total length of the reinforcing bar. The total length of bended
+      bars are calculated according to local standards with corrections
+      for the bends. }
+    property BarLength: TIfcPositiveLengthMeasure read FBarLength write FBarLength;
+
+    { Indicator for whether the bar surface is plain or textured. }
+    property BarSurface: TIfcReinforcingBarSurfaceEnum read FBarSurface write FBarSurface;
+
+    { Shape code per a standard like ACI 315, ISO 3766, or a similar standard. }
+    property BendingShapeCode: TIfcLabel read FBendingShapeCode write FBendingShapeCode;
+
+    // TODO: FBendingParameters
+  end;
+
   { Commonly shared property set definitions of @link(TIfcBuildingElementPart).
 
     Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcBuildingElementPartType.htm }
@@ -3586,6 +3649,49 @@
   TIfcElementComponent = class(TIfcElement)
   end;
 
+  { A reinforcing element represents bars, wires, strands, meshes,
+    tendons, and other components embedded in concrete in such a manner
+    that the reinforcement and the concrete act together in resisting forces.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcReinforcingElement.htm }
+  TIfcReinforcingElement = class abstract(TIfcElementComponent)
+  strict private
+    FSteelGrade: TIfcLabel;
+  published
+    { @deprecated
+      Attribute deprecated. Use material association at IfcReinforcingElementType instead. }
+    property SteelGrade: TIfcLabel read FSteelGrade write FSteelGrade;
+  end;
+
+  { A reinforcing bar is usually made of steel with manufactured deformations
+    in the surface, and used in concrete and masonry construction to provide
+    additional strength.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcReinforcingBar.htm }
+  TIfcReinforcingBar = class(TIfcReinforcingElement)
+  strict private
+    FNominalDiameter: TIfcPositiveLengthMeasure;
+    FCrossSectionArea: TIfcAreaMeasure;
+    FBarLength: TIfcPositiveLengthMeasure;
+    FPredefinedType: TIfcReinforcingBarTypeEnum;
+    FBarSurface: TIfcReinforcingBarSurfaceEnum;
+  published
+    { @deprecated }
+    property NominalDiameter: TIfcPositiveLengthMeasure read FNominalDiameter write FNominalDiameter;
+
+    { The effective cross-section area of the reinforcing bar or group of bars. }
+    property CrossSectionArea: TIfcAreaMeasure read FCrossSectionArea write FCrossSectionArea;
+
+    { @deprecated }
+    property BarLength: TIfcPositiveLengthMeasure read FBarLength write FBarLength;
+
+    { The role, purpose or usage of the bar. }
+    property PredefinedType: TIfcReinforcingBarTypeEnum read FPredefinedType write FPredefinedType;
+
+    { @deprecated }
+    property BarSurface: TIfcReinforcingBarSurfaceEnum read FBarSurface write FBarSurface;
+  end;
+
   { Represents major components as subordinate parts of a building element.
     Typical usage examples include precast concrete sandwich walls,
     where the layers may have different geometry representations.
@@ -4138,9 +4244,11 @@
     Usually measured in square metre (m2).
 
     Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcAreaMeasure.htm }
-  TIfcAreaMeasure = class(TIfcMeasureValue)
+  TIfcAreaMeasure_Boxed = class(TIfcMeasureValue)
   strict private
     FValue: TIfcReal;
+  protected
+    class function IfcClassName: String; override;
   published
     property Value: TIfcReal read FValue write FValue;
   end;
@@ -6139,6 +6247,13 @@ begin
   Result := 'IfcLengthMeasure';
 end;
 
+{ TIfcAreaMeasure_Boxed ------------------------------------------------------ }
+
+class function TIfcAreaMeasure_Boxed.IfcClassName: String;
+begin
+  Result := 'IfcAreaMeasure';
+end;
+
 { TIfcOpeningElement -------------------------------------------------------- }
 
 constructor TIfcOpeningElement.Create(AOwner: TComponent);
@@ -7718,7 +7833,7 @@ function IfcClasses: TIfcPersistentClassList;
     FIfcClasses.Add(TIfcMonetaryUnit);
     FIfcClasses.Add(TIfcDerivedUnit);
     FIfcClasses.Add(TIfcPlaneAngleMeasure);
-    FIfcClasses.Add(TIfcAreaMeasure);
+    FIfcClasses.Add(TIfcAreaMeasure_Boxed);
     FIfcClasses.Add(TIfcMassMeasure);
     FIfcClasses.Add(TIfcLengthMeasure_Boxed);
     FIfcClasses.Add(TIfcPressureMeasure);
@@ -7850,6 +7965,10 @@ function IfcClasses: TIfcPersistentClassList;
     FIfcClasses.Add(TIfcFlowTerminal);
     FIfcClasses.Add(TIfcSanitaryTerminal);
     FIfcClasses.Add(TIfcAirTerminal);
+    FIfcClasses.Add(TIfcReinforcingElement);
+    FIfcClasses.Add(TIfcReinforcingBar);
+    FIfcClasses.Add(TIfcReinforcingElementType);
+    FIfcClasses.Add(TIfcReinforcingBarType);
   end;
 
 begin
