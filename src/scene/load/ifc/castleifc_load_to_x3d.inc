@@ -1701,9 +1701,9 @@ function LoadIfc(const Stream: TStream; const BaseUrl: String): TX3DRootNode;
   { Debug save back IFC and X3D.
     Save URL is similar to BaseUrl but with -debug-roundtrip.ifcjson,
     -debug-roundtrip.x3d. }
-  {.$define DEBUG_IFC_ROUND_TRIP}
+  {.$define CASTLE_DEBUG_IFC_ROUND_TRIP}
 
-  {$ifdef DEBUG_IFC_ROUND_TRIP}
+  {$ifdef CASTLE_DEBUG_IFC_ROUND_TRIP}
   { Only for debugging purposes: save back the IFC data to JSON.
     This is an easy test whether IfcJsonLoad understood everything correctly,
     and whether IfcJsonSave saves everything correctly. }
@@ -1721,8 +1721,9 @@ function LoadIfc(const Stream: TStream; const BaseUrl: String): TX3DRootNode;
         WriteStr(Stream, JsonString);
       finally FreeAndNil(JsonObj) end;
     finally FreeAndNil(Stream) end;
+    WritelnLog('Saved to ', DeleteUriExt(BaseUrl) + '-debug-roundtrip.ifcjson');
   end;
-  {$endif DEBUG_IFC_ROUND_TRIP}
+  {$endif CASTLE_DEBUG_IFC_ROUND_TRIP}
 
 var
   JsonParser: TJsonParser;
@@ -1736,10 +1737,11 @@ begin
       IfcFile := IfcJsonLoad(Json);
       try
         Result := IfcToX3D(IfcFile, BaseUrl);
-        {$ifdef DEBUG_IFC_ROUND_TRIP}
+        {$ifdef CASTLE_DEBUG_IFC_ROUND_TRIP}
         DebugSaveBack(IfcFile);
         SaveNode(Result, DeleteUriExt(BaseUrl) + '-debug-roundtrip.x3d');
-        {$endif DEBUG_IFC_ROUND_TRIP}
+        WritelnLog('Saved to ', DeleteUriExt(BaseUrl) + '-debug-roundtrip.x3d');
+        {$endif CASTLE_DEBUG_IFC_ROUND_TRIP}
       finally FreeAndNil(IfcFile) end;
     finally FreeAndNil(Json) end;
   finally FreeAndNil(JsonParser) end;
