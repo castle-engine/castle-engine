@@ -241,7 +241,9 @@ begin
     if (JsonObjType = 'IfcPositiveLengthMeasure') or
        (JsonObjType = 'IfcNonNegativeLengthMeasure') or
        (JsonObjType = 'IfcLengthMeasure') or
-       (JsonObjType = 'IfcReal') then
+       (JsonObjType = 'IfcReal') or
+       // Testcase: Community-Sample-Test-Files-main/IFC 4.0.2.1 (IFC 4)/ISO Spec archive/column-straight-rectangle-tessellation.ifcjson
+       (JsonObjType = 'IfcParameterValue') then
       Result := JsonObj.Get('value', 0.0)
     else
     begin
@@ -282,8 +284,6 @@ var
   I: Integer;
   JsonArray: TJsonArray;
   JsonObj: TJsonObject;
-  JsonObjType: String;
-  JsonObjValue: TJsonData;
 begin
   for I := 0 to VectorCount - 1 do
     Vector[I] := 0.0;
@@ -297,16 +297,21 @@ begin
   if Json is TJsonObject then
   begin
     JsonObj := TJsonObject(Json);
-    JsonObjType := JsonObj.Get('type', '');
-    JsonObjValue := JsonObj.Find('coordinates') ;
-    if (JsonObjType = 'IfcCartesianPoint') and
-       (JsonObjValue is TJsonArray) then // also checks JsonObjValue is not nil
+    if (JsonObj.Get('type', '') = 'IfcCartesianPoint') and
+       (JsonObj.Find('coordinates') is TJsonArray) then // also checks JsonObj.Find('coordinates') is not nil
     begin
       // recursive call to read from "coordinates" field
-      JsonToVectorGeneric(JsonObjValue, DebugJsonKey, Vector, VectorCount);
+      JsonToVectorGeneric(JsonObj.Find('coordinates'), DebugJsonKey, Vector, VectorCount);
+    end else
+    // Testcase: normals in Community-Sample-Test-Files-main/IFC 4.0.2.1 (IFC 4)/ISO Spec archive/column-straight-rectangle-tessellation.ifcjson
+    if (JsonObj.Get('type', '') = '') and
+       (JsonObj.Find('parameterValues') is TJsonArray) then // also checks JsonObj.Find('coordinates') is not nil
+    begin
+      // recursive call to read from "coordinates" field
+      JsonToVectorGeneric(JsonObj.Find('parameterValues'), DebugJsonKey, Vector, VectorCount);
     end else
     begin
-      WritelnWarning('IFC', 'Cannot read vector: IFC field "%s" is a JSON object, but not of type "IfcCartesianPoint"', [
+      WritelnWarning('IFC', 'Cannot read vector: IFC field "%s" is a JSON object, but not of type "IfcCartesianPoint" or with "parameterValues"', [
         DebugJsonKey
       ]);
     end;
