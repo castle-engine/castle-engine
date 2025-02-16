@@ -2171,6 +2171,107 @@
     property ElementType: TIfcLabel read FElementType write FElementType;
   end;
 
+  TIfcAirTerminalTypeEnum = (
+    NotDefined,
+    Diffuser,
+    Grille,
+    Louvre,
+    Register,
+    UserDefined
+  );
+
+  TIfcSanitaryTerminalTypeEnum = (
+    NotDefined,
+    Bath,
+    Bidet,
+    Cistern,
+    SanitaryFountain,
+    Shower,
+    Sink,
+    ToiletPan,
+    Urinal,
+    WashHandBasin,
+    WCSeat,
+    UserDefined
+  );
+
+  TIfcBuildingElementPartTypeEnum = (
+    NotDefined,
+    Apron,
+    ArmourUnit,
+    Insulation,
+    PrecastPanel,
+    SafetyCage,
+    UserDefined
+  );
+
+  TIfcElementAssemblyTypeEnum = (
+    NotDefined,
+    Abutment,
+    Accessory_Assembly,
+    Arch,
+    Beam_Grid,
+    Braced_Frame,
+    Cross_Bracing,
+    Deck,
+    DilatationPanel,
+    EntranceWorks,
+    Girder,
+    Grid,
+    Mast,
+    Pier,
+    Pylon,
+    Rail_Mechanical_Equipment_Assembly,
+    Reinforcement_Unit,
+    Rigid_Frame,
+    Shelter,
+    SignalAssembly,
+    Slab_Field,
+    SumpBuster,
+    SupportingAssembly,
+    SuspensionAssembly,
+    TrackPanel,
+    Traction_Switching_Assembly,
+    Traffic_Calming_Device,
+    Truss,
+    TurnoutPanel,
+    UserDefined
+  );
+
+  { Commonly shared property set definitions of @link(TIfcElementAssembly).
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcElementAssemblyType.htm }
+  TIfcElementAssemblyType = class(TIfcElementType)
+  strict private
+    FPredefinedType: TIfcElementAssemblyTypeEnum;
+  published
+    property PredefinedType: TIfcElementAssemblyTypeEnum read FPredefinedType write FPredefinedType
+      default TIfcElementAssemblyTypeEnum.NotDefined;
+  end;
+
+  { Commonly shared property set definitions of @link(TIfcElementComponent).
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcElementComponentType.htm }
+  TIfcElementComponentType = class abstract(TIfcElementType)
+  strict private
+    FElementType: TIfcLabel;
+  published
+    { The type denotes a particular type that indicates the object further. }
+    property ElementType: TIfcLabel read FElementType write FElementType;
+  end;
+
+  { Commonly shared property set definitions of @link(TIfcBuildingElementPart).
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcBuildingElementPartType.htm }
+  TIfcBuildingElementPartType = class(TIfcElementComponentType)
+  strict private
+    FPredefinedType: TIfcBuildingElementPartTypeEnum;
+  published
+    { Subtype of building element part. }
+    property PredefinedType: TIfcBuildingElementPartTypeEnum read FPredefinedType write FPredefinedType
+      default TIfcBuildingElementPartTypeEnum.NotDefined;
+  end;
+
   { Commonly shared property set definitions of @link(TIfcFurnishingElement).
 
     Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcFurnishingElementType.htm }
@@ -2260,6 +2361,42 @@
 
     Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcDistributionFlowElementType.htm }
   TIfcDistributionFlowElementType = class abstract(TIfcDistributionElementType)
+  end;
+
+  { Commonly shared property set definitions of @link(TIfcFlowTerminal).
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcFlowTerminalType.htm }
+  TIfcFlowTerminalType = class abstract(TIfcDistributionFlowElementType)
+  strict private
+    FElementType: TIfcLabel;
+  published
+    { The type denotes a particular type that indicates the object further. }
+    property ElementType: TIfcLabel read FElementType write FElementType;
+  end;
+
+  { Commonly shared property set definitions of @link(TIfcAirTerminal).
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcAirTerminalType.htm }
+  TIfcAirTerminalType = class(TIfcFlowTerminalType)
+  strict private
+    FPredefinedType: TIfcAirTerminalTypeEnum;
+  published
+    { A list of types to further identify the object. }
+    property PredefinedType: TIfcAirTerminalTypeEnum read FPredefinedType write FPredefinedType
+      default TIfcAirTerminalTypeEnum.NotDefined;
+  end;
+
+  { Commonly shared property set definitions of @link(TIfcSanitaryTerminal).
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcSanitaryTerminalType.htm }
+  TIfcSanitaryTerminalType = class(TIfcFlowTerminalType)
+  strict private
+    FPredefinedType: TIfcSanitaryTerminalTypeEnum;
+  published
+    { Identifies the predefined types of sanitary terminal from which
+      the type required may be set. }
+    property PredefinedType: TIfcSanitaryTerminalTypeEnum read FPredefinedType write FPredefinedType
+      default TIfcSanitaryTerminalTypeEnum.NotDefined;
   end;
 
   { A energy conversion type is used to define the common properties
@@ -3422,6 +3559,119 @@
   TIfcElementList = class({$ifdef FPC}specialize{$endif} TObjectList<TIfcElement>)
   end;
 
+  { Represents complex element assemblies aggregated from several elements,
+    such as discrete elements, building elements, or other elements.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcElementAssembly.htm }
+  TIfcElementAssembly = class(TIfcElement)
+  strict private
+    FAssemblyPlace: TIfcAssemblyPlaceEnum;
+    FPredefinedType: TIfcElementAssemblyTypeEnum;
+  published
+    { A designation of where the assembly is intended to take place. }
+    property AssemblyPlace: TIfcAssemblyPlaceEnum read FAssemblyPlace write FAssemblyPlace
+      default TIfcAssemblyPlaceEnum.NotDefined;
+
+    { A list of types to further identify the object. }
+    property PredefinedType: TIfcElementAssemblyTypeEnum read FPredefinedType write FPredefinedType
+      default TIfcElementAssemblyTypeEnum.NotDefined;
+  end;
+
+  { Representation for minor items included in, added to or connecting
+    to or between elements, which usually are not of interest from
+    the overall building structure viewpoint. However, these small parts
+    may have vital and load carrying functions within the construction.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcElementComponent.htm }
+  TIfcElementComponent = class(TIfcElement)
+  end;
+
+  { Represents major components as subordinate parts of a building element.
+    Typical usage examples include precast concrete sandwich walls,
+    where the layers may have different geometry representations.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcBuildingElementPart.htm }
+  TIfcBuildingElementPart = class(TIfcElementComponent)
+  strict private
+    FPredefinedType: TIfcBuildingElementPartTypeEnum;
+  published
+    { Subtype of building element part. }
+    property PredefinedType: TIfcBuildingElementPartTypeEnum read FPredefinedType write FPredefinedType
+      default TIfcBuildingElementPartTypeEnum.NotDefined;
+  end;
+
+  { Generalization of all elements that participate in a distribution system.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcDistributionElement.htm }
+  TIfcDistributionElement = class(TIfcElement)
+    // TODO HasPorts
+  end;
+
+  { Distribution system that facilitate the distribution of energy or matter,
+    such as air, water or power.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcDistributionFlowElement.htm }
+  TIfcDistributionFlowElement = class(TIfcDistributionElement)
+    // TODO HasControlElements
+  end;
+
+  { Device used to perform energy conversion or heat transfer and
+    typically participates in a flow distribution system.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcEnergyConversionDevice.htm }
+  TIfcEnergyConversionDevice = class(TIfcDistributionFlowElement)
+  end;
+
+  { Closed, pressure-rated vessel in which water or other fluid is heated
+    using an energy source such as natural gas, heating oil, or electricity.
+    The fluid in the vessel is then circulated out of the boiler for use in
+    various processes or heating applications.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcBoiler.htm }
+  TIfcBoiler = class(TIfcEnergyConversionDevice)
+  strict private
+    FPredefinedType: TIfcBoilerTypeEnum;
+  published
+    { List of types to further identify the object. }
+    property PredefinedType: TIfcBoilerTypeEnum read FPredefinedType write FPredefinedType
+      default TIfcBoilerTypeEnum.NotDefined;
+  end;
+
+  { Permanently attached element that acts as a terminus or
+    beginning of a distribution system (such as an air outlet, drain,
+    water closet, or sink).
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcFlowTerminal.htm }
+  TIfcFlowTerminal = class(TIfcDistributionFlowElement)
+  end;
+
+  { A sanitary terminal is a fixed appliance or terminal usually supplied
+    with water and used for drinking, cleaning or foul water disposal
+    or that is an item of equipment directly used with such an appliance
+    or terminal.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcSanitaryTerminal.htm }
+  TIfcSanitaryTerminal = class(TIfcFlowTerminal)
+  strict private
+    FPredefinedType: TIfcSanitaryTerminalTypeEnum;
+  published
+    property PredefinedType: TIfcSanitaryTerminalTypeEnum read FPredefinedType write FPredefinedType
+      default TIfcSanitaryTerminalTypeEnum.NotDefined;
+  end;
+
+  { An air terminal is a terminating or origination point for the transfer
+    of air between distribution system(s) and one or more spaces.
+    It can also be used for the transfer of air between adjacent spaces.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcAirTerminal.htm }
+  TIfcAirTerminal = class(TIfcFlowTerminal)
+  strict private
+    FPredefinedType: TIfcAirTerminalTypeEnum;
+  published
+    property PredefinedType: TIfcAirTerminalTypeEnum read FPredefinedType write FPredefinedType
+      default TIfcAirTerminalTypeEnum.NotDefined;
+  end;
+
   { Generalization of all furniture related objects.
 
     Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcFurnishingElement.htm }
@@ -3710,6 +3960,12 @@
     { Predefined generic type for a column that is specified in an enumeration. }
     property PredefinedType: TIfcColumnTypeEnum read FPredefinedType write FPredefinedType
       default TIfcColumnTypeEnum.NotDefined;
+  end;
+
+  { @deprecated Deprecated and later removed in IFC 4.3.
+    Defined only to handle old IFC models
+    Old spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_1/FINAL/HTML/schema/ifcsharedbldgelements/lexical/ifccolumnstandardcase.htm }
+  TIfcColumnStandardCase = class(TIfcColumn)
   end;
 
   TIfcWallTypeEnum = (
@@ -7577,6 +7833,23 @@ function IfcClasses: TIfcPersistentClassList;
     FIfcClasses.Add(TIfcMaterialUsageDefinition);
     FIfcClasses.Add(TIfcMaterialProfileSetUsage);
     FIfcClasses.Add(TIfcDerivedUnitElement);
+    FIfcClasses.Add(TIfcColumnStandardCase);
+    FIfcClasses.Add(TIfcElementAssemblyType);
+    FIfcClasses.Add(TIfcElementComponentType);
+    FIfcClasses.Add(TIfcBuildingElementPartType);
+    FIfcClasses.Add(TIfcFlowTerminalType);
+    FIfcClasses.Add(TIfcAirTerminalType);
+    FIfcClasses.Add(TIfcSanitaryTerminalType);
+    FIfcClasses.Add(TIfcElementAssembly);
+    FIfcClasses.Add(TIfcElementComponent);
+    FIfcClasses.Add(TIfcBuildingElementPart);
+    FIfcClasses.Add(TIfcDistributionElement);
+    FIfcClasses.Add(TIfcDistributionFlowElement);
+    FIfcClasses.Add(TIfcEnergyConversionDevice);
+    FIfcClasses.Add(TIfcBoiler);
+    FIfcClasses.Add(TIfcFlowTerminal);
+    FIfcClasses.Add(TIfcSanitaryTerminal);
+    FIfcClasses.Add(TIfcAirTerminal);
   end;
 
 begin
