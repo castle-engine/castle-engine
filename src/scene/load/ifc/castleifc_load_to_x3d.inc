@@ -1290,6 +1290,10 @@ begin
       Index := CoordIndex[TriangleIndex][I];
       if Index < PnIndex.Count then
         Index := PnIndex[Index];
+      { Ignore invalid indexes, like equal 0 or even less.
+        They would cause us to add negative index to IndexedTriangleSet.FdIndex,
+        which is invalid. }
+      if Index < 1 then Continue;
       Dec(Index); // IFC indices are 1-based
       IndexedTriangleSet.FdIndex.Items[TriangleIndex * 3 + I] := Index;
     end;
