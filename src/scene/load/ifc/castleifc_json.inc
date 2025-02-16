@@ -356,7 +356,7 @@ end;
   Community-Sample-Test-Files-main/IFC 4.0.2.1 (IFC 4)/ISO Spec archive/beam-curved-i-shape-tessellated.ifcjson
 *)
 procedure JsonToVectorIntegerGeneric(const Json: TJsonData; const DebugJsonKey: String;
-  const Vector: PSingle; const VectorCount: Integer);
+  const Vector: PInteger; const VectorCount: Integer);
 var
   I: Integer;
   JsonArray: TJsonArray;
@@ -365,7 +365,7 @@ var
   JsonObjValue: TJsonData;
 begin
   for I := 0 to VectorCount - 1 do
-    Vector[I] := 0.0;
+    Vector[I] := 0;
 
   if Json is TJsonArray then
   begin
