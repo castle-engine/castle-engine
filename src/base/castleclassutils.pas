@@ -1113,8 +1113,8 @@ implementation
 uses
   {$ifdef UNIX} {$ifdef FPC} Unix, {$endif} {$endif}
   {$ifdef MSWINDOWS} Windows, {$endif}
-  StrUtils, Math {$ifdef FPC}, StreamIO, RTTIUtils {$endif}, TypInfo,
-  CastleLog;
+  StrUtils, Math {$ifdef FPC}, StreamIO {$endif}, TypInfo,
+  CastleLog, CastleInternalRttiUtils;
 
 { TStrings helpers ------------------------------------------------------- }
 

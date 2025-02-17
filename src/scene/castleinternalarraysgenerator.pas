@@ -1687,11 +1687,11 @@ begin
       E.g. right now IndexedTriangleSetNode does this in TTriangleSetGenerator.PrepareIndexesPrimitives:
 
         IndexesFromCoordIndex := TUInt32List.Create;
-        IndexesFromCoordIndex.Assign(CoordIndex.Items);
+        IndexesFromCoordIndex.AssignCheckUnsigned(CoordIndex.Items);
         IndexesFromCoordIndex.Count := (IndexesFromCoordIndex.Count div 3) * 3;
 
-      It would require extra iteration instead of simple "IndexesFromCoordIndex.Assign"
-      to create IndexedTriangleSetNode.
+      It would require extra iteration instead of simple
+      "IndexesFromCoordIndex.AssignCheckUnsigned" to create IndexedTriangleSetNode.
   }
   if TexImplementation = tcTexIndexed then
     DoTexCoord(TexCoordIndex.Items.L[IndexNum]);

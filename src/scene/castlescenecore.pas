@@ -1051,8 +1051,11 @@ type
       Contents of this tree are read-only from outside. }
     property Shapes: TShapeTree read FShapes;
 
-    // { Bounding box of all occurrences of the given X3D Shape node. }
-    // function ShapeBoundingBox(const Node: TShapeNode): TBox3D;
+    { Bounding box of the given shape (TAbstractShapeNode).
+      The shape node may be used multiple times in the nodes graph
+      (in @link(RootNode)), in which case this method correctly (and fast)
+      sums bounding box of all the occurrences of the given shape node. }
+    function ShapeBoundingBox(const Node: TAbstractShapeNode): TBox3D;
 
     { Number of active shapes in the @link(Shapes) tree.
       This is equivalent to Shapes.ShapesCount(true), except that this
@@ -3406,12 +3409,9 @@ begin
   Load(Url);
 end;
 
-(* This is working, and ultra-fast thanks to TShapeTree.AssociatedShape,
-   but in practice it's unused now.
-
-function TCastleSceneCore.ShapeBoundingBox(const Node: TShapeNode): TBox3D;
+function TCastleSceneCore.ShapeBoundingBox(const Node: TAbstractShapeNode): TBox3D;
 var
-  I: Integer;
+  C, I: Integer;
 begin
   C := TShapeTree.AssociatedShapesCount(Node);
   case C of
@@ -3425,7 +3425,6 @@ begin
       end;
   end;
 end;
-*)
 
 function TCastleSceneCore.ShapesActiveCount: Cardinal;
 begin

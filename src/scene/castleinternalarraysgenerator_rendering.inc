@@ -343,11 +343,18 @@ begin
 
   if CoordIndex <> nil then
   begin
-    { indexes are just directly from CoordIndex in this case.
+    { Indexes are just directly from CoordIndex in this case.
       Only make sure we have only full triangles (although nothing really
-      requires or promises that, but for the future). }
+      requires or promises that, but for the future).
+
+      We copy using AssignCheckUnsigned that checks that all items
+      on CoordIndex are really >= 0, otherwise we would have range check
+      errors (debug) or security issue,
+      as input with index -1 would get converted to index 4294967295,
+      and operations like IndexesFromCoordIndex.Max could return something
+      huge and unexpected. }
     IndexesFromCoordIndex := TUInt32List.Create;
-    IndexesFromCoordIndex.Assign(CoordIndex.Items);
+    IndexesFromCoordIndex.AssignCheckUnsigned(CoordIndex.Items);
     IndexesFromCoordIndex.Count := (IndexesFromCoordIndex.Count div 3) * 3;
 
     if FacesNeeded then

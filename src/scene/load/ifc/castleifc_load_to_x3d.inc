@@ -25,8 +25,33 @@
     (using @link(NodeToProduct)). }
   TCastleIfcMapping = class
   strict private
-    FBaseUrl: String;
-    FRootNode: TX3DRootNode;
+    type
+      TShapeToProduct =
+        {$ifdef FPC}specialize{$endif} TDictionary<TAbstractShapeNode, TIfcProduct>;
+    var
+      FBaseUrl: String;
+      FRootNode: TX3DRootNode;
+
+      { Map X3D shape nodes to IFC products.
+
+        Allows to implement NodeToProduct, ProductToNode.
+        Use this only to map TShapeNode instances (pointers)
+        that definitely exist and are valid.
+
+        We cleanup freed TShapeNode instances from this dictionary,
+        so only valid TShapeNode instances are keys.
+        This accounts for the fact that @link(Update) may recycle
+        some, but not all, TShapeNode instances, and it frees unused ones.
+
+        Note that we cannot maintain inverse dictionary
+        product -> shape because
+
+        1. during Update, products may point to multiple
+           shapes (the ones from previous update, and the new ones),
+           and we don't know which ones will survive until we finish updating.
+
+        2. moreover, the product may really be represented by multiple shapes. }
+      ShapeToProduct: TShapeToProduct;
 
     { Use ObjectPlacementToParentNodes and ChildrenNodesToObjectPlacement
       to move the nodes (change parents) to reflect
@@ -34,6 +59,7 @@
     procedure FixParentChildRelationships;
 
     function CreateRootNode(const Ifc: TIfcFile): TX3DRootNode;
+    procedure ShapeDestroyed(const Node: TX3DNode);
   private
     { Within the CastleIfc unit, this class is a container for information
       and actions useful to all
@@ -45,8 +71,6 @@
         {$ifdef FPC}specialize{$endif} TDictionary<TIfcObjectPlacement, TTransformNode>;
       TChildrenNodesToObjectPlacement =
         {$ifdef FPC}specialize{$endif} TDictionary<TTransformNode, TIfcObjectPlacement>;
-      TShapeToProduct =
-        {$ifdef FPC}specialize{$endif} TDictionary<TAbstractShapeNode, TIfcProduct>;
 
     var
       { Map each encountered TIfcObjectPlacement to an X3D TTransformNode. }
@@ -59,19 +83,18 @@
         between X3D nodes) to follow IFC TIfcObjectPlacement.PlacementRelTo idea. }
       ChildrenNodesToObjectPlacement: TChildrenNodesToObjectPlacement;
 
-      { Map X3D shape nodes to IFC products. Allows to implement NodeToProduct.
-        Use this only to map TShapeNode instances (pointers)
-        that definitely exist and are valid.
-
-        Due to how we manage this list (each TCastleIfcMapping.Update
-        adds new TShape instances as keys, without removing previous,
-        because maybe some previous will survive) we may have invalid
-        pointers as keys in this dictionary. }
-      ShapeToProduct: TShapeToProduct;
-
     { BaseUrl should be passed to all X3D nodes created by this class,
       so they have TX3DRootNode.BaseUrl equal to this. }
     property BaseUrl: String read FBaseUrl;
+
+    { Remember association between X3D Shape and IFC Product.
+      This is used to implement NodeToProduct, ProductToNode.
+
+      When Product is @nil, this is ignored.
+      This is comfortable when used from TIfcRepresentationItem.BuildNode
+      overrides, that may get @nil Product. }
+    procedure ConnectShapeAndProduct(const Shape: TAbstractShapeNode;
+      const Product: TIfcProduct);
   public
     constructor Create;
     destructor Destroy; override;
@@ -105,8 +128,22 @@
       (TIfcProduct descendant, like a TIfcWall, TIfcWindow, TIfcDoor).
       Returns @nil if cannot be determined.
       Assumes that the nodes have been updated to reflect the latest state
-      of the IFC classes using @link(Update). }
+      of the IFC classes using @link(Update).
+
+      @seealso ProductToNode }
     function NodeToProduct(const Node: TAbstractShapeNode): TIfcProduct;
+
+    { For IFC product, return the corresponding shape nodes.
+      Assumes that the nodes have been updated to reflect the latest state
+      of the IFC classes using @link(Update).
+      All the nodes returned are of TAbstractShapeNode class
+      and map back (using @link(NodeToProduct)) to the given product.
+
+      It is the caller's responsibility to free the resulting list.
+      The TX3DNodeList does not own the children.
+
+      @seealso NodeToProduct }
+    function ProductToNodes(const Product: TIfcProduct): TX3DNodeList;
   end;
 
 {$endif read_interface_types}
@@ -119,6 +156,9 @@ function IfcToX3D(const Ifc: TIfcFile; const BaseUrl: String): TX3DRootNode;
 {$endif read_interface}
 
 {$ifdef read_implementation}
+
+{ Debug transformations (translation, rotation, scale). }
+{.$define CASTLE_DEBUG_IFC_TRANSFORM}
 
 { Set metadata of a node. }
 procedure SetMetadata(const Node: TAbstractNode; const Key, Value: String);
@@ -143,8 +183,16 @@ begin
 end;
 
 destructor TCastleIfcMapping.Destroy;
+var
+  Shape: TAbstractShapeNode;
 begin
-  FreeAndNil(ShapeToProduct);
+  if ShapeToProduct <> nil then
+  begin
+    { We must remove all destruction notifications leading to Self. }
+    for Shape in ShapeToProduct.Keys do
+      Shape.RemoveDestructionNotification({$ifdef FPC}@{$endif} ShapeDestroyed);
+    FreeAndNil(ShapeToProduct);
+  end;
   inherited;
 end;
 
@@ -239,7 +287,8 @@ end;
 function TCastleIfcMapping.CreateRootNode(const Ifc: TIfcFile): TX3DRootNode;
 begin
   { Do not do call ShapeToProduct.Clear, as older shapes still exist,
-    and (due to how smart TCastleIfcMapping.Update works) may stil exist.
+    and (due to how smart TCastleIfcMapping.Update works) may stil exist
+    after updating.
     So they should still map to IFC products.
     If we would do
 
@@ -408,10 +457,33 @@ begin
   finally FreeAndNil(NewRootNode) end;
 end;
 
+procedure TCastleIfcMapping.ShapeDestroyed(const Node: TX3DNode);
+begin
+  ShapeToProduct.Remove(Node as TAbstractShapeNode);
+end;
+
+procedure TCastleIfcMapping.ConnectShapeAndProduct(const Shape: TAbstractShapeNode;
+  const Product: TIfcProduct);
+begin
+  if Product = nil then Exit;
+  Shape.AddDestructionNotification({$ifdef FPC}@{$endif} ShapeDestroyed);
+  ShapeToProduct.AddOrSetValue(Shape, Product);
+end;
+
 function TCastleIfcMapping.NodeToProduct(const Node: TAbstractShapeNode): TIfcProduct;
 begin
   if not ShapeToProduct.TryGetValue(Node, Result) then
     Result := nil;
+end;
+
+function TCastleIfcMapping.ProductToNodes(const Product: TIfcProduct): TX3DNodeList;
+var
+  Pair: {$ifdef FPC} TShapeToProduct.TDictionaryPair {$else} TPair<TAbstractShapeNode, TIfcProduct> {$endif};
+begin
+  Result := TX3DNodeList.Create(false);
+  for Pair in ShapeToProduct do
+    if Pair.Value = Product then
+      Result.Add(Pair.Key);
 end;
 
 { BuildNode methods implementations ----------------------------------------- }
@@ -429,7 +501,8 @@ begin
 end;
 
 function TIfcRepresentationItemList.BuildNode(const Mapping: TCastleIfcMapping;
-  const ParentProduct: TIfcProduct; const Appearance: TAppearanceNode): TAbstractChildNode;
+  const ParentProduct: TIfcProduct;
+  const LitAppearance, UnlitAppearance: TAppearanceNode): TAbstractChildNode;
 var
   RepresentationItem: TIfcRepresentationItem;
   Group: TGroupNode;
@@ -441,14 +514,16 @@ begin
 
   for RepresentationItem in Self do
   begin
-    Child := RepresentationItem.BuildNode(Mapping, ParentProduct, Appearance);
+    Child := RepresentationItem.BuildNode(Mapping, ParentProduct,
+      LitAppearance, UnlitAppearance);
     if Child <> nil then
       Group.AddChildren(Child);
   end;
 end;
 
 function TIfcRepresentationList.BuildNode(const Mapping: TCastleIfcMapping;
-  const ParentProduct: TIfcProduct; const Appearance: TAppearanceNode): TAbstractChildNode;
+  const ParentProduct: TIfcProduct;
+  const LitAppearance, UnlitAppearance: TAppearanceNode): TAbstractChildNode;
 var
   Representation: TIfcRepresentation;
   Group: TGroupNode;
@@ -458,11 +533,13 @@ begin
   Result := Group;
 
   for Representation in Self do
-    Group.AddChildren(Representation.Items.BuildNode(Mapping, ParentProduct, Appearance));
+    Group.AddChildren(Representation.Items.BuildNode(Mapping, ParentProduct,
+      LitAppearance, UnlitAppearance));
 end;
 
 function TIfcProductRepresentation.BuildNode(const Mapping: TCastleIfcMapping;
-  const ParentProduct: TIfcProduct; const Appearance: TAppearanceNode): TAbstractChildNode;
+  const ParentProduct: TIfcProduct;
+  const LitAppearance, UnlitAppearance: TAppearanceNode): TAbstractChildNode;
 var
   Group: TGroupNode;
 begin
@@ -472,7 +549,8 @@ begin
   SetMetadata(Group, 'IFC_Description', Description);
   Result := Group;
 
-  Group.AddChildren(Representations.BuildNode(Mapping, ParentProduct, Appearance));
+  Group.AddChildren(Representations.BuildNode(Mapping, ParentProduct,
+    LitAppearance, UnlitAppearance));
 end;
 
 function TIfcRelAggregates.BuildNode(const Mapping: TCastleIfcMapping): TAbstractChildNode;
@@ -536,10 +614,22 @@ begin
   //   Coord.FdPoint.Items[I] := CoordList[I];
 end;
 
+function TIfcGridAxis.BuildNode(const Mapping: TCastleIfcMapping;
+  const ParentProduct: TIfcProduct;
+  const LitAppearance, UnlitAppearance: TAppearanceNode): TAbstractChildNode;
+begin
+  if AxisCurve <> nil then
+    Result := AxisCurve.BuildNode(Mapping, ParentProduct,
+      LitAppearance, UnlitAppearance)
+  else
+    Result := nil;
+end;
+
 { TIfcProfileDef.UpdateCrossSection method overrides -------------------------- }
 
 procedure TIfcProfileDef.UpdateCrossSection(
-  const CrossSection: TVector2List; const ParentName: String);
+  const CrossSection: TVector2List; var CrossSectionConvex: Boolean;
+  const ParentName: String);
 begin
   WritelnWarning('IFC', 'Unsupported class used for %s: %s', [
     ParentName,
@@ -548,14 +638,16 @@ begin
 end;
 
 procedure TIfcArbitraryClosedProfileDef.UpdateCrossSection(
-  const CrossSection: TVector2List; const ParentName: String);
+  const CrossSection: TVector2List; var CrossSectionConvex: Boolean;
+  const ParentName: String);
 begin
   if OuterCurve <> nil then
-    OuterCurve.UpdateCrossSection(CrossSection);
+    OuterCurve.UpdateCrossSection(CrossSection, CrossSectionConvex);
 end;
 
 procedure TIfcArbitraryProfileDefWithVoids.UpdateCrossSection(
-  const CrossSection: TVector2List; const ParentName: String);
+  const CrossSection: TVector2List; var CrossSectionConvex: Boolean;
+  const ParentName: String);
 {.$define CASTLE_DEBUG_IFC_CURVE_HOLES}
 {$ifdef CASTLE_DEBUG_IFC_CURVE_HOLES}
 var
@@ -569,6 +661,7 @@ begin
     WritelnWarning('IFC', 'TODO: IfcArbitraryProfileDefWithVoids.InnerCurves not implemented, we do not create holes');
 
     {$ifdef CASTLE_DEBUG_IFC_CURVE_HOLES}
+    // TODO: add holes, set also CrossSectionConvex:=false
     for I := 0 to InnerCurves.Count - 1 do
     begin
       NewCrossSection := TVector2List.Create;
@@ -582,7 +675,8 @@ begin
 end;
 
 procedure TIfcRectangleProfileDef.UpdateCrossSection(
-  const CrossSection: TVector2List; const ParentName: String);
+  const CrossSection: TVector2List; var CrossSectionConvex: Boolean;
+  const ParentName: String);
 var
   Translation: TVector3;
   Rotation: TVector4;
@@ -601,7 +695,8 @@ begin
 
   if Position <> nil then
   begin
-    WritelnLog('IfcRectangleProfileDef.Position assigned - TODO: should work, but untested');
+    { Testcase with TIfcParameterizedProfileDef.Position:
+      Community-Sample-Test-Files-main/IFC 4.0.2.1 (IFC 4)/ISO Spec archive/wall-standard-case.ifcjson }
     Position.GetTransform(Translation, Rotation);
     for I := 0 to CrossSection.Count - 1 do
     begin
@@ -615,25 +710,52 @@ end;
 
 { TIfcCurve.UpdateCrossSection method overrides ---------------------------------------- }
 
-procedure TIfcCurve.UpdateCrossSection(const CrossSection: TVector2List);
+procedure TIfcCurve.UpdateCrossSection(const CrossSection: TVector2List;
+  var CrossSectionConvex: Boolean);
 
   procedure HandleIndexedLineSetNode(const IndexedLineSet: TIndexedLineSetNode);
   var
     Coord: TCoordinateNode;
-    I, Index: Integer;
+    I, LastIndex, Index: Integer;
+    ConnectNextPointToPreviousSegment: Boolean;
   begin
     Coord := IndexedLineSet.Coord as TCoordinateNode;
     Assert(Coord <> nil); // these X3D nodes are build by us, so we know they have Coord
+    LastIndex := -1;
+    ConnectNextPointToPreviousSegment := false;
     for I := 0 to IndexedLineSet.FdCoordIndex.Count - 1 do
     begin
       Index := IndexedLineSet.FdCoordIndex.Items[I];
       if Index < 0 then
       begin
-        WritelnWarning('IFC', 'TODO: IfcIndexedPolyCurve with multiple disjoint sections not supported, rendering as one connected curve');
+        { Negative index *does not* imply that we should start a new cross-section.
+
+          All the segments of IfcIndexedPolyCurve
+          ( https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcIndexedPolyCurve.htm )
+          are supposed to be connected, and IfcSweptAreaSolid has
+          *one* cross-section, not many
+          ( https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcSweptAreaSolid.htm
+          """The swept area is defined by a cross section,
+          represented by a subtype if IfcProfileDef, that is provided as
+          a closed two-dimensional boundary on an implicit plane. """
+
+          So we just make sure that segments indeed connect, and then
+          we generate a single CrossSection as a list of points. }
+        ConnectNextPointToPreviousSegment := true;
       end else
       begin
-        Assert(Index < Coord.FdPoint.Count);
-        CrossSection.Add(Coord.FdPoint.Items[Index].XY);
+        if ConnectNextPointToPreviousSegment and (LastIndex <> -1) then
+        begin
+          if Index <> LastIndex then
+            WritelnWarning('Cross-section segments, from IfcIndexedPolyCurve, are not connected. This is either invalid IFC (disconnected IfcIndexedPolyCurve segments) or a bug in our code.');
+          ConnectNextPointToPreviousSegment := false;
+          // ignore this point, as it should equal to the last point
+        end else
+        begin
+          Assert(Index < Coord.FdPoint.Count);
+          CrossSection.Add(Coord.FdPoint.Items[Index].XY);
+          LastIndex := Index;
+        end;
       end;
     end;
   end;
@@ -648,34 +770,117 @@ procedure TIfcCurve.UpdateCrossSection(const CrossSection: TVector2List);
       CrossSection.Add(Coord.FdPoint.Items[I].XY);
   end;
 
+  { Returns @false if Geometry class was not handled or was @nil. }
+  function HandleGeometry(const Geometry: TAbstractGeometryNode;
+    const ResultingCrossSectionWillBeConvex: Boolean): Boolean;
+  begin
+    if Geometry is TIndexedLineSetNode then
+    begin
+      Result := true;
+      CrossSectionConvex := ResultingCrossSectionWillBeConvex;
+      HandleIndexedLineSetNode(TIndexedLineSetNode(Geometry))
+    end else
+    if Geometry is TLineSetNode then
+    begin
+      Result := true;
+      CrossSectionConvex := ResultingCrossSectionWillBeConvex;
+      HandleLineSetNode(TLineSetNode(Geometry))
+    end else
+      Result := false;
+  end;
+
+  procedure HandleShape(const Shape: TShapeNode);
+  var
+    ProxyState: TX3DGraphTraverseState;
+    ProxyGeometry: TAbstractGeometryNode;
+    OriginalGeometryConvex: Boolean;
+  begin
+    if Shape.Geometry <> nil then
+    begin
+      if not HandleGeometry(Shape.Geometry, false) then
+      begin
+        { Try using Proxy and handling this.
+          This allows us to deal e.g. with TCircle2DNode,
+          which in turn appears from IfcCircle, IfcEllipse. }
+        ProxyState := TX3DGraphTraverseState.Create;
+        ProxyState.ShapeNode := Shape;
+        ProxyGeometry := Shape.Geometry.Proxy(ProxyState);
+        { When the geometry is known to be convex,
+          keep CrossSectionConvex = true.
+          This allows to avoid costly triangulation of IfcExtrudedAreaSolid
+          top/bottom caps, which is costly but also can remove some
+          almost-degenerate triangles (testcase: thin triangles
+          at the bottom of table legs in
+          https://github.com/castle-engine/demo-models/blob/master/ifc/created_using_bonsaibim/chairs_rotations_from_furniture_library.ifcjson ) }
+        OriginalGeometryConvex :=
+          (Shape.Geometry is TCircle2DNode) or
+          (Shape.Geometry is TRectangle2DNode);
+        if ProxyGeometry <> nil then
+        begin
+          if not HandleGeometry(ProxyGeometry, OriginalGeometryConvex) then
+            WritelnWarning('IFC', 'Unsupported geometry class for TIfcCurve.UpdateCrossSection: %s, proxy to %s', [
+              Shape.Geometry.ClassName,
+              ProxyGeometry.ClassName
+            ]);
+        end else
+        begin
+          WritelnWarning('IFC', 'Unsupported geometry class for TIfcCurve.UpdateCrossSection: %s, no proxy', [
+            Shape.Geometry.ClassName
+          ]);
+        end;
+      end;
+    end;
+  end;
+
+  procedure TransformCrossSection(const Transform: TTransformNode; const CrossSection: TVector2List);
+  var
+    T: TTransformation;
+    I: Integer;
+    V: TVector3;
+  begin
+    T.Init;
+    Transform.TransformFunctionality.ApplyTransform(T);
+    for I := 0 to CrossSection.Count - 1 do
+    begin
+      V := Vector3(CrossSection[I], 0);
+      V := T.Transform.MultPoint(V);
+      CrossSection[I] := V.XY;
+    end;
+  end;
+
 var
-  Shape: TShapeNode;
   Mapping: TCastleIfcMapping;
+  ShapeOrTransform: TAbstractChildNode;
+  Transform: TTransformNode;
 begin
   Mapping := TCastleIfcMapping.Create;
   try
-    Shape := BuildNode(Mapping, nil, nil) as TShapeNode;
+    ShapeOrTransform := BuildNode(Mapping, nil, nil, nil);
     try
-      if Shape.Geometry <> nil then
+      if ShapeOrTransform is TShapeNode then
+        HandleShape(TShapeNode(ShapeOrTransform))
+      else
+      if (ShapeOrTransform is TTransformNode) and
+         (TTransformNode(ShapeOrTransform).FdChildren.Count = 1) and
+         (TTransformNode(ShapeOrTransform).FdChildren[0] is TShapeNode) then
       begin
-        if Shape.Geometry is TIndexedLineSetNode then
-          HandleIndexedLineSetNode(TIndexedLineSetNode(Shape.Geometry))
-        else
-        if Shape.Geometry is TLineSetNode then
-          HandleLineSetNode(TLineSetNode(Shape.Geometry))
-        else
-        if Shape.Geometry <> nil then
-          WritelnWarning('IFC', 'Unsupported Shape.Geometry class for TIfcCurve.UpdateCrossSection: ' + Shape.Geometry.ClassName);
-      end;
-    finally FreeIfUnusedAndNil(Shape) end;
+        Transform := TTransformNode(ShapeOrTransform);
+        HandleShape(TShapeNode(Transform.FdChildren[0]));
+        TransformCrossSection(Transform, CrossSection);
+      end else
+        WritelnWarning('IFC', 'Unsupported class for TIfcCurve.UpdateCrossSection: %s', [
+          ShapeOrTransform.ClassName
+        ]);
+    finally FreeIfUnusedAndNil(ShapeOrTransform) end;
   finally FreeAndNil(Mapping) end;
-
 end;
 
-procedure TIfcPolyline.UpdateCrossSection(const CrossSection: TVector2List);
+procedure TIfcPolyline.UpdateCrossSection(const CrossSection: TVector2List;
+  var CrossSectionConvex: Boolean);
 var
   I: Integer;
 begin
+  CrossSectionConvex := false;
   CrossSection.Count := Points.Count;
   for I := 0 to Points.Count - 1 do
     CrossSection[I] := Points[I].Coordinates.Value.XY;
@@ -684,13 +889,15 @@ end;
 { BuildNode of TIfcRepresentationItem and descendants ------------------------- }
 
 function TIfcRepresentationItem.BuildNode(const Mapping: TCastleIfcMapping;
-  const ParentProduct: TIfcProduct; const Appearance: TAppearanceNode): TAbstractChildNode;
+  const ParentProduct: TIfcProduct;
+  const LitAppearance, UnlitAppearance: TAppearanceNode): TAbstractChildNode;
 begin
   Result := nil;
 end;
 
 function TIfcPolyline.BuildNode(const Mapping: TCastleIfcMapping;
-  const ParentProduct: TIfcProduct; const Appearance: TAppearanceNode): TAbstractChildNode;
+  const ParentProduct: TIfcProduct;
+  const LitAppearance, UnlitAppearance: TAppearanceNode): TAbstractChildNode;
 var
   Shape: TShapeNode;
   LineSet: TLineSetNode;
@@ -708,47 +915,91 @@ begin
 
   Shape := TShapeNode.Create('', Mapping.BaseUrl);
   Shape.Geometry := LineSet;
-  // lines are best displayed as unlit geometry, different material would be useful
-  // Shape.Appearance := Appearance;
+  Shape.Appearance := UnlitAppearance;
   SetMetadata(Shape, 'IFC_ClassName', ClassName);
 
-  Mapping.ShapeToProduct.AddOrSetValue(Shape, ParentProduct);
+  Mapping.ConnectShapeAndProduct(Shape, ParentProduct);
   Result := Shape;
 end;
 
 function TIfcTrimmedCurve.BuildNode(const Mapping: TCastleIfcMapping;
-  const ParentProduct: TIfcProduct; const Appearance: TAppearanceNode): TAbstractChildNode;
+  const ParentProduct: TIfcProduct;
+  const LitAppearance, UnlitAppearance: TAppearanceNode): TAbstractChildNode;
 begin
   if BasisCurve <> nil then
   begin
     WritelnWarning('TODO: IfcTrimmedCurve is only partially supported now. We ignore trim1, trim2, we display whole curve.');
-    Result := BasisCurve.BuildNode(Mapping, ParentProduct, Appearance)
+    Result := BasisCurve.BuildNode(Mapping, ParentProduct,
+      LitAppearance, UnlitAppearance);
   end else
     Result := nil;
 end;
 
-function TIfcEllipse.BuildNode(const Mapping: TCastleIfcMapping;
-  const ParentProduct: TIfcProduct; const Appearance: TAppearanceNode): TAbstractChildNode;
+function TIfcConic.BuildEllipseOrCircle(const Mapping: TCastleIfcMapping;
+  const ParentProduct: TIfcProduct;
+  const LitAppearance, UnlitAppearance: TAppearanceNode;
+  const Radius, RadiusY: Single): TAbstractChildNode;
 var
+  Transform: TTransformNode;
+  Translation: TVector3;
+  Rotation: TVector4;
   Shape: TShapeNode;
   Circle: TCircle2DNode;
 begin
   Circle := TCircle2DNode.Create('', Mapping.BaseUrl);
-  Circle.Radius := SemiAxis1;
-  Circle.RadiusY := SemiAxis2;
+  Circle.Radius := Radius;
+  Circle.RadiusY := RadiusY;
 
   Shape := TShapeNode.Create('', Mapping.BaseUrl);
   Shape.Geometry := Circle;
-  // circle is best displayed as unlit geometry, different material would be useful
-  // Shape.Appearance := Appearance;
+  Shape.Appearance := UnlitAppearance;
   SetMetadata(Shape, 'IFC_ClassName', ClassName);
 
-  Mapping.ShapeToProduct.AddOrSetValue(Shape, ParentProduct);
-  Result := Shape;
+  Mapping.ConnectShapeAndProduct(Shape, ParentProduct);
+
+  { We optimize below common case, when IfcConic doesn't need extra
+    TTransformNode (this also means we don't need later to
+    TransformCrossSection in TIfcCurve.UpdateCrossSection). }
+  if Position <> nil then
+  begin
+    Position.GetTransform(Translation, Rotation);
+    if (not Translation.IsZero) or (not IsZero(Rotation.W)) then
+    begin
+      Transform := TTransformNode.Create('', Mapping.BaseUrl);
+      Transform.Translation := Translation;
+      Transform.Rotation := Rotation;
+      Transform.AddChildren(Shape);
+      Result := Transform;
+    end else
+    begin
+      {$ifdef CASTLE_DEBUG_IFC_TRANSFORM}
+      WritelnLog('IFC', 'Optimizing away TTransformNode for IfcConic.Position');
+      {$endif CASTLE_DEBUG_IFC_TRANSFORM}
+      Result := Shape;
+    end;
+  end else
+    Result := Shape;
+end;
+
+function TIfcEllipse.BuildNode(const Mapping: TCastleIfcMapping;
+  const ParentProduct: TIfcProduct;
+  const LitAppearance, UnlitAppearance: TAppearanceNode): TAbstractChildNode;
+begin
+  Result := BuildEllipseOrCircle(Mapping, ParentProduct,
+    LitAppearance, UnlitAppearance, SemiAxis1, SemiAxis2);
+end;
+
+function TIfcCircle.BuildNode(const Mapping: TCastleIfcMapping;
+  const ParentProduct: TIfcProduct;
+  const LitAppearance, UnlitAppearance: TAppearanceNode): TAbstractChildNode;
+begin
+  Result := BuildEllipseOrCircle(Mapping, ParentProduct,
+    LitAppearance, UnlitAppearance, Radius, 0);
 end;
 
 function TIfcIndexedPolyCurve.BuildNode(const Mapping: TCastleIfcMapping;
-  const ParentProduct: TIfcProduct; const Appearance: TAppearanceNode): TAbstractChildNode;
+  const ParentProduct: TIfcProduct;
+  const LitAppearance, UnlitAppearance: TAppearanceNode): TAbstractChildNode;
 
   { Add integers for NewIndexes to Indexes, decrementing all values
     on NewIndexes by 1.
@@ -782,8 +1033,7 @@ begin
   Points.UpdateCoordinate(Coord);
 
   Shape := TShapeNode.Create('', Mapping.BaseUrl);
-  // lines are best displayed as unlit geometry, different material would be useful
-  // Shape.Appearance := Appearance;
+  Shape.Appearance := UnlitAppearance;
   SetMetadata(Shape, 'IFC_ClassName', ClassName);
 
   if Segments.Count = 0 then
@@ -822,51 +1072,135 @@ begin
     end;
   end;
 
-  Mapping.ShapeToProduct.AddOrSetValue(Shape, ParentProduct);
+  Mapping.ConnectShapeAndProduct(Shape, ParentProduct);
   Result := Shape;
 end;
 
 function TIfcExtrudedAreaSolid.BuildNode(const Mapping: TCastleIfcMapping;
-  const ParentProduct: TIfcProduct; const Appearance: TAppearanceNode): TAbstractChildNode;
+  const ParentProduct: TIfcProduct;
+  const LitAppearance, UnlitAppearance: TAppearanceNode): TAbstractChildNode;
 
-  { Negate Y coordinates of all points in List. }
-  procedure NegateY(const List: TVector2List);
+  procedure AddGeometry(const Transform: TTransformNode; const Geometry: TAbstractGeometryNode);
   var
-    I: Integer;
+    Shape: TShapeNode;
   begin
-    for I := 0 to List.Count - 1 do
-      List.L[I].Y := -List.L[I].Y;
+    Shape := TShapeNode.Create('', Mapping.BaseUrl);
+    Shape.Geometry := Geometry;
+    Shape.Appearance := LitAppearance;
+    SetMetadata(Shape, 'IFC_ClassName', ClassName);
+    Mapping.ConnectShapeAndProduct(Shape, ParentProduct);
+    Transform.AddChildren(Shape);
   end;
 
 var
-  Extrusion: TExtrusionNode;
-  Shape: TShapeNode;
+  SideQuads: TIndexedQuadSetNode;
+  TopBottomCaps: TIndexedFaceSetNode;
+  Coord: TCoordinateNode;
   CrossSection: TVector2List;
+  CrossSectionConvex: Boolean;
+  Transform: TTransformNode;
+  ExtrusionDir, Translation: TVector3;
+  Rotation: TVector4;
+  C, I: Integer;
 begin
-  Extrusion := TExtrusionNode.Create('', Mapping.BaseUrl);
-  Extrusion.SetSpine([
-    TVector3.Zero,
-    ExtrudedDirection.DirectionRatios.Value * Depth
-  ]);
+  { Note: Not using TExtrusionNode, as it tries to rotate the cross-section
+    around spine, resulting in various errors e.g. when DirectionRatios is -Z.
 
-  { Pass Extrusion.FdCrossSection.Items reference around.
-    Maybe in the future it will make sense to create temporary TVector2List
-    and then use Extrusion.SetCrossSection, but for now it's not needed. }
-  CrossSection := Extrusion.FdCrossSection.Items;
-  CrossSection.Clear; // default TExtrusionNode.CrossSection is not empty
+    Instead we build geometry on our side:
+    - quads for sides
+    - polygons (potentially concave) for top and bottom caps
+
+    Testcases:
+    - ifc_window_test/4_rotations_scale/test_relative_positions_orientations*.ifcjson
+      ifc_window_test/4_rotations_scale/move_edit_mode_test.ifcjson
+
+      Reproduce by moving the rectangle of slab in *edit mode* in BonsaiBIM.
+      If we would use TExtrusionNode, the X movement is OK, the Y is inverted.
+      In the past we had an ugly hack for this, that worked in some cases:
+      negate Y coordinates of cross-section points.
+      BonsaiBIM translates this into moving actual points on the list.
+
+      With new approach -> no hacks, this testcase is handled correctly.
+
+    - ifc_window_test/5_window_by_bonsaibim/window_simple.ifcjson
+      ifc_window_test/5_window_by_bonsaibim/window_rotated.ifcjson
+
+      Reproduce by adding default window geometry from BonsaiBIM.
+      If we would use TExtrusionNode, there's weird rotation for a part of the
+      window, and we needed to counter this by ugly hack
+      "Rotation.W := -Rotation.W;"
+
+      With new approach -> no hacks, this testcase is handled correctly.
+      We apply rotation in a regular way.
+
+    - ifc_window_test/8_link/chairs_rotations.ifcjson
+
+      Reproduce by adding a furniture from BonsaiBIM library,
+      with circular table and 14 chairs around.
+      Each chair has 6 extrusions, 4 legs (with DirectionRatios.Z positive)
+      and 2 other quads (1 for sitting, 1 for chair back,
+      with DirectionRatios.Z negative).
+
+      If we would use TExtrusionNode... this just seems too uncontrollable
+      to do correctly.
+      OTOH, it's easy with current approach, we move points by ExtrusionDir,
+      and this is just correct for any ExtrusionDir.
+  }
+
+  SideQuads := TIndexedQuadSetNode.Create('', Mapping.BaseUrl);
+  TopBottomCaps := TIndexedFaceSetNode.Create('', Mapping.BaseUrl);
+
+  { Default value results in more efficient rendering, and matches
+    TIndexedFaceSetNode.Convex default. }
+  CrossSectionConvex := true;
+
   if SweptArea <> nil then
   begin
-    SweptArea.UpdateCrossSection(CrossSection, 'IfcExtrudedAreaSolid.SweptArea');
-    { Experiments show this is necessary, see
-        ifc_window_test/4_rotations_scale/test_relative_positions_orientations*.ifcjson
-        ifc_window_test/4_rotations_scale/move_edit_mode_test.ifcjson
-      Reproduce by moving the rectangle of slab in *edit mode* in BonsaiBIM,
-      the X movement is OK, the Y is inverted. BonsaiBIM translates this into
-      moving actual points on the list.
+    CrossSection := TVector2List.Create;
+    try
+      SweptArea.UpdateCrossSection(CrossSection, CrossSectionConvex,
+        'IfcExtrudedAreaSolid.SweptArea');
+      ExtrusionDir := ExtrudedDirection.DirectionRatios.Value * Depth;
 
-      This is different from doing it in *object mode* when the movement
-      translates to Axis2Placement3D, where Y remains OK. }
-    NegateY(CrossSection);
+      C := CrossSection.Count;
+      if C <> 0 then
+      begin
+        Coord := TCoordinateNode.Create('', Mapping.BaseUrl);
+        Coord.FdPoint.Count := C * 2;
+        for I := 0 to C - 1 do
+        begin
+          Coord.FdPoint.Items[I * 2    ] := Vector3(CrossSection[I], 0);
+          Coord.FdPoint.Items[I * 2 + 1] := Vector3(CrossSection[I], 0) + ExtrusionDir;
+        end;
+
+        // both sides and top/bottom caps reuse the same TCoordinateNode
+        SideQuads.Coord := Coord;
+        TopBottomCaps.Coord := Coord;
+
+        SideQuads.FdIndex.Count := (C - 1) * 4;
+        for I := 0 to C - 2 do
+        begin
+          SideQuads.FdIndex.Items[I * 4    ] := I * 2;
+          SideQuads.FdIndex.Items[I * 4 + 1] := (I + 1) * 2;
+          SideQuads.FdIndex.Items[I * 4 + 2] := (I + 1) * 2 + 1;
+          SideQuads.FdIndex.Items[I * 4 + 3] := I * 2 + 1;
+        end;
+
+        // show caps only if CrossSection is closed
+        if (C > 1) and
+           (TVector2.PerfectlyEquals(CrossSection[0], CrossSection[C - 1])) then
+        begin
+          TopBottomCaps.FdCoordIndex.Count := (C - 1) * 2 + 1;
+          // indxed dividing between top and bottom caps
+          TopBottomCaps.FdCoordIndex.Items[C - 1] := -1;
+          for I := 0 to C - 2 do
+          begin
+            TopBottomCaps.FdCoordIndex.Items[I] := I * 2;
+            TopBottomCaps.FdCoordIndex.Items[I + C] := I * 2 + 1;
+          end;
+        end;
+      end;
+    finally FreeAndNil(CrossSection) end;
   end;
 
   { The extrusion curves in IFC may be provided in an arbitrary order.
@@ -881,19 +1215,38 @@ begin
 
     The simplest solution to render them all OK seems to just disable
     backface culling for all extrusions. }
-  Extrusion.Solid := false;
+  SideQuads.Solid := false;
+  TopBottomCaps.Solid := false;
 
-  Shape := TShapeNode.Create('', Mapping.BaseUrl);
-  Shape.Geometry := Extrusion;
-  Shape.Appearance := Appearance;
-  SetMetadata(Shape, 'IFC_ClassName', ClassName);
+  // don't smooth normals, as extrusions may have sharp edges, e.g. rectangular chair legs
+  SideQuads.NormalPerVertex := false;
+  TopBottomCaps.CreaseAngle := 0;
 
-  Mapping.ShapeToProduct.AddOrSetValue(Shape, ParentProduct);
-  Result := Shape;
+  // top and bottom caps may be concave if CrossSectionConvex=false
+  TopBottomCaps.Convex := CrossSectionConvex;
+
+  Transform := TTransformNode.Create('', Mapping.BaseUrl);
+
+  // handle TIfcSweptAreaSolid.Position (this is a transformation, may contain rotation too)
+  if Position <> nil then
+  begin
+    Position.GetTransform(Translation, Rotation);
+    {$ifdef CASTLE_DEBUG_IFC_TRANSFORM}
+    WritelnLog('IfcExtrudedAreaSolid.Position translation %s, rotation %s', [Translation.ToString, Rotation.ToString]);
+    {$endif CASTLE_DEBUG_IFC_TRANSFORM}
+    Transform.Translation := Translation;
+    Transform.Rotation := Rotation;
+  end;
+
+  AddGeometry(Transform, SideQuads);
+  AddGeometry(Transform, TopBottomCaps);
+
+  Result := Transform;
 end;
 
 function TIfcPolygonalFaceSet.BuildNode(const Mapping: TCastleIfcMapping;
-  const ParentProduct: TIfcProduct; const Appearance: TAppearanceNode): TAbstractChildNode;
+  const ParentProduct: TIfcProduct;
+  const LitAppearance, UnlitAppearance: TAppearanceNode): TAbstractChildNode;
 var
   IndexedFaceSet: TIndexedFaceSetNode;
   Coord: TCoordinateNode;
@@ -908,6 +1261,9 @@ begin
   IndexedFaceSet := TIndexedFaceSetNode.Create('', Mapping.BaseUrl);
   IndexedFaceSet.Coord := Coord;
   IndexedFaceSet.Solid := Closed;
+
+  // do not smooth, we don't know how smooth is the mesh, using flat shading is safer
+  IndexedFaceSet.CreaseAngle := 0;
 
   for Face in Faces do
   begin
@@ -924,39 +1280,81 @@ begin
 
   Shape := TShapeNode.Create('', Mapping.BaseUrl);
   Shape.Geometry := IndexedFaceSet;
-  Shape.Appearance := Appearance;
+  Shape.Appearance := LitAppearance;
   SetMetadata(Shape, 'IFC_ClassName', ClassName);
 
-  Mapping.ShapeToProduct.AddOrSetValue(Shape, ParentProduct);
+  Mapping.ConnectShapeAndProduct(Shape, ParentProduct);
+  Result := Shape;
+end;
+
+function TIfcTriangulatedFaceSet.BuildNode(const Mapping: TCastleIfcMapping;
+  const ParentProduct: TIfcProduct;
+  const LitAppearance, UnlitAppearance: TAppearanceNode): TAbstractChildNode;
+var
+  IndexedTriangleSet: TIndexedTriangleSetNode;
+  Coord: TCoordinateNode;
+  I, Index, TriangleIndex: Integer;
+  Shape: TShapeNode;
+begin
+  Coord := TCoordinateNode.Create('', Mapping.BaseUrl);
+  if Coordinates <> nil then
+    Coord.SetPoint(Coordinates.CoordList);
+
+  IndexedTriangleSet := TIndexedTriangleSetNode.Create('', Mapping.BaseUrl);
+  IndexedTriangleSet.Coord := Coord;
+  IndexedTriangleSet.Solid := Closed;
+  { Do not smooth, we don't know how smooth is the mesh,
+    using flat shading is safest.
+    And consistent with TIfcExtrudedAreaSolid.BuildNode. }
+  IndexedTriangleSet.NormalPerVertex := false;
+
+  // TODO: Use Normals
+
+  IndexedTriangleSet.FdIndex.Count := CoordIndex.Count * 3;
+  for TriangleIndex := 0 to CoordIndex.Count - 1 do
+  begin
+    for I := 0 to 2 do
+    begin
+      Index := CoordIndex[TriangleIndex][I];
+      if Index < PnIndex.Count then
+        Index := PnIndex[Index];
+      { Ignore invalid indexes, like equal 0 or even less.
+        They would cause us to add negative index to IndexedTriangleSet.FdIndex,
+        which is invalid. }
+      if Index < 1 then Continue;
+      Dec(Index); // IFC indices are 1-based
+      IndexedTriangleSet.FdIndex.Items[TriangleIndex * 3 + I] := Index;
+    end;
+  end;
+
+  Shape := TShapeNode.Create('', Mapping.BaseUrl);
+  Shape.Geometry := IndexedTriangleSet;
+  Shape.Appearance := LitAppearance;
+  SetMetadata(Shape, 'IFC_ClassName', ClassName);
+
+  Mapping.ConnectShapeAndProduct(Shape, ParentProduct);
   Result := Shape;
 end;
 
 function TIfcBoundingBox.BuildNode(const Mapping: TCastleIfcMapping;
-  const ParentProduct: TIfcProduct; const Appearance: TAppearanceNode): TAbstractChildNode;
+  const ParentProduct: TIfcProduct;
+  const LitAppearance, UnlitAppearance: TAppearanceNode): TAbstractChildNode;
 var
   Box: TBoxNode;
   Shape: TShapeNode;
   Transform: TTransformNode;
   CornerPoint: TVector3;
-  UnlitMaterial: TUnlitMaterialNode;
-  UnlitAppearance: TAppearanceNode;
 begin
   Box := TBoxNode.Create('', Mapping.BaseUrl);
   Box.Size := Vector3(XDim, YDim, ZDim);
 
   Shape := TShapeNode.Create('', Mapping.BaseUrl);
   Shape.Geometry := Box;
+  Shape.Appearance := UnlitAppearance;
 
   // bounding box is not the final geometry, so show only wireframe
   Shape.Shading := shWireframe;
 
-  // bounding box is not the final geometry, so show only unlit material
-  UnlitMaterial := TUnlitMaterialNode.Create('', Mapping.BaseUrl);
-  UnlitMaterial.EmissiveColor := WhiteRgb;
-  UnlitMaterial.Transparency := 0.5;
-  UnlitAppearance := TAppearanceNode.Create('', Mapping.BaseUrl);
-  UnlitAppearance.Material := UnlitMaterial;
-  Shape.Appearance := UnlitAppearance;
 
   // move the box by CornerPoint + (X3D box position) Box.Size / 2
   CornerPoint := TVector3.Zero;
@@ -969,12 +1367,13 @@ begin
 
   SetMetadata(Transform, 'IFC_ClassName', ClassName);
 
-  Mapping.ShapeToProduct.AddOrSetValue(Shape, ParentProduct);
+  Mapping.ConnectShapeAndProduct(Shape, ParentProduct);
   Result := Transform;
 end;
 
 function TIfcMappedItem.BuildNode(const Mapping: TCastleIfcMapping;
-  const ParentProduct: TIfcProduct; const Appearance: TAppearanceNode): TAbstractChildNode;
+  const ParentProduct: TIfcProduct;
+  const LitAppearance, UnlitAppearance: TAppearanceNode): TAbstractChildNode;
 var
   TransformMappingTarget, TransformMappingOrigin: TTransformNode;
   OriginTranslation, TargetTranslation: TVector3;
@@ -988,6 +1387,9 @@ begin
   if MappingTarget <> nil then
   begin
     MappingTarget.GetTransform(TargetTranslation, TargetRotation, TargetScale);
+    {$ifdef CASTLE_DEBUG_IFC_TRANSFORM}
+    WritelnLog('MappingTarget is translation %s, rotation %s', [TargetTranslation.ToString, TargetRotation.ToString]);
+    {$endif CASTLE_DEBUG_IFC_TRANSFORM}
     TransformMappingTarget.Translation := TargetTranslation;
     TransformMappingTarget.Rotation := TargetRotation;
     TransformMappingTarget.Scale := TargetScale;
@@ -1002,6 +1404,9 @@ begin
     if MappingSource.MappingOrigin <> nil then
     begin
       MappingSource.MappingOrigin.GetTransform(OriginTranslation, OriginRotation);
+      {$ifdef CASTLE_DEBUG_IFC_TRANSFORM}
+      WritelnLog('MappingOrigin is translation %s, rotation %s', [OriginTranslation.ToString, OriginRotation.ToString]);
+      {$endif CASTLE_DEBUG_IFC_TRANSFORM}
       TransformMappingOrigin.Translation := -OriginTranslation;
       TransformMappingOrigin.Rotation := Vector4(OriginRotation.XYZ, -OriginRotation.W);
     end;
@@ -1011,7 +1416,8 @@ begin
     if MappingSource.MappedRepresentation <> nil then
     begin
       TransformMappingOrigin.AddChildren(
-        MappingSource.MappedRepresentation.Items.BuildNode(Mapping, ParentProduct, Appearance));
+        MappingSource.MappedRepresentation.Items.BuildNode(Mapping, ParentProduct,
+          LitAppearance, UnlitAppearance));
     end;
   end;
 
@@ -1067,8 +1473,21 @@ function TIfcProduct.BuildNode(const Mapping: TCastleIfcMapping): TTransformNode
     Result.Material := TMaterialNode.Create('', Mapping.BaseUrl);
   end;
 
+  { Unlit appearance, good for unlit thigns -- lines, bboxes etc. }
+  function CreateDefaultUnlitAppearance: TAppearanceNode;
+  var
+    UnlitMaterial: TUnlitMaterialNode;
+  begin
+    UnlitMaterial := TUnlitMaterialNode.Create('', Mapping.BaseUrl);
+    UnlitMaterial.EmissiveColor := WhiteRgb;
+    UnlitMaterial.Transparency := 0.5;
+
+    Result := TAppearanceNode.Create('', Mapping.BaseUrl);
+    Result.Material := UnlitMaterial;
+  end;
+
 var
-  Appearance: TAppearanceNode;
+  LitAppearance, UnlitAppearance: TAppearanceNode;
 begin
   Result := inherited;
 
@@ -1077,13 +1496,15 @@ begin
 
   if Representation <> nil then
   begin
-    // Things inside are affected by given material
-    Appearance := AppearanceFromAssociations(HasAssociations);
+    // Things inside are affected by given appearances
+    LitAppearance := AppearanceFromAssociations(HasAssociations);
     try
-      Result.AddChildren(Representation.BuildNode(Mapping, Self, Appearance));
-    finally
-      FreeIfUnusedAndNil(Appearance);
-    end;
+      UnlitAppearance := CreateDefaultUnlitAppearance;
+      try
+        Result.AddChildren(Representation.BuildNode(Mapping, Self,
+          LitAppearance, UnlitAppearance));
+      finally FreeIfUnusedAndNil(UnlitAppearance) end;
+    finally FreeIfUnusedAndNil(LitAppearance) end;
   end;
 end;
 
@@ -1173,6 +1594,44 @@ begin
   SetMetadata(Result, 'IFC_Phase', Phase);
 end;
 
+function TIfcGrid.BuildNode(const Mapping: TCastleIfcMapping): TTransformNode;
+
+  procedure ProcessList(const Axes: TIfcGridAxisList; const AxisCoord: Integer);
+  var
+    Axis: TIfcGridAxis;
+    AxisNode: TAbstractChildNode;
+    Color: TCastleColorRgb;
+    GridMaterial: TUnlitMaterialNode;
+    GridAppearance: TAppearanceNode;
+  begin
+    // Let color correspond to the axis U/V/W.
+    Color := BlackRgb;
+    Color.Data[AxisCoord] := 1.0;
+
+    // Grid is not the final geometry, so show only unlit material.
+    GridMaterial := TUnlitMaterialNode.Create('', Mapping.BaseUrl);
+    GridMaterial.EmissiveColor := Color;
+    GridMaterial.Transparency := 0.5;
+    GridAppearance := TAppearanceNode.Create('', Mapping.BaseUrl);
+    GridAppearance.Material := GridMaterial;
+
+    try
+      for Axis in Axes do
+      begin
+        AxisNode := Axis.BuildNode(Mapping, Self, nil, GridAppearance);
+        if AxisNode <> nil then
+          Result.AddChildren(AxisNode);
+      end;
+    finally FreeIfUnusedAndNil(GridAppearance) end;
+  end;
+
+begin
+  Result := inherited;
+  ProcessList(UAxes, 0);
+  ProcessList(VAxes, 1);
+  ProcessList(WAxes, 2);
+end;
+
 { UpdateNode methods implementations ----------------------------------------- }
 
 procedure TIfcObjectPlacement.UpdateNode(const Mapping: TCastleIfcMapping;
@@ -1195,6 +1654,9 @@ begin
   if RelativePlacement <> nil then
   begin
     RelativePlacement.GetTransform(Translation, Rotation);
+    {$ifdef CASTLE_DEBUG_IFC_TRANSFORM}
+    WritelnLog('LocalPlacement translation %s, rotation %s', [Translation.ToString, Rotation.ToString]);
+    {$endif CASTLE_DEBUG_IFC_TRANSFORM}
     Transform.Translation := Translation;
     Transform.Rotation := Rotation;
   end;
@@ -1264,9 +1726,12 @@ end;
 { Main routine that converts IFC -> X3D nodes, doing most of the work. }
 function LoadIfc(const Stream: TStream; const BaseUrl: String): TX3DRootNode;
 
-  {.$define DEBUG_IFC_ROUND_TRIP}
+  { Debug save back IFC and X3D.
+    Save URL is similar to BaseUrl but with -debug-roundtrip.ifcjson,
+    -debug-roundtrip.x3d. }
+  {.$define CASTLE_DEBUG_IFC_ROUND_TRIP}
 
-  {$ifdef DEBUG_IFC_ROUND_TRIP}
+  {$ifdef CASTLE_DEBUG_IFC_ROUND_TRIP}
   { Only for debugging purposes: save back the IFC data to JSON.
     This is an easy test whether IfcJsonLoad understood everything correctly,
     and whether IfcJsonSave saves everything correctly. }
@@ -1284,8 +1749,9 @@ function LoadIfc(const Stream: TStream; const BaseUrl: String): TX3DRootNode;
         WriteStr(Stream, JsonString);
       finally FreeAndNil(JsonObj) end;
     finally FreeAndNil(Stream) end;
+    WritelnLog('Saved to ', DeleteUriExt(BaseUrl) + '-debug-roundtrip.ifcjson');
   end;
-  {$endif DEBUG_IFC_ROUND_TRIP}
+  {$endif CASTLE_DEBUG_IFC_ROUND_TRIP}
 
 var
   JsonParser: TJsonParser;
@@ -1299,9 +1765,11 @@ begin
       IfcFile := IfcJsonLoad(Json);
       try
         Result := IfcToX3D(IfcFile, BaseUrl);
-        {$ifdef DEBUG_IFC_ROUND_TRIP}
+        {$ifdef CASTLE_DEBUG_IFC_ROUND_TRIP}
         DebugSaveBack(IfcFile);
-        {$endif DEBUG_IFC_ROUND_TRIP}
+        SaveNode(Result, DeleteUriExt(BaseUrl) + '-debug-roundtrip.x3d');
+        WritelnLog('Saved to ', DeleteUriExt(BaseUrl) + '-debug-roundtrip.x3d');
+        {$endif CASTLE_DEBUG_IFC_ROUND_TRIP}
       finally FreeAndNil(IfcFile) end;
     finally FreeAndNil(Json) end;
   finally FreeAndNil(JsonParser) end;

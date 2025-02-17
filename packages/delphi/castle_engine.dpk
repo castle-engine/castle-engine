@@ -217,7 +217,6 @@ contains
   custapp in '..\..\src\compatibility\delphi-only\custapp.pas',
   dom in '..\..\src\compatibility\delphi-only\dom.pas',
   FPHashCompatibility in '..\..\src\compatibility\delphi-only\FPHashCompatibility.pas',
-  rttiutils in '..\..\src\compatibility\delphi-only\rttiutils.pas',
   singleinstance in '..\..\src\compatibility\delphi-only\singleinstance.pas',
   uriparser in '..\..\src\compatibility\delphi-only\uriparser.pas',
   xmlread in '..\..\src\compatibility\delphi-only\xmlread.pas',
