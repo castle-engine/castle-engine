@@ -18,7 +18,7 @@ unit GameViewMain;
 interface
 
 uses Classes,
-  CastleVectors, CastleComponentSerialize,
+  CastleVectors, CastleComponentSerialize, CastleLog,
   CastleUIControls, CastleControls, CastleKeysMouse, CastleColors,
   CastleSteam;
 
@@ -57,6 +57,8 @@ uses SysUtils,
 constructor TViewMain.Create(AOwner: TComponent);
 begin
   inherited;
+  LogFileName := 'steam.log';
+  InitializeLog;
   DesignUrl := 'castle-data:/gameviewmain.castle-user-interface';
 end;
 
@@ -95,6 +97,8 @@ end;
 
 procedure TViewMain.SteamUserStatsReceived(Sender: TObject);
 begin
+  { Under Lazarus things go wrong if the next line happens }
+  // Steam.Input.Enabled := True;
   UpdateAchievementsUi;
 end;
 
