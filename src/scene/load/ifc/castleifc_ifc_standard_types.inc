@@ -3631,6 +3631,21 @@
   TIfcElementList = class({$ifdef FPC}specialize{$endif} TObjectList<TIfcElement>)
   end;
 
+  // TODO: fields, documentation
+  { }
+  TIfcFooting = class(TIfcElement)
+  end;
+
+  // TODO: fields, documentation
+  { }
+  TIfcRoof = class(TIfcElement)
+  end;
+
+  // TODO: fields, documentation
+  { }
+  TIfcStairFlight = class(TIfcElement)
+  end;
+
   { Represents complex element assemblies aggregated from several elements,
     such as discrete elements, building elements, or other elements.
 
@@ -7978,6 +7993,9 @@ function IfcClasses: TIfcPersistentClassList;
     FIfcClasses.Add(TIfcReinforcingBar);
     FIfcClasses.Add(TIfcReinforcingElementType);
     FIfcClasses.Add(TIfcReinforcingBarType);
+    FIfcClasses.Add(TIfcRoof);
+    FIfcClasses.Add(TIfcStairFlight);
+    FIfcClasses.Add(TIfcFooting);
   end;
 
 begin
