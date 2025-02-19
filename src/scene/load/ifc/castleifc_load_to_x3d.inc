@@ -1355,7 +1355,6 @@ begin
   // bounding box is not the final geometry, so show only wireframe
   Shape.Shading := shWireframe;
 
-
   // move the box by CornerPoint + (X3D box position) Box.Size / 2
   CornerPoint := TVector3.Zero;
   if Corner <> nil then
