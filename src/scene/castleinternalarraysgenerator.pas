@@ -237,6 +237,15 @@ type
       see https://castle-engine.io/x3d_implementation_shape_extensions.php#section_ext_shading ,
       to force wireframe rendering. }
     function WireframeShape: Boolean;
+
+    { Call this from PrepareIndexesPrimitives when WireframeShape,
+      and your shape should change from polygons -> lines.
+
+      Sets Arrays.Primitive to gpLines.
+      Make sure to generate proper indexes for lines.
+
+      Sets Arrays.ForceUnlit and Arrays.ForceUnlitColor. }
+    procedure WireframeShapePrepareIndexesPrimitives;
   public
     { Assign these before calling GenerateArrays.
       @groupBegin }
@@ -1038,6 +1047,22 @@ end;
 function TArraysGenerator.WireframeShape: Boolean;
 begin
   Result := (State.ShapeNode <> nil) and (State.ShapeNode.Shading = shWireframe);
+end;
+
+procedure TArraysGenerator.WireframeShapePrepareIndexesPrimitives;
+var
+  M: TMaterialInfo;
+begin
+  Arrays.Primitive := gpLines;
+  { Make lines unlit (and using EmissiveColor),
+    following https://castle-engine.io/x3d_implementation_shape_extensions.php#section_ext_shading :
+    rendering matches the LineSet specification. }
+  Arrays.ForceUnlit := true;
+  M := State.MaterialInfo;
+  if M <> nil then
+    Arrays.ForcedUnlitColor := Vector4(M.EmissiveColor, M.Opacity)
+  else
+    Arrays.ForcedUnlitColor := White;
 end;
 
 { TAbstractTextureCoordinateGenerator ----------------------------------------- }

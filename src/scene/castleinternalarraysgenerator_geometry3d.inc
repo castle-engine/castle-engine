@@ -1,6 +1,6 @@
 {%MainUnit castleinternalarraysgenerator.pas}
 {
-  Copyright 2002-2023 Michalis Kamburelis.
+  Copyright 2002-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -319,8 +319,6 @@ begin
 end;
 
 procedure TAbstractIndexedFaceSetGenerator.PrepareIndexesPrimitives;
-var
-  M: TMaterialInfo;
 begin
   { calculate IFSIndexesCount by one iteration over coordIndex }
   IFSIndexesCount := 0;
@@ -328,19 +326,8 @@ begin
     {$ifdef FPC}@{$endif}PrepareIndexesCoordsRange1);
 
   if WireframeShape then
-  begin
-    Arrays.Primitive := gpLines;
-    { Make lines unlit (and using EmissiveColor),
-      following https://castle-engine.io/x3d_implementation_shape_extensions.php#section_ext_shading :
-      rendering matches the LineSet specification. }
-    Arrays.ForceUnlit := true;
-    M := State.MaterialInfo;
-    if M <> nil then
-      Arrays.ForcedUnlitColor := Vector4(M.EmissiveColor, M.Opacity)
-    else
-      Arrays.ForcedUnlitColor := White;
-  end;
-  // otherwise let default Arrays.Primitive of gpTriangles remain
+    WireframeShapePrepareIndexesPrimitives;
+    // else let default Arrays.Primitive of gpTriangles remain
 
   if FacesNeeded then
   begin
