@@ -161,7 +161,7 @@ type
       intermediate classes in this file, that cannot triangulate,
       but still want to add something before / after GenerateCoordinate.
       When overriding GenerateCoordinateBegin, always call inherited
-      at the begin. When overriding GenerateCoordinateEnd, always call inherited
+      at the beginning. When overriding GenerateCoordinateEnd, always call inherited
       at the end.
       @groupBegin }
     procedure GenerateCoordinate; virtual; abstract;
@@ -173,7 +173,10 @@ type
       This is not called, not used, anywhere in this base
       TAbstractCoordinateGenerator class.
       In descendants, it may be useful to use this, like
-      Geometry.InternalMakeCoordRanges(State, @@GenerateCoordsRange).
+
+      @longCode(#
+        Geometry.InternalMakeCoordRanges(State, {$ifdef FPC}@{$endif} GenerateCoordsRange);
+      #)
 
       GenerateCoordsRange is supposed to generate the parts of the mesh
       between BeginIndex and EndIndex - 1 vertices.
