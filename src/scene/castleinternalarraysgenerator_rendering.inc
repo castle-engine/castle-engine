@@ -1,6 +1,6 @@
 {%MainUnit castleinternalarraysgenerator.pas}
 {
-  Copyright 2002-2023 Michalis Kamburelis.
+  Copyright 2002-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -336,35 +336,118 @@ begin
 end;
 
 procedure TTriangleSetGenerator.PrepareIndexesPrimitives;
+
+  { Set IndexesFromCoordIndex or Arrays.Indexes count and contents to define
+    a wireframe for triangles.
+    Just 2 lines for each triangle edge, for each (complete) triangle. }
+  procedure CalculateIndexesFromCoordIndexForWireframe;
+  var
+    I: Integer;
+    CompleteTrianglesCount: Integer;
+  begin
+    CompleteTrianglesCount := CoordCount div 3;
+    if CoordIndex <> nil then
+    begin
+      IndexesFromCoordIndex := TUInt32List.Create;
+
+      { In case we use this to have wireframe TQuadSetNode
+        (which sets CoordIndex <> nil, to simulate quads as triangles),
+        we want to hide some edges, to not show the diagonals inside quads.
+        This makes shWireframe for TQuadSetNode look better.
+
+        Note: This approach is not most efficient, it would be better
+        to have a special version of InternalQuadCoordIndex and handle
+        it specially, but it seems too much code complication for this special
+        case. }
+      if Geometry is TQuadSetNode then
+      begin
+        IndexesFromCoordIndex.Capacity := CompleteTrianglesCount * 4;
+        for I := 0 to CompleteTrianglesCount - 1 do
+        begin
+          if not Odd(I) then
+          begin
+            IndexesFromCoordIndex.Add(CoordIndex.Items.L[I * 3]);
+            IndexesFromCoordIndex.Add(CoordIndex.Items.L[I * 3 + 1]);
+          end;
+
+          IndexesFromCoordIndex.Add(CoordIndex.Items.L[I * 3 + 1]);
+          IndexesFromCoordIndex.Add(CoordIndex.Items.L[I * 3 + 2]);
+
+          if Odd(I) then
+          begin
+            IndexesFromCoordIndex.Add(CoordIndex.Items.L[I * 3 + 2]);
+            IndexesFromCoordIndex.Add(CoordIndex.Items.L[I * 3]);
+          end;
+        end;
+      end else
+      begin
+        IndexesFromCoordIndex.Count := CompleteTrianglesCount * 6;
+        for I := 0 to CompleteTrianglesCount - 1 do
+        begin
+          IndexesFromCoordIndex[I * 6    ] := CoordIndex.Items.L[I * 3];
+          IndexesFromCoordIndex[I * 6 + 1] := CoordIndex.Items.L[I * 3 + 1];
+
+          IndexesFromCoordIndex[I * 6 + 2] := CoordIndex.Items.L[I * 3 + 1];
+          IndexesFromCoordIndex[I * 6 + 3] := CoordIndex.Items.L[I * 3 + 2];
+
+          IndexesFromCoordIndex[I * 6 + 4] := CoordIndex.Items.L[I * 3 + 2];
+          IndexesFromCoordIndex[I * 6 + 5] := CoordIndex.Items.L[I * 3];
+        end;
+      end;
+    end else
+    begin
+      Arrays.Indexes := TGeometryIndexList.Create;
+      Arrays.Indexes.Count := CompleteTrianglesCount * 6;
+      for I := 0 to CompleteTrianglesCount - 1 do
+      begin
+        Arrays.Indexes[I * 6    ] := I * 3;
+        Arrays.Indexes[I * 6 + 1] := I * 3 + 1;
+
+        Arrays.Indexes[I * 6 + 2] := I * 3 + 1;
+        Arrays.Indexes[I * 6 + 3] := I * 3 + 2;
+
+        Arrays.Indexes[I * 6 + 4] := I * 3 + 2;
+        Arrays.Indexes[I * 6 + 5] := I * 3;
+      end;
+    end;
+  end;
+
 var
   I: Integer;
 begin
-  Arrays.Primitive := gpTriangles;
-
-  if CoordIndex <> nil then
+  if WireframeShape then
   begin
-    { Indexes are just directly from CoordIndex in this case.
-      Only make sure we have only full triangles (although nothing really
-      requires or promises that, but for the future).
+    WireframeShapePrepareIndexesPrimitives;
+    CalculateIndexesFromCoordIndexForWireframe;
+  end else
+  begin
+    Arrays.Primitive := gpTriangles;
 
-      We copy using AssignCheckUnsigned that checks that all items
-      on CoordIndex are really >= 0, otherwise we would have range check
-      errors (debug) or security issue,
-      as input with index -1 would get converted to index 4294967295,
-      and operations like IndexesFromCoordIndex.Max could return something
-      huge and unexpected. }
-    IndexesFromCoordIndex := TUInt32List.Create;
-    IndexesFromCoordIndex.AssignCheckUnsigned(CoordIndex.Items);
-    IndexesFromCoordIndex.Count := (IndexesFromCoordIndex.Count div 3) * 3;
-
-    if FacesNeeded then
+    if CoordIndex <> nil then
     begin
-      Arrays.Faces := TFaceIndexesList.Create;
-      Arrays.Faces.Count := IndexesFromCoordIndex.Count;
-      for I := 0 to Arrays.Faces.Count - 1 do
+      { Indexes are just directly from CoordIndex in this case.
+        Only make sure we have only full triangles (although nothing really
+        requires or promises that, but for the future).
+
+        We copy using AssignCheckUnsigned that checks that all items
+        on CoordIndex are really >= 0, otherwise we would have range check
+        errors (debug) or security issue,
+        as input with index -1 would get converted to index 4294967295,
+        and operations like IndexesFromCoordIndex.Max could return something
+        huge and unexpected. }
+      IndexesFromCoordIndex := TUInt32List.Create;
+      IndexesFromCoordIndex.AssignCheckUnsigned(CoordIndex.Items);
+      IndexesFromCoordIndex.Count := (IndexesFromCoordIndex.Count div 3) * 3;
+
+      if FacesNeeded then
       begin
-        Arrays.Faces.L[I].IndexBegin := (I div 3) * 3;
-        Arrays.Faces.L[I].IndexEnd := ((I div 3) + 1) * 3 -1;
+        Arrays.Faces := TFaceIndexesList.Create;
+        Arrays.Faces.Count := IndexesFromCoordIndex.Count;
+        for I := 0 to Arrays.Faces.Count - 1 do
+        begin
+          Arrays.Faces.L[I].IndexBegin := (I div 3) * 3;
+          Arrays.Faces.L[I].IndexEnd := ((I div 3) + 1) * 3 -1;
+        end;
       end;
     end;
   end;
@@ -373,11 +456,12 @@ end;
 procedure TTriangleSetGenerator.GenerateVertex(IndexNum: Integer);
 begin
   inherited;
-  if NorImplementation = niNone then
-  begin
-    Assert(Arrays.Indexes = nil);
-    Arrays.Normal(ArrayIndexNum)^ := TriFaceNormal;
-  end;
+  if not WireframeShape then
+    if NorImplementation = niNone then
+    begin
+      Assert(Arrays.Indexes = nil);
+      Arrays.Normal(ArrayIndexNum)^ := TriFaceNormal;
+    end;
 end;
 
 procedure TTriangleSetGenerator.GetNormal(IndexNum: Integer; RangeNumber: Integer;
