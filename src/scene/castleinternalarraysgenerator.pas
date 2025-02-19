@@ -44,8 +44,10 @@ type
       const SourcePtr: Pointer; const SourceItemSize, SourceCount: SizeInt;
       const TrivialIndex: Boolean);
   protected
-    { Indexes, only when Arrays.Indexes = nil but original node was indexed.
-      This has only indexes >= 0.
+    { Indexes, only when Arrays.Indexes = nil but original node was indexed
+      (that is, it has CoordIndex <> nil after PrepareIndexesPrimitives).
+
+      This list can have only indexes >= 0, it is a list of unsigned values.
 
       This is TUInt32List, not TGeometryIndexList -- eventual conversion
       32-bit indexes -> 16-bit (if necessary because of old OpenGLES) will happen later. }
@@ -169,7 +171,7 @@ type
     procedure GenerateCoordinateEnd; virtual;
     { @groupEnd }
 
-    { Generate arrays content for one coordinate range (like a face).
+    (*Generate arrays content for one coordinate range (like a face).
       This is not called, not used, anywhere in this base
       TAbstractCoordinateGenerator class.
       In descendants, it may be useful to use this, like
@@ -181,7 +183,7 @@ type
       GenerateCoordsRange is supposed to generate the parts of the mesh
       between BeginIndex and EndIndex - 1 vertices.
       BeginIndex and EndIndex are indexes to CoordIndex array,
-      if CoordIndex is assigned, or just indexes to Coord. }
+      if CoordIndex is assigned, or just indexes to Coord.*)
     procedure GenerateCoordsRange(
       const RangeNumber: Cardinal;
       BeginIndex, EndIndex: Integer); virtual;
@@ -196,9 +198,27 @@ type
       GenerateCoordsRange. }
     property CurrentRangeNumber: Cardinal read FCurrentRangeNumber;
 
-    { If CoordIndex assigned (this VRML/X3D node is IndexedXxx)
+    { If CoordIndex assigned (this X3D node is IndexedXxx)
       then calculate and set IndexesFromCoordIndex here.
-      This is also the place to set Arrays.Primitive and Arrays.Counts. }
+
+      This is also the place to set various Arrays properties:
+
+      @unorderedList(
+        @item(When CoordIndex not assigned, you can assign Arrays.Indexes,
+          if you want to use indexes for rendering non-indexed primitive
+          (this makes sense e.g. to render TriangleSet with shWireframe).)
+
+        @item(Arrays.Primitive should be adjusted here)
+
+        @item(Arrays.Counts)
+
+        @item(Arrays.ForceUnlit, Arrays.ForceUnlitColor
+          (e.g. using WireframeShapePrepareIndexesPrimitives).)
+      )
+
+      It's also the last chance to assign CoordIndex (in case
+      taking it from Geometry.CoordIndexField, which we do in this base class,
+      wasn't enough). }
     procedure PrepareIndexesPrimitives; virtual; abstract;
 
     { Called when constructing Arrays, before the Arrays.Count is set.
