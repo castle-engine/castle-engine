@@ -285,6 +285,7 @@ castle-game-engine-*.fpm
 /tools/internal/check_units_dependencies/check_one_unit_dependencies
 /tools/internal/fpc-cge/fpc-cge
 /tools/internal/generate_webgl_flat_api/generate_webgl_flat_api
+/tools/internal/generate_ifc/generate_ifc
 /tools/internal/generate-persistent-vectors/generate-persistent-vectors
 /tools/internal/teapot-to-pascal/teapot-to-pascal
 /tools/internal/x3d-nodes-to-pascal/x3d-nodes-to-pascal
