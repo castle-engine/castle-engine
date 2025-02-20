@@ -86,7 +86,10 @@ type
   strict private
     TriFaceNormal: TVector3;
     VRML1FrontFaceCcw, VRML1CullFace: boolean;
-    procedure PrepareIndexesCoordsRange(
+    procedure PrepareIndexesCoordsRangeWireframe(
+      const RangeNumber: Cardinal;
+      BeginIndex, EndIndex: Integer);
+    procedure PrepareIndexesCoordsRangeNotWireframe(
       const RangeNumber: Cardinal;
       BeginIndex, EndIndex: Integer);
   protected
@@ -626,21 +629,18 @@ end;
 procedure TTriangleFanSetGenerator.PrepareIndexesCoordsRangeNotWireframe(
   const RangeNumber: Cardinal;
   BeginIndex, EndIndex: Integer);
+var
+  CurrentIndex: Integer;
 begin
   if BeginIndex + 2 < EndIndex then
   begin
     Arrays.Counts.Add(EndIndex - BeginIndex);
 
+    // add indexes from CoordIndex to IndexesFromCoordIndex
     if CoordIndex <> nil then
     begin
-      IndexesFromCoordIndex.Add(CoordIndex.Items.L[BeginIndex]);
-      IndexesFromCoordIndex.Add(CoordIndex.Items.L[BeginIndex + 1]);
-
-      while BeginIndex + 2 < EndIndex do
-      begin
-        IndexesFromCoordIndex.Add(CoordIndex.Items.L[BeginIndex + 2]);
-        Inc(BeginIndex);
-      end;
+      for CurrentIndex := BeginIndex to EndIndex - 1 do
+        IndexesFromCoordIndex.Add(CoordIndex.Items.L[CurrentIndex]);
     end;
   end;
 end;
@@ -828,32 +828,82 @@ end;
 
 procedure TTriangleStripSetGenerator.PrepareIndexesPrimitives;
 begin
-  Arrays.Primitive := gpTriangleStrip;
-  Arrays.Counts := TCardinalList.Create;
   if CoordIndex <> nil then
     IndexesFromCoordIndex := TUInt32List.Create;
-  Geometry.InternalMakeCoordRanges(State,
-    {$ifdef FPC}@{$endif}PrepareIndexesCoordsRange);
+
+  if WireframeShape then
+  begin
+    WireframeShapePrepareIndexesPrimitives;
+    { We need either CoordIndex or Arrays.Indexes to define lines.
+      The AddLineIndex inside TTriangleFanSetGenerator.PrepareIndexesCoordsRangeWireframe
+      relies on it. }
+    if CoordIndex = nil then
+      Arrays.Indexes := TGeometryIndexList.Create;
+    Geometry.InternalMakeCoordRanges(State,
+      {$ifdef FPC}@{$endif} PrepareIndexesCoordsRangeWireframe);
+  end else
+  begin
+    Arrays.Primitive := gpTriangleStrip;
+    Arrays.Counts := TCardinalList.Create;
+    Geometry.InternalMakeCoordRanges(State,
+      {$ifdef FPC}@{$endif} PrepareIndexesCoordsRangeNotWireframe);
+  end;
 end;
 
-procedure TTriangleStripSetGenerator.PrepareIndexesCoordsRange(
+procedure TTriangleStripSetGenerator.PrepareIndexesCoordsRangeWireframe(
   const RangeNumber: Cardinal;
   BeginIndex, EndIndex: Integer);
+
+  procedure AddLineIndex(const Index: Integer);
+  begin
+    if CoordIndex <> nil then
+      IndexesFromCoordIndex.Add(CoordIndex.Items.L[Index])
+    else
+    begin
+      Assert(Arrays.Indexes <> nil);
+      Arrays.Indexes.Add(Index);
+    end;
+  end;
+
+var
+  CurrentIndex: Integer;
+begin
+  if BeginIndex + 2 < EndIndex then
+  begin
+    for CurrentIndex := BeginIndex + 2 to EndIndex - 1 do
+    begin
+      { Make triangle fan edges between
+          CurrentIndex - 2
+          CurrentIndex - 1
+          CurrentIndex
+      }
+      AddLineIndex(CurrentIndex - 2);
+      AddLineIndex(CurrentIndex - 1);
+
+      AddLineIndex(CurrentIndex - 1);
+      AddLineIndex(CurrentIndex);
+
+      AddLineIndex(CurrentIndex);
+      AddLineIndex(CurrentIndex - 2);
+    end;
+  end;
+end;
+
+procedure TTriangleStripSetGenerator.PrepareIndexesCoordsRangeNotWireframe(
+  const RangeNumber: Cardinal;
+  BeginIndex, EndIndex: Integer);
+var
+  CurrentIndex: Integer;
 begin
   if BeginIndex + 2 < EndIndex then
   begin
     Arrays.Counts.Add(EndIndex - BeginIndex);
 
+    // add indexes from CoordIndex to IndexesFromCoordIndex
     if CoordIndex <> nil then
     begin
-      IndexesFromCoordIndex.Add(CoordIndex.Items.L[BeginIndex]);
-      IndexesFromCoordIndex.Add(CoordIndex.Items.L[BeginIndex + 1]);
-
-      while BeginIndex + 2 < EndIndex do
-      begin
-        IndexesFromCoordIndex.Add(CoordIndex.Items.L[BeginIndex + 2]);
-        Inc(BeginIndex);
-      end;
+      for CurrentIndex := BeginIndex to EndIndex - 1 do
+        IndexesFromCoordIndex.Add(CoordIndex.Items.L[CurrentIndex]);
     end;
   end;
 end;
@@ -861,14 +911,15 @@ end;
 procedure TTriangleStripSetGenerator.GenerateCoordinate;
 begin
   Geometry.InternalMakeCoordRanges(State,
-    {$ifdef FPC}@{$endif}GenerateCoordsRange);
+    {$ifdef FPC}@{$endif} GenerateCoordsRange);
 end;
 
 procedure TTriangleStripSetGenerator.GenerateVertex(IndexNum: Integer);
 begin
   inherited;
-  if NorImplementation = niNone then
-    Arrays.Normal(ArrayIndexNum)^ := TriFaceNormal;
+  if not WireframeShape then
+    if NorImplementation = niNone then
+      Arrays.Normal(ArrayIndexNum)^ := TriFaceNormal;
 end;
 
 procedure TTriangleStripSetGenerator.GetNormal(IndexNum: Integer; RangeNumber: Integer;

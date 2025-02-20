@@ -323,7 +323,7 @@ begin
   { calculate IFSIndexesCount by one iteration over coordIndex }
   IFSIndexesCount := 0;
   Geometry.InternalMakeCoordRanges(State,
-    {$ifdef FPC}@{$endif}PrepareIndexesCoordsRange1);
+    {$ifdef FPC}@{$endif} PrepareIndexesCoordsRange1);
 
   if WireframeShape then
     WireframeShapePrepareIndexesPrimitives;
@@ -342,7 +342,7 @@ begin
   TrivialIndexesFromCoordIndex.Count := IFSIndexesCount;
   IFSNextIndex := 0;
   Geometry.InternalMakeCoordRanges(State,
-    {$ifdef FPC}@{$endif}PrepareIndexesCoordsRange2);
+    {$ifdef FPC}@{$endif} PrepareIndexesCoordsRange2);
   Assert(IFSNextIndex = IFSIndexesCount);
 end;
 
