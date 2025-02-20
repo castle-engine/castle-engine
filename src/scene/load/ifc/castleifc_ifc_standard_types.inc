@@ -5705,6 +5705,16 @@ function IfcClasses: TIfcPersistentClassList;
 
 {$ifdef read_implementation}
 
+const
+  { Default rotation in X3D TTransformNode.Rotation.
+    For CGE, axis doesn't matter when angle = 0 and we could even use
+    TVector4.Zero (zero axis is allowed in this special case)
+    but we use DefaultX3DRotation to not cause "noise" in output X3D file.
+
+    See also TCastleTransform.InternalBuildNode and RotationHasZDefault
+    comments. }
+  DefaultX3DRotation: TVector4 = (X: 0; Y: 0; Z: 1; W: 0);
+
 { TIfcRoot --------------------------------------------------------------- }
 
 function TIfcRoot.WantsGlobalId: Boolean;
@@ -5913,7 +5923,7 @@ var
 begin
   Result := false;
   Translation := TVector3.Zero;
-  Rotation := TVector4.Zero;
+  Rotation := DefaultX3DRotation;
 
   // check ObjectPlacement
   if ObjectPlacement = nil then
@@ -7388,7 +7398,7 @@ begin
   if TVector3.Equals(NewAxis[0], TVector3.One[0]) and
      TVector3.Equals(NewAxis[1], TVector3.One[1]) and
      TVector3.Equals(NewAxis[2], TVector3.One[2]) then
-    Exit(TVector4.Zero);
+    Exit(DefaultX3DRotation);
 
   for I := 0 to 2 do
     for J := 0 to 2 do

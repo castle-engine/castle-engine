@@ -4770,7 +4770,8 @@ function TCastleTransform.InternalBuildNode: TObject;
     - Default = (0,0,0,0) in CGE (as a special exception, we allow zero axis).
       This is a nice default value for rotations, consistent with many other
       defaults that are "equal to memory filled with zero" when possible,
-      and it doesn't suggest any rotation axis (for 2D, Z axis is not useful).
+      and it doesn't suggest any rotation axis (for 2D, rotating around Z
+      is most common; for 3D, rotating around Y is most common).
 
     - And they have default = (0,0,1,0) in X3D.
 
