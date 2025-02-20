@@ -49,18 +49,22 @@ uses Classes, SysUtils, Contnrs, Generics.Collections,
 { ---------------------------------------------------------------------------- }
 { @section(TStrings utilities) }
 
-{ Add some strings. }
-procedure StringsAdd(Strs: TStrings; Count: integer; itemVal: string='dummy'); overload;
+{ @deprecated }
+procedure StringsAdd(Strs: TStrings; Count: integer; itemVal: string='dummy');
+  deprecated 'this utility is very trivial and seldom useful; better implement it in yourself, without relying on CastleClassUtils';
 
 { Add all strings from string array to TStrings instance. }
 procedure AddStrArrayToStrings(const StrArr: array of string; strlist: TStrings);
+  deprecated 'use TStrings.AddStrings';
 
 type
-  { TStringList that is case sensitive. }
+  { TStringList that is case sensitive.
+    @deprecated
+    Deprecated, better use TStringList directly and set CaseSensitive to true. }
   TStringListCaseSens = class(TStringList)
     constructor Create;
     property CaseSensitive default true;
-  end;
+  end deprecated;
 
 { Splits S by Splitter, and adds each splitted part to Strings.
   Splitting is done by Splitter, i.e. if N is the number of occurrences
@@ -71,13 +75,14 @@ type
 procedure Strings_AddSplittedString(Strings: TStrings;
   const S, Splitter: string);
 
-{ Use this instead of @code(SList.Text := S) to workaround FPC 2.0.2 bug.
-  See [http://www.freepascal.org/mantis/view.php?id=6699] }
+{ @deprecated }
 procedure Strings_SetText(SList: TStrings; const S: String);
+  deprecated 'use SList.Text := S';
 
 { Make sure we don't have more than MaxCount strings on a list.
   Removes the last strings if necessary. }
 procedure Strings_Trim(Strings: TStrings; MaxCount: Cardinal);
+  deprecated 'this utility is very trivial and seldom useful; better implement it in yourself, without relying on CastleClassUtils';
 
 { ---------------------------------------------------------------------------- }
 { @section(TStream utilities) }
