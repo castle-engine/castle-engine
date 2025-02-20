@@ -218,16 +218,19 @@ procedure TCastleIfcMapping.FixParentChildRelationships(const RootNode: TX3DRoot
   end;
 
   { Go up the nodes hierachy, returning direct parent (any TAbstractGroupingNode)
-    and possibly non-direct TransformParent (TTransformNode) parent.
-    Returns @true and for sure non-nil DirectParent, TransformParent on success.
-    On failure returns @false and DirectParent, TransformParent are undefined.
+    and possibly non-direct TransformOrRootParent (TTransformNode or TX3DRootNode)
+    parent.
+
+    Returns @true and for sure non-nil DirectParent, TransformOrRootParent on success.
+    On failure returns @false and DirectParent, TransformOrRootParent are undefined.
 
     This way of searching for 2 parents accounts for the fact that
     things in TIfcProduct are wrapped in additional groups related to 'Representation'.
     We don't need to move things out of these groups,
     if ultimately they are placed in the right TTransformNode. }
   function GetParentNode(const Node: TTransformNode;
-    out DirectParent: TAbstractGroupingNode; out TransformParent: TTransformNode): Boolean;
+    out DirectParent: TAbstractGroupingNode;
+    out TransformOrRootParent: TAbstractGroupingNode): Boolean;
 
     function GetDirectParent(const Node: TAbstractGroupingNode): TAbstractGroupingNode;
     begin
@@ -253,23 +256,28 @@ procedure TCastleIfcMapping.FixParentChildRelationships(const RootNode: TX3DRoot
     end;
 
   var
-    PotentialTransformParent: TAbstractGroupingNode;
+    PotentialTransformOrRootParent: TAbstractGroupingNode;
   begin
     Result := false;
     DirectParent := GetDirectParent(Node);
-    TransformParent := nil; // initialize to nil
+    TransformOrRootParent := nil; // initialize to nil
     if DirectParent = nil then
       Exit; // exit with Result = false
 
-    PotentialTransformParent := DirectParent;
-    while not (PotentialTransformParent is TTransformNode) do
+    PotentialTransformOrRootParent := DirectParent;
+    while not (
+      (PotentialTransformOrRootParent is TTransformNode) or
+      (PotentialTransformOrRootParent is TX3DRootNode) ) do
     begin
-      PotentialTransformParent := GetDirectParent(PotentialTransformParent);
-      if PotentialTransformParent = nil then
+      PotentialTransformOrRootParent := GetDirectParent(PotentialTransformOrRootParent);
+      if PotentialTransformOrRootParent = nil then
         Exit; // exit with Result = false
     end;
-    Assert(PotentialTransformParent is TTransformNode);
-    TransformParent := TTransformNode(PotentialTransformParent);
+    Assert(
+      (PotentialTransformOrRootParent is TTransformNode) or
+      (PotentialTransformOrRootParent is TX3DRootNode)
+    );
+    TransformOrRootParent := PotentialTransformOrRootParent;
     Result := true;
   end;
 
@@ -278,8 +286,8 @@ var
     {$ifdef FPC}TChildrenNodesToObjectPlacement.TDictionaryPair
     {$else}TPair<TTransformNode, TIfcObjectPlacement>
     {$endif};
-  Child, OldParentTransform, NewParent: TTransformNode;
-  OldParentDirect: TAbstractGroupingNode;
+  Child, NewParent: TTransformNode;
+  OldParentDirect, OldParentTransformOrRoot: TAbstractGroupingNode;
   SearchObjectPlacementsWithoutNodes: Boolean;
 begin
   SearchObjectPlacementsWithoutNodes := true;
@@ -307,11 +315,11 @@ begin
   for ChildToPlacement in ChildrenNodesToObjectPlacement do
   begin
     Child := ChildToPlacement.Key;
-    if GetParentNode(Child, OldParentDirect, OldParentTransform) then
+    if GetParentNode(Child, OldParentDirect, OldParentTransformOrRoot) then
     begin
       if ObjectPlacementToParentNodes.TryGetValue(ChildToPlacement.Value, NewParent) then
       begin
-        if OldParentTransform <> NewParent then
+        if OldParentTransformOrRoot <> NewParent then
         begin
           // This is normal (and even used in examples/ifc/ to attach window to wall), don't log.
           // WritelnLog('IFC', 'Fixing parent of "%s" to be relative to ObjectPlacement GUID "%s" to follow placementRelTo', [
@@ -327,7 +335,10 @@ begin
         WritelnWarning('IFC', 'Cannot find TTransformNode corresponding to IfcObjectPlacement with GUID "%s", so the placementRelTo is not resolved correctly. This means taht transformation of some objects may be incorrect. Please submit a bug, the code *should* have created all necessary TTransformNode nodes.', [
           ChildToPlacement.Value.GlobalId
         ]);
-    end;
+    end else
+      WritelnWarning('IFC', 'Cannot find parent of "%s". This means that transformation of some objects may be incorrect due to unresolved placementRelTo. Please submit a bug.', [
+        Child.NiceName
+      ]);
   end;
 end;
 
