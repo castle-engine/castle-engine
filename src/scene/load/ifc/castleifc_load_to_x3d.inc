@@ -1139,6 +1139,17 @@ function TIfcExtrudedAreaSolid.BuildNode(const Mapping: TCastleIfcMapping;
     Transform.AddChildren(Shape);
   end;
 
+  { TCoordinateNode created here is shared by 2 X3D geometries,
+    use nice unique name for it to allow saving to X3D with DEF/USE sharing. }
+  function CoordinateX3DName: String;
+  begin
+    Result := 'ExtrudedAreaSolid_Coordinate_';
+    if GlobalId <> '' then
+      Result := Result + GlobalId
+    else
+      Result := Result + RandomGuidIfc;
+  end;
+
 var
   SideQuads: TIndexedQuadSetNode;
   TopBottomCaps: TIndexedFaceSetNode;
@@ -1212,7 +1223,7 @@ begin
       C := CrossSection.Count;
       if C <> 0 then
       begin
-        Coord := TCoordinateNode.Create('', Mapping.BaseUrl);
+        Coord := TCoordinateNode.Create(CoordinateX3DName, Mapping.BaseUrl);
         Coord.FdPoint.Count := C * 2;
         for I := 0 to C - 1 do
         begin
