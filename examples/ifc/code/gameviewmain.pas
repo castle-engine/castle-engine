@@ -33,13 +33,15 @@ type
     LabelFps, LabelWireframeEffect, LabelHierarchy: TCastleLabel;
     ButtonNew, ButtonLoad, ButtonSaveIfc, ButtonSaveNode,
       ButtonAddWall, ButtonAddWallAndWindow,
-      ButtonModifyRandomElement, ButtonChangeWireframeEffect: TCastleButton;
+      ButtonModifyRandomElement, ButtonChangeWireframeEffect,
+      ButtonViewEntireModel: TCastleButton;
     IfcScene: TCastleScene;
     MainViewport: TCastleViewport;
     ExamineNavigation: TCastleExamineNavigation;
     TransformSelectedProduct: TCastleTransform;
     ButtonHierarchyTemplate: TCastleButton;
     GroupHierarchy: TCastleVerticalGroup;
+    CheckboxIfcDebugDisplay: TCastleCheckbox;
   private
     IfcFile: TIfcFile;
     { New elements (TIfcElement instances) have to be added to this container.
@@ -88,10 +90,13 @@ type
     procedure ClickAddWallAndWindow(Sender: TObject);
     procedure ClickModifyRandomElement(Sender: TObject);
     procedure ClickChangeWireframeEffect(Sender: TObject);
+    procedure ClickViewEntireModel(Sender: TObject);
     procedure MainViewportPress(const Sender: TCastleUserInterface;
       const Event: TInputPressRelease; var Handled: Boolean);
     procedure TransformManipulateTransformModified(Sender: TObject);
     procedure ButtonHierarchyClick(Sender: TObject);
+    procedure IfcDebugDisplayChange(Sender: TObject);
+    procedure IfcDebugDisplayToggleShape(Node: TX3DNode);
   public
     constructor Create(AOwner: TComponent); override;
     procedure Start; override;
@@ -145,6 +150,8 @@ begin
   ButtonAddWallAndWindow.OnClick := {$ifdef FPC}@{$endif} ClickAddWallAndWindow;
   ButtonModifyRandomElement.OnClick := {$ifdef FPC}@{$endif} ClickModifyRandomElement;
   ButtonChangeWireframeEffect.OnClick := {$ifdef FPC}@{$endif} ClickChangeWireframeEffect;
+  ButtonViewEntireModel.OnClick := {$ifdef FPC}@{$endif} ClickViewEntireModel;
+  CheckboxIfcDebugDisplay.OnChange := {$ifdef FPC}@{$endif} IfcDebugDisplayChange;
 
   MainViewport.OnPress := {$ifdef FPC}@{$endif} MainViewportPress;
 
@@ -186,6 +193,10 @@ begin
   IfcMapping.Load(IfcFile, 'castle-data:/');
 
   IfcScene.Load(IfcMapping.RootNode, true);
+
+  // update debug boxes display
+  if not CheckboxIfcDebugDisplay.Checked then
+    IfcDebugDisplayChange(nil);
 
   UpdateHierarchy;
 
@@ -729,6 +740,41 @@ begin
     IfcSelectedProductShapeTranslation;
   IfcMapping.Update(IfcFile);
   IfcSelectedProductShapeTranslation := TransformSelectedProduct.Translation;
+end;
+
+procedure TViewMain.IfcDebugDisplayChange(Sender: TObject);
+begin
+  IfcScene.RootNode.EnumerateNodes(TShapeNode,
+    {$ifdef FPC}@{$endif} IfcDebugDisplayToggleShape, false);
+end;
+
+procedure TViewMain.IfcDebugDisplayToggleShape(Node: TX3DNode);
+var
+  ShapeNode: TShapeNode;
+begin
+  { Change the visibility of shapes representing IfcBoundingBox
+    to match current state of CheckboxIfcDebugDisplay. }
+  ShapeNode := Node as TShapeNode; // our EnumerateNodes call finds only TShapeNode
+  if ShapeNode.MetadataString['IFC_ClassName'] = 'TIfcBoundingBox' then
+    ShapeNode.Visible := CheckboxIfcDebugDisplay.Checked;
+end;
+
+procedure TViewMain.ClickViewEntireModel(Sender: TObject);
+var
+  Box: TBox3D;
+  CameraDir, CameraPos: TVector3;
+begin
+  Box := IfcScene.WorldBoundingBox;
+  if Box.IsEmpty then
+    Exit;
+
+  { Add some margin around the model, making all sizes non-zero.
+    Makes good camera view even when the model is a flat plane. }
+  Box := Box.Grow(1);
+
+  CameraDir := Box.Center - Box.Max;
+  CameraPos := Box.Max - CameraDir * 2;
+  MainViewport.Camera.AnimateTo(CameraPos, CameraDir, TVector3.One[1], 0.25);
 end;
 
 end.

@@ -1421,6 +1421,11 @@ begin
   Shape.Geometry := Box;
   Shape.Appearance := UnlitAppearance;
 
+  { Set IFC_ClassName on Shape, not Transform.
+    This is consistent with other TShapeNode creation,
+    and allows easy IfcDebugDisplayToggleShape implementation in examples/ifc/. }
+  SetMetadata(Shape, 'IFC_ClassName', ClassName);
+
   // bounding box is not the final geometry, so show only wireframe
   Shape.Shading := shWireframe;
 
@@ -1432,8 +1437,6 @@ begin
   Transform := TTransformNode.Create('', Mapping.BaseUrl);
   Transform.Translation := CornerPoint + Box.Size / 2;
   Transform.AddChildren(Shape);
-
-  SetMetadata(Transform, 'IFC_ClassName', ClassName);
 
   Mapping.ConnectShapeAndProduct(Shape, ParentProduct);
   Result := Transform;
