@@ -56,7 +56,7 @@
     { Use ObjectPlacementToParentNodes and ChildrenNodesToObjectPlacement
       to move the nodes (change parents) to reflect
       TIfcObjectPlacement.PlacementRelTo instructions. }
-    procedure FixParentChildRelationships;
+    procedure FixParentChildRelationships(const RootNode: TX3DRootNode);
 
     function CreateRootNode(const Ifc: TIfcFile): TX3DRootNode;
     procedure ShapeDestroyed(const Node: TX3DNode);
@@ -196,7 +196,26 @@ begin
   inherited;
 end;
 
-procedure TCastleIfcMapping.FixParentChildRelationships;
+procedure TCastleIfcMapping.FixParentChildRelationships(const RootNode: TX3DRootNode);
+
+  { Create TTransformNode for TIfcObjectPlacement instances
+    that do not (yet) have the corresponding TTransformNode.
+
+    In the usual case, TIfcObjectDefinition.BuildNode
+    creates TTransformNode which is then filled with TIfcObjectPlacement
+    information. But some TIfcObjectPlacement instances
+    are not directly inside any TIfcObjectDefinition,
+    yet they are referenced by placementRelTo from other TIfcObjectPlacement instances.
+
+    Testcase: ifc_window_test/1_initial_tests/new-wall-with-opening-and-window.ifcjson
+  }
+  procedure AddTransformNodeForObjectPlacement(const ObjectPlacement: TIfcObjectPlacement);
+  var
+    Transform: TTransformNode;
+  begin
+    Transform := ObjectPlacement.BuildNode(Self);
+    RootNode.AddChildren(Transform);
+  end;
 
   { Go up the nodes hierachy, returning direct parent (any TAbstractGroupingNode)
     and possibly non-direct TransformParent (TTransformNode) parent.
@@ -261,25 +280,53 @@ var
     {$endif};
   Child, OldParentTransform, NewParent: TTransformNode;
   OldParentDirect: TAbstractGroupingNode;
+  SearchObjectPlacementsWithoutNodes: Boolean;
 begin
+  SearchObjectPlacementsWithoutNodes := true;
+  while SearchObjectPlacementsWithoutNodes do
+  begin
+    SearchObjectPlacementsWithoutNodes := false;
+    for ChildToPlacement in ChildrenNodesToObjectPlacement do
+    begin
+      if not ObjectPlacementToParentNodes.ContainsKey(ChildToPlacement.Value) then
+      begin
+        AddTransformNodeForObjectPlacement(ChildToPlacement.Value);
+        { The dictionaties ChildrenNodesToObjectPlacement,
+          ObjectPlacementToParentNodes have been modified (new pair was added)
+          by TIfcObjectPlacement.UpdateNode.
+          And possibly new TIfcObjectPlacement was discovered, that now needs
+          new TTransformNode.
+          So break this iteration over ChildrenNodesToObjectPlacement,
+          and start searching again. }
+        SearchObjectPlacementsWithoutNodes := true;
+        Break;
+      end;
+    end;
+  end;
+
   for ChildToPlacement in ChildrenNodesToObjectPlacement do
   begin
     Child := ChildToPlacement.Key;
     if GetParentNode(Child, OldParentDirect, OldParentTransform) then
     begin
-      if ObjectPlacementToParentNodes.TryGetValue(ChildToPlacement.Value, NewParent) and
-         (OldParentTransform <> NewParent) then
+      if ObjectPlacementToParentNodes.TryGetValue(ChildToPlacement.Value, NewParent) then
       begin
-        // This is normal (and even used in examples/ifc/ to attach window to wall), don't log.
-        // WritelnLog('IFC', 'Fixing parent of "%s" to be relative to ObjectPlacement GUID "%s" to follow placementRelTo', [
-        //   Child.NiceName,
-        //   ChildToPlacement.Value.GlobalId
-        // ]);
-        Child.KeepExistingBegin; // do not free Child because ref count temporarily drops to zero below
-        OldParentDirect.RemoveChildren(Child);
-        NewParent.AddChildren(Child);
-        Child.KeepExistingEnd;
-      end;
+        if OldParentTransform <> NewParent then
+        begin
+          // This is normal (and even used in examples/ifc/ to attach window to wall), don't log.
+          // WritelnLog('IFC', 'Fixing parent of "%s" to be relative to ObjectPlacement GUID "%s" to follow placementRelTo', [
+          //   Child.NiceName,
+          //   ChildToPlacement.Value.GlobalId
+          // ]);
+          Child.KeepExistingBegin; // do not free Child because ref count temporarily drops to zero below
+          OldParentDirect.RemoveChildren(Child);
+          NewParent.AddChildren(Child);
+          Child.KeepExistingEnd;
+        end;
+      end else
+        WritelnWarning('IFC', 'Cannot find TTransformNode corresponding to IfcObjectPlacement with GUID "%s", so the placementRelTo is not resolved correctly. This means taht transformation of some objects may be incorrect. Please submit a bug, the code *should* have created all necessary TTransformNode nodes.', [
+          ChildToPlacement.Value.GlobalId
+        ]);
     end;
   end;
 end;
@@ -301,7 +348,7 @@ begin
   ChildrenNodesToObjectPlacement := TChildrenNodesToObjectPlacement.Create;
   try
     Result := Ifc.BuildNode(Self);
-    FixParentChildRelationships;
+    FixParentChildRelationships(Result);
   finally
     FreeAndNil(ObjectPlacementToParentNodes);
     FreeAndNil(ChildrenNodesToObjectPlacement);
@@ -1631,7 +1678,15 @@ begin
   ProcessList(WAxes, 2);
 end;
 
-{ UpdateNode methods implementations ----------------------------------------- }
+{ TIfc*Placement methods implementations ----------------------------------------- }
+
+function TIfcObjectPlacement.BuildNode(const Mapping: TCastleIfcMapping): TTransformNode;
+begin
+  Result := TTransformNode.Create('', Mapping.BaseUrl);
+  SetMetadata(Result, 'IFC_ClassName', ClassName);
+  SetMetadata(Result, 'IFC_Name', Name);
+  UpdateNode(Mapping, Result);
+end;
 
 procedure TIfcObjectPlacement.UpdateNode(const Mapping: TCastleIfcMapping;
   const Transform: TTransformNode);

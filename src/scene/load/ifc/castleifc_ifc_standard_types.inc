@@ -2687,6 +2687,21 @@
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
+
+    { Build TTransformNode representing this TIfcObjectPlacement.
+
+      This is not used for TIfcObjectPlacement that are directly referenced
+      by TIfcObjectDefinition, in which case TIfcObjectDefinition creates
+      TTransformNode, and only calls our @link(UpdateNode) to set it's parameters.
+
+      This is used for TIfcObjectPlacement instances that are @italic(not)
+      directly referenced by TIfcObjectDefinition (but may be still useful,
+      e.g. as placementRelTo targets for other TIfcObjectPlacement instances). }
+    function BuildNode(const Mapping: TCastleIfcMapping): TTransformNode;
+
+    { Update the TTransformNode with the transformation expressed by this
+      TIfcObjectPlacement (local transformation, not accounding for any
+      transformation implied by @link(PlacementRelTo)). }
     procedure UpdateNode(const Mapping: TCastleIfcMapping;
       const Transform: TTransformNode); virtual;
   published
@@ -2945,8 +2960,8 @@
           of an object, relative to various parents.
 
           If in doubt, just don't use this property when @link(TransformSupported)
-          is @false. Instead, investigate and change the @link(ObjectPlacement)
-          properties.
+          is @false. Instead, in that case (@link(TransformSupported) = @false),
+          investigate and change the @link(ObjectPlacement) properties.
         )
       )
     }
