@@ -1049,6 +1049,30 @@ end;
 
 procedure TQuadSetGenerator.PrepareIndexesPrimitives;
 
+  { Calculate IndexesFromCoordIndex for wireframe of quad primitive. }
+  procedure CalculateIndexesFromCoordIndexForWireframe;
+  var
+    I: Integer;
+  begin
+    I := 0;
+    while I + 3 < CoordCount do
+    begin
+      IndexesFromCoordIndex.Add(CoordIndex.Items.L[I]);
+      IndexesFromCoordIndex.Add(CoordIndex.Items.L[I + 1]);
+
+      IndexesFromCoordIndex.Add(CoordIndex.Items.L[I + 1]);
+      IndexesFromCoordIndex.Add(CoordIndex.Items.L[I + 2]);
+
+      IndexesFromCoordIndex.Add(CoordIndex.Items.L[I + 2]);
+      IndexesFromCoordIndex.Add(CoordIndex.Items.L[I + 3]);
+
+      IndexesFromCoordIndex.Add(CoordIndex.Items.L[I + 3]);
+      IndexesFromCoordIndex.Add(CoordIndex.Items.L[I]);
+
+      Inc(I, 4);
+    end;
+  end;
+
   { Calculate IndexesFromCoordIndex for triangle primitive
     from CoordIndex for quad primitive. }
   procedure CalculateIndexesFromCoordIndexForTriangles;
@@ -1069,37 +1093,33 @@ procedure TQuadSetGenerator.PrepareIndexesPrimitives;
     end;
   end;
 
-  procedure CalculateCountsForTriangleFan;
-  var
-    I: Integer;
-  begin
-    I := 0;
-    while I + 3 < CoordCount do
-    begin
-      Arrays.Counts.Add(4);
-      Inc(I, 4);
-    end;
-  end;
-
 begin
   { On OpenGLES and modern OpenGL ( https://docs.gl/gl3/glDrawArrays ),
     we don't have GL_QUADS primitive. So render quads by splitting them into triangles. }
 
   Assert(CoordIndex <> nil); // we only handle TIndexedQuadSetNode here
-
-  Arrays.Primitive := gpTriangles;
   IndexesFromCoordIndex := TUInt32List.Create;
-  CalculateIndexesFromCoordIndexForTriangles;
+
+  if WireframeShape then
+  begin
+    WireframeShapePrepareIndexesPrimitives;
+    CalculateIndexesFromCoordIndexForWireframe;
+  end else
+  begin
+    Arrays.Primitive := gpTriangles;
+    CalculateIndexesFromCoordIndexForTriangles;
+  end;
 end;
 
 procedure TQuadSetGenerator.GenerateVertex(IndexNum: Integer);
 begin
   inherited;
-  if NorImplementation = niNone then
-  begin
-    Assert(Arrays.Indexes = nil);
-    Arrays.Normal(ArrayIndexNum)^ := QuadFaceNormal;
-  end;
+  if not WireframeShape then
+    if NorImplementation = niNone then
+    begin
+      Assert(Arrays.Indexes = nil);
+      Arrays.Normal(ArrayIndexNum)^ := QuadFaceNormal;
+    end;
 end;
 
 procedure TQuadSetGenerator.GetNormal(IndexNum: Integer; RangeNumber: Integer;
@@ -1128,8 +1148,6 @@ begin
         TriangleNormal(GetVertex(I), GetVertex(I + 2), GetVertex(I + 3)) ).Normalize;
 
     CalculateTangentVectors(I, I + 1, I + 2);
-
-    Assert(Arrays.Primitive = gpTriangles);
 
     { call GenerateVertex in the same order as you places vertexes
       on IndexesFromCoordIndex in CalculateIndexesFromCoordIndexForTriangles. }
@@ -1184,7 +1202,7 @@ begin
   if CoordIndex <> nil then
     IndexesFromCoordIndex := TUInt32List.Create;
   Geometry.InternalMakeCoordRanges(State,
-    {$ifdef FPC}@{$endif}PrepareIndexesCoordsRange);
+    {$ifdef FPC}@{$endif} PrepareIndexesCoordsRange);
 end;
 
 procedure TAbstractLineSetGenerator.GenerateCoordsRange(
@@ -1200,7 +1218,7 @@ end;
 procedure TAbstractLineSetGenerator.GenerateCoordinate;
 begin
   Geometry.InternalMakeCoordRanges(State,
-    {$ifdef FPC}@{$endif}GenerateCoordsRange);
+    {$ifdef FPC}@{$endif} GenerateCoordsRange);
 end;
 
 { TIndexedLineSet_1Generator -------------------------------------------------- }
