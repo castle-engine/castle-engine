@@ -177,7 +177,8 @@ type
       In descendants, it may be useful to use this, like
 
       @longCode(#
-        Geometry.InternalMakeCoordRanges(State, {$ifdef FPC}@{$endif} GenerateCoordsRange);
+        Geometry.InternalMakeCoordRanges(State,
+          {$ifdef FPC}@{$endif} GenerateCoordsRange);
       #)
 
       GenerateCoordsRange is supposed to generate the parts of the mesh

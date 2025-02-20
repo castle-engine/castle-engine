@@ -145,7 +145,7 @@ end;
 procedure TAbstractIndexedFaceSetGenerator.GenerateCoordinate;
 begin
   Geometry.InternalMakeCoordRanges(State,
-    {$ifdef FPC}@{$endif}GenerateCoordsRange);
+    {$ifdef FPC}@{$endif} GenerateCoordsRange);
 end;
 
 procedure TAbstractIndexedFaceSetGenerator.AutoGenerateNormals(

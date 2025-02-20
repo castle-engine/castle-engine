@@ -57,7 +57,10 @@ type
   TTriangleFanSetGenerator = class(TAbstractCompleteGenerator)
   strict private
     TriFaceNormal: TVector3;
-    procedure PrepareIndexesCoordsRange(
+    procedure PrepareIndexesCoordsRangeWireframe(
+      const RangeNumber: Cardinal;
+      BeginIndex, EndIndex: Integer);
+    procedure PrepareIndexesCoordsRangeNotWireframe(
       const RangeNumber: Cardinal;
       BeginIndex, EndIndex: Integer);
   protected
@@ -340,7 +343,7 @@ procedure TTriangleSetGenerator.PrepareIndexesPrimitives;
   { Set IndexesFromCoordIndex or Arrays.Indexes count and contents to define
     a wireframe for triangles.
     Just 2 lines for each triangle edge, for each (complete) triangle. }
-  procedure CalculateIndexesFromCoordIndexForWireframe;
+  procedure CalculateIndexesForWireframe;
   var
     I: Integer;
     CompleteTrianglesCount: Integer;
@@ -418,7 +421,7 @@ begin
   if WireframeShape then
   begin
     WireframeShapePrepareIndexesPrimitives;
-    CalculateIndexesFromCoordIndexForWireframe;
+    CalculateIndexesForWireframe;
   end else
   begin
     Arrays.Primitive := gpTriangles;
@@ -559,15 +562,68 @@ end;
 
 procedure TTriangleFanSetGenerator.PrepareIndexesPrimitives;
 begin
-  Arrays.Primitive := gpTriangleFan;
-  Arrays.Counts := TCardinalList.Create;
   if CoordIndex <> nil then
     IndexesFromCoordIndex := TUInt32List.Create;
-  Geometry.InternalMakeCoordRanges(State,
-    {$ifdef FPC}@{$endif}PrepareIndexesCoordsRange);
+
+  if WireframeShape then
+  begin
+    WireframeShapePrepareIndexesPrimitives;
+    { We need either CoordIndex or Arrays.Indexes to define lines.
+      The AddLineIndex inside TTriangleFanSetGenerator.PrepareIndexesCoordsRangeWireframe
+      relies on it. }
+    if CoordIndex = nil then
+      Arrays.Indexes := TGeometryIndexList.Create;
+    Geometry.InternalMakeCoordRanges(State,
+      {$ifdef FPC}@{$endif} PrepareIndexesCoordsRangeWireframe);
+  end else
+  begin
+    Arrays.Primitive := gpTriangleFan;
+    Arrays.Counts := TCardinalList.Create;
+    Geometry.InternalMakeCoordRanges(State,
+      {$ifdef FPC}@{$endif} PrepareIndexesCoordsRangeNotWireframe);
+  end;
 end;
 
-procedure TTriangleFanSetGenerator.PrepareIndexesCoordsRange(
+procedure TTriangleFanSetGenerator.PrepareIndexesCoordsRangeWireframe(
+  const RangeNumber: Cardinal;
+  BeginIndex, EndIndex: Integer);
+
+  procedure AddLineIndex(const Index: Integer);
+  begin
+    if CoordIndex <> nil then
+      IndexesFromCoordIndex.Add(CoordIndex.Items.L[Index])
+    else
+    begin
+      Assert(Arrays.Indexes <> nil);
+      Arrays.Indexes.Add(Index);
+    end;
+  end;
+
+var
+  CurrentIndex: Integer;
+begin
+  if BeginIndex + 2 < EndIndex then
+  begin
+    for CurrentIndex := BeginIndex + 2 to EndIndex - 1 do
+    begin
+      { Make triangle fan edges between
+          BeginIndex
+          CurrentIndex - 1
+          CurrentIndex
+      }
+      AddLineIndex(BeginIndex);
+      AddLineIndex(CurrentIndex - 1);
+
+      AddLineIndex(CurrentIndex - 1);
+      AddLineIndex(CurrentIndex);
+
+      AddLineIndex(CurrentIndex);
+      AddLineIndex(BeginIndex);
+    end;
+  end;
+end;
+
+procedure TTriangleFanSetGenerator.PrepareIndexesCoordsRangeNotWireframe(
   const RangeNumber: Cardinal;
   BeginIndex, EndIndex: Integer);
 begin
@@ -591,14 +647,16 @@ end;
 
 procedure TTriangleFanSetGenerator.GenerateCoordinate;
 begin
-  Geometry.InternalMakeCoordRanges(State, {$ifdef FPC}@{$endif}GenerateCoordsRange);
+  Geometry.InternalMakeCoordRanges(State,
+    {$ifdef FPC}@{$endif} GenerateCoordsRange);
 end;
 
 procedure TTriangleFanSetGenerator.GenerateVertex(IndexNum: Integer);
 begin
   inherited;
-  if NorImplementation = niNone then
-    Arrays.Normal(ArrayIndexNum)^ := TriFaceNormal;
+  if not WireframeShape then
+    if NorImplementation = niNone then
+      Arrays.Normal(ArrayIndexNum)^ := TriFaceNormal;
 end;
 
 procedure TTriangleFanSetGenerator.GetNormal(IndexNum: Integer; RangeNumber: Integer;
@@ -606,7 +664,8 @@ procedure TTriangleFanSetGenerator.GetNormal(IndexNum: Integer; RangeNumber: Int
 begin
   if NorImplementation = niNone then
     { TODO: hack, assuming GetNormal is only called for current face }
-    N := TriFaceNormal else
+    N := TriFaceNormal
+  else
     inherited GetNormal(IndexNum, RangeNumber, N);
 end;
 
