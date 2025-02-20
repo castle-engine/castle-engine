@@ -997,6 +997,23 @@ function TIfcConic.BuildEllipseOrCircle(const Mapping: TCastleIfcMapping;
   const ParentProduct: TIfcProduct;
   const LitAppearance, UnlitAppearance: TAppearanceNode;
   const Radius, RadiusY: Single): TAbstractChildNode;
+
+  { Larger radius -> more slices, better quality circle.
+    Since IFC files don't use scaling (except IfcMappedItem),
+    this makes sense, as circle radius corresponds to how large
+    it is usually on screen. }
+  function SlicesFromRadius(const R: Single): Integer;
+  begin
+    if R < 1 then
+      Result := Round(MapRangeClamped(R, 0.25, 1, 16, 32))
+    else
+      Result := Round(MapRangeClamped(R, 1, 5, 32, 64));
+    // WritelnLog('Radius %f results in circle slices %d', [
+    //   R,
+    //   Result
+    // ]);
+  end;
+
 var
   Transform: TTransformNode;
   Translation: TVector3;
@@ -1005,6 +1022,7 @@ var
   Circle: TCircle2DNode;
 begin
   Circle := TCircle2DNode.Create('', Mapping.BaseUrl);
+  Circle.Slices := SlicesFromRadius(Max(Radius, RadiusY));
   Circle.Radius := Radius;
   Circle.RadiusY := RadiusY;
 
