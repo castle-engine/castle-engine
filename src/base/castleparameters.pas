@@ -110,12 +110,20 @@ type
       your arguments are here. You get exactly as many argument
       as your oaRequiredXSeparate requested, the rest of SeparateArgs
       is empty strings.)
+  }
+  TOptionMethod = procedure (
+    const OptionNum: Integer; const HasArgument: Boolean;
+    const Argument: String; const SeparateArgs: TSeparateArgs) of object;
+
+  { Non-method version of the @link(TOptionMethod).
+    Some parameters are not "const" just to not break backward compatibility.
+
+    Most parameters are the same, with the same meaning, as @link(TOptionMethod).
 
     @param(Data This is the OptionProcData value you passed to TParameters.Parse,
-      use this to pass some pointer to your callback.)
-  }
-  TOptionProc = procedure (OptionNum: Integer; HasArgument: boolean;
-    const Argument: string; const SeparateArgs: TSeparateArgs; Data: Pointer);
+      use this to pass some pointer to your callback.) }
+  TOptionProc = procedure (OptionNum: Integer; HasArgument: Boolean;
+    const Argument: String; const SeparateArgs: TSeparateArgs; Data: Pointer);
 
   { Command-line option specification, for TParameters.Parse.
 
@@ -236,7 +244,7 @@ type
 
     { Parse command-line parameters. Given a specification of your command-line
       options (in AOptions), we will find and pass these options to your
-      OptionProc callback. The handled options will be removed from
+      OptionMethod callback. The handled options will be removed from
       the @link(Parameters) list.
 
       After running this, you should treat the remaining @link(Parameters)
@@ -244,7 +252,7 @@ type
 
       See also TOption for a specification of an option,
       and see TOptionArgument for a specification of an option argument,
-      and see TOptionProc for a specification what your OptionProc callback gets.
+      and see TOptionMethod for a specification what your OptionMethod callback gets.
 
       @raises EInvalidShortOption On invalid (unknown) short option name.
       @raises EInvalidLongOption On invalid long option name.
@@ -265,9 +273,9 @@ type
       the @link(Parameters) list, and signals an end of options.
 
       You should not modify @link(Parameters) list when this function
-      is running, in particular do not modify it from your OptionProc callback.
+      is running, in particular do not modify it from your OptionMethod callback.
       Also, do not depend on when the handled options are exactly removed
-      from the @link(Parameters) list (before or after OptionProc callback).
+      from the @link(Parameters) list (before or after OptionMethod callback).
 
       We never touch here the Strings[0] value, we look
       only at the Strings[1] to Strings[High].
@@ -301,11 +309,18 @@ type
       Basically, processing by Parse many times is not fool-proof
       in some weird situations.
 
+      It has a few overloads, we advise to use the 1st overload (with
+      "const AOptions: array of TOption;" and "const OptionMethod: TOptionMethod")
+      as the most convenient one.
+
       @groupBegin }
-    procedure Parse(const AOptions: POption_Array; const OptionsCount: Integer;
-      const OptionProc: TOptionProc; const OptionProcData: Pointer;
+    procedure Parse(const AOptions: array of TOption;
+      const OptionMethod: TOptionMethod;
       const ParseOnlyKnownOptions: boolean = false); overload;
     procedure Parse(const AOptions: array of TOption;
+      const OptionProc: TOptionProc; const OptionProcData: Pointer;
+      const ParseOnlyKnownOptions: boolean = false); overload;
+    procedure Parse(const AOptions: POption_Array; const OptionsCount: Integer;
       const OptionProc: TOptionProc; const OptionProcData: Pointer;
       const ParseOnlyKnownOptions: boolean = false); overload;
     { @groupEnd }
@@ -408,6 +423,29 @@ begin
       if Strings[I] = A[J] then
         Exit(true);
   Result := false;
+end;
+
+type
+  TMethodWrapper = record
+    MethodToCall: TOptionMethod;
+  end;
+  PMethodWrapper = ^TMethodWrapper;
+
+{ Call TOptionMethod within PMethodWrapper(Data)^. }
+procedure OptionProcToCallMethod(OptionNum: Integer; HasArgument: Boolean;
+  const Argument: String; const SeparateArgs: TSeparateArgs; Data: Pointer);
+begin
+  PMethodWrapper(Data)^.MethodToCall(OptionNum, HasArgument, Argument, SeparateArgs);
+end;
+
+procedure TParameters.Parse(const AOptions: array of TOption;
+  const OptionMethod: TOptionMethod; const ParseOnlyKnownOptions: boolean);
+var
+  MethodWrapper: TMethodWrapper;
+begin
+  MethodWrapper.MethodToCall := OptionMethod;
+  Parse(AOptions, {$ifdef FPC}@{$endif} OptionProcToCallMethod, @MethodWrapper,
+    ParseOnlyKnownOptions);
 end;
 
 procedure TParameters.Parse(const AOptions: array of TOption; const OptionProc: TOptionProc;
