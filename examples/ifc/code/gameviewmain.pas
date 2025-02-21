@@ -699,10 +699,8 @@ var
 begin
   if Event.IsMouseButton(buttonLeft) then
   begin
-    HitShape := nil;
-
     { Select new IFC product by extracting from MainViewport.MouseRayHit
-      information the selected X3D shape (HitShape) and then converting it
+      information about the selected X3D shape (HitShape) and then converting it
       to the IFC product (using IfcMapping.NodeToProduct). }
     if (MainViewport.MouseRayHit <> nil) and
        MainViewport.MouseRayHit.Info(HitInfo) then
