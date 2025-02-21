@@ -313,6 +313,9 @@ type
       "const AOptions: array of TOption;" and "const OptionMethod: TOptionMethod")
       as the most convenient one.
 
+      See the simplest demo application here:
+      https://gist.github.com/michaliskambi/d0a9d307f6684c45fe55962305b2a66f
+
       @groupBegin }
     procedure Parse(const AOptions: array of TOption;
       const OptionMethod: TOptionMethod;
