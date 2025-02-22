@@ -332,7 +332,7 @@ begin
           Child.KeepExistingEnd;
         end;
       end else
-        WritelnWarning('IFC', 'Cannot find TTransformNode corresponding to IfcObjectPlacement with GUID "%s", so the placementRelTo is not resolved correctly. This means taht transformation of some objects may be incorrect. Please submit a bug, the code *should* have created all necessary TTransformNode nodes.', [
+        WritelnWarning('IFC', 'Cannot find TTransformNode corresponding to IfcObjectPlacement with GUID "%s", so the placementRelTo is not resolved correctly. This means taht transformation of some objects may be incorrect. ' + 'Please submit a bug, the code *should* have created all necessary TTransformNode nodes.', [
           ChildToPlacement.Value.GlobalId
         ]);
     end else
