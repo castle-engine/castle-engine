@@ -1,5 +1,5 @@
 {
-  Copyright 2000-2024 Michalis Kamburelis.
+  Copyright 2000-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -83,6 +83,21 @@ procedure Strings_SetText(SList: TStrings; const S: String);
   Removes the last strings if necessary. }
 procedure Strings_Trim(Strings: TStrings; MaxCount: Cardinal);
   deprecated 'this utility is very trivial and seldom useful; better implement it in yourself, without relying on CastleClassUtils';
+
+{$ifndef FPC}
+  {$define CASTLE_STRINGS_HELPER_ADDSTRINGS}
+{$endif}
+{$ifdef CASTLE_STRINGS_HELPER_ADDSTRINGS}
+{ AddStrings(array of String) method for TStrings.
+  We know this is
+  - not necessary with Delphi 12.2
+  - and it is necessary with 10.2 .
+  To keep things simple (and tested) we enable it for all Delphis. }
+type
+  TStringsHelper = class helper for TStringList
+    procedure AddStrings(const A: array of String); overload;
+  end;
+{$endif CASTLE_STRINGS_HELPER_ADDSTRINGS}
 
 { ---------------------------------------------------------------------------- }
 { @section(TStream utilities) }
@@ -1171,6 +1186,16 @@ begin
   while Cardinal(Strings.Count) > MaxCount do
     Strings.Delete(Strings.Count - 1);
 end;
+
+{$ifdef CASTLE_STRINGS_HELPER_ADDSTRINGS}
+procedure TStringsHelper.AddStrings(const A: array of String);
+var
+  S: String;
+begin
+  for S in A do
+    Add(S);
+end;
+{$endif CASTLE_STRINGS_HELPER_ADDSTRINGS}
 
 { TStream helpers -------------------------------------------------------- }
 
