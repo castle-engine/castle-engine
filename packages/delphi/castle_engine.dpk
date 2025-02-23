@@ -79,6 +79,7 @@ contains
   castlexmlcfginternal in '..\..\src\files\castlexmlcfginternal.pas',
   castlexmlconfig in '..\..\src\files\castlexmlconfig.pas',
   castlexmlutils in '..\..\src\files\castlexmlutils.pas',
+  castlezip in '..\..\src\files\castlezip.pas',
   x3dfields in '..\..\src\scene\x3d\x3dfields.pas',
   x3dnodes in '..\..\src\scene\x3d\x3dnodes.pas',
   castlecurves in '..\..\src\castlescript\castlecurves.pas',

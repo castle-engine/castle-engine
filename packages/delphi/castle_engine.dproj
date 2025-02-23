@@ -165,6 +165,7 @@
         <DCCReference Include="..\..\src\files\castlexmlcfginternal.pas"/>
         <DCCReference Include="..\..\src\files\castlexmlconfig.pas"/>
         <DCCReference Include="..\..\src\files\castlexmlutils.pas"/>
+        <DCCReference Include="..\..\src\files\castlezip.pas"/>
         <DCCReference Include="..\..\src\scene\x3d\x3dfields.pas"/>
         <DCCReference Include="..\..\src\scene\x3d\x3dnodes.pas"/>
         <DCCReference Include="..\..\src\castlescript\castlecurves.pas"/>

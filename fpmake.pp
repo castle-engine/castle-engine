@@ -405,6 +405,7 @@ begin
     P.Targets.AddUnit('castlexmlcfginternal.pas');
     P.Targets.AddUnit('castlexmlconfig.pas');
     P.Targets.AddUnit('castlexmlutils.pas');
+    P.Targets.AddUnit('castlezip.pas');
 
     P.SourcePath.Add('src/files/tools');
     P.Targets.AddUnit('castleinternaltools.pas');
