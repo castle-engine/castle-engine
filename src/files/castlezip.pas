@@ -236,7 +236,7 @@ begin
   FreeAndNil(ZipFile);
 end;
 
-function TCastleZip.Read(const RelativeUrl: String): TStream;
+function TCastleZip.Read(const PathInZip: String): TStream;
 var
   LocalHeader: TZipHeader;
   TempStream: TStream;
