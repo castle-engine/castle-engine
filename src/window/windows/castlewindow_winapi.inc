@@ -963,6 +963,16 @@ begin
       is called with exactly the same arguments. }
     WM_SETCURSOR:
       begin
+        // Check if the cursor is in a system area (non-client area)
+        if (LoWord(lParm) = HTCAPTION) or (LoWord(lParm) = HTSYSMENU) or
+          (LoWord(lParm) = HTMINBUTTON) or (LoWord(lParm) = HTMAXBUTTON) or
+          (LoWord(lParm) = HTCLOSE) or (LoWord(lParm) = HTMENU) then
+        begin
+          // Let the default window procedure handle the cursor
+          Result := DefWindowProcW(h_Wnd, uMsg, wParm, lParm);
+          Exit;
+        end;
+
         if (WParm = h_Wnd) and
            ( (InternalCursor in [mcNone, mcForceNone]) or
              (Application.CursorHandles[InternalCursor].Handle <> 0) ) then
