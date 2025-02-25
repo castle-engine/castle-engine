@@ -964,9 +964,8 @@ begin
     WM_SETCURSOR:
       begin
         // Check if the cursor is in a system area (non-client area)
-        if (LoWord(lParm) = HTCAPTION) or (LoWord(lParm) = HTSYSMENU) or
-          (LoWord(lParm) = HTMINBUTTON) or (LoWord(lParm) = HTMAXBUTTON) or
-          (LoWord(lParm) = HTCLOSE) or (LoWord(lParm) = HTMENU) then
+        if LoWord(lParm) in [HTCAPTION, HTSYSMENU, HTMINBUTTON, HTMAXBUTTON, HTCLOSE, HTMENU, 
+          HTLEFT, HTRIGHT, HTBOTTOM, HTBOTTOMLEFT, HTBOTTOMRIGHT, HTTOP, HTTOPLEFT, HTTOPRIGHT] then          
         begin
           // Let the default window procedure handle the cursor
           Result := DefWindowProcW(h_Wnd, uMsg, wParm, lParm);
