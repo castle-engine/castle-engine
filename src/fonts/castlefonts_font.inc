@@ -748,6 +748,12 @@ begin
   begin
     { When not in editor, most exceptions are just passed upward.
       But we handle EFreeTypeLibraryNotFound. }
+    {$ifdef WASI}
+    // TODO: web: WASI does not support FreeType library, also we fail without exceptions because WASI doesn't have longjmp
+    WritelnWarning('TCastleFont', 'Cannot load font "%s", WASI does not support FreeType library', [
+      UriDisplay(Url)
+    ]);
+    {$else}
     try
       LoadCore;
     except
@@ -758,6 +764,7 @@ begin
           [UriDisplay(Url), E.Message]);
       end;
     end;
+    {$endif}
   end;
 end;
 
