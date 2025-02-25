@@ -24,8 +24,7 @@ uses SysUtils, Classes, URIParser,
   CastleWindow, CastleScene, CastleControls, CastleLog, CastleUtils,
   CastleFilesUtils, CastleSceneCore, CastleKeysMouse, CastleColors,
   CastleUIControls, CastleApplicationProperties, CastleDownload, CastleStringUtils,
-  CastleUriUtils, CastleViewport, CastleCameras,
-  GameUnzip;
+  CastleUriUtils, CastleViewport, CastleCameras, CastleZip;
 
 var
   Window: TCastleWindow;
@@ -33,6 +32,21 @@ var
   Status: TCastleLabel;
   ExampleImage: TCastleImageControl;
   ExampleScene: TCastleScene;
+
+{ When using TCastleZip, we install the custom URL handler easier,
+  using the TCastleZip.RegisterUrlProtocol method.
+  This is simpler and is more efficient (the ZIP file is only opened once).
+
+  Undefine this to show a more generic way of registering custom URL handler,
+  using the RegisterUrlProtocol routine from the CastleDownload unit.
+  It doens't really make sense to use it for ZIP reading (using TCastleZip
+  is both simpler and more efficient) but it illustrates how to register
+  custom URL handler in a more generic way, for any purpose. }
+{$define USE_ZIP_URL_HANDLER}
+{$ifdef USE_ZIP_URL_HANDLER}
+var
+  PackedDataZip: TCastleZip;
+{$else USE_ZIP_URL_HANDLER}
 
 { TPackedDataReader ---------------------------------------------------------- }
 
@@ -48,6 +62,20 @@ var
   PackedDataReader: TPackedDataReader;
 
 function TPackedDataReader.ReadUrl(const Url: String; out MimeType: string): TStream;
+
+  { Unpack single file from zip, to a TStream.
+    FileInZip should be relative path within the zip archive. }
+  function UnzipFile(const ZipFileName, FileInZip: String): TStream;
+  var
+    Zip: TCastleZip;
+  begin
+    Zip := TCastleZip.Create;
+    try
+      Zip.Open(ZipFileName);
+      Result := Zip.Read(FileInZip);
+    finally FreeAndNil(Zip) end;
+  end;
+
 var
   U: TURI;
   FileInZip: String;
@@ -66,6 +94,8 @@ begin
   inherited;
 end;
 
+{$endif USE_ZIP_URL_HANDLER}
+
 { View ----------------------------------------------------------------------- }
 
 type
@@ -81,11 +111,17 @@ var
 { One-time initialization of resources. }
 procedure ApplicationInitialize;
 begin
+  {$ifdef USE_ZIP_URL_HANDLER}
+  PackedDataZip := TCastleZip.Create;
+  PackedDataZip.Open('castle-data:/packed_game_data.zip');
+  PackedDataZip.RegisterUrlProtocol('my-packed-data');
+  {$else}
   { initialize PackedDataReader to read ZIP when we access my-packed-data:/ }
   PackedDataReader := TPackedDataReader.Create;
   PackedDataReader.SourceZipFileName := UriToFilenameSafe('castle-data:/packed_game_data.zip');
   RegisterUrlProtocol('my-packed-data',
     {$ifdef FPC}@{$endif} PackedDataReader.ReadUrl, nil);
+  {$endif}
 
   { make following calls to castle-data:/ also load data from ZIP }
   ApplicationDataOverride := 'my-packed-data:/';
@@ -175,5 +211,9 @@ initialization
     By doing this last, you let user to override your fullscreen / mode setup. }
   Window.ParseParameters;
 finalization
+  {$ifdef USE_ZIP_URL_HANDLER}
+  FreeAndNil(PackedDataZip);
+  {$else}
   FreeAndNil(PackedDataReader);
+  {$endif}
 end.
