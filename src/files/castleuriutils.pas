@@ -413,7 +413,7 @@ implementation
 
 uses UriParser,
   CastleUtils, CastleInternalDataUri, CastleLog, CastleFilesUtils,
-  CastleInternalDirectoryInformation, CastleFindFiles, CastleDownload
+  CastleInternalDirectoryInformation, CastleFindFiles, CastleDownload, CastleZip
   {$ifdef CASTLE_NINTENDO_SWITCH}, CastleInternalNxBase {$endif}
   {$ifndef FPC}, Character{$endif};
 
@@ -1417,11 +1417,39 @@ end;
 
 var
   ApplicationDataIsCache: Boolean = false;
-  ApplicationDataCache: string;
+  ApplicationDataCache: String;
+  DataPacked: TCastleZip;
 
-function ApplicationDataCore(const Path: string): string;
+function ApplicationDataCore(const Path: String): String;
 
-  {$ifndef ANDROID}
+  { For some platfors, we have special data reading algorithm that
+    doesn't perform detection using GetApplicationDataPath. }
+  {$if not (defined(CASTLE_NINTENDO_SWITCH) or defined(ANDROID) or defined(WASI))}
+    {$define CASTLE_DETECT_DATA_PATH}
+  {$endif}
+
+  { Detect data path using GetApplicationDataPath. }
+  {$ifdef CASTLE_DETECT_DATA_PATH}
+
+  { Open archive (for now, only zip) with application data
+    in the given directory.
+    ParentDirectory may but doesn't have to end with PathDelim.
+    Returns '' if not possible. }
+  function OpenDataPacked(const ParentDirectory: String): String;
+  var
+    ZipFileName: String;
+  begin
+    ZipFileName := CombinePaths(ParentDirectory, ApplicationName + '_data.zip');
+    if RegularFileExists(ZipFileName) then
+    begin
+      DataPacked := TCastleZip.Create;
+      DataPacked.Open(FilenameToUriSafe(ZipFileName));
+      DataPacked.RegisterUrlProtocol('castle-internal-data-packed');
+      Result := 'castle-internal-data-packed:/';
+    end else
+      Result := '';
+  end;
+
   function GetApplicationDataPath: string;
   {$ifdef MSWINDOWS}
   var
@@ -1432,30 +1460,51 @@ function ApplicationDataCore(const Path: string): string;
     ExePath := ExtractFilePath(ExeName);
     {$warnings on}
 
+    // data subdirectory alongside exe
     Result := ExePath + 'data' + PathDelim;
     if DirectoryExists(Result) then Exit;
 
+    // data zip alongside exe
+    Result := OpenDataPacked(ExePath);
+    if Result <> '' then Exit;
+
+    { Same as above, but look in ../../, in case exe is inside
+      <platform>/<config>/ as common when building with Delphi. }
     if StripExePathFromPlatformConfig(ExePath, StrippedExePath) then
     begin
       Result := StrippedExePath + 'data' + PathDelim;
       if DirectoryExists(Result) then Exit;
+
+      Result := OpenDataPacked(StrippedExePath);
+      if Result <> '' then Exit;
     end;
 
     Result := ExePath;
   {$endif MSWINDOWS}
+
   {$ifdef UNIX}
   var
     CurPath: string;
+    {$ifdef DARWIN}
+    BundleDataParentPath: tring;
+    {$endif}
   begin
     {$ifdef DARWIN}
     if BundlePath <> '' then
     begin
       {$ifdef CASTLE_IOS}
-      Result := BundlePath + 'data/';
+      BundleDataParentPath := BundlePath;
       {$else}
-      Result := BundlePath + 'Contents/Resources/data/';
+      BundleDataParentPath := BundlePath + 'Contents/Resources/';
       {$endif}
+
+      // data subdirectory in the macOS application bundle or iOS data
+      BundleDataParent := BundleDataParentPath + 'data/';
       if DirectoryExists(Result) then Exit;
+
+      // data zip in the macOS application bundle or iOS data
+      Result := OpenDataPacked(BundleDataParentPath);
+      if Result <> '' then Exit;
 
       {$ifndef IOS}
       Result := BundlePath + '../data/';
@@ -1482,18 +1531,42 @@ function ApplicationDataCore(const Path: string): string;
 
     CurPath := InclPathDelim(GetCurrentDir);
 
+    // data subdirectory of current path (we don't depend on ExePath on non-Windows)
     Result := CurPath + 'data/';
     if DirectoryExists(Result) then Exit;
 
+    // data zip in current path (we don't depend on ExePath on non-Windows)
+    Result := OpenDataPacked(CurPath);
+    if Result <> '' then Exit;
+
     Result := CurPath;
   {$endif UNIX}
-  {$ifdef WASI}
-  begin
-    // TODO: web: filesystem not implemented
-    Result := '/data/';
-  {$endif}
   end;
-  {$endif not ANDROID}
+
+  {$endif CASTLE_DETECT_DATA_PATH}
+
+  {$ifdef WASI}
+  const
+    WebDataContents: {$I test_empty_web_data.zip.inc};
+
+  function WebGetApplicationDataPath: String;
+  var
+    ZipContents: TMemoryStream;
+  begin
+    ZipContents := TMemoryStream.Create;
+    ZipContents.Write(WebDataContents, SizeOf(WebDataContents));
+
+    DataPacked := TCastleZip.Create;
+    DataPacked.Open(ZipContents, true);
+    DataPacked.RegisterUrlProtocol('castle-internal-web-data-packed');
+    Result := 'castle-internal-web-data-packed:/';
+  end;
+  {$endif WASI}
+
+  {$ifdef CASTLE_NINTENDO_SWITCH}
+
+  end;
+  {$endif WASI}
 
 begin
   if ApplicationDataOverride <> '' then
@@ -1517,6 +1590,8 @@ begin
         'castle-nx-contents:/'
       {$elseif defined(ANDROID)}
         'castle-android-assets:/'
+      {$elseif defined(WASI)}
+        WebGetApplicationDataPath
       {$else}
         FilenameToUriSafe(GetApplicationDataPath)
       {$endif}
@@ -1599,4 +1674,5 @@ end;
 initialization
 finalization
   FreeAndNil(FUriMimeExtensions);
+  FreeAndNil(DataPacked);
 end.
