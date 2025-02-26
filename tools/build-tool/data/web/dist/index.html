@@ -33,6 +33,11 @@
     #castle-loading-info {
       font-style: italic;
     }
+    /* Add some space between the button and the console */
+    button.btn-primary {
+      margin-top: 0.5em;
+      margin-bottom: 1em;
+    }
   </style>
 </head>
 <body>
@@ -45,7 +50,9 @@
       Your browser does not support the HTML5 canvas element.
     </canvas>
 
-    <!-- TODO: web: button to make canvas fullscreen -->
+    <button type="button" class="btn btn-primary d-block"
+      onclick="document.getElementById('castle-canvas').requestFullscreen();"
+      >Enter Fullscreen</button>
 
     <div id="pas2js-console" class="p-2 bg-body-secondary border rounded-3">
       <b>Logs:</b>
