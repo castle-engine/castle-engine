@@ -176,6 +176,9 @@ type
         end;
       )
 
+      Full example usage in the @url(https://github.com/castle-engine/castle-engine/tree/master/examples/network/custom_url_handler
+      examples/network/custom_url_handler).
+
       ZIP doesn't have to be @link(IsOpen) when calling this.
       In fact, you can close and reopen the ZIP file while the URL handler
       continues to be registered.
