@@ -349,6 +349,11 @@ var
   DataInfoUrl, DataInfoProtocol: String;
   DirsCount, FilesCount, FilesSize: QWord;
 begin
+  // TODO: web: we don't have URIFileExists for web, and we don't have CastleDataInformation.xml
+  {$ifdef WASI}
+  Exit;
+  {$endif}
+
   DataInfoUrl := ResolveCastleDataUrl('castle-data:/auto_generated/CastleDataInformation.xml');
   DataInfoProtocol := URIProtocol(DataInfoUrl);
 
