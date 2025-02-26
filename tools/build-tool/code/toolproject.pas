@@ -2608,6 +2608,11 @@ begin
     ZipFileName := CombinePaths(ZipParentPath, Name + '_data.zip');
     ZipDirectory(ZipFileName, TemporaryDir, false);
   finally RemoveNonEmptyDir(TemporaryDir, true) end;
+
+  Writeln(Format('Archived data to %s, compressed size %s.', [
+    ExtractFileName(ZipFileName),
+    SizeToStr(FileSize(ZipFileName))
+  ]));
 end;
 
 function TCastleProject.PackageOutput(const FileName: String): Boolean;
