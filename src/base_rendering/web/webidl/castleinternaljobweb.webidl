@@ -137,6 +137,64 @@ interface Document : Node {
 };
 
 Document includes NonElementParentNode;
+/* parts/DOMRect.webidl ----------------------------------------------------- */
+/* -*- Mode: IDL; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ *
+ * The origin of this IDL file is
+ * https://drafts.fxtf.org/geometry/
+ *
+ * Copyright © 2012 W3C® (MIT, ERCIM, Keio), All Rights Reserved. W3C
+ * liability, trademark and document use rules apply.
+ */
+
+[Exposed=(Window,Worker),
+ Serializable]
+interface DOMRect : DOMRectReadOnly {
+    constructor(optional unrestricted double x = 0,
+                optional unrestricted double y = 0,
+                optional unrestricted double width = 0,
+                optional unrestricted double height = 0);
+
+    [NewObject] static DOMRect fromRect(optional DOMRectInit other = {});
+
+    inherit attribute unrestricted double x;
+    inherit attribute unrestricted double y;
+    inherit attribute unrestricted double width;
+    inherit attribute unrestricted double height;
+};
+
+[ProbablyShortLivingWrapper,
+ Exposed=(Window,Worker),
+ Serializable]
+interface DOMRectReadOnly {
+    constructor(optional unrestricted double x = 0,
+                optional unrestricted double y = 0,
+                optional unrestricted double width = 0,
+                optional unrestricted double height = 0);
+
+    [NewObject] static DOMRectReadOnly fromRect(optional DOMRectInit other = {});
+
+    readonly attribute unrestricted double x;
+    readonly attribute unrestricted double y;
+    readonly attribute unrestricted double width;
+    readonly attribute unrestricted double height;
+    readonly attribute unrestricted double top;
+    readonly attribute unrestricted double right;
+    readonly attribute unrestricted double bottom;
+    readonly attribute unrestricted double left;
+
+    [Default] object toJSON();
+};
+
+dictionary DOMRectInit {
+    unrestricted double x = 0;
+    unrestricted double y = 0;
+    unrestricted double width = 0;
+    unrestricted double height = 0;
+};
 /* parts/Element.webidl ----------------------------------------------------- */
 /* -*- Mode: IDL; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 
@@ -191,6 +249,29 @@ interface mixin ElementCSSInlineStyle {
 };
 
 HTMLElement includes ElementCSSInlineStyle;
+
+// https://drafts.csswg.org/cssom-view/#extensions-to-the-element-interface
+partial interface Element {
+  //DOMRectList getClientRects();
+  DOMRect getBoundingClientRect();
+
+  readonly attribute long clientTop;
+  readonly attribute long clientLeft;
+  readonly attribute long clientWidth;
+  readonly attribute long clientHeight;
+
+  [Pref="layout.css.zoom.enabled"] readonly attribute double currentCSSZoom;
+};
+
+// http://domparsing.spec.whatwg.org/#extensions-to-the-element-interface
+partial interface Element {
+  [CEReactions, SetterNeedsSubjectPrincipal=NonSystem, Pure, SetterThrows, GetterCanOOM]
+  attribute [LegacyNullToEmptyString] DOMString innerHTML;
+  [CEReactions, Pure, SetterThrows]
+  attribute [LegacyNullToEmptyString] DOMString outerHTML;
+  [CEReactions, Throws]
+  undefined insertAdjacentHTML(DOMString position, DOMString text);
+};
 /* parts/EventHandler.webidl ----------------------------------------------------- */
 /* -*- Mode: IDL; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 

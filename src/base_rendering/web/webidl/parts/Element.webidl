@@ -51,3 +51,26 @@ interface mixin ElementCSSInlineStyle {
 };
 
 HTMLElement includes ElementCSSInlineStyle;
+
+// https://drafts.csswg.org/cssom-view/#extensions-to-the-element-interface
+partial interface Element {
+  //DOMRectList getClientRects();
+  DOMRect getBoundingClientRect();
+
+  readonly attribute long clientTop;
+  readonly attribute long clientLeft;
+  readonly attribute long clientWidth;
+  readonly attribute long clientHeight;
+
+  [Pref="layout.css.zoom.enabled"] readonly attribute double currentCSSZoom;
+};
+
+// http://domparsing.spec.whatwg.org/#extensions-to-the-element-interface
+partial interface Element {
+  [CEReactions, SetterNeedsSubjectPrincipal=NonSystem, Pure, SetterThrows, GetterCanOOM]
+  attribute [LegacyNullToEmptyString] DOMString innerHTML;
+  [CEReactions, Pure, SetterThrows]
+  attribute [LegacyNullToEmptyString] DOMString outerHTML;
+  [CEReactions, Throws]
+  undefined insertAdjacentHTML(DOMString position, DOMString text);
+};
