@@ -128,10 +128,22 @@ function CreateGUIDFromHash(const Seed: String): TGuid;
   Both ZipFileName and Directory may be absolute or relative filenames.
   Directory may but doesn't have to end with PathDelim.
 
-  The Directory is added to the zip file as a top-level directory inside zip.
-  E.g. if Directory is '/home/michalis/mydir', then the zip file will contain
-  as top level 'mydir'. There shall be no trace of '/home/michalis/' in
-  the resulting zp file.
+  SingleTopLevelDirectory meaning:
+
+  @unorderedList(
+    @item(When SingleTopLevelDirectory = @true:
+
+      The Directory is added to the zip file
+      as a top-level directory inside zip.
+      E.g. if Directory is '/home/michalis/mydir', then the zip file will contain
+      as top level 'mydir'. There shall be no trace of '/home/michalis/' in
+      the resulting zp file.)
+
+    @item(When SingleTopLevelDirectory = @false:
+
+      Then only contents of the Directory
+      are inside the zip, and so it can have multiple top-level entries.)
+  )
 
   We gracefully handle the case when ZipFileName is inside Directory,
   by not packing the ZipFileName in this case in itself (and making a warning),
@@ -139,7 +151,8 @@ function CreateGUIDFromHash(const Seed: String): TGuid;
   Though we don't rely on this feature in practice,
   all curent usage of ZipDirectory in build tool places ZipFileName safely outside
   of its input Directory. }
-procedure ZipDirectory(const ZipFileName: String; Directory: String);
+procedure ZipDirectory(const ZipFileName: String; Directory: String;
+  const SingleTopLevelDirectory: Boolean = true);
 
 { Move/rename Source to Dest. Given filenames may be relative or absolute,
   just like for regular file-system routines.
@@ -150,9 +163,9 @@ implementation
 
 uses {$ifdef UNIX} BaseUnix, {$endif}
   {$ifdef MSWINDOWS} Windows, {$endif}
-  Zipper,
   Classes, Process, SysUtils,
   CastleFilesUtils, CastleUriUtils, CastleLog, CastleXmlUtils, CastleFindFiles,
+  CastleZip,
   ToolCommonUtils;
 
 procedure SmartCopyFile(const Source, Dest: string);
@@ -402,32 +415,42 @@ begin
   {$I norqcheckend.inc}
 end;
 
-procedure ZipDirectory(const ZipFileName: String; Directory: String);
+procedure ZipDirectory(const ZipFileName: String; Directory: String;
+  const SingleTopLevelDirectory: Boolean);
 
   procedure ZipUsingExternalApplication;
   var
-    DirectoryParentPath, DirectoryName: String;
+    WorkingDirectory, NameToIncludeInZip: String;
   begin
     Directory := ExclPathDelim(Directory);
-    DirectoryName := ExtractFileName(Directory);
-    DirectoryParentPath := ExtractFilePath(Directory);
+    if SingleTopLevelDirectory then
+    begin
+      NameToIncludeInZip := ExtractFileName(Directory);
+      // parent of Directory is the working directory
+      WorkingDirectory := ExtractFilePath(Directory);
+    end else
+    begin
+      NameToIncludeInZip := '.';
+      // Directory itself is the working directory
+      WorkingDirectory := Directory;
+    end;
 
     // be sure to first delete target zip, otherwise zip command will add to existing file
     if FileExists(ZipFileName) then
       CheckDeleteFile(ZipFileName);
 
-    RunCommandSimple(DirectoryParentPath, 'zip',
-      ['-q', '-r', ZipFileName, DirectoryName]);
+    RunCommandSimple(WorkingDirectory, 'zip',
+      ['-q', '-r', ZipFileName, NameToIncludeInZip]);
   end;
 
 var
-  Zipper: TZipper;
+  Zip: TCastleZip;
   FilesList: TFileInfoList;
   FileInfo: TFileInfo;
-  DirectoryParentPath: String;
-  ExpandedZipFileName: String;
+  DirectoryParentPath, ExpandedZipFileName, PathInZip: String;
 begin
-  { On macOS, FPC Zipper seems not able to preserve "executable" bit when packing.
+  { On macOS, FPC TZipper (used underneath by TCastleZip)
+    seems not able to preserve "executable" bit when packing.
     Observed with FPC 3.2.2, Darwin/x86_64.
 
     What is weird is that Zipper used on Linux/x86_64 with the same FPC version
@@ -452,9 +475,9 @@ begin
 
   ExpandedZipFileName := ExpandFileName(ZipFileName);
 
-  Zipper := TZipper.Create;
+  Zip := TCastleZip.Create;
   try
-    Zipper.FileName := ZipFileName;
+    Zip.OpenEmpty;
 
     Directory := ExclPathDelim(Directory);
     DirectoryParentPath := ExtractFilePath(Directory);
@@ -470,20 +493,18 @@ begin
           ]));
           Continue;
         end;
-        Zipper.Entries.AddFileEntry(
-          FileInfo.AbsoluteName,
-          ExtractRelativePath(DirectoryParentPath, FileInfo.AbsoluteName));
+        if SingleTopLevelDirectory then
+          PathInZip := ExtractRelativePath(DirectoryParentPath, FileInfo.AbsoluteName)
+        else
+          // Below we need InclPathDelim(Directory) to have proper relative results
+          PathInZip := ExtractRelativePath(InclPathDelim(Directory), FileInfo.AbsoluteName);
+        Zip.Write(PathInZip, FilenameToUriSafe(FileInfo.AbsoluteName));
+        WritelnVerbose('Added %s as %s to ZIP', [FileInfo.AbsoluteName, PathInZip]);
       end;
     finally FreeAndNil(FilesList) end;
 
-    { Store filenames using UTF-8 in zip,
-      see https://wiki.lazarus.freepascal.org/paszlib#TZipper }
-    {$ifndef VER3_0} // only for FPC >= 3.2.0
-    Zipper.UseLanguageEncoding := true;
-    {$endif}
-
-    Zipper.ZipAllFiles;
-  finally FreeAndNil(Zipper) end;
+    Zip.Save(FilenameToUriSafe(ZipFileName));
+  finally FreeAndNil(Zip) end;
 end;
 
 procedure MoveFileVerbose(const Source, Dest: String);
