@@ -111,6 +111,7 @@ procedure TCastleWindow.OpenBackend;
 var
   GLBase, GL2Base: IJSnsISupports;
   CanvasBase: IJSElement;
+  ContextOptions: IJSWebGLContextAttributes;
 begin
   { Note that we first check if something is nil, only later we use Cast.
     Because the Cast seems to fail if original is nil, unlike "as" operator. }
@@ -119,7 +120,19 @@ begin
     raise Exception.Create('Failed to find canvas element with id="castle-canvas"');
   Canvas := TJSHTMLCanvasElement.Cast(CanvasBase);
 
-  GL2Base := Canvas.getContext('webgl2');
+  ContextOptions := TJSWebGLContextAttributes.Create;
+  { Seems to have no effect. }
+  ContextOptions.Antialias := false;
+  { This is critical to have correct text rendering.
+    By default premultipliedAlpha is true, we don't want this,
+    we assume not premultiplied in all our operations, including when delivering
+    pixels with blending.
+    See
+    https://registry.khronos.org/webgl/specs/latest/1.0/#DOM-WebGLRenderingContext-drawingBufferWidth
+    https://registry.khronos.org/webgl/specs/latest/1.0/#PREMULTIPLIED_ALPHA }
+  ContextOptions.PremultipliedAlpha := false;
+
+  GL2Base := Canvas.getContext('webgl2', ContextOptions);
   if GL2Base <> nil then
   begin
     GL2 := TJSWebGL2RenderingContext.Cast(GL2Base);
@@ -128,7 +141,7 @@ begin
     WritelnLog('WebGL 2.0 context initialized from WebAssembly');
   end else
   begin
-    GLBase := Canvas.getContext('webgl');
+    GLBase := Canvas.getContext('webgl', ContextOptions);
     if GLBase = nil then
       raise Exception.Create('Failed to load WebGL context (2.0 or 1.0) from WebAssembly');
     GL := TJSWebGLRenderingContext.Cast(GLBase);
