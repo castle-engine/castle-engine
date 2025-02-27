@@ -149,8 +149,8 @@ begin
   end;
 
   // Tell TCastleWindow about the real window size.
-  // Use Canvas.ClientWidth/Height just like in TCastleWindow.BackendInsideUpdate.
-  DoResize(Canvas.ClientWidth, Canvas.ClientHeight, false);
+  // Use GL.DrawingBufferWidth/Height, just like in TCastleWindow.BackendInsideUpdate.
+  DoResize(GL.DrawingBufferWidth, GL.DrawingBufferHeight, false);
 
   DebugLog;
 
@@ -470,36 +470,51 @@ procedure TCastleWindow.BackendInsideUpdate;
 var
   NewWidth, NewHeight: Integer;
 begin
-  { Watch for changes, and fire DoResize when size changed.
+  { Adjust the Canvas.Width/Height (the rendering resolution we use,
+    we render to it) to what is available (from Canvas.ClientWidth/Height).
+    E.g. this is needed after entering fullscreen.
+
+    Read the canvas.clientWidth/Height to have new values.
+    Note: Reading canvas.width/height or GL.DrawingBufferWidth/Height
+    would be useless, they don't change by themselves.
+
+    See:
+    - (excellent overview of sizing of canvas and WebGL):
+      https://webglfundamentals.org/webgl/lessons/webgl-resizing-the-canvas.html
+    - Also:
+      https://github.com/KhronosGroup/WebGL/issues/2460
+      https://stackoverflow.com/questions/56107172/resize-canvas-without-enlarge-the-elements-webgl
+  }
+  NewWidth := Canvas.ClientWidth;
+  NewHeight := Canvas.ClientHeight;
+  if (Canvas.Width <> NewWidth) or
+     (Canvas.Height <> NewHeight) then
+  begin
+    Canvas.Width := NewWidth;
+    Canvas.Height := NewHeight;
+    WritelnLog('Canvas width/height changed to %d x %d', [
+      NewWidth,
+      NewHeight
+    ]);
+  end;
+
+  { Watch for changes of GL.DrawingBufferWidth/Height
+    (they are pratically caused by our own change of Canvas.Width/Height
+    by code above) and fire DoResize when needed.
 
     Note that we compare with window FRealWidth/Heigth, not Width/Height.
     Otherwise the window with ResizeAllowed = raOnlyAtOpen would behave
     like it never received previous DoResize.
     The FRealWidth/Heigth are "last values reported to DoResize".
   }
-
-  { Read the canvas.clientWidth/Height to have new values e.g. after
-    entering fullscreen.
-    Reasing canvas.width/height or GL.DrawingBufferWidth/Height
-    would be useless, they don't change by themselves.
-
-    See (excellent overview of sizing of canvas and WebGL):
-    https://webglfundamentals.org/webgl/lessons/webgl-resizing-the-canvas.html
-    Also:
-    https://github.com/KhronosGroup/WebGL/issues/2460
-    https://stackoverflow.com/questions/56107172/resize-canvas-without-enlarge-the-elements-webgl
-  }
-  NewWidth := Canvas.ClientWidth;
-  NewHeight := Canvas.ClientHeight;
-  if (NewWidth <> FRealWidth) or
-      (NewHeight <> FRealHeight) then
+  if (FRealWidth <> GL.DrawingBufferWidth) or
+     (FRealHeight <> GL.DrawingBufferHeight) then
   begin
-    // Set the canvas.width/height to have correct rendering after entering fullscreen.
-    // See https://webglfundamentals.org/webgl/lessons/webgl-resizing-the-canvas.html .
-    Canvas.Width := NewWidth;
-    Canvas.Height := NewHeight;
-    WritelnLog('Canvas resized to %d x %d', [NewWidth, NewHeight]);
-    DoResize(NewWidth, NewHeight, false);
+    WritelnLog('Drawing buffer width/height changed to %d x %d', [
+      GL.DrawingBufferWidth,
+      GL.DrawingBufferHeight
+    ]);
+    DoResize(GL.DrawingBufferWidth, GL.DrawingBufferHeight, false);
   end;
 end;
 
