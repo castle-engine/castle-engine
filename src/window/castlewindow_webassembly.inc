@@ -619,6 +619,7 @@ end;
 
 function TCastleApplication.ProcessMessage(WaitForMessage, WaitToLimitFPS: boolean): boolean;
 
+  { Hide HTML element with given id, ignore if it doesn't exist in DOM. }
   procedure HideHtmlElement(const ElementId: String);
   var
     Element: IJSElement;
@@ -628,9 +629,6 @@ function TCastleApplication.ProcessMessage(WaitForMessage, WaitToLimitFPS: boole
     if Element = nil then
       Exit;
     HtmlElement := TJSHTMLDivElement.Cast(Element);
-    { Setting style should be enough, but we also update text --
-      just in case some HTML/CSS rule (not our) makes it visible at any point. }
-    HtmlElement.InnerText := 'Application loaded OK.';
     HtmlElement.Style.CssText := 'display: none';
   end;
 
