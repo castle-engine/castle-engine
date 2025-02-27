@@ -14,7 +14,7 @@ uses SysUtils, Job.JS;
 {$ENDIF FPC_DOTTEDUNITS}
 
 {
-  Automatically generated file by TWebIDLToPasWasmJob on 2025-02-26 07:06:34
+  Automatically generated file by TWebIDLToPasWasmJob on 2025-02-27 06:54:56
   
   Used command-line options: 
   --input=castleinternaljobweb.webidl
@@ -7322,19 +7322,23 @@ Type
     --------------------------------------------------------------------}
   
   IJSWindow = interface(IJSEventTarget)
-    ['{2980D848-A64A-32FE-ADB6-3C80740D0FDB}']
+    ['{7F70DB15-9FE5-38D7-8737-7370FF9CC6BA}']
+    function _GetdevicePixelRatio: Double; 
     function requestAnimationFrame(const aCallback: TFrameRequestCallback): LongInt;
     procedure cancelAnimationFrame(aHandle: LongInt);
+    property devicePixelRatio: Double read _GetdevicePixelRatio;
   end;
   
   TJSWindow = class(TJSEventTarget,IJSWindow)
   Private
   Protected
+    function _GetdevicePixelRatio: Double; 
   Public
     function requestAnimationFrame(const aCallback: TFrameRequestCallback): LongInt; overload;
     procedure cancelAnimationFrame(aHandle: LongInt); overload;
     class function JSClassName: UnicodeString; override;
     class function Cast(const Intf: IJSObject): IJSWindow;
+    property devicePixelRatio: Double read _GetdevicePixelRatio;
   end;
   
   { --------------------------------------------------------------------
@@ -7707,7 +7711,7 @@ Type
     --------------------------------------------------------------------}
   
   IJSHTMLElement = interface(IJSElement)
-    ['{467DF9C2-BC10-32BA-A54D-363BE382F3A9}']
+    ['{8646D969-2C68-3AC7-8132-28BD49F51868}']
     function _Gettitle: UnicodeString; 
     function _Getlang: UnicodeString; 
     function _Gettranslate: Boolean; 
@@ -7728,6 +7732,11 @@ Type
     function _Getautocapitalize: UnicodeString; 
     function _Getautocorrect: Boolean; 
     function _Getnonce: UnicodeString; 
+    function _GetoffsetParent: IJSElement; 
+    function _GetoffsetTop: LongInt; 
+    function _GetoffsetLeft: LongInt; 
+    function _GetoffsetWidth: LongInt; 
+    function _GetoffsetHeight: LongInt; 
     function _Getstyle: IJSCSSStyleDeclaration; 
     procedure _Settitle(const aValue: UnicodeString);
     procedure _Setlang(const aValue: UnicodeString);
@@ -7768,6 +7777,11 @@ Type
     property autocapitalize: UnicodeString read _Getautocapitalize write _Setautocapitalize;
     property autocorrect: Boolean read _Getautocorrect write _Setautocorrect;
     property nonce: UnicodeString read _Getnonce write _Setnonce;
+    property offsetParent: IJSElement read _GetoffsetParent;
+    property offsetTop: LongInt read _GetoffsetTop;
+    property offsetLeft: LongInt read _GetoffsetLeft;
+    property offsetWidth: LongInt read _GetoffsetWidth;
+    property offsetHeight: LongInt read _GetoffsetHeight;
     property style: IJSCSSStyleDeclaration read _Getstyle;
   end;
   
@@ -7794,6 +7808,11 @@ Type
     function _Getautocapitalize: UnicodeString; 
     function _Getautocorrect: Boolean; 
     function _Getnonce: UnicodeString; 
+    function _GetoffsetParent: IJSElement; 
+    function _GetoffsetTop: LongInt; 
+    function _GetoffsetLeft: LongInt; 
+    function _GetoffsetWidth: LongInt; 
+    function _GetoffsetHeight: LongInt; 
     function _Getstyle: IJSCSSStyleDeclaration; 
     procedure _Settitle(const aValue: UnicodeString);
     procedure _Setlang(const aValue: UnicodeString);
@@ -7838,6 +7857,11 @@ Type
     property autocapitalize: UnicodeString read _Getautocapitalize write _Setautocapitalize;
     property autocorrect: Boolean read _Getautocorrect write _Setautocorrect;
     property nonce: UnicodeString read _Getnonce write _Setnonce;
+    property offsetParent: IJSElement read _GetoffsetParent;
+    property offsetTop: LongInt read _GetoffsetTop;
+    property offsetLeft: LongInt read _GetoffsetLeft;
+    property offsetWidth: LongInt read _GetoffsetWidth;
+    property offsetHeight: LongInt read _GetoffsetHeight;
     property style: IJSCSSStyleDeclaration read _Getstyle;
   end;
   
@@ -11451,6 +11475,31 @@ end;
 function TJSHTMLElement._Getnonce: UnicodeString;
 begin
   Result:=ReadJSPropertyUnicodeString('nonce');
+end;
+
+function TJSHTMLElement._GetoffsetParent: IJSElement;
+begin
+  Result:=ReadJSPropertyObject('offsetParent',TJSElement) as IJSElement;
+end;
+
+function TJSHTMLElement._GetoffsetTop: LongInt;
+begin
+  Result:=ReadJSPropertyLongInt('offsetTop');
+end;
+
+function TJSHTMLElement._GetoffsetLeft: LongInt;
+begin
+  Result:=ReadJSPropertyLongInt('offsetLeft');
+end;
+
+function TJSHTMLElement._GetoffsetWidth: LongInt;
+begin
+  Result:=ReadJSPropertyLongInt('offsetWidth');
+end;
+
+function TJSHTMLElement._GetoffsetHeight: LongInt;
+begin
+  Result:=ReadJSPropertyLongInt('offsetHeight');
 end;
 
 function TJSHTMLElement._Getstyle: IJSCSSStyleDeclaration;
@@ -19354,6 +19403,11 @@ end;
 class function TJSnsIPrintSettings.Cast(const Intf: IJSObject): IJSnsIPrintSettings;
 begin
   Result:=TJSnsIPrintSettings.JOBCast(Intf);
+end;
+
+function TJSWindow._GetdevicePixelRatio: Double;
+begin
+  Result:=ReadJSPropertyDouble('devicePixelRatio');
 end;
 
 function TJSWindow.requestAnimationFrame(const aCallback: TFrameRequestCallback): LongInt;

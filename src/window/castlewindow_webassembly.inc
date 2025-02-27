@@ -24,6 +24,9 @@ CastleInternalJobWeb,
 {$ifdef read_window_interface}
 strict private
   Canvas: IJSHTMLCanvasElement;
+  LastClientRectHeight, LastClientRectWidth, LastDevicePixelRatio: Double;
+  { Get mouse position from JS event, convert it to CGE coordinates. }
+  function JsMousePositionToCastle(const Event: IJSPointerEvent): TVector2;
   function PointerDown(BaseEvent: IJSEvent): Boolean;
   function PointerUp(BaseEvent: IJSEvent): Boolean;
   function PointerMove(BaseEvent: IJSEvent): Boolean;
@@ -196,11 +199,17 @@ begin
   end;
 end;
 
-function JsMousePositionToCastle(const Event: IJSPointerEvent): TVector2;
+function TCastleWindow.JsMousePositionToCastle(const Event: IJSPointerEvent): TVector2;
 begin
   { Some info about various positions:
-    https://stephendoddtech.com/blog/game-design/mouse-event-listener-input-html-canvas }
-  Result := Vector2(Event.OffsetX, GL.DrawingBufferHeight - Event.OffsetY);
+    https://stephendoddtech.com/blog/game-design/mouse-event-listener-input-html-canvas
+
+    Note that we need to Canvas.OffsetWidth/Height to get the correct position,
+    because we adjust Canvas.Width/Height to match the actual pixels on the screen.
+    See https://www.khronos.org/webgl/wiki/HandlingHighDPI . }
+  Result := Vector2(
+                             Event.OffsetX * Canvas.Width / Canvas.OffsetWidth,
+    GL.DrawingBufferHeight - Event.OffsetY * Canvas.Height / Canvas.OffsetHeight);
 end;
 
 function TCastleWindow.PointerDown(BaseEvent: IJSEvent): Boolean;
@@ -467,55 +476,105 @@ begin
 end;
 
 procedure TCastleWindow.BackendInsideUpdate;
-var
-  NewWidth, NewHeight: Integer;
+
+  (*
+  This causes "infinitely growing canvas" problem, for unknown reasons.
+  We use JS solution in index.html for this now.
+
+  procedure UpdateCanvasSize;
+  var
+    ClientRect: IJSDOMRect;
+    NewWidth, NewHeight: Integer;
+    DevicePixelRatio: Double;
+  const
+    Epsilon = 0.001;
+  begin
+    { Adjust the Canvas.Width/Height (the rendering resolution we use,
+      we render to it) to what is available (how many pixels on the screen
+      we have). Get the "pixels on the screen size":
+
+      - from Canvas.ClientWidth/Height
+      - or (even better implementation) from Canvas.GetBoundingClientRect *
+        JSWindow.DevicePixelRatio
+
+      This adjustment is needed:
+
+      - e.g. after entering fullscreen, or otherwise resizing the canvas
+        (e.g. by resizing developer tools panel in fullscreen mode,
+        changes the available area)
+        to change the rendering resolution to the new fullscreen resolution.
+
+      - It is also needed to have really "crisp" rendering, by having
+        our resolution match the pixels 1-1 and avoid the effect that
+        "we render to a smaller texture, and then upscale".
+        For this we need to use DevicePixelRatio.
+
+      See:
+      - Official:
+        https://www.khronos.org/webgl/wiki/HandlingHighDPI
+        https://developer.mozilla.org/en-US/docs/Web/API/ResizeObserver
+      - (excellent overview of sizing of canvas and WebGL):
+        https://webglfundamentals.org/webgl/lessons/webgl-resizing-the-canvas.html
+      - Also:
+        https://github.com/KhronosGroup/WebGL/issues/2460
+        https://stackoverflow.com/questions/56107172/resize-canvas-without-enlarge-the-elements-webgl
+    }
+    {$define CASTLE_CANVAS_ACCOUNT_FOR_PIXEL_RATIO}
+
+    {$ifdef CASTLE_CANVAS_ACCOUNT_FOR_PIXEL_RATIO}
+    DevicePixelRatio := JSWindow.DevicePixelRatio;
+    ClientRect := Canvas.GetBoundingClientRect();
+    NewWidth := Round(ClientRect.Width * DevicePixelRatio);
+    NewHeight := Round(ClientRect.Height * DevicePixelRatio);
+    if (not SameValue(LastClientRectWidth, ClientRect.Width, Epsilon)) or
+       (not SameValue(LastClientRectHeight, ClientRect.Height, Epsilon)) or
+       (not SameValue(LastDevicePixelRatio, DevicePixelRatio, Epsilon)) then
+    begin
+
+    {$else}
+    NewWidth := Canvas.ClientWidth;
+    NewHeight := Canvas.ClientHeight;
+    if (Canvas.Width <> NewWidth) or
+       (Canvas.Height <> NewHeight) then
+    begin
+
+    {$endif}
+      Canvas.Width := NewWidth;
+      Canvas.Height := NewHeight;
+      WritelnLog('Canvas width/height changed to %d x %d (device pixel ratio: %f)', [
+        NewWidth,
+        NewHeight,
+        DevicePixelRatio
+      ]);
+    end;
+  end;
+  *)
+
+  procedure UpdateCallResize;
+  begin
+    { Watch for changes of GL.DrawingBufferWidth/Height
+      (they are practically caused by our own change of Canvas.Width/Height
+      by code above) and fire DoResize when needed.
+
+      Note that we compare with window FRealWidth/Heigth, not Width/Height.
+      Otherwise the window with ResizeAllowed = raOnlyAtOpen would behave
+      like it never received previous DoResize.
+      The FRealWidth/Heigth are "last values reported to DoResize".
+    }
+    if (FRealWidth <> GL.DrawingBufferWidth) or
+       (FRealHeight <> GL.DrawingBufferHeight) then
+    begin
+      WritelnLog('Drawing buffer width/height changed to %d x %d', [
+        GL.DrawingBufferWidth,
+        GL.DrawingBufferHeight
+      ]);
+      DoResize(GL.DrawingBufferWidth, GL.DrawingBufferHeight, false);
+    end;
+  end;
+
 begin
-  { Adjust the Canvas.Width/Height (the rendering resolution we use,
-    we render to it) to what is available (from Canvas.ClientWidth/Height).
-    E.g. this is needed after entering fullscreen.
-
-    Read the canvas.clientWidth/Height to have new values.
-    Note: Reading canvas.width/height or GL.DrawingBufferWidth/Height
-    would be useless, they don't change by themselves.
-
-    See:
-    - (excellent overview of sizing of canvas and WebGL):
-      https://webglfundamentals.org/webgl/lessons/webgl-resizing-the-canvas.html
-    - Also:
-      https://github.com/KhronosGroup/WebGL/issues/2460
-      https://stackoverflow.com/questions/56107172/resize-canvas-without-enlarge-the-elements-webgl
-  }
-  NewWidth := Canvas.ClientWidth;
-  NewHeight := Canvas.ClientHeight;
-  if (Canvas.Width <> NewWidth) or
-     (Canvas.Height <> NewHeight) then
-  begin
-    Canvas.Width := NewWidth;
-    Canvas.Height := NewHeight;
-    WritelnLog('Canvas width/height changed to %d x %d', [
-      NewWidth,
-      NewHeight
-    ]);
-  end;
-
-  { Watch for changes of GL.DrawingBufferWidth/Height
-    (they are pratically caused by our own change of Canvas.Width/Height
-    by code above) and fire DoResize when needed.
-
-    Note that we compare with window FRealWidth/Heigth, not Width/Height.
-    Otherwise the window with ResizeAllowed = raOnlyAtOpen would behave
-    like it never received previous DoResize.
-    The FRealWidth/Heigth are "last values reported to DoResize".
-  }
-  if (FRealWidth <> GL.DrawingBufferWidth) or
-     (FRealHeight <> GL.DrawingBufferHeight) then
-  begin
-    WritelnLog('Drawing buffer width/height changed to %d x %d', [
-      GL.DrawingBufferWidth,
-      GL.DrawingBufferHeight
-    ]);
-    DoResize(GL.DrawingBufferWidth, GL.DrawingBufferHeight, false);
-  end;
+  //UpdateCanvasSize;
+  UpdateCallResize;
 end;
 
 { TCastleWindow dialogs -------------------------------------------------- }
