@@ -285,7 +285,12 @@ type
     { Package project's data (to access data as a zip) to a directory.
       This creates a zip with the data/ contents.
       The data files are filtered, honoring the <exclude> from the project manifest.
-      We include auto_generated/CastleDataInformation.xml file inside the zip. }
+      We include auto_generated/CastleDataInformation.xml file inside the zip.
+
+      ZIP is created always, even if the project doesn't have any data/,
+      even if manifest says <data exists="false" />.
+      At this moment, it is also never really empty: has at least
+      auto_generated/CastleDataInformation.xml . }
     procedure ZipData(const ZipParentPath: String;
       const TargetPlatform: TCastlePlatform);
 

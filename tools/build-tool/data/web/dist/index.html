@@ -2,8 +2,22 @@
 
 <!--
   Castle Game Engine web application default HTML.
-  Based on basic Bootstrap skeleton from
-  https://getbootstrap.com/docs/5.3/getting-started/introduction/
+
+  You can customize this HTML as you like, there are only a few critical things
+  you have to keep:
+
+  - keep <canvas id="castle-canvas">
+  - keep <script src="${EXECUTABLE_NAME}.js?..."> that refers to our JS code
+  - keep <script> code doing rtl.run that runs our JS code
+
+  See https://castle-engine.io/web about using Castle Game Engine web support.
+
+  This HTML uses basic Bootstrap skeleton from
+  https://getbootstrap.com/docs/5.3/getting-started/introduction/ ,
+  refering to the Bootstrap CSS and JS from CDN.
+  Note that if you customize this HTML,
+  you don't need to keep using Bootstrap.
+  You can also make the Bootstrap available locally (not use CDN).
 -->
 
 <html lang="en">
@@ -44,7 +58,20 @@
   <div class="container">
     <h1>${CAPTION}</h1>
 
+    <!-- Loading status.
+      Our code (in pas2js and WebAssembly) will update this,
+      changing text, changing color, hiding it when loading finished.
+      You can even remove this HTML element when customizing your HTML,
+      CGE code will still work -- just ignoring this. -->
     <div id="castle-loading-info">Loading application...</div>
+
+    <!-- Progress bar styled using Bootstrap, see https://getbootstrap.com/docs/5.3/components/progress/#how-it-works .
+      Our code (in pas2js and WebAssembly) will update this.
+      You can even remove this HTML element when customizing your HTML,
+      CGE code will still work -- just ignoring this. -->
+    <div id="castle-loading-progress-container" class="progress" role="progressbar" aria-label="Animated striped example" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+      <div id="castle-loading-progress-bar" class="progress-bar progress-bar-striped progress-bar-animated" style="width: 0%"></div>
+    </div>
 
     <!-- Canvas for rendering.
 
@@ -55,6 +82,17 @@
       (match the device pixels).
       See resizeTheCanvasToDisplaySize below
       and https://www.khronos.org/webgl/wiki/HandlingHighDPI for more details.
+
+      TODO: use wasm to copy size to style?
+      And document it here just as:
+
+      Note that the WebAssembly code will update the size of this canvas.
+      - We will update the display size (by CSS style) to stay as specified.
+      - We will update the rendering area resolution
+        (by canvas.width and canvas.height)
+        to match the actual pixel resolution of the canvas on the screen.
+        This makes rendering "crisp" (no blurring).
+        We will do this on any canvas resize event (e.g. after fullscreen toggle).
     -->
     <canvas width="${WEB_CANVAS_WIDTH}" height="${WEB_CANVAS_HEIGHT}"
       style="width: ${WEB_CANVAS_WIDTH}px; height: ${WEB_CANVAS_HEIGHT}px;"
@@ -80,7 +118,9 @@
     /* Make canvas size match the display size in pixels.
       This updates the canvas e.g. after toggling fullscreen,
       also it updates the display to be "crisp" (by rendering to the actual
-      pixel resolution of the screen). */
+      pixel resolution of the screen).
+
+      TODO: web: move this to wasm code in castlewindow_webassembly.inc . */
     const canvas = document.getElementById("castle-canvas");
 
     function resizeTheCanvasToDisplaySize(entries) {
