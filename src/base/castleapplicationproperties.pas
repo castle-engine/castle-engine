@@ -172,7 +172,8 @@ type
 
       Just like the @link(TouchDevice), you can change this at runtime
       for debug purposes (to e.g. easily test mobile UI on PC). }
-    property ShowUserInterfaceToQuit: Boolean read FShowUserInterfaceToQuit write FShowUserInterfaceToQuit;
+    property ShowUserInterfaceToQuit: Boolean
+      read FShowUserInterfaceToQuit write FShowUserInterfaceToQuit;
 
     { Limit the number of (real) frames per second, to not hog the CPU.
       Set to zero to not limit.
@@ -462,12 +463,8 @@ begin
     {$else}
       false
     {$endif};
-  { Note: for now, FShowUserInterfaceToQuit starts just as a negation of FTouchDevice.
-    But it will not always be like that.
-    E.g. on other consoles, FTouchDevice may be false,
-    but FShowUserInterfaceToQuit may be true. }
   FShowUserInterfaceToQuit :=
-    {$if defined(ANDROID) or defined(CASTLE_IOS) or defined(CASTLE_NINTENDO_SWITCH)}
+    {$if defined(ANDROID) or defined(CASTLE_IOS) or defined(CASTLE_NINTENDO_SWITCH) or defined(WASI)}
       false
     {$else}
       true
