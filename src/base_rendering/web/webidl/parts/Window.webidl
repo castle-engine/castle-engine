@@ -40,3 +40,8 @@ interface Window : EventTarget {
 };
 
 Window includes AnimationFrameProvider;
+
+partial interface Window {
+  [Replaceable, Throws, NeedsCallerType]
+  readonly attribute double devicePixelRatio;
+};

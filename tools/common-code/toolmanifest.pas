@@ -91,8 +91,8 @@ type
       DefaultFullscreenImmersive = true;
       DefaultDetectMemoryLeaks = false;
       DefaultMacAppBundle = true;
-      DefaultWebCanvasWidth = 512;
-      DefaultWebCanvasHeight = 512;
+      DefaultWebCanvasWidth = 960;
+      DefaultWebCanvasHeight = 540;
 
       { character sets }
       ControlChars = [#0 .. Chr(Ord(' ') - 1)];

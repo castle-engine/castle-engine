@@ -22,14 +22,17 @@ uses SysUtils, Classes,
   {$ifdef FPC} Zipper {$else} System.Zip {$endif};
 
 type
+  EZipNotOpen = class(Exception);
+
   { A collection of files inside a ZIP archive.
 
     Use this to:
 
     @unorderedList(
-      @item(Read ZIP files from any TStream or URL supported by Castle Game Engine.
+      @item(Read ZIP files from any TStream or
+        URL supported by Castle Game Engine.
 
-        For example:
+        Example of reading:
 
         @longCode(
         var
@@ -44,31 +47,58 @@ type
         )
       )
 
-      @item(Optionally register a URL handler,
-        to read (TODO: and write) files inside a ZIP archive by just accesing
-        URL with the given prefix.
+      @item(Modify and write ZIP files, consisting with above.
+
+        TODO: For now, with FPC, ZIP can only be open for reading
+        or writing (when OpenEmpty). So you cannot open existing ZIP
+        and then modify it.
+
+        TODO: Delphi version doesn't support writing yet, at all.
+
+        Example of writing:
+
+        @longCode(
+        var
+          Zip: TCastleZip;
+        begin
+          Zip := TCastleZip.Create;
+          try
+            Zip.OpenEmpty;
+            Zip.Write('level1/grass.png', 'file:///home/myuser/my_textures/level1/grass.png');
+            Zip.Save('file:///home/myuser/my_textures.zip');
+          finally FreeAndNil(Zip) end;
+        end;
+        )
+      )
+
+      @item(Optionally register a URL handler, to read files inside a ZIP
+        archive by just accesing URL with the given prefix.
         See @link(RegisterUrlProtocol) for example.
+
+        TODO: add write support this way too. For now, it only works
+        for reading, when the ZIP was opened for reading.
       )
 
       @item(Have uniform API for both FPC and Delphi (they have different
-        support in their standard units)).)
-
-      @item(TODO: Write support is coming too.)
+        support in their standard units).)
     )
 
     Open a ZIP archive by @link(Open). Later close it by @link(Close).
-    Read a file from the ZIP archive, while it is open, using @link(Read). }
+    While the ZIP file is open, read files using @link(Read),
+    add files using @link(Write). }
   TCastleZip = class
   strict private
     // Non-empty means that RegisterUrlProtocol was called.
     FRegisteredUrlProtocol: String;
     {$ifdef FPC}
-    { When open, we always have FOpenStream <> nil and Unzip <> nil.
-      We never assign Unzip.FileName, instead relying on own URL -> TStream
+    { When open for reading, we always have FReadStream <> nil and UnZipper <> nil.
+      We never assign UnZipper.FileName, instead relying on own URL -> TStream
       reading. }
-    Unzip: TUnZipper;
-    FOpenStream: TStream;
-    FOwnsOpenStream: Boolean;
+    UnZipper: TUnZipper;
+    FReadStream: TStream;
+    FOwnsReadStream: Boolean;
+    { When open for writing, we always have Zipper <> nil. }
+    Zipper: TZipper;
     { Handler for TUnZipper.OnOpenInputStream. }
     procedure OpenInputStream(Sender: TObject; var AStream: TStream);
     { Handler for TUnZipper.OnCloseInputStream. }
@@ -92,6 +122,10 @@ type
       The TStream instance must exist as long as the ZIP file is open.
       We can free it automatically at close if OwnsStream is @true. }
     procedure Open(const Stream: TStream; const OwnsStream: boolean); overload;
+
+    { Create a new, empty ZIP archive in memory.
+      You can then add files to it using @link(Write) and save it using @link(Save). }
+    procedure OpenEmpty;
 
     { Close the ZIP archive. This releases all resources
       (avoids keeping in memory the ZIP contents),
@@ -142,6 +176,9 @@ type
         end;
       )
 
+      Full example usage in the @url(https://github.com/castle-engine/castle-engine/tree/master/examples/network/custom_url_handler
+      examples/network/custom_url_handler).
+
       ZIP doesn't have to be @link(IsOpen) when calling this.
       In fact, you can close and reopen the ZIP file while the URL handler
       continues to be registered.
@@ -153,6 +190,54 @@ type
       This is automatically done when destroying
       the @link(TCastleZip) instance. }
     procedure UnregisterUrlProtocol;
+
+    { Create a new file entry inside the ZIP.
+      If the given path already existed in the ZIP, it is overwritten.
+
+      There are 2 overloads, one taking a TStream and one taking a URL of the
+      file to be added.
+
+      @unorderedList(
+        @item(For overload with URL:
+
+          We will read the URL contents and add them to the ZIP.
+
+          We will also use some of the "metadata" of the URL,
+          which in practice now means: if the URL indicates a local file,
+          we will look at the file modification time and Unix permissions
+          and store them alongside the ZIP entry.)
+
+        @item(For overload with TStream:
+
+          We expect the provided stream to be positioned at the beginning,
+          and we will read from it until the end. We assume nothing
+          about the given TStream, in particular we don't assume that it is seekable,
+          we don't assume it has useful TStream.Size. We will process it using
+          @link(ReadGrowingStream).
+
+          Note that there's no way to provide the "metadata" of the file
+          (like file modification, Unix permissions)
+          when you provide a stream. For this reason we advise to use the
+          overload with URL whenever possible.
+
+          When OwnsStream, we will take care of freeing the Stream.
+          The work may be more efficient then (because when OwnsStream=false
+          we may have to do a copy of stream, to have it available for later),
+          so use OwnsStream = @true when possible.
+        )
+      )
+
+      After this is called, the new file entry appears in the @link(FileList).
+
+      The ZIP archive is not saved to disk until you call @link(Save).
+      If you call @link(Close) without calling @link(Save), the changes
+      are lost. @link(Save) is never called automatically. }
+    procedure Write(const PathInZip: String; const Stream: TStream; const OwnsStream: Boolean); overload;
+    procedure Write(const PathInZip: String; const Url: String); overload;
+
+    { Save the currently open ZIP archive (with all modificaiotns
+      done by @link(Write)) to the given URL. }
+    procedure Save(const Url: String);
 
     (* TODO:
     // We have plans for richer API for ZIPs.
@@ -188,62 +273,14 @@ type
       Any URL protocol where we can write files (using @link(UrlSaveStream))
       is allowed. }
     procedure ExtractAl(const TargetPathUrl: String);
-
-    { Create a new file entry inside the ZIP.
-      If the given path already existed in the ZIP, it is overwritten.
-
-      There are 2 overloads, one taking a TStream and one taking a URL of the
-      file to be added.
-
-      @unorderedList(
-        @item(For overload with URL:
-
-          We will read the URL contents and add them to the ZIP.
-
-          We will also use some of the "metadata" of the URL,
-          which in practice now means: if the URL indicates a local file,
-          we will look at the file modification time and Unix permissions
-          and store them alongside the ZIP entry.)
-
-        @item(For overload with Stream:
-
-          We expect the provided stream to be positioned at the beginning,
-          and we will read from it until the end. We assume nothing
-          about the given Stream, in particular we don't assume that it is seekable,
-          we don't assume it has useful TStream.Size. We will process it using
-          @link(ReadGrowingStream).
-
-          Note that there's no way to provide the "metadata" of the file
-          (like file modification, Unix permissions)
-          when you provide a stream. For this reason we advise to use the
-          overload with URL whenever possible.
-        )
-      )
-
-
-      After this is called, the new file entry appears in the @link(FileList).
-
-      The ZIP archive is not saved to disk until you call @link(Save).
-      If you call @link(Close) without calling @link(Save), the changes
-      are lost. @link(Save) is never called automatically.
-
-      // TODO: check existing APIs, do they allow this, implying that they
-      keep ZIP in memory? Or do they always save to disk immediately?
-      The FPC TZipper allows this, yes, has SaveToFile and SaveToStream.
-    }
-    procedure Write(const PathInZip: String; const Stream: TStream);
-    procedure Write(const PathInZip: String; const Url: String);
-
-    { Save the currently open ZIP archive (with all modificaiotns
-      done by @link(Write)) to the given URL. }
-    procedure Save(const Url: String);
     *)
   end;
 
 implementation
 
 uses URIParser,
-  CastleUriUtils, CastleDownload, CastleFilesUtils, CastleStringUtils;
+  CastleUriUtils, CastleDownload, CastleFilesUtils, CastleStringUtils,
+  CastleClassUtils;
 
 {$ifdef FPC}
 
@@ -276,7 +313,7 @@ end;
 
 function TCastleZip.IsOpen: Boolean;
 begin
-  Result := Unzip <> nil;
+  Result := (UnZipper <> nil) or (Zipper <> nil);
 end;
 
 procedure TCastleZip.Open(const Url: String);
@@ -288,42 +325,57 @@ procedure TCastleZip.Open(const Stream: TStream; const OwnsStream: boolean);
 begin
   Close;
 
-  FOpenStream := Stream;
-  FOwnsOpenStream := OwnsStream;
+  FReadStream := Stream;
+  FOwnsReadStream := OwnsStream;
 
-  Unzip := TUnZipper.Create;
-  Unzip.OnOpenInputStream := @OpenInputStream;
-  Unzip.OnCloseInputStream := @CloseInputStream;
+  UnZipper := TUnZipper.Create;
+  UnZipper.OnOpenInputStream := @OpenInputStream;
+  UnZipper.OnCloseInputStream := @CloseInputStream;
+end;
+
+procedure TCastleZip.OpenEmpty;
+begin
+  Close;
+
+  Zipper := TZipper.Create;
+  { Store filenames using UTF-8 in zip,
+    see https://wiki.lazarus.freepascal.org/paszlib#TZipper
+    This matters only for zip writing when filename has non-ASCII characters. }
+  {$ifndef VER3_0} // only for FPC >= 3.2.0
+  Zipper.UseLanguageEncoding := true;
+  {$endif}
 end;
 
 procedure TCastleZip.Close;
 begin
-  FreeAndNil(Unzip);
+  FreeAndNil(Zipper);
+  FreeAndNil(UnZipper);
 
-  if FOwnsOpenStream then
+  if FOwnsReadStream then
   begin
-    FreeAndNil(FOpenStream);
-    { FOwnsOpenStream should not really matter when FOpenStream = nil,
+    FreeAndNil(FReadStream);
+    { FOwnsReadStream should not really matter when FReadStream = nil,
       but set it to false to have 100% reliable state when closed,
       so make logic easier. }
-    FOwnsOpenStream := false;
+    FOwnsReadStream := false;
   end else
-    FOpenStream := nil;
+    FReadStream := nil;
 
-  Assert(not FOwnsOpenStream);
-  Assert(Unzip = nil);
-  Assert(FOpenStream = nil);
+  Assert(not FOwnsReadStream);
+  Assert(UnZipper = nil);
+  Assert(FReadStream = nil);
+  Assert(Zipper = nil);
 end;
 
 procedure TCastleZip.OpenInputStream(Sender: TObject; var AStream: TStream);
 begin
-  AStream := FOpenStream;
+  AStream := FReadStream;
 end;
 
 procedure TCastleZip.CloseInputStream(Sender: TObject; var AStream: TStream);
 begin
   { Set AStream to nil, to not let TUnZipper.CloseInput to free the stream.
-    We manage FOpenStream lifetime ourselves. }
+    We manage FReadStream lifetime ourselves. }
   AStream := nil;
 end;
 
@@ -332,21 +384,77 @@ var
   FilesInZipList: TStringlist;
   UnzipFileHelper: TUnzipFileHelper;
 begin
+  if UnZipper = nil then
+    raise EZipNotOpen.Create('Cannot read from ZIP, it is not open for reading');
+
   UnzipFileHelper := TUnzipFileHelper.Create;
   try
     UnzipFileHelper.Stream := TMemoryStream.Create;
-    Unzip.OnCreateStream := @UnzipFileHelper.UnzipCreateStream;
-    Unzip.OnDoneStream := @UnzipFileHelper.UnzipDoneStream;
+    Unzipper.OnCreateStream := @UnzipFileHelper.UnzipCreateStream;
+    Unzipper.OnDoneStream := @UnzipFileHelper.UnzipDoneStream;
     FilesInZipList := TStringlist.Create;
     try
       FilesInZipList.Add(PathInZip);
-      Unzip.UnZipFiles(FilesInZipList);
+      UnZipper.UnZipFiles(FilesInZipList);
     finally FreeAndNil(FilesInZipList) end;
     Result := UnzipFileHelper.Stream;
     { Rewind, as our API guarantees this and it is more natural,
       it is also required for RegisterUrlProtocol URL read handlers. }
     Result.Position := 0;
   finally FreeAndNil(UnzipFileHelper) end;
+end;
+
+procedure TCastleZip.Write(const PathInZip: String;
+  const Stream: TStream; const OwnsStream: Boolean);
+var
+  WriteCopy: TMemoryStream;
+begin
+  if Zipper = nil then
+    raise EZipNotOpen.Create('Cannot write to ZIP, it is not open for writing');
+
+  { TODO: Right now, we always make a copy of contents.
+    We could avoid it when OwnsStream = true,
+    pass Stream to Zipper.Entries.AddFileEntry and free it at close. }
+
+  WriteCopy := TMemoryStream.Create;
+  try
+    ReadGrowingStream(Stream, WriteCopy, true);
+    Zipper.Entries.AddFileEntry(Stream, PathInZip);
+  finally FreeAndNil(WriteCopy) end;
+
+  if OwnsStream then
+    Stream.Free; // cannot FreeAndNil(Stream), as Stream is const
+end;
+
+procedure TCastleZip.Write(const PathInZip: String; const Url: String);
+var
+  FileName: String;
+  WriteEntryStream: TStream;
+begin
+  if Zipper = nil then
+    raise EZipNotOpen.Create('Cannot write to ZIP, it is not open for writing');
+
+  FileName := UriToFilenameSafe(Url);
+  if FileName <> '' then
+    Zipper.Entries.AddFileEntry(FileName, PathInZip)
+  else
+  begin
+    WriteEntryStream := Download(Url);
+    Write(PathInZip, WriteEntryStream, true);
+  end;
+end;
+
+procedure TCastleZip.Save(const Url: String);
+var
+  WriteStream: TStream;
+begin
+  if Zipper = nil then
+    raise EZipNotOpen.Create('Cannot save ZIP, it is not open for writing');
+
+  WriteStream := UrlSaveStream(Url);
+  try
+    Zipper.SaveToStream(WriteStream);
+  finally FreeAndNil(WriteStream) end;
 end;
 
 {$else}
@@ -363,16 +471,22 @@ end;
 
 procedure TCastleZip.Open(const Url: String);
 begin
-  ZipFile := TZipFile.Create;
+  OpenEmpty;
   if UriToFilenameSafe(Url) <> '' then
     ZipFile.Open(UriToFilenameSafe(Url), zmRead)
   else
-    raise Exception.Create('TODO: Opening non-file URLs for ZIP not implemented');
+    raise Exception.Create('TODO: Opening non-file URLs for ZIP not implemented with Delphi');
 end;
 
 procedure TCastleZip.Open(const Stream: TStream; const OwnsStream: boolean);
 begin
-  raise Exception.Create('TODO: Opening ZIP from stream not implemented');
+  raise Exception.Create('TODO: Opening ZIP from TStream not implemented with Delphi');
+end;
+
+procedure TCastleZip.OpenEmpty;
+begin
+  Close;
+  ZipFile := TZipFile.Create;
 end;
 
 procedure TCastleZip.Close;
@@ -385,6 +499,9 @@ var
   LocalHeader: TZipHeader;
   TempStream: TStream;
 begin
+  if not IsOpen then
+    raise EZipNotOpen.Create('Cannot read from ZIP, it is not open');
+
   ZipFile.Read(PathInZip, TempStream, LocalHeader);
 
   { We cannot just use Result := TempStream,
@@ -394,6 +511,27 @@ begin
   Result := TMemoryStream.Create;
   Result.CopyFrom(TempStream, 0);
   Result.Position := 0;
+end;
+
+procedure TCastleZip.Write(const PathInZip: String; const Stream: TStream);
+begin
+  if not IsOpen then
+    raise EZipNotOpen.Create('Cannot write to ZIP, it is not open for writing');
+  raise Exception.Create('TODO: Writing ZIP not implemented with Delphi');
+end;
+
+procedure TCastleZip.Write(const PathInZip: String; const Url: String); overload;
+begin
+  if not IsOpen then
+    raise EZipNotOpen.Create('Cannot write to ZIP, it is not open for writing');
+  raise Exception.Create('TODO: Writing ZIP not implemented with Delphi');
+end;
+
+procedure TCastleZip.Save(const Url: String);
+begin
+  if not IsOpen then
+    raise EZipNotOpen.Create('Cannot save ZIP, it is not open for writing');
+  raise Exception.Create('TODO: Writing ZIP not implemented with Delphi');
 end;
 
 {$endif}

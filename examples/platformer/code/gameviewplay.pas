@@ -309,6 +309,7 @@ function TViewPlay.InputShot: Boolean;
 begin
   Result :=
     Container.Pressed.Items[keySpace] or
+    Container.Pressed.Items[keyEnter] or
     { Right mouse button, or 2 fingers, are held. }
     (buttonRight in Container.MousePressed) or
     (Container.TouchesCount >= 2);
@@ -1332,9 +1333,8 @@ begin
   inherited;
   { This virtual method is executed every frame (many times per second). }
 
-  { Show controls help on mobile, once, when game starts }
+  { Show controls help once, when game starts }
   if (not ControlsHelpShown) and
-     ApplicationProperties.TouchDevice and
      (Container.FrontView = Self) then
   begin
     ControlsHelpShown := true;

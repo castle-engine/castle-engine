@@ -90,6 +90,8 @@ begin
   OutputPath := TempOutputPath(Project.Path) + 'web' + PathDelim;
   DistPath := OutputPath + 'dist' + PathDelim;
 
+  Project.ZipData(DistPath, cpWeb);
+
   CompileServerExe := FindExe('compileserver');
   if CompileServerExe = '' then
     raise Exception.Create('Cannot find "compileserver" executable (part of Pa2js utilities) on $PATH');

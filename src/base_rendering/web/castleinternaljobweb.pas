@@ -14,7 +14,7 @@ uses SysUtils, Job.JS;
 {$ENDIF FPC_DOTTEDUNITS}
 
 {
-  Automatically generated file by TWebIDLToPasWasmJob on 2025-01-04 23:59:23
+  Automatically generated file by TWebIDLToPasWasmJob on 2025-02-27 06:54:56
   
   Used command-line options: 
   --input=castleinternaljobweb.webidl
@@ -86,6 +86,10 @@ Type
   TJSXULCommandDispatcher = class;
   IJSDocument = interface;
   TJSDocument = class;
+  IJSDOMRect = interface;
+  TJSDOMRect = class;
+  IJSDOMRectReadOnly = interface;
+  TJSDOMRectReadOnly = class;
   IJSnsIScreen = interface;
   TJSnsIScreen = class;
   IJSElement = interface;
@@ -272,6 +276,8 @@ Type
   TJSnsIPrintSettings = class;
   IJSWindow = interface;
   TJSWindow = class;
+  IJSDOMRectInit = interface;
+  TJSDOMRectInit = class;
   IJSEventListenerOptions = interface;
   TJSEventListenerOptions = class;
   IJSAddEventListenerOptions = interface;
@@ -348,6 +354,54 @@ Type
   TOnErrorEventHandlerNonNull = function (const event: TOnErrorEventHandlerNonNull_event_Type; const source: UTF8String; lineno: Cardinal; column: Cardinal; const error: Variant): Variant of object;
   TOnErrorEventHandler = TOnErrorEventHandlerNonNull;
   TEventListener = function (event: IJSEvent): Boolean of object;
+  
+  { --------------------------------------------------------------------
+    TJSDOMRectInit
+    --------------------------------------------------------------------}
+  
+  TJSDOMRectInitRec = record
+    x: Double;
+    y: Double;
+    width: Double;
+    height: Double;
+  end;
+  
+  IJSDOMRectInit = interface(IJSObject)
+    ['{EA9EDD00-0E42-3C49-BC7F-2EDD319D5E04}']
+    function _Getx: Double; 
+    function _Gety: Double; 
+    function _Getwidth: Double; 
+    function _Getheight: Double; 
+    procedure _Setx(const aValue: Double);
+    procedure _Sety(const aValue: Double);
+    procedure _Setwidth(const aValue: Double);
+    procedure _Setheight(const aValue: Double);
+    property x: Double read _Getx write _Setx;
+    property y: Double read _Gety write _Sety;
+    property width: Double read _Getwidth write _Setwidth;
+    property height: Double read _Getheight write _Setheight;
+  end;
+  
+  TJSDOMRectInit = class(TJSObject,IJSDOMRectInit)
+  Private
+  Protected
+    function _Getx: Double; 
+    function _Gety: Double; 
+    function _Getwidth: Double; 
+    function _Getheight: Double; 
+    procedure _Setx(const aValue: Double);
+    procedure _Sety(const aValue: Double);
+    procedure _Setwidth(const aValue: Double);
+    procedure _Setheight(const aValue: Double);
+  Public
+    constructor create(const aDict : TJSDOMRectInitRec); overload;
+    class function JSClassName: UnicodeString; override;
+    class function Cast(const Intf: IJSObject): IJSDOMRectInit;
+    property x: Double read _Getx write _Setx;
+    property y: Double read _Gety write _Sety;
+    property width: Double read _Getwidth write _Setwidth;
+    property height: Double read _Getheight write _Setheight;
+  end;
   
   { --------------------------------------------------------------------
     TJSEventListenerOptions
@@ -1547,6 +1601,63 @@ Type
   Public
     class function JSClassName: UnicodeString; override;
     class function Cast(const Intf: IJSObject): IJSXULCommandDispatcher;
+  end;
+  
+  { --------------------------------------------------------------------
+    TJSDOMRectReadOnly
+    --------------------------------------------------------------------}
+  
+  IJSDOMRectReadOnly = interface(IJSObject)
+    ['{1945BAF0-30A9-3E11-8775-7872297173E5}']
+    function _Getx: Double; 
+    function _Gety: Double; 
+    function _Getwidth: Double; 
+    function _Getheight: Double; 
+    function _Gettop: Double; 
+    function _Getright: Double; 
+    function _Getbottom: Double; 
+    function _Getleft: Double; 
+    function toJSON: IJSObject;
+    property x: Double read _Getx;
+    property y: Double read _Gety;
+    property width: Double read _Getwidth;
+    property height: Double read _Getheight;
+    property top: Double read _Gettop;
+    property right: Double read _Getright;
+    property bottom: Double read _Getbottom;
+    property left: Double read _Getleft;
+  end;
+  
+  TJSDOMRectReadOnly = class(TJSObject,IJSDOMRectReadOnly)
+  Private
+  Protected
+    function _Getx: Double; 
+    function _Gety: Double; 
+    function _Getwidth: Double; 
+    function _Getheight: Double; 
+    function _Gettop: Double; 
+    function _Getright: Double; 
+    function _Getbottom: Double; 
+    function _Getleft: Double; 
+  Public
+    constructor Create(aX: Double; aY: Double; aWidth: Double; aHeight: Double); overload;
+    constructor Create; overload;
+    constructor Create(aX: Double); overload;
+    constructor Create(aX: Double; aY: Double); overload;
+    constructor Create(aX: Double; aY: Double; aWidth: Double); overload;
+    function fromRect(const aOther: IJSDOMRectInit): IJSDOMRectReadOnly; overload;
+    function fromRect: IJSDOMRectReadOnly; overload;
+    function toJSON: IJSObject; overload;
+    class function JSClassName: UnicodeString; override;
+    class function Cast(const Intf: IJSObject): IJSDOMRectReadOnly;
+    property x: Double read _Getx;
+    property y: Double read _Gety;
+    property width: Double read _Getwidth;
+    property height: Double read _Getheight;
+    property top: Double read _Gettop;
+    property right: Double read _Getright;
+    property bottom: Double read _Getbottom;
+    property left: Double read _Getleft;
   end;
   
   { --------------------------------------------------------------------
@@ -6801,6 +6912,53 @@ Type
   end;
   
   { --------------------------------------------------------------------
+    TJSDOMRect
+    --------------------------------------------------------------------}
+  
+  IJSDOMRect = interface(IJSDOMRectReadOnly)
+    ['{491BD5AD-8D74-3F01-BC3C-2DF00C3E9384}']
+    function _Getx2: Double; 
+    function _Gety2: Double; 
+    function _Getwidth2: Double; 
+    function _Getheight2: Double; 
+    procedure _Setx2(const aValue: Double);
+    procedure _Sety2(const aValue: Double);
+    procedure _Setwidth2(const aValue: Double);
+    procedure _Setheight2(const aValue: Double);
+    property x: Double read _Getx2 write _Setx2;
+    property y: Double read _Gety2 write _Sety2;
+    property width: Double read _Getwidth2 write _Setwidth2;
+    property height: Double read _Getheight2 write _Setheight2;
+  end;
+  
+  TJSDOMRect = class(TJSDOMRectReadOnly,IJSDOMRect)
+  Private
+  Protected
+    function _Getx2: Double; 
+    function _Gety2: Double; 
+    function _Getwidth2: Double; 
+    function _Getheight2: Double; 
+    procedure _Setx2(const aValue: Double);
+    procedure _Sety2(const aValue: Double);
+    procedure _Setwidth2(const aValue: Double);
+    procedure _Setheight2(const aValue: Double);
+  Public
+    constructor Create(aX: Double; aY: Double; aWidth: Double; aHeight: Double); overload;
+    constructor Create; overload;
+    constructor Create(aX: Double); overload;
+    constructor Create(aX: Double; aY: Double); overload;
+    constructor Create(aX: Double; aY: Double; aWidth: Double); overload;
+    function fromRect(const aOther: IJSDOMRectInit): IJSDOMRect; overload;
+    function fromRect: IJSDOMRect; overload;
+    class function JSClassName: UnicodeString; override;
+    class function Cast(const Intf: IJSObject): IJSDOMRect;
+    property x: Double read _Getx2 write _Setx2;
+    property y: Double read _Gety2 write _Sety2;
+    property width: Double read _Getwidth2 write _Setwidth2;
+    property height: Double read _Getheight2 write _Setheight2;
+  end;
+  
+  { --------------------------------------------------------------------
     TJSNode
     --------------------------------------------------------------------}
   
@@ -7164,19 +7322,23 @@ Type
     --------------------------------------------------------------------}
   
   IJSWindow = interface(IJSEventTarget)
-    ['{2980D848-A64A-32FE-ADB6-3C80740D0FDB}']
+    ['{7F70DB15-9FE5-38D7-8737-7370FF9CC6BA}']
+    function _GetdevicePixelRatio: Double; 
     function requestAnimationFrame(const aCallback: TFrameRequestCallback): LongInt;
     procedure cancelAnimationFrame(aHandle: LongInt);
+    property devicePixelRatio: Double read _GetdevicePixelRatio;
   end;
   
   TJSWindow = class(TJSEventTarget,IJSWindow)
   Private
   Protected
+    function _GetdevicePixelRatio: Double; 
   Public
     function requestAnimationFrame(const aCallback: TFrameRequestCallback): LongInt; overload;
     procedure cancelAnimationFrame(aHandle: LongInt); overload;
     class function JSClassName: UnicodeString; override;
     class function Cast(const Intf: IJSObject): IJSWindow;
+    property devicePixelRatio: Double read _GetdevicePixelRatio;
   end;
   
   { --------------------------------------------------------------------
@@ -7202,21 +7364,39 @@ Type
     --------------------------------------------------------------------}
   
   IJSElement = interface(IJSNode)
-    ['{A9E2B971-8FF5-3CCC-88E9-2A7CC8DCA6E9}']
+    ['{ABE51DF6-570F-31A0-917E-3E93C20CD2B8}']
     function _GetnamespaceURI: UnicodeString; 
     function _Getprefix: UnicodeString; 
     function _GetlocalName: UnicodeString; 
     function _GettagName: UnicodeString; 
     function _Getid: UnicodeString; 
     function _GetclassName_: UnicodeString; 
+    function _GetclientTop: LongInt; 
+    function _GetclientLeft: LongInt; 
+    function _GetclientWidth: LongInt; 
+    function _GetclientHeight: LongInt; 
+    function _GetcurrentCSSZoom: Double; 
+    function _GetinnerHTML: UnicodeString; 
+    function _GetouterHTML: UnicodeString; 
     procedure _Setid(const aValue: UnicodeString);
     procedure _SetclassName_(const aValue: UnicodeString);
+    procedure _SetinnerHTML(const aValue: UnicodeString);
+    procedure _SetouterHTML(const aValue: UnicodeString);
+    function getBoundingClientRect: IJSDOMRect;
+    procedure insertAdjacentHTML(const aPosition: UnicodeString; const aText: UnicodeString);
     property namespaceURI: UnicodeString read _GetnamespaceURI;
     property prefix: UnicodeString read _Getprefix;
     property localName: UnicodeString read _GetlocalName;
     property tagName: UnicodeString read _GettagName;
     property id: UnicodeString read _Getid write _Setid;
     property className_: UnicodeString read _GetclassName_ write _SetclassName_;
+    property clientTop: LongInt read _GetclientTop;
+    property clientLeft: LongInt read _GetclientLeft;
+    property clientWidth: LongInt read _GetclientWidth;
+    property clientHeight: LongInt read _GetclientHeight;
+    property currentCSSZoom: Double read _GetcurrentCSSZoom;
+    property innerHTML: UnicodeString read _GetinnerHTML write _SetinnerHTML;
+    property outerHTML: UnicodeString read _GetouterHTML write _SetouterHTML;
   end;
   
   TJSElement = class(TJSNode,IJSElement)
@@ -7228,9 +7408,20 @@ Type
     function _GettagName: UnicodeString; 
     function _Getid: UnicodeString; 
     function _GetclassName_: UnicodeString; 
+    function _GetclientTop: LongInt; 
+    function _GetclientLeft: LongInt; 
+    function _GetclientWidth: LongInt; 
+    function _GetclientHeight: LongInt; 
+    function _GetcurrentCSSZoom: Double; 
+    function _GetinnerHTML: UnicodeString; 
+    function _GetouterHTML: UnicodeString; 
     procedure _Setid(const aValue: UnicodeString);
     procedure _SetclassName_(const aValue: UnicodeString);
+    procedure _SetinnerHTML(const aValue: UnicodeString);
+    procedure _SetouterHTML(const aValue: UnicodeString);
   Public
+    function getBoundingClientRect: IJSDOMRect; overload;
+    procedure insertAdjacentHTML(const aPosition: UnicodeString; const aText: UnicodeString); overload;
     class function JSClassName: UnicodeString; override;
     class function Cast(const Intf: IJSObject): IJSElement;
     property namespaceURI: UnicodeString read _GetnamespaceURI;
@@ -7239,6 +7430,13 @@ Type
     property tagName: UnicodeString read _GettagName;
     property id: UnicodeString read _Getid write _Setid;
     property className_: UnicodeString read _GetclassName_ write _SetclassName_;
+    property clientTop: LongInt read _GetclientTop;
+    property clientLeft: LongInt read _GetclientLeft;
+    property clientWidth: LongInt read _GetclientWidth;
+    property clientHeight: LongInt read _GetclientHeight;
+    property currentCSSZoom: Double read _GetcurrentCSSZoom;
+    property innerHTML: UnicodeString read _GetinnerHTML write _SetinnerHTML;
+    property outerHTML: UnicodeString read _GetouterHTML write _SetouterHTML;
   end;
   
   { --------------------------------------------------------------------
@@ -7513,7 +7711,7 @@ Type
     --------------------------------------------------------------------}
   
   IJSHTMLElement = interface(IJSElement)
-    ['{467DF9C2-BC10-32BA-A54D-363BE382F3A9}']
+    ['{8646D969-2C68-3AC7-8132-28BD49F51868}']
     function _Gettitle: UnicodeString; 
     function _Getlang: UnicodeString; 
     function _Gettranslate: Boolean; 
@@ -7534,6 +7732,11 @@ Type
     function _Getautocapitalize: UnicodeString; 
     function _Getautocorrect: Boolean; 
     function _Getnonce: UnicodeString; 
+    function _GetoffsetParent: IJSElement; 
+    function _GetoffsetTop: LongInt; 
+    function _GetoffsetLeft: LongInt; 
+    function _GetoffsetWidth: LongInt; 
+    function _GetoffsetHeight: LongInt; 
     function _Getstyle: IJSCSSStyleDeclaration; 
     procedure _Settitle(const aValue: UnicodeString);
     procedure _Setlang(const aValue: UnicodeString);
@@ -7574,6 +7777,11 @@ Type
     property autocapitalize: UnicodeString read _Getautocapitalize write _Setautocapitalize;
     property autocorrect: Boolean read _Getautocorrect write _Setautocorrect;
     property nonce: UnicodeString read _Getnonce write _Setnonce;
+    property offsetParent: IJSElement read _GetoffsetParent;
+    property offsetTop: LongInt read _GetoffsetTop;
+    property offsetLeft: LongInt read _GetoffsetLeft;
+    property offsetWidth: LongInt read _GetoffsetWidth;
+    property offsetHeight: LongInt read _GetoffsetHeight;
     property style: IJSCSSStyleDeclaration read _Getstyle;
   end;
   
@@ -7600,6 +7808,11 @@ Type
     function _Getautocapitalize: UnicodeString; 
     function _Getautocorrect: Boolean; 
     function _Getnonce: UnicodeString; 
+    function _GetoffsetParent: IJSElement; 
+    function _GetoffsetTop: LongInt; 
+    function _GetoffsetLeft: LongInt; 
+    function _GetoffsetWidth: LongInt; 
+    function _GetoffsetHeight: LongInt; 
     function _Getstyle: IJSCSSStyleDeclaration; 
     procedure _Settitle(const aValue: UnicodeString);
     procedure _Setlang(const aValue: UnicodeString);
@@ -7644,6 +7857,11 @@ Type
     property autocapitalize: UnicodeString read _Getautocapitalize write _Setautocapitalize;
     property autocorrect: Boolean read _Getautocorrect write _Setautocorrect;
     property nonce: UnicodeString read _Getnonce write _Setnonce;
+    property offsetParent: IJSElement read _GetoffsetParent;
+    property offsetTop: LongInt read _GetoffsetTop;
+    property offsetLeft: LongInt read _GetoffsetLeft;
+    property offsetWidth: LongInt read _GetoffsetWidth;
+    property offsetHeight: LongInt read _GetoffsetHeight;
     property style: IJSCSSStyleDeclaration read _Getstyle;
   end;
   
@@ -8312,6 +8530,239 @@ begin
   Result:=TJSDocument.JOBCast(Intf);
 end;
 
+function TJSDOMRect._Getx2: Double;
+begin
+  Result:=ReadJSPropertyDouble('x');
+end;
+
+function TJSDOMRect._Gety2: Double;
+begin
+  Result:=ReadJSPropertyDouble('y');
+end;
+
+function TJSDOMRect._Getwidth2: Double;
+begin
+  Result:=ReadJSPropertyDouble('width');
+end;
+
+function TJSDOMRect._Getheight2: Double;
+begin
+  Result:=ReadJSPropertyDouble('height');
+end;
+
+procedure TJSDOMRect._Setx2(const aValue : Double);
+begin
+  WriteJSPropertyDouble('x',aValue);
+end;
+
+procedure TJSDOMRect._Sety2(const aValue : Double);
+begin
+  WriteJSPropertyDouble('y',aValue);
+end;
+
+procedure TJSDOMRect._Setwidth2(const aValue : Double);
+begin
+  WriteJSPropertyDouble('width',aValue);
+end;
+
+procedure TJSDOMRect._Setheight2(const aValue : Double);
+begin
+  WriteJSPropertyDouble('height',aValue);
+end;
+
+constructor TJSDOMRect.Create(aX: Double; aY: Double; aWidth: Double; aHeight: Double);
+begin
+  JOBCreate([aX,aY,aWidth,aHeight]);
+end;
+
+constructor TJSDOMRect.Create;
+begin
+  JOBCreate([]);
+end;
+
+constructor TJSDOMRect.Create(aX: Double);
+begin
+  JOBCreate([aX]);
+end;
+
+constructor TJSDOMRect.Create(aX: Double; aY: Double);
+begin
+  JOBCreate([aX,aY]);
+end;
+
+constructor TJSDOMRect.Create(aX: Double; aY: Double; aWidth: Double);
+begin
+  JOBCreate([aX,aY,aWidth]);
+end;
+
+function TJSDOMRect.fromRect(const aOther: IJSDOMRectInit): IJSDOMRect;
+begin
+  Result:=InvokeJSObjectResult('fromRect',[aOther],TJSDOMRect) as IJSDOMRect;
+end;
+
+function TJSDOMRect.fromRect: IJSDOMRect;
+begin
+  Result:=InvokeJSObjectResult('fromRect',[],TJSDOMRect) as IJSDOMRect;
+end;
+
+class function TJSDOMRect.JSClassName: UnicodeString;
+begin
+  Result:='DOMRect';
+end;
+
+class function TJSDOMRect.Cast(const Intf: IJSObject): IJSDOMRect;
+begin
+  Result:=TJSDOMRect.JOBCast(Intf);
+end;
+
+function TJSDOMRectReadOnly._Getx: Double;
+begin
+  Result:=ReadJSPropertyDouble('x');
+end;
+
+function TJSDOMRectReadOnly._Gety: Double;
+begin
+  Result:=ReadJSPropertyDouble('y');
+end;
+
+function TJSDOMRectReadOnly._Getwidth: Double;
+begin
+  Result:=ReadJSPropertyDouble('width');
+end;
+
+function TJSDOMRectReadOnly._Getheight: Double;
+begin
+  Result:=ReadJSPropertyDouble('height');
+end;
+
+function TJSDOMRectReadOnly._Gettop: Double;
+begin
+  Result:=ReadJSPropertyDouble('top');
+end;
+
+function TJSDOMRectReadOnly._Getright: Double;
+begin
+  Result:=ReadJSPropertyDouble('right');
+end;
+
+function TJSDOMRectReadOnly._Getbottom: Double;
+begin
+  Result:=ReadJSPropertyDouble('bottom');
+end;
+
+function TJSDOMRectReadOnly._Getleft: Double;
+begin
+  Result:=ReadJSPropertyDouble('left');
+end;
+
+constructor TJSDOMRectReadOnly.Create(aX: Double; aY: Double; aWidth: Double; aHeight: Double);
+begin
+  JOBCreate([aX,aY,aWidth,aHeight]);
+end;
+
+constructor TJSDOMRectReadOnly.Create;
+begin
+  JOBCreate([]);
+end;
+
+constructor TJSDOMRectReadOnly.Create(aX: Double);
+begin
+  JOBCreate([aX]);
+end;
+
+constructor TJSDOMRectReadOnly.Create(aX: Double; aY: Double);
+begin
+  JOBCreate([aX,aY]);
+end;
+
+constructor TJSDOMRectReadOnly.Create(aX: Double; aY: Double; aWidth: Double);
+begin
+  JOBCreate([aX,aY,aWidth]);
+end;
+
+function TJSDOMRectReadOnly.fromRect(const aOther: IJSDOMRectInit): IJSDOMRectReadOnly;
+begin
+  Result:=InvokeJSObjectResult('fromRect',[aOther],TJSDOMRectReadOnly) as IJSDOMRectReadOnly;
+end;
+
+function TJSDOMRectReadOnly.fromRect: IJSDOMRectReadOnly;
+begin
+  Result:=InvokeJSObjectResult('fromRect',[],TJSDOMRectReadOnly) as IJSDOMRectReadOnly;
+end;
+
+function TJSDOMRectReadOnly.toJSON: IJSObject;
+begin
+  Result:=InvokeJSObjectResult('toJSON',[],TJSObject) as IJSObject;
+end;
+
+class function TJSDOMRectReadOnly.JSClassName: UnicodeString;
+begin
+  Result:='DOMRectReadOnly';
+end;
+
+class function TJSDOMRectReadOnly.Cast(const Intf: IJSObject): IJSDOMRectReadOnly;
+begin
+  Result:=TJSDOMRectReadOnly.JOBCast(Intf);
+end;
+
+function TJSDOMRectInit._Getx: Double;
+begin
+  Result:=ReadJSPropertyDouble('x');
+end;
+
+function TJSDOMRectInit._Gety: Double;
+begin
+  Result:=ReadJSPropertyDouble('y');
+end;
+
+function TJSDOMRectInit._Getwidth: Double;
+begin
+  Result:=ReadJSPropertyDouble('width');
+end;
+
+function TJSDOMRectInit._Getheight: Double;
+begin
+  Result:=ReadJSPropertyDouble('height');
+end;
+
+procedure TJSDOMRectInit._Setx(const aValue : Double);
+begin
+  WriteJSPropertyDouble('x',aValue);
+end;
+
+procedure TJSDOMRectInit._Sety(const aValue : Double);
+begin
+  WriteJSPropertyDouble('y',aValue);
+end;
+
+procedure TJSDOMRectInit._Setwidth(const aValue : Double);
+begin
+  WriteJSPropertyDouble('width',aValue);
+end;
+
+procedure TJSDOMRectInit._Setheight(const aValue : Double);
+begin
+  WriteJSPropertyDouble('height',aValue);
+end;
+
+constructor TJSDOMRectInit.create(const aDict : TJSDOMRectInitRec); overload;
+begin
+  Self.x:=aDict.x;
+  Self.y:=aDict.y;
+  Self.width:=aDict.width;
+  Self.height:=aDict.height;
+end;
+
+class function TJSDOMRectInit.JSClassName: UnicodeString;
+begin
+  Result:='Object';
+end;
+
+class function TJSDOMRectInit.Cast(const Intf: IJSObject): IJSDOMRectInit;
+begin
+  Result:=TJSDOMRectInit.JOBCast(Intf);
+end;
+
 class function TJSnsIScreen.JSClassName: UnicodeString;
 begin
   Result:='nsIScreen';
@@ -8352,6 +8803,41 @@ begin
   Result:=ReadJSPropertyUnicodeString('className');
 end;
 
+function TJSElement._GetclientTop: LongInt;
+begin
+  Result:=ReadJSPropertyLongInt('clientTop');
+end;
+
+function TJSElement._GetclientLeft: LongInt;
+begin
+  Result:=ReadJSPropertyLongInt('clientLeft');
+end;
+
+function TJSElement._GetclientWidth: LongInt;
+begin
+  Result:=ReadJSPropertyLongInt('clientWidth');
+end;
+
+function TJSElement._GetclientHeight: LongInt;
+begin
+  Result:=ReadJSPropertyLongInt('clientHeight');
+end;
+
+function TJSElement._GetcurrentCSSZoom: Double;
+begin
+  Result:=ReadJSPropertyDouble('currentCSSZoom');
+end;
+
+function TJSElement._GetinnerHTML: UnicodeString;
+begin
+  Result:=ReadJSPropertyUnicodeString('innerHTML');
+end;
+
+function TJSElement._GetouterHTML: UnicodeString;
+begin
+  Result:=ReadJSPropertyUnicodeString('outerHTML');
+end;
+
 procedure TJSElement._Setid(const aValue : UnicodeString);
 begin
   WriteJSPropertyUnicodeString('id',aValue);
@@ -8360,6 +8846,26 @@ end;
 procedure TJSElement._SetclassName_(const aValue : UnicodeString);
 begin
   WriteJSPropertyUnicodeString('className',aValue);
+end;
+
+procedure TJSElement._SetinnerHTML(const aValue : UnicodeString);
+begin
+  WriteJSPropertyUnicodeString('innerHTML',aValue);
+end;
+
+procedure TJSElement._SetouterHTML(const aValue : UnicodeString);
+begin
+  WriteJSPropertyUnicodeString('outerHTML',aValue);
+end;
+
+function TJSElement.getBoundingClientRect: IJSDOMRect;
+begin
+  Result:=InvokeJSObjectResult('getBoundingClientRect',[],TJSDOMRect) as IJSDOMRect;
+end;
+
+procedure TJSElement.insertAdjacentHTML(const aPosition: UnicodeString; const aText: UnicodeString);
+begin
+  InvokeJSNoResult('insertAdjacentHTML',[aPosition,aText]);
 end;
 
 class function TJSElement.JSClassName: UnicodeString;
@@ -10969,6 +11475,31 @@ end;
 function TJSHTMLElement._Getnonce: UnicodeString;
 begin
   Result:=ReadJSPropertyUnicodeString('nonce');
+end;
+
+function TJSHTMLElement._GetoffsetParent: IJSElement;
+begin
+  Result:=ReadJSPropertyObject('offsetParent',TJSElement) as IJSElement;
+end;
+
+function TJSHTMLElement._GetoffsetTop: LongInt;
+begin
+  Result:=ReadJSPropertyLongInt('offsetTop');
+end;
+
+function TJSHTMLElement._GetoffsetLeft: LongInt;
+begin
+  Result:=ReadJSPropertyLongInt('offsetLeft');
+end;
+
+function TJSHTMLElement._GetoffsetWidth: LongInt;
+begin
+  Result:=ReadJSPropertyLongInt('offsetWidth');
+end;
+
+function TJSHTMLElement._GetoffsetHeight: LongInt;
+begin
+  Result:=ReadJSPropertyLongInt('offsetHeight');
 end;
 
 function TJSHTMLElement._Getstyle: IJSCSSStyleDeclaration;
@@ -18872,6 +19403,11 @@ end;
 class function TJSnsIPrintSettings.Cast(const Intf: IJSObject): IJSnsIPrintSettings;
 begin
   Result:=TJSnsIPrintSettings.JOBCast(Intf);
+end;
+
+function TJSWindow._GetdevicePixelRatio: Double;
+begin
+  Result:=ReadJSPropertyDouble('devicePixelRatio');
 end;
 
 function TJSWindow.requestAnimationFrame(const aCallback: TFrameRequestCallback): LongInt;

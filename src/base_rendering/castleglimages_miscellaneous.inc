@@ -383,15 +383,18 @@ var
 begin
   if Img is TCastleImage then
   begin
-    { TODO: web: optimize to copy whole memory blocks.
-      For now we copy one-by-one to enable to change the order
-      of any dimension / color component, to match WebGL }
     I := TCastleImage(Img);
     ImageDataCount := Img.Width * Img.Height * Img.Depth * I.ColorComponentsCount;
     case ImageGLType(I) of
       GL_UNSIGNED_BYTE:
         begin
           ResultUInt8 := TJSUInt8Array.Create(ImageDataCount);
+
+          { Unoptimized version, for reference. Copies one-by-one and
+            enables to change the order of any dimension / color component,
+            to match WebGL expectations.
+            Not necessary right now in the end. }
+          {
           for Z := 0 to Img.Depth - 1 do
             for Y := 0 to Img.Height - 1 do
               for X := 0 to Img.Width - 1 do
@@ -402,11 +405,19 @@ begin
                     X * I.ColorComponentsCount +
                     C] :=
                   PByte(I.PixelPtr(X, Y, Z))[C];
+          }
+          ResultUInt8.CopyFromMemory(Img.RawPixels, ImageDataCount);
+
           Result := ResultUInt8;
         end;
       GL_FLOAT:
         begin
           ResultFloat32 := TJSFloat32Array.Create(ImageDataCount);
+
+          { Unoptimized version, for reference.
+            See above.
+          }
+          {
           for Z := 0 to Img.Depth - 1 do
             for Y := 0 to Img.Height - 1 do
               for X := 0 to Img.Width - 1 do
@@ -417,6 +428,9 @@ begin
                     X * I.ColorComponentsCount +
                     C] :=
                   PSingle(I.PixelPtr(X, Y, Z))[C];
+          }
+          ResultFloat32.CopyFromMemory(Img.RawPixels, ImageDataCount * SizeOf(Single));
+
           Result := ResultFloat32;
         end;
       else

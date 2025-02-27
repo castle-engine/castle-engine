@@ -24,7 +24,8 @@ type
     cpDesktop,
     cpAndroid,
     cpIOS,
-    cpNintendoSwitch
+    cpNintendoSwitch,
+    cpWeb
   );
   TCastlePlatforms = set of TCastlePlatform;
 
@@ -71,7 +72,8 @@ const
     'Desktop',
     'Android',
     'iOS',
-    'Nintendo Switch'
+    'Nintendo Switch',
+    'Web'
   );
 begin
   Result := Names[T];

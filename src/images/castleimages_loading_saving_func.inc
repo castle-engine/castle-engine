@@ -144,6 +144,7 @@ begin
   {$if defined(USE_VAMPYRE_IMAGING)}
   Result := Load_VampyreImaging(Stream, AllowedImageClasses);
   {$else}
+  Result := nil; // avoid spurious FPC 3.3.1 warning "function result does not seem to be set" (which doesn't matter when we always make an exception...)
   raise EImageLoadError.Create('Cannot read RGBE (Vampyre Imaging Library not available at compile-time)');
   {$endif}
 end;

@@ -282,6 +282,13 @@ type
       (Actually, this means the resulting directory is never empty now.) }
     procedure CopyData(OutputDataPath: string; const TargetPlatform: TCastlePlatform);
 
+    { Package project's data (to access data as a zip) to a directory.
+      This creates a zip with the data/ contents.
+      The data files are filtered, honoring the <exclude> from the project manifest.
+      We include auto_generated/CastleDataInformation.xml file inside the zip. }
+    procedure ZipData(const ZipParentPath: String;
+      const TargetPlatform: TCastlePlatform);
+
     { Is this filename created by some DoPackage or DoPackageSource command.
       FileName must be relative to project root directory. }
     function PackageOutput(const FileName: String): Boolean;
@@ -2545,6 +2552,67 @@ begin
   finally FreeAndNil(Files) end;
 
   GenerateDataInformation(OutputDataPath);
+end;
+
+procedure TCastleProject.ZipData(const ZipParentPath: String;
+  const TargetPlatform: TCastlePlatform);
+
+(*TODO: This is an unfinished, more optimal, implementation.
+  It doesn't require copying all files to a temporary directory first
+  (using CopyData) before zipping.
+  It's more efficient to just add original files to TCastleZip.
+
+  But doing this requires also improving GenerateDataInformation,
+  which in turn requires improving TDirectoryInformation.Generate.
+  We must be able to generate CastleDataInformation.xml file
+  from the DataFiles, without the need to scan existing directory by FindFiles.
+
+  For now, resign from this approach, the extra efficiency is not critical
+  for now.
+
+var
+  ZipFileName: String;
+  DataFiles: TCastleStringList;
+  DataFile: String;
+begin
+  Zip := TCastleZip.Create;
+  try
+    Zip.OpenEmpty;
+
+    DataFiles := PackageFiles(true, TargetPlatform);
+    try
+      for DataFile in DataFiles do
+      begin
+        FileFrom := DataPath + DataFile;
+        if Verbose then
+          Writeln('Packing data file: ' + DataFile);
+        Zip.Write(DataFile, FilenameToUriSafe(FileFrom));
+      end;
+    finally FreeAndNil(DataFiles) end;
+
+    // TODO: GenerateDataInformation(???);
+
+    Zip.SaveToFile(FilenameToUriSafe(ZipFileName));
+  finally FreeAndNil(Zip) end;
+end;
+*)
+
+var
+  ZipFileName, TemporaryDir: String;
+begin
+  TemporaryDir := CreateTemporaryDir;
+  try
+    CopyData(TemporaryDir, TargetPlatform);
+    { ZIP filename matches ZIP detection done by ApplicationDataCore
+      in CastleUriUtils. }
+    ZipFileName := CombinePaths(ZipParentPath, Name + '_data.zip');
+    ZipDirectory(ZipFileName, TemporaryDir, false);
+  finally RemoveNonEmptyDir(TemporaryDir, true) end;
+
+  Writeln(Format('Archived data to %s, compressed size %s.', [
+    ExtractFileName(ZipFileName),
+    SizeToStr(FileSize(ZipFileName))
+  ]));
 end;
 
 function TCastleProject.PackageOutput(const FileName: String): Boolean;
