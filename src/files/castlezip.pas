@@ -80,7 +80,7 @@ type
       )
 
       @item(Have uniform API for both FPC and Delphi (they have different
-        support in their standard units)).)
+        support in their standard units).)
     )
 
     Open a ZIP archive by @link(Open). Later close it by @link(Close).
