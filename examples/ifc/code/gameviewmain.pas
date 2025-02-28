@@ -1,5 +1,5 @@
 {
-  Copyright 2024-2024 Michalis Kamburelis.
+  Copyright 2024-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -35,6 +35,7 @@ type
       ButtonAddWall, ButtonAddWallAndWindow,
       ButtonModifyRandomElement, ButtonChangeWireframeEffect,
       ButtonViewEntireModel: TCastleButton;
+    ButtonMouseLeftSelects, ButtonMouseLeftNavigates: TCastleButton;
     IfcScene: TCastleScene;
     MainViewport: TCastleViewport;
     ExamineNavigation: TCastleExamineNavigation;
@@ -66,6 +67,8 @@ type
 
     ButtonHierarchyFactory: TCastleComponentFactory;
 
+    MouseButtonToSelect: TCastleMouseButton;
+
     { Create new IfcMapping instance and update what IfcScene shows,
       based on IfcFile contents.
       Use this after completely changing the IfcFile contents
@@ -82,6 +85,11 @@ type
       The box is empty (TBox3D.IsEmpty) if no representations. }
     function ProductBoundingBox(const Product: TIfcProduct): TBox3D;
 
+    { Update using mouse left or right buttons. }
+    procedure SetMouseMode(const LeftSelectsRightNavigates: Boolean);
+
+    { Callback handlers. }
+
     procedure ClickNew(Sender: TObject);
     procedure ClickLoad(Sender: TObject);
     procedure ClickSaveIfc(Sender: TObject);
@@ -91,6 +99,8 @@ type
     procedure ClickModifyRandomElement(Sender: TObject);
     procedure ClickChangeWireframeEffect(Sender: TObject);
     procedure ClickViewEntireModel(Sender: TObject);
+    procedure ClickMouseLeftSelects(Sender: TObject);
+    procedure ClickMouseLeftNavigates(Sender: TObject);
     procedure MainViewportPress(const Sender: TCastleUserInterface;
       const Event: TInputPressRelease; var Handled: Boolean);
     procedure TransformManipulateTransformModified(Sender: TObject);
@@ -111,7 +121,7 @@ implementation
 
 uses SysUtils, TypInfo,
   CastleUtils, CastleUriUtils, CastleWindow, X3DLoad, CastleLog,
-  CastleRenderOptions;
+  CastleRenderOptions, CastleApplicationProperties;
 
 function WireframeEffectToStr(const WireframeEffect: TWireframeEffect): String;
 begin
@@ -152,15 +162,20 @@ begin
   ButtonChangeWireframeEffect.OnClick := {$ifdef FPC}@{$endif} ClickChangeWireframeEffect;
   ButtonViewEntireModel.OnClick := {$ifdef FPC}@{$endif} ClickViewEntireModel;
   CheckboxIfcDebugDisplay.OnChange := {$ifdef FPC}@{$endif} IfcDebugDisplayChange;
+  ButtonMouseLeftNavigates.OnClick := {$ifdef FPC}@{$endif} ClickMouseLeftNavigates;
+  ButtonMouseLeftSelects.OnClick := {$ifdef FPC}@{$endif} ClickMouseLeftSelects;
 
   MainViewport.OnPress := {$ifdef FPC}@{$endif} MainViewportPress;
 
   LabelWireframeEffect.Caption := WireframeEffectToStr(IfcScene.RenderOptions.WireframeEffect);
 
-  { Rotate by dragging with right mouse button,
-    because we use left mouse button for selection. }
-  ExamineNavigation.Input_Rotate.MouseButton := buttonRight;
-  ExamineNavigation.Input_Zoom.MouseButtonUse := false;
+  { On desktops, by default "left selects, right navigates".
+
+    But right mouse button is unavailable on touch devices (mobile)
+    and uncomfortable (conflicts with browser context menu) on web.
+    Assign by default left to navigation there. }
+  SetMouseMode(
+    {$ifdef WASI} false {$else} not ApplicationProperties.TouchDevice {$endif});
 
   // TODO: show on hover
   // TransformHover := TCastleTransformHover.Create(FreeAtStop);
@@ -690,6 +705,35 @@ begin
   end;
 end;
 
+procedure TViewMain.SetMouseMode(const LeftSelectsRightNavigates: Boolean);
+begin
+  ButtonMouseLeftNavigates.Pressed := not LeftSelectsRightNavigates;
+  ButtonMouseLeftSelects.Pressed := LeftSelectsRightNavigates;
+
+  if LeftSelectsRightNavigates then
+    { Rotate by dragging with right mouse button,
+      because we use left mouse button for selection. }
+    ExamineNavigation.Input_Rotate.MouseButton := buttonRight
+  else
+    ExamineNavigation.Input_Rotate.MouseButton := buttonLeft;
+  ExamineNavigation.Input_Zoom.MouseButtonUse := false;
+
+  if LeftSelectsRightNavigates then
+    MouseButtonToSelect := buttonLeft
+  else
+    MouseButtonToSelect := buttonRight;
+end;
+
+procedure TViewMain.ClickMouseLeftNavigates(Sender: TObject);
+begin
+  SetMouseMode(false);
+end;
+
+procedure TViewMain.ClickMouseLeftSelects(Sender: TObject);
+begin
+  SetMouseMode(true);
+end;
+
 procedure TViewMain.MainViewportPress(const Sender: TCastleUserInterface;
   const Event: TInputPressRelease; var Handled: Boolean);
 var
@@ -697,7 +741,7 @@ var
   HitShape: TAbstractShapeNode;
   NewSelectedProduct: TIfcProduct;
 begin
-  if Event.IsMouseButton(buttonLeft) then
+  if Event.IsMouseButton(MouseButtonToSelect) then
   begin
     { Select new IFC product by extracting from MainViewport.MouseRayHit
       information about the selected X3D shape (HitShape) and then converting it
