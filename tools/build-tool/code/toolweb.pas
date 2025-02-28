@@ -81,6 +81,10 @@ begin
     ChangeFileExt(Project.ExecutableName, ExeExtensionOS(CompilerOptions.OS)));
   { move exe to dist/ and eventually rename to follow ExecutableName }
   MoveFileVerbose(SourceExe, DestExe);
+
+  { Place data "zip", to be ready for "run" after "compile".
+    And to enable using "compile" to populate the dist/ with everything necessary. }
+  Project.ZipData(DistPath, cpWeb);
 end;
 
 procedure RunWeb(const Project: TCastleProject);
@@ -89,8 +93,6 @@ var
 begin
   OutputPath := TempOutputPath(Project.Path) + 'web' + PathDelim;
   DistPath := OutputPath + 'dist' + PathDelim;
-
-  Project.ZipData(DistPath, cpWeb);
 
   CompileServerExe := FindExe('compileserver');
   if CompileServerExe = '' then
