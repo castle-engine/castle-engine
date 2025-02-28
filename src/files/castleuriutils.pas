@@ -414,6 +414,7 @@ implementation
 uses UriParser,
   CastleUtils, CastleInternalDataUri, CastleLog, CastleFilesUtils,
   CastleInternalDirectoryInformation, CastleFindFiles, CastleDownload, CastleZip
+  {$ifdef WASI}, Job.Js, CastleInternalJobWeb {$endif}
   {$ifdef CASTLE_NINTENDO_SWITCH}, CastleInternalNxBase {$endif}
   {$ifndef FPC}, Character{$endif};
 
@@ -1546,15 +1547,24 @@ function ApplicationDataCore(const Path: String): String;
   {$endif CASTLE_DETECT_DATA_PATH}
 
   {$ifdef WASI}
-  const
-    WebDataContents: {$I test_empty_web_data.zip.inc};
-
+  { Get ZIP data that was downloaded by pas2js,
+    open it using TCastleZip in WASM,
+    return new URL protocol to access files inside. }
   function WebGetApplicationDataPath: String;
   var
+    WebDataContents: IJSArrayBuffer;
     ZipContents: TMemoryStream;
   begin
+    WebDataContents := JSDocument.ReadJSPropertyObject('CastleApplicationData',
+      TJSArrayBuffer) as IJSArrayBuffer;
+
+    if WebDataContents = nil then
+      raise Exception.Create('JS did not define application data');
+    WritelnLog('WebAssembly received data ZIP (size %d)', [WebDataContents.ByteLength]);
+
     ZipContents := TMemoryStream.Create;
-    ZipContents.Write(WebDataContents, SizeOf(WebDataContents));
+    ZipContents.Size := WebDataContents.ByteLength;
+    WebDataContents.CopyToMemory(ZipContents.Memory, ZipContents.Size);
 
     DataPacked := TCastleZip.Create;
     DataPacked.Open(ZipContents, true);

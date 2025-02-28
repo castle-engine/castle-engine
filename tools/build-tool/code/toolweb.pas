@@ -30,7 +30,7 @@ implementation
 
 uses SysUtils,
   CastleUtils, CastleUriUtils, CastleFilesUtils, CastleOpenDocument,
-  CastleInternalArchitectures,
+  CastleInternalArchitectures, CastleStringUtils,
   ToolUtils, ToolCommonUtils, ToolManifest;
 
 procedure CompileWeb(const Project: TCastleProject;
@@ -81,6 +81,10 @@ begin
     ChangeFileExt(Project.ExecutableName, ExeExtensionOS(CompilerOptions.OS)));
   { move exe to dist/ and eventually rename to follow ExecutableName }
   MoveFileVerbose(SourceExe, DestExe);
+
+  { Place data "zip", to be ready for "run" after "compile".
+    And to enable using "compile" to populate the dist/ with everything necessary. }
+  Project.ZipData(DistPath, cpWeb);
 end;
 
 procedure RunWeb(const Project: TCastleProject);
@@ -90,13 +94,12 @@ begin
   OutputPath := TempOutputPath(Project.Path) + 'web' + PathDelim;
   DistPath := OutputPath + 'dist' + PathDelim;
 
-  Project.ZipData(DistPath, cpWeb);
-
   CompileServerExe := FindExe('compileserver');
   if CompileServerExe = '' then
     raise Exception.Create('Cannot find "compileserver" executable (part of Pa2js utilities) on $PATH');
 
-  OpenUrl('http://localhost:3000/');
+  // OpenUrl('http://localhost:3000/'); // also works, but allows browsers to cache index.html
+  OpenUrl('http://localhost:3000/index.html?random_suffix_to_avoid_cache=' + RandomString);
 
   // must be run last; Ctrl+C on our build tool should kill the compileserver too
   RunCommandSimple(DistPath, CompileServerExe, ['--port=3000']);

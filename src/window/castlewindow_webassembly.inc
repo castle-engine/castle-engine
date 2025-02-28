@@ -619,19 +619,17 @@ end;
 
 function TCastleApplication.ProcessMessage(WaitForMessage, WaitToLimitFPS: boolean): boolean;
 
-  procedure HideLoadingInfo;
+  { Hide HTML element with given id, ignore if it doesn't exist in DOM. }
+  procedure HideHtmlElement(const ElementId: String);
   var
-    DivLoadingInfoBase: IJSElement;
-    DivLoadingInfo: IJSHTMLDivElement;
+    Element: IJSElement;
+    HtmlElement: IJSHTMLElement;
   begin
-    DivLoadingInfoBase := JSDocument.getElementById('castle-loading-info');
-    if DivLoadingInfoBase = nil then
+    Element := JSDocument.getElementById(ElementId);
+    if Element = nil then
       Exit;
-    DivLoadingInfo := TJSHTMLDivElement.Cast(DivLoadingInfoBase);
-    { Setting style should be enough, but we also update text --
-      just in case some HTML/CSS rule (not our) makes it visible at any point. }
-    DivLoadingInfo.InnerText := 'Application loaded OK.';
-    DivLoadingInfo.Style.CssText := 'display: none';
+    HtmlElement := TJSHTMLDivElement.Cast(Element);
+    HtmlElement.Style.CssText := 'display: none';
   end;
 
 begin
@@ -640,7 +638,8 @@ begin
   if not WasFrameRendered then
   begin
     WasFrameRendered := true;
-    HideLoadingInfo;
+    HideHtmlElement('castle-loading-info');
+    HideHtmlElement('castle-loading-progress-container');
   end;
   Result := not Terminated;
 end;

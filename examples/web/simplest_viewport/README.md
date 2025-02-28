@@ -7,7 +7,7 @@ Test `TCastleViewport` with:
 
 This can be run on any platform, though was made specifically to test our [web](https://castle-engine.io/web) target.
 
-We do not load anything from files here (which explains the simple look of this) because it's not yet supported.
+We do not load anything from files here (which explains the simple look of this) because we didn't support `castle-data:/` when this was developed (it is supported now).
 
 ![Screenshot](screenshot.png)
 
