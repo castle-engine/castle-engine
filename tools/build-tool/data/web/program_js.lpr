@@ -147,8 +147,14 @@ begin
     UpdateProgress(Event.Loaded, Event.Total);
     ArrayResponse := TJSArrayBuffer(Xhr.Response);
     WriteLn('Downloaded data successfully, size: ', ArrayResponse.byteLength);
-    // TODO
-    //Window.CastleData := Xhr.Response;
+    { Pass the TJSArrayBuffer to WebAssembly through a global variable that
+      is read by the WebAssembly program.
+      This seems simplest and it means we utilize JOB to pass
+      pas2js TJSArrayBuffer -> web assembly IJSArrayBuffer.
+      This seems simpler than own TImportExtension, where it's easy to expose
+      functions but only with simple parameters, not so easy to pass blob
+      of binary data. }
+    Document.Properties['CastleApplicationData'] := ArrayResponse;
     DoStartWebAssembly;
   end else
   begin
@@ -179,26 +185,26 @@ var
   PercentProgress: Integer;
 begin
   // WriteLn(Format('Downloaded %d of %d bytes', [ALoaded, ATotal]));
-  
+
   PercentProgress := Ceil(100 * ALoaded / ATotal);
 
   // TODO, how to set aria-valuenow?
   // LoadingProgressContainer := Document.getElementById('castle-loading-progress-container') as TJSHTMLElement;
   // if LoadingProgressContainer <> nil then
   //   LoadingProgressContainer.AriaValueNow := PercentProgress;
-  
+
   LoadingProgressBar := Document.getElementById('castle-loading-progress-bar') as TJSHTMLElement;
   if LoadingProgressBar <> nil then
   begin
     LoadingProgressBar.Style['width'] := IntToStr(PercentProgress) + '%';
   end;
-  
+
   LoadingInfo := Document.getElementById('castle-loading-info') as TJSHTMLElement;
   if LoadingInfo <> nil then
   begin
     LoadingInfo.InnerHTML := Format('Loading application... (downloading data: %d%%, %d / %d bytes)', [
       PercentProgress,
-      ALoaded, 
+      ALoaded,
       ATotal
     ]);
   end;
@@ -214,9 +220,9 @@ begin
   if LoadingInfo = nil then
     Exit;
   LoadingInfo.InnerHTML := 'Fatal error: ' + HtmlNL + Message;
-  { Nice error message style using Bootstrap, 
+  { Nice error message style using Bootstrap,
     see https://getbootstrap.com/docs/5.3/customize/color/#colors }
-  LoadingInfo.ClassName := LoadingInfo.ClassName + 
+  LoadingInfo.ClassName := LoadingInfo.ClassName +
     ' p-3 text-bg-danger rounded-3';
 end;
 
