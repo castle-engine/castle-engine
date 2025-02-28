@@ -41,36 +41,54 @@ do_project ()
 }
 
 # Find and build *all* projects in CGE, with only some exceptions.
-do_all_projects ()
-{
-  cd "${CASTLE_ENGINE_PATH}"
+# Unused for now: This is cool, but for now it's OK to list ~20 projects.
+# do_all_projects ()
+# {
+#   cd "${CASTLE_ENGINE_PATH}"
+#
+# 	"${FIND}" . \
+# 	  '(' -path ./tools -prune ')' -o \
+# 	  '(' -path ./examples/network/tcp_connection -prune ')' -o \
+# 	  '(' -path ./tests/delphi_tests -prune ')' -o \
+# 	  '(' -path ./examples/delphi -prune ')' -o \
+#     '(' -path ./src/deprecated_library -prune ')' -o \
+# 	  '(' -path ./examples/deprecated_library -prune ')' -o \
+# 	  '(' -type d -iname castle-engine-output -prune ')' -o \
+# 	  '(' -type f -iname CastleEngineManifest.xml -print ')' > \
+# 	  /tmp/cge-projects.txt
+# 	echo 'Found projects: '`wc -l < /tmp/cge-projects.txt`
+#
+# 	for MANIFEST in `cat /tmp/cge-projects.txt`; do
+#     local PROJECT_SUBDIR=`dirname ${MANIFEST}`
+# 	  echo 'Compiling project '${PROJECT_SUBDIR}
+#     do_project ${PROJECT_SUBDIR}
+# 	done
+# }
 
-	"${FIND}" . \
-	  '(' -path ./tools/ -prune ')' -o \
-	  '(' -path ./examples/network/tcp_connection -prune ')' -o \
-	  '(' -path ./tools/castle-editor/data/project_templates -prune ')' -o \
-	  '(' -path ./tools/build-tool -prune ')' -o \
-	  '(' -path ./tests/delphi_tests -prune ')' -o \
-	  '(' -path ./examples/delphi -prune ')' -o \
-	  '(' -path ./examples/deprecated_library/lazarus_library_tester -prune ')' -o \
-	  '(' -type d -iname castle-engine-output -prune ')' -o \
-	  '(' -type f -iname CastleEngineManifest.xml -print ')' > \
-	  /tmp/cge-projects.txt
-	echo 'Found projects: '`wc -l < /tmp/cge-projects.txt`
-
-	for MANIFEST in `cat /tmp/cge-projects.txt`; do
-    local PROJECT_SUBDIR=`dirname ${MANIFEST}`
-	  echo 'Compiling project '${PROJECT_SUBDIR}
-    # do_project `dirname ${MANIFEST}`
-	done
-}
-
-# main code
+# main code ---------------------------------------------------------------
 
 #do_all_projects
 
 do_project examples/web/simplest
 do_project examples/web/simplest_viewport
 do_project examples/web/simplest_invaders
+
+do_project examples/platformer
+do_project examples/eye_of_beholder
+do_project examples/creature_behaviors
+do_project examples/fps_game
+do_project examples/animations/play_animation
+do_project examples/ifc
+do_project examples/screen_effects_demo
+do_project examples/space_shooter
+do_project examples/terrain
+do_project examples/third_person_navigation
+do_project examples/tiled
+do_project examples/user_interface/zombie_fighter
+do_project examples/viewport_and_scenes/cars_demo
+do_project examples/viewport_and_scenes/collisions
+do_project examples/component_gallery
+do_project examples/audio/game_3d_sound
+do_project examples/audio/play_sounds
 
 # now in cge-www: commit + push, and update website
