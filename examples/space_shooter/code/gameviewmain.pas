@@ -217,7 +217,9 @@ begin
   UpdateMoveSpaceShip;
   UpdateBackground;
 
-  RocketsManager.ShootsArmed := Container.Pressed[keySpace];
+  RocketsManager.ShootsArmed :=
+    Container.Pressed[keySpace] or
+    Container.Pressed[keyE];
   if RocketsManager.ShootsArmed then
     RectArmedHint.Border.AllSides := 1
   else
