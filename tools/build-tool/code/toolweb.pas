@@ -30,7 +30,7 @@ implementation
 
 uses SysUtils,
   CastleUtils, CastleUriUtils, CastleFilesUtils, CastleOpenDocument,
-  CastleInternalArchitectures,
+  CastleInternalArchitectures, CastleStringUtils,
   ToolUtils, ToolCommonUtils, ToolManifest;
 
 procedure CompileWeb(const Project: TCastleProject;
@@ -96,7 +96,8 @@ begin
   if CompileServerExe = '' then
     raise Exception.Create('Cannot find "compileserver" executable (part of Pa2js utilities) on $PATH');
 
-  OpenUrl('http://localhost:3000/');
+  // OpenUrl('http://localhost:3000/'); // also works, but allows browsers to cache index.html
+  OpenUrl('http://localhost:3000/index.html?random_suffix_to_avoid_cache=' + RandomString);
 
   // must be run last; Ctrl+C on our build tool should kill the compileserver too
   RunCommandSimple(DistPath, CompileServerExe, ['--port=3000']);
