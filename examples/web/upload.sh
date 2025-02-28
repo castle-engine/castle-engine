@@ -69,26 +69,39 @@ do_project ()
 
 #do_all_projects
 
+# Examples tested on the web now:
+
+# initial (simplest) web demos
 do_project examples/web/simplest
 do_project examples/web/simplest_viewport
 do_project examples/web/simplest_invaders
 
+# 2d
 do_project examples/platformer
-do_project examples/eye_of_beholder
-do_project examples/creature_behaviors
-do_project examples/fps_game
+do_project examples/component_gallery
 do_project examples/animations/play_animation
-do_project examples/ifc
-do_project examples/screen_effects_demo
 do_project examples/space_shooter
-do_project examples/terrain
-do_project examples/third_person_navigation
-do_project examples/tiled
+do_project examples/tiled/map_viewer # TODO: web: no open dialog (works, but could be more impressive)
+do_project examples/tiled/strategy_game_demo
+
+# 3d
+do_project examples/ifc # TODO: web: no open dialog (works, but could be more impressive)
 do_project examples/user_interface/zombie_fighter
 do_project examples/viewport_and_scenes/cars_demo
 do_project examples/viewport_and_scenes/collisions
-do_project examples/component_gallery
-do_project examples/audio/game_3d_sound
-do_project examples/audio/play_sounds
+
+# TODO: web: screen effects don't show, also demo crashes on effects switch
+# do_project examples/screen_effects_demo
+
+# TODO: web: without WebAudio support, these will be silent; also game_3d_sound likely crashes due to PBR
+# do_project examples/audio/game_3d_sound
+# do_project examples/audio/play_sounds # proably works, but silent without WebAudio
+
+# TODO: web: PBR shaders fail compilaton on WebGL
+# do_project examples/eye_of_beholder
+# do_project examples/creature_behaviors
+# do_project examples/fps_game
+# do_project examples/terrain
+# do_project examples/third_person_navigation
 
 # now in cge-www: commit + push, and update website
