@@ -27,10 +27,11 @@ const
     Use these filters with LCL file dialog (easily set by FileFiltersToDialog)
     or TCastleWindow.FileDialog. }
   LoadFont_FileFilters =
-  'All Files|*|' +
-  '*All Font Files|*.ttf;*.otf|' +
-  'TrueType Fonts (*.ttf)|*.ttf|' +
-  'OpenType Fonts (*.otf)|*.otf';
+    'All Files|*|' +
+    '*All Font Files|*.ttf;*.otf;*.woff;*.woff2|' +
+    'TrueType Fonts (*.ttf)|*.ttf|' +
+    'OpenType Fonts (*.otf)|*.otf|' +
+    'WOFF Fonts (*.woff,*.woff2)|*.woff;*.woff2';
 
 { Protect characters from being interpreted as special HTML sequences
   by TCastleAbstractFont.Print with Html = @true parameter.

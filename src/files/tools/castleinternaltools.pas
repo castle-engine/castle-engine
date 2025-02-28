@@ -298,7 +298,9 @@ const
   IgnoreCase = true;
 begin
   if IsWild(FileInfo.Name, '*.ttf', IgnoreCase) or
-     IsWild(FileInfo.Name, '*.otf', IgnoreCase) then
+     IsWild(FileInfo.Name, '*.otf', IgnoreCase) or
+     IsWild(FileInfo.Name, '*.woff', IgnoreCase) or
+     IsWild(FileInfo.Name, '*.woff2', IgnoreCase) then
     AddDependency(depFreetype, FileInfo);
   if IsWild(FileInfo.Name, '*.gz' , IgnoreCase) then
     AddDependency(depZlib, FileInfo);
