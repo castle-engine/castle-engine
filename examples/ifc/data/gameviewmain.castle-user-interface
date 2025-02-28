@@ -455,6 +455,89 @@
           "VerticalAnchorSelf" : "vpTop"
         },
         {
+          "$$ClassName" : "TCastleHorizontalGroup",
+          "Name" : "HorizontalGroup2",
+          "Spacing" : 1.0000000000000000E+001,
+          "TranslationPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent",
+            "X" : 1.0000000000000000E+001,
+            "Y" : -4.5100000000000000E+002
+          },
+          "VerticalAnchorParent" : "vpTop",
+          "VerticalAnchorSelf" : "vpTop",
+          "$Children" : [
+            {
+              "$$ClassName" : "TCastleLabel",
+              "ColorPersistent" : {
+                "$$ClassName" : "TCastleColorPersistent",
+                "Blue" : 1.0000000000000000E+000,
+                "Green" : 1.0000000000000000E+000,
+                "Red" : 1.0000000000000000E+000
+              },
+              "Name" : "Label1",
+              "Text" : [
+                "Mouse buttons:"
+              ],
+              "VerticalAnchorParent" : "vpMiddle",
+              "VerticalAnchorSelf" : "vpMiddle"
+            },
+            {
+              "$$ClassName" : "TCastleButton",
+              "Caption" : "Left selects, right navigates",
+              "CustomBackgroundDisabled" : {
+                "$$ClassName" : "TCastleImagePersistent"
+              },
+              "CustomBackgroundFocused" : {
+                "$$ClassName" : "TCastleImagePersistent"
+              },
+              "CustomBackgroundNormal" : {
+                "$$ClassName" : "TCastleImagePersistent"
+              },
+              "CustomBackgroundPressed" : {
+                "$$ClassName" : "TCastleImagePersistent"
+              },
+              "Image" : {
+                "$$ClassName" : "TCastleImagePersistent"
+              },
+              "Name" : "ButtonMouseLeftSelects",
+              "Toggle" : true,
+              "TranslationPersistent" : {
+                "$$ClassName" : "TCastleVector2Persistent",
+                "X" : 1.6400000000000000E+002
+              },
+              "VerticalAnchorParent" : "vpMiddle",
+              "VerticalAnchorSelf" : "vpMiddle"
+            },
+            {
+              "$$ClassName" : "TCastleButton",
+              "Caption" : "Left navigates, right selects",
+              "CustomBackgroundDisabled" : {
+                "$$ClassName" : "TCastleImagePersistent"
+              },
+              "CustomBackgroundFocused" : {
+                "$$ClassName" : "TCastleImagePersistent"
+              },
+              "CustomBackgroundNormal" : {
+                "$$ClassName" : "TCastleImagePersistent"
+              },
+              "CustomBackgroundPressed" : {
+                "$$ClassName" : "TCastleImagePersistent"
+              },
+              "Image" : {
+                "$$ClassName" : "TCastleImagePersistent"
+              },
+              "Name" : "ButtonMouseLeftNavigates",
+              "Toggle" : true,
+              "TranslationPersistent" : {
+                "$$ClassName" : "TCastleVector2Persistent",
+                "X" : 4.7100000000000000E+002
+              },
+              "VerticalAnchorParent" : "vpMiddle",
+              "VerticalAnchorSelf" : "vpMiddle"
+            }
+          ]
+        },
+        {
           "$$ClassName" : "TCastleCheckbox",
           "Caption" : "Display IFC debug geometry (IfcBoundingBox)",
           "CheckboxColorPersistent" : {
@@ -474,7 +557,7 @@
           "TranslationPersistent" : {
             "$$ClassName" : "TCastleVector2Persistent",
             "X" : 1.0000000000000000E+001,
-            "Y" : -4.5100000000000000E+002
+            "Y" : -5.0000000000000000E+002
           },
           "VerticalAnchorParent" : "vpTop",
           "VerticalAnchorSelf" : "vpTop"
@@ -532,7 +615,7 @@
                     "Name" : "GroupHierarchy",
                     "TranslationPersistent" : {
                       "$$ClassName" : "TCastleVector2Persistent",
-                      "Y" : -1.6499998092651367E+001
+                      "Y" : -1.6500000000000000E+001
                     },
                     "VerticalAnchorParent" : "vpTop",
                     "VerticalAnchorSelf" : "vpTop",

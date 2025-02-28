@@ -1,0 +1,12 @@
+{
+  "$$ClassName" : "TCastleScene",
+  "ExposeTransforms" : [
+  ],
+  "Name" : "Scene1",
+  "ProcessEvents" : true,
+  "RenderOptions" : {
+    "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+  },
+  "TimePlayingSpeed" : 4.0000000000000000E+000,
+  "Url" : "castle-data:/explosion/explosion.castle-sprite-sheet"
+}

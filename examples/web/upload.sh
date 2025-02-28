@@ -3,7 +3,20 @@ set -eu
 
 # ------------------------------------------------------------------------
 # Rebuild all web demos linked from https://castle-engine.io/web .
-# Copy their output to the cge-www repository.
+# Copies their output to the (local) cge-www repository.
+#
+# After executing this, to update website:
+#
+# - update binaries outside of GIT:
+#   rsync -av ~/sources/castle-engine/cge-www/htdocs/web-demos/ ssh.castle-engine.io:/home/michalis/cge-www/htdocs/web-demos
+#   ssh ssh.castle-engine.io
+#     ~/bin/purge_cache.sh
+#
+# - not necessary anymore (web-demos in cge-www/.gitignore):
+#   update things tracked in GIT:
+#   commit + push in cge-www
+#   ssh ssh.castle-engine.io
+#     ~/bin/www_synchronize_noimages.sh
 # ------------------------------------------------------------------------
 
 CGE_WWW_DEMOS="${CASTLE_ENGINE_PATH}/../cge-www/htdocs/web-demos"
@@ -104,4 +117,3 @@ do_project examples/viewport_and_scenes/collisions
 # do_project examples/terrain
 # do_project examples/third_person_navigation
 
-# now in cge-www: commit + push, and update website
