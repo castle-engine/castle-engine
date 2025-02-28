@@ -20,13 +20,14 @@ interface
 
 uses Classes,
   CastleVectors, CastleTransform, CastleUiControls, CastleComponentSerialize,
-  CastleControls, CastleTimeUtils, CastleViewport;
+  CastleControls, CastleTimeUtils, CastleViewport,
+  GameExplosionsManager;
 
 type
   { Manage rocks. }
   TRocksManager = class(TCastleUserInterface)
   private
-    RockFactory: TCastleComponentFactory;
+    Factory: TCastleComponentFactory;
     TimeToNextRock: TFloatTime;
     FRocksDestroyed: Cardinal;
     procedure RockCollisionEnter(const CollisionDetails: TPhysicsCollisionDetails);
@@ -37,16 +38,19 @@ type
       the translations/rotations in the world coordinates of the viewport. }
     RocksParent: TCastleTransform;
 
+    { Use this to spawn explosions when rock is destroyed. }
+    ExplosionsManager: TExplosionsManager;
+
     constructor Create(AOwner: TComponent); override;
     procedure Update(const SecondsPassed: Single; var HandleInput: Boolean); override;
 
     { Number of rocks destroyed. E.g. to show player score. }
     property RocksDestroyed: Cardinal read FRocksDestroyed;
 
-    { Make sure rock resources, like the texture, is initialized.
+    { Make sure rock resources, like the texture, are initialized.
       Otherwise the first rock creation would cause a noticeable stutter
       when spawning. }
-    procedure InitializeRockResources(const ParentViewport: TCastleViewport);
+    procedure InitializeResources(const ParentViewport: TCastleViewport);
   end;
 
 implementation
@@ -58,19 +62,19 @@ uses SysUtils,
 constructor TRocksManager.Create(AOwner: TComponent);
 begin
   inherited;
-  RockFactory := TCastleComponentFactory.Create(Self);
-  RockFactory.Url := 'castle-data:/rocks/rock.castle-transform';
+  Factory := TCastleComponentFactory.Create(Self);
+  Factory.Url := 'castle-data:/rocks/rock.castle-transform';
 
   TimeToNextRock := RandomFloatRange(0.25, 1.0);
 end;
 
-procedure TRocksManager.InitializeRockResources(const ParentViewport: TCastleViewport);
+procedure TRocksManager.InitializeResources(const ParentViewport: TCastleViewport);
 var
-  TestRock: TCastleTransform;
+  TestInstance: TCastleTransform;
 begin
-  TestRock := RockFactory.ComponentLoad(Self) as TCastleTransform;
-  ParentViewport.PrepareResources(TestRock);
-  // FreeAndNil(TestRock) // do not free it, let it exist, to hold reference count to the texture
+  TestInstance := Factory.ComponentLoad(Self) as TCastleTransform;
+  ParentViewport.PrepareResources(TestInstance);
+  // FreeAndNil(TestInstance) // do not free it, let it exist, to hold reference count to the texture
 end;
 
 type
@@ -95,7 +99,7 @@ procedure TRocksManager.Update(const SecondsPassed: Single; var HandleInput: Boo
     try
       RockOwner := TComponent.Create(Self);
 
-      Rock := RockFactory.ComponentLoad(RockOwner, RockDesign) as TCastleTransform;
+      Rock := Factory.ComponentLoad(RockOwner, RockDesign) as TCastleTransform;
 
       RockAutoRemoveBehavior := TAutoRemoveLeftBehavior.Create(RockOwner);
       RockAutoRemoveBehavior.RemoveOwner := RockOwner;
@@ -143,10 +147,9 @@ begin
   if not Rocket.Armed then
     Exit;
 
-  { TODO: We could do something more interesting here, like play a sound,
-    or play pretty rock exploding animation.
-    For now, we just make the rock disappear.
-    The rocket that hit the rock also disappears. }
+  ExplosionsManager.Spawn(Rock.Parent.Translation);
+
+  { Make the rock and rocket disappear. }
   ApplicationProperties.FreeDelayed(Rock.RemoveOwner);
   ApplicationProperties.FreeDelayed(Rocket.RemoveOwner);
 

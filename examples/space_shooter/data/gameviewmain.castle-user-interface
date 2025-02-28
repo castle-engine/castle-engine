@@ -111,6 +111,10 @@
           {
             "$$ClassName" : "TCastleTransform",
             "Name" : "RocksParent"
+          },
+          {
+            "$$ClassName" : "TCastleTransform",
+            "Name" : "ExplosionsParent"
           }
         ]
       },
