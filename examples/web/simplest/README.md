@@ -2,7 +2,7 @@
 
 First application running with CGE [web target](https://castle-engine.io/web).
 
-Does not load any data (images, designs) because we don't support `castle-data:/` yet. Which explains why it looks so simplistic :)
+Does not load any data (images, designs) because we didn't support `castle-data:/` when this was developed (it is supported now). Which explains why it looks so simplistic :)
 
 ![Screenshot](screenshot.png)
 
