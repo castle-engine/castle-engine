@@ -2053,7 +2053,7 @@ function TCastleProject.ReplaceMacros(const Source: string): string;
         { Make the files' list sorted,
           to have the `castle-engine generate-program`
           output fully deterministic for a given project,
-          and indepedent from source OS, undefined ordef of FindFiles etc.
+          and independent from source OS, undefined ordef of FindFiles etc.
           This avoids diffs in version control if nothing changed. }
         PascalFiles.CaseSensitive := true;
         PascalFiles.Sort;
@@ -2177,7 +2177,7 @@ function TCastleProject.ReplaceMacros(const Source: string): string;
         { Make the files' list sorted,
           to have the `castle-engine generate-program`
           output fully deterministic for a given project,
-          and indepedent from source OS, undefined ordef of FindFiles etc.
+          and independent from source OS, undefined ordef of FindFiles etc.
           This avoids diffs in version control if nothing changed. }
         Files.CaseSensitive := true;
         Files.Sort;
@@ -2267,7 +2267,7 @@ function TCastleProject.ReplaceMacros(const Source: string): string;
         { Make the files' list sorted,
           to have the `castle-engine generate-program`
           output fully deterministic for a given project,
-          and indepedent from source OS, undefined ordef of FindFiles etc.
+          and independent from source OS, undefined ordef of FindFiles etc.
           This avoids diffs in version control if nothing changed. }
         PascalFiles.CaseSensitive := true;
         PascalFiles.Sort;
