@@ -23,15 +23,7 @@ type
   EFreeTypeLibraryNotFound = CastleTextureFontData.EFreeTypeLibraryNotFound;
 
 const
-  { Supported font file formats.
-    Use these filters with LCL file dialog (easily set by FileFiltersToDialog)
-    or TCastleWindow.FileDialog. }
-  LoadFont_FileFilters =
-    'All Files|*|' +
-    '*All Font Files|*.ttf;*.otf;*.woff;*.woff2|' +
-    'TrueType Fonts (*.ttf)|*.ttf|' +
-    'OpenType Fonts (*.otf)|*.otf|' +
-    'WOFF Fonts (*.woff,*.woff2)|*.woff;*.woff2';
+  LoadFont_FileFilters = CastleTextureFontData.LoadFont_FileFilters;
 
 { Protect characters from being interpreted as special HTML sequences
   by TCastleAbstractFont.Print with Html = @true parameter.

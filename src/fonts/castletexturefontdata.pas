@@ -255,6 +255,27 @@ type
     function GlyphDrawImageRect(const G: TTextureFontData.TGlyph): TRectangle;
   end;
 
+const
+  { Supported font file formats.
+    Use these filters with LCL file dialog (easily set by FileFiltersToDialog)
+    or TCastleWindow.FileDialog. }
+  LoadFont_FileFilters =
+    'All Files|*|' +
+    '*All Font Files|*.ttf;*.otf;*.woff;*.woff2|' +
+    'TrueType Fonts (*.ttf)|*.ttf|' +
+    'OpenType Fonts (*.otf)|*.otf|' +
+    'WOFF Fonts (*.woff,*.woff2)|*.woff;*.woff2';
+
+{ TCastleFont.Load should use a given TTextureFontData instance
+  instead of loading from given URL.
+  This allows to make embedded fonts work seamlessly. }
+procedure RegisterEmbeddedFont(const FontData: TTextureFontData;
+  const FontUrl: String);
+
+{ Is any font registered for given URL.
+  @nil if none. }
+function GetEmbeddedFont(const FontUrl: String): TTextureFontData;
+
 implementation
 
 uses Classes, SysUtils, Character,
@@ -562,6 +583,14 @@ begin
     ACharacters.Add(SimpleAsciiCharacters);
   end;
 
+  {$ifdef WASI}
+  // TODO: web: WASI does not support FreeType library, also we fail without exceptions because WASI doesn't have longjmp
+  WritelnWarning('TCastleFont', 'Cannot load font "%s", WASI does not support FreeType library', [
+    UriDisplay(Url)
+  ]);
+  Exit;
+  {$endif}
+
   try
     FGlyphsExtra := TGlyphDictionary.Create;
 
@@ -848,6 +877,36 @@ begin
     G := Glyph(Iter.Current);
     if G <> nil then
       MaxVar(Result, GlyphDrawHeight(G) - G.Y);
+  end;
+end;
+
+{ global routines ----------------------------------------------------------- }
+
+var
+  FEmbeddedFonts: TStringList;
+
+procedure RegisterEmbeddedFont(const FontData: TTextureFontData;
+  const FontUrl: String);
+begin
+  if FEmbeddedFonts = nil then
+  begin
+    FEmbeddedFonts := TStringList.Create;
+    // because data URLs *may* ignore case when CastleDataIgnoreCase
+    FEmbeddedFonts.CaseSensitive := false;
+  end;
+  FEmbeddedFonts.AddObject(FontUrl, FontData);
+end;
+
+function GetEmbeddedFont(const FontUrl: String): TTextureFontData;
+var
+  Index: Integer;
+begin
+  Result := nil;
+  if FEmbeddedFonts <> nil then
+  begin
+    Index := FEmbeddedFonts.IndexOf(FontUrl);
+    if Index <> -1 then
+      Result := FEmbeddedFonts.Objects[Index] as TTextureFontData;
   end;
 end;
 
