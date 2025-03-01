@@ -14,7 +14,7 @@
 }
 
 { ZIP files handling (@link(TCastleZip)). }
-unit CastleZip experimental;
+unit CastleZip;
 
 interface
 
