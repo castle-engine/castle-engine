@@ -1485,9 +1485,9 @@ function ApplicationDataCore(const Path: String): String;
 
   {$ifdef UNIX}
   var
-    CurPath: string;
+    CurPath: String;
     {$ifdef DARWIN}
-    BundleDataParentPath: tring;
+    BundleDataParentPath: String;
     {$endif}
   begin
     {$ifdef DARWIN}
