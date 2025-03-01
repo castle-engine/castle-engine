@@ -1485,9 +1485,9 @@ function ApplicationDataCore(const Path: String): String;
 
   {$ifdef UNIX}
   var
-    CurPath: string;
+    CurPath: String;
     {$ifdef DARWIN}
-    BundleDataParentPath: tring;
+    BundleDataParentPath: String;
     {$endif}
   begin
     {$ifdef DARWIN}
@@ -1500,7 +1500,7 @@ function ApplicationDataCore(const Path: String): String;
       {$endif}
 
       // data subdirectory in the macOS application bundle or iOS data
-      BundleDataParent := BundleDataParentPath + 'data/';
+      Result := BundleDataParentPath + 'data/';
       if DirectoryExists(Result) then Exit;
 
       // data zip in the macOS application bundle or iOS data

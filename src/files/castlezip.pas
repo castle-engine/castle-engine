@@ -14,7 +14,7 @@
 }
 
 { ZIP files handling (@link(TCastleZip)). }
-unit CastleZip experimental;
+unit CastleZip;
 
 interface
 
@@ -513,14 +513,14 @@ begin
   Result.Position := 0;
 end;
 
-procedure TCastleZip.Write(const PathInZip: String; const Stream: TStream);
+procedure TCastleZip.Write(const PathInZip: String; const Stream: TStream; const OwnsStream: Boolean);
 begin
   if not IsOpen then
     raise EZipNotOpen.Create('Cannot write to ZIP, it is not open for writing');
   raise Exception.Create('TODO: Writing ZIP not implemented with Delphi');
 end;
 
-procedure TCastleZip.Write(const PathInZip: String; const Url: String); overload;
+procedure TCastleZip.Write(const PathInZip: String; const Url: String);
 begin
   if not IsOpen then
     raise EZipNotOpen.Create('Cannot write to ZIP, it is not open for writing');

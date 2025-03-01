@@ -50,6 +50,7 @@ Makefile text eol=auto
 # Even on Windows, shell scripts line endings must be Unix, to work with Cygwin's bash.
 *.sh text eol=lf
 cge_shell_tests eol=lf
+tools/internal/build_web_demos eol=lf
 tools/internal/check_build_tool_output eol=lf
 tools/internal/check_castle_window_backends_compilation eol=lf
 tools/internal/check_lpg_compilation eol=lf
