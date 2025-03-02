@@ -87,8 +87,9 @@ const
   { TODO: web: we have to assume some things - size, anti-aliasing, characters
     when generating fonts.
     If this going to be really long-term solution, we should define this in a file,
-    so that generator takes font file + config how to generate it. }
-  FontOptimalSize = 20;
+    so that generator takes font file + config how to generate it.
+    Size 50, not 20, to make platformer UI like "credits" look good. }
+  FontOptimalSize = 50;
   FontAntiAliasing = true;
 var
   FontUnit: TFontUnit;
