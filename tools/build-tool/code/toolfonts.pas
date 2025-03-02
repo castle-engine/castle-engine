@@ -136,7 +136,7 @@ procedure GenerateEmbeddedFonts(const Project: TCastleProject;
   const FontUnitsOutputPath: string);
 var
   Helper: TGenerateEmbeddedFontsHelper;
-  AllFontsUnit, UnitName, FontFunctionName: String;
+  AllFontsUnit: String;
   FontUnit: TFontUnit;
 begin
   Helper := TGenerateEmbeddedFontsHelper.Create;
