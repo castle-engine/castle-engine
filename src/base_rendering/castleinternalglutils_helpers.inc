@@ -1,6 +1,6 @@
 {%MainUnit castleinternalglutils.pas}
 {
-  Copyright 2016-2023 Michalis Kamburelis.
+  Copyright 2016-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -169,9 +169,22 @@ function BoolToGL(const Value: boolean): TGLboolean;
 { glGetXxx ---------------------------------------------------------------------}
 
 function glGetFloat(const Param: TGLEnum): TGLfloat;
+{$ifdef CASTLE_WEBGL}
+var
+  ResultVariant: Variant;
+{$endif}
 begin
   {$ifdef CASTLE_WEBGL}
-  Result := GL.GetParameter(Param);
+  ResultVariant := GL.GetParameter(Param);
+  if VarIsEmpty(ResultVariant) then
+    raise Exception.CreateFmt('Unexpected VarIsEmpty for glGetFloat(%d)', [
+      Param
+    ]);
+  if VarIsNull(ResultVariant) then
+    raise Exception.CreateFmt('Unexpected VarIsNull for glGetFloat(%d)', [
+      Param
+    ]);
+  Result := ResultVariant;
   {$else}
   FillChar(Result, SizeOf(Result), 0);
   glGetFloatv(Param, @Result)
@@ -185,12 +198,52 @@ var
   ResultArray: IJSFloat32Array;
   I: Integer;
 begin
-  Exit(Vector2(0, 10)); // TODO: web: fix it properly
+  { TODO: web: This fails with error 
+  
+    in Firefox:
+      Running Webassembly resulted in exception. Exception class:  object , message: indirect call signature mismatch
+    in Vivaldi:
+      Running Webassembly resulted in exception. Exception class:  object , message: null function or function signature mismatch
+      
+    Unknown why. Same for glGetInteger2.
+    
+    We definitely use this with correct parameters for GL.getParameter,
+    https://developer.mozilla.org/en-US/docs/Web/API/WebGLRenderingContext/getParameter ,
+    for ALIASED_LINE_WIDTH_RANGE -> "Float32Array (with 2 elements)",
+    for MAX_VIEWPORT_DIMS -> "Int32Array (with 2 elements)".
+    
+    But all ways to get values fail. Using
+    
+    var
+      ResultArray: IJSFloat32Array;
+    begin
+      ResultArray := TJSFloat32Array.Cast(GL.GetParameter(Param));
+      
+    ... should make sense according to 
+    https://wiki.freepascal.org/WebAssembly/DOM#Variants . 
+    Checks with VarIsEmpty, VarIsNull seem OK (it is not empty, not null).
+    
+    Checking TJSObject.InvokeJSVariantResult also shows it is OK,
+    result is JOBResult_Object.   
+    
+    TODO:
+    - Create minimal testcase, with own JS code returning Int32Array.
+      Submit a bug to FPC if still fails.
+    - As a better workaround, we could likely do this from pas2js application,
+      and just pass the result. For now, using this is not very critical.
+  }
+  Exit(Vector2(1, 4)); // sensible result of ALIASED_LINE_WIDTH_RANGE
+  
   ResultVariant := GL.GetParameter(Param);
-  if not VarSupports(ResultVariant, IJSFloat32Array, ResultArray) then
-    raise Exception.CreateFmt('Expected Float32Array return value for glGetFloat2(%d)', [
+  if VarIsEmpty(ResultVariant) then
+    raise Exception.CreateFmt('Unexpected VarIsEmpty for glGetFloat2(%d)', [
       Param
     ]);
+  if VarIsNull(ResultVariant) then
+    raise Exception.CreateFmt('Unexpected VarIsNull for glGetFloat2(%d)', [
+      Param
+    ]);  
+  ResultArray := TJSFloat32Array.Cast(ResultVariant);
   if ResultArray.Length <> 2 then
     raise Exception.CreateFmt('Expected 2 return values for glGetFloat2(%d), got %d', [
       Param,
@@ -206,6 +259,10 @@ begin
 end;
 
 function glGetInteger(const Param: TGLEnum): TGLint;
+{$ifdef CASTLE_WEBGL}
+var
+  ResultVariant: Variant;
+{$endif}
 begin
   { Just for test, to somewhat simulate hardware with lower
     GL_MAX_TEXTURE_UNITS_ARB,
@@ -216,7 +273,16 @@ begin
   end;}
 
   {$ifdef CASTLE_WEBGL}
-  Result := GL.GetParameter(Param);
+  ResultVariant := GL.GetParameter(Param);
+  if VarIsEmpty(ResultVariant) then
+    raise Exception.CreateFmt('Unexpected VarIsEmpty for glGetFloat(%d)', [
+      Param
+    ]);
+  if VarIsNull(ResultVariant) then
+    raise Exception.CreateFmt('Unexpected VarIsNull for glGetFloat(%d)', [
+      Param
+    ]);
+  Result := ResultVariant;
   {$else}
   FillChar(Result, SizeOf(Result), 0);
   glGetIntegerv(Param, @Result);
@@ -230,16 +296,12 @@ var
   ResultArray: IJSInt32Array;
   I: Integer;
 begin
-  Exit(Vector2Integer(0, 10)); // TODO: web: fix it properly
+  // TODO: web: see glGetFloat2, this fails with the same error
+  
+  Exit(Vector2Integer(10 * 1000, 10 * 1000)); // sensible result of MAX_VIEWPORT_DIMS
+  
   ResultVariant := GL.GetParameter(Param);
-  // ResultArray := TJSInt32Array.Cast(ResultVariant);
-  (*
-  if not VarSupports(ResultVariant, IJSInt32Array, ResultArray) then
-    raise Exception.CreateFmt('Expected Int32Array return value for glGetInteger2(%d), but got %s', [
-      Param,
-      VarTypeAsText(VarType(ResultVariant))
-    ]);
-  *)
+  ResultArray := TJSInt32Array.Cast(ResultVariant);
   if ResultArray.Length <> 2 then
     raise Exception.CreateFmt('Expected 2 return values for glGetInteger2(%d), got %d', [
       Param,
@@ -255,9 +317,22 @@ begin
 end;
 
 function glGetBoolean(const Param: TGLEnum): TGLboolean;
+{$ifdef CASTLE_WEBGL}
+var
+  ResultVariant: Variant;
+{$endif}
 begin
   {$ifdef CASTLE_WEBGL}
-  Result := GL.GetParameter(Param);
+  ResultVariant := GL.GetParameter(Param);
+  if VarIsEmpty(ResultVariant) then
+    raise Exception.CreateFmt('Unexpected VarIsEmpty for glGetFloat(%d)', [
+      Param
+    ]);
+  if VarIsNull(ResultVariant) then
+    raise Exception.CreateFmt('Unexpected VarIsNull for glGetFloat(%d)', [
+      Param
+    ]);
+  Result := ResultVariant;
   {$else}
   FillChar(Result, SizeOf(Result), 0);
   glGetBooleanv(Param, @Result)

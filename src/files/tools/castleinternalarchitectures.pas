@@ -62,7 +62,7 @@ type
     win64,wince,gba,nds,embedded,symbian,haiku,iphonesim,
     aix,java,android,nativent,msdos,wii,aros,dragonfly,
     win16,freertos,zxspectrum,msxdos,ios,amstradcpc,sinclairql,
-    wasi
+    wasip1
   );
   TOSes = Set of TOS;
 
@@ -133,7 +133,7 @@ Const
     { ios }     ( false, false, false, false, false, false,  true, false, false, false, false, false, false, false,   false, false, true , false, false,  false,  false,   false, false, false),
     {amstradcpc}( false, false, false, false, false, false, false, false, false, false, false, false, false, false,   false, false, false, false, false,  false,  false,   false, true,  false),
     {sinclairql}( false, false, true,  false, false, false, false, false, false, false, false, false, false, false,   false, false, false, false, false,  false,  false,   false, false, false),
-    { wasi }    ( false, false, false, false, false, false, false, false, false, false, false, false, false, false,   false, false, false, true,  false,  false,  false,   false, false, false)
+    { wasip1 }  ( false, false, false, false, false, false, false, false, false, false, false, false, false, false,   false, false, false, true,  false,  false,  false,   false, false, false)
   );
 
 function TargetToString(const Target: TTarget): String;
@@ -202,7 +202,7 @@ const
     {$ifdef nativent} nativent {$endif}
     {$ifdef msdos} msdos {$endif}
     {$ifdef wii} wii {$endif}
-    {$ifdef wasi} wasi {$endif}
+    {$ifdef wasip1} wasip1 {$endif}
   ;
 
 function TargetOptionHelp: string;
@@ -349,7 +349,7 @@ begin
   if OS in AllWindowsOSes then
     Result :=  '.exe'
   else
-  if OS = wasi then
+  if OS = WasiP1 then
     Result :=  '.wasm'
   else
     Result := '';

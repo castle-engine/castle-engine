@@ -424,7 +424,7 @@ begin
         targetNintendoSwitch: CompileNintendoSwitch(GetCurrentDir, FileName, SimpleCompileOptions);
         targetWeb           :
           begin
-            SimpleCompileOptions.OS := Wasi;
+            SimpleCompileOptions.OS := WasiP1;
             SimpleCompileOptions.CPU := Wasm32;
             Compile(OverrideCompiler, GetCurrentDir, FileName, SimpleCompileOptions);
           end;

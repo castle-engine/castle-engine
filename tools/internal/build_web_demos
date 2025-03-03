@@ -31,7 +31,28 @@ if [ "`uname -s`" '=' 'Darwin' ]; then
   FIND='gfind'
 fi
 
-# Rebuild and copy project $1 .
+# Rebuild and copy project for web.
+#
+# $1 is project's absolute directory.
+#
+# $2 is subdirectory within cge-www/.../web-demos/ .
+do_project_any ()
+{
+  local PROJECT_FULL_DIR="$1"
+  local PROJECT_SUBDIR="$2"
+  shift 2
+
+  cd "${PROJECT_FULL_DIR}"
+  castle-engine clean
+  castle-engine compile --target=web --mode=release
+
+  CGE_WWW_DIST="${CGE_WWW_DEMOS}/${PROJECT_SUBDIR}"
+  rm -Rf "${CGE_WWW_DIST}"
+  mkdir -p "${CGE_WWW_DIST}"
+  cp -R castle-engine-output/web/dist/* "${CGE_WWW_DIST}"
+}
+
+# Rebuild and copy project $1, that is inside CGE.
 #
 # $1 should be a directory in CGE, like examples/web/simplest_viewport
 #
@@ -102,6 +123,7 @@ do_project examples/ifc # TODO: web: no open dialog (works, but could be more im
 do_project examples/user_interface/zombie_fighter
 do_project examples/viewport_and_scenes/cars_demo
 do_project examples/viewport_and_scenes/collisions
+do_project_any "${CASTLE_ENGINE_PATH}/../castle-model-viewer-mobile" 'castle-model-viewer-mobile'
 
 # TODO: web: screen effects don't show, also demo crashes on effects switch
 # do_project examples/screen_effects_demo

@@ -87,14 +87,14 @@ const
   { TODO: web: we have to assume some things - size, anti-aliasing, characters
     when generating fonts.
     If this going to be really long-term solution, we should define this in a file,
-    so that generator takes font file + config how to generate it. }
-  FontOptimalSize = 20;
+    so that generator takes font file + config how to generate it.
+    Size 50, not 20, to make platformer UI like "credits" look good. }
+  FontOptimalSize = 50;
   FontAntiAliasing = true;
 var
   FontUnit: TFontUnit;
   Font: TTextureFontData;
-  FontUnitName, FontFunctionName, FontName, PrecedingComment,
-    FontRelativeUrl, FontUnitFileName: String;
+  FontUnitName, FontFunctionName, FontRelativeUrl, FontUnitFileName: String;
 begin
   if FontFilters.Matches(FileInfo.Url) then
   begin
@@ -105,18 +105,6 @@ begin
       FontUnitName := 'CastleAutoGenetatedFont' + IntToStr(Units.Count);
       FontFunctionName := 'TextureFont' + IntToStr(Units.Count);
 
-      // just like texture-font-to-pascal does
-      FontName := DeleteUriExt(ExtractUriName(FileInfo.Url));
-      PrecedingComment := Format(
-        '  Source font:' +NL+
-        '    Name         : %s' +NL+
-        '    Size         : %d' +NL+
-        '    AntiAliasing : %s' +nl, [
-        FontName,
-        FontOptimalSize,
-        BoolToStr(FontAntiAliasing, true)
-      ]);
-
       FontUnitFileName := CombinePaths(FontUnitsOutputPath, LowerCase(FontUnitName) + '.pas');
 
       FontRelativeUrl := ExtractRelativePath(InclPathDelim(DataPath), FileInfo.AbsoluteName);
@@ -125,8 +113,7 @@ begin
       FontRelativeUrl := 'castle-data:/' + FontRelativeUrl;
 
       // generate font file
-      FontToPascal(Font, FontUnitName, PrecedingComment, FontFunctionName,
-        FontUnitFileName);
+      FontToPascal(Font, FontUnitName, FontFunctionName, FontUnitFileName);
 
       // extend Units list with new font information
       FontUnit := TFontUnit.Create;
@@ -149,7 +136,7 @@ procedure GenerateEmbeddedFonts(const Project: TCastleProject;
   const FontUnitsOutputPath: string);
 var
   Helper: TGenerateEmbeddedFontsHelper;
-  AllFontsUnit, UnitName, FontFunctionName: String;
+  AllFontsUnit: String;
   FontUnit: TFontUnit;
 begin
   Helper := TGenerateEmbeddedFontsHelper.Create;

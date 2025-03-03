@@ -48,7 +48,8 @@ type
     FGuidFromName: Boolean;
 
     procedure DeleteFoundFile(const FileInfo: TFileInfo; var StopSearch: boolean);
-    function PackageName(const OS: TOS; const CPU: TCPU; const PackageFormat: TPackageFormatNoDefault;
+    function PackageName(const Target: TTarget; const OS: TOS; const CPU: TCPU;
+      const PackageFormat: TPackageFormatNoDefault;
       const PackageNameIncludeVersion: Boolean): string;
     function SourcePackageName(const PackageNameIncludeVersion: Boolean;
       const PackageFormatFinal: TPackageFormatNoDefault): string;
@@ -650,6 +651,9 @@ begin
 
   if PackageFormat = pfDefault then
   begin
+    if Target = targetWeb then
+      Result := pfWebZipDist
+    else
     if Target = targetIOS then
       Result := pfIosXcodeProject
     else
@@ -825,7 +829,8 @@ var
 
       Pack.AddDataInformation(TCastleManifest.DataName);
 
-      PackageFileName := PackageName(OS, CPU, PackageFormatFinal, PackageNameIncludeVersion);
+      PackageFileName := PackageName(Target, OS, CPU,
+        PackageFormatFinal, PackageNameIncludeVersion);
 
       Pack.Cpu := Cpu;
       Pack.Manifest := Manifest;
@@ -837,6 +842,7 @@ var
   PackageFormatFinal: TPackageFormatNoDefault;
   WantsIOSArchive: Boolean;
   IOSArchiveType: TIosArchiveType;
+  PackName: String;
 begin
   PackageFormatFinal := PackageFormatFinalize(Target, OS, CPU, PackageFormat);
 
@@ -872,7 +878,19 @@ begin
       begin
         CreateMacAppBundle(Self, OutputPath, false);
         if PackageFormatFinal = pfMacAppBundleZip then
-          ZipMacAppBundle(Self, OutputPath, PackageName(OS, CPU, PackageFormatFinal, PackageNameIncludeVersion));
+        begin
+          PackName := PackageName(targetCustom, OS, CPU,
+            PackageFormatFinal, PackageNameIncludeVersion);
+          ZipMacAppBundle(Self, OutputPath, PackName);
+        end;
+      end;
+    pfWebZipDist:
+      begin
+        PackName := PackageName(targetWeb,
+          // OS and CPU don't matter when Target = targetWeb
+          DefaultOS, DefaultCPU,
+          PackageFormatFinal, PackageNameIncludeVersion);
+        PackageWeb(Self, PackName);
       end;
     {$ifndef COMPILER_CASE_ANALYSIS}
     else raise EInternalError.Create('Unhandled PackageFormatFinal in DoPackage');
@@ -1069,16 +1087,26 @@ begin
   finally FreeAndNil(Pack) end;
 end;
 
-function TCastleProject.PackageName(const OS: TOS; const CPU: TCPU;
+function TCastleProject.PackageName(
+  const Target: TTarget; const OS: TOS; const CPU: TCPU;
   const PackageFormat: TPackageFormatNoDefault;
   const PackageNameIncludeVersion: Boolean): string;
 begin
   Result := Name;
+
+  // add version
   if PackageNameIncludeVersion and (Version.DisplayValue <> '') then
     Result += '-' + Version.DisplayValue;
-  Result += '-' + OSToString(OS) + '-' + CPUToString(CPU);
+
+  // add target, OS, CPU
+  if Target <> targetCustom then
+    Result += '-' + TargetToString(Target)
+  else
+    Result += '-' + OSToString(OS) + '-' + CPUToString(CPU);
+
+  // add extension
   case PackageFormat of
-    pfZip, pfMacAppBundleZip: Result += '.zip';
+    pfZip, pfMacAppBundleZip, pfWebZipDist: Result += '.zip';
     pfTarGz: Result += '.tar.gz';
     pfDeb: Result += '.deb';
     else ; // leave without extension for pfDirectory
@@ -2622,19 +2650,27 @@ end;
 
 function TCastleProject.PackageOutput(const FileName: String): Boolean;
 var
+  Target: TTarget;
   OS: TOS;
   CPU: TCPU;
   PackageFormat: TPackageFormatNoDefault;
   HasVersion: Boolean;
+  PackName: String;
 begin
-  for OS in TOS do
-    for CPU in TCPU do
-      // TODO: This will not exclude output of packaging with pfDirectory
-      for PackageFormat in TPackageFormatNoDefault do
-        for HasVersion in Boolean do
-          if OSCPUSupported[OS, CPU] then
-            if SameFileName(FileName, PackageName(OS, CPU, PackageFormat, HasVersion)) then
-              Exit(true);
+  for Target in TTarget do
+    // TODO: this iterates over all OS and CPU even for Target <> targetCustom,
+    // which is unnecessary.
+    for OS in TOS do
+      for CPU in TCPU do
+        // TODO: This will not exclude output of packaging with pfDirectory
+        for PackageFormat in TPackageFormatNoDefault do
+          for HasVersion in Boolean do
+            if OSCPUSupported[OS, CPU] then
+            begin
+              PackName := PackageName(Target, OS, CPU, PackageFormat, HasVersion);
+              if SameFileName(FileName, PackName) then
+                Exit(true);
+            end;
 
   for HasVersion in Boolean do
     // list all package formats allowed for source packages now

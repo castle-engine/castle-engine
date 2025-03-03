@@ -63,7 +63,7 @@
         <PackageName Value="castle_base"/>
       </Item2>
     </RequiredPackages>
-    <Units Count="8">
+    <Units Count="9">
       <Unit0>
         <Filename Value="space_shooter_standalone.dpr"/>
         <IsPartOfProject Value="True"/>
@@ -79,30 +79,35 @@
         <UnitName Value="gamebehaviors"/>
       </Unit2>
       <Unit3>
+        <Filename Value="code/gameexplosionsmanager.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="gameexplosionsmanager"/>
+      </Unit3>
+      <Unit4>
         <Filename Value="code/gameinitialize.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="gameinitialize"/>
-      </Unit3>
-      <Unit4>
+      </Unit4>
+      <Unit5>
         <Filename Value="code/gamerocketsmanager.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="gamerocketsmanager"/>
-      </Unit4>
-      <Unit5>
+      </Unit5>
+      <Unit6>
         <Filename Value="code/gamerocksmanager.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="gamerocksmanager"/>
-      </Unit5>
-      <Unit6>
+      </Unit6>
+      <Unit7>
         <Filename Value="code/gametilingbackground.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="gametilingbackground"/>
-      </Unit6>
-      <Unit7>
+      </Unit7>
+      <Unit8>
         <Filename Value="code/gameviewmain.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="gameviewmain"/>
-      </Unit7>
+      </Unit8>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

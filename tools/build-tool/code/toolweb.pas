@@ -26,6 +26,12 @@ procedure CompileWeb(const Project: TCastleProject;
   const CompilerOptions: TCompilerOptions);
 procedure RunWeb(const Project: TCastleProject);
 
+{ Package web dist/, made by CompileWeb.
+  PackageZipFileName is only name (without directory) of the zip file,
+  it will be placed in Project.OutputPath, like all "package" output. }
+procedure PackageWeb(const Project: TCastleProject;
+  const PackageZipFileName: String);
+
 implementation
 
 uses SysUtils,
@@ -70,7 +76,7 @@ begin
 
   { Compile library. }
   LibraryFileName := OutputPath + 'library_template.lpr';
-  CompilerOptions.OS := Wasi;
+  CompilerOptions.OS := WasiP1;
   CompilerOptions.CPU := Wasm32;
   Compile(coFpc, Project.Path, LibraryFileName, CompilerOptions);
 
@@ -106,6 +112,20 @@ begin
 
   // must be run last; Ctrl+C on our build tool should kill the compileserver too
   RunCommandSimple(DistPath, CompileServerExe, ['--port=3000']);
+end;
+
+procedure PackageWeb(const Project: TCastleProject;
+  const PackageZipFileName: String);
+var
+  OutputPath, DistPath, FullZipFileName: String;
+begin
+  OutputPath := TempOutputPath(Project.Path) + 'web' + PathDelim;
+  DistPath := OutputPath + 'dist' + PathDelim;
+
+  FullZipFileName := CombinePaths(Project.OutputPath, PackageZipFileName);
+  ZipDirectory(FullZipFileName, DistPath, false);
+
+  Writeln(Format('Packed web distributable files to "%s"', [PackageZipFileName]));
 end;
 
 end.

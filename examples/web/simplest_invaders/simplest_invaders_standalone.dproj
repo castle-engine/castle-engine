@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{CA35C319-93EA-43B3-AB1F-0444DB1473C5}</ProjectGuid>
+        <ProjectGuid>{4E3E5585-3C33-3AA0-8FFC-B52243B069D6}</ProjectGuid>
         <MainSource>simplest_invaders_standalone.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>

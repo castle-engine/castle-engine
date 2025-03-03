@@ -20,23 +20,36 @@ interface
 
 uses CastleTextureFontData, Classes;
 
-{ @noAutoLinkHere }
+{ Generate Pascal unit that defines given Font. }
 procedure FontToPascal(const Font: TTextureFontData;
-  const UnitName, PrecedingComment, FontFunctionName: string; Stream: TStream);
-  overload;
-
-{ @noAutoLinkHere }
+  const UnitName, FontFunctionName: string; Stream: TStream); overload;
 procedure FontToPascal(const Font: TTextureFontData;
-  const UnitName, PrecedingComment, FontFunctionName: string;
-  const OutUrl: String); overload;
+  const UnitName, FontFunctionName: string; const OutUrl: String); overload;
 
 implementation
 
 uses SysUtils, CastleUtils, CastleStringUtils, CastleClassUtils, CastleDownload,
-  CastleUnicode;
+  CastleUnicode, CastleUriUtils;
+
+{ Return string literal with given value in Pascal.
+  By default this includes surrounding apostrophes. }
+function StringToPascal(const S: String;
+  const SurroundApostrophes: Boolean = true): String;
+const
+  Apos = ''''; // using this constant makes the code below more readable
+begin
+  Result := StringReplace(S, Apos, Apos + Apos, [rfReplaceAll]);
+  if SurroundApostrophes then
+    Result := Apos + Result + Apos;
+end;
+
+function BoolToPascal(const B: Boolean): String;
+begin
+  Result := Iff(B, 'true', 'false');
+end;
 
 procedure FontToPascal(const Font: TTextureFontData;
-  const UnitName, PrecedingComment, FontFunctionName: string; Stream: TStream);
+  const UnitName, FontFunctionName: string; Stream: TStream);
 var
   C: TUnicodeChar;
   G: TTextureFontData.TGlyph;
@@ -50,7 +63,15 @@ begin
     '  to embed font data in Pascal source code.' +NL+
     '  @exclude (Exclude this unit from PasDoc documentation.)' +NL+
     NL+
-    PrecedingComment+
+    '  Source font:' +NL+
+    '    Family Name : ' + Font.FamilyName +NL+
+    '    Style Name  : ' + Font.StyleName +NL+
+    '    Bold        : ' + BoolToPascal(Font.Bold) +NL+
+    '    Italic      : ' + BoolToPascal(Font.Italic) +NL+
+    NL+
+    '  Data generated with options:' +NL+
+    '    Size        : ' + IntToStr(Font.Size) +NL+
+    '    AntiAliased : ' + BoolToPascal(Font.AntiAliased) +NL+
     '}' +NL+
     'unit ' + UnitName + ';' +NL+
     NL+
@@ -88,9 +109,12 @@ begin
     'var' +NL+
     '  Glyphs: TTextureFontData.TGlyphDictionary;' +NL+
     '  G: TTextureFontData.TGlyph;' +NL+
+    '  FontInformation: TTextureFontDataInformation;' +NL+
     'begin' +NL+
     '  FontImage.TreatAsAlpha := true;' +NL+
-    '  FontImage.Url := ''embedded-font:/' + UnitName + ''';' +NL+
+    '  FontImage.Url := ''embedded-font:/' +
+      // use InternalUriEscape, in case font family has spaces which should be %20 in URL
+      StringToPascal(InternalUriEscape(Font.FamilyName), false) + ''';' +NL+
     NL+
     '  Glyphs := TTextureFontData.TGlyphDictionary.Create;' +NL+
     NL);
@@ -119,9 +143,19 @@ begin
   finally FreeAndNil(LoadedGlyphs) end;
 
   WriteStr(Stream,
-    '  Result := TTextureFontData.CreateFromData(Glyphs, FontImage, ' +
-      IntToStr(Font.Size) + ', ' +
-      LowerCase(BoolToStr(Font.AntiAliased, true)) + ');' +NL+
+    '  FontInformation := TTextureFontDataInformation.Create;' +NL+
+    '  try' +NL+
+    '    FontInformation.Size := ' + IntToStr(Font.Size) + ';' +NL+
+    '    FontInformation.AntiAliased := ' + BoolToPascal(Font.AntiAliased) + ';' +NL+
+    '    FontInformation.FamilyName := ' + StringToPascal(Font.FamilyName) + ';' +NL+
+    '    FontInformation.StyleName := ' + StringToPascal(Font.StyleName) + ';' +NL+
+    '    FontInformation.Bold := ' + BoolToPascal(Font.Bold) + ';' +NL+
+    '    FontInformation.Italic := ' + BoolToPascal(Font.Italic) + ';' +NL+
+    NL+
+    '    Result := TTextureFontData.CreateFromData(Glyphs, FontImage, FontInformation);' +NL+
+    '  finally' +NL+
+    '    FreeAndNil(FontInformation);' +NL+
+    '  end;' +NL+
     'end;' +NL+
     NL+
     'var' +NL+
@@ -145,14 +179,13 @@ begin
 end;
 
 procedure FontToPascal(const Font: TTextureFontData;
-  const UnitName, PrecedingComment, FontFunctionName: string;
-  const OutUrl: String); overload;
+  const UnitName, FontFunctionName: string; const OutUrl: String); overload;
 var
   Stream: TStream;
 begin
   Stream := UrlSaveStream(OutUrl);
   try
-    FontToPascal(Font, UnitName, PrecedingComment, FontFunctionName, Stream);
+    FontToPascal(Font, UnitName, FontFunctionName, Stream);
   finally Stream.Free end;
 end;
 

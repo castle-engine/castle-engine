@@ -63,7 +63,7 @@
         <PackageName Value="castle_base"/>
       </Item2>
     </RequiredPackages>
-    <Units Count="4">
+    <Units Count="7">
       <Unit0>
         <Filename Value="simplest_invaders_standalone.dpr"/>
         <IsPartOfProject Value="True"/>
@@ -79,10 +79,25 @@
         <UnitName Value="gameinitialize"/>
       </Unit2>
       <Unit3>
+        <Filename Value="code/gameinvaders.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="gameinvaders"/>
+      </Unit3>
+      <Unit4>
+        <Filename Value="code/gameviewend.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="gameviewend"/>
+      </Unit4>
+      <Unit5>
+        <Filename Value="code/gameviewinitial.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="gameviewinitial"/>
+      </Unit5>
+      <Unit6>
         <Filename Value="code/gameviewmain.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="gameviewmain"/>
-      </Unit3>
+      </Unit6>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
