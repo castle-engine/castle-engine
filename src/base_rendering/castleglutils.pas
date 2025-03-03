@@ -45,7 +45,8 @@ implementation
 uses
   CastleFilesUtils, CastleStringUtils, CastleGLVersion, CastleGLShaders,
   CastleLog, CastleApplicationProperties, CastleRenderContext, CastleGLImages,
-  CastleInternalGLUtils, CastleTimeUtils;
+  CastleInternalGLUtils, CastleTimeUtils
+  {$ifdef WASI} , Job.Js {$endif};
 
 {$I castleglutils_types.inc}
 {$I castleglutils_features_debug.inc} // only implementation
