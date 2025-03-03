@@ -1911,6 +1911,14 @@ var
   begin
     if FFogEnabled then
     begin
+      {$ifdef CASTLE_WEBGL}
+      { Shader fails compilation with
+          EGLSLShaderCompileError: Vertex shader not compiled:
+          0(13) : error C1503: undefined variable "_ucastle_FogFragCoord" }
+      WritelnWarning('WebGL', 'Fog is not supported with WebGL yet');
+      Exit;
+      {$endif}
+
       case FFogCoordinateSource of
         fcDepth           : CoordinateSource := '-vertex_eye.z';
         fcPassedCoordinate: CoordinateSource := 'castle_FogCoord';
