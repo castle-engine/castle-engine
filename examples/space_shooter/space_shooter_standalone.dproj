@@ -100,7 +100,7 @@
         <DCC_Namespace>System;Xml;Data;Datasnap;Web;Soap;$(DCC_Namespace)</DCC_Namespace>
         <Icon_MainIcon>$(BDS)\bin\delphi_PROJECTICON.ico</Icon_MainIcon>
         <Icns_MainIcns>$(BDS)\bin\delphi_PROJECTICNS.icns</Icns_MainIcns>
-        <DCC_UnitSearchPath>../../src/base;../../src/common_includes;../../src/base/android;../../src/base/windows;../../src/base/unix;../../src/base_rendering;../../src/base_rendering/dglopengl;../../src/base_rendering/glsl/generated-pascal;../../src/fonts;../../src/window;../../src/window/gtk;../../src/window/windows;../../src/window/unix;../../src/window/deprecated_units;../../src/images;../../src/transform;../../src/scene;../../src/scene/glsl/generated-pascal;../../src/scene/x3d;../../src/scene/load;../../src/scene/load/ifc;../../src/scene/load/spine;../../src/scene/load/md3;../../src/scene/load/collada;../../src/scene/load/pasgltf;../../src/audio;../../src/audio/fmod;../../src/audio/openal;../../src/audio/ogg_vorbis;../../src/files;../../src/files/indy;../../src/castlescript;../../src/ui;../../src/ui/windows;../../src/services;../../src/services/steam;../../src/physics;../../src/physics/kraft;../../src/deprecated_units;../../src/vampyre_imaginglib/src/Source;../../src/vampyre_imaginglib/src/Source/JpegLib;../../src/vampyre_imaginglib/src/Source/ZLib;../../src/vampyre_imaginglib/src/Extras/Extensions;../../src/vampyre_imaginglib/src/Extensions/J2KObjects;../../src/vampyre_imaginglib/src/Extensions/LibTiff;../../src/vampyre_imaginglib/src/Extensions;../../src/delphi;../../src/compatibility/delphi-only;../../src/compatibility/delphi-only/fcl-json;code/;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
+        <DCC_UnitSearchPath>../../src/base;../../src/common_includes;../../src/base/android;../../src/base/windows;../../src/base/unix;../../src/base/wasi;../../src/base_rendering;../../src/base_rendering/web;../../src/base_rendering/dglopengl;../../src/base_rendering/glsl/generated-pascal;../../src/fonts;../../src/window;../../src/window/gtk;../../src/window/windows;../../src/window/unix;../../src/window/deprecated_units;../../src/images;../../src/transform;../../src/scene;../../src/scene/glsl/generated-pascal;../../src/scene/x3d;../../src/scene/load;../../src/scene/load/ifc;../../src/scene/load/spine;../../src/scene/load/md3;../../src/scene/load/collada;../../src/scene/load/pasgltf;../../src/audio;../../src/audio/fmod;../../src/audio/openal;../../src/audio/ogg_vorbis;../../src/files;../../src/files/indy;../../src/files/tools;../../src/castlescript;../../src/ui;../../src/ui/windows;../../src/services;../../src/services/steam;../../src/physics;../../src/physics/kraft;../../src/deprecated_units;../../src/vampyre_imaginglib/src/Source;../../src/vampyre_imaginglib/src/Source/JpegLib;../../src/vampyre_imaginglib/src/Source/ZLib;../../src/vampyre_imaginglib/src/Extras/Extensions;../../src/vampyre_imaginglib/src/Extensions/J2KObjects;../../src/vampyre_imaginglib/src/Extensions/LibTiff;../../src/vampyre_imaginglib/src/Extensions;../../src/delphi;../../src/compatibility/delphi-only;../../src/compatibility/delphi-only/fcl-json;code/;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
         <DCC_DcuOutput>castle-engine-output\delphi\$(Platform)\$(Config)</DCC_DcuOutput>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base_Android)'!=''">
@@ -325,6 +325,567 @@
  <Platform Name="Win64">
   <RemoteDir>./data/</RemoteDir>
   <RemoteName>README.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\explosion/explosion.castle-sprite-sheet" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/explosion/</RemoteDir>
+  <RemoteName>explosion.castle-sprite-sheet</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/explosion/</RemoteDir>
+  <RemoteName>explosion.castle-sprite-sheet</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/explosion/</RemoteDir>
+  <RemoteName>explosion.castle-sprite-sheet</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\explosion/explosion.castle-transform" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/explosion/</RemoteDir>
+  <RemoteName>explosion.castle-transform</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/explosion/</RemoteDir>
+  <RemoteName>explosion.castle-transform</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/explosion/</RemoteDir>
+  <RemoteName>explosion.castle-transform</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\explosion/explosion.png" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/explosion/</RemoteDir>
+  <RemoteName>explosion.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/explosion/</RemoteDir>
+  <RemoteName>explosion.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/explosion/</RemoteDir>
+  <RemoteName>explosion.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\explosion/explosion_320x240_frameskip2/explosion_10001.png" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10001.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10001.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10001.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\explosion/explosion_320x240_frameskip2/explosion_10002.png" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10002.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10002.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10002.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\explosion/explosion_320x240_frameskip2/explosion_10003.png" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10003.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10003.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10003.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\explosion/explosion_320x240_frameskip2/explosion_10004.png" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10004.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10004.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10004.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\explosion/explosion_320x240_frameskip2/explosion_10005.png" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10005.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10005.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10005.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\explosion/explosion_320x240_frameskip2/explosion_10006.png" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10006.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10006.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10006.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\explosion/explosion_320x240_frameskip2/explosion_10007.png" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10007.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10007.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10007.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\explosion/explosion_320x240_frameskip2/explosion_10008.png" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10008.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10008.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10008.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\explosion/explosion_320x240_frameskip2/explosion_10009.png" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10009.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10009.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10009.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\explosion/explosion_320x240_frameskip2/explosion_10010.png" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10010.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10010.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10010.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\explosion/explosion_320x240_frameskip2/explosion_10011.png" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10011.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10011.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10011.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\explosion/explosion_320x240_frameskip2/explosion_10012.png" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10012.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10012.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10012.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\explosion/explosion_320x240_frameskip2/explosion_10013.png" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10013.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10013.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10013.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\explosion/explosion_320x240_frameskip2/explosion_10014.png" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10014.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10014.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10014.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\explosion/explosion_320x240_frameskip2/explosion_10015.png" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10015.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10015.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10015.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\explosion/explosion_320x240_frameskip2/explosion_10016.png" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10016.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10016.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10016.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\explosion/explosion_320x240_frameskip2/explosion_10017.png" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10017.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10017.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10017.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\explosion/explosion_320x240_frameskip2/explosion_10018.png" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10018.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10018.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10018.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\explosion/explosion_320x240_frameskip2/explosion_10019.png" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10019.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10019.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10019.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\explosion/explosion_320x240_frameskip2/explosion_10020.png" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10020.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10020.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10020.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\explosion/explosion_320x240_frameskip2/explosion_10021.png" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10021.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10021.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10021.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\explosion/explosion_320x240_frameskip2/explosion_10022.png" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10022.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10022.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10022.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\explosion/explosion_320x240_frameskip2/explosion_10023.png" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10023.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10023.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10023.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\explosion/explosion_320x240_frameskip2/explosion_10024.png" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10024.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10024.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10024.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\explosion/explosion_320x240_frameskip2/explosion_10025.png" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10025.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10025.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10025.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\explosion/explosion_320x240_frameskip2/explosion_10026.png" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10026.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10026.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10026.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\explosion/explosion_320x240_frameskip2/explosion_10027.png" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10027.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10027.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10027.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\explosion/explosion_320x240_frameskip2/explosion_10028.png" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10028.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10028.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10028.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\explosion/explosion_320x240_frameskip2/explosion_10029.png" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10029.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10029.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10029.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\explosion/explosion_320x240_frameskip2/explosion_10030.png" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10030.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10030.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10030.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
@@ -648,6 +1209,567 @@
  <Platform Name="Win64">
   <RemoteDir>./data/</RemoteDir>
   <RemoteName>README.txt</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\explosion/explosion.castle-sprite-sheet" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/explosion/</RemoteDir>
+  <RemoteName>explosion.castle-sprite-sheet</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/explosion/</RemoteDir>
+  <RemoteName>explosion.castle-sprite-sheet</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/explosion/</RemoteDir>
+  <RemoteName>explosion.castle-sprite-sheet</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\explosion/explosion.castle-transform" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/explosion/</RemoteDir>
+  <RemoteName>explosion.castle-transform</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/explosion/</RemoteDir>
+  <RemoteName>explosion.castle-transform</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/explosion/</RemoteDir>
+  <RemoteName>explosion.castle-transform</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\explosion/explosion.png" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/explosion/</RemoteDir>
+  <RemoteName>explosion.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/explosion/</RemoteDir>
+  <RemoteName>explosion.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/explosion/</RemoteDir>
+  <RemoteName>explosion.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\explosion/explosion_320x240_frameskip2/explosion_10001.png" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10001.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10001.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10001.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\explosion/explosion_320x240_frameskip2/explosion_10002.png" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10002.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10002.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10002.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\explosion/explosion_320x240_frameskip2/explosion_10003.png" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10003.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10003.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10003.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\explosion/explosion_320x240_frameskip2/explosion_10004.png" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10004.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10004.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10004.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\explosion/explosion_320x240_frameskip2/explosion_10005.png" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10005.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10005.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10005.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\explosion/explosion_320x240_frameskip2/explosion_10006.png" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10006.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10006.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10006.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\explosion/explosion_320x240_frameskip2/explosion_10007.png" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10007.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10007.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10007.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\explosion/explosion_320x240_frameskip2/explosion_10008.png" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10008.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10008.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10008.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\explosion/explosion_320x240_frameskip2/explosion_10009.png" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10009.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10009.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10009.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\explosion/explosion_320x240_frameskip2/explosion_10010.png" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10010.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10010.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10010.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\explosion/explosion_320x240_frameskip2/explosion_10011.png" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10011.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10011.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10011.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\explosion/explosion_320x240_frameskip2/explosion_10012.png" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10012.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10012.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10012.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\explosion/explosion_320x240_frameskip2/explosion_10013.png" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10013.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10013.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10013.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\explosion/explosion_320x240_frameskip2/explosion_10014.png" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10014.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10014.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10014.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\explosion/explosion_320x240_frameskip2/explosion_10015.png" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10015.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10015.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10015.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\explosion/explosion_320x240_frameskip2/explosion_10016.png" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10016.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10016.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10016.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\explosion/explosion_320x240_frameskip2/explosion_10017.png" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10017.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10017.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10017.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\explosion/explosion_320x240_frameskip2/explosion_10018.png" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10018.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10018.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10018.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\explosion/explosion_320x240_frameskip2/explosion_10019.png" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10019.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10019.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10019.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\explosion/explosion_320x240_frameskip2/explosion_10020.png" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10020.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10020.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10020.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\explosion/explosion_320x240_frameskip2/explosion_10021.png" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10021.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10021.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10021.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\explosion/explosion_320x240_frameskip2/explosion_10022.png" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10022.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10022.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10022.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\explosion/explosion_320x240_frameskip2/explosion_10023.png" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10023.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10023.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10023.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\explosion/explosion_320x240_frameskip2/explosion_10024.png" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10024.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10024.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10024.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\explosion/explosion_320x240_frameskip2/explosion_10025.png" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10025.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10025.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10025.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\explosion/explosion_320x240_frameskip2/explosion_10026.png" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10026.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10026.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10026.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\explosion/explosion_320x240_frameskip2/explosion_10027.png" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10027.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10027.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10027.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\explosion/explosion_320x240_frameskip2/explosion_10028.png" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10028.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10028.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10028.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\explosion/explosion_320x240_frameskip2/explosion_10029.png" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10029.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10029.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10029.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\explosion/explosion_320x240_frameskip2/explosion_10030.png" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10030.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10030.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/explosion/explosion_320x240_frameskip2/</RemoteDir>
+  <RemoteName>explosion_10030.png</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>

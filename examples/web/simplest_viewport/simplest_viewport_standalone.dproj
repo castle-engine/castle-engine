@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{2CDC34D5-9F85-4FB1-8785-62B12C55A329}</ProjectGuid>
+        <ProjectGuid>{A4BC1E09-D0DF-CF4C-AB18-D13EF7641D8A}</ProjectGuid>
         <MainSource>simplest_viewport_standalone.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>
