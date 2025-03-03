@@ -1164,7 +1164,10 @@ begin
     {$endif};
 
   FTextureDepth :=
-    {$if defined(CASTLE_WEBGL)} HasExtension('GL_WEBGL_depth_texture')
+    {$if defined(CASTLE_WEBGL)} 
+      { https://developer.mozilla.org/en-US/docs/Web/API/WEBGL_depth_texture
+        says that this functionality is part of core in WebGL 2.0. }
+      VersionWebGL_2 or HasExtension('GL_WEBGL_depth_texture')
     {$elseif defined(OpenGLES)} VersionES_3_0
     {$else} Version_1_4 or HasExtension('GL_ARB_depth_texture')
     {$endif};
