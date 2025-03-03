@@ -674,8 +674,6 @@ begin
     ]);
 
   {$ifdef CASTLE_WEBGL}
-  // TODO: web: once we use extensions, something breaks
-  Exit(false);
   Result := WebGLExtensions.IndexOf(PrefixRemove('GL_', Extension, false)) <> -1;
   {$else}
 
@@ -866,14 +864,34 @@ begin
   end else
     FMaxTexture3DSize := 0;
 
-  { Both OpenGL and OpenGLES commonly define this extension.
-    See https://registry.khronos.org/OpenGL/index_es.php#otherextspecs (OpenGLES list),
-    https://www.khronos.org/opengl/wiki/Sampler_Object#Anisotropic_filtering
-    https://www.khronos.org/opengl/wiki/Ubiquitous_Extension }
+  { All OpenGL and OpenGLES, WebGL commonly define this extension.
+    See 
+    - OpenGLES list
+      https://registry.khronos.org/OpenGL/index_es.php#otherextspecs (),
+    - Khronos wiki
+      https://www.khronos.org/opengl/wiki/Sampler_Object#Anisotropic_filtering
+      https://www.khronos.org/opengl/wiki/Ubiquitous_Extension
+    - WebGL docs
+      https://developer.mozilla.org/en-US/docs/Web/API/EXT_texture_filter_anisotropic }
   FTextureFilterAnisotropic := HasExtension('GL_EXT_texture_filter_anisotropic');
   if TextureFilterAnisotropic then
-    FMaxTextureMaxAnisotropy := glGetFloat(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT)
-  else
+  begin
+    {$ifdef CASTLE_WEBGL}
+    { TODO: web: GL.getParameter with MAX_TEXTURE_MAX_ANISOTROPY_EXT
+      says that it's invalid enum.
+      Both FireFox and Vivaldi, on Linux/x86_64.
+      Even though 
+      https://developer.mozilla.org/en-US/docs/Web/API/EXT_texture_filter_anisotropic
+      https://developer.mozilla.org/en-US/docs/Web/API/WebGLRenderingContext/getParameter
+      confirm it should be valid.
+      It seems like browser bug? Also mentioned here:
+      https://github.com/KhronosGroup/WebGL/issues/2006
+      https://github.com/KhronosGroup/WebGL/pull/2925 }
+    FMaxTextureMaxAnisotropy := 16.0;
+    {$else}
+    FMaxTextureMaxAnisotropy := glGetFloat(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT);
+    {$endif}
+  end else
     FMaxTextureMaxAnisotropy := 0.0;
 
   FOcclusionQuery :=

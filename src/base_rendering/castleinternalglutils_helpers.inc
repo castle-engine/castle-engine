@@ -169,9 +169,22 @@ function BoolToGL(const Value: boolean): TGLboolean;
 { glGetXxx ---------------------------------------------------------------------}
 
 function glGetFloat(const Param: TGLEnum): TGLfloat;
+{$ifdef CASTLE_WEBGL}
+var
+  ResultVariant: Variant;
+{$endif}
 begin
   {$ifdef CASTLE_WEBGL}
-  Result := GL.GetParameter(Param);
+  ResultVariant := GL.GetParameter(Param);
+  if VarIsEmpty(ResultVariant) then
+    raise Exception.CreateFmt('Unexpected VarIsEmpty for glGetFloat(%d)', [
+      Param
+    ]);
+  if VarIsNull(ResultVariant) then
+    raise Exception.CreateFmt('Unexpected VarIsNull for glGetFloat(%d)', [
+      Param
+    ]);
+  Result := ResultVariant;
   {$else}
   FillChar(Result, SizeOf(Result), 0);
   glGetFloatv(Param, @Result)
@@ -246,6 +259,10 @@ begin
 end;
 
 function glGetInteger(const Param: TGLEnum): TGLint;
+{$ifdef CASTLE_WEBGL}
+var
+  ResultVariant: Variant;
+{$endif}
 begin
   { Just for test, to somewhat simulate hardware with lower
     GL_MAX_TEXTURE_UNITS_ARB,
@@ -256,7 +273,16 @@ begin
   end;}
 
   {$ifdef CASTLE_WEBGL}
-  Result := GL.GetParameter(Param);
+  ResultVariant := GL.GetParameter(Param);
+  if VarIsEmpty(ResultVariant) then
+    raise Exception.CreateFmt('Unexpected VarIsEmpty for glGetFloat(%d)', [
+      Param
+    ]);
+  if VarIsNull(ResultVariant) then
+    raise Exception.CreateFmt('Unexpected VarIsNull for glGetFloat(%d)', [
+      Param
+    ]);
+  Result := ResultVariant;
   {$else}
   FillChar(Result, SizeOf(Result), 0);
   glGetIntegerv(Param, @Result);
@@ -291,9 +317,22 @@ begin
 end;
 
 function glGetBoolean(const Param: TGLEnum): TGLboolean;
+{$ifdef CASTLE_WEBGL}
+var
+  ResultVariant: Variant;
+{$endif}
 begin
   {$ifdef CASTLE_WEBGL}
-  Result := GL.GetParameter(Param);
+  ResultVariant := GL.GetParameter(Param);
+  if VarIsEmpty(ResultVariant) then
+    raise Exception.CreateFmt('Unexpected VarIsEmpty for glGetFloat(%d)', [
+      Param
+    ]);
+  if VarIsNull(ResultVariant) then
+    raise Exception.CreateFmt('Unexpected VarIsNull for glGetFloat(%d)', [
+      Param
+    ]);
+  Result := ResultVariant;
   {$else}
   FillChar(Result, SizeOf(Result), 0);
   glGetBooleanv(Param, @Result)
