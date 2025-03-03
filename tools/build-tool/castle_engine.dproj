@@ -100,7 +100,7 @@
         <DCC_Namespace>System;Xml;Data;Datasnap;Web;Soap;$(DCC_Namespace)</DCC_Namespace>
         <Icon_MainIcon>$(BDS)\bin\delphi_PROJECTICON.ico</Icon_MainIcon>
         <Icns_MainIcns>$(BDS)\bin\delphi_PROJECTICNS.icns</Icns_MainIcns>
-        <DCC_UnitSearchPath>../../src/base;../../src/common_includes;../../src/base/android;../../src/base/windows;../../src/base/unix;../../src/base_rendering;../../src/base_rendering/dglopengl;../../src/base_rendering/glsl/generated-pascal;../../src/fonts;../../src/window;../../src/window/gtk;../../src/window/windows;../../src/window/unix;../../src/window/deprecated_units;../../src/images;../../src/transform;../../src/scene;../../src/scene/glsl/generated-pascal;../../src/scene/x3d;../../src/scene/load;../../src/scene/load/ifc;../../src/scene/load/spine;../../src/scene/load/md3;../../src/scene/load/collada;../../src/scene/load/pasgltf;../../src/audio;../../src/audio/fmod;../../src/audio/openal;../../src/audio/ogg_vorbis;../../src/files;../../src/files/indy;../../src/castlescript;../../src/ui;../../src/ui/windows;../../src/services;../../src/services/steam;../../src/physics;../../src/physics/kraft;../../src/deprecated_units;../../src/vampyre_imaginglib/src/Source;../../src/vampyre_imaginglib/src/Source/JpegLib;../../src/vampyre_imaginglib/src/Source/ZLib;../../src/vampyre_imaginglib/src/Extras/Extensions;../../src/vampyre_imaginglib/src/Extensions/J2KObjects;../../src/vampyre_imaginglib/src/Extensions/LibTiff;../../src/vampyre_imaginglib/src/Extensions;../../src/delphi;../../src/compatibility/delphi-only;../../src/compatibility/delphi-only/fcl-json;code/;../common-code/;embedded_images/;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
+        <DCC_UnitSearchPath>../../src/base;../../src/common_includes;../../src/base/android;../../src/base/windows;../../src/base/unix;../../src/base/wasi;../../src/base_rendering;../../src/base_rendering/web;../../src/base_rendering/dglopengl;../../src/base_rendering/glsl/generated-pascal;../../src/fonts;../../src/window;../../src/window/gtk;../../src/window/windows;../../src/window/unix;../../src/window/deprecated_units;../../src/images;../../src/transform;../../src/scene;../../src/scene/glsl/generated-pascal;../../src/scene/x3d;../../src/scene/load;../../src/scene/load/ifc;../../src/scene/load/spine;../../src/scene/load/md3;../../src/scene/load/collada;../../src/scene/load/pasgltf;../../src/audio;../../src/audio/fmod;../../src/audio/openal;../../src/audio/ogg_vorbis;../../src/files;../../src/files/indy;../../src/files/tools;../../src/castlescript;../../src/ui;../../src/ui/windows;../../src/services;../../src/services/steam;../../src/physics;../../src/physics/kraft;../../src/deprecated_units;../../src/vampyre_imaginglib/src/Source;../../src/vampyre_imaginglib/src/Source/JpegLib;../../src/vampyre_imaginglib/src/Source/ZLib;../../src/vampyre_imaginglib/src/Extras/Extensions;../../src/vampyre_imaginglib/src/Extensions/J2KObjects;../../src/vampyre_imaginglib/src/Extensions/LibTiff;../../src/vampyre_imaginglib/src/Extensions;../../src/delphi;../../src/compatibility/delphi-only;../../src/compatibility/delphi-only/fcl-json;code/;../common-code/;embedded_images/;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
         <DCC_DcuOutput>castle-engine-output\delphi\$(Platform)\$(Config)</DCC_DcuOutput>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base_Android)'!=''">
@@ -11225,6 +11225,74 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
+<DeployFile LocalName="data\web/dist/README.md" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/web/dist/</RemoteDir>
+  <RemoteName>README.md</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/web/dist/</RemoteDir>
+  <RemoteName>README.md</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/web/dist/</RemoteDir>
+  <RemoteName>README.md</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\web/dist/index.html" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/web/dist/</RemoteDir>
+  <RemoteName>index.html</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/web/dist/</RemoteDir>
+  <RemoteName>index.html</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/web/dist/</RemoteDir>
+  <RemoteName>index.html</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\web/library_template.lpr" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/web/</RemoteDir>
+  <RemoteName>library_template.lpr</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/web/</RemoteDir>
+  <RemoteName>library_template.lpr</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/web/</RemoteDir>
+  <RemoteName>library_template.lpr</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\web/program_js.lpr" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/web/</RemoteDir>
+  <RemoteName>program_js.lpr</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/web/</RemoteDir>
+  <RemoteName>program_js.lpr</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/web/</RemoteDir>
+  <RemoteName>program_js.lpr</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
 <DeployFile LocalName="data\windows/default_icon.ico" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
   <RemoteDir>./data/windows/</RemoteDir>
@@ -22187,6 +22255,74 @@
  <Platform Name="Win64">
   <RemoteDir>./data/standalone/</RemoteDir>
   <RemoteName>program_template.lpi</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\web/dist/README.md" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/web/dist/</RemoteDir>
+  <RemoteName>README.md</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/web/dist/</RemoteDir>
+  <RemoteName>README.md</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/web/dist/</RemoteDir>
+  <RemoteName>README.md</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\web/dist/index.html" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/web/dist/</RemoteDir>
+  <RemoteName>index.html</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/web/dist/</RemoteDir>
+  <RemoteName>index.html</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/web/dist/</RemoteDir>
+  <RemoteName>index.html</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\web/library_template.lpr" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/web/</RemoteDir>
+  <RemoteName>library_template.lpr</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/web/</RemoteDir>
+  <RemoteName>library_template.lpr</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/web/</RemoteDir>
+  <RemoteName>library_template.lpr</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\web/program_js.lpr" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/web/</RemoteDir>
+  <RemoteName>program_js.lpr</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/web/</RemoteDir>
+  <RemoteName>program_js.lpr</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/web/</RemoteDir>
+  <RemoteName>program_js.lpr</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
