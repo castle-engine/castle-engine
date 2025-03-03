@@ -76,7 +76,7 @@ begin
 
   { Compile library. }
   LibraryFileName := OutputPath + 'library_template.lpr';
-  CompilerOptions.OS := Wasi;
+  CompilerOptions.OS := WasiP1;
   CompilerOptions.CPU := Wasm32;
   Compile(coFpc, Project.Path, LibraryFileName, CompilerOptions);
 
