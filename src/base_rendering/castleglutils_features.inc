@@ -1,6 +1,6 @@
 {%MainUnit castleglutils.pas}
 {
-  Copyright 2016-2024 Michalis Kamburelis.
+  Copyright 2016-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -204,6 +204,10 @@ type
     class procedure SetDebug(const Value: Boolean); static;
     procedure InitializeDebug;
   private
+    { Is given extension supported.
+      In case of WebGL, the extension is also getting enabled by this call.
+      (So be sure to first check core, like
+      "VersionWebGL_2 and HasExtension(...)"). }
     function HasExtension(const Extension: String): Boolean;
     function AllExtensions: String;
   public
@@ -660,6 +664,27 @@ function TGLFeatures.HasExtension(const Extension: String): Boolean;
   end;
   {$endif}
 
+  {$ifdef CASTLE_WEBGL}
+  { For extension name (without GL_ prefix) check is it supported and if yes,
+    enable it. }
+  function CheckAndEnableExtension(const ExtensionName: String): Boolean;
+  var
+    ExtensionObj: IJSObject;
+  begin
+    Result := WebGLExtensions.IndexOf(ExtensionName) <> -1;
+    if Result then
+    begin
+      ExtensionObj := GL.getExtension(ExtensionName);
+      if ExtensionObj = nil then
+      begin
+        WritelnWarning('WebGL', 'Failed to enable extension: ' + ExtensionName);
+        Result := false;
+      end else
+        WritelnLog('WebGL', 'Enabled extension: ' + ExtensionName);
+    end;
+  end;
+  {$endif}
+
 {$ifndef CASTLE_WEBGL}
 var
   SupportedExt: AnsiString;
@@ -674,7 +699,7 @@ begin
     ]);
 
   {$ifdef CASTLE_WEBGL}
-  Result := WebGLExtensions.IndexOf(PrefixRemove('GL_', Extension, false)) <> -1;
+  Result := CheckAndEnableExtension(PrefixRemove('GL_', Extension, false));
   {$else}
 
   if {$ifdef OpenGLES} VersionES_3_0 {$else} Version_3_0 {$endif} then
@@ -865,7 +890,7 @@ begin
     FMaxTexture3DSize := 0;
 
   { All OpenGL and OpenGLES, WebGL commonly define this extension.
-    See 
+    See
     - OpenGLES list
       https://registry.khronos.org/OpenGL/index_es.php#otherextspecs (),
     - Khronos wiki
@@ -875,23 +900,8 @@ begin
       https://developer.mozilla.org/en-US/docs/Web/API/EXT_texture_filter_anisotropic }
   FTextureFilterAnisotropic := HasExtension('GL_EXT_texture_filter_anisotropic');
   if TextureFilterAnisotropic then
-  begin
-    {$ifdef CASTLE_WEBGL}
-    { TODO: web: GL.getParameter with MAX_TEXTURE_MAX_ANISOTROPY_EXT
-      says that it's invalid enum.
-      Both FireFox and Vivaldi, on Linux/x86_64.
-      Even though 
-      https://developer.mozilla.org/en-US/docs/Web/API/EXT_texture_filter_anisotropic
-      https://developer.mozilla.org/en-US/docs/Web/API/WebGLRenderingContext/getParameter
-      confirm it should be valid.
-      It seems like browser bug? Also mentioned here:
-      https://github.com/KhronosGroup/WebGL/issues/2006
-      https://github.com/KhronosGroup/WebGL/pull/2925 }
-    FMaxTextureMaxAnisotropy := 16.0;
-    {$else}
-    FMaxTextureMaxAnisotropy := glGetFloat(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT);
-    {$endif}
-  end else
+    FMaxTextureMaxAnisotropy := glGetFloat(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT)
+  else
     FMaxTextureMaxAnisotropy := 0.0;
 
   FOcclusionQuery :=
@@ -1164,7 +1174,7 @@ begin
     {$endif};
 
   FTextureDepth :=
-    {$if defined(CASTLE_WEBGL)} 
+    {$if defined(CASTLE_WEBGL)}
       { https://developer.mozilla.org/en-US/docs/Web/API/WEBGL_depth_texture
         says that this functionality is part of core in WebGL 2.0. }
       VersionWebGL_2 or HasExtension('GL_WEBGL_depth_texture')
