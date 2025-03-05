@@ -1,4 +1,4 @@
-{%MainUnit castletransform.pas}
+﻿{%MainUnit castletransform.pas}
 {
   Copyright 2017-2024 Michalis Kamburelis.
 
@@ -3887,12 +3887,6 @@ begin
 end;
 
 procedure TCastleAbstractRootTransform.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
-var
-  KraftGravity: TVector3;
-  PhysicsTicksCount:Integer;
-  {$ifdef CASTLE_LOG_PHYSICS_DROPS_FRAMES}
-  OldTimeAccumulator: TFloatTime;
-  {$endif}
 begin
   if not Exists then Exit;
 
@@ -3902,6 +3896,18 @@ begin
     Exit;
   UpdateFrameId := TFramesPerSecond.FrameId;
 
+  UpdateIncreaseTime(SecondsPassed);
+end;
+
+procedure TCastleAbstractRootTransform.UpdateIncreaseTime(const SecondsPassed: Single);
+var
+  KraftGravity: TVector3;
+  PhysicsTicksCount:Integer;
+  IgnoredRemoveMe: TRemoveType;
+  {$ifdef CASTLE_LOG_PHYSICS_DROPS_FRAMES}
+  OldTimeAccumulator: TFloatTime;
+  {$endif}
+begin
   if IsPhysicsRunning then
   begin
     FrameProfiler.Start(fmUpdatePhysics);
@@ -3986,7 +3992,10 @@ begin
   { call inherited at the end,
     to update transformation of all items in their TCastleRigidBody.Update
     called from TCastleTransform.Update }
-  inherited;
+  IgnoredRemoveMe := rtNone;
+  inherited Update(SecondsPassed, IgnoredRemoveMe);
+  if IgnoredRemoveMe <> rtNone then
+    WritelnWarning('TCastleAbstractRootTransform.Update: IgnoredRemoveMe is not rtNone, unexpected');
 end;
 
 function TCastleAbstractRootTransform.PhysicsRayCast(
