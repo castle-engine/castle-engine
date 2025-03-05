@@ -2242,7 +2242,11 @@ var
         mark keys/mouse as handled". }
 
       Items.Update(SecondsPassedScaled, RemoveItem);
-      { we ignore RemoveItem --- main Items list cannot be removed }
+
+      { we ignore RemoveItem --- main Items list cannot be removed.
+        Actually, TCastleAbstractRootTransform.Update never changes it,
+        and TCastleAbstractRootTransform.UpdateIncreaseTime ignores the
+        "inherited Update" logic for it. }
     end;
   end;
 
