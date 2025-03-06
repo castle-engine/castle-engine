@@ -619,6 +619,7 @@ type
     procedure DesignObserverFreeNotification(const Sender: TFreeNotificationObserver);
     { Based on project (in ProjectPath), update MenuItemDefaultPlatform.Caption. }
     procedure UpdateMenuItemDefaultPlatform;
+    procedure UpdateStyle;
   public
     { Open a project, given an absolute path to CastleEngineManifest.xml }
     procedure OpenProject(const ManifestUrl: String);
@@ -648,7 +649,7 @@ uses TypInfo, LCLType, RegExpr, StrUtils, LCLVersion,
   CastleFonts, X3DLoad, CastleFileFilters, CastleImages, CastleSoundEngine,
   CastleLclEditHack, CastleRenderOptions, CastleTimeUtils,
   CastleInternalFileMonitor, CastleInternalProjectLocalSettings,
-  CastleInternalArchitectures,
+  CastleInternalArchitectures, StyleUtils,
   FormAbout, FormChooseProject, FormPreferences, FormSpriteSheetEditor,
   FormSystemInformation, FormRestartCustomEditor, FormImportSketchfab,
   ToolCompilerInfo, ToolCommonUtils, ToolProcess,
@@ -1749,6 +1750,29 @@ begin
   MenuItemDefaultPlatform.Caption := MiCaption;
 end;
 
+procedure TProjectForm.UpdateStyle;
+var
+  NewItemHeight, OldSize, NameColumnWidth: Integer;
+begin
+  Self.Menu := nil;
+  UpdateAll(Self);
+  Self.Menu := MainMenu1;
+
+  { On ListOpenExisting column 'Name' doesn't autosize, we need to calulate it.
+    Also ListOutput/Warning ItemHeight need manual change }
+  OldSize := Canvas.Font.Size;
+  Canvas.Font.Size := CurrentStyle.FontSize;
+  NewItemHeight := Canvas.TextHeight('Wq')+2;
+  NameColumnWidth := Canvas.TextWidth('NameXXX');
+  Canvas.Font.Size := OldSize;
+
+  ListOpenExistingView.Column[0].Width := NameColumnWidth;
+  ListOpenExistingView.Column[0].AutoSize := true;
+
+  ListOutput.ItemHeight := NewItemHeight;
+  ListWarnings.ItemHeight := NewItemHeight;
+end;
+
 procedure TProjectForm.FormCreate(Sender: TObject);
 
   { We create some components by code, this way we don't have to put
@@ -2119,6 +2143,9 @@ var
   NewWidth, NewHeight, NewLeft, NewTop, NewControlHeight: Integer;
   NewWindowState: TWindowState;
 begin
+  LoadStyleSettings;
+  UpdateStyle;
+
   if (not Docking) and UserConfig.GetValue('ProjectForm_Saved', false) then
   begin
     NewWidth := UserConfig.GetValue('ProjectForm_Width', -MaxInt);
@@ -2424,7 +2451,14 @@ end;
 
 procedure TProjectForm.MenuItemPreferencesClick(Sender: TObject);
 begin
-  PreferencesForm.ShowModal;
+  if PreferencesForm.ShowModal = mrOK then
+    begin
+      UpdateStyle;
+      { Design not always update the Inspectors, we need call the frame's UpdateStyle.
+        Also Information button tends to keep old size }
+      //if Design <> nil then
+        //Design.UpdateStyle;
+    end;
 end;
 
 procedure TProjectForm.MenuItemAutoGenerateCleanClick(Sender: TObject);
@@ -2732,6 +2766,7 @@ begin
   NeedsDesignFrame;
   ClearAllWarnings;
   Design.NewDesign(ComponentClass, ComponentOnCreate);
+  UpdateStyle;
 end;
 
 procedure TProjectForm.OpenDesign(const DesignUrl: String);
@@ -2748,6 +2783,7 @@ begin
     DesignExistenceChanged;
     raise;
   end;
+  UpdateStyle;
 end;
 
 procedure TProjectForm.WarningNotification(const Category,
@@ -3649,6 +3685,7 @@ end;
 
 procedure TProjectForm.OpenProject(const ManifestUrl: String);
 begin
+  UpdateStyle;
   { Below we assume ManifestUrl contains an absolute path,
     otherwise ProjectPathUrl could be '',
     and OpenDesignDialog.InitialDir would be left '' and so on. }

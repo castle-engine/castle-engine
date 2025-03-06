@@ -77,7 +77,7 @@ implementation
 
 uses CastleConfig, CastleLCLUtils, CastleUriUtils, CastleUtils, CastleOpenDocument,
   CastleFilesUtils, CastleParameters, CastleLog, CastleStringUtils, CastleGLUtils,
-  CastleApplicationProperties, CastleInternalTools,
+  CastleApplicationProperties, CastleInternalTools, StyleUtils,
   ProjectUtils, EditorUtils, FormNewProject, FormPreferences, DesignSteam,
   ToolCompilerInfo, ToolFpcVersion, ToolManifest, ToolCommonUtils,
   FormProject, FormNewUnit;
@@ -229,6 +229,8 @@ begin
     MenuItem.OnClick := @MenuItemRecentClick;
     PopupMenuRecentProjects.Items.Add(MenuItem);
   end;
+
+  UpdateMenu(PopupMenuRecentProjects);
   PopupMenuRecentProjects.PopupComponent := ButtonOpenRecent;
   PopupMenuRecentProjects.Popup;
 end;
@@ -294,6 +296,8 @@ end;
 
 procedure TChooseProjectForm.FormShow(Sender: TObject);
 begin
+  LoadStyleSettings;
+
   ButtonOpenRecent.Enabled := RecentProjects.URLs.Count <> 0;
   OpenProjectFromCommandLine;
   UpdateWarning;

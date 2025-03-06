@@ -50,7 +50,7 @@ type
   private
     procedure AdjustViewNameUi;
   public
-
+    procedure UpdateStyle;
   end;
 
 var
@@ -63,7 +63,7 @@ implementation
 uses {$ifdef MSWINDOWS} WinDirs, {$endif}
   LazFileUtils,
   CastleUriUtils, CastleConfig, CastleUtils, CastleStringUtils,
-  EditorUtils;
+  EditorUtils, StyleUtils;
 
 const
   AlphaNum = ['a'..'z', 'A'..'Z', '0'..'9'];
@@ -99,6 +99,7 @@ procedure TNewProjectForm.FormShow(Sender: TObject);
 var
   DefaultNewProjectDir, NewProjectDir: String;
 begin
+  UpdateStyle;
   { Initialize everything to default values }
 
   ButtonTemplateEmpty.Down := true;
@@ -127,6 +128,14 @@ begin
     LabelViewName.Caption := 'Main View Name (determines name of the initial design and Pascal unit)'
   else
     LabelViewName.Caption := 'Main View Name (not customizable, as this template has multiple views)';
+end;
+
+procedure TNewProjectForm.UpdateStyle;
+begin
+  UpdateControlStyle(Self, false, true);
+  // TDirectoryEdit button doesn't autosize
+  Canvas.Font.Size := CurrentStyle.FontSize;
+  EditLocation.ButtonWidth := Canvas.TextWidth(EditLocation.ButtonCaption)+32;
 end;
 
 procedure TNewProjectForm.ButtonTemplateClick(Sender: TObject);

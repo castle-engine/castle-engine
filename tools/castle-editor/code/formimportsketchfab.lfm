@@ -236,7 +236,7 @@ object ImportSketchfabForm: TImportSketchfabForm
     Top = 7
     Width = 41
     Anchors = [akTop, akRight]
-    AutoSize = False
+    AutoSize = True
     Caption = 'Docs'
     Font.Color = clBlue
     Font.Height = 19
