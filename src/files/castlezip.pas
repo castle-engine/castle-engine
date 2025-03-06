@@ -97,17 +97,21 @@ type
     UnZipper: TUnZipper;
     FReadStream: TStream;
     FOwnsReadStream: Boolean;
+    FFileList: TStringList;
     { When open for writing, we always have Zipper <> nil. }
     Zipper: TZipper;
     { Handler for TUnZipper.OnOpenInputStream. }
     procedure OpenInputStream(Sender: TObject; var AStream: TStream);
     { Handler for TUnZipper.OnCloseInputStream. }
     procedure CloseInputStream(Sender: TObject; var AStream: TStream);
+    { Update FFileList from UnZipper.Entries or Zipper.Entries. }
+    procedure UpdateFileList;
     {$else}
     ZipFile: TZipFile;
     {$endif}
     { Handler given to CastleDownload.RegisterUrlProtocol. }
     function ReadUrlHandler(const Url: String; out MimeType: string): TStream;
+    function GetFileList: TStrings;
   public
     constructor Create;
     destructor Destroy; override;
@@ -239,12 +243,6 @@ type
       done by @link(Write)) to the given URL. }
     procedure Save(const Url: String);
 
-    (* TODO:
-    // We have plans for richer API for ZIPs.
-    // How rich? Time will tell what is necessary (and reasonably doable
-    // using FPC and Delphi APIs underneath).
-    // Plans below are just a starting point.
-
     { Read-only list of all files within the ZIP archive.
       All entries are valid as arguments for @link(Read),
       so they are relative paths within the zip archive,
@@ -255,6 +253,8 @@ type
       @raises EZipNotOpen If the ZIP archive is not open. }
     property FileList: TStrings read GetFileList;
 
+    (* TODO: maybe, if needed:
+
     { Extract all files from the ZIP archive into the given path,
       recreating the subdirectory structure of the ZIP inside TargetPath.
 
@@ -263,7 +263,7 @@ type
       It will be combined with the relative URLs of the files
       inside ZIP using @link(CombineUri).
 
-      TODO: remember to combine reative paths -> URL.
+      TODO: remember to convert relative paths -> URL.
       Do we need to percent-encode?
       How do we handle spaces in paths in ZIP?
       How do we handle %20 in paths in ZIP?
@@ -329,8 +329,12 @@ begin
   FOwnsReadStream := OwnsStream;
 
   UnZipper := TUnZipper.Create;
+  UnZipper.UseUTF8 := true;
   UnZipper.OnOpenInputStream := @OpenInputStream;
   UnZipper.OnCloseInputStream := @CloseInputStream;
+  UnZipper.Examine; // read UnZipper.Entries, used by UpdateFileList
+
+  UpdateFileList;
 end;
 
 procedure TCastleZip.OpenEmpty;
@@ -344,6 +348,27 @@ begin
   {$ifndef VER3_0} // only for FPC >= 3.2.0
   Zipper.UseLanguageEncoding := true;
   {$endif}
+end;
+
+procedure TCastleZip.UpdateFileList;
+var
+  I: Integer;
+begin
+  FFileList.Clear;
+
+  // zero or one of Zipper, UnZipper may be assigned
+  Assert(not ((Zipper <> nil) and (UnZipper <> nil)));
+
+  if Zipper <> nil then
+  begin
+    for I := 0 to Zipper.Entries.Count - 1 do
+      FFileList.Add(Zipper.Entries[I].UTF8ArchiveFileName);
+  end;
+  if UnZipper <> nil then
+  begin
+    for I := 0 to UnZipper.Entries.Count - 1 do
+      FFileList.Add(UnZipper.Entries[I].UTF8ArchiveFileName);
+  end;
 end;
 
 procedure TCastleZip.Close;
@@ -365,6 +390,8 @@ begin
   Assert(UnZipper = nil);
   Assert(FReadStream = nil);
   Assert(Zipper = nil);
+
+  UpdateFileList; // clears file list
 end;
 
 procedure TCastleZip.OpenInputStream(Sender: TObject; var AStream: TStream);
@@ -424,6 +451,8 @@ begin
 
   if OwnsStream then
     Stream.Free; // cannot FreeAndNil(Stream), as Stream is const
+
+  UpdateFileList; // add new file to file list
 end;
 
 procedure TCastleZip.Write(const PathInZip: String; const Url: String);
@@ -436,8 +465,10 @@ begin
 
   FileName := UriToFilenameSafe(Url);
   if FileName <> '' then
-    Zipper.Entries.AddFileEntry(FileName, PathInZip)
-  else
+  begin
+    Zipper.Entries.AddFileEntry(FileName, PathInZip);
+    UpdateFileList; // add new file to file list
+  end else
   begin
     WriteEntryStream := Download(Url);
     Write(PathInZip, WriteEntryStream, true);
@@ -476,6 +507,8 @@ begin
     ZipFile.Open(UriToFilenameSafe(Url), zmRead)
   else
     raise Exception.Create('TODO: Opening non-file URLs for ZIP not implemented with Delphi');
+
+  // TODO: read FileList
 end;
 
 procedure TCastleZip.Open(const Stream: TStream; const OwnsStream: boolean);
@@ -541,12 +574,14 @@ end;
 constructor TCastleZip.Create;
 begin
   inherited;
+  FFileList := TStringList.Create;
 end;
 
 destructor TCastleZip.Destroy;
 begin
   Close;
   UnregisterUrlProtocol;
+  FreeAndNil(FFileList);
   inherited;
 end;
 
@@ -579,6 +614,11 @@ begin
   { Determine mime type from Url, which practically means:
     determine content type from filename extension. }
   MimeType := UriMimeType(Url);
+end;
+
+function TCastleZip.GetFileList: TStrings;
+begin
+  Result := FFileList;
 end;
 
 end.

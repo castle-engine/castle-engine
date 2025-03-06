@@ -64,31 +64,34 @@ var
     StreamOutsideZip: TStream;
     DataUrl: String;
   begin
-    StreamZip := Zip.Read(PathInZip);
+    DataUrl := 'castle-data:/zip/' + InternalUriEscape(PathInZip);
     try
-      DataUrl := 'castle-data:/zip/' + InternalUriEscape(PathInZip);
-      StreamOutsideZip := Download(DataUrl);
+      AssertTrue(Zip.FileList.IndexOf(PathInZip) <> -1);
+      StreamZip := Zip.Read(PathInZip);
       try
+        StreamOutsideZip := Download(DataUrl);
         try
           AssertStreamsEqual(StreamZip, StreamOutsideZip);
-        except
-          on E: EAssertionFailedError do
-          begin
-            E.Message := E.Message + NL +
-              '  PathInZip: ' + PathInZip + NL +
-              '  DataUrl: ' + DataUrl;
-            raise;
-          end;
-        end;
-      finally FreeAndNil(StreamOutsideZip) end;
-    finally FreeAndNil(StreamZip) end;
+        finally FreeAndNil(StreamOutsideZip) end;
+      finally FreeAndNil(StreamZip) end;
+    except
+      on E: EAssertionFailedError do
+      begin
+        E.Message := E.Message + NL +
+          '  PathInZip: ' + PathInZip + NL +
+          '  DataUrl: ' + DataUrl;
+        raise;
+      end;
+    end;
   end;
 
 begin
   Zip := TCastleZip.Create;
   try
     Zip.Open('castle-data:/zip/packed%20żółć.zip');
-    // TODO: CompareZip('test filename żółć.txt');
+    // Writeln('ZIP contents: ', Zip.FileList.Text);
+    AssertEquals(3, Zip.FileList.Count);
+    CompareZip('test filename żółć.txt');
     CompareZip('test.txt');
     CompareZip('test_texture.png');
   finally FreeAndNil(Zip) end;
