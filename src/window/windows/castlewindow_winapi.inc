@@ -965,7 +965,7 @@ begin
       begin
         // Check if the cursor is in a system area (non-client area)
         if LoWord(lParm) in [HTCAPTION, HTSYSMENU, HTMINBUTTON, HTMAXBUTTON, HTCLOSE, HTMENU, 
-          HTLEFT, HTRIGHT, HTBOTTOM, HTBOTTOMLEFT, HTBOTTOMRIGHT, HTTOP, HTTOPLEFT, HTTOPRIGHT] then          
+          HTLEFT, HTRIGHT, HTBOTTOM, HTBOTTOMLEFT, HTBOTTOMRIGHT, HTTOP, HTTOPLEFT, HTTOPRIGHT] then
         begin
           // Let the default window procedure handle the cursor
           Result := DefWindowProcW(h_Wnd, uMsg, wParm, lParm);
