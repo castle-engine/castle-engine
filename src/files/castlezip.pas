@@ -90,6 +90,7 @@ type
   strict private
     // Non-empty means that RegisterUrlProtocol was called.
     FRegisteredUrlProtocol: String;
+    FFileList: TStringList;
     {$ifdef FPC}
     { When open for reading, we always have FReadStream <> nil and UnZipper <> nil.
       We never assign UnZipper.FileName, instead relying on own URL -> TStream
@@ -97,7 +98,6 @@ type
     UnZipper: TUnZipper;
     FReadStream: TStream;
     FOwnsReadStream: Boolean;
-    FFileList: TStringList;
     { When open for writing, we always have Zipper <> nil. }
     Zipper: TZipper;
     { Handler for TUnZipper.OnOpenInputStream. }
