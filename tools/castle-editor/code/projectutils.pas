@@ -29,12 +29,26 @@ procedure GenerateProgramWithBuildTool(const ProjectDirUrl: String);
 type
   TBuildMode = (bmDebug, bmRelease);
 
-{ For some operations (like creating a project from template), the editor uses
-  ApplicationData files (castle-data:/xxx URLs).
-  So make sure that ApplicationData is correct, by setting ApplicationDataOverride.
+{ For some operations (like creating a project from template
+  or loading demo design castle-data:/demo_animation/view_demo_animation.castle-user-interface )
+  the editor uses castle-data:/ URLs, assuming they lead to editor's data.
+
+  To do this, make sure that castle-data:/ is correct,
+  by setting ApplicationDataOverride.
   We can use CastleEnginePath (that uses $CASTLE_ENGINE_PATH environment variable)
   for this. }
 procedure UseEditorApplicationData;
+
+type
+  { Make sure that castle-data:/ points to editor data on creation,
+    make sure it's restored to previous state on destruction. }
+  TEditorApplicationData = class
+  strict private
+    OldApplicationDataOverride: String;
+  public
+    constructor Create;
+    destructor Destroy; override;
+  end;
 
 implementation
 
@@ -97,6 +111,19 @@ begin
     if DirectoryExists(DataPath) then
       ApplicationDataOverride := FilenameToUriSafe(DataPath);
   end;
+end;
+
+constructor TEditorApplicationData.Create;
+begin
+  inherited;
+  OldApplicationDataOverride := ApplicationDataOverride;
+  UseEditorApplicationData;
+end;
+
+destructor TEditorApplicationData.Destroy;
+begin
+  ApplicationDataOverride := OldApplicationDataOverride;
+  inherited;
 end;
 
 end.

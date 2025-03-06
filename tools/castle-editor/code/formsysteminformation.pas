@@ -112,12 +112,12 @@ const
     {$else} 'Unknown'
     {$endif};
 var
-  OldApplicationDataOverride: String;
+  EditorApplicationData: TEditorApplicationData;
 begin
-  OldApplicationDataOverride := ApplicationDataOverride;
-  UseEditorApplicationData;
-  CastleControl1.Container.DesignUrl := 'castle-data:/demo_animation/view_demo_animation.castle-user-interface';
-  ApplicationDataOverride := OldApplicationDataOverride;
+  EditorApplicationData := TEditorApplicationData.Create;
+  try
+    CastleControl1.Container.DesignUrl := 'castle-data:/demo_animation/view_demo_animation.castle-user-interface';
+  finally FreeAndNil(EditorApplicationData) end;
 
   { Info[itRendering] will be initialized in CastleControl1Open.
     We do not even reset it here, as CastleControl1 may have been already opened
