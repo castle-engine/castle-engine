@@ -46,6 +46,9 @@ Makefile text eol=auto
 # Treat these as binary, they may contain gzip data - see tests/data/gzipped_x3d/sphere_normal_extension_but_gzipped.wrl
 *.x3d binary
 *.wrl binary
+# Do not convert line endings inside these files,
+# as they have to be equal to line endings inside test ZIP.
+tests/data/zip/*.txt binary
 
 # Even on Windows, shell scripts line endings must be Unix, to work with Cygwin's bash.
 *.sh text eol=lf
