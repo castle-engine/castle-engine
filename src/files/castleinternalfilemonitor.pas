@@ -119,7 +119,14 @@ type
       FEnabled: Boolean;
 
     { Convert to final URL to watch (that can be put in TFileInfo.Url),
-      making URL absolute, and not using castle-data://.
+      making URL absolute, and not using castle-data:// .
+
+      Resolving castle-data:// is important, in case the application
+      changes ApplicationDataOverride at run-time (editor does this,
+      switching between accessing editor data and project-specific data).
+      In the end, we are observing the final filename that was resolved
+      at the "watch start" moment, not the original URL.
+
       Returns '' if cannot be watched. }
     function UrlToWatch(const Url: String): String;
 
@@ -374,7 +381,11 @@ begin
         FFiles.Remove(UrlWatch);
     end;
   end else
-    WritelnWarning('File Monitor', 'Cannot unwatch URL "' + Url + '", it was not watched by anything');
+    WritelnWarning('File Monitor', 'Cannot unwatch URL "%s" (resolves to "%s" now), as it was not watched.' + NL +
+      'This can happen if you change ApplicationDataOverride at run-time, in this case make sure that watching and unwatching happen with the same ApplicationDataOverride value.', [
+      UriDisplay(Url),
+      UriDisplay(UrlWatch)
+    ]);
 end;
 
 procedure TCastleFileMonitor.CheckChanges;
@@ -468,7 +479,7 @@ begin
   begin
     FEnabled := Value;
     if FEnabled then
-      { We didn't call UpdateLastModified when Eaabled = false.
+      { We didn't call UpdateLastModified when Enabled = false.
         So now we can update them, updating LastModified, and calling OnChanged
         if anything changed. }
       CheckChanges;
