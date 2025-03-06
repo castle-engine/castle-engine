@@ -152,8 +152,22 @@ begin
 end;
 
 procedure TSystemInformationForm.FormHide(Sender: TObject);
+var
+  EditorApplicationData: TEditorApplicationData;
 begin
-  CastleControl1.Container.DesignUrl := ''; // unload to stop sound
+  { Using TEditorApplicationData, because we need to set castle-data:/
+    to point to the editor data. That's because the loaded design
+    possibly watched some castle-data:/ URLs,
+    like castle-data:/demo_animation/demo_animation.gltf .
+    They must resolve to the same thing when unwatching. }
+  EditorApplicationData := TEditorApplicationData.Create;
+  try
+    { Unload to stop sound.
+      Also, explicit unloading allows to use TEditorApplicationData
+      to avoid warnings about unwatching castle-data:/demo_animation/demo_animation.gltf,
+      per above comment. }
+    CastleControl1.Container.DesignUrl := '';
+  finally FreeAndNil(EditorApplicationData) end;
 
   SoundEngine.OnOpenClose.Remove(@SoundEngineOpenClose);
 end;
