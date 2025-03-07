@@ -50,6 +50,14 @@ uses
   CastleZip, CastleUriUtils, CastleClassUtils, CastleDownload,
   CastleUtils, CastleFilesUtils, CastleLog;
 
+// Delphi 10.2 cannot read filenames with UTF-8 in our testcase
+{$ifdef FPC}
+  {$define CASTLE_FULL_ZIP_UNICODE_SUPPORT}
+{$endif}
+{$if CompilerVersion >= 36} // Delphi >= 12.0
+  {$define CASTLE_FULL_ZIP_UNICODE_SUPPORT}
+{$endif}
+
 { Return URL of temporary directory. }
 function CreateTemporaryDirUrl: String;
 var
@@ -140,11 +148,15 @@ var
     // test that subdir/ is not listed in Files
     AssertTrue(Zip.Files.IndexOf('subdir/') = -1);
 
+    {$ifdef CASTLE_FULL_ZIP_UNICODE_SUPPORT}
     CompareZip('test filename żółć.txt');
+    {$endif}
     CompareZip('test.txt');
     CompareZip('test_texture.png');
     // test also that / is treated as directory separator in ZIP
+    {$ifdef CASTLE_FULL_ZIP_UNICODE_SUPPORT}
     CompareZip('subdir/test filename żółć in subdir.txt');
+    {$endif}
   end;
 
 var

@@ -16,6 +16,8 @@
 { ZIP files handling (@link(TCastleZip)). }
 unit CastleZip;
 
+{$I castleconf.inc}
+
 interface
 
 uses SysUtils, Classes, Generics.Collections,
@@ -724,7 +726,12 @@ begin
       ZipFile.Read(PathInZip, TempStream, LocalHeader);
   except
     // improve EZipFileNotFoundException message, to include PathInZip
-    on E: EZipFileNotFoundException do
+    on E:
+      // Use more specific exception type with Delphi >= 12.0
+      // (unknown when exactly did it appear, but it's not available with Delphi 10.2).
+      {$if CompilerVersion >= 36} EZipFileNotFoundException
+      {$else} Exception
+      {$endif} do
     begin
       E.Message := E.Message + ' (path in zip: ' + PathInZip + ')';
       raise;
