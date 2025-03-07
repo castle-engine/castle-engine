@@ -1752,22 +1752,13 @@ end;
 
 procedure TProjectForm.UpdateStyle;
 var
-  NewItemHeight, OldSize, NameColumnWidth: Integer;
+  NewItemHeight: Integer;
 begin
   Self.Menu := nil;
   UpdateAll(Self);
   Self.Menu := MainMenu1;
 
-  { On ListOpenExisting column 'Name' doesn't autosize, we need to calulate it.
-    Also ListOutput/Warning ItemHeight need manual change }
-  OldSize := Canvas.Font.Size;
-  Canvas.Font.Size := CurrentStyle.FontSize;
   NewItemHeight := Canvas.TextHeight('Wq')+2;
-  NameColumnWidth := Canvas.TextWidth('NameXXX');
-  Canvas.Font.Size := OldSize;
-
-  ListOpenExistingView.Column[0].Width := NameColumnWidth;
-  ListOpenExistingView.Column[0].AutoSize := true;
 
   ListOutput.ItemHeight := NewItemHeight;
   ListWarnings.ItemHeight := NewItemHeight;
@@ -2452,13 +2443,7 @@ end;
 procedure TProjectForm.MenuItemPreferencesClick(Sender: TObject);
 begin
   if PreferencesForm.ShowModal = mrOK then
-    begin
-      UpdateStyle;
-      { Design not always update the Inspectors, we need call the frame's UpdateStyle.
-        Also Information button tends to keep old size }
-      //if Design <> nil then
-        //Design.UpdateStyle;
-    end;
+    UpdateStyle;
 end;
 
 procedure TProjectForm.MenuItemAutoGenerateCleanClick(Sender: TObject);
@@ -2586,7 +2571,7 @@ begin
   for DesignFileName in ListOpenExistingViewStr do
   begin
     ListItem := ListOpenExistingView.Items.Add;
-    ListItem.Caption := ShortDesignName(DesignFileName);
+    ListItem.Caption := ShortDesignName(DesignFileName) + #32#32;
     ListItem.SubItems.Append(ExtractRelativePath(ProjectPath, DesignFileName));
     ListItem.SubItems.Append(FileDateTimeStr(DesignFileName));
   end;

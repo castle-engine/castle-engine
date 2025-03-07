@@ -323,7 +323,7 @@ implementation
 uses GraphType, IntfGraphics, Math, LCLIntf, LCLType, FPImage,
   CastleImages, CastleLog, CastleUtils, CastleUriUtils, CastleFilesUtils,
   X3DNodes,
-  EditorUtils,
+  EditorUtils, StyleUtils,
   FormProject, FormImportAtlas, FormImportStarling
   {$ifdef LCLGTK2},Gtk2Globals, LCLVersion{$endif};
 
@@ -897,6 +897,9 @@ end;
 
 procedure TSpriteSheetEditorForm.FormShow(Sender: TObject);
 begin
+  StyleUtils.LoadStyleSettings;
+  StyleUtils.UpdateAll(Self);
+
   {$ifdef LCLGTK2}
     {$if (LCL_FULLVERSION >= 1080000) and (LCL_FULLVERSION < 2001200)}
     { On GTK2 SpeedButtons are frozen after window show from popup menu

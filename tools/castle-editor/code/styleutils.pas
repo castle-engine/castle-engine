@@ -196,14 +196,12 @@ begin
   if CurrentStyle.UsePlugin then
   begin
     ParFont := AControl.IsParentFont;
+    CanDoFont := false;
     { SpeedButton and BitBtn need their Font.Size limited to 15,
       otherwise they may not fit or have their Caption clipped.
       At the moment it's hardcoded and not configurable, but works on all forms well }
     if (CurrentStyle.FontSize > 15) and ((AControl is TSpeedButton) or (AControl is TBitBtn)) then
-    begin
-      AControl.Font.Size := 15;
-      CanDoFont := False;
-    end
+      AControl.Font.Size := 15
     else CanDoFont := (not ParFont) or (ParFont and IgnoreParentSettings);
 
     if CanDoFont then
@@ -217,40 +215,34 @@ begin
         AControl.Font.Size := CurrentStyle.FontSize-2
       else
         AControl.Font.Size := CurrentStyle.FontSize;
-
-      // Most of the time Object Inspectors are not updating properly from here
-      {if (AControl is TOICustomPropertyGrid) then
-      begin
-        TOICustomPropertyGrid(AControl).NameFont.Size := CurrentStyle.FontSize;
-        TOICustomPropertyGrid(AControl).ValueFont.Size := CurrentStyle.FontSize;
-        TOICustomPropertyGrid(AControl).HighlightFont.Size := CurrentStyle.FontSize;
-        TOICustomPropertyGrid(AControl).DefaultValueFont.Size := CurrentStyle.FontSize;
-        TOICustomPropertyGrid(AControl).DefaultItemHeight := 0;
-      end;}
     end;
 
     { Now hande the Splitter size. It's independent of ParetFont/Color and is always changed.
        Constraints.MinWidth/Height are set because Width/Height sometimes aren't enough }
     if (TCustomSplitter(AControl).Align = alLeft) or (TCustomSplitter(AControl).Align = alRight) then
     begin
-      TCustomSplitter(AControl).Width := CurrentStyle.SplitterSize;
       TCustomSplitter(AControl).Constraints.MinWidth := CurrentStyle.SplitterSize;
+      TCustomSplitter(AControl).Width := CurrentStyle.SplitterSize;
     end;
     if (TCustomSplitter(AControl).Align = alTop) or (TCustomSplitter(AControl).Align = alBottom) then
     begin
-      TCustomSplitter(AControl).Height := CurrentStyle.SplitterSize;
       TCustomSplitter(AControl).Constraints.MinHeight := CurrentStyle.SplitterSize;
+      TCustomSplitter(AControl).Height := CurrentStyle.SplitterSize;
     end;
   end;
 end;
 
 procedure UpdateMenu(AMenuItem: TMenuItem);
 begin
-  PreferencesCustomDrawMenu.SetMenu(AMenuItem)
+  if PreferencesCustomDrawMenu = nil
+    then PreferencesCustomDrawMenu := TCustomDrawMenu.Create;
+  PreferencesCustomDrawMenu.SetMenu(AMenuItem);
 end;
 
 procedure UpdateMenu(AMenu: TMenu);
 begin
+  if PreferencesCustomDrawMenu = nil
+    then PreferencesCustomDrawMenu := TCustomDrawMenu.Create;
   PreferencesCustomDrawMenu.SetMenu(AMenu);
 end;
 
@@ -394,7 +386,8 @@ end;
 
 procedure InitPreferences;
 begin
-  PreferencesCustomDrawMenu := TCustomDrawMenu.Create;
+  // Now when we can disable this plugin, the menu handler will be created on demand
+  PreferencesCustomDrawMenu := nil;
   SetDefaults;
 end;
 
