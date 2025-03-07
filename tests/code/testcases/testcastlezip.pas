@@ -77,7 +77,7 @@ var
     // use InternalUriEscape to encode characters like spaces and Polish inside URL
     DataUrl := 'castle-data:/zip/' + InternalUriEscape(PathInZip);
     try
-      AssertTrue(Zip.Entries.IndexOf(PathInZip) <> -1);
+      AssertTrue(Zip.Files.IndexOf(PathInZip) <> -1);
       StreamZip := Zip.Read(PathInZip);
       try
         StreamOutsideZip := Download(DataUrl);
@@ -98,11 +98,11 @@ var
 
   procedure CheckZipContents;
   begin
-    Writeln('ZIP contents: ', Zip.Entries.Text);
-    AssertEquals(5, Zip.Entries.Count);
+    Writeln('ZIP contents: ', Zip.Files.Text);
+    AssertEquals(4, Zip.Files.Count);
 
-    // test that subdir/ is listed in Entries, and with trailing slash
-    AssertTrue(Zip.Entries.IndexOf('subdir/') <> -1);
+    // test that subdir/ is not listed in Files
+    AssertTrue(Zip.Files.IndexOf('subdir/') = -1);
 
     CompareZip('test filename żółć.txt');
     CompareZip('test.txt');
@@ -147,7 +147,7 @@ begin
     CheckZipContents;
 
     Zip.OpenEmpty;
-    AssertEquals(0, Zip.Entries.Count);
+    AssertEquals(0, Zip.Files.Count);
   finally FreeAndNil(Zip) end;
 
   // open https URL with ZIP

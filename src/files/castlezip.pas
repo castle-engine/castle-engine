@@ -90,7 +90,7 @@ type
   strict private
     // Non-empty means that RegisterUrlProtocol was called.
     FRegisteredUrlProtocol: String;
-    FEntries: TStringList;
+    FFiles: TStringList;
     {$ifdef FPC}
     { When open for reading, we always have FReadStream <> nil and UnZipper <> nil.
       We never assign UnZipper.FileName, instead relying on own URL -> TStream
@@ -104,8 +104,8 @@ type
     procedure OpenInputStream(Sender: TObject; var AStream: TStream);
     { Handler for TUnZipper.OnCloseInputStream. }
     procedure CloseInputStream(Sender: TObject; var AStream: TStream);
-    { Update FEntries from UnZipper.Entries or Zipper.Entries. }
-    procedure UpdateEntries;
+    { Update FFiles from UnZipper.Entries or Zipper.Entries. }
+    procedure UpdateFiles;
     {$else}
     { When open, we *may* have FZipStream <> nil.
       Only when FZipStream <> nil, the FOwnsZipStream may be true
@@ -113,12 +113,12 @@ type
     FZipStream: TStream;
     FOwnsZipStream: Boolean;
     ZipFile: TZipFile;
-    { Update FEntries from ZipFile.FileCount,FleName[]. }
-    procedure UpdateEntries;
+    { Update FFiles from ZipFile.FileCount,FleName[]. }
+    procedure UpdateFiles;
     {$endif}
     { Handler given to CastleDownload.RegisterUrlProtocol. }
     function ReadUrlHandler(const Url: String; out MimeType: string): TStream;
-    function GetEntries: TStrings;
+    function GetFiles: TStrings;
   public
     constructor Create;
     destructor Destroy; override;
@@ -238,7 +238,7 @@ type
         )
       )
 
-      After this is called, the new file entry appears in the @link(Entries).
+      After this is called, the new file entry appears in the @link(Files).
 
       The ZIP archive is not saved to disk until you call @link(Save).
       If you call @link(Close) without calling @link(Save), the changes
@@ -250,18 +250,25 @@ type
       done by @link(Write)) to the given URL. }
     procedure Save(const Url: String);
 
-    { Read-only list of all files and directories within the ZIP archive.
+    { Read-only list of all files within the ZIP archive.
       They are relative paths within the zip archive,
       with parts separated by slashes.
 
-      Directory entries end with /. Other entries are files.
+      The directories, by itself, are never listed here.
 
-      All file entries are valid as arguments for @link(Read).
+      Note: This is in contrast to both Delphi TZipFile.FileName and
+      FPC TUnZipper.Entries, where this is undefined, because ZIP files
+      @url(https://unix.stackexchange.com/questions/743511/why-are-directories-sometimes-listed-explicitly-in-zip-files
+      may list directories explicitly, but don't have to).
+      For TCastleZip.Files, we explicitly guarantee that directories
+      are never listed here.
+
+      All these values are valid as arguments for @link(Read).
 
       No order of the contents is guaranteed.
 
       @raises EZipNotOpen If the ZIP archive is not open. }
-    property Entries: TStrings read GetEntries;
+    property Files: TStrings read GetFiles;
 
     (* TODO: maybe, if needed:
 
@@ -272,13 +279,6 @@ type
       It may but doesn't have to end with slash.
       It will be combined with the relative URLs of the files
       inside ZIP using @link(CombineUri).
-
-      TODO: remember to convert relative paths -> URL.
-      Do we need to percent-encode?
-      How do we handle spaces in paths in ZIP?
-      How do we handle %20 in paths in ZIP?
-      Make it either consistent with URLs, or clearly document the differences
-      at Read, Entries, and other routines that take/return PathInZip.
 
       Any URL protocol where we can write files (using @link(UrlSaveStream))
       is allowed. }
@@ -375,9 +375,9 @@ begin
   UnZipper.UseUTF8 := true;
   UnZipper.OnOpenInputStream := @OpenInputStream;
   UnZipper.OnCloseInputStream := @CloseInputStream;
-  UnZipper.Examine; // read UnZipper.Entries, used by UpdateEntries
+  UnZipper.Examine; // read UnZipper.Entries, used by UpdateFiles
 
-  UpdateEntries;
+  UpdateFiles;
 end;
 
 procedure TCastleZip.OpenEmpty;
@@ -393,11 +393,11 @@ begin
   {$endif}
 end;
 
-procedure TCastleZip.UpdateEntries;
+procedure TCastleZip.UpdateFiles;
 var
   I: Integer;
 begin
-  FEntries.Clear;
+  FFiles.Clear;
 
   // zero or one of Zipper, UnZipper may be assigned
   Assert(not ((Zipper <> nil) and (UnZipper <> nil)));
@@ -405,12 +405,14 @@ begin
   if Zipper <> nil then
   begin
     for I := 0 to Zipper.Entries.Count - 1 do
-      FEntries.Add(Zipper.Entries[I].UTF8ArchiveFileName);
+      if not IsSuffix('/', Zipper.Entries[I].UTF8ArchiveFileName) then
+        FFiles.Add(Zipper.Entries[I].UTF8ArchiveFileName);
   end;
   if UnZipper <> nil then
   begin
     for I := 0 to UnZipper.Entries.Count - 1 do
-      FEntries.Add(UnZipper.Entries[I].UTF8ArchiveFileName);
+      if not IsSuffix('/', UnZipper.Entries[I].UTF8ArchiveFileName) then
+        FFiles.Add(UnZipper.Entries[I].UTF8ArchiveFileName);
   end;
 end;
 
@@ -434,7 +436,7 @@ begin
   Assert(FReadStream = nil);
   Assert(Zipper = nil);
 
-  UpdateEntries; // clears file list
+  UpdateFiles; // clears file list
 end;
 
 procedure TCastleZip.OpenInputStream(Sender: TObject; var AStream: TStream);
@@ -495,7 +497,7 @@ begin
   if OwnsStream then
     Stream.Free; // cannot FreeAndNil(Stream), as Stream is const
 
-  UpdateEntries; // add new file to file list
+  UpdateFiles; // add new file to file list
 end;
 
 procedure TCastleZip.Write(const PathInZip: String; const Url: String);
@@ -510,7 +512,7 @@ begin
   if FileName <> '' then
   begin
     Zipper.Entries.AddFileEntry(FileName, PathInZip);
-    UpdateEntries; // add new file to file list
+    UpdateFiles; // add new file to file list
   end else
   begin
     WriteEntryStream := Download(Url);
@@ -549,7 +551,7 @@ begin
   begin
     OpenEmpty;
     ZipFile.Open(UriToFilenameSafe(Url), zmRead);
-    UpdateEntries;
+    UpdateFiles;
   end else
   begin
     Open(Download(Url), true);
@@ -566,25 +568,26 @@ begin
   FOwnsZipStream := OwnsStream;
 
   ZipFile.Open(FZipStream, zmRead);
-  UpdateEntries;
+  UpdateFiles;
 end;
 
 procedure TCastleZip.OpenEmpty;
 begin
   Close;
   ZipFile := TZipFile.Create;
-  UpdateEntries;
+  UpdateFiles;
 end;
 
-procedure TCastleZip.UpdateEntries;
+procedure TCastleZip.UpdateFiles;
 var
   I: Integer;
 begin
-  FEntries.Clear;
+  FFiles.Clear;
   if ZipFile.Mode <> zmClosed then
   begin
     for I := 0 to ZipFile.FileCount - 1 do
-      FEntries.Add(ZipFile.FileName[I]);
+      if not IsSuffix('/', ZipFile.FileName[I]) then
+        FFiles.Add(ZipFile.FileName[I]);
   end;
 end;
 
@@ -651,14 +654,14 @@ end;
 constructor TCastleZip.Create;
 begin
   inherited;
-  FEntries := TStringList.Create;
+  FFiles := TStringList.Create;
 end;
 
 destructor TCastleZip.Destroy;
 begin
   Close;
   UnregisterUrlProtocol;
-  FreeAndNil(FEntries);
+  FreeAndNil(FFiles);
   inherited;
 end;
 
@@ -693,9 +696,9 @@ begin
   MimeType := UriMimeType(Url);
 end;
 
-function TCastleZip.GetEntries: TStrings;
+function TCastleZip.GetFiles: TStrings;
 begin
-  Result := FEntries;
+  Result := FFiles;
 end;
 
 { global routines ------------------------------------------------------------- }
