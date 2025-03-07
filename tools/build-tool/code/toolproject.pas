@@ -2639,7 +2639,7 @@ begin
     { ZIP filename matches ZIP detection done by ApplicationDataCore
       in CastleUriUtils. }
     ZipFileName := CombinePaths(ZipParentPath, Name + '_data.zip');
-    ZipDirectory(ZipFileName, TemporaryDir, false);
+    ZipDirectoryTool(ZipFileName, TemporaryDir, false);
   finally RemoveNonEmptyDir(TemporaryDir, true) end;
 
   Writeln(Format('Archived data to %s, compressed size %s.', [

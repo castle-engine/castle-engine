@@ -40,7 +40,9 @@ const
   DoubleEpsilon = 1E-12;
 
 type
-
+  { One of the assertions (from TCastleTestCase.AssertXxx methods) failed.
+    Do not confuse this with EAssertionFailed, raised when standard Pascal
+    Assert failed. }
   EAssertionFailedError = class(Exception);
 
   TNotifyTestFail = procedure (const TestName, Msg: String) of object;
