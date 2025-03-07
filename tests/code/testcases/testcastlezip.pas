@@ -34,6 +34,7 @@ type
     procedure AssertStreamsEqual(const S1, S2: TStream);
   published
     procedure TestZipRead;
+    procedure TestZipWrite;
     procedure TestZipDirectory;
   end;
 
@@ -47,6 +48,37 @@ uses
   {$ifndef FPC} IOUtils, {$endif}
   CastleZip, CastleUriUtils, CastleClassUtils, CastleDownload,
   CastleUtils, CastleFilesUtils, CastleLog;
+
+{ Return URL of temporary directory. }
+function CreateTemporaryDirUrl: String;
+var
+  Base: String;
+begin
+  Base := {$ifdef FPC} GetTempDir {$else} TPath.GetTempPath {$endif};
+  Result := InclPathDelim(
+    InclPathDelim(Base) + 'TTestCastleZip-' + IntToStr(Random(1000000)));
+  CheckForceDirectories(Result);
+  Result := FilenameToUriSafe(Result);
+  Writeln('Temporary directory: ', Result);
+end;
+
+{ Get contents of given file in ZIP as simple String. }
+function ZipFileToString(const Zip: TCastleZip; const PathInZip: String): String;
+var
+  Stream: TStream;
+  StringStream: TStringStream;
+begin
+  Stream := Zip.Read(PathInZip);
+  try
+    StringStream := TStringStream.Create('');
+    try
+      ReadGrowingStream(Stream, StringStream, true);
+      Result := StringStream.DataString;
+    finally FreeAndNil(StringStream) end;
+  finally FreeAndNil(Stream) end;
+end;
+
+{ TTestCastleZip ------------------------------------------------------------ }
 
 procedure TTestCastleZip.AssertStreamsEqual(const S1, S2: TStream);
 var
@@ -164,49 +196,59 @@ begin
   {$endif}
 end;
 
-procedure TTestCastleZip.TestZipDirectory;
+procedure TTestCastleZip.TestZipWrite;
+var
+  Zip: TCastleZip;
+  TempDir, File1Url, ZipUrl: String;
+  File2Stream: TStringStream;
+begin
+  TempDir := CreateTemporaryDirUrl;
+  try
+    File1Url := CombineUri(TempDir, InternalUriEscape(
+      'zip_contents/subdir/file1 with spaces and Polish chars żółć.txt'));
+    StringToFile(File1Url, 'file1 contents');
 
-  function ZipFileToString(const Zip: TCastleZip; const PathInZip: String): String;
-  var
-    Stream: TStream;
-    StringStream: TStringStream;
-  begin
-    Stream := Zip.Read(PathInZip);
+    File2Stream := TStringStream.Create('file2 contents');
+
+    ZipUrl := CombineUri(TempDir, 'test.zip');
+
+    // write zip
+    Zip := TCastleZip.Create;
     try
-      StringStream := TStringStream.Create('');
-      try
-        ReadGrowingStream(Stream, StringStream, true);
-        Result := StringStream.DataString;
-      finally FreeAndNil(StringStream) end;
-    finally FreeAndNil(Stream) end;
-  end;
+      Zip.OpenEmpty;
+      Zip.Write('subdir/file1 with spaces and Polish chars żółć.txt', File1Url);
+      Zip.Write('file2.txt', File2Stream, true);
+      Zip.Save(ZipUrl);
+      AssertTrue(Zip.IsOpen);
+    finally FreeAndNil(Zip) end;
 
-  { Return URL of temporary directory. }
-  function CreateTemporaryDirUrl: String;
-  var
-    Base: String;
-  begin
-    Base := {$ifdef FPC} GetTempDir {$else} TPath.GetTempPath {$endif};
-    Result := InclPathDelim(
-      InclPathDelim(Base) + 'TTestCastleZip-' + IntToStr(Random(1000000)));
-    CheckForceDirectories(Result);
-    Result := FilenameToUriSafe(Result);
-    Writeln('Temporary directory: ', Result);
+    // test zip contents are valid
+    Zip := TCastleZip.Create;
+    try
+      Zip.Open(ZipUrl);
+      Writeln('Zip contents: ', Zip.Files.Text);
+      AssertEquals(2, Zip.Files.Count);
+      AssertTrue(Zip.Files.IndexOf('subdir/') = -1); // dir not listed
+      AssertTrue(Zip.Files.IndexOf('file2.txt') <> -1);
+      AssertTrue(Zip.Files.IndexOf('subdir/file1 with spaces and Polish chars żółć.txt') <> -1);
+      AssertEquals('file1 contents', ZipFileToString(Zip, 'subdir/file1 with spaces and Polish chars żółć.txt'));
+      AssertEquals('file2 contents', ZipFileToString(Zip, 'file2.txt'));
+    finally FreeAndNil(Zip) end;
+  finally
+    RemoveNonEmptyDir(UriToFilenameSafe(TempDir));
   end;
+end;
 
+procedure TTestCastleZip.TestZipDirectory;
 var
   TempDir, ZipUrl: String;
   Zip: TCastleZip;
 begin
-  {$ifndef FPC}
-  WritelnWarning('TCastleZip on Delphi does not support writing ZIP files yet');
-  Exit;
-  {$endif}
-
   TempDir := CreateTemporaryDirUrl;
   try
     StringToFile(
-      CombineUri(TempDir, 'zip_contents/subdir/file1 with spaces and Polish chars żółć.txt'), 'file1 contents');
+      CombineUri(TempDir,
+        InternalUriEscape('zip_contents/subdir/file1 with spaces and Polish chars żółć.txt')), 'file1 contents');
     StringToFile(
       CombineUri(TempDir, 'zip_contents/file2.txt'), 'file2 contents');
 
