@@ -204,7 +204,7 @@ begin
   TempDir := CreateTemporaryDirUrl;
   try
     StringToFile(
-      CombineUri(TempDir, 'zip_contents/subdir/file1.txt'), 'file1 contents');
+      CombineUri(TempDir, 'zip_contents/subdir/file1 with spaces and Polish chars żółć.txt'), 'file1 contents');
     StringToFile(
       CombineUri(TempDir, 'zip_contents/file2.txt'), 'file2 contents');
 
@@ -222,8 +222,8 @@ begin
       AssertTrue(Zip.Files.IndexOf('zip_contents/') = -1); // dir not listed
       AssertTrue(Zip.Files.IndexOf('zip_contents/subdir/') = -1); // dir not listed
       AssertTrue(Zip.Files.IndexOf('zip_contents/file2.txt') <> -1);
-      AssertTrue(Zip.Files.IndexOf('zip_contents/subdir/file1.txt') <> -1);
-      AssertEquals('file1 contents', ZipFileToString(Zip, 'zip_contents/subdir/file1.txt'));
+      AssertTrue(Zip.Files.IndexOf('zip_contents/subdir/file1 with spaces and Polish chars żółć.txt') <> -1);
+      AssertEquals('file1 contents', ZipFileToString(Zip, 'zip_contents/subdir/file1 with spaces and Polish chars żółć.txt'));
       AssertEquals('file2 contents', ZipFileToString(Zip, 'zip_contents/file2.txt'));
     finally FreeAndNil(Zip) end;
 
@@ -240,8 +240,8 @@ begin
       AssertEquals(2, Zip.Files.Count);
       AssertTrue(Zip.Files.IndexOf('subdir/') = -1); // dir not listed
       AssertTrue(Zip.Files.IndexOf('file2.txt') <> -1);
-      AssertTrue(Zip.Files.IndexOf('subdir/file1.txt') <> -1);
-      AssertEquals('file1 contents', ZipFileToString(Zip, 'subdir/file1.txt'));
+      AssertTrue(Zip.Files.IndexOf('subdir/file1 with spaces and Polish chars żółć.txt') <> -1);
+      AssertEquals('file1 contents', ZipFileToString(Zip, 'subdir/file1 with spaces and Polish chars żółć.txt'));
       AssertEquals('file2 contents', ZipFileToString(Zip, 'file2.txt'));
     finally FreeAndNil(Zip) end;
 
@@ -260,8 +260,8 @@ begin
       AssertEquals(2, Zip.Files.Count);
       AssertTrue(Zip.Files.IndexOf('subdir/') = -1); // dir not listed
       AssertTrue(Zip.Files.IndexOf('file2.txt') <> -1);
-      AssertTrue(Zip.Files.IndexOf('subdir/file1.txt') <> -1);
-      AssertEquals('file1 contents', ZipFileToString(Zip, 'subdir/file1.txt'));
+      AssertTrue(Zip.Files.IndexOf('subdir/file1 with spaces and Polish chars żółć.txt') <> -1);
+      AssertEquals('file1 contents', ZipFileToString(Zip, 'subdir/file1 with spaces and Polish chars żółć.txt'));
       AssertEquals('file2 contents', ZipFileToString(Zip, 'file2.txt'));
     finally FreeAndNil(Zip) end;
   finally
