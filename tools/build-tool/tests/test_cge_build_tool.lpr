@@ -19,7 +19,8 @@ uses
   SysUtils, CastleTester, CastleConsoleTester, CastleApplicationProperties,
   CastleScript, CastleLog,
   TestToolProject,
-  TestToolManifest;
+  TestToolManifest,
+  TestToolUtils;
 
 var
   ConsoleTester: TCastleConsoleTester;

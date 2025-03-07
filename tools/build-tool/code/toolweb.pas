@@ -155,7 +155,7 @@ begin
   DistPath := OutputPath + 'dist' + PathDelim;
 
   FullZipFileName := CombinePaths(Project.OutputPath, PackageZipFileName);
-  ZipDirectory(FullZipFileName, DistPath, false);
+  ZipDirectoryTool(FullZipFileName, DistPath, false);
 
   Writeln(Format('Packed web distributable files to "%s"', [PackageZipFileName]));
 end;
