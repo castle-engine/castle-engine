@@ -129,6 +129,20 @@ begin
     CheckZipContents;
   finally FreeAndNil(Zip) end;
 
+  // repeat above, but without recreating Zip instance
+  Zip := TCastleZip.Create;
+  try
+    Zip.Open(ZipUrl);
+    CheckZipContents;
+    Zip.Close; // necessary, and valid - we need to release TFileStream to access Download(ZipUrl)
+
+    Zip.Open(Download(ZipUrl), true);
+    CheckZipContents;
+
+    Zip.OpenEmpty;
+    AssertEquals(0, Zip.FileList.Count);
+  finally FreeAndNil(Zip) end;
+
   // open https URL with ZIP
   {$if defined(CASTLE_ONLINE_TESTS)}
   EnableBlockingDownloads := true;

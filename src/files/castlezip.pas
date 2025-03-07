@@ -537,6 +537,7 @@ procedure TCastleZip.OpenEmpty;
 begin
   Close;
   ZipFile := TZipFile.Create;
+  UpdateFileList;
 end;
 
 procedure TCastleZip.UpdateFileList;
@@ -544,8 +545,11 @@ var
   I: Integer;
 begin
   FFileList.Clear;
-  for I := 0 to ZipFile.FileCount - 1 do
-    FFileList.Add(ZipFile.FileName[I]);
+  if ZipFile.Mode <> zmClosed then
+  begin
+    for I := 0 to ZipFile.FileCount - 1 do
+      FFileList.Add(ZipFile.FileName[I]);
+  end;
 end;
 
 procedure TCastleZip.Close;
