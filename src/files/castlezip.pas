@@ -107,6 +107,11 @@ type
     { Update FFileList from UnZipper.Entries or Zipper.Entries. }
     procedure UpdateFileList;
     {$else}
+    { When open, we *may* have FZipStream <> nil.
+      Only when FZipStream <> nil, the FOwnsZipStream may be true
+      to indicate should we free FZipStream in Close. }
+    FZipStream: TStream;
+    FOwnsZipStream: Boolean;
     ZipFile: TZipFile;
     { Update FFileList from ZipFile.FileCount,FleName[]. }
     procedure UpdateFileList;
@@ -504,18 +509,26 @@ end;
 
 procedure TCastleZip.Open(const Url: String);
 begin
-  OpenEmpty;
   if UriToFilenameSafe(Url) <> '' then
-    ZipFile.Open(UriToFilenameSafe(Url), zmRead)
-  else
-    raise Exception.Create('TODO: Opening non-file URLs for ZIP not implemented with Delphi');
-
-  UpdateFileList;
+  begin
+    OpenEmpty;
+    ZipFile.Open(UriToFilenameSafe(Url), zmRead);
+    UpdateFileList;
+  end else
+  begin
+    Open(Download(Url), true);
+  end;
 end;
 
 procedure TCastleZip.Open(const Stream: TStream; const OwnsStream: boolean);
 begin
-  raise Exception.Create('TODO: Opening ZIP from TStream not implemented with Delphi');
+  FZipStream := Stream;
+  FOwnsZipStream := OwnsStream;
+
+  // similar to TCastleZip.Open(Url), but now we pass FZipStream
+  OpenEmpty;
+  ZipFile.Open(FZipStream, zmRead);
+  UpdateFileList;
 end;
 
 procedure TCastleZip.OpenEmpty;
@@ -535,7 +548,18 @@ end;
 
 procedure TCastleZip.Close;
 begin
+  if FOwnsZipStream then
+  begin
+    FreeAndNil(FZipStream);
+    FOwnsZipStream := false;
+  end else
+    FZipStream := nil;
+
   FreeAndNil(ZipFile);
+
+  Assert(not FOwnsZipStream);
+  Assert(FZipStream = nil);
+  Assert(ZipFile = nil);
 end;
 
 function TCastleZip.Read(const PathInZip: String): TStream;

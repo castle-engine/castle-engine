@@ -86,24 +86,37 @@ var
     end;
   end;
 
-var
-  ZipUrl: String;
-begin
-  Zip := TCastleZip.Create;
-  try
-    // use InternalUriEscape to encode characters like spaces and Polish inside URL
-    ZipUrl := 'castle-data:/zip/' + InternalUriEscape('packed żółć.zip');
-
-    // make sure file-checking routines handle ZipUrl OK
-    AssertTrue(UriExists(ZipUrl) = ueFile);
-    AssertTrue(FileExists(UriToFilenameSafe(ZipUrl)));
-
-    Zip.Open(ZipUrl);
+  procedure CheckZipContents;
+  begin
     Writeln('ZIP contents: ', Zip.FileList.Text);
     AssertEquals(3, Zip.FileList.Count);
     CompareZip('test filename żółć.txt');
     CompareZip('test.txt');
     CompareZip('test_texture.png');
+  end;
+
+var
+  ZipUrl: String;
+begin
+  // use InternalUriEscape to encode characters like spaces and Polish inside URL
+  ZipUrl := 'castle-data:/zip/' + InternalUriEscape('packed żółć.zip');
+
+  // make sure file-checking routines handle ZipUrl OK
+  AssertTrue(UriExists(ZipUrl) = ueFile);
+  AssertTrue(FileExists(UriToFilenameSafe(ZipUrl)));
+
+  // test opening URL with TCastleZip.Open
+  Zip := TCastleZip.Create;
+  try
+    Zip.Open(ZipUrl);
+    CheckZipContents;
+  finally FreeAndNil(Zip) end;
+
+  // test opening TStream with TCastleZip.Open
+  Zip := TCastleZip.Create;
+  try
+    Zip.Open(Download(ZipUrl), true);
+    CheckZipContents;
   finally FreeAndNil(Zip) end;
 end;
 
