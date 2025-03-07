@@ -49,6 +49,7 @@ Makefile text eol=auto
 # Do not convert line endings inside these files,
 # as they have to be equal to line endings inside test ZIP.
 tests/data/zip/*.txt binary
+tests/data/zip/subdir/*.txt binary
 
 # Even on Windows, shell scripts line endings must be Unix, to work with Cygwin's bash.
 *.sh text eol=lf

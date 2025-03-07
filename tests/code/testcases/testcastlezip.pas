@@ -99,16 +99,19 @@ var
   procedure CheckZipContents;
   begin
     Writeln('ZIP contents: ', Zip.FileList.Text);
-    AssertEquals(3, Zip.FileList.Count);
+    AssertEquals(4, Zip.FileList.Count);
     CompareZip('test filename żółć.txt');
     CompareZip('test.txt');
     CompareZip('test_texture.png');
+    // test also that / is treated as directory separator in ZIP
+    CompareZip('subdir/test filename żółć in subdir.txt');
   end;
 
 var
   ZipUrl: String;
 begin
-  // use InternalUriEscape to encode characters like spaces and Polish inside URL
+  // Use InternalUriEscape to encode characters like spaces and Polish inside URL.
+  // We deliberately use "żółć" and Polish in the filename, to test that it works.
   ZipUrl := 'castle-data:/zip/' + InternalUriEscape('packed żółć.zip');
 
   // make sure file-checking routines handle ZipUrl OK
