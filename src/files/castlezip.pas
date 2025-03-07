@@ -522,11 +522,13 @@ end;
 
 procedure TCastleZip.Open(const Stream: TStream; const OwnsStream: boolean);
 begin
+  // similar to TCastleZip.Open(Url), but now we pass FZipStream
+  OpenEmpty;
+
+  // set these after OpenEmpty, because it also does Close
   FZipStream := Stream;
   FOwnsZipStream := OwnsStream;
 
-  // similar to TCastleZip.Open(Url), but now we pass FZipStream
-  OpenEmpty;
   ZipFile.Open(FZipStream, zmRead);
   UpdateFileList;
 end;
