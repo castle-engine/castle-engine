@@ -148,7 +148,20 @@ function UriValidProtocol(const P: String): Boolean;
   as a filename (so it's not percent-escaped, it uses PathDelim
   specific to OS --- slash or backslash etc.).
   This routine, on the other hand, treats Relative string always as an
-  URI (when it doesn't include protocol, it just means it's relative to Base). }
+  URI (when it doesn't include protocol, it just means it's relative to Base).
+
+  Note that this is a bit different than @link(CombinePaths).
+  @link(CombinePaths) does a similar job, but for filenames (not URIs).
+  Also, @link(CombinePaths) assumes that the first argument is always a directory,
+  so its last component is not removed, regardless of whether
+  it ends with PathDelim or not, e.g. these are equivalent
+  @code(CombinePaths('mydir', 'myfile.txt')) and
+  @code(CombinePaths('mydir/', 'myfile.txt')).
+  This routine, in contrast, assumes that the first argument is Base
+  URL, and the last component will be removed if it looks like a file
+  (does not end with slash). So these are not equivalent:
+  @code(CombineUri('https://example.com/mydir', 'myfile.txt')) and
+  @code(CombineUri('https://example.com/mydir/', 'myfile.txt')). }
 function CombineUri(const Base, Relative: String): String;
 
 { Make sure that the URI is absolute (always has a protocol).

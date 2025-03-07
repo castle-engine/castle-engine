@@ -36,11 +36,40 @@ implementation
 
 uses SysUtils,
   CastleUtils, CastleUriUtils, CastleFilesUtils, CastleOpenDocument,
-  CastleInternalArchitectures, CastleStringUtils,
+  CastleInternalArchitectures, CastleStringUtils, CastleTimeUtils,
   ToolUtils, ToolCommonUtils, ToolManifest, ToolFonts;
 
 procedure CompileWeb(const Project: TCastleProject;
   const CompilerOptions: TCompilerOptions);
+
+  procedure RunWasmOpt(const WorkingDirectory, ProjectWasmExe: String);
+  var
+    WasmOptExe: String;
+    SizeBefore, SizeAfter: Int64;
+    TimeStart: TTimerResult;
+  begin
+    WasmOptExe := FindExe('wasm-opt');
+    if WasmOptExe <> '' then
+    begin
+      Writeln('wasm-opt found, using it to optimize the release build.');
+      SizeBefore := FileSize(ProjectWasmExe);
+      TimeStart := Timer;
+      RunCommandSimple(WorkingDirectory, WasmOptExe, [
+        '-O3',
+        '--all-features',
+        ProjectWasmExe,
+        '-o', ProjectWasmExe
+      ]);
+      SizeAfter := FileSize(ProjectWasmExe);
+      Writeln(Format('Optimized .wasm file in %fsec, size decrease %d%% (from %s to %s).', [
+        TimeStart.ElapsedTime,
+        Round(100 * SizeAfter / SizeBefore),
+        SizeToStr(SizeBefore),
+        SizeToStr(SizeAfter)
+      ]));
+    end;
+  end;
+
 var
   OutputPath, DistPath, Pas2jsExe, SourceExe, DestExe,
     LibraryFileName: String;
@@ -91,6 +120,9 @@ begin
   { move exe to dist/ and eventually rename to follow ExecutableName }
   MoveFileVerbose(SourceExe, DestExe);
 
+  if CompilerOptions.Mode = cmRelease then
+    RunWasmOpt(DistPath, DestExe);
+
   { Place data "zip", to be ready for "run" after "compile".
     And to enable using "compile" to populate the dist/ with everything necessary. }
   Project.ZipData(DistPath, cpWeb);
@@ -123,7 +155,7 @@ begin
   DistPath := OutputPath + 'dist' + PathDelim;
 
   FullZipFileName := CombinePaths(Project.OutputPath, PackageZipFileName);
-  ZipDirectory(FullZipFileName, DistPath, false);
+  ZipDirectoryTool(FullZipFileName, DistPath, false);
 
   Writeln(Format('Packed web distributable files to "%s"', [PackageZipFileName]));
 end;

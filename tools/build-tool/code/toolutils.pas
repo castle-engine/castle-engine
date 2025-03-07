@@ -1,5 +1,5 @@
 {
-  Copyright 2014-2024 Michalis Kamburelis.
+  Copyright 2014-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -122,36 +122,14 @@ function CachePath: String;
   to make GUID stable. }
 function CreateGUIDFromHash(const Seed: String): TGuid;
 
-{ Create a .zip file named ZipFileName
-  containing all files (recursively) in the Directory.
+{ Like CastleZip.ZipDirectory, but
 
-  Both ZipFileName and Directory may be absolute or relative filenames.
-  Directory may but doesn't have to end with PathDelim.
+  - ZipFileName, Directory should be filenames, not URLs
+    (may be absolute or relative).
 
-  SingleTopLevelDirectory meaning:
-
-  @unorderedList(
-    @item(When SingleTopLevelDirectory = @true:
-
-      The Directory is added to the zip file
-      as a top-level directory inside zip.
-      E.g. if Directory is '/home/michalis/mydir', then the zip file will contain
-      as top level 'mydir'. There shall be no trace of '/home/michalis/' in
-      the resulting zp file.)
-
-    @item(When SingleTopLevelDirectory = @false:
-
-      Then only contents of the Directory
-      are inside the zip, and so it can have multiple top-level entries.)
-  )
-
-  We gracefully handle the case when ZipFileName is inside Directory,
-  by not packing the ZipFileName in this case in itself (and making a warning),
-  to avoid possible reading and writing the file at the same time.
-  Though we don't rely on this feature in practice,
-  all curent usage of ZipDirectory in build tool places ZipFileName safely outside
-  of its input Directory. }
-procedure ZipDirectory(const ZipFileName: String; Directory: String;
+  - we have extra fallback on macOS
+    (to preserve permssions by using external "zip" command). }
+procedure ZipDirectoryTool(const ZipFileName: String; Directory: String;
   const SingleTopLevelDirectory: Boolean = true);
 
 { Move/rename Source to Dest. Given filenames may be relative or absolute,
@@ -415,8 +393,8 @@ begin
   {$I norqcheckend.inc}
 end;
 
-procedure ZipDirectory(const ZipFileName: String; Directory: String;
-  const SingleTopLevelDirectory: Boolean);
+procedure ZipDirectoryTool(const ZipFileName: String; Directory: String;
+  const SingleTopLevelDirectory: Boolean = true);
 
   procedure ZipUsingExternalApplication;
   var
@@ -443,11 +421,6 @@ procedure ZipDirectory(const ZipFileName: String; Directory: String;
       ['-q', '-r', ZipFileName, NameToIncludeInZip]);
   end;
 
-var
-  Zip: TCastleZip;
-  FilesList: TFileInfoList;
-  FileInfo: TFileInfo;
-  DirectoryParentPath, ExpandedZipFileName, PathInZip: String;
 begin
   { On macOS, FPC TZipper (used underneath by TCastleZip)
     seems not able to preserve "executable" bit when packing.
@@ -469,42 +442,16 @@ begin
       permission.
   }
   {$ifdef DARWIN}
-  ZipUsingExternalApplication;
-  Exit;
+  if FindExe('zip') <> '' then
+  begin
+    ZipUsingExternalApplication;
+    Exit;
+  end;
   {$endif}
 
-  ExpandedZipFileName := ExpandFileName(ZipFileName);
-
-  Zip := TCastleZip.Create;
-  try
-    Zip.OpenEmpty;
-
-    Directory := ExclPathDelim(Directory);
-    DirectoryParentPath := ExtractFilePath(Directory);
-
-    FilesList := FindFilesList(Directory, '*', { FindDirectories } false, [ffRecursive]);
-    try
-      for FileInfo in FilesList do
-      begin
-        if SameFileName(ExpandedZipFileName, FileInfo.AbsoluteName) then
-        begin
-          WritelnWarning('Package', Format('Directory to zip contains also the target zip file "%s", not packing (to avoid possible reading and writing the file at the same time)', [
-            FileInfo.AbsoluteName
-          ]));
-          Continue;
-        end;
-        if SingleTopLevelDirectory then
-          PathInZip := ExtractRelativePath(DirectoryParentPath, FileInfo.AbsoluteName)
-        else
-          // Below we need InclPathDelim(Directory) to have proper relative results
-          PathInZip := ExtractRelativePath(InclPathDelim(Directory), FileInfo.AbsoluteName);
-        Zip.Write(PathInZip, FilenameToUriSafe(FileInfo.AbsoluteName));
-        WritelnVerbose('Added %s as %s to ZIP', [FileInfo.AbsoluteName, PathInZip]);
-      end;
-    finally FreeAndNil(FilesList) end;
-
-    Zip.Save(FilenameToUriSafe(ZipFileName));
-  finally FreeAndNil(Zip) end;
+  ZipDirectory(
+    FilenameToUriSafe(ZipFileName),
+    FilenameToUriSafe(Directory), SingleTopLevelDirectory);
 end;
 
 procedure MoveFileVerbose(const Source, Dest: String);
