@@ -43,8 +43,10 @@ uses
   {$if defined(CASTLE_ONLINE_TESTS) and defined(FPC)}
   OpenSslSockets,
   {$endif}
+  // for TPath.GetTempPath
+  {$ifndef FPC} IOUtils, {$endif}
   CastleZip, CastleUriUtils, CastleClassUtils, CastleDownload,
-  CastleUtils, CastleFilesUtils;
+  CastleUtils, CastleFilesUtils, CastleLog;
 
 procedure TTestCastleZip.AssertStreamsEqual(const S1, S2: TStream);
 var
