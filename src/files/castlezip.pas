@@ -29,8 +29,8 @@ type
     Use this to:
 
     @unorderedList(
-      @item(Read ZIP files from any TStream or
-        URL supported by Castle Game Engine.
+      @item(Read ZIP files from any TStream or URL
+      (supported by the Castle Game Engine).
 
         Example of reading:
 
@@ -47,11 +47,9 @@ type
         )
       )
 
-      @item(Modify and write ZIP files, consisting with above.
-
-        TODO: For now, with both FPC and Delphi, ZIP can only be open for reading
-        or writing (when OpenEmpty). So you cannot open existing ZIP
-        and then modify it.
+      @item(Create and write to ZIP files. Using API consistent with above,
+        so we use URLs and slashes for everything and work with all supported
+        platforms and compilers.
 
         Example of writing:
 
@@ -67,6 +65,22 @@ type
           finally FreeAndNil(Zip) end;
         end;
         )
+      )
+
+      @item(
+        The ZIP file is always open in either read-only mode (after @link(Open))
+        or write-only mode (after @link(OpenEmpty)).
+
+        Right now, we don't support read-write access to the ZIP file,
+        so you cannot @italic(modify) the ZIP file, e.g. to open an existing
+        ZIP file, add one file (but preserve the rest) and save it.
+        Support for such read-write mode seems to have low priority
+        (as such modification is seldom needed), and uniform support with
+        all compilers would be hard for this.
+
+        If you need to modify the ZIP file, for now just recreate it:
+        create one TCastleZip instance for reading, iterate over all files
+        using @link(Files), and write them to a new TCastleZip instance.
       )
 
       @item(Optionally register a URL handler, to read files inside a ZIP
@@ -124,33 +138,33 @@ type
     constructor Create;
     destructor Destroy; override;
 
-    { Open the ZIP archive from given URL.
-
+    { Open the ZIP archive from given URL, for reading.
       Depending on the implementation details, the opened ZIP file
       may need to exist on disk while we read from it, until we @link(Close) it. }
     procedure Open(const Url: String); overload;
 
-    { Open the ZIP archive from given TStream instance.
+    { Open the ZIP archive from given TStream instance, for reading.
       The TStream instance must exist as long as the ZIP file is open.
       We can free it automatically at close if OwnsStream is @true. }
     procedure Open(const Stream: TStream; const OwnsStream: boolean); overload;
 
-    { Create a new, empty ZIP archive in memory.
+    { Create a new, empty ZIP archive in memory, for writing.
       You can then add files to it using @link(Write) and save it using @link(Save). }
     procedure OpenEmpty;
 
     { Close the ZIP archive. This releases all resources
       (avoids keeping in memory the ZIP contents),
-      but afterwards you cannot @link(Read) files from ZIP anymore.
+      but afterwards you cannot @link(Read) or @link(Write) files from/to ZIP anymore.
 
       There's usually no need to call this, as the destructor or opening
-      a new ZIP archive using @link(Open) will first close the existing archive.
+      a new ZIP archive using @link(Open) or @link(OpenEmpty) will
+      first close the existing archive.
       It is only useful if you want to release the resources related to your ZIP
       earlier, which is in turn only a concern if you really deal with huge
       (e.g. gigabytes) ZIP files. }
     procedure Close;
 
-    { Was @link(Open) called and succeded (without any exception)
+    { Was @link(Open) or @link(OpenEmpty) called and succeded (without any exception)
       and we didn't yet call @link(Close). }
     function IsOpen: Boolean;
 
