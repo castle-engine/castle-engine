@@ -44,7 +44,6 @@ object DesignFrame: TDesignFrame
       Align = alTop
       BorderSpacing.Around = 5
       Caption = 'Selected:'#13#10'xxx (yyy)'
-      ParentColor = False
       ParentFont = False
     end
     object ControlProperties: TPageControl
@@ -52,10 +51,10 @@ object DesignFrame: TDesignFrame
       Height = 495
       Top = 50
       Width = 326
-      ActivePage = TabInfo
+      ActivePage = TabBasic
       Align = alClient
       ParentFont = False
-      TabIndex = 4
+      TabIndex = 0
       TabOrder = 0
       object TabBasic: TTabSheet
         Caption = 'Basic'
@@ -428,7 +427,6 @@ object DesignFrame: TDesignFrame
       Align = alTop
       BorderSpacing.Around = 5
       Caption = 'Hierarchy'
-      ParentColor = False
       ParentFont = False
     end
     object EditFindInHierarchy: TEdit
@@ -1217,7 +1215,6 @@ object DesignFrame: TDesignFrame
         BorderSpacing.Right = 10
         Caption = 'UI snap:'
         Layout = tlCenter
-        ParentColor = False
         ParentFont = False
       end
       object PanelSpinEditAllowVerticalCentering: TPanel
@@ -1272,7 +1269,6 @@ object DesignFrame: TDesignFrame
         BorderSpacing.Right = 10
         Caption = 'Physics:'
         Layout = tlCenter
-        ParentColor = False
         ParentFont = False
       end
       object ButtonSimulationPlayStop: TSpeedButton
@@ -1317,7 +1313,6 @@ object DesignFrame: TDesignFrame
         Caption = 'Viewport123: Front Perspective '#10'Fly (speed 1000.00)'
         Font.Height = 15
         Layout = tlCenter
-        ParentColor = False
         ParentFont = False
         Visible = False
       end
