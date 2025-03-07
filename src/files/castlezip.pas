@@ -18,7 +18,7 @@ unit CastleZip;
 
 interface
 
-uses SysUtils, Classes,
+uses SysUtils, Classes, Generics.Collections,
   {$ifdef FPC} Zipper {$else} System.Zip {$endif};
 
 type
@@ -83,12 +83,9 @@ type
         using @link(Files), and write them to a new TCastleZip instance.
       )
 
-      @item(Optionally register a URL handler, to read files inside a ZIP
+      @item(Optionally register a URL handler, to read or write files inside a ZIP
         archive by just accesing URL with the given prefix.
         See @link(RegisterUrlProtocol) for example.
-
-        TODO: add write support this way too. For now, it only works
-        for reading, when the ZIP was opened for reading.
       )
 
       @item(Have uniform API for both FPC and Delphi (they have different
@@ -99,10 +96,31 @@ type
     While the ZIP file is open, read files using @link(Read),
     add files using @link(Write). }
   TCastleZip = class
+  private
+    { Not strict private, needs to be accessed by
+      TMemoryStreamSaveOnDestroy implementation. }
+    type
+      TMemoryStreamSaveOnDestroy = class(TMemoryStream)
+        PathInZip: String;
+        Zip: TCastleZip;
+        procedure BeforeDestruction; override;
+      end;
+      TMemoryStreamSaveOnDestroyList = {$ifdef FPC}specialize{$endif}
+        TObjectList<TMemoryStreamSaveOnDestroy>;
+    var
+      // Non-empty means that RegisterUrlProtocol was called.
+      FPendingStreams: TMemoryStreamSaveOnDestroyList;
   strict private
-    // Non-empty means that RegisterUrlProtocol was called.
     FRegisteredUrlProtocol: String;
     FFiles: TStringList;
+    function GetFiles: TStrings;
+    function IsOpenRead: Boolean;
+    function IsOpenWrite: Boolean;
+    { Handlers given to CastleDownload.RegisterUrlProtocol. }
+    function ReadUrlHandler(const Url: String; out MimeType: string): TStream;
+    function WriteUrlHandler(const Url: String): TStream;
+  strict private
+    { FPC or Delphi specific fields and methods }
     {$ifdef FPC}
     { When open for reading, we always have FReadStream <> nil and UnZipper <> nil.
       We never assign UnZipper.FileName, instead relying on own URL -> TStream
@@ -129,14 +147,10 @@ type
     { Update FFiles from ZipFile.FileCount,FleName[]. }
     procedure UpdateFiles;
     {$endif}
-    { Handler given to CastleDownload.RegisterUrlProtocol. }
-    function ReadUrlHandler(const Url: String; out MimeType: string): TStream;
-    function GetFiles: TStrings;
-    function IsOpenRead: Boolean;
-    function IsOpenWrite: Boolean;
   public
     constructor Create;
     destructor Destroy; override;
+    procedure BeforeDestruction; override;
 
     { Open the ZIP archive from given URL, for reading.
       Depending on the implementation details, the opened ZIP file
@@ -183,9 +197,19 @@ type
       will close the ZIP archive. }
     function Read(const PathInZip: String): TStream;
 
-    { Register read handler for a given URL protocol,
-      to access the ZIP contents by just reading from a given URL protocol
-      using @link(Download) routine (or any routine on top of it).
+    { Register handler for a custom URL protocol,
+      to access the ZIP contents by accessing URLs with the given protocol.
+
+      @unorderedList(
+        @item(
+          When the ZIP file is open for reading, you can read contents
+          of the ZIP file by @link(Download) routine (or any routine on top of it,
+          like @link(FileToString)).)
+        @item(
+          When the ZIP file is open for writing, you can write contents
+          of the ZIP file by @link(UrlSaveStream) routine (or any routines
+          on top of it, like @link(StringToFile)).)
+      )
 
       For example, you can register a URL handler for 'my-textures' prefix:
 
@@ -205,10 +229,11 @@ type
       Full example usage in the @url(https://github.com/castle-engine/castle-engine/tree/master/examples/network/custom_url_handler
       examples/network/custom_url_handler).
 
-      ZIP doesn't have to be @link(IsOpen) when calling this.
+      ZIP doesn't have to be @link(IsOpen) when calling this method,
+      RegisterUrlProtocol.
       In fact, you can close and reopen the ZIP file while the URL handler
       continues to be registered.
-      But it has to be open when you actually read using the indicated URL
+      But the ZIP has to be open when you actually read or write using the indicated URL
       protocol. }
     procedure RegisterUrlProtocol(const Protocol: String);
 
@@ -774,6 +799,26 @@ constructor TCastleZip.Create;
 begin
   inherited;
   FFiles := TStringList.Create;
+  FPendingStreams := TMemoryStreamSaveOnDestroyList.Create(false);
+end;
+
+procedure TCastleZip.BeforeDestruction;
+var
+  I: Integer;
+begin
+  if FPendingStreams <> nil then
+  begin
+    { To avoid causing access violations in case you free TCastleZip
+      before freeing TMemoryStreamSaveOnDestroy instances,
+      we unassign from their Zip field and make a graceful warning. }
+    for I := 0 to FPendingStreams.Count - 1 do
+    begin
+      WritelnWarning('Unfinished writing to ZIP file "%s", aborting because TCastleZip is destroyed', [
+        FPendingStreams[I].PathInZip
+      ]);
+      FPendingStreams[I].Zip := nil;
+    end;
+  end;
 end;
 
 destructor TCastleZip.Destroy;
@@ -781,6 +826,7 @@ begin
   Close;
   UnregisterUrlProtocol;
   FreeAndNil(FFiles);
+  FreeAndNil(FPendingStreams);
   inherited;
 end;
 
@@ -788,7 +834,8 @@ procedure TCastleZip.RegisterUrlProtocol(const Protocol: String);
 begin
   FRegisteredUrlProtocol := Protocol;
   CastleDownload.RegisterUrlProtocol(Protocol,
-    {$ifdef FPC}@{$endif} ReadUrlHandler, nil);
+    {$ifdef FPC}@{$endif} ReadUrlHandler,
+    {$ifdef FPC}@{$endif} WriteUrlHandler);
 end;
 
 procedure TCastleZip.UnregisterUrlProtocol;
@@ -804,20 +851,49 @@ end;
 function TCastleZip.ReadUrlHandler(const Url: String; out MimeType: string): TStream;
 var
   U: TURI;
-  FileInZip: String;
+  PathInZip: String;
 begin
   U := ParseURI(Url);
-  FileInZip := PrefixRemove('/', U.Path + U.Document, false);
-  Result := Read(FileInZip);
+  PathInZip := PrefixRemove('/', U.Path + U.Document, false);
+  Result := Read(PathInZip);
 
   { Determine mime type from Url, which practically means:
     determine content type from filename extension. }
   MimeType := UriMimeType(Url);
 end;
 
+function TCastleZip.WriteUrlHandler(const Url: String): TStream;
+var
+  U: TURI;
+  PathInZip: String;
+  ResultStream: TMemoryStreamSaveOnDestroy;
+begin
+  U := ParseURI(Url);
+  PathInZip := PrefixRemove('/', U.Path + U.Document, false);
+
+  ResultStream := TMemoryStreamSaveOnDestroy.Create;
+  ResultStream.Zip := Self;
+  ResultStream.PathInZip := PathInZip;
+  FPendingStreams.Add(ResultStream);
+  Result := ResultStream;
+end;
+
 function TCastleZip.GetFiles: TStrings;
 begin
   Result := FFiles;
+end;
+
+{ TCastleZip.TMemoryStreamSaveOnDestroy -------------------------------------- }
+
+procedure TCastleZip.TMemoryStreamSaveOnDestroy.BeforeDestruction;
+begin
+  if Zip <> nil then
+  begin
+    Zip.FPendingStreams.Remove(Self);
+    Position := 0;
+    Zip.Write(PathInZip, Self, false);
+    Zip := nil;
+  end;
 end;
 
 { global routines ------------------------------------------------------------- }

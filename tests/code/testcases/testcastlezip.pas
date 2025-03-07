@@ -36,6 +36,7 @@ type
     procedure TestZipRead;
     procedure TestZipWrite;
     procedure TestZipDirectory;
+    procedure TestZipWriteProtocol;
   end;
 
 implementation
@@ -221,6 +222,55 @@ begin
       Zip.Save(ZipUrl);
       AssertTrue(Zip.IsOpen);
     finally FreeAndNil(Zip) end;
+
+    // test zip contents are valid
+    Zip := TCastleZip.Create;
+    try
+      Zip.Open(ZipUrl);
+      Writeln('Zip contents: ', Zip.Files.Text);
+      AssertEquals(2, Zip.Files.Count);
+      AssertTrue(Zip.Files.IndexOf('subdir/') = -1); // dir not listed
+      AssertTrue(Zip.Files.IndexOf('file2.txt') <> -1);
+      AssertTrue(Zip.Files.IndexOf('subdir/file1 with spaces and Polish chars żółć.txt') <> -1);
+      AssertEquals('file1 contents', ZipFileToString(Zip, 'subdir/file1 with spaces and Polish chars żółć.txt'));
+      AssertEquals('file2 contents', ZipFileToString(Zip, 'file2.txt'));
+    finally FreeAndNil(Zip) end;
+  finally
+    RemoveNonEmptyDir(UriToFilenameSafe(TempDir));
+  end;
+end;
+
+procedure TTestCastleZip.TestZipWriteProtocol;
+var
+  Zip: TCastleZip;
+  TempDir, ZipUrl: String;
+  WriteStream, WriteStreamUnfinished: TStream;
+begin
+  TempDir := CreateTemporaryDirUrl;
+  try
+    ZipUrl := CombineUri(TempDir, 'test.zip');
+
+    // write zip
+    Zip := TCastleZip.Create;
+    try
+      Zip.OpenEmpty;
+      Zip.RegisterUrlProtocol('TestZipWriteProtocol');
+      WriteStream := UrlSaveStream('TestZipWriteProtocol:subdir/' + InternalUriEscape('file1 with spaces and Polish chars żółć.txt'));
+      try
+        WriteStr(WriteStream, 'file1 contents');
+      finally FreeAndNil(WriteStream) end;
+      WriteStreamUnfinished := UrlSaveStream('TestZipWriteProtocol:subdir/unfinished.txt');
+      // simpler alternative to UrlSaveStream
+      StringToFile('TestZipWriteProtocol:file2.txt', 'file2 contents');
+      Zip.Save(ZipUrl);
+      AssertTrue(Zip.IsOpen);
+    finally FreeAndNil(Zip) end;
+
+    { Above we made deliberate error:
+      WriteStreamUnfinished was not freed before Zip,
+      so it didn't write anything into ZIP.
+      Test that this is handled correctly, no crashes, no memory leaks. }
+    FreeAndNil(WriteStreamUnfinished);
 
     // test zip contents are valid
     Zip := TCastleZip.Create;
