@@ -49,11 +49,9 @@ type
 
       @item(Modify and write ZIP files, consisting with above.
 
-        TODO: For now, with FPC, ZIP can only be open for reading
+        TODO: For now, with both FPC and Delphi, ZIP can only be open for reading
         or writing (when OpenEmpty). So you cannot open existing ZIP
         and then modify it.
-
-        TODO: Delphi version doesn't support writing yet, at all.
 
         Example of writing:
 
@@ -113,12 +111,15 @@ type
     FZipStream: TStream;
     FOwnsZipStream: Boolean;
     ZipFile: TZipFile;
+    function PathToZip(const PathInZip: String): String;
     { Update FFiles from ZipFile.FileCount,FleName[]. }
     procedure UpdateFiles;
     {$endif}
     { Handler given to CastleDownload.RegisterUrlProtocol. }
     function ReadUrlHandler(const Url: String; out MimeType: string): TStream;
     function GetFiles: TStrings;
+    function IsOpenRead: Boolean;
+    function IsOpenWrite: Boolean;
   public
     constructor Create;
     destructor Destroy; override;
@@ -359,6 +360,16 @@ begin
   Result := (UnZipper <> nil) or (Zipper <> nil);
 end;
 
+function TCastleZip.IsOpenRead: Boolean;
+begin
+  Result := UnZipper <> nil;
+end;
+
+function TCastleZip.IsOpenWrite: Boolean;
+begin
+  Result := Zipper <> nil;
+end;
+
 procedure TCastleZip.Open(const Url: String);
 begin
   Open(Download(Url), true);
@@ -456,7 +467,7 @@ var
   FilesInZipList: TStringlist;
   UnzipFileHelper: TUnzipFileHelper;
 begin
-  if UnZipper = nil then
+  if not IsOpenRead then
     raise EZipNotOpen.Create('Cannot read from ZIP, it is not open for reading');
 
   UnzipFileHelper := TUnzipFileHelper.Create;
@@ -481,17 +492,21 @@ procedure TCastleZip.Write(const PathInZip: String;
 var
   WriteCopy: TMemoryStream;
 begin
-  if Zipper = nil then
+  if not IsOpenWrite then
     raise EZipNotOpen.Create('Cannot write to ZIP, it is not open for writing');
 
-  { TODO: Right now, we always make a copy of contents.
-    We could avoid it when OwnsStream = true,
-    pass Stream to Zipper.Entries.AddFileEntry and free it at close. }
+  { Right now, we always make a copy of contents.
+    This is safe: FPC TZippper saves Stream instance for later use.
+
+    TODO: Possible optimization: We could avoid making WriteCopy
+    when OwnsStream = true, then just pass Stream directly to
+    Zipper.Entries.AddFileEntry and free it at close.
+    Need to manage a "list of streams to free at close". }
 
   WriteCopy := TMemoryStream.Create;
   try
     ReadGrowingStream(Stream, WriteCopy, true);
-    Zipper.Entries.AddFileEntry(Stream, PathInZip);
+    Zipper.Entries.AddFileEntry(WriteCopy, PathInZip);
   finally FreeAndNil(WriteCopy) end;
 
   if OwnsStream then
@@ -505,7 +520,7 @@ var
   FileName: String;
   WriteEntryStream: TStream;
 begin
-  if Zipper = nil then
+  if not IsOpenWrite then
     raise EZipNotOpen.Create('Cannot write to ZIP, it is not open for writing');
 
   FileName := UriToFilenameSafe(Url);
@@ -524,7 +539,7 @@ procedure TCastleZip.Save(const Url: String);
 var
   WriteStream: TStream;
 begin
-  if Zipper = nil then
+  if not IsOpenWrite then
     raise EZipNotOpen.Create('Cannot save ZIP, it is not open for writing');
 
   WriteStream := UrlSaveStream(Url);
@@ -545,11 +560,22 @@ begin
   Result := ZipFile <> nil;
 end;
 
+function TCastleZip.IsOpenRead: Boolean;
+begin
+  Result := IsOpen and (ZipFile.Mode in [zmRead, zmReadWrite]);
+end;
+
+function TCastleZip.IsOpenWrite: Boolean;
+begin
+  Result := IsOpen and (ZipFile.Mode in [zmWrite, zmReadWrite]);
+end;
+
 procedure TCastleZip.Open(const Url: String);
 begin
   if UriToFilenameSafe(Url) <> '' then
   begin
-    OpenEmpty;
+    Close;
+    ZipFile := TZipFile.Create;
     ZipFile.Open(UriToFilenameSafe(Url), zmRead);
     UpdateFiles;
   end else
@@ -560,13 +586,14 @@ end;
 
 procedure TCastleZip.Open(const Stream: TStream; const OwnsStream: boolean);
 begin
-  // similar to TCastleZip.Open(Url), but now we pass FZipStream
-  OpenEmpty;
+  Close;
 
-  // set these after OpenEmpty, because it also does Close
+  // set these after Close, to avoid freeing them by Close
   FZipStream := Stream;
   FOwnsZipStream := OwnsStream;
 
+  // this code is similar to TCastleZip.Open(Url), but now we pass FZipStream
+  ZipFile := TZipFile.Create;
   ZipFile.Open(FZipStream, zmRead);
   UpdateFiles;
 end;
@@ -574,20 +601,37 @@ end;
 procedure TCastleZip.OpenEmpty;
 begin
   Close;
+
+  FZipStream := TMemoryStream.Create;
+  FOwnsZipStream := true;
+
   ZipFile := TZipFile.Create;
+  ZipFile.Open(FZipStream, zmWrite);
   UpdateFiles;
 end;
 
 procedure TCastleZip.UpdateFiles;
 var
   I: Integer;
+  PathInZip: String;
 begin
   FFiles.Clear;
   if ZipFile.Mode <> zmClosed then
   begin
     for I := 0 to ZipFile.FileCount - 1 do
-      if not IsSuffix('/', ZipFile.FileName[I]) then
-        FFiles.Add(ZipFile.FileName[I]);
+    begin
+      PathInZip := ZipFile.FileName[I];
+      { On Windows, Delphi TZipFile converts paths to contain \.
+        We don't want this, we want always /, to be the same cross-platform
+        and to be consistent with URLs.
+        In our eyes, PathInZip is not a filename, and PathInZip is not platform-specific,
+        so no reason why it should use platform-specific \. }
+      {$ifdef MSWINDOWS}
+      PathInZip := SReplaceChars(PathInZip, '\', '/');
+      {$endif}
+      if not IsSuffix('/', PathInZip) then
+        FFiles.Add(PathInZip);
+    end;
   end;
 end;
 
@@ -607,15 +651,40 @@ begin
   Assert(ZipFile = nil);
 end;
 
+function TCastleZip.PathToZip(const PathInZip: String): String;
+begin
+  { TZipFile on Windows expects paths in ZIP with \, convert from /.
+    We prefer /, as documented in UpdateFiles. }
+  Result :=
+    {$ifdef MSWINDOWS} SReplaceChars(PathInZip, '/', '\')
+    {$else} PathInZip
+    {$endif};
+end;
+
 function TCastleZip.Read(const PathInZip: String): TStream;
 var
   LocalHeader: TZipHeader;
   TempStream: TStream;
 begin
-  if not IsOpen then
-    raise EZipNotOpen.Create('Cannot read from ZIP, it is not open');
+  if not IsOpenRead then
+    raise EZipNotOpen.Create('Cannot read from ZIP, it is not open for reading');
 
-  ZipFile.Read(PathInZip, TempStream, LocalHeader);
+  try
+    { Depending on what is inside ZIP, TZipFile on Windows may expect
+      argument with / or \ ... We try both, to have consistent API
+      that just accepts /, on all platforms, for all ZIP files. }
+    if ZipFile.IndexOf(PathToZip(PathInZip)) <> -1 then
+      ZipFile.Read(PathToZip(PathInZip), TempStream, LocalHeader)
+    else
+      ZipFile.Read(PathInZip, TempStream, LocalHeader);
+  except
+    // improve EZipFileNotFoundException message, to include PathInZip
+    on E: EZipFileNotFoundException do
+    begin
+      E.Message := E.Message + ' (path in zip: ' + PathInZip + ')';
+      raise;
+    end;
+  end;
 
   { We cannot just use Result := TempStream,
     because the stream returned by ZipFile.Read will be destroyed
@@ -628,23 +697,59 @@ end;
 
 procedure TCastleZip.Write(const PathInZip: String; const Stream: TStream; const OwnsStream: Boolean);
 begin
-  if not IsOpen then
+  if not IsOpenWrite then
     raise EZipNotOpen.Create('Cannot write to ZIP, it is not open for writing');
-  raise Exception.Create('TODO: Writing ZIP not implemented with Delphi');
+
+  ZipFile.Add(Stream, PathToZip(PathInZip));
+
+  // The TZipFile.Add doesn't need the Stream instance to remain valid anymore.
+  // This is in contrast to FPC TZippper that saves Stream instance.
+  // So we can immediately free Stream.
+  if OwnsStream then
+    Stream.Free; // cannot FreeAndNil(Stream), as Stream is const
+
+  UpdateFiles; // add new file to file list
 end;
 
 procedure TCastleZip.Write(const PathInZip: String; const Url: String);
+var
+  FileName: String;
+  WriteEntryStream: TStream;
 begin
-  if not IsOpen then
+  if not IsOpenWrite then
     raise EZipNotOpen.Create('Cannot write to ZIP, it is not open for writing');
-  raise Exception.Create('TODO: Writing ZIP not implemented with Delphi');
+
+  FileName := UriToFilenameSafe(Url);
+  if FileName <> '' then
+  begin
+    ZipFile.Add(FileName, PathToZip(PathInZip));
+    UpdateFiles; // add new file to file list
+  end else
+  begin
+    WriteEntryStream := Download(Url);
+    Write(PathInZip, WriteEntryStream, true);
+  end;
 end;
 
 procedure TCastleZip.Save(const Url: String);
+var
+  SaveStream: TStream;
 begin
-  if not IsOpen then
+  if not IsOpenWrite then
     raise EZipNotOpen.Create('Cannot save ZIP, it is not open for writing');
-  raise Exception.Create('TODO: Writing ZIP not implemented with Delphi');
+
+  // Close writes to FZipStream all data
+  ZipFile.Close;
+
+  SaveStream := UrlSaveStream(Url);
+  try
+    FZipStream.Position := 0;
+    ReadGrowingStream(FZipStream, SaveStream, true);
+  finally FreeAndNil(SaveStream) end;
+
+  // Delphi TZipFile closes the ZIP after writing to it.
+  // Reopen it, in read-write mode.
+  ZipFile.Open(FZipStream, zmReadWrite);
 end;
 
 {$endif}
