@@ -16,6 +16,12 @@
 { Test CastleZip unit. }
 unit TestCastleZip;
 
+{ For these tests, we need to download files from the Internet.
+  We also enable blocking downloads.
+  This means that you need to be online, and tests may fail
+  if servers are offline. }
+{.$define CASTLE_ONLINE_TESTS}
+
 interface
 
 uses
@@ -32,7 +38,11 @@ type
 
 implementation
 
-uses CastleZip, CastleUriUtils, CastleClassUtils, CastleDownload,
+uses
+  {$if defined(CASTLE_ONLINE_TESTS) and defined(FPC)}
+  OpenSslSockets,
+  {$endif}
+  CastleZip, CastleUriUtils, CastleClassUtils, CastleDownload,
   CastleUtils;
 
 procedure TTestCastleZip.AssertStreamsEqual(const S1, S2: TStream);
@@ -118,6 +128,16 @@ begin
     Zip.Open(Download(ZipUrl), true);
     CheckZipContents;
   finally FreeAndNil(Zip) end;
+
+  // open https URL with ZIP
+  {$if defined(CASTLE_ONLINE_TESTS)}
+  EnableBlockingDownloads := true;
+  Zip := TCastleZip.Create;
+  try
+    Zip.Open('https://github.com/castle-engine/castle-engine/raw/refs/heads/master/tests/data/zip/packed%20%C5%BC%C3%B3%C5%82%C4%87.zip');
+    CheckZipContents;
+  finally FreeAndNil(Zip) end;
+  {$endif}
 end;
 
 initialization
