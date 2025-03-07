@@ -201,15 +201,13 @@ procedure TTestCastleZip.TestZipWrite;
 var
   Zip: TCastleZip;
   TempDir, File1Url, ZipUrl: String;
-  File2Stream: TStringStream;
+  File2Stream, File3Stream: TStringStream;
 begin
   TempDir := CreateTemporaryDirUrl;
   try
     File1Url := CombineUri(TempDir, InternalUriEscape(
       'zip_contents/subdir/file1 with spaces and Polish chars żółć.txt'));
     StringToFile(File1Url, 'file1 contents');
-
-    File2Stream := TStringStream.Create('file2 contents');
 
     ZipUrl := CombineUri(TempDir, 'test.zip');
 
@@ -218,7 +216,13 @@ begin
     try
       Zip.OpenEmpty;
       Zip.Write('subdir/file1 with spaces and Polish chars żółć.txt', File1Url);
+      File2Stream := TStringStream.Create('file2 contents');
       Zip.Write('file2.txt', File2Stream, true);
+      File3Stream := TStringStream.Create('file3 contents');
+      try
+        // test OwnsStream = false
+        Zip.Write('file3.txt', File3Stream, false);
+      finally FreeAndNil(File3Stream) end;
       Zip.Save(ZipUrl);
       AssertTrue(Zip.IsOpen);
     finally FreeAndNil(Zip) end;
@@ -228,12 +232,13 @@ begin
     try
       Zip.Open(ZipUrl);
       Writeln('Zip contents: ', Zip.Files.Text);
-      AssertEquals(2, Zip.Files.Count);
+      AssertEquals(3, Zip.Files.Count);
       AssertTrue(Zip.Files.IndexOf('subdir/') = -1); // dir not listed
       AssertTrue(Zip.Files.IndexOf('file2.txt') <> -1);
       AssertTrue(Zip.Files.IndexOf('subdir/file1 with spaces and Polish chars żółć.txt') <> -1);
       AssertEquals('file1 contents', ZipFileToString(Zip, 'subdir/file1 with spaces and Polish chars żółć.txt'));
       AssertEquals('file2 contents', ZipFileToString(Zip, 'file2.txt'));
+      AssertEquals('file3 contents', ZipFileToString(Zip, 'file3.txt'));
     finally FreeAndNil(Zip) end;
   finally
     RemoveNonEmptyDir(UriToFilenameSafe(TempDir));

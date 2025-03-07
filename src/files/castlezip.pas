@@ -122,14 +122,18 @@ type
   strict private
     { FPC or Delphi specific fields and methods }
     {$ifdef FPC}
-    { When open for reading, we always have FReadStream <> nil and UnZipper <> nil.
-      We never assign UnZipper.FileName, instead relying on own URL -> TStream
-      reading. }
-    UnZipper: TUnZipper;
-    FReadStream: TStream;
-    FOwnsReadStream: Boolean;
-    { When open for writing, we always have Zipper <> nil. }
-    Zipper: TZipper;
+    type
+      TStreamList = specialize TObjectList<TStream>;
+    var
+      { When open for reading, we always have FReadStream <> nil and UnZipper <> nil.
+        We never assign UnZipper.FileName, instead relying on own URL -> TStream
+        reading. }
+      UnZipper: TUnZipper;
+      FReadStream: TStream;
+      FOwnsReadStream: Boolean;
+      { When open for writing, we always have Zipper <> nil. }
+      Zipper: TZipper;
+      FStreamsFreeAtClose: TStreamList;
     { Handler for TUnZipper.OnOpenInputStream. }
     procedure OpenInputStream(Sender: TObject; var AStream: TStream);
     { Handler for TUnZipper.OnCloseInputStream. }
@@ -434,6 +438,8 @@ procedure TCastleZip.OpenEmpty;
 begin
   Close;
 
+  FStreamsFreeAtClose := TStreamList.Create(true);
+
   Zipper := TZipper.Create;
   { Store filenames using UTF-8 in zip,
     see https://wiki.lazarus.freepascal.org/paszlib#TZipper
@@ -470,6 +476,7 @@ procedure TCastleZip.Close;
 begin
   FreeAndNil(Zipper);
   FreeAndNil(UnZipper);
+  FreeAndNil(FStreamsFreeAtClose);
 
   if FOwnsReadStream then
   begin
@@ -485,6 +492,7 @@ begin
   Assert(UnZipper = nil);
   Assert(FReadStream = nil);
   Assert(Zipper = nil);
+  Assert(FStreamsFreeAtClose = nil);
 
   UpdateFiles; // clears file list
 end;
@@ -529,27 +537,25 @@ end;
 procedure TCastleZip.Write(const PathInZip: String;
   const Stream: TStream; const OwnsStream: Boolean);
 var
-  WriteCopy: TMemoryStream;
+  WriteStream: TStream;
 begin
   if not IsOpenWrite then
     raise EZipNotOpen.Create('Cannot write to ZIP, it is not open for writing');
 
-  { Right now, we always make a copy of contents.
-    This is safe: FPC TZippper saves Stream instance for later use.
-
-    TODO: Possible optimization: We could avoid making WriteCopy
-    when OwnsStream = true, then just pass Stream directly to
-    Zipper.Entries.AddFileEntry and free it at close.
-    Need to manage a "list of streams to free at close". }
-
-  WriteCopy := TMemoryStream.Create;
-  try
-    ReadGrowingStream(Stream, WriteCopy, true);
-    Zipper.Entries.AddFileEntry(WriteCopy, PathInZip);
-  finally FreeAndNil(WriteCopy) end;
-
   if OwnsStream then
-    Stream.Free; // cannot FreeAndNil(Stream), as Stream is const
+  begin
+    WriteStream := Stream;
+  end else
+  begin
+    { If we don't own the Stream, then we need to make a copy.
+      Because Zipper needs to keep a reference to the given stream,
+      but also caller can free Stream even right after calling this method. }
+    WriteStream := TMemoryStream.Create;
+    ReadGrowingStream(Stream, WriteStream, true);
+  end;
+  FStreamsFreeAtClose.Add(WriteStream);
+
+  Zipper.Entries.AddFileEntry(WriteStream, PathInZip);
 
   UpdateFiles; // add new file to file list
 end;
