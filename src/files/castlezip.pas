@@ -326,7 +326,7 @@ type
 
       Any URL protocol where we can write files (using @link(UrlSaveStream))
       is allowed. }
-    procedure ExtractAl(const TargetPathUrl: String);
+    procedure ExtractAll(const TargetPathUrl: String);
     *)
   end;
 
