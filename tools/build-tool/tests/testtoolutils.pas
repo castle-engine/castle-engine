@@ -81,7 +81,7 @@ begin
     finally FreeAndNil(Zip) end;
 
     // create zip with SingleTopLevelDirectory = false
-    ZipFileName := TempDir + 'test2.zip';
+    ZipFileName := CombinePaths(TempDir, 'test2.zip');
     ZipDirectoryTool(ZipFileName, CombinePaths(TempDir, 'zip_contents'), false);
 
     // test zip contents are valid
