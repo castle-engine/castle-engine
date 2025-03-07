@@ -53,9 +53,10 @@ uses
 // Delphi 10.2 cannot read filenames with UTF-8 in our testcase
 {$ifdef FPC}
   {$define CASTLE_FULL_ZIP_UNICODE_SUPPORT}
-{$endif}
-{$if CompilerVersion >= 36} // Delphi >= 12.0
-  {$define CASTLE_FULL_ZIP_UNICODE_SUPPORT}
+{$else}
+  {$if CompilerVersion >= 36} // Delphi >= 12.0
+    {$define CASTLE_FULL_ZIP_UNICODE_SUPPORT}
+  {$endif}
 {$endif}
 
 { Return URL of temporary directory. }
