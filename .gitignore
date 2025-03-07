@@ -229,6 +229,7 @@ castle-game-engine-*.fpm
 /examples/viewport_and_scenes/detect_scene_hit/detect_scene_hit
 /examples/viewport_and_scenes/fog_and_distance_culling/fog_and_distance_culling
 /examples/viewport_and_scenes/headlight/headlight
+/examples/viewport_and_scenes/level_of_detail_demo/level_of_detail_demo
 /examples/viewport_and_scenes/listen_on_x3d_events/listen_on_x3d_events
 /examples/viewport_and_scenes/mesh_update/mesh_update
 /examples/viewport_and_scenes/multiple_viewports/multiple_viewports
