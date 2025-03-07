@@ -189,7 +189,7 @@ procedure TTestCastleZip.TestZipDirectory;
       InclPathDelim(Base) + 'TTestCastleZip-' + IntToStr(Random(1000000)));
     CheckForceDirectories(Result);
     Result := FilenameToUriSafe(Result);
-    writeln('Temporary directory: ', Result);
+    Writeln('Temporary directory: ', Result);
   end;
 
 var
@@ -211,7 +211,7 @@ begin
     // create zip with SingleTopLevelDirectory = true
     ZipUrl := CombineUri(TempDir, 'test.zip');
     Writeln('ZipUrl: ', ZipUrl);
-    ZipDirectory(ZipUrl, CombinePaths(TempDir, 'zip_contents'), true);
+    ZipDirectory(ZipUrl, CombineUri(TempDir, 'zip_contents'), true);
 
     // test zip contents are valid
     Zip := TCastleZip.Create;
@@ -230,7 +230,27 @@ begin
     // create zip with SingleTopLevelDirectory = false
     ZipUrl := CombineUri(TempDir, 'test2.zip');
     Writeln('ZipUrl: ', ZipUrl);
-    ZipDirectory(ZipUrl, CombinePaths(TempDir, 'zip_contents'), false);
+    ZipDirectory(ZipUrl, CombineUri(TempDir, 'zip_contents'), false);
+
+    // test zip contents are valid
+    Zip := TCastleZip.Create;
+    try
+      Zip.Open(ZipUrl);
+      Writeln('Zip contents: ', Zip.Files.Text);
+      AssertEquals(2, Zip.Files.Count);
+      AssertTrue(Zip.Files.IndexOf('subdir/') = -1); // dir not listed
+      AssertTrue(Zip.Files.IndexOf('file2.txt') <> -1);
+      AssertTrue(Zip.Files.IndexOf('subdir/file1.txt') <> -1);
+      AssertEquals('file1 contents', ZipFileToString(Zip, 'subdir/file1.txt'));
+      AssertEquals('file2 contents', ZipFileToString(Zip, 'file2.txt'));
+    finally FreeAndNil(Zip) end;
+
+    // create zip with SingleTopLevelDirectory = false
+    // and place ZipUrl inside the packed directory
+    ZipUrl := CombineUri(TempDir, 'zip_contents/test-inside.zip');
+    StringToFile(ZipUrl, 'dummy contents, to test that ZipDirectory ignores this file');
+    Writeln('ZipUrl: ', ZipUrl);
+    ZipDirectory(ZipUrl, CombineUri(TempDir, 'zip_contents'), false);
 
     // test zip contents are valid
     Zip := TCastleZip.Create;
