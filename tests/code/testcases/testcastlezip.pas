@@ -34,6 +34,7 @@ type
     procedure AssertStreamsEqual(const S1, S2: TStream);
   published
     procedure TestZipRead;
+    procedure TestZipDirectory;
   end;
 
 implementation
@@ -43,7 +44,7 @@ uses
   OpenSslSockets,
   {$endif}
   CastleZip, CastleUriUtils, CastleClassUtils, CastleDownload,
-  CastleUtils;
+  CastleUtils, CastleFilesUtils;
 
 procedure TTestCastleZip.AssertStreamsEqual(const S1, S2: TStream);
 var
@@ -159,6 +160,93 @@ begin
     CheckZipContents;
   finally FreeAndNil(Zip) end;
   {$endif}
+end;
+
+procedure TTestCastleZip.TestZipDirectory;
+
+  function ZipFileToString(const Zip: TCastleZip; const PathInZip: String): String;
+  var
+    Stream: TStream;
+    StringStream: TStringStream;
+  begin
+    Stream := Zip.Read(PathInZip);
+    try
+      StringStream := TStringStream.Create('');
+      try
+        ReadGrowingStream(Stream, StringStream, true);
+        Result := StringStream.DataString;
+      finally FreeAndNil(StringStream) end;
+    finally FreeAndNil(Stream) end;
+  end;
+
+  { Return URL of temporary directory. }
+  function CreateTemporaryDirUrl: String;
+  var
+    Base: String;
+  begin
+    Base := {$ifdef FPC} GetTempDir {$else} TPath.GetTempPath {$endif};
+    Result := InclPathDelim(
+      InclPathDelim(Base) + 'TTestCastleZip-' + IntToStr(Random(1000000)));
+    CheckForceDirectories(Result);
+    Result := FilenameToUriSafe(Result);
+    writeln('Temporary directory: ', Result);
+  end;
+
+var
+  TempDir, ZipUrl: String;
+  Zip: TCastleZip;
+begin
+  {$ifndef FPC}
+  WritelnWarning('TCastleZip on Delphi does not support writing ZIP files yet');
+  Exit;
+  {$endif}
+
+  TempDir := CreateTemporaryDirUrl;
+  try
+    StringToFile(
+      CombineUri(TempDir, 'zip_contents/subdir/file1.txt'), 'file1 contents');
+    StringToFile(
+      CombineUri(TempDir, 'zip_contents/file2.txt'), 'file2 contents');
+
+    // create zip with SingleTopLevelDirectory = true
+    ZipUrl := CombineUri(TempDir, 'test.zip');
+    Writeln('ZipUrl: ', ZipUrl);
+    ZipDirectory(ZipUrl, CombinePaths(TempDir, 'zip_contents'), true);
+
+    // test zip contents are valid
+    Zip := TCastleZip.Create;
+    try
+      Zip.Open(ZipUrl);
+      Writeln('Zip contents: ', Zip.Files.Text);
+      AssertEquals(2, Zip.Files.Count);
+      AssertTrue(Zip.Files.IndexOf('zip_contents/') = -1); // dir not listed
+      AssertTrue(Zip.Files.IndexOf('zip_contents/subdir/') = -1); // dir not listed
+      AssertTrue(Zip.Files.IndexOf('zip_contents/file2.txt') <> -1);
+      AssertTrue(Zip.Files.IndexOf('zip_contents/subdir/file1.txt') <> -1);
+      AssertEquals('file1 contents', ZipFileToString(Zip, 'zip_contents/subdir/file1.txt'));
+      AssertEquals('file2 contents', ZipFileToString(Zip, 'zip_contents/file2.txt'));
+    finally FreeAndNil(Zip) end;
+
+    // create zip with SingleTopLevelDirectory = false
+    ZipUrl := CombineUri(TempDir, 'test2.zip');
+    Writeln('ZipUrl: ', ZipUrl);
+    ZipDirectory(ZipUrl, CombinePaths(TempDir, 'zip_contents'), false);
+
+    // test zip contents are valid
+    Zip := TCastleZip.Create;
+    try
+      Zip.Open(ZipUrl);
+      Writeln('Zip contents: ', Zip.Files.Text);
+      AssertEquals(2, Zip.Files.Count);
+      AssertTrue(Zip.Files.IndexOf('subdir/') = -1); // dir not listed
+      AssertTrue(Zip.Files.IndexOf('file2.txt') <> -1);
+      AssertTrue(Zip.Files.IndexOf('subdir/file1.txt') <> -1);
+      AssertEquals('file1 contents', ZipFileToString(Zip, 'subdir/file1.txt'));
+      AssertEquals('file2 contents', ZipFileToString(Zip, 'file2.txt'));
+    finally FreeAndNil(Zip) end;
+  finally
+    RemoveNonEmptyDir(UriToFilenameSafe(TempDir));
+  end;
 end;
 
 initialization
