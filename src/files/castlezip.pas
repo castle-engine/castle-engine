@@ -108,6 +108,8 @@ type
     procedure UpdateFileList;
     {$else}
     ZipFile: TZipFile;
+    { Update FFileList from ZipFile.FileCount,FleName[]. }
+    procedure UpdateFileList;
     {$endif}
     { Handler given to CastleDownload.RegisterUrlProtocol. }
     function ReadUrlHandler(const Url: String; out MimeType: string): TStream;
@@ -508,7 +510,7 @@ begin
   else
     raise Exception.Create('TODO: Opening non-file URLs for ZIP not implemented with Delphi');
 
-  // TODO: read FileList
+  UpdateFileList;
 end;
 
 procedure TCastleZip.Open(const Stream: TStream; const OwnsStream: boolean);
@@ -520,6 +522,15 @@ procedure TCastleZip.OpenEmpty;
 begin
   Close;
   ZipFile := TZipFile.Create;
+end;
+
+procedure TCastleZip.UpdateFileList;
+var
+  I: Integer;
+begin
+  FFileList.Clear;
+  for I := 0 to ZipFile.FileCount - 1 do
+    FFileList.Add(ZipFile.FileName[I]);
 end;
 
 procedure TCastleZip.Close;

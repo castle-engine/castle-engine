@@ -1,4 +1,4 @@
-{
+﻿{
   Copyright 2025-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
@@ -64,6 +64,7 @@ var
     StreamOutsideZip: TStream;
     DataUrl: String;
   begin
+    // use InternalUriEscape to encode characters like spaces and Polish inside URL
     DataUrl := 'castle-data:/zip/' + InternalUriEscape(PathInZip);
     try
       AssertTrue(Zip.FileList.IndexOf(PathInZip) <> -1);
@@ -85,11 +86,20 @@ var
     end;
   end;
 
+var
+  ZipUrl: String;
 begin
   Zip := TCastleZip.Create;
   try
-    Zip.Open('castle-data:/zip/packed%20żółć.zip');
-    // Writeln('ZIP contents: ', Zip.FileList.Text);
+    // use InternalUriEscape to encode characters like spaces and Polish inside URL
+    ZipUrl := 'castle-data:/zip/' + InternalUriEscape('packed żółć.zip');
+
+    // make sure file-checking routines handle ZipUrl OK
+    AssertTrue(UriExists(ZipUrl) = ueFile);
+    AssertTrue(FileExists(UriToFilenameSafe(ZipUrl)));
+
+    Zip.Open(ZipUrl);
+    Writeln('ZIP contents: ', Zip.FileList.Text);
     AssertEquals(3, Zip.FileList.Count);
     CompareZip('test filename żółć.txt');
     CompareZip('test.txt');
