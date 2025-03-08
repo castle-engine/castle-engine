@@ -298,9 +298,6 @@ TIfcRelAdheresToElement
 TIfcRelAdheresToElementList
 TIfcElement
 TIfcElementList
-TIfcFooting
-TIfcRoof
-TIfcStairFlight
 TIfcElementAssembly
 TIfcElementComponent
 TIfcReinforcingElement
