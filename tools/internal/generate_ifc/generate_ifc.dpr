@@ -94,12 +94,32 @@ end;
 
 procedure TIfcComplexType.MakeOutput(var OutputInterface, OutputImplementation,
   OutputAddClasses: String);
+const
+  IfcSpecUrl = 'https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/%s.htm';
+var
+  NiceNameIfc, Comment: String;
 begin
   inherited;
 
+  NiceNameIfc := PrefixRemove('Ifc:', NameIfc, true);
+  if IsSuffix('_Temp', NamePascal, true) then
+  begin
+    Comment := Format('{ IFC internal class %s (not in specification, only in XSD). }', [
+      NiceNameIfc
+    ]);
+  end else
+  begin
+    Comment := Format('{ IFC class @url(' + IfcSpecUrl + ' %s). }', [
+      NiceNameIfc,
+      NiceNameIfc
+    ]);
+  end;
+
   OutputInterface := OutputInterface + Format(
+    '  %s' + NL +
     '  %s = class%s(%s)' + NL +
     '  strict private' + NL, [
+      Comment,
       NamePascal,
       Iff(Abstract, ' abstract', ''),
       BasePascal
