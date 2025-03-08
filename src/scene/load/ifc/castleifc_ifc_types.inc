@@ -199,6 +199,8 @@ begin
     Result := SEnding(ClassName, 2)
   else
     Result := ClassName;
+  Result := SuffixRemove('_Boxed', Result, true);
+  Result := SuffixRemove('_Spec', Result, true);
 end;
 
 { TIfcPersistentList --------------------------------------------------------- }

@@ -41,6 +41,19 @@
     It right now descends from TComponent,
     all IFC classes will be owned by TIfcFile instance when read by IfcJsonLoad.
 
+  - Class name corresponds to IFC class name, just add "T" prefix.
+
+    Moreover, if class name ends with "List", add "_Spec" suffix,
+    so that we can have both e.g. TIfcCartesianPointList (Pascal TObjectList)
+    and TIfcCartesianPointList_Spec (IFC class IfcCartesianPointList).
+
+    Moreover, some classes have "_Boxed" prefix because they exist both
+    as classes, and as simple types. The latter is useful when
+    TIfcValue is expected.
+
+    Our TIfcPersistent.IfcClassName is prepared to handle these cases already,
+    so you don't need to override it.
+
   - For all IFC fields:
 
     - Place all fields with F in "strict private" section.
@@ -480,7 +493,7 @@
     as it's abstract and thus not used in IFC files.
 
     Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcCartesianPointList.htm }
-  TIfcCartesianPointListSpec = class abstract(TIfcGeometricRepresentationItem)
+  TIfcCartesianPointList_Spec = class abstract(TIfcGeometricRepresentationItem)
   public
     procedure UpdateCoordinate(const Coord: TCoordinateNode); virtual; abstract;
   end;
@@ -488,7 +501,7 @@
   { Ordered collection of two-dimentional Cartesian points.
 
     Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcCartesianPointList2D.htm }
-  TIfcCartesianPointList2D = class(TIfcCartesianPointListSpec)
+  TIfcCartesianPointList2D = class(TIfcCartesianPointList_Spec)
   strict private
     FCoordList: TVector2List;
     FTagList: TCastleStringList;
@@ -509,7 +522,7 @@
   { Ordered collection of three-dimentional Cartesian points.
 
     Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcCartesianPointList3D.htm }
-  TIfcCartesianPointList3D = class(TIfcCartesianPointListSpec)
+  TIfcCartesianPointList3D = class(TIfcCartesianPointList_Spec)
   strict private
     FCoordList: TVector3List;
     FTagList: TCastleStringList;
@@ -640,15 +653,13 @@
 
   { Ordered collection of 2D texture coordinates.
 
-    Name in Pascal is with "Spec" suffix to clarify this is "specification
+    Name in Pascal is with "_Spec" suffix to clarify this is "specification
     defined list-like class" and not just TObjectList<TIfcTextureVertexList>.
 
     Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcTextureVertexList.htm }
-  TIfcTextureVertexListSpec = class(TIfcPresentationItem)
+  TIfcTextureVertexList_Spec = class(TIfcPresentationItem)
   strict private
     FTexCoordsList: TVector2List;
-  protected
-    class function IfcClassName: String; override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -664,14 +675,14 @@
   TIfcIndexedTextureMap = class abstract(TIfcTextureCoordinate)
   strict private
     FMappedTo: TIfcTessellatedFaceSet;
-    FTexCoords: TIfcTextureVertexListSpec;
+    FTexCoords: TIfcTextureVertexList_Spec;
   published
     { Reference to the IfcTessellatedFaceSet to which it applies
       the texture map. }
     property MappedTo: TIfcTessellatedFaceSet read FMappedTo write FMappedTo;
 
     { Indexable list of texture vertices. }
-    property TexCoords: TIfcTextureVertexListSpec read FTexCoords write FTexCoords;
+    property TexCoords: TIfcTextureVertexList_Spec read FTexCoords write FTexCoords;
   end;
   TIfcIndexedTextureMapList = {$ifdef FPC}specialize{$endif} TObjectList<TIfcIndexedTextureMap>;
 
@@ -704,7 +715,7 @@
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
   published
-    { List of index pointers into the @link(TIfcTextureVertexListSpec). }
+    { List of index pointers into the @link(TIfcTextureVertexList_Spec). }
     property TexCoordIndex: TIntegerList read FTexCoordIndex;
 
     { The @link(TIfcIndexedPolygonalFace) for which the texture
@@ -982,7 +993,7 @@
     Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcIndexedPolyCurve.htm }
   TIfcIndexedPolyCurve = class(TIfcBoundedCurve)
   strict private
-    FPoints: TIfcCartesianPointListSpec;
+    FPoints: TIfcCartesianPointList_Spec;
     FSegments: TIfcSegmentIndexSelectList;
     FSelfIntersect: Boolean;
   public
@@ -993,7 +1004,7 @@
       const LitAppearance, UnlitAppearance: TAppearanceNode): TAbstractChildNode; override;
   published
     { Points defining the polyline. }
-    property Points: TIfcCartesianPointListSpec read FPoints write FPoints;
+    property Points: TIfcCartesianPointList_Spec read FPoints write FPoints;
 
     { List of straight line and circular arc segments, each providing a list
       of indices into the Cartesian point list. }
@@ -4252,8 +4263,6 @@
   TIfcReal_Boxed = class(TIfcValue)
   strict private
     FValue: TIfcReal;
-  protected
-    class function IfcClassName: String; override;
   published
     property Value: TIfcReal read FValue write FValue;
   end;
@@ -4286,8 +4295,6 @@
   TIfcAreaMeasure_Boxed = class(TIfcMeasureValue)
   strict private
     FValue: TIfcReal;
-  protected
-    class function IfcClassName: String; override;
   published
     property Value: TIfcReal read FValue write FValue;
   end;
@@ -4309,8 +4316,6 @@
   TIfcLengthMeasure_Boxed = class(TIfcMeasureValue)
   strict private
     FValue: TIfcReal;
-  protected
-    class function IfcClassName: String; override;
   published
     property Value: TIfcReal read FValue write FValue;
   end;
@@ -6282,27 +6287,6 @@ begin
   inherited;
 end;
 
-{ TIfcReal_Boxed ------------------------------------------------------------- }
-
-class function TIfcReal_Boxed.IfcClassName: String;
-begin
-  Result := 'IfcReal';
-end;
-
-{ TIfcLengthMeasure_Boxed ---------------------------------------------------- }
-
-class function TIfcLengthMeasure_Boxed.IfcClassName: String;
-begin
-  Result := 'IfcLengthMeasure';
-end;
-
-{ TIfcAreaMeasure_Boxed ------------------------------------------------------ }
-
-class function TIfcAreaMeasure_Boxed.IfcClassName: String;
-begin
-  Result := 'IfcAreaMeasure';
-end;
-
 { TIfcOpeningElement -------------------------------------------------------- }
 
 constructor TIfcOpeningElement.Create(AOwner: TComponent);
@@ -6948,23 +6932,18 @@ begin
   inherited;
 end;
 
-{ TIfcTextureVertexListSpec -------------------------------------------------- }
+{ TIfcTextureVertexList_Spec -------------------------------------------------- }
 
-constructor TIfcTextureVertexListSpec.Create(AOwner: TComponent);
+constructor TIfcTextureVertexList_Spec.Create(AOwner: TComponent);
 begin
   inherited;
   FTexCoordsList := TVector2List.Create;
 end;
 
-destructor TIfcTextureVertexListSpec.Destroy;
+destructor TIfcTextureVertexList_Spec.Destroy;
 begin
   FreeAndNil(FTexCoordsList);
   inherited;
-end;
-
-class function TIfcTextureVertexListSpec.IfcClassName: String;
-begin
-  Result := 'IfcTextureVertexList';
 end;
 
 { TIfcIndexedPolygonalTextureMap --------------------------------------------- }
@@ -7939,7 +7918,7 @@ function IfcClasses: TIfcPersistentClassList;
     FIfcClasses.Add(TIfcTriangulatedFaceSet);
     FIfcClasses.Add(TIfcSurfaceTexture);
     FIfcClasses.Add(TIfcImageTexture);
-    FIfcClasses.Add(TIfcTextureVertexListSpec);
+    FIfcClasses.Add(TIfcTextureVertexList_Spec);
     FIfcClasses.Add(TIfcIndexedTextureMap);
     FIfcClasses.Add(TIfcIndexedPolygonalTextureMap);
     FIfcClasses.Add(TIfcTextureCoordinateIndices);
