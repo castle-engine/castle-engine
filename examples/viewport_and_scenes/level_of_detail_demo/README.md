@@ -1,10 +1,12 @@
 # LOD (Level Of Detail) Test
 
-Simple demo of defining LOD (Level Of Detail) for a 3D model.
+Simple demo of using _LOD (Level Of Detail)_ with a 3D model.
 
-You need to define an X3D file using LOD node like this: [data/monkey_lod.x3dv](data/monkey_lod.x3dv). It can refer to other 3D models that define various versions of the model with different number of polygons. It also defines at which distance each version should be used.
+- Define an X3D file using LOD node like this: [data/monkey_lod.x3dv](data/monkey_lod.x3dv). It can refer to other 3D models that define various versions of the model with different number of polygons. It also defines at which distance each version should be used.
 
-To use this, just load `castle-data:/monkey_lod.x3dv` into a `TCastleScene` instance. Be sure to turn on the `TCastleScene.ProcessEvents` to make LOD switching work.
+- To use the model with LOD, just load `castle-data:/monkey_lod.x3dv` into a `TCastleScene` instance.
+
+- Be sure to turn on the `TCastleScene.ProcessEvents` to make LOD switching work. Also, it's advised to turn on `TCastleScene.Cache` to speed up loading, if you have many models using the same URL (which in this case, you will most often do).
 
 ![Screenshot](screenshot.png)
 
