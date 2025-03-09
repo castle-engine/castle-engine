@@ -37,6 +37,11 @@ uses
   Interfaces, // this includes the LCL widgetset
   // packages:
   castle_components,
+  {$ifdef windows}
+  uMetaDarkStyle,
+  uDarkStyleSchemes,
+  uDarkStyleParams,
+  {$endif Windows}
   // This line will be automatically uncommented by tools/build-tool/data/custom_editor_template_rebuild.sh
   //castle_editor_automatic_package,
   Forms, anchordockpkg, FormChooseProject, ProjectUtils, FormNewProject,
@@ -100,6 +105,10 @@ uses
 begin
   RequireDerivedFormResource := True;
   Application.Scaled := True;
+  {$ifdef windows}
+  PreferredAppMode:=pamAllowDark;
+  uMetaDarkStyle.ApplyMetaDarkStyle(DefaultDark);
+  {$endif windows}
   Application.Initialize;
   Application.CreateForm(TIcons, Icons);
   Application.CreateForm(TChooseProjectForm, ChooseProjectForm);
