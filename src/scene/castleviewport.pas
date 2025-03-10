@@ -2762,7 +2762,7 @@ begin
   { Calculate contents of AllShapesCollector.
     This way Items.Render, with all transformation calcuations,
     frustum tests etc. is done only once, no matter how many times we need to
-    call RenderOnPass. }
+    call RenderOnePass. }
   AllShapesCollector.Clear;
   Assert(Params.Collector = AllShapesCollector);
   Params.Frustum := @Params.RenderingCamera.Frustum;
