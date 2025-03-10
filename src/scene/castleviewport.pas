@@ -2715,9 +2715,9 @@ procedure TCastleViewport.RenderFromView3D(const Params: TRenderParams);
   begin
     { We must first render all non-transparent objects,
       then all transparent objects. Otherwise transparent objects
-      (that must be rendered without updating depth buffer) could get brutally
-      covered by non-transparent objects (that are in fact further away from
-      the camera). }
+      (that must be rendered without updating depth buffer) could get
+      obscured by non-transparent objects (that would happen to be further away
+      from the camera, but also be drawn after the transparent object). }
 
     PassParams.Init;
     PassParams.UsingBlending := false;
