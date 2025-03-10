@@ -64,6 +64,16 @@
     FReferenceObserver: TFreeNotificationObserver;
     FReferenceWrapper: TCastleTransform;
     FReferenceTransformation: TReferenceTransformation;
+    { Last frame FReference.InverseTransform (that was used to calculate
+      FReferenceWrapper transform).
+
+      Only valid if LastReferenceInverseTransformValid.
+
+      Using this is an optimization to avoid recalculating MatrixDecompose,
+      sensible because in most cases and frames the FReference.InverseTransform
+      stays equal. }
+    LastReferenceInverseTransform: TMatrix4;
+    LastReferenceInverseTransformValid: Boolean;
     procedure SetReference(const Value: TCastleTransform);
     procedure ReferenceFreeNotification(const Sender: TFreeNotificationObserver);
   protected
@@ -221,18 +231,29 @@ var
   InvertRefTranslation: TVector3;
   InvertReftRotation: TVector4;
   InvertRefScale: TVector3;
+  NewReferenceInverseTransformValid: Boolean;
+  NewReferenceInverseTransform: TMatrix4;
 begin
+  NewReferenceInverseTransformValid := false;
+
   if FReference <> nil then
   begin
     Assert(FReferenceWrapper <> nil);
     case ReferenceTransformation of
       rtIgnoreTransform:
         begin
-          MatrixDecompose(FReference.InverseTransform,
-            InvertRefTranslation, InvertReftRotation, InvertRefScale);
-          FReferenceWrapper.Translation := InvertRefTranslation;
-          FReferenceWrapper.Rotation := InvertReftRotation;
-          FReferenceWrapper.Scale := InvertRefScale;
+          NewReferenceInverseTransformValid := true;
+          NewReferenceInverseTransform := FReference.InverseTransform;
+          if (not LastReferenceInverseTransformValid) or
+             (not TMatrix4.PerfectlyEquals(LastReferenceInverseTransform, NewReferenceInverseTransform)) then
+          begin
+            MatrixDecompose(NewReferenceInverseTransform,
+              InvertRefTranslation, InvertReftRotation, InvertRefScale);
+            LastReferenceInverseTransform := NewReferenceInverseTransform;
+            FReferenceWrapper.Translation := InvertRefTranslation;
+            FReferenceWrapper.Rotation := InvertReftRotation;
+            FReferenceWrapper.Scale := InvertRefScale;
+          end;
         end;
       rtIgnoreTranslation:
         begin
@@ -248,6 +269,8 @@ begin
         end;
     end;
   end;
+
+  LastReferenceInverseTransformValid := NewReferenceInverseTransformValid;
 
   inherited;
 end;
