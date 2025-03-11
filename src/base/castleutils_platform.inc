@@ -32,7 +32,7 @@ type
 const
   AllPlatforms = [Low(TCastlePlatform)..High(TCastlePlatform)];
 
-{ Current platform of this application, where we run on.
+(*Current platform of this application, where we run on.
 
   "Platform" is our term that encompasses a group of OS (operating system) and
   CPU (processor) combinations that behave similar in some way (for users,
@@ -86,7 +86,7 @@ const
 
       Refer to the documentation of your Pascal compiler for more details.
     )
-  ) }
+  ) *)
 function Platform: TCastlePlatform;
 
 function PlatformToStr(const T: TCastlePlatform): String;
