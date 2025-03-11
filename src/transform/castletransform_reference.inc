@@ -66,10 +66,12 @@ constructor TCastleTransformReference.Create(AOwner: TComponent);
 begin
   inherited;
   FReferenceObserver := TFreeNotificationObserver.Create(Self);
-  FReferenceObserver.OnFreeNotification := {$ifdef FPC}@{$endif}ReferenceFreeNotification;
+  FReferenceObserver.OnFreeNotification :=
+    {$ifdef FPC}@{$endif}ReferenceFreeNotification;
 
   FRevertReferenceObserver := TFreeNotificationObserver.Create(Self);
-  FRevertReferenceObserver.OnFreeNotification := {$ifdef FPC}@{$endif}RevertReferenceFreeNotification;
+  FRevertReferenceObserver.OnFreeNotification :=
+    {$ifdef FPC}@{$endif}RevertReferenceFreeNotification;
 
   { FReference will be child of FReferenceWrapper, not directly of us.
     This way we avoid serializing it easily. }
