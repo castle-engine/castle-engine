@@ -670,6 +670,8 @@ begin
 end;
 
 procedure TCastleScene.CollectShape_NoTests(const Shape: TGLShape);
+var
+  SceneTransformDynamic: Boolean;
 begin
   { Whether the Shape is rendered directly or through batching,
     mark it "was visible this frame".
@@ -681,9 +683,23 @@ begin
 
   Shape.Fog := ShapeFog(Shape, Render_Params.GlobalFog as TFogNode);
 
+  { Determine TCollectedShape.SceneTransformDynamic by considering
+    is this TCastleScene present multiple times in TAbstactRootTransform.
+
+    This means we have SceneTransformDynamic = true for TCastleTransformReference,
+    and don't recreate shaders each frame when the scene is inside/outside
+    the light radius, see
+    https://github.com/castle-engine/castle-engine/issues/664
+
+    TODO: Maybe allow user to influence it in the future, like
+    DynamicTransform = (dtAutomatic, dtStatic, dtDynamic)?
+    Would also allow dtStatic for TCastleTransformReference that are close to
+    each other, thus share the same lights. }
+  SceneTransformDynamic := InternalWorldReferences > 1;
+
   Render_Collector.Add(Shape, RenderOptions,
-    Render_Params.Transformation^.Transform, Render_Params.DepthRange,
-    ReceiveShadowVolumes);
+    Render_Params.Transformation^.Transform, SceneTransformDynamic,
+    Render_Params.DepthRange, ReceiveShadowVolumes);
   IsVisibleNow := true;
 end;
 
@@ -838,7 +854,7 @@ var
             so matrix should be sensible for homegeneous coordinate transformation
             (so identity is OK, zero is not OK). }
           TMatrix4.Identity,
-          drFull);
+          false, drFull);
       end;
 
       Renderer.RenderEnd;

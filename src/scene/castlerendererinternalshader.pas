@@ -393,6 +393,9 @@ type
       transformations accumulated). }
     SceneTransform: TMatrix4;
 
+    { See @link(TCollectedShape.SceneTransformDynamic). }
+    SceneTransformDynamic: Boolean;
+
     { Assign this if you used EnableTexGen with tgMirrorPlane
       to setup correct uniforms. }
     MirrorPlaneUniforms: TMirrorPlaneUniforms;
@@ -560,6 +563,16 @@ type
 
     { Current shape bbox, in world coordinates. }
     function ShapeBoundingBoxInWorld: TBox3D;
+
+    { Is ShapeBoundingBoxInWorld value for this TShape likely to change often.
+      One reason for this is that SceneTransform changes often,
+      and so this is right now just alias to SceneTransformDynamic.
+      This may guide shader generation, to avoid recreating shader when merely
+      the SceneTransform changes.
+
+      @seealso TCollectedShape.SceneTransformDynamic }
+    property ShapeBoundingBoxInWorldDynamic: Boolean read
+      SceneTransformDynamic;
 
     { Is alpha testing enabled by EnableAlphaTest. }
     property AlphaTest: Boolean read FAlphaTest;
@@ -1244,6 +1257,7 @@ begin
   FPhongShading := false;
   ShapeBoundingBoxInSceneEvent := nil;
   FShapeBoundingBoxInWorldKnown := false;
+  SceneTransformDynamic := false;
   Material := nil;
   DynamicUniforms.Count := 0;
   TextureMatrix.Count := 0;
