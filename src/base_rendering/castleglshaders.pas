@@ -383,11 +383,22 @@ type
       bind the textures used by this shader, right after each @link(Enable)
       call.
 
-      This is automatically called after every @link(Enable) by our renderer
-      (when it renders shapes) or TCastleScreenEffect (when it renders screen effects).
-      If you use this TGLSLProgram directly (if you call @link(Enable)
-      yourself), then it's your responsibility to call this method
-      explicitly, if you want shaders using it to work.
+      This is automatically called
+
+      - by our shape rendering
+        (when we renders shapes, from TShaderCoordinateRenderer.RenderCoordinateBegin)
+
+      - by our screen effects rendering code
+        (from TCastleScreenEffects.RenderOverChildren).
+
+      ... right after the given shader is enabled by
+      @code(RenderContext.CurrentProgram := ThisShader),
+      which is equivalent to @code(ThisShader.Enable).
+
+      If other cases, it's your responsibility to call this method
+      explicitly, if you want shaders using it to work. Do this right after
+      @code(RenderContext.CurrentProgram := ThisShader),
+      or equivalent @code(ThisShader.Enable).
 
       You can set any uniform values, and generally do
       anything you want to be done each time this shader is enabled.
