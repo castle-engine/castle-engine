@@ -383,11 +383,22 @@ type
       bind the textures used by this shader, right after each @link(Enable)
       call.
 
-      This is automatically called after every @link(Enable) by our renderer
-      (when it renders shapes) or TCastleScreenEffect (when it renders screen effects).
-      If you use this TGLSLProgram directly (if you call @link(Enable)
-      yourself), then it's your responsibility to call this method
-      explicitly, if you want shaders using it to work.
+      This is automatically called
+
+      - by our shape rendering
+        (when we renders shapes, from TShaderCoordinateRenderer.RenderCoordinateBegin)
+
+      - by our screen effects rendering code
+        (from TCastleScreenEffects.RenderOverChildren).
+
+      ... right after the given shader is enabled by
+      @code(RenderContext.CurrentProgram := ThisShader),
+      which is equivalent to @code(ThisShader.Enable).
+
+      If other cases, it's your responsibility to call this method
+      explicitly, if you want shaders using it to work. Do this right after
+      @code(RenderContext.CurrentProgram := ThisShader),
+      or equivalent @code(ThisShader.Enable).
 
       You can set any uniform values, and generally do
       anything you want to be done each time this shader is enabled.
@@ -1260,6 +1271,35 @@ begin
 
   if ShaderIds <> nil then
     DetachAllShaders;
+
+  { Deleting by glDeleteProgram the shader that is currently used
+    (by glUseProgram) is allowed in OpenGL, and it implicitly sets
+    the used program to 0. Which is absolutely reasonable.
+
+    We need to make sure that RenderContext knowledge corresponds to the
+    OpenGL state. So RenderContext.CurrentProgram must become nil.
+
+    Moreover, RenderContext.CurrentProgram cannot point to non-existing
+    object. Again, this means that RenderContext.CurrentProgram must become nil.
+
+    If we would ignore 2 reasons above, we could have error:
+
+    - RenderContext.CurrentProgram containing a dangling pointer,
+    - and this pointer could be reused for new TGLSLProgram instance,
+    - and then "RenderContext.CurrentProgram := ..."
+      would do nothing (because FCurrenProgram = Value in the setter)
+    - and the new shader would not become active.
+    - Causing OpenGL errors when not setting uniforms, because shader program
+      would be unset before callling glSetUniform*.
+    - See https://github.com/castle-engine/castle-engine/issues/664
+      for 3 testcases that show this problem, compounded with overly
+      eager recreation of shaders.
+
+    Note: checking RenderContext <> nil to make sure we do nothing when
+    we're doing TGLSLProgram.Destroy after FreeAndNil(RenderContext). }
+  if (RenderContext <> nil) and
+     (RenderContext.CurrentProgram = Self) then
+    RenderContext.CurrentProgram := nil;
 
   if ProgramId <> GLObjectNone then
   begin
