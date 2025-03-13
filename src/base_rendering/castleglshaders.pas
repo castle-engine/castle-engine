@@ -1272,6 +1272,35 @@ begin
   if ShaderIds <> nil then
     DetachAllShaders;
 
+  { Deleting by glDeleteProgram the shader that is currently used
+    (by glUseProgram) is allowed in OpenGL, and it implicitly sets
+    the used program to 0. Which is absolutely reasonable.
+
+    We need to make sure that RenderContext knowledge corresponds to the
+    OpenGL state. So RenderContext.CurrentProgram must become nil.
+
+    Moreover, RenderContext.CurrentProgram cannot point to non-existing
+    object. Again, this means that RenderContext.CurrentProgram must become nil.
+
+    If we would ignore 2 reasons above, we could have error:
+
+    - RenderContext.CurrentProgram containing a dangling pointer,
+    - and this pointer could be reused for new TGLSLProgram instance,
+    - and then "RenderContext.CurrentProgram := ..."
+      would do nothing (because FCurrenProgram = Value in the setter)
+    - and the new shader would not become active.
+    - Causing OpenGL errors when not setting uniforms, because shader program
+      would be unset before callling glSetUniform*.
+    - See https://github.com/castle-engine/castle-engine/issues/664
+      for 3 testcases that show this problem, compounded with overly
+      eager recreation of shaders.
+
+    Note: checking RenderContext <> nil to make sure we do nothing when
+    we're doing TGLSLProgram.Destroy after FreeAndNil(RenderContext). }
+  if (RenderContext <> nil) and
+     (RenderContext.CurrentProgram = Self) then
+    RenderContext.CurrentProgram := nil;
+
   if ProgramId <> GLObjectNone then
   begin
     { ProgramId can be non-zero only if GLFeatures.Shaders,
