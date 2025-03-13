@@ -19,6 +19,7 @@ type
     LabelWebsite1: TLabel;
     procedure BitBtn1Click(Sender: TObject);
     procedure FormCreate(Sender: TObject);
+    procedure FormShow(Sender: TObject);
     procedure LabelWebsite1Click(Sender: TObject);
     procedure LabelWebsiteClick(Sender: TObject);
   private
@@ -32,7 +33,7 @@ var
 
 implementation
 
-uses CastleOpenDocument, CastleUtils;
+uses CastleOpenDocument, CastleUtils, StyleUtils;
 
 {$R *.lfm}
 
@@ -61,6 +62,34 @@ begin
   VersionMultiline := StringReplace(CastleEngineVersion,
     ' (commit', NL + '(commit', [rfReplaceAll, rfIgnoreCase]);
   LabelVersion.Caption := 'Version: ' + VersionMultiline;
+
+  Constraints.MinWidth := Width;
+  Constraints.MinHeight := Width;
+end;
+
+procedure TAboutForm.FormShow(Sender: TObject);
+var
+  NewSize: Integer;
+begin
+  UpdateControlStyle(Self, false, true);
+
+  { Preserve the difference in size between LabelName and other labels
+    Limit LabelName font size as it goes really ugly with big font }
+  NewSize := CurrentStyle.FontSize + 9;
+  if NewSize > 32 then
+    NewSize := 32;
+  LabelName.Font.Size := NewSize;
+
+  NewSize := Constraints.MinWidth;
+  if LabelWebsite1.Width > NewSize then
+    NewSize := LabelWebsite1.Width + 64;
+  if LabelName.Width > NewSize then
+    NewSize := LabelName.Width + 64;
+  if LabelCopyright.Width > NewSize then
+    NewSize := LabelCopyright.Width + 64;
+
+  ClientWidth := NewSize;
+  ClientHeight := LabelWebsite1.Top + 200;
 end;
 
 end.
