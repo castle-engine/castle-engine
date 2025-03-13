@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2024 Michalis Kamburelis.
+  Copyright 2003-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -59,6 +59,64 @@ type
   TPrepareResourcesOption = CastleTransform.TPrepareResourcesOption;
   TPrepareResourcesOptions = CastleTransform.TPrepareResourcesOptions;
 
+  { Possible values for @link(TCastleScene.TransformOptimization). }
+  TTransformOptimization = (
+    { Automatically decide whether the transformation of this scene
+      changes often enough to prefer optimizations for toStatic or toDynamic
+      case.
+
+      Right now, this behaves like toDynamic when the scene is present multiple
+      times in the @link(TAbstractRootTransform) hierarchy, for example
+      when using @link(TCastleTransformReference) to render the same scene many times.
+      Otherwise this behaves like toStatic.
+
+      This automatic detection may make unoptimal decision,
+      which is why you can set @link(TCastleScene.TransformOptimization) explicitly
+      to toStatic or toDynamic if you "know better". Examples when it makes
+      sense to manually select optimization:
+
+      @unorderedList(
+        @item(When the scene is present multiple times in the
+          @link(TAbstractRootTransform) hierarchy (e.g. when using
+          @link(TCastleTransformReference)) but all these occurences are
+          very close to each other, thus are within radiuses of the same lights.
+
+          In this case, automatic detection makes unoptimal decision
+          to behave like toDynamic, which means shaders calculate more light
+          sources. Setting @link(TCastleScene.TransformOptimization)
+          to toStatic in this case is better.
+        )
+
+        @item(When the scene is present only once in the
+          @link(TAbstractRootTransform) hierarchy, but you know that
+          you will change the scene translation very often (e.g. almost every frame)
+          and the translation change will be large enough to make the scene
+          affected by different light sources. Or maybe you know you will
+          change the light's positions or radiuses very often by large values.
+
+          In this case, automatic detection makes unoptimal decision
+          to behave like toStatic, which means that shaders will be often recreated
+          when the scene (or light sources) move.
+          Setting @link(TCastleScene.TransformOptimization) to toDynamic
+          in this case is better,
+          it means that shaders for this shape will not change.
+        )
+      )
+    }
+    toAutomatic,
+
+    { Choose optimizations that are beneficial for TCastleScene instances
+      whose world transformation (translation, rotation, scale of this
+      and all parents) never changes, or rarely changes, or changes only by
+      a very small amount. }
+    toStatic,
+
+    { Choose optimizations that are beneficial for TCastleScene instances
+      whose world transformation (translation, rotation, scale of this
+      and all parents) changes often and by large values. }
+    toDynamic
+  );
+
   { Complete loading, processing and rendering of a scene.
     This is a descendant of @link(TCastleSceneCore) that adds efficient rendering. }
   TCastleScene = class(TCastleSceneCore)
@@ -104,6 +162,7 @@ type
 
       FShapeFrustumCulling, FSceneFrustumCulling: Boolean;
       FRenderOptions: TCastleRenderOptions;
+      FTransformOptimization: TTransformOptimization;
 
       { These fields are valid only during LocalRenderInside and CollectShape_ methods. }
       Render_Params: TRenderParams;
@@ -404,6 +463,41 @@ type
     { Lights defines by given scene shine on everything in the viewport, including all other TCastleScene. }
     property CastGlobalLights: Boolean
       read FCastGlobalLights write SetCastGlobalLights default false;
+
+    { Optimization hint, determines which optimizations to use for this scene.
+      Some optimizations are beneficial for scenes whose world transformation
+      (translation, rotation, scale of this and all parents) never changes,
+      or rarely changes, or changes only by a small amount.
+      Some optimizations are the reverse: they make sense for scenes whose
+      world transformation changes often and by large values.
+
+      See @link(TTransformOptimization) for possible values and more information.
+
+      The default value is @link(toAutomatic), which means that we auto-detect
+      the optimal approach.
+
+      For now, this only determines whether generated shaders...
+
+      @unoderedList(
+        @item(...include code to calculate all the light sources.
+
+          This is more optimal for dynamic transformations,
+          avoids the need to recreate shaders when transformation changes.)
+
+        @item(...include code only for light sources whose radius includes the
+          particular shape in the scene.
+
+          This is more optimal for static transformations, makes shader code
+          smaller, no point recalculating light sources whose influence is zero.)
+      )
+
+      An unofficial way (we don't guarantee it will always be exposed this way)
+      to test how often shaders are recreated is by setting
+      @code(LogRendererCache := true) from unit @code(CastleInternalRenderer).
+      Observe the log output to see how often shaders are recreated.
+      If you tweak this property, be sure to check whether this is improved. }
+    property TransformOptimization: TTransformOptimization
+      read FTransformOptimization write FTransformOptimization default toAutomatic;
   end;
 
   TCastleSceneClass = class of TCastleScene;
@@ -670,8 +764,26 @@ begin
 end;
 
 procedure TCastleScene.CollectShape_NoTests(const Shape: TGLShape);
-var
-  SceneTransformDynamic: Boolean;
+
+  function SceneTransformDynamic: Boolean;
+  begin
+    case TransformOptimization of
+      { Determine TCollectedShape.SceneTransformDynamic by considering
+        is this TCastleScene present multiple times in TAbstactRootTransform.
+
+        This means we have SceneTransformDynamic = true for TCastleTransformReference,
+        and don't recreate shaders each frame when the scene is inside/outside
+        the light radius, see
+        https://github.com/castle-engine/castle-engine/issues/664 }
+      toAutomatic: Result := InternalWorldReferences > 1;
+      toStatic   : Result := false;
+      toDynamic  : Result := true;
+      {$ifndef COMPILER_CASE_ANALYSIS}
+      else raise EInternalError.Create('TransformOptimization?');
+      {$endif}
+    end;
+  end;
+
 begin
   { Whether the Shape is rendered directly or through batching,
     mark it "was visible this frame".
@@ -682,20 +794,6 @@ begin
     Shape.Node.InternalWasVisibleFrameId := TFramesPerSecond.RenderFrameId;
 
   Shape.Fog := ShapeFog(Shape, Render_Params.GlobalFog as TFogNode);
-
-  { Determine TCollectedShape.SceneTransformDynamic by considering
-    is this TCastleScene present multiple times in TAbstactRootTransform.
-
-    This means we have SceneTransformDynamic = true for TCastleTransformReference,
-    and don't recreate shaders each frame when the scene is inside/outside
-    the light radius, see
-    https://github.com/castle-engine/castle-engine/issues/664
-
-    TODO: Maybe allow user to influence it in the future, like
-    DynamicTransform = (dtAutomatic, dtStatic, dtDynamic)?
-    Would also allow dtStatic for TCastleTransformReference that are close to
-    each other, thus share the same lights. }
-  SceneTransformDynamic := InternalWorldReferences > 1;
 
   Render_Collector.Add(Shape, RenderOptions,
     Render_Params.Transformation^.Transform, SceneTransformDynamic,
