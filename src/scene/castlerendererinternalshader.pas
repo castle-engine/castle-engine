@@ -371,7 +371,8 @@ type
       in many cases, we will not need to call it (so we don't need to recalculate
       TShape.LocalBoundingBox every frame for a changing shape).
 
-      Should return bbox in scene coordinate system (not in world coordinate system).
+      Should return bbox in scene coordinate system (not in world coordinate
+      system, we will convert it if necessary to world using SceneTransform).
 
       Use ShapeBoundingBoxInWorld to get the box easily. }
     ShapeBoundingBoxInSceneEvent: TBoundingBoxEvent;
@@ -386,7 +387,10 @@ type
       so it's different than SceneModelView. }
     SceneModelView: TMatrix4;
 
-    { Scene transformation (without the shape transformation). }
+    { Scene transformation, to change things in scene coordinates
+      into world coordinates
+      (so, this is without any shape transformation, only TCastleTransform
+      transformations accumulated). }
     SceneTransform: TMatrix4;
 
     { Assign this if you used EnableTexGen with tgMirrorPlane
@@ -1786,8 +1790,8 @@ const
         to *not* integrate our texture handling with ComposedShader.
 
         We also remove uniform values for textures, to avoid
-        "unused castle_texture_%d" warning. Setting TextureUniformsSet
-        will make it happen. }
+        "unused castle_texture_%d" warning. Setting TextureUniformsSet:=false
+        will avoid setting texture uniforms. }
       TextureUniformsSet := false;
     end;
 
@@ -1975,8 +1979,11 @@ var
       for I := 0 to TextureShaders.Count - 1 do
         if (TextureShaders[I] is TTextureShader) and
            (TTextureShader(TextureShaders[I]).UniformName <> '') then
-          AProgram.SetUniform(TTextureShader(TextureShaders[I]).UniformName,
-                              TTextureShader(TextureShaders[I]).UniformValue);
+        begin
+          AProgram.SetUniform(
+            TTextureShader(TextureShaders[I]).UniformName,
+            TTextureShader(TextureShaders[I]).UniformValue);
+        end;
     end;
 
     FBumpMappingShader.SetUniformsOnce(AProgram);
