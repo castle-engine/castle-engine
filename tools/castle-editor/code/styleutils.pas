@@ -42,14 +42,24 @@ var
 procedure LoadStyleSettings;
 procedure SaveStyleSettings;
 procedure SetDefaults;
-{ Styles are loaded from UserConfig. You typically don't need to enable them manually }
+{ Styles are loaded from UserConfig and follow CurrentStyle.UsePlugin.
+  You typically don't need to enable them manually, unless you want to cancel
+    SheduledUpdate }
 procedure EnableStyles;
-{ Reset can be done after restarting the app }
+{ Reset can be done after restarting the app.
+  Reset could be done real-time but will require using another, temporary style
+    and more code. Reason for that is I want to preserve the last entered values.
+  In that way, user can suspend the plugin without loosing the settings.
+  After all, setting font size is not something we do every 5 minutes,
+    and even if user doesn't like the changes, they can set the font size to 9 }
 procedure DisableStyles;
 
 { Update all controls and menus in one go. You can choose to update
-  controls or menus separately using the UpdateControlStyle or UpdateMenu procedures }
+    controls or menus separately using the UpdateControlStyle or UpdateMenu procedures.
+  In difference to UpdateControlStyle here we scan all components, so we can find
+    TMenu, TPopupMenu, TMenuItem and change them automatically. }
 procedure UpdateAll(AControl: TControl);
+
 { Update the style of the AControl and its children.
   IgnoreParentSettings - force change even when ParentFont is true
   LabelsWithItalicAreSmaller - some labels are less important, like these on
@@ -57,12 +67,30 @@ procedure UpdateAll(AControl: TControl);
     the label's font size smaller }
 procedure UpdateControlStyle(AControl: TControl; IgnoreParentSettings: Boolean;
   LabelsWithItalicAreSmaller: Boolean);
-{ Set the font size for the given control, no children afftected. }
+
+{ Set the font size for the given control, no children afftected.
+  It can respond differently to particular classes by simple (AControl is class)
+    if clause.
+  Object inspectors are using hardcoded maximum ItemHeight for their combo boxes.
+    Although the font size can be changed freely everywhere, they will not adapt
+    and for font size > 13 can be hard to read.
+    This is a single issue that can't be easily solved.
+    All other forms and components in CGE editor work fine, up to font size = 20 }
 procedure SetSingleControlStyle(AControl: TControl; IgnoreParentSettings: Boolean;
   LabelsWithItalicAreSmaller: Boolean);
 
-procedure UpdateMenu(AMenuItem: TMenuItem); overload;
-procedure UpdateMenu(AMenu: TMenu); overload;
+{ Update the style of a menu item and its children.
+  Needs to be called when you create menu item dynamically. Otherwise the new
+    items would not get updated until OnFormShow or until PreferencesForm
+    is used and returns mr_OK. }
+procedure UpdateMenuStyle(AMenuItem: TMenuItem); overload;
+
+{ Update TMenu and TPopupMenu.
+  Needs to be called when you create menus dynamically. It happens that parts of
+    MainMenu are not drawn with new style, so it's better to assign
+    Form.MainMenu := nil, then Update, and restore Form.MainMenu.
+    That trick is done on FormProject }
+procedure UpdateMenuStyle(AMenu: TMenu); overload;
 
 implementation
 
@@ -71,6 +99,12 @@ uses
   LCLType, LCLProc, StdCtrls, Buttons, ExtCtrls, ObjectInspector;
 
 type
+  { TCustomDrawMenu is used internally to carry MenuItem's OnDrawItem
+      and OnMeasureItem.
+    When user wants to change font size for menus, they need to be custom drawn.
+    If CurrentStyle.ChangeMenu = false then the menus are not custom drawn.
+    The OnDrawItem/OnMeasureItem are not used when a MenuItem has its own event
+      handlers provided. They will not interfere with your custom settings }
   TCustomDrawMenu = class
   private
   public
@@ -81,6 +115,9 @@ type
       ARect: TRect; AState: TOwnerDrawState);
     procedure MenuItemOnMeasure(Sender: TObject; ACanvas: TCanvas;
       var AWidth, AHeight: Integer);
+    { Sets the style of the MenuItem and its children.
+      When CurrentStyle.ChangeMenu = false, the OnDrawItem and OnMeasureItem are
+        set to nil, if they were pointing to this class respective methods. }
     procedure SetMenu(AMenuItem: TMenuItem); overload;
     procedure SetMenu(AMenu: TMenu); overload;
   end;
@@ -90,7 +127,7 @@ var
 
 procedure LoadStyleSettings;
 begin
-  CurrentStyle.UsePlugin  := UserConfig.GetValue('CustomStyle_UsePlugin', false);
+  CurrentStyle.UsePlugin := UserConfig.GetValue('CustomStyle_UsePlugin', false);
   CurrentStyle.SheduledStyleDisable := UserConfig.GetValue('CustomStyle_SheduledStyleDisable', false);
   CurrentStyle.ChangeMenu := UserConfig.GetValue('CustomStyle_ChangeMenu', false);
   CurrentStyle.FontSize := UserConfig.GetValue('CustomStyle_FontSize', EditorFontSizeDef);
@@ -154,7 +191,7 @@ begin
       if (Comp is TWinControl) then
         UpdateControlStyle(TWinControl(Comp), false, true);
       if (Comp is TMenu) then
-        UpdateMenu(TMenu(Comp));
+        UpdateMenuStyle(TMenu(Comp));
     end;
 
     SetSingleControlStyle(AControl, false, true);
@@ -232,14 +269,14 @@ begin
   end;
 end;
 
-procedure UpdateMenu(AMenuItem: TMenuItem);
+procedure UpdateMenuStyle(AMenuItem: TMenuItem);
 begin
   if PreferencesCustomDrawMenu = nil
     then PreferencesCustomDrawMenu := TCustomDrawMenu.Create;
   PreferencesCustomDrawMenu.SetMenu(AMenuItem);
 end;
 
-procedure UpdateMenu(AMenu: TMenu);
+procedure UpdateMenuStyle(AMenu: TMenu);
 begin
   if PreferencesCustomDrawMenu = nil
     then PreferencesCustomDrawMenu := TCustomDrawMenu.Create;
@@ -384,18 +421,24 @@ begin
     SetMenu(AMenu.Items);
 end;
 
-procedure InitPreferences;
+procedure InitStyles;
 begin
-  // Now when we can disable this plugin, the menu handler will be created on demand
+  // The menu handler will be created on demand
   PreferencesCustomDrawMenu := nil;
   SetDefaults;
 end;
 
+procedure FinalizeStyles;
+begin
+  if PreferencesCustomDrawMenu <> nil then
+    PreferencesCustomDrawMenu.Free;
+end;
+
 initialization
-  InitPreferences;
+  InitStyles;
 
 finalization
-  PreferencesCustomDrawMenu.Free;
+  FinalizeStyles;
 
 end.
 

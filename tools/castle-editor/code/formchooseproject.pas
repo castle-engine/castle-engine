@@ -230,7 +230,9 @@ begin
     PopupMenuRecentProjects.Items.Add(MenuItem);
   end;
 
-  UpdateMenu(PopupMenuRecentProjects);
+  { Only popup menu style will change on this form, as using bigger fonts
+      could break the design }
+  UpdateMenuStyle(PopupMenuRecentProjects);
   PopupMenuRecentProjects.PopupComponent := ButtonOpenRecent;
   PopupMenuRecentProjects.Popup;
 end;

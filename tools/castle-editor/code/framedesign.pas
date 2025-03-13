@@ -6136,7 +6136,7 @@ begin
     MenuItemChangeClassNonVisual.SetEnabledVisible(true);
 
   MenuTreeView.PopupComponent := ControlsTree; // I'm not sure what it means, something like menu owner?
-  StyleUtils.UpdateMenu(MenuTreeView);
+  StyleUtils.UpdateMenuStyle(MenuTreeView);
 end;
 
 procedure TDesignFrame.MenuTreeViewItemDuplicateClick(Sender: TObject);
