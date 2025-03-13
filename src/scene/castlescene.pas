@@ -854,6 +854,20 @@ var
 begin
   inherited;
 
+  { Use InternalDirty to prevent trying to render this scene while it has
+    some resources not ready.
+
+    Right now, there's actually nothing that could cause such rendering.
+    In the past, we experimented with initializing+updating progress bar
+    inside the PrepareResources (e.g. when preparing a shape requires
+    prepararing a texture, but the texture URL is online so we need
+    to display download progress of the texture).
+    The progress started by taking a screenshot of the current window,
+    so it caused rendering.
+
+    This is not relevant now. No callback is caused now by preparing
+    and rendering, so nothing should cause a render in the middle of preparation.
+    But let the check InternalDirty remain, for future security. }
   if InternalDirty <> 0 then Exit;
 
   if not ApplicationProperties.IsGLContextOpen then
@@ -863,25 +877,6 @@ begin
     ]);
     Exit;
   end;
-
-  { When preparing resources, files (like textures) may get loaded,
-    causing progress bar (for example from CastleDownload).
-    Right now we're not ready to display the (partially loaded) scene
-    during this time, so we use InternalDirty to prevent it.
-
-    Test http://svn.code.sf.net/p/castle-engine/code/trunk/demo_models/navigation/transition_multiple_viewpoints.x3dv
-    Most probably problems are caused because shapes are initially
-    without a texture, so their arrays (including VBOs) are generated
-    without texture coordinates, and we do not mark them to be prepared
-    correctly later. Correct fix is unsure:
-    - Marking relevant shapes to be prepared again seems easiest,
-      but this means that potentially everything is prepared 2 times
-      --- once before resources (like textures) are ready, 2nd time with.
-    - It would be best to pas texture coordinates even when no texture is loaded?
-      Ideally, the renderer operations should be the same regardless if texture
-      is loaded or not.
-      It remains to carefully see whether it's possible in all cases.
-  }
 
   Inc(InternalDirty);
   try
