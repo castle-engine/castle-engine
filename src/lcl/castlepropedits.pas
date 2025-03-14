@@ -48,7 +48,7 @@ uses // FPC and LCL units
   CastleSceneCore, CastleScene, CastleLCLUtils, X3DLoad, X3DNodes, CastleCameras,
   CastleUIControls, CastleControl, CastleControls, CastleImages, CastleTransform,
   CastleVectors, CastleRectangles, CastleUtils, CastleColors, CastleViewport,
-  CastleDialogs,
+  CastleDialogs, CastleComponentSerialize,
   CastleTiledMap, CastleGLImages, CastleStringUtils, CastleFilesUtils,
   CastleInternalExposeTransformsDialog, CastleInternalTiledLayersDialog,
   CastleInternalRegionDialog,
@@ -89,6 +89,7 @@ end;
 {$I castlepropedits_colorchannels.inc}
 {$I castlepropedits_component_transform.inc}
 {$I castlepropedits_component_scene.inc}
+{$I castlepropedits_component_transformreference.inc}
 {$I castlepropedits_component_imagetransform.inc}
 {$I castlepropedits_component_imagecontrol.inc}
 {$I castlepropedits_component_transformdesign.inc}
@@ -244,12 +245,16 @@ begin
   RegisterPropertyEditor(TypeInfo(AnsiString), TCastleThirdPersonNavigation, 'AnimationFall',
     TThirdPersonAnimationPropertyEditor);
 
+  // various RegisterComponentEditor
   RegisterComponentEditor(TCastleTransform, TCastleTransformComponentEditor);
+  RegisterComponentEditor(TCastleTransformReference, TCastleTransformReferenceComponentEditor);
   RegisterComponentEditor(TCastleScene, TCastleSceneComponentEditor);
   RegisterComponentEditor(TCastleImageTransform, TCastleImageTransformComponentEditor);
   RegisterComponentEditor(TCastleImageControl, TCastleImageControlComponentEditor);
   RegisterComponentEditor(TCastleTransformDesign, TCastleTransformDesignComponentEditor);
   RegisterComponentEditor(TCastleDesign, TCastleDesignComponentEditor);
+
+  // RegisterComponentEditor on joints
   RegisterComponentEditor(TCastleHingeJoint, TCastleJointsComponentEditor);
   RegisterComponentEditor(TCastleRopeJoint, TCastleJointsComponentEditor);
   RegisterComponentEditor(TCastleDistanceJoint, TCastleJointsComponentEditor);

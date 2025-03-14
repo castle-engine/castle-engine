@@ -56,9 +56,11 @@ type
     { Clear shapes to render. }
     procedure Clear;
 
-    { Add a shape to render. }
+    { Add a shape to render.
+      See TCollectedShape for the meaning of all the parameters. }
     procedure Add(const Shape: TGLShape; const RenderOptions: TCastleRenderOptions;
-      const SceneTransform: TMatrix4; const DepthRange: TDepthRange;
+      const SceneTransform: TMatrix4; const SceneTransformDynamic: Boolean;
+      const DepthRange: TDepthRange;
       const ShadowVolumesReceiver: Boolean);
 
     { Add a custom rendering event.
@@ -232,6 +234,7 @@ end;
 procedure TShapesCollector.Add(const Shape: TGLShape;
   const RenderOptions: TCastleRenderOptions;
   const SceneTransform: TMatrix4;
+  const SceneTransformDynamic: Boolean;
   const DepthRange: TDepthRange;
   const ShadowVolumesReceiver: Boolean);
 var
@@ -241,6 +244,7 @@ begin
   NewCollected.Shape := Shape;
   NewCollected.RenderOptions := RenderOptions;
   NewCollected.SceneTransform := SceneTransform;
+  NewCollected.SceneTransformDynamic := SceneTransformDynamic;
   NewCollected.DepthRange := DepthRange;
   NewCollected.ShadowVolumesReceiver := ShadowVolumesReceiver;
   FCollected.Add(NewCollected);
@@ -356,7 +360,7 @@ procedure TShapesRenderer.PrepareResources;
           Shape := Batching.PoolShapes[I];
           TGLShape(Shape).Fog := nil;
           Renderer.RenderShape(TGLShape(Shape), DummyRenderOptions,
-            TMatrix4.Identity, drFull);
+            TMatrix4.Identity, false, drFull);
         end;
 
         Renderer.RenderEnd;
@@ -441,8 +445,10 @@ var
     else
       DepthRange := CollectedShape.DepthRange;
 
-    Renderer.RenderShape(Shape,
-      RenderOptions, CollectedShape.SceneTransform, DepthRange);
+    Renderer.RenderShape(Shape, RenderOptions,
+      CollectedShape.SceneTransform,
+      CollectedShape.SceneTransformDynamic,
+      DepthRange);
   end;
 
   procedure RenderWireframe(UseWireframeColor: boolean);

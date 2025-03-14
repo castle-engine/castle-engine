@@ -1,0 +1,4058 @@
+{
+  "$$ClassName" : "TCastleUserInterface",
+  "FullSize" : true,
+  "Name" : "RootGroup",
+  "$Children" : [
+    {
+      "$$ClassName" : "TCastleLabel",
+      "ColorPersistent" : {
+        "$$ClassName" : "TCastleColorPersistent",
+        "Blue" : 1.7647059261798859E-001,
+        "Green" : 6.1176472902297974E-001,
+        "Red" : 9.8823529481887817E-001
+      },
+      "FontSize" : 2.0000000000000000E+001,
+      "HorizontalAnchorParent" : "hpRight",
+      "HorizontalAnchorSelf" : "hpRight",
+      "Name" : "LabelFps",
+      "Text" : [
+        "FPS: xxx"
+      ],
+      "TranslationPersistent" : {
+        "$$ClassName" : "TCastleVector2Persistent",
+        "X" : -2.0000000000000000E+001,
+        "Y" : -2.0000000000000000E+001
+      },
+      "VerticalAnchorParent" : "vpTop",
+      "VerticalAnchorSelf" : "vpTop"
+    },
+    {
+      "$$ClassName" : "TCastleViewport",
+      "Background" : "Background1",
+      "Camera" : "Camera1",
+      "FullSize" : true,
+      "Items" : {
+        "$$ClassName" : "TCastleRootTransform",
+        "PhysicsProperties" : {
+          "$$ClassName" : "TPhysicsProperties",
+          "LayerCollisions" : {
+            "$$ClassName" : "TCastleLayerCollisions"
+          },
+          "LayerNames" : {
+            "$$ClassName" : "TCastleLayerNames"
+          }
+        },
+        "$Children" : [
+          {
+            "$$ClassName" : "TCastleCamera",
+            "Name" : "Camera1",
+            "Orthographic" : {
+              "$$ClassName" : "TCastleOrthographic"
+            },
+            "Perspective" : {
+              "$$ClassName" : "TCastlePerspective"
+            },
+            "RotationPersistent" : {
+              "$$ClassName" : "TCastleVector4RotationPersistent",
+              "W" : 5.8449160307645798E-002,
+              "X" : -9.2165362834930420E-001,
+              "Y" : 3.8787913322448730E-001,
+              "Z" : 1.0229058563709259E-002
+            },
+            "ScalePersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : 9.9999994039535522E-001,
+              "Y" : 9.9999994039535522E-001
+            },
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : -1.0293448448181152E+001,
+              "Y" : 5.0677752494812012E+000,
+              "Z" : 8.6423866271972656E+001
+            }
+          },
+          {
+            "$$ClassName" : "TCastlePointLight",
+            "Name" : "PointLight1",
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : 4.0000000000000000E+000,
+              "Y" : 3.0000000000000000E+000,
+              "Z" : 1.0000000000000000E+000
+            }
+          },
+          {
+            "$$ClassName" : "TCastlePlane",
+            "Name" : "Plane1",
+            "RenderOptions" : {
+              "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+            },
+            "SizePersistent" : {
+              "$$ClassName" : "TCastleVector2Persistent",
+              "X" : 1.0000000000000000E+003,
+              "Y" : 1.0000000000000000E+003
+            },
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "Z" : -2.1998565673828125E+001
+            }
+          },
+          {
+            "$$ClassName" : "TCastleDirectionalLight",
+            "Intensity" : 5.0000000000000000E+000,
+            "Name" : "DirectionalLight1",
+            "RotationPersistent" : {
+              "$$ClassName" : "TCastleVector4RotationPersistent",
+              "W" : 9.8674458265304565E-001,
+              "X" : -9.9999749660491943E-001
+            },
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "Y" : 3.9683261871337891E+001,
+              "Z" : 3.6960456848144531E+001
+            }
+          },
+          {
+            "$$ClassName" : "TCastleTransform",
+            "Name" : "MonkeyBigGroup",
+            "$Children" : [
+              {
+                "$$ClassName" : "TCastleTransform",
+                "Name" : "MonkeyGroup1",
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent",
+                  "Z" : 1.0000000000000000E+000
+                },
+                "$Children" : [
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod14",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 1.5843557357788086E+001,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 2.7854219436645508E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod13",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 1.5843557357788086E+001,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 2.7854219436645508E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod12",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 1.5843557357788086E+001,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 1.9447750091552734E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod11",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 1.5843557357788086E+001,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 1.1209719657897949E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod10",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 3.4898252487182617E+000,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 1.1209719657897949E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod9",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 3.4898252487182617E+000,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 2.8259143829345703E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod8",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 3.4898252487182617E+000,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 3.5709602355957031E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod7",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 1.5253242492675781E+001,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 3.5709602355957031E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod6",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 1.5253242492675781E+001,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 3.5709602355957031E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod5",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : -7.2519474029541016E+000,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 3.5709602355957031E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod4",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : -7.2519474029541016E+000,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 1.8954641342163086E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod3",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 4.8639316558837891E+000,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 1.8954641342163086E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod2",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : -7.9475908279418945E+000,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 2.7057594299316406E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod1",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : -9.2879753112792969E+000,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 9.4099569320678711E+000
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  }
+                ]
+              },
+              {
+                "$$ClassName" : "TCastleTransform",
+                "Name" : "MonkeyGroup2",
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent",
+                  "Z" : 1.0000000000000000E+000
+                },
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "X" : -3.9211997985839844E+001
+                },
+                "$Children" : [
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod15",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 1.5843557357788086E+001,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 2.7854219436645508E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod16",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 1.5843557357788086E+001,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 2.7854219436645508E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod17",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 1.5843557357788086E+001,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 1.9447750091552734E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod18",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 1.5843557357788086E+001,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 1.1209719657897949E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod19",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 3.4898252487182617E+000,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 1.1209719657897949E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod20",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 3.4898252487182617E+000,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 2.8259143829345703E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod21",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 3.4898252487182617E+000,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 3.5709602355957031E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod22",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 1.5253242492675781E+001,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 3.5709602355957031E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod23",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 1.5253242492675781E+001,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 3.5709602355957031E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod24",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : -7.2519474029541016E+000,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 3.5709602355957031E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod25",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : -7.2519474029541016E+000,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 1.8954641342163086E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod26",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 4.8639316558837891E+000,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 1.8954641342163086E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod27",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : -7.9475908279418945E+000,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 2.7057594299316406E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod28",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : -9.2879753112792969E+000,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 9.4099569320678711E+000
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  }
+                ]
+              },
+              {
+                "$$ClassName" : "TCastleTransform",
+                "Name" : "MonkeyGroup3",
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent",
+                  "Z" : 1.0000000000000000E+000
+                },
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "X" : -3.9211997985839844E+001,
+                  "Z" : 3.2818706512451172E+001
+                },
+                "$Children" : [
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod29",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 1.5843557357788086E+001,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 2.7854219436645508E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod30",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 1.5843557357788086E+001,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 2.7854219436645508E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod31",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 1.5843557357788086E+001,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 1.9447750091552734E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod32",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 1.5843557357788086E+001,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 1.1209719657897949E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod33",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 3.4898252487182617E+000,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 1.1209719657897949E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod34",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 3.4898252487182617E+000,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 2.8259143829345703E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod35",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 3.4898252487182617E+000,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 3.5709602355957031E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod36",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 1.5253242492675781E+001,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 3.5709602355957031E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod37",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 1.5253242492675781E+001,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 3.5709602355957031E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod38",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : -7.2519474029541016E+000,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 3.5709602355957031E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod39",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : -7.2519474029541016E+000,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 1.8954641342163086E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod40",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 4.8639316558837891E+000,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 1.8954641342163086E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod41",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : -7.9475908279418945E+000,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 2.7057594299316406E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod42",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : -9.2879753112792969E+000,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 9.4099569320678711E+000
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  }
+                ]
+              },
+              {
+                "$$ClassName" : "TCastleTransform",
+                "Name" : "MonkeyGroup4",
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent",
+                  "Z" : 1.0000000000000000E+000
+                },
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "X" : -2.7010202407836914E+000,
+                  "Z" : 3.2818706512451172E+001
+                },
+                "$Children" : [
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod43",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 1.5843557357788086E+001,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 2.7854219436645508E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod44",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 1.5843557357788086E+001,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 2.7854219436645508E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod45",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 1.5843557357788086E+001,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 1.9447750091552734E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod46",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 1.5843557357788086E+001,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 1.1209719657897949E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod47",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 3.4898252487182617E+000,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 1.1209719657897949E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod48",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 3.4898252487182617E+000,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 2.8259143829345703E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod49",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 3.4898252487182617E+000,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 3.5709602355957031E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod50",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 1.5253242492675781E+001,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 3.5709602355957031E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod51",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 1.5253242492675781E+001,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 3.5709602355957031E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod52",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : -7.2519474029541016E+000,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 3.5709602355957031E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod53",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : -7.2519474029541016E+000,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 1.8954641342163086E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod54",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 4.8639316558837891E+000,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 1.8954641342163086E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod55",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : -7.9475908279418945E+000,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 2.7057594299316406E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod56",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : -9.2879753112792969E+000,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 9.4099569320678711E+000
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "$$ClassName" : "TCastleTransform",
+            "Name" : "MonkeyBigGroup3",
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : -8.7674598693847656E+000,
+              "Z" : -1.4018446350097656E+002
+            },
+            "$Children" : [
+              {
+                "$$ClassName" : "TCastleTransform",
+                "Name" : "MonkeyGroup13",
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent",
+                  "Z" : 1.0000000000000000E+000
+                },
+                "$Children" : [
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod169",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 1.5843557357788086E+001,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 2.7854219436645508E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod170",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 1.5843557357788086E+001,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 2.7854219436645508E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod171",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 1.5843557357788086E+001,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 1.9447750091552734E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod172",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 1.5843557357788086E+001,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 1.1209719657897949E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod173",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 3.4898252487182617E+000,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 1.1209719657897949E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod174",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 3.4898252487182617E+000,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 2.8259143829345703E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod175",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 3.4898252487182617E+000,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 3.5709602355957031E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod176",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 1.5253242492675781E+001,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 3.5709602355957031E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod177",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 1.5253242492675781E+001,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 3.5709602355957031E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod178",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : -7.2519474029541016E+000,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 3.5709602355957031E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod179",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : -7.2519474029541016E+000,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 1.8954641342163086E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod180",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 4.8639316558837891E+000,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 1.8954641342163086E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod181",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : -7.9475908279418945E+000,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 2.7057594299316406E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod182",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : -9.2879753112792969E+000,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 9.4099569320678711E+000
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  }
+                ]
+              },
+              {
+                "$$ClassName" : "TCastleTransform",
+                "Name" : "MonkeyGroup14",
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent",
+                  "Z" : 1.0000000000000000E+000
+                },
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "X" : -3.9211997985839844E+001
+                },
+                "$Children" : [
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod183",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 1.5843557357788086E+001,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 2.7854219436645508E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod184",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 1.5843557357788086E+001,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 2.7854219436645508E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod185",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 1.5843557357788086E+001,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 1.9447750091552734E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod186",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 1.5843557357788086E+001,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 1.1209719657897949E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod187",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 3.4898252487182617E+000,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 1.1209719657897949E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod188",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 3.4898252487182617E+000,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 2.8259143829345703E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod189",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 3.4898252487182617E+000,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 3.5709602355957031E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod190",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 1.5253242492675781E+001,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 3.5709602355957031E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod191",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 1.5253242492675781E+001,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 3.5709602355957031E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod192",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : -7.2519474029541016E+000,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 3.5709602355957031E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod193",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : -7.2519474029541016E+000,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 1.8954641342163086E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod194",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 4.8639316558837891E+000,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 1.8954641342163086E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod195",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : -7.9475908279418945E+000,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 2.7057594299316406E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod196",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : -9.2879753112792969E+000,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 9.4099569320678711E+000
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  }
+                ]
+              },
+              {
+                "$$ClassName" : "TCastleTransform",
+                "Name" : "MonkeyGroup15",
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent",
+                  "Z" : 1.0000000000000000E+000
+                },
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "X" : -3.9211997985839844E+001,
+                  "Z" : 3.2818706512451172E+001
+                },
+                "$Children" : [
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod197",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 1.5843557357788086E+001,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 2.7854219436645508E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod198",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 1.5843557357788086E+001,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 2.7854219436645508E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod199",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 1.5843557357788086E+001,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 1.9447750091552734E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod200",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 1.5843557357788086E+001,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 1.1209719657897949E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod201",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 3.4898252487182617E+000,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 1.1209719657897949E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod202",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 3.4898252487182617E+000,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 2.8259143829345703E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod203",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 3.4898252487182617E+000,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 3.5709602355957031E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod204",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 1.5253242492675781E+001,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 3.5709602355957031E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod205",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 1.5253242492675781E+001,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 3.5709602355957031E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod206",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : -7.2519474029541016E+000,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 3.5709602355957031E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod207",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : -7.2519474029541016E+000,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 1.8954641342163086E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod208",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 4.8639316558837891E+000,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 1.8954641342163086E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod209",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : -7.9475908279418945E+000,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 2.7057594299316406E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod210",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : -9.2879753112792969E+000,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 9.4099569320678711E+000
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  }
+                ]
+              },
+              {
+                "$$ClassName" : "TCastleTransform",
+                "Name" : "MonkeyGroup16",
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent",
+                  "Z" : 1.0000000000000000E+000
+                },
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "X" : -2.7010202407836914E+000,
+                  "Z" : 3.2818706512451172E+001
+                },
+                "$Children" : [
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod211",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 1.5843557357788086E+001,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 2.7854219436645508E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod212",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 1.5843557357788086E+001,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 2.7854219436645508E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod213",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 1.5843557357788086E+001,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 1.9447750091552734E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod214",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 1.5843557357788086E+001,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 1.1209719657897949E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod215",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 3.4898252487182617E+000,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 1.1209719657897949E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod216",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 3.4898252487182617E+000,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 2.8259143829345703E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod217",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 3.4898252487182617E+000,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 3.5709602355957031E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod218",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 1.5253242492675781E+001,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 3.5709602355957031E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod219",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 1.5253242492675781E+001,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 3.5709602355957031E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod220",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : -7.2519474029541016E+000,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 3.5709602355957031E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod221",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : -7.2519474029541016E+000,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 1.8954641342163086E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod222",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 4.8639316558837891E+000,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 1.8954641342163086E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod223",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : -7.9475908279418945E+000,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 2.7057594299316406E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod224",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : -9.2879753112792969E+000,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 9.4099569320678711E+000
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "$$ClassName" : "TCastleTransform",
+            "Name" : "MonkeyBigGroup4",
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : -8.7674598693847656E+000,
+              "Z" : -6.8600669860839844E+001
+            },
+            "$Children" : [
+              {
+                "$$ClassName" : "TCastleTransform",
+                "Name" : "MonkeyGroup17",
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent",
+                  "Z" : 1.0000000000000000E+000
+                },
+                "$Children" : [
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod225",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 1.5843557357788086E+001,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 2.7854219436645508E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod226",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 1.5843557357788086E+001,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 2.7854219436645508E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod227",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 1.5843557357788086E+001,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 1.9447750091552734E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod228",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 1.5843557357788086E+001,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 1.1209719657897949E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod229",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 3.4898252487182617E+000,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 1.1209719657897949E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod230",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 3.4898252487182617E+000,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 2.8259143829345703E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod231",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 3.4898252487182617E+000,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 3.5709602355957031E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod232",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 1.5253242492675781E+001,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 3.5709602355957031E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod233",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 1.5253242492675781E+001,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 3.5709602355957031E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod234",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : -7.2519474029541016E+000,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 3.5709602355957031E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod235",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : -7.2519474029541016E+000,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 1.8954641342163086E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod236",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 4.8639316558837891E+000,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 1.8954641342163086E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod237",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : -7.9475908279418945E+000,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 2.7057594299316406E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod238",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : -9.2879753112792969E+000,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 9.4099569320678711E+000
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  }
+                ]
+              },
+              {
+                "$$ClassName" : "TCastleTransform",
+                "Name" : "MonkeyGroup18",
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent",
+                  "Z" : 1.0000000000000000E+000
+                },
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "X" : -3.9211997985839844E+001
+                },
+                "$Children" : [
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod239",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 1.5843557357788086E+001,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 2.7854219436645508E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod240",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 1.5843557357788086E+001,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 2.7854219436645508E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod241",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 1.5843557357788086E+001,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 1.9447750091552734E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod242",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 1.5843557357788086E+001,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 1.1209719657897949E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod243",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 3.4898252487182617E+000,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 1.1209719657897949E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod244",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 3.4898252487182617E+000,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 2.8259143829345703E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod245",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 3.4898252487182617E+000,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 3.5709602355957031E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod246",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 1.5253242492675781E+001,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 3.5709602355957031E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod247",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 1.5253242492675781E+001,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 3.5709602355957031E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod248",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : -7.2519474029541016E+000,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 3.5709602355957031E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod249",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : -7.2519474029541016E+000,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 1.8954641342163086E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod250",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 4.8639316558837891E+000,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 1.8954641342163086E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod251",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : -7.9475908279418945E+000,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 2.7057594299316406E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod252",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : -9.2879753112792969E+000,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 9.4099569320678711E+000
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  }
+                ]
+              },
+              {
+                "$$ClassName" : "TCastleTransform",
+                "Name" : "MonkeyGroup19",
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent",
+                  "Z" : 1.0000000000000000E+000
+                },
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "X" : -3.9211997985839844E+001,
+                  "Z" : 3.2818706512451172E+001
+                },
+                "$Children" : [
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod253",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 1.5843557357788086E+001,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 2.7854219436645508E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod254",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 1.5843557357788086E+001,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 2.7854219436645508E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod255",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 1.5843557357788086E+001,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 1.9447750091552734E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod256",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 1.5843557357788086E+001,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 1.1209719657897949E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod257",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 3.4898252487182617E+000,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 1.1209719657897949E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod258",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 3.4898252487182617E+000,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 2.8259143829345703E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod259",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 3.4898252487182617E+000,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 3.5709602355957031E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod260",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 1.5253242492675781E+001,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 3.5709602355957031E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod261",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 1.5253242492675781E+001,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 3.5709602355957031E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod262",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : -7.2519474029541016E+000,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 3.5709602355957031E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod263",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : -7.2519474029541016E+000,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 1.8954641342163086E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod264",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 4.8639316558837891E+000,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 1.8954641342163086E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod265",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : -7.9475908279418945E+000,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 2.7057594299316406E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod266",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : -9.2879753112792969E+000,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 9.4099569320678711E+000
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  }
+                ]
+              },
+              {
+                "$$ClassName" : "TCastleTransform",
+                "Name" : "MonkeyGroup20",
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent",
+                  "Z" : 1.0000000000000000E+000
+                },
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "X" : -2.7010202407836914E+000,
+                  "Z" : 3.2818706512451172E+001
+                },
+                "$Children" : [
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod267",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 1.5843557357788086E+001,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 2.7854219436645508E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod268",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 1.5843557357788086E+001,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 2.7854219436645508E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod269",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 1.5843557357788086E+001,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 1.9447750091552734E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod270",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 1.5843557357788086E+001,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 1.1209719657897949E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod271",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 3.4898252487182617E+000,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 1.1209719657897949E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod272",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 3.4898252487182617E+000,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 2.8259143829345703E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod273",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 3.4898252487182617E+000,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 3.5709602355957031E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod274",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 1.5253242492675781E+001,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 3.5709602355957031E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod275",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 1.5253242492675781E+001,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 3.5709602355957031E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod276",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : -7.2519474029541016E+000,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 3.5709602355957031E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod277",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : -7.2519474029541016E+000,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 1.8954641342163086E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod278",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 4.8639316558837891E+000,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 1.8954641342163086E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod279",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : -7.9475908279418945E+000,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 2.7057594299316406E+001
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "Cache" : true,
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "SceneMonkeyLod280",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : -9.2879753112792969E+000,
+                      "Y" : 1.4066662788391113E+000,
+                      "Z" : 9.4099569320678711E+000
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "Name" : "Viewport1",
+      "$NonVisualComponents" : [
+        {
+          "$$ClassName" : "TCastleBackground",
+          "Name" : "Background1"
+        }
+      ],
+      "$Children" : [
+        {
+          "$$ClassName" : "TCastleWalkNavigation",
+          "Gravity" : false,
+          "MoveSpeed" : 2.0000000000000000E+001,
+          "Name" : "WalkNavigation1"
+        }
+      ],
+      "InternalDesignCamera" : {
+        "$$ClassName" : "TCastleCamera",
+        "Name" : "",
+        "Orthographic" : {
+          "$$ClassName" : "TCastleOrthographic"
+        },
+        "Perspective" : {
+          "$$ClassName" : "TCastlePerspective"
+        },
+        "RotationPersistent" : {
+          "$$ClassName" : "TCastleVector4RotationPersistent",
+          "W" : 5.8445081114768982E-002,
+          "X" : -9.2173463106155396E-001,
+          "Y" : 3.8777613639831543E-001,
+          "Z" : 5.9056468307971954E-003
+        },
+        "TranslationPersistent" : {
+          "$$ClassName" : "TCastleVector3Persistent",
+          "X" : -1.0293448448181152E+001,
+          "Y" : 5.0677752494812012E+000,
+          "Z" : 8.6423866271972656E+001
+        }
+      },
+      "InternalDesignNavigations[dnFly]" : {
+        "$$ClassName" : "TCastleWalkNavigationDesign",
+        "MoveSpeed" : 5.8434143066406250E+001,
+        "Name" : ""
+      },
+      "InternalDesignNavigations[dnExamine]" : {
+        "$$ClassName" : "TCastleExamineNavigationDesign",
+        "Exists" : false,
+        "Name" : ""
+      },
+      "InternalDesignNavigations[dn2D]" : {
+        "$$ClassName" : "TCastle2DNavigationDesign",
+        "Exists" : false,
+        "Name" : ""
+      }
+    }
+  ]
+}

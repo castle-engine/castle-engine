@@ -238,10 +238,14 @@
         i.e. the transformation that should be multiplied by the Shape
         transformation (in @code(Shape.State.Transformation.Transform))
         to get the final transformation to world.)
+
+      @param(SceneTransformDynamic
+        See @link(TCollectedShape.SceneTransformDynamic).)
     }
     procedure RenderShape(const Shape: TX3DRendererShape;
       const RenderOptions: TCastleRenderOptions;
       const SceneTransform: TMatrix4;
+      const SceneTransformDynamic: Boolean;
       const DepthRange: TDepthRange);
 
     { Wireframe pass, to avoid recreating shaders when often switching
@@ -539,7 +543,7 @@ end;
 
 procedure TRenderer.RenderShape(const Shape: TX3DRendererShape;
   const RenderOptions: TCastleRenderOptions;
-  const SceneTransform: TMatrix4;
+  const SceneTransform: TMatrix4; const SceneTransformDynamic: Boolean;
   const DepthRange: TDepthRange);
 
   procedure InitializeFromRenderOptions;
@@ -650,6 +654,7 @@ procedure TRenderer.RenderShape(const Shape: TX3DRendererShape;
 
     Result.ShapeBoundingBoxInSceneEvent := {$ifdef FPC}@{$endif} Shape.BoundingBox;
     Result.SceneTransform := SceneTransform;
+    Result.SceneTransformDynamic := SceneTransformDynamic;
     Result.SceneModelView := RenderingCamera.CurrentMatrix * SceneTransform;
     Result.ShadowSampling := RenderOptions.ShadowSampling;
   end;

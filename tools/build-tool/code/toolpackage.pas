@@ -164,7 +164,7 @@ begin
     pfZip      :
       //PackageCommand('zip', ['-q', '-r', PackageFileName, TopDirectoryName]);
       // Better use internal zip, that doesn't require any tool installed:
-      ZipDirectory(FullPackageFileName, Path);
+      ZipDirectoryTool(FullPackageFileName, Path);
     pfTarGz    : PackageCommand('tar', ['czf', PackageFileName, TopDirectoryName]);
     pfDirectory:
       begin

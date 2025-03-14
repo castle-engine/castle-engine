@@ -60,8 +60,8 @@
     multiple times within the same viewport. }
   TCastleTransformReference = class(TCastleTransform)
   strict private
-    FReference: TCastleTransform;
-    FReferenceObserver: TFreeNotificationObserver;
+    FReference, FRevertReference: TCastleTransform;
+    FReferenceObserver, FRevertReferenceObserver: TFreeNotificationObserver;
     FReferenceWrapper: TCastleTransform;
     FReferenceTransformation: TReferenceTransformation;
     { Last frame FReference.InverseTransform (that was used to calculate
@@ -75,7 +75,9 @@
     LastReferenceInverseTransform: TMatrix4;
     LastReferenceInverseTransformValid: Boolean;
     procedure SetReference(const Value: TCastleTransform);
+    procedure SetRevertReference(const Value: TCastleTransform);
     procedure ReferenceFreeNotification(const Sender: TFreeNotificationObserver);
+    procedure RevertReferenceFreeNotification(const Sender: TFreeNotificationObserver);
   protected
     procedure LocalRender(const Params: TRenderParams); override;
   public
@@ -100,6 +102,10 @@
       the same TCastleTransform instance are present in multiple viewports.
       See https://castle-engine.io/multiple_viewports_to_display_one_world . }
     property Reference: TCastleTransform read FReference write SetReference;
+
+    { Not displayed, used only for the "Revert To Referenced Transform"
+      feature in the editor. }
+    property RevertReference: TCastleTransform read FRevertReference write SetRevertReference;
 
     { How do we treat the transformation of @link(TCastleTransformReference.Reference)
       when rendering TCastleTransformReference.
@@ -133,7 +139,12 @@ constructor TCastleTransformReference.Create(AOwner: TComponent);
 begin
   inherited;
   FReferenceObserver := TFreeNotificationObserver.Create(Self);
-  FReferenceObserver.OnFreeNotification := {$ifdef FPC}@{$endif}ReferenceFreeNotification;
+  FReferenceObserver.OnFreeNotification :=
+    {$ifdef FPC}@{$endif}ReferenceFreeNotification;
+
+  FRevertReferenceObserver := TFreeNotificationObserver.Create(Self);
+  FRevertReferenceObserver.OnFreeNotification :=
+    {$ifdef FPC}@{$endif}RevertReferenceFreeNotification;
 
   { FReference will be child of FReferenceWrapper, not directly of us.
     This way we avoid serializing it easily.
@@ -157,6 +168,11 @@ end;
 procedure TCastleTransformReference.ReferenceFreeNotification(const Sender: TFreeNotificationObserver);
 begin
   FReference := nil;
+end;
+
+procedure TCastleTransformReference.RevertReferenceFreeNotification(const Sender: TFreeNotificationObserver);
+begin
+  FRevertReference := nil;
 end;
 
 procedure TCastleTransformReference.SetReference(const Value: TCastleTransform);
@@ -212,6 +228,15 @@ begin
     FReferenceObserver.Observed := FReference;
     if FReference <> nil then
       FReferenceWrapper.Add(FReference);
+  end;
+end;
+
+procedure TCastleTransformReference.SetRevertReference(const Value: TCastleTransform);
+begin
+  if FRevertReference <> Value then
+  begin
+    FRevertReference := Value;
+    FRevertReferenceObserver.Observed := FRevertReference;
   end;
 end;
 
