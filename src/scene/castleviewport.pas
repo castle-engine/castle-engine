@@ -1,5 +1,5 @@
 {
-  Copyright 2009-2024 Michalis Kamburelis.
+  Copyright 2009-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -270,7 +270,6 @@ type
   private
     var
       FProjection: TProjection;
-      ItemsNodesFreeOccurred: Boolean;
 
     { Make sure to call AssignDefaultCamera, if needed because of AutoCamera. }
     procedure EnsureCameraDetected;
@@ -2206,10 +2205,6 @@ begin
       Our Items.OnXxx do not link to viewport then, and should not be relied upon.
   }
   ClearMouseRayHit;
-
-  { Signal to PointingDevicePressCore to not process further collision list.
-    TODO: why is this necessary? But anchor_test on castle-model-viewer otherwise crashes. }
-  ItemsNodesFreeOccurred := true;
 end;
 
 function TCastleViewport.TriangleHit: PTriangle;
@@ -3755,16 +3750,29 @@ function TCastleViewport.PointingDevicePress: Boolean;
     if RayHit <> nil then
       for I := 0 to RayHit.Count - 1 do
       begin
-        ItemsNodesFreeOccurred := false;
         Result := CallPress(RayHit[I], Distance);
-        if ItemsNodesFreeOccurred then
-          Break;
+
         if Result then
         begin
           { This check avoids assigning to CapturePointingDevice something
             that is no longer part of our Items after it handled PointingDevicePress. }
           if RayHit[I].Item.World = Items then
             CapturePointingDevice := RayHit[I].Item;
+          Exit;
+        end;
+
+        { In case CallPress caused some ClearMouseRayHit call,
+          we may have FMouseRayHit (and thus RayHit) invalidated in the middle
+          of iterating over it.
+          Check it, and abort iteration then.
+          Testcase: anchor_test on castle-model-viewer (crashes without this check).
+          See TCastleViewport.ItemsNodesFree for detailed description of this testcase. }
+        if not FMouseRayHitValid then
+        begin
+          {.$define CASTLE_DEBUG_MouseRayHitValid_Check}
+          {$ifdef CASTLE_DEBUG_MouseRayHitValid_Check}
+          WritelnWarning('MouseRayHit changed during PointingDevicePress iteration (even though TCastleTransform handler answered "false"), aborting iteration');
+          {$endif CASTLE_DEBUG_MouseRayHitValid_Check}
           Exit;
         end;
       end;
@@ -3866,12 +3874,27 @@ function TCastleViewport.PointingDeviceRelease: Boolean;
     // call TCastleTransform.PointingDeviceRelease on remaining items on RayHit
     if RayHit <> nil then
       for I := 0 to RayHit.Count - 1 do
+      begin
         if (CapturePointingDevice = nil) or
            (CapturePointingDevice <> RayHit[I].Item) then
         begin
           Result := CallRelease(RayHit[I], Distance);
           if Result then Exit;
         end;
+
+        { In case CallRelease caused some ClearMouseRayHit call,
+          we may have FMouseRayHit (and thus RayHit) invalidated in the middle
+          of iterating over it.
+          Check it, and abort iteration then.
+          This is consistent with PointingDevicePress, Move. }
+        if not FMouseRayHitValid then
+        begin
+          {$ifdef CASTLE_DEBUG_MouseRayHitValid_Check}
+          WritelnWarning('MouseRayHit changed during PointingDeviceRelease iteration (even though TCastleTransform handler answered "false"), aborting iteration');
+          {$endif CASTLE_DEBUG_MouseRayHitValid_Check}
+          Exit;
+        end
+      end;
   end;
 
 begin
@@ -3915,17 +3938,41 @@ function TCastleViewport.PointingDeviceMove: boolean;
       else
         Result := CallMove(FakeRayCollisionNode(RayOrigin, RayDirection, CapturePointingDevice), Distance);
       if Result then Exit;
+
+      if not FMouseRayHitValid then
+      begin
+        {$ifdef CASTLE_DEBUG_MouseRayHitValid_Check}
+        WritelnWarning('MouseRayHit changed during CapturePointingDevice.PointingDeviceMove processing (even though TCastleTransform handler answered "false"), aborting iteration');
+        {$endif CASTLE_DEBUG_MouseRayHitValid_Check}
+        Exit;
+      end;
     end;
 
     // call TCastleTransform.PointingDeviceMove on remaining items on RayHit
     if RayHit <> nil then
       for I := 0 to RayHit.Count - 1 do
+      begin
         if (CapturePointingDevice = nil) or
            (CapturePointingDevice <> RayHit[I].Item) then
         begin
           Result := CallMove(RayHit[I], Distance);
           if Result then Exit;
         end;
+
+        { In case CallMove caused some ClearMouseRayHit call,
+          we may have FMouseRayHit (and thus RayHit) invalidated in the middle
+          of iterating over it.
+          Check it, and abort iteration then.
+          Testcase: examples/ifc/,  drag column in columns.ifcjson,
+          without this fix -> would cause range check error. }
+        if not FMouseRayHitValid then
+        begin
+          {$ifdef CASTLE_DEBUG_MouseRayHitValid_Check}
+          WritelnWarning('MouseRayHit changed during PointingDeviceMove iteration (even though TCastleTransform handler answered "false"), aborting iteration');
+          {$endif CASTLE_DEBUG_MouseRayHitValid_Check}
+          Exit;
+        end;
+      end;
 
     // call MainScene.PointingDeviceMove, to allow to update X3D sensors "isOver"
     {$warnings off} // using deprecated MainScene to keep it working
