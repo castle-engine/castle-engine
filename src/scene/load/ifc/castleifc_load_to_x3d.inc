@@ -53,6 +53,9 @@
         2. moreover, the product may really be represented by multiple shapes. }
       ShapeToProduct: TShapeToProduct;
 
+      { Used by ShowDebugShapeCallback and ShowDebugShapes. }
+      ShowDebugShapeValue: Boolean;
+
     { Use ObjectPlacementToParentNodes and ChildrenNodesToObjectPlacement
       to move the nodes (change parents) to reflect
       TIfcObjectPlacement.PlacementRelTo instructions. }
@@ -95,6 +98,8 @@
       overrides, that may get @nil Product. }
     procedure ConnectShapeAndProduct(const Shape: TAbstractShapeNode;
       const Product: TIfcProduct);
+
+    procedure ShowDebugShapeCallback(Node: TX3DNode);
   public
     constructor Create;
     destructor Destroy; override;
@@ -144,6 +149,11 @@
 
       @seealso NodeToProduct }
     function ProductToNodes(const Product: TIfcProduct): TX3DNodeList;
+
+    { Show or hide the IFC debug geometry (just @code(IfcBoundingBox) now).
+      This only updates the display (X3D nodes in @link(RootNode)),
+      not IFC state. }
+    procedure ShowDebugShapes(const Show: Boolean);
   end;
 
 {$endif read_interface_types}
@@ -542,6 +552,26 @@ begin
   for Pair in ShapeToProduct do
     if Pair.Value = Product then
       Result.Add(Pair.Key);
+end;
+
+procedure TCastleIfcMapping.ShowDebugShapeCallback(Node: TX3DNode);
+var
+  ShapeNode: TShapeNode;
+begin
+  { Change the visibility of shapes representing IfcBoundingBox }
+  ShapeNode := Node as TShapeNode; // our EnumerateNodes call finds only TShapeNode
+  if ShapeNode.MetadataString['IFC_ClassName'] = 'TIfcBoundingBox' then
+    ShapeNode.Visible := ShowDebugShapeValue;
+end;
+
+procedure TCastleIfcMapping.ShowDebugShapes(const Show: Boolean);
+begin
+  if FRootNode <> nil then
+  begin
+    ShowDebugShapeValue := Show;
+    FRootNode.EnumerateNodes(TShapeNode,
+      {$ifdef FPC}@{$endif} ShowDebugShapeCallback, false);
+  end;
 end;
 
 { BuildNode methods implementations ----------------------------------------- }
@@ -1438,6 +1468,7 @@ begin
   Shape := TShapeNode.Create('', Mapping.BaseUrl);
   Shape.Geometry := Box;
   Shape.Appearance := UnlitAppearance;
+  Shape.Visible := false; // ShowDebugShapes can toggle it later
 
   { Set IFC_ClassName on Shape, not Transform.
     This is consistent with other TShapeNode creation,
