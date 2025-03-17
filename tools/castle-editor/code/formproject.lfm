@@ -201,17 +201,17 @@ object ProjectForm: TProjectForm
           AutoSortIndicator = True
           AutoWidthLastColumn = True
           BorderSpacing.Around = 10
-          Columns = <
+          Columns = <          
             item
               AutoSize = True
               Caption = 'Name'
               MinWidth = 209
               Width = 209
-            end
+            end          
             item
               Caption = 'File'
               Width = 626
-            end
+            end          
             item
               Caption = 'Last Modified'
               Width = 378
@@ -349,6 +349,9 @@ object ProjectForm: TProjectForm
       end
       object MenuItemDuplicateComponent: TMenuItem
         Action = ActionComponentDuplicate
+      end
+      object MenuItemDuplicateLinkedComponent: TMenuItem
+        Action = ActionComponentDuplicateLinked
       end
       object MenuItem15: TMenuItem
         Action = ActionComponentCut
@@ -1435,6 +1438,12 @@ object ProjectForm: TProjectForm
       Category = 'Run'
       Caption = 'Uninstall'
       OnExecute = ActionUnInstallExecute
+    end
+    object ActionComponentDuplicateLinked: TAction
+      Category = 'Edit'
+      Caption = 'Duplicate Linked (TCastleTransformReference)'
+      OnExecute = ActionComponentDuplicateLinkedExecute
+      ShortCut = 24644
     end
   end
   object OpenPascalUnitDialog: TCastleOpenPascalUnitDialog

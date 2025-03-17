@@ -73,6 +73,7 @@ type
     LabelSimulation: TLabel;
     LabelSizeInfo: TLabel;
     MemoInfo: TMemo;
+    MenuTreeViewItemDuplicateLinked: TMenuItem;
     PanelSpinEditAllowVerticalCentering: TPanel;
     ExportToModelDialog: TCastleSaveDialog;
     SeparatorBeforeChangeClass: TMenuItem;
@@ -161,6 +162,7 @@ type
     procedure FrameResize(Sender: TObject);
     procedure MenuItemAddComponentClick(Sender: TObject);
     procedure MenuTreeViewItemCutClick(Sender: TObject);
+    procedure MenuTreeViewItemDuplicateLinkedClick(Sender: TObject);
     procedure MenuTreeViewItemRenameClick(Sender: TObject);
     procedure MenuTreeViewItemDeleteClick(Sender: TObject);
     procedure MenuTreeViewItemCopyClick(Sender: TObject);
@@ -596,6 +598,7 @@ type
     procedure PasteComponent;
     procedure CutComponent;
     procedure DuplicateComponent;
+    procedure DuplicateLinkedComponent;
 
     function AddComponentFromUrl(const AddUrl: String;
       const ParentComponent: TComponent): TComponent;
@@ -2673,6 +2676,11 @@ begin
       ErrorBox('To duplicate, select TCastleUserInterface, TCastleTransform or TCastleComponent component');
   end else
     ErrorBox('To duplicate, select exactly one component that is not a subcomponent');
+end;
+
+procedure TDesignFrame.DuplicateLinkedComponent;
+begin
+  ShowMessage('TODO: DuplicateLinkedComponent');
 end;
 
 function TDesignFrame.SelectedViewport: TCastleViewport;
@@ -5998,6 +6006,11 @@ begin
   CutComponent;
 end;
 
+procedure TDesignFrame.MenuTreeViewItemDuplicateLinkedClick(Sender: TObject);
+begin
+  DuplicateLinkedComponent;
+end;
+
 procedure TDesignFrame.MenuTreeViewItemRenameClick(Sender: TObject);
 begin
   RenameSelectedItem;
@@ -6087,6 +6100,7 @@ begin
 
   MenuTreeViewItemRename.Enabled := RenameSelectedPossible;
   MenuTreeViewItemDuplicate.Enabled := Sel <> nil;
+  MenuTreeViewItemDuplicateLinked.Enabled := Sel <> nil;
   MenuTreeViewItemCut.Enabled := Sel <> nil;
   MenuTreeViewItemCopy.Enabled := Sel <> nil;
   MenuTreeViewItemSaveSelected.Enabled := Sel <> nil;
