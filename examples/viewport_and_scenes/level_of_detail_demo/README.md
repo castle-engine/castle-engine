@@ -18,9 +18,13 @@ Simple demo of using _LOD (Level Of Detail)_ with a 3D model.
 
         For more efficient loading, turn on `TCastleScene.Cache`. This makes sense if you have many `TCastleScene` instances using the same URL.
 
-![Screenshot](screenshot.png)
-
 Using [Castle Game Engine](https://castle-engine.io/).
+
+## Screenshots
+
+![Screenshot 1](screenshot_1.png)
+![Screenshot 2](screenshot_2.png)
+![Editor screenshot](screenshot_editor.png)
 
 ## Building
 
