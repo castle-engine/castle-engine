@@ -611,6 +611,9 @@
   {$undef USE_VAMPYRE_IMAGING} // Vampyre Imaging doesn't work with WASI
   // CastleDynLibs on WASI not tested
   {$undef ALLOW_DLOPEN_FROM_UNIT_INITIALIZATION}
+  { Web target doesn't support try..except, so we report some errors
+    without causing exceptions in this case. }
+  {$define CASTLE_CANNOT_CATCH_EXCEPTIONS}
 {$endif}
 
 { Workaround ParamStr issue -------------------------------------------------- }
