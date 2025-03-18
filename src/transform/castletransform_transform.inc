@@ -1754,7 +1754,7 @@
     property ScaleOrientation: TVector4 read FScaleOrientation write SetScaleOrientation;
 
     { Make the transform do nothing --- zero @link(Translation), zero @link(Rotation),
-      @link(Scale) to one. Also resets @link(ScaleOrientation). }
+      @link(Scale) to one. Also resets @link(ScaleOrientation) and @link(Center). }
     procedure Identity;
 
     { Current TCastleRigidBody behavior that determines do we
