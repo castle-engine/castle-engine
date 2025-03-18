@@ -6,7 +6,17 @@ Simple demo of using _LOD (Level Of Detail)_ with a 3D model.
 
 - To use the model with LOD, just load `castle-data:/monkey_lod.x3dv` into a `TCastleScene` instance.
 
-- Be sure to turn on the `TCastleScene.ProcessEvents` to make LOD switching work. Also, it's advised to turn on `TCastleScene.Cache` to speed up loading, if you have many models using the same URL (which in this case, you will most often do).
+- To display multiple versions of the model ("monkey" in our example), you have 2 options:
+
+    1. If all the monkeys share the same state (e.g. play the same moment of the same animation, or are static) then use _"Duplicate Linked (TCastleTransformReference)"_ that creates multipled references (instances of `TCastleTransformReference`) to a single `TCastleScene` instance.
+
+        This is very memory-efficient, because even if you display million times the same model, you still have only one copy of the model in memory.
+
+        So this is advised, and adequate for this example, when the monkeys don't have any animation at all.
+
+    2. If the instances may need to have a different state (e.g. play a different moment and/or a different animation, e.g. it's a crowd of people) then you should create multiple `TCastleScene` instances. Use the _"Duplicate"_ option in the editor.
+
+        For more efficient loading, turn on `TCastleScene.Cache`. This makes sense if you have many `TCastleScene` instances using the same URL.
 
 ![Screenshot](screenshot.png)
 

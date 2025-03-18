@@ -3997,6 +3997,259 @@
                 ]
               }
             ]
+          },
+          {
+            "$$ClassName" : "TCastleTransform",
+            "Name" : "ReferencedMonkeyBigGroup",
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : -7.5197151184082031E+001,
+              "Y" : 1.4580483436584473E+000,
+              "Z" : 7.0635192871093750E+001
+            },
+            "$Children" : [
+              {
+                "$$ClassName" : "TCastleTransform",
+                "Name" : "ReferencedMonkeyGroup",
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "X" : -9.4745681762695312E+001
+                },
+                "$Children" : [
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "ReferencedMonkeyScene",
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "Url" : "castle-data:/monkey_lod.x3dv"
+                  },
+                  {
+                    "$$ClassName" : "TCastleTransformReference",
+                    "Name" : "ReferenceReferencedMonkeyScene1",
+                    "Reference" : "ReferencedMonkeyScene",
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : -4.1421952247619629E+000
+                    }
+                  },
+                  {
+                    "$$ClassName" : "TCastleTransformReference",
+                    "Name" : "ReferenceReferencedMonkeyScene2",
+                    "Reference" : "ReferencedMonkeyScene",
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : -9.1061010360717773E+000
+                    }
+                  },
+                  {
+                    "$$ClassName" : "TCastleTransformReference",
+                    "Name" : "ReferenceReferencedMonkeyScene3",
+                    "Reference" : "ReferencedMonkeyScene",
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : -1.6026475906372070E+001
+                    }
+                  },
+                  {
+                    "$$ClassName" : "TCastleTransformReference",
+                    "Name" : "ReferenceReferencedMonkeyScene4",
+                    "Reference" : "ReferencedMonkeyScene",
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : -1.6430381774902344E+001,
+                      "Z" : -1.4802767753601074E+001
+                    }
+                  },
+                  {
+                    "$$ClassName" : "TCastleTransformReference",
+                    "Name" : "ReferenceReferencedMonkeyScene7",
+                    "Reference" : "ReferencedMonkeyScene",
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : -1.0019565582275391E+001,
+                      "Z" : -1.4802767753601074E+001
+                    }
+                  },
+                  {
+                    "$$ClassName" : "TCastleTransformReference",
+                    "Name" : "ReferenceReferencedMonkeyScene8",
+                    "Reference" : "ReferencedMonkeyScene",
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : -1.2538156509399414E+000,
+                      "Z" : -1.4802767753601074E+001
+                    }
+                  },
+                  {
+                    "$$ClassName" : "TCastleTransformReference",
+                    "Name" : "ReferenceReferencedMonkeyScene9",
+                    "Reference" : "ReferencedMonkeyScene",
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 6.0031142234802246E+000,
+                      "Z" : -1.4802767753601074E+001
+                    }
+                  },
+                  {
+                    "$$ClassName" : "TCastleTransformReference",
+                    "Name" : "ReferenceReferencedMonkeyScene10",
+                    "Reference" : "ReferencedMonkeyScene",
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : -1.0025510787963867E+001,
+                      "Z" : -2.7512519836425781E+001
+                    }
+                  },
+                  {
+                    "$$ClassName" : "TCastleTransformReference",
+                    "Name" : "ReferenceReferencedMonkeyScene12",
+                    "Reference" : "ReferencedMonkeyScene",
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : -1.5054407119750977E+000,
+                      "Z" : -2.7512519836425781E+001
+                    }
+                  },
+                  {
+                    "$$ClassName" : "TCastleTransformReference",
+                    "Name" : "ReferenceReferencedMonkeyScene13",
+                    "Reference" : "ReferencedMonkeyScene",
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : -2.1764572143554688E+001,
+                      "Z" : -2.7512519836425781E+001
+                    }
+                  },
+                  {
+                    "$$ClassName" : "TCastleTransformReference",
+                    "Name" : "ReferenceReferencedMonkeyScene11",
+                    "Reference" : "ReferencedMonkeyScene",
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : 6.0031142234802246E+000,
+                      "Z" : -2.7512519836425781E+001
+                    }
+                  },
+                  {
+                    "$$ClassName" : "TCastleTransformReference",
+                    "Name" : "ReferenceReferencedMonkeyScene6",
+                    "Reference" : "ReferencedMonkeyScene",
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : -2.2757328033447266E+001,
+                      "Z" : -1.4802767753601074E+001
+                    }
+                  },
+                  {
+                    "$$ClassName" : "TCastleTransformReference",
+                    "Name" : "ReferenceReferencedMonkeyScene5",
+                    "Reference" : "ReferencedMonkeyScene",
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "X" : -2.2757328033447266E+001
+                    }
+                  }
+                ]
+              },
+              {
+                "$$ClassName" : "TCastleTransformReference",
+                "Name" : "ReferenceReferencedMonkeyGroup1",
+                "Reference" : "ReferencedMonkeyGroup",
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "X" : -9.4745681762695312E+001,
+                  "Z" : -3.8711124420166016E+001
+                }
+              },
+              {
+                "$$ClassName" : "TCastleTransformReference",
+                "Name" : "ReferenceReferencedMonkeyGroup2",
+                "Reference" : "ReferencedMonkeyGroup",
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "X" : -5.5847541809082031E+001,
+                  "Z" : -3.8711124420166016E+001
+                }
+              },
+              {
+                "$$ClassName" : "TCastleTransformReference",
+                "Name" : "ReferenceReferencedMonkeyGroup3",
+                "Reference" : "ReferencedMonkeyGroup",
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "X" : -5.5847541809082031E+001,
+                  "Z" : 5.3573942184448242E-001
+                }
+              }
+            ]
+          },
+          {
+            "$$ClassName" : "TCastleTransformReference",
+            "Name" : "ReferenceReferencedMonkeyBigGroup1",
+            "Reference" : "ReferencedMonkeyBigGroup",
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : -7.5197151184082031E+001,
+              "Y" : 1.4580483436584473E+000,
+              "Z" : -3.0000000000000000E+001
+            }
+          },
+          {
+            "$$ClassName" : "TCastleText",
+            "Alignment" : "hpMiddle",
+            "ColorPersistent" : {
+              "$$ClassName" : "TCastleColorPersistent",
+              "Blue" : 0.0000000000000000E+000,
+              "Green" : 0.0000000000000000E+000,
+              "Red" : 0.0000000000000000E+000
+            },
+            "Name" : "Text1",
+            "RenderOptions" : {
+              "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+            },
+            "Size" : 4.0000000000000000E+000,
+            "Text" : [
+              "LOD monkeys:",
+              "- Many TCastleScene",
+              "- No TCastleTransformReference",
+              "- More resource usage, ",
+              "but each monkey could play different animation"
+            ],
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : -8.0846519470214844E+000,
+              "Y" : 5.0605401992797852E+000,
+              "Z" : 2.2410751342773438E+001
+            }
+          },
+          {
+            "$$ClassName" : "TCastleText",
+            "Alignment" : "hpMiddle",
+            "ColorPersistent" : {
+              "$$ClassName" : "TCastleColorPersistent",
+              "Blue" : 0.0000000000000000E+000,
+              "Green" : 0.0000000000000000E+000,
+              "Red" : 0.0000000000000000E+000
+            },
+            "Name" : "Text2",
+            "RenderOptions" : {
+              "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+            },
+            "Size" : 4.0000000000000000E+000,
+            "Text" : [
+              "LOD monkeys:",
+              "- Only 1x TCastleScene",
+              "- Many TCastleTransformReference"
+            ],
+            "TranslationPersistent" : {
+              "$$ClassName" : "TCastleVector3Persistent",
+              "X" : -1.5046311950683594E+002,
+              "Y" : 1.2818340301513672E+001,
+              "Z" : 2.1898662567138672E+001
+            }
           }
         ]
       },
@@ -4026,16 +4279,21 @@
         },
         "RotationPersistent" : {
           "$$ClassName" : "TCastleVector4RotationPersistent",
-          "W" : 5.8445081114768982E-002,
-          "X" : -9.2173463106155396E-001,
-          "Y" : 3.8777613639831543E-001,
-          "Z" : 5.9056468307971954E-003
+          "W" : 1.3112130761146545E-001,
+          "X" : -8.7845349311828613E-001,
+          "Y" : 4.7769045829772949E-001,
+          "Z" : 1.1461403220891953E-002
+        },
+        "ScalePersistent" : {
+          "$$ClassName" : "TCastleVector3Persistent",
+          "X" : 9.9999994039535522E-001,
+          "Y" : 9.9999994039535522E-001
         },
         "TranslationPersistent" : {
           "$$ClassName" : "TCastleVector3Persistent",
-          "X" : -1.0293448448181152E+001,
-          "Y" : 5.0677752494812012E+000,
-          "Z" : 8.6423866271972656E+001
+          "X" : -1.1913979339599609E+002,
+          "Y" : 3.0975885391235352E+001,
+          "Z" : 1.6030221557617188E+002
         }
       },
       "InternalDesignNavigations[dnFly]" : {

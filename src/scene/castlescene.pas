@@ -1176,8 +1176,7 @@ begin
     ForceOpaque := not (RenderOptions.Blending and (RenderOptions.Mode = rmFull));
 
     // DistanceCullingCheck* uses this value, and it may be called here
-    RenderCameraPosition := Params.Transformation^.InverseTransform.MultPoint(
-      Params.RenderingCamera.View.Translation);
+    RenderCameraPosition := Params.LocalCameraPosition;
 
     { calculate and check SceneBox }
     SceneBox := LocalBoundingBox.Transform(Params.Transformation^.Transform);
@@ -1566,8 +1565,7 @@ begin
     end;
 
     // RenderCameraPosition is used by DistanceCullingCheck* below
-    RenderCameraPosition := Params.Transformation^.InverseTransform.MultPoint(
-      Params.RenderingCamera.View.Translation);
+    RenderCameraPosition := Params.LocalCameraPosition;
 
     { Do distance culling for whole scene.
       When WholeSceneManifold=true, this is the only place where
