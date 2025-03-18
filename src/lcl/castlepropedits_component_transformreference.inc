@@ -53,6 +53,16 @@ procedure TCastleTransformReferenceComponentEditor.ExecuteVerb(Index: Integer);
     if C.Reference <> nil then
     begin
       NewChild := ComponentClone(C.Reference, C.Owner) as TCastleTransform;
+      { Make NewChild appear in the same place as C.Reference,
+        so we need to cancel transformation that is inverted by
+        TCastleTransformReference.LocalRender . }
+      case C.ReferenceTransformation of
+        rtIgnoreTransform:
+          NewChild.Identity;
+        rtIgnoreTranslation:
+          NewChild.Translation := TVector3.Zero;
+        else ; // nothing when rtDoNotIgnore
+      end;
       C.Add(NewChild);
 
       InternalCastleDesignInvalidate := true;
