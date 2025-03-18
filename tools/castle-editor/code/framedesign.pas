@@ -2756,7 +2756,7 @@ procedure TDesignFrame.DuplicateLinkedComponent;
     NewReference.Translation := Selected.Translation;
     NewReference.Rotation := Selected.Rotation;
     NewReference.Scale := Selected.Scale;
-    NewReference.Orientation := Selected.Orientation;
+    NewReference.Center := Selected.Center;
     NewReference.ScaleOrientation := Selected.ScaleOrientation;
 
     FinishAddingComponent(NewReference);
