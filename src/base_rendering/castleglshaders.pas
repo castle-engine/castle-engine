@@ -1,5 +1,5 @@
 {
-  Copyright 2007-2024 Michalis Kamburelis.
+  Copyright 2007-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -303,6 +303,14 @@ type
   public
     { Shader name is used in log messages. Any String is OK. }
     Name: String;
+
+    {$ifdef CASTLE_CANNOT_CATCH_EXCEPTIONS}
+    { Web target doesn't support try..except, so we use this field
+      to report that AttachShader or Link caused an error.
+      WritelnWarning with details was already generated.
+      Non-web targets should not rely on this, exceptions signal errors. }
+    ErrorOnCompileLink: Boolean;
+    {$endif}
 
     { Is fragment shader required to link successfully.
 
@@ -1315,6 +1323,10 @@ begin
     FUniformLocations.Clear;
   if FAttributeLocations <> nil then
     FAttributeLocations.Clear;
+
+  {$ifdef CASTLE_CANNOT_CATCH_EXCEPTIONS}
+  ErrorOnCompileLink := false;
+  {$endif}
 end;
 
 procedure TGLSLProgram.OnGlContextClose(Sender: TObject);
@@ -1565,9 +1577,18 @@ var
     EGLSLShaderCompileError (that will result in simple warning and fallback
     on fixed-function pipeline) instead of crash. }
   procedure ReportCompileAccessViolation;
+  var
+    Message: String;
   begin
-    raise EGLSLShaderCompileError.CreateFmt('%s shader not compiled, segmentation fault in glCompileShader call. Buggy OpenGL GLSL compiler.',
+    Message := Format('%s shader not compiled, segmentation fault in glCompileShader call. Buggy OpenGL GLSL compiler.',
       [ShaderTypeName[ShaderType]]);
+
+    {$ifdef CASTLE_CANNOT_CATCH_EXCEPTIONS}
+    WritelnWarning('GLSL', Message);
+    ErrorOnCompileLink := true;
+    {$else}
+    raise EGLSLShaderCompileError.Create(Message);
+    {$endif}
   end;
 
   procedure ReportCompileError(const CompileErrorMessage: String);
@@ -1585,7 +1606,12 @@ var
       S + NL +
       '-------------------------------------------------------';
 
+    {$ifdef CASTLE_CANNOT_CATCH_EXCEPTIONS}
+    WritelnWarning('GLSL', Message);
+    ErrorOnCompileLink := true;
+    {$else}
     raise EGLSLShaderCompileError.Create(Message);
+    {$endif}
   end;
 
   { Create a shader, adding sources and compiling it.
@@ -1776,6 +1802,11 @@ begin
       [ShaderType] + S;
 
   ShaderId := CreateShader(S);
+
+  {$ifdef CASTLE_CANNOT_CATCH_EXCEPTIONS}
+  if ErrorOnCompileLink then Exit;
+  {$endif}
+
   glAttachShader(ProgramId, ShaderId);
   ShaderIds.Add(ShaderId);
 
@@ -1917,11 +1948,19 @@ procedure TGLSLProgram.Link;
   end;
 
   procedure ReportLinkError(const LinkErrorMessage: String);
+  var
+    Message: String;
   begin
-    raise EGLSLProgramLinkError.Create(
-      Format('Shader "%s" not linked:', [Name]) + NL +
+    Message := Format('Shader "%s" not linked:', [Name]) + NL +
       LinkErrorMessage +
-      LogShaderCode);
+      LogShaderCode;
+
+    {$ifdef CASTLE_CANNOT_CATCH_EXCEPTIONS}
+    WritelnWarning('GLSL', Message);
+    ErrorOnCompileLink := true;
+    {$else}
+    raise EGLSLProgramLinkError.Create(Message);
+    {$endif}
   end;
 
 var
@@ -1951,6 +1990,10 @@ begin
     if not Linked then
       // raises exception
       ReportLinkError(GetProgramInfoLog(ProgramId));
+
+    {$ifdef CASTLE_CANNOT_CATCH_EXCEPTIONS}
+    if ErrorOnCompileLink then Exit;
+    {$endif}
 
     if LogShaders then
       WritelnLogMultiline('GLSL',

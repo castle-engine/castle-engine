@@ -2101,9 +2101,19 @@ begin
       raise EGLSLError.Create('No vertex and no fragment shader for GLSL program');
 
     for ShaderType := Low(ShaderType) to High(ShaderType) do
+    begin
       AProgram.AttachShader(ShaderType, Source[ShaderType]);
+      {$ifdef CASTLE_CANNOT_CATCH_EXCEPTIONS}
+      if AProgram.ErrorOnCompileLink then Exit;
+      {$endif}
+    end;
+
     AProgram.Name := 'TShader:Shape:' + ShapeNiceName;
     AProgram.Link;
+
+    {$ifdef CASTLE_CANNOT_CATCH_EXCEPTIONS}
+    if AProgram.ErrorOnCompileLink then Exit;
+    {$endif}
 
     if SelectedNode <> nil then
       SelectedNode.EventIsValid.Send(true);

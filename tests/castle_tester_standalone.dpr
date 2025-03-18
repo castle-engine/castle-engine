@@ -103,7 +103,8 @@ uses
   TestCastleInternalTools,
   TestX3DLoadInternalCocos2d,
   TestCastleIfc,
-  TestCastleZip;
+  TestCastleZip,
+  TestCastleInternalUrlUtils;
 
 var
   ConsoleTester: TCastleConsoleTester;

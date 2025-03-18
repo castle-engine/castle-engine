@@ -43,6 +43,7 @@ const
 type
   { Main project management. }
   TProjectForm = class(TForm)
+    ActionComponentDuplicateLinked: TAction;
     ActionUnInstall: TAction;
     ActionDevices: TAction;
     ActionSavePlatformAsDefault: TAction;
@@ -113,6 +114,7 @@ type
     BitBtnNewView: TBitBtn;
     LabelOpenExistingView: TLabel;
     ListOpenExistingView: TListView;
+    MenuItemDuplicateLinkedComponent: TMenuItem;
     MenuItem10: TMenuItem;
     MenuItem11: TMenuItem;
     MenuItemNavigationFly: TMenuItem;
@@ -347,6 +349,7 @@ type
     TabOutput: TTabSheet;
     ProcessUpdateTimer: TTimer;
     TabWarnings: TTabSheet;
+    procedure ActionComponentDuplicateLinkedExecute(Sender: TObject);
     procedure ActionCopyUrlExecute(Sender: TObject);
     procedure ActionExportToModelExecute(Sender: TObject);
     procedure ActionFindNextExecute(Sender: TObject);
@@ -1041,6 +1044,12 @@ begin
     Url := MaybeUseDataProtocol(Url);
     Clipboard.AsText := Url;
   end;
+end;
+
+procedure TProjectForm.ActionComponentDuplicateLinkedExecute(Sender: TObject);
+begin
+  Assert(Design <> nil); // menu item is disabled otherwise
+  Design.DuplicateLinkedComponent;
 end;
 
 procedure TProjectForm.ActionExportToModelExecute(Sender: TObject);
@@ -2574,6 +2583,7 @@ begin
   ActionComponentPaste.Enabled := Design <> nil;
   ActionComponentCut.Enabled := Design <> nil;
   ActionComponentDuplicate.Enabled := Design <> nil;
+  ActionComponentDuplicateLinked.Enabled := Design <> nil;
   ActionComponentSaveSelected.Enabled := Design <> nil;
   ActionEditAssociatedUnit.Enabled := Design <> nil;
   ActionFocusDesign.Enabled := Design <> nil;
