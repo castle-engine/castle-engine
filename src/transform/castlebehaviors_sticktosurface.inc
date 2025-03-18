@@ -100,6 +100,12 @@ end;
 
 procedure TCastleStickToSurface.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
 
+  { Find a position of collision point with Target.
+    Returned position is in the coordinate system of Target.Parent
+    (or world, if Target.Parent = nil).
+
+    @raises(EInternalError If no collision with Target.
+      Use this only when such collision should definitely happen.)  }
   function FindPositionInTarget(const RayCollision: TRayCollision): TVector3;
   var
     I: Integer;
@@ -152,8 +158,12 @@ begin
     if RayCollision <> nil then
     try
       Collision := FindPositionInTarget(RayCollision);
-      { Convert collision from Target coordinate system to Parent.Parent }
-      Collision := Parent.Parent.WorldToLocal(Target.LocalToWorld(Collision));
+      { Convert collision from Target.Parent coordinate system to world.
+        Testcase: move Terrain in examples/terrain/, trees should follow. }
+      if Target.Parent <> nil then
+        Collision := Target.Parent.LocalToWorld(Collision);
+      { Convert collision from world to Parent.Parent }
+      Collision := Parent.Parent.WorldToLocal(Collision);
       Parent.Translation := Collision;
     finally FreeAndNil(RayCollision) end;
   end;
