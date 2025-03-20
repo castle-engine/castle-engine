@@ -383,6 +383,9 @@ type
       which is nice to let FPC print backtrace of exception to console,
       if outside code will just let unhandled exception to break the program.
 
+      Note that for platforms where CASTLE_CANNOT_CATCH_EXCEPTIONS
+      is defined by castleconf.inc, the behavior is always as if this was @true .
+
       Default @true is suitable for console version. }
     property StopOnFirstFail: Boolean read FStopOnFirstFail
       write FStopOnFirstFail default true;
