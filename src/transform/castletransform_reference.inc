@@ -1,6 +1,6 @@
 {%MainUnit castletransform.pas}
 {
-  Copyright 2017-2022 Michalis Kamburelis.
+  Copyright 2017-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -17,15 +17,69 @@
 {$ifdef read_interface}
 
 //type
+  { How do we treat the transformation of @link(TCastleTransformReference.Reference)
+    when rendering TCastleTransformReference. }
+  TReferenceTransformation = (
+    { Transformation of the referenced object
+      (@link(TCastleTransformReference.Reference))
+      is completely ignored when it is rendered inside @link(TCastleTransformReference).
+
+      This means you can translate, rotate, scale the referenced object
+      without it having any effect on how it is displayed inside
+      @link(TCastleTransformReference).
+
+      Note that we ignore only the @italic(direct) transformation of the
+      referenced object. We never ignore transformations inside its children. }
+    rtIgnoreTransform,
+
+    { Translation (movement) of the referenced object
+      (@link(TCastleTransformReference.Reference)) is ignored
+      when it is rendered inside @link(TCastleTransformReference).
+
+      The rest (rotation, scaling) of the transformation is applied.
+
+      This means you can translate the referenced object
+      without it having any effect on how it is displayed inside
+      @link(TCastleTransformReference).
+      However, rotating or scaling it will rotate/scale all the instances. }
+    rtIgnoreTranslation,
+
+    { Transformation of the referenced object
+      (@link(TCastleTransformReference.Reference))
+      is completely applied when it is rendered inside @link(TCastleTransformReference).
+
+      This means that moving, rotating, scaling the referenced object
+      will also move every instance of it inside @link(TCastleTransformReference).
+
+      This was the default engine behavior in Castle Game Engine version
+      7.0-alpha.3 before 2025-03-06. }
+    rtDoNotIgnore
+  );
+
   { Reference another TCastleTransform instance, to render one TCastleTransform
     multiple times within the same viewport. }
   TCastleTransformReference = class(TCastleTransform)
   strict private
-    FReference: TCastleTransform;
-    FReferenceObserver: TFreeNotificationObserver;
+    FReference, FRevertReference: TCastleTransform;
+    FReferenceObserver, FRevertReferenceObserver: TFreeNotificationObserver;
     FReferenceWrapper: TCastleTransform;
+    FReferenceTransformation: TReferenceTransformation;
+    { Last frame FReference.InverseTransform (that was used to calculate
+      FReferenceWrapper transform).
+
+      Only valid if LastReferenceInverseTransformValid.
+
+      Using this is an optimization to avoid recalculating MatrixDecompose,
+      sensible because in most cases and frames the FReference.InverseTransform
+      stays equal. }
+    LastReferenceInverseTransform: TMatrix4;
+    LastReferenceInverseTransformValid: Boolean;
     procedure SetReference(const Value: TCastleTransform);
+    procedure SetRevertReference(const Value: TCastleTransform);
     procedure ReferenceFreeNotification(const Sender: TFreeNotificationObserver);
+    procedure RevertReferenceFreeNotification(const Sender: TFreeNotificationObserver);
+  protected
+    procedure LocalRender(const Params: TRenderParams); override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -48,6 +102,31 @@
       the same TCastleTransform instance are present in multiple viewports.
       See https://castle-engine.io/multiple_viewports_to_display_one_world . }
     property Reference: TCastleTransform read FReference write SetReference;
+
+    { Not displayed, used only for the "Revert To Referenced Transform"
+      feature in the editor. }
+    property RevertReference: TCastleTransform read FRevertReference write SetRevertReference;
+
+    { How do we treat the transformation of @link(TCastleTransformReference.Reference)
+      when rendering TCastleTransformReference.
+
+      @unorderedList(
+        @item(By default this is @link(rtIgnoreTransform),
+          which means that moving, rotating or scaling the referenced object has
+          no effect on how it is displayed inside TCastleTransformReference referring
+          to it.)
+        @item(You can change it to @link(rtIgnoreTranslation)
+          (moving referenced object has
+          no effect, but rotating or scaling it will affect all instances).)
+        @item(You can also change it to @link(rtDoNotIgnore)
+          (moving, rotating, scaling the referenced object
+          will also move every instance of it inside TCastleTransformReference).)
+      )
+
+      @seealso TReferenceTransformation }
+    property ReferenceTransformation: TReferenceTransformation
+      read FReferenceTransformation write FReferenceTransformation
+      default rtIgnoreTransform;
   end;
 
 {$endif read_interface}
@@ -60,12 +139,21 @@ constructor TCastleTransformReference.Create(AOwner: TComponent);
 begin
   inherited;
   FReferenceObserver := TFreeNotificationObserver.Create(Self);
-  FReferenceObserver.OnFreeNotification := {$ifdef FPC}@{$endif}ReferenceFreeNotification;
+  FReferenceObserver.OnFreeNotification :=
+    {$ifdef FPC}@{$endif}ReferenceFreeNotification;
+
+  FRevertReferenceObserver := TFreeNotificationObserver.Create(Self);
+  FRevertReferenceObserver.OnFreeNotification :=
+    {$ifdef FPC}@{$endif}RevertReferenceFreeNotification;
+
   { FReference will be child of FReferenceWrapper, not directly of us.
-    This way we avoid serializing it easily. }
+    This way we avoid serializing it easily.
+    Also this allows to implement ReferenceTransformation = rtIgnoreXxx,
+    by modifying transformation of FReferenceWrapper in LocalRender. }
+
   FReferenceWrapper := TCastleTransform.Create(Self);
   FReferenceWrapper.SetTransient;
-  { This means that TCastleTransformReference will not modify children's Parent,
+  { This means that FReferenceWrapper will not be set as FReference.Parent,
     which in turn means it will nicely work in CGE editor (both the referenced
     transform directly, and the one wrapped in TCastleTransformReference). }
   FReferenceWrapper.MeaningfulParent := false;
@@ -80,6 +168,11 @@ end;
 procedure TCastleTransformReference.ReferenceFreeNotification(const Sender: TFreeNotificationObserver);
 begin
   FReference := nil;
+end;
+
+procedure TCastleTransformReference.RevertReferenceFreeNotification(const Sender: TFreeNotificationObserver);
+begin
+  FRevertReference := nil;
 end;
 
 procedure TCastleTransformReference.SetReference(const Value: TCastleTransform);
@@ -138,13 +231,73 @@ begin
   end;
 end;
 
+procedure TCastleTransformReference.SetRevertReference(const Value: TCastleTransform);
+begin
+  if FRevertReference <> Value then
+  begin
+    FRevertReference := Value;
+    FRevertReferenceObserver.Observed := FRevertReference;
+  end;
+end;
+
 function TCastleTransformReference.PropertySections(
   const PropertyName: String): TPropertySections;
 begin
-  if PropertyName = 'Reference' then
+  if ArrayContainsString(PropertyName, [
+       'Reference', 'ReferenceTransformation'
+     ]) then
     Result := [psBasic]
   else
     Result := inherited PropertySections(PropertyName);
+end;
+
+procedure TCastleTransformReference.LocalRender(const Params: TRenderParams);
+var
+  InvertRefTranslation: TVector3;
+  InvertReftRotation: TVector4;
+  InvertRefScale: TVector3;
+  NewReferenceInverseTransformValid: Boolean;
+  NewReferenceInverseTransform: TMatrix4;
+begin
+  NewReferenceInverseTransformValid := false;
+
+  if FReference <> nil then
+  begin
+    Assert(FReferenceWrapper <> nil);
+    case ReferenceTransformation of
+      rtIgnoreTransform:
+        begin
+          NewReferenceInverseTransformValid := true;
+          NewReferenceInverseTransform := FReference.InverseTransform;
+          if (not LastReferenceInverseTransformValid) or
+             (not TMatrix4.PerfectlyEquals(LastReferenceInverseTransform, NewReferenceInverseTransform)) then
+          begin
+            MatrixDecompose(NewReferenceInverseTransform,
+              InvertRefTranslation, InvertReftRotation, InvertRefScale);
+            LastReferenceInverseTransform := NewReferenceInverseTransform;
+            FReferenceWrapper.Translation := InvertRefTranslation;
+            FReferenceWrapper.Rotation := InvertReftRotation;
+            FReferenceWrapper.Scale := InvertRefScale;
+          end;
+        end;
+      rtIgnoreTranslation:
+        begin
+          FReferenceWrapper.Translation := -FReference.Translation;
+          FReferenceWrapper.Rotation := TVector4.Zero;
+          FReferenceWrapper.Scale := NoScale;
+        end;
+      else
+        begin
+          FReferenceWrapper.Translation := TVector3.Zero;
+          FReferenceWrapper.Rotation := TVector4.Zero;
+          FReferenceWrapper.Scale := NoScale;
+        end;
+    end;
+  end;
+
+  LastReferenceInverseTransformValid := NewReferenceInverseTransformValid;
+
+  inherited;
 end;
 
 {$endif read_implementation}

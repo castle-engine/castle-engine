@@ -106,7 +106,6 @@ type
     procedure TransformManipulateTransformModified(Sender: TObject);
     procedure ButtonHierarchyClick(Sender: TObject);
     procedure IfcDebugDisplayChange(Sender: TObject);
-    procedure IfcDebugDisplayToggleShape(Node: TX3DNode);
   public
     constructor Create(AOwner: TComponent); override;
     procedure Start; override;
@@ -207,11 +206,11 @@ begin
     this value doesn't really matter. }
   IfcMapping.Load(IfcFile, 'castle-data:/');
 
-  IfcScene.Load(IfcMapping.RootNode, true);
+  // update debug boxes display, only necessary when CheckboxIfcDebugDisplay.Checked
+  if CheckboxIfcDebugDisplay.Checked then
+    IfcMapping.ShowDebugShapes(CheckboxIfcDebugDisplay.Checked);
 
-  // update debug boxes display
-  if not CheckboxIfcDebugDisplay.Checked then
-    IfcDebugDisplayChange(nil);
+  IfcScene.Load(IfcMapping.RootNode, true);
 
   UpdateHierarchy;
 
@@ -786,19 +785,9 @@ end;
 
 procedure TViewMain.IfcDebugDisplayChange(Sender: TObject);
 begin
-  IfcScene.RootNode.EnumerateNodes(TShapeNode,
-    {$ifdef FPC}@{$endif} IfcDebugDisplayToggleShape, false);
-end;
-
-procedure TViewMain.IfcDebugDisplayToggleShape(Node: TX3DNode);
-var
-  ShapeNode: TShapeNode;
-begin
   { Change the visibility of shapes representing IfcBoundingBox
     to match current state of CheckboxIfcDebugDisplay. }
-  ShapeNode := Node as TShapeNode; // our EnumerateNodes call finds only TShapeNode
-  if ShapeNode.MetadataString['IFC_ClassName'] = 'TIfcBoundingBox' then
-    ShapeNode.Visible := CheckboxIfcDebugDisplay.Checked;
+  IfcMapping.ShowDebugShapes(CheckboxIfcDebugDisplay.Checked);
 end;
 
 procedure TViewMain.ClickViewEntireModel(Sender: TObject);

@@ -67,13 +67,28 @@ type
   end;
 
   { Shape with additional information how to render it inside a world,
-    that allows to render it independently of the containing TCastleScene. }
+    that allows to render it independently of the containing TCastleScene.
+    Meaning of fields follows the TShapesCollector.Add parameters. }
   TCollectedShape = class
     Shape: TGLShape;
     RenderOptions: TCastleRenderOptions;
     SceneTransform: TMatrix4;
+
+    { An optimization hint, if @true it implies
+      that SceneTransform for this Shape may change often,
+      it may even change within the same frame (when the TCastleTransform
+      is used many times in TAbstractRootTransform graph, e.g. through
+      TCastleTransformReference).
+
+      Value @true disables optimizations that try to assume the shape remains
+      roughly in the same place, like using InsideLightRadius
+      in TLightsRenderer.Render to eliminate lights from the shader code
+      when the shape is outside of the light radius. }
+    SceneTransformDynamic: Boolean;
+
     DepthRange: TDepthRange;
     ShadowVolumesReceiver: Boolean;
+
     { Should rendering this use blending (to account for partial transparency). }
     function UseBlending: Boolean;
   end;

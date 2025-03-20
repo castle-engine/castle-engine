@@ -1,5 +1,5 @@
 {
-  Copyright 2006-2024 Michalis Kamburelis.
+  Copyright 2006-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -31,21 +31,6 @@ unit CastleLog;
 interface
 
 uses Classes;
-
-{ Is logging active. Initially no. Activate by InitializeLog.
-
-  @deprecated
-  Instead of checking "if Log then WritelnLog(...)",
-  *always* call WriteLnLog / WriteLnWarning,
-  this allows to collect logs even before InitializeLog may be called.
-  Even release applications usually have logging = on,
-  so it makes no sense to optimize for the "logging = off" case,
-  you need to make "logging = on" case always fast.
-
-  @exclude
-}
-function Log: boolean;
-  deprecated 'do not check is Log initialized';
 
 type
   { Prefix each log line with optional date/time. }
@@ -84,17 +69,8 @@ type
   In case of Android, this is just "adb logcat", visible also if you run
   "castle-engine run --target=android".
   This is done regardless of the ALogStream or LogFileName values.
-
-  @param(ALogTimePrefix optionally adds date&time prefix to each log record.)
 }
-procedure InitializeLog(
-  const ALogStream: TStream = nil;
-  const ALogTimePrefix: TLogTimePrefix = ltNone); overload;
-
-procedure InitializeLog(const ProgramVersion: string;
-  const ALogStream: TStream = nil;
-  const ALogTimePrefix: TLogTimePrefix = ltNone); overload;
-  deprecated 'to provide a Version to InitializeLog, set ApplicationProperties.Version earlier, instead of calling InitializeLog with an explicit ProgramVersion parameter';
+procedure InitializeLog(const ALogStream: TStream = nil);
 
 { Log message. }
 procedure WritelnLog(const Category: string; const Message: string); overload;
@@ -106,11 +82,6 @@ procedure WritelnLog(const Category: string; const MessageBase: string;
   const Args: array of const); overload;
 procedure WritelnLog(const MessageBase: string;
   const Args: array of const); overload;
-
-{ Log message, without appending newline at the end (given Message
-  should already contain a final newline). }
-procedure WriteLog(const Category: string; const Message: string); overload;
-  deprecated 'use WritelnLog, and do not add the final newline yourself to Message';
 
 { Log multiline message.
   The Message may, but doesn't have to, terminate with a newline --
@@ -150,7 +121,7 @@ var
   BacktraceOnLog: boolean = false;
 
   { Current log date/time prefix style. Can be changed at runtime. }
-  LogTimePrefix: TLogTimePrefix;
+  LogTimePrefix: TLogTimePrefix = ltNone;
 
   { Set this to a filename that should contain log,
     before calling @link(InitializeLog).
@@ -257,22 +228,7 @@ var
 
 procedure WriteLogCoreCore(const S: string); forward;
 
-function Log: boolean;
-begin
-  Result := FLog;
-end;
-
-procedure InitializeLog(const ProgramVersion: string;
-  const ALogStream: TStream;
-  const ALogTimePrefix: TLogTimePrefix);
-begin
-  ApplicationProperties.Version := ProgramVersion;
-  InitializeLog(ALogStream, ALogTimePrefix);
-end;
-
-procedure InitializeLog(
-  const ALogStream: TStream;
-  const ALogTimePrefix: TLogTimePrefix);
+procedure InitializeLog(const ALogStream: TStream);
 
   function InitializeLogFile(const LogFileName: string): boolean;
   begin
@@ -311,8 +267,6 @@ var
   EnableStandardOutput: Boolean;
   I: Integer;
 begin
-  LogTimePrefix := ALogTimePrefix;
-
   if FLog then Exit; { ignore 2nd call to InitializeLog }
 
   LogStreamOwned := false;
@@ -475,25 +429,15 @@ begin
   end;
 end;
 
-procedure WriteLog(const Category: string; const Message: string);
+procedure WritelnLog(const Category: string; const Message: string);
 var
   S: String;
 begin
   S := LogTimePrefixStr;
   if Category <> '' then
     S := S + Category + ': ';
-  S := S + Message;
+  S := S + Message + NL;
   WriteLogCore(S);
-end;
-
-procedure WritelnLog(const Category: string; const Message: string);
-begin
-  // do not warn about using deprecated WriteLog here.
-  // In the future, WriteLog should be moved to the "implementation" section
-  // of the unit (internal), and undeprecated.
-  {$warnings off}
-  WriteLog(Category, Message + NL);
-  {$warnings on}
 end;
 
 procedure WritelnLog(const Message: string);

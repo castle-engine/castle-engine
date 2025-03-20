@@ -957,6 +957,10 @@ begin
   try
     Result.ShaderProgram := TX3DGLSLProgram.Create;
     Shader.LinkProgram(Result.ShaderProgram, ShapeNiceName);
+    {$ifdef CASTLE_CANNOT_CATCH_EXCEPTIONS}
+    if Result.ShaderProgram.ErrorOnCompileLink then
+      FreeAndNil(Result.ShaderProgram);
+    {$endif}
   except on E: EGLSLError do
     begin
       FreeAndNil(Result.ShaderProgram);

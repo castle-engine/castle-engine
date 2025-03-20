@@ -1,5 +1,5 @@
 {
-  Copyright 2007-2024 Michalis Kamburelis.
+  Copyright 2007-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -304,6 +304,14 @@ type
     { Shader name is used in log messages. Any String is OK. }
     Name: String;
 
+    {$ifdef CASTLE_CANNOT_CATCH_EXCEPTIONS}
+    { Web target doesn't support try..except, so we use this field
+      to report that AttachShader or Link caused an error.
+      WritelnWarning with details was already generated.
+      Non-web targets should not rely on this, exceptions signal errors. }
+    ErrorOnCompileLink: Boolean;
+    {$endif}
+
     { Is fragment shader required to link successfully.
 
       By default this is @false (for now) and you can attempt to link
@@ -383,11 +391,22 @@ type
       bind the textures used by this shader, right after each @link(Enable)
       call.
 
-      This is automatically called after every @link(Enable) by our renderer
-      (when it renders shapes) or TCastleScreenEffect (when it renders screen effects).
-      If you use this TGLSLProgram directly (if you call @link(Enable)
-      yourself), then it's your responsibility to call this method
-      explicitly, if you want shaders using it to work.
+      This is automatically called
+
+      - by our shape rendering
+        (when we renders shapes, from TShaderCoordinateRenderer.RenderCoordinateBegin)
+
+      - by our screen effects rendering code
+        (from TCastleScreenEffects.RenderOverChildren).
+
+      ... right after the given shader is enabled by
+      @code(RenderContext.CurrentProgram := ThisShader),
+      which is equivalent to @code(ThisShader.Enable).
+
+      If other cases, it's your responsibility to call this method
+      explicitly, if you want shaders using it to work. Do this right after
+      @code(RenderContext.CurrentProgram := ThisShader),
+      or equivalent @code(ThisShader.Enable).
 
       You can set any uniform values, and generally do
       anything you want to be done each time this shader is enabled.
@@ -1261,6 +1280,35 @@ begin
   if ShaderIds <> nil then
     DetachAllShaders;
 
+  { Deleting by glDeleteProgram the shader that is currently used
+    (by glUseProgram) is allowed in OpenGL, and it implicitly sets
+    the used program to 0. Which is absolutely reasonable.
+
+    We need to make sure that RenderContext knowledge corresponds to the
+    OpenGL state. So RenderContext.CurrentProgram must become nil.
+
+    Moreover, RenderContext.CurrentProgram cannot point to non-existing
+    object. Again, this means that RenderContext.CurrentProgram must become nil.
+
+    If we would ignore 2 reasons above, we could have error:
+
+    - RenderContext.CurrentProgram containing a dangling pointer,
+    - and this pointer could be reused for new TGLSLProgram instance,
+    - and then "RenderContext.CurrentProgram := ..."
+      would do nothing (because FCurrenProgram = Value in the setter)
+    - and the new shader would not become active.
+    - Causing OpenGL errors when not setting uniforms, because shader program
+      would be unset before callling glSetUniform*.
+    - See https://github.com/castle-engine/castle-engine/issues/664
+      for 3 testcases that show this problem, compounded with overly
+      eager recreation of shaders.
+
+    Note: checking RenderContext <> nil to make sure we do nothing when
+    we're doing TGLSLProgram.Destroy after FreeAndNil(RenderContext). }
+  if (RenderContext <> nil) and
+     (RenderContext.CurrentProgram = Self) then
+    RenderContext.CurrentProgram := nil;
+
   if ProgramId <> GLObjectNone then
   begin
     { ProgramId can be non-zero only if GLFeatures.Shaders,
@@ -1275,6 +1323,10 @@ begin
     FUniformLocations.Clear;
   if FAttributeLocations <> nil then
     FAttributeLocations.Clear;
+
+  {$ifdef CASTLE_CANNOT_CATCH_EXCEPTIONS}
+  ErrorOnCompileLink := false;
+  {$endif}
 end;
 
 procedure TGLSLProgram.OnGlContextClose(Sender: TObject);
@@ -1525,9 +1577,18 @@ var
     EGLSLShaderCompileError (that will result in simple warning and fallback
     on fixed-function pipeline) instead of crash. }
   procedure ReportCompileAccessViolation;
+  var
+    Message: String;
   begin
-    raise EGLSLShaderCompileError.CreateFmt('%s shader not compiled, segmentation fault in glCompileShader call. Buggy OpenGL GLSL compiler.',
+    Message := Format('%s shader not compiled, segmentation fault in glCompileShader call. Buggy OpenGL GLSL compiler.',
       [ShaderTypeName[ShaderType]]);
+
+    {$ifdef CASTLE_CANNOT_CATCH_EXCEPTIONS}
+    WritelnWarning('GLSL', Message);
+    ErrorOnCompileLink := true;
+    {$else}
+    raise EGLSLShaderCompileError.Create(Message);
+    {$endif}
   end;
 
   procedure ReportCompileError(const CompileErrorMessage: String);
@@ -1545,7 +1606,12 @@ var
       S + NL +
       '-------------------------------------------------------';
 
+    {$ifdef CASTLE_CANNOT_CATCH_EXCEPTIONS}
+    WritelnWarning('GLSL', Message);
+    ErrorOnCompileLink := true;
+    {$else}
     raise EGLSLShaderCompileError.Create(Message);
+    {$endif}
   end;
 
   { Create a shader, adding sources and compiling it.
@@ -1736,6 +1802,11 @@ begin
       [ShaderType] + S;
 
   ShaderId := CreateShader(S);
+
+  {$ifdef CASTLE_CANNOT_CATCH_EXCEPTIONS}
+  if ErrorOnCompileLink then Exit;
+  {$endif}
+
   glAttachShader(ProgramId, ShaderId);
   ShaderIds.Add(ShaderId);
 
@@ -1877,11 +1948,19 @@ procedure TGLSLProgram.Link;
   end;
 
   procedure ReportLinkError(const LinkErrorMessage: String);
+  var
+    Message: String;
   begin
-    raise EGLSLProgramLinkError.Create(
-      Format('Shader "%s" not linked:', [Name]) + NL +
+    Message := Format('Shader "%s" not linked:', [Name]) + NL +
       LinkErrorMessage +
-      LogShaderCode);
+      LogShaderCode;
+
+    {$ifdef CASTLE_CANNOT_CATCH_EXCEPTIONS}
+    WritelnWarning('GLSL', Message);
+    ErrorOnCompileLink := true;
+    {$else}
+    raise EGLSLProgramLinkError.Create(Message);
+    {$endif}
   end;
 
 var
@@ -1911,6 +1990,10 @@ begin
     if not Linked then
       // raises exception
       ReportLinkError(GetProgramInfoLog(ProgramId));
+
+    {$ifdef CASTLE_CANNOT_CATCH_EXCEPTIONS}
+    if ErrorOnCompileLink then Exit;
+    {$endif}
 
     if LogShaders then
       WritelnLogMultiline('GLSL',

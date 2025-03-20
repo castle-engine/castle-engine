@@ -337,6 +337,9 @@
       @link(TRenderOnePassParams.UsingBlending) and
       @link(TRenderOnePassParams.FilterShadowVolumesReceivers). }
     procedure AddRenderEvent(const RenderEvent: TRenderEvent);
+
+    { Camera position, in the local coordinates, after @link(Transformation). }
+    function LocalCameraPosition: TVector3;
   end;
 
   { Information that a TCastleTransform object needs to prepare rendering.
@@ -518,6 +521,12 @@ end;
 procedure TRenderParams.AddRenderEvent(const RenderEvent: TRenderEvent);
 begin
   (Collector as TShapesCollector).AddRenderEvent(Transformation^, RenderEvent);
+end;
+
+function TRenderParams.LocalCameraPosition: TVector3;
+begin
+  Result := Transformation^.InverseTransform.MultPoint(
+    RenderingCamera.View.Translation);
 end;
 
 { TRenderOnePassParams ------------------------------------------------------- }

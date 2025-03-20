@@ -33,6 +33,10 @@ function GetBaseNameFromUrl(const Url: String): String;
 }
 function GetUrlParentName(const Url: String): String;
 
+{ Remove numeric suffix from S, but always leave it non-empty
+  if input argument was non-empty. }
+function StripNumericSuffix(const S: String): String;
+
 implementation
 
 uses UriParser, SysUtils,
@@ -101,6 +105,16 @@ begin
     end;
     Result := SB.ToString;
   finally FreeAndNil(SB) end;
+end;
+
+function StripNumericSuffix(const S: String): String;
+var
+  NewLength: Integer;
+begin
+  NewLength := Length(S);
+  while (NewLength >= 2) and (S[NewLength] in ['0'..'9']) do
+    Dec(NewLength);
+  Result := Copy(S, 1, NewLength);
 end;
 
 end.

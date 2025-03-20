@@ -420,7 +420,7 @@
               ],
               "TranslationPersistent" : {
                 "$$ClassName" : "TCastleVector2Persistent",
-                "X" : 2.9099996948242188E+002
+                "X" : 2.9100000000000000E+002
               },
               "VerticalAnchorParent" : "vpMiddle",
               "VerticalAnchorSelf" : "vpMiddle"
@@ -546,7 +546,6 @@
             "Green" : 1.0000000000000000E+000,
             "Red" : 1.0000000000000000E+000
           },
-          "Checked" : true,
           "Name" : "CheckboxIfcDebugDisplay",
           "TextColorPersistent" : {
             "$$ClassName" : "TCastleColorPersistent",
