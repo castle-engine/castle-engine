@@ -232,8 +232,17 @@ type
 
     function CompareFileName(Expected, Actual: String): Boolean;
 
-    { Get temporary directory, implementation that works for both Delphi and FPC. }
+    { Get temporary directory.
+      This is a simplest wrapper over the respective FPC / Delphi functions. }
     function GetTempDirectory: String;
+
+    { Create an URL to an existing temporary directory.
+
+      - Determines temporary directory using GetTempDirectory
+      - Adds subdirectory based on SubDirBaseName and random number
+      - Actually creates it using ForceDirectories
+      - Returns URL (not just a filename) of it. }
+    function CreateTemporaryDirUrl(const SubDirBaseName: String): String;
 
     procedure TestLog(Text: String);
 
@@ -252,10 +261,6 @@ type
       because the window will be automatically freed when test method ends anyway. }
     procedure DestroyWindowForTest(var Window: TCastleWindow);
 
-    { If you need a TCastleViewport for testing, you can use this one.
-      This viewport is automatically cleaned when test method ends. }
-    //function GetTestingViewport: TCastleViewport;
-
     { Used by TCastleTester.Scan to add tests }
     function AddTest(const AName: String;
       {$ifdef FPC}const AMethodPointer: CodePointer{$else}
@@ -273,7 +278,20 @@ type
       This is @false on mobile or when run with --no-window-create . }
     function CanCreateWindowForTest: Boolean;
 
-    { Clears test list }
+    { Are standard files and filesystem things working, so we can use:
+
+      - standard TFileStream, FileExists, DirectoryExists
+
+      - engine's UriToFilenameSafe / FilenameToUriSafe work (return
+        useful filenames).
+
+      - GetTempDirectory, CreateTemporaryDirUrl work.
+
+      Possibly in the future CreateTemporaryDirUrl can work regardless of this,
+      using subdir in castle-config:/ . }
+    function CanUseFileSystem: Boolean;
+
+    { Clears test list. }
     procedure ClearTests;
 
     function TestCount: Integer;
@@ -1365,6 +1383,21 @@ begin
   {$endif}
 end;
 
+function TCastleTestCase.CreateTemporaryDirUrl(const SubDirBaseName: String): String;
+var
+  Base: String;
+begin
+  if not CanUseFileSystem then
+    raise Exception.Create('Cannot create temporary directory on this system, because CanUseFileSystem=false');
+
+  Base := GetTempDirectory;
+  Result := InclPathDelim(
+    InclPathDelim(Base) + SubDirBaseName + '-' + IntToStr(Random(1000000)));
+  CheckForceDirectories(Result);
+  Result := FilenameToUriSafe(Result);
+  WritelnLog('Created temporary directory: ', Result);
+end;
+
 function TCastleTestCase.GetTest(const Index: Integer): TCastleTest;
 begin
   Result := FTestList[Index];
@@ -1377,6 +1410,13 @@ begin
       windows (TCastleWindow instances). }
     Application.MultipleWindowsPossible and
     (not ParamNoWindowCreate);
+end;
+
+function TCastleTestCase.CanUseFileSystem: Boolean;
+begin
+  { On the web, right now, our resources do not map to regular "files / dirs"
+    as checked by FPC FileExists, DirectoryExists. }
+  Result := {$ifdef WASI} false {$else} true {$endif};
 end;
 
 procedure TCastleTestCase.OnWarningRaiseException(const Category, S: string);

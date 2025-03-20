@@ -131,12 +131,8 @@ end;
 
 procedure TTestCastleFilesUtils.TestGetTempDir;
 begin
-//  Writeln('TempDir: ', GetTempDir);
-  {$ifdef FPC}
-  GetTempDir; // ignore result, just make sure it doesn't raise errors
-  {$else}
-  TPath.GetTempPath;
-  {$endif}
+  WritelnLog('GetTempDirectory: ', GetTempDirectory);
+  GetTempDirectory; // ignore result, just make sure it doesn't raise errors
 end;
 
 procedure TTestCastleFilesUtils.TestApplicationData;

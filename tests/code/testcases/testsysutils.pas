@@ -32,6 +32,9 @@ uses CastleFilesUtils, CastleUriUtils;
 
 procedure TTestSysUtils.TestDirectoryFileExists;
 begin
+  if not CanUseFileSystem then
+    Exit;
+
   { Before FPC 3.2.0:
 
     FPC FileExists on Unix answers true for both regular files and directories.
