@@ -443,8 +443,10 @@ function CompareMemDebug(const P1, P2: Pointer; const Size: Integer): Boolean;
 
 implementation
 
-uses TypInfo, Math, {$ifdef FPC}testutils,{$else}IOUtils,{$endif} StrUtils,
-  CastleLog, CastleUtils, CastleStringUtils, CastleTesterParameters;
+uses TypInfo, Math,
+  {$ifdef FPC} TestUtils, {$else} IOUtils, {$endif} StrUtils,
+  CastleLog, CastleUtils, CastleStringUtils, CastleTesterParameters,
+  CastleFilesUtils, CastleUriUtils;
 
 { routines ------------------------------------------------------------------- }
 
