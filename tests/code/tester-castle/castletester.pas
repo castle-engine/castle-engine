@@ -1,5 +1,5 @@
 ﻿{
-  Copyright 2022-2024 Andrzej Kilijański, Dean Zobec, Michael Van Canneyt, Michalis Kamburelis.
+  Copyright 2022-2025 Andrzej Kilijański, Dean Zobec, Michael Van Canneyt, Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -104,11 +104,6 @@ type
     FCurrentTestName: String;
 
     FWindowForTest: TCastleWindow;
-    { Viewport from Application.MainWindow in non-console mode,
-      or viewport from FWindowForViewportTest when Console Mode. }
-    FViewportForTest: TCastleViewport;
-    { Window for Viewport when tester in Console mode }
-    FWindowForViewportTest: TCastleWindow;
     { TCastleTester that runs test case }
     FCastleTester: TCastleTester;
 
@@ -1375,25 +1370,13 @@ begin
   Result := FTestList[Index];
 end;
 
-{ TODO:
-function TCastleTestCase.GetTestingViewport: TCastleViewport;
-begin
-  raise Exception.Create('Not implemented');
-end;
-}
-
 function TCastleTestCase.CanCreateWindowForTest: Boolean;
 begin
   Result :=
-    {$if defined(ANDROID) or
-         defined(iPHONESIM) or
-         defined(iOS) or
-         defined(CASTLE_NINTENDO_SWITCH)}
-      // On these platforms, we cannot create a window, so we cannot test
-      false
-    {$else}
-      not ParamNoWindowCreate
-    {$endif};
+    { On some platforms, we cannot create arbitrary number of independent
+      windows (TCastleWindow instances). }
+    Application.MultipleWindowsPossible and
+    (not ParamNoWindowCreate);
 end;
 
 procedure TCastleTestCase.OnWarningRaiseException(const Category, S: string);
