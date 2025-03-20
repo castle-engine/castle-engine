@@ -438,7 +438,7 @@
     PixelTexture is also comfortable when using Object Pascal to construct
     the X3D graph. In this case, it allows to provide an image as a ready
     TCastleImage instance, by changing the value of the
-    @code(TPixelTextrueNode.FdImage.Value).
+    @code(TPixelTextureNode.FdImage.Value).
 
     An alternative to PixelTexture is to use "data URI".
     With "data URI", you can embed any file contents inside an URL.
