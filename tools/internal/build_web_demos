@@ -127,6 +127,8 @@ do_project examples/eye_of_beholder # TODO: web: fog
 do_project examples/creature_behaviors # TODO: web: bump mapping, mouse look
 do_project examples/third_person_navigation # TODO: web: mouse look
 
+do_project tests # TODO: not all tests pass; also needs to comment out detect_memory_leaks in manifest
+
 # 3d, problems critical
 # do_project examples/fps_game # TODO: web: bump mapping, mouse look, weird blinking
 # do_project examples/terrain # TODO: web: terrain shaders, weird crash
