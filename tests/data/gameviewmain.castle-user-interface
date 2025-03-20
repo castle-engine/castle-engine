@@ -261,37 +261,6 @@
           "VerticalAnchorParent" : "vpTop",
           "VerticalAnchorSelf" : "vpTop",
           "Width" : 1.2000000000000000E+003
-        },
-        {
-          "$$ClassName" : "TCastleViewport",
-          "Camera" : {
-            "$$ClassName" : "TCastleCamera",
-            "Name" : "Camera",
-            "Orthographic" : {
-              "$$ClassName" : "TCastleOrthographic",
-              "Name" : "Orthographic"
-            },
-            "Perspective" : {
-              "$$ClassName" : "TCastlePerspective",
-              "Name" : "Perspective"
-            }
-          },
-          "Height" : 3.5000000000000000E+002,
-          "HorizontalAnchorParent" : "hpMiddle",
-          "HorizontalAnchorSelf" : "hpMiddle",
-          "Items" : {
-            "$$ClassName" : "TCastleRootTransform",
-            "Name" : "Items",
-            "PhysicsProperties" : {
-              "$$ClassName" : "TPhysicsProperties",
-              "Name" : "PhysicsProperties"
-            }
-          },
-          "Name" : "TestViewport",
-          "VerticalAnchorDelta" : -4.6100000000000000E+002,
-          "VerticalAnchorParent" : "vpTop",
-          "VerticalAnchorSelf" : "vpTop",
-          "Width" : 7.0000000000000000E+002
         }
       ]
     }
