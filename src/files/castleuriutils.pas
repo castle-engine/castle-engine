@@ -426,9 +426,8 @@ implementation
 
 uses UriParser,
   CastleUtils, CastleInternalDataUri, CastleLog, CastleFilesUtils,
-  CastleInternalDirectoryInformation, CastleFindFiles, CastleDownload, CastleZip
+  CastleFindFiles, CastleDownload, CastleZip
   {$ifdef WASI}, Job.Js, CastleInternalJobWeb {$endif}
-  {$ifdef CASTLE_NINTENDO_SWITCH}, CastleInternalNxBase {$endif}
   {$ifndef FPC}, Character{$endif};
 
 { Escape and Unescape --------------------------------------------------------
@@ -1257,89 +1256,16 @@ begin
 end;
 
 function UriExists(Url: String): TUriExists;
-
-  // Detect existence of castle-data:/xxx URL using DataDirectoryInformation.
-  function UseDataDirectoryInformation(const Url: String): TUriExists;
-  var
-    U: TUri;
-    UrlPath: String;
-    PathEntry: TDirectoryInformation.TEntry;
-  begin
-    U := ParseUri(Url);
-    UrlPath := PrefixRemove('/', U.Path + U.Document, false);
-    PathEntry := DataDirectoryInformation.FindEntry(UrlPath);
-    if PathEntry = nil then
-      Exit(ueNotExists)
-    else
-    if PathEntry is TDirectoryInformation.TDirectory then
-      Exit(ueDirectory)
-    else
-      Exit(ueFile);
-  end;
-
-  {$ifdef CASTLE_NINTENDO_SWITCH}
-  // Detect existence of castle-nx-contents or castle-nx-save URL using NX-specific function.
-  function UseNXExists(const Url: String): TUriExists;
-  begin
-    Result := NXFileExists(Url);
-  end;
-  {$endif CASTLE_NINTENDO_SWITCH}
-
-  // Detect existence of a filename using FileExists, DirectoryExists.
-  function UseFileDirectoryExists(const FileName: String): TUriExists;
-  var
-    F, D: Boolean;
-  begin
-    F := FileExists(FileName);
-    D := DirectoryExists(FileName);
-
-    { FileExists behaves inconsistently for directories.
-      On non-Windows, returns true.
-      On Windows, returns false.
-      See http://www.freepascal.org/docs-html/rtl/sysutils/fileexists.html
-      http://free-pascal-general.1045716.n5.nabble.com/FileExists-inconsistency-td2813433.html
-      So check both, and if DirectoryExists then assume it's a directory
-      (regardless of FileExists result). }
-    if D then
-      Exit(ueDirectory)
-    else
-    if F then
-      Exit(ueFile)
-    else
-      Exit(ueNotExists);
-  end;
-
 var
   P: String;
+  R: TRegisteredProtocol;
 begin
-  { data: URI is like a file, since you can call Download() on it }
-  if TDataUri.IsDataUri(Url) then
-    Exit(ueFile);
-
   P := UriProtocol(Url);
-
-  if (P = 'castle-data') and
-     (DisableDataDirectoryInformation = 0) and
-     (DataDirectoryInformation <> nil) then
-    Exit(UseDataDirectoryInformation(Url));
-
-  { Resolve castle-data:/xxx now.
-    This way we can work in case we have castle-data:/xxx URL that resolves
-    to something handled below (like file:/xxx) but wasn't handled above
-    (e.g. because DataDirectoryInformation = nil). }
-  Url := ResolveCastleDataUrl(Url);
-  P := UriProtocol(Url);
-
-  {$ifdef CASTLE_NINTENDO_SWITCH}
-  if (P = 'castle-nx-contents') or
-     (P = 'castle-nx-save') then
-    Exit(UseNXExists(Url));
-  {$endif CASTLE_NINTENDO_SWITCH}
-
-  if (P = '') or (P = 'file') then
-    Exit(UseFileDirectoryExists(UriToFilenameSafe(Url)));
-
-  Result := ueUnknown;
+  R := FindRegisteredUrlProtocol(P);
+  if (R <> nil) and Assigned(R.ExistsEvent) then
+    Result := R.ExistsEvent(Url)
+  else
+    Result := ueUnknown;
 end;
 
 function UriCurrentPath: string;

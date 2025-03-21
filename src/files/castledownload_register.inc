@@ -104,6 +104,16 @@ type
     Use with @link(RegisterUrlProtocol) and @link(TRegisteredProtocol.WriteEvent). }
   TUrlWriteEvent = function(const Url: String): TStream of object;
 
+  { Event called when @link(UriExists) function wants to know whether given URL
+    exists, and if it is a directory or file.
+
+    When this is not assigned, @link(UriExists) answers ueUnknown for all URLs,
+    which just means "we don't know, you can try to load the URL and see
+    if it fails with an exception".
+
+    Use with @link(RegisterUrlProtocol) and @link(TRegisteredProtocol.ExistsEvent). }
+  TUrlExistsEvent = function(const Url: String): TUriExists of object;
+
   EProtocolAlreadyRegistered = class(Exception);
 
   { Details of the registered URL protocol.
@@ -114,6 +124,7 @@ type
     FReadEvent: TUrlReadEvent;
     FWriteEvent: TUrlWriteEvent;
     FAsynchronousReader: TUrlAsynchronousReaderClass;
+    FExistsEvent: TUrlExistsEvent;
     function GetDetectMimeTypeFromExtension: Boolean;
     procedure SetDetectMimeTypeFromExtension(const Value: Boolean);
   private
@@ -171,6 +182,9 @@ type
     property DetectMimeTypeFromExtension: Boolean read
       GetDetectMimeTypeFromExtension write SetDetectMimeTypeFromExtension
       default false;
+
+    { Optional event to check whether given URL exists (as a directory or file). }
+    property ExistsEvent: TUrlExistsEvent read FExistsEvent write FExistsEvent;
   end;
 
 { Register how we can load and/or save the URLs with given protocol.
@@ -200,8 +214,16 @@ function RegisterUrlProtocol(const Protocol: String;
   const AsynchronousReader: TUrlAsynchronousReaderClass = nil;
   const DetectMimeTypeFromExtension: Boolean = true): TRegisteredProtocol;
 
-{ Is given protocol name registered with @link(RegisterUrlProtocol). }
+{ Is given protocol name registered with @link(RegisterUrlProtocol).
+  The Protocol searching is case-insensitive.
+  This is a shortcut for FindRegisteredUrlProtocol(Protocol) <> nil. }
 function RegisteredUrlProtocol(const Protocol: String): Boolean;
+
+{ If the given protocol is registered with @link(RegisterUrlProtocol),
+  returns the TRegisteredProtocol instance that describes how to handle this
+  protocol. The Protocol searching is case-insensitive.
+  Returns @nil if not found. }
+function FindRegisteredUrlProtocol(const Protocol: String): TRegisteredProtocol;
 
 { Unregister protocol, reverting the @link(RegisterUrlProtocol). }
 procedure UnregisterUrlProtocol(const Protocol: String);
@@ -357,11 +379,13 @@ begin
     P := FRegisteredProtocols.Add('');
     P.ReadEvent := {$ifdef FPC}@{$endif} TUrlFile{$ifdef FPC}(nil){$endif}.Read;
     P.WriteEvent := {$ifdef FPC}@{$endif} TUrlFile{$ifdef FPC}(nil){$endif}.Write;
+    P.ExistsEvent := {$ifdef FPC}@{$endif} TUrlFile{$ifdef FPC}(nil){$endif}.Exists;
     P.DetectMimeTypeFromExtension := true;
 
     P := FRegisteredProtocols.Add('file');
     P.ReadEvent := {$ifdef FPC}@{$endif} TUrlFile{$ifdef FPC}(nil){$endif}.Read;
     P.WriteEvent := {$ifdef FPC}@{$endif} TUrlFile{$ifdef FPC}(nil){$endif}.Write;
+    P.ExistsEvent := {$ifdef FPC}@{$endif} TUrlFile{$ifdef FPC}(nil){$endif}.Exists;
     P.DetectMimeTypeFromExtension := true;
 
     {$if defined(ANDROID)}
@@ -376,13 +400,15 @@ begin
     {$endif}
 
     // handle castle-data.
-    // No need for reader, as our downloading routines use ResolveCastleDataUrl,
+    // No need for reader/writer now, as our downloading routines use ResolveCastleDataUrl,
     // so they will handle this protocol.
     P := FRegisteredProtocols.Add('castle-data');
+    P.ExistsEvent := {$ifdef FPC}@{$endif} TUrlCastleData{$ifdef FPC}(nil){$endif}.Exists;
     P.DetectMimeTypeFromExtension := true;
 
     P := FRegisteredProtocols.Add('data');
     P.ReadEvent := {$ifdef FPC}@{$endif} TUrlData{$ifdef FPC}(nil){$endif}.Read;
+    P.ExistsEvent := {$ifdef FPC}@{$endif} TUrlData{$ifdef FPC}(nil){$endif}.Exists;
     // set internal FMimeTypeEvent, circumventing DetectMimeTypeFromExtension
     P.FMimeTypeEvent := {$ifdef FPC}@{$endif} TUrlData{$ifdef FPC}(nil){$endif}.MimeType;
 
@@ -422,9 +448,14 @@ begin
   Result.DetectMimeTypeFromExtension := DetectMimeTypeFromExtension;
 end;
 
+function FindRegisteredUrlProtocol(const Protocol: String): TRegisteredProtocol;
+begin
+  Result := RegisteredProtocols.Find(Protocol);
+end;
+
 function RegisteredUrlProtocol(const Protocol: String): Boolean;
 begin
-  Result := RegisteredProtocols.Find(Protocol) <> nil;
+  Result := FindRegisteredUrlProtocol(Protocol) <> nil;
 end;
 
 procedure UnregisterUrlProtocol(const Protocol: String);
