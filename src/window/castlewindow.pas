@@ -2112,6 +2112,9 @@ type
     VideoResizeHeight: Integer;
     { @groupEnd }
 
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+    procedure HandleException(Sender: TObject); override;
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
 
     { Color bits per pixel that will be set by next VideoChange call,
@@ -2348,12 +2351,22 @@ end.
       to work and exits immediately without any error. }
     procedure Run;
 
+    { Name of the "CastleWindow backend". This is the underlying implementation
+      of TCastleWindow and TCastleApplication classes.
+      See https://castle-engine.io/castlewindow_backends .
+      Showing this may be useful for debugging purposes. }
     function BackendName: String;
 
-    constructor Create(AOwner: TComponent); override;
-    destructor Destroy; override;
+    { Does this backend (see @url(https://castle-engine.io/castlewindow_backends
+      possible backends)) support multiple windows, that is:
+      multiple instances of TCastleWindow can be created, open,
+      and are actually usable by the user, at the same time.
 
-    procedure HandleException(Sender: TObject); override;
+      For backends that generally work on desktop platforms, this is @true.
+
+      For backends that target more limited systems, like mobile or web,
+      this is @false. }
+    function MultipleWindowsPossible: Boolean;
 
     { Parse some command-line options and remove them from @link(Parameters)
       list. These are standard command-line parameters of Castle Game Engine programs.

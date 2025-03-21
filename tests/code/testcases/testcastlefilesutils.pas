@@ -42,8 +42,8 @@ type
 
 implementation
 
-uses CastleUtils, CastleFindFiles, CastleFilesUtils, CastleTimeUtils
-  {$ifdef UNIX}, BaseUnix {$endif}{$ifndef FPC}, IOUtils{$endif};
+uses CastleUtils, CastleFindFiles, CastleFilesUtils, CastleTimeUtils, CastleLog
+  {$ifdef UNIX}, BaseUnix {$endif};
 
 procedure TTestCastleFilesUtils.TestPathDelim;
 begin
@@ -131,12 +131,8 @@ end;
 
 procedure TTestCastleFilesUtils.TestGetTempDir;
 begin
-//  Writeln('TempDir: ', GetTempDir);
-  {$ifdef FPC}
-  GetTempDir; // ignore result, just make sure it doesn't raise errors
-  {$else}
-  TPath.GetTempPath;
-  {$endif}
+  WritelnLog('GetTempDirectory: ', GetTempDirectory);
+  GetTempDirectory; // ignore result, just make sure it doesn't raise errors
 end;
 
 procedure TTestCastleFilesUtils.TestApplicationData;

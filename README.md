@@ -32,7 +32,7 @@ If you got the source code straight from our [GitHub repository](https://github.
 
 Usage in short:
 
-- Our [editor](https://castle-engine.io/manual_editor.php) is used to design and build your applications.
+- Our [editor](https://castle-engine.io/editor) is used to design and build your applications.
 
 - Our [build tool](https://castle-engine.io/build_tool) is used to build your applications from the command-line.
 

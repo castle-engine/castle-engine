@@ -29,12 +29,15 @@ type
     procedure TestScene;
     procedure TestSpatialUpgrade;
     procedure TestImageTransformImageWidthHeight;
+    { Testcase from https://github.com/castle-engine/castle-engine/issues/664 }
+    procedure TestRenderReferencesAndLightRadius;
   end;
 
 implementation
 
 uses X3DNodes, CastleSceneCore, CastleScene, CastleBoxes, CastleVectors,
-  CastleInternalRays, CastleProjection, CastleComponentSerialize, CastleUIControls;
+  CastleInternalRays, CastleProjection, CastleComponentSerialize,
+  CastleUIControls, CastleWindow, CastleViewport, CastleInternalGLUtils;
 
 procedure TTestScene.TestScene;
 
@@ -146,6 +149,69 @@ begin
     AssertSameValue(0, ImageTransform.BoundingBox.SizeX);
     AssertSameValue(0, ImageTransform.BoundingBox.SizeY);
   finally FreeAndNil(ImageTransform) end;
+end;
+
+procedure TTestScene.TestRenderReferencesAndLightRadius;
+
+{ Testcase from
+  https://github.com/castle-engine/castle-engine/issues/664
+
+  Before the fixes, rendering would fail with
+  OpenGL error (1282): The specified operation is not allowed in the current state.
+}
+
+var
+  Window: TCastleWindow;
+  View: TCastleView;
+  Viewport1: TCastleViewport;
+begin
+  if not CanCreateWindowForTest then
+    Exit;
+
+  Window := CreateWindowForTest;
+  try
+    //Window.Visible := false; // need to be Visible to reproduce the crash
+    Window.Open;
+
+    View := TCastleView.Create(nil);
+    try
+      View.DesignUrl := 'castle-data:/designs/gh_664_references_and_light_radius/gameviewmain.castle-user-interface';
+      Window.Container.View := View;
+      Viewport1 := View.DesignedComponent('Viewport1') as TCastleViewport;
+
+      // default view is already "bad" in design, crashes before 664 fix
+      Window.Container.EventBeforeRender;
+      Window.Container.EventRender;
+      Window.Container.EventUpdate;
+      CheckGLErrors('TestRenderReferencesAndLightRadius, frame 0');
+
+      // this is good view, no crash
+      Viewport1.Camera.SetWorldView(
+        Vector3(0.00, 1.58, 0.83), // position
+        Vector3(-0.72, 0.00, -0.69), // direction
+        Vector3(0.00, 1.00, 0.00)  // up (current)
+      );
+      Window.Container.EventBeforeRender;
+      Window.Container.EventRender;
+      Window.Container.EventUpdate;
+      CheckGLErrors('TestRenderReferencesAndLightRadius, frame 1');
+
+      // this is bad view, crashes before 664 fix
+      Viewport1.Camera.SetWorldView(
+        Vector3(0.00, 1.58, 0.83), // position
+        Vector3(-0.98, 0.00, -0.20), // direction
+        Vector3(0.00, 1.00, 0.00)  // up (current)
+      );
+      Window.Container.EventBeforeRender;
+      Window.Container.EventRender;
+      Window.Container.EventUpdate;
+      CheckGLErrors('TestRenderReferencesAndLightRadius, frame 2');
+
+      // Interactive test:
+      // while not Window.Closed do
+      //   Application.ProcessAllMessages;
+    finally FreeAndNil(View) end;
+  finally DestroyWindowForTest(Window) end;
 end;
 
 initialization
