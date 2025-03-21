@@ -471,7 +471,7 @@ implementation
 uses TypInfo, Math,
   {$ifdef FPC} TestUtils, {$else} IOUtils, {$endif} StrUtils,
   CastleLog, CastleUtils, CastleStringUtils, CastleTesterParameters,
-  CastleFilesUtils, CastleUriUtils;
+  CastleFilesUtils, CastleUriUtils, CastleApplicationProperties;
 
 { routines ------------------------------------------------------------------- }
 

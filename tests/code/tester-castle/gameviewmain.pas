@@ -69,7 +69,8 @@ var
 implementation
 
 uses SysUtils,
-  CastleColors, CastleUtils, CastleTesterParameters, CastleLog;
+  CastleColors, CastleUtils, CastleTesterParameters, CastleLog,
+  CastleApplicationProperties;
 
 { TViewMain ----------------------------------------------------------------- }
 
