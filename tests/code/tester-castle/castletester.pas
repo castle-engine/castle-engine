@@ -595,9 +595,9 @@ begin
     end;
   end;
 
-  // Hack to test various testcases, when multiple may fail, with web
+  // Hack useful to test various testcases, when multiple may fail, with web
   {$ifdef WASI}
-  RandomPermutation(FTestsToRun);
+  // RandomPermutation(FTestsToRun);
   {$endif}
 
   TestPassedCount := 0;

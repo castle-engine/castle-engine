@@ -372,6 +372,16 @@ begin
     P := FRegisteredProtocols.Add('https');
     P.AsynchronousReader := TDelphiHttpReader;
     P.DetectMimeTypeFromExtension := true;
+
+    {$else}
+    // Otherwise, we have no implementation to get http(s) contents,
+    // but at least we can determine MIME type from extension.
+    // Makes TTestUriUtils.TestMimeTypeHttpQuery pass on web.
+    P := FRegisteredProtocols.Add('http');
+    P.DetectMimeTypeFromExtension := true;
+    P := FRegisteredProtocols.Add('https');
+    P.DetectMimeTypeFromExtension := true;
+
     {$endif}
 
     // handle regular file://, also do this when no protocol is specified

@@ -157,6 +157,7 @@ var
 
   procedure ExecuteExpectError;
   begin
+    if CanCatchExceptions then
     try
       Prog.ExecuteFunction('main', []);
       Fail('should not get here');
@@ -403,6 +404,7 @@ begin
 
     { test not Writeable }
     Vars[0].Writeable := false;
+    if CanCatchExceptions then
     try
       Prog := ParseProgram('function main() my_int := 123', Vars);
       Fail('should not get here');

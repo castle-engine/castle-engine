@@ -37,6 +37,12 @@ procedure TTestCastleXmlUtils.TestReadResult;
 var
   Doc: TXMLDocument;
 begin
+  if not CanCatchExceptions then
+  begin
+    AbortTest;
+    Exit;
+  end;
+
   { FPC's ReadXMLFile, and (consistenly) URLReadXML, have a non-standard
     way of initializing the 1st Doc parameter: it is always initialized,
     initially to nil,
@@ -114,10 +120,13 @@ begin
     AssertTrue(Doc.DocumentElement.AttributeColorRGB('color_whitergb_hex').Y = WhiteRGB.Y);
     AssertTrue(Doc.DocumentElement.AttributeColorRGB('color_whitergb_hex').Z = WhiteRGB.Z);
 
-    try Doc.DocumentElement.AttributeString  ('some_string_not_existing'); AssertTrue(false); except on EDOMAttributeMissing do begin { good } end; end;
-    try Doc.DocumentElement.AttributeCardinal('some_int_not_existing'   ); AssertTrue(false); except on EDOMAttributeMissing do begin { good } end; end;
-    try Doc.DocumentElement.AttributeSingle  ('some_int_not_existing'   ); AssertTrue(false); except on EDOMAttributeMissing do begin { good } end; end;
-    try Doc.DocumentElement.AttributeFloat   ('some_int_not_existing'   ); AssertTrue(false); except on EDOMAttributeMissing do begin { good } end; end;
+    if CanCatchExceptions then
+    begin
+      try Doc.DocumentElement.AttributeString  ('some_string_not_existing'); AssertTrue(false); except on EDOMAttributeMissing do begin { good } end; end;
+      try Doc.DocumentElement.AttributeCardinal('some_int_not_existing'   ); AssertTrue(false); except on EDOMAttributeMissing do begin { good } end; end;
+      try Doc.DocumentElement.AttributeSingle  ('some_int_not_existing'   ); AssertTrue(false); except on EDOMAttributeMissing do begin { good } end; end;
+      try Doc.DocumentElement.AttributeFloat   ('some_int_not_existing'   ); AssertTrue(false); except on EDOMAttributeMissing do begin { good } end; end;
+    end;
 
     S := 'blah';
     AssertTrue(Doc.DocumentElement.AttributeString('some_string', S));

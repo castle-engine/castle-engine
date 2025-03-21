@@ -1892,6 +1892,12 @@ end;
 
 procedure TTestX3DNodes.TestWeakLinkUnusedWarning;
 begin
+  if not CanCatchExceptions then
+  begin
+    AbortTest;
+    Exit;
+  end;
+
   ApplicationProperties.OnWarning.Add({$ifdef FPC}@{$endif}WeakLinkUnusedWarning);
   try
     try
