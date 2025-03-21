@@ -90,10 +90,12 @@ end;
 
 procedure TTestCastleFilesUtils.TestExeName;
 begin
-  {$ifdef CASTLE_CANNOT_CATCH_EXCEPTIONS}
-  AbortTest;
-  Exit; // WebAssembly cannot catch exceptions, so it would make an error from ExeName
-  {$endif}
+  // WebAssembly cannot catch exceptions, so it would make an error from ExeName
+  if not CanCatchExceptions then
+  begin
+    AbortTest;
+    Exit;
+  end;
 
   try
     {$warnings off} // knowingly using deprecated below, for test

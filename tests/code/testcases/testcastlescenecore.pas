@@ -211,6 +211,12 @@ procedure TTestSceneCore.TestFind;
 var
   Scene: TCastleSceneCore;
 begin
+  if not CanCatchExceptions then
+  begin
+    AbortTest;
+    Exit;
+  end;
+
   Scene := TCastleSceneCore.Create(nil);
   try
     try
@@ -349,6 +355,12 @@ var
   Node: TX3DRootNode;
   Scene1, Scene2: TCastleScene;
 begin
+  if not CanCatchExceptions then
+  begin
+    AbortTest;
+    Exit;
+  end;
+
   ApplicationProperties.OnWarning.Add({$ifdef FPC}@{$endif}NodeMultipleTimesWarning);
   try
     try

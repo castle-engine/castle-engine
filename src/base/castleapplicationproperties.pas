@@ -175,6 +175,14 @@ type
     property ShowUserInterfaceToQuit: Boolean
       read FShowUserInterfaceToQuit write FShowUserInterfaceToQuit;
 
+    { We can catch exceptions on this platform.
+      So "try .. except" works reliably and you can use exceptions
+      to report error-like conditions, and later recover from them.
+
+      This is @true on all platforms except web.
+      See "Known Limitations" on https://castle-engine.io/web . }
+    function CanCatchExceptions: Boolean;
+
     { Limit the number of (real) frames per second, to not hog the CPU.
       Set to zero to not limit.
 
@@ -635,6 +643,11 @@ begin
   FOnInitializeDebug.Add(Listener);
   if FInitializedDebug then
     Listener();
+end;
+
+function TCastleApplicationProperties.CanCatchExceptions: Boolean;
+begin
+  Result := {$ifdef WASI} false {$else} true {$endif};
 end;
 
 initialization

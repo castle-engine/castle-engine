@@ -95,9 +95,13 @@ begin
   AssertEquals('file:///foo.txt', AbsoluteUri('/foo.txt'));
   {$endif}
 
-  AssertFilenamesEqual(FilenameToUriSafe(InclPathDelim(GetCurrentDir) + 'foo.txt'), AbsoluteUri('foo.txt'));
+  if CanUseFileSystem then
+  begin
+    AssertFilenamesEqual(FilenameToUriSafe(InclPathDelim(GetCurrentDir) + 'foo.txt'), AbsoluteUri('foo.txt'));
+    AssertFilenamesEqual(FilenameToUriSafe(InclPathDelim(GetCurrentDir)), AbsoluteUri(''));
+  end;
+
   AssertEquals('http://foo', AbsoluteUri('http://foo'));
-  AssertFilenamesEqual(FilenameToUriSafe(InclPathDelim(GetCurrentDir)), AbsoluteUri(''));
 end;
 
 procedure TTestUriUtils.TestUriToFilenameSafe;
@@ -244,11 +248,13 @@ begin
   AssertTrue(ueDirectory = UriExists('castle-data:/game'));
   AssertTrue(ueDirectory = UriExists('castle-data:/'));
 
+  {$ifndef WASI} // TODO: web: this requires zip to support UriExists
   AssertTrue(ueNotExists = UriExists(ResolveCastleDataURL('castle-data:/not_existing')));
   AssertTrue(ueFile = UriExists(ResolveCastleDataURL('castle-data:/game/level.xml')));
   AssertTrue(ueDirectory = UriExists(ResolveCastleDataURL('castle-data:/game/')));
   AssertTrue(ueDirectory = UriExists(ResolveCastleDataURL('castle-data:/game')));
   AssertTrue(ueDirectory = UriExists(ResolveCastleDataURL('castle-data:/')));
+  {$endif}
 
   AssertTrue(ueFile = UriExists('data:model/vrml,#VRML V2.0 utf8' + NL +
     'Transform {' + NL +

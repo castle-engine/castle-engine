@@ -21,6 +21,9 @@ unit TestCastleImages;
   {$pointermath on}
 {$endif}
 
+// For USE_VAMPYRE_IMAGING
+{$I ../../../src/common_includes/castleconf.inc}
+
 interface
 
 uses CastleTester;
@@ -114,7 +117,7 @@ begin
   DoTest('alpha.png', [TRGBImage, TRGBAlphaImage, TRGBFloatImage], TRGBAlphaImage);
   DoTest('alpha.png', [TRGBFloatImage], TRGBFloatImage);
 
-  {$ifndef WASI} // without Vampyre, we cannot load RGBE
+  {$ifdef USE_VAMPYRE_IMAGING} // we need Vampyre for RGBE file format support
   { load image from RGBE file format }
   DoTest('rgbe.rgbe', [TRGBImage], TRGBImage);
   DoTest('rgbe.rgbe', [TRGBImage, TRGBAlphaImage], TRGBImage);

@@ -121,10 +121,10 @@ begin
   ButtonStopTests.OnClick := {$ifdef FPC}@{$endif}ClickStopTests;
   ButtonStopTests.Enabled := false;
 
-  {$ifdef WASI}
-  // Since we cannot catch exceptions in WebAssembly, it always behaves as if StopOnFail=true
-  CheckboxStopOnFail.Exists := false;
-  {$endif}
+  { Since we cannot catch exceptions in WebAssembly,
+    it always behaves as if StopOnFail=true.
+    So hide the CheckboxStopOnFail in this case, to not confuse the user. }
+  CheckboxStopOnFail.Exists := ApplicationProperties.CanCatchExceptions;
 
   { Make sure the tests are not running }
   RunTests := false;

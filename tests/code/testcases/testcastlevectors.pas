@@ -612,10 +612,11 @@ procedure TTestCastleVectors.TestVector3FromStr;
 var
   V: TVector3;
 begin
-  {$ifdef CASTLE_CANNOT_CATCH_EXCEPTIONS}
-  AbortTest;
-  Exit;
-  {$endif}
+  if not CanCatchExceptions then
+  begin
+    AbortTest;
+    Exit;
+  end;
 
   try
     V := Vector3FromStr('1 2 abc');
@@ -647,10 +648,11 @@ procedure TTestCastleVectors.TestVector4FromStr;
 var
   V: TVector4;
 begin
-  {$ifdef CASTLE_CANNOT_CATCH_EXCEPTIONS}
-  AbortTest;
-  Exit;
-  {$endif}
+  if not CanCatchExceptions then
+  begin
+    AbortTest;
+    Exit;
+  end;
 
   try
     V := Vector4FromStr('1 2 3 abc');
@@ -798,12 +800,16 @@ begin
   AssertSameValue(Sqr(1) + Sqr(10), PointsDistance2DSqr(P1, P2, 1), 0.01);
   AssertSameValue(Sqr(1) + Sqr(3), PointsDistance2DSqr(P1, P2, 2), 0.01);
 
-  {$ifndef CASTLE_CANNOT_CATCH_EXCEPTIONS}
+  if not CanCatchExceptions then
+  begin
+    AbortTest;
+    Exit;
+  end;
+
   try
     PointsDistance2DSqr(P1, P2, 3);
     Fail('Above PointsDistance2DSqr with IgnoreIndex = 3 should raise exception');
   except end;
-  {$endif}
 end;
 
 procedure TTestCastleVectors.TestApproximateScale;

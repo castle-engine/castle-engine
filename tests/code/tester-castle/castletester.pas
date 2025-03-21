@@ -302,6 +302,10 @@ type
       using subdir in castle-config:/ . }
     function CanUseFileSystem: Boolean;
 
+    { Can catch exceptions on this platform.
+      Shortcut for @code(ApplicationProperties.CanCatchExceptions). }
+    function CanCatchExceptions: Boolean;
+
     { Clears test list. }
     procedure ClearTests;
 
@@ -398,8 +402,9 @@ type
       which is nice to let FPC print backtrace of exception to console,
       if outside code will just let unhandled exception to break the program.
 
-      Note that for platforms where CASTLE_CANNOT_CATCH_EXCEPTIONS
-      is defined by castleconf.inc, the behavior is always as if this was @true .
+      Note that for platforms where ApplicationProperties.CanCatchExceptions=@false
+      the behavior is always as if this was @true .
+      We always crash the testsuite at first fail then.
 
       Default @true is suitable for console version. }
     property StopOnFirstFail: Boolean read FStopOnFirstFail
@@ -541,6 +546,27 @@ begin
 end;
 
 procedure TCastleTester.PrepareTestListToRun(const ATestCaseName: String);
+
+  { Randomize order on L.
+
+    Why? On the web it is useful, because recompiling on the web takes
+    a long time and often crashes after even a simplest code change
+    (so each recompilation starts from scratch).
+    So to find various failing tests, it is helpful to run in various orders
+    from a single build.
+
+    Randomizing is simplest for this. }
+  procedure RandomPermutation(const L: {$ifdef FPC}specialize{$endif} TList<TCastleTest>);
+  var
+    I, J: Integer;
+  begin
+    for I := 0 to L.Count - 1 do
+    begin
+      J := RandomIntRange(I, L.Count - 1);
+      L.Exchange(I, J);
+    end;
+  end;
+
 var
   I, J: Integer;
   TestCase: TCastleTestCase;
@@ -568,6 +594,11 @@ begin
       end;
     end;
   end;
+
+  // Hack to test various testcases, when multiple may fail, with web
+  {$ifdef WASI}
+  RandomPermutation(FTestsToRun);
+  {$endif}
 
   TestPassedCount := 0;
   TestFailedCount := 0;
@@ -1443,6 +1474,11 @@ begin
   { On the web, right now, our resources do not map to regular "files / dirs"
     as checked by FPC FileExists, DirectoryExists. }
   Result := {$ifdef WASI} false {$else} true {$endif};
+end;
+
+function TCastleTestCase.CanCatchExceptions: Boolean;
+begin
+  Result := ApplicationProperties.CanCatchExceptions;
 end;
 
 procedure TCastleTestCase.OnWarningRaiseException(const Category, S: string);
