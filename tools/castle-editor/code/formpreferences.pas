@@ -20,74 +20,92 @@ interface
 
 uses
   Classes, SysUtils, Forms, Controls, Graphics, Dialogs, EditBtn, StdCtrls,
-  ExtCtrls, ButtonPanel, ComCtrls;
+  ExtCtrls, ButtonPanel, ComCtrls, Spin, AnchorDockPanel;
 
 type
   TPreferencesForm = class(TForm)
     ButtonRegisterLazarusPackages: TButton;
+    ButtonTestStyle: TButton;
     ButtonPanel1: TButtonPanel;
+    CheckBoxEditorAppearance: TCheckBox;
+    CheckBoxChangeMenu: TCheckBox;
     CheckBoxMuteOnRun: TCheckBox;
     DirectoryEditAndroidHome: TDirectoryEdit;
-    DirectoryEditJavaHome: TDirectoryEdit;
-    DirectoryEditFpc: TDirectoryEdit;
     DirectoryEditCgePath: TDirectoryEdit;
+    DirectoryEditFpc: TDirectoryEdit;
+    DirectoryEditJavaHome: TDirectoryEdit;
     DirectoryEditLazarus: TDirectoryEdit;
     EditCodeEditorCommand: TFileNameEdit;
     EditCodeEditorCommandLineColumn: TFileNameEdit;
     EditCodeEditorCommandProject: TFileNameEdit;
-    LabelAndroidDocsWww: TLabel;
-    LabelAndroidHome: TLabel;
-    LabelJavaHome: TLabel;
-    LabelAndroidHomeHint: TLabel;
-    LabelJavaHomeHint: TLabel;
-    LabelCodeEditorAutodetect: TLabel;
+    EditSplitterSize: TSpinEdit;
+    LabelSplitterTestRight: TLabel;
+    LabelSplitterTestLeft: TLabel;
+    Label2: TLabel;
+    LabelCodeEditorCommand: TLabel;
     LabelCodeEditorCommandLineColumn: TLabel;
-    LabelCompilerAutodetect: TLabel;
-    LabelCompilerDelphi: TLabel;
-    LabelCompilationHeader: TLabel;
-    LabelCodeEditorLazarus: TLabel;
-    LabelCodeEditorDelphi: TLabel;
-    LabelCompilerFpc: TLabel;
-    LabelCodeEditorVSCode: TLabel;
+    LabelCodeEditorCommandProjectInstructions: TLabel;
+    LabelFontSize: TLabel;
+    LabelAndroidDocsWww: TLabel;
+    LabelAndroidDocsWwwCaption: TLabel;
+    LabelAndroidHome: TLabel;
+    LabelAndroidHomeHint: TLabel;
     LabelCgePath: TLabel;
     LabelCgePathAutoDetected: TLabel;
     LabelCgePathAutoDetectedCaption: TLabel;
+    LabelCodeEditorAutodetect: TLabel;
+    LabelCodeEditorCommandInstructions: TLabel;
+    LabelCodeEditorDelphi: TLabel;
+    LabelCodeEditorHeader: TLabel;
+    LabelCodeEditorLazarus: TLabel;
+    LabelCodeEditorVSCode: TLabel;
+    LabelCompilationHeader: TLabel;
+    LabelCompilerAutodetect: TLabel;
+    LabelCompilerDelphi: TLabel;
+    LabelCompilerFpc: TLabel;
+    LabelFpc: TLabel;
+    LabelFpcAutoDetected: TLabel;
+    LabelFpcAutoDetectedCaption: TLabel;
     LabelInstructions0: TLabel;
     LabelInstructions1: TLabel;
     LabelInstructions2: TLabel;
-    LabelAndroidDocsWwwCaption: TLabel;
-    LabelLazarusWebsite: TLabel;
-    LabelVolume: TLabel;
-    LabelCodeEditorCommandInstructions: TLabel;
-    LabelCodeEditorCommand: TLabel;
-    LabelCodeEditorCommandProjectInstructions: TLabel;
-    LabelCodeEditorHeader: TLabel;
-    LabelSound: TLabel;
-    LabelFpc: TLabel;
-    LabelFpcAutoDetectedCaption: TLabel;
+    LabelJavaHome: TLabel;
+    LabelJavaHomeHint: TLabel;
     LabelLazarus: TLabel;
-    LabelLazarusAutoDetectedCaption: TLabel;
-    LabelTitle: TLabel;
-    LabelFpcAutoDetected: TLabel;
     LabelLazarusAutoDetected: TLabel;
+    LabelLazarusAutoDetectedCaption: TLabel;
+    LabelLazarusWebsite: TLabel;
+    LabelSound: TLabel;
+    LabelSplitterSize: TLabel;
+    LabelTitle: TLabel;
+    LabelVolume: TLabel;
     ListPages: TListBox;
-    PanelGeneral: TPanel;
-    PanelCompilation: TPanel;
-    PanelAndroid: TPanel;
-    PanelInstructions: TPanel;
-    PanelCodeEditor: TPanel;
-    PanelSound: TPanel;
-    PanelFpcLazarusConfig: TPanel;
+    PanelSplitterTest: TPanel;
+    PanelRegisterLazarusPackages: TPanel;
+    PanelCustomCommands: TPanel;
+    PanelSplitterSize: TPanel;
+    PanelEditorFontSize: TPanel;
     RadioCodeEditorAutodetect: TRadioButton;
-    RadioCompilerAutodetect: TRadioButton;
     RadioCodeEditorCustom: TRadioButton;
-    RadioCompilerDelphi: TRadioButton;
-    RadioCodeEditorLazarus: TRadioButton;
     RadioCodeEditorDelphi: TRadioButton;
-    RadioCompilerFpc: TRadioButton;
+    RadioCodeEditorLazarus: TRadioButton;
     RadioCodeEditorVSCode: TRadioButton;
+    RadioCompilerAutodetect: TRadioButton;
+    RadioCompilerDelphi: TRadioButton;
+    RadioCompilerFpc: TRadioButton;
+    ScrollBoxAndroid: TScrollBox;
+    ScrollBoxCodeEditor: TScrollBox;
+    ScrollBoxCompilation: TScrollBox;
+    ScrollBoxGeneral: TScrollBox;
+    ScrollBoxFpcLazarusConfig: TScrollBox;
+    ScrollBoxSound: TScrollBox;
+    EditFontSize: TSpinEdit;
+    Splitter1: TSplitter;
+    SplitterTest: TSplitter;
     TrackVolume: TTrackBar;
     procedure ButtonRegisterLazarusPackagesClick(Sender: TObject);
+    procedure ButtonTestStyleClick(Sender: TObject);
+    procedure CheckBoxEditorAppearanceChange(Sender: TObject);
     procedure DirectoryEditAndroidHomeAcceptDirectory(Sender: TObject;
       var Value: String);
     procedure DirectoryEditCgePathChange(Sender: TObject);
@@ -99,6 +117,7 @@ type
       var Value: String);
     procedure EditCodeEditorCommandProjectAcceptFileName(Sender: TObject;
       var Value: String);
+    procedure EditSplitterSizeChange(Sender: TObject);
     procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
     procedure FormCloseQuery(Sender: TObject; var CanClose: boolean);
     procedure FormShow(Sender: TObject);
@@ -111,6 +130,10 @@ type
     OriginalFpcCustomPath, OriginalLazarusCustomPath, OriginalCastleEngineOverridePath: String;
     procedure UpdateAutoDetectedLabels;
     procedure UpdatePageVisible;
+    procedure UpdateStyle;
+    procedure TestStyle;
+    procedure SaveStyle;
+    procedure LoadStyle;
   public
 
   end;
@@ -123,7 +146,7 @@ implementation
 uses CastleOpenDocument, CastleUtils, CastleLog, CastleSoundEngine,
   CastleStringUtils, CastleFilesUtils, CastleUriUtils,
   ToolCompilerInfo, ToolFpcVersion, ToolCommonUtils, ToolManifest,
-  EditorUtils, ProjectUtils;
+  EditorUtils, ProjectUtils, StyleUtils;
 
 {$R *.lfm}
 
@@ -255,6 +278,7 @@ end;
 
 procedure TPreferencesForm.FormShow(Sender: TObject);
 begin
+  LoadStyle;
   // ListPages.ItemIndex := ; // leave previous
   UpdatePageVisible;
 
@@ -343,6 +367,8 @@ begin
   if ModalResult = mrOK then
   begin
     { copy UI -> global variables }
+
+    SaveStyle;
 
     // code editor tab
     if RadioCodeEditorCustom.Checked then
@@ -467,6 +493,25 @@ begin
   end;
 end;
 
+procedure TPreferencesForm.ButtonTestStyleClick(Sender: TObject);
+begin
+  TestStyle;
+end;
+
+procedure TPreferencesForm.CheckBoxEditorAppearanceChange(Sender: TObject);
+begin
+  if CheckBoxEditorAppearance.Checked then
+  begin
+    EnableStyles;
+    LoadStyle;
+  end
+  else
+  begin
+    DisableStyles;
+    ShowMessage('Changes will be applied after app restart');
+  end;
+end;
+
 procedure TPreferencesForm.DirectoryEditAndroidHomeAcceptDirectory(
   Sender: TObject; var Value: String);
 begin
@@ -519,10 +564,16 @@ begin
   Value := '"' + Value + '" ${PROJECT_DIR}';
 end;
 
+procedure TPreferencesForm.EditSplitterSizeChange(Sender: TObject);
+begin
+  SplitterTest.Width := EditSplitterSize.Value;
+  SplitterTest.Constraints.MinWidth := EditSplitterSize.Value;
+end;
+
 procedure TPreferencesForm.UpdatePageVisible;
 var
   PageIndex: Integer;
-  SelectedPage: TPanel;
+  SelectedPage: TScrollBox;
 begin
   PageIndex := ListPages.ItemIndex;
   if PageIndex = -1 then
@@ -530,20 +581,67 @@ begin
     PageIndex := 0;
 
   case PageIndex of
-    0: SelectedPage := PanelGeneral;
-    1: SelectedPage := PanelCodeEditor;
-    2: SelectedPage := PanelCompilation;
-    3: SelectedPage := PanelFpcLazarusConfig;
-    4: SelectedPage := PanelSound;
-    5: SelectedPage := PanelAndroid;
+    0: SelectedPage := ScrollBoxGeneral;
+    1: SelectedPage := ScrollBoxCodeEditor;
+    2: SelectedPage := ScrollBoxCompilation;
+    3: SelectedPage := ScrollBoxFpcLazarusConfig;
+    4: SelectedPage := ScrollBoxSound;
+    5: SelectedPage := ScrollBoxAndroid;
     else raise Exception.CreateFmt('Unexpected ListPages.ItemIndex %d', [ListPages.ItemIndex]);
   end;
-  SetEnabledVisible(PanelGeneral         , PanelGeneral          = SelectedPage);
-  SetEnabledVisible(PanelCodeEditor      , PanelCodeEditor       = SelectedPage);
-  SetEnabledVisible(PanelCompilation     , PanelCompilation      = SelectedPage);
-  SetEnabledVisible(PanelFpcLazarusConfig, PanelFpcLazarusConfig = SelectedPage);
-  SetEnabledVisible(PanelSound           , PanelSound            = SelectedPage);
-  SetEnabledVisible(PanelAndroid         , PanelAndroid          = SelectedPage);
+  SetEnabledVisible(ScrollBoxGeneral         , ScrollBoxGeneral          = SelectedPage);
+  SetEnabledVisible(ScrollBoxCodeEditor      , ScrollBoxCodeEditor       = SelectedPage);
+  SetEnabledVisible(ScrollBoxCompilation     , ScrollBoxCompilation      = SelectedPage);
+  SetEnabledVisible(ScrollBoxFpcLazarusConfig, ScrollBoxFpcLazarusConfig = SelectedPage);
+  SetEnabledVisible(ScrollBoxSound           , ScrollBoxSound            = SelectedPage);
+  SetEnabledVisible(ScrollBoxAndroid         , ScrollBoxAndroid          = SelectedPage);
+end;
+
+procedure TPreferencesForm.UpdateStyle;
+begin
+  StyleUtils.UpdateControlStyle(Self, false, true);
+end;
+
+procedure TPreferencesForm.TestStyle;
+var
+  savedStyle: TCastleEditorStyle;
+begin
+  savedStyle := CurrentStyle;
+  CurrentStyle.FontSize := EditFontSize.Value;
+  CurrentStyle.SplitterSize := EditSplitterSize.Value;
+
+  UpdateControlStyle(Self, false, true);
+
+  CurrentStyle := savedStyle;
+end;
+
+procedure TPreferencesForm.SaveStyle;
+begin
+  CurrentStyle.FontSize := EditFontSize.Value;
+  CurrentStyle.SplitterSize := EditSplitterSize.Value;
+  CurrentStyle.ChangeMenu := CheckBoxChangeMenu.Checked;
+  CurrentStyle.UsePlugin := CheckBoxEditorAppearance.Checked;
+  SaveStyleSettings;
+end;
+
+procedure TPreferencesForm.LoadStyle;
+begin
+  EditFontSize.MinValue := StyleUtils.EditorFontSizeMin;
+  EditFontSize.MaxValue := StyleUtils.EditorFontSizeMax;
+  EditSplitterSize.MinValue := StyleUtils.SplitterSizeMin;
+  EditSplitterSize.MaxValue := StyleUtils.SplitterSizeMax;
+
+  LoadStyleSettings;
+
+  CheckBoxEditorAppearance.Checked := CurrentStyle.UsePlugin;
+  EditFontSize.Value := CurrentStyle.FontSize;
+  //EditFontSize.Enabled := CurrentStyle.UsePlugin;
+  EditSplitterSize.Value := CurrentStyle.SplitterSize;
+  //EditSplitterSize.Enabled:= CurrentStyle.UsePlugin;
+  CheckBoxChangeMenu.Checked := CurrentStyle.ChangeMenu;
+  //CheckBoxChangeMenu.Enabled := CurrentStyle.UsePlugin;
+
+  UpdateStyle;
 end;
 
 end.
