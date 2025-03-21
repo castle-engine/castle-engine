@@ -1,6 +1,6 @@
 // -*- compile-command: "./test_single_testcase.sh TTestCastleVectors" -*-
 {
-  Copyright 2004-2023 Michalis Kamburelis.
+  Copyright 2004-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -18,6 +18,8 @@
 unit TestCastleVectors;
 
 { $define VECTOR_MATH_SPEED_TESTS}
+
+{$I ../../../src/common_includes/castleconf.inc}
 
 interface
 
@@ -610,6 +612,11 @@ procedure TTestCastleVectors.TestVector3FromStr;
 var
   V: TVector3;
 begin
+  {$ifdef CASTLE_CANNOT_CATCH_EXCEPTIONS}
+  AbortTest;
+  Exit;
+  {$endif}
+
   try
     V := Vector3FromStr('1 2 abc');
     Fail('Above should fail with EConvertError');
@@ -640,6 +647,11 @@ procedure TTestCastleVectors.TestVector4FromStr;
 var
   V: TVector4;
 begin
+  {$ifdef CASTLE_CANNOT_CATCH_EXCEPTIONS}
+  AbortTest;
+  Exit;
+  {$endif}
+
   try
     V := Vector4FromStr('1 2 3 abc');
     Fail('Above should fail with EConvertError');
@@ -785,10 +797,13 @@ begin
   AssertSameValue(Sqr(3) + Sqr(10), PointsDistance2DSqr(P1, P2, 0), 0.01);
   AssertSameValue(Sqr(1) + Sqr(10), PointsDistance2DSqr(P1, P2, 1), 0.01);
   AssertSameValue(Sqr(1) + Sqr(3), PointsDistance2DSqr(P1, P2, 2), 0.01);
+
+  {$ifndef CASTLE_CANNOT_CATCH_EXCEPTIONS}
   try
     PointsDistance2DSqr(P1, P2, 3);
     Fail('Above PointsDistance2DSqr with IgnoreIndex = 3 should raise exception');
   except end;
+  {$endif}
 end;
 
 procedure TTestCastleVectors.TestApproximateScale;

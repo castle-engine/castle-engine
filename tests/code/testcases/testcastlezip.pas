@@ -149,7 +149,10 @@ var
   ZipUrl: String;
 begin
   if not CanUseFileSystem then // for FileExists
+  begin
+    AbortTest;
     Exit;
+  end;
 
   // Use InternalUriEscape to encode characters like spaces and Polish inside URL.
   // We deliberately use "żółć" and Polish in the filename, to test that it works.
@@ -205,7 +208,10 @@ var
   File2Stream, File3Stream: TStringStream;
 begin
   if not CanUseFileSystem then // for CreateTemporaryDirUrl
+  begin
+    AbortTest;
     Exit;
+  end;
 
   TempDir := CreateTemporaryDirUrl(ClassName);
   try
@@ -256,7 +262,10 @@ var
   WriteStream, WriteStreamUnfinished: TStream;
 begin
   if not CanUseFileSystem then // for CreateTemporaryDirUrl
+  begin
+    AbortTest;
     Exit;
+  end;
 
   TempDir := CreateTemporaryDirUrl(ClassName);
   try
@@ -307,7 +316,10 @@ var
   Zip: TCastleZip;
 begin
   if not CanUseFileSystem then // for CreateTemporaryDirUrl
+  begin
+    AbortTest;
     Exit;
+  end;
 
   TempDir := CreateTemporaryDirUrl(ClassName);
   try

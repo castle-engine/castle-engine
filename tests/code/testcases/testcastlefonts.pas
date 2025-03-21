@@ -69,7 +69,10 @@ var
   Window: TCastleWindow;
 begin
   if not CanCreateWindowForTest then
+  begin
+    AbortTest;
     Exit;
+  end;
 
   // should work with OpenGL context too, actually it doesn't matter now
   Window := CreateWindowForTest;

@@ -80,7 +80,7 @@ begin
   Log('Running tests...');
   FTester.Run;
   if FTester.TestFailedCount = 0 then
-    Log('All tests passed.');
+    Log('All tests passed (aborted: ' + IntToStr(FTester.AbortedTestCount) + ').');
 
   //Log('Press <enter> to quit...');
   //Readln;

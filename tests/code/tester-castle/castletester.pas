@@ -59,6 +59,8 @@ type
   TCastleTestCase = class;
   {$M-}
 
+  { A single TestXxx method that can be executed to perform a test.
+    This refers to TestCase (TCastleTestCase) which is a class holding this method. }
   TCastleTest = class
   strict private
     FTestCase: TCastleTestCase;
@@ -90,6 +92,14 @@ type
   end;
 
   {$M+} // Generate type info for TCastleTestCase and descendants
+
+  { Base class from which you should derive new tests.
+
+    Every published method of this class that starts with the name "Test"
+    will be executed.
+
+    The Setup and Teardown will be called around it, for every such "TestXxx"
+    call. }
   TCastleTestCase = class
   strict private
     FName: String;
@@ -270,7 +280,8 @@ type
 
       In case you do manually TCastleWindow.Create call,
       you should also honour this method, do not create TCastleWindow instance
-      when this is @false. Abort the test (without any failure) in this case.
+      when this is @false. Abort the test (without any failure) in this case,
+      preferably by @code(AbortTest; Exit;).
 
       All test windows should be created using CreateWindowForTest now,
       and CreateWindowForTest will actually raise exception if this is true.
@@ -301,8 +312,11 @@ type
 
     property CurrentTestName: String read FCurrentTestName;
 
-  published
-
+    { Call this when aborting the test, because for some reason it cannot
+      be performed on the given platform.
+      Should be followed by early @code(Exit) from the given testcase,
+      without any error. }
+    procedure AbortTest;
   end;
   {$M-}
 
@@ -341,8 +355,9 @@ type
 
     procedure SetTestPassedCount(const NewTestCount: Integer);
     procedure SetTestFailedCount(const NewTestCount: Integer);
-
   private
+    FTestAbortedCount: Integer;
+
     { Callbacks to change UI }
     FNotifyTestExecuted: TNotifyTestExecuted;
     FNotifyTestCaseExecuted: TNotifyTestCaseExecuted;
@@ -395,6 +410,11 @@ type
       write SetTestPassedCount;
     property TestFailedCount: Integer read FTestFailedCount
       write SetTestFailedCount;
+
+    { Number of tests aborted (because for some reason that could not be performed
+      on the given platform) in the last run.
+      These are also included @link(TestPassedCount). }
+    property TestAbortedCount: Integer read FTestAbortedCount;
 
     property NotifyTestExecuted: TNotifyTestExecuted read FNotifyTestExecuted
       write FNotifyTestExecuted;
@@ -551,6 +571,7 @@ begin
 
   TestPassedCount := 0;
   TestFailedCount := 0;
+  FTestAbortedCount := 0;
   if Assigned(FNotifyEnabledTestCountChanged) then
     NotifyEnabledTestCountChanged(Self);
 end;
@@ -1528,11 +1549,16 @@ begin
     ' Actual: ' + IntToStr(Actual), Expected = Actual, AddrOfError);
 end;
 
-{ TCastleTest }
+procedure TCastleTestCase.AbortTest;
+begin
+  Inc(FCastleTester.FTestAbortedCount);
+end;
+
+{ TCastleTest ---------------------------------------------------------------- }
 
 constructor TCastleTest.Create(const ATestCase: TCastleTestCase;
   const AName: String; {$ifdef FPC}const AMethodPointer: CodePointer{$else}
-      const ARttiMethod: TRttiMethod{$endif});
+  const ARttiMethod: TRttiMethod{$endif});
 begin
   FTestCase := ATestCase;
   Name := AName;

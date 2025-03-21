@@ -17,6 +17,8 @@
 { Test OS-specific utilities mostly in CastleFilesUtils unit. }
 unit TestCastleFilesUtils;
 
+{$I ../../../src/common_includes/castleconf.inc}
+
 interface
 
 uses
@@ -88,6 +90,11 @@ end;
 
 procedure TTestCastleFilesUtils.TestExeName;
 begin
+  {$ifdef CASTLE_CANNOT_CATCH_EXCEPTIONS}
+  AbortTest;
+  Exit; // WebAssembly cannot catch exceptions, so it would make an error from ExeName
+  {$endif}
+
   try
     {$warnings off} // knowingly using deprecated below, for test
     ExeName;

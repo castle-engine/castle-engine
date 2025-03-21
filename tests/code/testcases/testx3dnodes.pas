@@ -345,7 +345,10 @@ procedure TTestX3DNodes.TestParseSaveToFile;
 
 begin
   if not CanUseFileSystem then // for GetTempDirectory
+  begin
+    AbortTest;
     Exit;
+  end;
 
   // TODO: This will never pass for now, because writing adds 3 new tokens:
   // META "generator" "test_castle_game_engine"
