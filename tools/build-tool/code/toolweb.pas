@@ -107,6 +107,10 @@ begin
   LibraryFileName := OutputPath + 'library_template.lpr';
   CompilerOptions.OS := WasiP1;
   CompilerOptions.CPU := Wasm32;
+  { Detecting leaks in the library is not really useful, as library never "stops".
+    It only stops on exception, and then it's better to see the exception message
+    then log filled with leaks, e.g. for tests/ }
+  CompilerOptions.DetectMemoryLeaks := false;
   Compile(coFpc, Project.Path, LibraryFileName, CompilerOptions);
 
   // move and rename to castle-engine-output/web/dist/xxx.wasm
