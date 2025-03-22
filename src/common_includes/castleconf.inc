@@ -614,6 +614,12 @@
   { Web target doesn't support try..except, so we report some errors
     without causing exceptions in this case. }
   {$define CASTLE_CANNOT_CATCH_EXCEPTIONS}
+
+  // LibPng, from dynamic or static library, not supported.
+  // Undefining the 2 symbols below simply avoids 2 warnings at runtime
+  // from WarningNoLibPng, nothing more.
+  {$undef CASTLE_PNG_DYNAMIC}
+  {$undef CASTLE_PNG_STATIC}
 {$endif}
 
 { Workaround ParamStr issue -------------------------------------------------- }
