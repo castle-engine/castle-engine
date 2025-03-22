@@ -925,6 +925,8 @@ begin
       Exit;
     end;
   end;
+
+  Result := ueNotExists;
 end;
 
 function TCastleZip.GetFiles: TStrings;
