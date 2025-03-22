@@ -37,6 +37,7 @@ type
     procedure TestZipWrite;
     procedure TestZipDirectory;
     procedure TestZipWriteProtocol;
+    procedure TestZipExistsProtocol;
   end;
 
 implementation
@@ -388,6 +389,41 @@ begin
   finally
     RemoveNonEmptyDir(UriToFilenameSafe(TempDir));
   end;
+end;
+
+procedure TTestCastleZip.TestZipExistsProtocol;
+var
+  Zip: TCastleZip;
+  ZipUrl: String;
+begin
+  ZipUrl := 'castle-data:/zip/' + InternalUriEscape('packed żółć.zip');
+  AssertTrue(UriExists(ZipUrl) = ueFile);
+
+  Zip := TCastleZip.Create;
+  try
+    Zip.Open(ZipUrl);
+    Zip.RegisterUrlProtocol('TestZipExistsProtocol');
+
+    {$ifdef CASTLE_FULL_ZIP_UNICODE_SUPPORT}
+    AssertTrue(UriExists(
+      'TestZipExistsProtocol:/' + InternalUriEscape('test filename żółć.txt')) = ueFile);
+    {$endif}
+    AssertTrue(UriExists(
+      'TestZipExistsProtocol:/test.txt') = ueFile);
+    AssertTrue(UriExists(
+      'TestZipExistsProtocol:/test_texture.png') = ueFile);
+    AssertTrue(UriExists(
+      'TestZipExistsProtocol:/subdir/') = ueDirectory);
+    {$ifdef CASTLE_FULL_ZIP_UNICODE_SUPPORT}
+    AssertTrue(UriExists(
+      'TestZipExistsProtocol:/subdir/' + InternalUriEscape('test filename żółć in subdir.txt')) = ueFile);
+    {$endif}
+
+    AssertTrue(UriExists(
+      'TestZipExistsProtocol:/notexisting') = ueNotExists);
+    AssertTrue(UriExists(
+      'TestZipExistsProtocol:/notexistingdir/') = ueNotExists);
+  finally FreeAndNil(Zip) end;
 end;
 
 initialization
