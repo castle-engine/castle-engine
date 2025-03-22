@@ -63,6 +63,13 @@ var
   C: TWalkAttackCreatureResource;
   MatProp: TMaterialProperty;
 begin
+  // requires catching EViewportNotAssigned internally
+  if not CanCatchExceptions then
+  begin
+    AbortTest;
+    Exit;
+  end;
+
   SoundEngine.RepositoryURL := 'castle-data:/game/sounds.xml';
 
   Resources.LoadFromFiles('castle-data:/game/');

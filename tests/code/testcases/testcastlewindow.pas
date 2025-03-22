@@ -56,7 +56,10 @@ var
   Window: TCastleWindow;
 begin
   if not CanCreateWindowForTest then
+  begin
+    AbortTest;
     Exit;
+  end;
 
   Window := CreateWindowForTest;
   try
@@ -71,7 +74,10 @@ var
   C: TCastleButton;
 begin
   if not CanCreateWindowForTest then
+  begin
+    AbortTest;
     Exit;
+  end;
 
   Window := CreateWindowForTest;
   try
@@ -113,7 +119,10 @@ var
   Parent, Child1, Child2: TCastleUserInterface;
 begin
   if not CanCreateWindowForTest then
+  begin
+    AbortTest;
     Exit;
+  end;
 
   Window := CreateWindowForTest;
   try
@@ -240,7 +249,10 @@ var
 
 begin
   if not CanCreateWindowForTest then
+  begin
+    AbortTest;
     Exit;
+  end;
 
   Window := CreateWindowForTest;
   try
@@ -310,7 +322,10 @@ var
   Viewport: TCastleViewport;
 begin
   if not CanCreateWindowForTest then
+  begin
+    AbortTest;
     Exit;
+  end;
 
   ApplicationProperties.OnWarning.Add({$ifdef FPC}@{$endif}OnWarningRaiseException);
   try
@@ -390,7 +405,10 @@ var
   Window: TCastleWindow;
 begin
   if not CanCreateWindowForTest then
+  begin
+    AbortTest;
     Exit;
+  end;
 
   Window := CreateWindowForTest;
   try
@@ -453,7 +471,10 @@ var
   SomeState: TCastleView;
 begin
   if not CanCreateWindowForTest then
+  begin
+    AbortTest;
     Exit;
+  end;
 
   Window := CreateWindowForTest;
   try
@@ -514,7 +535,10 @@ var
   StateTesting: TStateTestingSize;
 begin
   if not CanCreateWindowForTest then
+  begin
+    AbortTest;
     Exit;
+  end;
 
   Window := CreateWindowForTest;
   try
@@ -582,7 +606,10 @@ var
   StateTesting: TStateTestingSize2;
 begin
   if not CanCreateWindowForTest then
+  begin
+    AbortTest;
     Exit;
+  end;
 
   Window := CreateWindowForTest;
   try
@@ -615,7 +642,10 @@ var
   DummyHandleInput: Boolean;
 begin
   if not CanCreateWindowForTest then
+  begin
+    AbortTest;
     Exit;
+  end;
 
   Window := CreateWindowForTest;
   try
@@ -653,7 +683,10 @@ var
   Scene, Scene2: TCastleScene;
 begin
   if not CanCreateWindowForTest then
+  begin
+    AbortTest;
     Exit;
+  end;
 
   Window := CreateWindowForTest;
   try

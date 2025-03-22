@@ -59,6 +59,8 @@ type
   TCastleTestCase = class;
   {$M-}
 
+  { A single TestXxx method that can be executed to perform a test.
+    This refers to TestCase (TCastleTestCase) which is a class holding this method. }
   TCastleTest = class
   strict private
     FTestCase: TCastleTestCase;
@@ -90,6 +92,14 @@ type
   end;
 
   {$M+} // Generate type info for TCastleTestCase and descendants
+
+  { Base class from which you should derive new tests.
+
+    Every published method of this class that starts with the name "Test"
+    will be executed.
+
+    The Setup and Teardown will be called around it, for every such "TestXxx"
+    call. }
   TCastleTestCase = class
   strict private
     FName: String;
@@ -270,7 +280,8 @@ type
 
       In case you do manually TCastleWindow.Create call,
       you should also honour this method, do not create TCastleWindow instance
-      when this is @false. Abort the test (without any failure) in this case.
+      when this is @false. Abort the test (without any failure) in this case,
+      preferably by @code(AbortTest; Exit;).
 
       All test windows should be created using CreateWindowForTest now,
       and CreateWindowForTest will actually raise exception if this is true.
@@ -291,6 +302,10 @@ type
       using subdir in castle-config:/ . }
     function CanUseFileSystem: Boolean;
 
+    { Can catch exceptions on this platform.
+      Shortcut for @code(ApplicationProperties.CanCatchExceptions). }
+    function CanCatchExceptions: Boolean;
+
     { Clears test list. }
     procedure ClearTests;
 
@@ -301,8 +316,11 @@ type
 
     property CurrentTestName: String read FCurrentTestName;
 
-  published
-
+    { Call this when aborting the test, because for some reason it cannot
+      be performed on the given platform.
+      Should be followed by early @code(Exit) from the given testcase,
+      without any error. }
+    procedure AbortTest;
   end;
   {$M-}
 
@@ -341,8 +359,9 @@ type
 
     procedure SetTestPassedCount(const NewTestCount: Integer);
     procedure SetTestFailedCount(const NewTestCount: Integer);
-
   private
+    FTestAbortedCount: Integer;
+
     { Callbacks to change UI }
     FNotifyTestExecuted: TNotifyTestExecuted;
     FNotifyTestCaseExecuted: TNotifyTestCaseExecuted;
@@ -383,8 +402,9 @@ type
       which is nice to let FPC print backtrace of exception to console,
       if outside code will just let unhandled exception to break the program.
 
-      Note that for platforms where CASTLE_CANNOT_CATCH_EXCEPTIONS
-      is defined by castleconf.inc, the behavior is always as if this was @true .
+      Note that for platforms where ApplicationProperties.CanCatchExceptions=@false
+      the behavior is always as if this was @true .
+      We always crash the testsuite at first fail then.
 
       Default @true is suitable for console version. }
     property StopOnFirstFail: Boolean read FStopOnFirstFail
@@ -395,6 +415,11 @@ type
       write SetTestPassedCount;
     property TestFailedCount: Integer read FTestFailedCount
       write SetTestFailedCount;
+
+    { Number of tests aborted (because for some reason that could not be performed
+      on the given platform) in the last run.
+      These are also included @link(TestPassedCount). }
+    property TestAbortedCount: Integer read FTestAbortedCount;
 
     property NotifyTestExecuted: TNotifyTestExecuted read FNotifyTestExecuted
       write FNotifyTestExecuted;
@@ -446,7 +471,7 @@ implementation
 uses TypInfo, Math,
   {$ifdef FPC} TestUtils, {$else} IOUtils, {$endif} StrUtils,
   CastleLog, CastleUtils, CastleStringUtils, CastleTesterParameters,
-  CastleFilesUtils, CastleUriUtils;
+  CastleFilesUtils, CastleUriUtils, CastleApplicationProperties;
 
 { routines ------------------------------------------------------------------- }
 
@@ -521,6 +546,27 @@ begin
 end;
 
 procedure TCastleTester.PrepareTestListToRun(const ATestCaseName: String);
+
+  { Randomize order on L.
+
+    Why? On the web it is useful, because recompiling on the web takes
+    a long time and often crashes after even a simplest code change
+    (so each recompilation starts from scratch).
+    So to find various failing tests, it is helpful to run in various orders
+    from a single build.
+
+    Randomizing is simplest for this. }
+  procedure RandomPermutation(const L: {$ifdef FPC}specialize{$endif} TList<TCastleTest>);
+  var
+    I, J: Integer;
+  begin
+    for I := 0 to L.Count - 1 do
+    begin
+      J := RandomIntRange(I, L.Count - 1);
+      L.Exchange(I, J);
+    end;
+  end;
+
 var
   I, J: Integer;
   TestCase: TCastleTestCase;
@@ -549,8 +595,14 @@ begin
     end;
   end;
 
+  // Hack useful to test various testcases, when multiple may fail, with web
+  {$ifdef WASI}
+  // RandomPermutation(FTestsToRun);
+  {$endif}
+
   TestPassedCount := 0;
   TestFailedCount := 0;
+  FTestAbortedCount := 0;
   if Assigned(FNotifyEnabledTestCountChanged) then
     NotifyEnabledTestCountChanged(Self);
 end;
@@ -1424,6 +1476,11 @@ begin
   Result := {$ifdef WASI} false {$else} true {$endif};
 end;
 
+function TCastleTestCase.CanCatchExceptions: Boolean;
+begin
+  Result := ApplicationProperties.CanCatchExceptions;
+end;
+
 procedure TCastleTestCase.OnWarningRaiseException(const Category, S: string);
 begin
   raise Exception.CreateFmt(ClassName +
@@ -1528,11 +1585,16 @@ begin
     ' Actual: ' + IntToStr(Actual), Expected = Actual, AddrOfError);
 end;
 
-{ TCastleTest }
+procedure TCastleTestCase.AbortTest;
+begin
+  Inc(FCastleTester.FTestAbortedCount);
+end;
+
+{ TCastleTest ---------------------------------------------------------------- }
 
 constructor TCastleTest.Create(const ATestCase: TCastleTestCase;
   const AName: String; {$ifdef FPC}const AMethodPointer: CodePointer{$else}
-      const ARttiMethod: TRttiMethod{$endif});
+  const ARttiMethod: TRttiMethod{$endif});
 begin
   FTestCase := ATestCase;
   Name := AName;

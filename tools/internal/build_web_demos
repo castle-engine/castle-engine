@@ -127,22 +127,20 @@ do_project examples/eye_of_beholder # TODO: web: fog
 do_project examples/creature_behaviors # TODO: web: bump mapping, mouse look
 do_project examples/third_person_navigation # TODO: web: mouse look
 
-do_project tests # TODO: not all tests pass; also needs to comment out detect_memory_leaks in manifest
+do_project tests
 
 # 3d, problems critical
 # do_project examples/fps_game # TODO: web: bump mapping, mouse look, weird blinking
-# do_project examples/terrain # TODO: web: terrain shaders, weird crash
-# do_project examples/research_special_rendering_methods/test_rendering_opengl_capabilities/ # TODO: web: weird crash
+# do_project examples/terrain # TODO: web: terrain shaders, also weird crash "EVariantTypeCastError: Could not convert variant of type (Null) into type (Unknown)"
+# do_project examples/research_special_rendering_methods/test_rendering_opengl_capabilities/ # TODO: web: weird crash "EVariantTypeCastError: Could not convert variant of type (Null) into type (Unknown)"
 
 # not in CGE repo, git clone castle-model-viewer-mobile as a sibling to make this work
 do_project_any "${CASTLE_ENGINE_PATH}/../castle-model-viewer-mobile" 'castle-model-viewer-mobile' # TODO: web: no open dialog
 do_project_any "${CASTLE_ENGINE_PATH}/../castle-dice-throwing" 'castle-dice-throwing'
 
-# TODO: web: screen effects don't show, also demo crashes on effects switch
+# TODO: web: screen effects don't show, also demo crashes when we activate effects with "EVariantTypeCastError: Could not convert variant of type (Null) into type (Unknown)"
 # do_project examples/screen_effects_demo
 
-# TODO: web: without WebAudio support, these will be silent; also game_3d_sound likely crashes due to PBR
-# do_project examples/audio/game_3d_sound
-# do_project examples/audio/play_sounds # proably works, but silent without WebAudio
-
-
+# audio
+do_project examples/audio/game_3d_sound # TODO: silent without WebAudio, also change F5 shortcut (reload), also change right button (for mouse look)
+do_project examples/audio/play_sounds # TODO: silent without WebAudio, also "Exit" should be hidden

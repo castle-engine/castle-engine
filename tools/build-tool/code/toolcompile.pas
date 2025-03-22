@@ -690,8 +690,18 @@ begin
       cmValgrind:
         begin
           { See https://castle-engine.io/profiling_using_valgrind
-            for reasons of Valgrind options. }
-          FpcOptions.Add('-gv');
+            for reasons of Valgrind options.
+
+            For web:
+            Do not pass -gv for WebAssembly, it causes errors
+            "Can't find unit cmem used by castle_cache".
+            And we need Valgrind mode to compile without errors,
+            to enable "castle-engine cache --target=web". }
+
+          if Options.OS = WasiP1 then
+            Writeln('Warning: Valgrind is not supported on WebAssembly')
+          else
+            FpcOptions.Add('-gv');
           FpcOptions.Add('-gl');
         end;
       cmDebug:

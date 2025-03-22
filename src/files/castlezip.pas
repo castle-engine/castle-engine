@@ -21,7 +21,8 @@ unit CastleZip;
 interface
 
 uses SysUtils, Classes, Generics.Collections,
-  {$ifdef FPC} Zipper {$else} System.Zip {$endif};
+  {$ifdef FPC} Zipper {$else} System.Zip {$endif},
+  CastleUriUtils;
 
 type
   EZipNotOpen = class(Exception);
@@ -121,6 +122,7 @@ type
     { Handlers given to CastleDownload.RegisterUrlProtocol. }
     function ReadUrlHandler(const Url: String; out MimeType: string): TStream;
     function WriteUrlHandler(const Url: String): TStream;
+    function ExistsUrlHandler(const Url: String): TUriExists;
   strict private
     { FPC or Delphi specific fields and methods }
     {$ifdef FPC}
@@ -368,7 +370,7 @@ procedure ZipDirectory(const ZipUrl: String; DirectoryUrl: String;
 implementation
 
 uses URIParser,
-  CastleUriUtils, CastleDownload, CastleFilesUtils, CastleStringUtils,
+  CastleDownload, CastleFilesUtils, CastleStringUtils,
   CastleClassUtils, CastleFindFiles, CastleLog, CastleUtils;
 
 {$ifdef FPC}
@@ -844,11 +846,14 @@ begin
 end;
 
 procedure TCastleZip.RegisterUrlProtocol(const Protocol: String);
+var
+  P: TRegisteredProtocol;
 begin
   FRegisteredUrlProtocol := Protocol;
-  CastleDownload.RegisterUrlProtocol(Protocol,
-    {$ifdef FPC}@{$endif} ReadUrlHandler,
-    {$ifdef FPC}@{$endif} WriteUrlHandler);
+  P := CastleDownload.RegisterUrlProtocol(Protocol);
+  P.ReadEvent := {$ifdef FPC}@{$endif} ReadUrlHandler;
+  P.WriteEvent := {$ifdef FPC}@{$endif} WriteUrlHandler;
+  P.ExistsEvent := {$ifdef FPC}@{$endif} ExistsUrlHandler;
 end;
 
 procedure TCastleZip.UnregisterUrlProtocol;
@@ -889,6 +894,37 @@ begin
   ResultStream.PathInZip := PathInZip;
   FPendingStreams.Add(ResultStream);
   Result := ResultStream;
+end;
+
+function TCastleZip.ExistsUrlHandler(const Url: String): TUriExists;
+var
+  U: TURI;
+  PathInZip, PathInZipAsDirectory: String;
+  I: Integer;
+begin
+  U := ParseURI(Url);
+  PathInZip := PrefixRemove('/', U.Path + U.Document, false);
+  if PathInZip = '' then
+    Exit(ueDirectory); // top zip directory
+
+  // calculate PathInZipAsDirectory, ending with /
+  PathInZipAsDirectory := PathInZip;
+  if PathInZipAsDirectory[Length(PathInZipAsDirectory)] <> '/' then
+    PathInZipAsDirectory := PathInZipAsDirectory + '/';
+
+  for I := 0 to FFiles.Count - 1 do
+  begin
+    if FFiles[I] = PathInZip then
+    begin
+      Result := ueFile;
+      Exit;
+    end else
+    if IsPrefix(PathInZipAsDirectory, FFiles[I]) then
+    begin
+      Result := ueDirectory;
+      Exit;
+    end;
+  end;
 end;
 
 function TCastleZip.GetFiles: TStrings;

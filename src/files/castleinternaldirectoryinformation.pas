@@ -1,5 +1,5 @@
 {
-  Copyright 2019-2019 Michalis Kamburelis.
+  Copyright 2019-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -349,16 +349,12 @@ var
   DataInfoUrl, DataInfoProtocol: String;
   DirsCount, FilesCount, FilesSize: QWord;
 begin
-  // TODO: web: we don't have URIFileExists for web, and we don't have CastleDataInformation.xml
-  {$ifdef WASI}
-  Exit;
-  {$endif}
-
   DataInfoUrl := ResolveCastleDataUrl('castle-data:/auto_generated/CastleDataInformation.xml');
   DataInfoProtocol := URIProtocol(DataInfoUrl);
 
   if (DataInfoProtocol = 'file') or
      (DataInfoProtocol = 'castle-nx-contents') or
+     (DataInfoProtocol = 'castle-internal-web-data-packed') or
      (DataInfoProtocol = '') then
   begin
     { To avoid exceptions during debugging,

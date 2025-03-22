@@ -478,7 +478,7 @@ type
 
       For now, this only determines whether generated shaders...
 
-      @unoderedList(
+      @unorderedList(
         @item(...include code to calculate all the light sources.
 
           This is more optimal for dynamic transformations,

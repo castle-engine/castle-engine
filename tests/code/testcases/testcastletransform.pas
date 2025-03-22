@@ -1933,6 +1933,12 @@ var
   Owner: TComponent;
   //T: TCastleTransform;
 begin
+  if not CanCatchExceptions then
+  begin
+    AbortTest;
+    Exit;
+  end;
+
   try
     Owner := TComponent.Create(nil);
     try

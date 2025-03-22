@@ -33,7 +33,10 @@ uses CastleFilesUtils, CastleUriUtils;
 procedure TTestSysUtils.TestDirectoryFileExists;
 begin
   if not CanUseFileSystem then
+  begin
+    AbortTest;
     Exit;
+  end;
 
   { Before FPC 3.2.0:
 
