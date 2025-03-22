@@ -17,7 +17,7 @@ It uses _Castle Game Engine_ testing framework, which is based on [FPCUnit](http
 
 Build it like a usual CGE project:
 
-- From [CGE editor](https://castle-engine.io/manual_editor.php). Just use menu item _"Compile"_.
+- From [CGE editor](https://castle-engine.io/editor). Just use menu item _"Compile"_.
 
 - Or use [CGE command-line build tool](https://github.com/castle-engine/castle-engine/wiki/Build-Tool). Run `castle-engine compile` in this directory.
 

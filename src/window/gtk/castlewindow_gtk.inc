@@ -1764,6 +1764,11 @@ begin
   Result := 'GTK+';
 end;
 
+function TCastleApplication.MultipleWindowsPossible: Boolean;
+begin
+  Result := true;
+end;
+
 {$ifdef CASTLE_WINDOW_GTK_WITH_XLIB}
 function TCastleApplication.XDisplay: Xlib.PDisplay;
 begin

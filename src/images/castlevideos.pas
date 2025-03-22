@@ -412,7 +412,7 @@ uses Classes,
   {$ifndef FPC} {$ifdef MSWINDOWS} Windows, ShellApi, {$endif} {$endif}
   Math,
   CastleClassUtils, CastleUtils, CastleStringUtils,
-  CastleLog, CastleFilesUtils, CastleTextureImages,
+  CastleLog, CastleFilesUtils, CastleTextureImages, CastleApplicationProperties,
   CastleDownload, CastleUriUtils, CastleFindFiles;
 
 { TVideo --------------------------------------------------------------------- }
@@ -543,13 +543,22 @@ procedure TVideo.LoadFromFile(const Url: String;
     begin
       UrlComplete := FormatNameCounter(Url, Index, false);
 
-      try
-        { LoadImage will raise an exception
-          for invalid / not existing / not readable image file / url.
-          Don't increase FItems before NewItem is successfully loaded. }
-        NewItem := LoadSingleImage(UrlComplete);
-      except
-        Exit(false);
+      if ApplicationProperties.CanCatchExceptions then
+      begin
+        try
+          { LoadImage will raise an exception
+            for invalid / not existing / not readable image file / url.
+            Don't increase FItems before NewItem is successfully loaded. }
+          NewItem := LoadSingleImage(UrlComplete);
+        except
+          Exit(false);
+        end;
+      end else
+      begin
+        { When we cannot catch exceptions (on web), only try to open
+          if UriFileExists confirms it's a file. }
+        if not UriFileExists(UrlComplete) then
+          Exit(false);
       end;
 
       SetLength(FItems, Length(FItems) + 1);

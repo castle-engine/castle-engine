@@ -261,6 +261,9 @@ function FindFiles_NonRecursive(const Path, Mask: string;
   const FileProc: TFoundFileProc; const FileProcData: Pointer;
   var StopSearch: Boolean): Cardinal;
 
+  { Implementation when Path is '' (current directory)
+    or maps to a regular filename using UriToFilenameSafe.
+    Always sets Result. }
   procedure UseLocalFileSystem;
   var
     AbsoluteName, LocalPath: string;
@@ -318,6 +321,8 @@ function FindFiles_NonRecursive(const Path, Mask: string;
     finally FindClose(FileRec) end;
   end;
 
+  { Implementation when Path has protocol 'castle-data'.
+    Always sets Result. }
   procedure UseDataDirectoryInformation;
   var
     U: TURI;
@@ -327,6 +332,8 @@ function FindFiles_NonRecursive(const Path, Mask: string;
     PathDir, D: TDirectoryInformation.TDirectory;
     FileInfo: TFileInfo;
   begin
+    Result := 0;
+
     U := ParseURI(Path);
     PathPartsStr := PrefixRemove('/', U.Path + U.Document, false);
     PathEntry := DataDirectoryInformation.FindEntry(PathPartsStr);
@@ -387,9 +394,12 @@ begin
       Result := FindFiles_NonRecursive(ResolveCastleDataURL(Path), Mask,
         FindDirectories, FileProc, FileProcData, StopSearch);
   end else
+  begin
+    Result := 0;
     WritelnLog('FindFiles',
       'Searching inside filesystem with protocol %s not possible, ignoring path "%s"',
         [P, UriCaption(Path)]);
+  end;
 end;
 
 { This is equivalent to FindFiles with Recursive = true,

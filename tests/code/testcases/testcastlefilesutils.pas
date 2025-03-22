@@ -17,6 +17,8 @@
 { Test OS-specific utilities mostly in CastleFilesUtils unit. }
 unit TestCastleFilesUtils;
 
+{$I ../../../src/common_includes/castleconf.inc}
+
 interface
 
 uses
@@ -42,8 +44,8 @@ type
 
 implementation
 
-uses CastleUtils, CastleFindFiles, CastleFilesUtils, CastleTimeUtils
-  {$ifdef UNIX}, BaseUnix {$endif}{$ifndef FPC}, IOUtils{$endif};
+uses CastleUtils, CastleFindFiles, CastleFilesUtils, CastleTimeUtils, CastleLog
+  {$ifdef UNIX}, BaseUnix {$endif};
 
 procedure TTestCastleFilesUtils.TestPathDelim;
 begin
@@ -88,6 +90,13 @@ end;
 
 procedure TTestCastleFilesUtils.TestExeName;
 begin
+  // WebAssembly cannot catch exceptions, so it would make an error from ExeName
+  if not CanCatchExceptions then
+  begin
+    AbortTest;
+    Exit;
+  end;
+
   try
     {$warnings off} // knowingly using deprecated below, for test
     ExeName;
@@ -131,12 +140,8 @@ end;
 
 procedure TTestCastleFilesUtils.TestGetTempDir;
 begin
-//  Writeln('TempDir: ', GetTempDir);
-  {$ifdef FPC}
-  GetTempDir; // ignore result, just make sure it doesn't raise errors
-  {$else}
-  TPath.GetTempPath;
-  {$endif}
+  WritelnLog('GetTempDirectory: ', GetTempDirectory);
+  GetTempDirectory; // ignore result, just make sure it doesn't raise errors
 end;
 
 procedure TTestCastleFilesUtils.TestApplicationData;

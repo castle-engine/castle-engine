@@ -57,7 +57,7 @@ uses
   castlevectorsinternaldouble,
 
   // src/base_rendering
-  castlegles,
+  // castlegles, // don't include, as we cannot use this on web
   castleglversion,
   castleglimages,
   castleglutils,

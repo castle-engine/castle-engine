@@ -1343,6 +1343,11 @@ begin
   Result := 'Cocoa';
 end;
 
+function TCastleApplication.MultipleWindowsPossible: Boolean;
+begin
+  Result := true;
+end;
+
 { TWindowContainer ----------------------------------------------------------- }
 
 function TWindowContainer.SettingMousePositionCausesMotion: Boolean;

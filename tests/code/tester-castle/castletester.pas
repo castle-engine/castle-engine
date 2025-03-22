@@ -1,5 +1,5 @@
 ﻿{
-  Copyright 2022-2024 Andrzej Kilijański, Dean Zobec, Michael Van Canneyt, Michalis Kamburelis.
+  Copyright 2022-2025 Andrzej Kilijański, Dean Zobec, Michael Van Canneyt, Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -59,6 +59,8 @@ type
   TCastleTestCase = class;
   {$M-}
 
+  { A single TestXxx method that can be executed to perform a test.
+    This refers to TestCase (TCastleTestCase) which is a class holding this method. }
   TCastleTest = class
   strict private
     FTestCase: TCastleTestCase;
@@ -90,6 +92,14 @@ type
   end;
 
   {$M+} // Generate type info for TCastleTestCase and descendants
+
+  { Base class from which you should derive new tests.
+
+    Every published method of this class that starts with the name "Test"
+    will be executed.
+
+    The Setup and Teardown will be called around it, for every such "TestXxx"
+    call. }
   TCastleTestCase = class
   strict private
     FName: String;
@@ -104,11 +114,6 @@ type
     FCurrentTestName: String;
 
     FWindowForTest: TCastleWindow;
-    { Viewport from Application.MainWindow in non-console mode,
-      or viewport from FWindowForViewportTest when Console Mode. }
-    FViewportForTest: TCastleViewport;
-    { Window for Viewport when tester in Console mode }
-    FWindowForViewportTest: TCastleWindow;
     { TCastleTester that runs test case }
     FCastleTester: TCastleTester;
 
@@ -237,8 +242,17 @@ type
 
     function CompareFileName(Expected, Actual: String): Boolean;
 
-    { Get temporary directory, implementation that works for both Delphi and FPC. }
+    { Get temporary directory.
+      This is a simplest wrapper over the respective FPC / Delphi functions. }
     function GetTempDirectory: String;
+
+    { Create an URL to an existing temporary directory.
+
+      - Determines temporary directory using GetTempDirectory
+      - Adds subdirectory based on SubDirBaseName and random number
+      - Actually creates it using ForceDirectories
+      - Returns URL (not just a filename) of it. }
+    function CreateTemporaryDirUrl(const SubDirBaseName: String): String;
 
     procedure TestLog(Text: String);
 
@@ -257,10 +271,6 @@ type
       because the window will be automatically freed when test method ends anyway. }
     procedure DestroyWindowForTest(var Window: TCastleWindow);
 
-    { If you need a TCastleViewport for testing, you can use this one.
-      This viewport is automatically cleaned when test method ends. }
-    //function GetTestingViewport: TCastleViewport;
-
     { Used by TCastleTester.Scan to add tests }
     function AddTest(const AName: String;
       {$ifdef FPC}const AMethodPointer: CodePointer{$else}
@@ -270,7 +280,8 @@ type
 
       In case you do manually TCastleWindow.Create call,
       you should also honour this method, do not create TCastleWindow instance
-      when this is @false. Abort the test (without any failure) in this case.
+      when this is @false. Abort the test (without any failure) in this case,
+      preferably by @code(AbortTest; Exit;).
 
       All test windows should be created using CreateWindowForTest now,
       and CreateWindowForTest will actually raise exception if this is true.
@@ -278,7 +289,24 @@ type
       This is @false on mobile or when run with --no-window-create . }
     function CanCreateWindowForTest: Boolean;
 
-    { Clears test list }
+    { Are standard files and filesystem things working, so we can use:
+
+      - standard TFileStream, FileExists, DirectoryExists
+
+      - engine's UriToFilenameSafe / FilenameToUriSafe work (return
+        useful filenames).
+
+      - GetTempDirectory, CreateTemporaryDirUrl work.
+
+      Possibly in the future CreateTemporaryDirUrl can work regardless of this,
+      using subdir in castle-config:/ . }
+    function CanUseFileSystem: Boolean;
+
+    { Can catch exceptions on this platform.
+      Shortcut for @code(ApplicationProperties.CanCatchExceptions). }
+    function CanCatchExceptions: Boolean;
+
+    { Clears test list. }
     procedure ClearTests;
 
     function TestCount: Integer;
@@ -288,8 +316,11 @@ type
 
     property CurrentTestName: String read FCurrentTestName;
 
-  published
-
+    { Call this when aborting the test, because for some reason it cannot
+      be performed on the given platform.
+      Should be followed by early @code(Exit) from the given testcase,
+      without any error. }
+    procedure AbortTest;
   end;
   {$M-}
 
@@ -328,8 +359,9 @@ type
 
     procedure SetTestPassedCount(const NewTestCount: Integer);
     procedure SetTestFailedCount(const NewTestCount: Integer);
-
   private
+    FTestAbortedCount: Integer;
+
     { Callbacks to change UI }
     FNotifyTestExecuted: TNotifyTestExecuted;
     FNotifyTestCaseExecuted: TNotifyTestCaseExecuted;
@@ -370,6 +402,10 @@ type
       which is nice to let FPC print backtrace of exception to console,
       if outside code will just let unhandled exception to break the program.
 
+      Note that for platforms where ApplicationProperties.CanCatchExceptions=@false
+      the behavior is always as if this was @true .
+      We always crash the testsuite at first fail then.
+
       Default @true is suitable for console version. }
     property StopOnFirstFail: Boolean read FStopOnFirstFail
       write FStopOnFirstFail default true;
@@ -379,6 +415,11 @@ type
       write SetTestPassedCount;
     property TestFailedCount: Integer read FTestFailedCount
       write SetTestFailedCount;
+
+    { Number of tests aborted (because for some reason that could not be performed
+      on the given platform) in the last run.
+      These are also included @link(TestPassedCount). }
+    property TestAbortedCount: Integer read FTestAbortedCount;
 
     property NotifyTestExecuted: TNotifyTestExecuted read FNotifyTestExecuted
       write FNotifyTestExecuted;
@@ -427,8 +468,10 @@ function CompareMemDebug(const P1, P2: Pointer; const Size: Integer): Boolean;
 
 implementation
 
-uses TypInfo, Math, {$ifdef FPC}testutils,{$else}IOUtils,{$endif} StrUtils,
-  CastleLog, CastleUtils, CastleStringUtils, CastleTesterParameters;
+uses TypInfo, Math,
+  {$ifdef FPC} TestUtils, {$else} IOUtils, {$endif} StrUtils,
+  CastleLog, CastleUtils, CastleStringUtils, CastleTesterParameters,
+  CastleFilesUtils, CastleUriUtils, CastleApplicationProperties;
 
 { routines ------------------------------------------------------------------- }
 
@@ -503,6 +546,27 @@ begin
 end;
 
 procedure TCastleTester.PrepareTestListToRun(const ATestCaseName: String);
+
+  { Randomize order on L.
+
+    Why? On the web it is useful, because recompiling on the web takes
+    a long time and often crashes after even a simplest code change
+    (so each recompilation starts from scratch).
+    So to find various failing tests, it is helpful to run in various orders
+    from a single build.
+
+    Randomizing is simplest for this. }
+  procedure RandomPermutation(const L: {$ifdef FPC}specialize{$endif} TList<TCastleTest>);
+  var
+    I, J: Integer;
+  begin
+    for I := 0 to L.Count - 1 do
+    begin
+      J := RandomIntRange(I, L.Count - 1);
+      L.Exchange(I, J);
+    end;
+  end;
+
 var
   I, J: Integer;
   TestCase: TCastleTestCase;
@@ -531,8 +595,14 @@ begin
     end;
   end;
 
+  // Hack useful to test various testcases, when multiple may fail, with web
+  {$ifdef WASI}
+  // RandomPermutation(FTestsToRun);
+  {$endif}
+
   TestPassedCount := 0;
   TestFailedCount := 0;
+  FTestAbortedCount := 0;
   if Assigned(FNotifyEnabledTestCountChanged) then
     NotifyEnabledTestCountChanged(Self);
 end;
@@ -1370,30 +1440,45 @@ begin
   {$endif}
 end;
 
+function TCastleTestCase.CreateTemporaryDirUrl(const SubDirBaseName: String): String;
+var
+  Base: String;
+begin
+  if not CanUseFileSystem then
+    raise Exception.Create('Cannot create temporary directory on this system, because CanUseFileSystem=false');
+
+  Base := GetTempDirectory;
+  Result := InclPathDelim(
+    InclPathDelim(Base) + SubDirBaseName + '-' + IntToStr(Random(1000000)));
+  CheckForceDirectories(Result);
+  Result := FilenameToUriSafe(Result);
+  WritelnLog('Created temporary directory: ', Result);
+end;
+
 function TCastleTestCase.GetTest(const Index: Integer): TCastleTest;
 begin
   Result := FTestList[Index];
 end;
 
-{ TODO:
-function TCastleTestCase.GetTestingViewport: TCastleViewport;
-begin
-  raise Exception.Create('Not implemented');
-end;
-}
-
 function TCastleTestCase.CanCreateWindowForTest: Boolean;
 begin
   Result :=
-    {$if defined(ANDROID) or
-         defined(iPHONESIM) or
-         defined(iOS) or
-         defined(CASTLE_NINTENDO_SWITCH)}
-      // On these platforms, we cannot create a window, so we cannot test
-      false
-    {$else}
-      not ParamNoWindowCreate
-    {$endif};
+    { On some platforms, we cannot create arbitrary number of independent
+      windows (TCastleWindow instances). }
+    Application.MultipleWindowsPossible and
+    (not ParamNoWindowCreate);
+end;
+
+function TCastleTestCase.CanUseFileSystem: Boolean;
+begin
+  { On the web, right now, our resources do not map to regular "files / dirs"
+    as checked by FPC FileExists, DirectoryExists. }
+  Result := {$ifdef WASI} false {$else} true {$endif};
+end;
+
+function TCastleTestCase.CanCatchExceptions: Boolean;
+begin
+  Result := ApplicationProperties.CanCatchExceptions;
 end;
 
 procedure TCastleTestCase.OnWarningRaiseException(const Category, S: string);
@@ -1500,11 +1585,16 @@ begin
     ' Actual: ' + IntToStr(Actual), Expected = Actual, AddrOfError);
 end;
 
-{ TCastleTest }
+procedure TCastleTestCase.AbortTest;
+begin
+  Inc(FCastleTester.FTestAbortedCount);
+end;
+
+{ TCastleTest ---------------------------------------------------------------- }
 
 constructor TCastleTest.Create(const ATestCase: TCastleTestCase;
   const AName: String; {$ifdef FPC}const AMethodPointer: CodePointer{$else}
-      const ARttiMethod: TRttiMethod{$endif});
+  const ARttiMethod: TRttiMethod{$endif});
 begin
   FTestCase := ATestCase;
   Name := AName;

@@ -37,6 +37,7 @@ type
     procedure TestZipWrite;
     procedure TestZipDirectory;
     procedure TestZipWriteProtocol;
+    procedure TestZipExistsProtocol;
   end;
 
 implementation
@@ -45,8 +46,6 @@ uses
   {$if defined(CASTLE_ONLINE_TESTS) and defined(FPC)}
   OpenSslSockets,
   {$endif}
-  // for TPath.GetTempPath
-  {$ifndef FPC} IOUtils, {$endif}
   CastleZip, CastleUriUtils, CastleClassUtils, CastleDownload,
   CastleUtils, CastleFilesUtils, CastleLog;
 
@@ -58,19 +57,6 @@ uses
     {$define CASTLE_FULL_ZIP_UNICODE_SUPPORT}
   {$endif}
 {$endif}
-
-{ Return URL of temporary directory. }
-function CreateTemporaryDirUrl: String;
-var
-  Base: String;
-begin
-  Base := {$ifdef FPC} GetTempDir {$else} TPath.GetTempPath {$endif};
-  Result := InclPathDelim(
-    InclPathDelim(Base) + 'TTestCastleZip-' + IntToStr(Random(1000000)));
-  CheckForceDirectories(Result);
-  Result := FilenameToUriSafe(Result);
-  Writeln('Temporary directory: ', Result);
-end;
 
 { Get contents of given file in ZIP as simple String. }
 function ZipFileToString(const Zip: TCastleZip; const PathInZip: String): String;
@@ -163,6 +149,12 @@ var
 var
   ZipUrl: String;
 begin
+  if not CanUseFileSystem then // for FileExists
+  begin
+    AbortTest;
+    Exit;
+  end;
+
   // Use InternalUriEscape to encode characters like spaces and Polish inside URL.
   // We deliberately use "żółć" and Polish in the filename, to test that it works.
   ZipUrl := 'castle-data:/zip/' + InternalUriEscape('packed żółć.zip');
@@ -216,7 +208,13 @@ var
   TempDir, File1Url, ZipUrl: String;
   File2Stream, File3Stream: TStringStream;
 begin
-  TempDir := CreateTemporaryDirUrl;
+  if not CanUseFileSystem then // for CreateTemporaryDirUrl
+  begin
+    AbortTest;
+    Exit;
+  end;
+
+  TempDir := CreateTemporaryDirUrl(ClassName);
   try
     File1Url := CombineUri(TempDir, InternalUriEscape(
       'zip_contents/subdir/file1 with spaces and Polish chars żółć.txt'));
@@ -264,7 +262,13 @@ var
   TempDir, ZipUrl: String;
   WriteStream, WriteStreamUnfinished: TStream;
 begin
-  TempDir := CreateTemporaryDirUrl;
+  if not CanUseFileSystem then // for CreateTemporaryDirUrl
+  begin
+    AbortTest;
+    Exit;
+  end;
+
+  TempDir := CreateTemporaryDirUrl(ClassName);
   try
     ZipUrl := CombineUri(TempDir, 'test.zip');
 
@@ -312,7 +316,13 @@ var
   TempDir, ZipUrl: String;
   Zip: TCastleZip;
 begin
-  TempDir := CreateTemporaryDirUrl;
+  if not CanUseFileSystem then // for CreateTemporaryDirUrl
+  begin
+    AbortTest;
+    Exit;
+  end;
+
+  TempDir := CreateTemporaryDirUrl(ClassName);
   try
     StringToFile(
       CombineUri(TempDir,
@@ -379,6 +389,41 @@ begin
   finally
     RemoveNonEmptyDir(UriToFilenameSafe(TempDir));
   end;
+end;
+
+procedure TTestCastleZip.TestZipExistsProtocol;
+var
+  Zip: TCastleZip;
+  ZipUrl: String;
+begin
+  ZipUrl := 'castle-data:/zip/' + InternalUriEscape('packed żółć.zip');
+  AssertTrue(UriExists(ZipUrl) = ueFile);
+
+  Zip := TCastleZip.Create;
+  try
+    Zip.Open(ZipUrl);
+    Zip.RegisterUrlProtocol('TestZipExistsProtocol');
+
+    {$ifdef CASTLE_FULL_ZIP_UNICODE_SUPPORT}
+    AssertTrue(UriExists(
+      'TestZipExistsProtocol:/' + InternalUriEscape('test filename żółć.txt')) = ueFile);
+    {$endif}
+    AssertTrue(UriExists(
+      'TestZipExistsProtocol:/test.txt') = ueFile);
+    AssertTrue(UriExists(
+      'TestZipExistsProtocol:/test_texture.png') = ueFile);
+    AssertTrue(UriExists(
+      'TestZipExistsProtocol:/subdir/') = ueDirectory);
+    {$ifdef CASTLE_FULL_ZIP_UNICODE_SUPPORT}
+    AssertTrue(UriExists(
+      'TestZipExistsProtocol:/subdir/' + InternalUriEscape('test filename żółć in subdir.txt')) = ueFile);
+    {$endif}
+
+    AssertTrue(UriExists(
+      'TestZipExistsProtocol:/notexisting') = ueNotExists);
+    AssertTrue(UriExists(
+      'TestZipExistsProtocol:/notexistingdir/') = ueNotExists);
+  finally FreeAndNil(Zip) end;
 end;
 
 initialization

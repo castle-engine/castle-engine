@@ -1,6 +1,6 @@
 {%MainUnit castledownload.pas}
 {
-  Copyright 2013-2024 Michalis Kamburelis.
+  Copyright 2013-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -20,7 +20,7 @@
 
 {$ifdef read_implementation}
 
-{ Handle file URLs. }
+{ Handle file URLs (protocol "file" or ""). }
 
 { TUrlFile ------------------------------------------------------------------- }
 
@@ -30,6 +30,7 @@ type
     class function Write(const Url: String): TStream;
     { Determine MIME type from URL extension. }
     class function MimeType(const URI: string; out Gzipped: Boolean): String;
+    class function Exists(const Url: String): TUriExists;
   end;
 
 class function TUrlFile.Read(const Url: String; out MimeType: string): TStream;
@@ -248,6 +249,38 @@ begin
   if Ext = '.tmx' then Result := 'application/x-tiled-map' else
     { as a last resort, check URIMimeExtensions }
     URIMimeExtensions.TryGetValue(Ext, Result);
+end;
+
+class function TUrlFile.Exists(const Url: String): TUriExists;
+var
+  FileName: String;
+begin
+  FileName := UriToFilenameSafe(URL);
+  if FileName = '' then
+  begin
+    { Uncertain what to return in this case.
+      It likely (but not for sure) means someone used UriExists('').
+      '' means "current directory" for some file API,
+      but UriExists('') seems like an error, not asking for current directory.
+      So make a warning and return ueUnknown. }
+    WritelnWarning('UriExists value for empty URL is not defined');
+    Exit(ueUnknown);
+  end;
+
+  { FileExists in older FPC behaves inconsistently for directories.
+    On non-Windows, returns true.
+    On Windows, returns false.
+    See http://www.freepascal.org/docs-html/rtl/sysutils/fileexists.html
+    http://free-pascal-general.1045716.n5.nabble.com/FileExists-inconsistency-td2813433.html
+    So check DirectoryExists first, if @true then assume it's a directory
+    (regardless of FileExists result). }
+  if DirectoryExists(FileName) then
+    Exit(ueDirectory)
+  else
+  if FileExists(FileName) then
+    Exit(ueFile)
+  else
+    Exit(ueNotExists);
 end;
 
 {$endif}
