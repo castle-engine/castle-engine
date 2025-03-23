@@ -375,13 +375,6 @@ var
     RenderScreenEffects := CurrentScreenEffectsCount <> 0;
     if not RenderScreenEffects then Exit; // no need to do anything else
 
-    {$ifdef WASI}
-    // TODO: web: screen effects only crash web build now,
-    // likely our "{$ifdef CASTLE_WEBGL} IJSArrayBufferView {$endif} (nil)" is not good.
-    RenderScreenEffects := false;
-    Exit;
-    {$endif}
-
     { all the checks below should pass on a modern GPU }
     SR := RenderRect.Round;
     RenderScreenEffects :=
