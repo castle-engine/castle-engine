@@ -44,6 +44,23 @@
       margin-bottom: 1em;
     }
 
+    /* Prevent canvas from being "selected", which adds reddish rectangle
+       on top of the rendered canvas and is rather confusing to user.
+       Reproducible esp. by double-clicking on the canvas in full-screen mode.
+       Various ways to do it, see
+       https://stackoverflow.com/questions/5796512/how-to-disable-select-for-html5-canvas-element
+    */
+    canvas#castle-canvas {
+      -webkit-touch-callout: none;
+      -webkit-user-select: none;
+      -khtml-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+      outline: none;
+      -webkit-tap-highlight-color: rgba(255, 255, 255, 0); /* mobile webkit */
+    }
+
     /* Style BrowserConsole output.
 
        Only useful when our pas2js application
