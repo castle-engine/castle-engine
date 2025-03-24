@@ -60,6 +60,14 @@
       outline: none;
       -webkit-tap-highlight-color: rgba(255, 255, 255, 0); /* mobile webkit */
     }
+    #more_info_link {
+      font-size: medium;
+      font-weight: initial;
+      text-decoration: none;
+      ${if ${WEB_HTML_CONTENTS} = ''}
+      display: none;
+      ${endif}
+    }
 
     /* Style BrowserConsole output.
 
@@ -83,7 +91,7 @@
 </head>
 <body>
   <div class="container">
-    <h1>${CAPTION}</h1>
+    <h1>${CAPTION} <a href="#more_info" id="more_info_link">(more information)</a></h1>
 
     <!-- Loading status.
       Our code (in pas2js and WebAssembly) will update this,
@@ -144,6 +152,9 @@
       <div id="pas2js-console-output"></div>
     </div>
     -->
+
+    <a name="more_info"></a>
+    ${WEB_HTML_CONTENTS}
 
     <p class="credits">Made with <a href="https://castle-engine.io/">Castle Game Engine</a>, <a href="https://www.freepascal.org/">FPC for WebAssembly</a> and <a href="https://getpas2js.freepascal.org/">Pas2js</a>.</p>
   </div>

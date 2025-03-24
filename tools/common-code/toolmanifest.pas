@@ -145,6 +145,7 @@ type
       FMacAppBundle: Boolean;
       FProjectDependencies: TProjectDependencies;
       FWebCanvasWidth, FWebCanvasHeight: Integer;
+      FWebHtmlContents: String;
 
     function DefaultQualifiedName(const AName: String): String;
     procedure CheckMatches(const Name, Value: String; const AllowedChars: TSetOfChars);
@@ -255,6 +256,7 @@ type
 
     property WebCanvasWidth: Integer read FWebCanvasWidth;
     property WebCanvasHeight: Integer read FWebCanvasHeight;
+    property WebHtmlContents: String read FWebHtmlContents;
 
     { Standalone source specified in CastleEngineManifest.xml.
       Most build tool code should use TCastleProject.StandaloneSourceFile instead,
@@ -790,6 +792,7 @@ begin
     Element := Doc.DocumentElement.ChildElement('web', false);
     if Element <> nil then
     begin
+      FWebHtmlContents := Element.AttributeStringDef('html_contents', '');
       ChildElement := Element.ChildElement('canvas', false);
       if ChildElement <> nil then
       begin
