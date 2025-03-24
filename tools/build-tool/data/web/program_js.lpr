@@ -29,10 +29,20 @@
   "castle-engine compile --target=web" tool.
 }
 
+{ Show logs (anything Writeln by this program, and by the Wasm program)
+  using pas2js BrowserConsole unit?
+
+  This means showing logs as visible content on the page.
+  We no longer do this:
+  Using browser's console.log is better: not visible by default,
+  toggable by F12, browser's developer tools have features like filtering etc. }
+{.$define USE_BROWSER_CONSOLE}
+
 uses Classes, SysUtils, Math,
   // pas2js-specific units
+  {$ifdef USE_BROWSER_CONSOLE} BrowserConsole, {$endif}
   WasiEnv, Web, BrowserApp, WebWidget, HtmlWidgets, JS,
-  WebAssembly, WasiHostApp, BrowserConsole, JOB_Browser;
+  WebAssembly, WasiHostApp, JOB_Browser;
 
 { Main program -------------------------------------------------------------- }
 
@@ -229,11 +239,13 @@ end;
 var
   Application: TMyApplication;
 begin
+  {$ifdef USE_BROWSER_CONSOLE}
   // customize where BrowserConsole output goes
   ConsoleElementID := 'pas2js-console-output';
   // changing ConsoleStyle doesn't work reliably, old style remains?
   // ConsoleStyle := ''; // we will style it using CSS, not by this
   HookConsole;
+  {$endif}
 
   Application := TMyApplication.Create(nil);
   Application.Initialize; // doesn't do anything by default

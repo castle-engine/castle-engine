@@ -32,7 +32,28 @@
     body {
       padding: 1em;
     }
-    /* Style BrowserConsole output */
+    .credits {
+      font-size: smaller;
+    }
+    #castle-loading-info {
+      font-style: italic;
+    }
+    /* Add some space between the button and the content below it (console or credits) */
+    button.btn-primary {
+      margin-top: 0.5em;
+      margin-bottom: 1em;
+    }
+
+    /* Style BrowserConsole output.
+
+       Only useful when our pas2js application
+       in tools/build-tool/data/web/program_js.lpr has USE_BROWSER_CONSOLE defined.
+       By default, USE_BROWSER_CONSOLE is not defined now.
+       If you want to have this console, define USE_BROWSER_CONSOLE in the above
+       file, and rebuild your application.
+
+       Uncomment also the <div id="pas2js-console"...> below in HTML content.
+    */
     #pas2js-console .pasconsole {
       /* let #pas2js-console background be visible */
       background: transparent !important;
@@ -40,17 +61,6 @@
       font-family: monospace !important;
       /* override 14px from BrowserConsole */
       font-size: initial !important;
-    }
-    .credits {
-      font-size: smaller;
-    }
-    #castle-loading-info {
-      font-style: italic;
-    }
-    /* Add some space between the button and the console */
-    button.btn-primary {
-      margin-top: 0.5em;
-      margin-bottom: 1em;
     }
   </style>
 </head>
@@ -104,10 +114,19 @@
       onclick="document.getElementById('castle-canvas').requestFullscreen();"
       >Enter Fullscreen</button>
 
+    <!--
+    BrowserConsole output.
+    Only useful when our pas2js application
+    in tools/build-tool/data/web/program_js.lpr has USE_BROWSER_CONSOLE defined.
+    By default, USE_BROWSER_CONSOLE is not defined now.
+    If you want to have this console, define USE_BROWSER_CONSOLE in the above
+    file, and rebuild your application.
+
     <div id="pas2js-console" class="p-2 bg-body-secondary border rounded-3">
       <b>Logs:</b>
       <div id="pas2js-console-output"></div>
     </div>
+    -->
 
     <p class="credits">Made with <a href="https://castle-engine.io/">Castle Game Engine</a>, <a href="https://www.freepascal.org/">FPC for WebAssembly</a> and <a href="https://getpas2js.freepascal.org/">Pas2js</a>.</p>
   </div>

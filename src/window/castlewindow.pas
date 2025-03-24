@@ -2672,12 +2672,29 @@ procedure TCastleWindow.OpenCore;
       menu bar (GTK and WINAPI implementations) and FullScreen then
       the actual OpenGL window size will NOT match ScreenWidth/Height,
       it will be slightly smaller (menu bar takes some space). }
+
+    {$ifdef CASTLE_WINDOW_WEBASSEMBLY}
+    // In this case, do not query Application.ScreenWidth/Height before
+    // opening the window. Application.ScreenWidth/Height would just return
+    // hardcoded value and make a warning.
+    // Just set FWidth/Height to something reasonable (hardcoded anyway).
+    // In TCastleWindow.OpenBackend for CASTLE_WINDOW_WEBASSEMBLY we will set
+    // real size.
+    FWidth := 1024;
+    FHeight := 1024;
+    ClampVar(FWidth , MinWidth , MaxWidth);
+    ClampVar(FHeight, MinHeight, MaxHeight);
+    FLeft := 0;
+    FTop := 0;
+    {$else}
     if Width  = WindowDefaultSize then FWidth  := Application.ScreenWidth  * 4 div 5;
     if Height = WindowDefaultSize then FHeight := Application.ScreenHeight * 4 div 5;
     ClampVar(FWidth , MinWidth , MaxWidth);
     ClampVar(FHeight, MinHeight, MaxHeight);
     if Left = WindowPositionCenter then FLeft := (Application.ScreenWidth  - Width ) div 2;
     if Top  = WindowPositionCenter then FTop  := (Application.ScreenHeight - Height) div 2;
+    {$endif}
+
     FRealWidth  := FWidth;
     FRealHeight := FHeight;
 
