@@ -230,6 +230,91 @@ type
   private
     PreparedShapesResources, PreparedRender: Boolean;
   protected
+    (*Override TCastleRenderOptions passed to TShapesCollector when rendering
+      these shapes. May be tweaked during rendering,
+      to render the same shape/scene with multiple render options.
+
+      Sample usage:
+
+      @longCode(#
+      procedure TCastleSceneChromaticAberration.LocalRender(const Params: TRenderParams);
+
+        { Like MultMatricesTranslation, but the translation is applied by multiplying
+          from the other side. }
+        procedure GlobalMultMatricesTranslation(var M, MInvert: TMatrix4;
+          const Transl: TVector3);
+        begin
+          MultMatricesTranslation(MInvert, M, Transl);
+        end;
+
+      var
+        // Saved Params.Xxx before applying our transformation
+        SavedTransformationPtr: PTransformation;
+        SavedFrustumPtr: PFrustum;
+        // Values after applying our transformation
+        NewTransformation: TTransformation;
+        NewFrustum: TFrustum;
+
+        { Shift and render (based on TCastleTransform.Render). }
+        procedure RenderShiftedBegin(const Shift: TVector3);
+        begin
+          SavedTransformationPtr := Params.Transformation;
+          SavedFrustumPtr        := Params.Frustum;
+          Assert(SavedFrustumPtr <> nil);
+
+          NewTransformation := SavedTransformationPtr^;
+          NewFrustum        := SavedFrustumPtr^;
+
+          Params.Transformation := @NewTransformation;
+          Params.Frustum        := @NewFrustum;
+
+          GlobalMultMatricesTranslation(
+            NewTransformation.Transform, NewTransformation.InverseTransform, Shift);
+          // Use old frustum, as shifting it is not so easy
+          //NewFrustumValue.MoveVar(-Shift);
+        end;
+
+        procedure RenderShiftedEnd;
+        begin
+          { Restore SavedXxxPtr values.
+            They can be restored fast, thanks to restoring pointers, not content. }
+          Params.Transformation := SavedTransformationPtr;
+          Params.Frustum        := SavedFrustumPtr;
+        end;
+
+      var
+        SavedChannels: TColorChannels;
+      begin
+        if FChromaticAberrationStrength > 0 then
+        begin
+          { Create another instance of TCastleRenderOptions,
+            because engine ShapesCollector will only store references to TCastleRenderOptions,
+            and we need to pass 2 copies of the scene with 2 different render options. }
+          if AltRenderOptions = nil then
+            AltRenderOptions := TCastleRenderOptions.Create(Self);
+
+          // red-green not shifted
+          AltRenderOptions.InternalColorChannels := [0..1, 3];
+          InternalOverrideRenderOptions := AltRenderOptions;
+          inherited;
+          InternalOverrideRenderOptions := nil;
+
+          // blue shifted
+          RenderOptions.InternalColorChannels := [2, 3];
+          RenderShiftedBegin(FChromaticAberrationShift);
+          // Note: we avoid calling "inherited" in a nested procedure, this seems broken with FPC 3.0.4.
+          inherited LocalRender(Params);
+          RenderShiftedEnd;
+        end else
+        begin
+          RenderOptions.InternalColorChannels := [0..3];
+          inherited;
+        end;
+      end;
+      #)
+    *)
+    InternalOverrideRenderOptions: TCastleRenderOptions;
+
     function CreateShape(const AGeometry: TAbstractGeometryNode;
       const AState: TX3DGraphTraverseState;
       const ParentInfo: PTraversingInfo): TShape; override;
@@ -784,6 +869,14 @@ procedure TCastleScene.CollectShape_NoTests(const Shape: TGLShape);
     end;
   end;
 
+  function EffectiveRenderOptions: TCastleRenderOptions;
+  begin
+    if InternalOverrideRenderOptions <> nil then
+      Result := InternalOverrideRenderOptions
+    else
+      Result := RenderOptions;
+  end;
+
 begin
   { Whether the Shape is rendered directly or through batching,
     mark it "was visible this frame".
@@ -795,7 +888,7 @@ begin
 
   Shape.Fog := ShapeFog(Shape, Render_Params.GlobalFog as TFogNode);
 
-  Render_Collector.Add(Shape, RenderOptions,
+  Render_Collector.Add(Shape, EffectiveRenderOptions,
     Render_Params.Transformation^.Transform, SceneTransformDynamic,
     Render_Params.DepthRange, ReceiveShadowVolumes);
   IsVisibleNow := true;
