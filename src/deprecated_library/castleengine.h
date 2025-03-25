@@ -1,5 +1,5 @@
 /*
-  Copyright 2013-2024 Jan Adamec, Michalis Kamburelis.
+  Copyright 2013-2025 Jan Adamec, Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -357,6 +357,8 @@ extern void CGE_SetVariableInt(int /*ECgeVariable*/ eVar, int nValue);
 extern int CGE_GetVariableInt(int /*ECgeVariable*/ eVar);
 
 extern void CGE_SetNodeFieldValue(const char *szNodeName, const char *szFieldName,
+                                  float fVal1, float fVal2, float fVal3, float fVal4);
+extern void CGE_SetNodeMultFieldValue(const char *szNodeName, const char *szFieldName, int iIndex,
                                   float fVal1, float fVal2, float fVal3, float fVal4);
 
 extern void CGE_IncreaseSceneTime(float fTimeS);    // set time in the scene, useful when viewport paused

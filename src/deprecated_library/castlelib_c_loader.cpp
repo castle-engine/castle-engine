@@ -1,5 +1,5 @@
 /*
-  Copyright 2013-2024 Jan Adamec, Michalis Kamburelis.
+  Copyright 2013-2025 Jan Adamec, Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -90,6 +90,8 @@ typedef void (CDECL *PFNRD_CGE_SetVariableInt)(int eVar, int nValue);
 typedef int (CDECL *PFNRD_CGE_GetVariableInt)(int eVar);
 typedef void (CDECL *PFNRD_CGE_SetNodeFieldValue)(const char *szNodeName, const char *szFieldName,
                                                     float fVal1, float fVal2, float fVal3, float fVal4);
+typedef void (CDECL *PFNRD_CGE_SetNodeMultFieldValue)(const char *szNodeName, const char *szFieldName, int iIndex,
+                                                    float fVal1, float fVal2, float fVal3, float fVal4);
 
 typedef void (CDECL *PFNRD_CGE_IncreaseSceneTime)(float fTimeS);
 
@@ -128,6 +130,7 @@ PFNRD_CGE_SetWalkNavigationMouseDragMode pfrd_CGE_SetWalkNavigationMouseDragMode
 PFNRD_CGE_SetVariableInt pfrd_CGE_SetVariableInt = NULL;
 PFNRD_CGE_GetVariableInt pfrd_CGE_GetVariableInt = NULL;
 PFNRD_CGE_SetNodeFieldValue pfrd_CGE_SetNodeFieldValue = NULL;
+PFNRD_CGE_SetNodeMultFieldValue pfrd_CGE_SetNodeMultFieldValue = NULL;
 PFNRD_CGE_IncreaseSceneTime pfrd_CGE_IncreaseSceneTime = NULL;
 
 #ifdef QT_BUILD
@@ -202,6 +205,7 @@ void CGE_LoadLibrary()
     pfrd_CGE_SetVariableInt = (PFNRD_CGE_SetVariableInt)cge_GetProc(hCgeDll, "CGE_SetVariableInt");
     pfrd_CGE_GetVariableInt = (PFNRD_CGE_GetVariableInt)cge_GetProc(hCgeDll, "CGE_GetVariableInt");
     pfrd_CGE_SetNodeFieldValue = (PFNRD_CGE_SetNodeFieldValue)cge_GetProc(hCgeDll, "CGE_SetNodeFieldValue");
+    pfrd_CGE_SetNodeMultFieldValue = (PFNRD_CGE_SetNodeMultFieldValue)cge_GetProc(hCgeDll, "CGE_SetNodeMultFieldValue");
     pfrd_CGE_IncreaseSceneTime = (PFNRD_CGE_IncreaseSceneTime)cge_GetProc(hCgeDll, "CGE_IncreaseSceneTime");
 }
 
@@ -457,6 +461,14 @@ void CGE_SetNodeFieldValue(const char *szNodeName, const char *szFieldName,
 {
     if (pfrd_CGE_SetNodeFieldValue!=NULL)
         (*pfrd_CGE_SetNodeFieldValue)(szNodeName, szFieldName, fVal1, fVal2, fVal3, fVal4);
+}
+
+//-----------------------------------------------------------------------------
+void CGE_SetNodeMultFieldValue(const char *szNodeName, const char *szFieldName, int iIndex,
+    float fVal1, float fVal2, float fVal3, float fVal4)
+{
+    if (pfrd_CGE_SetNodeMultFieldValue!=NULL)
+        (*pfrd_CGE_SetNodeMultFieldValue)(szNodeName, szFieldName, iIndex, fVal1, fVal2, fVal3, fVal4);
 }
 
 //-----------------------------------------------------------------------------

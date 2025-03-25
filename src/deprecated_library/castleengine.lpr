@@ -1,6 +1,6 @@
 { -*- compile-command: "./castleengine_compile.sh" -*- }
 {
-  Copyright 2013-2024 Jan Adamec, Michalis Kamburelis.
+  Copyright 2013-2025 Jan Adamec, Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -960,6 +960,78 @@ begin
   end;
 end;
 
+procedure CGE_SetNodeMultFieldValue(szNodeName, szFieldName: pcchar; iIndex: cInt32;
+                                    fVal1, fVal2, fVal3, fVal4: cFloat); cdecl;
+var
+  aField: TX3DField;
+begin
+  try
+    if not CGE_VerifyScene('CGE_SetNodeMultFieldValue') then exit;
+
+    // find node and field
+    aField := MainScene.Field(PChar(szNodeName), PChar(szFieldName));
+    if aField = nil then Exit;
+
+    if aField is TMFVec2f then
+    begin
+      TMFVec2f(aField).ItemsSafe[iIndex] := Vector2(fVal1, fVal2);
+      TMFVec2f(aField).Send(TMFVec2f(aField).Items);
+    end else
+    if aField is TMFVec3f then
+    begin
+      TMFVec3f(aField).ItemsSafe[iIndex] := Vector3(fVal1, fVal2, fVal3);
+      TMFVec3f(aField).Send(TMFVec3f(aField).Items);
+    end else
+    if aField is TMFVec4f then
+    begin
+      TMFVec4f(aField).ItemsSafe[iIndex] := Vector4(fVal1, fVal2, fVal3, fVal4);
+      TMFVec4f(aField).Send(TMFVec4f(aField).Items);
+    end else
+    if aField is TMFVec2d then
+    begin
+      TMFVec2d(aField).ItemsSafe[iIndex] := Vector2Double(fVal1, fVal2);
+      TMFVec2d(aField).Send(TMFVec2d(aField).Items);
+    end else
+    if aField is TMFVec3d then
+    begin
+      TMFVec3d(aField).ItemsSafe[iIndex] := Vector3Double(fVal1, fVal2, fVal3);
+      TMFVec3d(aField).Send(TMFVec3d(aField).Items);
+    end else
+    if aField is TMFVec4d then begin
+      TMFVec4d(aField).ItemsSafe[iIndex] := Vector4Double(fVal1, fVal2, fVal3, fVal4);
+      TMFVec4d(aField).Send(TMFVec4d(aField).Items);
+    end else
+    if aField is TMFFloat then
+    begin
+      TMFFloat(aField).ItemsSafe[iIndex] := fVal1;
+      TMFFloat(aField).Send(TMFFloat(aField).Items);
+    end else
+    if aField is TMFDouble then
+    begin
+      TMFDouble(aField).ItemsSafe[iIndex] := fVal1;
+      TMFDouble(aField).Send(TMFDouble(aField).Items);
+    end else
+    if aField is TMFLong then
+    begin
+      TMFLong(aField).ItemsSafe[iIndex] := Round(fVal1);
+      TMFLong(aField).Send(TMFLong(aField).Items);
+    end else
+    if aField is TMFInt32 then
+    begin
+      TMFInt32(aField).ItemsSafe[iIndex] := Round(fVal1);
+      TMFInt32(aField).Send(TMFInt32(aField).Items);
+    end else
+    if aField is TMFBool then
+    begin
+      TMFBool(aField).ItemsSafe[iIndex] := (fVal1 <> 0.0);
+      TMFBool(aField).Send(TMFBool(aField).Items);
+    end;
+
+  except
+    on E: TObject do WritelnWarning('Window', 'CGE_SetNodeMultFieldValue: ' + ExceptMessage(E));
+  end;
+end;
+
 constructor TCrosshairManager.Create;
 begin
   inherited;
@@ -1040,7 +1112,8 @@ exports
   CGE_IncreaseSceneTime,
   CGE_SetVariableInt,
   CGE_GetVariableInt,
-  CGE_SetNodeFieldValue;
+  CGE_SetNodeFieldValue,
+  CGE_SetNodeMultFieldValue;
 
 begin
   SetExceptionMask([exInvalidOp, exDenormalized, exZeroDivide,

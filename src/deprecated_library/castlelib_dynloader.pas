@@ -1,5 +1,5 @@
 {
-  Copyright 2008-2024 Jan Adamec, Michalis Kamburelis.
+  Copyright 2008-2025 Jan Adamec, Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -308,6 +308,8 @@ procedure CGE_SetVariableInt(eVar: cInt32; nValue: cInt32); cdecl; external 'cas
 function CGE_GetVariableInt(eVar: cInt32): cInt32; cdecl; external 'castleengine';
 
 procedure CGE_SetNodeFieldValue(szNodeName, szFieldName: pcchar;
+                                fVal1, fVal2, fVal3, fVal4: cFloat); cdecl; external 'castleengine';
+procedure CGE_SetNodeMultFieldValue(szNodeName, szFieldName: pcchar; iIndex: cInt32;
                                 fVal1, fVal2, fVal3, fVal4: cFloat); cdecl; external 'castleengine';
 
 procedure CGE_IncreaseSceneTime(fTimeS: cFloat); cdecl; external 'castleengine';
