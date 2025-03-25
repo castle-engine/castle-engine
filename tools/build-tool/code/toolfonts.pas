@@ -41,7 +41,9 @@ implementation
 
 uses SysUtils, Generics.Collections,
   CastleFindFiles, CastleFileFilters, CastleTextureFontData, CastleUtils,
-  CastleStringUtils, CastleFontToPascal, CastleUriUtils, CastleFilesUtils;
+  CastleUnicode,
+  CastleStringUtils, CastleFontToPascal, CastleUriUtils, CastleFilesUtils,
+  ToolCommonUtils, ToolUtils;
 
 { TGenerateEmbeddedFontsHelper ----------------------------------------------- }
 
@@ -83,6 +85,24 @@ end;
 
 procedure TGenerateEmbeddedFontsHelper.ProcessFile(const FileInfo: TFileInfo;
   var StopSearch: Boolean);
+
+  function CreateFontCharacters: TUnicodeCharList;
+  var
+    CgePath, CharsFile: String;
+  begin
+    CgePath := CastleEnginePath;
+    if CgePath = '' then
+      raise Exception.Create(SCannotFindCgePath);
+
+    CharsFile := InclPathDelim(CgePath) + 'src/fonts/common_unicode_chars.txt';
+    if not FileExists(CharsFile) then
+      raise Exception.CreateFmt('Cannot find file with common Unicode characters: %s', [CharsFile]);
+
+    Result := TUnicodeCharList.Create;
+    Result.Add(SimpleAsciiCharacters);
+    Result.Add(FileToString(CharsFile));
+  end;
+
 const
   { TODO: web: we have to assume some things - size, anti-aliasing, characters
     when generating fonts.
@@ -95,38 +115,43 @@ var
   FontUnit: TFontUnit;
   Font: TTextureFontData;
   FontUnitName, FontFunctionName, FontRelativeUrl, FontUnitFileName: String;
+  Characters: TUnicodeCharList;
 begin
   if FontFilters.Matches(FileInfo.Url) then
   begin
-    Font := TTextureFontData.Create(FileInfo.Url, FontOptimalSize, FontAntiAliasing);
+    Characters := CreateFontCharacters;
     try
-      // calculate various information about the font
+      Font := TTextureFontData.Create(FileInfo.Url, FontOptimalSize,
+        FontAntiAliasing, Characters);
+      try
+        // calculate various information about the font
 
-      FontUnitName := 'CastleAutoGenetatedFont' + IntToStr(Units.Count);
-      FontFunctionName := 'TextureFont' + IntToStr(Units.Count);
+        FontUnitName := 'CastleAutoGenetatedFont' + IntToStr(Units.Count);
+        FontFunctionName := 'TextureFont' + IntToStr(Units.Count);
 
-      FontUnitFileName := CombinePaths(FontUnitsOutputPath, LowerCase(FontUnitName) + '.pas');
+        FontUnitFileName := CombinePaths(FontUnitsOutputPath, LowerCase(FontUnitName) + '.pas');
 
-      FontRelativeUrl := ExtractRelativePath(InclPathDelim(DataPath), FileInfo.AbsoluteName);
-      // simple way to turn relative path into a relative URL
-      FontRelativeUrl := SReplaceChars(FontRelativeUrl, PathDelim, '/');
-      FontRelativeUrl := 'castle-data:/' + FontRelativeUrl;
+        FontRelativeUrl := ExtractRelativePath(InclPathDelim(DataPath), FileInfo.AbsoluteName);
+        // simple way to turn relative path into a relative URL
+        FontRelativeUrl := SReplaceChars(FontRelativeUrl, PathDelim, '/');
+        FontRelativeUrl := 'castle-data:/' + FontRelativeUrl;
 
-      // generate font file
-      FontToPascal(Font, FontUnitName, FontFunctionName, FontUnitFileName);
+        // generate font file
+        FontToPascal(Font, FontUnitName, FontFunctionName, FontUnitFileName);
 
-      // extend Units list with new font information
-      FontUnit := TFontUnit.Create;
-      FontUnit.FontUnitName := FontUnitName;
-      FontUnit.FontFunctionName := FontFunctionName;
-      FontUnit.FontRelativeUrl := FontRelativeUrl;
-      Units.Add(FontUnit);
+        // extend Units list with new font information
+        FontUnit := TFontUnit.Create;
+        FontUnit.FontUnitName := FontUnitName;
+        FontUnit.FontFunctionName := FontFunctionName;
+        FontUnit.FontRelativeUrl := FontRelativeUrl;
+        Units.Add(FontUnit);
 
-      Writeln(Format('Generated embedded font in %s from font %s', [
-        FontUnitName,
-        FontRelativeUrl
-      ]));
-    finally FreeAndNil(Font) end;
+        Writeln(Format('Generated embedded font in %s from font %s', [
+          FontUnitName,
+          FontRelativeUrl
+        ]));
+      finally FreeAndNil(Font) end;
+    finally FreeAndNil(Characters) end;
   end;
 end;
 

@@ -2351,6 +2351,22 @@ function TCastleProject.ReplaceMacros(const Source: string): string;
       Macros.Add('DPROJ_DEPLOY_FILES', DelphiDprojDeployFiles);
   end;
 
+  procedure AddMacrosWeb(const Macros: TStringStringMap);
+  var
+    WebHtmlContents: String;
+  begin
+    Macros.Add('WEB_CANVAS_WIDTH', IntToStr(Manifest.WebCanvasWidth));
+    Macros.Add('WEB_CANVAS_HEIGHT', IntToStr(Manifest.WebCanvasHeight));
+    if Pos('${WEB_HTML_CONTENTS}', Source) <> 0 then
+    begin
+      if Manifest.WebHtmlContents <> '' then
+        WebHtmlContents := FileToString(CombinePaths(Path, Manifest.WebHtmlContents))
+      else
+        WebHtmlContents := '';
+      Macros.Add('WEB_HTML_CONTENTS', WebHtmlContents);
+    end;
+  end;
+
 var
   NonEmptyAuthor, StandaloneSource: string;
   Macros: TStringStringMap;
@@ -2401,13 +2417,12 @@ begin
     Macros.Add('APPLE_BUNDLE_SIGNATURE', Copy(ExecutableName + '????', 1, 4));
     Macros.Add('APPLE_ASSOCIATE_DOCUMENT_TYPES', AssociateDocumentTypes.ToPListSection(QualifiedName, Name));
     Macros.Add('RANDOM_URL_SUFFIX', '?random_suffix_to_avoid_cache=' + RandomString);
-    Macros.Add('WEB_CANVAS_WIDTH', IntToStr(Manifest.WebCanvasWidth));
-    Macros.Add('WEB_CANVAS_HEIGHT', IntToStr(Manifest.WebCanvasHeight));
 
     AddMacrosAndroid(Macros);
     AddMacrosIOS(Macros);
     AddMacrosLazarusProject(Macros);
     AddMacrosDproj(Macros, StandaloneSource);
+    AddMacrosWeb(Macros);
 
     Result := ToolMacros.ReplaceMacros(Macros, Source);
   finally FreeAndNil(Macros) end;
