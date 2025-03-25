@@ -7,8 +7,9 @@ object AboutForm: TAboutForm
   ClientHeight = 486
   ClientWidth = 459
   OnCreate = FormCreate
+  OnShow = FormShow
   Position = poMainFormCenter
-  LCLVersion = '2.0.12.0'
+  LCLVersion = '3.8.0.0'
   object ImageLogo: TImage
     Left = 6
     Height = 256
