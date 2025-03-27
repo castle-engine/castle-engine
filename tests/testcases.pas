@@ -98,7 +98,8 @@ uses
   TestX3DLoadInternalCocos2d,
   TestCastleIfc,
   TestCastleZip,
-  TestCastleInternalUrlUtils;
+  TestCastleInternalUrlUtils,
+  TestCastleTransformManipulate;
 
 implementation
 
