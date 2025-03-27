@@ -91,19 +91,19 @@ typedef int (CDECL *PFNRD_CGE_GetVariableInt)(int eVar);
 typedef void (CDECL *PFNRD_CGE_SetNodeFieldValue_SFFloat)(const char *szNodeName, const char *szFieldName, float value);
 typedef void (CDECL *PFNRD_CGE_SetNodeFieldValue_SFDouble)(const char *szNodeName, const char *szFieldName, double value);
 typedef void (CDECL *PFNRD_CGE_SetNodeFieldValue_SFInt32)(const char *szNodeName, const char *szFieldName, int value);
-typedef void (CDECL *PFNRD_CGE_SetNodeFieldValue_SFBool)(const char *szNodeName, const char *szFieldName, int value);
+typedef void (CDECL *PFNRD_CGE_SetNodeFieldValue_SFBool)(const char *szNodeName, const char *szFieldName, bool value);
 typedef void (CDECL *PFNRD_CGE_SetNodeFieldValue_SFVec2f)(const char *szNodeName, const char *szFieldName, float val1, float val2);
 typedef void (CDECL *PFNRD_CGE_SetNodeFieldValue_SFVec3f)(const char *szNodeName, const char *szFieldName, float val1, float val2, float val3);
 typedef void (CDECL *PFNRD_CGE_SetNodeFieldValue_SFVec4f)(const char *szNodeName, const char *szFieldName, float val1, float val2, float val3, float val4);
 typedef void (CDECL *PFNRD_CGE_SetNodeFieldValue_SFVec2d)(const char *szNodeName, const char *szFieldName, double val1, float val2);
 typedef void (CDECL *PFNRD_CGE_SetNodeFieldValue_SFVec3d)(const char *szNodeName, const char *szFieldName, double val1, float val2, float val3);
 typedef void (CDECL *PFNRD_CGE_SetNodeFieldValue_SFVec4d)(const char *szNodeName, const char *szFieldName, double val1, float val2, float val3, float val4);
-typedef void (CDECL *PFNRD_CGE_SetNodeFieldValue_SFRotation)(const char *szNodeName, const char *szFieldName, float axis1, float axis2, float axis3, float rotation);
+typedef void (CDECL *PFNRD_CGE_SetNodeFieldValue_SFRotation)(const char *szNodeName, const char *szFieldName, float axisX, float axisY, float axisZ, float rotation);
 typedef void (CDECL *PFNRD_CGE_SetNodeFieldValue_SFString)(const char *szNodeName, const char *szFieldName, const char *value);
 typedef void (CDECL *PFNRD_CGE_SetNodeFieldValue_MFFloat)(const char *szNodeName, const char *szFieldName, int iCount, float *values);
 typedef void (CDECL *PFNRD_CGE_SetNodeFieldValue_MFDouble)(const char *szNodeName, const char *szFieldName, int iCount, double *values);
 typedef void (CDECL *PFNRD_CGE_SetNodeFieldValue_MFInt32)(const char *szNodeName, const char *szFieldName, int iCount, int *values);
-typedef void (CDECL *PFNRD_CGE_SetNodeFieldValue_MFBool)(const char *szNodeName, const char *szFieldName, int iCount, float *values);
+typedef void (CDECL *PFNRD_CGE_SetNodeFieldValue_MFBool)(const char *szNodeName, const char *szFieldName, int iCount, bool *values);
 typedef void (CDECL *PFNRD_CGE_SetNodeFieldValue_MFVec2f)(const char *szNodeName, const char *szFieldName, int iCount, float *values);
 typedef void (CDECL *PFNRD_CGE_SetNodeFieldValue_MFVec3f)(const char *szNodeName, const char *szFieldName, int iCount, float *values);
 typedef void (CDECL *PFNRD_CGE_SetNodeFieldValue_MFVec4f)(const char *szNodeName, const char *szFieldName, int iCount, float *values);
@@ -541,7 +541,7 @@ void CGE_SetNodeFieldValue_SFInt32(const char *szNodeName, const char *szFieldNa
 }
 
 //-----------------------------------------------------------------------------
-void CGE_SetNodeFieldValue_SFBool(const char *szNodeName, const char *szFieldName, int value)
+void CGE_SetNodeFieldValue_SFBool(const char *szNodeName, const char *szFieldName, bool value)
 {
     if (pfrd_CGE_SetNodeFieldValue_SFBool!=NULL)
         (*pfrd_CGE_SetNodeFieldValue_SFBool)(szNodeName, szFieldName, value);
@@ -590,10 +590,10 @@ void CGE_SetNodeFieldValue_SFVec4d(const char *szNodeName, const char *szFieldNa
 }
 
 //-----------------------------------------------------------------------------
-void CGE_SetNodeFieldValue_SFRotation(const char *szNodeName, const char *szFieldName, float axis1, float axis2, float axis3, float rotation)
+void CGE_SetNodeFieldValue_SFRotation(const char *szNodeName, const char *szFieldName, float axisX, float axisY, float axisZ, float rotation)
 {
     if (pfrd_CGE_SetNodeFieldValue_SFRotation!=NULL)
-        (*pfrd_CGE_SetNodeFieldValue_SFRotation)(szNodeName, szFieldName, axis1, axis2, axis3, rotation);
+        (*pfrd_CGE_SetNodeFieldValue_SFRotation)(szNodeName, szFieldName, axisX, axisY, axisZ, rotation);
 }
 
 //-----------------------------------------------------------------------------
@@ -625,7 +625,7 @@ void CGE_SetNodeFieldValue_MFInt32(const char *szNodeName, const char *szFieldNa
 }
 
 //-----------------------------------------------------------------------------
-void CGE_SetNodeFieldValue_MFBool(const char *szNodeName, const char *szFieldName, int iCount, float *values)
+void CGE_SetNodeFieldValue_MFBool(const char *szNodeName, const char *szFieldName, int iCount, bool *values)
 {
     if (pfrd_CGE_SetNodeFieldValue_MFBool!=NULL)
         (*pfrd_CGE_SetNodeFieldValue_MFBool)(szNodeName, szFieldName, iCount, values);

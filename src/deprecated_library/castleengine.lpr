@@ -918,8 +918,8 @@ begin
   try
     if not CGE_VerifyScene('CGE_SetNodeFieldValue_SFFloat') then exit;
     aField := MainScene.Field(PChar(szNodeName), PChar(szFieldName));
-    if (aField <> nil) and (aField is TSFFloat) then
-       TSFFloat(aField).Send(value);
+    if aField <> nil then
+       (aField as TSFFloat).Send(value);
   except
     on E: TObject do WritelnWarning('Window', 'CGE_SetNodeFieldValue_SFFloat: ' + ExceptMessage(E));
   end;
@@ -932,8 +932,8 @@ begin
   try
     if not CGE_VerifyScene('CGE_SetNodeFieldValue_SFDouble') then exit;
     aField := MainScene.Field(PChar(szNodeName), PChar(szFieldName));
-    if (aField <> nil) and (aField is TSFDouble) then
-       TSFDouble(aField).Send(value);
+    if aField <> nil then
+       (aField as TSFDouble).Send(value);
   except
     on E: TObject do WritelnWarning('Window', 'CGE_SetNodeFieldValue_SFDouble: ' + ExceptMessage(E));
   end;
@@ -946,22 +946,22 @@ begin
   try
     if not CGE_VerifyScene('CGE_SetNodeFieldValue_SFInt32') then exit;
     aField := MainScene.Field(PChar(szNodeName), PChar(szFieldName));
-    if (aField <> nil) and (aField is TSFInt32) then
-       TSFInt32(aField).Send(value);
+    if aField <> nil then
+       (aField as TSFInt32).Send(value);
   except
     on E: TObject do WritelnWarning('Window', 'CGE_SetNodeFieldValue_SFInt32: ' + ExceptMessage(E));
   end;
 end;
 
-procedure CGE_SetNodeFieldValue_SFBool(szNodeName, szFieldName: pcchar; value: cInt32); cdecl;
+procedure CGE_SetNodeFieldValue_SFBool(szNodeName, szFieldName: pcchar; value: cBool); cdecl;
 var
   aField: TX3DField;
 begin
   try
     if not CGE_VerifyScene('CGE_SetNodeFieldValue_SFBool') then exit;
     aField := MainScene.Field(PChar(szNodeName), PChar(szFieldName));
-    if (aField <> nil) and (aField is TSFBool) then
-       TSFBool(aField).Send(value <> 0);
+    if aField <> nil then
+       (aField as TSFBool).Send(value);
   except
     on E: TObject do WritelnWarning('Window', 'CGE_SetNodeFieldValue_SFBool: ' + ExceptMessage(E));
   end;
@@ -974,8 +974,8 @@ begin
   try
     if not CGE_VerifyScene('CGE_SetNodeFieldValue_SFString') then exit;
     aField := MainScene.Field(PChar(szNodeName), PChar(szFieldName));
-    if (aField <> nil) and (aField is TSFString) then
-       TSFString(aField).Send(PChar(szValue));
+    if aField <> nil then
+       (aField as TSFString).Send(PChar(szValue));
   except
     on E: TObject do WritelnWarning('Window', 'CGE_SetNodeFieldValue_SFString: ' + ExceptMessage(E));
   end;
@@ -988,8 +988,8 @@ begin
   try
     if not CGE_VerifyScene('CGE_SetNodeFieldValue_SFVec2f') then exit;
     aField := MainScene.Field(PChar(szNodeName), PChar(szFieldName));
-    if (aField <> nil) and (aField is TSFVec2f) then
-       TSFVec2f(aField).Send(Vector2(val1, val2));
+    if aField <> nil then
+       (aField as TSFVec2f).Send(Vector2(val1, val2));
   except
     on E: TObject do WritelnWarning('Window', 'CGE_SetNodeFieldValue_SFVec2f: ' + ExceptMessage(E));
   end;
@@ -1002,8 +1002,8 @@ begin
   try
     if not CGE_VerifyScene('CGE_SetNodeFieldValue_SFVec3f') then exit;
     aField := MainScene.Field(PChar(szNodeName), PChar(szFieldName));
-    if (aField <> nil) and (aField is TSFVec3f) then
-       TSFVec3f(aField).Send(Vector3(val1, val2, val3));
+    if aField <> nil then
+       (aField as TSFVec3f).Send(Vector3(val1, val2, val3));
   except
     on E: TObject do WritelnWarning('Window', 'CGE_SetNodeFieldValue_SFVec3f: ' + ExceptMessage(E));
   end;
@@ -1016,8 +1016,8 @@ begin
   try
     if not CGE_VerifyScene('CGE_SetNodeFieldValue_SFVec4f') then exit;
     aField := MainScene.Field(PChar(szNodeName), PChar(szFieldName));
-    if (aField <> nil) and (aField is TSFVec4f) then
-       TSFVec4f(aField).Send(Vector4(val1, val2, val3, val4));
+    if aField <> nil then
+       (aField as TSFVec4f).Send(Vector4(val1, val2, val3, val4));
   except
     on E: TObject do WritelnWarning('Window', 'CGE_SetNodeFieldValue_SFVec4f: ' + ExceptMessage(E));
   end;
@@ -1030,8 +1030,8 @@ begin
   try
     if not CGE_VerifyScene('CGE_SetNodeFieldValue_SFVec2d') then exit;
     aField := MainScene.Field(PChar(szNodeName), PChar(szFieldName));
-    if (aField <> nil) and (aField is TSFVec2d) then
-       TSFVec2d(aField).Send(Vector2Double(val1, val2));
+    if aField <> nil then
+       (aField as TSFVec2d).Send(Vector2Double(val1, val2));
   except
     on E: TObject do WritelnWarning('Window', 'CGE_SetNodeFieldValue_SFVec2d: ' + ExceptMessage(E));
   end;
@@ -1044,8 +1044,8 @@ begin
   try
     if not CGE_VerifyScene('CGE_SetNodeFieldValue_SFVec3d') then exit;
     aField := MainScene.Field(PChar(szNodeName), PChar(szFieldName));
-    if (aField <> nil) and (aField is TSFVec3d) then
-       TSFVec3d(aField).Send(Vector3Double(val1, val2, val3));
+    if aField <> nil then
+       (aField as TSFVec3d).Send(Vector3Double(val1, val2, val3));
   except
     on E: TObject do WritelnWarning('Window', 'CGE_SetNodeFieldValue_SFVec3d: ' + ExceptMessage(E));
   end;
@@ -1058,22 +1058,22 @@ begin
   try
     if not CGE_VerifyScene('CGE_SetNodeFieldValue_SFVec4d') then exit;
     aField := MainScene.Field(PChar(szNodeName), PChar(szFieldName));
-    if (aField <> nil) and (aField is TSFVec4d) then
-       TSFVec4d(aField).Send(Vector4Double(val1, val2, val3, val4));
+    if aField <> nil then
+       (aField as TSFVec4d).Send(Vector4Double(val1, val2, val3, val4));
   except
     on E: TObject do WritelnWarning('Window', 'CGE_SetNodeFieldValue_SFVec4d: ' + ExceptMessage(E));
   end;
 end;
 
-procedure CGE_SetNodeFieldValue_SFRotation(szNodeName, szFieldName: pcchar; axis1, axis2, axis3, rotation: cFloat); cdecl;
+procedure CGE_SetNodeFieldValue_SFRotation(szNodeName, szFieldName: pcchar; axisX, axisY, axisZ, rotation: cFloat); cdecl;
 var
   aField: TX3DField;
 begin
   try
     if not CGE_VerifyScene('CGE_SetNodeFieldValue_SFRotation') then exit;
     aField := MainScene.Field(PChar(szNodeName), PChar(szFieldName));
-    if (aField <> nil) and (aField is TSFRotation) then
-       TSFRotation(aField).Send(Vector4(axis1, axis2, axis3, rotation));
+    if aField <> nil then
+       (aField as TSFRotation).Send(Vector4(axisX, axisY, axisZ, rotation));
   except
     on E: TObject do WritelnWarning('Window', 'CGE_SetNodeFieldValue_SFRotation: ' + ExceptMessage(E));
   end;
@@ -1088,12 +1088,13 @@ begin
   try
     if not CGE_VerifyScene('CGE_SetNodeFieldValue_MFFloat') then exit;
     aField := MainScene.Field(PChar(szNodeName), PChar(szFieldName));
-    if (aField = nil) or not (aField is TMFFloat) then Exit;
+    if aField = nil then Exit;
 
     aItemList := TSingleList.Create;
-    for i:=0 to iCount-1 do
-      aItemList.Add(values[i]);
-    TMFFloat(aField).Send(aItemList);
+    aItemList.Count := iCount;
+    for i := 0 to iCount - 1 do
+      aItemList[i] := values[i];
+    (aField as TMFFloat).Send(aItemList);
     aItemList.Destroy;
   except
     on E: TObject do WritelnWarning('Window', 'CGE_SetNodeFieldValue_MFFloat: ' + ExceptMessage(E));
@@ -1109,12 +1110,13 @@ begin
   try
     if not CGE_VerifyScene('CGE_SetNodeFieldValue_MFDouble') then exit;
     aField := MainScene.Field(PChar(szNodeName), PChar(szFieldName));
-    if (aField = nil) or not (aField is TMFDouble) then Exit;
+    if aField = nil then Exit;
 
     aItemList := TDoubleList.Create;
-    for i:=0 to iCount-1 do
-      aItemList.Add(values[i]);
-    TMFDouble(aField).Send(aItemList);
+    aItemList.Count := iCount;
+    for i := 0 to iCount - 1 do
+      aItemList[i] := values[i];
+    (aField as TMFDouble).Send(aItemList);
     aItemList.Destroy;
   except
     on E: TObject do WritelnWarning('Window', 'CGE_SetNodeFieldValue_MFDouble: ' + ExceptMessage(E));
@@ -1130,12 +1132,13 @@ begin
   try
     if not CGE_VerifyScene('CGE_SetNodeFieldValue_MFInt32') then exit;
     aField := MainScene.Field(PChar(szNodeName), PChar(szFieldName));
-    if (aField = nil) or not (aField is TMFInt32) then Exit;
+    if aField = nil then Exit;
 
     aItemList := TInt32List.Create;
-    for i:=0 to iCount-1 do
-      aItemList.Add(values[i]);
-    TMFInt32(aField).Send(aItemList);
+    aItemList.Count := iCount;
+    for i := 0 to iCount - 1 do
+      aItemList[i] := values[i];
+    (aField as TMFInt32).Send(aItemList);
     aItemList.Destroy;
   except
     on E: TObject do WritelnWarning('Window', 'CGE_SetNodeFieldValue_MFInt32: ' + ExceptMessage(E));
@@ -1151,12 +1154,13 @@ begin
   try
     if not CGE_VerifyScene('CGE_SetNodeFieldValue_MFBool') then exit;
     aField := MainScene.Field(PChar(szNodeName), PChar(szFieldName));
-    if (aField = nil) or not (aField is TMFBool) then Exit;
+    if aField = nil then Exit;
 
     aItemList := TBooleanList.Create;
-    for i:=0 to iCount-1 do
-      aItemList.Add(values[i]);
-    TMFBool(aField).Send(aItemList);
+    aItemList.Count := iCount;
+    for i := 0 to iCount - 1 do
+      aItemList[i] := values[i];
+    (aField as TMFBool).Send(aItemList);
     aItemList.Destroy;
   except
     on E: TObject do WritelnWarning('Window', 'CGE_SetNodeFieldValue_MFBool: ' + ExceptMessage(E));
@@ -1173,12 +1177,13 @@ begin
   try
     if not CGE_VerifyScene('CGE_SetNodeFieldValue_MFVec2f') then exit;
     aField := MainScene.Field(PChar(szNodeName), PChar(szFieldName));
-    if (aField = nil) or not (aField is TMFVec2f) then Exit;
+    if aField = nil then Exit;
 
     aItemList := TVector2List.Create;
-    for i:=0 to iCount-1 do
-      aItemList.Add(Vector2(values[2*i], values[2*i+1]));
-    TMFVec2f(aField).Send(aItemList);
+    aItemList.Count := iCount;
+    for i := 0 to iCount - 1 do
+      aItemList[i] := Vector2(values[2*i], values[2*i+1]);
+    (aField as TMFVec2f).Send(aItemList);
     aItemList.Destroy;
   except
     on E: TObject do WritelnWarning('Window', 'CGE_SetNodeFieldValue_MFVec2f: ' + ExceptMessage(E));
@@ -1195,12 +1200,13 @@ begin
   try
     if not CGE_VerifyScene('CGE_SetNodeFieldValue_MFVec3f') then exit;
     aField := MainScene.Field(PChar(szNodeName), PChar(szFieldName));
-    if (aField = nil) or not (aField is TMFVec3f) then Exit;
+    if aField = nil then Exit;
 
     aItemList := TVector3List.Create;
-    for i:=0 to iCount-1 do
-      aItemList.Add(Vector3(values[3*i], values[3*i+1], values[3*i+2]));
-    TMFVec3f(aField).Send(aItemList);
+    aItemList.Count := iCount;
+    for i := 0 to iCount - 1 do
+      aItemList[i] := Vector3(values[3*i], values[3*i+1], values[3*i+2]);
+    (aField as TMFVec3f).Send(aItemList);
     aItemList.Destroy;
   except
     on E: TObject do WritelnWarning('Window', 'CGE_SetNodeFieldValue_MFVec3f: ' + ExceptMessage(E));
@@ -1217,12 +1223,13 @@ begin
   try
     if not CGE_VerifyScene('CGE_SetNodeFieldValue_MFVec4f') then exit;
     aField := MainScene.Field(PChar(szNodeName), PChar(szFieldName));
-    if (aField = nil) or not (aField is TMFVec4f) then Exit;
+    if aField = nil then Exit;
 
     aItemList := TVector4List.Create;
-    for i:=0 to iCount-1 do
-      aItemList.Add(Vector4(values[4*i], values[4*i+1], values[4*i+2], values[4*i+3]));
-    TMFVec4f(aField).Send(aItemList);
+    aItemList.Count := iCount;
+    for i := 0 to iCount - 1 do
+      aItemList[i] := Vector4(values[4*i], values[4*i+1], values[4*i+2], values[4*i+3]);
+    (aField as TMFVec4f).Send(aItemList);
     aItemList.Destroy;
   except
     on E: TObject do WritelnWarning('Window', 'CGE_SetNodeFieldValue_MFVec4f: ' + ExceptMessage(E));
@@ -1239,12 +1246,13 @@ begin
   try
     if not CGE_VerifyScene('CGE_SetNodeFieldValue_MFVec2d') then exit;
     aField := MainScene.Field(PChar(szNodeName), PChar(szFieldName));
-    if (aField = nil) or not (aField is TMFVec2d) then Exit;
+    if aField = nil then Exit;
 
     aItemList := TVector2DoubleList.Create;
-    for i:=0 to iCount-1 do
-      aItemList.Add(Vector2Double(values[2*i], values[2*i+1]));
-    TMFVec2d(aField).Send(aItemList);
+    aItemList.Count := iCount;
+    for i := 0 to iCount - 1 do
+      aItemList[i] := Vector2Double(values[2*i], values[2*i+1]);
+    (aField as TMFVec2d).Send(aItemList);
     aItemList.Destroy;
   except
     on E: TObject do WritelnWarning('Window', 'CGE_SetNodeFieldValue_MFVec2d: ' + ExceptMessage(E));
@@ -1261,12 +1269,13 @@ begin
   try
     if not CGE_VerifyScene('CGE_SetNodeFieldValue_MFVec3d') then exit;
     aField := MainScene.Field(PChar(szNodeName), PChar(szFieldName));
-    if (aField = nil) or not (aField is TMFVec3d) then Exit;
+    if aField = nil then Exit;
 
     aItemList := TVector3DoubleList.Create;
-    for i:=0 to iCount-1 do
-      aItemList.Add(Vector3Double(values[3*i], values[3*i+1], values[3*i+2]));
-    TMFVec3d(aField).Send(aItemList);
+    aItemList.Count := iCount;
+    for i := 0 to iCount - 1 do
+      aItemList[i] := Vector3Double(values[3*i], values[3*i+1], values[3*i+2]);
+    (aField as TMFVec3d).Send(aItemList);
     aItemList.Destroy;
   except
     on E: TObject do WritelnWarning('Window', 'CGE_SetNodeFieldValue_MFVec3d: ' + ExceptMessage(E));
@@ -1283,12 +1292,13 @@ begin
   try
     if not CGE_VerifyScene('CGE_SetNodeFieldValue_MFVec4d') then exit;
     aField := MainScene.Field(PChar(szNodeName), PChar(szFieldName));
-    if (aField = nil) or not (aField is TMFVec4d) then Exit;
+    if aField = nil then Exit;
 
     aItemList := TVector4DoubleList.Create;
-    for i:=0 to iCount-1 do
-      aItemList.Add(Vector4Double(values[4*i], values[4*i+1], values[4*i+2], values[4*i+3]));
-    TMFVec4d(aField).Send(aItemList);
+    aItemList.Count := iCount;
+    for i := 0 to iCount - 1 do
+      aItemList[i] := Vector4Double(values[4*i], values[4*i+1], values[4*i+2], values[4*i+3]);
+    (aField as TMFVec4d).Send(aItemList);
     aItemList.Destroy;
   except
     on E: TObject do WritelnWarning('Window', 'CGE_SetNodeFieldValue_MFVec4d: ' + ExceptMessage(E));
@@ -1305,12 +1315,13 @@ begin
   try
     if not CGE_VerifyScene('CGE_SetNodeFieldValue_MFRotation') then exit;
     aField := MainScene.Field(PChar(szNodeName), PChar(szFieldName));
-    if (aField = nil) or not (aField is TMFRotation) then Exit;
+    if aField = nil then Exit;
 
     aItemList := TVector4List.Create;
-    for i:=0 to iCount-1 do
-      aItemList.Add(Vector4(values[4*i], values[4*i+1], values[4*i+2], values[4*i+3]));
-    TMFRotation(aField).Send(aItemList);
+    aItemList.Count := iCount;
+    for i := 0 to iCount - 1 do
+      aItemList[i] := Vector4(values[4*i], values[4*i+1], values[4*i+2], values[4*i+3]);
+    (aField as TMFRotation).Send(aItemList);
     aItemList.Destroy;
   except
     on E: TObject do WritelnWarning('Window', 'CGE_SetNodeFieldValue_MFRotation: ' + ExceptMessage(E));
@@ -1327,12 +1338,13 @@ begin
   try
     if not CGE_VerifyScene('CGE_SetNodeFieldValue_MFString') then exit;
     aField := MainScene.Field(PChar(szNodeName), PChar(szFieldName));
-    if (aField = nil) or not (aField is TMFString) then Exit;
+    if aField = nil then Exit;
 
     aItemList := TCastleStringList.Create;
-    for i:=0 to iCount-1 do
-      aItemList.Add(PChar(values[i]));
-    TMFString(aField).Send(aItemList);
+    aItemList.Count := iCount;
+    for i := 0 to iCount - 1 do
+      aItemList[i] := PChar(values[i]);
+    (aField as TMFString).Send(aItemList);
     aItemList.Destroy;
   except
     on E: TObject do WritelnWarning('Window', 'CGE_SetNodeFieldValue_MFString: ' + ExceptMessage(E));
