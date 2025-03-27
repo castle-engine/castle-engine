@@ -72,7 +72,11 @@ type
 }
 procedure InitializeLog(const ALogStream: TStream = nil);
 
-{ Log message. }
+{ Log a message. 
+
+  See https://castle-engine.io/log for documentation where does
+  the log appear. When using the @url(https://castle-engine.io/editor editor),
+  the log is visible in the "Output" tab. }
 procedure WritelnLog(const Category: string; const Message: string); overload;
 procedure WritelnLog(const Message: string); overload;
 
@@ -83,27 +87,26 @@ procedure WritelnLog(const Category: string; const MessageBase: string;
 procedure WritelnLog(const MessageBase: string;
   const Args: array of const); overload;
 
-{ Log multiline message.
+{ Log a multiline message.
   The Message may, but doesn't have to, terminate with a newline --
   we will format it OK either way. }
 procedure WritelnLogMultiline(const Category: string; const Message: string);
 
 procedure WriteLogMultiline(const Category: string; const Message: string); deprecated 'use WritelnLogMultiline';
 
-{ Log a warning, and call
+{ Log a warning messages, and call
   @link(TCastleApplicationProperties.OnWarning ApplicationProperties.OnWarning)
   event.
 
-  This outputs a log message.
-  We simply append the word "warning" to the Category, and pass arguments
-  to WritelnLog.
+  Warning messages are send to the same place as normal log messages,
+  we just add the word "warning" to the Category.
 
-  Then, @italic(regardless if the log is initialized or not),
-  we also call @link(TCastleApplicationProperties.OnWarning ApplicationProperties.OnWarning).
-  This allows to react to warnings e.g. by displaying a message dialog
-  (like @code(ShowMessage) in Lazarus, or @link(MessageOK) in CastleMessages,
-  or @link(TCastleWindow.MessageOK)).
-  Or by raising an exception, if you want to be strict about warnings. }
+  We also call @link(TCastleApplicationProperties.OnWarning ApplicationProperties.OnWarning)
+  to allow additional processing of warnings.
+  E.g. you can display the warning prominently in the user interface
+  (e.g. use @link(TCastleNotifications) to display a warning message).
+  If you want to be strict about warnings, you can even raise an exception
+  in your OnWarning event handler. }
 procedure WritelnWarning(const Category: string; const Message: string); overload;
 procedure WritelnWarning(const Message: string); overload;
 
@@ -482,6 +485,9 @@ begin
   else
     WarningCategory := 'Warning';
   WritelnLog(WarningCategory, Message);
+  { Note that TCastleApplicationProperties.OnWarning will be called
+    regardless of whether InitializeLog was called or not. 
+    This is good, to make sure we notify about early warnings. }
   ApplicationProperties._Warning(Category, Message);
 end;
 
