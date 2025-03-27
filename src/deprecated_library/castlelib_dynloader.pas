@@ -267,6 +267,7 @@ const
 
 type
   TLibraryCallbackProc = function (eCode, iParam1, iParam2: cInt32; szParam: pcchar):cInt32; cdecl;
+  ppcchar = ^pcchar;
 
 procedure CGE_Initialize(ApplicationConfigDirectory: PCChar); cdecl; external 'castleengine';
 procedure CGE_Finalize(); cdecl; external 'castleengine';
@@ -330,6 +331,7 @@ procedure CGE_SetNodeFieldValue_MFVec2d(szNodeName, szFieldName: pcchar; iCount:
 procedure CGE_SetNodeFieldValue_MFVec3d(szNodeName, szFieldName: pcchar; iCount: cInt32; values: pcdouble); cdecl; external 'castleengine';
 procedure CGE_SetNodeFieldValue_MFVec4d(szNodeName, szFieldName: pcchar; iCount: cInt32; values: pcdouble); cdecl; external 'castleengine';
 procedure CGE_SetNodeFieldValue_MFRotation(szNodeName, szFieldName: pcchar; iCount: cInt32; values: pcfloat); cdecl; external 'castleengine';
+procedure CGE_SetNodeFieldValue_MFString(szNodeName, szFieldName: pcchar; iCount: cInt32; values: ppcchar); cdecl; external 'castleengine';
 
 procedure CGE_IncreaseSceneTime(fTimeS: cFloat); cdecl; external 'castleengine';
 

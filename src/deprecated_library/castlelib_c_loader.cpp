@@ -111,6 +111,7 @@ typedef void (CDECL *PFNRD_CGE_SetNodeFieldValue_MFVec2d)(const char *szNodeName
 typedef void (CDECL *PFNRD_CGE_SetNodeFieldValue_MFVec3d)(const char *szNodeName, const char *szFieldName, int iCount, double *values);
 typedef void (CDECL *PFNRD_CGE_SetNodeFieldValue_MFVec4d)(const char *szNodeName, const char *szFieldName, int iCount, double *values);
 typedef void (CDECL *PFNRD_CGE_SetNodeFieldValue_MFRotation)(const char *szNodeName, const char *szFieldName, int iCount, float *values);
+typedef void (CDECL *PFNRD_CGE_SetNodeFieldValue_MFString)(const char *szNodeName, const char *szFieldName, int iCount, char **values);
                                         
 typedef void (CDECL *PFNRD_CGE_IncreaseSceneTime)(float fTimeS);
 
@@ -171,6 +172,7 @@ PFNRD_CGE_SetNodeFieldValue_MFVec2d pfrd_CGE_SetNodeFieldValue_MFVec2d = NULL;
 PFNRD_CGE_SetNodeFieldValue_MFVec3d pfrd_CGE_SetNodeFieldValue_MFVec3d = NULL;
 PFNRD_CGE_SetNodeFieldValue_MFVec4d pfrd_CGE_SetNodeFieldValue_MFVec4d = NULL;
 PFNRD_CGE_SetNodeFieldValue_MFRotation pfrd_CGE_SetNodeFieldValue_MFRotation = NULL;
+PFNRD_CGE_SetNodeFieldValue_MFString pfrd_CGE_SetNodeFieldValue_MFString = NULL;
 PFNRD_CGE_IncreaseSceneTime pfrd_CGE_IncreaseSceneTime = NULL;
 
 #ifdef QT_BUILD
@@ -267,6 +269,7 @@ void CGE_LoadLibrary()
     pfrd_CGE_SetNodeFieldValue_MFVec3d = (PFNRD_CGE_SetNodeFieldValue_MFVec3d)cge_GetProc(hCgeDll, "CGE_SetNodeFieldValue_MFVec3d");
     pfrd_CGE_SetNodeFieldValue_MFVec4d = (PFNRD_CGE_SetNodeFieldValue_MFVec4d)cge_GetProc(hCgeDll, "CGE_SetNodeFieldValue_MFVec4d");
     pfrd_CGE_SetNodeFieldValue_MFRotation = (PFNRD_CGE_SetNodeFieldValue_MFRotation)cge_GetProc(hCgeDll, "CGE_SetNodeFieldValue_MFRotation");
+    pfrd_CGE_SetNodeFieldValue_MFString = (PFNRD_CGE_SetNodeFieldValue_MFString)cge_GetProc(hCgeDll, "CGE_SetNodeFieldValue_MFString");
     pfrd_CGE_IncreaseSceneTime = (PFNRD_CGE_IncreaseSceneTime)cge_GetProc(hCgeDll, "CGE_IncreaseSceneTime");
 }
 
@@ -675,6 +678,13 @@ void CGE_SetNodeFieldValue_MFRotation(const char *szNodeName, const char *szFiel
 {
     if (pfrd_CGE_SetNodeFieldValue_MFRotation!=NULL)
         (*pfrd_CGE_SetNodeFieldValue_MFRotation)(szNodeName, szFieldName, iCount, values);
+}
+
+//-----------------------------------------------------------------------------
+void CGE_SetNodeFieldValue_MFString(const char *szNodeName, const char *szFieldName, int iCount, char **values)
+{
+    if (pfrd_CGE_SetNodeFieldValue_MFString!=NULL)
+        (*pfrd_CGE_SetNodeFieldValue_MFString)(szNodeName, szFieldName, iCount, values);
 }
 
 //-----------------------------------------------------------------------------

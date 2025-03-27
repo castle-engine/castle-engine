@@ -37,9 +37,10 @@ uses CTypes, Math, SysUtils, CastleUtils,
   Classes, CastleKeysMouse, CastleCameras, CastleVectors, CastleGLUtils, CastleGLVersion,
   CastleImages, CastleSceneCore, CastleUIControls, X3DNodes, X3DFields, CastleLog,
   CastleBoxes, CastleControls, CastleInputs, CastleApplicationProperties,
-  CastleWindow, CastleViewport, CastleScene, CastleTransform;
+  CastleWindow, CastleViewport, CastleScene, CastleTransform, CastleStringUtils;
 
 type
+  ppcchar = ^pcchar;
   TCrosshairManager = class(TObject)
   public
     CrosshairCtl: TCastleCrosshair;
@@ -1316,6 +1317,28 @@ begin
   end;
 end;
 
+// Set MFString. We expect array of "count" char* pointers to null-terminated UTF-8 strings
+procedure CGE_SetNodeFieldValue_MFString(szNodeName, szFieldName: pcchar; iCount: cInt32; values: ppcchar); cdecl;
+var
+  aField: TX3DField;
+  aItemList: TCastleStringList;
+  i: cInt32;
+begin
+  try
+    if not CGE_VerifyScene('CGE_SetNodeFieldValue_MFString') then exit;
+    aField := MainScene.Field(PChar(szNodeName), PChar(szFieldName));
+    if (aField = nil) or not (aField is TMFString) then Exit;
+
+    aItemList := TCastleStringList.Create;
+    for i:=0 to iCount-1 do
+      aItemList.Add(PChar(values[i]));
+    TMFString(aField).Send(aItemList);
+    aItemList.Destroy;
+  except
+    on E: TObject do WritelnWarning('Window', 'CGE_SetNodeFieldValue_MFString: ' + ExceptMessage(E));
+  end;
+end;
+
 constructor TCrosshairManager.Create;
 begin
   inherited;
@@ -1418,7 +1441,8 @@ exports
   CGE_SetNodeFieldValue_MFVec2d,
   CGE_SetNodeFieldValue_MFVec3d,
   CGE_SetNodeFieldValue_MFVec4d,
-  CGE_SetNodeFieldValue_MFRotation;
+  CGE_SetNodeFieldValue_MFRotation,
+  CGE_SetNodeFieldValue_MFString;
 
 begin
   SetExceptionMask([exInvalidOp, exDenormalized, exZeroDivide,

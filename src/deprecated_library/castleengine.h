@@ -379,6 +379,7 @@ extern void CGE_SetNodeFieldValue_MFVec2d(const char *szNodeName, const char *sz
 extern void CGE_SetNodeFieldValue_MFVec3d(const char *szNodeName, const char *szFieldName, int iCount, double *values);  // we expect "3 * iCount" doubles in the array "values"
 extern void CGE_SetNodeFieldValue_MFVec4d(const char *szNodeName, const char *szFieldName, int iCount, double *values);  // we expect "4 * iCount" doubles in the array "values"
 extern void CGE_SetNodeFieldValue_MFRotation(const char *szNodeName, const char *szFieldName, int iCount, float *values);  // we expect "4 * iCount" floats in the array "values"
+extern void CGE_SetNodeFieldValue_MFString(const char *szNodeName, const char *szFieldName, int iCount, char **values);  // We expect array of "iCount" char* pointers to null-terminated UTF-8 strings
 
 extern void CGE_IncreaseSceneTime(float fTimeS);    // set time in the scene, useful when viewport paused
 
