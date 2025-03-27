@@ -219,7 +219,7 @@ type
       but filtered to contain only TCastleTransform instances that
       can be manipulated, but with freed TCastleTransform instances
       removed. }
-    property Selected[const Index: Integer]: TCastleTransform read GetSelected;
+    property Selected[Index: Integer]: TCastleTransform read GetSelected;
 
     { Count of currently selected items.
       @seealso Selected }
