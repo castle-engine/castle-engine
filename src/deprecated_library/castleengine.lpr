@@ -66,6 +66,8 @@ var
   TouchNavigation: TCastleTouchNavigation;
   Crosshair: TCrosshairManager;
 
+{$WARN 6058 off: Ignore warning Call to subroutine "$1" marked as inline is not inlined}
+
 { Check that CGE_Open was called, and at least Window and Viewport are created. }
 function CGE_VerifyWindow(const FromFunc: string): boolean;
 begin
@@ -1083,7 +1085,6 @@ procedure CGE_SetNodeFieldValue_MFFloat(szNodeName, szFieldName: pcchar; iCount:
 var
   aField: TX3DField;
   aItemList: TSingleList;
-  i: cInt32;
 begin
   try
     if not CGE_VerifyScene('CGE_SetNodeFieldValue_MFFloat') then exit;
@@ -1092,8 +1093,7 @@ begin
 
     aItemList := TSingleList.Create;
     aItemList.Count := iCount;
-    for i := 0 to iCount - 1 do
-      aItemList[i] := values[i];
+    Move(values^, aItemList.L^, SizeOf(Single) * iCount);
     (aField as TMFFloat).Send(aItemList);
     aItemList.Destroy;
   except
@@ -1105,7 +1105,6 @@ procedure CGE_SetNodeFieldValue_MFDouble(szNodeName, szFieldName: pcchar; iCount
 var
   aField: TX3DField;
   aItemList: TDoubleList;
-  i: cInt32;
 begin
   try
     if not CGE_VerifyScene('CGE_SetNodeFieldValue_MFDouble') then exit;
@@ -1114,8 +1113,7 @@ begin
 
     aItemList := TDoubleList.Create;
     aItemList.Count := iCount;
-    for i := 0 to iCount - 1 do
-      aItemList[i] := values[i];
+    Move(values^, aItemList.L^, SizeOf(Double) * iCount);
     (aField as TMFDouble).Send(aItemList);
     aItemList.Destroy;
   except
@@ -1127,7 +1125,6 @@ procedure CGE_SetNodeFieldValue_MFInt32(szNodeName, szFieldName: pcchar; iCount:
 var
   aField: TX3DField;
   aItemList: TInt32List;
-  i: cInt32;
 begin
   try
     if not CGE_VerifyScene('CGE_SetNodeFieldValue_MFInt32') then exit;
@@ -1136,8 +1133,7 @@ begin
 
     aItemList := TInt32List.Create;
     aItemList.Count := iCount;
-    for i := 0 to iCount - 1 do
-      aItemList[i] := values[i];
+    Move(values^, aItemList.L^, SizeOf(Int32) * iCount);
     (aField as TMFInt32).Send(aItemList);
     aItemList.Destroy;
   except
@@ -1149,7 +1145,6 @@ procedure CGE_SetNodeFieldValue_MFBool(szNodeName, szFieldName: pcchar; iCount: 
 var
   aField: TX3DField;
   aItemList: TBooleanList;
-  i: cInt32;
 begin
   try
     if not CGE_VerifyScene('CGE_SetNodeFieldValue_MFBool') then exit;
@@ -1158,8 +1153,7 @@ begin
 
     aItemList := TBooleanList.Create;
     aItemList.Count := iCount;
-    for i := 0 to iCount - 1 do
-      aItemList[i] := values[i];
+    Move(values^, aItemList.L^, SizeOf(boolean) * iCount);
     (aField as TMFBool).Send(aItemList);
     aItemList.Destroy;
   except
@@ -1172,7 +1166,6 @@ procedure CGE_SetNodeFieldValue_MFVec2f(szNodeName, szFieldName: pcchar; iCount:
 var
   aField: TX3DField;
   aItemList: TVector2List;
-  i: cInt32;
 begin
   try
     if not CGE_VerifyScene('CGE_SetNodeFieldValue_MFVec2f') then exit;
@@ -1181,8 +1174,7 @@ begin
 
     aItemList := TVector2List.Create;
     aItemList.Count := iCount;
-    for i := 0 to iCount - 1 do
-      aItemList[i] := Vector2(values[2*i], values[2*i+1]);
+    Move(values^, aItemList.L^, SizeOf(TVector2) * iCount);
     (aField as TMFVec2f).Send(aItemList);
     aItemList.Destroy;
   except
@@ -1195,7 +1187,6 @@ procedure CGE_SetNodeFieldValue_MFVec3f(szNodeName, szFieldName: pcchar; iCount:
 var
   aField: TX3DField;
   aItemList: TVector3List;
-  i: cInt32;
 begin
   try
     if not CGE_VerifyScene('CGE_SetNodeFieldValue_MFVec3f') then exit;
@@ -1204,8 +1195,7 @@ begin
 
     aItemList := TVector3List.Create;
     aItemList.Count := iCount;
-    for i := 0 to iCount - 1 do
-      aItemList[i] := Vector3(values[3*i], values[3*i+1], values[3*i+2]);
+    Move(values^, aItemList.L^, SizeOf(TVector3) * iCount);
     (aField as TMFVec3f).Send(aItemList);
     aItemList.Destroy;
   except
@@ -1218,7 +1208,6 @@ procedure CGE_SetNodeFieldValue_MFVec4f(szNodeName, szFieldName: pcchar; iCount:
 var
   aField: TX3DField;
   aItemList: TVector4List;
-  i: cInt32;
 begin
   try
     if not CGE_VerifyScene('CGE_SetNodeFieldValue_MFVec4f') then exit;
@@ -1227,8 +1216,7 @@ begin
 
     aItemList := TVector4List.Create;
     aItemList.Count := iCount;
-    for i := 0 to iCount - 1 do
-      aItemList[i] := Vector4(values[4*i], values[4*i+1], values[4*i+2], values[4*i+3]);
+    Move(values^, aItemList.L^, SizeOf(TVector4) * iCount);
     (aField as TMFVec4f).Send(aItemList);
     aItemList.Destroy;
   except
@@ -1241,7 +1229,6 @@ procedure CGE_SetNodeFieldValue_MFVec2d(szNodeName, szFieldName: pcchar; iCount:
 var
   aField: TX3DField;
   aItemList: TVector2DoubleList;
-  i: cInt32;
 begin
   try
     if not CGE_VerifyScene('CGE_SetNodeFieldValue_MFVec2d') then exit;
@@ -1250,8 +1237,7 @@ begin
 
     aItemList := TVector2DoubleList.Create;
     aItemList.Count := iCount;
-    for i := 0 to iCount - 1 do
-      aItemList[i] := Vector2Double(values[2*i], values[2*i+1]);
+    Move(values^, aItemList.L^, SizeOf(TVector2Double) * iCount);
     (aField as TMFVec2d).Send(aItemList);
     aItemList.Destroy;
   except
@@ -1264,7 +1250,6 @@ procedure CGE_SetNodeFieldValue_MFVec3d(szNodeName, szFieldName: pcchar; iCount:
 var
   aField: TX3DField;
   aItemList: TVector3DoubleList;
-  i: cInt32;
 begin
   try
     if not CGE_VerifyScene('CGE_SetNodeFieldValue_MFVec3d') then exit;
@@ -1273,8 +1258,7 @@ begin
 
     aItemList := TVector3DoubleList.Create;
     aItemList.Count := iCount;
-    for i := 0 to iCount - 1 do
-      aItemList[i] := Vector3Double(values[3*i], values[3*i+1], values[3*i+2]);
+    Move(values^, aItemList.L^, SizeOf(TVector3Double) * iCount);
     (aField as TMFVec3d).Send(aItemList);
     aItemList.Destroy;
   except
@@ -1287,7 +1271,6 @@ procedure CGE_SetNodeFieldValue_MFVec4d(szNodeName, szFieldName: pcchar; iCount:
 var
   aField: TX3DField;
   aItemList: TVector4DoubleList;
-  i: cInt32;
 begin
   try
     if not CGE_VerifyScene('CGE_SetNodeFieldValue_MFVec4d') then exit;
@@ -1296,8 +1279,7 @@ begin
 
     aItemList := TVector4DoubleList.Create;
     aItemList.Count := iCount;
-    for i := 0 to iCount - 1 do
-      aItemList[i] := Vector4Double(values[4*i], values[4*i+1], values[4*i+2], values[4*i+3]);
+    Move(values^, aItemList.L^, SizeOf(TVector4Double) * iCount);
     (aField as TMFVec4d).Send(aItemList);
     aItemList.Destroy;
   except
@@ -1310,7 +1292,6 @@ procedure CGE_SetNodeFieldValue_MFRotation(szNodeName, szFieldName: pcchar; iCou
 var
   aField: TX3DField;
   aItemList: TVector4List;
-  i: cInt32;
 begin
   try
     if not CGE_VerifyScene('CGE_SetNodeFieldValue_MFRotation') then exit;
@@ -1319,8 +1300,7 @@ begin
 
     aItemList := TVector4List.Create;
     aItemList.Count := iCount;
-    for i := 0 to iCount - 1 do
-      aItemList[i] := Vector4(values[4*i], values[4*i+1], values[4*i+2], values[4*i+3]);
+    Move(values^, aItemList.L^, SizeOf(TVector4) * iCount);
     (aField as TMFRotation).Send(aItemList);
     aItemList.Destroy;
   except
