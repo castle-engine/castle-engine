@@ -1,6 +1,6 @@
 {%MainUnit castleglutils.pas}
 {
-  Copyright 2016-2023 Michalis Kamburelis.
+  Copyright 2016-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -133,7 +133,7 @@ type
     and have equal features. }
   TGLFeatures = class
   strict private
-    {$ifndef OpenGLES}
+    {$if not defined(OpenGLES)}
     FVersion_1_2: Boolean;
     FVersion_1_3: Boolean;
     FVersion_1_4: Boolean;
@@ -145,6 +145,8 @@ type
     FVersion_3_2: Boolean;
     FVersion_3_3: Boolean;
     FVersion_4_0: Boolean;
+    {$elseif defined(CASTLE_WEBGL)}
+    FVersionWebGL_2: Boolean;
     {$else}
     FVersionES_2_0: Boolean;
     FVersionES_3_0: Boolean;
@@ -187,24 +189,32 @@ type
     FMemory: TGLMemoryInfo;
     FMaxViewportDimensions: TVector2Integer;
     FTextureModernFormatsAndSwizzle: Boolean;
+    {$ifndef CASTLE_WEBGL}
     SupportedExtensions: AnsiString;
+    {$endif}
     FRedBits, FGreenBits, FBlueBits, FAlphaBits, FDepthBits, FStencilBits: TGLint;
     FDoubleBuffer: Boolean;
     FLineWidth: TVector2;
     FTextureMaxLevel: Boolean;
+    FTransformFeedbackVaryings: Boolean;
     class var
       FRequestCapabilities: TGLRequestCapabilities;
       FDebug: Boolean;
     class procedure SetRequestCapabilities(const Value: TGLRequestCapabilities); static;
     class procedure SetDebug(const Value: Boolean); static;
+    procedure InitializeDebug;
   private
+    { Is given extension supported.
+      In case of WebGL, the extension is also getting enabled by this call.
+      (So be sure to first check core, like
+      "VersionWebGL_2 and HasExtension(...)"). }
     function HasExtension(const Extension: String): Boolean;
     function AllExtensions: String;
   public
     constructor Create;
     destructor Destroy; override;
 
-    {$ifndef OpenGLES}
+    {$if not defined(OpenGLES)}
     const
       { OpenGL version considered "modern" for us,
         that we can use with its "core" profile.
@@ -219,21 +229,7 @@ type
       ModernVersionMajor = 3;
       ModernVersionMinor = 3;
 
-    { OpenGL versions supported. Checked by looking at GL version string
-      @italic(and) by checking whether actual entry points are available.
-
-      This is important because bad OpenGL implementations
-      (like the horrible ATI Linux closed drivers) sometimes lie,
-      claiming support in the GL version string but actually lacking proper
-      function entry points.
-      We check the actual presence of entry points (GLExt.Load_GL_version_x_x
-      do that).
-
-      We *also* check version string (TGLVersion.AtLeast),
-      since OpenGL may have some buggy entry point in case of work-in-progress
-      features (not yet advertised in GL version string),
-      e.g. Mesa 6.x had such buggy glStencilOpSeparate. This is correct OpenGL
-      behavior AFAIK, and we handle it. }
+    { OpenGL versions supported. }
     property Version_1_2: Boolean read FVersion_1_2;
     property Version_1_3: Boolean read FVersion_1_3;
     property Version_1_4: Boolean read FVersion_1_4;
@@ -245,6 +241,8 @@ type
     property Version_3_2: Boolean read FVersion_3_2;
     property Version_3_3: Boolean read FVersion_3_3;
     property Version_4_0: Boolean read FVersion_4_0;
+    {$elseif defined(CASTLE_WEBGL)}
+    property VersionWebGL_2: Boolean read FVersionWebGL_2;
     {$else}
     property VersionES_2_0: Boolean read FVersionES_2_0;
     property VersionES_3_0: Boolean read FVersionES_3_0;
@@ -554,8 +552,11 @@ type
     { Line width granularity and maximum width. }
     property LineWidth: TVector2 read FLineWidth;
 
-    { Supports glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAX_LEVEL, ...); }
+    { Supports glTexParameteri(GL_TEXTURE_xxx, GL_TEXTURE_MAX_LEVEL, ...); }
     property TextureMaxLevel: Boolean read FTextureMaxLevel;
+
+    { Supports glTransformFeedbackVaryings }
+    property TransformFeedbackVaryings: Boolean read FTransformFeedbackVaryings;
   end;
 
 { Initialize GLVersion and GLFeatures. }
@@ -581,15 +582,26 @@ begin
   if GL_LibHandle = nil then
     InitOpenGL;
   ReadOpenGLCore;
+  {$endif}
+
+  { Do basic checks, to report with a clear exception if we completely failed
+    to initialize OpenGL / OpenGLES / WebGL for whatever reason.
+    This should already be reported too by other code, here we just do "sanity
+    check". }
+  {$ifdef CASTLE_WEBGL}
+  if GL = nil then
+    raise Exception.Create('WebGL context not initialized');
+  {$endif}
+  {$ifdef CASTLE_GL_USES_CALLBACKS}
   if not Assigned(glGetString) then
-    raise Exception.Create('Failed to load OpenGL library');
+    raise Exception.Create('Failed to load OpenGL(ES) library');
   {$endif}
 
   FreeAndNil(GLVersion);
   GLVersion := TGLVersion.Create(
-    PGLChar(glGetString(GL_VERSION)),
-    PGLChar(glGetString(GL_VENDOR)),
-    PGLChar(glGetString(GL_RENDERER)));
+    {$ifndef CASTLE_WEBGL} PGLChar {$endif} (glGetString(GL_VERSION)),
+    {$ifndef CASTLE_WEBGL} PGLChar {$endif} (glGetString(GL_VENDOR)),
+    {$ifndef CASTLE_WEBGL} PGLChar {$endif} (glGetString(GL_RENDERER)));
 
   FreeAndNil(GLFeatures);
   GLFeatures := TGLFeatures.Create;
@@ -603,7 +615,7 @@ end;
 
 function TGLFeatures.HasExtension(const Extension: String): Boolean;
 
-  {$ifdef OpenGLES}
+  {$if defined(OpenGLES) and not defined(CASTLE_WEBGL)}
   { Based on GLExt unit in FPC. This function is missing from GLES header,
     which does not check for extensions presence at all. }
   function glext_ExtensionSupported(const extension: String;
@@ -652,15 +664,43 @@ function TGLFeatures.HasExtension(const Extension: String): Boolean;
   end;
   {$endif}
 
+  {$ifdef CASTLE_WEBGL}
+  { For extension name (without GL_ prefix) check is it supported and if yes,
+    enable it. }
+  function CheckAndEnableExtension(const ExtensionName: String): Boolean;
+  var
+    ExtensionObj: IJSObject;
+  begin
+    Result := WebGLExtensions.IndexOf(ExtensionName) <> -1;
+    if Result then
+    begin
+      ExtensionObj := GL.getExtension(ExtensionName);
+      if ExtensionObj = nil then
+      begin
+        WritelnWarning('WebGL', 'Failed to enable extension: ' + ExtensionName);
+        Result := false;
+      end else
+        WritelnLog('WebGL', 'Enabled extension: ' + ExtensionName);
+    end;
+  end;
+  {$endif}
+
+{$ifndef CASTLE_WEBGL}
 var
   SupportedExt: AnsiString;
   I: Integer;
+{$endif}
+
 begin
   { Catch an often mistake in Extension name. }
   if not IsPrefix('GL_', Extension, false) then
     raise Exception.CreateFmt('Using TGLFeatures.HasExtension with extension name without GL_ prefix: %s', [
       Extension
     ]);
+
+  {$ifdef CASTLE_WEBGL}
+  Result := CheckAndEnableExtension(PrefixRemove('GL_', Extension, false));
+  {$else}
 
   if {$ifdef OpenGLES} VersionES_3_0 {$else} Version_3_0 {$endif} then
   begin
@@ -682,9 +722,17 @@ begin
       SupportedExtensions := PAnsiChar(glGetString(GL_EXTENSIONS));
     Result := glext_ExtensionSupported(Extension, SupportedExtensions);
   end;
+
+  {$endif}
 end;
 
 function TGLFeatures.AllExtensions: String;
+{$ifdef CASTLE_WEBGL}
+begin
+  Result :=
+    Format('%d extensions: ', [WebGLExtensions.Count]) +
+    GlueStrings(WebGLExtensions, ' ');
+{$else}
 var
   NumExtensions: TGLint;
   SupportedExt: AnsiString;
@@ -707,103 +755,10 @@ begin
       SupportedExtensions := PAnsiChar(glGetString(GL_EXTENSIONS));
     Result := SupportedExtensions;
   end;
-end;
-
-procedure CallbackGLDebug(Source: TGLenum; AType: TGLenum; Id: TGLuint; Severity: TGLenum;
-  Length: TGLsizei; Message: PAnsiChar; UserParam: Pointer);
-  {$if     defined(OPENGL_CALLBACK_STDCALL)} stdcall;
-  {$elseif defined(OPENGL_CALLBACK_CDECL)} cdecl;
-  {$else} {$fatal Include openglmac.inc that should define OPENGL_CALLBACK_xxx}
-  {$endif}
-var
-  SourceStr, TypeStr, SeverityStr, MessageStr, MessageWhole: String;
-begin
-  case Source of
-    GL_DEBUG_SOURCE_API            : SourceStr := 'API';
-    GL_DEBUG_SOURCE_WINDOW_SYSTEM  : SourceStr := 'Window System';
-    GL_DEBUG_SOURCE_SHADER_COMPILER: SourceStr := 'Shader Compiler';
-    GL_DEBUG_SOURCE_THIRD_PARTY    : SourceStr := '3rd Party';
-    GL_DEBUG_SOURCE_APPLICATION    : SourceStr := 'Application';
-    GL_DEBUG_SOURCE_OTHER          : SourceStr := 'Other';
-    else                             SourceStr := 'Unknown';
-  end;
-
-  case AType of
-    GL_DEBUG_TYPE_ERROR              : TypeStr := 'GL error';
-    GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR: TypeStr := 'Attempted use of deprecated features';
-    GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR : TypeStr := 'Triggering of undefined behavior';
-    GL_DEBUG_TYPE_PORTABILITY        : TypeStr := 'Portability issue';
-    GL_DEBUG_TYPE_PERFORMANCE        : TypeStr := 'Performance notification';
-    GL_DEBUG_TYPE_MARKER             : TypeStr := 'Marker';
-    GL_DEBUG_TYPE_PUSH_GROUP         : TypeStr := 'Group push';
-    GL_DEBUG_TYPE_POP_GROUP          : TypeStr := 'Group pop';
-    GL_DEBUG_TYPE_OTHER              : TypeStr := 'Other';
-    else                               TypeStr := 'Unknown';
-  end;
-
-  case Severity of
-    GL_DEBUG_SEVERITY_LOW         : SeverityStr := 'Low';
-    GL_DEBUG_SEVERITY_MEDIUM      : SeverityStr := 'Medium';
-    GL_DEBUG_SEVERITY_HIGH        : SeverityStr := 'High';
-    GL_DEBUG_SEVERITY_NOTIFICATION: SeverityStr := 'Notification';
-    else                            SeverityStr := 'Unknown';
-  end;
-
-  MessageStr := Message;
-
-  MessageWhole := Format('OpenGL debug: %s, %s, %d, %s: %s', [
-    SourceStr,
-    TypeStr,
-    Id,
-    SeverityStr,
-    MessageStr
-  ]);
-
-  if AType = GL_DEBUG_TYPE_ERROR then
-    raise EOpenGLError.Create(MessageWhole)
-  else
-  // Don't output notifcations, too much log every frame
-  if Severity <> GL_DEBUG_SEVERITY_NOTIFICATION then
-    WritelnLog(MessageWhole);
-end;
-
-{$ifdef USE_DGL}
-type
-  GLDEBUGPROC = TGLDEBUGPROC;
-
-function Load_GL_ARB_texture_multisample: Boolean;
-begin
-  Result := dglCheckExtension('GL_ARB_texture_multisample');
-end;
 {$endif}
+end;
 
 constructor TGLFeatures.Create;
-
-  function GetVector2Integer(const Param: TGLenum): TVector2Integer;
-  var
-    V: packed array [0..1] of TGLInt;
-  begin
-    glGetIntegerv(Param, @V);
-    Result.X := V[0];
-    Result.Y := V[1];
-  end;
-
-  procedure InitializeDebug;
-  begin
-    if HasExtension('GL_KHR_debug') then
-    begin
-      if not Assigned(glDebugMessageCallback) then raise Exception.Create('glDebugMessageCallback missing');
-      if not Assigned(glDebugMessageControl) then raise Exception.Create('glDebugMessageControl missing');
-
-      glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
-      glDebugMessageCallback(
-        {$ifdef USE_DGL} GLDEBUGPROC(@CallbackGLDebug)
-        {$else} @CallbackGLDebug
-        {$endif}, nil);
-      WritelnLog('OpenGL(ES) debugging enabled, expect extra log messages');
-    end;
-  end;
-
 {$ifndef OpenGLES}
 var
   ErrorCode: TGLenum;
@@ -811,17 +766,40 @@ var
 begin
   inherited;
 
-  {$ifndef OpenGLES}
-  { With dglOpenGL (our CastleGL) the Version_X_Y just reflect
-    whether GL_VERSION is at least X.Y.
+  {$if not defined(OpenGLES)}
+  // handle (desktop) OpenGL
+  { Historic note: In the past, we checked OpenGL versions by looking
+    at GL_VERSION @italic(and) by checking whether actual entry points
+    are available.
 
-    dglOpenGL doesn't have any function to check if all entry points
-    for X.Y are defined, it only has "Read_xxx" for 4.x stuff.
+      This is important because bad OpenGL implementations
+      (like ATI Linux closed drivers) sometimes lie,
+      claiming support in the GL version string but actually lacking proper
+      function entry points.
+      We check the actual presence of entry points (GLExt.Load_GL_version_x_x
+      do that).
 
-    The Version_X_Y are somewhat unclear anyway,
-    since having core/forward-compatible context
-    means we may have version > X.Y, but still not have entry points for X.Y.
-    In practice they are always used as "at least X.Y". }
+      We *also* check version string (TGLVersion.AtLeast),
+      since OpenGL may have some buggy entry point in case of work-in-progress
+      features (not yet advertised in GL version string),
+      e.g. Mesa 6.x had such buggy glStencilOpSeparate. This is correct OpenGL
+      behavior AFAIK, and we handle it.
+
+    Later:
+
+      With dglOpenGL (our CastleGL) the Version_X_Y just reflect
+      whether GL_VERSION is at least X.Y.
+      dglOpenGL doesn't have any function to check if all entry points
+      for X.Y are defined, it only has "Read_xxx" for 4.x stuff.
+
+      The really bad OpenGL implementations (like ATI Linux closed drivers),
+      mentioned in argumentation above,
+      are thankfully no longer in wide use.
+
+      Note: The Version_X_Y are somewhat unclear anyway,
+      since having core/forward-compatible context
+      means we may have version > X.Y, but still not have entry points for X.Y.
+      In practice they are always used as "at least X.Y". }
   FVersion_1_2 := GLVersion.AtLeast(1, 2);
   FVersion_1_3 := GLVersion.AtLeast(1, 3);
   FVersion_1_4 := GLVersion.AtLeast(1, 4);
@@ -837,8 +815,16 @@ begin
     FVersion_4_0 := GLVersion.AtLeast(4, 0);
   end;
   ReadImplementationProperties;
-  ReadExtensions;
+  ReadExtensions; // using CastleGL unit
+
+  {$elseif defined(CASTLE_WEBGL)}
+  // handle WebGL
+  FVersionWebGL_2 := GL2 <> nil;
+  ReadExtensions; // using CastleInternalWebGL unit
+
   {$else}
+  // handle OpenGLES (usually mobile)
+
   FVersionES_2_0 := GLVersion.AtLeast(2, 0);
   FVersionES_3_0 := GLVersion.AtLeast(3, 0);
   FVersionES_3_1 := GLVersion.AtLeast(3, 1);
@@ -885,7 +871,9 @@ begin
   { OpenGLES: Since 3.0, https://registry.khronos.org/OpenGL-Refpages/es3.0/html/glTexImage3D.xhtml .
     OpenGL: Since 1.2, https://registry.khronos.org/OpenGL-Refpages/gl4/html/glTexImage3D.xhtml
     (actually they don't show there OpenGL 1.x anymore) }
-  FTexture3D := {$ifdef OpenGLES} VersionES_3_0
+  FTexture3D :=
+    {$if defined(CASTLE_WEBGL)} VersionWebGL_2
+    {$elseif defined(OpenGLES)} VersionES_3_0
     {$else} Version_1_2
     {$endif};
 
@@ -901,10 +889,15 @@ begin
   end else
     FMaxTexture3DSize := 0;
 
-  { Both OpenGL and OpenGLES commonly define this extension.
-    See https://registry.khronos.org/OpenGL/index_es.php#otherextspecs (OpenGLES list),
-    https://www.khronos.org/opengl/wiki/Sampler_Object#Anisotropic_filtering
-    https://www.khronos.org/opengl/wiki/Ubiquitous_Extension }
+  { All OpenGL and OpenGLES, WebGL commonly define this extension.
+    See
+    - OpenGLES list
+      https://registry.khronos.org/OpenGL/index_es.php#otherextspecs (),
+    - Khronos wiki
+      https://www.khronos.org/opengl/wiki/Sampler_Object#Anisotropic_filtering
+      https://www.khronos.org/opengl/wiki/Ubiquitous_Extension
+    - WebGL docs
+      https://developer.mozilla.org/en-US/docs/Web/API/EXT_texture_filter_anisotropic }
   FTextureFilterAnisotropic := HasExtension('GL_EXT_texture_filter_anisotropic');
   if TextureFilterAnisotropic then
     FMaxTextureMaxAnisotropy := glGetFloat(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT)
@@ -912,7 +905,8 @@ begin
     FMaxTextureMaxAnisotropy := 0.0;
 
   FOcclusionQuery :=
-    {$ifdef OpenGLES} VersionES_3_0
+    {$if defined(CASTLE_WEBGL)} VersionWebGL_2
+    {$elseif defined(OpenGLES)} VersionES_3_0
     {$else} Version_1_5
     {$endif};
 
@@ -927,7 +921,8 @@ begin
     FOcclusionQueryCounterBits := 0;
 
   { calculate Framebuffer }
-  FFramebuffer := {$ifdef OpenGLES} true // OpenGLES >= 2 includes FBO
+  FFramebuffer :=
+    {$ifdef OpenGLES} true // OpenGLES >= 2 or WebGL >= 1.0 -> include FBO
     {$else} Version_3_0 or GL_ARB_framebuffer_object
     {$endif};
 
@@ -944,8 +939,12 @@ begin
 
   { - In case of OpenGLES: while OpenGLES 2 includes base FBO,
       only OpenGLES 3 has glBlitFramebuffer.
-    - In case of OpenGL: OpenGL 3 core includes both base FBO and glBlitFramebuffer. }
-  FFramebufferBlit := {$ifdef OpenGLES} VersionES_3_0
+    - In case of OpenGL: OpenGL 3 core includes both base FBO and glBlitFramebuffer.
+    - WebGL 2.0 has blitFramebuffer,
+      https://developer.mozilla.org/en-US/docs/Web/API/WebGL2RenderingContext/blitFramebuffer }
+  FFramebufferBlit :=
+    {$if defined(CASTLE_WEBGL)} VersionWebGL_2
+    {$elseif defined(OpenGLES)} VersionES_3_0
     {$else} Version_3_0
     {$endif};
 
@@ -1169,19 +1168,27 @@ begin
     {$endif};
 
   FTextureFloat :=
-    {$ifdef OpenGLES} false
+    {$if defined(CASTLE_WEBGL)} HasExtension('GL_OES_texture_float')
+    {$elseif defined(OpenGLES)} false
     {$else} HasExtension('GL_ATI_texture_float') or HasExtension('GL_ARB_texture_float')
     {$endif};
 
   FTextureDepth :=
-    {$ifdef OpenGLES} VersionES_3_0
+    {$if defined(CASTLE_WEBGL)}
+      { https://developer.mozilla.org/en-US/docs/Web/API/WEBGL_depth_texture
+        says that this functionality is part of core in WebGL 2.0. }
+      VersionWebGL_2 or HasExtension('GL_WEBGL_depth_texture')
+    {$elseif defined(OpenGLES)} VersionES_3_0
     {$else} Version_1_4 or HasExtension('GL_ARB_depth_texture')
     {$endif};
 
   FTextureDepthCompare :=
+    { https://developer.mozilla.org/en-US/docs/Web/API/WebGLRenderingContext/texParameter
+      says TEXTURE_COMPARE_FUNC, TEXTURE_COMPARE_MODE are since WebGL 2.0. }
+    {$if defined(CASTLE_WEBGL)} VersionWebGL_2
     { Note that we don't look at GL_EXT_shadow_samplers, we need GLSL "300 es" anyway
       to access shadow samplers from GLSL. }
-    {$ifdef OpenGLES} VersionES_3_0
+    {$elseif defined(OpenGLES)} VersionES_3_0
     {$else} Version_1_4 or HasExtension('GL_ARB_shadow')
     {$endif};
 
@@ -1261,7 +1268,7 @@ begin
   FMaxClipPlanes := 8;
   {$endif}
 
-  FMaxViewportDimensions := GetVector2Integer(GL_MAX_VIEWPORT_DIMS);
+  FMaxViewportDimensions := glGetInteger2(GL_MAX_VIEWPORT_DIMS);
 
   FTextureModernFormatsAndSwizzle :=
     { when EnableFixedFunction, so we don't use shaders, don't rely
@@ -1273,6 +1280,11 @@ begin
       HasExtension('GL_EXT_texture_swizzle')
     );
 
+  {$ifdef CASTLE_WEBGL}
+  if TextureModernFormatsAndSwizzle then
+    WritelnLog('WebGL *with* texture swizzle support detected. This is surprising, but good! Please report your environment (web browser version, OS, CPU) so that we can adapt CGE to this.');
+  {$endif}
+
   {$ifndef OpenGLES}
   // set LineWidth to some reasonable default when it cannot be queried on old OpenGL
   if not Version_2_0 then
@@ -1280,13 +1292,19 @@ begin
   else
   {$endif}
   begin
-    Assert(SizeOf(TGLFloat) = SizeOf(Single));
-    glGetFloatv(GL_ALIASED_LINE_WIDTH_RANGE, @FLineWidth);
+    FLineWidth := glGetFloat2(GL_ALIASED_LINE_WIDTH_RANGE);
   end;
 
   FTextureMaxLevel :=
-    {$ifdef OpenGLES} VersionES_3_0
+    {$if defined(CASTLE_WEBGL)} VersionWebGL_2
+    {$elseif defined(OpenGLES)} VersionES_3_0
     {$else} Version_1_2
+    {$endif};
+
+  FTransformFeedbackVaryings :=
+    {$if defined(CASTLE_WEBGL)} VersionWebGL_2
+    {$elseif defined(OpenGLES)} VersionES_3_0
+    {$else} Version_3_0 and Shaders
     {$endif};
 
   // set GLFeatures singleton, TGLMemoryInfo.Create and TGLMemoryInfo.Refresh depend on it
@@ -1382,18 +1400,21 @@ const
   GL_VBO_FREE_MEMORY_ATI          = $87FB;
   GL_TEXTURE_FREE_MEMORY_ATI      = $87FC;
   GL_RENDERBUFFER_FREE_MEMORY_ATI = $87FD;
+{$ifndef CASTLE_WEBGL}
 var
   FreeMemory: TVector4Integer;
+{$endif}
 begin
   // see http://nasutechtips.blogspot.com/2011/02/how-to-get-gpu-memory-size-and-usage-in.html
 
   // http://developer.download.nvidia.com/opengl/specs/GL_NVX_gpu_memory_info.txt
   if ExtensionNVidia then
   begin
-    glGetIntegerv(GL_GPU_MEM_INFO_TOTAL_AVAILABLE_MEM_NVX, @Total);
-    glGetIntegerv(GL_GPU_MEM_INFO_CURRENT_AVAILABLE_MEM_NVX, @Current);
+    Total := glGetInteger(GL_GPU_MEM_INFO_TOTAL_AVAILABLE_MEM_NVX);
+    Current := glGetInteger(GL_GPU_MEM_INFO_CURRENT_AVAILABLE_MEM_NVX);
   end;
 
+  {$ifndef CASTLE_WEBGL}
   // https://www.khronos.org/registry/OpenGL/extensions/ATI/ATI_meminfo.txt
   if ExtensionATI then
   begin
@@ -1412,6 +1433,7 @@ begin
       CurrentRenderbuffer := FreeMemory[0];
     end;
   end;
+  {$endif}
 end;
 
 function TGLMemoryInfo.LessTextureMemoryThan(const RequiredMemoryKb: Integer): Boolean;

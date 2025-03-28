@@ -1,5 +1,5 @@
 {
-  Copyright 2014-2023 Michalis Kamburelis.
+  Copyright 2014-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -27,15 +27,18 @@ uses SysUtils,
   ToolDisableDynamicLibraries, //< use this unit early, before any other CGE unit
   CastleUtils, CastleParameters, CastleFindFiles, CastleLog,
   CastleFilesUtils, CastleUriUtils, CastleStringUtils,
-  CastleApplicationProperties,
+  CastleApplicationProperties, CastleInternalProjectLocalSettings,
+  CastleInternalArchitectures,
   ToolPackageFormat, ToolProject, ToolCompile, ToolIOS, ToolAndroid, ToolManifest,
-  ToolNintendoSwitch, ToolCommonUtils, ToolArchitectures, ToolUtils, ToolProcess,
+  ToolNintendoSwitch, ToolCommonUtils, ToolUtils, ToolProcess,
   ToolCache, ToolCompilerInfo;
 
 var
   Target: TTarget;
   OS: TOS;
   CPU: TCPU;
+  { Was platform (either --target, --os, --cpu) specified on the command-line. }
+  PlatformFromCommandLine: Boolean = false;
   Mode: TCompilationMode = cmRelease;
   AssumeCompiled: boolean = false;
   Fast: boolean = false;
@@ -132,11 +135,21 @@ begin
             '    The OS, CPU and "target" can be changed just like at "compile".' +NL+
             NL+
             'install' +NL+
-            '    Install the application created by previous "package" call.' +NL+
-            '    Useful when OS is "android", it installs' +NL+
-            '    the apk package created by previous "package" call' +NL+
-            '    for Android. Useful for quick testing of your app on a device' +NL+
-            '    connected through USB.' +NL+
+            '    Install the application created by the previous "package" call.' +NL+
+            '    Useful right now only on Android (--target=android).' +NL+
+            '    Installs the APK file on a device connected by USB,' +NL+
+            '    or paired over Wi-Fi, or an emulated device.' +NL+
+            NL+
+            'uninstall' +NL+
+            '    Uninstall the application installed by the previous "install" call.' +NL+
+            '    Useful right now only on Android (--target=android).' +NL+
+            '    You usually do not need this, as "install" automatically' +NL+
+            '    overwrites the previous installation,' +NL+
+            '    if only it was installed with the same key..' +NL+
+            NL+
+            'devices' +NL+
+            '    Available devices (independent of any project).' + NL +
+            '    For now, only lists Android devices.' + NL +
             NL+
             'run' +NL+
             '    Run the application. ' +NL+
@@ -288,9 +301,18 @@ begin
           Writeln(ApplicationName + ' ' + ApplicationProperties.Version);
           Halt;
         end;
-    2 : Target := StringToTarget(Argument);
-    3 : OS := StringToOS(Argument);
-    4 : CPU := StringToCPU(Argument);
+    2 : begin
+          Target := StringToTarget(Argument);
+          PlatformFromCommandLine := true;
+        end;
+    3 : begin
+          OS := StringToOS(Argument);
+          PlatformFromCommandLine := true;
+        end;
+    4 : begin
+          CPU := StringToCPU(Argument);
+          PlatformFromCommandLine := true;
+        end;
     5 : Verbose := true;
     6 : Mode := StringToMode(Argument);
     7 : AssumeCompiled := true;
@@ -400,6 +422,12 @@ begin
         targetAndroid       : CompileAndroid(OverrideCompiler, nil, GetCurrentDir, FileName, SimpleCompileOptions);
         targetIOS           : CompileIOS(OverrideCompiler, GetCurrentDir, FileName, SimpleCompileOptions);
         targetNintendoSwitch: CompileNintendoSwitch(GetCurrentDir, FileName, SimpleCompileOptions);
+        targetWeb           :
+          begin
+            SimpleCompileOptions.OS := WasiP1;
+            SimpleCompileOptions.CPU := Wasm32;
+            Compile(OverrideCompiler, GetCurrentDir, FileName, SimpleCompileOptions);
+          end;
         {$ifndef COMPILER_CASE_ANALYSIS}
         else raise EInternalError.Create('Operation not implemented for this target');
         {$endif}
@@ -421,6 +449,11 @@ begin
     Parameters.CheckHigh(2);
     DoOutputEnvironment(Parameters[2]);
   end else
+  if Command = 'devices' then
+  begin
+    Parameters.CheckHigh(1);
+    WritelnAndroidDevices;
+  end else
   if Command = 'create' then
   begin
     Parameters.CheckHigh(2);
@@ -439,6 +472,8 @@ begin
       Parameters.CheckHigh(1);
     Project := TCastleProject.Create;
     try
+      if not PlatformFromCommandLine then
+        ProjectOverridePlatform(Project.Path, Target, OS, CPU);
       if Command = 'create-manifest' then
         Project.DoCreateManifest
       else
@@ -457,6 +492,9 @@ begin
       end else
       if Command = 'install' then
         Project.DoInstall(Target, OS, CPU, Mode, PackageFormat, PackageNameIncludeVersion)
+      else
+      if Command = 'uninstall' then
+        Project.DoUnInstall(Target, OS, CPU)
       else
       if Command = 'run' then
       begin

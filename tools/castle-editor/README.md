@@ -2,7 +2,7 @@
 
 Create, build, edit Castle Game Engine projects.
 
-See the [manual documenting the editor](https://castle-engine.io/manual_editor.php).
+See the [manual documenting the editor](https://castle-engine.io/editor).
 
 ## Contributing
 

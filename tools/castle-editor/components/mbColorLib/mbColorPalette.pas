@@ -5,7 +5,7 @@ unit mbColorPalette;
 
 interface
 
-uses
+uses Types,
   LCLIntf, LCLType, LMessages, SysUtils, Classes, Controls, Graphics,
   Forms, Dialogs, Themes,
   HTMLColors, PalUtils, mbBasicPicker;

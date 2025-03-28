@@ -211,6 +211,12 @@ procedure TTestSceneCore.TestFind;
 var
   Scene: TCastleSceneCore;
 begin
+  if not CanCatchExceptions then
+  begin
+    AbortTest;
+    Exit;
+  end;
+
   Scene := TCastleSceneCore.Create(nil);
   try
     try
@@ -349,6 +355,12 @@ var
   Node: TX3DRootNode;
   Scene1, Scene2: TCastleScene;
 begin
+  if not CanCatchExceptions then
+  begin
+    AbortTest;
+    Exit;
+  end;
+
   ApplicationProperties.OnWarning.Add({$ifdef FPC}@{$endif}NodeMultipleTimesWarning);
   try
     try
@@ -492,6 +504,11 @@ procedure TTestSceneCore.TestLoadGzipped;
   end;
 
 begin
+  {$ifdef WASI} // TODO: web: it fails with "EZlibError: Compression stream seek error"
+  AbortTest;
+  Exit;
+  {$endif}
+
   TestSphere('castle-data:/gzipped_x3d/sphere.wrl');
   TestSphere('castle-data:/gzipped_x3d/sphere.wrl.gz');
   TestSphere('castle-data:/gzipped_x3d/sphere.wrz');
@@ -1127,6 +1144,7 @@ begin
     { Test with Scene.RootNode = nil }
     AssertTrue(Scene.RootNode = nil);
 
+    if CanCatchExceptions then
     try
       Scene.Node(TX3DNode, 'Foo');
       Fail('This should have raised exception');
@@ -1138,6 +1156,7 @@ begin
     Scene.Load(RootNode, true);
     AssertTrue(Scene.RootNode <> nil);
 
+    if CanCatchExceptions then
     try
       Scene.Node(TX3DNode, 'Foo');
       Fail('This should have raised exception');
@@ -1145,6 +1164,7 @@ begin
 
     AssertTrue(Scene.Node(TX3DNode, 'Foo', [fnNilOnMissing]) = nil);
 
+    if CanCatchExceptions then
     try
       Scene.RootNode.FindNode(TX3DNode, 'Foo');
       Fail('This should have raised exception');
@@ -1153,10 +1173,12 @@ begin
     AssertTrue(Scene.RootNode.FindNode(TX3DNode, 'Foo', [fnNilOnMissing]) = nil);
 
     { Test fnOnlyActive: box is only in active subgraph }
+    if CanCatchExceptions then
     try
       Scene.RootNode.FindNode(TBoxNode, 'B', [fnOnlyActive]);
       Fail('This should have raised exception');
     except on E: EX3DNotFound do { valid response }; end;
+
     AssertTrue(Scene.RootNode.FindNode(TBoxNode, 'B', [fnOnlyActive, fnNilOnMissing]) = nil);
     AssertTrue(Scene.RootNode.FindNode(TBoxNode, 'B', []) <> nil);
     AssertTrue(Scene.RootNode.FindNode(TBoxNode, 'B', [fnNilOnMissing]) <> nil);

@@ -1,5 +1,5 @@
 {
-  Copyright 2014-2024 Michalis Kamburelis.
+  Copyright 2014-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -122,32 +122,28 @@ function CachePath: String;
   to make GUID stable. }
 function CreateGUIDFromHash(const Seed: String): TGuid;
 
-{ Create a .zip file named ZipFileName
-  containing all files (recursively) in the Directory.
+{ Like CastleZip.ZipDirectory, but
 
-  Both ZipFileName and Directory may be absolute or relative filenames.
-  Directory may but doesn't have to end with PathDelim.
+  - ZipFileName, Directory should be filenames, not URLs
+    (may be absolute or relative).
 
-  The Directory is added to the zip file as a top-level directory inside zip.
-  E.g. if Directory is '/home/michalis/mydir', then the zip file will contain
-  as top level 'mydir'. There shall be no trace of '/home/michalis/' in
-  the resulting zp file.
+  - we have extra fallback on macOS
+    (to preserve permssions by using external "zip" command). }
+procedure ZipDirectoryTool(const ZipFileName: String; Directory: String;
+  const SingleTopLevelDirectory: Boolean = true);
 
-  We gracefully handle the case when ZipFileName is inside Directory,
-  by not packing the ZipFileName in this case in itself (and making a warning),
-  to avoid possible reading and writing the file at the same time.
-  Though we don't rely on this feature in practice,
-  all curent usage of ZipDirectory in build tool places ZipFileName safely outside
-  of its input Directory. }
-procedure ZipDirectory(const ZipFileName: String; Directory: String);
+{ Move/rename Source to Dest. Given filenames may be relative or absolute,
+  just like for regular file-system routines.
+  Makes a concise Writeln informing user what was moved -> and where. }
+procedure MoveFileVerbose(const Source, Dest: String);
 
 implementation
 
 uses {$ifdef UNIX} BaseUnix, {$endif}
   {$ifdef MSWINDOWS} Windows, {$endif}
-  Zipper,
   Classes, Process, SysUtils,
   CastleFilesUtils, CastleUriUtils, CastleLog, CastleXmlUtils, CastleFindFiles,
+  CastleZip,
   ToolCommonUtils;
 
 procedure SmartCopyFile(const Source, Dest: string);
@@ -397,32 +393,37 @@ begin
   {$I norqcheckend.inc}
 end;
 
-procedure ZipDirectory(const ZipFileName: String; Directory: String);
+procedure ZipDirectoryTool(const ZipFileName: String; Directory: String;
+  const SingleTopLevelDirectory: Boolean = true);
 
   procedure ZipUsingExternalApplication;
   var
-    DirectoryParentPath, DirectoryName: String;
+    WorkingDirectory, NameToIncludeInZip: String;
   begin
     Directory := ExclPathDelim(Directory);
-    DirectoryName := ExtractFileName(Directory);
-    DirectoryParentPath := ExtractFilePath(Directory);
+    if SingleTopLevelDirectory then
+    begin
+      NameToIncludeInZip := ExtractFileName(Directory);
+      // parent of Directory is the working directory
+      WorkingDirectory := ExtractFilePath(Directory);
+    end else
+    begin
+      NameToIncludeInZip := '.';
+      // Directory itself is the working directory
+      WorkingDirectory := Directory;
+    end;
 
     // be sure to first delete target zip, otherwise zip command will add to existing file
     if FileExists(ZipFileName) then
       CheckDeleteFile(ZipFileName);
 
-    RunCommandSimple(DirectoryParentPath, 'zip',
-      ['-q', '-r', ZipFileName, DirectoryName]);
+    RunCommandSimple(WorkingDirectory, 'zip',
+      ['-q', '-r', ZipFileName, NameToIncludeInZip]);
   end;
 
-var
-  Zipper: TZipper;
-  FilesList: TFileInfoList;
-  FileInfo: TFileInfo;
-  DirectoryParentPath: String;
-  ExpandedZipFileName: String;
 begin
-  { On macOS, FPC Zipper seems not able to preserve "executable" bit when packing.
+  { On macOS, FPC TZipper (used underneath by TCastleZip)
+    seems not able to preserve "executable" bit when packing.
     Observed with FPC 3.2.2, Darwin/x86_64.
 
     What is weird is that Zipper used on Linux/x86_64 with the same FPC version
@@ -441,44 +442,42 @@ begin
       permission.
   }
   {$ifdef DARWIN}
-  ZipUsingExternalApplication;
-  Exit;
+  if FindExe('zip') <> '' then
+  begin
+    ZipUsingExternalApplication;
+    Exit;
+  end;
   {$endif}
 
-  ExpandedZipFileName := ExpandFileName(ZipFileName);
+  ZipDirectory(
+    FilenameToUriSafe(ZipFileName),
+    FilenameToUriSafe(Directory), SingleTopLevelDirectory);
+end;
 
-  Zipper := TZipper.Create;
-  try
-    Zipper.FileName := ZipFileName;
-
-    Directory := ExclPathDelim(Directory);
-    DirectoryParentPath := ExtractFilePath(Directory);
-
-    FilesList := FindFilesList(Directory, '*', { FindDirectories } false, [ffRecursive]);
-    try
-      for FileInfo in FilesList do
-      begin
-        if SameFileName(ExpandedZipFileName, FileInfo.AbsoluteName) then
-        begin
-          WritelnWarning('Package', Format('Directory to zip contains also the target zip file "%s", not packing (to avoid possible reading and writing the file at the same time)', [
-            FileInfo.AbsoluteName
-          ]));
-          Continue;
-        end;
-        Zipper.Entries.AddFileEntry(
-          FileInfo.AbsoluteName,
-          ExtractRelativePath(DirectoryParentPath, FileInfo.AbsoluteName));
-      end;
-    finally FreeAndNil(FilesList) end;
-
-    { Store filenames using UTF-8 in zip,
-      see https://wiki.lazarus.freepascal.org/paszlib#TZipper }
-    {$ifndef VER3_0} // only for FPC >= 3.2.0
-    Zipper.UseLanguageEncoding := true;
-    {$endif}
-
-    Zipper.ZipAllFiles;
-  finally FreeAndNil(Zipper) end;
+procedure MoveFileVerbose(const Source, Dest: String);
+var
+  SourcePath, DestPath: String;
+begin
+  if not SameFileName(Source, Dest) then
+  begin
+    SourcePath := ExtractFilePath(Source);
+    DestPath := ExtractFilePath(Dest);
+    { Try to make concise message, if possible. }
+    if SourcePath = DestPath then
+    begin
+      Writeln(Format('Moving %s to %s' + NL + '  inside: %s', [
+        ExtractFileName(Source),
+        ExtractFileName(Dest),
+        SourcePath
+      ]));
+    end else
+    begin
+      Writeln('Moving ' + NL +
+        '  ' + Source + ' to ' + NL +
+        '  ' + Dest);
+    end;
+    CheckRenameFile(Source, Dest);
+  end;
 end;
 
 end.

@@ -96,6 +96,21 @@
     function PropertySections(const PropertyName: String): TPropertySections; override;
     procedure CustomSerialization(const SerializationProcess: TSerializationProcess); override;
 
+    { Update everything when time passes, in particular updating physics.
+      This makes physics recalculation and updates rigid bodies transformations.
+      It also calls any other TCastleTransform.Update work.
+
+      Use this to simulate the passage of time without actually displaying
+      the updated viewport. Useful e.g. to record the physics simulation
+      results (to later play them back), see
+      https://github.com/castle-engine/castle-dice-throwing .
+
+      Contrary to just @link(Update), this always makes the processing,
+      doesn't check did TFramesPerSecond.FrameId changed.
+      This also doesn't check @link(Exists), so can be called even on non-existing
+      viewport. }
+    procedure UpdateIncreaseTime(const SecondsPassed: Single);
+
     { @exclude
       TCastleTransform instances that listen on press/release.
       May be @nil, equivalent to empty. }

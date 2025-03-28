@@ -27,6 +27,7 @@ type
     { Components designed using CGE editor.
       These fields will be automatically initialized at Start. }
     ButtonOK: TCastleButton;
+    TutorialTouchDevice, TutorialDesktop: TCastleUserInterface;
   private
     procedure ClickMenu(Sender: TObject);
   public
@@ -39,6 +40,8 @@ var
 
 implementation
 
+uses CastleApplicationProperties;
+
 constructor TViewControlsHelp.Create(AOwner: TComponent);
 begin
   inherited;
@@ -50,6 +53,8 @@ begin
   inherited;
   ButtonOK.OnClick := {$ifdef FPC}@{$endif}ClickMenu;
   InterceptInput := true;
+  TutorialTouchDevice.Exists := ApplicationProperties.TouchDevice;
+  TutorialDesktop.Exists := not ApplicationProperties.TouchDevice;
 end;
 
 procedure TViewControlsHelp.ClickMenu(Sender: TObject);

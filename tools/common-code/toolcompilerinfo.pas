@@ -1,5 +1,5 @@
 {
-  Copyright 2019-2022 Michalis Kamburelis.
+  Copyright 2019-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -27,10 +27,17 @@ var
   { If set, use this path to search for Lazarus and related utils. }
   LazarusCustomPath: String;
 
-{ Executable path of a tool ExeName, that is part of FPC.
-  For example 'fpc', or 'fppkg'.
+{ Executable path of a tool with given ExeName (one of ExeNameList items),
+  that is part of FPC.
+  For example 'fpc' or 'fppkg'.
+  ExeNameList is a list, may contain multiple allowed names
+  (in the order from most preferred to least preferred),
+  must have at least one item.
+
+  Searches first in FpcCustomPath, then in $PATH.
+
   Returns '' if not found, just like vanilla FindExe. }
-function FindExeFpc(const ExeName: String): String;
+function FindExeFpc(const ExeNameList: array of String): String;
 
 { Executable path of a tool ExeName, that is part of Lazarus.
   For example 'lazarus', or 'lazbuild'.
@@ -88,24 +95,41 @@ function FindDelphiPath(const ExceptionWhenMissing: Boolean; out AppExe: String)
 implementation
 
 uses CastleFilesUtils, CastleStringUtils, CastleLog,
+  CastleInternalArchitectures,
   {$ifdef MSWINDOWS} Registry, {$endif}
-  ToolArchitectures, ToolCommonUtils;
+  ToolCommonUtils;
 
-function FindExeFpc(const ExeName: String): String;
+function FindExeFpc(const ExeNameList: array of String): String;
+var
+  ExeName: String;
 begin
+  { First check FpcCustomPath, if not empty. }
   if FpcCustomPath <> '' then
   begin
-    Result := InclPathDelim(FpcCustomPath) + ExeName + ExeExtension;
-    if RegularFileExists(Result) then
-      Exit;
-    Result := InclPathDelim(FpcCustomPath) +
-      'bin' + PathDelim +
-      CPUToString(DefaultCPU) + '-' + OSToString(DefaultOS) + PathDelim +
-      ExeName + ExeExtension;
-    if RegularFileExists(Result) then
+    for ExeName in ExeNameList do
+    begin
+      // look for ExeName in FpcCustomPath, without bin/CPU-OS/ subdirectory
+      Result := InclPathDelim(FpcCustomPath) + ExeName + ExeExtension;
+      if RegularFileExists(Result) then
+        Exit;
+
+      // look for ExeName in FpcCustomPath, with bin/CPU-OS/ subdirectory
+      Result := InclPathDelim(FpcCustomPath) +
+        'bin' + PathDelim +
+        CPUToString(DefaultCPU) + '-' + OSToString(DefaultOS) + PathDelim +
+        ExeName + ExeExtension;
+      if RegularFileExists(Result) then
+        Exit;
+    end;
+  end;
+
+  { Last, check on $PATH. }
+  for ExeName in ExeNameList do
+  begin
+    Result := FindExe(ExeName);
+    if Result <> '' then
       Exit;
   end;
-  Result := FindExe(ExeName);
 end;
 
 function FindExeLazarus(const ExeName: String): String;
@@ -173,9 +197,23 @@ var
 begin
   FpcStandardUnitsPath := '';
 
-  Result := FindExeFpc('fpc.sh');
-  if Result = '' then
-    Result := FindExeFpc('fpc');
+  // find FPC on FpcCustomPath or $PATH
+  Result := FindExeFpc([
+    // FPC script from fpcupdeluxe
+    'fpc.sh',
+
+    { In case "bundled FPC" is on $PATH, call it using 'fpc-cfg', not just 'fpc'
+      (the latter case would mean it cannot find standard units).
+      And it's actually normal that "bundled FPC" is on $PATH, when calling
+      build tool from VS Code extension, which prepends the FPC location on PATH
+      of the parent process. }
+    'fpc-cge',
+
+    // regular FPC executable
+    'fpc'
+  ]);
+
+  // fallback to use bundled FPC
   if (Result = '') and (CastleEnginePath <> '') then
   begin
     BundledFpcPath := CastleEnginePath + 'tools' + PathDelim +

@@ -172,7 +172,7 @@ uses {$ifdef windows}
        {$ifend}
       {$else}
        // Use CGE cross-platform routines for time, instead of relying on SDL.
-       // Good for Nintendo Switch and future web target.
+       // Good for Nintendo Switch and web target.
        // SDL,
        CastleTimeUtils,
        {$define USE_CASTLE_TIME_UTILS}
@@ -10601,7 +10601,7 @@ begin
 {$else}
   NowTime:=GetTime;
   EndTime:=NowTime+Delay;
-  while (NowTime+4)<EndTime then begin
+  while (NowTime+4)<EndTime do begin
    SDL_Delay(1);
    NowTime:=GetTime;
   end;

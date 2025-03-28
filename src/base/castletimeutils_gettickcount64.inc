@@ -116,6 +116,14 @@ begin
     LastGetTickCount64 := Result;
 end;
 {$I norqcheckend.inc}
+{$elseif defined(WASI)}
+
+function CastleGetTickCount64: QWord;
+begin
+  // rely on FPC SysUtils.GetTickCount64 (uses __wasi_clock_time_get)
+  Result := GetTickCount64;
+end;
+
 {$endif UNIX}
 
 {$endif}

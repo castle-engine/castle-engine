@@ -350,6 +350,9 @@ object ProjectForm: TProjectForm
       object MenuItemDuplicateComponent: TMenuItem
         Action = ActionComponentDuplicate
       end
+      object MenuItemDuplicateLinkedComponent: TMenuItem
+        Action = ActionComponentDuplicateLinked
+      end
       object MenuItem15: TMenuItem
         Action = ActionComponentCut
       end
@@ -438,58 +441,58 @@ object ProjectForm: TProjectForm
       object Separator2: TMenuItem
         Caption = '-'
       end
-      object MenuItem20: TMenuItem
+      object MenuItemViewportToggleProjection: TMenuItem
         Action = ActionViewportToggleProjection
       end
       object Separator5: TMenuItem
         Caption = '-'
       end
-      object MenuItem13: TMenuItem
+      object MenuItemViewportAlignViewToCamera: TMenuItem
         Action = ActionViewportAlignViewToCamera
       end
-      object MenuItem14: TMenuItem
+      object MenuItemViewportAlignCameraToView: TMenuItem
         Action = ActionViewportAlignCameraToView
       end
       object Separator3: TMenuItem
         Caption = '-'
       end
-      object MenuItem12: TMenuItem
+      object MenuItemNavigationFly: TMenuItem
         Action = ActionNavigationFly
         GroupIndex = 144
         RadioItem = True
       end
-      object MenuItem2: TMenuItem
+      object MenuItemNavigationExamine: TMenuItem
         Action = ActionNavigationExamine
         GroupIndex = 144
         RadioItem = True
       end
-      object MenuItem16: TMenuItem
+      object MenuItemNavigation2D: TMenuItem
         Action = ActionNavigation2D
         GroupIndex = 144
         RadioItem = True
       end
-      object MenuItem17: TMenuItem
+      object MenuItemNavigationToggle2D: TMenuItem
         Action = ActionNavigationToggle2D
       end
       object Separator4: TMenuItem
         Caption = '-'
       end
-      object MenuItem23: TMenuItem
+      object MenuItemViewportGridAxis: TMenuItem
         Action = ActionViewportGridAxis
       end
       object MenuItemWireframe: TMenuItem
         Caption = 'Wireframe Mode'
-        object MenuItem34: TMenuItem
+        object MenuItemViewportRenderNormal: TMenuItem
           Action = ActionViewportRenderNormal
           GroupIndex = 154
           RadioItem = True
         end
-        object MenuItem35: TMenuItem
+        object MenuItemViewportRenderWireframeOnly: TMenuItem
           Action = ActionViewportRenderWireframeOnly
           GroupIndex = 154
           RadioItem = True
         end
-        object MenuItem36: TMenuItem
+        object MenuItemViewportRenderSolidWireframe: TMenuItem
           Action = ActionViewportRenderSolidWireframe
           GroupIndex = 154
           RadioItem = True
@@ -497,14 +500,14 @@ object ProjectForm: TProjectForm
         object Separator10: TMenuItem
           Caption = '-'
         end
-        object MenuItem37: TMenuItem
+        object MenuItemViewportRenderNext: TMenuItem
           Action = ActionViewportRenderNext
         end
       end
       object Separator6: TMenuItem
         Caption = '-'
       end
-      object MenuItem18: TMenuItem
+      object MenuItemViewportSetup2D: TMenuItem
         Action = ActionViewportSetup2D
       end
     end
@@ -528,10 +531,10 @@ object ProjectForm: TProjectForm
       object Separator888888: TMenuItem
         Caption = '-'
       end
-      object MenuShowJointTools28: TMenuItem
+      object MenuItemPhysicsShowAllJointsTools: TMenuItem
         Action = ActionPhysicsShowAllJointsTools
       end
-      object MenuItem2888888: TMenuItem
+      object MenuItemPhysicsHideAllJointsTools: TMenuItem
         Action = ActionPhysicsHideAllJointsTools
       end
     end
@@ -540,13 +543,13 @@ object ProjectForm: TProjectForm
       object MenuItemOpenProjectCode: TMenuItem
         Action = ActionOpenProjectCode
       end
-      object MenuItem1: TMenuItem
+      object MenuItemEditAssociatedUnit: TMenuItem
         Action = ActionEditAssociatedUnit
       end
       object MenuItemEditUnitCode: TMenuItem
         Action = ActionEditUnit
       end
-      object N2: TMenuItem
+      object Separator22: TMenuItem
         Caption = '-'
       end
       object MenuItemNewUnit: TMenuItem
@@ -620,17 +623,17 @@ object ProjectForm: TProjectForm
         object Separator12: TMenuItem
           Caption = '-'
         end
-        object MenuItem33: TMenuItem
+        object MenuItemRunParameterCapabilitiesDefault: TMenuItem
           Action = ActionRunParameterCapabilitiesDefault
           GroupIndex = 145
           RadioItem = True
         end
-        object MenuItem39: TMenuItem
+        object MenuItemRunParameterCapabilitiesForceModern: TMenuItem
           Action = ActionRunParameterCapabilitiesForceModern
           GroupIndex = 145
           RadioItem = True
         end
-        object MenuItem40: TMenuItem
+        object MenuItemRunParameterCapabilitiesForceFixedFunction: TMenuItem
           Action = ActionRunParameterCapabilitiesForceFixedFunction
           GroupIndex = 145
           RadioItem = True
@@ -658,6 +661,12 @@ object ProjectForm: TProjectForm
       end
       object MenuItemPlatform: TMenuItem
         Caption = 'Platform (To Compile and Run)'
+        object Separator16: TMenuItem
+          Caption = '-'
+        end
+        object MenuItem47: TMenuItem
+          Action = ActionSavePlatformAsDefault
+        end
       end
       object MenuItemSeparator2: TMenuItem
         Caption = '-'
@@ -666,7 +675,7 @@ object ProjectForm: TProjectForm
         Caption = 'Clean'
         OnClick = MenuItemCleanClick
       end
-      object MenuItem3: TMenuItem
+      object Separator3333: TMenuItem
         Caption = '-'
       end
       object MenuItemPackage: TMenuItem
@@ -683,9 +692,18 @@ object ProjectForm: TProjectForm
       object MenuItemSeparator12312332424: TMenuItem
         Caption = '-'
       end
-      object MenuItemInstall: TMenuItem
-        Caption = 'Install (only Android now)'
-        OnClick = MenuItemInstallClick
+      object MenuItemAndroid: TMenuItem
+        Caption = 'Android'
+        object MenuItemInstall: TMenuItem
+          Caption = 'Install'
+          OnClick = MenuItemInstallClick
+        end
+        object MenuItemUnInstall: TMenuItem
+          Action = ActionUnInstall
+        end
+        object MenuItemDevices: TMenuItem
+          Action = ActionDevices
+        end
       end
       object MenuItemSeparator3: TMenuItem
         Caption = '-'
@@ -727,13 +745,13 @@ object ProjectForm: TProjectForm
       object Separator13: TMenuItem
         Caption = '-'
       end
-      object MenuItem42: TMenuItem
+      object MenuItemImportSketchfab: TMenuItem
         Action = ActionImportSketchfab
       end
       object Separator15: TMenuItem
         Caption = '-'
       end
-      object MenuItem46: TMenuItem
+      object MenuItemExportToModel: TMenuItem
         Action = ActionExportToModel
       end
     end
@@ -743,7 +761,7 @@ object ProjectForm: TProjectForm
         Caption = 'Docking'
         OnClick = MenuItemEnableDisableDockingClick
       end
-      object MenuItem5: TMenuItem
+      object Separator555: TMenuItem
         Caption = '-'
       end
       object MenuItemUIDesign: TMenuItem
@@ -774,7 +792,7 @@ object ProjectForm: TProjectForm
         Caption = 'Warnings'
         OnClick = MenuItemUIWarningsClick
       end
-      object MenuItem9: TMenuItem
+      object Separator999: TMenuItem
         Caption = '-'
       end
       object MenuItemUIRestoreDefaultDockSettings: TMenuItem
@@ -852,7 +870,7 @@ object ProjectForm: TProjectForm
       Caption = 'Open Containing Folder'
       OnClick = MenuItemOpenDirFromFileClick
     end
-    object MenuItem44: TMenuItem
+    object MenuItemCopyUrl: TMenuItem
       Action = ActionCopyUrl
     end
     object MenuItemSepraratorSLP002: TMenuItem
@@ -869,7 +887,7 @@ object ProjectForm: TProjectForm
       Caption = 'Delete...'
       OnClick = MenuItemDeleteFileClick
     end
-    object N3: TMenuItem
+    object Separator333: TMenuItem
       Caption = '-'
     end
     object MenuItemNewSpriteSheet: TMenuItem
@@ -1402,8 +1420,30 @@ object ProjectForm: TProjectForm
     end
     object ActionExportToModel: TAction
       Category = 'Data'
-      Caption = 'Export Viewport to X3D, STL...'
+      Caption = 'Export Viewport to X3D, STL, IFC...'
       OnExecute = ActionExportToModelExecute
+    end
+    object ActionDevices: TAction
+      Category = 'Run'
+      Caption = 'Detect Devices'
+      OnExecute = ActionDevicesExecute
+    end
+    object ActionSavePlatformAsDefault: TAction
+      Category = 'Run'
+      Caption = 'Save Chosen Platform As Default (in Project Local Settings)'
+      OnExecute = ActionSavePlatformAsDefaultExecute
+      OnUpdate = ActionSavePlatformAsDefaultUpdate
+    end
+    object ActionUnInstall: TAction
+      Category = 'Run'
+      Caption = 'Uninstall'
+      OnExecute = ActionUnInstallExecute
+    end
+    object ActionComponentDuplicateLinked: TAction
+      Category = 'Edit'
+      Caption = 'Duplicate Linked (TCastleTransformReference)'
+      OnExecute = ActionComponentDuplicateLinkedExecute
+      ShortCut = 24644
     end
   end
   object OpenPascalUnitDialog: TCastleOpenPascalUnitDialog

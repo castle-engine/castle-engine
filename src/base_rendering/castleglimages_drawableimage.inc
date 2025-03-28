@@ -91,7 +91,7 @@
       end;
 
       TVboStorage = record
-        PointsVbo, IndexesVbo: TGLuint;
+        PointsVbo, IndexesVbo: TGLBuffer;
         PointsVboSize, IndexesVboSize: Cardinal;
         Vao: TVertexArrayObject;
       end;
@@ -667,7 +667,7 @@
 
     { Internal OpenGL texture identifier.
 
-      You cannot free it (e.g. by glFreeTexture), and you cannot change it's
+      You cannot free it (e.g. by FreeTexture), and you cannot change it's
       parameters (because TDrawableImage assumes it controls all the texture
       parameters). For normal drawing, you do not need this (use @link(Draw)
       or other rendering routines in this class), but it may be useful to
@@ -871,8 +871,8 @@ procedure TDrawableImage.GLContextOpen(const AImage: TEncodedImage);
 begin
   if AImage <> nil then
   begin
-    if FTexture = 0 then
-      glGenTextures(1, @FTexture);
+    if FTexture = GLObjectNone then
+      FTexture := glCreateTexture();
     LoadGLGeneratedTexture(FTexture, AImage, CurrentFilter,
       CurrentWrap, nil, true);
   end;
@@ -880,7 +880,7 @@ end;
 
 procedure TDrawableImage.GLContextClose;
 begin
-  glFreeTexture(FTexture);
+  FreeTexture(FTexture);
 end;
 
 procedure TDrawableImage.Load(const AImage: TEncodedImage);
@@ -931,10 +931,10 @@ begin
   begin
     for I := Low(VboStorage) to High(VboStorage) do
     begin
-      if VboStorage[I].PointsVbo = 0 then
-        glGenBuffers(1, @VboStorage[I].PointsVbo);
-      if VboStorage[I].IndexesVbo = 0 then
-        glGenBuffers(1, @VboStorage[I].IndexesVbo);
+      if VboStorage[I].PointsVbo = GLObjectNone then
+        VboStorage[I].PointsVbo := glCreateBuffer();
+      if VboStorage[I].IndexesVbo = GLObjectNone then
+        VboStorage[I].IndexesVbo := glCreateBuffer();
       if VboStorage[I].Vao = nil then
         VboStorage[I].Vao := TVertexArrayObject.Create(nil);
     end;
@@ -975,8 +975,8 @@ var
 begin
   for I := Low(VboStorage) to High(VboStorage) do
   begin
-    glFreeBuffer(VboStorage[I].PointsVbo);
-    glFreeBuffer(VboStorage[I].IndexesVbo);
+    FreeBuffer(VboStorage[I].PointsVbo);
+    FreeBuffer(VboStorage[I].IndexesVbo);
     FreeAndNil(VboStorage[I].Vao);
     VboStorage[I].PointsVboSize := 0;
     VboStorage[I].IndexesVboSize := 0;
@@ -1200,7 +1200,7 @@ var
 
   { Bind the given buffer and update contents. }
   procedure LoadBuffer(const Target: TBufferTarget;
-    const Vbo: TGLuint; var VboCurrentSize: Cardinal;
+    const Vbo: TGLBuffer; var VboCurrentSize: Cardinal;
     const ContentsPtr: Pointer; const ContentsSize: Cardinal);
   var
     TargetGL: TGLenum;
@@ -1240,7 +1240,7 @@ begin
   // we load on demand, so do PrepareResources always
   PrepareResources;
   // PrepareResources, done while GL context is active, must make it true
-  Assert(FTexture <> 0);
+  Assert(FTexture <> GLObjectNone);
   Assert(StaticResourcesReady);
 
   if GLFeatures.UseMultiTexturing then glActiveTexture(GL_TEXTURE0);
@@ -1371,9 +1371,9 @@ begin
     Prog.AttribVertex.DisableArray;
     Prog.AttribTexCoord.DisableArray;
 
-    RenderContext.BindBuffer[btArray] := 0;
+    RenderContext.BindBuffer[btArray] := GLObjectNone;
     if UseIndex then // optimize out glBindBuffer call when not necessary
-      RenderContext.BindBuffer[btElementArray] := 0;
+      RenderContext.BindBuffer[btElementArray] := GLObjectNone;
   end else
   begin
     {$ifndef OpenGLES}
@@ -1658,7 +1658,7 @@ begin
   begin
     BatchingFlushIfNeeded;
     FSmoothScaling := Value;
-    if FTexture <> 0 then
+    if FTexture <> GLObjectNone then
     begin
       glBindTexture(GL_TEXTURE_2D, FTexture);
       SetTextureFilter(GL_TEXTURE_2D, CurrentFilter);
@@ -1678,7 +1678,7 @@ begin
     { initialize OpenGL resources on-demand }
     if not StaticResourcesReady then
       StaticGLContextOpen;
-    if FTexture = 0 then
+    if FTexture = GLObjectNone then
       GLContextOpen(FImage);
   end;
 end;
@@ -1686,7 +1686,7 @@ end;
 function TDrawableImage.GetContents(const ImageClass: TCastleImageClass): TCastleImage;
 begin
   PrepareResources;
-  if FTexture = 0 then
+  if FTexture = GLObjectNone then
     raise ECannotSaveTextureContents.Create('TDrawableImage texture was not created for some reason');
   Result := ImageClass.Create(Width, Height);
   SaveTextureContents(Result, FTexture);
@@ -1710,7 +1710,7 @@ procedure TDrawableImage.RenderToImageBegin(const SetAndRestoreViewport: boolean
 
 begin
   PrepareResources;
-  Assert(FTexture <> 0);
+  Assert(FTexture <> GLObjectNone);
 
   if (FRenderToImage = nil) or
      (FRenderToImage.Width <> Width) or
@@ -1780,7 +1780,7 @@ begin
   begin
     BatchingFlushIfNeeded;
     FRepeatS := Value;
-    if FTexture <> 0 then
+    if FTexture <> GLObjectNone then
     begin
       glBindTexture(GL_TEXTURE_2D, FTexture);
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, CurrentWrap.Data[0]);
@@ -1794,7 +1794,7 @@ begin
   begin
     BatchingFlushIfNeeded;
     FRepeatT := Value;
-    if FTexture <> 0 then
+    if FTexture <> GLObjectNone then
     begin
       glBindTexture(GL_TEXTURE_2D, FTexture);
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, CurrentWrap.Data[1]);

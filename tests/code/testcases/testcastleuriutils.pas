@@ -95,9 +95,13 @@ begin
   AssertEquals('file:///foo.txt', AbsoluteUri('/foo.txt'));
   {$endif}
 
-  AssertFilenamesEqual(FilenameToUriSafe(InclPathDelim(GetCurrentDir) + 'foo.txt'), AbsoluteUri('foo.txt'));
+  if CanUseFileSystem then
+  begin
+    AssertFilenamesEqual(FilenameToUriSafe(InclPathDelim(GetCurrentDir) + 'foo.txt'), AbsoluteUri('foo.txt'));
+    AssertFilenamesEqual(FilenameToUriSafe(InclPathDelim(GetCurrentDir)), AbsoluteUri(''));
+  end;
+
   AssertEquals('http://foo', AbsoluteUri('http://foo'));
-  AssertFilenamesEqual(FilenameToUriSafe(InclPathDelim(GetCurrentDir)), AbsoluteUri(''));
 end;
 
 procedure TTestUriUtils.TestUriToFilenameSafe;

@@ -73,6 +73,7 @@ type
     LabelSimulation: TLabel;
     LabelSizeInfo: TLabel;
     MemoInfo: TMemo;
+    MenuTreeViewItemDuplicateLinked: TMenuItem;
     PanelSpinEditAllowVerticalCentering: TPanel;
     ExportToModelDialog: TCastleSaveDialog;
     SeparatorBeforeChangeClass: TMenuItem;
@@ -161,6 +162,7 @@ type
     procedure FrameResize(Sender: TObject);
     procedure MenuItemAddComponentClick(Sender: TObject);
     procedure MenuTreeViewItemCutClick(Sender: TObject);
+    procedure MenuTreeViewItemDuplicateLinkedClick(Sender: TObject);
     procedure MenuTreeViewItemRenameClick(Sender: TObject);
     procedure MenuTreeViewItemDeleteClick(Sender: TObject);
     procedure MenuTreeViewItemCopyClick(Sender: TObject);
@@ -574,12 +576,20 @@ type
     procedure AddComponent(const ComponentClass: TComponentClass;
       const ComponentOnCreate: TNotifyEvent);
     { Create and add a new component to the design.
+
       @param(BaseNewComponentName Base of new name (without numeric suffix to
-        make it unique), passed to @link(ProposeComponentName).
-        Leave it empty to derive name from ComponentClass.ClassName.) }
+        make it unique. you can use StripNumericSuffix to calculate it),
+        passed to @link(ProposeComponentName).
+
+        Leave it empty to derive name from ComponentClass.ClassName.)
+
+      @param(IndexInParent Index at which the new component should be inserted
+        into parent. Leave -1 (default) to insert at the end ("front-most" for UI).)
+    }
     function AddComponent(const ParentComponent: TComponent; const ComponentClass: TComponentClass;
       const ComponentOnCreate: TNotifyEvent;
-      const BaseNewComponentName: String = ''): TComponent;
+      const BaseNewComponentName: String = '';
+      const InsertIndex: Integer = -1): TComponent;
     procedure DeleteComponent(const AutoSelectParents: Boolean = false);
     { Free component C (which should be part of this designed, owned by DesignOwner)
       and all children.
@@ -596,6 +606,7 @@ type
     procedure PasteComponent;
     procedure CutComponent;
     procedure DuplicateComponent;
+    procedure DuplicateLinkedComponent;
 
     function AddComponentFromUrl(const AddUrl: String;
       const ParentComponent: TComponent): TComponent;
@@ -2068,7 +2079,9 @@ begin
     if Mime = 'text/x-castle-transform' then
       NewDesignRoot := TransformLoad(NewDesignUrl, NewDesignOwner)
     else
-    if Mime = 'text/x-castle-component' then
+    if (Mime = 'text/x-castle-component') or
+       // open CastleLocalProjectSettings.json, and future CastleProject.json
+       (Mime = 'application/json') then
       NewDesignRoot := ComponentLoad(NewDesignUrl, NewDesignOwner)
     else
       raise Exception.CreateFmt('Unrecognized file extension %s (MIME type %s)',
@@ -2147,7 +2160,8 @@ end;
 function TDesignFrame.AddComponent(const ParentComponent: TComponent;
   const ComponentClass: TComponentClass;
   const ComponentOnCreate: TNotifyEvent;
-  const BaseNewComponentName: String): TComponent;
+  const BaseNewComponentName: String;
+  const InsertIndex: Integer): TComponent;
 
   function CreateComponent: TComponent;
   begin
@@ -2178,7 +2192,10 @@ function TDesignFrame.AddComponent(const ParentComponent: TComponent;
     if ComponentClass.InheritsFrom(TCastleTransform) then
     begin
       Result := CreateComponent;
-      ParentComponent.Add(Result as TCastleTransform);
+      if InsertIndex >= 0 then
+        ParentComponent.Insert(InsertIndex, Result as TCastleTransform)
+      else
+        ParentComponent.Add(Result as TCastleTransform);
       FinishAddingComponent(Result);
     end else
     if ComponentClass.InheritsFrom(TCastleUserInterface) then
@@ -2189,7 +2206,10 @@ function TDesignFrame.AddComponent(const ParentComponent: TComponent;
     if ComponentClass.InheritsFrom(TCastleBehavior) then
     begin
       Result := CreateComponent;
-      ParentComponent.AddBehavior(Result as TCastleBehavior);
+      if InsertIndex >= 0 then
+        ParentComponent.InsertBehavior(InsertIndex, Result as TCastleBehavior)
+      else
+        ParentComponent.AddBehavior(Result as TCastleBehavior);
       try
         { Show colliders on newly added component }
         if (Result is TCastleCollider) and FShowColliders then
@@ -2214,7 +2234,10 @@ function TDesignFrame.AddComponent(const ParentComponent: TComponent;
     end else
     begin
       Result := CreateComponent;
-      ParentComponent.AddNonVisualComponent(Result);
+      if InsertIndex >= 0 then
+        ParentComponent.InsertNonVisualComponent(InsertIndex, Result)
+      else
+        ParentComponent.AddNonVisualComponent(Result);
       FinishAddingComponent(Result);
     end;
   end;
@@ -2224,7 +2247,10 @@ function TDesignFrame.AddComponent(const ParentComponent: TComponent;
     if ComponentClass.InheritsFrom(TCastleUserInterface) then
     begin
       Result := CreateComponent;
-      ParentComponent.InsertFront(Result as TCastleUserInterface);
+      if InsertIndex >= 0 then
+        ParentComponent.InsertControl(InsertIndex, Result as TCastleUserInterface)
+      else
+        ParentComponent.InsertFront(Result as TCastleUserInterface);
       FinishAddingComponent(Result);
     end else
     if ComponentClass.InheritsFrom(TCastleTransform) then
@@ -2239,7 +2265,10 @@ function TDesignFrame.AddComponent(const ParentComponent: TComponent;
     end else
     begin
       Result := CreateComponent;
-      ParentComponent.AddNonVisualComponent(Result);
+      if InsertIndex >= 0 then
+        ParentComponent.InsertNonVisualComponent(InsertIndex, Result)
+      else
+        ParentComponent.AddNonVisualComponent(Result);
       FinishAddingComponent(Result);
     end;
   end;
@@ -2267,7 +2296,10 @@ function TDesignFrame.AddComponent(const ParentComponent: TComponent;
     end else
     begin
       Result := CreateComponent;
-      ParentComponent.AddNonVisualComponent(Result);
+      if InsertIndex >= 0 then
+        ParentComponent.InsertNonVisualComponent(InsertIndex, Result)
+      else
+        ParentComponent.AddNonVisualComponent(Result);
       FinishAddingComponent(Result);
     end;
   end;
@@ -2671,6 +2703,78 @@ begin
       ErrorBox('To duplicate, select TCastleUserInterface, TCastleTransform or TCastleComponent component');
   end else
     ErrorBox('To duplicate, select exactly one component that is not a subcomponent');
+end;
+
+procedure TDesignFrame.DuplicateLinkedComponent;
+
+  procedure FinishAddingComponent(const NewComponent: TCastleTransformReference);
+  begin
+    // UpdateDesign; // no need to, AddComponent already does this
+    // SelectedComponent := NewComponent; // no need to, AddComponent already does this
+    Assert(NewComponent.Reference <> nil);
+    ModifiedOutsideObjectInspector('Created reference ' + NewComponent.Name +
+      ' to ' + NewComponent.Reference.Name, ucHigh);
+  end;
+
+  procedure DuplicateLinkedTransform(const Selected: TCastleTransform);
+  var
+    ParentComp, ReferenceTarget: TCastleTransform;
+    NewReference: TCastleTransformReference;
+    BaseNewComponentName: String;
+    InsertIndex: Integer;
+  begin
+    ParentComp := Selected.Parent;
+    if ParentComp = nil then
+    begin
+      ErrorBox('To duplicate, select component with exactly one parent');
+      Exit;
+    end;
+
+    // When using "Duplicate Linked" over an existing TCastleTransformReference,
+    // create another TCastleTransformReference to the same target,
+    // not TCastleTransformReference to TCastleTransformReference.
+    ReferenceTarget := Selected;
+    if Selected is TCastleTransformReference then
+    begin
+      ReferenceTarget := TCastleTransformReference(Selected).Reference;
+      if ReferenceTarget = nil then
+      begin
+        ErrorBox('To duplicate linked, select a target component (not TCastleTransformReference), or select another TCastleTransformReference with non-nil Target. Now you selected TCastleTransformReference with Target=nil.');
+        Exit;
+      end;
+    end;
+    Assert(ReferenceTarget <> nil);
+
+    BaseNewComponentName := 'Reference' + StripNumericSuffix(ReferenceTarget.Name);
+
+    InsertIndex := ParentComp.List.IndexOf(Selected) + 1;
+
+    NewReference := AddComponent(ParentComp, TCastleTransformReference, nil,
+      BaseNewComponentName, InsertIndex) as TCastleTransformReference;
+    NewReference.Reference := ReferenceTarget;
+    // copy transformation parameters Selected -> NewReference
+    NewReference.Translation := Selected.Translation;
+    NewReference.Rotation := Selected.Rotation;
+    NewReference.Scale := Selected.Scale;
+    NewReference.Center := Selected.Center;
+    NewReference.ScaleOrientation := Selected.ScaleOrientation;
+
+    FinishAddingComponent(NewReference);
+  end;
+
+var
+  Sel: TComponent;
+begin
+  Sel := SelectedComponent;
+  if (Sel <> nil) and
+     (not (csSubComponent in Sel.ComponentStyle)) then
+  begin
+    if Sel is TCastleTransform then
+      DuplicateLinkedTransform(Sel as TCastleTransform)
+    else
+      ErrorBox('To duplicate (linked, using TCastleTransformReference), select TCastleTransform component');
+  end else
+    ErrorBox('To duplicate (linked), select exactly one component that is not a subcomponent');
 end;
 
 function TDesignFrame.SelectedViewport: TCastleViewport;
@@ -3789,10 +3893,22 @@ begin
 end;
 
 procedure TDesignFrame.GizmoTransformModifyEnd(Sender: TObject);
+
+  { Short summary of current selection passed to @link(SetSelected).
+    Useful to show user in UI. }
+  function SelectionCaption(const M: TCastleTransformManipulate): String;
+  begin
+    case M.SelectedCount of
+      0: Result := 'nothing';
+      1: Result := M.Selected[0].Name;
+      else Result := Format('%d objects', [M.SelectedCount])
+    end;
+  end;
+
 begin
   if UndoSystem.ScheduleRecordUndoOnRelease then
     RecordUndo('Transform ' +
-      (Sender as TCastleTransformManipulate).MainSelected.Name +
+      SelectionCaption(Sender as TCastleTransformManipulate) +
       ' with Gizmo', ucHigh);
 end;
 
@@ -4947,16 +5063,6 @@ begin
     *)
 
     TransformManipulate.SetSelected(Selected);
-    if T is TCastleAbstractRootTransform then
-    begin
-      { Special case to disallow editing TCastleAbstractRootTransform transformation.
-        See InspectorFilter for explanation, in short: editing TCastleAbstractRootTransform
-        transformation is very unintuitive. }
-      TransformManipulate.MainSelected := nil
-    end else
-    begin
-      TransformManipulate.MainSelected := T; // works also in case SelectedTransform is nil
-    end;
   finally FreeAndNil(Selected) end;
 
   if CameraPreview <> nil then
@@ -5994,6 +6100,11 @@ begin
   CutComponent;
 end;
 
+procedure TDesignFrame.MenuTreeViewItemDuplicateLinkedClick(Sender: TObject);
+begin
+  DuplicateLinkedComponent;
+end;
+
 procedure TDesignFrame.MenuTreeViewItemRenameClick(Sender: TObject);
 begin
   RenameSelectedItem;
@@ -6083,6 +6194,7 @@ begin
 
   MenuTreeViewItemRename.Enabled := RenameSelectedPossible;
   MenuTreeViewItemDuplicate.Enabled := Sel <> nil;
+  MenuTreeViewItemDuplicateLinked.Enabled := Sel <> nil;
   MenuTreeViewItemCut.Enabled := Sel <> nil;
   MenuTreeViewItemCopy.Enabled := Sel <> nil;
   MenuTreeViewItemSaveSelected.Enabled := Sel <> nil;

@@ -216,7 +216,10 @@ unit CastleWindow;
              { $define CASTLE_WINDOW_LIBRARY}
              { $define CASTLE_WINDOW_TEMPLATE} // only useful for developers
            {$endif}
-         {$endif} // end of UNIX possibilities
+         // end of UNIX possibilities
+         {$elseif defined(WASI)}
+           {$define CASTLE_WINDOW_WEBASSEMBLY}
+         {$endif}
 
        {$endif} // end of "not PasDoc"
 
@@ -1753,8 +1756,6 @@ type
 
     { Select a file to open or save, using native (looks familiar on a given system) dialog box.
       Accepts and returns argument as an URL.
-      Passing a filename as an URL is also allowed (as everywhere),
-      it may be changed into an URL on return.
 
       This dialog may also allow user for some typical file-management
       operations by the way (create some directories, rename some files etc.).
@@ -1766,22 +1767,50 @@ type
 
       @param(URL Specifies default file as an URL (or simple filename).
 
-        In short, things are designed such that for normal file viewers,
-        you can give here the URL of last opened file, or '' if none.
+        Things are designed such that it's reasonable to pass here:
 
-        This URL can be absolute or relative, may include a path, may include a name.
+        @unorderedList(
+          @item URL of last opened/saved file.
+          @item @code('') (empty string) if you don't want to suggest anything.
+          @item(Proposed filename (without directory) of new file to save,
+            like @code('output.gltf').)
+          @item(Proposed directory of new file to save,
+            like @code(FilenameToUriSafe('c:/tmp/')).)
+          @item(Proposed filename and directory of new file to save,
+            like @code(FilenameToUriSafe('c:/tmp/output.gltf')).)
+        )
+
+        Given URL can be absolute or relative, may include a path,
+        may include a name.
         If you specify only a path (remember to end it with the slash),
         then it's the default path where to save the file.
         If you specify the name (component after final slash), then it's the
         proposed file name for saving (for OpenDialog, this proposed file name
         is ignored, since that's more natural for open dialogs).
 
+        When saving to a new file, we advise to provide a proposed filename with extension.
+        So e.g. @code('output.gltf') or @code(FilenameToUriSafe('c:/tmp/output.gltf')).
+
+        @italic(Do not rely on the FileFilters argument to imply a reasonable
+        extension for the output URL.) The filters on FileFilters are used
+        to filter the displayed contents, but it is undefined whether they also
+        help determine the saved file extension.
+        For example, with GTK backend, f you provide FileFilters that contain
+        only @code(*.gltf), and your
+        proposed URL is @code(''), and user types @code('aaa') -> then URL is just
+        @code('aaa'), not @code('aaa.gltf').
+        So it's better to provide proposed URL like @code('output.gltf').
+
+        Passing a filename as an URL is also allowed (as everywhere in our engine),
+        it may be changed into an URL on return.
+
         Empty value ('') always means the same as "current directory", guaranteed.
-        So it's equivalent to @code(URICurrentPath).
+        So it's equivalent to @link(UriCurrentPath).
 
         Note that the path must end with a slash. Otherwise '/tmp/blah' would be
         ambigous (it could mean either file name 'blah' in the dir '/tmp/' dir,
-        or dir '/tmp/blah' without a proposed file name).)
+        or dir '/tmp/blah' without a proposed file name).
+      )
 
       @param(OpenDialog Is this an open (@true) or save (@false) file dialog.
 
@@ -2083,6 +2112,9 @@ type
     VideoResizeHeight: Integer;
     { @groupEnd }
 
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+    procedure HandleException(Sender: TObject); override;
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
 
     { Color bits per pixel that will be set by next VideoChange call,
@@ -2319,12 +2351,22 @@ end.
       to work and exits immediately without any error. }
     procedure Run;
 
+    { Name of the "CastleWindow backend". This is the underlying implementation
+      of TCastleWindow and TCastleApplication classes.
+      See https://castle-engine.io/castlewindow_backends .
+      Showing this may be useful for debugging purposes. }
     function BackendName: String;
 
-    constructor Create(AOwner: TComponent); override;
-    destructor Destroy; override;
+    { Does this backend (see @url(https://castle-engine.io/castlewindow_backends
+      possible backends)) support multiple windows, that is:
+      multiple instances of TCastleWindow can be created, open,
+      and are actually usable by the user, at the same time.
 
-    procedure HandleException(Sender: TObject); override;
+      For backends that generally work on desktop platforms, this is @true.
+
+      For backends that target more limited systems, like mobile or web,
+      this is @false. }
+    function MultipleWindowsPossible: Boolean;
 
     { Parse some command-line options and remove them from @link(Parameters)
       list. These are standard command-line parameters of Castle Game Engine programs.
@@ -2630,12 +2672,29 @@ procedure TCastleWindow.OpenCore;
       menu bar (GTK and WINAPI implementations) and FullScreen then
       the actual OpenGL window size will NOT match ScreenWidth/Height,
       it will be slightly smaller (menu bar takes some space). }
+
+    {$ifdef CASTLE_WINDOW_WEBASSEMBLY}
+    // In this case, do not query Application.ScreenWidth/Height before
+    // opening the window. Application.ScreenWidth/Height would just return
+    // hardcoded value and make a warning.
+    // Just set FWidth/Height to something reasonable (hardcoded anyway).
+    // In TCastleWindow.OpenBackend for CASTLE_WINDOW_WEBASSEMBLY we will set
+    // real size.
+    FWidth := 1024;
+    FHeight := 1024;
+    ClampVar(FWidth , MinWidth , MaxWidth);
+    ClampVar(FHeight, MinHeight, MaxHeight);
+    FLeft := 0;
+    FTop := 0;
+    {$else}
     if Width  = WindowDefaultSize then FWidth  := Application.ScreenWidth  * 4 div 5;
     if Height = WindowDefaultSize then FHeight := Application.ScreenHeight * 4 div 5;
     ClampVar(FWidth , MinWidth , MaxWidth);
     ClampVar(FHeight, MinHeight, MaxHeight);
     if Left = WindowPositionCenter then FLeft := (Application.ScreenWidth  - Width ) div 2;
     if Top  = WindowPositionCenter then FTop  := (Application.ScreenHeight - Height) div 2;
+    {$endif}
+
     FRealWidth  := FWidth;
     FRealHeight := FHeight;
 
@@ -4014,6 +4073,15 @@ end;
 procedure TCastleApplication.OpenWindowsRemove(Window: TCastleWindow;
   QuitWhenLastWindowClosed: boolean);
 begin
+  if FOpenWindows = nil then
+  begin
+    { This is possible now in case of errors with WASI.
+      Handle it gracefully, to not cause further errors that would obscure
+      original problem. }
+    WritelnWarning('OpenWindowsRemove called when FOpenWindows = nil, which usually indicates that window is destroyed and closed late from TCastleApplication.Destroy, which should not happen except if an exception happened at window creation');
+    Exit;
+  end;
+
   if (FOpenWindows.Remove(Window) <> -1) and
      (OpenWindowsCount = 0) and
      QuitWhenLastWindowClosed then

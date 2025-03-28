@@ -48,13 +48,20 @@ type
     procedure ExecuteAll(const Message: String);
   end;
 
-  { Events and properties of the Castle Game Engine application,
-    usually accessed through the @link(ApplicationProperties) singleton.
+  { Events and properties of each Castle Game Engine application,
+    always accessed through the @link(ApplicationProperties) singleton.
 
-    These members work regardless if you use CastleWindow or CastleControl.
-    For more fine-grained application control,
-    see TCastleApplication (in case you use CastleWindow)
-    or Lazarus (LCL) TApplication (in case you use CastleControl). }
+    The members of this class work regardless of how is the rendering context
+    initialized, in particular regardless of whether
+    you use CastleWindow or CastleControl.
+    For various other application properties and methods use
+
+    @unorderedList(
+      @item(TCastleApplication class, using the @link(CastleWindow.Application)
+        singleton (if you use CastleWindow).)
+      @item(@code(TApplication) class, using the @code(Application) singleton,
+        in Lazarus LCL or Delphi VCL or FMX (in case you use CastleControl).)
+    ) }
   TCastleApplicationProperties = class
   private
     FIsGLContextOpen, FFileAccessSafe: boolean;
@@ -165,7 +172,16 @@ type
 
       Just like the @link(TouchDevice), you can change this at runtime
       for debug purposes (to e.g. easily test mobile UI on PC). }
-    property ShowUserInterfaceToQuit: Boolean read FShowUserInterfaceToQuit write FShowUserInterfaceToQuit;
+    property ShowUserInterfaceToQuit: Boolean
+      read FShowUserInterfaceToQuit write FShowUserInterfaceToQuit;
+
+    { We can catch exceptions on this platform.
+      So "try .. except" works reliably and you can use exceptions
+      to report error-like conditions, and later recover from them.
+
+      This is @true on all platforms except web.
+      See "Known Limitations" on https://castle-engine.io/web . }
+    function CanCatchExceptions: Boolean;
 
     { Limit the number of (real) frames per second, to not hog the CPU.
       Set to zero to not limit.
@@ -455,12 +471,8 @@ begin
     {$else}
       false
     {$endif};
-  { Note: for now, FShowUserInterfaceToQuit starts just as a negation of FTouchDevice.
-    But it will not always be like that.
-    E.g. on other consoles, FTouchDevice may be false,
-    but FShowUserInterfaceToQuit may be true. }
   FShowUserInterfaceToQuit :=
-    {$if defined(ANDROID) or defined(CASTLE_IOS) or defined(CASTLE_NINTENDO_SWITCH)}
+    {$if defined(ANDROID) or defined(CASTLE_IOS) or defined(CASTLE_NINTENDO_SWITCH) or defined(WASI)}
       false
     {$else}
       true
@@ -631,6 +643,11 @@ begin
   FOnInitializeDebug.Add(Listener);
   if FInitializedDebug then
     Listener();
+end;
+
+function TCastleApplicationProperties.CanCatchExceptions: Boolean;
+begin
+  Result := {$ifdef WASI} false {$else} true {$endif};
 end;
 
 initialization

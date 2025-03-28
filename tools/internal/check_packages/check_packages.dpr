@@ -564,7 +564,8 @@ begin
     ],
     [
       'src/base/android/',
-      'src/files/indy/'
+      'src/files/indy/',
+      'src/base_rendering/web/'
     ],
     [
       'src/vampyre_imaginglib/'
@@ -644,6 +645,10 @@ begin
       'src/delphi/castleinternaldelphidesign.pas',
       'src/base/android/',
       'src/files/indy/',
+      'src/base_rendering/web/',
+
+      // This will be in castle_engine_design package
+      'src/files/tools/',
 
       // This is in castle_engine_vcl package
       'src/delphi/vcl.castlecontrol.pas',
@@ -688,7 +693,8 @@ begin
   Package := TDelphiPackage.Create(CgePathExpanded + 'packages/delphi/castle_engine_design.dpk');
   try
     Package.CheckFiles([
-      'src/delphi/castleinternaldelphidesign.pas'
+      'src/delphi/castleinternaldelphidesign.pas',
+      'src/files/tools/'
     ],
     [ ],
     [ ]);
@@ -747,7 +753,8 @@ begin
       'src/window/'
     ],
     [
-      'src/files/indy/'
+      'src/files/indy/',
+      'src/base_rendering/web/'
     ],
     [
       'src/vampyre_imaginglib/'

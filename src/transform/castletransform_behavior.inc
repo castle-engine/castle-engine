@@ -171,6 +171,16 @@
     procedure DesigningEnd; virtual;
     *)
 
+    { Reference to the root transformation (typically matching the
+      @link(TCastleViewport.Items) value) corresponding to the parent
+      of this behavior.
+
+      May be @nil if the behavior is not yet added to the parent TCastleTransform,
+      or when the TCastleTransform is not yet part of the TCastleAbstractRootTransform
+      (which means that TCastleTransform is not added to the viewport yet).
+      You can use @link(ListenWorldChange) and override
+      @link(WorldBeforeDetach), @link(WorldAfterAttach)
+      to be notified when this changes. }
     function World: TCastleAbstractRootTransform;
 
     { Parent TCastleTransform of this behavior.

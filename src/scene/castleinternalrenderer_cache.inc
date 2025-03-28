@@ -68,10 +68,10 @@
       const TextureWrap: TTextureWrap2D;
       const CompositeForMipmaps: TCompositeImage;
       const GUITexture: boolean;
-      const FlipVertically: Boolean): TGLuint;
+      const FlipVertically: Boolean): TGLTexture;
 
     procedure TextureImage_DecReference(
-      const TextureGLName: TGLuint);
+      const TextureGLName: TGLTexture);
 
     function TextureVideo_IncReference(
       const TextureVideo: TVideo;
@@ -96,19 +96,19 @@
       const PositiveX, NegativeX,
             PositiveY, NegativeY,
             PositiveZ, NegativeZ: TEncodedImage;
-      const CompositeForMipmaps: TCompositeImage): TGLuint;
+      const CompositeForMipmaps: TCompositeImage): TGLTexture;
 
     procedure TextureCubeMap_DecReference(
-      const TextureGLName: TGLuint);
+      const TextureGLName: TGLTexture);
 
     { Requires GLFeatures.TextureDepthCompare (not just TextureDepth!) before calling this. }
     function TextureDepth_IncReference(
       const TextureFullUrl: String;
       const TextureWrap: TTextureWrap2D;
-      const Width, Height: Cardinal): TGLuint;
+      const Width, Height: Cardinal): TGLTexture;
 
     procedure TextureDepth_DecReference(
-      const TextureGLName: TGLuint);
+      const TextureGLName: TGLTexture);
 
     { Increase / decrease reference to a float texture.
       Required GLFeatures.TextureFloat before calling this.
@@ -119,9 +119,9 @@
       const Filter: TTextureFilter;
       const TextureWrap: TTextureWrap2D;
       const Width, Height: Cardinal;
-      const Precision32: boolean): TGLuint;
+      const Precision32: boolean): TGLTexture;
     procedure TextureFloat_DecReference(
-      const TextureGLName: TGLuint);
+      const TextureGLName: TGLTexture);
 
     { Load given 3D texture to OpenGL, using our cache.
 
@@ -133,10 +133,10 @@
       const Anisotropy: TGLfloat;
       const TextureWrap: TTextureWrap3D;
       const Image: TEncodedImage;
-      const Composite: TCompositeImage): TGLuint;
+      const Composite: TCompositeImage): TGLTexture;
 
     procedure Texture3D_DecReference(
-      const TextureGLName: TGLuint);
+      const TextureGLName: TGLTexture);
   public
     constructor Create;
     destructor Destroy; override;
@@ -270,7 +270,7 @@ function TRendererCache.TextureImage_IncReference(
   const TextureWrap: TTextureWrap2D;
   const CompositeForMipmaps: TCompositeImage;
   const GUITexture: boolean;
-  const FlipVertically: Boolean): TGLuint;
+  const FlipVertically: Boolean): TGLTexture;
 var
   I: Integer;
   TextureCached: TTextureImageCache;
@@ -339,7 +339,7 @@ begin
 end;
 
 procedure TRendererCache.TextureImage_DecReference(
-  const TextureGLName: TGLuint);
+  const TextureGLName: TGLTexture);
 var
   I: Integer;
 begin
@@ -352,7 +352,7 @@ begin
                                     TextureImageCaches[I].References]);
       if TextureImageCaches[I].References = 0 then
       begin
-        glFreeTexture(TextureImageCaches[I].GLName);
+        FreeTexture(TextureImageCaches[I].GLName);
         TextureImageCaches.Delete(I);
       end;
       CheckFreeWhenEmpty;
@@ -451,7 +451,7 @@ function TRendererCache.TextureCubeMap_IncReference(
   const PositiveX, NegativeX,
         PositiveY, NegativeY,
         PositiveZ, NegativeZ: TEncodedImage;
-  const CompositeForMipmaps: TCompositeImage): TGLuint;
+  const CompositeForMipmaps: TCompositeImage): TGLTexture;
 var
   I: Integer;
   TextureCached: TTextureCubeMapCache;
@@ -476,7 +476,7 @@ begin
       end;
     end;
 
-  glGenTextures(1, @Result);
+  Result := glCreateTexture();
   glBindTexture(GL_TEXTURE_CUBE_MAP, Result);
 
   SetTextureFilter(GL_TEXTURE_CUBE_MAP, Filter);
@@ -512,7 +512,7 @@ begin
 end;
 
 procedure TRendererCache.TextureCubeMap_DecReference(
-  const TextureGLName: TGLuint);
+  const TextureGLName: TGLTexture);
 var
   I: Integer;
 begin
@@ -527,7 +527,7 @@ begin
         ]);
       if TextureCubeMapCaches[I].References = 0 then
       begin
-        glFreeTexture(TextureCubeMapCaches[I].GLName);
+        FreeTexture(TextureCubeMapCaches[I].GLName);
         TextureCubeMapCaches.Delete(I);
       end;
       CheckFreeWhenEmpty;
@@ -545,7 +545,7 @@ function TRendererCache.Texture3D_IncReference(
   const Anisotropy: TGLfloat;
   const TextureWrap: TTextureWrap3D;
   const Image: TEncodedImage;
-  const Composite: TCompositeImage): TGLuint;
+  const Composite: TCompositeImage): TGLTexture;
 var
   I: Integer;
   TextureCached: TTexture3DCache;
@@ -570,7 +570,7 @@ begin
   if not GLFeatures.Texture3D then
     raise Exception.Create('3D textures not supported by OpenGL(ES)');
 
-  glGenTextures(1, @Result);
+  Result := glCreateTexture();
   glBindTexture(GL_TEXTURE_3D, Result);
 
   glTextureImage3d(Result, Image, Filter, Composite);
@@ -595,7 +595,7 @@ begin
 end;
 
 procedure TRendererCache.Texture3D_DecReference(
-  const TextureGLName: TGLuint);
+  const TextureGLName: TGLTexture);
 var
   I: Integer;
 begin
@@ -610,7 +610,7 @@ begin
         ]);
       if Texture3DCaches[I].References = 0 then
       begin
-        glFreeTexture(Texture3DCaches[I].GLName);
+        FreeTexture(Texture3DCaches[I].GLName);
         Texture3DCaches.Delete(I);
       end;
       CheckFreeWhenEmpty;
@@ -625,7 +625,7 @@ end;
 function TRendererCache.TextureDepth_IncReference(
   const TextureFullUrl: String;
   const TextureWrap: TTextureWrap2D;
-  const Width, Height: Cardinal): TGLuint;
+  const Width, Height: Cardinal): TGLTexture;
 var
   I: Integer;
   TextureCached: TTextureDepthOrFloatCache;
@@ -655,7 +655,7 @@ begin
   Assert(GLFeatures.TextureDepth);
   Assert(GLFeatures.TextureDepthCompare);
 
-  glGenTextures(1, @Result);
+  Result := glCreateTexture();
   glBindTexture(GL_TEXTURE_2D, Result);
 
   Filter.Minification := minLinear;
@@ -675,8 +675,12 @@ begin
   { Do not init any texture image. Just initialize texture sizes
     and both internal and external formats to GL_DEPTH_COMPONENT_ARB
     (will match depth buffer precision). }
+  {$ifdef CASTLE_WEBGL}
+  // TODO: web: Fix initializing empty depth texture on WebGL
+  {$else}
   glTexImage2d(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT,
     Width, Height, 0, GL_DEPTH_COMPONENT, ImageType, nil);
+  {$endif}
   TextureMemoryProfiler.Allocate(Result, '', ImageFormat, ImageSize, false,
     Width, Height, 1);
 
@@ -699,7 +703,7 @@ begin
 end;
 
 procedure TRendererCache.TextureDepth_DecReference(
-  const TextureGLName: TGLuint);
+  const TextureGLName: TGLTexture);
 var
   I: Integer;
 begin
@@ -714,7 +718,7 @@ begin
         ]);
       if TextureDepthOrFloatCaches[I].References = 0 then
       begin
-        glFreeTexture(TextureDepthOrFloatCaches[I].GLName);
+        FreeTexture(TextureDepthOrFloatCaches[I].GLName);
         TextureDepthOrFloatCaches.Delete(I);
       end;
       CheckFreeWhenEmpty;
@@ -731,7 +735,7 @@ function TRendererCache.TextureFloat_IncReference(
   const Filter: TTextureFilter;
   const TextureWrap: TTextureWrap2D;
   const Width, Height: Cardinal;
-  const Precision32: boolean): TGLuint;
+  const Precision32: boolean): TGLTexture;
 {$ifndef OpenGLES}
 var
   I: Integer;
@@ -753,7 +757,7 @@ begin
     end;
   end;
 
-  glGenTextures(1, @Result);
+  Result := glCreateTexture();
   glBindTexture(GL_TEXTURE_2D, Result);
   SetTextureFilter(GL_TEXTURE_2D, Filter);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, TextureWrap.Data[0]);
@@ -784,12 +788,12 @@ begin
 {$else}
 begin
   raise Exception.Create('Float textures not available on OpenGL ES 2.0');
-  Result := 0; // silence warning
+  Result := GLObjectNone; // silence warning
 {$endif}
 end;
 
 procedure TRendererCache.TextureFloat_DecReference(
-  const TextureGLName: TGLuint);
+  const TextureGLName: TGLTexture);
 var
   I: Integer;
 begin
@@ -804,7 +808,7 @@ begin
         ]);
       if TextureDepthOrFloatCaches[I].References = 0 then
       begin
-        glFreeTexture(TextureDepthOrFloatCaches[I].GLName);
+        FreeTexture(TextureDepthOrFloatCaches[I].GLName);
         TextureDepthOrFloatCaches.Delete(I);
       end;
       CheckFreeWhenEmpty;
@@ -953,6 +957,10 @@ begin
   try
     Result.ShaderProgram := TX3DGLSLProgram.Create;
     Shader.LinkProgram(Result.ShaderProgram, ShapeNiceName);
+    {$ifdef CASTLE_CANNOT_CATCH_EXCEPTIONS}
+    if Result.ShaderProgram.ErrorOnCompileLink then
+      FreeAndNil(Result.ShaderProgram);
+    {$endif}
   except on E: EGLSLError do
     begin
       FreeAndNil(Result.ShaderProgram);

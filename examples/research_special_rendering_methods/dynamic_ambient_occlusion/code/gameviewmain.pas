@@ -48,7 +48,7 @@ type
       TMyViewport = class(TCastleViewport)
       public
         View: TViewMain;
-        RectVbo: TGLuint;
+        RectVbo: TGLBuffer;
         RectVao: TVertexArrayObject;
         procedure RenderFromView3D(const Params: TRenderParams); override;
       end;
@@ -99,9 +99,9 @@ type
         ElementsTexSize x ElementsTexSize. }
       ElementsTexSize: Cardinal;
 
-      GLElementsPositionAreaTex: TGLuint;
-      GLElementsNormalTex: TGLuint;
-      GLElementsIntensityTex: TGLuint;
+      GLElementsPositionAreaTex: TGLTexture;
+      GLElementsNormalTex: TGLTexture;
+      GLElementsIntensityTex: TGLTexture;
 
       { We will pack position (with arbitrary 3 float) and areas (with arbitrary
         float >= 0) and normal components (with floats in -1..1 range)
@@ -157,11 +157,10 @@ var
 implementation
 
 uses SysUtils, Math,
-  CastleTriangles, CastleClassUtils, CastleParameters,
-  CastleFilesUtils, CastleStringUtils,
-  X3DFields, X3DNodes, CastleGLImages, CastleMessages, CastleLog,
-  CastleGLVersion, CastleRectangles, CastleApplicationProperties,
-  CastleRenderContext, CastleCameras,
+  CastleTriangles, CastleClassUtils, CastleParameters, CastleInternalGLUtils,
+  CastleFilesUtils, CastleStringUtils, X3DFields, X3DNodes, CastleGLImages,
+  CastleMessages, CastleLog, CastleGLVersion, CastleRectangles,
+  CastleApplicationProperties, CastleRenderContext, CastleCameras,
   SceneUtilities;
 
 { TMyViewport ---------------------------------------------------------------- }
@@ -205,7 +204,7 @@ procedure TViewMain.TMyViewport.RenderFromView3D(const Params: TRenderParams);
       RenderContext.CurrentVao := RectVao;
 
       if RectVbo = 0 then
-        glGenBuffers(1, @RectVbo);
+        RectVbo := glCreateBuffer();
       RenderContext.BindBuffer[btArray] := RectVbo;
       glBufferData(GL_ARRAY_BUFFER, SizeOf(Points), @Points, GL_DYNAMIC_DRAW);
 
@@ -796,7 +795,7 @@ begin
 
   { Prepare OpenGL texture for shaders output (and also input to 2nd pass
     of algorithm). }
-  glGenTextures(1, @GLElementsIntensityTex);
+  GLElementsIntensityTex := glCreateTexture();
   glBindTexture(GL_TEXTURE_2D, GLElementsIntensityTex);
 
   { Texture data is not initialized at this point,

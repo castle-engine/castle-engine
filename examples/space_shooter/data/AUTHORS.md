@@ -14,3 +14,8 @@ ship:
 - From https://opengameart.org/content/ship-sprites-0
 - By Prime_8 ( https://opengameart.org/users/prime8 )
 - License(s): CC0
+
+explosion:
+- based on http://opengameart.org/content/wgstudio-explosion-animation
+- Author: Retimer
+- License(s): CC-BY 3.0

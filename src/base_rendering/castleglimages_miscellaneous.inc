@@ -58,7 +58,7 @@ function ImageGLType(const Img: TCastleImage): TGLenum;
 
 {$ifdef read_interface_type}
 //type - don't add type Delphi can't parse that correctly
-  TGLTextureId = TGLuint;
+  TGLTextureId = TGLTexture;
 
   ETextureLoadError = class(Exception);
   EImageClassNotSupportedForOpenGL = class(ETextureLoadError);
@@ -67,13 +67,13 @@ function ImageGLType(const Img: TCastleImage): TGLenum;
 {$endif read_interface_type}
 
 {$ifdef read_interface_func}
-{ If Tex <> 0 then it does glDeleteTextures on Tex and sets Tex to 0.
-  In other words, this is a simple wrapper over glDeleteTextures that
-  @orderedList(
-    @item checks if Tex really should be deleted
-    @item sets Tex to 0 to not free it once again
-  ) }
-procedure glFreeTexture(var Tex: TGLTextureId);
+
+{ Delete texture object and set it to GLObjectNone.
+
+  - Before doing anything, checks is it GLObjectNone.
+  - After freeing, sets it to GLObjectNone.
+  - Also takes care to call TextureMemoryProfiler.Deallocate . }
+procedure FreeTexture(var Tex: TGLTextureId);
 
 { Call glTexParameterf to set GL_TEXTURE_MAX_ANISOTROPY_EXT on given texture
   target.
@@ -123,6 +123,15 @@ const
     In OpenGLES >= 2 and in OpenGL >= 3.2 "core" profile this is not allowed
     anymore.
 }
+
+{$ifdef CASTLE_WEBGL}
+{ TODO: web: WebGL does not support swizzle, http://www.g-truc.net/post-0734.html
+  Below are dummy values (takes from CastleGL, but they don't really matter,
+  should not be used by anything) just to make this code compile. }
+const
+  GL_GREEN = $1904;
+  GL_BLUE = $1905;
+{$endif}
 
 begin
   { ImageSwizzle passing depends on it. }
@@ -364,13 +373,88 @@ begin
       [Img.ClassName]);
 end;
 
-procedure glFreeTexture(var Tex: TGLTextureId);
+function ImageGLData(const Img: TEncodedImage): {$ifdef CASTLE_WEBGL} IJSTypedArray {$else} Pointer {$endif};
+{$ifdef CASTLE_WEBGL}
+var
+  I: TCastleImage;
+  X, Y, Z, C, ImageDataCount: Integer;
+  ResultUInt8: IJSUint8Array;
+  ResultFloat32: IJSFloat32Array;
 begin
-  if Tex <> 0 then
+  if Img is TCastleImage then
+  begin
+    I := TCastleImage(Img);
+    ImageDataCount := Img.Width * Img.Height * Img.Depth * I.ColorComponentsCount;
+    case ImageGLType(I) of
+      GL_UNSIGNED_BYTE:
+        begin
+          ResultUInt8 := TJSUInt8Array.Create(ImageDataCount);
+
+          { Unoptimized version, for reference. Copies one-by-one and
+            enables to change the order of any dimension / color component,
+            to match WebGL expectations.
+            Not necessary right now in the end. }
+          {
+          for Z := 0 to Img.Depth - 1 do
+            for Y := 0 to Img.Height - 1 do
+              for X := 0 to Img.Width - 1 do
+                for C := 0 to I.ColorComponentsCount - 1 do
+                  ResultUInt8[
+                    Z * Img.Width * Img.Height * I.ColorComponentsCount +
+                    Y * Img.Width * I.ColorComponentsCount +
+                    X * I.ColorComponentsCount +
+                    C] :=
+                  PByte(I.PixelPtr(X, Y, Z))[C];
+          }
+          ResultUInt8.CopyFromMemory(Img.RawPixels, ImageDataCount);
+
+          Result := ResultUInt8;
+        end;
+      GL_FLOAT:
+        begin
+          ResultFloat32 := TJSFloat32Array.Create(ImageDataCount);
+
+          { Unoptimized version, for reference.
+            See above.
+          }
+          {
+          for Z := 0 to Img.Depth - 1 do
+            for Y := 0 to Img.Height - 1 do
+              for X := 0 to Img.Width - 1 do
+                for C := 0 to I.ColorComponentsCount - 1 do
+                  ResultFloat32[
+                    Z * Img.Width * Img.Height * I.ColorComponentsCount +
+                    Y * Img.Width * I.ColorComponentsCount +
+                    X * I.ColorComponentsCount +
+                    C] :=
+                  PSingle(I.PixelPtr(X, Y, Z))[C];
+          }
+          ResultFloat32.CopyFromMemory(Img.RawPixels, ImageDataCount * SizeOf(Single));
+
+          Result := ResultFloat32;
+        end;
+      else
+        raise EImageClassNotSupportedForOpenGL.CreateFmt('Image class %s cannot be loaded to WebGL', [
+          Img.ClassName
+        ]);
+    end;
+  end else
+    raise EImageClassNotSupportedForOpenGL.CreateFmt('Image class %s cannot be loaded to WebGL', [
+      Img.ClassName
+    ]);
+{$else}
+begin
+  Result := Img.RawPixels;
+{$endif}
+end;
+
+procedure FreeTexture(var Tex: TGLTextureId);
+begin
+  if Tex <> GLObjectNone then
   begin
     TextureMemoryProfiler.Deallocate(Tex);
-    glDeleteTextures(1, @Tex);
-    Tex := 0;
+    glDeleteTexture(Tex);
+    Tex := GLObjectNone;
   end;
 end;
 

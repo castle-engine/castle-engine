@@ -63,7 +63,7 @@
         <PackageName Value="castle_base"/>
       </Item2>
     </RequiredPackages>
-    <Units Count="4">
+    <Units Count="3">
       <Unit0>
         <Filename Value="read_game_data_from_zip_standalone.dpr"/>
         <IsPartOfProject Value="True"/>
@@ -78,11 +78,6 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="gameinitialize"/>
       </Unit2>
-      <Unit3>
-        <Filename Value="code/gameunzip.pas"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="gameunzip"/>
-      </Unit3>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

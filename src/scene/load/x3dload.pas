@@ -524,8 +524,23 @@ function SaveLoad_FileFilters(const Load: boolean): String;
   begin
     Result := '';
     for ModelFormat in FRegisteredModelFormats do
+    begin
+      // Exclude ModelFormat that cannot be loaded / saved?
+      // Or not, display in "All Scenes" really all.
+
+      // if Load then
+      // begin
+      //   if not Assigned(ModelFormat.OnLoad) then
+      //     Continue;
+      // end else
+      // begin
+      //   if not Assigned(ModelFormat.OnSave) then
+      //     Continue;
+      // end;
+
       for Ext in ModelFormat.Extensions do
         Result := SAppendPart(Result, ';', '*' + Ext);
+    end;
   end;
 
   function FormatExtensions(const ModelFormat: TModelFormat): String;
@@ -539,18 +554,14 @@ function SaveLoad_FileFilters(const Load: boolean): String;
 
 var
   ModelFormat: TModelFormat;
-  DefaultMark: String;
 begin
   if FRegisteredModelFormats = nil then
     raise Exception.Create('No model formats registered, you try to build filters list too early, before initialization of Castle Game Engine units that register model formats');
 
   Result := 'All Files|*';
 
-  if Load then
-  begin
-    { When loading, "All Scenes" is the default filter. }
-    Result := Result + '|*All Scenes|' + AllExtensions;
-  end;
+  { "All Scenes" is the default filter for both loading and saving now. }
+  Result := Result + '|*All Scenes|' + AllExtensions;
 
   for ModelFormat in FRegisteredModelFormats do
   begin
@@ -565,11 +576,7 @@ begin
         Continue;
     end;
 
-    { When saving, the default filter is X3D XML. }
-    DefaultMark := Iff((not Load) and (ModelFormat.MimeTypes[0] = 'model/x3d+xml'), '*', '');
-
     Result := Result + '|' +
-      DefaultMark +
       ModelFormat.FileFilterName + '|' + FormatExtensions(ModelFormat);
   end;
 end;

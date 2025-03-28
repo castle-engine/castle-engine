@@ -170,6 +170,9 @@ procedure TTestParsingParameters.TestParsingParameters;
   var
     Answer: TParsedOptionList;
   begin
+    if not CanCatchExceptions then
+      Exit;
+
     Parameters.AssignArray(StartPars);
     AssertParsEqual(StartPars, TestName);
 

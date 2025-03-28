@@ -272,8 +272,17 @@ begin
     Unload
   else
   begin
-    NewFontData := TTextureFontData.Create(Url, ASize, AnAntiAliased, ACharacters, FDistanceField);
-    Load(NewFontData, true, AdjustProperties);
+    NewFontData := GetEmbeddedFont(Url);
+    if NewFontData <> nil then
+    begin
+      { Pass OwnsData = false in this case. }
+      Load(NewFontData, false, AdjustProperties);
+    end else
+    begin
+      NewFontData := TTextureFontData.Create(Url, ASize, AnAntiAliased,
+        ACharacters, FDistanceField);
+      Load(NewFontData, true, AdjustProperties);
+    end;
   end;
 end;
 

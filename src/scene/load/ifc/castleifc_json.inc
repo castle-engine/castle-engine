@@ -1,6 +1,6 @@
 {%MainUnit castleifc.pas}
 {
-  Copyright 2024-2024 Michalis Kamburelis.
+  Copyright 2024-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -157,7 +157,13 @@ begin
     JsonObj := JsonValue as TJsonObject;
     JsonObjType := JsonObj.Get('type', '');
     if (JsonObjType = 'IfcTimeStamp') or
-       (JsonObjType = 'IfcDimensionCount') then
+       (JsonObjType = 'IfcDimensionCount') or
+       // Testcase: Community-Sample-Test-Files-main/IFC 4.0.2.1 (IFC 4)/ISO Spec archive/beam-varying-profiles.ifcjson
+       (JsonObjType = 'IfcCardinalPointReference') or
+       // Testcase: Community-Sample-Test-Files-main/IFC 4.0.2.1 (IFC 4)/ISO Spec archive/beam-varying-profiles.ifcjson
+       (JsonObjType = 'IfcInteger') or
+       // Testcase: Community-Sample-Test-Files-main/IFC 4.0.2.1 (IFC 4)/ISO Spec archive/beam-curved-i-shape-tessellated.ifcjson
+       (JsonObjType = 'IfcPositiveInteger') then
       Result := JsonObj.Get('value', Int64(0))
     else
     begin
@@ -168,6 +174,43 @@ begin
     end;
   end else
     Result := JsonValue.AsInt64;
+end;
+
+(*Convert JSON value from IFC to Boolean.
+  Accounts both for values specified directly, e.g.
+
+    "isVentilated" : false
+
+  and wrapped in JSON objects e.g.
+
+    "isVentilated" : {
+      "type" : "IfcLogical",
+      "value" : false
+    },
+
+  Testcase: wall-standard-case.ifcjson from IFC spec examples.
+*)
+function JsonToBoolean(const JsonValue: TJsonData; const DebugJsonKey: String): Boolean;
+var
+  JsonObj: TJsonObject;
+  JsonObjType: String;
+begin
+  if JsonValue is TJsonObject then
+  begin
+    JsonObj := JsonValue as TJsonObject;
+    JsonObjType := JsonObj.Get('type', '');
+    if (JsonObjType = 'IfcLogical') or
+       (JsonObjType = 'IfcBoolean') then
+      Result := JsonObj.Get('value', false)
+    else
+    begin
+      WritelnWarning('IFC', 'IFC field "%s" is a JSON object, but not of type "IfcLogical", ignoring', [
+        DebugJsonKey
+      ]);
+      Result := false;
+    end;
+  end else
+    Result := JsonValue.AsBoolean;
 end;
 
 (*Convert JSON value from IFC to string.
@@ -198,7 +241,10 @@ begin
     if (JsonObjType = 'IfcPositiveLengthMeasure') or
        (JsonObjType = 'IfcNonNegativeLengthMeasure') or
        (JsonObjType = 'IfcLengthMeasure') or
-       (JsonObjType = 'IfcReal') then
+       (JsonObjType = 'IfcReal') or
+       (JsonObjType = 'IfcAreaMeasure') or
+       // Testcase: Community-Sample-Test-Files-main/IFC 4.0.2.1 (IFC 4)/ISO Spec archive/column-straight-rectangle-tessellation.ifcjson
+       (JsonObjType = 'IfcParameterValue') then
       Result := JsonObj.Get('value', 0.0)
     else
     begin
@@ -211,37 +257,156 @@ begin
     Result := JsonValue.AsFloat;
 end;
 
-{ Read JSON array into TVector2 }
-function JsonToVector2(const JsonChildArray: TJsonArray; const DebugJsonKey: String): TVector2;
+(*Read JSON into TVector2, TVector3 or TVector4.
+  Json can be an array, like [1, 2, 3].
+  Or an object like
+
+  {
+    "type" : "IfcCartesianPoint",
+    "coordinates" : [ {
+      "type" : "IfcLengthMeasure",
+      "value" : -0.0796551778912544
+    }, {
+      "type" : "IfcLengthMeasure",
+      "value" : 0.0758620649576187
+    }, {
+      "type" : "IfcLengthMeasure",
+      "value" : -0.28099998831749
+    } ]
+  }
+
+  See testcase
+  Community-Sample-Test-Files-main/IFC 4.0.2.1 (IFC 4)/ISO Spec archive/slab-openings.ifcjson,
+  to test 2D version, for IfcCartesianPointList2D.
+*)
+procedure JsonToVectorGeneric(const Json: TJsonData; const DebugJsonKey: String;
+  const Vector: PSingle; const VectorCount: Integer);
 var
   I: Integer;
+  JsonArray: TJsonArray;
+  JsonObj: TJsonObject;
 begin
-  Result := TVector2.Zero;
-  for I := 0 to Result.Count - 1 do
-    if I < JsonChildArray.Count then
-      Result.Data[I] := JsonToFloat(JsonChildArray.Items[I], DebugJsonKey);
+  for I := 0 to VectorCount - 1 do
+    Vector[I] := 0.0;
+
+  if Json is TJsonArray then
+  begin
+    JsonArray := TJsonArray(Json);
+    for I := 0 to Min(VectorCount, JsonArray.Count) - 1 do
+      Vector[I] := JsonToFloat(JsonArray.Items[I], DebugJsonKey);
+  end else
+  if Json is TJsonObject then
+  begin
+    JsonObj := TJsonObject(Json);
+    if (JsonObj.Get('type', '') = 'IfcCartesianPoint') and
+       (JsonObj.Find('coordinates') is TJsonArray) then // also checks JsonObj.Find('coordinates') is not nil
+    begin
+      // recursive call to read from "coordinates" field
+      JsonToVectorGeneric(JsonObj.Find('coordinates'), DebugJsonKey, Vector, VectorCount);
+    end else
+    // Testcase: normals in Community-Sample-Test-Files-main/IFC 4.0.2.1 (IFC 4)/ISO Spec archive/column-straight-rectangle-tessellation.ifcjson
+    if (JsonObj.Get('type', '') = '') and
+       (JsonObj.Find('parameterValues') is TJsonArray) then // also checks JsonObj.Find('coordinates') is not nil
+    begin
+      // recursive call to read from "coordinates" field
+      JsonToVectorGeneric(JsonObj.Find('parameterValues'), DebugJsonKey, Vector, VectorCount);
+    end else
+    begin
+      WritelnWarning('IFC', 'Cannot read vector: IFC field "%s" is a JSON object, but not of type "IfcCartesianPoint" or with "parameterValues"', [
+        DebugJsonKey
+      ]);
+    end;
+  end else
+  begin
+    WritelnWarning('IFC', 'Cannot read vector: IFC field "%s" is not a JSON array or object', [
+      DebugJsonKey
+    ]);
+  end;
 end;
 
-{ Read JSON array into TVector3 }
-function JsonToVector3(const JsonChildArray: TJsonArray; const DebugJsonKey: String): TVector3;
-var
-  I: Integer;
+function JsonToVector2(const Json: TJsonData; const DebugJsonKey: String): TVector2;
 begin
-  Result := TVector3.Zero;
-  for I := 0 to Result.Count - 1 do
-    if I < JsonChildArray.Count then
-      Result.Data[I] := JsonToFloat(JsonChildArray.Items[I], DebugJsonKey);
+  JsonToVectorGeneric(Json, DebugJsonKey, @Result.Data, 2);
 end;
 
-{ Read JSON array into TVector4 }
-function JsonToVector4(const JsonChildArray: TJsonArray; const DebugJsonKey: String): TVector4;
+function JsonToVector3(const Json: TJsonData; const DebugJsonKey: String): TVector3;
+begin
+  JsonToVectorGeneric(Json, DebugJsonKey, @Result.Data, 3);
+end;
+
+function JsonToVector4(const Json: TJsonData; const DebugJsonKey: String): TVector4;
+begin
+  JsonToVectorGeneric(Json, DebugJsonKey, @Result.Data, 4);
+end;
+
+(*Read JSON into TVector2Integer, TVector3Integer or TVector4Integer.
+  Json can be an array, like [1, 2, 3].
+  Or an object like
+
+  Or an object like
+
+  {
+    "positiveIntegers" : [ {
+      "type" : "IfcPositiveInteger",
+      "value" : 57
+    }, {
+      "type" : "IfcPositiveInteger",
+      "value" : 6
+    }, {
+      "type" : "IfcPositiveInteger",
+      "value" : 59
+    } ]
+  }
+
+  Testcase:
+  Community-Sample-Test-Files-main/IFC 4.0.2.1 (IFC 4)/ISO Spec archive/beam-curved-i-shape-tessellated.ifcjson
+*)
+procedure JsonToVectorIntegerGeneric(const Json: TJsonData; const DebugJsonKey: String;
+  const Vector: PInteger; const VectorCount: Integer);
 var
   I: Integer;
+  JsonArray: TJsonArray;
+  JsonObj: TJsonObject;
+  JsonObjType: String;
+  JsonObjValue: TJsonData;
 begin
-  Result := TVector4.Zero;
-  for I := 0 to Result.Count - 1 do
-    if I < JsonChildArray.Count then
-      Result.Data[I] := JsonToFloat(JsonChildArray.Items[I], DebugJsonKey);
+  for I := 0 to VectorCount - 1 do
+    Vector[I] := 0;
+
+  if Json is TJsonArray then
+  begin
+    JsonArray := TJsonArray(Json);
+    for I := 0 to Min(VectorCount, JsonArray.Count) - 1 do
+      Vector[I] := JsonToInteger(JsonArray.Items[I], DebugJsonKey);
+  end else
+  if Json is TJsonObject then
+  begin
+    JsonObj := TJsonObject(Json);
+    JsonObjType := JsonObj.Get('type', '');
+    JsonObjValue := JsonObj.Find('positiveIntegers');
+    if (JsonObjType = '') and
+       (JsonObjValue is TJsonArray) then // also checks JsonObjValue is not nil
+    begin
+      // recursive call to read from "coordinates" field
+      JsonToVectorIntegerGeneric(JsonObjValue, DebugJsonKey, Vector, VectorCount);
+    end else
+    begin
+      WritelnWarning('IFC', 'Cannot read vector: IFC field "%s" is a JSON object, but not of type "IfcCartesianPoint"', [
+        DebugJsonKey
+      ]);
+    end;
+  end else
+  begin
+    WritelnWarning('IFC', 'Cannot read vector: IFC field "%s" is not a JSON array or object', [
+      DebugJsonKey
+    ]);
+  end;
+end;
+
+{ Read JSON into TVector3Integer. }
+function JsonToVector3Integer(const Json: TJsonData; const DebugJsonKey: String): TVector3Integer;
+begin
+  JsonToVectorIntegerGeneric(Json, DebugJsonKey, @Result.Data, 3);
 end;
 
 { Return random GUID, formatted as common in IFC JSON encoding. }
@@ -461,7 +626,7 @@ var
         ]);
       Vector2List.Clear;
       for I := 0 to JsonChildArray.Count - 1 do
-        Vector2List.Add(JsonToVector2(JsonChildArray.Items[I] as TJsonArray, DebugJsonKey));
+        Vector2List.Add(JsonToVector2(JsonChildArray.Items[I], DebugJsonKey));
     end;
 
     { From elements of JsonChildArray read TVector3List contents
@@ -470,16 +635,34 @@ var
       const JsonChildArray: TJsonArray);
     var
       I: Integer;
-      Vector3List: TVector3List;
+      VecList: TVector3List;
     begin
-      Vector3List := PropertyGetInstance(Ifc, PropInfo) as TVector3List;
-      if Vector3List = nil then
+      VecList := PropertyGetInstance(Ifc, PropInfo) as TVector3List;
+      if VecList = nil then
         raise EInvalidIfc.CreateFmt('Pascal property "%s" is supposed to be a TVector3List, but it is nil', [
           PropInfo^.Name
         ]);
-      Vector3List.Clear;
+      VecList.Clear;
       for I := 0 to JsonChildArray.Count - 1 do
-        Vector3List.Add(JsonToVector3(JsonChildArray.Items[I] as TJsonArray, DebugJsonKey));
+        VecList.Add(JsonToVector3(JsonChildArray.Items[I], DebugJsonKey));
+    end;
+
+    { From elements of JsonChildArray read TVector3IntegerList contents
+      into property PropInfo of Ifc, which must be a TVector3IntegerList. }
+    procedure ReadIfcChildVector3IntegerList(const PropInfo: PPropInfo;
+      const JsonChildArray: TJsonArray);
+    var
+      I: Integer;
+      VecList: TVector3IntegerList;
+    begin
+      VecList := PropertyGetInstance(Ifc, PropInfo) as TVector3IntegerList;
+      if VecList = nil then
+        raise EInvalidIfc.CreateFmt('Pascal property "%s" is supposed to be a TVector3IntegerList, but it is nil', [
+          PropInfo^.Name
+        ]);
+      VecList.Clear;
+      for I := 0 to JsonChildArray.Count - 1 do
+        VecList.Add(JsonToVector3Integer(JsonChildArray.Items[I], DebugJsonKey));
     end;
 
     (*From elements of JsonChildArray read TIfcCompoundPlaneAngleMeasure instance
@@ -569,19 +752,15 @@ var
     end;
 
     { For all elements on JsonChildArray create and read Pascal class,
-      and add it to property PropInfo of Ifc,
-      which should be a list descendant. }
-    procedure ReadIfcChildArray(const PropInfo: PPropInfo;
-      const JsonChildArray: TJsonArray);
+      and add it to List. }
+    procedure ReadIfcChildArray(const List: TIfcPersistentList;
+      const JsonChildArray: TJsonArray); overload;
     var
-      List: TIfcPersistentList;
       I: Integer;
       IfcChild: TIfcPersistent;
       JsonChildObj: TJsonObject;
       RequiredClass: TIfcPersistentClass;
     begin
-      List := GetListProperty(PropInfo);
-
       for I := 0 to JsonChildArray.Count - 1 do
       begin
         if JsonChildArray.Items[I] is TJsonObject then
@@ -614,6 +793,15 @@ var
           List.Add(IfcChild);
         end;
       end;
+    end;
+
+    { For all elements on JsonChildArray create and read Pascal class,
+      and add it to property PropInfo of Ifc,
+      which should be a list descendant. }
+    procedure ReadIfcChildArray(const PropInfo: PPropInfo;
+      const JsonChildArray: TJsonArray); overload;
+    begin
+      ReadIfcChildArray(GetListProperty(PropInfo), JsonChildArray);
     end;
 
     { Read one JSON object, add it as the only item to the list property PropInfo of Ifc.
@@ -669,6 +857,7 @@ var
          (not (CurrentInstance is TIntegerList)) and
          (not (CurrentInstance is TVector2List)) and
          (not (CurrentInstance is TVector3List)) and
+         (not (CurrentInstance is TVector3IntegerList)) and
          (not RequiredClass.InheritsFrom(TIfcCompoundPlaneAngleMeasure)) and
          (not ClassNameOfList(PropertyGetInstanceClass(Ifc, PropInfo).ClassName)) then
       begin
@@ -717,6 +906,9 @@ var
         if CurrentInstance is TVector3List then
           ReadIfcChildVector3List(PropInfo, JsonInstanceValue as TJsonArray)
         else
+        if CurrentInstance is TVector3IntegerList then
+          ReadIfcChildVector3IntegerList(PropInfo, JsonInstanceValue as TJsonArray)
+        else
         if CurrentInstance is TCastleVector3Persistent then
           ReadIfcChildVector3(PropInfo, JsonInstanceValue as TJsonArray)
         else
@@ -737,6 +929,16 @@ var
       end;
     end;
 
+    { Read "data" list to TIfcFile.TemporaryData. }
+    procedure ReadFileData(const IfcFile: TIfcFile; const JsonArray: TJsonArray);
+    begin
+      if IfcFile.TemporaryData <> nil then
+        raise EInvalidIfc.Create('Duplicate "data" field in IFC file');
+      IfcFile.TemporaryData := TIfcPersistentList.Create(false);
+      ReadIfcChildArray(IfcFile.TemporaryData, JsonArray);
+      IfcFile.Project := TIfcFile.ProjectFromDataList(IfcFile.TemporaryData);
+    end;
+
   var
     I: Integer;
     JsonKey: String;
@@ -747,7 +949,18 @@ var
       JsonKey := Json.Names[I];
       if JsonKey = 'type' then // special field, handled by code that calls DeserializeJson
         Continue;
-      DebugJsonKey := PrefixRemove('T', Ifc.ClassName, false) + '.' + JsonKey;
+      DebugJsonKey := Ifc.IfcClassName + '.' + JsonKey;
+
+      { Special handling of "data" list within TIfcFile.
+        TIfcFile.Data is not a published property (because it would make sense
+        only temporarily during loading), so we load it with dedicated code here. }
+      if (JsonKey = 'data') and
+         (Json.Items[I] is TJsonArray) and
+         (Ifc is TIfcFile) then
+      begin
+        ReadFileData(TIfcFile(Ifc), Json.Items[I] as TJsonArray);
+        Continue;
+      end;
 
       PropInfo := GetPropInfo(Ifc.ClassInfo, JsonKey);
       if PropInfo = nil then
@@ -768,7 +981,7 @@ var
           ptInteger:
             PropertySetInteger(Ifc, PropInfo, JsonToInteger(Json.Items[I], DebugJsonKey));
           ptBoolean:
-            PropertySetBoolean(Ifc, PropInfo, Json.Items[I].AsBoolean);
+            PropertySetBoolean(Ifc, PropInfo, JsonToBoolean(Json.Items[I], DebugJsonKey));
           ptFloat:
             PropertySetFloat(Ifc, PropInfo, JsonToFloat(Json.Items[I], DebugJsonKey));
           ptInstance:
@@ -810,46 +1023,63 @@ var
     or make a warning and set UnresolvedRef to '' if not possible.
 
     By the end of this, UnresolvedRef should be empty in all TIfcPersistent instances. }
-  procedure ResolveReferences(const Ifc: TIfcPersistent);
+  procedure ResolveReferences(const IfcFile: TIfcFile);
   var
     Visited: TIfcPersistentList;
 
+    { Resolve reference indicated by IfcToResolve,
+      which must have UnresolvedRef non-empty.
+      Sets NewIfc to the resolved reference (if success)
+      or makes a warning and sets to IfcToResolve (if failure). }
+    procedure ResolveRef(const IfcToResolve: TIfcPersistent; out NewIfc: TIfcPersistent);
+    var
+      IfcRefIndex: Integer;
+    begin
+      Assert(IfcToResolve.UnresolvedRef <> '');
+      IfcRefIndex := Refs.IndexOf(IfcToResolve.UnresolvedRef);
+      if IfcRefIndex = -1 then
+      begin
+        WritelnWarning('IFC', 'IFC reference "%s" (class "%s") not found, leaving unresolved', [
+          IfcToResolve.UnresolvedRef,
+          IfcToResolve.ClassName
+        ]);
+        IfcToResolve.UnresolvedRef := '';
+        NewIfc := IfcToResolve;
+      end else
+      begin
+        NewIfc := Refs.Objects[IfcRefIndex] as TIfcPersistent;
+        Assert(NewIfc <> nil);
+      end;
+    end;
+
+    procedure ResolveReferencesCore(const Ifc: TIfcPersistent); forward;
+
+    procedure ResolveReferencesList(const List: TIfcPersistentList);
+    var
+      J: Integer;
+      IfcObjPropertyPersistent, NewIfcObjProperty: TIfcPersistent;
+    begin
+      for J := 0 to List.Count - 1 do
+      begin
+        IfcObjPropertyPersistent := List[J];
+        if IfcObjPropertyPersistent.UnresolvedRef <> '' then
+        begin
+          ResolveRef(IfcObjPropertyPersistent, NewIfcObjProperty);
+          List[J] := NewIfcObjProperty;
+        end else
+          ResolveReferencesCore(IfcObjPropertyPersistent);
+      end;
+    end;
+
     { Recursive subroutine of ResolveReferences. }
     procedure ResolveReferencesCore(const Ifc: TIfcPersistent);
-
-      { Resolve reference indicated by IfcToResolve,
-        which must have UnresolvedRef non-empty.
-        Sets NewIfc to the resolved reference (if success)
-        or makes a warning and sets to IfcToResolve (if failure). }
-      procedure ResolveRef(const IfcToResolve: TIfcPersistent; out NewIfc: TIfcPersistent);
-      var
-        IfcRefIndex: Integer;
-      begin
-        Assert(IfcToResolve.UnresolvedRef <> '');
-        IfcRefIndex := Refs.IndexOf(IfcToResolve.UnresolvedRef);
-        if IfcRefIndex = -1 then
-        begin
-          WritelnWarning('IFC', 'IFC reference "%s" (class "%s") not found, leaving unresolved', [
-            IfcToResolve.UnresolvedRef,
-            IfcToResolve.ClassName
-          ]);
-          IfcToResolve.UnresolvedRef := '';
-          NewIfc := IfcToResolve;
-        end else
-        begin
-          NewIfc := Refs.Objects[IfcRefIndex] as TIfcPersistent;
-          Assert(NewIfc <> nil);
-        end;
-      end;
-
     var
       PropInfos: TPropInfoList;
       PropInfo: PPropInfo;
       PropType: TPropertyType;
       IfcObjProperty: TObject;
       IfcObjPropertyPersistent, NewIfcObjProperty: TIfcPersistent;
-      List: TIfcPersistentList;
-      I, J: Integer;
+      I: Integer;
     begin
       if Visited.Contains(Ifc) then
         Exit; // already visited, exit early to avoid cycles
@@ -868,17 +1098,7 @@ var
               ClassNameOfList(IfcObjProperty.ClassName) then
             begin
               { List of instances. Resolve references in each of them. }
-              List := TIfcPersistentList(IfcObjProperty);
-              for J := 0 to List.Count - 1 do
-              begin
-                IfcObjPropertyPersistent := List[J];
-                if IfcObjPropertyPersistent.UnresolvedRef <> '' then
-                begin
-                  ResolveRef(IfcObjPropertyPersistent, NewIfcObjProperty);
-                  List[J] := NewIfcObjProperty;
-                end else
-                  ResolveReferencesCore(IfcObjPropertyPersistent);
-              end;
+              ResolveReferencesList(TIfcPersistentList(IfcObjProperty));
             end else
             if IfcObjProperty is TIfcPersistent then
             begin
@@ -899,7 +1119,14 @@ var
   begin
     Visited := TIfcPersistentList.Create(false);
     try
-      ResolveReferencesCore(Ifc);
+      ResolveReferencesCore(IfcFile);
+
+      { Special handling for unpublished TIfcFile.TemporaryData,
+        where we also need to resolve references,
+        to have everything in TIfcFile.Project (that refers to one item
+        on this list) resolved. }
+      if IfcFile.TemporaryData <> nil then
+        ResolveReferencesList(IfcFile.TemporaryData);
     finally FreeAndNil(Visited) end;
   end;
 
@@ -929,7 +1156,7 @@ begin
     if TopLevelType = 'IfcProject' then
     begin
       Project := TIfcProject.Create(IfcOwner);
-      Result.Data.Add(Project);
+      Result.Project := Project;
       DeserializeJson(JsonObj, Project);
     end else
     begin
@@ -948,6 +1175,8 @@ begin
     end;
 
     ResolveReferences(Result);
+
+    FreeAndNil(Result.TemporaryData);
   finally FreeAndNil(Refs) end;
 end;
 
@@ -958,7 +1187,8 @@ var
     (when given instance is already saved) and when full instance. }
   Refs: TIfcPersistentList;
 
-  function SerializeJson(const Ifc: TIfcPersistent): TJsonObject; forward;
+  function SerializeJson(const Ifc: TIfcPersistent;
+    const SerializingFileData: Boolean): TJsonObject; forward;
 
   { Serialize TVector2 to JSON array. }
   function SerializeJsonVector2(const Vector: TVector2): TJsonArray; overload;
@@ -983,6 +1213,16 @@ var
   function SerializeJsonVector3(const Vector: TCastleVector3Persistent): TJsonArray; overload;
   begin
     Result := SerializeJsonVector3(Vector.Value);
+  end;
+
+  { Serialize TVector3Integer to JSON array. }
+  function SerializeJsonVector3Integer(const Vector: TVector3Integer): TJsonArray; overload;
+  var
+    I: Integer;
+  begin
+    Result := TJsonArray.Create;
+    for I := 0 to Vector.Count - 1 do
+      Result.Add(Vector.Data[I]);
   end;
 
   { Serialize TVector4 to JSON array. }
@@ -1031,13 +1271,23 @@ var
   end;
 
   { Serialize TVector3List to JSON array. }
-  function SerializeJsonVector3List(const Vector3List: TVector3List): TJsonArray;
+  function SerializeJsonVector3List(const VecList: TVector3List): TJsonArray;
   var
     I: Integer;
   begin
     Result := TJsonArray.Create;
-    for I := 0 to Vector3List.Count - 1 do
-      Result.Add(SerializeJsonVector3(Vector3List[I]));
+    for I := 0 to VecList.Count - 1 do
+      Result.Add(SerializeJsonVector3(VecList[I]));
+  end;
+
+  { Serialize TVector3IntegerList to JSON array. }
+  function SerializeJsonVector3IntegerList(const VecList: TVector3IntegerList): TJsonArray;
+  var
+    I: Integer;
+  begin
+    Result := TJsonArray.Create;
+    for I := 0 to VecList.Count - 1 do
+      Result.Add(SerializeJsonVector3Integer(VecList[I]));
   end;
 
   {$ifdef FPC}
@@ -1049,7 +1299,8 @@ var
   { For all elements on JsonChildArray create and read Pascal class,
     and add it to property PropInfo of Ifc,
     which should be a list descendant. }
-  function SerializeJsonList(const ListRaw: TObject): TJsonArray;
+  function SerializeJsonList(const ListRaw: TObject;
+    const SerializingFileData: Boolean): TJsonArray;
   var
     I: Integer;
     List: TIfcPersistentList;
@@ -1057,7 +1308,7 @@ var
     List := TIfcPersistentList(ListRaw);
     Result := TJsonArray.Create;
     for I := 0 to List.Count - 1 do
-      Result.Add(SerializeJson(List[I]));
+      Result.Add(SerializeJson(List[I], SerializingFileData));
   end;
 
   { Is given ListRaw a list, and it is not empty. }
@@ -1072,12 +1323,19 @@ var
       (List.Count <> 0);
   end;
 
+var
+  { Result of TIfcFile.CreateDataList. }
+  FileData: TIfcPersistentList;
+
   {$ifdef FPC}
     {$pop}
   {$endif}
 
-  { Serialize TIfcPersistent instance to JSON object. }
-  function SerializeJson(const Ifc: TIfcPersistent): TJsonObject;
+  { Serialize TIfcPersistent instance to JSON object.
+    @param(SerializingFileData When we iterate over data list
+      returned by TIfcFile.CreateDataList) }
+  function SerializeJson(const Ifc: TIfcPersistent;
+    const SerializingFileData: Boolean): TJsonObject;
   var
     PropInfos: TPropInfoList;
     PropInfo: PPropInfo;
@@ -1090,7 +1348,7 @@ var
     Result := TJsonObject.Create;
 
     // save "type" in IFC
-    IfcClassName := PrefixRemove('T', Ifc.ClassName, false);
+    IfcClassName := Ifc.IfcClassName;
     if Ifc is TIfcFile then
       Result.Add('type', 'IFC.JSON')
     else
@@ -1104,16 +1362,46 @@ var
       Exit;
     end;
 
+    { All IFC objects must be listed (not as references)
+      on the "data" list. This make JSON read correctly by conversion scripts
+      in https://github.com/buildingsmart-community/ifcJSON .
+      This implies that we only write a reference to an object,
+      if it should be instead present on the "data" list. }
+    if (FileData.IndexOf(Ifc) <> -1) and
+       (not SerializingFileData) then
+    begin
+      Result.Add('ref', Ifc.GlobalId);
+      Exit;
+    end;
+
     // update Refs
     if RefsContains then
-      raise EInvalidIfc.CreateFmt('IFC instance of "%s" (GUID "%s") was already saved to IFC file so our logic to avoid writing full class more than once (and avoid infinite recursion when writing) is faulty, or maybe we need to generate GUIDs for any TIfcPersistent', [
+    begin
+      {$ifdef CASTLE_DEBUG_IFC_MISSING_GUID}
+      WritelnWarning
+      {$else}
+      raise EInvalidIfc.CreateFmt
+      {$endif}
+      ('IFC instance of "%s" (GUID "%s") was already saved to IFC file.' + NL +
+        '  If the GUID is empty then maybe the %s class, or one of things that contain it in IFC file, needs WantsGlobalId = true.' + NL +
+        '  If GUID is not empty, then our logic to avoid writing full class more than once (and avoid infinite recursion when writing) is faulty.' + NL +
+        '  Report a bug with testcase either way.', [
+        Ifc.ClassName,
+        Ifc.GlobalId,
+        Ifc.ClassName
+      ]);
+      Result.Add('warning', Format('IFC instance of "%s" (GUID "%s") was already saved to IFC file', [
         Ifc.ClassName,
         Ifc.GlobalId
-      ]);
-    { Create GlobalId only for TIfcRoot, because IFC spec allows it only
-      on TIfcRoot. Our implementation allows it on any TIfcPersistent
-      as some IFC files actually have it. }
-    if (Ifc.GlobalId = '') and (Ifc is TIfcRoot) then
+      ]));
+      Exit;
+    end;
+
+    { Create GlobalId only when WantsGlobalId.
+      IFC spec allows it only on TIfcRoot, though IFC JSON spec encourages
+      "broader use" and in practice it is used, and really necessary,
+      on other classes too. }
+    if (Ifc.GlobalId = '') and Ifc.WantsGlobalId then
       Ifc.GlobalId := RandomGuidIfc;
     { Update Refs for any object, not only TIfcRoot.
       So Ifc.GlobalId may be '' here. }
@@ -1179,6 +1467,9 @@ var
                 if IfcObjProperty is TVector3List then
                   Result.Add(JsonKey, SerializeJsonVector3List(TVector3List(IfcObjProperty)))
                 else
+                if IfcObjProperty is TVector3IntegerList then
+                  Result.Add(JsonKey, SerializeJsonVector3IntegerList(TVector3IntegerList(IfcObjProperty)))
+                else
                 if IfcObjProperty is TCastleVector3Persistent then
                   Result.Add(JsonKey, SerializeJsonVector3(TCastleVector3Persistent(IfcObjProperty)))
                 else
@@ -1186,13 +1477,13 @@ var
                   Result.Add(JsonKey, SerializeJsonVector4(TCastleVector4Persistent(IfcObjProperty)))
                 else
                 if IfcObjProperty is TIfcPersistent then
-                  Result.Add(JsonKey, SerializeJson(TIfcPersistent(IfcObjProperty)))
+                  Result.Add(JsonKey, SerializeJson(TIfcPersistent(IfcObjProperty), false))
                 else
                 if ClassNameOfList(IfcObjProperty.ClassName) then
                 begin
                   // don't save empty lists, just for shorter output
                   if NonEmptyList(IfcObjProperty) then
-                    Result.Add(JsonKey, SerializeJsonList(IfcObjProperty));
+                    Result.Add(JsonKey, SerializeJsonList(IfcObjProperty, false));
                 end else
                   WritelnWarning('IFC', 'IFC field "%s" has unsupported class "%s", ignoring', [
                     DebugPropName,
@@ -1212,10 +1503,21 @@ var
   end;
 
 begin
-  Refs := TIfcPersistentList.Create(false);
+  FileData := IfcFile.CreateDataList;
   try
-    Result := SerializeJson(IfcFile);
-  finally FreeAndNil(Refs) end;
+    Refs := TIfcPersistentList.Create(false);
+    try
+      Result := SerializeJson(IfcFile, false);
+
+      { Serialize IfcFile.CreateDataList result.
+        Note that we could also define "Data: TIfcPersistentList" at TIfcFile,
+        to have simpler load / save code, and in fact we had this in the past.
+        But then it was bad TIfcFile API: the Data should not be ever
+        manipulated except during loading / saving, normal IFC operations
+        should always work on TIfcFile.Project. }
+      Result.Add('data', SerializeJsonList(FileData, true));
+    finally FreeAndNil(Refs) end;
+  finally FreeAndNil(FileData) end;
 end;
 
 { convenience overloads that load/save from/to URL --------------------------- }

@@ -1364,6 +1364,10 @@ object DesignFrame: TDesignFrame
       Caption = 'Duplicate'
       OnClick = MenuTreeViewItemDuplicateClick
     end
+    object MenuTreeViewItemDuplicateLinked: TMenuItem
+      Caption = 'Duplicate Linked (TCastleTransformReference)'
+      OnClick = MenuTreeViewItemDuplicateLinkedClick
+    end
     object MenuTreeViewItemCut: TMenuItem
       Caption = 'Cut'
       OnClick = MenuTreeViewItemCutClick

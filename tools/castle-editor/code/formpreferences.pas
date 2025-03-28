@@ -311,7 +311,7 @@ procedure TPreferencesForm.FormClose(Sender: TObject;
   { When CastleEngineOverridePath changed, we need to recalculate stuff based on it. }
   procedure CastleEngineOverridePathChanged;
   var
-    OldApplicationDataOverride: String;
+    EditorApplicationData: TEditorApplicationData;
   begin
     { Recalculate InternalCastleDesignData that depends on detected CGE path.
       This way changes to CGE path in "Preferences" update also
@@ -321,19 +321,22 @@ procedure TPreferencesForm.FormClose(Sender: TObject;
       - test with castle-editor in bin/ subdirectory of CGE
         (like in binary distribution; this means that ExeName will not be enough
         to guess editor data location)
-      - set CastleEngineOverridePath to something invalid but non-empty (i.e. to non-existing dir)
-      - restart editor (TChooseProjectForm.FormCreate will set InternalCastleDesignData to '',
-        because CastleEnginePath is invalid and CastleEnginePath + tools/castle-editor/data doesn't exist)
+      - set CastleEngineOverridePath to something invalid but non-empty
+        (i.e. to non-existing dir)
+      - restart editor (TChooseProjectForm.FormCreate will set
+        InternalCastleDesignData to '',
+        because CastleEnginePath is invalid and
+        CastleEnginePath + tools/castle-editor/data doesn't exist)
       - open some project, open some design with viewport.
         It will fail, and it's kind of OK -- engine path was invalid.
       - go to Preferences and change CastleEngineOverridePath to empty
       - reopen the project (or reopen design within it)
       - now it should open OK.
     }
-    OldApplicationDataOverride := ApplicationDataOverride;
-    UseEditorApplicationData;
-    InternalCastleDesignData := ResolveCastleDataUrl('castle-data:/');
-    ApplicationDataOverride := OldApplicationDataOverride;
+    EditorApplicationData := TEditorApplicationData.Create;
+    try
+      InternalCastleDesignData := ResolveCastleDataUrl('castle-data:/');
+    finally FreeAndNil(EditorApplicationData) end;
   end;
 
 begin

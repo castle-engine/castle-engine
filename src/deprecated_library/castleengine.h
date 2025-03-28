@@ -1,5 +1,5 @@
 /*
-  Copyright 2013-2024 Jan Adamec, Michalis Kamburelis.
+  Copyright 2013-2025 Jan Adamec, Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -25,6 +25,8 @@
 
 #ifndef CGE_LIBRARY_INCLUDED
 #define CGE_LIBRARY_INCLUDED
+
+#include <stdbool.h>
 
 #ifdef __GNUC__
 #  ifdef __i386
@@ -365,8 +367,30 @@ extern void CGE_SetWalkNavigationMouseDragMode(int /*ECgeMouseDragMode*/ eMode);
 extern void CGE_SetVariableInt(int /*ECgeVariable*/ eVar, int nValue);
 extern int CGE_GetVariableInt(int /*ECgeVariable*/ eVar);
 
-extern void CGE_SetNodeFieldValue(const char *szNodeName, const char *szFieldName,
-                                  float fVal1, float fVal2, float fVal3, float fVal4);
+extern void CGE_SetNodeFieldValue_SFFloat(const char *szNodeName, const char *szFieldName, float value);
+extern void CGE_SetNodeFieldValue_SFDouble(const char *szNodeName, const char *szFieldName, double value);
+extern void CGE_SetNodeFieldValue_SFInt32(const char *szNodeName, const char *szFieldName, int value);
+extern void CGE_SetNodeFieldValue_SFBool(const char *szNodeName, const char *szFieldName, bool value);
+extern void CGE_SetNodeFieldValue_SFVec2f(const char *szNodeName, const char *szFieldName, float val1, float val2);
+extern void CGE_SetNodeFieldValue_SFVec3f(const char *szNodeName, const char *szFieldName, float val1, float val2, float val3);
+extern void CGE_SetNodeFieldValue_SFVec4f(const char *szNodeName, const char *szFieldName, float val1, float val2, float val3, float val4);
+extern void CGE_SetNodeFieldValue_SFVec2d(const char *szNodeName, const char *szFieldName, double val1, float val2);
+extern void CGE_SetNodeFieldValue_SFVec3d(const char *szNodeName, const char *szFieldName, double val1, float val2, float val3);
+extern void CGE_SetNodeFieldValue_SFVec4d(const char *szNodeName, const char *szFieldName, double val1, float val2, float val3, float val4);
+extern void CGE_SetNodeFieldValue_SFRotation(const char *szNodeName, const char *szFieldName, float axisX, float axisY, float axisZ, float rotation);
+extern void CGE_SetNodeFieldValue_SFString(const char *szNodeName, const char *szFieldName, const char *value);
+extern void CGE_SetNodeFieldValue_MFFloat(const char *szNodeName, const char *szFieldName, int iCount, float *values);
+extern void CGE_SetNodeFieldValue_MFDouble(const char *szNodeName, const char *szFieldName, int iCount, double *values);
+extern void CGE_SetNodeFieldValue_MFInt32(const char *szNodeName, const char *szFieldName, int iCount, int *values);
+extern void CGE_SetNodeFieldValue_MFBool(const char *szNodeName, const char *szFieldName, int iCount, bool *values);
+extern void CGE_SetNodeFieldValue_MFVec2f(const char *szNodeName, const char *szFieldName, int iCount, float *values);  // we expect "2 * iCount" floats in the array "values"
+extern void CGE_SetNodeFieldValue_MFVec3f(const char *szNodeName, const char *szFieldName, int iCount, float *values);  // we expect "3 * iCount" floats in the array "values"
+extern void CGE_SetNodeFieldValue_MFVec4f(const char *szNodeName, const char *szFieldName, int iCount, float *values);  // we expect "4 * iCount" floats in the array "values"
+extern void CGE_SetNodeFieldValue_MFVec2d(const char *szNodeName, const char *szFieldName, int iCount, double *values);  // we expect "2 * iCount" doubles in the array "values"
+extern void CGE_SetNodeFieldValue_MFVec3d(const char *szNodeName, const char *szFieldName, int iCount, double *values);  // we expect "3 * iCount" doubles in the array "values"
+extern void CGE_SetNodeFieldValue_MFVec4d(const char *szNodeName, const char *szFieldName, int iCount, double *values);  // we expect "4 * iCount" doubles in the array "values"
+extern void CGE_SetNodeFieldValue_MFRotation(const char *szNodeName, const char *szFieldName, int iCount, float *values);  // we expect "4 * iCount" floats in the array "values"
+extern void CGE_SetNodeFieldValue_MFString(const char *szNodeName, const char *szFieldName, int iCount, const char **values);  // We expect array of "iCount" char* pointers to null-terminated UTF-8 strings
 
 extern void CGE_IncreaseSceneTime(float fTimeS);    // set time in the scene, useful when viewport paused
 

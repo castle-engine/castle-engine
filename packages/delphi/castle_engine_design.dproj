@@ -109,6 +109,9 @@
         <DCCReference Include="castle_engine_vcl.dcp"/>
         <DCCReference Include="castle_engine_fmx.dcp"/>
         <DCCReference Include="..\..\src\delphi\castleinternaldelphidesign.pas"/>
+        <DCCReference Include="..\..\src\files\tools\castleinternaltools.pas"/>
+        <DCCReference Include="..\..\src\files\tools\castleinternalprojectlocalsettings.pas"/>
+        <DCCReference Include="..\..\src\files\tools\castleinternalarchitectures.pas"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>

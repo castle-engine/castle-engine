@@ -923,6 +923,11 @@ begin
   Result := 'Android';
 end;
 
+function TCastleApplication.MultipleWindowsPossible: Boolean;
+begin
+  Result := false;
+end;
+
 { TWindowContainer ----------------------------------------------------------- }
 
 function TWindowContainer.SettingMousePositionCausesMotion: Boolean;

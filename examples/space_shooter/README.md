@@ -10,6 +10,8 @@ Initial version of a space shooter game.
 
 - Enemies, played by the Mighty Rotating Rocks! They just move slowly towards the player. You can shoot them to destroy.
 
+- Explosions played when rocket hits an enemy.
+
 Technically:
 
 - The player is just a `TCastleScene` inside a `TCastleViewport`, with input events handled in `TViewMain`.

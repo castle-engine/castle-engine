@@ -37,3 +37,6 @@ castle-auto-generated-resources.res
 
 # May contain secret data (your Android keystore username and password)
 AndroidSigningProperties.txt
+
+# May contain settings specific to your user / machine
+CastleProjectLocalSettings.json

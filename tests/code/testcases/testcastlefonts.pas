@@ -1,6 +1,6 @@
 // -*- compile-command: "./test_single_testcase.sh TTestCastleFonts" -*-
 {
-  Copyright 2011-2023 Michalis Kamburelis.
+  Copyright 2011-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -69,7 +69,10 @@ var
   Window: TCastleWindow;
 begin
   if not CanCreateWindowForTest then
+  begin
+    AbortTest;
     Exit;
+  end;
 
   // should work with OpenGL context too, actually it doesn't matter now
   Window := CreateWindowForTest;
@@ -271,7 +274,12 @@ var
   F: TCastleFont;
   FF: TCastleFontFamily;
 begin
+  {$ifdef WASI} // no FreeType on Wasm
+  AbortTest;
+  Exit;
+  {$else}
   FailIfFreeTypeMissing;
+  {$endif}
 
   F := TCastleFont.Create(nil);
   AssertEquals(0, F.Height);
@@ -296,7 +304,12 @@ var
   F: TCastleFont;
   CF: TCastleFontFamily;
 begin
+  {$ifdef WASI} // no FreeType on Wasm
+  AbortTest;
+  Exit;
+  {$else}
   FailIfFreeTypeMissing;
+  {$endif}
 
   F := TCastleFont.Create(nil);
   AssertEquals(0, F.Height);

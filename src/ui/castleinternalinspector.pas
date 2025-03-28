@@ -206,7 +206,7 @@ type
 
 implementation
 
-uses SysUtils, StrUtils, RttiUtils,
+uses SysUtils, StrUtils,
   CastleStringUtils, CastleGLUtils, CastleApplicationProperties, CastleClassUtils,
   CastleUtils, CastleLog, CastleGLImages,
   CastleViewport, CastleScene, CastleUriUtils, CastleInternalFileMonitor;
