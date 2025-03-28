@@ -65,6 +65,14 @@ type
     RemoveOwner: TComponent; //< Remove by freeing this
   end;
 
+  { Move, without physics, by a constant speed. }
+  TMoveBehavior = class(TCastleBehavior)
+  public
+    { Speed per second. }
+    MoveSpeed: TVector3;
+    procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
+  end;
+
 implementation
 
 uses Math,
@@ -139,6 +147,15 @@ const
 begin
   inherited;
   Parent.Rotation := Vector4(Axis, Parent.Rotation.W + RotationSpeed * SecondsPassed);
+end;
+
+{ TMoveBehavior -------------------------------------------------------------- }
+
+procedure TMoveBehavior.Update(const SecondsPassed: Single;
+  var RemoveMe: TRemoveType);
+begin
+  inherited;
+  Parent.Translation := Parent.Translation + MoveSpeed * SecondsPassed;
 end;
 
 end.

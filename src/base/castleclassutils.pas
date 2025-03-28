@@ -1,5 +1,5 @@
 {
-  Copyright 2000-2024 Michalis Kamburelis.
+  Copyright 2000-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -49,18 +49,22 @@ uses Classes, SysUtils, Contnrs, Generics.Collections,
 { ---------------------------------------------------------------------------- }
 { @section(TStrings utilities) }
 
-{ Add some strings. }
-procedure StringsAdd(Strs: TStrings; Count: integer; itemVal: string='dummy'); overload;
+{ @deprecated }
+procedure StringsAdd(Strs: TStrings; Count: integer; itemVal: string='dummy');
+  deprecated 'this utility is very trivial and seldom useful; better implement it in yourself, without relying on CastleClassUtils';
 
 { Add all strings from string array to TStrings instance. }
 procedure AddStrArrayToStrings(const StrArr: array of string; strlist: TStrings);
+  deprecated 'use TStrings.AddStrings';
 
 type
-  { TStringList that is case sensitive. }
+  { TStringList that is case sensitive.
+    @deprecated
+    Deprecated, better use TStringList directly and set CaseSensitive to true. }
   TStringListCaseSens = class(TStringList)
     constructor Create;
     property CaseSensitive default true;
-  end;
+  end deprecated;
 
 { Splits S by Splitter, and adds each splitted part to Strings.
   Splitting is done by Splitter, i.e. if N is the number of occurrences
@@ -71,13 +75,29 @@ type
 procedure Strings_AddSplittedString(Strings: TStrings;
   const S, Splitter: string);
 
-{ Use this instead of @code(SList.Text := S) to workaround FPC 2.0.2 bug.
-  See [http://www.freepascal.org/mantis/view.php?id=6699] }
+{ @deprecated }
 procedure Strings_SetText(SList: TStrings; const S: String);
+  deprecated 'use SList.Text := S';
 
 { Make sure we don't have more than MaxCount strings on a list.
   Removes the last strings if necessary. }
 procedure Strings_Trim(Strings: TStrings; MaxCount: Cardinal);
+  deprecated 'this utility is very trivial and seldom useful; better implement it in yourself, without relying on CastleClassUtils';
+
+{$ifndef FPC}
+  {$define CASTLE_STRINGS_HELPER_ADDSTRINGS}
+{$endif}
+{$ifdef CASTLE_STRINGS_HELPER_ADDSTRINGS}
+{ AddStrings(array of String) method for TStrings.
+  We know this is
+  - not necessary with Delphi 12.2
+  - and it is necessary with 10.2 .
+  To keep things simple (and tested) we enable it for all Delphis. }
+type
+  TStringsHelper = class helper for TStringList
+    procedure AddStrings(const A: array of String); overload;
+  end;
+{$endif CASTLE_STRINGS_HELPER_ADDSTRINGS}
 
 { ---------------------------------------------------------------------------- }
 { @section(TStream utilities) }
@@ -1113,8 +1133,8 @@ implementation
 uses
   {$ifdef UNIX} {$ifdef FPC} Unix, {$endif} {$endif}
   {$ifdef MSWINDOWS} Windows, {$endif}
-  StrUtils, Math {$ifdef FPC}, StreamIO, RTTIUtils {$endif}, TypInfo,
-  CastleLog;
+  StrUtils, Math {$ifdef FPC}, StreamIO {$endif}, TypInfo,
+  CastleLog, CastleInternalRttiUtils;
 
 { TStrings helpers ------------------------------------------------------- }
 
@@ -1166,6 +1186,16 @@ begin
   while Cardinal(Strings.Count) > MaxCount do
     Strings.Delete(Strings.Count - 1);
 end;
+
+{$ifdef CASTLE_STRINGS_HELPER_ADDSTRINGS}
+procedure TStringsHelper.AddStrings(const A: array of String);
+var
+  S: String;
+begin
+  for S in A do
+    Add(S);
+end;
+{$endif CASTLE_STRINGS_HELPER_ADDSTRINGS}
 
 { TStream helpers -------------------------------------------------------- }
 
@@ -2163,18 +2193,17 @@ end;
 
 procedure InitStdStreams;
 
-{ Note that instead of GetStdHandle(STD_INPUT_HANDLE) I could just use
-  StdInputHandle, as this is initialized by FPC RTL exactly to
-  GetStdHandle(STD_INPUT_HANDLE). Same for other Std*Handle.
-  However
-  1. This would not allow me to write InitStdStream without any $ifdefs,
-     because Windows would still require checking for 0 and INVALID_HANDLE_VALUE
-  2. This is not documented, so I prefer to not depend on this.
-     For example, maybe in the future StdInputHandle will be always left as 0
-     when not IsConsole? I want to exactly avoid this for my Std*Stream.
-}
-
   {$ifdef MSWINDOWS}
+  { Note that instead of GetStdHandle(STD_INPUT_HANDLE) I could just use
+    StdInputHandle, as this is initialized by FPC RTL exactly to
+    GetStdHandle(STD_INPUT_HANDLE). Same for other Std*Handle.
+    However
+    1. This would not allow me to write InitStdStream without any $ifdefs,
+      because Windows would still require checking for 0 and INVALID_HANDLE_VALUE
+    2. This is not documented, so I prefer to not depend on this.
+      For example, maybe in the future StdInputHandle will be always left as 0
+      when not IsConsole? I want to exactly avoid this for my Std*Stream.
+  }
   procedure InitStdStream(var Stream: TStream; nStdHandle: DWord);
   var
     Handle: THandle;
@@ -2198,10 +2227,17 @@ procedure InitStdStreams;
   end;
   {$endif UNIX}
 
+  {$ifdef WASI}
+  procedure InitStdStream(var Stream: TStream);
+  begin
+    Stream := TMemoryStream.Create;
+  end;
+  {$endif WASI}
+
 begin
-  InitStdStream(StdInStream,  {$ifdef MSWINDOWS} STD_INPUT_HANDLE  {$else} StdInputHandle  {$endif});
-  InitStdStream(StdOutStream, {$ifdef MSWINDOWS} STD_OUTPUT_HANDLE {$else} StdOutputHandle {$endif});
-  InitStdStream(StdErrStream, {$ifdef MSWINDOWS} STD_ERROR_HANDLE  {$else} StdErrorHandle  {$endif});
+  InitStdStream(StdInStream  {$if defined(MSWINDOWS)} ,STD_INPUT_HANDLE  {$elseif defined(UNIX)} ,StdInputHandle  {$endif});
+  InitStdStream(StdOutStream {$if defined(MSWINDOWS)} ,STD_OUTPUT_HANDLE {$elseif defined(UNIX)} ,StdOutputHandle {$endif});
+  InitStdStream(StdErrStream {$if defined(MSWINDOWS)} ,STD_ERROR_HANDLE  {$elseif defined(UNIX)} ,StdErrorHandle  {$endif});
 end;
 
 procedure FiniStdStreams;

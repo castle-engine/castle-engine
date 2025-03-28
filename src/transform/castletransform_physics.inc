@@ -967,15 +967,21 @@
       Transform, and this transform ExistsInRoot = true. }
     function ExistsInRoot: Boolean;
 
-    { For performance, physics engine sometimes puts some body to "sleep",
-      which means it will not move anymore,
-      because it didn't move (much) in the recent frames.
-      In general, the body should be "woken up" automatically when something collides
-      with it, so the mechanism should be invisible to you... but sometimes it is necessary
-      to wake up a body explicitly. }
+    { For performance reasons, physics engine puts the body to "sleep"
+      when it didn't move (too much) in the recent frames.
+      This means the body will not move anymore "by itself",
+      i.e. until something will collide with it.
+      In general, the body should be "woken up" automatically when
+      something collides with it, so the mechanism should be invisible to you,
+      but sometimes it is necessary to wake up a body explicitly. }
     procedure WakeUp;
 
     //procedure Sleep;
+
+    { For performance reasons, physics engine puts the body to "sleep"
+      when it didn't move (too much) in the recent frames.
+      Use this to read current state. }
+    function Awake: Boolean;
 
     { Current rotating velocity of this body.
       You can query it (as it changes, affected by forces) and set it at any point.
@@ -3736,7 +3742,15 @@ end;
 
 procedure TCastleRigidBody.WakeUp;
 begin
-  FKraftBody.SetToAwake;
+  if FKraftBody <> nil then
+    FKraftBody.SetToAwake
+  else
+    WritelnWarning('Cannot awake a body before physics engine initialization');
+end;
+
+function TCastleRigidBody.Awake: Boolean;
+begin
+  Result := (FKraftBody <> nil) and (krbfAwake in FKraftBody.Flags);
 end;
 
 { // commented out as should never be needed by actual user code
@@ -3873,12 +3887,6 @@ begin
 end;
 
 procedure TCastleAbstractRootTransform.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
-var
-  KraftGravity: TVector3;
-  PhysicsTicksCount:Integer;
-  {$ifdef CASTLE_LOG_PHYSICS_DROPS_FRAMES}
-  OldTimeAccumulator: TFloatTime;
-  {$endif}
 begin
   if not Exists then Exit;
 
@@ -3888,6 +3896,18 @@ begin
     Exit;
   UpdateFrameId := TFramesPerSecond.FrameId;
 
+  UpdateIncreaseTime(SecondsPassed);
+end;
+
+procedure TCastleAbstractRootTransform.UpdateIncreaseTime(const SecondsPassed: Single);
+var
+  KraftGravity: TVector3;
+  PhysicsTicksCount:Integer;
+  IgnoredRemoveMe: TRemoveType;
+  {$ifdef CASTLE_LOG_PHYSICS_DROPS_FRAMES}
+  OldTimeAccumulator: TFloatTime;
+  {$endif}
+begin
   if IsPhysicsRunning then
   begin
     FrameProfiler.Start(fmUpdatePhysics);
@@ -3972,7 +3992,10 @@ begin
   { call inherited at the end,
     to update transformation of all items in their TCastleRigidBody.Update
     called from TCastleTransform.Update }
-  inherited;
+  IgnoredRemoveMe := rtNone;
+  inherited Update(SecondsPassed, IgnoredRemoveMe);
+  if IgnoredRemoveMe <> rtNone then
+    WritelnWarning('TCastleAbstractRootTransform.Update: IgnoredRemoveMe is not rtNone, unexpected');
 end;
 
 function TCastleAbstractRootTransform.PhysicsRayCast(

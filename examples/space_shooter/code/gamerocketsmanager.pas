@@ -26,12 +26,12 @@ type
   { Manage rockets. }
   TRocketsManager = class(TCastleUserInterface)
   private
-    RocketFactory: TCastleComponentFactory;
+    Factory: TCastleComponentFactory;
     CannonTimers: array of TCastleTimer;
     procedure CannonTimer(Sender: TObject);
   public
     { Set this to the list of cannons on player's spaceship.
-      Call InitializeCannons after setting this. }
+      Call @link(Initialize) after setting this. }
     Cannons: array of TCastleTransform;
 
     { Set this to the parent of all rockets.
@@ -45,7 +45,7 @@ type
     constructor Create(AOwner: TComponent); override;
 
     { Call after you set Cannons. }
-    procedure InitializeCannons;
+    procedure Initialize;
   end;
 
 implementation
@@ -57,15 +57,15 @@ uses SysUtils,
 constructor TRocketsManager.Create(AOwner: TComponent);
 begin
   inherited;
-  RocketFactory := TCastleComponentFactory.Create(Self);
-  RocketFactory.Url := 'castle-data:/rocket.castle-transform';
+  Factory := TCastleComponentFactory.Create(Self);
+  Factory.Url := 'castle-data:/rocket.castle-transform';
 end;
 
-procedure TRocketsManager.InitializeCannons;
+procedure TRocketsManager.Initialize;
 var
   I: Integer;
 begin
-  // make sure to clean previous timers, in case you call InitializeCannons many times
+  // make sure to clean previous timers, in case you call Initialize many times
   for I := 0 to High(CannonTimers) do
     FreeAndNil(CannonTimers[I]);
 
@@ -103,7 +103,7 @@ begin
   try
     RocketOwner := TComponent.Create(Self);
 
-    Rocket := RocketFactory.ComponentLoad(RocketOwner, RocketDesign) as TCastleTransform;
+    Rocket := Factory.ComponentLoad(RocketOwner, RocketDesign) as TCastleTransform;
 
     RocketAutoRemoveBehavior := TAutoRemoveBehavior.Create(RocketOwner);
     RocketAutoRemoveBehavior.RemoveOwner := RocketOwner;

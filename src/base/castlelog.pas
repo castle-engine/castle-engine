@@ -1,5 +1,5 @@
 {
-  Copyright 2006-2022 Michalis Kamburelis.
+  Copyright 2006-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -31,21 +31,6 @@ unit CastleLog;
 interface
 
 uses Classes;
-
-{ Is logging active. Initially no. Activate by InitializeLog.
-
-  @deprecated
-  Instead of checking "if Log then WritelnLog(...)",
-  *always* call WriteLnLog / WriteLnWarning,
-  this allows to collect logs even before InitializeLog may be called.
-  Even release applications usually have logging = on,
-  so it makes no sense to optimize for the "logging = off" case,
-  you need to make "logging = on" case always fast.
-
-  @exclude
-}
-function Log: boolean;
-  deprecated 'do not check is Log initialized';
 
 type
   { Prefix each log line with optional date/time. }
@@ -84,19 +69,14 @@ type
   In case of Android, this is just "adb logcat", visible also if you run
   "castle-engine run --target=android".
   This is done regardless of the ALogStream or LogFileName values.
-
-  @param(ALogTimePrefix optionally adds date&time prefix to each log record.)
 }
-procedure InitializeLog(
-  const ALogStream: TStream = nil;
-  const ALogTimePrefix: TLogTimePrefix = ltNone); overload;
+procedure InitializeLog(const ALogStream: TStream = nil);
 
-procedure InitializeLog(const ProgramVersion: string;
-  const ALogStream: TStream = nil;
-  const ALogTimePrefix: TLogTimePrefix = ltNone); overload;
-  deprecated 'to provide a Version to InitializeLog, set ApplicationProperties.Version earlier, instead of calling InitializeLog with an explicit ProgramVersion parameter';
+{ Log a message. 
 
-{ Log message. }
+  See https://castle-engine.io/log for documentation where does
+  the log appear. When using the @url(https://castle-engine.io/editor editor),
+  the log is visible in the "Output" tab. }
 procedure WritelnLog(const Category: string; const Message: string); overload;
 procedure WritelnLog(const Message: string); overload;
 
@@ -107,32 +87,26 @@ procedure WritelnLog(const Category: string; const MessageBase: string;
 procedure WritelnLog(const MessageBase: string;
   const Args: array of const); overload;
 
-{ Log message, without appending newline at the end (given Message
-  should already contain a final newline). }
-procedure WriteLog(const Category: string; const Message: string); overload;
-  deprecated 'use WritelnLog, and do not add the final newline yourself to Message';
-
-{ Log multiline message.
+{ Log a multiline message.
   The Message may, but doesn't have to, terminate with a newline --
   we will format it OK either way. }
 procedure WritelnLogMultiline(const Category: string; const Message: string);
 
 procedure WriteLogMultiline(const Category: string; const Message: string); deprecated 'use WritelnLogMultiline';
 
-{ Log a warning, and call
+{ Log a warning messages, and call
   @link(TCastleApplicationProperties.OnWarning ApplicationProperties.OnWarning)
   event.
 
-  This outputs a log message.
-  We simply append the word "warning" to the Category, and pass arguments
-  to WritelnLog.
+  Warning messages are send to the same place as normal log messages,
+  we just add the word "warning" to the Category.
 
-  Then, @italic(regardless if the log is initialized or not),
-  we also call @link(TCastleApplicationProperties.OnWarning ApplicationProperties.OnWarning).
-  This allows to react to warnings e.g. by displaying a message dialog
-  (like @code(ShowMessage) in Lazarus, or @link(MessageOK) in CastleMessages,
-  or @link(TCastleWindow.MessageOK)).
-  Or by raising an exception, if you want to be strict about warnings. }
+  We also call @link(TCastleApplicationProperties.OnWarning ApplicationProperties.OnWarning)
+  to allow additional processing of warnings.
+  E.g. you can display the warning prominently in the user interface
+  (e.g. use @link(TCastleNotifications) to display a warning message).
+  If you want to be strict about warnings, you can even raise an exception
+  in your OnWarning event handler. }
 procedure WritelnWarning(const Category: string; const Message: string); overload;
 procedure WritelnWarning(const Message: string); overload;
 
@@ -150,7 +124,7 @@ var
   BacktraceOnLog: boolean = false;
 
   { Current log date/time prefix style. Can be changed at runtime. }
-  LogTimePrefix: TLogTimePrefix;
+  LogTimePrefix: TLogTimePrefix = ltNone;
 
   { Set this to a filename that should contain log,
     before calling @link(InitializeLog).
@@ -203,15 +177,43 @@ uses {$ifdef CASTLE_LOG_TO_WINDOWS_EVENT_LOG} Windows, {$endif} SysUtils,
   CastleStringUtils
   {$ifdef ANDROID}, CastleAndroidInternalLog {$endif};
 
-{ On mobile platforms, do not place the log in GetAppConfigDir.
-  GetAppConfigDir may be '' and creating a subdirectory there may fail.
-  Although GetAppConfigDir is fixed in FPC trunk
-  (see too http://wiki.freepascal.org/Android )
-  but we still need to work with FPC 3.0.x.
+{ If this symbol is defined, and InitializeLog is called with ALogStream = nil
+  (which happens for most CGE applications),
+  then we initialize LogStream always to non-nil following some reasonable
+  rules:
 
-  ApplicationConfig has better logic for this,
-  using ApplicationConfigOverride, but it's set only from castlewindow_android.inc
-  once the activity starts. }
+  - Use stdout if appropriate (includes the case when we run in build tool)
+  - Use LogFileName if <> ''
+  - Use a filename inside GetAppConfigDir
+
+  If this is not defined, LogStream may remain nil in some cases.
+}
+{$define CASTLE_DEFAULT_LOG}
+{$ifdef CASTLE_NINTENDO_SWITCH} {$undef CASTLE_DEFAULT_LOG} {$endif}
+{$ifdef WASI} {$undef CASTLE_DEFAULT_LOG} {$endif}
+
+{ If this symbol is defined, and CASTLE_DEFAULT_LOG,
+  we may place the log in GetAppConfigDir.
+
+  Right now, this is undefined on mobile platforms.
+  Reasons:
+
+  - On Android, we send logs to logcat anyway (using AndroidLogRobust).
+
+      We don't need to send them to any additional file.
+      logcat is OK, "adb logcat" and "castle-engine run --target=android" show them.
+
+      Historically: (at FPC 3.0.x times) GetAppConfigDir on Android was also
+      not reliable, it could return ''.
+      ( Our ApplicationConfig has better logic for this,
+      using ApplicationConfigOverride, but it's set only from castlewindow_android.inc
+      once the activity starts. )
+      But this has been fixed in FPC, and we don't support FPC 3.0.x anymore
+      ( https://castle-engine.io/supported_compilers.php ),
+      so this is not a concern anymore.
+
+  - On iOS, sending logs to stdout is standard, and they are visible in Xcode.
+}
 {$define CASTLE_USE_GETAPPCONFIGDIR_FOR_LOG}
 {$ifdef ANDROID} {$undef CASTLE_USE_GETAPPCONFIGDIR_FOR_LOG} {$endif}
 {$ifdef CASTLE_IOS} {$undef CASTLE_USE_GETAPPCONFIGDIR_FOR_LOG} {$endif}
@@ -229,22 +231,7 @@ var
 
 procedure WriteLogCoreCore(const S: string); forward;
 
-function Log: boolean;
-begin
-  Result := FLog;
-end;
-
-procedure InitializeLog(const ProgramVersion: string;
-  const ALogStream: TStream;
-  const ALogTimePrefix: TLogTimePrefix);
-begin
-  ApplicationProperties.Version := ProgramVersion;
-  InitializeLog(ALogStream, ALogTimePrefix);
-end;
-
-procedure InitializeLog(
-  const ALogStream: TStream;
-  const ALogTimePrefix: TLogTimePrefix);
+procedure InitializeLog(const ALogStream: TStream);
 
   function InitializeLogFile(const LogFileName: string): boolean;
   begin
@@ -283,8 +270,6 @@ var
   EnableStandardOutput: Boolean;
   I: Integer;
 begin
-  LogTimePrefix := ALogTimePrefix;
-
   if FLog then Exit; { ignore 2nd call to InitializeLog }
 
   LogStreamOwned := false;
@@ -298,7 +283,7 @@ begin
     LogStream := ALogStream;
     FLogOutput := '<custom-stream>';
   end
-  {$ifndef CASTLE_NINTENDO_SWITCH}
+  {$ifdef CASTLE_DEFAULT_LOG}
   else
   if WantsLogToStandardOutput and EnableStandardOutput and (StdOutStream <> nil) then
   begin
@@ -342,11 +327,8 @@ begin
     LogStream := StdOutStream;
     FLogOutput := '<stdout>';
   end
-  {$endif CASTLE_NINTENDO_SWITCH}
+  {$endif CASTLE_DEFAULT_LOG}
   ;
-
-  { Note: on CASTLE_NINTENDO_SWITCH, it is possible to leave LogStream = nil.
-    It doesn't matter, we will log to cgeNxLog anyway. }
 
   WriteLogCoreCore('Log for "' + ApplicationName + '".' + NL);
   if ApplicationProperties.Version <> '' then
@@ -377,9 +359,12 @@ begin
     Result := FLogOutput;
 end;
 
-{ Add the String to log contents.
+{ Add the String to log contents. Provided String S should end with a newline.
   Assumes that log is initialized.
-  Sends it to AndroidLog and LogStream and ApplicationProperties._Log. }
+  Sends it to
+  - LogStream
+  - ApplicationProperties._Log
+  - other system-specific log APIs. }
 procedure WriteLogCoreCore(const S: string);
 begin
   // Assert(FLog); // do not check it, as InitializeLog uses it before FLog := true
@@ -394,18 +379,26 @@ begin
   OutputDebugString(PChar(S));
   {$endif}
 
+  {$ifdef WASI}
+  // Write / Writeln is captured by Pas2js code and send to console (F12, and visible on page)
+  Write(S);
+  {$endif}
+
   {$ifdef CASTLE_NINTENDO_SWITCH}
   cgeNxLog(PChar(S));
-  {$else}
-  // we know that LogStream <> nil when FLog = true
-  WriteStr(LogStream, S);
-  {$endif CASTLE_NINTENDO_SWITCH}
+  {$endif}
+
+  { We check LogStream <> nil because when CASTLE_DEFAULT_LOG
+    is not defined (for some platforms now), LogStream may be nil. }
+  if LogStream <> nil then
+    WriteStr(LogStream, S);
 end;
 
 { Add the String to log contents.
   - Optionally adds backtrace to the String.
   - Adds the String to LastLog.
-  - If log initialized, sends it to AndroidLog and LogStream and ApplicationProperties._Log
+  - If log initialized, sends it to LogStream, ApplicationProperties._Log
+    and other system-specific log APIs.
 }
 procedure WriteLogCore(const S: string);
 var
@@ -439,25 +432,15 @@ begin
   end;
 end;
 
-procedure WriteLog(const Category: string; const Message: string);
+procedure WritelnLog(const Category: string; const Message: string);
 var
   S: String;
 begin
   S := LogTimePrefixStr;
   if Category <> '' then
     S := S + Category + ': ';
-  S := S + Message;
+  S := S + Message + NL;
   WriteLogCore(S);
-end;
-
-procedure WritelnLog(const Category: string; const Message: string);
-begin
-  // do not warn about using deprecated WriteLog here.
-  // In the future, WriteLog should be moved to the "implementation" section
-  // of the unit (internal), and undeprecated.
-  {$warnings off}
-  WriteLog(Category, Message + NL);
-  {$warnings on}
 end;
 
 procedure WritelnLog(const Message: string);
@@ -502,6 +485,9 @@ begin
   else
     WarningCategory := 'Warning';
   WritelnLog(WarningCategory, Message);
+  { Note that TCastleApplicationProperties.OnWarning will be called
+    regardless of whether InitializeLog was called or not. 
+    This is good, to make sure we notify about early warnings. }
   ApplicationProperties._Warning(Category, Message);
 end;
 

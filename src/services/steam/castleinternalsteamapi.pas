@@ -390,5 +390,7 @@ begin
   end;
 end;
 
+initialization
+finalization
+  FinalizeSteamLibrary;
 end.
-

@@ -61,172 +61,6 @@
       "Width" : 1.0000000000000000E+003,
       "$Children" : [
         {
-          "$$ClassName" : "TCastleLabel",
-          "Alignment" : "hpMiddle",
-          "ColorPersistent" : {
-            "$$ClassName" : "TCastleColorPersistent",
-            "Blue" : 1.0000000000000000E+000,
-            "Green" : 1.0000000000000000E+000,
-            "Red" : 1.0000000000000000E+000
-          },
-          "FontSize" : 3.0000000000000000E+001,
-          "HorizontalAnchorParent" : "hpMiddle",
-          "HorizontalAnchorSelf" : "hpMiddle",
-          "Name" : "LabelTouchSummary",
-          "Text" : [
-            "Touch the indicated screen part to jump or move:"
-          ],
-          "TranslationPersistent" : {
-            "$$ClassName" : "TCastleVector2Persistent",
-            "Y" : -3.1900024414062500E+001
-          },
-          "VerticalAnchorParent" : "vpTop",
-          "VerticalAnchorSelf" : "vpTop"
-        },
-        {
-          "$$ClassName" : "TCastleUserInterface",
-          "Border" : {
-            "$$ClassName" : "TBorder",
-            "AllSides" : 5.0000000000000000E+000
-          },
-          "BorderColorPersistent" : {
-            "$$ClassName" : "TCastleColorPersistent",
-            "Alpha" : 1.0000000000000000E+000,
-            "Blue" : 1.0000000000000000E+000,
-            "Green" : 1.0000000000000000E+000,
-            "Red" : 1.0000000000000000E+000
-          },
-          "Height" : 3.7000000000000000E+002,
-          "HorizontalAnchorParent" : "hpMiddle",
-          "HorizontalAnchorSelf" : "hpMiddle",
-          "Name" : "GroupScreenRepresentation",
-          "TranslationPersistent" : {
-            "$$ClassName" : "TCastleVector2Persistent",
-            "Y" : -9.3000045776367188E+001
-          },
-          "VerticalAnchorParent" : "vpTop",
-          "VerticalAnchorSelf" : "vpTop",
-          "Width" : 8.0000000000000000E+002,
-          "$Children" : [
-            {
-              "$$ClassName" : "TCastleLabel",
-              "Alignment" : "hpMiddle",
-              "ColorPersistent" : {
-                "$$ClassName" : "TCastleColorPersistent",
-                "Blue" : 1.0000000000000000E+000,
-                "Green" : 1.0000000000000000E+000,
-                "Red" : 1.0000000000000000E+000
-              },
-              "FontSize" : 3.0000000000000000E+001,
-              "HorizontalAnchorParent" : "hpMiddle",
-              "HorizontalAnchorSelf" : "hpMiddle",
-              "Name" : "Label1",
-              "Text" : [
-                "Jump"
-              ],
-              "TranslationPersistent" : {
-                "$$ClassName" : "TCastleVector2Persistent",
-                "Y" : 1.0000000000000000E+002
-              },
-              "VerticalAnchorParent" : "vpMiddle",
-              "VerticalAnchorSelf" : "vpMiddle"
-            },
-            {
-              "$$ClassName" : "TCastleLabel",
-              "Alignment" : "hpMiddle",
-              "ColorPersistent" : {
-                "$$ClassName" : "TCastleColorPersistent",
-                "Blue" : 1.0000000000000000E+000,
-                "Green" : 1.0000000000000000E+000,
-                "Red" : 1.0000000000000000E+000
-              },
-              "FontSize" : 3.0000000000000000E+001,
-              "HorizontalAnchorParent" : "hpMiddle",
-              "HorizontalAnchorSelf" : "hpMiddle",
-              "Name" : "Label2",
-              "Text" : [
-                "Move left"
-              ],
-              "TranslationPersistent" : {
-                "$$ClassName" : "TCastleVector2Persistent",
-                "X" : -2.0000000000000000E+002,
-                "Y" : -9.0000000000000000E+001
-              },
-              "VerticalAnchorParent" : "vpMiddle",
-              "VerticalAnchorSelf" : "vpMiddle"
-            },
-            {
-              "$$ClassName" : "TCastleLabel",
-              "Alignment" : "hpMiddle",
-              "ColorPersistent" : {
-                "$$ClassName" : "TCastleColorPersistent",
-                "Blue" : 1.0000000000000000E+000,
-                "Green" : 1.0000000000000000E+000,
-                "Red" : 1.0000000000000000E+000
-              },
-              "FontSize" : 3.0000000000000000E+001,
-              "HorizontalAnchorParent" : "hpMiddle",
-              "HorizontalAnchorSelf" : "hpMiddle",
-              "Name" : "Label3",
-              "Text" : [
-                "Move right"
-              ],
-              "TranslationPersistent" : {
-                "$$ClassName" : "TCastleVector2Persistent",
-                "X" : 1.8000000000000000E+002,
-                "Y" : -9.0000000000000000E+001
-              },
-              "VerticalAnchorParent" : "vpMiddle",
-              "VerticalAnchorSelf" : "vpMiddle"
-            },
-            {
-              "$$ClassName" : "TCastleRectangleControl",
-              "Height" : 1.0000000000000000E+000,
-              "HeightFraction" : 4.4999998807907104E-001,
-              "HorizontalAnchorParent" : "hpMiddle",
-              "HorizontalAnchorSelf" : "hpMiddle",
-              "Name" : "VertLineBottom",
-              "VerticalAnchorParent" : "vpMiddle",
-              "VerticalAnchorSelf" : "vpTop",
-              "Width" : 5.0000000000000000E+000
-            },
-            {
-              "$$ClassName" : "TCastleRectangleControl",
-              "Height" : 5.0000000000000000E+000,
-              "HorizontalAnchorParent" : "hpMiddle",
-              "HorizontalAnchorSelf" : "hpMiddle",
-              "Name" : "HorizLine",
-              "VerticalAnchorParent" : "vpMiddle",
-              "VerticalAnchorSelf" : "vpMiddle",
-              "WidthFraction" : 9.4999998807907104E-001
-            }
-          ]
-        },
-        {
-          "$$ClassName" : "TCastleLabel",
-          "Alignment" : "hpMiddle",
-          "ColorPersistent" : {
-            "$$ClassName" : "TCastleColorPersistent",
-            "Blue" : 1.0000000000000000E+000,
-            "Green" : 1.0000000000000000E+000,
-            "Red" : 1.0000000000000000E+000
-          },
-          "FontSize" : 3.0000000000000000E+001,
-          "HorizontalAnchorParent" : "hpMiddle",
-          "HorizontalAnchorSelf" : "hpMiddle",
-          "Name" : "LabelShoot",
-          "Text" : [
-            "Touch anywhere with 2 fingers to shoot."
-          ],
-          "TranslationPersistent" : {
-            "$$ClassName" : "TCastleVector2Persistent",
-            "X" : -1.0000000000000000E+001,
-            "Y" : -4.9689999389648438E+002
-          },
-          "VerticalAnchorParent" : "vpTop",
-          "VerticalAnchorSelf" : "vpTop"
-        },
-        {
           "$$ClassName" : "TCastleButton",
           "Caption" : "OK",
           "CustomBackgroundDisabled" : {
@@ -253,6 +87,220 @@
             "$$ClassName" : "TCastleVector2Persistent",
             "Y" : 2.0000000000000000E+001
           }
+        },
+        {
+          "$$ClassName" : "TCastleUserInterface",
+          "Exists" : false,
+          "FullSize" : true,
+          "Name" : "TutorialTouchDevice",
+          "$Children" : [
+            {
+              "$$ClassName" : "TCastleLabel",
+              "Alignment" : "hpMiddle",
+              "ColorPersistent" : {
+                "$$ClassName" : "TCastleColorPersistent",
+                "Blue" : 1.0000000000000000E+000,
+                "Green" : 1.0000000000000000E+000,
+                "Red" : 1.0000000000000000E+000
+              },
+              "FontSize" : 3.0000000000000000E+001,
+              "HorizontalAnchorParent" : "hpMiddle",
+              "HorizontalAnchorSelf" : "hpMiddle",
+              "Name" : "LabelShoot",
+              "Text" : [
+                "Touch anywhere with 2 fingers to shoot."
+              ],
+              "TranslationPersistent" : {
+                "$$ClassName" : "TCastleVector2Persistent",
+                "X" : -9.9999628067016602E+000,
+                "Y" : -4.9689999389648438E+002
+              },
+              "VerticalAnchorParent" : "vpTop",
+              "VerticalAnchorSelf" : "vpTop"
+            },
+            {
+              "$$ClassName" : "TCastleUserInterface",
+              "Border" : {
+                "$$ClassName" : "TBorder",
+                "AllSides" : 5.0000000000000000E+000
+              },
+              "BorderColorPersistent" : {
+                "$$ClassName" : "TCastleColorPersistent",
+                "Alpha" : 1.0000000000000000E+000,
+                "Blue" : 1.0000000000000000E+000,
+                "Green" : 1.0000000000000000E+000,
+                "Red" : 1.0000000000000000E+000
+              },
+              "Height" : 3.7000000000000000E+002,
+              "HorizontalAnchorParent" : "hpMiddle",
+              "HorizontalAnchorSelf" : "hpMiddle",
+              "Name" : "GroupScreenRepresentation",
+              "TranslationPersistent" : {
+                "$$ClassName" : "TCastleVector2Persistent",
+                "Y" : -9.3000045776367188E+001
+              },
+              "VerticalAnchorParent" : "vpTop",
+              "VerticalAnchorSelf" : "vpTop",
+              "Width" : 8.0000000000000000E+002,
+              "$Children" : [
+                {
+                  "$$ClassName" : "TCastleLabel",
+                  "Alignment" : "hpMiddle",
+                  "ColorPersistent" : {
+                    "$$ClassName" : "TCastleColorPersistent",
+                    "Blue" : 1.0000000000000000E+000,
+                    "Green" : 1.0000000000000000E+000,
+                    "Red" : 1.0000000000000000E+000
+                  },
+                  "FontSize" : 3.0000000000000000E+001,
+                  "HorizontalAnchorParent" : "hpMiddle",
+                  "HorizontalAnchorSelf" : "hpMiddle",
+                  "Name" : "Label1",
+                  "Text" : [
+                    "Jump"
+                  ],
+                  "TranslationPersistent" : {
+                    "$$ClassName" : "TCastleVector2Persistent",
+                    "Y" : 1.0000000000000000E+002
+                  },
+                  "VerticalAnchorParent" : "vpMiddle",
+                  "VerticalAnchorSelf" : "vpMiddle"
+                },
+                {
+                  "$$ClassName" : "TCastleLabel",
+                  "Alignment" : "hpMiddle",
+                  "ColorPersistent" : {
+                    "$$ClassName" : "TCastleColorPersistent",
+                    "Blue" : 1.0000000000000000E+000,
+                    "Green" : 1.0000000000000000E+000,
+                    "Red" : 1.0000000000000000E+000
+                  },
+                  "FontSize" : 3.0000000000000000E+001,
+                  "HorizontalAnchorParent" : "hpMiddle",
+                  "HorizontalAnchorSelf" : "hpMiddle",
+                  "Name" : "Label2",
+                  "Text" : [
+                    "Move left"
+                  ],
+                  "TranslationPersistent" : {
+                    "$$ClassName" : "TCastleVector2Persistent",
+                    "X" : -2.0000000000000000E+002,
+                    "Y" : -9.0000000000000000E+001
+                  },
+                  "VerticalAnchorParent" : "vpMiddle",
+                  "VerticalAnchorSelf" : "vpMiddle"
+                },
+                {
+                  "$$ClassName" : "TCastleLabel",
+                  "Alignment" : "hpMiddle",
+                  "ColorPersistent" : {
+                    "$$ClassName" : "TCastleColorPersistent",
+                    "Blue" : 1.0000000000000000E+000,
+                    "Green" : 1.0000000000000000E+000,
+                    "Red" : 1.0000000000000000E+000
+                  },
+                  "FontSize" : 3.0000000000000000E+001,
+                  "HorizontalAnchorParent" : "hpMiddle",
+                  "HorizontalAnchorSelf" : "hpMiddle",
+                  "Name" : "Label3",
+                  "Text" : [
+                    "Move right"
+                  ],
+                  "TranslationPersistent" : {
+                    "$$ClassName" : "TCastleVector2Persistent",
+                    "X" : 1.8000000000000000E+002,
+                    "Y" : -9.0000000000000000E+001
+                  },
+                  "VerticalAnchorParent" : "vpMiddle",
+                  "VerticalAnchorSelf" : "vpMiddle"
+                },
+                {
+                  "$$ClassName" : "TCastleRectangleControl",
+                  "Height" : 1.0000000000000000E+000,
+                  "HeightFraction" : 4.4999998807907104E-001,
+                  "HorizontalAnchorParent" : "hpMiddle",
+                  "HorizontalAnchorSelf" : "hpMiddle",
+                  "Name" : "VertLineBottom",
+                  "VerticalAnchorParent" : "vpMiddle",
+                  "VerticalAnchorSelf" : "vpTop",
+                  "Width" : 5.0000000000000000E+000
+                },
+                {
+                  "$$ClassName" : "TCastleRectangleControl",
+                  "Height" : 5.0000000000000000E+000,
+                  "HorizontalAnchorParent" : "hpMiddle",
+                  "HorizontalAnchorSelf" : "hpMiddle",
+                  "Name" : "HorizLine",
+                  "VerticalAnchorParent" : "vpMiddle",
+                  "VerticalAnchorSelf" : "vpMiddle",
+                  "WidthFraction" : 9.4999998807907104E-001
+                }
+              ]
+            },
+            {
+              "$$ClassName" : "TCastleLabel",
+              "Alignment" : "hpMiddle",
+              "ColorPersistent" : {
+                "$$ClassName" : "TCastleColorPersistent",
+                "Blue" : 1.0000000000000000E+000,
+                "Green" : 1.0000000000000000E+000,
+                "Red" : 1.0000000000000000E+000
+              },
+              "FontSize" : 3.0000000000000000E+001,
+              "HorizontalAnchorParent" : "hpMiddle",
+              "HorizontalAnchorSelf" : "hpMiddle",
+              "Name" : "LabelTouchSummary",
+              "Text" : [
+                "Touch the indicated screen part to jump or move:"
+              ],
+              "TranslationPersistent" : {
+                "$$ClassName" : "TCastleVector2Persistent",
+                "Y" : -3.1900024414062500E+001
+              },
+              "VerticalAnchorParent" : "vpTop",
+              "VerticalAnchorSelf" : "vpTop"
+            }
+          ]
+        },
+        {
+          "$$ClassName" : "TCastleUserInterface",
+          "FullSize" : true,
+          "Name" : "TutorialDesktop",
+          "$Children" : [
+            {
+              "$$ClassName" : "TCastleLabel",
+              "ColorPersistent" : {
+                "$$ClassName" : "TCastleColorPersistent",
+                "Blue" : 1.0000000000000000E+000,
+                "Green" : 1.0000000000000000E+000,
+                "Red" : 1.0000000000000000E+000
+              },
+              "FontSize" : 3.0000000000000000E+001,
+              "HorizontalAnchorParent" : "hpMiddle",
+              "HorizontalAnchorSelf" : "hpMiddle",
+              "LineSpacing" : 1.0000000000000000E+001,
+              "Name" : "LabelKeys",
+              "Text" : [
+                "Move: ",
+                "- A / D (advised on web)",
+                "- left / right",
+                "",
+                "Jump: ",
+                "- W (advised on web)",
+                "- Up",
+                "",
+                "Shoot:",
+                "- Enter (advised on web)",
+                "- Space"
+              ],
+              "TranslationPersistent" : {
+                "$$ClassName" : "TCastleVector2Persistent",
+                "Y" : -1.1340000915527344E+002
+              },
+              "VerticalAnchorParent" : "vpTop",
+              "VerticalAnchorSelf" : "vpTop"
+            }
+          ]
         }
       ]
     }

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!--
+Specify basic information about the project, including how this project is build.
+See https://castle-engine.io/project_manifest for documentation of this file.
+-->
+
+<project name="time_measurements_tests"
+  standalone_source="time_measurements_tests.dpr"
+  qualified_name="io.castleengine.time.measurements.tests"
+>
+  <data exists="false" />
+</project>

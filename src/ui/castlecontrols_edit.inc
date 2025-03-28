@@ -799,7 +799,7 @@ begin
   FMin := 1;
   FMax := 0;
   Assert(not (Min <= Max)); // deliberately, so that limits do not work by default
-  AllowedChars := ['-', '+', '0'..'9'] + [{$ifdef FPC}DefaultFormatSettings.{$else}FormatSettings.{$endif}DecimalSeparator];
+  AllowedChars := ['-', '+', '0'..'9', '.'] + [{$ifdef FPC}DefaultFormatSettings.{$else}FormatSettings.{$endif}DecimalSeparator];
   FDecimalDigits := 2;
   Value := 0.0; // will also assign Text
 end;
@@ -815,9 +815,10 @@ function TCastleFloatEdit.PropertySections(const PropertyName: String): TPropert
 begin
   if (PropertyName = 'Text') then
     Result := [] // override TCastleEdit that made it [psBasic], we instead expose Value
-  else if (PropertyName = 'Value') or
-          (PropertyName = 'Min') or
-          (PropertyName = 'Max') then
+  else
+  if (PropertyName = 'Value') or
+     (PropertyName = 'Min') or
+     (PropertyName = 'Max') then
     Result := [psBasic]
   else
     Result := inherited PropertySections(PropertyName);
@@ -835,8 +836,7 @@ begin
   if DecimalDigits < 0 then
     Text := FloatToStrDot(AValue)
   else
-    // TODO Add FloatToStrFDot, use it
-    Text := FloatToStrF(AValue, ffFixed, 0 { Precision doesn't matter }, DecimalDigits);
+    Text := FloatToStrDisplay(AValue, DecimalDigits);
 end;
 
 procedure TCastleFloatEdit.SetDecimalDigits(const AValue: Integer);

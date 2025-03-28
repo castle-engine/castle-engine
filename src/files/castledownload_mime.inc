@@ -37,9 +37,9 @@ begin
   P := URIProtocol(URI);
   RegisteredProtocol := RegisteredProtocols.Find(P);
   if (RegisteredProtocol <> nil) and
-     (Assigned(RegisteredProtocol.MimeTypeEvent)) then
+     (Assigned(RegisteredProtocol.FMimeTypeEvent)) then
   begin
-    Result := RegisteredProtocol.MimeTypeEvent(URI, Gzipped);
+    Result := RegisteredProtocol.FMimeTypeEvent(URI, Gzipped);
   end else
   begin
     WritelnWarning('Querying MIME type for URL protocol "%s" not supported', [P]);

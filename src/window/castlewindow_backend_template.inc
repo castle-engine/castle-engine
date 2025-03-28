@@ -296,6 +296,11 @@ begin
   Result := 'My CastleWindow Backend';
 end;
 
+function TCastleApplication.MultipleWindowsPossible: Boolean;
+begin
+  Result := true; // TODO
+end;
+
 { TWindowContainer ----------------------------------------------------------- }
 
 function TWindowContainer.SettingMousePositionCausesMotion: Boolean;

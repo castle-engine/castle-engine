@@ -631,7 +631,7 @@ var
 begin
   unbrokenlist := TStringList.Create;
   try
-    Strings_SetText(unbrokenlist, unbroken);
+    unbrokenlist.Text := unbroken;
     BreakLines(unbrokenlist, broken, MaxLineWidth);
   finally unbrokenlist.Free end;
 end;
@@ -818,7 +818,7 @@ var
 begin
   SList := TStringList.Create;
   try
-    AddStrArrayToStrings(Strs, SList);
+    SList.AddStrings(Strs);
     PrintStrings(X0, Y0, Color, SList, Html, LineSpacing, TextHorizontalAlignment);
   finally FreeAndNil(SList) end;
 end;
@@ -843,7 +843,7 @@ begin
   {$warnings off}
   SList := TStringList.Create;
   try
-    AddStrArrayToStrings(Strs, SList);
+    SList.AddStrings(Strs);
     PrintStrings(X0, Y0, CurrentColor, SList, Html, LineSpacing);
   finally SList.Free end;
   {$warnings on}

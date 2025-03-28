@@ -156,12 +156,9 @@ function LoadGLTexture(const Url: String;
   const GUITexture: boolean = false): TGLTextureId; overload;
 { @groupEnd }
 
-{ Load OpenGL texture into already reserved texture number.
-  It uses existing OpenGL texture number (TextureId). Everything else
-  works exactly the same as LoadGLTexture.
-
+{ Load OpenGL texture into an (already allocated) TextureId.
   You can also use this to set "default unnamed OpenGL texture" parameters
-  by passing TextureId = 0.
+  by passing TextureId = GLObjectNone.
 
   @raises(ETextureLoadError Raised in the same situations as LoadGLTexture.)
 
@@ -169,10 +166,10 @@ function LoadGLTexture(const Url: String;
     by OpenGL.)
 
   @groupBegin }
-procedure LoadGLGeneratedTexture(const TextureId: TGLTextureId; const image: TEncodedImage;
+procedure LoadGLGeneratedTexture(const TextureId: TGLTextureId; Image: TEncodedImage;
   Filter: TTextureFilter;
   const Wrap: TTextureWrap2D;
-  const CompositeForMipmaps: TCompositeImage = nil;
+  CompositeForMipmaps: TCompositeImage = nil;
   const GUITexture: boolean = false); overload;
 { @groupEnd }
 
@@ -306,9 +303,15 @@ begin
     UncompressedGLFormatAndInternalFormat(Image, ImageFormat, ImageInternalFormat, ImageSwizzle);
     glTexImage2D(Target, Level, ImageInternalFormat,
       Image.Width, Image.Height, 0, ImageFormat, ImageGLType(Image),
-      Image.RawPixels);
+      ImageGLData(Image));
     LoadedSize := LoadedSize + Image.Size;
 
+    { WebGL does not support texture swizzle
+      ( http://www.g-truc.net/post-0734.html ),
+      WebGL WEBIDLs don't even define related extensions or
+      GL_TEXTURE_SWIZZLE_RGBA constant.
+      Our GLFeatures already makes a log if this assumption is not correct. }
+    {$ifndef CASTLE_WEBGL}
     if GLFeatures.TextureModernFormatsAndSwizzle then
     begin
       { We cannot use cubemap side as swizzle target,
@@ -319,6 +322,7 @@ begin
         SwizzleTarget := GL_TEXTURE_CUBE_MAP;
       glTexParameteriv(SwizzleTarget, GL_TEXTURE_SWIZZLE_RGBA, @ImageSwizzle);
     end;
+    {$endif not CASTLE_WEBGL}
 
     {$ifndef OpenGLES}
     if GLFeatures.EnableFixedFunction and GLVersion.Mesa then
@@ -406,7 +410,7 @@ function LoadGLTexture(const image: TEncodedImage;
   const Filter: TTextureFilter; const Wrap: TTextureWrap2D;
   const CompositeForMipmaps: TCompositeImage; const GUITexture: boolean): TGLTextureId;
 begin
-  glGenTextures(1, @result);
+  Result := glCreateTexture();
   LoadGLGeneratedTexture(result, image, Filter, Wrap, CompositeForMipmaps, GUITexture);
 end;
 
@@ -447,8 +451,12 @@ begin
   { Pixel packing parameters (stuff changed by Before/AfterUnpackImage)
     doesn't affect loading compressed textures, as far as I understand.
     So no need to call it. }
+  {$ifdef CASTLE_WEBGL}
+  // TODO: web: loading compressed textures in WebGL
+  {$else}
   glCompressedTexImage2D(GL_TEXTURE_2D, Level, ImageGLInternalFormat(Image),
     Image.Width, Image.Height, 0, Image.Size, Image.RawPixels);
+  {$endif}
   LoadedSize := LoadedSize + Image.Size;
 end;
 
@@ -472,13 +480,58 @@ begin
   end;
 end;
 
+{ Possibly allocate new image, that should be used to pass
+  OriginalImage to OpenGL / WebGL / OpenGLES. }
+function FixImageToNotNeedTextureSwizzle(const OriginalImage: TEncodedImage): TEncodedImage;
+
+  function ReportFormat(const Img: TEncodedImage): String;
+  begin
+    Result := Img.ClassName;
+    if Img is TGrayscaleImage then
+      Result := Result + '[TreatAsAlpha=' +
+        BoolToStr(TGrayscaleImage(Img).TreatAsAlpha, true) + ']';
+  end;
+
+begin
+  if (OriginalImage is TGrayscaleImage) or
+     (OriginalImage is TGrayscaleAlphaImage) or
+     (OriginalImage is TRGBImage) then
+  begin
+    Result := TRGBAlphaImage.Create;
+    TRGBAlphaImage(Result).Assign(OriginalImage as TCastleImage);
+    // TODO: web: Maybe it's not necessary in every case, e.g. leave RGB?
+    WritelnWarning('Converting to RGBA (because renderer does not support texture swizzle but uses shaders -- normal with WebGL): %s (original format %s, new format %s)', [
+      UriDisplay(OriginalImage.Url),
+      ReportFormat(OriginalImage),
+      ReportFormat(Result)
+    ]);
+  end else
+  if (OriginalImage is TGrayscaleFloatImage) or
+     (OriginalImage is TGrayscaleAlphaFloatImage) or
+     (OriginalImage is TRGBFloatImage) then
+  begin
+    Result := TRGBAlphaFloatImage.Create;
+    TRGBAlphaFloatImage(Result).Assign(OriginalImage as TCastleImage);
+    // TODO: web: Maybe it's not necessary in every case, e.g. leave RGB?
+    WritelnWarning('Converting to RGBA (because renderer does not support texture swizzle but uses shaders -- normal with WebGL): %s (original format %s, new format %s)', [
+      UriDisplay(OriginalImage.Url),
+      ReportFormat(OriginalImage),
+      ReportFormat(Result)
+    ]);
+  end else
+    Result := OriginalImage;
+end;
+
 procedure LoadGLGeneratedTexture(const TextureId: TGLTextureId;
-  const Image: TEncodedImage; Filter: TTextureFilter; const Wrap: TTextureWrap2D;
-  const CompositeForMipmaps: TCompositeImage; const GUITexture: boolean);
+  Image: TEncodedImage; Filter: TTextureFilter; const Wrap: TTextureWrap2D;
+  CompositeForMipmaps: TCompositeImage; const GUITexture: boolean);
 var
   LoadedSize: Int64;
 
-  procedure LoadNormal(const Image: TCastleImage);
+  { Load Image as mipmap level 0.
+    Don't attempt to generate mipmaps or load them in any way.
+    So this only makes sense if your filter doesn't use mipmaps. }
+  procedure LoadWithoutMipmaps(const Image: TCastleImage);
   begin
     CastleTexImage2D(GL_TEXTURE_2D, 0, Image, LoadedSize);
   end;
@@ -544,6 +597,8 @@ var
         raise EInvalidImageForOpenGLTexture.CreateFmt('Cannot load to OpenGL texture image class %s', [Image.ClassName]);
   end;
 
+  { Load Image with mipmaps (either provided in the CompositeForMipmaps,
+    or auto-generated). }
   procedure LoadMipmapped(const Image: TCastleImage);
   begin
     if not LoadMipmapsFromComposite(CompositeForMipmaps, true) then
@@ -561,100 +616,138 @@ var
     end;
   end;
 
+  { Switch image filter to non-mipmapped and make a warning about it.
+    Do this if loading compressed texture, and Filter indicated we want mipmaps,
+    but the compressed texture didn't provide mipmaps.
+    As the comments / experiments inside this routine say,
+    it's not possible to reliably generate mipmaps in this case for all platforms. }
+  procedure DisableMipmapsBecauseCannotGenerateForCompressed;
+  begin
+    // GenerateMipmap(GL_TEXTURE_2D);
+    // LoadedSize := LoadedSize + TTextureMemoryProfiler.MipmapsSize(Image);
+
+    { On Android doing GenerateMipmap on compressed images
+      definitely fails. Tested on:
+      - Qualcomm/Adreno (Nexus 5), OpenGL ES 3.0 V@127.0 AU@
+      - PowerVR (Pentagram Tab 7.6)
+      - Qualcomm/Adreno (older phone from PW)
+      and GenerateMipmap there definitely doesn't work.
+
+      On Nexus 5 it even makes GL_INVALID_OPERATION.
+      (On PowerVR my testcase was doing GL_OUT_OF_MEMORY, so it posibly
+      masked earlier GL_INVALID_OPERATION. And on "older phone from PW"
+      I didn't run -dDEBUG version. IOW, it is possible that *everywhere*
+      we had GL_INVALID_OPERATION error.)
+
+      OTOH, on desktop OpenGL, with DXT5 textures,
+      4.4.0 NVIDIA 340.96 on Linux, GenerateMipmap on DXT5 indeed works.
+      No GL error (and glGetError is checked),
+      and the mipmaps are really generated (commenting out makes them white).
+
+      Docs (for OpenGL, GLES 2.0, GLES 3.2
+        https://www.khronos.org/opengles/sdk/docs/man/xhtml/glGenerateMipmap.xml
+        https://www.khronos.org/opengles/sdk/docs/man/
+        https://www.khronos.org/opengles/sdk/docs/man32/
+      ) all say:
+        GL_INVALID_OPERATION is generated if the zero level array is stored in a compressed internal format.
+
+      This suggests that it's safest to assume that GenerateMipmap DOES NOT
+      work on compressed textures, and (if mipmaps were not provided explicitly)
+      we cannot use them. }
+
+    { Update GL_TEXTURE_MIN_FILTER, since we already initialized it earlier. }
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    { Warn, so that developer is aware of it.
+      Better solution may be to
+      - compress textures along with mipmaps.
+      - or not request mipmaps (filtering = linear from start).
+      Without doing anything, using compressed textures will be inconsistent
+      with uncompressed, since the analogous code will succeed in creating
+      mipmaps from uncompressed texture data. }
+    WritelnWarning('Texture', 'Generating mipmaps for compressed textures not possible. Turning off mipmaps for ' + Image.Url);
+  end;
+
 var
   ImageRightSize: TCastleImage;
+  OriginalImage: TEncodedImage;
   ImageRightSizeFree: boolean;
 begin
   if GUITexture then
     Filter.DisableMipmaps;
 
-  LoadedSize := 0;
-
-  { bind the texture, set min, mag filters and wrap parameters }
-  glBindTexture(GL_TEXTURE_2D, TextureId);
-  SetTextureFilter(GL_TEXTURE_2D, Filter);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, Wrap.Data[0]);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, Wrap.Data[1]);
-
-  { give the texture data }
-  if Image is TCastleImage then
-  begin
-    CalculateImageRightSize(TCastleImage(Image), GUITexture,
-      ImageRightSize, ImageRightSizeFree);
-    try
-      { Load uncompressed }
-      if Filter.NeedsMipmaps then
-        LoadMipmapped(ImageRightSize)
-      else
-        LoadNormal(ImageRightSize);
-
-      TextureMemoryProfiler.Allocate(TextureId, Image.Url, Image.ClassName, LoadedSize,
-        Filter.NeedsMipmaps, ImageRightSize.Width, ImageRightSize.Height, 1);
-    finally
-      if ImageRightSizeFree then
-        FreeAndNil(ImageRightSize)
-      else
-        ImageRightSize := nil;
-    end;
-  end else
-  if Image is TGPUCompressedImage then
-  begin
-    { Load compressed }
-    glCompressedTextureImage2D(TGPUCompressedImage(Image), 0, LoadedSize);
-
-    if Filter.NeedsMipmaps then
+  OriginalImage := Image;
+  try
+    { fix image format for WebGL that doesn't have "texture swizzle".
+      TODO: web: analyze is this possible on other platforms? and maybe makes sense? }
+    {$ifdef CASTLE_WEBGL}
+      // TODO: web: Not used for now, doesn't affect font rendering, isn't actually needed for simple tests
+      {.$define FIX_TEXTURE_TO_NOT_NEED_SWIZZLE}
+    {$endif}
+    {$ifdef FIX_TEXTURE_TO_NOT_NEED_SWIZZLE}
+    if (not GLFeatures.TextureModernFormatsAndSwizzle) and
+       (not GLFeatures.EnableFixedFunction) then
     begin
-      if not LoadMipmapsFromComposite(CompositeForMipmaps, false) then
+      Image := FixImageToNotNeedTextureSwizzle(OriginalImage);
+      if (Image <> OriginalImage) and
+        (CompositeForMipmaps <> nil) and
+        (CompositeForMipmaps.Mipmaps) then
       begin
-        // GenerateMipmap(GL_TEXTURE_2D);
-        // LoadedSize := LoadedSize + TTextureMemoryProfiler.MipmapsSize(Image);
-
-        { On Android doing GenerateMipmap on compressed images
-          definitely fails. Tested on:
-          - Qualcomm/Adreno (Nexus 5), OpenGL ES 3.0 V@127.0 AU@
-          - PowerVR (Pentagram Tab 7.6)
-          - Qualcomm/Adreno (older phone from PW)
-          and GenerateMipmap there definitely doesn't work.
-
-          On Nexus 5 it even makes GL_INVALID_OPERATION.
-          (On PowerVR my testcase was doing GL_OUT_OF_MEMORY, so it posibly
-          masked earlier GL_INVALID_OPERATION. And on "older phone from PW"
-          I didn't run -dDEBUG version. IOW, it is possible that *everywhere*
-          we had GL_INVALID_OPERATION error.)
-
-          OTOH, on desktop OpenGL, with DXT5 textures,
-          4.4.0 NVIDIA 340.96 on Linux, GenerateMipmap on DXT5 indeed works.
-          No GL error (and glGetError is checked),
-          and the mipmaps are really generated (commenting out makes them white).
-
-          Docs (for OpenGL, GLES 2.0, GLES 3.2
-            https://www.khronos.org/opengles/sdk/docs/man/xhtml/glGenerateMipmap.xml
-            https://www.khronos.org/opengles/sdk/docs/man/
-            https://www.khronos.org/opengles/sdk/docs/man32/
-          ) all say:
-            GL_INVALID_OPERATION is generated if the zero level array is stored in a compressed internal format.
-
-          This suggests that it's safest to assume that GenerateMipmap DOES NOT
-          work on compressed textures, and (if mipmaps were not provided explicitly)
-          we cannot use them. }
-
-        { Update GL_TEXTURE_MIN_FILTER, since we already initialized it earlier. }
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        { Warn, so that developer is aware of it.
-          Better solution may be to
-          - compress textures along with mipmaps.
-          - or not request mipmaps (filtering = linear from start).
-          Without doing anything, using compressed textures will be inconsistent
-          with uncompressed, since the analogous code will succeed in creating
-          mipmaps from uncompressed texture data. }
-        WritelnWarning('Texture', 'Generating mipmaps for compressed textures not possible. Turning off mipmaps for ' + Image.Url);
+        CompositeForMipmaps := nil;
+        WritelnWarning('Rejecting mipmaps from composite (KTX, DDS) image because we needed to convert this image to RGBA. This happens when texture swizzle is not supported but we must render using shaders, which is normal on WebGL. Image: %s', [
+          UriDisplay(OriginalImage.Url)
+        ]);
       end;
     end;
+    {$endif}
 
-    TextureMemoryProfiler.Allocate(TextureId, Image.Url, Image.ClassName, LoadedSize,
-      Filter.NeedsMipmaps, Image.Width, Image.Height, 1);
-  end else
-    raise EInvalidImageForOpenGLTexture.CreateFmt('Cannot load to OpenGL texture image class %s', [Image.ClassName]);
+    LoadedSize := 0;
+
+    { bind the texture, set min, mag filters and wrap parameters }
+    glBindTexture(GL_TEXTURE_2D, TextureId);
+    SetTextureFilter(GL_TEXTURE_2D, Filter);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, Wrap.Data[0]);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, Wrap.Data[1]);
+
+    { load the texture data }
+    if Image is TCastleImage then
+    begin
+      CalculateImageRightSize(TCastleImage(Image), GUITexture,
+        ImageRightSize, ImageRightSizeFree);
+      try
+        { Load uncompressed }
+        if Filter.NeedsMipmaps then
+          LoadMipmapped(ImageRightSize)
+        else
+          LoadWithoutMipmaps(ImageRightSize);
+
+        TextureMemoryProfiler.Allocate(TextureId, Image.Url, Image.ClassName, LoadedSize,
+          Filter.NeedsMipmaps, ImageRightSize.Width, ImageRightSize.Height, 1);
+      finally
+        if ImageRightSizeFree then
+          FreeAndNil(ImageRightSize)
+        else
+          ImageRightSize := nil;
+      end;
+    end else
+    if Image is TGPUCompressedImage then
+    begin
+      { Load compressed }
+      glCompressedTextureImage2D(TGPUCompressedImage(Image), 0, LoadedSize);
+
+      if Filter.NeedsMipmaps then
+      begin
+        if not LoadMipmapsFromComposite(CompositeForMipmaps, false) then
+          DisableMipmapsBecauseCannotGenerateForCompressed;
+      end;
+
+      TextureMemoryProfiler.Allocate(TextureId, Image.Url, Image.ClassName, LoadedSize,
+        Filter.NeedsMipmaps, Image.Width, Image.Height, 1);
+    end else
+      raise EInvalidImageForOpenGLTexture.CreateFmt('Cannot load to OpenGL texture image class %s', [Image.ClassName]);
+  finally
+    if OriginalImage <> Image then
+      FreeAndNil(Image);
+  end;
 end;
 
 { GLDecompressTexture ------------------------------------------------------------- }
@@ -666,7 +759,7 @@ var
   Tex: TGLTextureId;
   LoadedSize: Int64;
 begin
-  glGenTextures(1, @Tex);
+  Tex := glCreateTexture();
   glBindTexture(GL_TEXTURE_2D, Tex);
 
   { Testcase that fails on Radeon chantal (ATI Radeon X1600) Linux:
@@ -695,7 +788,7 @@ begin
     Result := TRGBImage.Create(Image.Width, Image.Height, Image.Depth);
 
   SaveTextureContents(Result, Tex);
-  glFreeTexture(Tex);
+  FreeTexture(Tex);
 end;
 
 {$else}

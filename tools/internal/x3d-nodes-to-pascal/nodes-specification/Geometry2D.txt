@@ -36,8 +36,13 @@ Circle2D : X3DGeometryNode {
   SFFloat []       radius   1
     range: (0,Inf)
     change: chGeometry
+    doc: Radius of the circle. If the @link(RadiusY) is non-zero (so we have ellipse, not a circle) then this is the radius along the X axis.
 
   # CASTLE GAME ENGINE EXTENSIONS:
+  SFFloat []       radiusY   0
+    range: [0,Inf)
+    change: chGeometry
+    doc: Radius of the circle along the Y axis. Leave zero (default) to have a circle using @link(Radius) for both X and Y. Set to non-zero to have an ellipse, with @link(Radius) along X and this value along Y.
   SFInt32    [in,out]      slices      0
     range: {0} + [3, infinity)
     change: chGeometry

@@ -1,5 +1,5 @@
 {
-  Copyright 2014-2024 Michalis Kamburelis.
+  Copyright 2014-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
   Parts of this file are based on FPC packages/fcl-process/src/process.pp ,
@@ -29,7 +29,8 @@ var
 
 { In case of console application with Verbose, writes to stduot.
   Otherwise, only to WritelnLog. }
-procedure WritelnVerbose(const S: String);
+procedure WritelnVerbose(const S: String); overload;
+procedure WritelnVerbose(const SFormat: String; const Args: array of const); overload;
 
 { Like @link(FindExe), but additionally look for the exe in
   Castle Game Engine bin/ subdirectory. }
@@ -171,7 +172,7 @@ implementation
 
 uses SysUtils, Process,
   CastleFilesUtils, CastleUtils, CastleUriUtils, CastleLog,
-  ToolArchitectures;
+  CastleInternalArchitectures;
 
 procedure WritelnVerbose(const S: String);
 begin
@@ -179,6 +180,11 @@ begin
     WriteLn(S)
   else
     WriteLnLog(S);
+end;
+
+procedure WritelnVerbose(const SFormat: String; const Args: array of const);
+begin
+  WritelnVerbose(Format(SFormat, Args));
 end;
 
 function FindExeCastleTool(const ExeName: String): String;

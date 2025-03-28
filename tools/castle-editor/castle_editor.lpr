@@ -15,7 +15,7 @@
 
 { Castle Game Engine editor.
 
-  See https://castle-engine.io/manual_editor.php about editor usage.
+  See https://castle-engine.io/editor about editor usage.
   See README.md about editor development.
 
   When this LPR code changes (e.g. new auto-created form is added),

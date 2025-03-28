@@ -21,8 +21,8 @@ unit ToolAndroid;
 interface
 
 uses Classes,
-  CastleUtils, CastleStringUtils,
-  ToolArchitectures, ToolCompile, ToolPackageFormat, ToolProject,
+  CastleUtils, CastleStringUtils, CastleInternalArchitectures,
+  ToolCompile, ToolPackageFormat, ToolProject,
   ToolManifest;
 
 { Compile (for all possible Android CPUs) Android unit or library.
@@ -51,7 +51,13 @@ procedure InstallAndroid(const Project: TCastleProject;
   const PackageMode: TCompilationMode;
   const PackageFormat: TPackageFormatNoDefault; const PackageNameIncludeVersion: Boolean);
 
+procedure UnInstallAndroid(const Project: TCastleProject);
+
 procedure RunAndroid(const Project: TCastleProject);
+
+{ Output list of Android devices, like "adb devices" does.
+  This detects adb executable and runs it. }
+procedure WritelnAndroidDevices;
 
 implementation
 
@@ -621,10 +627,17 @@ begin
     to avoid failures because apk signed with different keys (debug vs release). }
 
   Writeln('Reinstalling application identified as "' + Project.QualifiedName + '".');
-  Writeln('If this fails, an often cause is that a previous development version of the application, signed with a different key, remains on the device. In this case uninstall it first (note that it will clear your UserConfig data, unless you use -k) by "adb uninstall ' + Project.QualifiedName + '"');
+  Writeln('If this fails, an often cause is that a previous development version of the application, signed with a different key, remains on the device. In this case uninstall it first by "castle-engine uninstall" or "adb uninstall ' + Project.QualifiedName + '". Note that it will clear your UserConfig data, unless you pass -k to "adb".');
   Flush(Output); // don't mix output with adb output
   RunCommandSimple(AdbExe, ['install', '-r', PackageName]);
   Writeln('Install successful.');
+end;
+
+procedure UnInstallAndroid(const Project: TCastleProject);
+begin
+  Writeln('Uninstalling Android application identified as "' + Project.QualifiedName + '".');
+  RunCommandSimple(AdbExe, ['uninstall', Project.QualifiedName]);
+  Writeln('Uninstall successful.');
 end;
 
 procedure RunAndroid(const Project: TCastleProject);
@@ -663,6 +676,12 @@ begin
   }
   //ExecuteProcess(AdbExe, ['logcat', '-s', LogTag + ':V']);
   RunCommandSimple(AdbExe, ['logcat', '-s', LogTag + ':V']);
+end;
+
+procedure WritelnAndroidDevices;
+begin
+  Writeln('Detecting Android devices:');
+  RunCommandSimple(AdbExe, ['devices']);
 end;
 
 end.

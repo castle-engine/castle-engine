@@ -111,7 +111,10 @@ begin
 end;
 
 
-{$elseif defined(CASTLE_NINTENDO_SWITCH)}
+{$elseif defined(CASTLE_NINTENDO_SWITCH) or defined(WASI)}
+
+// rely on CastleGetTickCount64 implementation
+
 const
   TimerFrequency = 1000;
 
@@ -204,6 +207,8 @@ begin
     LastTimerValue := Result.Value;
 end;
 
+{$else}
+  {$message fatal 'Timer not implemented for this platform'}
 {$endif}
 
 function TimerSeconds(const A, B: TTimerResult): TFloatTime;

@@ -27,8 +27,9 @@ type
     Use only through a singleton @link(NodesManager). }
   TNodesManager = class
   strict private
-    { Strings[] is ClassX3DType. Objects[] is the actual class
-      (typecast to TX3DNodeClass is safe). }
+    { Strings[] is ClassX3DType.
+      Objects[] is the actual class (typecast to TX3DNodeClass is safe).
+      Case-sensitive, just like X3D names. }
     FRegistered: TStringList;
     function GetRegistered(Index: Integer): TX3DNodeClass;
   public
@@ -101,7 +102,8 @@ var
 constructor TNodesManager.Create;
 begin
   inherited;
-  FRegistered := TStringListCaseSens.Create;
+  FRegistered := TStringList.Create;
+  FRegistered.CaseSensitive := true;
 end;
 
 destructor TNodesManager.Destroy;

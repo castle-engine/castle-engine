@@ -90,6 +90,8 @@ procedure MaxVar(var a: Extended; const b: Extended); overload; {$ifdef SUPPORTS
 { @groupEnd }
 
 type
+  { Index of axis in 2D. }
+  T2DAxis = 0..1;
   { Index of axis in 3D. }
   T3DAxis = 0..2;
 

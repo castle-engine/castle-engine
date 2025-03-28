@@ -167,7 +167,7 @@ const
     @item no digits after dot if not necessary,
     @item(show some digits but not too many (because too many digits
       are usually not useful, being the result of rounding errors
-      and not anything meaningful)
+      and not anything meaningful).)
   )
 
   Like the ...Dot routines, this always uses dot (.) as a decimal separator,

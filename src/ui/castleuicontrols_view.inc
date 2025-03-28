@@ -41,7 +41,7 @@
 
     @orderedList(
       @item(It is simplest to set @link(DesignUrl)
-        to the design file you created using @url(https://castle-engine.io/manual_editor.php CGE editor).
+        to the design file you created using @url(https://castle-engine.io/editor CGE editor).
         Such user interface controls will be created right before @link(Start)
         and destroyed right after @link(Stop) (so the view UI always "resets"
         when view starts).)

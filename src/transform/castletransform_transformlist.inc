@@ -67,9 +67,13 @@ begin
         AValue.AddParent(Owner);
       cnExtracted, cnRemoved:
         AValue.RemoveParent(Owner);
-      {$ifndef COMPILER_CASE_ANALYSIS}
-      else raise EInternalError.Create('TCastleTransformList.Notify ACollectionNotification?');
-      {$endif}
+      { FPC 3.3.1 introduced new notifications cnDeleting, cnExtracting
+        which we ignore for now.
+        In the future: If all supported compilers have it,
+        then maybe we should call AValue.RemoveParent on
+        cnDeleting/cnExtracting, not cnExtracted/cnRemoved?
+        It's safer to remove parent before the item is actually deleted. }
+      else ;
     end;
   end;
 end;

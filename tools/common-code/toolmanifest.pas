@@ -92,6 +92,8 @@ type
       DefaultDetectMemoryLeaks = false;
       DefaultMacAppBundle = true;
       DefaultMacUniversalBinary = false;
+      DefaultWebCanvasWidth = 960;
+      DefaultWebCanvasHeight = 540;
 
       { character sets }
       ControlChars = [#0 .. Chr(Ord(' ') - 1)];
@@ -144,6 +146,8 @@ type
       FMacAppBundle: Boolean;
       FMacUniversalBinary: Boolean;
       FProjectDependencies: TProjectDependencies;
+      FWebCanvasWidth, FWebCanvasHeight: Integer;
+      FWebHtmlContents: String;
 
     function DefaultQualifiedName(const AName: String): String;
     procedure CheckMatches(const Name, Value: String; const AllowedChars: TSetOfChars);
@@ -251,6 +255,10 @@ type
     property AndroidMinSdkVersion: Cardinal read FAndroidMinSdkVersion;
     property AndroidTargetSdkVersion: Cardinal read FAndroidTargetSdkVersion;
     property AndroidServices: TServiceList read FAndroidServices;
+
+    property WebCanvasWidth: Integer read FWebCanvasWidth;
+    property WebCanvasHeight: Integer read FWebCanvasHeight;
+    property WebHtmlContents: String read FWebHtmlContents;
 
     { Standalone source specified in CastleEngineManifest.xml.
       Most build tool code should use TCastleProject.StandaloneSourceFile instead,
@@ -459,6 +467,8 @@ begin
   FFullscreenImmersive := DefaultFullscreenImmersive;
   FDetectMemoryLeaks := DefaultDetectMemoryLeaks;
   FMacAppBundle := DefaultMacAppBundle;
+  FWebCanvasWidth := DefaultWebCanvasWidth;
+  FWebCanvasHeight := DefaultWebCanvasHeight;
 
   FPath := InclPathDelim(APath);
   FPathUrl := FilenameToUriSafe(FPath);
@@ -782,6 +792,18 @@ begin
     begin
       FFreeDesktopCategories := Element.AttributeStringDef('categories', FFreeDesktopCategories);
       FFreeDesktopComment := Element.AttributeStringDef('comment', FFreeDesktopComment);
+    end;
+
+    Element := Doc.DocumentElement.ChildElement('web', false);
+    if Element <> nil then
+    begin
+      FWebHtmlContents := Element.AttributeStringDef('html_contents', '');
+      ChildElement := Element.ChildElement('canvas', false);
+      if ChildElement <> nil then
+      begin
+        FWebCanvasWidth := ChildElement.AttributeIntegerDef('width', DefaultWebCanvasWidth);
+        FWebCanvasHeight := ChildElement.AttributeIntegerDef('height', DefaultWebCanvasHeight);
+      end;
     end;
   finally FreeAndNil(Doc) end;
 

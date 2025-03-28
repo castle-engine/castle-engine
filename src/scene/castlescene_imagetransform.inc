@@ -23,6 +23,7 @@ type
   strict private
     { scene and X3D nodes }
     FScene: TCastleScene;
+    FPreciseCollisions: Boolean;
     FRootNode: TX3DRootNode;
     FAppearanceNode: TAppearanceNode;
     FShapeNode: TShapeNode;
@@ -55,6 +56,7 @@ type
     procedure SetAlphaChannel(const Value: TAutoAlphaChannel);
     procedure SetUrl(const Value: String);
     procedure SetMipmaps(const Value: Boolean);
+    procedure SetPreciseCollisions(const Value: Boolean);
   protected
     function InternalBuildNodeInside: TObject; override;
   public
@@ -153,6 +155,11 @@ type
       For 2D games, you usually don't want to use mipmaps, as you often want to avoid
       scaling the image to be power-of-2. }
     property Mipmaps: Boolean read FMipmaps write SetMipmaps default false;
+
+    { Return the detailed information (triangle, and position within the triangle)
+      when testing collisions with this image
+      in the resulting @link(TRayCollision) from @link(TCastleViewport.MouseRayHit). }
+    property PreciseCollisions: Boolean read FPreciseCollisions write SetPreciseCollisions default false;
 
   {$define read_interface_class}
   {$I auto_generated_persistent_vectors/tcastleimagetransform_persistent_vectors.inc}
@@ -284,6 +291,7 @@ begin
      (PropertyName = 'ColorPersistent') or
      (PropertyName = 'SmoothScaling') or
      (PropertyName = 'AlphaChannel') or
+     (PropertyName = 'PreciseCollisions') or
      (PropertyName = 'Url') then
     Result := [psBasic]
   else
@@ -490,6 +498,18 @@ begin
   Assert(FScene <> nil); // always <> nil in this class
   Assert(FScene.RootNode <> nil); // always <> nil in this class
   Result := FScene.RootNode.DeepCopy;
+end;
+
+procedure TCastleImageTransform.SetPreciseCollisions(const Value: Boolean);
+begin
+  if FPreciseCollisions <> Value then
+  begin
+    FPreciseCollisions := Value;
+    FScene.PreciseCollisions := Value;
+    { Note: This also adds ssRendering octree,
+      somewhat useless as image is just 1 shape in an internal scene.
+      But does not seem problematic either. }
+  end;
 end;
 
 {$define read_implementation_methods}

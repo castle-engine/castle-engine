@@ -24,6 +24,7 @@ interface
 uses
   SysUtils, Math, Generics.Collections, Classes,
   {$ifdef OpenGLES} CastleGLES, {$else} CastleGL, {$endif}
+  {$ifdef CASTLE_WEBGL} CastleInternalJobWeb, {$endif}
   CastleImages, CastleUtils, CastleVectors, CastleRectangles,
   CastleColors, CastleProjection, CastleRenderOptions;
 
@@ -44,9 +45,11 @@ implementation
 uses
   CastleFilesUtils, CastleStringUtils, CastleGLVersion, CastleGLShaders,
   CastleLog, CastleApplicationProperties, CastleRenderContext, CastleGLImages,
-  CastleInternalGLUtils, CastleTimeUtils;
+  CastleInternalGLUtils, CastleTimeUtils
+  {$ifdef WASI} , Job.Js {$endif};
 
 {$I castleglutils_types.inc}
+{$I castleglutils_features_debug.inc} // only implementation
 {$I castleglutils_features.inc}
 {$I castleglutils_draw_primitive_2d.inc}
 {$I castleglutils_information.inc}

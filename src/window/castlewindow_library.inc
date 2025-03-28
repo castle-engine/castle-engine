@@ -319,6 +319,11 @@ begin
   Result := 'Library (Using Existing OpenGL Context)';
 end;
 
+function TCastleApplication.MultipleWindowsPossible: Boolean;
+begin
+  Result := false;
+end;
+
 procedure TCastleApplication.WarningToCallback(const Category, S: String);
 var
   sMsg: String;

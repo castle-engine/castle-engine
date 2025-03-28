@@ -343,7 +343,7 @@ begin
   Result := LocalSphereCollision(Pos, Radius, TriangleToIgnore,
     TrianglesToIgnoreFunc);
   if Result <> nil then
-    Result^.UpdateWorld;
+    Result^.UpdateSceneSpace;
 end;
 
 function TShapeOctreeNode.IsSphereCollision(const Pos: TVector3;
@@ -397,7 +397,7 @@ begin
   Result := LocalSphereCollision2D(Pos, Radius, TriangleToIgnore,
     TrianglesToIgnoreFunc);
   if Result <> nil then
-    Result^.UpdateWorld;
+    Result^.UpdateSceneSpace;
 end;
 
 function TShapeOctreeNode.IsSphereCollision2D(const Pos: TVector2;
@@ -446,7 +446,7 @@ begin
   Result := LocalPointCollision2D(Point, TriangleToIgnore,
     TrianglesToIgnoreFunc);
   if Result <> nil then
-    Result^.UpdateWorld;
+    Result^.UpdateSceneSpace;
 end;
 
 function TShapeOctreeNode.IsPointCollision2D(const Point: TVector2;
@@ -496,7 +496,7 @@ begin
   Result := LocalBoxCollision(ABox, TriangleToIgnore,
     TrianglesToIgnoreFunc);
   if Result <> nil then
-    Result^.UpdateWorld;
+    Result^.UpdateSceneSpace;
 end;
 
 function TShapeOctreeNode.IsBoxCollision(const ABox: TBox3D;
@@ -624,7 +624,7 @@ begin
     Box3DContainsTolerant(Intersection, SubNode.Box) test.
     So Intersection must be transformed back already in CommonSegmentLeaf. }
   if Result <> nil then
-    Result^.UpdateWorld;
+    Result^.UpdateSceneSpace;
 end;
 
 function TShapeOctreeNode.IsSegmentCollision(
@@ -763,7 +763,7 @@ begin
     Box3DContainsTolerant(Intersection, SubNode.Box) test.
     So Intersection must be transformed back already in CommonSegmentLeaf. }
   if Result <> nil then
-    Result^.UpdateWorld;
+    Result^.UpdateSceneSpace;
 end;
 
 function TShapeOctreeNode.IsRayCollision(
@@ -833,7 +833,7 @@ var
   I: Integer;
 begin
   for I := 0 to ShapesList.Count - 1 do
-    ShapesList.Items[I].InternalOctreeTriangles.EnumerateTrianglesUpdateWorld(
+    ShapesList.Items[I].InternalOctreeTriangles.EnumerateTrianglesUpdateSceneSpace(
       EnumerateTriangleFunc);
 end;
 

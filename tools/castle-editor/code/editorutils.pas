@@ -22,8 +22,8 @@ interface
 
 uses Classes, Types, Controls, StdCtrls, Process, Menus, Generics.Collections,
   Dialogs, Contnrs,
-  CastleStringUtils, CastleInternalTools,
-  ToolArchitectures, ToolManifest, ToolProcess;
+  CastleStringUtils, CastleInternalTools, CastleInternalArchitectures,
+  ToolManifest, ToolProcess;
 
 type
   TMenuItemHelper = class helper for TMenuItem
@@ -141,8 +141,20 @@ type
   end;
 
   TPlatformInfo = class
+    { Do not pass --target, --cpu, --os to the build tool,
+      let build tool determine default platform.
+
+      This by default implies targetCustom, DefaultOS, DefaultCPU,
+      but may be customized if project has
+      @url(https://castle-engine.io/web#platform_default
+      CastleProjectLocalSettings.json file). }
+    UseDefault: Boolean;
+
+    { Target. Meaningful only if UseDefault = @false. }
     Target: TTarget;
+    { OS. Meaningful only if UseDefault = @false and Target = targetCustom. }
     OS: TOS;
+    { CPU. Meaningful only if UseDefault = @false and Target = targetCustom. }
     CPU: TCPU;
   end;
   TPlatformInfoList = specialize TObjectList<TPlatformInfo>;

@@ -48,7 +48,7 @@ This is the same license as used by Lazarus LCL and FPC RTL.
 See https://castle-engine.io/license for details.
 "/>
     <Version Major="6" Minor="93" Release="1"/>
-    <Files Count="32">
+    <Files Count="33">
       <Item1>
         <Filename Value="../src/lcl/castlecontrol.pas"/>
         <HasRegisterProc Value="True"/>
@@ -181,6 +181,10 @@ See https://castle-engine.io/license for details.
         <Filename Value="../src/lcl/castlepropedits_colorchannels.inc"/>
         <Type Value="Include"/>
       </Item32>
+      <Item33>
+        <Filename Value="../src/lcl/castlepropedits_component_transformreference.inc"/>
+        <Type Value="Include"/>
+      </Item33>
     </Files>
     <CompatibilityMode Value="True"/>
     <RequiredPkgs Count="4">

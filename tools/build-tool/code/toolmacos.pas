@@ -55,7 +55,8 @@ implementation
 
 uses {$ifdef UNIX} BaseUnix, {$endif} SysUtils,
   CastleFilesUtils, CastleLog, CastleImages, CastleFindFiles,
-  ToolArchitectures, ToolCommonUtils, ToolUtils, ToolEmbeddedImages;
+  CastleInternalArchitectures,
+  ToolCommonUtils, ToolUtils, ToolEmbeddedImages;
 
 procedure CompileMacOS(const Compiler: TCompiler;
   const WorkingDirectory, CompileFile: string;
@@ -328,7 +329,7 @@ procedure ZipMacAppBundle(const Project: TCastleProject; const BundleParenPath, 
 begin
   //RunCommandSimple(BundleParenPath, 'zip', ['-q', '-r', PackageFileName, Project.Caption + '.app']);
   // Better use internal zip, that doesn't require any tool installed:
-  ZipDirectory(
+  ZipDirectoryTool(
     CombinePaths(BundleParenPath, PackageFileName),
     CombinePaths(BundleParenPath, Project.Caption + '.app'));
 

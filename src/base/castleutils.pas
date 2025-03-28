@@ -120,6 +120,7 @@ implementation
   see ../packages/README. }
 {$ifdef UNIX}      {$I castleutils_os_specific_unix.inc}    {$endif}
 {$ifdef MSWINDOWS} {$I castleutils_os_specific_windows.inc} {$endif}
+{$ifdef WASI}      {$I castleutils_os_specific_wasi.inc}    {$endif}
 
 {$I castleutils_pointers.inc}
 {$I castleutils_read_write.inc}

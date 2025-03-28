@@ -63,7 +63,7 @@
         <PackageName Value="castle_base"/>
       </Item2>
     </RequiredPackages>
-    <Units Count="6">
+    <Units Count="5">
       <Unit0>
         <Filename Value="creature_behaviors_standalone.dpr"/>
         <IsPartOfProject Value="True"/>
@@ -79,20 +79,15 @@
         <UnitName Value="gameinitialize"/>
       </Unit2>
       <Unit3>
-        <Filename Value="code/gamesounds.pas"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="gamesounds"/>
-      </Unit3>
-      <Unit4>
         <Filename Value="code/gameviewmenu.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="gameviewmenu"/>
-      </Unit4>
-      <Unit5>
+      </Unit3>
+      <Unit4>
         <Filename Value="code/gameviewplay.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="gameviewplay"/>
-      </Unit5>
+      </Unit4>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

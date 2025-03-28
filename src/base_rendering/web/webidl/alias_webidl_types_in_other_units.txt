@@ -1,0 +1,17 @@
+Object=IJSObject
+Set=IJSSet
+Map=IJSMap
+Function=IJSFunction
+Date=IJSDate
+RegExp=IJSRegExp
+String=IJSString
+Array=IJSArray
+ArrayBuffer=IJSArrayBuffer
+TypedArray=IJSTypedArray
+BufferSource=IJSBufferSource
+DataView=IJSDataView
+JSON=IJSJSON
+Error=IJSError
+TextEncoder=IJSTextEncode
+TextDecoder=IJSTextDecoder
+

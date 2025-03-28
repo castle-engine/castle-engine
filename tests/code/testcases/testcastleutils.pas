@@ -252,29 +252,31 @@ begin
 end;
 
 procedure TTestCastleUtils.TestPathDelim;
-{$ifdef UNIX}
+{$if defined(UNIX) or defined(WASI)}
 begin
- AssertTrue(InclPathDelim('/c/blah/') = '/c/blah/');
- AssertTrue(InclPathDelim('/c/blah' ) = '/c/blah/');
- AssertTrue(ExclPathDelim('/c/blah/') = '/c/blah' );
- AssertTrue(ExclPathDelim('/c/blah' ) = '/c/blah' );
+  // WASI also uses / as path delimiter, following FPC rtl/wasi/system.pp
+  AssertTrue(InclPathDelim('/c/blah/') = '/c/blah/');
+  AssertTrue(InclPathDelim('/c/blah' ) = '/c/blah/');
+  AssertTrue(ExclPathDelim('/c/blah/') = '/c/blah' );
+  AssertTrue(ExclPathDelim('/c/blah' ) = '/c/blah' );
 {$endif}
 {$ifdef MSWINDOWS}
 begin
- AssertTrue(InclPathDelim('c:\blah\') = 'c:\blah\');
- AssertTrue(InclPathDelim('c:\blah' ) = 'c:\blah\');
- AssertTrue(ExclPathDelim('c:\blah\') = 'c:\blah' );
- AssertTrue(ExclPathDelim('c:\blah' ) = 'c:\blah' );
+  AssertTrue(InclPathDelim('c:\blah\') = 'c:\blah\');
+  AssertTrue(InclPathDelim('c:\blah' ) = 'c:\blah\');
+  AssertTrue(ExclPathDelim('c:\blah\') = 'c:\blah' );
+  AssertTrue(ExclPathDelim('c:\blah' ) = 'c:\blah' );
 
- AssertTrue(InclPathDelim('c:\blah/') = 'c:\blah/');
- AssertTrue(ExclPathDelim('c:\blah/') = 'c:\blah' );
+  AssertTrue(InclPathDelim('c:\blah/') = 'c:\blah/');
+  AssertTrue(ExclPathDelim('c:\blah/') = 'c:\blah' );
 {$endif}
 end;
 
 procedure TTestCastleUtils.TestOSError;
 begin
   // TODO: add some test for Delphi + Linux
-  {$if defined(MSWINDOWS) or defined(FPC)}
+  // TODO: web: add some test for WASI
+  {$if (defined(MSWINDOWS) or defined(FPC)) and (not defined(WASI))}
   try
     OSCheck(
       {$ifdef MSWINDOWS} Windows.MoveFile('some_not_existing_file_name', 'foo') {$endif}

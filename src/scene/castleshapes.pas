@@ -138,9 +138,11 @@ type
       This is a shortcut for @link(Shape).State. }
     function State: TX3DGraphTraverseState;
 
-    { Use State.Transform to update triangle @link(TTriangle.World) geometry
-      from triangle @link(TTriangle.Local) geometry. }
-    procedure UpdateWorld;
+    { Use State.Transform to update @link(TTriangle.SceneSpace) geometry
+      from @link(TTriangle.Local) geometry. }
+    procedure UpdateSceneSpace;
+
+    procedure UpdateWorld; deprecated 'use UpdateSceneSpace';
 
     { X3D shape node of this triangle. May be @nil in case of VRML 1.0. }
     function ShapeNode: TAbstractShapeNode;
@@ -167,15 +169,6 @@ type
       (with Material.Transparency > 0) and non-shadow-casting triangles
       (with Appearance.shadowCaster = FALSE). }
     function IgnoreForShadowRays: boolean;
-
-    {$ifndef CONSERVE_TRIANGLE_MEMORY}
-    { For a given position (in world coordinates), return the smooth
-      normal vector at this point, with the resulting normal vector
-      in world coordinates.
-
-      @seealso TTriangle.INormal }
-    function INormalWorldSpace(const Point: TVector3): TVector3;
-    {$endif}
   end;
 
   { Tree of shapes.
@@ -922,23 +915,17 @@ type
     property TransformState: TX3DGraphTraverseState read FTransformState;
   end;
 
-  { Node of the TShapeTree representing the LOD (level of detail) alternative.
-    It chooses one child from it's children list as active.
-    Represents the VRML >= 2.0 LOD node
-    (not possible for VRML 1.0 LOD node, as it may affect also other
-    nodes after LOD).
+  { LOD (level of detail) alternative in the TShapeTree.
+    At most one child (from it's children list) is active at a given time.
 
-    To choose which child is active we need to know the LOD node,
-    with it's transformation in VRML graph.
-    This information is in LODNode and LODInverseTransform properties.
+    Corresponds to X3D (or VRML 2.0) TLodNode.
 
-    Also, we need to know the current camera position.
-    This is passed as CameraPosition to CalculateLevel.
-    Note that this class doesn't call CalculateLevel by itself, never.
-    You have to call CalculateLevel, and use it to set Level property,
-    from parent scene to make this LOD work. (Reasoning behind this decision:
-    parent scene has CameraPosition and such, and parent scene
-    knows whether to initiate level_changes event sending.) }
+    ( Note for VRML 1.0: This doesn't correspond to VRML 1.0 LOD node
+    in TLODNode_1, which is more difficult to handle, as it may affect
+    also other nodes after LOD. )
+
+    The scene code must call @link(UpdateLevel) whenever the camera
+    (in scene coordinates) potentially changed. }
   TShapeTreeLOD = class(TShapeTreeGroup)
   strict private
     FLODNode: TLODNode;
@@ -954,23 +941,27 @@ type
     property LODNode: TLODNode read FLODNode write FLODNode;
     function LODInverseTransform: PMatrix4;
 
-    { Calculate @link(Level). This only calculates level, doesn't
-      assign @link(Level) property or send level_changed event. }
-    function CalculateLevel(const CameraPosition: TVector3): Cardinal;
+    { Calculate and set new value for @link(Level), thus changing which
+      child is the active one.
+
+      Also, if ProcessEvents, send X3D output event LODNode.EventLevel_Changed
+      (whenever it should be send).
+
+      Looks at LOD node in @link(LODNode) and transformation in
+      @link(LODInverseTransform) to choose the current level.
+
+      @returns Whether the level changed. }
+    function UpdateLevel(const CameraLocalPosition: TVector3;
+      const ProcessEvents: Boolean): Boolean;
 
     { Current level, that is index of the active child of this LOD node.
       This is always < Children.Count, unless there are no children.
       In this case it's 0.
 
-      Should be calculated by CalculateLevel. By default
-      we simply use the first (highest-detail) LOD as active.
-      So if you never assign this (e.g. because TCastleSceneCore.CameraViewKnown
-      = @false, that is user position is never known) we'll always
-      use the highest-detail children. }
-    property Level: Cardinal read FLevel write FLevel default 0;
+      Should be modified @link(UpdateLevel).
 
-    property WasLevel_ChangedSend: boolean
-      read FWasLevel_ChangedSend write FWasLevel_ChangedSend default false;
+      By default we use the first (highest-detail) LOD as active. }
+    property Level: Cardinal read FLevel default 0;
 
     {$ifdef SHAPE_ITERATOR_SOPHISTICATED}
     function IterateBeginIndex(OnlyActive: boolean): Integer; override;
@@ -1146,13 +1137,18 @@ begin
   Result := TShape(InternalShape).State;
 end;
 
+procedure TTriangleHelper.UpdateSceneSpace;
+begin
+  SceneSpace.Triangle := Local.Triangle.Transform(State.Transformation.Transform);
+  {$ifndef CONSERVE_TRIANGLE_MEMORY_MORE}
+  SceneSpace.Plane := SceneSpace.Triangle.NormalizedPlane;
+  SceneSpace.Area := SceneSpace.Triangle.Area;
+  {$endif}
+end;
+
 procedure TTriangleHelper.UpdateWorld;
 begin
-  World.Triangle := Local.Triangle.Transform(State.Transformation.Transform);
-  {$ifndef CONSERVE_TRIANGLE_MEMORY_MORE}
-  World.Plane := World.Triangle.NormalizedPlane;
-  World.Area := World.Triangle.Area;
-  {$endif}
+  UpdateSceneSpace;
 end;
 
 function TTriangleHelper.ShapeNode: TAbstractShapeNode;
@@ -1198,13 +1194,6 @@ begin
   Result := ({ IsTransparent } Transparency > SingleEpsilon) or
     NonShadowCaster(State);
 end;
-
-{$ifndef CONSERVE_TRIANGLE_MEMORY}
-function TTriangleHelper.INormalWorldSpace(const Point: TVector3): TVector3;
-begin
-  Result := State.Transformation.Transform.MultDirection(INormalCore(Point)).Normalize;
-end;
-{$endif not CONSERVE_TRIANGLE_MEMORY}
 
 { TShapeTree ------------------------------------------------------------ }
 
@@ -3405,37 +3394,62 @@ begin
   Result := @FLODInverseTransform;
 end;
 
-function TShapeTreeLOD.CalculateLevel(const CameraPosition: TVector3): Cardinal;
-var
-  Camera: TVector3;
-  Dummy: Single;
-begin
-  if (Children.Count = 0) or
-     (LODNode.FdRange.Count = 0) then
-    Result := 0 else
+function TShapeTreeLOD.UpdateLevel(const CameraLocalPosition: TVector3;
+  const ProcessEvents: Boolean): Boolean;
+
+  { Calculate @link(Level). This only calculates level, doesn't
+    assign @link(Level) property or send level_changed event. }
+  function CalculateLevel(const CameraPosition: TVector3): Cardinal;
+  var
+    Camera: TVector3;
+    Dummy: Single;
   begin
-    try
-      Camera := LODInverseTransform^.MultPoint(CameraPosition);
-      Result := KeyRange(LODNode.FdRange.Items,
-        PointsDistance(Camera, LODNode.FdCenter.Value), Dummy);
-      { Now we know Result is between 0..LODNode.FdRange.Count.
-        Following X3D spec "Specifying too few levels will result in
-        the last level being used repeatedly for the lowest levels of detail",
-        so just clamp to last children. }
-      MinVar(Result, Children.Count - 1);
-    except
-      on E: ETransformedResultInvalid do
-      begin
-        WritelnWarning('VRML/X3D', Format('Cannot transform camera position %s to LOD node local coordinate space, transformation results in direction (not point): %s',
-          [ CameraPosition.ToRawString, E.Message ]));
-        Result := 0;
+    if (Children.Count = 0) or
+      (LODNode.FdRange.Count = 0) then
+      Result := 0 else
+    begin
+      try
+        Camera := LODInverseTransform^.MultPoint(CameraPosition);
+        Result := KeyRange(LODNode.FdRange.Items,
+          PointsDistance(Camera, LODNode.FdCenter.Value), Dummy);
+        { Now we know Result is between 0..LODNode.FdRange.Count.
+          Following X3D spec "Specifying too few levels will result in
+          the last level being used repeatedly for the lowest levels of detail",
+          so just clamp to last children. }
+        MinVar(Result, Children.Count - 1);
+      except
+        on E: ETransformedResultInvalid do
+        begin
+          WritelnWarning('VRML/X3D', Format('Cannot transform camera position %s to LOD node local coordinate space, transformation results in direction (not point): %s',
+            [ CameraPosition.ToRawString, E.Message ]));
+          Result := 0;
+        end;
       end;
     end;
+
+    Assert(
+      ( (Children.Count = 0) and (Result = 0) ) or
+      ( (Children.Count > 0) and (Result < Cardinal(Children.Count)) ) );
   end;
 
-  Assert(
-    ( (Children.Count = 0) and (Result = 0) ) or
-    ( (Children.Count > 0) and (Result < Cardinal(Children.Count)) ) );
+var
+  OldLevel, NewLevel: Cardinal;
+begin
+  OldLevel := Level;
+  NewLevel := CalculateLevel(CameraLocalPosition);
+  FLevel := NewLevel;
+
+  Result := OldLevel <> NewLevel;
+
+  if ProcessEvents and
+     (Result {(OldLevel <> NewLevel)} or (not FWasLevel_ChangedSend)) and
+     { If Children.Count = 0, then Level = 0, but we don't
+       want to send Level_Changed since the children 0 doesn't really exist. }
+     (Children.Count <> 0) then
+  begin
+    FWasLevel_ChangedSend := true;
+    LODNode.EventLevel_Changed.Send(Integer(NewLevel));
+  end;
 end;
 
 procedure TShapeTreeLOD.TraverseCore(const Func: TShapeTraverseFunc;

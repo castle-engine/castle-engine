@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CONFIG>
-  <Package Version="4">
+  <Package Version="5">
     <Name Value="castle_window"/>
     <AddToProjectUsesSection Value="True"/>
     <Author Value="Michalis Kamburelis"/>
@@ -43,13 +43,13 @@
 
 This package, castle_window.lpk, contains the CastleWindow unit (and friends). It allows to create a window suitable for engine rendering.
 
-This package cannot be installed under Lazarus, it's only for being used in other programs. CastleWindow unit may initialize some things that conflict with Lazarus reserving the same resources."/>
+This package cannot be installed under Lazarus, it&apos;s only for being used in other programs. CastleWindow unit may initialize some things that conflict with Lazarus reserving the same resources."/>
     <License Value="GNU LGPL with static linking exception >= 2.
 This is the same license as used by Lazarus LCL and FPC RTL.
 See https://castle-engine.io/license for details.
 "/>
     <Version Major="6" Minor="93" Release="1"/>
-    <Files Count="33">
+    <Files Count="34">
       <Item1>
         <Filename Value="../src/window/castleinternalwindowmodes.pas"/>
         <UnitName Value="CastleInternalWindowModes"/>
@@ -91,6 +91,11 @@ See https://castle-engine.io/license for details.
         <Filename Value="../src/window/castlewindow_library.inc"/>
         <Type Value="Include"/>
       </Item10>
+      <Item11>
+        <Filename Value="../src/window/deprecated_units/castlewindowmodes.pas"/>
+        <AddToUsesPkgSection Value="False"/>
+        <UnitName Value="CastleWindowModes"/>
+      </Item11>
       <Item12>
         <Filename Value="../src/window/castlewindow_private_modifiers_down.inc"/>
         <Type Value="Include"/>
@@ -153,19 +158,14 @@ See https://castle-engine.io/license for details.
         <Filename Value="../src/window/windows/castlewindow_winapi_sendinput.inc"/>
         <Type Value="Include"/>
       </Item26>
-      <Item28>
-        <Filename Value="../src/window/castlewindow_backend.inc"/>
-        <Type Value="Include"/>
-      </Item28>
       <Item27>
         <Filename Value="../src/window/deprecated_units/castleinternalusewindowdeprecatedunits.pas"/>
         <UnitName Value="CastleInternalUseWindowDeprecatedUnits"/>
       </Item27>
-      <Item11>
-        <Filename Value="../src/window/deprecated_units/castlewindowmodes.pas"/>
-        <AddToUsesPkgSection Value="False"/>
-        <UnitName Value="CastleWindowModes"/>
-      </Item11>
+      <Item28>
+        <Filename Value="../src/window/castlewindow_backend.inc"/>
+        <Type Value="Include"/>
+      </Item28>
       <Item29>
         <Filename Value="../src/window/castlewindow_cocoa.inc"/>
         <Type Value="Include"/>
@@ -186,7 +186,12 @@ See https://castle-engine.io/license for details.
         <Filename Value="../src/window/castlewindow_cocoa_colordialog.inc"/>
         <Type Value="Include"/>
       </Item33>
+      <Item34>
+        <Filename Value="../src/window/castlewindow_webassembly.inc"/>
+        <Type Value="Include"/>
+      </Item34>
     </Files>
+    <CompatibilityMode Value="True"/>
     <RequiredPkgs Count="2">
       <Item1>
         <PackageName Value="castle_base"/>

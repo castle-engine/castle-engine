@@ -46,9 +46,10 @@ type
 
     Note that TCastleBehavior or TCastleTransform descendants could be
     registered in the CGE editor to visually add and edit them from editor.
-    See https://castle-engine.io/manual_editor.php#section_custom_components .
+    See https://castle-engine.io/custom_components .
     In this unit we call RegisterSerializableComponent,
-    so you only need to add editor_units="GameEnemy" to CastleEngineManifest.xml to see it in action.
+    so you only need to add editor_units="GameEnemy" to CastleEngineManifest.xml
+    to see it in action.
   }
   TEnemy = class(TCastleBehavior)
   strict private

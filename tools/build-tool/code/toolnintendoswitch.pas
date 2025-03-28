@@ -19,8 +19,8 @@ unit ToolNintendoSwitch;
 interface
 
 uses Classes,
-  CastleUtils, CastleStringUtils,
-  ToolUtils, ToolArchitectures, ToolCompile, ToolProject;
+  CastleUtils, CastleStringUtils, CastleInternalArchitectures,
+  ToolUtils, ToolCompile, ToolProject;
 
 { Raise exception that Nintendo Switch is not supported in open-source version. }
 procedure NxNotSupported;

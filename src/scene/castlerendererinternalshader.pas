@@ -371,7 +371,8 @@ type
       in many cases, we will not need to call it (so we don't need to recalculate
       TShape.LocalBoundingBox every frame for a changing shape).
 
-      Should return bbox in scene coordinate system (not in world coordinate system).
+      Should return bbox in scene coordinate system (not in world coordinate
+      system, we will convert it if necessary to world using SceneTransform).
 
       Use ShapeBoundingBoxInWorld to get the box easily. }
     ShapeBoundingBoxInSceneEvent: TBoundingBoxEvent;
@@ -386,8 +387,14 @@ type
       so it's different than SceneModelView. }
     SceneModelView: TMatrix4;
 
-    { Scene transformation (without the shape transformation). }
+    { Scene transformation, to change things in scene coordinates
+      into world coordinates
+      (so, this is without any shape transformation, only TCastleTransform
+      transformations accumulated). }
     SceneTransform: TMatrix4;
+
+    { See @link(TCollectedShape.SceneTransformDynamic). }
+    SceneTransformDynamic: Boolean;
 
     { Assign this if you used EnableTexGen with tgMirrorPlane
       to setup correct uniforms. }
@@ -556,6 +563,16 @@ type
 
     { Current shape bbox, in world coordinates. }
     function ShapeBoundingBoxInWorld: TBox3D;
+
+    { Is ShapeBoundingBoxInWorld value for this TShape likely to change often.
+      One reason for this is that SceneTransform changes often,
+      and so this is right now just alias to SceneTransformDynamic.
+      This may guide shader generation, to avoid recreating shader when merely
+      the SceneTransform changes.
+
+      @seealso TCollectedShape.SceneTransformDynamic }
+    property ShapeBoundingBoxInWorldDynamic: Boolean read
+      SceneTransformDynamic;
 
     { Is alpha testing enabled by EnableAlphaTest. }
     property AlphaTest: Boolean read FAlphaTest;
@@ -1240,6 +1257,7 @@ begin
   FPhongShading := false;
   ShapeBoundingBoxInSceneEvent := nil;
   FShapeBoundingBoxInWorldKnown := false;
+  SceneTransformDynamic := false;
   Material := nil;
   DynamicUniforms.Count := 0;
   TextureMatrix.Count := 0;
@@ -1786,8 +1804,8 @@ const
         to *not* integrate our texture handling with ComposedShader.
 
         We also remove uniform values for textures, to avoid
-        "unused castle_texture_%d" warning. Setting TextureUniformsSet
-        will make it happen. }
+        "unused castle_texture_%d" warning. Setting TextureUniformsSet:=false
+        will avoid setting texture uniforms. }
       TextureUniformsSet := false;
     end;
 
@@ -1911,6 +1929,14 @@ var
   begin
     if FFogEnabled then
     begin
+      {$ifdef CASTLE_WEBGL}
+      { Shader fails compilation with
+          EGLSLShaderCompileError: Vertex shader not compiled:
+          0(13) : error C1503: undefined variable "_ucastle_FogFragCoord" }
+      WritelnWarning('WebGL', 'Fog is not supported with WebGL yet');
+      Exit;
+      {$endif}
+
       case FFogCoordinateSource of
         fcDepth           : CoordinateSource := '-vertex_eye.z';
         fcPassedCoordinate: CoordinateSource := 'castle_FogCoord';
@@ -1967,8 +1993,11 @@ var
       for I := 0 to TextureShaders.Count - 1 do
         if (TextureShaders[I] is TTextureShader) and
            (TTextureShader(TextureShaders[I]).UniformName <> '') then
-          AProgram.SetUniform(TTextureShader(TextureShaders[I]).UniformName,
-                              TTextureShader(TextureShaders[I]).UniformValue);
+        begin
+          AProgram.SetUniform(
+            TTextureShader(TextureShaders[I]).UniformName,
+            TTextureShader(TextureShaders[I]).UniformValue);
+        end;
     end;
 
     FBumpMappingShader.SetUniformsOnce(AProgram);
@@ -2072,9 +2101,19 @@ begin
       raise EGLSLError.Create('No vertex and no fragment shader for GLSL program');
 
     for ShaderType := Low(ShaderType) to High(ShaderType) do
+    begin
       AProgram.AttachShader(ShaderType, Source[ShaderType]);
+      {$ifdef CASTLE_CANNOT_CATCH_EXCEPTIONS}
+      if AProgram.ErrorOnCompileLink then Exit;
+      {$endif}
+    end;
+
     AProgram.Name := 'TShader:Shape:' + ShapeNiceName;
     AProgram.Link;
+
+    {$ifdef CASTLE_CANNOT_CATCH_EXCEPTIONS}
+    if AProgram.ErrorOnCompileLink then Exit;
+    {$endif}
 
     if SelectedNode <> nil then
       SelectedNode.EventIsValid.Send(true);
