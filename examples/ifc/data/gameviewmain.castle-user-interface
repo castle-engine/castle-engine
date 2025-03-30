@@ -594,7 +594,7 @@
             "$Children" : [
               {
                 "$$ClassName" : "TCastleVerticalGroup",
-                "Name" : "GroupHierarchyContainer",
+                "Name" : "HierarchyContainer",
                 "VerticalAnchorParent" : "vpTop",
                 "VerticalAnchorSelf" : "vpTop",
                 "$Children" : [
@@ -610,8 +610,58 @@
                     "VerticalAnchorSelf" : "vpTop"
                   },
                   {
-                    "$$ClassName" : "TCastleVerticalGroup",
-                    "Name" : "GroupHierarchy",
+                    "$$ClassName" : "TCastleButton",
+                    "AutoSize" : false,
+                    "AutoSizeToChildren" : true,
+                    "CustomBackground" : true,
+                    "CustomBackgroundDisabled" : {
+                      "$$ClassName" : "TCastleImagePersistent"
+                    },
+                    "CustomBackgroundFocused" : {
+                      "$$ClassName" : "TCastleImagePersistent"
+                    },
+                    "CustomBackgroundNormal" : {
+                      "$$ClassName" : "TCastleImagePersistent"
+                    },
+                    "CustomBackgroundPressed" : {
+                      "$$ClassName" : "TCastleImagePersistent"
+                    },
+                    "CustomColorDisabledPersistent" : {
+                      "$$ClassName" : "TCastleColorPersistent",
+                      "Alpha" : 2.0000000298023224E-001
+                    },
+                    "CustomColorFocusedPersistent" : {
+                      "$$ClassName" : "TCastleColorPersistent",
+                      "Alpha" : 5.0196081399917603E-001,
+                      "Blue" : 9.0588235855102539E-001,
+                      "Green" : 9.0588235855102539E-001,
+                      "Red" : 9.0588235855102539E-001
+                    },
+                    "CustomColorNormalPersistent" : {
+                      "$$ClassName" : "TCastleColorPersistent",
+                      "Blue" : 1.2549020349979401E-001,
+                      "Green" : 1.2549020349979401E-001,
+                      "Red" : 1.2549020349979401E-001
+                    },
+                    "CustomColorPressedPersistent" : {
+                      "$$ClassName" : "TCastleColorPersistent",
+                      "Alpha" : 5.0000000000000000E-001,
+                      "Green" : 1.0000000000000000E+000,
+                      "Red" : 1.0000000000000000E+000
+                    },
+                    "Image" : {
+                      "$$ClassName" : "TCastleImagePersistent"
+                    },
+                    "Name" : "ButtonHierarchyTemplate",
+                    "PaddingHorizontal" : 0.0000000000000000E+000,
+                    "PaddingVertical" : 0.0000000000000000E+000,
+                    "TintNormalPersistent" : {
+                      "$$ClassName" : "TCastleColorPersistent",
+                      "Blue" : 8.0392158031463623E-001,
+                      "Green" : 8.0392158031463623E-001,
+                      "Red" : 8.0392158031463623E-001
+                    },
+                    "Toggle" : true,
                     "TranslationPersistent" : {
                       "$$ClassName" : "TCastleVector2Persistent",
                       "Y" : -1.6500000000000000E+001
@@ -620,70 +670,12 @@
                     "VerticalAnchorSelf" : "vpTop",
                     "$Children" : [
                       {
-                        "$$ClassName" : "TCastleButton",
-                        "AutoSize" : false,
-                        "AutoSizeToChildren" : true,
-                        "CustomBackground" : true,
-                        "CustomBackgroundDisabled" : {
-                          "$$ClassName" : "TCastleImagePersistent"
-                        },
-                        "CustomBackgroundFocused" : {
-                          "$$ClassName" : "TCastleImagePersistent"
-                        },
-                        "CustomBackgroundNormal" : {
-                          "$$ClassName" : "TCastleImagePersistent"
-                        },
-                        "CustomBackgroundPressed" : {
-                          "$$ClassName" : "TCastleImagePersistent"
-                        },
-                        "CustomColorDisabledPersistent" : {
-                          "$$ClassName" : "TCastleColorPersistent",
-                          "Alpha" : 2.0000000298023224E-001
-                        },
-                        "CustomColorFocusedPersistent" : {
-                          "$$ClassName" : "TCastleColorPersistent",
-                          "Alpha" : 5.0196081399917603E-001,
-                          "Blue" : 9.0588235855102539E-001,
-                          "Green" : 9.0588235855102539E-001,
-                          "Red" : 9.0588235855102539E-001
-                        },
-                        "CustomColorNormalPersistent" : {
-                          "$$ClassName" : "TCastleColorPersistent",
-                          "Blue" : 1.2549020349979401E-001,
-                          "Green" : 1.2549020349979401E-001,
-                          "Red" : 1.2549020349979401E-001
-                        },
-                        "CustomColorPressedPersistent" : {
-                          "$$ClassName" : "TCastleColorPersistent",
-                          "Alpha" : 5.0000000000000000E-001,
-                          "Green" : 1.0000000000000000E+000,
-                          "Red" : 1.0000000000000000E+000
-                        },
-                        "Image" : {
-                          "$$ClassName" : "TCastleImagePersistent"
-                        },
-                        "Name" : "ButtonHierarchyTemplate",
-                        "PaddingHorizontal" : 0.0000000000000000E+000,
-                        "PaddingVertical" : 0.0000000000000000E+000,
-                        "TintNormalPersistent" : {
-                          "$$ClassName" : "TCastleColorPersistent",
-                          "Blue" : 8.0392158031463623E-001,
-                          "Green" : 8.0392158031463623E-001,
-                          "Red" : 8.0392158031463623E-001
-                        },
-                        "Toggle" : true,
-                        "VerticalAnchorParent" : "vpTop",
-                        "VerticalAnchorSelf" : "vpTop",
-                        "$Children" : [
-                          {
-                            "$$ClassName" : "TCastleLabel",
-                            "FontSize" : 1.5000000000000000E+001,
-                            "Html" : true,
-                            "Name" : "LabelHierarchyItemName",
-                            "Text" : [
-                              "LabelHierarchyItemName"
-                            ]
-                          }
+                        "$$ClassName" : "TCastleLabel",
+                        "FontSize" : 1.5000000000000000E+001,
+                        "Html" : true,
+                        "Name" : "LabelHierarchyItemName",
+                        "Text" : [
+                          "LabelHierarchyItemName"
                         ]
                       }
                     ]

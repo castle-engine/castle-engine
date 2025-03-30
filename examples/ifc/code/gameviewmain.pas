@@ -22,7 +22,8 @@ uses Classes,
   CastleVectors, CastleComponentSerialize, CastleScene, CastleViewport,
   CastleUIControls, CastleControls, CastleKeysMouse, CastleIfc,
   CastleCameras, CastleTransform, CastleTransformManipulate, X3DNodes,
-  CastleShapes, CastleBoxes;
+  CastleShapes, CastleBoxes,
+  GameSimpleListBox;
 
 type
   { Main view, where most of the application logic takes place. }
@@ -41,7 +42,7 @@ type
     ExamineNavigation: TCastleExamineNavigation;
     TransformSelectedProduct: TCastleTransform;
     ButtonHierarchyTemplate: TCastleButton;
-    GroupHierarchy: TCastleVerticalGroup;
+    HierarchyContainer: TCastleUserInterface;
     CheckboxIfcDebugDisplay: TCastleCheckbox;
   private
     IfcFile: TIfcFile;
@@ -65,9 +66,9 @@ type
     //TransformHover: TCastleTransformHover; //< TODO, show hover
     TransformManipulate: TCastleTransformManipulate;
 
-    ButtonHierarchyFactory: TCastleComponentFactory;
-
     MouseButtonToSelect: TCastleMouseButton;
+
+    ListHierarchy: TCastleListBox;
 
     { Create new IfcMapping instance and update what IfcScene shows,
       based on IfcFile contents.
@@ -104,7 +105,8 @@ type
     procedure MainViewportPress(const Sender: TCastleUserInterface;
       const Event: TInputPressRelease; var Handled: Boolean);
     procedure TransformManipulateTransformModified(Sender: TObject);
-    procedure ButtonHierarchyClick(Sender: TObject);
+    procedure ListHierarchyClick(const Sender: TCastleListBox;
+      const ItemIndex: Integer; const ItemObject: TObject);
     procedure IfcDebugDisplayChange(Sender: TObject);
   public
     constructor Create(AOwner: TComponent); override;
@@ -143,12 +145,18 @@ begin
   TransformManipulate.Mode := mmTranslate;
   TransformManipulate.OnTransformModified := {$ifdef FPC}@{$endif} TransformManipulateTransformModified;
 
-  ButtonHierarchyFactory := TCastleComponentFactory.Create(FreeAtStop);
-  ButtonHierarchyFactory.LoadFromComponent(ButtonHierarchyTemplate);
-  FreeAndNil(ButtonHierarchyTemplate);
+  // prepare ListHierarchy list box
+  ListHierarchy := TCastleListBox.Create(FreeAtStop);
+  ListHierarchy.LoadItemTemplate(ButtonHierarchyTemplate);
+  ListHierarchy.TemplateLabelName := 'LabelHierarchyItemName';
+  ListHierarchy.TemplateButtonName := 'ButtonHierarchyTemplate';
+  ListHierarchy.OnClick := {$ifdef FPC}@{$endif} ListHierarchyClick;
+  HierarchyContainer.InsertFront(ListHierarchy);
+
+  FreeAndNil(ButtonHierarchyTemplate); // not needed anymore
 
   { Initialize empty model.
-    TransformManipulate, ButtonHierarchyFactory must be set earlier. }
+    TransformManipulate, ListHierarchy must be set earlier. }
   ClickNew(nil);
 
   ButtonNew.OnClick := {$ifdef FPC}@{$endif} ClickNew;
@@ -552,24 +560,19 @@ begin
   LabelWireframeEffect.Caption := WireframeEffectToStr(IfcScene.RenderOptions.WireframeEffect);
 end;
 
-procedure TViewMain.ButtonHierarchyClick(Sender: TObject);
+procedure TViewMain.ListHierarchyClick(const Sender: TCastleListBox;
+  const ItemIndex: Integer; const ItemObject: TObject);
 var
   NewSelectedObject: TIfcObjectDefinition;
   NewSelectedProduct: TIfcProduct;
 begin
-  NewSelectedObject := TIfcObjectDefinition(TCastleButton(Sender).Tag);
+  NewSelectedObject := TIfcObjectDefinition(ItemObject);
   if NewSelectedObject is TIfcProduct then
   begin
     NewSelectedProduct := TIfcProduct(NewSelectedObject);
     ChangeSelectedProduct(NewSelectedProduct);
   end;
 end;
-
-type
-  TButtonHierarchyDesign = class(TPersistent)
-  published
-    LabelHierarchyItemName: TCastleLabel;
-  end;
 
 procedure TViewMain.UpdateHierarchy;
 const
@@ -586,8 +589,6 @@ const
     ParentElement: TIfcElement;
     RelVoidsElement: TIfcRelVoidsElement;
     S: String;
-    Button: TCastleButton;
-    ButtonHierarchybDesign: TButtonHierarchyDesign;
   begin
     S := Parent.ClassName + ' "' + Parent.Name + '"';
     if RelationName <> '' then
@@ -599,15 +600,10 @@ const
        (not TIfcProduct(Parent).TransformSupported) then
       S := S + NL + NowIndent + Indent + '<font color="#aa0000">(^dragging may be not intuitive)</font>';
 
-    ButtonHierarchybDesign := TButtonHierarchyDesign.Create;
-    try
-      Button := ButtonHierarchyFactory.ComponentLoad(FreeAtStop, ButtonHierarchybDesign) as TCastleButton;
-      ButtonHierarchybDesign.LabelHierarchyItemName.Caption := S;
-    finally FreeAndNil(ButtonHierarchybDesign) end;
-    Button.Pressed := Parent = IfcSelectedProduct;
-    Button.OnClick := {$ifdef FPC}@{$endif} ButtonHierarchyClick;
-    Button.Tag := PtrInt(Parent);
-    GroupHierarchy.InsertFront(Button);
+    ListHierarchy.AddItem(S, Parent);
+    // make the last item selected, if it's for IfcSelectedProduct
+    if Parent = IfcSelectedProduct then
+      ListHierarchy.ItemIndex := ListHierarchy.ItemsCount - 1;
 
     for RelAggregates in Parent.IsDecomposedBy do
       for RelatedObject in RelAggregates.RelatedObjects do
@@ -657,7 +653,7 @@ begin
     LabelHierarchy.Text.Assign(SList);
   finally FreeAndNil(SList) end;
 
-  GroupHierarchy.ClearControls;
+  ListHierarchy.ClearItems;
   ShowHierarchy('', IfcFile.Project, Indent);
 end;
 
