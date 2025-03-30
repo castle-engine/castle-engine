@@ -43,7 +43,17 @@ begin
   if FileName = '' then
     raise EDownloadError.CreateFmt('Cannot convert URL "%s" to filename', [URL]);
 
-  Result := TFileStream.Create(FileName, fmOpenRead);
+  Result := TFileStream.Create(FileName, fmOpenRead
+    { Allow other applications to read the same file while we have it open.
+      This is useful in particular when running multiple processes of the same
+      application from the same data, to allow them all to work
+      simultaneously, without locking files from each other.
+
+      Testcase: "Add Random Asset" from 2 clients of
+      https://github.com/castle-engine/castle-and-mormot-collaborative-editing/
+      running on the same system. }
+    or fmShareDenyWrite
+  );
   MimeType := UriMimeType(URL);
 end;
 

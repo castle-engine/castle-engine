@@ -1,5 +1,5 @@
 {
-  Copyright 2020-2024 Michalis Kamburelis.
+  Copyright 2020-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -147,7 +147,10 @@ type
       Gizmo: array [TManipulateMode] of TGizmoScene;
       FOnTransformModified: TNotifyEvent;
       FOnTransformModifyEnd: TNotifyEvent;
-      FSelectedCount: Cardinal;
+      { Boxes from 0 to FMaxSelectedCount-1 *may* contain a selected
+        TCastleTransform, if Boxes[I].Parent <> nil.
+        The other Boxes always have Parent = nil. }
+      FMaxSelectedCount: Cardinal;
 
     procedure SetMode(const AValue: TManipulateMode);
     procedure SetMainSelected(const AValue: TCastleTransform);
@@ -156,7 +159,7 @@ type
     procedure GizmoHasTransformModifyEnd(Sender: TObject);
     procedure MainSelectedFreeNotification(const Sender: TFreeNotificationObserver);
     procedure CreateMoreBoxes;
-    function GetSelected(const Index: Integer): TCastleTransform;
+    function GetSelected(Index: Integer): TCastleTransform;
 
     { Current TCastleTransform for potential move/rotate/scale
       (depending on @link(Mode)).
@@ -202,8 +205,8 @@ type
       The argument NewSelected may be @nil, which is treated just like passing an
       empty list.
 
-      Instance of other classes on the NewSelected list are allowed,
-      and they are just ignored.
+      Instances of classes other than TCastleTransform on the NewSelected list
+      are allowed, and they are just ignored.
 
       The list NewSelected does not become owned by this class.
       You can free it whenever you want, even immediately after calling this method,
@@ -214,8 +217,9 @@ type
     { Currently selected items, use indexes from 0 to SelectedCount - 1.
       This is equivalent to the contents of last SetSelected call,
       but filtered to contain only TCastleTransform instances that
-      can be manipulated. }
-    property Selected[const Index: Integer]: TCastleTransform read GetSelected;
+      can be manipulated, but with freed TCastleTransform instances
+      removed. }
+    property Selected[Index: Integer]: TCastleTransform read GetSelected;
 
     { Count of currently selected items.
       @seealso Selected }
@@ -848,6 +852,7 @@ end;
 
 destructor TCastleTransformManipulate.Destroy;
 begin
+  FreeAndNil(Boxes);
   inherited;
 end;
 
@@ -882,9 +887,9 @@ end;
 
 procedure TCastleTransformManipulate.SetSelected(const NewSelected: TComponentList);
 var
-  I: Integer;
+  I, NewSelectedCount: Integer;
 begin
-  FSelectedCount := 0;
+  NewSelectedCount := 0;
   if NewSelected <> nil then
     for I := 0 to NewSelected.Count - 1 do
       if (NewSelected[I] is TCastleTransform) and
@@ -895,11 +900,11 @@ begin
            so actually nothing visible happens. }
          (not (NewSelected[I] is TCastleAbstractRootTransform)) then
       begin
-        if FSelectedCount >= Boxes.Count then
+        if NewSelectedCount >= Boxes.Count then
           CreateMoreBoxes;
-        Assert(FSelectedCount < Boxes.Count);
-        Boxes[FSelectedCount].Parent := TCastleTransform(NewSelected[I]);
-        Inc(FSelectedCount);
+        Assert(NewSelectedCount < Boxes.Count);
+        Boxes[NewSelectedCount].Parent := TCastleTransform(NewSelected[I]);
+        Inc(NewSelectedCount);
       end;
 
   { Note: each TDebugTransformBox already observes its Parent,
@@ -907,8 +912,10 @@ begin
     So there's no need to worry about it here anymore. }
 
   { Detach remaining Boxes from any parent, to not show them }
-  for I := FSelectedCount to Boxes.Count - 1 do
+  for I := NewSelectedCount to Boxes.Count - 1 do
     Boxes[I].Parent := nil;
+
+  FMaxSelectedCount := NewSelectedCount;
 
   { Update MainSelected }
   if SelectedCount = 1 then
@@ -981,21 +988,43 @@ begin
 end;
 
 function TCastleTransformManipulate.SelectedCount: Integer;
+var
+  I: Integer;
 begin
-  Result := FSelectedCount;
+  { Note that we cannot just return FMaxSelectedCount, because some of
+    TCastleTransform instances could have been freed since the SetSelected call.
+    They leave Boxes[..].Parent = nil in the middle. }
+
+  Result := 0;
+  for I := 0 to FMaxSelectedCount - 1 do
+    if Boxes[I].Parent <> nil then
+      Inc(Result);
 end;
 
-function TCastleTransformManipulate.GetSelected(const Index: Integer): TCastleTransform;
+function TCastleTransformManipulate.GetSelected(Index: Integer): TCastleTransform;
+var
+  I: Integer;
 begin
-  if (Index >= 0) and (Index < FSelectedCount) then
-  begin
-    Result := Boxes[Index].Parent;
-    Assert(Result <> nil);
-  end else
-    raise EListError.CreateFmt('Index %d out of bounds for %d items (TCastleTransformManipulate.Selected)', [
-      Index,
-      FSelectedCount
+  if Index < 0 then
+    raise EListError.CreateFmt('Index %d out of bounds (TCastleTransformManipulate.Selected)', [
+      Index
     ]);
+
+  { We have to iterate, not just access Boxes[Index].Parent,
+    because some of TCastleTransform instances could have been
+    freed since the SetSelected call. }
+
+  for I := 0 to FMaxSelectedCount - 1 do
+    if Boxes[I].Parent <> nil then
+    begin
+      if Index = 0 then
+        Exit(Boxes[I].Parent);
+      Dec(Index);
+    end;
+
+  raise EListError.CreateFmt('Index %d out of bounds (TCastleTransformManipulate.Selected)', [
+    Index
+  ]);
 end;
 
 initialization

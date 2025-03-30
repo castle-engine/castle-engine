@@ -1,6 +1,6 @@
 {%MainUnit castleglimages.pas}
 {
-  Copyright 2001-2024 Michalis Kamburelis.
+  Copyright 2001-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -311,6 +311,10 @@ var
 { Use instead of glBindFramebuffer(GL_FRAMEBUFFER, Fbo),
   for non-zero Fbo. This will bind and add this Fbo to stack. }
 procedure BindFramebuffer(const Fbo: TGLFramebuffer);
+{$ifdef CASTLE_WEBGL}
+var
+  ScreenFboVariant: Variant;
+{$endif}
 begin
   Assert(Fbo <> GLObjectNone);
   Assert(Fbo <> ScreenFbo);
@@ -328,7 +332,13 @@ begin
       WebGLFramebuffer (our TGLFramebuffer) or null according to
       https://developer.mozilla.org/en-US/docs/Web/API/WebGLRenderingContext/getParameter ,
       which is exactly what we want. }
-    ScreenFbo := GL.getParameter(GL_FRAMEBUFFER_BINDING);
+    ScreenFboVariant := GL.getParameter(GL_FRAMEBUFFER_BINDING);
+    // WebGL getParameter(GL_FRAMEBUFFER_BINDING) returns "null" if no FBO is bound.
+    // See https://wiki.lazarus.freepascal.org/WebAssembly/DOM how check for null and typecast.
+    if VarIsNull(ScreenFboVariant) then
+      ScreenFbo := GLObjectNone
+    else
+      ScreenFbo := TJSWebGLFramebuffer.Cast(ScreenFboVariant);
     {$else}
     ScreenFbo := glGetInteger(GL_FRAMEBUFFER_BINDING);
     {$endif}

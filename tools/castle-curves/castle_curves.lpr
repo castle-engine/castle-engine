@@ -848,13 +848,19 @@ begin
   ApplicationProperties.ApplicationName := 'castle-curves';
   ApplicationProperties.Version := '2.0.0';
   ApplicationProperties.OnWarning.Add(@ApplicationProperties.WriteWarningOnConsole);
-  InitializeLog;
 
   Window := TCastleWindow.Create(Application);
 
   Window.ParseParameters;
   Parameters.Parse(Options, @OptionProc, nil);
   Parameters.CheckHighAtMost(1);
+
+  { Start logging.
+    Should be done after command-line parameters are parsed.
+    This allows to handle --version and --help command-line parameters
+    without any extra output on Unix, to set --log-file ,
+    and to have good result from help2man. }
+  InitializeLog;
 
   { initialize menu (before Window.Open) }
   Window.MainMenu := CreateMainMenu;

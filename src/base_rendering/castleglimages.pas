@@ -130,8 +130,8 @@ uses SysUtils, Generics.Collections, Classes,
 
 implementation
 
-uses Math, Generics.Defaults,
-  {$ifdef WASI} Job.Js, {$endif}
+uses Math, Generics.Defaults, Variants,
+  {$ifdef WASI} Job.Js, CastleInternalJobWeb, {$endif}
   CastleLog, CastleGLVersion,
   CastleApplicationProperties, CastleStringUtils, CastleUriUtils,
   CastleRenderContext;
