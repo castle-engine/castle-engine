@@ -137,6 +137,8 @@ type
       Set @link(Url) or call @link(LoadFromStream) to load component. }
     constructor Create(AOwner: TComponent); overload; override;
 
+    function PropertySections(const PropertyName: String): TPropertySections; override;
+
     // Avoid Delphi warnings about constructor hiding.
     // In the long-run, these deprecated constructors should be removed,
     // once everyone got chance to migrate.
@@ -148,16 +150,6 @@ type
     {$warnings on}
 
     destructor Destroy; override;
-
-    { Load design from given URL.
-      Set to '' to clear the loaded component.
-
-      If you set up localization (see https://castle-engine.io/manual_text.php#section_localization_gettext ),
-      then upon loading, the design will be automatically localized using
-      the translation group derived from URL base name. E.g. loading
-      @code("castle-data:/foo/my_design.castle-user-interface") will use translation
-      group @code("my_design"). }
-    property Url: String read FUrl write SetUrl;
 
     { Load design from given TStream.
 
@@ -294,6 +286,16 @@ type
       #) }
     function ComponentLoad(const InstanceOwner: TComponent;
       const AssociateReferences: TPersistent = nil): TComponent;
+  published
+    { Load design from given URL.
+      Set to '' to clear the loaded component.
+
+      If you set up localization (see https://castle-engine.io/manual_text.php#section_localization_gettext ),
+      then upon loading, the design will be automatically localized using
+      the translation group derived from URL base name. E.g. loading
+      @code("castle-data:/foo/my_design.castle-user-interface") will use translation
+      group @code("my_design"). }
+    property Url: String read FUrl write SetUrl;  
   end;
 
   TSerializedComponent = TCastleComponentFactory deprecated 'use TCastleComponentFactory';
@@ -1112,6 +1114,14 @@ begin
   inherited;
 end;
 
+function TCastleComponentFactory.PropertySections(const PropertyName: String): TPropertySections;
+begin
+  if ArrayContainsString(PropertyName, ['Url']) then
+    Result := [psBasic]
+  else
+    Result := inherited PropertySections(PropertyName);
+end;
+
 constructor TCastleComponentFactory.Create(const AUrl: String);
 begin
   Create(nil);
@@ -1667,6 +1677,7 @@ end;
 initialization
   // not useful: RegisterSerializableComponent(TComponent, 'Component (Basic)');
   RegisterSerializableComponent(TCastleComponent, 'Component (Group)');
+  RegisterSerializableComponent(TCastleComponentFactory, 'Factory');
 finalization
   FreeAndNil(FRegisteredComponents);
 end.

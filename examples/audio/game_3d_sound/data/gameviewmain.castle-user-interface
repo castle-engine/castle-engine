@@ -6,12 +6,17 @@
     {
       "$$ClassName" : "TCastleSound",
       "Name" : "SoundKaboom",
-      "URL" : "castle-data:/sounds/kaboom.wav"
+      "Url" : "castle-data:/sounds/kaboom.wav"
     },
     {
       "$$ClassName" : "TCastleSound",
       "Name" : "SoundRatSqueak",
-      "URL" : "castle-data:/sounds/rat_squeak.wav"
+      "Url" : "castle-data:/sounds/rat_squeak.wav"
+    },
+    {
+      "$$ClassName" : "TCastleComponentFactory",
+      "Name" : "TntFactory",
+      "Url" : "castle-data:/extra_objects/tnt_final.castle-transform"
     }
   ],
   "$Children" : [
@@ -23,7 +28,13 @@
       "Items" : {
         "$$ClassName" : "TCastleRootTransform",
         "PhysicsProperties" : {
-          "$$ClassName" : "TPhysicsProperties"
+          "$$ClassName" : "TPhysicsProperties",
+          "LayerCollisions" : {
+            "$$ClassName" : "TCastleLayerCollisions"
+          },
+          "LayerNames" : {
+            "$$ClassName" : "TCastleLayerNames"
+          }
         },
         "$Children" : [
           {
@@ -36,7 +47,7 @@
             "RenderOptions" : {
               "$$ClassName" : "TCastleScene.TSceneRenderOptions"
             },
-            "URL" : "castle-data:/levels/base_level.gltf",
+            "Url" : "castle-data:/levels/base_level.gltf",
             "$Behaviors" : [
               {
                 "$$ClassName" : "TCastlePlaneCollider",
@@ -63,7 +74,7 @@
               "W" : 1.5803413391113281E+000,
               "Y" : -9.9999976158142090E-001
             },
-            "URL" : "castle-data:/extra_objects/rat.gltf",
+            "Url" : "castle-data:/extra_objects/rat.gltf",
             "$Behaviors" : [
               {
                 "$$ClassName" : "TCastleSoundSource",
@@ -73,7 +84,7 @@
                   {
                     "$$ClassName" : "TCastleSound",
                     "Name" : "SoundRat",
-                    "URL" : "castle-data:/sounds/rat_sound.wav"
+                    "Url" : "castle-data:/sounds/rat_sound.wav"
                   }
                 ]
               }
@@ -98,7 +109,7 @@
                     "$$ClassName" : "TCastleSound",
                     "Name" : "SoundCricket",
                     "Stream" : true,
-                    "URL" : "castle-data:/sounds/cricket.wav",
+                    "Url" : "castle-data:/sounds/cricket.wav",
                     "Volume" : 2.0000000298023224E-001
                   }
                 ]
@@ -142,7 +153,7 @@
             "RenderOptions" : {
               "$$ClassName" : "TCastleScene.TSceneRenderOptions"
             },
-            "URL" : "castle-data:/levels/thunder.x3dv"
+            "Url" : "castle-data:/levels/thunder.x3dv"
           }
         ]
       },
@@ -298,7 +309,7 @@
       "$$ClassName" : "TCastleImageControl",
       "Content" : {
         "$$ClassName" : "TCastleImagePersistent",
-        "URL" : "castle-data:/textures/mute_sign.png"
+        "Url" : "castle-data:/textures/mute_sign.png"
       },
       "Exists" : false,
       "HorizontalAnchorParent" : "hpRight",
