@@ -616,12 +616,15 @@ var
       ListHierarchy.ItemsObjects[DesiredHierarchyCount - 1] := Parent;
     end else
       ListHierarchy.AddItem(S, Parent);
+    // make the last item selected, if it's for IfcSelectedProduct
+    if Parent = IfcSelectedProduct then
+      ListHierarchy.ItemIndex := DesiredHierarchyCount - 1;
     {$else}
     ListHierarchy.AddItem(S, Parent);
-    {$endif}
     // make the last item selected, if it's for IfcSelectedProduct
     if Parent = IfcSelectedProduct then
       ListHierarchy.ItemIndex := ListHierarchy.ItemsCount - 1;
+    {$endif}
 
     for RelAggregates in Parent.IsDecomposedBy do
       for RelatedObject in RelAggregates.RelatedObjects do
@@ -706,7 +709,6 @@ begin
   begin
     IfcSelectedProduct := NewSelectedProduct;
     ListHierarchy.ItemIndex := ListHierarchy.IndexOfAssociatedObject(IfcSelectedProduct);
-    //UpdateHierarchy;
 
     // Update TransformManipulate, to allow dragging selected product, if any
 
