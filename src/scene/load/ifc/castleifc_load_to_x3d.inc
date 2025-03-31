@@ -1031,6 +1031,10 @@ function TIfcRepresentationItem.BuildNode(const Mapping: TCastleIfcMapping;
   const ParentProduct: TIfcProduct;
   const LitAppearance, UnlitAppearance: TAppearanceNode): TAbstractChildNode;
 begin
+  WritelnWarning('TODO: TIfcRepresentationItem.BuildNode not implemented for %s', [
+    ClassName
+  ]);
+
   Result := nil;
 end;
 
