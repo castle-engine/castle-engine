@@ -53,7 +53,7 @@ type
     IfcMapping: TCastleIfcMapping;
 
     { Selected IFC product.
-      Change by ChangeSelectedProduct. }
+      Change by ChangeSelectedProduct or ClearSelectedProduct. }
     IfcSelectedProduct: TIfcProduct;
     { Value of TransformSelectedProduct.Translation
       that corresponds to the IfcSelectedProduct current position.
@@ -79,8 +79,15 @@ type
     { Update hierarchy sidebar to show state of IfcFile. }
     procedure UpdateHierarchy;
 
-    { Change IfcSelectedProduct and update hierarchy sidebar. }
+    { Change IfcSelectedProduct to given NewSelectedProduct.
+      Update hierarchy sidebar, manipulator to show selected. }
     procedure ChangeSelectedProduct(const NewSelectedProduct: TIfcProduct);
+
+    { Change IfcSelectedProduct to nil.
+      Update hierarchy sidebar, manipulator to show selected.
+      This is a specialized version of ChangeSelectedProduct(nil) that changes
+      the state unconditionally (regardless what was the previous state). }
+    procedure ClearIfcSelectedProduct;
 
     { Bounding box, in the scene space, of all representations of the product.
       The box is empty (TBox3D.IsEmpty) if no representations. }
@@ -221,8 +228,7 @@ begin
 
   UpdateHierarchy;
 
-  IfcSelectedProduct := nil;
-  TransformManipulate.SetSelected([]);
+  ClearIfcSelectedProduct;
 end;
 
 procedure TViewMain.ClickNew(Sender: TObject);
@@ -544,10 +550,7 @@ begin
   { IfcSelectedProductShapeTranslation is no longer valid because
     IfcSelectedProduct moved, so cancel selection. }
   if RandomElement = IfcSelectedProduct then
-  begin
-    IfcSelectedProduct := nil;
-    TransformManipulate.SetSelected([]);
-  end;
+    ClearIfcSelectedProduct;
 end;
 
 procedure TViewMain.ClickChangeWireframeEffect(Sender: TObject);
@@ -701,6 +704,14 @@ begin
   finally FreeAndNil(Shapes) end;
 end;
 
+procedure TViewMain.ClearIfcSelectedProduct;
+begin
+  { Specialized version of ChangeSelectedProduct(nil). }
+  IfcSelectedProduct := nil;
+  ListHierarchy.ItemIndex := -1;
+  TransformManipulate.SetSelected([]);
+end;
+
 procedure TViewMain.ChangeSelectedProduct(const NewSelectedProduct: TIfcProduct);
 var
   ProductBox: TBox3D;
@@ -708,10 +719,14 @@ begin
   if NewSelectedProduct <> IfcSelectedProduct then
   begin
     IfcSelectedProduct := NewSelectedProduct;
-    ListHierarchy.ItemIndex := ListHierarchy.IndexOfAssociatedObject(IfcSelectedProduct);
+
+    // update ListHierarchy.ItemIndex
+    if IfcSelectedProduct <> nil then
+      ListHierarchy.ItemIndex := ListHierarchy.IndexOfAssociatedObject(IfcSelectedProduct)
+    else
+      ListHierarchy.ItemIndex := -1;
 
     // Update TransformManipulate, to allow dragging selected product, if any
-
     if IfcSelectedProduct <> nil then
     begin
       ProductBox := ProductBoundingBox(IfcSelectedProduct);
