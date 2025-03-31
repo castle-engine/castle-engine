@@ -1007,6 +1007,7 @@ begin
         HandleShape(TShapeNode(Transform.FdChildren[0]));
         TransformCrossSection(Transform, CrossSection);
       end else
+      if ShapeOrTransform <> nil then
         WritelnWarning('IFC', 'Unsupported class for TIfcCurve.UpdateCrossSection: %s', [
           ShapeOrTransform.ClassName
         ]);
