@@ -22,7 +22,8 @@ uses Classes,
   CastleVectors, CastleComponentSerialize, CastleScene, CastleViewport,
   CastleUIControls, CastleControls, CastleKeysMouse, CastleIfc,
   CastleCameras, CastleTransform, CastleTransformManipulate, X3DNodes,
-  CastleShapes, CastleBoxes;
+  CastleShapes, CastleBoxes,
+  GameSimpleListBox;
 
 type
   { Main view, where most of the application logic takes place. }
@@ -41,7 +42,7 @@ type
     ExamineNavigation: TCastleExamineNavigation;
     TransformSelectedProduct: TCastleTransform;
     ButtonHierarchyTemplate: TCastleButton;
-    GroupHierarchy: TCastleVerticalGroup;
+    HierarchyContainer: TCastleUserInterface;
     CheckboxIfcDebugDisplay: TCastleCheckbox;
   private
     IfcFile: TIfcFile;
@@ -52,7 +53,7 @@ type
     IfcMapping: TCastleIfcMapping;
 
     { Selected IFC product.
-      Change by ChangeSelectedProduct. }
+      Change by ChangeSelectedProduct or ClearSelectedProduct. }
     IfcSelectedProduct: TIfcProduct;
     { Value of TransformSelectedProduct.Translation
       that corresponds to the IfcSelectedProduct current position.
@@ -65,9 +66,9 @@ type
     //TransformHover: TCastleTransformHover; //< TODO, show hover
     TransformManipulate: TCastleTransformManipulate;
 
-    ButtonHierarchyFactory: TCastleComponentFactory;
-
     MouseButtonToSelect: TCastleMouseButton;
+
+    ListHierarchy: TCastleListBox;
 
     { Create new IfcMapping instance and update what IfcScene shows,
       based on IfcFile contents.
@@ -78,8 +79,15 @@ type
     { Update hierarchy sidebar to show state of IfcFile. }
     procedure UpdateHierarchy;
 
-    { Change IfcSelectedProduct and update hierarchy sidebar. }
+    { Change IfcSelectedProduct to given NewSelectedProduct.
+      Update hierarchy sidebar, manipulator to show selected. }
     procedure ChangeSelectedProduct(const NewSelectedProduct: TIfcProduct);
+
+    { Change IfcSelectedProduct to nil.
+      Update hierarchy sidebar, manipulator to show selected.
+      This is a specialized version of ChangeSelectedProduct(nil) that changes
+      the state unconditionally (regardless what was the previous state). }
+    procedure ClearIfcSelectedProduct;
 
     { Bounding box, in the scene space, of all representations of the product.
       The box is empty (TBox3D.IsEmpty) if no representations. }
@@ -104,7 +112,7 @@ type
     procedure MainViewportPress(const Sender: TCastleUserInterface;
       const Event: TInputPressRelease; var Handled: Boolean);
     procedure TransformManipulateTransformModified(Sender: TObject);
-    procedure ButtonHierarchyClick(Sender: TObject);
+    procedure ListHierarchyClick(Sender: TObject);
     procedure IfcDebugDisplayChange(Sender: TObject);
   public
     constructor Create(AOwner: TComponent); override;
@@ -143,12 +151,18 @@ begin
   TransformManipulate.Mode := mmTranslate;
   TransformManipulate.OnTransformModified := {$ifdef FPC}@{$endif} TransformManipulateTransformModified;
 
-  ButtonHierarchyFactory := TCastleComponentFactory.Create(FreeAtStop);
-  ButtonHierarchyFactory.LoadFromComponent(ButtonHierarchyTemplate);
-  FreeAndNil(ButtonHierarchyTemplate);
+  // prepare ListHierarchy list box
+  ListHierarchy := TCastleListBox.Create(FreeAtStop);
+  ListHierarchy.LoadItemTemplate(ButtonHierarchyTemplate);
+  ListHierarchy.TemplateLabelName := 'LabelHierarchyItemName';
+  ListHierarchy.TemplateButtonName := 'ButtonHierarchyTemplate';
+  ListHierarchy.OnClick := {$ifdef FPC}@{$endif} ListHierarchyClick;
+  HierarchyContainer.InsertFront(ListHierarchy);
+
+  FreeAndNil(ButtonHierarchyTemplate); // not needed anymore
 
   { Initialize empty model.
-    TransformManipulate, ButtonHierarchyFactory must be set earlier. }
+    TransformManipulate, ListHierarchy must be set earlier. }
   ClickNew(nil);
 
   ButtonNew.OnClick := {$ifdef FPC}@{$endif} ClickNew;
@@ -214,8 +228,7 @@ begin
 
   UpdateHierarchy;
 
-  IfcSelectedProduct := nil;
-  TransformManipulate.SetSelected([]);
+  ClearIfcSelectedProduct;
 end;
 
 procedure TViewMain.ClickNew(Sender: TObject);
@@ -537,10 +550,7 @@ begin
   { IfcSelectedProductShapeTranslation is no longer valid because
     IfcSelectedProduct moved, so cancel selection. }
   if RandomElement = IfcSelectedProduct then
-  begin
-    IfcSelectedProduct := nil;
-    TransformManipulate.SetSelected([]);
-  end;
+    ClearIfcSelectedProduct;
 end;
 
 procedure TViewMain.ClickChangeWireframeEffect(Sender: TObject);
@@ -552,12 +562,13 @@ begin
   LabelWireframeEffect.Caption := WireframeEffectToStr(IfcScene.RenderOptions.WireframeEffect);
 end;
 
-procedure TViewMain.ButtonHierarchyClick(Sender: TObject);
+procedure TViewMain.ListHierarchyClick(Sender: TObject);
 var
   NewSelectedObject: TIfcObjectDefinition;
   NewSelectedProduct: TIfcProduct;
 begin
-  NewSelectedObject := TIfcObjectDefinition(TCastleButton(Sender).Tag);
+  NewSelectedObject := TIfcObjectDefinition(
+    ListHierarchy.ItemsObjects[ListHierarchy.ItemIndex]);
   if NewSelectedObject is TIfcProduct then
   begin
     NewSelectedProduct := TIfcProduct(NewSelectedObject);
@@ -565,15 +576,18 @@ begin
   end;
 end;
 
-type
-  TButtonHierarchyDesign = class(TPersistent)
-  published
-    LabelHierarchyItemName: TCastleLabel;
-  end;
-
 procedure TViewMain.UpdateHierarchy;
 const
   Indent = '  ';
+{ The call to UpdateHierarchy happens very often,
+  after every ClickAddWall, ClickAddWallAndWindow.
+  We can s optimize it to not rebuild ListHierarchy from scratch every time,
+  but try to update existing ListHierarchy items. }
+{$define OPTIMIZE_HIERARCHY_UPDATES}
+{$ifdef OPTIMIZE_HIERARCHY_UPDATES}
+var
+  DesiredHierarchyCount: Integer;
+{$endif}
 
   procedure ShowHierarchy(const RelationName: String;
     const Parent: TIfcObjectDefinition; const NowIndent: String);
@@ -586,8 +600,6 @@ const
     ParentElement: TIfcElement;
     RelVoidsElement: TIfcRelVoidsElement;
     S: String;
-    Button: TCastleButton;
-    ButtonHierarchybDesign: TButtonHierarchyDesign;
   begin
     S := Parent.ClassName + ' "' + Parent.Name + '"';
     if RelationName <> '' then
@@ -599,15 +611,23 @@ const
        (not TIfcProduct(Parent).TransformSupported) then
       S := S + NL + NowIndent + Indent + '<font color="#aa0000">(^dragging may be not intuitive)</font>';
 
-    ButtonHierarchybDesign := TButtonHierarchyDesign.Create;
-    try
-      Button := ButtonHierarchyFactory.ComponentLoad(FreeAtStop, ButtonHierarchybDesign) as TCastleButton;
-      ButtonHierarchybDesign.LabelHierarchyItemName.Caption := S;
-    finally FreeAndNil(ButtonHierarchybDesign) end;
-    Button.Pressed := Parent = IfcSelectedProduct;
-    Button.OnClick := {$ifdef FPC}@{$endif} ButtonHierarchyClick;
-    Button.Tag := PtrInt(Parent);
-    GroupHierarchy.InsertFront(Button);
+    {$ifdef OPTIMIZE_HIERARCHY_UPDATES}
+    Inc(DesiredHierarchyCount);
+    if ListHierarchy.ItemsCount >= DesiredHierarchyCount then
+    begin
+      ListHierarchy.ItemsStrings[DesiredHierarchyCount - 1] := S;
+      ListHierarchy.ItemsObjects[DesiredHierarchyCount - 1] := Parent;
+    end else
+      ListHierarchy.AddItem(S, Parent);
+    // make the last item selected, if it's for IfcSelectedProduct
+    if Parent = IfcSelectedProduct then
+      ListHierarchy.ItemIndex := DesiredHierarchyCount - 1;
+    {$else}
+    ListHierarchy.AddItem(S, Parent);
+    // make the last item selected, if it's for IfcSelectedProduct
+    if Parent = IfcSelectedProduct then
+      ListHierarchy.ItemIndex := ListHierarchy.ItemsCount - 1;
+    {$endif}
 
     for RelAggregates in Parent.IsDecomposedBy do
       for RelatedObject in RelAggregates.RelatedObjects do
@@ -657,8 +677,18 @@ begin
     LabelHierarchy.Text.Assign(SList);
   finally FreeAndNil(SList) end;
 
-  GroupHierarchy.ClearControls;
+  {$ifdef OPTIMIZE_HIERARCHY_UPDATES}
+  DesiredHierarchyCount := 0;
+  {$else}
+  ListHierarchy.ClearItems;
+  {$endif}
+
   ShowHierarchy('', IfcFile.Project, Indent);
+
+  {$ifdef OPTIMIZE_HIERARCHY_UPDATES}
+  while ListHierarchy.ItemsCount > DesiredHierarchyCount do
+    ListHierarchy.DeleteLastItem;
+  {$endif}
 end;
 
 function TViewMain.ProductBoundingBox(const Product: TIfcProduct): TBox3D;
@@ -674,6 +704,14 @@ begin
   finally FreeAndNil(Shapes) end;
 end;
 
+procedure TViewMain.ClearIfcSelectedProduct;
+begin
+  { Specialized version of ChangeSelectedProduct(nil). }
+  IfcSelectedProduct := nil;
+  ListHierarchy.ItemIndex := -1;
+  TransformManipulate.SetSelected([]);
+end;
+
 procedure TViewMain.ChangeSelectedProduct(const NewSelectedProduct: TIfcProduct);
 var
   ProductBox: TBox3D;
@@ -681,10 +719,14 @@ begin
   if NewSelectedProduct <> IfcSelectedProduct then
   begin
     IfcSelectedProduct := NewSelectedProduct;
-    UpdateHierarchy;
+
+    // update ListHierarchy.ItemIndex
+    if IfcSelectedProduct <> nil then
+      ListHierarchy.ItemIndex := ListHierarchy.IndexOfAssociatedObject(IfcSelectedProduct)
+    else
+      ListHierarchy.ItemIndex := -1;
 
     // Update TransformManipulate, to allow dragging selected product, if any
-
     if IfcSelectedProduct <> nil then
     begin
       ProductBox := ProductBoundingBox(IfcSelectedProduct);
