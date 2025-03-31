@@ -105,8 +105,7 @@ type
     procedure MainViewportPress(const Sender: TCastleUserInterface;
       const Event: TInputPressRelease; var Handled: Boolean);
     procedure TransformManipulateTransformModified(Sender: TObject);
-    procedure ListHierarchyClick(const Sender: TCastleListBox;
-      const ItemIndex: Integer; const ItemObject: TObject);
+    procedure ListHierarchyClick(Sender: TObject);
     procedure IfcDebugDisplayChange(Sender: TObject);
   public
     constructor Create(AOwner: TComponent); override;
@@ -560,13 +559,13 @@ begin
   LabelWireframeEffect.Caption := WireframeEffectToStr(IfcScene.RenderOptions.WireframeEffect);
 end;
 
-procedure TViewMain.ListHierarchyClick(const Sender: TCastleListBox;
-  const ItemIndex: Integer; const ItemObject: TObject);
+procedure TViewMain.ListHierarchyClick(Sender: TObject);
 var
   NewSelectedObject: TIfcObjectDefinition;
   NewSelectedProduct: TIfcProduct;
 begin
-  NewSelectedObject := TIfcObjectDefinition(ItemObject);
+  NewSelectedObject := TIfcObjectDefinition(
+    ListHierarchy.ItemsObjects[ListHierarchy.ItemIndex]);
   if NewSelectedObject is TIfcProduct then
   begin
     NewSelectedProduct := TIfcProduct(NewSelectedObject);
@@ -577,6 +576,15 @@ end;
 procedure TViewMain.UpdateHierarchy;
 const
   Indent = '  ';
+{ The call to UpdateHierarchy happens very often,
+  after every ClickAddWall, ClickAddWallAndWindow.
+  We can s optimize it to not rebuild ListHierarchy from scratch every time,
+  but try to update existing ListHierarchy items. }
+{$define OPTIMIZE_HIERARCHY_UPDATES}
+{$ifdef OPTIMIZE_HIERARCHY_UPDATES}
+var
+  DesiredHierarchyCount: Integer;
+{$endif}
 
   procedure ShowHierarchy(const RelationName: String;
     const Parent: TIfcObjectDefinition; const NowIndent: String);
@@ -600,7 +608,17 @@ const
        (not TIfcProduct(Parent).TransformSupported) then
       S := S + NL + NowIndent + Indent + '<font color="#aa0000">(^dragging may be not intuitive)</font>';
 
+    {$ifdef OPTIMIZE_HIERARCHY_UPDATES}
+    Inc(DesiredHierarchyCount);
+    if ListHierarchy.ItemsCount >= DesiredHierarchyCount then
+    begin
+      ListHierarchy.ItemsStrings[DesiredHierarchyCount - 1] := S;
+      ListHierarchy.ItemsObjects[DesiredHierarchyCount - 1] := Parent;
+    end else
+      ListHierarchy.AddItem(S, Parent);
+    {$else}
     ListHierarchy.AddItem(S, Parent);
+    {$endif}
     // make the last item selected, if it's for IfcSelectedProduct
     if Parent = IfcSelectedProduct then
       ListHierarchy.ItemIndex := ListHierarchy.ItemsCount - 1;
@@ -653,8 +671,18 @@ begin
     LabelHierarchy.Text.Assign(SList);
   finally FreeAndNil(SList) end;
 
+  {$ifdef OPTIMIZE_HIERARCHY_UPDATES}
+  DesiredHierarchyCount := 0;
+  {$else}
   ListHierarchy.ClearItems;
+  {$endif}
+
   ShowHierarchy('', IfcFile.Project, Indent);
+
+  {$ifdef OPTIMIZE_HIERARCHY_UPDATES}
+  while ListHierarchy.ItemsCount > DesiredHierarchyCount do
+    ListHierarchy.DeleteLastItem;
+  {$endif}
 end;
 
 function TViewMain.ProductBoundingBox(const Product: TIfcProduct): TBox3D;
@@ -677,7 +705,8 @@ begin
   if NewSelectedProduct <> IfcSelectedProduct then
   begin
     IfcSelectedProduct := NewSelectedProduct;
-    UpdateHierarchy;
+    ListHierarchy.ItemIndex := ListHierarchy.IndexOfAssociatedObject(IfcSelectedProduct);
+    //UpdateHierarchy;
 
     // Update TransformManipulate, to allow dragging selected product, if any
 

@@ -17,19 +17,36 @@
   This is a simple implementation of list box specialized
   for our needs in examples/ifc/ .
 
-  It allows to prevent slowdown by not rebuilding the UI when
+  The list is basically just a number of instances of TCastleUserInterface
+  (each created by cloning LoadItemTemplate).
+  Each item has an index and AssociatedObject:TObject (this can have any meaning,
+  just like objects associated with strings in a TStringList).
 
-  - we changed IFC, but no change to what list is showing is necessary
-    (e.g. we only changed translation of sthg)
+  You can:
 
-  - or we only need to change list item's selected state.
+  @unorderedList(
+    @item(Add and remove list items by methods like @link(AddItem),
+      @link(ClearItems), @link(DeleteLastItem).
 
-  Never operate on the children of this list directly.
-  Do not use ClearControls, InsertFront, InsertBack, InsertControl.
-  Use only the relevant methods of this list to add and remove items,
-  they make sure to keep various internal state correct (index, associated items)
-  and also release memory of unused list items (so that rebuilding lists
-  doesn't continue to consume some memory from removed items).
+      Note: Never operate on the children of this list directly.
+      Do not use ClearControls, InsertFront, InsertBack, InsertControl.
+      Use only the new methods of this list to add and remove items,
+      they make sure to keep various internal state correct (index, associated items)
+      and also release memory of unused list items (so that rebuilding lists
+      doesn't continue to consume some memory from removed items).
+    )
+
+    @item(Toggle which item is now selected with @link(ItemIndex).)
+
+    @item(Observe clicking on the list using @link(OnClick).
+      After a click, before calling @link(OnClick),
+      we also change @link(ItemIndex) automatically to the newly clicked item.)
+
+    @item(Update existing items by @link(ItemsStrings), @link(ItemsObjects).)
+  )
+
+  Using it allows to prevent slowdown by not rebuilding the UI of the list
+  when not necessary in examples/ifc .
 
   TODO: More complete and universal list box
   is coming soon to CGE, following plan in GameListBox unit. }
@@ -41,11 +58,6 @@ uses SysUtils, Classes, Contnrs,
   CastleControls, CastleComponentSerialize, CastleUiControls, CastleUtils;
 
 type
-  TCastleListBox = class;
-
-  TListClickEvent = procedure (const Sender: TCastleListBox;
-    const ItemIndex: Integer; const ItemObject: TObject) of object;
-
   { List of selectable items. }
   TCastleListBox = class(TCastleVerticalGroup)
   private
@@ -62,9 +74,11 @@ type
       FTemplateLabelName, FTemplateButtonName: String;
       FItems: TItemList;
       FItemIndex: Integer;
-      FOnClick: TListClickEvent;
+      FOnClick: TNotifyEvent;
     function GetItemsStrings(const Index: Integer): String;
     procedure SetItemsStrings(const Index: Integer; const Value: String);
+    function GetItemsObjects(const Index: Integer): TObject;
+    procedure SetItemsObjects(const Index: Integer; const Value: TObject);
     procedure ButtonClick(Sender: TObject);
     procedure SetItemIndex(const Value: Integer);
   public
@@ -78,6 +92,8 @@ type
     function ItemsCount: Integer;
     property ItemsStrings[const Index: Integer]: String
       read GetItemsStrings write SetItemsStrings;
+    property ItemsObjects[const Index: Integer]: TObject
+      read GetItemsObjects write SetItemsObjects;
     procedure AddItem(const S: String; const AssociatedObject: TObject);
 
     { Delete last item from list.
@@ -99,7 +115,11 @@ type
     { Currently selected item, or -1 if none. }
     property ItemIndex: Integer read FItemIndex write SetItemIndex default -1;
 
-    property OnClick: TListClickEvent read FOnClick write FOnClick;
+    property OnClick: TNotifyEvent read FOnClick write FOnClick;
+
+    { Find item with given AssociatedObject.
+      -1 if not found. }
+    function IndexOfAssociatedObject(const O: TObject): Integer;
   end;
 
 implementation
@@ -146,6 +166,16 @@ end;
 procedure TCastleListBox.SetItemsStrings(const Index: Integer; const Value: String);
 begin
   FItems.L[Index].ItemLabel.Caption := Value;
+end;
+
+function TCastleListBox.GetItemsObjects(const Index: Integer): TObject;
+begin
+  Result := FItems.L[Index].AssociatedObject;
+end;
+
+procedure TCastleListBox.SetItemsObjects(const Index: Integer; const Value: TObject);
+begin
+  FItems.L[Index].AssociatedObject := Value;
 end;
 
 procedure TCastleListBox.ClearItems;
@@ -200,12 +230,10 @@ procedure TCastleListBox.ButtonClick(Sender: TObject);
 var
   SenderComponent: TComponent;
 begin
+  SenderComponent := Sender as TComponent;
+  ItemIndex := SenderComponent.Tag;
   if Assigned(OnClick) then
-  begin
-    SenderComponent := Sender as TComponent;
-    ItemIndex := SenderComponent.Tag;
-    OnClick(Self, ItemIndex, FItems.L[ItemIndex].AssociatedObject);
-  end;
+    OnClick(Self);
 end;
 
 procedure TCastleListBox.SetItemIndex(const Value: Integer);
@@ -218,6 +246,14 @@ begin
     if Between(FItemIndex, 0, FItems.Count - 1) then
       FItems.L[FItemIndex].Button.Pressed := true;
   end;
+end;
+
+function TCastleListBox.IndexOfAssociatedObject(const O: TObject): Integer;
+begin
+  for Result := 0 to FItems.Count - 1 do
+    if FItems.L[Result].AssociatedObject = O then
+      Exit;
+  Result := -1;
 end;
 
 end.
