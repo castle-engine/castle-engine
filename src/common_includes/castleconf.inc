@@ -608,7 +608,6 @@
 
 {$ifdef WASI}
   {$undef HAS_FP_HTTP_CLIENT}
-  {$undef USE_VAMPYRE_IMAGING} // Vampyre Imaging doesn't work with WASI
   // CastleDynLibs on WASI not tested
   {$undef ALLOW_DLOPEN_FROM_UNIT_INITIALIZATION}
   { Web target doesn't support try..except, so we report some errors
