@@ -21,7 +21,7 @@ begin
   {$elseif defined(FPC)}
   Result := Load_FpImage(Stream, AllowedImageClasses, TFPReaderGIF.Create, ifGIF);
   {$else}
-  raise EImageLoadError.Create('Cannot read GIF (neither FpImage nor Vampyre Imaging Library available at compile-time)');
+  Result := ImageLoadError('Cannot read GIF (neither FpImage nor Vampyre Imaging Library available at compile-time)');
   {$endif}
 end;
 
@@ -33,7 +33,7 @@ begin
   {$elseif defined(FPC)}
   Result := Load_FpImage(Stream, AllowedImageClasses, TFPReaderTarga.Create, ifTGA);
   {$else}
-  raise EImageLoadError.Create('Cannot read TGA (neither FpImage nor Vampyre Imaging Library available at compile-time)');
+  Result := ImageLoadError('Cannot read TGA (neither FpImage nor Vampyre Imaging Library available at compile-time)');
   {$endif}
 end;
 
@@ -44,8 +44,7 @@ begin
   {$if defined(USE_VAMPYRE_IMAGING)} // if available, prefer to use Vampyre
   Result := Load_VampyreImaging(Stream, AllowedImageClasses);
   {$else}
-  raise EImageLoadError.Create('Cannot read TIFF (Vampyre Imaging Library not available at compile-time)');
-  Result := nil; // just silence FPC warning
+  Result := ImageLoadError('Cannot read TIFF (Vampyre Imaging Library not available at compile-time)');
   {$endif}
 end;
 
@@ -55,8 +54,7 @@ begin
   {$if defined(USE_VAMPYRE_IMAGING)} // if available, prefer to use Vampyre
   Result := Load_VampyreImaging(Stream, AllowedImageClasses);
   {$else}
-  raise EImageLoadError.Create('Cannot read JP2 (Vampyre Imaging Library not available at compile-time)');
-  Result := nil; // just silence FPC warning
+  Result := ImageLoadError('Cannot read JP2 (Vampyre Imaging Library not available at compile-time)');
   {$endif}
 end;
 {$endif CASTLE_ENABLE_PLATFORM_SPECIFIC_IMAGE_FORMATS}
@@ -69,7 +67,7 @@ begin
   {$elseif defined(FPC)}
   Result := Load_FpImage(Stream, AllowedImageClasses, TFPReaderJPEG.Create, ifJPEG);
   {$else}
-  raise EImageLoadError.Create('Cannot read JPEG (neither FpImage nor Vampyre Imaging Library available at compile-time)');
+  Result := ImageLoadError('Cannot read JPEG (neither FpImage nor Vampyre Imaging Library available at compile-time)');
   {$endif}
 end;
 
@@ -82,8 +80,7 @@ begin
   // {$elseif defined(FPC)}
   // Result := Load_FpImage(Stream, AllowedImageClasses, TFPReaderXPM.Create, ifXPM);
   {$else}
-  raise EImageLoadError.Create('Cannot read XPM (Vampyre Imaging Library not available at compile-time)');
-  Result := nil; // silence FPC 3.2.2 warning
+  Result := ImageLoadError('Cannot read XPM (Vampyre Imaging Library not available at compile-time)');
   {$endif}
 end;
 
@@ -95,7 +92,7 @@ begin
   {$elseif defined(FPC)}
   Result := Load_FpImage(Stream, AllowedImageClasses, TFPReaderPSD.Create, ifPSD);
   {$else}
-  raise EImageLoadError.Create('Cannot read PSD (neither FpImage nor Vampyre Imaging Library available at compile-time)');
+  Result := ImageLoadError('Cannot read PSD (neither FpImage nor Vampyre Imaging Library available at compile-time)');
   {$endif}
 end;
 
@@ -107,7 +104,7 @@ begin
   {$elseif defined(FPC)}
   Result := Load_FpImage(Stream, AllowedImageClasses, TFPReaderPCX.Create, ifPCX);
   {$else}
-  raise EImageLoadError.Create('Cannot read PCX (neither FpImage nor Vampyre Imaging Library available at compile-time)');
+  Result := ImageLoadError('Cannot read PCX (neither FpImage nor Vampyre Imaging Library available at compile-time)');
   {$endif}
 end;
 
@@ -122,7 +119,7 @@ begin
   // TODO: submit FPC bug
   Result := Load_FpImage(Stream, AllowedImageClasses, TFPReaderPNM.Create, ifPNM);
   {$else}
-  raise EImageLoadError.Create('Cannot read PNM (neither FpImage nor Vampyre Imaging Library available at compile-time)');
+  Result := ImageLoadError('Cannot read PNM (neither FpImage nor Vampyre Imaging Library available at compile-time)');
   {$endif}
 end;
 
@@ -134,7 +131,7 @@ begin
   {$elseif defined(FPC)}
   Result := Load_FpImage(Stream, AllowedImageClasses, TFPReaderBMP.Create, ifBMP);
   {$else}
-  raise EImageLoadError.Create('Cannot read BMP (neither FpImage nor Vampyre Imaging Library available at compile-time)');
+  Result := ImageLoadError('Cannot read BMP (neither FpImage nor Vampyre Imaging Library available at compile-time)');
   {$endif}
 end;
 
@@ -144,8 +141,7 @@ begin
   {$if defined(USE_VAMPYRE_IMAGING)}
   Result := Load_VampyreImaging(Stream, AllowedImageClasses);
   {$else}
-  Result := nil; // avoid spurious FPC 3.3.1 warning "function result does not seem to be set" (which doesn't matter when we always make an exception...)
-  raise EImageLoadError.Create('Cannot read RGBE (Vampyre Imaging Library not available at compile-time)');
+  Result := ImageLoadError('Cannot read RGBE (Vampyre Imaging Library not available at compile-time)');
   {$endif}
 end;
 
