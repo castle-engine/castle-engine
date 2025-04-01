@@ -5,7 +5,7 @@
 # workflows and be able to get their artifacts.
 # ----------------------------------------------------------------------------
 
-name: Everything (Test, Pack, Release)
+name: Minimal Pack + Release on Linux + Windows
 on:
   pull_request:
   # Run on push to any branch, not on tags.
@@ -26,34 +26,16 @@ defaults:
     shell: bash
 
 jobs:
-  quick_test:
-    uses: ./.github/workflows/quick-test.yml
   test_and_pack_docker:
     uses: ./.github/workflows/test-and-pack-docker.yml
-  delphi:
-    uses: ./.github/workflows/delphi.yml
   test_and_pack_runner_native:
     uses: ./.github/workflows/test-and-pack-runner-native.yml
-  test_and_pack_arm_runner:
-    uses: ./.github/workflows/test-and-pack-arm-runner.yml
-  test_shell:
-    uses: ./.github/workflows/test-shell.yml
-  check_dependencies:
-    uses: ./.github/workflows/check-dependencies.yml
-  api_reference:
-    uses: ./.github/workflows/api-reference.yml
 
   release:
     name: Release
     needs: [
-      quick_test,
       test_and_pack_docker,
-      delphi,
-      test_and_pack_runner_native,
-      test_and_pack_arm_runner,
-      test_shell,
-      check_dependencies,
-      api_reference
+      test_and_pack_runner_native
     ]
     if: ${{ github.ref == 'refs/heads/master' }}
     runs-on: ubuntu-latest
@@ -92,38 +74,7 @@ jobs:
 
     # Releases files in the GitHub release.
     - name: Release Artifacts
-      if: ${{ github.ref == 'refs/heads/master' }}
       run: gh release --repo ${{ github.repository }} upload ${{ env.release_tag }} --clobber castle-engine*.zip castle-engine-setup-*.exe
       env:
         GH_TOKEN: ${{ github.token }}
 
-  update-release-tag:
-    name: Update Release Tag (make release tag point to the build commit on master branch)
-    runs-on: ubuntu-latest
-    needs: [release]
-    steps:
-    - uses: actions/checkout@v4
-    - name: Update Release Tag
-      if: ${{ github.ref == 'refs/heads/master' }}
-      run: |
-        # --force allows to overwrite previous tag
-        git tag --force ${{ env.release_tag }}
-        # --force allows to push with overwritten tag
-        git push --force origin ${{ env.release_tag }}
-
-    # Make https://github.com/castle-engine/castle-engine-docker
-    # rebuild Docker image with the latest CGE snapshot.
-    #
-    # See repository_dispatch docs:
-    # https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#repository_dispatch
-    # https://docs.github.com/en/rest/repos/repos?apiVersion=2022-11-28#create-a-repository-dispatch-event
-    - name: Dispatch updating Docker cge-unstable
-      env:
-        GH_TOKEN: ${{ secrets.GH_TOKEN_DISPATCH_DOCKER_UPDATE }}
-      run: |
-        gh api --method POST \
-          -H "Accept: application/vnd.github+json" \
-          -H "X-GitHub-Api-Version: 2022-11-28" \
-          /repos/castle-engine/castle-engine-docker/dispatches \
-          -f "event_type=cge-snapshot-changed"  \
-          -F "client_payload[cge_commit_sha]=${{ github.sha }}"

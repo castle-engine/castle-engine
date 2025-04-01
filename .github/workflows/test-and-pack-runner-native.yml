@@ -26,46 +26,13 @@ jobs:
     name: Test and Pack
     strategy:
       matrix:
-        # TODO:
-        # Readd macos-latest:
-        #
-        # Fails teapot-to-pascal compilation with:
-        #
-        # Undefined symbols for architecture arm64:
-        #   "_LSOpenCFURLRef", referenced from:
-        #       _CASTLEOPENDOCUMENT_$$_OPENURL$ANSISTRING$$BOOLEAN in castleopendocument.o
-        #
-        # Note: We cannot macos-12 (last Intel-based mac), it's removed now: https://github.com/actions/runner-images/issues/10721
-        #
-        # TODO: Using ubuntu-22.04 instead of ubuntu-latest as a workaround for zip crashes,
-        # see test-and-pack-docker.yml notes.
-
-        runner: [macos_x64, ubuntu-22.04, windows-latest]
+        runner: [windows-latest]
         include:
-          # To not overload the slower RPi, use it only with master
-          # Later: removed using self-hosted runners for RPi, to cut costs.
-          # Use test-and-pack-arm-runner.yml for RPi instead.
-          #
-          # - if: ${{ github.ref == 'refs/heads/master' }}
-          #   runner: raspberry_pi_64
-          # - if: ${{ github.ref == 'refs/heads/master' }}
-          #   runner: raspberry_pi_32
-
           # Add is_macos variable to easily check for any macOS.
           # Default is false, and then we override it to true for macos runners.
           - is_macos: false
-          - runner: macos_x64
-            is_macos: true
-          - runner: macos-13
-            is_macos: true
-          # Uncomment this once we reeanable macos-latest
-          # - runner: macos-latest
-          #   is_macos: true
-
           # Add is_gh_ubuntu variable to easily check for any GHA-hosted Ubuntu.
           - is_gh_ubuntu: false
-          - runner: ubuntu-22.04
-            is_gh_ubuntu: true
     runs-on: ${{ matrix.runner }}
     steps:
     - uses: actions/checkout@v4
@@ -207,32 +174,6 @@ jobs:
         mkdir -p installed/
         make clean tools install PREFIX=${CASTLE_ENGINE_PATH}/installed/
 
-    - name: Build Examples
-      # Too slow on RPi
-      if : ${{ matrix.runner != 'raspberry_pi_64' && matrix.runner != 'raspberry_pi_32' }}
-      run: make clean examples CASTLE_CONSERVE_DISK_SPACE=true
-
-    - name: Build And Run Auto-Tests
-      run: make tests
-
-    # Fails at least on ubuntu-latest (when it was synonym with 22.04). TODO: Unsure how to set $FPCDIR, for now skip this test.
-    # - name: Build Using FpMake
-    #   # Too slow on RPi
-    #   # On macOS: we don't have fpmake "opengl" package ok after installing on macOS using fpcupdeluxe?
-    #   # So this never executes now...
-    #   if : ${{ matrix.runner != 'raspberry_pi_64' && matrix.runner != 'raspberry_pi_32' && matrix.runner != 'macos_x64'}}
-    #   run: make clean test-fpmake
-
-    - name: Build Lazarus Packages
-      run: |
-        lazbuild packages/castle_base.lpk
-        lazbuild packages/castle_window.lpk
-        lazbuild packages/castle_components.lpk
-        lazbuild packages/castle_editor_components.lpk
-        lazbuild packages/alternative_castle_window_based_on_lcl.lpk
-
-    # TODO: also run examples-laz here
-
     - name: Build and Install PasDoc
       run: |
         wget https://github.com/pasdoc/pasdoc/archive/refs/heads/master.zip --output-document pasdoc-master.zip
@@ -240,52 +181,6 @@ jobs:
         mv pasdoc-master pasdoc
         cd pasdoc
         make
-
-    - name: Pack Release
-      run: |
-        rm -f castle-engine*.zip # remove previous artifacts
-        ./tools/internal/pack_release/pack_release.sh ${FPC_OS} ${FPC_CPU}
-    - name: Archive Artifacts (zip)
-      # We don't archive build on:
-      #
-      # - macos-13, because build on macos_x64 is already good for us.
-      #   Testing, both these runners produce the functionally equivalent zip
-      #   (there are small differences in binaries, though both use the same FPC version
-      #   but e.g. FPC puts absolute paths in some binaries, so they differ).
-      #   We choose to use macos_x64 as the primary runner for the release,
-      #   since this is our own machine (self hosted), we have more control over it.
-      #
-      # - windows-latest, because the test-and-pack-docker.yml is also doing
-      #   equivalent build (castle-engine-7.0-alpha.snapshot-win64-x86_64.zip).
-      #   Moreover that Docker job is also doing version bundled
-      #   with FPC (castle-engine-7.0-alpha.snapshot-win64-x86_64-bundle.zip)
-      #   and win32 (castle-engine-7.0-alpha.snapshot-win32-i386.zip).
-      #   OTOH, windows-latest is doing castle-engine-setup-7.0-alpha.snapshot.exe,
-      #   as it has to be done on Windows (with InnoSetup).
-      #
-      #   The differences between doing a job in Docker and windows-latest are
-      #   ignorable:
-      #   - From Docker, we get Unix line endings even for Windows build
-      #     since its a checkout on Linux.
-      #     (disadvantage but ignorable, nothing seems to complain?),
-      #   - PasDoc version from Docker is slightly different (advantage,
-      #     we control PasDoc version in Docker better, consistent with others).
-      #   - Docker build is a bit safer, as packing is a separate job,
-      #     not depending that cge_clean_all in pack_release.sh
-      #     cleans everything.
-      #
-      # - is_gh_ubuntu, because the test-and-pack-docker.yml is also doing
-      #   equivalent build (castle-engine-7.0-alpha.snapshot-linux-x86_64.zip).
-      #   The Docker job is a bit better, see above about windows-latest:
-      #   PasDoc version in Docker is more consistent,
-      #   and the build does not rely on cge_clean_all.
-      #
-      if: ${{ matrix.runner != 'macos-13' && matrix.runner != 'windows-latest' && !matrix.is_gh_ubuntu }}
-      uses: actions/upload-artifact@v4
-      with:
-        name: ${{ matrix.runner }}-release
-        path: "castle-engine*.zip"
-        if-no-files-found: error
 
     - name: Download bundled FPC
       if: ${{ matrix.runner == 'windows-latest' }}
