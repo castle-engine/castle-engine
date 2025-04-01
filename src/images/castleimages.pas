@@ -1,5 +1,5 @@
 {
-  Copyright 2001-2024 Michalis Kamburelis.
+  Copyright 2001-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -1598,7 +1598,7 @@ uses {$ifdef FPC} ExtInterpolation, FPCanvas, FPImgCanv, {$endif}
   {$endif}
   CastleInternalZLib, CastleStringUtils, CastleFilesUtils, CastleLog, CastleDynLib,
   CastleInternalCompositeImage, CastleDownload, CastleUriUtils, CastleTimeUtils,
-  CastleStreamUtils, CastleInternalDataCompression;
+  CastleStreamUtils, CastleInternalDataCompression, CastleApplicationProperties;
 
 { Like GrayscaleValue, but also convert input Byte to output Single
   (converting 0..255 to 0..1). }
