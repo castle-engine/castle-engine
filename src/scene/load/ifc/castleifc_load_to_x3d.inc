@@ -1659,6 +1659,18 @@ begin
   Result := TransformMappingTarget;
 end;
 
+function TIfcClosedShell.BuildNode(const Mapping: TCastleIfcMapping;
+  const ParentProduct: TIfcProduct;
+  const LitAppearance, UnlitAppearance: TAppearanceNode): TAbstractChildNode;
+begin
+  if Outer <> nil then
+  begin
+    Result := Outer.BuildNode(Mapping, ParentProduct,
+      LitAppearance, UnlitAppearance);
+  end else
+    Result := nil;
+end;
+
 { BuildNode of TIfcObjectDefinition and descendants -------------------------- }
 
 function TIfcObjectDefinition.BuildNode(const Mapping: TCastleIfcMapping): TTransformNode;
@@ -1824,6 +1836,48 @@ begin
   ProcessList(UAxes, 0);
   ProcessList(VAxes, 1);
   ProcessList(WAxes, 2);
+end;
+
+{ TIfcConnectedFaceSet.BuildNode --------------------------------------------- }
+
+function TIfcConnectedFaceSet.BuildNode(const Mapping: TCastleIfcMapping;
+  const ParentProduct: TIfcProduct;
+  const LitAppearance, UnlitAppearance: TAppearanceNode): TAbstractChildNode;
+var
+  IndexedFaceSet: TIndexedFaceSetNode;
+  Coord: TCoordinateNode;
+  I, Index: Integer;
+  Shape: TShapeNode;
+begin
+  Coord := TCoordinateNode.Create('', Mapping.BaseUrl);
+  // if Coordinates <> nil then
+  //   Coord.SetPoint(Coordinates.CoordList);
+
+  IndexedFaceSet := TIndexedFaceSetNode.Create('', Mapping.BaseUrl);
+  IndexedFaceSet.Coord := Coord;
+  IndexedFaceSet.Solid := true;
+  // do not smooth, we don't know how smooth is the mesh, using flat shading is safest
+  IndexedFaceSet.CreaseAngle := 0;
+
+  // IndexedFaceSet.FdIndex.Count := CoordIndex.Count * 3;
+  // for I := 0 to CoordIndex.Count - 1 do
+  // begin
+  //   for Index in CoordIndex[I] do
+  //   begin
+  //     if Index < PnIndex.Count then
+  //       Index := PnIndex[Index];
+  //     Dec(Index); // IFC indices are 1-based
+  //     IndexedFaceSet.FdIndex.Items[I * 3 + Index] := Index;
+  //   end;
+  // end;
+
+  Shape := TShapeNode.Create('', Mapping.BaseUrl);
+  Shape.Geometry := IndexedFaceSet;
+  Shape.Appearance := LitAppearance;
+  SetMetadata(Shape, 'IFC_ClassName', ClassName);
+
+  Mapping.ConnectShapeAndProduct(Shape, ParentProduct);
+  Result := Shape;
 end;
 
 { TIfc*Placement methods implementations ----------------------------------------- }

@@ -222,6 +222,8 @@
   TIfcCoordinateOperation = class;
   TIfcFeatureElementAddition = class;
   TIfcRelReferencedInSpatialStructure = class;
+  TIfcClosedShell = class;
+  TIfcLoop = class;
 
   { Float type used throughout IFC.
 
@@ -281,6 +283,7 @@
   TIfcNormalisedRatioMeasure = Single;
 
   TIfcLogical = Boolean;
+  TIfcBoolean = Boolean;
 
   { Presentation information assigned to geometric representation items.
 
@@ -5748,6 +5751,83 @@
     property ReferenceExtent: TIfcPositiveLengthMeasure read FReferenceExtent write FReferenceExtent;
   end;
 
+  { IFC class @url(https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcManifoldSolidBrep.htm IfcManifoldSolidBrep). }
+  TIfcManifoldSolidBrep = class abstract(TIfcSolidModel)
+  strict private
+    FOuter: TIfcClosedShell;
+  public
+    function BuildNode(const Mapping: TCastleIfcMapping;
+      const ParentProduct: TIfcProduct;
+      const LitAppearance, UnlitAppearance: TAppearanceNode): TAbstractChildNode; override;
+  published
+    { A closed shell defining the exterior boundary of the solid.
+      The shell normal shall point away from the interior of the solid. }
+    property Outer: TIfcClosedShell read FOuter write FOuter;
+  end;
+
+  { IFC class @url(https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcTopologicalRepresentationItem.htm IfcTopologicalRepresentationItem). }
+  TIfcTopologicalRepresentationItem = class abstract(TIfcRepresentationItem)
+  strict private
+  end;
+
+  { IFC class @url(https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcFaceBound.htm IfcFaceBound). }
+  TIfcFaceBound = class(TIfcTopologicalRepresentationItem)
+  strict private
+    FBound: TIfcLoop;
+    FOrientation: TIfcBoolean;
+  published
+    { Loop which will be used as a face boundary. }
+    property Bound: TIfcLoop read FBound write FBound;
+
+    { This indicated whether (TRUE) or not (FALSE) the loop has
+      the same sense when used to bound the face as when first defined.
+      If sense is FALSE the senses of all its component oriented edges are
+      implicitly reversed when used in the face. }
+    property Orientation: TIfcBoolean read FOrientation write FOrientation;
+  end;
+  TIfcFaceBoundList = {$ifdef FPC}specialize{$endif} TObjectList<TIfcFaceBound>;
+
+  { IFC class @url(https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcFace.htm IfcFace). }
+  TIfcFace = class(TIfcTopologicalRepresentationItem)
+  strict private
+    FBounds: TIfcFaceBoundList;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+  published
+    { Boundaries of the face. }
+    property Bounds: TIfcFaceBoundList read FBounds;
+  end;
+  TIfcFaceList = {$ifdef FPC}specialize{$endif} TObjectList<TIfcFace>;
+
+  { IFC class @url(https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcConnectedFaceSet.htm IfcConnectedFaceSet). }
+  TIfcConnectedFaceSet = class(TIfcTopologicalRepresentationItem)
+  strict private
+    FCfsFaces: TIfcFaceList;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+    function BuildNode(const Mapping: TCastleIfcMapping;
+      const ParentProduct: TIfcProduct;
+      const LitAppearance, UnlitAppearance: TAppearanceNode): TAbstractChildNode;
+  published
+    { The set of faces arcwise connected along common edges or vertices. }
+    property CfsFaces: TIfcFaceList read FCfsFaces;
+  end;
+
+  { IFC class @url(https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcPolyLoop.htm IfcPolyLoop). }
+  TIfcPolyLoop = class(TIfcLoop)
+  strict private
+    FPolygon: TIfcCartesianPointList;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+  published
+    { List of points defining the loop. There are no repeated points in
+      the list. }
+    property Polygon: TIfcCartesianPointList read FPolygon;
+  end;
+
 {$endif read_interface_types}
 
 {$ifdef read_interface}
@@ -7846,6 +7926,48 @@ begin
   inherited;
 end;
 
+{ TIfcConnectedFaceSet ------------------------------------------------------- }
+
+constructor TIfcConnectedFaceSet.Create(AOwner: TComponent);
+begin
+  inherited;
+  FCfsFaces := TIfcFaceList.Create(false);
+end;
+
+destructor TIfcConnectedFaceSet.Destroy;
+begin
+  FreeAndNil(FCfsFaces);
+  inherited;
+end;
+
+{ TIfcFace ------------------------------------------------------------------- }
+
+constructor TIfcFace.Create(AOwner: TComponent);
+begin
+  inherited;
+  FBounds := TIfcFaceBoundList.Create(false);
+end;
+
+destructor TIfcFace.Destroy;
+begin
+  FreeAndNil(FBounds);
+  inherited;
+end;
+
+{ TIfcPolyLoop --------------------------------------------------------------- }
+
+constructor TIfcPolyLoop.Create(AOwner: TComponent);
+begin
+  inherited;
+  FPolygon := TIfcCartesianPointList.Create(false);
+end;
+
+destructor TIfcPolyLoop.Destroy;
+begin
+  FreeAndNil(FPolygon);
+  inherited;
+end;
+
 { initialization, finalization ----------------------------------------------- }
 
 var
@@ -8061,6 +8183,12 @@ function IfcClasses: TIfcPersistentClassList;
     FIfcClasses.Add(TIfcTypeProduct);
     FIfcClasses.Add(TIfcBooleanResult);
     FIfcClasses.Add(TIfcBooleanClippingResult);
+    FIfcClasses.Add(TIfcManifoldSolidBrep);
+    FIfcClasses.Add(TIfcTopologicalRepresentationItem);
+    FIfcClasses.Add(TIfcFaceBound);
+    FIfcClasses.Add(TIfcFace);
+    FIfcClasses.Add(TIfcConnectedFaceSet);
+    FIfcClasses.Add(TIfcPolyLoop);
     {$define read_add_classes}
     {$I castleifc_ifc_standard_types_autogenerated.inc}
     {$undef read_add_classes}
