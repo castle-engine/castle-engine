@@ -306,10 +306,11 @@ type
 
     Note that before destroying this object you must free all videos,
     i.e. call Video_DecReference for all videos allocated by
-    Video_IncReference. @italic(This class is not a lousy way
-    of avoiding memory leaks) --- it would be a bad idea, because it would
-    cause sloppy programming, where memory is unnecessarily allocated for
-    a long time. In fact, this class asserts in destructor that no videos
+    Video_IncReference. @italic(This class does not silently release
+    all referenced videos when destroyed), it would
+    encourage leaving videos allocated for a long time, which is
+    sloppy -- memory usage would suffer. Instead, this class asserts 
+    in destructor that no videos
     are in cache anymore, so if you compiled with assertions enabled,
     this class does the job of memory-leak detector. }
   TVideosCache = class
