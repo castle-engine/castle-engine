@@ -2964,6 +2964,11 @@
     FRepresentation: TIfcProductRepresentation;
     FPositionedRelativeTo: TIfcRelPositionsList;
     FReferencedInStructures: TIfcRelReferencedInSpatialStructure;
+    { Remember last TCastleIfcMapping used with BuildNode,
+      and our associated TTransformNode.
+      Both are non-nil only if Mapping.OptimizeAssumingOneMapping. }
+    LastMapping: TCastleIfcMapping;
+    LastMappingNode: TTransformNode;
     function GetTranslation: TVector3;
     procedure SetTranslation(const Value: TVector3);
     { Return the value of @link(TransformSupported)
@@ -3035,7 +3040,13 @@
           investigate and change the @link(ObjectPlacement) properties.
         )
       )
-    }
+
+      When @link(TCastleIfcMapping.OptimizeAssumingOneMapping) then
+      this is optimized. Changing this property immediately updates
+      the relevant X3D graph, without the need to call
+      @link(TCastleIfcMapping.Update). This makes changing translation really
+      instant, no need to call @link(TCastleIfcMapping.Update) so it doesn't
+      analyze what changed. }
     property Translation: TVector3 read GetTranslation write SetTranslation;
 
     { Make @link(Translation) of this product relative to
@@ -6122,6 +6133,10 @@ begin
   end;
 
   NewLocation.Coordinates.Value := Value;
+
+  // update LastMappingNode fast
+  if LastMapping <> nil then
+    ObjectPlacement.UpdateNode(LastMapping, LastMappingNode);
 end;
 
 { TIfcPositioningElement ----------------------------------------------------- }

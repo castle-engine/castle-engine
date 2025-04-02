@@ -56,6 +56,8 @@
       { Used by ShowDebugShapeCallback and ShowDebugShapes. }
       ShowDebugShapeValue: Boolean;
 
+      FOptimizeAssumingOneMapping: Boolean;
+
     { Use ObjectPlacementToParentNodes and ChildrenNodesToObjectPlacement
       to move the nodes (change parents) to reflect
       TIfcObjectPlacement.PlacementRelTo instructions. }
@@ -63,6 +65,8 @@
 
     function CreateRootNode(const Ifc: TIfcFile): TX3DRootNode;
     procedure ShapeDestroyed(const Node: TX3DNode);
+
+    procedure SetOptimizeAssumingOneMapping(const Value: Boolean);
   private
     { Within the CastleIfc unit, this class is a container for information
       and actions useful to all
@@ -154,6 +158,15 @@
       This only updates the display (X3D nodes in @link(RootNode)),
       not IFC state. }
     procedure ShowDebugShapes(const Show: Boolean);
+
+    { Enable extra optimizations of some IFC operations by assuming
+      that IFC classes (in TIfcFile given to @link(Load) and @link(Update))
+      can safely remember this TCastleIfcMapping instance.
+      This is OK if the TCastleIfcMapping instance exists for the whole
+      lifetime of the TIfcFile instance (free TCastleIfcMapping later)
+      and you use only one TCastleIfcMapping instance with this TIfcFile. }
+    property OptimizeAssumingOneMapping: Boolean
+      read FOptimizeAssumingOneMapping write SetOptimizeAssumingOneMapping;
   end;
 
 {$endif read_interface_types}
@@ -620,6 +633,16 @@ begin
     ShowDebugShapeValue := Show;
     FRootNode.EnumerateNodes(TShapeNode,
       {$ifdef FPC}@{$endif} ShowDebugShapeCallback, false);
+  end;
+end;
+
+procedure TCastleIfcMapping.SetOptimizeAssumingOneMapping(const Value: Boolean);
+begin
+  if FOptimizeAssumingOneMapping <> Value then
+  begin
+    if FRootNode <> nil then
+      raise Exception.Create('Cannot change TCastleIfcMapping.OptimizeAssumingOneMapping after TCastleIfcMapping.Load was called');
+    FOptimizeAssumingOneMapping := Value;
   end;
 end;
 
@@ -1703,6 +1726,12 @@ var
 begin
   Result := inherited;
 
+  if Mapping.OptimizeAssumingOneMapping then
+  begin
+    LastMapping := Mapping;
+    LastMappingNode := Result;
+  end;
+
   if ObjectPlacement <> nil then
     ObjectPlacement.UpdateNode(Mapping, Result);
 
@@ -1812,8 +1841,17 @@ procedure TIfcObjectPlacement.UpdateNode(const Mapping: TCastleIfcMapping;
 begin
   // inherited; // no UpdateNode in ancestor
 
-  Mapping.ObjectPlacementToParentNodes.AddOrSetValue(Self, Transform);
-  if PlacementRelTo <> nil then
+  { Mapping.ObjectPlacementToParentNodes and
+    Mapping.ChildrenNodesToObjectPlacement are only initialized inside
+    TCastleIfcMapping.CreateRootNode .
+    When this method is called by TIfcProduct.SetTranslation,
+    these are nil, and it's OK to just ignore this logic (we don't need
+    to update these dictionarties when TIfcProduct.SetTranslation happens). }
+
+  if Mapping.ObjectPlacementToParentNodes <> nil then
+    Mapping.ObjectPlacementToParentNodes.AddOrSetValue(Self, Transform);
+  if (Mapping.ChildrenNodesToObjectPlacement <> nil) and
+     (PlacementRelTo <> nil) then
     Mapping.ChildrenNodesToObjectPlacement.AddOrSetValue(Transform, PlacementRelTo);
 end;
 
