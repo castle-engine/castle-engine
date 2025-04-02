@@ -143,6 +143,7 @@ begin
   begin
     // show cursor at proper place before even it is moved
     UpdateCursorPosition(Value.MousePosition);
+    Container.ForceCaptureInput := Self;
   end;
 end;
 
