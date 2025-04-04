@@ -431,3 +431,5 @@ TIfcMaterialLayerSet
 TIfcLayerSetDirectionEnum
 TIfcDirectionSenseEnum
 TIfcMaterialLayerSetUsage
+TIfcBooleanResult
+TIfcBooleanClippingResult

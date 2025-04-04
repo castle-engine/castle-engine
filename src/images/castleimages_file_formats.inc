@@ -1,6 +1,6 @@
 {%MainUnit castleimages.pas}
 {
-  Copyright 2001-2024 Michalis Kamburelis.
+  Copyright 2001-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -829,5 +829,22 @@ begin
       AddImageFormat(LoadImage_FileFilters, ImageFormatInfos[Format]);
     if Assigned(ImageFormatInfos[Format].Save) then
       AddImageFormat(SaveImage_FileFilters, ImageFormatInfos[Format]);
+  end;
+end;
+
+{ Raise EImageLoadError on most platforms.
+  If ApplicationProperties.CanCatchExceptions = @false,
+  make warning and return a dummy 1x1 image -- this is a simple way
+  to not crash on these platforms. }
+function ImageLoadError(const Message: String): TEncodedImage;
+begin
+  if ApplicationProperties.CanCatchExceptions then
+    raise EImageLoadError.Create(Message)
+  else
+  begin
+    WritelnWarning(Message);
+    Result := TRGBImage.Create(1, 1);
+    // color signalling error, just like in src/scene/glsl/source/fallback.fs
+    TRGBImage(Result).Colors[0, 0, 0] := Vector4(1.0, 0.0, 1.0, 1.0);
   end;
 end;

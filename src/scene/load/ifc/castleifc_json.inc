@@ -965,10 +965,13 @@ var
       PropInfo := GetPropInfo(Ifc.ClassInfo, JsonKey);
       if PropInfo = nil then
       begin
+        {$ifdef CASTLE_IFC_TODO_WARNINGS}
+        // Hide this warning, soon we will auto-generate all Pascal classes anyway
         WritelnWarning('IFC', 'IFC field "%s" not found in Pascal class %s, ignoring', [
           DebugJsonKey,
           Ifc.ClassName
         ]);
+        {$endif}
         Continue;
       end;
 
