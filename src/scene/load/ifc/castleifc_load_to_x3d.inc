@@ -1843,33 +1843,56 @@ end;
 function TIfcConnectedFaceSet.BuildNode(const Mapping: TCastleIfcMapping;
   const ParentProduct: TIfcProduct;
   const LitAppearance, UnlitAppearance: TAppearanceNode): TAbstractChildNode;
+
+{ Helpful diagram of the commonly used classes around FacetedBrep,
+  which this method practically implements, are in
+  https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcFacetedBrep.htm }
+
 var
   IndexedFaceSet: TIndexedFaceSetNode;
   Coord: TCoordinateNode;
-  I, Index: Integer;
+
+  procedure AddVertex(const Vertex: TVector3);
+  var
+    Index: Integer;
+  begin
+    Index := Coord.FdPoint.Count;
+    Coord.FdPoint.Count := Coord.FdPoint.Count + 1;
+    Coord.FdPoint.Items[Index] := Vertex;
+    IndexedFaceSet.FdCoordIndex.Items.Add(Index);
+  end;
+
+var
+  I: Integer;
   Shape: TShapeNode;
+  Face: TIfcFace;
+  FaceBound: TIfcFaceBound;
+  PolyLoop: TIfcPolyLoop;
 begin
   Coord := TCoordinateNode.Create('', Mapping.BaseUrl);
-  // if Coordinates <> nil then
-  //   Coord.SetPoint(Coordinates.CoordList);
 
   IndexedFaceSet := TIndexedFaceSetNode.Create('', Mapping.BaseUrl);
   IndexedFaceSet.Coord := Coord;
-  IndexedFaceSet.Solid := true;
+  IndexedFaceSet.Solid := false;
   // do not smooth, we don't know how smooth is the mesh, using flat shading is safest
   IndexedFaceSet.CreaseAngle := 0;
 
-  // IndexedFaceSet.FdIndex.Count := CoordIndex.Count * 3;
-  // for I := 0 to CoordIndex.Count - 1 do
-  // begin
-  //   for Index in CoordIndex[I] do
-  //   begin
-  //     if Index < PnIndex.Count then
-  //       Index := PnIndex[Index];
-  //     Dec(Index); // IFC indices are 1-based
-  //     IndexedFaceSet.FdIndex.Items[I * 3 + Index] := Index;
-  //   end;
-  // end;
+  for Face in CfsFaces do
+    for FaceBound in Face.Bounds do
+      if FaceBound.Bound is TIfcPolyLoop then
+      begin
+        PolyLoop := TIfcPolyLoop(FaceBound.Bound);
+        if FaceBound.Orientation then
+        begin
+          for I := 0 to PolyLoop.Polygon.Count - 1 do
+            AddVertex(PolyLoop.Polygon[I].Coordinates.Value);
+        end else
+        begin
+          for I := PolyLoop.Polygon.Count - 1 downto 0 do
+            AddVertex(PolyLoop.Polygon[I].Coordinates.Value);
+        end;
+        IndexedFaceSet.FdCoordIndex.Items.Add(-1);
+      end;
 
   Shape := TShapeNode.Create('', Mapping.BaseUrl);
   Shape.Geometry := IndexedFaceSet;
