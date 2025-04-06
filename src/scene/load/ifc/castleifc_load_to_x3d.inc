@@ -1659,7 +1659,7 @@ begin
   Result := TransformMappingTarget;
 end;
 
-function TIfcClosedShell.BuildNode(const Mapping: TCastleIfcMapping;
+function TIfcManifoldSolidBrep.BuildNode(const Mapping: TCastleIfcMapping;
   const ParentProduct: TIfcProduct;
   const LitAppearance, UnlitAppearance: TAppearanceNode): TAbstractChildNode;
 begin
