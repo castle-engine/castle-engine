@@ -1692,6 +1692,38 @@ begin
   end;
 end;
 
+function TIfcCompositeCurveSegment.BuildNode(const Mapping: TCastleIfcMapping;
+  const ParentProduct: TIfcProduct;
+  const LitAppearance, UnlitAppearance: TAppearanceNode): TAbstractChildNode;
+begin
+  if ParentCurve <> nil then
+    Result := ParentCurve.BuildNode(Mapping, ParentProduct,
+      LitAppearance, UnlitAppearance)
+  else
+    Result := nil;
+end;
+
+function TIfcCompositeCurve.BuildNode(const Mapping: TCastleIfcMapping;
+  const ParentProduct: TIfcProduct;
+  const LitAppearance, UnlitAppearance: TAppearanceNode): TAbstractChildNode;
+var
+  Group: TGroupNode;
+  Segment: TIfcSegment;
+  NewNode: TAbstractChildNode;
+begin
+  Group := TGroupNode.Create('', Mapping.BaseUrl);
+  SetMetadata(Group, 'IFC_ClassName', ClassName);
+  Result := Group;
+
+  for Segment in Segments do
+  begin
+    NewNode := Segment.BuildNode(Mapping, ParentProduct,
+      LitAppearance, UnlitAppearance);
+    if NewNode <> nil then
+      Group.AddChildren(NewNode);
+  end;
+end;
+
 { BuildNode of TIfcObjectDefinition and descendants -------------------------- }
 
 function TIfcObjectDefinition.BuildNode(const Mapping: TCastleIfcMapping): TTransformNode;
