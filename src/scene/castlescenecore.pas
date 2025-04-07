@@ -3642,7 +3642,6 @@ function TChangedAllTraverser.Traverse(
     ChildNode: TX3DNode;
     ChildGroup: TShapeTreeGroup;
     I: Integer;
-    CameraLocalPosition: TVector3;
   begin
     LODTree := TShapeTreeLOD.Create(ParentScene);
     LODTree.LODNode := LODNode;
@@ -4292,7 +4291,6 @@ function TTransformChangeHelper.TransformChangeTraverse(
     ShapeLOD: TShapeTreeLOD;
     OldShapes: PShapesParentInfo;
     NewShapes: TShapesParentInfo;
-    CameraLocalPosition: TVector3;
   begin
     { get Shape and increase Shapes^.Index }
     ShapeLOD := Shapes^.Group.Children[Shapes^.Index] as TShapeTreeLOD;
