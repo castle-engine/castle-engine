@@ -1,8 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <project name="castleengine"
   standalone_source="castleengine.lpr"
-  ios_source="castleengine.lpr">
-  <data exists="false"/>
+  ios_source="castleengine.lpr"
+  mac_app_bundle="false"
+  mac_universal_binary="true"
+>
+  <data exists="false" />
   <compiler_options>
     <defines>
       <define>CASTLE_WINDOW_LIBRARY</define>
