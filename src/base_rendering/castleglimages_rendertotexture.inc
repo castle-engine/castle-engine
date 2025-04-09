@@ -517,6 +517,7 @@ procedure TGLRenderToTexture.GLContextOpen;
     const InternalFormat: TGLenum; const AttachmentDepthAndStencil: boolean;
     Attachment: TGLenum);
   begin
+    CheckGLErrors('TGLRenderToTexture.GLContextOpen GenBindRenderbuffer start, fmt: $' + IntToHex(InternalFormat));
     if GLFeatures.Framebuffer then
     begin
       RenderbufferId := glCreateRenderbuffer();
@@ -526,6 +527,7 @@ procedure TGLRenderToTexture.GLContextOpen;
         glRenderbufferStorageMultisample(GL_RENDERBUFFER, MultiSampling, InternalFormat, Width, Height) else
       {$endif}
         glRenderbufferStorage(GL_RENDERBUFFER, InternalFormat, Width, Height);
+      CheckGLErrors('TGLRenderToTexture.GLContextOpen GenBindRenderbuffer after glRenderbufferStorage fmt: $' + IntToHex(InternalFormat));
       if AttachmentDepthAndStencil then
       begin
         // WritelnLog('FBO', 'Setting GL_DEPTH_ATTACHMENT and GL_STENCIL_ATTACHMENT to the same renderbuffer');
@@ -535,6 +537,7 @@ procedure TGLRenderToTexture.GLContextOpen;
         glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_RENDERBUFFER, RenderbufferId);
       end else
         glFramebufferRenderbuffer(GL_FRAMEBUFFER, Attachment, GL_RENDERBUFFER, RenderbufferId);
+      CheckGLErrors('TGLRenderToTexture.GLContextOpen GenBindRenderbuffer end, fmt: $' + IntToHex(InternalFormat));
     end;
   end;
 
@@ -554,6 +557,8 @@ var
   PreviousFboDefaultBuffer: TGLenum;
 begin
   Assert(not FGLInitialized, 'You cannot call TGLRenderToTexture.GLContextInit on already OpenGL-initialized instance. Call GLContextClose first if this is really what you want.');
+
+  CheckGLErrors('At start of TGLRenderToTexture.GLContextOpen');
 
   if GLFeatures.Framebuffer and
      (not (GLVersion.BuggyFBOCubeMap and TargetIsCubeMapSide(TextureTarget))) then
@@ -593,7 +598,7 @@ begin
             everything works.
           - For renderbuffer, we really need to use the enum with 16 suffix.
             Otherwise (on Mesa OpenGLES) we'll get FBO incomplete errors. }
-        {$ifdef OpenGLES} GL_DEPTH_COMPONENT16
+        {$ifdef OpenGLES} GL_DEPTH_COMPONENT
         {$else} GL_DEPTH_COMPONENT
         {$endif};
       DepthAttachmentPacked := GL_DEPTH_ATTACHMENT;
