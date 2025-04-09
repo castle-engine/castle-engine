@@ -1659,6 +1659,71 @@ begin
   Result := TransformMappingTarget;
 end;
 
+function TIfcManifoldSolidBrep.BuildNode(const Mapping: TCastleIfcMapping;
+  const ParentProduct: TIfcProduct;
+  const LitAppearance, UnlitAppearance: TAppearanceNode): TAbstractChildNode;
+begin
+  if Outer <> nil then
+  begin
+    Result := Outer.BuildNode(Mapping, ParentProduct,
+      LitAppearance, UnlitAppearance);
+  end else
+    Result := nil;
+end;
+
+function TIfcGeometricCurveSet.BuildNode(const Mapping: TCastleIfcMapping;
+  const ParentProduct: TIfcProduct;
+  const LitAppearance, UnlitAppearance: TAppearanceNode): TAbstractChildNode;
+var
+  Group: TGroupNode;
+  GeometricRepresentationItem: TIfcGeometricRepresentationItem;
+  NewNode: TAbstractChildNode;
+begin
+  Group := TGroupNode.Create('', Mapping.BaseUrl);
+  SetMetadata(Group, 'IFC_ClassName', ClassName);
+  Result := Group;
+
+  for GeometricRepresentationItem in Elements do
+  begin
+    NewNode := GeometricRepresentationItem.BuildNode(Mapping, ParentProduct,
+      LitAppearance, UnlitAppearance);
+    if NewNode <> nil then
+      Group.AddChildren(NewNode);
+  end;
+end;
+
+function TIfcCompositeCurveSegment.BuildNode(const Mapping: TCastleIfcMapping;
+  const ParentProduct: TIfcProduct;
+  const LitAppearance, UnlitAppearance: TAppearanceNode): TAbstractChildNode;
+begin
+  if ParentCurve <> nil then
+    Result := ParentCurve.BuildNode(Mapping, ParentProduct,
+      LitAppearance, UnlitAppearance)
+  else
+    Result := nil;
+end;
+
+function TIfcCompositeCurve.BuildNode(const Mapping: TCastleIfcMapping;
+  const ParentProduct: TIfcProduct;
+  const LitAppearance, UnlitAppearance: TAppearanceNode): TAbstractChildNode;
+var
+  Group: TGroupNode;
+  Segment: TIfcSegment;
+  NewNode: TAbstractChildNode;
+begin
+  Group := TGroupNode.Create('', Mapping.BaseUrl);
+  SetMetadata(Group, 'IFC_ClassName', ClassName);
+  Result := Group;
+
+  for Segment in Segments do
+  begin
+    NewNode := Segment.BuildNode(Mapping, ParentProduct,
+      LitAppearance, UnlitAppearance);
+    if NewNode <> nil then
+      Group.AddChildren(NewNode);
+  end;
+end;
+
 { BuildNode of TIfcObjectDefinition and descendants -------------------------- }
 
 function TIfcObjectDefinition.BuildNode(const Mapping: TCastleIfcMapping): TTransformNode;
@@ -1824,6 +1889,71 @@ begin
   ProcessList(UAxes, 0);
   ProcessList(VAxes, 1);
   ProcessList(WAxes, 2);
+end;
+
+{ TIfcConnectedFaceSet.BuildNode --------------------------------------------- }
+
+function TIfcConnectedFaceSet.BuildNode(const Mapping: TCastleIfcMapping;
+  const ParentProduct: TIfcProduct;
+  const LitAppearance, UnlitAppearance: TAppearanceNode): TAbstractChildNode;
+
+{ Helpful diagram of the commonly used classes around FacetedBrep,
+  which this method practically implements, are in
+  https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcFacetedBrep.htm }
+
+var
+  IndexedFaceSet: TIndexedFaceSetNode;
+  Coord: TCoordinateNode;
+
+  procedure AddVertex(const Vertex: TVector3);
+  var
+    Index: Integer;
+  begin
+    Index := Coord.FdPoint.Count;
+    Coord.FdPoint.Count := Coord.FdPoint.Count + 1;
+    Coord.FdPoint.Items[Index] := Vertex;
+    IndexedFaceSet.FdCoordIndex.Items.Add(Index);
+  end;
+
+var
+  I: Integer;
+  Shape: TShapeNode;
+  Face: TIfcFace;
+  FaceBound: TIfcFaceBound;
+  PolyLoop: TIfcPolyLoop;
+begin
+  Coord := TCoordinateNode.Create('', Mapping.BaseUrl);
+
+  IndexedFaceSet := TIndexedFaceSetNode.Create('', Mapping.BaseUrl);
+  IndexedFaceSet.Coord := Coord;
+  IndexedFaceSet.Solid := false;
+  // do not smooth, we don't know how smooth is the mesh, using flat shading is safest
+  IndexedFaceSet.CreaseAngle := 0;
+
+  for Face in CfsFaces do
+    for FaceBound in Face.Bounds do
+      if FaceBound.Bound is TIfcPolyLoop then
+      begin
+        PolyLoop := TIfcPolyLoop(FaceBound.Bound);
+        if FaceBound.Orientation then
+        begin
+          for I := 0 to PolyLoop.Polygon.Count - 1 do
+            AddVertex(PolyLoop.Polygon[I].Coordinates.Value);
+        end else
+        begin
+          for I := PolyLoop.Polygon.Count - 1 downto 0 do
+            AddVertex(PolyLoop.Polygon[I].Coordinates.Value);
+        end;
+        IndexedFaceSet.FdCoordIndex.Items.Add(-1);
+      end;
+
+  Shape := TShapeNode.Create('', Mapping.BaseUrl);
+  Shape.Geometry := IndexedFaceSet;
+  Shape.Appearance := LitAppearance;
+  SetMetadata(Shape, 'IFC_ClassName', ClassName);
+
+  Mapping.ConnectShapeAndProduct(Shape, ParentProduct);
+  Result := Shape;
 end;
 
 { TIfc*Placement methods implementations ----------------------------------------- }
