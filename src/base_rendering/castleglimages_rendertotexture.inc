@@ -636,8 +636,11 @@ begin
 
     { setup separate stencil buffer }
     if Stencil and not GLFeatures.PackedDepthStencil then
+    begin
+      CheckGLErrors('Check errors before GenBindRenderbuffer Stencil');
       { initialize RenderbufferStencil, attach it to FBO stencil }
       GenBindRenderbuffer(RenderbufferStencil, GL_STENCIL_INDEX, false, GL_STENCIL_ATTACHMENT);
+    end;
 
     Success := false;
     try
