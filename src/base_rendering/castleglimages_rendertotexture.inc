@@ -598,7 +598,7 @@ begin
             everything works.
           - For renderbuffer, we really need to use the enum with 16 suffix.
             Otherwise (on Mesa OpenGLES) we'll get FBO incomplete errors. }
-        {$ifdef OpenGLES} GL_DEPTH_COMPONENT
+        {$ifdef OpenGLES} GL_DEPTH_COMPONENT16
         {$else} GL_DEPTH_COMPONENT
         {$endif};
       DepthAttachmentPacked := GL_DEPTH_ATTACHMENT;
