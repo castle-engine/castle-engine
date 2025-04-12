@@ -221,6 +221,10 @@ begin
             'cache-clean' +NL+
             '    Remove the cache directory.' + NL +
             NL+
+            'unused-data' +NL+
+            '    Find data files that are *possibly* unused in your project.' + NL +
+            '    Treat the results with a grain of salt, as the detection is not perfect.' + NL +
+            NL+
             'create-manifest' +NL+
             '    (Deprecated) Creates simple CastleEngineManifest.xml with guessed values.' +NL+
             NL+
