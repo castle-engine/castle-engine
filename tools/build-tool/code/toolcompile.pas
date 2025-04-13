@@ -706,9 +706,9 @@ begin
         end;
       cmDebug:
         begin
-          FpcOptions.Add('-Cr'); // Range checking, see https://github.com/michaliskambi/modern-pascal-introduction/wiki/What-are-range-and-overflow-checks-(and-errors)-in-Pascal
+          FpcOptions.Add('-Cr'); // Range checking, see https://github.com/modern-pascal/modern-pascal-introduction/wiki/What-are-range-and-overflow-checks-(and-errors)-in-Pascal
           if Options.CPU <> Wasm32 then
-            FpcOptions.Add('-Co') // Overflow checking, see https://github.com/michaliskambi/modern-pascal-introduction/wiki/What-are-range-and-overflow-checks-(and-errors)-in-Pascal
+            FpcOptions.Add('-Co') // Overflow checking, see https://github.com/modern-pascal/modern-pascal-introduction/wiki/What-are-range-and-overflow-checks-(and-errors)-in-Pascal
           else
             { It seems that Overflow Checking is broken with WebAssembly,
               it causes exceptions
