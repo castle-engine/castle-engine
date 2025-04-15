@@ -1780,7 +1780,11 @@ begin
         if (not HasLine('precision mediump float;', S)) and
            (not HasLine('precision lowp float;', S)) and
            (not HasLine('precision highp float;', S)) then
+          {$ifdef iOS}
+          S := 'precision highp float;' + NL + S;
+          {$else}
           S := 'precision mediump float;' + NL + S;
+          {$endif}
         {$endif}
       end;
     {$ifndef COMPILER_CASE_ANALYSIS}
