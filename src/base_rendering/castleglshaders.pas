@@ -1402,16 +1402,16 @@ begin
       GL_SAMPLER_2D: Result := 'SAMPLER_2D';
       {$ifndef OpenGLES} GL_SAMPLER_3D: Result := 'SAMPLER_3D'; {$endif}
       GL_SAMPLER_CUBE: Result := 'SAMPLER_CUBE';
-      {$ifndef OpenGLES}
-      GL_SAMPLER_1D_SHADOW: Result := 'SAMPLER_1D_SHADOW';
+      {$ifndef OpenGLES} GL_SAMPLER_1D_SHADOW: Result := 'SAMPLER_1D_SHADOW'; {$endif}
       GL_SAMPLER_2D_SHADOW: Result := 'SAMPLER_2D_SHADOW';
+      {$ifndef OpenGLES}
       GL_SAMPLER_2D_RECT: Result := 'SAMPLER_2D_RECT';
       GL_SAMPLER_2D_RECT_SHADOW: Result := 'SAMPLER_2D_RECT_SHADOW';
       GL_INT_SAMPLER_2D_RECT: Result := 'INT_SAMPLER_2D_RECT';
       GL_UNSIGNED_INT_SAMPLER_2D_RECT: Result := 'UNSIGNED_INT_SAMPLER_2D_RECT';
       GL_SAMPLER_2D_MULTISAMPLE: Result := 'SAMPLER_2D_MULTISAMPLE';
       {$endif}
-      else Result := Format('Unrecognized uniform type "%d"', [AType]);
+      else Result := Format('Unrecognized uniform type "$%.4x"', [AType]);
     end;
   end;
 
