@@ -91,7 +91,7 @@
       FBackgroundEnable: Boolean;
       FBackgroundColor: TCastleColor;
       FInspector: TCastleUserInterface; //< always TCastleInspector
-    FMouseLookLastPreviousDelta: TVector2;
+      FMouseLookLastPreviousDelta: TVector2;
       // SafeBorder, without UIScale applied, in CSS order (top, right, bottom, left)
       FSafeBorderScaled: TVector4;
       FSafeBorder: TBorder;
@@ -100,16 +100,16 @@
       FHasCollectedMotion: Boolean;
       FTouches: TTouchList;
       FMousePosition: TVector2;
-    FMouseLookLastDelta: TVector2;
-    FMouseDragDelta: TVector2;
-    FMouseDragStartPoint: TVector2;
-    FMouseDragStarted: Boolean;
-    FLastUpdateMousePosition: TVector2;
-    FLastMousePositionIsSet: Boolean;
-    FMouseLookControl: TCastleUserInterface;
-    FMouseLookStarted: Boolean;
-    FMouseLookControlFreeObserver: TFreeNotificationObserver;
-    FLastUpdateMouseWheelDirection: TMouseWheelDirection;
+      FMouseLookLastDelta: TVector2;
+      FMouseDragDelta: TVector2;
+      FMouseDragStartPoint: TVector2;
+      FMouseDragStarted: Boolean;
+      FLastUpdateMousePosition: TVector2;
+      FLastMousePositionIsSet: Boolean;
+      FMouseLookControl: TCastleUserInterface;
+      FMouseLookStarted: Boolean;
+      FMouseLookControlFreeObserver: TFreeNotificationObserver;
+      FLastUpdateMouseWheelDirection: TMouseWheelDirection;
 
     function GetView: TCastleView;
     procedure SetView(const Value: TCastleView);
