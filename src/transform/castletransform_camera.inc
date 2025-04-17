@@ -16,6 +16,9 @@
 { TCastleCamera and friends. }
 
 {$ifdef read_interface}
+
+// type section started in CastleTransform.pas
+
   { Value of @link(TCastlePerspective.FieldOfViewAxis). }
   TFieldOfViewAxis = (
     { @link(TCastlePerspective.FieldOfView)

@@ -16,7 +16,8 @@
 
 {$ifdef read_interface}
 
-//type
+// type section started in CastleTransform.pas
+
   { How do we treat the transformation of @link(TCastleTransformReference.Reference)
     when rendering TCastleTransformReference. }
   TReferenceTransformation = (

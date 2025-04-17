@@ -191,7 +191,7 @@ function TViewPlay.Press(const Event: TInputPressRelease): Boolean;
 
   function AvatarRayCast: TCastleTransform;
   var
-    RayCastResult: TPhysicsRayCastResult;
+    RayCastResult: TRayCastResult;
   begin
     RayCastResult := AvatarRigidBody.PhysicsRayCast(
       SceneAvatar.Middle,
