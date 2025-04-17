@@ -910,6 +910,9 @@
       Only collisions with the physics colliders (TCastleCollider)
       are considered.
 
+      By default, the ray hits all physics layers, but you can choose physics layers
+      in CollisionLayers attribute.
+
       Note: The @link(TCastleTransform.Pickable) property is ignored by this method,
       i.e. it considers all colliders regardless of their @link(TCastleTransform.Pickable) value.
       The @link(TCastleTransform.Pickable) is only taken into account by the routines
@@ -2580,6 +2583,10 @@ begin
     FKraftMesh.AddNormal(VectorToKraft(Normal.Data[2]))
   );
 
+  (*
+  // Below is not done anymore, using TKraftMesh.DoubleSided to implement our
+  // TCastleMeshCollider.DoubleSided.
+
   if DoubleSided then
   begin
     { We also add triangles for the other side.
@@ -2593,6 +2600,7 @@ begin
       FKraftMesh.AddNormal(VectorToKraft(-Normal.Data[0]))
     );
   end;
+  *)
 end;
 
 function TCastleMeshCollider.CreateKraftShape(const APhysics: TKraft;
@@ -2602,6 +2610,7 @@ begin
   ARigidBody.RigidBodyType := krbtStatic;
 
   FKraftMesh := TKraftMesh.Create(APhysics);
+  FKraftMesh.DoubleSided := FDoubleSided;
 
   if FMesh = nil then
   begin
@@ -2677,7 +2686,9 @@ begin
   if FDoubleSided <> Value then
   begin
     FDoubleSided := Value;
-    ShapeChangedNotifyRigidBody;
+
+    if FKraftMesh <> nil then
+       FKraftMesh.DoubleSided := FDoubleSided;
   end;
 end;
 
