@@ -59,7 +59,6 @@ uses CastleLog, CastleApplicationProperties, CastleUriUtils, CastleInternalRays,
   CastleInternalShapesRenderer;
 
 {$define read_implementation}
-{$I castletransform_physics_layers.inc}
 {$I castletransform_initial_types.inc}
 {$I castletransform_physics_layers.inc}
 {$I castletransform_renderparams.inc}
