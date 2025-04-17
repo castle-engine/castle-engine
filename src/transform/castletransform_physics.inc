@@ -2728,10 +2728,14 @@ begin
     FKraftMesh.AddNormal(VectorToKraft(Normal.Data[2]))
   );
 
-  (*
-  // Below is not done anymore, using TKraftMesh.DoubleSided to implement our
-  // TCastleMeshCollider.DoubleSided.
+  { Define to use slower, but more reliable for TCastleThirdPersonNavigation
+    approach.
 
+    Testcase: examples/third_person_navigation, without it -- our navigation
+    thinks the avatar falls down in the initial level parts.
+    Possibly it needs to be fixed in TCastleThirdPersonNavigation. }
+  {$define CASTLE_PHYSICS_MESH_DOUBLE_SIDED_MANUAL}
+  {$ifdef CASTLE_PHYSICS_MESH_DOUBLE_SIDED_MANUAL}
   if DoubleSided then
   begin
     { We also add triangles for the other side.
@@ -2745,7 +2749,7 @@ begin
       FKraftMesh.AddNormal(VectorToKraft(-Normal.Data[0]))
     );
   end;
-  *)
+  {$endif CASTLE_PHYSICS_MESH_DOUBLE_SIDED_MANUAL}
 end;
 
 function TCastleMeshCollider.CreateKraftShape(const APhysics: TKraft;
@@ -2755,7 +2759,9 @@ begin
   ARigidBody.RigidBodyType := krbtStatic;
 
   FKraftMesh := TKraftMesh.Create(APhysics);
+  {$ifndef CASTLE_PHYSICS_MESH_DOUBLE_SIDED_MANUAL}
   FKraftMesh.DoubleSided := FDoubleSided;
+  {$endif CASTLE_PHYSICS_MESH_DOUBLE_SIDED_MANUAL}
 
   if FMesh = nil then
   begin
@@ -2837,8 +2843,12 @@ begin
   begin
     FDoubleSided := Value;
 
+    {$ifdef CASTLE_PHYSICS_MESH_DOUBLE_SIDED_MANUAL}
+    ShapeChangedNotifyRigidBody;
+    {$else}
     if FKraftMesh <> nil then
        FKraftMesh.DoubleSided := FDoubleSided;
+    {$endif CASTLE_PHYSICS_MESH_DOUBLE_SIDED_MANUAL}
   end;
 end;
 
