@@ -5565,32 +5565,6 @@ procedure TDesignFrame.ControlsTreeDragDrop(Sender, Source: TObject; X,
     end;
   end;
 
-<<<<<<<<< Temporary merge branch 1
-  procedure MoveBehaviorBeforeAfterAnotherBehavior(const Src, Dst: TCastleBehavior);
-  var
-    BehIndex: Integer;
-  begin
-    case ControlsTreeNodeUnderMouseSide of
-      tnsBottom:
-        begin
-          Src.Parent.RemoveBehavior(Src);
-          BehIndex := Dst.Parent.BehaviorIndex(Dst);
-          Dst.Parent.InsertBehavior(BehIndex + 1, Src);
-          MoveOnlyTreeNodes;
-        end;
-      tnsTop:
-        begin
-          Src.Parent.RemoveBehavior(Src);
-          BehIndex := Dst.Parent.BehaviorIndex(Dst);
-          Dst.Parent.InsertBehavior(BehIndex, Src);
-          MoveOnlyTreeNodes;
-        end;
-      else raise EInternalError.Create('ControlsTreeDragDrop:ControlsTreeNodeUnderMouseSide?');
-    end;
-  end;
-
-  procedure MoveNonVisual(const SrcParentComponent: TCastleComponent;
-=========
   procedure MoveNonVisual(
     const Src: TComponent;
     const Dst: TCastleComponent);

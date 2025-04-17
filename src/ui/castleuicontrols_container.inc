@@ -1854,7 +1854,6 @@ begin
   end;
 
   UpdateMouseLook;
-  if Assigned(OnUpdate) then OnUpdate(Self);
 
   // reset last update mouse wheel direction
   FLastUpdateMouseWheelDirection := mwNone;

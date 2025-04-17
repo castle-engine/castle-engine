@@ -1,5 +1,5 @@
-﻿{
-  Copyright 2021-2024 Andrzej Kilijański, Michalis Kamburelis.
+﻿// TODO: merge to master: preserve master's touch input handling for shooting.
+{
   Copyright 2021-2024 Andrzej Kilijański, Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".

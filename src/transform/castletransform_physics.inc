@@ -2816,7 +2816,6 @@ begin
     https://forum.castle-engine.io/t/was-how-to-call-terrain-updategeometry-now-running-out-of-memory-updating-geometry-50x/849/8
   }
   FreeAndNil(FKraftMesh);
->>>>>>>>> Temporary merge branch 2
 end;
 
 procedure TCastleMeshCollider.SetMesh(const AValue: TCastleTransform);
