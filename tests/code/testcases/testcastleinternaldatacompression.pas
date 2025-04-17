@@ -1,5 +1,5 @@
 {
-  Copyright 2023-2024 Michalis Kamburelis.
+  Copyright 2023-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -15,6 +15,9 @@
 
 { Test CastleInternalDataCompression unit. }
 unit TestCastleInternalDataCompression;
+
+// For USE_VAMPYRE_IMAGING
+{$I ../../../src/common_includes/castleconf.inc}
 
 interface
 
@@ -88,7 +91,9 @@ begin
   Test(LoadImage('castle-data:/images/f023ours.jpg'));
   Test(LoadImage('castle-data:/images/alpha.png'));
   Test(LoadImage('castle-data:/images/alpha_grayscale.png'));
+  {$ifdef USE_VAMPYRE_IMAGING} // we need Vampyre for RGBE file format support
   Test(LoadImage('castle-data:/images/rgbe.rgbe'));
+  {$endif}
   Test(LoadImage('castle-data:/images/open.png'));
 
   Test(LoadImage('castle-data:/images/f023ours.jpg', [TGrayscaleImage]) as TGrayscaleImage);

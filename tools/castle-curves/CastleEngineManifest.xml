@@ -6,7 +6,7 @@ See https://castle-engine.io/project_manifest for documentation of this file.
 -->
 
 <project name="castle-curves"
-  standalone_source="castle-curves.lpr"
+  standalone_source="castle_curves.lpr"
   qualified_name="io.castleengine.curves"
 >
 </project>

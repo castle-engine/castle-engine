@@ -322,6 +322,7 @@ begin
             topPolyline, topPolygon: RenderPolylinePolygon;
             topPoint: RenderPoint;
             topRectangle: RenderRectangle;
+            else ;
             // TODO: handle ellipse
           end;
         end;
@@ -409,7 +410,9 @@ var
   { Return TSprite to render this tile,
     with sprite's Frame, HorizontalFlip, VerticalFlip, DiagonalFlip already set.
     May return @nil if nothing to render. }
+  {$warnings off} // using deprecated TSprite in deprecated
   function TileSprite(const Layer: TCastleTiledMapData.TLayer; const X, Y: Integer): TSprite;
+  {$warnings on}
   var
     Tileset: TCastleTiledMapData.TTileset;
     Frame: Integer;

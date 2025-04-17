@@ -144,7 +144,7 @@ begin
   CGE_Initialize(PCChar(PChar(GetAppConfigDir(false))));
   CGE_Open(ecgeofLog, OpenGLControl1.Width, OpenGLControl1.Height, 96);
   CGE_SetLibraryCallbackProc(@OpenGlLibraryCallback);
-  CGE_SetUserInterface(true);
+  CGE_SetAutoTouchInterface(false);
   sFile := 'data/bridge_level/bridge_final.x3dv';
   CGE_LoadSceneFromFile(@sFile[1]);
   UpdateUIAfterOpen;
@@ -283,7 +283,7 @@ end;
 procedure TForm1.OpenGLControl1MouseUp(Sender: TObject; Button: Controls.TMouseButton;
   Shift: TShiftState; X, Y: Integer);
 begin
-  CGE_MouseUp(x, OpenGLControl1.Height - 1 - y, Button=LeftMouseButton, 0, true);
+  CGE_MouseUp(x, OpenGLControl1.Height - 1 - y, Button=LeftMouseButton, 0);
 end;
 
 procedure TForm1.OpenGLControl1MouseWheel(Sender: TObject; Shift: TShiftState;
@@ -322,11 +322,11 @@ var
 begin
   { Note about OpenDialog1 (TOpenDialog) usage:
     In a "real" Castle Game Engine application using LCL, we recommend to use
-    component TCastleOpen3DDialog (from castle_components.lpk)
+    component TCastleOpenSceneDialog (from castle_components.lpk)
     to have a dialog box to select a file to load in TCastleScene.
     However, in case of this application, it deliberately *does not* use CGE in a normal
     way (through Lazarus packages or Pascal units), it only accesses CGE as a shared library.
-    That's why we decided to define OpenDialog1 as TOpenDialog, not TCastleOpen3DDialog. }
+    That's why we decided to define OpenDialog1 as TOpenDialog, not TCastleOpenSceneDialog. }
 
   if OpenDialog1.Execute then
   begin

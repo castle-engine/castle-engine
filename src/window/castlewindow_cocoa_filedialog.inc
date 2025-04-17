@@ -27,7 +27,11 @@ function TCastleWindow.BackendFileDialog(const Title: string; var FileName: stri
 var
   openDlg: NSOpenPanel;
   saveDlg: NSSavePanel;
-  InitName, InitDir: string;
+  InitName, InitDir, FileFilterPattern: string;
+  fileTypes: NSMutableArray;
+  I, J: Integer;
+  Filter: TFileFilter;
+  AllowOtherFileTypes: boolean;
 
   // filter accessory view
   // accessoryView: NSView;
@@ -146,6 +150,7 @@ begin
 
   // TODO: FileFilters
   // Adapt LCL code? Or resign -- Cocoa doesn't have such filters natively.
+  // Note: in macOS 11 allowedFileTypes was deprecated and replaced with allowedContentTypes, that show the combo box.
   // lFilter := nil;
 
   if OpenDialog then
@@ -174,6 +179,29 @@ begin
   saveDlg.retain; // LCL comment: this is for OSX 10.6 (and we don't use ARC either)
   saveDlg.setTitle(NSSTR(Title));
   saveDlg.setDirectoryURL(NSURL.fileURLWithPath(NSSTR(InitDir)));
+
+  // until Filter combo is show in a Lazarus way or allowedContentTypes becames available (see above), use this simple solution
+  AllowOtherFileTypes := false;
+  fileTypes := NSMutableArray.alloc.init;
+  for I := 0 to FileFilters.Count - 1 do
+  begin
+    Filter := FileFilters[I];
+    for J := 0 to Filter.Patterns.Count - 1 do
+    begin
+      FileFilterPattern := Filter.Patterns[J];
+      if FileFilterPattern = '*' then
+        AllowOtherFileTypes := true;
+      if IsPrefix('*.', FileFilterPattern, false) and
+         (Length(FileFilterPattern) > 2)  then
+        fileTypes.addObject(NSSTR(PrefixRemove('*.', FileFilterPattern, false)));
+    end;
+  end;
+  if fileTypes.count > 0 then
+  begin
+    saveDlg.setAllowedFileTypes(fileTypes.autorelease);
+    saveDlg.setAllowsOtherFileTypes(AllowOtherFileTypes);
+  end else
+    fileTypes.release;
 
   MenuForcefullyDisabled := true;
   try

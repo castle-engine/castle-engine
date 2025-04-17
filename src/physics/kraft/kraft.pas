@@ -171,15 +171,8 @@ unit kraft;
  {$ifend}
  {$if defined(SIMDASM)}
   {$define SIMD}
-  //{$undef SIMDASM}
- {$ifend}
+ {$endif}
 {$endif}
-{$undef USE_CONSTREF_EX} // for later usage if needed, for to investigate further FPC codegen issues in the future
-{$if defined(FPC_HAS_CONSTREF) and defined(SIMDASM)}
- {$define USE_CONSTREF} // For to avoid FPC codegen issues with const in connection with "function result is also a function argument" and so on => physics simulation explodes in some cases
-{$else}
- {$undef USE_CONSTREF} // For to avoid "then other" FPC codegen issues in this case with constref in connection with "function result is also a function argument" and so on => physics simulation explodes in some cases
-{$ifend}
 
 interface
 
@@ -187,7 +180,7 @@ uses {$ifdef windows}
       Windows,
       MMSystem,
      {$else}
-      {$ifdef unix}
+      {$if defined(unix) and (not defined(CASTLE_NINTENDO_SWITCH))}
        BaseUnix,
        Unix,
        UnixType,
@@ -196,10 +189,11 @@ uses {$ifdef windows}
        {$ifend}
       {$else}
        // Use CGE cross-platform routines for time, instead of relying on SDL.
+       // Good for Nintendo Switch and web target.
        // SDL,
        CastleTimeUtils,
        {$define USE_CASTLE_TIME_UTILS}
-      {$endif}
+      {$ifend}
      {$endif}
      {$ifdef DebugDraw}
       {$ifndef NoOpenGL}
@@ -4467,6 +4461,7 @@ function Vector3TermMatrixMulBasis({$ifdef USE_CONSTREF_EX}constref{$else}const{
 function Vector3TermMatrixMulHomogen({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v:TKraftVector3;{$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} m:TKraftMatrix4x4):TKraftVector3; {$ifdef caninline}inline;{$endif}
 function Vector3Lerp({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v1,v2:TKraftVector3;const w:TKraftScalar):TKraftVector3; {$ifdef caninline}inline;{$endif}
 function Vector3Perpendicular(v:TKraftVector3):TKraftVector3; {$ifdef caninline}inline;{$endif}
+function Vector3Lerp({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v1,v2:TKraftVector3;const w:TKraftScalar):TKraftVector3; {$ifdef caninline}inline;{$endif}
 function Vector3TermQuaternionRotate({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v:TKraftVector3;{$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} q:TKraftQuaternion):TKraftVector3; {$if defined(caninline) and not defined(SIMDASM)}inline;{$ifend} {$if defined(fpc) and defined(SIMDASM) and defined(cpuamd64) and not defined(Windows)}ms_abi_default;{$ifend}
 function Vector3ProjectToBounds({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v:TKraftVector3;{$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} MinVector,MaxVector:TKraftVector3):TKraftScalar; {$ifdef caninline}inline;{$endif}
 function Vector3FlushZero({$ifdef USE_CONSTREF_EX}constref{$else}const{$endif} v:TKraftVector3):TKraftVector3;
@@ -13185,8 +13180,8 @@ begin
  inherited Create;
  fFrequencyShift:=0;
 {$if defined(USE_CASTLE_TIME_UTILS)}
- // Copied from TimerFrequency constant in CastleTimeUtils
- fFrequency:= 1000000;
+ // CastleGetTickCount64 frequency is 1000 (miliseconds)
+ fFrequency:= 1000;
 {$elseif defined(windows)}
  if QueryPerformanceFrequency(fFrequency) then begin
   while (fFrequency and $ffffffffe0000000)<>0 do begin
@@ -13234,7 +13229,7 @@ var tv:timeval;
 {$ifend}
 begin
 {$if defined(USE_CASTLE_TIME_UTILS)}
- result:=Timer.InternalValue;
+ result:=CastleGetTickCount64;
 {$elseif defined(windows)}
  if not QueryPerformanceCounter(result) then begin
   result:=timeGetTime;
@@ -13262,17 +13257,21 @@ begin
  result:=ToNanoseconds(GetTime);
 end;
 
-procedure TKraftHighResolutionTimer.Sleep(Delay:TKraftInt64);
-var EndTime,NowTime{$ifdef unix},SleepTime{$endif}:TKraftInt64;
-{$ifdef unix}
+procedure TKraftHighResolutionTimer.Sleep(Delay:int64);
+var EndTime,NowTime{$ifdef unix},SleepTime{$endif}:int64;
+{$if defined(USE_CASTLE_TIME_UTILS)}
+// nothing needed to be declared
+{$elseif defined(unix)}
     req,rem:timespec;
-{$endif}
+{$ifend}
 begin
  if Delay>0 then begin
 {$if defined(USE_CASTLE_TIME_UTILS)}
   { We don't have in CGE own Sleep, we found that SysUtils.Sleep
     works OK everywhere. }
+  {$ifndef CASTLE_NINTENDO_SWITCH}
   SysUtils.Sleep(Delay);
+  {$endif}
 {$elseif defined(windows)}
   NowTime:=GetTime;
   EndTime:=NowTime+Delay;
@@ -13332,7 +13331,7 @@ begin
 {$else}
   NowTime:=GetTime;
   EndTime:=NowTime+Delay;
-  while (NowTime+4)<EndTime then begin
+  while (NowTime+4)<EndTime do begin
    SDL_Delay(1);
    NowTime:=GetTime;
   end;

@@ -260,6 +260,11 @@
       Otherwise (when CoordIndex = @nil), InternalCoordRangesCounts must
       return @true and we will use RangeCount to split coordinates.
 
+      The CoordRangeHandler can safely assume it only gets non-empty
+      and correct ranges, that is: EndIndex > BeginIndex for TCoordRangeHandler
+      call, and all indexes between BeginIndex and EndIndex-1 are >= 0
+      (when CoordIndex is assigned).
+
       Call this only for nodes with coordinates, that is only when
       @link(InternalCoord) returns @true. }
     procedure InternalMakeCoordRanges(
@@ -889,8 +894,14 @@ begin
       while (EndIndex < CoordIndexField.Count) and
             (CoordIndexField.Items.Items[EndIndex] >= 0) do
         Inc(EndIndex);
-      CoordRangeHandler(RangeNumber, BeginIndex, EndIndex);
-      Inc(RangeNumber);
+      { Do not call CoordRangeHandler (or increase RangeNumber)
+        for empty ranges, when -1 is at the start
+        of the indexes, or we have multiple consecutive -1 in indexes. }
+      if EndIndex > BeginIndex then
+      begin
+        CoordRangeHandler(RangeNumber, BeginIndex, EndIndex);
+        Inc(RangeNumber);
+      end;
       BeginIndex := EndIndex + 1;
     end;
   end else

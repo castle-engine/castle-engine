@@ -404,6 +404,21 @@ procedure TCastleDownload.Start;
     FStatus := dsDownloading;
   end;
 
+  { Warn if UriExists claims the file does not exist.
+    This helps with debugging issues, but it doesn't really change any logic,
+    we only make a warning and continue if UriExists claims the file doesn't exist. }
+  procedure WarnIfDoesNotExist(const RealUrl: String);
+  var
+    FileExists: TUriExists;
+  begin
+    FileExists := UriExists(RealUrl);
+    case FileExists of
+      ueNotExists: WritelnWarning('Trying to open URL "%s" which UriExists claims does not exist', [UriDisplay(RealUrl)]);
+      ueDirectory: WritelnWarning('Trying to open URL "%s" which UriExists claims is a directory', [UriDisplay(RealUrl)]);
+      else ;
+    end;
+  end;
+
   { Read synchronously.
     This calls DoFinish at end, and may free us. }
   procedure SynchronousRead(const ReadEvent: TUrlReadEvent; const RealUrl: String);
@@ -479,6 +494,11 @@ begin
 
   if LogAllLoading then
     WritelnLog('Loading', 'Loading "%s"', [UriDisplay(FFinalUrl)]);
+
+  // Extra check to debug WebAssembly
+  {$ifdef WASI}
+  WarnIfDoesNotExist(FFinalUrl);
+  {$endif}
 
   RegisteredProtocol := RegisteredProtocols.Find(P);
   if RegisteredProtocol <> nil then
@@ -612,8 +632,9 @@ procedure TCastleDownload.SetContentsApplyOptions(UnderlyingStream: TStream);
 
       if ForceMemoryStream then
       begin
-        { TODO: our engine never uses both soGzip and soForceMemoryStream
-          for now, so below code path is untested. }
+        { This case happens e.g. when reading .x3d.gz, that is gzipped
+          (must pass through TGZFileStream)
+          but also needs OnLoadForceMemoryStream. }
         NewResult := TMemoryStream.Create;
         ReadGrowingStream(Result, NewResult, true);
         FreeAndNil(Result);

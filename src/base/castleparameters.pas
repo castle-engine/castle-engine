@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2023 Michalis Kamburelis.
+  Copyright 2002-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -110,12 +110,20 @@ type
       your arguments are here. You get exactly as many argument
       as your oaRequiredXSeparate requested, the rest of SeparateArgs
       is empty strings.)
+  }
+  TOptionMethod = procedure (
+    const OptionNum: Integer; const HasArgument: Boolean;
+    const Argument: String; const SeparateArgs: TSeparateArgs) of object;
+
+  { Non-method version of the @link(TOptionMethod).
+    Some parameters are not "const" just to not break backward compatibility.
+
+    Most parameters are the same, with the same meaning, as @link(TOptionMethod).
 
     @param(Data This is the OptionProcData value you passed to TParameters.Parse,
-      use this to pass some pointer to your callback.)
-  }
-  TOptionProc = procedure (OptionNum: Integer; HasArgument: boolean;
-    const Argument: string; const SeparateArgs: TSeparateArgs; Data: Pointer);
+      use this to pass some pointer to your callback.) }
+  TOptionProc = procedure (OptionNum: Integer; HasArgument: Boolean;
+    const Argument: String; const SeparateArgs: TSeparateArgs; Data: Pointer);
 
   { Command-line option specification, for TParameters.Parse.
 
@@ -236,7 +244,7 @@ type
 
     { Parse command-line parameters. Given a specification of your command-line
       options (in AOptions), we will find and pass these options to your
-      OptionProc callback. The handled options will be removed from
+      OptionMethod callback. The handled options will be removed from
       the @link(Parameters) list.
 
       After running this, you should treat the remaining @link(Parameters)
@@ -244,7 +252,7 @@ type
 
       See also TOption for a specification of an option,
       and see TOptionArgument for a specification of an option argument,
-      and see TOptionProc for a specification what your OptionProc callback gets.
+      and see TOptionMethod for a specification what your OptionMethod callback gets.
 
       @raises EInvalidShortOption On invalid (unknown) short option name.
       @raises EInvalidLongOption On invalid long option name.
@@ -265,9 +273,9 @@ type
       the @link(Parameters) list, and signals an end of options.
 
       You should not modify @link(Parameters) list when this function
-      is running, in particular do not modify it from your OptionProc callback.
+      is running, in particular do not modify it from your OptionMethod callback.
       Also, do not depend on when the handled options are exactly removed
-      from the @link(Parameters) list (before or after OptionProc callback).
+      from the @link(Parameters) list (before or after OptionMethod callback).
 
       We never touch here the Strings[0] value, we look
       only at the Strings[1] to Strings[High].
@@ -301,11 +309,21 @@ type
       Basically, processing by Parse many times is not fool-proof
       in some weird situations.
 
+      It has a few overloads, we advise to use the 1st overload (with
+      "const AOptions: array of TOption;" and "const OptionMethod: TOptionMethod")
+      as the most convenient one.
+
+      See the simplest demo application here:
+      https://gist.github.com/michaliskambi/d0a9d307f6684c45fe55962305b2a66f
+
       @groupBegin }
-    procedure Parse(const AOptions: POption_Array; const OptionsCount: Integer;
-      const OptionProc: TOptionProc; const OptionProcData: Pointer;
+    procedure Parse(const AOptions: array of TOption;
+      const OptionMethod: TOptionMethod;
       const ParseOnlyKnownOptions: boolean = false); overload;
     procedure Parse(const AOptions: array of TOption;
+      const OptionProc: TOptionProc; const OptionProcData: Pointer;
+      const ParseOnlyKnownOptions: boolean = false); overload;
+    procedure Parse(const AOptions: POption_Array; const OptionsCount: Integer;
       const OptionProc: TOptionProc; const OptionProcData: Pointer;
       const ParseOnlyKnownOptions: boolean = false); overload;
     { @groupEnd }
@@ -342,6 +360,9 @@ var
 function OptionDescription(const Name, Description: string): string;
 
 implementation
+
+uses CastleLog
+  {$ifdef CASTLE_ANDROID_ARGV_LOGGING} , CastleAndroidInternalLog {$endif};
 
 function OptionSeparateArgumentToCount(const v: TOptionSeparateArgument): Integer; forward;
 
@@ -405,6 +426,29 @@ begin
       if Strings[I] = A[J] then
         Exit(true);
   Result := false;
+end;
+
+type
+  TMethodWrapper = record
+    MethodToCall: TOptionMethod;
+  end;
+  PMethodWrapper = ^TMethodWrapper;
+
+{ Call TOptionMethod within PMethodWrapper(Data)^. }
+procedure OptionProcToCallMethod(OptionNum: Integer; HasArgument: Boolean;
+  const Argument: String; const SeparateArgs: TSeparateArgs; Data: Pointer);
+begin
+  PMethodWrapper(Data)^.MethodToCall(OptionNum, HasArgument, Argument, SeparateArgs);
+end;
+
+procedure TParameters.Parse(const AOptions: array of TOption;
+  const OptionMethod: TOptionMethod; const ParseOnlyKnownOptions: boolean);
+var
+  MethodWrapper: TMethodWrapper;
+begin
+  MethodWrapper.MethodToCall := OptionMethod;
+  Parse(AOptions, {$ifdef FPC}@{$endif} OptionProcToCallMethod, @MethodWrapper,
+    ParseOnlyKnownOptions);
 end;
 
 procedure TParameters.Parse(const AOptions: array of TOption; const OptionProc: TOptionProc;
@@ -717,8 +761,134 @@ var
   I: Integer;
 begin
   Parameters := TParameters.Create;
+
+  { Android 15, Google Pixel 6a, Aarch64 (aka "64-bit Arm") exhibits a weird bug:
+    Argv[...] values, like Argv[0] (but also following ones), are invalid pointers.
+    See below for details: some of them are nil, some of them are non-nil
+    but a weirdly small value as a number (like just number 6, equals to Argc actually),
+    accessing any of them crashes with SIGSEGV.
+
+    The same device worked OK before upgrading from Android 14.
+
+    The problem is *not* reproduced on other test devices:
+    - Android 11 (Samsung Galaxy tablet),
+    - Android 13 (Fairphone 4),
+    - emulated Android 15 x86_64 with Google APIs.
+
+    Note: We also tried to run on this, but AVD crashes when run:
+    - emulated Android 15 arm64 with Google Play (so, as close as possible
+      to Google Pixel 6a as we could).
+
+    Define CASTLE_ANDROID_ARGV_LOGGING to observe
+    (testing with CGE examples/eye_of_beholder below, but it affects any
+    CGE application):
+
+      ... I eye_of_beholder: Argc: 6
+      ... I eye_of_beholder: ParamCount (should be Argc-1): 5
+      ... I eye_of_beholder: Argv <> nil: True
+      ... I eye_of_beholder: Will access Argv[0]
+      ... I eye_of_beholder: Argv[0] <> nil: True
+      ... I eye_of_beholder: Argv[0] as a pointer: 0x0000000000000006
+
+    and then reading Argv[0] crashes with:
+
+      ... F libc    : Fatal signal 11 (SIGSEGV), code 1 (SEGV_MAPERR), fault addr 0x6 in tid 7531 (eye.of.beholder), pid 7531 (eye.of.beholder)
+      ...
+      ... I crash_dump64: performing dump of process 7531 (target tid = 7531)
+      ... F DEBUG   : *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** ***
+      ... F DEBUG   : Build fingerprint: 'google/bluejay/bluejay:15/AP4A.250105.002.A1/12703047:user/release-keys'
+      ... F DEBUG   : Revision: 'MP1.0'
+      ... F DEBUG   : ABI: 'arm64'
+      ... F DEBUG   : Timestamp: 2025-01-29 13:58:16.466745658+0100
+      ... F DEBUG   : Process uptime: 2s
+      ... F DEBUG   : Cmdline: io.castleengine.eye.of.beholder
+      ... F DEBUG   : pid: 7531, tid: 7531, name: eye.of.beholder  >>> io.castleengine.eye.of.beholder <<<
+      ... F DEBUG   : uid: 10368
+      ... F DEBUG   : tagged_addr_ctrl: 0000000000000001 (PR_TAGGED_ADDR_ENABLE)
+      ... F DEBUG   : signal 11 (SIGSEGV), code 1 (SEGV_MAPERR), fault addr 0x0000000000000006
+      ... F DEBUG   : Cause: null pointer dereference
+      ... F DEBUG   :     x0  0000007fdfae2c48  x1  0000000000000006  x2  0000000000000000  x3  0000000000000000
+      ... F DEBUG   :     x4  00000077908fb698  x5  0000007ae8ffd2f1  x6  0000000000000000  x7  0000000000000034
+      ... F DEBUG   :     x8  0000007af0965b70  x9  0000000000000001  x10 0000000000000001  x11 0000000000001d6b
+      ... F DEBUG   :     x12 0000000000000000  x13 0000000000000001  x14 0000000000000000  x15 0000000000000010
+      ... F DEBUG   :     x16 0000007790ff80e8  x17 0000007aeb4e8b80  x18 0000007af18b8000  x19 0000007fdfae2c48
+      ... F DEBUG   :     x20 0000007fdfae2c48  x21 0000000000000006  x22 0000000000000000  x23 00000077908a46c0
+      ... F DEBUG   :     x24 0000007af1c55000  x25 0000000000000002  x26 0000007af1c55000  x27 0000007af1c55000
+      ... F DEBUG   :     x28 0000007af1c55000  x29 0000007fdfae2a50
+      ... F DEBUG   :     lr  00000077908a8514  sp  0000007fdfae2a30  pc  0000007790894a2c  pst 0000000020001000
+      ... F DEBUG   : 1 total frames
+      ... F DEBUG   : backtrace:
+      ... F DEBUG   :       #00 pc 000000000047fa2c  /data/app/~~43_eojuIg4r_xSRJeVmOMQ==/io.castleengine.eye.of.beholder-Zn9hz7QAqZKCRKUukh0jcw==/lib/arm64/libeye_of_beholder_android.so (BuildId: 1ae92e229a184f079ea978419d0b01cacdd90a45)
+
+    Investigating further Argv (to see whether Argv is maybe "shifted",
+    and Argv[0] is pointing to Argc (as they are both 6),
+    and Argv[1] is actually Argv[0])... no, further Argv[...] values are also
+    weird and incorrect. Below you can see that Argv[0] = Argv[1] = Argv[2] = 6,
+    then Argv[3] = Argv[4] = 0, and only Argv[5] *looks* like a valid pointer
+    (but it's not, accessing it crashes!).
+    So, all Argv values are just nonsense.
+
+      ... I eye_of_beholder: Will access Argv[0]
+      ... I eye_of_beholder: Argv[0] <> nil: True
+      ... I eye_of_beholder: Argv[0] as a pointer: 0x0000000000000006
+      ... I eye_of_beholder: Will access Argv[1]
+      ... I eye_of_beholder: Argv[1] <> nil: True
+      ... I eye_of_beholder: Argv[1] as a pointer: 0x0000000000000006
+      ... I eye_of_beholder: Will access Argv[2]
+      ... I eye_of_beholder: Argv[2] <> nil: True
+      ... I eye_of_beholder: Argv[2] as a pointer: 0x0000000000000006
+      ... I eye_of_beholder: Will access Argv[3]
+      ... I eye_of_beholder: Argv[3] <> nil: False
+      ... I eye_of_beholder: Argv[3] as a pointer: 0x0000000000000000
+      ... I eye_of_beholder: Will access Argv[4]
+      ... I eye_of_beholder: Argv[4] <> nil: False
+      ... I eye_of_beholder: Argv[4] as a pointer: 0x0000000000000000
+      ... I eye_of_beholder: Will access Argv[5]
+      ... I eye_of_beholder: Argv[5] <> nil: True
+      ... I eye_of_beholder: Argv[5] as a pointer: 0x481F0000000B0109
+  }
+  {$ifdef CASTLE_ANDROID_ARGV_LOGGING}
+  AndroidLog(alInfo, 'Argc: %d', [Argc]);
+  AndroidLog(alInfo, 'ParamCount (should be Argc-1): %d', [ParamCount]);
+  AndroidLog(alInfo, 'Argv <> nil: %s', [
+    BoolToStr(Argv <> nil, true)
+  ]);
+  {$endif}
+
+  {$ifdef CASTLE_PARAMSTR_BUGGY}
+  { Add non-empty name, just in case something relies on Parameters[0].
+    Regular CGE code should always access "ApplicationProperties.ApplicationName"
+    or global "ApplicationName", which are set (by "CastleAutoGenerated"
+    unit in a project) to reflect application name without relying on
+    ParamStr(0) / Parameters[0]. }
+  Parameters.Add('application-name-unknown');
+  WritelnWarning('ParamStr is buggy on this platform, workarounding: Parameters[0] will be set to "application-name-unknown". Recommendation: Do not rely on Parameters / ParamStr on this platform and use ApplicationName instead of Parameters[0] / ParamStr(0).');
+
+  {$else}
   for I := 0 to ParamCount do
-    Parameters.Add(ParamStr(i));
+  begin
+    {$ifdef CASTLE_ANDROID_ARGV_LOGGING}
+    AndroidLog(alInfo, 'Will access Argv[%d]', [I]);
+    AndroidLog(alInfo, 'Argv[%d] <> nil: %s', [
+      I,
+      BoolToStr(Argv[I] <> nil, true)
+    ]);
+    AndroidLog(alInfo, 'Argv[%d] as a pointer: %s', [
+      I,
+      PointerToStr(Argv[I])
+    ]);
+    AndroidLog(alInfo, 'Argv[%d] value: %s', [
+      I,
+      Argv[I]
+    ]);
+    AndroidLog(alInfo, 'ParamStr(%d) value: %s', [
+      I,
+      ParamStr(I)
+    ]);
+    {$endif}
+    Parameters.Add(ParamStr(I));
+  end;
+  {$endif}
 end;
 
 procedure FinalizationParams;

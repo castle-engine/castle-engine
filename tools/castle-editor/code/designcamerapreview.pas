@@ -23,7 +23,7 @@ uses Classes,
   CastleClassUtils;
 
 type
-  TCameraPreview = class
+  TCameraPreview = class(TComponent)
   strict private
     type
       TMyViewport = class(TCastleViewport)
@@ -55,7 +55,7 @@ type
     { Synchronize properties of selected viewport/camera that can change at any point. }
     procedure SynchronizeSelectedProperties;
   public
-    constructor Create(const DesignOwner: TComponent);
+    constructor Create(const AOwner, DesignOwner: TComponent); reintroduce;
     { Add this to design to make camera preview potentially visible. }
     function UiRoot: TCastleUserInterface;
     { Call when selection changed.
@@ -111,7 +111,7 @@ const
     0.8
   );
 
-constructor TCameraPreview.Create(const DesignOwner: TComponent);
+constructor TCameraPreview.Create(const AOwner, DesignOwner: TComponent);
 var
   ButtonsLayout: TCastleHorizontalGroup;
 const
@@ -119,12 +119,26 @@ const
   LabelFontSize = 30;
   Margin = 5;
 begin
-  inherited Create;
+  inherited Create(AOwner);
 
-  SelectedCameraObserver := TFreeNotificationObserver.Create(DesignOwner);
+  { Note: TFreeNotificationObserver instances must be owned by Self,
+    not DesignOwner.
+    This way, in case DesignOwner still exists but TCameraPreview doesn't,
+    the notifications should not fire.
+
+    Testcase:
+    - create new project in editor/open any,
+    - create new view,
+    - add "3D viewport" to view,
+    - select and move camera (thus leaving the camera preview open),
+    - Ctrl+W to close the view.
+    Reproducible with FPC 3.2.2 on Win64, though the error should be on any OS/compiler.
+  }
+
+  SelectedCameraObserver := TFreeNotificationObserver.Create(Self);
   SelectedCameraObserver.OnFreeNotification := {$ifdef FPC}@{$endif} SelectedCameraFreeNotification;
 
-  SelectedViewportObserver := TFreeNotificationObserver.Create(DesignOwner);
+  SelectedViewportObserver := TFreeNotificationObserver.Create(Self);
   SelectedViewportObserver.OnFreeNotification := {$ifdef FPC}@{$endif} SelectedViewportFreeNotification;
 
   Size := 2;

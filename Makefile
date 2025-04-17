@@ -273,7 +273,10 @@ examples:
 #   - compilation is tested by "make tools" already,
 #   - we don't want to clean it, to have it available for "make test-editor-templates" after this
 #   - on Windows, we'd have to make a copy of castle-engine, as you cannot replace own exe.
+#
+# - generate_webgl_flat_api: because it requires FPC > 3.2
 	"$(FIND)" . \
+	  '(' -path ./tools/internal/generate_webgl_flat_api -prune ')' -o \
 	  '(' -path ./examples/network/tcp_connection -prune ')' -o \
 	  '(' -path ./tools/castle-editor/data/project_templates -prune ')' -o \
 	  '(' -path ./tools/build-tool -prune ')' -o \
@@ -329,6 +332,7 @@ examples-laz:
 	  ./tools/internal/lazbuild_retry $${PROJECT_LPI}.lpi; \
 	done
 	"$(FIND)" . \
+	  '(' -path ./tools/internal/generate_webgl_flat_api -prune ')' -o \
 	  '(' -path ./examples/network/tcp_connection -prune ')' -o \
 	  '(' -path ./src/vampyre_imaginglib -prune ')' -o \
 	  '(' -path ./tools/castle-editor/data/project_templates -prune ')' -o \
@@ -336,6 +340,7 @@ examples-laz:
 	  '(' -path ./tools/build-tool/data -prune ')' -o \
 	  '(' -path ./examples/deprecated_library -prune ')' -o \
 	  '(' -path ./tools/castle-editor/components/mbColorLib/examples -prune ')' -o \
+	  '(' -path ./src/compatibility/web_assembly -prune ')' -o \
 	  '(' -iname '*.lpi' -print ')'  > \
 	  /tmp/cge-laz-projects.txt
 	echo 'Found projects: '`wc -l < /tmp/cge-laz-projects.txt`
@@ -364,32 +369,36 @@ cleanexamples:
 .PHONY: clean
 
 clean: cleanexamples
-	"$(FIND)" . -type f '(' -iname '*.ow'  -or \
-	                   -iname '*.ppw' -or \
-			   -iname '*.aw' -or \
-	                   -iname '*.o'   -or \
-			   -iname '*.or'  -or \
-			   -iname '*.ppu' -or \
-			   '(' -iname '*.a' -and -not -iwholename '*/vampyre_imaginglib/*' ')' -or \
-			   '(' -iname '*.res' -and \
-			       -not -iwholename '*/vampyre_imaginglib/*' -and \
-			       -not -iwholename '*/mbColorLib/*' -and \
-			       -not -iwholename '*/examples/delphi/*' ')' \
-			       -or \
-			   -iname '*.rsj' -or \
-			   -iname '*.compiled' -or \
-			   -iname '*.lps' -or \
-			   -iname '*.libimp*.a' -or \
-			   -iname '*.apk' -or \
-			   -iname '*.aab' -or \
-			   -iname '*.dbg' -or \
-	                   -iname '*.dcu' -or \
-			   -iname '*.dpu' -or \
-			   -iname '*.bpi' -or \
-			   -iname '*.dproj.local' -or \
-			   -iname '*.identcache' -or \
-			   -iname '*.rsm' -or \
-	                   -iname '*.log' ')' \
+	"$(FIND)" . -type f '(' \
+					-iname '*.ow'  -or \
+					-iname '*.ppw' -or \
+					-iname '*.aw' -or \
+					-iname '*.o'   -or \
+					-iname '*.or'  -or \
+					-iname '*.ppu' -or \
+					'(' -iname '*.a' -and -not -iwholename '*/vampyre_imaginglib/*' ')' -or \
+					'(' -iname '*.res' -and \
+						-not -iwholename '*/vampyre_imaginglib/*' -and \
+						-not -iwholename '*/mbColorLib/*' -and \
+						-not -iwholename '*/examples/delphi/*' ')' \
+					-or \
+					-iname '*.rsj' -or \
+					-iname '*.compiled' -or \
+					-iname '*.lps' -or \
+					-iname '*.libimp*.a' -or \
+					-iname '*.apk' -or \
+					-iname '*.aab' -or \
+					-iname '*.dbg' -or \
+					-iname '*.dcu' -or \
+					-iname '*.dpu' -or \
+					-iname '*.bpi' -or \
+					-iname '*.dproj.local' -or \
+					-iname '*.identcache' -or \
+					-iname '*.rsm' -or \
+					-iname '*.log' -or \
+					-iname libsteam_api.so -or \
+					-iname libsteam_api.dylib \
+				')' \
 	     -print \
 	     | xargs rm -f
 # Note: *.app directory is a macOS bundle,

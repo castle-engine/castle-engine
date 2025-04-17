@@ -123,7 +123,7 @@ type
     var
       FUseColor: Boolean;
       FColor: TCastleColor;
-      VboVertex, VboIndex: TGLuint;
+      VboVertex, VboIndex: TGLBuffer;
       VertexAllocatedBytes, IndexAllocatedBytes,
         VertexAllocatedItems, IndexAllocatedItems: Cardinal;
       FixedFunctionVertexes: TVector4List;
@@ -201,8 +201,8 @@ end;
 destructor TCastleRenderUnlitMesh.Destroy;
 begin
   FreeAndNil(Vao);
-  glFreeBuffer(VboIndex);
-  glFreeBuffer(VboVertex);
+  FreeBuffer(VboIndex);
+  FreeBuffer(VboVertex);
   inherited;
 end;
 
@@ -273,15 +273,15 @@ procedure TCastleRenderUnlitMesh.Render(const Mode: TPrimitiveMode);
   { Render using modern pipeline. }
   procedure RenderShaders;
   begin
-    if VboVertex = 0 then
+    if VboVertex = GLObjectNone then
       raise EInternalError.Create('TCastleRenderUnlitMesh has no vertexes defined to render');
 
     RenderContext.CurrentProgram := Programs[UseColor].Shader;
     RenderContext.CurrentVao := Vao;
 
-    glBindBuffer(GL_ARRAY_BUFFER, VboVertex);
+    RenderContext.BindBuffer[btArray] := VboVertex;
     // do this even if VboIndex = 0, to set this to 0
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, VboIndex);
+    RenderContext.BindBuffer[btElementArray] := VboIndex;
 
     if FUseColor then
       Programs[UseColor].UniformColor.SetValue(Color);
@@ -292,8 +292,8 @@ procedure TCastleRenderUnlitMesh.Render(const Mode: TPrimitiveMode);
 
     Programs[UseColor].AttributeVertex.DisableArray;
 
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+    RenderContext.BindBuffer[btArray] := GLObjectNone;
+    RenderContext.BindBuffer[btElementArray] := GLObjectNone;
   end;
 
   {$ifndef OpenGLES}
@@ -367,11 +367,11 @@ var
 begin
   if not GLFeatures.EnableFixedFunction then
   begin
-    NewVbo := VboIndex = 0;
+    NewVbo := VboIndex = GLObjectNone;
     if NewVbo then
-      glGenBuffers(1, @VboIndex);
+      VboIndex := glCreateBuffer();
 
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, VboIndex);
+    RenderContext.BindBuffer[btElementArray] := VboIndex;
 
     NewSize := IndexesCount * SizeOf(UInt16);
     if NewVbo or (NewSize <> IndexAllocatedBytes) then
@@ -402,11 +402,11 @@ var
 begin
   if not GLFeatures.EnableFixedFunction then
   begin
-    NewVbo := VboVertex = 0;
+    NewVbo := VboVertex = GLObjectNone;
     if NewVbo then
-      glGenBuffers(1, @VboVertex);
+      VboVertex := glCreateBuffer();
 
-    glBindBuffer(GL_ARRAY_BUFFER, VboVertex);
+    RenderContext.BindBuffer[btArray] := VboVertex;
 
     NewSize := VertexesCount * SizeOf(TVector4);
     if NewVbo or (NewSize <> VertexAllocatedBytes) then

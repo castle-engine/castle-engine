@@ -82,7 +82,7 @@ public class ServiceOpenAssociatedUrls extends ServiceAbstract
                     InputStream input = resolver.openInputStream(uri);
                     String importfilepath = urlDocumentsDir.getAbsolutePath() + "/" + name;
                     InputStreamToFile(input, importfilepath);
-                    messageSend(new String[]{"open_associated_url", "file://" + importfilepath});
+                    messageSend(new String[]{"open-associated-url", "file://" + importfilepath});
                 }
                 catch (Exception e)
                 {
@@ -94,7 +94,7 @@ public class ServiceOpenAssociatedUrls extends ServiceAbstract
                 String name = uri.getLastPathSegment();
 
                 logInfo(CATEGORY, "File intent detected: " + action + " : " + intent.getDataString() + " : " + intent.getType() + " : " + name);
-                messageSend(new String[]{"open_associated_url", uri.toString()});
+                messageSend(new String[]{"open-associated-url", uri.toString()});
             }
             else if (scheme.compareTo("http") == 0 || scheme.compareTo("https") == 0 || scheme.compareTo("ftp") == 0)
             {
@@ -102,7 +102,7 @@ public class ServiceOpenAssociatedUrls extends ServiceAbstract
 
                 logInfo(CATEGORY, "Http intent detected: " + action + " : " + intent.getDataString() + " : " + intent.getType() + " : " + name);
                 // open directly from http, let it download in CastleDownload.pas
-                messageSend(new String[]{"open_associated_url", uri.toString()});
+                messageSend(new String[]{"open-associated-url", uri.toString()});
             }
         }
     }

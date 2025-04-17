@@ -964,6 +964,13 @@ begin
   { Try to initialize OpenAL.
     Sets Information, EFXSupported. }
 
+  {$ifdef WASI}
+  // TODO: web: WASI does not support OpenAL, and we don't have a backend using WebAudio yet, also we fail without exceptions because WASI doesn't have longjmp
+  Information := 'Sound playback not supported on WebAssembly yet';
+  InformationSummary := Information;
+  Exit(false);
+  {$endif}
+
   { We don't do alcProcessContext/alcSuspendContext, no need
     (spec says that context is initially in processing state). }
 

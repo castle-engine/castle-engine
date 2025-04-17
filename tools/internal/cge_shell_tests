@@ -149,9 +149,35 @@ do_test_no_invalid_deploy_files ()
   fi
 }
 
+# Examples should not have .gitignore files.
+# (because there are lots of examples, better list their binaries in one top-level .gitignore).
+do_test_examples_no_gitignore ()
+{
+  FIND='find'
+  if which cygpath.exe > /dev/null; then
+    FIND='/bin/find' # On Cygwin, make sure to use Cygwin's find, not the one from Windows
+  fi
+
+  # Using "+" to have proper exit status from find,
+  # "If any invocation with the + form returns a non-zero value as exit status, then find returns a non-zero exit status"
+
+  # Using "tee /dev/stderr" just to see faulty examples in the output.
+
+  # Do not search cpp_builder below -- this is an exception to our rule,
+  # as with C++ Builder we ignore a few special files.
+
+  "${FIND}" examples/ \
+    '(' -type d -name 'cpp_builder' -prune ')' -or \
+    '(' \
+      '(' -iname CastleEngineManifest.xml ')' -and \
+      '(' -execdir bash -c 'if [ -f .gitignore ]; then echo `pwd` has .igignore; exit 1; fi' '{}' '+' ')' \
+    ')'
+}
+
 do_test_qualified_name
 do_test_examples_copyright
 do_test_custom_editor_template_up_to_date
 do_test_examples_up_to_date
 do_test_packages_dependencies
 do_test_no_invalid_deploy_files
+do_test_examples_no_gitignore

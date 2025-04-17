@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2023 Michalis Kamburelis.
+  Copyright 2003-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -336,8 +336,25 @@ type
       { Camera pos/dir/up expressed as vectors more comfortable
         for Examine methods. }
       TExamineVectors = record
-        Translation: TVector3;
-        Rotations: TQuaternion;
+      strict private
+        FTranslation: TVector3;
+        FRotations: TQuaternion;
+        FModified: Boolean;
+        procedure SetTranslation(const Value: TVector3);
+        procedure SetRotations(const Value: TQuaternion);
+      public
+        property Translation: TVector3 read FTranslation write SetTranslation;
+        property Rotations: TQuaternion read FRotations write SetRotations;
+
+        { Value returned by ExamineVectors is originally "not modified".
+          We later track Modified, to allow to avoid doing
+          "ExamineVectors := NewVectors" when not necessary.
+
+          This allows to save time of SetExamineVectors, but more importantly
+          avoids "shaking" camera pos/dir/up values (because the calculations
+          are not precise and when doing nothing, we don't want to show
+          in castle-model-viewer how camera pos/dir/up "shake" a little). }
+        property Modified: Boolean read FModified write FModified;
       end;
 
     var
@@ -625,13 +642,14 @@ type
 
   { What mouse dragging does in TCastleWalkNavigation. }
   TMouseDragMode = (
-    { Moves avatar continuously in the direction of mouse drag
-      (default for TCastleWalkNavigation.MouseDragMode). }
-    mdWalk,
+    { Moves and rotates avatar depending on the direction of mouse drag.
+      Default for @link(TCastleWalkNavigation.MouseDragMode). }
+    mdWalkRotate,
     { Rotates the head when mouse is moved. }
     mdRotate,
     { Ignores the dragging. }
-    mdNone);
+    mdNone
+  );
 
   { Abstract navigation class that can utilize @italic(mouse look),
     during which mouse cursor is hidden and we look at MouseLookDelta every frame. }
@@ -1364,7 +1382,8 @@ type
     { @groupEnd }
 
     { Speed (radians per pixel delta) of rotations by mouse dragging.
-      Relevant only if niMouseDragging in @link(Input), and MouseDragMode is mdRotate or mdWalk.
+      Relevant only if niMouseDragging in @link(Input) and
+      MouseDragMode is mdRotate or mdWalkRotate.
       Separate for horizontal and vertical, this way you can e.g. limit
       (or disable) vertical rotations, useful for games where you mostly
       look horizontally and accidentally looking up/down is more confusing
@@ -1379,14 +1398,15 @@ type
     { @groupEnd }
 
     { Moving speed when mouse dragging.
-      Relevant only when @code((MouseDragMode is mdWalk) and (niMouseDragging in UsingInput)). }
+      Relevant only when @code((MouseDragMode is mdWalkRotate) and
+      (niMouseDragging in UsingInput)). }
     property MouseDraggingMoveSpeed: Single
       read FMouseDraggingMoveSpeed write FMouseDraggingMoveSpeed
       {$ifdef FPC}default DefaultMouseDraggingMoveSpeed{$endif};
 
     { What mouse dragging does. Used only when niMouseDragging in @link(Input). }
     property MouseDragMode: TMouseDragMode
-      read FMouseDragMode write FMouseDragMode default mdWalk;
+      read FMouseDragMode write FMouseDragMode default mdWalkRotate;
 
     { This unlocks a couple of features and automatic behaviors
       related to gravity. Gravity always drags the camera down to
@@ -1871,6 +1891,26 @@ begin
   end;
 end;
 
+{ TCastleExamineNavigation.TExamineVectors ------------------------------------ }
+
+procedure TCastleExamineNavigation.TExamineVectors.SetTranslation(const Value: TVector3);
+begin
+  if not TVector3.PerfectlyEquals(FTranslation, Value) then
+  begin
+    FTranslation := Value;
+    FModified := true;
+  end;
+end;
+
+procedure TCastleExamineNavigation.TExamineVectors.SetRotations(const Value: TQuaternion);
+begin
+  if not TVector4.PerfectlyEquals(FRotations.Data.Vector4, Value.Data.Vector4) then
+  begin
+    FRotations := Value;
+    FModified := true;
+  end;
+end;
+
 { TCastleExamineNavigation ------------------------------------------------------------ }
 
 constructor TCastleExamineNavigation.Create(AOwner: TComponent);
@@ -2032,8 +2072,8 @@ var
 begin
   Camera.GetWorldView(APos, ADir, AUp);
 
+  Result.Modified := false;
   Result.Translation := -APos;
-
   Result.Rotations := OrientationQuaternionFromDirectionUp(ADir, AUp).Conjugate;
 
   { We have to fix our Translation, since our TCastleExamineNavigation.Matrix
@@ -2136,7 +2176,7 @@ begin
       V.Rotations := QuatFromAxisAngle(TVector3.One[2],
         FRotationsAnim[2] * RotChange) * V.Rotations;
 
-    V.Rotations.LazyNormalizeMe;
+    V.Rotations := V.Rotations.NormalizeLazy;
   end;
 
   if HandleInput and (niNormal in UsingInput) then
@@ -2188,7 +2228,8 @@ begin
     end;
   end;
 
-  ExamineVectors := V;
+  if V.Modified then
+    ExamineVectors := V;
 
   { process things that do not set ExamineVectors }
   if HandleInput and (niNormal in UsingInput) then
@@ -2254,7 +2295,6 @@ end;
 function TCastleExamineNavigation.SensorRotation(const X, Y, Z, Angle: Double;
   const SecondsPassed: Single): boolean;
 var
-  Moved: boolean;
   RotationSize: Double;
   V: TExamineVectors;
 begin
@@ -2262,34 +2302,31 @@ begin
   if not RotationEnabled then Exit(false);
   Result := true;
 
-  Moved := false;
   RotationSize := SecondsPassed * Angle * RotationSpeed;
   V := ExamineVectors;
 
   if Abs(X) > 0.4 then      { tilt forward / backward}
   begin
     V.Rotations := QuatFromAxisAngle(Vector3(1, 0, 0), X * RotationSize) * V.Rotations;
-    Moved := true;
   end;
 
   if Abs(Y) > 0.4 then      { rotate }
   begin
     if Turntable then
       V.Rotations := V.Rotations *
-        QuatFromAxisAngle(Vector3(0, 1, 0), Y * RotationSize) else
+        QuatFromAxisAngle(Vector3(0, 1, 0), Y * RotationSize)
+    else
       V.Rotations := QuatFromAxisAngle(Vector3(0, 1, 0), Y * RotationSize) *
         V.Rotations;
-    Moved := true;
   end;
 
   if (Abs(Z) > 0.4) and (not Turntable) then      { tilt sidewards }
   begin
     V.Rotations := QuatFromAxisAngle(Vector3(0, 0, 1), Z * RotationSize) * V.Rotations;
-    Moved := true;
   end;
 
   { Assign ExamineVectors only if some change occurred }
-  if Moved then
+  if V.Modified then
     ExamineVectors := V;
 end;
 
@@ -2482,7 +2519,8 @@ var
         XYRotation((1 - ZRotRatio) * RotationSpeed);
     end;
 
-    ExamineVectors := V;
+    if V.Modified then
+      ExamineVectors := V;
   end;
 
   procedure MoveNonExact;
@@ -2597,6 +2635,8 @@ begin
 end;
 
 procedure TCastleExamineNavigation.OnGestureRecognized(Sender: TObject);
+const
+  PinchZoomSpeed = 20.0;
 var
   Recognizer: TCastlePinchPanGestureRecognizer;
   Factor, Size, MoveDivConst, ZoomScale: Single;
@@ -2611,22 +2651,22 @@ begin
   if ZoomEnabled and (Recognizer.Gesture = gtPinch) then
   begin
     if Recognizer.PinchScaleFactor > 1.0 then
-      Factor := 40 * (Recognizer.PinchScaleFactor - 1.0)
+      Factor := Recognizer.PinchScaleFactor - 1.0
     else
-      Factor := -40 * (1.0/Recognizer.PinchScaleFactor - 1.0);
+      Factor := - (1.0 / Recognizer.PinchScaleFactor - 1.0);
     if Turntable then
       ZoomScale := 1
     else
       ZoomScale := 3;
-    Zoom(Factor * ZoomScale);
+    Zoom(PinchZoomSpeed * Factor * ZoomScale);
   end;
 
   if MoveEnabled and (not GoodModelBox.IsEmpty) and (Recognizer.Gesture = gtPan) then
   begin
     Size := GoodModelBox.AverageSize;
     Translation := Translation - Vector3(
-      DragMoveSpeed * Size * (Recognizer.PanOldOffset.X - Recognizer.PanOffset.X) / (2*MoveDivConst),
-      DragMoveSpeed * Size * (Recognizer.PanOldOffset.Y - Recognizer.PanOffset.Y) / (2*MoveDivConst),
+      DragMoveSpeed * Size * Recognizer.PanMove.X / (2 * MoveDivConst),
+      DragMoveSpeed * Size * Recognizer.PanMove.Y / (2 * MoveDivConst),
       0);
   end;
 end;
@@ -3753,7 +3793,9 @@ procedure TCastleWalkNavigation.Update(const SecondsPassed: Single;
     CorrectPreferredHeight;
   end;
 
-  procedure MoveViaMouseDragging(Delta: TVector2);
+  { Implement MouseDragMode = mdWalkRotate case,
+    moving and rotating in response to mouse dragging by Delta. }
+  procedure MoveRotateViaMouseDragging(Delta: TVector2);
   var
     MoveSizeX, MoveSizeY: Single;
   const
@@ -3781,8 +3823,8 @@ procedure TCastleWalkNavigation.Update(const SecondsPassed: Single;
 
       if Abs(Delta.X) > Tolerance then
         RotateHorizontal(-Delta.X * SecondsPassed * MouseDraggingHorizontalRotationSpeed); { rotate }
-    end
-    else if buttonRight in Container.MousePressed then
+    end else
+    if buttonRight in Container.MousePressed then
     begin
       if Delta.X < -Tolerance then
         MoveHorizontal(DirectionLeft, MoveSizeX * SecondsPassed);
@@ -3867,16 +3909,26 @@ begin
     { mouse dragging navigation }
     if (MouseDraggingStarted <> -1) and
        ReallyEnableMouseDragging and
-       ((buttonLeft in Container.MousePressed) or (buttonRight in Container.MousePressed)) and
+       (Container.MousePressed <> []) and
        { Enable dragging only when no modifiers (except Input_Run,
          which must be allowed to enable running) are pressed.
          This allows application to handle e.g. ctrl + dragging
          in some custom ways (like castle-model-viewer selecting a triangle). }
        (Container.Pressed.Modifiers - Input_Run.Modifiers = []) and
-       (MouseDragMode = mdWalk) then
+       (MouseDragMode = mdWalkRotate) and
+       { Hack to avoid processing when mouse is over TCastleTouchNavigation
+         gizmo, since it does it's own rotating/movement of camera.
+         This is a hack, ideally TCastleWalkNavigation should not have a specific
+         rule to interact with TCastleTouchNavigation...
+
+         Note: We cannot move MoveRotateViaMouseDragging logic to Motion
+         (thus using "motion is handled" boolean) because
+         MoveRotateViaMouseDragging wants to move even if no mouse movement
+         happened in last frame. }
+       (not TCastleTouchNavigation.MouseOverTouchGizmo(Container)) then
     begin
       HandleInput := false;
-      MoveViaMouseDragging(Container.MousePosition - MouseDraggingStart);
+      MoveRotateViaMouseDragging(Container.MousePosition - MouseDraggingStart);
     end;
   end;
 
@@ -4235,6 +4287,29 @@ function TCastleWalkNavigation.Motion(const Event: TInputMotion): boolean;
 begin
   Result := inherited;
   if Result or (Event.FingerIndex <> 0) then Exit;
+
+  { It is possible to have MouseDraggingStarted = -1 even when all buttons
+    released:
+
+    - When setting MouseDraggingStarted to >= 0 in Press,
+      we do not set Result:=true to avoid other issues
+      (see comments in TCastleNevigation.Press).
+    - But as a consequence, TCastleTouchNavigation.Press may also start dragging
+      at the same time.
+    - Then when user releases the mouse,
+      TCastleTouchNavigation.Release is called,
+      and TCastleNavigation.Release is not called.
+      This is actually regardless of whether TCastleTouchNavigation.Release
+      returns false or true. It's because TCastleContainer.EventRelease
+      calls only Capture.Release + Exit when Capture <> nil,
+      it doesn't call Release on others.
+    - In effect, since our TCastleNavigation.Release wasn't called,
+      MouseDraggingStarted is left at -1.
+
+    Testcase: simple_3d_demo, click on touch navigation in the corner,
+    then release. When moving mouse, you should *not* rotate the camera now. }
+  if Event.Pressed = [] then
+    MouseDraggingStarted := -1;
 
   if (MouseDraggingStarted <> -1) and
     // Not need to check here ReallyEnableMouseDragging, as MouseDraggingStarted is already <> -1

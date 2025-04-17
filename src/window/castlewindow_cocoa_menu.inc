@@ -89,7 +89,7 @@ procedure TCastleWindow.BackendMenuInitialize;
       CocoaMenuKey(EntryItem.KeyString, EntryItem.Key, EntryItem.Modifiers,
         CocoaKeyEquivalent, CocoaKeyModifier);
       CocoaMenuItem := TCocoaMenuItem.alloc.initWithTitle_action_keyEquivalent(
-        NSSTR(SRemoveMnemonics(EntryItem.Caption)),
+        NSString.stringWithUTF8String(PChar(SRemoveMnemonics(EntryItem.Caption))),
         ObjCSelector('castleClick:'),
         NSSTR(CocoaKeyEquivalent)
       );
@@ -109,12 +109,12 @@ procedure TCastleWindow.BackendMenuInitialize;
     begin
       EntryMenu := TMenu(Entry);
       CocoaSubMenu := NSMenu.alloc.initWithTitle(
-        NSSTR(SRemoveMnemonics(EntryMenu.Caption)));
+        NSString.stringWithUTF8String(PChar(SRemoveMnemonics(EntryMenu.Caption))));
       CocoaSubMenu.setAutoenablesItems(false);
       for I := 0 to EntryMenu.Count - 1 do
         AddMenuItem(CocoaSubMenu, EntryMenu.Entries[I]);
       CocoaMenuItem := NSMenuItem.alloc.initWithTitle_action_keyEquivalent(
-        NSSTR(SRemoveMnemonics(EntryMenu.Caption)), nil,
+        NSString.stringWithUTF8String(PChar(SRemoveMnemonics(EntryMenu.Caption))), nil,
         NSSTR('')).autorelease;
       CocoaMenuItem.SetEnabled(EntryMenu.Enabled and (not MenuForcefullyDisabled));
       CocoaMenuItem.setSubmenu(CocoaSubMenu);

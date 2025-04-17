@@ -1,4 +1,4 @@
-{%MainUnit castletransform.pas}
+﻿{%MainUnit castletransform.pas}
 {
   Copyright 2017-2024 Michalis Kamburelis.
 
@@ -17,22 +17,59 @@
 { Physics. Integrates TCastleTransform with Kraft physics engine. }
 
 {$ifdef read_interface}
-  { Result of @link(TCastleAbstractRootTransform.PhysicsRayCast) and
+
+// type section started in CastleTransform.pas
+
+  { Result of ray cast, that describes what is hit by a ray in a viewport.
+    Routines that return this record include
+    @link(TCastleAbstractRootTransform.PhysicsRayCast) and
     @link(TCastleRigidBody.PhysicsRayCast). }
-  TPhysicsRayCastResult = record
+  TRayCastResult = record
     { Other fields are guaranteed to be all zero if Hit = @false. }
     Hit: Boolean;
+
+    { Hit TCastleTransform instance, if any.
+      Always @nil if nothing was hit. }
     Transform: TCastleTransform;
-    { Distance from ray origin to the hit point. }
+
+    { Distance from ray origin to the hit point.
+      Always 0 if nothing was hit.
+      Expressed in the world coordinate system, i.e. in the coordinates
+      seen by @link(TCastleViewport.Items).
+      Exception: When the TRayCastResult is returned by
+      @link(@link(TCastleRigidBody.PhysicsRayCast),
+      this is expressed in the local coordinate system of the rigid body. }
     Distance: Single;
+
+    { Hit point, and the normal vector at this point of the collider.
+      Expressed in the world coordinate system, i.e. in the coordinates
+      seen by @link(TCastleViewport.Items).
+      Exception: When the TRayCastResult is returned by
+      @link(@link(TCastleRigidBody.PhysicsRayCast),
+      this is expressed in the local coordinate system of the rigid body. }
     Point, Normal: TVector3;
   end;
 
+  TPhysicsRayCastResult = TRayCastResult deprecated 'use TRayCastResult';
+
   { Information send along with TCollisionEvent event, like
-    TCastleRigidBody.OnCollisionEnter, TCastleRigidBody.OnCollisionExit. }
+    @link(TCastleRigidBody.OnCollisionEnter),
+    @link(TCastleRigidBody.OnCollisionExit). }
   TPhysicsCollisionDetails = record
   public
-    Transforms: array[0..1] of TCastleTransform;
+    Transforms: array [0..1] of TCastleTransform;
+
+    { Object that receives the OnCollisionXxx event. }
+    function Sender: TCastleTransform;
+
+    { The object object (not the one that receives the OnCollisionXxx event)
+      to which the event is related.
+
+      @unorderedList(
+        @item In case of @link(TCastleRigidBody.OnCollisionEnter), this is the object that we collided with.
+        @item In case of @link(TCastleRigidBody.OnCollisionStay), this is the object that we are currently colliding with.
+        @item In case of @link(TCastleRigidBody.OnCollisionExit), this is the object that we stopped colliding with.
+      ) }
     function OtherTransform: TCastleTransform;
   end;
 
@@ -790,6 +827,9 @@
       This is required after changing various properties in Kraft body/collider. }
     procedure KraftForceUpdatingReadyBody;
 
+    { Set transformation known to the physics engine.
+      This should always be called with argument equal to
+      Parent.WorldTransform. }
     procedure SetWorldTransformation(const WorldTransform: TMatrix4);
     procedure SetLockTranslation(const AValue: T3DCoords);
     procedure SetLockRotation(const AValue: T3DCoords);
@@ -900,9 +940,9 @@
 
     { First object hit by the ray, calculated using the physics engine.
 
-      Returns the TPhysicsRayCastResult record.
-      Read TPhysicsRayCastResult.Hit (boolean), TPhysicsRayCastResult.Transform
-      (guaranteed to be @nil when TPhysicsRayCastResult.Hit is @false) and other fields
+      Returns the TRayCastResult record.
+      Read TRayCastResult.Hit (boolean), TRayCastResult.Transform
+      (guaranteed to be @nil when TRayCastResult.Hit is @false) and other fields
       to know what was hit.
 
       The given RayOrigin, RayDirection, MaxDistance are in the parent
@@ -914,9 +954,9 @@
         Hit := RBody.RayCast(MyTransform.Translation, MyTransform.Direction, MaxDistance);
       #)
 
-      It returns TPhysicsRayCastResult, with information there
+      It returns TRayCastResult, with information there
       consistently in the same coordinate system as inputs.
-      So TPhysicsRayCastResult.Distance, TPhysicsRayCastResult.Point, TPhysicsRayCastResult.Normal
+      So TRayCastResult.Distance, TRayCastResult.Point, TRayCastResult.Normal
       are in parent coordinate system of associated TCastleTransform (@link(TCastleBehavior.Parent)).
 
       This ignores the collider of this rigid body (to not accidentally collide
@@ -936,7 +976,7 @@
       In the new system, a similar role is filled by physics layers. }
     function PhysicsRayCast(const RayOrigin, RayDirection: TVector3;
       const MaxDistance: Single = MaxSingle;
-      const CollisionLayers: TPhysicsLayers = AllLayers): TPhysicsRayCastResult;
+      const CollisionLayers: TPhysicsLayers = AllLayers): TRayCastResult;
 
     { Cast a sphere using physics engine, see what is hit.
 
@@ -979,7 +1019,7 @@
     function PhysicsSphereCast(const SphereOrigin: TVector3;
       const SphereRadius:Single; const SphereDirection: TVector3;
       const MaxDistance: Single = MaxSingle;
-      const CollisionLayers: TPhysicsLayers = AllLayers): TPhysicsRayCastResult;
+      const CollisionLayers: TPhysicsLayers = AllLayers): TRayCastResult;
 
     function PropertySections(const PropertyName: String): TPropertySections; override;
 
@@ -1060,15 +1100,21 @@
       Transform, and this transform ExistsInRoot = true. }
     function ExistsInRoot: Boolean;
 
-    { For performance, physics engine sometimes puts some body to "sleep",
-      which means it will not move anymore,
-      because it didn't move (much) in the recent frames.
-      In general, the body should be "woken up" automatically when something collides
-      with it, so the mechanism should be invisible to you... but sometimes it is necessary
-      to wake up a body explicitly. }
+    { For performance reasons, physics engine puts the body to "sleep"
+      when it didn't move (too much) in the recent frames.
+      This means the body will not move anymore "by itself",
+      i.e. until something will collide with it.
+      In general, the body should be "woken up" automatically when
+      something collides with it, so the mechanism should be invisible to you,
+      but sometimes it is necessary to wake up a body explicitly. }
     procedure WakeUp;
 
     //procedure Sleep;
+
+    { For performance reasons, physics engine puts the body to "sleep"
+      when it didn't move (too much) in the recent frames.
+      Use this to read current state. }
+    function Awake: Boolean;
 
     { Current rotating velocity of this body.
       You can query it (as it changes, affected by forces) and set it at any point.
@@ -1098,29 +1144,38 @@
       It can occur repeatedly for the same body (in the same time instant)
       if the collision has many points of contact.
 
-      @italic(Warning:) Do not free the @link(TCastleTransform) instances
-      that collide during this event.
-      It would free the rigid body instance, which will crash the physics engine for now.
-      Instead, you can set @link(TCastleTransform.Exists) to @false
-      (you can free it later, e.g. during @link(TCastleUserInterface.OnUpdate)). }
+      @italic(Warning:) Do not free the related @link(TCastleTransform)
+      or @link(TCastleRigidBody) or @link(TCastleCollider) components
+      upon receiving this event.
+      Right now, it would free an underlying physics engine object,
+      and this would crash the physics engine.
+
+      Instead, you can:
+
+      @unorderedList(
+        @item(Schedule any component to free it later, using
+          @link(TCastleApplicationProperties.FreeDelayed ApplicationProperties.FreeDelayed).)
+        @item(Schedule @link(TCastleTransform) for removal/freeing later using
+          @link(TCastleTransform.RemoveDelayed).)
+        @item(Or set @link(TCastleTransform.Exists) to @false
+          and maybe free it later using your own mechanism.)
+      ) }
     property OnCollisionEnter: TCollisionEvent read FOnCollisionEnter write SetOnCollisionEnter;
 
     { Occurs when TCastleRigidBody stops colliding with another TCastleRigidBody.
 
-      @italic(Warning:) Do not free the @link(TCastleTransform) instances
-      that collide during this event.
-      It would free the rigid body instance, which will crash the physics engine for now.
-      Instead, you can set @link(TCastleTransform.Exists) to @false
-      (you can free it later, e.g. during @link(TCastleUserInterface.OnUpdate)). }
+      Just like at @link(OnCollisionEnter):
+      Do not free the related components upon receiving this event.
+      See the @link(OnCollisionEnter) documentation for details
+      of this limitation and solutions. }
     property OnCollisionExit: TCollisionEvent read FOnCollisionExit write SetOnCollisionExit;
 
     { Occurs when TCastleRigidBody still collides with another TCastleRigidBody.
 
-      @italic(Warning:) Do not free the @link(TCastleTransform) instances
-      that collide during this event.
-      It would free the rigid body instance, which will crash the physics engine for now.
-      Instead, you can set @link(TCastleTransform.Exists) to @false
-      (you can free it later, e.g. during @link(TCastleUserInterface.OnUpdate)). }
+      Just like at @link(OnCollisionEnter):
+      Do not free the related components upon receiving this event.
+      See the @link(OnCollisionEnter) documentation for details
+      of this limitation and solutions. }
     property OnCollisionStay: TCollisionEvent read FOnCollisionStay write SetOnCollisionStay;
   published
     { Does the physics simulation move and rotate this object
@@ -1211,7 +1266,9 @@
 
     { Controls whether the rigid body is actually processed by the physics engine.
       When this is @false, the rigid body is not updated by the physics engine,
-      and it does not cause collisions with other rigid bodies. }
+      it does not cause collisions with other rigid bodies
+      and it does not receive events like @link(OnCollisionEnter),
+      @link(OnCollisionStay), @link(OnCollisionExit). }
     property Exists: Boolean read FExists write SetExists default true;
 
     { Damping means that the velocity will decrease over time.
@@ -1483,6 +1540,11 @@ begin
 end;
 
 { TPhysicsCollisionDetails --------------------------------------------------- }
+
+function TPhysicsCollisionDetails.Sender: TCastleTransform;
+begin
+  Result := Transforms[0];
+end;
 
 function TPhysicsCollisionDetails.OtherTransform: TCastleTransform;
 begin
@@ -2649,18 +2711,45 @@ procedure TCastleMeshCollider.AddTriangle(Shape: TObject;
   const Position: TTriangle3;
   const Normal: TTriangle3; const TexCoord: TTriangle4;
   const Face: TFaceIndex);
+var
+  S: Single;
 begin
   { TODO: it's probably not optimal to call AddTriangle
     for each triangle, we should instead call Load with a list. }
 
+  S := TotalScale;
+
   FKraftMesh.AddTriangle(
-    FKraftMesh.AddVertex(VectorToKraft(Position.Data[0])),
-    FKraftMesh.AddVertex(VectorToKraft(Position.Data[1])),
-    FKraftMesh.AddVertex(VectorToKraft(Position.Data[2])),
+    FKraftMesh.AddVertex(VectorToKraft(S * Position.Data[0])),
+    FKraftMesh.AddVertex(VectorToKraft(S * Position.Data[1])),
+    FKraftMesh.AddVertex(VectorToKraft(S * Position.Data[2])),
     FKraftMesh.AddNormal(VectorToKraft(Normal.Data[0])),
     FKraftMesh.AddNormal(VectorToKraft(Normal.Data[1])),
     FKraftMesh.AddNormal(VectorToKraft(Normal.Data[2]))
   );
+
+  { Define to use slower, but more reliable for TCastleThirdPersonNavigation
+    approach.
+
+    Testcase: examples/third_person_navigation, without it -- our navigation
+    thinks the avatar falls down in the initial level parts.
+    Possibly it needs to be fixed in TCastleThirdPersonNavigation. }
+  {$define CASTLE_PHYSICS_MESH_DOUBLE_SIDED_MANUAL}
+  {$ifdef CASTLE_PHYSICS_MESH_DOUBLE_SIDED_MANUAL}
+  if DoubleSided then
+  begin
+    { We also add triangles for the other side.
+      Kraft RayCast does not check inverted triangles. }
+    FKraftMesh.AddTriangle(
+      FKraftMesh.AddVertex(VectorToKraft(S * Position.Data[2])),
+      FKraftMesh.AddVertex(VectorToKraft(S * Position.Data[1])),
+      FKraftMesh.AddVertex(VectorToKraft(S * Position.Data[0])),
+      FKraftMesh.AddNormal(VectorToKraft(-Normal.Data[2])),
+      FKraftMesh.AddNormal(VectorToKraft(-Normal.Data[1])),
+      FKraftMesh.AddNormal(VectorToKraft(-Normal.Data[0]))
+    );
+  end;
+  {$endif CASTLE_PHYSICS_MESH_DOUBLE_SIDED_MANUAL}
 end;
 
 function TCastleMeshCollider.CreateKraftShape(const APhysics: TKraft;
@@ -2670,7 +2759,9 @@ begin
   ARigidBody.RigidBodyType := krbtStatic;
 
   FKraftMesh := TKraftMesh.Create(APhysics);
+  {$ifndef CASTLE_PHYSICS_MESH_DOUBLE_SIDED_MANUAL}
   FKraftMesh.DoubleSided := FDoubleSided;
+  {$endif CASTLE_PHYSICS_MESH_DOUBLE_SIDED_MANUAL}
 
   if FMesh = nil then
   begin
@@ -2725,6 +2816,7 @@ begin
     https://forum.castle-engine.io/t/was-how-to-call-terrain-updategeometry-now-running-out-of-memory-updating-geometry-50x/849/8
   }
   FreeAndNil(FKraftMesh);
+>>>>>>>>> Temporary merge branch 2
 end;
 
 procedure TCastleMeshCollider.SetMesh(const AValue: TCastleTransform);
@@ -2752,8 +2844,12 @@ begin
   begin
     FDoubleSided := Value;
 
+    {$ifdef CASTLE_PHYSICS_MESH_DOUBLE_SIDED_MANUAL}
+    ShapeChangedNotifyRigidBody;
+    {$else}
     if FKraftMesh <> nil then
        FKraftMesh.DoubleSided := FDoubleSided;
+    {$endif CASTLE_PHYSICS_MESH_DOUBLE_SIDED_MANUAL}
   end;
 end;
 
@@ -3071,7 +3167,7 @@ procedure TCastleRigidBody.DeinitializeCollider;
       Exit;
 
     { We don't use here FPrevCollisions list because it can be empty when
-      this rigid body don't assign any FOnCollisionXXX event. }
+      this rigid body didn't assign any FOnCollisionXXX event. }
     ContactPairEdge := FKraftBody.ContactPairEdgeFirst;
     while Assigned(ContactPairEdge) do
     begin
@@ -3240,7 +3336,13 @@ begin
         begin
           // New collision.
           if Assigned(FOnCollisionEnter) then
+          begin
+            if not CollisionDetails.Transforms[0].RigidBody.Exists then
+              WriteLnWarning('TCastleRigidBody: Calling OnCollisionEnter when 1st TCastleRigidBody has Exists=false, submit a bug with testcase');
+            if not CollisionDetails.Transforms[1].RigidBody.Exists then
+              WriteLnWarning('TCastleRigidBody: Calling OnCollisionEnter when 2nd TCastleRigidBody has Exists=false, submit a bug with testcase');
             FOnCollisionEnter(CollisionDetails);
+          end;
         end else
         begin
           // Still in collision.
@@ -3721,7 +3823,7 @@ end;
 
 function TCastleRigidBody.PhysicsRayCast(const RayOrigin, RayDirection: TVector3;
   const MaxDistance: Single;
-  const CollisionLayers: TPhysicsLayers): TPhysicsRayCastResult;
+  const CollisionLayers: TPhysicsLayers): TRayCastResult;
 var
   RayOriginWorld, RayDirectionWorld: TVector3;
   MaxDistanceWorld: Single;
@@ -3882,7 +3984,15 @@ end;
 
 procedure TCastleRigidBody.WakeUp;
 begin
-  FKraftBody.SetToAwake;
+  if FKraftBody <> nil then
+    FKraftBody.SetToAwake
+  else
+    WritelnWarning('Cannot awake a body before physics engine initialization');
+end;
+
+function TCastleRigidBody.Awake: Boolean;
+begin
+  Result := (FKraftBody <> nil) and (krbfAwake in FKraftBody.Flags);
 end;
 
 { // commented out as should never be needed by actual user code
@@ -4021,12 +4131,6 @@ begin
 end;
 
 procedure TCastleAbstractRootTransform.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
-var
-  KraftGravity: TVector3;
-  PhysicsTicksCount:Integer;
-  {$ifdef CASTLE_LOG_PHYSICS_DROPS_FRAMES}
-  OldTimeAccumulator: TFloatTime;
-  {$endif}
 begin
   if not Exists then Exit;
 
@@ -4036,6 +4140,18 @@ begin
     Exit;
   UpdateFrameId := TFramesPerSecond.FrameId;
 
+  UpdateIncreaseTime(SecondsPassed);
+end;
+
+procedure TCastleAbstractRootTransform.UpdateIncreaseTime(const SecondsPassed: Single);
+var
+  KraftGravity: TVector3;
+  PhysicsTicksCount:Integer;
+  IgnoredRemoveMe: TRemoveType;
+  {$ifdef CASTLE_LOG_PHYSICS_DROPS_FRAMES}
+  OldTimeAccumulator: TFloatTime;
+  {$endif}
+begin
   if IsPhysicsRunning then
   begin
     FrameProfiler.Start(fmUpdatePhysics);
@@ -4120,13 +4236,16 @@ begin
   { call inherited at the end,
     to update transformation of all items in their TCastleRigidBody.Update
     called from TCastleTransform.Update }
-  inherited;
+  IgnoredRemoveMe := rtNone;
+  inherited Update(SecondsPassed, IgnoredRemoveMe);
+  if IgnoredRemoveMe <> rtNone then
+    WritelnWarning('TCastleAbstractRootTransform.Update: IgnoredRemoveMe is not rtNone, unexpected');
 end;
 
 function TCastleAbstractRootTransform.PhysicsRayCast(
   const RayOrigin, RayDirection: TVector3;
   const MaxDistance: Single; const IgnoreBody: TCastleRigidBody;
-  const CollisionLayers: TPhysicsLayers): TPhysicsRayCastResult;
+  const CollisionLayers: TPhysicsLayers): TRayCastResult;
 
   procedure Core;
   var
@@ -4150,9 +4269,7 @@ function TCastleAbstractRootTransform.PhysicsRayCast(
       VectorToKraft(RayOrigin), VectorToKraft(RayDirection), MaxDistance,
       // outputs
       KraftShape, KraftDistance, KraftPoint, KraftNormal,
-      // collisions layers
-      CollisionLayers
-      ) then
+      CollisionLayers) then
     begin
       Result.Hit := true;
       Result.Transform := TCastleRigidBody(KraftShape.RigidBody.UserData).FTransform;

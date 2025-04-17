@@ -1,5 +1,5 @@
 ﻿{
-  Copyright 2015-2018 Tomasz Wojtyś, Michalis Kamburelis.
+  Copyright 2015-2024 Tomasz Wojtyś, Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -32,7 +32,7 @@ interface
 uses
   Classes, SysUtils, DOM, XMLRead, base64,
   {$ifdef FPC} zstream {$else} { from Vampyre } DZLib {$endif},
-  Generics.Collections,
+  Generics.Collections, CastleInternalFileMonitor,
   CastleVectors, CastleColors, CastleUtils, CastleUriUtils, CastleXmlUtils,
   CastleLog, CastleStringUtils, CastleUIControls, CastleGLImages, CastleTransform,
   CastleRectangles, CastleClassUtils, CastleRenderOptions, CastleScene, X3DNodes;
@@ -42,6 +42,9 @@ uses
 {$I castletiledmap_control.inc}
 {$I castletiledmap_scene.inc}
 {$undef read_interface}
+
+const
+  LoadTiledMap_FileFilters = 'Tiled Map (*.tmx)|*.tmx|All Files|*';
 
 implementation
 

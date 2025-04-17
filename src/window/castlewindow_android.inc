@@ -1,6 +1,6 @@
 {%MainUnit castlewindow.pas}
 {
-  Copyright 2004-2023 Michalis Kamburelis.
+  Copyright 2004-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -60,7 +60,7 @@ private
   type
     { On Android, we have to track previous touch positions using our
       own structure, instead of relying on
-      MainWindow.FTouches.FingerIndexPosition[FingerIndex].
+      MainWindow.Container.Touches.FingerIndexPosition[FingerIndex].
 
       Reason: DoMotion is not immediately called when
       receiving AMOTION_EVENT_ACTION_MOVE. That is bacause we have to do
@@ -87,7 +87,6 @@ private
 
   var
     FScreenWidth, FScreenHeight: Integer;
-    FScreenStatusBarHeight: Cardinal;
     QEvents: TQueuedEventList;
     TouchChanges: array [0..FingerCount - 1] of TTouchChange;
     ResumeScheduled: boolean;
@@ -118,7 +117,6 @@ begin
   AndroidLog(alInfo, 'OpenContext (size: %d %d)', [Width, Height]);
   Application.FScreenWidth := Width;
   Application.FScreenHeight := Height;
-  Application.FScreenStatusBarHeight := Round(24 * Window.Container.Dpi / 96); // TODO
   //Window.FullScreen := true; // TODO: setting fullscreen should work like that 4 lines below. Also, should be default?
   Window.FLeft := 0;
   Window.FTop := 0;
@@ -129,7 +127,7 @@ begin
     do not treat huge "time passed" as meaningful in next Update.
     Note: MaxSensibleSecondsPassed would limit this problem anyway,
     but still it's better to just make it zero. }
-  Window.Fps.ZeroNextSecondsPassed;
+  Window.Container.Fps.ZeroNextSecondsPassed;
 
   { create OpenGL context, run OnOpen events and so on }
   Window.Open;
@@ -699,14 +697,12 @@ begin
   Result := true;
 end;
 
-procedure TCastleWindow.SetMousePosition(const Value: TVector2);
+procedure TCastleWindow.SystemSetMousePosition(const Value: TVector2);
 begin
   { There is no cursor position on Android devices.
     Just update MousePosition (although we're not really required to
     do this, code using SetMousePosition should not depend that
     it was always successful). }
-  if not Closed then
-    FMousePosition := Value;
 end;
 
 procedure TCastleWindow.UpdateFullScreenBackend;
@@ -741,6 +737,7 @@ function TCastleApplication.ProcessMessage(WaitForMessage, WaitToLimitFPS: boole
   begin
     ApplicationProperties._Update;
     FOpenWindows.DoUpdate;
+    ApplicationProperties._UpdateEnd;
   end;
 
   procedure Resize(Width, Height: Integer);
@@ -801,7 +798,7 @@ begin
               MainWindow.DoMouseDown(QEvent.Touch.Position, buttonLeft, QEvent.FingerIndex);
           aeMotionUp  :
             if not MainWindow.Closed then
-              MainWindow.DoMouseUp  (QEvent.Touch.Position, buttonLeft, QEvent.FingerIndex, false);
+              MainWindow.DoMouseUp  (QEvent.Touch.Position, buttonLeft, QEvent.FingerIndex);
           aeMotionMove:
             if not MainWindow.Closed then
               MainWindow.DoMotion   (InputMotion(QEvent.Touch.OldPosition, QEvent.Touch.Position, [buttonLeft], QEvent.FingerIndex));
@@ -921,14 +918,14 @@ begin
   Result := FScreenHeight;
 end;
 
-function TCastleApplication.ScreenStatusBarScaledHeight: Cardinal;
-begin
-  Result := FScreenStatusBarHeight;
-end;
-
 function TCastleApplication.BackendName: String;
 begin
   Result := 'Android';
+end;
+
+function TCastleApplication.MultipleWindowsPossible: Boolean;
+begin
+  Result := false;
 end;
 
 { TWindowContainer ----------------------------------------------------------- }

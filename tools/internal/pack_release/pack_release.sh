@@ -105,22 +105,27 @@ check_lazarus_version ()
   local LAZARUS_VERSION=`lazbuild --version | grep --invert-match 'using config file' | tr -d '\r'`
   echo "Lazarus version: ${LAZARUS_VERSION}"
 
-  # Note that we have to support Lazarus 3.0,
-  # since it's the last supported by https://github.com/gcarreno/setup-lazarus for now,
-  # see https://github.com/gcarreno/setup-lazarus/issues/30 .
-  if [ "${LAZARUS_VERSION}" '!=' '3.0' -a \
-       "${LAZARUS_VERSION}" '!=' '3.2' -a \
+  if [ "${LAZARUS_VERSION}" '!=' '3.2' -a \
        "${LAZARUS_VERSION}" '!=' '3.4' -a \
-       "${LAZARUS_VERSION}" '!=' '3.5' ]; then
-    echo "pack_release: Incorrect Lazarus version to pack release, see ${LAZARUS_VERSION}"
+       "${LAZARUS_VERSION}" '!=' '3.5' -a \
+       "${LAZARUS_VERSION}" '!=' '3.6' -a \
+       "${LAZARUS_VERSION}" '!=' '3.7' ]; then
+    echo "pack_release: Incorrect Lazarus version to pack release, we have ${LAZARUS_VERSION}"
     exit 1
   fi
 
   # To avoid https://gitlab.com/freepascal.org/lazarus/lazarus/-/merge_requests/291
-  # we need Lazarus 3.5 on macOS.
+  # we need Lazarus >= 3.5 on macOS.
+  #
+  # Note that using https://github.com/gcarreno/setup-lazarus with "lazarus-version: stable"
+  # results now in Lazarus version 3.7. This seems to be what the download
+  # https://sourceforge.net/projects/lazarus/files/Lazarus%20macOS%20x86-64/Lazarus%203.6/Lazarus-3.6-macosx-x86_64.pkg/download
+  # reports.
   if [ "`uname -s`" '=' 'Darwin' ]; then
-    if [ "${LAZARUS_VERSION}" '!=' '3.5' ]; then
-      echo "pack_release: macOS: Incorrect Lazarus version to pack release, see ${LAZARUS_VERSION}"
+    if [ "${LAZARUS_VERSION}" '!=' '3.5' -a \
+         "${LAZARUS_VERSION}" '!=' '3.6' -a \
+         "${LAZARUS_VERSION}" '!=' '3.7' ]; then
+      echo "pack_release: macOS: Incorrect Lazarus version to pack release, we have ${LAZARUS_VERSION}"
       exit 1
     fi
   fi
@@ -309,17 +314,19 @@ cge_clean_all ()
   #     Blender (*.blend?),
   #     QtCreator (*.pro.user).
   # - macOS app bundles (made by "make examples-laz", not cleaned up by "make clean").
-	"${FIND}" . -type f '(' \
-      -iname '*~' -or \
-      -iname '*.bak' -or \
-      -iname '*.~???' -or \
-      -iname '*.pro.user' -or \
-      -iname '*.blend?' \
-    ')' -exec rm -f '{}' ';'
-	"${FIND}" . -type d '(' \
-    -iname 'backup' -or \
-    -iname '*.app' \
-		')' -exec rm -Rf '{}' ';' -prune
+	"${FIND}" . \
+    '(' -type d -name 'bin-to-keep' -prune ')' -or \
+    '(' -type f '(' \
+          -iname '*~' -or \
+          -iname '*.bak' -or \
+          -iname '*.~???' -or \
+          -iname '*.pro.user' -or \
+          -iname '*.blend?' \
+        ')' -exec rm -f '{}' ';' ')' -or \
+    '(' -type d '(' \
+          -iname 'backup' -or \
+          -iname '*.app' \
+        ')' -exec rm -Rf '{}' ';' -prune ')'
 
   # Delete pasdoc generated documentation in doc/pasdoc/ and doc/reference/
 	"${MAKE}" -C doc/pasdoc/ clean
@@ -516,6 +523,13 @@ pack_platform_dir ()
 
   # After make clean, make sure bin/ exists and is filled with what we need
   mv "${TEMP_PATH_CGE}"bin-to-keep "${TEMP_PATH_CGE}"bin
+
+  if [ "$OS" '=' 'darwin' ]; then
+    if [ ! -d "${TEMP_PATH_CGE}"bin/castle-editor.app ]; then
+      echo "Error: castle-editor.app not found in bin/ at packaging macOS release"
+      exit 1
+    fi
+  fi
 
   # Add PasDoc docs
   "${MAKE}" -C doc/pasdoc/ clean html ${MAKE_OPTIONS}

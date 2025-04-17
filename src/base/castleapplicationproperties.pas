@@ -1,5 +1,5 @@
 {
-  Copyright 2014-2023 Michalis Kamburelis.
+  Copyright 2014-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -21,7 +21,7 @@ unit CastleApplicationProperties;
 
 interface
 
-uses Generics.Collections,
+uses SysUtils, Generics.Collections, Contnrs, Classes,
   CastleClassUtils;
 
 type
@@ -48,13 +48,20 @@ type
     procedure ExecuteAll(const Message: String);
   end;
 
-  { Events and properties of the Castle Game Engine application,
-    usually accessed through the @link(ApplicationProperties) singleton.
+  { Events and properties of each Castle Game Engine application,
+    always accessed through the @link(ApplicationProperties) singleton.
 
-    These members work regardless if you use CastleWindow or CastleControl.
-    For more fine-grained application control,
-    see TCastleApplication (in case you use CastleWindow)
-    or Lazarus (LCL) TApplication (in case you use CastleControl). }
+    The members of this class work regardless of how is the rendering context
+    initialized, in particular regardless of whether
+    you use CastleWindow or CastleControl.
+    For various other application properties and methods use
+
+    @unorderedList(
+      @item(TCastleApplication class, using the @link(CastleWindow.Application)
+        singleton (if you use CastleWindow).)
+      @item(@code(TApplication) class, using the @code(Application) singleton,
+        in Lazarus LCL or Delphi VCL or FMX (in case you use CastleControl).)
+    ) }
   TCastleApplicationProperties = class
   private
     FIsGLContextOpen, FFileAccessSafe: boolean;
@@ -64,18 +71,24 @@ type
       FOnPause, FOnResume: TNotifyEventList;
     FOnWarning: TWarningEventList;
     FOnLog: TLogEventList;
+    FOnInitializeDebug: TProcedureList;
     FVersion: String;
     FTouchDevice: boolean;
     FLimitFPS: Single;
     FShowUserInterfaceToQuit: Boolean;
     FCaption: String;
+    // Maybe we will expose them as public read-only properties in the future.
+    FInitializedDebug: Boolean;
+    FInitializedRelease: Boolean;
+    FPendingToFree: TComponentList;
     function GetApplicationName: String;
     procedure SetApplicationName(const Value: String);
+    procedure DoPendingFree;
   public
     const
       DefaultLimitFPS = 120.0;
 
-      { Some platforms do not support Application.ProcessMessages, which means you
+      { Some platforms do not support Application.ProcessMessage, which means you
         cannot just write a function like MessageYesNo that waits until user clicks
         something.
         You *have* to implement modal boxes then using views,
@@ -101,9 +114,9 @@ type
       @link(TCastleApplication.ParseStandardParameters). }
     property Version: String read FVersion write FVersion;
 
-    { Initialized to @true on touch devices (Android, iOS, Nintendo Switch).
+    { Initialized to @true on devices with a touch screen (Android, iOS, Nintendo Switch).
 
-      A "touch device" means that:
+      On such devices:
 
       @unorderedList(
         @item(We cannot track @link(TCastleContainer.MousePosition)
@@ -122,6 +135,9 @@ type
           On non-touch devices, @link(TCastleContainer.TouchesCount) is always 1.)
       )
 
+      See @url(https://castle-engine.io/touch_input documentation
+      about touch input).
+
       As a debugging feature, you can set this to @true
       to simulate touch devices on a desktop.
       The idea is that when an application shows a different input behavior
@@ -129,17 +145,23 @@ type
       this boolean property. So an application may do this:
 
       @longCode(#
-      Viewport.WalkCamera.MouseLook := not ApplicationProperties.TouchDevice;
+      // show the button only on mobile
+      ButtonExit.Exists := ApplicationProperties.TouchDevice;
       #)
 
-      And to test on desktop whether everything behaves OK on mobile,
+      To test on desktop whether everything behaves OK on mobile,
       you can just earlier call this:
 
       @longCode(#
-      if FakeTouchDeviceOnDesktop then
+      if DebugTouchDeviceOnDesktop then
         ApplicationProperties.TouchDevice := true;
       #)
-    }
+
+      If you use our standard initialization using @link(TCastleWindow.ParseParameters),
+      you can also pass command-line option @code(--pretend-touch-device) to do this.
+      If you execute the game from our editor, you can also use the menu item
+      @italic("Run -> Run Parameters -> Pretend Touch Device") to do this.
+      Underneath, all these methods do is set this property to @true. }
     property TouchDevice: boolean read FTouchDevice write FTouchDevice;
 
     { Is it common, on current platform, to show the "Quit" button in your application.
@@ -150,7 +172,16 @@ type
 
       Just like the @link(TouchDevice), you can change this at runtime
       for debug purposes (to e.g. easily test mobile UI on PC). }
-    property ShowUserInterfaceToQuit: Boolean read FShowUserInterfaceToQuit write FShowUserInterfaceToQuit;
+    property ShowUserInterfaceToQuit: Boolean
+      read FShowUserInterfaceToQuit write FShowUserInterfaceToQuit;
+
+    { We can catch exceptions on this platform.
+      So "try .. except" works reliably and you can use exceptions
+      to report error-like conditions, and later recover from them.
+
+      This is @true on all platforms except web.
+      See "Known Limitations" on https://castle-engine.io/web . }
+    function CanCatchExceptions: Boolean;
 
     { Limit the number of (real) frames per second, to not hog the CPU.
       Set to zero to not limit.
@@ -173,8 +204,9 @@ type
 
           This limits the number of TCastleApplication.ProcessMessage
           calls per second, in situations when we do not have to process any user input.
-          So we limit not only rendering (TCastleWindow.OnRender)
-          but also other animation processing (TCastleWindow.OnUpdate) calls per second.
+          So we limit not only rendering (@link(TCastleUserInterface.Render))
+          but also @link(TCastleUserInterface.Update) processing
+          (which includes physics and animation processing) calls per second.
           See TCastleApplication.ProcessMessage.
 
           See TCastleWindow.ProcessMessage documentation about WaitToLimitFPS
@@ -224,9 +256,7 @@ type
       and last OnGLContextClose. }
     property IsGLContextOpen: boolean read FIsGLContextOpen;
 
-    { Callbacks called continuously when (at least one) window is open.
-      You can use this just like @link(TCastleControl.OnUpdate)
-      or @link(TCastleWindow.OnUpdate). }
+    { Callbacks called continuously when (at least one) window is open. }
     property OnUpdate: TNotifyEventList read FOnUpdate;
 
     { Callbacks called when Android Java activity started.
@@ -242,9 +272,11 @@ type
           @link(TCastleApplication.OnInitialize)),
           but we need to reinitialize Java part.
 
-          Note that this is different from @link(TCastleWindow.OnOpen).
-          We lose OpenGL context often, actually every time user switches to another
-          app, without having neither Java nor native threads killed.
+          Note that this is different from opening a new rendering context
+          (when the @link(TCastleUserInterface.GLContextOpen) is called).
+          On mobile we lose OpenGLES context often,
+          actually every time user switches to another app,
+          but we don't necessarily have our Java or native threads killed at this moment.
         )
       )
 
@@ -266,6 +298,11 @@ type
     { Events called upon any @link(WritelnLog), including @link(WritelnWarning). }
     property OnLog: TLogEventList read FOnLog;
 
+    { Events called at @link(InitializeDebug).
+      If @link(InitializeDebug) was already called, then we call the listener
+      @italic(now), from this AddInitializeDebugListener! }
+    procedure AddInitializeDebugListener(const Listener: TProcedure);
+
     { Add this to OnWarning to output warnings to standard output (usually, console).
       Eventually, on GUI Windows programs, it will make a dialog box.
       This is handled by @link(WarningWrite) procedure. }
@@ -283,6 +320,8 @@ type
     procedure _GLContextClose;
     { @exclude }
     procedure _Update;
+    { @exclude }
+    procedure _UpdateEnd;
     { @exclude }
     procedure _InitializeJavaActivity;
     { @exclude }
@@ -313,6 +352,44 @@ type
 
       Includes the output of SCompilerDescription and SPlatformDescription. }
     function Description: String;
+
+    { Initialize debug facilities, that should not be enabled in released
+      applications, but are very useful when enabled out-of-the-box
+      during development.
+      Must be called early (before any files are loaded).
+
+      This includes now:
+
+      @unorderedList(
+        @item(Setting up @link(TCastleContainer.InputInspector) to enable
+          invoking inspector at runtime, by pressing F8 key or
+          pressing 3 fingers for 1 second on the screen.)
+
+        @item(Setting up file monitor, so that it is possible to enable it
+          at runtime, using "Monitor and Auto-Reload Data" from inspector.)
+      )
+
+      This is called automatically from auto-generated CastleAutoGenerated unit
+      in each project, if the DEBUG symbol was defined during compilation.
+
+      For backward compatibility, it is also called when the CGE units
+      like CastleInternalFileMonitor and CastleUiControls
+      are compiled with the DEBUG symbol, but please don't depend on this,
+      it will be removed in future engine versions.
+      You shall not depend on DEBUG / RELEASE symbols used when compiling the engine,
+      they may be independent from the project DEBUG / RELEASE symbols. }
+    procedure InitializeDebug;
+
+    { Enable release features at run-time.
+      This does *nothing* for now, but enables possible future extensions
+      (e.g. special optimizations). }
+    procedure InitializeRelease;
+
+    { Free given component, at the nearest suitable moment.
+      The pending free operations are done at least after processing
+      all "update" events and before processing the "render" event
+      (so the items pending to be freed will not be rendered). }
+    procedure FreeDelayed(const Item: TComponent);
   end;
 
 function ApplicationProperties(
@@ -320,8 +397,7 @@ function ApplicationProperties(
 
 implementation
 
-uses SysUtils,
-  CastleUtils;
+uses CastleUtils;
 
 { TGLContextEventList -------------------------------------------------------- }
 
@@ -387,6 +463,7 @@ begin
   FOnResume := TNotifyEventList.Create;
   FOnWarning := TWarningEventList.Create;
   FOnLog := TLogEventList.Create;
+  FOnInitializeDebug := TProcedureList.Create;
   FFileAccessSafe := true;
   FTouchDevice :=
     {$if defined(ANDROID) or defined(CASTLE_IOS) or defined(CASTLE_NINTENDO_SWITCH)}
@@ -394,12 +471,8 @@ begin
     {$else}
       false
     {$endif};
-  { Note: for now, FShowUserInterfaceToQuit starts just as a negation of FTouchDevice.
-    But it will not always be like that.
-    E.g. on other consoles, FTouchDevice may be false,
-    but FShowUserInterfaceToQuit may be true. }
   FShowUserInterfaceToQuit :=
-    {$if defined(ANDROID) or defined(CASTLE_IOS) or defined(CASTLE_NINTENDO_SWITCH)}
+    {$if defined(ANDROID) or defined(CASTLE_IOS) or defined(CASTLE_NINTENDO_SWITCH) or defined(WASI)}
       false
     {$else}
       true
@@ -409,6 +482,7 @@ end;
 
 destructor TCastleApplicationProperties.Destroy;
 begin
+  FreeAndNil(FPendingToFree);
   FreeAndNil(FOnGLContextOpen);
   FreeAndNil(FOnGLContextEarlyOpen);
   FreeAndNil(FOnGLContextOpenObject);
@@ -420,6 +494,7 @@ begin
   FreeAndNil(FOnResume);
   FreeAndNil(FOnWarning);
   FreeAndNil(FOnLog);
+  FreeAndNil(FOnInitializeDebug);
   inherited;
 end;
 
@@ -464,7 +539,37 @@ end;
 
 procedure TCastleApplicationProperties._Update;
 begin
+  DoPendingFree;
   FOnUpdate.ExecuteAll(Self);
+end;
+
+procedure TCastleApplicationProperties._UpdateEnd;
+begin
+  DoPendingFree;
+end;
+
+procedure TCastleApplicationProperties.DoPendingFree;
+var
+  I: Integer;
+begin
+  if FPendingToFree <> nil then
+    for I := FPendingToFree.Count - 1 downto 0 do
+      if I < FPendingToFree.Count then
+        FPendingToFree[I].Free; // this will remove it from children, and from FPendingToFree
+end;
+
+procedure TCastleApplicationProperties.FreeDelayed(const Item: TComponent);
+begin
+  if FPendingToFree = nil then
+    FPendingToFree := TComponentList.Create(false);
+  { Do not allow duplicates on FPendingToFree list (which would happen
+    if code calls FreeDelayed(xxx) with the same object).
+    Duplicates make list not behave OK when item is freed, not all copies
+    disappear from TComponentList then (looks like it removes only the 1st),
+    and then FPendingToFree contains dangling pointer.
+    Testcase: space_shooter, fly into rocks. }
+  if FPendingToFree.IndexOf(Item) = -1 then
+    FPendingToFree.Add(Item);
 end;
 
 procedure TCastleApplicationProperties._InitializeJavaActivity;
@@ -511,6 +616,38 @@ begin
     'Using Castle Game Engine ( https://castle-engine.io/ ) version ' + CastleEngineVersion + '.' + NL +
     'Compiled with ' + SCompilerDescription + '.' + NL +
     'Platform: ' + SPlatformDescription + '.';
+end;
+
+procedure TCastleApplicationProperties.InitializeDebug;
+begin
+  if FInitializedDebug or FInitializedRelease then
+    raise Exception.Create('Cannot call InitializeDebug after InitializeRelease or InitializeDebug was already called');
+  FInitializedDebug := true;
+
+  FOnInitializeDebug.ExecuteAll;
+end;
+
+procedure TCastleApplicationProperties.InitializeRelease;
+begin
+  if FInitializedDebug or FInitializedRelease then
+    raise Exception.Create('Cannot call InitializeRelease after InitializeDebug or InitializeRelease was already called');
+  FInitializedRelease := true;
+
+  { Does nothing for now, but exists to provide easy extension point
+    for future release-specific features.
+    Called from CastleAutoGenerated unit in new projects. }
+end;
+
+procedure TCastleApplicationProperties.AddInitializeDebugListener(const Listener: TProcedure);
+begin
+  FOnInitializeDebug.Add(Listener);
+  if FInitializedDebug then
+    Listener();
+end;
+
+function TCastleApplicationProperties.CanCatchExceptions: Boolean;
+begin
+  Result := {$ifdef WASI} false {$else} true {$endif};
 end;
 
 initialization

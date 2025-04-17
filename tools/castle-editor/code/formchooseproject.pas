@@ -1,5 +1,5 @@
 {
-  Copyright 2018-2023 Michalis Kamburelis.
+  Copyright 2018-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -78,7 +78,7 @@ implementation
 uses CastleConfig, CastleLCLUtils, CastleUriUtils, CastleUtils, CastleOpenDocument,
   CastleFilesUtils, CastleParameters, CastleLog, CastleStringUtils, CastleGLUtils,
   CastleApplicationProperties, CastleInternalTools,
-  ProjectUtils, EditorUtils, FormNewProject, FormPreferences,
+  ProjectUtils, EditorUtils, FormNewProject, FormPreferences, DesignSteam,
   ToolCompilerInfo, ToolFpcVersion, ToolManifest, ToolCommonUtils,
   FormProject, FormNewUnit;
 
@@ -164,7 +164,7 @@ begin
       Options.TemplateName := TemplateName;
       Options.ProjectName := NewProjectForm.EditProjectName.Text;
       Options.ProjectCaption := NewProjectForm.EditProjectCaption.Text;
-      Options.MainView := NewProjectForm.EditStateName.Text;
+      Options.MainView := NewProjectForm.EditViewName.Text;
 
       ProjectCreateFromTemplate(CastleEnginePath, Options, ProjectDirUrl);
       GenerateProgramWithBuildTool(ProjectDirUrl);
@@ -411,6 +411,7 @@ begin
          Halt;
        end;
     2: TGLFeatures.RequestCapabilities := StrToCapabilities(Argument);
+    3: SteamCommandLineParameter := true;
     else raise EInternalError.Create('ApplicationOptionProc: unhandled OptionNum');
   end;
 end;
@@ -444,11 +445,12 @@ procedure TChooseProjectForm.OpenProjectFromCommandLine;
   {$endif}
 
 const
-  Options: array [0..2] of TOption =
+  Options: array [0..3] of TOption =
   (
     (Short: 'h'; Long: 'help'; Argument: oaNone),
     (Short: 'v'; Long: 'version'; Argument: oaNone),
-    (Short: #0 ; Long: 'capabilities'; Argument: oaRequired)
+    (Short: #0 ; Long: 'capabilities'; Argument: oaRequired),
+    (Short: #0 ; Long: 'steam'; Argument: oaNone)
   );
 
 begin
@@ -460,6 +462,8 @@ begin
   {$endif}
 
   Parameters.Parse(Options, @OptionProc, nil, true);
+
+  InitializeSteam;
 
   Parameters.CheckHighAtMost(1);
   if Parameters.High = 1 then

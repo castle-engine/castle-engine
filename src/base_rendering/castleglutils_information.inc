@@ -34,17 +34,24 @@ function GLInformationStringSummary: String;
 
 {$ifdef read_implementation}
 
+const
+  RenderingApiName =
+    {$if defined(CASTLE_WEBGL)} 'WebGL'
+    {$elseif defined(OpenGLES)} 'OpenGLES'
+    {$else} 'OpenGL'
+    {$endif};
+
 function GLInformationString: string;
 const
   Section = '----------------------------------------';
 
   function GetFloat2(const Param: TGLenum; const Available: Boolean): String;
   var
-    V: packed array [0..1] of TGLFloat;
+    V: TVector2;
   begin
     if not Available then
       Exit('Not Available');
-    glGetFloatv(Param, @V);
+    V := glGetFloat2(Param);
     Result := Format('%f %f', [V[0], V[1]]);
   end;
 
@@ -149,7 +156,7 @@ const
 
 begin
   Result :=
-    {$ifdef OpenGLES} 'OpenGLES' {$else} 'OpenGL' {$endif} +
+    RenderingApiName +
     ' information (detected by ' + ApplicationName + '):' + NL +
     NL +
 
@@ -167,8 +174,12 @@ begin
     'Confirmed versions:' + NL +
     '(checks both version string and actual functions availability in the library, to secure from buggy implementations)' + NL +
     NL +
-    {$ifdef OpenGLES}
-    '  2_0: ' + BoolToStr(GLFeatures.VersionES_2_0, true) + NL +
+    {$if defined(CASTLE_WEBGL)}
+    '  2.0: ' + BoolToStr(GLFeatures.VersionWebGL_2, true) + NL +
+    NL +
+
+    {$elseif defined(OpenGLES)}
+    '  2.0: ' + BoolToStr(GLFeatures.VersionES_2_0, true) + NL +
     '  3.0: ' + BoolToStr(GLFeatures.VersionES_3_0, true) + NL +
     '  3.1: ' + BoolToStr(GLFeatures.VersionES_3_1, true) + NL +
     '  3.2: ' + BoolToStr(GLFeatures.VersionES_3_2, true) + NL +
@@ -187,6 +198,7 @@ begin
     '  3.3: ' + BoolToStr(GLFeatures.Version_3_3, true) + NL +
     '  4.0: ' + BoolToStr(GLFeatures.Version_4_0, true) + NL +
     NL +
+
     {$endif}
 
     Section + NL +
@@ -240,6 +252,21 @@ begin
     '    Current: ' + IntToStr(GLFeatures.CurrentMultiSampling) + ' samples per pixel' + NL +
     NL +
 
+    {$ifdef CASTLE_WEBGL}
+    Section + NL +
+    'WebGL context attributes:' + NL +
+    NL +
+    '  Alpha: ' + BoolToStr(GL.getContextAttributes.alpha, true) + NL +
+    '  Depth: ' + BoolToStr(GL.getContextAttributes.depth, true) + NL +
+    '  Stencil: ' + BoolToStr(GL.getContextAttributes.stencil, true) + NL +
+    '  Antialias: ' + BoolToStr(GL.getContextAttributes.antialias, true) + NL +
+    '  PremultipliedAlpha: ' + BoolToStr(GL.getContextAttributes.premultipliedAlpha, true) + NL +
+    '  PreserveDrawingBuffer: ' + BoolToStr(GL.getContextAttributes.preserveDrawingBuffer, true) + NL +
+    '  PowerPreference: ' + String(GL.getContextAttributes.powerPreference) + NL +
+    '  FailIfMajorPerformanceCaveat: ' + BoolToStr(GL.getContextAttributes.failIfMajorPerformanceCaveat, true) + NL +
+    NL +
+    {$endif}
+
     Section + NL +
     'Limits:' + NL +
     NL +
@@ -270,12 +297,22 @@ begin
 end;
 
 function GLInformationStringSummary: String;
+var
+  VendorStrOrNone: String;
 begin
-  Result := Format('%s %d.%d (%s) (modern rendering: %s)', [
-    {$ifdef OpenGLES} 'OpenGLES' {$else} 'OpenGL' {$endif},
+  { Show detected vendor type or nothing if we don't know vendor type.
+    We show nothing when vendor type is gvOther, to not confuse the user
+    ("other" just means we didn't have code to recognize this vendor). }
+  if GLVersion.VendorType = gvOther then
+    VendorStrOrNone := ''
+  else
+    VendorStrOrNone := ' (' + VendorTypeToStr(GLVersion.VendorType) + ')';
+
+  Result := Format('%s %d.%d%s (modern rendering: %s)', [
+    RenderingApiName,
     GLVersion.Major,
     GLVersion.Minor,
-    VendorTypeToStr(GLVersion.VendorType),
+    VendorStrOrNone,
     BoolToStr(not GLFeatures.EnableFixedFunction, true)
   ]);
 end;

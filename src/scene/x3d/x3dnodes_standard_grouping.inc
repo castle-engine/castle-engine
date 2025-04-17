@@ -327,6 +327,12 @@
       See https://castle-engine.io/gltf#unique_names
       for documentation why we do this. }
     procedure InternalFixNodeNames;
+
+    { @exclude
+      Assign properties from another TX3DRootNode instance.
+      This touches a few TX3DRootNode-specific properties, like
+      HasForceVersion, ForceVersion, Profile, Components, Meta, Scale. }
+    procedure InternalAssignRootNodeProps(const Source: TX3DRootNode);
   end;
 
   { Children nodes which cannot be modified.
@@ -1003,6 +1009,16 @@ begin
     inherited;
 end;
 
+procedure TX3DRootNode.InternalAssignRootNodeProps(const Source: TX3DRootNode);
+begin
+  HasForceVersion := Source.HasForceVersion;
+  ForceVersion := Source.ForceVersion;
+  Scale := Source.Scale;
+  Profile := Source.Profile;
+  Components.Assign(Source.Components);
+  Meta.Assign(Source.Meta);
+end;
+
 function TX3DRootNode.DeepCopyCore(CopyState: TX3DNodeDeepCopyState): TX3DNode;
 var
   Res: TX3DRootNode;
@@ -1011,12 +1027,8 @@ begin
 
   Res := Result as TX3DRootNode;
 
-  Res.HasForceVersion := HasForceVersion;
-  Res.ForceVersion := ForceVersion;
-  Res.Scale := Scale;
-  Res.Profile := Profile;
-  Res.Components.Assign(Components);
-  Res.Meta.Assign(Meta);
+  Res.InternalAssignRootNodeProps(Self);
+
   if ExportedNames <> nil then
   begin
     FreeAndNil(Res.FExportedNames);

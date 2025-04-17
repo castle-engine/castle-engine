@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.10" tiledversion="1.10.2" orientation="orthogonal" renderorder="right-down" width="2" height="2" tilewidth="32" tileheight="32" infinite="0" nextlayerid="11" nextobjectid="1">
+ <tileset firstgid="1" name="Objects" tilewidth="128" tileheight="74" tilecount="28" columns="0">
+  <grid orientation="orthogonal" width="1" height="1"/>
+  <tile id="0">
+   <image width="19" height="31" source="assets/1.png"/>
+  </tile>
+  <tile id="1">
+   <image width="19" height="31" source="assets/2.png"/>
+  </tile>
+ </tileset>
+ <layer id="4" name="TestLayer" width="2" height="2">
+  <data encoding="csv">0,1,2,0</data>
+ </layer>
+</map>

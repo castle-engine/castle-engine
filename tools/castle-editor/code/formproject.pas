@@ -43,6 +43,13 @@ const
 type
   { Main project management. }
   TProjectForm = class(TForm)
+    ActionComponentDuplicateLinked: TAction;
+    ActionUnInstall: TAction;
+    ActionDevices: TAction;
+    ActionSavePlatformAsDefault: TAction;
+    ActionExportToModel: TAction;
+    ActionCopyUrl: TAction;
+    ActionRunParameterPretendTouchDevice: TAction;
     ActionFindNext: TAction;
     ActionFindToggle: TAction;
     ActionImportSketchfab: TAction;
@@ -107,24 +114,35 @@ type
     BitBtnNewView: TBitBtn;
     LabelOpenExistingView: TLabel;
     ListOpenExistingView: TListView;
+    MenuItemDuplicateLinkedComponent: TMenuItem;
     MenuItem10: TMenuItem;
     MenuItem11: TMenuItem;
-    MenuItem12: TMenuItem;
+    MenuItemNavigationFly: TMenuItem;
     MenuItem15: TMenuItem;
     MenuItem19: TMenuItem;
     MenuItem43: TMenuItem;
+    MenuItemCopyUrl: TMenuItem;
+    MenuItemDevices: TMenuItem;
+    MenuItemUnInstall: TMenuItem;
+    MenuItemInstall: TMenuItem;
+    MenuItemAndroid: TMenuItem;
+    Separator16: TMenuItem;
+    MenuItem47: TMenuItem;
+    Separator15: TMenuItem;
+    MenuItemExportToModel: TMenuItem;
+    MenuItemRunParameterPretendTouchDevice: TMenuItem;
     Separator14: TMenuItem;
     MenuItem21: TMenuItem;
     MenuItem22: TMenuItem;
     MenuItem24: TMenuItem;
     MenuItem27: TMenuItem;
-    MenuItem2888888: TMenuItem;
+    MenuItemPhysicsHideAllJointsTools: TMenuItem;
     MenuItem28: TMenuItem;
-    MenuItem33: TMenuItem;
-    MenuItem39: TMenuItem;
-    MenuItem40: TMenuItem;
+    MenuItemRunParameterCapabilitiesDefault: TMenuItem;
+    MenuItemRunParameterCapabilitiesForceModern: TMenuItem;
+    MenuItemRunParameterCapabilitiesForceFixedFunction: TMenuItem;
     MenuItem41: TMenuItem;
-    MenuItem42: TMenuItem;
+    MenuItemImportSketchfab: TMenuItem;
     Separator13: TMenuItem;
     Separator12: TMenuItem;
     MenuItemRunParameterDefaultWindowOrFullscreen: TMenuItem;
@@ -148,12 +166,12 @@ type
     MenuItemCache: TMenuItem;
     SeparatorBeforeCache: TMenuItem;
     MenuItemWireframe: TMenuItem;
-    MenuItem34: TMenuItem;
-    MenuItem35: TMenuItem;
-    MenuItem36: TMenuItem;
-    MenuItem37: TMenuItem;
+    MenuItemViewportRenderNormal: TMenuItem;
+    MenuItemViewportRenderWireframeOnly: TMenuItem;
+    MenuItemViewportRenderSolidWireframe: TMenuItem;
+    MenuItemViewportRenderNext: TMenuItem;
     Separator10: TMenuItem;
-    MenuShowJointTools28: TMenuItem;
+    MenuItemPhysicsShowAllJointsTools: TMenuItem;
     MenuItem29: TMenuItem;
     MenuItem30: TMenuItem;
     MenuItem31: TMenuItem;
@@ -165,20 +183,20 @@ type
     Separator888888: TMenuItem;
     WarningsPopup: TPopupMenu;
     Separator6: TMenuItem;
-    MenuItem23: TMenuItem;
+    MenuItemViewportGridAxis: TMenuItem;
     MenuSeparator6123: TMenuItem;
     MenuSeparator6: TMenuItem;
     Separator5: TMenuItem;
-    MenuItem20: TMenuItem;
+    MenuItemViewportToggleProjection: TMenuItem;
     Separator4: TMenuItem;
-    MenuItem18: TMenuItem;
-    MenuItem2: TMenuItem;
+    MenuItemViewportSetup2D: TMenuItem;
+    MenuItemNavigationExamine: TMenuItem;
     Separator2: TMenuItem;
-    MenuItem13: TMenuItem;
-    MenuItem14: TMenuItem;
+    MenuItemViewportAlignViewToCamera: TMenuItem;
+    MenuItemViewportAlignCameraToView: TMenuItem;
     Separator3: TMenuItem;
-    MenuItem16: TMenuItem;
-    MenuItem17: TMenuItem;
+    MenuItemNavigation2D: TMenuItem;
+    MenuItemNavigationToggle2D: TMenuItem;
     Separator1: TMenuItem;
     MenuItem4: TMenuItem;
     MenuItem6: TMenuItem;
@@ -199,15 +217,14 @@ type
     MenuItemUIRestoreDefaultDockSettings: TMenuItem;
     MenuItemEnableDisableDocking: TMenuItem;
     MenuItemUIProperties: TMenuItem;
-    MenuItem5: TMenuItem;
+    Separator555: TMenuItem;
     MenuItemUIHierarchy: TMenuItem;
     MenuItemUIExplorer: TMenuItem;
     MenuItemUIDesign: TMenuItem;
-    MenuItem9: TMenuItem;
+    Separator999: TMenuItem;
     MenuItemWindow: TMenuItem;
     MenuItemPackageFormat: TMenuItem;
     MenuItemSeparator12312332424: TMenuItem;
-    MenuItemInstall: TMenuItem;
     MenuItemSeparator12312131: TMenuItem;
     MenuItemPlatform: TMenuItem;
     MenuItemDesignNewNonVisualCustomRoot: TMenuItem;
@@ -231,7 +248,7 @@ type
     ActionEditUnit: TAction;
     ActionOpenProjectCode: TAction;
     ApplicationProperties1: TApplicationProperties;
-    MenuItem1: TMenuItem;
+    MenuItemEditAssociatedUnit: TMenuItem;
     MenuItemRegenerateProject: TMenuItem;
     MenuItemSeparator123123345: TMenuItem;
     OpenPascalUnitDialog: TCastleOpenPascalUnitDialog;
@@ -240,13 +257,13 @@ type
     MenuItemPopupNewUnitView: TMenuItem;
     MenuItemPopupNewUnitBehavior: TMenuItem;
     MenuItemPopupNewUnit: TMenuItem;
-    N3: TMenuItem;
+    Separator333: TMenuItem;
     MenuItemNewUnitView: TMenuItem;
     MenuItemNewUnitClass: TMenuItem;
     MenuItemNewUnitEmpty: TMenuItem;
     MenuItemNewUnitBehavior: TMenuItem;
     MenuItemNewUnit: TMenuItem;
-    N2: TMenuItem;
+    Separator22: TMenuItem;
     MenuItemEditUnitCode: TMenuItem;
     MenuItemOpenProjectCode: TMenuItem;
     MenuItemCode: TMenuItem;
@@ -261,7 +278,6 @@ type
     MenuItemUndo: TMenuItem;
     MenuItemSeparator78: TMenuItem;
     MenuItemReferenceOfCurrent: TMenuItem;
-    MenuItemSeparator2303403o: TMenuItem;
     MenuItemRefreshDir: TMenuItem;
     MenuItemSeparator123123213: TMenuItem;
     MenuItemOpenDirFromFile: TMenuItem;
@@ -307,7 +323,7 @@ type
     MenuItemPackageSource: TMenuItem;
     MenuItemModeRelease: TMenuItem;
     MenuItemPackage: TMenuItem;
-    MenuItem3: TMenuItem;
+    Separator3333: TMenuItem;
     MenuItemModeDebug: TMenuItem;
     MenuItemSeparator3: TMenuItem;
     MenuItemSeparator2: TMenuItem;
@@ -333,6 +349,9 @@ type
     TabOutput: TTabSheet;
     ProcessUpdateTimer: TTimer;
     TabWarnings: TTabSheet;
+    procedure ActionComponentDuplicateLinkedExecute(Sender: TObject);
+    procedure ActionCopyUrlExecute(Sender: TObject);
+    procedure ActionExportToModelExecute(Sender: TObject);
     procedure ActionFindNextExecute(Sender: TObject);
     procedure ActionFindToggleExecute(Sender: TObject);
     procedure ActionImportSketchfabExecute(Sender: TObject);
@@ -346,6 +365,7 @@ type
     procedure ActionModeTranslateExecute(Sender: TObject);
     procedure ActionPlayStopExecute(Sender: TObject);
     procedure ActionPlayStopUpdate(Sender: TObject);
+    procedure ActionDevicesExecute(Sender: TObject);
     procedure ActionRunParameterCapabilitiesDefaultExecute(Sender: TObject);
     procedure ActionRunParameterCapabilitiesForceFixedFunctionExecute(
       Sender: TObject);
@@ -354,13 +374,17 @@ type
       );
     procedure ActionRunParameterDisableFpsLimitExecute(Sender: TObject);
     procedure ActionRunParameterDisableSoundExecute(Sender: TObject);
+    procedure ActionRunParameterPretendTouchDeviceExecute(Sender: TObject);
     procedure ActionRunParameterRequestFullScreenExecute(Sender: TObject);
     procedure ActionRunParameterRequestWindowExecute(Sender: TObject);
+    procedure ActionSavePlatformAsDefaultExecute(Sender: TObject);
+    procedure ActionSavePlatformAsDefaultUpdate(Sender: TObject);
     procedure ActionShowCollidersExecute(Sender: TObject);
     procedure ActionSimulationPauseUnpauseExecute(Sender: TObject);
     procedure ActionSimulationPauseUnpauseUpdate(Sender: TObject);
     procedure ActionSimulationPlayStopExecute(Sender: TObject);
     procedure ActionSimulationPlayStopUpdate(Sender: TObject);
+    procedure ActionUnInstallExecute(Sender: TObject);
     procedure ActionViewportGridAxisExecute(Sender: TObject);
     procedure ActionComponentCutExecute(Sender: TObject);
     procedure ActionComponentSaveSelectedExecute(Sender: TObject);
@@ -510,6 +534,11 @@ type
         preview window (ViewFileFrame). }
       ShellListViewUpdating: Cardinal;
       PlatformsInfo: TPlatformInfoList;
+      { TMenuItem that corresponds to TPlatformInfo
+        with TPlatformInfo.UseDefault. }
+      MenuItemDefaultPlatform: TMenuItem;
+      { TMenuItem that corresponds to "Same As Editor" platform }
+      MenuItemSameAsEditorPlatform: TMenuItem;
       CurrentPlatformInfo: Integer; //< Index to PlatformsInfo
       CurrentPackageFormat: TPackageFormat;
       ListOpenExistingViewStr: TStringList;
@@ -591,6 +620,8 @@ type
     function SaveDuringPhysicsSimulation: Boolean;
     function IsCreatingNewDesignAvailable: Boolean;
     procedure DesignObserverFreeNotification(const Sender: TFreeNotificationObserver);
+    { Based on project (in ProjectPath), update MenuItemDefaultPlatform.Caption. }
+    procedure UpdateMenuItemDefaultPlatform;
   public
     { Open a project, given an absolute path to CastleEngineManifest.xml }
     procedure OpenProject(const ManifestUrl: String);
@@ -619,10 +650,11 @@ uses TypInfo, LCLType, RegExpr, StrUtils, LCLVersion,
   CastleLog, CastleComponentSerialize, CastleSceneCore, CastleStringUtils,
   CastleFonts, X3DLoad, CastleFileFilters, CastleImages, CastleSoundEngine,
   CastleLclEditHack, CastleRenderOptions, CastleTimeUtils,
-  CastleInternalFileMonitor,
+  CastleInternalFileMonitor, CastleInternalProjectLocalSettings,
+  CastleInternalArchitectures,
   FormAbout, FormChooseProject, FormPreferences, FormSpriteSheetEditor,
   FormSystemInformation, FormRestartCustomEditor, FormImportSketchfab,
-  ToolCompilerInfo, ToolCommonUtils, ToolArchitectures, ToolProcess,
+  ToolCompilerInfo, ToolCommonUtils, ToolProcess,
   ToolFpcVersion;
 
 {$warnings on}
@@ -1001,6 +1033,31 @@ begin
   Design.FindNext;
 end;
 
+procedure TProjectForm.ActionCopyUrlExecute(Sender: TObject);
+var
+  SelectedFileName, Url: String;
+begin
+  if ShellListView1.Selected <> nil then
+  begin
+    SelectedFileName := ShellListView1.GetPathFromItem(ShellListView1.Selected);
+    Url := FilenameToUriSafe(SelectedFileName);
+    Url := MaybeUseDataProtocol(Url);
+    Clipboard.AsText := Url;
+  end;
+end;
+
+procedure TProjectForm.ActionComponentDuplicateLinkedExecute(Sender: TObject);
+begin
+  Assert(Design <> nil); // menu item is disabled otherwise
+  Design.DuplicateLinkedComponent;
+end;
+
+procedure TProjectForm.ActionExportToModelExecute(Sender: TObject);
+begin
+  Assert(Design <> nil); // menu item is disabled otherwise
+  Design.ExportToModel;
+end;
+
 procedure TProjectForm.ActionFindToggleExecute(Sender: TObject);
 begin
   Assert(Design <> nil); // menu item is disabled otherwise
@@ -1082,6 +1139,11 @@ begin
   //BitBtnPlayStop.Checked := NowIsRunning;
 end;
 
+procedure TProjectForm.ActionDevicesExecute(Sender: TObject);
+begin
+  BuildToolCall(['devices']);
+end;
+
 procedure TProjectForm.ActionRunParameterCapabilitiesDefaultExecute(
   Sender: TObject);
 begin
@@ -1106,13 +1168,18 @@ begin
   (Sender as TAction).Checked := true; // GroupIndex will make others unselected
 end;
 
-procedure TProjectForm.ActionRunParameterDisableFpsLimitExecute(Sender: TObject
-  );
+procedure TProjectForm.ActionRunParameterDisableFpsLimitExecute(Sender: TObject);
 begin
   (Sender as TAction).Checked := not (Sender as TAction).Checked;
 end;
 
 procedure TProjectForm.ActionRunParameterDisableSoundExecute(Sender: TObject);
+begin
+  (Sender as TAction).Checked := not (Sender as TAction).Checked;
+end;
+
+procedure TProjectForm.ActionRunParameterPretendTouchDeviceExecute(
+  Sender: TObject);
 begin
   (Sender as TAction).Checked := not (Sender as TAction).Checked;
 end;
@@ -1126,6 +1193,58 @@ end;
 procedure TProjectForm.ActionRunParameterRequestWindowExecute(Sender: TObject);
 begin
   (Sender as TAction).Checked := true; // GroupIndex will make others unselected
+end;
+
+procedure TProjectForm.ActionSavePlatformAsDefaultExecute(Sender: TObject);
+var
+  LocalProjectSettingsOwner: TComponent;
+  LocalProjectSettings: TCastleProjectLocalSettings;
+  P: TPlatformInfo;
+begin
+  P := PlatformsInfo[CurrentPlatformInfo];
+
+  if P.UseDefault then
+    raise EInternalError.Create('Cannot save "Default" as the new platform, it would make no sense (would be confusing if saving default changes what the default implies)');
+
+  LocalProjectSettingsOwner := TComponent.Create(nil);
+  try
+    LocalProjectSettings := ProjectGetLocalSettings(ProjectPath, true, LocalProjectSettingsOwner);
+
+    if MenuItemSameAsEditorPlatform.Checked then
+    begin
+      { "Same As Editor" platform.
+        Note that we detect this using MenuItemSameAsEditorPlatform,
+        not rule like
+
+          (P.Target = targetCustom) and
+          (P.OS = DefaultOS) and
+          (P.CPU = DefaultCPU)
+
+        because the rule above would prevent from setting current platform
+        explicitly (like "Linux / x86_64") as the default. }
+
+      LocalProjectSettings.UsePlatformDefaults := false;
+    end else
+    begin
+      { Other explicit platform }
+      LocalProjectSettings.UsePlatformDefaults := true;
+      LocalProjectSettings.DefaultTarget := P.Target;
+      LocalProjectSettings.DefaultOS := P.OS;
+      LocalProjectSettings.DefaultCPU := P.CPU;
+    end;
+
+    ProjectSetLocalSettings(ProjectPath, LocalProjectSettings);
+  finally FreeAndNil(LocalProjectSettingsOwner) end;
+
+  UpdateMenuItemDefaultPlatform;
+end;
+
+procedure TProjectForm.ActionSavePlatformAsDefaultUpdate(Sender: TObject);
+begin
+  ActionSavePlatformAsDefault.Enabled :=
+    (PlatformsInfo <> nil) and // this can be called before FormCreate
+    Between(CurrentPlatformInfo, 0, PlatformsInfo.Count - 1) and
+    (not PlatformsInfo[CurrentPlatformInfo].UseDefault);
 end;
 
 procedure TProjectForm.ActionShowCollidersExecute(Sender: TObject);
@@ -1162,6 +1281,11 @@ begin
     (CastleApplicationMode in [appSimulation, appSimulationPaused]);
 end;
 
+procedure TProjectForm.ActionUnInstallExecute(Sender: TObject);
+begin
+  BuildToolCall(['uninstall']);
+end;
+
 procedure TProjectForm.ActionComponentSaveSelectedExecute(Sender: TObject);
 begin
   Assert(Design <> nil); // menu item is disabled otherwise
@@ -1170,6 +1294,13 @@ end;
 
 procedure TProjectForm.ApplicationProperties1Activate(Sender: TObject);
 begin
+  { TODO: At least on Linux, GTK2 backend, this is *not* reliably
+    run always when we switch back to CGE editor with Alt+Tab.
+    This in turn means we don't always auto-reload scenes, images etc.
+    when their content changed.
+  WritelnLog('TProjectForm.ApplicationProperties1Activate ' + FormatDateTime('yyyy"-"mm"-"dd" "tt', Now));
+  }
+
   { Refresh contents of selected dir, and tree of subdirectories,
     in case user created some files/directories in other applications. }
   RefreshFiles(rfEverything);
@@ -1606,6 +1737,27 @@ begin
   end;
 end;
 
+procedure TProjectForm.UpdateMenuItemDefaultPlatform;
+var
+  Target: TTarget;
+  OS: TOS;
+  CPU: TCPU;
+  MiCaption: String;
+begin
+  { Determine the Target / OS / CPU just like the build tool }
+  Target := targetCustom;
+  OS := DefaultOS;
+  CPU := DefaultCPU;
+  ProjectOverridePlatform(ProjectPath, Target, OS, CPU);
+
+  MiCaption := 'Default';
+  if Target = targetCustom then
+    MiCaption += ' (' + OSToString(OS) + ' / ' + CPUToString(CPU) + ')'
+  else
+    MiCaption += ' (' + TargetToString(Target) + ')';
+  MenuItemDefaultPlatform.Caption := MiCaption;
+end;
+
 procedure TProjectForm.FormCreate(Sender: TObject);
 
   { We create some components by code, this way we don't have to put
@@ -1662,7 +1814,9 @@ procedure TProjectForm.FormCreate(Sender: TObject);
 
   procedure BuildPlatformsMenu;
 
-    procedure AddPlatform(const Name: String; const Target: TTarget; const OS: TOS; const CPU: TCPU);
+    function AddPlatform(const Name: String;
+      const UseDefault: Boolean;
+      const Target: TTarget; const OS: TOS; const CPU: TCPU): TMenuItem;
     var
       Mi: TMenuItem;
       MiCaption: String;
@@ -1670,7 +1824,7 @@ procedure TProjectForm.FormCreate(Sender: TObject);
     begin
       Mi := TMenuItem.Create(MenuItemPlatform);
       MiCaption := Name;
-      if Target = targetCustom then
+      if (not UseDefault) and (Target = targetCustom) then
         MiCaption += ' (' + OSToString(OS) + ' / ' + CPUToString(CPU) + ')';
       Mi.Caption := MiCaption;
       Mi.Tag := PlatformsInfo.Count;
@@ -1679,9 +1833,15 @@ procedure TProjectForm.FormCreate(Sender: TObject);
       Mi.RadioItem := true;
       Mi.ShowAlwaysCheckable := true;
       Mi.Checked := Mi.Tag = CurrentPlatformInfo;
-      MenuItemPlatform.Add(Mi);
+
+      // Insert new menu item before the "Save Chosen Platform..." item
+      MenuItemPlatform.Insert(MenuItemPlatform.Count - 2, Mi);
+      //MenuItemPlatform.Add(Mi);
+
+      Result := Mi;
 
       P := TPlatformInfo.Create;
+      P.UseDefault := UseDefault;
       P.Target := Target;
       P.OS := OS;
       P.CPU := CPU;
@@ -1694,30 +1854,43 @@ procedure TProjectForm.FormCreate(Sender: TObject);
     begin
       Mi := TMenuItem.Create(MenuItemPlatform);
       Mi.Caption := '-';
-      MenuItemPlatform.Add(Mi);
+
+      // Insert new menu item before the "Save Chosen Platform..." item
+      MenuItemPlatform.Insert(MenuItemPlatform.Count - 2, Mi);
+      //MenuItemPlatform.Add(Mi);
     end;
 
   begin
     PlatformsInfo := TPlatformInfoList.Create(true);
-    AddPlatform('Default', targetCustom, DefaultOS, DefaultCPU);
+    MenuItemDefaultPlatform :=
+      AddPlatform('Default', true, targetCustom, DefaultOS, DefaultCPU);
     AddPlatformSeparator;
-    AddPlatform('Android (Arm 32-bit and 64-bit)', targetAndroid, { OS and CPU ignored } DefaultOS, DefaultCPU);
+    MenuItemSameAsEditorPlatform :=
+      AddPlatform('Same As Editor', false, targetCustom, DefaultOS, DefaultCPU);
     AddPlatformSeparator;
-    AddPlatform('iOS (Arm 32-bit and 64-bit)', targetIOS, { OS and CPU ignored } DefaultOS, DefaultCPU);
+    AddPlatform('Web', false, targetWeb, { OS and CPU ignored } DefaultOS, DefaultCPU);
     AddPlatformSeparator;
-    AddPlatform('Linux 32-bit', targetCustom, Linux, i386);
-    AddPlatform('Linux 64-bit', targetCustom, Linux, x86_64);
-    AddPlatform('Linux Arm 32-bit', targetCustom, Linux, Arm);
-    AddPlatform('Linux Arm 64-bit', targetCustom, Linux, Aarch64);
+    AddPlatform('Android (Arm 32-bit and 64-bit)', false, targetAndroid, { OS and CPU ignored } DefaultOS, DefaultCPU);
+    AddPlatform('Android (emulator 32-bit)', false, targetCustom, Android, i386);
+    AddPlatform('Android (emulator 64-bit)', false, targetCustom, Android, x86_64);
     AddPlatformSeparator;
-    AddPlatform('Windows 32-bit', targetCustom, Win32, i386);
-    AddPlatform('Windows 64-bit', targetCustom, Win64, x86_64);
+    AddPlatform('iOS (Arm 32-bit and 64-bit)', false, targetIOS, { OS and CPU ignored } DefaultOS, DefaultCPU);
     AddPlatformSeparator;
-    AddPlatform('macOS 64-bit', targetCustom, Darwin, x86_64);
-    AddPlatform('macOS Arm 64-bit', targetCustom, Darwin, Aarch64);
+    AddPlatform('Linux 32-bit', false, targetCustom, Linux, i386);
+    AddPlatform('Linux 64-bit', false, targetCustom, Linux, x86_64);
+    AddPlatform('Linux Arm 32-bit', false, targetCustom, Linux, Arm);
+    AddPlatform('Linux Arm 64-bit', false, targetCustom, Linux, Aarch64);
     AddPlatformSeparator;
-    AddPlatform('FreeBSD 32-bit', targetCustom, FreeBSD, i386);
-    AddPlatform('FreeBSD 64-bit', targetCustom, FreeBSD, x86_64);
+    AddPlatform('Windows 32-bit', false, targetCustom, Win32, i386);
+    AddPlatform('Windows 64-bit', false, targetCustom, Win64, x86_64);
+    AddPlatformSeparator;
+    AddPlatform('macOS 64-bit', false, targetCustom, Darwin, x86_64);
+    AddPlatform('macOS Arm 64-bit', false, targetCustom, Darwin, Aarch64);
+    AddPlatformSeparator;
+    AddPlatform('FreeBSD 32-bit', false, targetCustom, FreeBSD, i386);
+    AddPlatform('FreeBSD 64-bit', false, targetCustom, FreeBSD, x86_64);
+    AddPlatformSeparator;
+    AddPlatform('Nintendo Switch', false, targetNintendoSwitch, { OS and CPU ignored } DefaultOS, DefaultCPU);
   end;
 
   procedure BuildPackageFormatsMenu;
@@ -1736,7 +1909,8 @@ procedure TProjectForm.FormCreate(Sender: TObject);
       'iOS Archive -> AppStore',
       'Nintendo Switch Project',
       'macOS App Bundle (APP)',
-      'macOS App Bundle (APP) zip'
+      'macOS App Bundle (APP) zip',
+      'Web build zipped'
     );
   var
     Mi: TMenuItem;
@@ -2409,6 +2583,7 @@ begin
   ActionComponentPaste.Enabled := Design <> nil;
   ActionComponentCut.Enabled := Design <> nil;
   ActionComponentDuplicate.Enabled := Design <> nil;
+  ActionComponentDuplicateLinked.Enabled := Design <> nil;
   ActionComponentSaveSelected.Enabled := Design <> nil;
   ActionEditAssociatedUnit.Enabled := Design <> nil;
   ActionFocusDesign.Enabled := Design <> nil;
@@ -2420,6 +2595,7 @@ begin
   ActionShowStatistics.Enabled := Design <> nil;
   ActionFindToggle.Enabled := Design <> nil;
   ActionFindNext.Enabled := Design <> nil;
+  ActionExportToModel.Enabled := Design <> nil;
 
   { Options that toggle InternalForceWireframe could actually work with Design=nil,
     with current implementation.
@@ -2733,6 +2909,7 @@ procedure TProjectForm.ShellListPopupMenuPopup(Sender: TObject);
 begin
   MenuItemOpenDefault.Enabled := ShellListView1.Selected <> nil;
   MenuItemDeleteFile.Enabled := ShellListView1.Selected <> nil;
+  ActionCopyUrl.Enabled := ShellListView1.Selected <> nil;
 end;
 
 procedure TProjectForm.FreeProcess;
@@ -3206,10 +3383,8 @@ procedure TProjectForm.BuildToolCall(const Commands: array of String;
 
   procedure AddPlatformParameters(const Params: TStrings; const PlatformInfo: TPlatformInfo);
   begin
-    if (PlatformInfo.Target = targetCustom) and
-       (PlatformInfo.OS = DefaultOS) and
-       (PlatformInfo.CPU = DefaultCPU) then
-      // keep command-line simple, to be simpler for user; no point is adding extra parameters
+    if PlatformInfo.UseDefault then
+      // do not add extra parameters
       Exit;
 
     if PlatformInfo.Target <> targetCustom then
@@ -3258,6 +3433,8 @@ procedure TProjectForm.BuildToolCall(const Commands: array of String;
       Params.Add('--no-sound');
     if ActionRunParameterDisableFpsLimit.Checked then
       Params.Add('--no-limit-fps');
+    if ActionRunParameterPretendTouchDevice.Checked then
+      Params.Add('--pretend-touch-device');
     if ActionRunParameterRequestFullScreen.Checked then
       Params.Add('--fullscreen');
     if ActionRunParameterRequestWindow.Checked then
@@ -3297,6 +3474,7 @@ begin
     QueueItem.Parameters.Add(Command);
     // add --mode=xxx parameter
     if not (
+        // we list the few commands that ignore --mode below
         (Command = 'package-source') or
         (Command = 'clean') or
         (Command = 'auto-generate-textures') or
@@ -3305,7 +3483,8 @@ begin
         (Command = 'editor') or
         (Command = 'editor-rebuild-if-needed') or
         (Command = 'editor-run') or
-        (Command = 'cache')
+        (Command = 'cache') or
+        (Command = 'devices')
       ) then
       AddModeParameters(QueueItem.Parameters);
     // add --compiler parameter
@@ -3317,6 +3496,7 @@ begin
        (Command = 'run') or
        (Command = 'package') or
        (Command = 'install') or
+       (Command = 'uninstall') or
        (Command = 'cache') then
       AddPlatformParameters(QueueItem.Parameters, PlatformsInfo[CurrentPlatformInfo]);
     // add --package-format
@@ -3420,6 +3600,8 @@ begin
   MenuItemCache.Enabled := EnableRun;
   MenuItemCacheClean.Enabled := EnableRun;
   ActionRegenerateProject.Enabled := EnableRun;
+  ActionDevices.Enabled := EnableRun;
+  ActionUnInstall.Enabled := EnableRun;
 
   MenuItemStopProcess.Enabled := not EnableRun;
 
@@ -3519,6 +3701,7 @@ begin
 
   DesignExistenceChanged;
   UpdateFormCaption(nil); // make form Caption reflect project name (although this is now done also by DesignExistenceChanged)
+  UpdateMenuItemDefaultPlatform;
 
   if (Manifest.EditorUnits <> '') and
      (ProjectName <> InternalCustomComponentsForProject) then

@@ -1,5 +1,6 @@
 ﻿{
   Copyright 2021-2024 Andrzej Kilijański, Michalis Kamburelis.
+  Copyright 2021-2024 Andrzej Kilijański, Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -102,6 +103,14 @@ type
     { List of moving platforms behaviors }
     MovingPlatforms: TMovingPlatformList;
 
+    { Did we show ViewControlsHelp }
+    ControlsHelpShown: Boolean;
+
+    { ResumeGame from nearest Resume call.
+      Set this to @true when doing PauseGame + Container.PushView
+      to show something that pauses the game. }
+    ResumeGameScheduled: Boolean;
+
     procedure ConfigurePlayerPhysics(const Player:TCastleScene);
     procedure ConfigurePlayerAbilities(const Player:TCastleScene);
     procedure PlayerCollisionEnter(const CollisionDetails: TPhysicsCollisionDetails);
@@ -137,6 +146,7 @@ type
     procedure TouchScreenMove(const Sender: TCastleInputAxis; var Value: Single);
     { Callback for TInputShortcut for player jumping on touch screen. }
     procedure TouchScreenJump(const Sender: TInputShortcut; var IsPressed: Boolean);
+    procedure ClickPause(Sender: TObject);
   public
     constructor Create(AOwner: TComponent); override;
     { Procedure called after level is loaded }
@@ -164,8 +174,9 @@ implementation
 
 uses
   SysUtils, Math,
-  CastleLog,
-  GameSound, GameViewMenu, GameViewGameOver, GameViewLevelComplete, GameViewPause;
+  CastleLog, CastleApplicationProperties,
+  GameSound, GameViewMenu, GameViewGameOver, GameViewLevelComplete, GameViewPause,
+  GameViewControlsHelp;
 
 { TBullet -------------------------------------------------------------------- }
 
@@ -663,6 +674,11 @@ begin
   { Play game music }
   SoundEngine.LoopingChannel[0].Sound := NamedSound('GameMusic');
 
+  { ButtonPause is necessary to be able to enter pause on mobile,
+    where Escape key is not available. }
+  ButtonPause.Exists := ApplicationProperties.TouchDevice;
+  ButtonPause.OnClick := {$ifdef FPC}@{$endif} ClickPause;
+
   WritelnLog('Configuration done');
 end;
 
@@ -681,6 +697,12 @@ begin
 
   { Play game music }
   SoundEngine.LoopingChannel[0].Sound := NamedSound('GameMusic');
+
+  if ResumeGameScheduled then
+  begin
+    ResumeGame;
+    ResumeGameScheduled := false;
+  end;
 end;
 
 procedure TViewPlay.Update(const SecondsPassed: Single; var HandleInput: Boolean);
@@ -692,11 +714,21 @@ begin
   inherited;
   { This virtual method is executed every frame (many times per second). }
 
+  { Show controls help once, when game starts }
+  if (not ControlsHelpShown) and
+     (Container.FrontView = Self) then
+  begin
+    ControlsHelpShown := true;
+    PauseGame;
+    ResumeGameScheduled := true;
+    Container.PushView(ViewControlsHelp);
+    Exit;
+  end;
+
   { If player is dead and we did not show game over view we do that }
   if IsPlayerDead and (Container.FrontView <> ViewGameOver) then
   begin
     ScenePlayer.Exists := false;
-
     Container.PushView(ViewGameOver);
     Exit;
   end;
@@ -779,10 +811,16 @@ begin
 
   if Event.IsKey(keyEscape) and (Container.FrontView = ViewPlay) then
   begin
-    PauseGame;
-    Container.PushView(ViewPause);
+    ClickPause(nil);
     Exit(true);
   end;
+end;
+
+procedure TViewPlay.ClickPause(Sender: TObject);
+begin
+  PauseGame;
+  ResumeGameScheduled := true;
+  Container.PushView(ViewPause);
 end;
 
 end.

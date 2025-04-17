@@ -99,6 +99,19 @@ type
     function Equals(SecondValue: TObject): boolean; override;
   end;
 
+  { List of @link(TVector3Integer).
+    Note that the notification mechanism (OnNotify) is broken here by routines like AddRange
+    and AddSubRange (for maximum speed). }
+  TVector3IntegerList = class({$ifdef FPC}specialize{$endif} TStructList<TVector3Integer>)
+  public
+    procedure AddRange(const Source: TVector3IntegerList);
+    procedure AddSubRange(const Source: TVector3IntegerList; const Index, AddCount: Integer);
+    procedure AddListRange(const Source: TVector3IntegerList; const Index, AddCount: Integer); deprecated 'use AddSubRange';
+
+    { Does the SecondValue have equal length and content. }
+    function Equals(SecondValue: TObject): boolean; override;
+  end;
+
   { List of @link(TVector4).
     Note that the notification mechanism (OnNotify) is broken here by routines like AddRange
     and AddSubRange (for maximum speed). }
@@ -425,6 +438,46 @@ begin
   Count := Count + Source.Count;
   for I := 0 to Source.Count - 1 do
     L[OldCount + I] := Transform.MultPoint(Source.L[I]);
+end;
+
+{ TVector3IntegerList ----------------------------------------------------- }
+
+procedure TVector3IntegerList.AddRange(const Source: TVector3IntegerList);
+begin
+  AddSubRange(Source, 0, Source.Count);
+end;
+
+procedure TVector3IntegerList.AddSubRange(const Source: TVector3IntegerList; const Index, AddCount: Integer);
+var
+  OldCount: Integer;
+begin
+  OldCount := Count;
+  Count := Count + AddCount;
+  if AddCount <> 0 then
+    System.Move(Source.L[Index], L[OldCount], SizeOf(TVector3Integer) * AddCount);
+end;
+
+procedure TVector3IntegerList.AddListRange(const Source: TVector3IntegerList; const Index, AddCount: Integer);
+begin
+  AddSubRange(Source, Index, AddCount);
+end;
+
+function TVector3IntegerList.Equals(SecondValue: TObject): boolean;
+var
+  I: Integer;
+begin
+  Result := SecondValue is TVector3IntegerList;
+  if Result then
+  begin
+    Result := Count = TVector3IntegerList(SecondValue).Count;
+    if Result then
+      for I := 0 to Count - 1 do
+        if not TVector3Integer.Equals(TVector3IntegerList(SecondValue).L[I], L[I]) then
+        begin
+          Result := false;
+          Exit;
+        end;
+  end;
 end;
 
 { TVector4List ----------------------------------------------------- }

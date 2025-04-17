@@ -41,7 +41,7 @@
 
     @orderedList(
       @item(It is simplest to set @link(DesignUrl)
-        to the design file you created using @url(https://castle-engine.io/manual_editor.php CGE editor).
+        to the design file you created using @url(https://castle-engine.io/editor CGE editor).
         Such user interface controls will be created right before @link(Start)
         and destroyed right after @link(Stop) (so the view UI always "resets"
         when view starts).)
@@ -310,12 +310,9 @@
       More precisely, when this property is @true, then the
       @link(Press), @link(Release) and @link(Motion) events are marked as
       "handled" in this UI view. This means that they will not be processed
-      further, by UI controls under this view, in particular by UI views
-      that are underneath this view in @italic(view stack) (created
-      by @link(Push) method). They will also not be passed to final container
-      (TCastleWindow, TCastleControl) callbacks like
-      TCastleWindow.OnPress (as these callbacks are always used at the end,
-      when nothing else handled the event).
+      further, by UI controls behind this view, in particular by UI views
+      that are behind this view in @italic(view stack) (created
+      by @link(Push) method).
 
       Note that setting this to @true means that calling @code(inherited)
       from your @link(Press) overridden implementation will always return @true,
@@ -547,7 +544,8 @@ begin
   case Operation of
     opInsert: ParentView.SetNameReference(AComponent, AComponent.Name, true);
     opRemove: ParentView.SetNameReference(AComponent, AComponent.Name, false);
-    else ;
+    // To write else or not? See https://castle-engine.io/coding_conventions#_if_you_dont_care_whether_you_exhaust_all_options_or_not_you_want_to_be_prepared_for_future_extensions_of_enum_type_but_you_dont_want_any_warnings
+    // else ;
   end;
   inherited;
 end;
@@ -842,7 +840,7 @@ begin
   begin
     // load FDesignPreloadedSerialized to be able to faster load design, without parsing JSON
     FDesignPreloadedSerialized := TCastleComponentFactory.Create(nil);
-    FDesignPreloadedSerialized.Url :=DesignUrl;
+    FDesignPreloadedSerialized.Url := DesignUrl;
     // load FDesignPreloaded to cache all that's possible,
     // like images used inside TCastleImageControl or TCastleScene.
     FDesignPreloadedOwner := TComponent.Create(nil);

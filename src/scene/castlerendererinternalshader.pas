@@ -26,19 +26,14 @@ uses Generics.Collections,
   CastleRendererInternalTextureEnv, CastleStringUtils, CastleRenderOptions,
   CastleShapes, CastleRectangles, CastleTransform, CastleInternalGeometryArrays;
 
+{$define read_interface}
+
 type
-  TLightingModel = (lmPhong, lmPhysical, lmUnlit);
+  TShader = class;
+  TShaderSource = class;
+  TX3DShaderProgram = class;
 
-  TSurfaceTexture = (
-    stEmissive,
-    stAmbient,
-    stSpecular,
-    stShininess,
-    stMetallicRoughness,
-    stOcclusion
-  );
-
-  TTextureType = (tt2D, tt2DShadow, ttCubeMap, tt3D, ttShader);
+  TTextureType = (tt2D, ttCubeMap, tt3D, ttShader);
 
   TTexGenerationComponent = (tgEye, tgObject);
   TTexGenerationComplete = (tgSphere, tgNormal, tgReflection, tgcMirrorPlane);
@@ -51,23 +46,6 @@ type
     fcPassedCoordinate);
 
   TBoundingBoxEvent = function: TBox3D of object;
-
-  TShaderCodeHash = record
-  strict private
-    Sum, XorValue: UInt32;
-  public
-    procedure AddString(const S: AnsiString; const Multiplier: UInt32);
-    procedure AddInteger(const I: Integer);
-    procedure AddFloat(const F: Single; const UniquePrimeNumber: Cardinal);
-    procedure AddPointer(Ptr: Pointer);
-    procedure AddEffects(Nodes: TX3DNodeList); overload;
-    procedure AddEffects(Nodes: TMFNode); overload;
-
-    function ToString: String;
-    procedure Clear;
-
-    class operator {$ifdef FPC}={$else}Equal{$endif} (const A, B: TShaderCodeHash): boolean;
-  end;
 
   { GLSL program that may be used by the X3D renderer.
     Provides some extra features, above the standard TGLSLProgram,
@@ -102,42 +80,13 @@ type
     procedure Link; override;
   end;
 
-  TLightUniforms = class
-    Number: Cardinal;
-    ShaderProgram: TGLSLProgram;
-
-    { Current values provided to OpenGL(ES) for these uniforms.
-
-      Note that they are initially filled with zero.
-
-      This is correct, as OpenGL and OpenGLES docs say:
-      """
-      All active uniform variables defined in a program object
-      are initialized to 0 when the program object is linked successfully.
-      """
-
-      https://www.khronos.org/registry/OpenGL-Refpages/gl4/html/glUniform.xhtml
-      https://www.khronos.org/registry/OpenGL-Refpages/es3.0/html/glUniform.xhtml
-    }
-    Position: TVector3;
-    Radius: Single;
-    SpotCosCutoff: Single;
-    SpotBeamWidth: Single;
-    SpotDirection: TVector3;
-    SpotExponent: Single;
-    SpotCutoff: Single;
-    Attenuation: TVector3;
-    AmbientColor, Color: TVector3;
-
-    procedure SetUniform(const NamePattern: String;
-      var CurrentValue: Single; const NewValue: Single); overload;
-    procedure SetUniform(const NamePattern: String;
-      var CurrentValue: TVector3; const NewValue: TVector3); overload;
-    procedure SetUniform(const NamePattern: String;
-      var CurrentValue: TVector4; const NewValue: TVector4); overload;
-  end;
-
-  TLightUniformsList = {$ifdef FPC}specialize{$endif} TObjectList<TLightUniforms>;
+  {$I castlerendererinternalshader_hash.inc}
+  {$I castlerendererinternalshader_light.inc}
+  {$I castlerendererinternalshader_texture.inc}
+  {$I castlerendererinternalshader_shadowmap.inc}
+  {$I castlerendererinternalshader_mirrorplane.inc}
+  {$I castlerendererinternalshader_surfacetexture.inc}
+  {$I castlerendererinternalshader_bumpmapping.inc}
 
   { GLSL program integrated with VRML/X3D and TShader.
     Allows to bind uniform values from VRML/X3D fields,
@@ -208,8 +157,6 @@ type
     { @groupEnd }
   end;
 
-  TShader = class;
-
   TShaderSource = class
   private
     FSource: array [TShaderType] of TCastleStringList;
@@ -232,106 +179,6 @@ type
         but depends on fixed-function pipeline to do part of the job. }
     procedure Append(AppendCode: TShaderSource; const DontAppendFirstPart: TShaderType);
   end;
-
-  { Internal for TLightShader. @exclude }
-  TLightDefine = (
-    ldTypePositional,
-    ldTypeSpot,
-    ldTypeEnvironment,
-    ldTypePunctual,
-    ldHasAttenuation,
-    ldHasRadius,
-    ldHasAmbient,
-    ldHasSpecular,
-    ldHasBeamWidth,
-    ldHasSpotExponent);
-
-  TLightShader = class
-  private
-    Number: Cardinal;
-    Node: TAbstractLightNode;
-    Light: PLightInstance;
-    Shader: TShader;
-    { Code calculated (on demand, when method called) using above vars. }
-    FCode: TShaderSource;
-    LightUniformName1: String;
-    LightUniformValue1: Single;
-    LightUniformName2: String;
-    LightUniformValue2: Single;
-    { Calculated by Prepare. Stored as TLightDefine array,
-      since TLightShader.Prepare is executed very often and must be fast.
-      Only TLightShader.Code actually changes it to a string. }
-    Defines: array [0..9] of TLightDefine;
-    DefinesCount: Cardinal;
-  public
-    RenderingCamera: TRenderingCamera; //< Set this after construction.
-    LightingModel: TLightingModel;
-    destructor Destroy; override;
-    { Prepare some stuff for Code generation, update Hash for this light shader. }
-    procedure Prepare(var Hash: TShaderCodeHash; const LightNumber: Cardinal);
-    function Code: TShaderSource;
-    procedure SetUniforms(AProgram: TX3DShaderProgram);
-    procedure SetDynamicUniforms(AProgram: TX3DShaderProgram);
-  end;
-
-  TLightShaders = class({$ifdef FPC}specialize{$endif} TObjectList<TLightShader>)
-  private
-    function Find(const Node: TAbstractLightNode; out Shader: TLightShader): boolean;
-  end;
-
-  { Setup the necessary shader things to pass texture coordinates. }
-  TTextureCoordinateShader = class
-  private
-    TextureUnit: Cardinal;
-    HasMatrixTransform: boolean;
-
-    { Name of texture coordinate varying vec4 vector. }
-    class function CoordName(const TexUnit: Cardinal): String;
-    { Name of texture matrix mat4 uniform. }
-    class function MatrixName(const TexUnit: Cardinal): String;
-  public
-    { Update Hash for this texture shader. }
-    procedure Prepare(var Hash: TShaderCodeHash); virtual;
-    procedure Enable(const MainTextureMapping: Integer; const MultiTextureColor: TCastleColor;
-      var TextureApply, TextureColorDeclare,
-        TextureCoordInitialize, TextureCoordMatrix,
-        TextureAttributeDeclare, TextureVaryingDeclareVertex, TextureVaryingDeclareFragment, TextureUniformsDeclare,
-        GeometryVertexDeclare, GeometryVertexSet, GeometryVertexZero, GeometryVertexAdd: String;
-      var UsesShadowMaps: Boolean); virtual;
-  end;
-
-  { Setup the necessary shader things to query a texture using texture coordinates. }
-  TTextureShader = class(TTextureCoordinateShader)
-  private
-    TextureType: TTextureType;
-    Node: TAbstractSingleTextureNode;
-    Env: TTextureEnv;
-    ShadowMapSize: Cardinal;
-    ShadowLight: TAbstractLightNode;
-    Shader: TShader;
-
-    { Uniform to set for this texture. May be empty. }
-    UniformName: String;
-    UniformValue: Integer;
-
-    class var TextureEnvWarningDone: Boolean;
-
-    { Mix texture colors into fragment color, based on TTextureEnv specification. }
-    class function TextureEnvMix(const AEnv: TTextureEnv; const MultiTextureColor: TCastleColor;
-      const FragmentColor, CurrentTexture: String;
-      const ATextureUnit: Cardinal): String;
-  public
-    { Update Hash for this texture shader. }
-    procedure Prepare(var Hash: TShaderCodeHash); override;
-    procedure Enable(const MainTextureMapping: Integer; const MultiTextureColor: TCastleColor;
-      var TextureApply, TextureColorDeclare,
-        TextureCoordInitialize, TextureCoordMatrix,
-        TextureAttributeDeclare, TextureVaryingDeclareVertex, TextureVaryingDeclareFragment, TextureUniformsDeclare,
-        GeometryVertexDeclare, GeometryVertexSet, GeometryVertexZero, GeometryVertexAdd: String;
-      var UsesShadowMaps: Boolean); override;
-  end;
-
-  TTextureCoordinateShaderList = {$ifdef FPC}specialize{$endif} TObjectList<TTextureCoordinateShader>;
 
   TDynamicUniform = class abstract
   public
@@ -366,23 +213,13 @@ type
     procedure SetUniform(AProgram: TX3DShaderProgram); override;
   end;
 
+  TDynamicUniformInteger = class(TDynamicUniform)
+  public
+    Value: Integer;
+    procedure SetUniform(AProgram: TX3DShaderProgram); override;
+  end;
+
   TDynamicUniformList = {$ifdef FPC}specialize{$endif} TObjectList<TDynamicUniform>;
-
-  TSurfaceTextureShader = record
-    Enable: boolean;
-    TextureUnit, TextureCoordinatesId: Cardinal;
-    UniformTextureName: String;
-    PlugCode: String;
-  end;
-
-  { Shader uniforms calculated by rendering using ViewpointMirror,
-    used by GLSL code calculating texture coordinates in case of
-    TextureCoordinateGenerator.mode = "MIRROR-PLANE". }
-  TMirrorPlaneUniforms = class
-    NormalizedPlane: TVector4;
-    CameraPositionOnPlane, CameraSide, CameraUp: TVector3;
-    FrustumDimensions: TFloatRectangle;
-  end;
 
   { Possible ways to implement clip planes. }
   TClipPlaneAlgorithm = (
@@ -447,18 +284,14 @@ type
     PlugIdentifiers: Cardinal;
     LightShaders: TLightShaders;
     TextureShaders: TTextureCoordinateShaderList;
+    ShadowMapShaders: TShadowMapShaderList;
     FCodeHash: TShaderCodeHash;
     CodeHashFinalized: boolean;
     SelectedNode: TComposedShaderNode;
     WarnMissingPlugs: boolean;
     FShapeRequiresShaders: boolean;
-    FBumpMapping: TBumpMapping;
-    FNormalMapTextureCoordinatesId: Cardinal;
-    FNormalMapTextureUnit: Cardinal;
-    FNormalMapScale: Single;
-    FHeightMapInAlpha: boolean;
-    FHeightMapScale: Single;
-    FSurfaceTextureShaders: array [TSurfaceTexture] of TSurfaceTextureShader;
+    FBumpMappingShader: TBumpMappingShader;
+    FSurfaceTextureShaders: TSurfaceTextureShaderList;
     FFogEnabled: boolean;
     FFogType: TFogType;
     FFogColor: TVector3;
@@ -472,6 +305,7 @@ type
     FPhongShading: boolean;
     FLightingModel: TLightingModel;
     FAlphaTest: Boolean;
+    UsesShadowMaps: Boolean;
 
     { We have to optimize the most often case of TShader usage,
       when the shader is not needed or is already prepared.
@@ -537,7 +371,8 @@ type
       in many cases, we will not need to call it (so we don't need to recalculate
       TShape.LocalBoundingBox every frame for a changing shape).
 
-      Should return bbox in scene coordinate system (not in world coordinate system).
+      Should return bbox in scene coordinate system (not in world coordinate
+      system, we will convert it if necessary to world using SceneTransform).
 
       Use ShapeBoundingBoxInWorld to get the box easily. }
     ShapeBoundingBoxInSceneEvent: TBoundingBoxEvent;
@@ -552,8 +387,14 @@ type
       so it's different than SceneModelView. }
     SceneModelView: TMatrix4;
 
-    { Scene transformation (without the shape transformation). }
+    { Scene transformation, to change things in scene coordinates
+      into world coordinates
+      (so, this is without any shape transformation, only TCastleTransform
+      transformations accumulated). }
     SceneTransform: TMatrix4;
+
+    { See @link(TCollectedShape.SceneTransformDynamic). }
+    SceneTransformDynamic: Boolean;
 
     { Assign this if you used EnableTexGen with tgMirrorPlane
       to setup correct uniforms. }
@@ -630,9 +471,7 @@ type
 
     procedure EnableTexture(const TextureUnit: Cardinal;
       const TextureType: TTextureType; const Node: TAbstractSingleTextureNode;
-      const Env: TTextureEnv;
-      const ShadowMapSize: Cardinal = 0;
-      const ShadowLight: TAbstractLightNode = nil);
+      const Env: TTextureEnv);
     procedure EnableTexGen(const TextureUnit: Cardinal;
       const Generation: TTexGenerationComponent; const Component: TTexComponent;
       const Plane: TVector4); overload;
@@ -663,6 +502,13 @@ type
       const NormalMapTextureUnit, NormalMapTextureCoordinatesId: Cardinal;
       const NormalMapScale: Single;
       const HeightMapInAlpha: boolean; const HeightMapScale: Single);
+    { Enable surface texture.
+      "Surface texture" is a term for a texture that
+      doesn't contribute main color (so it is not Material.diffuseTexture,
+      PhysicalMaterial.baseTexture, UnlitMaterial.emissiveTexture),
+      and is specified in a special material slot (in CommonSurfaceShader
+      or in new Material / PhysicalMaterial / UnlitMaterial xxxTexture fields
+      in X3D 4.0). }
     procedure EnableSurfaceTexture(const SurfaceTexture: TSurfaceTexture;
       const TextureUnit, TextureCoordinatesId: Cardinal;
       const UniformTextureName, PlugCode: String);
@@ -683,6 +529,8 @@ type
     procedure EnableGroupEffects(Effects: TX3DNodeList);
     procedure EnableLighting;
     procedure EnableColorPerVertex(const AMode: TColorMode; const AColorType: TColorPerVertexType);
+    procedure EnableShadowMap(const TextureUnit: Cardinal;
+      const ShadowMap: TGeneratedShadowMapNode);
 
     property ShadowSampling: TShadowSampling
       read FShadowSampling write FShadowSampling;
@@ -716,6 +564,16 @@ type
     { Current shape bbox, in world coordinates. }
     function ShapeBoundingBoxInWorld: TBox3D;
 
+    { Is ShapeBoundingBoxInWorld value for this TShape likely to change often.
+      One reason for this is that SceneTransform changes often,
+      and so this is right now just alias to SceneTransformDynamic.
+      This may guide shader generation, to avoid recreating shader when merely
+      the SceneTransform changes.
+
+      @seealso TCollectedShape.SceneTransformDynamic }
+    property ShapeBoundingBoxInWorldDynamic: Boolean read
+      SceneTransformDynamic;
+
     { Is alpha testing enabled by EnableAlphaTest. }
     property AlphaTest: Boolean read FAlphaTest;
   end;
@@ -732,12 +590,23 @@ function UniformMissingFromNode(const Node: TX3DNode): TUniformMissing;
 function FindPlugName(const PlugValue: String;
   out DeclaredParameters: String): String;
 
+{$undef read_interface}
+
 implementation
 
 uses SysUtils, StrUtils,
   {$ifdef OpenGLES} CastleGLES, {$else} CastleGL, {$endif}
   CastleGLUtils, CastleLog, CastleGLVersion, CastleInternalScreenEffects,
   CastleScreenEffects, CastleInternalX3DLexer, CastleInternalGLUtils;
+
+{$define read_implementation}
+{$I castlerendererinternalshader_hash.inc}
+{$I castlerendererinternalshader_light.inc}
+{$I castlerendererinternalshader_texture.inc}
+{$I castlerendererinternalshader_shadowmap.inc}
+{$I castlerendererinternalshader_mirrorplane.inc}
+{$I castlerendererinternalshader_surfacetexture.inc}
+{$I castlerendererinternalshader_bumpmapping.inc}
 
 {$ifndef OpenGLES}
 var
@@ -896,97 +765,6 @@ begin
   {$endif}
 end;
 
-{ TShaderCodeHash ------------------------------------------------------------ }
-
-{$include norqcheckbegin.inc}
-
-procedure TShaderCodeHash.AddString(const S: AnsiString; const Multiplier: UInt32);
-var
-  PS: PUInt32;
-  Last: UInt32;
-  I: Integer;
-begin
-  PS := PUInt32(S);
-
-  for I := 1 to Length(S) div 4 do
-  begin
-    Sum := Sum + PS^ * Multiplier;
-    XorValue := XorValue xor PS^;
-    Inc(PS);
-  end;
-
-  if Length(S) mod 4 <> 0 then
-  begin
-    Last := 0;
-    Move(S[(Length(S) div 4) * 4 + 1], Last, Length(S) mod 4);
-    Sum := Sum + Last * Multiplier;
-    XorValue := XorValue xor Last;
-  end;
-end;
-
-procedure TShaderCodeHash.AddPointer(Ptr: Pointer);
-begin
-  { This will cut the pointer on non-32bit processors.
-    But that's not a problem --- we just want it for hash,
-    taking the least significant 32 bits from pointer is OK for this. }
-  Sum := Sum + UInt32(PtrUInt(Ptr));
-  XorValue := XorValue xor UInt32(PtrUInt(Ptr));
-end;
-
-procedure TShaderCodeHash.AddInteger(const I: Integer);
-begin
-  Sum := Sum + I;
-end;
-
-procedure TShaderCodeHash.AddFloat(const F: Single; const UniquePrimeNumber: Cardinal);
-begin
-  Sum := Sum + (Round(F * 1000) + 1) * UniquePrimeNumber;
-end;
-
-{$include norqcheckend.inc}
-
-procedure TShaderCodeHash.AddEffects(Nodes: TX3DNodeList);
-var
-  I: Integer;
-begin
-  { We add to hash actual Effect node references (pointers), this way ensuring
-    that to share the same shader, effect nodes must be the same.
-    Merely equal GLSL source code is not enough (because effects with equal
-    source code may still have different uniform values, and sharing them
-    would not be handled correctly here --- we set uniform values on change,
-    not every time before rendering shape). }
-  for I := 0 to Nodes.Count - 1 do
-    if (Nodes[I] is TEffectNode) and
-       TEffectNode(Nodes[I]).FdEnabled.Value then
-      AddPointer(Nodes[I]);
-end;
-
-procedure TShaderCodeHash.AddEffects(Nodes: TMFNode);
-var
-  I: Integer;
-begin
-  for I := 0 to Nodes.Count - 1 do
-    if (Nodes[I] is TEffectNode) and
-       TEffectNode(Nodes[I]).FdEnabled.Value then
-      AddPointer(Nodes[I]);
-end;
-
-function TShaderCodeHash.ToString: String;
-begin
-  Result := IntToStr(Sum) + '/' + IntToStr(XorValue);
-end;
-
-procedure TShaderCodeHash.Clear;
-begin
-  Sum := 0;
-  XorValue := 0;
-end;
-
-class operator TShaderCodeHash.{$ifdef  FPC}={$else}Equal{$endif}(const A, B: TShaderCodeHash): boolean;
-begin
-  Result := (A.Sum = B.Sum) and (A.XorValue = B.XorValue);
-end;
-
 { TShaderSource -------------------------------------------------------------- }
 
 constructor TShaderSource.Create;
@@ -1023,248 +801,6 @@ begin
         Source[T].Add(AppendCode[T][I]);
 end;
 
-{ TLightShader --------------------------------------------------------------- }
-
-destructor TLightShader.Destroy;
-begin
-  FreeAndNil(FCode);
-  inherited;
-end;
-
-const
-  LightDefines: array [TLightDefine] of record
-    Name: String;
-    Hash: UInt32;
-  end =
-  ( (Name: 'LIGHT%d_TYPE_POSITIONAL'  ; Hash: 107; ),
-    (Name: 'LIGHT%d_TYPE_SPOT'        ; Hash: 109; ),
-    (Name: 'LIGHT%d_TYPE_ENVIRONMENT' ; Hash: 421; ),
-    (Name: 'LIGHT%d_TYPE_PUNCTUAL'    ; Hash: 443; ),
-    (Name: 'LIGHT%d_HAS_ATTENUATION'  ; Hash: 113; ),
-    (Name: 'LIGHT%d_HAS_RADIUS'       ; Hash: 127; ),
-    (Name: 'LIGHT%d_HAS_AMBIENT'      ; Hash: 131; ),
-    (Name: 'LIGHT%d_HAS_SPECULAR'     ; Hash: 137; ),
-    (Name: 'LIGHT%d_HAS_BEAM_WIDTH'   ; Hash: 139; ),
-    (Name: 'LIGHT%d_HAS_SPOT_EXPONENT'; Hash: 149; )
-  );
-
-procedure TLightShader.Prepare(var Hash: TShaderCodeHash; const LightNumber: Cardinal);
-
-  procedure Define(const D: TLightDefine);
-  begin
-    Assert(DefinesCount <= High(Defines), 'Too many light #defines, increase High(TLightShader.Defines)');
-    Defines[DefinesCount] := D;
-    Inc(DefinesCount);
-    Hash.AddInteger(LightDefines[D].Hash * (LightNumber + 1));
-  end;
-
-begin
-  DefinesCount := 0;
-  Hash.AddInteger(101);
-
-  if Node is TAbstractPositionalLightNode then
-  begin
-    Define(ldTypePositional);
-    if Node is TSpotLightNode_1 then
-    begin
-      Define(ldTypeSpot);
-      Define(ldHasSpotExponent);
-    end else
-    if Node is TSpotLightNode then
-    begin
-      Define(ldTypeSpot);
-      Define(ldHasBeamWidth);
-    end;
-
-    if TAbstractPositionalLightNode(Node).HasAttenuation then
-      Define(ldHasAttenuation);
-
-    if TAbstractPositionalLightNode(Node).HasRadius then
-      Define(ldHasRadius);
-  end;
-  if Node.FdAmbientIntensity.Value <> 0 then
-    Define(ldHasAmbient);
-  if (Shader.Material is TPhongMaterialInfo) and
-     (not TPhongMaterialInfo(Shader.Material).SpecularColor.IsPerfectlyZero) then
-    Define(ldHasSpecular);
-  if Node is TAbstractPunctualLightNode then
-    Define(ldTypePunctual);
-  if Node is TEnvironmentLightNode then
-    Define(ldTypeEnvironment);
-end;
-
-function TLightShader.Code: TShaderSource;
-
-  { Convert Defines list into a string of GLSL code. }
-  function DefinesStr: String;
-  var
-    I: Integer;
-  begin
-    Result := '';
-    for I := 0 to DefinesCount - 1 do
-      Result := Result + '#define ' + Format(LightDefines[Defines[I]].Name, [Number]) + NL;
-  end;
-
-const
-  TemplateLight: array [TLightingModel] of String = (
-    {$I lighting_model_phong_add_light.glsl.inc},
-    {$I lighting_model_physical_add_light.glsl.inc},
-    {$I lighting_model_unlit_add_light.glsl.inc}
-  );
-var
-  LightShader: String;
-  LightingStage: TShaderType;
-begin
-  if FCode = nil then
-  begin
-    FCode := TShaderSource.Create;
-
-    LightShader := TemplateLight[LightingModel];
-    LightShader := StringReplace(LightShader,
-      '<Light>', IntToStr(Number), [rfReplaceAll]);
-
-    if Shader.PhongShading then
-      LightingStage := stFragment
-    else
-      LightingStage := stVertex;
-    FCode[LightingStage].Add(DefinesStr + LightShader);
-
-    if Node <> nil then
-      Shader.EnableEffects(Node.FdEffects, FCode);
-  end;
-
-  Result := FCode;
-end;
-
-procedure TLightShader.SetUniforms(AProgram: TX3DShaderProgram);
-
-  procedure SetEnvironmentLightUniforms(const EnvLight: TEnvironmentLightNode);
-  begin
-    if EnvLight.FdDiffuseTexture.Value <> nil then
-      AProgram.UniformsTextures.Add(EnvLight.FdDiffuseTexture);
-    if EnvLight.FdSpecularTexture.Value <> nil then
-      AProgram.UniformsTextures.Add(EnvLight.FdSpecularTexture);
-  end;
-
-begin
-  if LightUniformName1 <> '' then
-    AProgram.SetUniform(Format(LightUniformName1, [Number]), LightUniformValue1);
-  if LightUniformName2 <> '' then
-    AProgram.SetUniform(Format(LightUniformName2, [Number]), LightUniformValue2);
-
-  if Node is TEnvironmentLightNode then
-    SetEnvironmentLightUniforms(TEnvironmentLightNode(Node));
-end;
-
-procedure TLightShader.SetDynamicUniforms(AProgram: TX3DShaderProgram);
-var
-  Uniforms: TLightUniforms;
-  Color3, AmbientColor3: TVector3;
-  Position: TVector4;
-  LiPos: TAbstractPositionalLightNode;
-  LiSpot1: TSpotLightNode_1;
-  LiSpot: TSpotLightNode;
-  LightToEyeSpace: PMatrix4;
-begin
-  while Number >= AProgram.FLightUniformsList.Count do
-  begin
-    Uniforms := TLightUniforms.Create;
-    Uniforms.Number := AProgram.FLightUniformsList.Count;
-    Uniforms.ShaderProgram := AProgram;
-    AProgram.FLightUniformsList.Add(Uniforms);
-  end;
-  Uniforms := AProgram.FLightUniformsList[Number];
-
-  { calculate Color3 = light color * light intensity }
-  Color3 := Node.FdColor.Value * Node.FdIntensity.Value;
-
-  { calculate AmbientColor3 = light color * light ambient intensity }
-  AmbientColor3 := Node.FdColor.Value * Node.FdAmbientIntensity.Value;
-
-  if Node is TAbstractPunctualLightNode then
-  begin
-    if Light^.WorldCoordinates then
-      LightToEyeSpace := @RenderingCamera.Matrix
-    else
-      LightToEyeSpace := @Shader.SceneModelView;
-
-    { This is incorrect, at least on Linux x86_64 and Darwin x86_64
-      (works OK on Darwin i386), with FPC 3.0.2.
-      Possibly TGenericMatrix4.Multiply has then equal addresses
-      for Result and argument, although I didn't manage to "catch it red-handed"
-      (it seems that merely adding a check to TGenericMatrix4.Multiply
-      about it, disables this optimization, so everything is OK then). }
-    // Position := Light^.Position;
-    // Position := LightToEyeSpace^ * Position;
-    Position := LightToEyeSpace^ * Light^.Position;
-
-    { Note that we cut off last component of Node.Position,
-      we don't need it. #defines tell the shader whether we deal with directional
-      or positional light. }
-    Uniforms.SetUniform('castle_LightSource%dPosition', Uniforms.Position,
-      Position.XYZ);
-
-    if Node is TAbstractPositionalLightNode then
-    begin
-      LiPos := TAbstractPositionalLightNode(Node);
-
-      if LiPos.HasRadius then
-      begin
-        Uniforms.SetUniform('castle_LightSource%dRadius', Uniforms.Radius,
-          Approximate3DScale(LightToEyeSpace^) * Light^.Radius);
-      end;
-
-      if LiPos is TSpotLightNode_1 then
-      begin
-        LiSpot1 := TSpotLightNode_1(Node);
-        Uniforms.SetUniform('castle_LightSource%dSpotCosCutoff', Uniforms.SpotCosCutoff,
-          LiSpot1.SpotCosCutoff);
-        Uniforms.SetUniform('castle_LightSource%dSpotDirection', Uniforms.SpotDirection,
-          LightToEyeSpace^.MultDirection(Light^.Direction));
-        Uniforms.SetUniform('castle_LightSource%dSpotExponent', Uniforms.SpotExponent,
-          LiSpot1.SpotExponent);
-      end else
-      if LiPos is TSpotLightNode then
-      begin
-        LiSpot := TSpotLightNode(Node);
-        Uniforms.SetUniform('castle_LightSource%dSpotCosCutoff', Uniforms.SpotCosCutoff,
-          LiSpot.SpotCosCutoff);
-        Uniforms.SetUniform('castle_LightSource%dSpotDirection', Uniforms.SpotDirection,
-          LightToEyeSpace^.MultDirection(Light^.Direction));
-        Uniforms.SetUniform('castle_LightSource%dBeamWidth', Uniforms.SpotBeamWidth,
-          LiSpot.FdBeamWidth.Value);
-        Uniforms.SetUniform('castle_LightSource%dSpotCutoff', Uniforms.SpotCutoff,
-          LiSpot.FdCutOffAngle.Value);
-      end;
-
-      if LiPos.HasAttenuation then
-        Uniforms.SetUniform('castle_LightSource%dAttenuation', Uniforms.Attenuation,
-          LiPos.FdAttenuation.Value);
-    end;
-  end;
-
-  if Node.FdAmbientIntensity.Value <> 0 then
-    Uniforms.SetUniform('castle_LightSource%dAmbientColor', Uniforms.AmbientColor, AmbientColor3);
-
-  Uniforms.SetUniform('castle_LightSource%dColor', Uniforms.Color, Color3);
-end;
-
-{ TLightShaders -------------------------------------------------------------- }
-
-function TLightShaders.Find(const Node: TAbstractLightNode; out Shader: TLightShader): boolean;
-var
-  I: Integer;
-begin
-  for I := 0 to Count - 1 do
-    if Items[I].Node = Node then
-    begin
-      Shader := Items[I];
-      Exit(true);
-    end;
-  Shader := nil;
-  Result := false;
-end;
-
 { TX3DShaderProgramBase ------------------------------------------------------ }
 
 procedure TX3DShaderProgramBase.Link;
@@ -1291,38 +827,6 @@ begin
   AttributeCastle_Tangent        := AttributeOptional('castle_Tangent');
   AttributeCastle_ColorPerVertex := AttributeOptional('castle_ColorPerVertex');
   AttributeCastle_FogCoord       := AttributeOptional('castle_FogCoord');
-end;
-
-{ TLightUniforms ------------------------------------------------------- }
-
-procedure TLightUniforms.SetUniform(const NamePattern: String;
-  var CurrentValue: Single; const NewValue: Single);
-begin
-  if CurrentValue <> NewValue then
-  begin
-    ShaderProgram.SetUniform(Format(NamePattern, [Number]), NewValue);
-    CurrentValue := NewValue;
-  end;
-end;
-
-procedure TLightUniforms.SetUniform(const NamePattern: String;
-  var CurrentValue: TVector3; const NewValue: TVector3);
-begin
-  if not TVector3.PerfectlyEquals(CurrentValue, NewValue) then
-  begin
-    ShaderProgram.SetUniform(Format(NamePattern, [Number]), NewValue);
-    CurrentValue := NewValue;
-  end;
-end;
-
-procedure TLightUniforms.SetUniform(const NamePattern: String;
-  var CurrentValue: TVector4; const NewValue: TVector4);
-begin
-  if not TVector4.PerfectlyEquals(CurrentValue, NewValue) then
-  begin
-    ShaderProgram.SetUniform(Format(NamePattern, [Number]), NewValue);
-    CurrentValue := NewValue;
-  end;
 end;
 
 { TX3DShaderProgram ------------------------------------------------------- }
@@ -1610,409 +1114,6 @@ begin
     BindUniforms(Nodes[I], EnableDisable);
 end;
 
-{ TTextureCoordinateShader --------------------------------------------------- }
-
-class function TTextureCoordinateShader.CoordName(const TexUnit: Cardinal): String;
-begin
-  Result := Format('castle_TexCoord%d', [TexUnit]);
-end;
-
-class function TTextureCoordinateShader.MatrixName(const TexUnit: Cardinal): String;
-begin
-  Result := Format('castle_TextureMatrix%d', [TexUnit]);
-end;
-
-procedure TTextureCoordinateShader.Prepare(var Hash: TShaderCodeHash);
-var
-  IntHash: UInt32;
-begin
-{$include norqcheckbegin.inc}
-  IntHash :=
-    1 +
-    971 * Ord(HasMatrixTransform);
-  Hash.AddInteger(977 * (TextureUnit + 1) * IntHash);
-{$include norqcheckend.inc}
-end;
-
-procedure TTextureCoordinateShader.Enable(const MainTextureMapping: Integer; const MultiTextureColor: TCastleColor;
-  var TextureApply, TextureColorDeclare,
-    TextureCoordInitialize, TextureCoordMatrix,
-    TextureAttributeDeclare, TextureVaryingDeclareVertex, TextureVaryingDeclareFragment, TextureUniformsDeclare,
-    GeometryVertexDeclare, GeometryVertexSet, GeometryVertexZero, GeometryVertexAdd: String;
-  var UsesShadowMaps: Boolean);
-var
-  TexCoordName, TexMatrixName: String;
-begin
-  TexCoordName := CoordName(TextureUnit);
-  TexMatrixName := MatrixName(TextureUnit);
-
-  TextureCoordInitialize := TextureCoordInitialize +
-    Format('%s = castle_MultiTexCoord%d;' + NL,
-    [TexCoordName, TextureUnit]);
-  TextureAttributeDeclare := TextureAttributeDeclare +
-    Format('attribute vec4 castle_MultiTexCoord%d;' + NL, [TextureUnit]);
-  TextureVaryingDeclareVertex := TextureVaryingDeclareVertex + Format(
-    'varying vec4 %s;' + NL, [TexCoordName]);
-  TextureVaryingDeclareFragment := TextureVaryingDeclareFragment + Format(
-    '#ifdef HAS_GEOMETRY_SHADER' + NL +
-    '  #define %s %0:s_geoshader' + NL +
-    '#endif' + NL +
-    'varying vec4 %0:s;' + NL, [TexCoordName]);
-
-  if HasMatrixTransform then
-    TextureCoordMatrix := TextureCoordMatrix + Format('%s = %s * %0:s;' + NL,
-      [TexCoordName, TexMatrixName]);
-
-  GeometryVertexDeclare := GeometryVertexDeclare + Format(
-    'in vec4 %s[CASTLE_GEOMETRY_INPUT_SIZE];' + NL +
-    'out vec4 %0:s_geoshader;', [TexCoordName]);
-  GeometryVertexSet  := GeometryVertexSet +
-    Format('%s_geoshader  = %0:s[index];' + NL, [TexCoordName]);
-  GeometryVertexZero := GeometryVertexZero + Format('%s_geoshader  = vec4(0.0);'
-    + NL, [TexCoordName]);
-  { NVidia will warn here "... might be used before being initialized".
-    Which is of course true --- but we depend that author will always call
-    geometryVertexZero() before geometryVertexAdd(). }
-  GeometryVertexAdd  := GeometryVertexAdd +
-    Format('%s_geoshader += %0:s[index] * scale;' + NL, [TexCoordName]);
-end;
-
-{ TTextureShader ------------------------------------------------------------- }
-
-procedure TTextureShader.Prepare(var Hash: TShaderCodeHash);
-var
-  IntHash: UInt32;
-begin
-  inherited;
-
-{$include norqcheckbegin.inc}
-  IntHash :=
-    1 +
-    181 * Ord(TextureType) +
-    191 * ShadowMapSize +
-    Env.Hash;
-  if ShadowLight <> nil then
-    IntHash := IntHash + PtrUInt(ShadowLight);
-  Hash.AddInteger(179 * (TextureUnit + 1) * IntHash);
-  { Don't directly add Node to the Hash, it would prevent a lot of sharing.
-    Node is only used to get effects. }
-  Hash.AddEffects(Node.FdEffects);
-{$include norqcheckend.inc}
-end;
-
-class function TTextureShader.TextureEnvMix(const AEnv: TTextureEnv; const MultiTextureColor: TCastleColor;
-  const FragmentColor, CurrentTexture: String;
-  const ATextureUnit: Cardinal): String;
-
-  procedure Warn(const S: String; const Args: array of const);
-  begin
-    if not TextureEnvWarningDone then
-    begin
-      TextureEnvWarningDone := true;
-      WritelnWarning('MultiTexture mixing', Format(S, Args));
-    end;
-  end;
-
-  { GLSL code to express MultiTextureColor value. }
-  function MultiTextureColorStr: String;
-  begin
-    Result := FormatDot('vec4(%f, %f, %f, %f)', [
-      MultiTextureColor.X,
-      MultiTextureColor.Y,
-      MultiTextureColor.Z,
-      MultiTextureColor.W
-    ]);
-  end;
-
-type
-  TChannels = (chAll, chRgb, chAlpha);
-
-  { GLSL code to update FragmentColor based on given Combine operation. }
-  function CombineCode(const Combine: TCombine;
-    const Source: TColorSource;
-    const SourceArgument: TTextureEnvArgument;
-    const Channels: TChannels): String;
-
-    { GLSL code to express given TColorSource value. }
-    function SourceStr(const Source: TColorSource): String;
-    begin
-      case Source of
-        csCurrentTexture : Result := CurrentTexture;
-        csPreviousTexture: Result := FragmentColor;
-        csMaterial       : Result := 'vec4(0.8, 0.8, 0.8, 1.0)'; // just Material.diffuseColor default
-        csConstant       : Result := MultiTextureColorStr;
-        {$ifndef COMPILER_CASE_ANALYSIS}
-        else raise EInternalError.Create('SourceStr:TColorSource?');
-        {$endif}
-      end;
-    end;
-
-  var
-    FragmentColorCh, CurrentTextureCh, Arg2Ch, ChannelsStr, ChannelsFromScalar: String;
-    Arg2: String;
-  begin
-    { calculate Arg2, GLSL code that says "what is coming from MultiTexture.source" }
-    Arg2 := SourceStr(Source);
-
-    { calculate ChannelsStr, ChannelsFromScalar }
-    case Channels of
-      chAll  :
-        begin
-          ChannelsStr := ''; // set all RGBA of FragmentColor
-          ChannelsFromScalar := 'vec4';
-        end;
-      chRgb  :
-        begin
-          ChannelsStr := '.rgb'; // set only RGB of FragmentColor
-          ChannelsFromScalar := 'vec3';
-        end;
-      chAlpha:
-        begin
-          ChannelsStr := '.a'; // set only alpha of FragmentColor
-          ChannelsFromScalar := '';
-        end;
-      {$ifndef COMPILER_CASE_ANALYSIS}
-      else raise EInternalError.Create('Channels?');
-      {$endif}
-    end;
-
-    FragmentColorCh := FragmentColor + ChannelsStr;
-    CurrentTextureCh := CurrentTexture + ChannelsStr;
-    Arg2Ch := Arg2 + ChannelsStr;
-
-    { By default, set up simplest modulate operation.
-      The "case" below may override this to something better. }
-    Result := FragmentColorCh + ' *= ' + CurrentTextureCh + ';';
-
-    case Combine of
-      coModulate:
-        if Arg2 = FragmentColor then
-          // optimize GLSL code
-          Result := FragmentColorCh + ' *= ' + CurrentTextureCh +  ';'
-        else
-          Result := FragmentColorCh + ' = ' + CurrentTextureCh + ' * ' + Arg2Ch + ';';
-      coReplace:
-        begin
-          if SourceArgument = ta0 then
-            { mode is SELECTARG2 }
-            Result := FragmentColorCh + ' = ' + Arg2Ch + ';'
-          else
-            { assume CurrentTextureArgument = ta0, mode = REPLACE or SELECTARG1 }
-            Result := FragmentColorCh + ' = ' + CurrentTextureCh + ';';
-        end;
-      coAddSigned:
-        Result := FragmentColorCh + ' = ' + CurrentTextureCh + ' + ' + Arg2Ch +
-          ' - ' + ChannelsFromScalar + '(0.5);';
-      coAdd:
-        if Arg2 = FragmentColor then
-          // optimize GLSL code
-          Result := FragmentColorCh + ' += ' + CurrentTextureCh + ';'
-        else
-          Result := FragmentColorCh + ' = ' + CurrentTextureCh + ' + ' + Arg2Ch + ';';
-      coSubtract:
-        Result := FragmentColorCh + ' = ' + CurrentTextureCh + ' - ' + Arg2Ch + ';';
-      coBlend:
-        Result := FragmentColorCh + ' = mix(' + FragmentColorCh + ', ' +
-          CurrentTextureCh + ', ' + SourceStr(AEnv.BlendAlphaSource) + '.a);';
-      coDot3Rgb,
-      coDot3Rgba:
-        Result := FragmentColorCh + ' = ' + ChannelsFromScalar + '(dot(' +
-          '2 * (' + CurrentTexture + '.rgb - vec3(0.5)), ' +
-          '2 * (' + Arg2 + '.rgb - vec3(0.5))));';
-      else
-        Warn('Not supported in GLSL pipeline: combine value %d', [Ord(Combine)]);
-    end;
-  end;
-
-begin
-  if AEnv.Disabled then Exit('');
-
-  { Note that we ignore AEnv.CurrentTextureArgument.
-    Which is OK -- it is always ta0 in practice, except for X3D "SELECTARG2" mode
-    (which for us is a special case of coReplace, detected looking at AEnv.SourceArgument).
-
-    We know that AEnv.SourceArgument is always ta1, except
-    - it is taNone in case of X3D "REPLACE" mode (eqivalent "SELECTARG1")
-    - it is ta0    in case of X3D "SELECTARG2" mode
-
-    So, while we don't handle all *theoretically possible* cases of
-    AEnv.CurrentTextureArgument and AEnv.SourceArgument, we don't need to.
-    We detect and handle SELECTARG2 specially, in other cases
-    we assume
-    - AEnv.CurrentTextureArgument = ta0,
-    - AEnv.SourceArgument = ta1,
-    and this is enough to cover all *actually possible* (set by CastleRendererInternalTextureEnv)
-    cases.
-  }
-
-  if (AEnv.Combine       [cRGB] = AEnv.Combine       [cAlpha]) and
-     (AEnv.Source        [cRGB] = AEnv.Source        [cAlpha]) and
-     (AEnv.SourceArgument[cRGB] = AEnv.SourceArgument[cAlpha]) then
-  begin
-    { Do the operation on whole RGBA. }
-    Result := CombineCode(AEnv.Combine[cRGB], AEnv.Source[cRGB], AEnv.SourceArgument[cRGB], chAll) + NL;
-  end else
-  begin
-    Result :=
-      CombineCode(AEnv.Combine[cRGB]  , AEnv.Source[cRGB  ], AEnv.SourceArgument[cRGB]  , chRgb) + NL +
-      CombineCode(AEnv.Combine[cAlpha], AEnv.Source[cAlpha], AEnv.SourceArgument[cAlpha], chAlpha) + NL;
-  end;
-
-  if AEnv.Scale[cRGB] = AEnv.Scale[cAlpha] then
-  begin
-    { Do the scaling on whole RGBA. }
-    if AEnv.Scale[cRGB] <> 1 then
-      Result := Result + FragmentColor + ' *= ' + FloatToStrDot(AEnv.Scale[cRGB]) + ';' + NL;
-  end else
-  begin
-    if AEnv.Scale[cRGB] <> 1 then
-      Result := Result + FragmentColor + '.rgb *= ' + FloatToStrDot(AEnv.Scale[cRGB]) + ';' + NL;
-    if AEnv.Scale[cAlpha] <> 1 then
-      Result := Result + FragmentColor + '.a *= ' + FloatToStrDot(AEnv.Scale[cAlpha]) + ';' + NL;
-  end;
-
-  case AEnv.TextureFunction of
-    tfComplement    : Result := Result + FragmentColor + '.rgb = vec3(1.0) - ' + FragmentColor + '.rgb;' + NL;
-    tfAlphaReplicate: Result := Result + FragmentColor + '.rgb = vec3(' + FragmentColor + '.a);' + NL;
-    else ;
-  end;
-end;
-
-procedure TTextureShader.Enable(const MainTextureMapping: Integer; const MultiTextureColor: TCastleColor;
-  var TextureApply, TextureColorDeclare,
-    TextureCoordInitialize, TextureCoordMatrix,
-    TextureAttributeDeclare, TextureVaryingDeclareVertex, TextureVaryingDeclareFragment, TextureUniformsDeclare,
-    GeometryVertexDeclare, GeometryVertexSet, GeometryVertexZero, GeometryVertexAdd: String;
-  var UsesShadowMaps: Boolean);
-const
-  SamplerFromTextureType: array [TTextureType] of string =
-  ('sampler2D', 'sampler2DShadow', 'samplerCube', 'sampler3D', '');
-var
-  TextureSampleCall, TexCoordName: String;
-  ShadowLightShader: TLightShader;
-  Code: TShaderSource;
-  SamplerType: String;
-begin
-  inherited;
-
-  if TextureType <> ttShader then
-  begin
-    UniformName := Format('castle_texture_%d', [TextureUnit]);
-    UniformValue := TextureUnit;
-  end else
-    UniformName := '';
-
-  TexCoordName := CoordName(TextureUnit);
-
-  SamplerType := SamplerFromTextureType[TextureType];
-  { For variance shadow maps, use normal sampler2D, not sampler2DShadow }
-  if (Shader.ShadowSampling = ssVarianceShadowMaps) and
-     (TextureType = tt2DShadow) then
-    SamplerType := 'sampler2D';
-
-  if (TextureType = tt2DShadow) and
-     (ShadowLight <> nil) and
-     Shader.LightShaders.Find(ShadowLight, ShadowLightShader) then
-  begin
-    UsesShadowMaps := true;
-    Shader.Plug(stFragment, Format(
-      'uniform %s %s;' +NL+
-      {$ifdef OpenGLES}
-      '// avoid redeclaring variables when no "separate compilation units" (OpenGLES)' +
-      {$endif}
-      'varying vec4 %s;' +NL+
-      '%s' +NL+
-      'void PLUG_light_scale(inout float scale, const in vec3 normal_eye, const in vec3 light_dir)' +NL+
-      '{' +NL+
-      '  scale *= shadow(%s, %s, %d.0);' +NL+
-      '}',
-      [SamplerType, UniformName,
-       TexCoordName,
-       {$ifdef OpenGLES}
-       '// Do not redeclare shadow() and friends on OpenGLES'
-       {$else}
-       Shader.DeclareShadowFunctions
-       {$endif},
-       UniformName, TexCoordName, ShadowMapSize]),
-      ShadowLightShader.Code);
-  end else
-  begin
-    // TODO: Actually MainTextureMapping should be applied higher, and using shadow maps should be done outside of this method
-    if MainTextureMapping <> -1 then
-      TexCoordName := CoordName(MainTextureMapping);
-    if TextureColorDeclare = '' then
-      TextureColorDeclare := 'vec4 texture_color;' + NL;
-    case TextureType of
-      tt2D:
-        { texture2DProj reasoning:
-          Most of the time, 'texture2D(%s, %s.st)' would be enough.
-          But we may get 4D tex coords (that is, with last component <> 1)
-          - through TextureCoordinate4D
-          - through projected texture mapping, when using perspective light
-            (spot light) or perspective viewpoint.
-
-          TextureUnit = 0 check reasoning:
-          Even when HAS_TEXTURE_COORD_SHIFT is defined (PLUG_texture_coord_shift
-          was used), use it only for 0th texture unit. Parallax bump mapping
-          calculates the shift, assuming that transformations to tangent space
-          follow 0th texture coordinates. Also, for parallax bump mapping,
-          we have to assume the 0th texture has simple 2D coords (not 4D). }
-        if TextureUnit = 0 then
-          TextureSampleCall := NL+
-            '#ifdef HAS_TEXTURE_COORD_SHIFT' +NL+
-            '  texture2D(%0:s, texture_coord_shifted(%1:s.st))' +NL+
-            '#else' +NL+
-            '  texture2DProj(%0:s, %1:s)' +NL+
-            '#endif' + NL else
-          TextureSampleCall := 'texture2DProj(%0:s, %1:s)';
-      tt2DShadow: TextureSampleCall := 'vec4(vec3(shadow(%s, %s, ' +IntToStr(ShadowMapSize) + '.0)), fragment_color.a)';
-      ttCubeMap : TextureSampleCall := 'textureCube(%s, %s.xyz)';
-      { For 3D textures, remember we may get 4D tex coords
-        through TextureCoordinate4D, so we have to use texture3DProj }
-      tt3D      : TextureSampleCall := 'texture3DProj(%s, %s)';
-      ttShader  : TextureSampleCall := 'vec4(1.0, 0.0, 1.0, 1.0)';
-      {$ifndef COMPILER_CASE_ANALYSIS}
-      else raise EInternalError.Create('TShader.EnableTexture:TextureType?');
-      {$endif}
-    end;
-
-    Code := TShaderSource.Create;
-    try
-      if TextureType <> ttShader then
-      begin
-        { Optimization to not call castle_texture_color_to_linear when not needed.
-          Although it should do nothing when ColorSpaceLinear=false,
-          but to make sure it takes zero time we just not call it at all. }
-        if Shader.ColorSpaceLinear and (TextureType <> tt2DShadow) then
-          TextureSampleCall := 'castle_texture_color_to_linear(' + TextureSampleCall + ')';
-        Code[stFragment].Add(Format(
-          'texture_color = ' + TextureSampleCall + ';' +NL+
-          '/* PLUG: texture_color (texture_color, %0:s, %1:s) */' +NL,
-          [UniformName, TexCoordName]))
-      end else
-        Code[stFragment].Add(Format(
-          'texture_color = ' + TextureSampleCall + ';' +NL+
-          '/* PLUG: texture_color (texture_color, %0:s) */' +NL,
-          [TexCoordName]));
-
-      Shader.EnableEffects(Node.FdEffects, Code, true);
-
-      { Add generated Code to Shader.Source. Code[stFragment][0] for texture
-        is a little special, we add it to TextureApply that
-        will be directly placed within the source. }
-      TextureApply := TextureApply + Code[stFragment][0];
-      Shader.Source.Append(Code, stFragment);
-    finally FreeAndNil(Code) end;
-
-    TextureApply := TextureApply + TextureEnvMix(Env, MultiTextureColor,
-      'fragment_color', 'texture_color', TextureUnit) + NL;
-
-    if TextureType <> ttShader then
-      TextureUniformsDeclare := TextureUniformsDeclare + Format('uniform %s %s;' + NL,
-        [SamplerType, UniformName]);
-  end;
-end;
-
 { TDynamicUniformSingle ------------------------------------------------------ }
 
 procedure TDynamicUniformSingle.SetUniform(AProgram: TX3DShaderProgram);
@@ -2037,6 +1138,13 @@ end;
 { TDynamicUniformMat4 -------------------------------------------------------- }
 
 procedure TDynamicUniformMat4.SetUniform(AProgram: TX3DShaderProgram);
+begin
+  AProgram.SetUniform(Name, Value);
+end;
+
+{ TDynamicUniformInteger -------------------------------------------------------- }
+
+procedure TDynamicUniformInteger.SetUniform(AProgram: TX3DShaderProgram);
 begin
   AProgram.SetUniform(Name, Value);
 end;
@@ -2089,6 +1197,7 @@ begin
   Source := TShaderSource.Create;
   LightShaders := TLightShaders.Create;
   TextureShaders := TTextureCoordinateShaderList.Create;
+  ShadowMapShaders := TShadowMapShaderList.Create;
   UniformsNodes := TX3DNodeList.Create(false);
   DynamicUniforms := TDynamicUniformList.Create(true);
   TextureMatrix := TCardinalList.Create;
@@ -2101,6 +1210,7 @@ begin
   FreeAndNil(UniformsNodes);
   FreeAndNil(LightShaders);
   FreeAndNil(TextureShaders);
+  FreeAndNil(ShadowMapShaders);
   FreeAndNil(Source);
   FreeAndNil(DynamicUniforms);
   FreeAndNil(TextureMatrix);
@@ -2109,7 +1219,6 @@ end;
 
 procedure TShader.Clear;
 var
-  SurfaceTexture: TSurfaceTexture;
   ShaderType: TShaderType;
 begin
   for ShaderType := Low(TShaderType) to High(TShaderType) do
@@ -2129,19 +1238,13 @@ begin
   PlugIdentifiers := 0;
   LightShaders.Count := 0;
   TextureShaders.Count := 0;
+  ShadowMapShaders.Count := 0;
   FCodeHash.Clear;
   CodeHashFinalized := false;
   SelectedNode := nil;
   FShapeRequiresShaders := false;
-  FBumpMapping := Low(TBumpMapping);
-  FNormalMapTextureUnit := 0;
-  FNormalMapTextureCoordinatesId := 0;
-  FNormalMapScale := 1;
-  FHeightMapInAlpha := false;
-  FHeightMapScale := 0;
-  for SurfaceTexture := Low(TSurfaceTexture) to High(TSurfaceTexture) do
-    { No need to reset other FSurfaceTextureShaders[SurfaceTexture] properties. }
-    FSurfaceTextureShaders[SurfaceTexture].Enable := false;
+  FBumpMappingShader.Clear;
+  FSurfaceTextureShaders.Clear;
   FFogEnabled := false;
   { No need to reset, will be set when FFogEnabled := true
   FFogType := Low(TFogType);
@@ -2154,6 +1257,7 @@ begin
   FPhongShading := false;
   ShapeBoundingBoxInSceneEvent := nil;
   FShapeBoundingBoxInWorldKnown := false;
+  SceneTransformDynamic := false;
   Material := nil;
   DynamicUniforms.Count := 0;
   TextureMatrix.Count := 0;
@@ -2166,6 +1270,7 @@ begin
   ColorSpaceLinear := false;
   MultiTextureColor := White;
   FAlphaTest := false;
+  UsesShadowMaps := false;
 end;
 
 procedure TShader.Initialize(const APhongShading: boolean);
@@ -2424,7 +1529,6 @@ var
     TextureAttributeDeclare, TextureVaryingDeclareVertex, TextureVaryingDeclareFragment, TextureUniformsDeclare,
     GeometryVertexDeclare, GeometryVertexSet, GeometryVertexZero, GeometryVertexAdd: String;
   TextureUniformsSet: Boolean;
-  UsesShadowMaps: Boolean;
 
 const
   Structures: array [TLightingModel] of String = (
@@ -2508,16 +1612,16 @@ const
   var
     SurfaceTexture: TSurfaceTexture;
   begin
-    if FBumpMapping <> bmNone then
-      RequireTextureCoordinateId(FNormalMapTextureCoordinatesId);
+    if FBumpMappingShader.BumpMapping <> bmNone then
+      RequireTextureCoordinateId(FBumpMappingShader.NormalMapTextureCoordinatesId);
 
     if MainTextureMapping <> -1 then
       RequireTextureCoordinateId(MainTextureMapping);
 
     for SurfaceTexture := Low(TSurfaceTexture) to High(TSurfaceTexture) do
-      if FSurfaceTextureShaders[SurfaceTexture].Enable then
+      if FSurfaceTextureShaders.Items[SurfaceTexture].Enable then
         RequireTextureCoordinateId(
-          FSurfaceTextureShaders[SurfaceTexture].TextureCoordinatesId);
+          FSurfaceTextureShaders.Items[SurfaceTexture].TextureCoordinatesId);
   end;
 
   procedure EnableTextures;
@@ -2537,15 +1641,13 @@ const
     GeometryVertexZero := '';
     GeometryVertexAdd := '';
     TextureUniformsSet := true;
-    UsesShadowMaps := false;
 
     for I := 0 to TextureShaders.Count - 1 do
       TextureShaders[I].Enable(MainTextureMapping, MultiTextureColor,
         TextureApply, TextureColorDeclare,
         TextureCoordInitialize, TextureCoordMatrix,
         TextureAttributeDeclare, TextureVaryingDeclareVertex, TextureVaryingDeclareFragment, TextureUniformsDeclare,
-        GeometryVertexDeclare, GeometryVertexSet, GeometryVertexZero, GeometryVertexAdd,
-        UsesShadowMaps);
+        GeometryVertexDeclare, GeometryVertexSet, GeometryVertexZero, GeometryVertexAdd);
   end;
 
   { Applies to shader necessary clip plane code, using ClipPlanes value. }
@@ -2702,8 +1804,8 @@ const
         to *not* integrate our texture handling with ComposedShader.
 
         We also remove uniform values for textures, to avoid
-        "unused castle_texture_%d" warning. Setting TextureUniformsSet
-        will make it happen. }
+        "unused castle_texture_%d" warning. Setting TextureUniformsSet:=false
+        will avoid setting texture uniforms. }
       TextureUniformsSet := false;
     end;
 
@@ -2782,62 +1884,6 @@ var
     end;
   end;
 
-var
-  HasBumpMappingUniform_NormalMapTextureUnit: Boolean;
-  BumpMappingUniform_NormalMapTextureUnit: Integer;
-  HasBumpMappingUniform_NormalMapScale: Boolean;
-  BumpMappingUniform_NormalMapScale: Single;
-  HasBumpMappingUniform_HeightMapScale: Boolean;
-  BumpMappingUniform_HeightMapScale: Single;
-
-  procedure EnableShaderBumpMapping;
-  var
-    VertexShader, FragmentShader: String;
-  begin
-    if FBumpMapping = bmNone then Exit;
-
-    // add basic bump mapping code
-    VertexShader   := {$I bump_mapping.vs.inc};
-    FragmentShader := {$I bump_mapping.fs.inc};
-    StringReplaceAllVar(FragmentShader, '<NormalMapTextureCoordinatesId>',
-      IntToStr(FNormalMapTextureCoordinatesId));
-    Plug(stVertex  , VertexShader);
-    Plug(stFragment, FragmentShader);
-
-    HasBumpMappingUniform_NormalMapTextureUnit := true;
-    BumpMappingUniform_NormalMapTextureUnit := FNormalMapTextureUnit;
-
-    HasBumpMappingUniform_NormalMapScale := true;
-    BumpMappingUniform_NormalMapScale := FNormalMapScale;
-
-    if FHeightMapInAlpha and (FBumpMapping >= bmParallax) then
-    begin
-      // add parallax bump mapping code, with a variant for "steep parallax"
-      VertexShader   := {$I bump_mapping_parallax.vs.inc};
-      FragmentShader := {$I bump_mapping_parallax.fs.inc};
-      if FBumpMapping >= bmSteepParallax then
-        FragmentShader := '#define CASTLE_BUMP_MAPPING_PARALLAX_STEEP' + NL
-          + FragmentShader;
-      Plug(stVertex  , VertexShader);
-      Plug(stFragment, FragmentShader);
-
-      HasBumpMappingUniform_HeightMapScale := true;
-      BumpMappingUniform_HeightMapScale := FHeightMapScale;
-
-      if (FBumpMapping >= bmSteepParallaxShadowing) and (LightShaders.Count > 0) then
-      begin
-        // add steep parallax with self-shadowing bump mapping code
-        VertexShader   := {$I bump_mapping_steep_parallax_shadowing.vs.inc};
-        FragmentShader := {$I bump_mapping_steep_parallax_shadowing.fs.inc};
-        if LightShaders[0].Node is TAbstractPositionalLightNode then
-          VertexShader := '#define CASTLE_LIGHT0_POSITIONAL' + NL
-            + VertexShader;
-        Plug(stVertex  , VertexShader);
-        Plug(stFragment, FragmentShader);
-      end;
-    end;
-  end;
-
   { Define COLOR_PER_VERTEX* symbols for GLSL. }
   procedure EnableShaderColorPerVertex;
   begin
@@ -2877,39 +1923,20 @@ var
     end;
   end;
 
-  procedure EnableShaderSurfaceTextures;
-  var
-    SurfaceTexture: TSurfaceTexture;
-  begin
-    for SurfaceTexture := Low(TSurfaceTexture) to High(TSurfaceTexture) do
-      if FSurfaceTextureShaders[SurfaceTexture].Enable then
-      begin
-        Plug(stFragment, SReplacePatterns(
-          'uniform sampler2D {uniform_texture_name};' + NL +
-          {$ifndef OpenGLES} // avoid redeclaring stuff when no "separate compilation units" (OpenGLES)
-          'varying vec4 {coord_name};' + NL +
-          '// Declare functions defined in tone_mapping.fs' + NL +
-          'vec4 castle_texture_color_to_linear(const in vec4 srgbIn);' + NL +
-          'vec3 castle_texture_color_to_linear(const in vec3 srgbIn);' + NL +
-          {$endif}
-          FSurfaceTextureShaders[SurfaceTexture].PlugCode,
-          [
-            '{uniform_texture_name}',
-            '{coord_name}'
-          ],
-          [
-            FSurfaceTextureShaders[SurfaceTexture].UniformTextureName,
-            TTextureCoordinateShader.CoordName(FSurfaceTextureShaders[SurfaceTexture].TextureCoordinatesId)
-          ], false));
-      end;
-  end;
-
   procedure EnableShaderFog;
   var
     FogFactor, FogUniforms, CoordinateSource: String;
   begin
     if FFogEnabled then
     begin
+      {$ifdef CASTLE_WEBGL}
+      { Shader fails compilation with
+          EGLSLShaderCompileError: Vertex shader not compiled:
+          0(13) : error C1503: undefined variable "_ucastle_FogFragCoord" }
+      WritelnWarning('WebGL', 'Fog is not supported with WebGL yet');
+      Exit;
+      {$endif}
+
       case FFogCoordinateSource of
         fcDepth           : CoordinateSource := '-vertex_eye.z';
         fcPassedCoordinate: CoordinateSource := 'castle_FogCoord';
@@ -2958,7 +1985,6 @@ var
   procedure SetupUniformsOnce;
   var
     I: Integer;
-    SurfaceTexture: TSurfaceTexture;
   begin
     AProgram.Enable;
 
@@ -2967,33 +1993,23 @@ var
       for I := 0 to TextureShaders.Count - 1 do
         if (TextureShaders[I] is TTextureShader) and
            (TTextureShader(TextureShaders[I]).UniformName <> '') then
-          AProgram.SetUniform(TTextureShader(TextureShaders[I]).UniformName,
-                              TTextureShader(TextureShaders[I]).UniformValue);
+        begin
+          AProgram.SetUniform(
+            TTextureShader(TextureShaders[I]).UniformName,
+            TTextureShader(TextureShaders[I]).UniformValue);
+        end;
     end;
 
-    if HasBumpMappingUniform_NormalMapTextureUnit then
-      AProgram.SetUniform('castle_normal_map',
-        BumpMappingUniform_NormalMapTextureUnit);
-
-    if HasBumpMappingUniform_NormalMapScale then
-      AProgram.SetUniform('castle_normalScale',
-        BumpMappingUniform_NormalMapScale);
-
-    if HasBumpMappingUniform_HeightMapScale then
-      AProgram.SetUniform('castle_parallax_bm_scale',
-        BumpMappingUniform_HeightMapScale);
-
-    for SurfaceTexture := Low(TSurfaceTexture) to High(TSurfaceTexture) do
-      if FSurfaceTextureShaders[SurfaceTexture].Enable then
-        AProgram.SetUniform(
-          FSurfaceTextureShaders[SurfaceTexture].UniformTextureName,
-          Integer(FSurfaceTextureShaders[SurfaceTexture].TextureUnit));
+    FBumpMappingShader.SetUniformsOnce(AProgram);
+    FSurfaceTextureShaders.SetUniformsOnce(AProgram);
 
     AProgram.BindUniforms(UniformsNodes, false);
 
     if PassLightsUniforms then
       for I := 0 to LightShaders.Count - 1 do
-        LightShaders[I].SetUniforms(AProgram);
+        LightShaders[I].SetUniformsOnce(AProgram);
+
+    ShadowMapShaders.SetUniformsOnce(AProgram);
 
     AProgram.Disable;
   end;
@@ -3019,20 +2035,17 @@ var
   GeometryInputSize: String;
   I: Integer;
 begin
-  HasBumpMappingUniform_NormalMapTextureUnit := false;
-  HasBumpMappingUniform_NormalMapScale := false;
-  HasBumpMappingUniform_HeightMapScale := false;
-
   EnableLightingModel; // do this early, as later EnableLights may assume it's done
+  ShadowMapShaders.GenerateCode(Self);
   RequireTextureCoordinateForSurfaceTextures;
   EnableTextures;
   EnableClipPlanes;
   EnableInternalEffects;
   EnableLights;
   EnableShaderColorPerVertex;
-  PrepareCommonCode; // must be before EnableShaderBumpMapping to define PLUG texture_coord_shift
-  EnableShaderBumpMapping;
-  EnableShaderSurfaceTextures;
+  PrepareCommonCode; // must be before FBumpMappingShader.GenerateCode to define PLUG texture_coord_shift
+  FBumpMappingShader.GenerateCode(Self);
+  FSurfaceTextureShaders.GenerateCode(Self);
   EnableShaderFog;
   if AppearanceEffects <> nil then
     EnableEffects(AppearanceEffects);
@@ -3088,9 +2101,19 @@ begin
       raise EGLSLError.Create('No vertex and no fragment shader for GLSL program');
 
     for ShaderType := Low(ShaderType) to High(ShaderType) do
+    begin
       AProgram.AttachShader(ShaderType, Source[ShaderType]);
+      {$ifdef CASTLE_CANNOT_CATCH_EXCEPTIONS}
+      if AProgram.ErrorOnCompileLink then Exit;
+      {$endif}
+    end;
+
     AProgram.Name := 'TShader:Shape:' + ShapeNiceName;
     AProgram.Link;
+
+    {$ifdef CASTLE_CANNOT_CATCH_EXCEPTIONS}
+    if AProgram.ErrorOnCompileLink then Exit;
+    {$endif}
 
     if SelectedNode <> nil then
       SelectedNode.EventIsValid.Send(true);
@@ -3159,9 +2182,7 @@ end;
 procedure TShader.EnableTexture(const TextureUnit: Cardinal;
   const TextureType: TTextureType;
   const Node: TAbstractSingleTextureNode;
-  const Env: TTextureEnv;
-  const ShadowMapSize: Cardinal;
-  const ShadowLight: TAbstractLightNode);
+  const Env: TTextureEnv);
 var
   TextureShader: TTextureShader;
 begin
@@ -3171,10 +2192,10 @@ begin
     if GLFeatures.UseMultiTexturing then
       glActiveTexture(GL_TEXTURE0 + TextureUnit);
     case TextureType of
-      tt2D, tt2DShadow: GLEnableTexture(et2D);
-      ttCubeMap       : GLEnableTexture(etCubeMap);
-      tt3D            : GLEnableTexture(et3D);
-      ttShader        : GLEnableTexture(etNone);
+      tt2D     : GLEnableTexture(et2D);
+      ttCubeMap: GLEnableTexture(etCubeMap);
+      tt3D     : GLEnableTexture(et3D);
+      ttShader : GLEnableTexture(etNone);
       {$ifndef COMPILER_CASE_ANALYSIS}
       else raise EInternalError.Create('TextureEnableDisable?');
       {$endif}
@@ -3189,8 +2210,6 @@ begin
   TextureShader.TextureType := TextureType;
   TextureShader.Node := Node;
   TextureShader.Env := Env;
-  TextureShader.ShadowMapSize := ShadowMapSize;
-  TextureShader.ShadowLight := ShadowLight;
   TextureShader.Shader := Self;
 
   { Change csMaterial to csPreviousTexture on the 1st texture slot.
@@ -3218,7 +2237,7 @@ begin
 
   TextureShaders.Add(TextureShader);
 
-  if (TextureType in [ttShader, tt2DShadow]) or
+  if (TextureType = ttShader) or
      (Node.FdEffects.Count <> 0) or
      { MultiTexture.function requires shaders }
      (Env.TextureFunction <> tfNone) then
@@ -3469,6 +2488,7 @@ begin
       glDisable(GL_CLIP_PLANE0 + ClipPlaneIndex);
     cpClipDistance:
       glDisable(GL_CLIP_DISTANCE0 + ClipPlaneIndex);
+    else ;
   end;
   {$endif}
 end;
@@ -3496,50 +2516,31 @@ procedure TShader.EnableBumpMapping(const BumpMapping: TBumpMapping;
   const NormalMapScale: Single;
   const HeightMapInAlpha: boolean; const HeightMapScale: Single);
 begin
-  FBumpMapping := BumpMapping;
-  FNormalMapTextureUnit := NormalMapTextureUnit;
-  FNormalMapTextureCoordinatesId := NormalMapTextureCoordinatesId;
-  FNormalMapScale := NormalMapScale;
-  FHeightMapInAlpha := HeightMapInAlpha;
-  FHeightMapScale := HeightMapScale;
+  FBumpMappingShader.BumpMapping := BumpMapping;
+  FBumpMappingShader.NormalMapTextureUnit := NormalMapTextureUnit;
+  FBumpMappingShader.NormalMapTextureCoordinatesId := NormalMapTextureCoordinatesId;
+  FBumpMappingShader.NormalMapScale := NormalMapScale;
+  FBumpMappingShader.HeightMapInAlpha := HeightMapInAlpha;
+  FBumpMappingShader.HeightMapScale := HeightMapScale;
+  FBumpMappingShader.PrepareHash(FCodeHash);
 
-  if FBumpMapping <> bmNone then
-  begin
+  if BumpMapping <> bmNone then
     ShapeRequiresShaders := true;
-    FCodeHash.AddInteger(
-      47 * Ord(FBumpMapping) +
-      373 * FNormalMapTextureUnit +
-      379 * FNormalMapTextureCoordinatesId +
-      383 * Ord(FHeightMapInAlpha)
-    );
-    FCodeHash.AddFloat(FHeightMapScale, 2203);
-    FCodeHash.AddFloat(FNormalMapScale, 2281);
-  end;
 end;
 
 procedure TShader.EnableSurfaceTexture(const SurfaceTexture: TSurfaceTexture;
   const TextureUnit, TextureCoordinatesId: Cardinal;
   const UniformTextureName, PlugCode: String);
-var
-  HashMultiplier: UInt32;
 begin
-  FSurfaceTextureShaders[SurfaceTexture].Enable := true;
-  FSurfaceTextureShaders[SurfaceTexture].TextureUnit := TextureUnit;
-  FSurfaceTextureShaders[SurfaceTexture].TextureCoordinatesId := TextureCoordinatesId;
-  FSurfaceTextureShaders[SurfaceTexture].UniformTextureName := UniformTextureName;
-  FSurfaceTextureShaders[SurfaceTexture].PlugCode := PlugCode;
+  FSurfaceTextureShaders.Items[SurfaceTexture].Enable := true;
+  FSurfaceTextureShaders.Items[SurfaceTexture].TextureUnit := TextureUnit;
+  FSurfaceTextureShaders.Items[SurfaceTexture].TextureCoordinatesId := TextureCoordinatesId;
+  FSurfaceTextureShaders.Items[SurfaceTexture].UniformTextureName := UniformTextureName;
+  FSurfaceTextureShaders.Items[SurfaceTexture].PlugCode := PlugCode;
 
   ShapeRequiresShaders := true;
 
-  HashMultiplier := 2063 * (1 + Ord(SurfaceTexture));
-  FCodeHash.AddInteger(HashMultiplier * (
-    2069 * (1 + TextureUnit) +
-    2081 * (1 + TextureCoordinatesId)
-  ));
-  { TODO: add FCodeHash.AddString(PlugCode, 2083 * HashMultiplier);
-    to account that PlugCode may change?
-    But in reality it never changes, only in case of CommonSurfaceShader
-    the ChannelMask is configurable. }
+  FSurfaceTextureShaders.Items[SurfaceTexture].PrepareHash(FCodeHash, SurfaceTexture);
 end;
 
 procedure TShader.EnableLight(const Number: Cardinal; Light: PLightInstance);
@@ -3744,18 +2745,9 @@ begin
   end;
 
   if NeedsMirrorPlaneTexCoords and (MirrorPlaneUniforms <> nil) then
-  begin
-    AProgram.SetUniform('castle_NormalizedPlane', MirrorPlaneUniforms.NormalizedPlane);
-    AProgram.SetUniform('castle_CameraPositionOnPlane', MirrorPlaneUniforms.CameraPositionOnPlane);
-    AProgram.SetUniform('castle_CameraSide', MirrorPlaneUniforms.CameraSide);
-    AProgram.SetUniform('castle_CameraUp', MirrorPlaneUniforms.CameraUp);
-    AProgram.SetUniform('castle_FrustumDimensions',
-      Vector4(
-        MirrorPlaneUniforms.FrustumDimensions.Left,
-        MirrorPlaneUniforms.FrustumDimensions.Bottom,
-        MirrorPlaneUniforms.FrustumDimensions.Width,
-        MirrorPlaneUniforms.FrustumDimensions.Height));
-  end;
+    MirrorPlaneUniforms.SetDynamicUniforms(AProgram);
+
+  ShadowMapShaders.SetDynamicUniforms(AProgram, RenderingCamera);
 end;
 
 procedure TShader.AddScreenEffectCode(const Depth: boolean);
@@ -3803,6 +2795,23 @@ begin
     FShapeBoundingBoxInWorld := ShapeBoundingBoxInSceneEvent().Transform(SceneTransform);
   end;
   Result := FShapeBoundingBoxInWorld;
+end;
+
+procedure TShader.EnableShadowMap(const TextureUnit: Cardinal;
+  const ShadowMap: TGeneratedShadowMapNode);
+var
+  ShadowMapShader: TShadowMapShader;
+begin
+  ShapeRequiresShaders := true;
+  UsesShadowMaps := true;
+
+  { This method doesn't actually generate shader code to set uniforms,
+    it only adds information to ShadowMapShaders to do it later. }
+  ShadowMapShader.ShadowMap := ShadowMap;
+  ShadowMapShader.TextureUnit := TextureUnit;
+  ShadowMapShaders.Add(ShadowMapShader);
+
+  ShadowMapShader.PrepareHash(FCodeHash);
 end;
 
 end.

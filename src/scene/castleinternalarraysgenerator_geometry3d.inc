@@ -1,6 +1,6 @@
 {%MainUnit castleinternalarraysgenerator.pas}
 {
-  Copyright 2002-2023 Michalis Kamburelis.
+  Copyright 2002-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -14,11 +14,23 @@
   ----------------------------------------------------------------------------
 }
 
-{ TVRMLArraysGenerator descendants implementing nodes in X3D "Geometry3D"
-  component. }
+{ Define TArraysGenerator descendants implementing nodes in X3D "Geometry3D"
+  component.
+
+  This means only one node right now: TIndexedFaceSetNode.
+  (Other nodes from X3D "Geometry3D" component are now handled by their
+  Proxy methods, so they are converted to other nodes before we generate
+  arrays for them.)
+
+  We also handle the VRML 1.0 counterpart of it, TIndexedFaceSetNode_1.
+}
 
 type
-  { Handling IndexedFaceSet for VRML <= 1.0 and >= 2.0.
+  { Handling IndexedFaceSet for all X3D / VRML versions.
+
+    This code accounts for both old and new IndexedFaceSet versions:
+    - Old: VRML 1.0 (and older Inventor) version in TIndexedFaceSetNode_1
+    - New: VRML 2.0 and X3D version in TIndexedFaceSetNode
 
     Note that this cannot deal with NorImplementation = niNone,
     you're expected to set NorImplementation to non-none in constructor.
@@ -31,9 +43,12 @@ type
     procedure PrepareIndexesTriangle1(const TriIndices: TVector3Integer);
     procedure PrepareIndexesTriangle2(const TriIndices: TVector3Integer);
 
-    { Add triangle indexes to IndexesFromCoordIndex, TrivialIndexesFromCoordIndex,
-      increase IFSNextIndex by 3. }
+    { Add 2 (AddLineIndexes) or 3 (AddTriangleIndexes) indexes to
+      - IndexesFromCoordIndex,
+      - TrivialIndexesFromCoordIndex,
+      - and increase IFSNextIndex by the number of new indexes (2 or 3). }
     procedure AddTriangleIndexes(const T0, T1, T2: UInt32);
+    procedure AddLineIndexes(const T0, T1: UInt32);
 
     procedure PrepareIndexesCoordsRange1(
       const RangeNumber: Cardinal; BeginIndex, EndIndex: Integer);
@@ -130,7 +145,7 @@ end;
 procedure TAbstractIndexedFaceSetGenerator.GenerateCoordinate;
 begin
   Geometry.InternalMakeCoordRanges(State,
-    {$ifdef FPC}@{$endif}GenerateCoordsRange);
+    {$ifdef FPC}@{$endif} GenerateCoordsRange);
 end;
 
 procedure TAbstractIndexedFaceSetGenerator.AutoGenerateNormals(
@@ -205,12 +220,18 @@ end;
 procedure TAbstractIndexedFaceSetGenerator.PrepareIndexesTriangle1(
   const TriIndices: TVector3Integer);
 begin
+  Assert(not WireframeShape); // this is not used when WireframeShape
   Inc(IFSIndexesCount, 3);
 end;
 
 procedure TAbstractIndexedFaceSetGenerator.PrepareIndexesCoordsRange1(
   const RangeNumber: Cardinal; BeginIndex, EndIndex: Integer);
 begin
+  if WireframeShape then
+  begin
+    { For each face edge, we need 2 indexes, to connect them. }
+    IFSIndexesCount := IFSIndexesCount + (EndIndex - BeginIndex) * 2;
+  end else
   if not FaceConvex then
   begin
     TriangulateFace(PInt32Array(CoordIndex.Items.Ptr(BeginIndex)),
@@ -218,12 +239,21 @@ begin
       {$ifdef FPC}@{$endif}PrepareIndexesTriangle1, BeginIndex);
   end else
   begin
+    { For each face triangle, we need 3 indexes. }
     IFSIndexesCount := IFSIndexesCount + Max(EndIndex - BeginIndex - 2, 0) * 3;
   end;
 end;
 
+procedure TAbstractIndexedFaceSetGenerator.AddLineIndexes(const T0, T1: UInt32);
+begin
+  Assert(WireframeShape); // this is only used when WireframeShape
+  TrivialIndexesFromCoordIndex.L[IFSNextIndex] := T0; IndexesFromCoordIndex.L[IFSNextIndex] := CoordIndex.Items.L[T0]; Inc(IFSNextIndex);
+  TrivialIndexesFromCoordIndex.L[IFSNextIndex] := T1; IndexesFromCoordIndex.L[IFSNextIndex] := CoordIndex.Items.L[T1]; Inc(IFSNextIndex);
+end;
+
 procedure TAbstractIndexedFaceSetGenerator.AddTriangleIndexes(const T0, T1, T2: UInt32);
 begin
+  Assert(not WireframeShape); // this is not used when WireframeShape
   TrivialIndexesFromCoordIndex.L[IFSNextIndex] := T0; IndexesFromCoordIndex.L[IFSNextIndex] := CoordIndex.Items.L[T0]; Inc(IFSNextIndex);
   TrivialIndexesFromCoordIndex.L[IFSNextIndex] := T1; IndexesFromCoordIndex.L[IFSNextIndex] := CoordIndex.Items.L[T1]; Inc(IFSNextIndex);
   TrivialIndexesFromCoordIndex.L[IFSNextIndex] := T2; IndexesFromCoordIndex.L[IFSNextIndex] := CoordIndex.Items.L[T2]; Inc(IFSNextIndex);
@@ -232,6 +262,7 @@ end;
 procedure TAbstractIndexedFaceSetGenerator.PrepareIndexesTriangle2(
   const TriIndices: TVector3Integer);
 begin
+  Assert(not WireframeShape); // this is not used when WireframeShape
   AddTriangleIndexes(
     TriIndices.X,
     TriIndices.Y,
@@ -246,6 +277,19 @@ var
 begin
   IFSNextIndexBegin := IFSNextIndex;
 
+  if WireframeShape then
+  begin
+    for I := BeginIndex to EndIndex - 2 do
+      AddLineIndexes(
+        I,
+        I + 1
+      );
+    // close face loop
+    AddLineIndexes(
+      EndIndex - 1,
+      BeginIndex
+    );
+  end else
   if not FaceConvex then
   begin
     TriangulateFace(PInt32Array(CoordIndex.Items.Ptr(BeginIndex)),
@@ -279,7 +323,11 @@ begin
   { calculate IFSIndexesCount by one iteration over coordIndex }
   IFSIndexesCount := 0;
   Geometry.InternalMakeCoordRanges(State,
-    {$ifdef FPC}@{$endif}PrepareIndexesCoordsRange1);
+    {$ifdef FPC}@{$endif} PrepareIndexesCoordsRange1);
+
+  if WireframeShape then
+    WireframeShapePrepareIndexesPrimitives;
+    // else let default Arrays.Primitive of gpTriangles remain
 
   if FacesNeeded then
   begin
@@ -294,7 +342,7 @@ begin
   TrivialIndexesFromCoordIndex.Count := IFSIndexesCount;
   IFSNextIndex := 0;
   Geometry.InternalMakeCoordRanges(State,
-    {$ifdef FPC}@{$endif}PrepareIndexesCoordsRange2);
+    {$ifdef FPC}@{$endif} PrepareIndexesCoordsRange2);
   Assert(IFSNextIndex = IFSIndexesCount);
 end;
 

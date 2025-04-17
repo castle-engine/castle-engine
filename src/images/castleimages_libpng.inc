@@ -1,6 +1,6 @@
 {%MainUnit castleimages.pas}
 {
-  Copyright 2002-2023 Michalis Kamburelis.
+  Copyright 2002-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -14,7 +14,14 @@
   ----------------------------------------------------------------------------
 }
 
-{ Handle PNG format using libpng. }
+{ Handle PNG format using libpng.
+
+  Important references:
+  - LibPng manual ( linked from http://www.libpng.org/pub/png/pngdocs.html ,
+    version for 1.2.5: http://www.libpng.org/pub/png/libpng-1.2.5-manual.html )
+  - PNG test suite ( http://www.schaik.com/pngsuite/ ).
+    It is easy to check with castle-image-viewer.
+}
 
 {$if defined(CASTLE_PNG_DYNAMIC) or defined(CASTLE_PNG_STATIC)}
 
@@ -30,30 +37,6 @@ type
 function CurrentLibpngVersion: PAnsiChar; forward;
 
 { Use all functions below ONLY when CastlePngInitialized = true. }
-
-{ }
-procedure png_transform_to_g1byte(png_ptr: png_structp; info_ptr: png_infop); forward;
-procedure png_transform_to_ga2byte(png_ptr: png_structp; info_ptr: png_infop); forward;
-
-{ Apply transformations in such a way that EVERY png format wil be converted to
-  RGB 8bit depth, no fill, no alpha.
-  So, paletted and grayscales must be converted, bytes got to have appriopriate
-  order, alpha channel must be applied and then thrown out.}
-procedure png_transform_to_rgb3byte(png_ptr: png_structp; info_ptr: png_infop); forward;
-
-{ Apply transformation to convert EVERY png to RGBA 8 byte depth.
-  So, paletted and grayscales must be converted, bytes got to have appriopriate
-  order and alpha channel must be added (=1.0) if it is not already present
-  in file. }
-procedure png_transform_to_rgba4byte(png_ptr: png_structp; info_ptr: png_infop); forward;
-
-{ png file has alpha info if it is has alpha channel (grayscale or rgb)
-  or if it has tRNS chunk (for paletted image this stores alpha values
-  for each palette color, for grayscale/rgb it determines one particular
-  color to mean "transparent"). Function below checks it. }
-function png_is_alpha(png_ptr: png_structp; info_ptr: png_infop): boolean; forward;
-
-function png_is_grayscale(png_ptr: png_structp; info_ptr: png_infop): boolean; forward;
 
 function PngColorTypeToStr(const PngColorType: Int32): string; forward;
 function PngInterlaceTypeToStr(const PngInterlaceType: Int32): string; forward;
@@ -74,44 +57,112 @@ begin
   Result := PAnsiChar(FCurrentLibpngVersion);
 end;
 
-{ ------------------------------------------------------------------------------------ }
+{ TPngFormat ----------------------------------------------------------------- }
 
-{ Kilka notek do pisania transformacji libpng :
+type
+  { Current image format information and transformations that change the format. }
+  TPngFormat = record
+  strict private
+    { Is BitDepth 8 or 16. }
+    function BitDepthFinal: Boolean;
 
-  pamietaj ze transformacje uaktualniaja stan strukturki png_ptr
-  (typu png_structp), natomiast nie uaktualniaja info_ptr
-  (typu png_infop). Jak po zaaplikowaniu transformacji w
-  uniwersalny sposob dowiedziec sie jaki mamy teraz ColorType
-  i BitDepth ? Wydaje sie ze sensowny sposob to png_read_update_info
-  a potem png_get_IHDR (samo png_get_IHDR nie wystarczy, musi byc
-  png_read_update_info aby uaktualnic strukturke info_ptr;
-  w ogole nie wiem po co png_get_IHDR pobiera jako parametr takze
-  png_ptr - na png_get_IHDR trzeba patrzec jako na rozkodowanie
-  wnetrza strukturki info_ptr) ale nie - read_update_info powoduje
-  niezrozumialy warning a potem sprawia ze poprawny odczyt jest
-  niemozliwy.
+    { Make sure you have grayscale image, with 8 / 16 bits.
+      Assumes we already have stripped palette, so it's "true" color per pixel.
 
-  po zaaplikowaniu kazdej transformacji musimy odswiezyc wartosc ColorType
-  i bitDepth. Niestety nie mozemy do tego uzywac png_read_update_info +
-  png_get_IHDR. Naprawde nie wiem czemu, ale
+      Alpha channel is never added/stripped by this, although it will
+      be converted to 8 / 16 bits too if exists. }
+    procedure RgbToGrayscale;
 
-  uzywanie png_read_update_info wiecej niz raz powoduje warningi
-  libpng "Ignoring extra png_read_update_info() call; row buffer not reallocated"
-  ktorych sens pozostaje dla mnie nieodgadniony (dlaczego je ignoruje ?
-  przeciez uaktualnia info_ptr a chyba taki jest sens tej funkcji ?).
-  Potem przy odczytywaniu obrazka jest blad "Decompression error"
-  wiec wniosek - nie uzywac png_read_update_info wiecej niz raz.
-  Czyli wolno tego uzywac tylko w taki sposob w jaki napisali w manualu -
-  jednorazowo, juz po wykonaniu wszystkich transformacji. }
+    { Make sure you have RGB (not grayscale) image, with 8 / 16 bits.
 
-{ Make sure you have grayscale image, with 8 bits per color.
+      Assumes we already have stripped palette, so it's "true" color per pixel.
 
-  Assumes we already have stripped palette, so it's "true" color per pixel.
+      Alpha channel is never added/stripped by this, although it will
+      be converted to 8 / 16 bits too if exists. }
+    procedure SomeGrayscaleToSomeRgb;
 
-  Alpha channel is never added/stripped by this, although it will
-  be converted to 8 bits too if exists. }
-procedure png_transform_rgb_to_grayscale8bit(png_ptr: png_structp;
-  var ColorType, BitDepth: UInt32);
+    { Remove alpha from image, if it has alpha. }
+    procedure RemoveAlpha;
+
+    { Removes palette from the image, making the image RGB (possibly with alpha). }
+    procedure PaletteToRgb;
+
+    { If we have tRNS chunk, and no alpha channel, convert it to alpha channel. }
+    procedure TrnsChunkToAlphaChannel;
+
+    { Add alpha channel (fully opaque), if no alpha chnannel exists now.
+      Should be done only after TrnsChunkToAlphaChannel, never before --
+      to let TrnsChunkToAlphaChannel have a chance to convert tRNS
+      to alpha channel. }
+    procedure AddAlphaIfNecessary;
+  public
+    { LibPng structures to pass around to LibPng functions. }
+    png_ptr: png_structp;
+    info_ptr: png_infop;
+
+    { Format information updated on our side.
+
+      Note that we need to update ColorType, BitDepth on our side,
+      after using any LibPng transformation functions (like png_set_rgb_to_gray_fixed).
+
+      Reason: The LibPng transformations:
+
+      - change png_ptr (png_structp).
+      - but don't change info_ptr (png_infop).
+
+      I had an idea once to use png_read_update_info and then png_get_IHDR
+      (the png_get_IHDR alone is definitely not good enough,
+      png_read_update_info must be done to update info_ptr).
+      But using png_read_update_info more than once causes warnings
+      """Ignoring extra png_read_update_info() call; row buffer not reallocated"""
+      And then we have errors when reading image """Decompression error""".
+      So we can use png_read_update_info only once.
+    }
+    ColorType, BitDepth: UInt32;
+    TrnsExists: Boolean;
+
+    procedure Init(const Apng_ptr: png_structp; const Ainfo_ptr: png_infop);
+
+    { Transform any PNG to grayscale, 8 / 16 bits. }
+    procedure AnyToGrayscale;
+
+    { Transform any PNG to grayscale + alpha, 8 / 16 bits. }
+    procedure AnyToGrayscaleAlpha;
+
+    { Transform any PNG to RGB, 8 / 16 bits.
+
+      This means:
+      - palette must be converted to non-palette,
+      - grayscale must be expanded to RGB,
+      - bytes got to have appropriate order,
+      - alpha channel must be thrown out. }
+    procedure AnyToRGB;
+
+    { Transform any PNG to RGBA, 8 / 16 bits.
+
+      This means:
+      - palette must be converted to non-palette,
+      - grayscale must be expanded to RGB,
+      - bytes got to have appropriate order,
+      - alpha channel must be added, if not already present in file, with full opaque. }
+    procedure AnyToRGBAlpha;
+  end;
+
+procedure TPngFormat.Init(const Apng_ptr: png_structp; const Ainfo_ptr: png_infop);
+begin
+  png_ptr := Apng_ptr;
+  info_ptr := Ainfo_ptr;
+  BitDepth := png_get_bit_depth(png_ptr, info_ptr);
+  ColorType := png_get_color_type(png_ptr, info_ptr);
+  TrnsExists := png_get_valid(png_ptr, info_ptr, PNG_INFO_tRNS) <> 0;
+end;
+
+function TPngFormat.BitDepthFinal: Boolean;
+begin
+  Result := (BitDepth = 8) or (BitDepth = 16);
+end;
+
+procedure TPngFormat.RgbToGrayscale;
 begin
   { rgb -> grayscale }
   if (ColorType and PNG_COLOR_MASK_COLOR) <> 0 then
@@ -140,23 +191,10 @@ begin
     BitDepth := 8;
   end;
 
-  {now he have grayscale 8/16 bitDepth + maybe alpha, maybe unapplied tRNS}
-  {rgb 16 bitdepth -> rgb 8 bitdepth}
-  if BitDepth = 16 then
-  begin
-    png_set_strip_16(png_ptr);
-    BitDepth := 8;
-  end;
+  { now he have grayscale 8/16 bitDepth + maybe alpha, maybe unapplied tRNS }
 end;
 
-{ Make sure you have RGB (not grayscale) image, with 8 bits per color.
-
-  Assumes we already have stripped palette, so it's "true" color per pixel.
-
-  Alpha channel is never added/stripped by this, although it will
-  be converted to 8 bits too if exists. }
-procedure png_transform_rgb_to_rgb8bit(png_ptr: png_structp;
-  var ColorType, BitDepth: UInt32);
+procedure TPngFormat.SomeGrayscaleToSomeRgb;
 begin
   { grayscale -> 8bit rgb }
   if (ColorType and PNG_COLOR_MASK_COLOR) = 0 then
@@ -180,18 +218,10 @@ begin
     ColorType := ColorType or PNG_COLOR_MASK_COLOR;
   end;
 
-  {now he have rgb 8/16 bitDepth + maybe alpha, maybe unapplied tRNS}
-  {rgb 16 bitdepth -> rgb 8 bitdepth}
-  if BitDepth = 16 then
-  begin
-    png_set_strip_16(png_ptr);
-    BitDepth := 8;
-  end;
+  { now he have rgb 8/16 bitDepth + maybe alpha, maybe unapplied tRNS }
 end;
 
-procedure png_transform_remove_alpha(png_ptr: png_structp;
-  info_ptr: png_infop;
-  var ColorType, BitDepth: UInt32);
+procedure TPngFormat.RemoveAlpha;
 var
   bKGD_col_ptr: png_color_16p;
   {my_background_col: png_color_16;}
@@ -279,12 +309,9 @@ begin
   end;
 end;
 
-{ Removes palette from the image, making the image RGB (possibly with alpha). }
-procedure png_transform_palette_to_rgb(png_ptr: png_structp;
-  info_ptr: png_infop;
-  var ColorType, BitDepth: UInt32);
+procedure TPngFormat.PaletteToRgb;
 begin
-  { palette -> rgb, maybe with alpha }
+  { palette -> true color (palette is always rgb 8 bit, maybe with alpha) }
   if (ColorType and PNG_COLOR_MASK_PALETTE) <> 0 then
   begin
     png_set_palette_to_rgb(png_ptr);
@@ -294,8 +321,11 @@ begin
       so here we can check whether we got RGB or RGBA by checking
       whether there exists tRNS chunk;
       Ufff; this was a bug corrected after a long day : 21.12.2002}
-    if png_get_valid(png_ptr, info_ptr, PNG_INFO_tRNS) <> 0 then
-      ColorType := PNG_COLOR_TYPE_RGB_ALPHA else
+    if TrnsExists then
+    begin
+      ColorType := PNG_COLOR_TYPE_RGB_ALPHA;
+      TrnsExists := false;
+    end else
       ColorType := PNG_COLOR_TYPE_RGB;
 
     { when expanding palette we always get 8 bit depth because pallete entries
@@ -304,169 +334,76 @@ begin
   end;
 end;
 
-procedure png_transform_to_g1byte(png_ptr: png_structp; info_ptr: png_infop);
-var
-  ColorType, BitDepth: UInt32;
+procedure TPngFormat.TrnsChunkToAlphaChannel;
 begin
-  BitDepth := png_get_bit_depth(png_ptr, info_ptr);
-  ColorType := png_get_color_type(png_ptr, info_ptr);
-
-  png_transform_palette_to_rgb(png_ptr, info_ptr, ColorType, BitDepth);
-  png_transform_rgb_to_grayscale8bit(png_ptr, ColorType, BitDepth);
-  png_transform_remove_alpha(png_ptr, info_ptr, ColorType, BitDepth);
-
-  { Test ColorType and BitDepth are as expected. }
-  Assert((ColorType = PNG_COLOR_TYPE_GRAY) and (BitDepth = 8),
-    'png_transform_to_g1byte failed to apply good png transformations');
-end;
-
-procedure png_transform_to_ga2byte(png_ptr: png_structp; info_ptr: png_infop);
-var
-  ColorType, BitDepth: UInt32;
-  TRNSHandled: boolean;
-begin
-  BitDepth := png_get_bit_depth(png_ptr, info_ptr);
-  ColorType := png_get_color_type(png_ptr, info_ptr);
-
-  { At the beginning: tRNS chunk is already handled if it doesn't
-    exist, right ? }
-  TRNSHandled := png_get_valid(png_ptr, info_ptr, PNG_INFO_tRNS) = 0;
-
-  { palette -> 8bit rgb }
-  if (ColorType and PNG_COLOR_MASK_PALETTE) <> 0 then
-  begin
-    png_set_palette_to_rgb(png_ptr);
-
-    { paletted images can contain alpha channel only using tRNS chunk
-      so here we can check whether we got RGB or RGBA by checking
-      whether there exists tRNS chunk;
-      Ufff; this was a bug corrected after a long day : 21.12.2002 }
-    if not TRNSHandled then
-    begin
-      ColorType := PNG_COLOR_TYPE_RGB_ALPHA;
-      TRNSHandled := true;
-    end else
-      ColorType := PNG_COLOR_TYPE_RGB;
-
-    { When expanding palette we always get 8 bit depth because
-      pallete entries are always in 8bit RGB }
-    BitDepth := 8;
-  end;
-
-  png_transform_rgb_to_grayscale8bit(png_ptr, ColorType, BitDepth);
-
-  if (not TRNSHandled) and
+  if TrnsExists and
      (ColorType and PNG_COLOR_MASK_ALPHA = 0) then
   begin
     png_set_tRNS_to_alpha(png_ptr);
-    TRNSHandled := true;
+    TrnsExists := false;
   end;
 
   { In case of some invalid image (Like an image with alpha channel
     and also tRNS chunk ? Does libPNG allow such things ?)
-    probably (not confirmed) I may be left here with TRNSHandled = false.
+    probably (not confirmed) we may be left here with TrnsExists = false.
     Ignore this. }
-
-  if (ColorType and PNG_COLOR_MASK_ALPHA = 0) and
-     (BitDepth = 8) then
-  begin
-    png_set_filler(png_ptr, High(byte), PNG_FILLER_AFTER);
-    ColorType := ColorType or PNG_COLOR_MASK_ALPHA;
-  end;
-
-  { Test ColorType and BitDepth are as expected. }
-  Assert((ColorType = PNG_COLOR_TYPE_GRAY_ALPHA) and (BitDepth = 8),
-    'png_transform_to_ga2byte failed to apply good png transformations');
 end;
 
-procedure png_transform_to_rgb3byte(png_ptr: png_structp; info_ptr: png_infop);
-var
-  ColorType, BitDepth: UInt32;
+procedure TPngFormat.AddAlphaIfNecessary;
 begin
-  BitDepth := png_get_bit_depth(png_ptr, info_ptr);
-  ColorType := png_get_color_type(png_ptr, info_ptr);
-
-  png_transform_palette_to_rgb(png_ptr, info_ptr, ColorType, BitDepth);
-  png_transform_rgb_to_rgb8bit(png_ptr, ColorType, BitDepth);
-  png_transform_remove_alpha(png_ptr, info_ptr, ColorType, BitDepth);
-
-  Assert((ColorType = PNG_COLOR_TYPE_RGB) and (BitDepth = 8),
-    'png_transform_to_rgb3byte failed to apply good png transformations');
-end;
-
-procedure png_transform_to_rgba4byte(png_ptr: png_structp; info_ptr: png_infop);
-var
-  ColorType, BitDepth: UInt32;
-  TRNSHandled: boolean;
-begin
-  BitDepth := png_get_bit_depth(png_ptr, info_ptr);
-  ColorType := png_get_color_type(png_ptr, info_ptr);
-
-  { At the beginning: tRNS chunk is already handled if it doesn't
-    exist, right ? }
-  TRNSHandled := png_get_valid(png_ptr, info_ptr, PNG_INFO_tRNS) = 0;
-
-  { palette -> 8bit rgb }
-  if (ColorType and PNG_COLOR_MASK_PALETTE) <> 0 then
+  if ColorType and PNG_COLOR_MASK_ALPHA = 0 then
   begin
-    png_set_palette_to_rgb(png_ptr);
-
-    { paletted images can contain alpha channel only using tRNS chunk
-      so here we can check whether we got RGB or RGBA by checking
-      whether there exists tRNS chunk;
-      Ufff; this was a bug corrected after a long day : 21.12.2002 }
-    if not TRNSHandled then
+    if BitDepth <= 8 then
+      png_set_filler(png_ptr, High(Byte), PNG_FILLER_AFTER)
+    else
     begin
-      ColorType := PNG_COLOR_TYPE_RGB_ALPHA;
-      TRNSHandled := true;
-    end else
-      ColorType := PNG_COLOR_TYPE_RGB;
-
-    { When expanding palette we always get 8 bit depth because
-      pallete entries are always in 8bit RGB }
-    BitDepth := 8;
-  end;
-
-  png_transform_rgb_to_rgb8bit(png_ptr, ColorType, BitDepth);
-
-  if (not TRNSHandled) and
-     (ColorType and PNG_COLOR_MASK_ALPHA = 0) then
-  begin
-    png_set_tRNS_to_alpha(png_ptr);
-    TRNSHandled := true;
-  end;
-
-  { In case of some invalid image (Like an image with alpha channel
-    and also tRNS chunk ? Does libPNG allow such things ?)
-    probably (not confirmed) I may be left here with TRNSHandled = false.
-    Ignore this. }
-
-  if (ColorType and PNG_COLOR_MASK_ALPHA = 0) and
-     (BitDepth = 8) then
-  begin
-    png_set_filler(png_ptr, High(byte), PNG_FILLER_AFTER);
+      Assert(BitDepth = 16); // there are no PNGs above 16-bit
+      png_set_filler(png_ptr, High(UInt16), PNG_FILLER_AFTER);
+    end;
     ColorType := ColorType or PNG_COLOR_MASK_ALPHA;
   end;
-
-  Assert((ColorType = PNG_COLOR_TYPE_RGB_ALPHA) and (BitDepth = 8),
-    'png_transform_to_rgba4byte failed to apply good png transformations');
 end;
 
-function png_is_grayscale(png_ptr: png_structp; info_ptr: png_infop): boolean;
-var
-  ColorType: UInt32;
+procedure TPngFormat.AnyToGrayscale;
 begin
-  ColorType := png_get_color_type(png_ptr, info_ptr);
-  Result := (ColorType and PNG_COLOR_MASK_COLOR) = 0;
+  PaletteToRgb;
+  RgbToGrayscale;
+  RemoveAlpha;
+  Assert(
+    (ColorType = PNG_COLOR_TYPE_GRAY) and BitDepthFinal,
+    'PngTransformAnyToGrayscale failed to apply good png transformations');
 end;
 
-function png_is_alpha(png_ptr: png_structp; info_ptr: png_infop): boolean;
-var
-  ColorType: UInt32;
+procedure TPngFormat.AnyToGrayscaleAlpha;
 begin
-  ColorType := png_get_color_type(png_ptr, info_ptr);
-  Result := ( (ColorType and PNG_COLOR_MASK_ALPHA) <> 0) or
-              (png_get_valid(png_ptr, info_ptr, PNG_INFO_tRNS) <> 0);
+  PaletteToRgb;
+  RgbToGrayscale;
+  TrnsChunkToAlphaChannel;
+  AddAlphaIfNecessary;
+  Assert(
+    (ColorType = PNG_COLOR_TYPE_GRAY_ALPHA) and BitDepthFinal,
+    'PngTransformAnyToGrayscaleAlpha failed to apply good png transformations');
+end;
+
+procedure TPngFormat.AnyToRGB;
+begin
+  PaletteToRgb;
+  SomeGrayscaleToSomeRgb;
+  RemoveAlpha;
+  Assert(
+    (ColorType = PNG_COLOR_TYPE_RGB) and BitDepthFinal,
+    'PngTransformAnyToRGB failed to apply good png transformations');
+end;
+
+procedure TPngFormat.AnyToRGBAlpha;
+begin
+  PaletteToRgb;
+  SomeGrayscaleToSomeRgb;
+  TrnsChunkToAlphaChannel;
+  AddAlphaIfNecessary;
+  Assert(
+    (ColorType = PNG_COLOR_TYPE_RGB_ALPHA) and BitDepthFinal,
+    'PngTransformAnyToRGBAlpha failed to apply good png transformations');
 end;
 
 { *ToStr -------------------------------------------------------------- }
@@ -567,12 +504,6 @@ end;
   is truncated; since we never give back to PNG the number of bytes read,
   it is obvious that we have to detect unexpected stream end ourselves). }
 
-{ We dereference here memory allocated with PNG, so pointer checks
-  will make false errors. }
-{$ifdef FPC}
-{$checkpointer off}
-{$endif}
-
 procedure our_png_read_fn(png_ptr: png_structp; data: png_bytep; len: png_size_t);
   {$ifndef LIBPNG_CDECL} stdcall {$else} cdecl {$endif};
 begin
@@ -592,11 +523,6 @@ begin
     but there is no "flush" method in TStream. }
 end;
 
-{$ifdef KAMBI_CHECK_POINTER}
-{ Turn checkpointer back on }
-{$checkpointer on}
-{$endif}
-
 { LoadPNG_LibPng ------------------------------------------------------------------- }
 
 function LoadPNG_LibPng(const Stream: TStream;
@@ -608,7 +534,7 @@ function LoadPNG_LibPng(const Stream: TStream;
   end;
 
 var
-  PNGResult: TCastleImage absolute Result;
+  ImgResult: TCastleImage absolute Result;
   AllocateWidth, AllocateHeight: Cardinal;
   png_ptr: png_structp;
   info_ptr: png_infop;
@@ -619,158 +545,332 @@ var
     When CheckTargetClass, it checks (and returns @true only when it is OK)
     whether ImageClass is in AllowedImageClasses. }
   function TransformPng(const ImageClass: TCastleImageClass; const CheckTargetClass: Boolean = true): boolean;
+  var
+    PngFormat: TPngFormat;
   begin
     Result := (not CheckTargetClass) or ClassAllowed(ImageClass);
 
     if Result then
     begin
-      PNGResult := ImageClass.Create(AllocateWidth, AllocateHeight);
-      if ImageClass = TGrayscaleImage then
-        png_transform_to_g1byte(png_ptr, info_ptr) else
-      if ImageClass = TGrayscaleAlphaImage then
-        png_transform_to_ga2byte(png_ptr, info_ptr) else
-      if ImageClass = TRGBImage then
-        png_transform_to_rgb3byte(png_ptr, info_ptr) else
-      if ImageClass = TRGBAlphaImage then
-        png_transform_to_rgba4byte(png_ptr, info_ptr);
+      ImgResult := ImageClass.Create(AllocateWidth, AllocateHeight);
+      PngFormat.Init(png_ptr, info_ptr);
+
+      if (ImageClass = TGrayscaleImage) or (ImageClass = TGrayscaleFloatImage) then
+        PngFormat.AnyToGrayscale
+      else
+      if (ImageClass = TGrayscaleAlphaImage) or (ImageClass = TGrayscaleAlphaFloatImage) then
+        PngFormat.AnyToGrayscaleAlpha
+      else
+      if (ImageClass = TRGBImage) or (ImageClass = TRGBFloatImage) then
+        PngFormat.AnyToRGB
+      else
+      if (ImageClass = TRGBAlphaImage) or (ImageClass = TRGBAlphaFloatImage) then
+        PngFormat.AnyToRGBAlpha;
     end;
   end;
 
-var
-  row_pointers: {$ifdef FPC}TFPList{$else}TList{$endif};
-  i: Cardinal;
-  IsAlpha, IsGrayscale: boolean;
-begin
- png_ptr := nil;
- try
-  { Passing here CurrentLibpngVersion (which is obtained by querying libpng
-    library) is a little trick.
-
-    Libpng docs instead advise to pass here PNG_LIBPNG_VER_STRING constant,
-    which should be a constant reflecing the libpng API version we have defined
-    in CastleInternalPng.
-    Then libpng would check whether version is compatible, and eventually
-    report error "png.h and png.c versions not compatible".
-
-    However, this check is too strict in our experience.
-    As we use only a tiny subset of libpng API (and dynamically check
-    for some functions existence, e.g. "Assigned(png_set_expand_gray_1_2_4_to_8)"),
-    we work with any libpng 1.x in practice now.
-    Our own version check (done in each CurrentLibpngVersion call)
-    is sufficient for us. }
-  png_ptr := png_create_read_struct(CurrentLibpngVersion,
-    nil { we could pass here data to warning/error handlers },
-    {$ifdef FPC} @ {$endif} our_png_error_fn,
-    {$ifdef FPC} @ {$endif} our_png_warning_fn);
-  Check( png_ptr <> nil, 'png_create_read_struct failed');
-
-  info_ptr := png_create_info_struct(png_ptr);
-  Check( info_ptr <> nil, 'png_create_info_struct failed');
-
-  png_set_read_fn(png_ptr, Stream,
-    {$ifdef FPC} @ {$endif} our_png_read_fn);
-
-  { Note: We could use png_set_read_status_fn to show progress bar of loading.
-    Doesn't seem actually necessary, PNG would have to be truly huge to matter. }
-
-  png_read_info(png_ptr, info_ptr);
-  AllocateWidth := png_get_image_width(png_ptr, info_ptr);
-  AllocateHeight := png_get_image_height(png_ptr, info_ptr);
-  Result := nil; // initialize Result to allow easier try..except syntax below
-
-  { Avoid the warning "Interlace handling should be turned on when using png_read_image"
-    on interlaced images.
-    See also:
-    https://sourceforge.net/p/libpng/bugs/165/
-      (the bug there can cause this warning in other cases too)
-    https://stackoverflow.com/questions/22125146/how-to-fix-libpng-warning-when-reading-interlaced-png }
-  png_set_interlace_handling(png_ptr);
-
-  try
-   IsAlpha := png_is_alpha(png_ptr, info_ptr);
-   IsGrayscale := png_is_grayscale(png_ptr, info_ptr);
-
-   { First, check to what TEncodedImage descendant our image file most matches.
-
-     If it's not on the list of allowed classes, try to transform
-     it to the most matching class. When doing this, we try to perform
-     the most lossless conversion --- this means that we prefer to
-     add image channel or expand grayscale->RGB than the other way around.
-     For example, if image file is grayscale+alpha, we prefer to make
-     it RGB+alpha (expand grayscale to RGB) than to grayscale (strip alpha).
-   }
-
-   if IsGrayScale then
-   begin
-     if IsAlpha then
-     begin
-       if not TransformPng(TGrayscaleAlphaImage) then
-       if not TransformPng(TRGBAlphaImage) then
-       if not TransformPng(TGrayscaleImage) then
-       if not TransformPng(TRGBImage) then
-         // ignore AllowedImageClasses if we cannot satisfy it, LoadEncodedImage will fix it
-         TransformPng(TGrayscaleAlphaImage, false);
-     end else
-     begin
-       if not TransformPng(TGrayscaleImage) then
-       if not TransformPng(TGrayscaleAlphaImage) then
-       if not TransformPng(TRGBImage) then
-       if not TransformPng(TRGBAlphaImage) then
-         // ignore AllowedImageClasses if we cannot satisfy it, LoadEncodedImage will fix it
-         TransformPng(TGrayscaleImage, false);
-     end;
-   end else
-   begin
-     if IsAlpha then
-     begin
-       if not TransformPng(TRGBAlphaImage) then
-       if not TransformPng(TRGBImage) then
-       if not TransformPng(TGrayscaleAlphaImage) then
-       if not TransformPng(TGrayscaleImage) then
-         // ignore AllowedImageClasses if we cannot satisfy it, LoadEncodedImage will fix it
-         TransformPng(TRGBAlphaImage, false);
-     end else
-     begin
-       if not TransformPng(TRGBImage) then
-       if not TransformPng(TRGBAlphaImage) then
-       if not TransformPng(TGrayscaleImage) then
-       if not TransformPng(TGrayscaleAlphaImage) then
-         // ignore AllowedImageClasses if we cannot satisfy it, LoadEncodedImage will fix it
-         TransformPng(TRGBImage, false);
-     end;
-   end;
-
-   png_read_update_info(png_ptr, info_ptr);
-   Assert(png_get_rowbytes(png_ptr, info_ptr) = PngResult.PixelSize * PngResult.Width,
-     SysUtils.Format('internal error : applied wrong png transformations, width '+
-       '%d with %d bytes per pixel gave row byte length %d instead of %d',
-       [ PngResult.Width, PngResult.PixelSize,
-         png_get_rowbytes(png_ptr, info_ptr),
-         PngResult.PixelSize * PngResult.Width]));
-
-   { now ready row_pointers as ScanLines }
-   row_pointers := {$ifdef FPC}TFPList{$else}TList{$endif}.Create;
-   try
-    row_pointers.Count := result.Height;
-    for i := 0 to result.Height-1 do
-     row_pointers[i] := PngResult.RowPtr(PngResult.Height -i -1);
-    { and go : uncompress image to result.data, therefore loading png image }
-    png_read_image(png_ptr, PPPng_Byte(row_pointers.List));
-   finally
-    row_pointers.Free;
-   end;
-
-   png_read_end(png_ptr, nil);
-  except Result.Free; raise end;
-
- finally
-  if png_ptr <> nil then
+  function PngIsGrayscale(const png_ptr: png_structp; const info_ptr: png_infop): Boolean;
+  var
+    ColorType: UInt32;
   begin
-   if info_ptr = nil then
-    png_destroy_read_struct(@png_ptr, nil, nil) else
-    png_destroy_read_struct(@png_ptr, @info_ptr, nil);
+    ColorType := png_get_color_type(png_ptr, info_ptr);
+    Result := (ColorType and PNG_COLOR_MASK_COLOR) = 0;
   end;
- end;
+
+  { PNG file has some alpha - either alpha channel (in addition to grayscale or rgb)
+    or if it has tRNS chunk (for paletted image this stores alpha values
+    for each palette color, for grayscale/rgb it determines one particular
+    color to mean "transparent"). }
+  function PngIsAlpha(const png_ptr: png_structp; const info_ptr: png_infop): Boolean;
+  var
+    ColorType: UInt32;
+  begin
+    ColorType := png_get_color_type(png_ptr, info_ptr);
+    Result := ( (ColorType and PNG_COLOR_MASK_ALPHA) <> 0) or
+                (png_get_valid(png_ptr, info_ptr, PNG_INFO_tRNS) <> 0);
+  end;
+
+  function PngImpliesFloatFormat(const png_ptr: png_structp; const info_ptr: png_infop): Boolean;
+  var
+    BitDepth: UInt32;
+  begin
+    BitDepth := png_get_bit_depth(png_ptr, info_ptr);
+    // There are no PNGs above 16-bit (if there will be, they'll need special handling)
+    Assert(BitDepth <= 16);
+    Result := BitDepth > 8;
+  end;
+
+  { Create ImgResult with the most suitable class, and apply libpng transformations
+    to make it match this class. }
+  procedure CreateAndTransform;
+  var
+    IsAlpha, IsGrayscale, IsFloat: boolean;
+  begin
+    IsAlpha := PngIsAlpha(png_ptr, info_ptr);
+    IsGrayscale := PngIsGrayscale(png_ptr, info_ptr);
+    IsFloat := PngImpliesFloatFormat(png_ptr, info_ptr);
+
+    { First, check to what TEncodedImage descendant our image file most matches.
+
+      If it's not on the list of allowed classes, try to transform
+      it to the most matching class. When doing this, we try to perform
+      the most lossless conversion --- this means that we prefer to
+      add image channel or expand grayscale->RGB than the other way around.
+      For example, if image file is grayscale+alpha, we prefer to make
+      it RGB+alpha (expand grayscale to RGB) than to grayscale (strip alpha).
+    }
+
+    if IsFloat then
+    begin
+      if IsGrayScale then
+      begin
+        if IsAlpha then
+        begin
+          if not TransformPng(TGrayscaleAlphaFloatImage) then
+          if not TransformPng(TRGBAlphaFloatImage) then
+          if not TransformPng(TGrayscaleFloatImage) then
+          if not TransformPng(TRGBFloatImage) then
+            // ignore AllowedImageClasses if we cannot satisfy it, LoadEncodedImage will fix it
+            TransformPng(TGrayscaleAlphaFloatImage, false);
+        end else
+        begin
+          if not TransformPng(TGrayscaleFloatImage) then
+          if not TransformPng(TGrayscaleAlphaFloatImage) then
+          if not TransformPng(TRGBFloatImage) then
+          if not TransformPng(TRGBAlphaFloatImage) then
+            // ignore AllowedImageClasses if we cannot satisfy it, LoadEncodedImage will fix it
+            TransformPng(TGrayscaleFloatImage, false);
+        end;
+      end else
+      begin
+        if IsAlpha then
+        begin
+          if not TransformPng(TRGBAlphaFloatImage) then
+          if not TransformPng(TRGBFloatImage) then
+          if not TransformPng(TGrayscaleAlphaFloatImage) then
+          if not TransformPng(TGrayscaleFloatImage) then
+            // ignore AllowedImageClasses if we cannot satisfy it, LoadEncodedImage will fix it
+            TransformPng(TRGBAlphaFloatImage, false);
+        end else
+        begin
+          if not TransformPng(TRGBFloatImage) then
+          if not TransformPng(TRGBAlphaFloatImage) then
+          if not TransformPng(TGrayscaleFloatImage) then
+          if not TransformPng(TGrayscaleAlphaFloatImage) then
+            // ignore AllowedImageClasses if we cannot satisfy it, LoadEncodedImage will fix it
+            TransformPng(TRGBFloatImage, false);
+        end;
+      end;
+    end else
+    begin
+      { IsFloat = false   }
+      if IsGrayScale then
+      begin
+        if IsAlpha then
+        begin
+          if not TransformPng(TGrayscaleAlphaImage) then
+          if not TransformPng(TRGBAlphaImage) then
+          if not TransformPng(TGrayscaleImage) then
+          if not TransformPng(TRGBImage) then
+            // ignore AllowedImageClasses if we cannot satisfy it, LoadEncodedImage will fix it
+            TransformPng(TGrayscaleAlphaImage, false);
+        end else
+        begin
+          if not TransformPng(TGrayscaleImage) then
+          if not TransformPng(TGrayscaleAlphaImage) then
+          if not TransformPng(TRGBImage) then
+          if not TransformPng(TRGBAlphaImage) then
+            // ignore AllowedImageClasses if we cannot satisfy it, LoadEncodedImage will fix it
+            TransformPng(TGrayscaleImage, false);
+        end;
+      end else
+      begin
+        if IsAlpha then
+        begin
+          if not TransformPng(TRGBAlphaImage) then
+          if not TransformPng(TRGBImage) then
+          if not TransformPng(TGrayscaleAlphaImage) then
+          if not TransformPng(TGrayscaleImage) then
+            // ignore AllowedImageClasses if we cannot satisfy it, LoadEncodedImage will fix it
+            TransformPng(TRGBAlphaImage, false);
+        end else
+        begin
+          if not TransformPng(TRGBImage) then
+          if not TransformPng(TRGBAlphaImage) then
+          if not TransformPng(TGrayscaleImage) then
+          if not TransformPng(TGrayscaleAlphaImage) then
+            // ignore AllowedImageClasses if we cannot satisfy it, LoadEncodedImage will fix it
+            TransformPng(TRGBImage, false);
+        end;
+      end;
+    end;
+  end;
+
+  { Convert 16-bit row (input) to a row with Single (output).
+    Contain Count values (on input and output). }
+  procedure ConvertRow16ToFloat(const Row16: PUInt16; const RowSingle: PSingle;
+    const Count: Cardinal);
+  var
+    Row16Ptr: PUInt16;
+    RowSinglePtr: PSingle;
+    I: Integer;
+  begin
+    Row16Ptr := Row16;
+    RowSinglePtr := RowSingle;
+    for I := 0 to Integer(Count) - 1 do
+    begin
+      // Integers in PNG are in big-endian order ( https://www.w3.org/TR/png/#7Integers-and-byte-order )
+      Row16Ptr^ := BEtoN(Row16Ptr^);
+      RowSinglePtr^ := Row16Ptr^ / High(UInt16);
+      Inc(Row16Ptr);
+      Inc(RowSinglePtr);
+    end;
+  end;
+
+  { Is Img encoded as floating-point values (we use this when PNG has 16-bit per channel). }
+  function IsImgFloat(const Img: TEncodedImage): Boolean;
+  begin
+    Result :=
+      (Img is TGrayscaleFloatImage) or
+      (Img is TGrayscaleAlphaFloatImage) or
+      (Img is TRGBFloatImage) or
+      (Img is TRGBAlphaFloatImage);
+  end;
+
+  { Check PNG reported row size in bytes is as we expect, as ReadRows expect.
+    If this check fails, then ReadRows cannot be run -- the memory layout
+    from LibPNG is not as it would expect. }
+  procedure CheckRowSize;
+  var
+    ImgPixelSize: Cardinal;
+  begin
+    ImgPixelSize := ImgResult.PixelSize;
+    { Account that for float images, we will read UInt16 per each Single
+      This in practice makes ImgPixelSize 2x smaller. }
+    if IsImgFloat(ImgResult) then
+       ImgPixelSize :=  ImgPixelSize * SizeOf(Uint16) div SizeOf(Single);
+
+    png_read_update_info(png_ptr, info_ptr);
+    if png_get_rowbytes(png_ptr, info_ptr) <> ImgPixelSize * ImgResult.Width then
+      raise EInternalError.CreateFmt('PNG transformations resulted in wrong row size. Our image class %s, width: %d, will be read using bytes per pixel: %d, row size: %d. PNG reported row size: %d', [
+        ImgResult.ClassName,
+        ImgResult.Width,
+        ImgPixelSize,
+        ImgPixelSize * ImgResult.Width,
+        png_get_rowbytes(png_ptr, info_ptr)
+      ]);
+  end;
+
+  { Read PNG rows and uncompress them to ImgResult data. }
+  procedure ReadRows;
+  var
+    RowPointers: {$ifdef FPC}TFPList{$else}TList{$endif};
+    I: Cardinal;
+    TempMemory16: Pointer;
+    RowSize16: PtrUInt;
+  begin
+    { now ready RowPointers as ScanLines }
+    RowPointers := {$ifdef FPC}TFPList{$else}TList{$endif}.Create;
+    try
+      RowPointers.Count := Result.Height;
+      // Handle 8-bit data
+      if (ImgResult is TGrayscaleImage) or
+         (ImgResult is TGrayscaleAlphaImage) or
+         (ImgResult is TRGBImage) or
+         (ImgResult is TRGBAlphaImage) then
+      begin
+        for I := 0 to Result.Height - 1 do
+          RowPointers[I] := ImgResult.RowPtr(ImgResult.Height - I - 1);
+        { Actually uncompress PNG data }
+        png_read_image(png_ptr, PPPng_Byte(RowPointers.List));
+      end else
+      // Handle 16-bit data that we load into float-based classes
+      begin
+        Assert(IsImgFloat(ImgResult));
+        RowSize16 := ImgResult.Width * ImgResult.ColorComponentsCount * SizeOf(UInt16);
+        TempMemory16 := GetMem(ImgResult.Height * RowSize16);
+        try
+          for I := 0 to Result.Height - 1 do
+            RowPointers[I] := Pointer(PtrUInt(TempMemory16) + I * RowSize16);
+          { Actually uncompress PNG data }
+          png_read_image(png_ptr, PPPng_Byte(RowPointers.List));
+          for I := 0 to Result.Height - 1 do
+            ConvertRow16ToFloat(RowPointers[I], ImgResult.RowPtr(ImgResult.Height - I - 1),
+              ImgResult.Width * ImgResult.ColorComponentsCount);
+        finally
+          FreeMemNiling(TempMemory16);
+        end;
+      end;
+    finally
+      FreeAndNil(RowPointers);
+    end;
+  end;
+
+begin
+  png_ptr := nil;
+  try
+    { Passing here CurrentLibpngVersion (which is obtained by querying libpng
+      library) is a little trick.
+
+      Libpng docs instead advise to pass here PNG_LIBPNG_VER_STRING constant,
+      which should be a constant reflecing the libpng API version we have defined
+      in CastleInternalPng.
+      Then libpng would check whether version is compatible, and eventually
+      report error "png.h and png.c versions not compatible".
+
+      However, this check is too strict in our experience.
+      As we use only a tiny subset of libpng API (and dynamically check
+      for some functions existence, e.g. "Assigned(png_set_expand_gray_1_2_4_to_8)"),
+      we work with any libpng 1.x in practice now.
+      Our own version check (done in each CurrentLibpngVersion call)
+      is sufficient for us. }
+    png_ptr := png_create_read_struct(CurrentLibpngVersion,
+      nil { we could pass here data to warning/error handlers },
+      {$ifdef FPC} @ {$endif} our_png_error_fn,
+      {$ifdef FPC} @ {$endif} our_png_warning_fn);
+    Check( png_ptr <> nil, 'png_create_read_struct failed');
+
+    info_ptr := png_create_info_struct(png_ptr);
+    Check( info_ptr <> nil, 'png_create_info_struct failed');
+
+    png_set_read_fn(png_ptr, Stream,
+      {$ifdef FPC} @ {$endif} our_png_read_fn);
+
+    { Note: We could use png_set_read_status_fn to show progress bar of loading.
+      Doesn't seem actually necessary, PNG would have to be truly huge to matter. }
+
+    png_read_info(png_ptr, info_ptr);
+    AllocateWidth := png_get_image_width(png_ptr, info_ptr);
+    AllocateHeight := png_get_image_height(png_ptr, info_ptr);
+    Result := nil; // initialize Result to allow easier try..except syntax below
+
+    { Avoid the warning "Interlace handling should be turned on when using png_read_image"
+      on interlaced images.
+      See also:
+      https://sourceforge.net/p/libpng/bugs/165/
+        (the bug there can cause this warning in other cases too)
+      https://stackoverflow.com/questions/22125146/how-to-fix-libpng-warning-when-reading-interlaced-png }
+    png_set_interlace_handling(png_ptr);
+
+    try
+      CreateAndTransform;
+      CheckRowSize;
+      ReadRows;
+      png_read_end(png_ptr, nil);
+    except
+      Result.Free;
+      raise;
+    end;
+
+  finally
+    if png_ptr <> nil then
+    begin
+      if info_ptr = nil then
+        png_destroy_read_struct(@png_ptr, nil, nil)
+      else
+        png_destroy_read_struct(@png_ptr, @info_ptr, nil);
+    end;
+  end;
 end;
 
 { SavePNG_LibPng --------------------------------------------------------------------- }
@@ -780,72 +880,76 @@ var
   png_ptr: png_structp;
   info_ptr: png_infop;
   InterlaceType: UInt32;
-  row_pointers: {$ifdef FPC}TFPList{$else}TList{$endif};
+  RowPointers: {$ifdef FPC}TFPList{$else}TList{$endif};
   i: Cardinal;
   ColorType: Int32;
 begin
   if not (Img is TCastleImage) then
     raise EImageSaveError.CreateFmt('Saving to PNG image class %s not possible', [Img.ClassName]);
 
- png_ptr := nil;
- try
-  png_ptr := png_create_write_struct(CurrentLibpngVersion,
-    nil { we could pass here data to warning/error handlers },
-    {$ifdef FPC} @ {$endif} our_png_error_fn,
-    {$ifdef FPC} @ {$endif} our_png_warning_fn);
-  Check( png_ptr <> nil, 'png_create_write_struct failed');
-
-  info_ptr := png_create_info_struct(png_ptr);
-  Check( info_ptr <> nil, 'png_create_info_struct failed');
-
-  png_set_write_fn(png_ptr, Stream,
-    {$ifdef FPC} @ {$endif} our_png_write_fn,
-    {$ifdef FPC} @ {$endif} our_png_flush_fn);
-
-  { TODO -- uzyj tu png_set_write_status_fn aby miec progressa }
-
-  if interlaced then
-   interlaceType := PNG_INTERLACE_ADAM7 else
-   interlaceType := PNG_INTERLACE_NONE;
-
-  if Img is TRGBImage then
-   ColorType := PNG_COLOR_TYPE_RGB else
-  if Img is TRGBAlphaImage then
-   ColorType := PNG_COLOR_TYPE_RGBA else
-  if Img is TGrayscaleImage then
-   ColorType := PNG_COLOR_TYPE_GRAY else
-  if Img is TGrayscaleAlphaImage then
-   ColorType := PNG_COLOR_TYPE_GRAY_ALPHA else
-   raise EImageSaveError.CreateFmt('Saving to PNG image class %s not possible', [Img.ClassName]);
-
-  png_set_IHDR(png_ptr, info_ptr, Img.Width, Img.Height, 8, ColorType,
-    interlaceType, PNG_COMPRESSION_TYPE_DEFAULT, PNG_FILTER_TYPE_DEFAULT);
-  png_write_info(png_ptr, info_ptr);
-
-  { After writing the header, we can write the image contents,
-    in the same format we use for TCastleImage.
-    This is much simpler than LoadPNG_LibPng, since we don't need to transform
-    the format, e.g. we just use always 8 bits per channel. }
-
-  row_pointers := {$ifdef FPC}TFPList{$else}TList{$endif}.Create;
+  png_ptr := nil;
   try
-   row_pointers.Count := Img.Height;
-   for i := 0 to Img.Height-1 do
-    row_pointers[i] := TCastleImage(Img).RowPtr(Img.Height-i-1);
-   png_write_image(png_ptr, PPPng_Byte(row_pointers.List));
-  finally
-   row_pointers.Free;
-  end;
+    png_ptr := png_create_write_struct(CurrentLibpngVersion,
+      nil { we could pass here data to warning/error handlers },
+      {$ifdef FPC} @ {$endif} our_png_error_fn,
+      {$ifdef FPC} @ {$endif} our_png_warning_fn);
+    Check( png_ptr <> nil, 'png_create_write_struct failed');
 
-  png_write_end(png_ptr, nil);
- finally
-  if png_ptr <> nil then
-  begin
-   if info_ptr <> nil then
-    png_destroy_write_struct(@png_ptr, @info_ptr) else
-    png_destroy_write_struct(@png_ptr, nil);
+    info_ptr := png_create_info_struct(png_ptr);
+    Check( info_ptr <> nil, 'png_create_info_struct failed');
+
+    png_set_write_fn(png_ptr, Stream,
+      {$ifdef FPC} @ {$endif} our_png_write_fn,
+      {$ifdef FPC} @ {$endif} our_png_flush_fn);
+
+    if interlaced then
+      interlaceType := PNG_INTERLACE_ADAM7
+    else
+      interlaceType := PNG_INTERLACE_NONE;
+
+    if Img is TRGBImage then
+      ColorType := PNG_COLOR_TYPE_RGB
+    else
+    if Img is TRGBAlphaImage then
+      ColorType := PNG_COLOR_TYPE_RGBA
+    else
+    if Img is TGrayscaleImage then
+      ColorType := PNG_COLOR_TYPE_GRAY
+    else
+    if Img is TGrayscaleAlphaImage then
+      ColorType := PNG_COLOR_TYPE_GRAY_ALPHA
+    else
+      raise EImageSaveError.CreateFmt('Saving to PNG image class %s not possible', [Img.ClassName]);
+
+    png_set_IHDR(png_ptr, info_ptr, Img.Width, Img.Height, 8, ColorType,
+      interlaceType, PNG_COMPRESSION_TYPE_DEFAULT, PNG_FILTER_TYPE_DEFAULT);
+    png_write_info(png_ptr, info_ptr);
+
+    { After writing the header, we can write the image contents,
+      in the same format we use for TCastleImage.
+      This is much simpler than LoadPNG_LibPng, since we don't need to transform
+      the format, e.g. we just use always 8 bits per channel. }
+
+    RowPointers := {$ifdef FPC}TFPList{$else}TList{$endif}.Create;
+    try
+      RowPointers.Count := Img.Height;
+      for i := 0 to Img.Height-1 do
+        RowPointers[i] := TCastleImage(Img).RowPtr(Img.Height-i-1);
+      png_write_image(png_ptr, PPPng_Byte(RowPointers.List));
+    finally
+      FreeAndNil(RowPointers);
+    end;
+
+    png_write_end(png_ptr, nil);
+  finally
+    if png_ptr <> nil then
+    begin
+      if info_ptr <> nil then
+        png_destroy_write_struct(@png_ptr, @info_ptr)
+      else
+        png_destroy_write_struct(@png_ptr, nil);
+    end;
   end;
- end;
 end;
 
 {$endif} // defined(CASTLE_PNG_DYNAMIC) or defined(CASTLE_PNG_STATIC)

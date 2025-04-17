@@ -23,7 +23,7 @@ interface
 
 uses DOM, Classes, Generics.Collections,
   CastleStringUtils, CastleImages, CastleUtils, CastleFindFiles, CastleColors,
-  CastleInternalTools,
+  CastleInternalTools, CastleUnicode,
   ToolServices, ToolAssocDocTypes;
 
 type
@@ -91,6 +91,8 @@ type
       DefaultFullscreenImmersive = true;
       DefaultDetectMemoryLeaks = false;
       DefaultMacAppBundle = true;
+      DefaultWebCanvasWidth = 960;
+      DefaultWebCanvasHeight = 540;
 
       { character sets }
       ControlChars = [#0 .. Chr(Ord(' ') - 1)];
@@ -142,9 +144,13 @@ type
       FDetectMemoryLeaks: Boolean;
       FMacAppBundle: Boolean;
       FProjectDependencies: TProjectDependencies;
+      FWebCanvasWidth, FWebCanvasHeight: Integer;
+      FWebHtmlContents: String;
 
     function DefaultQualifiedName(const AName: String): String;
     procedure CheckMatches(const Name, Value: String; const AllowedChars: TSetOfChars);
+    class procedure CheckUnicodeDoesNotContain(
+      const Name, Value: String; const DisallowedChars: TUnicodeCharList);
     procedure CheckValidQualifiedName(const OptionName: String; const QualifiedName: String);
     { Change compiler option @xxx to use absolute paths.
       Important for "castle-engine editor" where ExtraCompilerOptionsAbsolute is inserted
@@ -161,7 +167,7 @@ type
     const
       { Android SDK versions.
         See https://castle-engine.io/project_manifest#_android_information . }
-      DefaultAndroidCompileSdkVersion = 33;
+      DefaultAndroidCompileSdkVersion = 34;
       DefaultAndroidTargetSdkVersion = DefaultAndroidCompileSdkVersion;
       { See https://castle-engine.io/android_faq
         for reasons behind this minimal version. }
@@ -248,6 +254,10 @@ type
     property AndroidTargetSdkVersion: Cardinal read FAndroidTargetSdkVersion;
     property AndroidServices: TServiceList read FAndroidServices;
 
+    property WebCanvasWidth: Integer read FWebCanvasWidth;
+    property WebCanvasHeight: Integer read FWebCanvasHeight;
+    property WebHtmlContents: String read FWebHtmlContents;
+
     { Standalone source specified in CastleEngineManifest.xml.
       Most build tool code should use TCastleProject.StandaloneSourceFile instead,
       that can optionally auto-create the source file. }
@@ -317,6 +327,13 @@ type
     { Finds all Pascal files (units and includes -- not lpr / dpr for now).
       Returns a list with filenames relative to Path. }
     function FindPascalFiles: TStringList;
+
+    { Convert possible manifest value of standalone_source into implied Pascal
+      program name. }
+    class function StandaloneSourceToProgramName(const AStandaloneSource: String): String;
+
+    { Raise exception if AExecutableName not valid. }
+    class procedure CheckExecutableName(const AExecutableName: String);
   end;
 
 function CompilerToString(const C: TCompiler): String;
@@ -447,6 +464,8 @@ begin
   FFullscreenImmersive := DefaultFullscreenImmersive;
   FDetectMemoryLeaks := DefaultDetectMemoryLeaks;
   FMacAppBundle := DefaultMacAppBundle;
+  FWebCanvasWidth := DefaultWebCanvasWidth;
+  FWebCanvasHeight := DefaultWebCanvasHeight;
 
   FPath := InclPathDelim(APath);
   FPathUrl := FilenameToUriSafe(FPath);
@@ -769,6 +788,18 @@ begin
       FFreeDesktopCategories := Element.AttributeStringDef('categories', FFreeDesktopCategories);
       FFreeDesktopComment := Element.AttributeStringDef('comment', FFreeDesktopComment);
     end;
+
+    Element := Doc.DocumentElement.ChildElement('web', false);
+    if Element <> nil then
+    begin
+      FWebHtmlContents := Element.AttributeStringDef('html_contents', '');
+      ChildElement := Element.ChildElement('canvas', false);
+      if ChildElement <> nil then
+      begin
+        FWebCanvasWidth := ChildElement.AttributeIntegerDef('width', DefaultWebCanvasWidth);
+        FWebCanvasHeight := ChildElement.AttributeIntegerDef('height', DefaultWebCanvasHeight);
+      end;
+    end;
   finally FreeAndNil(Doc) end;
 
   CreateFinish;
@@ -823,6 +854,41 @@ begin
     if not (Value[I] in AllowedChars) then
       raise Exception.CreateFmt('Project %s contains invalid characters: "%s", this character is not allowed: "%s"',
         [Name, Value, SReadableForm(Value[I])]);
+end;
+
+class procedure TCastleManifest.CheckUnicodeDoesNotContain(
+  const Name, Value: String; const DisallowedChars: TUnicodeCharList);
+var
+  Iter: TCastleStringIterator;
+begin
+  Iter.Start(Value);
+  while Iter.GetNext do
+  begin
+    if DisallowedChars.IndexOf(Iter.Current) <> -1 then
+      raise Exception.CreateFmt('Project %s contains invalid characters: "%s", this character is not allowed: "%s"', [
+        Name,
+        Value,
+        UnicodeCharToReadableString(Iter.Current)
+      ]);
+  end;
+end;
+
+class procedure TCastleManifest.CheckExecutableName(const AExecutableName: String);
+var
+  DisallowedChars: TUnicodeCharList;
+  DisallowedChar: TUnicodeChar;
+begin
+  { Executable name can contain everything that is an allowed filename
+    on modern platforms.
+    See https://superuser.com/questions/358855/what-characters-are-safe-in-cross-platform-file-names-for-linux-windows-and-os .
+    In particular, most local (Chinese, Polish...) characters are OK. }
+  DisallowedChars := TUnicodeCharList.Create;
+  try
+    DisallowedChars.Add('\/:*?"<>|');
+    for DisallowedChar := 0 to 31 do // disallow null, ASCII control characters
+      DisallowedChars.Add(DisallowedChar);
+    CheckUnicodeDoesNotContain('executable_name', AExecutableName, DisallowedChars);
+  finally FreeAndNil(DisallowedChars) end;
 end;
 
 procedure TCastleManifest.CheckValidQualifiedName(const OptionName: String; const QualifiedName: String);
@@ -905,9 +971,17 @@ procedure TCastleManifest.CreateFinish;
 
   { Check correctness. }
   procedure CheckManifestCorrect;
+  var
+    ProgramName: String;
   begin
-    CheckMatches('name', Name                     , AlphaNum + ['_','-']);
-    CheckMatches('executable_name', ExecutableName, AlphaNum + ['_','-']);
+    { Note that project "name" can contain minus ("-")
+      character which is not allowed inside a Pascal identifier.
+      This is a deliberate feature (we like names like "castle-model-viewer").
+      When we have to derive some Pascal identifier from it, we use
+      MakeProjectPascalName , TCastleProject.NamePascal and related. }
+    CheckMatches('name', Name, AlphaNum + ['_','-']);
+
+    CheckExecutableName(ExecutableName);
 
     { non-filename stuff: allow also dots }
     CheckValidQualifiedName('qualified_name', QualifiedName);
@@ -915,6 +989,23 @@ procedure TCastleManifest.CreateFinish;
     { more user-visible stuff, where we allow spaces, local characters and so on }
     CheckMatches('caption', Caption, AllChars - ControlChars);
     CheckMatches('author', Author  , AllChars - ControlChars);
+
+    { StandaloneSource, if specified, determines the dpr filename
+      and (sans extension) the Pascal "program" declaration
+      (these 2 things have to match exactly, compilers check this when "program"
+      is specified, and we have to specify "program" otherwise Delphi IDE
+      breaks "uses" clause when adding units).
+      As such, it has to be a valid Pascal identifier. }
+    if StandaloneSource <> '' then
+    begin
+      ProgramName := StandaloneSourceToProgramName(StandaloneSource);
+      if not IsValidIdent(ProgramName) then
+        //raise Exception.CreateFmt
+        WritelnWarning('Program name "%s" (determined by standalone_source "%s" in CastleEngineManifest.xml) is not a valid Pascal identifier. This will be an error in future CGE versions, please rename your DPR / LPR.', [
+          ProgramName,
+          StandaloneSource
+        ]);
+    end;
 
     if AndroidMinSdkVersion > AndroidTargetSdkVersion then
       raise Exception.CreateFmt('Android min_sdk_version %d is larger than target_sdk_version %d, this is incorrect',
@@ -1064,6 +1155,13 @@ begin
   StringReplaceAllVar(Relative, '\', '/');
   {$endif}
   FindPascalFilesResult.Add(Relative);
+end;
+
+class function TCastleManifest.StandaloneSourceToProgramName(const AStandaloneSource: String): String;
+begin
+  { Use ExtractFileName to ignore path in AStandaloneSource
+    which is possible, user can specify path like "code/myprogram_standalone.lpr". }
+  Result := ExtractFileName(DeleteFileExt(AStandaloneSource));
 end;
 
 { globals -------------------------------------------------------------------- }

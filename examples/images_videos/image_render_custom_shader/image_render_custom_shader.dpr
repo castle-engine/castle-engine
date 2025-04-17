@@ -18,47 +18,62 @@
 
 uses SysUtils,
   CastleWindow, CastleControls, CastleGLShaders, CastleTimeUtils,
-  CastleFilesUtils, CastleUtils, CastleColors;
+  CastleFilesUtils, CastleUtils, CastleColors, CastleUiControls;
+
+{ TViewMain ------------------------------------------------------------------ }
+
+type
+  { View to handle events. }
+  TViewMain = class(TCastleView)
+  private
+    Image: TCastleImageControl;
+    Shader: TGLSLProgram;
+    LifeTime: TFloatTime;
+  public
+    procedure Start; override;
+    procedure GLContextOpen; override;
+    procedure GLContextClose; override;
+    procedure Update(const SecondsPassed: Single; var HandleInput: boolean); override;
+  end;
 
 var
-  Window: TCastleWindow;
-  Image: TCastleImageControl;
-  Shader: TGLSLProgram;
-  LifeTime: TFloatTime;
+  ViewMain: TViewMain;
 
-procedure ApplicationInitialize;
+procedure TViewMain.Start;
 var
   Background: TCastleRectangleControl;
 begin
+  inherited;
+
   // simple black background underneath
   Background := TCastleRectangleControl.Create(Application);
   Background.Color := Black;
   Background.FullSize := true;
-  Window.Controls.InsertFront(Background);
+  InsertFront(Background);
 
   Image := TCastleImageControl.Create(Application);
   Image.URL := 'castle-data:/test_texture.png';
   Image.Stretch := true;
   Image.FullSize := true;
-  Window.Controls.InsertFront(Image);
+  InsertFront(Image);
 end;
 
-procedure WindowOpen(Container: TCastleContainer);
+procedure TViewMain.GLContextOpen;
 begin
+  inherited;
+
   { Create TGLSLProgram instance.
 
     Note that the TGLSLProgram instance may only exist when OpenGL(ES) context
     is open. So it's cleanest to create / destroy TGLSLProgram in
-
-    - Window.OnOpen / Window.OnClose events,
-    - or overridden TCastleUserInterface.GLContextOpen / TCastleUserInterface.GLContextClose.
+    overridden TCastleUserInterface.GLContextOpen / TCastleUserInterface.GLContextClose.
 
     This approach will also work reliably on mobile platforms,
     when the OpenGLES context may be lost and recreated in the middle
     of the application too.
 
-    Note that Window.OnOpen occurs after Application.OnInitialize,
-    so Image (TCastleImageControl) is already created.
+    Note that these occur after Application.OnInitialize,
+    so Image (TCastleImageControl) is already created at this point.
   }
 
   Shader := TGLSLProgram.Create;
@@ -98,25 +113,33 @@ begin
   Image.CustomShader := Shader;
 end;
 
-procedure WindowClose(Container: TCastleContainer);
+procedure TViewMain.GLContextClose;
 begin
   FreeAndNil(Shader);
   Image.CustomShader := nil;
+  inherited;
 end;
 
-procedure WindowUpdate(Container: TCastleContainer);
+procedure TViewMain.Update(const SecondsPassed: Single; var HandleInput: boolean);
 begin
+  inherited;
   LifeTime := LifeTime +  Container.Fps.SecondsPassed;
   Shader.Uniform('life_time').SetValue(LifeTime);
 end;
 
+{ initialization --------------------------------------------------------------}
+
+var
+  Window: TCastleWindow;
+
+procedure ApplicationInitialize;
+begin
+  ViewMain := TViewMain.Create(Application);
+  Window.Container.View := ViewMain;
+end;
+
 begin
   Window := TCastleWindow.Create(Application);
-
   Application.OnInitialize := @ApplicationInitialize;
-  Window.OnOpen := @WindowOpen;
-  Window.OnClose := @WindowClose;
-  Window.OnUpdate := @WindowUpdate;
-
   Window.OpenAndRun;
 end.

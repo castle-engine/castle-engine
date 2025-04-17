@@ -46,7 +46,6 @@ end;
 procedure TCastleImageControlComponentEditor.ExecuteVerb(Index: Integer);
 var
   InheritedCount: Integer;
-  SavedUrl: String;
 begin
   InheritedCount := inherited GetVerbCount;
   if Index < InheritedCount then
@@ -54,9 +53,7 @@ begin
   else
   if Index = InheritedCount then
   begin
-    SavedUrl := (Component as TCastleImageControl).Url;
-    (Component as TCastleImageControl).Url := '';
-    (Component as TCastleImageControl).Url := SavedUrl;
+    (Component as TCastleImageControl).Content.ReloadUrl;
   end else
     WritelnWarning('TCastleImageControlComponentEditor.ExecuteVerb invalid verb index: %d', [Index]);
 end;

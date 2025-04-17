@@ -37,6 +37,10 @@ type
     procedure TestToleratingInvalidReferences;
     procedure TestPastePreserveReferences;
     procedure TestPastePreserveReferencesOutsideCopied;
+    procedure TestAssociateReferences;
+    procedure TestAssociateReferencesReuseDesign;
+    procedure TestSaveTransformNoDefaultVectors;
+    procedure TestSaveUiNoDefaultVectors;
   end;
 
 implementation
@@ -153,6 +157,12 @@ var
   TestOutputOwner: TComponent;
   TestInput, TestOutput: TMyComponent;
 begin
+  if not CanUseFileSystem then // for GetTempFileNameCheck
+  begin
+    AbortTest;
+    Exit;
+  end;
+
   TempFileName := GetTempFileNameCheck;
 
   TestInput := TMyComponent.Create(nil);
@@ -211,6 +221,12 @@ var
   LoadedUi: TCastleUserInterface;
   TempFileName: String;
 begin
+  if not CanUseFileSystem then // for GetTempFileNameCheck
+  begin
+    AbortTest;
+    Exit;
+  end;
+
   UiOwner := TComponent.Create(nil);
   try
     Ui := TCastleButton.Create(UiOwner);
@@ -254,6 +270,12 @@ var
   LoadedUi: TCastleUserInterface;
   TempFileName: String;
 begin
+  if not CanUseFileSystem then // for GetTempFileNameCheck
+  begin
+    AbortTest;
+    Exit;
+  end;
+
   UiOwner := TComponent.Create(nil);
   try
     Ui := TCastleButton.Create(UiOwner);
@@ -321,6 +343,12 @@ var
   ChildLabel: TCastleLabel;
   TempFileName: String;
 begin
+  if not CanUseFileSystem then // for GetTempFileNameCheck
+  begin
+    AbortTest;
+    Exit;
+  end;
+
   UiOwner := TComponent.Create(nil);
   try
     RootLabel := TCastleLabel.Create(UiOwner);
@@ -383,6 +411,12 @@ var
   TestInput, TestOutput: TMyComponent;
   TempFileName: String;
 begin
+  if not CanUseFileSystem then // for GetTempFileNameCheck
+  begin
+    AbortTest;
+    Exit;
+  end;
+
   TestInput := TMyComponent.Create(nil);
   try
     TestInput.Position := Vector3(1, 2, 3);
@@ -781,6 +815,155 @@ begin
     AssertEquals('blablabla', Label2.Caption);
     AssertTrue(Label2.CustomFont = MyFont);
   finally FreeAndNil(DesignOwner) end;
+end;
+
+type
+  TRocketDesign = class(TPersistent)
+  published
+    RocketRigidBody: TCastleRigidBody;
+    Sphere1: TCastleTransform;
+  end;
+
+procedure TTestCastleComponentSerialize.TestAssociateReferences;
+var
+  RocketsOwner: TComponent;
+  RocketsFactory: TCastleComponentFactory;
+  Rocket1: TCastleTransform;
+  RocketDesign1: TRocketDesign;
+  Rocket2: TCastleTransform;
+  RocketDesign2: TRocketDesign;
+begin
+  RocketsOwner := nil;
+  RocketDesign1 := nil;
+  RocketDesign2 := nil;
+  RocketsFactory := nil;
+  try
+    RocketsOwner := TComponent.Create(nil);
+
+    RocketsFactory := TCastleComponentFactory.Create(nil);
+    RocketsFactory.Url := 'castle-data:/designs/test_associate_references.castle-transform';
+
+    RocketDesign1 := TRocketDesign.Create;
+    Rocket1 := RocketsFactory.ComponentLoad(RocketsOwner, RocketDesign1) as TCastleTransform;
+    AssertTrue(RocketDesign1.RocketRigidBody <> nil);
+    AssertEquals('RocketRigidBody', RocketDesign1.RocketRigidBody.Name);
+    AssertTrue(RocketDesign1.Sphere1 <> nil);
+    AssertEquals('Sphere1', RocketDesign1.Sphere1.Name);
+
+    RocketDesign2 := TRocketDesign.Create;
+    Rocket2 := RocketsFactory.ComponentLoad(RocketsOwner, RocketDesign2) as TCastleTransform;
+    AssertTrue(RocketDesign2.RocketRigidBody <> nil);
+    AssertEquals('RocketRigidBody1', RocketDesign2.RocketRigidBody.Name);
+    AssertTrue(RocketDesign2.Sphere1 <> nil);
+    AssertEquals('Sphere2', RocketDesign2.Sphere1.Name);
+
+    { Both RocketDesign1 and RocketDesign2 should have different references,
+      despite Rocket1 and Rocket2 having the same owner. }
+    AssertTrue(RocketDesign1.RocketRigidBody <> RocketDesign2.RocketRigidBody);
+    AssertTrue(RocketDesign1.Sphere1 <> RocketDesign2.Sphere1);
+  finally
+    // can be freed early, and Rocket1 and Rocket2 remain valid
+    FreeAndNil(RocketDesign1);
+    FreeAndNil(RocketDesign2);
+    AssertTrue(Rocket1.Name <> '');
+    AssertTrue(Rocket2.Name <> '');
+
+    // factory can also be freed, and Rocket1 and Rocket2 remain valid
+    FreeAndNil(RocketsFactory);
+    AssertTrue(Rocket1.Name <> '');
+    AssertTrue(Rocket2.Name <> '');
+
+    FreeAndNil(RocketsOwner);
+  end;
+end;
+
+procedure TTestCastleComponentSerialize.TestAssociateReferencesReuseDesign;
+var
+  RocketsOwner: TComponent;
+  RocketsFactory: TCastleComponentFactory;
+  RocketDesign: TRocketDesign;
+  Rocket1: TCastleTransform;
+  Rocket2: TCastleTransform;
+begin
+  RocketsOwner := nil;
+  RocketDesign := nil;
+  RocketsFactory := nil;
+  try
+    RocketsOwner := TComponent.Create(nil);
+
+    RocketsFactory := TCastleComponentFactory.Create(nil);
+    RocketsFactory.Url := 'castle-data:/designs/test_associate_references.castle-transform';
+
+    RocketDesign := TRocketDesign.Create;
+
+    Rocket1 := RocketsFactory.ComponentLoad(RocketsOwner, RocketDesign) as TCastleTransform;
+    AssertTrue(RocketDesign.RocketRigidBody <> nil);
+    AssertEquals('RocketRigidBody', RocketDesign.RocketRigidBody.Name);
+    AssertTrue(RocketDesign.Sphere1 <> nil);
+    AssertEquals('Sphere1', RocketDesign.Sphere1.Name);
+
+    Rocket2 := RocketsFactory.ComponentLoad(RocketsOwner, RocketDesign) as TCastleTransform;
+    AssertTrue(RocketDesign.RocketRigidBody <> nil);
+    AssertEquals('RocketRigidBody1', RocketDesign.RocketRigidBody.Name);
+    AssertTrue(RocketDesign.Sphere1 <> nil);
+    AssertEquals('Sphere2', RocketDesign.Sphere1.Name);
+  finally
+    // can be freed early, and Rocket1 and Rocket2 remain valid
+    FreeAndNil(RocketDesign);
+    AssertTrue(Rocket1.Name <> '');
+    AssertTrue(Rocket2.Name <> '');
+
+    // factory can also be freed, and Rocket1 and Rocket2 remain valid
+    FreeAndNil(RocketsFactory);
+    AssertTrue(Rocket1.Name <> '');
+    AssertTrue(Rocket2.Name <> '');
+
+    FreeAndNil(RocketsOwner);
+  end;
+end;
+
+procedure TTestCastleComponentSerialize.TestSaveTransformNoDefaultVectors;
+var
+  T: TCastleTransform;
+  TAsString: String;
+begin
+  T := TCastleTransform.Create(nil);
+  try
+    T.Name := 'MyTransform';
+    TAsString := ComponentToString(T);
+    // make sure result is sensible
+    AssertTrue(Pos('"MyTransform"', TAsString) > 0);
+    // make sure result does not contain any vectors,
+    // it should not have to -- when everything is default,
+    // output should be simple, for easy diffs
+    AssertEquals(0, Pos('TCastleVector3Persistent', TAsString));
+    AssertEquals(0, Pos('TCastleVector4Persistent', TAsString));
+    AssertEquals(0, Pos('TCastleVector4RotationPersistent', TAsString));
+    AssertEquals(0, Pos('TCastleColorPersistent', TAsString));
+    AssertEquals(0, Pos('TCastleColorRGBPersistent', TAsString));
+  finally FreeAndNil(T) end;
+end;
+
+procedure TTestCastleComponentSerialize.TestSaveUiNoDefaultVectors;
+var
+  C: TCastleRectangleControl;
+  CAsString: String;
+begin
+  C := TCastleRectangleControl.Create(nil);
+  try
+    C.Name := 'MyControl';
+    CAsString := ComponentToString(C);
+    // make sure result is sensible
+    AssertTrue(Pos('"MyControl"', CAsString) > 0);
+    // make sure result does not contain any vectors,
+    // it should not have to -- when everything is default,
+    // output should be simple, for easy diffs
+    AssertEquals(0, Pos('TCastleVector3Persistent', CAsString));
+    AssertEquals(0, Pos('TCastleVector4Persistent', CAsString));
+    AssertEquals(0, Pos('TCastleVector4RotationPersistent', CAsString));
+    AssertEquals(0, Pos('TCastleColorPersistent', CAsString));
+    AssertEquals(0, Pos('TCastleColorRGBPersistent', CAsString));
+  finally FreeAndNil(C) end;
 end;
 
 initialization

@@ -3,6 +3,8 @@ set -eu
 
 # -----------------------------------------------------------------
 # Test compilation of various CGE CastleWindow backends.
+# Assumes $CASTLE_ENGINE_PATH is set.
+# Current directory doesn't matter.
 # -----------------------------------------------------------------
 
 TEST_PROJECT=examples/viewport_and_scenes/view_3d_model_advanced/
@@ -79,10 +81,11 @@ do_test_all_backends ()
   do_test_one_backend win64 x86_64 CASTLE_WINDOW_FORM
 }
 
+cd "${CASTLE_ENGINE_PATH}"
+
 # make sure no leftover compilation remains with some specific CASTLE_WINDOW_*
 make clean
 
-cd "${CASTLE_ENGINE_PATH}"
 ./tools/build-tool/castle-engine_compile.sh
 BUILD_TOOL="${CASTLE_ENGINE_PATH}/tools/build-tool/castle-engine"
 

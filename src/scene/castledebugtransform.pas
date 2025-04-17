@@ -1,5 +1,5 @@
 {
-  Copyright 2006-2023 Michalis Kamburelis.
+  Copyright 2006-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -18,7 +18,7 @@ unit CastleDebugTransform;
 
 interface
 
-uses Classes,
+uses Classes, Generics.Collections,
   CastleTransform, CastleBoxes, X3DNodes, CastleScene, CastleVectors, CastleColors;
 
 type
@@ -194,6 +194,8 @@ type
     property BoxColor: TCastleColor read FBoxColor write SetBoxColor;
     procedure ChangedScene;
   end;
+
+  TDebugTransformBoxList = {$ifdef FPC}specialize{$endif} TObjectList<TDebugTransformBox>;
 
   { Like TDebugTransformBox, but visualizes also additional properties.
     This is useful to visualize typical properties of TCastleTransform
@@ -486,7 +488,7 @@ begin
   if Exists and (Parent is TCastleCamera) then
   begin
     DistanceToCameraSqr := PointsDistanceSqr(
-      Params.Transform^.MultPoint(TVector3.Zero),
+      Params.Transformation^.Transform.MultPoint(TVector3.Zero),
       Params.RenderingCamera.View.Translation
     );
     GizmoVisible := DistanceToCameraSqr > Sqr(DistanceToHide);

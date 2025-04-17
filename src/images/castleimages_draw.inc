@@ -21,8 +21,8 @@
 const
   SErrBlendModeNotImplemented = 'Blend mode not implemented (drawing from image class %s to %s)';
 
-procedure TCastleImage.DrawFromCore(Source: TCastleImage;
-  X, Y, SourceX, SourceY, SourceWidth, SourceHeight: Integer;
+procedure TCastleImage.DrawFromCore(const Source: TCastleImage;
+  const X, Y, SourceX, SourceY, SourceWidth, SourceHeight: Integer;
   const Mode: TDrawMode);
 var
   aLine: Integer;
@@ -52,7 +52,7 @@ begin
   end;
 end;
 
-procedure TCastleImage.DrawFrom(Source: TCastleImage;
+procedure TCastleImage.DrawFrom(const Source: TCastleImage;
   X, Y, SourceX, SourceY, SourceWidth, SourceHeight: Integer;
   const Mode: TDrawMode);
 begin
@@ -94,13 +94,22 @@ begin
     DrawFromCore(Source, X, Y, SourceX, SourceY, SourceWidth, SourceHeight, Mode);
 end;
 
-procedure TCastleImage.DrawFrom(Source: TCastleImage; const X, Y: Integer;
+procedure TCastleImage.DrawFrom(const Source: TCastleImage;
+  const X, Y: Integer; const SourceRect: TRectangle;
+  const Mode: TDrawMode = dmBlend);
+begin
+  DrawFrom(Source, X, Y,
+    SourceRect.Left, SourceRect.Bottom, SourceRect.Width, SourceRect.Height,
+    Mode);
+end;
+
+procedure TCastleImage.DrawFrom(const Source: TCastleImage; const X, Y: Integer;
   const Mode: TDrawMode);
 begin
   DrawFrom(Source, X, Y, 0, 0, Source.Width, Source.Height, Mode);
 end;
 
-procedure TCastleImage.DrawTo(Destination: TCastleImage; const X, Y: Integer;
+procedure TCastleImage.DrawTo(const Destination: TCastleImage; const X, Y: Integer;
   const Mode: TDrawMode);
 begin
   Destination.DrawFrom(Self, X, Y, Mode);
@@ -176,8 +185,8 @@ end;
 
 { Drawing when TRGBAlphaImage is a destination ------------------------------- }
 
-procedure TRGBAlphaImage.DrawFromCore(Source: TCastleImage;
-  X, Y, SourceX, SourceY, SourceWidth, SourceHeight: Integer;
+procedure TRGBAlphaImage.DrawFromCore(const Source: TCastleImage;
+  const X, Y, SourceX, SourceY, SourceWidth, SourceHeight: Integer;
   const Mode: TDrawMode);
 
   procedure SourceRGB(Source: TRGBImage);
@@ -651,8 +660,8 @@ end;
 
 { Drawing when TRGBImage is a destination ------------------------------------ }
 
-procedure TRGBImage.DrawFromCore(Source: TCastleImage;
-  X, Y, SourceX, SourceY, SourceWidth, SourceHeight: Integer;
+procedure TRGBImage.DrawFromCore(const Source: TCastleImage;
+  const X, Y, SourceX, SourceY, SourceWidth, SourceHeight: Integer;
   const Mode: TDrawMode);
 
   procedure SourceRGB(Source: TRGBImage);
@@ -1045,8 +1054,8 @@ end;
 
 { Drawing when TGrayscaleImage is a destination ------------------------------ }
 
-procedure TGrayscaleImage.DrawFromCore(Source: TCastleImage;
-  X, Y, SourceX, SourceY, SourceWidth, SourceHeight: Integer;
+procedure TGrayscaleImage.DrawFromCore(const Source: TCastleImage;
+  const X, Y, SourceX, SourceY, SourceWidth, SourceHeight: Integer;
   const Mode: TDrawMode);
 
   procedure SourceRGBAlpha(Source: TRGBAlphaImage);
@@ -1421,8 +1430,8 @@ end;
 
 { Drawing when TGrayscaleAlphaImage is a destination ------------------------------- }
 
-procedure TGrayscaleAlphaImage.DrawFromCore(Source: TCastleImage;
-  X, Y, SourceX, SourceY, SourceWidth, SourceHeight: Integer;
+procedure TGrayscaleAlphaImage.DrawFromCore(const Source: TCastleImage;
+  const X, Y, SourceX, SourceY, SourceWidth, SourceHeight: Integer;
   const Mode: TDrawMode);
 
   procedure SourceRGB(Source: TRGBImage);

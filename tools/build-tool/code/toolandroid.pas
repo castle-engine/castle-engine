@@ -1,5 +1,5 @@
 {
-  Copyright 2014-2022 Michalis Kamburelis.
+  Copyright 2014-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -21,8 +21,8 @@ unit ToolAndroid;
 interface
 
 uses Classes,
-  CastleUtils, CastleStringUtils,
-  ToolArchitectures, ToolCompile, ToolPackageFormat, ToolProject,
+  CastleUtils, CastleStringUtils, CastleInternalArchitectures,
+  ToolCompile, ToolPackageFormat, ToolProject,
   ToolManifest;
 
 { Compile (for all possible Android CPUs) Android unit or library.
@@ -51,7 +51,13 @@ procedure InstallAndroid(const Project: TCastleProject;
   const PackageMode: TCompilationMode;
   const PackageFormat: TPackageFormatNoDefault; const PackageNameIncludeVersion: Boolean);
 
+procedure UnInstallAndroid(const Project: TCastleProject);
+
 procedure RunAndroid(const Project: TCastleProject);
+
+{ Output list of Android devices, like "adb devices" does.
+  This detects adb executable and runs it. }
+procedure WritelnAndroidDevices;
 
 implementation
 
@@ -621,10 +627,17 @@ begin
     to avoid failures because apk signed with different keys (debug vs release). }
 
   Writeln('Reinstalling application identified as "' + Project.QualifiedName + '".');
-  Writeln('If this fails, an often cause is that a previous development version of the application, signed with a different key, remains on the device. In this case uninstall it first (note that it will clear your UserConfig data, unless you use -k) by "adb uninstall ' + Project.QualifiedName + '"');
+  Writeln('If this fails, an often cause is that a previous development version of the application, signed with a different key, remains on the device. In this case uninstall it first by "castle-engine uninstall" or "adb uninstall ' + Project.QualifiedName + '". Note that it will clear your UserConfig data, unless you pass -k to "adb".');
   Flush(Output); // don't mix output with adb output
   RunCommandSimple(AdbExe, ['install', '-r', PackageName]);
   Writeln('Install successful.');
+end;
+
+procedure UnInstallAndroid(const Project: TCastleProject);
+begin
+  Writeln('Uninstalling Android application identified as "' + Project.QualifiedName + '".');
+  RunCommandSimple(AdbExe, ['uninstall', Project.QualifiedName]);
+  Writeln('Uninstall successful.');
 end;
 
 procedure RunAndroid(const Project: TCastleProject);
@@ -635,17 +648,40 @@ begin
   RunCommandSimple(AdbExe, ['shell', 'am', 'start',
     '-a', 'android.intent.action.MAIN',
     '-n', Project.QualifiedName + '/' + ActivityName ]);
-  Writeln('Run successful.');
+  Writeln('Android application successfully started.');
 
   LogTag := Copy(Project.Name, 1, MaxAndroidTagLength);
 
-  Writeln('Running "adb logcat -s ' + LogTag + ':V".');
-  Writeln('We are assuming that your ApplicationName is "' + Project.Name + '".');
-  Writeln('Break this process with Ctrl+C.');
+  Writeln('Running "adb logcat -s ' + LogTag + ':V" (so we assume your ApplicationName is "' + Project.Name + '").');
+  Flush(Output); // flush, otherwise it would not appear before "adb logcat" output
 
-  { run through ExecuteProcess, because we don't want to capture output,
-    we want to immediately pass it to user }
-  ExecuteProcess(AdbExe, ['logcat', '-s', LogTag + ':V']);
+  { Initial implementation run this through ExecuteProcess,
+    because we don't want to capture output,
+    we want to immediately pass it to user.
+
+    Later implementation relies on RunCommandSimple, this way
+    we pass new ChildProcessId to EditorUtils, since it writelns the magic string
+    'Castle Game Engine Internal: ProcessID: ...' . And passing this
+    ChildProcessId to EditorUtils allows better behavior when using "Stop"
+    in CGE editor that runs Android application:
+
+    1. Without it, it seems that killing "castle-engine run" doesn't kill "adb logcat...",
+      it is left running in the background (and wasting resources).
+
+    2. Moreover, actually CGE editor would have wrong ChildProcessId,
+      leftover from previous ADB execution that started the execution.
+      We could introduce a new magic message like
+      'Stopped: Castle Game Engine Internal: ProcessID: ...'
+      but it would not solve issue AD 1 above.
+  }
+  //ExecuteProcess(AdbExe, ['logcat', '-s', LogTag + ':V']);
+  RunCommandSimple(AdbExe, ['logcat', '-s', LogTag + ':V']);
+end;
+
+procedure WritelnAndroidDevices;
+begin
+  Writeln('Detecting Android devices:');
+  RunCommandSimple(AdbExe, ['devices']);
 end;
 
 end.

@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2024 Michalis Kamburelis.
+  Copyright 2015-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -24,8 +24,20 @@
 {$ifdef read_interface}
 
   strict private
+    function GetAutoRefresh: TFloatTime;
+    procedure SetAutoRefresh(const Value: TFloatTime);
+    function GetAutoRefreshTimeLimit: TFloatTime;
+    procedure SetAutoRefreshTimeLimit(const Value: TFloatTime);
+    function GetBboxDisplay: Boolean;
+    procedure SetBboxDisplay(const Value: Boolean);
+    function GetDescription: String;
+    procedure SetDescription(const Value: String);
+    function GetGlobal: Boolean;
+    procedure SetGlobal(const Value: Boolean);
     function GetLoad: Boolean;
     procedure SetLoad(const Value: Boolean);
+    function GetVisible: Boolean;
+    procedure SetVisible(const Value: Boolean);
     function GetBBox: TBox3D;
     procedure SetBBox(const Value: TBox3D);
   public
@@ -33,19 +45,55 @@
     procedure CreateNode; override;
     class function ClassX3DType: String; override;
 
+    strict private FFdAutoRefresh: TSFTime;
+    { Internal wrapper for property @code(AutoRefresh). This wrapper API may change, we advise to access simpler @code(AutoRefresh) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
+    public property FdAutoRefresh: TSFTime read FFdAutoRefresh;
+    { Not implemented. Interval in seconds between automatically reloading the content. }
+    property AutoRefresh: TFloatTime read GetAutoRefresh write SetAutoRefresh;
+
+    strict private FFdAutoRefreshTimeLimit: TSFTime;
+    { Internal wrapper for property @code(AutoRefreshTimeLimit). This wrapper API may change, we advise to access simpler @code(AutoRefreshTimeLimit) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
+    public property FdAutoRefreshTimeLimit: TSFTime read FFdAutoRefreshTimeLimit;
+    { Not implemented. Maximum duration that automatic refresh activity can take. }
+    property AutoRefreshTimeLimit: TFloatTime read GetAutoRefreshTimeLimit write SetAutoRefreshTimeLimit;
+
+    strict private FFdBboxDisplay: TSFBool;
+    { Internal wrapper for property @code(BboxDisplay). This wrapper API may change, we advise to access simpler @code(BboxDisplay) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
+    public property FdBboxDisplay: TSFBool read FFdBboxDisplay;
+    { Not implemented. Display the bounding box of the inline object. }
+    property BboxDisplay: Boolean read GetBboxDisplay write SetBboxDisplay;
+
+    strict private FFdDescription: TSFString;
+    { Internal wrapper for property @code(Description). This wrapper API may change, we advise to access simpler @code(Description) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
+    public property FdDescription: TSFString read FFdDescription;
+    { Textual description of the inlined content. }
+    property Description: String read GetDescription write SetDescription;
+
+    strict private FFdGlobal: TSFBool;
+    { Internal wrapper for property @code(Global). This wrapper API may change, we advise to access simpler @code(Global) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
+    public property FdGlobal: TSFBool read FFdGlobal;
+    { Not implemented. Whether lights contained in the Inline scene are allowed to have external lighting effects or not. }
+    property Global: Boolean read GetGlobal write SetGlobal;
+
     strict private FFdLoad: TSFBool;
     { Internal wrapper for property @code(Load). This wrapper API may change, we advise to access simpler @code(Load) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdLoad: TSFBool read FFdLoad;
-    {  }
+    { Partially implemented. When @false, defers when the referenced content is read and displayed. }
     property Load: Boolean read GetLoad write SetLoad;
 
     strict private FFdUrl: TMFString;
     { Internal wrapper for property @code(Url). This wrapper API may change, we advise to access simpler @code(Url) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdUrl: TMFString read FFdUrl;
-    {  }
+    { URL of the content to be loaded. Multiple URLs can be provided, each one will be tried in turn. }
     procedure SetUrl(const Value: array of string); overload;
-    {  }
+    { URL of the content to be loaded. Multiple URLs can be provided, each one will be tried in turn. }
     procedure SetUrl(const Value: TCastleStringList); overload;
+
+    strict private FFdVisible: TSFBool;
+    { Internal wrapper for property @code(Visible). This wrapper API may change, we advise to access simpler @code(Visible) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
+    public property FdVisible: TSFBool read FFdVisible;
+    { Not implemented. Whether or not the content within a node is visually displayed. The value of this field has no effect on animation behaviors, collision behaviors, event passing, or other non-visual characteristics. }
+    property Visible: Boolean read GetVisible write SetVisible;
 
     strict private FFdBboxCenter: TSFVec3f;
     { Internal wrapper for property @code(BboxCenter). This wrapper API may change, we advise to access simpler @code(BboxCenter) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
@@ -62,6 +110,56 @@
 {$ifdef read_implementation}
 
 { TInlineNode ----------------------------------------------- }
+
+function TInlineNode.GetAutoRefresh: TFloatTime;
+begin
+  Result := FdAutoRefresh.Value;
+end;
+
+procedure TInlineNode.SetAutoRefresh(const Value: TFloatTime);
+begin
+  FdAutoRefresh.Send(Value);
+end;
+
+function TInlineNode.GetAutoRefreshTimeLimit: TFloatTime;
+begin
+  Result := FdAutoRefreshTimeLimit.Value;
+end;
+
+procedure TInlineNode.SetAutoRefreshTimeLimit(const Value: TFloatTime);
+begin
+  FdAutoRefreshTimeLimit.Send(Value);
+end;
+
+function TInlineNode.GetBboxDisplay: Boolean;
+begin
+  Result := FdBboxDisplay.Value;
+end;
+
+procedure TInlineNode.SetBboxDisplay(const Value: Boolean);
+begin
+  FdBboxDisplay.Send(Value);
+end;
+
+function TInlineNode.GetDescription: String;
+begin
+  Result := FdDescription.Value;
+end;
+
+procedure TInlineNode.SetDescription(const Value: String);
+begin
+  FdDescription.Send(Value);
+end;
+
+function TInlineNode.GetGlobal: Boolean;
+begin
+  Result := FdGlobal.Value;
+end;
+
+procedure TInlineNode.SetGlobal(const Value: Boolean);
+begin
+  FdGlobal.Send(Value);
+end;
 
 function TInlineNode.GetLoad: Boolean;
 begin
@@ -81,6 +179,16 @@ end;
 procedure TInlineNode.SetUrl(const Value: TCastleStringList);
 begin
   FdUrl.Send(Value);
+end;
+
+function TInlineNode.GetVisible: Boolean;
+begin
+  Result := FdVisible.Value;
+end;
+
+procedure TInlineNode.SetVisible(const Value: Boolean);
+begin
+  FdVisible.Send(Value);
 end;
 
 function TInlineNode.GetBBox: TBox3D;
@@ -106,13 +214,37 @@ procedure TInlineNode.CreateNode;
 begin
   inherited;
 
+  FFdAutoRefresh := TSFTime.Create(Self, True, 'autoRefresh', 0.0);
+   FdAutoRefresh.ChangeAlways := chNone;
+  AddField(FFdAutoRefresh);
+
+  FFdAutoRefreshTimeLimit := TSFTime.Create(Self, True, 'autoRefreshTimeLimit', 3600.0);
+   FdAutoRefreshTimeLimit.ChangeAlways := chNone;
+  AddField(FFdAutoRefreshTimeLimit);
+
+  FFdBboxDisplay := TSFBool.Create(Self, True, 'bboxDisplay', false);
+   FdBboxDisplay.ChangeAlways := chNone;
+  AddField(FFdBboxDisplay);
+
+  FFdDescription := TSFString.Create(Self, True, 'description', '');
+   FdDescription.ChangeAlways := chNone;
+  AddField(FFdDescription);
+
+  FFdGlobal := TSFBool.Create(Self, True, 'global', false);
+   FdGlobal.ChangeAlways := chNone;
+  AddField(FFdGlobal);
+
   FFdLoad := TSFBool.Create(Self, True, 'load', true);
-   FdLoad.ChangeAlways := chVisibleNonGeometry;
+   FdLoad.ChangeAlways := chNone;
   AddField(FFdLoad);
 
   FFdUrl := TMFString.Create(Self, True, 'url', []);
    FdUrl.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdUrl);
+
+  FFdVisible := TSFBool.Create(Self, True, 'visible', true);
+   FdVisible.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdVisible);
 
   FFdBboxCenter := TSFVec3f.Create(Self, False, 'bboxCenter', Vector3(0, 0, 0));
    FdBboxCenter.ChangeAlways := chVisibleNonGeometry;

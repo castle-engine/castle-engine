@@ -27,14 +27,11 @@ uses Classes;
   Matches are added in the order of regular expression sub-expressions.
   Match number 0 is the entire matched string (substring of S).
 
-  When compiled with FPC, this uses FPC RegExpr unit with TRegExpr class.
-  When compiled with Delphi, this uses Delphi RegularExpressions unit with TRegEx record.
-
-  @bold(The FPC and Delphi implementations are not guaranteed to be perfectly compatible.)
-  Using this routine is only safe for the subset of regular expressions that are compatible
-  between FPC and Delphi implementations.
-  That is also why we don't add such thing to CGE, it would be too fragile.
-  But it is good enough for check_package tool. }
+  Regardless of the compiler (FPC or Delphi) and the built-in regular expression
+  in that compiler's RTL, this uses the CastleRegexpr unit,
+  originally developed by Andrey V. Sorokin.
+  This way our regular expression handling is fully consistent
+  between FPC and Delphi. }
 function StringMatchesRegexp(const S, RegexpPattern: String;
   const Matches: TStrings): Boolean;
 
@@ -62,6 +59,23 @@ begin
       for I := 0 to R.SubExprMatchCount do
         Matches.Add(R.Match[I]);
     end;
+
+    {.$define CASTLE_DEBUG_REGEXP}
+    {$ifdef CASTLE_DEBUG_REGEXP}
+    if Result then
+    begin
+      Writeln(Format('String "%s" matches "%s" with %d subexpressions:', [
+        S,
+        RegexpPattern,
+        R.SubExprMatchCount
+      ]));
+      for I := 0 to R.SubExprMatchCount do
+        Writeln(Format('  Match[%d] = "%s"', [
+          I,
+          R.Match[I]
+        ]));
+    end;
+    {$endif CASTLE_DEBUG_REGEXP}
   finally FreeAndNil(R) end;
 end;
 

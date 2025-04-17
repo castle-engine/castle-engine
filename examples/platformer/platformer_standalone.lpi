@@ -13,6 +13,48 @@
       <SessionStorage Value="InProjectDir"/>
       <Title Value="platformer"/>
     </General>
+    <BuildModes Count="2">
+      <Item1 Name="Debug" Default="True"/>
+      <Item2 Name="Release">
+        <CompilerOptions>
+          <Version Value="11"/>
+          <Target>
+            <Filename Value="platformer"/>
+          </Target>
+          <SearchPaths>
+            <IncludeFiles Value="code/"/>
+            <OtherUnitFiles Value="code/"/>
+            <UnitOutputDirectory Value="castle-engine-output/standalone/lazarus-lib/$(TargetCPU)-$(TargetOS)"/>
+            <Libraries Value="" />
+          </SearchPaths>
+          <CodeGeneration>
+            <SmartLinkUnit Value="True"/>
+            <Checks>
+              <IOChecks Value="True"/>
+            </Checks>
+            <Optimizations>
+              <OptimizationLevel Value="2"/>
+            </Optimizations>
+          </CodeGeneration>
+          <Linking>
+            <Debugging>
+              <GenerateDebugInfo Value="False"/>
+              <RunWithoutDebug Value="True"/>
+              <StripSymbols Value="True"/>
+            </Debugging>
+            <LinkSmart Value="True"/>
+          </Linking>
+          <Other>
+            <Verbosity>
+              <ShowHints Value="False"/>
+            </Verbosity>
+            <CustomOptions Value="-dRELEASE
+
+"/>
+          </Other>
+        </CompilerOptions>
+      </Item2>
+    </BuildModes>
     <RequiredPackages Count="2">
       <Item1>
         <PackageName Value="castle_window"/>
@@ -21,7 +63,7 @@
         <PackageName Value="castle_base"/>
       </Item2>
     </RequiredPackages>
-    <Units Count="15">
+    <Units Count="16">
       <Unit0>
         <Filename Value="platformer_standalone.dpr"/>
         <IsPartOfProject Value="True"/>
@@ -62,40 +104,45 @@
         <UnitName Value="gamesound"/>
       </Unit7>
       <Unit8>
+        <Filename Value="code/gameviewcontrolshelp.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="gameviewcontrolshelp"/>
+      </Unit8>
+      <Unit9>
         <Filename Value="code/gameviewcredits.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="gameviewcredits"/>
-      </Unit8>
-      <Unit9>
+      </Unit9>
+      <Unit10>
         <Filename Value="code/gameviewgameover.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="gameviewgameover"/>
-      </Unit9>
-      <Unit10>
+      </Unit10>
+      <Unit11>
         <Filename Value="code/gameviewlevelcomplete.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="gameviewlevelcomplete"/>
-      </Unit10>
-      <Unit11>
+      </Unit11>
+      <Unit12>
         <Filename Value="code/gameviewmenu.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="gameviewmenu"/>
-      </Unit11>
-      <Unit12>
+      </Unit12>
+      <Unit13>
         <Filename Value="code/gameviewoptions.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="gameviewoptions"/>
-      </Unit12>
-      <Unit13>
+      </Unit13>
+      <Unit14>
         <Filename Value="code/gameviewpause.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="gameviewpause"/>
-      </Unit13>
-      <Unit14>
+      </Unit14>
+      <Unit15>
         <Filename Value="code/gameviewplay.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="gameviewplay"/>
-      </Unit14>
+      </Unit15>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
@@ -119,18 +166,22 @@
         <IOChecks Value="True"/>
         <RangeChecks Value="True"/>
         <OverflowChecks Value="True"/>
+        <StackChecks Value="True"/>
       </Checks>
+      <VerifyObjMethodCallValidity Value="True"/>
     </CodeGeneration>
     <Linking>
       <Debugging>
-        <DebugInfoType Value="dsDwarf2Set"/>
+        <DebugInfoType Value="dsDwarf3"/>
+        <UseExternalDbgSyms Value="True"/>
       </Debugging>
     </Linking>
     <Other>
       <Verbosity>
         <ShowHints Value="False"/>
       </Verbosity>
-      <CustomOptions Value="
+      <CustomOptions Value="-dDEBUG
+
 "/>
     </Other>
   </CompilerOptions>

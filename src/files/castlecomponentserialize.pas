@@ -127,13 +127,17 @@ type
     JsonObject: TJsonObject;
     procedure SetUrl(const Value: String);
   private
-    function InternalComponentLoad(const InstanceOwner: TComponent;
+    function InternalComponentLoad(
+      const InstanceOwner: TComponent;
+      const AssociateReferences: TPersistent;
       const LoadInfo: TInternalComponentLoadInfo): TComponent;
   public
     { Main constructor.
       Does not load anything immediately.
       Set @link(Url) or call @link(LoadFromStream) to load component. }
     constructor Create(AOwner: TComponent); overload; override;
+
+    function PropertySections(const PropertyName: String): TPropertySections; override;
 
     // Avoid Delphi warnings about constructor hiding.
     // In the long-run, these deprecated constructors should be removed,
@@ -146,16 +150,6 @@ type
     {$warnings on}
 
     destructor Destroy; override;
-
-    { Load design from given URL.
-      Set to '' to clear the loaded component.
-
-      If you set up localization (see https://castle-engine.io/manual_text.php#section_localization_gettext ),
-      then upon loading, the design will be automatically localized using
-      the translation group derived from URL base name. E.g. loading
-      @code("castle-data:/foo/my_design.castle-user-interface") will use translation
-      group @code("my_design"). }
-    property Url: String read FUrl write SetUrl;
 
     { Load design from given TStream.
 
@@ -188,10 +182,120 @@ type
       @link(CastleComponentSerialize.ComponentLoad),
       but it is much faster if you want to instantiate the same file many times.
 
-      Newly created component will be owned by InstanceOwner.
+      Newly created component will be owned by InstanceOwner (it can be @nil,
+      in which case you have to free it manually).
       Do not confuse this with the owner of this TCastleComponentFactory
-      -- which may be the same or different component. }
-    function ComponentLoad(const InstanceOwner: TComponent): TComponent;
+      -- which may be the same or different component.
+
+      If AssociateReferences is not @nil,
+      then published fields within AssociateReferences that match
+      the names of components within the loaded design will be set.
+
+      The @code(InstanceOwner) is useful for 2 things:
+
+      @orderedList(
+        @item(To manage memory (freeing the InstanceOwner will also free
+          the loaded component).)
+
+        @item(And to search for named components.
+          All the loaded components are owned by InstanceOwner
+          and you can query for them using @code(InstanceOwner.FindComponent)
+          or @code(InstanceOwner.FindRequiredComponent).
+
+          Note that loaded components are renamed,
+          if necessary, to be unique within InstanceOwner
+          --- this is important if your InstanceOwner owns other things as well.
+          If you want to reliably search for names, make sure to use
+          different InstanceOwner for each load. Or use @code(AssociateReferences)
+          instead.)
+      )
+
+      For example, this example creates an owner dedicated for refering to
+      names in the given instance of a Rock:
+
+      @longCode(#
+      procedure SpawnRock;
+      var
+        RockOwner: TComponent;
+        Rock: TCastleTransform;
+        RockRigidBody: TCastleRigidBody;
+        SceneToRotate: TCastleTransform;
+      begin
+        RockOwner := TComponent.Create(Self);
+        Rock := RockFactory.ComponentLoad(RockOwner) as TCastleTransform;
+        RockRigidBody := RockOwner.FindRequiredComponent('RockRigidBody') as TCastleRigidBody;
+        SceneToRotate := RockOwner.FindRequiredComponent('SceneToRotate') as TCastleTransform;
+        // here use RockRigidBody, SceneToRotate
+      end;
+      #)
+
+      The @code(AssociateReferences) is useful to connect, at load time,
+      the names of components within the loaded design to published fields
+      inside AssociateReferences.
+      Compared to using @code(InstanceOwner.FindComponent)
+      or @code(InstanceOwner.FindRequiredComponent) for the same purpose:
+
+      @unorderedList(
+        @item(It is simpler to use, because you don't need to manage
+          the InstanceOwner lifetime.
+
+          This matters in case you created InstanceOwner only for
+          the purpose of loading the given design.
+
+          The @code(AssociateReferences) instance can be freed immediately
+          after the load, and it will not affect the loaded components.
+          Or you can keep it existing for a longer time, and reuse
+          for loading all components -- it will not mess anything,
+          as loaded components are not renamed to be unique within it.
+        )
+
+        @item(
+          Associates the original component names, regardless of whether
+          they later required renaming to be unique within InstanceOwner.
+
+          This matters in case your InstanceOwner owns many other things.
+        )
+
+        @item(Note also one disadvantage of @code(AssociateReferences):
+          It doesn't check that field type matches.
+          If a field name has a typo, it will be just left @nil,
+          causing "Access Violation" if you try to access it.)
+      )
+
+      For example:
+
+      @longCode(#
+      type
+        TRockDesign = class(TPersistent)
+        published
+          SceneToRotate: TCastleTransform;
+          RockRigidBody: TCastleRigidBody;
+        end;
+
+      procedure SpawnRock;
+      var
+        Rock: TCastleTransform;
+        RockDesign: TRockDesign;
+      begin
+        RockDesign := TRockDesign.Create;
+        try
+          Rock := RockFactory.ComponentLoad(Self, RockDesign) as TCastleTransform;
+          // here use RockDesign.RockRigidBody, RockDesign.SceneToRotate
+        finally FreeAndNil(RockDesign) end;
+      end;
+      #) }
+    function ComponentLoad(const InstanceOwner: TComponent;
+      const AssociateReferences: TPersistent = nil): TComponent;
+  published
+    { Load design from given URL.
+      Set to '' to clear the loaded component.
+
+      If you set up localization (see https://castle-engine.io/manual_text.php#section_localization_gettext ),
+      then upon loading, the design will be automatically localized using
+      the translation group derived from URL base name. E.g. loading
+      @code("castle-data:/foo/my_design.castle-user-interface") will use translation
+      group @code("my_design"). }
+    property Url: String read FUrl write SetUrl;  
   end;
 
   TSerializedComponent = TCastleComponentFactory deprecated 'use TCastleComponentFactory';
@@ -394,6 +498,8 @@ type
       private
         Reader: TCastleJsonReader;
       end;
+    var
+      ComponentNames: TStringList;
     { Events called by FJsonDeStreamer }
     procedure GetObject(AObject: TObject; Info: PPropInfo;
       AData: TJsonObject; DataName: TJsonStringType; var AValue: TObject);
@@ -424,6 +530,7 @@ type
         procedure ReadWriteList(const Key: String;
           const ListEnumerate: TSerializationProcess.TListEnumerateEvent; const ListAdd: TSerializationProcess.TListAddEvent;
           const ListClear: TSerializationProcess.TListClearEvent); override;
+        function InternalHasNonEmptySet(const Key: String): Boolean; override;
       end;
       TSerializationProcessReaderList = {$ifdef FPC}specialize{$endif} TObjectList<TSerializationProcessReader>;
 
@@ -432,7 +539,6 @@ type
       ResolveObjectProperties: TResolveObjectPropertyList;
       SerializationProcessPool: TSerializationProcessReaderList;
       SerializationProcessPoolUsed: Integer;
-      ComponentNames: TStringList;
 
     { Find component name in ComponentNames.
 
@@ -617,6 +723,15 @@ begin
       ListAdd(Child);
     end;
   end;
+end;
+
+function TCastleJsonReader.TSerializationProcessReader.InternalHasNonEmptySet(
+  const Key: String): Boolean;
+var
+  JsonChildren: TJsonArray;
+begin
+  JsonChildren := CurrentlyReading.Find(Key, jtArray) as TJsonArray;
+  Result := (JsonChildren <> nil) and (JsonChildren.Count > 0);
 end;
 
 procedure TCastleJsonReader.BeforeReadObject(
@@ -999,6 +1114,14 @@ begin
   inherited;
 end;
 
+function TCastleComponentFactory.PropertySections(const PropertyName: String): TPropertySections;
+begin
+  if ArrayContainsString(PropertyName, ['Url']) then
+    Result := [psBasic]
+  else
+    Result := inherited PropertySections(PropertyName);
+end;
+
 constructor TCastleComponentFactory.Create(const AUrl: String);
 begin
   Create(nil);
@@ -1060,13 +1183,35 @@ begin
   JsonObject := ComponentToJson(Template);
 end;
 
-function TCastleComponentFactory.ComponentLoad(const InstanceOwner: TComponent): TComponent;
+function TCastleComponentFactory.ComponentLoad(const InstanceOwner: TComponent;
+  const AssociateReferences: TPersistent): TComponent;
 begin
-  Result := InternalComponentLoad(InstanceOwner, nil);
+  Result := InternalComponentLoad(InstanceOwner, AssociateReferences, nil);
 end;
 
-function TCastleComponentFactory.InternalComponentLoad(const InstanceOwner: TComponent;
+function TCastleComponentFactory.InternalComponentLoad(
+  const InstanceOwner: TComponent;
+  const AssociateReferences: TPersistent;
   const LoadInfo: TInternalComponentLoadInfo): TComponent;
+
+  { Set AssociateReferences fields matching component names in ComponentNames. }
+  procedure MakeAssociateReferences(const ComponentNames: TStringList);
+  var
+    I: Integer;
+    FieldAddr: ^TComponent;
+  begin
+    for I := 0 to ComponentNames.Count - 1 do
+    begin
+      FieldAddr := AssociateReferences.FieldAddress(ComponentNames[I]);
+      if FieldAddr <> nil then
+      begin
+        //Assert(FieldAddr^ = nil); // may not be true, user can reuse AssociateReferences
+        Assert(ComponentNames.Objects[I] is TComponent); // also checks ComponentNames.Objects[I] <> nil
+        FieldAddr^ := ComponentNames.Objects[I] as TComponent;
+      end;
+    end;
+  end;
+
 var
   Reader: TCastleJsonReader;
 begin
@@ -1082,6 +1227,9 @@ begin
     Reader.DeStreamer.JsonToObject(JsonObject, Result);
 
     Reader.FinishResolvingComponentProperties;
+
+    if AssociateReferences <> nil then
+      MakeAssociateReferences(Reader.ComponentNames);
 
     if Assigned(OnInternalTranslateDesign) and (FTranslationGroupName <> '') then
       OnInternalTranslateDesign(Result, FTranslationGroupName);
@@ -1109,7 +1257,7 @@ begin
     Factory := TCastleComponentFactory.Create(nil);
     try
       Factory.LoadFromStream(ContentsStringStream, '');
-      Result := Factory.InternalComponentLoad(Owner, LoadInfo);
+      Result := Factory.InternalComponentLoad(Owner, nil, LoadInfo);
     finally FreeAndNil(Factory) end;
   finally FreeAndNil(ContentsStringStream) end;
 end;
@@ -1174,6 +1322,7 @@ type
           const ListEnumerate: TSerializationProcess.TListEnumerateEvent;
           const ListAdd: TSerializationProcess.TListAddEvent;
           const ListClear: TSerializationProcess.TListClearEvent); override;
+        function InternalHasNonEmptySet(const AKey: String): Boolean; override;
       end;
       TSerializationProcessWriterList = {$ifdef FPC}specialize{$endif} TObjectList<TSerializationProcessWriter>;
 
@@ -1258,6 +1407,18 @@ begin
   CurrentlyWritingArray := nil; // will be created on-demand
   Key := AKey;
   ListEnumerate({$ifdef FPC}@{$endif}WriteItem);
+end;
+
+function TCastleJsonWriter.TSerializationProcessWriter.InternalHasNonEmptySet(const AKey: String): Boolean;
+var
+  JsonChildren: TJsonArray;
+begin
+  JsonChildren := CurrentlyWriting.Find(Key, jtArray) as TJsonArray;
+  Result := (JsonChildren <> nil) and (JsonChildren.Count > 0);
+
+  // With the current usage, it is unexpected if this results true ever.
+  if Result then
+    WritelnWarning('InternalHasNonEmptySet is only used for "Spatial" backward compatibility now, and at writing the "Spatial" should never be present.');
 end;
 
 constructor TCastleJsonWriter.Create;
@@ -1521,6 +1682,7 @@ end;
 initialization
   // not useful: RegisterSerializableComponent(TComponent, 'Component (Basic)');
   RegisterSerializableComponent(TCastleComponent, 'Component (Group)');
+  RegisterSerializableComponent(TCastleComponentFactory, 'Factory');
 finalization
   FreeAndNil(FRegisteredComponents);
 end.

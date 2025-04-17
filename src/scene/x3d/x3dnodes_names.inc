@@ -74,27 +74,38 @@
       else. So this assumes that node can only be bound (if at all)
       only to it's own name, which is true during parsing
       (when nothing can change in the middle of parsing). }
-    function Bound(Node: TX3DNode): boolean; overload;
+    function Bound(const Node: TX3DNode): boolean; overload;
 
     function DeepCopy(const CopyState: TX3DNodeDeepCopyState): TX3DNodeNames;
   end;
 
-  TX3DPrototypeNames = class(TStringListCaseSens)
+  { List of prototype names, mapping to TX3DPrototypeBase instances.
+    Case-sensitive, just like X3D prototype names are. }
+  TX3DPrototypeNames = class(TStringList)
   public
-    procedure Bind(Proto: TX3DPrototypeBase);
+    constructor Create;
+
+    { Bind prototype to its name.
+      If the name was already bound to some old prototype,
+      it is overridden to refer only to the new prototype.
+      Otherwise we add a new String with object Proto. }
+    procedure Bind(const Proto: TX3DPrototypeBase);
 
     { Find proto bound to given name. @nil if none. }
     function Bound(const Name: string): TX3DPrototypeBase;
   end;
 
-  TX3DImportableNames = class(TStringListCaseSens)
+  { List of names that can be IMPORTed in X3D.
+    Case-sensitive, just like X3D names are. }
+  TX3DImportableNames = class(TStringList)
   public
+    constructor Create;
     destructor Destroy; override;
 
     { Bind Exported names to given Inline node name.
       Exported instance becomes owner by this TX3DImportableNames instance.
       InlineName must be <> '' here. }
-    procedure Bind(const InlineName: string; Exported: TX3DNodeNames);
+    procedure Bind(const InlineName: string; const Exported: TX3DNodeNames);
   end;
 
 {$endif read_interface}
@@ -221,7 +232,7 @@ begin
     Result := nil;
 end;
 
-function TX3DNodeNames.Bound(Node: TX3DNode): boolean;
+function TX3DNodeNames.Bound(const Node: TX3DNode): boolean;
 begin
   Result := IndexOfNode(Node) <> -1;
 end;
@@ -238,7 +249,13 @@ end;
 
 { TX3DPrototypeNames -------------------------------------------------------- }
 
-procedure TX3DPrototypeNames.Bind(Proto: TX3DPrototypeBase);
+constructor TX3DPrototypeNames.Create;
+begin
+  inherited Create;
+  CaseSensitive := true;
+end;
+
+procedure TX3DPrototypeNames.Bind(const Proto: TX3DPrototypeBase);
 var
   I: Integer;
 begin
@@ -260,6 +277,12 @@ end;
 
 { TX3DImportableNames ------------------------------------------------------- }
 
+constructor TX3DImportableNames.Create;
+begin
+  inherited Create;
+  CaseSensitive := true;
+end;
+
 destructor TX3DImportableNames.Destroy;
 var
   I: Integer;
@@ -269,7 +292,7 @@ begin
   inherited;
 end;
 
-procedure TX3DImportableNames.Bind(const InlineName: string; Exported: TX3DNodeNames);
+procedure TX3DImportableNames.Bind(const InlineName: string; const Exported: TX3DNodeNames);
 var
   I: Integer;
 begin

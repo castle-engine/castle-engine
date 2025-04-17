@@ -1,6 +1,6 @@
 {%MainUnit x3dnodes.pas}
 {
-  Copyright 2002-2023 Michalis Kamburelis.
+  Copyright 2002-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -15,26 +15,73 @@
 }
 
 function TElevationGridNode.Proxy(var State: TX3DGraphTraverseState): TAbstractGeometryNode;
+var
+  TriangleSet: TIndexedTriangleSetNode absolute Result;
+begin
+  TriangleSet := InternalCreateTriangles(
+    FdXDimension.Value, FdZDimension.Value,
+    FdXSpacing.Value, FdZSpacing.Value,
+    FdHeight.Items,
+    TexCoord,
+    { Idea: We could expose TElevationGridNode.TriangulationIgnoreHeights
+      as extra X3D field some day, if needed? }
+    false
+  );
+  try
+    // copy all additional fields, that are not handled by InternalCreateTriangles
+    TriangleSet.X3DName := X3DName;
+    TriangleSet.BaseUrl := BaseUrl;
+    TriangleSet.Solid := Solid;
+    TriangleSet.Ccw := Ccw;
+    { We order our coords such that we can simply copy normal/color nodes }
+    TriangleSet.NormalPerVertex := NormalPerVertex;
+    // TODO: InternalCreateTriangles should take this, and generate own normals if none provided
+    TriangleSet.Normal := Normal;
+    TriangleSet.ColorPerVertex := ColorPerVertex;
+    TriangleSet.Color := Color;
+    // Not available: TriangleSet.CreaseAngle := CreaseAngle;
+    {$ifndef CASTLE_SLIM_NODES}
+    TriangleSet.FogCoord := FogCoord;
+    TriangleSet.FdAttrib.AssignValue(FdAttrib);
+    {$endif}
+  except FreeAndNil(TriangleSet); raise end;
+end;
 
-{ I initially rendered ElevationGrid directly, by GL_QUAD_STRIP
-  for each row. Fast, but has troubles:
+class function TElevationGridNode.InternalCreateTriangles(
+  const AXDimension, AZDimension: Integer;
+  const AXSpacing, AZSpacing: Single;
+  const AHeight: TSingleList;
+  const ATexCoord: TAbstractTextureCoordinateNode;
+  const TriangulationIgnoreHeights: Boolean): TIndexedTriangleSetNode;
 
-  - When colorPerVertex is different than normalPerVertex,
-    neither flat nor smooth shading is good.
-  - Normal generation was a pain. A code generating smooth-only normals
-    was implemented, and was already a pain to maintain (since with IndexedFaceSet,
-    we already had normal generation implemented).
-    creaseAngle was not supported, only all smooth or all flat was supported.
-  - Rendering by quads was sometimes not fully correct, as elevation grid
-    quads were not really planar. So with GPU performing any triangulation
-    it wants, results are undefined and not always the best.
-    Right now we triangulate ourselves along the shortest diagonal,
-    which improves the look much.
-    IndexedFaceSet is rendered through GL_TRIANGLES anyway.
+{ How to render TElevationGridNode?
 
-  Using proxy to render ElevationGrid solves above troubles.
-  Using proxy also makes simpler implementation than rendering,
-  and also it's used for triangulating.
+  - Quad strip? (direct GL_QUAD_STRIP or proxy on T[Indexed]QuadSetNode)?
+
+    Not good:
+
+    - When colorPerVertex is different than normalPerVertex,
+      neither flat nor smooth shading is good.
+
+    - With direct GL_QUAD_STRIP, normal generation was a pain.
+      We want to instead use proxy on something that already implements
+      normal support, honoring creaseAngle.
+
+    - Rendering by quads was sometimes not fully correct, as elevation grid
+      quads were not really planar. So with GPU performing any triangulation
+      it wants, results are undefined and not always the best.
+
+  - By TIndexedFaceSetNode proxy?
+
+    Mostly good, but it's not as straightforward to render by renderer
+    as TIndexedTriangleSetNode. It needs to be converted to triangles.
+
+  - By TIndexedTriangleSetNode proxy?
+
+    Better than TIndexedFaceSetNode for renderer.
+
+    We lose support for creaseAngle, but it's not a big deal.
+    Our TCastleTerrainData wasn't using it anyway, always setting creaseAngle to 4.
 }
 var
   Coords: TVector3List;
@@ -45,114 +92,91 @@ var
     triangulation. }
   procedure Quad(const IndexNum, I1, I2, I3, I4: Integer);
   begin
-    if PointsDistanceSqr(Coords.L[I1], Coords.L[I3]) <
-       PointsDistanceSqr(Coords.L[I2], Coords.L[I4]) then
-    begin
-      CoordIndexes.L[IndexNum    ] := I1;
-      CoordIndexes.L[IndexNum + 1] := I2;
-      CoordIndexes.L[IndexNum + 2] := I3;
-      CoordIndexes.L[IndexNum + 3] := -1;
-      CoordIndexes.L[IndexNum + 4] := I3;
-      CoordIndexes.L[IndexNum + 5] := I4;
-      CoordIndexes.L[IndexNum + 6] := I1;
-      CoordIndexes.L[IndexNum + 7] := -1;
-    end else
+    if TriangulationIgnoreHeights or
+       ( PointsDistanceSqr(Coords.L[I1], Coords.L[I3]) >
+         PointsDistanceSqr(Coords.L[I2], Coords.L[I4]) ) then
     begin
       CoordIndexes.L[IndexNum    ] := I1;
       CoordIndexes.L[IndexNum + 1] := I2;
       CoordIndexes.L[IndexNum + 2] := I4;
-      CoordIndexes.L[IndexNum + 3] := -1;
-      CoordIndexes.L[IndexNum + 4] := I2;
-      CoordIndexes.L[IndexNum + 5] := I3;
-      CoordIndexes.L[IndexNum + 6] := I4;
-      CoordIndexes.L[IndexNum + 7] := -1;
+      CoordIndexes.L[IndexNum + 3] := I2;
+      CoordIndexes.L[IndexNum + 4] := I3;
+      CoordIndexes.L[IndexNum + 5] := I4;
+    end else
+    begin
+      CoordIndexes.L[IndexNum    ] := I1;
+      CoordIndexes.L[IndexNum + 1] := I2;
+      CoordIndexes.L[IndexNum + 2] := I3;
+      CoordIndexes.L[IndexNum + 3] := I3;
+      CoordIndexes.L[IndexNum + 4] := I4;
+      CoordIndexes.L[IndexNum + 5] := I1;
     end;
   end;
 
 var
-  IFS: TIndexedFaceSetNode absolute Result;
-  XDim, ZDim: Integer; {< shortcuts for appropriate fields values }
-  TexCoordProvided: boolean;
   I, J, NextIndex: Integer;
   CoordNode: TCoordinateNode;
-  TexCoords: TVector2List;
+  TexCoordsToGenerate: TVector2List;
 begin
-  IFS := TIndexedFaceSetNode.Create(X3DName, BaseUrl);
+  Result := TIndexedTriangleSetNode.Create;
   try
-    XDim := FdXDimension.Value;
-    ZDim := FdZDimension.Value;
-
-    if IsNotEmpty then
+    if ClassIsNotEmpty(
+         AXDimension, AZDimension,
+         AXSpacing, AZSpacing, AHeight) then
     begin
-      CoordNode := TCoordinateNode.Create('', BaseUrl);
-      IFS.Coord := CoordNode;
+      CoordNode := TCoordinateNode.Create;
+      Result.Coord := CoordNode;
       Coords := CoordNode.FdPoint.Items;
 
-      { calculate TexCoordProvided, set IFS.FdTexCoord, maybe set TexCoords }
-      TexCoordProvided :=
-        (FdTexCoord.Value <> nil) and
-        (FdTexCoord.Value is TTextureCoordinateNode) and
-        (TTextureCoordinateNode(FdTexCoord.Value).FdPoint.Count >=
-          XDim * ZDim);
-      if TexCoordProvided then
+      { calculate TexCoordProvided, set Result.FdTexCoord, maybe set TexCoords }
+      if ATexCoord <> nil then
       begin
-        IFS.FdTexCoord.Value := FdTexCoord.Value;
-        TexCoords := nil; // just silence Delphi warning
+        Result.FdTexCoord.Value := ATexCoord;
+        TexCoordsToGenerate := nil;
       end else
       begin
-        IFS.FdTexCoord.Value := TTextureCoordinateNode.Create('', BaseUrl);
-        TexCoords := TTextureCoordinateNode(IFS.FdTexCoord.Value).FdPoint.Items;
+        Result.FdTexCoord.Value := TTextureCoordinateNode.Create;
+        TexCoordsToGenerate := TTextureCoordinateNode(Result.FdTexCoord.Value).
+          FdPoint.Items;
       end;
 
       { generate coords (and other per-vertex stuff: tex coords) }
-      Coords.Count := XDim * ZDim;
-      if not TexCoordProvided then
-        TexCoords.Count := XDim * ZDim;
-      for J := 0 to ZDim - 1 do
-        for I := 0 to XDim - 1 do
+      Coords.Count := AXDimension * AZDimension;
+      if TexCoordsToGenerate <> nil then
+        TexCoordsToGenerate.Count := AXDimension * AZDimension;
+      for J := 0 to AZDimension - 1 do
+        for I := 0 to AXDimension - 1 do
         begin
-          Coords.L[I + J * XDim] := Vector3(
-            FdXSpacing.Value * I,
-            FdHeight.Items.L[I + J * XDim],
-            FdZSpacing.Value * J);
+          Coords.L[I + J * AXDimension] := Vector3(
+            AXSpacing * I,
+            AHeight.L[I + J * AXDimension],
+            AZSpacing * J);
 
-          if not TexCoordProvided then
-            TexCoords.L[I + J * XDim] := Vector2(
-              I / (XDim - 1),
-              J / (ZDim - 1));
+          if TexCoordsToGenerate <> nil then
+            TexCoordsToGenerate.L[I + J * AXDimension] := Vector2(
+              I / (AXDimension - 1),
+              J / (AZDimension - 1));
         end;
 
       { generate quads indexes }
-      CoordIndexes := IFS.CoordIndexField.Items;
-      CoordIndexes.Count := (XDim - 1) * (ZDim - 1) * 8;
+      CoordIndexes := Result.CoordIndexField.Items;
+      CoordIndexes.Count := (AXDimension - 1) * (AZDimension - 1) * 6;
       NextIndex := 0;
-      for J := 1 to ZDim - 1 do
-        for I := 1 to XDim - 1 do
+      for J := 1 to AZDimension - 1 do
+        for I := 1 to AXDimension - 1 do
         begin
           { Vertices are ordered such that face is CCW from up
             (i.e. looking from positive Y axis). }
           Quad(NextIndex,
-               I     + (J - 1) * XDim,
-               I - 1 + (J - 1) * XDim,
-               I - 1 +  J      * XDim,
-               I     +  J      * XDim);
-          NextIndex := NextIndex + 8;
+               I     + (J - 1) * AXDimension,
+               I - 1 + (J - 1) * AXDimension,
+               I - 1 +  J      * AXDimension,
+               I     +  J      * AXDimension);
+          NextIndex := NextIndex + 6;
         end;
       Assert(NextIndex = CoordIndexes.Count);
     end;
 
-    IFS.Solid := Solid;
-    IFS.Ccw := Ccw;
-    { We order our coords such that we can simply copy normal/color nodes }
-    IFS.NormalPerVertex := NormalPerVertex;
-    IFS.Normal := Normal;
-    IFS.ColorPerVertex := ColorPerVertex;
-    IFS.Color := Color;
-    IFS.CreaseAngle := CreaseAngle;
-    {$ifndef CASTLE_SLIM_NODES}
-    IFS.FogCoord := FogCoord;
-    IFS.FdAttrib.AssignValue(FdAttrib);
-    {$endif}
   except FreeAndNil(Result); raise end;
 end;
 

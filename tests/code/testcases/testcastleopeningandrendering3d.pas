@@ -158,7 +158,10 @@ procedure TTestOpeningAndRendering3D.TestOpenAndRender(const ARecreateSceneEachT
 
 begin
   if not CanCreateWindowForTest then
+  begin
+    AbortTest;
     Exit;
+  end;
 
   RecreateSceneEachTime := ARecreateSceneEachTime;
 
@@ -201,7 +204,10 @@ end;
 procedure TTestOpeningAndRendering3D.Test1;
 begin
   if not CanCreateWindowForTest then
+  begin
+    AbortTest;
     Exit;
+  end;
 
   TestOpenAndRender(false);
   TestOpenAndRender(true);

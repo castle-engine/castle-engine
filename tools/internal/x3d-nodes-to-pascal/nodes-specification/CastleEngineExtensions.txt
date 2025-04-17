@@ -36,9 +36,10 @@ GeneratedShadowMap : X3DSingleTextureNode {
     range: (0,Inf)
     change: chTextureRendererProperties
   SFNode     []            light            NULL
-    range: X3DLightNode
+    range: X3DPunctualLightNode
     change: chGeneratedTextureUpdateNeeded
     weak-link
+    doc: @deprecated This field is only used internally by the engine now. You should never specify any light source here. The light source associated with the shadow map is implicit: it is the parent node of this GeneratedShadowMap node, that defined this GeneratedShadowMap node in defaultShadowMap field.
   SFFloat    [in,out]      scale            DefaultScale
     range: [0,Inf)
     change: chGeneratedTextureUpdateNeeded
@@ -49,7 +50,7 @@ GeneratedShadowMap : X3DSingleTextureNode {
     range: ["COMPARE_R_LEQUAL"|"COMPARE_R_GEQUAL"|"NONE"]
     enumerated-type: TShadowMapCompareMode CompareModeNames smCompareRLEqual
     change: chTextureRendererProperties
-    doc: @deprecated Deprecated mode to test depth maps with various comparison methods. This was unportable and complicated to maintain, so it is deprecated and has no effect now.
+    doc: @deprecated This is ignored now. It was unportable and complicated to maintain.
 }
 
 Text3D : Text {

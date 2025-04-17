@@ -1,5 +1,5 @@
 {
-  Copyright 2006-2022 Michalis Kamburelis.
+  Copyright 2006-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -14,7 +14,9 @@
 }
 
 { Standard behaviors (TCastleBehavior descendants).
-  For example to express life, or creature intelligence, or playing sound. }
+  These express simple mechanics, like
+  playing sound (@link(TCastleSoundSource)), billboard (@link(TCastleBillboard)),
+  sticking to the surface (@link(TCastleStickToSurface)). }
 unit CastleBehaviors;
 
 {$I castleconf.inc}
@@ -26,11 +28,9 @@ uses Classes, Generics.Collections,
   CastleSoundEngine, CastleInputs, CastleUIControls, CastleCameras;
 
 {$define read_interface}
-{$I castlebehaviors_alive.inc}
 {$I castlebehaviors_soundsource.inc}
 {$I castlebehaviors_billboard.inc}
 {$I castlebehaviors_sticktosurface.inc}
-//{$I castlebehaviors_moveattack.inc}
 {$undef read_interface}
 
 implementation
@@ -39,16 +39,12 @@ uses SysUtils, Math,
   CastleUtils, CastleLog, CastleBoxes, CastleComponentSerialize;
 
 {$define read_implementation}
-{$I castlebehaviors_alive.inc}
 {$I castlebehaviors_soundsource.inc}
 {$I castlebehaviors_billboard.inc}
 {$I castlebehaviors_sticktosurface.inc}
-// TODO {$I castlebehaviors_moveattack.inc}
 
 initialization
-  // TODO-works but API not finalized yet: RegisterSerializableComponent(TCastleAliveBehavior, 'Alive');
   RegisterSerializableComponent(TCastleSoundSource, 'Sound Source');
   RegisterSerializableComponent(TCastleBillboard, 'Billboard');
   RegisterSerializableComponent(TCastleStickToSurface, 'Stick To Surface');
-  // TODO RegisterSerializableComponent(TCastleMoveAttack, 'Move Attack');
 end.

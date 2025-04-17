@@ -1,5 +1,5 @@
 {
-  Copyright 2021-2023 Michalis Kamburelis.
+  Copyright 2021-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -35,12 +35,13 @@ function PropertyGet(const PropObject: TObject; const PropInfo: PPropInfo;
   You should also check @code(IsStoredProp(PropObject, PropInfo))
   in case the property has a "stored" method.
   IsStoredProp works in all cases (whether "stored" indicates a constant,
-  field or some method) and it is @true if there was no "stored" value.
-  So the full check is
+  field or some method) and it is @true if there was no "stored" directive.
+  So the full check whether to serialize something should be
 
   @longCode(#
-    PropertyHasDefaultValue(PropObject, PropInfo) and
-    IsStoredProp(PropObject, PropInfo)
+  SerializeThisProperty :=
+    (not PropertyHasDefaultValue(PropObject, PropInfo)) and
+    IsStoredProp(PropObject, PropInfo);
   #)
 
   @param(TreatSubComponentAsDefault
@@ -80,6 +81,142 @@ function PropertyGet(const PropObject: TObject; const PropInfo: PPropInfo;
   ) }
 function PropertyHasDefaultValue(const PropObject: TObject;
   const PropInfo: PPropInfo; const TreatSubComponentAsDefault: Boolean = false): Boolean;
+
+type
+  { Property type used by PropertyType function that also decides
+    which other routines from this unit are guaranteed to work.
+    For example, if a PropertyType is ptBoolean,
+    then PropertyGetBoolean and PropertySetBoolean can be used. }
+  TPropertyType = (
+    { Any integer type that fits witihin 64-bits.
+      This includes Integer, Int64 and QWord (only these can be published in Pascal). }
+    ptInteger,
+
+    { Single, 32-bit floating point number.
+      Other floating point types cannot be published in Pascal
+      (if they ever will, we will extend this property type to account for them,
+      and make PropertyGetFloat and PropertySetFloat return a more general type
+      like Extended or Double or Math.Float). }
+    ptFloat,
+
+    { Any String type.
+      This includes ShortString, AnsiString, WideString, UnicodeString,
+      UTF8String.
+      We convert them all to just String, following our conventions
+      what does it mean: https://castle-engine.io/coding_conventions#strings_unicode . }
+    ptString,
+
+    { Boolean or any similar type that in principle holds only 2 values,
+      false and true. Like LongBool. }
+    ptBoolean,
+
+    { Class instance, anything descending from TObject. }
+    ptInstance,
+
+    { Enumerated type (but not boolean). }
+    ptEnumeration,
+
+    { Any other property type not handled by our code. }
+    ptOther
+  );
+
+{ Get property type as TPropertyType.
+
+  This is an abstraction over the FPC / Delphi possible property types,
+  intended to be
+
+  @unorderedList(
+    @item(cross-compiler (e.g. it hides how FPC / Delphi encode Boolean properties),)
+
+    @item(
+      limited to CGE purposes (e.g. we don't need to distinguish between
+      various string types, we want to use just String and follow our conventions
+      https://castle-engine.io/coding_conventions#strings_unicode ),
+    )
+
+    @item(and, because of above, simpler.)
+  )
+}
+function PropertyType(const PropInfo: PPropInfo): TPropertyType;
+
+{ Get a property of type Boolean.
+  Use only when PropertyType is ptBoolean, undefined what happens otherwise.
+  @groupBegin }
+function PropertyGetBoolean(const PropObject: TObject; const PropInfo: PPropInfo): Boolean;
+procedure PropertySetBoolean(const PropObject: TObject; const PropInfo: PPropInfo; const NewValue: Boolean);
+{ @groupEnd }
+
+{ Get or set a property of type Integer, Int64 or QWord.
+  Use only when PropertyType is ptInteger, undefined what happens otherwise.
+  Do not use with QWord values outside of Int64 range -- undefined what happens
+  (for now, we just cast QWord to Int64).
+  @groupBegin }
+function PropertyGetInteger(const PropObject: TObject; const PropInfo: PPropInfo): Int64;
+procedure PropertySetInteger(const PropObject: TObject; const PropInfo: PPropInfo; const Value: Int64);
+{ @groupEnd }
+
+{ Get or set a property of type Single.
+  Use only when PropertyType is ptFloat, undefined what happens otherwise.
+  @groupBegin }
+function PropertyGetFloat(const PropObject: TObject; const PropInfo: PPropInfo): Single;
+procedure PropertySetFloat(const PropObject: TObject; const PropInfo: PPropInfo; const Value: Single);
+{ @groupEnd }
+
+{ Get or set a property of type String.
+  Use only when PropertyType is ptString, undefined what happens otherwise.
+  @groupBegin }
+function PropertyGetString(const PropObject: TObject; const PropInfo: PPropInfo): String;
+procedure PropertySetString(const PropObject: TObject; const PropInfo: PPropInfo; const Value: String);
+{ @groupEnd }
+
+{ Get or set a property of type TObject (object instance).
+  Use only when PropertyType is ptInstance, undefined what happens otherwise.
+  @groupBegin }
+function PropertyGetInstance(const PropObject: TObject; const PropInfo: PPropInfo): TObject;
+procedure PropertySetInstance(const PropObject: TObject; const PropInfo: PPropInfo; const Value: TObject);
+{ @groupEnd }
+
+{ Declared type (class) for a property of type TObject (object instance).
+  Use only when PropertyType is ptInstance, undefined what happens otherwise. }
+function PropertyGetInstanceClass(const PropObject: TObject; const PropInfo: PPropInfo): TClass;
+
+{ Get or set a property of enumerated type.
+  Use only when PropertyType is ptEnumeration, undefined what happens otherwise.
+
+  You can get or set as Integer (PropertyGetEnum, PropertySetEnum).
+
+  Or you can get or set as a String (PropertyGetEnumStr, PropertySetEnumStr)
+  for comfort. Getting or setting enumerated property as a String
+  uses GetEnumName and GetEnumValue to convert between Integer and String.
+  Just like GetEnumValue, the enumerated name given to PropertySetEnumStr
+  is not case-sensitive, so you can use e.g.
+  @code(PropertySetEnumStr(MyObject, MyPropInfo, 'MyEnumValue'))
+  or @code(PropertySetEnumStr(MyObject, MyPropInfo, 'MYENUMVALUE'))
+  interchangeably.
+
+  @groupBegin }
+function PropertyGetEnum(const PropObject: TObject; const PropInfo: PPropInfo): Integer;
+function PropertyGetEnumStr(const PropObject: TObject; const PropInfo: PPropInfo): String;
+procedure PropertySetEnum(const PropObject: TObject; const PropInfo: PPropInfo; const Value: Integer);
+procedure PropertySetEnumStr(const PropObject: TObject; const PropInfo: PPropInfo; const Value: String);
+{ @groupEnd }
+
+type
+  { Get list of PPropInfo for given object.
+    Simple wrapper over standard GetPropList. }
+  TPropInfoList = class(TObject)
+  private
+    FList: PPropList;
+    FCount: Integer;
+    FSize: Integer;
+    function Get(Index: Integer): PPropInfo;
+  public
+    constructor Create(AObject: TObject; Filter: TTypeKinds);
+    destructor Destroy; override;
+    property Count: Integer read FCount;
+    property Items[Index: Integer]: PPropInfo read Get; default;
+  end;
+
 
 implementation
 
@@ -143,61 +280,52 @@ var
   PropType: PTypeInfo;
 begin
   Name := PropInfo^.Name;
-  PropType := PropInfo^.PropType{$ifndef FPC}^{$endif};
-
   Result := true;
-  case PropType^.Kind of
-    tkInteger:
-      Value := IntToStr(GetOrdProp(PropObject, PropInfo));
-    tkEnumeration:
-      Value := GetEnumName(PropType, GetOrdProp(PropObject, PropInfo));
-{$ifndef FPUNONE}
-    tkFloat:
-      Value := FloatToStrDot(GetFloatProp(PropObject, PropInfo));
-{$endif}
-    //tkSet: TODO
-    tkChar:
-      Value := Char(GetOrdProp(PropObject, PropInfo));
-{$ifdef FPC}
-    tkSString, tkLString, tkAString:
-{$else}
-    tkString, tkLString:
-{$endif}
-      Value := GetStrProp(PropObject, PropInfo);
-    tkWString:
-      Value := UTF8Encode(GetWideStrProp(PropObject, PropInfo));
-    tkVariant:
-      Value := GetVariantProp(PropObject, PropInfo);
-    tkClass:
-      Value := ObjectToString(GetObjectProp(PropObject, PropInfo));
-    tkWChar:
-      Value := UTF8Encode(WideChar(GetOrdProp(PropObject, PropInfo)));
-{$ifdef FPC}
-    tkBool:
-      Value := BoolToStr(GetOrdProp(PropObject, PropInfo) <> 0, true);
-{$endif}
-    tkInt64:
-      Value := IntToStr(GetOrdProp(PropObject, PropInfo));
-{$ifdef FPC}
-    tkQWord:
-      Value := IntToStr(GetOrdProp(PropObject, PropInfo));
-{$endif}
-    //tkObject:
-    // tkArray,
-    // tkRecord,
-    // tkInterface,
-    // tkDynArray,
-    // tkInterfaceRaw,
-    // tkProcVar,
-    // tkMethod:
-    tkUString :
-      Value := UTF8Encode(GetWideStrProp(PropObject, PropInfo));
-{$ifdef FPC}
-    tkUChar:
-      Value := UTF8Encode(UnicodeChar(GetOrdProp(PropObject, PropInfo)));
-{$endif}
-    else
-      Result := false;
+
+  case PropertyType(PropInfo) of
+    ptInteger:
+      Value := IntToStr(PropertyGetInteger(PropObject, PropInfo));
+    ptFloat:
+      Value := FloatToStrDot(PropertyGetFloat(PropObject, PropInfo));
+    ptString:
+      Value := PropertyGetString(PropObject, PropInfo);
+    ptBoolean:
+      Value := BoolToStr(PropertyGetBoolean(PropObject, PropInfo), true);
+    ptInstance:
+      Value := ObjectToString(PropertyGetInstance(PropObject, PropInfo));
+    ptEnumeration:
+      Value := PropertyGetEnumStr(PropObject, PropInfo);
+    ptOther:
+      begin
+        { Handle additional property types that are not handled byPropertyType
+          for now, but we want to return something useful from PropertyGet
+          for them. }
+        PropType := PropInfo^.PropType{$ifndef FPC}^{$endif};
+        case PropType^.Kind of
+          tkChar:
+            Value := Char(GetOrdProp(PropObject, PropInfo));
+          tkVariant:
+            Value := GetVariantProp(PropObject, PropInfo);
+          tkWChar:
+            Value := UTF8Encode(WideChar(GetOrdProp(PropObject, PropInfo)));
+          {$ifdef FPC}
+          tkUChar:
+            Value := UTF8Encode(UnicodeChar(GetOrdProp(PropObject, PropInfo)));
+          {$endif}
+          // TODO: These are unhandled now:
+          // tkSet:
+          // tkObject:
+          // tkArray,
+          // tkRecord,
+          // tkInterface,
+          // tkDynArray,
+          // tkInterfaceRaw,
+          // tkProcVar,
+          // tkMethod:
+          else
+            Result := false;
+        end;
+      end;
   end;
 end;
 
@@ -223,21 +351,28 @@ begin
 
   PropType := PropInfo^.PropType{$ifndef FPC}^{$endif};
   DefValue := PropInfo^.Default;
-  { $80000000 means that there's no default value (in case of Single or String,
-    you need to specify it by "nodefault") }
+
+  { $80000000 means that there's no default value (in case of Single or String
+    or Int64, you need to specify it by "nodefault") }
   DefValueUse := DefValue <> Int32($80000000);
+  if (not DefValueUse) and
+     { PropInfo^.Default doesn't matter for our tkClass logic.
+       And it seems it may be $80000000 always (with FPC 3.3.1 at least). }
+     (PropType^.Kind <> tkClass) then
+    Exit;
+
   case PropType^.Kind of
     tkInteger, tkChar, tkEnumeration, tkSet, tkWChar:
       begin
         Value := GetOrdProp(PropObject, PropInfo);
-        Result := (Value = DefValue) and DefValueUse;
+        Result := Value = DefValue;
       end;
 {$ifndef FPUNONE}
     tkFloat:
       begin
         FloatValue := GetFloatProp(PropObject, PropInfo);
         DefFloatValue := PSingle(@PropInfo^.Default)^;
-        Result := (FloatValue = DefFloatValue) and DefValueUse;
+        Result := FloatValue = DefFloatValue;
       end;
 {$endif}
     tkMethod:
@@ -250,21 +385,21 @@ begin
 {$ifdef FPC}
     tkSString, tkLString, tkAString:
       begin
-        Result := (GetStrProp(PropObject, PropInfo) = '') and DefValueUse;
+        Result := GetStrProp(PropObject, PropInfo) = '';
       end;
 {$else}
     tkString, tkLString:
       begin
-        Result := (GetAnsiStrProp(PropObject, PropInfo) = '') and DefValueUse;
+        Result := GetAnsiStrProp(PropObject, PropInfo) = '';
       end;
 {$endif}
     tkWString:
       begin
-        Result := (GetWideStrProp(PropObject, PropInfo) = '') and DefValueUse;
+        Result := GetWideStrProp(PropObject, PropInfo) = '';
       end;
     tkUString:
       begin
-        Result := (GetUnicodeStrProp(PropObject, PropInfo) = '') and DefValueUse;
+        Result := GetUnicodeStrProp(PropObject, PropInfo) = '';
       end;
     tkVariant:
       begin
@@ -311,11 +446,281 @@ begin
       begin
         BoolValue := GetOrdProp(PropObject, PropInfo)<>0;
         DefBoolValue := DefValue <> 0;
-        Result := (BoolValue = DefBoolValue) and DefValueUse;
+        Result := BoolValue = DefBoolValue;
       end;
 {$endif}
     else ;
   end;
+end;
+
+function PropertyType(const PropInfo: PPropInfo): TPropertyType;
+var
+  PropType: PTypeInfo;
+begin
+  PropType := PropInfo^.PropType{$ifndef FPC}^{$endif};
+
+  case PropType^.Kind of
+    tkInteger, tkInt64 {$ifdef FPC}, tkQWord{$endif}:
+      Result := ptInteger;
+    tkEnumeration:
+      Result := ptEnumeration;
+{$ifndef FPUNONE}
+    tkFloat:
+      Result := ptFloat;
+{$endif}
+{$ifdef FPC}
+    tkSString, tkLString, tkAString:
+      Result := ptString;
+{$else}
+    tkString, tkLString:
+      Result := ptString;
+{$endif}
+    tkWString, tkUString:
+      Result := ptString;
+    tkClass:
+      Result := ptInstance;
+{$ifdef FPC}
+    tkBool:
+      Result := ptBoolean;
+{$endif}
+    else
+      Result := ptOther;
+  end;
+
+  {$ifndef FPC}
+  { Delphi makes it a bit harder to detect ptBoolean,
+    using tkEnumeration for Boolean. See
+    - http://blong.com/Conferences/BorConUK98/DelphiRTTI/CB140.htm ,
+    - https://stackoverflow.com/questions/10188459/how-to-loop-all-properties-in-a-class ,
+    - https://en.delphipraxis.net/topic/11756-safegetenumname-a-safer-implementation-of-typinfogetenumname/ ,
+    - https://blog.dummzeuch.de/2024/06/21/safegetenumname-a-safer-implementation-of-typinfo-getenumname/
+  }
+  if (PropType^.Kind = tkEnumeration) and
+     (GetTypeData(PropType)^.BaseType^ = TypeInfo(Boolean)) then
+    Result := ptBoolean;
+  {$endif}
+end;
+
+function PropertyGetBoolean(const PropObject: TObject; const PropInfo: PPropInfo): Boolean;
+begin
+  Assert(PropertyType(PropInfo) = ptBoolean);
+  Result := GetOrdProp(PropObject, PropInfo) <> 0;
+end;
+
+procedure PropertySetBoolean(const PropObject: TObject; const PropInfo: PPropInfo; const NewValue: Boolean);
+begin
+  Assert(PropertyType(PropInfo) = ptBoolean);
+  SetOrdProp(PropObject, PropInfo, Iff(NewValue, 1, 0));
+end;
+
+function PropertyGetInteger(const PropObject: TObject; const PropInfo: PPropInfo): Int64;
+var
+  PropType: PTypeInfo;
+begin
+  PropType := PropInfo^.PropType{$ifndef FPC}^{$endif};
+  case PropType^.Kind of
+    tkInteger:
+      Result := GetOrdProp(PropObject, PropInfo);
+    tkInt64 {$ifdef FPC}, tkQWord{$endif}:
+      Result := GetInt64Prop(PropObject, PropInfo);
+    else
+      raise EInternalError.CreateFmt('PropertyGetInteger called for non-integer property "%s"', [
+        PropInfo^.Name
+      ]);
+  end;
+end;
+
+procedure PropertySetInteger(const PropObject: TObject; const PropInfo: PPropInfo; const Value: Int64);
+var
+  PropType: PTypeInfo;
+begin
+  PropType := PropInfo^.PropType{$ifndef FPC}^{$endif};
+  case PropType^.Kind of
+    tkInteger:
+      SetOrdProp(PropObject, PropInfo, Value);
+    tkInt64 {$ifdef FPC}, tkQWord{$endif}:
+      SetInt64Prop(PropObject, PropInfo, Value);
+    else
+      raise EInternalError.CreateFmt('PropertySetInteger called for non-integer property "%s"', [
+        PropInfo^.Name
+      ]);
+  end;
+end;
+
+function PropertyGetFloat(const PropObject: TObject; const PropInfo: PPropInfo): Single;
+begin
+  Assert(PropertyType(PropInfo) = ptFloat);
+  Result := GetFloatProp(PropObject, PropInfo);
+end;
+
+procedure PropertySetFloat(const PropObject: TObject; const PropInfo: PPropInfo; const Value: Single);
+begin
+  Assert(PropertyType(PropInfo) = ptFloat);
+  SetFloatProp(PropObject, PropInfo, Value);
+end;
+
+function PropertyGetString(const PropObject: TObject; const PropInfo: PPropInfo): String;
+var
+  PropType: PTypeInfo;
+begin
+  Assert(PropertyType(PropInfo) = ptString);
+  PropType := PropInfo^.PropType{$ifndef FPC}^{$endif};
+  case PropType^.Kind of
+{$ifdef FPC}
+    tkSString, tkLString, tkAString:
+      Result := GetStrProp(PropObject, PropInfo);
+{$else}
+    tkString, tkLString:
+      Result := GetAnsiStrProp(PropObject, PropInfo);
+{$endif}
+    tkWString:
+      Result := UTF8Encode(GetWideStrProp(PropObject, PropInfo));
+    tkUString:
+      Result := UTF8Encode(GetUnicodeStrProp(PropObject, PropInfo));
+    else
+      raise EInternalError.CreateFmt('PropertyGetString called for non-string property "%s"', [
+        PropInfo^.Name
+      ]);
+  end;
+end;
+
+procedure PropertySetString(const PropObject: TObject; const PropInfo: PPropInfo; const Value: String);
+begin
+  Assert(PropertyType(PropInfo) = ptString);
+  case PropInfo^.PropType{$ifndef FPC}^{$endif}^.Kind of
+{$ifdef FPC}
+    tkSString, tkLString, tkAString:
+      SetStrProp(PropObject, PropInfo, Value);
+{$else}
+    tkString, tkLString:
+      SetAnsiStrProp(PropObject, PropInfo, Value);
+{$endif}
+    tkWString:
+      SetWideStrProp(PropObject, PropInfo, UTF8Decode(Value));
+    tkUString:
+      SetUnicodeStrProp(PropObject, PropInfo, UTF8Decode(Value));
+    else
+      raise EInternalError.CreateFmt('PropertySetString called for non-string property "%s"', [
+        PropInfo^.Name
+      ]);
+  end;
+end;
+
+function PropertyGetInstance(const PropObject: TObject; const PropInfo: PPropInfo): TObject;
+begin
+  Assert(PropertyType(PropInfo) = ptInstance);
+  Result := GetObjectProp(PropObject, PropInfo);
+end;
+
+procedure PropertySetInstance(const PropObject: TObject; const PropInfo: PPropInfo; const Value: TObject);
+begin
+  Assert(PropertyType(PropInfo) = ptInstance);
+  SetObjectProp(PropObject, PropInfo, Value);
+end;
+
+function PropertyGetInstanceClass(const PropObject: TObject; const PropInfo: PPropInfo): TClass;
+begin
+  Assert(PropertyType(PropInfo) = ptInstance);
+  { Use PropInfo^.Name, not PropInfo, because FPC doesn't have overload
+    that accepts PPropInfo, unlike Delphi:
+    https://docwiki.embarcadero.com/Libraries/Sydney//en/System.TypInfo.GetObjectPropClass }
+  Result := GetObjectPropClass(PropObject, PropInfo^.Name);
+end;
+
+function PropertyGetEnum(const PropObject: TObject; const PropInfo: PPropInfo): Integer;
+begin
+  Assert(PropertyType(PropInfo) = ptEnumeration);
+  Result := GetOrdProp(PropObject, PropInfo);
+end;
+
+function PropertyGetEnumStr(const PropObject: TObject; const PropInfo: PPropInfo): String;
+var
+  PropType: PTypeInfo;
+begin
+  Assert(PropertyType(PropInfo) = ptEnumeration);
+  PropType := PropInfo^.PropType{$ifndef FPC}^{$endif};
+  Result := GetEnumName(PropType, GetOrdProp(PropObject, PropInfo));
+end;
+
+procedure PropertySetEnum(const PropObject: TObject; const PropInfo: PPropInfo; const Value: Integer);
+{ Only FPC has GetEnumNameCount. }
+{$ifdef FPC}
+  {$define HAS_GetEnumNameCount}
+{$endif}
+{$ifdef HAS_GetEnumNameCount}
+var
+  PropType: PTypeInfo;
+{$endif HAS_GetEnumNameCount}
+begin
+  Assert(PropertyType(PropInfo) = ptEnumeration);
+
+  {$ifdef HAS_GetEnumNameCount}
+  // TODO: This check is invalid for enumerated values with custom values.
+  // But can they be ever published in Pascal?
+  // Check, ev. add parameter const CheckRange: Boolean = true
+  // (keep the default true for safety).
+  PropType := PropInfo^.PropType{$ifndef FPC}^{$endif};
+  if Value >= GetEnumNameCount(PropType)  then
+    raise Exception.CreateFmt('Setting enumerated property "%s" to a value %d that seems outside of the possible enum range (GetEnumNameCount is %d)', [
+      PropInfo^.Name,
+      Value,
+      GetEnumNameCount(PropType)
+    ]);
+  {$endif HAS_GetEnumNameCount}
+
+  SetOrdProp(PropObject, PropInfo, Value);
+end;
+
+procedure PropertySetEnumStr(const PropObject: TObject; const PropInfo: PPropInfo; const Value: String);
+var
+  PropType: PTypeInfo;
+  EnumValue: Integer;
+begin
+  Assert(PropertyType(PropInfo) = ptEnumeration);
+
+  PropType := PropInfo^.PropType{$ifndef FPC}^{$endif};
+  EnumValue := GetEnumValue(PropType, Value);
+  if EnumValue = -1 then
+    raise Exception.CreateFmt('Setting enumerated property "%s" to "%s" that is not a valid enum value', [
+      PropInfo^.Name,
+      Value
+    ]);
+
+  SetOrdProp(PropObject, PropInfo, EnumValue);
+end;
+
+{ TPropInfoList -------------------------------------------------------------- }
+
+{ Implementation based on a subset of FPC RTL RttiUtils unit
+  (not available for Delphi, so we don't use RttiUtils in CGE).
+  The license of FPC RTL matches the Castle Game Engine license,
+  so we can copy the code. }
+
+constructor TPropInfoList.Create(AObject: TObject; Filter: TTypeKinds);
+begin
+  inherited Create;
+  if AObject <> nil then
+  begin
+    FCount := GetPropList(AObject.ClassInfo, Filter, nil);
+    FSize := FCount * SizeOf(Pointer);
+    FList := GetMem(FSize);
+    GetPropList(AObject.ClassInfo, Filter, FList);
+  end else
+  begin
+    FCount := 0;
+    FList := nil;
+  end;
+end;
+
+destructor TPropInfoList.Destroy;
+begin
+  if FList <> nil then FreeMem(FList, FSize);
+  inherited;
+end;
+
+function TPropInfoList.Get(Index: Integer): PPropInfo;
+begin
+  Result := FList^[Index];
 end;
 
 initialization

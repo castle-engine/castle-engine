@@ -29,6 +29,7 @@ type
   TUrlData = class
     class function Read(const Url: String; out MimeType: string): TStream;
     class function MimeType(const URI: string; out Gzipped: Boolean): String;
+    class function Exists(const Url: String): TUriExists;
   end;
 
 class function TUrlData.Read(const Url: String; out MimeType: string): TStream;
@@ -58,6 +59,13 @@ begin
     DataURI.URI := URI;
     if DataURI.Valid then Result := DataURI.MimeType;
   finally FreeAndNil(DataURI) end;
+end;
+
+class function TUrlData.Exists(const Url: String): TUriExists;
+begin
+  { data: URI is like a file, since you can call Download() on it.
+    So if we have such URI, it automatically "exists as a file". }
+  Result := ueFile;
 end;
 
 {$endif}

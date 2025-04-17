@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TextureAtlas width="2048" height="2048" imagePath="explosion.png">
+  <SubTexture x="0" y="1808" fps="8" name="explode_1" width="320" height="240"/>
+  <SubTexture x="320" y="1808" name="explode_2" width="320" height="240"/>
+  <SubTexture x="640" y="1808" name="explode_3" width="320" height="240"/>
+  <SubTexture x="960" y="1808" name="explode_4" width="320" height="240"/>
+  <SubTexture x="1280" y="1808" name="explode_5" width="320" height="240"/>
+  <SubTexture x="1600" y="1808" name="explode_6" width="320" height="240"/>
+  <SubTexture x="0" y="1568" name="explode_7" width="320" height="240"/>
+  <SubTexture x="320" y="1568" name="explode_8" width="320" height="240"/>
+  <SubTexture x="640" y="1568" name="explode_9" width="320" height="240"/>
+  <SubTexture x="960" y="1568" name="explode_10" width="320" height="240"/>
+  <SubTexture x="1280" y="1568" name="explode_11" width="320" height="240"/>
+  <SubTexture x="1600" y="1568" name="explode_12" width="320" height="240"/>
+  <SubTexture x="0" y="1328" name="explode_13" width="320" height="240"/>
+  <SubTexture x="320" y="1328" name="explode_14" width="320" height="240"/>
+  <SubTexture x="640" y="1328" name="explode_15" width="320" height="240"/>
+  <SubTexture x="960" y="1328" name="explode_16" width="320" height="240"/>
+  <SubTexture x="1280" y="1328" name="explode_17" width="320" height="240"/>
+  <SubTexture x="1600" y="1328" name="explode_18" width="320" height="240"/>
+  <SubTexture x="0" y="1088" name="explode_19" width="320" height="240"/>
+  <SubTexture x="320" y="1088" name="explode_20" width="320" height="240"/>
+  <SubTexture x="640" y="1088" name="explode_21" width="320" height="240"/>
+  <SubTexture x="960" y="1088" name="explode_22" width="320" height="240"/>
+  <SubTexture x="1280" y="1088" name="explode_23" width="320" height="240"/>
+  <SubTexture x="1600" y="1088" name="explode_24" width="320" height="240"/>
+  <SubTexture x="0" y="848" name="explode_25" width="320" height="240"/>
+  <SubTexture x="320" y="848" name="explode_26" width="320" height="240"/>
+  <SubTexture x="640" y="848" name="explode_27" width="320" height="240"/>
+  <SubTexture x="960" y="848" name="explode_28" width="320" height="240"/>
+  <SubTexture x="1280" y="848" name="explode_29" width="320" height="240"/>
+  <SubTexture x="1600" y="848" name="explode_30" width="320" height="240"/>
+</TextureAtlas>

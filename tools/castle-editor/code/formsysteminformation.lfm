@@ -7,15 +7,16 @@ object SystemInformationForm: TSystemInformationForm
   ClientHeight = 560
   ClientWidth = 1003
   DesignTimePPI = 120
+  OnCreate = FormCreate
   OnHide = FormHide
   OnShow = FormShow
   Position = poMainFormCenter
   ShowInTaskBar = stAlways
-  LCLVersion = '2.2.0.4'
+  LCLVersion = '3.4.0.0'
   object ButtonPanel1: TButtonPanel
     Left = 8
-    Height = 46
-    Top = 506
+    Height = 47
+    Top = 505
     Width = 987
     BorderSpacing.Around = 8
     OKButton.Name = 'OKButton'
@@ -33,17 +34,17 @@ object SystemInformationForm: TSystemInformationForm
   end
   object Panel1: TPanel
     Left = 0
-    Height = 498
+    Height = 497
     Top = 0
     Width = 1003
     Align = alClient
     BevelOuter = bvNone
-    ClientHeight = 498
+    ClientHeight = 497
     ClientWidth = 1003
     TabOrder = 1
     object MemoSysInfo: TMemo
       Left = 229
-      Height = 482
+      Height = 481
       Top = 8
       Width = 766
       Align = alClient
@@ -54,18 +55,18 @@ object SystemInformationForm: TSystemInformationForm
     end
     object Panel2: TPanel
       Left = 8
-      Height = 482
+      Height = 481
       Top = 8
       Width = 213
       Align = alLeft
       BorderSpacing.Around = 8
       BevelOuter = bvNone
-      ClientHeight = 482
+      ClientHeight = 481
       ClientWidth = 213
       TabOrder = 1
       object ListSections: TListBox
         Left = 0
-        Height = 305
+        Height = 304
         Top = 0
         Width = 213
         Align = alClient
@@ -74,20 +75,19 @@ object SystemInformationForm: TSystemInformationForm
           'Audio'
           'Other'
         )
-        ItemHeight = 28
-        OnClick = ListSectionsClick
+        ItemHeight = 29
         TabOrder = 0
+        OnClick = ListSectionsClick
       end
       object CastleControl1: TCastleControl
         Left = 0
         Height = 169
-        Top = 313
+        Top = 312
         Width = 213
         Align = alBottom
         BorderSpacing.Top = 8
         Options = [ocoRenderAtDesignTime]
         TabOrder = 1
-        OnOpen = CastleControl1Open
       end
     end
   end

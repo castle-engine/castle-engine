@@ -38,6 +38,7 @@ type
     constructor Create(AOwner: TComponent); override;
     function InternalFinalVolume: Single; override;
     function InternalFinalPitch: Single; override;
+    function InternalFinalPriority: Single; override;
 
     { If Follow then the sound position will be updated
       as the parent TCastleTransform moves. Moreover, when TCastleSoundSource
@@ -84,12 +85,14 @@ type
     FSpatial: Boolean;
     FVolume: Single;
     FPitch: Single;
+    FPriority: Single;
     FSoundPlaying: Boolean;
     procedure SoundChange(const Sender: TCastleSound; const Change: TSoundChange);
     procedure SetSound(const Value: TCastleSound);
     procedure SetSpatial(const Value: Boolean);
     procedure SetVolume(const Value: Single);
     procedure SetPitch(const Value: Single);
+    procedure SetPriority(const Value: Single);
     procedure SetSoundPlaying(const Value: Boolean);
     { Start playing current @link(Sound)
       (ignored if Sound = @nil, ignored if SoundPlaying = @false).
@@ -182,6 +185,15 @@ type
       Any value > 0 is allowed. }
     property Pitch: Single read FPitch write SetPitch
       {$ifdef FPC}default 1.0{$endif};
+
+    { How important is the sound, between 0.0 (least important) to 1.0 (most important).
+
+      The effective priority is a multiplication of @link(TCastleSound.Priority),
+      @link(TCastlePlayingSound.Priority) and @link(TCastleSoundSource.Priority).
+
+      Any value > 0 is allowed. }
+    property Priority: Single read FPriority write SetPriority
+      {$ifdef FPC}default 1.0{$endif};
   end;
 
 {$endif read_interface}
@@ -256,6 +268,13 @@ begin
     Result := Result * SourceBehavior.Pitch;
 end;
 
+function TCastlePlayingSoundSource.InternalFinalPriority: Single;
+begin
+  Result := inherited;
+  if SourceBehavior <> nil then
+    Result := Result * SourceBehavior.Priority;
+end;
+
 { TCastleSoundSource ------------------------------------------------------- }
 
 constructor TCastleSoundSource.Create(AOwner: TComponent);
@@ -263,8 +282,9 @@ begin
   inherited;
   AllPlayingSounds := TCastlePlayingSoundSourceList.Create(false);
   FSpatial := true;
-  FVolume := 1;
-  FPitch := 1;
+  FVolume := 1.0;
+  FPitch := 1.0;
+  FPriority := 1.0;
   FSoundPlaying := true;
 end;
 
@@ -306,7 +326,7 @@ end;
 function TCastleSoundSource.PropertySections(const PropertyName: String): TPropertySections;
 begin
   if ArrayContainsString(PropertyName, [
-       'Sound', 'Spatial', 'Volume', 'Pitch', 'SoundPlaying'
+       'Sound', 'Spatial', 'Volume', 'Pitch', 'Priority', 'SoundPlaying'
      ]) then
     Result := [psBasic]
   else
@@ -499,6 +519,19 @@ begin
     if (MainPlayingSound <> nil) and
        (MainPlayingSound.InternalSource <> nil) then
       MainPlayingSound.InternalSource.Pitch := MainPlayingSound.InternalFinalPitch;
+  end;
+end;
+
+procedure TCastleSoundSource.SetPriority(const Value: Single);
+begin
+  if FPriority <> Value then
+  begin
+    FPriority := Value;
+    { Update because MainPlayingSound.InternalFinalPriority changed,
+      just like TCastlePlayingSound.SoundChangeDuringPlayback does. }
+    if (MainPlayingSound <> nil) and
+       (MainPlayingSound.InternalSource <> nil) then
+      MainPlayingSound.InternalSource.Priority := MainPlayingSound.InternalFinalPriority;
   end;
 end;
 

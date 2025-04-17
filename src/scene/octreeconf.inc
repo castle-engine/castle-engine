@@ -94,7 +94,7 @@
   For models where shapes are not duplicated (like alien_mirror.wrl),
   this makes a slight slowdown (from to 1.38 to 1.49), but I think that's
   acceptable. Trivial models are fast enough anyway. And note that ray-tracers
-  are free to use OctreeVisibleTriangles, not based on shapes,
+  are free to use CreateOctreeVisibleTriangles, not based on shapes,
   since the scene is static there. This is really only for interactive usage
   with OctreeDynamicCollisions and such.
 }

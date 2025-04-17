@@ -3,6 +3,11 @@ set -eu
 
 TEXTUREFONT2PASCAL='texture-font-to-pascal'
 
+# Directory with TTF fonts is configurable.
+# The default is to use fonts shipped in our data/ subdirectory,
+# but you can also use system fonts, e.g. /usr/share/fonts/truetype/dejavu/ .
+TTF_FONTS_DIR=${1:-data}
+
 # Add option to have common Unicode characters available (not just ASCII),
 # this way we cover many Latin languages out-of-the-box,
 # see https://gist.github.com/ivandrofly/0fe20773bd712b303f78 .
@@ -23,7 +28,7 @@ TEXTUREFONT2PASCAL="${TEXTUREFONT2PASCAL} --sample-text-file=common_unicode_char
 # so that changing sizes used by default by CGE can be easily done by changing +
 # running this shell script.
 TEXT_NODE_FONT_SIZE=25
-$TEXTUREFONT2PASCAL --size "${TEXT_NODE_FONT_SIZE}" data/DejaVuSans.ttf --unit-name CastleTextureFont_Default3D_Sans    --function-name Font_Default3D_Sans
+$TEXTUREFONT2PASCAL --size "${TEXT_NODE_FONT_SIZE}" ${TTF_FONTS_DIR}/DejaVuSans.ttf --unit-name CastleTextureFont_Default3D_Sans    --function-name Font_Default3D_Sans
 
 # For other 11 font variants used by X3D,
 # see castle-model-viewer castle-model-viewer/embedded_data/fonts/ .
@@ -32,4 +37,4 @@ $TEXTUREFONT2PASCAL --size "${TEXT_NODE_FONT_SIZE}" data/DejaVuSans.ttf --unit-n
 # Used by FallbackFont and (default) UIFont.
 # Note that changing the default size here will change the default font size in UI,
 # so we actually cannot do this, to not break compatibility.
-$TEXTUREFONT2PASCAL --size 20 data/DejaVuSans.ttf --unit-name CastleTextureFont_DefaultUi --function-name Font_DefaultUi
+$TEXTUREFONT2PASCAL --size 20 ${TTF_FONTS_DIR}/DejaVuSans.ttf --unit-name CastleTextureFont_DefaultUi --function-name Font_DefaultUi

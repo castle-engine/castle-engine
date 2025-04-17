@@ -16,19 +16,14 @@
 
 {$ifdef read_interface}
 
-  TX3DNodeClassesList = class(TList)
-  strict private
-    function GetItems(Index: Integer): TX3DNodeClass;
-    procedure SetItems(Index: Integer; Value: TX3DNodeClass);
+  { List of TX3DNodeClass. }
+  TX3DNodeClassesList = class({$ifdef FPC}specialize{$endif} TList<TX3DNodeClass>)
   public
-    property Items[Index: Integer]: TX3DNodeClass
-      read GetItems write SetItems; default;
-    procedure AssignArray(
-      const AItemsArray: array of TX3DNodeClass);
-    function IndexOf(NodeClass: TX3DNodeClass): Integer; overload;
-    { Equivalent to IndexOf(NodeClass.ClassType),
-      taking care of necessary typecasts. }
-    function IndexOf(Node: TX3DNode): Integer; overload;
+    { Clear this list and make contents equal to given array. }
+    procedure AssignArray(const AItemsArray: array of TX3DNodeClass);
+
+    { Clear this list and make contents equal to given Source list. }
+    procedure Assign(const Source: TX3DNodeClassesList);
 
     { Looks for a node class that is ancestor of given Node,
       in other words that satisfies the @code(Node is Items[Result]) condition.
@@ -36,9 +31,7 @@
       class match.
 
       Returns -1 if not found. }
-    function IndexOfAnyAncestor(Node: TX3DNode): Integer;
-
-    procedure Add(Value: TX3DNodeClass);
+    function IndexOfAnyAncestor(const Node: TX3DNode): Integer;
   end;
 
 {$endif read_interface}
@@ -46,16 +39,6 @@
 {$ifdef read_implementation}
 
 { TX3DNodeClassesList ------------------------------------------------------- }
-
-function TX3DNodeClassesList.GetItems(Index: Integer): TX3DNodeClass;
-begin
-  Result := TX3DNodeClass(inherited Items[Index]);
-end;
-
-procedure TX3DNodeClassesList.SetItems(Index: Integer; Value: TX3DNodeClass);
-begin
-  inherited Items[Index] := Pointer(Value);
-end;
 
 procedure TX3DNodeClassesList.AssignArray(
   const AItemsArray: array of TX3DNodeClass);
@@ -67,30 +50,24 @@ begin
     Items[I] := AItemsArray[I];
 end;
 
-function TX3DNodeClassesList.IndexOf(NodeClass: TX3DNodeClass): Integer;
+procedure TX3DNodeClassesList.Assign(const Source: TX3DNodeClassesList);
+var
+  I: Integer;
+begin
+  Count := Source.Count;
+  { Assign without Move, to cause notifications.
+    Though we don't promise the list notifications at this point. }
+  // Move(Source.List^, List^, Count * SizeOf(Pointer));
+  for I := 0 to Source.Count - 1 do
+    Items[I] := Source[I];
+end;
+
+function TX3DNodeClassesList.IndexOfAnyAncestor(const Node: TX3DNode): Integer;
 begin
   for Result := 0 to Count - 1 do
-    if Items[Result] = NodeClass then
+    if Node is Items[Result] then
       Exit;
   Result := -1;
-end;
-
-function TX3DNodeClassesList.IndexOf(Node: TX3DNode): Integer;
-begin
-  Result := IndexOf(TX3DNodeClass(Node.ClassType));
-end;
-
-function TX3DNodeClassesList.IndexOfAnyAncestor(Node: TX3DNode): Integer;
-begin
-  for Result := 0 to Count - 1 do
-    if Node is TX3DNodeClass(Items[Result]) then
-      Exit;
-  Result := -1;
-end;
-
-procedure TX3DNodeClassesList.Add(Value: TX3DNodeClass);
-begin
-  inherited Add(Pointer(Value));
 end;
 
 {$endif read_implementation}

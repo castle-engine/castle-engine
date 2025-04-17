@@ -12,8 +12,8 @@ generate_man ()
   SHORT_DESCRIPTION="$3"
   shift 3
 
-  pushd "$CGEDIR"
-  "tools/${DIR}/${NAME}_compile.sh"
+  pushd "${CGEDIR}/tools/${DIR}"
+  castle-engine compile
   popd
 
   help2man --section=1 \

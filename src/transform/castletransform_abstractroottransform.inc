@@ -16,7 +16,7 @@
 
 {$ifdef read_interface}
 
-//type
+// type section started in CastleTransform.pas
 
   { Root of transformations and scenes (tree of TCastleTransform and TCastleScene).
     This is the base abstract class, the non-abstract descendant is @link(TCastleRootTransform). }
@@ -88,6 +88,21 @@
     procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
     procedure CustomSerialization(const SerializationProcess: TSerializationProcess); override;
+
+    { Update everything when time passes, in particular updating physics.
+      This makes physics recalculation and updates rigid bodies transformations.
+      It also calls any other TCastleTransform.Update work.
+
+      Use this to simulate the passage of time without actually displaying
+      the updated viewport. Useful e.g. to record the physics simulation
+      results (to later play them back), see
+      https://github.com/castle-engine/castle-dice-throwing .
+
+      Contrary to just @link(Update), this always makes the processing,
+      doesn't check did TFramesPerSecond.FrameId changed.
+      This also doesn't check @link(Exists), so can be called even on non-existing
+      viewport. }
+    procedure UpdateIncreaseTime(const SecondsPassed: Single);
 
     { @exclude
       TCastleTransform instances that listen on press/release.
@@ -250,14 +265,14 @@
 
     { First object hit by the ray, calculated using the physics engine.
 
-      Returns the TPhysicsRayCastResult record.
-      Read TPhysicsRayCastResult.Hit (boolean), TPhysicsRayCastResult.Transform
-      (guaranteed to be @nil when TPhysicsRayCastResult.Hit is @false) and other fields
+      Returns the TRayCastResult record.
+      Read TRayCastResult.Hit (boolean), TRayCastResult.Transform
+      (guaranteed to be @nil when TRayCastResult.Hit is @false) and other fields
       to know what was hit.
 
       The given RayOrigin, RayDirection, Distance are in the world coordinate system.
 
-      It returns TPhysicsRayCastResult, with information there
+      It returns TRayCastResult, with information there
       also in the world coordinate system.
 
       This ignores the collider of this body IgnoreBody, if IgnoreBody is not @nil.
@@ -273,8 +288,8 @@
       In the new system, a similar role is filled by physics layers. }
     function PhysicsRayCast(const RayOrigin, RayDirection: TVector3;
       const MaxDistance: Single = MaxSingle;
-      const IgnoreBody: TCastleRigidBody = nil; const CollisionLayers:
-      TPhysicsLayers = [Low(TPhysicsLayer)..High(TPhysicsLayer)]): TPhysicsRayCastResult;
+      const IgnoreBody: TCastleRigidBody = nil;
+      const CollisionLayers: TPhysicsLayers = AllLayers): TRayCastResult;
 
     { Cast a sphere using physics engine, see what is hit.
 
@@ -303,8 +318,8 @@
       In the new system, a similar role is filled by physics layers. }
     function PhysicsSphereCast(const SphereOrigin: TVector3; const SphereRadius:Single;
       const SphereDirection: TVector3; const MaxDistance: Single = MaxSingle;
-      const IgnoreBody: TCastleRigidBody = nil; const CollisionLayers:
-      TPhysicsLayers = [Low(TPhysicsLayer)..High(TPhysicsLayer)]): TPhysicsRayCastResult;
+      const IgnoreBody: TCastleRigidBody = nil;
+      const CollisionLayers: TPhysicsLayers = AllLayers): TRayCastResult;
 
     { Yoo can temporarily disable physics (no transformations will be updated
       by the physics engine) by setting this property to @false. }
@@ -687,10 +702,22 @@ end;
 procedure TCastleAbstractRootTransform.CustomSerialization(
   const SerializationProcess: TSerializationProcess);
 
+  function InternalViewport: TComponent;
+  begin
+    { This is a quick hack, assuming Owner = containing TCastleViewport.
+      It's in practice mostly OK (the only case when TCastleAbstractRootTransform
+      is created is from TCastleViewport, TODO: unless user would create
+      it manually which is allowed).
+      And there's no big harm if we make mistake (only ViewportCaption will be wrong,
+      which is only used for debug message). }
+    Result := Owner;
+  end;
+
   function ViewportCaption: String;
   begin
-    if (Owner <> nil) and (Owner.Name <> '') then
-      Result := '"' + Owner.Name + '.Items"'
+    if (InternalViewport <> nil) and
+       (InternalViewport.Name <> '') then
+      Result := '"' + InternalViewport.Name + '.Items"'
     else
       Result := 'TCastleViewport.Items';
   end;
