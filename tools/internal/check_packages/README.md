@@ -1,4 +1,4 @@
-# Check that Castle Game Engine Lazarus (.lpk) and Delphi (.dpk, .dproj) packages are correct
+# Check that Castle Game Engine Lazarus packages (.lpk), Delphi packages (.dpk, .dproj) and fpmake.pp are correct
 
 In particular check that they contain all files they should, and none of the files they shouldn't. This checks:
 

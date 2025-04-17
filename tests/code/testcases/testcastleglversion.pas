@@ -1,6 +1,6 @@
 // -*- compile-command: "./test_single_testcase.sh TTestGLVersion" -*-
 {
-  Copyright 2008-2021 Michalis Kamburelis.
+  Copyright 2008-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -15,6 +15,9 @@
 }
 
 unit TestCastleGLVersion;
+
+// For CASTLE_WEBGL and OpenGLES
+{$I ../../../src/common_includes/castleconf.inc}
 
 interface
 
@@ -31,12 +34,26 @@ implementation
 
 uses SysUtils, CastleGLVersion;
 
+const
+  { Prefix for faked glGetString(GL_VERSION) value, to pretend it matches
+    what current platform (following defines OpenGLES, CASTLE_WEBGL). }
+  FakeVersionPrefix =
+    {$if defined(CASTLE_WEBGL)}
+    'WebGL '
+    {$elseif defined(OpenGLES)}
+    'OpenGL ES '
+    {$else}
+    ''
+    {$endif};
+
 procedure TTestGLVersion.Test1;
 var
   G: TGLVersion;
 begin
-  G := TGLVersion.Create('1.4 (2.1 Mesa 7.0.4)',
-    'Mesa project: www.mesa3d.org', 'Mesa GLX Indirect');
+  G := TGLVersion.Create(
+    FakeVersionPrefix + '1.4 (2.1 Mesa 7.0.4)',
+    'Mesa project: www.mesa3d.org',
+    'Mesa GLX Indirect');
   try
     AssertTrue(G.VendorVersion = '(2.1 Mesa 7.0.4)');
     AssertTrue(G.Vendor = 'Mesa project: www.mesa3d.org');
@@ -61,7 +78,9 @@ begin
     AssertTrue(G.VendorRelease = 4);
   finally FreeAndNil(G) end;
 
-  G := TGLVersion.Create('2.1 Mesa 7.1', 'Brian Paul',
+  G := TGLVersion.Create(
+    FakeVersionPrefix + '2.1 Mesa 7.1',
+    'Brian Paul',
     'Mesa DRI Intel(blah blah blah)');
   try
     AssertTrue(G.VendorVersion = 'Mesa 7.1');
@@ -79,7 +98,7 @@ begin
     AssertTrue(G.VendorRelease = 0);
   finally FreeAndNil(G) end;
 
-  G := TGLVersion.Create('1.2.3', 'foobar', '');
+  G := TGLVersion.Create(FakeVersionPrefix + '1.2.3', 'foobar', '');
   try
     AssertTrue(G.VendorVersion = '');
     AssertTrue(G.Vendor = 'foobar');
@@ -92,7 +111,10 @@ begin
     AssertTrue(not G.Mesa);
   finally FreeAndNil(G) end;
 
-  G := TGLVersion.Create('4.2.0 NVIDIA 304.108', 'NVIDIA Corporation', 'GeForce GTS 450/PCIe/SSE2/3DNOW!');
+  G := TGLVersion.Create(
+    FakeVersionPrefix + '4.2.0 NVIDIA 304.108',
+    'NVIDIA Corporation',
+    'GeForce GTS 450/PCIe/SSE2/3DNOW!');
   try
     AssertEquals('NVIDIA 304.108', G.VendorVersion);
     AssertEquals('NVIDIA Corporation', G.Vendor);
@@ -117,7 +139,7 @@ var
   G: TGLVersion;
 begin
   G := TGLVersion.Create(
-    '4.5 (Compatibility Profile) Mesa 19.3.4',
+    FakeVersionPrefix + '4.5 (Compatibility Profile) Mesa 19.3.4',
     'X.Org',
     'AMD Radeon HD 8600 Series (OLAND, DRM 3.36.0, 5.5.7-150.current, LLVM 9.0.0)');
   try

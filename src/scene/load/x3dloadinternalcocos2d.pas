@@ -1,6 +1,5 @@
 ﻿{
-  Copyright 2017-2018 Trung Le (kagamma),
-  Copyright 2020-2020 Andrzej Kilijański (and3md)
+  Copyright 2017-2024 Trung Le (kagamma), Andrzej Kilijański (and3md), Michalis Kamburelis.
 
   Based on sprite-sheet-to-x3d source code by Trung Le (kagamma).
 
@@ -19,32 +18,202 @@
 
   Spec:
   https://docs.cocos2d-x.org/cocos2d-x/v3/en/sprites/spritesheets.html
-  https://titanwolf.org/Network/Articles/Article?AID=557a2a17-0790-4c1a-bc16-96221a21aec1#gsc.tab=0
   https://www.codeandweb.com/blog/2016/01/29/cocos2d-plist-format-explained
 
 }
- unit X3DLoadInternalCocos2d;
+unit X3DLoadInternalCocos2d;
 
 {$I castleconf.inc}
 
 interface
 
+uses DOM, CastleVectors;
+
+{ Routines made public only for test purposes. }
+
+function Cocos2dReadDual(const ASrc: String; out V1, V2: Integer): Boolean; overload;
+function Cocos2dReadDual(const ASrc: String; out V1, V2: Single): Boolean; overload;
+function Cocos2dReadDual(const ASrc: String; out V: TVector2): Boolean; overload;
+
+function Cocos2dReadQuad(ASrc: String; out V1, V2, V3, V4: Integer): Boolean;
+
+function Cocos2dReadBool(const ASrc: TDOMElement): Boolean;
+
+implementation
+
 uses Classes, SysUtils,
-  X3DNodes;
+  Generics.Collections, StrUtils, XMLRead,
+  X3DNodes, X3DLoad, CastleImages, CastleLog, CastleStringUtils,
+  CastleTextureImages, CastleUriUtils, CastleUtils, CastleXmlUtils;
+
+{ simple reading routines --------------------------------------------------- }
+
+function Cocos2dReadDual(const ASrc: String; out V1, V2: Integer): Boolean;
+var
+  OpenBracePos: Integer;
+  CloseBracePos: Integer;
+  CommaPos: Integer;
+begin
+  OpenBracePos := Pos('{', ASrc);
+  if OpenBracePos = 0 then
+  begin
+    WritelnWarning('Cocos2d', 'Invalid dual value "%s".', [ASrc]);
+    Exit(false);
+  end;
+
+  CloseBracePos := PosEx('}', ASrc, OpenBracePos);
+  if CloseBracePos = 0 then
+  begin
+    WritelnWarning('Cocos2d', 'Invalid dual value "%s".', [ASrc]);
+    Exit(false);
+  end;
+
+  CommaPos := PosEx(',', ASrc, OpenBracePos);
+  if CommaPos = 0 then
+  begin
+    WritelnWarning('Cocos2d', 'Invalid dual value "%s".', [ASrc]);
+    Exit(false);
+  end;
+
+  V1 := StrToInt(Copy(ASrc, OpenBracePos + 1, CommaPos - (OpenBracePos + 1)));
+  V2 := StrToInt(Copy(ASrc, CommaPos + 1, CloseBracePos - (CommaPos + 1)));
+  Result := true;
+end;
+
+function Cocos2dReadDual(const ASrc: String; out V: TVector2): Boolean;
+begin
+  Result := Cocos2dReadDual(ASrc, V.X, V.Y);
+end;
+
+function Cocos2dReadDual(const ASrc: String; out V1, V2: Single): Boolean;
+var
+  OpenBracePos: Integer;
+  CloseBracePos: Integer;
+  CommaPos: Integer;
+begin
+  OpenBracePos := Pos('{', ASrc);
+  if OpenBracePos = 0 then
+  begin
+    WritelnWarning('Cocos2d', 'Invalid dual value "%s".', [ASrc]);
+    Exit(false);
+  end;
+
+  CloseBracePos := PosEx('}', ASrc, OpenBracePos);
+  if CloseBracePos = 0 then
+  begin
+    WritelnWarning('Cocos2d', 'Invalid dual value "%s".', [ASrc]);
+    Exit(false);
+  end;
+
+  CommaPos := PosEx(',', ASrc, OpenBracePos);
+  if CommaPos = 0 then
+  begin
+    WritelnWarning('Cocos2d', 'Invalid dual value "%s".', [ASrc]);
+    Exit(false);
+  end;
+
+  V1 := StrToFloatDot(Copy(ASrc, OpenBracePos + 1, CommaPos - (OpenBracePos + 1)));
+  V2 := StrToFloatDot(Copy(ASrc, CommaPos + 1, CloseBracePos - (CommaPos + 1)));
+  Result := true;
+end;
+
+function Cocos2dReadQuad(ASrc: String; out V1, V2, V3, V4: Integer): Boolean;
+var
+  OpenBracePos: Integer;
+  CloseBracePos: Integer;
+  OpenBraceCount, CloseBraceCount: Integer;
+begin
+  OpenBraceCount := SCharsCount(ASrc, ['{']);
+  CloseBraceCount := SCharsCount(ASrc, ['}']);
+
+  if (OpenBraceCount = 3) and (CloseBraceCount = 3) then
+  begin
+    // read format '{{1,2},{60,88}}'
+    if not IsPrefix('{', ASrc, false) then
+    begin
+      WritelnWarning('Cocos2d', 'Invalid quad value "%s".', [ASrc]);
+      Exit(false);
+    end;
+    ASrc := PrefixRemove('{', ASrc, false);
+
+    if not IsSuffix('}', ASrc, false) then
+    begin
+      WritelnWarning('Cocos2d', 'Invalid quad value "%s".', [ASrc]);
+      Exit(false);
+    end;
+    ASrc := SuffixRemove('}', ASrc, false);
+  end else
+  if (OpenBraceCount = 2) and (CloseBraceCount = 2) then
+  begin
+    // read format '{1,2},{60,88}'
+  end else
+  begin
+    WritelnWarning('Cocos2d', 'Invalid quad value "%s".', [ASrc]);
+    Exit(false);
+  end;
+
+  OpenBracePos := Pos('{', ASrc);
+  if OpenBracePos = 0 then
+  begin
+    WritelnWarning('Cocos2d', 'Invalid quad value "%s".', [ASrc]);
+    Exit(false);
+  end;
+
+  CloseBracePos := Pos('}', ASrc);
+  if CloseBracePos = 0 then
+  begin
+    WritelnWarning('Cocos2d', 'Invalid quad value "%s".', [ASrc]);
+    Exit(false);
+  end;
+
+  if not Cocos2dReadDual(Copy(ASrc, OpenBracePos, CloseBracePos - OpenBracePos + 1), V1, V2) then
+  begin
+    WritelnWarning('Cocos2d', 'Invalid quad value "%s".', [ASrc]);
+    Exit(false);
+  end;
+
+  OpenBracePos := PosEx('{', ASrc, CloseBracePos + 1);
+  if OpenBracePos = 0 then
+  begin
+    WritelnWarning('Cocos2d', 'Invalid quad value "%s".', [ASrc]);
+    Exit(false);
+  end;
+
+  CloseBracePos := PosEx('}', ASrc, CloseBracePos + 1);
+  if CloseBracePos = 0 then
+  begin
+    WritelnWarning('Cocos2d', 'Invalid quad value "%s".', [ASrc]);
+    Exit(false);
+  end;
+
+  if not Cocos2dReadDual(Copy(ASrc, OpenBracePos, CloseBracePos - OpenBracePos + 1), V3, V4) then
+  begin
+    WritelnWarning('Cocos2d', 'Invalid quad value "%s".', [ASrc]);
+    Exit(false);
+  end;
+
+  Result := true;
+end;
+
+function Cocos2dReadBool(const ASrc: TDOMElement): Boolean;
+begin
+  if SameText(ASrc.TagName8, 'true') then
+    Result := true
+  else
+  if SameText(ASrc.TagName8, 'false') then
+    Result := false
+  else
+  begin
+    WritelnWarning('Cocos2d', 'Invalid boolean value "%s".', [ASrc.TagName8]);
+    Result := false;
+  end;
+end;
+
+{ classes to load Cocos2d files --------------------------------------------- }
 
 type
   { Cocos2d XML file is not correct }
   EInvalidCocos2dPlist = class(Exception);
-
-function LoadCocos2d(const Stream: TStream; const BaseUrl: String): TX3DRootNode;
-
-implementation
-
-uses Generics.Collections, StrUtils, DOM, XMLRead,
-  CastleImages, CastleLog, CastleStringUtils, CastleTextureImages,
-  CastleUriUtils, CastleUtils, CastleVectors, CastleXmlUtils;
-
-type
 
   TCocos2dLoader = class
   strict private
@@ -57,24 +226,28 @@ type
 
         FParseFrameDictionary: procedure (const DictNode: TDOMElement) of object;
 
-        procedure PrepareTexCordsForX3D(const ImageWidth, ImageHeight: Integer);
+        procedure PrepareTexCords(const ImageWidth, ImageHeight: Integer);
         procedure ParseAnimationName(const FrameFileName: String);
         procedure ParseFrameDictionaryFormat2(const DictNode: TDOMElement);
         procedure ParseFrameDictionaryFormat3(const DictNode: TDOMElement);
       public
         AnimationName: String;
-        { Texture coordinates. Before PrepareTexCordsForX3D() they are in pixels,
-          after PrepareTexCordsForX3D() they are just UV for X3D }
-        X1: Single;
-        Y1: Single;
-        X2: Single;
-        Y2: Single;
+        { Origin texture coordinate (top-left corner of frame part,
+          in Cocos2d coordinates where top-left corner of the image is 0,0). }
+        TexCoordOrigin: TVector2Integer;
+        { Texture coordinates calculated by PrepareTexCords.
+          In 0..1 range.
+          Texture coordinate for each of 4 quad corners. }
+        TexCoords: array [0..3] of TVector2;
         { Width of sprite. If sprite is trimmed this is trimmed width - not full frame width. }
         Width: Integer;
         { Height of sprite. If sprite is trimmed this is trimmed height - not full frame height. }
         Height: Integer;
         AnchorX: Single;
         AnchorY: Single;
+
+        Rotated: Boolean;
+        Offset: TVector2;
 
         constructor Create(const DisplayUrl: String);
         { We support format version 2 and 3. This procedure sets suitable
@@ -83,9 +256,6 @@ type
 
         procedure ReadFormDict(const KeyNode, DictNode: TDOMElement;
           const ImageWidth, ImageHeight: Integer);
-        class function ReadDual(const ASrc: String; out V1, V2: Integer): Boolean; overload;
-        class function ReadDual(const ASrc: String; out V1, V2: Single): Boolean; overload;
-        class function ReadQuad(const ASrc: String; out V1, V2, V3, V4: Integer): Boolean;
       end;
     var
       FStream: TStream;
@@ -120,24 +290,24 @@ type
 
     procedure ReadMetadata(const MetadataNode: TDOMElement);
 
-    procedure ReadFrames(const MetadataNode: TDOMElement);
+    procedure ReadFrames(const FramesNode: TDOMElement);
 
     procedure CalculateFrameCoords(const CocosFrame: TCocosFrame);
 
     procedure PrepareShape(const CoordArray: array of TVector3;
-        const TexCoordArray: array of TVector2);
+      const TexCoordArray: array of TVector2);
 
     procedure AddFrameCoords(const CoordInterp: TCoordinateInterpolatorNode;
-        const TexCoordInterp: TCoordinateInterpolator2DNode);
+      const TexCoordInterp: TCoordinateInterpolator2DNode);
 
     procedure AddAnimation(const FrameCount: Integer;
-        const TimeSensor: TTimeSensorNode;
-        const CoordInterp: TCoordinateInterpolatorNode;
-        const TexCoordInterp: TCoordinateInterpolator2DNode);
+      const TimeSensor: TTimeSensorNode;
+      const CoordInterp: TCoordinateInterpolatorNode;
+      const TexCoordInterp: TCoordinateInterpolator2DNode);
 
     procedure AddRoutes(const TimeSensor: TTimeSensorNode;
-        const CoordInterp: TCoordinateInterpolatorNode;
-        const TexCoordInterp: TCoordinateInterpolator2DNode);
+      const CoordInterp: TCoordinateInterpolatorNode;
+      const TexCoordInterp: TCoordinateInterpolator2DNode);
 
     function CheckAnimationNameAvailable(const AnimationName: String): Boolean;
 
@@ -162,17 +332,31 @@ end;
 
 { TCocos2dLoader.TCocosFrame ------------------------------------------------ }
 
-procedure TCocos2dLoader.TCocosFrame.PrepareTexCordsForX3D(const ImageWidth,
-  ImageHeight: Integer);
+procedure TCocos2dLoader.TCocosFrame.PrepareTexCords(
+  const ImageWidth, ImageHeight: Integer);
+var
+  I: Integer;
 begin
-  { The input data (X1, Y1) are the coordinates in the texture.
-    We need those coordinates to compute X2, Y2 and after that we
-    recalculate X1, X2 for X3D. }
-  X2 := 1 / ImageWidth * (X1 + Width);
-  Y2 := 1 - 1 / ImageHeight * (Y1 + Height);
+  if Rotated then
+  begin
+    TexCoords[0] := Vector2(TexCoordOrigin.X + Height, TexCoordOrigin.Y);
+    TexCoords[1] := Vector2(TexCoordOrigin.X + Height, TexCoordOrigin.Y + Width);
+    TexCoords[2] := Vector2(TexCoordOrigin.X         , TexCoordOrigin.Y + Width);
+    TexCoords[3] := Vector2(TexCoordOrigin.X         , TexCoordOrigin.Y);
+  end else
+  begin
+    TexCoords[0] := Vector2(TexCoordOrigin.X        , TexCoordOrigin.Y);
+    TexCoords[1] := Vector2(TexCoordOrigin.X + Width, TexCoordOrigin.Y);
+    TexCoords[2] := Vector2(TexCoordOrigin.X + Width, TexCoordOrigin.Y + Height);
+    TexCoords[3] := Vector2(TexCoordOrigin.X        , TexCoordOrigin.Y + Height);
+  end;
 
-  X1 := 1 / ImageWidth * X1;
-  Y1 := 1 - 1 / ImageHeight * Y1;
+  // convert all 4 corners to 0..1 range, and flip Y
+  for I := 0 to 3 do
+  begin
+    TexCoords[I].X := TexCoords[I].X / ImageWidth;
+    TexCoords[I].Y := 1 - TexCoords[I].Y / ImageHeight;
+  end;
 end;
 
 procedure TCocos2dLoader.TCocosFrame.ParseAnimationName(const FrameFileName: String);
@@ -243,30 +427,42 @@ begin
       if KeyNode.TextData = 'frame' then
       begin
         { Sprite position and size in the texture - the same as textureRect in format 3 }
-        if ReadQuad(ValueNode.TextData, X, Y, Width, Height) then
+        if Cocos2dReadQuad(ValueNode.TextData, X, Y, Width, Height) then
         begin
-          X1 := X;
-          Y1 := Y;
+          TexCoordOrigin := Vector2Integer(X, Y);
           WasFrame := true;
         end;
       end else
       if KeyNode.TextData = 'sourceColorRect' then
       begin
         { rect of the trimmed sprite }
-        ReadQuad(ValueNode.TextData, FrameXTrimed, FrameYTrimed, FrameWidthTrimed, FrameHeightTrimed);
+        Cocos2dReadQuad(ValueNode.TextData, FrameXTrimed, FrameYTrimed, FrameWidthTrimed, FrameHeightTrimed);
         Trimmed := true;
       end else
       if KeyNode.TextData = 'anchor' then
       begin
         { Anchor point for the sprite in coordinates relative to the original sprite size }
-        if ReadDual(ValueNode.TextData, AnchorX, AnchorY) then
+        if Cocos2dReadDual(ValueNode.TextData, AnchorX, AnchorY) then
           HasAnchor := true;
       end else
       if KeyNode.TextData = 'sourceSize' then
       begin
         { full size of the sprite, the same as spriteSourceSize in format 3 }
-        if ReadDual(ValueNode.TextData, FullFrameWidth, FullFrameHeight) then
+        if Cocos2dReadDual(ValueNode.TextData, FullFrameWidth, FullFrameHeight) then
           WasFrameSize := true;
+      end else
+      if KeyNode.TextData = 'rotated' then
+      begin
+        Rotated := Cocos2dReadBool(ValueNode);
+      end else
+      if KeyNode.TextData = 'offset' then
+      begin
+        Cocos2dReadDual(ValueNode.TextData, Offset);
+        if not Offset.IsZero then
+          WritelnWarning('Cocos2d', 'Offset (non-zero) is not supported in "%s".', [FDisplayUrl]);
+      end else
+      begin
+        WritelnWarning('Cocos2d', 'Unknown key "%s" in frame of "%s"', [KeyNode.TextData, FDisplayUrl]);
       end;
     end;
   finally
@@ -344,29 +540,25 @@ begin
       if KeyNode.TextData = 'textureRect' then
       begin
         { Sprite position and size in the texture - the same as frame in format 2 }
-        if ReadQuad(ValueNode.TextData, X, Y, Width, Height) then
-        begin
-          X1 := X;
-          Y1 := Y;
+        if Cocos2dReadQuad(ValueNode.TextData, X, Y, Width, Height) then
           WasTextureFrame := true;
-        end;
       end else
       if KeyNode.TextData = 'spriteOffset' then
       begin
         { offset in sprite }
-        ReadDual(ValueNode.TextData, FrameXTrimOffset, FrameYTrimOffset);
+        Cocos2dReadDual(ValueNode.TextData, FrameXTrimOffset, FrameYTrimOffset);
         Trimmed := true;
       end else
       if KeyNode.TextData = 'anchor' then
       begin
         { Anchor point for the sprite in coordinates relative to the original sprite size }
-        if ReadDual(ValueNode.TextData, AnchorX, AnchorY) then
+        if Cocos2dReadDual(ValueNode.TextData, AnchorX, AnchorY) then
           HasAnchor := true;
       end else
       if KeyNode.TextData = 'spriteSourceSize' then
       begin
         { full size of the sprite, the same as sourceSize in format 2 }
-        if ReadDual(ValueNode.TextData, FullFrameWidth, FullFrameHeight) then
+        if Cocos2dReadDual(ValueNode.TextData, FullFrameWidth, FullFrameHeight) then
           WasFrameFullSize := true;
       end;
     end;
@@ -377,8 +569,7 @@ begin
   if not WasTextureFrame or not WasFrameFullSize then
     raise EInvalidCocos2dPlist.CreateFmt('Invalid Cocos2d plist file "%s" - frame data incomplete.', [FDisplayUrl]);
 
-  X1 := X;
-  Y1 := Y;
+  TexCoordOrigin := Vector2Integer(X, Y);
 
   if not HasAnchor then
   begin
@@ -437,87 +628,7 @@ procedure TCocos2dLoader.TCocosFrame.ReadFormDict(const KeyNode, DictNode: TDOME
 begin
   ParseAnimationName(KeyNode.TextData);
   FParseFrameDictionary(DictNode);
-  PrepareTexCordsForX3D(ImageWidth, ImageHeight);
-end;
-
-class function TCocos2dLoader.TCocosFrame.ReadDual(const ASrc: String; out V1,
-  V2: Integer): Boolean;
-var
-  OpenBracePos: Integer;
-  CloseBracePos: Integer;
-  CommaPos: Integer;
-begin
-  OpenBracePos := Pos('{', ASrc);
-  if OpenBracePos = 0 then
-    Exit(false);
-
-  CloseBracePos := PosEx('}', ASrc, OpenBracePos);
-  if CloseBracePos = 0 then
-    Exit(false);
-
-  CommaPos := PosEx(',', ASrc, OpenBracePos);
-  if CommaPos = 0 then
-    Exit(false);
-
-  V1 := StrToInt(Copy(ASrc, OpenBracePos + 1, CommaPos - (OpenBracePos + 1)));
-  V2 := StrToInt(Copy(ASrc, CommaPos + 1, CloseBracePos - (CommaPos + 1)));
-  Result := true;
-end;
-
-class function TCocos2dLoader.TCocosFrame.ReadDual(const ASrc: String; out V1,
-  V2: Single): Boolean;
-var
-  OpenBracePos: Integer;
-  CloseBracePos: Integer;
-  CommaPos: Integer;
-begin
-  OpenBracePos := Pos('{', ASrc);
-  if OpenBracePos = 0 then
-    Exit(false);
-
-  CloseBracePos := PosEx('}', ASrc, OpenBracePos);
-  if CloseBracePos = 0 then
-    Exit(false);
-
-  CommaPos := PosEx(',', ASrc, OpenBracePos);
-  if CommaPos = 0 then
-    Exit(false);
-
-  V1 := StrToFloatDot(Copy(ASrc, OpenBracePos + 1, CommaPos - (OpenBracePos + 1)));
-  V2 := StrToFloatDot(Copy(ASrc, CommaPos + 1, CloseBracePos - (CommaPos + 1)));
-  Result := true;
-end;
-
-
-class function TCocos2dLoader.TCocosFrame.ReadQuad(const ASrc: String; out V1,
-  V2, V3, V4: Integer): Boolean;
-var
-  OpenBracePos: Integer;
-  CloseBracePos: Integer;
-begin
-  OpenBracePos := Pos('{', ASrc);
-  if OpenBracePos = 0 then
-    Exit(false);
-
-  CloseBracePos := Pos('}', ASrc);
-  if CloseBracePos = 0 then
-    Exit(false);
-
-  if not ReadDual(Copy(ASrc, OpenBracePos + 1, CloseBracePos - OpenBracePos), V1, V2) then
-    Exit(false);
-
-  OpenBracePos := PosEx('{', ASrc, CloseBracePos);
-  if OpenBracePos = 0 then
-    Exit(false);
-
-  CloseBracePos := PosEx('}', ASrc, CloseBracePos + 1);
-  if CloseBracePos = 0 then
-    Exit(false);
-
-  if not ReadDual(Copy(ASrc, OpenBracePos, CloseBracePos - OpenBracePos + 1), V3, V4) then
-    Exit(false);
-
-  Result := true;
+  PrepareTexCords(ImageWidth, ImageHeight);
 end;
 
 { TCocos2dLoader ------------------------------------------------------------ }
@@ -584,13 +695,28 @@ begin
       else
       if KeyNode.TextData = 'size' then
       begin
-        if not TCocosFrame.ReadDual(ValueNode.TextData, FImageWidth, FImageHeight) then
+        if not Cocos2dReadDual(ValueNode.TextData, FImageWidth, FImageHeight) then
           raise EInvalidCocos2dPlist.CreateFmt('Invalid Cocos2d plist file "%s" - invalid size.', [FDisplayUrl]);
       end else
       if KeyNode.TextData = 'format' then
         FCocosFormat := StrToInt(ValueNode.TextData)
       else
-        continue;
+      if KeyNode.TextData = 'smartupdate' then
+      begin
+        { We don't need this information }
+      end else
+      if KeyNode.TextData = 'pixelFormat' then
+      begin
+        { We don't need this information -- we support any image format there is in the atlas file. }
+      end else
+      if KeyNode.TextData = 'premultiplyAlpha' then
+      begin
+        if Cocos2dReadBool(ValueNode) then
+          WritelnWarning('Cocos2d', 'premultiplyAlpha is specified as "true", but is not supported in "%s". You must use premultiplyAlpha=false.', [FDisplayUrl]);
+      end else
+      begin
+        WritelnWarning('Cocos2d', 'Unknown key "%s" in metadata of "%s"', [KeyNode.TextData, FDisplayUrl]);
+      end;
     end;
   finally
     FreeAndNil(I);
@@ -617,7 +743,7 @@ begin
   end;
 end;
 
-procedure TCocos2dLoader.ReadFrames(const MetadataNode: TDOMElement);
+procedure TCocos2dLoader.ReadFrames(const FramesNode: TDOMElement);
 var
   I: TXMLElementIterator;
   KeyNode: TDOMElement;
@@ -637,7 +763,7 @@ begin
   CoordInterp := nil;
   TimeSensor := nil;
 
-  I := MetadataNode.ChildrenIterator;
+  I := FramesNode.ChildrenIterator;
   try
     while I.GetNext do
     begin
@@ -706,30 +832,35 @@ end;
 
 procedure TCocos2dLoader.CalculateFrameCoords(const CocosFrame: TCocosFrame);
 begin
+  // 1st triangle
   FCoordArray[0] := Vector3(-CocosFrame.Width * (CocosFrame.AnchorX),
-      CocosFrame.Height * (CocosFrame.AnchorY), 0);
+    CocosFrame.Height * (CocosFrame.AnchorY), 0);
 
   FCoordArray[1] := Vector3(CocosFrame.Width * (1 - CocosFrame.AnchorX),
-      CocosFrame.Height * (CocosFrame.AnchorY), 0);
+    CocosFrame.Height * (CocosFrame.AnchorY), 0);
 
   FCoordArray[2] := Vector3(CocosFrame.Width * (1 - CocosFrame.AnchorX),
-      -CocosFrame.Height * (1 - CocosFrame.AnchorY), 0);
+    -CocosFrame.Height * (1 - CocosFrame.AnchorY), 0);
 
+  // 2nd triangle
   FCoordArray[3] := Vector3(-CocosFrame.Width * CocosFrame.AnchorX,
-      CocosFrame.Height * CocosFrame.AnchorY, 0);
+    CocosFrame.Height * CocosFrame.AnchorY, 0);
 
   FCoordArray[4] := Vector3(CocosFrame.Width * (1 - CocosFrame.AnchorX),
-      -CocosFrame.Height * (1 - CocosFrame.AnchorY), 0);
+    -CocosFrame.Height * (1 - CocosFrame.AnchorY), 0);
 
   FCoordArray[5] := Vector3(-CocosFrame.Width * CocosFrame.AnchorX,
-      -CocosFrame.Height * (1 - CocosFrame.AnchorY), 0);
+    -CocosFrame.Height * (1 - CocosFrame.AnchorY), 0);
 
-  FTexCoordArray[0] := Vector2(CocosFrame.X1, CocosFrame.Y1);
-  FTexCoordArray[1] := Vector2(CocosFrame.X2, CocosFrame.Y1);
-  FTexCoordArray[2] := Vector2(CocosFrame.X2, CocosFrame.Y2);
-  FTexCoordArray[3] := Vector2(CocosFrame.X1, CocosFrame.Y1);
-  FTexCoordArray[4] := Vector2(CocosFrame.X2, CocosFrame.Y2);
-  FTexCoordArray[5] := Vector2(CocosFrame.X1, CocosFrame.Y2);
+  // 1st triangle
+  FTexCoordArray[0] := CocosFrame.TexCoords[0];
+  FTexCoordArray[1] := CocosFrame.TexCoords[1];
+  FTexCoordArray[2] := CocosFrame.TexCoords[2];
+
+  // 2nd triangle
+  FTexCoordArray[3] := CocosFrame.TexCoords[0];
+  FTexCoordArray[4] := CocosFrame.TexCoords[2];
+  FTexCoordArray[5] := CocosFrame.TexCoords[3];
 end;
 
 procedure TCocos2dLoader.PrepareShape(const CoordArray: array of TVector3;
@@ -774,21 +905,21 @@ begin
 
   FShapeCoord := TCoordinateNode.Create('coord');
   FShapeCoord.SetPoint([
-      CoordArray[0],
-      CoordArray[1],
-      CoordArray[2],
-      CoordArray[3],
-      CoordArray[4],
-      CoordArray[5]]);
+    CoordArray[0],
+    CoordArray[1],
+    CoordArray[2],
+    CoordArray[3],
+    CoordArray[4],
+    CoordArray[5]]);
 
   FShapeTexCoord := TTextureCoordinateNode.Create('texcoord');
   FShapeTexCoord.SetPoint([
-       TexCoordArray[0],
-       TexCoordArray[1],
-       TexCoordArray[2],
-       TexCoordArray[3],
-       TexCoordArray[4],
-       TexCoordArray[5]]);
+    TexCoordArray[0],
+    TexCoordArray[1],
+    TexCoordArray[2],
+    TexCoordArray[3],
+    TexCoordArray[4],
+    TexCoordArray[5]]);
 
   Tri.Coord := FShapeCoord;
   Tri.TexCoord := FShapeTexCoord;
@@ -1015,4 +1146,15 @@ begin
   end;
 end;
 
+var
+  ModelFormat: TModelFormat;
+initialization
+  ModelFormat := TModelFormat.Create;
+  ModelFormat.OnLoad := {$ifdef FPC}@{$endif} LoadCocos2d;
+  ModelFormat.MimeTypes.Add('application/x-plist');
+  ModelFormat.MimeTypes.Add('application/x-cocos2d-sprite-sheet');
+  ModelFormat.FileFilterName := 'Cocos2d Sprite Sheet (*.cocos2d-plist, *.plist)';
+  ModelFormat.Extensions.Add('.cocos2d-plist');
+  ModelFormat.Extensions.Add('.plist');
+  RegisterModelFormat(ModelFormat);
 end.

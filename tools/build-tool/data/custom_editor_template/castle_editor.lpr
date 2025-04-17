@@ -15,7 +15,7 @@
 
 { Castle Game Engine editor.
 
-  See https://castle-engine.io/manual_editor.php about editor usage.
+  See https://castle-engine.io/editor about editor usage.
   See README.md about editor development.
 
   When this LPR code changes (e.g. new auto-created form is added),
@@ -41,11 +41,12 @@ uses
   castle_editor_automatic_package,
   Forms, anchordockpkg, FormChooseProject, ProjectUtils, FormNewProject,
   EditorUtils, FormProject, FrameDesign, FormAbout, FrameViewFile,
-  FormPreferences, DesignVisualizeTransform, FormSpriteSheetEditor,
+  FormPreferences, CastleTransformManipulate, FormSpriteSheetEditor,
   DataModuleIcons, FormImportAtlas, FormImportStarling, FormNewUnit,
   EditorCodeTools, CastleShellCtrls, FormSystemInformation,
   CastleComponentEditorDesigner, DesignCameraPreview, DesignObjectInspector,
-  DesignUndoSystem, FormRestartCustomEditor, FormImportSketchfab, FormProgress;
+  DesignUndoSystem, DesignSteam,
+  FormRestartCustomEditor, FormImportSketchfab, FormProgress;
 
 { Forces using a dedicated (faster) GPU on laptops with multiple GPUs.
   See https://castle-engine.io/dedicated_gpu }

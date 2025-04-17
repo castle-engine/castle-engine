@@ -1,6 +1,6 @@
 ﻿// -*- compile-command: "./test_single_testcase.sh TTestUriUtils" -*-
 {
-  Copyright 2013-2021 Michalis Kamburelis.
+  Copyright 2013-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -38,6 +38,8 @@ type
     procedure TestDecodeBase64;
     procedure TestEncodeBase64;
     procedure TestMimeTypeHttpQuery;
+    procedure TestUriMimeType;
+    procedure TestRelativeFilenameToUriSafe;
   end;
 
 implementation
@@ -93,9 +95,13 @@ begin
   AssertEquals('file:///foo.txt', AbsoluteUri('/foo.txt'));
   {$endif}
 
-  AssertFilenamesEqual(FilenameToUriSafe(InclPathDelim(GetCurrentDir) + 'foo.txt'), AbsoluteUri('foo.txt'));
+  if CanUseFileSystem then
+  begin
+    AssertFilenamesEqual(FilenameToUriSafe(InclPathDelim(GetCurrentDir) + 'foo.txt'), AbsoluteUri('foo.txt'));
+    AssertFilenamesEqual(FilenameToUriSafe(InclPathDelim(GetCurrentDir)), AbsoluteUri(''));
+  end;
+
   AssertEquals('http://foo', AbsoluteUri('http://foo'));
-  AssertFilenamesEqual(FilenameToUriSafe(InclPathDelim(GetCurrentDir)), AbsoluteUri(''));
 end;
 
 procedure TTestUriUtils.TestUriToFilenameSafe;
@@ -424,6 +430,37 @@ begin
 
   // test exactly from https://github.com/castle-engine/castle-engine/issues/547
   AssertEquals('image/jpeg', UriMimeType('https://cards.scryfall.io/large/front/0/9/092c48bd-b648-4c9e-aa99-cac3c407911d.jpg?1692936576'));
+end;
+
+procedure TTestUriUtils.TestUriMimeType;
+begin
+  AssertEquals('image/png', UriMimeType('aaa.png'));
+  AssertEquals('image/png', UriMimeType('aaa.png#some-anchor'));
+  AssertEquals('image/png', UriMimeType('castle-data:/aaa.png'));
+  AssertEquals('image/png', UriMimeType('castle-data:/aaa.png#some-anchor'));
+
+  AssertEquals('image/png', UriMimeType('%23/aaa.png'));
+  AssertEquals('image/png', UriMimeType('%23/aaa.png#some-anchor'));
+  AssertEquals('image/png', UriMimeType('castle-data:/%23/aaa.png'));
+  AssertEquals('image/png', UriMimeType('castle-data:/%23/aaa.png#some-anchor'));
+
+  AssertEquals('application/x-md3', UriMimeType('head.md3'));
+  AssertEquals('application/x-md3', UriMimeType('head.md3#skin:light'));
+  AssertEquals('application/x-md3', UriMimeType('castle-data:/head.md3'));
+  AssertEquals('application/x-md3', UriMimeType('castle-data:/head.md3#skin:light'));
+
+  AssertEquals('application/json', UriMimeType('dragon.json'));
+  AssertEquals('application/json', UriMimeType('dragon.json#skin:dark'));
+  AssertEquals('application/json', UriMimeType('castle-data:/dragon.json'));
+  AssertEquals('application/json', UriMimeType('castle-data:/dragon.json#skin:dark'));
+end;
+
+procedure TTestUriUtils.TestRelativeFilenameToUriSafe;
+begin
+  AssertEquals('foo/bar.txt', RelativeFilenameToUriSafe('foo/bar.txt'));
+  AssertEquals('foo/bar.txt', RelativeFilenameToUriSafe('foo\bar.txt'));
+  AssertEquals('', RelativeFilenameToUriSafe(''));
+  AssertEquals('foo/bar%20xyz.txt', RelativeFilenameToUriSafe('foo/bar xyz.txt'));
 end;
 
 initialization

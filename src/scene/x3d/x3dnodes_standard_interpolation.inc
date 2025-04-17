@@ -308,7 +308,7 @@ function TAbstractCommonInterpolatorNode
 begin
   Result := Index < KeyValueCount;
   if not Result then
-    WritelnWarning('Not enough key values for interpolator %d', [NiceName]);
+    WritelnWarning('Not enough key values for interpolator "%s"', [NiceName]);
 end;
 
 procedure TAbstractCommonInterpolatorNode

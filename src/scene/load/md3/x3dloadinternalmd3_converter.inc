@@ -109,7 +109,7 @@ begin
   SkinName := 'default'; // default skin, SettingsFromAnchor may override it
   SettingsFromAnchor;
   // for all following operations, we don't want #anchor in URL anymore
-  FBaseUrl := URIDeleteAnchor(FBaseUrl, true);
+  FBaseUrl := URIDeleteAnchor(FBaseUrl);
 
   Skin := TStringList.Create;
   SkinUrl := DeleteURIExt(BaseUrl) + '_' + SkinName + '.skin';

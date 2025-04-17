@@ -168,11 +168,11 @@ Transform {
 Transform {
   translation 0 -16 0
   children Anchor {
-    url "https://castle-engine.io/view3dscene.php"
+    url "https://castle-engine.io/castle-model-viewer"
     children [
       Shape {
         appearance DEF App1 Appearance { material Material { diffuseColor 1 1 0 } }
-        geometry Text { string "      Open view3dscene website in WWW browser" }
+        geometry Text { string "      Open castle-model-viewer website in WWW browser" }
       }
       Shape {
         appearance USE App1

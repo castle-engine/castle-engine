@@ -1,6 +1,6 @@
 {%MainUnit castleglimages.pas}
 {
-  Copyright 2019-2023 Michalis Kamburelis.
+  Copyright 2019-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -69,6 +69,7 @@
   TCastleImagePersistent = class(TPersistent)
   strict private
     FUrl: String;
+    FUrlMonitoring: TUrlMonitoring;
     FCache: boolean;
     FScaleFromUrl: Single;
     FDrawableImage: TDrawableImage;
@@ -130,6 +131,7 @@
   public
     constructor Create;
     destructor Destroy; override;
+    procedure BeforeDestruction; override;
 
     { Reserved for parent UI control to listen for changes. }
     property OnChange: TNotifyEvent read FOnChange write FOnChange;
@@ -287,6 +289,15 @@
         @item(Restores OnChange and Color.)
       ) }
     procedure DrawUiEnd;
+
+    { Load again the image from current URL.
+      This makes sense to be used when underlying file on disk
+      changed, and you want to reload it.
+
+      TODO: In case image is shared with other TCastleImagePersistent instances,
+      for now this method will not load new image from disk.
+      That's because the previous image contents will "survive" in the cache. }
+    procedure ReloadUrl;
   published
     { URL of the image.
       Set this to load a new image, you can set to '' to clear the image.
@@ -380,6 +391,8 @@ begin
   FProtectedSides.OnChange := {$ifdef FPC}@{$endif} ProtectedSidesChange;
   CreateDrawableImage;
 
+  FUrlMonitoring.Init({$ifdef FPC}@{$endif} ReloadUrl);
+
   {$define read_implementation_constructor}
   {$I auto_generated_persistent_vectors/tcastleimagepersistent_persistent_vectors.inc}
   {$undef read_implementation_constructor}
@@ -393,6 +406,12 @@ begin
   {$define read_implementation_destructor}
   {$I auto_generated_persistent_vectors/tcastleimagepersistent_persistent_vectors.inc}
   {$undef read_implementation_destructor}
+  inherited;
+end;
+
+procedure TCastleImagePersistent.BeforeDestruction;
+begin
+  FUrlMonitoring.Finish(FUrl);
   inherited;
 end;
 
@@ -448,7 +467,7 @@ begin
     { We deliberately change URL even when loading image could fail.
       This way URL property is always correctly deserialized in CGE editor,
       even when loading the image failed. }
-    FUrl := Value;
+    FUrlMonitoring.ChangeUrl(FUrl, Value);
     FScaleFromUrl := GetScaleFromUrl;
 
     FreeDrawableImage;
@@ -874,6 +893,15 @@ begin
     FProtectedSidesScaling := Value;
     DoChange;
   end;
+end;
+
+procedure TCastleImagePersistent.ReloadUrl;
+var
+  SavedUrl: String;
+begin
+  SavedUrl := Url;
+  Url := '';
+  Url := SavedUrl;
 end;
 
 {$define read_implementation_methods}

@@ -42,11 +42,11 @@ type
     PassedFrustumAndDistanceCulling: Boolean;
 
     { Used only when TCastleViewport.OcclusionCulling.
-      OcclusionQueryId is 0 if not initialized yet.
-      When it's 0, value of OcclusionQueryAsked doesn't matter,
+      OcclusionQueryId is GLObjectNone if not initialized yet.
+      When it's GLObjectNone, value of OcclusionQueryAsked doesn't matter,
       OcclusionQueryAsked is always reset to @false when initializing
       OcclusionQueryId. }
-    OcclusionQueryId: TGLint;
+    OcclusionQueryId: TGLQuery;
     OcclusionQueryAsked: boolean;
 
     { For Hierarchical Occlusion Culling. }
@@ -64,17 +64,33 @@ type
       const Changes: TX3DChanges); override;
     procedure PrepareResources;
     procedure GLContextClose;
-
-    function UseBlending: Boolean;
   end;
 
   { Shape with additional information how to render it inside a world,
-    that allows to render it independently of the containing TCastleScene. }
+    that allows to render it independently of the containing TCastleScene.
+    Meaning of fields follows the TShapesCollector.Add parameters. }
   TCollectedShape = class
     Shape: TGLShape;
     RenderOptions: TCastleRenderOptions;
     SceneTransform: TMatrix4;
+
+    { An optimization hint, if @true it implies
+      that SceneTransform for this Shape may change often,
+      it may even change within the same frame (when the TCastleTransform
+      is used many times in TAbstractRootTransform graph, e.g. through
+      TCastleTransformReference).
+
+      Value @true disables optimizations that try to assume the shape remains
+      roughly in the same place, like using InsideLightRadius
+      in TLightsRenderer.Render to eliminate lights from the shader code
+      when the shape is outside of the light radius. }
+    SceneTransformDynamic: Boolean;
+
     DepthRange: TDepthRange;
+    ShadowVolumesReceiver: Boolean;
+
+    { Should rendering this use blending (to account for partial transparency). }
+    function UseBlending: Boolean;
   end;
 
   TCollectedShapeList = class({$ifdef FPC}specialize{$endif} TObjectList<TCollectedShape>)
@@ -124,7 +140,7 @@ type
 implementation
 
 uses Generics.Defaults, Math, SysUtils,
-  CastleScene, CastleBoxes;
+  CastleScene, CastleBoxes, CastleInternalGLUtils;
 
 { TGLShape --------------------------------------------------------------- }
 
@@ -198,7 +214,7 @@ begin
     TTextureResources.Unprepare(State.MainTexture);
     { Make next PrepareResources prepare all textures.
       Testcase:
-      - view3dscene
+      - castle-model-viewer
       - open demo-models/rendered_texture/rendered_texture_tweak_size.x3dv
       - use s / S
       - without this fix, texture would change to none, and never again
@@ -212,7 +228,22 @@ end;
 function TGLShape.UnprepareTexture(Shape: TShape; Texture: TAbstractTextureNode): Pointer;
 begin
   Result := nil; // let EnumerateTextures to enumerate all textures
-  TTextureResources.Unprepare(Texture);
+
+  { Do not call TTextureResources.Unprepare
+    (which would do Texture.InternalRendererResourceFree in the end)
+    when Texture is TInternalReusedPixelTextureNode,
+    since this texture may be reused by other scenes.
+
+    Testcase:
+    - create in editor viewport, add TCastleText
+    - add another TCastleText
+    - remove one (any one) TCastleText --
+      the other TCastleText display will be broken
+      if condition "if not (Texture is TInternalReusedPixelTextureNode) then"
+      below gets removed.
+  }
+  if not (Texture is TInternalReusedPixelTextureNode) then
+    TTextureResources.Unprepare(Texture);
 end;
 
 function TGLShape.PrepareTexture(Shape: TShape; Texture: TAbstractTextureNode): Pointer;
@@ -272,17 +303,7 @@ begin
   end;
 
   FreeCaches;
-
-  if OcclusionQueryId <> 0 then
-  begin
-    glDeleteQueries(1, @OcclusionQueryId);
-    OcclusionQueryId := 0;
-  end;
-end;
-
-function TGLShape.UseBlending: Boolean;
-begin
-  Result := AlphaChannel = acBlending;
+  FreeQuery(OcclusionQueryId);
 end;
 
 procedure TGLShape.SchedulePrepareResources;
@@ -292,6 +313,18 @@ begin
 end;
 
 { TCollectedShape ---------------------------------------------------------- }
+
+function TCollectedShape.UseBlending: Boolean;
+begin
+  { When RenderOptions.Blending=false, treat all shapes as opaque.
+    Same for RenderOptions.Mode = rmSolidColor. }
+  if (not RenderOptions.Blending) or (RenderOptions.Mode = rmSolidColor) then
+    Exit(false);
+
+  Result := Shape.AlphaChannel = acBlending;
+end;
+
+{ TCollectedShapeList ---------------------------------------------------------- }
 
 type
   TCollectedShapeComparer = {$ifdef FPC}specialize{$endif} TComparer<TCollectedShape>;

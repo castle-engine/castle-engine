@@ -237,7 +237,8 @@ function TShapeShadowVolumes.TrianglesListShadowCasters: TTrianglesShadowCasters
       try
         TriangleAdder.TriangleList := Result;
         if ShadowCaster(Shape) then
-          Shape.LocalTriangulate({$ifdef FPC}@{$endif}TriangleAdder.AddTriangle);
+          Shape.LocalTriangulate({$ifdef FPC}@{$endif}TriangleAdder.AddTriangle,
+            { FrontFaceAlwaysCcw should not matter } false);
         if LogShadowVolumes then
           WritelnLog('Shadow volumes', Format('Shadows casters triangles: %d',
             [Result.Count]));

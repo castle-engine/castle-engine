@@ -20,8 +20,8 @@ unit ToolResources;
 
 interface
 
-uses CastleUtils, CastleStringUtils,
-  ToolProject, ToolArchitectures, Classes;
+uses CastleUtils, CastleStringUtils, CastleInternalArchitectures,
+  ToolProject, Classes;
 
 { Maybe make castle-auto-generated-resources.res (depends on platform).
   Returns if resource file was created. }

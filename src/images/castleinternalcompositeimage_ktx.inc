@@ -1,6 +1,6 @@
 {%MainUnit castleinternalcompositeimage.pas}
 {
-  Copyright 2009-2022 Michalis Kamburelis.
+  Copyright 2009-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -75,6 +75,9 @@ type
       GL_RG             = $8227;
       //GL_R16F           = $822D;
       GL_R32F           = $822E;
+      GL_RG32F          = $8230;
+      GL_RGB32F         = $8815;
+      GL_RGBA32F        = $8814;
       GL_R16UI          = $8234;
       GL_SRGB8_ALPHA8   = $8C43;
 
@@ -109,7 +112,8 @@ type
     procedure ReadBGR(const Stream: TStream; const W, H, D: Cardinal);
     procedure ReadRGBA(const Stream: TStream; const W, H, D: Cardinal);
     procedure ReadBGRA(const Stream: TStream; const W, H, D: Cardinal);
-    procedure ReadFloatImage(const Stream: TStream; const W, H, D: Cardinal);
+    procedure ReadFloatImage(const ImageClass: TCastleImageClass;
+      const Stream: TStream; const W, H, D: Cardinal);
     procedure ReadCompressed(const Stream: TStream; const Compression: TTextureCompression; const W, H, D: Cardinal);
   public
     procedure LoadFromStream(const Stream: TStream; const Url: String); override;
@@ -300,40 +304,26 @@ begin
     end;
 end;
 
-procedure TKTXHandler.ReadFloatImage(const Stream: TStream; const W, H, D: Cardinal);
+procedure TKTXHandler.ReadFloatImage(const ImageClass: TCastleImageClass;
+  const Stream: TStream; const W, H, D: Cardinal);
 var
-  Floats: TSingleList;
-  X, Y, Z: Integer;
-  Pixel: PVector3;
-  PixelSource: PSingle;
-  Image: TRGBFloatImage;
+  Y, Z: Integer;
+  Image: TCastleImage;
+  ImageRow: Pointer;
 begin
-  Image := TRGBFloatImage.Create(W, H, D);
-  // when Image.PixelSize is 4, there is never any padding
+  Image := ImageClass.Create(W, H, D);
+  // Image.PixelSize is always multiple of SizeOf(Single)
+  Assert(Image.PixelSize mod 4 = 0);
+  // when Image.PixelSize is divisible by 4, there is never any padding
   Assert(RowBytePadding(Image) = 0);
   Images.Add(Image);
 
-  Floats := TSingleList.Create;
-  try
-    Floats.Count := W * H * D;
-    Stream.ReadBuffer(Floats.L^, Floats.Count * SizeOf(Single));
-    PixelSource := PSingle(Floats.L);
-
-    // move Floats data to Image.Pixels
-    for Z := 0 to D - 1 do
-      for Y := 0 to H - 1 do
-      begin
-        Pixel := PVector3(Image.RowPtr(TargetY(Y, H), TargetZ(Z, D)));
-        for X := 0 to W - 1 do
-        begin
-          Pixel^.X := PixelSource^;
-          Pixel^.Y := PixelSource^;
-          Pixel^.Z := PixelSource^;
-          Inc(PixelSource);
-          Inc(Pixel);
-        end;
-      end;
-  finally FreeAndNil(Floats) end;
+  for Z := 0 to D - 1 do
+    for Y := 0 to H - 1 do
+    begin
+      ImageRow := Image.RowPtr(TargetY(Y, H), TargetZ(Z, D));
+      Stream.ReadBuffer(ImageRow^, Image.PixelSize * W);
+    end;
 end;
 
 procedure TKTXHandler.ReadOrientation(const Value: String);
@@ -525,12 +515,36 @@ begin
     ReadRGB(Stream, W, H, D);
   end else
   if (Header.GlType = GL_FLOAT) and
-     (Header.GlTypeSize = 4) and
+     (Header.GlTypeSize = SizeOf(Single)) and
      (Header.GlFormat = GL_RED) and
      (Header.GlInternalFormat = GL_R32F) and
      (Header.GlBaseInternalFormat = GL_RED) then
   begin
-    ReadFloatImage(Stream, W, H, D);
+    ReadFloatImage(TGrayscaleFloatImage, Stream, W, H, D);
+  end else
+  if (Header.GlType = GL_FLOAT) and
+     (Header.GlTypeSize = SizeOf(Single)) and
+     (Header.GlFormat = GL_RG) and
+     (Header.GlInternalFormat = GL_RG32F) and
+     (Header.GlBaseInternalFormat = GL_RG) then
+  begin
+    ReadFloatImage(TGrayscaleAlphaFloatImage, Stream, W, H, D);
+  end else
+  if (Header.GlType = GL_FLOAT) and
+     (Header.GlTypeSize = SizeOf(Single)) and
+     (Header.GlFormat = GL_RGB) and
+     (Header.GlInternalFormat = GL_RGB32F) and
+     (Header.GlBaseInternalFormat = GL_RGB) then
+  begin
+    ReadFloatImage(TRGBFloatImage, Stream, W, H, D);
+  end else
+  if (Header.GlType = GL_FLOAT) and
+     (Header.GlTypeSize = SizeOf(Single)) and
+     (Header.GlFormat = GL_RGBA) and
+     (Header.GlInternalFormat = GL_RGBA32F) and
+     (Header.GlBaseInternalFormat = GL_RGBA) then
+  begin
+    ReadFloatImage(TRGBAlphaFloatImage, Stream, W, H, D);
   end else
   if Header.GlType = GL_HALF_FLOAT then
   begin
@@ -538,7 +552,7 @@ begin
   end else
   if (Header.GlType = 0) and
      { Header.GlTypeSize is commonly 1,
-       but Header.GlTypeSize = 0 is used by Apple, see https://github.com/castle-engine/castle-view-image/issues/1.
+       but Header.GlTypeSize = 0 is used by Apple, see https://github.com/castle-engine/castle-image-viewer/issues/1 .
        Spec doesn't clarify it for compressed textures ( http://github.khronos.org/KTX-Specification/ )
        so just ignore checking GlTypeSize below. }
      // (Header.GlTypeSize = 1) and

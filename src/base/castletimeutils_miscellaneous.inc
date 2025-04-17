@@ -29,7 +29,7 @@ type
     https://twitter.com/ID_AA_Carmack/status/418158611664097280
 
     To test that "single" is not enough, open some animation in
-    view3dscene, and change "on display" time pass to 1000.
+    castle-model-viewer, and change "on display" time pass to 1000.
     It goes even better if AutoRedisplay is @false, and LimitFps is 0.0,
     and model is still for some time --- then we do many OnUpdate calls with
     very small SecondsPassed values. }

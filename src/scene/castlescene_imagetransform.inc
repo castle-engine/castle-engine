@@ -1,6 +1,6 @@
 {%MainUnit castlescene.pas}
 {
-  Copyright 2022-2022 Michalis Kamburelis.
+  Copyright 2022-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -23,6 +23,7 @@ type
   strict private
     { scene and X3D nodes }
     FScene: TCastleScene;
+    FPreciseCollisions: Boolean;
     FRootNode: TX3DRootNode;
     FAppearanceNode: TAppearanceNode;
     FShapeNode: TShapeNode;
@@ -41,6 +42,9 @@ type
     FAlphaChannel: TAutoAlphaChannel;
     FMipmaps: Boolean;
 
+    FUrlMonitoring: TUrlMonitoring;
+    FImageWidth, FImageHeight: Cardinal;
+
     { Update X3D TCoordinateNode, TTextureCoordinateNode. }
     procedure UpdateCoordinateNodes;
     procedure SetPivot(const Value: TVector2);
@@ -52,10 +56,14 @@ type
     procedure SetAlphaChannel(const Value: TAutoAlphaChannel);
     procedure SetUrl(const Value: String);
     procedure SetMipmaps(const Value: Boolean);
+    procedure SetPreciseCollisions(const Value: Boolean);
+  protected
+    function InternalBuildNodeInside: TObject; override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
+    procedure BeforeDestruction; override;
 
     { How is the image placed within its own coordinate system.
       Default value (0.5, 0.5) means that the middle of the image is at (0,0,0).
@@ -94,6 +102,34 @@ type
 
     { Color to multiply by image. By default, opaque white. }
     property Color: TCastleColor read FColor write SetColor;
+
+    { Load again the image from current URL.
+      This makes sense to be used when underlying file on disk
+      changed, and you want to reload it.
+
+      TODO: In case image is shared with other TCastleImageTransform instances,
+      or TCastleScene (refering to the same image using TImageTextureNode),
+      for now this method will not load new image from disk.
+      That's because the previous image contents will "survive" in the cache. }
+    procedure ReloadUrl;
+
+    { Loaded image width.
+
+      This is not affected by any resizing done by @link(Size)
+      or scaling done by @link(TCastleTransform.Scale).
+      This property reflects the underlying image size.
+
+      Zero if no image is loaded. }
+    property ImageWidth: Cardinal read FImageWidth;
+
+    { Loaded image height.
+
+      This is not affected by any resizing done by @link(Size)
+      or scaling done by @link(TCastleTransform.Scale).
+      This property reflects the underlying image size.
+
+      Zero if no image is loaded. }
+    property ImageHeight: Cardinal read FImageHeight;
   published
     { How is the image scaled.
       Determines scaling done both by @link(Size) and TCastleTransform.Scale. }
@@ -119,6 +155,11 @@ type
       For 2D games, you usually don't want to use mipmaps, as you often want to avoid
       scaling the image to be power-of-2. }
     property Mipmaps: Boolean read FMipmaps write SetMipmaps default false;
+
+    { Return the detailed information (triangle, and position within the triangle)
+      when testing collisions with this image
+      in the resulting @link(TRayCollision) from @link(TCastleViewport.MouseRayHit). }
+    property PreciseCollisions: Boolean read FPreciseCollisions write SetPreciseCollisions default false;
 
   {$define read_interface_class}
   {$I auto_generated_persistent_vectors/tcastleimagetransform_persistent_vectors.inc}
@@ -218,6 +259,8 @@ begin
   FRootNode.AddChildren(FShapeNode);
   FScene.Load(FRootNode, true);
 
+  FUrlMonitoring.Init({$ifdef FPC}@{$endif} ReloadUrl);
+
   {$define read_implementation_constructor}
   {$I auto_generated_persistent_vectors/tcastleimagetransform_persistent_vectors.inc}
   {$undef read_implementation_constructor}
@@ -233,6 +276,12 @@ begin
   inherited;
 end;
 
+procedure TCastleImageTransform.BeforeDestruction;
+begin
+  FUrlMonitoring.Finish(FUrl);
+  inherited;
+end;
+
 function TCastleImageTransform.PropertySections(const PropertyName: String): TPropertySections;
 begin
   if (PropertyName = 'PivotPersistent') or
@@ -242,6 +291,7 @@ begin
      (PropertyName = 'ColorPersistent') or
      (PropertyName = 'SmoothScaling') or
      (PropertyName = 'AlphaChannel') or
+     (PropertyName = 'PreciseCollisions') or
      (PropertyName = 'Url') then
     Result := [psBasic]
   else
@@ -257,8 +307,10 @@ begin
   FShapeNode.Visible := FTextureNode.IsTextureImage;
   if FTextureNode.IsTextureImage then
   begin
-    W := FTextureNode.TextureImage.Width;
-    H := FTextureNode.TextureImage.Height;
+    FImageWidth := FTextureNode.TextureImage.Width;
+    FImageHeight := FTextureNode.TextureImage.Height;
+    W := FImageWidth;
+    H := FImageHeight;
 
     { change W, H according to Size }
     if not ((Size.X = 0) and (Size.Y = 0)) then
@@ -310,6 +362,9 @@ begin
     FTexPropertiesNode.BoundaryModeT := BoolRepeatToBoundaryMode[(FShift.Y <> 0) or (FRepeatImage.Y > 1)];
   end else
   begin
+    FImageWidth := 0;
+    FImageHeight := 0;
+
     FCoordinateNode.SetPoint([
       TVector3.Zero,
       TVector3.Zero,
@@ -329,13 +384,22 @@ procedure TCastleImageTransform.SetUrl(const Value: String);
 begin
   if FUrl <> Value then
   begin
-    FUrl := Value;
+    FUrlMonitoring.ChangeUrl(FUrl, Value);
     if Value <> '' then
       FTextureNode.SetUrl([Value])
     else
       FTextureNode.SetUrl([]);
     UpdateCoordinateNodes;
   end;
+end;
+
+procedure TCastleImageTransform.ReloadUrl;
+var
+  SavedUrl: String;
+begin
+  SavedUrl := Url;
+  Url := '';
+  Url := SavedUrl;
 end;
 
 procedure TCastleImageTransform.SetPivot(const Value: TVector2);
@@ -426,6 +490,25 @@ begin
     FMipmaps := Value;
     FTexPropertiesNode.GuiTexture := not FMipmaps;
     FScene.ChangedAll; // TODO ChangedAll should not be needed
+  end;
+end;
+
+function TCastleImageTransform.InternalBuildNodeInside: TObject;
+begin
+  Assert(FScene <> nil); // always <> nil in this class
+  Assert(FScene.RootNode <> nil); // always <> nil in this class
+  Result := FScene.RootNode.DeepCopy;
+end;
+
+procedure TCastleImageTransform.SetPreciseCollisions(const Value: Boolean);
+begin
+  if FPreciseCollisions <> Value then
+  begin
+    FPreciseCollisions := Value;
+    FScene.PreciseCollisions := Value;
+    { Note: This also adds ssRendering octree,
+      somewhat useless as image is just 1 shape in an internal scene.
+      But does not seem problematic either. }
   end;
 end;
 

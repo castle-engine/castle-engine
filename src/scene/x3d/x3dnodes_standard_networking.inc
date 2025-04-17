@@ -1,6 +1,6 @@
 {%MainUnit x3dnodes.pas}
 {
-  Copyright 2002-2022 Michalis Kamburelis.
+  Copyright 2002-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -34,6 +34,8 @@
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
+    constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
+
     { Load the document, world and/or viewpoint referenced by this Anchor node.
 
       This iterates over url field, for each URL trying to load
@@ -181,6 +183,8 @@
 
   { Monitors the progress and success of downloading URL elements over a network. }
   TLoadSensorNode = class(TAbstractNetworkSensorNode)
+  public
+    constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
   {$I auto_generated_node_helpers/x3dnodes_loadsensor.inc}
   end;
 
@@ -189,6 +193,12 @@
 {$ifdef read_implementation}
 
 { TAnchorNode ---------------------------------------------------------------- }
+
+constructor TAnchorNode.Create(const AX3DName, ABaseUrl: String);
+begin
+  inherited;
+  AddFunctionality(TUrlFunctionality.Create(Self));
+end;
 
 function TAnchorNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
 var
@@ -228,14 +238,16 @@ begin
     UrlWithoutViewpoint := Url;
     URIExtractAnchor(UrlWithoutViewpoint, NewViewpointName);
 
+    NewRootNode := nil;
+    NewViewpoint := nil;
+
     if UrlWithoutViewpoint = '' then
     begin
       { in this case, we have either a viewpoint in current 3D world, or nothing }
-      NewRootNode := nil;
 
       if NewViewpointName = '' then
       begin
-        NewViewpoint := nil;
+        Assert(NewViewpoint = nil); // already assigned NewViewpoint := nil above
         Exit(true);
       end else
       begin
@@ -244,7 +256,8 @@ begin
           NewViewpoint := CurrentRootNode.FindNode(TAbstractViewpointNode,
             NewViewpointName, [fnOnlyActive, fnNilOnMissing]) as TAbstractViewpointNode;
           if NewViewpoint <> nil then
-            Exit(true) else
+            Exit(true)
+          else
             ViewpointNameInvalid(NewViewpointName);
         end else
           ViewpointNameInvalid(NewViewpointName);
@@ -257,17 +270,20 @@ begin
 
     end else
     begin
-      { in this case, we have either a new 3D world, or a document }
+      { in this case (UrlWithoutViewpoint <> ''),
+        we have either a new X3D root node, or a document that isn't a model }
+
       UrlWithoutViewpoint := PathFromBaseUrl(UrlWithoutViewpoint);
       try
-        NewRootNode := LoadNode(UrlWithoutViewpoint, true);
-
-        if NewRootNode = nil then
+        if TFileFilterList.Matches(LoadScene_FileFilters, UrlWithoutViewpoint) then
         begin
-          { we have a document URL }
+          NewRootNode := LoadNode(UrlWithoutViewpoint);
+        end else
+        begin
+          { we have a document URL, Exit or Continue }
           if OpenURL(PathFromBaseUrl(Url)) then
           begin
-            NewViewpoint := nil;
+            Assert(NewViewpoint = nil); // already assigned NewViewpoint := nil earlier
             Exit(true);
           end else
           begin
@@ -286,6 +302,8 @@ begin
           Continue;
         end;
       end;
+
+      Assert(NewRootNode <> nil);
 
       if NewViewpointName = '' then
       begin
@@ -432,8 +450,8 @@ begin
     { The Inlined contents are usually TX3DRootNode,
       but they should not be saved as such. Although usually this doesn't
       get saved (since we do not save inline contents), but it may happen
-      if you copy nodes around, e.g. "expanding" inlines (see view3dscene
-      planned feature, in view3dscene/TODO-expand-inlines.txt).
+      if you copy nodes around, e.g. "expanding" inlines (see castle-model-viewer
+      planned feature, in castle-model-viewer/TODO-expand-inlines.txt).
 
       TODO: Such expanding must inherently break mismatching UNIT clauses
       for LengthConversionFactor. To overcome this, our TX3DRootNode
@@ -578,6 +596,14 @@ begin
       EventChildren.Send(ChildrenToSend, Scene.NextEventTime);
     finally FreeAndNil(ChildrenToSend) end;
   end;
+end;
+
+{ TLoadSensorNode ------------------------------------------------------------  }
+
+constructor TLoadSensorNode.Create(const AX3DName, ABaseUrl: String);
+begin
+  inherited;
+  FdWatchList.AddAlternativeName('children', 4);
 end;
 
 procedure RegisterNetworkingNodes;

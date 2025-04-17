@@ -95,6 +95,10 @@ type
 
     { Renderer used by viewport. @exclude }
     property InternalBackgroundRenderer: TBackgroundRenderer read FBackgroundRenderer;
+
+    { Build X3D node, used by TCastleViewport.InternalBuildNode.
+      @exclude }
+    function InternalBuildNode: TAbstractChildNode;
   published
     { Back (-Z) background texture.
       Orientation should match @url(https://www.web3d.org/specifications/X3Dv4Draft/ISO-IEC19775-1v4-WD2/Part01/components/environmentalEffects.html#Background X3D Background node). }
@@ -360,6 +364,16 @@ begin
     if FBackgroundRenderer <> nil then
       FBackgroundRenderer.UpdateRotation(Value);
   end;
+end;
+
+function TCastleBackground.InternalBuildNode: TAbstractChildNode;
+var
+  Transform: TTransformNode;
+begin
+  Transform := TTransformNode.Create;
+  Transform.Rotation := Rotation;
+  Transform.AddChildren(FBackgroundNode.DeepCopy as TAbstractChildNode);
+  Result := Transform;
 end;
 
 {$define read_implementation_methods}

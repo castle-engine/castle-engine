@@ -1,5 +1,5 @@
 {
-  Copyright 2019-2019 Michalis Kamburelis.
+  Copyright 2019-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -354,6 +354,7 @@ begin
 
   if (DataInfoProtocol = 'file') or
      (DataInfoProtocol = 'castle-nx-contents') or
+     (DataInfoProtocol = 'castle-internal-web-data-packed') or
      (DataInfoProtocol = '') then
   begin
     { To avoid exceptions during debugging,

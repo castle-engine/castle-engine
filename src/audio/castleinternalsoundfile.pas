@@ -571,7 +571,11 @@ begin
   begin
     FRegisteredSoundFormats := TRegisteredSoundFormats.Create(true);
     // register default formats, handled in this unit
+    { WAV has 2 popular MIME types,
+      see https://stackoverflow.com/questions/44891157/why-wav-format-doesnt-have-same-mimetype-in-different-browsers }
     FRegisteredSoundFormats.Add('audio/x-wav',
+      {$ifdef FPC}@{$endif}TWAVReader{$ifdef FPC}(nil){$endif}.Read);
+    FRegisteredSoundFormats.Add('audio/wav',
       {$ifdef FPC}@{$endif}TWAVReader{$ifdef FPC}(nil){$endif}.Read);
   end;
   Result := FRegisteredSoundFormats;

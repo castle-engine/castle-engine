@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2023 Michalis Kamburelis.
+  Copyright 2015-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -26,23 +26,31 @@
   strict private
     function GetRadius: Single;
     procedure SetRadius(const Value: Single);
+    function GetRadiusY: Single;
+    procedure SetRadiusY(const Value: Single);
     function GetSlices: Integer;
     procedure SetSlices(const Value: Integer);
   public
     { Create node fields and events. }
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdRadius: TSFFloat;
     { Internal wrapper for property @code(Radius). This wrapper API may change, we advise to access simpler @code(Radius) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdRadius: TSFFloat read FFdRadius;
-    {  }
+    { Radius of the circle. If the @link(RadiusY) is non-zero (so we have ellipse, not a circle) then this is the radius along the X axis. }
     property Radius: Single read GetRadius write SetRadius;
+
+    strict private FFdRadiusY: TSFFloat;
+    { Internal wrapper for property @code(RadiusY). This wrapper API may change, we advise to access simpler @code(RadiusY) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
+    public property FdRadiusY: TSFFloat read FFdRadiusY;
+    { Radius of the circle along the Y axis. Leave zero (default) to have a circle using @link(Radius) for both X and Y. Set to non-zero to have an ellipse, with @link(Radius) along X and this value along Y. }
+    property RadiusY: Single read GetRadiusY write SetRadiusY;
 
     strict private FFdSlices: TSFInt32;
     { Internal wrapper for property @code(Slices). This wrapper API may change, we advise to access simpler @code(Slices) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdSlices: TSFInt32 read FFdSlices;
-    { How much to subdivide the circle. Larger values result in polygon that looks smoother (more like a correct circle), but also mean that we need to render more triangles. The default value, -1 means to use the global @link(DefaultTriangulationSlices) parameter. }
+    { How much to subdivide the circle. Larger values result in a shape that looks smoother (like a correct circle), but also mean that we need to render more triangles. The default value, 0 means to use the global @link(DefaultTriangulationSlices) parameter. }
     property Slices: Integer read GetSlices write SetSlices;
 
 {$endif read_interface}
@@ -59,6 +67,16 @@ end;
 procedure TCircle2DNode.SetRadius(const Value: Single);
 begin
   FdRadius.Send(Value);
+end;
+
+function TCircle2DNode.GetRadiusY: Single;
+begin
+  Result := FdRadiusY.Value;
+end;
+
+procedure TCircle2DNode.SetRadiusY(const Value: Single);
+begin
+  FdRadiusY.Send(Value);
 end;
 
 function TCircle2DNode.GetSlices: Integer;
@@ -85,7 +103,12 @@ begin
    FdRadius.MustBeNonnegative := true;
   AddField(FFdRadius);
 
-  FFdSlices := TSFInt32.Create(Self, True, 'slices', -1);
+  FFdRadiusY := TSFFloat.Create(Self, False, 'radiusY', 0);
+   FdRadiusY.ChangeAlways := chGeometry;
+   FdRadiusY.MustBeNonnegative := true;
+  AddField(FFdRadiusY);
+
+  FFdSlices := TSFInt32.Create(Self, True, 'slices', 0);
    FdSlices.ChangeAlways := chGeometry;
   AddField(FFdSlices);
 end;

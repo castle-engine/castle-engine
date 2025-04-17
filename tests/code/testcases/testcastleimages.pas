@@ -1,6 +1,6 @@
 // -*- compile-command: "./test_single_testcase.sh TTestImages" -*-
 {
-  Copyright 2004-2023 Michalis Kamburelis.
+  Copyright 2004-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -21,6 +21,9 @@ unit TestCastleImages;
   {$pointermath on}
 {$endif}
 
+// For USE_VAMPYRE_IMAGING
+{$I ../../../src/common_includes/castleconf.inc}
+
 interface
 
 uses CastleTester;
@@ -40,6 +43,10 @@ type
     procedure TestInternalDetectClassPNG;
     procedure TestLoadAnchors;
     procedure TestPreserveTreatAsAlpha;
+    procedure TestByteSinglePrecision;
+    procedure TestUInt16SinglePrecision;
+    procedure TestPngFloat;
+    procedure TestKtxFloat;
   end;
 
 implementation
@@ -61,13 +68,13 @@ end;
 
 procedure TTestImages.TestLoadImage;
 
-  procedure DoTest(const fname: string;
+  procedure DoTest(const FileName: string;
     const AllowedImageClasses: array of TEncodedImageClass;
     DestClass: TCastleImageClass);
   var
     Img: TCastleImage;
   begin
-    Img := LoadImage('castle-data:/images/' + fname, AllowedImageClasses);
+    Img := LoadImage('castle-data:/images/' + FileName, AllowedImageClasses);
     try
       if not (Img is DestClass) then
         Fail(Format('We expect %s class but have %s', [
@@ -78,12 +85,12 @@ procedure TTestImages.TestLoadImage;
   end;
 
 { Unused:
-  procedure DoFailTest(const fname: string;
+  procedure DoFailTest(const FileName: string;
     const AllowedImageClasses: array of TEncodedImageClass);
   var Img: TCastleImage;
   begin
    try
-    Img := LoadImage('castle-data:/' + fname, AllowedImageClasses);
+    Img := LoadImage('castle-data:/' + FileName, AllowedImageClasses);
    except on E: EUnableToLoadImage do Exit end;
    try
     raise Exception.Create('Fail test passed - Er, I mean, failed.');
@@ -91,36 +98,38 @@ procedure TTestImages.TestLoadImage;
   end;
 }
 
-  procedure TestsImageInRGBFormat(const fname: string);
+  procedure TestsImageInRGBFormat(const FileName: string);
   begin
-   { zaladuj obrazek w formacie rgb. Dopoki TRGBImage jest w AllowedImageClasses
-     wszystko powinno zawsze isc OK i wynik powinien miec typ TRGBImage. }
-   DoTest('rgb.ppm', [TRGBImage], TRGBImage);
-   DoTest('rgb.ppm', [TRGBImage, TRGBAlphaImage, TRGBFloatImage], TRGBImage);
+    { load image in rgb format.
+      As long as TRGBImage is in AllowedImageClasses,
+      all should be OK and result should be TRGBImage. }
+    DoTest(FileName, [TRGBImage], TRGBImage);
+    DoTest(FileName, [TRGBImage, TRGBAlphaImage, TRGBFloatImage], TRGBImage);
   end;
 
 begin
- TestsImageInRGBFormat('rgb.ppm');
- { png jest obslugiwane inaczej niz typowe formaty rgb, wiec lepiej sprawdzic
-   je osobno. }
- TestsImageInRGBFormat('no_alpha.png');
+  TestsImageInRGBFormat('rgb.ppm');
 
- { zaladuj obrazek z alpha }
- DoTest('alpha.png', [TRGBImage], TRGBImage);
- DoTest('alpha.png', [TRGBImage, TRGBAlphaImage, TRGBFloatImage], TRGBAlphaImage);
- DoTest('alpha.png', [TRGBFloatImage], TRGBFloatImage);
+  TestsImageInRGBFormat('no_alpha.png');
 
- { zaladuj obrazek z rgbe }
- DoTest('rgbe.rgbe', [TRGBImage], TRGBImage);
- DoTest('rgbe.rgbe', [TRGBImage, TRGBAlphaImage], TRGBImage);
- DoTest('rgbe.rgbe', [TRGBImage, TRGBAlphaImage, TRGBFloatImage], TRGBFloatImage);
- DoTest('rgbe.rgbe', [TRGBAlphaImage], TRGBAlphaImage);
+  { load image with alpha }
+  DoTest('alpha.png', [TRGBImage], TRGBImage);
+  DoTest('alpha.png', [TRGBImage, TRGBAlphaImage, TRGBFloatImage], TRGBAlphaImage);
+  DoTest('alpha.png', [TRGBFloatImage], TRGBFloatImage);
 
- { zaladuj obrazek z grayscale }
- DoTest('alpha_grayscale.png', [], TGrayscaleAlphaImage);
- DoTest('alpha_grayscale.png', [TGrayscaleImage], TGrayscaleImage);
- DoTest('alpha_grayscale.png', [TRGBImage], TRGBImage);
- DoTest('alpha_grayscale.png', [TRGBAlphaImage], TRGBAlphaImage);
+  {$ifdef USE_VAMPYRE_IMAGING} // we need Vampyre for RGBE file format support
+  { load image from RGBE file format }
+  DoTest('rgbe.rgbe', [TRGBImage], TRGBImage);
+  DoTest('rgbe.rgbe', [TRGBImage, TRGBAlphaImage], TRGBImage);
+  DoTest('rgbe.rgbe', [TRGBImage, TRGBAlphaImage, TRGBFloatImage], TRGBFloatImage);
+  DoTest('rgbe.rgbe', [TRGBAlphaImage], TRGBAlphaImage);
+  {$endif}
+
+  { load image in grayscale format }
+  DoTest('alpha_grayscale.png', [], TGrayscaleAlphaImage);
+  DoTest('alpha_grayscale.png', [TGrayscaleImage], TGrayscaleImage);
+  DoTest('alpha_grayscale.png', [TRGBImage], TRGBImage);
+  DoTest('alpha_grayscale.png', [TRGBAlphaImage], TRGBAlphaImage);
 end;
 
 procedure TTestImages.TestImageClassBestForSavingToFormat;
@@ -180,26 +189,26 @@ procedure TTestImages.TestRGBEToRGBTranslating;
     rgb, newrgb: TVector3;
     i: Integer;
   begin
-   for i := 1 to 1000 do
-   begin
-    rgb.X := Random*UpperValue;
-    rgb.Y := Random*UpperValue;
-    rgb.Z := Random*UpperValue;
+    for i := 1 to 1000 do
+    begin
+      rgb.X := Random*UpperValue;
+      rgb.Y := Random*UpperValue;
+      rgb.Z := Random*UpperValue;
 
-    rgbe := Vector3ToRGBE(rgb);
-    newrgb := VectorRGBETo3Single(rgbe);
-    if not TVector3.Equals(rgb, newrgb, UpperValue/256) then
-     raise Exception.Create('Error -'+
-       ' rgb '+rgb.ToString+
-       ' rgbe '+rgbe.ToString+
-       ' newrgb '+newrgb.ToString );
-   end;
+      rgbe := Vector3ToRGBE(rgb);
+      newrgb := VectorRGBETo3Single(rgbe);
+      if not TVector3.Equals(rgb, newrgb, UpperValue/256) then
+      raise Exception.Create('Error -'+
+        ' rgb '+rgb.ToString+
+        ' rgbe '+rgbe.ToString+
+        ' newrgb '+newrgb.ToString );
+    end;
   end;
 
 begin
- CheckRGBEToRGBTranslating(1.0);
- CheckRGBEToRGBTranslating(10.0);
- CheckRGBEToRGBTranslating(10000.0);
+  CheckRGBEToRGBTranslating(1.0);
+  CheckRGBEToRGBTranslating(10.0);
+  CheckRGBEToRGBTranslating(10000.0);
 end;
 
 procedure TTestImages.TestResize;
@@ -319,6 +328,12 @@ procedure TTestImages.TestLoadSavePreserveAlpha;
   end;
 
 begin
+  if not CanUseFileSystem then // for GetTempFileNamePrefix
+  begin
+    AbortTest;
+    Exit;
+  end;
+
   TestImage('castle-data:/images/load-save-alpha-test/1.png');
   TestImage('castle-data:/images/load-save-alpha-test/2.png');
   TestImage('castle-data:/images/load-save-alpha-test/3.png');
@@ -481,6 +496,112 @@ begin
     finally FreeAndNil(Img2) end;
 
   finally FreeAndNil(Img1) end;
+end;
+
+procedure TTestImages.TestByteSinglePrecision;
+var
+  B: Byte;
+  S: Single;
+begin
+  { Test claim from CastleImages docs that float-based (Single) images
+    can carry Byte information without any loss.
+    We test that each Byte "survives" round-trip to Single,
+    despite being approximated in Single and then rounded. }
+  for B := Low(Byte) to High(Byte) do
+  begin
+    S := B;
+    AssertEquals(B, Round(S));
+  end;
+end;
+
+procedure TTestImages.TestUInt16SinglePrecision;
+var
+  I: UInt16;
+  S: Single;
+begin
+  { Test claim that float-based (Single) images
+    can carry UInt16 information without any loss.
+    We test that each UInt16 "survives" round-trip to Single,
+    despite being approximated in Single and then rounded. }
+  for I := Low(UInt16) to High(UInt16) do
+  begin
+    S := I;
+    AssertEquals(I, Round(S));
+  end;
+end;
+
+procedure TTestImages.TestPngFloat;
+{ Test on images from http://www.schaik.com/pngsuite/ }
+var
+  Img: TCastleImage;
+begin
+  // TODO: no support for 16-bit PNGs without Vampyre
+  {$ifdef WASI}
+  AbortTest;
+  Exit;
+  {$endif}
+
+  Img := LoadImage('castle-data:/png/basi0g16.png');
+  try
+    AssertEquals(32, Img.Width);
+    AssertEquals(32, Img.Height);
+    AssertTrue(Img is TGrayscaleFloatImage);
+  finally FreeAndNil(Img) end;
+
+  Img := LoadImage('castle-data:/png/basi2c16.png');
+  try
+    AssertEquals(32, Img.Width);
+    AssertEquals(32, Img.Height);
+    AssertTrue(Img is TRGBFloatImage);
+  finally FreeAndNil(Img) end;
+
+  Img := LoadImage('castle-data:/png/basi4a16.png');
+  try
+    AssertEquals(32, Img.Width);
+    AssertEquals(32, Img.Height);
+    AssertTrue(Img is TGrayscaleAlphaFloatImage);
+  finally FreeAndNil(Img) end;
+
+  Img := LoadImage('castle-data:/png/basi6a16.png');
+  try
+    AssertEquals(32, Img.Width);
+    AssertEquals(32, Img.Height);
+    AssertTrue(Img is TRGBAlphaFloatImage);
+  finally FreeAndNil(Img) end;
+end;
+
+procedure TTestImages.TestKtxFloat;
+{ Test on images from https://github.com/KhronosGroup/KTX-Software/tree/main/external/astc-encoder/Test/Images/Small }
+var
+  Img: TCastleImage;
+begin
+  Img := LoadImage('castle-data:/ktx/floats/hdr-rgb-r32.ktx');
+  try
+    AssertEquals(16, Img.Width);
+    AssertEquals(16, Img.Height);
+    AssertTrue(Img is TGrayscaleFloatImage);
+  finally FreeAndNil(Img) end;
+
+  Img := LoadImage('castle-data:/ktx/floats/hdr-rgb-rgb32.ktx');
+  try
+    AssertEquals(16, Img.Width);
+    AssertEquals(16, Img.Height);
+    AssertTrue(Img is TRGBFloatImage);
+  finally FreeAndNil(Img) end;
+
+  Img := LoadImage('castle-data:/ktx/floats/hdr-rgb-rg32.ktx');
+  try
+    AssertEquals(16, Img.Width);
+    AssertEquals(16, Img.Height);
+    AssertTrue(Img is TGrayscaleAlphaFloatImage);
+  finally FreeAndNil(Img) end;
+
+  Img := LoadImage('castle-data:/ktx/floats/hdr-rgba-rgba32.ktx');
+  try
+    AssertEquals(16, Img.Width);
+    AssertEquals(16, Img.Height);
+    AssertTrue(Img is TRGBAlphaFloatImage);
+  finally FreeAndNil(Img) end;
 end;
 
 initialization

@@ -180,6 +180,13 @@ begin
         Anim.NumFrames := StrToInt(Tokens[1]);
         Anim.LoopingFrames := StrToInt(Tokens[2]);
         Anim.Fps := StrToInt(Tokens[3]);
+        { Some MD3 models have 0 for FPS,
+          testcase: tremulous-data/models/buildables/booster/animation.cfg
+          (Tremoulous data from https://github.com/wtfbbqhax/tremulous-data/blob/master/data-1.1.0.pk3 ).
+          This is not a valid value (and NumFrames/Fps would yield NaN)
+          so we replace it with DefaultMd3Fps. }
+        if Anim.Fps = 0 then
+          Anim.Fps := DefaultMd3Fps;
         Anim.Name := AnimationName;
         Add(Anim);
 

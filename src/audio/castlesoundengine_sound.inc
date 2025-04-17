@@ -102,7 +102,7 @@
         and read the whole stream.)
 
       @param(MimeType Valid MIME type that indicates a sound file type,
-        like @code(audio/x-wav) or @code(audio/ogg).
+        like @code(audio/wav) or @code(audio/ogg).
         See TUrlFile.MimeType implementation for currently supported
         MIME file types.) }
     procedure LoadFromStream(const AStream: TStream; const MimeType: String);

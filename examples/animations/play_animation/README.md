@@ -10,7 +10,7 @@ You can test various `PlayAnimation` features:
 - loop or not
 - transition (animation blending), see https://castle-engine.io/wp/2018/03/21/animation-blending/ .
 
-Note that view3dscene ( https://castle-engine.io/view3dscene.php ) has "Animations" panel that also allows to test these features.
+Note that [Castle Model Viewer](https://castle-engine.io/castle-model-viewer) has "Animations" panel that also allows to test these features.
 
 ![Screenshot](screenshot.png)
 

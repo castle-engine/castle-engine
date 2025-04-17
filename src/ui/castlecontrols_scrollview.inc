@@ -425,14 +425,18 @@ procedure TCastleScrollViewCustom.Update(const SecondsPassed: Single;
       begin
         Scroll := Scroll - KeyScrollSpeed * SecondsPassed;
         ResetInertialForce;
+        { Do "HandleInput := false" only when some relevant key
+          (for scroll view) is pressed, otherwise allow other controls to process
+          the key. }
+        HandleInput := false;
       end;
       if Container.Pressed[ keyArrowDown] or
          Container.Pressed[keyNumpadDown] then
       begin
         Scroll := Scroll + KeyScrollSpeed * SecondsPassed;
         ResetInertialForce;
+        HandleInput := false;
       end;
-      HandleInput := false;
     end;
   end;
 

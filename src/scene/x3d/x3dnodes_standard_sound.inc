@@ -262,7 +262,7 @@ begin
             so OpenAL raises error.
 
             Testcase:
-            - start view3dscene with sound = on
+            - start castle-model-viewer with sound = on
             - click CW on all 4 speakers in sound_final.x3dv
             - turn sound off
             - turn sound back on

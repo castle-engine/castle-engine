@@ -168,7 +168,7 @@ end;
 
 function TCircle2DNode.CalculateSlices: Cardinal;
 begin
-  // use default in case of -1 or invalid value
+  // use default in case of 0 or invalid value
   if FdSlices.Value < MinTriangulationSlices then
     Result := DefaultTriangulationSlices
   else
@@ -181,11 +181,17 @@ var
   C: TCoordinateNode;
   LineSet: TLineSetNode absolute Result;
   I: Integer;
-  AngleSin, AngleCos: Single;
+  AngleSin, AngleCos, RX, RY: Single;
 begin
   LineSet := TLineSetNode.Create(X3DName, BaseUrl);
   try
     SlicesNow := CalculateSlices;
+
+    RX := Radius;
+    if RadiusY <> 0 then
+      RY := RadiusY
+    else
+      RY := RX;
 
     C := TCoordinateNode.Create('', BaseUrl);
     C.FdPoint.Items.Count := SlicesNow + 1;
@@ -193,8 +199,8 @@ begin
     begin
       SinCos((I / SlicesNow) * 2 * Pi, AngleSin, AngleCos);
       C.FdPoint.Items.L[I] := Vector3(
-        AngleSin * FdRadius.Value,
-        AngleCos * FdRadius.Value,
+        AngleSin * RX,
+        AngleCos * RY,
         0
       );
     end;
@@ -210,7 +216,7 @@ end;
 
 function TDisk2DNode.CalculateSlices: Cardinal;
 begin
-  // use default in case of -1 or invalid value
+  // use default in case of 0 or invalid value
   if FdSlices.Value < MinTriangulationSlices then
     Result := DefaultTriangulationSlices
   else

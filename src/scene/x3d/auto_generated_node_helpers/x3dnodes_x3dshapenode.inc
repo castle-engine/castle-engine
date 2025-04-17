@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2023 Michalis Kamburelis.
+  Copyright 2015-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -39,7 +39,7 @@
   public
     { Create node fields and events. }
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdAppearance: TSFNode;
     { Internal wrapper for property @code(Appearance). This wrapper API may change, we advise to access simpler @code(Appearance) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
@@ -74,7 +74,7 @@
     strict private FFdShading: TSFStringEnum;
     { Internal wrapper for property @code(Shading). This wrapper API may change, we advise to access simpler @code(Shading) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdShading: TSFStringEnum read FFdShading;
-    {  }
+    { How to display given shape. }
     property Shading: TShading read GetShading write SetShading;
 
     strict private FFdVisible: TSFBool;
@@ -88,7 +88,7 @@ Note: An alternative method to hide (and more) things in X3D is to wrap them in 
     strict private FFdCollision: TSFStringEnum;
     { Internal wrapper for property @code(Collision). This wrapper API may change, we advise to access simpler @code(Collision) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdCollision: TSFStringEnum read FFdCollision;
-    {  }
+    { How does the given shape collide. This only matters if @link(TCastleSceneCore.PreciseCollisions) is @true, otherwise the whole scene (with all shapes) collides as one big bounding box. }
     property Collision: TShapeCollision read GetCollision write SetCollision;
 
 {$endif read_interface}

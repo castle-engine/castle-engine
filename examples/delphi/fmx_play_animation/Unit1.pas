@@ -75,9 +75,10 @@ begin
 end;
 
 procedure TForm1.AnimationButtonClick(Sender: TObject);
+var
+  AnimName: String;
 begin
-  var AnimName := (Sender as TButton).Text;
-
+  AnimName := (Sender as TButton).Text;
   MainScene.PlayAnimation(AnimName, true);
 
   { Example how to use TPlayAnimationParameters to adjust
@@ -96,6 +97,9 @@ begin
 end;
 
 procedure TForm1.LoadScene(const Url: String);
+var
+  AnimName: String;
+  NewButton: TButton;
 begin
   MainScene.Load(Url);
 
@@ -111,9 +115,9 @@ begin
 
   LayoutAnimations.DeleteChildren;
 
-  for var AnimName in MainScene.AnimationsList do
+  for AnimName in MainScene.AnimationsList do
   begin
-    var NewButton := TButton.Create(Self);
+    NewButton := TButton.Create(Self);
     NewButton.Text := AnimName;
     NewButton.OnClick := AnimationButtonClick;
     LayoutAnimations.AddObject(NewButton);

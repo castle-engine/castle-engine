@@ -212,7 +212,7 @@ begin
     for Pattern in Filter.Patterns do
       if (Pattern <> '*') and
          (Pattern <> '*.*') and
-         IsWild(UrlName, Pattern, FileNameCaseSensitive) then
+         IsWild(UrlName, Pattern, { IgnoreCase} not FileNameCaseSensitive) then
         Exit(true);
   Result := false;
 end;

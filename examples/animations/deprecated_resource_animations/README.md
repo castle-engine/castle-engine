@@ -1,5 +1,5 @@
 Load a creature modeled and animated in Blender through `resource.xml` .
-See https://castle-engine.io/creating_data_resources.php .
+See https://github.com/castle-engine/cge-www/blob/master/htdocs/doc/obsolete/deprecated_3d_game_utilities/creating_data_resources.php .
 
 This demonstrates various ways of exporting animated 3D models
 to Castle Game Engine, the same ("knight") creature is exported

@@ -162,7 +162,7 @@ const
       Max(DefaultPreferredHeight, Radius * RadiusToPreferredHeightMin)
     This way, in case of models that are small, but still follow the standard "1 unit = 1 meter",
     the PreferredHeight will not get weirdly small, it will be DefaultPreferredHeight.
-    Testcase: examples/third_person_navigation/data/level/level-dungeon.gltf open with view3dscene.
+    Testcase: examples/third_person_navigation/data/level/level-dungeon.gltf open with castle-model-viewer.
   }
   RadiusToPreferredHeightMin = 4.0;
 
@@ -346,7 +346,7 @@ begin
   if Box.IsEmpty then
   begin
     { If box is empty, choose the default X3D viewpoint.
-      This is least surprising, see https://github.com/castle-engine/view3dscene/issues/3 }
+      This is least surprising, see https://github.com/castle-engine/castle-model-viewer/issues/3 }
     Position  := CastleVectors.Vector3(0, 0, 10); // DefaultX3DCameraPosition[cvVrml2_X3d];
   end else
   begin

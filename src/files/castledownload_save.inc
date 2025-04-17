@@ -91,12 +91,18 @@ begin
   P := URIProtocol(Url);
 
   { Handle early castle-data:, protocol to access application data,
-    https://castle-engine.io/manual_data_directory.php }
+    https://castle-engine.io/data }
   if P = 'castle-data' then
   begin
     Result := UrlSaveStream(ResolveCastleDataUrl(Url), Options);
     Exit;
   end;
+
+  {$ifdef WASI}
+  // TODO: web: make ApplicationConfig return sthg like castle-config:/ and handle it for web
+  WritelnWarning('Writing to URLs (like ApplicationConfig) is not supported on web yet, sending the contents to /dev/null');
+  Exit(TMemoryStream.Create);
+  {$endif}
 
   RegisteredProtocol := RegisteredProtocols.Find(P);
   if RegisteredProtocol <> nil then

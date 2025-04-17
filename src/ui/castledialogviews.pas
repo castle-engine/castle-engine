@@ -627,7 +627,7 @@ end;
 function TViewDialogInput.Press(const Event: TInputPressRelease): boolean;
 { TODO: copy-paste of TCastleEdit.Press here.
   We should instead reuse TCastleEdit? Although TDialog provides multiline display,
-  which may be cool e.g. to edit long URLs in view3dscene. }
+  which may be cool e.g. to edit long URLs in castle-model-viewer. }
 begin
   Result := inherited;
   // if Result then Exit; // ignore inherited Result, always true when InterceptInput
@@ -672,13 +672,17 @@ begin
     end;
     Result := true;
   end else
-  if Event.IsKey(CtrlC) then
+  { Use keyC+mkCtrl to check for this, not CtrlC, this way on macOS we
+    allow Command+C to copy text. }
+  //if Event.IsKey(CtrlC) then
+  if Event.IsKey(keyC, [mkCtrl]) then
   begin
     if InputText <> '' then
       Clipboard.AsText := InputText;
     Result := true;
   end else
-  if Event.IsKey(CtrlX) then
+  //if Event.IsKey(CtrlX) then
+  if Event.IsKey(keyX, [mkCtrl]) then
   begin
     if InputText <> '' then
     begin
@@ -687,7 +691,8 @@ begin
     end;
     Result := true;
   end else
-  if Event.IsKey(CtrlV) then
+  //if Event.IsKey(CtrlV) then
+  if Event.IsKey(keyV, [mkCtrl]) then
   begin
     InputText := SDeleteChars(Clipboard.AsText, AllChars - AllowedChars);
     Result := true;

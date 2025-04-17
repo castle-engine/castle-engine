@@ -423,12 +423,20 @@ type
       we will raise EDOMChildElementError (if Required is @true, default)
       or return @nil (if Required is @false).
 
+      If there are multiple occurences and Required is @false, then
+      we return @nil. If WarnOnMultiple we will also make a warning in this case,
+      since we don't know which to return, but it it probably a mistake in XML file.
+
       @raises(EDOMChildElementError
         If child not found (or found more than once), and Required = @true.)  }
-    function Child(const ChildName: String; const Required: boolean = true): TDOMElement;
+    function Child(const ChildName: String;
+      const Required: boolean = true;
+      const WarnOnMultiple: boolean = true): TDOMElement;
 
     { Same as @link(Child). }
-    function ChildElement(const ChildName: String; const Required: boolean = true): TDOMElement;
+    function ChildElement(const ChildName: String;
+      const Required: boolean = true;
+      const WarnOnMultiple: boolean = true): TDOMElement;
 
     { Create a new child element under this element, and return it. }
     function CreateChild(const ChildName: String): TDOMElement;
@@ -630,18 +638,6 @@ function DOMGetBooleanAttribute(const Element: TDOMElement;
   const AttrName: String; var Value: boolean): boolean;
   deprecated 'use helper method AttributeBoolean on TDOMElement';
 
-{ Returns the @italic(one and only) child element of this Element.
-  If given Element has none or more than one child elements,
-  returns @nil. This is handy for parsing XML in cases when you
-  know that given element must contain exactly one other element
-  in correct XML file. }
-function DOMGetOneChildElement(const Element: TDOMElement): TDOMElement;
-  deprecated 'This method did not prove to be of much use, and it only clutters the API. Don''t use, or show us a convincing usecase when this is sensible.';
-
-function DOMGetChildElement(const Element: TDOMElement;
-  const ChildName: String; RaiseOnError: boolean): TDOMElement;
-  deprecated 'use TDOMElement helper called ChildElement';
-
 function DOMGetTextData(const Element: TDOMElement): String;
   deprecated 'use TDOMElement helper called TextData';
 
@@ -689,7 +685,8 @@ procedure UrlWriteXML(Doc: TXMLDocument; const Url: String; const BlowFishKeyPhr
 implementation
 
 uses Classes, XMLRead, XMLWrite, {$ifdef FPC} BlowFish, {$endif}
-  CastleUriUtils, CastleClassUtils, CastleInternalFileMonitor, CastleStringUtils;
+  CastleUriUtils, CastleClassUtils, CastleInternalFileMonitor, CastleStringUtils,
+  CastleLog;
 
 { TDOMNodeHelper ------------------------------------------------------------- }
 
@@ -1117,13 +1114,13 @@ end;
   TDOMElementHelper: Other methods. }
 
 function TDOMElementHelper.ChildElement(const ChildName: String;
-  const Required: boolean): TDOMElement;
+  const Required, WarnOnMultiple: boolean): TDOMElement;
 begin
-  Result := Child(ChildName, Required);
+  Result := Child(ChildName, Required, WarnOnMultiple);
 end;
 
 function TDOMElementHelper.Child(const ChildName: String;
-  const Required: boolean): TDOMElement;
+  const Required, WarnOnMultiple: boolean): TDOMElement;
 var
   Children: TDOMNodeList;
   Node: TDOMNode;
@@ -1142,9 +1139,15 @@ begin
         Result := TDOMElement(Node) else
       begin
         if Required then
+        begin
           raise EDOMChildElementError.CreateFmt(
-            'Child "%s" occurs more than once', [ChildName]) else
+            'Child "%s" occurs more than once', [ChildName]);
+        end else
+        begin
+          if WarnOnMultiple then
+            WritelnWarning('XML', Format('Child "%s" occurs more than once, ignoring all occurences', [ChildName]));
           Exit(nil);
+        end;
       end;
     end;
   end;
@@ -1344,39 +1347,9 @@ begin
   Result := Element.AttributeBoolean(AttrName, Value);
 end;
 
-function DOMGetChildElement(const Element: TDOMElement;
-  const ChildName: String; RaiseOnError: boolean): TDOMElement;
-begin
-  Result := Element.ChildElement(ChildName, RaiseOnError);
-end;
-
 function DOMGetTextData(const Element: TDOMElement): String;
 begin
   Result := Element.TextData;
-end;
-
-function DOMGetOneChildElement(const Element: TDOMElement): TDOMElement;
-var
-  Children: TDOMNodeList;
-  Node: TDOMNode;
-  I: Integer;
-begin
-  Result := nil;
-  Children := Element.ChildNodes;
-  for I := 0 to Integer(Children.Count) - 1 do
-  begin
-    Node := Children.Item[I];
-    if Node.NodeType = ELEMENT_NODE then
-    begin
-      if Result = nil then
-        Result := Node as TDOMElement else
-      begin
-        { More than one element in Children. }
-        Result := nil;
-        Exit;
-      end;
-    end;
-  end;
 end;
 
 function DOMGetTextChild(const Element: TDOMElement;

@@ -37,7 +37,7 @@ requires
   IndyCore;
 
 contains
-  castleinternalcontainer in '..\..\src\delphi\castleinternalcontainer.pas',
+  castlecontrolcontainer in '..\..\src\delphi\castlecontrolcontainer.pas',
   castleinternaldelphiutils in '..\..\src\delphi\castleinternaldelphiutils.pas',
   castleapplicationproperties in '..\..\src\base\castleapplicationproperties.pas',
   castleclassutils in '..\..\src\base\castleclassutils.pas',
@@ -79,6 +79,7 @@ contains
   castlexmlcfginternal in '..\..\src\files\castlexmlcfginternal.pas',
   castlexmlconfig in '..\..\src\files\castlexmlconfig.pas',
   castlexmlutils in '..\..\src\files\castlexmlutils.pas',
+  castlezip in '..\..\src\files\castlezip.pas',
   x3dfields in '..\..\src\scene\x3d\x3dfields.pas',
   x3dnodes in '..\..\src\scene\x3d\x3dnodes.pas',
   castlecurves in '..\..\src\castlescript\castlecurves.pas',
@@ -94,6 +95,7 @@ contains
   x3dloadinternalgltf in '..\..\src\scene\load\x3dloadinternalgltf.pas',
   x3dloadinternalimage in '..\..\src\scene\load\x3dloadinternalimage.pas',
   x3dloadinternalmd3 in '..\..\src\scene\load\md3\x3dloadinternalmd3.pas',
+  castleifc in '..\..\src\scene\load\ifc\castleifc.pas',
   x3dloadinternalobj in '..\..\src\scene\load\x3dloadinternalobj.pas',
   x3dloadinternalstl in '..\..\src\scene\load\x3dloadinternalstl.pas',
   x3dloadinternaltiledmap in '..\..\src\scene\load\x3dloadinternaltiledmap.pas',
@@ -216,7 +218,6 @@ contains
   custapp in '..\..\src\compatibility\delphi-only\custapp.pas',
   dom in '..\..\src\compatibility\delphi-only\dom.pas',
   FPHashCompatibility in '..\..\src\compatibility\delphi-only\FPHashCompatibility.pas',
-  rttiutils in '..\..\src\compatibility\delphi-only\rttiutils.pas',
   singleinstance in '..\..\src\compatibility\delphi-only\singleinstance.pas',
   uriparser in '..\..\src\compatibility\delphi-only\uriparser.pas',
   xmlread in '..\..\src\compatibility\delphi-only\xmlread.pas',
@@ -226,9 +227,9 @@ contains
   jsonparser in '..\..\src\compatibility\delphi-only\fcl-json\jsonparser.pas',
   jsonreader in '..\..\src\compatibility\delphi-only\fcl-json\jsonreader.pas',
   jsonscanner in '..\..\src\compatibility\delphi-only\fcl-json\jsonscanner.pas',
-  PasDblStrUtils in '..\..\src\scene\load\pasgltf\PasDblStrUtils.pas',
-  PasGLTF in '..\..\src\scene\load\pasgltf\PasGLTF.pas',
-  PasJSON in '..\..\src\scene\load\pasgltf\PasJSON.pas',
+  CastlePasDblStrUtils in '..\..\src\scene\load\pasgltf\CastlePasDblStrUtils.pas',
+  CastlePasGLTF in '..\..\src\scene\load\pasgltf\CastlePasGLTF.pas',
+  CastlePasJSON in '..\..\src\scene\load\pasgltf\CastlePasJSON.pas',
   castlecontrols in '..\..\src\ui\castlecontrols.pas',
   castledialogviews in '..\..\src\ui\castledialogviews.pas',
   castleflasheffect in '..\..\src\ui\castleflasheffect.pas',
@@ -303,6 +304,7 @@ contains
   castleviewport in '..\..\src\scene\castleviewport.pas',
   x3dcamerautils in '..\..\src\scene\x3dcamerautils.pas',
   x3dtime in '..\..\src\scene\x3dtime.pas',
+  castlelivingbehaviors in '..\..\src\scene\castlelivingbehaviors.pas',
   kraft in '..\..\src\physics\kraft\kraft.pas',
   ImagingXpm in '..\..\src\vampyre_imaginglib\src\Extensions\ImagingXpm.pas',
   ImagingPcx in '..\..\src\vampyre_imaginglib\src\Extensions\ImagingPcx.pas',
@@ -322,7 +324,10 @@ contains
   castleinternalegl in '..\..\src\base_rendering\castleinternalegl.pas',
   castlegl in '..\..\src\base_rendering\dglopengl\castlegl.pas',
   castleinternalurlutils in '..\..\src\files\castleinternalurlutils.pas',
-  castleinternaltools in '..\..\src\files\castleinternaltools.pas';
+  castletransformmanipulate in '..\..\src\scene\castletransformmanipulate.pas',
+  castleinternaltransformdata in '..\..\src\scene\castleinternaltransformdata.pas',
+  castleinternalsteamapi in '..\..\src\services\steam\castleinternalsteamapi.pas',
+  castlesteam in '..\..\src\services\steam\castlesteam.pas';
 
 end.
 

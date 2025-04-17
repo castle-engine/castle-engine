@@ -293,7 +293,7 @@ procedure TX3DRoute.EventReceive(
 
   { Like F.X3DName, but tolerates given F being nil,
     which is always possible for ROUTE endpoints.
-    Testcase: https://github.com/castle-engine/view3dscene/issues/89 }
+    Testcase: https://github.com/castle-engine/castle-model-viewer/issues/89 }
   function X3DNameSafe(const F: TX3DFieldOrEvent): String; overload;
   begin
     if F <> nil then

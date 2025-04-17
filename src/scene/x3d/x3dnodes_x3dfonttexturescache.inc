@@ -17,6 +17,7 @@
 {$ifdef read_interface}
 
   TPixelTextureNode = class;
+  TInternalReusedPixelTextureNode = class;
 
   { Cache for font texture nodes (TPixelTextureNode that we need for each font).
     Descends from TX3DNodesCache, so can also cache textures, movies, any X3D nodes. }
@@ -103,7 +104,7 @@ begin
     end;
   end;
 
-  Result := TPixelTextureNode.Create;
+  Result := TInternalReusedPixelTextureNode.Create;
   Result.KeepExistingBegin; // never free it using ref-counting
   { although repeat=TRUE seems counter-intuitive, in fact:
     - We *can* use it, since CastleTextureFontData surrounds each glyph from
@@ -168,6 +169,8 @@ begin
           i.e. TX3DNode internal child-parent references are not set.)
           But for safety we use "nice way" with KeepExistingEnd + FreeIfUnusedAndNil. }
         C.FontTexture.KeepExistingEnd;
+        { Note that freeing C.FontTexture will also do
+          C.FontTexture.InternalRendererResourceFree, and that's good. }
         FreeIfUnusedAndNil(C.FontTexture);
 
         CachedFontTextures.Delete(I);

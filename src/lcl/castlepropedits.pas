@@ -48,7 +48,7 @@ uses // FPC and LCL units
   CastleSceneCore, CastleScene, CastleLCLUtils, X3DLoad, X3DNodes, CastleCameras,
   CastleUIControls, CastleControl, CastleControls, CastleImages, CastleTransform,
   CastleVectors, CastleRectangles, CastleUtils, CastleColors, CastleViewport,
-  CastleDialogs,
+  CastleDialogs, CastleComponentSerialize,
   CastleTiledMap, CastleGLImages, CastleStringUtils, CastleFilesUtils,
   CastleInternalExposeTransformsDialog, CastleInternalTiledLayersDialog,
   CastleInternalRegionDialog,
@@ -89,6 +89,7 @@ end;
 {$I castlepropedits_colorchannels.inc}
 {$I castlepropedits_component_transform.inc}
 {$I castlepropedits_component_scene.inc}
+{$I castlepropedits_component_transformreference.inc}
 {$I castlepropedits_component_imagetransform.inc}
 {$I castlepropedits_component_imagecontrol.inc}
 {$I castlepropedits_component_transformdesign.inc}
@@ -100,51 +101,53 @@ procedure Register;
 begin
   { URL properties }
   RegisterPropertyEditor(TypeInfo(AnsiString), TCastleSceneCore,
-    'URL', TSceneURLPropertyEditor);
+    'URL', TSceneUrlPropertyEditor);
   RegisterPropertyEditor(TypeInfo(AnsiString), TCastleImageControl,
-    'URL', TImageURLPropertyEditor);
+    'URL', TImageUrlPropertyEditor);
   RegisterPropertyEditor(TypeInfo(AnsiString), TCastleImagePersistent,
-    'URL', TImageURLPropertyEditor);
+    'URL', TImageUrlPropertyEditor);
   RegisterPropertyEditor(TypeInfo(AnsiString), TCastleAbstractPrimitive,
-    'Texture', TImageURLPropertyEditor);
+    'Texture', TImageUrlPropertyEditor);
   RegisterPropertyEditor(TypeInfo(AnsiString), TCastleAbstractPrimitive,
-    'TextureNormalMap', TImageURLPropertyEditor);
+    'TextureNormalMap', TImageUrlPropertyEditor);
   RegisterPropertyEditor(TypeInfo(AnsiString), TCastleBitmapFont,
-    'ImageUrl', TImageURLPropertyEditor);
+    'ImageUrl', TImageUrlPropertyEditor);
   RegisterPropertyEditor(TypeInfo(AnsiString), TCastleImageTransform,
-    'Url', TImageURLPropertyEditor);
+    'Url', TImageUrlPropertyEditor);
   RegisterPropertyEditor(TypeInfo(AnsiString), TCastleTerrainImage,
-    'Url', TImageURLPropertyEditor);
+    'Url', TImageUrlPropertyEditor);
   RegisterPropertyEditor(TypeInfo(AnsiString), TCastleTerrainLayer,
-    'Texture', TImageURLPropertyEditor);
+    'Texture', TImageUrlPropertyEditor);
   RegisterPropertyEditor(TypeInfo(AnsiString), TCastleDesign,
-    'URL', TDesignURLPropertyEditor);
+    'URL', TUiDesignUrlPropertyEditor);
   RegisterPropertyEditor(TypeInfo(AnsiString), TCastleTransformDesign,
-    'URL', TTransformDesignURLPropertyEditor);
+    'URL', TTransformDesignUrlPropertyEditor);
+  RegisterPropertyEditor(TypeInfo(AnsiString), TCastleComponentFactory,
+    'Url', TAnyDesignUrlPropertyEditor);
   {$warnings off} // define to support deprecated, for now
   RegisterPropertyEditor(TypeInfo(AnsiString), TCastleTiledMapControl,
-    'URL', TTiledMapURLPropertyEditor);
+    'URL', TTiledMapUrlPropertyEditor);
   {$warnings on}
   RegisterPropertyEditor(TypeInfo(AnsiString), TCastleTiledMap,
-    'URL', TTiledMapURLPropertyEditor);
+    'URL', TTiledMapUrlPropertyEditor);
   RegisterPropertyEditor(TypeInfo(AnsiString), TCastleSound,
-    'URL', TSoundURLPropertyEditor);
+    'URL', TSoundUrlPropertyEditor);
   RegisterPropertyEditor(TypeInfo(AnsiString), TCastleFont,
-    'URL', TFontURLPropertyEditor);
+    'URL', TFontUrlPropertyEditor);
   RegisterPropertyEditor(TypeInfo(AnsiString), TCastleBackground,
-    'TextureNegativeX', TImageURLPropertyEditor);
+    'TextureNegativeX', TImageUrlPropertyEditor);
   RegisterPropertyEditor(TypeInfo(AnsiString), TCastleBackground,
-    'TextureNegativeY', TImageURLPropertyEditor);
+    'TextureNegativeY', TImageUrlPropertyEditor);
   RegisterPropertyEditor(TypeInfo(AnsiString), TCastleBackground,
-    'TextureNegativeZ', TImageURLPropertyEditor);
+    'TextureNegativeZ', TImageUrlPropertyEditor);
   RegisterPropertyEditor(TypeInfo(AnsiString), TCastleBackground,
-    'TexturePositiveX', TImageURLPropertyEditor);
+    'TexturePositiveX', TImageUrlPropertyEditor);
   RegisterPropertyEditor(TypeInfo(AnsiString), TCastleBackground,
-    'TexturePositiveY', TImageURLPropertyEditor);
+    'TexturePositiveY', TImageUrlPropertyEditor);
   RegisterPropertyEditor(TypeInfo(AnsiString), TCastleBackground,
-    'TexturePositiveZ', TImageURLPropertyEditor);
+    'TexturePositiveZ', TImageUrlPropertyEditor);
   RegisterPropertyEditor(TypeInfo(AnsiString), TCastleControl,
-    'DesignUrl', TDesignURLPropertyEditor);
+    'DesignUrl', TUiDesignUrlPropertyEditor);
 
   { Improved numeric properties }
   RegisterPropertyEditor(TypeInfo(Single), nil, '', TCastleFloatPropertyEditor);
@@ -160,6 +163,10 @@ begin
   RegisterPropertyEditor(TypeInfo(Single), TCastleImagePersistent, 'Rotation',
     TCastleFloatRotationPropertyEditor);
   RegisterPropertyEditor(TypeInfo(Single), TCastleImageControl, 'Rotation',
+    TCastleFloatRotationPropertyEditor);
+  RegisterPropertyEditor(TypeInfo(Single), TCastleSpotLight, 'BeamWidth',
+    TCastleFloatRotationPropertyEditor);
+  RegisterPropertyEditor(TypeInfo(Single), TCastleSpotLight, 'CutOffAngle',
     TCastleFloatRotationPropertyEditor);
 
   { Handle using TCastleRegionEditor.
@@ -240,12 +247,16 @@ begin
   RegisterPropertyEditor(TypeInfo(AnsiString), TCastleThirdPersonNavigation, 'AnimationFall',
     TThirdPersonAnimationPropertyEditor);
 
+  // various RegisterComponentEditor
   RegisterComponentEditor(TCastleTransform, TCastleTransformComponentEditor);
+  RegisterComponentEditor(TCastleTransformReference, TCastleTransformReferenceComponentEditor);
   RegisterComponentEditor(TCastleScene, TCastleSceneComponentEditor);
   RegisterComponentEditor(TCastleImageTransform, TCastleImageTransformComponentEditor);
   RegisterComponentEditor(TCastleImageControl, TCastleImageControlComponentEditor);
   RegisterComponentEditor(TCastleTransformDesign, TCastleTransformDesignComponentEditor);
   RegisterComponentEditor(TCastleDesign, TCastleDesignComponentEditor);
+
+  // RegisterComponentEditor on joints
   RegisterComponentEditor(TCastleHingeJoint, TCastleJointsComponentEditor);
   RegisterComponentEditor(TCastleRopeJoint, TCastleJointsComponentEditor);
   RegisterComponentEditor(TCastleDistanceJoint, TCastleJointsComponentEditor);

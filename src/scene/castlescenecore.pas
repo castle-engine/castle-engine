@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2023 Michalis Kamburelis.
+  Copyright 2003-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -23,11 +23,11 @@ interface
 
 uses SysUtils, Classes, Generics.Collections, Contnrs, Kraft,
   CastleVectors, CastleBoxes, CastleTriangles, X3DFields, X3DNodes,
-  CastleClassUtils, CastleUtils, CastleShapes, CastleInternalTriangleOctree,
+  CastleClassUtils, CastleUtils, CastleShapes,
   CastleInternalOctree, CastleInternalShapeOctree,
   CastleKeysMouse, X3DTime, CastleCameras, CastleInternalBaseTriangleOctree,
   CastleTimeUtils, CastleTransform, CastleInternalShadowMaps, CastleProjection,
-  CastleComponentSerialize;
+  CastleComponentSerialize, CastleInternalFileMonitor;
 
 type
   { These are various features that may be freed by
@@ -210,64 +210,6 @@ type
     procedure PushIfEmpty(Node: TAbstractViewpointNode; SendEvents: boolean);
   end;
 
-  { Possible spatial structures that may be managed by TCastleSceneCore,
-    see @link(TCastleSceneCore.Spatial). }
-  TSceneSpatialStructure = (
-    { Create @italic(and keep up-to-date) a spatial structure
-      containing all visible shapes.
-      It's useful for "frustum culling", it will be automatically
-      used by TCastleScene rendering to speed it up.
-
-      This octree will be automatically updated on dynamic scenes
-      (when e.g. animation moves some shape by changing it's transformation). }
-    ssRendering,
-
-    { Create @italic(and keep up-to-date) a spatial structure
-      containing all collidable shapes (and then reaching
-      into collidable triangles for a specifc shape).
-      It is automatically used by the XxxCollision methods in this class.
-
-      This is actually a hierarchy of octrees: scene is partitioned
-      first into Shapes (each instance of VRML/X3D geometry node),
-      and then each Shape has an octree of triangles inside.
-
-      This octree is useful for all kinds of collision detection.
-      Compared to ssStaticCollisions, it is (very slightly on typical scenes)
-      less efficient, but it can also be updated very fast.
-      For example, merely transforming some Shape means that only
-      one item needs to be moved in the top-level shape tree.
-      So this is the most important structure for collision detection on
-      dynamic scenes. }
-    ssDynamicCollisions,
-
-    { Create a spatial structure containing all visible triangles, suitable only
-      for scenes that stay static.
-
-      It's primarily use is for ray-tracers, that make a lot of collision queries
-      to the same scene in the same time. When rendering using OpenGL,
-      this has no use currently.
-
-      This structure is not updated on scene changes. In fact, the scene
-      contents cannot change when this octree is created --- as this octree
-      keeps pointers to some states that may become invalid in dynamic scenes. }
-    ssVisibleTriangles,
-
-    { Create a spatial structure containing all collidable triangles,
-      @bold(only for scenes that never change).
-
-      It may be useful if you're absolutely sure that you have a static scene
-      (nothing changes, i.e. ProcessEvents = @false and you never
-      make any change to X3D nodes from code) and
-      you want to have collision detection with the scene.
-
-      For dynamic scenes, using this is a bad idea as
-      this octree is not updated on scene changes. In fact, the scene
-      contents cannot change when this octree is created --- as this octree
-      keeps pointers to some states that may become invalid in dynamic scenes.
-      Use ssDynamicCollisions for dynamic scenes. }
-    ssStaticCollisions);
-  TSceneSpatialStructures = set of TSceneSpatialStructure;
-
   TGeometryChange =
   ( { Everything changed. All octrees must be rebuild, old State pointers
       may be invalid.
@@ -311,18 +253,6 @@ type
     { What is considered "active" shapes changed. Like after Switch.whichChoice
       change. }
     gcActiveShapesChanged);
-
-  { Looping mode to use with TCastleSceneCore.PlayAnimation. }
-  TPlayAnimationLooping = (
-    { Use current TimeSensor.Loop value to determine whether animation
-      should loop. Suitable when X3D model already has sensible "TimeSensor.loop"
-      values. }
-    paDefault,
-    { Set TimeSensor.Loop to be @true, to force looping. }
-    paLooping,
-    { Set TimeSensor.Loop to be @false, to force not looping. }
-    paNotLooping
-  ) deprecated 'use PlayAnimation with "Loop: boolean" parameter instead of TPlayAnimationLooping';
 
   TStopAnimationEvent = procedure (const Scene: TCastleSceneCore;
     const Animation: TTimeSensorNode) of object;
@@ -516,11 +446,9 @@ type
     FOnPointingDeviceSensorsChange: TNotifyEvent;
     FTimePlaying: boolean;
     FTimePlayingSpeed: Single;
-    { Change only using SetAndWatchUrl. }
+    { Change only using FUrlMonitoring.ChangeUrl. }
     FUrl: String;
-    { Is FUrl watched by FileMonitor. }
-    FUrlWatched: Boolean;
-    FStatic: boolean;
+    FUrlMonitoring: TUrlMonitoring;
     FShadowMaps: boolean;
     FShadowMapsDefaultSize: Cardinal;
     ScheduleHeadlightOnFromNavigationInfoInChangedAll: boolean;
@@ -614,14 +542,7 @@ type
     { Call this if during this frame, TTimeDependentFunctionality.PartialSend always remained @nil. }
     procedure NoPartialSend;
 
-    { Recalculate and update LODTree.Level.
-      Also sends level_changed when needed.
-      Call only when ProcessEvents. }
-    procedure UpdateLODLevel(const LODTree: TShapeTreeLOD;
-      const CameraLocalPosition: TVector3);
-
     procedure SetUrl(const AValue: String);
-    procedure SetStatic(const Value: boolean);
     procedure SetShadowMaps(const Value: boolean);
     procedure SetShadowMapsDefaultSize(const Value: Cardinal);
 
@@ -685,9 +606,7 @@ type
     procedure SetExposeTransforms(const Value: TStrings);
     procedure ExposeTransformsChange(Sender: TObject);
     procedure SetExposeTransformsPrefix(const Value: String);
-    { Set FUrl and make it watched using FileMonitor. }
-    procedure SetAndWatchUrl(const NewUrl: String);
-    procedure UrlChanged(Sender: TObject);
+    function CreateAnimations: TStringList;
   private
     FGlobalLights: TLightInstancesList;
 
@@ -784,23 +703,16 @@ type
   private
     FCompiledScriptHandlers: TCompiledScriptHandlerInfoList;
 
-    { Create octree containing all triangles or shapes from our scene.
-      Create octree, inits it with our LocalBoundingBox
-      and adds shapes (or all triangles from our Shapes).
-
-      Triangles are generated using calls like
-      @code(Shape.Triangulate(...)).
+    { Create octree containing all shapes from our scene.
+      Create octree, inits it with our LocalBoundingBox and adds shapes.
 
       If Collidable, then only the collidable, or at least "pickable",
-      triangles are generated. Which means that children of
+      shapes are generated. Which means that children of
       Collision nodes with collide = FALSE (or proxy <> nil) are not placed here.
       Otherwise, only the visible (not necessarily collidable)
       items are placed in the octree.
 
-      Remember that triangle octree has references to Shape nodes
-      inside RootNode VRML/X3D tree and to State objects inside
-      our @link(Shapes) tree.
-      And shape octree has references to our @link(Shapes) tree.
+      Remember that shape octree has references to our @link(Shapes) tree.
       So you must rebuild such octree when this object changes.
 
       Note: remember that this is a function and it returns
@@ -822,36 +734,22 @@ type
       Octrees, as implemented here, are a lot more flexible.
 
       @groupBegin }
-    function CreateTriangleOctree(const Limits: TOctreeLimits;
-      const Collidable: boolean): TTriangleOctree;
     function CreateShapeOctree(const Limits: TOctreeLimits;
       const Collidable: boolean): TShapeOctree;
     { @groupEnd }
   private
-    FTriangleOctreeLimits: TOctreeLimits;
+    type
+      { Possible spatial structures that may be managed by TCastleSceneCore,
+        see @link(PreciseCollisions). }
+      TSceneSpatialStructure = (ssRendering, ssDynamicCollisions);
+      TSceneSpatialStructures = set of TSceneSpatialStructure;
 
-    FShapeOctreeLimits: TOctreeLimits;
-
-    FOctreeRendering: TShapeOctree;
-    FOctreeDynamicCollisions: TShapeOctree;
-    FOctreeVisibleTriangles: TTriangleOctree;
-    FOctreeStaticCollisions: TTriangleOctree;
-    FSpatial: TSceneSpatialStructures;
-
-    { Properties of created triangle octrees.
-      See TriangleOctree unit comments for description.
-
-      Default value comes from DefTriangleOctreeLimits.
-
-      They are used only when the octree is created, so usually you
-      want to set them right before changing @link(Spatial) from []
-      to something else.
-
-      Note that particular models may override this by
-      [https://castle-engine.io/x3d_extensions.php#section_ext_octree_properties].
-
-      @groupBegin }
-    function TriangleOctreeLimits: POctreeLimits;
+    var
+      FShapeOctreeLimits: TOctreeLimits;
+      FOctreeRendering: TShapeOctree;
+      FOctreeDynamicCollisions: TShapeOctree;
+      FSpatial: TSceneSpatialStructures;
+      FPreciseCollisions: Boolean;
 
     { Properties of created shape octrees.
       See ShapeOctree unit comments for description.
@@ -867,7 +765,10 @@ type
     function ShapeOctreeLimits: POctreeLimits;
 
     procedure SetSpatial(const Value: TSceneSpatialStructures);
-    function GetPreciseCollisions: Boolean;
+    property Spatial: TSceneSpatialStructures read FSpatial write SetSpatial;
+    { Update Spatial from PreciseCollisions and CastleDesignMode. }
+    procedure UpdateSpatial;
+
     procedure SetPreciseCollisions(const Value: Boolean);
   private
     FMainLightForShadowsExists: boolean;
@@ -898,11 +799,18 @@ type
     procedure UpdateAutoAnimation(const StopIfPlaying: Boolean);
 
     { Get camera position in current scene local coordinates.
+
+      Uses known camera from World.MainCamera and known world transformation
+      from HasWorldTransform, WorldInverseTransform.
+      As such, this cannot work reliably if TCastleScene is present multiple
+      times in the world (like through TCastleTransformReference),
+      because we only know one transfomation of scene.
+
       This is calculated every time now (in the future it may be optimized
       to recalculate only when WorldTransform changed, e.g. using
       FWorldTransformAndInverseId). }
-    function GetCameraLocal(out CameraVectors: TViewVectors): boolean; overload;
-    function GetCameraLocal(out CameraLocalPosition: TVector3): boolean; overload;
+    function GetCameraLocal(out CameraVectors: TViewVectors): Boolean; overload;
+    function GetCameraLocal(out CameraLocalPosition: TVector3): Boolean; overload;
 
     function PointingDevicePressRelease(const DoPress: boolean;
       const Distance: Single; const CancelAction: boolean): boolean;
@@ -924,6 +832,8 @@ type
     IsVisibleNow: boolean;
 
     GeneratedTextures: TGeneratedTextureList;
+
+    function InternalBuildNodeInside: TObject; override;
 
     { Create TShape (or descendant) instance suitable for this
       TCastleSceneCore descendant. In this class, this simply creates new
@@ -1027,7 +937,8 @@ type
         @exclude }
       InternalDirty: Cardinal;
 
-      { @exclude }
+      { @exclude
+        Do not warn when changed node seems to belong to a different TCastleSceneCore. }
       InternalNodeSharing: Boolean;
 
     const
@@ -1038,9 +949,10 @@ type
     { }
     constructor Create(AOwner: TComponent); override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
+    procedure CustomSerialization(const SerializationProcess: TSerializationProcess); override;
 
-    { Load the model given as a X3D nodes graph.
-      This replaces RootNode with new value.
+    { Load the given model.
+      This replaces @link(RootNode) with new value.
 
       @param(ARootNode The model to load.
         This will become a new value of our @link(RootNode) property.)
@@ -1140,8 +1052,11 @@ type
       Contents of this tree are read-only from outside. }
     property Shapes: TShapeTree read FShapes;
 
-    // { Bounding box of all occurrences of the given X3D Shape node. }
-    // function ShapeBoundingBox(const Node: TShapeNode): TBox3D;
+    { Bounding box of the given shape (TAbstractShapeNode).
+      The shape node may be used multiple times in the nodes graph
+      (in @link(RootNode)), in which case this method correctly (and fast)
+      sums bounding box of all the occurrences of the given shape node. }
+    function ShapeBoundingBox(const Node: TAbstractShapeNode): TBox3D;
 
     { Number of active shapes in the @link(Shapes) tree.
       This is equivalent to Shapes.ShapesCount(true), except that this
@@ -1164,17 +1079,31 @@ type
     function TrianglesCount: Cardinal; overload;
     { @groupEnd }
 
-    function VerticesCount(const Ignored: Boolean): Cardinal; overload; deprecated 'use VerticesCount without Boolean argument, it is ignored now';
-    function TrianglesCount(const Ignored: Boolean): Cardinal; overload; deprecated 'use TrianglesCount without Boolean argument, it is ignored now';
-
-    { Helper functions for accessing viewpoints defined in the scene.
-      @groupBegin }
+    { Number of viewpoints (named camera position+orientation).
+      -1 if none. }
     function ViewpointsCount: Cardinal;
-    function GetViewpointName(Idx: integer): String;
-    procedure MoveToViewpoint(Idx: integer; Animated: boolean = true);
+
+    { Viewpoint node (TAbstractViewpointNode) from an index between 0 and ViewpointsCount. }
+    function GetViewpointNode(const Idx: integer): TAbstractViewpointNode;
+
+    { Good name to show user for a viewpoint, defined by an index between 0 and ViewpointsCount. }
+    function GetViewpointName(const Idx: integer): String;
+
+    { Move current camera of the enclosing TCastleViewport to reflect the given
+      viewpoint. This changes the camera position and orientation.
+
+      In X3D terminology, the new viewpoint node becomes "bound" (current).
+      Switching the viewpoint that is already bound (current) also has an effect,
+      it will change the camera position and orientation to reflect the viewpoint
+      defined position / orientation. }
+    procedure MoveToViewpoint(const Idx: integer; const Animated: boolean = true);
+
+    { Add to scene nodes (graph in @link(RootNode)) new viewpoint node
+      reflecting current camera and navigation settings.
+      The new viewpoint increases ViewpointsCount, so it's also immediately
+      available for switching to it. }
     procedure AddViewpointFromNavigation(const Navigation: TCastleNavigation;
       const AName: String);
-    { @groupEnd }
 
     { Methods to notify this class about changes to the underlying RootNode
       graph. Since this class caches some things, it has to be notified
@@ -1390,73 +1319,52 @@ type
       {$ifdef FPC} deprecated 'set OwnsRootNode only at loading, do not depend on this property'; {$endif}
 
     { A spatial structure containing all visible shapes.
-      Add ssRendering to @link(Spatial) property, otherwise it's @nil.
+      Set @link(PreciseCollisions) to @true to have this non-nil.
 
-      @bold(You should not use this directly.
-      Instead use TCastleViewport
-      and then use @code(Viewport.Items.WorldXxxCollision) methods like
-      @link(TCastleAbstractRootTransform.WorldRay Viewport.Items.WorldRay) or
-      @link(TCastleAbstractRootTransform.WorldSphereCollision Viewport.Items.WorldSphereCollision).)
+      This is used internally for "frustum culling", it will be automatically
+      used by TCastleScene rendering to speed it up.
+      @bold(You should not need to use this directly.)
+
+      This octree will be automatically updated on dynamic scenes
+      (when e.g. animation moves some shape by changing it's transformation).
 
       Note that when VRML/X3D scene contains Collision nodes, this octree
       contains the @italic(visible (not necessarily collidable)) objects. }
     function InternalOctreeRendering: TShapeOctree;
 
-    { A spatial structure containing all collidable shapes.
-      Add ssDynamicCollisions to @link(Spatial) property, otherwise it's @nil.
+    { A spatial structure containing all collidable shapes (and then
+      collidable triangles for a specifc shape).
+      Set @link(PreciseCollisions) to @true to have this non-nil.
+
+      This is actually a hierarchy of octrees: scene is partitioned
+      first into Shapes (each instance of VRML/X3D geometry node),
+      and then each Shape has an octree of triangles inside.
+      Thanks to this, merely transforming some Shape means that only
+      one item needs to be moved in the top-level shape tree.
+      So this is the most important structure for collision detection on
+      dynamic scenes.
+
+      This octree is useful for all kinds of collision detection.
+      This is automatically used by the XxxCollision methods in this class.
 
       @bold(You should not usually use this directly.
       Instead use TCastleViewport
       and then use @code(Viewport.Items.WorldXxxCollision) methods like
       @link(TCastleAbstractRootTransform.WorldRay Viewport.Items.WorldRay) or
       @link(TCastleAbstractRootTransform.WorldSphereCollision Viewport.Items.WorldSphereCollision).)
-
-      You can use @link(InternalOctreeCollisions) to get either
-      @link(InternalOctreeDynamicCollisions) or
-      @link(InternalOctreeStaticCollisions), whichever is available.
 
       Note that when VRML/X3D scene contains Collision nodes, this octree
       contains the @italic(collidable (not necessarily rendered)) objects.
 
+      This is kept up-to-date automatically when the scene changes.
       TODO: Temporarily, this is updated simply by rebuilding. }
     function InternalOctreeDynamicCollisions: TShapeOctree;
 
-    { A spatial structure containing all visible triangles, suitable only
-      for scenes that stay static.
-      Add ssVisibleTriangles to @link(Spatial) property, otherwise it's @nil.
+    { Octree for collisions.
 
-      @bold(You should not usually use this directly.
-      Instead use TCastleViewport
-      and then use @code(Viewport.Items.WorldXxxCollision) methods like
-      @link(TCastleAbstractRootTransform.WorldRay Viewport.Items.WorldRay) or
-      @link(TCastleAbstractRootTransform.WorldSphereCollision Viewport.Items.WorldSphereCollision).)
-
-      Note that when VRML/X3D scene contains X3D Collision nodes, this octree
-      contains the @italic(visible (not necessarily collidable)) objects. }
-    function InternalOctreeVisibleTriangles: TTriangleOctree;
-
-    { A spatial structure containing all collidable triangles.
-      Add ssStaticCollisions to @link(Spatial) property, otherwise it's @nil.
-
-      @bold(You should not usually use this directly.
-      Instead use TCastleViewport
-      and then use @code(Viewport.Items.WorldXxxCollision) methods like
-      @link(TCastleAbstractRootTransform.WorldRay Viewport.Items.WorldRay) or
-      @link(TCastleAbstractRootTransform.WorldSphereCollision Viewport.Items.WorldSphereCollision).)
-
-      It is automatically used by the XxxCollision methods in this class,
-      if exists, unless OctreeDynamicCollisions exists.
-
-      Note that you can use @link(InternalOctreeCollisions) to get either
-      @link(InternalOctreeDynamicCollisions)
-      or @link(InternalOctreeStaticCollisions), whichever is available. }
-    function InternalOctreeStaticCollisions: TTriangleOctree;
-
-    { Octree for collisions. This returns either
-      @link(InternalOctreeStaticCollisions) or
-      @link(InternalOctreeDynamicCollisions), whichever is available (or @nil if none).
-      Be sure to add ssDynamicCollisions or ssStaticCollisions to have
-      this available.
+      This is equal to @link(InternalOctreeDynamicCollisions) now
+      as we don't have other ways to check for collisions.
+      Set @link(PreciseCollisions) to @true to have this non-nil.
 
       @bold(You should not usually use this directly.
       Instead use TCastleViewport
@@ -1528,8 +1436,8 @@ type
       and PointingDeviceOverPoint,
       thus producing isOver and such events.
 
-      To make pointing-device sensors work Ok, make sure you have non-nil
-      OctreeCollisions (e.g. include ssDynamicCollisions in @link(Spatial)). }
+      For pointing device sensors to work, you must have collision
+      structures set up by setting @link(PreciseCollisions) to @true. }
     function PointingDeviceMove(const Pick: TRayCollisionNode;
       const Distance: Single): boolean; override;
 
@@ -1846,26 +1754,6 @@ type
     procedure PrepareResources(const Options: TPrepareResourcesOptions;
       const Params: TPrepareParams); override;
 
-    {$ifdef FPC}
-    { Static scene will not be automatically notified about the changes
-      to the field values. This means that TX3DField.Send and
-      TX3DField.Changed will not notify this scene. This makes a
-      small optimization when you know you will not modify scene's VRML/X3D graph
-      besides loading (or you're prepared to do it by manually calling
-      Scene.InternalChangedField, but this should not be used anymore, it's really
-      dirty).
-
-      The behavior of events is undefined when scene is static.
-      This means that you should always have ProcessEvents = @false
-      when Static = @true. Only when Static = false you're allowed
-      to freely change ProcessEvents to @true.
-
-      Changing this is expensive when the scene content is already loaded,
-      so it's best to adjust this before @link(Load). }
-    property Static: boolean read FStatic write SetStatic default false;
-      deprecated 'do not use this; optimization done by this is really negligible; leave ProcessEvents=false for static scenes';
-    {$endif}
-
     { Nice scene caption. Uses the "title" of WorldInfo
       node inside the VRML/X3D scene. If there is no WorldInfo node
       (or it has empty title) then result is based on loaded URL. }
@@ -1985,8 +1873,6 @@ type
       on AnimationsList). @nil if this index not found. }
     function AnimationTimeSensor(const Index: Integer): TTimeSensorNode; overload;
 
-    function Animations: TStringList; deprecated 'use AnimationsList (and do not free it''s result)';
-
     { Forcefully, immediately, set pose from given animation,
       with given time in animation.
 
@@ -1998,11 +1884,6 @@ type
       const TimeInAnimation: TFloatTime;
       const Loop: boolean;
       const Forward: boolean = true): boolean; overload;
-    function ForceAnimationPose(const AnimationName: String;
-      const TimeInAnimation: TFloatTime;
-      const Looping: TPlayAnimationLooping;
-      const Forward: boolean = true): boolean; overload;
-      deprecated 'use ForceAnimationPose overload with "Loop: boolean" parameter';
 
     { Play an animation specified by name.
 
@@ -2019,8 +1900,7 @@ type
       To get the list of available animations, see @link(AnimationsList).
 
       This is one of the simplest way to play animations using Castle Game Engine.
-      Alternative (that calls PlayAnimation under the hood) is to set AutoAnimation
-      and AutoAnimationLoop.
+      Alternative (that calls PlayAnimation under the hood) is to set @link(AutoAnimation).
       See https://castle-engine.io/viewport_3d#_play_animation .
 
       Playing an already-playing animation is guaranteed to restart it from
@@ -2101,10 +1981,6 @@ type
     function PlayAnimation(const Parameters: TPlayAnimationParameters): boolean; overload;
     function PlayAnimation(const AnimationName: String;
       const Loop: boolean; const Forward: boolean = true): boolean; overload;
-    function PlayAnimation(const AnimationName: String;
-      const Looping: TPlayAnimationLooping;
-      const Forward: boolean = true): boolean; overload;
-      deprecated 'use another overloaded version of PlayAnimation, like simple PlayAnimation(AnimationName: String, Loop: boolean)';
 
     { Force the model to look like the initial animation frame @italic(now).
 
@@ -2206,8 +2082,7 @@ type
       (we use ClassType.Create to call a virtual constructor).
 
       Note that this @bold(does not copy other scene attributes),
-      like @link(ProcessEvents) or @link(Spatial) or rendering attributes
-      in @link(TCastleScene.RenderOptions).
+      like @link(ProcessEvents) or @link(TCastleScene.RenderOptions).
       It only copies the scene graph (RootNode) and also sets
       target URL based on source URL (for logging purposes, e.g.
       TCastleProfilerTime use this URL to report loading and preparation times). }
@@ -2253,24 +2128,24 @@ type
       1.0 means that 1 second  of real time equals to 1 unit of world time. }
     property TimePlayingSpeed: Single read FTimePlayingSpeed write FTimePlayingSpeed {$ifdef FPC}default 1.0{$endif};
 
-    { In most cases you should get / set simpler @link(PreciseCollisions) property, not this.
-      Which spatial structures (octrees) should be created and used.
+    { Resolve collisions precisely with the scene triangles.
 
-      Using "spatial structures" allows to achieve various things:
+      When this is @false we will only consider the bounding box of this scene
+      for collisions. We look at bounding box of model loaded in @link(Url),
+      not at children (TCastleTransform) bounding boxes.
 
-      @unorderedList(
-        @item(@bold(ssDynamicCollisions) or @bold(ssStaticCollisions):
+      More details: Setting this creates two spatial structures (octrees):
 
-          Using one of these two flags allows to resolve collisions with
+      @orderedList(
+        @item(
+          To detect collisions in dynamic scenes.
+
+          This allows to resolve collisions with
           the (collidable) triangles of the model.
           By default, every X3D Shape is collidable using it's exact mesh.
           You can use the X3D @link(TCollisionNode) to turn collisions
           off for some shapes, or replace some shapes with simpler objects
           for the collision-detection purposes.
-
-          If you use neither @bold(ssDynamicCollisions) nor @bold(ssStaticCollisions),
-          then the collisions are resolved using the whole scene bounding
-          box. That is, treating the whole scene as a giant cube.
 
           You can always toggle @link(Collides) to quickly make
           the scene not collidable. In summary:
@@ -2278,36 +2153,23 @@ type
           @unorderedList(
             @item(@link(Collides) = @false: the scene does not collide.)
 
-            @item(@link(Collides) = @true and Spatial is empty:
+            @item(@link(Collides) = @true and @name = @true:
               the scene collides as it's bounding box (LocalBoundingBoxNoChildren to be precise,
               so the box of @link(Url) model is taken into account,
               but not children).
               This is the default situation after constructing TCastleScene.)
 
-            @item(@link(Collides) = @true and
-              Spatial contains @bold(ssDynamicCollisions) or @bold(ssStaticCollisions):
-              the scene collides as a set of triangles.
+            @item(@link(Collides) = @true and @name = @false:
+              The scene collides as a set of triangles.
               The triangles are derived from information in X3D Shape and Collision
               nodes.)
           )
-
-          The ssStaticCollisions can be used instead of ssDynamicCollisions
-          when the scene is guaranteed to @italic(absolutely never) change,
-          and @italic(only when the speed is absolutely crucial).
-          The collision structure created by ssStaticCollisions
-          is a bit faster (although may use significantly more memory).
-          The @italic(practical advice is to almost always use ssDynamicCollisions
-          instead of ssStaticCollisions): the speed gains
-          from ssStaticCollisions are usually impossible to measure,
-          and ssStaticCollisions sometimes uses significantly more memory,
-          and if you by accident modify the model (animate it etc.)
-          with ssStaticCollisions -> then results are undefined,
-          even crashes are possible.
         )
 
-        @item(@bold(ssRendering):
+        @item(
+          To speedup frustum culling.
 
-          Using this flag adds an additional optimization during rendering.
+          This adds an additional optimization during rendering.
           It allows to use frustum culling with an octree.
           Whether the frustum culling is actually used depends
           on @link(TCastleScene.ShapeFrustumCulling) value (by default: yes).
@@ -2317,59 +2179,15 @@ type
           Whether the frustum culling is actually used also depends
           on @link(TCastleScene.ShapeFrustumCulling) value.
 
-          Using frustum culling (preferably with ssRendering flag)
+          Using frustum culling (preferably with PreciseCollisions = @true)
           is highly adviced if your camera usually only sees
           only a part of the scene. For example, it a noticeable optimization
           if you have a camera walking/flying inside a typical game
-          level/location.)
-
-        @item(@bold(ssVisibleTriangles):
-
-          Using this flag allows to resolve collisions with visible
-          (not only collidable) triangles quickly.
-
-          This is in practice useful only for ray-tracers,
-          normal applications should not use this.
-          Normal applications should avoid collision detection with the
-          @italic(visible) version of the model.
-          Normal applications should instead
-          perform collision detection with the @italic(collidable)
-          version of the model, since this is much better optimized
-          (both by the engine code, and by an artist creating the model,
-          using X3D Collision nodes etc.)
+          level/location.
         )
       )
-
-      See @link(TSceneSpatialStructure) for more details about
-      the possible values. For usual dynamic scenes rendered in real-time,
-      you set this to @code([ssRendering, ssDynamicCollisions]).
-
-      By default, the value of this property is empty, which means that
-      no octrees will be created. This has to be the default value,
-      to:
-
-      @orderedList(
-        @item(Not create octrees by default (e.g. at construction).
-          Creating them takes time (and memory).)
-        @item(Allow developer to adjust TriangleOctreeLimits
-          before creating the octree.)
-      ) }
-    property Spatial: TSceneSpatialStructures read FSpatial write SetSpatial
-      stored false default [];
-      {$ifdef FPC}deprecated 'use PreciseCollisions';{$endif}
-
-    { Resolve collisions precisely with the scene triangles.
-
-      When this is @false we will only consider the bounding box of this scene
-      for collisions. We look at bounding box of model loaded in @link(Url),
-      not at children (TCastleTransform) bounding boxes.
-
-      Internal notes:
-      When @true, this sets @link(TCastleSceneCore.Spatial) to [ssRendering, ssDynamicCollisions].
-      This is a good setting for scenes that may be dynamic.
-      When @false, this sets @link(TCastleSceneCore.Spatial) to [].
-      When reading, any @link(TCastleSceneCore.Spatial) <> [] means "precise collisions". }
-    property PreciseCollisions: Boolean read GetPreciseCollisions write SetPreciseCollisions default false;
+    }
+    property PreciseCollisions: Boolean read FPreciseCollisions write SetPreciseCollisions default false;
 
     { Should the event mechanism (a basic of animations and interactions) work.
 
@@ -2464,7 +2282,10 @@ type
     { When @true, we animate (more precisely: process time pass in @link(Update))
       only when the model is visible. This is a powerful optimization,
       but be careful if you depend on your animations
-      for something else than just visual effect. }
+      for something else than just visual effect.
+
+      See @url(https://github.com/castle-engine/castle-engine/tree/master/examples/animations/optimize_animations_test
+      examples/animations/optimize_animations_test) for a demo of this. }
     property AnimateOnlyWhenVisible: boolean
       read FAnimateOnlyWhenVisible write FAnimateOnlyWhenVisible default false;
 
@@ -2491,10 +2312,12 @@ type
           For example, if AnimateSkipTicks = 1, then the animation on CPU effectively
           costs 2x less. In general, AnimateSkipTicks = N means that the cost
           drops to @code(1 / (1 + N)).)
-      ) }
+      )
+
+      See @url(https://github.com/castle-engine/castle-engine/tree/master/examples/animations/optimize_animations_test
+      examples/animations/optimize_animations_test) for a demo of this. }
     property AnimateSkipTicks: Cardinal read FAnimateSkipTicks write SetAnimateSkipTicks
       default 0;
-
 
     { If AutoAnimation is set, this animation will be automatically played.
       It is useful to determine the initial animation, played once the model
@@ -2506,15 +2329,14 @@ type
       @link(StopAnimation) and update @link(CurrentAnimation).
       The reverse is not true: calling @link(PlayAnimation) doesn't change @link(AutoAnimation).
       So you can think of @link(AutoAnimation) as "an initial animation, activated each time
-      we load the model, even if later we can change it to something else using @link(PlayAnimation)".
-
-      @seealso AutoAnimationLoop }
+      we load the model, even if later we can change it to something else using @link(PlayAnimation)". }
     property AutoAnimation: String
       read FAutoAnimation write SetAutoAnimation;
 
     { Does the animation indicated by AutoAnimation loops. }
     property AutoAnimationLoop: Boolean
       read FAutoAnimationLoop write SetAutoAnimationLoop default true;
+      {$ifdef FPC} deprecated 'in future engine versions, AutoAnimationLoop may behave as always = true, and AutoAnimation will be renamed to just Animation and changing it will always cause a looping animation. Use PlayAnimation(''my_anim'',false) from code to play animation without looping.'; {$endif}
 
     { Transformation nodes inside the model
       that are synchronized with automatically-created children TCastleTransform.
@@ -2560,10 +2382,6 @@ type
     property Cache: Boolean read FCache write FCache default false;
   end;
 
-  {$define read_interface}
-  {$I castlescenecore_physics_deprecated.inc}
-  {$undef read_interface}
-
 var
   { Log changes to fields.
     This debugs what and why happens through TCastleSceneCore.InternalChangedField method
@@ -2575,25 +2393,29 @@ var
   { Set this to optimize animating transformations for scenes where you
     have many transformations (many Transform nodes), and many of them
     are animated at the same time. Often particularly effective for
-    skeletal animations of characters, 3D and 2D (e.g. from Spine or glTF). }
+    skeletal animations of characters, 3D and 2D (e.g. from Spine or glTF).
+
+    This is safe to enable, however in some cases (when you only animate
+    a single / few transformations, and the whole scene is a big tree with
+    many transformation) it may hurt performance more than it helps.
+    But in many practical cases, with skeleton-based animations from Spine
+    or glTF, it helps a lot.
+
+    See @url(https://github.com/castle-engine/castle-engine/tree/master/examples/animations/optimize_animations_test
+    examples/animations/optimize_animations_test) for a demo of this. }
   OptimizeExtensiveTransformations: boolean = false;
 
   { Experimental optimization of Transform animation.
     It assumes that Transform nodes affect only geometry, i.e. their only effect
-    is moving/rotating etc. X3D shapes.
+    is moving/rotating/scaling shapes.
     This is *usually*, but not always, true.
     In X3D, Transform node can also affect lights, Background, Fog, cameras...
 
-    TODO: Extend it to include all cases, and use always. }
+    TODO: Extend it to include all cases, and use always.
+
+    See @url(https://github.com/castle-engine/castle-engine/tree/master/examples/animations/optimize_animations_test
+    examples/animations/optimize_animations_test) for a demo of this. }
   InternalFastTransformUpdate: Boolean = false;
-
-const
-  // Old name for paLooping.
-  paForceLooping    = paLooping;
-  // Old name for paNotLooping.
-  paForceNotLooping = paNotLooping;
-
-  ssCollidableTriangles = ssStaticCollisions deprecated 'use ssStaticCollisions instead';
 
 var
   InternalEnableAnimation: Boolean = true;
@@ -2601,11 +2423,10 @@ var
 implementation
 
 uses Math, DateUtils,
-  X3DCameraUtils, CastleStringUtils, CastleLog, CastleInternalFileMonitor,
+  X3DCameraUtils, CastleStringUtils, CastleLog,
   X3DLoad, CastleUriUtils, CastleQuaternions;
 
 {$define read_implementation}
-{$I castlescenecore_physics_deprecated.inc}
 {$I castlescenecore_collisions.inc}
 {$undef read_implementation}
 
@@ -3150,7 +2971,7 @@ procedure TDetectAffectedFields.FindAnimationAffectedFields;
   { Add to the "affected" list the field indicated by given route destination
     (as Node and Event of this node).
     Node = nil is allowed here (Route.DestinationNode may be nil if node was freed,
-    e.g. delete shape in view3dscene). }
+    e.g. delete shape in castle-model-viewer). }
   procedure RouteDestinationAffectsField(const Node: TX3DNode; const Event: TX3DEvent);
   var
     Field: TX3DField;
@@ -3208,7 +3029,6 @@ begin
   FOwnsRootNode := true;
   FShapesHash := 1;
 
-  FTriangleOctreeLimits := DefTriangleOctreeLimits;
   FShapeOctreeLimits := DefShapeOctreeLimits;
 
   FShapes := TShapeTreeGroup.Create(Self);
@@ -3255,23 +3075,26 @@ begin
     would set. This is (potentially) a small time saving,
     as ScheduleChangedAll does a lot of calls (although probably is fast
     anyway when RootNode = nil). }
+
+  FUrlMonitoring.Init({$ifdef FPC}@{$endif} ReloadUrl);
+
+  UpdateSpatial;
 end;
 
 procedure TCastleSceneCore.BeforeDestruction;
 begin
   FreeRootNode;
+
+  { This also deinitializes script nodes. }
+  ProcessEvents := false;
+
+  FUrlMonitoring.Finish(FUrl);
+
   inherited;
 end;
 
 destructor TCastleSceneCore.Destroy;
 begin
-  { This also deinitializes script nodes. }
-  ProcessEvents := false;
-
-  { Unregisted self from FileMonitor. }
-  if FUrlWatched then
-    FileMonitor.Unwatch(FUrl, {$ifdef FPC}@{$endif} UrlChanged);
-
   FreeAndNil(FExposeTransforms);
   FreeAndNil(FExposedTransforms);
   FreeAndNil(ScheduledHumanoidAnimateSkin);
@@ -3298,8 +3121,6 @@ begin
 
   FreeAndNil(FOctreeRendering);
   FreeAndNil(FOctreeDynamicCollisions);
-  FreeAndNil(FOctreeVisibleTriangles);
-  FreeAndNil(FOctreeStaticCollisions);
   FreeAndNil(FAnimationsList);
   FreeAndNil(AnimationAffectedFields);
   FreeAndNil(PreviousPartialAffectedFields);
@@ -3377,7 +3198,7 @@ begin
 
   { We can't call UpdateHeadlightOnFromNavigationInfo here,
     as NavigationInfoStack may contain now already freed nodes
-    (testcase: view3dscene anchor_test and click on key_sensor anchor).
+    (testcase: castle-model-viewer anchor_test and click on key_sensor anchor).
     So only schedule it. }
   ScheduleHeadlightOnFromNavigationInfoInChangedAll := true;
 
@@ -3392,7 +3213,7 @@ begin
     (if loading a scene when ProcessEvents already enabled),
     and it may require that ChangedAll already run (e.g. it may
     initialize Script nodes, that require Node.Scene to be set,
-    see https://github.com/castle-engine/view3dscene/issues/16 ). }
+    see https://github.com/castle-engine/castle-model-viewer/issues/16 ). }
   ChangedAll;
 
   if not (slDisableResetTime in AOptions) then
@@ -3474,7 +3295,7 @@ begin
     { Set FUrl before calling Load below.
       This way eventual warning from Load (like "animation not found",
       in case AutoAnimation is used) will mention the new URL, not the old one. }
-    SetAndWatchUrl(AUrl);
+    FUrlMonitoring.ChangeUrl(FUrl, AUrl);
 
     LoadCore(NewRoot, NewRootCacheOrigin, true, AOptions);
 
@@ -3496,10 +3317,12 @@ begin
   begin
     if AutoAnimation <> '' then
     begin
+      {$warnings off} // using deprecated AutoAnimationLoop to keep it working
       if PlayAnimation(AutoAnimation, AutoAnimationLoop) then
         { call ForceInitialAnimationPose, to avoid blinking with "setup pose"
           right after loading the UI design from file. }
         ForceInitialAnimationPose;
+      {$warnings on}
     end else
     if StopIfPlaying then
     begin
@@ -3517,6 +3340,14 @@ begin
     Url := FPendingSetUrl;
     FPendingSetUrl := '';
   end;
+  {$warnings off} // using deprecated just to make a warning
+  if not AutoAnimationLoop then
+  begin
+    WritelnWarning('AutoAnimationLoop is deprecated, but you set it to false on "%s". In future engine versions, AutoAnimationLoop may behave as always = true, and AutoAnimation will be renamed to just Animation and changing it will always cause a looping animation.' + ' Use PlayAnimation(''my_anim'',false) from code to play animation without looping.', [
+      Name
+    ]);
+  end;
+  {$warnings on}
   UpdateAutoAnimation(false);
   ExposeTransformsChange(nil);
 end;
@@ -3553,7 +3384,7 @@ procedure TCastleSceneCore.Save(const AUrl: String);
 begin
   if RootNode <> nil then
     SaveNode(RootNode, AUrl, ApplicationName);
-  SetAndWatchUrl(AUrl);
+  FUrlMonitoring.ChangeUrl(FUrl, AUrl);
 end;
 
 procedure TCastleSceneCore.SetUrl(const AValue: String);
@@ -3579,12 +3410,9 @@ begin
   Load(Url);
 end;
 
-(* This is working, and ultra-fast thanks to TShapeTree.AssociatedShape,
-   but in practice it's unused now.
-
-function TCastleSceneCore.ShapeBoundingBox(const Node: TShapeNode): TBox3D;
+function TCastleSceneCore.ShapeBoundingBox(const Node: TAbstractShapeNode): TBox3D;
 var
-  I: Integer;
+  C, I: Integer;
 begin
   C := TShapeTree.AssociatedShapesCount(Node);
   case C of
@@ -3598,7 +3426,6 @@ begin
       end;
   end;
 end;
-*)
 
 function TCastleSceneCore.ShapesActiveCount: Cardinal;
 begin
@@ -3691,16 +3518,6 @@ begin
     Include(Validities, fvTrianglesCount);
   end;
   Result := FTrianglesCount;
-end;
-
-function TCastleSceneCore.VerticesCount(const Ignored: Boolean): Cardinal;
-begin
-  Result := VerticesCount();
-end;
-
-function TCastleSceneCore.TrianglesCount(const Ignored: Boolean): Cardinal;
-begin
-  Result := TrianglesCount();
 end;
 
 function TCastleSceneCore.CreateShape(const AGeometry: TAbstractGeometryNode;
@@ -3825,7 +3642,6 @@ function TChangedAllTraverser.Traverse(
     ChildNode: TX3DNode;
     ChildGroup: TShapeTreeGroup;
     I: Integer;
-    CameraLocalPosition: TVector3;
   begin
     LODTree := TShapeTreeLOD.Create(ParentScene);
     LODTree.LODNode := LODNode;
@@ -3840,9 +3656,11 @@ function TChangedAllTraverser.Traverse(
     for I := 0 to LODNode.FdChildren.Count - 1 do
       LODTree.Children.Add(TShapeTreeGroup.Create(ParentScene));
 
+    { No point in calling UpdateLODLevel here, it will be called
+      from BeforeRender anyway.
     if ParentScene.ProcessEvents and
        ParentScene.GetCameraLocal(CameraLocalPosition) then
-      ParentScene.UpdateLODLevel(LODTree, CameraLocalPosition);
+      ParentScene.UpdateLODLevel(LODTree, CameraLocalPosition); }
 
     for I := 0 to LODNode.FdChildren.Count - 1 do
     begin
@@ -4018,45 +3836,6 @@ begin
   end;
 end;
 
-procedure TCastleSceneCore.UpdateLODLevel(const LODTree: TShapeTreeLOD;
-  const CameraLocalPosition: TVector3);
-var
-  OldLevel, NewLevel: Cardinal;
-begin
-  Assert(ProcessEvents);
-
-  OldLevel := LODTree.Level;
-  NewLevel := LODTree.CalculateLevel(CameraLocalPosition);
-  LODTree.Level := NewLevel;
-
-  if ( (OldLevel <> NewLevel) or
-       (not LODTree.WasLevel_ChangedSend) ) and
-     { If LODTree.Children.Count = 0, then Level = 0, but we don't
-       want to send Level_Changed since the children 0 doesn't really exist. }
-     (LODTree.Children.Count <> 0) then
-  begin
-    LODTree.WasLevel_ChangedSend := true;
-    LODTree.LODNode.EventLevel_Changed.Send(Integer(NewLevel), NextEventTime);
-  end;
-
-  if OldLevel <> NewLevel then
-  begin
-    { This means that active shapes changed, so we have to change things
-      depending on them. Just like after Switch.whichChoice change. }
-
-    Validities := Validities - [
-      { Calculation traverses over active shapes. }
-      fvShapesActiveCount,
-      fvShapesActiveVisibleCount,
-      { Calculation traverses over active nodes (uses RootNode.Traverse). }
-      fvMainLightForShadows];
-
-    DoGeometryChanged(gcActiveShapesChanged, nil);
-
-    InternalIncShapesHash; // TShapeTreeLOD returns now different things
-  end;
-end;
-
 procedure TCastleSceneCore.BeforeNodesFree(const InternalChangedAll: boolean);
 begin
   // paranoid check is the World valid before accessing it
@@ -4122,15 +3901,12 @@ end;
 
 procedure TCastleSceneCore.ChangedAllEnumerateCallback(Node: TX3DNode);
 begin
-  if not FStatic then
-  begin
-    if (Node.Scene <> nil) and
-       (Node.Scene <> Self) and
-       (not InternalNodeSharing) then
-      WritelnWarning('X3D node %s is already part of another TCastleScene instance.' + ' You cannot use the same X3D node in multiple instances of TCastleScene. Instead you must copy the node, using "Node.DeepCopy". It is usually most comfortable to copy the entire scene, using "TCastleScene.Clone".',
-        [Node.NiceName]);
-    Node.Scene := Self;
-  end;
+  if (Node.Scene <> nil) and
+     (Node.Scene <> Self) and
+     (not InternalNodeSharing) then
+    WritelnWarning('X3D node %s is already part of another TCastleScene instance.' + ' You cannot use the same X3D node in multiple instances of TCastleScene. Instead you must copy the node, using "Node.DeepCopy". It is usually most comfortable to copy the entire scene, using "TCastleScene.Clone".',
+      [Node.NiceName]);
+  Node.Scene := Self;
 
   { We're using AddIfNotExists, not simple Add, below:
 
@@ -4225,7 +4001,7 @@ begin
     (note: this is old comment, progress is not possible now)
     which may call Render which may prepare GLSL shadow map shader
     that will be freed by the following ProcessShadowMapsReceivers call.
-    Testcase: view3dscene open simple_shadow_map_teapots.x3dv, turn off
+    Testcase: castle-model-viewer open simple_shadow_map_teapots.x3dv, turn off
     shadow maps "receiveShadows" handling, then turn it back on
     --- will crash without "InternalDirty" variable safety. }
   Inc(InternalDirty);
@@ -4320,9 +4096,7 @@ begin
 
     { recreate FAnimationsList now }
     FreeAndNil(FAnimationsList);
-    {$warnings off}
-    FAnimationsList := Animations;
-    {$warnings on}
+    FAnimationsList := CreateAnimations;
   finally
     BackgroundStack.EndChangesSchedule;
     FogStack.EndChangesSchedule;
@@ -4426,7 +4200,10 @@ function TTransformChangeHelper.TransformChangeTraverse(
       if Inside then
         WritelnLog('X3D transform', 'Cycle in X3D graph detected: transform node is a child of itself');
       Inside := true;
-      { Nothing to do, in particular: do not enter inside.
+      { Nothing to do, in particular: do not enter inside below by
+        TransformNode.TraverseIntoChildren.
+        Instead we leave TraverseIntoChildren = true and let regular Traverse
+        logic to visit our children.
         Our Shapes^.Group and Shapes^.Index is already correctly set
         at the inside of this transform by our HandleChangeTransform. }
       Exit;
@@ -4435,6 +4212,8 @@ function TTransformChangeHelper.TransformChangeTraverse(
     { get Shape and increase Shapes^.Index }
     ShapeTransform := Shapes^.Group.Children[Shapes^.Index] as TShapeTreeTransform;
     Inc(Shapes^.Index);
+    Assert(ShapeTransform.TransformFunctionality <> nil);
+    Assert(ShapeTransform.TransformNode = TransformNode);
 
     { update transformation inside Transform nodes that are *within*
       the modified Transform node.
@@ -4476,6 +4255,7 @@ function TTransformChangeHelper.TransformChangeTraverse(
     { get Shape and increase Shapes^.Index }
     ShapeSwitch := Shapes^.Group.Children[Shapes^.Index] as TShapeTreeSwitch;
     Inc(Shapes^.Index);
+    Assert(ShapeSwitch.SwitchNode = SwitchNode);
 
     OldShapes := Shapes;
     try
@@ -4511,19 +4291,22 @@ function TTransformChangeHelper.TransformChangeTraverse(
     ShapeLOD: TShapeTreeLOD;
     OldShapes: PShapesParentInfo;
     NewShapes: TShapesParentInfo;
-    CameraLocalPosition: TVector3;
   begin
     { get Shape and increase Shapes^.Index }
     ShapeLOD := Shapes^.Group.Children[Shapes^.Index] as TShapeTreeLOD;
     Inc(Shapes^.Index);
+    Assert(ShapeLOD.LODNode = LODNode);
 
     { by the way, update LODInverseTransform, since it changed }
     if Inside then
     begin
       ShapeLOD.LODInverseTransform^ := StateStack.Top.Transformation.InverseTransform;
+      { No point in calling UpdateLODLevel here, it will be called
+        from BeforeRender anyway.
       if ParentScene.ProcessEvents and
          ParentScene.GetCameraLocal(CameraLocalPosition) then
         ParentScene.UpdateLODLevel(ShapeLOD, CameraLocalPosition);
+      }
     end;
 
     OldShapes := Shapes;
@@ -4606,6 +4389,7 @@ function TTransformChangeHelper.TransformChangeTraverse(
       'Missing shape in Shapes tree');
     Instance := Shapes^.Group.Children[Shapes^.Index] as TProximitySensorInstance;
     Inc(Shapes^.Index);
+    Assert(Instance.Node = Node);
 
     Instance.InverseTransform := StateStack.Top.Transformation.InverseTransform;
 
@@ -4636,6 +4420,8 @@ function TTransformChangeHelper.TransformChangeTraverse(
       'Missing shape in Shapes tree');
     Instance := Shapes^.Group.Children[Shapes^.Index] as TVisibilitySensorInstance;
     Inc(Shapes^.Index);
+    Assert(Instance.Node = Node);
+
     Instance.Transform := StateStack.Top.Transformation.Transform;
     Instance.Box := Node.Box.Transform(Instance.Transform);
   end;
@@ -4690,7 +4476,10 @@ begin
       end;
     ntcViewpoint:
       begin
-        if Node = ParentScene.ViewpointStack.Top then
+        if (Node = ParentScene.ViewpointStack.Top) and
+           { See TAbstractBindableNode.BeforeTraverse comments for
+             explanation why LastBeforeTraverseChangedTransform is important. }
+           ParentScene.ViewpointStack.Top.InternalLastBeforeTraverseChangedTransform  then
           ParentScene.DoBoundViewpointVectorsChanged;
 
         { TODO: Transformation of viewpoint should also affect NavigationInfo,
@@ -4851,7 +4640,24 @@ begin
       TransformChangeHelper.ParentScene := Self;
       TransformChangeHelper.ChangingNode := RootNode;
 
-      TransformShapesParentInfo.Group := Shapes as TShapeTreeGroup;
+      if not
+        ( (Shapes is TShapeTreeGroup) and
+          (TShapeTreeGroup(Shapes).Children.Count = 1) and
+          (TShapeTreeGroup(Shapes).Children[0] is TShapeTreeTransform) and
+          (TShapeTreeTransform(TShapeTreeGroup(Shapes).Children[0]).TransformFunctionality <> nil) and
+          (TShapeTreeTransform(TShapeTreeGroup(Shapes).Children[0]).TransformNode = RootNode) ) then
+      begin
+        raise EInternalError.Create('Scene Shapes should be TShapeTreeGroup with TShapeTreeTransform representing RootNode');
+      end;
+
+      { The logic in HandleTransform in TTransformChangeHelper.TransformChangeTraverse,
+        when Node = ChangingNode, assumes that TransformShapesParentInfo.Group
+        given here matches the *inside* of the node that is changing,
+        which is RootNode in this case.
+        So we don't set "TransformShapesParentInfo.Group := Shapes",
+        we go inside. }
+
+      TransformShapesParentInfo.Group := TShapeTreeGroup(Shapes).Children[0] as TShapeTreeGroup;
       TransformShapesParentInfo.Index := 0;
 
       { initialize TransformChangeHelper properties that may be changed
@@ -5616,13 +5422,6 @@ begin
     end;
   end;
 
-  if FOctreeStaticCollisions <> nil then
-  begin
-    WritelnWarning('ssStaticCollisions used on scene "' + Name + '" but the geometry changed. Freeing the spatial structure. You should use ssDynamicCollisions for this scene');
-    FreeAndNil(FOctreeStaticCollisions);
-    PointingDeviceClear; // remove any reference to (no longer valid) PTriangle records
-  end;
-
   if Assigned(OnGeometryChanged) then
     OnGeometryChanged(Self, Change in SomeLocalGeometryChanged,
       { We know LocalGeometryShape is nil now if Change does not contain
@@ -5770,11 +5569,6 @@ end;
 
 { octrees -------------------------------------------------------------------- }
 
-function TCastleSceneCore.TriangleOctreeLimits: POctreeLimits;
-begin
-  Result := @FTriangleOctreeLimits;
-end;
-
 function TCastleSceneCore.ShapeOctreeLimits: POctreeLimits;
 begin
   Result := @FShapeOctreeLimits;
@@ -5811,14 +5605,6 @@ var
 begin
   if Value <> FSpatial then
   begin
-    if ( (Value <> []) and
-         (Value <> [ssRendering, ssDynamicCollisions]) and
-         (Value <> [ssDynamicCollisions])
-       ) then
-      WritelnWarning('%s: Spatial values different than [], [ssRendering,ssDynamicCollisions], [ssDynamicCollisions] may not be allowed in future engine versions. We advise to use TCastleScene.PreciseCollisions instead of TCastleScene.Spatial.', [
-        Name
-      ]);
-
     { Handle OctreeRendering }
 
     Old := ssRendering in FSpatial;
@@ -5851,44 +5637,27 @@ begin
       end;
     end;
 
-    { Handle OctreeVisibleTriangles }
-
-    Old := ssVisibleTriangles in FSpatial;
-    New := ssVisibleTriangles in Value;
-
-    if Old and not New then
-      FreeAndNil(FOctreeVisibleTriangles);
-
-    { Handle OctreeStaticCollisions }
-
-    Old := ssStaticCollisions in FSpatial;
-    New := ssStaticCollisions in Value;
-
-    if Old and not New then
-    begin
-      FreeAndNil(FOctreeStaticCollisions);
-      PointingDeviceClear; // remove any reference to (no longer valid) PTriangle records
-    end;
-
     FSpatial := Value;
   end;
 end;
 
-function TCastleSceneCore.GetPreciseCollisions: Boolean;
-begin
-  {$warnings off} // this uses deprecated Spatial, which should be Internal at some point
-  Result := Spatial <> [];
-  {$warnings on}
-end;
-
 procedure TCastleSceneCore.SetPreciseCollisions(const Value: Boolean);
 begin
-  {$warnings off} // this uses deprecated Spatial, which should be Internal at some point
-  if Value then
+  if FPreciseCollisions <> Value then
+  begin
+    FPreciseCollisions := Value;
+    UpdateSpatial;
+  end;
+end;
+
+procedure TCastleSceneCore.UpdateSpatial;
+begin
+  { In CastleDesignMode we always have precise collisions,
+    to support precise picking in the editor. }
+  if FPreciseCollisions or CastleDesignMode then
     Spatial := [ssRendering, ssDynamicCollisions]
   else
     Spatial := [];
-  {$warnings on}
 end;
 
 function TCastleSceneCore.InternalOctreeRendering: TShapeOctree;
@@ -5919,36 +5688,14 @@ begin
   Result := FOctreeDynamicCollisions;
 end;
 
-function TCastleSceneCore.InternalOctreeVisibleTriangles: TTriangleOctree;
-begin
-  if (ssVisibleTriangles in FSpatial) and (FOctreeVisibleTriangles = nil) then
-    FOctreeVisibleTriangles := CreateTriangleOctree(
-      FTriangleOctreeLimits,
-      false);
-  Result := FOctreeVisibleTriangles;
-end;
-
-function TCastleSceneCore.InternalOctreeStaticCollisions: TTriangleOctree;
-begin
-  if (ssStaticCollisions in FSpatial) and (FOctreeStaticCollisions = nil) then
-    FOctreeStaticCollisions := CreateTriangleOctree(
-      FTriangleOctreeLimits,
-      true);
-  Result := FOctreeStaticCollisions;
-end;
-
 function TCastleSceneCore.InternalOctreeCollisions: TBaseTrianglesOctree;
 begin
-  if InternalOctreeStaticCollisions <> nil then
-    Result := InternalOctreeStaticCollisions else
-  if InternalOctreeDynamicCollisions <> nil then
-    Result := InternalOctreeDynamicCollisions else
-    Result := nil;
+  Result := InternalOctreeDynamicCollisions;
 end;
 
 function TCastleSceneCore.UseInternalOctreeCollisions: boolean;
 begin
-  Result := FSpatial * [ssStaticCollisions, ssDynamicCollisions] <> [];
+  Result := ssDynamicCollisions in FSpatial;
   Assert((not Result) or (InternalOctreeCollisions <> nil));
 
   { We check whether to use InternalOctreeCollisions
@@ -5959,50 +5706,13 @@ begin
     then the octree in InternalOctreeCollisions remains assigned
     as long as there's no need to rebuild it.
     This is nice, in case you change Spatial again
-    (e.g. by switching "Collisions" in view3dscene),
+    (e.g. by switching "Collisions" in castle-model-viewer),
     the octree is immediately available.
 
     But we don't want to use this octree.
     When Spatial = [], you can *expect* that collisions revert to simpler
     mechanism (using bounding boxes).
     This is important only if you may have Collides = true with Spatial empty. }
-end;
-
-function TCastleSceneCore.CreateTriangleOctree(
-  const Limits: TOctreeLimits;
-  const Collidable: boolean): TTriangleOctree;
-
-  procedure FillOctree(TriangleEvent: TTriangleEvent);
-  var
-    ShapeList: TShapeList;
-    Shape: TShape;
-  begin
-    ShapeList := Shapes.TraverseList(true);
-    for Shape in ShapeList do
-      if (Collidable and Shape.Collidable) or
-         ((not Collidable) and Shape.Visible) then
-        Shape.Triangulate(TriangleEvent);
-  end;
-
-begin
-  Inc(InternalDirty);
-  try
-
-  Result := TTriangleOctree.Create(Limits, LocalBoundingBoxNoChildren);
-  try
-    Result.Triangles.Capacity := TrianglesCount;
-    FillOctree({$ifdef FPC} @ {$endif} Result.AddItemTriangle);
-  except Result.Free; raise end;
-
-  finally Dec(InternalDirty) end;
-
-  { $define CASTLE_DEBUG_OCTREE_DUPLICATION}
-  {$ifdef CASTLE_DEBUG_OCTREE_DUPLICATION}
-  WritelnLog('Triangles Octree Stats', '%d items in octree, %d items in octree''s leafs, duplication %f',
-    [Result.TotalItemsInOctree,
-     Result.TotalItemsInLeafs,
-     Result.TotalItemsInLeafs / Result.TotalItemsInOctree]);
-  {$endif}
 end;
 
 function TCastleSceneCore.CreateShapeOctree(
@@ -6236,23 +5946,6 @@ begin
 
       FProcessEvents := Value;
     end;
-  end;
-end;
-
-procedure TCastleSceneCore.SetStatic(const Value: boolean);
-begin
-  if FStatic <> Value then
-  begin
-    FStatic := Value;
-    if FStatic then
-    begin
-      { Clear TX3DNode.Scene for all nodes }
-      if RootNode <> nil then
-        RootNode.UnregisterScene;
-    end else
-      { Set TX3DNode.Scene for all nodes.
-        This is done as part of ChangedAll when Static = true. }
-      ScheduleChangedAll;
   end;
 end;
 
@@ -6846,7 +6539,7 @@ begin
       To test it all in a simple case,
       open the Spine JSON file
       from https://github.com/castle-engine/demo-models/tree/master/animation/spine_animation_blending_test/exported
-      with view3dscene and run animations with TransitionDuration > 0.
+      with castle-model-viewer and run animations with TransitionDuration > 0.
 
       Note that above assumes that the field X supports lerp (TX3DField.CanAssignLerp).
       Otherwise the AD 3 case is broken (new animation would not correctly "reset"
@@ -7055,7 +6748,7 @@ procedure TCastleSceneCore.ResetTime(const NewValue: TFloatTime);
 begin
   if RootNode <> nil then
     RootNode.EnumerateNodes({$ifdef FPC}@{$endif}ResetLastEventTime,
-     false);
+      false);
   InternalSetTime(NewValue, 0, true);
 end;
 
@@ -7092,9 +6785,6 @@ procedure TCastleSceneCore.InternalCameraChanged;
     I: Integer;
   begin
     Assert(ProcessEvents);
-
-    for I := 0 to ShapeLODs.Count - 1 do
-      UpdateLODLevel(TShapeTreeLOD(ShapeLODs.Items[I]), CameraVectors.Translation);
 
     for I := 0 to ProximitySensors.Count - 1 do
       ProximitySensorUpdate(ProximitySensors[I], CameraVectors);
@@ -7957,8 +7647,6 @@ begin
   begin
     InternalOctreeRendering;
     InternalOctreeDynamicCollisions;
-    InternalOctreeVisibleTriangles;
-    InternalOctreeStaticCollisions;
     PrepareShapesOctrees;
   end;
 end;
@@ -8078,33 +7766,47 @@ begin
   Result := FViewpointsArray.Count;
 end;
 
-function TCastleSceneCore.GetViewpointName(Idx: integer): String;
+function TCastleSceneCore.GetViewpointName(const Idx: integer): String;
+var
+  ViewpointNode: TAbstractViewpointNode;
 begin
-  if Between(Idx, 0, FViewpointsArray.Count - 1) then
-    Result := FViewpointsArray[Idx].SmartDescription else
+  ViewpointNode := GetViewpointNode(Idx); // returns nil for invalid Idx
+  if ViewpointNode <> nil then
+    Result := ViewpointNode.SmartDescription
+  else
     Result := '';
 end;
 
-procedure TCastleSceneCore.MoveToViewpoint(Idx: integer; Animated: boolean);
-var
-  OldForceTeleport: boolean;
+function TCastleSceneCore.GetViewpointNode(const Idx: integer): TAbstractViewpointNode;
 begin
   if Between(Idx, 0, FViewpointsArray.Count - 1) then
+    Result := FViewpointsArray[Idx]
+  else
+    Result := nil;
+end;
+
+procedure TCastleSceneCore.MoveToViewpoint(const Idx: integer; const Animated: boolean);
+var
+  SavedForceTeleport: boolean;
+  ViewpointNode: TAbstractViewpointNode;
+begin
+  ViewpointNode := GetViewpointNode(Idx); // returns nil for invalid Idx
+  if ViewpointNode = nil then
+    Exit;
+
+  if not Animated then
   begin
-    if not Animated then
-    begin
-      OldForceTeleport := ForceTeleportTransitions;
-      ForceTeleportTransitions := true;
-    end else
-      OldForceTeleport := false; // silence warning
+    SavedForceTeleport := ForceTeleportTransitions;
+    ForceTeleportTransitions := true;
+  end else
+    SavedForceTeleport := false; // silence warning
 
-    if FViewpointsArray[Idx] = FViewpointStack.Top then
-      FViewpointsArray[Idx].Bound := false;
-    FViewpointsArray[Idx].Bound := true;
+  if ViewpointNode = FViewpointStack.Top then
+    ViewpointNode.Bound := false;
+  ViewpointNode.Bound := true;
 
-    if not Animated then
-      ForceTeleportTransitions := OldForceTeleport;
-  end;
+  if not Animated then
+    ForceTeleportTransitions := SavedForceTeleport;
 end;
 
 procedure TCastleSceneCore.AddViewpointFromNavigation(
@@ -8273,7 +7975,7 @@ begin
   end;
 end;
 
-function TCastleSceneCore.Animations: TStringList;
+function TCastleSceneCore.CreateAnimations: TStringList;
 var
   Enum: TAnimationsEnumerator;
   I: Integer;
@@ -8329,28 +8031,6 @@ end;
 
 function TCastleSceneCore.ForceAnimationPose(const AnimationName: String;
   const TimeInAnimation: TFloatTime;
-  const Looping: TPlayAnimationLooping;
-  const Forward: boolean): boolean;
-var
-  Loop: boolean;
-  TimeNode: TTimeSensorNode;
-begin
-  // calculate Loop
-  case Looping of
-    paLooping   : Loop := true;
-    paNotLooping: Loop := false;
-    else
-    begin
-      TimeNode := AnimationTimeSensor(AnimationName);
-      Loop := (TimeNode <> nil) and TimeNode.Loop;
-    end;
-  end;
-
-  Result := ForceAnimationPose(AnimationName, TimeInAnimation, Loop, Forward);
-end;
-
-function TCastleSceneCore.ForceAnimationPose(const AnimationName: String;
-  const TimeInAnimation: TFloatTime;
   const Loop: boolean;
   const Forward: boolean): boolean;
 var
@@ -8386,27 +8066,6 @@ begin
       FinishTransformationChanges;
     end;
   end;
-end;
-
-function TCastleSceneCore.PlayAnimation(const AnimationName: String;
-  const Looping: TPlayAnimationLooping;
-  const Forward: boolean): boolean;
-var
-  Loop: boolean;
-  TimeNode: TTimeSensorNode;
-begin
-  // calculate Loop
-  case Looping of
-    paLooping   : Loop := true;
-    paNotLooping: Loop := false;
-    else
-    begin
-      TimeNode := AnimationTimeSensor(AnimationName);
-      Loop := (TimeNode <> nil) and TimeNode.Loop;
-    end;
-  end;
-
-  Result := PlayAnimation(AnimationName, Loop, Forward);
 end;
 
 function TCastleSceneCore.PlayAnimation(const AnimationName: String;
@@ -8622,33 +8281,16 @@ end;
 function TCastleSceneCore.Clone(const AOwner: TComponent): TCastleSceneCore;
 begin
   Result := TComponentClass(ClassType).Create(AOwner) as TCastleSceneCore;
-  Result.SetAndWatchUrl(FUrl);
+  Result.FUrlMonitoring.ChangeUrl(Result.FUrl, FUrl);
   if RootNode <> nil then
     Result.Load(RootNode.DeepCopy as TX3DRootNode, true);
-end;
-
-procedure TCastleSceneCore.SetAndWatchUrl(const NewUrl: String);
-begin
-  if FUrl <> NewUrl then
-  begin
-    if FUrlWatched then
-      FileMonitor.Unwatch(FUrl, {$ifdef FPC}@{$endif} UrlChanged);
-    FUrl := NewUrl;
-    FUrlWatched := FileMonitor.Watch(FUrl, {$ifdef FPC}@{$endif} UrlChanged);
-  end;
-end;
-
-procedure TCastleSceneCore.UrlChanged(Sender: TObject);
-begin
-  Assert(CastleDesignMode);
-  ReloadUrl;
 end;
 
 function TCastleSceneCore.PropertySections(
   const PropertyName: String): TPropertySections;
 begin
   if ArrayContainsString(PropertyName, [
-       'Url', 'ProcessEvents', 'AutoAnimation', 'AutoAnimationLoop',
+       'Url', 'ProcessEvents', 'AutoAnimation',
        'DefaultAnimationTransition', 'PreciseCollisions', 'ExposeTransforms',
        'TimePlaying', 'TimePlayingSpeed', 'Cache'
      ]) then
@@ -8658,6 +8300,60 @@ begin
 end;
 
 procedure TCastleSceneCore.LocalRender(const Params: TRenderParams);
+
+  { Update LOD (level of detail) instances,
+
+    - Iterates over ShapeLODs,
+      - calling TShapeTreeLOD.UpdateLODLevel on all of them,
+      - changing TShapeTreeLOD.Level when needed,
+      - if ProcessEvents: sends X3D events when TShapeTreeLOD.Level changes.
+
+    This is done before every rendering,
+    not only from TCastleSceneCore.InternalCameraChanged.
+    This way:
+
+    - LOD level (displayed) is updated regardless of ProcessEvents.
+
+    - LOD level is updated before each render, which matters if
+      we use multiple times the same TCastleScene,
+      like through TCastleTransformReference.
+  }
+  procedure UpdateLods;
+
+    { Update one TShapeTreeLOD.
+      - Calculate and update TShapeTreeLOD.Level.
+      - Sends level_changed when needed (if ProcessEvents). }
+    procedure UpdateLod(const LODTree: TShapeTreeLOD;
+      const LocalCameraPosition: TVector3);
+    begin
+      if LODTree.UpdateLevel(LocalCameraPosition, ProcessEvents) then
+      begin
+        { This means that active shapes changed, so we have to change things
+          depending on them. Just like after Switch.whichChoice change. }
+
+        Validities := Validities - [
+          { Calculation traverses over active shapes. }
+          fvShapesActiveCount,
+          fvShapesActiveVisibleCount,
+          { Calculation traverses over active nodes (uses RootNode.Traverse). }
+          fvMainLightForShadows];
+
+        DoGeometryChanged(gcActiveShapesChanged, nil);
+
+        InternalIncShapesHash; // TShapeTreeLOD returns now different things
+      end;
+    end;
+
+  var
+    I: Integer;
+    LocalCameraPosition: TVector3;
+  begin
+    if ShapeLODs.Count = 0 then // optimize common case
+      Exit;
+    LocalCameraPosition := Params.LocalCameraPosition;
+    for I := 0 to ShapeLODs.Count - 1 do
+      UpdateLod(TShapeTreeLOD(ShapeLODs.Items[I]), LocalCameraPosition);
+  end;
 
   procedure RenderingCameraChanged(const RenderingCamera: TRenderingCamera);
   var
@@ -8695,6 +8391,7 @@ procedure TCastleSceneCore.LocalRender(const Params: TRenderParams);
 
 begin
   inherited;
+  UpdateLods;
   RenderingCameraChanged(Params.RenderingCamera);
 end;
 
@@ -8795,6 +8492,76 @@ begin
       InternalCastleDesignInvalidate :=  true;
     end;
   end;
+end;
+
+procedure TCastleSceneCore.CustomSerialization(const SerializationProcess: TSerializationProcess);
+begin
+  inherited;
+  if SerializationProcess.InternalHasNonEmptySet('Spatial') then
+  begin
+    WritelnWarning('Scene %s: Spatial property is deprecated, use PreciseCollisions instead', [Name]);
+    PreciseCollisions := true;
+  end;
+end;
+
+function TCastleSceneCore.InternalBuildNodeInside: TObject;
+
+  { Does our RootNode export (using X3D mechanism) given name. }
+  function RootExportsName(const ExportedName: String): Boolean;
+  var
+    E: TX3DExport;
+    HereExported: String;
+  begin
+    Result := false;
+    if (RootNode <> nil) and (RootNode.ExportedNames <> nil) then
+    begin
+      for E in RootNode.ExportedNames do
+      begin
+        if E.ExportedAlias <> '' then
+          HereExported := E.ExportedAlias
+        else
+        if E.ExportedNode <> nil then
+          HereExported := E.ExportedNode.X3DName
+        else
+          HereExported := '';
+        if HereExported = ExportedName then
+          Exit(true);
+      end;
+    end;
+  end;
+
+var
+  ExportAnimation: Boolean;
+  InlineNode: TInlineNode;
+  GroupNode: TGroupNode;
+  Import: TX3DImport;
+begin
+  // if AutoAnimation is defined, setup nodes to start given animation
+  ExportAnimation := (AutoAnimation <> '') and RootExportsName(AutoAnimation);
+
+  InlineNode := TInlineNode.Create;
+  InlineNode.X3DName := Name + '_Scene';
+  InlineNode.SetUrl([Url]);
+
+  if ExportAnimation then
+  begin
+    GroupNode := TGroupNode.Create;
+    GroupNode.X3DName := Name + '_Group';
+    GroupNode.AddChildren(InlineNode);
+
+    Import := TX3DImport.Create;
+    Import.InlineNodeName := InlineNode.X3DName;
+    Import.ImportedNodeName := AutoAnimation;
+    { Prefix imported name with Name, to make it unique if you export
+      many times some scene with the same animation name.
+      Testcase: exporting 3D FPS game template, many soldiers with "walk". }
+    Import.ImportedNodeAlias := Name + '_' + AutoAnimation; // same as ImportedNodeName
+    GroupNode.AddImport(Import);
+    // TODO: add sensor to activate this time sensor.
+
+    Result := GroupNode;
+  end else
+    Result := InlineNode;
 end;
 
 end.

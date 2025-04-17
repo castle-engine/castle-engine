@@ -1,6 +1,6 @@
 {%MainUnit castlepropedits.pas}
 {
-  Copyright 2010-2022 Michalis Kamburelis.
+  Copyright 2010-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -21,8 +21,8 @@
 type
   { Property editor for URL that refers to something that can be loaded by
     @link(LoadNode) or @link(TCastleSceneCore.Load).
-    Show an TCastleOpen3DDialog on Edit. }
-  TSceneURLPropertyEditor = class(TStringPropertyEditor)
+    Show an TCastleOpenSceneDialog on Edit. }
+  TSceneUrlPropertyEditor = class(TStringPropertyEditor)
   public
     function GetAttributes: TPropertyAttributes; override;
     procedure Edit; override;
@@ -30,42 +30,49 @@ type
 
   { Property editor for URL that refers to an image readable by Castle Game Engine.
     Show an TCastleOpenImageDialog on Edit. }
-  TImageURLPropertyEditor = class(TStringPropertyEditor)
+  TImageUrlPropertyEditor = class(TStringPropertyEditor)
   public
     function GetAttributes: TPropertyAttributes; override;
     procedure Edit; override;
   end;
 
   { Property editor for URL that refers to a file readable by UserInterfaceLoad. }
-  TDesignURLPropertyEditor = class(TStringPropertyEditor)
+  TUiDesignUrlPropertyEditor = class(TStringPropertyEditor)
   public
     function GetAttributes: TPropertyAttributes; override;
     procedure Edit; override;
   end;
 
   { Property editor for URL that refers to a file readable by TransformLoad. }
-  TTransformDesignURLPropertyEditor = class(TStringPropertyEditor)
+  TTransformDesignUrlPropertyEditor = class(TStringPropertyEditor)
+  public
+    function GetAttributes: TPropertyAttributes; override;
+    procedure Edit; override;
+  end;
+
+  { Property editor for URL that refers to a file readable by ComponentLoad. }
+  TAnyDesignUrlPropertyEditor = class(TStringPropertyEditor)
   public
     function GetAttributes: TPropertyAttributes; override;
     procedure Edit; override;
   end;
 
   { Property editor for URL that refers to a Tiled Map file. }
-  TTiledMapURLPropertyEditor = class(TStringPropertyEditor)
+  TTiledMapUrlPropertyEditor = class(TStringPropertyEditor)
   public
     function GetAttributes: TPropertyAttributes; override;
     procedure Edit; override;
   end;
 
   { Property editor for URL that refers to a sound file. }
-  TSoundURLPropertyEditor = class(TStringPropertyEditor)
+  TSoundUrlPropertyEditor = class(TStringPropertyEditor)
   public
     function GetAttributes: TPropertyAttributes; override;
     procedure Edit; override;
   end;
 
   { Property editor for URL that refers to a font file. }
-  TFontURLPropertyEditor = class(TStringPropertyEditor)
+  TFontUrlPropertyEditor = class(TStringPropertyEditor)
   public
     function GetAttributes: TPropertyAttributes; override;
     procedure Edit; override;
@@ -87,18 +94,18 @@ begin
     FixApplicationDataInIDE;
 end;
 
-{ TSceneURLPropertyEditor ---------------------------------------------------- }
+{ TSceneUrlPropertyEditor ---------------------------------------------------- }
 
-function TSceneURLPropertyEditor.GetAttributes: TPropertyAttributes;
+function TSceneUrlPropertyEditor.GetAttributes: TPropertyAttributes;
 begin
   Result := [paDialog, paRevertable, paMultiSelect];
 end;
 
-procedure TSceneURLPropertyEditor.Edit;
+procedure TSceneUrlPropertyEditor.Edit;
 var
-  Dialog: TCastleOpen3DDialog;
+  Dialog: TCastleOpenSceneDialog;
 begin
-  Dialog := TCastleOpen3DDialog.Create(nil);
+  Dialog := TCastleOpenSceneDialog.Create(nil);
   try
     Dialog.AdviceDataDirectory := PropertyEditorsAdviceDataDirectory;
     if (GetStrValue = '') and PropertyEditorsAdviceDataDirectory then
@@ -110,14 +117,14 @@ begin
   finally FreeAndNil(Dialog) end;
 end;
 
-{ TImageURLPropertyEditor ---------------------------------------------------- }
+{ TImageUrlPropertyEditor ---------------------------------------------------- }
 
-function TImageURLPropertyEditor.GetAttributes: TPropertyAttributes;
+function TImageUrlPropertyEditor.GetAttributes: TPropertyAttributes;
 begin
   Result := [paDialog, paRevertable, paMultiSelect];
 end;
 
-procedure TImageURLPropertyEditor.Edit;
+procedure TImageUrlPropertyEditor.Edit;
 var
   Dialog: TCastleOpenImageDialog;
 begin
@@ -133,14 +140,14 @@ begin
   finally FreeAndNil(Dialog) end;
 end;
 
-{ TDesignURLPropertyEditor ---------------------------------------------------- }
+{ TUiDesignUrlPropertyEditor ---------------------------------------------------- }
 
-function TDesignURLPropertyEditor.GetAttributes: TPropertyAttributes;
+function TUiDesignUrlPropertyEditor.GetAttributes: TPropertyAttributes;
 begin
   Result := [paDialog, paRevertable, paMultiSelect];
 end;
 
-procedure TDesignURLPropertyEditor.Edit;
+procedure TUiDesignUrlPropertyEditor.Edit;
 var
   Dialog: TCastleOpenDialog;
 begin
@@ -157,14 +164,14 @@ begin
   finally FreeAndNil(Dialog) end;
 end;
 
-{ TTransformDesignURLPropertyEditor ---------------------------------------------------- }
+{ TTransformDesignUrlPropertyEditor ---------------------------------------------------- }
 
-function TTransformDesignURLPropertyEditor.GetAttributes: TPropertyAttributes;
+function TTransformDesignUrlPropertyEditor.GetAttributes: TPropertyAttributes;
 begin
   Result := [paDialog, paRevertable, paMultiSelect];
 end;
 
-procedure TTransformDesignURLPropertyEditor.Edit;
+procedure TTransformDesignUrlPropertyEditor.Edit;
 var
   Dialog: TCastleOpenDialog;
 begin
@@ -181,20 +188,25 @@ begin
   finally FreeAndNil(Dialog) end;
 end;
 
-{ TTiledMapURLPropertyEditor ---------------------------------------------------- }
+{ TAnyDesignUrlPropertyEditor ---------------------------------------------------- }
 
-function TTiledMapURLPropertyEditor.GetAttributes: TPropertyAttributes;
+function TAnyDesignUrlPropertyEditor.GetAttributes: TPropertyAttributes;
 begin
   Result := [paDialog, paRevertable, paMultiSelect];
 end;
 
-procedure TTiledMapURLPropertyEditor.Edit;
+procedure TAnyDesignUrlPropertyEditor.Edit;
 var
   Dialog: TCastleOpenDialog;
 begin
   Dialog := TCastleOpenDialog.Create(nil);
   try
-    Dialog.Filter := 'Tiled Map (*.tmx)|*.tmx|All Files|*';
+    Dialog.Filter := 
+      'CGE Design (*.castle-user-interface, *.castle-transform, *.castle-component)|*.castle-user-interface;*.castle-transform;*.castle-component|' +
+      'CGE User Interace Design (*.castle-user-interface)|*.castle-user-interface|' + 
+      'CGE Transform Design (*.castle-transform)|*.castle-transform|' +
+      'CGE Non-Visual Design (*.castle-component)|*.castle-component|' +      
+      'All Files|*';
     Dialog.AdviceDataDirectory := PropertyEditorsAdviceDataDirectory;
     if (GetStrValue = '') and PropertyEditorsAdviceDataDirectory then
       Dialog.URL := 'castle-data:/' // make it easier to open files within data folder
@@ -205,14 +217,38 @@ begin
   finally FreeAndNil(Dialog) end;
 end;
 
-{ TSoundURLPropertyEditor ---------------------------------------------------- }
+{ TTiledMapUrlPropertyEditor ---------------------------------------------------- }
 
-function TSoundURLPropertyEditor.GetAttributes: TPropertyAttributes;
+function TTiledMapUrlPropertyEditor.GetAttributes: TPropertyAttributes;
 begin
   Result := [paDialog, paRevertable, paMultiSelect];
 end;
 
-procedure TSoundURLPropertyEditor.Edit;
+procedure TTiledMapUrlPropertyEditor.Edit;
+var
+  Dialog: TCastleOpenDialog;
+begin
+  Dialog := TCastleOpenDialog.Create(nil);
+  try
+    Dialog.Filter := LoadTiledMap_FileFilters;
+    Dialog.AdviceDataDirectory := PropertyEditorsAdviceDataDirectory;
+    if (GetStrValue = '') and PropertyEditorsAdviceDataDirectory then
+      Dialog.URL := 'castle-data:/' // make it easier to open files within data folder
+    else
+      Dialog.URL := GetStrValue;
+    if Dialog.Execute then
+      SetStrValue(Dialog.URL);
+  finally FreeAndNil(Dialog) end;
+end;
+
+{ TSoundUrlPropertyEditor ---------------------------------------------------- }
+
+function TSoundUrlPropertyEditor.GetAttributes: TPropertyAttributes;
+begin
+  Result := [paDialog, paRevertable, paMultiSelect];
+end;
+
+procedure TSoundUrlPropertyEditor.Edit;
 var
   Dialog: TCastleOpenDialog;
 begin
@@ -229,7 +265,7 @@ begin
   finally FreeAndNil(Dialog) end;
 end;
 
-{ TFontURLPropertyEditor ---------------------------------------------------- }
+{ TFontUrlPropertyEditor ---------------------------------------------------- }
 
 function TFontURLPropertyEditor.GetAttributes: TPropertyAttributes;
 begin

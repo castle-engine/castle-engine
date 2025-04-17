@@ -13,7 +13,7 @@ See https://castle-engine.io/project_manifest for documentation of this file.
   author="Castle Game Engine Developers"
   screen_orientation="landscape"
 >
-  <version value="2.1" code="15" />
+  <version value="2.2" code="16" />
   <compiler_options>
     <search_paths>
       <path value="code/" />

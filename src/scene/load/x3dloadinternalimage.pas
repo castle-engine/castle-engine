@@ -1,5 +1,5 @@
 ﻿{
-  Copyright 2020-2020 Andrzej Kilijański (and3md)
+  Copyright 2020-2024 Andrzej Kilijański (and3md), Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -13,23 +13,19 @@
   ----------------------------------------------------------------------------
 }
 
-{ Simple loader of image files to TCastleScene. }
+{ Load image as a model (TX3DRootNode, which can be loaded to TCastleScene). }
 unit X3DLoadInternalImage;
 
 {$I castleconf.inc}
 
 interface
 
-uses
-  Classes, SysUtils,
-  X3DNodes;
-
-function LoadImageAsNode(const Stream: TStream; const BaseUrl, MimeType: String): TX3DRootNode;
-
 implementation
 
-uses Generics.Collections, CastleImages, CastleLog, CastleUriUtils, CastleStringUtils,
-  CastleTextureImages, CastleVectors;
+uses
+  Classes, SysUtils, Generics.Collections,
+  CastleImages, CastleLog, CastleUriUtils, CastleStringUtils,
+  CastleTextureImages, CastleVectors, X3DNodes, X3DLoad;
 
 type
 
@@ -66,10 +62,18 @@ type
     function Load: TX3DRootNode;
   end;
 
-function LoadImageAsNode(const Stream: TStream; const BaseUrl, MimeType: String): TX3DRootNode;
+function LoadImageAsNode(const Stream: TStream; const BaseUrl: String): TX3DRootNode;
 var
   ImageLoader: TImageAsX3DModelLoader;
+  MimeType: String;
 begin
+  MimeType := URIMimeType(BaseUrl);
+  if not IsImageMimeType(MimeType, true, false) then
+    raise Exception.CreateFmt('Unsupported image MIME type "%s" for loading image "%s"', [
+      MimeType,
+      BaseUrl
+    ]);
+
   ImageLoader := TImageAsX3DModelLoader.Create(Stream, BaseUrl, MimeType);
   try
     Result := ImageLoader.Load;
@@ -248,4 +252,15 @@ begin
   end;
 end;
 
+var
+  ModelFormat: TModelFormat;
+initialization
+  ModelFormat := TModelFormat.Create;
+  ModelFormat.OnLoad := {$ifdef FPC}@{$endif} LoadImageAsNode;
+  ModelFormat.OnLoadForceMemoryStream := true;
+  AddImageMimeTypes(ModelFormat.MimeTypes, true, false);
+  // We don't list extensions here, would be too long
+  ModelFormat.FileFilterName := 'Images';
+  AddImageExtensions(ModelFormat.Extensions, true, false);
+  RegisterModelFormat(ModelFormat);
 end.

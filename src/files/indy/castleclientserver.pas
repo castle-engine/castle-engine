@@ -1,5 +1,5 @@
 {
-  Copyright 2018 Benedikt Magnus.
+  Copyright 2018-2024 Benedikt Magnus, Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -348,8 +348,15 @@ uses
   end;
 
   function TAndroidTCPConnectionService.IsConnected: Boolean;
+  var
+    B: Boolean;
   begin
-    Result := IsConnected(TClientConnection.Create('client'));
+    Result := false;
+    if FIsActive then
+      // is there any pair in FConnectedDictionary with value = true (connected)?
+      for B in FConnectedDictionary.Values do
+        if B then
+          Exit(true);
   end;
 
   function TAndroidTCPConnectionService.IsConnected(AClient: TClientConnection): Boolean;
@@ -374,7 +381,6 @@ uses
 
     FMessageList := TSynchronisedStringList.Create;
 
-    FreeOnTerminate := true;
     inherited Create(false);
   end;
 
@@ -391,6 +397,12 @@ uses
   begin
     FClient.Connect;
     FClient.IOHandler.ReadTimeout := 100;
+    {$ifdef FPC}
+    { Change to use IndyTextEncoding_UTF8,
+      see TCastleTCPServer.ServerOnConnect for explanation. }
+    FClient.IOHandler.DefStringEncoding := IndyTextEncoding_UTF8;
+    FClient.IOHandler.DefAnsiEncoding := IndyTextEncoding_UTF8;
+    {$endif}
 
     if Assigned(FOnConnected) then
       Queue(FOnConnected);
@@ -580,6 +592,24 @@ end;
     FClientConnectionsList.Add(AContext);
 
     AContext.Connection.IOHandler.ReadTimeout := 100;
+    {$ifdef FPC}
+    { Change to use IndyTextEncoding_UTF8, to enable sending/receiving
+      UTF-8 encoded strings in FPC (as just String = AnsiString).
+
+      FPC Indy from http://packages.lazarus-ide.org/Indy10.zip has by default
+
+        DefStringEncoding = IndyTextEncoding_ASCII
+        DefAnsiEncoding = IndyTextEncoding_OSDefault
+
+      We need to change both DefAnsiEncoding (seems to matter to send them OK)
+      and DefStringEncoding (seems to matter to receive the non-ASCII chars OK).
+      Without any change, sending non-ASCII characters encoded in UTF-8
+      is silently ignored (whole message was ignored).
+      Reproduced on at least Linux and FreeBSD with FPC 3.2.2
+      (see https://github.com/castle-engine/castle-engine/issues/590). }
+    AContext.Connection.IOHandler.DefStringEncoding := IndyTextEncoding_UTF8;
+    AContext.Connection.IOHandler.DefAnsiEncoding := IndyTextEncoding_UTF8;
+    {$endif}
 
     if Assigned(FOnConnected) then
       TThread.Queue(nil, {$ifdef FPC}@{$endif} ServerOnClientConnected);
@@ -667,8 +697,19 @@ end;
 destructor TCastleTCPClient.Destroy;
 begin
   {$ifndef ANDROID}
+  if FClientThread <> nil then
+  begin
     FClientThread.FreeClientOnTerminate := true;
+    FClient := nil; // will be freed because of FClientThread.FreeClientOnTerminate
+
+    FClientThread.FreeOnTerminate := true;
     FClientThread.Terminate;
+    FClientThread := nil; // will free itself because FreeOnTerminate = true, so don't keep reference to it
+  end else
+  begin
+    { If no FClientThread, free FClient ourselves. }
+    FreeAndNil(FClient);
+  end;
   {$endif}
 
   inherited;
@@ -695,7 +736,9 @@ begin
   {$ifdef ANDROID}
     FTCPConnectionService.Close;
   {$else}
+    FClientThread.FreeOnTerminate := true;
     FClientThread.Terminate;
+    FClientThread := nil; // will free itself because FreeOnTerminate = true, so don't keep reference to it
   {$endif}
 end;
 

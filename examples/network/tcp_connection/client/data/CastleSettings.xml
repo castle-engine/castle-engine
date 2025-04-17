@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!--
+Specify runtime settings of this project, like UI scaling and default font.
+See https://castle-engine.io/manual_castle_settings.php for documentation of this file.
+-->
+
+<!--
+This file is specially adjusted in client / server examples
+to simulate low-resolution portrait screen,
+this is most comfortable to design our simple UI.
+-->
+
+<castle_settings>
+  <ui_scaling
+    mode="EncloseReferenceSize"
+    reference_width="450"
+    reference_height="800"
+  />
+</castle_settings>

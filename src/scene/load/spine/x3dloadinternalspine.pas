@@ -20,11 +20,6 @@ unit X3DLoadInternalSpine;
 
 interface
 
-uses SysUtils, Classes,
-  X3DNodes;
-
-function LoadSpine(const Stream: TStream; const BaseUrl: String): TX3DRootNode;
-
 var
   { Turn this on to see some additional warnings when loading Spine models.
     These warnings are sometimes too verbose (often the models will work fine,
@@ -37,8 +32,10 @@ var
 
 implementation
 
-uses Generics.Collections, FpJson, JSONParser, JSONScanner, Math,
-  CastleVectors, CastleCurves, CastleUtils, CastleLog, CastleUriUtils, CastleDownload,
+uses SysUtils, Classes,
+  Generics.Collections, FpJson, JSONParser, JSONScanner, Math,
+  X3DNodes, X3DLoad, CastleVectors, CastleCurves, CastleUtils, CastleLog,
+  CastleUriUtils, CastleDownload,
   CastleStringUtils, CastleClassUtils, CastleColors, X3DLoadInternalUtils,
   CastleTriangles, CastleRenderOptions,
   X3DFields;
@@ -205,4 +202,13 @@ begin
   finally FreeAndNil(TextureLoader) end;
 end;
 
+var
+  ModelFormat: TModelFormat;
+initialization
+  ModelFormat := TModelFormat.Create;
+  ModelFormat.OnLoad := {$ifdef FPC}@{$endif} LoadSpine;
+  ModelFormat.MimeTypes.Add('application/json');
+  ModelFormat.FileFilterName := 'Spine animation (*.json)';
+  ModelFormat.Extensions.Add('.json');
+  RegisterModelFormat(ModelFormat);
 end.

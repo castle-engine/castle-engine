@@ -19,7 +19,7 @@ Gains:
   for TCastleScene.URL).
 
   For users, e.g. you can pass both filenames and URLs
-  as command-line parameters to view3dscene. No need to explicitly
+  as command-line parameters to castle-model-viewer. No need to explicitly
   mark what is a filename and what is an URL.
 
 ---------------

@@ -1,6 +1,6 @@
 ﻿{%MainUnit castletiledmap.pas}
 {
-  Copyright 2015-2021 Tomasz Wojtyś, Michalis Kamburelis.
+  Copyright 2015-2024 Tomasz Wojtyś, Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -651,7 +651,17 @@ procedure TCastleTiledMapData.TImage.DetermineSize;
 var
  ImageData: TEncodedImage;
 begin
-  if (Width = 0) and (Height = 0) then
+  if (Width = 0) and
+     (Height = 0) and
+     { Do not load image when there's no Url (no "source" attribute at <tileset>).
+       This is possible when each <tile> has its own <image> element,
+       we don't support it yet, TCastleTiledMapConverter will later warn and
+       skip such tileset.
+
+       Testcase: Phoenix bugreport,
+       https://discord.com/channels/389676745957310465/1204090530368327690/1247180638520606829 ,
+       Michalis has testcase in private. }
+     (Url <> '') then
   begin
     { Note: While we could store Image to use it loader, e.g.
 

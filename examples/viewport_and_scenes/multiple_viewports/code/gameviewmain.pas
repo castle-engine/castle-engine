@@ -1,5 +1,5 @@
 {
-  Copyright 2010-2023 Michalis Kamburelis.
+  Copyright 2010-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -34,8 +34,6 @@ type
     ViewportNormal, ViewportTransparent,
       ViewportScreenEffect, ViewportExamine: TCastleViewport;
   private
-    procedure ClickOpen(Sender: TObject);
-    procedure CameraNavigationReinitialize;
   public
     constructor Create(AOwner: TComponent); override;
     procedure Start; override;
@@ -95,11 +93,7 @@ begin
   ViewportScreenEffect.Items := ViewportNormal.Items;
   ViewportExamine.Items := ViewportNormal.Items;
 
-  ButtonOpen.OnClick := {$ifdef FPC}@{$endif} ClickOpen;
-
   AddScreenEffect(ViewportScreenEffect);
-
-  CameraNavigationReinitialize;
 end;
 
 procedure TViewMain.Update(const SecondsPassed: Single; var HandleInput: Boolean);
@@ -107,31 +101,6 @@ begin
   inherited;
   { This virtual method is executed every frame (many times per second). }
   LabelFps.Caption := 'FPS: ' + Container.Fps.ToString;
-end;
-
-procedure TViewMain.CameraNavigationReinitialize;
-begin
-  ViewportNormal.AssignDefaultCamera;
-  ViewportTransparent.AssignDefaultCamera;
-  ViewportScreenEffect.AssignDefaultCamera;
-  ViewportExamine.AssignDefaultCamera;
-end;
-
-procedure TViewMain.ClickOpen(Sender: TObject);
-var
-  NewUrl: String;
-begin
-  NewUrl := MainScene.Url;
-  if Application.MainWindow.FileDialog('Open Scene', NewUrl, true, LoadScene_FileFilters) then
-  begin
-    { Free other scenes than MainScene.
-      They are present initially just to demonstrate that multiple scenes work too. }
-    FreeAndNil(SceneParticles);
-    FreeAndNil(SceneRaptor);
-
-    MainScene.Load(NewUrl);
-    CameraNavigationReinitialize;
-  end;
 end;
 
 end.

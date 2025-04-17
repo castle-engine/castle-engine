@@ -68,8 +68,9 @@ begin
     As all our Blender meshes have just 1 material, we just access the X3D shape
     node by accessing the 1st child or TGroupNode.
 
-    To see the X3D nodes, just open ../data/test_blocks.gltf in view3dscene and "Save As" X3DV
-    file, and then read it. }
+    To see the X3D nodes, just open ../data/test_blocks.gltf in castle-model-viewer
+    and use "File -> Save As" to save it as X3DV file, and then read it
+    in any text editor. }
 
   ShapeRed := (SceneTestBlocks.Node('RedMesh') as TGroupNode).FdChildren[0] as TShapeNode;
   ShapeGreen := (SceneTestBlocks.Node('GreenMesh') as TGroupNode).FdChildren[0] as TShapeNode;

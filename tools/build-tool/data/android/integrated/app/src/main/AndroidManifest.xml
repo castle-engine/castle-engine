@@ -3,7 +3,7 @@
 
 <!-- Required for custom Java code:
   - android:hasCode="true"
-  - android:name="net.sourceforge.castleengine.MainActivity"
+  - android:name="io.castleengine.MainActivity"
 -->
 
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
@@ -18,7 +18,7 @@
         android:label="@string/app_name"
         android:icon="@mipmap/ic_launcher"
         android:hasCode="true">
-        <activity android:name="net.sourceforge.castleengine.MainActivity"
+        <activity android:name="io.castleengine.MainActivity"
                 android:theme="@style/AppTheme"
                 android:launchMode="singleTask"
                 android:configChanges="orientation|screenSize|keyboardHidden"

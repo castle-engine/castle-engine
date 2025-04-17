@@ -355,15 +355,7 @@ var
     end;
 
   var
-    C: TUnicodeChar;
-    {$ifdef FPC}
-    TextPtr: PChar;
-    CharLen: Integer;
-    {$else}
-    TextIndex: Integer;
-    NextTextIndex: Integer;
-    TextLength: Integer;
-    {$endif}
+    Iter: TCastleStringIterator;
   begin
     { first pass, to render Outline. }
 
@@ -372,63 +364,17 @@ var
     (*
     if Outline <> 0 then
     begin
-      ScreenX := X;
-      ScreenY := Y;
-
-      TextPtr := PChar(S);
-      C := UTF8CharacterToUnicode(TextPtr, CharLen);
-      while (C > 0) and (CharLen > 0) do
-      begin
-        Inc(TextPtr, CharLen);
-
-        G := Font.Glyph(C);
-        if G <> nil then
-        begin
-          if (G.Width <> 0) and (G.Height <> 0) then
-          begin
-            GlyphDraw(0, 0);
-            GlyphDraw(0, 2);
-            GlyphDraw(2, 2);
-            GlyphDraw(2, 0);
-
-            if OutlineHighQuality then
-            begin
-              GlyphDraw(1, 0);
-              GlyphDraw(1, 2);
-              GlyphDraw(0, 1);
-              GlyphDraw(2, 1);
-            end;
-          end;
-          ScreenX += G.AdvanceX + Outline * 2;
-          ScreenY += G.AdvanceY;
-        end;
-
-        C := UTF8CharacterToUnicode(TextPtr, CharLen);
-      end;
+      ...
     end;
     *)
 
     ScreenX := X;
     ScreenY := Y;
 
-    {$ifdef FPC}
-    TextPtr := PChar(S);
-    C := UTF8CharacterToUnicode(TextPtr, CharLen);
-    while (C > 0) and (CharLen > 0) do
-    {$else}
-    TextIndex := 1;
-    TextLength := Length(S);
-    while (TextIndex <= TextLength) do
-    {$endif}
+    Iter.Start(S);
+    while Iter.GetNext do
     begin
-      {$ifdef FPC}
-      Inc(TextPtr, CharLen);
-      {$else}
-      C := UnicodeStringNextChar(S, TextIndex, NextTextIndex);
-      TextIndex := NextTextIndex;
-      {$endif}
-
-      G := FontData.Glyph(C);
+      G := FontData.Glyph(Iter.Current);
       if G <> nil then
       begin
         if (G.Width <> 0) and (G.Height <> 0) then
@@ -443,10 +389,6 @@ var
         ScreenX := ScreenX + G.AdvanceX + Outline * 2;
         ScreenY := ScreenY + G.AdvanceY;
       end;
-
-      {$ifdef FPC}
-      C := UTF8CharacterToUnicode(TextPtr, CharLen);
-      {$endif}
     end;
   end;
 
@@ -881,7 +823,7 @@ end;
 procedure FontsInitialization;
 begin
   { We do not embed in CGE now all 12 font variants,
-    see view3dscene/embedded_data/fonts/README.md for explanation.
+    see castle-model-viewer/embedded_data/fonts/README.md for explanation.
     So just set all fonts to use default Font_Default3d_Sans. }
   DefaultFontData[ffTypeWriter, true , true ] := Font_Default3d_Sans;
   DefaultFontData[ffTypeWriter, true , false] := Font_Default3d_Sans;

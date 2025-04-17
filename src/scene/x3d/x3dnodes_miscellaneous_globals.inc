@@ -270,7 +270,8 @@ function KeyRange(Key: TSingleList;
   const Fraction: Single; out T: Single): Integer;
 
 { Free TX3DNode if it is unused (see TX3DNode.FreeIfUnused),
-  setting reference to @nil. Analogous to standard FreeAndNil,
+  setting reference to @nil (whether it was unused or not).
+  This is analogous to standard Pascal FreeAndNil,
   but checks if node is used first. }
 procedure FreeIfUnusedAndNil(var Obj);
 
@@ -341,7 +342,7 @@ begin
         - X3D specification
           http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/utils.html#SequencingEvents
           It says that f(t) = vn, if tn <= t < tn-1
-        - Testcase on https://github.com/castle-engine/view3dscene/issues/2
+        - Testcase on https://github.com/castle-engine/castle-model-viewer/issues/2
       }
       if Fraction < Key[Result] then
         B := Result else

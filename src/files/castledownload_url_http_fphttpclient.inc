@@ -84,6 +84,9 @@ type
     HttpResponseHeaders: TStrings;
     FinalUrl: String;
 
+    { Free SynchronizationCS in destructor. }
+    OwnsSynchronizationCS: Boolean;
+
     constructor Create;
     destructor Destroy; override;
     procedure Execute;
@@ -200,6 +203,8 @@ destructor TFpHttpClientJob.Destroy;
 begin
   FreeAndNil(Contents);
   FreeAndNil(HttpResponseHeaders);
+  if OwnsSynchronizationCS then
+    FreeAndNil(SynchronizationCS);
   inherited;
 end;
 
@@ -345,16 +350,8 @@ var
   SynchronousJob: TFpHttpClientJob;
 begin
   inherited;
-
-  { The main purpose of this is to disable Download from blocking.
-    Additionally, it also disables TCastleDownload from "downgrading" to blocking,
-    when OS doesn't support threads. }
-  if ForceSynchronous and (not EnableBlockingDownloads) then
-  begin
-    Status := dsError;
-    ErrorMessage := 'Downloading network resources (from "http" or "https"  protocols) is not enabled. Set global EnableBlockingDownloads:=true to enable.';
+  if not CheckNetworkAccess then
     Exit;
-  end;
 
   if URIProtocol(Url) = 'https' then
   begin
@@ -430,19 +427,18 @@ begin
         We cannot fix it by doing "Thread.FreeOnTerminate := true" earlier,
         because then we have a race, and "Thread" reference may no longer be used.
 
-        A potential fix is in CASTLE_SAFE_DOWNLOAD_INTERRUPTION but this:
-        1. would cause short delay when interrupting downloads
-        2. doesn't work to prevent visible mem leak in examples/network/asynchronous_download/
-           (but that leak seems unrelated? it occurs even if nothing was interrupted?)
+        A potential fix is in CASTLE_SAFE_DOWNLOAD_INTERRUPTION but this
+        could cause short delay when interrupting downloads.
 
         TODO: This is actually dangerous if the interruption will happen
         before thread Execute processed HttpPostData and HttpHeadersKeys/Values,
         as they may become invalid when owning TCastleDownload it freed.
       }
       WritelnLog('Network', 'Interrupting download in-progress of "%s"', [UriDisplay(Url)]);
+      Thread.Job.OwnsSynchronizationCS := true;
       Thread.FreeOnTerminate := true;
       Thread := nil;
-      SynchronizationCS := nil; // do not free it here, let Thread use it
+      SynchronizationCS := nil; // do not free it here, let Thread use it, let Thread.Job free it
     end else
       FreeAndNil(Thread);
     {$endif}

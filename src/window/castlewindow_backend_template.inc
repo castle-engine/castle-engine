@@ -156,10 +156,9 @@ begin
   Result := { TODO } true;
 end;
 
-procedure TCastleWindow.SetMousePosition(const Value: TVector2);
+procedure TCastleWindow.SystemSetMousePosition(const Value: TVector2);
 begin
-  if not Closed then
-    { TODO };
+  { TODO }
 end;
 
 procedure TCastleWindow.UpdateFullScreenBackend;
@@ -291,15 +290,15 @@ begin
   Result := 200;
 end;
 
-function TCastleApplication.ScreenStatusBarScaledHeight: Cardinal;
-begin
-  Result := 0;
-end;
-
 function TCastleApplication.BackendName: String;
 begin
   { TODO }
   Result := 'My CastleWindow Backend';
+end;
+
+function TCastleApplication.MultipleWindowsPossible: Boolean;
+begin
+  Result := true; // TODO
 end;
 
 { TWindowContainer ----------------------------------------------------------- }

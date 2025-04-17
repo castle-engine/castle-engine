@@ -6,7 +6,7 @@ See https://castle-engine.io/project_manifest for documentation of this file.
 -->
 
 <project name="x3d-nodes-to-pascal"
-  standalone_source="x3d-nodes-to-pascal.lpr"
+  standalone_source="x3d_nodes_to_pascal.lpr"
   qualified_name="io.castleengine.x3d.nodes.to.pascal">
   <data exists="false" />
   <compiler_options>

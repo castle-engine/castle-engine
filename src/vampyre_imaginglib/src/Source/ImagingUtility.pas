@@ -7,7 +7,7 @@
   This Source Code Form is subject to the terms of the Mozilla Public
   License, v. 2.0. If a copy of the MPL was not distributed with this
   file, You can obtain one at https://mozilla.org/MPL/2.0.
-} 
+}
 
 { This unit contains utility functions and types for Imaging library.}
 unit ImagingUtility;
@@ -367,13 +367,15 @@ procedure DebugMsg(const Msg: string; const Args: array of const);
 
 implementation
 
-uses
 {$IF Defined(MSWINDOWS)}
-  Windows;
+uses Windows;
+// Castle Game Engine: support FPC on non-Unix and non-Windows
+{$ELSEIF Defined(FPC) and (Defined(WASI) or Defined(CASTLE_NINTENDO_SWITCH))}
+// no need for uses
 {$ELSEIF Defined(FPC)}
-  Dos, BaseUnix, Unix;
+uses Dos, BaseUnix, Unix;
 {$ELSEIF Defined(DELPHI)}
-  Posix.SysTime;
+uses Posix.SysTime;
 {$IFEND}
 
 var
@@ -421,6 +423,12 @@ var
 begin
   QueryPerformanceCounter(Time);
   Result := Round(1000000 * InvPerfFrequency * Time);
+end;
+// Castle Game Engine: support FPC on non-Unix and non-Windows
+{$ELSEIF Defined(FPC) and (Defined(WASI) or Defined(CASTLE_NINTENDO_SWITCH))}
+function GetTimeMicroseconds: Int64;
+begin
+  Result := GetTickCount64 * 1000;
 end;
 {$ELSEIF Defined(DELPHI)}
 function GetTimeMicroseconds: Int64;

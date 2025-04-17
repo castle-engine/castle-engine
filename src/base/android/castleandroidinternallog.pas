@@ -25,7 +25,7 @@ type
 procedure AndroidLog(const Priority: TAndroidLogPriority; const S: string);
 procedure AndroidLog(const Priority: TAndroidLogPriority; const S: string; const Args: array of const);
 
-{ Like AndroidLog, but works better for log strings (> 4076 characters),
+{ Like AndroidLog, but works better for long strings (> 4076 characters),
   otherwise the default AndroidLog seems to cut them off. }
 procedure AndroidLogRobust(const Priority: TAndroidLogPriority; const S: string);
 
@@ -47,7 +47,12 @@ const
   MaxAndroidTagLength = 23;
 begin
   if LogTag = '' then
-    LogTag := Copy(ApplicationName, 1, MaxAndroidTagLength);
+    LogTag :=
+      {$ifdef CASTLE_ANDROID_ARGV_LOGGING}
+      'eye_of_beholder'; // hardcode for this test
+      {$else}
+      Copy(ApplicationName, 1, MaxAndroidTagLength);
+      {$endif}
   __android_log_write(Ord(Priority), PChar(LogTag), PChar(S));
 end;
 

@@ -63,7 +63,7 @@ var
   Anchor, AnchorPart: String;
   SeekPos: Integer;
 begin
-  URIGetAnchor(BaseUrl, Anchor, true);
+  URIGetAnchor(BaseUrl, Anchor);
 
   SkinName := '';
   CustomAtlasName := '';

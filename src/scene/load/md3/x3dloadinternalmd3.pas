@@ -14,6 +14,7 @@
 }
 
 { Loading MD3 (used by Quake3 and derivatives like Tremulous) format.
+  Loads wit skin and animations.
 
   References:
   - Format spec: http://icculus.org/homepages/phaethon/q3a/formats/md3format.html
@@ -26,16 +27,12 @@ unit X3DLoadInternalMD3;
 
 interface
 
-uses SysUtils, Classes, Generics.Collections,
-  CastleUtils, CastleClassUtils, CastleVectors, X3DNodes,
-  CastleInternalNodeInterpolator, CastleQuaternions;
-
-{ Load MD3 model, with skin and animations. }
-function LoadMD3(const Stream: TStream; const BaseUrl: String): TX3DRootNode;
-
 implementation
 
-uses CastleFilesUtils, CastleStringUtils, CastleBoxes, X3DLoadInternalUtils,
+uses SysUtils, Classes, Generics.Collections,
+  CastleUtils, CastleClassUtils, CastleVectors, X3DNodes, X3DLoad,
+  CastleInternalNodeInterpolator, CastleQuaternions,
+  CastleFilesUtils, CastleStringUtils, CastleBoxes, X3DLoadInternalUtils,
   X3DCameraUtils, CastleDownload, CastleUriUtils, CastleLog;
 
 type
@@ -59,4 +56,14 @@ begin
   finally FreeAndNil(Md3) end;
 end;
 
+var
+  ModelFormat: TModelFormat;
+initialization
+  ModelFormat := TModelFormat.Create;
+  ModelFormat.OnLoad := {$ifdef FPC}@{$endif} LoadMD3;
+  ModelFormat.OnLoadForceMemoryStream := true;
+  ModelFormat.MimeTypes.Add('application/x-md3');
+  ModelFormat.FileFilterName := 'Quake 3 engine models (*.md3)';
+  ModelFormat.Extensions.Add('.md3');
+  RegisterModelFormat(ModelFormat);
 end.

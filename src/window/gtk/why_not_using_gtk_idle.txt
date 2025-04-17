@@ -13,7 +13,7 @@ PostRedisplay and Update, more precisely:
 - GtkIdle (now called Application.ProcessUpdates)
   was registered as GTK's idle function,
   by gtk_idle_add_priority. GtkIdle was responsible for doing our
-  idle / timer events (Application.OnIdle/Timer, TCastleWindow.OnIdle/Timer).
+  idle / timer events (Container.EventUpdate, ApplicationProperties.OnUpdate).
 
   At the beginning, it was registered with priority
   GTK_PRIORITY_REDRAW, then G_PRIORITY_HIGH_IDLE.
@@ -30,14 +30,15 @@ About idle priority:
 
     We would like to set it to GTK_PRIORITY_REDRAW (this is
     G_PRIORITY_HIGH_IDLE + 20, smaller than G_PRIORITY_DEFAULT_IDLE,
-    which means it's more important). That's because our idle events
-    (Application.OnIdle, TCastleWindow.OnIdle etc.)
+    which means it's more important). That's because our update events
+    (Container.EventUpdate, ApplicationProperties.OnUpdate)
     must be constantly called, even when AutoRedisplay = true
     (i.e. when we always have some redraw pending), and with
     ~approximately the same frequency as draw events.
 
     The default priority of gtk_idle_add, which is G_PRIORITY_DEFAULT_IDLE,
-    would make our idle events (Application.OnIdle etc.) never called
+    would make our update events
+    (Container.EventUpdate, ApplicationProperties.OnUpdate) never called
     when AutoRedisplay = true.
 
     Unfortunately, with GTK 2 (GTK 1 didn't have this problem),
@@ -48,12 +49,10 @@ About idle priority:
     mysterious problems.
 
     Simple test case with some comments is in
-    ../../../examples/window/window_menu.lpr
-    (and also gtk/tests/test_changing_menu/test_changing_menu.lpr
-    on michalis.ii SVN, temporarily private (too obscure...)).
+    ../../../examples/window/window_menu.lpr .
 
     G_PRIORITY_DEFAULT_IDLE doesn't have this problem, but it's leaving
-    us with the first problem: Application.OnIdle will not be called
+    us with the first problem: our "update" will not be called
     continuously if we redraw continuously (like when AutoRedisplay = true).
      - Old solution: call WindowsIdleAndTimer manually
        after calling DoDraw in signal_expose_event.
@@ -163,7 +162,7 @@ idle event.
     to us from obscuring + showing the window again. Strangely, expose
     after resizing the window still gets generated. But generally they don't work...
 
-    This means that making MessageOk from OnDraw, or OnIdle, still doesn't
+    This means that making MessageOk from EventRender, or EventUpdate, still doesn't
     work as expected...
 
 Bottom line: it's not reliable to call any TCastleWindow events (that could

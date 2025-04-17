@@ -20,24 +20,18 @@ unit X3DLoadInternalCollada;
 
 interface
 
-uses SysUtils, Classes,
-  X3DNodes;
+implementation
 
-{ Load Collada file as X3D.
+uses SysUtils, Classes, DOM, XMLRead, Generics.Collections, Math, URIParser,
+  X3DNodes, X3DLoad, CastleUtils, CastleStringUtils, CastleVectors, CastleColors,
+  CastleXmlUtils, CastleLog, CastleClassUtils, X3DLoadInternalUtils,
+  CastleDownload, CastleUriUtils;
 
-  Written based on Collada 1.3.1 and 1.4.1 specifications.
+{ Implementation written based on Collada 1.3.1 and 1.4.1 specifications.
   Should handle any Collada 1.3.x or 1.4.x or 1.5.x version.
   http://www.gamasutra.com/view/feature/1580/introduction_to_collada.php?page=6
   suggests that "specification stayed quite stable between 1.1 and 1.3.1",
   which means that older versions (< 1.3.1) may be handled too. }
-function LoadCollada(const Stream: TStream; BaseUrl: String): TX3DRootNode;
-
-implementation
-
-uses DOM, XMLRead, Generics.Collections, Math, URIParser,
-  CastleUtils, CastleStringUtils, CastleVectors, CastleColors,
-  CastleXmlUtils, CastleLog, CastleClassUtils, X3DLoadInternalUtils,
-  CastleDownload, CastleUriUtils;
 
 var
   { If @true we may use some of our engine specific
@@ -117,10 +111,11 @@ var
 
 { LoadCollada ---------------------------------------------------------------- }
 
-function LoadCollada(const Stream: TStream; BaseUrl: String): TX3DRootNode;
+function LoadCollada(const Stream: TStream; const ProposedBaseUrl: String): TX3DRootNode;
 var
   ResultModel: TGroupNode absolute Result;
   Version14: boolean; //< Collada version >= 1.4.x
+  BaseUrl: String; //< use as BaseUrl for all nodes (do not use ProposedBaseUrl for this)
 
   {$define read_interface_nested}
   {$I x3dloadinternalcollada_effects.inc}
@@ -178,6 +173,8 @@ begin
   Cameras := nil;
   Lights := nil;
   Result := nil;
+
+  BaseUrl := ProposedBaseUrl;
 
   try
     ReadXMLFile(Doc, Stream);
@@ -302,4 +299,13 @@ begin
   except FreeAndNil(Result); raise; end;
 end;
 
+var
+  ModelFormat: TModelFormat;
+initialization
+  ModelFormat := TModelFormat.Create;
+  ModelFormat.OnLoad := {$ifdef FPC}@{$endif} LoadCollada;
+  ModelFormat.MimeTypes.Add('model/vnd.collada+xml');
+  ModelFormat.FileFilterName := 'Collada (*.dae)';
+  ModelFormat.Extensions.Add('.dae');
+  RegisterModelFormat(ModelFormat);
 end.

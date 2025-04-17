@@ -34,11 +34,17 @@ buildscript {
 }
 
 allprojects {
-    // Enable extra warnings, following
+    // -Xlint:unchecked, -Xlint:deprecation:
+    // To enable extra warnings, following
     // http://stackoverflow.com/questions/18689365/how-to-add-xlintunchecked-to-my-android-gradle-based-project
+    //
+    // -Xlint:-options: To disable these warnings (twice)
+    //   warning: [options] source value 8 is obsolete and will be removed in a future release
+    // Emitted by something during building (not caused by our "sourceCompatibility 1.8"),
+    // seem harmless for now, ignoring.
     gradle.projectsEvaluated {
         tasks.withType(JavaCompile) {
-            options.compilerArgs << "-Xlint:unchecked" << "-Xlint:deprecation"
+            options.compilerArgs << "-Xlint:unchecked" << "-Xlint:deprecation" << "-Xlint:-options"
         }
     }
 

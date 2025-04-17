@@ -55,10 +55,10 @@
 
     { If @link(Frame), this is the frame's color. By default white. }
     property FrameColor: TCastleColor read FFrameColor write SetFrameColor;
-      {$ifdef FPC}deprecated 'display frame around label using Border or parent UI control';{$endif}
+      {$ifdef FPC}deprecated 'display frame using Border or parent UI control';{$endif}
   published
     property Frame: boolean read FFrame write SetFrame default false;
-      {$ifdef FPC}deprecated 'display frame around label using Border or parent UI control';{$endif}
+      {$ifdef FPC}deprecated 'display frame using Border or parent UI control';{$endif}
 
     property Padding: Single read FPadding write SetPadding {$ifdef FPC}default DefaultPadding{$endif};
     property Spacing: Single read FSpacing write SetSpacing {$ifdef FPC}default DefaultSpacing{$endif};
@@ -353,7 +353,7 @@ begin
   inherited;
   {$warnings off} // using deprecated just to make a warning
   if Frame or (not TVector4.PerfectlyEquals(White, FrameColor)) then
-    WritelnWarning('TCastleLabel.Frame and FrameColor are deprecated. Instead: Use TCastleLabel.Border, or place TCastleLabel under a component like TCastleRectangleControl or TCastleImageControl that defines a background.');
+    WritelnWarning('TCastle(Vertical|Horizontal)Group.Frame and FrameColor are deprecated. Instead: Use TCastleUserInterface.Border, or place the control under a component like TCastleRectangleControl or TCastleImageControl that defines a background.');
   {$warnings on}
 end;
 
@@ -430,7 +430,7 @@ end;
 function TCastleHorizontalGroup.PropertySections(
   const PropertyName: String): TPropertySections;
 begin
-  if (PropertyName = 'Alignment') then
+  if ArrayContainsString(PropertyName, ['Alignment', 'Padding']) then
     Result := [psBasic, psLayout]
   else
     Result := inherited PropertySections(PropertyName);
@@ -503,7 +503,7 @@ end;
 function TCastleVerticalGroup.PropertySections(
   const PropertyName: String): TPropertySections;
 begin
-  if (PropertyName = 'Alignment') then
+  if ArrayContainsString(PropertyName, ['Alignment', 'Padding']) then
     Result := [psBasic, psLayout]
   else
     Result := inherited PropertySections(PropertyName);

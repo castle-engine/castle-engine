@@ -701,9 +701,13 @@ begin
       begin
         WritelnWarning('TestBox3DTransform failed at test with RandomMatrix:' + NL +
           'Box: %s' + NL +
-          'Matrix: %s', [
+          'Matrix: %s' + NL +
+          'Resulting BoxTransformSlower: %s' + NL +
+          'Resulting Box.Transform: %s', [
           Box.ToString,
-          Matrix.ToString
+          Matrix.ToString,
+          BoxTransformSlower(Box, Matrix).ToString,
+          Box.Transform(Matrix).ToString
         ]);
         raise;
       end;
@@ -783,10 +787,13 @@ end;
 
 procedure TTestCastleBoxes.TestBox3DMaximumPlane;
 begin
-  try
-    TBox3D.Empty.MaximumPlane(Vector3(1, 1, 1));
-  except
-    on E: EBox3DEmpty do { Ok };
+  if CanCatchExceptions then
+  begin
+    try
+      TBox3D.Empty.MaximumPlane(Vector3(1, 1, 1));
+    except
+      on E: EBox3DEmpty do { Ok };
+    end;
   end;
 
   AssertVectorEquals(Vector4(-1, 0, 0, 2), Box3D(
@@ -807,10 +814,13 @@ end;
 
 procedure TTestCastleBoxes.TestBox3DMinimumPlane;
 begin
-  try
-    TBox3D.Empty.MinimumPlane(Vector3(1, 1, 1));
-  except
-    on E: EBox3DEmpty do { Ok };
+  if CanCatchExceptions then
+  begin
+    try
+      TBox3D.Empty.MinimumPlane(Vector3(1, 1, 1));
+    except
+      on E: EBox3DEmpty do { Ok };
+    end;
   end;
 
   AssertVectorEquals(Vector4(1, 0, 0, -2), Box3D(

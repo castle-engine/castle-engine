@@ -1,8 +1,19 @@
 # Testing TCastleBehavior for creatures
 
-This is a start of testing AI by TCastleBehavior for creatures.
+Test creature AI implemented by behaviors:
 
-TODO: `TCastleMoveAttack`, which should be the focus of this, is not ready yet.
+- `TCastleMoveAttack` - move towards the player and attack when close enough.
+- `TCastleLiving` - manage life (hit points), for both enemies and player.
+
+See [behaviors](https://castle-engine.io/behaviors) about using behaviors and implementing your own.
+
+Note: This example runs much faster in the _Release_ mode (when optimizations are enabled). In _Debug_ mode, the FPS is noticeably much slower. This is true of all CGE applications, but it's especially noticeable here. See [how to optimize your applications](https://castle-engine.io/manual_optimization.php).
+
+More: [See example of a full game, using TCastleMoveAttack, engine editor, Sketchfab, Blender - demo for "Zlot Delphi 2024"](https://github.com/castle-engine/conference-zlot-delphi-2024). See also [slides from the related presentation (in Polish)](https://castle-engine.io/zlot2024).
+
+## Screenshots
+
+![Playing at design-time](move_attack_design_time.png)
 
 ## Building
 

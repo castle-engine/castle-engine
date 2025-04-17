@@ -1,5 +1,5 @@
 {
-  Copyright 2014-2023 Michalis Kamburelis.
+  Copyright 2014-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -21,8 +21,8 @@ unit ToolCompile;
 interface
 
 uses Classes,
-  CastleStringUtils,
-  ToolManifest, ToolArchitectures;
+  CastleStringUtils, CastleInternalArchitectures,
+  ToolManifest;
 
 type
   TCompilationMode = (cmRelease, cmValgrind, cmDebug);
@@ -313,12 +313,20 @@ begin
   Result := not (
     { Occur without -vb }
     IsPrefix('generics.collections.pas(', LineLower, false) or
+    // generics.dictionaries.inc -> generics.dictionariesh.inc in FPC 3.3.1
     IsPrefix('generics.dictionaries.inc(', LineLower, false) or
+    IsPrefix('generics.dictionariesh.inc(', LineLower, false) or
     IsPrefix('generics.defaults.pas(', LineLower, false) or
     { Occur with -vb }
     (Pos('generics.collections.ppu:generics.collections.pas(', LineLower) <> 0) or
     (Pos('generics.collections.ppu:generics.dictionaries.inc(', LineLower) <> 0) or
+    (Pos('generics.collections.ppu:generics.dictionariesh.inc(', LineLower) <> 0) or
     (Pos('generics.defaults.ppu:generics.defaults.pas(', LineLower) <> 0) or
+    // with -vb and FPC 3.3.1 and our own generics collections copy
+    (Pos('generics.collections/generics.collections.pas(', LineLower) <> 0) or
+    (Pos('generics.collections/inc/generics.dictionaries.inc(', LineLower) <> 0) or
+    (Pos('generics.collections/inc/generics.dictionariesh.inc(', LineLower) <> 0) or
+    (Pos('generics.defaults/generics.defaults.pas(', LineLower) <> 0) or
     { Others }
     IsSuffix('warning: section "__datacoal_nt" is deprecated', LineLower, false) or
     IsSuffix('note: change section name to "__data"', LineLower, false) or
@@ -658,7 +666,19 @@ begin
         FpcOptions.Add('-O-');
         WritelnWarning('Disabling optimizations, because they are buggy on Aarch64 with older FPC. Upgrade to FPC >= 3.2.2.');
       end else
+      if Options.CPU = Wasm32 then
+      begin
+        { Wasm32 optimizations are buggy with FPC 3.3.1.
+          FPC crashes with
+            x3dnodes_coordinate3_1.inc(69,3) Fatal: Internal error 2018042601
+          I assume this is known, even wiki page about Wasm32 says to use -O-
+          TODO: web: submit FPC bug }
+        FpcOptions.Add('-O-');
+      end else
         FpcOptions.Add('-O2');
+        // Not using -O3: Fails badly on 64-bit Raspberry Pi (Linux/Aarch64),
+        // at TTestCastleComponentSerialize.TestCustomSerialization
+        //FpcOptions.Add('-O3');
       FpcOptions.Add('-dRELEASE');
     end;
 
@@ -670,19 +690,58 @@ begin
       cmValgrind:
         begin
           { See https://castle-engine.io/profiling_using_valgrind
-            for reasons of Valgrind options. }
-          FpcOptions.Add('-gv');
+            for reasons of Valgrind options.
+
+            For web:
+            Do not pass -gv for WebAssembly, it causes errors
+            "Can't find unit cmem used by castle_cache".
+            And we need Valgrind mode to compile without errors,
+            to enable "castle-engine cache --target=web". }
+
+          if Options.OS = WasiP1 then
+            Writeln('Warning: Valgrind is not supported on WebAssembly')
+          else
+            FpcOptions.Add('-gv');
           FpcOptions.Add('-gl');
         end;
       cmDebug:
         begin
-          FpcOptions.Add('-Cr');
-          FpcOptions.Add('-Co');
-          FpcOptions.Add('-Sa');
-          FpcOptions.Add('-CR');
-          FpcOptions.Add('-g');
-          FpcOptions.Add('-gl');
+          FpcOptions.Add('-Cr'); // Range checking, see https://github.com/modern-pascal/modern-pascal-introduction/wiki/What-are-range-and-overflow-checks-(and-errors)-in-Pascal
+          if Options.CPU <> Wasm32 then
+            FpcOptions.Add('-Co') // Overflow checking, see https://github.com/modern-pascal/modern-pascal-introduction/wiki/What-are-range-and-overflow-checks-(and-errors)-in-Pascal
+          else
+            { It seems that Overflow Checking is broken with WebAssembly,
+              it causes exceptions
+                EIntOverflow: Arithmetic overflow
+                  $EEEEEEEE
+              on definitely innocent operations, like TCastleWindow.GetColorBits
+              when it sums up 0 + 0 + 0 (on Cardinal; are the unsigned Cardinal
+              the reason for the problem?).
+              Simplifying TCastleWindow.GetColorBits only causes EIntOverflow
+              further down.
+              TODO: web: submit FPC bug }
+            FpcOptions.Add('-Co-');
+          FpcOptions.Add('-Sa'); // Assertions
+          FpcOptions.Add('-CR'); // Verify method calls
+          FpcOptions.Add('-g');  // Debug info (automatic), for debuggers
+          if Options.CPU <> Wasm32 then
+            FpcOptions.Add('-gl') // Line info (in backtraces)
+          else
+            { Without this, compiling
+                castle-engine compile --os=wasi --cpu=wasm32 --mode=debug
+              fails with
+                Fatal: Can't find unit lnfodwrf used by Program
+              The default fpc.cfg contains clause to do -gl when DEBUG is defined,
+              so we have to explicitly disable it with -gl-.
+            }
+            FpcOptions.Add('-gl-');
           FpcOptions.Add('-dDEBUG');
+          { Disable -Ct (Stack checking) added to fpc.cfg in default
+            fpcupdeluxe installation when DEBUG is defined.
+            Because it crashes when application is run on iPhone,
+            at least with FPC 3.2.2. }
+          if IsIOS then
+            FpcOptions.Add('-Ct-');
         end;
       {$ifndef COMPILER_CASE_ANALYSIS}
       else raise EInternalError.Create('CompileFpc: Mode?');
@@ -727,10 +786,10 @@ begin
       //FpcOptions.Add('-CaEABIHF');
     end;
 
-    if Options.DetectMemoryLeaks then
+    if Options.DetectMemoryLeaks then // see https://castle-engine.io/memory_leaks
     begin
-      FpcOptions.Add('-gl');
-      FpcOptions.Add('-gh');
+      FpcOptions.Add('-gl'); // HeapTrc
+      FpcOptions.Add('-gh'); // LineInfo
     end;
 
     AddIOSOptions;

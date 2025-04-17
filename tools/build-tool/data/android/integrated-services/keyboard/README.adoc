@@ -1,0 +1,21 @@
+## keyboard
+
+This service enables using on-screen keyboard on Android.
+
+Add it to your link:https://castle-engine.io/project_manifest[CastleEngineManifest.xml]:
+
+[source,xml]
+----
+<android>
+  <services>
+    <service name="keyboard" />
+  </services>
+</android>
+----
+
+Set also `TCastleEdit.AutoOnScreenKeyboard` to `true` on the edit boxes to make it work automatically.
+
+### Example
+
+See the example https://github.com/castle-engine/castle-engine/tree/master/examples/mobile/on_screen_keyboard[examples/mobile/on_screen_keyboard] .
+

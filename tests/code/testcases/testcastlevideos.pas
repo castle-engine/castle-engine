@@ -46,6 +46,7 @@ begin
     Video.LoadFromFile('castle-data:/videos/video_single.png');
     AssertTrue(Video.Count = 1);
 
+    if CanCatchExceptions then
     try
       Video.LoadFromFile('castle-data:/videos/video_not_existing.png');
       Fail('Should fail');
@@ -56,6 +57,7 @@ begin
       end;
     end;
 
+    if CanCatchExceptions then
     try
       Video.LoadFromFile('castle-data:/videos/video_not_existing@counter(1).png');
       Fail('Should fail');

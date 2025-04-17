@@ -1,6 +1,6 @@
 {%MainUnit castledownload.pas}
 {
-  Copyright 2013-2020 Michalis Kamburelis.
+  Copyright 2013-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -32,6 +32,23 @@ type
     If you just want to download asynchronously from standard URLs,
     like file or http, then use TCastleDownload class. }
   TUrlAsynchronousReader = class
+  protected
+    { Call this from @link(Start) overrides in descendants that access the network.
+      Call this after they called "inherited Start" which may change ForceSynchronous.
+
+      This returns @false if
+
+      - It seems that we do synchronous download
+        (maybe because we are called from Download(),
+        or maybe we don't have thread support).
+
+      - And EnableBlockingDownloads is @false.
+
+      IOW, this makes sure we honor EnableBlockingDownloads.
+
+      When it sets @false, it also sets Status and ErrorMessage.
+      The caller @link(Start) should just Exit if this returns @false. }
+    function CheckNetworkAccess: Boolean;
   public
     { Fields set before Start is called. Should not be modified by this instance after Start.
       @groupBegin }
@@ -79,34 +96,134 @@ type
   TUrlAsynchronousReaderClass = class of TUrlAsynchronousReader;
 
   { Event called when @link(Download) function wants to download URL with this protocol.
-    Use with @link(RegisterUrlProtocol). }
+    Use with @link(RegisterUrlProtocol) and @link(TRegisteredProtocol.ReadEvent). }
   TUrlReadEvent = function (
     const Url: String; out MimeType: string): TStream of object;
 
   { Event called when @link(URLSaveStream) function wants to save URL with this protocol.
-    Use with @link(RegisterUrlProtocol). }
+    Use with @link(RegisterUrlProtocol) and @link(TRegisteredProtocol.WriteEvent). }
   TUrlWriteEvent = function(const Url: String): TStream of object;
+
+  { Event called when @link(UriExists) function wants to know whether given URL
+    exists, and if it is a directory or file.
+
+    When this is not assigned, @link(UriExists) answers ueUnknown for all URLs,
+    which just means "we don't know, you can try to load the URL and see
+    if it fails with an exception".
+
+    Use with @link(RegisterUrlProtocol) and @link(TRegisteredProtocol.ExistsEvent). }
+  TUrlExistsEvent = function(const Url: String): TUriExists of object;
 
   EProtocolAlreadyRegistered = class(Exception);
 
+  { Details of the registered URL protocol.
+    @italic(Do not create instances of this class directly),
+    only use @link(RegisterUrlProtocol) that returns an instance of this. }
+  TRegisteredProtocol = class
+  strict private
+    FReadEvent: TUrlReadEvent;
+    FWriteEvent: TUrlWriteEvent;
+    FAsynchronousReader: TUrlAsynchronousReaderClass;
+    FExistsEvent: TUrlExistsEvent;
+    function GetDetectMimeTypeFromExtension: Boolean;
+    procedure SetDetectMimeTypeFromExtension(const Value: Boolean);
+  private
+    type
+      { Event called when @link(UriMimeType) function wants to get MIME type from given URL.
+        Use with @link(RegisterUrlProtocol). }
+      TUrlMimeTypeEvent = function(const Url: String; out Gzipped: Boolean): String of object;
+    var
+      FProtocol: String;
+      FMimeTypeEvent: TUrlMimeTypeEvent;
+  public
+    { Registered URL protocol, always lowercase.
+      Example: @code('https') to handle URLs like @code('https://castle-engine.io').
+      Read-only, set by @link(RegisterUrlProtocol). }
+    property Protocol: String read FProtocol;
+
+    { Optional event to read contents of URLs with given protocol.
+      This event returns TStream from which the called can read.
+
+      Used for synchronous reading by @link(Download).
+      See https://castle-engine.io/url for more information how our
+      resource loading works. }
+    property ReadEvent: TUrlReadEvent read FReadEvent write FReadEvent;
+
+    { Optional event to write contents of URLs with given protocol.
+      This event returns TStream to which the caller can write.
+
+      Used for writing by @link(URLSaveStream).
+      See https://castle-engine.io/url for more information how our
+      resource saving works. }
+    property WriteEvent: TUrlWriteEvent read FWriteEvent write FWriteEvent;
+
+    { Optional class reference to read contents of URLs with given
+      protocol asynchronously.
+
+      Protocols that want to support asynchronous reading,
+      so that you can easily download the URL contents while performing
+      other operations (like displaying some animation) should provide this.
+
+      See https://castle-engine.io/url for more information how our
+      resource loading works. }
+    property AsynchronousReader: TUrlAsynchronousReaderClass
+      read FAsynchronousReader write FAsynchronousReader;
+
+    { Can a reasonable MIME type be inferred from the URL extension.
+      This determines whether the routine @link(UriMimeType) returns
+      useful MIME type for this protocol.
+
+      The readers (in @link(ReadEvent) and @link(AsynchronousReader)) may
+      also use @link(UriMimeType), thus be affected by this property,
+      but they can also use more elaborate ways to determine the downloaded
+      MIME type. For example, reading resources from HTTP(S) allows to (usually)
+      get MIME type from the HTTP(S) server. Using @link(UriMimeType), to determine
+      MIME type from extension, is only a fallback in this case. }
+    property DetectMimeTypeFromExtension: Boolean read
+      GetDetectMimeTypeFromExtension write SetDetectMimeTypeFromExtension
+      default false;
+
+    { Optional event to check whether given URL exists (as a directory or file). }
+    property ExistsEvent: TUrlExistsEvent read FExistsEvent write FExistsEvent;
+  end;
+
 { Register how we can load and/or save the URLs with given protocol.
-  One (or even both) of given events (ReadEvent, WriteEvent) can be @nil.
 
-  @param ReadEvent Used when using synchronous reading by @link(Download).
+  All the parameters except the first, Protocol,
+  are optional. You can leave these parameters at default values,
+  and in effect the corresponding fields of TRegisteredProtocol will be set
+  to @nil.
+  You can later configure protocol events by assigning properties of
+  the returned TRegisteredProtocol.
 
-  @param WriteEvent Used when using synchronus writing by @link(URLSaveStream).
+  @param ReadEvent See @link(TRegisteredProtocol.ReadEvent).
 
-  @param AsynchronousReader Used when using asynchronous reading by @link(TCastleDownload).
+  @param WriteEvent See @link(TRegisteredProtocol.WriteEvent).
+
+  @param AsynchronousReader See @link(TRegisteredProtocol.AsynchronousReader).
+
+  @returns(Instance of TRegisteredProtocol. You can configure handling of given
+    protocol further by assigning properties of this instance.
+    Do not free this instance yourself.
+    It will be automatically freed when you call @link(UnregisterUrlProtocol).)
 
   @raises(EProtocolAlreadyRegistered If the protocol handlers are already registered.) }
-procedure RegisterUrlProtocol(const Protocol: String;
-  const ReadEvent: TUrlReadEvent;
-  const WriteEvent: TUrlWriteEvent;
+function RegisterUrlProtocol(const Protocol: String;
+  const ReadEvent: TUrlReadEvent = nil;
+  const WriteEvent: TUrlWriteEvent = nil;
   const AsynchronousReader: TUrlAsynchronousReaderClass = nil;
-  const DetectMimeTypeFromExtension: Boolean = true);
+  const DetectMimeTypeFromExtension: Boolean = true): TRegisteredProtocol;
 
-{ Is given protocol name registered with @link(RegisterUrlProtocol). }
+{ Is given protocol name registered with @link(RegisterUrlProtocol).
+  The Protocol searching is case-insensitive.
+  This is a shortcut for FindRegisteredUrlProtocol(Protocol) <> nil. }
 function RegisteredUrlProtocol(const Protocol: String): Boolean;
+
+{ If the given protocol is registered with @link(RegisterUrlProtocol),
+  returns the TRegisteredProtocol instance that describes how to handle this
+  protocol. The Protocol searching is case-insensitive.
+  Returns @nil if not found. }
+function FindRegisteredUrlProtocol(const Protocol: String): TRegisteredProtocol;
 
 { Unregister protocol, reverting the @link(RegisterUrlProtocol). }
 procedure UnregisterUrlProtocol(const Protocol: String);
@@ -132,35 +249,57 @@ begin
   {$endif}
 end;
 
+function TUrlAsynchronousReader.CheckNetworkAccess: Boolean;
+begin
+  Result := true;
+
+  { The main purpose of this is to disable Download from blocking.
+    Additionally, it also disables TCastleDownload from "downgrading" to blocking,
+    when OS doesn't support threads. }
+  if ForceSynchronous and (not EnableBlockingDownloads) then
+  begin
+    Status := dsError;
+    ErrorMessage := 'Downloading network resources (from "http" or "https"  protocols) is not enabled. Set global EnableBlockingDownloads:=true to enable.';
+    Exit(false);
+  end;
+end;
+
 procedure TUrlAsynchronousReader.Update;
 begin
 end;
 
 { registering URL protocols -------------------------------------------------- }
 
+{ TRegisteredProtocol -------------------------------------------------------- }
+
+function TRegisteredProtocol.GetDetectMimeTypeFromExtension: Boolean;
+var
+  DetectMimeTypeEvent: TUrlMimeTypeEvent;
+begin
+  DetectMimeTypeEvent := {$ifdef FPC}@{$endif} TUrlFile{$ifdef FPC}(nil){$endif}.MimeType;
+  Result := SameMethods(TMethod(FMimeTypeEvent), TMethod(DetectMimeTypeEvent));
+end;
+
+procedure TRegisteredProtocol.SetDetectMimeTypeFromExtension(const Value: Boolean);
+begin
+  if Value then
+    FMimeTypeEvent := {$ifdef FPC}@{$endif} TUrlFile{$ifdef FPC}(nil){$endif}.MimeType
+  else
+    FMimeTypeEvent := nil;
+end;
+
+{ TRegisteredProtocols ------------------------------------------------------- }
+
 type
-  { Event called when @link(UriMimeType) function wants to get MIME type from given URL.
-    Use with @link(RegisterUrlProtocol). }
-  TUrlMimeTypeEvent = function(const Url: String; out Gzipped: Boolean): String of object;
-
-  TRegisteredProtocol = class
-    Protocol: String;
-    ReadEvent: TUrlReadEvent;
-    WriteEvent: TUrlWriteEvent;
-    AsynchronousReader: TUrlAsynchronousReaderClass;
-    MimeTypeEvent: TUrlMimeTypeEvent;
-  end;
-
   TRegisteredProtocols = class({$ifdef FPC}specialize{$endif} TObjectList<TRegisteredProtocol>)
     { Find TRegisteredProtocol with given Protocol, case-insensitive.
       Returns TRegisteredProtocol, or @nil if not found. }
     function Find(Protocol: String): TRegisteredProtocol;
 
-    procedure Add(const Protocol: String;
-      const ReadEvent: TUrlReadEvent;
-      const WriteEvent: TUrlWriteEvent;
-      const AsynchronousReader: TUrlAsynchronousReaderClass;
-      const MimeTypeEvent: TUrlMimeTypeEvent); reintroduce;
+    { Add new instance of TRegisteredProtocol, return it.
+      The resulting TRegisteredProtocol has already TRegisteredProtocol.Protocol
+      set, other fields are at their default (@nil) values. }
+    function Add(const Protocol: String): TRegisteredProtocol; reintroduce;
   end;
 
 function TRegisteredProtocols.Find(Protocol: String): TRegisteredProtocol;
@@ -174,11 +313,7 @@ begin
   Result := nil;
 end;
 
-procedure TRegisteredProtocols.Add(const Protocol: String;
-  const ReadEvent: TUrlReadEvent;
-  const WriteEvent: TUrlWriteEvent;
-  const AsynchronousReader: TUrlAsynchronousReaderClass;
-  const MimeTypeEvent: TUrlMimeTypeEvent);
+function TRegisteredProtocols.Add(const Protocol: String): TRegisteredProtocol;
 var
   P: TRegisteredProtocol;
 begin
@@ -188,20 +323,18 @@ begin
   if (Protocol <> '') and
      (not URIValidProtocol(Protocol)) then
     raise Exception.CreateFmt('URL protocol name "%s" is invalid (see URIValidProtocol for the requirements on protocol name)', [Protocol]);
-  P := TRegisteredProtocol.Create;
+  Result := TRegisteredProtocol.Create;
   // lowercase Protocol, to later compare in TRegisteredProtocols.Find ignoring case
-  P.Protocol := LowerCase(Protocol);
-  P.ReadEvent := ReadEvent;
-  P.WriteEvent := WriteEvent;
-  P.AsynchronousReader := AsynchronousReader;
-  P.MimeTypeEvent := MimeTypeEvent;
-  inherited Add(P);
+  Result.FProtocol := LowerCase(Protocol);
+  inherited Add(Result);
 end;
 
 var
   FRegisteredProtocols: TRegisteredProtocols;
 
 function RegisteredProtocols: TRegisteredProtocols;
+var
+  P: TRegisteredProtocol;
 begin
   { initialize FRegisteredProtocols on-demand }
   if FRegisteredProtocols = nil then
@@ -212,84 +345,127 @@ begin
 
     {$if defined(ANDROID)}
     // http(s) using Android service
-    FRegisteredProtocols.Add('http', nil, nil, THttpAndroidReader,
-      {$ifdef FPC}@{$endif} TUrlFile{$ifdef FPC}(nil){$endif}.MimeType);
-    FRegisteredProtocols.Add('https', nil, nil, THttpAndroidReader,
-      {$ifdef FPC}@{$endif} TUrlFile{$ifdef FPC}(nil){$endif}.MimeType);
+    P := FRegisteredProtocols.Add('http');
+    P.AsynchronousReader := THttpAndroidReader;
+    P.DetectMimeTypeFromExtension := true;
+
+    P := FRegisteredProtocols.Add('https');
+    P.AsynchronousReader := THttpAndroidReader;
+    P.DetectMimeTypeFromExtension := true;
 
     {$elseif defined(HAS_FP_HTTP_CLIENT)}
     // http(s) using FPC FpHttpClient
-    FRegisteredProtocols.Add('http', nil, nil, TFpHttpClientReader,
-      {$ifdef FPC}@{$endif} TUrlFile{$ifdef FPC}(nil){$endif}.MimeType);
-    FRegisteredProtocols.Add('https', nil, nil, TFpHttpClientReader,
-      {$ifdef FPC}@{$endif} TUrlFile{$ifdef FPC}(nil){$endif}.MimeType);
+    P := FRegisteredProtocols.Add('http');
+    P.AsynchronousReader := TFpHttpClientReader;
+    P.DetectMimeTypeFromExtension := true;
+
+    P := FRegisteredProtocols.Add('https');
+    P.AsynchronousReader := TFpHttpClientReader;
+    P.DetectMimeTypeFromExtension := true;
 
     {$elseif defined(DELPHI)}
     // http(s) using Delphi System.Net.HttpClient or Indy
-    FRegisteredProtocols.Add('http', nil, nil, TDelphiHttpReader,
-      TUrlFile.MimeType);
-    FRegisteredProtocols.Add('https', nil, nil, TDelphiHttpReader,
-      TUrlFile.MimeType);
+    P := FRegisteredProtocols.Add('http');
+    P.AsynchronousReader := TDelphiHttpReader;
+    P.DetectMimeTypeFromExtension := true;
+
+    P := FRegisteredProtocols.Add('https');
+    P.AsynchronousReader := TDelphiHttpReader;
+    P.DetectMimeTypeFromExtension := true;
+
+    {$else}
+    // Otherwise, we have no implementation to get http(s) contents,
+    // but at least we can determine MIME type from extension.
+    // Makes TTestUriUtils.TestMimeTypeHttpQuery pass on web.
+    P := FRegisteredProtocols.Add('http');
+    P.DetectMimeTypeFromExtension := true;
+    P := FRegisteredProtocols.Add('https');
+    P.DetectMimeTypeFromExtension := true;
+
     {$endif}
 
-    FRegisteredProtocols.Add('',
-      {$ifdef FPC}@{$endif} TUrlFile{$ifdef FPC}(nil){$endif}.Read,
-      {$ifdef FPC}@{$endif} TUrlFile{$ifdef FPC}(nil){$endif}.Write, nil,
-      {$ifdef FPC}@{$endif} TUrlFile{$ifdef FPC}(nil){$endif}.MimeType);
-    FRegisteredProtocols.Add('file',
-      {$ifdef FPC}@{$endif} TUrlFile{$ifdef FPC}(nil){$endif}.Read,
-      {$ifdef FPC}@{$endif} TUrlFile{$ifdef FPC}(nil){$endif}.Write, nil,
-      {$ifdef FPC}@{$endif} TUrlFile{$ifdef FPC}(nil){$endif}.MimeType);
+    // handle regular file://, also do this when no protocol is specified
+    // (which can be handled right now by registering Protocol = '').
+    P := FRegisteredProtocols.Add('');
+    P.ReadEvent := {$ifdef FPC}@{$endif} TUrlFile{$ifdef FPC}(nil){$endif}.Read;
+    P.WriteEvent := {$ifdef FPC}@{$endif} TUrlFile{$ifdef FPC}(nil){$endif}.Write;
+    P.ExistsEvent := {$ifdef FPC}@{$endif} TUrlFile{$ifdef FPC}(nil){$endif}.Exists;
+    P.DetectMimeTypeFromExtension := true;
+
+    P := FRegisteredProtocols.Add('file');
+    P.ReadEvent := {$ifdef FPC}@{$endif} TUrlFile{$ifdef FPC}(nil){$endif}.Read;
+    P.WriteEvent := {$ifdef FPC}@{$endif} TUrlFile{$ifdef FPC}(nil){$endif}.Write;
+    P.ExistsEvent := {$ifdef FPC}@{$endif} TUrlFile{$ifdef FPC}(nil){$endif}.Exists;
+    P.DetectMimeTypeFromExtension := true;
+
     {$if defined(ANDROID)}
-    FRegisteredProtocols.Add('assets',
-      {$ifdef FPC}@{$endif} TUrlCastleAndroidAssets{$ifdef FPC}(nil){$endif}.Read, nil, nil,
-      {$ifdef FPC}@{$endif} TUrlFile{$ifdef FPC}(nil){$endif}.MimeType);
-    FRegisteredProtocols.Add('castle-android-assets',
-      {$ifdef FPC}@{$endif} TUrlCastleAndroidAssets{$ifdef FPC}(nil){$endif}.Read, nil, nil,
-      {$ifdef FPC}@{$endif} TUrlFile{$ifdef FPC}(nil){$endif}.MimeType);
+    // handle Android-specific assets
+    P := FRegisteredProtocols.Add('assets');
+    P.ReadEvent := {$ifdef FPC}@{$endif} TUrlCastleAndroidAssets{$ifdef FPC}(nil){$endif}.Read;
+    P.DetectMimeTypeFromExtension := true;
+
+    P := FRegisteredProtocols.Add('castle-android-assets');
+    P.ReadEvent := {$ifdef FPC}@{$endif} TUrlCastleAndroidAssets{$ifdef FPC}(nil){$endif}.Read;
+    P.DetectMimeTypeFromExtension := true;
     {$endif}
-    FRegisteredProtocols.Add('castle-data', nil, nil, nil,
-      {$ifdef FPC}@{$endif} TUrlFile{$ifdef FPC}(nil){$endif}.MimeType);
-    FRegisteredProtocols.Add('data',
-      {$ifdef FPC}@{$endif} TUrlData{$ifdef FPC}(nil){$endif}.Read, nil, nil,
-      {$ifdef FPC}@{$endif} TUrlData{$ifdef FPC}(nil){$endif}.MimeType);
-    FRegisteredProtocols.Add('ecmascript',
-      {$ifdef FPC}@{$endif} TUrlEcmaScript{$ifdef FPC}(nil){$endif}.Read, nil, nil,
-      {$ifdef FPC}@{$endif} TUrlEcmaScript{$ifdef FPC}(nil){$endif}.MimeType);
-    FRegisteredProtocols.Add('javascript',
-      {$ifdef FPC}@{$endif} TUrlEcmaScript{$ifdef FPC}(nil){$endif}.Read, nil, nil,
-      {$ifdef FPC}@{$endif} TUrlEcmaScript{$ifdef FPC}(nil){$endif}.MimeType);
-    FRegisteredProtocols.Add('castlescript',
-      {$ifdef FPC}@{$endif} TUrlCastleScript{$ifdef FPC}(nil){$endif}.Read, nil, nil,
-      {$ifdef FPC}@{$endif} TUrlCastleScript{$ifdef FPC}(nil){$endif}.MimeType);
-    FRegisteredProtocols.Add('kambiscript',
-      {$ifdef FPC}@{$endif} TUrlCastleScript{$ifdef FPC}(nil){$endif}.Read, nil, nil,
-      {$ifdef FPC}@{$endif} TUrlCastleScript{$ifdef FPC}(nil){$endif}.MimeType);
-    FRegisteredProtocols.Add('compiled',
-      {$ifdef FPC}@{$endif} TUrlCompiled{$ifdef FPC}(nil){$endif}.Read, nil, nil,
-      {$ifdef FPC}@{$endif} TUrlCompiled{$ifdef FPC}(nil){$endif}.MimeType);
+
+    // handle castle-data.
+    // No need for reader/writer now, as our downloading routines use ResolveCastleDataUrl,
+    // so they will handle this protocol.
+    P := FRegisteredProtocols.Add('castle-data');
+    P.ExistsEvent := {$ifdef FPC}@{$endif} TUrlCastleData{$ifdef FPC}(nil){$endif}.Exists;
+    P.DetectMimeTypeFromExtension := true;
+
+    P := FRegisteredProtocols.Add('data');
+    P.ReadEvent := {$ifdef FPC}@{$endif} TUrlData{$ifdef FPC}(nil){$endif}.Read;
+    P.ExistsEvent := {$ifdef FPC}@{$endif} TUrlData{$ifdef FPC}(nil){$endif}.Exists;
+    // set internal FMimeTypeEvent, circumventing DetectMimeTypeFromExtension
+    P.FMimeTypeEvent := {$ifdef FPC}@{$endif} TUrlData{$ifdef FPC}(nil){$endif}.MimeType;
+
+    P := FRegisteredProtocols.Add('ecmascript');
+    P.ReadEvent := {$ifdef FPC}@{$endif} TUrlEcmaScript{$ifdef FPC}(nil){$endif}.Read;
+    P.FMimeTypeEvent := {$ifdef FPC}@{$endif} TUrlEcmaScript{$ifdef FPC}(nil){$endif}.MimeType;
+
+    P := FRegisteredProtocols.Add('javascript');
+    P.ReadEvent := {$ifdef FPC}@{$endif} TUrlEcmaScript{$ifdef FPC}(nil){$endif}.Read;
+    P.FMimeTypeEvent := {$ifdef FPC}@{$endif} TUrlEcmaScript{$ifdef FPC}(nil){$endif}.MimeType;
+
+    P := FRegisteredProtocols.Add('castlescript');
+    P.ReadEvent := {$ifdef FPC}@{$endif} TUrlCastleScript{$ifdef FPC}(nil){$endif}.Read;
+    P.FMimeTypeEvent := {$ifdef FPC}@{$endif} TUrlCastleScript{$ifdef FPC}(nil){$endif}.MimeType;
+
+    P := FRegisteredProtocols.Add('kambiscript');
+    P.ReadEvent := {$ifdef FPC}@{$endif} TUrlCastleScript{$ifdef FPC}(nil){$endif}.Read;
+    P.FMimeTypeEvent := {$ifdef FPC}@{$endif} TUrlCastleScript{$ifdef FPC}(nil){$endif}.MimeType;
+
+    P := FRegisteredProtocols.Add('compiled');
+    P.ReadEvent := {$ifdef FPC}@{$endif} TUrlCompiled{$ifdef FPC}(nil){$endif}.Read;
+    P.FMimeTypeEvent := {$ifdef FPC}@{$endif} TUrlCompiled{$ifdef FPC}(nil){$endif}.MimeType;
   end;
   Result := FRegisteredProtocols;
 end;
 
-procedure RegisterUrlProtocol(const Protocol: String;
+function RegisterUrlProtocol(const Protocol: String;
   const ReadEvent: TUrlReadEvent;
   const WriteEvent: TUrlWriteEvent;
-  const AsynchronousReader: TUrlAsynchronousReaderClass = nil;
-  const DetectMimeTypeFromExtension: Boolean = true);
-var
-  MimeTypeEvent: TUrlMimeTypeEvent;
+  const AsynchronousReader: TUrlAsynchronousReaderClass;
+  const DetectMimeTypeFromExtension: Boolean): TRegisteredProtocol;
 begin
-  if DetectMimeTypeFromExtension then
-    MimeTypeEvent := {$ifdef FPC}@{$endif} TUrlFile{$ifdef FPC}(nil){$endif}.MimeType
-  else
-    MimeTypeEvent := nil;
-  RegisteredProtocols.Add(Protocol, ReadEvent, WriteEvent, AsynchronousReader, MimeTypeEvent);
+  Result := RegisteredProtocols.Add(Protocol);
+  Result.ReadEvent := ReadEvent;
+  Result.WriteEvent := WriteEvent;
+  Result.AsynchronousReader := AsynchronousReader;
+  Result.DetectMimeTypeFromExtension := DetectMimeTypeFromExtension;
+end;
+
+function FindRegisteredUrlProtocol(const Protocol: String): TRegisteredProtocol;
+begin
+  Result := RegisteredProtocols.Find(Protocol);
 end;
 
 function RegisteredUrlProtocol(const Protocol: String): Boolean;
 begin
-  Result := RegisteredProtocols.Find(Protocol) <> nil;
+  Result := FindRegisteredUrlProtocol(Protocol) <> nil;
 end;
 
 procedure UnregisterUrlProtocol(const Protocol: String);

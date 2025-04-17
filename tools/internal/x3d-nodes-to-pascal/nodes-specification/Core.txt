@@ -34,7 +34,7 @@ X3DInfoNode : X3DChildNode {
 # when reading / writing X3D. We use instead
 # TAbstractMetadataNode.DefaultContainerFieldInContext
 # to account for the fact that X3D 3 and 4 changed it,
-# see https://github.com/castle-engine/view3dscene/issues/78 .
+# see https://github.com/castle-engine/castle-model-viewer/issues/78 .
 
 X3DMetadataNode : X3DNode {
   default-container-field: metadata

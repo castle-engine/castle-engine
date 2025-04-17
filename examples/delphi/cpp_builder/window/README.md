@@ -18,4 +18,6 @@ Make sure to build and install CGE packages first. Make sure to build the packag
 
 Note that for _C++ Builder_ you need to _Build_ the packages **for all your target platforms**. It is not enough to only _Install_ them for Win32 (Delphi IDE architecture) which is enough to allow usage from Delphi / Pascal.
 
+See [C++ Builder documentation](https://castle-engine.io/delphi#cpp_builder) for more details.
+
 Then open this project in _C++ Builder_ and build and run as usual (hit F9).

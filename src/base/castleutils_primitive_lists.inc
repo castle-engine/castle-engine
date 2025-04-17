@@ -44,7 +44,26 @@ type
   TUInt32List = class({$ifdef FPC}specialize{$endif} TStructList<UInt32>)
   public
     function Max: UInt32;
+
+    { Assign list of signed (Int32) into unsigned (UInt32),
+      fast, possibly without checking whether all values in Source
+      are actually >= 0.
+
+      It is undefined what happens if Source contains values < 0,
+      they may result in treating the value as unsigned (thus we'll get
+      value 4294967295 when Source had -1).
+
+      Because of this lack of safety, don't use this with Source lists
+      you don't trust that really are unsigned. In particular, don't use this
+      for data that comes from some external input, e.g. to process
+      geometry indexes from 3D files. }
     procedure Assign(const Source: TInt32List);
+
+    { Assign list of signed (Int32) into unsigned (UInt32),
+      checking whether all values in Source are actually >= 0.
+
+      @raises Exception If some value in Source is < 0. }
+    procedure AssignCheckUnsigned(const Source: TInt32List);
   end;
 
   { List of Float values (defined in Math unit as float with maximum precision).
@@ -59,7 +78,6 @@ type
 
   { List of Single (single-precision floating point) values. }
   TSingleList = class({$ifdef FPC}specialize{$endif} TStructList<Single>)
-    procedure AppendFloats(Floats: TFloatList);
     function ToDouble: TDoubleList;
 
     { Assign value from TDoubleList, converting to single-precision. }
@@ -84,6 +102,10 @@ type
     { Sort and remove (exact) duplicates.
       Removal of duplicates is very fast, utilizing the fact that the list is sorted. }
     procedure SortAndRemoveDuplicates;
+
+    {$warnings off} // using deprecated, to keep it working
+    procedure AppendFloats(Floats: TFloatList);
+    {$warnings on}
   end;
 
   { List of Double (double-precision floating point) values. }
@@ -230,6 +252,19 @@ begin
     System.Move(Source.L[0], L[0], SizeOf(UInt32) * Count);
 end;
 
+procedure TUInt32List.AssignCheckUnsigned(const Source: TInt32List);
+var
+  I: TListSize;
+begin
+  for I := 0 to Source.Count - 1 do
+    if Source.Items[I] < 0 then
+      raise Exception.CreateFmt('TUInt32List.AssignCheckUnsigned: Source[%d] = %d is negative', [
+        I,
+        Source.Items[I]
+      ]);
+  Assign(Source);
+end;
+
 { TFloatList ------------------------------------------------------------ }
 
 procedure TFloatList.AppendFloats(Floats: TSingleList);
@@ -244,6 +279,7 @@ end;
 
 { TSingleList ------------------------------------------------------------ }
 
+{$warnings off} // using deprecated, to keep it working
 procedure TSingleList.AppendFloats(Floats: TFloatList);
 var
   OldCount, I: TListSize;
@@ -253,6 +289,7 @@ begin
   for i := 0 to Floats.Count - 1 do
     Items[OldCount+i] := Floats.Items[i];
 end;
+{$warnings on}
 
 function TSingleList.ToDouble: TDoubleList;
 begin

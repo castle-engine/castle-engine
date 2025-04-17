@@ -35,6 +35,8 @@ type
     function BufferedReadStreamFromStream(Stream: TStream): TPeekCharStream;
     procedure TestIndirectReadStream(StreamFromStreamFunc: TStreamFromStreamFunc);
     procedure TestLineColumnStreamCore(StreamFromStreamFunc: TStreamFromStreamFunc);
+    procedure DummyCallback;
+    procedure DummyCallback2;
   published
     procedure TestStreamPeekChar;
     procedure TestBufferedReadStream;
@@ -43,7 +45,8 @@ type
     procedure TestLineColumn_SimplePeekCharStream;
     procedure TestLineColumn_BufferedReadStream;
     procedure TestForIn;
-    procedure TestGetBaseNameFromUrl;
+    procedure TestSimpleNotifyEventListPack;
+    procedure TestSimpleNotifyEventListUnassign;
   end;
 
   TFoo = class
@@ -61,7 +64,7 @@ type
 implementation
 
 uses Generics.Defaults,
-  CastleStringUtils, CastleInternalUrlUtils, CastleLog;
+  CastleStringUtils, CastleLog;
 
 { TFoo, TFoosList ------------------------------------------------------------ }
 
@@ -364,70 +367,98 @@ begin
   FreeAndNil(C3);
 end;
 
-type
-  TCastleTransform = class(TCastleComponent)
-  end;
-
-procedure TTestCastleClassUtils.TestGetBaseNameFromUrl;
-var
-  Parent: TComponent;
-  NewComponent: TComponent;
+procedure TTestCastleClassUtils.DummyCallback;
 begin
-  AssertEquals('FooBar123', GetBaseNameFromUrl('castle-data:/foo-bar_123.gltf'));
+end;
 
-  AssertEquals('', GetUrlParentName('castle-data:/foo-bar_123.gltf'));
-  AssertEquals('', GetUrlParentName('castle-data:/'));
-  AssertEquals('xyz', GetUrlParentName('castle-data:/xyz/foo-bar_123.gltf'));
-  AssertEquals('xyz-123abcSOMETHING', GetUrlParentName('castle-data:/xyz-123abcSOMETHING/foo-bar_123.gltf'));
-  AssertEquals('xyz', GetUrlParentName('castle-data:/xyz-123abc/foo-bar_123.gltf'));
+procedure TTestCastleClassUtils.DummyCallback2;
+begin
+end;
 
-  Parent := TComponent.Create(nil);
+{ While we could compare directly with SameMethods and typecasts to TMethod
+  below, it is easier to make it compile with both FPC and Delphi
+  by defining a dedicated function for this. }
+function SameSimpleNotifyEvent(const M1, M2: TSimpleNotifyEvent): Boolean;
+begin
+  Result := SameMethods(
+    TMethod(M1),
+    TMethod(M2)
+  );
+end;
+
+procedure TTestCastleClassUtils.TestSimpleNotifyEventListPack;
+var
+  L: TSimpleNotifyEventList;
+  M: TSimpleNotifyEvent;
+begin
+  L := TSimpleNotifyEventList.Create;
   try
-    NewComponent := TComponent.Create(Parent);
-    AssertEquals('', NewComponent.Name);
-    NewComponent.Name := ProposeComponentName(TComponentClass(NewComponent.ClassType), Parent);
-    AssertEquals('Component1', NewComponent.Name);
+    AssertEquals(0, L.Count);
 
-    NewComponent := TComponent.Create(Parent);
-    AssertEquals('', NewComponent.Name);
-    NewComponent.Name := ProposeComponentName(TComponentClass(NewComponent.ClassType), Parent);
-    AssertEquals('Component2', NewComponent.Name);
+    L.Pack;
+    AssertEquals(0, L.Count);
 
-    NewComponent := TCastleTransform.Create(Parent);
-    AssertEquals('', NewComponent.Name);
-    NewComponent.Name := ProposeComponentName(TComponentClass(NewComponent.ClassType), Parent);
-    AssertEquals('Transform1', NewComponent.Name);
+    L.Add(nil);
+    AssertEquals(1, L.Count);
 
-    NewComponent := TCastleTransform.Create(Parent);
-    AssertEquals('', NewComponent.Name);
-    NewComponent.Name := ProposeComponentName(TComponentClass(NewComponent.ClassType), Parent);
-    AssertEquals('Transform2', NewComponent.Name);
+    L.Pack;
+    AssertEquals(0, L.Count);
 
-    NewComponent := TCastleTransform.Create(Parent);
-    AssertEquals('', NewComponent.Name);
-    NewComponent.Name := ProposeComponentName(TComponentClass(NewComponent.ClassType), Parent,
-      'Scene' + GetBaseNameFromUrl('castle-data:/something/blah_blahXyz--123_foo.wrl'));
-    AssertEquals('SceneBlahBlahXyz123Foo1', NewComponent.Name);
+    L.Add({$ifdef FPC}@{$endif} DummyCallback);
+    L.Add(nil);
+    L.Add({$ifdef FPC}@{$endif} DummyCallback2);
+    L.Add(nil);
+    AssertEquals(4, L.Count);
 
-    NewComponent := TCastleTransform.Create(Parent);
-    AssertEquals('', NewComponent.Name);
-    NewComponent.Name := ProposeComponentName(TComponentClass(NewComponent.ClassType), Parent,
-      'Scene' + GetBaseNameFromUrl('castle-data:/something/blah_blahXyz--123_foo.wrl'));
-    AssertEquals('SceneBlahBlahXyz123Foo2', NewComponent.Name);
+    L.Pack;
+    AssertEquals(2, L.Count);
+    AssertTrue(SameSimpleNotifyEvent({$ifdef FPC}@{$endif} DummyCallback, L[0]));
+    AssertTrue(SameSimpleNotifyEvent({$ifdef FPC}@{$endif} DummyCallback2, L[1]));
+  finally FreeAndNil(L) end;
+end;
 
-    NewComponent := TCastleTransform.Create(Parent);
-    AssertEquals('', NewComponent.Name);
-    NewComponent.Name := ProposeComponentName(TComponentClass(NewComponent.ClassType), Parent,
-      'Scene' + GetBaseNameFromUrl('castle-data:/sketchfab/blah_blahXyz--123_foo-1231083912abcdef/scene.gltf'));
-    AssertEquals('SceneBlahBlahXyz123Foo3', NewComponent.Name);
+procedure TTestCastleClassUtils.TestSimpleNotifyEventListUnassign;
+var
+  L: TSimpleNotifyEventList;
+  M: TSimpleNotifyEvent;
+begin
+  L := TSimpleNotifyEventList.Create;
+  try
+    AssertEquals(0, L.Count);
 
-    NewComponent := TCastleTransform.Create(Parent);
-    AssertEquals('', NewComponent.Name);
-    NewComponent.Name := ProposeComponentName(TComponentClass(NewComponent.ClassType), Parent,
-      'Scene' + GetBaseNameFromUrl('castle-data:/something/.wrl'));
-    AssertEquals('SceneWrl1', NewComponent.Name);
+    L.Unassign({$ifdef FPC}@{$endif} DummyCallback);
+    AssertEquals(0, L.Count);
 
-  finally FreeAndNil(Parent) end;
+    L.Add({$ifdef FPC}@{$endif} DummyCallback);
+    L.Add({$ifdef FPC}@{$endif} DummyCallback);
+    L.Unassign({$ifdef FPC}@{$endif} DummyCallback);
+    AssertEquals(2, L.Count);
+    AssertTrue(SameSimpleNotifyEvent(nil, L[0]));
+    AssertTrue(SameSimpleNotifyEvent(nil, L[1]));
+
+    L.Pack;
+    AssertEquals(0, L.Count);
+
+    L.Add({$ifdef FPC}@{$endif} DummyCallback2);
+    L.Add({$ifdef FPC}@{$endif} DummyCallback);
+    L.Add(nil);
+    L.Add({$ifdef FPC}@{$endif} DummyCallback);
+    L.Add(nil);
+    L.Add({$ifdef FPC}@{$endif} DummyCallback2);
+    L.Unassign({$ifdef FPC}@{$endif} DummyCallback2);
+    AssertEquals(6, L.Count);
+    AssertTrue(SameSimpleNotifyEvent(nil, L[0]));
+    AssertTrue(SameSimpleNotifyEvent({$ifdef FPC}@{$endif} DummyCallback, L[1]));
+    AssertTrue(SameSimpleNotifyEvent(nil, L[2]));
+    AssertTrue(SameSimpleNotifyEvent({$ifdef FPC}@{$endif} DummyCallback, L[3]));
+    AssertTrue(SameSimpleNotifyEvent(nil, L[4]));
+    AssertTrue(SameSimpleNotifyEvent(nil, L[5]));
+
+    L.Pack;
+    AssertEquals(2, L.Count);
+    AssertTrue(SameSimpleNotifyEvent({$ifdef FPC}@{$endif} DummyCallback, L[0]));
+    AssertTrue(SameSimpleNotifyEvent({$ifdef FPC}@{$endif} DummyCallback, L[1]));
+  finally FreeAndNil(L) end;
 end;
 
 initialization

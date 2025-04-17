@@ -33,13 +33,6 @@ type
     { Holds non-zero value. Use to detect whether this TTimerResult comes from Timer
       call, or is just a zero field in new class instance. }
     function Initialized: Boolean;
-
-    { Expose internal Value for Kraft when USE_CASTLE_TIME_UTILS. }
-    {$ifndef PASDOC}
-      {$if (not defined(FPC)) and (not defined(MSWINDOWS))}
-        property InternalValue: QWord read Value;
-      {$endif}
-    {$endif}
   end;
 
 { Timer to measure (real) time passed during some operations.
@@ -118,7 +111,10 @@ begin
 end;
 
 
-{$elseif defined(CASTLE_NINTENDO_SWITCH)}
+{$elseif defined(CASTLE_NINTENDO_SWITCH) or defined(WASI)}
+
+// rely on CastleGetTickCount64 implementation
+
 const
   TimerFrequency = 1000;
 
@@ -211,6 +207,8 @@ begin
     LastTimerValue := Result.Value;
 end;
 
+{$else}
+  {$message fatal 'Timer not implemented for this platform'}
 {$endif}
 
 function TimerSeconds(const A, B: TTimerResult): TFloatTime;

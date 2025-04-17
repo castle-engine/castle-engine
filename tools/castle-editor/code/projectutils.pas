@@ -23,22 +23,32 @@ interface
 uses
   Classes, SysUtils;
 
-{ Fill directory for new project with the template. }
-procedure CopyTemplate(const ProjectDirUrl: String;
-  const TemplateName, ProjectName, ProjectCaption, MainView: String);
-
 { Fill directory for new project with the build-tool generated stuff. }
 procedure GenerateProgramWithBuildTool(const ProjectDirUrl: String);
 
 type
   TBuildMode = (bmDebug, bmRelease);
 
-{ For some operations (like creating a project from template), the editor uses
-  ApplicationData files (castle-data:/xxx URLs).
-  So make sure that ApplicationData is correct, by setting ApplicationDataOverride.
+{ For some operations (like creating a project from template
+  or loading demo design castle-data:/demo_animation/view_demo_animation.castle-user-interface )
+  the editor uses castle-data:/ URLs, assuming they lead to editor's data.
+
+  To do this, make sure that castle-data:/ is correct,
+  by setting ApplicationDataOverride.
   We can use CastleEnginePath (that uses $CASTLE_ENGINE_PATH environment variable)
   for this. }
 procedure UseEditorApplicationData;
+
+type
+  { Make sure that castle-data:/ points to editor data on creation,
+    make sure it's restored to previous state on destruction. }
+  TEditorApplicationData = class
+  strict private
+    OldApplicationDataOverride: String;
+  public
+    constructor Create;
+    destructor Destroy; override;
+  end;
 
 implementation
 
@@ -47,122 +57,6 @@ uses Forms,
   CastleFilesUtils,
   EditorUtils, ToolCommonUtils, FormProject;
 
-{ TTemplateCopyProcess ------------------------------------------------------------ }
-
-type
-  TTemplateCopyProcess = class
-    TemplateUrl: String;
-    ProjectDirUrl: String;
-    MainView: String;
-    Macros: TStringStringMap;
-    procedure FoundFile(const FileInfo: TFileInfo; var StopSearch: Boolean);
-  end;
-
-procedure TTemplateCopyProcess.FoundFile(const FileInfo: TFileInfo; var StopSearch: Boolean);
-var
-  Contents, RelativeUrl, TargetUrl, TargetFileName, Mime: String;
-begin
-  { Ignore case at IsPrefix / PrefixRemove calls,
-    in case it's not case-sensitive file-system, then the case in theory
-    can differ. }
-  if not IsPrefix(TemplateUrl, FileInfo.URL, true) then
-    raise Exception.CreateFmt('Unexpected: %s is not a prefix of %s, report a bug',
-      [TemplateUrl, FileInfo.URL]);
-  RelativeUrl := PrefixRemove(TemplateUrl, FileInfo.URL, true);
-  TargetUrl := CombineUri(ProjectDirUrl, RelativeUrl);
-  { Rename target files that depend on MainView. }
-  if ExtractUriName(TargetUrl) = 'gameviewmain.pas' then
-    TargetUrl := ExtractUriPath(TargetUrl) + 'gameview' + LowerCase(MainView) + '.pas';
-  if ExtractUriName(TargetUrl) = 'gameviewmain.castle-user-interface' then
-    TargetUrl := ExtractUriPath(TargetUrl) + 'gameview' + LowerCase(MainView) + '.castle-user-interface';
-  TargetFileName := UriToFilenameSafe(TargetUrl);
-
-  if FileInfo.Directory then
-  begin
-    // create directory
-    if not ForceDirectories(TargetFileName) then
-      raise Exception.CreateFmt('Cannot create directory "%s"', [TargetFileName]);
-  end else
-  begin
-    Mime := UriMimeType(FileInfo.URL);
-    if (Mime = 'application/xml') or
-       (Mime = 'text/plain') then
-    begin
-      // copy text file, replacing macros
-      Contents := FileToString(FileInfo.URL);
-      Contents := SReplacePatterns(Contents, Macros, false);
-      StringToFile(TargetFileName, Contents);
-    end else
-    begin
-      // simply copy other file types (e.g. sample png images in project templates)
-      CheckCopyFile(UriToFilenameSafe(FileInfo.URL), TargetFileName);
-    end;
-  end;
-end;
-
-{ global routines ------------------------------------------------------------ }
-
-procedure AddMacroXmlQuote(const Macros: TStringStringMap; const MacroName: String);
-
-  function XmlQuote(const S: String): String;
-  begin
-    Result := SReplacePatterns(S,
-      ['&', '<', '>', '"'],
-      ['&amp;', '&lt;', '&gt;', '&quot;'],
-      false { IgnoreCase; can be false, it doesn't matter, as our patterns are not letters }
-    );
-  end;
-
-begin
-  Macros.Add('${XmlQuote(' + MacroName + ')}', XmlQuote(Macros['${' + MacroName + '}']));
-end;
-
-procedure CopyTemplate(const ProjectDirUrl: String;
-  const TemplateName, ProjectName, ProjectCaption, MainView: String);
-var
-  TemplateUrl, ProjectQualifiedName, ProjectPascalName: String;
-  CopyProcess: TTemplateCopyProcess;
-  Macros: TStringStringMap;
-begin
-  Assert(ProjectName <> '');
-
-  TemplateUrl := 'castle-data:/project_templates/' + TemplateName + '/files/';
-  { Logic in TTemplateCopyProcess.FoundFile assumes that
-    TemplateUrl does not any longer start with castle-data:/ }
-  TemplateUrl := ResolveCastleDataURL(TemplateUrl);
-
-  if UriExists(TemplateUrl) <> ueDirectory then
-    raise Exception.CreateFmt('Cannot find template directory %s, make sure that $CASTLE_ENGINE_PATH is configured correctly',
-      [TemplateUrl]);
-
-  ProjectQualifiedName := MakeQualifiedName(ProjectName);
-  ProjectPascalName := MakeProjectPascalName(ProjectName);
-
-  Macros := TStringStringMap.Create;
-  try
-    Macros.Add('${PROJECT_NAME}', ProjectName);
-    Macros.Add('${PROJECT_QUALIFIED_NAME}', ProjectQualifiedName);
-    Macros.Add('${PROJECT_PASCAL_NAME}', ProjectPascalName);
-    Macros.Add('${PROJECT_CAPTION}', ProjectCaption);
-    Macros.Add('${MAIN_VIEW}', MainView);
-    Macros.Add('${MAIN_VIEW_LOWERCASE}', LowerCase(MainView));
-
-    { Generate versions of some macros with xml_quote function. }
-    AddMacroXmlQuote(Macros, 'PROJECT_NAME');
-    AddMacroXmlQuote(Macros, 'PROJECT_QUALIFIED_NAME');
-    AddMacroXmlQuote(Macros, 'PROJECT_PASCAL_NAME');
-    AddMacroXmlQuote(Macros, 'PROJECT_CAPTION');
-
-    CopyProcess := TTemplateCopyProcess.Create;
-    try
-      CopyProcess.TemplateUrl := TemplateUrl;
-      CopyProcess.ProjectDirUrl := ProjectDirUrl;
-      CopyProcess.Macros := Macros;
-      CopyProcess.MainView := MainView;
-      FindFiles(TemplateUrl, '*', true, @CopyProcess.FoundFile, [ffRecursive]);
-    finally FreeAndNil(CopyProcess) end;
-  finally FreeAndNil(Macros) end;
-end;
 
 procedure GenerateProgramWithBuildTool(const ProjectDirUrl: String);
 var
@@ -217,6 +111,19 @@ begin
     if DirectoryExists(DataPath) then
       ApplicationDataOverride := FilenameToUriSafe(DataPath);
   end;
+end;
+
+constructor TEditorApplicationData.Create;
+begin
+  inherited;
+  OldApplicationDataOverride := ApplicationDataOverride;
+  UseEditorApplicationData;
+end;
+
+destructor TEditorApplicationData.Destroy;
+begin
+  ApplicationDataOverride := OldApplicationDataOverride;
+  inherited;
 end;
 
 end.
