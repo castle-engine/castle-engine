@@ -318,8 +318,7 @@
       In the new system, a similar role is filled by physics layers. }
     function PhysicsSphereCast(const SphereOrigin: TVector3; const SphereRadius:Single;
       const SphereDirection: TVector3; const MaxDistance: Single = MaxSingle;
-      const IgnoreBody: TCastleRigidBody = nil; const CollisionLayers:
-      TPhysicsLayers = [Low(TPhysicsLayer)..High(TPhysicsLayer)];
+      const IgnoreBody: TCastleRigidBody = nil;
       const CollisionLayers: TPhysicsLayers = AllLayers): TRayCastResult;
 
     { Yoo can temporarily disable physics (no transformations will be updated

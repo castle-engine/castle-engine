@@ -34,7 +34,6 @@ type
   {$I castletransform_renderparams.inc}
   {$I castletransform_behavior.inc}
   {$I castletransform_transformlist.inc}
-  {$I castletransform_physics.inc}
   {$I castletransform_transform.inc}
   {$I castletransform_physics.inc}
   {$I castletransform_abstractroottransform.inc}
@@ -60,7 +59,6 @@ uses CastleLog, CastleApplicationProperties, CastleUriUtils, CastleInternalRays,
   CastleInternalShapesRenderer;
 
 {$define read_implementation}
-{$I castletransform_physics_layers.inc}
 {$I castletransform_initial_types.inc}
 {$I castletransform_physics_layers.inc}
 {$I castletransform_renderparams.inc}

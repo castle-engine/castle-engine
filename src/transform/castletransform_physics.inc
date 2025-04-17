@@ -1019,7 +1019,6 @@
     function PhysicsSphereCast(const SphereOrigin: TVector3;
       const SphereRadius:Single; const SphereDirection: TVector3;
       const MaxDistance: Single = MaxSingle;
-      const CollisionLayers: TPhysicsLayers = AllLayers;
       const CollisionLayers: TPhysicsLayers = AllLayers): TRayCastResult;
 
     function PropertySections(const PropertyName: String): TPropertySections; override;
@@ -2801,6 +2800,11 @@ begin
     https://forum.castle-engine.io/t/was-how-to-call-terrain-updategeometry-now-running-out-of-memory-updating-geometry-50x/849/8
   }
   FreeAndNil(FKraftMesh);
+end;
+
+function TCastleMeshCollider.ScaledLocalBoundingBox: TBox3D;
+begin
+  Result := TBox3D.Empty;
 end;
 
 procedure TCastleMeshCollider.SetMesh(const AValue: TCastleTransform);
