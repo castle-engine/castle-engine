@@ -2728,6 +2728,10 @@ begin
     FKraftMesh.AddNormal(VectorToKraft(Normal.Data[2]))
   );
 
+  (*
+  // Below is not done anymore, using TKraftMesh.DoubleSided to implement our
+  // TCastleMeshCollider.DoubleSided.
+
   if DoubleSided then
   begin
     { We also add triangles for the other side.
@@ -2741,6 +2745,7 @@ begin
       FKraftMesh.AddNormal(VectorToKraft(-Normal.Data[0]))
     );
   end;
+  *)
 end;
 
 function TCastleMeshCollider.CreateKraftShape(const APhysics: TKraft;
