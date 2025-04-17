@@ -17,16 +17,40 @@
 { Physics. Integrates TCastleTransform with Kraft physics engine. }
 
 {$ifdef read_interface}
-  { Result of @link(TCastleAbstractRootTransform.PhysicsRayCast) and
+
+// type section started in CastleTransform.pas
+
+  { Result of ray cast, that describes what is hit by a ray in a viewport.
+    Routines that return this record include
+    @link(TCastleAbstractRootTransform.PhysicsRayCast) and
     @link(TCastleRigidBody.PhysicsRayCast). }
-  TPhysicsRayCastResult = record
+  TRayCastResult = record
     { Other fields are guaranteed to be all zero if Hit = @false. }
     Hit: Boolean;
+
+    { Hit TCastleTransform instance, if any.
+      Always @nil if nothing was hit. }
     Transform: TCastleTransform;
-    { Distance from ray origin to the hit point. }
+
+    { Distance from ray origin to the hit point.
+      Always 0 if nothing was hit.
+      Expressed in the world coordinate system, i.e. in the coordinates
+      seen by @link(TCastleViewport.Items).
+      Exception: When the TRayCastResult is returned by
+      @link(@link(TCastleRigidBody.PhysicsRayCast),
+      this is expressed in the local coordinate system of the rigid body. }
     Distance: Single;
+
+    { Hit point, and the normal vector at this point of the collider.
+      Expressed in the world coordinate system, i.e. in the coordinates
+      seen by @link(TCastleViewport.Items).
+      Exception: When the TRayCastResult is returned by
+      @link(@link(TCastleRigidBody.PhysicsRayCast),
+      this is expressed in the local coordinate system of the rigid body. }
     Point, Normal: TVector3;
   end;
+
+  TPhysicsRayCastResult = TRayCastResult deprecated 'use TRayCastResult';
 
   { Information send along with TCollisionEvent event, like
     @link(TCastleRigidBody.OnCollisionEnter),
@@ -916,9 +940,9 @@
 
     { First object hit by the ray, calculated using the physics engine.
 
-      Returns the TPhysicsRayCastResult record.
-      Read TPhysicsRayCastResult.Hit (boolean), TPhysicsRayCastResult.Transform
-      (guaranteed to be @nil when TPhysicsRayCastResult.Hit is @false) and other fields
+      Returns the TRayCastResult record.
+      Read TRayCastResult.Hit (boolean), TRayCastResult.Transform
+      (guaranteed to be @nil when TRayCastResult.Hit is @false) and other fields
       to know what was hit.
 
       The given RayOrigin, RayDirection, MaxDistance are in the parent
@@ -930,9 +954,9 @@
         Hit := RBody.RayCast(MyTransform.Translation, MyTransform.Direction, MaxDistance);
       #)
 
-      It returns TPhysicsRayCastResult, with information there
+      It returns TRayCastResult, with information there
       consistently in the same coordinate system as inputs.
-      So TPhysicsRayCastResult.Distance, TPhysicsRayCastResult.Point, TPhysicsRayCastResult.Normal
+      So TRayCastResult.Distance, TRayCastResult.Point, TRayCastResult.Normal
       are in parent coordinate system of associated TCastleTransform (@link(TCastleBehavior.Parent)).
 
       This ignores the collider of this rigid body (to not accidentally collide
@@ -952,7 +976,7 @@
       In the new system, a similar role is filled by physics layers. }
     function PhysicsRayCast(const RayOrigin, RayDirection: TVector3;
       const MaxDistance: Single = MaxSingle;
-      const CollisionLayers: TPhysicsLayers = AllLayers): TPhysicsRayCastResult;
+      const CollisionLayers: TPhysicsLayers = AllLayers): TRayCastResult;
 
     { Cast a sphere using physics engine, see what is hit.
 
@@ -995,7 +1019,8 @@
     function PhysicsSphereCast(const SphereOrigin: TVector3;
       const SphereRadius:Single; const SphereDirection: TVector3;
       const MaxDistance: Single = MaxSingle;
-      const CollisionLayers: TPhysicsLayers = AllLayers): TPhysicsRayCastResult;
+      const CollisionLayers: TPhysicsLayers = AllLayers;
+      const CollisionLayers: TPhysicsLayers = AllLayers): TRayCastResult;
 
     function PropertySections(const PropertyName: String): TPropertySections; override;
 
@@ -3778,7 +3803,7 @@ end;
 
 function TCastleRigidBody.PhysicsRayCast(const RayOrigin, RayDirection: TVector3;
   const MaxDistance: Single;
-  const CollisionLayers: TPhysicsLayers): TPhysicsRayCastResult;
+  const CollisionLayers: TPhysicsLayers): TRayCastResult;
 var
   RayOriginWorld, RayDirectionWorld: TVector3;
   MaxDistanceWorld: Single;
@@ -4198,7 +4223,7 @@ end;
 function TCastleAbstractRootTransform.PhysicsRayCast(
   const RayOrigin, RayDirection: TVector3;
   const MaxDistance: Single; const IgnoreBody: TCastleRigidBody;
-  const CollisionLayers: TPhysicsLayers): TPhysicsRayCastResult;
+  const CollisionLayers: TPhysicsLayers): TRayCastResult;
 
   procedure Core;
   var
@@ -4222,9 +4247,7 @@ function TCastleAbstractRootTransform.PhysicsRayCast(
       VectorToKraft(RayOrigin), VectorToKraft(RayDirection), MaxDistance,
       // outputs
       KraftShape, KraftDistance, KraftPoint, KraftNormal,
-      // collisions layers
-      CollisionLayers
-      ) then
+      CollisionLayers) then
     begin
       Result.Hit := true;
       Result.Transform := TCastleRigidBody(KraftShape.RigidBody.UserData).FTransform;

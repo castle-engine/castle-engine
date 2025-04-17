@@ -14,16 +14,19 @@
   ----------------------------------------------------------------------------
 }
 
-{ Physics layers. Must be defined early, as method declarations use AllLayers. }
+{ Physics layers.
+  Implementation note: This stuff is in a separate include file,
+  as it must be defined early, as method declarations use AllLayers. }
 
 {$ifdef read_interface}
 
 type
-  { Each physics rigid body is a specific layer,
+  { Each physics rigid body is part of a specific layer,
     @link(TCastleRigidBody.Layer).
-    It is configurable if objects at different layers collide or not,
-    and routines @link(TCastleRigidBody.PhysicsRayCast) allow to specify
-    which layers are checked. }
+    It is configurable which layers can collide with each other
+    (see https://castle-engine.io/physics#_layers ).
+    Moreover routines like @link(TCastleRigidBody.PhysicsRayCast)
+    allow to specify which layers are checked. }
   TPhysicsLayer = 0..19;
 
   TPhysicsLayers = set of TPhysicsLayer;
@@ -32,4 +35,3 @@ const
   AllLayers = [Low(TPhysicsLayer)..High(TPhysicsLayer)];
 
 {$endif read_interface}
-

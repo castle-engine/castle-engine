@@ -1173,7 +1173,7 @@ var
     HVelocity: TVector3;
     VVelocity: Single;
     MoveDirection: TVector3;
-    GroundSphereCast: TPhysicsRayCastResult;
+    GroundSphereCast: TRayCastResult;
     DistanceToGround: Single;
     Jump: Single;
     RayOrigin: TVector3;
