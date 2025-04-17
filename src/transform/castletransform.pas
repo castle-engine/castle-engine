@@ -34,8 +34,8 @@ type
   {$I castletransform_renderparams.inc}
   {$I castletransform_behavior.inc}
   {$I castletransform_transformlist.inc}
-  {$I castletransform_physics.inc}
   {$I castletransform_transform.inc}
+  {$I castletransform_physics.inc}
   {$I castletransform_abstractroottransform.inc}
   {$I castletransform_design.inc}
   {$I castletransform_reference.inc}
