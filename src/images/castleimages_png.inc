@@ -57,9 +57,10 @@ begin
           {$endif}
         );
     end;
-    {$else}
-    WritelnWarning('Initializing LibPng failed, LibPng support not compiled-in.' + NL +
-      '  Loading PNG will use a slower approach.');
+    {$elseif not defined(WASI)}
+    // Don't display this warning on WASI, where it's normal and actually the only way it can work.
+    WritelnWarning('Initializing LibPng failed, because LibPng support not compiled-in.' + NL +
+      '  Loading PNG will use a slower approach, relying on Vampyre Imaging / FpImage.');
     {$endif}
   end;
 end;

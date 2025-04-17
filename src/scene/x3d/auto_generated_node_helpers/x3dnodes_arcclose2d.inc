@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2023 Michalis Kamburelis.
+  Copyright 2015-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -35,7 +35,7 @@
   public
     { Create node fields and events. }
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdClosureType: TSFStringEnum;
     { Internal wrapper for property @code(ClosureType). This wrapper API may change, we advise to access simpler @code(ClosureType) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
@@ -121,24 +121,26 @@ begin
   inherited;
 
   FFdClosureType := TSFStringEnum.Create(Self, False, 'closureType', @ArcClosureTypeNames, Ord(High(ArcClosureTypeNames)) + 1, Ord(acPie));
-   FdClosureType.ChangeAlways := chVisibleNonGeometry;
+   FdClosureType.ChangeAlways := chGeometry;
   AddField(FFdClosureType);
 
   FFdEndAngle := TSFFloat.Create(Self, False, 'endAngle', Pi/2);
-   FdEndAngle.ChangeAlways := chVisibleNonGeometry;
+   FdEndAngle.ChangeAlways := chGeometry;
+   FdEndAngle.Angle := true;
   AddField(FFdEndAngle);
 
   FFdRadius := TSFFloat.Create(Self, False, 'radius', 1);
-   FdRadius.ChangeAlways := chVisibleNonGeometry;
+   FdRadius.ChangeAlways := chGeometry;
    FdRadius.MustBeNonnegative := true;
   AddField(FFdRadius);
 
   FFdSolid := TSFBool.Create(Self, False, 'solid', false);
-   FdSolid.ChangeAlways := chVisibleNonGeometry;
+   FdSolid.ChangeAlways := chGeometry;
   AddField(FFdSolid);
 
   FFdStartAngle := TSFFloat.Create(Self, False, 'startAngle', 0);
-   FdStartAngle.ChangeAlways := chVisibleNonGeometry;
+   FdStartAngle.ChangeAlways := chGeometry;
+   FdStartAngle.Angle := true;
   AddField(FFdStartAngle);
 end;
 

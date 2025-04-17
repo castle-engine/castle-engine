@@ -3,11 +3,6 @@
   <dependencies>
     <!-- See https://developers.google.com/android/guides/setup#split
       and https://developers.google.com/admob/android/quick-start#import_the_mobile_ads_sdk -->
-    <dependency>implementation 'com.google.android.gms:play-services-ads:18.1.1'</dependency>
-    <!-- TODO: is expliciltly listing location required?
-         https://developers.google.com/admob/android/quick-start#import_the_mobile_ads_sdk
-         doesn't mention it.
-    -->
-    <dependency>implementation 'com.google.android.gms:play-services-location:17.0.0'</dependency>
+    <dependency>implementation 'com.google.android.gms:play-services-ads:22.1.0'</dependency>
   </dependencies>
 </build_gradle_merge>

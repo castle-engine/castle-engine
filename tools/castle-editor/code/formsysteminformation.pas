@@ -22,7 +22,8 @@ interface
 
 uses
   Classes, SysUtils, Forms, Controls, Graphics, Dialogs, ButtonPanel, ExtCtrls,
-  StdCtrls, CastleControl;
+  StdCtrls,
+  CastleControl, CastleUiControls;
 
 type
   TSystemInformationForm = class(TForm)
@@ -33,7 +34,7 @@ type
     Panel1: TPanel;
     Panel2: TPanel;
     SaveDialogText: TSaveDialog;
-    procedure CastleControl1Open(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
     procedure FormHide(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure HelpButtonClick(Sender: TObject);
@@ -41,8 +42,13 @@ type
   private
     type
       TInfoType = (itRendering, itAudio, itOther);
+      TContextNotification = class(TCastleUserInterface)
+        // pass the notification about context creation to form's GLContextOpen method
+        procedure GLContextOpen; override;
+      end;
     var
       Info: array [TInfoType] of String;
+    procedure GLContextOpen;
     procedure SoundEngineOpenClose(Sender: TObject);
   public
 
@@ -56,8 +62,16 @@ implementation
 {$R *.lfm}
 
 uses CastleGLUtils, CastleSoundEngine, CastleUtils, CastleFilesUtils,
-  CastleURIUtils,
+  CastleUriUtils,
   ProjectUtils;
+
+procedure TSystemInformationForm.TContextNotification.GLContextOpen;
+begin
+  inherited;
+  (Owner as TSystemInformationForm).GLContextOpen;
+end;
+
+{ TSystemInformationForm --------------------------------------------------- }
 
 procedure TSystemInformationForm.ListSectionsClick(Sender: TObject);
 var
@@ -98,12 +112,12 @@ const
     {$else} 'Unknown'
     {$endif};
 var
-  OldApplicationDataOverride: String;
+  EditorApplicationData: TEditorApplicationData;
 begin
-  OldApplicationDataOverride := ApplicationDataOverride;
-  UseEditorApplicationData;
-  CastleControl1.Container.DesignUrl := 'castle-data:/demo_animation/view_demo_animation.castle-user-interface';
-  ApplicationDataOverride := OldApplicationDataOverride;
+  EditorApplicationData := TEditorApplicationData.Create;
+  try
+    CastleControl1.Container.DesignUrl := 'castle-data:/demo_animation/view_demo_animation.castle-user-interface';
+  finally FreeAndNil(EditorApplicationData) end;
 
   { Info[itRendering] will be initialized in CastleControl1Open.
     We do not even reset it here, as CastleControl1 may have been already opened
@@ -123,7 +137,7 @@ begin
   MemoSysInfo.Lines.Text := Info[TInfoType(ListSections.ItemIndex)];
 end;
 
-procedure TSystemInformationForm.CastleControl1Open(Sender: TObject);
+procedure TSystemInformationForm.GLContextOpen;
 begin
   // use GLInformationString only once rendering context initialized
   Info[itRendering] := GLInformationString;
@@ -132,9 +146,28 @@ begin
     MemoSysInfo.Lines.Text := Info[itRendering];
 end;
 
-procedure TSystemInformationForm.FormHide(Sender: TObject);
+procedure TSystemInformationForm.FormCreate(Sender: TObject);
 begin
-  CastleControl1.Container.DesignUrl := ''; // unload to stop sound
+  CastleControl1.Container.Controls.Add(TContextNotification.Create(Self));
+end;
+
+procedure TSystemInformationForm.FormHide(Sender: TObject);
+var
+  EditorApplicationData: TEditorApplicationData;
+begin
+  { Using TEditorApplicationData, because we need to set castle-data:/
+    to point to the editor data. That's because the loaded design
+    possibly watched some castle-data:/ URLs,
+    like castle-data:/demo_animation/demo_animation.gltf .
+    They must resolve to the same thing when unwatching. }
+  EditorApplicationData := TEditorApplicationData.Create;
+  try
+    { Unload to stop sound.
+      Also, explicit unloading allows to use TEditorApplicationData
+      to avoid warnings about unwatching castle-data:/demo_animation/demo_animation.gltf,
+      per above comment. }
+    CastleControl1.Container.DesignUrl := '';
+  finally FreeAndNil(EditorApplicationData) end;
 
   SoundEngine.OnOpenClose.Remove(@SoundEngineOpenClose);
 end;
@@ -143,7 +176,7 @@ procedure TSystemInformationForm.HelpButtonClick(Sender: TObject);
 begin
   if SaveDialogText.Execute then
   begin
-    StringToFile(FilenameToURISafe(SaveDialogText.FileName),
+    StringToFile(FilenameToUriSafe(SaveDialogText.FileName),
       'Rendering:' + NL + Info[itRendering] + NL + NL +
       'Audio:' + NL + Info[itAudio] + NL + NL +
       'Other:' + NL + Info[itOther]// + NL + NL +

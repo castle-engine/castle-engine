@@ -24,7 +24,7 @@
     destructor Destroy; override;
     procedure Parse(const Json: TJSONObject; const Bones: TBoneList;
       const DragonBonesFormat: boolean);
-    procedure BuildNodes(const BaseUrl: string; const TextureLoader: TTextureLoader);
+    procedure BuildNodes(const BaseUrl: String; const TextureLoader: TTextureLoader);
   end;
 
   TSkinList = class({$ifdef FPC}specialize{$endif} TObjectList<TSkin>)
@@ -33,7 +33,7 @@
     function Find(const Name: string; const NilOnError: boolean): TSkin;
     procedure Parse(const Json: TJSONObject; var DefaultSkin: TSkin; const Bones: TBoneList;
       const DragonBonesFormat: boolean);
-    procedure BuildNodes(const BaseUrl: string; const TextureLoader: TTextureLoader);
+    procedure BuildNodes(const BaseUrl: String; const TextureLoader: TTextureLoader);
   end;
 {$endif}
 
@@ -81,7 +81,7 @@ begin
       ParseSlotMap(TJSONObject(Json.Items[I]), Json.Names[I]);
 end;
 
-procedure TSkin.BuildNodes(const BaseUrl: string; const TextureLoader: TTextureLoader);
+procedure TSkin.BuildNodes(const BaseUrl: String; const TextureLoader: TTextureLoader);
 var
   I: Integer;
 begin
@@ -207,7 +207,7 @@ begin
     WritelnWarning('Spine JSON skeleton', 'Missing "default" skin definition, Spine JSON is empty');
 end;
 
-procedure TSkinList.BuildNodes(const BaseUrl: string; const TextureLoader: TTextureLoader);
+procedure TSkinList.BuildNodes(const BaseUrl: String; const TextureLoader: TTextureLoader);
 var
   I: Integer;
 begin

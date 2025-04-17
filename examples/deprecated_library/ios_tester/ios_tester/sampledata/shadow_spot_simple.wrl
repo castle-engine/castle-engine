@@ -1,0 +1,37 @@
+#VRML V2.0 utf8
+
+# Simple shadow map test from Jan Adamec.
+# SpotLight looks directly at box side.
+
+NavigationInfo {
+	headlight FALSE
+}
+
+#box - shadow caster
+Transform
+{
+	translation	0 1 0
+	scale .5 .5 .5
+	children Shape {
+	    geometry Box {}
+	    appearance	Appearance { material Material { diffuseColor .8 .8 .1 }}}
+}
+
+#box - shadow receiver
+Transform
+{
+	scale 2 .1 2
+	children Shape {
+	    geometry Box {}
+	    appearance	Appearance { material Material { diffuseColor .1 .8 .1 }}}
+}
+
+#light source
+SpotLight
+{
+	location 0 4 0
+	direction 0 -1 0
+	ambientIntensity .4
+
+	shadows TRUE
+}

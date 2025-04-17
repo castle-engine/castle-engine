@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<build_gradle_merge>
-  <!-- See https://developers.google.com/analytics/devguides/collection/android/v4/ -->
-  <dependencies>
-    <!-- See https://developers.google.com/android/guides/setup#split -->
-    <dependency>implementation 'com.google.android.gms:play-services-analytics:17.0.0'</dependency>
-  </dependencies>
-</build_gradle_merge>

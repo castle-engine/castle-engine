@@ -1,6 +1,6 @@
 {%MainUnit castletimeutils.pas}
 {
-  Copyright 2000-2022 Michalis Kamburelis.
+  Copyright 2000-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -16,6 +16,16 @@
 
 { Part of CastleTimeUtils unit: ProcessTimer, measuring CPU usage of this process. }
 
+{ Define CASTLE_PROCESS_TIMER_IS_TIMER if ProcessTimer implementation
+  should just use Timer. This is used when OS has no way to measure time
+  of this process.
+  Note that we don't fallback to CastleGetTickCount64, as it's worse on Windows
+  than QueryPerformanceCounter, and on other platforms ->
+  let Timer fallback to CastleGetTickCount64. }
+{$if defined(MSWINDOWS) or defined(CASTLE_NINTENDO_SWITCH) or defined(WASI)}
+  {$define CASTLE_PROCESS_TIMER_IS_TIMER}
+{$endif}
+
 {$ifdef read_interface}
 
 type
@@ -24,8 +34,8 @@ type
   TProcessTimerResult = record
   private
     Value:
-      {$if defined(MSWINDOWS) or defined(CASTLE_NINTENDO_SWITCH)}
-      QWord // ProcessTimer just does CastleGetTickCount64
+      {$if defined(CASTLE_PROCESS_TIMER_IS_TIMER)}
+      TTimerResult
       {$else}
       clock_t // Unix
       {$endif};
@@ -91,10 +101,10 @@ function ProcessTimerEnd: TFloatTime; deprecated 'instead of this, better to use
 {$ifdef read_implementation}
 
 function ProcessTimer: TProcessTimerResult;
-{$if defined(MSWINDOWS) or defined(CASTLE_NINTENDO_SWITCH)}
+{$if defined(CASTLE_PROCESS_TIMER_IS_TIMER)}
 begin
-  Result.Value := CastleGetTickCount64;
-{$else}
+  Result.Value := Timer;
+{$elseif defined(UNIX)}
 // other Unixes
 var
   Dummy: tms;
@@ -106,6 +116,8 @@ begin
     This is not FPC bug as I tested this with C program too. }
 
   Result.Value := {$ifdef FPC} FpTimes {$else} Times {$endif} (Dummy);
+{$else}
+  {$message fatal 'ProcessTimer not implemented for this platform'}
 {$endif}
 end;
 
@@ -115,33 +127,39 @@ begin
 end;
 
 function ProcessTimerSeconds(const a, b: TProcessTimerResult): TFloatTime;
+{$if defined(CASTLE_PROCESS_TIMER_IS_TIMER)}
+begin
+  Result := TimerSeconds(a.Value, b.Value);
+
+{$elseif defined(UNIX)}
 const
   { Resolution of the timer used by @link(ProcessTimer). }
   ProcessTimersPerSec =
-    {$if defined(MSWINDOWS) or defined(CASTLE_NINTENDO_SWITCH)}
-      1000 // miliseconds from CastleGetTickCount64
-    {$else}
-      { What is the frequency of FpTimes ?
-        sysconf (_SC_CLK_TCK) ?
-        Or does sysconf exist only in Libc ? }
-      { Values below were choosen experimentally for Linux and FreeBSD
-        (and I know that on most UNIXes it should be 128, that's
-        a traditional value) }
-      {$ifdef LINUX} 100 {$else}
-        {$ifdef DARWIN}
-          { In /usr/include/ppc/_limits.h and
-               /usr/include/i386/_limits.h
-            __DARWIN_CLK_TCK is defined to 100. }
-          100
-        {$else}
-          128
-        {$endif}
+    { What is the frequency of FpTimes ?
+      sysconf (_SC_CLK_TCK) ?
+      Or does sysconf exist only in Libc ? }
+    { Values below were choosen experimentally for Linux and FreeBSD
+      (and I know that on most UNIXes it should be 128, that's
+      a traditional value) }
+    {$ifdef LINUX} 100 {$else}
+      {$ifdef DARWIN}
+        { In /usr/include/ppc/_limits.h and
+              /usr/include/i386/_limits.h
+          __DARWIN_CLK_TCK is defined to 100. }
+        100
+      {$else}
+        128
       {$endif}
     {$endif};
 begin
   {$I norqcheckbegin.inc}
   Result := (A.Value - B.Value) / ProcessTimersPerSec;
   {$I norqcheckend.inc}
+
+{$else}
+  {$message fatal 'ProcessTimer not implemented for this platform'}
+{$endif}
+
 end;
 
 var

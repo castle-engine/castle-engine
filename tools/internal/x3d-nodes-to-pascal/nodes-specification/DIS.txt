@@ -2,7 +2,9 @@ DISEntityManager : X3DChildNode {
   SFString [in,out] address         "localhost"
   SFInt32  [in,out] applicationID   1
     range: [0,65535]
-  MFNode   [in,out] mapping         []
+  # Note: mapping->children rename in X3D 4.
+  # We only support X3D 4 version.
+  MFNode   [in,out] children         []
     range: DISEntityTypeMapping
   SFInt32  [in,out] port            0
     range: [0,65535]

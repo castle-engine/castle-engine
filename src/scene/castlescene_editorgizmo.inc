@@ -26,10 +26,7 @@ type
     GizmoImage: TCastleImageTransform;
     GizmoBillboard: TCastleBillboard;
     GizmoScene: TCastleScene; //< Note that it may remain nil, if LoadVisualization not called
-
-    const
-      DistanceToExistGizmo = 1;
-
+    LastIsProjectionOrthographic: Boolean;
     { Set various properties for internal TCastleTransform, shown only for debug. }
     procedure InternalTransform(const T: TCastleTransform);
     function GetSelectBoxTranslation: TVector3;
@@ -49,14 +46,21 @@ type
     { Show given node graph as the gizmo visualization.
       The given RootNode will become owned by this instance. }
     procedure LoadVisualization(const RootNode: TX3DRootNode);
+
     { Create a line shape, suitable for node graph in LoadVisualization.
-      The version that returns TCoordinateNode lets you initialize (and later update)
-      lines coords explicitly. }
+      Creates TLineSetNode with @link(TLineSetNode.Mode) = lmPair,
+      as this the most universal line mode to define various shapes.
+      The version that returns TCoordinateNode lets you initialize
+      (and later update) lines coords explicitly. }
     function LinesShape(const Points: array of TVector3): TShapeNode; overload;
-    function LinesShape(out Coord: TCoordinateNode; const VertexCount: array of Integer): TShapeNode; overload;
+    function LinesShape(out Coord: TCoordinateNode): TShapeNode; overload;
     { Set the image to display as icon. }
     procedure SetIconUrl(const Url: String);
     property SelectBoxTranslation: TVector3 read GetSelectBoxTranslation write SetSelectBoxTranslation;
+
+    class function ShouldGizmoBeRendered(
+      const IsProjectionOrthographic: Boolean;
+      const SelfPosition, RenderingCameraPosition: TVector3): Boolean;
   end;
 
 {$endif read_interface}
@@ -92,6 +96,8 @@ begin
   GizmoBillboard := TCastleBillboard.Create(Self);
   GizmoBillboard.AxisOfRotation := TVector3.Zero;
   GizmoImage.AddBehavior(GizmoBillboard);
+
+  LastIsProjectionOrthographic := false;
 end;
 
 procedure TInternalCastleEditorGizmo.InternalTransform(const T: TCastleTransform);
@@ -120,32 +126,21 @@ function TInternalCastleEditorGizmo.LinesShape(const Points: array of TVector3):
 var
   Coord: TCoordinateNode;
 begin
-  Result := LinesShape(Coord, [High(Points) + 1]);
+  Result := LinesShape(Coord);
   Coord.SetPoint(Points);
 end;
 
-function TInternalCastleEditorGizmo.LinesShape(out Coord: TCoordinateNode;
-  const VertexCount: array of Integer): TShapeNode;
+function TInternalCastleEditorGizmo.LinesShape(out Coord: TCoordinateNode): TShapeNode;
 var
   LineSet: TLineSetNode;
   Material: TUnlitMaterialNode;
   Appearance: TAppearanceNode;
-  ThisVertexCount: Integer;
-  TotalVertexCount: Cardinal;
-  InitialVertexes: array of TVector3;
 begin
-  TotalVertexCount := 0;
-  for ThisVertexCount in VertexCount do
-    TotalVertexCount := TotalVertexCount + ThisVertexCount;
-
   Coord := TCoordinateNode.Create;
-  // Initialize with zero vectors, to allow to initialize VBO and avoid warnings about not enough coordinates.
-  SetLength(InitialVertexes, TotalVertexCount);
-  Coord.SetPoint(InitialVertexes);
 
   LineSet := TLineSetNode.Create;
+  LineSet.Mode := lmPair;
   LineSet.Coord := Coord;
-  LineSet.SetVertexCount(VertexCount);
 
   Material := TUnlitMaterialNode.Create;
   Material.EmissiveColor := HexToColorRGB('FC9C2D');
@@ -166,17 +161,47 @@ begin
     Result := inherited LocalBoundingBox;
 end;
 
-procedure TInternalCastleEditorGizmo.LocalRender(const Params: TRenderParams);
+class function TInternalCastleEditorGizmo.ShouldGizmoBeRendered(
+  const IsProjectionOrthographic: Boolean;
+  const SelfPosition, RenderingCameraPosition: TVector3): Boolean;
+const
+  DistanceToExistGizmo = 1;
 var
   DistanceToCameraSqr: Single;
-  GizmoShouldExist: Boolean;
 begin
-  DistanceToCameraSqr := PointsDistanceSqr(
-    Params.Transform^.MultPoint(TVector3.Zero),
-    Params.RenderingCamera.Position
+  { ShouldGizmoBeRendered always answers true when using orthographic camera,
+    this way you can see and select orthographic camera at design-time
+    even when current camera is at exactly the same position.
+    This works OK in 2D mode, without causing any issues, so don't let
+    ShouldGizmoBeRendered complicate it. }
+  if IsProjectionOrthographic then
+    Exit(true);
+
+  DistanceToCameraSqr := PointsDistanceSqr(SelfPosition, RenderingCameraPosition);
+  Result := DistanceToCameraSqr > Sqr(DistanceToExistGizmo);
+end;
+
+procedure TInternalCastleEditorGizmo.LocalRender(const Params: TRenderParams);
+var
+  GizmoRendered: Boolean;
+begin
+  { We save LastIsProjectionOrthographic value, to be used in next
+    LocalRayCollision call.
+    Note that we don't save whole ShouldGizmoBeRendered result,
+    this would cause bugs: camera may be present in 2 viewports,
+    e.g. at design-time: main viewport, and the "camera preview".
+    If we would save ShouldGizmoBeRendered result, then camera gizmo
+    (e.g. to translate) would not be pickable when camera is also selected
+    (and camera is always selected when it shows its gizmo). }
+  LastIsProjectionOrthographic :=
+    (Params.RenderingCamera.Camera <> nil) and
+    (Params.RenderingCamera.Camera.ProjectionType = ptOrthographic);
+
+  GizmoRendered := ShouldGizmoBeRendered(LastIsProjectionOrthographic,
+    Params.Transformation^.Transform.MultPoint(TVector3.Zero),
+    Params.RenderingCamera.View.Translation
   );
-  GizmoShouldExist := DistanceToCameraSqr > Sqr(DistanceToExistGizmo);
-  if not GizmoShouldExist then
+  if not GizmoRendered then
     Exit; // do not show gizmo
   inherited;
 end;
@@ -184,20 +209,16 @@ end;
 function TInternalCastleEditorGizmo.LocalRayCollision(const RayOrigin, RayDirection: TVector3;
   const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): TRayCollision;
 var
-  DistanceToCameraSqr: Single;
-  GizmoShouldExist: Boolean;
+  GizmoRendered: Boolean;
 begin
-  { Do not collide with FGizmoSelect.
+  { Do not collide with FGizmoSelect if not ShouldGizmoBeRendered.
     This is esp. important for TCastleCamera gizmo,
     without this code we would prevent selecting any transform when we look from
     some non-design camera,
     as camera's GizmoSelect would collide with all rays cast from camera position. }
-  DistanceToCameraSqr := PointsDistanceSqr(
-    TVector3.Zero,
-    RayOrigin
-  );
-  GizmoShouldExist := DistanceToCameraSqr > Sqr(DistanceToExistGizmo);
-  if not GizmoShouldExist then
+  GizmoRendered := ShouldGizmoBeRendered(LastIsProjectionOrthographic,
+    TVector3.Zero, RayOrigin);
+  if not GizmoRendered then
     Exit(nil); // do not pick with gizmo with raycast
   Result := inherited;
 end;

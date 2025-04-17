@@ -1,6 +1,6 @@
 {%MainUnit castlecontrols.pas}
 {
-  Copyright 2018-2023 Michalis Kamburelis.
+  Copyright 2018-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -19,24 +19,36 @@
   EMaximumDesignDepth = class(Exception);
 
   { Contents of this user-interface control are loaded from an indicated file
-    (by the @link(URL) property).
+    (by the @link(Url) property).
 
     The file should be in the format created by Castle Game Engine Editor
     (serialized by CastleComponentSerialize routines) with .castle-user-interface extension. }
   TCastleDesign = class(TCastleUserInterface)
   strict private
     class var
-      LoadDepth: Cardinal;
+      { Keeps track of TCastleDesign causing loading of another TCastleDesign,
+        avoids infinite recursion.
+
+        In the past we tried with MaxDepth, but this
+        - Puts unnecessary limit on how deep you can nest designs,
+          even when not causing recursion.
+        - It's hard to choose safe and reasonable value for MaxDepth.
+          In some cases 1024 was enough, in some 32, in some even 32 caused
+          too much trouble.
+        Using a stack with URLs allows to break at 1st sight of recursion,
+        but also allow any depth when it's not recursive. }
+      LoadStack: TCastleStringList;
     var
       FDesign: TCastleUserInterface;
       { We don't use Self as Owner of FDesign, to allow freeing everything
         loaded by UserInterfaceLoad by simple FreeAndNil(FDesignOwner). }
       FDesignOwner: TComponent;
       FDesignObserver: TFreeNotificationObserver;
-      FURL: String;
-      FRevertURL: String;
+      FUrl: String;
+      FUrlMonitoring: TUrlMonitoring;
+      FRevertUrl: String;
       FStretchWhenNotLoaded: Boolean;
-    procedure SetURL(const Value: String);
+    procedure SetUrl(const Value: String);
     function GetStretch: Boolean;
     procedure SetStretch(const Value: Boolean);
     procedure DesignFreeNotification(const Sender: TFreeNotificationObserver);
@@ -44,6 +56,7 @@
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
+    procedure BeforeDestruction; override;
 
     { Find by name a component in currently loaded design.
       When the name is not found, raises exception (unless Required is @false,
@@ -56,6 +69,11 @@
 
     { Loaded design, only for internal usage. @exclude }
     property InternalDesign: TCastleUserInterface read FDesign;
+
+    { Load again the design from @link(Url).
+      This makes sense to be used when underlying file on disk
+      changed, and you want to reload it. }
+    procedure ReloadUrl;
   published
     { Load file with the user interface design.
       The file should be in the format created by Castle Game Engine Editor
@@ -73,15 +91,15 @@
         MyButton: TCastleButton;
       begin
         MyDesign := TCastleDesign.Create(...);
-        MyDesign.URL := 'castle-data:/my_user_interface.castle-user-interface';
+        MyDesign.Url := 'castle-data:/my_user_interface.castle-user-interface';
         MyButton := MyDesign.DesignedComponent('MyButton') as TCastleButton;
         MyButton.OnClick := ...;
       end;
       #)
     }
-    property URL: String read FURL write SetURL;
+    property Url: String read FUrl write SetUrl;
 
-    { Whether the loaded component (from @link(URL)) fills the rectangle
+    { Whether the loaded component (from @link(Url)) fills the rectangle
       of this TCastleDesign instance.
 
       By default this is @true, which makes sense if the loaded component
@@ -103,7 +121,7 @@
     property Stretch: Boolean read GetStretch write SetStretch default true;
 
     { URL used to perform editor "Revert" operation. }
-    property RevertURL: String read FRevertURL write FRevertURL;
+    property RevertUrl: String read FRevertUrl write FRevertUrl;
   end;
 
 {$endif read_interface}
@@ -118,10 +136,17 @@ begin
   FDesignObserver := TFreeNotificationObserver.Create(Self);
   FDesignObserver.OnFreeNotification := {$ifdef FPC}@{$endif}DesignFreeNotification;
   FStretchWhenNotLoaded := true;
+  FUrlMonitoring.Init({$ifdef FPC}@{$endif} ReloadUrl);
 end;
 
 destructor TCastleDesign.Destroy;
 begin
+  inherited;
+end;
+
+procedure TCastleDesign.BeforeDestruction;
+begin
+  FUrlMonitoring.Finish(FUrl);
   inherited;
 end;
 
@@ -130,11 +155,37 @@ begin
   FDesign := nil;
 end;
 
-procedure TCastleDesign.SetURL(const Value: String);
-const
-  MaxLoadDepth = 32; // 64 is too much for macOS/x86_64; although for Linux/x86_64 even 1024 was OK
+procedure TCastleDesign.SetUrl(const Value: String);
+
+  { Make a warning if LoadStack check fails.
+    Otherwise add us to LoadStack. }
+  procedure CheckAndBeingLoadStack;
+  begin
+    if LoadStack = nil then
+      LoadStack := TCastleStringList.Create;
+
+    if LoadStack.IndexOf(Url) <> -1 then
+      raise EMaximumDesignDepth.CreateFmt('TCastleDesign %s with URL "%s" loads recursively the same design file. Breaking, to prevent infinite recursion', [
+        Name, Url
+      ]);
+    LoadStack.Add(Url);
+  end;
+
+  { Remove us from LoadStack. }
+  procedure EndLoadStack;
+  var
+    I: Integer;
+  begin
+    I := LoadStack.IndexOf(Url);
+    Assert(LoadStack.Count <> 0);
+    Assert(I = LoadStack.Count - 1);
+    LoadStack.Delete(I);
+    if LoadStack.Count = 0 then
+      FreeAndNil(LoadStack);
+  end;
+
 begin
-  if FURL <> Value then
+  if FUrl <> Value then
   begin
     if FDesign <> nil then
     begin
@@ -143,21 +194,20 @@ begin
       Assert(FDesign = nil); // DesignFreeNotification should set FDesign to nil
     end;
 
-    FURL := Value;
+    { TODO: Disable auto-reloading of designs for now, fearing it will cause
+      more problems than gains: reloading the design invalidates all
+      the references to components inside. }
+    //FUrlMonitoring.ChangeUrl(FUrl, Value);
+    FUrl := Value;
 
     if Value <> '' then
     begin
       try
-        { Check LoadDepth = MaxLoadDepth to prevent infinite loop when referencing your own design. }
-        if LoadDepth = MaxLoadDepth then
-          raise EMaximumDesignDepth.CreateFmt('Exceeded maximum depth (%d) when loading TCastleDesign within TCastleDesign. It is possible that TCastleDesign references its own design', [
-            MaxLoadDepth
-          ]);
-        Inc(LoadDepth);
+        CheckAndBeingLoadStack;
         try
           FDesignOwner := TComponent.Create(Self);
           FDesign := UserInterfaceLoad(Value, FDesignOwner);
-        finally Dec(LoadDepth) end;
+        finally EndLoadStack end;
       except
         { If loading design file failed, and we're inside CGE editor,
           merely report a warning. This allows deserializing in CGE editor
@@ -166,7 +216,7 @@ begin
         begin
           if CastleDesignMode then
           begin
-            WritelnWarning('TCastleDesign', 'Failed to load design "%s": %s', [URIDisplay(URL), ExceptMessage(E)]);
+            WritelnWarning('TCastleDesign', 'Failed to load design "%s": %s', [UriDisplay(Url), ExceptMessage(E)]);
             Exit;
           end else
             raise;
@@ -208,7 +258,7 @@ end;
 function TCastleDesign.PropertySections(
   const PropertyName: String): TPropertySections;
 begin
-  if (PropertyName = 'URL') or
+  if (PropertyName = 'Url') or
      (PropertyName = 'Stretch') then
     Result := [psBasic]
   else
@@ -235,6 +285,15 @@ end;
 function TCastleDesign.FindComponent(const ComponentName: String): TComponent;
 begin
   Result := DesignedComponent(ComponentName, false);
+end;
+
+procedure TCastleDesign.ReloadUrl;
+var
+  SavedUrl: String;
+begin
+  SavedUrl := Url;
+  Url := '';
+  Url := SavedUrl;
 end;
 
 {$endif read_implementation}

@@ -26,7 +26,7 @@ All the units inside this package are internal for CGE -- normal engine users sh
 This is the same license as used by Lazarus LCL and FPC RTL.
 See https://castle-engine.io/license for details.
 "/>
-    <Version Major="6" Minor="92"/>
+    <Version Major="6" Minor="93" Release="1"/>
     <Files Count="54">
       <Item1>
         <Filename Value="../tools/castle-editor/components/mbColorLib/BAxisColorPicker.pas"/>

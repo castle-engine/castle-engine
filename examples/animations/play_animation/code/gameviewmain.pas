@@ -1,5 +1,5 @@
-{
-  Copyright 2018-2023 Michalis Kamburelis, Andrzej Kilijański.
+﻿{
+  Copyright 2018-2024 Michalis Kamburelis, Andrzej Kilijański.
 
   This file is part of "Castle Game Engine".
 
@@ -22,7 +22,7 @@ uses SysUtils, Classes, Math,
   CastleScene, CastleSceneCore, CastleControls, CastleLog,
   CastleFilesUtils, CastleColors, CastleUIControls, X3DLoad, CastleUtils,
   CastleApplicationProperties, CastleVectors, CastleCameras, CastleViewport,
-  CastleURIUtils, X3DNodes, CastleTextureImages;
+  CastleUriUtils, X3DNodes, CastleTextureImages;
 
 type
   { Main view, where most of the application logic takes place. }
@@ -37,6 +37,7 @@ type
     SceneAnimationButtons: TCastleUserInterface;
     CheckboxForward, CheckboxLoop, CheckboxMagFilterNearest, CheckboxMinFilterNearest, CheckboxAnimationNamingLoadOpt: TCastleCheckbox;
     SliderTransition, SliderScale, SliderFPSLoadOpt: TCastleFloatSlider;
+    SliderOptimization: TCastleIntegerSlider;
   private
     { Event handlers }
     procedure OpenScene(const Url: String);
@@ -51,6 +52,7 @@ type
     procedure ChangedTextureMagOptions(Sender: TObject);
     procedure ChangedTextureMinOptions(Sender: TObject);
     procedure ChangedStarlingOptions(Sender: TObject);
+    procedure ChangedOptimization(Sender: TObject);
 
     { Simple function to parse current settings in options UI
       see ClickButtonOpen2DStarling for more info. }
@@ -66,7 +68,7 @@ var
 
 implementation
 
-uses CastleWindow, CastleComponentSerialize;
+uses CastleWindow, CastleComponentSerialize, CastleRenderOptions;
 
 { TViewMain ----------------------------------------------------------------- }
 
@@ -90,6 +92,7 @@ begin
   SliderFPSLoadOpt.OnChange := {$ifdef FPC}@{$endif} ChangedStarlingOptions;
   CheckboxAnimationNamingLoadOpt.OnChange := {$ifdef FPC}@{$endif} ChangedStarlingOptions;
   SliderScale.OnChange := {$ifdef FPC}@{$endif} ChangedScale;
+  SliderOptimization.OnChange := {$ifdef FPC}@{$endif} ChangedOptimization;
   CheckboxMagFilterNearest.OnChange := {$ifdef FPC}@{$endif} ChangedTextureMagOptions;
   CheckboxMinFilterNearest.OnChange := {$ifdef FPC}@{$endif} ChangedTextureMinOptions;
 
@@ -128,8 +131,19 @@ begin
     camera to the scene unscaled size }
   Scene.Scale := Vector3(1.0, 1.0, 1.0);
   Scene.Load(Url);
+
+  { Set blending sort following "NavigationInfo.blendingSort" info from scene.
+    This means we use 2D sorting e.g. for Spine models by default. }
+  if (Scene.NavigationInfoStack.Top <> nil) and
+     (Scene.NavigationInfoStack.Top.BlendingSort <> sortAuto) then
+    Viewport.BlendingSort := Scene.NavigationInfoStack.Top.BlendingSort
+  else
+    Viewport.BlendingSort := sortAuto;
+
   Viewport.AssignDefaultCamera;
+
   CreateAnimationsButtons;
+
   { Update scale for current SliderScale value }
   ChangedScale(nil);
 end;
@@ -192,13 +206,13 @@ end;
 
 procedure TViewMain.ClickButtonOpenDialog(Sender: TObject);
 var
-  Url: string;
+  Url: String;
 begin
   Url := Scene.Url;
   if Application.MainWindow.FileDialog('Open model', Url, true, LoadScene_FileFilters) then
   begin
     { In case of Starling add current settings }
-    if URIMimeType(Url) = 'application/x-starling-sprite-sheet' then
+    if UriMimeType(Url) = 'application/x-starling-sprite-sheet' then
       OpenScene(Url + CurrentUIStarlingSettingsToAnchor)
     else
       OpenScene(Url);
@@ -264,7 +278,7 @@ begin
     without reloading the model. }
 
   { Check last loaded model was Starling }
-  if URIMimeType(URIDeleteAnchor(Scene.URL)) <> 'application/x-starling-sprite-sheet' then
+  if UriMimeType(URIDeleteAnchor(Scene.URL)) <> 'application/x-starling-sprite-sheet' then
     Exit;
 
   { Get latest animation }
@@ -287,6 +301,20 @@ begin
       Params.TransitionDuration := SliderTransition.Value;
       Scene.PlayAnimation(Params);
     finally FreeAndNil(Params) end;
+  end;
+end;
+
+procedure TViewMain.ChangedOptimization(Sender: TObject);
+begin
+  { Activate a few optimizations based on the slider value.
+    See examples/animations/optimize_animations_test/ for more notes
+    about optimizing. }
+  Viewport.DynamicBatching := SliderOptimization.Value > 0;
+  InternalFastTransformUpdate := SliderOptimization.Value > 0;
+  OptimizeExtensiveTransformations := SliderOptimization.Value > 0;
+  case SliderOptimization.Value of
+    0, 1: Scene.AnimateSkipTicks := 0;
+    2: Scene.AnimateSkipTicks := 1;
   end;
 end;
 

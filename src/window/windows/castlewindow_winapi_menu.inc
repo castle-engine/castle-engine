@@ -87,7 +87,7 @@
 function MakeWinapiMenuCore(Menu: TMenu;
   MenuBar: boolean; ParentAllowsEnabled: boolean): HMenu;
 
-  function SMnemonicsToWin(const S: string): UnicodeString;
+  function SMnemonicsToWin(const S: string): string;
   var
     SPos, ResultPos: Integer;
   begin
@@ -139,7 +139,7 @@ function MakeWinapiMenuCore(Menu: TMenu;
     OSCheck( AppendMenuW(Result,
       MF_STRING or MF_POPUP or EnabledFlag(Menu.Enabled and ParentAllowsEnabled),
       UINT(MakeWinapiMenuCore(Menu, false, true)),
-      PWideChar(SMnemonicsToWin(Menu.Caption))) );
+      PWideChar(StringToUtf16(SMnemonicsToWin(Menu.Caption)))) );
   end;
 
   procedure AppendGLMenuItem(MenuItem: TMenuItem; ParentAllowsEnabled: boolean);
@@ -163,7 +163,7 @@ function MakeWinapiMenuCore(Menu: TMenu;
     { Don't use here MenuItem.CaptionWithKey.
       Instead use #9 to delimit key names.
       This way our key shortcuts will be drawn nicely. }
-    WinMenuCaption := SMnemonicsToWin(MenuItem.Caption);
+    WinMenuCaption := StringToUtf16(SMnemonicsToWin(MenuItem.Caption));
     if MenuItem.KeyToString(KeyStr) then
       WinMenuCaption := WinMenuCaption + #9 + UnicodeString(KeyStr);
 

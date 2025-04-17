@@ -10,7 +10,7 @@ This example uses [X3D nodes](https://castle-engine.io/vrml_x3d.php). Nodes used
 
 - Light `TSpotLightNode` defines projector location/direction and size (light's `cutOffAngle` determines cast texture size).
 
-The file `data/projective_texturing_simple.x3dv` in this project shows how to use these nodes -- you can double-click it to open in view3dscene, you can edit it in any text editor.
+The file `data/projective_texturing_simple.x3dv` in this project shows how to use these nodes -- you can double-click it to open in [Castle Model Viewer](https://castle-engine.io/castle-model-viewer), you can edit it in any text editor.
 
 The example Pascal code adds these nodes to a glTF file exported from Blender.
 
@@ -31,8 +31,10 @@ Using [Castle Game Engine](https://castle-engine.io/).
 
 Compile by:
 
-- [CGE editor](https://castle-engine.io/manual_editor.php). Just use menu item _"Compile"_.
+- [CGE editor](https://castle-engine.io/editor). Just use menu items _"Compile"_ or _"Compile And Run"_.
 
 - Or use [CGE command-line build tool](https://castle-engine.io/build_tool). Run `castle-engine compile` in this directory.
 
-- Or use [Lazarus](https://www.lazarus-ide.org/). Open in Lazarus `projector_standalone.lpi` file and compile / run from Lazarus. Make sure to first register [CGE Lazarus packages](https://castle-engine.io/documentation.php).
+- Or use [Lazarus](https://www.lazarus-ide.org/). Open in Lazarus `projector_standalone.lpi` file and compile / run from Lazarus. Make sure to first register [CGE Lazarus packages](https://castle-engine.io/lazarus).
+
+- Or use [Delphi](https://www.embarcadero.com/products/Delphi). Open in Delphi `projector_standalone.dproj` file and compile / run from Delphi. See [CGE and Delphi](https://castle-engine.io/delphi) documentation for details.

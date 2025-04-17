@@ -28,7 +28,7 @@ uses
   CastleVectors, CastleApplicationProperties;
 
 var
-  URL: string;
+  Url: String;
   Sound: TCastleSound;
 begin
   ApplicationProperties.OnWarning.Add(
@@ -42,9 +42,9 @@ begin
   SoundEngine.ParseParameters;
   Parameters.CheckHighAtMost(1);
   if Parameters.High = 1 then
-    URL := Parameters[1]
+    Url := Parameters[1]
   else
-    URL := 'castle-data:/temple-adam-goh.ogg';
+    Url := 'castle-data:/temple-adam-goh.ogg';
     //'castle-data:/tone.wav';
 
   { Sound backend (like OpenAL) will be automatically initialized when needed below.
@@ -54,7 +54,7 @@ begin
   { Load and play sound, without any spatialization. }
   Sound := TCastleSound.Create(nil);
   try
-    Sound.URL := URL;
+    Sound.Url := Url;
     Writeln('Sound loaded, duration in seconds: ', Sound.Duration:1:2);
     SoundEngine.Play(Sound);
 

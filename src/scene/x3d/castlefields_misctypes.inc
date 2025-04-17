@@ -1,6 +1,6 @@
 {%MainUnit x3dfields.pas}
 {
-  Copyright 2002-2022 Michalis Kamburelis.
+  Copyright 2002-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -152,12 +152,21 @@
     { Viewpoint projection changed. }
     chViewpointProjection,
 
-    { Texture image (data) needs reloading (url or source SFImage
-      data changed). This is for TAbstractTexture2DNode, or TAbstractTexture3DNode. }
+    { Texture image (data) needs reloading, because node fields
+      that determine it (like ImageTexture.URL or PixelTexture.Image) changed.
+
+      This is for fields in TAbstractTextureNode.
+
+      We will release previously loaded data (setting IsTextureLoaded:=false)
+      and load a new one. We will also update rendering resources,
+      just like chTextureRendererProperties. }
     chTextureImage,
 
-    { Texture properties used by the renderer changed (something other than
-      only the texture data). This is for fields contained in X3DTextureNode. }
+    { Texture properties used by the renderer changed.
+      No need to reload texture data in CPU (do not change IsTextureLoaded),
+      but reload the rendering resources (like OpenGL texture).
+
+      This is for fields in TAbstractTextureNode. }
     chTextureRendererProperties,
 
     { Texture properties inside TextureProperties node changed. }

@@ -24,12 +24,12 @@
 
   { Base node type for the child nodes of @link(TAbstractAppearanceNode). }
   TAbstractAppearanceChildNode = class(TAbstractNode)
-    {$I auto_generated_node_helpers/x3dnodes_x3dappearancechildnode.inc}
+  {$I auto_generated_node_helpers/x3dnodes_x3dappearancechildnode.inc}
   end;
 
   { Base node type for all Appearance nodes. }
   TAbstractAppearanceNode = class(TAbstractNode)
-    {$I auto_generated_node_helpers/x3dnodes_x3dappearancenode.inc}
+  {$I auto_generated_node_helpers/x3dnodes_x3dappearancenode.inc}
   end;
 
   { Base node type for all Material nodes. }
@@ -41,7 +41,7 @@
       this node is freed. }
     function MaterialInfo: TMaterialInfo; virtual; abstract;
 
-    {$I auto_generated_node_helpers/x3dnodes_x3dmaterialnode.inc}
+  {$I auto_generated_node_helpers/x3dnodes_x3dmaterialnode.inc}
   end;
 
   TAppearanceNode = class;
@@ -82,7 +82,7 @@
   public
     InternalWasVisibleFrameId: TFrameId;
 
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
+    constructor Create(const AX3DName: string = ''; const ABaseUrl: String = ''); override;
     procedure BeforeTraverse(StateStack: TX3DGraphTraverseStateStack); override;
     procedure AfterTraverse(StateStack: TX3DGraphTraverseStateStack); override;
 
@@ -132,7 +132,12 @@
       in any viewport in any scene. }
     function WasVisible: Boolean;
 
-    {$I auto_generated_node_helpers/x3dnodes_x3dshapenode.inc}
+  {$I auto_generated_node_helpers/x3dnodes_x3dshapenode.inc}
+
+  public
+    { @deprecated Deprecated name for @link(Visible). }
+    property Render: Boolean read GetVisible write SetVisible default true;
+      {$ifdef FPC}deprecated 'use Visible';{$endif}
   end;
 
   TFillPropertiesNode = class;
@@ -183,13 +188,12 @@
     function InternalMaterialProperty: TMaterialProperty;
     function MaterialProperty: TMaterialProperty; deprecated 'use InternalMaterialProperty, or (better) do not use it at all -- this is internal';
 
-    {$I auto_generated_node_helpers/x3dnodes_appearance.inc}
+  {$I auto_generated_node_helpers/x3dnodes_appearance.inc}
   end;
 
   { Additional visual properties to be applied to all polygonal areas. }
   TFillPropertiesNode = class(TAbstractAppearanceChildNode)
-  public
-    {$I auto_generated_node_helpers/x3dnodes_fillproperties.inc}
+  {$I auto_generated_node_helpers/x3dnodes_fillproperties.inc}
   end;
 
   { Additional visible properties to be applied to all line geometry. }
@@ -200,12 +204,11 @@
   public
     { Line type (pattern). }
     property LineType: TLineType read GetLineType write SetLineType default ltSolid;
-    {$I auto_generated_node_helpers/x3dnodes_lineproperties.inc}
+  {$I auto_generated_node_helpers/x3dnodes_lineproperties.inc}
   end;
 
   TAbstractOneSidedMaterialNode = class(TAbstractMaterialNode)
-  public
-    {$I auto_generated_node_helpers/x3dnodes_x3donesidedmaterialnode.inc}
+  {$I auto_generated_node_helpers/x3dnodes_x3donesidedmaterialnode.inc}
   end;
 
   { Material determines how the geometry looks on the screen,
@@ -228,14 +231,16 @@
         procedure SetDiffuseColor(const Value: TVector3); override;
         function GetSpecularColor: TVector3; override;
         procedure SetSpecularColor(const Value: TVector3); override;
+        function GetEmissiveColor: TVector3; override;
+        procedure SetEmissiveColor(const Value: TVector3); override;
+        function GetTransparency: Single; override;
+        procedure SetTransparency(const Value: Single); override;
       public
         constructor Create(ANode: TMaterialNode);
 
         function AmbientColor: TVector3; override;
-        function EmissiveColor: TVector3; override;
         function Shininess: Single; override;
         function ReflectionColor: TVector3; override;
-        function Transparency: Single; override;
 
         {$ifndef CASTLE_SLIM_NODES}
         function ReflSpecular: TVector3; override;
@@ -254,10 +259,10 @@
     class function ForVRMLVersion(const Version: TX3DVersion): boolean;
       override;
 
-    { Opacity is just a 1 - FdTransparency.Value.
-      Defined for your comfort --- for
-      OpenGL you will usually want to pass Opacity, not Transparency. }
-    function Opacity: Single;
+    { Opacity of the material, just @code(1 - @link(Transparency)).
+      Sometimes it is more intuitive to use this than Transparency.
+      @deprecated Use MaterialInfo.Opacity. }
+    function Opacity: Single; deprecated 'use MaterialInfo.Opacity';
 
     { ShininessExp is just 128 * FdShininess.Value, this is the "real"
       exponent indicated by shininess field value.
@@ -273,18 +278,22 @@
 
       This checks that ambient and diffuse and specular colors are all zero.
       It's an important information about the material sometimes.
+
       It is similar to the NULL material situation (when "Appearance.material=NULL"
       case), but the color and transparency are still
       configurable (using FdEmissiveColor and FdTransparency fields).
 
-      We can optimize this case when rendering. }
-    function PureEmissive: boolean;
+      This way of achieving "something like unlit material" has issues, see
+      https://github.com/michaliskambi/x3d-tests/wiki/Why-is-UnlitMaterial-useful .
+      For this reason, we recommend to use (and detect, for optimization)
+      the TUnlitMaterialNode instead of this "special case of Phong material". }
+    function PureEmissive: boolean; deprecated 'use TUnlitMaterialNode for unlit materials';
 
     { Force the material pure emissive (see @link(PureEmissive)) by setting
       other colors to black. }
     procedure ForcePureEmissive; deprecated 'use TUnlitMaterialNode for unlit materials';
 
-    {$I auto_generated_node_helpers/x3dnodes_material.inc}
+  {$I auto_generated_node_helpers/x3dnodes_material.inc}
   end;
   TMaterialNode_2 = TMaterialNode;
 
@@ -294,11 +303,15 @@
       TMyPhysicalMaterialInfo = class(TPhysicalMaterialInfo)
       strict private
         FNode: TPhysicalMaterialNode;
+      protected
+        function GetEmissiveColor: TVector3; override;
+        procedure SetEmissiveColor(const Value: TVector3); override;
+        function GetBaseColor: TVector3; override;
+        procedure SetBaseColor(const Value: TVector3); override;
+        function GetTransparency: Single; override;
+        procedure SetTransparency(const Value: Single); override;
       public
         constructor Create(ANode: TPhysicalMaterialNode);
-        function EmissiveColor: TVector3; override;
-        function Transparency: Single; override;
-        function BaseColor: TVector3; override;
         function Metallic: Single; override;
         function Roughness: Single; override;
       end;
@@ -308,17 +321,21 @@
     destructor Destroy; override;
     function MaterialInfo: TMaterialInfo; override;
 
-    {$I auto_generated_node_helpers/x3dnodes_physicalmaterial.inc}
+  {$I auto_generated_node_helpers/x3dnodes_physicalmaterial.inc}
   end;
+
+  EInvalidGeometryIndex = class(Exception);
 
   { Shape is a rendered object in the world, with an appearance and geometry. }
   TShapeNode = class(TAbstractShapeNode)
   public
     { Generate tangent vectors on geometry if they are
-      (1) necessary and (2) possible to generate and (3) not present yet. }
+      (1) necessary and (2) possible to generate and (3) not present yet.
+
+      @raises EInvalidGeometryIndex If the indexes in geometry are invalid. }
     procedure GenerateTangents;
 
-    {$I auto_generated_node_helpers/x3dnodes_shape.inc}
+  {$I auto_generated_node_helpers/x3dnodes_shape.inc}
   end;
 
   { @deprecated
@@ -338,14 +355,16 @@
         procedure SetDiffuseColor(const Value: TVector3); override;
         function GetSpecularColor: TVector3; override;
         procedure SetSpecularColor(const Value: TVector3); override;
+        function GetEmissiveColor: TVector3; override;
+        procedure SetEmissiveColor(const Value: TVector3); override;
+        function GetTransparency: Single; override;
+        procedure SetTransparency(const Value: Single); override;
       public
         constructor Create(ANode: TTwoSidedMaterialNode);
 
         function AmbientColor: TVector3; override;
-        function EmissiveColor: TVector3; override;
         function Shininess: Single; override;
         function ReflectionColor: TVector3; override;
-        function Transparency: Single; override;
       end;
     var
       FMaterialInfo: TMaterialInfo;
@@ -353,7 +372,7 @@
     destructor Destroy; override;
     function MaterialInfo: TMaterialInfo; override;
 
-    {$I auto_generated_node_helpers/x3dnodes_twosidedmaterial.inc}
+  {$I auto_generated_node_helpers/x3dnodes_twosidedmaterial.inc}
   end;
 
   TUnlitMaterialNode = class(TAbstractOneSidedMaterialNode)
@@ -362,19 +381,22 @@
       TMyUnlitMaterialInfo = class(TUnlitMaterialInfo)
       strict private
         FNode: TUnlitMaterialNode;
+      protected
+        function GetEmissiveColor: TVector3; override;
+        procedure SetEmissiveColor(const Value: TVector3); override;
+        function GetTransparency: Single; override;
+        procedure SetTransparency(const Value: Single); override;
       public
         constructor Create(ANode: TUnlitMaterialNode);
-        function EmissiveColor: TVector3; override;
-        function Transparency: Single; override;
       end;
     var
       FMaterialInfo: TMyUnlitMaterialInfo;
   public
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
+    constructor Create(const AX3DName: string = ''; const ABaseUrl: String = ''); override;
     destructor Destroy; override;
     function MaterialInfo: TMaterialInfo; override;
 
-    {$I auto_generated_node_helpers/x3dnodes_unlitmaterial.inc}
+  {$I auto_generated_node_helpers/x3dnodes_unlitmaterial.inc}
   end;
 
 {$endif read_interface}
@@ -440,13 +462,15 @@ const
     'NONE'
   );
 
-constructor TAbstractShapeNode.Create(const AX3DName: string = ''; const ABaseUrl: string = '');
+constructor TAbstractShapeNode.Create(const AX3DName: string = ''; const ABaseUrl: String = '');
 begin
   inherited;
   FdBboxCenter.ChangeAlways := chBBox;
   FdBboxSize.ChangeAlways := chBBox;
   FdAppearance.ChangeAlways := chEverything;
   FdGeometry.ChangeAlways := chEverything;
+  // Older name for this field, specific to CGE and InstantReality
+  FdVisible.AddAlternativeName('render', 0);
 end;
 
 procedure TAbstractShapeNode.SetAppearanceBefore(const Sender: TSFNode; const NewNode: TX3DNode);
@@ -775,7 +799,7 @@ function TAppearanceNode.InternalMaterialProperty: TMaterialProperty;
 
   function TryUrl(const Url: TMFString): TMaterialProperty;
   var
-    TextureUrl: string;
+    TextureUrl: String;
   begin
     Result := nil;
     if Url.Count <> 0 then
@@ -892,7 +916,9 @@ begin
   FdDiffuseColor.Send(TVector3.Zero);
   FdSpecularColor.Send(TVector3.Zero);
   FdAmbientIntensity.Send(0);
+  {$warnings off} // using deprecated in deprecated
   Assert(PureEmissive);
+  {$warnings on}
 end;
 
 { TMaterialNode.TMyMaterialInfo -------------------------------------------------------- }
@@ -928,9 +954,14 @@ begin
   FNode.SpecularColor := Value;
 end;
 
-function TMaterialNode.TMyMaterialInfo.EmissiveColor: TVector3;
+function TMaterialNode.TMyMaterialInfo.GetEmissiveColor: TVector3;
 begin
   Result := FNode.EmissiveColor;
+end;
+
+procedure TMaterialNode.TMyMaterialInfo.SetEmissiveColor(const Value: TVector3);
+begin
+  FNode.EmissiveColor := Value;
 end;
 
 function TMaterialNode.TMyMaterialInfo.Shininess: Single;
@@ -946,9 +977,14 @@ begin
   Result := Vector3(M, M, M);
 end;
 
-function TMaterialNode.TMyMaterialInfo.Transparency: Single;
+function TMaterialNode.TMyMaterialInfo.GetTransparency: Single;
 begin
   Result := FNode.Transparency;
+end;
+
+procedure TMaterialNode.TMyMaterialInfo.SetTransparency(const Value: Single);
+begin
+  FNode.Transparency := Value;
 end;
 
 {$ifndef CASTLE_SLIM_NODES}
@@ -1017,19 +1053,34 @@ begin
   FNode := ANode;
 end;
 
-function TPhysicalMaterialNode.TMyPhysicalMaterialInfo.EmissiveColor: TVector3;
+function TPhysicalMaterialNode.TMyPhysicalMaterialInfo.GetEmissiveColor: TVector3;
 begin
   Result := FNode.EmissiveColor;
 end;
 
-function TPhysicalMaterialNode.TMyPhysicalMaterialInfo.Transparency: Single;
+procedure TPhysicalMaterialNode.TMyPhysicalMaterialInfo.SetEmissiveColor(const Value: TVector3);
+begin
+  FNode.EmissiveColor := Value;
+end;
+
+function TPhysicalMaterialNode.TMyPhysicalMaterialInfo.GetTransparency: Single;
 begin
   Result := FNode.Transparency;
 end;
 
-function TPhysicalMaterialNode.TMyPhysicalMaterialInfo.BaseColor: TVector3;
+procedure TPhysicalMaterialNode.TMyPhysicalMaterialInfo.SetTransparency(const Value: Single);
+begin
+  FNode.Transparency := Value;
+end;
+
+function TPhysicalMaterialNode.TMyPhysicalMaterialInfo.GetBaseColor: TVector3;
 begin
   Result := FNode.BaseColor;
+end;
+
+procedure TPhysicalMaterialNode.TMyPhysicalMaterialInfo.SetBaseColor(const Value: TVector3);
+begin
+  FNode.BaseColor := Value;
 end;
 
 function TPhysicalMaterialNode.TMyPhysicalMaterialInfo.Metallic: Single;
@@ -1096,6 +1147,17 @@ procedure TShapeNode.GenerateTangents;
       Index0 := TriangleIndexes[I    ];
       Index1 := TriangleIndexes[I + 1];
       Index2 := TriangleIndexes[I + 2];
+
+      if (Index0 >= CoordsCount) or
+         (Index1 >= CoordsCount) or
+         (Index2 >= CoordsCount) then
+        raise EInvalidGeometryIndex.CreateFmt('Invalid index in geometry: %d, %d, %d, but count is %d', [
+          Index0,
+          Index1,
+          Index2,
+          CoordsCount
+        ]);
+
       TriangleCoord.Data[0] := Coords.L[Index0];
       TriangleCoord.Data[1] := Coords.L[Index1];
       TriangleCoord.Data[2] := Coords.L[Index2];
@@ -1164,16 +1226,22 @@ begin
         if CoordsCount <> TexCoords.Count then
           Exit;
 
+        // TODO: for now we can do this only for IndexedTriangleSet
+        if not (Geometry is TIndexedTriangleSetNode) then
+          Exit;
+
         { calculate Tangents }
         Tangent := TTangentNode.Create;
         Tangents := Tangent.FdVector.Items;
         Tangents.Count := CoordsCount;
 
-        // TODO: for now we can do this only for IndexedTriangleSet
-        if not (Geometry is TIndexedTriangleSetNode) then
-          Exit;
-
-        GenerateTangentsCore(CoordsCount, Coords, Normals, TexCoords, Tangents);
+        try
+          GenerateTangentsCore(CoordsCount, Coords, Normals, TexCoords, Tangents);
+        except
+          // in case EInvalidGeometryIndex is raised, do not leak Tangent
+          FreeAndNil(Tangent);
+          raise;
+        end;
 
         { assign this at the end, just in case it will cause TCastleSceneCore processing on change }
         TAbstractComposedGeometryNode(Geometry).Tangent := Tangent;
@@ -1224,9 +1292,14 @@ begin
   FNode.SpecularColor := Value;
 end;
 
-function TTwoSidedMaterialNode.TTwoSidedMaterialInfo.EmissiveColor: TVector3;
+function TTwoSidedMaterialNode.TTwoSidedMaterialInfo.GetEmissiveColor: TVector3;
 begin
   Result := FNode.EmissiveColor;
+end;
+
+procedure TTwoSidedMaterialNode.TTwoSidedMaterialInfo.SetEmissiveColor(const Value: TVector3);
+begin
+  FNode.EmissiveColor := Value;
 end;
 
 function TTwoSidedMaterialNode.TTwoSidedMaterialInfo.Shininess: Single;
@@ -1239,9 +1312,14 @@ begin
   Result := TVector3.Zero;
 end;
 
-function TTwoSidedMaterialNode.TTwoSidedMaterialInfo.Transparency: Single;
+function TTwoSidedMaterialNode.TTwoSidedMaterialInfo.GetTransparency: Single;
 begin
   Result := FNode.Transparency;
+end;
+
+procedure TTwoSidedMaterialNode.TTwoSidedMaterialInfo.SetTransparency(const Value: Single);
+begin
+  FNode.Transparency := Value;
 end;
 
 { TTwoSidedMaterialNode ------------------------------------------------------ }
@@ -1267,19 +1345,29 @@ begin
   FNode := ANode;
 end;
 
-function TUnlitMaterialNode.TMyUnlitMaterialInfo.EmissiveColor: TVector3;
+function TUnlitMaterialNode.TMyUnlitMaterialInfo.GetEmissiveColor: TVector3;
 begin
   Result := FNode.EmissiveColor;
 end;
 
-function TUnlitMaterialNode.TMyUnlitMaterialInfo.Transparency: Single;
+procedure TUnlitMaterialNode.TMyUnlitMaterialInfo.SetEmissiveColor(const Value: TVector3);
+begin
+  FNode.EmissiveColor := Value;
+end;
+
+function TUnlitMaterialNode.TMyUnlitMaterialInfo.GetTransparency: Single;
 begin
   Result := FNode.Transparency;
 end;
 
+procedure TUnlitMaterialNode.TMyUnlitMaterialInfo.SetTransparency(const Value: Single);
+begin
+  FNode.Transparency := Value;
+end;
+
 { TUnlitMaterialNode ------------------------------------------------------ }
 
-constructor TUnlitMaterialNode.Create(const AX3DName: string; const ABaseUrl: string);
+constructor TUnlitMaterialNode.Create(const AX3DName: string; const ABaseUrl: String);
 begin
   inherited;
   // default is different

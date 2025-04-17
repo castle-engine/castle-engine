@@ -1,6 +1,6 @@
 {%MainUnit castletransform.pas}
 {
-  Copyright 2017-2022 Michalis Kamburelis.
+  Copyright 2017-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -20,7 +20,7 @@
   EMaximumTransformDesignDepth = class(Exception);
 
   { Contents are loaded from an indicated castle-transform file
-    (by the @link(URL) property).
+    (by the @link(Url) property).
 
     The file should be in the format created by Castle Game Engine Editor
     (serialized by CastleComponentSerialize routines) with .castle-transform extension. }
@@ -34,14 +34,16 @@
         loaded by TransformLoad by simple FreeAndNil(FDesignOwner). }
       FDesignOwner: TComponent;
       FDesignObserver: TFreeNotificationObserver;
-      FURL: String;
-      FRevertURL: String;
-    procedure SetURL(const Value: String);
+      FUrl: String;
+      FUrlMonitoring: TUrlMonitoring;
+      FRevertUrl: String;
+    procedure SetUrl(const Value: String);
     procedure DesignFreeNotification(const Sender: TFreeNotificationObserver);
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
+    procedure BeforeDestruction; override;
 
     { Find by name a component in currently loaded design.
       When the name is not found, raises exception (unless Required is @false,
@@ -51,6 +53,11 @@
 
     function FindRequiredComponent(const ComponentName: String): TComponent; deprecated 'use DesignedComponent(ComponentName)';
     function FindComponent(const ComponentName: String): TComponent; deprecated 'use DesignedComponent(ComponentName, false)';
+
+    { Load again the design from @link(Url).
+      This makes sense to be used when underlying file on disk
+      changed, and you want to reload it. }
+    procedure ReloadUrl;
   published
     { Load file with the transform design.
       The file should be in the format created by Castle Game Engine Editor
@@ -68,16 +75,16 @@
         MyScene: TCastleScene;
       begin
         MyDesign := TCastleTransformDesign.Create(...);
-        MyDesign.URL := 'castle-data:/my_transform.castle-transform';
+        MyDesign.Url := 'castle-data:/my_transform.castle-transform';
         MyScene := MyDesign.DesignedComponent('MyScene') as TCastleScene;
         MyScene.Translation := Vector3(1, 2, 3);
       end;
       #)
     }
-    property URL: String read FURL write SetURL;
+    property Url: String read FUrl write SetUrl;
 
     { URL used to perform editor "Revert" operation. }
-    property RevertURL: String read FRevertURL write FRevertURL;
+    property RevertUrl: String read FRevertUrl write FRevertUrl;
   end;
 
 {$endif read_interface}
@@ -91,10 +98,17 @@ begin
   inherited;
   FDesignObserver := TFreeNotificationObserver.Create(Self);
   FDesignObserver.OnFreeNotification := {$ifdef FPC}@{$endif}DesignFreeNotification;
+  FUrlMonitoring.Init({$ifdef FPC}@{$endif} ReloadUrl);
 end;
 
 destructor TCastleTransformDesign.Destroy;
 begin
+  inherited;
+end;
+
+procedure TCastleTransformDesign.BeforeDestruction;
+begin
+  FUrlMonitoring.Finish(FUrl);
   inherited;
 end;
 
@@ -103,11 +117,11 @@ begin
   FDesign := nil;
 end;
 
-procedure TCastleTransformDesign.SetURL(const Value: String);
+procedure TCastleTransformDesign.SetUrl(const Value: String);
 const
   MaxLoadDepth = 64; // 128 is too much for macOS/x86_64; although for Linux/x86_64 even 1024 was OK
 begin
-  if FURL <> Value then
+  if FUrl <> Value then
   begin
     if FDesign <> nil then
     begin
@@ -115,7 +129,11 @@ begin
       Assert(FDesign = nil); // DesignFreeNotification should set FDesign to nil
     end;
 
-    FURL := Value;
+    { TODO: Disable auto-reloading of designs for now, fearing it will cause
+      more problems than gains: reloading the design invalidates all
+      the references to components inside. }
+    //FUrlMonitoring.ChangeUrl(FUrl, Value);
+    FUrl := Value;
 
     if Value <> '' then
     begin
@@ -138,7 +156,7 @@ begin
         begin
           if CastleDesignMode then
           begin
-            WritelnWarning('TCastleTransformDesign', 'Failed to load design "%s": %s', [URIDisplay(URL), ExceptMessage(E)]);
+            WritelnWarning('TCastleTransformDesign', 'Failed to load design "%s": %s', [UriDisplay(Url), ExceptMessage(E)]);
             Exit;
           end else
             raise;
@@ -160,7 +178,7 @@ end;
 function TCastleTransformDesign.PropertySections(
   const PropertyName: String): TPropertySections;
 begin
-  if PropertyName = 'URL' then
+  if PropertyName = 'Url' then
     Result := [psBasic]
   else
     Result := inherited PropertySections(PropertyName);
@@ -186,6 +204,15 @@ end;
 function TCastleTransformDesign.FindComponent(const ComponentName: String): TComponent;
 begin
   Result := DesignedComponent(ComponentName, false);
+end;
+
+procedure TCastleTransformDesign.ReloadUrl;
+var
+  SavedUrl: String;
+begin
+  SavedUrl := Url;
+  Url := '';
+  Url := SavedUrl;
 end;
 
 {$endif read_implementation}

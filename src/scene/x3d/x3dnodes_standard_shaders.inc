@@ -77,11 +77,11 @@
   TShaderPartNode = class(TAbstractNode)
   strict private
     ContentsCached: boolean;
-    ContentsCache: string;
+    ContentsCache: String;
     procedure EventUrlReceive(
       const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
-    function GetContents: string;
-    procedure SetContents(const Value: string);
+    function GetContents: String;
+    procedure SetContents(const Value: String);
   public
     constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
 
@@ -95,7 +95,7 @@
       (loading errors are reported to WritelnWarning).
 
       Setting this overrides the URL field, to specify only the given shader code. }
-    property Contents: string read GetContents write SetContents;
+    property Contents: String read GetContents write SetContents;
 
   {$I auto_generated_node_helpers/x3dnodes_shaderpart.inc}
   end;
@@ -162,9 +162,9 @@ begin
   CDataField := FdUrl;
 end;
 
-function ShaderLoadContents(const Node: TX3DNode; const FdUrl: TMFString): string;
+function ShaderLoadContents(const Node: TX3DNode; const FdUrl: TMFString): String;
 
-  function IsDirectShaderSource(const S: string): boolean;
+  function IsDirectShaderSource(const S: String): boolean;
   { URL is recognized as direct shader source if it
     doesn't start with any protocol *and*
     has some newlines (needed to recognize relative URLs without
@@ -175,7 +175,7 @@ function ShaderLoadContents(const Node: TX3DNode; const FdUrl: TMFString): strin
 
 var
   I: Integer;
-  FullUrl, MimeType: string;
+  FullUrl, MimeType: String;
 begin
   Result := '';
 
@@ -198,13 +198,13 @@ begin
         on E: Exception do
           { Remember that WritelnWarning *may* raise an exception. }
           WritelnWarning('VRML/X3D', Format(SLoadError,
-            [E.ClassName, 'shader source', URIDisplay(FullUrl), E.Message]));
+            [E.ClassName, 'shader source', UriDisplay(FullUrl), E.Message]));
       end;
     end;
   end;
 end;
 
-function TShaderPartNode.GetContents: string;
+function TShaderPartNode.GetContents: String;
 begin
   if not ContentsCached then
   begin
@@ -214,7 +214,7 @@ begin
   Result := ContentsCache;
 end;
 
-procedure TShaderPartNode.SetContents(const Value: string);
+procedure TShaderPartNode.SetContents(const Value: String);
 begin
   SetUrl(['data:text/plain,' + Value]);
 

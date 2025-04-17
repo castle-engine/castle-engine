@@ -20,8 +20,8 @@ unit TestX3DFields;
 interface
 
 uses
-  Classes, SysUtils, {$ifndef CASTLE_TESTER}FpcUnit, TestUtils, TestRegistry,
-  CastleTestCase{$else}CastleTester{$endif}, X3DFields, X3DTime;
+  Classes, SysUtils,
+  CastleTester, X3DFields, X3DTime;
 
 type
   TTestX3DFields = class(TCastleTestCase)

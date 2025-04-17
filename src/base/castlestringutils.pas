@@ -1,5 +1,5 @@
 {
-  Copyright 2000-2022 Michalis Kamburelis.
+  Copyright 2000-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -297,18 +297,39 @@ function FirstDelimiter(const Delimiters, S: string): Integer;
   Yes, this is simply equivalent to Copy(S, P, MaxInt). }
 function SEnding(const s: string; P: integer): string;
 
+{ Does given string S start with Prefix. }
 function IsPrefix(const Prefix, S: string;
   IgnoreCase: boolean = true): boolean; overload;
+
+{ Does given string S end with Suffix. }
 function IsSuffix(const Suffix, S: string;
   IgnoreCase: boolean = true): boolean; overload;
+
+{ Does given string S start with Prefix and end with Suffix,
+  moreover the prefix and suffix are not overlapping.
+
+  We check the "overlapping" condition to guarantee that the prefix and suffix
+  can be removed independently and their order of removal doesn't matter.
+  For example @code(IsPrefixSuffix('bla', 'abc', 'blaMIDDLEabc')) returns @true,
+  but @code(IsPrefixSuffix('bla', 'abc', 'blabc')) returns @false. }
+function IsPrefixSuffix(const Prefix, Suffix, S: String;
+  const IgnoreCase: Boolean = true): Boolean;
 
 { Removes the prefix, if it is present. More precisely, if
   IsPrefix(Prefix, S, IgnoreCase) then returns S with this prefix
   removed. Else returns S. }
 function PrefixRemove(const Prefix, S: string; IgnoreCase: boolean): string;
 
-{ Like PrefixRemove, but checks for and removes Suffix. }
+{ Removes the suffix, if it is present. }
 function SuffixRemove(const Suffix, S: string; IgnoreCase: boolean): string;
+
+{ Removes the prefix and suffix, if they are both present.
+
+  Just like @link(IsPrefixSuffix), we check the "overlapping" condition.
+  If the prefix and suffix overlap, we do nothing.
+  For example @code(PrefixSuffixRemove('bla', 'abc', 'blaMIDDLEabc')) returns @code('MIDDLE'),
+  but @code(IsPrefixSuffix('bla', 'abc', 'blabc')) returns unmodified @code('blabc'). }
+function PrefixSuffixRemove(const Prefix, Suffix, S: String; const IgnoreCase: Boolean): String;
 
 { Appends to a string S DataSize bytes from Data. }
 procedure SAppendData(var s: string; const Data; DataSize: integer); deprecated 'this function is not very useful';
@@ -327,9 +348,13 @@ function SCharIs(const S: String; const Index: Integer; const chars: TSetOfChars
 
 { Replace typically unreadable characters in string S with #number notation.
   Useful for printing strings with some unprintable chars for
-  debugging purposes. }
-function SReadableForm(const S: string): string; overload;
-function SReadableForm(const C: char): string; overload;
+  debugging purposes.
+
+  Note: In case String may contain Unicode characters, use
+  UnicodeCharToReadableString instead, after deconstructing the string
+  to Unicode characters using e.g. TCastleStringIterator. }
+function SReadableForm(const S: String): String; overload;
+function SReadableForm(const C: Char): String; overload;
 
 { Return S[StartPosition..EndPosition].
   This is similar to standard Copy procedure,
@@ -376,6 +401,10 @@ procedure DeletePos(var S: string; StartPosition, EndPosition: Integer);
   But this procedure gives you quite more flexibility. *)
 function NextToken(const S: string; var SeekPos: Integer;
   const TokenDelims: TSetOfChars = WhiteSpaces): string;
+
+{ Count the amount of tokens in the string }
+function CountTokens(const S: String;
+  const TokenDelims: TSetOfChars = WhiteSpaces): Integer;
 
 { NextTokenOnce works just like NextToken, but doesn't advance the SeekPos
   position. This means that it's quite useless when you're interested
@@ -594,48 +623,6 @@ function TryDeFormat(Data: string; const Format: string;
   const IgnoreCase: boolean = true;
   const RelaxedWhitespaceChecking: boolean = true): integer; overload;
 
-{$ifdef FPC}
-{ Extract file extensions from a file filter usually specified
-  a TOpenDialog.Filter value.
-
-  More precisely: expects FileFilter to be in the form of
-  @code('xxxx|name1.ext1;name2.ext2'). Where "xxxx" is just about anything
-  (it is ignored), and in fact whole "xxxx|" (with bar) may be omitted.
-  The rest (after "|") is treated as a filename list, separated by semicolon ";".
-
-  As Extensions contents, we set an array of all extensions extracted from these
-  filenames. For example above, we would set Extensions to array
-  with two items: @code(['.ext1', '.ext2']). }
-procedure GetFileFilterExts(const FileFilter: string; Extensions: TStringList);
-  deprecated 'use TFileFilter and TFileFilterList, and then you will not have to deconstruct your filters back from string';
-
-{ Extract file filter name, from a file filter usually specified
-  a TOpenDialog.Filter value.
-
-  More precisely: if we do not see bar "|" character, then this is
-  the filter name. Otherwise, everything on the right of "|" is "extensions"
-  and everything on the left is "filter name".
-
-  Additionally, if filter name ends with extensions value in parenthesis,
-  they are removed. In other words, for 'Pascal files (*.pas)|*.pas',
-  this will return just 'Pascal files'. The '(*.pas)' was removed
-  from the filter name, because we detected this just repeats the extensions
-  on the right of "|". Extensions on the right of "|" must be separated by
-  semicolons, extensions within parenthesis on the left of "|" may
-  be separated by semicolons ";" or colons ",". }
-function GetFileFilterName(const FileFilter: string): string;
-  deprecated 'use TFileFilter and TFileFilterList, and then you will not have to deconstruct your filters back from string';
-
-{ Search in FileFilter for the bar character "|", and return everything
-  after it. This is a simple basis for GetFileFilterExts.
-
-  If no "|" found, we return an empty string (in other words,
-  file filter without "|" is treated as just a filter name, without
-  any extensions). }
-function GetFileFilterExtsStr(const FileFilter: string): string;
-  deprecated 'use TFileFilter and TFileFilterList, and then you will not have to deconstruct your filters back from string';
-{$endif}
-
 { Replace all strings in Patterns with corresponding strings in Values.
   This is similar to standard StringReplace, but this does many
   replacements at once. This is just like StrUtils.StringsReplace in FPC.
@@ -669,6 +656,11 @@ function GetFileFilterExtsStr(const FileFilter: string): string;
 function SReplacePatterns(const s: string; const patterns, values: array of string; const IgnoreCase: boolean): string; overload;
 function SReplacePatterns(const s: string; const patterns, values: TStrings; const IgnoreCase: boolean): string; overload;
 function SReplacePatterns(const s: string; const Parameters: TStringStringMap; const IgnoreCase: boolean): string; overload;
+
+{$ifndef FPC}
+{ Does InputStr match Wildcards (with * and ?). }
+function IsWild(const InputStr, Wildcards: string; const IgnoreCase: Boolean): Boolean;
+{$endif}
 
 function SCharsCount(const s: string; c: char): Cardinal; overload;
 function SCharsCount(const s: string; const Chars: TSetOfChars): Cardinal; overload;
@@ -1249,7 +1241,7 @@ begin
   Result := inherited Items[AKey];
 end;
 
-procedure TStringStringMap.SetItems(const AKey: string; const AValue: string);
+procedure TStringStringMap.SetItems(const AKey: string; const AValue: String);
 begin
   AddOrSetValue(AKey, AValue);
 end;
@@ -1496,7 +1488,8 @@ end;
 function PrefixRemove(const Prefix, S: string; IgnoreCase: boolean): string;
 begin
   if IsPrefix(Prefix, S, IgnoreCase) then
-    Result := SEnding(S, Length(Prefix) + 1) else
+    Result := SEnding(S, Length(Prefix) + 1)
+  else
     Result := S;
 end;
 
@@ -1509,6 +1502,22 @@ begin
       than doing Result := Copy(S, 1, ...) }
     SetLength(Result, Length(s) - Length(Suffix));
   end;
+end;
+
+function IsPrefixSuffix(const Prefix, Suffix, S: String; const IgnoreCase: Boolean): Boolean;
+begin
+  Result :=
+    (Length(S) >= Length(Prefix) + Length(Suffix)) and
+    IsPrefix(Prefix, S, IgnoreCase) and
+    IsSuffix(Suffix, S, IgnoreCase);
+end;
+
+function PrefixSuffixRemove(const Prefix, Suffix, S: String; const IgnoreCase: Boolean): String;
+begin
+  if IsPrefixSuffix(Prefix, Suffix, S, IgnoreCase) then
+    Result := Copy(S, Length(Prefix) + 1, Length(S) - Length(Prefix) - Length(Suffix))
+  else
+    Result := S;
 end;
 
 procedure SAppendData(var s: string; const Data; DataSize: integer);
@@ -1540,7 +1549,7 @@ begin
   Result := (Index <= Length(S)) and CharInSet(S[Index], chars);
 end;
 
-function SReadableForm(const S: string): string;
+function SReadableForm(const S: String): String;
 var
   I: Integer;
 begin
@@ -1580,7 +1589,7 @@ begin
   until false;
   TokStart := SeekPos; { TokStart := first character not in TokenDelims }
 
-  while (SeekPos <= Length(s)) and
+  while (SeekPos <= Length(S)) and
     not CharInSet(S[SeekPos], TokenDelims) do
     Inc(SeekPos);
 
@@ -1590,6 +1599,32 @@ begin
   { We don't have to do Inc(seekPos) below. But it's obvious that searching
     for next token can skip SeekPos, since we know S[SeekPos] is TokenDelim. }
   Inc(SeekPos);
+end;
+
+function CountTokens(const S: String; const TokenDelims: TSetOfChars): Integer;
+var
+  I: Integer;
+  IsToken: Boolean;
+begin
+  Result := 0;
+  IsToken := false;
+  for I := 1 to Length(S) do
+  begin
+    if IsToken then
+    begin
+      { Inside token? Then detect token end. }
+      if CharInSet(S[I], TokenDelims) then
+        IsToken := false;
+    end else
+    begin
+      { Not inside token? Then detect token begin. }
+      if not CharInSet(S[I], TokenDelims) then
+      begin
+        IsToken := true;
+        Inc(Result);
+      end;
+    end;
+  end;
 end;
 
 function NextTokenOnce(const s: string; SeekPos: integer;
@@ -1748,11 +1783,12 @@ begin
   result := Copy(s, Length(s)-rpart+1, rpart);
 end;
 
-function SAppendPart(const s, PartSeparator, NextPart: string): string;
+function SAppendPart(const S, PartSeparator, NextPart: String): String;
 begin
- if s = '' then
-  result := NextPart else
-  result := s+PartSeparator+NextPart;
+  if S = '' then
+    Result := NextPart
+  else
+    Result := S + PartSeparator + NextPart;
 end;
 
 procedure DeFormat(Data: string; const Format: string;
@@ -1957,100 +1993,6 @@ begin
     'data ''%s'' too long - unexpected end of format ''%s''', [Data, Format]);
 end;
 
-{$ifdef FPC}
-procedure GetFileFilterExts(const FileFilter: string; Extensions: TStringList);
-var
-  p, SeekPos: integer;
-  ExtsStr, filemask: string;
-begin
-  Extensions.Clear;
-  {$warnings off} // using deprecated in deprecated
-  ExtsStr := GetFileFilterExtsStr(FileFilter);
-  {$warnings on}
-  SeekPos := 1;
-  repeat
-    filemask := NextToken(ExtsStr, SeekPos,[';']);
-    if filemask = '' then break;
-    p := Pos('.', filemask);
-    if p > 0 then
-      Delete(filemask, 1, p-1) else { delete name from filemask }
-      filemask := '.'+filemask; { it means there was no name and dot in filemask. So prepend dot. }
-    Extensions.Add(filemask);
-  until false;
-end;
-
-function GetFileFilterName(const FileFilter: string): string;
-var
-  Left, Right: string;
-  LeftUpperCase, RightUpperCase: string;
-  p, len: integer;
-begin
-  p := Pos('|', FileFilter);
-  if p = 0 then result := Trim(FileFilter) else
-  begin
-    Left := Trim(Copy(FileFilter, 1, p-1));
-    Right := Trim(SEnding(FileFilter, p+1));
-    if Right = '' then
-    begin
-      result := Left;
-      { if FileFilter = 'xxx()|' then it matches to pattern 'xxx(exts)|exts'
-        so we should return 'xxx', not 'xxx()'.
-        This is often really useful when FileFilter was constructed in an
-        automatic way (e.g. as in mine edytorek). }
-      if IsSuffix('()', Result) then
-      begin
-        SetLength(Result, Length(Result)-2);
-        { trim once again to delete rightmost whitespace (as in 'xxx ()|') }
-        Result := TrimRight(Result);
-      end;
-    end else
-    begin
-      // convert to uppercase to search ignoring case with RPos below
-      LeftUpperCase := AnsiUpperCase(Left);
-      RightUpperCase := AnsiUpperCase(Right);
-      p := RPos(RightUpperCase, LeftUpperCase);
-      if p = 0 then
-        p := RPos(SReplaceChars(RightUpperCase, ';', ','), LeftUpperCase);
-      if p = 0 then result := Left else
-      begin
-        len := Length(Right);
-        {zwieksz len tak zeby objelo biale znaki az do ')'}
-        while p+len <= Length(Left) do
-        begin
-          if Left[p+len] = ')' then
-            begin Inc(len); break end else
-          if Left[p+len] in WhiteSpaces then
-            Inc(len) else
-            break;
-        end;
-        {zmniejsz p tak zeby objelo biale znaki az do '('}
-        while p-1 >= 1 do
-        begin
-          if Left[p-1] = '(' then
-            begin Dec(p); Inc(len); break end else
-          if Left[p-1] in WhiteSpaces then
-            begin Dec(p); Inc(len) end else
-            break;
-        end;
-        {koniec; wypieprz p, len}
-        Delete(Left, p, len);
-        result := Trim(Left);
-      end;
-    end;
-  end;
-end;
-
-function GetFileFilterExtsStr(const FileFilter: string): string;
-var
-  p: integer;
-begin
-  p := Pos('|', FileFilter);
-  if p > 0 then
-    result := SEnding(FileFilter, p+1) else
-    result := '';
-end;
-{$endif}
-
 function SReplacePatterns(const S: string;
   const Patterns, Values: array of string; const IgnoreCase: boolean): string;
 begin
@@ -2070,6 +2012,24 @@ function SReplacePatterns(const S: string;
 begin
   Result := SReplacePatterns(S, Patterns.ToArray, Values.ToArray, IgnoreCase);
 end;
+
+{$ifndef FPC}
+function IsWild(const InputStr, Wildcards: string; const IgnoreCase: Boolean): Boolean;
+var
+  Regex: string;
+  RegexOptions: TRegExOptions;
+begin
+  { TODO: This is not perfect, as it doesn't handle all the quoting for special
+    characters in InputStr that could mean something special for regex.
+    But it's good enough for now.}
+  Regex := SReplacePatterns(Wildcards, ['.', '*', '?'], ['\.', '.*', '.'], IgnoreCase);
+  if IgnoreCase then
+    RegexOptions := [roIgnoreCase]
+  else
+    RegexOptions := [];
+  Result := TRegEx.IsMatch(InputStr, Regex, RegexOptions);
+end;
+{$endif}
 
 function SCharsCount(const S: string; C: char): Cardinal;
 var

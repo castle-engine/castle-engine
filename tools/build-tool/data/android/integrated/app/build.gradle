@@ -1,6 +1,8 @@
 apply plugin: 'com.android.application'
 
 android {
+    namespace "${QUALIFIED_NAME}"
+
     compileSdkVersion ${ANDROID_COMPILE_SDK_VERSION}
 
     defaultConfig {
@@ -16,12 +18,31 @@ android {
             // See also https://code.google.com/p/android/issues/detail?id=220615
             abiFilters ${ANDROID_ABI_LIST}
         }
+
+        externalNativeBuild {
+            cmake {
+                /* -DANDROID_STL=c++_shared:
+                   Necessary for OpenAL and Oboe, see
+                   https://developer.android.com/games/sdk/oboe/update-build-settings
+                */
+                arguments '-DANDROID_STL=c++_shared', '-DCMAKE_BUILD_TYPE=Release'
+            }
+        }
+
     }
+
     buildTypes {
         release {
             minifyEnabled = false
             // Not using proguard now
             // proguardFiles.add(file('proguard-rules.txt'))
+        }
+    }
+
+    /* Why two externalNativeBuild/cmake sections? See: https://stackoverflow.com/questions/64829357/specify-targets-in-externalnativebuild-of-the-build-gradle-file-no-signature-o */
+    externalNativeBuild {
+        cmake {
+            path 'src/main/CMakeLists.txt'
         }
     }
 
@@ -46,6 +67,12 @@ android {
     compileOptions {
         sourceCompatibility 1.8
         targetCompatibility 1.8
+    }
+
+    /* Necessary for Oboe,
+       https://developer.android.com/games/sdk/oboe/update-build-settings */
+    buildFeatures {
+        prefab true
     }
 }
 

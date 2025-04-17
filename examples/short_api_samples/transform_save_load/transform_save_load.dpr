@@ -1,4 +1,7 @@
 { TransformSave and TransformLoad example. }
+
+{$apptype CONSOLE}
+
 uses SysUtils, Classes,
   CastleLog, CastleVectors, CastleTransform, CastleScene, CastleComponentSerialize;
 var
@@ -31,7 +34,7 @@ begin
   { Now you can load them from file, and check that they are equal. }
   Transform := TransformLoad('aaa.castle-transform', TransformOwner);
   WritelnLog('Loaded transform, with translation %s, with %d children', [
-    Transform.ToString,
+    Transform.Translation.ToString,
     Transform.Count
   ]);
   Scene := TransformOwner.FindRequiredComponent('MyScene') as TCastleScene;

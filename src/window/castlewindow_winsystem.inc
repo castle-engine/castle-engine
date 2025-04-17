@@ -172,7 +172,7 @@ begin
     { If we do not do anything in any Application Update/Timer
       (this is checked by AllowSuspendForInput),
       and there's no reason to redisplay,
-      and we're not during quit process (started by Application.Quit),
+      and we're not during quit process (started by Application.Terminate),
       => then we can wait, giving OS/CPU some rest (as opposed to doing
       "busy waiting"). }
     WaitForMessage := WaitForMessage and Application.AllowSuspendForInput and
@@ -203,9 +203,8 @@ begin
   inherited Run; // calls DoRun, surrounded by HandleException, in a loop
 end;
 
-procedure TCastleApplication.QuitWhenNoOpenWindows;
+procedure TCastleApplication.BackendTerminate;
 begin
-  Terminate; // set Terminated := true
 end;
 
 {$endif read_implementation}

@@ -29,7 +29,7 @@ type
     { Use TOneLayerPropertyEditor to show nice names for layers when expanded in object inspector. }
     procedure GetProperties(Proc: TGetPropEditProc); override;
     { Makes value in object inspector look nice. }
-    function OrdValueToVisualValue(OrdValue: LongInt): String; override;
+    function OrdValueToVisualValue(OrdValue: Integer): String; override;
     function GetAttributes: TPropertyAttributes; override;
   end;
 
@@ -85,7 +85,7 @@ begin
       Proc(TOneLayerPropertyEditor.Create(Self, I));
 end;
 
-function TTiledLayersPropertyEditor.OrdValueToVisualValue(OrdValue: LongInt): String;
+function TTiledLayersPropertyEditor.OrdValueToVisualValue(OrdValue: Integer): String;
 var
   Layers: TCastleTiledMap.TLayers;
   LayerIndex: TCastleTiledMap.TLayerIndex;
@@ -105,17 +105,7 @@ end;
 
 function TTiledLayersPropertyEditor.GetAttributes: TPropertyAttributes;
 begin
-  Result := (inherited GetAttributes)
-
-    { Don't sort, would make weird (for integers) string sorting like 0, 1, 11, 12, ... 19, 2, 20, ...
-
-      Later: Unfortunately, removing paSortList achieves nothing.
-      paSortList only controls sorting of GetValues.
-      It doesn't control sorting of rows, which is just not controllable (at least in Lazarus),
-      it's hardcoded to do string sorting by TPropInfoList.Sort. }
-    //- [paSortList]
-
-    + [paDialog];
+  Result := (inherited GetAttributes) + [paDialog];
 end;
 
 { TOneLayerPropertyEditor ---------------------------------------------------- }
@@ -129,5 +119,8 @@ end;
 
 function TOneLayerPropertyEditor.GetName: ShortString;
 begin
-  Result := IntToStr(FElementToShow);
+  { Show single-digit numbers like 1 with a leading space, ' 1',
+    so that the layers are nicely sorted 1, 2, ... 9, 10, 11, ... in the object
+    inspector. }
+  Result := Format('%2d',[FElementToShow]);
 end;

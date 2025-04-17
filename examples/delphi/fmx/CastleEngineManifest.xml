@@ -5,5 +5,9 @@ Specify basic information about the project, including how this project is build
 See https://castle-engine.io/project_manifest for documentation of this file.
 -->
 
-<project name="castle_delphi_fmx" standalone_source="CastleFmx.dpr" compiler="delphi">
+<project name="castle_delphi_fmx"
+  standalone_source="CastleFmx.dpr"
+  compiler="delphi"
+  qualified_name="io.castleengine.delphi.fmx"
+>
 </project>

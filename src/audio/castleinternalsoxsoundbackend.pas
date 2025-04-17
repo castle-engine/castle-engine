@@ -37,7 +37,7 @@ uses SysUtils, Classes, Math, Process, StrUtils,
   CastleVectors, CastleTimeUtils, CastleXMLConfig,
   CastleClassUtils, CastleStringUtils, CastleInternalSoundFile,
   CastleInternalAbstractSoundBackend, CastleSoundBase, CastleSoundEngine,
-  CastleLog, CastleUtils, CastleURIUtils, CastleFilesUtils;
+  CastleLog, CastleUtils, CastleUriUtils, CastleFilesUtils;
 
 { sound backend classes interface -------------------------------------------- }
 
@@ -102,7 +102,7 @@ begin
     However we need TSoundFile to know the Duration of the sound correctly,
     which we will later use for PlayingOrPaused implementation. }
 
-  FileName := URIToFilenameSafe(SoundFile.URL);
+  FileName := UriToFilenameSafe(SoundFile.URL);
   { Workaround sox on Windows being unable to process filenames with backslashes. }
   {$ifdef MSWINDOWS}
   FileName := SReplaceChars(FileName, '\', '/');

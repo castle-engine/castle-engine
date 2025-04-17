@@ -30,7 +30,7 @@
     NodeUsedAsChild: boolean;
     constructor Create;
     destructor Destroy; override;
-    procedure BuildNodes(const BaseUrl: string;
+    procedure BuildNodes(const BaseUrl: String;
       const Time: TSingleList; const MaxAnimationTime: Single;
       const Container: TX3DRootNode);
   end;
@@ -65,7 +65,7 @@ begin
   inherited;
 end;
 
-procedure TDrawOrderTimeline.BuildNodes(const BaseUrl: string;
+procedure TDrawOrderTimeline.BuildNodes(const BaseUrl: String;
   const Time: TSingleList; const MaxAnimationTime: Single;
   const Container: TX3DRootNode);
 var

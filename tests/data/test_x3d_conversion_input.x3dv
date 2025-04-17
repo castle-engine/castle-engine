@@ -2,7 +2,7 @@
 
 PROFILE Full
 
-# Testcase from https://github.com/castle-engine/view3dscene/issues/55
+# Testcase from https://github.com/castle-engine/castle-model-viewer/issues/55
 
 Viewpoint {
  fieldOfView .4

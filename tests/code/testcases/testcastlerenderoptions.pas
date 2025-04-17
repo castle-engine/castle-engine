@@ -20,8 +20,8 @@ unit TestCastleRenderOptions;
 interface
 
 uses
-  Classes, SysUtils, {$ifndef CASTLE_TESTER}FpcUnit, TestUtils, TestRegistry,
-  CastleTestCase{$else}CastleTester{$endif};
+  Classes, SysUtils,
+  CastleTester;
 
 type
   TTestCastleRenderOptions = class(TCastleTestCase)

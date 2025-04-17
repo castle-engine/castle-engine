@@ -98,7 +98,7 @@ GeoLOD : X3DChildNode, X3DBoundedObject {
     range: [0,Inf) or -1 -1 -1
 }
 
-GeoMetadata : X3DInfoNode {
+GeoMetadata : X3DInfoNode, X3DUrlObject {
   MFNode   [in,out] data     []
     range: X3DNode
     change: chNone

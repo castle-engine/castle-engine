@@ -1,6 +1,6 @@
 {%MainUnit x3dnodes.pas}
 {
-  Copyright 2002-2023 Michalis Kamburelis.
+  Copyright 2002-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -128,20 +128,20 @@
   end;
   TGroupNode_2 = TGroupNode;
 
-  { Map String->LongInt. }
-  TStringLongIntMap = class({$ifdef FPC}specialize{$endif} TDictionary<string, LongInt>)
+  { Map String->Integer. }
+  TStringIntegerMap = class({$ifdef FPC}specialize{$endif} TDictionary<string, Integer>)
   strict private
-    function GetItems(const AKey: string): LongInt;
-    procedure SetItems(const AKey: string; const AValue: LongInt);
+    function GetItems(const AKey: string): Integer;
+    procedure SetItems(const AKey: string; const AValue: Integer);
   public
-    { Assign contents (all keys, values) of another TStringLongIntMap instance. }
-    procedure Assign(const Source: TStringLongIntMap);
+    { Assign contents (all keys, values) of another TStringIntegerMap instance. }
+    procedure Assign(const Source: TStringIntegerMap);
 
     { Access dictionary items.
       Setting this is allowed regardless if the key previously existed or not,
       in other words: setting this does AddOrSetValue, contrary to the ancestor TDictionary
       that only allows setting when the key already exists. }
-    property Items [const AKey: string]: LongInt read GetItems write SetItems; default;
+    property Items [const AKey: string]: Integer read GetItems write SetItems; default;
   end;
 
   { Node functionality for all X3D transformation nodes.
@@ -192,14 +192,20 @@
       FHasForceVersion: boolean;
       FSaveAsRootNode: boolean;
       FProfile: string;
-      FComponents: TStringLongIntMap;
+      FComponents: TStringIntegerMap;
       FMeta: TStringStringMap;
       FScale: Single;
   private
     FPrototypeNames: TX3DPrototypeNames;
     FExportedNames: TX3DExportList;
     FImportedNames: TX3DNodeNames;
-    procedure TopLevelCheckChild(const Child: TX3DNode);
+
+    { Add the node to this node.
+      It usually means adding to FdChildren, but with some additional checks.
+      FileTopLevel indicates if this TX3DRootNode is actually the root
+      of X3D file, @false means this TX3DRootNode is only a root inside
+      a prototype. }
+    procedure AddRootNode(const NewNode: TX3DNode; const FileTopLevel: Boolean);
   protected
     function DeepCopyCore(CopyState: TX3DNodeDeepCopyState): TX3DNode; override;
 
@@ -249,19 +255,34 @@
 
     { Components and levels required for this X3D file.
       Relevant if this node is the root of X3D file. }
-    property Components: TStringLongIntMap read FComponents;
+    property Components: TStringIntegerMap read FComponents;
 
     { Meta keys and values of this X3D file.
       Relevant if this node is the root of X3D file. }
     property Meta: TStringStringMap read FMeta;
 
     { Set properties to force saving this node graph as X3D.
-      If we're already configured to save as X3D (major version >= 3)
+      If we're already configured to save as X3D (current major version >= 3)
       then do nothing. Otherwise, sets major/minor versions
-      (by default: for X3D 3.2; make sure AMajor is >= 3)
-      and sets X3D profile (default: Interchange). }
-    procedure ForceSaveAsX3D(const AMajor: Integer = 3;
-      const AMinor: Integer = 2;
+      (by default: for X3D 4.0, Interchange profile).
+
+      Provided AMajor must be >= 3, since X3D version is always >= 3.
+
+      This works to indicate convert VRML 2.0 to X3D.
+      We simply change ForceVersion used to save to indicate X3D version.
+      This is a reasonable conversion of VRML 2 -> X3D (except NURBS nodes,
+      which are incompatible between VRML 2.0 and X3D and at this point
+      not dealt by this conversion correctly).
+
+      This should not be used if the original file version
+      indicates that it's an old VRML 1.0 or Inventor file,
+      as we have not implemented convertion from VRML 1.0/Inventor to X3D.
+      So it wil result in VRML 1.0/Inventor nodes saved using
+      the X3D (XML or classic) encoding, which is not a format supported
+      by any X3D reader (even our own).
+      We will display a warning if you attempt this. }
+    procedure ForceSaveAsX3D(const AMajor: Integer = 4;
+      const AMinor: Integer = 0;
       const AProfile: string = 'Interchange');
 
     { Global prototype namespace at the end of parsing the file.
@@ -298,9 +319,20 @@
     { @groupEnd }
 
     { @exclude
-      Fix X3D names inside to make sure all nodes that are part of ROUTE have non-empty names.
-      See doc/miscellaneous_notes/avoid_renaming_node_names_at_import.md for documentation why we do this. }
+      Fix X3D names inside to make sure
+
+      - all nodes have empty, or unique names.
+      - all nodes that are part of ROUTE have non-empty names.
+
+      See https://castle-engine.io/gltf#unique_names
+      for documentation why we do this. }
     procedure InternalFixNodeNames;
+
+    { @exclude
+      Assign properties from another TX3DRootNode instance.
+      This touches a few TX3DRootNode-specific properties, like
+      HasForceVersion, ForceVersion, Profile, Components, Meta, Scale. }
+    procedure InternalAssignRootNodeProps(const Source: TX3DRootNode);
   end;
 
   { Children nodes which cannot be modified.
@@ -633,23 +665,23 @@ begin
   if Result <> nil then Exit;
 end;
 
-{ TStringLongIntMap ---------------------------------------------------------- }
+{ TStringIntegerMap ---------------------------------------------------------- }
 
-procedure TStringLongIntMap.Assign(const Source: TStringLongIntMap);
+procedure TStringIntegerMap.Assign(const Source: TStringIntegerMap);
 var
-  Pair: {$ifdef FPC}TDictionaryPair{$else}TPair<string, LongInt>{$endif};
+  Pair: {$ifdef FPC}TDictionaryPair{$else}TPair<string, Integer>{$endif};
 begin
   Clear;
   for Pair in Source do
     Items[Pair.Key] := Pair.Value;
 end;
 
-function TStringLongIntMap.GetItems(const AKey: string): LongInt;
+function TStringIntegerMap.GetItems(const AKey: string): Integer;
 begin
   Result := inherited Items[AKey];
 end;
 
-procedure TStringLongIntMap.SetItems(const AKey: string; const AValue: LongInt);
+procedure TStringIntegerMap.SetItems(const AKey: string; const AValue: Integer);
 begin
   AddOrSetValue(AKey, AValue);
 end;
@@ -668,12 +700,13 @@ end;
 { TFixNamesHandler ----------------------------------------------------------- }
 
 { Log renames done by TX3DRootNode.InternalFixNodeNames (to make node names
-  that are relevant for ROUTEs unique).
+  unique).
 
-  Disabled by default now, as it seemed too spammy, e.g. in case of glTF models in
+  It can be spammy, e.g. in case of glTF models in
   examples/viewport_and_scenes/occlusion_culling/ .
-  And it's also not that critical for usual case,
-  it only matters if someone wants to access renamed nodes using FindNode.
+  It is critical, if someone wants to access renamed nodes using FindNode...
+  but otherwise, it can be confusing (lots of logs,
+  and ignorable when you don't want to search for renamed nodes).
 }
 {.$define CASTLE_LOG_NODE_RENAMES}
 
@@ -718,10 +751,19 @@ function TFixNamesHandler.HandleNode(ParentNode, Node: TX3DNode): Pointer;
     This knows that Node.X3DName is <> '' and it exists in Names,
     IOW on entry the Node is named, and the name is not unique. }
   procedure RenameUniquely(const Node: TX3DNode);
+  type
+    { Type for index used to uniquely rename the node.
 
-    procedure RenameUniquelyCore(const Node: TX3DNode; const Prefix: String; NextNumber: Int64);
+      For implementation reasons (we store it in TStringList objects),
+      size of this needs to match Pointer.
+      Again for implementation reasons, needs to be signed, because we sometimes
+      have -1 value in this type (though we don't store this in
+      TStringList objects). }
+    TUniqueNumber = PtrInt;
+
+    procedure RenameUniquelyCore(const Node: TX3DNode; const Prefix: String; NextNumber: TUniqueNumber);
     var
-      PrefixIndex: Integer;
+      PrefixIndex, MaybeNextNumber: TUniqueNumber;
     begin
       { Look for next free number for this prefix.
 
@@ -730,12 +772,21 @@ function TFixNamesHandler.HandleNode(ParentNode, Node: TX3DNode): Pointer;
 
         This optimization avoids spending longer and longer times
         to find unique names for names with the same prefix.
-        Testcase: https://github.com/castle-engine/view3dscene/issues/43
+        Testcase: https://github.com/castle-engine/castle-model-viewer/issues/43
         (received privately by Michalis, due to model being copyrighted).
       }
       PrefixIndex := Prefixes.IndexOf(Prefix);
       if PrefixIndex <> -1 then
-        MaxVar(NextNumber, PtrUInt(Prefixes.Objects[PrefixIndex]) + 1);
+      begin
+        { Delphi rejects using below MaxVar Int64 overload on Win64.
+          For safety, to not assume CPU-specific PtrInt = In64?
+          Makes sense, just implement this without MaxVar. }
+        // MaxVar(NextNumber, PtrInt(Prefixes.Objects[PrefixIndex]) + 1);
+
+        MaybeNextNumber := PtrInt(Prefixes.Objects[PrefixIndex]) + 1;
+        if MaybeNextNumber > NextNumber then
+          NextNumber := MaybeNextNumber;
+      end;
 
       while Names.IndexOf(Prefix + IntToStr(NextNumber)) <> -1 do
         Inc(NextNumber);
@@ -749,7 +800,7 @@ function TFixNamesHandler.HandleNode(ParentNode, Node: TX3DNode): Pointer;
 
   var
     I: Integer;
-    Number: Int64;
+    Number: TUniqueNumber;
     {$ifdef CASTLE_LOG_NODE_RENAMES}
     OriginalName: String;
     {$endif CASTLE_LOG_NODE_RENAMES}
@@ -773,7 +824,7 @@ function TFixNamesHandler.HandleNode(ParentNode, Node: TX3DNode): Pointer;
     {$ifdef CASTLE_LOG_NODE_RENAMES}
     if LogsDone < MaxLogsDone then
     begin
-      WritelnLog('Renaming node "%s" -> "%s" to have unique name; these renames are done to allow saving ROUTEs later', [
+      WritelnLog('Renaming node "%s" -> "%s" to have unique name. If you want to query for this node name, we recommend to not rely on the order of renames, and instead make the name unique in the input file.', [
         OriginalName,
         Node.X3DName
       ]);
@@ -828,17 +879,9 @@ begin
     Exit;
   Visited.Add(Node);
 
-  { make sure node name is unique.
-
-    Not done anymore: see discussion in doc/miscellaneous_notes/avoid_renaming_node_names_at_import.md .
-    These renames do not prevent 100% name clashes anyway,
-    and they are not expected and not reliable (from user's POV,
-    it is hard to predict which node gets _2, _3 suffix).
-  }
-  (*
+  { make sure node name is unique }
   if Node.X3DName <> '' then
     MakeUniquelyNamed(Node);
-  *)
 
   { make sure nodes used in ROUTEs are uniquely named }
   for I := 0 to Node.RoutesCount - 1 do
@@ -908,7 +951,7 @@ end;
 constructor TX3DRootNode.Create(const AX3DName, ABaseUrl: String);
 begin
   inherited;
-  FComponents := TStringLongIntMap.Create;
+  FComponents := TStringIntegerMap.Create;
   FMeta := TStringStringMap.Create;
   FSaveAsRootNode := true;
   FScale := 1;
@@ -966,6 +1009,16 @@ begin
     inherited;
 end;
 
+procedure TX3DRootNode.InternalAssignRootNodeProps(const Source: TX3DRootNode);
+begin
+  HasForceVersion := Source.HasForceVersion;
+  ForceVersion := Source.ForceVersion;
+  Scale := Source.Scale;
+  Profile := Source.Profile;
+  Components.Assign(Source.Components);
+  Meta.Assign(Source.Meta);
+end;
+
 function TX3DRootNode.DeepCopyCore(CopyState: TX3DNodeDeepCopyState): TX3DNode;
 var
   Res: TX3DRootNode;
@@ -974,12 +1027,8 @@ begin
 
   Res := Result as TX3DRootNode;
 
-  Res.HasForceVersion := HasForceVersion;
-  Res.ForceVersion := ForceVersion;
-  Res.Scale := Scale;
-  Res.Profile := Profile;
-  Res.Components.Assign(Components);
-  Res.Meta.Assign(Meta);
+  Res.InternalAssignRootNodeProps(Self);
+
   if ExportedNames <> nil then
   begin
     FreeAndNil(Res.FExportedNames);
@@ -992,10 +1041,16 @@ begin
   end;
 end;
 
-procedure TX3DRootNode.ForceSaveAsX3D(const AMajor: Integer = 3;
-  const AMinor: Integer = 2;
-  const AProfile: string = 'Interchange');
+procedure TX3DRootNode.ForceSaveAsX3D(const AMajor, AMinor: Integer;
+  const AProfile: String);
 begin
+  if AMajor < 3 then
+    raise Exception.Create('ForceSaveAsX3D requires AMajor >= 3, since this is X3D version and X3D version numbering starts at 3.0');
+
+  if HasForceVersion and
+     (ForceVersion.Major <= 1) then
+    WritelnWarning('Converting VRML 1.0 or Inventor to X3D is not implemented. You will get VRML 1.0/Inventor nodes encoded like for X3D, which is not much useful, nothing will be able to read this combination.');
+
   if (not HasForceVersion) or
      (ForceVersion.Major < 3) then
   begin
@@ -1011,28 +1066,62 @@ begin
   Result := false;
 end;
 
-procedure TX3DRootNode.TopLevelCheckChild(const Child: TX3DNode);
+procedure TX3DRootNode.AddRootNode(const NewNode: TX3DNode; const FileTopLevel: Boolean);
+
+  procedure TopLevelCheckChild(const Child: TX3DNode);
+  begin
+    { Why not do here FdChildren.WarningIfChildNotAllowed(Child)?
+      It already checks and warns if child is not TAbstractChildNode?
+
+      - The warning message of it could be confusing.
+        It exposes an implementation detail, that we have a
+        TX3DRootNode that descends from Group node.
+
+      - Moreover, we actually allow a bit more than TAbstractChildNode.
+
+        - TAbstractGeometryNode_1 to enable VRML 1.0 geometry nodes at top-level,
+          like in demo-models/vrml_1/castle_extensions/multi_root.wrl .
+
+        - LayerSet
+        - GeoOrigin
+          See "4.3.2 Root nodes" in X3D 4 spec,
+          https://www.web3d.org/specifications/X3Dv4Draft/ISO-IEC19775-1v4-IS.proof/Part01/concepts.html#Rootnodes .
+
+          Note that we don't allow here metadata nodes (TAbstractMetadataNode)
+          although spec allows them.
+          But we insert metadata to TX3DRootNode in a special way,
+          so that MyScene.RootNode.MetadataXxx[] API works,
+          and developers can query e.g. MyScene.RootNode.MetadataString['my_key'] .
+    }
+
+    if not (
+        (Child is TAbstractChildNode) or
+        (Child is TAbstractGeometryNode_1) or
+        (Child is TLayerSetNode) or
+        (Child is TGeoOriginNode)
+      ) then
+      WritelnWarning('VRML/X3D', Format('Node "%s" is not allowed at the top level of the X3D file',
+        [Child.X3DType]));
+  end;
+
 begin
-  { We could just do here FdChildren.WarningIfChildNotAllowed(Child),
-    but the warning message of it is a little unfriendly: it uncovers
-    to user that we have a special TX3DRootNode that descends from Group node.
-    So instead, do it by hand.
-
-    Also, add LayerSet (not allowed in Group.FdChildren).
-    This is special (see http://www.web3d.org/x3d/specifications/ISO-IEC-19775-1.2-X3D-AbstractSpecification/Part01/concepts.html#Rootnodes),
-    "4.3.2 Root nodes" from X3D 3.2 spec.
-
-    Also add TAbstractGeometryNode_1 to enable VRML 1.0 geometry nodes at top-level,
-    like in demo-models/vrml_1/castle_extensions/multi_root.wrl .
-  }
-
-  if not (
-       (Child is TAbstractChildNode) or
-       (Child is TAbstractGeometryNode_1) or
-       (Child is TLayerSetNode)
-     ) then
-    WritelnWarning('VRML/X3D', Format('Node "%s" is not allowed at the top level of the X3D file',
-      [Child.X3DType]));
+  if FileTopLevel then
+  begin
+    if NewNode is TAbstractMetadataNode then
+      InternalInsertMetadata(TAbstractMetadataNode(NewNode))
+    else
+    begin
+      FdChildren.Add(NewNode);
+      TopLevelCheckChild(NewNode);
+    end;
+  end else
+  begin
+    { For prototypes (indicated by FileTopLevel = false),
+      do not check NewNode class, as anything is valid.
+      Also, all nodes (even metadata) are just added to FdChildren,
+      prototype expansion expects that. }
+    FdChildren.Add(NewNode);
+  end;
 end;
 
 procedure TX3DRootNode.ExportNode(const Node: TX3DNode; const ExportedAlias: string);

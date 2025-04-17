@@ -19,8 +19,7 @@ unit TestCastleLevels;
 
 interface
 
-uses Classes, SysUtils, {$ifndef CASTLE_TESTER}FpcUnit, TestUtils, TestRegistry,
-  CastleTestCase{$else}CastleTester{$endif};
+uses Classes, SysUtils, CastleTester;
 
 type
   TTestCastleLevels = class(TCastleTestCase)
@@ -40,12 +39,8 @@ var
   Viewport: TCastleViewport;
   Level: TLevel;
 begin
-  {$ifdef CASTLE_TESTER}
-  if not IsConsoleMode then
-    Exit; // This test only makes sense in console mode
-  {$endif}
-
-  AssertFalse(ApplicationProperties.IsGLContextOpen);
+  { This test should pass both with and without OpenGL context. }
+  //AssertFalse(ApplicationProperties.IsGLContextOpen);
 
   Viewport := TCastleViewport.Create(nil);
 

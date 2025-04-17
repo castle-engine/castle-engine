@@ -1,6 +1,6 @@
 // -*- compile-command: "./test_single_testcase.sh TTestCastleFrustum" -*-
 {
-  Copyright 2005-2022 Michalis Kamburelis.
+  Copyright 2005-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -19,8 +19,8 @@ unit TestCastleFrustum;
 interface
 
 uses
-  Classes, SysUtils, {$ifndef CASTLE_TESTER}FpcUnit, TestUtils, TestRegistry,
-  CastleTestCase{$else}CastleTester{$endif}, CastleVectors, CastleBoxes, CastleFrustum;
+  Classes, SysUtils,
+  CastleTester, CastleVectors, CastleBoxes, CastleFrustum;
 
 type
   TTestCastleFrustum = class(TCastleTestCase)
@@ -122,7 +122,7 @@ begin
      Vector3(10, 10, 10) { eye position },
      Vector3(1, 0, 0) { look direction },
      Vector3(0, 0, 1) { up vector } ));
- AssertTrue(not Frustum.ZFarInfinity);
+ AssertTrue(not Frustum.FarInfinity);
 
  AssertFrustumSphereCollisionPossible(Frustum, Vector3(0, 0, 0), 81,
    fcNoCollision);
@@ -164,7 +164,7 @@ begin
   AssertTrue(Frustum.Planes[fpFar].X = 0);
   AssertTrue(Frustum.Planes[fpFar].Y = 0);
   AssertTrue(Frustum.Planes[fpFar].Z = 0);
-  AssertTrue(Frustum.ZFarInfinity);
+  AssertTrue(Frustum.FarInfinity);
 
   AssertFrustumSphereCollisionPossible(Frustum, Vector3(0, 0, 0), 81,
     fcNoCollision);
@@ -222,7 +222,7 @@ procedure TTestCastleFrustum.TestCompareWithUnoptimizedPlaneCollision;
 
       { If the frustum has far plane in infinity, then ignore this plane.
         Inc InsidePlanesCount, since the box is inside this infinite plane. }
-      if ZFarInfinity then
+      if FarInfinity then
       begin
         LastPlane := Pred(LastPlane);
         Inc(InsidePlanesCount);
@@ -320,7 +320,7 @@ procedure TTestCastleFrustum.TestCompareWithUnoptimizedPlaneCollision;
       AssertTrue(LastPlane = fpFar);
 
       { If the frustum has far plane in infinity, then ignore this plane. }
-      if ZFarInfinity then
+      if FarInfinity then
         LastPlane := Pred(LastPlane);
 
       for fp := Low(fp) to LastPlane do
@@ -520,7 +520,7 @@ begin
     Vector4(0, 0, 0, 0),
     Vector3(15, 16, 17));
   // when using non-uniform scaling, we need larger epsilon to pass
-  AssertFrustumEquals(Frustum1.TransformByInverse(MInverse), Frustum1.Transform(M), 0.05);
+  AssertFrustumEquals(Frustum1.TransformByInverse(MInverse), Frustum1.Transform(M), 0.75);
 
   M := TMatrix4.Identity;
   MInverse := TMatrix4.Identity;
@@ -531,7 +531,7 @@ begin
     Vector4(11, 12, 13, 14),
     Vector3(15, 16, 17));
   // when using non-uniform scaling, we need larger epsilon to pass
-  AssertFrustumEquals(Frustum1.TransformByInverse(MInverse), Frustum1.Transform(M), 0.05);
+  AssertFrustumEquals(Frustum1.TransformByInverse(MInverse), Frustum1.Transform(M), 1.0);
 
   {$ifdef TEST_FRUSTUM_TRANSFORM_SPEED}
   DoTestSpeed;

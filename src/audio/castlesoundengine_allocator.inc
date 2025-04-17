@@ -118,6 +118,21 @@
       in normal circumstances this is internal.
       This is @nil when ContextOpen was not yet called. }
     property InternalAllocatedSources: TInternalSoundSourceList read FAllocatedSources;
+
+    { Do we have active sound rendering context.
+      This is @true when you successfully
+      called @link(TSoundEngine.ContextOpen) and you didn't call
+      @link(TSoundEngine.ContextClose) yet.
+
+      You should not need this property much.
+      The whole CastleSoundEngine API works regardless if the context
+      was successfully open or not.
+      However, reading this is useful to display to user warning
+      e.g. "Sound could not be initialized for some reason"
+      (use @link(TSoundEngine.Information) to get the details).
+
+      In case of OpenAL backend, this also implies that OpenAL library is loaded. }
+    property IsContextOpenSuccess: boolean read FIsContextOpenSuccess;
   end;
 
 {$endif read_interface}

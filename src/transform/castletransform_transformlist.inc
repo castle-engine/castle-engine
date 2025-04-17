@@ -17,145 +17,81 @@
 {$ifdef read_interface}
 
 //type
-  { List of TCastleTransform instances.
-    This inherits from TCastleObjectList, getting many
-    features like TList notification mechanism. }
-  TCastleTransformList = class(TCastleObjectList)
+  { List of TCastleTransform instances. }
+  TCastleTransformList = class({$ifdef FPC}specialize{$endif} TObjectList<TCastleTransform>)
   private
     { Note: Using this class with FOwner <> nil is only for internal purposes. }
     FOwner: TCastleTransform;
-    function GetItem(const I: Integer): TCastleTransform;
-    procedure SetItem(const I: Integer; const Item: TCastleTransform);
-    { TCastleTransform instance that owns this list.
+
+    { TCastleTransform instance that gets notified when items
+      are added or removed.
       May be @nil, for example when this list is used by TRayCollision. }
     property Owner: TCastleTransform read FOwner;
-
-    { Sort objects back-to-front @italic(right now)
-      following one of the blending sorting algorithms.
-      See @link(TCastleTransform.SortBackToFront) for description. }
-    procedure SortBackToFront(const ShapeSort: TShapeSort;
-      const CameraPosition: TVector3);
-      deprecated 'use TCastleViewport.BlendingSort to sort objects for blending';
+  protected
+    procedure Notify({$ifdef GENERICS_CONSTREF}constref{$else}const{$endif} AValue: TCastleTransform;
+      ACollectionNotification: TCollectionNotification); override;
   public
-    procedure Notify(Ptr: Pointer; Action: TListNotification); override;
-    property Items[const I: Integer]: TCastleTransform read GetItem write SetItem; default;
+    { Delete all found instances of the given Item.
+      Shifts all other pointers to the left.
+      Returns how many instances were removed (that is, how much Count
+      was decreased).
 
-    function First: TCastleTransform;
-    function Last: TCastleTransform;
+      This does not free the items,
+      unless the list has been created with OwnsObjects = @true. }
+    function RemoveAll(const Item: TCastleTransform): Cardinal;
   end;
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
-{ utilities for TCastleTransformList.SortBackToFront ------------------------- }
-
 function CompareBackToFront2D(A, B: Pointer): Integer;
 begin
+  {$warnings off} // using deprecated in deprecated
   Result := TBox3D.CompareBackToFront2D(TCastleTransform(A).BoundingBox, TCastleTransform(B).BoundingBox);
-end;
-
-var
-  { Has to be global, since TObjectList.Sort
-    requires normal function (not "of object"). }
-  SortCameraPosition: TVector3;
-
-function CompareBackToFront3DBox(A, B: Pointer): Integer;
-begin
-  Result := TBox3D.CompareBackToFront3D(TCastleTransform(A).BoundingBox, TCastleTransform(B).BoundingBox,
-    SortCameraPosition);
-end;
-
-function CompareBackToFront3DOrigin(A, B: Pointer): Integer;
-var
-  PointA, PointB: TVector3;
-begin
-  PointA := TCastleTransform(A).Translation;
-  PointB := TCastleTransform(B).Translation;
-  Result := Sign(
-    PointsDistanceSqr(PointB, SortCameraPosition) -
-    PointsDistanceSqr(PointA, SortCameraPosition));
-end;
-
-function CompareBackToFront3DGround(A, B: Pointer): Integer;
-var
-  PointA, PointB: TVector3;
-begin
-  PointA := TCastleTransform(A).Translation;
-  PointB := TCastleTransform(B).Translation;
-  PointA.Y := 0;
-  PointB.Y := 0;
-  Result := Sign(
-    PointsDistanceSqr(PointB, SortCameraPosition) -
-    PointsDistanceSqr(PointA, SortCameraPosition));
+  {$warnings on}
 end;
 
 { TCastleTransformList ------------------------------------------------------------ }
 
-procedure TCastleTransformList.Notify(Ptr: Pointer; Action: TListNotification);
-var
-  B: TCastleTransform;
+procedure TCastleTransformList.Notify(
+  {$ifdef GENERICS_CONSTREF}constref{$else}const{$endif} AValue: TCastleTransform;
+  ACollectionNotification: TCollectionNotification);
 begin
   inherited;
 
   if Owner <> nil then
   begin
-    B := TCastleTransform(Ptr);
-
-    case Action of
-      lnAdded: B.AddParent(Owner);
-      lnExtracted, lnDeleted: B.RemoveParent(Owner);
-      {$ifndef COMPILER_CASE_ANALYSIS}
-      else raise EInternalError.Create('TCastleTransformList.Notify action?');
-      {$endif}
+    case ACollectionNotification of
+      cnAdded:
+        AValue.AddParent(Owner);
+      cnExtracted, cnRemoved:
+        AValue.RemoveParent(Owner);
+      { FPC 3.3.1 introduced new notifications cnDeleting, cnExtracting
+        which we ignore for now.
+        In the future: If all supported compilers have it,
+        then maybe we should call AValue.RemoveParent on
+        cnDeleting/cnExtracting, not cnExtracted/cnRemoved?
+        It's safer to remove parent before the item is actually deleted. }
+      else ;
     end;
-
-    if (Owner.World <> nil) and Assigned(Owner.World.OnCursorChange) then
-      Owner.World.OnCursorChange(Owner);
   end;
 end;
 
-function TCastleTransformList.GetItem(const I: Integer): TCastleTransform;
+function TCastleTransformList.RemoveAll(const Item: TCastleTransform): Cardinal;
+var
+  I: Integer;
 begin
-  Result := TCastleTransform(inherited Items[I]);
-end;
-
-procedure TCastleTransformList.SetItem(const I: Integer; const Item: TCastleTransform);
-begin
-  inherited Items[I] := Item;
-end;
-
-function TCastleTransformList.First: TCastleTransform;
-begin
-  Result := (inherited First) as TCastleTransform;
-end;
-
-function TCastleTransformList.Last: TCastleTransform;
-begin
-  Result := (inherited Last) as TCastleTransform;
-end;
-
-procedure TCastleTransformList.SortBackToFront(const ShapeSort: TShapeSort;
-  const CameraPosition: TVector3);
-begin
-  case ShapeSort of
-    sort2D: Sort(@CompareBackToFront2D);
-    sort3D:
-      begin
-        SortCameraPosition := CameraPosition;
-        Sort(@CompareBackToFront3DBox);
-      end;
-    sort3DOrigin:
-      begin
-        SortCameraPosition := CameraPosition;
-        Sort(@CompareBackToFront3DOrigin);
-      end;
-    sort3DGround:
-      begin
-        SortCameraPosition := CameraPosition;
-        Sort(@CompareBackToFront3DGround);
-      end;
-    else ;
+  Result := 0;
+  I := 0;
+  while I < Count do
+  begin
+    if Items[I] = Item then
+    begin
+      Delete(I);
+      Inc(Result);
+    end else
+      Inc(I);
   end;
 end;
 

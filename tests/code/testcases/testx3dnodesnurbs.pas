@@ -20,8 +20,8 @@ unit TestX3DNodesNurbs;
 interface
 
 uses
-  Classes, SysUtils, {$ifndef CASTLE_TESTER}FpcUnit, TestUtils, TestRegistry,
-  CastleTestCase,{$else}CastleTester,{$endif} CastleVectors, X3DNodes;
+  Classes, SysUtils,
+  CastleTester, CastleVectors, X3DNodes;
 
 type
   TTestX3DNodesNurbs = class(TCastleTestCase)

@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2023 Michalis Kamburelis.
+  Copyright 2015-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -30,10 +30,12 @@
     procedure SetMaxExtent(const Value: Single);
     function GetMaxDisplayChars: Integer;
     procedure SetMaxDisplayChars(const Value: Integer);
+    function GetTexCoord: TX3DNode;
+    procedure SetTexCoord(const Value: TX3DNode);
   public
     { Create node fields and events. }
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdFontStyle: TSFNode;
     { Internal wrapper for property @code(FontStyle). This wrapper API may change, we advise to access simpler @code(FontStyle) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
@@ -88,6 +90,8 @@
     strict private FFdTexCoord: TSFNode;
     { Internal wrapper for property @code(TexCoord). This wrapper API may change, we advise to access simpler @code(TexCoord) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdTexCoord: TSFNode read FFdTexCoord;
+    {  }
+    property TexCoord: TX3DNode read GetTexCoord write SetTexCoord;
 
 {$endif read_interface}
 
@@ -146,6 +150,19 @@ end;
 procedure TTextNode.SetText(const Value: TCastleStringList);
 begin
   FdString.Send(Value);
+end;
+
+function TTextNode.GetTexCoord: TX3DNode;
+begin
+  if FdTexCoord.Value is TX3DNode then
+    Result := TX3DNode(FdTexCoord.Value)
+  else
+    Result := nil;
+end;
+
+procedure TTextNode.SetTexCoord(const Value: TX3DNode);
+begin
+  FdTexCoord.Send(Value);
 end;
 
 class function TTextNode.ClassX3DType: String;

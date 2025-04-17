@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2023 Michalis Kamburelis.
+  Copyright 2015-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -23,14 +23,19 @@
 
 {$ifdef read_interface}
 
+  strict private
+    function GetTargetObject: TX3DNode;
+    procedure SetTargetObject(const Value: TX3DNode);
   public
     { Create node fields and events. }
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdTargetObject: TSFNode;
     { Internal wrapper for property @code(TargetObject). This wrapper API may change, we advise to access simpler @code(TargetObject) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdTargetObject: TSFNode read FFdTargetObject;
+    {  }
+    property TargetObject: TX3DNode read GetTargetObject write SetTargetObject;
 
     strict private FEventOrientation_changed: TSFRotationEvent;
     {  }
@@ -45,6 +50,19 @@
 {$ifdef read_implementation}
 
 { TTransformSensorNode ----------------------------------------------- }
+
+function TTransformSensorNode.GetTargetObject: TX3DNode;
+begin
+  if FdTargetObject.Value is TX3DNode then
+    Result := TX3DNode(FdTargetObject.Value)
+  else
+    Result := nil;
+end;
+
+procedure TTransformSensorNode.SetTargetObject(const Value: TX3DNode);
+begin
+  FdTargetObject.Send(Value);
+end;
 
 class function TTransformSensorNode.ClassX3DType: String;
 begin

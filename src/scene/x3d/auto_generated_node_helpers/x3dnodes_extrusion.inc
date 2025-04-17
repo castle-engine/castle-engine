@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2023 Michalis Kamburelis.
+  Copyright 2015-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -34,10 +34,12 @@
     procedure SetCreaseAngle(const Value: Single);
     function GetEndCap: Boolean;
     procedure SetEndCap(const Value: Boolean);
+    function GetTexCoord: TX3DNode;
+    procedure SetTexCoord(const Value: TX3DNode);
   public
     { Create node fields and events. }
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FEventSet_crossSection: TMFVec2fEvent;
     {  }
@@ -124,6 +126,8 @@
     strict private FFdTexCoord: TSFNode;
     { Internal wrapper for property @code(TexCoord). This wrapper API may change, we advise to access simpler @code(TexCoord) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdTexCoord: TSFNode read FFdTexCoord;
+    {  }
+    property TexCoord: TX3DNode read GetTexCoord write SetTexCoord;
 
 {$endif read_interface}
 
@@ -219,6 +223,19 @@ end;
 procedure TExtrusionNode.SetSpine(const Value: TVector3List);
 begin
   FdSpine.Send(Value);
+end;
+
+function TExtrusionNode.GetTexCoord: TX3DNode;
+begin
+  if FdTexCoord.Value is TX3DNode then
+    Result := TX3DNode(FdTexCoord.Value)
+  else
+    Result := nil;
+end;
+
+procedure TExtrusionNode.SetTexCoord(const Value: TX3DNode);
+begin
+  FdTexCoord.Send(Value);
 end;
 
 class function TExtrusionNode.ClassX3DType: String;

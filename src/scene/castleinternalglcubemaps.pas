@@ -20,12 +20,14 @@ unit CastleInternalGLCubeMaps;
 
 interface
 
-uses {$ifdef FPC} CastleGL, {$else} OpenGL, OpenGLext, {$endif}
+uses {$ifdef OpenGLES} CastleGLES, {$else} CastleGL, {$endif}
   CastleVectors, CastleInternalCubeMaps, CastleImages, CastleInternalCompositeImage,
   CastleGLImages, CastleTransform, CastleGLUtils;
 
 type
   TCubeMapRenderEvent = procedure (const RenderParams: TRenderParams) of object; {$ifdef FPC}experimental;{$endif}
+
+{$warnings off} // silence FPC 3.3.1 warnings, using experimental in experimental
 
 { Calculate spherical harmonics basis describing environment rendered
   by OpenGL. Environment is rendered by
@@ -48,6 +50,8 @@ procedure SHVectorGLCapture(
   const Render: TCubeMapRenderEvent;
   const MapScreenX, MapScreenY: Integer;
   const ScaleColor: Single); experimental;
+
+{$warnings on}
 
 { Capture cube map by rendering environment from CapturePoint.
 
@@ -104,7 +108,7 @@ function GLCaptureCubeMapComposite(
   It uses RenderToTexture to render to the texture, so it will use
   framebuffer if available, and it's fast. }
 procedure GLCaptureCubeMapTexture(
-  const Tex: TGLuint;
+  const Tex: TGLTexture;
   const Size: Cardinal;
   const CapturePoint: TVector3;
   const Render: TRenderFromViewFunction;
@@ -114,20 +118,27 @@ procedure GLCaptureCubeMapTexture(
 implementation
 
 uses SysUtils, CastleInternalSphericalHarmonics, CastleRectangles, CastleRenderContext,
-  CastleProjection, CastleScene;
+  CastleProjection, CastleScene, CastleInternalShapesRenderer;
 
+{$warnings off} // silence FPC 3.3.1 warnings, using experimental in experimental
 procedure SHVectorGLCapture(
   var SHVector: array of Single;
   const CapturePoint: TVector3;
   const Render: TCubeMapRenderEvent;
   const MapScreenX, MapScreenY: Integer;
   const ScaleColor: Single);
+{$warnings on}
+
+var
+  ShapesCollector: TShapesCollector;
+  ShapesRenderer: TShapesRenderer;
 
   procedure DrawMap(Side: TCubeMapSide);
   var
     Map: TGrayscaleImage;
     I, SHBasis, ScreenX, ScreenY: Integer;
     RenderParams: TRenderParams;
+    PassParams: TRenderOnePassParams;
   begin
     ScreenX := CubeMapInfo[Side].ScreenX * CubeMapSize + MapScreenX;
     ScreenY := CubeMapInfo[Side].ScreenY * CubeMapSize + MapScreenY;
@@ -136,19 +147,20 @@ procedure SHVectorGLCapture(
 
     RenderParams := TBasicRenderParams.Create;
     try
-      { TBasicRenderParams will automatically have good defaults (inclusive) for InShadow and ShadowVolumesReceivers. }
       RenderParams.RenderingCamera := TRenderingCamera.Create;
       try
-        RenderParams.RenderingCamera.FromMatrix(
-          CapturePoint,
-          LookDirMatrix(CapturePoint, CubeMapInfo[Side].Dir, CubeMapInfo[Side].Up),
-          FastLookDirMatrix(CubeMapInfo[Side].Dir, CubeMapInfo[Side].Up),
+        RenderParams.RenderingCamera.FromViewVectors(
+          CapturePoint, CubeMapInfo[Side].Dir, CubeMapInfo[Side].Up,
           RenderContext.ProjectionMatrix
         );
         RenderParams.RenderingCamera.Target := rtCubeMapEnvironment;
         RenderParams.Frustum := @RenderParams.RenderingCamera.Frustum;
-        RenderParams.Transparent := false; Render(RenderParams);
-        RenderParams.Transparent := true ; Render(RenderParams);
+        RenderParams.RendererToPrepareShapes := ShapesRenderer.Renderer;
+        RenderParams.Collector := ShapesCollector;
+        Render(RenderParams);
+        // TODO: we render both trasparent and opaque objects in 1 pass, without blending below
+        PassParams.Init;
+        ShapesRenderer.Render(ShapesCollector, RenderParams, PassParams);
       finally FreeAndNil(RenderParams.RenderingCamera) end;
     finally FreeAndNil(RenderParams) end;
 
@@ -175,6 +187,9 @@ var
 begin
   InitializeSHBasisMap;
 
+  ShapesCollector := TShapesCollector.Create(true);
+  ShapesRenderer := TShapesRenderer.Create;
+
   { Call all DrawMap. This wil draw maps, get them,
     and calculate SHVector describing them. }
 
@@ -200,16 +215,17 @@ begin
       pixel). }
     SHVector[SHBasis] := SHVector[SHBasis] / (4 * Pi);
   end;
+
+  FreeAndNil(ShapesCollector);
+  FreeAndNil(ShapesRenderer);
 end;
 
 procedure SetRenderingCamera(const RenderingCamera: TRenderingCamera;
   const CapturePoint: TVector3;
   const Side: TCubeMapSide);
 begin
-  RenderingCamera.FromMatrix(
-    CapturePoint,
-    LookDirMatrix(CapturePoint, CubeMapInfo[Side].Dir, CubeMapInfo[Side].Up),
-    FastLookDirMatrix(CubeMapInfo[Side].Dir, CubeMapInfo[Side].Up),
+  RenderingCamera.FromViewVectors(
+    CapturePoint, CubeMapInfo[Side].Dir, CubeMapInfo[Side].Up,
     RenderContext.ProjectionMatrix);
 end;
 
@@ -290,7 +306,7 @@ begin
 end;
 
 procedure GLCaptureCubeMapTexture(
-  const Tex: TGLuint;
+  const Tex: TGLTexture;
   const Size: Cardinal;
   const CapturePoint: TVector3;
   const Render: TRenderFromViewFunction;

@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2023 Michalis Kamburelis.
+  Copyright 2015-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -32,6 +32,8 @@
     procedure SetHeight(const Value: Single);
     function GetSide: Boolean;
     procedure SetSide(const Value: Boolean);
+    function GetTexCoord: TX3DNode;
+    procedure SetTexCoord(const Value: TX3DNode);
     function GetSlices: Integer;
     procedure SetSlices(const Value: Integer);
     function GetStacks: Integer;
@@ -39,7 +41,7 @@
   public
     { Create node fields and events. }
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdBottom: TSFBool;
     { Internal wrapper for property @code(Bottom). This wrapper API may change, we advise to access simpler @code(Bottom) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
@@ -72,17 +74,19 @@
     strict private FFdTexCoord: TSFNode;
     { Internal wrapper for property @code(TexCoord). This wrapper API may change, we advise to access simpler @code(TexCoord) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdTexCoord: TSFNode read FFdTexCoord;
+    {  }
+    property TexCoord: TX3DNode read GetTexCoord write SetTexCoord;
 
     strict private FFdSlices: TSFInt32;
     { Internal wrapper for property @code(Slices). This wrapper API may change, we advise to access simpler @code(Slices) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdSlices: TSFInt32 read FFdSlices;
-    {  }
+    { How many "slices" to use to approximate the cone. The cone is rendered using polygons (triangles and quads) that approximate the cone shape. The more slices, the more the cone will look like a cone. Slices divide the objects like slices of a pizza. The default value of 0 means to follow global variable @link(DefaultTriangulationSlices). }
     property Slices: Integer read GetSlices write SetSlices;
 
     strict private FFdStacks: TSFInt32;
     { Internal wrapper for property @code(Stacks). This wrapper API may change, we advise to access simpler @code(Stacks) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdStacks: TSFInt32 read FFdStacks;
-    {  }
+    { How many "stacks" to use to approximate the cone. The cone is rendered using polygons (triangles and quads) that approximate the cone shape. The more stacks, the more the cone will look like a cone. Stacks divide the objects like stacks of a tower. The default value of 0 means to follow global variable @link(DefaultTriangulationStacks). }
     property Stacks: Integer read GetStacks write SetStacks;
 
 {$endif read_interface}
@@ -129,6 +133,19 @@ end;
 procedure TConeNode.SetSide(const Value: Boolean);
 begin
   FdSide.Send(Value);
+end;
+
+function TConeNode.GetTexCoord: TX3DNode;
+begin
+  if FdTexCoord.Value is TX3DNode then
+    Result := TX3DNode(FdTexCoord.Value)
+  else
+    Result := nil;
+end;
+
+procedure TConeNode.SetTexCoord(const Value: TX3DNode);
+begin
+  FdTexCoord.Send(Value);
 end;
 
 function TConeNode.GetSlices: Integer;
@@ -187,11 +204,11 @@ begin
    FdTexCoord.OnBeforeValueChange := {$ifdef FPC}@{$endif}MoveShapeAssociations;
   AddField(FFdTexCoord);
 
-  FFdSlices := TSFInt32.Create(Self, True, 'slices', -1);
+  FFdSlices := TSFInt32.Create(Self, True, 'slices', 0);
    FdSlices.ChangeAlways := chGeometry;
   AddField(FFdSlices);
 
-  FFdStacks := TSFInt32.Create(Self, True, 'stacks', -1);
+  FFdStacks := TSFInt32.Create(Self, True, 'stacks', 0);
    FdStacks.ChangeAlways := chGeometry;
   AddField(FFdStacks);
 end;

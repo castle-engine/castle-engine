@@ -1,11 +1,17 @@
 # First-Person Shooter example
 
-**TODO: This example is in the middle of a rework. It not yet fully functional, there's no creature AI, no items pickup, weapon doesn't work. See `examples/deprecated_to_upgrade/fps_game_old_ai/` for a working version but using deprecated API.**
+**TODO: This example is in the middle of a rework.** It not yet fully functional:
+
+- Not all creatures have AI. This is in progress, see `TCastleMoveAttack`, https://castle-engine.io/wp/2024/10/21/demo-game-using-blender-sketchfab-quaternius-models-tcastlemoveattack-early-preview-of-tcastlemoveattack-merged-slides-from-conference-last-week/ . On creatures that have AI, you can shoot them.
+
+- No items pickup and inventory.
 
 Example of a fully-working 3D FPS game using _Castle Game Engine_.
 
 With level designed using _Castle Game Engine_.
 
+![Screenshot working in editor](screenshot_editor.png)
+![Screenshot 2](screenshot_2.png)
 ![Screenshot](screenshot.png)
 
 We have:
@@ -62,8 +68,10 @@ Using [Castle Game Engine](https://castle-engine.io/).
 
 Compile by:
 
-- [CGE editor](https://castle-engine.io/manual_editor.php). Just use menu item _"Compile"_.
+- [CGE editor](https://castle-engine.io/editor). Just use menu items _"Compile"_ or _"Compile And Run"_.
 
 - Or use [CGE command-line build tool](https://castle-engine.io/build_tool). Run `castle-engine compile` in this directory.
 
-- Or use [Lazarus](https://www.lazarus-ide.org/). Open in Lazarus `fps_game.lpi` file and compile / run from Lazarus. Make sure to first register [CGE Lazarus packages](https://castle-engine.io/documentation.php).
+- Or use [Lazarus](https://www.lazarus-ide.org/). Open in Lazarus `fps_game.lpi` file and compile / run from Lazarus. Make sure to first register [CGE Lazarus packages](https://castle-engine.io/lazarus).
+
+- Or use [Delphi](https://www.embarcadero.com/products/Delphi). Open in Delphi `fps_game.dproj` file and compile / run from Delphi. See [CGE and Delphi](https://castle-engine.io/delphi) documentation for details.

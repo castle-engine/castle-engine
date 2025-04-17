@@ -221,7 +221,7 @@ procedure TAbstractScriptNode.SetInitialized(const Value: boolean);
     CastleScriptProgram.Environment.BaseUrl := BaseUrl;
   end;
 
-  function LoadUrl(Url: string; var FailedUrlsLog: string): boolean;
+  function LoadUrl(Url: String; var FailedUrlsLog: string): boolean;
   var
     ScriptContents, MimeType: string;
     ScriptContentsStream: TStream;
@@ -242,7 +242,7 @@ procedure TAbstractScriptNode.SetInitialized(const Value: boolean);
         begin
           WritelnWarning('X3D', Format(
             'ECMAScript is not yet implemented, ignoring URL "%s"',
-            [URIDisplay(URL)]));
+            [UriDisplay(URL)]));
         end else
 
         if MimeType = 'text/x-castlescript' then
@@ -269,7 +269,7 @@ procedure TAbstractScriptNode.SetInitialized(const Value: boolean);
         begin
           WritelnWarning('X3D', Format(
             'Script MIME type not recognized in URL "%s": %s',
-            [URIDisplay(URL), MimeType]));
+            [UriDisplay(URL), MimeType]));
         end;
 
       finally FreeAndNil(ScriptContentsStream) end;
@@ -278,11 +278,11 @@ procedure TAbstractScriptNode.SetInitialized(const Value: boolean);
       on E: Exception do
         WritelnWarning('X3D', Format(
           'Exception %s when loading Script from URL "%s": %s',
-            [E.ClassName, URIDisplay(URL), E.Message ]));
+            [E.ClassName, UriDisplay(URL), E.Message ]));
     end;
 
     // if Result and Log and LogScript then
-    //   WritelnLog('Script', Format('Loaded from URL "%s"', [URIDisplay(URL)]));
+    //   WritelnLog('Script', Format('Loaded from URL "%s"', [UriDisplay(URL)]));
   end;
 
 var

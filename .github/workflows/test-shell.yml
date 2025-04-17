@@ -1,0 +1,32 @@
+# ----------------------------------------------------------------------------
+# GitHub Action workflow to perform CGE tests that don't depend on the compiler
+# (FPC) or any other non-standard tools.
+# In practice: "./tools/internal/cge_shell_tests" that, as the name suggests,
+# only use shell.
+#
+# They don't run in Docker, they run directly on the host,
+# and they use GH hosted runner. Since they don't depend on any non-standard things.
+#
+# See https://docs.github.com/en/actions for docs.
+# ----------------------------------------------------------------------------
+
+name: Test Shell
+
+# Called by everything.yml
+on: [workflow_call]
+#on: [push, pull_request]
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  test-shell:
+    name: Shell (Compiler-Independent) Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set environment
+        run: echo "CASTLE_ENGINE_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+      - name: Shell Tests
+        run: ./tools/internal/cge_shell_tests

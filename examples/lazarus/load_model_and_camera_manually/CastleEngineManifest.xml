@@ -8,5 +8,6 @@ See https://castle-engine.io/project_manifest for documentation of this file.
 <project name="load_model_and_camera_manually"
   lazarus_project="load_model_and_camera_manually.lpi"
   build_using_lazbuild="true"
+  qualified_name="io.castleengine.load.model.and.camera.manually"
 >
 </project>

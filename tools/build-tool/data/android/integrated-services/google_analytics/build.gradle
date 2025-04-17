@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<build_gradle_merge>
-  <!-- See https://developers.google.com/analytics/devguides/collection/android/v4/ -->
-  <dependencies>
-    <!-- See https://developers.google.com/android/guides/setup#split -->
-    <dependency>classpath 'com.google.gms:google-services:3.0.0'</dependency>
-  </dependencies>
-</build_gradle_merge>

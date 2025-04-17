@@ -57,6 +57,14 @@ interface
 
 {$I imjconfig.inc}
 
+{$ifndef BASM}
+{ Castle Game Engine: Allow to compile this unit on all platforms.
+  This makes it easier, we can include it in packages regardless of the platform.
+  It is actually only used by Delphi/Win32 (see notes in imjddctmgr),
+  but now Delphi and Lazarus packages can also use it on all platforms. }
+implementation
+{$else}
+
 uses
   imjmorecfg,
   imjinclude,
@@ -428,7 +436,7 @@ asm
     { Final output stage: inputs are tmp10..tmp13, tmp0..tmp3 }
 
     {wsptr^[DCTSIZE*0] := int (DESCALE(tmp10 + tmp3, CONST_BITS-PASS1_BITS));}
-    {wsptr^[DCTSIZE*7] := int (DESCALE(tmp10 - tmp3, CONST_BITS-PASS1_BITS));}    
+    {wsptr^[DCTSIZE*7] := int (DESCALE(tmp10 - tmp3, CONST_BITS-PASS1_BITS));}
   mov	eax, tmp10
   add   eax, ROUND_CONST
   lea   ebx, [eax+edx]
@@ -466,7 +474,7 @@ asm
   mov	DWORD PTR [ecx+wrkDCTSIZE*5], eax
 
     {wsptr^[DCTSIZE*3] := int (DESCALE(tmp13 + tmp0, CONST_BITS-PASS1_BITS));}
-    {wsptr^[DCTSIZE*4] := int (DESCALE(tmp13 - tmp0, CONST_BITS-PASS1_BITS));}    
+    {wsptr^[DCTSIZE*4] := int (DESCALE(tmp13 - tmp0, CONST_BITS-PASS1_BITS));}
   mov	eax, tmp13
   add   eax, ROUND_CONST
   mov   edx, tmp0
@@ -779,7 +787,7 @@ asm
   add	edi, DCTSIZE
 
   {end;}
-  inc	ctr 
+  inc	ctr
   cmp	ctr, DCTSIZE
   jl	@loop523
 
@@ -790,4 +798,7 @@ asm
   pop   edi
 end;
 
+{$endif}
+
 end.
+

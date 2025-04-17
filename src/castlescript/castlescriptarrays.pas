@@ -546,7 +546,7 @@ end;
 class procedure TCasScriptCharacterArray.HandleArraySetCount(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
 var
   NewCount: Int64;
-  NewValue: string;
+  NewValue: String;
 begin
   if ParentOfResult then
     AResult.FreeByParentExpression;

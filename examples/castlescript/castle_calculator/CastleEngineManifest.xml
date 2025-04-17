@@ -8,6 +8,7 @@ See https://castle-engine.io/project_manifest for documentation of this file.
 <project name="castle_calculator"
   standalone_source="castle_calculator.dpr"
   caption="CGE Calculator"
+  qualified_name="io.castleengine.castle.calculator"
 >
   <data exists="false" />
   <compiler_options>

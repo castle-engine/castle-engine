@@ -21,7 +21,7 @@ ${EXTRA_COMPILER_OPTIONS_ABSOLUTE}"/>
         <UnitName Value="CastleEditorCustomComponents"/>
       </Item1>
     </Files>
-    <RequiredPkgs Count="4">
+    <RequiredPkgs Count="6">
       <Item1>
         <PackageName Value="FCL"/>
       </Item1>
@@ -34,6 +34,12 @@ ${EXTRA_COMPILER_OPTIONS_ABSOLUTE}"/>
       <Item4>
         <PackageName Value="AnchorDocking"/>
       </Item4>
+      <Item5>
+        <PackageName Value="SynEdit"/>
+      </Item5>
+      <Item6>
+        <PackageName Value="SynEditDsgn"/>
+      </Item6>
     </RequiredPkgs>
     <UsageOptions>
       <UnitPath Value="$(PkgOutDir)"/>

@@ -31,7 +31,7 @@
   { Image control.
     Size is automatically adjusted to the image size, if Stretch is @false (default).
     You should set TCastleImageControl.Left, TCastleImageControl.Bottom properties,
-    and load your image by setting TCastleImageControl.URL property
+    and load your image by setting TCastleImageControl.Url property
     or straight TCastleImageControl.Image.
 
     We automatically use alpha test or alpha blending based
@@ -45,7 +45,7 @@
     FContent: TCastleImagePersistent;
 
     { Properties simply synchronized with the same properties of FContent. }
-    function GetURL: String;
+    function GetUrl: String;
     function GetDrawableImage: TDrawableImage;
     function GetOwnsDrawableImage: Boolean;
     function GetImage: TEncodedImage;
@@ -63,7 +63,7 @@
     function GetCache: Boolean;
     function GetProtectedSides: TBorder;
     function GetRegion: TFloatRectangle;
-    procedure SetURL(const Value: String);
+    procedure SetUrl(const Value: String);
     procedure SetDrawableImage(const Value: TDrawableImage);
     procedure SetOwnsDrawableImage(const Value: Boolean);
     procedure SetImage(const Value: TEncodedImage);
@@ -109,7 +109,7 @@
       out ResizeWidth, ResizeHeight: Boolean; out Reason: String); override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
 
-    { Image contents, or @nil if none. You can set it by setting @link(URL),
+    { Image contents, or @nil if none. You can set it by setting @link(Url),
       or by setting this property directly,
       or by setting @link(DrawableImage).
 
@@ -133,7 +133,7 @@
     { Whether the memory management of assigned @link(Image) is automatic.
       See @link(Image) documentation for details.
 
-      Note that setting @link(URL) changes @link(Image),
+      Note that setting @link(Url) changes @link(Image),
       and changes OwnsImage unconditionally to @true.
 
       Note that setting @link(DrawableImage) changes @link(Image) too,
@@ -146,7 +146,7 @@
       Always @link(TDrawableImage.Image) equals our @link(Image).
 
       Usually you do not want to change this property.
-      You can change @link(URL), or @link(Image), and the drawable
+      You can change @link(Url), or @link(Image), and the drawable
       image will reflect this.
       But there are good use-cases to change the @link(DrawableImage)
       directly: e.g. you can use fast image-to-image
@@ -234,8 +234,8 @@
       deprecated 'use AlphaChannel';
     property Proportional: boolean read GetProportional write SetProportional stored false default false;
       deprecated 'use ProportionalScaling';
-    property FileName: string read GetURL write SetURL stored false;
-      deprecated 'use URL';
+    property FileName: string read GetUrl write SetUrl stored false;
+      deprecated 'use Url';
     {$endif}
   published
     { Image contents to display. }
@@ -244,8 +244,8 @@
     { URL of the image.
       Set this to load a new image, you can set to '' to clear the image.
 
-      @seealso TCastleImagePersistent.URL }
-    property URL: string read GetURL write SetURL stored false;
+      @seealso TCastleImagePersistent.Url }
+    property Url: String read GetUrl write SetUrl stored false;
 
     { How to treat alpha channel of the assigned image.
       By default, this is acAuto, which means that image contents
@@ -588,14 +588,14 @@ begin
   end;
 end;
 
-function TCastleImageControl.GetURL: String;
+function TCastleImageControl.GetUrl: String;
 begin
-  Result := FContent.URL;
+  Result := FContent.Url;
 end;
 
-procedure TCastleImageControl.SetURL(const Value: String);
+procedure TCastleImageControl.SetUrl(const Value: String);
 begin
-  FContent.URL := Value;
+  FContent.Url := Value;
 end;
 
 function TCastleImageControl.GetColor: TCastleColor;
@@ -719,7 +719,7 @@ end;
 function TCastleImageControl.PropertySections(
   const PropertyName: String): TPropertySections;
 begin
-  if ArrayContainsString(PropertyName, ['URL', 'Stretch', 'ProportionalScaling',
+  if ArrayContainsString(PropertyName, ['Url', 'Stretch', 'ProportionalScaling',
       'ColPersistent', 'SmoothScaling', 'AlphaChannel', 'FlipHizontal',
       'FlipVertical', 'ProtectedSides', 'RegionPersistent',
       'Rotation', 'Content'

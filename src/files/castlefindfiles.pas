@@ -27,14 +27,14 @@ type
   { Information about a single file or directory collected by FindFiles. }
   TFileInfo = record
     { Filename, without any directory path. }
-    Name: string;
+    Name: String;
     { Expanded (with absolute path) file name.
       Only when URL is using "file" protocol.
       You should prefer to use URL field instead of this,
       to work with all possible URLs. }
-    AbsoluteName: string;
+    AbsoluteName: String;
     { Absolute URL. }
-    URL: string;
+    Url: String;
     Directory: Boolean;
 
     { Whether this is a symbolic link.
@@ -55,7 +55,12 @@ type
     Size: QWord;
   end;
 
-  TFileInfoList = {$ifdef FPC}specialize{$endif} TStructList<TFileInfo>;
+  { Returned by FindFilesList. }
+  TFileInfoList = class({$ifdef FPC}specialize{$endif} TStructList<TFileInfo>)
+    { Sort alphabetically by @link(TFileInfo.Url).
+      Useful, since the order returned by @link(FindFilesList) is undefined. }
+    procedure SortUrls;
+  end;
 
   { Called for each file found.
     StopSearch is always initially @false, you can change it to @true to stop
@@ -202,9 +207,23 @@ function FindFirstFileIgnoreCase(const Path, Mask: string;
 
 implementation
 
-uses URIParser, StrUtils,
-  CastleURIUtils, CastleLog, CastleXMLUtils, CastleStringUtils,
+uses URIParser, StrUtils, Generics.Defaults,
+  CastleUriUtils, CastleLog, CastleXmlUtils, CastleStringUtils,
   CastleInternalDirectoryInformation, CastleFilesUtils;
+
+function CompareFileInfo(
+  {$ifdef GENERICS_CONSTREF}constref{$else}const{$endif}
+  Left, Right: TFileInfo): Integer;
+begin
+  Result := AnsiCompareStr(Left.Url, Right.Url);
+end;
+
+procedure TFileInfoList.SortUrls;
+type
+  TFileInfoComparer = {$ifdef FPC}specialize{$endif} TComparer<TFileInfo>;
+begin
+  Sort(TFileInfoComparer.Construct({$ifdef FPC}@{$endif} CompareFileInfo));
+end;
 
 { Note that some limitations of FindFirst/FindNext underneath are reflected in our
   functionality. Under Windows, mask is treated somewhat hacky:
@@ -242,6 +261,9 @@ function FindFiles_NonRecursive(const Path, Mask: string;
   const FileProc: TFoundFileProc; const FileProcData: Pointer;
   var StopSearch: Boolean): Cardinal;
 
+  { Implementation when Path is '' (current directory)
+    or maps to a regular filename using UriToFilenameSafe.
+    Always sets Result. }
   procedure UseLocalFileSystem;
   var
     AbsoluteName, LocalPath: string;
@@ -261,7 +283,7 @@ function FindFiles_NonRecursive(const Path, Mask: string;
       Attr := Attr or faDirectory;
 
     if Path <> '' then
-      LocalPath := URIToFilenameSafe(Path)
+      LocalPath := UriToFilenameSafe(Path)
     else
       LocalPath := GetCurrentDir;
     LocalPath := InclPathDelim(LocalPath);
@@ -289,7 +311,7 @@ function FindFiles_NonRecursive(const Path, Mask: string;
           {$warnings off} // we know faSymLink is platform-specific, this is OK
           FileInfo.Symlink := (FileRec.Attr and faSymLink) <> 0;
           {$warnings on}
-          FileInfo.URL := FilenameToURISafe(AbsoluteName);
+          FileInfo.URL := FilenameToUriSafe(AbsoluteName);
           if Assigned(FileProc) then
             FileProc(FileInfo, FileProcData, StopSearch);
         end;
@@ -299,6 +321,8 @@ function FindFiles_NonRecursive(const Path, Mask: string;
     finally FindClose(FileRec) end;
   end;
 
+  { Implementation when Path has protocol 'castle-data'.
+    Always sets Result. }
   procedure UseDataDirectoryInformation;
   var
     U: TURI;
@@ -308,6 +332,8 @@ function FindFiles_NonRecursive(const Path, Mask: string;
     PathDir, D: TDirectoryInformation.TDirectory;
     FileInfo: TFileInfo;
   begin
+    Result := 0;
+
     U := ParseURI(Path);
     PathPartsStr := PrefixRemove('/', U.Path + U.Document, false);
     PathEntry := DataDirectoryInformation.FindEntry(PathPartsStr);
@@ -368,9 +394,12 @@ begin
       Result := FindFiles_NonRecursive(ResolveCastleDataURL(Path), Mask,
         FindDirectories, FileProc, FileProcData, StopSearch);
   end else
+  begin
+    Result := 0;
     WritelnLog('FindFiles',
       'Searching inside filesystem with protocol %s not possible, ignoring path "%s"',
-        [P, URICaption(Path)]);
+        [P, UriCaption(Path)]);
+  end;
 end;
 
 { This is equivalent to FindFiles with Recursive = true,
@@ -392,7 +421,7 @@ function FindFiles_Recursive(const Path, Mask: string; const FindDirectories: bo
     SearchError: integer;
   begin
     if Path <> '' then
-      LocalPath := URIToFilenameSafe(Path)
+      LocalPath := UriToFilenameSafe(Path)
     else
       LocalPath := GetCurrentDir;
     LocalPath := InclPathDelim(LocalPath);
@@ -408,7 +437,7 @@ function FindFiles_Recursive(const Path, Mask: string; const FindDirectories: bo
         if ((faDirectory and FileRec.Attr) <> 0) and
            (not SpecialDirName(FileRec.Name)) then
           Result := Result +
-            FindFiles_Recursive(FilenameToURISafe(LocalPath + FileRec.Name), Mask,
+            FindFiles_Recursive(FilenameToUriSafe(LocalPath + FileRec.Name), Mask,
               FindDirectories, FileProc, FileProcData, DirContentsLast, StopSearch);
         SearchError := FindNext(FileRec);
       end;
@@ -457,7 +486,7 @@ function FindFiles_Recursive(const Path, Mask: string; const FindDirectories: bo
     end else
       WritelnLog('FindFiles',
         'Searching inside subdirectories with protocol %s not possible, ignoring path "%s"',
-          [P, URICaption(Path)]);
+          [P, UriCaption(Path)]);
   end;
 
 begin
@@ -613,7 +642,7 @@ begin
   P := URIProtocol(Path);
   if P = 'file' then
     { convert Path to filename and continue }
-    Path := URIToFilenameSafe(Path)
+    Path := UriToFilenameSafe(Path)
   else
   if (P = 'castle-nx-contents') or
      (P = 'castle-nx-save') then

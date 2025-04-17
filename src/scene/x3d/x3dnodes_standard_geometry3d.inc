@@ -1,6 +1,6 @@
 {%MainUnit x3dnodes.pas}
 {
-  Copyright 2002-2022 Michalis Kamburelis.
+  Copyright 2002-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -89,14 +89,20 @@
   strict private
     procedure EventSet_HeightReceive(
       const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
+    class function ClassIsNotEmpty(
+      const AXDimension, AZDimension: Integer;
+      const AXSpacing, AZSpacing: Single;
+      const AHeight: TSingleList): Boolean;
   public
     constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
 
-    { This checks whether xDimension and zDimension are >= 2,
-      xSpacing and zSpacing are > 0 and height has at least the
-      required number of values. If this returns @false then
-      it is understood that ElevationGrid is not rendered, doesn't
-      have any vertices/triangles etc. }
+    { Do we have (correct) data to render.
+
+      Checks whether
+      - xDimension and zDimension are >= 2,
+      - xSpacing and zSpacing are > 0
+      - height list has at least the required number of values.
+    }
     function IsNotEmpty: boolean;
 
     function ColorField: TSFNode; override;
@@ -113,6 +119,18 @@
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
     function TrianglesCount(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
+
+    { Create triangle set to render the elevation grid.
+      Useful for
+      - Proxy in this class
+      - TCastleTerrain which wants direct TIndexedTriangleSetNode
+        (faster to later update than to maintain TElevationGridNode). }
+    class function InternalCreateTriangles(
+      const AXDimension, AZDimension: Integer;
+      const AXSpacing, AZSpacing: Single;
+      const AHeight: TSingleList;
+      const ATexCoord: TAbstractTextureCoordinateNode;
+      const TriangulationIgnoreHeights: Boolean): TIndexedTriangleSetNode;
 
   {$I auto_generated_node_helpers/x3dnodes_elevationgrid.inc}
   end;
@@ -275,7 +293,7 @@ end;
 
 function TConeNode.CalculateSlices: Cardinal;
 begin
-  // use default in case of -1 or invalid value
+  // use default in case of 0 or invalid value
   if FdSlices.Value < MinTriangulationSlices then
     Result := DefaultTriangulationSlices
   else
@@ -284,7 +302,7 @@ end;
 
 function TConeNode.CalculateStacks: Cardinal;
 begin
-  // use default in case of -1 or invalid value
+  // use default in case of 0 or invalid value
   if FdStacks.Value < MinTriangulationStacks then
     Result := DefaultTriangulationStacks
   else
@@ -324,7 +342,7 @@ end;
 
 function TCylinderNode.CalculateSlices: Cardinal;
 begin
-  // use default in case of -1 or invalid value
+  // use default in case of 0 or invalid value
   if FdSlices.Value < MinTriangulationSlices then
     Result := DefaultTriangulationSlices
   else
@@ -345,7 +363,7 @@ begin
 
 (*
 
-  // use default in case of -1 or invalid value
+  // use default in case of 0 or invalid value
   if FdStacks.Value < MinTriangulationStacks then
     Result := DefaultTriangulationStacks
   else
@@ -361,17 +379,27 @@ begin
   Eventset_height.AddNotification({$ifdef FPC}@{$endif} EventSet_HeightReceive);
 end;
 
-function TElevationGridNode.IsNotEmpty: boolean;
+class function TElevationGridNode.ClassIsNotEmpty(
+  const AXDimension, AZDimension: Integer;
+  const AXSpacing, AZSpacing: Single;
+  const AHeight: TSingleList): Boolean;
 begin
   Result :=
-    (FdXDimension.Value >= 2) and
-    (FdZDimension.Value >= 2) and
+    (AXDimension >= 2) and
+    (AZDimension >= 2) and
     { VRML spec says that xSpacing and ySpacing shall be > 0.
-      So I understand that when they are = 0 (or < 0) nothing
-      should be rendered. }
-    (FdXSpacing.Value > 0) and
-    (FdZSpacing.Value > 0) and
-    (FdHeight.Count >= FdXDimension.Value * FdZDimension.Value);
+      So when they are = 0 (or < 0) we don't render anything. }
+    (AXSpacing > 0) and
+    (AZSpacing > 0) and
+    (AHeight.Count >= AXDimension * AZDimension);
+end;
+
+function TElevationGridNode.IsNotEmpty: Boolean;
+begin
+  Result := ClassIsNotEmpty(
+    FdXDimension.Value, FdZDimension.Value,
+    FdXSpacing.Value, FdZSpacing.Value,
+    FdHeight.Items);
 end;
 
 function TElevationGridNode.ColorField: TSFNode;
@@ -455,51 +483,38 @@ begin
                              CrossSectionPoints[0]);
 end;
 
+{ Save the TAbstractGeometryNode to a file.
+  Useful to debug Proxy methods. }
+{.$define CASTLE_DEBUG_PROXY_EXTRUSION}
+{$ifdef CASTLE_DEBUG_PROXY_EXTRUSION}
+procedure DebugSaveGeometry(const Geometry: TAbstractGeometryNode);
+var
+  Shape: TShapeNode;
+  Appearance: TAppearanceNode;
+  Material: TMaterialNode;
+  Root: TX3DRootNode;
+begin
+  Material := TMaterialNode.Create;
+
+  Appearance := TAppearanceNode.Create;
+  Appearance.Material := Material;
+
+  Shape := TShapeNode.Create;
+  Shape.Geometry := Geometry;
+  Shape.Appearance := Appearance;
+
+  Root := TX3DRootNode.Create;
+  Root.AddChildren(Shape);
+
+  SaveNode(Root, '/tmp/debug_geometry.x3dv');
+end;
+{$endif}
+
 function TExtrusionNode.Proxy(var State: TX3DGraphTraverseState): TAbstractGeometryNode;
-
-{ Some of the things that are non-optimal when you will render
-  Extrusion using this Proxy instead of directly rendering node:
-
-  - In specialized Extrusion rendering, you now that sides are
-    composed of quads, and so you can use QUAD_STRIP to render them.
-    This allows vertices sharing. IndexedFaceSet uses vertex arrays,
-    that also provides sharing but may be slightly worse.
-
-  - In specialized Extrusion rendering, you know that sides' quads
-    are convex. There's never any need to triangulate them carefully.
-    For IndexedFaceSet, when caps may be non-convex, you have to set
-    convex field to false, so sides will be unnecessarily triangulated
-    with the slower algorithm.
-
-  You gain:
-
-  - creaseAngle support, which is really the crucial point why
-    I'm implementing this. I already have a specialized Extrusion
-    rendering, but adding there creaseAngle support is a major pain.
-
-    You would have to calculate all coordinates first, and then calculate
-    their normal vectors using a specialized routine like CreateNormals
-    that knows about Extrusion connectivity. This is painful to implement,
-    and naive implementation would even suffer from a slowdown not present
-    in Proxy approach: calculating all coordinates two times (before
-    calculating normals, and later for actual rendering). Sure, smarter
-    approach would remember these coordinates. Proxy approach provides
-    this automatically, saving coordinates inside Coordinate node,
-    for both normals calculation and rendering.
-
-  - A little ease of implementation: 230 lines of Proxy approach
-    versus 390 lines of TExtrusionRenderer. And remember that
-    actually handling creaseAngle would complicate TExtrusionRenderer
-    even more (that's why I didn't dare to do it...), and that
-    Proxy approach could also be used to implement things like
-    bounding box and triangulate eventually (although for now we use
-    our optimized methods).
-}
-
 var
   IFS: TIndexedFaceSetNode absolute Result;
   Index: Integer;
-  E: TVRMLExtrusion;
+  E: TExtrusionUtility;
   TexCoords: TVector2List;
 
   procedure NextIndex(SpineIndex, CrossSectionIndex: Integer;
@@ -564,9 +579,11 @@ var
 begin
   IFS := TIndexedFaceSetNode.Create(X3DName, BaseUrl);
   try
-    E := TVRMLExtrusion.Create;
+    E := TExtrusionUtility.Create;
     try
       E.Node := Self;
+      if E.Empty then
+        Exit;
 
       { calculate SidesCount = number of verts on sides, often used number }
       SidesCount := (E.High + 1) * FdCrossSection.Count;
@@ -677,7 +694,7 @@ begin
               spine[1](crossSection[1], crossSection[0])
             This is important, because we want faces to be ordered just
             like the specification requires. This makes using "ccw"
-            and "solid" fields predictable for VRML author, since he
+            and "solid" fields predictable for VRML / X3D author, since (s)he
             knows which side will be CCW and which CW.
 
             So below we produce the same order. }
@@ -714,7 +731,15 @@ begin
     IFS.FdSolid.Value := FdSolid.Value;
     IFS.FdCcw.Value := FdCcw.Value;
     IFS.FdCreaseAngle.Value := FdCreaseAngle.Value;
+
+    { The sides' quads are known to be convex.
+      However, the caps may be non-convex.
+      So we need to set IFS.FdConvex.Value to more secure value, false. }
     IFS.FdConvex.Value := FdConvex.Value;
+
+    {$ifdef CASTLE_DEBUG_PROXY_EXTRUSION}
+    DebugSaveGeometry(IFS);
+    {$endif}
   except FreeAndNil(Result); raise end;
 end;
 
@@ -857,7 +882,7 @@ end;
 
 function TSphereNode.CalculateSlices: Cardinal;
 begin
-  // use default in case of -1 or invalid value
+  // use default in case of 0 or invalid value
   if FdSlices.Value < MinTriangulationSlices then
     Result := DefaultTriangulationSlices
   else
@@ -866,7 +891,7 @@ end;
 
 function TSphereNode.CalculateStacks: Cardinal;
 begin
-  // use default in case of -1 or invalid value
+  // use default in case of 0 or invalid value
   if FdStacks.Value < MinTriangulationStacks then
     Result := DefaultTriangulationStacks
   else

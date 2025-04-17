@@ -74,7 +74,7 @@ var
 
 implementation
 
-uses CastleURIUtils, CastleWindow;
+uses CastleUriUtils, CastleWindow;
 
 { TResourceButton ------------------------------------------------------------ }
 

@@ -1,0 +1,7 @@
+## internal_test_cpp_lib
+
+Test of using a C++ library specific to Android with Castle Game Engine.
+
+This adds simple C++ code, compiled by Android build process (Gradle) and linked with Android application.
+
+This library isn't useful for normal Castle Game Engine applications, it is only a test that it's possible, and that it plays nicely with C++ libraries like OpenAL (in "sound" service).

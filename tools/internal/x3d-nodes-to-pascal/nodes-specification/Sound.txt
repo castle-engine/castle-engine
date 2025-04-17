@@ -1,5 +1,8 @@
 X3DSoundNode : X3DChildNode {
   default-container-field: children
+
+  SFString [in,out] description   ""
+  SFBool   [in,out] enabled       TRUE
 }
 
 X3DSoundSourceNode : X3DTimeDependentNode {
@@ -7,6 +10,9 @@ X3DSoundSourceNode : X3DTimeDependentNode {
 
   SFString [in,out] description      ""
     change: chNone
+  SFBool   [in,out] enabled          TRUE
+  SFFloat  [in,out] gain             1
+    range: (-Inf,Inf)
   SFFloat  [in,out] pitch            1.0
     range: (0,Inf)
   SFTime   [out]    duration_changed
@@ -19,11 +25,21 @@ AudioClip : X3DSoundSourceNode, X3DUrlObject {
   # Testcase: FISH.x3d
   default-container-field: source
 
+  SFTime   [in,out] autoRefresh          0.0
+    range: [0,Inf)
+  SFTime   [in,out] autoRefreshTimeLimit 3600.0
+    range: [0,Inf)
+  SFBool   [in,out] load                 TRUE
+
   MFString [in,out] url              []
     range: [urn]
 }
 
 Sound : X3DSoundNode {
+  # TODO: X3D 4:
+  # MFNode   [in,out] children   NULL  [X3DSoundChannelNode,X3DSoundProcessingNode,X3DSoundSourceNode]
+  # https://www.web3d.org/specifications/X3Dv4Draft/ISO-IEC19775-1v4-IS.proof/Part01/components/sound.html#Sound
+
   SFVec3f [in,out] direction  0 0 1
     range: (-Inf,Inf)
   SFFloat [in,out] intensity  1
@@ -41,6 +57,11 @@ Sound : X3DSoundNode {
   SFFloat [in,out] priority   0
     range: [0,1]
   SFNode  [in,out] source     NULL
-    range: X3DSoundSourceNode
+    # Note that we have to allow MovieTexture explicitly,
+    # even though in X3D standard the MovieTexture is descendant of X3DSoundSourceNode
+    # already. But in CGE, X3DSoundSourceNode is a class (not interface),
+    # as that's simpler, and MovieTexture is not a descendant of X3DSoundSourceNode
+    # (it has to descend from X3DTexture2DNode).
+    range: X3DSoundSourceNode, MovieTexture
   SFBool  []       spatialize TRUE
 }

@@ -3,11 +3,32 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 46;
+	objectVersion = 54;
 	objects = {
 
 /* Begin PBXBuildFile section */
-		4D1BD22A187D707D0067AA02 /* cge_library.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 4D1BD229187D707D0067AA02 /* cge_library.a */; };
+		16AD4F1300D3A33E503B2E0D /* libPods-ios_tester.a in Frameworks */ = {isa = PBXBuildFile; fileRef = F2A6F7F2523AE76A3655E51B /* libPods-ios_tester.a */; };
+		2C7440D92CF8744000968A74 /* Launch Screen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 2C7440D82CF8744000968A74 /* Launch Screen.storyboard */; };
+		2C7440DB2CF875F800968A74 /* LaunchImage.png in Resources */ = {isa = PBXBuildFile; fileRef = 2C7440DA2CF875F800968A74 /* LaunchImage.png */; };
+		2C8C07B32CF5FFCB002D6AE5 /* libcastleengine.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 2C8C07B22CF5FFCB002D6AE5 /* libcastleengine.a */; };
+		2C8C083E2CF6090C002D6AE5 /* floor1.c in Sources */ = {isa = PBXBuildFile; fileRef = 2C8C08252CF6090C002D6AE5 /* floor1.c */; settings = {COMPILER_FLAGS = "-w"; }; };
+		2C8C083F2CF6090C002D6AE5 /* info.c in Sources */ = {isa = PBXBuildFile; fileRef = 2C8C08272CF6090C002D6AE5 /* info.c */; settings = {COMPILER_FLAGS = "-w"; }; };
+		2C8C08402CF6090C002D6AE5 /* res012.c in Sources */ = {isa = PBXBuildFile; fileRef = 2C8C08342CF6090C002D6AE5 /* res012.c */; settings = {COMPILER_FLAGS = "-w"; }; };
+		2C8C08412CF6090C002D6AE5 /* bitwise.c in Sources */ = {isa = PBXBuildFile; fileRef = 2C8C081D2CF6090C002D6AE5 /* bitwise.c */; settings = {COMPILER_FLAGS = "-w"; }; };
+		2C8C08422CF6090C002D6AE5 /* floor0.c in Sources */ = {isa = PBXBuildFile; fileRef = 2C8C08242CF6090C002D6AE5 /* floor0.c */; settings = {COMPILER_FLAGS = "-w"; }; };
+		2C8C08432CF6090C002D6AE5 /* floor_lookup.c in Sources */ = {isa = PBXBuildFile; fileRef = 2C8C08232CF6090C002D6AE5 /* floor_lookup.c */; settings = {COMPILER_FLAGS = "-w"; }; };
+		2C8C08442CF6090C002D6AE5 /* mdct.c in Sources */ = {isa = PBXBuildFile; fileRef = 2C8C082D2CF6090C002D6AE5 /* mdct.c */; settings = {COMPILER_FLAGS = "-w"; }; };
+		2C8C08452CF6090C002D6AE5 /* mapping0.c in Sources */ = {isa = PBXBuildFile; fileRef = 2C8C082B2CF6090C002D6AE5 /* mapping0.c */; settings = {COMPILER_FLAGS = "-w"; }; };
+		2C8C08462CF6090C002D6AE5 /* dsp.c in Sources */ = {isa = PBXBuildFile; fileRef = 2C8C08222CF6090C002D6AE5 /* dsp.c */; settings = {COMPILER_FLAGS = "-w"; }; };
+		2C8C08472CF6090C002D6AE5 /* vorbisfile.c in Sources */ = {isa = PBXBuildFile; fileRef = 2C8C08352CF6090C002D6AE5 /* vorbisfile.c */; settings = {COMPILER_FLAGS = "-w"; }; };
+		2C8C08482CF6090C002D6AE5 /* codebook.c in Sources */ = {isa = PBXBuildFile; fileRef = 2C8C081F2CF6090C002D6AE5 /* codebook.c */; settings = {COMPILER_FLAGS = "-w"; }; };
+		2C8C08492CF6090C002D6AE5 /* misc.c in Sources */ = {isa = PBXBuildFile; fileRef = 2C8C08302CF6090C002D6AE5 /* misc.c */; settings = {COMPILER_FLAGS = "-w"; }; };
+		2C8C084A2CF6090C002D6AE5 /* framing.c in Sources */ = {isa = PBXBuildFile; fileRef = 2C8C08262CF6090C002D6AE5 /* framing.c */; settings = {COMPILER_FLAGS = "-w"; }; };
+		2C8C084B2CF6090C002D6AE5 /* README-castle-engine.txt in Resources */ = {isa = PBXBuildFile; fileRef = 2C8C08382CF6090C002D6AE5 /* README-castle-engine.txt */; };
+		2C8C084C2CF6090C002D6AE5 /* tremolo.todo.txt in Resources */ = {isa = PBXBuildFile; fileRef = 2C8C083C2CF6090C002D6AE5 /* tremolo.todo.txt */; };
+		2C8C084D2CF6090C002D6AE5 /* tremolo.copying.txt in Resources */ = {isa = PBXBuildFile; fileRef = 2C8C08392CF6090C002D6AE5 /* tremolo.copying.txt */; };
+		2C8C084E2CF6090C002D6AE5 /* tremolo.changelog.txt in Resources */ = {isa = PBXBuildFile; fileRef = 2C8C083A2CF6090C002D6AE5 /* tremolo.changelog.txt */; };
+		2C8C084F2CF6090C002D6AE5 /* tremolo.readme.txt in Resources */ = {isa = PBXBuildFile; fileRef = 2C8C083B2CF6090C002D6AE5 /* tremolo.readme.txt */; };
 		4D550C8D18A25D1F00C3F173 /* FileOpenController.m in Sources */ = {isa = PBXBuildFile; fileRef = 4D550C8C18A25D1F00C3F173 /* FileOpenController.m */; };
 		4D7616CD18A29AFA004BFA46 /* OptionsController.m in Sources */ = {isa = PBXBuildFile; fileRef = 4D7616CC18A29AFA004BFA46 /* OptionsController.m */; };
 		4D7616D018A29D9D004BFA46 /* Options.m in Sources */ = {isa = PBXBuildFile; fileRef = 4D7616CF18A29D9D004BFA46 /* Options.m */; };
@@ -29,8 +50,42 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		2C7440D82CF8744000968A74 /* Launch Screen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = "Launch Screen.storyboard"; sourceTree = "<group>"; };
+		2C7440DA2CF875F800968A74 /* LaunchImage.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = LaunchImage.png; sourceTree = "<group>"; };
+		2C8C07B22CF5FFCB002D6AE5 /* libcastleengine.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcastleengine.a; path = "/Users/janadamec/projekty/castle-engine/src/deprecated_library/libcastleengine.a"; sourceTree = "<absolute>"; };
+		2C8C081C2CF6090C002D6AE5 /* asm_arm.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = asm_arm.h; sourceTree = "<group>"; };
+		2C8C081D2CF6090C002D6AE5 /* bitwise.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = bitwise.c; sourceTree = "<group>"; };
+		2C8C081E2CF6090C002D6AE5 /* codebook.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = codebook.h; sourceTree = "<group>"; };
+		2C8C081F2CF6090C002D6AE5 /* codebook.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = codebook.c; sourceTree = "<group>"; };
+		2C8C08202CF6090C002D6AE5 /* codec_internal.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = codec_internal.h; sourceTree = "<group>"; };
+		2C8C08212CF6090C002D6AE5 /* config_types.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = config_types.h; sourceTree = "<group>"; };
+		2C8C08222CF6090C002D6AE5 /* dsp.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = dsp.c; sourceTree = "<group>"; };
+		2C8C08232CF6090C002D6AE5 /* floor_lookup.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = floor_lookup.c; sourceTree = "<group>"; };
+		2C8C08242CF6090C002D6AE5 /* floor0.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = floor0.c; sourceTree = "<group>"; };
+		2C8C08252CF6090C002D6AE5 /* floor1.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = floor1.c; sourceTree = "<group>"; };
+		2C8C08262CF6090C002D6AE5 /* framing.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = framing.c; sourceTree = "<group>"; };
+		2C8C08272CF6090C002D6AE5 /* info.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = info.c; sourceTree = "<group>"; };
+		2C8C08282CF6090C002D6AE5 /* ivorbiscodec.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ivorbiscodec.h; sourceTree = "<group>"; };
+		2C8C08292CF6090C002D6AE5 /* ivorbisfile.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ivorbisfile.h; sourceTree = "<group>"; };
+		2C8C082A2CF6090C002D6AE5 /* lsp_lookup.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = lsp_lookup.h; sourceTree = "<group>"; };
+		2C8C082B2CF6090C002D6AE5 /* mapping0.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = mapping0.c; sourceTree = "<group>"; };
+		2C8C082C2CF6090C002D6AE5 /* mdct.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = mdct.h; sourceTree = "<group>"; };
+		2C8C082D2CF6090C002D6AE5 /* mdct.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = mdct.c; sourceTree = "<group>"; };
+		2C8C082E2CF6090C002D6AE5 /* mdct_lookup.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = mdct_lookup.h; sourceTree = "<group>"; };
+		2C8C082F2CF6090C002D6AE5 /* misc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = misc.h; sourceTree = "<group>"; };
+		2C8C08302CF6090C002D6AE5 /* misc.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = misc.c; sourceTree = "<group>"; };
+		2C8C08312CF6090C002D6AE5 /* ogg.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ogg.h; sourceTree = "<group>"; };
+		2C8C08322CF6090C002D6AE5 /* os.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = os.h; sourceTree = "<group>"; };
+		2C8C08332CF6090C002D6AE5 /* os_types.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = os_types.h; sourceTree = "<group>"; };
+		2C8C08342CF6090C002D6AE5 /* res012.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = res012.c; sourceTree = "<group>"; };
+		2C8C08352CF6090C002D6AE5 /* vorbisfile.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = vorbisfile.c; sourceTree = "<group>"; };
+		2C8C08362CF6090C002D6AE5 /* window_lookup.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = window_lookup.h; sourceTree = "<group>"; };
+		2C8C08382CF6090C002D6AE5 /* README-castle-engine.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = "README-castle-engine.txt"; sourceTree = "<group>"; };
+		2C8C08392CF6090C002D6AE5 /* tremolo.copying.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = tremolo.copying.txt; sourceTree = "<group>"; };
+		2C8C083A2CF6090C002D6AE5 /* tremolo.changelog.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = tremolo.changelog.txt; sourceTree = "<group>"; };
+		2C8C083B2CF6090C002D6AE5 /* tremolo.readme.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = tremolo.readme.txt; sourceTree = "<group>"; };
+		2C8C083C2CF6090C002D6AE5 /* tremolo.todo.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = tremolo.todo.txt; sourceTree = "<group>"; };
 		4D1BD228187D70590067AA02 /* castleengine.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = castleengine.h; path = ../../../../src/deprecated_library/castleengine.h; sourceTree = "<group>"; };
-		4D1BD229187D707D0067AA02 /* cge_library.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = cge_library.a; path = ../../../../src/deprecated_library/cge_library.a; sourceTree = "<group>"; };
 		4D550C8B18A25D1F00C3F173 /* FileOpenController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FileOpenController.h; sourceTree = "<group>"; };
 		4D550C8C18A25D1F00C3F173 /* FileOpenController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FileOpenController.m; sourceTree = "<group>"; };
 		4D550C8E18A2703600C3F173 /* en */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = en; path = en.lproj/Main.storyboard; sourceTree = "<group>"; };
@@ -59,6 +114,9 @@
 		4DCB39AD183A3255001A708D /* sampledata */ = {isa = PBXFileReference; lastKnownFileType = folder; path = sampledata; sourceTree = "<group>"; };
 		4DCB39B5183A70F3001A708D /* ViewpointsController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ViewpointsController.h; sourceTree = "<group>"; };
 		4DCB39B6183A70F3001A708D /* ViewpointsController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ViewpointsController.m; sourceTree = "<group>"; };
+		5C4E0EC09FE9B8EF3DB77AC0 /* Pods-ios_tester.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ios_tester.release.xcconfig"; path = "Target Support Files/Pods-ios_tester/Pods-ios_tester.release.xcconfig"; sourceTree = "<group>"; };
+		A3EAC36F33173540CF7E61A2 /* Pods-ios_tester.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ios_tester.debug.xcconfig"; path = "Target Support Files/Pods-ios_tester/Pods-ios_tester.debug.xcconfig"; sourceTree = "<group>"; };
+		F2A6F7F2523AE76A3655E51B /* libPods-ios_tester.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-ios_tester.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -67,24 +125,83 @@
 			buildActionMask = 2147483647;
 			files = (
 				4D9724EF183CCC40000FD3D1 /* OpenAL.framework in Frameworks */,
+				2C8C07B32CF5FFCB002D6AE5 /* libcastleengine.a in Frameworks */,
 				4DCB39AC183A2ED6001A708D /* GLKit.framework in Frameworks */,
 				4DCB39AA183A2ECA001A708D /* OpenGLES.framework in Frameworks */,
-				4D1BD22A187D707D0067AA02 /* cge_library.a in Frameworks */,
 				4DCB3970183A2A46001A708D /* CoreGraphics.framework in Frameworks */,
 				4DCB3972183A2A46001A708D /* UIKit.framework in Frameworks */,
 				4DCB396E183A2A46001A708D /* Foundation.framework in Frameworks */,
+				16AD4F1300D3A33E503B2E0D /* libPods-ios_tester.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		2C8C08372CF6090C002D6AE5 /* src */ = {
+			isa = PBXGroup;
+			children = (
+				2C8C081C2CF6090C002D6AE5 /* asm_arm.h */,
+				2C8C081D2CF6090C002D6AE5 /* bitwise.c */,
+				2C8C081E2CF6090C002D6AE5 /* codebook.h */,
+				2C8C081F2CF6090C002D6AE5 /* codebook.c */,
+				2C8C08202CF6090C002D6AE5 /* codec_internal.h */,
+				2C8C08212CF6090C002D6AE5 /* config_types.h */,
+				2C8C08222CF6090C002D6AE5 /* dsp.c */,
+				2C8C08232CF6090C002D6AE5 /* floor_lookup.c */,
+				2C8C08242CF6090C002D6AE5 /* floor0.c */,
+				2C8C08252CF6090C002D6AE5 /* floor1.c */,
+				2C8C08262CF6090C002D6AE5 /* framing.c */,
+				2C8C08272CF6090C002D6AE5 /* info.c */,
+				2C8C08282CF6090C002D6AE5 /* ivorbiscodec.h */,
+				2C8C08292CF6090C002D6AE5 /* ivorbisfile.h */,
+				2C8C082A2CF6090C002D6AE5 /* lsp_lookup.h */,
+				2C8C082B2CF6090C002D6AE5 /* mapping0.c */,
+				2C8C082C2CF6090C002D6AE5 /* mdct.h */,
+				2C8C082D2CF6090C002D6AE5 /* mdct.c */,
+				2C8C082E2CF6090C002D6AE5 /* mdct_lookup.h */,
+				2C8C082F2CF6090C002D6AE5 /* misc.h */,
+				2C8C08302CF6090C002D6AE5 /* misc.c */,
+				2C8C08312CF6090C002D6AE5 /* ogg.h */,
+				2C8C08322CF6090C002D6AE5 /* os.h */,
+				2C8C08332CF6090C002D6AE5 /* os_types.h */,
+				2C8C08342CF6090C002D6AE5 /* res012.c */,
+				2C8C08352CF6090C002D6AE5 /* vorbisfile.c */,
+				2C8C08362CF6090C002D6AE5 /* window_lookup.h */,
+			);
+			path = src;
+			sourceTree = "<group>";
+		};
+		2C8C083D2CF6090C002D6AE5 /* tremolo */ = {
+			isa = PBXGroup;
+			children = (
+				2C8C08372CF6090C002D6AE5 /* src */,
+				2C8C08382CF6090C002D6AE5 /* README-castle-engine.txt */,
+				2C8C08392CF6090C002D6AE5 /* tremolo.copying.txt */,
+				2C8C083A2CF6090C002D6AE5 /* tremolo.changelog.txt */,
+				2C8C083B2CF6090C002D6AE5 /* tremolo.readme.txt */,
+				2C8C083C2CF6090C002D6AE5 /* tremolo.todo.txt */,
+			);
+			name = tremolo;
+			path = "/Users/janadamec/projekty/castle-engine/tools/build-tool/data/ios/services/ogg_vorbis/cge_project_name/tremolo";
+			sourceTree = "<absolute>";
+		};
+		3AF29D6B2B87F0E549231114 /* Pods */ = {
+			isa = PBXGroup;
+			children = (
+				A3EAC36F33173540CF7E61A2 /* Pods-ios_tester.debug.xcconfig */,
+				5C4E0EC09FE9B8EF3DB77AC0 /* Pods-ios_tester.release.xcconfig */,
+			);
+			path = Pods;
+			sourceTree = "<group>";
+		};
 		4DCB3961183A2A46001A708D = {
 			isa = PBXGroup;
 			children = (
 				4DCB3973183A2A46001A708D /* ios_tester */,
 				4DCB396C183A2A46001A708D /* Frameworks */,
 				4DCB396B183A2A46001A708D /* Products */,
+				3AF29D6B2B87F0E549231114 /* Pods */,
 			);
 			sourceTree = "<group>";
 		};
@@ -105,6 +222,7 @@
 				4DCB396D183A2A46001A708D /* Foundation.framework */,
 				4DCB396F183A2A46001A708D /* CoreGraphics.framework */,
 				4DCB3971183A2A46001A708D /* UIKit.framework */,
+				F2A6F7F2523AE76A3655E51B /* libPods-ios_tester.a */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -114,6 +232,7 @@
 			children = (
 				4DCB397C183A2A46001A708D /* AppDelegate.h */,
 				4DCB397D183A2A46001A708D /* AppDelegate.m */,
+				2C7440D82CF8744000968A74 /* Launch Screen.storyboard */,
 				4DCB397F183A2A46001A708D /* Main.storyboard */,
 				4DCB39A2183A2B69001A708D /* OpenGLController.h */,
 				4DCB39A3183A2B69001A708D /* OpenGLController.m */,
@@ -139,6 +258,7 @@
 			isa = PBXGroup;
 			children = (
 				4DCB3975183A2A46001A708D /* ios_tester-Info.plist */,
+				2C7440DA2CF875F800968A74 /* LaunchImage.png */,
 				4DCB3976183A2A46001A708D /* InfoPlist.strings */,
 				4DCB3979183A2A46001A708D /* main.m */,
 				4DCB397B183A2A46001A708D /* ios_tester-Prefix.pch */,
@@ -149,8 +269,9 @@
 		4DCB39A5183A2C13001A708D /* Pascal Engine */ = {
 			isa = PBXGroup;
 			children = (
+				2C8C083D2CF6090C002D6AE5 /* tremolo */,
+				2C8C07B22CF5FFCB002D6AE5 /* libcastleengine.a */,
 				4D1BD228187D70590067AA02 /* castleengine.h */,
-				4D1BD229187D707D0067AA02 /* cge_library.a */,
 			);
 			name = "Pascal Engine";
 			sourceTree = "<group>";
@@ -162,6 +283,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 4DCB399C183A2A46001A708D /* Build configuration list for PBXNativeTarget "ios_tester" */;
 			buildPhases = (
+				98CC32CF19B27833C7424A36 /* [CP] Check Pods Manifest.lock */,
 				4DCB3966183A2A46001A708D /* Sources */,
 				4DCB3967183A2A46001A708D /* Frameworks */,
 				4DCB3968183A2A46001A708D /* Resources */,
@@ -181,7 +303,8 @@
 		4DCB3962183A2A46001A708D /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0910;
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1610;
 				ORGANIZATIONNAME = "Jan Adamec";
 			};
 			buildConfigurationList = 4DCB3965183A2A46001A708D /* Build configuration list for PBXProject "ios_tester" */;
@@ -189,6 +312,7 @@
 			developmentRegion = English;
 			hasScannedForEncodings = 0;
 			knownRegions = (
+				English,
 				en,
 				Base,
 			);
@@ -207,14 +331,46 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				2C8C084B2CF6090C002D6AE5 /* README-castle-engine.txt in Resources */,
+				2C8C084C2CF6090C002D6AE5 /* tremolo.todo.txt in Resources */,
+				2C8C084D2CF6090C002D6AE5 /* tremolo.copying.txt in Resources */,
+				2C8C084E2CF6090C002D6AE5 /* tremolo.changelog.txt in Resources */,
+				2C8C084F2CF6090C002D6AE5 /* tremolo.readme.txt in Resources */,
 				4DCB3986183A2A46001A708D /* Images.xcassets in Resources */,
 				4DCB3978183A2A46001A708D /* InfoPlist.strings in Resources */,
 				4DCB39AE183A3255001A708D /* sampledata in Resources */,
+				2C7440D92CF8744000968A74 /* Launch Screen.storyboard in Resources */,
 				4DCB3981183A2A46001A708D /* Main.storyboard in Resources */,
+				2C7440DB2CF875F800968A74 /* LaunchImage.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		98CC32CF19B27833C7424A36 /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-ios_tester-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		4DCB3966183A2A46001A708D /* Sources */ = {
@@ -224,6 +380,19 @@
 				4D7616D018A29D9D004BFA46 /* Options.m in Sources */,
 				4D7616CD18A29AFA004BFA46 /* OptionsController.m in Sources */,
 				4D9724EB183BD54E000FD3D1 /* ViewInfoController.m in Sources */,
+				2C8C083E2CF6090C002D6AE5 /* floor1.c in Sources */,
+				2C8C083F2CF6090C002D6AE5 /* info.c in Sources */,
+				2C8C08402CF6090C002D6AE5 /* res012.c in Sources */,
+				2C8C08412CF6090C002D6AE5 /* bitwise.c in Sources */,
+				2C8C08422CF6090C002D6AE5 /* floor0.c in Sources */,
+				2C8C08432CF6090C002D6AE5 /* floor_lookup.c in Sources */,
+				2C8C08442CF6090C002D6AE5 /* mdct.c in Sources */,
+				2C8C08452CF6090C002D6AE5 /* mapping0.c in Sources */,
+				2C8C08462CF6090C002D6AE5 /* dsp.c in Sources */,
+				2C8C08472CF6090C002D6AE5 /* vorbisfile.c in Sources */,
+				2C8C08482CF6090C002D6AE5 /* codebook.c in Sources */,
+				2C8C08492CF6090C002D6AE5 /* misc.c in Sources */,
+				2C8C084A2CF6090C002D6AE5 /* framing.c in Sources */,
 				4DCB397E183A2A46001A708D /* AppDelegate.m in Sources */,
 				4DCB39A4183A2B69001A708D /* OpenGLController.m in Sources */,
 				4D550C8D18A25D1F00C3F173 /* FileOpenController.m in Sources */,
@@ -266,14 +435,17 @@
 				CLANG_WARN_BOOL_CONVERSION = YES;
 				CLANG_WARN_COMMA = YES;
 				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
 				CLANG_WARN_EMPTY_BODY = YES;
 				CLANG_WARN_ENUM_CONVERSION = YES;
 				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
 				CLANG_WARN_STRICT_PROTOTYPES = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
@@ -283,6 +455,7 @@
 				COPY_PHASE_STRIP = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -298,7 +471,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = 2;
@@ -317,14 +490,17 @@
 				CLANG_WARN_BOOL_CONVERSION = YES;
 				CLANG_WARN_COMMA = YES;
 				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
 				CLANG_WARN_EMPTY_BODY = YES;
 				CLANG_WARN_ENUM_CONVERSION = YES;
 				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
 				CLANG_WARN_STRICT_PROTOTYPES = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
@@ -334,6 +510,7 @@
 				COPY_PHASE_STRIP = YES;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
@@ -342,7 +519,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = 2;
 				VALIDATE_PRODUCT = YES;
@@ -351,18 +528,28 @@
 		};
 		4DCB399D183A2A46001A708D /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = A3EAC36F33173540CF7E61A2 /* Pods-ios_tester.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "Apple Development";
+				DEVELOPMENT_TEAM = "";
 				ENABLE_BITCODE = NO;
 				FRAMEWORK_SEARCH_PATHS = "$(inherited)";
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "ios_tester/ios_tester-Prefix.pch";
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+					GLES_SILENCE_DEPRECATION,
+					ONLY_C,
+				);
 				INFOPLIST_FILE = "ios_tester/ios_tester-Info.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					../../../src/deprecated_library,
+					"$(PROJECT_DIR)/ios_tester",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "com.example.${PRODUCT_NAME:rfc1034identifier}";
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -373,19 +560,26 @@
 		};
 		4DCB399E183A2A46001A708D /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 5C4E0EC09FE9B8EF3DB77AC0 /* Pods-ios_tester.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
-				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "Apple Development";
+				DEVELOPMENT_TEAM = "";
 				ENABLE_BITCODE = NO;
 				FRAMEWORK_SEARCH_PATHS = "$(inherited)";
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "ios_tester/ios_tester-Prefix.pch";
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					GLES_SILENCE_DEPRECATION,
+					ONLY_C,
+				);
 				INFOPLIST_FILE = "ios_tester/ios_tester-Info.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					../../../src/deprecated_library,
+					"$(PROJECT_DIR)/ios_tester",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "com.example.${PRODUCT_NAME:rfc1034identifier}";
 				PRODUCT_NAME = "$(TARGET_NAME)";

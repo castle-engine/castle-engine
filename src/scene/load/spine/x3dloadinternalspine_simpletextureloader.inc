@@ -24,16 +24,16 @@ type
   TSimpleTextureLoader = class(TTextureLoader)
   strict private
     Nodes: TImageTextureNodeMap;
-    BaseUrl: string;
+    BaseUrl: String;
   public
-    constructor Create(const ABaseUrl: string);
+    constructor Create(const ABaseUrl: String);
     destructor Destroy; override;
     function UseNode(const AttachmentName: string;
       out TexCoord: TQuadTexCoord; out TexRect: TQuadTexRect;
       out TexRotated: boolean): TImageTextureNode; override;
   end;
 
-constructor TSimpleTextureLoader.Create(const ABaseUrl: string);
+constructor TSimpleTextureLoader.Create(const ABaseUrl: String);
 begin
   inherited Create;
   BaseUrl := ABaseUrl;

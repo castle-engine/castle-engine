@@ -57,7 +57,7 @@ uses
   castlevectorsinternaldouble,
 
   // src/base_rendering
-  castlegles,
+  // castlegles, // don't include, as we cannot use this on web
   castleglversion,
   castleglimages,
   castleglutils,
@@ -74,6 +74,10 @@ uses
   castlephotoservice,
   castleopendocument,
   castletenjin,
+
+  // src/services/steam
+  castleinternalsteamapi,
+  castlesteam,
 
 {$ifdef ANDROID}
   // src/base/android
@@ -105,21 +109,8 @@ uses
   castleinternalfreetype,
   castleinternalfreetypeh,
   castleinternalrichtext,
-  castletexturefont_dejavusans_10,
-  castletexturefont_dejavusansmono_18,
-  castletexturefont_dejavusansmonobold_15,
-  castletexturefont_djvmono_20,
-  castletexturefont_djvmonob_20,
-  castletexturefont_djvmonobo_20,
-  castletexturefont_djvmonoo_20,
-  castletexturefont_djvsans_20,
-  castletexturefont_djvsansb_20,
-  castletexturefont_djvsansbo_20,
-  castletexturefont_djvsanso_20,
-  castletexturefont_djvserif_20,
-  castletexturefont_djvserifb_20,
-  castletexturefont_djvserifbi_20,
-  castletexturefont_djvserifi_20,
+  castletexturefont_defaultui,
+  castletexturefont_default3d_sans,
   castletexturefontdata,
 
   // src/images

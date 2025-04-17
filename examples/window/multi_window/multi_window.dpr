@@ -13,43 +13,75 @@
   ----------------------------------------------------------------------------
 }
 
-{ Demo of
-  - using multiple windows with CastleWindow unit
-  - instead of registering OnXxx callbacks overriding EventXxx methods
-    (more OOP approach)
-  - press c to change cursor in the window that has focus, this is to demo
-    that TCastleWindow.Cursor indeed works as appropriate, i.e. changes the cursor
-    only for the given window.
+{ Demo of using multiple open windows with TCastleWindow.
+
+  Additional demo:
+  press c to change cursor in the window that has focus, this is to demo
+  that TCastleWindow.Cursor indeed works as appropriate, i.e. changes the cursor
+  only for the given window.
 }
 
 program multi_window;
 
 {$ifdef MSWINDOWS} {$apptype GUI} {$endif}
 
-uses CastleWindow, SysUtils, CastleUtils, CastleGLUtils, CastleKeysMouse, CastleVectors,
-  CastleStringUtils, CastleColors, CastleControls, CastleUIControls;
+uses SysUtils, Classes,
+  CastleWindow, CastleUtils, CastleGLUtils, CastleKeysMouse, CastleVectors,
+  CastleStringUtils, CastleColors, CastleControls, CastleUIControls, CastleLog;
 
 type
-  TText = class(TCastleUserInterface)
+  TWindowView = class(TCastleUserInterface)
+  private
+    FStatusLabel: TCastleLabel;
   public
-    Text: string;
-    LightColor, DarkColor: TCastleColor;
+    WindowIndex: Integer;
+    DarkColor: TCastleColor;
     ParentWindow: TCastleWindow;
+    constructor Create(AOwner: TComponent); override;
+    procedure Update(const SecondsPassed: Single; var HandleInput: boolean); override;
     procedure Render; override;
     function Press(const Event: TInputPressRelease): boolean; override;
     function CapturesEventsAtPosition(const Position: TVector2): boolean; override;
   end;
 
-procedure TText.Render;
+constructor TWindowView.Create(AOwner: TComponent);
 begin
   inherited;
-  DrawRectangle(ParentRect, DarkColor);
-  FallbackFont.Print(10, 10, LightColor, Text);
+
+  FStatusLabel := TCastleLabel.Create(Self);
+  FStatusLabel.FontSize := 10;
+  FStatusLabel.Anchor(hpLeft, 10);
+  FStatusLabel.Anchor(vpBottom, 10);
+  // random light color
+  FStatusLabel.Color := Vector4(
+    RandomFloatRange(0.5, 1.0),
+    RandomFloatRange(0.5, 1.0),
+    RandomFloatRange(0.5, 1.0), 1);
+  InsertFront(FStatusLabel);
 end;
 
-function TText.Press(const Event: TInputPressRelease): boolean;
+procedure TWindowView.Update(const SecondsPassed: Single; var HandleInput: boolean);
+begin
+  inherited;
+  FStatusLabel.Caption := Format('Window %d' + NL + 'Pixels width / height: %d / %d', [
+    WindowIndex,
+    ParentWindow.Width,
+    ParentWindow.Height
+  ]);
+end;
+
+procedure TWindowView.Render;
+begin
+  inherited;
+  { TODO: use TCastleRectangleControl for drawing this.
+    TODO: TWindowView should be class(TCastleView)
+  }
+  DrawRectangle(ParentRect, DarkColor);
+end;
+
+function TWindowView.Press(const Event: TInputPressRelease): boolean;
 var
-  URL: string;
+  Url: String;
 begin
   Result := inherited;
   if Result then Exit;
@@ -62,16 +94,16 @@ begin
       end;
     'o':
       begin
-        URL := '';
+        Url := '';
         { when file dialog is open, note that the other windows
           are still active as they should. }
-        ParentWindow.FileDialog('Test open file dialog', URL, true);
+        ParentWindow.FileDialog('Test open file dialog', Url, true);
         Exit(true);
       end;
   end;
 end;
 
-function TText.CapturesEventsAtPosition(const Position: TVector2): boolean;
+function TWindowView.CapturesEventsAtPosition(const Position: TVector2): boolean;
 begin
   Result := true; // always
 end;
@@ -79,18 +111,19 @@ end;
 var
   I: Integer;
   Windows: array [0..4] of TCastleWindow;
-  Text: TText;
+  WindowView: TWindowView;
 begin
+  InitializeLog;
+
   for i := 0 to High(Windows) do
   begin
     Windows[I] := TCastleWindow.Create(Application);
 
-    Text := TText.Create(Windows[I]);
-    Text.Text := 'Window ' + IntToStr(I);
-    Text.LightColor := Vector4(Random*1.5, Random*1.5, Random*1.5, 1);
-    Text.DarkColor  := Vector4(Random*0.7, Random*0.7, Random*0.7, 1);
-    Text.ParentWindow := Windows[I];
-    Windows[I].Controls.InsertFront(Text);
+    WindowView := TWindowView.Create(Windows[I]);
+    WindowView.WindowIndex := I;
+    WindowView.DarkColor  := Vector4(Random*0.7, Random*0.7, Random*0.7, 1);
+    WindowView.ParentWindow := Windows[I];
+    Windows[I].Controls.InsertFront(WindowView);
 
     Windows[I].Caption := 'Window ' + IntToStr(I);
     Windows[I].Width := 200;

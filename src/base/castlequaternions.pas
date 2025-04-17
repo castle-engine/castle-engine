@@ -100,13 +100,15 @@ type
       And no, I didn't actually observe the need for this in my programs.
       But you can see it actually called when you use TMatrixExaminer and
       deliberately cause spinning by very very large value (e.g. run
-      view3dscene and press and hold right key, this will cause model
+      castle-model-viewer and press and hold right key, this will cause model
       spinning very fast, which causes quat multiplication every frame).
       So possibly this would trigger incorrect quaternions at some point.
 
       Anyway, this remains mostly a paranoid correctness measure.  }
-    procedure LazyNormalizeMe;
-    procedure LazyNormalize; deprecated 'use LazyNormalizeMe';
+    function NormalizeLazy: TQuaternion;
+
+    procedure LazyNormalizeMe; deprecated 'use Q := Q.NormalizeLazy';
+    procedure LazyNormalize; deprecated 'use Q := Q.NormalizeLazy';
 
     { Multiply two quaternions.
 
@@ -346,7 +348,8 @@ begin
     Result.Data.Vector.Y := Data.Vector.Y * Len;
     Result.Data.Vector.Z := Data.Vector.Z * Len;
     Result.Data.Real := Data.Real * Len;
-  end;
+  end else
+    Result := Self;
 end;
 
 procedure TQuaternion.NormalizeMe;
@@ -366,7 +369,9 @@ end;
 
 procedure TQuaternion.LazyNormalize;
 begin
+  {$warnings off} // using deprecated in deprecated
   LazyNormalizeMe;
+  {$warnings on}
 end;
 
 procedure TQuaternion.LazyNormalizeMe;
@@ -387,6 +392,28 @@ begin
       Data.Real := Data.Real * Len;
     end;
   end;
+end;
+
+function TQuaternion.NormalizeLazy: TQuaternion;
+var
+  Len: Single;
+begin
+  Len := Data.Vector4.LengthSqr;
+  if (Len - 1) > 0.001 then
+  begin
+    { tests: Writeln('quat lazily normed'); }
+    Len := Sqrt(Len);
+    if Len <> 0 then
+    begin
+      Len := 1/Len;
+      Result.Data.Vector.X := Data.Vector.X * Len;
+      Result.Data.Vector.Y := Data.Vector.Y * Len;
+      Result.Data.Vector.Z := Data.Vector.Z * Len;
+      Result.Data.Real := Data.Real * Len;
+    end else
+      Result := Self;
+  end else
+    Result := Self;
 end;
 
 class operator TQuaternion.{$ifdef FPC}*{$else}Multiply{$endif} (const Q1, Q2: TQuaternion): TQuaternion;
@@ -410,7 +437,7 @@ end;
 function QuatFromAxisAngle(const Axis: TVector3;
   const AngleRad: Single; const NormalizeAxis: boolean): TQuaternion;
 var
-  SinHalfAngle, CosHalfAngle: Float;
+  SinHalfAngle, CosHalfAngle: Single;
 begin
   { The quaternion requires half angles. }
   SinCos(AngleRad / 2, SinHalfAngle, CosHalfAngle);
@@ -418,7 +445,7 @@ begin
   if NormalizeAxis then
   begin
     { protect from zero-length axis
-      (testcase: code/tovrmlx3d demo-models/castle-anim-frames/simple/cube_opening.castle-anim-frames ) }
+      (testcase: castle-model-converter demo-models/castle-anim-frames/simple/cube_opening.castle-anim-frames ) }
     if Axis.IsZero then
       Exit(TQuaternion.ZeroRotation);
     SinHalfAngle := SinHalfAngle / Axis.Length;
@@ -519,7 +546,7 @@ begin
 
   { Sometimes CosTheta may get slightly > 1, and then ArcCos fails with
     EInvalidArgument. Testcase: demo_models/x3d/orientation_cos_1.x3d
-    with view3dscene. }
+    with castle-model-viewer. }
   MinVar(CosTheta, 1);
 
   Theta := ArcCos(CosTheta);

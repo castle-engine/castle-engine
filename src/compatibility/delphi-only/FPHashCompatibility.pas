@@ -1,6 +1,6 @@
-{ 
+{
  Based on Contnrs from FPC:
- 
+
  This file is part of the Free Component Library (FCL)
     Copyright (c) 2002 by Florian Klaempfl
 
@@ -29,7 +29,7 @@ type
 
 
   THashItem=record
-    HashValue : LongWord;
+    HashValue : UInt32;
     StrIndex  : Integer;
     NextIndex : Integer;
     Data      : Pointer;
@@ -45,7 +45,7 @@ const
   SListIndexError               = 'List index (%d) out of bounds';
   SListCapacityError            = 'List capacity (%d) exceeded.';
   SListCountError               = 'List count (%d) out of bounds.';
-  
+
  type
   PHashItemList = ^THashItemList;
   THashItemList = array[0..MaxHashListSize - 1] of THashItem;
@@ -65,7 +65,7 @@ const
     FStrs     : PAnsiChar;
     FStrCount,
     FStrCapacity : Integer;
-    Function InternalFind(AHash:LongWord;const AName:shortstring;out PrevIndex:Integer):Integer;
+    Function InternalFind(AHash:UInt32;const AName:shortstring;out PrevIndex:Integer):Integer;
   protected
     Function Get(Index: Integer): Pointer; {$ifdef CCLASSESINLINE}inline;{$endif}
     Procedure Put(Index: Integer; Item: Pointer); {$ifdef CCLASSESINLINE}inline;{$endif}
@@ -84,7 +84,7 @@ const
     Function Add(const AName:shortstring;Item: Pointer): Integer;
     Procedure Clear;
     Function NameOfIndex(Index: Integer): ShortString; {$ifdef CCLASSESINLINE}inline;{$endif}
-    Function HashOfIndex(Index: Integer): LongWord; {$ifdef CCLASSESINLINE}inline;{$endif}
+    Function HashOfIndex(Index: Integer): UInt32; {$ifdef CCLASSESINLINE}inline;{$endif}
     Function GetNextCollision(Index: Integer): Integer;
     Procedure Delete(Index: Integer);
     class Procedure Error(const Msg: string; Data: NativeInt);
@@ -93,7 +93,7 @@ const
     Function IndexOf(Item: Pointer): Integer;
     Function Find(const AName:shortstring): Pointer;
     Function FindIndexOf(const AName:shortstring): Integer;
-    Function FindWithHash(const AName:shortstring;AHash:LongWord): Pointer;
+    Function FindWithHash(const AName:shortstring;AHash:UInt32): Pointer;
     Function Rename(const AOldName,ANewName:shortstring): Integer;
     Function Remove(Item: Pointer): Integer;
     Procedure Pack;
@@ -124,7 +124,7 @@ const
     Procedure InternalChangeOwner(HashObjectList:TFPHashObjectList;const s:shortstring);
   protected
     Function GetName:shortstring;virtual;
-    Function GetHash:Longword;virtual;
+    Function GetHash:UInt32;virtual;
   public
     constructor CreateNotOwned;
     constructor Create(HashObjectList:TFPHashObjectList;const s:shortstring);
@@ -132,7 +132,7 @@ const
     Procedure ChangeOwnerAndName(HashObjectList:TFPHashObjectList;const s:shortstring); {$ifdef CCLASSESINLINE}inline;{$endif}
     Procedure Rename(const ANewName:shortstring);
     property Name:shortstring read GetName;
-    property Hash:Longword read GetHash;
+    property Hash:UInt32 read GetHash;
   end;
 
   TFPHashObjectList = class(TObject)
@@ -152,7 +152,7 @@ const
     Procedure Clear;
     Function Add(const AName:shortstring;AObject: TObject): Integer; {$ifdef CCLASSESINLINE}inline;{$endif}
     Function NameOfIndex(Index: Integer): ShortString; {$ifdef CCLASSESINLINE}inline;{$endif}
-    Function HashOfIndex(Index: Integer): LongWord; {$ifdef CCLASSESINLINE}inline;{$endif}
+    Function HashOfIndex(Index: Integer): UInt32; {$ifdef CCLASSESINLINE}inline;{$endif}
     Function GetNextCollision(Index: Integer): Integer; {$ifdef CCLASSESINLINE}inline;{$endif}
     Procedure Delete(Index: Integer);
     Function Expand: TFPHashObjectList; {$ifdef CCLASSESINLINE}inline;{$endif}
@@ -161,7 +161,7 @@ const
     Function IndexOf(AObject: TObject): Integer; {$ifdef CCLASSESINLINE}inline;{$endif}
     Function Find(const s:shortstring): TObject; {$ifdef CCLASSESINLINE}inline;{$endif}
     Function FindIndexOf(const s:shortstring): Integer; {$ifdef CCLASSESINLINE}inline;{$endif}
-    Function FindWithHash(const AName:shortstring;AHash:LongWord): Pointer;
+    Function FindWithHash(const AName:shortstring;AHash:UInt32): Pointer;
     Function Rename(const AOldName,ANewName:shortstring): Integer; {$ifdef CCLASSESINLINE}inline;{$endif}
     Function FindInstanceOf(AClass: TClass; AExact: Boolean; AStartAt: Integer): Integer;
     Procedure Pack; {$ifdef CCLASSESINLINE}inline;{$endif}
@@ -183,7 +183,7 @@ uses CastleUtils;
                             TFPHashList
 *****************************************************************************}
 
-    Function FPHash(const s:shortstring):LongWord; overload;
+    Function FPHash(const s:shortstring):UInt32; overload;
     var
       p,pmax : PAnsiChar;
     begin
@@ -193,13 +193,13 @@ uses CastleUtils;
       pmax:=@s[length(s)+1];
       while (p<pmax) do
         begin
-          Result:=LongWord(LongInt(Result shl 5) - LongInt(Result)) xor LongWord(P^);
+          Result:=UInt32(Int32(Result shl 5) - Int32(Result)) xor UInt32(P^);
           Inc(p);
         end;
 {$I norqcheckend.inc}
     end;
 
-    Function FPHash(P: PAnsiChar; Len: Integer): LongWord; overload;
+    Function FPHash(P: PAnsiChar; Len: Integer): UInt32; overload;
     var
       pmax : PAnsiChar;
     begin
@@ -208,7 +208,7 @@ uses CastleUtils;
       pmax:=p+len;
       while (p<pmax) do
         begin
-          Result:=LongWord(LongInt(Result shl 5) - LongInt(Result)) xor LongWord(P^);
+          Result:=UInt32(Int32(Result shl 5) - Int32(Result)) xor UInt32(P^);
           Inc(p);
         end;
 {$I norqcheckend.inc}
@@ -251,7 +251,7 @@ begin
 end;
 
 
-Function TFPHashList.HashOfIndex(Index: Integer): LongWord;
+Function TFPHashList.HashOfIndex(Index: Integer): UInt32;
 begin
   If (Index < 0) or (Index >= FCount) then
     RaiseIndexError(Index);
@@ -339,7 +339,7 @@ Procedure TFPHashList.ReHash;
 var
   i : Integer;
 begin
-  FillDword(FHashTable^, FHashCapacity,LongWord(-1));
+  FillDword(FHashTable^, FHashCapacity, High(UInt32));
   for i:=0 to FCount-1 do
     AddToHashTable(i);
 end;
@@ -381,7 +381,7 @@ begin
     begin
     if not Assigned(Data) then
       Exit;
-    HashIndex:=HashValue mod LongWord(FHashCapacity);
+    HashIndex:=HashValue mod UInt32(FHashCapacity);
     NextIndex:=FHashTable^[HashIndex];
     FHashTable^[HashIndex]:=Index;
     end;
@@ -453,7 +453,7 @@ end;
 
 Function TFPHashList.Expand: TFPHashList;
 var
-  IncSize : Longint;
+  IncSize : Int32;
 begin
   Result:=Self;
   if FCount < FCapacity then
@@ -470,7 +470,7 @@ end;
 
 Procedure TFPHashList.StrExpand(MinIncSize:Integer);
 var
-  IncSize : Longint;
+  IncSize : Int32;
 begin
   if FStrCount+MinIncSize < FStrCapacity then
     Exit;
@@ -498,13 +498,13 @@ begin
     end;
 end;
 
-Function TFPHashList.InternalFind(AHash:LongWord;const AName:shortstring;out PrevIndex:Integer):Integer;
+Function TFPHashList.InternalFind(AHash:UInt32;const AName:shortstring;out PrevIndex:Integer):Integer;
 var
   HashIndex : Integer;
   Len,
   LastChar  : AnsiChar;
 begin
-  HashIndex:=AHash mod LongWord(FHashCapacity);
+  HashIndex:=AHash mod UInt32(FHashCapacity);
   Result:=FHashTable^[HashIndex];
   Len:=AnsiChar(Length(AName));
   LastChar:=AName[Byte(Len)];
@@ -545,7 +545,7 @@ begin
 end;
 
 
-Function TFPHashList.FindWithHash(const AName:shortstring;AHash:LongWord): Pointer;
+Function TFPHashList.FindWithHash(const AName:shortstring;AHash:UInt32): Pointer;
 var
   Index,
   PrevIndex : Integer;
@@ -562,7 +562,7 @@ Function TFPHashList.Rename(const AOldName,ANewName:shortstring): Integer;
 var
   PrevIndex,
   Index : Integer;
-  OldHash : LongWord;
+  OldHash : UInt32;
 begin
   Result:=-1;
   OldHash:=FPHash(AOldName);
@@ -573,7 +573,7 @@ begin
   if PrevIndex<>-1 then
     FHashList^[PrevIndex].NextIndex:=FHashList^[Index].NextIndex
   else
-    FHashTable^[OldHash mod LongWord(FHashCapacity)]:=FHashList^[Index].NextIndex;
+    FHashTable^[OldHash mod UInt32(FHashCapacity)]:=FHashList^[Index].NextIndex;
   { Set new name and hash }
   with FHashList^[Index] do
     begin
@@ -754,7 +754,7 @@ begin
 end;
 
 
-Function TFPHashObject.GetHash:Longword;
+Function TFPHashObject.GetHash:UInt32;
 begin
   if FOwner<>nil then
     Result:=FPHash(PShortString(@FOwner.List.Strs[FStrIndex])^)
@@ -837,7 +837,7 @@ begin
   Result:=FHashList.NameOfIndex(Index);
 end;
 
-Function TFPHashObjectList.HashOfIndex(Index: Integer): LongWord;
+Function TFPHashObjectList.HashOfIndex(Index: Integer): UInt32;
 begin
   Result:=FHashList.HashOfIndex(Index);
 end;
@@ -894,7 +894,7 @@ begin
 end;
 
 
-Function TFPHashObjectList.FindWithHash(const AName:shortstring;AHash:LongWord): Pointer;
+Function TFPHashObjectList.FindWithHash(const AName:shortstring;AHash:UInt32): Pointer;
 begin
   Result:=TObject(FHashList.FindWithHash(AName,AHash));
 end;

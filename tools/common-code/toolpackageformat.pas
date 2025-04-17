@@ -35,7 +35,9 @@ type
     pfIosArchiveAppStore,
     pfNintendoSwitchProject,
     pfMacAppBundle,
-    pfMacAppBundleZip
+    pfMacAppBundleZip,
+    { Package to zip web dist/ directory. }
+    pfWebZipDist
   );
   TPackageFormatNoDefault = pfDirectory..High(TPackageFormat);
 
@@ -61,7 +63,8 @@ const
     'ios-archive-app-store',
     'nintendo-switch-project',
     'mac-app-bundle',
-    'mac-app-bundle-zip'
+    'mac-app-bundle-zip',
+    'web-zip-dist'
   );
 
 function PackageFormatToString(const O: TPackageFormat): String;
@@ -71,7 +74,7 @@ end;
 
 function StringToPackageFormat(const S: String): TPackageFormat;
 begin
-  for Result in TPackageFormat do
+  for Result := Low(TPackageFormat) to High(TPackageFormat) do
     if AnsiSameText(PackageFormatNames[Result], S) then
       Exit;
   raise Exception.CreateFmt('Invalid package-format name "%s"', [S]);

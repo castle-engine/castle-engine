@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2023 Michalis Kamburelis.
+  Copyright 2015-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -28,10 +28,12 @@
     procedure SetInnerRadius(const Value: Single);
     function GetOuterRadius: Single;
     procedure SetOuterRadius(const Value: Single);
+    function GetSlices: Integer;
+    procedure SetSlices(const Value: Integer);
   public
     { Create node fields and events. }
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdInnerRadius: TSFFloat;
     { Internal wrapper for property @code(InnerRadius). This wrapper API may change, we advise to access simpler @code(InnerRadius) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
@@ -48,6 +50,12 @@
     strict private FFdSolid: TSFBool;
     { Internal wrapper for property @code(Solid). This wrapper API may change, we advise to access simpler @code(Solid) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdSolid: TSFBool read FFdSolid;
+
+    strict private FFdSlices: TSFInt32;
+    { Internal wrapper for property @code(Slices). This wrapper API may change, we advise to access simpler @code(Slices) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
+    public property FdSlices: TSFInt32 read FFdSlices;
+    { How much to subdivide the circles (both inner and outer circles of the disk). Larger values result in a shape that looks smoother, but also mean that we need to render more triangles. The default value, 0 means to use the global @link(DefaultTriangulationSlices) parameter. }
+    property Slices: Integer read GetSlices write SetSlices;
 
 {$endif read_interface}
 
@@ -75,6 +83,16 @@ begin
   FdOuterRadius.Send(Value);
 end;
 
+function TDisk2DNode.GetSlices: Integer;
+begin
+  Result := FdSlices.Value;
+end;
+
+procedure TDisk2DNode.SetSlices(const Value: Integer);
+begin
+  FdSlices.Send(Value);
+end;
+
 class function TDisk2DNode.ClassX3DType: String;
 begin
   Result := 'Disk2D';
@@ -85,18 +103,22 @@ begin
   inherited;
 
   FFdInnerRadius := TSFFloat.Create(Self, False, 'innerRadius', 0);
-   FdInnerRadius.ChangeAlways := chVisibleNonGeometry;
+   FdInnerRadius.ChangeAlways := chGeometry;
    FdInnerRadius.MustBeNonnegative := true;
   AddField(FFdInnerRadius);
 
   FFdOuterRadius := TSFFloat.Create(Self, False, 'outerRadius', 1);
-   FdOuterRadius.ChangeAlways := chVisibleNonGeometry;
+   FdOuterRadius.ChangeAlways := chGeometry;
    FdOuterRadius.MustBeNonnegative := true;
   AddField(FFdOuterRadius);
 
   FFdSolid := TSFBool.Create(Self, False, 'solid', false);
-   FdSolid.ChangeAlways := chVisibleNonGeometry;
+   FdSolid.ChangeAlways := chGeometry;
   AddField(FFdSolid);
+
+  FFdSlices := TSFInt32.Create(Self, True, 'slices', 0);
+   FdSlices.ChangeAlways := chGeometry;
+  AddField(FFdSlices);
 end;
 
 {$endif read_implementation}

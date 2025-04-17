@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2023 Michalis Kamburelis.
+  Copyright 2015-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -26,7 +26,7 @@
   public
     { Create node fields and events. }
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FEventAddChildren: TMFNodeEvent;
     {  }
@@ -39,12 +39,26 @@
     strict private FFdChildren: TMFNode;
     { Internal wrapper for property @code(Children). This wrapper API may change, we advise to access simpler @code(Children) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdChildren: TMFNode read FFdChildren;
+    {  }
+    procedure SetChildren(const Value: array of TX3DNode);
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
 { TContour2DNode ----------------------------------------------- }
+
+procedure TContour2DNode.SetChildren(const Value: array of TX3DNode);
+var
+  L: Integer;
+  A: array of TX3DNode;
+begin
+  L := High(Value) + 1;
+  SetLength(A, L);
+  if L > 0 then
+    Move(Value[0], A[0], L * SizeOf(TX3DNode));
+  FdChildren.Send(A);
+end;
 
 class function TContour2DNode.ClassX3DType: String;
 begin

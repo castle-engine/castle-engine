@@ -95,7 +95,10 @@ procedure TCastleDesignComponentEditor.ExecuteVerb(Index: Integer);
   procedure Open(const E: TCastleComponentEditorDesigner; const C: TCastleDesign);
   begin
     if C.URL <> '' then
-      E.ProposeOpenDesign(C.URL);
+      E.ProposeOpenDesign(C.URL)
+    else
+    if C.RevertURL <> '' then
+      E.ProposeOpenDesign(C.RevertURL);
   end;
 
 var

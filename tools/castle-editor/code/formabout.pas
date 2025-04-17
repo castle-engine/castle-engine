@@ -38,12 +38,12 @@ uses CastleOpenDocument, CastleUtils;
 
 procedure TAboutForm.LabelWebsiteClick(Sender: TObject);
 begin
-  OpenURL('https://castle-engine.io/');
+  OpenUrl('https://castle-engine.io/');
 end;
 
 procedure TAboutForm.LabelWebsite1Click(Sender: TObject);
 begin
-  OpenURL('https://patreon.com/castleengine/');
+  OpenUrl('https://patreon.com/castleengine/');
 end;
 
 procedure TAboutForm.BitBtn1Click(Sender: TObject);

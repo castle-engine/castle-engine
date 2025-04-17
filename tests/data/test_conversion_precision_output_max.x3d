@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE X3D PUBLIC "ISO//Web3D//DTD X3D 3.2//EN" "http://www.web3d.org/specifications/x3d-3.2.dtd">
+<X3D profile="Interchange" version="3.2"
+     xmlns:xsd="http://www.w3.org/2001/XMLSchema-instance"
+     xsd:noNamespaceSchemaLocation="http://www.web3d.org/specifications/x3d-3.2.xsd">
+<head>
+</head>
+<Scene>
+	<Transform
+		translation="0.123456001281738 7.89012289047241 4.56789016723633"
+		rotation="0.123456001281738 7.89012289047241 4.56789016723633 1.23456704616547">
+		<Shape>
+			<IndexedFaceSet
+				coordIndex="0 1 2 -1">
+				<Coordinate
+					point="0.123456001281738 7.89012289047241 4.56789016723633 0.123456001281738 7.89012289047241 4.56789016723633 0.123456001281738 7.89012289047241 4.56789016723633" />
+			</IndexedFaceSet>
+		</Shape>
+	</Transform>
+	<MatrixTransform
+		matrix="0.123456001281738 7.89012289047241 4.56789016723633 1.23456704616547
+			2.22222208976746 3.33333301544189 4.44444417953491 5.55555486679077
+			6.66666603088379 7.77777719497681 8.88888835906982 9.99999904632568
+			1.11111104488373 2.22222208976746 3.33333301544189 4.44444417953491
+" />
+</Scene>
+</X3D>

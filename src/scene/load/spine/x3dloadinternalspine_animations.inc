@@ -32,14 +32,14 @@
       const Bones: TBoneList; const Slots: TSlotList; const CurrentSkin: TSkin;
       const NormalizeCurvesKeyValues: Boolean;
       var CurvesRemoved: Cardinal);
-    procedure BuildNodes(const BaseUrl: string; const Container: TX3DRootNode);
+    procedure BuildNodes(const BaseUrl: String; const Container: TX3DRootNode);
   end;
 
   TAnimationList = class({$ifdef FPC}specialize{$endif} TObjectList<TAnimation>)
     procedure Parse(const Json: TJSONObject;
       const Bones: TBoneList; const Slots: TSlotList; const CurrentSkin: TSkin;
       const NormalizeCurvesKeyValues: Boolean);
-    procedure BuildNodes(const BaseUrl: string; const Container: TX3DRootNode);
+    procedure BuildNodes(const BaseUrl: String; const Container: TX3DRootNode);
     { Add all TimeSensors to EXPORTed nodes. }
     procedure Exported(const RootNode: TX3DRootNode);
   end;
@@ -305,7 +305,7 @@ begin
   ReadWeightedMeshTimelines;
 end;
 
-procedure TAnimation.BuildNodes(const BaseUrl: string;
+procedure TAnimation.BuildNodes(const BaseUrl: String;
   const Container: TX3DRootNode);
 var
   MaxTime: Single;
@@ -447,7 +447,7 @@ begin
   end;
 end;
 
-procedure TAnimationList.BuildNodes(const BaseUrl: string;
+procedure TAnimationList.BuildNodes(const BaseUrl: String;
   const Container: TX3DRootNode);
 var
   I: Integer;

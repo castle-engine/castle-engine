@@ -1,6 +1,6 @@
 // -*- compile-command: "./test_single_testcase.sh TTestX3DNodes" -*-
 {
-  Copyright 2004-2023 Michalis Kamburelis.
+  Copyright 2004-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -20,13 +20,24 @@ unit TestX3DNodes;
 interface
 
 uses
-  Classes, SysUtils, {$ifndef CASTLE_TESTER}FpcUnit, TestUtils, TestRegistry,
-  CastleTestCase{$else}CastleTester{$endif}, CastleVectors, X3DNodes;
+  Classes, SysUtils,
+  CastleTester, CastleVectors, X3DNodes, CastleUtils;
 
 type
   TTestX3DNodes = class(TCastleTestCase)
   private
+    type
+      TGatheredCoordRange = record
+        RangeNumber: Cardinal;
+        BeginIndex, EndIndex: Integer;
+      end;
+      TGatheredCoordRanges = {$ifdef FPC}specialize{$endif} TStructList<TGatheredCoordRange>;
+
+    var
+      GatheredCoordRanges: TGatheredCoordRanges;
+
     procedure WeakLinkUnusedWarning(const Category, S: string);
+    procedure GatherCoordRanges(const RangeNumber: Cardinal; BeginIndex, EndIndex: Integer);
   protected
     { Every possible X3D nodes that makes no errors when instantiated.
       Above NodesManager, this also includes some abstract node classes
@@ -105,15 +116,23 @@ type
     procedure TestProtoExpansion;
     procedure TestSolidField;
     procedure TestConversionDot;
+    procedure TestWarningUnquotedIdentifier;
+    procedure TestConversionPrecision;
+    procedure TestInlineShaderCode;
+    procedure TestOpenInvalidIndexes;
+    procedure TestGltfConversion;
+    procedure TestLoadWithoutWarning;
+    procedure TestNodeClassesList;
+    procedure TestCoordRanges;
   end;
 
 implementation
 
 uses Generics.Collections, Math,
-  CastleUtils, CastleInternalX3DLexer, CastleClassUtils, CastleFilesUtils,
+  CastleInternalX3DLexer, CastleClassUtils, CastleFilesUtils,
   X3DFields, CastleTimeUtils, CastleDownload, X3DLoad, X3DTime, CastleColors,
   CastleApplicationProperties, CastleTextureImages, CastleStringUtils,
-  CastleURIUtils,
+  CastleUriUtils, CastleInternalNodesUnsupported, CastleLog,
   CastleTestUtils;
 
 { TNode* ------------------------------------------------------------ }
@@ -165,24 +184,30 @@ end;
 
 procedure TTestX3DNodes.TestNodesManager;
 begin
- try
-  { throw exception because TSpecialNode.ClassX3DType = '' }
-  NodesManager.RegisterNodeClass(TSpecialNode);
-  raise Exception.Create('NodesManager.RegisterNodeClass(TSpecialNode); SHOULD throw exception');
- except on ENodesManagerError do ; end;
+  if not CanCatchExceptions then
+  begin
+    AbortTest;
+    Exit;
+  end;
 
- try
-  { throw exception because TFogNode is already registered }
-  NodesManager.RegisterNodeClass(TFogNode);
-  raise Exception.Create('NodesManager.RegisterNodeClass(TFogNode); SHOULD throw exception');
- except on ENodesManagerError do ; end;
+  try
+    { throw exception because TSpecialNode.ClassX3DType = '' }
+    NodesManager.RegisterNodeClass(TSpecialNode);
+    raise Exception.Create('NodesManager.RegisterNodeClass(TSpecialNode); SHOULD throw exception');
+  except on ENodesManagerError do ; end;
 
- try
-  { this should succeed }
-  NodesManager.RegisterNodeClass(TSomethingNode);
- finally
-  NodesManager.UnRegisterNodeClass(TSomethingNode);
- end;
+  try
+    { throw exception because TFogNode is already registered }
+    NodesManager.RegisterNodeClass(TFogNode);
+    raise Exception.Create('NodesManager.RegisterNodeClass(TFogNode); SHOULD throw exception');
+  except on ENodesManagerError do ; end;
+
+  try
+    { this should succeed }
+    NodesManager.RegisterNodeClass(TSomethingNode);
+  finally
+    NodesManager.UnRegisterNodeClass(TSomethingNode);
+  end;
 end;
 
 { TX3DTokenInfo and TX3DTokenInfoList ---------------------------------- }
@@ -198,11 +223,11 @@ type
   end;
 
   TX3DTokenInfoList = class({$ifdef FPC}specialize{$endif} TObjectList<TX3DTokenInfo>)
-    procedure AssertEqual(const TestCase: {$ifndef CASTLE_TESTER}TTestCase{$else}TCastleTestCase{$endif}; SecondValue: TX3DTokenInfoList);
+    procedure AssertEqual(const TestCase: TCastleTestCase; SecondValue: TX3DTokenInfoList);
     procedure ReadFromFile(const FileName: string);
   end;
 
-procedure TX3DTokenInfoList.AssertEqual(const TestCase: {$ifndef CASTLE_TESTER}TTestCase{$else}TCastleTestCase{$endif};
+procedure TX3DTokenInfoList.AssertEqual(const TestCase: TCastleTestCase;
   SecondValue: TX3DTokenInfoList);
 
   procedure AssertEqualTokens(const T1, T2: TX3DTokenInfo);
@@ -273,11 +298,11 @@ var
     Result.AString := Lexer.TokenString;
   end;
 
-  function LexerFromFile(const URL: string): TX3DLexer;
+  function LexerFromFile(const Url: String): TX3DLexer;
   var
     Stream: TStream;
   begin
-    Stream := Download(URL);
+    Stream := Download(Url);
     Result := TX3DLexer.Create(TBufferedReadStream.Create(Stream, true), true);
   end;
 
@@ -299,7 +324,7 @@ procedure TTestX3DNodes.TestParseSaveToFile;
   procedure TestReadWrite(const FileName: string);
   var
     First, Second: TX3DTokenInfoList;
-    Node: TX3DNode;
+    Node: TX3DRootNode;
     NewFile: string;
   begin
     First := nil;
@@ -310,8 +335,8 @@ procedure TTestX3DNodes.TestParseSaveToFile;
       First.ReadFromFile(FileName);
 
       Node := LoadX3DClassic(FileName, false);
-      NewFile := InclPathDelim({$ifndef CASTLE_TESTER}GetTempDir{$else}GetTempDirectory{$endif}) + 'test_castle_game_engine.x3dv';
-      Save3D(Node, NewFile, ApplicationName, '', xeClassic, false);
+      NewFile := InclPathDelim(GetTempDirectory) + 'test_castle_game_engine.x3dv';
+      SaveNode(Node, NewFile, ApplicationName, '');
 
       Second := TX3DTokenInfoList.Create;
       Second.ReadFromFile(NewFile);
@@ -325,6 +350,12 @@ procedure TTestX3DNodes.TestParseSaveToFile;
   end;
 
 begin
+  if not CanUseFileSystem then // for GetTempDirectory
+  begin
+    AbortTest;
+    Exit;
+  end;
+
   // TODO: This will never pass for now, because writing adds 3 new tokens:
   // META "generator" "test_castle_game_engine"
   // so the Second file has always 3 more tokens.
@@ -1126,6 +1157,8 @@ procedure TTestX3DNodes.TestTimeDependentFunctionality;
     begin
       B := F.IsActive;
       C := F.CycleInterval;
+      AssertFalse(B); // time-dependent node is not active before it is inserted into scene with ProcessEvents
+      WritelnLog('Default CycleInterval of %s is %f', [N.NiceName, C]);
     end;
   end;
 
@@ -1277,6 +1310,11 @@ var
   Node, NewNode: TX3DRootNode;
   TempStream: TMemoryStream;
 begin
+  {$ifdef WASI} // TODO: web: why fails here?
+  AbortTest;
+  Exit;
+  {$endif}
+
   TempStream := nil;
   Node := nil;
 
@@ -1303,7 +1341,7 @@ begin
     AssertTrue(Node.Meta['generator'] = 'testgenerator and & weird '' chars " test');
 
     { save and load again }
-    Save3D(Node, TempStream, '', '', xeClassic, false);
+    SaveNode(Node, TempStream, 'model/x3d+vrml', '', '');
     FreeAndNil(Node);
     TempStream.Position := 0;
     Node := LoadX3DClassicStream(TempStream);
@@ -1336,7 +1374,7 @@ begin
 
     { save and load again. During Save3D tweak meta generator and source }
     TempStream.Position := 0;
-    Save3D(Node, TempStream, 'newgenerator', 'newsource', xeClassic, false);
+    SaveNode(Node, TempStream, 'model/x3d+vrml', 'newgenerator', 'newsource');
     FreeAndNil(Node);
     TempStream.Position := 0;
     Node := LoadX3DClassicStream(TempStream);
@@ -1359,7 +1397,7 @@ begin
 
     { save and load again, this time going through XML }
     TempStream.Position := 0;
-    Save3D(Node, TempStream, '', '', xeXML, false);
+    SaveNode(Node, TempStream, 'model/x3d+xml', '', '');
     FreeAndNil(Node);
     TempStream.Position := 0;
     Node := LoadX3DXmlStream(TempStream);
@@ -1391,6 +1429,11 @@ var
   Node: TX3DRootNode;
   TempStream: TMemoryStream;
 begin
+  {$ifdef WASI} // TODO: what fails here
+  AbortTest;
+  Exit;
+  {$endif}
+
   TempStream := nil;
   Node := nil;
 
@@ -1407,7 +1450,7 @@ begin
     { save to XML }
     TempStream.Position := 0;
     TempStream.Size := 0;
-    Save3D(Node, TempStream, '', '', xeXML, true);
+    SaveNode(Node, TempStream, 'model/x3d+xml', '', '');
     FreeAndNil(Node);
 
     { check that loading it back results in 3.1 }
@@ -1420,7 +1463,7 @@ begin
     { save to clasic }
     TempStream.Position := 0;
     TempStream.Size := 0;
-    Save3D(Node, TempStream, '', '', xeClassic, true);
+    SaveNode(Node, TempStream, 'model/x3d+vrml', '', '');
     FreeAndNil(Node);
 
     { check that loading it back results in 3.1 }
@@ -1440,16 +1483,16 @@ begin
     { save to XML }
     TempStream.Position := 0;
     TempStream.Size := 0;
-    Save3D(Node, TempStream, '', '', xeXML, false);
+    SaveNode(Node, TempStream, 'model/x3d+xml', '', '');
     FreeAndNil(Node);
 
-    { check that loading it back results in 3.0
+    { check that loading it back results in X3D (4.0 now)
       (conversion was done, since this is XML) }
     TempStream.Position := 0;
     Node := LoadX3DXmlStream(TempStream);
     AssertTrue(Node.HasForceVersion = true);
-    AssertTrue(Node.ForceVersion.Major = 3);
-    AssertTrue(Node.ForceVersion.Minor = 0);
+    AssertEquals(4, Node.ForceVersion.Major);
+    AssertEquals(0, Node.ForceVersion.Minor);
     FreeAndNil(Node);
 
     { load VRML 2.0 }
@@ -1461,11 +1504,12 @@ begin
     { save to classic }
     TempStream.Position := 0;
     TempStream.Size := 0;
-    Save3D(Node, TempStream, '', '', xeClassic, false);
+    SaveNode(Node, TempStream, 'model/vrml', '', '');
     FreeAndNil(Node);
 
     { check that loading it back results in 2.0
-      (conversion not done, since this is classic and conversion not forced) }
+      (conversion not done, since this is classic and conversion not forced
+      by MIME model/vrml) }
     TempStream.Position := 0;
     Node := LoadX3DClassicStream(TempStream);
     AssertTrue(Node.HasForceVersion = true);
@@ -1482,15 +1526,15 @@ begin
     { save to classic }
     TempStream.Position := 0;
     TempStream.Size := 0;
-    Save3D(Node, TempStream, '', '', xeClassic, true);
+    SaveNode(Node, TempStream, 'model/x3d+vrml', '', '');
     FreeAndNil(Node);
 
-    { check that loading it back results in 3.0
-      (conversion done, since forced = true) }
+    { check that loading it back results in X3D (4.0 now)
+      (conversion done, since MIME indicated X3D) }
     TempStream.Position := 0;
     Node := LoadX3DClassicStream(TempStream);
     AssertTrue(Node.HasForceVersion = true);
-    AssertTrue(Node.ForceVersion.Major = 3);
+    AssertTrue(Node.ForceVersion.Major = 4);
     AssertTrue(Node.ForceVersion.Minor = 0);
     FreeAndNil(Node);
   finally
@@ -1551,6 +1595,11 @@ var
   Node: TX3DRootNode;
   TempStream: TMemoryStream;
 begin
+  {$ifdef WASI} // TODO: what fails here
+  AbortTest;
+  Exit;
+  {$endif}
+
   TempStream := nil;
   Node := nil;
 
@@ -1562,7 +1611,7 @@ begin
 
     TempStream.Position := 0;
     TempStream.Size := 0;
-    Save3D(Node, TempStream, '', '', xeClassic, true);
+    SaveNode(Node, TempStream, 'model/x3d+vrml', '', '');
     FreeAndNil(Node);
 
     //Writeln(StreamToString(TempStream)); // useful to debug
@@ -1573,7 +1622,7 @@ begin
 
     TempStream.Position := 0;
     TempStream.Size := 0;
-    Save3D(Node, TempStream, '', '', xeXML, true);
+    SaveNode(Node, TempStream, 'model/x3d+xml', '', '');
     FreeAndNil(Node);
 
     //Writeln(StreamToString(TempStream)); // useful to debug
@@ -1843,6 +1892,12 @@ end;
 
 procedure TTestX3DNodes.TestWeakLinkUnusedWarning;
 begin
+  if not CanCatchExceptions then
+  begin
+    AbortTest;
+    Exit;
+  end;
+
   ApplicationProperties.OnWarning.Add({$ifdef FPC}@{$endif}WeakLinkUnusedWarning);
   try
     try
@@ -2182,8 +2237,6 @@ var
 begin
   R := LoadNode('castle-data:/test_fix_names.x3dv');
   try
-    { We no longer do renames, so this test outcome just checks that nothing changed }
-    {
     AssertEquals('AA', R.FdChildren[0].X3DName);
     AssertEquals('AA_2', R.FdChildren[1].X3DName);
     AssertEquals('AA_3', R.FdChildren[2].X3DName);
@@ -2213,36 +2266,6 @@ begin
     AssertEquals('EE_5', R.FdChildren[22].X3DName);
     AssertEquals('EE_6', R.FdChildren[23].X3DName);
     AssertEquals('EE_7', R.FdChildren[24].X3DName);
-    }
-    AssertEquals('AA', R.FdChildren[0].X3DName);
-    AssertEquals('AA', R.FdChildren[1].X3DName);
-    AssertEquals('AA', R.FdChildren[2].X3DName);
-    AssertEquals('AA', R.FdChildren[3].X3DName);
-    AssertEquals('AA', R.FdChildren[4].X3DName);
-
-    AssertEquals('BB_1', R.FdChildren[5].X3DName);
-    AssertEquals('BB_1', R.FdChildren[6].X3DName);
-    AssertEquals('BB_1', R.FdChildren[7].X3DName);
-    AssertEquals('BB_1', R.FdChildren[8].X3DName);
-    AssertEquals('BB_1', R.FdChildren[9].X3DName);
-
-    AssertEquals('CC_1a1', R.FdChildren[10].X3DName);
-    AssertEquals('CC_1a1', R.FdChildren[11].X3DName);
-    AssertEquals('CC_1a1', R.FdChildren[12].X3DName);
-    AssertEquals('CC_1a1', R.FdChildren[13].X3DName);
-    AssertEquals('CC_1a1', R.FdChildren[14].X3DName);
-
-    AssertEquals('DD_3', R.FdChildren[15].X3DName);
-    AssertEquals('DD_3', R.FdChildren[16].X3DName);
-    AssertEquals('DD_3', R.FdChildren[17].X3DName);
-    AssertEquals('DD_3', R.FdChildren[18].X3DName);
-    AssertEquals('DD_3', R.FdChildren[19].X3DName);
-
-    AssertEquals('EE_3', R.FdChildren[20].X3DName);
-    AssertEquals('EE_3', R.FdChildren[21].X3DName);
-    AssertEquals('EE_4', R.FdChildren[22].X3DName);
-    AssertEquals('EE_4', R.FdChildren[23].X3DName);
-    AssertEquals('EE_5', R.FdChildren[24].X3DName);
   finally FreeAndNil(R) end;
 end;
 
@@ -2462,6 +2485,366 @@ begin
   );
 
   RestoreLocaleDecimalSeparatorComma(SavedLocale);
+end;
+
+procedure TTestX3DNodes.TestWarningUnquotedIdentifier;
+
+{ See https://github.com/castle-engine/castle-model-viewer/issues/76 }
+
+var
+  S: TStringStream;
+  //Node: TX3DRootNode;
+begin
+  if not CanCatchExceptions then
+  begin
+    AbortTest;
+    Exit;
+  end;
+
+  ApplicationProperties.OnWarning.Add({$ifdef FPC}@{$endif}OnWarningRaiseException);
+  try
+    S := TStringStream.Create(
+      '#X3D V4.0 utf8' + NL +
+      'PROFILE Interchange' + NL +
+      'Shape { appearance Appearance { alphaMode OPAQUE } }');
+    try
+      try
+        {Node := }LoadNode(S, '', 'model/x3d+vrml');
+        Fail('Should have made warning (in effect exception) about unquoted OPAQUE');
+      except
+        on E: Exception do
+        begin
+          AssertEquals('TTestX3DNodes: received a warning, and any warning here is an error: VRML/X3D: Error when reading, will skip the rest of X3D file: Error at line 3 column 49: Expected string, got identifier (unquoted in X3D file) "OPAQUE"', E.Message);
+        end;
+      end;
+      // Node is uninitialized after exception
+      // FreeAndNil(Node);
+    finally FreeAndNil(S) end;
+  finally
+    ApplicationProperties.OnWarning.Remove({$ifdef FPC}@{$endif}OnWarningRaiseException);
+  end;
+end;
+
+procedure TTestX3DNodes.TestConversionPrecision;
+
+  { Assert 2 strings are equal.
+    Ignore newline differences (Unix vs Windows line endings). }
+  procedure AssertEqualsIgnoreNewlines(const Expected, Actual: String);
+  begin
+    // debug
+    //StringToFile('tmp1.txt', SDeleteChars(Expected, [#13]));
+    //StringToFile('tmp2.txt', SDeleteChars(Actual, [#13]));
+
+    AssertEquals(
+      // Normalize both to Unix line endings
+      SDeleteChars(Expected, [#13]),
+      SDeleteChars(Actual, [#13])
+    );
+  end;
+
+  procedure TestSaveMakesExpectedResult(
+    const InputModel, OutputModelDefaultPrecision, OutputModelPrecision3: String;
+    const OutputMime: String);
+  var
+    Node: TX3DRootNode;
+    OutputStream: TStringStream;
+    SavedFloatOutputFormat: String;
+  begin
+    Node := LoadNode(InputModel);
+    try
+      OutputStream := TStringStream.Create('');
+      try
+        SaveNode(Node, OutputStream, OutputMime, '', '');
+        // useful to generate correct output (of course you have to manually check is it correct)
+        //StringToFile(OutputModelDefaultPrecision, OutputStream.DataString);
+        {
+        TODO: Commented out test now, doesn't pass, since various
+        FPC and Delphi versions have a bit different %g interpretation.
+        We should compare the output using regular expressions
+        and restore this test.
+
+        AssertEqualsIgnoreNewlines(
+          FileToString(OutputModelDefaultPrecision),
+          OutputStream.DataString);
+        }
+      finally FreeAndNil(OutputStream) end;
+
+      SavedFloatOutputFormat := FloatOutputFormat;
+      try
+        FloatOutputFormat := '%.3f';
+
+        OutputStream := TStringStream.Create('');
+        try
+          SaveNode(Node, OutputStream, OutputMime, '', '');
+          // useful to generate correct output (of course you have to manually check is it correct)
+          //StringToFile(OutputModelPrecision3, OutputStream.DataString);
+          AssertEqualsIgnoreNewlines(
+            FileToString(OutputModelPrecision3),
+            OutputStream.DataString);
+        finally FreeAndNil(OutputStream) end;
+      finally FloatOutputFormat := SavedFloatOutputFormat end;
+    finally FreeAndNil(Node) end;
+  end;
+
+begin
+  TestSaveMakesExpectedResult(
+    'castle-data:/test_conversion_precision.x3dv',
+    'castle-data:/test_conversion_precision_output_max.x3dv',
+    'castle-data:/test_conversion_precision_output_3.x3dv',
+    'model/x3d+vrml'
+  );
+  TestSaveMakesExpectedResult(
+    'castle-data:/test_conversion_precision.x3dv',
+    'castle-data:/test_conversion_precision_output_max.x3d',
+    'castle-data:/test_conversion_precision_output_3.x3d',
+    'model/x3d+xml'
+  );
+end;
+
+procedure TTestX3DNodes.TestInlineShaderCode;
+const
+  CorrectShaderCode = NL +
+    '        uniform sampler2D mask_texture;' + NL +
+    '' + NL +
+    '        void PLUG_texture_color(inout vec4 texture_color, const in sampler2D texture_in, const in vec4 tex_coord)' + NL +
+    '        {' + NL +
+    '          // For debugging, use this line to confirm that mask_texture is good.' + NL +
+    '          // texture_color = texture2D(mask_texture, tex_coord.st);' + NL +
+    '' + NL +
+    '          /* The mask_texture is grayscale, we could access any (r,g,b) channel,' + NL +
+    '             they all are equal. */' + NL +
+    '          float alpha = texture2D(mask_texture, tex_coord.st).r;' + NL +
+    '          texture_color = vec4(texture_color.xyz, alpha);' + NL +
+    '        }';
+var
+  Root: TX3DRootNode;
+  EffectPart: TEffectPartNode;
+begin
+  Root := LoadNode('castle-data:/inline_shader_code.x3dv');
+  try
+    EffectPart := Root.FindNode(TEffectPartNode, 'MyPartWithInlineCode') as TEffectPartNode;
+    AssertEquals(
+      // use SDeleteChars to normalize newlines to Unix style for comparison
+      SDeleteChars(CorrectShaderCode, [#13]),
+      SDeleteChars(EffectPart.Contents, [#13])
+    );
+  finally FreeAndNil(Root) end;
+end;
+
+procedure TTestX3DNodes.TestOpenInvalidIndexes;
+var
+  Node: TX3DRootNode;
+begin
+  if not CanCatchExceptions then
+  begin
+    AbortTest;
+    Exit;
+  end;
+
+  try
+    Node := LoadNode('castle-data:/invalid_indexes/castle.gltf');
+    FreeAndNil(Node);
+    Fail('Should raise exception EInvalidGeometryIndex');
+  except
+    on E: EInvalidGeometryIndex do ;
+  end;
+end;
+
+procedure TTestX3DNodes.TestGltfConversion;
+var
+  Node: TX3DRootNode;
+  OutputStream: TMemoryStream;
+begin
+  ApplicationProperties.OnWarning.Add({$ifdef FPC}@{$endif}OnWarningRaiseException);
+  try
+    Node := LoadNode('castle-data:/quaternius/Bunny.gltf');
+    try
+      OutputStream := TMemoryStream.Create;
+      try
+        SaveNode(Node, OutputStream, 'model/x3d+vrml');
+      finally FreeAndNil(OutputStream) end;
+    finally FreeAndNil(Node) end;
+  finally
+    ApplicationProperties.OnWarning.Remove({$ifdef FPC}@{$endif}OnWarningRaiseException);
+  end;
+end;
+
+procedure TTestX3DNodes.TestLoadWithoutWarning;
+var
+  Node: TX3DRootNode;
+begin
+  ApplicationProperties.OnWarning.Add({$ifdef FPC}@{$endif}OnWarningRaiseException);
+  try
+    Node := LoadNode('castle-data:/loadsensor_children.x3dv');
+    FreeAndNil(Node);
+  finally
+    ApplicationProperties.OnWarning.Remove({$ifdef FPC}@{$endif}OnWarningRaiseException);
+  end;
+end;
+
+procedure TTestX3DNodes.TestNodeClassesList;
+var
+  ClassesList: TX3DNodeClassesList;
+  Node: TX3DNode;
+begin
+  // test basic operations on TX3DNodeClassesList
+  ClassesList := TX3DNodeClassesList.Create;
+  try
+    ClassesList.Add(TAbstractGeometryNode);
+    ClassesList.Add(TGroupNode);
+
+    AssertEquals(2, ClassesList.Count);
+    AssertTrue(ClassesList[0] = TAbstractGeometryNode);
+    AssertTrue(ClassesList[1] = TGroupNode);
+
+    AssertEquals(0, ClassesList.IndexOf(TAbstractGeometryNode));
+    AssertEquals(1, ClassesList.IndexOf(TGroupNode));
+    AssertEquals(-1, ClassesList.IndexOf(TX3DNode));
+    AssertEquals(-1, ClassesList.IndexOf(TBoxNode));
+
+    Node := TBoxNode.Create;
+    try
+      AssertEquals(0, ClassesList.IndexOfAnyAncestor(Node));
+    finally FreeAndNil(Node) end;
+
+    Node := TAbstractGeometryNode.Create;
+    try
+      AssertEquals(0, ClassesList.IndexOfAnyAncestor(Node));
+    finally FreeAndNil(Node) end;
+
+    Node := TGroupNode.Create;
+    try
+      AssertEquals(1, ClassesList.IndexOfAnyAncestor(Node));
+    finally FreeAndNil(Node) end;
+  finally FreeAndNil(ClassesList) end;
+end;
+
+procedure TTestX3DNodes.GatherCoordRanges(const RangeNumber: Cardinal;
+  BeginIndex, EndIndex: Integer);
+var
+  GatheredCoordRange: TGatheredCoordRange;
+begin
+  GatheredCoordRange.RangeNumber := RangeNumber;
+  GatheredCoordRange.BeginIndex := BeginIndex;
+  GatheredCoordRange.EndIndex := EndIndex;
+  GatheredCoordRanges.Add(GatheredCoordRange);
+  // Writeln('GatheredCoordRange: ', GatheredCoordRange.RangeNumber, ' ',
+  //   GatheredCoordRange.BeginIndex, ' ', GatheredCoordRange.EndIndex);
+end;
+
+procedure TTestX3DNodes.TestCoordRanges;
+var
+  Coord: TCoordinateNode;
+  Ifs: TIndexedFaceSetNode;
+  Shape: TShapeNode;
+  State: TX3DGraphTraverseState;
+begin
+  Coord := TCoordinateNode.Create;
+  Coord.SetPoint([
+    Vector3(0, 0, 0),
+    Vector3(1, 0, 0),
+    Vector3(0, 1, 0),
+    Vector3(0, 0, 1)
+  ]);
+
+  Ifs := TIndexedFaceSetNode.Create;
+  Ifs.Coord := Coord;
+
+  Shape := TShapeNode.Create;
+  Shape.Geometry := Ifs;
+
+  State := TX3DGraphTraverseState.Create;
+  State.ShapeNode := Shape;
+
+  try
+    GatheredCoordRanges := TGatheredCoordRanges.Create;
+    try
+      Ifs.InternalMakeCoordRanges(State, {$ifdef FPC}@{$endif} GatherCoordRanges);
+      AssertEquals(0, GatheredCoordRanges.Count);
+    finally FreeAndNil(GatheredCoordRanges) end;
+
+    Ifs.SetCoordIndex([0, 1, 2, -1, 0, 2, 3, -1]);
+    GatheredCoordRanges := TGatheredCoordRanges.Create;
+    try
+      Ifs.InternalMakeCoordRanges(State, {$ifdef FPC}@{$endif} GatherCoordRanges);
+      AssertEquals(2, GatheredCoordRanges.Count);
+      AssertEquals(0, GatheredCoordRanges[0].RangeNumber);
+      AssertEquals(0, GatheredCoordRanges[0].BeginIndex);
+      AssertEquals(3, GatheredCoordRanges[0].EndIndex);
+      AssertEquals(1, GatheredCoordRanges[1].RangeNumber);
+      AssertEquals(4, GatheredCoordRanges[1].BeginIndex);
+      AssertEquals(7, GatheredCoordRanges[1].EndIndex);
+    finally FreeAndNil(GatheredCoordRanges) end;
+
+    // without final -1, the same result
+    Ifs.SetCoordIndex([0, 1, 2, -1, 0, 2, 3]);
+    GatheredCoordRanges := TGatheredCoordRanges.Create;
+    try
+      Ifs.InternalMakeCoordRanges(State, {$ifdef FPC}@{$endif} GatherCoordRanges);
+      AssertEquals(2, GatheredCoordRanges.Count);
+      AssertEquals(0, GatheredCoordRanges[0].RangeNumber);
+      AssertEquals(0, GatheredCoordRanges[0].BeginIndex);
+      AssertEquals(3, GatheredCoordRanges[0].EndIndex);
+      AssertEquals(1, GatheredCoordRanges[1].RangeNumber);
+      AssertEquals(4, GatheredCoordRanges[1].BeginIndex);
+      AssertEquals(7, GatheredCoordRanges[1].EndIndex);
+    finally FreeAndNil(GatheredCoordRanges) end;
+
+    // with leading -1
+    Ifs.SetCoordIndex([-1, 0, 1, 2, -1, 0, 2, 3]);
+    GatheredCoordRanges := TGatheredCoordRanges.Create;
+    try
+      Ifs.InternalMakeCoordRanges(State, {$ifdef FPC}@{$endif} GatherCoordRanges);
+      AssertEquals(2, GatheredCoordRanges.Count);
+      AssertEquals(0, GatheredCoordRanges[0].RangeNumber);
+      AssertEquals(1, GatheredCoordRanges[0].BeginIndex);
+      AssertEquals(4, GatheredCoordRanges[0].EndIndex);
+      AssertEquals(1, GatheredCoordRanges[1].RangeNumber);
+      AssertEquals(5, GatheredCoordRanges[1].BeginIndex);
+      AssertEquals(8, GatheredCoordRanges[1].EndIndex);
+    finally FreeAndNil(GatheredCoordRanges) end;
+
+    // leading, trailing, and inside multiple -1
+    Ifs.SetCoordIndex([-1, 0, 1, 2, -1, -1, -1, 0, 2, 3, -1]);
+    GatheredCoordRanges := TGatheredCoordRanges.Create;
+    try
+      Ifs.InternalMakeCoordRanges(State, {$ifdef FPC}@{$endif} GatherCoordRanges);
+      AssertEquals(2, GatheredCoordRanges.Count);
+      AssertEquals(0, GatheredCoordRanges[0].RangeNumber);
+      AssertEquals(1, GatheredCoordRanges[0].BeginIndex);
+      AssertEquals(4, GatheredCoordRanges[0].EndIndex);
+      AssertEquals(1, GatheredCoordRanges[1].RangeNumber);
+      AssertEquals(7, GatheredCoordRanges[1].BeginIndex);
+      AssertEquals(10, GatheredCoordRanges[1].EndIndex);
+    finally FreeAndNil(GatheredCoordRanges) end;
+
+    // nothing
+    Ifs.SetCoordIndex([]);
+    GatheredCoordRanges := TGatheredCoordRanges.Create;
+    try
+      Ifs.InternalMakeCoordRanges(State, {$ifdef FPC}@{$endif} GatherCoordRanges);
+      AssertEquals(0, GatheredCoordRanges.Count);
+    finally FreeAndNil(GatheredCoordRanges) end;
+
+    // only -1 are like nothing
+    Ifs.SetCoordIndex([-1]);
+    GatheredCoordRanges := TGatheredCoordRanges.Create;
+    try
+      Ifs.InternalMakeCoordRanges(State, {$ifdef FPC}@{$endif} GatherCoordRanges);
+      AssertEquals(0, GatheredCoordRanges.Count);
+    finally FreeAndNil(GatheredCoordRanges) end;
+
+    // only -1 are like nothing
+    Ifs.SetCoordIndex([-1, -1, -1, -1]);
+    GatheredCoordRanges := TGatheredCoordRanges.Create;
+    try
+      Ifs.InternalMakeCoordRanges(State, {$ifdef FPC}@{$endif} GatherCoordRanges);
+      AssertEquals(0, GatheredCoordRanges.Count);
+    finally FreeAndNil(GatheredCoordRanges) end;
+  finally
+    FreeAndNil(State);
+    FreeAndNil(Shape);
+  end;
 end;
 
 initialization

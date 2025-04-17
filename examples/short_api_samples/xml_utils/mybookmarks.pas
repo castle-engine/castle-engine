@@ -24,7 +24,7 @@ const
 implementation
 
 uses DOM,
-  CastleXMLUtils, CastleURIUtils;
+  CastleXmlUtils, CastleUriUtils;
 
 { TBookmark ------------------------------------------------------------------ }
 

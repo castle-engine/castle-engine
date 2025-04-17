@@ -26,7 +26,7 @@ uses
     DOM, XMLRead, fpjson, fpjsonrtti, CSVDocument, GetText,
   {$warnings on}
   CastleUtils, CastleClassUtils,
-  CastleXMLUtils;
+  CastleXmlUtils;
 
 type
   { Represents a single translated string in the language JSON file. }

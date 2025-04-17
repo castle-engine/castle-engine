@@ -225,42 +225,44 @@
   public
     OnInputIgnore: TInputIgnoreEvent;
 
-    { Normal constructor.
+    { Main constructor that initializes field when default value is not known.
 
-      @italic(Descendants implementors notes:)
-      when implementing constructors in descendants,
-      remember that Create in this class actually just calls CreateUndefined,
-      and CreateUndefined is virtual. So when calling @code(inherited Create),
-      be aware that actually you may be calling your own overriden
-      CreateUndefined.
-
-      In fact, in descendants you should focus on moving all the work to
-      CreateUndefined constructor.
-      The Create constructor should be just a comfortable extension of
-      CreateUndefined, that does the same and addiionally gets parameters
-      that specify default field value. }
-    constructor Create(const AParentNode: TX3DFileItem;
-      const AExposed: boolean; const AName: string);
-
-    { Virtual constructor, that you can use to construct field instance when
+      It is virtual, so you can use it to construct field instance when
       field class is known only at runtime.
+      For example you can have variable like "FieldClass: TX3DFieldClass"
+      and use it to construct the field instance.
+      Such field can be later initialized e.g. using @link(Parse).
 
-      The idea is that in some cases, you need to create fields using
-      variable like FieldClass: TX3DFieldClass. See e.g. TX3DInterfaceDeclaration,
-      VRML 2.0 feature that simply requires this ability, also
-      implementation of TX3DSimpleMultField.Parse and
-      TX3DSimpleMultField.CreateItemBeforeParse.
-
-      Later you can initialize such instance from string using it's Parse method.
-
-      Note that some exceptional fields simply cannot work when initialized
-      by this constructor: these are SFEnum and SFBitMask fields.
+      Note: Two exceptional VRML 1.0 fields simply cannot work when initialized
+      by this constructor: TSFEnum and TSFBitMask .
       They simply need to know their TSFEnum.EnumNames, or
       TSFBitMask.FlagNames + TSFBitMask.NoneString + TSFBitMask.AllString
-      before they can be parsed. I guess that's one of the reasons why these
-      field types were entirely removed from VRML 2.0. }
+      before they can be parsed.
+      Luckily these fields have been removed in VRML 2.0 and X3D so we don't need
+      to support them e.g. in VRML 2.0 and X3D prototypes.
+
+      Descendants implementors:
+
+      1. Descendants should override this virtual constructor, CreateUndefined,
+         to do all obligatory initialization work (e.g. create some internal
+         TStringList).
+
+         Call "inherited" at the beginning of the implementation
+         of this overridden "CreateUndefined".
+
+      2. Can Create also a convenience non-virtual constructor Create,
+         that takes as parameter initial value (with type specific to given
+         field, e.g. Integer for TSFInt32).
+
+         This convenience constructor
+         should call "CreateUndefined" (not "inherited Create" or "inherited CreateUndefined"!)
+         at the beginning.
+
+      TODO: Rename this to just Create, to obscure parent Create.
+      After everything migrated to calling CreateUndefined.
+    }
     constructor CreateUndefined(const AParentNode: TX3DFileItem;
-      const AExposed: boolean; const AName: string); virtual;
+      const AExposed: boolean; const AName: String); virtual;
 
     destructor Destroy; override;
 
@@ -288,7 +290,7 @@
 
       Implementation in this class creates a Lexer to parse the string,
       and calls ParseXMLAttributeLexer. }
-    procedure ParseXMLAttribute(const AttributeValue: string; Reader: TX3DReader); virtual;
+    procedure ParseXMLAttribute(const AttributeValue: String; Reader: TX3DReader); virtual;
 
     { Parse field's value from XML Element children.
       This is used to read SFNode / MFNode field value inside <field>
@@ -404,11 +406,11 @@
       As for VRML/X3D interface declaration statements.
       In base TX3DField class, this returns @code(XFAny)
       (name indicating any type, used by instantreality and us). }
-    class function X3DType: string; virtual;
-    class function TypeName: string; deprecated 'use X3DType';
+    class function X3DType: String; virtual;
+    class function TypeName: String; deprecated 'use X3DType';
 
     { Create TX3DEvent descendant suitable as exposed event for this field. }
-    class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; virtual;
+    class function CreateEvent(const AParentNode: TX3DFileItem; const AName: String; const AInEvent: boolean): TX3DEvent; virtual;
 
     { Copies the current field value. Contrary to TPersistent.Assign, this
       doesn't copy the rest of properties.
@@ -499,7 +501,7 @@
       In this class, this always returns @false. }
     function CanAssignLerp: boolean; virtual;
 
-    procedure AddAlternativeName(const AlternativeName: string;
+    procedure AddAlternativeName(const AlternativeName: String;
       const X3DMajorVersion: Integer); override;
 
     { Notify ParentNode.Scene that the value of this field changed. }
@@ -599,21 +601,21 @@
 
   TX3DFieldList = class({$ifdef FPC}specialize{$endif} TObjectList<TX3DField>)
   strict private
-    function GetByName(const AName: string): TX3DField;
+    function GetByName(const AName: String): TX3DField;
   public
     { Access field by name.
       Raises EX3DNotFound if the given Name doesn't exist. }
-    property ByName[const AName: string]: TX3DField read GetByName;
+    property ByName[const AName: String]: TX3DField read GetByName;
 
     { Searches for a field with given Name, returns it's index or -1 if not found. }
-    function IndexOfName(const AName: string): integer;
+    function IndexOfName(const AName: String): integer;
 
     { Returns if EventName is an event implicitly exposed by one of our
       exposed fields (i.e. set_xxx or xxx_changed). If yes, then
       returns index of event, and the event reference itself
       (so always @code(Fields[ReturnedIndex].ExposedEvent[ReturnedEvent.InEvent]
       = ReturnedEvent)). Otherwise, returns -1. }
-    function IndexOfExposedEvent(const EventName: string;
+    function IndexOfExposedEvent(const EventName: String;
       out Event: TX3DEvent): Integer;
   end;
 
@@ -650,14 +652,8 @@ end;
 
 { TX3DField ------------------------------------------------------------- }
 
-constructor TX3DField.Create(const AParentNode: TX3DFileItem;
-  const AExposed: boolean; const AName: string);
-begin
-  CreateUndefined(AParentNode, AExposed, AName);
-end;
-
 constructor TX3DField.CreateUndefined(const AParentNode: TX3DFileItem;
-  const AExposed: boolean; const AName: string);
+  const AExposed: boolean; const AName: String);
 begin
   inherited Create(AParentNode, AName);
   FExposedEventsLinked := true;
@@ -809,7 +805,7 @@ begin
   Result := {$ifdef FPC} TX3DFieldClass(ClassType) {$else} Self {$endif};
 end;
 
-class function TX3DField.CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent;
+class function TX3DField.CreateEvent(const AParentNode: TX3DFileItem; const AName: String; const AInEvent: boolean): TX3DEvent;
 begin
   Result := TX3DEvent.Create(AParentNode, AName, ExposedEventsFieldClass, AInEvent);
 end;
@@ -855,7 +851,7 @@ end;
 procedure TX3DField.FieldSaveToStream(Writer: TX3DWriter;
   FieldSaveWhenDefault, XmlAvoidSavingNameBeforeValue: boolean);
 var
-  N: string;
+  N: String;
 begin
   N := NameForVersion(Writer);
 
@@ -945,7 +941,7 @@ begin
   ParseValue(Lexer, Reader);
 end;
 
-procedure TX3DField.ParseXMLAttribute(const AttributeValue: string; Reader: TX3DReader);
+procedure TX3DField.ParseXMLAttribute(const AttributeValue: String; Reader: TX3DReader);
 var
   Lexer: TX3DLexer;
 begin
@@ -1163,7 +1159,7 @@ begin
   Result := false;
 end;
 
-procedure TX3DField.AddAlternativeName(const AlternativeName: string;
+procedure TX3DField.AddAlternativeName(const AlternativeName: String;
   const X3DMajorVersion: Integer);
 begin
   inherited;
@@ -1183,12 +1179,12 @@ end;
 { Note that TX3DField.X3DType cannot be abstract:
   it may be used if source event is of XFAny type in warning message
   in TX3DRoute.SetEndingInternal }
-class function TX3DField.X3DType: string;
+class function TX3DField.X3DType: String;
 begin
   Result := 'XFAny';
 end;
 
-class function TX3DField.TypeName: string;
+class function TX3DField.TypeName: String;
 begin
   Result := X3DType;
 end;
@@ -1219,7 +1215,7 @@ end;
 
 { TX3DFieldList ------------------------------------------------------------- }
 
-function TX3DFieldList.IndexOfName(const AName: string): integer;
+function TX3DFieldList.IndexOfName(const AName: String): integer;
 begin
   for Result := 0 to Count-1 do
     if Items[Result].IsName(AName) then
@@ -1227,7 +1223,7 @@ begin
   Result := -1;
 end;
 
-function TX3DFieldList.GetByName(const AName: string): TX3DField;
+function TX3DFieldList.GetByName(const AName: String): TX3DField;
 var
   I: integer;
 begin
@@ -1237,7 +1233,7 @@ begin
     raise EX3DNotFound.CreateFmt('Field name "%s" not found', [AName]);
 end;
 
-function TX3DFieldList.IndexOfExposedEvent(const EventName: string;
+function TX3DFieldList.IndexOfExposedEvent(const EventName: String;
   out Event: TX3DEvent): Integer;
 var
   InEvent: boolean;

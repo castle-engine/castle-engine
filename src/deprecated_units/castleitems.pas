@@ -52,7 +52,7 @@ type
   strict private
     FBaseAnimation: T3DResourceAnimation;
     FCaption: string;
-    FImageURL: string;
+    FImageUrl: String;
     FImage: TEncodedImage;
     FDrawableImage: TDrawableImage;
   private
@@ -84,7 +84,7 @@ type
 
       If you're wondering how to generate such image:
       one option is to open the item 3D model in
-      [https://castle-engine.io/view3dscene.php]
+      [https://castle-engine.io/castle-model-viewer]
       and use "Display -> Screenshot ..." menu option (maybe the one
       that makes transparent background).
       It is usually a good idea to also remember the camera used for such
@@ -92,7 +92,7 @@ type
       menu option. }
     function Image: TEncodedImage;
 
-    property ImageURL: string read FImageURL;
+    property ImageUrl: String read FImageUrl;
 
     { Resource to draw @link(Image). }
     function DrawableImage: TDrawableImage;
@@ -114,7 +114,7 @@ type
 
       You usually define your own item resources by adding a subdirectory with
       resource.xml file to your game data. See
-      [https://castle-engine.io/creating_data_resources.php]
+      https://github.com/castle-engine/cge-www/blob/master/htdocs/doc/obsolete/deprecated_3d_game_utilities/creating_data_resources.php
       and engine tutorial for examples how to do this. Then you load the item
       resources with
 
@@ -645,7 +645,7 @@ procedure TItemResource.LoadFromFile(ResourceConfig: TCastleConfig);
 begin
   inherited;
 
-  FImageURL := ResourceConfig.GetURL('image');
+  FImageUrl := ResourceConfig.GetUrl('image');
 
   FCaption := ResourceConfig.GetValue('caption', '');
   if FCaption = '' then
@@ -655,15 +655,15 @@ end;
 function TItemResource.Image: TEncodedImage;
 begin
   if FImage = nil then
-    FImage := LoadEncodedImage(ImageURL);
+    FImage := LoadEncodedImage(ImageUrl);
   Result := FImage;
 end;
 
 function TItemResource.DrawableImage: TDrawableImage;
 begin
   if FDrawableImage = nil then
-    { TODO: this will load the ImageURL 2nd time. }
-    FDrawableImage := TDrawableImage.Create(ImageURL);
+    { TODO: this will load the ImageUrl 2nd time. }
+    FDrawableImage := TDrawableImage.Create(ImageUrl);
   Result := FDrawableImage;
 end;
 
@@ -845,7 +845,9 @@ var
   AttackDC, AttackDR, AttackKD: Single;
   AttackSoundHitDone: boolean;
 
+  {$warnings off} // using deprecated TCastleAlive in deprecated
   procedure ImmediateAttackHit(Enemy: TCastleAlive);
+  {$warnings on}
   begin
     if not AttackSoundHitDone then
     begin

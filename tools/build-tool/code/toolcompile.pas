@@ -1,5 +1,5 @@
 {
-  Copyright 2014-2023 Michalis Kamburelis.
+  Copyright 2014-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -21,8 +21,8 @@ unit ToolCompile;
 interface
 
 uses Classes,
-  CastleStringUtils,
-  ToolManifest, ToolArchitectures;
+  CastleStringUtils, CastleInternalArchitectures,
+  ToolManifest;
 
 type
   TCompilationMode = (cmRelease, cmValgrind, cmDebug);
@@ -63,21 +63,21 @@ type
 { Compile with Pascal compiler.
   SearchPaths, ExtraOptions may be @nil (same as empty). }
 procedure Compile(Compiler: TCompiler;
-  const WorkingDirectory, CompileFile: string; const Options: TCompilerOptions);
+  const WorkingDirectory, CompileFile: String; const Options: TCompilerOptions);
 
 { Compile with FPC and proper command-line option given file.
   SearchPaths, ExtraOptions may be @nil (same as empty). }
 procedure CompileFpc(
-  const WorkingDirectory, CompileFile: string; const Options: TCompilerOptions);
+  const WorkingDirectory, CompileFile: String; const Options: TCompilerOptions);
 
 { Compile with Delphi and proper command-line option given file.
   SearchPaths, ExtraOptions may be @nil (same as empty). }
 procedure CompileDelphi(
-  const WorkingDirectory, CompileFile: string; const Options: TCompilerOptions);
+  const WorkingDirectory, CompileFile: String; const Options: TCompilerOptions);
 
 { Compile with lazbuild. }
 procedure CompileLazbuild(
-  const WorkingDirectory, LazarusProjectFile: string; const Options: TCompilerOptions);
+  const WorkingDirectory, LazarusProjectFile: String; const Options: TCompilerOptions);
 
 { Run lazbuild with specified command-line options.
   Warning: This @italic(may) modify LazbuildOptions contents,
@@ -89,98 +89,18 @@ procedure RunLazbuild(const WorkingDirectory: String; const LazbuildOptions: arr
   are placed. }
 function CompilationOutputPath(const Compiler: TCompiler;
   const OS: TOS; const CPU: TCPU;
-  const WorkingDirectory: string): string;
+  const WorkingDirectory: String): String;
 
-function ModeToString(const M: TCompilationMode): string;
-function StringToMode(const S: string): TCompilationMode;
+function ModeToString(const M: TCompilationMode): String;
+function StringToMode(const S: String): TCompilationMode;
 
 var
   { Should we use the -Vxxx parameter, that is necessary if you got FPC
     from the fpc-3.0.3.intel-macosx.cross.ios.dmg
     (official "FPC for iOS" installation). }
-  FpcVersionForIPhoneSimulator: string = 'auto';
+  FpcVersionForIPhoneSimulator: String = 'auto';
 
 const
-  { Paths with units and include files that are for all OSes and all compilers.
-
-    Note:
-
-    - We don't bother trying to have separate include dirs (.inc) and units (.pas).
-      We just pass the same paths for both includes and units, this is simpler.
-
-    - We pass all paths, even system-specific, regardless of the target
-      OS/architecture.
-
-      We tried smarter approach in the past (such that you could have e.g.
-      "windows/castle_system_specific.inc" and "unix/castle_system_specific.inc",
-      and compiler recognized what to do on [$I castle_system_specific.inc]
-      based on include paths)...
-      but it was not really friendly for Lazarus lpk.
-
-      So it is simpler to just name all includes and units differently,
-      even across system-specific dirs. }
-
-  EnginePaths: array [0..42] of String = (
-    'base',
-    'common_includes',
-    'base/android',
-    'base/windows',
-    'base/unix',
-    'base_rendering',
-    'base_rendering/glsl/generated-pascal',
-    'fonts',
-    'window',
-    'window/gtk',
-    'window/windows',
-    'window/unix',
-    'window/deprecated_units',
-    'images',
-    'transform',
-    'scene',
-    'scene/glsl/generated-pascal',
-    'scene/x3d',
-    'scene/load',
-    'scene/load/spine',
-    'scene/load/md3',
-    'scene/load/collada',
-    'scene/load/pasgltf',
-    'audio',
-    'audio/fmod',
-    'audio/openal',
-    'audio/ogg_vorbis',
-    'files',
-    'files/indy',
-    'castlescript',
-    'ui',
-    'ui/windows',
-    'services',
-    'physics',
-    'physics/kraft',
-    'deprecated_units',
-    { Vampyre Imaging Library }
-    'vampyre_imaginglib/src/Source',
-    'vampyre_imaginglib/src/Source/JpegLib',
-    'vampyre_imaginglib/src/Source/ZLib',
-    'vampyre_imaginglib/src/Extras/Extensions',
-    'vampyre_imaginglib/src/Extensions/J2KObjects',
-    'vampyre_imaginglib/src/Extensions/LibTiff',
-    'vampyre_imaginglib/src/Extensions'
-  );
-
-  { Additional include/units paths, only for Delphi. }
-  EnginePathsDelphi: array [0..2] of String = (
-    'delphi',
-    'compatibility/delphi-only',
-    'compatibility/delphi-only/fcl-json'
-  );
-
-  { Paths for library (object) files.
-    For FPC these are passed using -Fl. }
-  EngineLibraryPaths: array [0..1] of String = (
-    'vampyre_imaginglib/src/Extensions/J2KObjects',
-    'vampyre_imaginglib/src/Extensions/LibTiff/Compiled'
-  );
-
   CompilationModeToStr: array [TCompilationMode] of string = (
     'release',
     'valgrind',
@@ -191,6 +111,7 @@ implementation
 
 uses SysUtils, Process,
   CastleUtils, CastleLog, CastleFilesUtils, CastleFindFiles,
+  CastleInternalTools,
   ToolCommonUtils, ToolUtils, ToolFpcVersion, ToolCompilerInfo;
 
 { TCompilerOptions ----------------------------------------------------------- }
@@ -221,16 +142,16 @@ type
   strict private
     class var
       IsCached: boolean;
-      CachedValue: string;
-    class function AutoDetect(const FpcVer: TFpcVersion): string; static;
+      CachedValue: String;
+    class function AutoDetect(const FpcVer: TFpcVersion): String; static;
   public
     { Return FpcVersionForIPhoneSimulator, but the 1st time this is run,
       we check and optionally change the returned value to something better. }
-    class function Value(const FpcVer: TFpcVersion): string; static;
+    class function Value(const FpcVer: TFpcVersion): String; static;
   end;
 
 class function TFpcVersionForIPhoneSimulatorChecked.AutoDetect(
-  const FpcVer: TFpcVersion): string; static;
+  const FpcVer: TFpcVersion): String; static;
 begin
   if (not Odd(FpcVer.Minor)) and
      (not Odd(FpcVer.Release)) then
@@ -250,9 +171,9 @@ begin
 end;
 
 class function TFpcVersionForIPhoneSimulatorChecked.Value(
-  const FpcVer: TFpcVersion): string; static;
+  const FpcVer: TFpcVersion): String; static;
 var
-  FpcOutput, FpcExe: string;
+  FpcOutput, FpcExe: String;
   FpcExitStatus: Integer;
 begin
   if not IsCached then
@@ -297,11 +218,11 @@ begin
 end;
 
 { Clean compilation trash in Directory, recursively. }
-procedure CleanDirectory(const Directory: string);
+procedure CleanDirectory(const Directory: String);
 var
   Helper: TCleanDirectoryHelper;
 
-  procedure DeleteFilesRecursive(const Mask: string);
+  procedure DeleteFilesRecursive(const Mask: String);
   begin
     FindFiles(Directory, Mask, false,
       {$ifdef FPC}@{$endif} Helper.DeleteFoundFile, [ffRecursive]);
@@ -392,10 +313,20 @@ begin
   Result := not (
     { Occur without -vb }
     IsPrefix('generics.collections.pas(', LineLower, false) or
+    // generics.dictionaries.inc -> generics.dictionariesh.inc in FPC 3.3.1
     IsPrefix('generics.dictionaries.inc(', LineLower, false) or
+    IsPrefix('generics.dictionariesh.inc(', LineLower, false) or
+    IsPrefix('generics.defaults.pas(', LineLower, false) or
     { Occur with -vb }
     (Pos('generics.collections.ppu:generics.collections.pas(', LineLower) <> 0) or
     (Pos('generics.collections.ppu:generics.dictionaries.inc(', LineLower) <> 0) or
+    (Pos('generics.collections.ppu:generics.dictionariesh.inc(', LineLower) <> 0) or
+    (Pos('generics.defaults.ppu:generics.defaults.pas(', LineLower) <> 0) or
+    // with -vb and FPC 3.3.1 and our own generics collections copy
+    (Pos('generics.collections/generics.collections.pas(', LineLower) <> 0) or
+    (Pos('generics.collections/inc/generics.dictionaries.inc(', LineLower) <> 0) or
+    (Pos('generics.collections/inc/generics.dictionariesh.inc(', LineLower) <> 0) or
+    (Pos('generics.defaults/generics.defaults.pas(', LineLower) <> 0) or
     { Others }
     IsSuffix('warning: section "__datacoal_nt" is deprecated', LineLower, false) or
     IsSuffix('note: change section name to "__data"', LineLower, false) or
@@ -406,13 +337,13 @@ begin
   // Line := '<begin>' + Line + '<end>';
 end;
 
-procedure CompileFpc(const WorkingDirectory, CompileFile: string; const Options: TCompilerOptions);
+procedure CompileFpc(const WorkingDirectory, CompileFile: String; const Options: TCompilerOptions);
 var
-  CastleEngineSrc: string;
+  CastleEngineSrc: String;
   FpcVer: TFpcVersion;
   FpcOptions: TCastleStringList;
 
-  procedure AddEnginePath(Path: string);
+  procedure AddEnginePath(Path: String);
   begin
     Path := CastleEngineSrc + Path;
     if not DirectoryExists(Path) then
@@ -429,9 +360,6 @@ var
     begin
       for S in EnginePaths do
         AddEnginePath(S);
-
-      if (not FpcVer.AtLeast(3, 1, 1)) or FpcVer.IsCodeTyphon then
-        AddEnginePath('compatibility/generics.collections/src');
 
       { Do not add castle-fpc.cfg.
         Instead, rely on code below duplicating castle-fpc.cfg logic
@@ -488,7 +416,7 @@ var
   {$endif}
   var
     LikeIOS: boolean; // physical iOS or iPhoneSimulator
-    VersionForSimulator: string;
+    VersionForSimulator: String;
   begin
     LikeIOS := false;
 
@@ -602,7 +530,7 @@ var
   end;
 
 var
-  FpcOutput, FpcExe, CompilationOutputPathFinal, FpcStandardUnitsPath: string;
+  FpcOutput, FpcExe, CompilationOutputPathFinal, FpcStandardUnitsPath: String;
   FpcExitStatus: Integer;
 begin
   FpcVer := FpcVersion;
@@ -738,7 +666,19 @@ begin
         FpcOptions.Add('-O-');
         WritelnWarning('Disabling optimizations, because they are buggy on Aarch64 with older FPC. Upgrade to FPC >= 3.2.2.');
       end else
+      if Options.CPU = Wasm32 then
+      begin
+        { Wasm32 optimizations are buggy with FPC 3.3.1.
+          FPC crashes with
+            x3dnodes_coordinate3_1.inc(69,3) Fatal: Internal error 2018042601
+          I assume this is known, even wiki page about Wasm32 says to use -O-
+          TODO: web: submit FPC bug }
+        FpcOptions.Add('-O-');
+      end else
         FpcOptions.Add('-O2');
+        // Not using -O3: Fails badly on 64-bit Raspberry Pi (Linux/Aarch64),
+        // at TTestCastleComponentSerialize.TestCustomSerialization
+        //FpcOptions.Add('-O3');
       FpcOptions.Add('-dRELEASE');
     end;
 
@@ -750,19 +690,58 @@ begin
       cmValgrind:
         begin
           { See https://castle-engine.io/profiling_using_valgrind
-            for reasons of Valgrind options. }
-          FpcOptions.Add('-gv');
+            for reasons of Valgrind options.
+
+            For web:
+            Do not pass -gv for WebAssembly, it causes errors
+            "Can't find unit cmem used by castle_cache".
+            And we need Valgrind mode to compile without errors,
+            to enable "castle-engine cache --target=web". }
+
+          if Options.OS = WasiP1 then
+            Writeln('Warning: Valgrind is not supported on WebAssembly')
+          else
+            FpcOptions.Add('-gv');
           FpcOptions.Add('-gl');
         end;
       cmDebug:
         begin
-          FpcOptions.Add('-Cr');
-          FpcOptions.Add('-Co');
-          FpcOptions.Add('-Sa');
-          FpcOptions.Add('-CR');
-          FpcOptions.Add('-g');
-          FpcOptions.Add('-gl');
+          FpcOptions.Add('-Cr'); // Range checking, see https://github.com/modern-pascal/modern-pascal-introduction/wiki/What-are-range-and-overflow-checks-(and-errors)-in-Pascal
+          if Options.CPU <> Wasm32 then
+            FpcOptions.Add('-Co') // Overflow checking, see https://github.com/modern-pascal/modern-pascal-introduction/wiki/What-are-range-and-overflow-checks-(and-errors)-in-Pascal
+          else
+            { It seems that Overflow Checking is broken with WebAssembly,
+              it causes exceptions
+                EIntOverflow: Arithmetic overflow
+                  $EEEEEEEE
+              on definitely innocent operations, like TCastleWindow.GetColorBits
+              when it sums up 0 + 0 + 0 (on Cardinal; are the unsigned Cardinal
+              the reason for the problem?).
+              Simplifying TCastleWindow.GetColorBits only causes EIntOverflow
+              further down.
+              TODO: web: submit FPC bug }
+            FpcOptions.Add('-Co-');
+          FpcOptions.Add('-Sa'); // Assertions
+          FpcOptions.Add('-CR'); // Verify method calls
+          FpcOptions.Add('-g');  // Debug info (automatic), for debuggers
+          if Options.CPU <> Wasm32 then
+            FpcOptions.Add('-gl') // Line info (in backtraces)
+          else
+            { Without this, compiling
+                castle-engine compile --os=wasi --cpu=wasm32 --mode=debug
+              fails with
+                Fatal: Can't find unit lnfodwrf used by Program
+              The default fpc.cfg contains clause to do -gl when DEBUG is defined,
+              so we have to explicitly disable it with -gl-.
+            }
+            FpcOptions.Add('-gl-');
           FpcOptions.Add('-dDEBUG');
+          { Disable -Ct (Stack checking) added to fpc.cfg in default
+            fpcupdeluxe installation when DEBUG is defined.
+            Because it crashes when application is run on iPhone,
+            at least with FPC 3.2.2. }
+          if IsIOS then
+            FpcOptions.Add('-Ct-');
         end;
       {$ifndef COMPILER_CASE_ANALYSIS}
       else raise EInternalError.Create('CompileFpc: Mode?');
@@ -807,10 +786,10 @@ begin
       //FpcOptions.Add('-CaEABIHF');
     end;
 
-    if Options.DetectMemoryLeaks then
+    if Options.DetectMemoryLeaks then // see https://castle-engine.io/memory_leaks
     begin
-      FpcOptions.Add('-gl');
-      FpcOptions.Add('-gh');
+      FpcOptions.Add('-gl'); // HeapTrc
+      FpcOptions.Add('-gh'); // LineInfo
     end;
 
     AddIOSOptions;
@@ -854,7 +833,7 @@ begin
   finally FreeAndNil(FpcOptions) end;
 end;
 
-procedure Compile(Compiler: TCompiler; const WorkingDirectory, CompileFile: string; const Options: TCompilerOptions);
+procedure Compile(Compiler: TCompiler; const WorkingDirectory, CompileFile: String; const Options: TCompilerOptions);
 begin
   { resolve Compiler to something other than coAutodetect }
   if Compiler = coAutodetect then
@@ -876,7 +855,7 @@ begin
   end;
 end;
 
-procedure CompileDelphi(const WorkingDirectory, CompileFile: string; const Options: TCompilerOptions);
+procedure CompileDelphi(const WorkingDirectory, CompileFile: String; const Options: TCompilerOptions);
 var
   CastleEngineSrc: String;
   DccOptions: TCastleStringList;
@@ -899,7 +878,7 @@ var
     DccOptions.Add('-NS' + SearchNamespaces);
   end;
 
-  procedure AddEnginePath(Path: string);
+  procedure AddEnginePath(Path: String);
   begin
     Path := CastleEngineSrc + Path;
     if not DirectoryExists(Path) then
@@ -1094,7 +1073,7 @@ begin
   finally FreeAndNil(L) end;
 end;
 
-procedure CompileLazbuild(const WorkingDirectory, LazarusProjectFile: string; const Options: TCompilerOptions);
+procedure CompileLazbuild(const WorkingDirectory, LazarusProjectFile: String; const Options: TCompilerOptions);
 var
   LazbuildOptions: TCastleStringList;
 
@@ -1163,7 +1142,7 @@ end;
 
 function CompilationOutputPath(const Compiler: TCompiler;
   const OS: TOS; const CPU: TCPU;
-  const WorkingDirectory: string): string;
+  const WorkingDirectory: String): String;
 begin
   Result := TempOutputPath(WorkingDirectory) + 'compilation' + PathDelim;
   if Compiler = coDelphi then
@@ -1176,12 +1155,12 @@ const
   CompilationModeNames: array [TCompilationMode] of string =
   ('release', 'valgrind', 'debug');
 
-function ModeToString(const M: TCompilationMode): string;
+function ModeToString(const M: TCompilationMode): String;
 begin
   Result := CompilationModeNames[M];
 end;
 
-function StringToMode(const S: string): TCompilationMode;
+function StringToMode(const S: String): TCompilationMode;
 begin
   for Result in TCompilationMode do
     if AnsiSameText(CompilationModeNames[Result], S) then

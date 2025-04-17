@@ -337,9 +337,17 @@ type
     class procedure Handle(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
   end;
 
+  { CastleScript function @code(deg) that converts degrees to radians. }
+  TCasScriptDeg = class(TCasScriptFunction)
+  public
+    class function ShortName: string; override;
+    class procedure Handle(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+  end;
+
 implementation
 
-uses SysUtils, CastleInputs;
+uses SysUtils, Math,
+  CastleInputs, CastleUtils;
 
 class function TCasScriptAdd.Name: string;
 begin
@@ -873,6 +881,22 @@ begin
       TCasScriptString(AResult).Value := Format('(shortcut name "%s" undefined)', [N]);
   end else
     TCasScriptString(AResult).Value := 'input names not available (finalization of CastleInputs unit is already done)';
+end;
+
+{ TCasScriptDeg --------------------------------------------------------- }
+
+class function TCasScriptDeg.ShortName: string;
+begin
+  Result := 'deg';
+end;
+
+class procedure TCasScriptDeg.Handle(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+var
+  Param: Float;
+begin
+  CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptFloat);
+  Param := TCasScriptFloat(Arguments[0]).Value;
+  TCasScriptFloat(AResult).Value := DegToRad(Param);
 end;
 
 end.

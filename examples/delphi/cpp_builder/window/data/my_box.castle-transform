@@ -1,0 +1,48 @@
+{
+  "$$ClassName" : "TCastleTransform",
+  "Name" : "Transform1",
+  "$Children" : [
+    {
+      "$$ClassName" : "TCastleBox",
+      "Name" : "Box1",
+      "RenderOptions" : {
+        "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+      },
+      "SizePersistent" : {
+        "$$ClassName" : "TCastleVector3Persistent",
+        "X" : 5.0000000000000000E-001,
+        "Y" : 5.0000000000000000E-001,
+        "Z" : 5.0000000000000000E-001
+      },
+      "$Children" : [
+        {
+          "$$ClassName" : "TCastleCone",
+          "Name" : "Cone1",
+          "RenderOptions" : {
+            "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+          },
+          "ScalePersistent" : {
+            "$$ClassName" : "TCastleVector3Persistent",
+            "X" : 3.0000001192092896E-001,
+            "Y" : 3.0000001192092896E-001,
+            "Z" : 3.0000001192092896E-001
+          },
+          "TranslationPersistent" : {
+            "$$ClassName" : "TCastleVector3Persistent",
+            "Y" : 4.3684053421020508E-001
+          }
+        }
+      ],
+      "$Behaviors" : [
+        {
+          "$$ClassName" : "TCastleBoxCollider",
+          "Name" : "BoxCollider1"
+        },
+        {
+          "$$ClassName" : "TCastleRigidBody",
+          "Name" : "RigidBody1"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!--
+Specify basic information about the project, including how this project is build.
+See https://castle-engine.io/project_manifest for documentation of this file.
+-->
+
+<project name="put_data"
+  standalone_source="put_data.dpr"
+  qualified_name="io.castleengine.put.data"
+>
+  <dependencies>
+    <dependency name="Https" /> <!-- access https URLs -->
+  </dependencies>
+  <data exists="false" />
+</project>

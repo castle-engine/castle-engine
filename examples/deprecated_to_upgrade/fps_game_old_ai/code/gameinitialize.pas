@@ -75,13 +75,13 @@ var
   ExtraViewport: TCastleViewport;
   CreaturesSpawned: Integer;
 
-{ Buttons -------------------------------------------------------------------- }
+{ TEventsHandler -------------------------------------------------------------------- }
 
 type
   { Container for buttons and their callbacks.
     You could as well derive descendant of TCastleWindow to keep your
     callbacks, or place these callbacks as methods of Lazarus form. }
-  TButtons = class(TComponent)
+  TEventsHandler = class(TComponent)
     ToggleMouseLookButton: TCastleButton;
     ExitButton: TCastleButton;
     RenderDebugCreaturesButton: TCastleButton;
@@ -99,12 +99,14 @@ type
     procedure AddCreatureButtonClick(Sender: TObject);
     procedure AddItemButtonClick(Sender: TObject);
     procedure AttackButtonClick(Sender: TObject);
+    procedure Press(const Sender: TCastleUserInterface;
+      const Event: TInputPressRelease; var Handled: Boolean);
   end;
 
 const
   ControlsMargin = 8;
 
-constructor TButtons.Create(AOwner: TComponent);
+constructor TEventsHandler.Create(AOwner: TComponent);
 var
   NextButtonBottom: Single;
 begin
@@ -204,32 +206,32 @@ begin
   NextButtonBottom := NextButtonBottom + (AttackButton.EffectiveHeight + ControlsMargin);
 end;
 
-procedure TButtons.ToggleMouseLookButtonClick(Sender: TObject);
+procedure TEventsHandler.ToggleMouseLookButtonClick(Sender: TObject);
 begin
   ToggleMouseLookButton.Pressed := not ToggleMouseLookButton.Pressed;
   Player.Navigation.MouseLook := ToggleMouseLookButton.Pressed;
 end;
 
-procedure TButtons.ExitButtonClick(Sender: TObject);
+procedure TEventsHandler.ExitButtonClick(Sender: TObject);
 begin
   Application.Terminate;
 end;
 
-procedure TButtons.RenderDebugCreaturesButtonClick(Sender: TObject);
+procedure TEventsHandler.RenderDebugCreaturesButtonClick(Sender: TObject);
 begin
   RenderDebugCreaturesButton.Pressed := not RenderDebugCreaturesButton.Pressed;
   TCreature.RenderDebug := RenderDebugCreaturesButton.Pressed;
 end;
 
-procedure TButtons.RenderDebugItemsButtonClick(Sender: TObject);
+procedure TEventsHandler.RenderDebugItemsButtonClick(Sender: TObject);
 begin
   RenderDebugItemsButton.Pressed := not RenderDebugItemsButton.Pressed;
   TItemOnWorld.RenderDebug := RenderDebugItemsButton.Pressed;
 end;
 
-procedure TButtons.ScreenshotButtonClick(Sender: TObject);
+procedure TEventsHandler.ScreenshotButtonClick(Sender: TObject);
 var
-  URL: string;
+  Url: String;
 begin
   { Capture a screenshot straight to a file.
     There are more interesting things that you can do with a screenshot
@@ -238,13 +240,13 @@ begin
     You could also ask use to choose a file (e.g. by Window.FileDialog).
     But this is just a simple example, and this way we also have
     an opportunity to show how to use Notifications. }
-  URL := Window.Container.SaveScreenToDefaultFile;
-  if URL <> '' then
-    Notifications.Show('Saved screen to ' + URL);
-  // when URL = '' it means that recommended directory to store screenshots on this platform cannot be found
+  Url := Window.Container.SaveScreenToDefaultFile;
+  if Url <> '' then
+    Notifications.Show('Saved screen to ' + Url);
+  // when Url = '' it means that recommended directory to store screenshots on this platform cannot be found
 end;
 
-procedure TButtons.AddCreatureButtonClick(Sender: TObject);
+procedure TEventsHandler.AddCreatureButtonClick(Sender: TObject);
 var
   Translation: TVector3;
   Direction: TVector3;
@@ -264,7 +266,7 @@ begin
     [CreaturesSpawned]);
 end;
 
-procedure TButtons.AddItemButtonClick(Sender: TObject);
+procedure TEventsHandler.AddItemButtonClick(Sender: TObject);
 var
   Translation: TVector3;
   ItemResource: TItemResource;
@@ -282,13 +284,67 @@ begin
   // Player.PickItem(ItemResource.CreateItem(1));
 end;
 
-procedure TButtons.AttackButtonClick(Sender: TObject);
+procedure TEventsHandler.AttackButtonClick(Sender: TObject);
 begin
   Player.Attack;
 end;
 
+procedure CreatePlayer; forward;
+
+procedure TEventsHandler.Press(const Sender: TCastleUserInterface;
+  const Event: TInputPressRelease; var Handled: Boolean);
+begin
+  { We simulate button presses on some key presses. There is no automatic
+    mechanism to assign key shortcut to a TCastleButton right now.
+    Note that we pass Sender = nil to the callbacks, because we know that
+    our TEventsHandler callbacks ignore Sender parameter. }
+  if Event.IsKey(keyF4) and
+     // in case we test touch input in desktop, ToggleMouseLookButton = nil
+     (ToggleMouseLookButton <> nil) then
+  begin
+    ToggleMouseLookButtonClick(nil);
+    Handled := true;
+    Exit;
+  end;
+
+  if Event.IsKey(CharEscape) then
+  begin
+    ExitButtonClick(nil);
+    Handled := true;
+    Exit;
+  end;
+
+  if Event.IsKey(keyF5) then
+  begin
+    ScreenshotButtonClick(nil);
+    Handled := true;
+    Exit;
+  end;
+
+  if Event.IsKey(keyF9) then
+  begin
+    AddCreatureButtonClick(nil);
+    Handled := true;
+    Exit;
+  end;
+
+  if Event.IsKey(keyF10) then
+  begin
+    AddItemButtonClick(nil);
+    Handled := true;
+    Exit;
+  end;
+
+  if Event.IsKey(keyF1) then
+  begin
+    CreatePlayer;
+    Handled := true;
+    Exit;
+  end;
+end;
+
 var
-  Buttons: TButtons;
+  EventsHandler: TEventsHandler;
 
 { Player HUD ---------------------------------------------------------------- }
 
@@ -316,10 +372,9 @@ procedure TPlayerHUD.Render;
         Gun.AmmoLoaded,
         GunResource.AttackAmmoCapacity
       ]);
-      GetUIFont.Print(10, ContainerHeight - 220, Green, AmmoStr);
+      FallbackFont.Print(10, ContainerHeight - 220, Green, AmmoStr);
     end;
   end;
-
 
 const
   InventoryImageSize = 128;
@@ -336,19 +391,19 @@ begin
   { Write text in the upper-left corner of the screen.
     The (0, 0) position is always bottom-left corner,
     (ContainerWidth, ContainerHeight) position is top-right corner.
-    You can take font measurements by UIFont.Height or UIFont.TextWidth
+    You can take font measurements by FallbackFont.Height or FallbackFont.TextWidth
     to adjust initial position as needed. }
-  Y := Y - (GetUIFont.Height + ControlsMargin);
-  GetUIFont.Print(ControlsMargin, Y, Yellow,
+  Y := Y - (FallbackFont.Height + ControlsMargin);
+  FallbackFont.Print(ControlsMargin, Y, Yellow,
     FormatDot('Player life: %f / %f', [Player.Life, Player.MaxLife]));
 
   DisplayCurrentAmmo;
 
   { show FPS }
-  GetUIFont.PrintRect(Window.Rect.Grow(-ControlsMargin), Red,
+  FallbackFont.PrintRect(Window.Rect.Grow(-ControlsMargin), Red,
     'FPS: ' + Window.Fps.ToString, hpRight, vpTop);
 
-  Y := Y - (GetUIFont.Height + InventoryImageSize);
+  Y := Y - (FallbackFont.Height + InventoryImageSize);
 
   { Mark currently chosen item. You can change currently selected item by
     Input_InventoryPrevious, Input_InventoryNext (by default: [ ] keys or mouse
@@ -379,7 +434,7 @@ begin
     S := Player.Inventory[I].Resource.Caption;
     if Player.Inventory[I].Quantity <> 1 then
       S := S + Format(' (%d)', [Player.Inventory[I].Quantity]);
-    GetUIFont.Print(X, Y - GetUIFont.Height, Yellow, S);
+    FallbackFont.Print(X, Y - FallbackFont.Height, Yellow, S);
   end;
 
   { Simple color effects over the screen:
@@ -406,7 +461,6 @@ end;
 
 var
   PlayerHUD: TPlayerHUD;
-
 
 { Create player. Player implements:
   - inventory,
@@ -465,32 +519,8 @@ begin
 
   Level.Player := Player;
 
-  if Buttons <> nil then
-    Buttons.ToggleMouseLookButton.Pressed := false;
-end;
-
-{ Window callbacks ----------------------------------------------------------- }
-
-procedure Press(Container: TCastleContainer; const Event: TInputPressRelease);
-begin
-  { We simulate button presses on some key presses. There is no automatic
-    mechanism to assign key shortcut to a TCastleButton right now.
-    Note that we pass Sender = nil to the callbacks, because we know that
-    our TButtons callbacks ignore Sender parameter. }
-  if Event.IsKey(keyF4) and
-     // in case we test touch input in desktop, ToggleMouseLookButton = nil
-     (Buttons.ToggleMouseLookButton <> nil) then
-    Buttons.ToggleMouseLookButtonClick(nil) else
-  if Event.IsKey(CharEscape) then
-    Buttons.ExitButtonClick(nil) else
-  if Event.IsKey(keyF5) then
-    Buttons.ScreenshotButtonClick(nil) else
-  if Event.IsKey(keyF9) then
-    Buttons.AddCreatureButtonClick(nil) else
-  if Event.IsKey(keyF10) then
-    Buttons.AddItemButtonClick(nil);
-  if Event.IsKey(keyF1) then
-    CreatePlayer;
+  if EventsHandler <> nil then
+    EventsHandler.ToggleMouseLookButton.Pressed := false;
 end;
 
 { Customized item ------------------------------------------------------------ }
@@ -605,7 +635,7 @@ begin
   Level.Viewport := Viewport;
 
   { Load named sounds defined in sounds/index.xml }
-  SoundEngine.RepositoryURL := 'castle-data:/sounds/index.xml';
+  SoundEngine.RepositoryUrl := 'castle-data:/sounds/index.xml';
 
   { Change Theme image tiActiveFrame, used to draw rectangle under image }
   Theme.ImagesPersistent[tiActiveFrame].Url := 'castle-data:/box.png';
@@ -635,13 +665,6 @@ begin
   );
   { Allow user to actually edit this view, e.g. by mouse scroll. }
   ExtraViewport.Navigation := TCastleExamineNavigation.Create(Application);
-
-  { Assign callbacks to some window events.
-    Note about initial events: Window.Open calls OnOpen and first OnResize events,
-    so if you want to receive them --- be sure to register them before calling
-    Window.Open. That is why we assign them here, and that is why we created
-    ExtraViewport (that is resized in Resize callback) earlier. }
-  Window.OnPress := @Press;
 
   { Enable automatic navigation UI on touch devices. }
   //ApplicationProperties.TouchDevice := true; // use this to test touch behavior on desktop
@@ -692,8 +715,11 @@ begin
     "placeholders" on the level, see TLevel.Load documentation. }
   Level.Load('example_level');
 
-  { Add some buttons }
-  Buttons := TButtons.Create(Application);
+  { Add EventsHandler }
+  EventsHandler := TEventsHandler.Create(Application);
+
+  { TODO: Use TCastleView to handle key presses. }
+  Viewport.OnPress := {$ifdef FPC}@{$endif} EventsHandler.Press;
 
   { Add the Notifications to our window.
     We add a global Notifications object from CastleGameNotifications.

@@ -1,16 +1,14 @@
 ## tenjin
 
-This service integrates your iOS project with https://www.tenjin.com/[Tenjin], an install attribution service.
+This service integrates your Android project with https://www.tenjin.com/[Tenjin], an install attribution service.
 
-See https://docs.tenjin.com/ for an overview of what Tenjin offers. It is a commercial service, although can be used for free with some limits.
+See https://docs.tenjin.com/[Tenjin docs] for an overview of what Tenjin offers. It is a commercial service, although can be used for free with some limits.
 
 You will need to:
 
-- Create an account on https://www.tenjin.com/ , add your game (for Android), and get the API key from https://www.tenjin.io/dashboard/docs (this is similar as for iOS).
+- Create an account on https://www.tenjin.com/[Tenjin], add your game (for Android), and get the API key from https://www.tenjin.io/dashboard/[Tenjin dashboard] (this step is similar as for iOS).
 
-- You also need to allow Tenjin to verify purchases done on Google Play. See https://docs.tenjin.com/en/send-events/android.html , section _"Purchase Events"_.
-
-- You also need to download latest release from https://github.com/tenjin/tenjin-android-sdk/releases, unpack it somewhere. Indicate the location of the directory that contains the `tenjin.aar` and `tenjin.jar` files using the parameter `library_path` shown below. (It can be a directory relative to your project, or an absolute path.)
+- You also need to allow Tenjin to verify purchases done on Google Play. See https://github.com/tenjin/tenjin-android-sdk#purchase-events[Tenjin Android docs], section _"Purchase Events"_.
 
 ### Declare in CastleEngineManifest.xml
 
@@ -20,21 +18,13 @@ Declare it like this in link:https://castle-engine.io/project_manifest[CastleEng
 ----
 <?xml version="1.0" encoding="utf-8"?>
 <project name="..." game_units="...">
-  <android min_sdk_version="21">
+  <android>
     <services>
-      <service name="tenjin">
-        <parameter key="library_path" value="tenjin-android-sdk/" />
-      </service>
+      <service name="tenjin" />
     </services>
   </android>
 </project>
 ----
-
-In this example:
-
-- we use Android `tenjin` service and set its parameters
-
-- we bump Android `min_sdk_version` to 21, as required by Tenjin (you can bump it higher if needed, but it must be at least 21).
 
 ### Use from Pascal
 
@@ -42,7 +32,7 @@ In this example:
 
 Create a single instance of `TCastleTenjin` class (from `CastleTenjin` unit). You can do this e.g. in the `Application.OnInitialize` callback. You can use the fact that `TCastleTenjin` descends from `TComponent`, and set the owner of it to be `Application`, to make it freed automatically.
 
-Then initialize the analytics reporting. Make sure to ask users for permission to do this, in particular in EU where GDPR is in effect. Make sure to mention this in your application's privacy policy too.
+Then initialize the analytics reporting. Make sure to ask users for permission to collect data, in particular in EU where GDPR is in effect. Make sure to mention this in your application's privacy policy too.
 
 Like this:
 
@@ -61,3 +51,11 @@ end;
 ----
 
 Optionally you can also send custom events to Tenjin. Just call from anywhere `MyTenjin.SendEvent('event_name');`.
+
+### Using Android Advertising ID (AAID)
+
+The _Tenjin_ service does use _Android Advertising ID (AAID)_.
+
+We declare the `com.google.android.gms.permission.AD_ID` permission in the application.
+
+On _Google Play_, in the corresponding survey, you have to answer _Yes_ when asked whether the app uses _Android Advertising ID (AAID)_.

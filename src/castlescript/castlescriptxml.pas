@@ -26,7 +26,7 @@ unit CastleScriptXML;
 interface
 
 uses Math, DOM,
-  CastleKeysMouse, CastleXMLConfig, CastleXMLUtils;
+  CastleKeysMouse, CastleXMLConfig, CastleXmlUtils;
 
 type
   { Class helper to read CastleScript expressions from XML config files.
@@ -40,7 +40,7 @@ type
     function GetFloatExpression(const APath: string;
       const ADefaultValue: Float): Float;
     function GetFloatExpression(const APath: string;
-      const ADefaultValue: string): Float;
+      const ADefaultValue: String): Float;
     function GetFloatExpression(const APath: string): Float;
     { @groupEnd }
 
@@ -50,7 +50,7 @@ type
     function GetIntExpression(const APath: string;
       const ADefaultValue: Int64): Int64;
     function GetIntExpression(const APath: string;
-      const ADefaultValue: string): Int64;
+      const ADefaultValue: String): Int64;
     function GetIntExpression(const APath: string): Int64;
     { @groupEnd }
   end;
@@ -108,7 +108,7 @@ begin
 end;
 
 function TCastleConfigScriptHelper.GetFloatExpression(const APath: string;
-  const ADefaultValue: string): Float;
+  const ADefaultValue: String): Float;
 var
   ResultString: string;
   E: TCasScriptExpression;
@@ -137,7 +137,7 @@ begin
 end;
 
 function TCastleConfigScriptHelper.GetIntExpression(const APath: string;
-  const ADefaultValue: string): Int64;
+  const ADefaultValue: String): Int64;
 var
   ResultString: string;
   E: TCasScriptExpression;

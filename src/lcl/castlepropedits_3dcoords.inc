@@ -22,7 +22,7 @@ type
   T3DCoordsRangeSetPropertyEditor = class(TRangeSetPropertyEditor)
   public
     procedure GetProperties(Proc: TGetPropEditProc); override;
-    function OrdValueToVisualValue(OrdValue: Longint): string; override;
+    function OrdValueToVisualValue(OrdValue: Integer): string; override;
   end;
 
   { Row editor for T3DCoordsRangeSetPropertyEditor }
@@ -42,7 +42,7 @@ begin
 end;
 
 function T3DCoordsRangeSetPropertyEditor.OrdValueToVisualValue(
-  OrdValue: Longint): string;
+  OrdValue: Integer): string;
 var
   S: TIntegerSet;
   I: Integer;

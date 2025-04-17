@@ -7,5 +7,6 @@ See https://castle-engine.io/project_manifest for documentation of this file.
 
 <project name="test_triangulate"
   standalone_source="test_triangulate.dpr"
+  qualified_name="io.castleengine.test.triangulate"
 >
 </project>

@@ -1,10 +1,12 @@
-Demo how to use localization (translate your game into multiple languages)
-with Castle Game Engine.
+# Localization (translation) demo
 
-We use CastleLocalizationGetText, based on FPC GetText unit, for this.
-See CGE manual about text and localization: https://castle-engine.io/manual_text.php .
+Demo how to use localization (translate your game into multiple languages) with Castle Game Engine.
 
-# Creating translations
+We use `CastleLocalizationGetText` unit, which in turn uses FPC `GetText` unit. See CGE [manual about text and localization](https://castle-engine.io/manual_text.php).
+
+![screenshot](screenshot.png)
+
+## Creating translations
 
 1. To translate strings used in Pascal code:
 
@@ -44,11 +46,9 @@ See CGE manual about text and localization: https://castle-engine.io/manual_text
 
 4. Generate .mo file: `msgfmt po_files/game.pl.po --output-file=data/locale/game.pl.mo`. We have a trivial script here `update_translations.sh` doing that. You need to rerun it after every modification to `po_files`.
 
-# Using translations from Pascal code
+## Using translations from Pascal code
 
-## Translating resourcestrings
-
-* Call in Pascal `CastleTranslateResourceStrings('castle-data:/locale/game.pl.mo');` to use the Polish translation. This simply updates all `resourcestring` contents to the Polish versions.
+* Call in Pascal `CastleTranslateResourceStrings('castle-data:/locale/game.pl.mo');` to use the Polish translation for _resource strings_ (Pascal String constants declared inside `resourcestring`). This simply updates all `resourcestring` contents to the Polish versions.
 
 * Call `TranslateAllDesigns('castle-data:/locale/user_interface.pl.mo');` to translate all user interface to Polish.
 
@@ -56,7 +56,7 @@ See CGE manual about text and localization: https://castle-engine.io/manual_text
 
     Load them using `LoadGetTextMo` and use the `Translate` method, see FPC docs of [TMOFile](https://www.freepascal.org/docs-html/fcl/gettext/tmofile.html) and the [TMOFile.Translate](https://www.freepascal.org/docs-html/fcl/gettext/tmofile.translate.html) method. Example:
 
-```
+```delphi
 var
   Language: String;
   Translations: TCastleMOFile;
@@ -68,15 +68,15 @@ begin
 end.
 ```
 
-# Fonts
+## Fonts
 
 Note that we also adjust font in this application.
-The default font contains only basic ASCII (English) characters,
-so we load a font with additional German, Polish, Russian and Ukrainian characters.
-See https://castle-engine.io/manual_text.php about loading fonts
-in Castle Game Engine.
+We load a font with additional German, Polish, Russian and Ukrainian characters.
+See the [manual about text and fonts](https://castle-engine.io/manual_text.php).
 
-# Lazarus references
+This is no longer strictly necessary with latest engine [that includes most common Unicode characters in the default font](https://wp.me/p9IgYW-1bL).
+
+## Lazarus references
 
 While we don't use Lazarus LCL code in CGE, but this mechanism is consistent with how Lazarus application can be localized. So a lot of Lazarus documentation apply also to us:
 
@@ -90,3 +90,15 @@ See also resources about gettext:
 
 All the tools and editors for gettext files should work fine.
 There are even online services that take a ready PO file for translating.
+
+## Building
+
+Using [Castle Game Engine](https://castle-engine.io/).
+
+Compile by:
+
+- [CGE editor](https://castle-engine.io/editor). Just use menu items _"Compile"_ or _"Compile And Run"_.
+
+- Or use [CGE command-line build tool](https://castle-engine.io/build_tool). Run `castle-engine compile` in this directory.
+
+- Or use [Lazarus](https://www.lazarus-ide.org/). Open in Lazarus `localization_test.lpi` file and compile / run from Lazarus. Make sure to first register [CGE Lazarus packages](https://castle-engine.io/lazarus).

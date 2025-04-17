@@ -22,12 +22,12 @@ type
     The trivial interface is mostly compatible with LCL clipboard. }
   TCastleClipboard = class
   private
-    FContents: string;
+    FContents: String;
   protected
-    function GetAsText: string; virtual;
-    procedure SetAsText(const Value: string); virtual;
+    function GetAsText: String; virtual;
+    procedure SetAsText(const Value: String); virtual;
   public
-    property AsText: string read GetAsText write SetAsText;
+    property AsText: String read GetAsText write SetAsText;
   end;
 
 { Single global instance of TCastleClipboard.
@@ -70,12 +70,12 @@ end;
   it's just a trivial container to copy-paste strings
   between Castle Game Engine edit boxes. }
 
-function TCastleClipboard.GetAsText: string;
+function TCastleClipboard.GetAsText: String;
 begin
   Result := FContents;
 end;
 
-procedure TCastleClipboard.SetAsText(const Value: string);
+procedure TCastleClipboard.SetAsText(const Value: String);
 begin
   FContents := Value;
 end;

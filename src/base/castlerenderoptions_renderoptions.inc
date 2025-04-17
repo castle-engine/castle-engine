@@ -1,6 +1,6 @@
 {%MainUnit castlerenderoptions.pas}
 {
-  Copyright 2002-2023 Michalis Kamburelis.
+  Copyright 2002-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -93,6 +93,14 @@ type
     procedure SetLighting(const Value: Boolean);
 
     procedure UpdateHash;
+
+    function IsStoredBumpMappingParallaxHeight: Boolean;
+    function IsStoredLineWidth: Boolean;
+    function IsStoredPointSize: Boolean;
+    function IsStoredSilhouetteBias: Boolean;
+    function IsStoredSilhouetteScale: Boolean;
+    function IsStoredSolidWireframeBias: Boolean;
+    function IsStoredSolidWireframeScale: Boolean;
   protected
     { Called before changing an attribute that requires the release
       of things cached in a renderer. This includes attributes that affect:
@@ -145,19 +153,23 @@ type
 
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    procedure Assign(Source: TPersistent); override;
     procedure CustomSerialization(const SerializationProcess: TSerializationProcess); override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
 
+    { Copies all propeties from Source,
+      the same properties that affect @link(Equals). }
+    procedure Assign(Source: TPersistent); override;
+
     { Equal TCastleRenderOptions produce the same effect when rendering
-      and can be treated as exactly equivalent by the @link(TCastleViewport.DynamicBatching)
-      algorithm. }
+      and can be treated as exactly equivalent by
+      the @link(TCastleViewport.DynamicBatching) algorithm. }
     function Equals(Obj: TObject): Boolean; override;
 
-    { Is the second TCastleRenderOptions instance on all fields
+    { Internal. Is the second TCastleRenderOptions instance on all fields
       that affect TShapeCache, that is things that affect generated geometry
       arrays or vbo. This compares the subset of variables that call
-      ReleaseCachedResources --- only the ones that affect TShapeCache. }
+      ReleaseCachedResources --- only the ones that affect TShapeCache.
+      @exclude }
     function EqualForShapeCache(SecondValue: TCastleRenderOptions): boolean; virtual;
 
     { Rendering mode, can be used to disable many rendering features at once. }
@@ -249,13 +261,13 @@ type
     { Size of points. This has an effect on TPointSetNode rendering.
       Must be > 0. }
     property PointSize: Single
-      read FPointSize write SetPointSize {$ifdef FPC}default DefaultPointSize{$endif};
+      read FPointSize write SetPointSize stored IsStoredPointSize;
 
     { Line width. This has an effect on TLineSetNode rendering,
       and on wireframe rendering when @link(TCastleRenderOptions.WireframeEffect) indicates it.
       Must be > 0. }
     property LineWidth: Single
-      read FLineWidth write SetLineWidth {$ifdef FPC}default DefaultLineWidth{$endif};
+      read FLineWidth write SetLineWidth stored IsStoredLineWidth;
 
     { Use bump mapping. The bump mapping is only done when particular shape
       defines a normal map (and a height map, if you want parallax bump mapping).
@@ -284,7 +296,7 @@ type
       bmSteepParallaxShadowing then this property is used to interpret the height information. }
     property BumpMappingParallaxHeight: Single
       read FBumpMappingParallaxHeight write SetBumpMappingParallaxHeight
-      {$ifdef FPC}default DefaultBumpMappingParallaxHeight{$endif};
+      stored IsStoredBumpMappingParallaxHeight;
 
     { Whether to use Phong shading by default.
 
@@ -418,13 +430,13 @@ type
       read FWireframeEffect write SetWireframeEffect default weNormal;
 
     property SolidWireframeScale: Single
-      read FSolidWireframeScale write SetSolidWireframeScale {$ifdef FPC}default DefaultSolidWireframeScale{$endif};
+      read FSolidWireframeScale write SetSolidWireframeScale stored IsStoredSolidWireframeScale;
     property SolidWireframeBias: Single
-      read FSolidWireframeBias write SetSolidWireframeBias {$ifdef FPC}default DefaultSolidWireframeBias{$endif};
+      read FSolidWireframeBias write SetSolidWireframeBias stored IsStoredSolidWireframeBias;
     property SilhouetteScale: Single
-      read FSilhouetteScale write SetSilhouetteScale {$ifdef FPC}default DefaultSilhouetteScale{$endif};
+      read FSilhouetteScale write SetSilhouetteScale stored IsStoredSilhouetteScale;
     property SilhouetteBias: Single
-      read FSilhouetteBias write SetSilhouetteBias {$ifdef FPC}default DefaultSilhouetteBias{$endif};
+      read FSilhouetteBias write SetSilhouetteBias stored IsStoredSilhouetteBias;
 
     { Support lighting and backface culling for models using negative scale.
       This has a small performance cost, and so is disabled by default. }
@@ -520,9 +532,26 @@ begin
     MagnificationFilter := TCastleRenderOptions(Source).MagnificationFilter;
     PointSize := TCastleRenderOptions(Source).PointSize;
     LineWidth := TCastleRenderOptions(Source).LineWidth;
+    BumpMapping := TCastleRenderOptions(Source).BumpMapping;
+    BumpMappingParallaxHeight := TCastleRenderOptions(Source).BumpMappingParallaxHeight;
+    Mode := TCastleRenderOptions(Source).Mode;
+    ShadowSampling := TCastleRenderOptions(Source).ShadowSampling;
+    DepthTest := TCastleRenderOptions(Source).DepthTest;
+    PhongShading := TCastleRenderOptions(Source).PhongShading;
+    SolidColor := TCastleRenderOptions(Source).SolidColor;
+    MaxLightsPerShape := TCastleRenderOptions(Source).MaxLightsPerShape;
     Blending := TCastleRenderOptions(Source).Blending;
     BlendingSourceFactor := TCastleRenderOptions(Source).BlendingSourceFactor;
     BlendingDestinationFactor := TCastleRenderOptions(Source).BlendingDestinationFactor;
+    WireframeColor := TCastleRenderOptions(Source).WireframeColor;
+    WireframeEffect := TCastleRenderOptions(Source).WireframeEffect;
+    SolidWireframeScale := TCastleRenderOptions(Source).SolidWireframeScale;
+    SolidWireframeBias := TCastleRenderOptions(Source).SolidWireframeBias;
+    SilhouetteScale := TCastleRenderOptions(Source).SilhouetteScale;
+    SilhouetteBias := TCastleRenderOptions(Source).SilhouetteBias;
+    RobustNegativeScale := TCastleRenderOptions(Source).RobustNegativeScale;
+    WholeSceneManifold := TCastleRenderOptions(Source).WholeSceneManifold;
+    InternalColorChannels := TCastleRenderOptions(Source).InternalColorChannels;
   end else
     inherited;
 end;
@@ -664,7 +693,7 @@ begin
         'MinificationFilter', 'MagnificationFilter', 'PointSize', 'LineWidth',
         'BumpMapping', 'BumpMappingParallaxHeight', 'PhongShading', 'ShadowSampling',
         'MaxLightsPerShape', 'Blending', 'BlendingSourceFactor', 'BlendingDestinationFactor',
-        'WireframeEffect',
+        'WireframeEffect', 'WireframeColorPersistent',
         'SolidWireframeScale', 'SolidWireframeBias', 'SilhouetteScale',
         'SilhouetteBias', 'RobustNegativeScale',
         'WholeSceneManifold', 'ColorChannels'
@@ -946,6 +975,41 @@ begin
     FLighting := Value;
     UpdateHash;
   end;
+end;
+
+function TCastleRenderOptions.IsStoredBumpMappingParallaxHeight: Boolean;
+begin
+  Result := FBumpMappingParallaxHeight <> Single(DefaultBumpMappingParallaxHeight);
+end;
+
+function TCastleRenderOptions.IsStoredLineWidth: Boolean;
+begin
+  Result := FLineWidth <> DefaultLineWidth;
+end;
+
+function TCastleRenderOptions.IsStoredPointSize: Boolean;
+begin
+  Result := FPointSize <> DefaultPointSize;
+end;
+
+function TCastleRenderOptions.IsStoredSilhouetteBias: Boolean;
+begin
+  Result := FSilhouetteBias <> DefaultSilhouetteBias;
+end;
+
+function TCastleRenderOptions.IsStoredSilhouetteScale: Boolean;
+begin
+  Result := FSilhouetteScale <> DefaultSilhouetteScale;
+end;
+
+function TCastleRenderOptions.IsStoredSolidWireframeBias: Boolean;
+begin
+  Result := FSolidWireframeBias <> DefaultSolidWireframeBias;
+end;
+
+function TCastleRenderOptions.IsStoredSolidWireframeScale: Boolean;
+begin
+  Result := FSolidWireframeScale <> DefaultSolidWireframeScale;
 end;
 
 {$define read_implementation_methods}

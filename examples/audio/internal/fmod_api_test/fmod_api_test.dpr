@@ -67,7 +67,7 @@ end;
 var
   FMODSystem: PFMOD_SYSTEM;
 
-function PlaySound(const URL: String; const Loop: Boolean): PFMOD_CHANNEL;
+function PlaySound(const Url: String; const Loop: Boolean): PFMOD_CHANNEL;
 var
   // SoundInfo: TFMOD_CREATESOUNDEXINFO; // not needed now
   Sound: PFMOD_SOUND;
@@ -79,7 +79,7 @@ begin
   // FillChar(SoundInfo, SizeOf(cbsize), );
   // SoundInfo.cbsize := SizeOf(cbsize);
 
-  CheckFMOD(FMOD_System_CreateSound(FMODSystem, PCharOrNil(URL), FMOD_DEFAULT or FMOD_2D,
+  CheckFMOD(FMOD_System_CreateSound(FMODSystem, PCharOrNil(Url), FMOD_DEFAULT or FMOD_2D,
     nil { @SoundInfo }, @Sound));
 
   CheckFMOD(FMOD_Sound_GetFormat(Sound, @SoundType, @SoundFormat, @SoundChannels, @SoundBits));

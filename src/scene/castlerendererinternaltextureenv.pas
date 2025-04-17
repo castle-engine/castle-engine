@@ -102,7 +102,7 @@ type
     { Calculate values based on simple OpenGL mode value. }
     constructor Init(const Mode: TCombine); overload;
 
-    function Hash: LongWord;
+    function Hash: UInt32;
   end;
 
 implementation
@@ -490,7 +490,7 @@ begin
   TextureFunction := tfNone;
 end;
 
-function TTextureEnv.Hash: LongWord;
+function TTextureEnv.Hash: UInt32;
 {$include norqcheckbegin.inc}
 begin
   Result :=

@@ -2,7 +2,13 @@
 <!-- This manifest will be merged with main integrated/AndroidManifest.xml
      by the build tool. -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
-    <!-- https://docs.tenjin.com/en/send-events/android.html -->
+    <!-- See https://github.com/tenjin/tenjin-android-sdk#permission -->
+
     <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" /> <!-- Required to get network connectivity (i.e. wifi vs. mobile) -->
+
+    <!-- Required to get network connectivity (i.e. wifi vs. mobile) -->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+    <!-- Required by latest Google Play to pass Android Advertising ID (AAID) to app.  -->
+    <uses-permission android:name="com.google.android.gms.permission.AD_ID" />
 </manifest>

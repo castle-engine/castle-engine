@@ -1,5 +1,5 @@
 {
-  Copyright 2008-2023 Michalis Kamburelis.
+  Copyright 2008-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -102,33 +102,21 @@ type
   private
     Parent: TCastleControl;
     procedure UnLoadDesign;
-  protected
-    function GetMousePosition: TVector2; override;
-    procedure SetMousePosition(const Value: TVector2); override;
   public
     constructor Create(AParent: TCastleControl); reintroduce;
     procedure Invalidate; override;
     function GLInitialized: boolean; override;
-    function Width: Integer; override;
-    function Height: Integer; override;
+    function PixelsWidth: Integer; override;
+    function PixelsHeight: Integer; override;
     procedure SetInternalCursor(const Value: TMouseCursor); override;
+    procedure SystemSetMousePosition(const Value: TVector2); override;
     function SaveScreen(const SaveRect: TRectangle): TRGBImage; override; overload;
-
-    procedure EventOpen(const OpenWindowsCount: Cardinal); override;
-    procedure EventClose(const OpenWindowsCount: Cardinal); override;
-    function EventPress(const Event: TInputPressRelease): boolean; override;
-    function EventRelease(const Event: TInputPressRelease): boolean; override;
-    procedure EventUpdate; override;
-    procedure EventMotion(const Event: TInputMotion); override;
-    procedure EventBeforeRender; override;
-    procedure EventRender; override;
-    procedure EventResize; override;
   public
     { When the DesignUrl is set you can use this method to find
       loaded components. Like this:
 
       @longCode(#
-      MyButton := MyCastleControl.DesignedComponent('MyButton') as TCastleButton;
+      MyButton := MyCastleControl.Container.DesignedComponent('MyButton') as TCastleButton;
       #)
 
       When the name is not found, raises exception (unless Required is @false,
@@ -143,7 +131,7 @@ type
 
       If you have more complicated control flow,
       we recommend to leave this property empty, and split your management
-      into a number of states (TCastleView) instead.
+      into a number of views (TCastleView) instead.
       In this case, load design using TCastleView.DesignUrl.
       This property makes it however easy to use .castle-user-interface
       in simple cases, when TCastleControl just shows one UI.
@@ -164,13 +152,13 @@ type
 
     You can use this with TCastleView, following https://castle-engine.io/control_on_form instructions.
     In this case, all user interface creation and event handling should
-    be inside some state.
+    be inside some view.
 
     You can also add any user-interface controls to the @link(Controls) property.
     User-interface controls are any @link(TCastleUserInterface) descendants,
     like @link(TCastleImageControl) or @link(TCastleButton) or @link(TCastleViewport).
-    Use events like @link(OnPress) to react to events.
-    Use event @link(OnUpdate) to do something continuously.
+    Use their events like @link(TCastleUserInterface.OnPress) to react to input.
+    Use event @link(TCastleUserInterface.OnUpdate) to do something continuously.
 
     By default, the control is filled with simple color from
     @link(TCastleContainer.BackgroundColor Container.BackgroundColor).
@@ -181,20 +169,10 @@ type
   TCastleControl = class(TCustomOpenGLControl)
   strict private
     FContainer: TCastleControlContainer;
-    FMousePosition: TVector2;
     FGLInitialized: boolean;
     FAutoRedisplay: boolean;
     { manually track when we need to be repainted, useful for AggressiveUpdate }
     Invalidated: boolean;
-    FOnOpen: TNotifyEvent;
-    FOnBeforeRender: TNotifyEvent;
-    FOnRender: TNotifyEvent;
-    FOnResize: TNotifyEvent;
-    FOnClose: TNotifyEvent;
-    FOnPress: TControlInputPressReleaseEvent;
-    FOnRelease: TControlInputPressReleaseEvent;
-    FOnMotion: TControlInputMotionEvent;
-    FOnUpdate: TNotifyEvent;
     FKeyPressHandler: TLCLKeyPressHandler;
     FAutoFocus: Boolean;
 
@@ -229,7 +207,9 @@ type
     procedure KeyPressHandlerPress(Sender: TObject;
       const Event: TInputPressRelease);
 
+    function GetMousePosition: TVector2;
     procedure SetMousePosition(const Value: TVector2);
+    function MousePosToCastle(const X, Y: Single): TVector2;
     procedure SetAutoRedisplay(const Value: boolean);
     function GetDesignUrl: String;
     procedure SetDesignUrl(const Value: String);
@@ -306,6 +286,7 @@ type
     procedure AggressiveUpdate;
   private
     class function GetMainContainer: TCastleContainer;
+    procedure SystemSetMousePosition(const Value: TVector2);
   protected
     procedure DestroyHandle; override;
     procedure DoExit; override;
@@ -328,7 +309,7 @@ type
       { Central control.
 
         This is only important now if you use deprecated way of setting TCastleView,
-        using class properties/methods TUIState.Current, TUIState.Push.
+        using class properties/methods TCastleView.Current, TCastleView.Push.
         If instead you use new way of setting TCastleView,
         using container properties/methods TCastleContainer.Current, TCastleContainer.Push,
         then this value isn't useful.
@@ -351,24 +332,24 @@ type
     procedure Paint; override;
 
     { Keys currently pressed. }
-    function Pressed: TKeysPressed;
-    { Mouse buttons currently pressed.
-      See @link(TCastleContainer.MousePressed) for details. }
-    function MousePressed: TCastleMouseButtons;
+    function Pressed: TKeysPressed; deprecated 'use Container.Pressed';
+    function MousePressed: TCastleMouseButtons; deprecated 'use Container.MousePressed';
     procedure ReleaseAllKeysAndMouse;
 
     { Current mouse position.
-      See @link(TTouch.Position) for a documentation how this is expressed. }
-    property MousePosition: TVector2 read FMousePosition write SetMousePosition;
+      See @link(TTouch.Position) for a documentation how this is expressed.
+      @deprecated Get and set @link(TCastleContainer.MousePosition Container.MousePosition) instead. }
+    property MousePosition: TVector2 read GetMousePosition write SetMousePosition;
+      {$ifdef FPC} deprecated 'use Container.MousePosition' {$endif};
 
     { Application speed. }
-    function Fps: TFramesPerSecond;
+    function Fps: TFramesPerSecond; deprecated 'use Container.Fps';
 
     { Capture the current control contents to an image.
       @groupBegin }
-    procedure SaveScreen(const URL: string); overload;
-    function SaveScreen: TRGBImage; overload;
-    function SaveScreen(const SaveRect: TRectangle): TRGBImage; overload;
+    procedure SaveScreen(const Url: String); overload; deprecated 'use Container.SaveScreen';
+    function SaveScreen: TRGBImage; overload; deprecated 'use Container.SaveScreen';
+    function SaveScreen(const SaveRect: TRectangle): TRGBImage; overload; deprecated 'use Container.SaveScreen';
     { @groupEnd }
 
     { Color buffer where we draw, and from which it makes sense to grab pixels.
@@ -385,7 +366,7 @@ type
     function DesignedComponent(const ComponentName: String): TComponent;
       deprecated 'use Container.DesignedComponent';
 
-    { Be cafeful about comments in the published section.
+    { Be careful about comments in the published section.
       They are picked up and shown automatically by Lazarus Object Inspector,
       and it has it's own logic, much much dumber than what PasDoc sees.
       There seems no way to hide comment there.
@@ -417,6 +398,7 @@ type
         property AutoResizeViewport;
     }
   published
+    { }
     property Align;
     property Anchors;
     property BorderSpacing;
@@ -451,167 +433,21 @@ type
     { Automatically make this control focused (receiving key input)
       when user clicks on it.
 
-      If this is @true, consider showing it in some way, e.g. draw something special
-      in OnRender when this control is focused. You can check "Focused" property
+      If this is @true, consider showing it in some way to the user,
+      e.g. show some rectangle frame when this control is focused.
+      You can check "Focused" property
       ( https://lazarus-ccr.sourceforge.io/docs/lcl/controls/twincontrol.focused.html )
       or FormXxx.ActiveControl or register OnEnter / OnExit LCL events. }
     property AutoFocus: Boolean read FAutoFocus write FAutoFocus default false;
 
     { Access Castle Game Engine container properties and events,
-      not specific for Lazarus LCL. }
+      not specific to Lazarus LCL. }
     property Container: TCastleControlContainer read FContainer;
-
-    { Event called when the OpenGL context is created.
-
-      You can initialize things that require OpenGL context now.
-      Often you do not need to use this callback (engine components will
-      automatically create/release OpenGL resource when necessary).
-      You usually will also want to implement OnClose callback that
-      should release stuff you create here.
-
-      Often, instead of using this callback, it's cleaner to derive new classes
-      from TCastleUserInterface class or it's descendants,
-      and override their GLContextOpen / GLContextClose methods to react to
-      context being open/closed. Using such TCastleUserInterface classes
-      is usually easier, as you add/remove them from controls whenever
-      you want (e.g. you add them in ApplicationInitialize),
-      and underneath they create/release/create again the OpenGL resources
-      when necessary.
-
-      Note that we automatically initialize necessary Castle Game Engine resources
-      when context is created (@link(GLVersion), @link(GLFeatures) and more).
-
-      @deprecated Instead of this, use TCastleUserInterface and TCastleView virtual
-      method @link(TCastleUserInterface.GLContextOpen).
-      Or use ApplicationProperties.OnGLContextOpen to know when GL context is
-      created. }
-    property OnOpen: TNotifyEvent read FOnOpen write FOnOpen;
-      {$ifdef FPC}deprecated 'instead of this, use TCastleUserInterface and TCastleView virtual method GLContextOpen; or use ApplicationProperties.OnGLContextOpen';{$endif}
-
-    { Event called when the context is closed, right before the OpenGL context
-      is destroyed. This is your last chance to release OpenGL resources,
-      like textures, shaders, display lists etc. This is a counterpart
-      to OnOpen event.
-
-      @deprecated Instead of this, use TCastleUserInterface and TCastleView virtual
-      method @link(TCastleUserInterface.GLContextClose).
-      Or use ApplicationProperties.OnGLContextClose. }
-    property OnClose: TNotifyEvent read FOnClose write FOnClose;
-      {$ifdef FPC}deprecated 'instead of this, use TCastleUserInterface and TCastleView virtual method GLContextClose; or use ApplicationProperties.OnGLContextClose';{$endif}
-
-    { Event always called right before OnRender.
-      These two events, OnBeforeRender and OnRender,
-      will be always called sequentially as a pair.
-
-      The only difference between these two events is that
-      time spent in OnBeforeRender
-      is NOT counted as "frame time"
-      by Fps.OnlyRenderFps. This is useful when you have something that needs
-      to be done from time to time right before OnRender and that is very
-      time-consuming. It such cases it is not desirable to put such time-consuming
-      task inside OnRender because this would cause a sudden big change in
-      Fps.OnlyRenderFps value. So you can avoid this by putting
-      this in OnBeforeRender.
-
-      @deprecated Instead of this, use TCastleUserInterface and TCastleView virtual
-      method BeforeRender. Or just use virtual Render or OnRender event. }
-    property OnBeforeRender: TNotifyEvent read FOnBeforeRender write FOnBeforeRender;
-      {$ifdef FPC}deprecated 'instead of this, use TCastleUserInterface and TCastleView virtual method BeforeRender; or use virtual Render or OnRender event';{$endif}
-
-    { Render window contents here.
-
-      Called when window contents must be redrawn,
-      e.g. after creating a window, after resizing a window, after uncovering
-      the window etc. You can also request yourself a redraw of the window
-      by the Invalidate method, which will cause this event to be called
-      at nearest good time.
-
-      Note that calling Invalidate while in EventRender (OnRender) is not ignored.
-      It instructs to call EventRender (OnRender) again, as soon as possible.
-
-      When you have some controls on the @link(Controls) list,
-      the OnRender event is done @bold(last).
-      So here you can draw on top of the existing UI controls.
-      To draw something underneath the existing controls, create a new TCastleUserInterface
-      and override it's @link(TCastleUserInterface.Render) and insert it to the controls
-      using @code(Controls.InsertBack(MyBackgroundControl);).
-
-      @deprecated Instead of this, use TCastleUserInterface and TCastleView
-      virtual method Render and OnRender event. }
-    property OnRender: TNotifyEvent read FOnRender write FOnRender;
-      {$ifdef FPC}deprecated 'instead of this, use TCastleUserInterface and TCastleView virtual method Render or OnRender event';{$endif}
-
-    { Called when the control size (@code(Width), @code(Height)) changes.
-      It's also guaranteed to be called right after the OnOpen event.
-
-      @deprecated Instead of this, use TCastleUserInterface and TCastleView virtual
-      method Resize. }
-    property OnResize: TNotifyEvent read FOnResize write FOnResize;
-      {$ifdef FPC}deprecated 'instead of this, use TCastleUserInterface and TCastleView virtual method Resize';{$endif}
-
-    { Called when user presses a key or mouse button or moves mouse wheel.
-
-      @deprecated Instead of this, use TCastleUserInterface and TCastleView virtual
-      method Press and OnPress event. }
-    property OnPress: TControlInputPressReleaseEvent read FOnPress write FOnPress;
-      {$ifdef FPC}deprecated 'instead of this, use TCastleUserInterface and TCastleView virtual method Press or OnPress event';{$endif}
-
-    { Called when user releases a pressed key or mouse button.
-
-      It's called right after @code(Pressed[Key]) changed from true to false.
-
-      The TInputPressRelease structure, passed as a parameter to this event,
-      contains the exact information what was released.
-
-      Note that reporting characters for "key release" messages is not
-      perfect, as various key combinations (sometimes more than one?) may lead
-      to generating given character. We have some intelligent algorithm
-      for this, used to make Characters table and to detect
-      this C for OnRelease callback. The idea is that a character is released
-      when the key that initially caused the press of this character is
-      also released.
-
-      This solves in a determined way problems like
-      "what happens if I press Shift, then X,
-      then release Shift, then release X". (will "X" be correctly
-      released as pressed and then released? yes.
-      will small "x" be reported as released at the end? no, as it was never
-      pressed.)
-
-      @deprecated Instead of this, use TCastleUserInterface and TCastleView virtual
-      method Release and OnRelease event. }
-    property OnRelease: TControlInputPressReleaseEvent read FOnRelease write FOnRelease;
-      {$ifdef FPC}deprecated 'instead of this, use TCastleUserInterface and TCastleView virtual method Release or OnRelease event';{$endif}
-
-    { Mouse or a finger on touch device moved.
-
-      For a mouse, remember you always have the currently
-      pressed mouse buttons in MousePressed. When this is called,
-      the MousePosition property records the @italic(previous)
-      mouse position, while callback parameter NewMousePosition gives
-      the @italic(new) mouse position.
-
-      @deprecated Instead of this, use TCastleUserInterface and TCastleView virtual
-      method Motion and OnMotion event. }
-    property OnMotion: TControlInputMotionEvent read FOnMotion write FOnMotion;
-      {$ifdef FPC}deprecated 'instead of this, use TCastleUserInterface and TCastleView virtual method Motion or OnMotion event';{$endif}
-
-    { Continuously occuring event.
-      This event is called roughly as regularly as redraw,
-      and you should use this to update your game state.
-
-      Note that this is different than LCL "idle" event,
-      as it's guaranteed to be run continuously, even when your application
-      is clogged with events (like when using TCastleWalkNavigation.MouseLook).
-
-      @deprecated Instead of this, use TCastleUserInterface and TCastleView virtual
-      method Update and OnUpdate event. }
-    property OnUpdate: TNotifyEvent read FOnUpdate write FOnUpdate;
-      {$ifdef FPC}deprecated 'instead of this, use TCastleUserInterface and TCastleView virtual method Update or OnUpdate event';{$endif}
 
     { Should we automatically redraw the window all the time,
       without the need for an @link(Invalidate) call.
-      If @true (the default), OnRender will called constantly.
+      If @true (the default), render events will be called as often as reasonable
+      on this system, usually 60 times per second.
 
       If your game may have a still screen (nothing animates),
       then this approach is a little unoptimal, as we use CPU and GPU
@@ -619,8 +455,8 @@ type
       property to @false, and make sure that you call
       @link(Invalidate) always when you need to redraw the screen.
       Note that the engine components always call @link(Invalidate) when
-      necessary, so usually you should only call it yourself if you provide
-      a custom @link(OnRender) implementation. }
+      necessary, so you really only need to call @link(Invalidate) yourself
+      if you make custom rendering in some @link(TCastleUserInterface.Render). }
     property AutoRedisplay: boolean read FAutoRedisplay write SetAutoRedisplay
       default true;
 
@@ -629,7 +465,7 @@ type
 
       If you have more complicated control flow,
       we recommend to leave this property empty, and split your management
-      into a number of states (TCastleView) instead.
+      into a number of views (TCastleView) instead.
       In this case, load design using TCastleView.DesignUrl.
       This property makes it however easy to use .castle-user-interface
       in simple cases, when TCastleControl just shows one UI.
@@ -656,7 +492,7 @@ implementation
 
 uses Math, Contnrs, LazUTF8, Clipbrd,
   CastleControls, CastleGLUtils, CastleStringUtils, CastleLog, CastleRenderContext,
-  CastleURIUtils, CastleComponentSerialize, CastleInternalLclDesign;
+  CastleUriUtils, CastleComponentSerialize, CastleInternalLclDesign;
 
 // TODO: We never call Fps.InternalSleeping, so Fps.WasSleeping will be always false.
 // This may result in confusing Fps.ToString in case AutoRedisplay was false.
@@ -740,7 +576,7 @@ begin
           if CastleDesignMode then // looks at InternalCastleApplicationMode
           begin
             WritelnWarning('TCastleControl', 'Failed to load design "%s": %s', [
-              URIDisplay(DesignUrl),
+              UriDisplay(DesignUrl),
               ExceptMessage(E)
             ]);
             Exit;
@@ -782,7 +618,7 @@ begin
   if Required and (Result = nil) then
     raise EComponentNotFound.CreateFmt('Cannot find component named "%s" in design "%s"', [
       ComponentName,
-      URIDisplay(DesignUrl)
+      UriDisplay(DesignUrl)
     ]);
 end;
 
@@ -803,31 +639,21 @@ begin
   Result := Parent.GLInitialized;
 end;
 
-function TCastleControlContainer.Width: Integer;
+function TCastleControlContainer.PixelsWidth: Integer;
 begin
   Result := Parent.Width;
 end;
 
-function TCastleControlContainer.Height: Integer;
+function TCastleControlContainer.PixelsHeight: Integer;
 begin
   Result := Parent.Height;
-end;
-
-function TCastleControlContainer.GetMousePosition: TVector2;
-begin
-  Result := Parent.MousePosition;
-end;
-
-procedure TCastleControlContainer.SetMousePosition(const Value: TVector2);
-begin
-  Parent.MousePosition := Value;
 end;
 
 procedure TCastleControlContainer.SetInternalCursor(const Value: TMouseCursor);
 var
   NewCursor: TCursor;
 begin
-  NewCursor := CursorCastleToLCL(Value);
+  NewCursor := CursorFromCastle(Value);
 
   { Check explicitly "Cursor <> NewCursor", to avoid changing LCL property Cursor
     too often. The SetInternalCursor may be called very often (in each mouse move).
@@ -837,6 +663,11 @@ begin
     Parent.Cursor := NewCursor;
 end;
 
+procedure TCastleControlContainer.SystemSetMousePosition(const Value: TVector2);
+begin
+  Parent.SystemSetMousePosition(Value);
+end;
+
 function TCastleControlContainer.SaveScreen(const SaveRect: TRectangle): TRGBImage;
 begin
   if Parent.MakeCurrent then
@@ -844,81 +675,8 @@ begin
     EventBeforeRender;
     EventRender;
   end;
-  Result := SaveScreen_NoFlush(Rect, Parent.SaveScreenBuffer);
+  Result := SaveScreen_NoFlush(PixelsRect, Parent.SaveScreenBuffer);
 end;
-
-{$warnings off} // keep deprecated OnXxx wor
-
-procedure TCastleControlContainer.EventOpen(const OpenWindowsCount: Cardinal);
-begin
-  inherited;
-  if Assigned(Parent.OnOpen) then
-    Parent.OnOpen(Parent);
-end;
-
-procedure TCastleControlContainer.EventClose(const OpenWindowsCount: Cardinal);
-begin
-  if Assigned(Parent.OnClose) then
-    Parent.OnClose(Parent);
-  inherited;
-end;
-
-function TCastleControlContainer.EventPress(const Event: TInputPressRelease): boolean;
-begin
-  Result := inherited;
-  if (not Result) and Assigned(Parent.OnPress) then
-  begin
-    Parent.OnPress(Parent, Event);
-    Result := true;
-  end;
-end;
-
-function TCastleControlContainer.EventRelease(const Event: TInputPressRelease): boolean;
-begin
-  Result := inherited;
-  if (not Result) and Assigned(Parent.OnRelease) then
-  begin
-    Parent.OnRelease(Parent, Event);
-    Result := true;
-  end;
-end;
-
-procedure TCastleControlContainer.EventUpdate;
-begin
-  inherited;
-  if Assigned(Parent.OnUpdate) then
-    Parent.OnUpdate(Parent);
-end;
-
-procedure TCastleControlContainer.EventMotion(const Event: TInputMotion);
-begin
-  inherited;
-  if Assigned(Parent.OnMotion) then
-    Parent.OnMotion(Parent, Event);
-end;
-
-procedure TCastleControlContainer.EventBeforeRender;
-begin
-  inherited;
-  if Assigned(Parent.OnBeforeRender) then
-    Parent.OnBeforeRender(Parent);
-end;
-
-procedure TCastleControlContainer.EventRender;
-begin
-  inherited;
-  if Assigned(Parent.OnRender) then
-    Parent.OnRender(Parent);
-end;
-
-procedure TCastleControlContainer.EventResize;
-begin
-  inherited;
-  if Assigned(Parent.OnResize) then
-    Parent.OnResize(Parent);
-end;
-
-{$warnings on}
 
 { TCastleControl -------------------------------------------------- }
 
@@ -1018,13 +776,14 @@ var
   C: TCastleControl;
 begin
   { Call DoUpdate on all TCastleControl instances. }
+  ApplicationProperties._Update;
   for I := ControlsList.Count - 1 downto 0 do
   begin
     C := ControlsList[I] as TCastleControl;
     if C.GLInitialized then
       C.DoUpdate;
   end;
-  ApplicationProperties._Update;
+  ApplicationProperties._UpdateEnd;
   DoLimitFPS;
 end;
 
@@ -1171,10 +930,10 @@ end;
 procedure TCastleControl.ReleaseAllKeysAndMouse;
 
   { This does a subset of MouseUp implementation, only caring about updating CGE state now. }
-  procedure CastleMouseUp(const MyButton: TCastleMouseButton);
+  procedure CastleMouseUp(const CastleButton: TCastleMouseButton);
   begin
-    Container.MousePressed := Container.MousePressed - [MyButton];
-    Container.EventRelease(InputMouseButton(MousePosition, MyButton, 0));
+    Container.EventRelease(InputMouseButton(Container.MousePosition,
+      CastleButton, 0, ModifiersDown(Container.Pressed)));
   end;
 
   { This does a subset of KeyUp implementation, only caring about updating CGE state now. }
@@ -1186,10 +945,11 @@ procedure TCastleControl.ReleaseAllKeysAndMouse;
       This may call OnPress (which sets Pressed to true). }
     FKeyPressHandler.Flush;
 
-    Pressed.KeyUp(MyKey, MyKeyString);
+    Container.Pressed.KeyUp(MyKey, MyKeyString);
 
     if (MyKey <> keyNone) or (MyKeyString <> '') then
-      Container.EventRelease(InputKey(MousePosition, MyKey, MyKeyString));
+      Container.EventRelease(InputKey(Container.MousePosition,
+        MyKey, MyKeyString, ModifiersDown(Container.Pressed)));
   end;
 
 var
@@ -1198,11 +958,11 @@ var
 begin
   { This should also take care of releasing Characters. }
   for Key := Low(Key) to High(Key) do
-    if Pressed[Key] then
+    if Container.Pressed[Key] then
       CastleKeyUp(Key);
 
   for MouseButton := Low(MouseButton) to High(MouseButton) do
-    if MouseButton in MousePressed then
+    if MouseButton in Container.MousePressed then
       CastleMouseUp(MouseButton);
 
   Container.MouseLookIgnoreNextMotion;
@@ -1210,9 +970,9 @@ end;
 
 procedure TCastleControl.UpdateShiftState(const Shift: TShiftState);
 begin
-  Pressed.Keys[keyShift] := ssShift in Shift;
-  Pressed.Keys[keyAlt  ] := ssAlt   in Shift;
-  Pressed.Keys[keyCtrl ] := ssCtrl  in Shift;
+  Container.Pressed.Keys[keyShift] := ssShift in Shift;
+  Container.Pressed.Keys[keyAlt  ] := ssAlt   in Shift;
+  Container.Pressed.Keys[keyCtrl ] := ssCtrl  in Shift;
 end;
 
 procedure TCastleControl.KeyPressHandlerPress(Sender: TObject;
@@ -1224,17 +984,17 @@ begin
   Assert((Event.Key <> keyNone) or (Event.KeyString <> ''));
 
   NewEvent := Event;
-  NewEvent.Position := MousePosition;
+  NewEvent.Position := Container.MousePosition;
   NewEvent.KeyRepeated :=
     // Key already pressed
-    ((NewEvent.Key = keyNone) or Pressed.Keys[NewEvent.Key]) and
+    ((NewEvent.Key = keyNone) or Container.Pressed.Keys[NewEvent.Key]) and
     // KeyString already pressed
-    ((NewEvent.KeyString = '') or Pressed.Strings[NewEvent.KeyString]);
+    ((NewEvent.KeyString = '') or Container.Pressed.Strings[NewEvent.KeyString]);
 
   { Note that Event has invalid position (TLCLKeyPressHandler always sends
     zero). So all the following code has to use NewEvent instead. }
 
-  Pressed.KeyDown(NewEvent.Key, NewEvent.KeyString);
+  Container.Pressed.KeyDown(NewEvent.Key, NewEvent.KeyString);
 
   Container.EventPress(NewEvent);
 
@@ -1282,9 +1042,9 @@ begin
     This may call OnPress (which sets Pressed to true). }
   FKeyPressHandler.BeforeKeyUp(Key, Shift);
 
-  MyKey := KeyLCLToCastle(Key, Shift);
+  MyKey := KeyToCastle(Key, Shift);
   if MyKey <> keyNone then
-    Pressed.KeyUp(MyKey, MyKeyString);
+    Container.Pressed.KeyUp(MyKey, MyKeyString);
 
   UpdateShiftState(Shift); { do this after Pressed update above, and before EventRelease }
 
@@ -1299,48 +1059,53 @@ begin
   inherited KeyUp(Key, Shift); { LCL OnKeyUp before our callbacks }
 
   if (MyKey <> keyNone) or (MyKeyString <> '') then
-    if Container.EventRelease(InputKey(MousePosition, MyKey, MyKeyString)) then
+    if Container.EventRelease(InputKey(Container.MousePosition,
+      MyKey, MyKeyString, ModifiersDown(Container.Pressed))) then
       Key := 0; // handled
+end;
+
+function TCastleControl.MousePosToCastle(const X, Y: Single): TVector2;
+begin
+  Result := Vector2(X, Height - 1 - Y);
 end;
 
 procedure TCastleControl.MouseDown(Button: Controls.TMouseButton;
   Shift: TShiftState; X, Y: Integer);
 var
-  MyButton: TCastleMouseButton;
+  CastleButton: TCastleMouseButton;
 begin
   if AutoFocus and not Focused then
     SetFocus;
 
-  FMousePosition := Vector2(X, Height - 1 - Y);
-
-  if MouseButtonLCLToCastle(Button, MyButton) then
-    Container.MousePressed := Container.MousePressed + [MyButton];
-
-  UpdateShiftState(Shift); { do this after Pressed update above, and before *Event }
+  { This updates Container.Pressed.
+    Do this before using ModifiersDown(Container.Pressed) below. }
+  UpdateShiftState(Shift);
 
   inherited MouseDown(Button, Shift, X, Y); { LCL OnMouseDown before our callbacks }
 
-  if MouseButtonLCLToCastle(Button, MyButton) then
-    Container.EventPress(InputMouseButton(MousePosition, MyButton, 0,
-      ModifiersDown(Container.Pressed)));
+  if MouseButtonToCastle(Button, CastleButton) then
+  begin
+    Container.EventPress(InputMouseButton(MousePosToCastle(X, Y),
+      CastleButton, 0, ModifiersDown(Container.Pressed)));
+  end;
 end;
 
 procedure TCastleControl.MouseUp(Button: Controls.TMouseButton;
   Shift: TShiftState; X, Y: Integer);
 var
-  MyButton: TCastleMouseButton;
+  CastleButton: TCastleMouseButton;
 begin
-  FMousePosition := Vector2(X, Height - 1 - Y);
-
-  if MouseButtonLCLToCastle(Button, MyButton) then
-    Container.MousePressed := Container.MousePressed - [MyButton];
-
+  { This updates Container.Pressed.
+    Do this before using ModifiersDown(Container.Pressed) below. }
   UpdateShiftState(Shift); { do this after Pressed update above, and before *Event }
 
   inherited MouseUp(Button, Shift, X, Y); { LCL OnMouseUp before our callbacks }
 
-  if MouseButtonLCLToCastle(Button, MyButton) then
-    Container.EventRelease(InputMouseButton(MousePosition, MyButton, 0));
+  if MouseButtonToCastle(Button, CastleButton) then
+  begin
+    Container.EventRelease(InputMouseButton(MousePosToCastle(X, Y),
+      CastleButton, 0, ModifiersDown(Container.Pressed)));
+  end;
 end;
 
 procedure TCastleControl.AggressiveUpdate;
@@ -1353,7 +1118,7 @@ begin
     DesiredFPS := MaxDesiredFPS
   else
     DesiredFPS := Min(MaxDesiredFPS, ApplicationProperties.LimitFPS);
-  if TimerSeconds(Timer, Fps.UpdateStartTime) > 1 / DesiredFPS then
+  if TimerSeconds(Timer, Container.Fps.UpdateStartTime) > 1 / DesiredFPS then
   begin
     DoUpdate;
     if Invalidated then Paint;
@@ -1368,13 +1133,9 @@ begin
 
   if GLInitialized then
   begin
-    Container.EventMotion(InputMotion(MousePosition,
-      Vector2(NewX, Height - 1 - NewY), MousePressed, 0));
-
-    // change FMousePosition *after* EventMotion, callbacks may depend on it
-    FMousePosition := Vector2(NewX, Height - 1 - NewY);
-
     UpdateShiftState(Shift);
+    Container.EventMotion(InputMotion(Container.MousePosition,
+      MousePosToCastle(NewX, NewY), Container.MousePressed, 0));
     AggressiveUpdate;
   end;
 
@@ -1383,9 +1144,27 @@ end;
 
 function TCastleControl.DoMouseWheel(Shift: TShiftState; WheelDelta: Integer;
   MousePos: TPoint): Boolean;
+var
+  CastleNewPosition: TVector2;
+  Scroll: Single;
+  Vertical: boolean;
 begin
-  Result := Container.EventPress(InputMouseWheel(MousePosition, WheelDelta/120, true,
-    ModifiersDown(Container.Pressed)));
+  { TODO: use MousePos? like this:
+      CastleNewPosition := MousePosToCastle(MousePos.X, MousePos.Y);
+    But check it is in correct (local) coordinate system,
+    as the parameter looks inconsistent with LCL MouseDown/Up/Move
+    (which pass 2x Integer), so maybe it's in different coord space. }
+  CastleNewPosition := Container.MousePosition;
+
+  { This updates Container.Pressed.
+    Do this before using ModifiersDown(Container.Pressed) below. }
+  UpdateShiftState(Shift);
+
+  Scroll := WheelDelta/120;
+  Vertical := true; // only vertical scrolling is reported here
+
+  Result := Container.EventPress(InputMouseWheel(CastleNewPosition,
+    Scroll, Vertical, ModifiersDown(Container.Pressed)));
   AggressiveUpdate;
   if Result then Exit;
 
@@ -1428,10 +1207,10 @@ begin
   { Note that we don't call here inherited, instead doing everything ourselves. }
   if MakeCurrent then
   begin
-    { clear Invalidated before rendering, so that calling Invalidate in OnRender works }
+    { clear Invalidated before rendering, so that calling Invalidate in TCastleUserInterface.Render works }
     Invalidated := false;
     Container.EventBeforeRender;
-    Fps.InternalRenderBegin;
+    Container.Fps.InternalRenderBegin;
     try
       Container.EventRender;
       DoOnPaint; // call OnPaint, like it would be a top-most TCastleUserInterface
@@ -1441,7 +1220,7 @@ begin
       // it seems calling Invalidate from Paint doesn't work, so we'll
       // have to do it elsewhere
       // if AutoRedisplay then Invalidate;
-    finally Fps.InternalRenderEnd end;
+    finally Container.Fps.InternalRenderEnd end;
   end;
 end;
 
@@ -1452,9 +1231,9 @@ begin
     Result := cbFront;
 end;
 
-procedure TCastleControl.SaveScreen(const URL: string);
+procedure TCastleControl.SaveScreen(const Url: String);
 begin
-  Container.SaveScreen(URL);
+  Container.SaveScreen(Url);
 end;
 
 function TCastleControl.SaveScreen: TRGBImage;
@@ -1467,7 +1246,18 @@ begin
   Result := Container.SaveScreen(SaveRect);
 end;
 
+function TCastleControl.GetMousePosition: TVector2;
+begin
+  Result := Container.MousePosition;
+end;
+
 procedure TCastleControl.SetMousePosition(const Value: TVector2);
+begin
+  // Note that this will call SystemSetMousePosition, if necessary
+  Container.MousePosition := Value;
+end;
+
+procedure TCastleControl.SystemSetMousePosition(const Value: TVector2);
 var
   NewCursorPos: TPoint;
 begin
@@ -1497,7 +1287,7 @@ end;
 
 function TCastleControl.Rect: TRectangle;
 begin
-  Result := Container.Rect;
+  Result := Container.PixelsRect;
 end;
 
 function TCastleControl.DesignedComponent(const ComponentName: String
@@ -1536,16 +1326,16 @@ end;
 type
   TLCLClipboard = class(TCastleClipboard)
   protected
-    function GetAsText: string; override;
-    procedure SetAsText(const Value: string); override;
+    function GetAsText: String; override;
+    procedure SetAsText(const Value: String); override;
   end;
 
-function TLCLClipboard.GetAsText: string;
+function TLCLClipboard.GetAsText: String;
 begin
   Result := UTF8ToSys(Clipbrd.Clipboard.AsText);
 end;
 
-procedure TLCLClipboard.SetAsText(const Value: string);
+procedure TLCLClipboard.SetAsText(const Value: String);
 begin
   Clipbrd.Clipboard.AsText := SysToUTF8(Value);
 end;

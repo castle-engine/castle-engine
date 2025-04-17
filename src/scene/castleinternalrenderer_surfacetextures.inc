@@ -40,7 +40,7 @@ private
 
   { Does this shape possibly use some texture that requires Phong shading.
     Decide before actually making any OpenGL operations. }
-  class function ShapeMaybeUsesSurfaceTexture(const Shape: TX3DRendererShape): boolean;
+  class function ShapeTextureForcesPhongShading(const Shape: TX3DRendererShape): boolean;
 
 {$endif read_interface}
 
@@ -51,7 +51,7 @@ function TRenderer.GLTexture2D(Node: TAbstractTextureNode;
 var
   TextureRes: TTextureResource;
 begin
-  Result := 0;
+  Result := GLObjectNone;
   if Node <> nil then
   begin
     TextureRes := TTextureResources.Get(Node);
@@ -70,7 +70,7 @@ begin
   Result := GLTexture2D(Node, IgnoreTextureHasAlpha);
 end;
 
-class function TRenderer.ShapeMaybeUsesSurfaceTexture(const Shape: TX3DRendererShape): boolean;
+class function TRenderer.ShapeTextureForcesPhongShading(const Shape: TX3DRendererShape): boolean;
 var
   SurfaceShader: TCommonSurfaceShaderNode;
   MatOne: TAbstractOneSidedMaterialNode;
@@ -145,7 +145,7 @@ procedure TRenderer.BumpMappingEnable(const Shape: TX3DRendererShape;
        (ABoundTextureUnits < GLFeatures.MaxTextureUnits) then
     begin
       GLNormalTexture := GLTexture2D(NormalTexture, HasAlpha);
-      if GLNormalTexture <> 0 then
+      if GLNormalTexture <> GLObjectNone then
       begin
         // fix NormalTextureCoordinatesId if needed
         NormalTextureCoordinatesId := Max(0, NormalTextureCoordinatesId);
@@ -235,7 +235,7 @@ procedure TRenderer.SurfaceTexturesEnable(const Shape: TX3DRendererShape;
        (ABoundTextureUnits < GLFeatures.MaxTextureUnits) then
     begin
       GLTextureId := GLTexture2D(Texture);
-      if GLTextureId <> 0 then
+      if GLTextureId <> GLObjectNone then
       begin
         ActiveTexture(ABoundTextureUnits);
         glBindTexture(GL_TEXTURE_2D, GLTextureId);

@@ -20,8 +20,8 @@ unit TestCastleQuaternions;
 interface
 
 uses
-  Classes, SysUtils, {$ifndef CASTLE_TESTER}FpcUnit, TestUtils, TestRegistry,
-  CastleTestCase{$else} CastleTester{$endif}, CastleVectors, CastleQuaternions;
+  Classes, SysUtils,
+  CastleTester, CastleVectors, CastleQuaternions;
 
 type
   TTestCastleQuaternions = class(TCastleTestCase)

@@ -1,0 +1,64 @@
+#!/bin/bash
+set -eux
+
+# ----------------------------------------------------------------------------
+# Helper script used by examples_edit_readmes.
+# Runs in particular project.
+# ----------------------------------------------------------------------------
+
+if ls *.lfm > /dev/null 2>&1; then
+  echo `pwd`": LCL project"
+  exit 0
+fi
+
+if ! ls README.md > /dev/null 2>&1; then
+  echo `pwd`": WARNING: No README.md"
+  exit 0
+fi
+
+PROJECT_PASCAL_NAME="`castle-engine output pascal-name`"
+
+# Note: Escape regexp special characters like [] below.
+# These are used with both grep and sed, we have to escape them.
+# (While grep has --fixed-strings, sed has no such option.)
+# See https://stackoverflow.com/questions/399078/what-special-characters-must-be-escaped-in-regular-expressions
+
+# EXISTING_TEXT='[CGE Lazarus packages](https://castle-engine.io/documentation.php)'
+# NEW_TEXT='[CGE Lazarus packages](https://castle-engine.io/lazarus)'
+
+EXISTING_TEXT="- Or use [Lazarus](https://www.lazarus-ide.org/). Open in Lazarus \`${PROJECT_PASCAL_NAME}_standalone.lpi\` file and compile / run from Lazarus. Make sure to first register [CGE Lazarus packages](https://castle-engine.io/lazarus)."
+NEW_TEXT="- Or use [Delphi](https://www.embarcadero.com/products/Delphi). Open in Delphi \`${PROJECT_PASCAL_NAME}_standalone.dproj\` file and compile / run from Delphi. See [CGE and Delphi](https://castle-engine.io/delphi) documentation for details."
+
+EXISTING_TEXT='[CGE editor](https://castle-engine.io/manual_editor.php). Just use menu item _"Compile"_.'
+NEW_TEXT='[CGE editor](https://castle-engine.io/editor). Just use menu items _"Compile"_ or _"Compile And Run"_.'
+
+# Escape special regexp characters, like [], in input parameter $1.
+# This replaces things for sed regexps.
+function escape_regexp ()
+{
+  # echo -- "$1"
+  echo "$1" |
+    sed --expression='s|\[|\\[|' \
+        --expression='s|\]|\\]|'
+}
+
+if grep --fixed-strings -- "${EXISTING_TEXT}" README.md; then
+  echo `pwd`": README.md contains expected text"
+  if grep --fixed-strings -- "${NEW_TEXT}" README.md; then
+    echo `pwd`": README.md already contains new text"
+    exit 0
+  fi
+
+  # Use this to append something to README.md:
+  #
+  # echo '' >> README.md
+  # echo "${NEW_TEXT}" >> README.md
+
+  # Use this to replace something in README.md:
+  #
+  NEW_TEXT_ESCAPED=$(escape_regexp "${NEW_TEXT}")
+  EXISTING_TEXT_ESCAPED=$(escape_regexp "${EXISTING_TEXT}")
+  sed --in-place --expression="s|${EXISTING_TEXT_ESCAPED}|${NEW_TEXT_ESCAPED}|" README.md
+else
+  echo `pwd`": WARNING: README.md does not contain expected text"
+fi

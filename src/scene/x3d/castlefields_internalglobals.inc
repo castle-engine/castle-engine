@@ -46,16 +46,16 @@ begin
   for i := 0 to High(Vector) do Vector[i] := ParseFloat(Lexer);
 end;
 
-function ParseLongWord(Lexer: TX3DLexer): LongWord;
+function ParseUInt32(Lexer: TX3DLexer): UInt32;
 begin
   Lexer.CheckTokenIs(vtInteger);
 
   if (Lexer.TokenInteger < 0) or
-     (Lexer.TokenInteger > High(LongWord)) then
+     (Lexer.TokenInteger > High(UInt32)) then
   begin
     WritelnWarning('X3D', 'Expected unsigned 32-bit integer, but got %d', [Lexer.TokenInteger]);
-    { Forcefully convert to LongWord, without range check errors. }
-    Result := LongWord(Lexer.TokenInteger and High(LongWord));
+    { Forcefully convert to UInt32, without range check errors. }
+    Result := UInt32(Lexer.TokenInteger and High(UInt32));
   end else
     Result := Lexer.TokenInteger;
 

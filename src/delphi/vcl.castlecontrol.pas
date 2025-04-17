@@ -22,7 +22,7 @@ interface
 
 uses SysUtils, Classes, Vcl.Controls, Vcl.ExtCtrls, Types,  WinApi.Messages,
   CastleGLVersion, CastleGLUtils,
-  CastleInternalContextBase, CastleInternalContextWgl, CastleInternalContainer,
+  CastleInternalContextBase, CastleInternalContextWgl, CastleControlContainer,
   CastleVectors, CastleKeysMouse;
 
 type
@@ -30,31 +30,29 @@ type
   TCastleControl = class(TCustomControl)
   strict private
     type
-      { Non-abstract implementation of TCastleContainer that cooperates with
-        TCastleControl. }
-      TContainer = class(TCastleContainerEasy)
+      { Non-abstract implementation of TCastleControlContainer that cooperates with
+        TCastleControl for VCL. }
+      TContainer = class(TCastleControlContainer)
       private
         Parent: TCastleControl;
         class var
           UpdatingTimer: TTimer;
         class procedure UpdatingTimerEvent(Sender: TObject);
       protected
-        function GetMousePosition: TVector2; override;
-        procedure SetMousePosition(const Value: TVector2); override;
+        procedure SystemSetMousePosition(const Value: TVector2); override;
         procedure AdjustContext(const PlatformContext: TGLContext); override;
         class procedure UpdatingEnable; override;
         class procedure UpdatingDisable; override;
       public
         constructor Create(AParent: TCastleControl); reintroduce;
         procedure Invalidate; override;
-        function Width: Integer; override;
-        function Height: Integer; override;
+        function PixelsWidth: Integer; override;
+        function PixelsHeight: Integer; override;
         procedure SetInternalCursor(const Value: TMouseCursor); override;
       end;
 
     var
       FContainer: TContainer;
-      FMousePosition: TVector2;
 
     { Call whenever you have new knowledge about new shift state.
 
@@ -67,6 +65,7 @@ type
       To counteract this, call this method when Shift state is known,
       to update Pressed when needed. }
     procedure UpdateShiftState(const Shift: TShiftState);
+    function GetContainer: TCastleControlContainer;
   private
     procedure WMEraseBkgnd(var Message: TWMEraseBkgnd); message WM_ERASEBKGND;
   protected
@@ -87,6 +86,7 @@ type
     procedure KeyDown(var Key: Word; Shift: TShiftState); override;
     procedure KeyPress(var Key: Char); override;
     procedure KeyUp(var Key: Word; Shift: TShiftState); override;
+    procedure Resize; override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -97,8 +97,8 @@ type
     procedure PreviewFormKeyUp(var Key: Word; Shift: TShiftState);
   published
     { Access Castle Game Engine container properties and events,
-      not specific for FMX. }
-    property Container: TContainer read FContainer;
+      not specific to VCL. }
+    property Container: TCastleControlContainer read GetContainer;
 
     property Align;
     property Anchors;
@@ -147,16 +147,6 @@ begin
 {$endif}
 end;
 
-function TCastleControl.TContainer.GetMousePosition: TVector2;
-begin
-  Result := Parent.FMousePosition;
-end;
-
-procedure TCastleControl.TContainer.SetMousePosition(const Value: TVector2);
-begin
-  // TODO
-end;
-
 class procedure TCastleControl.TContainer.UpdatingEnable;
 begin
   inherited;
@@ -182,7 +172,7 @@ begin
   DoUpdateEverything;
 end;
 
-function TCastleControl.TContainer.Width: Integer;
+function TCastleControl.TContainer.PixelsWidth: Integer;
 begin
   Result := Parent.Width;
 end;
@@ -192,7 +182,7 @@ begin
   Message.Result := 1;
 end;
 
-function TCastleControl.TContainer.Height: Integer;
+function TCastleControl.TContainer.PixelsHeight: Integer;
 begin
   Result := Parent.Height;
 end;
@@ -207,6 +197,11 @@ begin
   // TODO
 end;
 
+procedure TCastleControl.TContainer.SystemSetMousePosition(const Value: TVector2);
+begin
+  // TODO
+end;
+
 { TCastleControl ---------------------------------------------------- }
 
 constructor TCastleControl.Create(AOwner: TComponent);
@@ -216,12 +211,20 @@ begin
   FContainer.SetSubComponent(true);
   FContainer.Name := 'Container';
 
-  // commented out, as this doesn't help us get focus
-  // TabStop := true;
+  // needed to receive keys, like AWSD, in TCastleControl
+  TabStop := true;
 end;
 
 destructor TCastleControl.Destroy;
 begin
+  { Looks like VCL doesn't (always?) call DestroyHandle.
+    While FContainer would be destroyed anyway,
+    but we need TCastleControlContainer.DestroyContext call,
+    to e.g. make ApplicationProperties.OnGLContextClose call,
+    that frees various CGE things when last GL context is released. }
+
+  if FContainer.GLInitialized then
+    FContainer.FinalizeContext;
   inherited;
 end;
 
@@ -230,20 +233,25 @@ begin
   inherited;
   { Handle is only available now, in CreateHandle.
     So only now call FContainer.CreateContext that does FContainer.AdjustContext. }
-  FContainer.CreateContext;
+  FContainer.InitializeContext;
 end;
 
 procedure TCastleControl.DestroyHandle;
 begin
-  FContainer.DestroyContext;
+  FContainer.FinalizeContext;
   inherited;
 end;
 
 function TCastleControl.DoMouseWheel(Shift: TShiftState; WheelDelta: Integer;
   MousePos: TPoint): Boolean;
+var
+  Scroll: Single;
+  Vertical: Boolean;
 begin
+  Scroll := WheelDelta / 120;
+  Vertical := true; // only vertical scrolling is reported here
   Result := Container.EventPress(InputMouseWheel(
-    FMousePosition, WheelDelta / 120, true, ModifiersDown(Container.Pressed)));
+    Container.MousePosition, Scroll, Vertical, ModifiersDown(Container.Pressed)));
   if Result then Exit;
 
   Result := inherited;
@@ -252,54 +260,55 @@ end;
 procedure TCastleControl.MouseDown(Button: TMouseButton; Shift: TShiftState; X,
   Y: Integer);
 var
-  MyButton: TCastleMouseButton;
+  CastleButton: TCastleMouseButton;
 begin
-  //if not Focused then // TODO: doesn't seem to help with focus
-  //  SetFocus;
+  { Focus on click, to receive e.g. AWSD keys in TCastleControl.
+    Testcase: examples/delphi/vcl with TCastleWalkNavigation in 3D view,
+    should handle AWSD without the need to do anything else. }
+  if not Focused then
+    SetFocus;
 
   inherited; { VCL OnMouseDown before our callbacks }
 
-  FMousePosition := Vector2(X, Height - 1 - Y);
+  { This updates Container.Pressed.
+    Do this before using ModifiersDown(Container.Pressed) below. }
+  UpdateShiftState(Shift);
 
-  if MouseButtonToCastle(Button, MyButton) then
-    Container.MousePressed := Container.MousePressed + [MyButton];
+  if MouseButtonToCastle(Button, CastleButton) then
+  begin
+    Container.EventPress(InputMouseButton(Vector2(X, Height - 1 - Y),
+      CastleButton, 0, ModifiersDown(Container.Pressed)));
+  end;
+end;
 
-  UpdateShiftState(Shift); { do this after Pressed update above, and before *Event }
+procedure TCastleControl.MouseUp(Button: TMouseButton; Shift: TShiftState; X,
+  Y: Integer);
+var
+  CastleButton: TCastleMouseButton;
+begin
+  inherited; { VCL OnMouseUp before our callbacks }
 
-  if MouseButtonToCastle(Button, MyButton) then
-    Container.EventPress(InputMouseButton(FMousePosition, MyButton, 0,
-      ModifiersDown(Container.Pressed)));
+  { This updates Container.Pressed.
+    Do this before using ModifiersDown(Container.Pressed) below. }
+  UpdateShiftState(Shift);
+
+  if MouseButtonToCastle(Button, CastleButton) then
+  begin
+    Container.EventRelease(InputMouseButton(Vector2(X, Height - 1 - Y),
+      CastleButton, 0, ModifiersDown(Container.Pressed)));
+  end;
 end;
 
 procedure TCastleControl.MouseMove(Shift: TShiftState; NewX, NewY: Integer);
 begin
   inherited;
 
-  Container.EventMotion(InputMotion(FMousePosition,
-    Vector2(NewX, Height - 1 - NewY), Container.MousePressed, 0));
-
-  // change FMousePosition *after* EventMotion, callbacks may depend on it
-  FMousePosition := Vector2(NewX, Height - 1 - NewY);
-
+  { This updates Container.Pressed.
+    Do this before using ModifiersDown(Container.Pressed) below. }
   UpdateShiftState(Shift);
-end;
 
-procedure TCastleControl.MouseUp(Button: TMouseButton; Shift: TShiftState; X,
-  Y: Integer);
-var
-  MyButton: TCastleMouseButton;
-begin
-  inherited; { VCL OnMouseUp before our callbacks }
-
-  FMousePosition := Vector2(X, Height - 1 - Y);
-
-  if MouseButtonToCastle(Button, MyButton) then
-    Container.MousePressed := Container.MousePressed - [MyButton];
-
-  UpdateShiftState(Shift); { do this after Pressed update above, and before *Event }
-
-  if MouseButtonToCastle(Button, MyButton) then
-    Container.EventRelease(InputMouseButton(FMousePosition, MyButton, 0));
+  Container.EventMotion(InputMotion(Container.MousePosition,
+    Vector2(NewX, Height - 1 - NewY), Container.MousePressed, 0));
 end;
 
 procedure TCastleControl.Paint;
@@ -340,6 +349,16 @@ begin
   end;
 end;
 
+procedure TCastleControl.Resize;
+begin
+  inherited;
+  if Container.GLInitialized then
+  begin
+    Container.MakeContextCurrent;
+    Container.EventResize;
+  end;
+end;
+
 procedure TCastleControl.UpdateShiftState(const Shift: TShiftState);
 begin
   Container.Pressed.Keys[keyShift] := ssShift in Shift;
@@ -356,9 +375,12 @@ begin
   inherited;
   UpdateShiftState(Shift);
 
-  if KeyToCastle(Key, Shift, CastleKey, CastleKeyString) then
+  CastleKey := KeyToCastle(Key, Shift);
+  if CastleKey <> keyNone then
   begin
-    CastleEvent := InputKey(FMousePosition, CastleKey, CastleKeyString,
+    CastleKeyString := SimpleKeyToString(CastleKey, Shift);
+
+    CastleEvent := InputKey(Container.MousePosition, CastleKey, CastleKeyString,
       ModifiersDown(Container.Pressed));
 
     // check this before updating Container.Pressed
@@ -383,9 +405,12 @@ begin
   inherited;
   UpdateShiftState(Shift);
 
-  if KeyToCastle(Key, Shift, CastleKey, CastleKeyString) then
+  CastleKey := KeyToCastle(Key, Shift);
+  if CastleKey <> keyNone then
   begin
-    CastleEvent := InputKey(FMousePosition, CastleKey, CastleKeyString,
+    CastleKeyString := SimpleKeyToString(CastleKey, Shift);
+
+    CastleEvent := InputKey(Container.MousePosition, CastleKey, CastleKeyString,
       ModifiersDown(Container.Pressed));
 
     Container.Pressed.KeyUp(CastleEvent.Key, CastleEvent.KeyString);
@@ -398,6 +423,11 @@ procedure TCastleControl.KeyPress(var Key: Char);
 begin
   // TODO ignored now
   inherited;
+end;
+
+function TCastleControl.GetContainer: TCastleControlContainer;
+begin
+  Result := FContainer;
 end;
 
 end.

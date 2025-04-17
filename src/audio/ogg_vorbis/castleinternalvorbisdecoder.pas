@@ -147,11 +147,11 @@ type
     // Is VorbisFile valid, e.g. we can call ov_clear on it.
     VorbisFileValid: Boolean;
     procedure OpenVorbisFile(out DataFormat: TSoundDataFormat;
-      out Frequency: LongWord; out Duration: TFloatTime);
+      out Frequency: Cardinal; out Duration: TFloatTime);
     procedure CloseVorbisFile;
   public
     constructor Create(const ASourceStream: TStream;
-      out DataFormat: TSoundDataFormat; out Frequency: LongWord;
+      out DataFormat: TSoundDataFormat; out Frequency: Cardinal;
       out Duration: TFloatTime);
     destructor Destroy; override;
     function Read(var Buffer; BufferSize: Longint): Longint; override;
@@ -161,13 +161,13 @@ type
     function Seek(const Offset: Int64; Origin: TSeekOrigin): Int64; override;
 
     { Use this function to register OggVorbis handling with RegisterSoundFormat. }
-    class function ReadStream(const Url: string; const Stream: TStream;
-      out DataFormat: TSoundDataFormat; out Frequency: LongWord;
+    class function ReadStream(const Url: String; const Stream: TStream;
+      out DataFormat: TSoundDataFormat; out Frequency: Cardinal;
       out Duration: TFloatTime): TStream;
   end;
 
 constructor TOggVorbisStream.Create(const ASourceStream: TStream;
-  out DataFormat: TSoundDataFormat; out Frequency: LongWord;
+  out DataFormat: TSoundDataFormat; out Frequency: Cardinal;
   out Duration: TFloatTime);
 begin
   inherited Create(ASourceStream);
@@ -181,7 +181,7 @@ begin
 end;
 
 procedure TOggVorbisStream.OpenVorbisFile(
-  out DataFormat: TSoundDataFormat; out Frequency: LongWord;
+  out DataFormat: TSoundDataFormat; out Frequency: Cardinal;
   out Duration: TFloatTime);
 var
   DurationRaw: {$ifdef CASTLE_TREMOLO} Int64 {$else} Double {$endif};
@@ -299,7 +299,7 @@ end;
 function TOggVorbisStream.Seek(const Offset: Int64; Origin: TSeekOrigin): Int64;
 var
   IgnoreDataFormat: TSoundDataFormat;
-  IgnoreFrequency: LongWord;
+  IgnoreFrequency: Cardinal;
   IgnoreDuration: TFloatTime;
 begin
   // Seek is also used to track current position, but we don't track it
@@ -320,8 +320,8 @@ begin
   raise EStreamNotImplementedSeek.Create('TOggVorbisStream.Seek not supported for these arguments (only seeking to current or beginning position are allowed)');
 end;
 
-class function TOggVorbisStream.ReadStream(const Url: string; const Stream: TStream;
-  out DataFormat: TSoundDataFormat; out Frequency: LongWord;
+class function TOggVorbisStream.ReadStream(const Url: String; const Stream: TStream;
+  out DataFormat: TSoundDataFormat; out Frequency: Cardinal;
   out Duration: TFloatTime): TStream;
 begin
   Result := TOggVorbisStream.Create(Stream, DataFormat, Frequency, Duration);

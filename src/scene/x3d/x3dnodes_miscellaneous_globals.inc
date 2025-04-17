@@ -143,29 +143,23 @@ const
   ftExp = ftExponential deprecated 'use ftExponential';
 
 var
-  { Triangulation settings.
+  { How much to subdivide various objects (like sphere, cylinder) into triangles.
 
     "Slices" divide the circumference of the circle, like the slices of a pizza.
-    "Stacks" divide the height of the object, like the stacks of a cake or tower.
-    These are used for quadrics - cylinder, cone, sphere and disk.
+    Must be always >= @link(MinTriangulationSlices).
 
-    "Divisions" divide the cube side.
-    This is beneficial for better Gouraud shading.
-
-    You can change these variables only @italic(before using anything)
-    from this module. If you want to change them inside VRML/X3D
-    file (for example, to affect only part of the scene), use the
-    Triangulation node, see
-    https://castle-engine.io/x3d_implementation_geometry3d_extensions.php#section_triangulation
-
-    These variables @italic(must) always honour
-    @link(MinTriangulationSlices),
-    @link(MinTriangulationStacks) limits.
-
-    @groupBegin }
+    See @url(https://castle-engine.io/x3d_implementation_geometry3d_extensions.php#section_triangulation
+    more about triangulation). }
   DefaultTriangulationSlices: Cardinal = 30;
+
+  { How much to subdivide various objects (like sphere, cylinder) into triangles.
+
+    "Stacks" divide the height of the object, like the stacks of a cake or tower.
+    Must be always >= @link(MinTriangulationStacks).
+
+    See @url(https://castle-engine.io/x3d_implementation_geometry3d_extensions.php#section_triangulation
+    more about triangulation). }
   DefaultTriangulationStacks: Cardinal = 20;
-  { @groupEnd }
 
 const
   { Standard prefix name for a time sensor to be recognized as a "named animation"
@@ -244,6 +238,13 @@ var
   *)
   RebaseRelativeUrlsInPrototypes: boolean = false;
 
+  { Default fonts used by Text and FontStyle nodes. }
+  DefaultFontData: array [
+    TX3DFontFamily,
+    { bold } Boolean,
+    { italic } Boolean
+  ] of TTextureFontData;
+
 { Free all unused X3D nodes on the list, then free and @nil the list itself.
   Ignores @nil items within the list. }
 procedure X3DNodeList_FreeUnusedAndNil(var List: TX3DNodeList);
@@ -269,7 +270,8 @@ function KeyRange(Key: TSingleList;
   const Fraction: Single; out T: Single): Integer;
 
 { Free TX3DNode if it is unused (see TX3DNode.FreeIfUnused),
-  setting reference to @nil. Analogous to standard FreeAndNil,
+  setting reference to @nil (whether it was unused or not).
+  This is analogous to standard Pascal FreeAndNil,
   but checks if node is used first. }
 procedure FreeIfUnusedAndNil(var Obj);
 
@@ -340,7 +342,7 @@ begin
         - X3D specification
           http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/utils.html#SequencingEvents
           It says that f(t) = vn, if tn <= t < tn-1
-        - Testcase on https://github.com/castle-engine/view3dscene/issues/2
+        - Testcase on https://github.com/castle-engine/castle-model-viewer/issues/2
       }
       if Fraction < Key[Result] then
         B := Result else

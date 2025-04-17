@@ -19,28 +19,34 @@
 
   { }
   TAbstractLayerNode = class(TAbstractNode)
-    {$I auto_generated_node_helpers/x3dnodes_x3dlayernode.inc}
+  {$I auto_generated_node_helpers/x3dnodes_x3dlayernode.inc}
   end;
 
   TAbstractViewportNode = class(TAbstractGroupingNode)
-    {$I auto_generated_node_helpers/x3dnodes_x3dviewportnode.inc}
+  {$I auto_generated_node_helpers/x3dnodes_x3dviewportnode.inc}
   end;
 
   TLayerNode = class(TAbstractLayerNode)
-    {$I auto_generated_node_helpers/x3dnodes_layer.inc}
+  {$I auto_generated_node_helpers/x3dnodes_layer.inc}
   end;
 
   TLayerSetNode = class(TAbstractNode)
-    {$I auto_generated_node_helpers/x3dnodes_layerset.inc}
+  {$I auto_generated_node_helpers/x3dnodes_layerset.inc}
   end;
 
   TViewportNode = class(TAbstractGroupingNode)
-    {$I auto_generated_node_helpers/x3dnodes_viewport.inc}
+  {$I auto_generated_node_helpers/x3dnodes_viewport.inc}
   end;
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
+
+{$I auto_generated_node_helpers/x3dnodes_x3dlayernode.inc}
+{$I auto_generated_node_helpers/x3dnodes_x3dviewportnode.inc}
+{$I auto_generated_node_helpers/x3dnodes_layer.inc}
+{$I auto_generated_node_helpers/x3dnodes_layerset.inc}
+{$I auto_generated_node_helpers/x3dnodes_viewport.inc}
 
 procedure RegisterLayeringNodes;
 begin

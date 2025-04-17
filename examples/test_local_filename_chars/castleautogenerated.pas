@@ -38,4 +38,16 @@ initialization
     This allows to handle --version and --help command-line parameters
     without any extra output on Unix, and to set --log-file . }
   InitializeLog;
+
+  {$ifdef DEBUG}
+  { Enable debug features, like inspector and file monitor, in debug mode.
+    We call it here, to depend on the DEBUG define when compiling the project
+    -- and not depend on DEBUG define when compiling the engine. }
+  ApplicationProperties.InitializeDebug;
+  {$else}
+  { Enable release features at run-time.
+    This does *nothing* for now, but enables possible future extensions
+    (e.g. special optimizations). }
+  ApplicationProperties.InitializeRelease;
+  {$endif}
 end.

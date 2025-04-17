@@ -67,7 +67,7 @@ type
 implementation
 
 uses SysUtils,
-  {$ifdef FPC} CastleGL, {$else} OpenGL, OpenGLext, {$endif}
+  {$ifdef OpenGLES} CastleGLES, {$else} CastleGL, {$endif}
   CastleGLUtils, CastleUtils, CastleShapes, CastleImages, CastleRenderContext;
 
 { Return vertex Original extruded into infinity, as seen from light

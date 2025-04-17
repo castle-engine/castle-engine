@@ -1,6 +1,6 @@
 {%MainUnit x3dnodes.pas}
 {
-  Copyright 2002-2023 Michalis Kamburelis.
+  Copyright 2002-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -67,7 +67,7 @@
     FGenTexFunctionality: TGeneratedTextureFunctionality;
   private
     FX3DName: string;
-    FBaseUrl: string;
+    FBaseUrl: String;
     FVRML1Children, FVRML1Parents: TX3DNodeList;
     FKeepExisting: Cardinal;
     FParentFields: TX3DFieldList;
@@ -135,6 +135,10 @@
       instead of this, like TAbstractShapeNode.SetAppearanceBefore. }
     procedure MoveShapeAssociations(const Sender: TSFNode; const NewNode: TX3DNode);
   protected
+    { Make a specified warning, but only once for this node instance.
+      Uses WarningDone to track if warning was already done.
+      Warning will contain automatically NiceName, so X3D node name and type. }
+    procedure WarningOnce(var WarningDone: boolean; const Message: string);
 
     { Does actual DeepCopy work. You can override this to copy some
       more properties for descendants. }
@@ -151,6 +155,13 @@
     { Register new TNodeFunctionality instance to be returned by @link(Functionality),
       and automatically freed when this node is freed. }
     procedure AddFunctionality(const F: TNodeFunctionality);
+
+    { Use this instead of DefaultContainerField to account that containerField
+      may change depending on X3D version (like containerField of metadata nodes,
+      changed between X3D 3 and 4) or parent node (like containerField of
+      HAnimMotion). ParentNode may be @nil when it is at root. }
+    function DefaultContainerFieldInContext(
+      const Version: TX3DVersion; const ParentNode: TX3DNode): String; virtual;
   protected
     { Are VRML 1.0 children allowed.
       This condition is checked in VRML1ChildAdd, so it's strictly
@@ -535,7 +546,7 @@
       various parsing routines.
       This way we could, if only we would like to, resolve nodes
       like Inline or ImageTexture immediately after parsing them. }
-    property BaseUrl: string read FBaseUrl write FBaseUrl;
+    property BaseUrl: String read FBaseUrl write FBaseUrl;
 
     {$ifdef FPC}
     { Old deprecated name for BaseUrl. @deprecated }
@@ -570,7 +581,7 @@
       )
     }
     constructor Create(const AX3DName: string = '';
-      const ABaseUrl: string = ''); virtual;
+      const ABaseUrl: String = ''); virtual;
 
     destructor Destroy; override;
 
@@ -1229,7 +1240,7 @@ end;
 
 { TX3DNode ------------------------------------------------------------------ }
 
-constructor TX3DNode.Create(const AX3DName, ABaseUrl: string);
+constructor TX3DNode.Create(const AX3DName, ABaseUrl: String);
 begin
   inherited Create;
   VRML1ChildrenAllowed := false;
@@ -1786,8 +1797,13 @@ var
   Handled: boolean;
   Position: Integer;
   ChildNode: TX3DNode;
+  SavedParentNode: TX3DNode;
 begin
   VRML1ChildrenClear;
+
+  // modify Reader.ParentNode to let DefaultContainerFieldInContext have this knowledge
+  SavedParentNode := Reader.ParentNode as TX3DNode;
+  Reader.ParentNode := Self;
 
   Position := 0;
 
@@ -1824,6 +1840,8 @@ begin
   FBaseUrl := Reader.BaseUrl;
 
   ParseAfter(Reader);
+
+  Reader.ParentNode := SavedParentNode;
 end;
 
 function TX3DNode.ParseNodeBodyElement(Lexer: TX3DLexer; Reader: TX3DReaderNames;
@@ -2192,7 +2210,7 @@ var
               end else
                 WritelnWarning('X3D', 'X3D field "' + ContainerField + '" is not SFNode or MFNode, but a node value (XML element) is specified');
             end else
-              WritelnWarning('X3D', 'Unknown X3D field name (indicated by containerField value) "' + ContainerField + '" by node "' + Child.X3DType + '" inside node "' + X3DType + '"');
+              WritelnWarning('X3D', 'Unknown X3D field name (indicated by containerField value) "' + ContainerField + '" by node "' + Child.NiceName + '" inside node "' + NiceName + '"');
           finally
             { Any WritelnWarning above makes the Child unused.
               Note that WritelnWarning may, but doesn't have, raise an exception. }
@@ -2232,7 +2250,13 @@ var
           [X3DType]));
   end;
 
+var
+  SavedParentNode: TX3DNode;
 begin
+  // modify Reader.ParentNode to let DefaultContainerFieldInContext have this knowledge
+  SavedParentNode := Reader.ParentNode as TX3DNode;
+  Reader.ParentNode := Self;
+
   Position := 0;
   { The order below is important: first parse XML attributes,
     then elements, since VRML DEF mechanism says that DEF order
@@ -2244,6 +2268,8 @@ begin
   ParseXMLCdata;
 
   ParseAfter(Reader);
+
+  Reader.ParentNode := SavedParentNode;
 end;
 
 procedure TX3DNode.ParseAfter(Reader: TX3DReaderNames);
@@ -2841,13 +2867,20 @@ procedure TX3DNode.NodeSaveToStream(Writer: TX3DWriter; const CurrentContainerFi
     ElementName: string;
     ProtoInstance: boolean;
     NodeFields, ProtoFields: TCastleStringList;
+    SavedParentNode: TX3DNode;
   begin
     { Knowing CurrentContainerField and DefaultContainerField,
       we can always correctly set containerField= ourselves. }
     if (CurrentContainerField <> '') and
-       (CurrentContainerField <> DefaultContainerField) then
-      WriteContainerField := ' containerField=' + StringToX3DXml(CurrentContainerField) else
+       (CurrentContainerField <>
+        DefaultContainerFieldInContext(Writer.Version, Writer.ParentNode as TX3DNode)) then
+      WriteContainerField := ' containerField=' + StringToX3DXml(CurrentContainerField)
+    else
       WriteContainerField := '';
+
+    // modify Reader.ParentNode to let DefaultContainerFieldInContext have this knowledge
+    SavedParentNode := Writer.ParentNode as TX3DNode;
+    Writer.ParentNode := Self;
 
     { For XML encoding, TX3DPrototypeNode is saved a little specially. }
     ProtoInstance := Self is TX3DPrototypeNode;
@@ -2953,6 +2986,8 @@ procedure TX3DNode.NodeSaveToStream(Writer: TX3DWriter; const CurrentContainerFi
 
       (Writer as TX3DWriterNames).NodeNames.Bind(Self, true);
     end;
+
+    Writer.ParentNode := SavedParentNode;
   end;
 
 begin
@@ -3171,7 +3206,7 @@ begin
     "TX3DEvent(Result)" as last param: don't know why,
     but with FPC 2.2.0 this cast may fail (even though it shouldn't
     be checked at all?), testcase:
-      view3dscene www.web3d.org/x3d/content/examples/Basic/CAD/CADGeometryPrototypes.x3d
+      castle-model-viewer www.web3d.org/x3d/content/examples/Basic/CAD/CADGeometryPrototypes.x3d
   }
 
   I := FFields.IndexOfExposedEvent(AName, ResultEvent);
@@ -3627,6 +3662,21 @@ procedure TX3DNode.MoveShapeAssociations(const Sender: TSFNode; const NewNode: T
 begin
   if Scene <> nil then
     Scene.InternalMoveShapeAssociations(Sender.Value, NewNode, InternalSceneShape);
+end;
+
+procedure TX3DNode.WarningOnce(var WarningDone: boolean; const Message: string);
+begin
+  if not WarningDone then
+  begin
+    WritelnWarning(NiceName, Message);
+    WarningDone := true;
+  end;
+end;
+
+function TX3DNode.DefaultContainerFieldInContext(
+  const Version: TX3DVersion; const ParentNode: TX3DNode): String;
+begin
+  Result := DefaultContainerField;
 end;
 
 { TX3DNodeList ------------------------------------------------------------- }

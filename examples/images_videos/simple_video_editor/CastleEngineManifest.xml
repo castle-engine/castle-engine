@@ -5,5 +5,8 @@ Specify basic information about the project, including how this project is build
 See https://castle-engine.io/project_manifest for documentation of this file.
 -->
 
-<project name="simple_video_editor" standalone_source="simple_video_editor.dpr">
+<project name="simple_video_editor"
+  standalone_source="simple_video_editor.dpr"
+  qualified_name="io.castleengine.simple.video.editor"
+>
 </project>

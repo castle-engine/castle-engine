@@ -34,7 +34,7 @@ type
     property Parameters: TStringStringMap read FParameters;
   end;
 
-  TServiceList = class(specialize TObjectList<TService>)
+  TServiceList = class({$ifdef FPC}specialize{$endif} TObjectList<TService>)
   public
     procedure ReadCastleEngineManifest(const Element: TDOMElement);
     function HasService(const Name: string): boolean;
@@ -71,7 +71,7 @@ procedure ReadParameters(const Element: TDOMElement; const Parameters: TStringSt
 implementation
 
 uses Classes, XMLRead, XMLWrite,
-  CastleXMLUtils, CastleURIUtils, CastleFilesUtils;
+  CastleXmlUtils, CastleUriUtils, CastleFilesUtils;
 
 { internal utils ------------------------------------------------------------- }
 

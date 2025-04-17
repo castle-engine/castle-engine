@@ -1,6 +1,6 @@
 {%MainUnit castletransform.pas}
 {
-  Copyright 2017-2022 Michalis Kamburelis.
+  Copyright 2017-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -20,8 +20,8 @@
   TCastleAbstractRootTransform = class;
   TCastleTransform = class;
   TRenderingCamera = class;
-  TRigidBody = class;
   TCastleRigidBody = class;
+  TCastleCollider = class;
   TPhysicsProperties = class;
   TCastleCamera = class;
 
@@ -83,8 +83,8 @@
     { Colliding object. }
     Item: TCastleTransform;
 
-    { Position, in local coordinate system of this 3D object,
-      of the picked 3D point.
+    { Position of the picked point.
+      Expressed in the parent coordinate system of the TCastleTransform in @link(Item).
 
       If the ray hit empty space (@link(Triangle) field is @nil),
       then this is undefined.
@@ -107,8 +107,7 @@
 
       @unorderedList(
         @item(If the collision occured with a TCastleSceneCore with
-          @link(TCastleSceneCore.Spatial) that includes a collidable
-          structure (ssDynamicCollisions or ssStaticCollisions),
+          @link(TCastleSceneCore.PreciseCollisions)
           then this triangle is set.)
 
         @item(If the collision occured merely with a TCastleTransform bounding box,
@@ -124,17 +123,31 @@
   end;
   PRayCollisionNode = ^TRayCollisionNode;
 
-  { Represents a @bold(ray) collision with a 3D objects tree.
-    Just access the @code(First) item for the collision information
-    with the final 3D object. The rest of items are containers of this 3D
-    object (a path within @link(TCastleViewport.Items) hierarchy tree,
-    usually).
+  { Represents a ray collision with TCastleTransform (TCastleTransform that
+    may have parents).
 
-    This list is a path in the TCastleTransform tree leading from the
-    final colliding object (usually TCastleScene)
+    We advise to access the useful information using only the @link(Transform)
+    or @link(Info) methods or read @link(Distance) field.
+
+    Everything else is somewhat internal information and things get complicated
+    if you try to make sense of it. It's a TODO: to maybe deprecate this structure
+    in favor of something simpler.
+
+    The full description is that this is a list, from the innermost TCastleTransform
+    that was hit by the ray,
     to the root of the TCastleTransform tree.
-    This allows you to track the TCastleTransform
-    containers that contain given collision.
+    The @code(First) item is the collision information
+    with the final TCastleTransform. The rest of items are parent,
+    grandparent etc. of this TCastleTransform object
+    (so it is a path within @link(TCastleViewport.Items) hierarchy tree).
+
+    But be aware that CGE uses some internal TCastleTransform instances.
+    E.g. TCastleBox, TCastleTiledMap have internal TCastleScene instances.
+    These internal components are marked with csTransient flag in ComponentState.
+
+    We, again, advise to not iterate over this list or access e.g. first
+    item directly. Use only @link(Transform)
+    or @link(Info) methods or read @link(Distance) field! Things are simple then.
 
     This is never an empty list when returned by RayCollision. }
   TRayCollision = class({$ifdef FPC}specialize{$endif} TStructList<TRayCollisionNode>)
@@ -156,6 +169,36 @@
 
     { Index of node with given ItemClass, -1 if none. }
     function IndexOfItem(const ItemClass: TCastleTransformClass): Integer; overload;
+
+    { TCastleTransform that was hit by given ray.
+
+      To be precise, this returns the inner-most TCastleTransform
+      in the TCastleTransform tree,
+      except it doesn't return internal TCastleTransform (that has csTransient
+      flag is ComponentState).
+      This way it doesn't return internal components, like internal TCastleScene
+      inside TCastleBox or TCastleTiledMap.
+
+      Returns @nil if nothing was hit (Count is zero). }
+    function Transform: TCastleTransform;
+
+    { Returns information about what was hit by given ray.
+
+      To be precise, this returns the first TRayCollisionNode on the list
+      except it doesn't return TRayCollisionNode that relates to
+      internal TCastleTransform (that has csTransient
+      flag is ComponentState).
+      This way it doesn't return internal components, like internal TCastleScene
+      inside TCastleBox or TCastleTiledMap.
+
+      Returned HitInfo (TRayCollisionNode) is a record, which proved to be
+      more comfortable in this case. So (unlike a class instance) you
+      don't need to worry "who will free it" or "if it's @nil".
+
+      Returns @false if nothing was hit (so Count is zero or all items
+      are internal TCastleTransform instances).
+      HitInfo is undefined in this case. }
+    function Info(out HitInfo: TRayCollisionNode): Boolean;
   end;
 
   { Detailed information about collision with a single 3D object. }
@@ -277,6 +320,51 @@ begin
   for Result := 0 to Count - 1 do
     if L[Result].Item is ItemClass then Exit;
   Result := -1;
+end;
+
+function TRayCollision.Transform: TCastleTransform;
+var
+  I: Integer;
+begin
+  for I := 0 to Count - 1 do
+  begin
+    Result := L[I].Item;
+    if not (csTransient in Result.ComponentStyle) then
+      Exit;
+  end;
+
+  // Return nil if all items on MouseRayHit list are csTransient
+  Result := nil;
+end;
+
+(*
+// Equivalent implementation, just a tiny bit slower as it copies TRayCollisionNode without need
+function TRayCollision.Transform: TCastleTransform;
+var
+  HitInfo: TRayCollisionNode;
+begin
+  if Info(HitInfo) then
+    Result := HitInfo.Item
+  else
+    Result := nil;
+end;
+*)
+
+function TRayCollision.Info(out HitInfo: TRayCollisionNode): Boolean;
+var
+  I: Integer;
+begin
+  for I := 0 to Count - 1 do
+  begin
+    if not (csTransient in L[I].Item.ComponentStyle) then
+    begin
+      HitInfo := L[I];
+      Exit(true);
+    end;
+  end;
+
+  // Return false if all items on MouseRayHit list are csTransient
+  Result := false;
 end;
 
 { TCollisionDetails ------------------------------------------------------------ }

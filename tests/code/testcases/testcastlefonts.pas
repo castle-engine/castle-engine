@@ -1,6 +1,6 @@
 // -*- compile-command: "./test_single_testcase.sh TTestCastleFonts" -*-
 {
-  Copyright 2011-2023 Michalis Kamburelis.
+  Copyright 2011-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -18,8 +18,7 @@ unit TestCastleFonts;
 
 interface
 
-uses {$ifndef CASTLE_TESTER}FpcUnit, TestUtils, TestRegistry,
-  CastleTestCase{$else}CastleTester{$endif};
+uses CastleTester;
 
 type
   TTestCastleFonts = class(TCastleTestCase)
@@ -36,15 +35,8 @@ type
 
 implementation
 
-{$ifdef TEXT_RUNNER}
-  {$ifndef NO_WINDOW_SYSTEM}
-    {$define TEST_CASTLE_WINDOW}
-  {$endif}
-{$endif}
-
 uses SysUtils, Classes,
-  {$ifdef TEST_CASTLE_WINDOW} CastleWindow, {$endif}
-  CastleFonts, CastleTextureFont_DejaVuSansMonoBold_15, CastleLog,
+  CastleWindow, CastleFonts, CastleTextureFont_Default3d_Sans, CastleLog,
   Font_LatoRegular_300, CastleInternalFreeTypeH;
 
 procedure TTestCastleFonts.TestMaxTextWidthHtml;
@@ -55,7 +47,7 @@ var
 begin
   F := TCastleFont.Create(nil);
   try
-    F.Load(TextureFont_DejaVuSansMonoBold_15);
+    F.Load(Font_Default3d_Sans);
 
     SList := TStringList.Create;
     try
@@ -73,21 +65,23 @@ begin
 end;
 
 procedure TTestCastleFonts.TestMaxTextWidthHtmlInWindow;
-{$ifdef TEST_CASTLE_WINDOW}
 var
   Window: TCastleWindow;
 begin
+  if not CanCreateWindowForTest then
+  begin
+    AbortTest;
+    Exit;
+  end;
+
   // should work with OpenGL context too, actually it doesn't matter now
-  Window := TCastleWindow.Create(nil);
+  Window := CreateWindowForTest;
   try
     Window.Visible := false;
     Window.Open;
     TestMaxTextWidthHtml;
     Window.Close;
-  finally FreeAndNil(Window) end;
-{$else}
-begin
-{$endif}
+  finally DestroyWindowForTest(Window) end;
 end;
 
 procedure TTestCastleFonts.TestSizeFontFamily;
@@ -98,24 +92,24 @@ var
 begin
   Font := TCastleFont.Create(nil);
   try
-    Font.Load(TextureFont_DejaVuSansMonoBold_15);
+    Font.Load(Font_Default3d_Sans);
 
-    AssertEquals(15, Font.Size);
-    AssertEquals(15, Font.EffectiveSize);
-    AssertEquals(14, Font.Height);
+    AssertEquals(25, Font.Size);
+    AssertEquals(25, Font.EffectiveSize);
+    AssertEquals(23, Font.Height);
 
     Family := TCastleFontFamily.Create(nil);
     try
       Family.Regular := Font;
 
       AssertEquals(0, Family.Size);
-      AssertEquals(15, Family.EffectiveSize);
-      AssertEquals(14, Family.Height);
+      AssertEquals(25, Family.EffectiveSize);
+      AssertEquals(23, Family.Height);
 
       Family.Size := 30;
       AssertEquals(30, Family.Size);
       AssertEquals(30, Family.EffectiveSize);
-      AssertEquals(28, Family.Height);
+      AssertEquals(27.6, Family.Height);
     finally FreeAndNil(Family) end;
 
     Customized := TCustomizedFont.Create(nil);
@@ -123,19 +117,19 @@ begin
       Customized.SourceFont := Font;
 
       AssertEquals(0, Customized.Size);
-      AssertEquals(15, Customized.EffectiveSize);
-      AssertEquals(14, Customized.Height);
+      AssertEquals(25, Customized.EffectiveSize);
+      AssertEquals(23, Customized.Height);
 
       Customized.Size := 30;
       AssertEquals(30, Customized.Size);
       AssertEquals(30, Customized.EffectiveSize);
-      AssertEquals(28, Customized.Height);
+      AssertEquals(27.6, Customized.Height);
     finally FreeAndNil(Customized) end;
 
     Font.Size := 60;
     AssertEquals(60, Font.Size);
     AssertEquals(60, Font.EffectiveSize);
-    AssertEquals(56, Font.Height);
+    AssertEquals(55.2, Font.Height);
 
     Family := TCastleFontFamily.Create(nil);
     try
@@ -143,12 +137,12 @@ begin
 
       AssertEquals(0, Family.Size);
       AssertEquals(60, Family.EffectiveSize);
-      AssertEquals(56, Family.Height);
+      AssertEquals(55.2, Family.Height);
 
       Family.Size := 30;
       AssertEquals(30, Family.Size);
       AssertEquals(30, Family.EffectiveSize);
-      AssertEquals(28, Family.Height);
+      AssertEquals(27.6, Family.Height);
     finally FreeAndNil(Family) end;
 
     Customized := TCustomizedFont.Create(nil);
@@ -157,12 +151,12 @@ begin
 
       AssertEquals(0, Customized.Size);
       AssertEquals(60, Customized.EffectiveSize);
-      AssertEquals(56, Customized.Height);
+      AssertEquals(55.2, Customized.Height);
 
       Customized.Size := 30;
       AssertEquals(30, Customized.Size);
       AssertEquals(30, Customized.EffectiveSize);
-      AssertEquals(28, Customized.Height);
+      AssertEquals(27.6, Customized.Height);
     finally FreeAndNil(Customized) end;
   finally FreeAndNil(Font) end;
 end;
@@ -267,13 +261,6 @@ begin
     will know what's going on. }
   if not FreeTypeLibraryInitialized then
   begin
-    { TODO: Why doing
-        raise Exception.Create(...)
-      here, instead of Fail, does not report test as failed in castle_tester GUI?
-      Using "Fail" is OK, it's actually cleaner, but still raising exception
-      should also be reported.
-      Observed on Delphi 10.2.3 / Win64. }
-
     Fail('FreeType library not available, so TTestCastleFonts.TestSizeChangeNotificationFontFamily has to fail.'
       {$ifdef MSWINDOWS}
       + ' On Windows, be sure to place proper DLL files alongside EXE. It is easiest to build using CGE editor that will place proper DLLs automatically.'
@@ -287,7 +274,12 @@ var
   F: TCastleFont;
   FF: TCastleFontFamily;
 begin
+  {$ifdef WASI} // no FreeType on Wasm
+  AbortTest;
+  Exit;
+  {$else}
   FailIfFreeTypeMissing;
+  {$endif}
 
   F := TCastleFont.Create(nil);
   AssertEquals(0, F.Height);
@@ -312,7 +304,12 @@ var
   F: TCastleFont;
   CF: TCastleFontFamily;
 begin
+  {$ifdef WASI} // no FreeType on Wasm
+  AbortTest;
+  Exit;
+  {$else}
   FailIfFreeTypeMissing;
+  {$endif}
 
   F := TCastleFont.Create(nil);
   AssertEquals(0, F.Height);

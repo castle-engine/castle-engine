@@ -1,6 +1,6 @@
 {%MainUnit castlesoundengine.pas}
 {
-  Copyright 2010-2021 Michalis Kamburelis.
+  Copyright 2010-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -61,24 +61,8 @@ var
     :TCastleSound deprecated 'these predefined sounds should not be used';
 
 const
-  { Special sound type that indicates that there is actually no sound.
-    @link(TSoundEngine.Sound) and @link(TSoundEngine.Sound3D)
-    will do nothing when called with this sound type. }
-  stNone: TCastleSound = nil deprecated 'use nil';
-
-  MaxSoundImportance             = MaxInt deprecated 'use TCastleSound.Priority, which is float, and figure out good priorities for your game';
-  LevelEventSoundImportance      = 100000 deprecated 'use TCastleSound.Priority, which is float, and figure out good priorities for your game';
-  PlayerSoundImportance          = 10000  deprecated 'use TCastleSound.Priority, which is float, and figure out good priorities for your game';
-  DefaultCreatureSoundImportance = 1000   deprecated 'use TCastleSound.Priority, which is float, and figure out good priorities for your game';
-  MinorNonSpatialSoundImportance = 100    deprecated 'use TCastleSound.Priority, which is float, and figure out good priorities for your game';
-  DefaultSoundImportance         = 10     deprecated 'use TCastleSound.Priority, which is float, and figure out good priorities for your game';
-
   dmInverse = CastleSoundBase.dmInverse;
   dmLinear  = CastleSoundBase.dmLinear;
-  dmInverseDistance        = dmInverse deprecated 'use dmInverse';
-  dmInverseDistanceClamped = dmInverse deprecated 'use dmInverse';
-  dmLinearDistance         = dmLinear deprecated 'use dmLinear';
-  dmLinearDistanceClamped  = dmLinear deprecated 'use dmLinear';
 
   { Supported sound file formats.
     Use these filters with LCL file dialog (easily set by FileFiltersToDialog)
@@ -103,6 +87,15 @@ function InternalSoundEngine: TRepoSoundEngine;
 
 var
   FSoundEngine: TRepoSoundEngine;
+
+{ Internal constants, only to support deprected "importance" things in XML files. }
+const
+  MaxSoundImportance             = MaxInt;
+  LevelEventSoundImportance      = 100000;
+  PlayerSoundImportance          = 10000 ;
+  DefaultCreatureSoundImportance = 1000  ;
+  MinorNonSpatialSoundImportance = 100   ;
+  DefaultSoundImportance         = 10    ;
 
 { globals -------------------------------------------------------------------- }
 

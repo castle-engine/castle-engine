@@ -1,6 +1,6 @@
 {
   Vampyre Imaging Library
-  by Marek Mauder 
+  by Marek Mauder
   http://imaginglib.sourceforge.net
 
   The contents of this file are used with permission, subject to the Mozilla
@@ -47,7 +47,7 @@ uses
 {$ENDIF}
 
 {$IFDEF EXPORT_GLEXT}
-function ImLoadGLTextureFromFile(FileName: PAnsiChar): LongWord; cdecl;
+function ImLoadGLTextureFromFile(FileName: PAnsiChar): UInt32; cdecl;
 begin
   Result := ImagingOpenGL.LoadGLTextureFromFile(FileName, nil, nil);
 end;

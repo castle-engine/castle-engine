@@ -8,5 +8,6 @@ See https://castle-engine.io/project_manifest for documentation of this file.
 <project name="cge_dynlib_tester"
   lazarus_project="cge_dynlib_tester.lpi"
   build_using_lazbuild="true"
+  qualified_name="io.castleengine.lazarus.library.tester"
 >
 </project>

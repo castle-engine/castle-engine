@@ -1,0 +1,29 @@
+Authors of some data assets (graphics, sound):
+
+- crash.wav
+
+  from https://opengameart.org/content/crash-collision
+  Author:
+    qubodup https://opengameart.org/users/qubodup , https://qubodup.github.io/
+  License(s):
+    CC0
+
+- arrow-*.png
+
+  based on https://opengameart.org/content/glow-arrow
+  Author:
+    oglsdl https://opengameart.org/users/oglsdl
+  License(s):
+    CC0
+
+- speed.png
+
+  based on https://opengameart.org/content/bolt-animation
+  Author:
+    IMadeIt https://opengameart.org/users/imadeit
+  License(s):
+    CC-BY 3.0
+
+The rest: copyright by Michalis Kamburelis,
+license "modified BSD (3-clause)",
+see https://castle-engine.io/license .

@@ -1,6 +1,6 @@
 // -*- compile-command: "./test_single_testcase.sh TTestCastleVectors" -*-
 {
-  Copyright 2004-2023 Michalis Kamburelis.
+  Copyright 2004-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -19,11 +19,13 @@ unit TestCastleVectors;
 
 { $define VECTOR_MATH_SPEED_TESTS}
 
+{$I ../../../src/common_includes/castleconf.inc}
+
 interface
 
 uses
-  Classes, SysUtils{$ifndef CASTLE_TESTER}, FpcUnit, TestUtils, TestRegistry,
-  CastleTestCase{$else}, CastleTester{$endif}, CastleVectors;
+  Classes, SysUtils,
+  CastleTester, CastleVectors;
 
 type
   TTestCastleVectors = class(TCastleTestCase)
@@ -61,6 +63,8 @@ type
     procedure TestInit;
     procedure TestRotationZeroAxis;
     procedure TestVectorsList;
+    procedure TestToString;
+    procedure TestBasicVectorMatrix;
   end;
 
 function RandomVector: TVector3;
@@ -474,8 +478,8 @@ const
     (X: 2; Y: 3; Z: 0),
     (X: 2; Y: 1; Z: 0),
     (X: 6; Y: 2; Z: 0) );
-  CCWPolyIndex: array [0..6] of LongInt = (0, 1, 5, 2, 3, 4, 999);
-  CWPolyIndex: array [0..6] of LongInt = (666, 4, 105, 3, 2, 1, 0);
+  CCWPolyIndex: array [0..6] of Int32 = (0, 1, 5, 2, 3, 4, 999);
+  CWPolyIndex: array [0..6] of Int32 = (666, 4, 105, 3, 2, 1, 0);
 begin
   AssertVectorEquals(
     Vector3(0, 0, 1),
@@ -608,6 +612,12 @@ procedure TTestCastleVectors.TestVector3FromStr;
 var
   V: TVector3;
 begin
+  if not CanCatchExceptions then
+  begin
+    AbortTest;
+    Exit;
+  end;
+
   try
     V := Vector3FromStr('1 2 abc');
     Fail('Above should fail with EConvertError');
@@ -638,6 +648,12 @@ procedure TTestCastleVectors.TestVector4FromStr;
 var
   V: TVector4;
 begin
+  if not CanCatchExceptions then
+  begin
+    AbortTest;
+    Exit;
+  end;
+
   try
     V := Vector4FromStr('1 2 3 abc');
     Fail('Above should fail with EConvertError');
@@ -783,6 +799,13 @@ begin
   AssertSameValue(Sqr(3) + Sqr(10), PointsDistance2DSqr(P1, P2, 0), 0.01);
   AssertSameValue(Sqr(1) + Sqr(10), PointsDistance2DSqr(P1, P2, 1), 0.01);
   AssertSameValue(Sqr(1) + Sqr(3), PointsDistance2DSqr(P1, P2, 2), 0.01);
+
+  if not CanCatchExceptions then
+  begin
+    AbortTest;
+    Exit;
+  end;
+
   try
     PointsDistance2DSqr(P1, P2, 3);
     Fail('Above PointsDistance2DSqr with IgnoreIndex = 3 should raise exception');
@@ -1025,7 +1048,7 @@ drastically different results for them, due to one matrix resulting
 in determinant close enough to Single epsilon, and other not.
 
 ------------------------------------------------------------------------------
-Exact test input, generated from testcase on https://github.com/castle-engine/view3dscene/issues/35,
+Exact test input, generated from testcase on https://github.com/castle-engine/castle-model-viewer/issues/35,
 with mesh renderer code:
 
     if Arrays.Count = 629 then
@@ -1251,6 +1274,73 @@ begin
     AssertEquals(33, List[0].X);
     AssertEquals(44, List[0].Y);
   finally FreeAndNil(List) end;
+end;
+
+procedure TTestCastleVectors.TestToString;
+var
+  V2: TVector2;
+  V3: TVector3;
+  V4: TVector4;
+  M2: TMatrix2;
+  M3: TMatrix3;
+  M4: TMatrix4;
+begin
+  V2 := Vector2(0, 123.456);
+  AssertEquals('0 123.456', V2.ToString);
+
+  V2 := Vector2(0, 123.12345678);
+  AssertEquals('0 123.12346', V2.ToString); // 5 digits after dot are kept now
+
+  V3 := Vector3(0, 123.456, 78.9);
+  AssertEquals('0 123.456 78.9', V3.ToString);
+
+  V3 := Vector3(0, 123.12345678, 78.9);
+  AssertEquals('0 123.12346 78.9', V3.ToString);
+
+  V4 := Vector4(0, 123.456, 78.9, 99.99);
+  AssertEquals('0 123.456 78.9 99.99', V4.ToString);
+
+  V4 := Vector4(0, 123.12345678, 78.9, 99.99);
+  AssertEquals('0 123.12346 78.9 99.99', V4.ToString);
+
+  M2.Rows[0] := Vector2(1, 2);
+  M2.Rows[1] := Vector2(3, 4);
+  AssertEquals(
+    '1 2' + LineEnding +
+    '3 4',
+    M2.ToString);
+
+  M3.Rows[0] := Vector3(1, 2, 3);
+  M3.Rows[1] := Vector3(4, 5, 6);
+  M3.Rows[2] := Vector3(7, 8, 9);
+  AssertEquals(
+    '1 2 3' + LineEnding +
+    '4 5 6' + LineEnding +
+    '7 8 9',
+    M3.ToString);
+
+  M4.Rows[0] := Vector4(1, 2, 3, 4);
+  M4.Rows[1] := Vector4(5, 6, 7, 8);
+  M4.Rows[2] := Vector4(9, 10, 11, 12);
+  M4.Rows[3] := Vector4(13, 14, 15, 16);
+  AssertEquals(
+    '1 2 3 4' + LineEnding +
+    '5 6 7 8' + LineEnding +
+    '9 10 11 12' + LineEnding +
+    '13 14 15 16',
+    M4.ToString);
+end;
+
+procedure TTestCastleVectors.TestBasicVectorMatrix;
+var
+  M: TMatrix4;
+  V: TVector3;
+begin
+  // vectors
+  M := TranslationMatrix(10, 20, 30);
+  V := Vector3(1, 2, 3);
+  V := M.MultPoint(V);
+  AssertVectorEquals(Vector3(11, 22, 33), V);
 end;
 
 initialization

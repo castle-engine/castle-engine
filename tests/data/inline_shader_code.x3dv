@@ -1,0 +1,100 @@
+#X3D V4.0 utf8
+PROFILE Interchange
+
+# Testcase from
+# https://github.com/peardox/SimpleDelphiTest01
+# https://github.com/castle-engine/castle-engine/issues/541
+
+# ---------------------------------------------------------------------------
+# Using a separate image that acts like a "mask" (overrides alpha channel)
+# applied in a shader.
+# This way you change the base image and the mask independently.
+# ---------------------------------------------------------------------------
+
+# Make things brighter.
+PointLight {
+  intensity 5
+  location 0 0 10
+}
+
+# Define a Shape with Effect.
+Shape {
+  appearance Appearance {
+    alphaMode "MASK"
+    # Another valid option would be "BLEND", this means that we use blending
+    # and can account for alpha being between 0 and 1.
+    #alphaMode "BLEND"
+    material PhysicalMaterial {
+      baseTexture ImageTexture {
+        url "textures/bread.png"
+      }
+    }
+    effects DEF MyEffect Effect {
+      language "GLSL"
+      initializeOnly SFNode mask_texture ImageTexture {
+        url "textures/cat_mask.png"
+      }
+      parts DEF MyPartWithInlineCode EffectPart {
+        type "FRAGMENT"
+        url "data:text/plain,
+        uniform sampler2D mask_texture;
+
+        void PLUG_texture_color(inout vec4 texture_color, const in sampler2D texture_in, const in vec4 tex_coord)
+        {
+          // For debugging, use this line to confirm that mask_texture is good.
+          // texture_color = texture2D(mask_texture, tex_coord.st);
+
+          /* The mask_texture is grayscale, we could access any (r,g,b) channel,
+             they all are equal. */
+          float alpha = texture2D(mask_texture, tex_coord.st).r;
+          texture_color = vec4(texture_color.xyz, alpha);
+        }"
+      }
+    }
+  }
+  geometry DEF MyQuadSet QuadSet {
+    solid FALSE
+    coord Coordinate { point [ -0.5 -0.5 0, 0.5 -0.5 0, 0.5 0.5 0, -0.5 0.5 0 ] }
+  }
+}
+
+# Reuse the effect, including mask texture, on another shape,
+# with different base textre and different material color.
+
+Transform {
+  translation 1 0 0
+  children Shape {
+    appearance Appearance {
+      alphaMode "MASK"
+      material PhysicalMaterial {
+        baseColor 1 0 0
+        baseTexture ImageTexture {
+          url "textures/floortiles.png"
+        }
+      }
+      effects USE MyEffect
+    }
+    geometry USE MyQuadSet
+  }
+}
+
+Transform {
+  translation 2 0 0
+  children Shape {
+    appearance Appearance {
+      alphaMode "MASK"
+      material PhysicalMaterial {
+        baseColor 1 1 0
+        baseTexture ImageTexture {
+          url "textures/tarmac_0.png"
+        }
+        normalTexture ImageTexture {
+          url "textures/tarmac_0_normalmap.png"
+        }
+      }
+      effects USE MyEffect
+    }
+    geometry USE MyQuadSet
+  }
+}
+

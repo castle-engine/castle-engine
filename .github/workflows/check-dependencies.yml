@@ -1,0 +1,47 @@
+# ----------------------------------------------------------------------------
+# GitHub Action workflow to check dependencies using
+# tools/internal/check_units_dependencies#
+# ----------------------------------------------------------------------------
+
+name: Check Dependencies
+
+# Called by everything.yml
+on: [workflow_call]
+#on: [push, pull_request]
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  check_dependencies:
+    name: Check Dependencies
+    runs-on: ubuntu-latest
+    container: kambi/castle-engine-cloud-builds-tools:cge-none
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set environment
+        run: echo "CASTLE_ENGINE_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+      - name: Set environment PATH to include cge installed/bin/
+        run: echo "PATH=${PATH}:${CASTLE_ENGINE_PATH}/installed/bin/" >> $GITHUB_ENV
+
+      - name: Build Tools
+        run: |
+          rm -Rf installed/
+          mkdir -p installed/
+          make clean tools install PREFIX=${CASTLE_ENGINE_PATH}/installed/
+
+      - name: Check Dependencies
+        run: |
+          cd tools/internal/check_units_dependencies/
+          make
+          ls -R
+
+      - name: Archive Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: check_dependencies_log
+          path: |
+            test-cge-units-dependencies_all_units.txt
+            cge_check_units_dependencies.log
+          if-no-files-found: error

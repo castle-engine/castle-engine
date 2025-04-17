@@ -20,14 +20,14 @@
 
 {$ifdef read_implementation}
 
-procedure CheckFileAccessSafe(const URL: string);
+procedure CheckFileAccessSafe(const Url: String);
 begin
   if not ApplicationProperties._FileAccessSafe then
     WritelnWarning('Opening file "%s" before the Application.OnInitialize was called. ' +
       'This is not reliable on mobile platforms (Android, iOS). ' +
       'This usually happens if you open a file from the "initialization" section of a unit. ' +
       'You should do it in Application.OnInitialize instead.',
-      [URL]);
+      [Url]);
 end;
 
 { Extract MimeType from HTTP Content-Type.

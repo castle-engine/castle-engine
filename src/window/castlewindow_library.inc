@@ -1,6 +1,6 @@
 {%MainUnit castlewindow.pas}
 {
-  Copyright 2004-2023 Michalis Kamburelis.
+  Copyright 2004-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -41,8 +41,7 @@ public
 {$ifdef read_application_interface}
 private
   FScreenWidth, FScreenHeight: Integer;
-  FScreenStatusBarHeight: Cardinal;
-  procedure WarningToCallback(const Category, S: string);
+  procedure WarningToCallback(const Category, S: String);
 {$endif read_application_interface}
 
 {$ifdef read_global_interface}
@@ -67,7 +66,7 @@ procedure CGEApp_SetLibraryCallbackProc(aProc: TLibraryCallbackProc); cdecl;
 procedure CGEApp_Update; cdecl;
 procedure CGEApp_MouseDown(X, Y: CInt32; bLeftBtn: cBool; FingerIndex: CInt32); cdecl;
 procedure CGEApp_Motion(X, Y: CInt32; FingerIndex: CInt32); cdecl;
-procedure CGEApp_MouseUp(X, Y: cInt32; bLeftBtn: cBool; FingerIndex: CInt32; TrackReleased: cBool); cdecl;
+procedure CGEApp_MouseUp(X, Y: cInt32; bLeftBtn: cBool; FingerIndex: CInt32); cdecl;
 procedure CGEApp_KeyDown(eKey: CInt32); cdecl;
 procedure CGEApp_KeyUp(eKey: CInt32); cdecl;
 procedure CGEApp_JoystickAxis(JoystickIndex: CInt; X, Y: Single); cdecl;
@@ -168,22 +167,17 @@ begin
   end;
 end;
 
-procedure TCastleWindow.SetCaption(const Part: TCaptionPart; const Value: string);
+procedure TCastleWindow.SetCaption(const Part: TCaptionPart; const Value: String);
 begin
   FCaption[Part] := Value;
   if not Closed then
     { TODO: call LibraryCallbackProc to change caption to GetWholeCaption };
 end;
 
-procedure TCastleWindow.SetMousePosition(const Value: TVector2);
+procedure TCastleWindow.SystemSetMousePosition(const Value: TVector2);
 begin
-  if (not Closed) and Assigned(LibraryCallbackProc) then
+  if Assigned(LibraryCallbackProc) then
   begin
-
-    { Do not set Mouse.CursorPos to the same value, to make sure we don't cause
-      unnecessary OnMotion on some systems while actual MousePosition didn't change. }
-    if TVector2.PerfectlyEquals(Value, FMousePosition) then Exit;
-
     LibraryCallbackProc(ecgelibSetMousePosition, Floor(Value[0]), Floor(Value[1]), nil);
   end;
 end;
@@ -192,6 +186,10 @@ procedure TCastleWindow.UpdateFullScreenBackend;
 begin
   { TODO: call LibraryCallbackProc to switch fullscreen mode }
   FFullScreenBackend := FFullScreenWanted;
+end;
+
+procedure TCastleWindow.BackendInsideUpdate;
+begin
 end;
 
 { LibraryXxx methods --------------------------------------------------------- }
@@ -248,7 +246,7 @@ end;
 
 { Methods below should make native-looking dialog boxes. }
 
-function TCastleWindow.BackendFileDialog(const Title: string; var FileName: string;
+function TCastleWindow.BackendFileDialog(const Title: String; var FileName: String;
   OpenDialog: boolean; FileFilters: TFileFilterList): boolean;
 begin
   { TODO } Result := false;
@@ -259,12 +257,12 @@ begin
   { TODO } Result := false;
 end;
 
-procedure TCastleWindow.MessageOK(const S: string; const MessageType: TWindowMessageType);
+procedure TCastleWindow.MessageOK(const S: String; const MessageType: TWindowMessageType);
 begin
   { TODO }
 end;
 
-function TCastleWindow.MessageYesNo(const S: string;
+function TCastleWindow.MessageYesNo(const S: String;
   const MessageType: TWindowMessageType): boolean;
 begin
   { TODO } Result := true;
@@ -296,9 +294,8 @@ begin
     must perform event loop }
 end;
 
-procedure TCastleApplication.QuitWhenNoOpenWindows;
+procedure TCastleApplication.BackendTerminate;
 begin
-  Terminate; // set Terminated := true
 end;
 
 function TCastleApplication.ScreenWidth: integer;
@@ -315,19 +312,19 @@ begin
   Result := FScreenHeight;
 end;
 
-function TCastleApplication.ScreenStatusBarScaledHeight: Cardinal;
-begin
-  Result := FScreenStatusBarHeight;
-end;
-
-function TCastleApplication.BackendName: string;
+function TCastleApplication.BackendName: String;
 begin
   Result := 'Library (Using Existing OpenGL Context)';
 end;
 
-procedure TCastleApplication.WarningToCallback(const Category, S: string);
+function TCastleApplication.MultipleWindowsPossible: Boolean;
+begin
+  Result := false;
+end;
+
+procedure TCastleApplication.WarningToCallback(const Category, S: String);
 var
-  sMsg: string;
+  sMsg: String;
   szBuffer: PChar;
   nBufSize: cardinal;
 begin
@@ -354,7 +351,7 @@ procedure CGEApp_Initialize(ApplicationConfigDirectory: PChar); cdecl;
 begin
   try
     // use given ApplicationConfigDirectory
-    ApplicationConfigOverride := FilenameToURISafe(InclPathDelim(ApplicationConfigDirectory));
+    ApplicationConfigOverride := FilenameToUriSafe(InclPathDelim(ApplicationConfigDirectory));
     WritelnLog('Library initialized, set application config directory to URL: %s', [ApplicationConfigOverride]);
 
     ApplicationProperties.OnWarning.Add(@Application.WarningToCallback);
@@ -400,6 +397,14 @@ begin
   end;
 end;
 
+{ Safe border (as 4D vector: top, right, bottom, left) with only
+  a status bar (top) non-zero.
+  This is passed from our Objective-C code on iOS to Pascal now. }
+function SafeBorderWithStatusBar(const StatusBarHeight: Single): TVector4;
+begin
+  Result := Vector4(StatusBarHeight, 0, 0, 0);
+end;
+
 procedure CGEApp_Open(InitialWidth, InitialHeight, InitialStatusBarHeight, ADpi: cUInt32); cdecl;
 begin
   try
@@ -413,13 +418,14 @@ begin
     WritelnLog('Library received CGEApp_Open (window size: %d %d)', [InitialWidth, InitialHeight]);
     Application.FScreenWidth := InitialWidth;
     Application.FScreenHeight := InitialHeight;
-    Application.FScreenStatusBarHeight := InitialStatusBarHeight;
     //Window.FullScreen := true; // TODO: setting fullscreen should work like that 4 lines below. Also, should be default?
     Application.MainWindow.FLeft := 0;
     Application.MainWindow.FTop := 0;
     Application.MainWindow.FWidth := InitialWidth;
     Application.MainWindow.FHeight := InitialHeight;
     Application.MainWindow.Container.Dpi := ADpi;
+    Application.MainWindow.Container.InternalSetSafeBorderScaled(
+      SafeBorderWithStatusBar(InitialStatusBarHeight));
     Application.MainWindow.Open;
   except
     on E: TObject do WritelnWarning('CGEApp_Open', ExceptMessage(E));
@@ -442,7 +448,8 @@ begin
     CheckMainWindow;
     Application.FScreenWidth  := uiViewWidth;
     Application.FScreenHeight := uiViewHeight;
-    Application.FScreenStatusBarHeight := uiStatusBarHeight;
+    Application.MainWindow.Container.InternalSetSafeBorderScaled(
+      SafeBorderWithStatusBar(uiStatusBarHeight));
     Application.MainWindow.DoResize(uiViewWidth, uiViewHeight, false);
   except
     on E: TObject do WritelnWarning('CGEApp_Resize', ExceptMessage(E));
@@ -471,9 +478,9 @@ end;
 procedure CGEApp_Update; cdecl;
 begin
   try
-    Application.DoApplicationUpdate;
+    ApplicationProperties._Update;
     Application.FOpenWindows.DoUpdate;
-    Application.MaybeDoTimer;
+    ApplicationProperties._UpdateEnd;
   except
     on E: TObject do WritelnWarning('CGEApp_Update', ExceptMessage(E));
   end;
@@ -481,12 +488,12 @@ end;
 
 procedure CGEApp_MouseDown(X, Y: CInt32; bLeftBtn: cBool; FingerIndex: CInt32); cdecl;
 var
-  MyButton: TCastleMouseButton;
+  CastleButton: TCastleMouseButton;
 begin
   try
     CheckMainWindow;
-    if (bLeftBtn) then MyButton := buttonLeft else MyButton := buttonRight;
-    Application.MainWindow.DoMouseDown(Vector2(X, Y), MyButton, FingerIndex);
+    if (bLeftBtn) then CastleButton := buttonLeft else CastleButton := buttonRight;
+    Application.MainWindow.DoMouseDown(Vector2(X, Y), CastleButton, FingerIndex);
   except
     on E: TObject do WritelnWarning('CGEApp_MouseDown', ExceptMessage(E));
   end;
@@ -495,30 +502,51 @@ end;
 procedure CGEApp_Motion(X, Y: CInt32; FingerIndex: CInt32); cdecl;
 var
   W: TCastleWindow;
+
+  { Adjusted copy of internal TTouchList.FindFingerIndex }
+  function FindFingerIndex(const FingerIndex: TFingerIndex): Integer;
+  begin
+    for Result := 0 to W.Container.TouchesCount - 1 do
+      if W.Container.Touches[Result].FingerIndex = FingerIndex then
+        Exit;
+    Result := -1;
+  end;
+
+  { Adjusted copy of internal TTouchList.GetFingerIndexPosition }
+  function GetFingerIndexPosition(const FingerIndex: TFingerIndex): TVector2;
+  var
+    Index: Integer;
+  begin
+    Index := FindFingerIndex(FingerIndex);
+    if Index <> -1 then
+      Result := W.Container.Touches[Index].Position
+    else
+      Result := TVector2.Zero;
+  end;
+
 begin
   try
     CheckMainWindow;
-    { TODO: using MousePressed as Pressed is only OK without multi-touch. }
     W := Application.MainWindow;
-    W.DoMotion(InputMotion(W.FTouches.FingerIndexPosition[FingerIndex],
-      Vector2(X, Y), W.MousePressed, FingerIndex));
+    W.DoMotion(InputMotion(GetFingerIndexPosition(FingerIndex),
+      Vector2(X, Y), W.Container.MousePressed, FingerIndex));
   except
     on E: TObject do WritelnWarning('CGEApp_Motion', ExceptMessage(E));
   end;
 end;
 
 procedure CGEApp_MouseUp(X, Y: cInt32; bLeftBtn: cBool;
-  FingerIndex: CInt32; TrackReleased: cBool); cdecl;
+  FingerIndex: CInt32); cdecl;
 var
-  MyButton: TCastleMouseButton;
+  CastleButton: TCastleMouseButton;
 begin
   try
     CheckMainWindow;
     if bLeftBtn then
-      MyButton := buttonLeft
+      CastleButton := buttonLeft
     else
-      MyButton := buttonRight;
-    Application.MainWindow.DoMouseUp(Vector2(X, Y), MyButton, FingerIndex, TrackReleased);
+      CastleButton := buttonRight;
+    Application.MainWindow.DoMouseUp(Vector2(X, Y), CastleButton, FingerIndex);
   except
     on E: TObject do WritelnWarning('CGEApp_MouseUp', ExceptMessage(E));
   end;
@@ -589,7 +617,8 @@ procedure CGEApp_JoystickAxis(JoystickIndex: CInt; X, Y: Single); cdecl;
 begin
   try
     CheckMainWindow;
-    Joysticks.InternalSetJoystickAxis(JoystickIndex, Vector2(X, Y));
+    // TODO: rename this to CGEApp_JoystickLeftAxis, support also CGEApp_JoystickRightAxis
+    Joysticks.InternalSetJoystickLeftAxis(JoystickIndex, Vector2(X, Y));
     // if (X <> 0) or (Y <> 0) then
     //   WritelnLog('Joy axis %d %f %f %f', [JoystickIndex, X, Y]);
   except

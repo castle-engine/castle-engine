@@ -22,19 +22,24 @@
   TX3DReader = class
   strict private
     FVersion: TX3DVersion;
-    FBaseUrl: string;
+    FBaseUrl: String;
   private
     AngleConversionFactor: Float;
   public
     LengthConversionFactor: Float;
 
-    constructor Create(const ABaseUrl: string;
+    { Parent node, always TX3DNode, @nil if this is top-level.
+      Fow now only used to enhance DefaultContainerFieldInContext knowledge,
+      for XML encoding writing, though we maintain it for all encodings. }
+    ParentNode: TObject;
+
+    constructor Create(const ABaseUrl: String;
       const AVersion: TX3DVersion);
     constructor CreateCopy(Source: TX3DReader);
 
     { Base path for resolving URLs from nodes in this namespace.
       See TX3DNode.BaseUrl. }
-    property BaseUrl: string read FBaseUrl;
+    property BaseUrl: String read FBaseUrl;
 
     { VRML/X3D version number. For resolving node class names and other stuff. }
     property Version: TX3DVersion read FVersion;
@@ -55,7 +60,7 @@
 { TX3DReader ----------------------------------------------------------------- }
 
 constructor TX3DReader.Create(
-  const ABaseUrl: string; const AVersion: TX3DVersion);
+  const ABaseUrl: String; const AVersion: TX3DVersion);
 begin
   inherited Create;
   FBaseUrl := ABaseUrl;

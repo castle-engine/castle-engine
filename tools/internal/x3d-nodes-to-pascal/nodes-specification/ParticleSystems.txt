@@ -48,7 +48,9 @@ ParticleSystem : X3DShapeNode {
   SFVec2f  [in,out] particleSize      0.02 0.02
     range: [0,Inf)
   SFBool   [out]    isActive
-  SFNode   []       colorRamp         NULL
+  # Note: colorRamp->color rename in X3D 4.
+  # We only support X3D 4 version.
+  SFNode   []       color         NULL
     range: X3DColorNode
   MFFloat  []       colorKey          []
     range: [0,Inf)
@@ -59,7 +61,9 @@ ParticleSystem : X3DShapeNode {
     enumerated-type: TParticlesGeometry ParticlesGeometryNames pgQuad
   MFNode   []       physics           []
     range: X3DParticlePhysicsModelNode
-  SFNode   []       texCoordRamp      NULL
+  # Note: texCoordRamp->texCoord rename in X3D 4.
+  # We only support X3D 4 version.
+  SFNode   []       texCoord      NULL
     range: TextureCoordinate
   MFFloat  []       texCoordKey       []
     range: [0,Inf)

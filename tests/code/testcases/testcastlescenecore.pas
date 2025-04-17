@@ -20,8 +20,8 @@ unit TestCastleSceneCore;
 interface
 
 uses
-  Classes, SysUtils, {$ifndef CASTLE_TESTER}FpcUnit, TestUtils, TestRegistry,
-  CastleTestCase{$else}CastleTester{$endif}, CastleSceneCore, X3DNodes;
+  Classes, SysUtils,
+  CastleTester, CastleSceneCore, X3DNodes;
 
 type
   TTestSceneCore = class(TCastleTestCase)
@@ -67,6 +67,10 @@ type
     procedure TestGenericNode;
     {$endif}
     procedure TestNonGenericNodeAndFindNodeOptions;
+    procedure TestGeometryNodesInShape;
+    procedure TestExposedTransforms;
+    //procedure TestInternalNodesReadOnly;
+    procedure TestValidScene;
   end;
 
 implementation
@@ -74,7 +78,7 @@ implementation
 uses X3DLoad, CastleVectors, CastleShapes,
   CastleTimeUtils, CastleStringUtils, X3DFields, CastleViewport, CastleBoxes,
   CastleFilesUtils, CastleScene, CastleTransform, CastleApplicationProperties,
-  CastleURIUtils, CastleColors;
+  CastleUriUtils, CastleColors;
 
 procedure TTestSceneCore.TestBorderManifoldEdges;
 var
@@ -189,6 +193,7 @@ begin
   CheckIterator('castle-data:/switches_and_transforms_2.x3dv');
   CheckIterator('castle-data:/key_sensor_2.x3dv');
   CheckIterator('castle-data:/extrusion_empty_spine.x3dv');
+  CheckIterator('castle-data:/extrusion_empty_cross_section.x3dv');
   CheckIterator('castle-data:/extrusion_empty_spine_concave.x3dv');
   CheckIterator('castle-data:/extrusion_empty_spine_smooth.x3dv');
 
@@ -206,6 +211,12 @@ procedure TTestSceneCore.TestFind;
 var
   Scene: TCastleSceneCore;
 begin
+  if not CanCatchExceptions then
+  begin
+    AbortTest;
+    Exit;
+  end;
+
   Scene := TCastleSceneCore.Create(nil);
   try
     try
@@ -344,6 +355,12 @@ var
   Node: TX3DRootNode;
   Scene1, Scene2: TCastleScene;
 begin
+  if not CanCatchExceptions then
+  begin
+    AbortTest;
+    Exit;
+  end;
+
   ApplicationProperties.OnWarning.Add({$ifdef FPC}@{$endif}NodeMultipleTimesWarning);
   try
     try
@@ -376,19 +393,19 @@ var
   Node: TX3DRootNode;
   Scene1, Scene2, SceneTemplate: TCastleScene;
 begin
-  { When using Static=true (FPC only because Static is deprecated),
+  { When using InternalNodesReadOnly (no longer available),
     it is allowed to have the same TX3DRootNode reused: }
+  (*
 
-  {$ifdef FPC}
   Node := nil;
   Scene1 := nil;
   Scene2 := nil;
   try
     Node := LoadNode('castle-data:/game/scene.x3d');
     Scene1 := TCastleScene.Create(nil);
-    Scene1.Static := true;
+    Scene1.InternalNodesReadOnly := true;
     Scene2 := TCastleScene.Create(nil);
-    Scene2.Static := true;
+    Scene2.InternalNodesReadOnly := true;
     Scene1.Load(Node, false);
     Scene2.Load(Node, false);
   finally
@@ -397,9 +414,9 @@ begin
     // Note: you must free Node after freeing Scene1,2
     FreeAndNil(Node);
   end;
-  {$endif}
+  *)
 
-  // Using DeepCopy you can overcome this limitation:
+  // Using DeepCopy you can also share node, without InternalNodesReadOnly
 
   Node := nil;
   Scene1 := nil;
@@ -416,7 +433,7 @@ begin
     FreeAndNil(Scene2);
   end;
 
-  // Using Clone you can overcome this limitation:
+  // Using Clone you can also share node, without InternalNodesReadOnly
 
   SceneTemplate := nil;
   Scene1 := nil;
@@ -487,6 +504,11 @@ procedure TTestSceneCore.TestLoadGzipped;
   end;
 
 begin
+  {$ifdef WASI} // TODO: web: it fails with "EZlibError: Compression stream seek error"
+  AbortTest;
+  Exit;
+  {$endif}
+
   TestSphere('castle-data:/gzipped_x3d/sphere.wrl');
   TestSphere('castle-data:/gzipped_x3d/sphere.wrl.gz');
   TestSphere('castle-data:/gzipped_x3d/sphere.wrz');
@@ -513,7 +535,7 @@ begin
     Scene.Load(Url);
     if not WarningFlag then
       Fail(Format('Expected to get some warning during loading of "%s"',
-        [URIDisplay(Url)]));
+        [UriDisplay(Url)]));
   finally
     ApplicationProperties.OnWarning.Remove({$ifdef FPC}@{$endif}OnWarningFlag);
   end;
@@ -1122,6 +1144,7 @@ begin
     { Test with Scene.RootNode = nil }
     AssertTrue(Scene.RootNode = nil);
 
+    if CanCatchExceptions then
     try
       Scene.Node(TX3DNode, 'Foo');
       Fail('This should have raised exception');
@@ -1133,6 +1156,7 @@ begin
     Scene.Load(RootNode, true);
     AssertTrue(Scene.RootNode <> nil);
 
+    if CanCatchExceptions then
     try
       Scene.Node(TX3DNode, 'Foo');
       Fail('This should have raised exception');
@@ -1140,6 +1164,7 @@ begin
 
     AssertTrue(Scene.Node(TX3DNode, 'Foo', [fnNilOnMissing]) = nil);
 
+    if CanCatchExceptions then
     try
       Scene.RootNode.FindNode(TX3DNode, 'Foo');
       Fail('This should have raised exception');
@@ -1148,14 +1173,151 @@ begin
     AssertTrue(Scene.RootNode.FindNode(TX3DNode, 'Foo', [fnNilOnMissing]) = nil);
 
     { Test fnOnlyActive: box is only in active subgraph }
+    if CanCatchExceptions then
     try
       Scene.RootNode.FindNode(TBoxNode, 'B', [fnOnlyActive]);
       Fail('This should have raised exception');
     except on E: EX3DNotFound do { valid response }; end;
+
     AssertTrue(Scene.RootNode.FindNode(TBoxNode, 'B', [fnOnlyActive, fnNilOnMissing]) = nil);
     AssertTrue(Scene.RootNode.FindNode(TBoxNode, 'B', []) <> nil);
     AssertTrue(Scene.RootNode.FindNode(TBoxNode, 'B', [fnNilOnMissing]) <> nil);
   finally FreeAndNil(Scene) end;
+end;
+
+procedure TTestSceneCore.TestGeometryNodesInShape;
+var
+  Scene: TCastleSceneCore;
+begin
+  Scene := TCastleSceneCore.Create(nil);
+  try
+    Scene.Url := 'castle-data:/geometry_not_in_shape.x3dv';
+  finally FreeAndNil(Scene) end;
+end;
+
+procedure TTestSceneCore.TestExposedTransforms;
+
+{ See also what testcase from https://github.com/castle-engine/castle-engine/issues/600
+  is doing. }
+
+var
+  Scene: TCastleSceneCore;
+  T1, T2: TCastleTransform;
+begin
+  Scene := TCastleSceneCore.Create(nil);
+  try
+    Scene.Load('castle-data:/exposed_transforms_names.x3dv');
+
+    T1 := TCastleTransform.Create(nil);
+    T1.Name := 'MyBoneName_123';
+    Scene.Add(T1);
+
+    T2 := TCastleTransform.Create(nil);
+    // Pascal component names must match bone names, but with invalid chars -> underscores
+    T2.Name := 'MyBoneName_with_spaces';
+    Scene.Add(T2);
+
+    AssertEquals(2, Scene.Count);
+
+    Scene.ExposeTransforms.AddStrings([
+      'MyBoneName_123',
+      // here we provide the bone name, not the Pascal component name, so spaces are OK
+      'MyBoneName with spaces'
+    ]);
+
+    // Make sure TCastleSceneCore.ExposeTransformsChange didn't create any new components
+    AssertEquals(2, Scene.Count);
+  finally
+    FreeAndNil(Scene);
+    FreeAndNil(T1);
+    FreeAndNil(T2);
+  end;
+end;
+
+(* InternalNodesReadOnly no longer available,
+  it was very cumbersome to implement.
+  Sharing nodes is just not possible across scenes now.
+
+procedure TTestSceneCore.TestInternalNodesReadOnly;
+var
+  RootNode: TX3DRootNode;
+  SomeShape: TShapeNode;
+  SomeGeometry: TSphereNode;
+  SceneNormal, SceneReadOnly: TCastleSceneCore;
+begin
+  // create simple X3D nodes graph
+  RootNode := TX3DRootNode.Create;
+  SomeGeometry := TSphereNode.Create;
+  SomeShape := TShapeNode.Create;
+  SomeShape.Geometry := SomeGeometry;
+  RootNode.AddChildren(SomeShape);
+
+  AssertTrue(RootNode.Scene = nil);
+  AssertTrue(SomeGeometry.Scene = nil);
+  AssertTrue(SomeShape.Scene = nil);
+
+  SceneNormal := TCastleSceneCore.Create(nil);
+  try
+    SceneNormal.Load(RootNode, true);
+    SceneNormal.ProcessEvents := true;
+
+    AssertTrue(RootNode.Scene = SceneNormal);
+    AssertTrue(SomeGeometry.Scene = SceneNormal);
+    AssertTrue(SomeShape.Scene = SceneNormal);
+
+    SceneReadOnly := TCastleSceneCore.Create(nil);
+    SceneReadOnly.InternalNodesReadOnly := true;
+    SceneReadOnly.Load(RootNode, true);
+
+    // nodes are still associated with SceneNormal, not SceneReadOnly
+    AssertTrue(RootNode.Scene = SceneNormal);
+    AssertTrue(SomeGeometry.Scene = SceneNormal);
+    AssertTrue(SomeShape.Scene = SceneNormal);
+
+    FreeAndNil(SceneReadOnly);
+
+    // nodes are still associated with SceneNormal, not SceneReadOnly. not nil
+    AssertTrue(RootNode.Scene = SceneNormal);
+    AssertTrue(SomeGeometry.Scene = SceneNormal);
+    AssertTrue(SomeShape.Scene = SceneNormal);
+  finally
+    FreeAndNil(SceneNormal);
+  end;
+
+  AssertTrue(RootNode.Scene = nil);
+  AssertTrue(SomeGeometry.Scene = nil);
+  AssertTrue(SomeShape.Scene = nil);
+end;
+*)
+
+procedure TTestSceneCore.TestValidScene;
+
+  procedure CheckScene(const Url: String);
+  var
+    Scene: TCastleSceneCore;
+  begin
+    Scene := TCastleSceneCore.Create(nil);
+    try
+      try
+        Scene.Load(Url);
+        Scene.TrianglesCount;
+        Scene.VerticesCount;
+        Scene.BoundingBox;
+      except
+        on E: Exception do
+        begin
+          E.Message := E.Message + ' (TestValidScene with Url: ' + Url + ')';
+          raise;
+        end;
+      end;
+    finally FreeAndNil(Scene) end;
+  end;
+
+begin
+  CheckScene('castle-data:/extrusion_empty_spine.x3dv');
+  CheckScene('castle-data:/extrusion_empty_cross_section.x3dv');
+  CheckScene('castle-data:/extrusion_empty_spine_concave.x3dv');
+  CheckScene('castle-data:/extrusion_empty_spine_smooth.x3dv');
 end;
 
 initialization

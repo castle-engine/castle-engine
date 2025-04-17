@@ -1,6 +1,6 @@
 // -*- compile-command: "./test_single_testcase.sh TTestCastleFilesUtils" -*-
 {
-  Copyright 2007-2022 Michalis Kamburelis.
+  Copyright 2007-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -17,11 +17,12 @@
 { Test OS-specific utilities mostly in CastleFilesUtils unit. }
 unit TestCastleFilesUtils;
 
+{$I ../../../src/common_includes/castleconf.inc}
+
 interface
 
 uses
-  Classes, SysUtils, {$ifndef CASTLE_TESTER}FpcUnit, TestUtils, TestRegistry,
-  CastleTestCase{$else}CastleTester{$endif};
+  Classes, SysUtils, CastleTester;
 
 type
   TTestCastleFilesUtils = class(TCastleTestCase)
@@ -31,12 +32,20 @@ type
     procedure TestTimer;
     {$ifdef UNIX} procedure TestHomePath; {$endif}
     procedure TestGetTempDir;
+    procedure TestApplicationData;
+    procedure TestCombinePaths;
+    { Test CombinePaths with BasePath relative.
+      CGE editor "new unit" depends on it when it does
+        FinalUnitRelative := CombinePaths(EditUnitDir.Text, LowerCase(EditUnitName.Text) + '.pas');
+        FinalDesignRelative := CombinePaths(EditDesignDir.Text, LowerCase(EditUnitName.Text) + '.castle-user-interface')
+    }
+    procedure TestCombinePathsRelative;
   end;
 
 implementation
 
-uses CastleUtils, CastleFindFiles, CastleFilesUtils, CastleTimeUtils
-  {$ifdef UNIX}, BaseUnix {$endif}{$ifndef FPC}, IOUtils{$endif};
+uses CastleUtils, CastleFindFiles, CastleFilesUtils, CastleTimeUtils, CastleLog
+  {$ifdef UNIX}, BaseUnix {$endif};
 
 procedure TTestCastleFilesUtils.TestPathDelim;
 begin
@@ -81,12 +90,17 @@ end;
 
 procedure TTestCastleFilesUtils.TestExeName;
 begin
+  // WebAssembly cannot catch exceptions, so it would make an error from ExeName
+  if not CanCatchExceptions then
+  begin
+    AbortTest;
+    Exit;
+  end;
+
   try
-    {$ifdef FPC}{$push} // knowingly using deprecated below, for test
-    {$warnings off}{$endif}
-//    Writeln('ExeName: '+ ExeName);
+    {$warnings off} // knowingly using deprecated below, for test
     ExeName;
-    {$ifdef FPC}{$pop}{$endif}
+    {$warnings on}
   except
     on E: EExeNameNotAvailable do
     begin
@@ -126,14 +140,60 @@ end;
 
 procedure TTestCastleFilesUtils.TestGetTempDir;
 begin
-//  Writeln('TempDir: ', GetTempDir);
-  {$ifdef FPC}
-  GetTempDir; // ignore result, just make sure it doesn't raise errors
-  {$else}
-  TPath.GetTempPath;
+  WritelnLog('GetTempDirectory: ', GetTempDirectory);
+  GetTempDirectory; // ignore result, just make sure it doesn't raise errors
+end;
+
+procedure TTestCastleFilesUtils.TestApplicationData;
+begin
+  AssertEquals('castle-data:/', ApplicationData(''));
+  AssertEquals('castle-data:/xxx/yyy', ApplicationData('xxx/yyy'));
+end;
+
+procedure TTestCastleFilesUtils.TestCombinePaths;
+begin
+  {$ifdef UNIX}
+  AssertEquals('/a/b', CombinePaths('/a', 'b'));
+  AssertEquals('/a/b', CombinePaths('/a/', 'b'));
+  AssertEquals('/b', CombinePaths('/a/', '/b'));
+
+  AssertEquals('/a/b/c', CombinePaths('/a/b', 'c'));
+  AssertEquals('/a/b/c', CombinePaths('/a', 'b/c'));
+  AssertEquals('/a/b/c', CombinePaths('/a', './b/c'));
+
+  // check ../ handling
+  AssertEquals('/b/c', CombinePaths('/a', '../b/c'));
+  {$endif}
+
+  {$ifdef MSWINDOWS}
+  AssertEquals('c:\a\b', CombinePaths('c:\a', 'b'));
+  AssertEquals('c:\a\b', CombinePaths('c:\a\', 'b'));
+  AssertEquals('c:\b', CombinePaths('c:\a\', 'c:\b'));
+
+  AssertEquals('c:/a\b', CombinePaths('c:/a', 'b'));
+  AssertEquals('c:/a/b', CombinePaths('c:/a/', 'b'));
+  AssertEquals('c:/b', CombinePaths('c:/a/', 'c:/b'));
   {$endif}
 end;
 
+procedure TTestCastleFilesUtils.TestCombinePathsRelative;
+begin
+  {$ifdef UNIX}
+  AssertEquals('a/b', CombinePaths('a', 'b'));
+  AssertEquals('a/b/c', CombinePaths('a/b', 'c'));
+  AssertEquals('c', CombinePaths('', 'c'));
+  {$endif}
+
+  {$ifdef MSWINDOWS}
+  AssertEquals('a\b', CombinePaths('a', 'b'));
+  AssertEquals('a/b\c', CombinePaths('a/b', 'c'));
+  AssertEquals('c', CombinePaths('', 'c'));
+
+  // check special case when RelPath is absolute on drive, but without drive letter
+  AssertEquals('x:/foo', CombinePaths('x:/bar', '/foo'));
+  AssertEquals('x:\foo', CombinePaths('x:\bar', '\foo'));
+  {$endif}
+end;
 
 initialization
   RegisterTest(TTestCastleFilesUtils);

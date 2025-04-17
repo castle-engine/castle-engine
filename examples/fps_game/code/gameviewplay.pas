@@ -22,7 +22,8 @@ uses Classes, CastleCameras,
   CastleVectors, CastleUIControls, CastleControls, CastleKeysMouse,
   CastleViewport, CastleSceneCore, X3DNodes, CastleScene, CastleSoundEngine,
   CastleBehaviors, CastleNotifications, CastleTransform,
-  GameEnemy;
+  // necessary to deserialize TCastleMoveAttack from design
+  CastleLivingBehaviors;
 
 type
   TViewPlay = class(TCastleView)
@@ -37,9 +38,9 @@ type
     BoxDieDetect, BoxWinDetect: TCastleTransform;
     DesignHud: TCastleDesign;
     MapCamera: TCastleCamera;
+    PlayerLiving: TCastleLiving;
   private
     PersistentMouseLook: Boolean;
-    Enemies: TEnemyList;
 
     { components in DesignHud }
     LabelFps: TCastleLabel;
@@ -73,11 +74,6 @@ begin
 end;
 
 procedure TViewPlay.Start;
-var
-  SceneName: String;
-  SceneEnemy: TCastleScene;
-  Enemy: TEnemy;
-  I: Integer;
 begin
   inherited;
 
@@ -85,21 +81,6 @@ begin
   LabelFps := DesignHud.DesignedComponent('LabelFps') as TCastleLabel;
   MainNotifications := DesignHud.DesignedComponent('MainNotifications') as TCastleNotifications;
   MapViewport := DesignHud.DesignedComponent('MapViewport') as TCastleViewport;
-
-  Enemies := TEnemyList.Create(true);
-
-  for I := 1 to 7 do
-  begin
-    SceneName := 'SceneKnight' + IntToStr(I);
-    try
-      SceneEnemy := DesignedComponent(SceneName) as TCastleScene;
-      Enemy := TEnemy.Create(FreeAtStop);
-      SceneEnemy.AddBehavior(Enemy);
-    except
-      on EComponentNotFound do
-        WritelnWarning('Cannot find "%s"', [SceneName]);
-    end;
-  end;
 
   MapViewport.Items := MainViewport.Items;
   MapViewport.Camera := MapCamera;
@@ -109,7 +90,6 @@ end;
 
 procedure TViewPlay.Stop;
 begin
-  FreeAndNil(Enemies);
   inherited;
 end;
 
@@ -169,7 +149,7 @@ end;
 
 function TViewPlay.Press(const Event: TInputPressRelease): Boolean;
 var
-  HitEnemy: TEnemy;
+  HitLiving: TCastleLiving;
   PlayAnimationParams: TPlayAnimationParameters;
 begin
   Result := inherited;
@@ -201,13 +181,17 @@ begin
 
       { We clicked on enemy if
         - TransformUnderMouse indicates we hit something
-        - It has a behavior of TEnemy. }
+        - It has a behavior of TCastleLiving
+        - It's not PlayerLiving. }
       if (MainViewport.TransformUnderMouse <> nil) and
-         (MainViewport.TransformUnderMouse.FindBehavior(TEnemy) <> nil) then
+         (MainViewport.TransformUnderMouse.FindBehavior(TCastleLiving) <> nil) then
       begin
-        HitEnemy := MainViewport.TransformUnderMouse.FindBehavior(TEnemy) as TEnemy;
-        HitEnemy.Hurt;
-        MainNotifications.Show('Killed ' + HitEnemy.Parent.Name);
+        HitLiving := MainViewport.TransformUnderMouse.FindBehavior(TCastleLiving) as TCastleLiving;
+        if HitLiving <> PlayerLiving then
+        begin
+          HitLiving.Hurt(20 + Random(20), MainViewport.Camera.WorldDirection, 0, PlayerLiving);
+          MainNotifications.Show('Hit ' + HitLiving.Parent.Name);
+        end;
       end;
 
       Exit(true);

@@ -5,6 +5,9 @@ Specify basic information about the project, including how this project is build
 See https://castle-engine.io/project_manifest for documentation of this file.
 -->
 
-<project name="image_compare" standalone_source="image_compare.dpr">
+<project name="image_compare"
+  standalone_source="image_compare.dpr"
+  qualified_name="io.castleengine.image.compare"
+>
   <data exists="false" />
 </project>

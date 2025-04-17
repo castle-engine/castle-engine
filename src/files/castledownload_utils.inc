@@ -31,21 +31,21 @@
   in a buffered stream with full seeking capability.
 
   @deprecated Instead of this, use @link(Download) with [soForceMemoryStream]. }
-function CreateReadFileStream(const URL: string): TStream; deprecated 'use Download(URL, [soForceMemoryStream])';
+function CreateReadFileStream(const Url: String): TStream; deprecated 'use Download(Url, [soForceMemoryStream])';
 
-{ Save the contents of given Stream to an URL. }
-procedure StreamSaveToFile(Stream: TStream; const URL: string);
+{ Save the contents of given Stream to an Url. }
+procedure StreamSaveToFile(Stream: TStream; const Url: String);
 
 {$endif}
 
 {$ifdef read_implementation}
 
-function CreateReadFileStream(const URL: string): TStream;
+function CreateReadFileStream(const Url: String): TStream;
 begin
-  Result := Download(URL, [soForceMemoryStream]);
+  Result := Download(Url, [soForceMemoryStream]);
 end;
 
-procedure StreamSaveToFile(Stream: TStream; const URL: string);
+procedure StreamSaveToFile(Stream: TStream; const Url: String);
 const
   BufSize = 100000;
 var
@@ -56,13 +56,13 @@ begin
   { optimized implementation for TMemoryStream }
   if Stream is TMemoryStream then
   begin
-    TMemoryStream(Stream).SaveToFile(URIToFilenameSafe(URL));
+    TMemoryStream(Stream).SaveToFile(UriToFilenameSafe(Url));
     Exit;
   end;
 
   Buffer := GetMem(BufSize);
   try
-    S := URLSaveStream(URL);
+    S := UrlSaveStream(Url);
     try
       repeat
         ReadCount := Stream.Read(Buffer^, BufSize);

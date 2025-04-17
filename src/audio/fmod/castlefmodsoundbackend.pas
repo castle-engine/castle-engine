@@ -39,7 +39,7 @@ procedure UseFMODSoundBackend;
 implementation
 
 uses SysUtils, Classes, Math, StrUtils, CTypes,
-  CastleVectors, CastleTimeUtils, CastleLog, CastleUtils, CastleURIUtils,
+  CastleVectors, CastleTimeUtils, CastleLog, CastleUtils, CastleUriUtils,
   CastleClassUtils, CastleStringUtils, CastleInternalSoundFile,
   CastleInternalAbstractSoundBackend, CastleSoundBase, CastleSoundEngine,
   {$ifdef ANDROID} JNI, CastleAndroidNativeAppGlue, CastleAndroidInternalAssetStream, {$endif}
@@ -52,7 +52,7 @@ type
   strict private
     FDuration: TFloatTime;
     FDataFormat: TSoundDataFormat;
-    FFrequency: LongWord;
+    FFrequency: Cardinal;
   private
     FSoundLoading: TSoundLoading;
     FMODSound: PFMOD_SOUND;
@@ -60,11 +60,11 @@ type
   public
     constructor Create(const ASoundEngine: TSoundEngineBackend;
       const ASoundLoading: TSoundLoading);
-    procedure ContextOpen(const AURL: String); override;
+    procedure ContextOpen(const AUrl: String); override;
     procedure ContextClose; override;
     function Duration: TFloatTime; override;
     function DataFormat: TSoundDataFormat; override;
-    function Frequency: LongWord; override;
+    function Frequency: Cardinal; override;
   end;
 
   TFMODSoundSourceBackend = class(TSoundSourceBackend)
@@ -169,7 +169,7 @@ begin
   Result := (SoundEngine as TFMODSoundEngineBackend).FMODSystem;
 end;
 
-procedure TFMODSoundBufferBackend.ContextOpen(const AURL: String);
+procedure TFMODSoundBufferBackend.ContextOpen(const AUrl: String);
 var
   TimeStart: TCastleProfilerTime;
 
@@ -187,7 +187,7 @@ var
     else
       FDuration := Miliseconds / 1000;
     if FDuration = 0 then
-      WritelnWarning('Cannot determine correct duration of sound file "%s"', [URIDisplay(AURL)]);
+      WritelnWarning('Cannot determine correct duration of sound file "%s"', [UriDisplay(AUrl)]);
 
     // calculate FFrequency.
     CheckFMOD(FMOD_Sound_GetLength(FMODSound, @PcmSamples, FMOD_TIMEUNIT_PCM));
@@ -212,7 +212,7 @@ var
 
     if LogSoundLoading then
       WritelnLog('FMOD loaded "%s": type %s, format: %s, channels: %d, bits: %d (%s), frequency: %d, duration: %f', [
-        URIDisplay(AURL),
+        UriDisplay(AUrl),
         SoundTypeToStr(SoundType),
         SoundFormatToStr(SoundFormat),
         SoundChannels,
@@ -228,11 +228,11 @@ var
   FmodName: String;
 begin
   inherited;
-  TimeStart := Profiler.Start('Loading "' + URIDisplay(AURL) + '" (TFMODSoundBufferBackend)');
+  TimeStart := Profiler.Start('Loading "' + UriDisplay(AUrl) + '" (TFMODSoundBufferBackend)');
   try
-    FmodName := ResolveCastleDataURL(URL); // resolve castle-data:/, as FMOD cannot understand it
+    FmodName := ResolveCastleDataUrl(Url); // resolve castle-data:/, as FMOD cannot understand it
     if URIProtocol(FmodName) = 'file' then
-      FmodName := URIToFilenameSafe(FmodName) // resolve file:/, as FMOD cannot understand it
+      FmodName := UriToFilenameSafe(FmodName) // resolve file:/, as FMOD cannot understand it
     {$ifdef ANDROID}
     else
     if URIProtocol(FmodName) = 'castle-android-assets' then
@@ -274,7 +274,7 @@ begin
   Result := FDataFormat;
 end;
 
-function TFMODSoundBufferBackend.Frequency: LongWord;
+function TFMODSoundBufferBackend.Frequency: Cardinal;
 begin
   Result := FFrequency;
 end;
@@ -459,7 +459,7 @@ begin
   { TODO: although we pass it to FMOD, we also manually manage limited sources
     in TSoundAllocator.
     We should instead allocate many sound sources (MaxAllocatedSources large?)
-    at let FMOD to do its job. }
+    and let FMOD to do its job. }
 
   if FMODChannel = nil then Exit;
   CheckFMOD(FMOD_Channel_SetPriority(FMODChannel, Round(Value * 256)));

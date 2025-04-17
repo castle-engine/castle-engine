@@ -19,8 +19,8 @@ unit ToolIOS;
 interface
 
 uses Classes,
-  CastleUtils, CastleStringUtils,
-  ToolUtils, ToolArchitectures, ToolCompile, ToolProject, ToolPackageFormat,
+  CastleUtils, CastleStringUtils, CastleInternalArchitectures,
+  ToolUtils, ToolCompile, ToolProject, ToolPackageFormat,
   ToolManifest;
 
 var
@@ -63,7 +63,7 @@ procedure MergeIOSInfoPlist(const Source, Destination: string;
 implementation
 
 uses SysUtils, DOM,
-  CastleImages, CastleURIUtils, CastleLog, CastleFilesUtils, CastleXMLUtils,
+  CastleImages, CastleUriUtils, CastleLog, CastleFilesUtils, CastleXmlUtils,
   ToolEmbeddedImages, ToolIosPbxGeneration, ToolServices, ToolCommonUtils,
   ToolServicesOperations;
 
@@ -122,7 +122,10 @@ begin
 
   if IosSimulatorSupport then
   begin
-    CompileLibrary(iphonesim, i386);
+    { iPhoneSimulator for i386 is not useful, since
+      - macOS on i386 is no longer supported
+      - fpcupdeluxe seems to not even allow making FPC cross-compiler for iPhoneSimulator on i386 }
+    //CompileLibrary(iphonesim, i386);
     CompileLibrary(iphonesim, x86_64);
   end;
   CompileLibrary(iOS, arm);
@@ -140,7 +143,10 @@ begin
     Options.Add(OutputFile);
     if IosSimulatorSupport then
     begin
-      Options.Add(CompilationOutputPath(Compiler, iphonesim, i386   , CompilationWorkingDirectory) + IOSPartialLibraryName);
+      { iPhoneSimulator for i386 is not useful, since
+        - macOS on i386 is no longer supported
+        - fpcupdeluxe seems to not even allow making FPC cross-compiler for iPhoneSimulator on i386 }
+      //Options.Add(CompilationOutputPath(Compiler, iphonesim, i386   , CompilationWorkingDirectory) + IOSPartialLibraryName);
       Options.Add(CompilationOutputPath(Compiler, iphonesim, x86_64 , CompilationWorkingDirectory) + IOSPartialLibraryName);
     end;
     Options.Add(CompilationOutputPath(Compiler, iOS   , arm    , CompilationWorkingDirectory) + IOSPartialLibraryName);
@@ -171,7 +177,7 @@ var
       TemplatePath := 'ios/services/' + ServiceName + '/';
       Project.ExtractTemplate(TemplatePath, XcodeProject);
 
-      if URIFileExists(ApplicationData(TemplatePath + 'Podfile')) then
+      if URIFileExists('castle-data:/' + TemplatePath + 'Podfile') then
       begin
         if Verbose then
           Writeln(Format('Service "%s" requires using CocoaPods. Make sure you have CocoaPods ( https://cocoapods.org/ ) installed.',
@@ -214,7 +220,7 @@ var
           'Images.xcassets' + PathDelim +
           'AppIcon.appiconset' + PathDelim +
           'icon-' + IntToStr(Size) + '.png';
-        SaveImage(R, FilenameToURISafe(XcodeProject + OutputFile));
+        SaveImage(R, FilenameToUriSafe(XcodeProject + OutputFile));
         if Verbose then
           Writeln('Packaging generated icon file: ' + OutputFile);
       finally FreeAndNil(R) end;
@@ -256,7 +262,7 @@ var
   begin
     if Project.IOSHasLaunchImageStoryboard then
     begin
-      ProjectOutputUrl := FilenameToURISafe(XcodeProject + Project.Name + PathDelim);
+      ProjectOutputUrl := FilenameToUriSafe(XcodeProject + Project.Name + PathDelim);
 
       Storyboard := FileToString('castle-data:/ios/Launch%20Screen.storyboard');
       Storyboard := Project.ReplaceMacros(Storyboard);
@@ -266,8 +272,8 @@ var
         Project.LaunchImageStoryboard.BaseUrl,
         Project.LaunchImageStoryboard.Path);
       CheckCopyFile(
-        URIToFilenameSafe(ImageUrl),
-        URIToFilenameSafe(ProjectOutputUrl + 'LaunchScreenImage.png'));
+        UriToFilenameSafe(ImageUrl),
+        UriToFilenameSafe(ProjectOutputUrl + 'LaunchScreenImage.png'));
     end;
   end;
 
@@ -320,7 +326,7 @@ var
           'Images.xcassets' + PathDelim +
           'LaunchImage.launchimage' + PathDelim +
           'launch-image-' + IntToStr(Width) + 'x' + IntToStr(Height) + '.png';
-        SaveImage(R, FilenameToURISafe(XcodeProject + OutputFile));
+        SaveImage(R, FilenameToUriSafe(XcodeProject + OutputFile));
         // it's already reported by FindBestMatching
         // if Verbose then
         //   Writeln('Packaging generated launch icon file: ' + OutputFile);
@@ -336,9 +342,9 @@ var
     Default2048x1536 := nil;
     LaunchImages := TCastleImageList.Create(true);
     try
-      Default640x1136 := LoadImage(ApplicationData('default_launch_images/DefaultLaunchImage640x1136.png'));
-      Default1536x2048 := LoadImage(ApplicationData('default_launch_images/DefaultLaunchImage1536x2048.png'));
-      Default2048x1536 := LoadImage(ApplicationData('default_launch_images/DefaultLaunchImage2048x1536.png'));
+      Default640x1136 := LoadImage('castle-data:/default_launch_images/DefaultLaunchImage640x1136.png');
+      Default1536x2048 := LoadImage('castle-data:/default_launch_images/DefaultLaunchImage1536x2048.png');
+      Default2048x1536 := LoadImage('castle-data:/default_launch_images/DefaultLaunchImage2048x1536.png');
 
       for I := 0 to Project.LaunchImages.Count - 1 do
         LaunchImages.Add(LoadImage(Project.LaunchImages[I]));
@@ -366,7 +372,7 @@ var
   procedure FixPbxProjectFile;
   var
     PbxProject: TXcodeProject;
-    PBXContentsGenerated, PBX, PBXFileUrl: string;
+    PBXContentsGenerated, PBX, PBXFileUrl: String;
   begin
     PbxProject := TXcodeProject.Create;
     try
@@ -394,7 +400,7 @@ var
       // process macros inside PBXContentsGenerated, to replace ${NAME} etc. inside
       PBXContentsGenerated := Project.ReplaceMacros(PBXContentsGenerated);
 
-      PBXFileUrl := FilenameToURISafe(
+      PBXFileUrl := FilenameToUriSafe(
         XcodeProject + Project.Name + '.xcodeproj' + PathDelim + 'project.pbxproj');
       PBX := FileToString(PBXFileUrl);
       StringReplaceAllVar(PBX, '${PBX_CONTENTS_GENERATED}', PBXContentsGenerated, false);
@@ -416,7 +422,14 @@ var
   procedure GenerateCocoaPods;
   begin
     if UsesCocoaPods then
-      RunCommandSimple(XcodeProject, 'pod', ['install']);
+    begin
+      { If current binary architecture is x86_64, use CocoaPods native binaries
+        also with x86_64 architecture. }
+      if DefaultCPU = x86_64 then
+        RunCommandSimple(XcodeProject, 'arch', ['-x86_64', 'pod', 'install'])
+      else
+        RunCommandSimple(XcodeProject, 'pod', ['install']);
+    end;
   end;
 
 begin
@@ -608,7 +621,7 @@ begin
 
   CreateCode := Format(CreateTemplate, [CreateClass]);
 
-  DestinationContents := FileToString(FilenameToURISafe(Destination));
+  DestinationContents := FileToString(FilenameToUriSafe(Destination));
   InsertAtMarker(MarkerImport, Import);
   InsertAtMarker(MarkerCreate, CreateCode);
   StringToFile(Destination, DestinationContents);
@@ -636,10 +649,10 @@ var
 begin
   SourceContents := NL +
     '# ---- Inserted contents of ' + Source + NL +
-    Trim(ReplaceMacros(FileToString(FilenameToURISafe(Source)))) + NL +
+    Trim(ReplaceMacros(FileToString(FilenameToUriSafe(Source)))) + NL +
     '# ---- End of inserted contents of ' + Source + NL + NL;
 
-  DestinationContents := FileToString(FilenameToURISafe(Destination));
+  DestinationContents := FileToString(FilenameToUriSafe(Destination));
   InsertAtMarker(Marker, SourceContents);
   StringToFile(Destination, DestinationContents);
 end;
@@ -666,10 +679,10 @@ var
 begin
   SourceContents := NL +
     '<!-- Inserted contents of ' + Source + ' -->' + NL +
-    Trim(ReplaceMacros(FileToString(FilenameToURISafe(Source)))) + NL +
+    Trim(ReplaceMacros(FileToString(FilenameToUriSafe(Source)))) + NL +
     '<!-- End of inserted contents of ' + Source + ' -->' + NL + NL;
 
-  DestinationContents := FileToString(FilenameToURISafe(Destination));
+  DestinationContents := FileToString(FilenameToUriSafe(Destination));
   InsertAtMarker(Marker, SourceContents);
   StringToFile(Destination, DestinationContents);
 end;

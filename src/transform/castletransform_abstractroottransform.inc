@@ -56,7 +56,7 @@
     function IgnoreTransparentItem(
       const Sender: TObject; const Triangle: PTriangle): Boolean; virtual; abstract;
   public
-    OnCursorChange: TNotifyEvent;
+    InternalOnNodesFree: TNotifyEvent;
 
     { Event to render whole world.
       Used by generated textures to update their contents.
@@ -88,6 +88,21 @@
     procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
     procedure CustomSerialization(const SerializationProcess: TSerializationProcess); override;
+
+    { Update everything when time passes, in particular updating physics.
+      This makes physics recalculation and updates rigid bodies transformations.
+      It also calls any other TCastleTransform.Update work.
+
+      Use this to simulate the passage of time without actually displaying
+      the updated viewport. Useful e.g. to record the physics simulation
+      results (to later play them back), see
+      https://github.com/castle-engine/castle-dice-throwing .
+
+      Contrary to just @link(Update), this always makes the processing,
+      doesn't check did TFramesPerSecond.FrameId changed.
+      This also doesn't check @link(Exists), so can be called even on non-existing
+      viewport. }
+    procedure UpdateIncreaseTime(const SecondsPassed: Single);
 
     { @exclude
       TCastleTransform instances that listen on press/release.
@@ -177,7 +192,7 @@
       and @link(Exists) equal @true (using @link(CheckCollides)). }
     function WorldLineOfSight(const Pos1, Pos2: TVector3): boolean;
 
-    { What is hit by this ray.
+    { First object hit by the ray.
 
       This checks collisions with world
       (everything inside this @link(TCastleAbstractRootTransform)).
@@ -186,7 +201,8 @@
       and @link(Exists) equal @true (using @link(CheckCollides)). }
     function WorldRay(const RayOrigin, RayDirection: TVector3): TRayCollision;
 
-    { What is hit by this ray.
+    { First object hit by the ray.
+
       Returns the TCastleTransform that is hit (this is the "leaf" TCastleTransform
       in the TCastleTransform tree that is hit)
       and a distance from RayOrigin to the hit point.
@@ -247,7 +263,7 @@
       and @link(Exists) equal @true (using @link(CheckCollides)). }
     function WorldPointCollision2D(const Point: TVector2): boolean;
 
-    { Cast a ray using physics engine, see what is hit.
+    { First object hit by the ray, calculated using the physics engine.
 
       Returns the TPhysicsRayCastResult record.
       Read TPhysicsRayCastResult.Hit (boolean), TPhysicsRayCastResult.Transform
@@ -686,10 +702,22 @@ end;
 procedure TCastleAbstractRootTransform.CustomSerialization(
   const SerializationProcess: TSerializationProcess);
 
+  function InternalViewport: TComponent;
+  begin
+    { This is a quick hack, assuming Owner = containing TCastleViewport.
+      It's in practice mostly OK (the only case when TCastleAbstractRootTransform
+      is created is from TCastleViewport, TODO: unless user would create
+      it manually which is allowed).
+      And there's no big harm if we make mistake (only ViewportCaption will be wrong,
+      which is only used for debug message). }
+    Result := Owner;
+  end;
+
   function ViewportCaption: String;
   begin
-    if (Owner <> nil) and (Owner.Name <> '') then
-      Result := '"' + Owner.Name + '.Items"'
+    if (InternalViewport <> nil) and
+       (InternalViewport.Name <> '') then
+      Result := '"' + InternalViewport.Name + '.Items"'
     else
       Result := 'TCastleViewport.Items';
   end;

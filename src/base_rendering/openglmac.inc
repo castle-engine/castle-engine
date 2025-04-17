@@ -1,13 +1,13 @@
 { Some OpenGL defines. }
 
-{$ifdef MSWINDOWS}
-  {$define OPENGL_STDCALL}
+{ OPENGL_CALLBACK_xxx define calling convention for OpenGL callbacks.
+  Right now this is only used for CallbackGLDebug with glDebugMessageCallback. }
+{$if defined(MSWINDOWS)}
   {$define OPENGL_CALLBACK_STDCALL}
+{$elseif defined(UNIX)}
+  {$define OPENGL_CALLBACK_CDECL}
+{$elseif defined(WASI)}
+  {$define OPENGL_CALLBACK_DEFAULT}
 {$else}
-  {$ifdef UNIX}
-    {$define OPENGL_CDECL}
-    {$define OPENGL_CALLBACK_CDECL}
-  {$else}
-    {$fatal Define OPENGL_CALLBACK_CALL in OpenGLMac.inc}
-  {$endif}
+  {$message fatal 'Define OPENGL_CALLBACK_xxx in openglmac.inc for this platform'}
 {$endif}

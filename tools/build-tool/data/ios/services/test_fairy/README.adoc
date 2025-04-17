@@ -14,19 +14,16 @@ Note about `CastleTestFairy` unit: on iOS, use it *only* if you use `test_fairy`
 
 ### Parameters
 
-You need to specify additional parameters inside `CastleEngineManifest.xml` when using this service:
+You need to specify _"SDK App Token"_ inside https://castle-engine.io/project_manifest[CastleEngineManifest.xml] when using this service:
 
 [source,xml]
 ----
 <service name="test_fairy">
-  <parameter key="domain" value="xxxxxx" />
   <parameter key="sdk_app_token" value="SDK-yyyyyy" />
 </service>
 ----
 
-The "domain" parameter above is the initial component of your TestFairy domain name. E.g. if you login to `https://catgames.testfairy.com/` , then use `<parameter name="domain" name="catgames" />`.
-
-Get your "SDK App Token" from your dashboard settings (accessible like `https://catgames.testfairy.com/settings` , but make sure to change the domain in this URL).
+Get your "SDK App Token" from your https://app.testfairy.com/settings[TestFairy dashboard settings].
 
 ## Optional: Remote logging of NSLog
 

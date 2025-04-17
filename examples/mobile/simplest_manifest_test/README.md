@@ -26,6 +26,6 @@ Using [Castle Game Engine](https://castle-engine.io/).
 
 Compile by:
 
-- [CGE editor](https://castle-engine.io/manual_editor.php). Just use menu item _"Compile"_.
+- [CGE editor](https://castle-engine.io/editor). Just use menu items _"Compile"_ or _"Compile And Run"_.
 
 - Or use [CGE command-line build tool](https://castle-engine.io/build_tool). Run `castle-engine compile` in this directory.

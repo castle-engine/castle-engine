@@ -1,15 +1,36 @@
 ## google_play_games
 
-Enable the https://developers.google.com/games/services/[Google Play Games Services]. Use the https://castle-engine.io/apidoc/html/CastleGameService.TGameService.html[TGameService] class from the https://castle-engine.io/apidoc/html/CastleGameService.html[CastleGameService] unit in Pascal to initialize and use it, for example to sign-in, _send scores and achievements, view achievements and leaderboards, load and save savegames in the cloud_.
+Enable the https://developers.google.com/games/services/[Google Play Games Services]. Use the https://castle-engine.io/apidoc/html/CastleGameService.TGameService.html[TGameService] class from the https://castle-engine.io/apidoc/html/CastleGameService.html[CastleGameService] unit in Pascal to
 
-Requires:
+- sign-in,
+- send scores (to leaderboards),
+- send achievements,
+- view achievements and leaderboards,
+- load and save savegames in the "cloud" (on Google servers).
 
-* Using this service requires using also `google_play_services`
-* You must create a project in _"Game Services"_ section of the _"Google Developer Console"_. This will give you a special "app_id" for your project. In order for the integration to work, you need to specify this app_id in our link:pass:[CastleEngineManifest.xml examples][CastleEngineManifest.xml], like this:
-+
+## Configure Game Services in the Google Play Console
+
+In order to use this, first you need to create a project in the _"Game Services"_ section of the https://play.google.com/console/[Google Play Console] for your app.
+
+You should read and follow the instructions from https://developers.google.com/games/services/v1/android/quickstart[Google Play Games Services Quickstart] to set up your project correctly. You need to configure your application and all the metadata (achievements, leaderboards, etc.) in the https://play.google.com/console/[Google Play Console].
+
+NOTE: Following Google docs, note that calls to _Play Games SDK_ for an unpublished game (by using an account that's not listed as a test account) will fail. Google Play games services will behave as if the game did not exist. Take this into account when testing -- either publish the game, or make sure you use a "test account" marked as such in Google.
+
+If you want to use "savegames" feature (to store savegames on Google servers) be sure to https://developers.google.com/games/services/console/configuring#enabling_saved_games[enable "Saved Games" feature in the Google Play Console].
+
+Configuring the project in the https://play.google.com/console/[Google Play Console] will give you:
+
+- application identifier (`app_id`) to use below
+
+- internal identifiers for all achievements and leaderboards.
+
+## Usage in Castle Game Engine
+
+In the link:pass:[CastleEngineManifest.xml examples][CastleEngineManifest.xml] of your project, use the `google_play_games` and `google_play_services` services as below. Replace the `PASTE-APP-ID-HERE` placeholder below with your actual application identifier you got above.
+
 [,xml]
 ----
-<android project_type="integrated">
+<android>
   <services>
     <service name="google_play_services" />
     <service name="google_play_games">
@@ -18,5 +39,16 @@ Requires:
   </services>
 </android>
 ----
-+
-After this, you need to call from Pascal code `GameService.Initialize` to connect to _Google Play Games_ when you want (usually, at the beginning of your game: from `TCastleApplication.OnInitialize`).
+
+From Pascal code use the https://castle-engine.io/apidoc/html/CastleGameService.html[CastleGameService] unit and the class https://castle-engine.io/apidoc/html/CastleGameService.TGameService.html[TGameService]. In the most common case, you just:
+
+- Create a single instance of the class `TGameService` and use it throughout your code, like `MyGameService := TGameService.Create(Application);`.
+
+- Call `MyGameService.Initialize` to connect to the _Google Play Games_ when you want. You usually call this at the beginning of your game, from `TCastleApplication.OnInitialize`.
+
+- Use other `TGameService` methods, like https://castle-engine.io/apidoc/html/CastleGameService.TGameService.html#Achievement-string-[Achievement] and https://castle-engine.io/apidoc/html/CastleGameService.TGameService.html#SubmitScore-string-Int64-[SubmitScore] as needed.
+
+## Example
+
+See the example application in _Castle Game Engine_: https://github.com/castle-engine/castle-engine/tree/master/examples/mobile/game_services[examples/mobile/game_services].
+

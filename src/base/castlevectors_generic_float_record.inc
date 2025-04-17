@@ -1,6 +1,6 @@
 {%MainUnit castlevectors.pas}
 {
-  Copyright 2017-2022 Michalis Kamburelis.
+  Copyright 2017-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -113,9 +113,13 @@ type
       (scientific) notation to represent the floating-point value,
       if needed.
 
+      You can pass, as parameter, the format to use. By default it is '%g',
+      "general number format" with maximum precision documented on
+      https://www.freepascal.org/docs-html/rtl/sysutils/format.html .
+
       This is suitable for storing the value in a file,
       with a best precision possible. }
-    function ToRawString: string;
+    function ToRawString(const FloatFormat: String = '%g'): string;
 
     function Normalize: TGenericVector2; {$ifdef INLINE_GENERIC_VECTORS}inline;{$endif}
     procedure NormalizeMe; {$ifdef INLINE_GENERIC_VECTORS}inline;{$endif}
@@ -233,9 +237,13 @@ type
       (scientific) notation to represent the floating-point value,
       if needed.
 
+      You can pass, as parameter, the format to use. By default it is '%g',
+      "general number format" with maximum precision documented on
+      https://www.freepascal.org/docs-html/rtl/sysutils/format.html .
+
       This is suitable for storing the value in a file,
       with a best precision possible. }
-    function ToRawString: string;
+    function ToRawString(const FloatFormat: String = '%g'): string;
 
     function Normalize: TGenericVector3; {$ifdef INLINE_GENERIC_VECTORS}inline;{$endif}
     procedure NormalizeMe; {$ifdef INLINE_GENERIC_VECTORS}inline;{$endif}
@@ -379,9 +387,13 @@ type
       (scientific) notation to represent the floating-point value,
       if needed.
 
+      You can pass, as parameter, the format to use. By default it is '%g',
+      "general number format" with maximum precision documented on
+      https://www.freepascal.org/docs-html/rtl/sysutils/format.html .
+
       This is suitable for storing the value in a file,
       with a best precision possible. }
-    function ToRawString: string;
+    function ToRawString(const FloatFormat: String = '%g'): string;
 
     function Length: TGenericScalar; {$ifdef INLINE_GENERIC_VECTORS}inline;{$endif}
 
@@ -477,9 +489,13 @@ type
       (scientific) notation to represent the floating-point value,
       if needed.
 
+      You can pass, as parameter, the format to use. By default it is '%g',
+      "general number format" with maximum precision documented on
+      https://www.freepascal.org/docs-html/rtl/sysutils/format.html .
+
       This is suitable for storing the value in a file,
       with a best precision possible. }
-    function ToRawString(const LineIndent: string = ''): string;
+    function ToRawString(const LineIndent: String = ''; const FloatFormat: String = '%g'): String;
 
     property Items [const AColumn, ARow: TIndex]: TGenericScalar read GetItems write SetItems; default;
     property Rows [const ARow: TIndex]: TGenericVector2 read GetRows write SetRows;
@@ -567,9 +583,13 @@ type
       (scientific) notation to represent the floating-point value,
       if needed.
 
+      You can pass, as parameter, the format to use. By default it is '%g',
+      "general number format" with maximum precision documented on
+      https://www.freepascal.org/docs-html/rtl/sysutils/format.html .
+
       This is suitable for storing the value in a file,
       with a best precision possible. }
-    function ToRawString(const LineIndent: string = ''): string;
+    function ToRawString(const LineIndent: String = ''; const FloatFormat: String = '%g'): String;
 
     property Items [const AColumn, ARow: TIndex]: TGenericScalar read GetItems write SetItems; default;
     property Rows [const ARow: TIndex]: TGenericVector3 read GetRows write SetRows;
@@ -652,9 +672,13 @@ type
       (scientific) notation to represent the floating-point value,
       if needed.
 
+      You can pass, as parameter, the format to use. By default it is '%g',
+      "general number format" with maximum precision documented on
+      https://www.freepascal.org/docs-html/rtl/sysutils/format.html .
+
       This is suitable for storing the value in a file,
       with a best precision possible. }
-    function ToRawString(const LineIndent: string = ''): string;
+    function ToRawString(const LineIndent: String = ''; const FloatFormat: String = '%g'): String;
 
     property Items [const AColumn, ARow: TIndex]: TGenericScalar read GetItems write SetItems; default;
     property Rows [const ARow: TIndex]: TGenericVector4 read GetRows write SetRows;
@@ -725,6 +749,11 @@ implementation
 uses Math,
   CastleUtils;
 
+function FormatScalar(const Value: TGenericScalar; const Fmt: String): String;
+begin
+  Result := FormatDot(Fmt, [Value]);
+end;
+
 { TGenericVector2 ------------------------------------------------------------ }
 
 class operator TGenericVector2. {$ifdef FPC}+{$else}Add{$endif} (const A, B: TGenericVector2): TGenericVector2;
@@ -780,12 +809,16 @@ end;
 
 function TGenericVector2.ToString: string;
 begin
-  Result := FormatDot('%f %f', [X, Y]);
+  Result :=
+    FloatToStrDisplay(X) + ' ' +
+    FloatToStrDisplay(Y);
 end;
 
-function TGenericVector2.ToRawString: string;
+function TGenericVector2.ToRawString(const FloatFormat: String): string;
 begin
-  Result := FormatDot('%g %g', [X, Y]);
+  Result :=
+    FormatScalar(X, FloatFormat) + ' ' +
+    FormatScalar(Y, FloatFormat);
 end;
 
 function TGenericVector2.GetItems(const Index: TIndex): TGenericScalar;
@@ -879,8 +912,13 @@ end;
 
 function TGenericVector2.IsZero(const Epsilon: TGenericScalar): boolean;
 begin
-  Result := (System.Abs(X) < Epsilon) and
-            (System.Abs(Y) < Epsilon);
+  { Compare with Epsilon using " <= Epsilon", not stricter "< Epsilon",
+    1. for consistency with what FPC Math.SameValue and Math.IsZero do;
+       this also means that "Xxx.IsZero(SingleEpsilon)" and "Xxx.IsZero()"
+       do the same thing.
+    2. to make Epsilon = 0 sensible. }
+  Result := (System.Abs(X) <= Epsilon) and
+            (System.Abs(Y) <= Epsilon);
 end;
 
 function TGenericVector2.IsPerfectlyZero: boolean;
@@ -902,8 +940,8 @@ begin
   if Epsilon = 0 then
     Result := (V1.X = V2.X) and
               (V1.Y = V2.Y) else
-    Result := (System.Abs(V1.X-V2.X) < Epsilon) and
-              (System.Abs(V1.Y-V2.Y) < Epsilon);
+    Result := (System.Abs(V1.X-V2.X) <= Epsilon) and
+              (System.Abs(V1.Y-V2.Y) <= Epsilon);
 end;
 
 class function TGenericVector2.PerfectlyEquals(const V1, V2: TGenericVector2): boolean;
@@ -992,12 +1030,18 @@ end;
 
 function TGenericVector3.ToString: string;
 begin
-  Result := FormatDot('%f %f %f', [X, Y, Z]);
+  Result :=
+    FloatToStrDisplay(X) + ' ' +
+    FloatToStrDisplay(Y) + ' ' +
+    FloatToStrDisplay(Z);
 end;
 
-function TGenericVector3.ToRawString: string;
+function TGenericVector3.ToRawString(const FloatFormat: String): string;
 begin
-  Result := FormatDot('%g %g %g', [X, Y, Z]);
+  Result :=
+    FormatScalar(X, FloatFormat) + ' ' +
+    FormatScalar(Y, FloatFormat) + ' ' +
+    FormatScalar(Z, FloatFormat);
 end;
 
 function TGenericVector3.GetItems(const Index: TIndex): TGenericScalar;
@@ -1119,9 +1163,9 @@ end;
 
 function TGenericVector3.IsZero(const Epsilon: TGenericScalar): boolean;
 begin
-  Result := (System.Abs(X) < Epsilon) and
-            (System.Abs(Y) < Epsilon) and
-            (System.Abs(Z) < Epsilon);
+  Result := (System.Abs(X) <= Epsilon) and
+            (System.Abs(Y) <= Epsilon) and
+            (System.Abs(Z) <= Epsilon);
 end;
 
 function TGenericVector3.IsPerfectlyZero: boolean;
@@ -1146,9 +1190,9 @@ begin
     Result := (V1.X = V2.X) and
               (V1.Y = V2.Y) and
               (V1.Z = V2.Z) else
-    Result := (System.Abs(V1.X-V2.X) < Epsilon) and
-              (System.Abs(V1.Y-V2.Y) < Epsilon) and
-              (System.Abs(V1.Z-V2.Z) < Epsilon);
+    Result := (System.Abs(V1.X-V2.X) <= Epsilon) and
+              (System.Abs(V1.Y-V2.Y) <= Epsilon) and
+              (System.Abs(V1.Z-V2.Z) <= Epsilon);
 end;
 
 class function TGenericVector3.PerfectlyEquals(const V1, V2: TGenericVector3): boolean;
@@ -1247,12 +1291,20 @@ end;
 
 function TGenericVector4.ToString: string;
 begin
-  Result := FormatDot('%f %f %f %f', [X, Y, Z, W]);
+  Result :=
+    FloatToStrDisplay(X) + ' ' +
+    FloatToStrDisplay(Y) + ' ' +
+    FloatToStrDisplay(Z) + ' ' +
+    FloatToStrDisplay(W);
 end;
 
-function TGenericVector4.ToRawString: string;
+function TGenericVector4.ToRawString(const FloatFormat: String): string;
 begin
-  Result := FormatDot('%g %g %g %g', [X, Y, Z, W]);
+  Result :=
+    FormatScalar(X, FloatFormat) + ' ' +
+    FormatScalar(Y, FloatFormat) + ' ' +
+    FormatScalar(Z, FloatFormat) + ' ' +
+    FormatScalar(W, FloatFormat);
 end;
 
 function TGenericVector4.GetItems(const Index: TIndex): TGenericScalar;
@@ -1329,10 +1381,10 @@ end;
 
 function TGenericVector4.IsZero(const Epsilon: TGenericScalar): boolean;
 begin
-  Result := (System.Abs(X) < Epsilon) and
-            (System.Abs(Y) < Epsilon) and
-            (System.Abs(Z) < Epsilon) and
-            (System.Abs(W) < Epsilon);
+  Result := (System.Abs(X) <= Epsilon) and
+            (System.Abs(Y) <= Epsilon) and
+            (System.Abs(Z) <= Epsilon) and
+            (System.Abs(W) <= Epsilon);
 end;
 
 function TGenericVector4.IsPerfectlyZero: boolean;
@@ -1360,10 +1412,10 @@ begin
               (V1.Y = V2.Y) and
               (V1.Z = V2.Z) and
               (V1.W = V2.W) else
-    Result := (System.Abs(V1.X-V2.X) < Epsilon) and
-              (System.Abs(V1.Y-V2.Y) < Epsilon) and
-              (System.Abs(V1.Z-V2.Z) < Epsilon) and
-              (System.Abs(V1.W-V2.W) < Epsilon);
+    Result := (System.Abs(V1.X-V2.X) <= Epsilon) and
+              (System.Abs(V1.Y-V2.Y) <= Epsilon) and
+              (System.Abs(V1.Z-V2.Z) <= Epsilon) and
+              (System.Abs(V1.W-V2.W) <= Epsilon);
 end;
 
 class function TGenericVector4.PerfectlyEquals(const V1, V2: TGenericVector4): boolean;
@@ -1466,18 +1518,17 @@ end;
 
 function TGenericMatrix2.ToString(const LineIndent: string): string;
 begin
-  Result := FormatDot('%s%f %f' + NL +
-                      '%s%f %f',
-   [LineIndent, Data[0, 0], Data[1, 0],
-    LineIndent, Data[0, 1], Data[1, 1] ]);
+  Result := FormatDot('%s%s %s' + NL +
+                      '%s%s %s',
+   [LineIndent, FloatToStrDisplay(Data[0, 0]), FloatToStrDisplay(Data[1, 0]),
+    LineIndent, FloatToStrDisplay(Data[0, 1]), FloatToStrDisplay(Data[1, 1]) ]);
 end;
 
-function TGenericMatrix2.ToRawString(const LineIndent: string): string;
+function TGenericMatrix2.ToRawString(const LineIndent, FloatFormat: String): String;
 begin
-  Result := FormatDot('%s%g %g' + NL +
-                      '%s%g %g',
-   [LineIndent, Data[0, 0], Data[1, 0],
-    LineIndent, Data[0, 1], Data[1, 1] ]);
+  Result :=
+    LineIndent + FormatScalar(Data[0, 0], FloatFormat) + ' ' + FormatScalar(Data[1, 0], FloatFormat) + NL +
+    LineIndent + FormatScalar(Data[0, 1], FloatFormat) + ' ' + FormatScalar(Data[1, 1], FloatFormat);
 end;
 
 function TGenericMatrix2.GetItems(const AColumn, ARow: TIndex): TGenericScalar;
@@ -1586,11 +1637,11 @@ begin
     Result := CompareMem(@M1, @M2, SizeOf(M1))
   else
     Result :=
-      (System.Abs(M1.Data[0, 0] - M2.Data[0, 0]) < Epsilon) and
-      (System.Abs(M1.Data[0, 1] - M2.Data[0, 1]) < Epsilon) and
+      (System.Abs(M1.Data[0, 0] - M2.Data[0, 0]) <= Epsilon) and
+      (System.Abs(M1.Data[0, 1] - M2.Data[0, 1]) <= Epsilon) and
 
-      (System.Abs(M1.Data[1, 0] - M2.Data[1, 0]) < Epsilon) and
-      (System.Abs(M1.Data[1, 1] - M2.Data[1, 1]) < Epsilon);
+      (System.Abs(M1.Data[1, 0] - M2.Data[1, 0]) <= Epsilon) and
+      (System.Abs(M1.Data[1, 1] - M2.Data[1, 1]) <= Epsilon);
 end;
 
 class function TGenericMatrix2.PerfectlyEquals(const M1, M2: TGenericMatrix2): boolean;
@@ -1718,22 +1769,20 @@ end;
 
 function TGenericMatrix3.ToString(const LineIndent: string): string;
 begin
-  Result := FormatDot('%s%f %f %f' + NL +
-                      '%s%f %f %f' + NL +
-                      '%s%f %f %f',
-   [LineIndent, Data[0, 0], Data[1, 0], Data[2, 0],
-    LineIndent, Data[0, 1], Data[1, 1], Data[2, 1],
-    LineIndent, Data[0, 2], Data[1, 2], Data[2, 2] ]);
+  Result := FormatDot('%s%s %s %s' + NL +
+                      '%s%s %s %s' + NL +
+                      '%s%s %s %s',
+   [LineIndent, FloatToStrDisplay(Data[0, 0]), FloatToStrDisplay(Data[1, 0]), FloatToStrDisplay(Data[2, 0]),
+    LineIndent, FloatToStrDisplay(Data[0, 1]), FloatToStrDisplay(Data[1, 1]), FloatToStrDisplay(Data[2, 1]),
+    LineIndent, FloatToStrDisplay(Data[0, 2]), FloatToStrDisplay(Data[1, 2]), FloatToStrDisplay(Data[2, 2]) ]);
 end;
 
-function TGenericMatrix3.ToRawString(const LineIndent: string): string;
+function TGenericMatrix3.ToRawString(const LineIndent, FloatFormat: String): String;
 begin
-  Result := FormatDot('%s%g %g %g' + NL +
-                      '%s%g %g %g' + NL +
-                      '%s%g %g %g',
-   [LineIndent, Data[0, 0], Data[1, 0], Data[2, 0],
-    LineIndent, Data[0, 1], Data[1, 1], Data[2, 1],
-    LineIndent, Data[0, 2], Data[1, 2], Data[2, 2] ]);
+  Result :=
+    LineIndent + FormatScalar(Data[0, 0], FloatFormat) + ' ' + FormatScalar(Data[1, 0], FloatFormat) + ' ' + FormatScalar(Data[2, 0], FloatFormat) + NL +
+    LineIndent + FormatScalar(Data[0, 1], FloatFormat) + ' ' + FormatScalar(Data[1, 1], FloatFormat) + ' ' + FormatScalar(Data[2, 1], FloatFormat) + NL +
+    LineIndent + FormatScalar(Data[0, 2], FloatFormat) + ' ' + FormatScalar(Data[1, 2], FloatFormat) + ' ' + FormatScalar(Data[2, 2], FloatFormat);
 end;
 
 function TGenericMatrix3.GetItems(const AColumn, ARow: TIndex): TGenericScalar;
@@ -1851,17 +1900,17 @@ begin
     Result := CompareMem(@M1, @M2, SizeOf(M1))
   else
     Result :=
-      (System.Abs(M1.Data[0, 0] - M2.Data[0, 0]) < Epsilon) and
-      (System.Abs(M1.Data[0, 1] - M2.Data[0, 1]) < Epsilon) and
-      (System.Abs(M1.Data[0, 2] - M2.Data[0, 2]) < Epsilon) and
+      (System.Abs(M1.Data[0, 0] - M2.Data[0, 0]) <= Epsilon) and
+      (System.Abs(M1.Data[0, 1] - M2.Data[0, 1]) <= Epsilon) and
+      (System.Abs(M1.Data[0, 2] - M2.Data[0, 2]) <= Epsilon) and
 
-      (System.Abs(M1.Data[1, 0] - M2.Data[1, 0]) < Epsilon) and
-      (System.Abs(M1.Data[1, 1] - M2.Data[1, 1]) < Epsilon) and
-      (System.Abs(M1.Data[1, 2] - M2.Data[1, 2]) < Epsilon) and
+      (System.Abs(M1.Data[1, 0] - M2.Data[1, 0]) <= Epsilon) and
+      (System.Abs(M1.Data[1, 1] - M2.Data[1, 1]) <= Epsilon) and
+      (System.Abs(M1.Data[1, 2] - M2.Data[1, 2]) <= Epsilon) and
 
-      (System.Abs(M1.Data[2, 0] - M2.Data[2, 0]) < Epsilon) and
-      (System.Abs(M1.Data[2, 1] - M2.Data[2, 1]) < Epsilon) and
-      (System.Abs(M1.Data[2, 2] - M2.Data[2, 2]) < Epsilon);
+      (System.Abs(M1.Data[2, 0] - M2.Data[2, 0]) <= Epsilon) and
+      (System.Abs(M1.Data[2, 1] - M2.Data[2, 1]) <= Epsilon) and
+      (System.Abs(M1.Data[2, 2] - M2.Data[2, 2]) <= Epsilon);
 end;
 
 class function TGenericMatrix3.PerfectlyEquals(const M1, M2: TGenericMatrix3): boolean;
@@ -2081,26 +2130,23 @@ end;
 
 function TGenericMatrix4.ToString(const LineIndent: string): string;
 begin
-  Result := FormatDot('%s%f %f %f %f' + NL +
-                      '%s%f %f %f %f' + NL +
-                      '%s%f %f %f %f' + NL +
-                      '%s%f %f %f %f',
-   [LineIndent, Data[0, 0], Data[1, 0], Data[2, 0], Data[3, 0],
-    LineIndent, Data[0, 1], Data[1, 1], Data[2, 1], Data[3, 1],
-    LineIndent, Data[0, 2], Data[1, 2], Data[2, 2], Data[3, 2],
-    LineIndent, Data[0, 3], Data[1, 3], Data[2, 3], Data[3, 3] ]);
+  Result := FormatDot('%s%s %s %s %s' + NL +
+                      '%s%s %s %s %s' + NL +
+                      '%s%s %s %s %s' + NL +
+                      '%s%s %s %s %s',
+   [LineIndent, FloatToStrDisplay(Data[0, 0]), FloatToStrDisplay(Data[1, 0]), FloatToStrDisplay(Data[2, 0]), FloatToStrDisplay(Data[3, 0]),
+    LineIndent, FloatToStrDisplay(Data[0, 1]), FloatToStrDisplay(Data[1, 1]), FloatToStrDisplay(Data[2, 1]), FloatToStrDisplay(Data[3, 1]),
+    LineIndent, FloatToStrDisplay(Data[0, 2]), FloatToStrDisplay(Data[1, 2]), FloatToStrDisplay(Data[2, 2]), FloatToStrDisplay(Data[3, 2]),
+    LineIndent, FloatToStrDisplay(Data[0, 3]), FloatToStrDisplay(Data[1, 3]), FloatToStrDisplay(Data[2, 3]), FloatToStrDisplay(Data[3, 3]) ]);
 end;
 
-function TGenericMatrix4.ToRawString(const LineIndent: string): string;
+function TGenericMatrix4.ToRawString(const LineIndent, FloatFormat: String): String;
 begin
-  Result := FormatDot('%s%g %g %g %g' + NL +
-                      '%s%g %g %g %g' + NL +
-                      '%s%g %g %g %g' + NL +
-                      '%s%g %g %g %g',
-   [LineIndent, Data[0, 0], Data[1, 0], Data[2, 0], Data[3, 0],
-    LineIndent, Data[0, 1], Data[1, 1], Data[2, 1], Data[3, 1],
-    LineIndent, Data[0, 2], Data[1, 2], Data[2, 2], Data[3, 2],
-    LineIndent, Data[0, 3], Data[1, 3], Data[2, 3], Data[3, 3] ]);
+  Result :=
+    LineIndent + FormatScalar(Data[0, 0], FloatFormat) + ' ' + FormatScalar(Data[1, 0], FloatFormat) + ' ' + FormatScalar(Data[2, 0], FloatFormat) + ' ' + FormatScalar(Data[3, 0], FloatFormat) + NL +
+    LineIndent + FormatScalar(Data[0, 1], FloatFormat) + ' ' + FormatScalar(Data[1, 1], FloatFormat) + ' ' + FormatScalar(Data[2, 1], FloatFormat) + ' ' + FormatScalar(Data[3, 1], FloatFormat) + NL +
+    LineIndent + FormatScalar(Data[0, 2], FloatFormat) + ' ' + FormatScalar(Data[1, 2], FloatFormat) + ' ' + FormatScalar(Data[2, 2], FloatFormat) + ' ' + FormatScalar(Data[3, 2], FloatFormat) + NL +
+    LineIndent + FormatScalar(Data[0, 3], FloatFormat) + ' ' + FormatScalar(Data[1, 3], FloatFormat) + ' ' + FormatScalar(Data[2, 3], FloatFormat) + ' ' + FormatScalar(Data[3, 3], FloatFormat);
 end;
 
 function TGenericMatrix4.GetItems(const AColumn, ARow: TIndex): TGenericScalar;
@@ -2397,25 +2443,25 @@ begin
     Result := CompareMem(@M1, @M2, SizeOf(M1))
   else
     Result :=
-      (System.Abs(M1.Data[0, 0] - M2.Data[0, 0]) < Epsilon) and
-      (System.Abs(M1.Data[0, 1] - M2.Data[0, 1]) < Epsilon) and
-      (System.Abs(M1.Data[0, 2] - M2.Data[0, 2]) < Epsilon) and
-      (System.Abs(M1.Data[0, 3] - M2.Data[0, 3]) < Epsilon) and
+      (System.Abs(M1.Data[0, 0] - M2.Data[0, 0]) <= Epsilon) and
+      (System.Abs(M1.Data[0, 1] - M2.Data[0, 1]) <= Epsilon) and
+      (System.Abs(M1.Data[0, 2] - M2.Data[0, 2]) <= Epsilon) and
+      (System.Abs(M1.Data[0, 3] - M2.Data[0, 3]) <= Epsilon) and
 
-      (System.Abs(M1.Data[1, 0] - M2.Data[1, 0]) < Epsilon) and
-      (System.Abs(M1.Data[1, 1] - M2.Data[1, 1]) < Epsilon) and
-      (System.Abs(M1.Data[1, 2] - M2.Data[1, 2]) < Epsilon) and
-      (System.Abs(M1.Data[1, 3] - M2.Data[1, 3]) < Epsilon) and
+      (System.Abs(M1.Data[1, 0] - M2.Data[1, 0]) <= Epsilon) and
+      (System.Abs(M1.Data[1, 1] - M2.Data[1, 1]) <= Epsilon) and
+      (System.Abs(M1.Data[1, 2] - M2.Data[1, 2]) <= Epsilon) and
+      (System.Abs(M1.Data[1, 3] - M2.Data[1, 3]) <= Epsilon) and
 
-      (System.Abs(M1.Data[2, 0] - M2.Data[2, 0]) < Epsilon) and
-      (System.Abs(M1.Data[2, 1] - M2.Data[2, 1]) < Epsilon) and
-      (System.Abs(M1.Data[2, 2] - M2.Data[2, 2]) < Epsilon) and
-      (System.Abs(M1.Data[2, 3] - M2.Data[2, 3]) < Epsilon) and
+      (System.Abs(M1.Data[2, 0] - M2.Data[2, 0]) <= Epsilon) and
+      (System.Abs(M1.Data[2, 1] - M2.Data[2, 1]) <= Epsilon) and
+      (System.Abs(M1.Data[2, 2] - M2.Data[2, 2]) <= Epsilon) and
+      (System.Abs(M1.Data[2, 3] - M2.Data[2, 3]) <= Epsilon) and
 
-      (System.Abs(M1.Data[3, 0] - M2.Data[3, 0]) < Epsilon) and
-      (System.Abs(M1.Data[3, 1] - M2.Data[3, 1]) < Epsilon) and
-      (System.Abs(M1.Data[3, 2] - M2.Data[3, 2]) < Epsilon) and
-      (System.Abs(M1.Data[3, 3] - M2.Data[3, 3]) < Epsilon);
+      (System.Abs(M1.Data[3, 0] - M2.Data[3, 0]) <= Epsilon) and
+      (System.Abs(M1.Data[3, 1] - M2.Data[3, 1]) <= Epsilon) and
+      (System.Abs(M1.Data[3, 2] - M2.Data[3, 2]) <= Epsilon) and
+      (System.Abs(M1.Data[3, 3] - M2.Data[3, 3]) <= Epsilon);
 end;
 
 class function TGenericMatrix4.PerfectlyEquals(const M1, M2: TGenericMatrix4): boolean;

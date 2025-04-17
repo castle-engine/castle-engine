@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2023 Michalis Kamburelis.
+  Copyright 2015-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -26,6 +26,8 @@
   strict private
     function GetControlPoint: TAbstractCoordinateNode;
     procedure SetControlPoint(const Value: TAbstractCoordinateNode);
+    function GetTexCoord: TX3DNode;
+    procedure SetTexCoord(const Value: TX3DNode);
     function GetUTessellation: Integer;
     procedure SetUTessellation(const Value: Integer);
     function GetVTessellation: Integer;
@@ -45,7 +47,7 @@
   public
     { Create node fields and events. }
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdControlPoint: TSFNode;
     { Internal wrapper for property @code(ControlPoint). This wrapper API may change, we advise to access simpler @code(ControlPoint) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
@@ -56,6 +58,8 @@
     strict private FFdTexCoord: TSFNode;
     { Internal wrapper for property @code(TexCoord). This wrapper API may change, we advise to access simpler @code(TexCoord) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
     public property FdTexCoord: TSFNode read FFdTexCoord;
+    {  }
+    property TexCoord: TX3DNode read GetTexCoord write SetTexCoord;
 
     strict private FFdUTessellation: TSFInt32;
     { Internal wrapper for property @code(UTessellation). This wrapper API may change, we advise to access simpler @code(UTessellation) instead, if it is defined (TODO: for now, some field types do not have a simpler counterpart). }
@@ -150,6 +154,19 @@ end;
 procedure TAbstractNurbsSurfaceGeometryNode.SetControlPoint(const Value: TAbstractCoordinateNode);
 begin
   FdControlPoint.Send(Value);
+end;
+
+function TAbstractNurbsSurfaceGeometryNode.GetTexCoord: TX3DNode;
+begin
+  if FdTexCoord.Value is TX3DNode then
+    Result := TX3DNode(FdTexCoord.Value)
+  else
+    Result := nil;
+end;
+
+procedure TAbstractNurbsSurfaceGeometryNode.SetTexCoord(const Value: TX3DNode);
+begin
+  FdTexCoord.Send(Value);
 end;
 
 function TAbstractNurbsSurfaceGeometryNode.GetUTessellation: Integer;

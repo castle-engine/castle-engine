@@ -2,7 +2,7 @@
 <!-- This manifest will be merged with main integrated/AndroidManifest.xml
      by the build tool. -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
-    <application android:name="net.sourceforge.castleengine.HelpshiftApplication">
+    <application android:name="io.castleengine.HelpshiftApplication">
         <!-- Force Helpshift orientation same as main application.
              Necessary, otherwise Helpshift + Game Analytics + portrait application
              (like "Escape from the Universe") crashes when changing orientation

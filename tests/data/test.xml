@@ -2,5 +2,9 @@
 <root
   some_string="some_string_value"
   some_int="123"
+  some_color_hex="FFFFFFFF"
+  some_color_vector="1 1 1 1"
+  some_colorrgb_hex="FFFFFF"
+  some_colorrgb_vector="1 1 1"
   some_bool="true">
 </root>

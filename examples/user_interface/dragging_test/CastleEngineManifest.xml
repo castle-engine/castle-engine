@@ -9,6 +9,7 @@ See https://castle-engine.io/project_manifest for documentation of this file.
   standalone_source="dragging_test_standalone.dpr"
   game_units="GameInitialize"
   caption="Dragging Test"
+  qualified_name="io.castleengine.dragging.test"
 >
   <compiler_options>
     <search_paths>

@@ -40,10 +40,10 @@ begin
   { Do not load node again, if it is already in the cache.
     It would cause warnings
       Warning: X3D node xxx is already part of another TCastleScene instance
-    if uses uses the same URL twice in warmup_cache specification. }
+    if user uses the same URL twice in warmup_cache specification. }
   if X3DCache.IsCached(AURL) then Exit;
 
-  TimeStart := Profiler.Start('Loading "' + URIDisplay(AURL) + '" (warming up cache)');
+  TimeStart := Profiler.Start('Loading "' + UriDisplay(AURL) + '" (warming up cache)');
   try
     FRootNodeFromCache := X3DCache.LoadNode(AURL);
   finally Profiler.Stop(TimeStart) end;

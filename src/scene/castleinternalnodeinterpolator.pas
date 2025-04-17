@@ -1,5 +1,5 @@
 {
-  Copyright 2006-2022 Michalis Kamburelis.
+  Copyright 2006-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -125,7 +125,7 @@ type
       but you must manually take care to free (or pass elsewhere)
       the TAnimation.KeyNodes contents, or just call @link(TAnimationList.FreeKeyNodesContents).)
     }
-    class function LoadAnimFramesToKeyNodes(const URL: string): TAnimationList; overload;
+    class function LoadAnimFramesToKeyNodes(const Url: String): TAnimationList; overload;
     class function LoadAnimFramesToKeyNodes(const Stream: TStream; const BaseUrl: String): TAnimationList; overload;
 
     { From key nodes, create a series of baked nodes (with final
@@ -181,8 +181,12 @@ type
 implementation
 
 uses SysUtils, XMLRead, DOM, Math,
-  CastleLog, X3DFields, CastleXMLUtils, CastleFilesUtils, CastleVectors,
-  CastleDownload, CastleURIUtils, X3DLoad, CastleClassUtils, X3DLoadInternalUtils;
+  CastleLog, X3DFields, CastleXmlUtils, CastleFilesUtils, CastleVectors,
+  CastleDownload, CastleUriUtils, X3DLoad, CastleClassUtils, X3DLoadInternalUtils;
+
+(*
+// Do not use EModelsStructureDifferent anymore,
+// to work on web that cannot catch exceptions.
 
 { EModelsStructureDifferent -------------------------------------------------- }
 
@@ -196,6 +200,7 @@ constructor EModelsStructureDifferent.CreateFmt(const S: string;
 begin
   inherited CreateFmt('Models are structurally different: ' + S, Args);
 end;
+*)
 
 { utilities for TNodeInterpolator.BakeToSequence ----------------------------- }
 
@@ -204,12 +209,14 @@ end;
 
   If models are structurally different (which means that even
   interpolating between Model1 and Model2 is not possible),
-  it will raise EModelsStructureDifferent. }
-procedure CheckNodesStructurallyEqual(Model1, Model2: TX3DNode;
-  const Epsilon: Single);
+  it will return @false. }
+function CheckNodesStructurallyEqual(Model1, Model2: TX3DNode;
+  const Epsilon: Single): Boolean;
 
-  procedure CheckSFNodesStructurallyEqual(Field1, Field2: TSFNode);
+  function CheckSFNodesStructurallyEqual(Field1, Field2: TSFNode): Boolean;
   begin
+    Result := true;
+
     if Field1.WeakLink and Field2.WeakLink then
     begin
       { assume equal }
@@ -217,35 +224,51 @@ procedure CheckNodesStructurallyEqual(Model1, Model2: TX3DNode;
     if (Field1.Value <> nil) and (not Field1.WeakLink) and
        (Field2.Value <> nil) and (not Field2.WeakLink) then
     begin
-      CheckNodesStructurallyEqual(Field1.Value, Field2.Value, Epsilon);
+      Result := CheckNodesStructurallyEqual(Field1.Value, Field2.Value, Epsilon);
     end else
     if not ((Field1.Value = nil) and (Field2.Value = nil)) then
-      raise EModelsStructureDifferent.CreateFmt('Field "%s" of type SFNode ' +
-        'is once NULL and once not-NULL', [Field1.X3DName]);
+    begin
+      // raise EModelsStructureDifferent.CreateFmt('Field "%s" of type SFNode ' +
+      //   'is once NULL and once not-NULL', [Field1.X3DName]);
+      Exit(false);
+    end;
   end;
 
-  procedure CheckMFNodesStructurallyEqual(Field1, Field2: TMFNode);
+  function CheckMFNodesStructurallyEqual(Field1, Field2: TMFNode): Boolean;
   var
     I: Integer;
   begin
+    Result := true;
+
     if Field1.Count <> Field2.Count then
-      raise EModelsStructureDifferent.CreateFmt(
-        'Different number of children in MFNode field "%s": %d vs %d',
-        [Field1.NiceName, Field1.Count, Field2.Count]);
+    begin
+      // raise EModelsStructureDifferent.CreateFmt(
+      //   'Different number of children in MFNode field "%s": %d vs %d',
+      //   [Field1.NiceName, Field1.Count, Field2.Count]);
+      Exit(false);
+    end;
 
     for I := 0 to Field1.Count - 1 do
-      CheckNodesStructurallyEqual(Field1[I], Field2[I], Epsilon);
+    begin
+      Result := CheckNodesStructurallyEqual(Field1[I], Field2[I], Epsilon);
+      if not Result then Exit; // exit at first "false" result
+    end;
   end;
 
 var
   I: Integer;
   MF1, MF2: TX3DMultField;
 begin
+  Result := true;
+
   { Yes, Model1 and Model2 must have *exactly* the same classes. }
   if Model1.ClassType <> Model2.ClassType then
-    raise EModelsStructureDifferent.CreateFmt(
-      'Different nodes classes: "%s" and "%s"',
-      [Model1.ClassName, Model2.ClassName]);
+  begin
+    // raise EModelsStructureDifferent.CreateFmt(
+    //   'Different nodes classes: "%s" and "%s"',
+    //   [Model1.ClassName, Model2.ClassName]);
+    Exit(false);
+  end;
 
   { Make sure that *Inline content is loaded now. }
   if Model1 is TInlineNode then
@@ -255,9 +278,12 @@ begin
   end;
 
   if Model1.X3DName <> Model2.X3DName then
-    raise EModelsStructureDifferent.CreateFmt(
-      'Different names of nodes: "%s" and "%s"',
-      [Model1.X3DName, Model2.X3DName]);
+  begin
+    // raise EModelsStructureDifferent.CreateFmt(
+    //   'Different names of nodes: "%s" and "%s"',
+    //   [Model1.X3DName, Model2.X3DName]);
+    Exit(false);
+  end;
 
   { We are interested whether Model1.BaseUrl and Model2.BaseUrl will
     give different results when using them to resolve relative URLs.
@@ -265,17 +291,26 @@ begin
     at the end. Stripping these filenames with ExtractURIPath
     is dirty. So we just test CombineURI with a test name. }
   if Model1.PathFromBaseUrl('test') <> Model2.PathFromBaseUrl('test') then
-    raise EModelsStructureDifferent.CreateFmt(
-      'BaseUrl of nodes different (will resolve relative URLs to different things): "%s" and "%s"',
-      [Model1.BaseUrl, Model2.BaseUrl]);
+  begin
+    // raise EModelsStructureDifferent.CreateFmt(
+    //   'BaseUrl of nodes different (will resolve relative URLs to different things): "%s" and "%s"',
+    //   [Model1.BaseUrl, Model2.BaseUrl]);
+    Exit(false);
+  end;
 
   if Model1.VRML1ChildrenCount <> Model2.VRML1ChildrenCount then
-    raise EModelsStructureDifferent.CreateFmt(
-      'Different number of Inventor / VRML 1.0 children in nodes: %d vs %d',
-      [Model1.VRML1ChildrenCount, Model2.VRML1ChildrenCount]);
+  begin
+    // raise EModelsStructureDifferent.CreateFmt(
+    //   'Different number of Inventor / VRML 1.0 children in nodes: %d vs %d',
+    //   [Model1.VRML1ChildrenCount, Model2.VRML1ChildrenCount]);
+    Exit(false);
+  end;
 
   for I := 0 to Model1.VRML1ChildrenCount - 1 do
-    CheckNodesStructurallyEqual(Model1.VRML1Children[I], Model2.VRML1Children[I], Epsilon);
+  begin
+    Result := CheckNodesStructurallyEqual(Model1.VRML1Children[I], Model2.VRML1Children[I], Epsilon);
+    if not Result then Exit;
+  end;
 
   { Yes, the situation below can happen. *Usually* when we know
     that Model1 and Model2 are equal classes then we know that
@@ -284,23 +319,35 @@ begin
     of TX3DUnknownNode class may have completely different fields,
     so we must safeguard against this. }
   if Model1.FieldsCount <> Model2.FieldsCount then
-    raise EModelsStructureDifferent.CreateFmt(
-      'Different number of fields in nodes: "%d" and "%d"',
-      [Model1.FieldsCount, Model2.FieldsCount]);
+  begin
+    // raise EModelsStructureDifferent.CreateFmt(
+    //   'Different number of fields in nodes: "%d" and "%d"',
+    //   [Model1.FieldsCount, Model2.FieldsCount]);
+    Exit(false);
+  end;
 
   for I := 0 to Model1.FieldsCount - 1 do
   begin
     if Model1.Fields[I].ClassType <> Model2.Fields[I].ClassType then
-      raise EModelsStructureDifferent.CreateFmt(
-        'Different type of field number %d in nodes: "%s" and "%s"',
-        [I, Model1.Fields[I].ClassName, Model2.Fields[I].ClassName]);
+    begin
+      // raise EModelsStructureDifferent.CreateFmt(
+      //   'Different type of field number %d in nodes: "%s" and "%s"',
+      //   [I, Model1.Fields[I].ClassName, Model2.Fields[I].ClassName]);
+      Exit(false);
+    end;
 
     if Model1.Fields[I] is TSFNode then
-      CheckSFNodesStructurallyEqual(
-        TSFNode(Model1.Fields[I]), TSFNode(Model2.Fields[I])) else
+    begin
+      Result := CheckSFNodesStructurallyEqual(
+        TSFNode(Model1.Fields[I]), TSFNode(Model2.Fields[I]));
+      if not Result then Exit;
+    end else
     if Model1.Fields[I] is TMFNode then
-      CheckMFNodesStructurallyEqual(
-        TMFNode(Model1.Fields[I]), TMFNode(Model2.Fields[I])) else
+    begin
+      Result := CheckMFNodesStructurallyEqual(
+        TMFNode(Model1.Fields[I]), TMFNode(Model2.Fields[I]));
+      if not Result then Exit;
+    end else
     if Model1.Fields[I].CanAssignLerp then
     begin
       if Model1.Fields[I] is TX3DMultField then
@@ -308,12 +355,15 @@ begin
         MF1 := Model1.Fields[I] as TX3DMultField;
         MF2 := Model2.Fields[I] as TX3DMultField;
         if MF1.Count <> MF2.Count then
-          raise EModelsStructureDifferent.CreateFmt(
-            'Different length of multiple-value fields "%s" and "%s": "%d" and "%d"',
-            [ MF1.X3DName,
-              MF2.X3DName,
-              MF1.Count,
-              MF2.Count ]);
+        begin
+          // raise EModelsStructureDifferent.CreateFmt(
+          //   'Different length of multiple-value fields "%s" and "%s": "%d" and "%d"',
+          //   [ MF1.X3DName,
+          //     MF2.X3DName,
+          //     MF1.Count,
+          //     MF2.Count ]);
+          Exit(false);
+        end;
       end;
       { Else we have single-value field that can lerp.
         No need to check anything in this case,
@@ -335,9 +385,12 @@ begin
          Model1.Fields[I].Equals(Model2.Fields[I]
            { TODO: ignored for now, and maybe for ever: , Epsilon })
          ) then
-        raise EModelsStructureDifferent.CreateFmt(
-          'Fields "%s" (class "%s") are not equal',
-          [Model1.Fields[I].X3DName, Model1.Fields[I].ClassName]);
+      begin
+        // raise EModelsStructureDifferent.CreateFmt(
+        //   'Fields "%s" (class "%s") are not equal',
+        //   [Model1.Fields[I].X3DName, Model1.Fields[I].ClassName]);
+        Exit(false);
+      end;
     end;
   end;
 end;
@@ -512,10 +565,15 @@ begin
     Model1.BaseUrl);
   try
     { We already loaded all inlines (in CheckNodesStructurallyEqual).
-      We have to mark it now, by setting Loaded := true field as necessary
-      inside inline nodes --- otherwise, they could be loaded again
-      (adding content to already existing nodes, making content loaded
-      more than once). }
+
+      In case targer Inline content was effectively loaded by using
+      VRML1Children from source Inline,
+      we have to use LoadedInlineDirectly, to
+      - have InlineLoaded := true
+      - have TInlineNode.FInlined correct.
+
+      Otherwise, target Inline would not realize that contents are loaded.
+      (And e.g. they would be loaded again, duplicating content). }
     if Result is TInlineNode then
     begin
       TInlineNode(Result).LoadedInlineDirectly;
@@ -523,14 +581,9 @@ begin
 
     if Result is TX3DRootNode then
     begin
-      { copy TX3DRootNode special fields, like TX3DRootNode.DeepCopyCore.
+      { Assign TX3DRootNode special fields.
         This is necessary for WrapRootNode working Ok lower in this file. }
-      TX3DRootNode(Result).HasForceVersion := (Model1 as TX3DRootNode).HasForceVersion;
-      TX3DRootNode(Result).ForceVersion := (Model1 as TX3DRootNode).ForceVersion;
-      TX3DRootNode(Result).Scale := (Model1 as TX3DRootNode).Scale;
-      TX3DRootNode(Result).Profile := (Model1 as TX3DRootNode).Profile;
-      TX3DRootNode(Result).Components.Assign((Model1 as TX3DRootNode).Components);
-      TX3DRootNode(Result).Meta.Assign((Model1 as TX3DRootNode).Meta);
+      TX3DRootNode(Result).InternalAssignRootNodeProps(Model1 as TX3DRootNode);
     end;
 
     { TODO: the code below doesn't deal efficiently with the situation when single
@@ -696,18 +749,12 @@ begin
       { Now add KeyNodes[I] }
       GetKeyNodeWithTime(I, NewKeyNode, NewTime);
 
-      StructurallyEqual := false;
-
-      try
-        CheckNodesStructurallyEqual(LastKeyNode, NewKeyNode, Epsilon);
-        StructurallyEqual := true;
-      except
-        on E: EModelsStructureDifferent do
-        begin
-          WritelnLog('TNodeInterpolator', Format(
-            'Nodes %d and %d structurally different, so animation will not be smoothed between them: ',
-            [I - 1, I]) + E.Message);
-        end;
+      StructurallyEqual := CheckNodesStructurallyEqual(LastKeyNode, NewKeyNode, Epsilon);
+      if not StructurallyEqual then
+      begin
+        WritelnLog('TNodeInterpolator', Format(
+          'Nodes %d and %d structurally different, so animation will not be smoothed between them.',
+          [I - 1, I]));
       end;
 
       Nodes.Count := Nodes.Count +
@@ -754,17 +801,19 @@ begin
   except FreeAndNil(Result); raise end;
 end;
 
-class function TNodeInterpolator.LoadAnimFramesToKeyNodes(const URL: string): TAnimationList;
+class function TNodeInterpolator.LoadAnimFramesToKeyNodes(const Url: String): TAnimationList;
 var
   Stream: TStream;
 begin
-  Stream := Download(URL);
+  Stream := Download(Url);
   try
-    Result := LoadAnimFramesToKeyNodes(Stream, URL);
+    Result := LoadAnimFramesToKeyNodes(Stream, Url);
   finally FreeAndNil(Stream) end;
 end;
 
 class function TNodeInterpolator.LoadAnimFramesToKeyNodes(const Stream: TStream; const BaseUrl: String): TAnimationList;
+const
+  GltfJsonMimeType = 'model/gltf+json';
 
   function LoadGLTFFromString(const Contents: String; const BaseUrl: String): TX3DRootNode;
   var
@@ -772,7 +821,7 @@ class function TNodeInterpolator.LoadAnimFramesToKeyNodes(const Stream: TStream;
   begin
     SStream := TStringStream.Create(Contents);
     try
-      Result := LoadGLTF(SStream, BaseUrl);
+      Result := LoadNode(SStream, BaseUrl, GltfJsonMimeType);
     finally FreeAndNil(SStream) end;
   end;
 
@@ -787,12 +836,12 @@ class function TNodeInterpolator.LoadAnimFramesToKeyNodes(const Stream: TStream;
     DefaultLoop = false;
     DefaultBackwards = false;
   var
-    AbsoluteBaseUrl: string;
+    AbsoluteBaseUrl: String;
     FrameElement: TDOMElement;
     Children: TXMLElementIterator;
     I: Integer;
     FrameTime: Single;
-    FrameURL, MimeType: string;
+    FrameUrl, MimeType: string;
     NewNode: TX3DRootNode;
     Attr: TDOMAttr;
     FrameBoxCenter, FrameBoxSize: TVector3;
@@ -851,20 +900,20 @@ class function TNodeInterpolator.LoadAnimFramesToKeyNodes(const Stream: TStream;
             raise Exception.Create('Frames within <animation> element must be specified in an increasing time order');
           Result.KeyTimes.Add(FrameTime);
 
-          if FrameElement.AttributeString('url', FrameURL) or
-             FrameElement.AttributeString('file_name', FrameURL) then
+          if FrameElement.AttributeString('url', FrameUrl) or
+             FrameElement.AttributeString('file_name', FrameUrl) then
           begin
-            { Make FrameURL absolute, treating it as relative vs
+            { Make FrameUrl absolute, treating it as relative vs
               AbsoluteBaseUrl }
-            FrameURL := CombineURI(AbsoluteBaseUrl, FrameURL);
-            NewNode := LoadNode(FrameURL);
+            FrameUrl := CombineURI(AbsoluteBaseUrl, FrameUrl);
+            NewNode := LoadNode(FrameUrl);
           end else
           begin
             MimeType := FrameElement.AttributeStringDef('mime_type', '');
             if (MimeType = '') or (MimeType = 'model/x3d+xml') then
               NewNode := LoadX3DXmlInternal(FrameElement.ChildElement('X3D'), AbsoluteBaseUrl)
             else
-            if (MimeType = 'model/gltf+json') then
+            if (MimeType = GltfJsonMimeType) then
               NewNode := LoadGLTFFromString(FrameElement.TextData, AbsoluteBaseUrl)
             else
               raise Exception.CreateFmt('Cannot use mime_type "%s" for a frame in castle-anim-frames', [
@@ -928,7 +977,7 @@ end;
 
 class function TNodeInterpolator.LoadSequenceToX3D(const BakedAnimations: TBakedAnimationList): TX3DRootNode;
 var
-  BaseUrl: string;
+  BaseUrl: String;
 
   { For VRML 1.0, wrap the contents in SeparateGroup. Prevents leaking
     transformations between switch node children (testcase:
@@ -1149,4 +1198,24 @@ begin
   finally FreeAndNil(BakedAnimations) end;
 end;
 
+function LoadAnimFrames(const Stream: TStream; const BaseUrl: String): TX3DRootNode;
+var
+  Animations: TNodeInterpolator.TAnimationList;
+begin
+  Animations := TNodeInterpolator.LoadAnimFramesToKeyNodes(Stream, BaseUrl);
+  try
+    Result := TNodeInterpolator.LoadToX3D(Animations);
+  finally FreeAndNil(Animations) end;
+end;
+
+var
+  ModelFormat: TModelFormat;
+initialization
+  ModelFormat := TModelFormat.Create;
+  ModelFormat.OnLoad := {$ifdef FPC}@{$endif} LoadAnimFrames;
+  ModelFormat.MimeTypes.Add('application/x-castle-anim-frames');
+  ModelFormat.FileFilterName := 'Castle Animation Frames (*.castle-anim-frames, *.kanim)';
+  ModelFormat.Extensions.Add('.castle-anim-frames');
+  ModelFormat.Extensions.Add('.kanim');
+  RegisterModelFormat(ModelFormat);
 end.

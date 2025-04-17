@@ -19,11 +19,10 @@ unit TestCastleCompositeImage;
 
 interface
 
-uses
-  {$ifndef CASTLE_TESTER}FpcUnit, TestUtils, TestRegistry{$else}CastleTester{$endif};
+uses CastleTester;
 
 type
-  TTestCastleCompositeImage = class({$ifndef CASTLE_TESTER}TTestCase{$else}TCastleTestCase{$endif})
+  TTestCastleCompositeImage = class(TCastleTestCase)
   published
     procedure TestLoadSave;
     procedure TestLoadSaveS3TC;
@@ -138,7 +137,7 @@ begin
       ... works, without any bug (all tests pass).
 
     - Also, testing saving/loading these DDS files using
-      https://github.com/castle-engine/castle-view-image
+      https://github.com/castle-engine/castle-image-viewer
       works OK with the same FPC version.
 
     But Jenkins shows it fails.

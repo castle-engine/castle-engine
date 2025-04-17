@@ -8,6 +8,7 @@ See https://castle-engine.io/project_manifest for documentation of this file.
 <project name="image_make_by_script"
   standalone_source="image_make_by_script.dpr"
   caption="Make Image by CastleScript"
+  qualified_name="io.castleengine.image.make.by.script"
 >
   <compiler_options>
     <search_paths>

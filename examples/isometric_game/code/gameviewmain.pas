@@ -120,7 +120,7 @@ const
       But everything would also work with SmoothScaling=true.
       Note: We have applied on images alpha bleeding
       (see https://castle-engine.io/manual_alpha_bleeding.php)
-      using castle-view-image.
+      using castle-image-viewer .
       This means they have good transition between opaque and transparent pixels,
       which is necessary for SmoothScaling=true.
 

@@ -1,0 +1,10 @@
+#X3D V4.0 utf8
+PROFILE Interchange
+
+DEF SoundStatus Text {
+  string "Sound.enabled = true"
+}
+
+DEF AudioClipStatus Text {
+  string "Sound.enabled = true"
+}

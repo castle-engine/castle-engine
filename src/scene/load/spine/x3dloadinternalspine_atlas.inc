@@ -45,10 +45,10 @@ type
 
   TAtlasPage = class
   public
-    TextureURL: string;
+    TextureUrl: String;
     PMA: String;
-    Format: string;
-    Filter: string; //< a value allowed by TextureProperties.MinificationFilter and MagnificationFilter
+    Format: String;
+    Filter: String; //< a value allowed by TextureProperties.MinificationFilter and MagnificationFilter
     IsRepeat: boolean;
     Size: TVector2Integer; //< atlas may (but does not have to) contain this
     Scale: Single; //< scale used at atlas generation; we don't actually need this for anything
@@ -57,7 +57,7 @@ type
     NodeUsedAsChild: boolean;
     constructor Create;
     destructor Destroy; override;
-    procedure BuildNodes(const BaseUrl: string);
+    procedure BuildNodes(const BaseUrl: String);
   end;
 
   TAtlasPageList = {$ifdef FPC}specialize{$endif} TObjectList<TAtlasPage>;
@@ -68,14 +68,14 @@ type
     destructor Destroy; override;
     { Read .atlas file as produced by Spine, in format of libgdx, see
       https://github.com/libgdx/libgdx/wiki/Texture-packer }
-    procedure Parse(const URL: string);
-    procedure BuildNodes(const BaseUrl: string);
+    procedure Parse(const Url: String);
+    procedure BuildNodes(const BaseUrl: String);
     { Find atlas page and region corresponding to given region name.
       Returns @false if it does not exist (the out vars are undefined in
       this case). }
-    function Find(const RegionName: string;
+    function Find(const RegionName: String;
       out Page: TAtlasPage; out Region: TAtlasRegion): boolean;
-    function UseNode(const RegionName: string;
+    function UseNode(const RegionName: String;
       out TexCoord: TQuadTexCoord; out TexRect: TQuadTexRect;
       out TexRotated: boolean): TImageTextureNode; override;
   end;
@@ -160,12 +160,12 @@ begin
   inherited;
 end;
 
-procedure TAtlasPage.BuildNodes(const BaseUrl: string);
+procedure TAtlasPage.BuildNodes(const BaseUrl: String);
 var
   I, ReferenceImageWidth, ReferenceImageHeight: Integer;
 begin
-  Node := TImageTextureNode.Create('Page_' + TextureURL, BaseUrl);
-  Node.SetUrl([TextureURL]);
+  Node := TImageTextureNode.Create('Page_' + TextureUrl, BaseUrl);
+  Node.SetUrl([TextureUrl]);
   AddSpineTextureProperties(Node, IsRepeat);
 
   ReferenceImageWidth := 0;
@@ -197,7 +197,7 @@ begin
       Regions[I].CalculateTexCoord(ReferenceImageWidth, ReferenceImageHeight);
   end else
     WritelnWarning('Spine', SysUtils.Format('Cannot load texture "%s", texture coordinates cannot be correctly calculated based on Spine atlas information',
-      [TextureURL]));
+      [TextureUrl]));
 end;
 
 constructor TAtlas.Create;
@@ -212,13 +212,13 @@ begin
   inherited;
 end;
 
-procedure TAtlas.Parse(const URL: string);
+procedure TAtlas.Parse(const Url: String);
 
   { Split a Line divided by character Separator into two strings.
     Assumes that whitespace doesn't matter (so we trim it),
     and Name must not be empty. }
-  function Split(const Line: string; const Separator: char;
-    out Name, Value: string): boolean;
+  function Split(const Line: String; const Separator: char;
+    out Name, Value: String): boolean;
   var
     Index: Integer;
   begin
@@ -237,9 +237,9 @@ procedure TAtlas.Parse(const URL: string);
     only if the line contains (corrent) specification of attribute
     Name. Otherwise, they return @false and leave Value unmodified. }
 
-  function IsNameValueString(const Line, Name: string; var Value: string): boolean;
+  function IsNameValueString(const Line, Name: String; var Value: String): boolean;
   var
-    N, V: string;
+    N, V: String;
   begin
     Result := Split(Line, ':', N, V) and (N = Name);
     if Result then
@@ -247,9 +247,9 @@ procedure TAtlas.Parse(const URL: string);
   end;
 
   (* Not useful now
-  function IsNameValueBoolean(const Line, Name: string; var Value: boolean): boolean;
+  function IsNameValueBoolean(const Line, Name: String; var Value: boolean): boolean;
   var
-    ValueStr: string;
+    ValueStr: String;
   begin
     Result := IsNameValueString(Line, Name, ValueStr);
     if Result then
@@ -266,7 +266,7 @@ procedure TAtlas.Parse(const URL: string);
   *)
 
   { Read "rotate" type, which is either boolean or integer (changed somewhere around Spine 4.0 release). }
-  function IsNameValueRotate(const Line, Name: string; var Value: Boolean): Boolean;
+  function IsNameValueRotate(const Line, Name: String; var Value: Boolean): Boolean;
   var
     ValueStr: String;
     ValueInt: Integer;
@@ -299,9 +299,9 @@ procedure TAtlas.Parse(const URL: string);
     end;
   end;
 
-  function IsNameValueInteger(const Line, Name: string; var Value: Integer): boolean;
+  function IsNameValueInteger(const Line, Name: String; var Value: Integer): boolean;
   var
-    ValueStr: string;
+    ValueStr: String;
   begin
     Result := IsNameValueString(Line, Name, ValueStr);
     if Result then
@@ -315,9 +315,9 @@ procedure TAtlas.Parse(const URL: string);
     end;
   end;
 
-  function IsNameValueSingle(const Line, Name: string; var Value: Single): boolean;
+  function IsNameValueSingle(const Line, Name: String; var Value: Single): boolean;
   var
-    ValueStr: string;
+    ValueStr: String;
   begin
     Result := IsNameValueString(Line, Name, ValueStr);
     if Result then
@@ -330,9 +330,9 @@ procedure TAtlas.Parse(const URL: string);
     end;
   end;
 
-  function IsNameValueVector2Integer(const Line, Name: string; var Vector: TVector2Integer): boolean;
+  function IsNameValueVector2Integer(const Line, Name: String; var Vector: TVector2Integer): boolean;
   var
-    ValueStr, ValueStr0, ValueStr1: string;
+    ValueStr, ValueStr0, ValueStr1: String;
   begin
     Result := IsNameValueString(Line, Name, ValueStr);
     if Result then
@@ -349,7 +349,7 @@ procedure TAtlas.Parse(const URL: string);
     end;
   end;
 
-  function IsNameValueVector4Integer(const Line, Name: string; var Vector: TVector4Integer): Boolean;
+  function IsNameValueVector4Integer(const Line, Name: String; var Vector: TVector4Integer): Boolean;
   var
     ValueStr: String;
     Tokens: TCastleStringList;
@@ -379,7 +379,7 @@ procedure TAtlas.Parse(const URL: string);
     end;
   end;
 
-  function IsNameValueTwoVectors2Integer(const Line, Name: string; var V1, V2: TVector2Integer): Boolean;
+  function IsNameValueTwoVectors2Integer(const Line, Name: String; var V1, V2: TVector2Integer): Boolean;
   var
     Bounds: TVector4Integer;
   begin
@@ -393,9 +393,9 @@ procedure TAtlas.Parse(const URL: string);
     end;
   end;
 
-  function IsNameValueFilter(const Line, Name: string; var Filter: string): boolean;
+  function IsNameValueFilter(const Line, Name: String; var Filter: String): boolean;
   var
-    ValueStr: string;
+    ValueStr: String;
   begin
     Result := IsNameValueString(Line, Name, ValueStr);
     if Result then
@@ -410,9 +410,9 @@ procedure TAtlas.Parse(const URL: string);
     end;
   end;
 
-  function IsNameValueRepeat(const Line, Name: string; var IsRepeat: boolean): boolean;
+  function IsNameValueRepeat(const Line, Name: String; var IsRepeat: boolean): boolean;
   var
-    ValueStr: string;
+    ValueStr: String;
   begin
     Result := IsNameValueString(Line, Name, ValueStr);
     if Result then
@@ -429,11 +429,11 @@ var
   Reader: TTextReader;
   Page: TAtlasPage;
   Region: TAtlasRegion;
-  Line: string;
+  Line: String;
 begin
   Page := nil;
   Region := nil;
-  Reader := TTextReader.Create(URL);
+  Reader := TTextReader.Create(Url);
   try
     while not Reader.Eof do
     begin
@@ -444,7 +444,7 @@ begin
         if Trim(Line) <> '' then
         begin
           Page := TAtlasPage.Create;
-          Page.TextureURL := Trim(Line);
+          Page.TextureUrl := Trim(Line);
           Pages.Add(Page);
           Region := nil;
         end;
@@ -498,7 +498,7 @@ begin
   //WritelnLog('Spine', Format('Atlas parsed, pages: %d', [Pages.Count]));
 end;
 
-procedure TAtlas.BuildNodes(const BaseUrl: string);
+procedure TAtlas.BuildNodes(const BaseUrl: String);
 var
   I: Integer;
 begin
@@ -506,7 +506,7 @@ begin
     Pages[I].BuildNodes(BaseUrl);
 end;
 
-function TAtlas.Find(const RegionName: string;
+function TAtlas.Find(const RegionName: String;
   out Page: TAtlasPage; out Region: TAtlasRegion): boolean;
 var
   I, J: Integer;
@@ -526,7 +526,7 @@ begin
   Result := false;
 end;
 
-function TAtlas.UseNode(const RegionName: string;
+function TAtlas.UseNode(const RegionName: String;
   out TexCoord: TQuadTexCoord; out TexRect: TQuadTexRect;
   out TexRotated: boolean): TImageTextureNode;
 var

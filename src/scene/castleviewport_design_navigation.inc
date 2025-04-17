@@ -84,6 +84,8 @@ begin
   LabelMessage.FontSize := 50;
   LabelMessage.Padding := 20;
   LabelMessageContainer.InsertFront(LabelMessage);
+
+  ForceFallbackLook(LabelMessageContainer);
 end;
 
 function TCastleWalkNavigationDesign.Press(const Event: TInputPressRelease): Boolean;

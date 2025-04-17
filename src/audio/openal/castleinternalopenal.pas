@@ -176,6 +176,11 @@ begin
   { Be sure to start with a "clean" state. }
   OpenALFinalization;
 
+  // TODO: web: OpenAL is not available on WebAssembly,
+  // no backend to play sound for now.
+  // Planned: using WebAudio (see also https://castle-engine.io/x3d_implementation_sound.php#section_x3d4 )
+
+  {$ifndef WASI}
   ALLibrary := TDynLib.Load(
     {$ifdef UNIX}
       {$ifdef DARWIN}
@@ -189,6 +194,7 @@ begin
     {$endif}
     {$ifdef MSWINDOWS} 'OpenAL32.dll' {$endif}
     , false);
+  {$endif}
 
   {$ifdef UNIX}
   if ALLibrary = nil then
@@ -330,22 +336,36 @@ begin
 end;
 
 initialization
-  { Below needs to be done for OpenAL to work.
+  { SetExceptionMask needs to be done for
 
-    Note that the GL unit in FPC already does this,
-    but it is still important for applications that don't use OpenGL
-    (but use OpenAL), like
+    - OpenAL
+
+      Testcase are applications that use OpenAL but not OpenGL:
       examples/audio/simplest_play_sound/
       examples/audio/audio_player/
 
-    Otherwise simplest_play_sound on Linux/x86_64 always exits with
-    An unhandled exception occurred at $00007FC4771DF69B:
-    EInvalidOp: Invalid floating point operation
-      $00007FC4771DF69B
+      Otherwse simplest_play_sound on Linux/x86_64 always exits with:
+      An unhandled exception occurred at $00007FC4771DF69B:
+      EInvalidOp: Invalid floating point operation
+        $00007FC4771DF69B
+
+    - OpenGL
+
+      OpenGL implementations are known to cause floating-point exceptions
+      that just have to be ignored.
+      Though the GL unit in FPC already do this,
+      and dglOpenGL already does this.
+
+    - CastleScript (tested by autotests).
+
+    Confirmed by tests to be needed when
+    - defined(CPUI386)
+    - or defined(CPUX86_64)
+    - or defined(CPUAARCH64)
+    Actually FPC Math now defines SetExceptionMask for all platforms,
+    so we just use it always.
   }
-  {$if defined(cpui386) or defined(cpux86_64)}
   SetExceptionMask([exInvalidOp, exDenormalized, exZeroDivide, exOverflow, exUnderflow, exPrecision]);
-  {$endif}
 
   {$ifdef ALLOW_DLOPEN_FROM_UNIT_INITIALIZATION}
   OpenALInitialization;

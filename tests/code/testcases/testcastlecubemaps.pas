@@ -19,8 +19,7 @@ unit TestCastleCubeMaps;
 interface
 
 uses
-  Classes, SysUtils, Generics.Collections, {$ifndef CASTLE_TESTER}FpcUnit, TestUtils, TestRegistry,
-  CastleTestCase{$else}CastleTester{$endif};
+  Classes, SysUtils, Generics.Collections, CastleTester;
 
 type
   TTestCubeMap = class(TCastleTestCase)

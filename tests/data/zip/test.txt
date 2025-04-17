@@ -1,0 +1,3 @@
+Just some test contents
+
+Using UTF-8 chars Wąż źrebak łąka ćma ęóąśłżźćń

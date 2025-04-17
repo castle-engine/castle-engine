@@ -22,15 +22,11 @@ unit X3DLoadInternalGEO;
 
 interface
 
-uses SysUtils, Classes,
-  X3DNodes;
-
-function LoadGEO(const Stream: TStream; const BaseUrl: String): TX3DRootNode;
-
 implementation
 
-uses CastleVectors, CastleUtils, CastleLog,
-  CastleClassUtils, CastleDownload, CastleURIUtils,
+uses SysUtils, Classes,
+  X3DNodes, X3DLoad, CastleVectors, CastleUtils, CastleLog,
+  CastleClassUtils, CastleDownload, CastleUriUtils,
   CastleFilesUtils, CastleStringUtils, X3DLoadInternalUtils;
 
 { TObject3DGEO ---------------------------------------------------------------- }
@@ -233,4 +229,13 @@ begin
   finally geo.Free end;
 end;
 
+var
+  ModelFormat: TModelFormat;
+initialization
+  ModelFormat := TModelFormat.Create;
+  ModelFormat.OnLoad := {$ifdef FPC}@{$endif} LoadGEO;
+  ModelFormat.MimeTypes.Add('application/x-geo');
+  ModelFormat.FileFilterName := 'Videoscape (*.geo)';
+  ModelFormat.Extensions.Add('.geo');
+  RegisterModelFormat(ModelFormat);
 end.

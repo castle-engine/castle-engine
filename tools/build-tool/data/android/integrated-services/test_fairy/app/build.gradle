@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <build_gradle_merge>
   <dependencies>
-    <dependency>implementation 'testfairy:testfairy-android-sdk:1.+@aar'</dependency>
+    <dependency>implementation 'com.testfairy:testfairy-android-sdk:1.+@aar'</dependency>
   </dependencies>
 </build_gradle_merge>

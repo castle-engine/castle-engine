@@ -31,7 +31,7 @@
 uses
   {$ifdef UNIX} CThreads, {$endif} // necessary to have asynchronous downloading on Unix
   SysUtils, Classes, StrUtils, Math,
-  {$ifdef FPC} {$ifndef VER3_0} OpenSSLSockets, {$endif} {$endif} // support HTTPS
+  {$ifdef FPC} OpenSSLSockets, {$endif} // support HTTPS
   CastleDownload, CastleParameters, CastleClassUtils, CastleLog, CastleUtils,
   CastleApplicationProperties, CastleStringUtils;
 
@@ -43,6 +43,9 @@ var
 
 { Makes a trivial "progress bar" using dots written on ErrOutput. }
 procedure ReportProgress(const DownloadedBytes, TotalBytes: Int64);
+const
+  // In case size is unknown, how many bytes we need to write next dot.
+  DotPerBytes = 1024 * 1024;
 var
   NewWrittenDots: Integer;
 begin
@@ -55,9 +58,22 @@ begin
     end;
 
     NewWrittenDots := Max(WrittenDots, Round(MaxDots * DownloadedBytes / TotalBytes));
-    Write(ErrOutput, DupeString('.', NewWrittenDots - WrittenDots));
-    WrittenDots := NewWrittenDots;
+  end else
+  begin
+    // some requests never report TotalBytes, write some progress anyway
+    NewWrittenDots := Max(WrittenDots, DownloadedBytes div DotPerBytes);
+
+    if (WrittenDots = 0) and (NewWrittenDots > 0) then
+    begin
+      Writeln(ErrOutput, Format('Total download size unknown (not reported by HTTP server), we will report after each %d bytes (%s)', [
+        DotPerBytes,
+        SizeToStr(DotPerBytes)
+      ]));
+    end;
   end;
+
+  Write(ErrOutput, DupeString('.', NewWrittenDots - WrittenDots));
+  WrittenDots := NewWrittenDots;
 end;
 
 { Main program code. }

@@ -1,5 +1,5 @@
 {
-  Copyright 2008-2023 Jan Adamec, Michalis Kamburelis.
+  Copyright 2008-2025 Jan Adamec, Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -56,12 +56,14 @@ const
   ecgevarMouseLook       = 2;   // activate mouse look viewing mode, desktop interface only (int, 1 or 0)
   ecgevarCrossHair       = 3;   // show crosshair in the center of the screen (int, 1 or 0)
   ecgevarAnimationRunning = 4;  // (read-only) engine would like to progress with the animation (int, 1 or 0)
-  ecgevarWalkTouchCtl    = 5;   // walking touch control (int, one of ECgeTouchCtlInterface values)
+  ecgevarAutoWalkTouchInterface = 5;   // walking touch control (int, one of ECgeTouchCtlInterface values)
   ecgevarScenePaused     = 6;   // pause Viewport (int, 1 = on, 0 = off)
   ecgevarAutoRedisplay   = 7;   // automatically redraws the window all the time (int, 1 = on, 0 = off)
   ecgevarHeadlight       = 8;   // avatar's headlight (int, 1 = on, 0 = off)
   ecgevarOcclusionCulling = 9;  // occlusion culling (int, 1 = on, 0 = off)
   ecgevarPhongShading    = 10;  // phong shading (int, 1 = on, 0 = off)
+  ecgevarPreventInfiniteFallingDown = 11;  // prevent infinite falling down (int, 1 = on, 0 = off)
+  ecgevarUIScaling       = 12;  // UI scaling method (int, one of ECgeUIScaling)
 
   // navigation types (ECgeNavigationType enum)
   ecgenavWalk      = 0;
@@ -70,12 +72,20 @@ const
   ecgenavTurntable = 3;
   ecgenavNone      = 4;
 
-  // touch interface modes
-  tiNone              = 0;
-  tiCtlWalkCtlRotate  = 1;
-  tiCtlWalkDragRotate = 2;
-  tiCtlFlyCtlWalkDragRotate = 3;
-  tiCtlPanXYDragRotate   = 4;
+  // touch interface modes (ECgeTouchInterface enum)
+  ecgetiNone       = 0;
+  ecgetiWalk       = 1;
+  ecgetiWalkRotate = 2;
+  ecgetiFlyWalk    = 3;
+  ecgetiPan        = 4;
+
+  // UI Scaling (ECgeUIScaling enum)
+  ecgeusNone                  = 0;
+  ecgeusEncloseReferenceSize  = 1;
+  ecgeusEncloseReferenceSizeAutoOrientation = 2;
+  ecgeusFitReferenceSize      = 3;
+  ecgeusExplicitScale         = 4;
+  ecgeusDpiScale              = 5;
 
   // library callback codes
   ecgelibNeedsDisplay     = 0;
@@ -217,14 +227,54 @@ const
   kcge_Comma       = 188;
   kcge_Period      = 190;
 
+  // mouse button (ECgeMouseButton)
+  ecgemouseButtonNone   = 0;
+  ecgemouseButtonLeft   = 1;
+  ecgemouseButtonMiddle = 2;
+  ecgemouseButtonRight  = 3;
+  ecgemouseButtonExtra1 = 4;
+  ecgemouseButtonExtra2 = 5;
+
+  // mouse wheel direction (ECgeMouseWheelDirection)
+  ecgemouseWheelNone    = 0;
+  ecgemouseWheelUp      = 1;
+  ecgemouseWheelDown    = 2;
+  ecgemouseWheelLeft    = 3;
+  ecgemouseWheelRight   = 4;
+
+  // camera input (ECgeNavigationInput)
+  ecgeinputZoomIn       = 1;
+  ecgeinputZoomOut      = 2;
+  ecgeinputForward      = 11;
+  ecgeinputBackward     = 12;
+  ecgeinputLeftRotate   = 13;
+  ecgeinputRightRotate  = 14;
+  ecgeinputLeftStrafe   = 15;
+  ecgeinputRightStrafe  = 16;
+  ecgeinputUpRotate     = 17;
+  ecgeinputDownRotate   = 18;
+  ecgeinputIncreasePreferredHeight = 19;
+  ecgeinputDecreasePreferredHeight = 20;
+  ecgeinputGravityUp    = 21;
+  ecgeinputRun          = 22;
+  ecgeinputMoveSpeedInc = 23;
+  ecgeinputMoveSpeedDec = 24;
+  ecgeinputJump         = 25;
+  ecgeinputCrouch       = 26;
+  ecgeinputExRotate     = 31;
+  ecgeinputExMove       = 32;
+  ecgeinputExZoom       = 33;
+
 type
   TLibraryCallbackProc = function (eCode, iParam1, iParam2: cInt32; szParam: pcchar):cInt32; cdecl;
+  ppcchar = ^pcchar;
 
 procedure CGE_Initialize(ApplicationConfigDirectory: PCChar); cdecl; external 'castleengine';
 procedure CGE_Finalize(); cdecl; external 'castleengine';
 procedure CGE_Open(flags: cUInt32; InitialWidth, InitialHeight, Dpi: cUInt32); cdecl; external 'castleengine';
 procedure CGE_Close(); cdecl; external 'castleengine';
 procedure CGE_GetOpenGLInformation(szBuffer: pchar; nBufSize: cInt32); cdecl; external 'castleengine';
+procedure CGE_GetCastleEngineVersion(szBuffer: pchar; nBufSize: cInt32); cdecl; external 'castleengine';
 procedure CGE_Resize(uiViewWidth, uiViewHeight: cUInt32); cdecl; external 'castleengine';
 procedure CGE_Render(); cdecl; external 'castleengine';
 procedure CGE_SaveScreenshotToFile(szFile: pcchar); cdecl; external 'castleengine';
@@ -232,11 +282,12 @@ procedure CGE_SetLibraryCallbackProc(aProc: TLibraryCallbackProc); cdecl; extern
 procedure CGE_Update(); cdecl; external 'castleengine';
 procedure CGE_MouseDown(X, Y: cInt32; bLeftBtn: cBool; FingerIndex: CInt32); cdecl; external 'castleengine';
 procedure CGE_Motion(X, Y: cInt32; FingerIndex: CInt32); cdecl; external 'castleengine';
-procedure CGE_MouseUp(X, Y: cInt32; bLeftBtn: cBool; FingerIndex: CInt32; trackReleased: cBool); cdecl; external 'castleengine';
+procedure CGE_MouseUp(X, Y: cInt32; bLeftBtn: cBool; FingerIndex: CInt32); cdecl; external 'castleengine';
 procedure CGE_MouseWheel(zDelta: cFloat; bVertical: cBool); cdecl; external 'castleengine';
 procedure CGE_KeyDown(eKey: CInt32); cdecl; external 'castleengine';
 procedure CGE_KeyUp(eKey: CInt32); cdecl; external 'castleengine';
 procedure CGE_LoadSceneFromFile(szFile: pcchar); cdecl; external 'castleengine';
+procedure CGE_SaveSceneToFile(szFile: pcchar); cdecl; external 'castleengine';
 function CGE_GetViewpointsCount(): cInt32; cdecl; external 'castleengine';
 procedure CGE_GetViewpointName(iViewpointIdx: cInt32; szName: pchar; nBufSize: cInt32); cdecl; external 'castleengine';
 procedure CGE_MoveToViewpoint(iViewpointIdx: cInt32; bAnimated: cBool); cdecl; external 'castleengine';
@@ -247,16 +298,40 @@ procedure CGE_GetViewCoords(pfPosX, pfPosY, pfPosZ, pfDirX, pfDirY, pfDirZ,
 procedure CGE_MoveViewToCoords(fPosX, fPosY, fPosZ, fDirX, fDirY, fDirZ,
                                fUpX, fUpY, fUpZ, fGravX, fGravY, fGravZ: cFloat;
                                bAnimated: cBool); cdecl; external 'castleengine';
+procedure CGE_SetNavigationInputShortcut(eInput, eKey1, eKey2, eMouseButton, eMouseWheel: cInt32); cdecl; external 'castleengine';
 function CGE_GetNavigationType(): cInt32; cdecl; external 'castleengine';
 procedure CGE_SetNavigationType(NewType: cInt32); cdecl; external 'castleengine';
 procedure CGE_SetTouchInterface(eMode: cInt32); cdecl; external 'castleengine';
-procedure CGE_SetUserInterface(AutomaticTouchInterface: cBool); cdecl; external 'castleengine';
+procedure CGE_SetAutoTouchInterface(AutomaticTouchInterface: cBool); cdecl; external 'castleengine';
+procedure CGE_SetWalkNavigationMouseDragMode(eMode: cInt32); cdecl; external 'castleengine';
 
 procedure CGE_SetVariableInt(eVar: cInt32; nValue: cInt32); cdecl; external 'castleengine';
 function CGE_GetVariableInt(eVar: cInt32): cInt32; cdecl; external 'castleengine';
 
-procedure CGE_SetNodeFieldValue(szNodeName, szFieldName: pcchar;
-                                fVal1, fVal2, fVal3, fVal4: cFloat); cdecl; external 'castleengine';
+procedure CGE_SetNodeFieldValue_SFFloat(szNodeName, szFieldName: pcchar; value: cFloat); cdecl; external 'castleengine';
+procedure CGE_SetNodeFieldValue_SFDouble(szNodeName, szFieldName: pcchar; value: cDouble); cdecl; external 'castleengine';
+procedure CGE_SetNodeFieldValue_SFInt32(szNodeName, szFieldName: pcchar; value: cInt32); cdecl; external 'castleengine';
+procedure CGE_SetNodeFieldValue_SFBool(szNodeName, szFieldName: pcchar; value: cBool); cdecl; external 'castleengine';
+procedure CGE_SetNodeFieldValue_SFString(szNodeName, szFieldName, szValue: pcchar); cdecl; external 'castleengine';
+procedure CGE_SetNodeFieldValue_SFVec2f(szNodeName, szFieldName: pcchar; val1, val2: cFloat); cdecl; external 'castleengine';
+procedure CGE_SetNodeFieldValue_SFVec3f(szNodeName, szFieldName: pcchar; val1, val2, val3: cFloat); cdecl; external 'castleengine';
+procedure CGE_SetNodeFieldValue_SFVec4f(szNodeName, szFieldName: pcchar; val1, val2, val3, val4: cFloat); cdecl; external 'castleengine';
+procedure CGE_SetNodeFieldValue_SFVec2d(szNodeName, szFieldName: pcchar; val1, val2: cDouble); cdecl; external 'castleengine';
+procedure CGE_SetNodeFieldValue_SFVec3d(szNodeName, szFieldName: pcchar; val1, val2, val3: cDouble); cdecl; external 'castleengine';
+procedure CGE_SetNodeFieldValue_SFVec4d(szNodeName, szFieldName: pcchar; val1, val2, val3, val4: cDouble); cdecl; external 'castleengine';
+procedure CGE_SetNodeFieldValue_SFRotation(szNodeName, szFieldName: pcchar; axisX, axisY, axisZ, rotation: cFloat); cdecl; external 'castleengine';
+procedure CGE_SetNodeFieldValue_MFFloat(szNodeName, szFieldName: pcchar; iCount: cInt32; values: pcfloat); cdecl; external 'castleengine';
+procedure CGE_SetNodeFieldValue_MFDouble(szNodeName, szFieldName: pcchar; iCount: cInt32; values: pcdouble); cdecl; external 'castleengine';
+procedure CGE_SetNodeFieldValue_MFInt32(szNodeName, szFieldName: pcchar; iCount: cInt32; values: pcint32); cdecl; external 'castleengine';
+procedure CGE_SetNodeFieldValue_MFBool(szNodeName, szFieldName: pcchar; iCount: cInt32; values: pcbool); cdecl; external 'castleengine';
+procedure CGE_SetNodeFieldValue_MFVec2f(szNodeName, szFieldName: pcchar; iCount: cInt32; values: pcfloat); cdecl; external 'castleengine';
+procedure CGE_SetNodeFieldValue_MFVec3f(szNodeName, szFieldName: pcchar; iCount: cInt32; values: pcfloat); cdecl; external 'castleengine';
+procedure CGE_SetNodeFieldValue_MFVec4f(szNodeName, szFieldName: pcchar; iCount: cInt32; values: pcfloat); cdecl; external 'castleengine';
+procedure CGE_SetNodeFieldValue_MFVec2d(szNodeName, szFieldName: pcchar; iCount: cInt32; values: pcdouble); cdecl; external 'castleengine';
+procedure CGE_SetNodeFieldValue_MFVec3d(szNodeName, szFieldName: pcchar; iCount: cInt32; values: pcdouble); cdecl; external 'castleengine';
+procedure CGE_SetNodeFieldValue_MFVec4d(szNodeName, szFieldName: pcchar; iCount: cInt32; values: pcdouble); cdecl; external 'castleengine';
+procedure CGE_SetNodeFieldValue_MFRotation(szNodeName, szFieldName: pcchar; iCount: cInt32; values: pcfloat); cdecl; external 'castleengine';
+procedure CGE_SetNodeFieldValue_MFString(szNodeName, szFieldName: pcchar; iCount: cInt32; values: ppcchar); cdecl; external 'castleengine';
 
 procedure CGE_IncreaseSceneTime(fTimeS: cFloat); cdecl; external 'castleengine';
 

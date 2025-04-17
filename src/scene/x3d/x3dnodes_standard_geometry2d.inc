@@ -19,7 +19,6 @@
     @bold(Rendering of this node is not implemented yet.) }
   TArc2DNode = class(TAbstractGeometryNode)
   public
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
     function LocalBoundingBox(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
     function VerticesCount(State: TX3DGraphTraverseState;
@@ -39,7 +38,6 @@
     @bold(Rendering of this node is not implemented yet.) }
   TArcClose2DNode = class(TAbstractGeometryNode)
   public
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
     function LocalBoundingBox(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
     function VerticesCount(State: TX3DGraphTraverseState;
@@ -56,7 +54,6 @@
   strict private
     function CalculateSlices: Cardinal;
   public
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
     function Proxy(var State: TX3DGraphTraverseState): TAbstractGeometryNode; override;
 
   {$I auto_generated_node_helpers/x3dnodes_circle2d.inc}
@@ -67,7 +64,6 @@
   strict private
     function CalculateSlices: Cardinal;
   public
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
     function Proxy(var State: TX3DGraphTraverseState): TAbstractGeometryNode; override;
     function SolidField: TSFBool; override;
 
@@ -77,7 +73,7 @@
   { Series of line segments in 2D. }
   TPolyline2DNode = class(TAbstractGeometryNode)
   public
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
+    constructor Create(const AX3DName: string = ''; const ABaseUrl: String = ''); override;
     function Proxy(var State: TX3DGraphTraverseState): TAbstractGeometryNode; override;
 
   {$I auto_generated_node_helpers/x3dnodes_polyline2d.inc}
@@ -86,7 +82,6 @@
   { Set of vertices in 2D. }
   TPolypoint2DNode = class(TAbstractGeometryNode)
   public
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
     function Proxy(var State: TX3DGraphTraverseState): TAbstractGeometryNode; override;
 
   {$I auto_generated_node_helpers/x3dnodes_polypoint2d.inc}
@@ -95,7 +90,6 @@
   { Rectangle in 2D. }
   TRectangle2DNode = class(TAbstractGeometryNode)
   public
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
     function Proxy(var State: TX3DGraphTraverseState): TAbstractGeometryNode; override;
     function SolidField: TSFBool; override;
 
@@ -105,7 +99,6 @@
   { Set of triangles in 2D. }
   TTriangleSet2DNode = class(TAbstractGeometryNode)
   public
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
     function Proxy(var State: TX3DGraphTraverseState): TAbstractGeometryNode; override;
     function SolidField: TSFBool; override;
 
@@ -121,16 +114,6 @@ const
   ('PIE', 'CHORD');
 
 { TArc2DNode ----------------------------------------------------------------- }
-
-constructor TArc2DNode.Create(const AX3DName, ABaseUrl: string);
-begin
-  inherited;
-  FdEndAngle.Angle := true;
-  FdEndAngle.ChangeAlways := chGeometry;
-  FdRadius.ChangeAlways := chGeometry;
-  FdStartAngle.Angle := true;
-  FdStartAngle.ChangeAlways := chGeometry;
-end;
 
 function TArc2DNode.LocalBoundingBox(State: TX3DGraphTraverseState;
   ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D;
@@ -154,18 +137,6 @@ begin
 end;
 
 { TArcClose2DNode ----------------------------------------------------------------- }
-
-constructor TArcClose2DNode.Create(const AX3DName, ABaseUrl: string);
-begin
-  inherited;
-  FdClosureType.ChangeAlways := chGeometry;
-  FdEndAngle.Angle := true;
-  FdEndAngle.ChangeAlways := chGeometry;
-  FdRadius.ChangeAlways := chGeometry;
-  FdSolid.ChangeAlways := chGeometry;
-  FdStartAngle.Angle := true;
-  FdStartAngle.ChangeAlways := chGeometry;
-end;
 
 function TArcClose2DNode.LocalBoundingBox(State: TX3DGraphTraverseState;
   ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D;
@@ -195,16 +166,9 @@ end;
 
 { TCircle2DNode -------------------------------------------------------------- }
 
-constructor TCircle2DNode.Create(const AX3DName, ABaseUrl: string);
-begin
-  inherited;
-  FdRadius.ChangeAlways := chGeometry;
-  FdSlices.ChangeAlways := chGeometry;
-end;
-
 function TCircle2DNode.CalculateSlices: Cardinal;
 begin
-  // use default in case of -1 or invalid value
+  // use default in case of 0 or invalid value
   if FdSlices.Value < MinTriangulationSlices then
     Result := DefaultTriangulationSlices
   else
@@ -217,11 +181,17 @@ var
   C: TCoordinateNode;
   LineSet: TLineSetNode absolute Result;
   I: Integer;
-  AngleSin, AngleCos: Float;
+  AngleSin, AngleCos, RX, RY: Single;
 begin
   LineSet := TLineSetNode.Create(X3DName, BaseUrl);
   try
     SlicesNow := CalculateSlices;
+
+    RX := Radius;
+    if RadiusY <> 0 then
+      RY := RadiusY
+    else
+      RY := RX;
 
     C := TCoordinateNode.Create('', BaseUrl);
     C.FdPoint.Items.Count := SlicesNow + 1;
@@ -229,8 +199,8 @@ begin
     begin
       SinCos((I / SlicesNow) * 2 * Pi, AngleSin, AngleCos);
       C.FdPoint.Items.L[I] := Vector3(
-        AngleSin * FdRadius.Value,
-        AngleCos * FdRadius.Value,
+        AngleSin * RX,
+        AngleCos * RY,
         0
       );
     end;
@@ -244,17 +214,13 @@ end;
 
 { TDisk2DNode ---------------------------------------------------------------- }
 
-constructor TDisk2DNode.Create(const AX3DName, ABaseUrl: string);
-begin
-  inherited;
-  FdInnerRadius.ChangeAlways := chGeometry;
-  FdOuterRadius.ChangeAlways := chGeometry;
-  FdSolid.ChangeAlways := chGeometry;
-end;
-
 function TDisk2DNode.CalculateSlices: Cardinal;
 begin
-  Result := DefaultTriangulationSlices;
+  // use default in case of 0 or invalid value
+  if FdSlices.Value < MinTriangulationSlices then
+    Result := DefaultTriangulationSlices
+  else
+    Result := FdSlices.Value;
 end;
 
 function TDisk2DNode.SolidField: TSFBool;
@@ -264,7 +230,7 @@ end;
 
 function TDisk2DNode.Proxy(var State: TX3DGraphTraverseState): TAbstractGeometryNode;
 var
-  Slices: Integer;
+  SlicesNow: Integer;
 
   { Make a disc from triangles, no inner radius (no hole inside). }
   procedure ProxyTriangles;
@@ -277,11 +243,11 @@ var
     Triangles := TTriangleFanSetNode.Create(X3DName, BaseUrl);
     try
       C := TCoordinateNode.Create('', BaseUrl);
-      C.FdPoint.Items.Count := Slices + 2;
+      C.FdPoint.Items.Count := SlicesNow + 2;
       C.FdPoint.Items.L[0] := Vector3(0, 0, 0);
-      for I := 0 to Slices do
+      for I := 0 to SlicesNow do
       begin
-        SinCos((I / Slices) * 2 * Pi, AngleSin, AngleCos);
+        SinCos((I / SlicesNow) * 2 * Pi, AngleSin, AngleCos);
         C.FdPoint.Items.L[I + 1] := Vector3(
           AngleCos * OuterRadius,
           AngleSin * OuterRadius,
@@ -290,7 +256,7 @@ var
       end;
 
       Triangles.Coord := C;
-      Triangles.SetFanCount([Slices + 2]);
+      Triangles.SetFanCount([SlicesNow + 2]);
       Triangles.Solid := Solid;
     except FreeAndNil(Result); raise end;
   end;
@@ -307,16 +273,16 @@ var
     Quads := TIndexedQuadSetNode.Create(X3DName, BaseUrl);
     try
       C := TCoordinateNode.Create('', BaseUrl);
-      C.FdPoint.Items.Count := Slices * 2;
-      for I := 0 to Slices - 1 do
+      C.FdPoint.Items.Count := SlicesNow * 2;
+      for I := 0 to SlicesNow - 1 do
       begin
-        SinCos((I / Slices) * 2 * Pi, AngleSin, AngleCos);
+        SinCos((I / SlicesNow) * 2 * Pi, AngleSin, AngleCos);
         C.FdPoint.Items.L[I] := Vector3(
           AngleCos * OuterRadius,
           AngleSin * OuterRadius,
           0
         );
-        C.FdPoint.Items.L[I + Slices] := Vector3(
+        C.FdPoint.Items.L[I + SlicesNow] := Vector3(
           AngleCos * InnerRadius,
           AngleSin * InnerRadius,
           0
@@ -325,13 +291,13 @@ var
 
       Indexes := TInt32List.Create;
       try
-        Indexes.Count := Slices * 4;
-        for I := 0 to Slices - 1 do
+        Indexes.Count := SlicesNow * 4;
+        for I := 0 to SlicesNow - 1 do
         begin
           Indexes.L[I * 4    ] := I;
-          Indexes.L[I * 4 + 1] := (I + 1) mod Slices;
-          Indexes.L[I * 4 + 2] := (I + 1) mod Slices + Slices;
-          Indexes.L[I * 4 + 3] := I + Slices;
+          Indexes.L[I * 4 + 1] := (I + 1) mod SlicesNow;
+          Indexes.L[I * 4 + 2] := (I + 1) mod SlicesNow + SlicesNow;
+          Indexes.L[I * 4 + 3] := I + SlicesNow;
         end;
 
         Quads.Coord := C;
@@ -342,7 +308,7 @@ var
   end;
 
 begin
-  Slices := CalculateSlices;
+  SlicesNow := CalculateSlices;
 
   if InnerRadius <= 0 then
     ProxyTriangles
@@ -352,10 +318,9 @@ end;
 
 { TPolyline2DNode ------------------------------------------------------------ }
 
-constructor TPolyline2DNode.Create(const AX3DName, ABaseUrl: string);
+constructor TPolyline2DNode.Create(const AX3DName, ABaseUrl: String);
 begin
   inherited;
-  FdLineSegments.ChangeAlways := chGeometry;
   FdLineSegments.AddAlternativeName('point', 2);
 end;
 
@@ -387,12 +352,6 @@ end;
 
 { TPolypoint2DNode ----------------------------------------------------------- }
 
-constructor TPolypoint2DNode.Create(const AX3DName, ABaseUrl: string);
-begin
-  inherited;
-  FdPoint.ChangeAlways := chGeometry;
-end;
-
 function TPolypoint2DNode.Proxy(var State: TX3DGraphTraverseState): TAbstractGeometryNode;
 var
   C: TCoordinateNode;
@@ -419,13 +378,6 @@ begin
 end;
 
 { TRectangle2DNode ----------------------------------------------------------- }
-
-constructor TRectangle2DNode.Create(const AX3DName, ABaseUrl: string);
-begin
-  inherited;
-  FdSize.ChangeAlways := chGeometry;
-  FdSolid.ChangeAlways := chGeometry;
-end;
 
 function TRectangle2DNode.SolidField: TSFBool;
 begin
@@ -473,13 +425,6 @@ begin
 end;
 
 { TTriangleSet2DNode --------------------------------------------------------- }
-
-constructor TTriangleSet2DNode.Create(const AX3DName, ABaseUrl: string);
-begin
-  inherited;
-  FdVertices.ChangeAlways := chGeometry;
-  FdSolid.ChangeAlways := chGeometry;
-end;
 
 function TTriangleSet2DNode.SolidField: TSFBool;
 begin

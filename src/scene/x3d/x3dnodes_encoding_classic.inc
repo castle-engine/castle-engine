@@ -1,6 +1,6 @@
 {%MainUnit x3dnodes.pas}
 {
-  Copyright 2002-2022 Michalis Kamburelis.
+  Copyright 2002-2023 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -31,25 +31,10 @@ type
   { Raised by classic X3D loading routines when the stream is compressed with gzip. }
   EGzipCompressed = CastleInternalX3DLexer.EGzipCompressed;
 
-{ Load VRML/X3D file in classic encoding from stream. Return it's root node.
-
-  This function can't handle compressed data (X3D files are
-  sometimes compressed with gzip). You should pass here a stream
-  with an already uncompressed text data.
-
-  The BaseUrl must be absolute URL. Use AbsoluteURI to make sure to convert
-  eventual relative URLs to absolute.
-
-  @raises(EGzipCompressed If the Stream starts with gzip file header.)
-
-  @exclude }
-function LoadX3DClassicInternal(const Stream: TStream;
-  const BaseUrl: string): TX3DRootNode; overload;
-
 { Load VRML/X3D file in classic encoding from a string. Return it's root node.
   @raises(EGzipCompressed If the Stream is compressed with gzip.) }
-function LoadX3DClassicFromString(const VRMLContents: string;
-  const BaseUrl: string): TX3DRootNode; deprecated 'use LoadNode with TStringStream';
+function LoadX3DClassicFromString(const VRMLContents: String;
+  const BaseUrl: String): TX3DRootNode; deprecated 'use LoadNode with TStringStream';
 
 { Load VRML/X3D file in classic encoding, return it's root node.
 
@@ -62,7 +47,7 @@ function LoadX3DClassicFromString(const VRMLContents: string;
   If Gzipped then we can be relatively sure that stream is gzipped.
   Otherwise, it can still be gzipped (.wrl files are sometimes gzipped
   without extension indicating it). }
-function LoadX3DClassic(const URL: string;
+function LoadX3DClassic(const Url: String;
   const Gzipped: boolean): TX3DRootNode; deprecated 'use LoadNode';
 
 {$endif read_interface}
@@ -126,10 +111,10 @@ function ParseNode(const Lexer: TX3DLexer; const Reader: TX3DReaderNames;
   const NilIfUnresolvedUSE: Boolean;
   const AllowNodeCycle: Boolean; var UsingNodeCycle: Boolean): TX3DNode; overload;
 
-  procedure ParseNamedNode(const NodeName: string);
+  procedure ParseNamedNode(const NodeName: String);
   var
     NodeClass: TX3DNodeClass;
-    X3DType: string;
+    X3DType: String;
     Proto: TX3DPrototypeBase;
   begin
     Lexer.CheckTokenIs(vtName, 'node type');
@@ -234,7 +219,7 @@ function ParseNode(const Lexer: TX3DLexer; const Reader: TX3DReaderNames;
   end;
 
 var
-  NodeName, S: string;
+  NodeName, S: String;
   UsedNodeFinished: boolean;
 begin
   Result := nil;
@@ -272,9 +257,9 @@ begin
            if (Result = nil) or (not UsedNodeFinished) then
            begin
              if Result = nil then
-               S := Format('Incorrect USE clause: node name "%s" undefined', [NodeName]) else
+               S := Format(SIncorrectUse, [NodeName]) else
              begin
-               S := Format('Cycles in VRML/X3D graph: USE clause inside node "%s" refers to the same node', [NodeName]);
+               S := Format(SNodeUseCycle, [NodeName]);
                Result := nil; { return nil in case of cycles }
              end;
              if NilIfUnresolvedUSE then
@@ -302,6 +287,123 @@ var
 begin
   IgnoredUsingNodeCycle := false;
   Result := ParseNode(Lexer, Reader, NilIfUnresolvedUSE, false, IgnoredUsingNodeCycle);
+end;
+
+{ Parse any "statement" from X3D grammar.
+  See https://www.web3d.org/documents/specifications/19776-2/V3.3/Part02/grammar.html ,
+  but it has been changed in X3D 4.0 to allow more things in "nodeStatement"
+  according to https://github.com/castle-engine/castle-model-viewer/issues/79 .
+
+  Adds new parsed stuff to ContainerNode...
+  Unless that stuff is a node, in which case it is
+  - when ContainerNode is TX3DRootNode:
+    added to ContainerNode using ContainerNode.AddRootNode.
+    You can leave ContainerField=nil in this case.
+  - otherwise:
+    added to ContainerField.
+
+  Reads and increments PositionInParent. }
+function ParseStatement(
+  const Lexer: TX3DLexer; const Reader: TX3DReaderNames;
+  const ContainerNode: TX3DNode; const ContainerField: TMFNode;
+  const FileTopLevel: Boolean;
+  var PositionInParent: Integer): TX3DFileItem;
+
+  { Parse and add PROTO or EXTERNPROTO.
+    You can safely assume that current token is PROTO or EXTERNPROTO. }
+  procedure ParseProtoStatement;
+  var
+    Proto: TX3DPrototypeBase;
+  begin
+    if Lexer.TokenKeyword = vkPROTO then
+      Proto := TX3DPrototype.Create else
+      Proto := TX3DExternalPrototype.Create;
+    try
+      Proto.Parse(Lexer, Reader);
+      ContainerNode.AddPrototype(Proto);
+      Result := Proto;
+    except
+      FreeAndNil(Proto); { do not add invalid Proto, free it }
+      raise;
+    end;
+  end;
+
+  procedure ParseRouteStatement;
+  var
+    Route: TX3DRoute;
+  begin
+    Route := TX3DRoute.Create;
+    try
+      Route.Parse(Lexer, Reader);
+      ContainerNode.AddRoute(Route);
+      Result := Route;
+    except
+      FreeAndNil(Route); { do not add invalid Route, free it }
+      raise;
+    end;
+  end;
+
+  procedure ParseImportStatement;
+  var
+    Import: TX3DImport;
+  begin
+    Import := TX3DImport.Create;
+    try
+      Import.Parse(Lexer, Reader);
+      ContainerNode.AddImport(Import);
+      Result := Import;
+    except
+      FreeAndNil(Import); { do not add invalid Import, free it }
+      raise;
+    end;
+  end;
+
+  procedure ParseExportStatement;
+  var
+    Export: TX3DExport;
+  begin
+    Export := TX3DExport.Create;
+    try
+      Export.Parse(Lexer, Reader);
+      ContainerNode.AddExport(Export);
+      Result := Export;
+    except
+      FreeAndNil(Export); { do not add invalid Export, free it }
+      raise;
+    end;
+  end;
+
+  procedure ParseNodeStatement;
+  var
+    NewNode: TX3DNode;
+  begin
+    NewNode := ParseNode(Lexer, Reader, false);
+    if ContainerNode is TX3DRootNode then
+      TX3DRootNode(ContainerNode).AddRootNode(NewNode, FileTopLevel)
+    else
+      ContainerField.Add(NewNode);
+    Result := NewNode;
+  end;
+
+begin
+  if (Lexer.Token = vtKeyword) and
+     (Lexer.TokenKeyword in [vkPROTO, vkEXTERNPROTO]) then
+    ParseProtoStatement
+  else
+  if Lexer.TokenIsKeyword(vkROUTE) then
+    ParseRouteStatement
+  else
+  if Lexer.TokenIsKeyword(vkIMPORT) then
+    ParseImportStatement
+  else
+  if Lexer.TokenIsKeyword(vkEXPORT) then
+    ParseExportStatement
+  else
+    ParseNodeStatement;
+
+  Assert(Result <> nil);
+  Result.PositionInParent := PositionInParent;
+  Inc(PositionInParent);
 end;
 
 { Parses a sequence of VRML/X3D statements: any number of nodes,
@@ -340,7 +442,7 @@ var
 
   procedure ParseComponents;
   var
-    Name: string;
+    Name: String;
     Level: Integer;
   begin
     while Lexer.TokenIsKeyword(vkCOMPONENT) do
@@ -363,7 +465,7 @@ var
 
   procedure ParseUnits;
   var
-    Category, Name: string;
+    Category, Name: String;
     ConversionFactor: Float;
   begin
     while Lexer.TokenIsKeyword(vkUNIT) do
@@ -389,7 +491,7 @@ var
 
   procedure ParseMetas;
   var
-    Key, Value: string;
+    Key, Value: String;
   begin
     if Lexer.TokenIsKeyword(vkMETA) and
        (Reader.Version.Major < 3) then
@@ -408,96 +510,6 @@ var
 
       Lexer.NextToken;
     end;
-  end;
-
-  procedure ParseStatement;
-
-    { You can safely assume that current token is PROTO or EXTERNPROTO. }
-    procedure ParseProtoStatement;
-    var
-      Proto: TX3DPrototypeBase;
-    begin
-      if Lexer.TokenKeyword = vkPROTO then
-        Proto := TX3DPrototype.Create else
-        Proto := TX3DExternalPrototype.Create;
-      try
-        Proto.Parse(Lexer, Reader);
-        Proto.PositionInParent := PositionInParent;
-        Result.AddPrototype(Proto);
-      except
-        FreeAndNil(Proto); { do not add invalid Proto, free it }
-        raise;
-      end;
-    end;
-
-    procedure ParseRouteStatement;
-    var
-      Route: TX3DRoute;
-    begin
-      Route := TX3DRoute.Create;
-      try
-        Route.Parse(Lexer, Reader);
-        Route.PositionInParent := PositionInParent;
-        Result.AddRoute(Route);
-      except
-        FreeAndNil(Route); { do not add invalid Route, free it }
-        raise;
-      end;
-    end;
-
-    procedure ParseImportStatement;
-    var
-      Import: TX3DImport;
-    begin
-      Import := TX3DImport.Create;
-      try
-        Import.Parse(Lexer, Reader);
-        Import.PositionInParent := PositionInParent;
-        Result.AddImport(Import);
-      except
-        FreeAndNil(Import); { do not add invalid Import, free it }
-        raise;
-      end;
-    end;
-
-    procedure ParseExportStatement;
-    var
-      Export: TX3DExport;
-    begin
-      Export := TX3DExport.Create;
-      try
-        Export.Parse(Lexer, Reader);
-        Export.PositionInParent := PositionInParent;
-        Result.AddExport(Export);
-      except
-        FreeAndNil(Export); { do not add invalid Export, free it }
-        raise;
-      end;
-    end;
-
-    procedure ParseNodeStatement;
-    var
-      NewNode: TX3DNode;
-    begin
-      NewNode := ParseNode(Lexer, Reader, false);
-      NewNode.PositionInParent := PositionInParent;
-      Result.FdChildren.Add(NewNode);
-      { for prototypes, do not check NewNode class, as anything is valid. }
-      if FileTopLevel then
-        Result.TopLevelCheckChild(NewNode);
-    end;
-
-  begin
-    if (Lexer.Token = vtKeyword) and
-       (Lexer.TokenKeyword in [vkPROTO, vkEXTERNPROTO]) then
-      ParseProtoStatement else
-    if Lexer.TokenIsKeyword(vkROUTE) then
-      ParseRouteStatement else
-    if Lexer.TokenIsKeyword(vkIMPORT) then
-      ParseImportStatement else
-    if Lexer.TokenIsKeyword(vkEXPORT) then
-      ParseExportStatement else
-      ParseNodeStatement;
   end;
 
 begin
@@ -542,8 +554,7 @@ begin
     begin
       while Lexer.Token <> EndToken do
       begin
-        ParseStatement;
-        Inc(PositionInParent);
+        ParseStatement(Lexer, Reader, Result, nil, FileTopLevel, PositionInParent);
       end;
     end else
     begin
@@ -553,8 +564,7 @@ begin
         but the file contents read so far are Ok). }
       while Lexer.Token <> EndToken do
       try
-        ParseStatement;
-        Inc(PositionInParent);
+        ParseStatement(Lexer, Reader, Result, nil, FileTopLevel, PositionInParent);
       except
         on E: EX3DClassicReadError do
         begin
@@ -567,7 +577,7 @@ begin
 end;
 
 function LoadX3DClassicInternal(const Stream: TStream;
-  const BaseUrl: string): TX3DRootNode;
+  const BaseUrl: String): TX3DRootNode;
 var
   PeekStream: TPeekCharStream;
   Lexer: TX3DLexer;
@@ -586,10 +596,10 @@ begin
   finally FreeAndNil(PeekStream) end;
 end;
 
-function LoadX3DClassic(const URL: string;
+function LoadX3DClassic(const Url: String;
   const Gzipped: boolean): TX3DRootNode;
 
-  function DoIt(BaseStream: TStream; const BaseUrl: string): TX3DRootNode;
+  function DoIt(BaseStream: TStream; const BaseUrl: String): TX3DRootNode;
   begin
     try
       Result := LoadX3DClassicInternal(BaseStream, BaseUrl);
@@ -597,28 +607,28 @@ function LoadX3DClassic(const URL: string;
   end;
 
 var
-  BaseUrl: string;
+  BaseUrl: String;
 begin
-  BaseUrl := AbsoluteURI(URL);
+  BaseUrl := AbsoluteURI(Url);
 
   if Gzipped then
-    Result := DoIt(Download(URL, [soGzip]), BaseUrl) else
+    Result := DoIt(Download(Url, [soGzip]), BaseUrl) else
   begin
     try
-      Result := DoIt(Download(URL, []), BaseUrl);
+      Result := DoIt(Download(Url, []), BaseUrl);
     except
       { It's somewhat hacky solution to reopen the file, creating new stream.
         But in practice, this works OK, and it allows us to read files
         compressed by gzip but without indicating this by file extension.
         See LoadNode comments. }
       on EGzipCompressed do
-        Result := DoIt(Download(URL, [soGzip]), BaseUrl);
+        Result := DoIt(Download(Url, [soGzip]), BaseUrl);
     end;
   end;
 end;
 
-function LoadX3DClassicFromString(const VRMLContents: string;
-  const BaseUrl: string): TX3DRootNode;
+function LoadX3DClassicFromString(const VRMLContents: String;
+  const BaseUrl: String): TX3DRootNode;
 var
   Stream: TStringStream;
 begin

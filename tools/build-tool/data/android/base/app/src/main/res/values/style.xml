@@ -1,6 +1,0 @@
-<resources>
-    <!-- Base application theme. -->
-    <style name="AppTheme" parent="${ANDROID_ACTIVITY_THEME}">
-        <item name="android:windowTranslucentStatus">true</item>
-    </style>
-</resources>

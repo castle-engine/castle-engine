@@ -1,5 +1,5 @@
-{
-  Copyright 2022-2022 Andrzej Kilijański, Michalis Kamburelis.
+﻿{
+  Copyright 2022-2025 Andrzej Kilijański, Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ Running tests using CastleTester with console output (just using CGE WritelnLog). }
+{ Running tests using CastleTester with console output (just using CastleLog). }
 unit CastleConsoleTester;
 
 interface
@@ -25,82 +25,66 @@ type
   strict private
     FTester: TCastleTester;
     procedure TestExecuted(const AName: String);
-    procedure AssertFailed(const TestName, Msg: String);
-
-    procedure Log(const AMessage: String);
+    procedure TestFailed(const TestName, Msg: String);
   public
     constructor Create;
     destructor Destroy; override;
 
-    { Runs all tests or only one test case when ATestCaseToRun <> '' }
+    { Runs all tests (allowed by current ParamFilter, if any). }
     procedure Run(const ATestCaseToRun: String = '');
-
-    { Parsing --suite=xx parameter and returns only value (xx) }
-    class function GetTestCaseNameFromParameters: String;
   end;
 
 implementation
 
-uses CastleLog, CastleParameters;
+uses CastleLog, CastleTesterParameters, CastleUtils, CastleStringUtils;
 
-procedure TCastleConsoleTester.AssertFailed(const TestName, Msg: String);
+procedure TCastleConsoleTester.TestFailed(const TestName, Msg: String);
 begin
-  Log(TestName + ': Failed: ' + Msg);
+  WritelnLog(TestName, 'Failed: ' + Msg);
 end;
 
 constructor TCastleConsoleTester.Create;
 begin
+  inherited;
   FTester := TCastleTester.Create(nil);
   FTester.NotifyTestCaseExecuted := {$ifdef FPC}@{$endif}TestExecuted;
-  FTester.NotifyAssertFail := {$ifdef FPC}@{$endif}AssertFailed;
+  FTester.NotifyTestFail := {$ifdef FPC}@{$endif}TestFailed;
 end;
 
 destructor TCastleConsoleTester.Destroy;
 begin
   FreeAndNil(FTester);
-end;
-
-procedure TCastleConsoleTester.Log(const AMessage: String);
-begin
-  WritelnLog(AMessage);
+  inherited;
 end;
 
 procedure TCastleConsoleTester.Run(const ATestCaseToRun: String);
 begin
   FTester.AddRegisteredTestCases;
-  Log('Scaning tests...');
+  WritelnLog('Scaning tests...');
   FTester.Scan;
-  Log('Found ' + IntToStr(Ftester.EnabledTestCount) + ' tests.');
-  Log('Preparing tests...');
+  WritelnLog('Found ' + IntToStr(FTester.EnabledTestCount) + ' tests.');
+  if ParamFilter <> '' then
+  begin
+    FTester.EnableFilter(ParamFilter);
+    WritelnLog('Applying filter: Enabled ' + IntToStr(FTester.EnabledTestCount) + ' tests.');
+  end;
+  WritelnLog('Preparing tests...');
   FTester.PrepareTestListToRun(ATestCaseToRun);
-  Log('Running tests...');
+  WritelnLog('Running tests...');
   FTester.Run;
   if FTester.TestFailedCount = 0 then
-    Log('All tests passed.');
+    WritelnLog('All %d tests passed (included in this: %d aborted).', [
+      FTester.TestPassedCount,
+      FTester.TestAbortedCount
+    ]);
 
-  //Log('Press <enter> to quit...');
+  //WritelnLog('Press <enter> to quit...');
   //Readln;
-end;
-
-class function TCastleConsoleTester.GetTestCaseNameFromParameters: String;
-var
-  I: Integer;
-begin
-  Result := '';
-  for I := 0 to Parameters.Count - 1 do
-  begin
-    if Pos('--suite=', Parameters[I]) = 1 then
-    begin
-      Result := Parameters[I];
-      Delete(Result, 1, 8);
-      Exit(trim(Result));
-    end;
-  end;
 end;
 
 procedure TCastleConsoleTester.TestExecuted(const AName: String);
 begin
-  Log('Processing: ' + AName);
+  WritelnLog('Processing: ' + AName);
 end;
 
 end.

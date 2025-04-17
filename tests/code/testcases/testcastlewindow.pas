@@ -19,8 +19,7 @@ unit TestCastleWindow;
 
 interface
 
-uses {$ifndef CASTLE_TESTER}FpcUnit, TestUtils, TestRegistry, CastleTestCase
-     {$else}CastleTester{$endif};
+uses CastleTester;
 
 type
   TTestCastleWindow = class(TCastleTestCase)
@@ -49,25 +48,24 @@ uses SysUtils, Classes, Math,
   CastleWindow, CastleControls, CastleStringUtils, CastleKeysMouse,
   CastleUIControls, CastleRectangles, CastleOnScreenMenu, CastleComponentSerialize,
   CastleCameras, {$ifdef FPC}CastleSceneManager,{$endif} CastleVectors,
-  CastleTransform, CastleScene, CastleApplicationProperties,
+  CastleTransform, CastleScene, CastleApplicationProperties, X3DCameraUtils,
   CastleViewport, CastleInternalRenderer, CastleInternalShapesRenderer;
 
 procedure TTestCastleWindow.Test1;
 var
   Window: TCastleWindow;
 begin
-  {$ifdef CASTLE_TESTER}
   if not CanCreateWindowForTest then
+  begin
+    AbortTest;
     Exit;
-  {$endif}
+  end;
 
-  Window := TCastleWindow.Create(nil);
+  Window := CreateWindowForTest;
   try
     Window.Open;
     Window.Close;
-  finally
-    FreeAndNil(Window)
-  end;
+  finally DestroyWindowForTest(Window) end;
 end;
 
 procedure TTestCastleWindow.TestNotifications;
@@ -75,16 +73,17 @@ var
   Window: TCastleWindow;
   C: TCastleButton;
 begin
-  {$ifdef CASTLE_TESTER}
   if not CanCreateWindowForTest then
+  begin
+    AbortTest;
     Exit;
-  {$endif}
+  end;
 
-  Window := TCastleWindow.Create(nil);
+  Window := CreateWindowForTest;
   try
     C := TCastleButton.Create(Window);
     FreeAndNil(C);
-  finally FreeAndNil(Window) end;
+  finally DestroyWindowForTest(Window) end;
 end;
 
 procedure TTestCastleWindow.TestMenu;
@@ -119,17 +118,18 @@ var
   Window: TCastleWindow;
   Parent, Child1, Child2: TCastleUserInterface;
 begin
-  {$ifdef CASTLE_TESTER}
   if not CanCreateWindowForTest then
+  begin
+    AbortTest;
     Exit;
-  {$endif}
+  end;
 
-  Window := nil;
-  Parent := nil;
-  Child1 := nil;
-  Child2 := nil;
+  Window := CreateWindowForTest;
   try
-    Window := TCastleWindow.Create(nil);
+    Parent := nil;
+    Child1 := nil;
+    Child2 := nil;
+
     Window.Width := 500;
     Window.Height := 500;
     Window.ResizeAllowed := raNotAllowed;
@@ -180,7 +180,7 @@ begin
     Child2.Anchor(vpBottom, 60);
     AssertRectsEqual(FloatRectangle(50, 500 - 60 - 90, 120, 90), Parent.RenderRect);
   finally
-    FreeAndNil(Window);
+    DestroyWindowForTest(Window);
     FreeAndNil(Parent);
     FreeAndNil(Child1);
     FreeAndNil(Child2);
@@ -228,25 +228,33 @@ var
   end;
 
   procedure MoveMouse(const Pos: TVector2);
-  // var
-  //   C: TCastleUserInterface;
+  { Useful to test current Focus value: }
+  {.$define CASTLE_DEBUG_FOCUS_TEST}
+  {$ifdef CASTLE_DEBUG_FOCUS_TEST}
+  var
+    C: TCastleUserInterface;
+  {$endif}
   begin
-    Window.InternalFakeMotion(InputMotion(Window.MousePosition, Pos, [], 0));
-    Window.Container.UpdateFocusAndMouseCursor;
-    { Useful to test current Focus value:
+    Window.InternalFakeMotion(InputMotion(Window.Container.MousePosition, Pos, [], 0));
+    { Do some other event than motion, to flush the motion events
+      collected by CASTLE_COLLECT_MOTION. }
+    Window.Container.EventPress(InputKey(Pos, keySpace, ' ', []));
+
+    {$ifdef CASTLE_DEBUG_FOCUS_TEST}
     Writeln('Focus now ', Window.Container.Focus.Count);
     for C in Window.Container.Focus do
       Writeln('  ', C.Name, ':', C.ClassName);
-    }
+    {$endif}
   end;
 
 begin
-  {$ifdef CASTLE_TESTER}
   if not CanCreateWindowForTest then
+  begin
+    AbortTest;
     Exit;
-  {$endif}
+  end;
 
-  Window := TCastleWindow.Create(nil);
+  Window := CreateWindowForTest;
   try
     Window.Width := 800;
     Window.Height := 800;
@@ -256,26 +264,26 @@ begin
     AddUserInterfaceDesigned;
     AddUserInterfaceFromCode;
 
-    MoveMouse(FloatRectangle(Window.Rect).Middle);
+    MoveMouse(FloatRectangle(Window.Rect).Center);
     AssertEquals(3, Window.Container.Focus.Count);
     AssertTrue(Window.Container.Focus[0].Name = 'Group1');
     AssertTrue(Window.Container.Focus[1].Name = 'SceneManager1');
     AssertTrue(Window.Container.Focus[2] is TCastleWalkNavigation); // internal in SceneManager1
 
-    MoveMouse(ManualButton.RenderRect.Middle);
+    MoveMouse(ManualButton.RenderRect.Center);
     AssertEquals(4, Window.Container.Focus.Count);
     AssertTrue(Window.Container.Focus[0].Name = 'Group1');
     AssertTrue(Window.Container.Focus[1].Name = 'SceneManager1');
     AssertTrue(Window.Container.Focus[2] is TCastleWalkNavigation); // internal in SceneManager1
     AssertTrue(Window.Container.Focus[3] = ManualButton);
 
-    MoveMouse(Button2.RenderRect.Middle);
+    MoveMouse(Button2.RenderRect.Center);
     AssertEquals(4, Window.Container.Focus.Count);
     AssertTrue(Window.Container.Focus[0].Name = 'Group1');
     AssertTrue(Window.Container.Focus[1].Name = 'SceneManager1');
     AssertTrue(Window.Container.Focus[2] is TCastleWalkNavigation); // internal in SceneManager1
     AssertTrue(Window.Container.Focus[3] = Button2);
-  finally FreeAndNil(Window) end;
+  finally DestroyWindowForTest(Window) end;
 end;
 
 procedure TTestCastleWindow.TestEventLoop;
@@ -293,8 +301,8 @@ var
     try
       RenderParams.RenderingCamera := TRenderingCamera.Create;
       try
-        RenderParams.RenderingCamera.FromMatrix(TVector3.Zero,
-          TMatrix4.Identity, TMatrix4.Identity, TMatrix4.Identity);
+        RenderParams.RenderingCamera.FromViewVectors(
+          DefaultX3DCameraView, TMatrix4.Identity);
         RenderParams.RenderingCamera.Target := rtScreen;
         RenderParams.Frustum := @RenderParams.RenderingCamera.Frustum;
         RenderParams.Collector := ShapesCollector;
@@ -313,9 +321,15 @@ var
   Box: TCastleBox;
   Viewport: TCastleViewport;
 begin
+  if not CanCreateWindowForTest then
+  begin
+    AbortTest;
+    Exit;
+  end;
+
   ApplicationProperties.OnWarning.Add({$ifdef FPC}@{$endif}OnWarningRaiseException);
   try
-    Window := TCastleWindow.Create(nil);
+    Window := CreateWindowForTest;
     try
       // for rendering, OpenGL context must be ready, with GLFeatures initialized
       Window.Visible := false;
@@ -330,7 +344,7 @@ begin
         // in real applications, Viewport has its internal renderer
         Renderer := TRenderer.Create(nil);
         try
-          ShapesCollector := TShapesCollector.Create;
+          ShapesCollector := TShapesCollector.Create(true);
           try
             Box := TCastleBox.Create(nil);
             try
@@ -345,7 +359,7 @@ begin
           finally FreeAndNil(ShapesCollector) end;
         finally FreeAndNil(Renderer) end;
       finally FreeAndNil(Viewport) end;
-    finally FreeAndNil(Window) end;
+    finally DestroyWindowForTest(Window) end;
   finally
     ApplicationProperties.OnWarning.Remove({$ifdef FPC}@{$endif}OnWarningRaiseException);
   end;
@@ -390,12 +404,13 @@ var
 var
   Window: TCastleWindow;
 begin
-  {$ifdef CASTLE_TESTER}
   if not CanCreateWindowForTest then
+  begin
+    AbortTest;
     Exit;
-  {$endif}
+  end;
 
-  Window := TCastleWindow.Create(nil);
+  Window := CreateWindowForTest;
   try
     Window.Width := 300;
     Window.Height := 300;
@@ -410,6 +425,12 @@ begin
 
     Window.Controls.InsertFront(Viewport);
 
+    // make sure Window and Viewport sizes are as expected
+    AssertSameValue(150, Window.Width / 2);
+    AssertSameValue(150, Window.Height / 2);
+    AssertSameValue(150, Viewport.RenderRect.Width / 2);
+    AssertSameValue(150, Viewport.RenderRect.Height / 2);
+
     TestQueryPosition(Vector2(100, 100),
       Vector3(0.00, 0.00, 0.00),
       Vector3(-0.13, -0.13, -0.98),
@@ -417,6 +438,7 @@ begin
       Vector3(-1.37, -1.37, -10.00),
       Vector2(100.00, 100.00)
     );
+
     TestQueryPosition(Vector2(Window.Width / 2, Window.Height / 2),
       Vector3(0.00, 0.00, 0.00),
       Vector3(0.00, 0.00, -1.00),
@@ -424,7 +446,7 @@ begin
       Vector3(0.01, 0.01, -10.00),
       Vector2(150.00, 150.00)
     );
-  finally FreeAndNil(Window) end;
+  finally DestroyWindowForTest(Window) end;
 end;
 
 procedure TTestCastleWindow.TestStateAutoStop;
@@ -448,40 +470,27 @@ var
   Window: TCastleWindow;
   SomeState: TCastleView;
 begin
-  {$ifdef CASTLE_TESTER}
-  if not IsConsoleMode then
-    Exit; // TODO: We can test TCastleView only in console mode
-  {$endif}
+  if not CanCreateWindowForTest then
+  begin
+    AbortTest;
+    Exit;
+  end;
 
-  {$ifndef CASTLE_TESTER}
-  Window := TCastleWindow.Create(nil);
-  {$else}
   Window := CreateWindowForTest;
-  {$endif}
   try
-    {$ifndef CASTLE_TESTER}
-    Application.MainWindow := Window;
-    {$endif}
-
     Window.Open;
     SomeState := TCastleView.Create(Window);
-    TCastleView.Current := SomeState;
+    Window.Container.View := SomeState;
+    AssertTrue(TCastleView.Current = SomeState); // deprecated
+    AssertTrue(Window.Container.View = SomeState);
   finally
     { let freeing Window cause everything else:
       - freeing of SomeState
       - stopping of SomeState
       - closing of Window
     }
-    {$ifndef CASTLE_TESTER}
-    FreeAndNil(Window);
-    {$else}
-    DestroyWindowForTest;
-    {$endif}
+    DestroyWindowForTest(Window);
   end;
-
-  {$ifndef CASTLE_TESTER}
-  Application.MainWindow := nil;
-  {$endif}
 end;
 
 type
@@ -525,21 +534,14 @@ var
   Window: TCastleWindow;
   StateTesting: TStateTestingSize;
 begin
-  {$ifdef CASTLE_TESTER}
-  if not IsConsoleMode then
-    Exit; // TODO: We can test TCastleView only in console mode
-  {$endif}
+  if not CanCreateWindowForTest then
+  begin
+    AbortTest;
+    Exit;
+  end;
 
-  {$ifndef CASTLE_TESTER}
-  Window := TCastleWindow.Create(nil);
-  {$else}
   Window := CreateWindowForTest;
-  {$endif}
   try
-    {$ifndef CASTLE_TESTER}
-    Application.MainWindow := Window;
-    {$endif}
-
     Window.Open;
     Window.Container.UIScaling := usEncloseReferenceSize;
     Window.Container.UIReferenceWidth := 160;
@@ -558,15 +560,8 @@ begin
 
     TCastleView.Current := StateTesting;
   finally
-    {$ifndef CASTLE_TESTER}
-    FreeAndNil(Window);
-    {$else}
-    DestroyWindowForTest;
-    {$endif}
+    DestroyWindowForTest(Window);
   end;
-  {$ifndef CASTLE_TESTER}
-  Application.MainWindow := nil;
-  {$endif}
 end;
 
 type
@@ -610,21 +605,14 @@ var
   Window: TCastleWindow;
   StateTesting: TStateTestingSize2;
 begin
-  {$ifdef CASTLE_TESTER}
-  if not IsConsoleMode then
-    Exit; // TODO: We can test TCastleView only in console mode
-  {$endif}
+  if not CanCreateWindowForTest then
+  begin
+    AbortTest;
+    Exit;
+  end;
 
-  {$ifndef CASTLE_TESTER}
-  Window := TCastleWindow.Create(nil);
-  {$else}
   Window := CreateWindowForTest;
-  {$endif}
   try
-    {$ifndef CASTLE_TESTER}
-    Application.MainWindow := Window;
-    {$endif}
-
     Window.Width := 200;
     Window.Height := 400;
     Window.Open;
@@ -643,16 +631,8 @@ begin
 
     TCastleView.Current := StateTesting;
   finally
-    {$ifndef CASTLE_TESTER}
-    FreeAndNil(Window);
-    {$else}
-    DestroyWindowForTest;
-    {$endif}
+    DestroyWindowForTest(Window);
   end;
-
-  {$ifndef CASTLE_TESTER}
-  Application.MainWindow := nil;
-  {$endif}
 end;
 
 procedure TTestCastleWindow.TestViewportWithoutCamera;
@@ -661,11 +641,13 @@ var
   V: TCastleViewport;
   DummyHandleInput: Boolean;
 begin
-  {$ifndef CASTLE_TESTER}
-  Window := TCastleWindow.Create(nil);
-  {$else}
+  if not CanCreateWindowForTest then
+  begin
+    AbortTest;
+    Exit;
+  end;
+
   Window := CreateWindowForTest;
-  {$endif}
   try
     Window.Visible := false;
     Window.Open;
@@ -690,11 +672,7 @@ begin
 
     FreeAndNil(V);
   finally
-    {$ifndef CASTLE_TESTER}
-    FreeAndNil(Window);
-    {$else}
-    DestroyWindowForTest;
-    {$endif}
+    DestroyWindowForTest(Window);
   end;
 end;
 
@@ -702,14 +680,15 @@ procedure TTestCastleWindow.TestPrepareResourcesWithoutContextOpen;
 var
   Window: TCastleWindow;
   V: TCastleViewport;
-  DummyHandleInput: Boolean;
   Scene, Scene2: TCastleScene;
 begin
-  {$ifndef CASTLE_TESTER}
-  Window := TCastleWindow.Create(nil);
-  {$else}
+  if not CanCreateWindowForTest then
+  begin
+    AbortTest;
+    Exit;
+  end;
+
   Window := CreateWindowForTest;
-  {$endif}
   try
     V := TCastleViewport.Create(Window);
 
@@ -739,11 +718,7 @@ begin
 
     FreeAndNil(V);
   finally
-    {$ifndef CASTLE_TESTER}
-    FreeAndNil(Window);
-    {$else}
-    DestroyWindowForTest;
-    {$endif}
+    DestroyWindowForTest(Window);
   end;
 end;
 

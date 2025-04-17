@@ -184,7 +184,8 @@ type
   end;
 
   { TCastleVector4Persistent descendant for castle editor
-    to change 'W' property name to 'Angle (W)' in inspector }
+    to display angle component nicer
+    (as 'Angle (W)' and 'Deg(90)' instead of as 'W' and in radians). }
   TCastleVector4RotationPersistent = class(TCastleVector4Persistent)
 
   end;

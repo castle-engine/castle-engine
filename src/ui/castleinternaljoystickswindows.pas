@@ -24,6 +24,14 @@ unit CastleInternalJoysticksWindows;
 
 interface
 
+{$ifndef MSWINDOWS}
+{ To make things easier for packages, this unit is part of Delphi
+  castle_engine.bpl package, and so it has to compile on any platform
+  (including Linux), but then it just doesn't do anything.
+  From code, just don't use this unit when not MSWINDOWS. }
+implementation
+{$else}
+
 uses CastleJoysticks;
 
 type
@@ -32,25 +40,25 @@ type
     wMid: Word;
     wPid: Word;
     szPname: array[ 0..31 ] of WideChar;
-    wXmin: LongWord;
-    wXmax: LongWord;
-    wYmin: LongWord;
-    wYmax: LongWord;
-    wZmin: LongWord;
-    wZmax: LongWord;
-    wNumButtons: LongWord;
-    wPeriodMin: LongWord;
-    wPeriodMax: LongWord;
-    wRmin: LongWord;
-    wRmax: LongWord;
-    wUmin: LongWord;
-    wUmax: LongWord;
-    wVmin: LongWord;
-    wVmax: LongWord;
-    wCaps: LongWord;
-    wMaxAxes: LongWord;
-    wNumAxes: LongWord;
-    wMaxButtons: LongWord;
+    wXmin: UInt32;
+    wXmax: UInt32;
+    wYmin: UInt32;
+    wYmax: UInt32;
+    wZmin: UInt32;
+    wZmax: UInt32;
+    wNumButtons: UInt32;
+    wPeriodMin: UInt32;
+    wPeriodMax: UInt32;
+    wRmin: UInt32;
+    wRmax: UInt32;
+    wUmin: UInt32;
+    wUmax: UInt32;
+    wVmin: UInt32;
+    wVmax: UInt32;
+    wCaps: UInt32;
+    wMaxAxes: UInt32;
+    wNumAxes: UInt32;
+    wMaxButtons: UInt32;
     szRegKey: array[ 0..31 ] of WideChar;
     szOEMVxD: array[ 0..259 ] of WideChar;
 end;
@@ -58,19 +66,19 @@ end;
 type
   PJOYINFOEX = ^TJOYINFOEX;
   TJOYINFOEX = packed record
-    dwSize: LongWord;
-    dwFlags: LongWord;
-    wXpos: LongWord;
-    wYpos: LongWord;
-    wZpos: LongWord;
-    dwRpos: LongWord;
-    dwUpos: LongWord;
-    dwVpos: LongWord;
-    wButtons: LongWord;
-    dwButtonNumber: LongWord;
-    dwPOV: LongWord;
-    dwReserved1: LongWord;
-    dwReserved2: LongWord;
+    dwSize: UInt32;
+    dwFlags: UInt32;
+    wXpos: UInt32;
+    wYpos: UInt32;
+    wZpos: UInt32;
+    dwRpos: UInt32;
+    dwUpos: UInt32;
+    dwVpos: UInt32;
+    wButtons: UInt32;
+    dwButtonNumber: UInt32;
+    dwPOV: UInt32;
+    dwReserved1: UInt32;
+    dwReserved2: UInt32;
   end;
 
 const
@@ -108,11 +116,11 @@ const
 
   WINMMLIB = 'winmm.dll';
 
-  JS_AXIS : array[ 0..5 ] of LongWord = ( 17 {X}, 19 {Y}, 21 {Z}, 26 {R}, 28 {U}, 30 {V} );
+  JS_AXIS : array[ 0..5 ] of UInt32 = ( 17 {X}, 19 {Y}, 21 {Z}, 26 {R}, 28 {U}, 30 {V} );
 
-function joyGetNumDevs : LongWord; stdcall; external WINMMLIB name 'joyGetNumDevs';
-function joyGetDevCapsW( uJoyID : LongWord; lpCaps : PJOYCAPSW; uSize : LongWord ) : LongWord; stdcall; external WINMMLIB name 'joyGetDevCapsW';
-function joyGetPosEx( uJoyID : LongWord; lpInfo : PJOYINFOEX ) : LongWord; stdcall; external WINMMLIB name 'joyGetPosEx';
+function joyGetNumDevs : UInt32; stdcall; external WINMMLIB name 'joyGetNumDevs';
+function joyGetDevCapsW( uJoyID : UInt32; lpCaps : PJOYCAPSW; uSize : UInt32 ) : UInt32; stdcall; external WINMMLIB name 'joyGetDevCapsW';
+function joyGetPosEx( uJoyID : UInt32; lpInfo : PJOYINFOEX ) : UInt32; stdcall; external WINMMLIB name 'joyGetPosEx';
 
 type
   TWindowsJoystickBackendInfo = class
@@ -129,20 +137,23 @@ type
 implementation
 
 uses
-  SysUtils, CastleLog, Math;
+  SysUtils, Math,
+  CastleLog,
+  { Needed to have PUInt32 defined for Delphi 10.2 }
+  CastleUtils;
 
 procedure TWindowsJoysticksBackend.Initialize(const List: TJoystickList);
 var
   i, j : Integer;
   axis : Integer;
-  caps : PLongWord;
+  caps : PUInt32;
   NewJoystick: TJoystick;
   NewBackendInfo: TWindowsJoystickBackendInfo;
 
   state : TJOYINFOEX;
-  JoyError: LongWord;
+  JoyError: UInt32;
 
-  JoyCapsResult: LongWord;
+  JoyCapsResult: UInt32;
 begin
   j := joyGetNumDevs();
   for i := 0 to j - 1 do
@@ -236,13 +247,13 @@ var
   j, a  : Integer;
   btn   : Integer;
   state : TJOYINFOEX;
-  pcaps : PLongWord;
-  value : PLongWord;
-  vMin  : LongWord;
-  vMax  : LongWord;
+  pcaps : PUInt32;
+  value : PUInt32;
+  vMin  : UInt32;
+  vMax  : UInt32;
   Joystick: TJoystick;
   BackendInfo: TWindowsJoystickBackendInfo;
-  JoyError: LongWord;
+  JoyError: UInt32;
   JoystickHasBeenDisconnected: Boolean;
 begin
   JoystickHasBeenDisconnected := false;
@@ -341,5 +352,7 @@ begin
       Joysticks.InternalDisconnected;
   end;
 end;
+
+{$endif}
 
 end.

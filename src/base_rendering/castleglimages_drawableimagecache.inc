@@ -31,7 +31,7 @@ type
     type
       TCachedDrawableImage = class
         References: Cardinal;
-        URL: string;
+        Url: String;
         DrawableImage: TDrawableImage;
       end;
       TCachedDrawableImageList = {$ifdef FPC}specialize{$endif} TObjectList<TCachedDrawableImage>;
@@ -49,7 +49,7 @@ type
       the image.
       In the long run, we should probably have different cache entries
       for different ASmoothScaling versions. }
-    function LoadDrawableImage(const URL: string;
+    function LoadDrawableImage(const Url: String;
       const ASmoothScaling: Boolean): TDrawableImage;
     procedure FreeDrawableImage(var DrawableImage: TDrawableImage);
   end;
@@ -74,32 +74,32 @@ begin
   inherited;
 end;
 
-function TDrawableImageCache.LoadDrawableImage(const URL: string;
+function TDrawableImageCache.LoadDrawableImage(const Url: String;
   const ASmoothScaling: Boolean): TDrawableImage;
 var
   C: TCachedDrawableImage;
 begin
   for C in Cached do
   begin
-    if C.URL = URL then
+    if C.Url = Url then
     begin
       Inc(C.References);
       if Log then
-        WritelnLog('DrawableImageCache', '++ : TDrawableImage %s : %d', [URL, C.References]);
+        WritelnLog('DrawableImageCache', '++ : TDrawableImage %s : %d', [Url, C.References]);
       Exit(C.DrawableImage);
     end;
   end;
 
-  Result := TDrawableImage.Create(URL);
+  Result := TDrawableImage.Create(Url);
 
   C := TCachedDrawableImage.Create;
   C.References := 1;
-  C.URL := URL;
+  C.Url := Url;
   C.DrawableImage := Result;
   Cached.Add(C);
 
   if Log then
-    WritelnLog('DrawableImageCache', '++ : TDrawableImage %s : %d', [URL, C.References]);
+    WritelnLog('DrawableImageCache', '++ : TDrawableImage %s : %d', [Url, C.References]);
 end;
 
 procedure TDrawableImageCache.FreeDrawableImage(var DrawableImage: TDrawableImage);
@@ -115,7 +115,7 @@ begin
     if C.DrawableImage = DrawableImage then
     begin
       if Log then
-        WritelnLog('DrawableImageCache', '-- : TDrawableImage %s : %d', [C.URL, C.References - 1]);
+        WritelnLog('DrawableImageCache', '-- : TDrawableImage %s : %d', [C.Url, C.References - 1]);
       DrawableImage := nil;
       if C.References = 1 then
       begin

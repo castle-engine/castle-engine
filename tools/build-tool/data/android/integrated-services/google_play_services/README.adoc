@@ -1,6 +1,6 @@
 ## google_play_services
 
-This service includes the https://en.wikipedia.org/wiki/Google_Play_Services[Google Play Services] library into your Android projects. It doesn't provide anything immediately useful, but it's required by some other services, like `google_play_games`, `google_analytics`, `admob`, `heyzap`.
+This service includes the https://en.wikipedia.org/wiki/Google_Play_Services[Google Play Services] library into your Android projects. It doesn't provide anything immediately useful, but it's required by some other services, like `google_play_games`, `google_analytics`, `admob`.
 
 The necessary files from Google will be automatically downloaded, along with all their dependencies, using the _Gradle_ build system, at the first build. You only have to declare using the service by
 

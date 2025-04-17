@@ -17,8 +17,11 @@ type
     FShowSatCirc: boolean;
     FShowHueLine: boolean;
     FShowSelCirc: boolean;
-    procedure SetRelHue(H: Double);
-    procedure SetRelSat(S: Double);
+    { Commented out.
+      These were causing warnings (they obscure ancestor virtual
+      SetRelHue, SetRelSat) and actually these were unused. }
+    // procedure SetRelHue(H: Double);
+    // procedure SetRelSat(S: Double);
     procedure SetSatCircColor(c: TColor);
     procedure SetHueLineColor(c: TColor);
     procedure DrawSatCirc;
@@ -298,6 +301,7 @@ begin
   end;
 end;
 
+(*
 procedure THSCirclePicker.SetRelHue(H: Double);
 begin
   if H > 1 then H := H - 1;
@@ -324,6 +328,7 @@ begin
     DoChange;
   end;
 end;
+*)
 
 procedure THSCirclePicker.SetSatCircColor(c: TColor);
 begin

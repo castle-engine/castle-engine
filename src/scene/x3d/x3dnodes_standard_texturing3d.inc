@@ -265,7 +265,7 @@ end;
 procedure TImageTexture3DNode.LoadTextureData;
 var
   I: Integer;
-  FullUrl: string;
+  FullUrl: String;
 begin
   for I := 0 to FdUrl.Items.Count - 1 do
   begin

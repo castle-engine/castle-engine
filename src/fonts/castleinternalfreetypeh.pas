@@ -51,6 +51,8 @@ unit CastleInternalFreeTypeH;
 
 interface
 
+uses CTypes;
+
 {$ifdef FPC}{$packrecords c}{$endif}
 
 type
@@ -162,21 +164,21 @@ type
   PFT_String = PAnsiChar;
   FT_Short = smallint;
   FT_UShort = word;
-  FT_Int = longint;
-  FT_UInt = longword;
+  FT_Int = CInt32;
+  FT_UInt = CUInt32;
   {$if defined(cpu64) and not(defined(win64) and defined(cpux86_64))}
   FT_Long = int64;
   FT_ULong = {$ifdef FPC} qword {$else} UInt64 {$endif};
   FT_Pos = int64;
   {$ELSE}
-  FT_Long = longint;
-  FT_ULong = longword;
-  FT_Pos = longint;
+  FT_Long = CInt32;
+  FT_ULong = CUInt32;
+  FT_Pos = CInt32;
   {$ENDIF}
   FT_F2Dot14 = smallint;
-  FT_F26Dot6 = longint;
+  FT_F26Dot6 = CInt32;
   FT_Fixed = FT_Long;
-  FT_Error = longint;
+  FT_Error = CInt32;
   FT_Pointer = pointer;
   //FT_Offset = size_t;
   //FT_PtrDist = size_t;
@@ -336,7 +338,7 @@ type
     linearHoriAdvance : FT_Fixed;
     linearVertAdvance : FT_Fixed;
     advance : FT_Vector;
-    format : longword;
+    format : CUInt32;
     bitmap : FT_Bitmap;
     bitmap_left : FT_Int;
     bitmap_top : FT_Int;
@@ -344,7 +346,7 @@ type
     num_subglyphs : FT_UInt;
     subglyphs : PFT_SubGlyph;
     control_data : pointer;
-    control_len : longint;
+    control_len : CInt32;
     other : pointer;
   end;
 
@@ -378,7 +380,7 @@ type
   TFT_Glyph = record
     FTlibrary : PFT_Library;
     clazz : pointer;
-    aFormat : longword;
+    aFormat : CUInt32;
     advance : FT_Vector;
   end;
 
@@ -415,8 +417,8 @@ function FT_Done_FreeType(alibrary: PFT_Library): integer; cdecl; external;
 function FT_Get_Char_Index(face: PFT_Face; charcode: FT_ULong): FT_UInt; cdecl; external;
 function FT_Get_Kerning(face: PFT_Face; left_glyph, right_glyph, kern_mode: FT_UInt; out akerning: FT_Vector): integer; cdecl; external;
 function FT_Init_FreeType(var alibrary: PFT_Library): integer; cdecl; external;
-function FT_Load_Char(face: PFT_Face; charcode: FT_ULong; load_flags: longint): integer; cdecl; external;
-function FT_Load_Glyph(face: PFT_Face; glyph_index: FT_UInt; load_flags: longint): integer; cdecl; external;
+function FT_Load_Char(face: PFT_Face; charcode: FT_ULong; load_flags: CInt32): integer; cdecl; external;
+function FT_Load_Glyph(face: PFT_Face; glyph_index: FT_UInt; load_flags: CInt32): integer; cdecl; external;
 { TODO:
   Is this right?
   - face_index should be FT_Long (makes different on 64-bit non-Windows)? }
@@ -450,8 +452,8 @@ var
   FT_Get_Char_Index: function(face: PFT_Face; charcode: FT_ULong): FT_UInt; cdecl;
   FT_Get_Kerning: function(face: PFT_Face; left_glyph, right_glyph, kern_mode: FT_UInt; out akerning: FT_Vector): integer; cdecl;
   FT_Init_FreeType: function(var alibrary: PFT_Library): integer; cdecl;
-  FT_Load_Char: function(face: PFT_Face; charcode: FT_ULong; load_flags: longint): integer; cdecl;
-  FT_Load_Glyph: function(face: PFT_Face; glyph_index: FT_UInt; load_flags: longint): integer; cdecl;
+  FT_Load_Char: function(face: PFT_Face; charcode: FT_ULong; load_flags: CInt32): integer; cdecl;
+  FT_Load_Glyph: function(face: PFT_Face; glyph_index: FT_UInt; load_flags: CInt32): integer; cdecl;
   FT_New_Face: function(alibrary: PFT_Library; filepathname: PAnsiChar; face_index: integer; var aface: PFT_Face): integer; cdecl;
   FT_Open_Face: function(alibrary: PFT_Library; Args: PFT_Open_Args; face_index: FT_Long; var aface: PFT_Face): integer; cdecl;
   FT_New_Memory_Face: function(alibrary: PFT_Library; file_base: Pointer; file_size: FT_Long; face_index: FT_Long; var aface: PFT_Face): integer; cdecl;

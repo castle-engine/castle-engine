@@ -3,7 +3,7 @@
 
 @html(<img src="castle_game_engine_icon.png"
   alt="Castle Game Engine icon"
-  align="right"/>)
+  style="float: right">)
 
 @url(https://castle-engine.io/ Castle Game Engine) is a cross-platform 3D and 2D open-source game engine using Object Pascal.
 

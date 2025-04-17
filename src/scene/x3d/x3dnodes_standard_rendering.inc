@@ -70,7 +70,7 @@
     { Used only for reading glTF now, in the future will be used for skin animation on GPU. @exclude }
     InternalSkinWeights: TVector4List;
 
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
+    constructor Create(const AX3DName: string = ''; const ABaseUrl: String = ''); override;
     destructor Destroy; override;
 
     { Calculate bounding box of this geometry node.
@@ -260,6 +260,11 @@
       Otherwise (when CoordIndex = @nil), InternalCoordRangesCounts must
       return @true and we will use RangeCount to split coordinates.
 
+      The CoordRangeHandler can safely assume it only gets non-empty
+      and correct ranges, that is: EndIndex > BeginIndex for TCoordRangeHandler
+      call, and all indexes between BeginIndex and EndIndex-1 are >= 0
+      (when CoordIndex is assigned).
+
       Call this only for nodes with coordinates, that is only when
       @link(InternalCoord) returns @true. }
     procedure InternalMakeCoordRanges(
@@ -443,8 +448,6 @@
     }
     constructor CreateWithShape(out Shape: TShapeNode);
 
-    constructor CreateShape(out Shape: TShapeNode); deprecated 'use CreateWithShape';
-
     { Create an instance of this geometry node,
       and make it a child of a new shape node (TShapeNode),
       and make it a child of a new transform node (TTransformNode).
@@ -472,8 +475,6 @@
       or add it to some scene, as shown above.
     }
     constructor CreateWithTransform(out Shape: TShapeNode; out Transform: TTransformNode);
-
-    constructor CreateTransform(out Shape: TShapeNode; out Transform: TTransformNode); deprecated 'use CreateWithTransform';
 
   {$I auto_generated_node_helpers/x3dnodes_x3dgeometrynode.inc}
   end;
@@ -560,7 +561,7 @@
     { Lines form a strip (polyline).
 
       In case of TIndexedLineSetNode, indexes (TIndexedLineSetNode.FdIndex)
-      may to be separated by -1 to define many strips
+      may be separated by -1 to define many strips
       in an TIndexedLineSetNode.
 
       In case of TLineSetNode, count (TIndexedLineSetNode.FdVertexCount)
@@ -568,8 +569,9 @@
     lmStrip,
 
     { Lines form a loop (closed polyline).
+
       In case of TIndexedLineSetNode, indexes (TIndexedLineSetNode.FdIndex)
-      may to be separated by -1 to define many loop
+      may be separated by -1 to define many loop
       in an TIndexedLineSetNode.
 
       In case of TLineSetNode, count (TIndexedLineSetNode.FdVertexCount)
@@ -578,7 +580,9 @@
 
     { Each pair of vertexes forms a line.
       If the number of vertexes is odd, the last (unmatched) vertex is ignored.
+
       In case of TIndexedLineSetNode, all indexes must be >= 0.
+
       In case of TLineSetNode, vertexCount is ignored. }
     lmPair
   );
@@ -591,7 +595,7 @@
     procedure EventSet_CoordIndexReceive(
       const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
   public
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
+    constructor Create(const AX3DName: string = ''; const ABaseUrl: String = ''); override;
     class function ForVRMLVersion(const Version: TX3DVersion): boolean;
       override;
     function TrianglesCount(State: TX3DGraphTraverseState;
@@ -615,7 +619,7 @@
     procedure EventSet_IndexReceive(
       const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
   public
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
+    constructor Create(const AX3DName: string = ''; const ABaseUrl: String = ''); override;
     function FieldSetByEvent(const Event: TX3DEvent): TX3DField; override;
     function CoordIndexField: TMFLong; override;
     procedure InternalCoordPolygons(
@@ -633,7 +637,7 @@
     procedure EventSet_IndexReceive(
       const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
   public
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
+    constructor Create(const AX3DName: string = ''; const ABaseUrl: String = ''); override;
     function FieldSetByEvent(const Event: TX3DEvent): TX3DField; override;
     function CoordIndexField: TMFLong; override;
     procedure InternalCoordPolygons(
@@ -651,7 +655,7 @@
     procedure EventSet_IndexReceive(
       const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
   public
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
+    constructor Create(const AX3DName: string = ''; const ABaseUrl: String = ''); override;
     function FieldSetByEvent(const Event: TX3DEvent): TX3DField; override;
     function CoordIndexField: TMFLong; override;
     procedure InternalCoordPolygons(
@@ -822,11 +826,6 @@ begin
   Shape.Geometry := Self;
 end;
 
-constructor TAbstractGeometryNode.CreateShape(out Shape: TShapeNode);
-begin
-  CreateWithShape(Shape);
-end;
-
 constructor TAbstractGeometryNode.CreateWithTransform(out Shape: TShapeNode; out Transform: TTransformNode);
 begin
   Create;
@@ -836,11 +835,6 @@ begin
 
   Transform := TTransformNode.Create;
   Transform.AddChildren(Shape);
-end;
-
-constructor TAbstractGeometryNode.CreateTransform(out Shape: TShapeNode; out Transform: TTransformNode);
-begin
-  CreateWithTransform(Shape, Transform);
 end;
 
 function TAbstractGeometryNode.InternalCoord(State: TX3DGraphTraverseState;
@@ -900,8 +894,14 @@ begin
       while (EndIndex < CoordIndexField.Count) and
             (CoordIndexField.Items.Items[EndIndex] >= 0) do
         Inc(EndIndex);
-      CoordRangeHandler(RangeNumber, BeginIndex, EndIndex);
-      Inc(RangeNumber);
+      { Do not call CoordRangeHandler (or increase RangeNumber)
+        for empty ranges, when -1 is at the start
+        of the indexes, or we have multiple consecutive -1 in indexes. }
+      if EndIndex > BeginIndex then
+      begin
+        CoordRangeHandler(RangeNumber, BeginIndex, EndIndex);
+        Inc(RangeNumber);
+      end;
       BeginIndex := EndIndex + 1;
     end;
   end else
@@ -1052,7 +1052,7 @@ begin
     then X is more important than Y than Z).
 
     Do it once (setting HasBounds2DST), this fixes JoeH-AnimKick0a.x3dv
-    renderering, see x3d-public thread about view3dscene 3.8.0 announcement. }
+    renderering, see x3d-public thread about castle-model-viewer 3.8.0 announcement. }
 
   if not HasBounds2DST then
   begin
@@ -1517,8 +1517,19 @@ begin
       CoordCount := TCoordinateNode(FdCoord.Value).FdPoint.Count
     else
       CoordCount := 0;
-    FVertexCountForPair.Count := 1;
-    FVertexCountForPair[0] := CoordCount;
+    if CoordCount <> 0 then
+    begin
+      FVertexCountForPair.Count := 1;
+      FVertexCountForPair[0] := CoordCount;
+    end else
+    begin
+      { When no coordinates, make RangeCount an empty list,
+        to avoid warnings from TAbstractGeometryNode.InternalMakeCoordRanges
+        that LineSet doesn't have 2 coordinates when using
+        TLineSetNode.Mode = lmPair with empty coordinates.
+        Testcase: CGE editor camera gizmo visualizations, should not make warnings. }
+      FVertexCountForPair.Count := 0;
+    end;
     RangeCount := FVertexCountForPair;
   end else
     RangeCount := FdVertexCount.Items;

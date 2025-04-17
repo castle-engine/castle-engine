@@ -264,6 +264,8 @@ type
   TCastleVector4PropertyEditor = class(TSubPropertiesEditor)
   strict private
     procedure SetAllValues(const NewValue: TVector4);
+  protected
+    function FormatValue(const Value: TVector4): String; virtual;
   public
     function GetAttributes: TPropertyAttributes; override;
     function GetName: shortstring; override;
@@ -292,7 +294,7 @@ var
   VectorPersistent: TCastleVector4Persistent;
 begin
   VectorPersistent := (GetObjectValue as TCastleVector4Persistent);
-  Result := VectorPersistent.Value.ToString;
+  Result := FormatValue(VectorPersistent.Value);
 end;
 
 procedure TCastleVector4PropertyEditor.SetAllValues(const NewValue: TVector4);
@@ -309,8 +311,31 @@ begin
 end;
 
 procedure TCastleVector4PropertyEditor.SetValue(const NewValue: String);
+
+  { Convert srting to 4D vector, like Vector4FromStr.
+    But also accept components using expressions.
+    Allows to input e.g. "1 2 3 Deg(90)" or "1 1/2 1/3 1/4" }
+  function Vector4FromStrExpression(const S: String): TVector4;
+  var
+    SPosition: Integer;
+  begin
+    SPosition := 1;
+    Result.X := ParseConstantFloatExpression(NextToken(S, SPosition));
+    Result.Y := ParseConstantFloatExpression(NextToken(S, SPosition));
+    Result.Z := ParseConstantFloatExpression(NextToken(S, SPosition));
+    // interpret 4th component in degrees
+    Result.W := ParseConstantFloatExpression(WrapDegIfNeeded(NextToken(S, SPosition)));
+    if NextToken(S, SPosition) <> '' then
+      raise EConvertError.Create('Expected end of data when reading vector from string');
+  end;
+
 begin
-  SetAllValues(Vector4FromStr(NewValue));
+  SetAllValues(Vector4FromStrExpression(NewValue));
+end;
+
+function TCastleVector4PropertyEditor.FormatValue(const Value: TVector4): String;
+begin
+  Result := Value.ToString;
 end;
 
 function TCastleVector4PropertyEditor.GetDefaultValue: String;
@@ -318,7 +343,7 @@ var
   VectorPersistent: TCastleVector4Persistent;
 begin
   VectorPersistent := (GetObjectValue as TCastleVector4Persistent);
-  Result := VectorPersistent.InternalDefaultValue.ToString;
+  Result := FormatValue(VectorPersistent.InternalDefaultValue);
 end;
 
 function TCastleVector4PropertyEditor.ValueIsStreamed: boolean;
@@ -346,4 +371,32 @@ begin
   end;
 
   Result := true;
+end;
+
+{ TCastleVectorRotationPropertyEditor ---------------------------------------- }
+
+type
+  TCastleVectorRotationPropertyEditor = class(TCastleVector4PropertyEditor)
+  protected
+    function FormatValue(const Value: TVector4): String; override;
+  end;
+
+function TCastleVectorRotationPropertyEditor.FormatValue(const Value: TVector4): String;
+begin
+  { The same format will also be accepted on input
+    thanks to Vector4FromStrExpression. }
+  (*
+  Result := FormatDot('%f %f %f Deg(%f)', [
+    Value.X,
+    Value.Y,
+    Value.Z,
+    RadToDeg(Value.W)
+  ]);
+  *)
+  Result := FormatDot('%s %s %s deg(%s)', [
+    FloatToStrDisplay(Value.X),
+    FloatToStrDisplay(Value.Y),
+    FloatToStrDisplay(Value.Z),
+    FloatToStrDisplay(RadToDeg(Value.W))
+  ]);
 end;

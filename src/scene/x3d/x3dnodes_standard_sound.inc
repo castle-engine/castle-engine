@@ -32,10 +32,10 @@
     FBufferLoaded: Boolean;
     InsideLoadBuffer: Cardinal;
     PlayingSound: TCastlePlayingSoundSource;
+    WarningDoneParentFieldsCount: Boolean;
     procedure SetBufferLoaded(const Value: boolean);
     procedure UpdatePlayingEvent(const Event: TX3DEvent; const Value: TX3DField;
       const Time: TX3DTime);
-    procedure UpdatePlaying;
     procedure SoundOpenClose(Sender: TObject);
 
     { Did we attempt loading Buffer. You still have to check Buffer <> 0 to know
@@ -47,11 +47,13 @@
     function GetCycleInterval: TFloatTime;
     { Pitch, corrected to always be > 0. }
     function SafePitch: Single;
+  private
+    procedure UpdatePlaying;
   protected
     procedure ParseAfter(Reader: TX3DReaderNames); override;
     procedure BeforeTraverse(StateStack: TX3DGraphTraverseStateStack); override;
   public
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
+    constructor Create(const AX3DName: string = ''; const ABaseUrl: String = ''); override;
     destructor Destroy; override;
 
     {$I auto_generated_node_helpers/x3dnodes_audioclip.inc}
@@ -67,6 +69,8 @@
     procedure UpdateSoundSource;
     procedure EventLocationReceive(
       const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
+    procedure EventEnabledReceive(
+      const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
     { Location expressed in Scene coordinate-space, that is: transformed
       by X3D transformations in this X3D scene graph.
 
@@ -77,7 +81,7 @@
     procedure BeforeTraverse(StateStack: TX3DGraphTraverseStateStack); override;
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
+    constructor Create(const AX3DName: string = ''; const ABaseUrl: String = ''); override;
     destructor Destroy; override;
 
     {$I auto_generated_node_helpers/x3dnodes_sound.inc}
@@ -89,7 +93,7 @@
 
 { TAudioClipNode ------------------------------------------------------------- }
 
-constructor TAudioClipNode.Create(const AX3DName: string; const ABaseUrl: string);
+constructor TAudioClipNode.Create(const AX3DName: string; const ABaseUrl: String);
 begin
   inherited;
 
@@ -100,6 +104,8 @@ begin
 
   EventIsActive.AddNotification({$ifdef FPC}@{$endif} UpdatePlayingEvent);
   EventIsPaused.AddNotification({$ifdef FPC}@{$endif} UpdatePlayingEvent);
+  FdEnabled.AddNotification({$ifdef FPC}@{$endif} UpdatePlayingEvent);
+  FdGain.AddNotification({$ifdef FPC}@{$endif} UpdatePlayingEvent);
 
   SoundEngine.OnOpenClose.Add({$ifdef FPC}@{$endif} SoundOpenClose);
 
@@ -166,39 +172,56 @@ end;
 
 procedure TAudioClipNode.UpdatePlaying;
 
+  procedure UpdatePlayingSoundProperties(const SoundNode: TSoundNode);
+  begin
+    PlayingSound.Loop := Loop;
+    PlayingSound.Sound.Priority := SoundNode.Priority;
+    PlayingSound.Sound.Volume := SoundNode.Intensity * Gain;
+    PlayingSound.Sound.Pitch := SafePitch;
+    { We pass min/maxFront as ReferenceDistance/MaxDistance
+      as their meaning matches for SoundEngine.DistanceModel = dmLinear. }
+    PlayingSound.Sound.ReferenceDistance := SoundNode.FTransformScale * SoundNode.MinFront;
+    PlayingSound.Sound.MaxDistance       := SoundNode.FTransformScale * SoundNode.MaxFront;
+  end;
+
   function GetSoundNode: TSoundNode;
   begin
-    if (ParentFieldsCount <> 0) and
-       (ParentFields[0].ParentNode <> nil) and
-       (ParentFields[0].ParentNode is TSoundNode) then
-      Result := TSoundNode(ParentFields[0].ParentNode)
-    else
+    if ParentFieldsCount <> 0 then
+    begin
+      if ParentFieldsCount > 1 then
+      begin
+        WarningOnce(WarningDoneParentFieldsCount,
+          'Multiple parents of AudioClip node, only the first one will be used');
+      end;
+
+      if ParentFields[0].ParentNode is TSoundNode then
+        Result := TSoundNode(ParentFields[0].ParentNode)
+      else
+        Result := nil;
+    end else
       Result := nil;
   end;
 
 var
   SoundNode: TSoundNode;
 begin
-  if FTimeFunctionality.IsActive and (not FTimeFunctionality.IsPaused) then
+  SoundNode := GetSoundNode;
+  if FTimeFunctionality.IsActive and
+     (not FTimeFunctionality.IsPaused) and
+     Enabled and
+     (SoundNode <> nil) and
+     SoundNode.Enabled then
   begin
-    { if not playing, try to start playing }
     if not PlayingSound.Playing then
     begin
+      { if not playing, try to start playing }
       BufferLoaded := true;
-      SoundNode := GetSoundNode;
-      if SoundNode <> nil then
-      begin
-        PlayingSound.Loop := Loop;
-        PlayingSound.Sound.Priority := SoundNode.Priority;
-        PlayingSound.Sound.Volume := SoundNode.Intensity;
-        PlayingSound.Sound.Pitch := SafePitch;
-        { We pass min/maxFront as ReferenceDistance/MaxDistance
-          as their meaning matches for SoundEngine.DistanceModel = dmLinear. }
-        PlayingSound.Sound.ReferenceDistance := SoundNode.FTransformScale * SoundNode.MinFront;
-        PlayingSound.Sound.MaxDistance       := SoundNode.FTransformScale * SoundNode.MaxFront;
-        // TODO: we could set here Parameters.Offset to not always start playing from start
-        SoundNode.SoundSource.Play(PlayingSound);
-      end;
+      UpdatePlayingSoundProperties(SoundNode);
+      // TODO: we could set here Parameters.Offset to not always start playing from start
+      SoundNode.SoundSource.Play(PlayingSound);
+    end else
+    begin
+      UpdatePlayingSoundProperties(SoundNode);
     end;
   end else
   begin
@@ -210,7 +233,7 @@ end;
 procedure TAudioClipNode.SetBufferLoaded(const Value: boolean);
 var
   I: Integer;
-  FullUrl: string;
+  FullUrl: String;
 begin
   if FBufferLoaded <> Value then
   begin
@@ -239,7 +262,7 @@ begin
             so OpenAL raises error.
 
             Testcase:
-            - start view3dscene with sound = on
+            - start castle-model-viewer with sound = on
             - click CW on all 4 speakers in sound_final.x3dv
             - turn sound off
             - turn sound back on
@@ -255,7 +278,7 @@ begin
           on E: Exception do
             { Remember that WritelnWarning *may* raise an exception. }
             WritelnWarning('Audio', Format(SLoadError,
-              [E.ClassName, 'sound file', URIDisplay(FullUrl), E.Message]));
+              [E.ClassName, 'sound file', UriDisplay(FullUrl), E.Message]));
         end;
       end;
     end else
@@ -280,10 +303,12 @@ end;
 
 { TSoundNode ----------------------------------------------------------------- }
 
-constructor TSoundNode.Create(const AX3DName: string; const ABaseUrl: string);
+constructor TSoundNode.Create(const AX3DName: string; const ABaseUrl: String);
 begin
   inherited;
   FdLocation.AddNotification({$ifdef FPC}@{$endif} EventLocationReceive);
+  FdEnabled.AddNotification({$ifdef FPC}@{$endif} EventEnabledReceive);
+
   FTransform := TMatrix4.Identity;
   FTransformScale := 1;
 
@@ -358,6 +383,13 @@ procedure TSoundNode.EventLocationReceive(
   const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
 begin
   UpdateSoundSource;
+end;
+
+procedure TSoundNode.EventEnabledReceive(
+  const Event: TX3DEvent; const Value: TX3DField; const Time: TX3DTime);
+begin
+  if Source is TAudioClipNode then // also checks Source <> nil
+    TAudioClipNode(Source).UpdatePlaying;
 end;
 
 procedure RegisterSoundNodes;

@@ -319,7 +319,7 @@ type
 
       @groupBegin }
     procedure LoadFromFile; overload;
-    procedure LoadFromFile(const URL: string); overload;
+    procedure LoadFromFile(const Url: String); overload;
     { @groupEnd }
 
     function Ground: PTriangle;
@@ -1303,7 +1303,7 @@ begin
   end;
 end;
 
-procedure TPlayer.LoadFromFile(const URL: string);
+procedure TPlayer.LoadFromFile(const Url: String);
 var
   Config: TCastleConfig;
 begin
@@ -1311,7 +1311,7 @@ begin
   try
     Config.RootName := 'player';
     Config.NotModified; { otherwise changing RootName makes it modified, and saved back at freeing }
-    Config.URL := URL;
+    Config.Url := Url;
 
     KnockBackSpeed := Config.GetFloat('knockback_speed', DefaultPlayerKnockBackSpeed);
     WalkNavigation.JumpMaxHeight := Config.GetFloat('jump/max_height', TCastleWalkNavigation.DefaultJumpMaxHeight);

@@ -64,7 +64,7 @@ end;
 
 procedure TViewMain.Start;
 
-  procedure AddTableRow(const RowTemplate: TSerializedComponent; const ProjectName, ProjectWebsite, ProjectInfo: String);
+  procedure AddTableRow(const RowFactory: TCastleComponentFactory; const ProjectName, ProjectWebsite, ProjectInfo: String);
   var
     Row: TCastleUserInterface;
     RowOwner: TComponent;
@@ -73,7 +73,7 @@ procedure TViewMain.Start;
     EditProjectInfo: TCastleEdit;
   begin
     RowOwner := TComponent.Create(FreeAtStop);
-    Row := RowTemplate.UserInterfaceLoad(RowOwner);
+    Row := RowFactory.UserInterfaceLoad(RowOwner);
     Row.FullSize := false;
     Row.Width := 1000;
     Row.Height := 50;
@@ -89,20 +89,20 @@ procedure TViewMain.Start;
     VerticalGroupTable.InsertFront(Row);
   end;
 
-  procedure AddSoldierWithCape(const Template: TSerializedComponent; const Translation: TVector3);
+  procedure AddSoldierWithCape(const Factory: TCastleComponentFactory; const Translation: TVector3);
   var
     SoldierInstance: TCastleTransform;
     SoldierOwner: TComponent;
   begin
     SoldierOwner := TComponent.Create(FreeAtStop);
-    SoldierInstance := Template.TransformLoad(SoldierOwner);
+    SoldierInstance := Factory.TransformLoad(SoldierOwner);
     SoldierInstance.Translation := Translation;
     ViewportForSoldiers.Items.Add(SoldierInstance);
   end;
 
 var
-  TableRowTemplate: TSerializedComponent;
-  SoldierWithCapeTemplate: TSerializedComponent;
+  TableRowFactory: TCastleComponentFactory;
+  SoldierWithCapeFactory: TCastleComponentFactory;
 begin
   inherited;
 
@@ -115,26 +115,28 @@ begin
   DesignedButton2Button.OnClick := {$ifdef FPC}@{$endif} ClickDesignedButton2;
 
   { Load and instantiate table row UI many times }
-  TableRowTemplate := TSerializedComponent.Create('castle-data:/table_row.castle-user-interface');
+  TableRowFactory := TCastleComponentFactory.Create(nil);
   try
-    AddTableRow(TableRowTemplate, 'Castle Game Engine', 'https://castle-engine.io/', 'Game engine');
-    AddTableRow(TableRowTemplate, 'Free Pascal Compiler', 'https://www.freepascal.org/', 'Pascal compiler');
-    AddTableRow(TableRowTemplate, 'Lazarus', 'https://www.lazarus-ide.org/', 'IDE for FPC');
-    AddTableRow(TableRowTemplate, 'Blender', 'https://www.blender.org/', '3D creation');
-    AddTableRow(TableRowTemplate, 'OpenGL', 'https://www.khronos.org/opengl/', 'Rendering API');
-    AddTableRow(TableRowTemplate, 'Debian', 'https://www.debian.org/', 'Debian GNU/Linux distro');
+    TableRowFactory.Url := 'castle-data:/table_row.castle-user-interface';
+    AddTableRow(TableRowFactory, 'Castle Game Engine', 'https://castle-engine.io/', 'Game engine');
+    AddTableRow(TableRowFactory, 'Free Pascal Compiler', 'https://www.freepascal.org/', 'Pascal compiler');
+    AddTableRow(TableRowFactory, 'Lazarus', 'https://www.lazarus-ide.org/', 'IDE for FPC');
+    AddTableRow(TableRowFactory, 'Blender', 'https://www.blender.org/', '3D creation');
+    AddTableRow(TableRowFactory, 'OpenGL', 'https://www.khronos.org/opengl/', 'Rendering API');
+    AddTableRow(TableRowFactory, 'Debian', 'https://www.debian.org/', 'Debian GNU/Linux distro');
   finally
-    FreeAndNil(TableRowTemplate);
+    FreeAndNil(TableRowFactory);
   end;
 
   { Load and instantiate soldier with cape many times }
-  SoldierWithCapeTemplate := TSerializedComponent.Create('castle-data:/soldier_with_cape.castle-transform');
+  SoldierWithCapeFactory := TCastleComponentFactory.Create(nil);
   try
-    AddSoldierWithCape(SoldierWithCapeTemplate, Vector3(0, 0, 0));
-    AddSoldierWithCape(SoldierWithCapeTemplate, Vector3(1.5, 0, 0));
-    AddSoldierWithCape(SoldierWithCapeTemplate, Vector3(3, 0, 0));
+    SoldierWithCapeFactory.Url := 'castle-data:/soldier_with_cape.castle-transform';
+    AddSoldierWithCape(SoldierWithCapeFactory, Vector3(0, 0, 0));
+    AddSoldierWithCape(SoldierWithCapeFactory, Vector3(1.5, 0, 0));
+    AddSoldierWithCape(SoldierWithCapeFactory, Vector3(3, 0, 0));
   finally
-    FreeAndNil(SoldierWithCapeTemplate);
+    FreeAndNil(SoldierWithCapeFactory);
   end;
 end;
 

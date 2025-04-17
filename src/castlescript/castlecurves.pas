@@ -62,7 +62,7 @@ type
     { Load the first curve defined in given XML file.
       Hint: use https://castle-engine.io/curves_tool to design curves
       visually. }
-    class function LoadFromFile(const URL: string): TCurve;
+    class function LoadFromFile(const Url: String): TCurve;
 
     function BoundingBox: TBox3D; virtual; abstract;
 
@@ -80,12 +80,12 @@ type
     { Load curves definitions from a simple XML file.
       Hint: use https://castle-engine.io/curves_tool to design curves
       visually. }
-    procedure LoadFromFile(const URL: string); virtual;
+    procedure LoadFromFile(const Url: String); virtual;
 
     { Save curve definitions to a simple XML file.
       Hint: use https://castle-engine.io/curves_tool to design curves
       visually. }
-    procedure SaveToFile(const URL: string); virtual;
+    procedure SaveToFile(const Url: String); virtual;
   end;
 
   { Curve defined by explicitly giving functions for
@@ -279,7 +279,7 @@ function HermiteTenseSpline(const X: Single; const Loop: boolean;
 implementation
 
 uses Math,
-  CastleXMLUtils, CastleDownload;
+  CastleXmlUtils, CastleDownload;
 
 function ConvexHullIndexes(Points: TVector3List): TIntegerList; forward;
 
@@ -320,13 +320,13 @@ begin
   Result.Y := V.Y;
 end;
 
-class function TCurve.LoadFromFile(const URL: string): TCurve;
+class function TCurve.LoadFromFile(const Url: String): TCurve;
 var
   List: TCurveList;
 begin
   List := TCurveList.Create(true);
   try
-    List.LoadFromFile(URL);
+    List.LoadFromFile(Url);
     if List.Count = 0 then
       raise ECurveFileInvalid.Create('Empty curve XML file, cannot get first curve');
     Result := List.Extract(List.First);
@@ -353,7 +353,7 @@ end;
 
 { TCurveList ---------------------------------------------------- }
 
-procedure TCurveList.LoadFromFile(const URL: string);
+procedure TCurveList.LoadFromFile(const Url: String);
 var
   Document: TXMLDocument;
   I: TXMLElementIterator;
@@ -362,7 +362,7 @@ var
 begin
   Clear;
 
-  Document := URLReadXML(URL);
+  Document := UrlReadXML(Url);
   try
     Check(Document.DocumentElement.TagName = 'curves',
       'Root node of curves file must be <curves>');
@@ -393,12 +393,12 @@ begin
    raise ECurveFileInvalid.CreateFmt('Curve type "%s" unknown', [CurveTypeStr]);
 end;
 
-procedure TCurveList.SaveToFile(const URL: string);
+procedure TCurveList.SaveToFile(const Url: String);
 var
   Stream: TStream;
   I: Integer;
 begin
-  Stream := URLSaveStream(URL);
+  Stream := UrlSaveStream(Url);
   try
     WritelnStr(Stream, '<?xml version="1.0"?>');
     WritelnStr(Stream, '<curves>');

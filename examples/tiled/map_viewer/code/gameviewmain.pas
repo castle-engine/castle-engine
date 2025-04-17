@@ -44,6 +44,7 @@ type
     constructor Create(AOwner: TComponent); override;
     procedure Start; override;
     procedure Update(const SecondsPassed: Single; var HandleInput: Boolean); override;
+    function Press(const Event: TInputPressRelease): Boolean; override;
   end;
 
 var
@@ -131,6 +132,23 @@ end;
 procedure TViewMain.CheckboxSmoothScalingSafeBorderChange(Sender: TObject);
 begin
   TiledMap.SmoothScalingSafeBorder := CheckboxSmoothScalingSafeBorder.Checked;
+end;
+
+function TViewMain.Press(const Event: TInputPressRelease): Boolean;
+begin
+  Result := inherited;
+  if Result then Exit;
+
+  { TODO: Simple test of TiledMap.Data.Layers[xxx].Exists.
+    See https://castle-engine.io/roadmap#tiled_layers for plans. }
+  if Event.IsKey(key0) then
+    TiledMap.Data.Layers[0].Exists := not TiledMap.Data.Layers[0].Exists;
+  if Event.IsKey(key1) then
+    if TiledMap.Data.Layers.Count > 1 then
+      TiledMap.Data.Layers[1].Exists := not TiledMap.Data.Layers[1].Exists;
+  if Event.IsKey(key2) then
+    if TiledMap.Data.Layers.Count > 2 then
+      TiledMap.Data.Layers[2].Exists := not TiledMap.Data.Layers[2].Exists;
 end;
 
 end.

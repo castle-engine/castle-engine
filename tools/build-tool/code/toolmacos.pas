@@ -1,5 +1,5 @@
 {
-  Copyright 2022-2022 Michalis Kamburelis.
+  Copyright 2022-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -36,14 +36,22 @@ procedure CreateMacAppBundle(const Project: TCastleProject; const BundleParenPat
 procedure CreateMacAppBundle(const Project: TCastleProject; const BundleParenPath: String;
   const SymlinkToFiles: Boolean);
 
-{ Zip the bundle created by CreateMacAppBundle. }
+{ Zip the bundle created by CreateMacAppBundle.
+
+  BundleParenPath should contain aaa.app directory (app bundle),
+  just like made by CreateMacAppBundle.
+
+  BundleParenPath will also contain the resulting zip file,
+  with name PackageFileName (PackageFileName should not contain any path,
+  be like 'foo.zip'). }
 procedure ZipMacAppBundle(const Project: TCastleProject; const BundleParenPath, PackageFileName: String);
 
 implementation
 
 uses {$ifdef UNIX} BaseUnix, {$endif} SysUtils,
-  CastleFilesUtils, CastleLog, CastleImages,
-  ToolArchitectures, ToolCommonUtils, ToolUtils, ToolEmbeddedImages;
+  CastleFilesUtils, CastleLog, CastleImages, CastleFindFiles,
+  CastleInternalArchitectures,
+  ToolCommonUtils, ToolUtils, ToolEmbeddedImages;
 
 procedure SaveResized(const Image: TCastleImage; const Size: Integer; const OutputFileName: string);
 var
@@ -128,6 +136,30 @@ procedure CreateMacAppBundle(const Project: TCastleProject; const BundleParenPat
       CheckCopyFile(Src, Dst);
   end;
 
+  { Copy or symlink additional file, given as filename:
+    - relative to project path (for source)
+    - relative to bundle exe dir (for destination).
+    Make a Writeln about it (always, because this is a bit non-standard thing
+    we do, better tell user about it).
+
+    TODO: It would be better to control it by some parameter in manifest, like:
+
+      <macos_bundle_exe>
+        <include file="libsteam_api.dylib" />
+        <include file="steam_appid.txt" />
+      </macos_bundle_exe>
+
+    and allow each package (like CGE Steam integration) to specify it. }
+  procedure CopyOrSymlinkFileAlongsideExe(const RelativeName, OutputBundleExePath: String);
+  begin
+    Writeln(Format('Copying (or symlinking) additional file (alongside exe) into the bundle: %s', [
+      RelativeName
+    ]));
+    CopyOrSymlinkFile(
+      Project.Path + RelativeName,
+      OutputBundleExePath + RelativeName);
+  end;
+
   procedure CopyOrSymlinkData(const Dst: String);
   begin
     if SymlinkToFiles then
@@ -139,6 +171,8 @@ procedure CreateMacAppBundle(const Project: TCastleProject; const BundleParenPat
 var
   OutputBundlePath, OutputBundleExePath, OutputBundleResourcesPath, IconIcns, IconPng: String;
   LoadedIcon: TCastleImage;
+  DynLibs: TFileInfoList;
+  DynLibInfo: TFileInfo;
 begin
   { create clean OutputBundlePath }
   OutputBundlePath := InclPathDelim(BundleParenPath) + Project.Caption + '.app' + PathDelim;
@@ -163,6 +197,20 @@ begin
   ExeInBundle := OutputBundleExePath + Project.ExecutableName;
   CopyOrSymlinkFile(Project.Path + Project.ExecutableName, ExeInBundle);
   DoMakeExecutable(ExeInBundle);
+
+  { Copy or symlink dynamic libraries into the bundle.
+    This cooperates with our code in CastleDynLibs to find the dynamic libraries. }
+  DynLibs := FindFilesList(Project.Path, 'lib*.dylib', false, []);
+  try
+    for DynLibInfo in DynLibs do
+      CopyOrSymlinkFileAlongsideExe(DynLibInfo.Name, OutputBundleExePath);
+  finally FreeAndNil(DynLibs) end;
+
+  { Necessary to test applications with Steam integration on macOS.
+    TODO: This should not be hardcoded in the build tool, we need a way to
+    specify this in the project file. }
+  if FileExists(Project.Path + 'steam_appid.txt') then
+    CopyOrSymlinkFileAlongsideExe('steam_appid.txt', OutputBundleExePath);
 
   IconIcns := Project.Icons.FindExtension(['.icns']);
   if IconIcns <> '' then
@@ -204,7 +252,12 @@ end;
 
 procedure ZipMacAppBundle(const Project: TCastleProject; const BundleParenPath, PackageFileName: String);
 begin
-  RunCommandSimple(BundleParenPath, 'zip', ['-q', '-r', PackageFileName, Project.Caption + '.app']);
+  //RunCommandSimple(BundleParenPath, 'zip', ['-q', '-r', PackageFileName, Project.Caption + '.app']);
+  // Better use internal zip, that doesn't require any tool installed:
+  ZipDirectoryTool(
+    CombinePaths(BundleParenPath, PackageFileName),
+    CombinePaths(BundleParenPath, Project.Caption + '.app'));
+
   Writeln(Format('Packed to "%s"', [PackageFileName]));
 end;
 

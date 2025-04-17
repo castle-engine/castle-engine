@@ -41,7 +41,7 @@
 
     @orderedList(
       @item(It is simplest to set @link(DesignUrl)
-        to the design file you created using @url(https://castle-engine.io/manual_editor.php CGE editor).
+        to the design file you created using @url(https://castle-engine.io/editor CGE editor).
         Such user interface controls will be created right before @link(Start)
         and destroyed right after @link(Stop) (so the view UI always "resets"
         when view starts).)
@@ -96,7 +96,7 @@
       FDesignLoaded: TCastleUserInterface;
       FDesignLoadedOwner: TDesignOwner;
       FDesignPreload: Boolean;
-      FDesignPreloadedSerialized: TSerializedComponent;
+      FDesignPreloadedSerialized: TCastleComponentFactory;
       FDesignPreloaded: TCastleUserInterface;
       FDesignPreloadedOwner: TComponent;
 
@@ -310,12 +310,9 @@
       More precisely, when this property is @true, then the
       @link(Press), @link(Release) and @link(Motion) events are marked as
       "handled" in this UI view. This means that they will not be processed
-      further, by UI controls under this view, in particular by UI views
-      that are underneath this view in @italic(view stack) (created
-      by @link(Push) method). They will also not be passed to final container
-      (TCastleWindow, TCastleControl) callbacks like
-      TCastleWindow.OnPress (as these callbacks are always used at the end,
-      when nothing else handled the event).
+      further, by UI controls behind this view, in particular by UI views
+      that are behind this view in @italic(view stack) (created
+      by @link(Push) method).
 
       Note that setting this to @true means that calling @code(inherited)
       from your @link(Press) overridden implementation will always return @true,
@@ -516,20 +513,20 @@ begin
     raise Exception.Create('Assign Application.MainWindow (if you use CastleWindow) or TCastleControl.MainControl (if you use CastleControl) before starting TCastleView');
 end;
 
-{ TSerializedComponentHelper ------------------------------------------------- }
+{ TCastleComponentFactoryHelper ------------------------------------------------- }
 
 type
-  { Helper methods extending TSerializedComponent.
-    Do not use TSerializedComponentHelper from CastleViewport,
+  { Helper methods extending TCastleComponentFactory.
+    Do not use TCastleComponentFactoryHelper from CastleViewport,
     to not complicate unit dependencies. }
-  TSerializedComponentHelper = class helper for TSerializedComponent
+  TCastleComponentFactoryHelper = class helper for TCastleComponentFactory
     { Instantiate component.
       Using this is equivalent to using global @link(UserInterfaceLoad),
       but it is much faster if you want to instantiate the same file many times. }
     function UserInterfaceLoad(const Owner: TComponent): TCastleUserInterface;
   end;
 
-function TSerializedComponentHelper.UserInterfaceLoad(const Owner: TComponent): TCastleUserInterface;
+function TCastleComponentFactoryHelper.UserInterfaceLoad(const Owner: TComponent): TCastleUserInterface;
 begin
   Result := ComponentLoad(Owner) as TCastleUserInterface;
 end;
@@ -547,7 +544,8 @@ begin
   case Operation of
     opInsert: ParentView.SetNameReference(AComponent, AComponent.Name, true);
     opRemove: ParentView.SetNameReference(AComponent, AComponent.Name, false);
-    else ;
+    // To write else or not? See https://castle-engine.io/coding_conventions#_if_you_dont_care_whether_you_exhaust_all_options_or_not_you_want_to_be_prepared_for_future_extensions_of_enum_type_but_you_dont_want_any_warnings
+    // else ;
   end;
   inherited;
 end;
@@ -841,7 +839,8 @@ begin
   if DesignUrl <> '' then
   begin
     // load FDesignPreloadedSerialized to be able to faster load design, without parsing JSON
-    FDesignPreloadedSerialized := TSerializedComponent.Create(DesignUrl);
+    FDesignPreloadedSerialized := TCastleComponentFactory.Create(nil);
+    FDesignPreloadedSerialized.Url :=DesignUrl;
     // load FDesignPreloaded to cache all that's possible,
     // like images used inside TCastleImageControl or TCastleScene.
     FDesignPreloadedOwner := TComponent.Create(nil);
@@ -921,17 +920,17 @@ end;
 
 function TCastleView.ContainerWidth: Cardinal;
 begin
-  Result := PredictedContainer.Width;
+  Result := PredictedContainer.PixelsWidth;
 end;
 
 function TCastleView.ContainerHeight: Cardinal;
 begin
-  Result := PredictedContainer.Height;
+  Result := PredictedContainer.PixelsHeight;
 end;
 
 function TCastleView.ContainerRect: TRectangle;
 begin
-  Result := PredictedContainer.Rect;
+  Result := PredictedContainer.PixelsRect;
 end;
 
 function TCastleView.ContainerSizeKnown: boolean;

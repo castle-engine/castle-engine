@@ -182,3 +182,74 @@ Converter : X3DChildNode {
   XFAny [in] in
   XFAny [out] out
 }
+
+# See https://doc.x3dom.org/author/EnvironmentalEffects/Environment.html
+# Note: We merely guess (not tested) the default-container-field below,
+# and that all fields are [in,out].
+Environment : X3DBindableNode {
+  default-container-field: environment
+  SFBool 	[in,out]  enableARC  false
+    doc: Experimental: If true ARC adjusts rendering parameters
+  SFBool 	[in,out]  frustumCulling  true
+    doc: If TRUE, objects outside the viewing frustum are ignored
+  SFString 	[in,out]  gammaCorrectionDefault "linear"
+    doc: The gamma correction to apply by default, see lighting and gamma tutorial
+  SFBool 	[in,out]  lowPriorityCulling  false
+    doc: If TRUE and occlusion culling supported, only threshold fraction of objects, sorted by their screen space coverage, are rendered
+  SFFloat 	[in,out] 	lowPriorityFactor  -1
+    range: [0,1] or -1
+    doc: Experimenal: Factor of low priority culling for controlling speed-performance trade-off
+  SFFloat 	[in,out] 	lowPriorityThreshold  1.0
+    range:	[0,1]
+    doc: Only threshold fraction of objects, sorted by their screen space coverage, are rendered
+  SFFloat 	[in,out] 	maxFrameRate  62.5
+    range: [1,inf]
+    doc: Experimental: Define maximal target frame-rate for dynamic moments and quality-speed trade-off
+  SFFloat 	[in,out] 	minFrameRate  1.0
+    range: [1,inf]
+    doc: Experimental: Define minimal target frame-rate for static moments and quality-speed trade-off
+  SFBool 	[in,out] 	occlusionCulling  false
+    doc: If TRUE and occlusion culling supported, objects occluding less than the threshold below are ignored
+  SFFloat 	[in,out] 	occlusionVisibilityFactor -1
+    range: [0,1] or -1
+    doc: Experimenal: Factor of occlusion culling for controlling speed-performance trade-off
+  SFFloat 	[in,out] 	occlusionVisibilityThreshold  0.0
+    range: [0,1]
+    doc: Objects occluding less than the threshold below are ignored
+  SFBool 	[in,out] 	shadowExcludeTransparentObjects 	false
+    doc: Transparent objects like glass do not throw much shadow, enable this IR convenience flag with TRUE
+  SFBool 	[in,out] 	smallFeatureCulling 	false
+    doc: If TRUE, objects smaller than the threshold below are ignored
+  SFFloat 	[in,out] 	smallFeatureFactor 	-1
+    range: [0,1] or -1
+    doc: Experimenal: Factor of small feature culling for controlling speed-performance trade-off
+  SFFloat 	[in,out] 	smallFeatureThreshold 	1.0
+    doc: Objects smaller than the threshold below are ignored
+  SFBool 	[in,out] 	sortTrans 	true
+    doc: If TRUE, transparent objects are sorted from back to front (allows explicitly disabling sorting)
+  SFBool 	[in,out] 	SSAO 	false
+    doc: Flag to enable Screen Space Ambient Occlusion
+  SFFloat 	[in,out] 	SSAOamount 	0
+    doc: Value that determines the amount of contribution of SSAO (from 0 to 1)
+  SFFloat 	[in,out] 	SSAOblurDepthTreshold 	5
+    doc: Value that determines the maximum depth difference for the SSAO blurring pass. Pixels with higher depth difference to the filer kernel center are not incorporated into the average.
+  SFFloat 	[in,out] 	SSAOradius 	4
+    doc: Value that determines the radius in which the SSAO is sampled in world space
+  SFFloat 	[in,out] 	SSAOrandomTextureSize 	4
+    doc: Value that determines the size of the random texture used for sparse sampling of SSAO
+  SFBool 	[in,out] 	tessellationDetailCulling 	false
+    doc: If TRUE, shape tesselation is lowered as long as resulting error is lower than threshold
+  SFFloat 	[in,out] 	tessellationErrorFactor 	-1
+    range: [0,1] or -1
+    doc: Experimenal: Factor of tesselation error for controlling speed-performance trade-off
+  SFFloat 	[in,out] 	tessellationErrorThreshold 	0.0
+    range: [0,1]
+    doc: Shape tesselation is lowered as long as resulting error is lower than threshold
+  SFString 	[in,out] 	tonemapping 	"none"
+    range: ["none",...]
+    enumerated-type: TToneMapping ToneMappingNames tmNone
+    doc: Specifies the used tonemapping operator. Note that X3DOM and Castle Game Engine support a bit different tone mapping options.
+  SFFloat 	[in,out] 	userDataFactor 	-1
+    range: [0,1] or -1
+    doc: Experimenal: Factor of user data for controlling speed-performance trade-off
+}

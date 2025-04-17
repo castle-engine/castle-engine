@@ -49,7 +49,7 @@ type
 implementation
 
 uses Math, Generics.Defaults,
-  X3DNodes, CastleXMLUtils, CastleLog;
+  X3DNodes, CastleXmlUtils, CastleLog;
 
 {$define read_implementation}
 

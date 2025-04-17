@@ -1,4 +1,4 @@
-// -*- compile-command: "./test_single_testcase.sh TTestCastleXMLUtils" -*-
+// -*- compile-command: "./test_single_testcase.sh TTestCastleXmlUtils" -*-
 {
   Copyright 2014-2022 Michalis Kamburelis.
 
@@ -14,17 +14,16 @@
   ----------------------------------------------------------------------------
 }
 
-{ Test CastleXMLUtils unit. }
-unit TestCastleXMLUtils;
+{ Test CastleXmlUtils unit. }
+unit TestCastleXmlUtils;
 
 interface
 
 uses
-  Classes, SysUtils, {$ifndef CASTLE_TESTER}FpcUnit, TestUtils, TestRegistry,
-  CastleTestCase{$else}CastleTester{$endif};
+  Classes, SysUtils, CastleTester;
 
 type
-  TTestCastleXMLUtils = class(TCastleTestCase)
+  TTestCastleXmlUtils = class(TCastleTestCase)
   published
     procedure TestReadResult;
     procedure TestAttributeReading;
@@ -32,12 +31,18 @@ type
 
 implementation
 
-uses DOM, CastleXMLUtils, CastleFilesUtils, CastleDownload;
+uses DOM, CastleXmlUtils, CastleFilesUtils, CastleDownload, CastleColors;
 
-procedure TTestCastleXMLUtils.TestReadResult;
+procedure TTestCastleXmlUtils.TestReadResult;
 var
   Doc: TXMLDocument;
 begin
+  if not CanCatchExceptions then
+  begin
+    AbortTest;
+    Exit;
+  end;
+
   { FPC's ReadXMLFile, and (consistenly) URLReadXML, have a non-standard
     way of initializing the 1st Doc parameter: it is always initialized,
     initially to nil,
@@ -55,7 +60,7 @@ begin
   except on EDownloadError do begin { this is Ok } end; end;
 end;
 
-procedure TTestCastleXMLUtils.TestAttributeReading;
+procedure TTestCastleXmlUtils.TestAttributeReading;
 var
   Doc: TXMLDocument;
   S: string;
@@ -79,10 +84,49 @@ begin
     AssertTrue(Doc.DocumentElement.AttributeSingle('some_int') = 123.0);
     AssertTrue(Doc.DocumentElement.AttributeFloat('some_int') = 123.0);
 
-    try Doc.DocumentElement.AttributeString  ('some_string_not_existing'); AssertTrue(false); except on EDOMAttributeMissing do begin { good } end; end;
-    try Doc.DocumentElement.AttributeCardinal('some_int_not_existing'   ); AssertTrue(false); except on EDOMAttributeMissing do begin { good } end; end;
-    try Doc.DocumentElement.AttributeSingle  ('some_int_not_existing'   ); AssertTrue(false); except on EDOMAttributeMissing do begin { good } end; end;
-    try Doc.DocumentElement.AttributeFloat   ('some_int_not_existing'   ); AssertTrue(false); except on EDOMAttributeMissing do begin { good } end; end;
+    AssertTrue(Doc.DocumentElement.AttributeColor('some_color_hex').X = White.X);
+    AssertTrue(Doc.DocumentElement.AttributeColor('some_color_hex').Y = White.Y);
+    AssertTrue(Doc.DocumentElement.AttributeColor('some_color_hex').Z = White.Z);
+    AssertTrue(Doc.DocumentElement.AttributeColor('some_color_hex').W = White.W);
+    AssertTrue(Doc.DocumentElement.AttributeColor('some_color_vector').X = White.X);
+    AssertTrue(Doc.DocumentElement.AttributeColor('some_color_vector').Y = White.Y);
+    AssertTrue(Doc.DocumentElement.AttributeColor('some_color_vector').Z = White.Z);
+    AssertTrue(Doc.DocumentElement.AttributeColor('some_color_vector').W = White.W);
+
+    AssertTrue(Doc.DocumentElement.AttributeColorRGB('some_colorrgb_hex').X = WhiteRgb.X);
+    AssertTrue(Doc.DocumentElement.AttributeColorRGB('some_colorrgb_hex').Y = WhiteRgb.Y);
+    AssertTrue(Doc.DocumentElement.AttributeColorRGB('some_colorrgb_hex').Z = WhiteRgb.Z);
+    AssertTrue(Doc.DocumentElement.AttributeColorRGB('some_colorrgb_vector').X = WhiteRgb.X);
+    AssertTrue(Doc.DocumentElement.AttributeColorRGB('some_colorrgb_vector').Y = WhiteRgb.Y);
+    AssertTrue(Doc.DocumentElement.AttributeColorRGB('some_colorrgb_vector').Z = WhiteRgb.Z);
+
+    Doc.DocumentElement.AttributeSet('color_white_vector', White);
+    AssertTrue(Doc.DocumentElement.AttributeColor('color_white_vector').X = White.X);
+    AssertTrue(Doc.DocumentElement.AttributeColor('color_white_vector').Y = White.Y);
+    AssertTrue(Doc.DocumentElement.AttributeColor('color_white_vector').Z = White.Z);
+    AssertTrue(Doc.DocumentElement.AttributeColor('color_white_vector').W = White.W);
+    Doc.DocumentElement.AttributeColorSet('color_white_hex', White);
+    AssertTrue(Doc.DocumentElement.AttributeColor('color_white_hex').X = White.X);
+    AssertTrue(Doc.DocumentElement.AttributeColor('color_white_hex').Y = White.Y);
+    AssertTrue(Doc.DocumentElement.AttributeColor('color_white_hex').Z = White.Z);
+    AssertTrue(Doc.DocumentElement.AttributeColor('color_white_hex').W = White.W);
+
+    Doc.DocumentElement.AttributeSet('color_whitergb_vector', WhiteRGB);
+    AssertTrue(Doc.DocumentElement.AttributeColorRGB('color_whitergb_vector').X = WhiteRGB.X);
+    AssertTrue(Doc.DocumentElement.AttributeColorRGB('color_whitergb_vector').Y = WhiteRGB.Y);
+    AssertTrue(Doc.DocumentElement.AttributeColorRGB('color_whitergb_vector').Z = WhiteRGB.Z);
+    Doc.DocumentElement.AttributeColorSet('color_whitergb_hex', WhiteRGB);
+    AssertTrue(Doc.DocumentElement.AttributeColorRGB('color_whitergb_hex').X = WhiteRGB.X);
+    AssertTrue(Doc.DocumentElement.AttributeColorRGB('color_whitergb_hex').Y = WhiteRGB.Y);
+    AssertTrue(Doc.DocumentElement.AttributeColorRGB('color_whitergb_hex').Z = WhiteRGB.Z);
+
+    if CanCatchExceptions then
+    begin
+      try Doc.DocumentElement.AttributeString  ('some_string_not_existing'); AssertTrue(false); except on EDOMAttributeMissing do begin { good } end; end;
+      try Doc.DocumentElement.AttributeCardinal('some_int_not_existing'   ); AssertTrue(false); except on EDOMAttributeMissing do begin { good } end; end;
+      try Doc.DocumentElement.AttributeSingle  ('some_int_not_existing'   ); AssertTrue(false); except on EDOMAttributeMissing do begin { good } end; end;
+      try Doc.DocumentElement.AttributeFloat   ('some_int_not_existing'   ); AssertTrue(false); except on EDOMAttributeMissing do begin { good } end; end;
+    end;
 
     S := 'blah';
     AssertTrue(Doc.DocumentElement.AttributeString('some_string', S));
@@ -103,5 +147,5 @@ begin
 end;
 
 initialization
-  RegisterTest(TTestCastleXMLUtils);
+  RegisterTest(TTestCastleXmlUtils);
 end.

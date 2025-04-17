@@ -57,6 +57,13 @@ const
     'networkWriter'
   );
 
+{$I auto_generated_node_helpers/x3dnodes_disentitymanager.inc}
+{$I auto_generated_node_helpers/x3dnodes_disentitytypemapping.inc}
+{$I auto_generated_node_helpers/x3dnodes_espdutransform.inc}
+{$I auto_generated_node_helpers/x3dnodes_receiverpdu.inc}
+{$I auto_generated_node_helpers/x3dnodes_signalpdu.inc}
+{$I auto_generated_node_helpers/x3dnodes_transmitterpdu.inc}
+
 constructor TDISEntityTypeMappingNode.Create(const AX3DName, ABaseUrl: String);
 begin
   inherited;

@@ -1,64 +1,143 @@
-# Delphi package
+# Delphi packages
 
-This directory contains design-time Delphi packages to use [TCastleControl component you can drop on a form (VCL, FMX)](https://castle-engine.io/control_on_form).
+Installing these packages in Delphi is recommended for a few reasons:
 
-## Usage
+- [Register TCastleControl component, that you can drop on a VCL or FMX form](https://castle-engine.io/control_on_form).
+
+- Add menu items _"Tools -> Castle Game Engine -> ..."_ to the Delphi IDE.
+
+- Automatically place DLLs alongside your application executable, for Windows.
+
+See [Delphi packages](https://castle-engine.io/delphi_packages) for details.
+
+## Installation in Delphi
+
+This is duplicated in [Delphi packages installation docs](https://castle-engine.io/delphi_packages):
 
 - Open in Delphi `AllPackages.groupproj`
 
-- Optional: Right-click on _"AllPackages"_ and select _"Build All"_, to make sure all packages are built
+- Right-click on all packages (except `castle_engine_window.bpl`) in succession and click _"Install"_.
 
-- Make sure your platform is _"Windows 32-bit"_ (Delphi IDE is 32-bit right now, so installed packages must be 32-bit too)
+**Most users can stop reading at this point.** The rest of this README is only for the developers of CGE itself, or if you want to better understand how CGE packages work.
 
-- Right-click on `castle_engine.bpl` and select _"Install"_
+## Optional: Building packages in Delphi IDE, for all platforms
 
-- Right-click on `castle_engine_design.bpl` and select _"Install"_
+While this is not necessary for installation, you can make sure that all packages build correctly for all platforms you want to use:
 
-## Notes - why packages are configured like this
+- Make sure all packages have platform set to _"Windows 32-bit"_.
 
-- The package `castle_engine` _"Target platforms"_ must include all platforms supported by Castle Game Engine with Delphi.
+  Then right-click on _"AllPackages"_ and select _"Build All"_.
 
-    This means both _"Windows 32-bit"_ and _"Windows 64-bit"_. This allows to drop `TCastleControl` on a form when your application platform is either _"Windows 32-bit"_ or _"Windows 64-bit".
+- Switch platform of all packages (except `castle_engine_design.bpl`) to _"Windows 64-bit"_.
 
-    We generally recommend to build your Windows applications for 64-bit, as this is what users expect nowadays. For maximum compatibility, CGE supports both 32-bit and 64-bit Windows versions, with any compiler.
+  Again, right-click on _"AllPackages"_ and select _"Build All"_.
 
-- However, `castle_engine_design` package _"Target platforms"_ must be only Win32. Because `designide` package is only for Windows 32-bit, just like Delphi IDE.
+- Switch platform of all packages (except `castle_engine_design.bpl` and `castle_engine_vcl.bpl`) to _"Linux 64-bit"_. Do this if you want to use [Delphi on Linux](https://castle-engine.io/delphi_linux).
 
-    And `designide` includes unit `ToolsAPI` which is in turn used by `CastleInternalDelphiDesignUtils` unit.
+  To make it work, first [add FMXLinux to "Library Paths"](https://castle-engine.io/delphi_linux#library_paths).
 
-- As Delphi IDE is 32-bit right now, note that you can use _"Install"_ on a package only when the platform is set to _"Windows 32-bit"_.
+  Again, right-click on _"AllPackages"_ and select _"Build All"_.
 
-- We put output in the default directory determined by Delphi, which will be like `C:\Users\Public\Documents\Embarcadero\Studio\22.0\Bpl` .
+If anything fails, please [submit a bug](https://github.com/castle-engine/castle-engine/issues).
 
-- Package settings disable some warnings.
-  Disabling them this way (not in DPK, e.g. by including `castleconf.inc` or writing directives explicitly) seems like the only reliable way to hide them. The directives (and reasons for hiding) are:
+## Packages ovierview
 
-    ```
-    { Disable Delphi warnings that we're not compatible with C++.
-      TODO: In the future we plan to support C++ builder, so these will have to be dealt with. }
-    {$warn DUPLICATE_CTOR_DTOR off}
-    {$warn UNSUPPORTED_CONSTRUCT}
+- `castle_engine.bpl` contains the base engine units. Not dependent on VCL, not dependent on FMX, not using `TCastleWindow`.
 
-    { Disable Delphi warnings that we import more units implicitly.
-      We do it deliberately, to avoid listing huge number of units in castle_base. }
-    {$warn IMPLICIT_IMPORT off}
-    ```
+- `castle_engine_vcl.bpl` contains the engine code dependent on VCL. In particular it registers [TCastleControl component you can drop on a VCL form](https://castle-engine.io/control_on_form).
 
-- We used to have here a set of packages:
+- `castle_engine_fmx.bpl` contains the engine code dependent on FMX. In particular it registers [TCastleControl component you can drop on an FMX form](https://castle-engine.io/control_on_form).
 
-    - `castle_base` with base units
-    - `castle_fmx` with FMX version of TCastleControl, that depended on `castle_base`
-    - `castle_vcl` with VCL version of TCastleControl, that depended on `castle_base`
+- `castle_engine_window.bpl` provides `TCastleWindow` class and friends. It is a key to use `TCastleWindow` in your own applications, which is a great approach when you want to create a typical game using CGE, with everything (including UI) designed using CGE.
 
-    It is possible we'll go back to this split,
+- `castle_engine_design.bpl` contains additional design-time features for CGE components.
 
-    - When adding non-Windows platforms (Linux, Android) that will have FMX components but not VCL components.
+Which package is run-time, which is design-time?
 
-    - In case we'll want to use run-time packages, they will need to be split into separate base/FMX/VCL, as a normal application doesn't use both FMX and VCL simultaneously, so it should not depend on both.
+- `castle_engine_design.bpl` is design-time only. It only contains things that are useful in Delphi IDE, everything else is in other packages.
 
-- `src\vampyre_imaginglib\src\Source\JpegLib\imjidctasm.pas` is implicitly imported into package -- this is normal and has to stay like this. This unit compiles only for Delphi/Win32 (not Delphi/Win64), it is also used only in case of that platform.
+- `castle_engine_window.bpl` is run-time only. It cannot be installed in Delphi IDE. See below for an explanation why -- it secures us from an important mistake.
+
+- Other packages are both design-time and run-time. You can install them all in Delphi IDE.
+
+Platforms:
+
+- `castle_engine_design.bpl` has to be for Win32 only, as it depends on `designide` package which is only for Win32.
+
+- `castle_engine_vcl.bpl` can be only for platforms supported by VCL, which means Win32 and Win64.
+
+- Other packages are for all platforms supported by CGE (with Delphi), which right now means Win32, Win64, Linux 64-bit.
+
+## Various notes about why packages are configured like this
+
+### Platforms
+
+- To keep our installation instructions simple, we make sure (there's auto-test for this) to keep default platform of all packages set to _"Windows 32-bit"_.
+
+    As Delphi IDE is 32-bit right now, note that you can use _"Install"_ on any package (regardless of target platforms it supports) only when the platform is set to _"Windows 32-bit"_.
+
+    NOTE: Your applications can target all platforms supported by CGE with Delphi: _"Windows 32-bit"_, _"Windows 64-bit"_, _"Linux 64-bit"_. Here you select _"Windows 32-bit"_ just because Delphi IDE is Win32 application.
+
+- The packages that register components (`TCastleControl` for both VCL and FMX) and their dependencies must include all platforms supported by Castle Game Engine with Delphi.
+
+    This means _"Windows 32-bit"_, _"Windows 64-bit"_, _"Linux 64-bit"_. This allows to drop `TCastleControl` on a form when your application platform is set to any platform supported by CGE.
+
+- The `castle_engine_design` package _"Target platforms"_ must be only Win32. Because `designide` package is only for Windows 32-bit, just like Delphi IDE.
+
+    And `designide` includes unit `ToolsAPI` which is in turn used by `CastleInternalDelphiDesign` unit.
+
+- Note about Win32 vs Win64: We generally recommend to build your Windows applications for 64-bit, as this is what users expect nowadays. But we fully support both 32-bit and 64-bit Windows versions, with any compiler.
+
+### Why castle_engine_window should not be used at design-time?
+
+- `castle_engine_window.bpl` cannot be installed in Delphi IDE, to secure us from an important mistake:
+
+    `TCastleWindow` and `TCastleApplication` inside `CastleWindow` unit may talk to widgetsets directly, e.g. using WinAPI. Doing this could conflict with normal working of Delphi IDE -- there are some things that are essentially set application-wide on the widgetset (like WinAPI) and all libraries (VCL, FMX, and `TCastleWindow`) have to set these things assuming "we are the only library through which user integrates with this widgetset".
+
+    Note: We actually do not talk to widgetsets until `Application` singleton is initialized, and even then we defer any "dangerous" initialization to when it is really necessary (usually creation of `TCastleWindow`, eventually querying e.g. `Application.ScreenWidth`). And from Delphi IDE, neither `TCastleWindow` nor `TCastleApplication` should ever need to be created, nothing should call `Application` making the singleton initialized.
+
+    ... But just in case we'll make a mistake (e.g. `CastleWindow` initialization will, by mistake, make some call to WinAPI, maybe indirectly) it is better to keep these units to never be installed in Delphi IDE. They should never be needed at design-time anyway.
+
+### Dependencies
+
+- VCL stuff has to be in a separate package, since VCL is only for Windows, while CGE supports more platforms (like Linux).
+
+    We also put FMX stuff in a separate package, i.e. `castle_engine.bpl` doesn't depend on FMX or VCL.
+
+    Note that FMX stuff could be, for now, actually merged in `castle_engine.bpl`. So we could merge `castle_engine.bpl` and `castle_engine_fmx.bpl` into 1 package. But:
+
+    - For the future, we want to be prepared for platforms that may not have FMX. In CGE, we can already deal with them (using our `TCastleWindow` which may have various backends, including using direct access to API like WinAPI or GTK or Cocoa, and thus it doesn't require FMX). Actually on Windows our `castle_engine_window.bpl` already doesn't need FMX (it uses WinAPI directly). But on Linux it does (for now).
+
+    - In case we'll want to use run-time packages, we don't want one application to link to both FMX and VCL simultaneously. So at run-time, `castle_engine_vcl.bpl` and its basis `castle_engine.bpl` have to be independent from FMX.
+
+- Right now `castle_engine_window.bpl` depends on FMX and on `castle_engine_fmx.bpl`. But this may not be necessary in the future.
+
+    The dependency is there because [Delphi on Linux](https://castle-engine.io/delphi_linux) currently uses FMX. More precisely, it uses `TCastleWindow` backend called `CASTLE_WINDOW_FORM` which uses `TOpenGLControl` from `Fmx.CastleInternalGLControl` unit (`castle_engine_fmx.bpl`) which in turm uses FMX.
+
+    It is possible we will remove this dependency in the future. Some `TCastleWindow` backends access system APIs (like WinAPI or GTK) directly, without the need for FMX, VCL (or LCL in case of FPC/Lazarus). For now it's not a problem, but we want to keep this possibility open for the future, e.g. to support future platforms that may not have FMX.
+
+### Other notes
+
+- Note that we don't add deprecated units, from `src/deprecated_units` or `src/window/deprecated_units`, like `CastleProgress`, to the Delphi packages. At least for now. This makes building the packages look clean in Delphi IDE -- important, as we don't want new users to be confused by warnings when building packages, warnings about things that users should not care about (like the fact that we have some deprecated units).
 
 - The packages are not useful with Delphinus at this point, due to https://github.com/Memnarch/Delphinus/issues/93 .
 
-    Hopefully this will be fixed eventually, we'd love to recommend to use install our packages using [Delphinus](https://castle-engine.io/download#delphinus). It should install the package and extend your Delphi settings, to make CGE units available for all applications.
+    Hopefully this will be fixed eventually, we'd love to recommend to use / install our packages using [Delphinus](https://castle-engine.io/download#delphinus). It should install the package and extend your Delphi settings, to make CGE units available for all applications.
 
+- There is automatic check of these packages in `tools/internal/check_packages/`. You can run it manually whenever you want, our GitHub Actions also run it automatically.
+
+    We also have some checks in `tools/internal/cge_shell_tests` (just a bash script).
+
+- It practically doesn't matter if you build (and install) CGE packages with _Debug_ or _Release_. At design-time, we don't do anything time-consuming, that would be affected by the debug/release settings.
+
+- Crafting the perfect version of DPROJ files to commit to this repository is a bit tricky.
+
+    Delphi likes to add/remove some stuff that is depedent on your Delphi version, and on the platforms you have currently installed in Delphi. We don't want that -- as then everyone would change back and forth some DPROJ sections, depending on platforms and Delphi version of each developer. It would be hard to make sure we continue to work in all Delphi versions and platforms we support.
+
+    So make sure to revert some DPROJ sections, or even revert whole DPROJ files (if you intended no modification, i.e. you don't change compilation settings or list of included files), before committing.
+
+- We put resulting BPL files in the default directory determined by Delphi, using the `$(BDSCOMMONDIR)\Bpl\`.
+
+    Like `<DeployFile LocalName="$(BDSCOMMONDIR)\Bpl\castle_engine_design.bpl" Configuration="Debug" Class="ProjectOutput">` in the DPROJ file. The platforms other than `Win32` are in a platform-specific subdirectory, like `Win64` and `Linux64`. This is consistent with how other Delphi BPLs are installed, e.g. JEDI components.
+
+    Be careful when creating new packages, as by default Delphi will configure it to a hardcoded directory like `C:\Users\Public\Documents\Embarcadero\Studio\22.0\Bpl`, specific to your Delphi version and Windows settings.

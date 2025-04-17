@@ -63,7 +63,7 @@
       DefaultJustifyMinor = fjFirst;
       DefaultBlending = true;
 
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
+    constructor Create(const AX3DName: string = ''; const ABaseUrl: String = ''); override;
     destructor Destroy; override;
 
     property Family: TX3DFontFamily read GetFamily write SetFamily;
@@ -355,15 +355,7 @@ var
     end;
 
   var
-    C: TUnicodeChar;
-    {$ifdef FPC}
-    TextPtr: PChar;
-    CharLen: Integer;
-    {$else}
-    TextIndex: Integer;
-    NextTextIndex: Integer;
-    TextLength: Integer;
-    {$endif}
+    Iter: TCastleStringIterator;
   begin
     { first pass, to render Outline. }
 
@@ -372,63 +364,17 @@ var
     (*
     if Outline <> 0 then
     begin
-      ScreenX := X;
-      ScreenY := Y;
-
-      TextPtr := PChar(S);
-      C := UTF8CharacterToUnicode(TextPtr, CharLen);
-      while (C > 0) and (CharLen > 0) do
-      begin
-        Inc(TextPtr, CharLen);
-
-        G := Font.Glyph(C);
-        if G <> nil then
-        begin
-          if (G.Width <> 0) and (G.Height <> 0) then
-          begin
-            GlyphDraw(0, 0);
-            GlyphDraw(0, 2);
-            GlyphDraw(2, 2);
-            GlyphDraw(2, 0);
-
-            if OutlineHighQuality then
-            begin
-              GlyphDraw(1, 0);
-              GlyphDraw(1, 2);
-              GlyphDraw(0, 1);
-              GlyphDraw(2, 1);
-            end;
-          end;
-          ScreenX += G.AdvanceX + Outline * 2;
-          ScreenY += G.AdvanceY;
-        end;
-
-        C := UTF8CharacterToUnicode(TextPtr, CharLen);
-      end;
+      ...
     end;
     *)
 
     ScreenX := X;
     ScreenY := Y;
 
-    {$ifdef FPC}
-    TextPtr := PChar(S);
-    C := UTF8CharacterToUnicode(TextPtr, CharLen);
-    while (C > 0) and (CharLen > 0) do
-    {$else}
-    TextIndex := 1;
-    TextLength := Length(S);
-    while (TextIndex <= TextLength) do
-    {$endif}
+    Iter.Start(S);
+    while Iter.GetNext do
     begin
-      {$ifdef FPC}
-      Inc(TextPtr, CharLen);
-      {$else}
-      C := UnicodeStringNextChar(S, TextIndex, NextTextIndex);
-      TextIndex := NextTextIndex;
-      {$endif}
-
-      G := FontData.Glyph(C);
+      G := FontData.Glyph(Iter.Current);
       if G <> nil then
       begin
         if (G.Width <> 0) and (G.Height <> 0) then
@@ -443,10 +389,6 @@ var
         ScreenX := ScreenX + G.AdvanceX + Outline * 2;
         ScreenY := ScreenY + G.AdvanceY;
       end;
-
-      {$ifdef FPC}
-      C := UTF8CharacterToUnicode(TextPtr, CharLen);
-      {$endif}
     end;
   end;
 
@@ -599,7 +541,7 @@ const
 
 { TFontStyleNode ------------------------------------------------------------- }
 
-constructor TFontStyleNode.Create(const AX3DName: string = ''; const ABaseUrl: string = '');
+constructor TFontStyleNode.Create(const AX3DName: string = ''; const ABaseUrl: String = '');
 begin
   inherited;
   FCustomFontObserver := TFreeNotificationObserver.Create(nil);
@@ -780,12 +722,6 @@ begin
 end;
 
 var
-  DefaultFontData: array [
-    TX3DFontFamily,
-    { bold } Boolean,
-    { italic } Boolean
-  ] of TTextureFontData;
-
   DefaultFont: array [
     TX3DFontFamily,
     { bold } Boolean,
@@ -810,14 +746,22 @@ end;
 destructor TTextNode.Destroy;
 begin
   if X3DCache <> nil then
+  begin
     X3DCache.FreeFontTexture(FFontTextureNode);
+    // X3DCache.FreeFontTexture must be set it to nil
+    Assert(FFontTextureNode = nil);
+  end;
   inherited;
 end;
 
 procedure TTextNode.FontChanged;
 begin
   if X3DCache <> nil then
+  begin
     X3DCache.FreeFontTexture(FFontTextureNode);
+    // X3DCache.FreeFontTexture must be set it to nil
+    Assert(FFontTextureNode = nil);
+  end;
 end;
 
 function TTextNode.TexCoordField: TSFNode;
@@ -878,37 +822,23 @@ end;
 
 procedure FontsInitialization;
 begin
-  {$ifdef CASTLE_EMBED_ALL_3D_FONT_VARIATIONS}
-  DefaultFontData[ffTypeWriter, true , true ] := TextureFont_DejaVuSansMonoBoldOblique_20;
-  DefaultFontData[ffTypeWriter, true , false] := TextureFont_DejaVuSansMonoBold_20;
-  DefaultFontData[ffTypeWriter, false, true ] := TextureFont_DejaVuSansMonoOblique_20;
-  DefaultFontData[ffTypeWriter, false, false] := TextureFont_DejaVuSansMono_20;
+  { We do not embed in CGE now all 12 font variants,
+    see castle-model-viewer/embedded_data/fonts/README.md for explanation.
+    So just set all fonts to use default Font_Default3d_Sans. }
+  DefaultFontData[ffTypeWriter, true , true ] := Font_Default3d_Sans;
+  DefaultFontData[ffTypeWriter, true , false] := Font_Default3d_Sans;
+  DefaultFontData[ffTypeWriter, false, true ] := Font_Default3d_Sans;
+  DefaultFontData[ffTypeWriter, false, false] := Font_Default3d_Sans;
 
-  DefaultFontData[ffSerif, true , true ] := TextureFont_DejaVuSerifBoldItalic_20;
-  DefaultFontData[ffSerif, true , false] := TextureFont_DejaVuSerifBold_20;
-  DefaultFontData[ffSerif, false, true ] := TextureFont_DejaVuSerifItalic_20;
-  DefaultFontData[ffSerif, false, false] := TextureFont_DejaVuSerif_20;
+  DefaultFontData[ffSerif, true , true ] := Font_Default3d_Sans;
+  DefaultFontData[ffSerif, true , false] := Font_Default3d_Sans;
+  DefaultFontData[ffSerif, false, true ] := Font_Default3d_Sans;
+  DefaultFontData[ffSerif, false, false] := Font_Default3d_Sans;
 
-  DefaultFontData[ffSans, true , true ] := TextureFont_DejaVuSansBoldOblique_20;
-  DefaultFontData[ffSans, true , false] := TextureFont_DejaVuSansBold_20;
-  DefaultFontData[ffSans, false, true ] := TextureFont_DejaVuSansOblique_20;
-  DefaultFontData[ffSans, false, false] := TextureFont_DejaVuSans_20;
-  {$else}
-  DefaultFontData[ffTypeWriter, true , true ] := TextureFont_DejaVuSans_20;
-  DefaultFontData[ffTypeWriter, true , false] := TextureFont_DejaVuSans_20;
-  DefaultFontData[ffTypeWriter, false, true ] := TextureFont_DejaVuSans_20;
-  DefaultFontData[ffTypeWriter, false, false] := TextureFont_DejaVuSans_20;
-
-  DefaultFontData[ffSerif, true , true ] := TextureFont_DejaVuSans_20;
-  DefaultFontData[ffSerif, true , false] := TextureFont_DejaVuSans_20;
-  DefaultFontData[ffSerif, false, true ] := TextureFont_DejaVuSans_20;
-  DefaultFontData[ffSerif, false, false] := TextureFont_DejaVuSans_20;
-
-  DefaultFontData[ffSans, true , true ] := TextureFont_DejaVuSans_20;
-  DefaultFontData[ffSans, true , false] := TextureFont_DejaVuSans_20;
-  DefaultFontData[ffSans, false, true ] := TextureFont_DejaVuSans_20;
-  DefaultFontData[ffSans, false, false] := TextureFont_DejaVuSans_20;
-  {$endif}
+  DefaultFontData[ffSans, true , true ] := Font_Default3d_Sans;
+  DefaultFontData[ffSans, true , false] := Font_Default3d_Sans;
+  DefaultFontData[ffSans, false, true ] := Font_Default3d_Sans;
+  DefaultFontData[ffSans, false, false] := Font_Default3d_Sans;
 end;
 
 procedure FontsFinalization;

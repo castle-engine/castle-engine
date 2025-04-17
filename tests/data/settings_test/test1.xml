@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!--
+  Test that we can read CastleSettings.xml, see
+  https://castle-engine.io/manual_castle_settings.php .
+-->
+
+<castle_settings>
+  <ui_scaling
+    mode="EncloseReferenceSize"
+    reference_width="1600"
+    reference_height="900"
+  />
+  <default_font
+    url="castle-data:/settings_test/fonts/DejaVuSans.ttf"
+  />
+</castle_settings>

@@ -59,7 +59,7 @@ procedure PackageServices(const Project: TCastleProject; const Services: TServic
 implementation
 
 uses Classes, XMLRead,
-  CastleXMLUtils, CastleURIUtils, CastleFilesUtils,
+  CastleXmlUtils, CastleUriUtils, CastleFilesUtils,
   ToolUtils, ToolCommonUtils;
 
 { TServiceManifest ----------------------------------------------------------- }

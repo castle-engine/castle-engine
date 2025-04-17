@@ -110,16 +110,6 @@ type
     csLinear
   );
 
-  { @deprecated Deprecated name for @link(TColorSpace). }
-  TGammaCorrection = (
-    { Never do gamma correction. }
-    gcNone,
-    { Gamma correction only for PhysicalMaterial. }
-    gcPhysicalMaterial,
-    { Always do gamma correction. }
-    gcAlways
-  ) deprecated 'use TColorSpace';
-
   TShadersRendering = (srDisable, srWhenRequired, srAlways) deprecated 'this was only useful with TCastleRenderOptions.Shaders, which is now deprecated in favor of TCastleRenderOptions.PhongShading';
 
   { Possible bump mapping options.
@@ -154,12 +144,12 @@ type
     { Improves the parallax effect, by tracing the ray as it goes through the height map.
       This is more costly, but makes the parallax effect better.
 
-      See http://graphics.cs.brown.edu/games/SteepParallax/index.html . }
+      See https://www.casual-effects.com/research/McGuire2005Parallax/index.html . }
     bmSteepParallax,
 
     { Improves the bmSteepParallax even more, by adding additional shadow calculation.
 
-      See http://graphics.cs.brown.edu/games/SteepParallax/index.html . }
+      See https://www.casual-effects.com/research/McGuire2005Parallax/index.html . }
     bmSteepParallaxShadowing
   );
 
@@ -382,8 +372,9 @@ type
       Unless you manually change the order of shapes / scenes in Viewport.Items. }
     sortNone,
 
-    { Sort objects by their Z coordinate.
-      Good for 2D worlds, with flat 2D objects
+    { Sort objects by their Z coordinate (independent from camera).
+
+      This is good and fast for 2D worlds, with flat 2D objects
       that have zero (or near-zero) size in the Z axis,
       and they are moved in the Z axis to specify which is in front of another.
 
@@ -403,10 +394,30 @@ type
       scenes with many partially-transparent objects.
 
       The distance is measured from the middle
-      of the bounding box to the camera posotion. }
+      of the bounding box, projected along the camera direction.
+      Note that we do not measure strictly @italic(distance to the camera position),
+      we measure @italic(distance to the point projected on camera direction).
+      The difference is subtle, and it means that sorting makes sense even
+      for models like Spine (with multiple thin layers that have various 3D coordinates)
+      as long as they are billboards oriented towards the camera
+      with @link(TCastleBillboard.MatchCameraDirection) = @true
+      and @link(TCastleBillboard.AxisOfRotation) = zero. }
     sort3D,
 
-    { Sort objects by the (3D) distance of their origin point (point (0,0,0) in local coordinates)
+    { Sort objects by the (3D) distance of their bounding box to the camera,
+      looking at camera direction projected on Y=0 plane.
+
+      This is a good sorting method for 3D when the camera looking more upward
+      or downward should not change the order.
+      In particular, this sorting makes sense
+      for models like Spine (with multiple thin layers that have various 3D coordinates)
+      as long as they are billboards oriented towards the camera
+      with @link(TCastleBillboard.MatchCameraDirection) = @true
+      and @link(TCastleBillboard.AxisOfRotation) = +Y (0, 1, 0). }
+    sort3DVerticalBillboards,
+
+    { Sort objects by the (3D) distance of their origin point
+      (point (0,0,0) in local coordinates)
       to the camera.
       This is a useful sorting method for 3D
       scenes with many partially-transparent objects.
@@ -415,13 +426,26 @@ type
       (because the origin doesn't change e.g. because of animations
       or using TCastleBillboard, contrary to bounding box,
       see https://github.com/castle-engine/castle-engine/issues/427#issuecomment-1365862663 ).
-      The downside is that you need to be more aware where is your object origin. }
+      The downside is that you need to be more aware where is your object origin.
+
+      Just like sort3D, this is measured by projecting the point on the camera
+      direction, instead of measuring the distance to the camera position.
+
+      @deprecated Deprecated, in most pratical applications now
+      sort3D or sort3DVerticalBillboards will be good. }
     sort3DOrigin,
 
-    { Sort objects by the (3D) distance of their origin point (point (0,0,0) in local coordinates)
+    { Sort objects by the (3D) distance of their origin point
+      (point (0,0,0) in local coordinates)
       to the camera, projected on the ground (Y=0).
 
-      Similar to sort3DOrigin, but the height of the object (above Y) doesn't matter. }
+      Similar to sort3DOrigin, but the height of the object (above Y) doesn't matter.
+
+      Just like sort3D, this is measured by projecting the point on the camera
+      direction, instead of measuring the distance to the camera position.
+
+      @deprecated Deprecated, in most pratical applications now
+      sort3DVerticalBillboards or sort3D will be good. }
     sort3DGround,
 
     { Use @link(TCastleViewport.OnCustomShapeSort).
@@ -599,43 +623,8 @@ var
   { Force given rendering for all scenes, if not weNormal. }
   InternalForceWireframe: TWireframeEffect;
 
-{$ifdef FPC}
-function GetGammaCorrection: TGammaCorrection;
-  deprecated 'use ColorSpace';
-procedure SetGammaCorrection(const Value: TGammaCorrection);
-  deprecated 'use ColorSpace';
-property GammaCorrection: TGammaCorrection read GetGammaCorrection write SetGammaCorrection;
-  {deprecated 'use ColorSpace';} { cannot deprecate global properties in FPC }
-{$endif}
-
 {$endif read_interface}
 
 {$ifdef read_implementation}
-
-{$ifdef FPC}
-function GetGammaCorrection: TGammaCorrection;
-begin
-  case ColorSpace of
-    csSRGB                      : Result := gcNone;
-    csLinearWhenPhysicalMaterial: Result := gcPhysicalMaterial;
-    csLinear                    : Result := gcAlways;
-    {$ifndef COMPILER_CASE_ANALYSIS}
-    else raise EInternalError.Create('GetGammaCorrection:ColorSpace?');
-    {$endif}
-  end;
-end;
-
-procedure SetGammaCorrection(const Value: TGammaCorrection);
-begin
-  case Value of
-    gcNone            : ColorSpace := csSRGB;
-    gcPhysicalMaterial: ColorSpace := csLinearWhenPhysicalMaterial;
-    gcAlways          : ColorSpace := csLinear;
-    {$ifndef COMPILER_CASE_ANALYSIS}
-    else raise EInternalError.Create('SetGammaCorrection:Value?');
-    {$endif}
-  end;
-end;
-{$endif}
 
 {$endif read_implementation}

@@ -43,6 +43,7 @@
 ../../../src/ui/ TCastleLabel FrameColor TCastleColor
 
 ../../../src/ui/ TCastleShape Color TCastleColor
+../../../src/ui/ TCastleShape OutlineColor TCastleColor
 
 ../../../src/ui/ TCastleEdit FocusedColor TCastleColor
 ../../../src/ui/ TCastleEdit UnfocusedColor TCastleColor

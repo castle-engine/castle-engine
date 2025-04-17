@@ -84,8 +84,7 @@ type
         which means that one axis seems reverted when you want OpenGL right-handed
         coord system (like
         OpenGL, see http://opengl.org/registry/specs/ARB/texture_cube_map.txt).
-        See [https://castle-engine.io/x3d_implementation_status.php#section_dds]
-        for more. }
+        See https://castle-engine.io/dds for more. }
       TDDSCubeMapSide = (
         dcsPositiveX,
         dcsNegativeX,
@@ -179,18 +178,18 @@ type
 
     { Load composite (KTX or DDS) image from any TStream.
       The image type is recognized from the MimeType extension,
-      or (if empty) from URL,
+      or (if empty) from Url,
       so make sure that you provide at least one of these parameters.
       @raises(EInvalidCompositeImage In case of any error in the file data.) }
-    procedure LoadFromStream(Stream: TStream; const URL: string;
+    procedure LoadFromStream(Stream: TStream; const Url: String;
       MimeType: string = '';
       const Options: TLoadImageOptions = []);
 
-    { Load composite (KTX or DDS) image from this URL. }
-    procedure LoadFromFile(URL: string; const Options: TLoadImageOptions = []);
+    { Load composite (KTX or DDS) image from this Url. }
+    procedure LoadFromFile(Url: String; const Options: TLoadImageOptions = []);
 
     procedure SaveToStream(Stream: TStream; const MimeType: string);
-    procedure SaveToFile(const URL: string);
+    procedure SaveToFile(const Url: String);
 
     { Close all loaded image data. Effectively, this releases all data
       loaded by LoadFromStream, reverting the object to the state right
@@ -214,7 +213,7 @@ type
       (as then the image data is just a continuous memory area,
       loadable by glTexImage3d). But it's not comfortable if you want
       to display it using some 2D GUI. For example, it's not comfortable
-      for image viewer like castle-view-image.
+      for image viewer like castle-image-viewer.
 
       So this method will convert such TCastleImage instances (with Depth > 1)
       into a sequence of TCastleImage instances all with Depth = 1.
@@ -249,7 +248,7 @@ type
     { Does this URL look like it contains composite (KTX, DDS...) contents.
       Guesses by processing the URL with @link(ProcessImageUrl)
       and then looking at final filename extension. }
-    class function MatchesURL(URL: string): boolean;
+    class function MatchesUrl(Url: String): boolean;
 
     procedure AddCubeMapImages(const AImages: TCubeMapImages);
   end;
@@ -264,7 +263,7 @@ implementation
 
 uses SysUtils, Math,
   CastleUtils, CastleClassUtils, CastleLog, CastleStringUtils,
-  CastleVectors, CastleDownload, CastleURIUtils;
+  CastleVectors, CastleDownload, CastleUriUtils;
 
 {$I castleinternalcompositeimage_format_handler.inc}
 {$I castleinternalcompositeimage_dds.inc}
@@ -316,7 +315,7 @@ begin
     Result := FImages[Index];
 end;
 
-procedure TCompositeImage.LoadFromStream(Stream: TStream; const URL: string;
+procedure TCompositeImage.LoadFromStream(Stream: TStream; const Url: String;
   MimeType: string  = '';
   const Options: TLoadImageOptions = []);
 var
@@ -328,7 +327,7 @@ begin
     WritelnWarning('ImageTexture.flipVertically for DDS/KTX not implemented yet, the image will be inverted');
 
   if MimeType = '' then
-    MimeType := URIMimeType(URL);
+    MimeType := UriMimeType(Url);
 
   if MimeType = 'image/x-dds' then
     Handler := TDDSHandler.Create(Self)
@@ -340,20 +339,20 @@ begin
       [MimeType]);
 
   try
-    Handler.LoadFromStream(Stream, URL);
+    Handler.LoadFromStream(Stream, Url);
   finally FreeAndNil(Handler) end;
 end;
 
-procedure TCompositeImage.LoadFromFile(URL: string;
+procedure TCompositeImage.LoadFromFile(Url: String;
   const Options: TLoadImageOptions = []);
 var
   S: TStream;
 begin
-  URL := ProcessImageUrl(URL);
+  Url := ProcessImageUrl(Url);
 
-  S := Download(URL, [soForceMemoryStream]);
+  S := Download(Url, [soForceMemoryStream]);
   try
-    LoadFromStream(S, URL, '', Options);
+    LoadFromStream(S, Url, '', Options);
   finally FreeAndNil(S) end;
 end;
 
@@ -377,23 +376,23 @@ begin
   finally FreeAndNil(Handler) end;
 end;
 
-procedure TCompositeImage.SaveToFile(const URL: string);
+procedure TCompositeImage.SaveToFile(const Url: String);
 var
   S: TStream;
 begin
-  S := URLSaveStream(URL);
+  S := UrlSaveStream(Url);
   try
-    SaveToStream(S, URIMimeType(URL));
+    SaveToStream(S, UriMimeType(Url));
   finally FreeAndNil(S) end;
 end;
 
-class function TCompositeImage.MatchesURL(URL: string): boolean;
+class function TCompositeImage.MatchesUrl(Url: String): boolean;
 begin
-  URL := ProcessImageUrl(URL);
+  Url := ProcessImageUrl(Url);
 
   Result :=
-    (URIMimeType(URL) = 'image/x-dds') or
-    (URIMimeType(URL) = 'image/ktx');
+    (UriMimeType(Url) = 'image/x-dds') or
+    (UriMimeType(Url) = 'image/ktx');
 end;
 
 procedure TCompositeImage.Flatten3d;

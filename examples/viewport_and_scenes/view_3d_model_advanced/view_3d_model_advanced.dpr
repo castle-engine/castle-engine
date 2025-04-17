@@ -23,7 +23,7 @@ program view_3d_model_advanced;
 uses SysUtils, Classes,
   CastleUtils, CastleWindow, CastleUIControls,
   CastleSceneCore, CastleLog, CastleParameters, CastleScene, X3DLoad,
-  CastleControls, CastleURIUtils, CastleApplicationProperties, CastleViewport,
+  CastleControls, CastleUriUtils, CastleApplicationProperties, CastleViewport,
   CastleCameras;
 
 var
@@ -31,7 +31,7 @@ var
   Viewport: TCastleViewport;
   Scene: TCastleScene;
   OpenButton: TCastleButton;
-  URL: string =
+  Url: String =
     //'castle-data:/bridge_final.x3dv';
     'castle-data:/car.gltf';
 
@@ -42,9 +42,9 @@ type
 
 procedure TEventHandler.OpenButtonClick(Sender: TObject);
 begin
-  if Window.FileDialog('Open Scene', URL, true, LoadScene_FileFilters) then
+  if Window.FileDialog('Open Scene', Url, true, LoadScene_FileFilters) then
   begin
-    Scene.Load(URL);
+    Scene.Load(Url);
     Scene.PlayAnimation('animation', true); // play animation named "animation", if exists.
 
     { Move camera to most suitable place for the *new* scene (ignoring previous camera
@@ -59,7 +59,7 @@ begin
   { You can specify initial 3D model URL by command-line parameter. }
   Parameters.CheckHighAtMost(1);
   if Parameters.High = 1 then
-    URL := Parameters[1];
+    Url := Parameters[1];
 
   InitializeLog;
 
@@ -75,8 +75,9 @@ begin
 
   { load a Scene and add it to Viewport, just like view_3d_model_simple }
   Scene := TCastleScene.Create(Application);
-  Scene.Load(URL);
-  Scene.PlayAnimation('animation', true); // play animation named "animation", if exists.
+  Scene.Load(Url);
+  // play animation named "wheels_turning", if exists.
+  Scene.PlayAnimation('wheels_turning', true);
 
   Scene.PreciseCollisions := true;
   Viewport.Items.Add(Scene);

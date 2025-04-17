@@ -103,14 +103,14 @@
     procedure SetSmoothScaling(const Value: Boolean);
   public
     { Constructor.
-      @param(URL URL of source image.)
+      @param(Url URL of source image.)
       @param(AFrames Total numer of animation frames.)
       @param(AColumns Mumber of columns.)
       @param(ARows Number of rows.)
       @param(ASmoothscaling Enables interpolation, see @link(TDrawableImage.SmoothScaling) for details, default @True.)
       @param(ATimeLoop Should animation be repeated?, default @true.)
       @param(APlay Is animation playing? if not then current frame will be displayed.) }
-    constructor Create(const URL: string;
+    constructor Create(const Url: String;
       const AFrames, AColumns, ARows: Cardinal;
       const ASmoothScaling: Boolean = True;
       const ATimeLoop: Boolean = True; const APlay: Boolean = False);
@@ -130,7 +130,7 @@
 
     { Constructor that takes explicit frame size.
 
-      @param(URL URL of source image.)
+      @param(Url URL of source image.)
       @param(AFrames Total numer of animation frames.)
       @param(AColumns Number of columns.)
       @param(AFrameWidth Width of each frame.)
@@ -138,7 +138,7 @@
       @param(ASmoothscaling Enables interpolation, see @link(TDrawableImage.SmoothScaling) for details, default @True.)
       @param(ATimeLoop Should animation be repeated?, default True.)
       @param(APlay Is animation playing? if not then current frame will be displayed.) }
-    constructor CreateFrameSize(const URL: string;
+    constructor CreateFrameSize(const Url: String;
       const AFrames, AColumns, AFrameWidth, AFrameHeight: Cardinal;
       const ASmoothScaling: Boolean = True;
       const ATimeLoop: Boolean = True; const APlay: Boolean = False); overload;
@@ -165,7 +165,8 @@
       if you call @link(Update). }
     procedure Stop;
 
-    procedure Pause; deprecated 'use Stop';
+    // For Delphi, deprecated on method is not allowed if we want to later deprecate a class
+    procedure Pause; {$ifdef FPC}deprecated 'use Stop';{$endif}
 
     { Draw the sprite.
 
@@ -334,7 +335,8 @@
     function AddAnimation(const AAnimation: TSpriteAnimation): Integer; overload;
     function AddAnimation(const AnimationFrames: array of Cardinal): Integer; overload;
     function AddSpriteAnimation(const AnimationFrames: array of TSpriteAnimationFrame): Integer;
-      deprecated 'use AddAnimation';
+      // For Delphi, deprecated on method is not allowed if we want to later deprecate a class
+      {$ifdef FPC}deprecated 'use AddAnimation';{$endif}
     { @groupEnd }
 
     { Switch to the animation with index AAnimIndex.
@@ -385,12 +387,16 @@
       read FSmoothScalingSafeBorder write FSmoothScalingSafeBorder
       default false;
 
-  { Unfortunately deprecating it makes unavoidable warnings from TSpriteList
-    specialization, and we cannot hide them putting $warnings off/on around it. }
-  end {deprecated 'load sprite sheets to TCastleScene from .castle-sprite-sheet format'};
+  end deprecated 'load sprite sheets to TCastleScene from .castle-sprite-sheet format';
 
+  { Unfortunately deprecating TSprite makes unavoidable warnings from TSpriteList
+    specialization, and we cannot hide them putting $warnings off/on around it.
+
+    It has been documented as deprecated for a long time now,
+    we can remove it now.
+  }
   { List of sprites. }
-  TSpriteList = {$ifdef FPC}specialize{$endif} TObjectList<TSprite>;
+  //TSpriteList = {$ifdef FPC}specialize{$endif} TObjectList<TSprite>;
 
 {$endif read_interface_type}
 
@@ -568,7 +574,7 @@ begin
   FOwnsImage := true;
 end;
 
-constructor TSprite.CreateFrameSize(const URL: string;
+constructor TSprite.CreateFrameSize(const Url: String;
   const AFrames, AColumns, AFrameWidth, AFrameHeight: Cardinal;
   const ASmoothScaling: Boolean = True;
   const ATimeLoop: Boolean = True; const APlay: Boolean = False);
@@ -576,12 +582,12 @@ var
   Img: TDrawableImage;
 begin
   FSmoothScaling := ASmoothScaling;
-  Img := TDrawableImage.Create(URL, SmoothScaling);
+  Img := TDrawableImage.Create(Url, SmoothScaling);
   CreateFrameSize(Img, AFrames, AColumns, AFrameWidth, AFrameHeight,
     ATimeLoop, APlay);
 end;
 
-constructor TSprite.Create(const URL: string;
+constructor TSprite.Create(const Url: String;
   const AFrames, AColumns, ARows: Cardinal;
   const ASmoothScaling: Boolean = True;
   const ATimeLoop: Boolean = True; const APlay: Boolean = False);
@@ -589,7 +595,7 @@ var
   Img: TDrawableImage;
 begin
   FSmoothScaling := ASmoothScaling;
-  Img := TDrawableImage.Create(URL, SmoothScaling);
+  Img := TDrawableImage.Create(Url, SmoothScaling);
   CreateFrameSize(Img, AFrames, AColumns,
     { Note that ARows is not remembered in this instance.
       It's only used to calculate default AFrameHeight below, which can

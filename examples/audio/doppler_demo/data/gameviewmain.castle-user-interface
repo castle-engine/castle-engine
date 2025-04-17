@@ -85,7 +85,7 @@
                 "Size" : 4.0000000000000000E+001,
                 "Text" : [
                   "Listener",
-                  "(Viewport.Camera.Position)"
+                  "(Viewport.Camera.Translation)"
                 ],
                 "TranslationPersistent" : {
                   "$$ClassName" : "TCastleVector3Persistent",

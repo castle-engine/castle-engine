@@ -29,6 +29,7 @@ type
     { Seconds passed since this time sample up to now.
       Equivalent to @code(TimerSeconds(Timer, Self)) }
     function ElapsedTime: TFloatTime;
+
     { Holds non-zero value. Use to detect whether this TTimerResult comes from Timer
       call, or is just a zero field in new class instance. }
     function Initialized: Boolean;
@@ -110,7 +111,10 @@ begin
 end;
 
 
-{$elseif defined(CASTLE_NINTENDO_SWITCH)}
+{$elseif defined(CASTLE_NINTENDO_SWITCH) or defined(WASI)}
+
+// rely on CastleGetTickCount64 implementation
+
 const
   TimerFrequency = 1000;
 
@@ -143,7 +147,7 @@ end;
 }
 
 type
-  TTimerFrequency = LongWord;
+  TTimerFrequency = UInt32;
 const
   TimerFrequency: TTimerFrequency = 1000000;
 
@@ -175,7 +179,7 @@ end;
 }
 
 type
-  TTimerFrequency = LongWord;
+  TTimerFrequency = UInt32;
 const
   TimerFrequency: TTimerFrequency = 1000000;
 
@@ -203,6 +207,8 @@ begin
     LastTimerValue := Result.Value;
 end;
 
+{$else}
+  {$message fatal 'Timer not implemented for this platform'}
 {$endif}
 
 function TimerSeconds(const A, B: TTimerResult): TFloatTime;

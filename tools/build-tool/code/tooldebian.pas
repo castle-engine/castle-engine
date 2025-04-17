@@ -21,8 +21,8 @@ unit ToolDebian;
 interface
 
 uses
-  CastleFindFiles,
-  ToolArchitectures, ToolManifest, ToolPackage;
+  CastleFindFiles, CastleInternalArchitectures,
+  ToolManifest, ToolPackage;
 
 { Create Debian package (DEB).
 

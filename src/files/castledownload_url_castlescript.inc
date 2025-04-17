@@ -36,11 +36,11 @@ end;
 
 type
   TUrlCastleScript = class
-    class function Read(const Url: string; out MimeType: string): TStream;
+    class function Read(const Url: String; out MimeType: string): TStream;
     class function MimeType(const URI: string; out Gzipped: Boolean): String;
   end;
 
-class function TUrlCastleScript.Read(const Url: string; out MimeType: string): TStream;
+class function TUrlCastleScript.Read(const Url: String; out MimeType: string): TStream;
 begin
   MimeType := 'text/x-castlescript';
   Result := MemoryStreamLoadFromString(InternalURIDeleteProtocol(URL));

@@ -1,6 +1,6 @@
 {%MainUnit ../castlewindow.pas}
 {
-  Copyright 2001-2023 Michalis Kamburelis.
+  Copyright 2001-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -38,7 +38,7 @@
   - Note: LCL win32 widgetset (used on 64-bit Windows too) still uses ANSI.
 }
 
-{$ifdef OpenGLES}
+{$ifdef USE_EGL}
   {$I castlewindow_egl.inc}
 {$else}
   {$I castlewindow_wgl.inc}
@@ -60,6 +60,7 @@ Windows, CommDlg,
 
 {$ifdef read_implementation_uses}
 CastleInternalWindowModes, CastleMessages, CastleJoysticks, CastleUnicode,
+CastleInternalFileMonitor,
 {$endif}
 
 {$ifdef read_window_interface}
@@ -125,7 +126,7 @@ private
 {$I castlewindow_winapi_sendinput.inc}
 
 { Describe ChangeDisplaySettings result. }
-function DispChangeToStr(L: LongInt): string;
+function DispChangeToStr(L: LongInt): String;
 begin
  case L of
   DISP_CHANGE_SUCCESSFUL: Result := 'DISP_CHANGE_SUCCESSFUL';
@@ -359,7 +360,9 @@ function TCastleWindow.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM): LRE
   procedure MaybeRelease;
   { mouse up occurred; release capture if all mouse buttons are now up }
   begin
-    if (mousePressed=[]) and (GetCapture = H_Wnd) then ReleaseCapture;
+    if (Container.MousePressed = []) and
+       (GetCapture = H_Wnd) then
+      ReleaseCapture;
   end;
 
   type
@@ -369,7 +372,7 @@ function TCastleWindow.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM): LRE
       it allows to specify signedness of values as you wish. }
     TWinParam = packed record
       case Integer of
-        0:(Signed: LongInt {$if defined(cpu64)}; Dummy: LongWord {$endif});
+        0:(Signed: LongInt {$if defined(cpu64)}; Dummy: UInt32 {$endif});
         1:(LoWord, HiWord: Word);
         2:(LoSmallint, HiSmallint: Smallint);
         3:(LowestByte, LowerByte, HigherByte, HighestByte: byte);
@@ -390,7 +393,7 @@ function TCastleWindow.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM): LRE
 
       Notes:
 
-      - Doing "Exit(UnicodeToUTF8(WParm))" also seems to work for Polish chars.
+      - Doing "Exit(UnicodeCharToString(WParm))" also seems to work for Polish chars.
         But it's not necessarily correct, I think: UTF-16 character number
         is not necessarily equal to just Unicode number.
 
@@ -418,7 +421,7 @@ function TCastleWindow.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM): LRE
     The frequency of "key repeat" depends on user settings.
 
     And... that's completely OK. We still pass each WM_KEYDOWN to DoKeyDown.
-    This way our API (TCastleUserInterface.Press, TCastleWindow.OnPress)
+    This way our API (TCastleUserInterface.Press)
     will generate repeated key presses.
     This is documented and desired (e.g. for implementing UI like edit box).
     User can check TInputPressRelease.KeyRepeated that is calculated
@@ -429,7 +432,7 @@ function TCastleWindow.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM): LRE
   var
     Key: TKey;
     CharMsg: TMsg;
-    KeyString: string;
+    KeyString: String;
   begin
     { WM_CHAR is placed in our message queue by TranslateMessage.
       Always in WM_KEYDOWN we do this PeekMessageW(..., WM_CHAR, WM_CHAR, PM_REMOVE).
@@ -529,7 +532,6 @@ function TCastleWindow.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM): LRE
     KeyString := ConvertWmCharToString(WParm);
     if KeyString <> '' then
       DoKeyDown(keyNone, KeyString);
-    WritelnLog('Received WM_CHAR. Test information for https://github.com/castle-engine/castle-engine/issues/159 : WParam ' + IntToStr(WParm) + ' string: ' + {$ifdef FPC}UTF8ToHtmlEntities({$endif}KeyString{$ifdef FPC}){$endif});
   end;
 
   { Handle WM_UNICHAR that reports a key press as 32-bit Unicode character.
@@ -567,32 +569,31 @@ function TCastleWindow.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM): LRE
         This is the same: https://en.wikipedia.org/wiki/UTF-32,
         """Each 32-bit value in UTF-32 represents one Unicode code point and is exactly equal to that code point's numerical value. """
       }
-      KeyString := {$ifdef FPC}UnicodeToUTF8(WParm){$else}ConvertFromUtf32(WParm){$endif};
+      KeyString := UnicodeCharToString(WParm);
       if KeyString <> '' then
         DoKeyDown(keyNone, KeyString);
     end;
   end;
 
   function Handle_IME: Boolean;
-  
+
     function ToPoint(const V: TVector2): TPoint;
     begin
       Result.X := Floor(V.X);
-      Result.Y := Floor(Container.Height - V.Y);
+      Result.Y := Floor(Container.PixelsHeight - V.Y);
     end;
-    
+
     function GetCaretPos(var CaretPos: TPoint): Boolean;
     var
       CastleEdit: TCastleEdit;
       CaretShift: Single;
-      S: string;
+      S: String;
     begin
       Result := false;
       { TODO: Handles all input controls, not just TCastleEdit }
-      if (Container.Focus.Count <> 0) and
-         (Container.Focus.Last is TCastleEdit) then
+      if Container.FocusFront is TCastleEdit then
       begin
-        CastleEdit := Container.Focus.Last as TCastleEdit;
+        CastleEdit := Container.FocusFront as TCastleEdit;
         S := CastleEdit.Text;
         if CastleEdit.PasswordChar <> #0 then
           S := StringOfChar(CastleEdit.PasswordChar, Length(S));
@@ -639,15 +640,15 @@ function TCastleWindow.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM): LRE
           finally
             ImmReleaseContext(h_Wnd, vhIMC);
           end;
-          
+
           { About return value:
-            Note that WM_IME_STARTCOMPOSITION, WM_IME_ENDCOMPOSITION must return false. 
-            Because we do not implement the IME input window by itself, we return false to let the system IME handle it by itself. 
+            Note that WM_IME_STARTCOMPOSITION, WM_IME_ENDCOMPOSITION must return false.
+            Because we do not implement the IME input window by itself, we return false to let the system IME handle it by itself.
             We only tell the system where the IME window needs to be displayed, font information, etc.
-            
+
             Why do we handle WM_IME_ENDCOMPOSITION at all (that is usually when IME window is hidden)?
-            Since the IME can be developed by any company, sometimes the IME window will appear prematurely at the last closed position. 
-            So deal with WM_IME_ENDCOMPOSITION to avoid This case. 
+            Since the IME can be developed by any company, sometimes the IME window will appear prematurely at the last closed position.
+            So deal with WM_IME_ENDCOMPOSITION to avoid This case.
           }
         end;
       WM_IME_COMPOSITION:
@@ -693,6 +694,47 @@ function TCastleWindow.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM): LRE
     MaybeRelease;
   end;
 
+  procedure HandleMouseMove;
+  var
+    CorrectMousePressed: TCastleMouseButtons;
+    MouseButton: TCastleMouseButton;
+    CastleMousePosition: TVector2;
+  begin
+    CastleMousePosition := LeftTopToCastle(
+      TWinParam(lParm).LoSmallint,
+      TWinParam(lParm).HiSmallint);
+
+    { Our DoMouseDown/Up should keep the Container.MousePressed updated,
+      making the information from "MK_LBUTTON and wParm" etc. redundant.
+      But actually it's known to fail if you press/release mouse buttons
+      when a dialog (like FileDialog) is open.
+      So check, and eventually synchronize. }
+    CorrectMousePressed := [];
+    if (MK_LBUTTON and wParm) <> 0 then Include(CorrectMousePressed, buttonLeft);
+    if (MK_MBUTTON and wParm) <> 0 then Include(CorrectMousePressed, buttonMiddle);
+    if (MK_RBUTTON and wParm) <> 0 then Include(CorrectMousePressed, buttonRight);
+    if CorrectMousePressed <> Container.MousePressed then
+    begin
+      WritelnLog('Container.MousePressed not up-to-date with Windows messages when calling DoMotion. This may happen if you press/release mouse buttons when a dialog (like FileDialog) is open. Synchronizing.');
+      for MouseButton := Low(TCastleMouseButton) to High(TCastleMouseButton) do
+      begin
+        if (MouseButton in Container.MousePressed) and
+           (not (MouseButton in CorrectMousePressed)) then
+        begin
+          DoMouseUp(CastleMousePosition, MouseButton, 0);
+        end else
+        if (not (MouseButton in Container.MousePressed)) and
+           (MouseButton in CorrectMousePressed) then
+          DoMouseDown(CastleMousePosition, MouseButton, 0);
+      end;
+      if CorrectMousePressed <> Container.MousePressed then
+        WritelnWarning('Container.MousePressed still not up-to-date with Windows messages when calling DoMotion. This should not happen.');
+    end;
+
+    DoMotion(InputMotion(Container.MousePosition, CastleMousePosition,
+      Container.MousePressed, 0));
+  end;
+
 var
   DoEnableUpdatesFromWindowProc, DoDisableUpdatesFromWindowProc: boolean;
 begin
@@ -727,6 +769,8 @@ begin
     WM_ACTIVATEAPP:
       begin
         Application.appActive := longbool(wParm);
+        if Application.appActive then
+          FileMonitor.CheckChanges;
         {exit; <- allow DefWindowProcW handle WM_ACTIVETAPP too,
          since you can't say "we surely handled everything that should be done in
          reaction for this message"}
@@ -772,8 +816,8 @@ begin
 
           1. Left and Top are said in unit's interface to work like that
 
-          2. SetMousePosition requires this. Otherwise positions
-             set by SetMousePosition and read by MousePosition properties
+          2. SystemSetMousePosition requires this. Otherwise positions
+             set by SystemSetMousePosition and read by MousePosition properties
              would be slightly different.
              And there are cases when it is important that they use
              exactly the same coordinate systems --- e.g. mouse look handling.
@@ -874,31 +918,18 @@ begin
           will not process OnUpdate and such during the time menu bar is open.
           So menu bar is like a modal dialog box.
           So Fps.SecondsPassed at next Update is irrelevant, just like at the end of TGLMode.
-          Fixes e.g. CameraTransitions when choosing viewpoint from view3dscene menu.
+          Fixes e.g. CameraTransitions when choosing viewpoint from castle-model-viewer menu.
 
           We would like to call this always when user leaves the menu, but it seems
           there's no WinAPI event for this. But we can as well call this when user enters
           the menu, because of blocking above --- it will have the same effect, since
           DoUpdate is not called inside the menu. }
-        Fps.ZeroNextSecondsPassed;
+        Container.Fps.ZeroNextSecondsPassed;
 
         Exit;
       end;
 
-    WM_MOUSEMOVE:
-      begin
-        { We could refresh FMousePressed now:
-            FMousePressed := [];
-            if (MK_LBUTTON and wParm) <> 0 then Include(FMousePressed, buttonLeft);
-            if (MK_MBUTTON and wParm) <> 0 then Include(FMousePressed, buttonMiddle);
-            if (MK_RBUTTON and wParm) <> 0 then Include(FMousePressed, buttonRight);
-          but it's not needed (we keep it current anyway in mousedown/up events). }
-        DoMotion(InputMotion(MousePosition, LeftTopToCastle(
-          TWinParam(lParm).LoSmallint,
-          TWinParam(lParm).HiSmallint),
-          MousePressed, 0));
-        Exit;
-      end;
+    WM_MOUSEMOVE: begin HandleMouseMove; Exit end;
     WM_LBUTTONDOWN: begin HandleMouseDown(buttonLeft  ); Exit end;
     WM_MBUTTONDOWN: begin HandleMouseDown(buttonMiddle); Exit end;
     WM_RBUTTONDOWN: begin HandleMouseDown(buttonRight ); Exit end;
@@ -964,7 +995,7 @@ begin
           { A device has been sucessfully added to the system }
           DBT_DEVICEARRIVAL:
             begin
-              WriteLnLog('Received a WM_DEVICECHANGE event with DBT_DEVICEARRIVAL');
+              WriteLnLog('Event WM_DEVICECHANGE + DBT_DEVICEARRIVAL, possibly a joystick connected');
               //it might be a joystick, therefore
               Joysticks.InternalConnected;
             end;
@@ -1015,7 +1046,7 @@ begin
     But this seems unexpected to WinAPI in many situations, causing
 
     1. crashes, when this is done from some messages.
-    2. slowdown at initialization (view3dscene main menu blinks for some
+    2. slowdown at initialization (castle-model-viewer main menu blinks for some
       time, with "busy" cursor, before it becomes responsive).
 
     So the solution now is to activate it only for certain commands,
@@ -1125,9 +1156,9 @@ procedure TCastleWindow.OpenBackend;
   begin
     if GetCursorPos({$ifdef FPC}@{$endif}InitialCursorPos) then
     begin
-      FMousePosition := LeftTopToCastle(
+      Container.InitializeMousePosition(LeftTopToCastle(
         InitialCursorPos.X - ClientRect.Left,
-        InitialCursorPos.Y - ClientRect.Top);
+        InitialCursorPos.Y - ClientRect.Top));
     end;
   end;
 
@@ -1222,12 +1253,12 @@ begin
 
       This means that actual OpenGL area size may be different than
       requested (OnResize will report it corectly, eventually lying, honoring
-      ResizeAllowed properrty). Happened e.g. when castle-view-image allowed minimal
+      ResizeAllowed properrty). Happened e.g. when castle-image-viewer allowed minimal
       window size = 200, and default welcome image had 256x256 pixels.
-      When you opened castle-view-image with no params in directory with no images,
+      When you opened castle-image-viewer with no params in directory with no images,
       then OpenGL area of size 256x256 was requested, which was so narrow that
       menu bar wrapped. Which made OpenGL area not tall enough for 256 pixels,
-      and castle-view-image had to add a vertical scrollbar to display welcome image.
+      and castle-image-viewer had to add a vertical scrollbar to display welcome image.
     }
     AdjustWindowRectEx(WindowRect, dwStyle,
       (MainMenu <> nil) and MainMenuVisible, dwExStyle);
@@ -1269,7 +1300,7 @@ begin
   h_Dc := GetDC(h_Wnd);
   Check ( h_Dc <> 0, 'GetDC failed');
 
-  ContextCreateEnd(h_Wnd);
+  ContextCreate(h_Wnd);
 
   MakeCurrent;
 
@@ -1331,7 +1362,7 @@ begin
   end;
 end;
 
-procedure TCastleWindow.SetMousePosition(const Value: TVector2);
+procedure TCastleWindow.SystemSetMousePosition(const Value: TVector2);
 
   { Perform similar function as WinAPI SetCursorPos (set cursor position,
     given absolute screen coordinates), but using SendInput WinAPI call.
@@ -1374,16 +1405,8 @@ procedure TCastleWindow.SetMousePosition(const Value: TVector2);
 var
   P: TVector2Integer;
 begin
-  if not Closed then
-  begin
-
-    { Do not set Mouse.CursorPos to the same value, to make sure we don't cause
-      unnecessary OnMotion on some systems while actual MousePosition didn't change. }
-    if TVector2.PerfectlyEquals(Value, FMousePosition) then Exit;
-
-    P := CastleToLeftTopInt(Value);
-    SetCursorPosBySendInput(Left + P.X, Top + P.Y);
-  end;
+  P := CastleToLeftTopInt(Value);
+  SetCursorPosBySendInput(Left + P.X, Top + P.Y);
 end;
 
 procedure TCastleWindow.CloseBackend;
@@ -1401,7 +1424,7 @@ begin
   finally InCloseBackend := false; end;
 end;
 
-procedure TCastleWindow.SetCaption(const Part: TCaptionPart; const Value: string);
+procedure TCastleWindow.SetCaption(const Part: TCaptionPart; const Value: String);
 begin
   FCaption[Part] := Value;
   if h_Wnd <> 0 then
@@ -1414,7 +1437,7 @@ procedure TCastleWindow.CreateBackend;
 begin
 end;
 
-function TCastleWindow.BackendFileDialog(const Title: string; var FileName: string;
+function TCastleWindow.BackendFileDialog(const Title: String; var FileName: String;
   OpenDialog: boolean; FileFilters: TFileFilterList): boolean;
 
   { Make path absolute. Same as ExpandFileName, but knows that
@@ -1427,7 +1450,7 @@ function TCastleWindow.BackendFileDialog(const Title: string; var FileName: stri
 
     Note: '' is treated as current dir (as it always should be, because
     ExtractFilePath('file') = '' and 'file' is in current dir). }
-  function ExpandFilePath(const FilePath: string): string;
+  function ExpandFilePath(const FilePath: String): String;
   begin
    if FilePath = '' then
     Result := InclPathDelim(GetCurrentDir) else
@@ -1447,7 +1470,7 @@ function TCastleWindow.BackendFileDialog(const Title: string; var FileName: stri
     Note that Windows encoding of OpenFileName has limitations here, since all filters
     are passed in a string: pattern cannot contain ';', and WinAPI reference
     says that it also cannot contain a space. }
-  function MakeStrFilter(FileFilters: TFileFilterList): string;
+  function MakeStrFilter(FileFilters: TFileFilterList): String;
   var
     I, J: Integer;
     Filter: TFileFilter;
@@ -1471,7 +1494,7 @@ function TCastleWindow.BackendFileDialog(const Title: string; var FileName: stri
     Result := Result + #0;
   end;
 
-  function SearchFirstPatternWithExtension(const Ext: string): Integer;
+  function SearchFirstPatternWithExtension(const Ext: String): Integer;
   var
     I: Integer;
   begin
@@ -1501,9 +1524,9 @@ var
   Struct: TOpenFileNameW;
   FileNameBuffer: array [0..6000] of widechar;
   {$ifndef FPC}FileNameString: String;{$endif}
-  FilePath: string;
+  FilePath: String;
   Mode: TGLModeFrozenScreen;
-  CurrentFileNameExt: string;
+  CurrentFileNameExt: String;
   CurrentFormatIndex: Integer;
 begin
   FillChar(Struct, SizeOf(Struct), 0);
@@ -1700,7 +1723,7 @@ end;
 
 (*
 const
-  MessageTypeToWin: array [TWindowMessageType] of LongWord =
+  MessageTypeToWin: array [TWindowMessageType] of UInt32 =
   ( MB_ICONINFORMATION,
     MB_ICONWARNING,
     MB_ICONQUESTION,
@@ -1715,7 +1738,7 @@ const
     'Information');
 *)
 
-procedure TCastleWindow.MessageOK(const S: string; const MessageType: TWindowMessageType);
+procedure TCastleWindow.MessageOK(const S: String; const MessageType: TWindowMessageType);
 begin
   CastleMessages.MessageOK(Self, S);
 
@@ -1734,7 +1757,7 @@ begin
   *)
 end;
 
-function TCastleWindow.MessageYesNo(const S: string;
+function TCastleWindow.MessageYesNo(const S: String;
   const MessageType: TWindowMessageType): boolean;
 begin
   Result := CastleMessages.MessageYesNo(Self, S);
@@ -1756,6 +1779,10 @@ begin
   SimpleUpdateFullScreenBackend;
 end;
 
+procedure TCastleWindow.BackendInsideUpdate;
+begin
+end;
+
 { TWinApiClipboard ----------------------------------------------------------- }
 
 { Clipboard operations using WinAPI based on:
@@ -1767,44 +1794,71 @@ end;
 type
   TWinApiClipboard = class(TCastleClipboard)
   protected
-    function GetAsText: string; override;
-    procedure SetAsText(const Value: string); override;
+    const
+      { We use CF_UNICODETEXT (16-bit Unicode) with both FPC and Delphi.
+        On Delphi, it matches default String type.
+        On FPC, it matches UTF-16 UnicodeString type.
+
+        We never use CF_TEXT (8-bit ANSI), even with FPC, as it has ANSI encoding
+        while we want UTF-8. }
+      StringClipboardFormat = CF_UNICODETEXT;
+    type
+      { Matching above CF_UNICODETEXT, we use 16-bit UnicodeString and
+        matching UnicodeChar to deal with clipboard on both FPC and Delphi.
+
+        Note: We don't use WideString, UnicodeString is "ref-counted 16-bit String
+        equivalent to 8-bit AnsiString",
+        https://stackoverflow.com/questions/374446/is-widestring-identical-to-string-in-delphi-2009
+        https://docwiki.embarcadero.com/RADStudio/Sydney/en/String_Types_(Delphi)
+        https://forum.lazarus.freepascal.org/index.php?topic=22464.0 }
+      TClipboardChar = WideChar; // UnicodeChar is only defined by FPC
+      TClipboardString = UnicodeString;
+    function GetAsText: String; override;
+    procedure SetAsText(const Value: String); override;
   end;
 
-function TWinApiClipboard.GetAsText: string;
+function TWinApiClipboard.GetAsText: String;
 var
   DataHandle: Windows.HGLOBAL;
   Data: Pointer;
-  Size: Integer;
+  ByteSize, CharSize: Integer;
+  ResultUnicode: TClipboardString;
 begin
   Result := '';
-  if IsClipboardFormatAvailable(CF_TEXT) then
+
+  if IsClipboardFormatAvailable(StringClipboardFormat) then
   begin
     if not Windows.OpenClipboard(Windows.HWND(nil)) then Exit;
     try
-      DataHandle := Windows.GetClipboardData(CF_TEXT);
+      DataHandle := Windows.GetClipboardData(StringClipboardFormat);
       if DataHandle = 0 then Exit;
 
-      Size := Windows.GlobalSize(DataHandle);
-      if Size > 1 then
+      ByteSize := Windows.GlobalSize(DataHandle);
+      CharSize := ByteSize div SizeOf(TClipboardChar);
+      if ByteSize mod SizeOf(TClipboardChar) <> 0 then
+        WritelnWarning('WinAPI', 'Clipboard data size is not a multiple of SizeOf(TClipboardChar)');
+
+      if CharSize > 1 then
       begin
-        Dec(Size); // do not copy trailing #0
-        Assert(Size > 0);
+        Dec(CharSize); // do not copy trailing #0
+        Assert(CharSize > 0);
         Data := Windows.GlobalLock(DataHandle);
         try
-          SetLength(Result, Size);
-          Move(Data^, Result[1], Size);
+          SetLength(ResultUnicode, CharSize);
+          Move(Data^, ResultUnicode[1], ByteSize);
+          Result := Utf16ToString(ResultUnicode);
         finally Windows.GlobalUnlock(DataHandle) end;
       end;
     finally Windows.CloseClipboard end;
   end;
 end;
 
-procedure TWinApiClipboard.SetAsText(const Value: string);
+procedure TWinApiClipboard.SetAsText(const Value: String);
 var
   DataHandle : Windows.HGLOBAL;
   Data: Pointer;
-  Size: Integer;
+  ByteSize, CharSize: Integer;
+  ValueUnicode: TClipboardString;
 begin
   if not Windows.OpenClipboard(Windows.HWND(nil)) then Exit;
   try
@@ -1812,15 +1866,19 @@ begin
 
     if Value <> '' then
     begin
-      Size := Length(Value) + 1; // copy to Windows with trailing #0
-      DataHandle := Windows.GlobalAlloc(Windows.GMEM_MOVEABLE, Size);
+      ValueUnicode := StringToUtf16(Value);
+
+      CharSize := Length(ValueUnicode) + 1; // copy to Windows with trailing #0
+      ByteSize := CharSize * SizeOf(TClipboardChar);
+
+      DataHandle := Windows.GlobalAlloc(Windows.GMEM_MOVEABLE, ByteSize);
       if DataHandle = 0 then Exit;
 
       Data := GlobalLock(DataHandle);
       try
-        Move(Value[1], Data^, Size);
+        Move(ValueUnicode[1], Data^, ByteSize);
       finally Windows.GlobalUnlock(DataHandle) end;
-      Windows.SetClipboardData(CF_TEXT, DataHandle);
+      Windows.SetClipboardData(StringClipboardFormat, DataHandle);
     end;
   finally Windows.CloseClipboard end;
 end;
@@ -2043,14 +2101,14 @@ begin
     result := GetSystemMetrics(SM_CYSCREEN);
 end;
 
-function TCastleApplication.ScreenStatusBarScaledHeight: Cardinal;
-begin
-  Result := 0;
-end;
-
-function TCastleApplication.BackendName: string;
+function TCastleApplication.BackendName: String;
 begin
   Result := 'WinAPI';
+end;
+
+function TCastleApplication.MultipleWindowsPossible: Boolean;
+begin
+  Result := true;
 end;
 
 { TWindowContainer ----------------------------------------------------------- }

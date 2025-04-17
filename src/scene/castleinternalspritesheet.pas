@@ -1,5 +1,5 @@
 {
-  Copyright 2020-2021 Andrzej Kilijanski.
+  Copyright 2020-2024 Andrzej Kilijanski, Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -22,8 +22,7 @@ interface
 
 uses
   Classes, SysUtils, Generics.Collections,
-  X3DNodes,
-  CastleImages, CastleVectors;
+  X3DNodes, X3DLoad, CastleImages, CastleVectors;
 
 type
   TCastleSpriteSheetAnimation = class;
@@ -104,8 +103,8 @@ type
 
     procedure Load(const URL: String); overload;
     procedure Load(const Stream: TStream; const BaseUrl: String); overload;
-    { Saves file to castle sprite sheet. If SaveSaveCopy = true then don't clears
-      Modified state, don't change URL, don't save image paths }
+    { Saves file to castle sprite sheet. If SaveCopy = true then don't clear
+      Modified state, don't change URL, don't save image paths. }
     procedure Save(const AURL: String; const SaveCopy: Boolean = false);
 
     function ToX3D: TX3DRootNode;
@@ -388,7 +387,7 @@ implementation
 
 uses StrUtils, DOM, Math, XMLRead,
   CastleDownload, CastleFilesUtils, CastleLog, CastleStringUtils,
-  CastleTextureImages, CastleURIUtils, CastleUtils, CastleXMLUtils;
+  CastleTextureImages, CastleUriUtils, CastleUtils, CastleXmlUtils;
 
 type
   { Frame names in starling file can be named freely, but in the case of our loader,
@@ -486,8 +485,8 @@ type
     FShapeCoord: TCoordinateNode;
     FShapeTexCoord: TTextureCoordinateNode;
 
-    FCoordArray: array of TVector3;
-    FTexCoordArray: array of TVector2;
+    FCoordArray: array [0..3] of TVector3;
+    FTexCoordArray: array [0..3] of TVector2;
 
     TimeSensor: TTimeSensorNode;
     CoordInterp: TCoordinateInterpolatorNode;
@@ -534,13 +533,13 @@ var
   Shape: TShapeNode;
   Material: TUnlitMaterialNode;
   Appearance: TAppearanceNode;
-  Tri: TTriangleSetNode;
+  Tri: TIndexedTriangleSetNode;
   Tex: TAbstractTextureNode;
   TexProperties: TTexturePropertiesNode;
   FdUrl: String;
 begin
   FRoot.Meta['generator'] := 'Castle Game Engine, https://castle-engine.io';
-  FRoot.Meta['source'] := ExtractURIName(FSpriteSheet.URL);
+  FRoot.Meta['source'] := ExtractUriName(FSpriteSheet.URL);
 
   Material := TUnlitMaterialNode.Create;
 
@@ -574,7 +573,7 @@ begin
     Tex := TImageTextureNode.Create;
     { Check is this file loaded from Starling in that case use LoadedAtlasPath }
     if FSpriteSheet.URL <> '' then
-      FdUrl := ExtractURIPath(FSpriteSheet.URL) + FSpriteSheet.RelativeAtlasPath
+      FdUrl := ExtractUriPath(FSpriteSheet.URL) + FSpriteSheet.RelativeAtlasPath
     else
       FdUrl := FSpriteSheet.LoadedAtlasPath;
 
@@ -586,26 +585,26 @@ begin
   end;
   Appearance.Texture := Tex;
 
-  Tri := TTriangleSetNode.Create;
+  //Tri := TTriangleSetNode.Create;
+  Tri := TIndexedTriangleSetNode.Create;
+  Tri.SetIndex([0, 1, 2, 0, 2, 3]);
   Tri.Solid := false;
 
-  FShapeCoord := TCoordinateNode.Create('coord');
+  FShapeCoord := TCoordinateNode.Create;
   FShapeCoord.SetPoint([
-      FCoordArray[0],
-      FCoordArray[1],
-      FCoordArray[2],
-      FCoordArray[3],
-      FCoordArray[4],
-      FCoordArray[5]]);
+    FCoordArray[0],
+    FCoordArray[1],
+    FCoordArray[2],
+    FCoordArray[3]
+  ]);
 
-  FShapeTexCoord := TTextureCoordinateNode.Create('texcoord');
+  FShapeTexCoord := TTextureCoordinateNode.Create;
   FShapeTexCoord.SetPoint([
-       FTexCoordArray[0],
-       FTexCoordArray[1],
-       FTexCoordArray[2],
-       FTexCoordArray[3],
-       FTexCoordArray[4],
-       FTexCoordArray[5]]);
+    FTexCoordArray[0],
+    FTexCoordArray[1],
+    FTexCoordArray[2],
+    FTexCoordArray[3]
+  ]);
 
   Tri.Coord := FShapeCoord;
   Tri.TexCoord := FShapeTexCoord;
@@ -665,9 +664,7 @@ procedure TCastleSpriteSheetX3DExporter.CalculateFrameCoords(
     FCoordArray[0] := Vector3(X1, Y1, 0);
     FCoordArray[1] := Vector3(X2, Y1, 0);
     FCoordArray[2] := Vector3(X2, Y2, 0);
-    FCoordArray[3] := Vector3(X1, Y1, 0);
-    FCoordArray[4] := Vector3(X2, Y2, 0);
-    FCoordArray[5] := Vector3(X1, Y2, 0);
+    FCoordArray[3] := Vector3(X1, Y2, 0);
   end;
 
   procedure AddTexCords(
@@ -687,9 +684,7 @@ procedure TCastleSpriteSheetX3DExporter.CalculateFrameCoords(
     FTexCoordArray[0] := Vector2(X1, Y1);
     FTexCoordArray[1] := Vector2(X2, Y1);
     FTexCoordArray[2] := Vector2(X2, Y2);
-    FTexCoordArray[3] := Vector2(X1, Y1);
-    FTexCoordArray[4] := Vector2(X2, Y2);
-    FTexCoordArray[5] := Vector2(X1, Y2);
+    FTexCoordArray[3] := Vector2(X1, Y2);
   end;
 
 begin
@@ -715,7 +710,7 @@ var
     every frame. In this case it can be simplified. }
   procedure OptimizeCoordInterp;
   const
-    PerFrameValues = 6;
+    PerFrameValues = 4;
   var
     Values: TVector3List;
     I: Integer;
@@ -787,8 +782,6 @@ constructor TCastleSpriteSheetX3DExporter.Create(
 begin
   inherited Create;
   FSpriteSheet := SpriteSheet;
-  SetLength(FCoordArray, 6);
-  SetLength(FTexCoordArray, 6);
 end;
 
 function TCastleSpriteSheetX3DExporter.ExportToX3D: TX3DRootNode;
@@ -1050,6 +1043,8 @@ begin
   Result.AppendChild(RootNode);
 
   RootNode.AttributeSet('imagePath', FSpriteSheet.RelativeAtlasPath);
+  RootNode.AttributeSet('width', FSpriteSheet.AtlasWidth);
+  RootNode.AttributeSet('height', FSpriteSheet.AtlasHeight);
 
   for I := 0 to FSpriteSheet.AnimationCount - 1 do
   begin
@@ -1787,7 +1782,7 @@ var
   URLWithoutAnchor: String;
   Stream: TStream;
 begin
-  URLWithoutAnchor := URIDeleteAnchor(URL, true);
+  URLWithoutAnchor := UriDeleteAnchor(URL);
 
   Stream := Download(URLWithoutAnchor);
   try
@@ -1812,6 +1807,31 @@ end;
 
 procedure TCastleSpriteSheet.Save(const AURL: String;
   const SaveCopy: Boolean = false);
+
+  { Copy URL contents from source to destination.
+    Converts URLs to filenames automatically.
+    Also automatically aborts copy when source and destination are equal,
+    which happens easily if you just want to open + resave sprite sheet
+    and would cause "Bad file number" exception on Linux. }
+  procedure CopyUrlContents(const SourceUrl, DestUrl: String);
+  var
+    SourceFileName, DestFileName: String;
+  begin
+    SourceFileName := UriToFilenameSafe(SourceUrl);
+    DestFileName := UriToFilenameSafe(DestUrl);
+    if SameFileName(
+      ExpandFileName(SourceFileName),
+      ExpandFileName(DestFileName)) then
+    begin
+      WritelnLog('Trying to copying contents between the same URLs: %s -> %s, ignoring', [
+        UriDisplay(SourceUrl),
+        UriDisplay(DestUrl)
+      ]);
+      Exit;
+    end;
+    CheckCopyFile(SourceFileName, DestFileName);
+  end;
+
 var
   ExporterXML: TCastleSpriteSheetXMLExporter;
   XMLDoc: TXMLDocument;
@@ -1835,13 +1855,13 @@ begin
       we need generate new name. }
     if (FRelativeAtlasPath = '') or (AURL <> URL) then
     begin
-      FRelativeAtlasPath := DeleteURIExt(ExtractURIName(AURL)) + '.png';
+      FRelativeAtlasPath := DeleteUriExt(ExtractUriName(AURL)) + '.png';
     end;
-    AtlasURL := URIIncludeSlash(ExtractURIPath(AURL)) + FRelativeAtlasPath;
+    AtlasURL := UriIncludeSlash(ExtractUriPath(AURL)) + FRelativeAtlasPath;
 
     { Save image file }
     if FGeneratedAtlas = nil then
-      CheckCopyFile(URIToFilenameSafe(LoadedAtlasPath), URIToFilenameSafe(AtlasURL))
+      CopyUrlContents(LoadedAtlasPath, AtlasURL)
     else
       SaveImage(FGeneratedAtlas, AtlasURL);
 
@@ -2152,7 +2172,7 @@ begin
   begin
     SettingsMap := TStringStringMap.Create;
     try
-      URIGetSettingsFromAnchor(FBaseUrl, SettingsMap);
+      UriGetSettingsFromAnchor(FBaseUrl, SettingsMap);
       for Setting in SettingsMap do
       begin
         if LowerCase(Setting.Key) = 'fps' then
@@ -2185,15 +2205,25 @@ var
   Image: TCastleImage;
 begin
   FRelativeImagePath := AtlasNode.AttributeString('imagePath');
-  FAbsoluteImagePath := ExtractURIPath(URIDeleteAnchor(URL, true)) + FRelativeImagePath;
-  { Some exporters like Free Texture Packer add width and height attributes.
-    In this case we don't need load image to check them. }
+  FAbsoluteImagePath := ExtractUriPath(UriDeleteAnchor(URL)) + FRelativeImagePath;
+  { Some exporters, like Free Texture Packer and
+    Castle Game Engine itself (in TCastleSpriteSheetXMLExporter.ExportToXML)
+    store width and height attributes.
+    This is good -- in this case we don't need to load image to know them,
+    which avoids loading the image each time at sprite sheet open
+    (image will be loaded later by TImageTextureNode anyway,
+    but it can do it smarter, using cache;
+    trying to use cache here, in a way that remains active later, caused
+    too many code complications). }
   if AtlasNode.HasAttribute('width') and AtlasNode.HasAttribute('height') then
   begin
     FImageWidth := AtlasNode.AttributeInteger('width');
     FImageHeight := AtlasNode.AttributeInteger('height');
   end else
   begin
+    WritelnWarning('The sprite sheet "%s" loading is not optimal. We advise to save this using the latest Castle Game Engine sprite sheet editor, to benefit from faster loading. If this is already in ".castle-sprite-sheet" format, then just open + save it from CGE editor.', [
+      UriDisplay(URL)
+    ]);
     Image := LoadImage(FAbsoluteImagePath);
     try
       FImageWidth := Image.Width;
@@ -2286,9 +2316,9 @@ begin
   inherited Create;
   FStream := Stream;
   FBaseUrl := BaseUrl;
-  FDisplayURL := URIDisplay(FBaseUrl);
+  FDisplayURL := UriDisplay(FBaseUrl);
 
-  MimeType := URIMimeType(FBaseUrl);
+  MimeType := UriMimeType(FBaseUrl);
   FStarlingLoading :=
     (MimeType = 'application/x-starling-sprite-sheet') or
     (MimeType = 'application/xml');
@@ -2454,5 +2484,23 @@ begin
   FAnimationNaming := anStrictUnderscore;
 end;
 
+var
+  ModelFormat: TModelFormat;
+initialization
+  ModelFormat := TModelFormat.Create;
+  ModelFormat.OnLoad := {$ifdef FPC}@{$endif} LoadCastleSpriteSheet;
+  ModelFormat.MimeTypes.Add('application/x-castle-sprite-sheet');
+  ModelFormat.FileFilterName := 'Castle Sprite Sheet (*.castle-sprite-sheet)';
+  ModelFormat.Extensions.Add('.castle-sprite-sheet');
+  RegisterModelFormat(ModelFormat);
 
+  { Starling sprite sheets are actually loaded exactly the same way as CGE
+    sprite sheets, but this is implementation detail.
+    We register it as separate format, with separate FileFilterName. }
+  ModelFormat := TModelFormat.Create;
+  ModelFormat.OnLoad := {$ifdef FPC}@{$endif} LoadCastleSpriteSheet;
+  ModelFormat.MimeTypes.Add('application/x-starling-sprite-sheet');
+  ModelFormat.FileFilterName := 'Starling Sprite Sheet (*.starling-xml)';
+  ModelFormat.Extensions.Add('.starling-xml');
+  RegisterModelFormat(ModelFormat);
 end.

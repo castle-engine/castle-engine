@@ -1,5 +1,5 @@
 {
-  Copyright 2013-2018 Michalis Kamburelis.
+  Copyright 2013-2024 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -107,7 +107,7 @@ begin
   { Take only the least-significant 32 bits of result, because
     on some Androids the higher 32-bits are nonsense (Sony Ericsson,
     Android 2.3.4, WT191l). }
-  Result := Result and Int64(High(LongWord));
+  Result := Result and Int64(High(UInt32));
 end;
 
 function TReadAssetStream.GetPosition: Int64;
@@ -152,7 +152,7 @@ begin
     // Try to work (but with warning) even in case of some invalid URI
     if IsPrefix('castle-android-assets://', URI, true) then
     begin
-      WritelnWarning('Too many / at the beginning of URL "%s". This usually means you used ApplicationData(''/xxx'') or ''castle-data://xxx'', while you should use ApplicationData(''xxx'') or ''castle-data:/xxx''.',
+      WritelnWarning('Too many / at the beginning of URL "%s". This usually means you used ''castle-data://xxx'', while you should use ''castle-data:/xxx''.',
         [URI]);
       FixedURI := 'castle-android-assets:/' + PrefixRemove('castle-android-assets://', URI, true);
       U := ParseURI(FixedURI);

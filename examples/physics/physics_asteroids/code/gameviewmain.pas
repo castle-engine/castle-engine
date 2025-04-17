@@ -71,7 +71,7 @@ uses SysUtils, CastleLog, Math;
 constructor TBullet.Create(AOwner: TComponent; const BulletSpriteImage: TCastleTransform);
 var
   RBody: TCastleRigidBody;
-  Collider: TCastleSphereCollider;
+  Col: TCastleSphereCollider;
 begin
   inherited Create(AOwner);
 
@@ -85,10 +85,10 @@ begin
   RBody.Gravity := false;
   AddBehavior(RBody);
 
-  Collider := TCastleSphereCollider.Create(Self);
-  Collider.Mass := 1;
+  Col := TCastleSphereCollider.Create(Self);
+  Col.Mass := 1;
 
-  AddBehavior(Collider);
+  AddBehavior(Col);
 end;
 
 procedure TBullet.Update(const SecondsPassed: Single;

@@ -28,7 +28,7 @@ procedure GenerateCircle(const QuadricSlices: Cardinal;
   const Radius, Height: Single; Points: PVector3);
 var
   AngleRad: Single;
-  AngleSin, AngleCos: Float;
+  AngleSin, AngleCos: Single;
   I: integer;
 begin
   if Radius <> 0 then
@@ -67,7 +67,7 @@ procedure GenerateTexCoordCircle(const QuadricSlices: Cardinal;
   Points: PVector2; const InvertT: boolean);
 var
   AngleRad: Single;
-  AngleSin, AngleCos: Float;
+  AngleSin, AngleCos: Single;
   I: integer;
 begin
   if InvertT then
@@ -201,7 +201,7 @@ procedure CylinderCone_Proxy(CoordIndex: TInt32List;
     we will automatically adjust it for correct angle in radians. }
   function SideNormal(const Angle: Single): TVector3;
   var
-    AngleSin, AngleCos: Float;
+    AngleSin, AngleCos: Single;
   begin
     SinCos((Angle / QuadricSlices) * 2 * Pi, AngleSin, AngleCos);
 

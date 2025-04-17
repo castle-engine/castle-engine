@@ -19,8 +19,7 @@ unit TestCastleTimeUtils;
 
 interface
 
-uses {$ifndef CASTLE_TESTER}FpcUnit, TestUtils, TestRegistry, CastleTestCase
-     {$else}CastleTester{$endif};
+uses CastleTester;
 
 type
   TTestCastleTimeUtils = class(TCastleTestCase)
@@ -31,6 +30,39 @@ type
 implementation
 
 uses SysUtils, Classes, Math, CastleTimeUtils;
+
+{$ifdef WASI}
+{ WebAssembly will crash when we call standard Sleep.
+  So we implement our own sleep below in a stupid way: just "busy waiting"
+  until the time passes.
+
+  DO NOT USE THIS IN YOUR OWN APPLICATIONS.
+
+  This is used in this test just to waste some time and test CastleGetTickCount64.
+  This is the purpose of "Sleep" in this application (both on web and non-web).
+
+  It is not good to be used in real applications, because
+
+  - This "Sleep" implementation, with "busy waiting",
+    is uselessly consuming CPU time.
+    The "busy waiting" is a bad way to sleep, consuming CPU time doing nothing.
+
+  - Even the proper "Sleep" on non-web platforms is useless in real games.
+    It hangs the process, doing nothing, which is something you should never
+    do. Instead always finish what you want to do as quick as possible,
+    and adjust to passing time by accounting for SecondsPassed in the Update
+    methods.
+    See https://castle-engine.io/view_events .
+}
+procedure Sleep(const Milliseconds: Cardinal);
+var
+  TimerStart: TTimerResult;
+begin
+  TimerStart := Timer;
+  while TimerStart.ElapsedTime < Milliseconds / 1000 do
+    { nothing };
+end;
+{$endif}
 
 { TTestCastleTimeUtils ---------------------------------------------------------- }
 
@@ -60,8 +92,8 @@ begin
   AssertFalse(TimeTickSecondLater(1000, 1999, 1000));
 
   { test on prepared values simulating wrap with 32-bit GetTickCount }
-  AssertTrue(TimeTickSecondLater(High(LongWord) - 500, 501, 1000));
-  AssertFalse(TimeTickSecondLater(High(LongWord) - 500, 499, 1000));
+  AssertTrue(TimeTickSecondLater(High(UInt32) - 500, 501, 1000));
+  AssertFalse(TimeTickSecondLater(High(UInt32) - 500, 499, 1000));
 end;
 
 {$warnings on}

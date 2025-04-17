@@ -1,7 +1,7 @@
 {%MainUnit castleinternalnoise.pas}
 
 var
-  X0, Y0, X1, Y1, X2, Y2, X3, Y3: LongInt;
+  X0, Y0, X1, Y1, X2, Y2, X3, Y3: Integer;
   XFrac, YFrac: Single;
 begin
   X1 := Floor(X);

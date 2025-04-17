@@ -17,16 +17,16 @@
 {$ifdef read_interface}
 
 { @exclude
-  CastleURIUtils.URIMimeType actually calls this, for now.
-  Maybe it should be in higher unit, used by both CastleDownload and CastleURIUtils,
+  CastleUriUtils.UriMimeType actually calls this, for now.
+  Maybe it should be in higher unit, used by both CastleDownload and CastleUriUtils,
   like CastleUrls. }
-function InternalURIMimeType(const URI: string; out Gzipped: boolean): string; overload;
+function InternalUriMimeType(const URI: string; out Gzipped: boolean): string; overload;
 
 {$endif}
 
 {$ifdef read_implementation}
 
-function InternalURIMimeType(const URI: string; out Gzipped: boolean): string;
+function InternalUriMimeType(const URI: string; out Gzipped: boolean): string;
 var
   P: string;
   RegisteredProtocol: TRegisteredProtocol;
@@ -37,9 +37,9 @@ begin
   P := URIProtocol(URI);
   RegisteredProtocol := RegisteredProtocols.Find(P);
   if (RegisteredProtocol <> nil) and
-     (Assigned(RegisteredProtocol.MimeTypeEvent)) then
+     (Assigned(RegisteredProtocol.FMimeTypeEvent)) then
   begin
-    Result := RegisteredProtocol.MimeTypeEvent(URI, Gzipped);
+    Result := RegisteredProtocol.FMimeTypeEvent(URI, Gzipped);
   end else
   begin
     WritelnWarning('Querying MIME type for URL protocol "%s" not supported', [P]);

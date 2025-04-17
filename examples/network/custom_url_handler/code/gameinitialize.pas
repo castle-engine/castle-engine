@@ -20,11 +20,11 @@ interface
 
 implementation
 
-uses SysUtils, Classes, Zipper, URIParser,
+uses SysUtils, Classes, URIParser,
   CastleWindow, CastleScene, CastleControls, CastleLog, CastleUtils,
   CastleFilesUtils, CastleSceneCore, CastleKeysMouse, CastleColors,
   CastleUIControls, CastleApplicationProperties, CastleDownload, CastleStringUtils,
-  CastleURIUtils, CastleViewport, CastleCameras;
+  CastleUriUtils, CastleViewport, CastleCameras, CastleZip;
 
 var
   Window: TCastleWindow;
@@ -33,101 +33,118 @@ var
   ExampleImage: TCastleImageControl;
   ExampleScene: TCastleScene;
 
+{ When using TCastleZip, we install the custom URL handler easier,
+  using the TCastleZip.RegisterUrlProtocol method.
+  This is simpler and is more efficient (the ZIP file is only opened once).
+
+  Undefine this to show a more generic way of registering custom URL handler,
+  using the RegisterUrlProtocol routine from the CastleDownload unit.
+  It doens't really make sense to use it for ZIP reading (using TCastleZip
+  is both simpler and more efficient) but it illustrates how to register
+  custom URL handler in a more generic way, for any purpose. }
+{$define USE_ZIP_URL_HANDLER}
+{$ifdef USE_ZIP_URL_HANDLER}
+var
+  PackedDataZip: TCastleZip;
+{$else USE_ZIP_URL_HANDLER}
+
 { TPackedDataReader ---------------------------------------------------------- }
 
 type
   TPackedDataReader = class
   public
     SourceZipFileName: String;
-    TempDirectory: String;
-    function ReadUrl(const Url: string; out MimeType: string): TStream;
+    function ReadUrl(const Url: String; out MimeType: string): TStream;
     destructor Destroy; override;
   end;
 
 var
   PackedDataReader: TPackedDataReader;
 
-function TPackedDataReader.ReadUrl(const Url: string; out MimeType: string): TStream;
+function TPackedDataReader.ReadUrl(const Url: String; out MimeType: string): TStream;
+
+  { Unpack single file from zip, to a TStream.
+    FileInZip should be relative path within the zip archive. }
+  function UnzipFile(const ZipFileName, FileInZip: String): TStream;
+  var
+    Zip: TCastleZip;
+  begin
+    Zip := TCastleZip.Create;
+    try
+      Zip.Open(ZipFileName);
+      Result := Zip.Read(FileInZip);
+    finally FreeAndNil(Zip) end;
+  end;
+
 var
   U: TURI;
   FileInZip: String;
-  Unzip: TUnZipper;
-  FilesInZipList: TStringlist;
 begin
   U := ParseURI(Url);
   FileInZip := PrefixRemove('/', U.Path + U.Document, false);
+  Result := UnzipFile(SourceZipFileName, FileInZip);
 
-  { Unpack file to a temporary directory.
-    TODO: TPackedDataReader.ReadUrl should be implemented
-    without storing the temp file on disk. }
-  Unzip := TUnZipper.Create;
-  try
-    Unzip.FileName := SourceZipFileName;
-    Unzip.OutputPath := TempDirectory;
-    FilesInZipList := TStringlist.Create;
-    try
-      FilesInZipList.Add(FileInZip);
-      Unzip.UnZipFiles(FilesInZipList);
-    finally FreeAndNil(FilesInZipList) end;
-  finally FreeAndNil(Unzip) end;
-
-  { Use Download with file:/ protocol to load filename to TStream }
-  Result := Download(FilenameToURISafe(CombinePaths(TempDirectory, FileInZip)), [], MimeType);
+  { Determine mime type from Url, which practically means:
+    determine content type from filename extension. }
+  MimeType := UriMimeType(Url);
 end;
 
 destructor TPackedDataReader.Destroy;
 begin
-  RemoveNonEmptyDir(TempDirectory, true);
   inherited;
 end;
 
+{$endif USE_ZIP_URL_HANDLER}
+
+{ View ----------------------------------------------------------------------- }
+
+type
+  { View to contain whole UI and to handle events, like key press. }
+  TMyView = class(TCastleView)
+  end;
+
+var
+  MyView: TMyView;
+
 { routines ------------------------------------------------------------------- }
-
-procedure WindowUpdate(Container: TCastleContainer);
-begin
-  // ... do something every frame
-  Status.Caption := 'FPS: ' + Container.Fps.ToString;
-end;
-
-procedure WindowPress(Container: TCastleContainer; const Event: TInputPressRelease);
-begin
-  // ... react to press of key, mouse, touch
-end;
 
 { One-time initialization of resources. }
 procedure ApplicationInitialize;
 begin
+  {$ifdef USE_ZIP_URL_HANDLER}
+  PackedDataZip := TCastleZip.Create;
+  PackedDataZip.Open('castle-data:/packed_game_data.zip');
+  PackedDataZip.RegisterUrlProtocol('my-packed-data');
+  {$else}
   { initialize PackedDataReader to read ZIP when we access my-packed-data:/ }
   PackedDataReader := TPackedDataReader.Create;
-  PackedDataReader.SourceZipFileName := URIToFilenameSafe('castle-data:/packed_game_data.zip');
-  PackedDataReader.TempDirectory := InclPathDelim(GetTempDir) + 'unpacked_data';
-  ForceDirectories(PackedDataReader.TempDirectory);
-  WritelnLog('Using temporary directory "%s"', [PackedDataReader.TempDirectory]);
-  RegisterUrlProtocol('my-packed-data', @PackedDataReader.ReadUrl, nil);
+  PackedDataReader.SourceZipFileName := UriToFilenameSafe('castle-data:/packed_game_data.zip');
+  RegisterUrlProtocol('my-packed-data',
+    {$ifdef FPC}@{$endif} PackedDataReader.ReadUrl, nil);
+  {$endif}
 
   { make following calls to castle-data:/ also load data from ZIP }
   ApplicationDataOverride := 'my-packed-data:/';
-
-  { Assign Window callbacks }
-  Window.OnUpdate := @WindowUpdate;
-  Window.OnPress := @WindowPress;
 
   { For a scalable UI (adjusts to any window size in a smart way), use UIScaling }
   Window.Container.UIReferenceWidth := 1024;
   Window.Container.UIReferenceHeight := 768;
   Window.Container.UIScaling := usEncloseReferenceSize;
 
+  MyView := TMyView.Create(Application);
+  Window.Container.View := MyView;
+
   Viewport := TCastleViewport.Create(Application);
   Viewport.FullSize := true;
   Viewport.InsertBack(TCastleExamineNavigation.Create(Application));
-  Window.Controls.InsertFront(Viewport);
+  MyView.InsertFront(Viewport);
 
   { Show a label with frames per second information }
   Status := TCastleLabel.Create(Application);
   Status.Anchor(vpTop, -10);
   Status.Anchor(hpRight, -10);
   Status.Color := Yellow; // you could also use "Vector4(1, 1, 0, 1)" instead of Yellow
-  Window.Controls.InsertFront(Status);
+  MyView.InsertFront(Status);
 
   { Show 2D image }
   ExampleImage := TCastleImageControl.Create(Application);
@@ -136,7 +153,7 @@ begin
   // 'my-packed-data:/example_image.png';
   ExampleImage.Anchor(vpBottom, 100);
   ExampleImage.Anchor(hpLeft, 100);
-  Window.Controls.InsertFront(ExampleImage);
+  MyView.InsertFront(ExampleImage);
 
   { Show a 3D object (TCastleScene) inside a Viewport
     (which acts as a full-screen viewport by default). }
@@ -194,5 +211,9 @@ initialization
     By doing this last, you let user to override your fullscreen / mode setup. }
   Window.ParseParameters;
 finalization
+  {$ifdef USE_ZIP_URL_HANDLER}
+  FreeAndNil(PackedDataZip);
+  {$else}
   FreeAndNil(PackedDataReader);
+  {$endif}
 end.

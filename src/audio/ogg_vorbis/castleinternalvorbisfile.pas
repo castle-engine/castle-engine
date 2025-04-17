@@ -33,7 +33,7 @@ const
   INITSET   = 4;
 
 type
-  TSizeT = LongWord;
+  TSizeT = CUInt32;
 
   TVorbisFileReadFunc = function (ptr: Pointer; Size: TSizeT; nmemb: TSizeT; DataSource: Pointer): TSizeT; cdecl;
   TVorbisFileSeekFunc = function (DataSource: Pointer; offset: Int64; whence: CInt): CInt; cdecl;
@@ -216,11 +216,6 @@ begin
     TDynLib.Load('libvorbisfile.3.dylib', false);
     if VorbisFileLibrary = nil then
       VorbisFileLibrary := TDynLib.Load('libvorbisfile.dylib', false);
-    if (VorbisFileLibrary = nil) and (BundlePath <> '') then
-      VorbisFileLibrary := TDynLib.Load(BundlePath + 'Contents/MacOS/libvorbisfile.3.dylib', false);
-    if (VorbisFileLibrary = nil) and (BundlePath <> '') then
-      VorbisFileLibrary := TDynLib.Load(BundlePath + 'Contents/MacOS/libvorbisfile.dylib', false);
-
     {$else}
     TDynLib.Load('libvorbisfile.so.3', false);
     if VorbisFileLibrary = nil then
@@ -235,6 +230,10 @@ begin
 
     {$ifdef MSWINDOWS}
     TDynLib.Load('vorbisfile.dll', false);
+    {$endif}
+
+    {$ifdef WASI}
+    nil; // TODO: web: OggVorbis reading not implemented yet
     {$endif}
 
   if VorbisFileLibrary <> nil then

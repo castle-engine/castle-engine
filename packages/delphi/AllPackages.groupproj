@@ -6,6 +6,15 @@
         <Projects Include="castle_engine.dproj">
             <Dependencies/>
         </Projects>
+        <Projects Include="castle_engine_vcl.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="castle_engine_fmx.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="castle_engine_window.dproj">
+            <Dependencies/>
+        </Projects>
         <Projects Include="castle_engine_design.dproj">
             <Dependencies/>
         </Projects>
@@ -26,6 +35,33 @@
     <Target Name="castle_engine:Make">
         <MSBuild Projects="castle_engine.dproj" Targets="Make"/>
     </Target>
+    <Target Name="castle_engine_vcl">
+        <MSBuild Projects="castle_engine_vcl.dproj"/>
+    </Target>
+    <Target Name="castle_engine_vcl:Clean">
+        <MSBuild Projects="castle_engine_vcl.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="castle_engine_vcl:Make">
+        <MSBuild Projects="castle_engine_vcl.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="castle_engine_fmx">
+        <MSBuild Projects="castle_engine_fmx.dproj"/>
+    </Target>
+    <Target Name="castle_engine_fmx:Clean">
+        <MSBuild Projects="castle_engine_fmx.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="castle_engine_fmx:Make">
+        <MSBuild Projects="castle_engine_fmx.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="castle_engine_window">
+        <MSBuild Projects="castle_engine_window.dproj"/>
+    </Target>
+    <Target Name="castle_engine_window:Clean">
+        <MSBuild Projects="castle_engine_window.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="castle_engine_window:Make">
+        <MSBuild Projects="castle_engine_window.dproj" Targets="Make"/>
+    </Target>
     <Target Name="castle_engine_design">
         <MSBuild Projects="castle_engine_design.dproj"/>
     </Target>
@@ -36,13 +72,13 @@
         <MSBuild Projects="castle_engine_design.dproj" Targets="Make"/>
     </Target>
     <Target Name="Build">
-        <CallTarget Targets="castle_engine;castle_engine_design"/>
+        <CallTarget Targets="castle_engine;castle_engine_vcl;castle_engine_fmx;castle_engine_window;castle_engine_design"/>
     </Target>
     <Target Name="Clean">
-        <CallTarget Targets="castle_engine:Clean;castle_engine_design:Clean"/>
+        <CallTarget Targets="castle_engine:Clean;castle_engine_vcl:Clean;castle_engine_fmx:Clean;castle_engine_window:Clean;castle_engine_design:Clean"/>
     </Target>
     <Target Name="Make">
-        <CallTarget Targets="castle_engine:Make;castle_engine_design:Make"/>
+        <CallTarget Targets="castle_engine:Make;castle_engine_vcl:Make;castle_engine_fmx:Make;castle_engine_window:Make;castle_engine_design:Make"/>
     </Target>
     <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
 </Project>

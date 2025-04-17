@@ -20,8 +20,8 @@ unit TestCastleVideos;
 interface
 
 uses
-  Classes, SysUtils, {$ifndef CASTLE_TESTER}FpcUnit, TestUtils, TestRegistry,
-  CastleTestCase{$else}CastleTester{$endif}, CastleVideos;
+  Classes, SysUtils,
+  CastleTester, CastleVideos;
 
 type
   TTestVideos = class(TCastleTestCase)
@@ -46,6 +46,7 @@ begin
     Video.LoadFromFile('castle-data:/videos/video_single.png');
     AssertTrue(Video.Count = 1);
 
+    if CanCatchExceptions then
     try
       Video.LoadFromFile('castle-data:/videos/video_not_existing.png');
       Fail('Should fail');
@@ -56,6 +57,7 @@ begin
       end;
     end;
 
+    if CanCatchExceptions then
     try
       Video.LoadFromFile('castle-data:/videos/video_not_existing@counter(1).png');
       Fail('Should fail');

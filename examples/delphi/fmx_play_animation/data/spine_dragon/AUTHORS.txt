@@ -1,0 +1,3 @@
+Dragon with animations in Spine by Paweł Wojciechowicz.
+Shared on the same terms as the rest of Castle Game Engine
+(GPL >= 2 or LGPL >= 2 with static linking exception, see COPYING.txt).
