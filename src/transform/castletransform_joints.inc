@@ -17,6 +17,9 @@
 { Physics joints. }
 
 {$ifdef read_interface}
+
+// type section started in CastleTransform.pas
+
   { Base class for physics joints, that connects two physics bodies
     and constraints their relative movement.
 

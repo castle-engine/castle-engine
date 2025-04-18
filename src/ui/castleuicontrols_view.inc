@@ -840,7 +840,7 @@ begin
   begin
     // load FDesignPreloadedSerialized to be able to faster load design, without parsing JSON
     FDesignPreloadedSerialized := TCastleComponentFactory.Create(nil);
-    FDesignPreloadedSerialized.Url :=DesignUrl;
+    FDesignPreloadedSerialized.Url := DesignUrl;
     // load FDesignPreloaded to cache all that's possible,
     // like images used inside TCastleImageControl or TCastleScene.
     FDesignPreloadedOwner := TComponent.Create(nil);

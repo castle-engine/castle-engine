@@ -492,7 +492,7 @@ var
   DeltaVelocity: TVector3;
   Vel: TVector3;
   PlayerOnGround: Boolean;
-  GroundHit: TPhysicsRayCastResult;
+  GroundHit: TRayCastResult;
 begin
   { This method is executed every frame.}
 
@@ -607,7 +607,7 @@ var
   DeltaVelocity: TVector3;
   Vel: TVector3;
   PlayerOnGround: Boolean;
-  GroundHit: TPhysicsRayCastResult;
+  GroundHit: TRayCastResult;
   InSecondJump: Boolean;
 begin
   { This method is executed every frame.}
