@@ -107,11 +107,7 @@ type
       It is not adviced to use overloaded versions without X, Y or Color
       --- using global state leads to messy code.
       You should upgrade your code to use the version that gets X,Y,Color
-      explicitly.
-
-      May require 1 free slot on the attributes stack.
-      May only be called when current matrix is modelview.
-      Doesn't modify any OpenGL state or matrix, except it moves raster position. }
+      explicitly. }
     procedure Print(const X, Y: Single; const Color: TCastleColor;
       const S: string); overload; virtual; abstract;
     procedure Print(const Pos: TVector2Integer; const Color: TCastleColor;
