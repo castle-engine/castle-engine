@@ -77,15 +77,10 @@ procedure TViewMain.ClickLoadGenerated(Sender: TObject);
 
   function CreateDrawableImage: TDrawableImage;
   var
-    InitialImage: TRGBImage;
     TestImage: TDrawableImage;
     I: Integer;
   begin
-    InitialImage := TRGBImage.Create(1024, 1024);
-    { Note: We don't bother to initialize InitialImage contents,
-      leave them undefined, we will clear the image on GPU anyway. }
-
-    Result := TDrawableImage.Create(InitialImage, true, true);
+    Result := TDrawableImage.Create(1024, 1024, TRGBImage, true);
 
     // draw some primitives on Result
     Result.RenderToImageBegin;
@@ -108,13 +103,19 @@ procedure TViewMain.ClickLoadGenerated(Sender: TObject);
     try
       Result.DrawFrom(TestImage,
         FloatRectangle(0, 0, TestImage.Width, TestImage.Height),
-        FloatRectangle(TestImage.Rect));
+        TestImage.FloatRect);
+
+      // green tint, very transparent
+      TestImage.Color := Vector4(0, 0.25, 0, 0.3);
+      Result.DrawFrom(TestImage,
+        Result.FloatRect,
+        TestImage.FloatRect);
 
       // tint image with red, and make it somewhat transparent
       TestImage.Color := Vector4(1, 0.25, 0.25, 0.9);
       Result.DrawFrom(TestImage,
         FloatRectangle(512, 512, 512, 512),
-        FloatRectangle(TestImage.Rect));
+        TestImage.FloatRect);
 
       // tint image with blue, and make it somewhat transparent,
       // and draw it 4x, stretched vertically
@@ -122,7 +123,7 @@ procedure TViewMain.ClickLoadGenerated(Sender: TObject);
       for I := 0 to 3 do
         Result.DrawFrom(TestImage,
           FloatRectangle(I * 128, 512, 128, 256),
-          FloatRectangle(TestImage.Rect));
+          TestImage.FloatRect);
     finally
       FreeAndNil(TestImage);
     end;

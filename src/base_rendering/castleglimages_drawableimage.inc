@@ -275,6 +275,38 @@
     constructor Create(const AImage: TEncodedImage; const ASmoothScaling: boolean;
       const AOwnsImage: boolean); overload;
 
+    { Prepare an image (with undefined initial contents) for drawing.
+
+      The image memory is allocated on GPU following the StorageClass
+      parameter. For example, pass TRGBAlphaImage to have storage equivalent
+      to that of loading 8-bit RGBA image. Or TRGBImage if you only need
+      to store RGB (no alpha).
+
+      This creates a GPU image with undefined initial contents,
+      so make sure you fill 100% of the contents when drawing.
+      For example using @link(TRenderContext.Clear) or @link(Rectangle2D) like
+      this:
+
+      @longCode(
+        MyDrawableImage := TDrawableImage.Create(100, 100, TRGBImage);
+        MyDrawableImage.RenderToImageBegin;
+        RenderContext.Clear([cbColor], Yellow);
+        // maybe do more drawing here, like by DrawRectangle
+        MyDrawableImage.RenderToImageEnd;
+      )
+
+      or drawing other image filling this:
+
+      @longCode(
+        MyDrawableImage := TDrawableImage.Create(100, 100, TRGBImage);
+        MyDrawableImage.DrawFrom(OtherDrawingImage,
+          FloatRect,
+          OtherDrawingImage.FloatRect);
+      )
+    }
+    constructor Create(const AWidth, AHeight: Cardinal;
+      const StorageClass: TCastleImageClass; const ASmoothScaling: boolean = true); overload;
+
     { Load image from disk, and prepare for drawing.
 
       @param(AUrl URL (or filename) from which to load the image.
@@ -380,6 +412,11 @@
       Always (Left,Bottom) are zero, and (Width,Height) correspond to image
       sizes. }
     function Rect: TRectangle;
+
+    { Rectangle representing the inside of this image, with float coordinates.
+      Always (Left,Bottom) are zero, and (Width,Height) correspond to image
+      sizes. }
+    function FloatRect: TFloatRectangle;
 
     { How to render the alpha channel of the texture.
 
@@ -837,6 +874,17 @@ begin
     NewImage := LoadEncodedImage(AUrl, LoadAsClass);
   FUrl := AUrl;
   Create(NewImage, ASmoothScaling, { AOwnsImage } true);
+end;
+
+constructor TDrawableImage.Create(const AWidth, AHeight: Cardinal;
+  const StorageClass: TCastleImageClass; const ASmoothScaling: boolean = true);
+var
+  InitialImage: TCastleImage;
+begin
+  { TODO: For now, we create useless image in RAM to allocate initial pixels
+    for this. }
+  InitialImage := StorageClass.Create(AWidth, AHeight);
+  Create(InitialImage, ASmoothScaling, { AOwnsImage } true);
 end;
 
 destructor TDrawableImage.Destroy;
@@ -1402,7 +1450,7 @@ end;
 procedure TDrawableImage.DrawFlipped(const ScreenRect: TFloatRectangle;
   const FlipHorizontal, FlipVertical: boolean);
 begin
-  DrawFlipped(ScreenRect, FloatRectangle(Rect), FlipHorizontal, FlipVertical);
+  DrawFlipped(ScreenRect, FloatRect, FlipHorizontal, FlipVertical);
 end;
 
 procedure TDrawableImage.DrawFlipped(
@@ -1669,6 +1717,11 @@ end;
 function TDrawableImage.Rect: TRectangle;
 begin
   Result := Rectangle(0, 0, Width, Height);
+end;
+
+function TDrawableImage.FloatRect: TFloatRectangle;
+begin
+  Result := FloatRectangle(0, 0, Width, Height);
 end;
 
 procedure TDrawableImage.PrepareResources;
