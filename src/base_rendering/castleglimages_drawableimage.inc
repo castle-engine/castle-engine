@@ -291,7 +291,9 @@
         MyDrawableImage := TDrawableImage.Create(100, 100, TRGBImage);
         MyDrawableImage.RenderToImageBegin;
         RenderContext.Clear([cbColor], Yellow);
-        // maybe do more drawing here, like by DrawRectangle
+        // maybe do more drawing here, like
+        //   DrawRectangle(...);
+        //   OtherDrawingImage.Draw(...);
         MyDrawableImage.RenderToImageEnd;
       )
 
@@ -766,6 +768,18 @@
       @link(TCastleImage.DrawFrom) (that happens on CPU).
       The result "lives" only on GPU (the underlying TEncodedImage,
       in normal RAM memory, is not updated by this drawing in any way).
+
+      This is just a shortcut for doing
+
+      @unorderedList
+        @item @link(RenderToImageBegin),
+        @item then executing @code(SourceImage.Draw(...)),
+        @item then @link(RenderToImageEnd).
+      )
+
+      If you are already between
+      @link(RenderToImageBegin) and @link(RenderToImageEnd), then don't use
+      this method, just call explicitly @code(SourceImage.Draw(...)).
 
       If you use this only occasionally, it's nice to later free the resources
       by @link(RenderToImageFree). }
