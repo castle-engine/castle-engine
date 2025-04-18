@@ -19,7 +19,7 @@ unit GameViewMain;
 interface
 
 uses Classes,
-  CastleVectors, CastleComponentSerialize,
+  CastleVectors, CastleComponentSerialize, CastleFonts,
   CastleUIControls, CastleControls, CastleKeysMouse, CastleScene;
 
 type
@@ -31,6 +31,7 @@ type
     LabelFps: TCastleLabel;
     ImageTransform1: TCastleImageTransform;
     ButtonLoadGenerated, ButtonLoadPng: TCastleButton;
+    FontParpg: TCastleFont;
   private
     procedure ClickLoadGenerated(Sender: TObject);
     procedure ClickLoadPng(Sender: TObject);
@@ -127,6 +128,12 @@ procedure TViewMain.ClickLoadGenerated(Sender: TObject);
     finally
       FreeAndNil(TestImage);
     end;
+
+    // draw some text on Result
+    Result.RenderToImageBegin;
+    FontParpg.Size := 60;
+    FontParpg.Print(100, 400, Red, 'Hello World!');
+    Result.RenderToImageEnd;
   end;
 
 var

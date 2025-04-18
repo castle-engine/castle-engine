@@ -2,6 +2,13 @@
   "$$ClassName" : "TCastleUserInterface",
   "FullSize" : true,
   "Name" : "RootGroup",
+  "$NonVisualComponents" : [
+    {
+      "$$ClassName" : "TCastleFont",
+      "Name" : "FontParpg",
+      "Url" : "castle-data:/PARPG.ttf"
+    }
+  ],
   "$Children" : [
     {
       "$$ClassName" : "TCastleLabel",
@@ -169,16 +176,16 @@
         },
         "RotationPersistent" : {
           "$$ClassName" : "TCastleVector4RotationPersistent",
-          "W" : 9.1685664653778076E-001,
-          "X" : -9.9914938211441040E-001,
-          "Y" : 3.6983806639909744E-002,
-          "Z" : 1.8248459324240685E-002
+          "W" : 5.3843784332275391E-001,
+          "X" : -8.0687779188156128E-001,
+          "Y" : -5.7704961299896240E-001,
+          "Z" : -1.2634135782718658E-001
         },
         "TranslationPersistent" : {
           "$$ClassName" : "TCastleVector3Persistent",
-          "X" : -2.7975425124168396E-001,
-          "Y" : 1.4273158311843872E+000,
-          "Z" : 8.9888107776641846E-001
+          "X" : -9.7945189476013184E-001,
+          "Y" : 8.9847636222839355E-001,
+          "Z" : 3.4836001396179199E+000
         }
       },
       "InternalDesignNavigations[dnFly]" : {
