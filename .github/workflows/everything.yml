@@ -30,8 +30,8 @@ jobs:
     uses: ./.github/workflows/quick-test.yml
   test_and_pack_docker:
     uses: ./.github/workflows/test-and-pack-docker.yml
-  delphi:
-    uses: ./.github/workflows/delphi.yml
+  # delphi:
+  #   uses: ./.github/workflows/delphi.yml
   test_and_pack_runner_native:
     uses: ./.github/workflows/test-and-pack-runner-native.yml
   test_and_pack_arm_runner:
@@ -48,7 +48,8 @@ jobs:
     needs: [
       quick_test,
       test_and_pack_docker,
-      delphi,
+      # TODO: temporarily, runners with Delphi are offline
+      # delphi,
       test_and_pack_runner_native,
       test_and_pack_arm_runner,
       test_shell,
