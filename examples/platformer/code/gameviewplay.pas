@@ -67,6 +67,7 @@ type
     PlayerDoubleJumpSupport: TDoubleJumpSupport;
     PlayerModularMovement: TModularMovement;
     PlayerAnimationTrigger: TAnimationTrigger;
+    ButtonPause: TCastleButton;
   strict private
     { Checks this is first Update when the InputJump occurred.
       See ../README.md for documentation about allowed keys/mouse/touch input. }
