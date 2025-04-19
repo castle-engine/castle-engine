@@ -1,0 +1,27 @@
+{
+  "$$ClassName" : "TCastleTransform",
+  "Name" : "Transform1",
+  "$Children" : [
+    {
+      "$$ClassName" : "TCastleScene",
+      "ExposeTransforms" : [
+      ],
+      "Name" : "Scene1",
+      "RenderOptions" : {
+        "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+      },
+      "URL" : "castle-data:/bullet.gltf",
+      "$Behaviors" : [
+        {
+          "$$ClassName" : "TCastleRigidBody",
+          "CollisionDetection" : "cdContinuous",
+          "Name" : "BulletRigidBody"
+        },
+        {
+          "$$ClassName" : "TCastleCapsuleCollider",
+          "Name" : "CapsuleCollider1"
+        }
+      ]
+    }
+  ]
+}

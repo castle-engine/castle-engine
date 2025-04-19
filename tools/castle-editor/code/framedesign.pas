@@ -729,7 +729,10 @@ uses
     to register the core CGE components for (de)serialization. }
   Castle2DSceneManager, CastleNotifications, CastleThirdPersonNavigation,
   CastleSoundEngine, CastleBehaviors, CastleLivingBehaviors,
-  CastleFlashEffect,
+  CastleFlashEffect, RotateCamera, RotateRigidBody, CastleInputAxis, FollowingTargetForCamera,
+  SimpleFpsPlayerMovementWithRotation, SimplestFpsPlayerMovement, ModularMovement,
+  AnimationTrigger, FpsCrouch, Fly3DSupport, HeadBobbing, StairsSupport, Walk3DSupport,
+  Platformer2DWalkSupport, Platformer2DInAirControl, DoubleJumpSupport, InAir3DControl,
   { Editor units }
   FormProject, CastleComponentEditorDesigner;
 

@@ -102,6 +102,8 @@
 
 ../../../src/transform/ TCastleStickToSurface Direction TVector3
 
+../../../src/transform/ TCastleMoveBehavior Direction TVector3
+
 ../../../src/scene/ TCastleViewport BackgroundColor TCastleColor
 ../../../src/scene/ TCastleAbstractPrimitive Color TCastleColor
 ../../../src/scene/ TCastleBox Size TVector3

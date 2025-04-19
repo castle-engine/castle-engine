@@ -346,6 +346,33 @@
       @seealso AutoSize }
     procedure CalculateSize;
 
+    { Colliders are created using world scale so it's local boundingbox with scale
+    applied }
+    function ScaledLocalBoundingBox: TBox3D; virtual; abstract;
+
+    { Returns forced mass or calculated from density. }
+    function EffectiveMass: Single;
+
+    { Return middle of the collider in parent of parent castle transform
+      coordinate system.
+
+      It makes it easier to perform ray casts and sphere casts from the
+      center of our collider. In many cases we don't want to use
+      TCastleTransform.Middle because it may depend from the bounding box,
+      which depends on animation frame. That can make ray/sphere cast results
+      unpredictable.
+
+      In most cases that should be simple Parent.Translation but Collider can
+      also have its own translation that changes its position.
+
+      Consider case when loaded model point 0,0 is not in the center of model
+      bounding box for example under the model. Then if you simply spherecast
+      down from Parent.Translation it can miss the floor.
+
+      When Parent is nil this function returns only collider translation.
+    }
+    function Middle: TVector3;
+
     { Local collider translation, relative to parent TCastleTransform.
       Note that CalculateSize and AutoSize mechanisms set it automatically. }
     property Translation: TVector3 read FTranslation write SetTranslation;
@@ -491,6 +518,10 @@
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
+    { Colliders are created using world scale so it's local boundingbox with scale
+    applied. Size used to create physics engine object. }
+    function ScaledLocalBoundingBox: TBox3D; override;
+
     procedure InternalDesigningBegin; override;
     procedure InternalDesigningEnd; override;
 
@@ -529,6 +560,11 @@
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
+
+    { Colliders are created using world scale so it's local boundingbox with scale
+    applied. Size used to create physics engine object. }
+    function ScaledLocalBoundingBox: TBox3D; override;
+
     function PropertySections(const PropertyName: String): TPropertySections; override;
     procedure InternalDesigningBegin; override;
     procedure InternalDesigningEnd; override;
@@ -559,6 +595,11 @@
     procedure UpdateVisualization; override;
   public
     constructor Create(AOwner: TComponent); override;
+
+    { Colliders are created using world scale so it's local boundingbox with scale
+    applied. Size used to create physics engine object. }
+    function ScaledLocalBoundingBox: TBox3D; override;
+
     function PropertySections(const PropertyName: String): TPropertySections; override;
     procedure InternalDesigningBegin; override;
     procedure InternalDesigningEnd; override;
@@ -583,8 +624,6 @@
 
     procedure SetRadius(const AValue: Single);
     procedure SetHeight(const AValue: Single);
-    function CalculateScaledHeight: Single;
-    function CalculateScaledRadius: Single;
   protected
     function CreateKraftShape(const APhysics: TKraft;
       const ARigidBody: TKraftRigidBody): TKraftShape; override;
@@ -593,6 +632,18 @@
   public
     constructor Create(AOwner: TComponent); override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
+
+    { Real height - colliders are created using aproximated world scale so Height
+      property do not return real size. If you need know this size use that function. }
+    function CalculateScaledHeight: Single;
+
+    { Real radius - colliders are created using aproximated world scale so Radius
+      do not return real size. If you need know this size use that function. }
+    function CalculateScaledRadius: Single;
+
+    { Colliders are created using world scale so it's local boundingbox with scale
+    applied. Size used to create physics engine object. }
+    function ScaledLocalBoundingBox: TBox3D; override;
 
     procedure InternalDesigningBegin; override;
     procedure InternalDesigningEnd; override;
@@ -631,6 +682,10 @@
       const ARigidBody: TKraftRigidBody): TKraftShape; override;
     procedure DeinitializePhysicsEngineObjects; override;
   public
+    { Colliders are created using world scale so it's local boundingbox with scale
+    applied. Size used to create physics engine object. }
+    function ScaledLocalBoundingBox: TBox3D; override;
+
     function PropertySections(const PropertyName: String): TPropertySections; override;
     procedure DesignerWarnings(const SList: TStrings); override;
 
@@ -920,6 +975,49 @@
       (see https://castle-engine.io/physics#_old_system_for_collisions_and_gravity ).
       In the new system, a similar role is filled by physics layers. }
     function PhysicsRayCast(const RayOrigin, RayDirection: TVector3;
+      const MaxDistance: Single = MaxSingle;
+      const CollisionLayers: TPhysicsLayers = AllLayers): TRayCastResult;
+
+    { Cast a sphere using physics engine, see what is hit.
+
+      Returns the TPhysicsRayCastResult record.
+      Read TPhysicsRayCastResult.Hit (boolean), TPhysicsRayCastResult.Transform
+      (guaranteed to be @nil when TPhysicsRayCastResult.Hit is @false) and other fields
+      to know what was hit.
+
+      The given SphereOrigin, SphereRadius,  SphereDirection, MaxDistance
+      are in the parent coordinate system of associated
+      TCastleTransform (@link(TCastleBehavior.Parent)). So for example query
+      like this works naturally:
+
+      @longCode(#
+        RBody := MyTransform.FindBehavior(TCastleRigidBody) as TCastleRigidBody;
+        Hit := RBody.SphereCast(MyTransform.Translation, 2, MyTransform.Direction, MaxDistance);
+      #)
+
+      It returns TPhysicsRayCastResult, with information there
+      consistently in the same coordinate system as inputs.
+      So TPhysicsRayCastResult.Distance, TPhysicsRayCastResult.Point, TPhysicsRayCastResult.Normal
+      are in parent coordinate system of associated TCastleTransform (@link(TCastleBehavior.Parent)).
+
+      This ignores all colliders that overlap sphere when start casting but the
+      collider of this rigid body (to not accidentally collide
+      with your own collider) is alaways ignored.
+
+      Only collisions with the physics colliders (TCastleCollider and TCollider)
+      are considered.
+
+      By default, the sphere hits all physics layers, but you can choose physics
+      layers in CollisionLayers attribute.
+
+      Note: The @link(TCastleTransform.Pickable) property is ignored by this method,
+      i.e. it considers all colliders regardless of their @link(TCastleTransform.Pickable) value.
+      The @link(TCastleTransform.Pickable) is only taken into account by the routines
+      of the old physics system
+      (see https://castle-engine.io/physics#_old_system_for_collisions_and_gravity ).
+      In the new system, a similar role is filled by physics layers. }
+    function PhysicsSphereCast(const SphereOrigin: TVector3;
+      const SphereRadius:Single; const SphereDirection: TVector3;
       const MaxDistance: Single = MaxSingle;
       const CollisionLayers: TPhysicsLayers = AllLayers): TRayCastResult;
 
@@ -1637,7 +1735,7 @@ begin
   if FKraftShape <> nil then
   begin
     Assert(Parent <> nil);
-    RBody := Parent.FindBehavior(TCastleRigidBody) as TCastleRigidBody;
+    RBody := Parent.RigidBody;
     Assert(RBody <> nil);
 
     FKraftShape.LocalTransform := MatrixToKraft(FLocalTransform);
@@ -1679,7 +1777,7 @@ begin
   FKraftShape.Restitution := Restitution;
   FKraftShape.Friction := Friction;
   if not ACastleRigidBody.ExistsInRoot then
-    FKraftShape.Flags := FKraftShape.Flags - [ksfCollision, ksfRayCastable];
+    FKraftShape.Flags := FKraftShape.Flags - [ksfCollision, ksfRayCastable, ksfSphereCastable];
 
   UpdateLocalTransform;
 end;
@@ -1687,7 +1785,7 @@ end;
 function TCastleCollider.GetRigidBody: TCastleRigidBody;
 begin
   if Parent <> nil then
-    Result := Parent.FindBehavior(TCastleRigidBody) as TCastleRigidBody
+    Result := Parent.RigidBody
   else
     Result := nil;
 end;
@@ -1812,7 +1910,7 @@ var
 begin
   if Parent <> nil then
   begin
-    CastleRBody := Parent.FindBehavior(TCastleRigidBody) as TCastleRigidBody;
+    CastleRBody := Parent.RigidBody;
     if CastleRBody <> nil then
       CastleRBody.ReinitializeCastleCollider;
   end;
@@ -1824,7 +1922,7 @@ var
 begin
   { Check there is a rigid body and we should try initialize collider.
     This is the case when rigid body was added first to behaviors list }
-  CastleRigidBody := Parent.FindBehavior(TCastleRigidBody) as TCastleRigidBody;
+  CastleRigidBody := Parent.RigidBody;
   if CastleRigidBody <> nil then
     CastleRigidBody.CheckInitialization(Self);
 
@@ -1839,7 +1937,7 @@ procedure TCastleCollider.WorldBeforeDetach;
 var
   CastleRBody: TCastleRigidBody;
 begin
-  CastleRBody := Parent.FindBehavior(TCastleRigidBody) as TCastleRigidBody;
+  CastleRBody := Parent.RigidBody;
   if CastleRBody <> nil then
   begin
     // deinitialize collider
@@ -1855,7 +1953,7 @@ begin
   Result := inherited;
   if not Result then Exit;
 
-  if NewParent.FindBehavior(TCastleCollider) <> nil then
+  if NewParent.Collider <> nil then
   begin
     ReasonWhyCannot := 'Only one TCastleCollider behavior can be added to a given TCastleTransform';
     Result := false;
@@ -1885,6 +1983,23 @@ begin
   try
     CalculateSizeCore;
   finally FCalculatingSize := false end;
+end;
+
+function TCastleCollider.EffectiveMass: Single;
+begin
+  if FKraftShape <> nil then
+  begin
+    Result := FKraftShape.MassData.Mass;
+  end else
+    Result := Mass;
+end;
+
+function TCastleCollider.Middle: TVector3;
+begin
+  if Parent = nil then
+    Exit(Translation);
+
+  Result := Parent.Translation + Translation;
 end;
 
 function TCastleCollider.WorldScaleScalar: Single;
@@ -2052,6 +2167,11 @@ begin
   inherited;
 end;
 
+function TCastlePlaneCollider.ScaledLocalBoundingBox: TBox3D;
+begin
+  Result := TBox3D.Empty;
+end;
+
 procedure TCastlePlaneCollider.SetNormal(const AValue: TVector3);
 begin
   if not FNormal.Equals(FNormal, AValue) then
@@ -2182,6 +2302,11 @@ begin
   inherited;
 end;
 
+function TCastleBoxCollider.ScaledLocalBoundingBox: TBox3D;
+begin
+  Result := TBox3D.FromCenterSize(Translation, CalculateScaledSize);
+end;
+
 procedure TCastleBoxCollider.SetSize(const AValue: TVector3);
 begin
   if not TVector3.PerfectlyEquals(FSize, AValue) then
@@ -2193,7 +2318,7 @@ begin
   end;
 end;
 
-function TCastleBoxCollider.CalculateScaledSize: TVector3;
+function TCastleBoxCollider.CalculateScaledSize: CastleVectors.TVector3;
 begin
   Result := FSize * TotalScale;
 end;
@@ -2303,6 +2428,15 @@ begin
 
   // Note: assign using Fxxx, not property setter, to avoid changing AutoSize to @false
   FRadius := 1;
+end;
+
+function TCastleSphereCollider.ScaledLocalBoundingBox: TBox3D;
+var
+  ScaledRadius: Single;
+begin
+  ScaledRadius := CalculateScaledRadius;
+  Result := TBox3D.FromCenterSize(Translation,
+    CastleVectors.Vector3(ScaledRadius * 2, ScaledRadius * 2, ScaledRadius * 2));
 end;
 
 procedure TCastleSphereCollider.SetRadius(const AValue: Single);
@@ -2560,6 +2694,17 @@ begin
     Result := inherited PropertySections(PropertyName);
 end;
 
+function TCastleCapsuleCollider.ScaledLocalBoundingBox: TBox3D;
+var
+  ScaledRadius: Single;
+  ScaledHeight: Single;
+begin
+  ScaledRadius := CalculateScaledRadius;
+  ScaledHeight := CalculateScaledHeight;
+  Result := TBox3D.FromCenterSize(Translation,
+    CastleVectors.Vector3(ScaledRadius * 2, ScaledHeight + ScaledRadius * 2, ScaledRadius * 2));
+end;
+
 { TCastleMeshCollider -------------------------------------------------------- }
 
 procedure TCastleMeshCollider.AddTriangle(Shape: TObject;
@@ -2655,6 +2800,11 @@ begin
   FKraftMesh.Finish;
 
   Result := TKraftShapeMesh.Create(APhysics, ARigidBody, FKraftMesh);
+end;
+
+function TCastleMeshCollider.ScaledLocalBoundingBox: TBox3D;
+begin
+  Result := TBox3D.Empty;
 end;
 
 procedure TCastleMeshCollider.DeinitializePhysicsEngineObjects;
@@ -2909,7 +3059,7 @@ procedure TCastleRigidBody.InitializeCollider;
   function GetCastleColliderFromParent: TCastleCollider;
   begin
     if Parent <> nil then
-      Result := Parent.FindBehavior(TCastleCollider) as TCastleCollider
+      Result := Parent.Collider
     else
       Result := nil;
   end;
@@ -3274,10 +3424,10 @@ begin
     { Note: ksfRayCastable flag determines whether body is detected by PhysicsRayCast. }
     if ExistsInRoot then
       KraftShape.Flags := KraftShape.Flags + [ksfCollision,
-        ksfRayCastable]
+        ksfRayCastable, ksfSphereCastable]
     else
       KraftShape.Flags := KraftShape.Flags - [ksfCollision,
-        ksfRayCastable];
+        ksfRayCastable, ksfSphereCastable];
   end;
 
   UpdateColliderAutoSize;
@@ -3621,7 +3771,7 @@ begin
   Result := inherited;
   if not Result then Exit;
 
-  if NewParent.FindBehavior(TCastleRigidBody) <> nil then
+  if NewParent.RigidBody <> nil then
   begin
     ReasonWhyCannot := 'Only one TCastleRigidBody behavior can be added to a given TCastleTransform';
     Result := false;
@@ -3714,6 +3864,53 @@ begin
   end;
 end;
 
+function TCastleRigidBody.PhysicsSphereCast(const SphereOrigin: TVector3;
+  const SphereRadius: Single; const SphereDirection: TVector3;
+  const MaxDistance: Single;
+  const CollisionLayers: TPhysicsLayers): TPhysicsRayCastResult;
+var
+  SphereOriginWorld, SphereDirectionWorld: TVector3;
+  MaxDistanceWorld, SphereRadiusWorld: Single;
+begin
+  if FTransform = nil then
+  begin
+    WritelnWarning('Attempt to cast a sphere from TCastleRigidBody not connected to any TCastleTransform. Possibly you forgot to add it using TCastleTransform.AddBehavior.');
+    FillChar(Result, SizeOf(Result), 0); // this in particular sets Result.Hit = false
+    Exit;
+  end;
+
+  if FTransform.World = nil then
+  begin
+    WritelnWarning('Attempt to cast a sphere from TCastleRigidBody not connected to any World. Possibly you forgot to add the TCastleTransform to TCastleViewport.Items.');
+    FillChar(Result, SizeOf(Result), 0); // this in particular sets Result.Hit = false
+    Exit;
+  end;
+
+  if FTransform.Parent <> nil then
+  begin
+    SphereOriginWorld := FTransform.Parent.LocalToWorld(SphereOrigin);
+    SphereDirectionWorld := FTransform.Parent.LocalToWorldDirection(SphereDirection);
+    MaxDistanceWorld := FTransform.Parent.LocalToWorldDistance(MaxDistance);
+    SphereRadiusWorld := FTransform.Parent.LocalToWorldDistance(SphereRadius);
+  end else
+  begin
+    SphereOriginWorld := SphereOrigin;
+    SphereDirectionWorld := SphereDirection;
+    MaxDistanceWorld := MaxDistance;
+    SphereRadiusWorld := SphereRadius;
+  end;
+
+  Result := FTransform.World.PhysicsSphereCast(SphereOriginWorld, SphereRadiusWorld,
+    SphereDirectionWorld, MaxDistanceWorld, Self, CollisionLayers);
+
+  if Result.Hit and (FTransform.Parent <> nil) then
+  begin
+    Result.Distance := FTransform.Parent.WorldToLocalDistance(Result.Distance);
+    Result.Point := FTransform.Parent.WorldToLocal(Result.Point);
+    Result.Normal := FTransform.Parent.WorldToLocalDirection(Result.Normal);
+  end;
+end;
+
 function TCastleRigidBody.PropertySections(
   const PropertyName: String): TPropertySections;
 begin
@@ -3733,10 +3930,7 @@ begin
   if FKraftBody <> nil then
   begin
     if ExistsInRoot then
-    begin
       FKraftBody.AddForceAtPosition(VectorToKraft(Force), VectorToKraft(Position));
-      WakeUp;
-    end;
   end else
     WritelnWarning('Attempting to add force before physics engine initialization.');
 end;
@@ -3751,7 +3945,6 @@ begin
         FKraftBody.AddBodyForce(VectorToKraft(Force))
       else
         FKraftBody.AddWorldForce(VectorToKraft(Force));
-      WakeUp;
     end;
   end else
     WritelnWarning('Attempting to add force before physics engine initialization.');
@@ -3762,10 +3955,7 @@ begin
   if FKraftBody <> nil then
   begin
     if ExistsInRoot then
-    begin
       FKraftBody.AddWorldTorque(VectorToKraft(Torque));
-      WakeUp;
-    end;
   end else
     WritelnWarning('Attempting to add torque before physics engine initialization.');
 end;
@@ -3775,10 +3965,7 @@ begin
   if FKraftBody <> nil then
   begin
     if ExistsInRoot then
-    begin
       FKraftBody.ApplyImpulseAtPosition(VectorToKraft(Point), VectorToKraft(Impulse));
-      WakeUp;
-    end;
   end else
     WritelnWarning('Attempting to apply impulse before physics engine initialization.');
 end;
@@ -3898,6 +4085,7 @@ begin
           works best I think (but may lead to a momentary loss of time in a collision).
 
         Future: Maybe give user ability to choose ContinuousMode. }
+      //FKraftEngine.ContinuousMode := kcmSpeculativeContacts;
       FKraftEngine.ContinuousMode := kcmMotionClamping;
       { We need to set this because continuous works only when:
         - one of the bodies has krbfContinuous and they are dynamic
@@ -3905,8 +4093,9 @@ begin
           FKraftEngine and one of bodies has krbfContinuousAgainstDynamics flag }
       FKraftEngine.ContinuousAgainstDynamics := true;
       { Below are useful only for kcmTimeOfImpactSubSteps mode }
-      // FKraftEngine.TimeOfImpactAlgorithm := ktoiaConservativeAdvancement;
-      // FKraftEngine.MaximalSubSteps := 16;
+       //FKraftEngine.ContinuousMode := kcmTimeOfImpactSubSteps;
+       //FKraftEngine.TimeOfImpactAlgorithm := ktoiaConservativeAdvancement;
+       //FKraftEngine.MaximalSubSteps := 32;
     end else
     begin
       FKraftEngine.ContinuousMode := kcmNone;
@@ -4106,6 +4295,70 @@ begin
     try
       // We use ksfRayCastable flag to not hit the IgnoreBody
       IgnoreShape.Flags := IgnoreShape.Flags - [ksfRayCastable];
+      Core;
+    finally
+      IgnoreShape.Flags := OldIgnoreShapeFlags;
+    end;
+  end else
+    Core;
+end;
+
+function TCastleAbstractRootTransform.PhysicsSphereCast(const SphereOrigin: TVector3;
+  const SphereRadius: Single; const SphereDirection: TVector3;
+  const MaxDistance: Single; const IgnoreBody: TCastleRigidBody;
+  const CollisionLayers: TPhysicsLayers): TPhysicsRayCastResult;
+
+  procedure Core;
+  var
+    KraftShape: TKraftShape;
+    KraftDistance: TKraftScalar;
+    KraftPoint: TKraftVector3;
+    KraftNormal: TKraftVector3;
+  begin
+    { make sure everything is zero when no hit }
+    FillChar(Result, SizeOf(Result), 0);
+
+    { Note: In Kraft, the distance parameters are called "time"
+      (MaxTime, Time instead of more natural MaxDistance, Distance).
+      But all research shows that it is actually "distance" and that is also how
+      other physics engines call it.
+
+      TODO: Check time does not depend on physics frequency? }
+
+    if FKraftEngine.SphereCast(
+      // inputs
+      VectorToKraft(SphereOrigin), SphereRadius, VectorToKraft(SphereDirection), MaxDistance,
+      // outputs
+      KraftShape, KraftDistance, KraftPoint, KraftNormal,
+      // collision layers
+      CollisionLayers
+      ) then
+    begin
+      Result.Hit := true;
+      Result.Transform := TCastleRigidBody(KraftShape.RigidBody.UserData).FTransform;
+      Result.Point := VectorFromKraft(KraftPoint);
+      Result.Normal := VectorFromKraft(KraftNormal);
+      Result.Distance := KraftDistance;
+    end;
+  end;
+
+var
+  OldIgnoreShapeFlags: TKraftShapeFlags;
+  IgnoreShape: TKraftShape;
+begin
+  // calculate IgnoreShape
+  if IgnoreBody <> nil then
+    IgnoreShape := IgnoreBody.GetKraftShape
+  else
+    IgnoreShape := nil;
+
+  // protect IgnoreShape from being hit, use Core
+  if IgnoreShape <> nil then
+  begin
+    OldIgnoreShapeFlags := IgnoreShape.Flags;
+    try
+      // We use ksfSphereCastable flag to not hit the IgnoreBody
+      IgnoreShape.Flags := IgnoreShape.Flags - [ksfSphereCastable];
       Core;
     finally
       IgnoreShape.Flags := OldIgnoreShapeFlags;

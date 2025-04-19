@@ -56,7 +56,7 @@ const
       So it is simpler to just name all includes and units differently,
       even across system-specific dirs. }
 
-  EnginePaths: array [0..48] of String = (
+  EnginePaths: array [0..54] of String = (
     'base',
     'common_includes',
     'base/android',
@@ -75,6 +75,12 @@ const
     'window/deprecated_units',
     'images',
     'transform',
+    'behaviors',
+    'behaviors/input',
+    'behaviors/navigation',
+    'behaviors/navigation/modular',
+    'behaviors/navigation/modular/modules',
+    'behaviors/navigation/simple',
     'scene',
     'scene/glsl/generated-pascal',
     'scene/x3d',
