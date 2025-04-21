@@ -47,20 +47,20 @@ class procedure TTestFairy.InitializeRemoteLogging;
 begin
   // While it would work on all platforms, it's pointless (not handled) on other than iOS platforms
   {$ifdef CASTLE_IOS}
-  { In case logging started before TTestFairy.InitializeRemoteLogging was called,
-    push to TestFairy some introductory messages. }
-  {$warnings off} // using deprecated knowingly, it should be renamed
-  if Log then
-  {$warnings on}
-  begin
-    TTestFairy.LogCallback('Log for "' + ApplicationName + '".' + NL);
-    if ApplicationProperties.Version <> '' then
-      TTestFairy.LogCallback('  Version: ' + ApplicationProperties.Version + '.' + NL);
-    TTestFairy.LogCallback('  TestFairy logging started on ' + DateTimeToAtStr(CastleNow) + '.' + NL);
-    TTestFairy.LogCallback('  Castle Game Engine version: ' + CastleEngineVersion + '.' + NL);
-    TTestFairy.LogCallback('  Compiled with ' + SCompilerDescription + '.' + NL);
-    TTestFairy.LogCallback('  Platform: ' + SPlatformDescription + '.' + NL);
-  end;
+  { We send logs, somewhat duplicating initial CastleLog logs.
+    Reasons:
+    - We want to see these, in case logging started (InitializeLog was called)
+      before TTestFairy.InitializeRemoteLogging was called.
+    - We also want to mention TestFairy in these initial logs,
+      to make it clear that TTestFairy.InitializeRemoteLogging did its job. }
+  TTestFairy.LogCallback('TestFairy remote logging started.');
+  TTestFairy.LogCallback('  Application: "' + ApplicationName + '".' + NL);
+  if ApplicationProperties.Version <> '' then
+    TTestFairy.LogCallback('  Version: ' + ApplicationProperties.Version + '.' + NL);
+  TTestFairy.LogCallback('  TestFairy logging started on ' + DateTimeToAtStr(CastleNow) + '.' + NL);
+  TTestFairy.LogCallback('  Castle Game Engine version: ' + CastleEngineVersion + '.' + NL);
+  TTestFairy.LogCallback('  Compiled with ' + SCompilerDescription + '.' + NL);
+  TTestFairy.LogCallback('  Platform: ' + SPlatformDescription + '.' + NL);
 
   if ApplicationProperties.OnLog.IndexOf({$ifdef FPC}@{$endif} LogCallback) = -1 then
     ApplicationProperties.OnLog.Add({$ifdef FPC}@{$endif} LogCallback);
