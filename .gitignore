@@ -100,6 +100,7 @@ castle-game-engine-*.fpm
 /examples/creature_behaviors/creature_behaviors
 /examples/curves/use_designed_curve/use_designed_curve
 /examples/delphi/fmx/CastleFmx
+/examples/delphi/fmx_play_animation/CastleFmxPlayAnimation
 /examples/deprecated_library/build-qt_library_tester-*
 /examples/deprecated_library/qt_library_tester/build
 /examples/deprecated_library/cpp_winapi_library_tester/Debug

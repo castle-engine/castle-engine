@@ -17,6 +17,13 @@ unit CastleTransform;
 
 {$I castleconf.inc}
 
+{ Hide Delphi warning about duplicate constructors in Kraft classes
+  not accessible from C++.
+  We don't need to expose Kraft classes to C++ anyway, they are internal for CGE. }
+{$ifndef FPC}
+  {$warn DUPLICATE_CTOR_DTOR off}
+{$endif}
+
 interface
 
 uses SysUtils, Classes, Math, Generics.Collections, Contnrs, Kraft,

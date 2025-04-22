@@ -25,6 +25,10 @@
 {$else}
   {$hints off}
   {$warn SYMBOL_PLATFORM off}
+  {$warn IMPLICIT_STRING_CAST off}
+  {$if CompilerVersion >= 32} {$warn COMBINING_SIGNED_UNSIGNED64 off} {$ifend} // only since Delphi 10.2
+  // Used by some logic in our Kraft mods
+  {$define KRAFT_DELPHI_NON_WINDOWS}
 {$endif}
 
 { Tweak caninline ----------------------------------------------------------- }
