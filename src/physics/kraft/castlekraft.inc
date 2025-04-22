@@ -7,6 +7,21 @@
   { CGE: Avoid FPC note: "nested procedures" not yet supported inside inline procedure/function
     TODO: submit to Kraft. }
   {$notes off}
+
+  { Hide FPC 3.3.1 false warnings. }
+  {$ifdef FPC}
+    {$ifndef VER3_0}
+      {$ifndef VER3_2}
+        { Disable "case statement does not handle all possible cases".
+          In CGE we tried to adjust to these
+          ( https://castle-engine.io/coding_conventions#case_analysis )
+          but in some cases there's no good adjustment of code.
+          Do the same for Kraft, to have clean compilation output
+          but do not cause divergence from Kraft upstream in kraft.pas }
+        {$warn 6060 off}
+      {$endif}
+    {$endif}
+  {$endif}
 {$else}
   {$hints off}
   {$warn SYMBOL_PLATFORM off}
