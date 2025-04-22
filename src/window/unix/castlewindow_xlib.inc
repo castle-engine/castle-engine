@@ -794,6 +794,11 @@ begin
   Result := 'Xlib+' + {$ifndef USE_EGL} 'glX' {$else} 'EGL' {$endif};
 end;
 
+function TCastleApplication.MultipleWindowsPossible: Boolean;
+begin
+  Result := true;
+end;
+
 function TCastleApplication.HandleXEvent(Event: TXEvent): boolean;
 var
   Window: TCastleWindow;

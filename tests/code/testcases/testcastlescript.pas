@@ -157,6 +157,7 @@ var
 
   procedure ExecuteExpectError;
   begin
+    if CanCatchExceptions then
     try
       Prog.ExecuteFunction('main', []);
       Fail('should not get here');
@@ -403,6 +404,7 @@ begin
 
     { test not Writeable }
     Vars[0].Writeable := false;
+    if CanCatchExceptions then
     try
       Prog := ParseProgram('function main() my_int := 123', Vars);
       Fail('should not get here');
@@ -460,9 +462,12 @@ begin
     Prog.ExecuteFunction('main_array_d_test', []);
     AssertTrue(TCasScriptFloat(Vars[1]).Value = 3.0);
 
-    ExecuteExpectError('main_test_invalid_index_get');
-    ExecuteExpectError('main_test_invalid_index_get_2');
-    ExecuteExpectError('main_test_invalid_index_set');
+    if CanCatchExceptions then
+    begin
+      ExecuteExpectError('main_test_invalid_index_get');
+      ExecuteExpectError('main_test_invalid_index_get_2');
+      ExecuteExpectError('main_test_invalid_index_set');
+    end;
 
     FreeAndNil(Prog);
 
@@ -470,9 +475,12 @@ begin
     Prog.ExecuteFunction('main', []);
     AssertTrue(TCasScriptString(Vars[3]).Value = 'bbbbbbbbbbbb' + #123 + '13');
 
-    ExecuteExpectError('error1');
-    ExecuteExpectError('error2');
-    ExecuteExpectError('error3');
+    if CanCatchExceptions then
+    begin
+      ExecuteExpectError('error1');
+      ExecuteExpectError('error2');
+      ExecuteExpectError('error3');
+    end;
 
     FreeAndNil(Prog);
   finally
@@ -552,6 +560,12 @@ procedure TTestCastleScript.TestInvalidOps;
   end;
 
 begin
+  if not CanCatchExceptions then
+  begin
+    AbortTest;
+    Exit;
+  end;
+
   ExpectMathErrors('0.1 / 0.0');
   ExpectMathErrors('float(1 / 0)');
   ExpectMathErrors('ln(-3)');
@@ -600,6 +614,12 @@ procedure TTestCastleScript.TestTryExecuteMath;
   end;
 
 begin
+  if not CanCatchExceptions then
+  begin
+    AbortTest;
+    Exit;
+  end;
+
   ExpectMathErrors('0.1 / 0.0');
   ExpectMathErrors('float(1 / 0)');
   ExpectMathErrors('ln(-3)');

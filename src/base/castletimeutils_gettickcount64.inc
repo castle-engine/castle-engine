@@ -110,12 +110,20 @@ begin
 
   if Result < LastGetTickCount64 then
   begin
-    WritelnLog('Time', 'Detected gettimeofday() going backwards on Unix, workarounding. This is known to happen on some Android devices');
+    WritelnLog('Time', 'Detected gettimeofday() going backwards on Unix, workarounding. This is known to happen on some Android devices or WSL (Linux inside Windows).');
     Result := LastGetTickCount64;
   end else
     LastGetTickCount64 := Result;
 end;
 {$I norqcheckend.inc}
+{$elseif defined(WASI)}
+
+function CastleGetTickCount64: QWord;
+begin
+  // rely on FPC SysUtils.GetTickCount64 (uses __wasi_clock_time_get)
+  Result := GetTickCount64;
+end;
+
 {$endif UNIX}
 
 {$endif}

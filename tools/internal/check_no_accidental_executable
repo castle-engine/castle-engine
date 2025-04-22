@@ -28,6 +28,7 @@ find . '(' -type d -name .git -prune -false ')' -or \
                        -name 'gradlew' -or \
                        -path './examples/instantfpc/castle_*' -or \
                        -name 'astcenc-*' -or \
+                       -path './tools/internal/build_web_demos' -or \
                        -path './tools/internal/lazbuild_retry' -or \
                        -path './tools/internal/check_no_accidental_executable' -or \
                        -path './tools/internal/upload_github_release' -or \

@@ -41,7 +41,7 @@
 
     @orderedList(
       @item(It is simplest to set @link(DesignUrl)
-        to the design file you created using @url(https://castle-engine.io/manual_editor.php CGE editor).
+        to the design file you created using @url(https://castle-engine.io/editor CGE editor).
         Such user interface controls will be created right before @link(Start)
         and destroyed right after @link(Stop) (so the view UI always "resets"
         when view starts).)
@@ -840,7 +840,7 @@ begin
   begin
     // load FDesignPreloadedSerialized to be able to faster load design, without parsing JSON
     FDesignPreloadedSerialized := TCastleComponentFactory.Create(nil);
-    FDesignPreloadedSerialized.Url :=DesignUrl;
+    FDesignPreloadedSerialized.Url := DesignUrl;
     // load FDesignPreloaded to cache all that's possible,
     // like images used inside TCastleImageControl or TCastleScene.
     FDesignPreloadedOwner := TComponent.Create(nil);

@@ -542,12 +542,6 @@ type
     { Call this if during this frame, TTimeDependentFunctionality.PartialSend always remained @nil. }
     procedure NoPartialSend;
 
-    { Recalculate and update LODTree.Level.
-      Also sends level_changed when needed.
-      Call only when ProcessEvents. }
-    procedure UpdateLODLevel(const LODTree: TShapeTreeLOD;
-      const CameraLocalPosition: TVector3);
-
     procedure SetUrl(const AValue: String);
     procedure SetShadowMaps(const Value: boolean);
     procedure SetShadowMapsDefaultSize(const Value: Cardinal);
@@ -805,11 +799,18 @@ type
     procedure UpdateAutoAnimation(const StopIfPlaying: Boolean);
 
     { Get camera position in current scene local coordinates.
+
+      Uses known camera from World.MainCamera and known world transformation
+      from HasWorldTransform, WorldInverseTransform.
+      As such, this cannot work reliably if TCastleScene is present multiple
+      times in the world (like through TCastleTransformReference),
+      because we only know one transfomation of scene.
+
       This is calculated every time now (in the future it may be optimized
       to recalculate only when WorldTransform changed, e.g. using
       FWorldTransformAndInverseId). }
-    function GetCameraLocal(out CameraVectors: TViewVectors): boolean; overload;
-    function GetCameraLocal(out CameraLocalPosition: TVector3): boolean; overload;
+    function GetCameraLocal(out CameraVectors: TViewVectors): Boolean; overload;
+    function GetCameraLocal(out CameraLocalPosition: TVector3): Boolean; overload;
 
     function PointingDevicePressRelease(const DoPress: boolean;
       const Distance: Single; const CancelAction: boolean): boolean;
@@ -1051,8 +1052,11 @@ type
       Contents of this tree are read-only from outside. }
     property Shapes: TShapeTree read FShapes;
 
-    // { Bounding box of all occurrences of the given X3D Shape node. }
-    // function ShapeBoundingBox(const Node: TShapeNode): TBox3D;
+    { Bounding box of the given shape (TAbstractShapeNode).
+      The shape node may be used multiple times in the nodes graph
+      (in @link(RootNode)), in which case this method correctly (and fast)
+      sums bounding box of all the occurrences of the given shape node. }
+    function ShapeBoundingBox(const Node: TAbstractShapeNode): TBox3D;
 
     { Number of active shapes in the @link(Shapes) tree.
       This is equivalent to Shapes.ShapesCount(true), except that this
@@ -3236,7 +3240,6 @@ procedure TCastleSceneCore.Load(const AUrl: String; const AOptions: TSceneLoadOp
 var
   TimeStart: TCastleProfilerTime;
   NewRoot, NewRootCacheOrigin: TX3DRootNode;
-  C: TCastleCollider;
 begin
   TimeStart := Profiler.Start('Loading "' + UriDisplay(AUrl) + '" (TCastleSceneCore)');
   try
@@ -3300,9 +3303,8 @@ begin
       - update triangles used by TCastleMeshCollider (note that this code
         will only update TCastleMeshCollider that is our behavior,
         it doesn't notify TCastleMeshCollider instances elsewhere that may refer to us). }
-    C := FindBehavior(TCastleCollider) as TCastleCollider;
-    if C <> nil then
-      C.InternalTransformChanged(Self);
+    if Collider <> nil then
+      Collider.InternalTransformChanged(Self);
   finally Profiler.Stop(TimeStart) end;
 end;
 
@@ -3406,12 +3408,9 @@ begin
   Load(Url);
 end;
 
-(* This is working, and ultra-fast thanks to TShapeTree.AssociatedShape,
-   but in practice it's unused now.
-
-function TCastleSceneCore.ShapeBoundingBox(const Node: TShapeNode): TBox3D;
+function TCastleSceneCore.ShapeBoundingBox(const Node: TAbstractShapeNode): TBox3D;
 var
-  I: Integer;
+  C, I: Integer;
 begin
   C := TShapeTree.AssociatedShapesCount(Node);
   case C of
@@ -3425,7 +3424,6 @@ begin
       end;
   end;
 end;
-*)
 
 function TCastleSceneCore.ShapesActiveCount: Cardinal;
 begin
@@ -3642,7 +3640,6 @@ function TChangedAllTraverser.Traverse(
     ChildNode: TX3DNode;
     ChildGroup: TShapeTreeGroup;
     I: Integer;
-    CameraLocalPosition: TVector3;
   begin
     LODTree := TShapeTreeLOD.Create(ParentScene);
     LODTree.LODNode := LODNode;
@@ -3657,9 +3654,11 @@ function TChangedAllTraverser.Traverse(
     for I := 0 to LODNode.FdChildren.Count - 1 do
       LODTree.Children.Add(TShapeTreeGroup.Create(ParentScene));
 
+    { No point in calling UpdateLODLevel here, it will be called
+      from BeforeRender anyway.
     if ParentScene.ProcessEvents and
        ParentScene.GetCameraLocal(CameraLocalPosition) then
-      ParentScene.UpdateLODLevel(LODTree, CameraLocalPosition);
+      ParentScene.UpdateLODLevel(LODTree, CameraLocalPosition); }
 
     for I := 0 to LODNode.FdChildren.Count - 1 do
     begin
@@ -3832,45 +3831,6 @@ begin
   if Node is TScreenEffectNode then
   begin
     ParentScene.ScreenEffectNodes.Add(Node);
-  end;
-end;
-
-procedure TCastleSceneCore.UpdateLODLevel(const LODTree: TShapeTreeLOD;
-  const CameraLocalPosition: TVector3);
-var
-  OldLevel, NewLevel: Cardinal;
-begin
-  Assert(ProcessEvents);
-
-  OldLevel := LODTree.Level;
-  NewLevel := LODTree.CalculateLevel(CameraLocalPosition);
-  LODTree.Level := NewLevel;
-
-  if ( (OldLevel <> NewLevel) or
-       (not LODTree.WasLevel_ChangedSend) ) and
-     { If LODTree.Children.Count = 0, then Level = 0, but we don't
-       want to send Level_Changed since the children 0 doesn't really exist. }
-     (LODTree.Children.Count <> 0) then
-  begin
-    LODTree.WasLevel_ChangedSend := true;
-    LODTree.LODNode.EventLevel_Changed.Send(Integer(NewLevel), NextEventTime);
-  end;
-
-  if OldLevel <> NewLevel then
-  begin
-    { This means that active shapes changed, so we have to change things
-      depending on them. Just like after Switch.whichChoice change. }
-
-    Validities := Validities - [
-      { Calculation traverses over active shapes. }
-      fvShapesActiveCount,
-      fvShapesActiveVisibleCount,
-      { Calculation traverses over active nodes (uses RootNode.Traverse). }
-      fvMainLightForShadows];
-
-    DoGeometryChanged(gcActiveShapesChanged, nil);
-
-    InternalIncShapesHash; // TShapeTreeLOD returns now different things
   end;
 end;
 
@@ -4329,7 +4289,6 @@ function TTransformChangeHelper.TransformChangeTraverse(
     ShapeLOD: TShapeTreeLOD;
     OldShapes: PShapesParentInfo;
     NewShapes: TShapesParentInfo;
-    CameraLocalPosition: TVector3;
   begin
     { get Shape and increase Shapes^.Index }
     ShapeLOD := Shapes^.Group.Children[Shapes^.Index] as TShapeTreeLOD;
@@ -4340,9 +4299,12 @@ function TTransformChangeHelper.TransformChangeTraverse(
     if Inside then
     begin
       ShapeLOD.LODInverseTransform^ := StateStack.Top.Transformation.InverseTransform;
+      { No point in calling UpdateLODLevel here, it will be called
+        from BeforeRender anyway.
       if ParentScene.ProcessEvents and
          ParentScene.GetCameraLocal(CameraLocalPosition) then
         ParentScene.UpdateLODLevel(ShapeLOD, CameraLocalPosition);
+      }
     end;
 
     OldShapes := Shapes;
@@ -6822,9 +6784,6 @@ procedure TCastleSceneCore.InternalCameraChanged;
   begin
     Assert(ProcessEvents);
 
-    for I := 0 to ShapeLODs.Count - 1 do
-      UpdateLODLevel(TShapeTreeLOD(ShapeLODs.Items[I]), CameraVectors.Translation);
-
     for I := 0 to ProximitySensors.Count - 1 do
       ProximitySensorUpdate(ProximitySensors[I], CameraVectors);
 
@@ -8340,6 +8299,60 @@ end;
 
 procedure TCastleSceneCore.LocalRender(const Params: TRenderParams);
 
+  { Update LOD (level of detail) instances,
+
+    - Iterates over ShapeLODs,
+      - calling TShapeTreeLOD.UpdateLODLevel on all of them,
+      - changing TShapeTreeLOD.Level when needed,
+      - if ProcessEvents: sends X3D events when TShapeTreeLOD.Level changes.
+
+    This is done before every rendering,
+    not only from TCastleSceneCore.InternalCameraChanged.
+    This way:
+
+    - LOD level (displayed) is updated regardless of ProcessEvents.
+
+    - LOD level is updated before each render, which matters if
+      we use multiple times the same TCastleScene,
+      like through TCastleTransformReference.
+  }
+  procedure UpdateLods;
+
+    { Update one TShapeTreeLOD.
+      - Calculate and update TShapeTreeLOD.Level.
+      - Sends level_changed when needed (if ProcessEvents). }
+    procedure UpdateLod(const LODTree: TShapeTreeLOD;
+      const LocalCameraPosition: TVector3);
+    begin
+      if LODTree.UpdateLevel(LocalCameraPosition, ProcessEvents) then
+      begin
+        { This means that active shapes changed, so we have to change things
+          depending on them. Just like after Switch.whichChoice change. }
+
+        Validities := Validities - [
+          { Calculation traverses over active shapes. }
+          fvShapesActiveCount,
+          fvShapesActiveVisibleCount,
+          { Calculation traverses over active nodes (uses RootNode.Traverse). }
+          fvMainLightForShadows];
+
+        DoGeometryChanged(gcActiveShapesChanged, nil);
+
+        InternalIncShapesHash; // TShapeTreeLOD returns now different things
+      end;
+    end;
+
+  var
+    I: Integer;
+    LocalCameraPosition: TVector3;
+  begin
+    if ShapeLODs.Count = 0 then // optimize common case
+      Exit;
+    LocalCameraPosition := Params.LocalCameraPosition;
+    for I := 0 to ShapeLODs.Count - 1 do
+      UpdateLod(TShapeTreeLOD(ShapeLODs.Items[I]), LocalCameraPosition);
+  end;
+
   procedure RenderingCameraChanged(const RenderingCamera: TRenderingCamera);
   var
     Viewpoint: TAbstractViewpointNode;
@@ -8376,6 +8389,7 @@ procedure TCastleSceneCore.LocalRender(const Params: TRenderParams);
 
 begin
   inherited;
+  UpdateLods;
   RenderingCameraChanged(Params.RenderingCamera);
 end;
 

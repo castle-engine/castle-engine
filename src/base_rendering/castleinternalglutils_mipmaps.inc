@@ -48,7 +48,9 @@ procedure GenerateMipmap(target: TGLenum);
 begin
   if GLFeatures.Framebuffer then
   begin
+    {$ifdef CASTLE_GL_USES_CALLBACKS}
     Assert(Assigned(glGenerateMipmap));
+    {$endif CASTLE_GL_USES_CALLBACKS}
     glGenerateMipmap(Target);
   end else
     raise EGenerateMipmapNotAvailable.Create('Framebuffer not supported, glGenerateMipmap not available');

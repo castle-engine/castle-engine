@@ -37,6 +37,7 @@ backup
 *.aab
 *.log
 *.exe
+*.wasm
 *.dll
 libsteam_api.so
 libsteam_api.dylib
@@ -59,6 +60,7 @@ castle-engine-output
 # Already included by *.res above
 #automatic-windows-resources.res
 #castle-auto-generated-resources.res
+CastleProjectLocalSettings.json
 
 # fpmake stuff
 castle-game-engine-*.fpm
@@ -98,6 +100,7 @@ castle-game-engine-*.fpm
 /examples/creature_behaviors/creature_behaviors
 /examples/curves/use_designed_curve/use_designed_curve
 /examples/delphi/fmx/CastleFmx
+/examples/delphi/fmx_play_animation/CastleFmxPlayAnimation
 /examples/deprecated_library/build-qt_library_tester-*
 /examples/deprecated_library/qt_library_tester/build
 /examples/deprecated_library/cpp_winapi_library_tester/Debug
@@ -116,6 +119,7 @@ castle-game-engine-*.fpm
 /examples/fonts/texture-font-to-pascal
 /examples/fps_game/fps_game
 /examples/deprecated_to_upgrade/fps_game_old_ai/fps_game
+/examples/ifc/ifc
 /examples/images_videos/image_decompose/image_decompose
 /examples/images_videos/deprecated_drawing_modes_test/drawing_modes_test
 /examples/images_videos/draw_images_on_gpu/draw_images_on_gpu
@@ -126,6 +130,7 @@ castle-game-engine-*.fpm
 /examples/images_videos/image_render_custom_shader/image_render_custom_shader
 /examples/images_videos/simple_video_editor/simple_video_editor
 /examples/images_videos/test_castleimage_draw3x3/test_castleimage_draw3x3
+/examples/images_videos/image_generate_and_use/image_generate_and_use
 /examples/isometric_game/isometric_game
 /examples/isometric_game_3d/isometric_game_3d
 /examples/deprecated_to_upgrade/joystick/joystick_demo
@@ -167,6 +172,7 @@ castle-game-engine-*.fpm
 /examples/physics/physics_joints_2d_grab/physics_joints_2d_grab
 /examples/physics/physics_joints_3d/physics_joints_3d
 /examples/physics/physics_joints_frequency/physics_joints_frequency
+/examples/physics/physics_explosion/physics_explosion
 /examples/physics/physics_forces/physics_forces
 /examples/physics/physics_persistent_forces_components/physics_persistent_forces_components
 /examples/physics/physics_simple_3d_bullet/physics_simple_3d_bullet
@@ -226,6 +232,7 @@ castle-game-engine-*.fpm
 /examples/viewport_and_scenes/detect_scene_hit/detect_scene_hit
 /examples/viewport_and_scenes/fog_and_distance_culling/fog_and_distance_culling
 /examples/viewport_and_scenes/headlight/headlight
+/examples/viewport_and_scenes/level_of_detail_demo/level_of_detail_demo
 /examples/viewport_and_scenes/listen_on_x3d_events/listen_on_x3d_events
 /examples/viewport_and_scenes/mesh_update/mesh_update
 /examples/viewport_and_scenes/multiple_viewports/multiple_viewports
@@ -251,6 +258,9 @@ castle-game-engine-*.fpm
 /examples/window/multi_window/multi_window
 /examples/window/multiple_windows_and_viewports/multiple_windows_and_viewports
 /examples/window/window_menu/window_menu
+/examples/web/simplest/webgl-tests
+/examples/web/simplest_viewport/simplest_viewport
+/examples/web/simplest_invaders/simplest_invaders
 /packages/alternative_castle_window_based_on_lcl.pas
 /packages/castle_base.pas
 /packages/castle_components.pas
@@ -264,6 +274,7 @@ castle-game-engine-*.fpm
 /src/deprecated_library/libcastleengine.so
 /tests/castle-tester
 /tests/test_castle_game_engine
+/tests/time_measurements_tests/time_measurements_tests
 /tools/build-tool/castle-engine
 /tools/build-tool/data/android/integrated-services/chartboost/app/libs/*.jar
 /tools/build-tool/data/android/integrated-services/game_analytics/app/libs/*.jar
@@ -277,6 +288,8 @@ castle-game-engine-*.fpm
 /tools/internal/check_packages/check_packages
 /tools/internal/check_units_dependencies/check_one_unit_dependencies
 /tools/internal/fpc-cge/fpc-cge
+/tools/internal/generate_webgl_flat_api/generate_webgl_flat_api
+/tools/internal/generate_ifc/generate_ifc
 /tools/internal/generate-persistent-vectors/generate-persistent-vectors
 /tools/internal/teapot-to-pascal/teapot-to-pascal
 /tools/internal/x3d-nodes-to-pascal/x3d-nodes-to-pascal

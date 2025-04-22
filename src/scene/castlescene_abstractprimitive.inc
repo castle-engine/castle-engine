@@ -334,12 +334,9 @@ begin
 end;
 
 procedure TCastleAbstractPrimitive.UpdateCollider;
-var
-  C: TCastleCollider;
 begin
-  C := FindBehavior(TCastleCollider) as TCastleCollider;
-  if C <> nil then
-    C.InternalTransformChanged(Self);
+  if Collider <> nil then
+    Collider.InternalTransformChanged(Self);
 end;
 
 function TCastleAbstractPrimitive.InternalBuildNodeInside: TObject;

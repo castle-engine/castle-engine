@@ -61,6 +61,8 @@ procedure TCarBehavior.Update(const SecondsPassed: Single; var RemoveMe: TRemove
 var
   T: TVector3;
 begin
+  inherited;
+
   T := Parent.Translation;
   { Thanks to multiplying by SecondsPassed, it is a time-based operation,
     and will always move 40 units / per second along the +Z axis. }

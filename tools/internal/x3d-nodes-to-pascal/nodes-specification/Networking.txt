@@ -2,8 +2,26 @@ X3DNetworkSensorNode : X3DSensorNode {
 }
 
 X3DUrlObject {
+  SFTime   [in,out] autoRefresh          0.0
+    range: [0,Inf)
+    doc: Not implemented. Interval in seconds between automatically reloading the content.
+    change: chNone
+
+  SFTime   [in,out] autoRefreshTimeLimit 3600.0
+    range: [0,Inf)
+    doc: Not implemented. Maximum duration that automatic refresh activity can take.
+    change: chNone
+
+  SFString [in,out] description          ""
+    doc: Textual description of the inlined content.
+    change: chNone
+
+  SFBool   [in,out] load                 TRUE
+    doc: Partially implemented. When @false, defers when the referenced content is read and displayed.
+    change: chNone
+
   MFString [in,out] url []
-    range: [urn]
+    doc: URL of the content to be loaded. Multiple URLs can be provided, each one will be tried in turn.
 }
 
 # TODO: Adding additional ancestors, like X3DUrlObject below,
@@ -18,13 +36,41 @@ Anchor : X3DGroupingNode, X3DUrlObject {
     change: chNone
   MFString [in,out] parameter      []
   MFString [in,out] url            []
-    range: [url or urn]
 }
 
 Inline : X3DChildNode, X3DBoundedObject, X3DUrlObject {
-  SFBool   [in,out] load       TRUE
+  SFTime   [in,out] autoRefresh          0.0
+    range: [0,Inf)
+    doc: Not implemented. Interval in seconds between automatically reloading the content.
+    change: chNone
+
+  SFTime   [in,out] autoRefreshTimeLimit 3600.0
+    range: [0,Inf)
+    doc: Not implemented. Maximum duration that automatic refresh activity can take.
+    change: chNone
+
+  SFBool   [in,out] bboxDisplay          FALSE
+    doc: Not implemented. Display the bounding box of the inline object.
+    change: chNone
+
+  SFString [in,out] description          ""
+    doc: Textual description of the inlined content.
+    change: chNone
+
+  SFBool   [in,out] global               FALSE
+    doc: Not implemented. Whether lights contained in the Inline scene are allowed to have external lighting effects or not.
+    change: chNone
+
+  SFBool   [in,out] load                 TRUE
+    doc: Partially implemented. When @false, defers when the referenced content is read and displayed.
+    change: chNone
+
   MFString [in,out] url        []
-    range: [url or urn]
+    doc: URL of the content to be loaded. Multiple URLs can be provided, each one will be tried in turn.
+
+  SFBool   [in,out] visible              TRUE
+    doc: Not implemented. Whether or not the content within a node is visually displayed. The value of this field has no effect on animation behaviors, collision behaviors, event passing, or other non-visual characteristics.
+
   SFVec3f  []       bboxCenter 0 0 0
     range: (-Inf,Inf)
   SFVec3f  []       bboxSize   -1 -1 -1

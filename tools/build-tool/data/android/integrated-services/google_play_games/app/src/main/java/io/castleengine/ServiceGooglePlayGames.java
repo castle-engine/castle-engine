@@ -68,7 +68,7 @@ public class ServiceGooglePlayGames extends ServiceAbstract
     private static final int STATUS_SIGNED_IN = 2;
     private static final int STATUS_SIGNING_OUT = 3;
 
-    // All these 3 booleans are indepedent.
+    // All these 3 booleans are independent.
     private boolean
         // Pascal code called initialize() (otherwise we don't want to talk to Google servers at all)
         initialized,

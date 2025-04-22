@@ -309,6 +309,7 @@ function TViewPlay.InputShot: Boolean;
 begin
   Result :=
     Container.Pressed.Items[keySpace] or
+    Container.Pressed.Items[keyEnter] or
     { Right mouse button, or 2 fingers, are held. }
     (buttonRight in Container.MousePressed) or
     (Container.TouchesCount >= 2);
@@ -319,8 +320,8 @@ procedure TViewPlay.ConfigurePlayerPhysics(
 var
   RBody: TCastleRigidBody;
 begin
-  RBody := Player.FindBehavior(TCastleRigidBody) as TCastleRigidBody;
-  if RBody<> nil then
+  RBody := Player.RigidBody;
+  if RBody <> nil then
   begin
     RBody.OnCollisionEnter := {$ifdef FPC}@{$endif}PlayerCollisionEnter;
     RBody.OnCollisionExit := {$ifdef FPC}@{$endif}PlayerCollisionExit;
@@ -491,7 +492,7 @@ var
   DeltaVelocity: TVector3;
   Vel: TVector3;
   PlayerOnGround: Boolean;
-  GroundHit: TPhysicsRayCastResult;
+  GroundHit: TRayCastResult;
 begin
   { This method is executed every frame.}
 
@@ -606,7 +607,7 @@ var
   DeltaVelocity: TVector3;
   Vel: TVector3;
   PlayerOnGround: Boolean;
-  GroundHit: TPhysicsRayCastResult;
+  GroundHit: TRayCastResult;
   InSecondJump: Boolean;
 begin
   { This method is executed every frame.}
@@ -1332,9 +1333,8 @@ begin
   inherited;
   { This virtual method is executed every frame (many times per second). }
 
-  { Show controls help on mobile, once, when game starts }
+  { Show controls help once, when game starts }
   if (not ControlsHelpShown) and
-     ApplicationProperties.TouchDevice and
      (Container.FrontView = Self) then
   begin
     ControlsHelpShown := true;

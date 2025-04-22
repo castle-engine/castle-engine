@@ -2,7 +2,7 @@
 
 <!--
   Define the level properties. See
-  https://castle-engine.io/creating_data_levels.php
+  https://github.com/castle-engine/cge-www/blob/master/htdocs/doc/obsolete/deprecated_3d_game_utilities/creating_data_levels.php
   for extensive documentation of available properties, in short:
 
   - name: used to refer to this level from ObjectPascal code,

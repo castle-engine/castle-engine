@@ -167,9 +167,7 @@ type
       Note that you can always override it for a particular creature
       instance. You can use a special creature placeholder with
       a specific starting life value
-      (see TLevel.Load for placeholders docs,
-      and see https://castle-engine.io/manual_high_level_3d_classes.php
-      about the creature placeholders).
+      (see TLevel.Load for placeholders docs).
       Or you can use CreateCreature overloaded version that takes extra MaxLife
       parameter.
 

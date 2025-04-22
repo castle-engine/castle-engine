@@ -76,7 +76,7 @@ TODO: To avoid confusion (as CGE in general doesn't depend on Indy) we should pr
 
 No. Packages here are provided to easily compile and use the engine with Lazarus. But CGE doesn't require LCL, you can develop CGE applications using `TCastleWindow` that doesn't depend on LCL.
 
-So all you actually need is bare FPC installation. Use our editor (https://castle-engine.io/manual_editor.php) or build tool (https://castle-engine.io/build_tool) to compile all examples and tools.
+So all you actually need is bare FPC installation. Use our editor (https://castle-engine.io/editor) or build tool (https://castle-engine.io/build_tool) to compile all examples and tools.
 
 ## Development notes: Conventions about these packages
 

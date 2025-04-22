@@ -121,7 +121,7 @@ if (( $# == 0 )); then
               '(' -iwholename '*/castlelib_dynloader.pas' ')' -or \
               '(' -iwholename '*/castlegles.pas' ')' -or \
               '(' -iname 'x3dloadinternal*.pas' ')' -or \
-              '(' -iname 'castleinternal*.pas' ')' -or \
+              '(' -iname 'castleinternal*.pas' -and -not -iname 'castleinternalprojectlocalsettings.pas' ')' -or \
               '(' -iname 'fmx.castleinternal*.pas' ')' -or \
               '(' -iname 'castleshapeinternal*.pas' ')' -or \
               '(' -iname 'kraft.pas' ')' -or \

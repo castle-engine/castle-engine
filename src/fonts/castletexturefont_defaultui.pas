@@ -5,9 +5,14 @@
   @exclude (Exclude this unit from PasDoc documentation.)
 
   Source font:
-    Name         : DejaVuSans
-    Size         : 20
-    AntiAliasing : True
+    Family Name : DejaVu Sans
+    Style Name  : Book
+    Bold        : false
+    Italic      : false
+
+  Data generated with options:
+    Size        : 20
+    AntiAliased : true
 }
 unit CastleTextureFont_DefaultUi;
 
@@ -29358,9 +29363,10 @@ function CreateFont_DefaultUi: TTextureFontData;
 var
   Glyphs: TTextureFontData.TGlyphDictionary;
   G: TTextureFontData.TGlyph;
+  FontInformation: TTextureFontDataInformation;
 begin
   FontImage.TreatAsAlpha := true;
-  FontImage.Url := 'embedded-font:/CastleTextureFont_DefaultUi';
+  FontImage.Url := 'embedded-font:/DejaVu%20Sans';
 
   Glyphs := TTextureFontData.TGlyphDictionary.Create;
 
@@ -51881,7 +51887,19 @@ begin
   G.ImageY := 667;
   Glyphs[9731] := G;
 
-  Result := TTextureFontData.CreateFromData(Glyphs, FontImage, 20, true);
+  FontInformation := TTextureFontDataInformation.Create;
+  try
+    FontInformation.Size := 20;
+    FontInformation.AntiAliased := true;
+    FontInformation.FamilyName := 'DejaVu Sans';
+    FontInformation.StyleName := 'Book';
+    FontInformation.Bold := false;
+    FontInformation.Italic := false;
+
+    Result := TTextureFontData.CreateFromData(Glyphs, FontImage, FontInformation);
+  finally
+    FreeAndNil(FontInformation);
+  end;
 end;
 
 var

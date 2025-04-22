@@ -35,12 +35,13 @@ function PropertyGet(const PropObject: TObject; const PropInfo: PPropInfo;
   You should also check @code(IsStoredProp(PropObject, PropInfo))
   in case the property has a "stored" method.
   IsStoredProp works in all cases (whether "stored" indicates a constant,
-  field or some method) and it is @true if there was no "stored" value.
-  So the full check is
+  field or some method) and it is @true if there was no "stored" directive.
+  So the full check whether to serialize something should be
 
   @longCode(#
-    PropertyHasDefaultValue(PropObject, PropInfo) and
-    IsStoredProp(PropObject, PropInfo)
+  SerializeThisProperty :=
+    (not PropertyHasDefaultValue(PropObject, PropInfo)) and
+    IsStoredProp(PropObject, PropInfo);
   #)
 
   @param(TreatSubComponentAsDefault
@@ -199,6 +200,23 @@ function PropertyGetEnumStr(const PropObject: TObject; const PropInfo: PPropInfo
 procedure PropertySetEnum(const PropObject: TObject; const PropInfo: PPropInfo; const Value: Integer);
 procedure PropertySetEnumStr(const PropObject: TObject; const PropInfo: PPropInfo; const Value: String);
 { @groupEnd }
+
+type
+  { Get list of PPropInfo for given object.
+    Simple wrapper over standard GetPropList. }
+  TPropInfoList = class(TObject)
+  private
+    FList: PPropList;
+    FCount: Integer;
+    FSize: Integer;
+    function Get(Index: Integer): PPropInfo;
+  public
+    constructor Create(AObject: TObject; Filter: TTypeKinds);
+    destructor Destroy; override;
+    property Count: Integer read FCount;
+    property Items[Index: Integer]: PPropInfo read Get; default;
+  end;
+
 
 implementation
 
@@ -669,6 +687,40 @@ begin
     ]);
 
   SetOrdProp(PropObject, PropInfo, EnumValue);
+end;
+
+{ TPropInfoList -------------------------------------------------------------- }
+
+{ Implementation based on a subset of FPC RTL RttiUtils unit
+  (not available for Delphi, so we don't use RttiUtils in CGE).
+  The license of FPC RTL matches the Castle Game Engine license,
+  so we can copy the code. }
+
+constructor TPropInfoList.Create(AObject: TObject; Filter: TTypeKinds);
+begin
+  inherited Create;
+  if AObject <> nil then
+  begin
+    FCount := GetPropList(AObject.ClassInfo, Filter, nil);
+    FSize := FCount * SizeOf(Pointer);
+    FList := GetMem(FSize);
+    GetPropList(AObject.ClassInfo, Filter, FList);
+  end else
+  begin
+    FCount := 0;
+    FList := nil;
+  end;
+end;
+
+destructor TPropInfoList.Destroy;
+begin
+  if FList <> nil then FreeMem(FList, FSize);
+  inherited;
+end;
+
+function TPropInfoList.Get(Index: Integer): PPropInfo;
+begin
+  Result := FList^[Index];
 end;
 
 initialization

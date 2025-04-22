@@ -444,7 +444,7 @@ var
 begin
   TextList := TStringList.Create;
   try
-    AddStrArrayToStrings(SArray, TextList);
+    TextList.AddStrings(SArray);
     MessageOK(Window, TextList, Alignment, Html);
   finally TextList.Free end;
 end;
@@ -457,7 +457,7 @@ var
 begin
   TextList := TStringList.Create;
   try
-    Strings_SetText(TextList, s);
+    TextList.Text := S;
     MessageOK(Window, TextList, Alignment, Html);
   finally TextList.free end;
 end;
@@ -495,7 +495,7 @@ var
 begin
   TextList := TStringList.Create;
   try
-    Strings_SetText(TextList, s);
+    TextList.Text := S;
     result := MessageInput(Window, TextList, answerDefault,
       MinLength, MaxLength, AllowedChars, Alignment, Html);
   finally TextList.free end;
@@ -537,7 +537,7 @@ var
 begin
   TextList := TStringList.Create;
   try
-    Strings_SetText(TextList, s);
+    TextList.Text := S;
     result := MessageInputQuery(Window, TextList, answer, MinLength,
       MaxLength, AllowedChars, Alignment, Html);
   finally TextList.free end;
@@ -582,7 +582,7 @@ var
 begin
   TextList := TStringList.Create;
   try
-    Strings_SetText(TextList, s);
+    TextList.Text := S;
     Result := MessageChoice(Window, TextList, ButtonCaptions, ButtonChars, Alignment, Html, AllowCancel);
   finally TextList.free end;
 end;
@@ -597,7 +597,7 @@ var
 begin
   TextList := TStringList.Create;
   try
-    AddStrArrayToStrings(SArray, TextList);
+    TextList.AddStrings(SArray);
     Result := MessageChoice(Window, TextList, ButtonCaptions, ButtonChars, Alignment, Html, AllowCancel);
   finally TextList.Free end;
 end;
@@ -639,7 +639,7 @@ var
 begin
   TextList := TStringList.Create;
   try
-    Strings_SetText(TextList, S);
+    TextList.Text := S;
     Result := MessageKey(Window, TextList, Alignment, Html);
   finally TextList.free end;
 end;
@@ -652,7 +652,7 @@ var
 begin
   TextList := TStringList.Create;
   try
-    AddStrArrayToStrings(SArray, TextList);
+    TextList.AddStrings(SArray);
     Result := MessageKey(Window, TextList, Alignment, Html);
   finally TextList.Free end;
 end;
@@ -682,7 +682,7 @@ var
 begin
   TextList := TStringList.Create;
   try
-    Strings_SetText(TextList, S);
+    TextList.Text := S;
     Result := MessageKeyMouse(Window, TextList, Alignment, Html);
   finally TextList.Free end;
 end;
@@ -726,7 +726,7 @@ var
 begin
   TextList := TStringList.Create;
   try
-    Strings_SetText(TextList, S);
+    TextList.Text := S;
     Result := MessageYesNo(Window, TextList, Alignment, Html);
   finally TextList.free end;
 end;
@@ -739,7 +739,7 @@ var
 begin
   TextList := TStringList.Create;
   try
-    AddStrArrayToStrings(SArray, TextList);
+    TextList.AddStrings(SArray);
     Result := MessageYesNo(Window, TextList, Alignment, Html);
   finally TextList.Free end;
 end;

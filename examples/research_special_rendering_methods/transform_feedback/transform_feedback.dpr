@@ -22,7 +22,7 @@ uses
   CastleVectors, X3DNodes, CastleWindow, CastleLog,
   CastleUtils, SysUtils, CastleApplicationProperties, CastleUiControls,
   CastleViewport, CastleTimeUtils, CastleGLShaders, CastleGLUtils,
-  CastleRenderContext;
+  CastleRenderContext, CastleInternalGLUtils;
 
 var
   Window: TCastleWindow;
@@ -86,14 +86,16 @@ begin
   inherited;
   if TransformFeedbackProgram = nil then
   begin
-    glGenVertexArrays(2, @VAOs[0]);
-    glGenBuffers(2, @VBOs[0]);
+    VAOs[0] := glCreateVertexArray;
+    VAOs[1] := glCreateVertexArray;
+    VBOs[0] := glCreateBuffer;
+    VBOs[1] := glCreateBuffer;
     for I := 0 to 1 do
     begin
       glBindVertexArray(VAOs[I]);
       RenderContext.BindBuffer[btArray] := VBOs[I];
       glBufferData(GL_ARRAY_BUFFER, SizeOf(TVector2) * Length(VertexArray), @VertexArray[0], GL_STATIC_DRAW);
-      glEnableVertexAttribArray(0);
+      glEnableVertexAttribArray(GLObjectNone);
       glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, SizeOf(TVector2), Pointer(0));
     end;
 

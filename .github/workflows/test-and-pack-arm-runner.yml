@@ -1,0 +1,151 @@
+# ----------------------------------------------------------------------------
+# GitHub Action workflow to
+#
+# - test CGE compilation and automatic tests
+# - pack CGE into zip
+#
+# on platforms for which we use https://github.com/marketplace/actions/arm-runner
+# which in practice means: for Raspberry Pi 64-bit and 32-bit.
+#
+# The intention is to do exactly the same thing as test-and-pack-runner-native.yml,
+# but it has to be implemented differently, since the ARM machines are not
+# "normal runners" for GitHub Actions. Instead:
+# - GitHub Actions runs ubuntu-latest,
+# - and inside we use https://github.com/marketplace/actions/arm-runner
+# - ... which takes things to do as "commands".
+#
+# See https://github.com/michaliskambi/test-arm-runner-for-cge/ for repo
+# with tests of the arm-runner + CGE.
+# ----------------------------------------------------------------------------
+
+name: Test and Pack (ARM Runner)
+
+# Called by everything.yml
+on: [workflow_call]
+#on: [push, pull_request]
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  test_and_pack:
+    name: Test and Pack (ARM Runner)
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        arch: [armv7l, aarch64]
+        include:
+        # Raspberry Pi 32-bit (Arm), bullseye (older version, used on Raspberry Pi 4 by default)
+        - arch: armv7l
+          cpu: cortex-a7
+          base_image: dietpi:rpi_armv7_bullseye
+          cpu_info: cpuinfo/raspberrypi_3b
+        # Raspberry Pi 64-bit (Aarch64), latest (bookworm)
+        - arch: aarch64
+          cpu: cortex-a53
+          base_image: raspios_lite_arm64:latest
+          cpu_info: cpuinfo/raspberrypi_zero2_w_arm64_w
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pguyot/arm-runner-action@v2
+        with:
+          base_image: ${{ matrix.base_image }}
+          cpu: ${{ matrix.cpu }}
+
+          shell: /bin/bash -eo pipefail
+          image_additional_mb: 6000
+          # Avoids the need for copy_artifact_path later.
+          bind_mount_repository: true
+          commands: |
+            # Useful string to grep logs, because log of script execution is somewhat buried in the middle of pguyot/arm-runner-action log
+            echo 'CGE script starts here'
+
+            # Show system info
+            uname -a
+            if which lsb_release > /dev/null; then lsb_release -a; else echo "No lsb_release"; fi
+            cat /proc/cpuinfo
+            dpkg -l libc-bin
+
+            # Install FPC and other Linux dependencies
+            sudo apt-get update
+            sudo apt-get --no-install-recommends -y install libgl-dev fpc git git-lfs make wget unzip sed zip
+
+            # Set environment
+            ARM_RUNNER_WORKSPACE=`pwd`
+            export CASTLE_ENGINE_PATH=$ARM_RUNNER_WORKSPACE
+            LAZARUS_DIR="/cge-work/lazarus/"
+            export "PATH=${PATH}:/cge-work/installed/bin/:/cge-work/pasdoc/bin/:${LAZARUS_DIR}"
+            FPC_OS=`fpc -iTO`
+            FPC_CPU=`fpc -iTP`
+            # Disable FPC version check (32-bit rpi is using bullseye with FPC 3.2.0 now)
+            if [ "${FPC_CPU}" = 'arm' ]; then export "CASTLE_PACK_DISABLE_FPC_VERSION_CHECK=true"; fi
+
+            # Put various things like other projects (Lazarus and PasDoc)
+            # and installed CGE binaries in directory /cge-work/,
+            # outside of $CASTLE_ENGINE_PATH.
+            #
+            # Reason:
+            # This way "make clean" and "pack_release.sh" cleanups in CGE
+            # will not touch them.
+            # Otherwise, our "pack_release.sh" would e.g. clean .res important
+            # for Lazarus, causing later errors when building Lazarus packages:
+            #   /castle-engine/lazarus/lcl/forms.pp(2440,1) Error: (9031) Can't open resource file "/castle-engine/lazarus/lcl/cursors.res"
+            mkdir -p /cge-work/
+
+            # Install Lazarus from https://github.com/castle-engine/cge-lazarus/
+            # (because Lazarus in repos is too old).
+            cd /cge-work/
+            wget https://github.com/castle-engine/cge-lazarus/releases/download/snapshot/lazarus-${FPC_OS}-${FPC_CPU}.zip --output-document lazarus.zip
+            unzip lazarus.zip
+            mv lazarus/lazbuild lazarus/lazbuild-real
+            cp "${ARM_RUNNER_WORKSPACE}/.github/workflows/lazbuild-template" lazarus/lazbuild
+            sed -i "s|LAZARUS-DIRECTORY-PLACEHOLDER|${LAZARUS_DIR}|g" lazarus/lazbuild
+            cat lazarus/lazbuild
+            chmod +x lazarus/lazbuild
+
+            # Check versions (and availability) of our requirements early
+            cd / # current dir should not matter below
+            fpc -iV
+            lazbuild --version
+            make --version
+            sed --version
+
+            # Build Tools
+            cd "${CASTLE_ENGINE_PATH}"
+            rm -Rf /cge-work/installed/
+            mkdir -p /cge-work/installed/
+            make clean tools install PREFIX=/cge-work/installed/
+
+            # Build Examples
+            # Too slow on RPi
+            # make clean examples CASTLE_CONSERVE_DISK_SPACE=true
+
+            # Build And Run Auto-Tests
+            make tests
+
+            # Build Lazarus Packages
+            lazbuild packages/castle_base.lpk
+            lazbuild packages/castle_window.lpk
+            lazbuild packages/castle_components.lpk
+            lazbuild packages/castle_editor_components.lpk
+            lazbuild packages/alternative_castle_window_based_on_lcl.lpk
+
+            # Build and Install PasDoc
+            cd /cge-work/
+            wget https://github.com/pasdoc/pasdoc/archive/refs/heads/master.zip --output-document pasdoc-master.zip
+            unzip pasdoc-master.zip
+            mv pasdoc-master pasdoc
+            make -C /cge-work/pasdoc/
+            pasdoc --version # check it's OK
+
+            # Pack Release
+            cd "${CASTLE_ENGINE_PATH}"
+            ./tools/internal/pack_release/pack_release.sh ${FPC_OS} ${FPC_CPU}
+
+      - name: Archive Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: raspberry-pi-${{ matrix.arch }}-release
+          path: "castle-engine*.zip"
+          if-no-files-found: error

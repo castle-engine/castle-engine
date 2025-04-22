@@ -279,9 +279,9 @@ type
     property AnimationHurt: String read FAnimationHurt write FAnimationHurt stored AnimationHurtStored nodefault;
 
     { Minimum delay between one attack and the other, in seconds.
-      Note that the duration of AttackAnimation also limits how often creature
+      Note that the duration of @link(AnimationAttack) also limits how often creature
       can do an attack (so e.g. setting this to 0.0 doesn't mean that creature
-      can constantly attack, if AttackAnimation takes 1 second then at least
+      can constantly attack, if @link(AnimationAttack) takes 1 second then at least
       this 1 second will have to pass between actual attack hits). }
     property AttackMinDelay: Single
       read FAttackMinDelay write FAttackMinDelay
@@ -295,7 +295,7 @@ type
       read FAttackMaxDistance write FAttackMaxDistance
       {$ifdef FPC}default DefaultAttackMaxDistance{$endif};
 
-    { The time point within AttackAnimation at which the short-range attack
+    { The time point within @link(AnimationAttack) at which the short-range attack
       happens. When exactly happens depends on the virtual
       @link(TCastleMoveAttack.Attack) method implementation,
       in the base TCastleMoveAttack it is a short-range
@@ -319,13 +319,13 @@ type
 
     { Attack damage.
       Used by the creatures that do short-range attack
-      (when @link(AttackAnimation) is set). }
+      (when @link(AnimationAttack) is set). }
     property AttackDamage: TCastleDamage read FAttackDamage;
 
-    { The time (in seconds) since the FireMissileAnimation start when we actually
+    { The time (in seconds) since the @link(AnimationFireMissile) start when we actually
       spawn a missile. By default zero, which means that we spawn the missile
-      right when FireMissileAnimation starts.
-      Must be < than the FireMissileAnimation duration, otherwise we will never
+      right when @link(AnimationFireMissile) starts.
+      Must be < than the @link(AnimationFireMissile) duration, otherwise we will never
       reach tthis time and missile will never be fired. }
     property FireMissileTime: Single
       read FFireMissileTime write FFireMissileTime

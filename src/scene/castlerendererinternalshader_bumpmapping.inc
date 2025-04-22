@@ -85,6 +85,15 @@ begin
 
   if BumpMapping = bmNone then Exit;
 
+  {$ifdef CASTLE_WEBGL}
+  { TODO: web: this fails with GLSL compilation error:
+      EGLSLShaderCompileError: Vertex shader not compiled:
+      0(16) : error C1503: undefined variable "_ucastle_tangent_to_eye_space"
+    in Vivaldi. In FireFox, the variable name is more cryptic. }
+  WritelnWarning('WebGL', 'Bump Mapping not supported on WebGL for now');
+  Exit;
+  {$endif}
+
   // add basic bump mapping code
   VertexShader   := {$I bump_mapping.vs.inc};
   FragmentShader := {$I bump_mapping.fs.inc};

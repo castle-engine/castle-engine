@@ -123,7 +123,7 @@ type
     var
       FUseColor: Boolean;
       FColor: TCastleColor;
-      VboVertex, VboIndex: TGLuint;
+      VboVertex, VboIndex: TGLBuffer;
       VertexAllocatedBytes, IndexAllocatedBytes,
         VertexAllocatedItems, IndexAllocatedItems: Cardinal;
       FixedFunctionVertexes: TVector4List;
@@ -201,8 +201,8 @@ end;
 destructor TCastleRenderUnlitMesh.Destroy;
 begin
   FreeAndNil(Vao);
-  glFreeBuffer(VboIndex);
-  glFreeBuffer(VboVertex);
+  FreeBuffer(VboIndex);
+  FreeBuffer(VboVertex);
   inherited;
 end;
 
@@ -273,7 +273,7 @@ procedure TCastleRenderUnlitMesh.Render(const Mode: TPrimitiveMode);
   { Render using modern pipeline. }
   procedure RenderShaders;
   begin
-    if VboVertex = 0 then
+    if VboVertex = GLObjectNone then
       raise EInternalError.Create('TCastleRenderUnlitMesh has no vertexes defined to render');
 
     RenderContext.CurrentProgram := Programs[UseColor].Shader;
@@ -292,8 +292,8 @@ procedure TCastleRenderUnlitMesh.Render(const Mode: TPrimitiveMode);
 
     Programs[UseColor].AttributeVertex.DisableArray;
 
-    RenderContext.BindBuffer[btArray] := 0;
-    RenderContext.BindBuffer[btElementArray] := 0;
+    RenderContext.BindBuffer[btArray] := GLObjectNone;
+    RenderContext.BindBuffer[btElementArray] := GLObjectNone;
   end;
 
   {$ifndef OpenGLES}
@@ -367,9 +367,9 @@ var
 begin
   if not GLFeatures.EnableFixedFunction then
   begin
-    NewVbo := VboIndex = 0;
+    NewVbo := VboIndex = GLObjectNone;
     if NewVbo then
-      glGenBuffers(1, @VboIndex);
+      VboIndex := glCreateBuffer();
 
     RenderContext.BindBuffer[btElementArray] := VboIndex;
 
@@ -402,9 +402,9 @@ var
 begin
   if not GLFeatures.EnableFixedFunction then
   begin
-    NewVbo := VboVertex = 0;
+    NewVbo := VboVertex = GLObjectNone;
     if NewVbo then
-      glGenBuffers(1, @VboVertex);
+      VboVertex := glCreateBuffer();
 
     RenderContext.BindBuffer[btArray] := VboVertex;
 

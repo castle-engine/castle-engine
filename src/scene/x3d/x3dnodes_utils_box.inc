@@ -1,6 +1,6 @@
 {%MainUnit x3dnodes.pas}
 {
-  Copyright 2002-2023 Michalis Kamburelis.
+  Copyright 2002-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -144,116 +144,50 @@ begin
   MakeRect(2,  Sizes.Z, -Sizes.X, -Sizes.Y, 0, 0, 0);
 end;
 
-{ Make a wireframe box. }
-procedure BoxWireframe_Proxy(CoordIndex: TInt32List;
-  Coord: TVector3List; Sizes: TVector3);
-begin
-  Sizes := Sizes / 2;
-
-  Coord.AddRange([
-    Vector3(-Sizes.X, -Sizes.Y, -Sizes.Z),
-    Vector3( Sizes.X, -Sizes.Y, -Sizes.Z),
-    Vector3( Sizes.X,  Sizes.Y, -Sizes.Z),
-    Vector3(-Sizes.X,  Sizes.Y, -Sizes.Z),
-
-    Vector3(-Sizes.X, -Sizes.Y,  Sizes.Z),
-    Vector3( Sizes.X, -Sizes.Y,  Sizes.Z),
-    Vector3( Sizes.X,  Sizes.Y,  Sizes.Z),
-    Vector3(-Sizes.X,  Sizes.Y,  Sizes.Z)
-  ]);
-
-  // Each pair of indexes forms a line, matching TIndexedLineSetNode with Mode = lmPair
-  CoordIndex.AddRange([
-    // line loop on Z = min
-    0, 1,
-    1, 2,
-    2, 3,
-    3, 0,
-
-    // line loop on Z = max
-    4, 5,
-    5, 6,
-    6, 7,
-    7, 4,
-
-    // connect Z = min with Z = max
-    0, 4,
-    1, 5,
-    2, 6,
-    3, 7
-  ]);
-end;
-
 function TBoxNode.Proxy(var State: TX3DGraphTraverseState): TAbstractGeometryNode;
-
-  procedure BoxWireframe;
-  var
-    CoordNode: TCoordinateNode;
-    ILS: TIndexedLineSetNode absolute Result;
-  begin
-    ILS := TIndexedLineSetNode.Create(X3DName, BaseUrl);
-    try
-      CoordNode := TCoordinateNode.Create('', BaseUrl);
-      ILS.FdCoord.Value := CoordNode;
-      ILS.Mode := lmPair;
-
-      BoxWireframe_Proxy(ILS.FdCoordIndex.Items, CoordNode.FdPoint.Items,
-        FdSize.Value);
-    except FreeAndNil(Result); raise end;
-  end;
-
-  procedure BoxFilled;
-  var
-    CoordNode: TCoordinateNode;
-    NormalNode: TNormalNode;
-    TexCoordNode: TTextureCoordinateNode;
-    TexCoords: TVector2List;
-    IFS: TIndexedFaceSetNode absolute Result;
-  begin
-    IFS := TIndexedFaceSetNode.Create(X3DName, BaseUrl);
-    try
-      CoordNode := TCoordinateNode.Create('', BaseUrl);
-      IFS.FdCoord.Value := CoordNode;
-
-      NormalNode := TNormalNode.Create('', BaseUrl);
-      IFS.FdNormal.Value := NormalNode;
-      IFS.FdNormalPerVertex.Value := true;
-
-      if (FdTexCoord.Value <> nil) and FdTexCoord.CurrentChildAllowed then
-      begin
-        { No need for Box_Proxy to create tex coords. }
-        IFS.FdTexCoord.Value := FdTexCoord.Value;
-        TexCoords := nil;
-      end else
-      begin
-        TexCoordNode := TTextureCoordinateNode.Create('', BaseUrl);
-        IFS.FdTexCoord.Value := TexCoordNode;
-        TexCoords := TexCoordNode.FdPoint.Items;
-      end;
-
-      Box_Proxy(IFS.FdCoordIndex.Items,
-        CoordNode.FdPoint.Items, NormalNode.FdVector.Items, TexCoords, nil,
-        FdSize.Value);
-
-      IFS.FdSolid.Value := FdSolid.Value;
-      IFS.FdCcw.Value := FdCcw.Value;
-
-      { Box_Proxy generated normals from CCW,
-        we need to flip them if CW is front face }
-      if not FdCcw.Value then
-        NormalNode.FdVector.Items.Negate;
-
-      { Smooth nothing. Not really needed, we use explicit normal node now. }
-      IFS.FdCreaseAngle.Value := 0;
-    except FreeAndNil(Result); raise end;
-  end;
-
+var
+  CoordNode: TCoordinateNode;
+  NormalNode: TNormalNode;
+  TexCoordNode: TTextureCoordinateNode;
+  TexCoords: TVector2List;
+  IFS: TIndexedFaceSetNode absolute Result;
 begin
-  if (State.ShapeNode <> nil) and
-     (State.ShapeNode.Shading = shWireframe) then
-    BoxWireframe
-  else
-    BoxFilled;
+  IFS := TIndexedFaceSetNode.Create(X3DName, BaseUrl);
+  try
+    CoordNode := TCoordinateNode.Create('', BaseUrl);
+    IFS.FdCoord.Value := CoordNode;
+
+    NormalNode := TNormalNode.Create('', BaseUrl);
+    IFS.FdNormal.Value := NormalNode;
+    IFS.FdNormalPerVertex.Value := true;
+
+    if (FdTexCoord.Value <> nil) and FdTexCoord.CurrentChildAllowed then
+    begin
+      { No need for Box_Proxy to create tex coords. }
+      IFS.FdTexCoord.Value := FdTexCoord.Value;
+      TexCoords := nil;
+    end else
+    begin
+      TexCoordNode := TTextureCoordinateNode.Create('', BaseUrl);
+      IFS.FdTexCoord.Value := TexCoordNode;
+      TexCoords := TexCoordNode.FdPoint.Items;
+    end;
+
+    Box_Proxy(IFS.FdCoordIndex.Items,
+      CoordNode.FdPoint.Items, NormalNode.FdVector.Items, TexCoords, nil,
+      FdSize.Value);
+
+    IFS.FdSolid.Value := FdSolid.Value;
+    IFS.FdCcw.Value := FdCcw.Value;
+
+    { Box_Proxy generated normals from CCW,
+      we need to flip them if CW is front face }
+    if not FdCcw.Value then
+      NormalNode.FdVector.Items.Negate;
+
+    { Smooth nothing. Not really needed, we use explicit normal node now. }
+    IFS.FdCreaseAngle.Value := 0;
+  except FreeAndNil(Result); raise end;
 end;
 
 {$warnings off} // using deprecated to keep supporting VRML 1

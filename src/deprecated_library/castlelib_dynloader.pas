@@ -1,5 +1,5 @@
 {
-  Copyright 2008-2024 Jan Adamec, Michalis Kamburelis.
+  Copyright 2008-2025 Jan Adamec, Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -56,13 +56,14 @@ const
   ecgevarMouseLook       = 2;   // activate mouse look viewing mode, desktop interface only (int, 1 or 0)
   ecgevarCrossHair       = 3;   // show crosshair in the center of the screen (int, 1 or 0)
   ecgevarAnimationRunning = 4;  // (read-only) engine would like to progress with the animation (int, 1 or 0)
-  ecgevarWalkTouchCtl    = 5;   // walking touch control (int, one of ECgeTouchCtlInterface values)
+  ecgevarAutoWalkTouchInterface = 5;   // walking touch control (int, one of ECgeTouchCtlInterface values)
   ecgevarScenePaused     = 6;   // pause Viewport (int, 1 = on, 0 = off)
   ecgevarAutoRedisplay   = 7;   // automatically redraws the window all the time (int, 1 = on, 0 = off)
   ecgevarHeadlight       = 8;   // avatar's headlight (int, 1 = on, 0 = off)
   ecgevarOcclusionCulling = 9;  // occlusion culling (int, 1 = on, 0 = off)
   ecgevarPhongShading    = 10;  // phong shading (int, 1 = on, 0 = off)
   ecgevarPreventInfiniteFallingDown = 11;  // prevent infinite falling down (int, 1 = on, 0 = off)
+  ecgevarUIScaling       = 12;  // UI scaling method (int, one of ECgeUIScaling)
 
   // navigation types (ECgeNavigationType enum)
   ecgenavWalk      = 0;
@@ -71,12 +72,20 @@ const
   ecgenavTurntable = 3;
   ecgenavNone      = 4;
 
-  // touch interface modes
-  tiNone              = 0;
-  tiCtlWalkCtlRotate  = 1;
-  tiCtlWalkDragRotate = 2;
-  tiCtlFlyCtlWalkDragRotate = 3;
-  tiCtlPanXYDragRotate   = 4;
+  // touch interface modes (ECgeTouchInterface enum)
+  ecgetiNone       = 0;
+  ecgetiWalk       = 1;
+  ecgetiWalkRotate = 2;
+  ecgetiFlyWalk    = 3;
+  ecgetiPan        = 4;
+
+  // UI Scaling (ECgeUIScaling enum)
+  ecgeusNone                  = 0;
+  ecgeusEncloseReferenceSize  = 1;
+  ecgeusEncloseReferenceSizeAutoOrientation = 2;
+  ecgeusFitReferenceSize      = 3;
+  ecgeusExplicitScale         = 4;
+  ecgeusDpiScale              = 5;
 
   // library callback codes
   ecgelibNeedsDisplay     = 0;
@@ -258,6 +267,7 @@ const
 
 type
   TLibraryCallbackProc = function (eCode, iParam1, iParam2: cInt32; szParam: pcchar):cInt32; cdecl;
+  ppcchar = ^pcchar;
 
 procedure CGE_Initialize(ApplicationConfigDirectory: PCChar); cdecl; external 'castleengine';
 procedure CGE_Finalize(); cdecl; external 'castleengine';
@@ -292,13 +302,36 @@ procedure CGE_SetNavigationInputShortcut(eInput, eKey1, eKey2, eMouseButton, eMo
 function CGE_GetNavigationType(): cInt32; cdecl; external 'castleengine';
 procedure CGE_SetNavigationType(NewType: cInt32); cdecl; external 'castleengine';
 procedure CGE_SetTouchInterface(eMode: cInt32); cdecl; external 'castleengine';
-procedure CGE_SetUserInterface(AutomaticTouchInterface: cBool); cdecl; external 'castleengine';
+procedure CGE_SetAutoTouchInterface(AutomaticTouchInterface: cBool); cdecl; external 'castleengine';
+procedure CGE_SetWalkNavigationMouseDragMode(eMode: cInt32); cdecl; external 'castleengine';
 
 procedure CGE_SetVariableInt(eVar: cInt32; nValue: cInt32); cdecl; external 'castleengine';
 function CGE_GetVariableInt(eVar: cInt32): cInt32; cdecl; external 'castleengine';
 
-procedure CGE_SetNodeFieldValue(szNodeName, szFieldName: pcchar;
-                                fVal1, fVal2, fVal3, fVal4: cFloat); cdecl; external 'castleengine';
+procedure CGE_SetNodeFieldValue_SFFloat(szNodeName, szFieldName: pcchar; value: cFloat); cdecl; external 'castleengine';
+procedure CGE_SetNodeFieldValue_SFDouble(szNodeName, szFieldName: pcchar; value: cDouble); cdecl; external 'castleengine';
+procedure CGE_SetNodeFieldValue_SFInt32(szNodeName, szFieldName: pcchar; value: cInt32); cdecl; external 'castleengine';
+procedure CGE_SetNodeFieldValue_SFBool(szNodeName, szFieldName: pcchar; value: cBool); cdecl; external 'castleengine';
+procedure CGE_SetNodeFieldValue_SFString(szNodeName, szFieldName, szValue: pcchar); cdecl; external 'castleengine';
+procedure CGE_SetNodeFieldValue_SFVec2f(szNodeName, szFieldName: pcchar; val1, val2: cFloat); cdecl; external 'castleengine';
+procedure CGE_SetNodeFieldValue_SFVec3f(szNodeName, szFieldName: pcchar; val1, val2, val3: cFloat); cdecl; external 'castleengine';
+procedure CGE_SetNodeFieldValue_SFVec4f(szNodeName, szFieldName: pcchar; val1, val2, val3, val4: cFloat); cdecl; external 'castleengine';
+procedure CGE_SetNodeFieldValue_SFVec2d(szNodeName, szFieldName: pcchar; val1, val2: cDouble); cdecl; external 'castleengine';
+procedure CGE_SetNodeFieldValue_SFVec3d(szNodeName, szFieldName: pcchar; val1, val2, val3: cDouble); cdecl; external 'castleengine';
+procedure CGE_SetNodeFieldValue_SFVec4d(szNodeName, szFieldName: pcchar; val1, val2, val3, val4: cDouble); cdecl; external 'castleengine';
+procedure CGE_SetNodeFieldValue_SFRotation(szNodeName, szFieldName: pcchar; axisX, axisY, axisZ, rotation: cFloat); cdecl; external 'castleengine';
+procedure CGE_SetNodeFieldValue_MFFloat(szNodeName, szFieldName: pcchar; iCount: cInt32; values: pcfloat); cdecl; external 'castleengine';
+procedure CGE_SetNodeFieldValue_MFDouble(szNodeName, szFieldName: pcchar; iCount: cInt32; values: pcdouble); cdecl; external 'castleengine';
+procedure CGE_SetNodeFieldValue_MFInt32(szNodeName, szFieldName: pcchar; iCount: cInt32; values: pcint32); cdecl; external 'castleengine';
+procedure CGE_SetNodeFieldValue_MFBool(szNodeName, szFieldName: pcchar; iCount: cInt32; values: pcbool); cdecl; external 'castleengine';
+procedure CGE_SetNodeFieldValue_MFVec2f(szNodeName, szFieldName: pcchar; iCount: cInt32; values: pcfloat); cdecl; external 'castleengine';
+procedure CGE_SetNodeFieldValue_MFVec3f(szNodeName, szFieldName: pcchar; iCount: cInt32; values: pcfloat); cdecl; external 'castleengine';
+procedure CGE_SetNodeFieldValue_MFVec4f(szNodeName, szFieldName: pcchar; iCount: cInt32; values: pcfloat); cdecl; external 'castleengine';
+procedure CGE_SetNodeFieldValue_MFVec2d(szNodeName, szFieldName: pcchar; iCount: cInt32; values: pcdouble); cdecl; external 'castleengine';
+procedure CGE_SetNodeFieldValue_MFVec3d(szNodeName, szFieldName: pcchar; iCount: cInt32; values: pcdouble); cdecl; external 'castleengine';
+procedure CGE_SetNodeFieldValue_MFVec4d(szNodeName, szFieldName: pcchar; iCount: cInt32; values: pcdouble); cdecl; external 'castleengine';
+procedure CGE_SetNodeFieldValue_MFRotation(szNodeName, szFieldName: pcchar; iCount: cInt32; values: pcfloat); cdecl; external 'castleengine';
+procedure CGE_SetNodeFieldValue_MFString(szNodeName, szFieldName: pcchar; iCount: cInt32; values: ppcchar); cdecl; external 'castleengine';
 
 procedure CGE_IncreaseSceneTime(fTimeS: cFloat); cdecl; external 'castleengine';
 

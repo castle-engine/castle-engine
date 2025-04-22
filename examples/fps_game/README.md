@@ -1,6 +1,10 @@
 # First-Person Shooter example
 
-**TODO: This example is in the middle of a rework. It not yet fully functional, there's no creature AI, no items pickup, weapon doesn't work. See `examples/deprecated_to_upgrade/fps_game_old_ai/` for a working version but using deprecated API.**
+**TODO: This example is in the middle of a rework.** It not yet fully functional:
+
+- Not all creatures have AI. This is in progress, see `TCastleMoveAttack`, https://castle-engine.io/wp/2024/10/21/demo-game-using-blender-sketchfab-quaternius-models-tcastlemoveattack-early-preview-of-tcastlemoveattack-merged-slides-from-conference-last-week/ . On creatures that have AI, you can shoot them.
+
+- No items pickup and inventory.
 
 Example of a fully-working 3D FPS game using _Castle Game Engine_.
 

@@ -252,29 +252,31 @@ begin
 end;
 
 procedure TTestCastleUtils.TestPathDelim;
-{$ifdef UNIX}
+{$if defined(UNIX) or defined(WASI)}
 begin
- AssertTrue(InclPathDelim('/c/blah/') = '/c/blah/');
- AssertTrue(InclPathDelim('/c/blah' ) = '/c/blah/');
- AssertTrue(ExclPathDelim('/c/blah/') = '/c/blah' );
- AssertTrue(ExclPathDelim('/c/blah' ) = '/c/blah' );
+  // WASI also uses / as path delimiter, following FPC rtl/wasi/system.pp
+  AssertTrue(InclPathDelim('/c/blah/') = '/c/blah/');
+  AssertTrue(InclPathDelim('/c/blah' ) = '/c/blah/');
+  AssertTrue(ExclPathDelim('/c/blah/') = '/c/blah' );
+  AssertTrue(ExclPathDelim('/c/blah' ) = '/c/blah' );
 {$endif}
 {$ifdef MSWINDOWS}
 begin
- AssertTrue(InclPathDelim('c:\blah\') = 'c:\blah\');
- AssertTrue(InclPathDelim('c:\blah' ) = 'c:\blah\');
- AssertTrue(ExclPathDelim('c:\blah\') = 'c:\blah' );
- AssertTrue(ExclPathDelim('c:\blah' ) = 'c:\blah' );
+  AssertTrue(InclPathDelim('c:\blah\') = 'c:\blah\');
+  AssertTrue(InclPathDelim('c:\blah' ) = 'c:\blah\');
+  AssertTrue(ExclPathDelim('c:\blah\') = 'c:\blah' );
+  AssertTrue(ExclPathDelim('c:\blah' ) = 'c:\blah' );
 
- AssertTrue(InclPathDelim('c:\blah/') = 'c:\blah/');
- AssertTrue(ExclPathDelim('c:\blah/') = 'c:\blah' );
+  AssertTrue(InclPathDelim('c:\blah/') = 'c:\blah/');
+  AssertTrue(ExclPathDelim('c:\blah/') = 'c:\blah' );
 {$endif}
 end;
 
 procedure TTestCastleUtils.TestOSError;
 begin
   // TODO: add some test for Delphi + Linux
-  {$if defined(MSWINDOWS) or defined(FPC)}
+  // TODO: web: add some test for WASI
+  {$if (defined(MSWINDOWS) or defined(FPC)) and (not defined(WASI))}
   try
     OSCheck(
       {$ifdef MSWINDOWS} Windows.MoveFile('some_not_existing_file_name', 'foo') {$endif}
@@ -708,15 +710,18 @@ begin
   AssertEquals('123', FloatToStrDisplay(123.000));
   AssertEquals('123.4', FloatToStrDisplay(123.400));
   AssertEquals('123.45', FloatToStrDisplay(123.450));
-  AssertEquals('123.46', FloatToStrDisplay(123.456));
+  AssertEquals('123.456', FloatToStrDisplay(123.456));
+  AssertEquals('123.46', FloatToStrDisplay(123.456, 2));
 
   AssertEquals('0', FloatToStrDisplay(0.000));
   AssertEquals('0.4', FloatToStrDisplay(0.400));
   AssertEquals('0.45', FloatToStrDisplay(0.450));
-  AssertEquals('0.46', FloatToStrDisplay(0.456));
+  AssertEquals('0.456', FloatToStrDisplay(0.456));
+  AssertEquals('0.46', FloatToStrDisplay(0.456, 2));
 
   AssertEquals('99.99', FloatToStrDisplay(99.99));
-  AssertEquals('100', FloatToStrDisplay(99.999));
+  AssertEquals('99.999', FloatToStrDisplay(99.999));
+  AssertEquals('100', FloatToStrDisplay(99.999, 2));
 end;
 
 procedure TTestCastleUtils.TestDeg;

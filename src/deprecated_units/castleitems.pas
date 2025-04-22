@@ -114,7 +114,7 @@ type
 
       You usually define your own item resources by adding a subdirectory with
       resource.xml file to your game data. See
-      [https://castle-engine.io/creating_data_resources.php]
+      https://github.com/castle-engine/cge-www/blob/master/htdocs/doc/obsolete/deprecated_3d_game_utilities/creating_data_resources.php
       and engine tutorial for examples how to do this. Then you load the item
       resources with
 

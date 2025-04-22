@@ -19,8 +19,8 @@ unit ToolIOS;
 interface
 
 uses Classes,
-  CastleUtils, CastleStringUtils,
-  ToolUtils, ToolArchitectures, ToolCompile, ToolProject, ToolPackageFormat,
+  CastleUtils, CastleStringUtils, CastleInternalArchitectures,
+  ToolUtils, ToolCompile, ToolProject, ToolPackageFormat,
   ToolManifest;
 
 var

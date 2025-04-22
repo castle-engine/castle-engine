@@ -336,8 +336,25 @@ type
       { Camera pos/dir/up expressed as vectors more comfortable
         for Examine methods. }
       TExamineVectors = record
-        Translation: TVector3;
-        Rotations: TQuaternion;
+      strict private
+        FTranslation: TVector3;
+        FRotations: TQuaternion;
+        FModified: Boolean;
+        procedure SetTranslation(const Value: TVector3);
+        procedure SetRotations(const Value: TQuaternion);
+      public
+        property Translation: TVector3 read FTranslation write SetTranslation;
+        property Rotations: TQuaternion read FRotations write SetRotations;
+
+        { Value returned by ExamineVectors is originally "not modified".
+          We later track Modified, to allow to avoid doing
+          "ExamineVectors := NewVectors" when not necessary.
+
+          This allows to save time of SetExamineVectors, but more importantly
+          avoids "shaking" camera pos/dir/up values (because the calculations
+          are not precise and when doing nothing, we don't want to show
+          in castle-model-viewer how camera pos/dir/up "shake" a little). }
+        property Modified: Boolean read FModified write FModified;
       end;
 
     var
@@ -1874,6 +1891,26 @@ begin
   end;
 end;
 
+{ TCastleExamineNavigation.TExamineVectors ------------------------------------ }
+
+procedure TCastleExamineNavigation.TExamineVectors.SetTranslation(const Value: TVector3);
+begin
+  if not TVector3.PerfectlyEquals(FTranslation, Value) then
+  begin
+    FTranslation := Value;
+    FModified := true;
+  end;
+end;
+
+procedure TCastleExamineNavigation.TExamineVectors.SetRotations(const Value: TQuaternion);
+begin
+  if not TVector4.PerfectlyEquals(FRotations.Data.Vector4, Value.Data.Vector4) then
+  begin
+    FRotations := Value;
+    FModified := true;
+  end;
+end;
+
 { TCastleExamineNavigation ------------------------------------------------------------ }
 
 constructor TCastleExamineNavigation.Create(AOwner: TComponent);
@@ -2035,8 +2072,8 @@ var
 begin
   Camera.GetWorldView(APos, ADir, AUp);
 
+  Result.Modified := false;
   Result.Translation := -APos;
-
   Result.Rotations := OrientationQuaternionFromDirectionUp(ADir, AUp).Conjugate;
 
   { We have to fix our Translation, since our TCastleExamineNavigation.Matrix
@@ -2139,7 +2176,7 @@ begin
       V.Rotations := QuatFromAxisAngle(TVector3.One[2],
         FRotationsAnim[2] * RotChange) * V.Rotations;
 
-    V.Rotations.LazyNormalizeMe;
+    V.Rotations := V.Rotations.NormalizeLazy;
   end;
 
   if HandleInput and (niNormal in UsingInput) then
@@ -2191,7 +2228,8 @@ begin
     end;
   end;
 
-  ExamineVectors := V;
+  if V.Modified then
+    ExamineVectors := V;
 
   { process things that do not set ExamineVectors }
   if HandleInput and (niNormal in UsingInput) then
@@ -2257,7 +2295,6 @@ end;
 function TCastleExamineNavigation.SensorRotation(const X, Y, Z, Angle: Double;
   const SecondsPassed: Single): boolean;
 var
-  Moved: boolean;
   RotationSize: Double;
   V: TExamineVectors;
 begin
@@ -2265,34 +2302,31 @@ begin
   if not RotationEnabled then Exit(false);
   Result := true;
 
-  Moved := false;
   RotationSize := SecondsPassed * Angle * RotationSpeed;
   V := ExamineVectors;
 
   if Abs(X) > 0.4 then      { tilt forward / backward}
   begin
     V.Rotations := QuatFromAxisAngle(Vector3(1, 0, 0), X * RotationSize) * V.Rotations;
-    Moved := true;
   end;
 
   if Abs(Y) > 0.4 then      { rotate }
   begin
     if Turntable then
       V.Rotations := V.Rotations *
-        QuatFromAxisAngle(Vector3(0, 1, 0), Y * RotationSize) else
+        QuatFromAxisAngle(Vector3(0, 1, 0), Y * RotationSize)
+    else
       V.Rotations := QuatFromAxisAngle(Vector3(0, 1, 0), Y * RotationSize) *
         V.Rotations;
-    Moved := true;
   end;
 
   if (Abs(Z) > 0.4) and (not Turntable) then      { tilt sidewards }
   begin
     V.Rotations := QuatFromAxisAngle(Vector3(0, 0, 1), Z * RotationSize) * V.Rotations;
-    Moved := true;
   end;
 
   { Assign ExamineVectors only if some change occurred }
-  if Moved then
+  if V.Modified then
     ExamineVectors := V;
 end;
 
@@ -2485,7 +2519,8 @@ var
         XYRotation((1 - ZRotRatio) * RotationSpeed);
     end;
 
-    ExamineVectors := V;
+    if V.Modified then
+      ExamineVectors := V;
   end;
 
   procedure MoveNonExact;

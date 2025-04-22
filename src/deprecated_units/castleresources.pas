@@ -15,7 +15,8 @@
 
 { Manage resources with animations that may be reused by multiple instances.
   This is in practice used for creatures and items animations in our
-  "Utilities for typical 3D games", https://castle-engine.io/manual_high_level_3d_classes.php .
+  deprecated "Utilities for typical 3D games",
+  https://github.com/castle-engine/cge-www/tree/master/htdocs/doc/obsolete/deprecated_3d_game_utilities .
 
   Note that you @italic(do not) need this unit in many normal cases when dealing with animations.
   It is generally simpler and more adviced to use TCastleScene and TCastleScene.PlayAnimation
@@ -99,9 +100,9 @@ type
     function Defined: boolean;
 
     { Scene URL, only when each animation is inside a separate 3D file.
-      See [https://castle-engine.io/creating_data_resources.php]
+      See https://github.com/castle-engine/cge-www/blob/master/htdocs/doc/obsolete/deprecated_3d_game_utilities/creating_data_resources.php
       for documentation how you can define creature animations. }
-    property Url: String read FUrl write FUrl; {$ifdef FPC}deprecated 'do not use separate URLs for each animation; use one URL with all animations; see https://castle-engine.io/creating_data_resources.php';{$endif}
+    property Url: String read FUrl write FUrl; {$ifdef FPC}deprecated 'do not use separate URLs for each animation; use one URL with all animations';{$endif}
 
     { Animation name (like for @link(TCastleSceneCore.PlayAnimation)),
       which is equal to TimeSensor node name.
@@ -112,7 +113,7 @@ type
       animation model (from @link(Url)) or, when not defined,
       inside whole resource model (from @link(T3DResource.ModelUrl)).
 
-      See [https://castle-engine.io/creating_data_resources.php]
+      See https://github.com/castle-engine/cge-www/blob/master/htdocs/doc/obsolete/deprecated_3d_game_utilities/creating_data_resources.php
       for documentation how you can define creature animations. }
 
     property AnimationName: string read FAnimationName write FAnimationName;
@@ -403,7 +404,7 @@ type
 
     { Model URL, only when you define multiple animations inside
       a single 3D file. See
-      [https://castle-engine.io/creating_data_resources.php]
+      https://github.com/castle-engine/cge-www/blob/master/htdocs/doc/obsolete/deprecated_3d_game_utilities/creating_data_resources.php
       for notes about <model> element in resource.xml files. }
     property ModelUrl: String read FModelUrl write FModelUrl;
 
@@ -452,7 +453,7 @@ type
 
       Note that Pool only matters if you use a single file
       for all resource animations. Using multiples files (separate file for each animation)
-      is deprecated anyway, see https://castle-engine.io/creating_data_resources.php .
+      is deprecated anyway, see https://github.com/castle-engine/cge-www/blob/master/htdocs/doc/obsolete/deprecated_3d_game_utilities/creating_data_resources.php .
 
       In the @code(resource.xml), you can specify this value an explicit integer
       (0 means to not use pool), or you can write @code("auto") to automatically guess
@@ -756,7 +757,7 @@ begin
     Url := ResourceConfig.GetUrl('model/' + Name + '/url', true);
 
   if Url <> '' then
-    WritelnWarning('Animation "%s" of "%s" has it''s own URL, this is deprecated. Use one URL for all animations. See https://castle-engine.io/creating_data_resources.php .', [
+    WritelnWarning('Animation "%s" of "%s" has it''s own URL, this is deprecated. Use one URL for all animations.', [
       Name,
       Owner.Name
     ]);

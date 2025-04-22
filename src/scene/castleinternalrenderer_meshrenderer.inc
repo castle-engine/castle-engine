@@ -366,7 +366,7 @@ begin
     if not PrepareRenderShape then
     begin
       { Initialize vertex arrays that we we will use with indexed nodes. }
-      if Vbo[vtCoordinate] <> 0 then
+      if Vbo[vtCoordinate] <> GLObjectNone then
         RenderContext.BindBuffer[btArray] := Vbo[vtCoordinate];
 
       {$ifdef OpenGLES}
@@ -416,7 +416,7 @@ begin
         {$endif not OpenGLES}
       end;
 
-      if Vbo[vtAttribute] <> 0 then
+      if Vbo[vtAttribute] <> GLObjectNone then
         RenderContext.BindBuffer[btArray] := Vbo[vtAttribute];
 
       if CurrentMeshShader <> nil then
@@ -508,7 +508,7 @@ begin
       First := 0;
       if Arrays.HasIndexes then
       begin
-        if Vbo[vtIndex] <> 0 then
+        if Vbo[vtIndex] <> GLObjectNone then
         begin
           RenderContext.CurrentVao := Vao;
           RenderContext.BindBuffer[btElementArray] := Vbo[vtIndex];
@@ -1081,8 +1081,8 @@ begin
       CurrentMeshShader := nil;
   end;
 
+  RenderContext.CurrentProgram := CurrentMeshShader; // enable the CurrentMeshShader for OpenGL
+
   if CurrentMeshShader <> nil then
     CurrentMeshShader.SetupUniforms(BoundTextureUnits);
-
-  RenderContext.CurrentProgram := CurrentMeshShader; // enable the CurrentMeshShader for OpenGL
 end;

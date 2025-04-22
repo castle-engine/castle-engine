@@ -10,4 +10,12 @@ See https://castle-engine.io/project_manifest for documentation of this file.
   qualified_name="io.castleengine.texture.font.to.pascal"
 >
   <data exists="false" />
+  <compiler_options>
+    <search_paths>
+      <path value="../common-code/" />
+    </search_paths>
+    <defines>
+      <define>CASTLE_STRICT_CLI</define>
+    </defines>
+  </compiler_options>
 </project>

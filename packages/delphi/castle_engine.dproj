@@ -68,6 +68,8 @@
         <VerInfo_Keys>CompanyName=;FileDescription=$(MSBuildProjectName);FileVersion=1.0.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProgramID=com.embarcadero.$(MSBuildProjectName);ProductName=$(MSBuildProjectName);ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
         <DCC_Description>Castle Game Engine - base for other packages</DCC_Description>
         <DCC_Define>CASTLE_DELPHI_PACKAGE;$(DCC_Define)</DCC_Define>
+        <DCC_DUPLICATE_CTOR_DTOR>false</DCC_DUPLICATE_CTOR_DTOR>
+        <DCC_UNSUPPORTED_CONSTRUCT>false</DCC_UNSUPPORTED_CONSTRUCT>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base_Linux64)'!=''">
         <DCC_UsePackage>rtl;xmlrtl;IndySystem;IndyProtocols;IndyCore;$(DCC_UsePackage)</DCC_UsePackage>
@@ -123,7 +125,7 @@
         <DCCReference Include="IndySystem.dcp"/>
         <DCCReference Include="IndyProtocols.dcp"/>
         <DCCReference Include="IndyCore.dcp"/>
-        <DCCReference Include="..\..\src\delphi\castleinternalcontainer.pas"/>
+        <DCCReference Include="..\..\src\delphi\castlecontrolcontainer.pas"/>
         <DCCReference Include="..\..\src\delphi\castleinternaldelphiutils.pas"/>
         <DCCReference Include="..\..\src\base\castleapplicationproperties.pas"/>
         <DCCReference Include="..\..\src\base\castleclassutils.pas"/>
@@ -165,6 +167,7 @@
         <DCCReference Include="..\..\src\files\castlexmlcfginternal.pas"/>
         <DCCReference Include="..\..\src\files\castlexmlconfig.pas"/>
         <DCCReference Include="..\..\src\files\castlexmlutils.pas"/>
+        <DCCReference Include="..\..\src\files\castlezip.pas"/>
         <DCCReference Include="..\..\src\scene\x3d\x3dfields.pas"/>
         <DCCReference Include="..\..\src\scene\x3d\x3dnodes.pas"/>
         <DCCReference Include="..\..\src\castlescript\castlecurves.pas"/>
@@ -180,7 +183,7 @@
         <DCCReference Include="..\..\src\scene\load\x3dloadinternalgltf.pas"/>
         <DCCReference Include="..\..\src\scene\load\x3dloadinternalimage.pas"/>
         <DCCReference Include="..\..\src\scene\load\md3\x3dloadinternalmd3.pas"/>
-        <DCCReference Include="..\..\src\scene\load\ifc\castleinternalloadsaveifc.pas"/>
+        <DCCReference Include="..\..\src\scene\load\ifc\castleifc.pas"/>
         <DCCReference Include="..\..\src\scene\load\x3dloadinternalobj.pas"/>
         <DCCReference Include="..\..\src\scene\load\x3dloadinternalstl.pas"/>
         <DCCReference Include="..\..\src\scene\load\x3dloadinternaltiledmap.pas"/>
@@ -303,7 +306,6 @@
         <DCCReference Include="..\..\src\compatibility\delphi-only\custapp.pas"/>
         <DCCReference Include="..\..\src\compatibility\delphi-only\dom.pas"/>
         <DCCReference Include="..\..\src\compatibility\delphi-only\FPHashCompatibility.pas"/>
-        <DCCReference Include="..\..\src\compatibility\delphi-only\rttiutils.pas"/>
         <DCCReference Include="..\..\src\compatibility\delphi-only\singleinstance.pas"/>
         <DCCReference Include="..\..\src\compatibility\delphi-only\uriparser.pas"/>
         <DCCReference Include="..\..\src\compatibility\delphi-only\xmlread.pas"/>
@@ -392,6 +394,7 @@
         <DCCReference Include="..\..\src\scene\x3dtime.pas"/>
         <DCCReference Include="..\..\src\scene\castlelivingbehaviors.pas"/>
         <DCCReference Include="..\..\src\physics\kraft\kraft.pas"/>
+        <DCCReference Include="..\..\src\physics\kraft\castleinternalkraftoverrides.pas"/>
         <DCCReference Include="..\..\src\vampyre_imaginglib\src\Extensions\ImagingXpm.pas"/>
         <DCCReference Include="..\..\src\vampyre_imaginglib\src\Extensions\ImagingPcx.pas"/>
         <DCCReference Include="..\..\src\vampyre_imaginglib\src\Extensions\ImagingPsd.pas"/>
@@ -412,7 +415,6 @@
         <DCCReference Include="..\..\src\base_rendering\castleinternalegl.pas"/>
         <DCCReference Include="..\..\src\base_rendering\dglopengl\castlegl.pas"/>
         <DCCReference Include="..\..\src\files\castleinternalurlutils.pas"/>
-        <DCCReference Include="..\..\src\files\castleinternaltools.pas"/>
         <DCCReference Include="..\..\src\services\steam\castleinternalsteamapi.pas"/>
         <DCCReference Include="..\..\src\services\steam\castlesteam.pas"/>
         <BuildConfiguration Include="Base">

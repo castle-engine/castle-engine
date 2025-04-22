@@ -1,6 +1,6 @@
 {%MainUnit castlerenderoptions.pas}
 {
-  Copyright 2002-2023 Michalis Kamburelis.
+  Copyright 2002-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -153,19 +153,23 @@ type
 
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    procedure Assign(Source: TPersistent); override;
     procedure CustomSerialization(const SerializationProcess: TSerializationProcess); override;
     function PropertySections(const PropertyName: String): TPropertySections; override;
 
+    { Copies all propeties from Source,
+      the same properties that affect @link(Equals). }
+    procedure Assign(Source: TPersistent); override;
+
     { Equal TCastleRenderOptions produce the same effect when rendering
-      and can be treated as exactly equivalent by the @link(TCastleViewport.DynamicBatching)
-      algorithm. }
+      and can be treated as exactly equivalent by
+      the @link(TCastleViewport.DynamicBatching) algorithm. }
     function Equals(Obj: TObject): Boolean; override;
 
-    { Is the second TCastleRenderOptions instance on all fields
+    { Internal. Is the second TCastleRenderOptions instance on all fields
       that affect TShapeCache, that is things that affect generated geometry
       arrays or vbo. This compares the subset of variables that call
-      ReleaseCachedResources --- only the ones that affect TShapeCache. }
+      ReleaseCachedResources --- only the ones that affect TShapeCache.
+      @exclude }
     function EqualForShapeCache(SecondValue: TCastleRenderOptions): boolean; virtual;
 
     { Rendering mode, can be used to disable many rendering features at once. }
@@ -528,9 +532,26 @@ begin
     MagnificationFilter := TCastleRenderOptions(Source).MagnificationFilter;
     PointSize := TCastleRenderOptions(Source).PointSize;
     LineWidth := TCastleRenderOptions(Source).LineWidth;
+    BumpMapping := TCastleRenderOptions(Source).BumpMapping;
+    BumpMappingParallaxHeight := TCastleRenderOptions(Source).BumpMappingParallaxHeight;
+    Mode := TCastleRenderOptions(Source).Mode;
+    ShadowSampling := TCastleRenderOptions(Source).ShadowSampling;
+    DepthTest := TCastleRenderOptions(Source).DepthTest;
+    PhongShading := TCastleRenderOptions(Source).PhongShading;
+    SolidColor := TCastleRenderOptions(Source).SolidColor;
+    MaxLightsPerShape := TCastleRenderOptions(Source).MaxLightsPerShape;
     Blending := TCastleRenderOptions(Source).Blending;
     BlendingSourceFactor := TCastleRenderOptions(Source).BlendingSourceFactor;
     BlendingDestinationFactor := TCastleRenderOptions(Source).BlendingDestinationFactor;
+    WireframeColor := TCastleRenderOptions(Source).WireframeColor;
+    WireframeEffect := TCastleRenderOptions(Source).WireframeEffect;
+    SolidWireframeScale := TCastleRenderOptions(Source).SolidWireframeScale;
+    SolidWireframeBias := TCastleRenderOptions(Source).SolidWireframeBias;
+    SilhouetteScale := TCastleRenderOptions(Source).SilhouetteScale;
+    SilhouetteBias := TCastleRenderOptions(Source).SilhouetteBias;
+    RobustNegativeScale := TCastleRenderOptions(Source).RobustNegativeScale;
+    WholeSceneManifold := TCastleRenderOptions(Source).WholeSceneManifold;
+    InternalColorChannels := TCastleRenderOptions(Source).InternalColorChannels;
   end else
     inherited;
 end;

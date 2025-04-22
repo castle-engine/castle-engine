@@ -92,6 +92,8 @@
         <DCC_RemoteDebug>false</DCC_RemoteDebug>
         <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
         <VerInfo_Locale>1033</VerInfo_Locale>
+        <DCC_UNSUPPORTED_CONSTRUCT>false</DCC_UNSUPPORTED_CONSTRUCT>
+        <DCC_DUPLICATE_CTOR_DTOR>false</DCC_DUPLICATE_CTOR_DTOR>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_2)'!=''">
         <DCC_LocalDebugSymbols>false</DCC_LocalDebugSymbols>
@@ -109,6 +111,9 @@
         <DCCReference Include="castle_engine_vcl.dcp"/>
         <DCCReference Include="castle_engine_fmx.dcp"/>
         <DCCReference Include="..\..\src\delphi\castleinternaldelphidesign.pas"/>
+        <DCCReference Include="..\..\src\files\tools\castleinternaltools.pas"/>
+        <DCCReference Include="..\..\src\files\tools\castleinternalprojectlocalsettings.pas"/>
+        <DCCReference Include="..\..\src\files\tools\castleinternalarchitectures.pas"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>

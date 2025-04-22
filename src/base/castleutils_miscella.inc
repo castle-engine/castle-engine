@@ -153,15 +153,27 @@ function FloatToStrFDot(const Value: Extended;
   const Precision: Integer;
   const Digits: Integer): String;
 
-{ Display float as nice concise number to read (but not necessarily with
-  absolute precision):
-  always decimal,
-  no digits after dot if not necessary,
-  show some digits (but not too many - right now 2) after dot if they are meaningful.
+const
+  { Number of digits after the decimal point we show using FloatToStrDisplay
+    by default. This affects the display of floats and vectors in CGE editor's
+    object inspector. }
+  DefaultFloatStrDigits = 5;
 
-  Like other ...Dot routines, always uses dot (.) as a decimal separator,
+{ Display float as nice concise number to read (but not necessarily with
+  absolute precision). This means:
+
+  @unorderedList(
+    @item always decimal,
+    @item no digits after dot if not necessary,
+    @item(show some digits but not too many (because too many digits
+      are usually not useful, being the result of rounding errors
+      and not anything meaningful).)
+  )
+
+  Like the ...Dot routines, this always uses dot (.) as a decimal separator,
   regardless of the user's locale settings. }
-function FloatToStrDisplay(const AValue: Extended): String;
+function FloatToStrDisplay(const AValue: Extended;
+  const ADigits: Byte = DefaultFloatStrDigits): String;
 
 { Like standard TryStrToFloat, but always uses dot (.) as a decimal separator
   for the floating point numbers, regardless of the user's locale settings.
@@ -439,14 +451,14 @@ begin
   Result := FloatToStrF(Value, FloatFormat, Precision, Digits, FormatSettings);
 end;
 
-function FloatToStrDisplay(const AValue: Extended): String;
+function FloatToStrDisplay(const AValue: Extended; const ADigits: Byte): String;
 begin
   Result := FloatToStrFDot(AValue, ffFixed,
     { With FPC, Precision = 0 is also OK, but with Delphi it's not,
       it will use scientific notation then early, e.g. for 123.0.
       See TTestCastleUtils.TestFloatToStrDisplay testcase. }
     20,
-    2);
+    ADigits);
 
   { We remove trailing zeroes after decimal separator, we don't need them.
     A less hacky way (that doesn't involve string fixing) would be nicer,

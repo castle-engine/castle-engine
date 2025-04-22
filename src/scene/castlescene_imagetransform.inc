@@ -1,6 +1,6 @@
 {%MainUnit castlescene.pas}
 {
-  Copyright 2022-2024 Michalis Kamburelis.
+  Copyright 2022-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -23,6 +23,7 @@ type
   strict private
     { scene and X3D nodes }
     FScene: TCastleScene;
+    FPreciseCollisions: Boolean;
     FRootNode: TX3DRootNode;
     FAppearanceNode: TAppearanceNode;
     FShapeNode: TShapeNode;
@@ -42,6 +43,7 @@ type
     FMipmaps: Boolean;
 
     FUrlMonitoring: TUrlMonitoring;
+    FImageWidth, FImageHeight: Cardinal;
 
     { Update X3D TCoordinateNode, TTextureCoordinateNode. }
     procedure UpdateCoordinateNodes;
@@ -54,6 +56,7 @@ type
     procedure SetAlphaChannel(const Value: TAutoAlphaChannel);
     procedure SetUrl(const Value: String);
     procedure SetMipmaps(const Value: Boolean);
+    procedure SetPreciseCollisions(const Value: Boolean);
   protected
     function InternalBuildNodeInside: TObject; override;
   public
@@ -109,6 +112,40 @@ type
       for now this method will not load new image from disk.
       That's because the previous image contents will "survive" in the cache. }
     procedure ReloadUrl;
+
+    { Loaded image width.
+
+      This is not affected by any resizing done by @link(Size)
+      or scaling done by @link(TCastleTransform.Scale).
+      This property reflects the underlying image size.
+
+      Zero if no image is loaded. }
+    property ImageWidth: Cardinal read FImageWidth;
+
+    { Loaded image height.
+
+      This is not affected by any resizing done by @link(Size)
+      or scaling done by @link(TCastleTransform.Scale).
+      This property reflects the underlying image size.
+
+      Zero if no image is loaded. }
+    property ImageHeight: Cardinal read FImageHeight;
+
+    { Load image contents from a ready TEncodedImage instance.
+
+      If TakeImageOwnership = @true then we take given Image reference,
+      and the lifetime of this Image object will be further managed by this
+      TImageTextureNode class (so you should no longer free it yourself).
+      If TakeImageOwnership = @false then we only copy Image contents
+      (this is slower, but it means that ownership and freeing of given
+      Image instance remains on your side).
+
+      After using this, @link(Url) is always set to an empty string.
+      Using @link(ReloadUrl) will lose image contents.
+      If developer changes the @link(Url), the image will change to reflect
+      new URL contents. }
+    procedure LoadFromImage(const Image: TEncodedImage;
+      const TakeImageOwnership: Boolean);
   published
     { How is the image scaled.
       Determines scaling done both by @link(Size) and TCastleTransform.Scale. }
@@ -134,6 +171,11 @@ type
       For 2D games, you usually don't want to use mipmaps, as you often want to avoid
       scaling the image to be power-of-2. }
     property Mipmaps: Boolean read FMipmaps write SetMipmaps default false;
+
+    { Return the detailed information (triangle, and position within the triangle)
+      when testing collisions with this image
+      in the resulting @link(TRayCollision) from @link(TCastleViewport.MouseRayHit). }
+    property PreciseCollisions: Boolean read FPreciseCollisions write SetPreciseCollisions default false;
 
   {$define read_interface_class}
   {$I auto_generated_persistent_vectors/tcastleimagetransform_persistent_vectors.inc}
@@ -265,6 +307,7 @@ begin
      (PropertyName = 'ColorPersistent') or
      (PropertyName = 'SmoothScaling') or
      (PropertyName = 'AlphaChannel') or
+     (PropertyName = 'PreciseCollisions') or
      (PropertyName = 'Url') then
     Result := [psBasic]
   else
@@ -280,8 +323,10 @@ begin
   FShapeNode.Visible := FTextureNode.IsTextureImage;
   if FTextureNode.IsTextureImage then
   begin
-    W := FTextureNode.TextureImage.Width;
-    H := FTextureNode.TextureImage.Height;
+    FImageWidth := FTextureNode.TextureImage.Width;
+    FImageHeight := FTextureNode.TextureImage.Height;
+    W := FImageWidth;
+    H := FImageHeight;
 
     { change W, H according to Size }
     if not ((Size.X = 0) and (Size.Y = 0)) then
@@ -333,6 +378,9 @@ begin
     FTexPropertiesNode.BoundaryModeT := BoolRepeatToBoundaryMode[(FShift.Y <> 0) or (FRepeatImage.Y > 1)];
   end else
   begin
+    FImageWidth := 0;
+    FImageHeight := 0;
+
     FCoordinateNode.SetPoint([
       TVector3.Zero,
       TVector3.Zero,
@@ -466,6 +514,27 @@ begin
   Assert(FScene <> nil); // always <> nil in this class
   Assert(FScene.RootNode <> nil); // always <> nil in this class
   Result := FScene.RootNode.DeepCopy;
+end;
+
+procedure TCastleImageTransform.SetPreciseCollisions(const Value: Boolean);
+begin
+  if FPreciseCollisions <> Value then
+  begin
+    FPreciseCollisions := Value;
+    FScene.PreciseCollisions := Value;
+    { Note: This also adds ssRendering octree,
+      somewhat useless as image is just 1 shape in an internal scene.
+      But does not seem problematic either. }
+  end;
+end;
+
+procedure TCastleImageTransform.LoadFromImage(const Image: TEncodedImage;
+  const TakeImageOwnership: Boolean);
+begin
+  // unload the previous image, and make FUrlMonitoring not watch anything
+  Url := '';
+  FTextureNode.LoadFromImage(Image, TakeImageOwnership, '');
+  UpdateCoordinateNodes;
 end;
 
 {$define read_implementation_methods}

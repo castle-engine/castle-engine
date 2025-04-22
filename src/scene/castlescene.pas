@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2024 Michalis Kamburelis.
+  Copyright 2003-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -59,6 +59,64 @@ type
   TPrepareResourcesOption = CastleTransform.TPrepareResourcesOption;
   TPrepareResourcesOptions = CastleTransform.TPrepareResourcesOptions;
 
+  { Possible values for @link(TCastleScene.TransformOptimization). }
+  TTransformOptimization = (
+    { Automatically decide whether the transformation of this scene
+      changes often enough to prefer optimizations for toStatic or toDynamic
+      case.
+
+      Right now, this behaves like toDynamic when the scene is present multiple
+      times in the @link(TAbstractRootTransform) hierarchy, for example
+      when using @link(TCastleTransformReference) to render the same scene many times.
+      Otherwise this behaves like toStatic.
+
+      This automatic detection may make unoptimal decision,
+      which is why you can set @link(TCastleScene.TransformOptimization) explicitly
+      to toStatic or toDynamic if you "know better". Examples when it makes
+      sense to manually select optimization:
+
+      @unorderedList(
+        @item(When the scene is present multiple times in the
+          @link(TAbstractRootTransform) hierarchy (e.g. when using
+          @link(TCastleTransformReference)) but all these occurences are
+          very close to each other, thus are within radiuses of the same lights.
+
+          In this case, automatic detection makes unoptimal decision
+          to behave like toDynamic, which means shaders calculate more light
+          sources. Setting @link(TCastleScene.TransformOptimization)
+          to toStatic in this case is better.
+        )
+
+        @item(When the scene is present only once in the
+          @link(TAbstractRootTransform) hierarchy, but you know that
+          you will change the scene translation very often (e.g. almost every frame)
+          and the translation change will be large enough to make the scene
+          affected by different light sources. Or maybe you know you will
+          change the light's positions or radiuses very often by large values.
+
+          In this case, automatic detection makes unoptimal decision
+          to behave like toStatic, which means that shaders will be often recreated
+          when the scene (or light sources) move.
+          Setting @link(TCastleScene.TransformOptimization) to toDynamic
+          in this case is better,
+          it means that shaders for this shape will not change.
+        )
+      )
+    }
+    toAutomatic,
+
+    { Choose optimizations that are beneficial for TCastleScene instances
+      whose world transformation (translation, rotation, scale of this
+      and all parents) never changes, or rarely changes, or changes only by
+      a very small amount. }
+    toStatic,
+
+    { Choose optimizations that are beneficial for TCastleScene instances
+      whose world transformation (translation, rotation, scale of this
+      and all parents) changes often and by large values. }
+    toDynamic
+  );
+
   { Complete loading, processing and rendering of a scene.
     This is a descendant of @link(TCastleSceneCore) that adds efficient rendering. }
   TCastleScene = class(TCastleSceneCore)
@@ -104,6 +162,7 @@ type
 
       FShapeFrustumCulling, FSceneFrustumCulling: Boolean;
       FRenderOptions: TCastleRenderOptions;
+      FTransformOptimization: TTransformOptimization;
 
       { These fields are valid only during LocalRenderInside and CollectShape_ methods. }
       Render_Params: TRenderParams;
@@ -171,6 +230,91 @@ type
   private
     PreparedShapesResources, PreparedRender: Boolean;
   protected
+    (*Override TCastleRenderOptions passed to TShapesCollector when rendering
+      these shapes. May be tweaked during rendering,
+      to render the same shape/scene with multiple render options.
+
+      Sample usage:
+
+      @longCode(#
+      procedure TCastleSceneChromaticAberration.LocalRender(const Params: TRenderParams);
+
+        { Like MultMatricesTranslation, but the translation is applied by multiplying
+          from the other side. }
+        procedure GlobalMultMatricesTranslation(var M, MInvert: TMatrix4;
+          const Transl: TVector3);
+        begin
+          MultMatricesTranslation(MInvert, M, Transl);
+        end;
+
+      var
+        // Saved Params.Xxx before applying our transformation
+        SavedTransformationPtr: PTransformation;
+        SavedFrustumPtr: PFrustum;
+        // Values after applying our transformation
+        NewTransformation: TTransformation;
+        NewFrustum: TFrustum;
+
+        { Shift and render (based on TCastleTransform.Render). }
+        procedure RenderShiftedBegin(const Shift: TVector3);
+        begin
+          SavedTransformationPtr := Params.Transformation;
+          SavedFrustumPtr        := Params.Frustum;
+          Assert(SavedFrustumPtr <> nil);
+
+          NewTransformation := SavedTransformationPtr^;
+          NewFrustum        := SavedFrustumPtr^;
+
+          Params.Transformation := @NewTransformation;
+          Params.Frustum        := @NewFrustum;
+
+          GlobalMultMatricesTranslation(
+            NewTransformation.Transform, NewTransformation.InverseTransform, Shift);
+          // Use old frustum, as shifting it is not so easy
+          //NewFrustumValue.MoveVar(-Shift);
+        end;
+
+        procedure RenderShiftedEnd;
+        begin
+          { Restore SavedXxxPtr values.
+            They can be restored fast, thanks to restoring pointers, not content. }
+          Params.Transformation := SavedTransformationPtr;
+          Params.Frustum        := SavedFrustumPtr;
+        end;
+
+      var
+        SavedChannels: TColorChannels;
+      begin
+        if FChromaticAberrationStrength > 0 then
+        begin
+          { Create another instance of TCastleRenderOptions,
+            because engine ShapesCollector will only store references to TCastleRenderOptions,
+            and we need to pass 2 copies of the scene with 2 different render options. }
+          if AltRenderOptions = nil then
+            AltRenderOptions := TCastleRenderOptions.Create(Self);
+
+          // red-green not shifted
+          AltRenderOptions.InternalColorChannels := [0..1, 3];
+          InternalOverrideRenderOptions := AltRenderOptions;
+          inherited;
+          InternalOverrideRenderOptions := nil;
+
+          // blue shifted
+          RenderOptions.InternalColorChannels := [2, 3];
+          RenderShiftedBegin(FChromaticAberrationShift);
+          // Note: we avoid calling "inherited" in a nested procedure, this seems broken with FPC 3.0.4.
+          inherited LocalRender(Params);
+          RenderShiftedEnd;
+        end else
+        begin
+          RenderOptions.InternalColorChannels := [0..3];
+          inherited;
+        end;
+      end;
+      #)
+    *)
+    InternalOverrideRenderOptions: TCastleRenderOptions;
+
     function CreateShape(const AGeometry: TAbstractGeometryNode;
       const AState: TX3DGraphTraverseState;
       const ParentInfo: PTraversingInfo): TShape; override;
@@ -404,6 +548,41 @@ type
     { Lights defines by given scene shine on everything in the viewport, including all other TCastleScene. }
     property CastGlobalLights: Boolean
       read FCastGlobalLights write SetCastGlobalLights default false;
+
+    { Optimization hint, determines which optimizations to use for this scene.
+      Some optimizations are beneficial for scenes whose world transformation
+      (translation, rotation, scale of this and all parents) never changes,
+      or rarely changes, or changes only by a small amount.
+      Some optimizations are the reverse: they make sense for scenes whose
+      world transformation changes often and by large values.
+
+      See @link(TTransformOptimization) for possible values and more information.
+
+      The default value is @link(toAutomatic), which means that we auto-detect
+      the optimal approach.
+
+      For now, this only determines whether generated shaders...
+
+      @unorderedList(
+        @item(...include code to calculate all the light sources.
+
+          This is more optimal for dynamic transformations,
+          avoids the need to recreate shaders when transformation changes.)
+
+        @item(...include code only for light sources whose radius includes the
+          particular shape in the scene.
+
+          This is more optimal for static transformations, makes shader code
+          smaller, no point recalculating light sources whose influence is zero.)
+      )
+
+      An unofficial way (we don't guarantee it will always be exposed this way)
+      to test how often shaders are recreated is by setting
+      @code(LogRendererCache := true) from unit @code(CastleInternalRenderer).
+      Observe the log output to see how often shaders are recreated.
+      If you tweak this property, be sure to check whether this is improved. }
+    property TransformOptimization: TTransformOptimization
+      read FTransformOptimization write FTransformOptimization default toAutomatic;
   end;
 
   TCastleSceneClass = class of TCastleScene;
@@ -670,6 +849,34 @@ begin
 end;
 
 procedure TCastleScene.CollectShape_NoTests(const Shape: TGLShape);
+
+  function SceneTransformDynamic: Boolean;
+  begin
+    case TransformOptimization of
+      { Determine TCollectedShape.SceneTransformDynamic by considering
+        is this TCastleScene present multiple times in TAbstactRootTransform.
+
+        This means we have SceneTransformDynamic = true for TCastleTransformReference,
+        and don't recreate shaders each frame when the scene is inside/outside
+        the light radius, see
+        https://github.com/castle-engine/castle-engine/issues/664 }
+      toAutomatic: Result := InternalWorldReferences > 1;
+      toStatic   : Result := false;
+      toDynamic  : Result := true;
+      {$ifndef COMPILER_CASE_ANALYSIS}
+      else raise EInternalError.Create('TransformOptimization?');
+      {$endif}
+    end;
+  end;
+
+  function EffectiveRenderOptions: TCastleRenderOptions;
+  begin
+    if InternalOverrideRenderOptions <> nil then
+      Result := InternalOverrideRenderOptions
+    else
+      Result := RenderOptions;
+  end;
+
 begin
   { Whether the Shape is rendered directly or through batching,
     mark it "was visible this frame".
@@ -681,9 +888,9 @@ begin
 
   Shape.Fog := ShapeFog(Shape, Render_Params.GlobalFog as TFogNode);
 
-  Render_Collector.Add(Shape, RenderOptions,
-    Render_Params.Transformation^.Transform, Render_Params.DepthRange,
-    ReceiveShadowVolumes);
+  Render_Collector.Add(Shape, EffectiveRenderOptions,
+    Render_Params.Transformation^.Transform, SceneTransformDynamic,
+    Render_Params.DepthRange, ReceiveShadowVolumes);
   IsVisibleNow := true;
 end;
 
@@ -838,7 +1045,7 @@ var
             so matrix should be sensible for homegeneous coordinate transformation
             (so identity is OK, zero is not OK). }
           TMatrix4.Identity,
-          drFull);
+          false, drFull);
       end;
 
       Renderer.RenderEnd;
@@ -854,6 +1061,20 @@ var
 begin
   inherited;
 
+  { Use InternalDirty to prevent trying to render this scene while it has
+    some resources not ready.
+
+    Right now, there's actually nothing that could cause such rendering.
+    In the past, we experimented with initializing+updating progress bar
+    inside the PrepareResources (e.g. when preparing a shape requires
+    prepararing a texture, but the texture URL is online so we need
+    to display download progress of the texture).
+    The progress started by taking a screenshot of the current window,
+    so it caused rendering.
+
+    This is not relevant now. No callback is caused now by preparing
+    and rendering, so nothing should cause a render in the middle of preparation.
+    But let the check InternalDirty remain, for future security. }
   if InternalDirty <> 0 then Exit;
 
   if not ApplicationProperties.IsGLContextOpen then
@@ -863,25 +1084,6 @@ begin
     ]);
     Exit;
   end;
-
-  { When preparing resources, files (like textures) may get loaded,
-    causing progress bar (for example from CastleDownload).
-    Right now we're not ready to display the (partially loaded) scene
-    during this time, so we use InternalDirty to prevent it.
-
-    Test http://svn.code.sf.net/p/castle-engine/code/trunk/demo_models/navigation/transition_multiple_viewpoints.x3dv
-    Most probably problems are caused because shapes are initially
-    without a texture, so their arrays (including VBOs) are generated
-    without texture coordinates, and we do not mark them to be prepared
-    correctly later. Correct fix is unsure:
-    - Marking relevant shapes to be prepared again seems easiest,
-      but this means that potentially everything is prepared 2 times
-      --- once before resources (like textures) are ready, 2nd time with.
-    - It would be best to pas texture coordinates even when no texture is loaded?
-      Ideally, the renderer operations should be the same regardless if texture
-      is loaded or not.
-      It remains to carefully see whether it's possible in all cases.
-  }
 
   Inc(InternalDirty);
   try
@@ -1067,8 +1269,7 @@ begin
     ForceOpaque := not (RenderOptions.Blending and (RenderOptions.Mode = rmFull));
 
     // DistanceCullingCheck* uses this value, and it may be called here
-    RenderCameraPosition := Params.Transformation^.InverseTransform.MultPoint(
-      Params.RenderingCamera.View.Translation);
+    RenderCameraPosition := Params.LocalCameraPosition;
 
     { calculate and check SceneBox }
     SceneBox := LocalBoundingBox.Transform(Params.Transformation^.Transform);
@@ -1457,8 +1658,7 @@ begin
     end;
 
     // RenderCameraPosition is used by DistanceCullingCheck* below
-    RenderCameraPosition := Params.Transformation^.InverseTransform.MultPoint(
-      Params.RenderingCamera.View.Translation);
+    RenderCameraPosition := Params.LocalCameraPosition;
 
     { Do distance culling for whole scene.
       When WholeSceneManifold=true, this is the only place where

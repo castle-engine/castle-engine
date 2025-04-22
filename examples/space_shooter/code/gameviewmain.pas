@@ -21,7 +21,8 @@ interface
 uses Classes,
   CastleVectors, CastleComponentSerialize, CastleUIControls, CastleControls,
   CastleKeysMouse, CastleViewport, CastleTransform, CastleTimeUtils,
-  GameTilingBackground, GameRocketsManager, GameRocksManager;
+  GameTilingBackground, GameRocketsManager, GameRocksManager,
+  GameExplosionsManager;
 
 type
   { Main view, where most of the application logic takes place. }
@@ -34,11 +35,13 @@ type
     SpaceShip: TCastleTransform;
     RocketsParent: TCastleTransform;
     RocksParent: TCastleTransform;
+    ExplosionsParent: TCastleTransform;
     RectArmedHint: TCastleRectangleControl;
   private
     LifeTime: TFloatTime;
     RocketsManager: TRocketsManager;
     RocksManager: TRocksManager;
+    ExplosionsManager: TExplosionsManager;
     TilingBackground: TTilingBackground;
   public
     constructor Create(AOwner: TComponent); override;
@@ -81,7 +84,7 @@ begin
   SetLength(RocketsManager.Cannons, CannonsCount);
   for I := 0 to CannonsCount - 1 do
     RocketsManager.Cannons[I] := DesignedComponent('Cannon' + IntToStr(I)) as TCastleTransform;
-  RocketsManager.InitializeCannons;
+  RocketsManager.Initialize;
   { RocketsManager is a UI element, it has to be inserted into the UI hierarchy.
     It doesn't actually display anything, but it can listen to events like Update
     and have children like TCastleTimer. }
@@ -89,8 +92,15 @@ begin
 
   RocksManager := TRocksManager.Create(FreeAtStop);
   RocksManager.RocksParent := RocksParent;
-  RocksManager.InitializeRockResources(MainViewport);
+  RocksManager.InitializeResources(MainViewport);
   InsertFront(RocksManager);
+
+  ExplosionsManager := TExplosionsManager.Create(FreeAtStop);
+  ExplosionsManager.ExplosionsParent := ExplosionsParent;
+  ExplosionsManager.InitializeResources(MainViewport);
+  InsertFront(ExplosionsManager);
+
+  RocksManager.ExplosionsManager := ExplosionsManager;
 end;
 
 procedure TViewMain.Update(const SecondsPassed: Single; var HandleInput: Boolean);
@@ -208,6 +218,7 @@ begin
     'FPS: ' + Container.Fps.ToString + NL +
     'Rockets existing count: ' + IntToStr(RocketsParent.Count) + NL +
     'Rocks existing count: ' + IntToStr(RocksParent.Count) + NL +
+    'Explosions existing count: ' + IntToStr(ExplosionsParent.Count) + NL +
     'Rocks destroyed: ' + IntToStr(RocksManager.RocksDestroyed);
 
   { Sum up SecondsPassed values into LifeTime (type TFloatTime = Double).
@@ -217,7 +228,9 @@ begin
   UpdateMoveSpaceShip;
   UpdateBackground;
 
-  RocketsManager.ShootsArmed := Container.Pressed[keySpace];
+  RocketsManager.ShootsArmed :=
+    Container.Pressed[keySpace] or
+    Container.Pressed[keyE];
   if RocketsManager.ShootsArmed then
     RectArmedHint.Border.AllSides := 1
   else

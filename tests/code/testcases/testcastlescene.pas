@@ -28,12 +28,16 @@ type
   published
     procedure TestScene;
     procedure TestSpatialUpgrade;
+    procedure TestImageTransformImageWidthHeight;
+    { Testcase from https://github.com/castle-engine/castle-engine/issues/664 }
+    procedure TestRenderReferencesAndLightRadius;
   end;
 
 implementation
 
 uses X3DNodes, CastleSceneCore, CastleScene, CastleBoxes, CastleVectors,
-  CastleInternalRays, CastleProjection, CastleComponentSerialize, CastleUIControls;
+  CastleInternalRays, CastleProjection, CastleComponentSerialize,
+  CastleUIControls, CastleWindow, CastleViewport, CastleInternalGLUtils;
 
 procedure TTestScene.TestScene;
 
@@ -100,6 +104,117 @@ begin
     AssertTrue(SceneSpatialOnlyVisibleTriangles.PreciseCollisions);
     AssertTrue(SceneSpatialOnlyStaticCollisions.PreciseCollisions);
   finally FreeAndNil(UiOwner) end;
+end;
+
+procedure TTestScene.TestImageTransformImageWidthHeight;
+var
+  ImageTransform: TCastleImageTransform;
+begin
+  ImageTransform := TCastleImageTransform.Create(nil);
+  try
+    AssertEquals(0, ImageTransform.ImageWidth);
+    AssertEquals(0, ImageTransform.ImageHeight);
+
+    ImageTransform.Url := 'castle-data:/test_texture.png';
+    AssertEquals(256, ImageTransform.ImageWidth);
+    AssertEquals(256, ImageTransform.ImageHeight);
+
+    ImageTransform.Size := Vector2(100, 200);
+    ImageTransform.Scale := Vector3(0.25, 0.333333, 1);
+
+    // ImageWidth and ImageHeight should not change because of Size and Scale
+    AssertEquals(256, ImageTransform.ImageWidth);
+    AssertEquals(256, ImageTransform.ImageHeight);
+
+    // LocalBoundingBox should reflect Size
+    AssertSameValue(100, ImageTransform.LocalBoundingBox.SizeX);
+    AssertSameValue(200, ImageTransform.LocalBoundingBox.SizeY);
+
+    // BoundingBox should reflect Size scaled by Scale
+    AssertSameValue(100 * 0.25, ImageTransform.BoundingBox.SizeX, 0.01);
+    AssertSameValue(200 * 0.333333, ImageTransform.BoundingBox.SizeY, 0.01);
+
+    ImageTransform.Url := '';
+
+    // make sure ImageWidth and ImageHeight are reset to 0
+    AssertEquals(0, ImageTransform.ImageWidth);
+    AssertEquals(0, ImageTransform.ImageHeight);
+
+    { The box is, for now, not empty, but has zero size. Though we don't promise
+      exact behavior of this in API. }
+    AssertFalse(ImageTransform.LocalBoundingBox.IsEmpty);
+    AssertSameValue(0, ImageTransform.LocalBoundingBox.SizeX);
+    AssertSameValue(0, ImageTransform.LocalBoundingBox.SizeY);
+    AssertFalse(ImageTransform.BoundingBox.IsEmpty);
+    AssertSameValue(0, ImageTransform.BoundingBox.SizeX);
+    AssertSameValue(0, ImageTransform.BoundingBox.SizeY);
+  finally FreeAndNil(ImageTransform) end;
+end;
+
+procedure TTestScene.TestRenderReferencesAndLightRadius;
+
+{ Testcase from
+  https://github.com/castle-engine/castle-engine/issues/664
+
+  Before the fixes, rendering would fail with
+  OpenGL error (1282): The specified operation is not allowed in the current state.
+}
+
+var
+  Window: TCastleWindow;
+  View: TCastleView;
+  Viewport1: TCastleViewport;
+begin
+  if not CanCreateWindowForTest then
+  begin
+    AbortTest;
+    Exit;
+  end;
+
+  Window := CreateWindowForTest;
+  try
+    //Window.Visible := false; // need to be Visible to reproduce the crash
+    Window.Open;
+
+    View := TCastleView.Create(nil);
+    try
+      View.DesignUrl := 'castle-data:/designs/gh_664_references_and_light_radius/gameviewmain.castle-user-interface';
+      Window.Container.View := View;
+      Viewport1 := View.DesignedComponent('Viewport1') as TCastleViewport;
+
+      // default view is already "bad" in design, crashes before 664 fix
+      Window.Container.EventBeforeRender;
+      Window.Container.EventRender;
+      Window.Container.EventUpdate;
+      CheckGLErrors('TestRenderReferencesAndLightRadius, frame 0');
+
+      // this is good view, no crash
+      Viewport1.Camera.SetWorldView(
+        Vector3(0.00, 1.58, 0.83), // position
+        Vector3(-0.72, 0.00, -0.69), // direction
+        Vector3(0.00, 1.00, 0.00)  // up (current)
+      );
+      Window.Container.EventBeforeRender;
+      Window.Container.EventRender;
+      Window.Container.EventUpdate;
+      CheckGLErrors('TestRenderReferencesAndLightRadius, frame 1');
+
+      // this is bad view, crashes before 664 fix
+      Viewport1.Camera.SetWorldView(
+        Vector3(0.00, 1.58, 0.83), // position
+        Vector3(-0.98, 0.00, -0.20), // direction
+        Vector3(0.00, 1.00, 0.00)  // up (current)
+      );
+      Window.Container.EventBeforeRender;
+      Window.Container.EventRender;
+      Window.Container.EventUpdate;
+      CheckGLErrors('TestRenderReferencesAndLightRadius, frame 2');
+
+      // Interactive test:
+      // while not Window.Closed do
+      //   Application.ProcessAllMessages;
+    finally FreeAndNil(View) end;
+  finally DestroyWindowForTest(Window) end;
 end;
 
 initialization

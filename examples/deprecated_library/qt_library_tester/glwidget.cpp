@@ -118,7 +118,7 @@ void GLWidget::initializeGL()
     QString configDir = QStandardPaths::writableLocation(QStandardPaths::GenericDataLocation);
     CGE_Initialize(configDir.toUtf8());
     CGE_Open(ecgeofLog, width()*dPixRatio, height()*dPixRatio, logicalDpiY());
-    CGE_SetUserInterface(false);
+    CGE_SetAutoTouchInterface(false);
     CGE_SetLibraryCallbackProc(OpenGlLibraryCallback);
     m_bAfterInit = true;
     if (!m_sSceneToOpen.isEmpty())

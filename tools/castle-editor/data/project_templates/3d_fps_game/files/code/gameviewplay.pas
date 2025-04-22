@@ -92,6 +92,7 @@ end;
 
 function TViewPlay.Press(const Event: TInputPressRelease): Boolean;
 var
+  HitTransform: TCastleTransform;
   HitEnemy: TEnemy;
 begin
   Result := inherited;
@@ -113,11 +114,20 @@ begin
 
     { We clicked on enemy if
       - TransformUnderMouse indicates we hit something
-      - It has a behavior of TEnemy. }
-    if (MainViewport.TransformUnderMouse <> nil) and
-       (MainViewport.TransformUnderMouse.FindBehavior(TEnemy) <> nil) then
+      - It has a behavior of TEnemy.
+
+      Note: TransformUnderMouse checks the TCastleTransform picked
+      by the ray cast from the mouse pointer.
+      When WalkNavigation.MouseLook is true (mouse cursor is hidden then)
+      then it checks from the screen center.
+      If you want to always make ray cast from the screen center,
+      use "HitTransform := MainViewport.TransformHit(MainViewport.RenderRect.Center, true);" . }
+
+    HitTransform := MainViewport.TransformUnderMouse;
+    if (HitTransform <> nil) and
+       (HitTransform.FindBehavior(TEnemy) <> nil) then
     begin
-      HitEnemy := MainViewport.TransformUnderMouse.FindBehavior(TEnemy) as TEnemy;
+      HitEnemy := HitTransform.FindBehavior(TEnemy) as TEnemy;
       HitEnemy.Hurt;
     end;
 
@@ -142,9 +152,10 @@ begin
       The crosshair, at the middle of the screen, is thus useful
       (and even necessary) only when "mouse look" is active.
 
-      It real games, it is usually simpler, because you use "mouse look"
-      always, or not at all.
-      In this demo, we wanted to have both options. }
+      It real games, it is usually simpler, because
+      - You either use "mouse look" always, or never, during the game.
+      - And then you have a crosshair always visible, or never visible.
+      Just for the sake of in this demo we wanted to show both options. }
     SimpleCrosshair.Exists := WalkNavigation.MouseLook;
 
     Exit(true);

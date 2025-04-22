@@ -23,11 +23,17 @@ TimeSensor : X3DTimeDependentNode, X3DSensorNode {
   SFTime  [out]    cycleTime
   SFFloat [out]    fraction_changed
   SFTime  [out]    time
+
   # "enabled" inherited from X3DSensorNode.
   # Needs to be mentioned here, as everything inherited from non-1st ancestor
   # (from interface, not class, in Object Pascal implementation)
-  # needs to be mentioned, to be correctly processed by x3d-nodes-to-pascal.lpr.
+  # needs to be mentioned, to be correctly processed by x3d-nodes-to-pascal.
   SFBool [in,out] enabled  TRUE
+  # "description" inherited from X3DSensorNode.
+  # As with "enabled", we have to repeat it here, for x3d-nodes-to-pascal.
+  SFString [in,out] description   ""
+    change: chNone
+
   # CGE extension, see https://castle-engine.io/x3d_implementation_time_extensions.php
   SFBool [in,out] fractionIncreasing TRUE
   # CGE extension, see https://castle-engine.io/x3d_implementation_time_extensions.php

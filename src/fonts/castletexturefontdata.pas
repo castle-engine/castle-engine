@@ -82,6 +82,15 @@ type
     the freetype library cannot be found, and thus font files cannot be read. }
   EFreeTypeLibraryNotFound = CastleInternalFreeType.EFreeTypeLibraryNotFound;
 
+  { Additional metadata about TTextureFontData, used when embedding
+    and recreating TTextureFontData instances. }
+  TTextureFontDataInformation = class
+    Size: Cardinal;
+    AntiAliased: Boolean;
+    FamilyName, StyleName: String;
+    Bold, Italic: Boolean;
+  end;
+
   { Data for a 2D font initialized from a FreeType font file, like ttf. }
   TTextureFontData = class
   private
@@ -169,6 +178,8 @@ type
       FFallbackGlyphChar: TUnicodeChar;
       FUseFallbackGlyph: Boolean;
       FallbackGlyphWarnings: Integer;
+      FFamilyName, FStyleName: String;
+      FBold, FItalic: Boolean;
 
     procedure CalculateFallbackGlyph;
     procedure MakeFallbackWarning(const C: TUnicodeChar);
@@ -199,12 +210,35 @@ type
       AGlyphs instance, and AImage instance, become owned by this class. }
     constructor CreateFromData(const AGlyphs: TGlyphDictionary;
       const AImage: TGrayscaleImage;
-      const ASize: Cardinal; const AnAntiAliased: Boolean);
+      const ASize: Cardinal; const AnAntiAliased: Boolean); overload;
+    constructor CreateFromData(const AGlyphs: TGlyphDictionary;
+      const AImage: TGrayscaleImage;
+      const Information: TTextureFontDataInformation); overload;
+
     destructor Destroy; override;
 
     property Url: String read FUrl;
+
+    { Size of the font data (which is the optimal size to display this font,
+      without any scaling), in pixels. }
     property Size: Cardinal read FSize;
+
+    { Whether the font data was generated with anti-aliasing. }
     property AntiAliased: Boolean read FAntiAliased;
+
+    { Family name, obtained from the font file. }
+    property FamilyName: String read FFamilyName;
+
+    { Style name, obtained from the font file. This should correspond
+      to the @link(Bold) and @link(Italic) properties, but e.g. "Italic"
+      may be called "Oblique" depending on how it was generated. }
+    property StyleName: String read FStyleName;
+
+    { Is the font a bold font (obtained from the font file). }
+    property Bold: Boolean read FBold;
+
+    { Is the font an italic font (obtained from the font file). }
+    property Italic: Boolean read FItalic;
 
     { Read-only information about a glyph for given character.
 
@@ -255,10 +289,32 @@ type
     function GlyphDrawImageRect(const G: TTextureFontData.TGlyph): TRectangle;
   end;
 
+const
+  { Supported font file formats.
+    Use these filters with LCL file dialog (easily set by FileFiltersToDialog)
+    or TCastleWindow.FileDialog. }
+  LoadFont_FileFilters =
+    'All Files|*|' +
+    '*All Font Files|*.ttf;*.otf;*.woff;*.woff2|' +
+    'TrueType Fonts (*.ttf)|*.ttf|' +
+    'OpenType Fonts (*.otf)|*.otf|' +
+    'WOFF Fonts (*.woff,*.woff2)|*.woff;*.woff2';
+
+{ TCastleFont.Load should use a given TTextureFontData instance
+  instead of loading from given URL.
+  This allows to make embedded fonts work seamlessly. }
+procedure RegisterEmbeddedFont(const FontData: TTextureFontData;
+  const FontUrl: String);
+
+{ Is any font registered for given URL.
+  @nil if none. }
+function GetEmbeddedFont(const FontUrl: String): TTextureFontData;
+
 implementation
 
 uses Classes, SysUtils, Character,
-  CastleLog, CastleUtils, CastleUriUtils, CastleFilesUtils, CastleDownload;
+  CastleLog, CastleUtils, CastleUriUtils, CastleFilesUtils, CastleDownload,
+  CastleInternalFreeTypeH;
 
 { TUnicodeCharEqualityComparer ----------------------------------------------- }
 
@@ -528,6 +584,17 @@ var
     finally FreeAndNil(Bitmaps) end;
   end;
 
+  procedure ReadFontMetadata;
+  var
+    FreeTypeFont: PFT_Face;
+  begin
+    FreeTypeFont := FontMgr.GetFreeTypeFont(FontId);
+    FFamilyName := FreeTypeFont^.family_name;
+    FStyleName := FreeTypeFont^.style_name;
+    FBold := FreeTypeFont^.style_flags and FT_STYLE_FLAG_BOLD <> 0;
+    FItalic := FreeTypeFont^.style_flags and FT_STYLE_FLAG_ITALIC <> 0;
+  end;
+
 const
   { Separate the glyphs for safety, to avoid pulling in colors
     from neighboring letters when drawing (floating point errors could in theory
@@ -561,6 +628,16 @@ begin
     ACharacters := TUnicodeCharList.Create;
     ACharacters.Add(SimpleAsciiCharacters);
   end;
+
+  ReadFontMetadata;
+
+  {$ifdef WASI}
+  // TODO: web: WASI does not support FreeType library, also we fail without exceptions because WASI doesn't have longjmp
+  WritelnWarning('TCastleFont', 'Cannot load font "%s", WASI does not support FreeType library', [
+    UriDisplay(Url)
+  ]);
+  Exit;
+  {$endif}
 
   try
     FGlyphsExtra := TGlyphDictionary.Create;
@@ -651,13 +728,34 @@ constructor TTextureFontData.CreateFromData(const AGlyphs: TGlyphDictionary;
   const AImage: TGrayscaleImage;
   const ASize: Cardinal; const AnAntiAliased: Boolean);
 var
+  Information: TTextureFontDataInformation;
+begin
+  Information := TTextureFontDataInformation.Create;
+  try
+    Information.Size := ASize;
+    Information.AntiAliased := AnAntiAliased;
+    CreateFromData(AGlyphs, AImage, Information);
+  finally FreeAndNil(Information) end;
+end;
+
+constructor TTextureFontData.CreateFromData(const AGlyphs: TGlyphDictionary;
+  const AImage: TGrayscaleImage;
+  const Information: TTextureFontDataInformation);
+var
   C: TUnicodeChar;
   GlyphPair: {$ifdef FPC}TGlyphDictionary.TDictionaryPair{$else}TPair<TUnicodeChar, TGlyph>{$endif};
 begin
   inherited Create;
   FUrl := AImage.Url; // this is only for debug purposes now (to potentially display in debug, profiler etc.)
-  FSize := ASize;
-  FAntiAliased := AnAntiAliased;
+
+  // restore font information properties from TTextureFontDataInformation
+  FSize := Information.Size;
+  FAntiAliased := Information.AntiAliased;
+  FFamilyName := Information.FamilyName;
+  FStyleName := Information.StyleName;
+  FBold := Information.Bold;
+  FItalic := Information.Italic;
+
   FUseFallbackGlyph := true;
 
   // WritelnLog('Creating font from %s with %d glyphs', [
@@ -848,6 +946,36 @@ begin
     G := Glyph(Iter.Current);
     if G <> nil then
       MaxVar(Result, GlyphDrawHeight(G) - G.Y);
+  end;
+end;
+
+{ global routines ----------------------------------------------------------- }
+
+var
+  FEmbeddedFonts: TStringList;
+
+procedure RegisterEmbeddedFont(const FontData: TTextureFontData;
+  const FontUrl: String);
+begin
+  if FEmbeddedFonts = nil then
+  begin
+    FEmbeddedFonts := TStringList.Create;
+    // because data URLs *may* ignore case when CastleDataIgnoreCase
+    FEmbeddedFonts.CaseSensitive := false;
+  end;
+  FEmbeddedFonts.AddObject(FontUrl, FontData);
+end;
+
+function GetEmbeddedFont(const FontUrl: String): TTextureFontData;
+var
+  Index: Integer;
+begin
+  Result := nil;
+  if FEmbeddedFonts <> nil then
+  begin
+    Index := FEmbeddedFonts.IndexOf(FontUrl);
+    if Index <> -1 then
+      Result := FEmbeddedFonts.Objects[Index] as TTextureFontData;
   end;
 end;
 

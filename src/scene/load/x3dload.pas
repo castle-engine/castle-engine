@@ -13,49 +13,15 @@
   ----------------------------------------------------------------------------
 }
 
-{ @abstract(Loading and saving nodes.)
-
-  Almost every format is handled by converting it into VRML / X3D nodes graph.
+{ Loading and saving model formats.
+  All model formats are loaded into a graph of X3D nodes.
   This allows to use nodes throughout the engine, for all rendering and processing.
 
-  Basic guide for adding a new format:
-
-  @unorderedList(
-    @item(
-      Particular formats are implemented inside various X3DLoadInternalXxx units.
-      Implementation of this unit calls them. In the future,
-      a mechanism that allows you to "register" an importer, without modifying
-      this unit's implementation, may be done --- report if needed.)
-
-    @item(Scene formats are also listed in the file filters constants:
-      see LoadScene_FileFilters .
-      Each format has a file filter to specifically choose this format,
-      and also is added to the "All Scenes" filter.)
-
-    @item(Enable castle-model-viewer to associate with this file format on freedesktops
-      (GNOME, and other following freedesktop.org specs). For this,
-
-      1. Update castle-model-viewer MIME database.
-      Simply add appopriate element to ../../../castle-model-viewer/freedesktop/castle-model-viewer.xml.
-      Format of that MIME xml file is self-explanatory.
-      It's good idea to google first
-      to search for standard MIME type for your model format (e.g. wikipedia
-      shows mime types for formats).
-      If none is found, just use application/x-???, where ??? is some short
-      name for your format.
-
-      2. After adding to MIME database, you want to also add format to
-      ../../../castle-model-viewer/freedesktop/castle-model-viewer.desktop, to indicate that
-      castle-model-viewer handles this MIME type.
-
-      3. Finally, also add this to ../../../castle-model-viewer/freedesktop/install_thumbnailer.sh,
-      so that GNOME nautilus thumbnailers for this MIME types can be installed.)
-
-    @item(You probably also want to extend documentation.
-      At least https://castle-engine.io/creating_data_model_formats.php ,
-      it lists all supported scene formats.)
-  )
-}
+  To add a new model format handled throughout the engine,
+  register it using @link(RegisterModelFormat).
+  Our @link(LoadNode), @link(SaveNode), @link(TCastleScene),
+  @link(LoadScene_FileFilters) and other API will automatically account
+  for the new format. }
 unit X3DLoad;
 
 {$I castleconf.inc}
@@ -294,7 +260,7 @@ uses Generics.Collections,
   X3DLoadInternalMD3, X3DLoadInternalGLTF, X3DLoadInternalImage,
   X3DLoadInternalCocos2d, CastleInternalNodeInterpolator,
   CastleInternalSpritesheet, CastleDownload, X3DLoadInternalTiledMap,
-  CastleInternalLoadSaveIfc;
+  CastleIfc;
 
 { declare FRegisteredModelFormats early ------------------------------------- }
 
@@ -558,8 +524,23 @@ function SaveLoad_FileFilters(const Load: boolean): String;
   begin
     Result := '';
     for ModelFormat in FRegisteredModelFormats do
+    begin
+      // Exclude ModelFormat that cannot be loaded / saved?
+      // Or not, display in "All Scenes" really all.
+
+      // if Load then
+      // begin
+      //   if not Assigned(ModelFormat.OnLoad) then
+      //     Continue;
+      // end else
+      // begin
+      //   if not Assigned(ModelFormat.OnSave) then
+      //     Continue;
+      // end;
+
       for Ext in ModelFormat.Extensions do
         Result := SAppendPart(Result, ';', '*' + Ext);
+    end;
   end;
 
   function FormatExtensions(const ModelFormat: TModelFormat): String;
@@ -573,18 +554,14 @@ function SaveLoad_FileFilters(const Load: boolean): String;
 
 var
   ModelFormat: TModelFormat;
-  DefaultMark: String;
 begin
   if FRegisteredModelFormats = nil then
     raise Exception.Create('No model formats registered, you try to build filters list too early, before initialization of Castle Game Engine units that register model formats');
 
   Result := 'All Files|*';
 
-  if Load then
-  begin
-    { When loading, "All Scenes" is the default filter. }
-    Result := Result + '|*All Scenes|' + AllExtensions;
-  end;
+  { "All Scenes" is the default filter for both loading and saving now. }
+  Result := Result + '|*All Scenes|' + AllExtensions;
 
   for ModelFormat in FRegisteredModelFormats do
   begin
@@ -599,11 +576,7 @@ begin
         Continue;
     end;
 
-    { When saving, the default filter is X3D XML. }
-    DefaultMark := Iff((not Load) and (ModelFormat.MimeTypes[0] = 'model/x3d+xml'), '*', '');
-
     Result := Result + '|' +
-      DefaultMark +
       ModelFormat.FileFilterName + '|' + FormatExtensions(ModelFormat);
   end;
 end;

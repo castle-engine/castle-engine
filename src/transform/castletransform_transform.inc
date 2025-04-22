@@ -16,7 +16,8 @@
 
 {$ifdef read_interface}
 
-//type
+// type section started in CastleTransform.pas
+
   { Group and transform (move, rotate, scale) children objects.
 
     Add and remove children using the @link(Add), @link(Remove) and similar methods.
@@ -1123,8 +1124,12 @@
       and react when they change. }
     procedure VisibleChangeHere(const Changes: TVisibleChanges); virtual;
 
-    { Root transformation (TCastleAbstractRootTransform) containing us.
-      @nil if we are not (yet) part of some hierarchy rooted in TCastleAbstractRootTransform. }
+    { Reference to the root transformation (typically matching the
+      @link(TCastleViewport.Items) value) containing us.
+
+      May be @nil if we are not (yet) part of some hierarchy rooted in
+      TCastleAbstractRootTransform. In simple words, it means that
+      TCastleTransform is not added to the viewport yet. }
     property World: TCastleAbstractRootTransform read FWorld;
 
     { Called when rendering context is destroyed.
@@ -1651,16 +1656,17 @@
       and the last component is the rotation angle @italic(in radians).
 
       Note: the Rotation axis (first 3 components) must not be a zero vector,
-      however as a special case the rotation value @code(TVector4.Zero) (so all components,
-      axis and angle, are zero) is also allowed.
+      however as a special case the rotation value @code(TVector4.Zero)
+      (so all the components, axis and angle, are zero) is also allowed.
 
-      Rotation is done around @link(Center).
+      Rotation is done around @link(Center) (which is by default zero, so it doesn't matter).
 
-      Set it like this:
+      Set the rotation like this:
 
       @longCode(#
-        Scene.Rotation := Vector4(0, 0, 1, Pi / 10);
-        Scene.Rotation := Scene.Rotation + Vector4(0, 0, 0, Pi / 10);
+        Scene.Rotation := Vector4(0, 0, 1, Pi / 2);
+        Scene.Rotation := Vector4(0, 0, 1, Deg(90)); // Deg is a useful shortcut for DegToRad
+        Scene.Rotation := Scene.Rotation + Vector4(0, 0, 0, Pi / 2);
       #)
 
       To combine multiple rotations, you can use @italic(quaternion multiplication).
@@ -1671,15 +1677,15 @@
       var
         Q, Q1, Q2: TQuaternion;
       begin
-        Q1 := QuatFromAxisAngle(Vector3(0, 1, 0), 0.123);
-        Q2 := QuatFromAxisAngle(Vector3(0, 0, 1), 0.456);
+        Q1 := QuatFromAxisAngle(Vector3(0, 1, 0), Deg(30));
+        Q2 := QuatFromAxisAngle(Vector3(0, 0, 1), Deg(45));
         Q := Q1 * Q2;
         MyTransform.Rotation := Q.ToAxisAngle;
       end;
       #)
 
-      Combining rotations this way is very flexible. You can combine
-      as many as you want, and it is clear (you define it yourself)
+      Combining rotations using quaternions is very flexible. You can combine
+      as many rotations as you want, and it is clear (you define it yourself)
       in which order each rotation is applied.
       Note that you can also just nest one TCastleTransform within
       another TCastleTransform, and set different rotations on each of them,
@@ -1749,7 +1755,7 @@
     property ScaleOrientation: TVector4 read FScaleOrientation write SetScaleOrientation;
 
     { Make the transform do nothing --- zero @link(Translation), zero @link(Rotation),
-      @link(Scale) to one. Also resets @link(ScaleOrientation). }
+      @link(Scale) to one. Also resets @link(ScaleOrientation) and @link(Center). }
     procedure Identity;
 
     { Current TCastleRigidBody behavior that determines do we
@@ -1999,17 +2005,25 @@
       In effect, the virtual methods of TCastleBehavior, like @link(TCastleBehavior.Update),
       will be automatically called.
       Also the @link(TCastleBehavior.Parent) gets assigned.
-      If the TCastleBehavior was part of another TCastleTransform, it is removed from it.
+
+      If the given Behavior was part of another TCastleTransform,
+      it is removed from it.
+      If the given Behavior was already part of this TCastleTransform,
+      nothing happens (note: we do not move the behavior to the end of the list).
 
       @seealso FindBehavior
       @seealso BehaviorsEnumerate }
     procedure AddBehavior(const Behavior: TCastleBehavior);
 
-    { Insert a TCastleBehavior to this TCastleTransform at specified index
+    { Insert a TCastleBehavior to this TCastleTransform at a specified index.
       In effect, the virtual methods of TCastleBehavior, like @link(TCastleBehavior.Update),
       will be automatically called.
       Also the @link(TCastleBehavior.Parent) gets assigned.
-      If the TCastleBehavior was part of another TCastleTransform, it is removed from it.
+
+      If the given Behavior was part of another TCastleTransform,
+      it is removed from it.
+      If the given Behavior was already part of this TCastleTransform,
+      nothing happens (note: we do not move the behavior to the new index).
 
       @seealso FindBehavior
       @seealso BehaviorsEnumerate }
@@ -4360,17 +4374,11 @@ begin
     ParentsHaveRigidBody(Self);
 end;
 
-procedure TCastleTransform.AddBehavior(const Behavior: TCastleBehavior);
-begin
-  InsertBehavior(FBehaviors.Count, Behavior);
-end;
-
 procedure TCastleTransform.InsertBehavior(const Index: Integer;
   const Behavior: TCastleBehavior);
 var
   ReasonWhyCannot: String;
 begin
-  // TODO: What to do when Behavior.FParent = Self only move on list or? remove and insert?
   if Behavior.FParent <> Self then
   begin
     if not Behavior.CanAttachToParent(Self, ReasonWhyCannot) then
@@ -4389,7 +4397,8 @@ begin
       Behavior.FParent.RemoveBehavior(Behavior);
     Assert(Behavior.FParent = nil);
 
-    { Insert to new parent }
+    { Add to new parent }
+
     FBehaviors.Insert(Index, Behavior);
     Behavior.FParent := Self;
     Behavior.ParentAfterAttach;
@@ -4411,8 +4420,12 @@ begin
   end;
 end;
 
-function TCastleTransform.BehaviorIndex(const Behavior: TCastleBehavior
-  ): Integer;
+procedure TCastleTransform.AddBehavior(const Behavior: TCastleBehavior);
+begin
+  InsertBehavior(FBehaviors.Count, Behavior);
+end;
+
+function TCastleTransform.BehaviorIndex(const Behavior: TCastleBehavior): Integer;
 begin
   Result := FBehaviors.IndexOf(Behavior);
 end;
@@ -4715,7 +4728,8 @@ function TCastleTransform.InternalBuildNode: TObject;
     - Default = (0,0,0,0) in CGE (as a special exception, we allow zero axis).
       This is a nice default value for rotations, consistent with many other
       defaults that are "equal to memory filled with zero" when possible,
-      and it doesn't suggest any rotation axis (for 2D, Z axis is not useful).
+      and it doesn't suggest any rotation axis (for 2D, rotating around Z
+      is most common; for 3D, rotating around Y is most common).
 
     - And they have default = (0,0,1,0) in X3D.
 
@@ -4724,7 +4738,7 @@ function TCastleTransform.InternalBuildNode: TObject;
   function RotationHasZDefault(const Rot: TVector4): TVector4;
   begin
     if Rot.IsPerfectlyZero then
-      Result := Vector4(0, 0, 1, 0)
+      Result := CastleVectors.Vector4(0, 0, 1, 0)
     else
       Result := Rot;
   end;

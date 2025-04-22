@@ -382,7 +382,7 @@ bool Init()
         CGE_Initialize(applicationConfigDirectory);
         CGE_Open(ecgeofLog, g_windowWidth, g_windowHeight, 96);
         CGE_SetLibraryCallbackProc(OpenGlLibraryCallback);
-        CGE_SetUserInterface(true);
+        CGE_SetAutoTouchInterface(false);
         //CGE_LoadSceneFromFile("c:\\projects\\humanoid_stand.wrl");
         ShowOpenFileDialog();
         return true;

@@ -64,31 +64,9 @@
                 "Name" : "GroupOfTrees",
                 "$Children" : [
                   {
-                    "$$ClassName" : "TCastleTransform",
-                    "Name" : "Tree",
-                    "TranslationPersistent" : {
-                      "$$ClassName" : "TCastleVector3Persistent",
-                      "X" : -6.1592912673950195E-001
-                    },
-                    "$Children" : [
-                      {
-                        "$$ClassName" : "TCastleScene",
-                        "AutoAnimation" : "Tree_Animation",
-                        "ExposeTransforms" : [
-                        ],
-                        "Name" : "Trees",
-                        "ProcessEvents" : true,
-                        "RenderOptions" : {
-                          "$$ClassName" : "TCastleScene.TSceneRenderOptions"
-                        },
-                        "Url" : "castle-data:/level/Tree.gltf"
-                      }
-                    ]
-                  },
-                  {
                     "$$ClassName" : "TCastleTransformReference",
-                    "Name" : "TransformReference1",
-                    "Reference" : "Trees",
+                    "Name" : "TreeReference1",
+                    "Reference" : "TreeOriginal",
                     "TranslationPersistent" : {
                       "$$ClassName" : "TCastleVector3Persistent",
                       "X" : 1.1091621398925781E+001,
@@ -105,8 +83,8 @@
                   },
                   {
                     "$$ClassName" : "TCastleTransformReference",
-                    "Name" : "TransformReference2",
-                    "Reference" : "Trees",
+                    "Name" : "TreeReference2",
+                    "Reference" : "TreeOriginal",
                     "RotationPersistent" : {
                       "$$ClassName" : "TCastleVector4RotationPersistent",
                       "W" : 3.2531839609146118E-001,
@@ -114,14 +92,42 @@
                     },
                     "TranslationPersistent" : {
                       "$$ClassName" : "TCastleVector3Persistent",
-                      "X" : -1.1407842636108398E+001,
-                      "Y" : 2.3635387420654297E-002,
-                      "Z" : -1.9853065490722656E+001
+                      "X" : -1.3082272529602051E+001,
+                      "Y" : 2.8782844543457031E-002,
+                      "Z" : -1.9288358688354492E+001
                     },
                     "$Behaviors" : [
                       {
                         "$$ClassName" : "TCastleStickToSurface",
                         "Name" : "StickToSurface2",
+                        "Target" : "Scene1"
+                      }
+                    ]
+                  },
+                  {
+                    "$$ClassName" : "TCastleScene",
+                    "AutoAnimation" : "Tree_Animation",
+                    "ExposeTransforms" : [
+                    ],
+                    "Name" : "TreeOriginal",
+                    "ProcessEvents" : true,
+                    "RenderOptions" : {
+                      "$$ClassName" : "TCastleScene.TSceneRenderOptions"
+                    },
+                    "RotationPersistent" : {
+                      "$$ClassName" : "TCastleVector4RotationPersistent",
+                      "Z" : 1.0000000000000000E+000
+                    },
+                    "TranslationPersistent" : {
+                      "$$ClassName" : "TCastleVector3Persistent",
+                      "Y" : 4.6062946319580078E-002,
+                      "Z" : 1.3103079795837402E+000
+                    },
+                    "Url" : "castle-data:/level/Tree.gltf",
+                    "$Behaviors" : [
+                      {
+                        "$$ClassName" : "TCastleStickToSurface",
+                        "Name" : "StickToSurface3",
                         "Target" : "Scene1"
                       }
                     ]
@@ -817,7 +823,7 @@
                   "$$ClassName" : "TCastleVector3Persistent",
                   "X" : 1.4460483551025391E+001,
                   "Y" : 9.3275623321533203E+000,
-                  "Z" : -1.8500867843627930E+001
+                  "Z" : -2.2655406951904297E+001
                 }
               },
               {
@@ -1253,16 +1259,20 @@
         },
         "RotationPersistent" : {
           "$$ClassName" : "TCastleVector4RotationPersistent",
-          "W" : 7.7989715337753296E-001,
-          "X" : -7.3252427577972412E-001,
-          "Y" : 6.4848190546035767E-001,
-          "Z" : 2.0707386732101440E-001
+          "W" : 1.1833909749984741E+000,
+          "X" : -4.8524826765060425E-001,
+          "Y" : -8.3314383029937744E-001,
+          "Z" : -2.6534068584442139E-001
+        },
+        "ScalePersistent" : {
+          "$$ClassName" : "TCastleVector3Persistent",
+          "Z" : 1.0000001192092896E+000
         },
         "TranslationPersistent" : {
           "$$ClassName" : "TCastleVector3Persistent",
-          "X" : 1.6916873931884766E+001,
-          "Y" : 1.1366394042968750E+001,
-          "Z" : -9.4209375381469727E+000
+          "X" : -2.3354356765747070E+001,
+          "Y" : 2.1273368835449219E+001,
+          "Z" : 3.4391787052154541E+000
         }
       },
       "InternalDesignNavigations[dnFly]" : {

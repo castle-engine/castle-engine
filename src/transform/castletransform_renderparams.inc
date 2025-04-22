@@ -213,7 +213,7 @@
       simply don't work at all with shadow volumes. }
     UsingBlending: Boolean;
 
-    { Render only shapes  that may receive shadow volumes, or ones that don't,
+    { Render only shapes that may receive shadow volumes, or ones that don't,
       or both.
 
       TCastleViewport.RenderOnePass does filtering shapes based on this,
@@ -337,6 +337,9 @@
       @link(TRenderOnePassParams.UsingBlending) and
       @link(TRenderOnePassParams.FilterShadowVolumesReceivers). }
     procedure AddRenderEvent(const RenderEvent: TRenderEvent);
+
+    { Camera position, in the local coordinates, after @link(Transformation). }
+    function LocalCameraPosition: TVector3;
   end;
 
   { Information that a TCastleTransform object needs to prepare rendering.
@@ -518,6 +521,12 @@ end;
 procedure TRenderParams.AddRenderEvent(const RenderEvent: TRenderEvent);
 begin
   (Collector as TShapesCollector).AddRenderEvent(Transformation^, RenderEvent);
+end;
+
+function TRenderParams.LocalCameraPosition: TVector3;
+begin
+  Result := Transformation^.InverseTransform.MultPoint(
+    RenderingCamera.View.Translation);
 end;
 
 { TRenderOnePassParams ------------------------------------------------------- }

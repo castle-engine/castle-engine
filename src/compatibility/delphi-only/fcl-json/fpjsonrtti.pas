@@ -8,12 +8,14 @@ unit fpjsonrtti;
 interface
 
 uses
-  Classes, SysUtils, contnrs, typinfo, fpjson, rttiutils, jsonparser;
+  Classes, SysUtils, contnrs, typinfo, fpjson, jsonparser,
+  // For TPropInfoList, compatible with FPC RttiUtils
+  CastleInternalRttiUtils;
 
 Const
   RFC3339DateTimeFormat = 'yyyy"-"mm"-"dd"T"hh":"nn":"ss';
   RFC3339DateTimeFormatMsec = RFC3339DateTimeFormat+'.zzz';
-  
+
 
 Type
 
@@ -34,7 +36,7 @@ Type
                        jsoLegacyDateTime,         // Set this to enable old date/time formatting. Current behaviour is to save date/time as a ISO 9601 value.
                        jsoLowerPropertyNames,     // Set this to force lowercase names when streaming to JSON.
                        jsoStreamTList             // Set this to assume that TList contains a list of TObjects. Use with care!
-                       );  
+                       );
   TJSONStreamOptions = Set of TJSONStreamOption;
 
   TJSONFiler = Class(TComponent)
@@ -1216,7 +1218,7 @@ begin
     S:=''
   else if (DateTimeFormat<>'') then
     S:=FormatDateTime(DateTimeFormat,DateTime)
-  else if (jsoLegacyDateTime in options) then  
+  else if (jsoLegacyDateTime in options) then
     begin
     if Frac(DateTime)=0 then
       S:=DateToStr(DateTime)
@@ -1227,7 +1229,7 @@ begin
     end
   else
     S:=FormatDateTime(RFC3339DateTimeFormat,DateTime);
-     
+
   Result:=TJSONString.Create(S);
 end;
 

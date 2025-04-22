@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2023 Michalis Kamburelis.
+  Copyright 2002-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -294,6 +294,10 @@
 
 { OpenGL[ES] ------------------------------------------------------------------ }
 
+{ OpenGL / OpenGLES calls are callbacks, so e.g. writing
+  "Assert(Assigned(glGenerateMipmap))" is valid. }
+{$define CASTLE_GL_USES_CALLBACKS}
+
 (*Whether we use OpenGL ES or normal OpenGL.
   OpenGL ES is by default used for mobile devices.
   For testing, you can also use OpenGL ES on normal desktop OSes
@@ -319,6 +323,16 @@
 { $define OpenGLES}
 {$ifdef ANDROID} {$define OpenGLES} {$endif}
 {$ifdef CASTLE_IOS} {$define OpenGLES} {$endif}
+{$ifdef WASI}
+  {$define OpenGLES}
+  {$define CastleGLES := CastleInternalWebGL}
+  {$undef CASTLE_GL_USES_CALLBACKS}
+  { Using WebGL API for rendering. Use this symbol when necessary to do
+    something different between WebGL and OpenGLES.
+    We try to hide many differences at the CastleInternalWebGL unit,
+    but not everything is handled there. }
+  {$define CASTLE_WEBGL}
+{$endif}
 
 { NX supports OpenGL and OpenGLES (that's public information,
   https://wccftech.com/nintendo-switch-supports-vulkan/ ).
@@ -571,5 +585,54 @@
 {$if defined(FPC) and (defined(LINUX) or defined(FREEBSD))}
   {$define UNIX_WITH_X}
 {$endif}
+
+{ FPC 3.3.1 produces many false warnings. }
+{$ifdef FPC}
+  {$ifndef VER3_0}
+    {$ifndef VER3_2}
+      { 2 warnings below are common because of case analysis.
+        We tried to adjust to them
+        ( https://castle-engine.io/coding_conventions#case_analysis )
+        but in some cases there's no good adjustment of code.
+        Let's disable them for now. }
+      {$warn 6060 off} // case statement does not handle all possible cases
+      {$warn 6018 off} // unreachable code
+      { This happens because unfortunately FPC 3.3.1 doesn't understand
+        that writing e.g. "WriteBuffer(Tmp, SizeOf(Tmp));" means we use Tmp value. }
+      {$warn 5027 off} // Local variable is assigned but never used
+    {$endif}
+  {$endif}
+{$endif}
+
+{ WebAssembly --------------------------------------------------------------- }
+
+{$ifdef WASI}
+  {$undef HAS_FP_HTTP_CLIENT}
+  // CastleDynLibs on WASI not tested
+  {$undef ALLOW_DLOPEN_FROM_UNIT_INITIALIZATION}
+  { Web target doesn't support try..except, so we report some errors
+    without causing exceptions in this case. }
+  {$define CASTLE_CANNOT_CATCH_EXCEPTIONS}
+
+  // LibPng, from dynamic or static library, not supported.
+  // Undefining the 2 symbols below simply avoids 2 warnings at runtime
+  // from WarningNoLibPng, nothing more.
+  {$undef CASTLE_PNG_DYNAMIC}
+  {$undef CASTLE_PNG_STATIC}
+{$endif}
+
+{ Workaround ParamStr issue -------------------------------------------------- }
+
+{$ifdef ANDROID}
+  { Android 15, Google Pixel 6a:
+    Argv[...] are invalid pointers, and so using ParamStr(...) crashes.
+    See CastleParameters unit, InitializationParams comments for more
+    information. }
+  {$define CASTLE_PARAMSTR_BUGGY}
+{$endif}
+
+{ Log Argv reading in CastleParameters, to investigate bugs like
+  CASTLE_PARAMSTR_BUGGY. }
+{.$define CASTLE_ANDROID_ARGV_LOGGING}
 
 {$endif not CASTLE_CONF_INCLUDED}

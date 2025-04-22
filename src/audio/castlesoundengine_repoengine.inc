@@ -178,7 +178,7 @@
     { The XML file that contains description of your sounds.
       This should be an URL (in simple cases, just a filename)
       pointing to an XML file describing your sounds.
-      See https://castle-engine.io/creating_data_sound.php#section_sample .
+      See https://github.com/castle-engine/cge-www/blob/master/htdocs/doc/obsolete/deprecated_3d_game_utilities/creating_data_sound.php .
 
       When you set RepositoryUrl property, we read sound information from
       given XML file. You usually set RepositoryUrl at the very beginning

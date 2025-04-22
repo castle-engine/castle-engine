@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2024 Michalis Kamburelis.
+  Copyright 2003-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -421,178 +421,6 @@ begin
     Result := Default;
 end;
 
-function GetDiffuseTexture(const Texture: TAbstractTextureNode;
-  const TexCoord: TVector4): TCastleColorRGB;
-
-  function DivUnsignedModulo(const Dividend: Integer; const Divisor: Integer): Integer;
-  var
-    DivResult: Smallint;
-    DivRemainder: Word;
-  begin
-    DivUnsignedMod(Dividend, Divisor, DivResult, DivRemainder);
-    Result := DivRemainder;
-  end;
-
-var
-  RepeatCoord: array [0..2] of boolean;
-
-  function SampleNearest(const Image: TCastleImage; const Pixel: TVector3): TCastleColor;
-  var
-    I: Integer;
-    Dimensions: TVector3Cardinal;
-    PixelInt: TVector3Integer;
-  begin
-    Dimensions := Image.Dimensions;
-    for I := 0 to 2 do
-    begin
-      PixelInt.Data[I] := Round(Pixel[I] - 0.5);
-      if RepeatCoord[I] then
-        PixelInt.Data[I] := DivUnsignedModulo(PixelInt[I], Dimensions[I])
-      else
-        PixelInt.Data[I] := Clamped(PixelInt[I], 0, Dimensions[I] - 1);
-    end;
-    Result := Image.Colors[PixelInt[0], PixelInt[1], PixelInt[2]];
-  end;
-
-  // This works OK, but is not needed now (as it ~2 times slower than SampleLinear2D).
-  {
-  function SampleLinear(const Image: TCastleImage; Pixel: TVector3): TCastleColor;
-  var
-    I: Integer;
-    Dimensions: TVector3Cardinal;
-    PixelInt: array [boolean, 0..2] of Integer;
-    PixelFrac: TVector3;
-  begin
-    Dimensions := Image.Dimensions;
-    for I := 0 to 2 do
-    begin
-      if RepeatCoord[I] then
-        Pixel[I] := FloatModulo(Pixel[I], Dimensions[I])
-      else
-        Pixel[I] := Clamped(Pixel[I], 0, Dimensions[I]);
-    end;
-
-    for I := 0 to 2 do
-    begin
-      PixelInt[false][I] := Clamped(Floor(Pixel[I]), 0, Dimensions[I] - 1);
-      PixelInt[true ][I] := Min(PixelInt[false][I] + 1, Dimensions[I] - 1);
-      PixelFrac[I] := Clamped(Pixel[I] - PixelInt[false][I], 0.0, 1.0);
-    end;
-
-    Result :=
-      Image.Colors[PixelInt[false][0], PixelInt[false][1], PixelInt[false][2]] * (1 - PixelFrac[0]) * (1 - PixelFrac[1]) * (1 - PixelFrac[2]) +
-      Image.Colors[PixelInt[false][0], PixelInt[false][1], PixelInt[ true][2]] * (1 - PixelFrac[0]) * (1 - PixelFrac[1]) * (    PixelFrac[2]) +
-      Image.Colors[PixelInt[false][0], PixelInt[ true][1], PixelInt[false][2]] * (1 - PixelFrac[0]) * (    PixelFrac[1]) * (1 - PixelFrac[2]) +
-      Image.Colors[PixelInt[false][0], PixelInt[ true][1], PixelInt[ true][2]] * (1 - PixelFrac[0]) * (    PixelFrac[1]) * (    PixelFrac[2]) +
-      Image.Colors[PixelInt[ true][0], PixelInt[false][1], PixelInt[false][2]] * (    PixelFrac[0]) * (1 - PixelFrac[1]) * (1 - PixelFrac[2]) +
-      Image.Colors[PixelInt[ true][0], PixelInt[false][1], PixelInt[ true][2]] * (    PixelFrac[0]) * (1 - PixelFrac[1]) * (    PixelFrac[2]) +
-      Image.Colors[PixelInt[ true][0], PixelInt[ true][1], PixelInt[false][2]] * (    PixelFrac[0]) * (    PixelFrac[1]) * (1 - PixelFrac[2]) +
-      Image.Colors[PixelInt[ true][0], PixelInt[ true][1], PixelInt[ true][2]] * (    PixelFrac[0]) * (    PixelFrac[1]) * (    PixelFrac[2]);
-  end;
-  }
-
-  function SampleLinear2D(const Image: TCastleImage; Pixel: TVector3): TCastleColor;
-  var
-    I: Integer;
-    Dimensions: TVector3Cardinal;
-    PixelInt: array [boolean, 0..1] of Integer;
-    PixelFrac: TVector2;
-  begin
-    Dimensions := Image.Dimensions;
-    for I := 0 to 1 do
-    begin
-      if RepeatCoord[I] then
-        Pixel.Data[I] := FloatModulo(Pixel[I], Dimensions[I])
-      else
-        Pixel.Data[I] := Clamped(Pixel[I], 0, Dimensions[I]);
-    end;
-
-    for I := 0 to 1 do
-    begin
-      // TODO: this is not correct in case RepeatCoord[I],
-      // it will not filter 100% nicely on the border pixels
-      PixelInt[false][I] := Clamped(Floor(Pixel[I]), 0, Dimensions[I] - 1);
-      PixelInt[true ][I] := Min(PixelInt[false][I] + 1, Dimensions[I] - 1);
-      PixelFrac.Data[I] := Clamped(Pixel[I] - PixelInt[false][I], 0.0, 1.0);
-    end;
-
-    Result :=
-      Image.Colors[PixelInt[false][0], PixelInt[false][1], 0] * (1 - PixelFrac[0]) * (1 - PixelFrac[1]) +
-      Image.Colors[PixelInt[ true][0], PixelInt[false][1], 0] * (    PixelFrac[0]) * (1 - PixelFrac[1]) +
-      Image.Colors[PixelInt[false][0], PixelInt[ true][1], 0] * (1 - PixelFrac[0]) * (    PixelFrac[1]) +
-      Image.Colors[PixelInt[ true][0], PixelInt[ true][1], 0] * (    PixelFrac[0]) * (    PixelFrac[1]);
-  end;
-
-var
-  SingleTexture: TX3DNode;
-  Texture2D: TAbstractTexture2DNode;
-  EncodedImage: TEncodedImage;
-  Image: TCastleImage;
-  TexCoord3D: TVector3;
-  Pixel: TVector3;
-  Color: TCastleColor;
-  Bilinear: boolean;
-begin
-  Result := WhiteRGB;
-
-  SingleTexture := nil;
-  if Texture is TMultiTextureNode { also makes sure Texture <> nil } then
-  begin
-    if TMultiTextureNode(Texture).FdTexture.Count > 0 then
-      SingleTexture := TMultiTextureNode(Texture).FdTexture[0];
-  end else
-    SingleTexture := Texture;
-
-  if SingleTexture is TAbstractTexture2DNode { also makes sure SingleTexture <> nil } then
-  begin
-    // TODO: 3D textures could be handled easily too!
-    Texture2D := TAbstractTexture2DNode(SingleTexture);
-    if Texture2D.IsTextureImage then
-    begin
-      EncodedImage := Texture2D.TextureImage;
-      if (EncodedImage is TCastleImage) and
-         (not EncodedImage.IsEmpty) and
-         (not IsZero(TexCoord[3])) then
-      begin
-        Image := TCastleImage(EncodedImage);
-        TexCoord3D := TexCoord.ToPosition;
-        Pixel := Vector3(
-          TexCoord3D[0] * Image.Width,
-          TexCoord3D[1] * Image.Height,
-          TexCoord3D[2] * Image.Depth
-        );
-        if IsNan(TexCoord[0]) then
-        begin
-          // TODO: bug on demo-models/bump_mapping/bump_mapping_leaf_test.wrl
-          {
-          Writeln(Pixel.ToRawString);
-          Writeln(TexCoord3D.ToRawString);
-          Writeln(TexCoord.ToRawString);
-          Writeln(Image.Width, ' ', Image.Height, ' ', Image.Depth);
-          }
-          Exit;
-        end;
-
-        RepeatCoord[0] := Texture2D.RepeatS;
-        RepeatCoord[1] := Texture2D.RepeatT;
-        RepeatCoord[2] := false { Texture2D.RepeatR };
-
-        Bilinear := not (
-          (Texture2D.TextureProperties <> nil) and
-          // TODO: we should look either at MagnificationFilter or MinificationFilter
-          (Texture2D.TextureProperties.MagnificationFilter = magNearest)
-        );
-        if Bilinear then
-          Color := SampleLinear2D(Image, Pixel)
-        else
-          Color := SampleNearest(Image, Pixel);
-
-        Result := Color.XYZ;
-      end;
-    end;
-  end;
-end;
-
 { TRayTracer ----------------------------------------------------------------- }
 
 procedure TRayTracer.AppendStats(const Stats: TStrings; const RenderingTime: Single);
@@ -760,9 +588,9 @@ var
 
     IntersectNormal :=
       {$ifdef CONSERVE_TRIANGLE_MEMORY}
-      IntersectNode^.World.Plane.XYZ
+      IntersectNode^.SceneSpace.Plane.XYZ
       {$else}
-      IntersectNode^.INormalWorldSpace(Intersection)
+      IntersectNode^.INormalCore(Intersection)
       {$endif};
 
     MaterialInfo := IntersectNode^.MaterialInfo;
@@ -780,9 +608,7 @@ var
       {$ifdef CONSERVE_TRIANGLE_MEMORY}
       WhiteRGB
       {$else}
-      GetDiffuseTexture(
-        IntersectNode^.State.MainTexture,
-        IntersectNode^.ITexCoord(Intersection))
+      IntersectNode^.State.MainTexture.Color(IntersectNode^.ITexCoord(Intersection)).XYZ
       {$endif};
 
     Result := Emission(IntersectNode^.State.MaterialInfo, InitialDepth <> 0);
@@ -1082,8 +908,8 @@ const
        (CachedShadower <> Item) then
     begin
       Inc(TriangleCollisionTestsCounter);
-      if IsTriangleSegmentCollision(CachedShadower^.World.Triangle,
-        CachedShadower^.World.Plane, ItemPoint, LightSourcePoint) then
+      if IsTriangleSegmentCollision(CachedShadower^.SceneSpace.Triangle,
+        CachedShadower^.SceneSpace.Plane, ItemPoint, LightSourcePoint) then
         Exit(true);
 
       { powyzej zapominamy o marginesie epsilonowym wokol ItemPoint i
@@ -1205,7 +1031,7 @@ const
             Lepiej pozniej sprawdz ze SampleLightPoint jest
             rozny od Intersection (poniewaz SampleLightPoint jest losowy to na
             nieprawidlowo skonstruowanym modelu wszystko moze sie zdarzyc...)  }
-          SampleLightPoint := LightSource^.World.Triangle.RandomPoint;
+          SampleLightPoint := LightSource^.SceneSpace.Triangle.RandomPoint;
           if TVector3.Equals(SampleLightPoint, Intersection) then Continue;
 
           { calculate LigtDirNorm (nieznormalizowane).
@@ -1235,20 +1061,20 @@ const
           { Wymnoz DirectColor
             1) przez GeometryFunction czyli
                  cos(LightDirNorm, IntersectNormal)
-                   * cos(-LightDirNorm, LightSource.World.Normal) /
+                   * cos(-LightDirNorm, LightSource.SceneSpace.Normal) /
                    PointsDistanceSqr(SampleLightPoint, Intersection).
                Cosinusy naturalnie licz uzywajac dot product.
             2) przez TriangleArea
 
             Mozna zauwazyc ze czlon
               TriangleArea *
-              cos(-LightDirNorm, LightSource.World.Normal) /
+              cos(-LightDirNorm, LightSource.SceneSpace.Normal) /
                 PointsDistanceSqr(SampleLightPoint, Intersection)
             liczy po prostu solid angle swiatla with respect to Intersection
             (no, mowiac scisle pewne bardzo dobre przyblizenie tego solid angle).
 
             Moze byc tutaj pouczajace zobaczyc jak to dziala gdy usuniemy mnozenie
-              przez cos(-LightDirNorm, LightSource.World.Normal)
+              przez cos(-LightDirNorm, LightSource.SceneSpace.Normal)
               (swiatlo bedzie wtedy jasniej swiecilo jakby "w bok"),
             pouczajace moze tez byc usuniecie dzielenia przez
               PointsDistanceSqr(SampleLightPoint, Intersection) i jednoczesnie
@@ -1263,9 +1089,9 @@ const
           DirectColor *=
             TVector3.DotProduct(LightDirNorm, IntersectNormal) *
             TVector3.DotProduct(NegatedLightDirNorm,
-              PlaneDirInDirection(LightSource^.World.Plane,
+              PlaneDirInDirection(LightSource^.SceneSpace.Plane,
                 NegatedLightDirNorm)) *
-            LightSource^.World.Area /
+            LightSource^.SceneSpace.Area /
             PointsDistanceSqr(SampleLightPoint, Intersection);
 
           Result := Result + DirectColor;
@@ -1355,9 +1181,9 @@ const
         begin
           IntersectNormal :=
             {$ifdef CONSERVE_TRIANGLE_MEMORY}
-            IntersectNode^.World.Plane.XYZ
+            IntersectNode^.SceneSpace.Plane.XYZ
             {$else}
-            IntersectNode^.INormalWorldSpace(Intersection)
+            IntersectNode^.INormalCore(Intersection)
             {$endif};
           { choose normal at Intersection pointing in the direction of RayOrigin }
           IntersectNormal := PlaneDirNotInDirection(IntersectNormal, RayDirection);

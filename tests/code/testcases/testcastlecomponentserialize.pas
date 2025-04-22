@@ -157,6 +157,12 @@ var
   TestOutputOwner: TComponent;
   TestInput, TestOutput: TMyComponent;
 begin
+  if not CanUseFileSystem then // for GetTempFileNameCheck
+  begin
+    AbortTest;
+    Exit;
+  end;
+
   TempFileName := GetTempFileNameCheck;
 
   TestInput := TMyComponent.Create(nil);
@@ -215,6 +221,12 @@ var
   LoadedUi: TCastleUserInterface;
   TempFileName: String;
 begin
+  if not CanUseFileSystem then // for GetTempFileNameCheck
+  begin
+    AbortTest;
+    Exit;
+  end;
+
   UiOwner := TComponent.Create(nil);
   try
     Ui := TCastleButton.Create(UiOwner);
@@ -258,6 +270,12 @@ var
   LoadedUi: TCastleUserInterface;
   TempFileName: String;
 begin
+  if not CanUseFileSystem then // for GetTempFileNameCheck
+  begin
+    AbortTest;
+    Exit;
+  end;
+
   UiOwner := TComponent.Create(nil);
   try
     Ui := TCastleButton.Create(UiOwner);
@@ -325,6 +343,12 @@ var
   ChildLabel: TCastleLabel;
   TempFileName: String;
 begin
+  if not CanUseFileSystem then // for GetTempFileNameCheck
+  begin
+    AbortTest;
+    Exit;
+  end;
+
   UiOwner := TComponent.Create(nil);
   try
     RootLabel := TCastleLabel.Create(UiOwner);
@@ -387,6 +411,12 @@ var
   TestInput, TestOutput: TMyComponent;
   TempFileName: String;
 begin
+  if not CanUseFileSystem then // for GetTempFileNameCheck
+  begin
+    AbortTest;
+    Exit;
+  end;
+
   TestInput := TMyComponent.Create(nil);
   try
     TestInput.Position := Vector3(1, 2, 3);

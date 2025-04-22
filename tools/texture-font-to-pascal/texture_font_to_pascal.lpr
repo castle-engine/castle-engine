@@ -19,7 +19,7 @@
 {$ifdef MSWINDOWS} {$apptype CONSOLE} {$endif}
 
 uses Classes, SysUtils,
-  CastleFont2Pascal, CastleUtils, CastleClassUtils, CastleLog,
+  CastleFontToPascal, CastleUtils, CastleClassUtils, CastleLog,
   CastleParameters, CastleTextureFontData, CastleStringUtils,
   CastleUriUtils, CastleUnicode, CastleFilesUtils,
   CastleImages, CastleApplicationProperties, CastleLocalizationGetText;
@@ -112,7 +112,7 @@ end;
 
 var
   Font: TTextureFontData;
-  PrecedingComment, UnitName, FontFunctionName, OutURL, FontURL, FontName: string;
+  UnitName, FontFunctionName, OutURL, FontURL, FontName: string;
 begin
   ApplicationProperties.ApplicationName := 'texture-font-to-pascal';
   ApplicationProperties.Version := '1.0';
@@ -141,17 +141,10 @@ begin
     else
       UnitName := 'Castle' + FontFunctionName;
 
-    PrecedingComment := Format(
-      '  Source font:' +NL+
-      '    Name         : %s' +NL+
-      '    Size         : %d' +NL+
-      '    AntiAliasing : %s' +nl,
-      [ FontName, Size, BoolToStr(AntiAliasing, true) ]);
-
     Font := TTextureFontData.Create(FontURL, Size, AntiAliasing, Characters);
     try
       OutURL := LowerCase(UnitName) + '.pas';
-      Font2Pascal(Font, UnitName, PrecedingComment, FontFunctionName, OutURL);
+      FontToPascal(Font, UnitName, FontFunctionName, OutURL);
       Writeln('texture-font-to-pascal: "' + OutURL + '" generated, texture size ',
         Font.Image.Width, ' x ',
         Font.Image.Height);

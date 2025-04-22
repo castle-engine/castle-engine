@@ -297,18 +297,39 @@ function FirstDelimiter(const Delimiters, S: string): Integer;
   Yes, this is simply equivalent to Copy(S, P, MaxInt). }
 function SEnding(const s: string; P: integer): string;
 
+{ Does given string S start with Prefix. }
 function IsPrefix(const Prefix, S: string;
   IgnoreCase: boolean = true): boolean; overload;
+
+{ Does given string S end with Suffix. }
 function IsSuffix(const Suffix, S: string;
   IgnoreCase: boolean = true): boolean; overload;
+
+{ Does given string S start with Prefix and end with Suffix,
+  moreover the prefix and suffix are not overlapping.
+
+  We check the "overlapping" condition to guarantee that the prefix and suffix
+  can be removed independently and their order of removal doesn't matter.
+  For example @code(IsPrefixSuffix('bla', 'abc', 'blaMIDDLEabc')) returns @true,
+  but @code(IsPrefixSuffix('bla', 'abc', 'blabc')) returns @false. }
+function IsPrefixSuffix(const Prefix, Suffix, S: String;
+  const IgnoreCase: Boolean = true): Boolean;
 
 { Removes the prefix, if it is present. More precisely, if
   IsPrefix(Prefix, S, IgnoreCase) then returns S with this prefix
   removed. Else returns S. }
 function PrefixRemove(const Prefix, S: string; IgnoreCase: boolean): string;
 
-{ Like PrefixRemove, but checks for and removes Suffix. }
+{ Removes the suffix, if it is present. }
 function SuffixRemove(const Suffix, S: string; IgnoreCase: boolean): string;
+
+{ Removes the prefix and suffix, if they are both present.
+
+  Just like @link(IsPrefixSuffix), we check the "overlapping" condition.
+  If the prefix and suffix overlap, we do nothing.
+  For example @code(PrefixSuffixRemove('bla', 'abc', 'blaMIDDLEabc')) returns @code('MIDDLE'),
+  but @code(IsPrefixSuffix('bla', 'abc', 'blabc')) returns unmodified @code('blabc'). }
+function PrefixSuffixRemove(const Prefix, Suffix, S: String; const IgnoreCase: Boolean): String;
 
 { Appends to a string S DataSize bytes from Data. }
 procedure SAppendData(var s: string; const Data; DataSize: integer); deprecated 'this function is not very useful';
@@ -1467,7 +1488,8 @@ end;
 function PrefixRemove(const Prefix, S: string; IgnoreCase: boolean): string;
 begin
   if IsPrefix(Prefix, S, IgnoreCase) then
-    Result := SEnding(S, Length(Prefix) + 1) else
+    Result := SEnding(S, Length(Prefix) + 1)
+  else
     Result := S;
 end;
 
@@ -1480,6 +1502,22 @@ begin
       than doing Result := Copy(S, 1, ...) }
     SetLength(Result, Length(s) - Length(Suffix));
   end;
+end;
+
+function IsPrefixSuffix(const Prefix, Suffix, S: String; const IgnoreCase: Boolean): Boolean;
+begin
+  Result :=
+    (Length(S) >= Length(Prefix) + Length(Suffix)) and
+    IsPrefix(Prefix, S, IgnoreCase) and
+    IsSuffix(Suffix, S, IgnoreCase);
+end;
+
+function PrefixSuffixRemove(const Prefix, Suffix, S: String; const IgnoreCase: Boolean): String;
+begin
+  if IsPrefixSuffix(Prefix, Suffix, S, IgnoreCase) then
+    Result := Copy(S, Length(Prefix) + 1, Length(S) - Length(Prefix) - Length(Suffix))
+  else
+    Result := S;
 end;
 
 procedure SAppendData(var s: string; const Data; DataSize: integer);

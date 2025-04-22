@@ -233,13 +233,14 @@
         procedure SetSpecularColor(const Value: TVector3); override;
         function GetEmissiveColor: TVector3; override;
         procedure SetEmissiveColor(const Value: TVector3); override;
+        function GetTransparency: Single; override;
+        procedure SetTransparency(const Value: Single); override;
       public
         constructor Create(ANode: TMaterialNode);
 
         function AmbientColor: TVector3; override;
         function Shininess: Single; override;
         function ReflectionColor: TVector3; override;
-        function Transparency: Single; override;
 
         {$ifndef CASTLE_SLIM_NODES}
         function ReflSpecular: TVector3; override;
@@ -258,10 +259,10 @@
     class function ForVRMLVersion(const Version: TX3DVersion): boolean;
       override;
 
-    { Opacity is just a 1 - FdTransparency.Value.
-      Defined for your comfort --- for
-      OpenGL you will usually want to pass Opacity, not Transparency. }
-    function Opacity: Single;
+    { Opacity of the material, just @code(1 - @link(Transparency)).
+      Sometimes it is more intuitive to use this than Transparency.
+      @deprecated Use MaterialInfo.Opacity. }
+    function Opacity: Single; deprecated 'use MaterialInfo.Opacity';
 
     { ShininessExp is just 128 * FdShininess.Value, this is the "real"
       exponent indicated by shininess field value.
@@ -277,12 +278,16 @@
 
       This checks that ambient and diffuse and specular colors are all zero.
       It's an important information about the material sometimes.
+
       It is similar to the NULL material situation (when "Appearance.material=NULL"
       case), but the color and transparency are still
       configurable (using FdEmissiveColor and FdTransparency fields).
 
-      We can optimize this case when rendering. }
-    function PureEmissive: boolean;
+      This way of achieving "something like unlit material" has issues, see
+      https://github.com/michaliskambi/x3d-tests/wiki/Why-is-UnlitMaterial-useful .
+      For this reason, we recommend to use (and detect, for optimization)
+      the TUnlitMaterialNode instead of this "special case of Phong material". }
+    function PureEmissive: boolean; deprecated 'use TUnlitMaterialNode for unlit materials';
 
     { Force the material pure emissive (see @link(PureEmissive)) by setting
       other colors to black. }
@@ -303,9 +308,10 @@
         procedure SetEmissiveColor(const Value: TVector3); override;
         function GetBaseColor: TVector3; override;
         procedure SetBaseColor(const Value: TVector3); override;
+        function GetTransparency: Single; override;
+        procedure SetTransparency(const Value: Single); override;
       public
         constructor Create(ANode: TPhysicalMaterialNode);
-        function Transparency: Single; override;
         function Metallic: Single; override;
         function Roughness: Single; override;
       end;
@@ -351,13 +357,14 @@
         procedure SetSpecularColor(const Value: TVector3); override;
         function GetEmissiveColor: TVector3; override;
         procedure SetEmissiveColor(const Value: TVector3); override;
+        function GetTransparency: Single; override;
+        procedure SetTransparency(const Value: Single); override;
       public
         constructor Create(ANode: TTwoSidedMaterialNode);
 
         function AmbientColor: TVector3; override;
         function Shininess: Single; override;
         function ReflectionColor: TVector3; override;
-        function Transparency: Single; override;
       end;
     var
       FMaterialInfo: TMaterialInfo;
@@ -377,9 +384,10 @@
       protected
         function GetEmissiveColor: TVector3; override;
         procedure SetEmissiveColor(const Value: TVector3); override;
+        function GetTransparency: Single; override;
+        procedure SetTransparency(const Value: Single); override;
       public
         constructor Create(ANode: TUnlitMaterialNode);
-        function Transparency: Single; override;
       end;
     var
       FMaterialInfo: TMyUnlitMaterialInfo;
@@ -908,7 +916,9 @@ begin
   FdDiffuseColor.Send(TVector3.Zero);
   FdSpecularColor.Send(TVector3.Zero);
   FdAmbientIntensity.Send(0);
+  {$warnings off} // using deprecated in deprecated
   Assert(PureEmissive);
+  {$warnings on}
 end;
 
 { TMaterialNode.TMyMaterialInfo -------------------------------------------------------- }
@@ -967,9 +977,14 @@ begin
   Result := Vector3(M, M, M);
 end;
 
-function TMaterialNode.TMyMaterialInfo.Transparency: Single;
+function TMaterialNode.TMyMaterialInfo.GetTransparency: Single;
 begin
   Result := FNode.Transparency;
+end;
+
+procedure TMaterialNode.TMyMaterialInfo.SetTransparency(const Value: Single);
+begin
+  FNode.Transparency := Value;
 end;
 
 {$ifndef CASTLE_SLIM_NODES}
@@ -1048,9 +1063,14 @@ begin
   FNode.EmissiveColor := Value;
 end;
 
-function TPhysicalMaterialNode.TMyPhysicalMaterialInfo.Transparency: Single;
+function TPhysicalMaterialNode.TMyPhysicalMaterialInfo.GetTransparency: Single;
 begin
   Result := FNode.Transparency;
+end;
+
+procedure TPhysicalMaterialNode.TMyPhysicalMaterialInfo.SetTransparency(const Value: Single);
+begin
+  FNode.Transparency := Value;
 end;
 
 function TPhysicalMaterialNode.TMyPhysicalMaterialInfo.GetBaseColor: TVector3;
@@ -1292,9 +1312,14 @@ begin
   Result := TVector3.Zero;
 end;
 
-function TTwoSidedMaterialNode.TTwoSidedMaterialInfo.Transparency: Single;
+function TTwoSidedMaterialNode.TTwoSidedMaterialInfo.GetTransparency: Single;
 begin
   Result := FNode.Transparency;
+end;
+
+procedure TTwoSidedMaterialNode.TTwoSidedMaterialInfo.SetTransparency(const Value: Single);
+begin
+  FNode.Transparency := Value;
 end;
 
 { TTwoSidedMaterialNode ------------------------------------------------------ }
@@ -1330,9 +1355,14 @@ begin
   FNode.EmissiveColor := Value;
 end;
 
-function TUnlitMaterialNode.TMyUnlitMaterialInfo.Transparency: Single;
+function TUnlitMaterialNode.TMyUnlitMaterialInfo.GetTransparency: Single;
 begin
   Result := FNode.Transparency;
+end;
+
+procedure TUnlitMaterialNode.TMyUnlitMaterialInfo.SetTransparency(const Value: Single);
+begin
+  FNode.Transparency := Value;
 end;
 
 { TUnlitMaterialNode ------------------------------------------------------ }

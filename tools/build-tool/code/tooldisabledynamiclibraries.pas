@@ -34,5 +34,8 @@ initialization
     Since build tool right now doesn't actually need Zlib, Libpng, OpenAL
     libraries (but it would load them otherwise) this is a simple solution.
   }
+  // TODO: web: ToolFonts needs FreeType now... hack to make this work on non-Windows at least for now
+  {$ifdef MSWINDOWS}
   InternalDisableDynamicLibraries := true;
+  {$endif}
 end.
