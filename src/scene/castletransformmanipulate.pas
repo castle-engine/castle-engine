@@ -119,11 +119,26 @@ type
         procedure DoTransformModified;
         procedure DoTransformModifyEnd;
         procedure UpdateSize;
+
+        { Access things from TCastleTransformManipulate instance. }
+        function GetPendingTranslation: TVector3;
+        procedure SetPendingTranslation(const Value: TVector3);
+        function GetPendingRotationAngle: Single;
+        procedure SetPendingRotationAngle(const Value: Single);
+        function GetPendingScale: Single;
+        procedure SetPendingScale(const Value: Single);
+        property PendingTranslation: TVector3 read GetPendingTranslation write SetPendingTranslation;
+        property PendingRotationAngle: Single read GetPendingRotationAngle write SetPendingRotationAngle;
+        property PendingScale: Single read GetPendingScale write SetPendingScale;
+        function SnapTranslation: Single;
+        function SnapRotation: Single;
+        function SnapScale: Single;
       protected
         procedure ChangeWorld(const Value: TCastleAbstractRootTransform); override;
         function LocalRayCollision(const RayOrigin, RayDirection: TVector3;
           const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): TRayCollision; override;
       public
+        OwnerManipulate: TCastleTransformManipulate;
         Mode: TManipulateMode;
         OnTransformModified: TNotifyEvent;
         OnTransformModifyEnd: TNotifyEvent;
@@ -151,6 +166,12 @@ type
         TCastleTransform, if Boxes[I].Parent <> nil.
         The other Boxes always have Parent = nil. }
       FMaxSelectedCount: Cardinal;
+      FPendingTranslation: TVector3;
+      FPendingRotationAngle: Single;
+      FPendingScale: Single;
+      FSnapTranslation: Single;
+      FSnapRotation: Single;
+      FSnapScale: Single;
 
     procedure SetMode(const AValue: TManipulateMode);
     procedure SetMainSelected(const AValue: TCastleTransform);
@@ -160,6 +181,9 @@ type
     procedure MainSelectedFreeNotification(const Sender: TFreeNotificationObserver);
     procedure CreateMoreBoxes;
     function GetSelected(Index: Integer): TCastleTransform;
+    procedure SetSnapTranslation(const Value: Single);
+    procedure SetSnapRotation(const Value: Single);
+    procedure SetSnapScale(const Value: Single);
 
     { Current TCastleTransform for potential move/rotate/scale
       (depending on @link(Mode)).
@@ -224,6 +248,15 @@ type
     { Count of currently selected items.
       @seealso Selected }
     function SelectedCount: Integer;
+
+    { Snap during translation, like 1.0. }
+    property SnapTranslation: Single read FSnapTranslation write SetSnapTranslation;
+
+    { Snap during rotation, in radians, like Deg(5). }
+    property SnapRotation: Single read FSnapRotation write SetSnapRotation;
+
+    { Snap during scaling, like 0.1. }
+    property SnapScale: Single read FSnapScale write SetSnapScale;
   end;
 
 var
@@ -668,6 +701,12 @@ begin
         GizmoScalingAssumeScaleValue := Parent.Scale;
       end;
       GizmoDragging := true;
+
+      // we start dragging, so we reset FPendingXxx
+      PendingTranslation := TVector3.Zero;
+      PendingRotationAngle := 0;
+      PendingScale := 0;
+
       // keep tracking pointing device events, by TCastleViewport.CapturePointingDevice mechanism
       Result := true;
     end;
@@ -676,6 +715,53 @@ end;
 
 function TCastleTransformManipulate.TGizmoScene.PointingDeviceMove(
   const Pick: TRayCollisionNode; const Distance: Single): Boolean;
+
+  { Based on new translation diff, and SnapTranslation,
+    update PendingTranslation and return what translation to apply *now*
+    by current PointingDeviceMove.
+    Call only FSnapTranslation <> 0. }
+  function SnapTranslationNow(const Diff: TVector3): TVector3;
+  var
+    Snapped: Single;
+    I: Integer;
+    Pending: TVector3;
+  begin
+    Pending := PendingTranslation;
+    Pending := Pending + Diff;
+
+    Result := TVector3.Zero;
+    for I := 0 to 2 do
+    begin
+      while Abs(Pending.Data[I]) >= SnapTranslation do
+      begin
+        Snapped := Sign(Pending.Data[I]) * SnapTranslation;
+        Result.Data[I] := Result.Data[I] + Snapped;
+        Pending.Data[I] := Pending.Data[I] - Snapped;
+      end;
+    end;
+
+    PendingTranslation := Pending;
+  end;
+
+  function SnapRotationNow(const Diff: Single): Single;
+  var
+    Snapped: Single;
+    Pending: Single;
+  begin
+    Pending := PendingRotationAngle;
+    Pending := Pending + Diff;
+
+    Result := 0;
+    while Abs(Pending) >= SnapRotation do
+    begin
+      Snapped := Sign(Pending) * SnapRotation;
+      Result := Result + Snapped;
+      Pending := Pending - Snapped;
+    end;
+
+    PendingRotationAngle := Pending;
+  end;
+
 var
   NewPick, Diff: TVector3;
   NewPickAngle, DiffAngle: Single;
@@ -711,11 +797,15 @@ begin
               Diff := Diff * Parent.Scale[DraggingCoord]
             else
               Diff := Diff * Parent.Scale;
+            if SnapTranslation <> 0 then
+              Diff := SnapTranslationNow(Diff);
             Parent.Translation := Parent.Translation + Diff;
           end;
         mmRotate:
           begin
             DiffAngle := NewPickAngle - LastPickAngle;
+            if SnapRotation <> 0 then
+              DiffAngle := SnapRotationNow(DiffAngle);
             Parent.Rotation := (
               QuatFromAxisAngle(Parent.Rotation) *
               QuatFromAxisAngle(TVector3.One[DraggingCoord], DiffAngle)).
@@ -728,10 +818,13 @@ begin
                 Diff.Data[I] := 1
               else
                 Diff.Data[I] := NewPick[I] / LastPick[I];
+            // if SnapScale <> 0 then
+            //   Diff := SnapScaleNow(Diff);
+            // todo: scale addition?
             Parent.Scale := Parent.Scale * Diff;
           end;
         mmSelect:
-          raise EInternalError.Create('TGizmoScene shall never be created with mmSelect, ');
+          raise EInternalError.Create('TGizmoScene shall never be created with mmSelect');
       end;
 
       { No point in updating LastPick or LastPickAngle:
@@ -809,6 +902,53 @@ begin
     Result.Distance := 0;
 end;
 
+function TCastleTransformManipulate.TGizmoScene.GetPendingTranslation: TVector3;
+begin
+  Result := OwnerManipulate.FPendingTranslation;
+end;
+
+procedure TCastleTransformManipulate.TGizmoScene.SetPendingTranslation(
+  const Value: TVector3);
+begin
+  OwnerManipulate.FPendingTranslation := Value;
+end;
+
+function TCastleTransformManipulate.TGizmoScene.GetPendingRotationAngle: Single;
+begin
+  Result := OwnerManipulate.FPendingRotationAngle;
+end;
+
+procedure TCastleTransformManipulate.TGizmoScene.SetPendingRotationAngle(
+  const Value: Single);
+begin
+  OwnerManipulate.FPendingRotationAngle := Value;
+end;
+
+function TCastleTransformManipulate.TGizmoScene.GetPendingScale: Single;
+begin
+  Result := OwnerManipulate.FPendingScale;
+end;
+
+procedure TCastleTransformManipulate.TGizmoScene.SetPendingScale(const Value: Single);
+begin
+  OwnerManipulate.FPendingScale := Value;
+end;
+
+function TCastleTransformManipulate.TGizmoScene.SnapTranslation: Single;
+begin
+  Result := OwnerManipulate.SnapTranslation;
+end;
+
+function TCastleTransformManipulate.TGizmoScene.SnapRotation: Single;
+begin
+  Result := OwnerManipulate.SnapRotation;
+end;
+
+function TCastleTransformManipulate.TGizmoScene.SnapScale: Single;
+begin
+  Result := OwnerManipulate.SnapScale;
+end;
+
 { TCastleTransformManipulate ------------------------------------------------------ }
 
 constructor TCastleTransformManipulate.Create(AOwner: TComponent);
@@ -816,6 +956,7 @@ constructor TCastleTransformManipulate.Create(AOwner: TComponent);
   function CreateGizmoScene: TGizmoScene;
   begin
     Result := TGizmoScene.Create(Self);
+    Result.OwnerManipulate := Self;
     Result.Collides := false;
     Result.Pickable := FPickable;
     Result.CastShadows := false;
@@ -1025,6 +1166,37 @@ begin
   raise EListError.CreateFmt('Index %d out of bounds (TCastleTransformManipulate.Selected)', [
     Index
   ]);
+end;
+
+procedure TCastleTransformManipulate.SetSnapTranslation(const Value: Single);
+begin
+  if FSnapTranslation <> Value then
+  begin
+    { When changing the snap (also between zero and non-zero),
+      remove any pending translation.
+      This way behavior when user releases "Ctrl" (thus, toggles snapping)
+      in editor is nice to user. }
+    FPendingTranslation := TVector3.Zero;
+    FSnapTranslation := Value;
+  end;
+end;
+
+procedure TCastleTransformManipulate.SetSnapRotation(const Value: Single);
+begin
+  if FSnapRotation <> Value then
+  begin
+    FPendingRotationAngle := 0;
+    FSnapRotation := Value;
+  end;
+end;
+
+procedure TCastleTransformManipulate.SetSnapScale(const Value: Single);
+begin
+  if FSnapScale <> Value then
+  begin
+    FPendingScale := 0;
+    FSnapScale := Value;
+  end;
 end;
 
 initialization
