@@ -978,7 +978,11 @@
       const MaxDistance: Single = MaxSingle;
       const CollisionLayers: TPhysicsLayers = AllLayers): TRayCastResult;
 
-    { Cast a sphere using physics engine, see what is hit.
+    { Check if moving a sphere by a given vector would collide with anything
+      in the world.
+      Suitable to check if moving this rigid body,
+      approximating it as a sphere,
+      would collide with anything.
 
       Returns the TPhysicsRayCastResult record.
       Read TPhysicsRayCastResult.Hit (boolean), TPhysicsRayCastResult.Transform
@@ -991,7 +995,7 @@
       like this works naturally:
 
       @longCode(#
-        RBody := MyTransform.FindBehavior(TCastleRigidBody) as TCastleRigidBody;
+        RBody := MyTransform.RigidBody;
         Hit := RBody.SphereCast(MyTransform.Translation, 2, MyTransform.Direction, MaxDistance);
       #)
 
@@ -1000,11 +1004,11 @@
       So TPhysicsRayCastResult.Distance, TPhysicsRayCastResult.Point, TPhysicsRayCastResult.Normal
       are in parent coordinate system of associated TCastleTransform (@link(TCastleBehavior.Parent)).
 
-      This ignores all colliders that overlap sphere when start casting but the
-      collider of this rigid body (to not accidentally collide
-      with your own collider) is alaways ignored.
-
-      Only collisions with the physics colliders (TCastleCollider and TCollider)
+      This ignores all colliders that overlap sphere at the initial position,
+      before it is moved by SphereDirection.
+      Moreover the collider of this rigid body is always ignored
+      (to not accidentally collide with your own collider).
+      Only collisions with the physics colliders (TCastleCollider)
       are considered.
 
       By default, the sphere hits all physics layers, but you can choose physics
