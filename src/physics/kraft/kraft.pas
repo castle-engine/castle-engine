@@ -726,6 +726,9 @@ type PKraftForceMode=^TKraftForceMode;
      TKraftQuickHull=class;
 
      PKraftQuickHullVector3D=^TKraftQuickHullVector3D;
+     // CGE: With Delphi, we need to use "advanced record", not "object",
+     // as the latter will not compile into Delphi package because of
+     // https://docwiki.embarcadero.com/RADStudio/Athens/en/X1025_Unsupported_language_feature:_%27%25s%27_%28Delphi%29
      TKraftQuickHullVector3D={$ifdef FPC}object{$else}record{$endif}
       public
        x:double;
