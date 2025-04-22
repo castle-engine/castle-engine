@@ -172,6 +172,7 @@ castle-game-engine-*.fpm
 /examples/physics/physics_joints_2d_grab/physics_joints_2d_grab
 /examples/physics/physics_joints_3d/physics_joints_3d
 /examples/physics/physics_joints_frequency/physics_joints_frequency
+/examples/physics/physics_explosion/physics_explosion
 /examples/physics/physics_forces/physics_forces
 /examples/physics/physics_persistent_forces_components/physics_persistent_forces_components
 /examples/physics/physics_simple_3d_bullet/physics_simple_3d_bullet

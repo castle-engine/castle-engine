@@ -895,7 +895,7 @@
       So for example query like this works naturally:
 
       @longCode(#
-        RBody := MyTransform.FindBehavior(TCastleRigidBody) as TCastleRigidBody;
+        RBody := MyTransform.RigidBody;
         Hit := RBody.RayCast(MyTransform.Translation, MyTransform.Direction, MaxDistance);
       #)
 
@@ -1637,7 +1637,7 @@ begin
   if FKraftShape <> nil then
   begin
     Assert(Parent <> nil);
-    RBody := Parent.FindBehavior(TCastleRigidBody) as TCastleRigidBody;
+    RBody := Parent.RigidBody;
     Assert(RBody <> nil);
 
     FKraftShape.LocalTransform := MatrixToKraft(FLocalTransform);
@@ -1687,7 +1687,7 @@ end;
 function TCastleCollider.GetRigidBody: TCastleRigidBody;
 begin
   if Parent <> nil then
-    Result := Parent.FindBehavior(TCastleRigidBody) as TCastleRigidBody
+    Result := Parent.RigidBody
   else
     Result := nil;
 end;
@@ -1812,7 +1812,7 @@ var
 begin
   if Parent <> nil then
   begin
-    CastleRBody := Parent.FindBehavior(TCastleRigidBody) as TCastleRigidBody;
+    CastleRBody := Parent.RigidBody;
     if CastleRBody <> nil then
       CastleRBody.ReinitializeCastleCollider;
   end;
@@ -1824,7 +1824,7 @@ var
 begin
   { Check there is a rigid body and we should try initialize collider.
     This is the case when rigid body was added first to behaviors list }
-  CastleRigidBody := Parent.FindBehavior(TCastleRigidBody) as TCastleRigidBody;
+  CastleRigidBody := Parent.RigidBody;
   if CastleRigidBody <> nil then
     CastleRigidBody.CheckInitialization(Self);
 
@@ -1839,7 +1839,7 @@ procedure TCastleCollider.WorldBeforeDetach;
 var
   CastleRBody: TCastleRigidBody;
 begin
-  CastleRBody := Parent.FindBehavior(TCastleRigidBody) as TCastleRigidBody;
+  CastleRBody := Parent.RigidBody;
   if CastleRBody <> nil then
   begin
     // deinitialize collider
@@ -2909,7 +2909,7 @@ procedure TCastleRigidBody.InitializeCollider;
   function GetCastleColliderFromParent: TCastleCollider;
   begin
     if Parent <> nil then
-      Result := Parent.FindBehavior(TCastleCollider) as TCastleCollider
+      Result := Parent.Collider
     else
       Result := nil;
   end;
