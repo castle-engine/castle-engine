@@ -1594,8 +1594,8 @@ begin
   if (A = nil) or (InternalViewport = nil) then
     Exit;
 
-  RBody := A.FindBehavior(TCastleRigidBody) as TCastleRigidBody;
-  Collider := A.FindBehavior(TCastleCollider) as TCastleCollider;
+  RBody := A.RigidBody;
+  Collider := A.Collider;
 
   if Input_Run.IsPressed(Container) then
   begin

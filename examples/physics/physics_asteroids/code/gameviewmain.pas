@@ -1,5 +1,5 @@
 {
-  Copyright 2022-2022 Michalis Kamburelis, Andrzej Kilijański.
+  Copyright 2022-2025 Michalis Kamburelis, Andrzej Kilijański.
 
   This file is part of "Castle Game Engine".
 
@@ -201,7 +201,7 @@ begin
 
     Direction := Ship.LocalToWorldDirection(Vector3(0,1,0));
 
-    BullletBody := Bullet.FindBehavior(TCastleRigidBody) as TCastleRigidBody;
+    BullletBody := Bullet.RigidBody;
     { Change Bullet.Translation to Vector3(0,1,0) to keep the bullets rotating }
     BullletBody.ApplyImpulse(Direction * 500, {Vector3(0,1,0)} Bullet.Translation);
 

@@ -950,7 +950,7 @@
       So for example query like this works naturally:
 
       @longCode(#
-        RBody := MyTransform.FindBehavior(TCastleRigidBody) as TCastleRigidBody;
+        RBody := MyTransform.RigidBody;
         Hit := RBody.RayCast(MyTransform.Translation, MyTransform.Direction, MaxDistance);
       #)
 
