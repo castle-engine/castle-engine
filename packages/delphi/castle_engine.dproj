@@ -392,6 +392,7 @@
         <DCCReference Include="..\..\src\scene\x3dtime.pas"/>
         <DCCReference Include="..\..\src\scene\castlelivingbehaviors.pas"/>
         <DCCReference Include="..\..\src\physics\kraft\kraft.pas"/>
+        <DCCReference Include="..\..\src\physics\kraft\castleinternalkraftoverrides.pas"/>
         <DCCReference Include="..\..\src\vampyre_imaginglib\src\Extensions\ImagingXpm.pas"/>
         <DCCReference Include="..\..\src\vampyre_imaginglib\src\Extensions\ImagingPcx.pas"/>
         <DCCReference Include="..\..\src\vampyre_imaginglib\src\Extensions\ImagingPsd.pas"/>

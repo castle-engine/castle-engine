@@ -7,24 +7,35 @@
   { CGE: Avoid FPC note: "nested procedures" not yet supported inside inline procedure/function
     TODO: submit to Kraft. }
   {$notes off}
+
+  { Hide FPC warnings. }
+  {$warn 6018 off} // unreachable code
+  {$warn 4045 off} // Comparison might be always true due to range of constant and expression
+  {$warn 4082 off} // Converting pointers to signed integers may result in wrong comparison results and range errors, use an unsigned type instead.
+  {$ifndef VER3_0}
+    {$ifndef VER3_2}
+      { Disable "case statement does not handle all possible cases".
+        In CGE we tried to adjust to these
+        ( https://castle-engine.io/coding_conventions#case_analysis )
+        but in some cases there's no good adjustment of code.
+        Do the same for Kraft, to have clean compilation output
+        but do not cause divergence from Kraft upstream in kraft.pas }
+      {$warn 6060 off}
+    {$endif}
+  {$endif}
 {$else}
-  { Hide known ignorable hints and warnings with Delphi
-    (Delphi versions and platforms supported by CGE - https://castle-engine.io/delphi ).
-    As we don't want to significantly divert from upstream Kraft in CGE,
-    we generally don't do code-quality improvements in Kraft
-    and rather just hide the warnings.
-    We only fix things that could affect CGE users. }
   {$hints off}
+
   {$warn SYMBOL_PLATFORM off}
   {$warn IMPLICIT_STRING_CAST off}
-  {$warn COMBINING_SIGNED_UNSIGNED off}
   {$if CompilerVersion >= 32} {$warn COMBINING_SIGNED_UNSIGNED64 off} {$ifend} // only since Delphi 10.2
+  { Hide Delphi warning about duplicate constructors in Kraft classes
+    not accessible from C++.
+    We don't need to expose Kraft classes to C++ anyway, they are internal for CGE. }
   {$warn DUPLICATE_CTOR_DTOR off}
-  { Kraft.pas(14909) Warning: W1036 Variable 'baba' might not have been initialized
-    Kraft.pas(22769) Warning: W1036 Variable 'Distance' might not have been initialized
-    Kraft.pas(22867) Warning: W1036 Variable 'Distance' might not have been initialized
-  }
-  {$warn USE_BEFORE_DEF off}
+
+  // Used by some logic in our Kraft mods
+  {$define KRAFT_DELPHI_NON_WINDOWS}
 {$endif}
 
 { Tweak caninline ----------------------------------------------------------- }

@@ -100,6 +100,7 @@ castle-game-engine-*.fpm
 /examples/creature_behaviors/creature_behaviors
 /examples/curves/use_designed_curve/use_designed_curve
 /examples/delphi/fmx/CastleFmx
+/examples/delphi/fmx_play_animation/CastleFmxPlayAnimation
 /examples/deprecated_library/build-qt_library_tester-*
 /examples/deprecated_library/qt_library_tester/build
 /examples/deprecated_library/cpp_winapi_library_tester/Debug
@@ -129,6 +130,7 @@ castle-game-engine-*.fpm
 /examples/images_videos/image_render_custom_shader/image_render_custom_shader
 /examples/images_videos/simple_video_editor/simple_video_editor
 /examples/images_videos/test_castleimage_draw3x3/test_castleimage_draw3x3
+/examples/images_videos/image_generate_and_use/image_generate_and_use
 /examples/isometric_game/isometric_game
 /examples/isometric_game_3d/isometric_game_3d
 /examples/deprecated_to_upgrade/joystick/joystick_demo

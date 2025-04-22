@@ -89,11 +89,7 @@ type
 
       It is not adviced to use it, as using the global WindowPos leads
       sooner or later to messy in code, that has to deal with global state.
-      If you need to know how to move after printing text, use TextMove.
-
-      May require 1 free slot on the attributes stack.
-      May only be called when current matrix is modelview.
-      Doesn't modify any OpenGL state or matrix, except it moves raster position. }
+      If you need to know how to move after printing text, use TextMove. }
     procedure PrintAndMove(const s: string); deprecated 'use Print(X, Y, ...), and move the (X, Y) yourself based on TextMove, instead of this';
 
     { Draw text at the given position with given color.
@@ -107,11 +103,7 @@ type
       It is not adviced to use overloaded versions without X, Y or Color
       --- using global state leads to messy code.
       You should upgrade your code to use the version that gets X,Y,Color
-      explicitly.
-
-      May require 1 free slot on the attributes stack.
-      May only be called when current matrix is modelview.
-      Doesn't modify any OpenGL state or matrix, except it moves raster position. }
+      explicitly. }
     procedure Print(const X, Y: Single; const Color: TCastleColor;
       const S: string); overload; virtual; abstract;
     procedure Print(const Pos: TVector2Integer; const Color: TCastleColor;
@@ -336,10 +328,6 @@ type
       Returns the number of lines printed, that is the number of lines
       after breaking the text into lines. This may be useful e.g. to calculate
       the height of the printed text.
-
-      May require 1 free slot on the attributes stack.
-      May only be called when current matrix is modelview.
-      Doesn't modify any OpenGL state or matrix.
 
       Overloaded and deprecated version without
       explicit Color parameter uses CurrentColor.

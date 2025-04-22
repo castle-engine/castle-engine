@@ -314,8 +314,6 @@ begin
 end;
 
 function TRegisteredProtocols.Add(const Protocol: String): TRegisteredProtocol;
-var
-  P: TRegisteredProtocol;
 begin
   if Find(Protocol) <> nil then
     raise EProtocolAlreadyRegistered.CreateFmt('URL protocol "%s" is already registered', [Protocol]);
