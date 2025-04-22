@@ -78,7 +78,7 @@ unit kraft;
    {$define BIG_ENDIAN}
   {$endif}
  {$endif}
-{$else} // Delphi
+{$else}
  {$define LITTLE_ENDIAN}
  {$ifndef cpu64}
   {$define cpu32}
@@ -131,6 +131,8 @@ unit kraft;
 {$ifdef UseDouble}
  {$define NonSIMD}
 {$endif}
+
+{-$define NonSIMD}
 
 { Apply some Castle Game Engine compilation defines.
 
@@ -192,29 +194,14 @@ uses {$ifdef windows}
 {$ifdef KraftPasMP}
      PasMP,
 {$endif}
-     Math;
-
-{ CGE: Delphi on Linux doesn't define
-  - TFPUPrecisionMode, SetPrecisionMode
-  - TFPUExceptionMask, SetFPUExceptionMask }
-{$if defined(FPC) or defined(MSWINDOWS)}
-  {$define HAS_FPU_TYPES}
-{$ifend}
-
-{ Delphi on non-Windows redefines LongInt/LongWord in a way inconsistent
-  with Delphi/Windows or FPC.
-  Make Kraft use expected type sizes.
-  We don't just search + replace this in Kraft sources, to ease upgrading
-  Kraft in the future.
-  See https://castle-engine.io/coding_conventions#no_longint_longword .
-  This seems already handled better in recent Kraft,
-  https://github.com/BeRo1985/kraft/blob/master/src/kraft.pas ,
-  that avoids LongInt/LongWord just like CGE. }
-{$if (not defined(FPC)) and (not defined(MSWINDOWS))}
-type
-  LongInt = Integer;
-  LongWord = Cardinal;
-{$ifend}
+     Math,
+     { Use this as last unit on the uses clause, to allow CastleInternalKraftOverrides
+       to override (only for Kraft) some types, from standard units,
+       used by Kraft.
+       We do this to introduce some changes to Kraft while maintaining
+       minimal diff between CGE version and Kraft upstream,
+       to enable to synchronize with Kraft upstream easier. }
+     CastleInternalKraftOverrides;
 
 const EPSILON={$ifdef UseDouble}1e-14{$else}1e-5{$endif}; // actually {$ifdef UseDouble}1e-16{$else}1e-7{$endif}; but we are conservative here
 
@@ -248,11 +235,9 @@ const EPSILON={$ifdef UseDouble}1e-14{$else}1e-5{$endif}; // actually {$ifdef Us
 
       TimeOfImpactSphericalExpansionRadius=1e-5;
 
-      {$ifdef HAS_FPU_TYPES}
       PhysicsFPUPrecisionMode:TFPUPrecisionMode={$ifdef cpu386}pmExtended{$else}{$ifdef cpux64}pmExtended{$else}pmDouble{$endif}{$endif};
 
       PhysicsFPUExceptionMask:TFPUExceptionMask=[exInvalidOp,exDenormalized,exZeroDivide,exOverflow,exUnderflow,exPrecision];
-      {$endif}
 
       KRAFT_QUICKHULL_FACE_MARK_VISIBLE=1;
       KRAFT_QUICKHULL_FACE_MARK_NON_CONVEX=2;
@@ -21152,7 +21137,6 @@ begin
     SolverContact^.Separation:=Contact^.Penetration;
    end;
   end;
-  else ; // CGE: avoid "Warning: Case statement does not handle all possible cases" with new FPC, TODO: Submit to Kraft
  end;
 end;
 
@@ -22973,7 +22957,6 @@ begin
       kstTriangle:begin
        CollideSphereWithTriangle(TKraftShapeSphere(ShapeA),TKraftShapeTriangle(ShapeB));
       end;
-      else ; // CGE: avoid "Warning: Case statement does not handle all possible cases" with new FPC, TODO: Submit to Kraft
      end;
     end;
     kstCapsule:begin
@@ -22990,7 +22973,6 @@ begin
       kstTriangle:begin
        CollideCapsuleWithTriangle(TKraftShapeCapsule(ShapeA),TKraftShapeTriangle(ShapeB));
       end;{}
-      else ; // CGE: avoid "Warning: Case statement does not handle all possible cases" with new FPC, TODO: Submit to Kraft
      end;
     end;
     kstConvexHull,kstBox,kstPlane,kstTriangle:begin
@@ -22998,10 +22980,8 @@ begin
       kstConvexHull,kstBox,kstPlane,kstTriangle:begin
        CollideConvexHullWithConvexHull(TKraftShapeConvexHull(ShapeA),TKraftShapeConvexHull(ShapeB));
       end;
-      else ; // CGE: avoid "Warning: Case statement does not handle all possible cases" with new FPC, TODO: Submit to Kraft
      end;
     end;
-    else ; // CGE: avoid "Warning: Case statement does not handle all possible cases" with new FPC, TODO: Submit to Kraft
    end;
 
   end;
@@ -24950,7 +24930,6 @@ begin
     end;
 
    end;
-   else ; // CGE: avoid "Warning: Case statement does not handle all possible cases" with new FPC, TODO: Submit to Kraft
   end;
 
   fRigidBodyType:=ARigidBodyType;
@@ -25004,7 +24983,6 @@ begin
     inc(fPhysics.fKinematicRigidBodyCount);
 
    end;
-   else ; // CGE: avoid "Warning: Case statement does not handle all possible cases" with new FPC, TODO: Submit to Kraft
   end;
 
   Shape:=fShapeFirst;
@@ -30549,10 +30527,8 @@ end;
 procedure TKraftJobThread.Execute;
 var JobIndex:longint;
 begin
- {$ifdef HAS_FPU_TYPES}
  SetPrecisionMode(PhysicsFPUPrecisionMode);
  SetExceptionMask(PhysicsFPUExceptionMask);
- {$endif}
  SIMDSetOurFlags;
  InterlockedIncrement(fJobManager.fCountAliveThreads);
  while not (Terminated or fJobManager.fThreadsTerminated) do begin
@@ -32328,10 +32304,8 @@ end;
 procedure TKraft.Step(const ADeltaTime:TKraftScalar=0);
 var RigidBody:TKraftRigidBody;
     Constraint,NextConstraint:TKraftConstraint;
-    {$ifdef HAS_FPU_TYPES}
     OldFPUPrecisionMode:TFPUPrecisionMode;
     OldFPUExceptionMask:TFPUExceptionMask;
-    {$endif}
     OldSIMDFlags:longword;
     StartTime:int64;
     TimeStep:TKraftTimeStep;
@@ -32361,7 +32335,6 @@ begin
  fContactManager.fCountDebugClipVertexLists:=0;
 {$endif}
 
- {$ifdef HAS_FPU_TYPES}
  OldFPUPrecisionMode:=GetPrecisionMode;
  if OldFPUPrecisionMode<>PhysicsFPUPrecisionMode then begin
   SetPrecisionMode(PhysicsFPUPrecisionMode);
@@ -32371,7 +32344,6 @@ begin
  if OldFPUExceptionMask<>PhysicsFPUExceptionMask then begin
   SetExceptionMask(PhysicsFPUExceptionMask);
  end;
- {$endif}
 
  OldSIMDFlags:=SIMDGetFlags;
 
@@ -32414,7 +32386,6 @@ begin
     inc(fContinuousTime,fHighResolutionTimer.GetTime-StartTime);
    end;
   end;
-  else ; // CGE: avoid "Warning: Case statement does not handle all possible cases" with new FPC, TODO: Submit to Kraft
  end;
 
  Constraint:=fConstraintFirst;
@@ -32447,7 +32418,6 @@ begin
 
  SIMDSetFlags(OldSIMDFlags);
 
- {$ifdef HAS_FPU_TYPES}
  if OldFPUExceptionMask<>PhysicsFPUExceptionMask then begin
   SetExceptionMask(OldFPUExceptionMask);
  end;
@@ -32455,7 +32425,6 @@ begin
  if OldFPUPrecisionMode<>PhysicsFPUPrecisionMode then begin
   SetPrecisionMode(OldFPUPrecisionMode);
  end;
- {$endif}
 
  fTotalTime:=fHighResolutionTimer.GetTime-fTotalTime;
 
@@ -33117,7 +33086,6 @@ var Hit:boolean;
         kstMesh:begin
          CollideSphereWithMesh(TKraftShapeMesh(CurrentShape));
         end;
-        else ; // CGE: avoid "Warning: Case statement does not handle all possible cases" with new FPC, TODO: Submit to Kraft
        end;
       end;
      end else begin

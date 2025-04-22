@@ -306,6 +306,7 @@ contains
   x3dtime in '..\..\src\scene\x3dtime.pas',
   castlelivingbehaviors in '..\..\src\scene\castlelivingbehaviors.pas',
   kraft in '..\..\src\physics\kraft\kraft.pas',
+  castleinternalkraftoverrides in '..\..\src\physics\kraft\castleinternalkraftoverrides.pas',
   ImagingXpm in '..\..\src\vampyre_imaginglib\src\Extensions\ImagingXpm.pas',
   ImagingPcx in '..\..\src\vampyre_imaginglib\src\Extensions\ImagingPcx.pas',
   ImagingPsd in '..\..\src\vampyre_imaginglib\src\Extensions\ImagingPsd.pas',
