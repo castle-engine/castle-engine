@@ -1,6 +1,6 @@
 ﻿{%MainUnit castletransform.pas}
 {
-  Copyright 2017-2024 Michalis Kamburelis.
+  Copyright 2017-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -20,10 +20,16 @@
 
 // type section started in CastleTransform.pas
 
-  { Result of ray cast, that describes what is hit by a ray in a viewport.
-    Routines that return this record include
-    @link(TCastleAbstractRootTransform.PhysicsRayCast) and
-    @link(TCastleRigidBody.PhysicsRayCast). }
+  { Result of "ray cast" and "sphere cast", that describes what is hit by a ray
+    (or sphere moving along a ray) in a viewport.
+    Routines that return this record include:
+
+    @unorderedList(
+      @item @link(TCastleAbstractRootTransform.PhysicsRayCast)
+      @item @link(TCastleAbstractRootTransform.PhysicsSphereCast)
+      @item @link(TCastleRigidBody.PhysicsRayCast)
+      @item @link(TCastleRigidBody.PhysicsSphereCast)
+    ) }
   TRayCastResult = record
     { Other fields are guaranteed to be all zero if Hit = @false. }
     Hit: Boolean;
@@ -946,24 +952,32 @@
       to know what was hit.
 
       The given RayOrigin, RayDirection, MaxDistance are in the parent
-      coordinate system of associated TCastleTransform (@link(TCastleBehavior.Parent)).
-      So for example query like this works naturally:
+      coordinate system of associated TCastleTransform.
+      For example query like this works naturally:
 
       @longCode(#
-        RBody := MyTransform.RigidBody;
-        Hit := RBody.RayCast(MyTransform.Translation, MyTransform.Direction, MaxDistance);
+        // MyTransform.Translation, MyTransform.Direction
+        // are in MyTransform.Parent coordinate system
+        Hit := MyTransform.RigidBody.PhysicsRayCast(
+          MyTransform.Translation,
+          MyTransform.Direction, MaxDistance);
       #)
 
       It returns TRayCastResult, with information there
       consistently in the same coordinate system as inputs.
       So TRayCastResult.Distance, TRayCastResult.Point, TRayCastResult.Normal
-      are in parent coordinate system of associated TCastleTransform (@link(TCastleBehavior.Parent)).
+      are also in parent coordinate system of associated TCastleTransform.
 
-      This ignores the collider of this rigid body (to not accidentally collide
-      with your own collider), and checks collisions with the rest of the world in
-      given max distance.
-      Only collisions with the physics colliders (TCastleCollider)
-      are considered.
+      Collisions taken / not taken into account:
+
+      @unorderedList(
+        @item(Ignores the collider of this rigid body,
+          to not accidentally collide with your own collider.)
+        @item(Ignores collisions beyond MaxDistance, if MaxDistance <> MaxSingle.
+          Passing some MaxDistance may also optimize the calculation.)
+        @item(Only collisions with the physics colliders (TCastleCollider)
+          are considered.)
+      )
 
       By default, the ray hits all physics layers, but you can choose physics layers
       in CollisionLayers attribute.
@@ -978,38 +992,47 @@
       const MaxDistance: Single = MaxSingle;
       const CollisionLayers: TPhysicsLayers = AllLayers): TRayCastResult;
 
-    { Check if moving a sphere by a given vector would collide with anything
+    { Check if moving a sphere in the given direction would collide with anything
       in the world.
       Suitable to check if moving this rigid body,
-      approximating it as a sphere,
+      approximating this body as a sphere,
       would collide with anything.
 
-      Returns the TPhysicsRayCastResult record.
-      Read TPhysicsRayCastResult.Hit (boolean), TPhysicsRayCastResult.Transform
-      (guaranteed to be @nil when TPhysicsRayCastResult.Hit is @false) and other fields
+      Returns the TRayCastResult record.
+      Read TRayCastResult.Hit (boolean), TRayCastResult.Transform
+      (guaranteed to be @nil when TRayCastResult.Hit is @false) and other fields
       to know what was hit.
 
-      The given SphereOrigin, SphereRadius,  SphereDirection, MaxDistance
-      are in the parent coordinate system of associated
-      TCastleTransform (@link(TCastleBehavior.Parent)). So for example query
-      like this works naturally:
+      The given SphereOrigin, SphereRadius, SphereDirection, MaxDistance
+      are in the parent coordinate system of associated TCastleTransform.
+      For example query like this works naturally:
 
       @longCode(#
-        RBody := MyTransform.RigidBody;
-        Hit := RBody.SphereCast(MyTransform.Translation, 2, MyTransform.Direction, MaxDistance);
+        // MyTransform.Translation, MyTransform.Direction
+        // are in MyTransform.Parent coordinate system
+        Hit := MyTransform.RigidBody.PhysicsSphereCast(
+          MyTransform.Translation, 2,
+          MyTransform.Direction, MaxDistance);
       #)
 
-      It returns TPhysicsRayCastResult, with information there
+      It returns TRayCastResult, with information there
       consistently in the same coordinate system as inputs.
-      So TPhysicsRayCastResult.Distance, TPhysicsRayCastResult.Point, TPhysicsRayCastResult.Normal
-      are in parent coordinate system of associated TCastleTransform (@link(TCastleBehavior.Parent)).
+      So TRayCastResult.Distance, TRayCastResult.Point, TRayCastResult.Normal
+      are also in parent coordinate system of associated TCastleTransform.
 
-      This ignores all colliders that overlap sphere at the initial position,
-      before it is moved by SphereDirection.
-      Moreover the collider of this rigid body is always ignored
-      (to not accidentally collide with your own collider).
-      Only collisions with the physics colliders (TCastleCollider)
-      are considered.
+      Collisions taken / not taken into account:
+
+      @unorderedList(
+        @item(Ignores all colliders that overlap sphere at the initial position,
+          before it is moved by SphereDirection.)
+        @item(Always ignores the collider of this rigid body,
+          to not accidentally collide with your own collider.)
+        @item(Ignores collisions that would occur is sphere is moved by move than
+          MaxDistance, if MaxDistance <> MaxSingle.
+          Passing some MaxDistance may also optimize the calculation.)
+        @item(Only collisions with the physics colliders (TCastleCollider)
+          are considered.)
+      )
 
       By default, the sphere hits all physics layers, but you can choose physics
       layers in CollisionLayers attribute.
@@ -1758,6 +1781,14 @@ begin
   UpdateVisualization;
 end;
 
+const
+  KraftFlagsWhenExists = [ksfCollision,
+    // determines whether body is detected by PhysicsRayCast
+    ksfRayCastable,
+    // determines whether body is detected by PhysicsSphereCast
+    ksfSphereCastable
+  ];
+
 procedure TCastleCollider.InitializeKraft(const APhysics: TKraft;
   const ACastleRigidBody: TCastleRigidBody);
 begin
@@ -1781,7 +1812,7 @@ begin
   FKraftShape.Restitution := Restitution;
   FKraftShape.Friction := Friction;
   if not ACastleRigidBody.ExistsInRoot then
-    FKraftShape.Flags := FKraftShape.Flags - [ksfCollision, ksfRayCastable, ksfSphereCastable];
+    FKraftShape.Flags := FKraftShape.Flags - KraftFlagsWhenExists;
 
   UpdateLocalTransform;
 end;
@@ -3425,13 +3456,10 @@ begin
 
   if Assigned(KraftShape) then
   begin
-    { Note: ksfRayCastable flag determines whether body is detected by PhysicsRayCast. }
     if ExistsInRoot then
-      KraftShape.Flags := KraftShape.Flags + [ksfCollision,
-        ksfRayCastable, ksfSphereCastable]
+      KraftShape.Flags := KraftShape.Flags + KraftFlagsWhenExists
     else
-      KraftShape.Flags := KraftShape.Flags - [ksfCollision,
-        ksfRayCastable, ksfSphereCastable];
+      KraftShape.Flags := KraftShape.Flags - KraftFlagsWhenExists;
   end;
 
   UpdateColliderAutoSize;
@@ -4261,7 +4289,7 @@ function TCastleAbstractRootTransform.PhysicsRayCast(
     FillChar(Result, SizeOf(Result), 0);
 
     { Note: In Kraft, the distance parameters are called "time"
-      (MaxTime, Time instead of more natural MaxDistance, Distance).
+      (MaxTime, Time) instead of more natural MaxDistance, Distance.
       But all research shows that it is actually "distance" and that is also how
       other physics engines call it.
 
@@ -4272,6 +4300,7 @@ function TCastleAbstractRootTransform.PhysicsRayCast(
       VectorToKraft(RayOrigin), VectorToKraft(RayDirection), MaxDistance,
       // outputs
       KraftShape, KraftDistance, KraftPoint, KraftNormal,
+      // collision layers
       CollisionLayers) then
     begin
       Result.Hit := true;
@@ -4310,7 +4339,7 @@ end;
 function TCastleAbstractRootTransform.PhysicsSphereCast(const SphereOrigin: TVector3;
   const SphereRadius: Single; const SphereDirection: TVector3;
   const MaxDistance: Single; const IgnoreBody: TCastleRigidBody;
-  const CollisionLayers: TPhysicsLayers): TPhysicsRayCastResult;
+  const CollisionLayers: TPhysicsLayers): TRayCastResult;
 
   procedure Core;
   var
@@ -4323,7 +4352,7 @@ function TCastleAbstractRootTransform.PhysicsSphereCast(const SphereOrigin: TVec
     FillChar(Result, SizeOf(Result), 0);
 
     { Note: In Kraft, the distance parameters are called "time"
-      (MaxTime, Time instead of more natural MaxDistance, Distance).
+      (MaxTime, Time) instead of more natural MaxDistance, Distance.
       But all research shows that it is actually "distance" and that is also how
       other physics engines call it.
 
@@ -4335,8 +4364,7 @@ function TCastleAbstractRootTransform.PhysicsSphereCast(const SphereOrigin: TVec
       // outputs
       KraftShape, KraftDistance, KraftPoint, KraftNormal,
       // collision layers
-      CollisionLayers
-      ) then
+      CollisionLayers) then
     begin
       Result.Hit := true;
       Result.Transform := TCastleRigidBody(KraftShape.RigidBody.UserData).FTransform;
