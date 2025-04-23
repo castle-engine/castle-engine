@@ -64,7 +64,7 @@ procedure TMovingPlatform.ParentAfterAttach;
   var
     Collider: TCastleCollider;
   begin
-    RBody := Parent.FindBehavior(TCastleRigidBody) as TCastleRigidBody;
+    RBody := Parent.RigidBody;
     Assert(RBody <> nil, 'No TCastleRigidBody in TMovingPlatform Parent');
 
     RBody.Dynamic := true;
@@ -74,7 +74,7 @@ procedure TMovingPlatform.ParentAfterAttach;
     if Scene.Tag < 0 then
       RBody.LockTranslation := [0, 2];
 
-    Collider := Scene.FindBehavior(TCastleCollider) as TCastleCollider;
+    Collider := Scene.Collider;
 
     Assert(Collider <> nil, 'No Castle Collider in Parent');
     Collider.Friction := 100;

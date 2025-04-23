@@ -16,7 +16,8 @@
 
 {$ifdef read_interface}
 
-//type
+// type section started in CastleTransform.pas
+
   { Group and transform (move, rotate, scale) children objects.
 
     Add and remove children using the @link(Add), @link(Remove) and similar methods.
@@ -4737,7 +4738,7 @@ function TCastleTransform.InternalBuildNode: TObject;
   function RotationHasZDefault(const Rot: TVector4): TVector4;
   begin
     if Rot.IsPerfectlyZero then
-      Result := Vector4(0, 0, 1, 0)
+      Result := CastleVectors.Vector4(0, 0, 1, 0)
     else
       Result := Rot;
   end;

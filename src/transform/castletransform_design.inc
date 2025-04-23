@@ -16,7 +16,8 @@
 
 {$ifdef read_interface}
 
-//type
+// type section started in CastleTransform.pas
+
   EMaximumTransformDesignDepth = class(Exception);
 
   { Contents are loaded from an indicated castle-transform file

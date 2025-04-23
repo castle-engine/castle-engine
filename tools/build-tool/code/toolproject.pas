@@ -172,7 +172,7 @@ type
     procedure DoEditorRebuildIfNeeded;
     procedure DoEditorRun(const WaitForProcessId: TProcessId);
     procedure DoOutput(const OutputKey: String);
-    procedure DoUnusedData;
+    procedure DoUnusedData(const RemoveMask: String);
 
     { Information about the project, derived from CastleEngineManifest.xml. }
     { }
@@ -1724,12 +1724,12 @@ begin
   end;
 end;
 
-procedure TCastleProject.DoUnusedData;
+procedure TCastleProject.DoUnusedData(const RemoveMask: String);
 var
   DetectUnusedData: TDetectUnusedData;
   R: TDetectUnusedData.TResource;
-  UnusedCount: Cardinal;
-  UnusedSize: Int64;
+  UnusedCount, RemovedCount: Cardinal;
+  UnusedSize, RemovedSize: Int64;
   PascalFiles: TStringList;
 begin
   DetectUnusedData := TDetectUnusedData.Create;
@@ -1769,11 +1769,34 @@ begin
         Writeln(R.RelativeFileName + ' (' + SizeToStr(R.Size) + ')');
       end;
 
+      if RemoveMask <> '' then
+      begin
+        Writeln;
+        Writeln('Removing:');
+        Writeln;
+
+        RemovedSize := 0;
+        RemovedCount := 0;
+        for R in DetectUnusedData.UnusedData do
+          if IsWild(R.RelativeFileName, RemoveMask, not FileNameCaseSensitive) then
+          begin
+            CheckDeleteFile(R.FileName);
+            Writeln('Removed: ' + R.RelativeFileName);
+            Inc(RemovedCount);
+            RemovedSize := RemovedSize + R.Size;
+          end;
+      end;
+
       Writeln;
       Writeln(Format('%d unused files. Total size %s.', [
         UnusedCount,
         SizeToStr(UnusedSize)
       ]));
+      if RemoveMask <> '' then
+        Writeln(Format('%d files removed. Total size removed %s.', [
+          RemovedCount,
+          SizeToStr(RemovedSize)
+        ]));
     end else
       Writeln('No unused data files detected.');
   finally FreeAndNil(DetectUnusedData) end;

@@ -311,7 +311,7 @@ typedef struct TouchInfo {
 
         CGPoint pt = [touch locationInView:self.view];
         [self RecalcTouchPosForCGE:&pt];
-        CGEApp_MouseUp(pt.x, pt.y, true, (int)nFingerIdx, false);
+        CGEApp_MouseUp(pt.x, pt.y, true, (int)nFingerIdx);
     }
 }
 

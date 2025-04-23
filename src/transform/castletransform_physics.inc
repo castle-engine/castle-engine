@@ -1,6 +1,6 @@
 ﻿{%MainUnit castletransform.pas}
 {
-  Copyright 2017-2024 Michalis Kamburelis.
+  Copyright 2017-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -17,6 +17,46 @@
 { Physics. Integrates TCastleTransform with Kraft physics engine. }
 
 {$ifdef read_interface}
+
+// type section started in CastleTransform.pas
+
+  { Result of "ray cast" and "sphere cast", that describes what is hit by a ray
+    (or sphere moving along a ray) in a viewport.
+    Routines that return this record include:
+
+    @unorderedList(
+      @item @link(TCastleAbstractRootTransform.PhysicsRayCast)
+      @item @link(TCastleAbstractRootTransform.PhysicsSphereCast)
+      @item @link(TCastleRigidBody.PhysicsRayCast)
+      @item @link(TCastleRigidBody.PhysicsSphereCast)
+    ) }
+  TRayCastResult = record
+    { Other fields are guaranteed to be all zero if Hit = @false. }
+    Hit: Boolean;
+
+    { Hit TCastleTransform instance, if any.
+      Always @nil if nothing was hit. }
+    Transform: TCastleTransform;
+
+    { Distance from ray origin to the hit point.
+      Always 0 if nothing was hit.
+      Expressed in the world coordinate system, i.e. in the coordinates
+      seen by @link(TCastleViewport.Items).
+      Exception: When the TRayCastResult is returned by
+      @link(@link(TCastleRigidBody.PhysicsRayCast),
+      this is expressed in the local coordinate system of the rigid body. }
+    Distance: Single;
+
+    { Hit point, and the normal vector at this point of the collider.
+      Expressed in the world coordinate system, i.e. in the coordinates
+      seen by @link(TCastleViewport.Items).
+      Exception: When the TRayCastResult is returned by
+      @link(@link(TCastleRigidBody.PhysicsRayCast),
+      this is expressed in the local coordinate system of the rigid body. }
+    Point, Normal: TVector3;
+  end;
+
+  TPhysicsRayCastResult = TRayCastResult deprecated 'use TRayCastResult';
 
   { Information send along with TCollisionEvent event, like
     @link(TCastleRigidBody.OnCollisionEnter),
@@ -38,9 +78,6 @@
       ) }
     function OtherTransform: TCastleTransform;
   end;
-
-  TPhysicsLayer = 0..19;
-  TPhysicsLayers = set of TPhysicsLayer;
 
   TCastleLayerCollisions = class(TCastleComponent)
   strict private
@@ -854,39 +891,107 @@
 
     { First object hit by the ray, calculated using the physics engine.
 
-      Returns the TPhysicsRayCastResult record.
-      Read TPhysicsRayCastResult.Hit (boolean), TPhysicsRayCastResult.Transform
-      (guaranteed to be @nil when TPhysicsRayCastResult.Hit is @false) and other fields
+      Returns the TRayCastResult record.
+      Read TRayCastResult.Hit (boolean), TRayCastResult.Transform
+      (guaranteed to be @nil when TRayCastResult.Hit is @false) and other fields
       to know what was hit.
 
       The given RayOrigin, RayDirection, MaxDistance are in the parent
-      coordinate system of associated TCastleTransform (@link(TCastleBehavior.Parent)).
-      So for example query like this works naturally:
+      coordinate system of associated TCastleTransform.
+      For example query like this works naturally:
 
       @longCode(#
-        RBody := MyTransform.FindBehavior(TCastleRigidBody) as TCastleRigidBody;
-        Hit := RBody.RayCast(MyTransform.Translation, MyTransform.Direction, MaxDistance);
+        // MyTransform.Translation, MyTransform.Direction
+        // are in MyTransform.Parent coordinate system
+        Hit := MyTransform.RigidBody.PhysicsRayCast(
+          MyTransform.Translation,
+          MyTransform.Direction, MaxDistance);
       #)
 
-      It returns TPhysicsRayCastResult, with information there
+      It returns TRayCastResult, with information there
       consistently in the same coordinate system as inputs.
-      So TPhysicsRayCastResult.Distance, TPhysicsRayCastResult.Point, TPhysicsRayCastResult.Normal
-      are in parent coordinate system of associated TCastleTransform (@link(TCastleBehavior.Parent)).
+      So TRayCastResult.Distance, TRayCastResult.Point, TRayCastResult.Normal
+      are also in parent coordinate system of associated TCastleTransform.
 
-      This ignores the collider of this rigid body (to not accidentally collide
-      with your own collider), and checks collisions with the rest of the world in
-      given max distance.
-      Only collisions with the physics colliders (TCastleCollider)
-      are considered.
+      Collisions taken / not taken into account:
+
+      @unorderedList(
+        @item(Ignores the collider of this rigid body,
+          to not accidentally collide with your own collider.)
+        @item(Ignores collisions beyond MaxDistance, if MaxDistance <> MaxSingle.
+          Passing some MaxDistance may also optimize the calculation.)
+        @item(Only collisions with the physics colliders (TCastleCollider)
+          are considered.)
+      )
+
+      By default, the ray hits all physics layers, but you can choose physics layers
+      in CollisionLayers attribute.
 
       Note: The @link(TCastleTransform.Pickable) property is ignored by this method,
       i.e. it considers all colliders regardless of their @link(TCastleTransform.Pickable) value.
       The @link(TCastleTransform.Pickable) is only taken into account by the routines
       of the old physics system
       (see https://castle-engine.io/physics#_old_system_for_collisions_and_gravity ).
-      In the new system, a similar role will be filled by layers. }
+      In the new system, a similar role is filled by physics layers. }
     function PhysicsRayCast(const RayOrigin, RayDirection: TVector3;
-      const MaxDistance: Single = MaxSingle): TPhysicsRayCastResult;
+      const MaxDistance: Single = MaxSingle;
+      const CollisionLayers: TPhysicsLayers = AllLayers): TRayCastResult;
+
+    { Check if moving a sphere in the given direction would collide with anything
+      in the world.
+      Suitable to check if moving this rigid body,
+      approximating this body as a sphere,
+      would collide with anything.
+
+      Returns the TRayCastResult record.
+      Read TRayCastResult.Hit (boolean), TRayCastResult.Transform
+      (guaranteed to be @nil when TRayCastResult.Hit is @false) and other fields
+      to know what was hit.
+
+      The given SphereOrigin, SphereRadius, SphereDirection, MaxDistance
+      are in the parent coordinate system of associated TCastleTransform.
+      For example query like this works naturally:
+
+      @longCode(#
+        // MyTransform.Translation, MyTransform.Direction
+        // are in MyTransform.Parent coordinate system
+        Hit := MyTransform.RigidBody.PhysicsSphereCast(
+          MyTransform.Translation, 2,
+          MyTransform.Direction, MaxDistance);
+      #)
+
+      It returns TRayCastResult, with information there
+      consistently in the same coordinate system as inputs.
+      So TRayCastResult.Distance, TRayCastResult.Point, TRayCastResult.Normal
+      are also in parent coordinate system of associated TCastleTransform.
+
+      Collisions taken / not taken into account:
+
+      @unorderedList(
+        @item(Ignores all colliders that overlap sphere at the initial position,
+          before it is moved by SphereDirection.)
+        @item(Always ignores the collider of this rigid body,
+          to not accidentally collide with your own collider.)
+        @item(Ignores collisions that would occur is sphere is moved by move than
+          MaxDistance, if MaxDistance <> MaxSingle.
+          Passing some MaxDistance may also optimize the calculation.)
+        @item(Only collisions with the physics colliders (TCastleCollider)
+          are considered.)
+      )
+
+      By default, the sphere hits all physics layers, but you can choose physics
+      layers in CollisionLayers attribute.
+
+      Note: The @link(TCastleTransform.Pickable) property is ignored by this method,
+      i.e. it considers all colliders regardless of their @link(TCastleTransform.Pickable) value.
+      The @link(TCastleTransform.Pickable) is only taken into account by the routines
+      of the old physics system
+      (see https://castle-engine.io/physics#_old_system_for_collisions_and_gravity ).
+      In the new system, a similar role is filled by physics layers. }
+    function PhysicsSphereCast(const SphereOrigin: TVector3;
+      const SphereRadius:Single; const SphereDirection: TVector3;
+      const MaxDistance: Single = MaxSingle;
+      const CollisionLayers: TPhysicsLayers = AllLayers): TRayCastResult;
 
     function PropertySections(const PropertyName: String): TPropertySections; override;
 
@@ -1602,7 +1707,7 @@ begin
   if FKraftShape <> nil then
   begin
     Assert(Parent <> nil);
-    RBody := Parent.FindBehavior(TCastleRigidBody) as TCastleRigidBody;
+    RBody := Parent.RigidBody;
     Assert(RBody <> nil);
 
     FKraftShape.LocalTransform := MatrixToKraft(FLocalTransform);
@@ -1620,6 +1725,14 @@ begin
   );
   UpdateVisualization;
 end;
+
+const
+  KraftFlagsWhenExists = [ksfCollision,
+    // determines whether body is detected by PhysicsRayCast
+    ksfRayCastable,
+    // determines whether body is detected by PhysicsSphereCast
+    ksfSphereCastable
+  ];
 
 procedure TCastleCollider.InitializeKraft(const APhysics: TKraft;
   const ACastleRigidBody: TCastleRigidBody);
@@ -1644,7 +1757,7 @@ begin
   FKraftShape.Restitution := Restitution;
   FKraftShape.Friction := Friction;
   if not ACastleRigidBody.ExistsInRoot then
-    FKraftShape.Flags := FKraftShape.Flags - [ksfCollision, ksfRayCastable];
+    FKraftShape.Flags := FKraftShape.Flags - KraftFlagsWhenExists;
 
   UpdateLocalTransform;
 end;
@@ -1652,7 +1765,7 @@ end;
 function TCastleCollider.GetRigidBody: TCastleRigidBody;
 begin
   if Parent <> nil then
-    Result := Parent.FindBehavior(TCastleRigidBody) as TCastleRigidBody
+    Result := Parent.RigidBody
   else
     Result := nil;
 end;
@@ -1777,7 +1890,7 @@ var
 begin
   if Parent <> nil then
   begin
-    CastleRBody := Parent.FindBehavior(TCastleRigidBody) as TCastleRigidBody;
+    CastleRBody := Parent.RigidBody;
     if CastleRBody <> nil then
       CastleRBody.ReinitializeCastleCollider;
   end;
@@ -1789,7 +1902,7 @@ var
 begin
   { Check there is a rigid body and we should try initialize collider.
     This is the case when rigid body was added first to behaviors list }
-  CastleRigidBody := Parent.FindBehavior(TCastleRigidBody) as TCastleRigidBody;
+  CastleRigidBody := Parent.RigidBody;
   if CastleRigidBody <> nil then
     CastleRigidBody.CheckInitialization(Self);
 
@@ -1804,7 +1917,7 @@ procedure TCastleCollider.WorldBeforeDetach;
 var
   CastleRBody: TCastleRigidBody;
 begin
-  CastleRBody := Parent.FindBehavior(TCastleRigidBody) as TCastleRigidBody;
+  CastleRBody := Parent.RigidBody;
   if CastleRBody <> nil then
   begin
     // deinitialize collider
@@ -2548,6 +2661,14 @@ begin
     FKraftMesh.AddNormal(VectorToKraft(Normal.Data[2]))
   );
 
+  { Define to use slower, but more reliable for TCastleThirdPersonNavigation
+    approach.
+
+    Testcase: examples/third_person_navigation, without it -- our navigation
+    thinks the avatar falls down in the initial level parts.
+    Possibly it needs to be fixed in TCastleThirdPersonNavigation. }
+  {$define CASTLE_PHYSICS_MESH_DOUBLE_SIDED_MANUAL}
+  {$ifdef CASTLE_PHYSICS_MESH_DOUBLE_SIDED_MANUAL}
   if DoubleSided then
   begin
     { We also add triangles for the other side.
@@ -2561,6 +2682,7 @@ begin
       FKraftMesh.AddNormal(VectorToKraft(-Normal.Data[0]))
     );
   end;
+  {$endif CASTLE_PHYSICS_MESH_DOUBLE_SIDED_MANUAL}
 end;
 
 function TCastleMeshCollider.CreateKraftShape(const APhysics: TKraft;
@@ -2570,6 +2692,9 @@ begin
   ARigidBody.RigidBodyType := krbtStatic;
 
   FKraftMesh := TKraftMesh.Create(APhysics);
+  {$ifndef CASTLE_PHYSICS_MESH_DOUBLE_SIDED_MANUAL}
+  FKraftMesh.DoubleSided := FDoubleSided;
+  {$endif CASTLE_PHYSICS_MESH_DOUBLE_SIDED_MANUAL}
 
   if FMesh = nil then
   begin
@@ -2645,7 +2770,13 @@ begin
   if FDoubleSided <> Value then
   begin
     FDoubleSided := Value;
+
+    {$ifdef CASTLE_PHYSICS_MESH_DOUBLE_SIDED_MANUAL}
     ShapeChangedNotifyRigidBody;
+    {$else}
+    if FKraftMesh <> nil then
+       FKraftMesh.DoubleSided := FDoubleSided;
+    {$endif CASTLE_PHYSICS_MESH_DOUBLE_SIDED_MANUAL}
   end;
 end;
 
@@ -2856,7 +2987,7 @@ procedure TCastleRigidBody.InitializeCollider;
   function GetCastleColliderFromParent: TCastleCollider;
   begin
     if Parent <> nil then
-      Result := Parent.FindBehavior(TCastleCollider) as TCastleCollider
+      Result := Parent.Collider
     else
       Result := nil;
   end;
@@ -3218,13 +3349,10 @@ begin
 
   if Assigned(KraftShape) then
   begin
-    { Note: ksfRayCastable flag determines whether body is detected by PhysicsRayCast. }
     if ExistsInRoot then
-      KraftShape.Flags := KraftShape.Flags + [ksfCollision,
-        ksfRayCastable]
+      KraftShape.Flags := KraftShape.Flags + KraftFlagsWhenExists
     else
-      KraftShape.Flags := KraftShape.Flags - [ksfCollision,
-        ksfRayCastable];
+      KraftShape.Flags := KraftShape.Flags - KraftFlagsWhenExists;
   end;
 
   UpdateColliderAutoSize;
@@ -3618,7 +3746,8 @@ begin
 end;
 
 function TCastleRigidBody.PhysicsRayCast(const RayOrigin, RayDirection: TVector3;
-  const MaxDistance: Single): TPhysicsRayCastResult;
+  const MaxDistance: Single;
+  const CollisionLayers: TPhysicsLayers): TRayCastResult;
 var
   RayOriginWorld, RayDirectionWorld: TVector3;
   MaxDistanceWorld: Single;
@@ -3650,7 +3779,54 @@ begin
   end;
 
   Result := FTransform.World.PhysicsRayCast(RayOriginWorld, RayDirectionWorld,
-    MaxDistanceWorld, Self);
+    MaxDistanceWorld, Self, CollisionLayers);
+
+  if Result.Hit and (FTransform.Parent <> nil) then
+  begin
+    Result.Distance := FTransform.Parent.WorldToLocalDistance(Result.Distance);
+    Result.Point := FTransform.Parent.WorldToLocal(Result.Point);
+    Result.Normal := FTransform.Parent.WorldToLocalDirection(Result.Normal);
+  end;
+end;
+
+function TCastleRigidBody.PhysicsSphereCast(const SphereOrigin: TVector3;
+  const SphereRadius: Single; const SphereDirection: TVector3;
+  const MaxDistance: Single;
+  const CollisionLayers: TPhysicsLayers): TPhysicsRayCastResult;
+var
+  SphereOriginWorld, SphereDirectionWorld: TVector3;
+  MaxDistanceWorld, SphereRadiusWorld: Single;
+begin
+  if FTransform = nil then
+  begin
+    WritelnWarning('Attempt to cast a sphere from TCastleRigidBody not connected to any TCastleTransform. Possibly you forgot to add it using TCastleTransform.AddBehavior.');
+    FillChar(Result, SizeOf(Result), 0); // this in particular sets Result.Hit = false
+    Exit;
+  end;
+
+  if FTransform.World = nil then
+  begin
+    WritelnWarning('Attempt to cast a sphere from TCastleRigidBody not connected to any World. Possibly you forgot to add the TCastleTransform to TCastleViewport.Items.');
+    FillChar(Result, SizeOf(Result), 0); // this in particular sets Result.Hit = false
+    Exit;
+  end;
+
+  if FTransform.Parent <> nil then
+  begin
+    SphereOriginWorld := FTransform.Parent.LocalToWorld(SphereOrigin);
+    SphereDirectionWorld := FTransform.Parent.LocalToWorldDirection(SphereDirection);
+    MaxDistanceWorld := FTransform.Parent.LocalToWorldDistance(MaxDistance);
+    SphereRadiusWorld := FTransform.Parent.LocalToWorldDistance(SphereRadius);
+  end else
+  begin
+    SphereOriginWorld := SphereOrigin;
+    SphereDirectionWorld := SphereDirection;
+    MaxDistanceWorld := MaxDistance;
+    SphereRadiusWorld := SphereRadius;
+  end;
+
+  Result := FTransform.World.PhysicsSphereCast(SphereOriginWorld, SphereRadiusWorld,
+    SphereDirectionWorld, MaxDistanceWorld, Self, CollisionLayers);
 
   if Result.Hit and (FTransform.Parent <> nil) then
   begin
@@ -4000,7 +4176,8 @@ end;
 
 function TCastleAbstractRootTransform.PhysicsRayCast(
   const RayOrigin, RayDirection: TVector3;
-  const MaxDistance: Single; const IgnoreBody: TCastleRigidBody): TPhysicsRayCastResult;
+  const MaxDistance: Single; const IgnoreBody: TCastleRigidBody;
+  const CollisionLayers: TPhysicsLayers): TRayCastResult;
 
   procedure Core;
   var
@@ -4013,7 +4190,7 @@ function TCastleAbstractRootTransform.PhysicsRayCast(
     FillChar(Result, SizeOf(Result), 0);
 
     { Note: In Kraft, the distance parameters are called "time"
-      (MaxTime, Time instead of more natural MaxDistance, Distance).
+      (MaxTime, Time) instead of more natural MaxDistance, Distance.
       But all research shows that it is actually "distance" and that is also how
       other physics engines call it.
 
@@ -4023,7 +4200,9 @@ function TCastleAbstractRootTransform.PhysicsRayCast(
       // inputs
       VectorToKraft(RayOrigin), VectorToKraft(RayDirection), MaxDistance,
       // outputs
-      KraftShape, KraftDistance, KraftPoint, KraftNormal) then
+      KraftShape, KraftDistance, KraftPoint, KraftNormal,
+      // collision layers
+      CollisionLayers) then
     begin
       Result.Hit := true;
       Result.Transform := TCastleRigidBody(KraftShape.RigidBody.UserData).FTransform;
@@ -4050,6 +4229,69 @@ begin
     try
       // We use ksfRayCastable flag to not hit the IgnoreBody
       IgnoreShape.Flags := IgnoreShape.Flags - [ksfRayCastable];
+      Core;
+    finally
+      IgnoreShape.Flags := OldIgnoreShapeFlags;
+    end;
+  end else
+    Core;
+end;
+
+function TCastleAbstractRootTransform.PhysicsSphereCast(const SphereOrigin: TVector3;
+  const SphereRadius: Single; const SphereDirection: TVector3;
+  const MaxDistance: Single; const IgnoreBody: TCastleRigidBody;
+  const CollisionLayers: TPhysicsLayers): TRayCastResult;
+
+  procedure Core;
+  var
+    KraftShape: TKraftShape;
+    KraftDistance: TKraftScalar;
+    KraftPoint: TKraftVector3;
+    KraftNormal: TKraftVector3;
+  begin
+    { make sure everything is zero when no hit }
+    FillChar(Result, SizeOf(Result), 0);
+
+    { Note: In Kraft, the distance parameters are called "time"
+      (MaxTime, Time) instead of more natural MaxDistance, Distance.
+      But all research shows that it is actually "distance" and that is also how
+      other physics engines call it.
+
+      TODO: Check time does not depend on physics frequency? }
+
+    if FKraftEngine.SphereCast(
+      // inputs
+      VectorToKraft(SphereOrigin), SphereRadius, VectorToKraft(SphereDirection), MaxDistance,
+      // outputs
+      KraftShape, KraftDistance, KraftPoint, KraftNormal,
+      // collision layers
+      CollisionLayers) then
+    begin
+      Result.Hit := true;
+      Result.Transform := TCastleRigidBody(KraftShape.RigidBody.UserData).FTransform;
+      Result.Point := VectorFromKraft(KraftPoint);
+      Result.Normal := VectorFromKraft(KraftNormal);
+      Result.Distance := KraftDistance;
+    end;
+  end;
+
+var
+  OldIgnoreShapeFlags: TKraftShapeFlags;
+  IgnoreShape: TKraftShape;
+begin
+  // calculate IgnoreShape
+  if IgnoreBody <> nil then
+    IgnoreShape := IgnoreBody.GetKraftShape
+  else
+    IgnoreShape := nil;
+
+  // protect IgnoreShape from being hit, use Core
+  if IgnoreShape <> nil then
+  begin
+    OldIgnoreShapeFlags := IgnoreShape.Flags;
+    try
+      // We use ksfSphereCastable flag to not hit the IgnoreBody
+      IgnoreShape.Flags := IgnoreShape.Flags - [ksfSphereCastable];
       Core;
     finally
       IgnoreShape.Flags := OldIgnoreShapeFlags;
