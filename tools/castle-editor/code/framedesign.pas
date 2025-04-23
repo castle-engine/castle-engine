@@ -545,6 +545,8 @@ type
       This way e.g. TransformManipulate also shows
       the transformation of selected behavior. }
     function CurrentTransform: TCastleTransform;
+
+    procedure SetManipulateSnap(const Snap: Boolean);
   protected
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
   public
@@ -1135,6 +1137,12 @@ begin
       UiPendingMove := TVector2.Zero;
     end;
   end;
+
+  if Event.IsKey(keyCtrl) then
+  begin
+    Frame.SetManipulateSnap(true);
+    Exit(true);
+  end;
 end;
 
 function TDesignFrame.TDesignerLayer.Release(const Event: TInputPressRelease): Boolean;
@@ -1163,6 +1171,12 @@ begin
       else
         Frame.RecordUndo('Drag''n''drop', ucHigh);
     end;
+  end;
+
+  if Event.IsKey(keyCtrl) then
+  begin
+    Frame.SetManipulateSnap(false);
+    Exit(true);
   end;
 end;
 
@@ -1430,6 +1444,9 @@ begin
   if Frame.CameraPreview.UiRoot.Exists and
      Frame.CameraPreview.UiRoot.RenderRectWithBorder.Contains(Event.Position) then
     Exit;
+
+  // keep updating the state based on keyCtrl pressed
+  Frame.SetManipulateSnap(Container.Pressed[keyCtrl]);
 
   { in case user released mouse button, but the event didn't reach us for some reason
     (maybe can happen e.g. if you Alt+Tab during dragging?),
@@ -4894,6 +4911,22 @@ begin
     Result := TCastleBehavior(SelectedComponent).Parent
   else
     Result := SelectedTransform;
+end;
+
+procedure TDesignFrame.SetManipulateSnap(const Snap: Boolean);
+begin
+  if Snap then
+  begin
+    // TODO: Allow to configure snap params
+    TransformManipulate.SnapTranslation := 1.0;
+    TransformManipulate.SnapRotation := Deg(5.0);
+    TransformManipulate.SnapScale := 0.1;
+  end else
+  begin
+    TransformManipulate.SnapTranslation := 0.0;
+    TransformManipulate.SnapRotation := 0.0;
+    TransformManipulate.SnapScale := 0.0;
+  end;
 end;
 
 procedure TDesignFrame.UpdateSelectedInfo;

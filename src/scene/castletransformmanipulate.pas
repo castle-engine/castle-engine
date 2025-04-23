@@ -827,10 +827,15 @@ begin
           raise EInternalError.Create('TGizmoScene shall never be created with mmSelect');
       end;
 
-      { No point in updating LastPick or LastPickAngle:
+      { When no snapping:
+        No point in updating LastPick or LastPickAngle:
         it remains the same, as it is expressed
-        in local coordinate system, which we just changed by changing
-        Parent.Translation. }
+        in local coordinate system, which we just changed (by changing
+        Parent.Translation, Rotation, Scale).
+        When snapping, we need to update LastXxx, as not all movement
+        changes Parent transformation immediately. }
+      LastPick := NewPick;
+      LastPickAngle := NewPickAngle;
 
       // update our gizmo size, as we moved ourselves
       UpdateSize;
@@ -1178,6 +1183,8 @@ begin
       in editor is nice to user. }
     FPendingTranslation := TVector3.Zero;
     FSnapTranslation := Value;
+    // TODO: Remove log
+    WritelnLog('Changed snap translation to %f', [FSnapTranslation]);
   end;
 end;
 
