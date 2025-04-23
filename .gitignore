@@ -100,6 +100,7 @@ castle-game-engine-*.fpm
 /examples/creature_behaviors/creature_behaviors
 /examples/curves/use_designed_curve/use_designed_curve
 /examples/delphi/fmx/CastleFmx
+/examples/delphi/fmx_play_animation/CastleFmxPlayAnimation
 /examples/deprecated_library/build-qt_library_tester-*
 /examples/deprecated_library/qt_library_tester/build
 /examples/deprecated_library/cpp_winapi_library_tester/Debug
@@ -171,6 +172,7 @@ castle-game-engine-*.fpm
 /examples/physics/physics_joints_2d_grab/physics_joints_2d_grab
 /examples/physics/physics_joints_3d/physics_joints_3d
 /examples/physics/physics_joints_frequency/physics_joints_frequency
+/examples/physics/physics_explosion/physics_explosion
 /examples/physics/physics_forces/physics_forces
 /examples/physics/physics_persistent_forces_components/physics_persistent_forces_components
 /examples/physics/physics_simple_3d_bullet/physics_simple_3d_bullet
