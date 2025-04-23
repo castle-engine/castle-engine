@@ -320,8 +320,8 @@ procedure TViewPlay.ConfigurePlayerPhysics(
 var
   RBody: TCastleRigidBody;
 begin
-  RBody := Player.FindBehavior(TCastleRigidBody) as TCastleRigidBody;
-  if RBody<> nil then
+  RBody := Player.RigidBody;
+  if RBody <> nil then
   begin
     RBody.OnCollisionEnter := {$ifdef FPC}@{$endif}PlayerCollisionEnter;
     RBody.OnCollisionExit := {$ifdef FPC}@{$endif}PlayerCollisionExit;

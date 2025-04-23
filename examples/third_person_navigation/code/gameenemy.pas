@@ -105,8 +105,6 @@ begin
 end;
 
 procedure TEnemy.Hurt;
-var
-  RBody: TCastleRigidBody;
 begin
   Scene.PlayAnimation('die', false);
 
@@ -115,9 +113,8 @@ begin
   Scene.Pickable := false;
   Scene.Collides := false;
   // new physics:
-  RBody := Scene.FindBehavior(TCastleRigidBody) as TCastleRigidBody;
-  if RBody <> nil then
-    RBody.Exists := false;
+  if Scene.RigidBody <> nil then
+    Scene.RigidBody.Exists := false;
 
   Dead := true;
 end;

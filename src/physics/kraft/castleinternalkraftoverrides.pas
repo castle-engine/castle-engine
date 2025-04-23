@@ -13,24 +13,32 @@
   ----------------------------------------------------------------------------
 }
 
-{ Internal definitions to fix Kraft for some compilers/platforms. }
+{ Internal definitions to fix Kraft for some compilers/platforms.
+  In practice, for now, these are fixes specific for Delphi on non-Windows
+  platforms. }
 unit CastleInternalKraftOverrides;
 
 interface
 
-{ Delphi on non-Windows redefines LongInt/LongWord in a way inconsistent
-  with Delphi/Windows or FPC.
-  Make Kraft use expected type sizes.
-  We don't just search + replace this in Kraft sources, to ease upgrading
-  Kraft in the future.
-  See https://castle-engine.io/coding_conventions#no_longint_longword .
-  This seems already handled better in recent Kraft,
-  https://github.com/BeRo1985/kraft/blob/master/src/kraft.pas ,
-  that avoids LongInt/LongWord just like CGE. }
 {$if (not defined(FPC)) and (not defined(MSWINDOWS))}
 type
+  { Delphi on non-Windows redefines LongInt/LongWord in a way inconsistent
+    with Delphi/Windows or FPC.
+    Make Kraft use expected type sizes.
+    We don't just search + replace this in Kraft sources, to ease upgrading
+    Kraft in the future.
+    See https://castle-engine.io/coding_conventions#no_longint_longword .
+    This seems already handled better in recent Kraft,
+    https://github.com/BeRo1985/kraft/blob/master/src/kraft.pas ,
+    that avoids LongInt/LongWord just like CGE. }
   LongInt = Integer;
   LongWord = Cardinal;
+
+const
+  { Delphi on Posix defines TThread.Priority as Integer.
+    Define tpHigher as 0 (seems to work OK, or should we bump it?)
+    to compile. }
+  tpHigher = 0;
 {$ifend}
 
 { Delphi on Linux doesn't define

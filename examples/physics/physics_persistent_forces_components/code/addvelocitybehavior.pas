@@ -94,7 +94,7 @@ begin
   if not ShouldUpdate then
     Exit;
 
-  RigidBody := Parent.FindBehavior(TCastleRigidBody) as TCastleRigidBody;
+  RigidBody := Parent.RigidBody;
   if (RigidBody <> nil) and (RigidBody.ExistsInRoot) then
   begin
     RigidBody.LinearVelocity := RigidBody.LinearVelocity + DeltaVelocity;
