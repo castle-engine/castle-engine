@@ -702,6 +702,10 @@ begin
       ChildElement := Element.ChildElement('services', false);
       if ChildElement <> nil then
         FIOSServices.ReadCastleEngineManifest(ChildElement);
+
+      ChildElement := Element.ChildElement('service', false);
+      if ChildElement <> nil then
+        raise Exception.Create('<service> element directly inside <ios> element in CastleEngineManifest.xml file, this is incorrect. The <service> should be within <services>, which in turn should be in <ios>');
     end;
 
     Element := Doc.DocumentElement.ChildElement('associate_document_types', false);

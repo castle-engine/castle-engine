@@ -559,6 +559,7 @@ procedure TVideo.LoadFromFile(const Url: String;
           if UriFileExists confirms it's a file. }
         if not UriFileExists(UrlComplete) then
           Exit(false);
+        NewItem := LoadSingleImage(UrlComplete);
       end;
 
       SetLength(FItems, Length(FItems) + 1);

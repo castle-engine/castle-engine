@@ -55,9 +55,10 @@ var
   ProjectParentDir: String = '';
   ProjectCaption: String = '';
   ProjectMainView: String = 'Main';
+  RemoveMask: String = '';
 
 const
-  Options: array [0..28] of TOption =
+  Options: array [0..29] of TOption =
   (
     (Short: 'h'; Long: 'help'; Argument: oaNone),
     (Short: 'v'; Long: 'version'; Argument: oaNone),
@@ -87,7 +88,8 @@ const
     (Short: #0 ; Long: 'project-template'; Argument: oaRequired),
     (Short: #0 ; Long: 'project-parent-dir'; Argument: oaRequired),
     (Short: #0 ; Long: 'project-caption'; Argument: oaRequired),
-    (Short: #0 ; Long: 'project-main-view'; Argument: oaRequired)
+    (Short: #0 ; Long: 'project-main-view'; Argument: oaRequired),
+    (Short: #0 ; Long: 'remove-mask'; Argument: oaRequired)
   );
 
 procedure OptionProc(OptionNum: Integer; HasArgument: boolean;
@@ -279,6 +281,8 @@ begin
               'Use with "generate-program" command. Will generate stable GUID (in Delphi DPROJ) from project''s qualified name.') +NL+
             OptionDescription('--windows-robust-pipes',
               'Only on Windows (ignored on other systems): Force using less performant, but more robust, way to run child processes with "passthrough", like for "castle-engine run". Useful to run "castle-engine run" from PowerShell, outside of CGE editor.') + NL +
+            OptionDescription('--remove-mask',
+              'Use only with "unused-data" command. Removes files that match the given mask. For example, --remove-mask=*.png will remove all PNG files detected as unused. --remove-mask=* will remove all files detected as unused.') + NL +
             TargetOptionHelp +
             NL +
             OSOptionHelp +
@@ -337,6 +341,7 @@ begin
     26: ProjectParentDir := Argument;
     27: ProjectCaption := Argument;
     28: ProjectMainView := Argument;
+    29: RemoveMask := Argument;
     else raise EInternalError.Create('OptionProc');
   end;
 end;
@@ -545,7 +550,7 @@ begin
         Project.DoOutput(Parameters[2]);
       end else
       if Command = 'unused-data' then
-        Project.DoUnusedData
+        Project.DoUnusedData(RemoveMask)
       else
         raise EInvalidParams.CreateFmt('Invalid COMMAND to perform: "%s". Use --help to get usage information', [Command]);
     finally FreeAndNil(Project) end;

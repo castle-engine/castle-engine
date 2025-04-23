@@ -1194,8 +1194,8 @@ type
       @groupBegin }
     property MinWidth: Integer read FMinWidth write FMinWidth default 100;
     property MinHeight: Integer read FMinHeight write FMinHeight default 100;
-    property MaxWidth: Integer read FMaxWidth write FMaxWidth default 4000;
-    property MaxHeight: Integer read FMaxHeight write FMaxHeight default 4000;
+    property MaxWidth: Integer read FMaxWidth write FMaxWidth default 1000000;
+    property MaxHeight: Integer read FMaxHeight write FMaxHeight default 1000000;
     { @groupEnd }
 
     { Required depth buffer precision. Zero means that we don't need

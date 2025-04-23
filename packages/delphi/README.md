@@ -141,3 +141,13 @@ Platforms:
     Like `<DeployFile LocalName="$(BDSCOMMONDIR)\Bpl\castle_engine_design.bpl" Configuration="Debug" Class="ProjectOutput">` in the DPROJ file. The platforms other than `Win32` are in a platform-specific subdirectory, like `Win64` and `Linux64`. This is consistent with how other Delphi BPLs are installed, e.g. JEDI components.
 
     Be careful when creating new packages, as by default Delphi will configure it to a hardcoded directory like `C:\Users\Public\Documents\Embarcadero\Studio\22.0\Bpl`, specific to your Delphi version and Windows settings.
+
+- When building packages, Delphi generates some warnings caused by Kraft because Kraft API is not suitable for C++ Builder.
+
+    These are:
+    - DUPLICATE_CTOR_DTOR
+    - UNSUPPORTED_CONSTRUCT
+
+    Therefore, we disable generation of these warnings on all CGE packages (to not miss other warnings).
+
+    Note that Castle Game Engine units should not cause these warnings, and CGE is supported with C++ Builder: https://castle-engine.io/delphi#cpp_builder . These warnings only mean you cannot use some Kraft API directly from C++ Builder , but this should not matter: when using Castle Game Engine, all the physics API should be done using CGE API.

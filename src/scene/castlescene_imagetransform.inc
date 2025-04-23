@@ -1,6 +1,6 @@
 {%MainUnit castlescene.pas}
 {
-  Copyright 2022-2024 Michalis Kamburelis.
+  Copyright 2022-2025 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -130,6 +130,22 @@ type
 
       Zero if no image is loaded. }
     property ImageHeight: Cardinal read FImageHeight;
+
+    { Load image contents from a ready TEncodedImage instance.
+
+      If TakeImageOwnership = @true then we take given Image reference,
+      and the lifetime of this Image object will be further managed by this
+      TImageTextureNode class (so you should no longer free it yourself).
+      If TakeImageOwnership = @false then we only copy Image contents
+      (this is slower, but it means that ownership and freeing of given
+      Image instance remains on your side).
+
+      After using this, @link(Url) is always set to an empty string.
+      Using @link(ReloadUrl) will lose image contents.
+      If developer changes the @link(Url), the image will change to reflect
+      new URL contents. }
+    procedure LoadFromImage(const Image: TEncodedImage;
+      const TakeImageOwnership: Boolean);
   published
     { How is the image scaled.
       Determines scaling done both by @link(Size) and TCastleTransform.Scale. }
@@ -510,6 +526,15 @@ begin
       somewhat useless as image is just 1 shape in an internal scene.
       But does not seem problematic either. }
   end;
+end;
+
+procedure TCastleImageTransform.LoadFromImage(const Image: TEncodedImage;
+  const TakeImageOwnership: Boolean);
+begin
+  // unload the previous image, and make FUrlMonitoring not watch anything
+  Url := '';
+  FTextureNode.LoadFromImage(Image, TakeImageOwnership, '');
+  UpdateCoordinateNodes;
 end;
 
 {$define read_implementation_methods}

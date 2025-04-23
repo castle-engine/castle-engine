@@ -222,6 +222,8 @@
   TIfcCoordinateOperation = class;
   TIfcFeatureElementAddition = class;
   TIfcRelReferencedInSpatialStructure = class;
+  TIfcClosedShell = class;
+  TIfcLoop = class;
 
   { Float type used throughout IFC.
 
@@ -281,6 +283,7 @@
   TIfcNormalisedRatioMeasure = Single;
 
   TIfcLogical = Boolean;
+  TIfcBoolean = Boolean;
 
   { Presentation information assigned to geometric representation items.
 
@@ -444,7 +447,61 @@
     Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcGeometricRepresentationItem.htm }
   TIfcGeometricRepresentationItem = class abstract(TIfcRepresentationItem)
   end;
+  TIfcGeometricRepresentationItemList = {$ifdef FPC}specialize{$endif} TObjectList<TIfcGeometricRepresentationItem>;
 
+  { Boolean operator for @link(TIfcBooleanResult). }
+  TIfcBooleanOperator = (
+    Difference,
+    Intersection,
+    Union
+  );
+
+  { Allowed values for @link(TIfcBooleanResult) operands.
+    Our Pascal type definition allows more than IFC spec actually allows.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcBooleanOperand.htm }
+  TIfcBooleanOperand = TIfcGeometricRepresentationItem;
+
+  { Applying a Boolean operation to two operands being solids.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcBooleanResult.htm }
+  TIfcBooleanResult = class(TIfcGeometricRepresentationItem)
+  strict private
+    FOperator: TIfcBooleanOperator;
+    FFirstOperand: TIfcBooleanOperand;
+    FSecondOperand: TIfcBooleanOperand;
+  public
+    function BuildNode(const Mapping: TCastleIfcMapping;
+      const ParentProduct: TIfcProduct;
+      const LitAppearance, UnlitAppearance: TAppearanceNode): TAbstractChildNode; override;
+  published
+    { Boolean operator used in the operation to create the result. }
+    property &Operator: TIfcBooleanOperator read FOperator write FOperator;
+
+    { The first operand of the Boolean operation. }
+    property FirstOperand: TIfcBooleanOperand read FFirstOperand write FFirstOperand;
+
+    { The second operand of the Boolean operation. }
+    property SecondOperand: TIfcBooleanOperand read FSecondOperand write FSecondOperand;
+  end;
+
+  { Constrained version of @link(TIfcBooleanResult).
+    A clipping result is the Boolean difference between a swept
+    solid and a half space solid, or between
+    the result of the Boolean difference and a half space solid.
+    Hence more than one difference operation can be applied to
+    achieve the final Boolean result.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcBooleanClippingResult.htm }
+  TIfcBooleanClippingResult = class(TIfcBooleanResult)
+  end;
+
+  { Orthogonal box oriented parallel to the axes of the object coordinate
+    system in which it is defined. It is defined by a Corner being a
+    three-dimensional Cartesian point and three length measures defining the
+    X, Y and Z parameters of the box in the direction of the positive axes.
+
+    Spec: https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcBoundingBox.htm }
   TIfcBoundingBox = class(TIfcGeometricRepresentationItem)
   strict private
     FCorner: TIfcCartesianPoint;
@@ -2911,6 +2968,11 @@
     FRepresentation: TIfcProductRepresentation;
     FPositionedRelativeTo: TIfcRelPositionsList;
     FReferencedInStructures: TIfcRelReferencedInSpatialStructure;
+    { Remember last TCastleIfcMapping used with BuildNode,
+      and our associated TTransformNode.
+      Both are non-nil only if Mapping.OptimizeAssumingOneMapping. }
+    LastMapping: TCastleIfcMapping;
+    LastMappingNode: TTransformNode;
     function GetTranslation: TVector3;
     procedure SetTranslation(const Value: TVector3);
     { Return the value of @link(TransformSupported)
@@ -2982,7 +3044,13 @@
           investigate and change the @link(ObjectPlacement) properties.
         )
       )
-    }
+
+      When @link(TCastleIfcMapping.OptimizeAssumingOneMapping) then
+      this is optimized. Changing this property immediately updates
+      the relevant X3D graph, without the need to call
+      @link(TCastleIfcMapping.Update). This makes changing translation really
+      instant, no need to call @link(TCastleIfcMapping.Update) so it doesn't
+      analyze what changed. }
     property Translation: TVector3 read GetTranslation write SetTranslation;
 
     { Make @link(Translation) of this product relative to
@@ -5684,6 +5752,175 @@
     property ReferenceExtent: TIfcPositiveLengthMeasure read FReferenceExtent write FReferenceExtent;
   end;
 
+  { IFC class @url(https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcManifoldSolidBrep.htm IfcManifoldSolidBrep). }
+  TIfcManifoldSolidBrep = class abstract(TIfcSolidModel)
+  strict private
+    FOuter: TIfcClosedShell;
+  public
+    function BuildNode(const Mapping: TCastleIfcMapping;
+      const ParentProduct: TIfcProduct;
+      const LitAppearance, UnlitAppearance: TAppearanceNode): TAbstractChildNode; override;
+  published
+    { A closed shell defining the exterior boundary of the solid.
+      The shell normal shall point away from the interior of the solid. }
+    property Outer: TIfcClosedShell read FOuter write FOuter;
+  end;
+
+  { IFC class @url(https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcTopologicalRepresentationItem.htm IfcTopologicalRepresentationItem). }
+  TIfcTopologicalRepresentationItem = class abstract(TIfcRepresentationItem)
+  strict private
+  end;
+
+  { IFC class @url(https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcFaceBound.htm IfcFaceBound). }
+  TIfcFaceBound = class(TIfcTopologicalRepresentationItem)
+  strict private
+    FBound: TIfcLoop;
+    FOrientation: TIfcBoolean;
+  published
+    { Loop which will be used as a face boundary. }
+    property Bound: TIfcLoop read FBound write FBound;
+
+    { This indicated whether (TRUE) or not (FALSE) the loop has
+      the same sense when used to bound the face as when first defined.
+      If sense is FALSE the senses of all its component oriented edges are
+      implicitly reversed when used in the face. }
+    property Orientation: TIfcBoolean read FOrientation write FOrientation;
+  end;
+  TIfcFaceBoundList = {$ifdef FPC}specialize{$endif} TObjectList<TIfcFaceBound>;
+
+  { IFC class @url(https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcFace.htm IfcFace). }
+  TIfcFace = class(TIfcTopologicalRepresentationItem)
+  strict private
+    FBounds: TIfcFaceBoundList;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+  published
+    { Boundaries of the face. }
+    property Bounds: TIfcFaceBoundList read FBounds;
+  end;
+  TIfcFaceList = {$ifdef FPC}specialize{$endif} TObjectList<TIfcFace>;
+
+  { IFC class @url(https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcConnectedFaceSet.htm IfcConnectedFaceSet). }
+  TIfcConnectedFaceSet = class(TIfcTopologicalRepresentationItem)
+  strict private
+    FCfsFaces: TIfcFaceList;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+    function BuildNode(const Mapping: TCastleIfcMapping;
+      const ParentProduct: TIfcProduct;
+      const LitAppearance, UnlitAppearance: TAppearanceNode): TAbstractChildNode; override;
+  published
+    { The set of faces arcwise connected along common edges or vertices. }
+    property CfsFaces: TIfcFaceList read FCfsFaces;
+  end;
+
+  { IFC class @url(https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcLoop.htm IfcLoop). }
+  TIfcLoop = class(TIfcTopologicalRepresentationItem)
+  strict private
+  end;
+
+  { IFC class @url(https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcPolyLoop.htm IfcPolyLoop). }
+  TIfcPolyLoop = class(TIfcLoop)
+  strict private
+    FPolygon: TIfcCartesianPointList;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+  published
+    { List of points defining the loop. There are no repeated points in
+      the list. }
+    property Polygon: TIfcCartesianPointList read FPolygon;
+  end;
+
+  { IFC class @url(https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcGeometricSet.htm IfcGeometricSet). }
+  TIfcGeometricSet = class(TIfcGeometricRepresentationItem)
+  strict private
+  end;
+
+  { IFC class @url(https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcGeometricCurveSet.htm IfcGeometricCurveSet). }
+  TIfcGeometricCurveSet = class(TIfcGeometricSet)
+  strict private
+    FElements: TIfcGeometricRepresentationItemList;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+    function BuildNode(const Mapping: TCastleIfcMapping;
+      const ParentProduct: TIfcProduct;
+      const LitAppearance, UnlitAppearance: TAppearanceNode): TAbstractChildNode; override;
+  published
+    { Geometric elements which make up the geometric set, these may
+      be points, curves or surfaces.
+      Only TIfcCurve, TIfcPooint, TIfcSurface are allowed on this list. }
+    property Elements: TIfcGeometricRepresentationItemList read FElements;
+  end;
+
+  TIfcTransitionCode = (
+    Continuous,
+    ContSameGradient,
+    ContSameGradientSameCurvature,
+    Discontinuous
+  );
+
+  { IFC class @url(https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcSegment.htm IfcSegment). }
+  TIfcSegment = class abstract(TIfcGeometricRepresentationItem)
+  strict private
+    FTransition: TIfcTransitionCode;
+  published
+    { Connectivity between the continuous segments is not enforced per
+      se to be tangential. Setting "TangentialContinuity" to True means
+      that the current segment shall continue with tangential continuity
+      to the previous one. }
+    property Transition: TIfcTransitionCode read FTransition write FTransition;
+  end;
+  TIfcSegmentList = {$ifdef FPC}specialize{$endif} TObjectList<TIfcSegment>;
+
+  { IFC class @url(https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcCompositeCurveSegment.htm IfcCompositeCurveSegment). }
+  TIfcCompositeCurveSegment = class(TIfcSegment)
+  strict private
+    FSameSense: TIfcBoolean;
+    FParentCurve: TIfcCurve;
+  public
+    function BuildNode(const Mapping: TCastleIfcMapping;
+      const ParentProduct: TIfcProduct;
+      const LitAppearance, UnlitAppearance: TAppearanceNode): TAbstractChildNode; override;
+  published
+    { An indicator of whether or not the sense of the segment agrees with,
+      or opposes, that of the parent curve. If SameSense is false,
+      the point with highest parameter value is taken as the first point of
+      the segment. }
+    property SameSense: TIfcBoolean read FSameSense write FSameSense;
+
+    { The bounded curve which defines the geometry of the segment. }
+    property ParentCurve: TIfcCurve read FParentCurve write FParentCurve;
+  end;
+
+  { IFC class @url(https://standards.buildingsmart.org/IFC/RELEASE/IFC4_3/HTML/lexical/IfcCompositeCurve.htm IfcCompositeCurve). }
+  TIfcCompositeCurve = class(TIfcBoundedCurve)
+  strict private
+    FSegments: TIfcSegmentList;
+    FSelfIntersect: TIfcLogical;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+
+    function BuildNode(const Mapping: TCastleIfcMapping;
+      const ParentProduct: TIfcProduct;
+      const LitAppearance, UnlitAppearance: TAppearanceNode): TAbstractChildNode; override;
+  published
+    { The component bounded curves, their transitions and senses.
+      The transition attribute for the last segment defines the transition
+      between the end of the last segment and the start of the first;
+      this transition attribute may take the value discontinuous,
+      which indicates an open curve. }
+    property Segments: TIfcSegmentList read FSegments;
+
+    { Indication of whether the curve intersects itself or not;
+      this is for information only. }
+    property SelfIntersect: TIfcLogical read FSelfIntersect write FSelfIntersect;
+  end;
+
 {$endif read_interface_types}
 
 {$ifdef read_interface}
@@ -6069,6 +6306,10 @@ begin
   end;
 
   NewLocation.Coordinates.Value := Value;
+
+  // update LastMappingNode fast
+  if LastMapping <> nil then
+    ObjectPlacement.UpdateNode(LastMapping, LastMappingNode);
 end;
 
 { TIfcPositioningElement ----------------------------------------------------- }
@@ -7778,6 +8019,76 @@ begin
   inherited;
 end;
 
+{ TIfcConnectedFaceSet ------------------------------------------------------- }
+
+constructor TIfcConnectedFaceSet.Create(AOwner: TComponent);
+begin
+  inherited;
+  FCfsFaces := TIfcFaceList.Create(false);
+end;
+
+destructor TIfcConnectedFaceSet.Destroy;
+begin
+  FreeAndNil(FCfsFaces);
+  inherited;
+end;
+
+{ TIfcFace ------------------------------------------------------------------- }
+
+constructor TIfcFace.Create(AOwner: TComponent);
+begin
+  inherited;
+  FBounds := TIfcFaceBoundList.Create(false);
+end;
+
+destructor TIfcFace.Destroy;
+begin
+  FreeAndNil(FBounds);
+  inherited;
+end;
+
+{ TIfcPolyLoop --------------------------------------------------------------- }
+
+constructor TIfcPolyLoop.Create(AOwner: TComponent);
+begin
+  inherited;
+  FPolygon := TIfcCartesianPointList.Create(false);
+end;
+
+destructor TIfcPolyLoop.Destroy;
+begin
+  FreeAndNil(FPolygon);
+  inherited;
+end;
+
+{ TIfcGeometricCurveSet ------------------------------------------------------ }
+
+constructor TIfcGeometricCurveSet.Create(AOwner: TComponent);
+begin
+  inherited;
+  FElements := TIfcGeometricRepresentationItemList.Create(false);
+end;
+
+destructor TIfcGeometricCurveSet.Destroy;
+begin
+  FreeAndNil(FElements);
+  inherited;
+end;
+
+{ TIfcCompositeCurve --------------------------------------------------------- }
+
+constructor TIfcCompositeCurve.Create(AOwner: TComponent);
+begin
+  inherited;
+  FSegments := TIfcSegmentList.Create(false);
+end;
+
+destructor TIfcCompositeCurve.Destroy;
+begin
+  FreeAndNil(FSegments);
+  inherited;
+end;
+
 { initialization, finalization ----------------------------------------------- }
 
 var
@@ -7991,6 +8302,19 @@ function IfcClasses: TIfcPersistentClassList;
     FIfcClasses.Add(TIfcReinforcingElementType);
     FIfcClasses.Add(TIfcReinforcingBarType);
     FIfcClasses.Add(TIfcTypeProduct);
+    FIfcClasses.Add(TIfcBooleanResult);
+    FIfcClasses.Add(TIfcBooleanClippingResult);
+    FIfcClasses.Add(TIfcManifoldSolidBrep);
+    FIfcClasses.Add(TIfcTopologicalRepresentationItem);
+    FIfcClasses.Add(TIfcFaceBound);
+    FIfcClasses.Add(TIfcFace);
+    FIfcClasses.Add(TIfcConnectedFaceSet);
+    FIfcClasses.Add(TIfcPolyLoop);
+    FIfcClasses.Add(TIfcLoop);
+    FIfcClasses.Add(TIfcGeometricCurveSet);
+    FIfcClasses.Add(TIfcSegment);
+    FIfcClasses.Add(TIfcCompositeCurveSegment);
+    FIfcClasses.Add(TIfcCompositeCurve);
     {$define read_add_classes}
     {$I castleifc_ifc_standard_types_autogenerated.inc}
     {$undef read_add_classes}

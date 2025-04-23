@@ -996,7 +996,7 @@ begin
     They leave Boxes[..].Parent = nil in the middle. }
 
   Result := 0;
-  for I := 0 to FMaxSelectedCount - 1 do
+  for I := 0 to Integer(FMaxSelectedCount) - 1 do
     if Boxes[I].Parent <> nil then
       Inc(Result);
 end;

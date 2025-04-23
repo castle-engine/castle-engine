@@ -82,7 +82,7 @@ procedure TViewMain.ClickLocalScaleRedBoxCollider(Sender: TObject);
 var
   Collider: TCastleCollider;
 begin
-  Collider := RedBox.FindBehavior(TCastleCollider) as TCastleCollider;
+  Collider := RedBox.Collider;
   if Collider <> nil then
     Collider.SizeScale := 0.5;
 end;
