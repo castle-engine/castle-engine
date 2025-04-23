@@ -1229,6 +1229,9 @@ var
               GltfImage.BufferView was set. Otherwise, we want to interpret URI
               by CGE code, thus allowing to read files using our Download()
               that understands also http/https, castle-data, castle-android-assets etc.
+
+              TODO: optimize for data: in URI too,
+              look at GltfImage.IsExternalResource in general.
             }
             Stream := TMemoryStream.Create;
             try
@@ -1243,6 +1246,21 @@ var
               try
                 TPixelTextureNode(Texture).FdImage.Value :=
                   LoadImage(Stream, GltfImage.MimeType, []);
+                //TPixelTextureNode(Texture).FdImage.Value.Resize(128, 128);
+                WritelnLog('Loaded image from GLB (%s # %d): %d x %d x %d (%s)', [
+                  BaseUrl,
+                  GltfTexture.Source,
+                  TPixelTextureNode(Texture).FdImage.Value.Width,
+                  TPixelTextureNode(Texture).FdImage.Value.Height,
+                  TPixelTextureNode(Texture).FdImage.Value.Depth,
+                  SizeToStr(
+                    TPixelTextureNode(Texture).FdImage.Value.PixelSize *
+                    TPixelTextureNode(Texture).FdImage.Value.Width *
+                    TPixelTextureNode(Texture).FdImage.Value.Height *
+                    TPixelTextureNode(Texture).FdImage.Value.Depth
+                  )
+                ]);
+
               except
                 on E: Exception do
                   WritelnWarning('glTF', 'Cannot load the texture from glTF binary buffer with mime type %s: %s',

@@ -218,7 +218,7 @@
       due to duplicating texture contents (testcase:
       https://forum.castle-engine.io/t/test-case-loading-small-binary-gltf-glb-with-big-issues/1816/4
       where TPixelTextureNode from GLB was duplicated during load).
-      
+
       Also, set FTextureUsedFullUrl here.
 
       In this class, this simply produces WritelnWarning with
@@ -1128,7 +1128,7 @@ end;
 procedure TPixelTextureNode.LoadTextureData(out WasCacheUsed: boolean);
 begin
   WasCacheUsed := false;
-  
+
   { We need unique id of every TPixelTextureNode loaded from given BaseUrl.
     This will allow us to cache texture instances embedded in the given X3D file
     (or GLB files that have been imported as this X3D).
@@ -1139,10 +1139,21 @@ begin
   // TODO assign number when parsing
   // TODO copy this id on DeepCopy
   // TODO assign number when loading GLB
-  
+
   if not FdImage.Value.IsEmpty then
   begin
     // TODO: FdImage should use cache, but also this should return FdImage.Value, not duplicating it
+    WritelnLog('Making copy of SFImage contents %d x %d x %d (%s)', [
+      FdImage.Value.Width,
+      FdImage.Value.Height,
+      FdImage.Value.Depth,
+      SizeToStr(
+        FdImage.Value.PixelSize *
+        FdImage.Value.Width *
+        FdImage.Value.Height *
+        FdImage.Value.Depth
+      )
+    ]);
     FTextureImage := FdImage.Value.MakeCopy;
     FAlphaChannelData := FdImage.Value.AlphaChannel;
   end;
