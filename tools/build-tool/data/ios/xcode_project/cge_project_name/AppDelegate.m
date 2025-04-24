@@ -149,7 +149,12 @@ AppDelegate* getAppDelegate(void)
         }
     }
     if ([url.scheme isEqualToString:@"file"])
-        return CGEApp_HandleOpenUrl(url.fileSystemRepresentation);
+    {
+        [url startAccessingSecurityScopedResource];     // when opening from Files app (after declaring LSSupportsOpeningDocumentsInPlace in Info.plist to true)
+        int ret = CGEApp_HandleOpenUrl(url.fileSystemRepresentation);
+        [url stopAccessingSecurityScopedResource];
+        return ret;
+    }
     return NO;
 }
 

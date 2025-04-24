@@ -63,7 +63,7 @@
 ${IOS_REQUIRED_DEVICE_CAPABILITIES}
 	</array>
 	<key>LSSupportsOpeningDocumentsInPlace</key>
-	<false/>
+	<true/>
 	<key>UIRequiresFullScreen</key>
 	<true/>
 	<key>UIStatusBarHidden</key>
