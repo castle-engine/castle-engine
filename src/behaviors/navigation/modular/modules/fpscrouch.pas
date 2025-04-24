@@ -213,7 +213,7 @@ function TFpsCrouch.CanPlayerStandUp(const RBody: TCastleRigidBody;
 var
   CastDirection: TVector3;
   CastOrigin: TVector3;
-  CastResult: TPhysicsRayCastResult;
+  CastResult: TRayCastResult;
 begin
   CastDirection := Vector3(0, 1, 0);
   CastOrigin := Collider.Middle;

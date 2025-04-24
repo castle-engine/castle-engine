@@ -281,7 +281,7 @@ var
   SphereCastOriginUpAdjustment: Single;
 
   DistanceToGround: Single;
-  GroundSphereCast: TPhysicsRayCastResult;
+  GroundSphereCast: TRayCastResult;
 begin
   { Check player is on ground, we use collider size multiplied by three to try
     found ground.

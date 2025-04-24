@@ -65,7 +65,7 @@ var
 
   RayDirection: TVector3;
   RayOrigin: TVector3;
-  StepHit: TPhysicsRayCastResult;
+  StepHit: TRayCastResult;
   StepHeight: Single;
 begin
   { Works only when player on ground and moving }
@@ -122,7 +122,7 @@ var
   CastDirection: TVector3;
   CastOrigin: TVector3;
 
-  CastResult: TPhysicsRayCastResult;
+  CastResult: TRayCastResult;
 begin
   Collider := MovementState.Collider;
   RBody := MovementState.RigidBody;

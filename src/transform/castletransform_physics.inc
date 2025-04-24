@@ -3899,7 +3899,7 @@ end;
 function TCastleRigidBody.PhysicsSphereCast(const SphereOrigin: TVector3;
   const SphereRadius: Single; const SphereDirection: TVector3;
   const MaxDistance: Single;
-  const CollisionLayers: TPhysicsLayers): TPhysicsRayCastResult;
+  const CollisionLayers: TPhysicsLayers): TRayCastResult;
 var
   SphereOriginWorld, SphereDirectionWorld: TVector3;
   MaxDistanceWorld, SphereRadiusWorld: Single;
