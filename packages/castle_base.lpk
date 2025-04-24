@@ -8,8 +8,8 @@
     <CompilerOptions>
       <Version Value="11"/>
       <SearchPaths>
-        <IncludeFiles Value="../src/common_includes;../src/base;../src/base/unix;../src/base/windows;../src/audio;../src/castlescript;../src/transform;../src/scene/glsl/generated-pascal;../src/scene;../src/scene/x3d;../src/scene/load;../src/scene/load/spine;../src/scene/load/md3;../src/scene/load/collada;../src/scene/load/pasgltf;../src/base_rendering;../src/physics/kraft;../src/base_rendering/dglopengl;../src/base_rendering/glsl/generated-pascal;../src/images;../src/scene/x3d/auto_generated_node_helpers;../src/ui;../src/deprecated_units;../src/files;../src/files/tools;../src/fonts;../src/transform/auto_generated_persistent_vectors;../src/vampyre_imaginglib/src/Source;../src/vampyre_imaginglib/src/Source/JpegLib;../src/vampyre_imaginglib/src/Source/ZLib;../src/scene/transform_manipulate_data/generated-pascal;../src/scene/load/ifc;../src/services/steam"/>
-        <OtherUnitFiles Value="../src/base;../src/transform;../src/images;../src/fonts;../src/audio;../src/files;../src/files/tools;../src/castlescript;../src/ui;../src/ui/windows;../src/services;../src/base_rendering;../src/base_rendering/dglopengl;../src/physics/kraft;../src/scene;../src/scene/x3d;../src/scene/load;../src/scene/load/spine;../src/scene/load/md3;../src/scene/load/collada;../src/scene/load/pasgltf;../src/audio/openal;../src/audio/ogg_vorbis;../src/audio/fmod;../src/deprecated_units;../src/vampyre_imaginglib/src/Source;../src/vampyre_imaginglib/src/Source/JpegLib;../src/vampyre_imaginglib/src/Source/ZLib;../src/vampyre_imaginglib/src/Extensions;../src/vampyre_imaginglib/src/Extensions/LibTiff;../src/scene/load/ifc;../src/services/steam"/>
+        <IncludeFiles Value="../src/common_includes;../src/base;../src/base/unix;../src/base/windows;../src/audio;../src/castlescript;../src/transform;../src/scene/glsl/generated-pascal;../src/scene;../src/scene/x3d;../src/scene/load;../src/scene/load/spine;../src/scene/load/md3;../src/scene/load/collada;../src/scene/load/pasgltf;../src/base_rendering;../src/physics/kraft;../src/base_rendering/dglopengl;../src/base_rendering/glsl/generated-pascal;../src/images;../src/scene/x3d/auto_generated_node_helpers;../src/ui;../src/deprecated_units;../src/files;../src/files/tools;../src/fonts;../src/transform/auto_generated_persistent_vectors;../src/vampyre_imaginglib/src/Source;../src/vampyre_imaginglib/src/Source/JpegLib;../src/vampyre_imaginglib/src/Source/ZLib;../src/scene/transform_manipulate_data/generated-pascal;../src/scene/load/ifc;../src/services/steam;../src/behaviors;../src/behaviors/input;../src/behaviors/navigation;../src/behaviors/navigation/modular;../src/behaviors/navigation/modular/modules;../src/behaviors/navigation/simple"/>
+        <OtherUnitFiles Value="../src/base;../src/transform;../src/images;../src/fonts;../src/audio;../src/files;../src/files/tools;../src/castlescript;../src/ui;../src/ui/windows;../src/services;../src/base_rendering;../src/base_rendering/dglopengl;../src/physics/kraft;../src/scene;../src/scene/x3d;../src/scene/load;../src/scene/load/spine;../src/scene/load/md3;../src/scene/load/collada;../src/scene/load/pasgltf;../src/audio/openal;../src/audio/ogg_vorbis;../src/audio/fmod;../src/deprecated_units;../src/vampyre_imaginglib/src/Source;../src/vampyre_imaginglib/src/Source/JpegLib;../src/vampyre_imaginglib/src/Source/ZLib;../src/vampyre_imaginglib/src/Extensions;../src/vampyre_imaginglib/src/Extensions/LibTiff;../src/scene/load/ifc;../src/services/steam;../src/behaviors;../src/behaviors/input;../src/behaviors/navigation;../src/behaviors/navigation/modular;../src/behaviors/navigation/modular/modules;../src/behaviors/navigation/simple"/>
         <UnitOutputDirectory Value="lib/castle_base/$(TargetCPU)-$(TargetOS)"/>
       </SearchPaths>
       <Conditionals Value="// example for adding linker options on macOS
@@ -60,7 +60,7 @@ This is the same license as used by Lazarus LCL and FPC RTL.
 See https://castle-engine.io/license for details.
 "/>
     <Version Major="6" Minor="93" Release="1"/>
-    <Files Count="1141">
+    <Files Count="1159">
       <Item1>
         <Filename Value="../src/audio/castleinternalabstractsoundbackend.pas"/>
         <UnitName Value="CastleInternalAbstractSoundBackend"/>
@@ -4655,6 +4655,78 @@ See https://castle-engine.io/license for details.
         <Filename Value="../src/physics/kraft/castleinternalkraftoverrides.pas"/>
         <UnitName Value="CastleInternalKraftOverrides"/>
       </Item1141>
+      <Item1142>
+        <Filename Value="../src/behaviors/input/castleinputaxis.pas"/>
+        <UnitName Value="CastleInputAxis"/>
+      </Item1142>
+      <Item1143>
+        <Filename Value="../src/behaviors/navigation/followingtargetforcamera.pas"/>
+        <UnitName Value="FollowingTargetForCamera"/>
+      </Item1143>
+      <Item1144>
+        <Filename Value="../src/behaviors/navigation/directrotatetransformbykeys.pas"/>
+        <UnitName Value="DirectRotateTransformByKeys"/>
+      </Item1144>
+      <Item1145>
+        <Filename Value="../src/behaviors/navigation/rotatecamera.pas"/>
+        <UnitName Value="RotateCamera"/>
+      </Item1145>
+      <Item1146>
+        <Filename Value="../src/behaviors/navigation/rotaterigidbody.pas"/>
+        <UnitName Value="RotateRigidBody"/>
+      </Item1146>
+      <Item1147>
+        <Filename Value="../src/behaviors/navigation/modular/modularmovement.pas"/>
+        <UnitName Value="ModularMovement"/>
+      </Item1147>
+      <Item1148>
+        <Filename Value="../src/behaviors/navigation/modular/modules/walk3dsupport.pas"/>
+        <UnitName Value="Walk3DSupport"/>
+      </Item1148>
+      <Item1149>
+        <Filename Value="../src/behaviors/navigation/modular/modules/platformer2dwalksupport.pas"/>
+        <UnitName Value="Platformer2DWalkSupport"/>
+      </Item1149>
+      <Item1150>
+        <Filename Value="../src/behaviors/navigation/modular/modules/headbobbing.pas"/>
+        <UnitName Value="HeadBobbing"/>
+      </Item1150>
+      <Item1151>
+        <Filename Value="../src/behaviors/navigation/modular/modules/fpscrouch.pas"/>
+        <UnitName Value="FpsCrouch"/>
+      </Item1151>
+      <Item1152>
+        <Filename Value="../src/behaviors/navigation/modular/modules/fly3dsupport.pas"/>
+        <UnitName Value="Fly3DSupport"/>
+      </Item1152>
+      <Item1153>
+        <Filename Value="../src/behaviors/navigation/modular/modules/platformer2dinaircontrol.pas"/>
+        <UnitName Value="Platformer2DInAirControl"/>
+      </Item1153>
+      <Item1154>
+        <Filename Value="../src/behaviors/navigation/modular/modules/stairssupport.pas"/>
+        <UnitName Value="StairsSupport"/>
+      </Item1154>
+      <Item1155>
+        <Filename Value="../src/behaviors/navigation/modular/modules/doublejumpsupport.pas"/>
+        <UnitName Value="DoubleJumpSupport"/>
+      </Item1155>
+      <Item1156>
+        <Filename Value="../src/behaviors/navigation/modular/modules/inair3dcontrol.pas"/>
+        <UnitName Value="InAir3DControl"/>
+      </Item1156>
+      <Item1157>
+        <Filename Value="../src/behaviors/navigation/modular/modules/animationtrigger.pas"/>
+        <UnitName Value="AnimationTrigger"/>
+      </Item1157>
+      <Item1158>
+        <Filename Value="../src/behaviors/navigation/simple/simplefpsplayermovementwithrotation.pas"/>
+        <UnitName Value="SimpleFpsPlayerMovementWithRotation"/>
+      </Item1158>
+      <Item1159>
+        <Filename Value="../src/behaviors/navigation/simple/simplestfpsplayermovement.pas"/>
+        <UnitName Value="SimplestFpsPlayerMovement"/>
+      </Item1159>
     </Files>
     <CompatibilityMode Value="True"/>
     <RequiredPkgs Count="1">
