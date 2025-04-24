@@ -67,14 +67,50 @@ castle-game-engine-*.fpm
 /fpmake
 /units/
 
-# alphabetic list of specific subdirs (and files inside)
-
+# manpages output
 /doc/man/man1/*.1
+
+# PasDoc output
 /doc/pasdoc/cache/
 /doc/pasdoc/html/
 /doc/pasdoc/latex/
 /doc/pasdoc/php/
 /doc/reference/
+
+# Bundled FPC (ignore it, in case someone puts it in CGE source tree)
+/tools/contrib/fpc
+
+# Proprietary Android libraries
+# (it may be easy to put them into CGE source tree, but don't commit).
+/tools/build-tool/data/android/integrated-services/chartboost/app/libs/*.jar
+/tools/build-tool/data/android/integrated-services/game_analytics/app/libs/*.jar
+/tools/build-tool/data/android/integrated-services/startapp/app/libs/*.jar
+/tools/build-tool/data/ios/services/game_analytics/cge_project_name/game_analytics/GameAnalytics.h
+/tools/build-tool/data/ios/services/game_analytics/cge_project_name/game_analytics/libGameAnalytics.a
+
+# deprecated_library artifacts
+/examples/deprecated_library/build-qt_library_tester-*
+/examples/deprecated_library/qt_library_tester/build
+/examples/deprecated_library/cpp_winapi_library_tester/Debug
+/examples/deprecated_library/cpp_winapi_library_tester/Release
+/examples/deprecated_library/cpp_winapi_library_tester/x64
+/examples/deprecated_library/lazarus_library_tester/*.app
+/examples/deprecated_library/lazarus_library_tester/cge_dynlib_tester
+/src/deprecated_library/build-*
+/src/deprecated_library/ios-output/
+/src/deprecated_library/libcastleengine.dylib
+/src/deprecated_library/libcastleengine.so
+
+# Lazarus packages artifacts
+/packages/alternative_castle_window_based_on_lcl.pas
+/packages/castle_base.pas
+/packages/castle_components.pas
+/packages/castle_editor_components.pas
+/packages/castle_indy.pas
+/packages/castle_window.pas
+/packages/lib/
+
+# Unix binaries (keep this list alphabetic).
 /examples/advanced_editor/advanced_loading_designs/advanced_loading_designs
 /examples/advanced_editor/custom_component/custom_component
 /examples/animations/animate_bones_by_code/animate_bones_by_code
@@ -101,13 +137,6 @@ castle-game-engine-*.fpm
 /examples/curves/use_designed_curve/use_designed_curve
 /examples/delphi/fmx/CastleFmx
 /examples/delphi/fmx_play_animation/CastleFmxPlayAnimation
-/examples/deprecated_library/build-qt_library_tester-*
-/examples/deprecated_library/qt_library_tester/build
-/examples/deprecated_library/cpp_winapi_library_tester/Debug
-/examples/deprecated_library/cpp_winapi_library_tester/Release
-/examples/deprecated_library/cpp_winapi_library_tester/x64
-/examples/deprecated_library/lazarus_library_tester/*.app
-/examples/deprecated_library/lazarus_library_tester/cge_dynlib_tester
 /examples/deprecated_to_upgrade/fixed_camera_game/rift
 /examples/eye_of_beholder/eye_of_beholder
 /examples/fonts/distance_field_fonts/distance_field_fonts
@@ -181,8 +210,6 @@ castle-game-engine-*.fpm
 /examples/physics/physics_test_scaled_mesh_collider/physics_test_scaled_mesh_collider
 /examples/physics/physics_test_transformation_sync/physics_test_transformation_sync
 /examples/platformer/platformer
-/examples/plugin/cge_3d_viewer/cge_3d_viewer
-/examples/plugin/cge_3d_viewer/npcge_3d_viewer.linux-i386.so
 /examples/portable_game_skeleton/my_fantastic_game
 /examples/research_special_rendering_methods/dynamic_ambient_occlusion/dynamic_ambient_occlusion
 /examples/research_special_rendering_methods/new_renderer_skeleton/new_renderer_skeleton
@@ -261,26 +288,10 @@ castle-game-engine-*.fpm
 /examples/web/simplest/webgl-tests
 /examples/web/simplest_viewport/simplest_viewport
 /examples/web/simplest_invaders/simplest_invaders
-/packages/alternative_castle_window_based_on_lcl.pas
-/packages/castle_base.pas
-/packages/castle_components.pas
-/packages/castle_editor_components.pas
-/packages/castle_indy.pas
-/packages/castle_window.pas
-/packages/lib/
-/src/deprecated_library/build-*
-/src/deprecated_library/ios-output/
-/src/deprecated_library/libcastleengine.dylib
-/src/deprecated_library/libcastleengine.so
 /tests/castle-tester
 /tests/test_castle_game_engine
 /tests/time_measurements_tests/time_measurements_tests
 /tools/build-tool/castle-engine
-/tools/build-tool/data/android/integrated-services/chartboost/app/libs/*.jar
-/tools/build-tool/data/android/integrated-services/game_analytics/app/libs/*.jar
-/tools/build-tool/data/android/integrated-services/startapp/app/libs/*.jar
-/tools/build-tool/data/ios/services/game_analytics/cge_project_name/game_analytics/GameAnalytics.h
-/tools/build-tool/data/ios/services/game_analytics/cge_project_name/game_analytics/libGameAnalytics.a
 /tools/build-tool/tests/test_cge_build_tool
 /tools/castle-curves/castle-curves
 /tools/castle-engine
@@ -296,4 +307,3 @@ castle-game-engine-*.fpm
 /tools/sprite-sheet-to-x3d/sprite-sheet-to-x3d
 /tools/texture-font-to-pascal/texture-font-to-pascal
 /tools/to-data-uri/to-data-uri
-/tools/contrib
