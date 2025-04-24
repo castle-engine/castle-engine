@@ -26,6 +26,7 @@
 {$else}
   {$hints off}
 
+  {$warn COMPARING_SIGNED_UNSIGNED off}
   {$warn SYMBOL_PLATFORM off}
   {$warn IMPLICIT_STRING_CAST off}
   {$if CompilerVersion >= 32} {$warn COMBINING_SIGNED_UNSIGNED64 off} {$ifend} // only since Delphi 10.2
@@ -33,6 +34,10 @@
     not accessible from C++.
     We don't need to expose Kraft classes to C++ anyway, they are internal for CGE. }
   {$warn DUPLICATE_CTOR_DTOR off}
+  // [dcc32 Warning] kraft.pas(1633): W1025 Unsupported language feature: 'operator explicit'
+  {$warn UNSUPPORTED_CONSTRUCT off}
+  // [dcc32 Warning] kraft.pas(49320): W1022 Comparison always evaluates to True
+  {$warn COMPARISON_TRUE off}
 
   // Used by some logic in our Kraft mods
   {$define KRAFT_DELPHI_NON_WINDOWS}
