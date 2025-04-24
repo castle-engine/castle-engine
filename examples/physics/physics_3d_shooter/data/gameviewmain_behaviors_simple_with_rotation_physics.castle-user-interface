@@ -48,22 +48,32 @@
                     "$$ClassName" : "TRotateCamera",
                     "HorizontalRotationInput" : {
                       "$$ClassName" : "TCastleInputAxis",
+                      "MouseDrag" : false,
+                      "MouseDragAxis" : "mlaHorizontal",
+                      "MouseDragMultiplier" : 1.0000000000000000E+000,
                       "MouseLook" : false,
                       "MouseLookAxis" : "mlaHorizontal",
                       "MouseLookMultiplier" : 2.6179939508438110E-001,
                       "Multiplier" : 2.6179938316345215E+000,
                       "NegativeKey" : "keyArrowLeft",
-                      "PositiveKey" : "keyArrowRight"
+                      "NegativeWheelDirection" : "mwNone",
+                      "PositiveKey" : "keyArrowRight",
+                      "PositiveWheelDirection" : "mwNone"
                     },
                     "Name" : "RotateCamera1",
                     "VerticalRotationInput" : {
                       "$$ClassName" : "TCastleInputAxis",
+                      "MouseDrag" : false,
+                      "MouseDragAxis" : "mlaHorizontal",
+                      "MouseDragMultiplier" : 1.0000000000000000E+000,
                       "MouseLook" : true,
                       "MouseLookAxis" : "mlaVertical",
                       "MouseLookMultiplier" : 2.5000000000000000E-001,
                       "Multiplier" : 1.5000000000000000E+000,
                       "NegativeKey" : "keyNone",
-                      "PositiveKey" : "keyNone"
+                      "NegativeWheelDirection" : "mwNone",
+                      "PositiveKey" : "keyNone",
+                      "PositiveWheelDirection" : "mwNone"
                     }
                   }
                 ]
@@ -90,12 +100,17 @@
                 "$$ClassName" : "TSimpleFpsPlayerMovementWithRotation",
                 "ForwardInputAxis" : {
                   "$$ClassName" : "TCastleInputAxis",
+                  "MouseDrag" : false,
+                  "MouseDragAxis" : "mlaHorizontal",
+                  "MouseDragMultiplier" : 1.0000000000000000E+000,
                   "MouseLook" : false,
                   "MouseLookAxis" : "mlaHorizontal",
                   "MouseLookMultiplier" : 1.0000000000000000E+000,
                   "Multiplier" : 1.0000000000000000E+000,
                   "NegativeKey" : "keyS",
-                  "PositiveKey" : "keyW"
+                  "NegativeWheelDirection" : "mwNone",
+                  "PositiveKey" : "keyW",
+                  "PositiveWheelDirection" : "mwNone"
                 },
                 "InputJump" : {
                   "$$ClassName" : "TInputShortcut",
@@ -105,51 +120,36 @@
                 "Name" : "SimpleFpsPlayerMovementWithRotation1",
                 "SidewayInputAxis" : {
                   "$$ClassName" : "TCastleInputAxis",
+                  "MouseDrag" : false,
+                  "MouseDragAxis" : "mlaHorizontal",
+                  "MouseDragMultiplier" : 1.0000000000000000E+000,
                   "MouseLook" : false,
                   "MouseLookAxis" : "mlaHorizontal",
                   "MouseLookMultiplier" : 1.0000000000000000E+000,
                   "Multiplier" : 1.0000000000000000E+000,
                   "NegativeKey" : "keyA",
-                  "PositiveKey" : "keyD"
+                  "NegativeWheelDirection" : "mwNone",
+                  "PositiveKey" : "keyD",
+                  "PositiveWheelDirection" : "mwNone"
                 }
               },
               {
                 "$$ClassName" : "TRotateRigidBody",
                 "HorizontalRotationInput" : {
                   "$$ClassName" : "TCastleInputAxis",
+                  "MouseDrag" : false,
+                  "MouseDragAxis" : "mlaHorizontal",
+                  "MouseDragMultiplier" : 1.0000000000000000E+000,
                   "MouseLook" : true,
                   "MouseLookAxis" : "mlaHorizontal",
                   "MouseLookMultiplier" : 2.5000000000000000E-001,
                   "Multiplier" : 1.5000000000000000E+000,
                   "NegativeKey" : "keyArrowLeft",
-                  "PositiveKey" : "keyArrowRight"
+                  "NegativeWheelDirection" : "mwNone",
+                  "PositiveKey" : "keyArrowRight",
+                  "PositiveWheelDirection" : "mwNone"
                 },
                 "Name" : "RotateRigidBody1"
-              }
-            ]
-          },
-          {
-            "$$ClassName" : "TCastlePointLight",
-            "Intensity" : 1.0000000000000000E+001,
-            "Name" : "PointLight1",
-            "Radius" : 1.0000000000000000E+003,
-            "TranslationPersistent" : {
-              "$$ClassName" : "TCastleVector3Persistent",
-              "X" : 4.0000000000000000E+000,
-              "Y" : 1.7633638381958008E+001,
-              "Z" : 1.0000000000000000E+000
-            },
-            "$Behaviors" : [
-              {
-                "$$ClassName" : "TCastleBoxCollider",
-                "AutoSize" : false,
-                "Name" : "BoxCollider15",
-                "SizePersistent" : {
-                  "$$ClassName" : "TCastleVector3Persistent",
-                  "X" : 1.0000000000000000E+000,
-                  "Y" : 1.0000000000000000E+000,
-                  "Z" : 1.0000000000000000E+000
-                }
               }
             ]
           },
@@ -170,7 +170,7 @@
             "RenderOptions" : {
               "$$ClassName" : "TCastleScene.TSceneRenderOptions"
             },
-            "URL" : "castle-data:/level.gltf",
+            "Url" : "castle-data:/level.gltf",
             "$Children" : [
               {
                 "$$ClassName" : "TCastleBox",
@@ -712,6 +712,53 @@
                     "Name" : "RigidBody2"
                   }
                 ]
+              }
+            ]
+          },
+          {
+            "$$ClassName" : "TCastleTransform",
+            "Name" : "Lights",
+            "$Children" : [
+              {
+                "$$ClassName" : "TCastleDirectionalLight",
+                "Intensity" : 5.0000000000000000E+000,
+                "Name" : "DirectionalLight2",
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent",
+                  "W" : 4.0117115974426270E+000,
+                  "X" : 9.7982573509216309E-001,
+                  "Y" : 1.9492958486080170E-001,
+                  "Z" : 4.4091206043958664E-002
+                },
+                "ScalePersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "Y" : 9.9999994039535522E-001,
+                  "Z" : 9.9999994039535522E-001
+                },
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "X" : 4.1934673309326172E+001,
+                  "Y" : 1.8434080123901367E+001,
+                  "Z" : -2.3667161464691162E+000
+                }
+              },
+              {
+                "$$ClassName" : "TCastleDirectionalLight",
+                "Intensity" : 5.0000000000000000E+000,
+                "Name" : "DirectionalLight1",
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent",
+                  "W" : 1.0073878765106201E+000,
+                  "X" : -8.8261991739273071E-001,
+                  "Y" : 4.2273017764091492E-001,
+                  "Z" : -2.0562499761581421E-001
+                },
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "X" : 4.7050582885742188E+001,
+                  "Y" : 1.6846076965332031E+001,
+                  "Z" : -3.6128451824188232E+000
+                }
               }
             ]
           }
