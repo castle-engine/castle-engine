@@ -36,11 +36,10 @@
         "PhysicsProperties" : {
           "$$ClassName" : "TPhysicsProperties",
           "LayerCollisions" : {
-            "$$ClassName" : "TCastleLayerCollisions",
-            "0" : 1
+            "$$ClassName" : "TCastleLayerCollisions"
           },
           "LayerNames" : {
-            "$$ClassName" : "TCastleLayersNames"
+            "$$ClassName" : "TCastleLayerNames"
           }
         },
         "$Children" : [
@@ -74,17 +73,6 @@
             }
           },
           {
-            "$$ClassName" : "TCastlePointLight",
-            "Intensity" : 5.0000000000000000E+000,
-            "Name" : "PointLight1",
-            "TranslationPersistent" : {
-              "$$ClassName" : "TCastleVector3Persistent",
-              "X" : 4.0000000000000000E+000,
-              "Y" : 1.4564464569091797E+001,
-              "Z" : 1.0000000000000000E+000
-            }
-          },
-          {
             "$$ClassName" : "TCastleScene",
             "ExposeTransforms" : [
             ],
@@ -92,7 +80,7 @@
             "RenderOptions" : {
               "$$ClassName" : "TCastleScene.TSceneRenderOptions"
             },
-            "URL" : "castle-data:/level.gltf",
+            "Url" : "castle-data:/level.gltf",
             "$Behaviors" : [
               {
                 "$$ClassName" : "TCastleMeshCollider",
@@ -109,7 +97,6 @@
           },
           {
             "$$ClassName" : "TCastleSphere",
-            "CollisionSphereRadius" : 1.0000000000000000E+000,
             "Name" : "Sphere",
             "RenderOptions" : {
               "$$ClassName" : "TCastleScene.TSceneRenderOptions"
@@ -169,6 +156,53 @@
                   2
                 ],
                 "Name" : "CylinderRigidBody"
+              }
+            ]
+          },
+          {
+            "$$ClassName" : "TCastleTransform",
+            "Name" : "Lights",
+            "$Children" : [
+              {
+                "$$ClassName" : "TCastleDirectionalLight",
+                "Intensity" : 5.0000000000000000E+000,
+                "Name" : "DirectionalLight2",
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent",
+                  "W" : 4.0117115974426270E+000,
+                  "X" : 9.7982573509216309E-001,
+                  "Y" : 1.9492958486080170E-001,
+                  "Z" : 4.4091206043958664E-002
+                },
+                "ScalePersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "Y" : 9.9999994039535522E-001,
+                  "Z" : 9.9999994039535522E-001
+                },
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "X" : 4.1934673309326172E+001,
+                  "Y" : 1.8434080123901367E+001,
+                  "Z" : -2.3667161464691162E+000
+                }
+              },
+              {
+                "$$ClassName" : "TCastleDirectionalLight",
+                "Intensity" : 5.0000000000000000E+000,
+                "Name" : "DirectionalLight1",
+                "RotationPersistent" : {
+                  "$$ClassName" : "TCastleVector4RotationPersistent",
+                  "W" : 1.0073878765106201E+000,
+                  "X" : -8.8261991739273071E-001,
+                  "Y" : 4.2273017764091492E-001,
+                  "Z" : -2.0562499761581421E-001
+                },
+                "TranslationPersistent" : {
+                  "$$ClassName" : "TCastleVector3Persistent",
+                  "X" : 4.7050582885742188E+001,
+                  "Y" : 1.6846076965332031E+001,
+                  "Z" : -3.6128451824188232E+000
+                }
               }
             ]
           }
