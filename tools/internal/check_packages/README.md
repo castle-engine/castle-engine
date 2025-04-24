@@ -10,6 +10,22 @@ See https://castle-engine.io/units_map about CGE subdirectories.
 
 Using [Castle Game Engine](https://castle-engine.io/).
 
+## Automatic fixing
+
+The tool can also attempt some automated fixing of the packages.
+
+Use `--fix` to do this.
+
+This automatic fix as currently implemented is not perfect, so beware! Known issues:
+
+- It is implemented now only for Lazarus packages, not Delphi. So if you use this, you will still have to fix Delphi DPROJ / DPK manually.
+
+- It only adds missing files. Doesn't remove files that should not be in package.
+
+- It changes some initial LPK XML stuff (like case of `<?xml version="1.0" encoding="utf-8"?>` or how multi-line string attributes are written in XML), causing unnecessary changes. Revert them. (To revert chunks, instead of whoe files, use e.g. _"Revert Selected Ranges"_ in VS Code or [Magit](https://magit.vc/) in Emacs.)
+
+- It assumes that all new units are cross-platform. So it doesn't add, at any unit, `<AddToUsesPkgSection Value="False"/>`.
+
 ## Adjusting the tool for your own projects
 
 While this is an internal CGE tool, it could be useful for other projects as well. The tool can be compiled with both <em>FPC</em> and <em>Delphi</em> (and regardless of the compiler, it can check both <em>Lazarus</em> and <em>Delphi</em> packages).
