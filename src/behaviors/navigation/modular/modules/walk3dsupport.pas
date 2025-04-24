@@ -65,7 +65,7 @@ var
   InputDirection: TVector3;
   ForwardDirection: TVector3;
   RightDirection: TVector3;
-  UpDirection: TVector3;
+  //UpDirection: TVector3;
 
   HorizontalVelocity: TVector3;
   VerticalVelocity: Single;
@@ -82,7 +82,7 @@ begin
   InputDirection := MovementState.InputDirection;
   ForwardDirection := MovementState.ForwardDirection;
   RightDirection := MovementState.RightDirection;
-  UpDirection := MovementState.UpDirection;
+  //UpDirection := MovementState.UpDirection; // not necessary in the end
 
   { Simplest code:  When input direction is 1.00 0.00 -1.00 this move faster:
 
