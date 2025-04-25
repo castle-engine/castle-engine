@@ -21890,7 +21890,23 @@ begin
           Bin^.Count:=0;
          end;
 
-         if AxisLengths.xyz[AxisIndex]>0.0 then begin
+         { CGE: changed below check from ">0.0" to "0.001",
+           so InvAxisLength is at max 1000.
+
+           Reason: otherwise AxisLengths.xyz[AxisIndex] may be arbitrarily small,
+           so InvAxisLength:=1.0/AxisLengths.xyz[AxisIndex] may be huge,
+           even ~10^38 in tests.
+           Testcase: examples/physics/physics_3d_shooter/
+
+           And this is causing integer overflow exception
+           at "trunc((((Center^.xyz[AxisIndex]-MinCenterValue)*InvAxisLength))"
+           because there's no way to express this number as integer.
+
+           This is on FPC web target ( https://castle-engine.io/web ),
+           $Q doesn't matter. Unsure how it works on other targets -- it seems
+           that the same bug should be present, but Trunc makes no error,
+           and I'm unsure what is Trunc result in this case. }
+         if AxisLengths.xyz[AxisIndex]>0.001 then begin
           InvAxisLength:=1.0/AxisLengths.xyz[AxisIndex];
          end else begin
           InvAxisLength:=0.0;
