@@ -30,6 +30,7 @@ type
     { Components designed using CGE editor.
       These fields will be automatically initialized at Start. }
     LabelFps: TCastleLabel;
+    LabelMouseLook: TCastleLabel;
     WalkNavigation: TCastleWalkNavigation;
     Viewport: TCastleViewport;
   public
@@ -64,8 +65,8 @@ procedure TViewMain.Update(const SecondsPassed: Single; var HandleInput: Boolean
 begin
   inherited;
   { This virtual method is executed every frame (many times per second). }
+  Assert(LabelFps <> nil, 'If you remove LabelFps from the design, remember to remove also the assignment "LabelFps.Caption := ..." from code');
   LabelFps.Caption := 'FPS: ' + Container.Fps.ToString;
-  WalkNavigation.MouseLook := buttonRight in Container.MousePressed;
 end;
 
 function TViewMain.Press(const Event: TInputPressRelease): Boolean;
@@ -115,6 +116,13 @@ function TViewMain.Press(const Event: TInputPressRelease): Boolean;
 begin
   Result := inherited;
   if Result then Exit; // allow the ancestor to handle keys
+
+  if Event.IsMouseButton(buttonRight) or Event.IsKey(keyM) then
+  begin
+    WalkNavigation.MouseLook := not WalkNavigation.MouseLook;
+    LabelMouseLook.Caption := 'Mouse look: ' + BoolToStr(WalkNavigation.MouseLook, true);
+    Exit(true);
+  end;
 
   if Event.IsMouseButton(buttonLeft) then
   begin
