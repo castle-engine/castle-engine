@@ -315,6 +315,25 @@ type
 
       All these values are valid as arguments for @link(Read).
 
+      Note: If you contruct URLs, to access files inside the ZIP after
+      calling @link(RegisterUrlProtocol), remember to percent-encode the paths
+      using @link(UrlEncode).
+
+      For example, assume that the ZIP file contains
+      a file named 'name with spaces.txt'. This list, TCastleZip.Files,
+      will contain 'name with spaces.txt'.
+      You can read it like this:
+
+      @longCode(
+        // 1. Using TCastleZip.Read, just pass the path with spaces
+        MyStream := MyZip.Read('name with spaces.txt');
+
+        // 2. Using TCastleZip.RegisterUrlProtocol,
+        // pass path with spaces converted to %20.
+        MyZip.RegisterUrlProtocol('my-zip');
+        MyStream := Download('my-zip:/' + UrlEncode('name with spaces.txt'));
+      )
+
       No order of the contents is guaranteed.
 
       @raises EZipNotOpen If the ZIP archive is not open. }
