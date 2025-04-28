@@ -304,8 +304,10 @@ type
 
       The directories, by itself, are never listed here.
 
-      Note: This is in contrast to both Delphi TZipFile.FileName and
-      FPC TUnZipper.Entries, where this is undefined, because ZIP files
+      Note: We guarantee that directories are never listed here.
+      This is in contrast to both Delphi @code(TZipFile.FileName) and
+      FPC @code(TUnZipper.Entries), for which it is undefined whether they contain
+      also directories, because ZIP files
       @url(https://unix.stackexchange.com/questions/743511/why-are-directories-sometimes-listed-explicitly-in-zip-files
       may list directories explicitly, but don't have to).
       For TCastleZip.Files, we explicitly guarantee that directories
