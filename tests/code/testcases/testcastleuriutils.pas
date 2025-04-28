@@ -162,9 +162,9 @@ begin
   AssertEquals(Filename, FilenameFromUri);
 
   FilenamePart := 'C:/Users/cge/AppData/Local/test_local_filename_chars/config with Polish chars ćma źrebak żmija wąż królik.txt';
-  FilenamePartPercent := InternalUriEscape(FilenamePart);
+  FilenamePartPercent := UrlEncode(FilenamePart);
   AssertEquals('C:/Users/cge/AppData/Local/test_local_filename_chars/config%20with%20Polish%20chars%20%C4%87ma%20%C5%BArebak%20%C5%BCmija%20w%C4%85%C5%BC%20kr%C3%B3lik.txt', FilenamePartPercent);
-  FilenamePartUnescaped := InternalUriUnescape(FilenamePartPercent);
+  FilenamePartUnescaped := UrlDecode(FilenamePartPercent);
   AssertEquals(FilenamePart, FilenamePartUnescaped);
   {$endif}
 end;
