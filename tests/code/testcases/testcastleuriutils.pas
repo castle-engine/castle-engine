@@ -261,6 +261,9 @@ begin
     '    geometry Text { string "VRML 2.0 model inlined using data URI" }' + NL +
     '  }' + NL +
     '}'));
+
+  AssertTrue(ueNotExists = UriExists(''));
+  AssertFalse(UriFileExists(''));
 end;
 
 procedure TTestUriUtils.TestRelativeToCastleDataURL;

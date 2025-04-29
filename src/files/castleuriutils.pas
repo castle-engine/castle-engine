@@ -1260,6 +1260,19 @@ var
   P: String;
   R: TRegisteredProtocol;
 begin
+  { What should be return for ''?
+
+    1. For paths (filenames), '' sometimes means "current working directory",
+      so one can argue that it could also be ueDirectory.
+      And in many places in CGE API, we try to tolerate filenames when given
+      as URLs.
+
+    2. But '' as an URL is just invalid URL.
+
+    AD 2 seems more expected than AD 1. }
+  if Url = '' then
+    Exit(ueNotExists);
+
   P := UriProtocol(Url);
   R := FindRegisteredUrlProtocol(P);
   if (R <> nil) and Assigned(R.ExistsEvent) then
