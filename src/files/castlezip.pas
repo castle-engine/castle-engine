@@ -304,14 +304,35 @@ type
 
       The directories, by itself, are never listed here.
 
-      Note: This is in contrast to both Delphi TZipFile.FileName and
-      FPC TUnZipper.Entries, where this is undefined, because ZIP files
+      Note: We guarantee that directories are never listed here.
+      This is in contrast to both Delphi @code(TZipFile.FileName) and
+      FPC @code(TUnZipper.Entries), for which it is undefined whether they contain
+      also directories, because ZIP files
       @url(https://unix.stackexchange.com/questions/743511/why-are-directories-sometimes-listed-explicitly-in-zip-files
       may list directories explicitly, but don't have to).
       For TCastleZip.Files, we explicitly guarantee that directories
       are never listed here.
 
       All these values are valid as arguments for @link(Read).
+
+      Note: If you contruct URLs, to access files inside the ZIP after
+      calling @link(RegisterUrlProtocol), remember to percent-encode the paths
+      using @link(UrlEncode).
+
+      For example, assume that the ZIP file contains
+      a file named 'name with spaces.txt'. This list, TCastleZip.Files,
+      will contain 'name with spaces.txt'.
+      You can read it like this:
+
+      @longCode(
+        // 1. Using TCastleZip.Read, just pass the path with spaces
+        MyStream := MyZip.Read('name with spaces.txt');
+
+        // 2. Using TCastleZip.RegisterUrlProtocol,
+        // pass path with spaces converted to %20.
+        MyZip.RegisterUrlProtocol('my-zip');
+        MyStream := Download('my-zip:/' + UrlEncode('name with spaces.txt'));
+      )
 
       No order of the contents is guaranteed.
 

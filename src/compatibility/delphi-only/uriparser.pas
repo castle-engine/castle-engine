@@ -44,7 +44,7 @@ function ParseURI(const URI: String; Decode : Boolean = True):  TURI; overload;
 function ParseURI(const URI, DefaultProtocol: String; DefaultPort: Word; Decode : Boolean = True):  TURI; overload;
 
 function ResolveRelativeURI(const BaseUri, RelUri: UnicodeString;out ResultUri: UnicodeString): Boolean; overload;
-{$ifdef WINDOWS}  
+{$ifdef WINDOWS}
 function ResolveRelativeURI(const BaseUri, RelUri: WideString; out ResultUri: WideString): Boolean; overload;
 {$ENDIF}
 function ResolveRelativeURI(const BaseUri, RelUri: AnsiString;  out ResultUri: AnsiString): Boolean; overload;
@@ -86,17 +86,17 @@ begin
   end;
   if URI.Port <> 0 then
     Result := Result + ':' + IntToStr(URI.Port);
-  Result := Result + InternalURIEscape(URI.Path);
+  Result := Result + UrlEncode(URI.Path);
   if Length(URI.Document) > 0 then
   begin
     if (Length(URI.Path) > 0) and ((Length(Result) = 0) or (Result[Length(Result)] <> '/')) then
       Result := Result + '/';
-    Result := Result + InternalURIEscape(URI.Document);
+    Result := Result + UrlEncode(URI.Document);
   end;
   if Length(URI.Params) > 0 then
-    Result := Result + '?' + InternalURIEscape(URI.Params);
+    Result := Result + '?' + UrlEncode(URI.Params);
   if Length(URI.Bookmark) > 0 then
-    Result := Result + '#' + InternalURIEscape(URI.Bookmark);
+    Result := Result + '#' + UrlEncode(URI.Bookmark);
 end;
 
 function ParseURI(const URI: String; Decode : Boolean = True):  TURI;
@@ -149,7 +149,7 @@ begin
   begin
     Result.Bookmark := Copy(s, i + 1, MaxInt);
     if Decode then
-      Result.Bookmark:=InternalURIUnescape(Result.Bookmark);
+      Result.Bookmark:=UrlDecode(Result.Bookmark);
     s := Copy(s, 1, i - 1);
   end;
 
@@ -160,7 +160,7 @@ begin
   begin
     Result.Params := Copy(s, i + 1, MaxInt);
     if Decode then
-      Result.Params:=InternalURIUnescape(Result.Params);
+      Result.Params:=UrlDecode(Result.Params);
     s := Copy(s, 1, i - 1);
   end;
 
@@ -189,7 +189,7 @@ begin
     begin
       Result.Document :=Copy(s, i + 1, Length(s));
       if Decode then
-        Result.Document:=InternalURIUnescape(Result.Document);
+        Result.Document:=UrlDecode(Result.Document);
       if (Result.Document <> '.') and (Result.Document <> '..') then
         s := Copy(s, 1, i)
       else
@@ -201,7 +201,7 @@ begin
     begin
       Result.Document :=s;
       if Decode then
-        Result.Document:=InternalURIUnescape(Result.Document);
+        Result.Document:=UrlDecode(Result.Document);
       if (Result.Document <> '.') and (Result.Document <> '..') then
         s := ''
       else
@@ -213,7 +213,7 @@ begin
 
   Result.Path := s;
   if Decode then
-    Result.Path:=InternalURIUnescape(Result.Path);
+    Result.Path:=UrlDecode(Result.Path);
 
   // Extract the port number
 
@@ -327,7 +327,7 @@ begin
       RemoveDotSegments(Path);
     end;
   end; // with
-  
+
   // EncodeUri percent-encodes the result, and that's good
   ResultUri := EncodeUri(Rel);
 end;
@@ -418,7 +418,7 @@ begin
     end;
   end;
   if Encode then
-    FilenamePart := InternalURIEscape(FilenamePart);
+    FilenamePart := UrlEncode(FilenamePart);
 
   Result := Result + FilenamePart;
 end;
