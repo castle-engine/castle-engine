@@ -114,7 +114,7 @@ begin
     '  FontImage.TreatAsAlpha := true;' +NL+
     '  FontImage.Url := ''embedded-font:/' +
       // use InternalUriEscape, in case font family has spaces which should be %20 in URL
-      StringToPascal(InternalUriEscape(Font.FamilyName), false) + ''';' +NL+
+      StringToPascal(UrlEncode(Font.FamilyName), false) + ''';' +NL+
     NL+
     '  Glyphs := TTextureFontData.TGlyphDictionary.Create;' +NL+
     NL);
