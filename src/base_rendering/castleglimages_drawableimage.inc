@@ -256,7 +256,7 @@
         @itemSpacing compact
         @item using TDrawableImage
         @item using DrawPrimitive2D (and friends in CastleGLUtils),
-        @item using TCastleScreenEffect, TCasleViewport rendering.
+        @item using TCastleScreenEffect, TCastleViewport rendering.
       )
     }
     class procedure BatchingFlush;
@@ -284,7 +284,7 @@
 
       This creates a GPU image with undefined initial contents,
       so make sure you fill 100% of the contents when drawing.
-      For example using @link(TRenderContext.Clear) or @link(Rectangle2D) like
+      For example using @link(TRenderContext.Clear) or @link(DrawRectangle) like
       this:
 
       @longCode(
@@ -771,7 +771,7 @@
 
       This is just a shortcut for doing
 
-      @unorderedList
+      @unorderedList(
         @item @link(RenderToImageBegin),
         @item then executing @code(SourceImage.Draw(...)),
         @item then @link(RenderToImageEnd).
