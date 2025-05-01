@@ -52,6 +52,7 @@ uses Classes, SysUtils,
       IndirectDependencyCheck('transform', 'services') or
       IndirectDependencyCheck('castlescript', 'transform') or
       IndirectDependencyCheck('scene', 'castlescript') or
+      IndirectDependencyCheck('behaviors', 'scene') or
       IndirectDependencyCheck('window', 'castlescript') or
       IndirectDependencyCheck('lcl', 'ui');
   end;
