@@ -106,7 +106,7 @@ var
     DataUrl: String;
   begin
     // use InternalUriEscape to encode characters like spaces and Polish inside URL
-    DataUrl := 'castle-data:/zip/' + InternalUriEscape(PathInZip);
+    DataUrl := 'castle-data:/zip/' + UrlEncode(PathInZip);
     try
       AssertTrue(Zip.Files.IndexOf(PathInZip) <> -1);
       StreamZip := Zip.Read(PathInZip);
@@ -157,7 +157,7 @@ begin
 
   // Use InternalUriEscape to encode characters like spaces and Polish inside URL.
   // We deliberately use "żółć" and Polish in the filename, to test that it works.
-  ZipUrl := 'castle-data:/zip/' + InternalUriEscape('packed żółć.zip');
+  ZipUrl := 'castle-data:/zip/' + UrlEncode('packed żółć.zip');
 
   // make sure file-checking routines handle ZipUrl OK
   AssertTrue(UriExists(ZipUrl) = ueFile);
@@ -216,7 +216,7 @@ begin
 
   TempDir := CreateTemporaryDirUrl(ClassName);
   try
-    File1Url := CombineUri(TempDir, InternalUriEscape(
+    File1Url := CombineUri(TempDir, UrlEncode(
       'zip_contents/subdir/file1 with spaces and Polish chars żółć.txt'));
     StringToFile(File1Url, 'file1 contents');
 
@@ -277,7 +277,7 @@ begin
     try
       Zip.OpenEmpty;
       Zip.RegisterUrlProtocol('TestZipWriteProtocol');
-      WriteStream := UrlSaveStream('TestZipWriteProtocol:subdir/' + InternalUriEscape('file1 with spaces and Polish chars żółć.txt'));
+      WriteStream := UrlSaveStream('TestZipWriteProtocol:subdir/' + UrlEncode('file1 with spaces and Polish chars żółć.txt'));
       try
         WriteStr(WriteStream, 'file1 contents');
       finally FreeAndNil(WriteStream) end;
@@ -326,7 +326,7 @@ begin
   try
     StringToFile(
       CombineUri(TempDir,
-        InternalUriEscape('zip_contents/subdir/file1 with spaces and Polish chars żółć.txt')), 'file1 contents');
+        UrlEncode('zip_contents/subdir/file1 with spaces and Polish chars żółć.txt')), 'file1 contents');
     StringToFile(
       CombineUri(TempDir, 'zip_contents/file2.txt'), 'file2 contents');
 
@@ -396,7 +396,7 @@ var
   Zip: TCastleZip;
   ZipUrl: String;
 begin
-  ZipUrl := 'castle-data:/zip/' + InternalUriEscape('packed żółć.zip');
+  ZipUrl := 'castle-data:/zip/' + UrlEncode('packed żółć.zip');
   AssertTrue(UriExists(ZipUrl) = ueFile);
 
   Zip := TCastleZip.Create;
@@ -406,7 +406,7 @@ begin
 
     {$ifdef CASTLE_FULL_ZIP_UNICODE_SUPPORT}
     AssertTrue(UriExists(
-      'TestZipExistsProtocol:/' + InternalUriEscape('test filename żółć.txt')) = ueFile);
+      'TestZipExistsProtocol:/' + UrlEncode('test filename żółć.txt')) = ueFile);
     {$endif}
     AssertTrue(UriExists(
       'TestZipExistsProtocol:/test.txt') = ueFile);
@@ -416,7 +416,7 @@ begin
       'TestZipExistsProtocol:/subdir/') = ueDirectory);
     {$ifdef CASTLE_FULL_ZIP_UNICODE_SUPPORT}
     AssertTrue(UriExists(
-      'TestZipExistsProtocol:/subdir/' + InternalUriEscape('test filename żółć in subdir.txt')) = ueFile);
+      'TestZipExistsProtocol:/subdir/' + UrlEncode('test filename żółć in subdir.txt')) = ueFile);
     {$endif}
 
     AssertTrue(UriExists(

@@ -254,13 +254,20 @@ procedure RegisterModelFormat(const ModelFormat: TModelFormat);
 implementation
 
 uses Generics.Collections,
-  CastleClassUtils, CastleImages, CastleUriUtils,
-  X3DLoadInternalGEO, X3DLoadInternal3DS, X3DLoadInternalOBJ,
-  X3DLoadInternalCollada, X3DLoadInternalSpine, X3DLoadInternalSTL,
-  X3DLoadInternalMD3, X3DLoadInternalGLTF, X3DLoadInternalImage,
-  X3DLoadInternalCocos2d, CastleInternalNodeInterpolator,
-  CastleInternalSpritesheet, CastleDownload, X3DLoadInternalTiledMap,
-  CastleIfc;
+  CastleClassUtils, CastleImages, CastleUriUtils, CastleInternalNodeInterpolator, CastleDownload
+  {$IFNDEF CASTLE_GEO_SUPPORT_DISABLE}, X3DLoadInternalGEO {$ENDIF}
+  {$IFNDEF CASTLE_3DS_SUPPORT_DISABLE}, X3DLoadInternal3DS {$ENDIF}
+  {$IFNDEF CASTLE_OBJ_SUPPORT_DISABLE}, X3DLoadInternalOBJ {$ENDIF}
+  {$IFNDEF CASTLE_COLLADA_SUPPORT_DISABLE}, X3DLoadInternalCollada {$ENDIF}
+  {$IFNDEF CASTLE_SPINE_SUPPORT_DISABLE}, X3DLoadInternalSpine {$ENDIF}
+  {$IFNDEF CASTLE_STL_SUPPORT_DISABLE}, X3DLoadInternalSTL {$ENDIF}
+  {$IFNDEF CASTLE_MD3_SUPPORT_DISABLE}, X3DLoadInternalMD3 {$ENDIF}
+  {$IFNDEF CASTLE_GLTF_SUPPORT_DISABLE}, X3DLoadInternalGLTF {$ENDIF}
+  {$IFNDEF CASTLE_IMAGE_SUPPORT_DISABLE}, X3DLoadInternalImage {$ENDIF}
+  {$IFNDEF CASTLE_COCOS2D_SUPPORT_DISABLE}, X3DLoadInternalCocos2d {$ENDIF}
+  {$IFNDEF CASTLE_SPRITESHEET_SUPPORT_DISABLE}, CastleInternalSpritesheet {$ENDIF}
+  {$IFNDEF CASTLE_TILED_MAP_SUPPORT_DISABLE}, X3DLoadInternalTiledMap {$ENDIF}
+  {$IFNDEF CASTLE_IFC_SUPPORT_DISABLE}, CastleIfc {$ENDIF};
 
 { declare FRegisteredModelFormats early ------------------------------------- }
 
