@@ -43,7 +43,7 @@
       Expressed in the world coordinate system, i.e. in the coordinates
       seen by @link(TCastleViewport.Items).
       Exception: When the TRayCastResult is returned by
-      @link(@link(TCastleRigidBody.PhysicsRayCast),
+      @link(TCastleRigidBody.PhysicsRayCast),
       this is expressed in the local coordinate system of the rigid body. }
     Distance: Single;
 
@@ -51,7 +51,7 @@
       Expressed in the world coordinate system, i.e. in the coordinates
       seen by @link(TCastleViewport.Items).
       Exception: When the TRayCastResult is returned by
-      @link(@link(TCastleRigidBody.PhysicsRayCast),
+      @link(TCastleRigidBody.PhysicsRayCast),
       this is expressed in the local coordinate system of the rigid body. }
     Point, Normal: TVector3;
   end;
