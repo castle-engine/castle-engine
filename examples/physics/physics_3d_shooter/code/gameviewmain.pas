@@ -32,7 +32,9 @@ type
     { Components designed using CGE editor.
       These fields will be automatically initialized at Start. }
     LabelFps: TCastleLabel;
+    Viewport: TCastleViewport;
     LabelMouseLook: TCastleLabel;
+    LabelFlyWalk: TCastleLabel;
     WalkNavigation: TCastleWalkNavigation;
 
     Player: TCastleTransform;
@@ -179,13 +181,6 @@ begin
   Result := inherited;
   if Result then Exit; // allow the ancestor to handle keys
 
-  if Event.IsMouseButton(buttonRight) or Event.IsKey(keyM) then
-  begin
-    WalkNavigation.MouseLook := not WalkNavigation.MouseLook;
-    LabelMouseLook.Caption := 'Mouse look: ' + BoolToStr(WalkNavigation.MouseLook, true);
-    Exit(true);
-  end;
-
   if Event.IsMouseButton(buttonLeft) then
   begin
     Container.StartMouseDrag;
@@ -199,12 +194,21 @@ begin
   end;
 
   { Start mouse look }
-  if Event.IsMouseButton(buttonRight) then
+  if Event.IsMouseButton(buttonRight) or Event.IsKey(keyM) then
   begin
-    Container.StartMouseLook(Viewport);
-    WritelnLog('Mouse look started');
+    if WalkNavigation <> nil then
+    begin
+      WalkNavigation.MouseLook := not WalkNavigation.MouseLook;
+      LabelMouseLook.Caption := 'Mouse look: ' + BoolToStr(WalkNavigation.MouseLook, true);
+    end else
+    begin
+      // TODO: in this case, we now do "toggle with RMB", instead we make mouse look when holding RMB
+      // We should show both options.
+      Container.StartMouseLook(Viewport);
+      WritelnLog('Mouse look started');
+    end;
+    Exit(true);
   end;
-
 
   { Fly/walk support in modular navigation - by change FlySupport/WalkSupport
     existance. }

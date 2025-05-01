@@ -580,9 +580,9 @@
         },
         "TranslationPersistent" : {
           "$$ClassName" : "TCastleVector3Persistent",
-          "X" : -9.7036199569702148E+000,
+          "X" : -7.1304655075073242E+000,
           "Y" : 1.6006025314331055E+001,
-          "Z" : 3.8379096984863281E+001
+          "Z" : 3.2462089538574219E+001
         }
       },
       "InternalDesignNavigations[dnFly]" : {
@@ -626,9 +626,11 @@
       "$$ClassName" : "TCastleLabel",
       "Name" : "Label1",
       "Text" : [
-        "Hold Right mouse button: mouse look",
-        "Left mouse button click: shoot rocket",
-        "Shift + Left mouse button click: drop moar boxes"
+        "Toggle mouse look: Right mouse button or (advised on web) M key",
+        "Walk: AWSD, arrows",
+        "Jump: space",
+        "Shoot rocket: Left mouse button",
+        "Drop moar boxes: Shift + Left mouse button"
       ],
       "TranslationPersistent" : {
         "$$ClassName" : "TCastleVector2Persistent",
@@ -636,7 +638,47 @@
         "Y" : -1.0000000000000000E+001
       },
       "VerticalAnchorParent" : "vpTop",
-      "VerticalAnchorSelf" : "vpTop"
+      "VerticalAnchorSelf" : "vpTop",
+      "$Children" : [
+        {
+          "$$ClassName" : "TCastleLabel",
+          "ColorPersistent" : {
+            "$$ClassName" : "TCastleColorPersistent",
+            "Blue" : 1.0000000000000000E+000
+          },
+          "HorizontalAnchorParent" : "hpRight",
+          "Name" : "LabelMouseLook",
+          "Text" : [
+            "Mouse Look now: YES"
+          ],
+          "TranslationPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent",
+            "X" : 2.0000000000000000E+001
+          },
+          "VerticalAnchorParent" : "vpTop",
+          "VerticalAnchorSelf" : "vpTop"
+        },
+        {
+          "$$ClassName" : "TCastleLabel",
+          "ColorPersistent" : {
+            "$$ClassName" : "TCastleColorPersistent",
+            "Green" : 9.4509804248809814E-001,
+            "Red" : 1.0000000000000000E+000
+          },
+          "HorizontalAnchorParent" : "hpRight",
+          "Name" : "LabelFlyWalk",
+          "Text" : [
+            "LabelFlyWalk"
+          ],
+          "TranslationPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent",
+            "X" : 2.0000000000000000E+001,
+            "Y" : -3.0000000000000000E+001
+          },
+          "VerticalAnchorParent" : "vpTop",
+          "VerticalAnchorSelf" : "vpTop"
+        }
+      ]
     }
   ]
 }

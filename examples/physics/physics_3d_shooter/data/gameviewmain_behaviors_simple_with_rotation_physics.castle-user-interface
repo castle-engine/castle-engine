@@ -636,6 +636,26 @@
           },
           "VerticalAnchorParent" : "vpTop",
           "VerticalAnchorSelf" : "vpTop"
+        },
+        {
+          "$$ClassName" : "TCastleLabel",
+          "ColorPersistent" : {
+            "$$ClassName" : "TCastleColorPersistent",
+            "Green" : 9.4509804248809814E-001,
+            "Red" : 1.0000000000000000E+000
+          },
+          "HorizontalAnchorParent" : "hpRight",
+          "Name" : "LabelFlyWalk",
+          "Text" : [
+            "LabelFlyWalk"
+          ],
+          "TranslationPersistent" : {
+            "$$ClassName" : "TCastleVector2Persistent",
+            "X" : 2.0000000000000000E+001,
+            "Y" : -3.0000000000000000E+001
+          },
+          "VerticalAnchorParent" : "vpTop",
+          "VerticalAnchorSelf" : "vpTop"
         }
       ]
     }
