@@ -23,7 +23,7 @@ interface
 uses SysUtils
   {$ifdef FPC}
     { With FPC, use cross-platform DynLibs unit. }
-    {$ifndef WASI}, DynLibs{$endif}
+    , DynLibs
   {$else}
     { With Delphi, use Windows functions directly.
       On non-Windows, Delphi SysUtils defines compatible functions
@@ -37,12 +37,7 @@ type
 
 const
   { Invalid TDynLibHandle value (meaning : LoadLibrary failed) }
-  InvalidDynLibHandle: TDynLibHandle =
-    {$if defined(FPC) and not defined(WASI)}
-    DynLibs.NilHandle
-    {$else}
-    0 // used with Delphi or FPC+WebAssembly
-    {$endif};
+  InvalidDynLibHandle: TDynLibHandle = {$ifdef FPC} DynLibs.NilHandle {$else} 0 {$endif};
 
 type
   { }
@@ -272,7 +267,7 @@ begin
     { On macOS, search for dynamic libraries in the bundle too.
       This fallback makes sense for libpng, libvorbisfile, libsteam_api...
       It seems that for everything, so just do it always. }
-    {$ifdef DARWIN}
+    {$if defined(DARWIN)}
     if (Handle = InvalidDynLibHandle) and (BundlePath <> '') then
       Handle := LoadLibrary(PChar(BundlePath + 'Contents/MacOS/' + AName));
     {$endif}
