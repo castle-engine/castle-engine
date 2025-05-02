@@ -43,7 +43,7 @@ const
   Note There are many ways how you can make your code behave differently
   depending on the platform where it runs.
 
-  @unoderedList(
+  @unorderedList(
     @item(Using this function, and checking like @code(if Platform = ... then)
       is one approach.)
 

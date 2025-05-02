@@ -66,7 +66,7 @@ type
       case.
 
       Right now, this behaves like toDynamic when the scene is present multiple
-      times in the @link(TAbstractRootTransform) hierarchy, for example
+      times in the @link(TCastleAbstractRootTransform) hierarchy, for example
       when using @link(TCastleTransformReference) to render the same scene many times.
       Otherwise this behaves like toStatic.
 
@@ -77,8 +77,8 @@ type
 
       @unorderedList(
         @item(When the scene is present multiple times in the
-          @link(TAbstractRootTransform) hierarchy (e.g. when using
-          @link(TCastleTransformReference)) but all these occurences are
+          @link(TCastleAbstractRootTransform) hierarchy (e.g. when using
+          @link(TCastleTransformReference)) but all these occurrences are
           very close to each other, thus are within radiuses of the same lights.
 
           In this case, automatic detection makes unoptimal decision
@@ -88,7 +88,7 @@ type
         )
 
         @item(When the scene is present only once in the
-          @link(TAbstractRootTransform) hierarchy, but you know that
+          @link(TCastleAbstractRootTransform) hierarchy, but you know that
           you will change the scene translation very often (e.g. almost every frame)
           and the translation change will be large enough to make the scene
           affected by different light sources. Or maybe you know you will
