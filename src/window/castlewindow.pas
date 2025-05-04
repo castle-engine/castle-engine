@@ -2624,6 +2624,18 @@ end;
 {$warnings on}
 
 procedure TCastleWindow.OpenCore;
+const
+  { Which TAntiAliasing values should cause
+    GL_MULTISAMPLE_FILTER_HINT_NV := GL_NICEST.
+    This is deliberately expressed as an array that will have to be updated
+    if we extend the TAntiAliasing type e.g. to aa32SamplesNicer some day. }
+  AntiAliasingNicest: array [TAntiAliasing] of Boolean = (
+    false, // aaNone
+    false, true, // aa2SamplesFaster, aa2SamplesNicer
+    false, true, // aa4SamplesFaster, aa4SamplesNicer
+    false, true, // aa8SamplesFaster, aa8SamplesNicer
+    false, true // aa16SamplesFaster, aa16SamplesNicer
+  );
 
   procedure RenderLoadingBackground;
   var
@@ -2757,8 +2769,7 @@ procedure TCastleWindow.OpenCore;
     RenderContext.Viewport := Rect;
 
     {$ifndef OpenGLES}
-    if ( (AntiAliasing = aa2SamplesNicer) or
-         (AntiAliasing = aa4SamplesNicer) ) and
+    if AntiAliasingNicest[AntiAliasing] and
        GLFeatures.NV_multisample_filter_hint then
       glHint(GL_MULTISAMPLE_FILTER_HINT_NV, GL_NICEST);
     {$endif}
