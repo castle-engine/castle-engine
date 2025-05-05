@@ -4189,6 +4189,12 @@ function TCastleAbstractRootTransform.PhysicsRayCast(
     { make sure everything is zero when no hit }
     FillChar(Result, SizeOf(Result), 0);
 
+    { If the world contains no TCastleRigidBody, physics engine is not
+      initialized, so FKraftEngine = nil.
+      Just always return Result.Hit = false in this case. }
+    if FKraftEngine = nil then
+      Exit;
+
     { Note: In Kraft, the distance parameters are called "time"
       (MaxTime, Time) instead of more natural MaxDistance, Distance.
       But all research shows that it is actually "distance" and that is also how
@@ -4251,6 +4257,12 @@ function TCastleAbstractRootTransform.PhysicsSphereCast(const SphereOrigin: TVec
   begin
     { make sure everything is zero when no hit }
     FillChar(Result, SizeOf(Result), 0);
+
+    { If the world contains no TCastleRigidBody, physics engine is not
+      initialized, so FKraftEngine = nil.
+      Just always return Result.Hit = false in this case. }
+    if FKraftEngine = nil then
+      Exit;
 
     { Note: In Kraft, the distance parameters are called "time"
       (MaxTime, Time) instead of more natural MaxDistance, Distance.
