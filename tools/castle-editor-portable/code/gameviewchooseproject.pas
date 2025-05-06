@@ -33,6 +33,7 @@ type
     ButtonOpenExample: TCastleButton;
     ButtonPreferences: TCastleButton;
     ButtonSupport: TCastleButton;
+    ButtonQuit: TCastleButton;
   private
     procedure ClickNewProject(Sender: TObject);
     procedure ClickOpenProject(Sender: TObject);
@@ -40,6 +41,7 @@ type
     procedure ClickOpenExample(Sender: TObject);
     procedure ClickPreferences(Sender: TObject);
     procedure ClickSupport(Sender: TObject);
+    procedure ClickQuit(Sender: TObject);
   public
     constructor Create(AOwner: TComponent); override;
     procedure Start; override;
@@ -50,7 +52,8 @@ var
 
 implementation
 
-uses CastleFilesUtils, CastleOpenDocument,
+uses CastleFilesUtils, CastleOpenDocument, CastleApplicationProperties,
+  CastleWindow,
   GameViewNewProject, GameViewProject;
 
 { TViewChooseProject ----------------------------------------------------------- }
@@ -70,6 +73,9 @@ begin
   ButtonOpenRecent.OnClick := {$ifdef FPC}@{$endif} ClickOpenExample;
   ButtonPreferences.OnClick := {$ifdef FPC}@{$endif} ClickPreferences;
   ButtonSupport.OnClick := {$ifdef FPC}@{$endif} ClickSupport;
+  ButtonQuit.OnClick := {$ifdef FPC}@{$endif} ClickQuit;
+
+  ButtonQuit.Exists := ApplicationProperties.ShowUserInterfaceToQuit;
 end;
 
 procedure TViewChooseProject.ClickNewProject(Sender: TObject);
@@ -100,6 +106,11 @@ end;
 procedure TViewChooseProject.ClickSupport(Sender: TObject);
 begin
   OpenUrl('https://www.patreon.com/castleengine');
+end;
+
+procedure TViewChooseProject.ClickQuit(Sender: TObject);
+begin
+  Application.Terminate;
 end;
 
 end.
