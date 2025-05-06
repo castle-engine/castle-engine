@@ -1,0 +1,17 @@
+{
+  "$$ClassName" : "TCastleComponent",
+  "Name" : "Root",
+  "$NonVisualComponents" : [
+    {
+      "$$ClassName" : "TCastleSound",
+      "Name" : "MainMusic",
+      "Stream" : true,
+      "URL" : "castle-data:/audio/dark_fallout.ogg"
+    },
+    {
+      "$$ClassName" : "TCastleSound",
+      "Name" : "Shoot",
+      "URL" : "castle-data:/audio/flaunch.wav"
+    }
+  ]
+}
