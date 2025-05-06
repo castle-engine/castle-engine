@@ -13,27 +13,30 @@
   ----------------------------------------------------------------------------
 }
 
-{ View the project. }
+{ Edit a chosen project. }
 unit GameViewProject;
 
 interface
 
 uses Classes,
-  CastleVectors, CastleComponentSerialize,
+  CastleVectors, CastleComponentSerialize, CastleInternalInspector,
   CastleUIControls, CastleControls, CastleKeysMouse;
 
 type
-  { View the project. }
+  { Edit a chosen project. }
   TViewProject = class(TCastleView)
   published
     { Components designed using CGE editor.
       These fields will be automatically initialized at Start. }
     LabelFps: TCastleLabel;
+    ButtonBack: TCastleButton;
+  private
+    FInspector: TCastleInspector;
+    procedure ClickBack(Sender: TObject);
   public
     constructor Create(AOwner: TComponent); override;
     procedure Start; override;
     procedure Update(const SecondsPassed: Single; var HandleInput: Boolean); override;
-    function Press(const Event: TInputPressRelease): Boolean; override;
   end;
 
 var
@@ -41,7 +44,8 @@ var
 
 implementation
 
-uses SysUtils;
+uses SysUtils,
+  GameViewChooseProject;
 
 { TViewProject ----------------------------------------------------------------- }
 
@@ -54,6 +58,13 @@ end;
 procedure TViewProject.Start;
 begin
   inherited;
+  ButtonBack.OnClick := {$ifdef FPC}@{$endif} ClickBack;
+
+  // a bit simplified inspector, to have room for rest
+  TCastleInspector.PersistentState.RectLogExists := false;
+  TCastleInspector.PersistentState.RectProfilerExists := false;
+  FInspector := TCastleInspector.Create(FreeAtStop);
+  InsertFront(FInspector);
 end;
 
 procedure TViewProject.Update(const SecondsPassed: Single; var HandleInput: Boolean);
@@ -64,29 +75,9 @@ begin
   LabelFps.Caption := 'FPS: ' + Container.Fps.ToString;
 end;
 
-function TViewProject.Press(const Event: TInputPressRelease): Boolean;
+procedure TViewProject.ClickBack(Sender: TObject);
 begin
-  Result := inherited;
-  if Result then Exit; // allow the ancestor to handle keys
-
-  { This virtual method is executed when user presses
-    a key, a mouse button, or touches a touch-screen.
-
-    Note that each UI control has also events like OnPress and OnClick.
-    These events can be used to handle the "press", if it should do something
-    specific when used in that UI control.
-    The TViewProject.Press method should be used to handle keys
-    not handled in children controls.
-  }
-
-  // Use this to handle keys:
-  {
-  if Event.IsKey(keyXxx) then
-  begin
-    // DoSomething;
-    Exit(true); // key was handled
-  end;
-  }
+  Container.View := ViewChooseProject;
 end;
 
 end.

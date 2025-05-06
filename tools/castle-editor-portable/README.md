@@ -8,14 +8,18 @@ Compared to the [real Castle Game Engine editor](https://castle-engine.io/editor
 
 - This is completely portable to all systems where CGE can run, e.g. also to mobile (Android, iOS), Nintendo Switch, web.
 
-- This looks the same on all platforms, and e.g. "dark mode" is trivial to implement here.
+- This is portable to all compilers we support, so both Delphi and FPC.
 
-- But in exchange, some important functionality is yet missing (even switching projects, or building projects). And some things (like our own object inspector) do not yet have an optimal display.
+- This looks the same on all platforms, and "dark mode" is trivial to implement here. Actually, we just do "dark mode" by default.
 
-    The purpose of this project is to address above limitations. With time, we can copy here more and more "real" editor's functionality, and eventually make this a fully-functional editor version.
+- However! A lot of important functionality is yet missing (even building projects). And various things do not yet have an optimal display and are not fully functional (e.g. we cannot edit non-boolean properties yet in our simple object inspector).
+
+    These limitations will be addressed in time. We can copy here more and more "real" editor's functionality, and eventually make this a fully-functional editor version.
 
 Features:
 
+- create new project, choosing one of the templates
+- open a project (only from cross-platform writeable space, in `ApplicationConfig('my_projects/')`)
 - displaying components hierarchy
 - adding registered components
 - displaying object inspector (thus, viewing and editing components properties)
@@ -23,6 +27,8 @@ Features:
 - running physics simulation
 
 Using [Castle Game Engine](https://castle-engine.io/).
+
+![Screenshot](screenshot.png)
 
 ## Building
 

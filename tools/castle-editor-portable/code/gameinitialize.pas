@@ -23,10 +23,12 @@ interface
 implementation
 
 uses SysUtils,
-  CastleWindow, CastleLog, CastleUIControls
+  CastleWindow, CastleLog, CastleUIControls, CastleKeysMouse
   {$region 'Castle Initialization Uses'}
   // The content here may be automatically updated by CGE editor.
   , GameViewProject
+  , GameViewChooseProject
+  , GameViewNewProject
   {$endregion 'Castle Initialization Uses'};
 
 var
@@ -38,13 +40,29 @@ begin
   { Adjust container settings for a scalable UI (adjusts to any window size in a smart way). }
   Window.Container.LoadSettings('castle-data:/CastleSettings.xml');
 
+  { Use a bit more modern buttons look, from castle-model-viewer }
+  Theme.ImagesPersistent[tiButtonNormal].Url := 'castle-data:/theme/ButtonNormal.png';
+  Theme.ImagesPersistent[tiButtonNormal].ProtectedSides.AllSides := 2;
+  Theme.ImagesPersistent[tiButtonPressed].Url := 'castle-data:/theme/ButtonPressed.png';
+  Theme.ImagesPersistent[tiButtonPressed].ProtectedSides.AllSides := 2;
+  Theme.ImagesPersistent[tiButtonFocused].Url := 'castle-data:/theme/ButtonFocused.png';
+  Theme.ImagesPersistent[tiButtonFocused].ProtectedSides.AllSides := 2;
+  Theme.ImagesPersistent[tiButtonDisabled].Url := 'castle-data:/theme/ButtonDisabled.png';
+  Theme.ImagesPersistent[tiButtonDisabled].ProtectedSides.AllSides := 2;
+
   { Create views (see https://castle-engine.io/views ). }
   {$region 'Castle View Creation'}
   // The content here may be automatically updated by CGE editor.
   ViewProject := TViewProject.Create(Application);
+  ViewChooseProject := TViewChooseProject.Create(Application);
+  ViewNewProject := TViewNewProject.Create(Application);
   {$endregion 'Castle View Creation'}
 
-  Window.Container.View := ViewProject;
+  // we will control inspector manually by code in ViewProject
+  TCastleContainer.InputInspector.Key := keyNone;
+  TCastleContainer.InputInspector.PressFingers := 0;
+
+  Window.Container.View := ViewChooseProject;
 end;
 
 initialization
@@ -62,27 +80,7 @@ initialization
   Window := TCastleWindow.Create(Application);
   Application.MainWindow := Window;
 
-  { Optionally, adjust window fullscreen state and size at this point.
-    Examples:
-
-    Run fullscreen:
-
-      Window.FullScreen := true;
-
-    Run in a 600x400 window:
-
-      Window.FullScreen := false; // default
-      Window.Width := 600;
-      Window.Height := 400;
-
-    Run in a window taking 2/3 of screen (width and height):
-
-      Window.FullScreen := false; // default
-      Window.Width := Application.ScreenWidth * 2 div 3;
-      Window.Height := Application.ScreenHeight * 2 div 3;
-
-    Note that some platforms (like mobile) ignore these window sizes.
-  }
+  Window.FullScreen := true;
 
   { Handle command-line parameters like --fullscreen and --window.
     By doing this last, you let user to override your fullscreen / mode setup. }
