@@ -66,6 +66,12 @@
           "Name" : "Background1"
         }
       ],
+      "$Children" : [
+        {
+          "$$ClassName" : "TCastleExamineNavigation",
+          "Name" : "ExamineNavigation1"
+        }
+      ],
       "InternalDesignCamera" : {
         "$$ClassName" : "TCastleCamera",
         "Name" : "",
@@ -129,7 +135,7 @@
     },
     {
       "$$ClassName" : "TCastleButton",
-      "Caption" : "Back",
+      "Caption" : "Close Project",
       "CustomBackgroundDisabled" : {
         "$$ClassName" : "TCastleImagePersistent"
       },
