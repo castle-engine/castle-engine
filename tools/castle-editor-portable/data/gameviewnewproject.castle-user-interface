@@ -54,7 +54,7 @@
           "Name" : "RectangleControl2",
           "TranslationPersistent" : {
             "$$ClassName" : "TCastleVector2Persistent",
-            "Y" : -5.3000003814697266E+001
+            "Y" : -5.3000000000000000E+001
           },
           "VerticalAnchorParent" : "vpTop",
           "VerticalAnchorSelf" : "vpTop",
@@ -227,15 +227,15 @@
               "$$ClassName" : "TCastleEdit",
               "CaptureAllInput" : false,
               "Enabled" : false,
-              "Name" : "EditProjectLocation",
-              "Text" : "my-new-project",
+              "Name" : "EditLocation",
+              "Text" : "file:/..",
               "TranslationPersistent" : {
                 "$$ClassName" : "TCastleVector2Persistent",
-                "Y" : -2.7000001907348633E+001
+                "Y" : -2.6999998092651367E+001
               },
               "VerticalAnchorParent" : "vpTop",
               "VerticalAnchorSelf" : "vpTop",
-              "Width" : 6.0000000000000000E+002
+              "Width" : 1.1800000000000000E+003
             }
           ]
         },
@@ -269,10 +269,10 @@
               "$$ClassName" : "TCastleEdit",
               "CaptureAllInput" : false,
               "Name" : "EditProjectName",
-              "Text" : "My New Project",
+              "Text" : "my-new-project",
               "TranslationPersistent" : {
                 "$$ClassName" : "TCastleVector2Persistent",
-                "Y" : -2.7000001907348633E+001
+                "Y" : -2.6999998092651367E+001
               },
               "VerticalAnchorParent" : "vpTop",
               "VerticalAnchorSelf" : "vpTop",
@@ -310,10 +310,10 @@
               "$$ClassName" : "TCastleEdit",
               "CaptureAllInput" : false,
               "Name" : "EditProjectCaption",
-              "Text" : "EditProjectCaption",
+              "Text" : "My New Project",
               "TranslationPersistent" : {
                 "$$ClassName" : "TCastleVector2Persistent",
-                "Y" : -2.7000001907348633E+001
+                "Y" : -2.6999998092651367E+001
               },
               "VerticalAnchorParent" : "vpTop",
               "VerticalAnchorSelf" : "vpTop",
@@ -350,11 +350,11 @@
             {
               "$$ClassName" : "TCastleEdit",
               "CaptureAllInput" : false,
-              "Name" : "EditMainView",
+              "Name" : "EditViewName",
               "Text" : "Main",
               "TranslationPersistent" : {
                 "$$ClassName" : "TCastleVector2Persistent",
-                "Y" : -2.7000001907348633E+001
+                "Y" : -2.6999998092651367E+001
               },
               "VerticalAnchorParent" : "vpTop",
               "VerticalAnchorSelf" : "vpTop",
