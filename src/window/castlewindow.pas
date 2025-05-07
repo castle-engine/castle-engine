@@ -1298,11 +1298,9 @@ type
       initialization with no multi-sampling. In this case this property will
       not be changed, to be nice.
 
-      You can always read OpenGL GL_SAMPLE_BUFFERS_ARB and GL_SAMPLES_ARB
-      values after initializing OpenGL context, to know exactly
-      how many samples did you actually get, and did you get multi-sampling at all.
-      Actually, we already initialize global CastleGLUtils.GLCurrentMultiSampling
-      for you, you can use this. }
+      You can read @link(TGLFeatures.CurrentMultiSampling GLFeatures.CurrentMultiSampling)
+      after initializing the rendering context to know how many samples did you
+      actually get (and did you get multi-sampling at all). }
     property MultiSampling: Cardinal
       read FMultiSampling write FMultiSampling default 1;
 
