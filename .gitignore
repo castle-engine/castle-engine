@@ -294,7 +294,7 @@ castle-game-engine-*.fpm
 /tools/build-tool/castle-engine
 /tools/build-tool/tests/test_cge_build_tool
 /tools/castle-curves/castle-curves
-/tools/castle-engine
+/tools/castle-editor-portable/castle-editor-portable
 /tools/image-to-pascal/image-to-pascal
 /tools/internal/check_packages/check_packages
 /tools/internal/check_units_dependencies/check_one_unit_dependencies
