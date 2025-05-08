@@ -36,6 +36,12 @@ type
     FactoryButtonView: TCastleComponentFactory;
     ListOpenExistingView: TCastleVerticalGroup;
   private
+    { Root of the design, saved/loaded to component file. }
+    DesignRoot: TCastleUserInterface;
+    { Owner of all components saved/loaded to the design file.
+      Also owner of a temporary viewport for .castle-transform,
+      in general this owns everything specific to display currrent design. }
+    DesignOwner: TComponent;
     FInspector: TCastleInspector;
     ListOpenExistingViewStr: TStringList;
     procedure ClickCloseProject(Sender: TObject);
@@ -45,6 +51,23 @@ type
       var StopSearch: boolean);
     procedure ProposeOpenDesign(const OpenDesignUrl: String);
     procedure ListViewsRefresh;
+    { Is Child selectable and visible in hierarchy. }
+    class function Selectable(const Child: TComponent): Boolean; static;
+    { Is Child deletable by user (this implies it is also selectable). }
+    function Deletable(const Child: TComponent): Boolean;
+    { Free component C (which should be part of this designed, owned by DesignOwner)
+      and all children.
+
+      We have to delete things recursively, otherwise they would keep existing,
+      taking resources and reserving names in DesignOwner,
+      even though they would not be visible when disconnected from parent
+      hierarchy.
+
+      This does nothing if you try to free some internal component
+      (like csTransient) or the design root (which can never be freed). }
+    procedure FreeComponentRecursively(const C: TComponent);
+    { Free and clear DesignRoot, DesignOwner. }
+    procedure ClearDesign;
   public
     // set before starting the project
     // Absolute project path, as directory name (not URL), ending with path delimiter.
@@ -65,7 +88,9 @@ var
 implementation
 
 uses SysUtils,
-  CastleStringUtils, CastleUriUtils, CastleUtils,
+  CastleStringUtils, CastleUriUtils, CastleUtils, CastleFilesUtils,
+  CastleInternalPhysicsVisualization, CastleClassUtils, CastleViewport,
+  CastleTransform,
   ToolEditorUtils,
   GameViewChooseProject;
 
@@ -101,11 +126,22 @@ begin
   ListOpenExistingViewStr := TStringList.Create;
 
   ListViewsRefresh;
+
+  { override ApplicationData interpretation, and castle-data:/xxx URL,
+    while this project is open. }
+  ApplicationDataOverride := CombineUri(ProjectPathUrl, 'data/');
 end;
 
 procedure TViewProject.Stop;
 begin
   FreeAndNil(ListOpenExistingViewStr);
+
+  { Has to be done before ApplicationDataOverride:='', before we want
+    to free things with the same ApplicationDataOverride,
+    to make URL notification mechanism happy. }
+  ClearDesign;
+
+  ApplicationDataOverride := '';
   inherited;
 end;
 
@@ -189,7 +225,7 @@ end;
 
 procedure TViewProject.ClickCloseDesign(Sender: TObject);
 begin
-  ContainerLoadedDesign.ClearControls; // to free memory, observers of URL etc.
+
   ListViewsRefresh;
   ButtonCloseDesign.Exists := false;
   ContainerDesignView.Exists := false;
@@ -207,13 +243,139 @@ begin
   ProposeOpenDesign(OpenDesignUrl);
 end;
 
+procedure TViewProject.ClearDesign;
+begin
+  DesignRoot := nil;
+  // this actually frees everything inside DesignRoot
+  FreeAndNil(DesignOwner);
+end;
+
 procedure TViewProject.ProposeOpenDesign(const OpenDesignUrl: String);
+var
+  NewDesignOwner: TComponent;
+  NewDesignRoot: TCastleUserInterface;
 begin
   ButtonCloseDesign.Exists := true;
   ContainerDesignView.Exists := true;
   ContainerOpenView.Exists := false;
 
-  // TODO: do rest of design opening, remove test blue rect
+  NewDesignOwner := TComponent.Create(Self);
+  // TODO: allow opening other design types
+  NewDesignRoot := UserInterfaceLoad(OpenDesignUrl, NewDesignOwner);
+
+  ClearDesign;
+  DesignOwner := NewDesignOwner;
+  DesignRoot := NewDesignRoot;
+  ContainerLoadedDesign.InsertFront(DesignRoot);
+
+  // TODO: limit inspector to this
+end;
+
+class function TViewProject.Selectable(const Child: TComponent): Boolean;
+begin
+  { Note: When changing conditions here, consider also updating ReasonWhyNotDeletable,
+    that explains to user *why* something is not deletable (not being selectable
+    also makes it not deletable). }
+
+  { csTransient reason:
+
+    Do not show in hierarchy the TCastleDesign loaded hierarchy,
+    as it will not be saved.
+    Same for TCastleCheckbox children.
+    Consequently, do not allow to select stuff inside.
+
+    However, show TCastleToolTransform, even though it is csTransient.
+    We want to allow selecting joint tools.
+  }
+  // Define this to inspect all transformations, including internal (gizmos)
+  {.$define EDITOR_DEBUG_TRANSFORMS}
+  {$ifdef EDITOR_DEBUG_TRANSFORMS}
+  Result := true;
+  {$else}
+  Result := (not (csTransient in Child.ComponentStyle)) or (Child is TCastleToolTransform);
+  {$endif}
+end;
+
+function TViewProject.Deletable(const Child: TComponent): Boolean;
+begin
+  { Note: When changing conditions here, consider also updating ReasonWhyNotDeletable,
+    that explains to user *why* something is not deletable. }
+
+  Result := Selectable(Child) and
+    (not (csSubComponent in Child.ComponentStyle)) and
+    (Child <> DesignRoot) and (not (Child is TCastleToolTransform));
+end;
+
+procedure TViewProject.FreeComponentRecursively(const C: TComponent);
+
+  procedure FreeNonVisualChildren(const C: TCastleComponent);
+  var
+    I: Integer;
+  begin
+    for I := C.NonVisualComponentsCount - 1 downto 0 do
+      if Deletable(C.NonVisualComponents[I]) then
+        FreeComponentRecursively(C.NonVisualComponents[I]);
+  end;
+
+  procedure FreeTransformChildren(const T: TCastleTransform);
+  var
+    I: Integer;
+  begin
+    for I := T.Count - 1 downto 0 do
+      if Deletable(T[I]) then
+        FreeComponentRecursively(T[I]);
+  end;
+
+  procedure FreeBehaviorChildren(const T: TCastleTransform);
+  var
+    I: Integer;
+  begin
+    for I := T.BehaviorsCount - 1 downto 0 do
+      if Deletable(T.Behaviors[I]) then
+        FreeComponentRecursively(T.Behaviors[I]);
+  end;
+
+  procedure FreeUiChildren(const C: TCastleUserInterface);
+  var
+    I: Integer;
+  begin
+    for I := C.ControlsCount - 1 downto 0 do
+      if Deletable(C.Controls[I]) then
+        FreeComponentRecursively(C.Controls[I]);
+  end;
+
+begin
+  if not Deletable(C) then
+    Exit;
+
+  { Check this assertion after Deletable check, as it may be invalid
+    e.g. for gizmos that are csTransient. }
+  Assert(C.Owner = DesignOwner); // for now, castle-editor-portable doesn't have any DesignOwner
+
+  if C is TCastleComponent then
+  begin
+    FreeNonVisualChildren(TCastleComponent(C));
+    if C is TCastleTransform then
+    begin
+      FreeBehaviorChildren(TCastleTransform(C));
+      FreeTransformChildren(TCastleTransform(C));
+    end else
+    if C is TCastleUserInterface then
+    begin
+      FreeUiChildren(TCastleUserInterface(C));
+      if C is TCastleViewport then
+      begin
+        FreeBehaviorChildren(TCastleViewport(C).Items);
+        FreeTransformChildren(TCastleViewport(C).Items);
+      end;
+    end;
+  end;
+  { Remove designing objects before delete behavior }
+//  if C is TCastleBehavior then
+//    TCastleBehavior(C).DesigningEnd;
+  C.Free;
+
+  //UpdateDesign; // for now, our inspector doesn't need it in castle-editor-portable
 end;
 
 end.

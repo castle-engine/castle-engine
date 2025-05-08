@@ -109,19 +109,7 @@
             "$$ClassName" : "TCastleVector2Persistent",
             "X" : 1.0000000000000000E+002,
             "Y" : 3.7582781982421875E+002
-          },
-          "$Children" : [
-            {
-              "$$ClassName" : "TCastleRectangleControl",
-              "ColorPersistent" : {
-                "$$ClassName" : "TCastleColorPersistent",
-                "Green" : 0.0000000000000000E+000,
-                "Red" : 5.8823529630899429E-002
-              },
-              "FullSize" : true,
-              "Name" : "Test"
-            }
-          ]
+          }
         }
       ]
     },
@@ -162,6 +150,7 @@
               {
                 "$$ClassName" : "TCastleVerticalGroup",
                 "Name" : "ListOpenExistingView",
+                "Spacing" : 1.0000000000000000E+001,
                 "$Children" : [
                   {
                     "$$ClassName" : "TCastleButton",
