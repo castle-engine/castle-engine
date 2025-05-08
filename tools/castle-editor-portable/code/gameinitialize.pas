@@ -23,7 +23,7 @@ interface
 implementation
 
 uses SysUtils,
-  CastleWindow, CastleLog, CastleUIControls, CastleKeysMouse
+  CastleWindow, CastleLog, CastleUIControls, CastleKeysMouse, CastleMessages
   {$region 'Castle Initialization Uses'}
   // The content here may be automatically updated by CGE editor.
   , GameViewProject
@@ -50,6 +50,12 @@ begin
   Theme.ImagesPersistent[tiButtonDisabled].Url := 'castle-data:/theme/ButtonDisabled.png';
   Theme.ImagesPersistent[tiButtonDisabled].ProtectedSides.AllSides := 2;
 
+  // we will control inspector manually by code in ViewProject
+  TCastleContainer.InputInspector.Key := keyNone;
+  TCastleContainer.InputInspector.PressFingers := 0;
+
+  MessageOKPushesView := true;
+
   { Create views (see https://castle-engine.io/views ). }
   {$region 'Castle View Creation'}
   // The content here may be automatically updated by CGE editor.
@@ -57,10 +63,6 @@ begin
   ViewChooseProject := TViewChooseProject.Create(Application);
   ViewNewProject := TViewNewProject.Create(Application);
   {$endregion 'Castle View Creation'}
-
-  // we will control inspector manually by code in ViewProject
-  TCastleContainer.InputInspector.Key := keyNone;
-  TCastleContainer.InputInspector.PressFingers := 0;
 
   Window.Container.View := ViewChooseProject;
 end;

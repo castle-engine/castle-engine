@@ -18,7 +18,7 @@ unit GameViewNewProject;
 
 interface
 
-uses Classes,
+uses Classes, SysUtils,
   CastleVectors, CastleUIControls, CastleControls, CastleKeysMouse;
 
 type
@@ -31,10 +31,10 @@ type
     ButtonTemplate3DModelViewer: TCastleButton;
     ButtonTemplate3DFpsGame: TCastleButton;
     ButtonTemplate2DGame: TCastleButton;
-    EditProjectLocation: TCastleEdit;
+    EditLocation: TCastleEdit;
     EditProjectName: TCastleEdit;
     EditProjectCaption: TCastleEdit;
-    EditMainView: TCastleEdit;
+    EditViewName: TCastleEdit;
     ButtonCancel: TCastleButton;
     ButtonCreateProject: TCastleButton;
   private
@@ -51,7 +51,9 @@ var
 
 implementation
 
-uses CastleFilesUtils,
+uses CastleFilesUtils, CastleInternalTools, CastleUtils, CastleUriUtils,
+  CastleMessages, CastleWindow,
+  ToolCommonUtils,
   GameViewProject, GameViewChooseProject;
 
 { TViewNewProject ---------------------------------------------------------------- }
@@ -72,7 +74,7 @@ begin
   ButtonCancel.OnClick := {$ifdef FPC}@{$endif} ClickCancel;
   ButtonCreateProject.OnClick := {$ifdef FPC}@{$endif} ClickCreateProject;
 
-  EditProjectLocation.Text := ApplicationConfig('my-projects/');
+  EditLocation.Text := ApplicationConfig('my-projects/');
 end;
 
 procedure TViewNewProject.ClickTemplateAny(Sender: TObject);
@@ -93,9 +95,57 @@ begin
 end;
 
 procedure TViewNewProject.ClickCreateProject(Sender: TObject);
+var
+  TemplateName, ProjectDirUrl: String;
+  Options: TProjectCreationOptions;
 begin
-  // TODO: actually create project
-  Container.View := ViewProject;
+  try
+    // Calculate TemplateName
+    if ButtonTemplateEmpty.Pressed then
+      TemplateName := 'empty'
+    else
+    if ButtonTemplate3DModelViewer.Pressed then
+      TemplateName := '3d_model_viewer'
+    else
+    if ButtonTemplate3DFpsGame.Pressed then
+      TemplateName := '3d_fps_game'
+    else
+    if ButtonTemplate2DGame.Pressed then
+      TemplateName := '2d_game'
+    else
+      raise EInternalError.Create('Unknown project template selected');
+
+    // Fill Options
+    { TODO: Options.ParentDir and ProjectCreateFromTemplate
+      work only if ApplicationConfig is on filesystem, they don't operate on URLs. }
+    Options.ParentDir := UriToFilenameSafe(EditLocation.Text);
+    Options.TemplateName := TemplateName;
+    Options.ProjectName := EditProjectName.Text;
+    Options.ProjectCaption := EditProjectCaption.Text;
+    Options.MainView := EditViewName.Text;
+    ProjectCreateFromTemplate(CastleEnginePath, Options, ProjectDirUrl);
+
+    // TODO:
+    //GenerateProgramWithBuildTool(ProjectDirUrl);
+
+    // Open new project using ViewProject
+    ViewProject.ProjectPathUrl := UriIncludeSlash(ProjectDirUrl);
+    ViewProject.ProjectPath := UriToFilenameSafe(ViewProject.ProjectPathUrl);
+    ViewProject.ProjectManifestUrl := CombineURI(ViewProject.ProjectPathUrl,
+      'CastleEngineManifest.xml');
+    Container.View := ViewProject;
+
+  except
+    on E: Exception do
+    begin
+      { Exceptions during project creation are always possible, as it creates
+        a number of files, so many things can go wrong (disk full,
+        dir already exists etc.).
+        Show them nicely. }
+      MessageOK(Application.MainWindow,
+        'Error when creating project:' + NL + ExceptMessage(E));
+    end;
+  end;
 end;
 
 end.

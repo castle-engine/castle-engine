@@ -279,6 +279,7 @@ examples:
 	  '(' -path ./tools/internal/generate_webgl_flat_api -prune ')' -o \
 	  '(' -path ./examples/network/tcp_connection -prune ')' -o \
 	  '(' -path ./tools/castle-editor/data/project_templates -prune ')' -o \
+	  '(' -path ./tools/castle-editor-portable/data/project_templates -prune ')' -o \
 	  '(' -path ./tools/build-tool -prune ')' -o \
 	  '(' -path ./tests/delphi_tests -prune ')' -o \
 	  '(' -path ./examples/delphi -prune ')' -o \
@@ -336,6 +337,7 @@ examples-laz:
 	  '(' -path ./examples/network/tcp_connection -prune ')' -o \
 	  '(' -path ./src/vampyre_imaginglib -prune ')' -o \
 	  '(' -path ./tools/castle-editor/data/project_templates -prune ')' -o \
+	  '(' -path ./tools/castle-editor-portable/data/project_templates -prune ')' -o \
 	  '(' -path ./tools/build-tool/tests/data -prune ')' -o \
 	  '(' -path ./tools/build-tool/data -prune ')' -o \
 	  '(' -path ./examples/deprecated_library -prune ')' -o \
@@ -438,6 +440,7 @@ clean: cleanexamples
 # Note: This may cause errors if build tool doesn't exist anymore, ignore them.
 	"$(FIND)" . \
 	  '(' -path ./tools/castle-editor/data/project_templates -prune ')' -or \
+	  '(' -path ./tools/castle-editor-portable/data/project_templates -prune ')' -or \
 	  '(' -path ./tools/build-tool/tests/data -prune ')' -or \
 	  '(' -iname CastleEngineManifest.xml \
 	      -execdir $(BUILD_TOOL) clean ';' ')'
