@@ -57,7 +57,6 @@ uses Forms,
   CastleFilesUtils,
   EditorUtils, ToolCommonUtils, FormProject;
 
-
 procedure GenerateProgramWithBuildTool(const ProjectDirUrl: String);
 var
   BuildToolExe, BuildToolOutput: String;

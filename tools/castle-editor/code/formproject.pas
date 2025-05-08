@@ -655,7 +655,7 @@ uses TypInfo, LCLType, RegExpr, StrUtils, LCLVersion,
   CastleInternalArchitectures, StyleUtils,
   FormAbout, FormChooseProject, FormPreferences, FormSpriteSheetEditor,
   FormSystemInformation, FormRestartCustomEditor, FormImportSketchfab,
-  ToolCompilerInfo, ToolCommonUtils, ToolProcess,
+  ToolCompilerInfo, ToolCommonUtils, ToolProcess, ToolEditorUtils,
   ToolFpcVersion;
 
 {$warnings on}
