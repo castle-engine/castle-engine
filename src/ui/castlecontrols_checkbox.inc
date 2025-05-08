@@ -41,6 +41,8 @@
     procedure SetCheckboxSize(const Value: Single);
     function GetCustomFont: TCastleAbstractFont;
     procedure SetCustomFont(const Value: TCastleAbstractFont);
+    function GetTooltip: String;
+    procedure SetTooltip(const Value: String);
   protected
     procedure PreferredSize(var PreferredWidth, PreferredHeight: Single); override;
     function GetInternalText: String; override;
@@ -92,6 +94,9 @@
       or (when @link(TCastleContainer.DefaultFont) is also @nil) the global @link(UIFont). }
     property CustomFont: TCastleAbstractFont
       read GetCustomFont write SetCustomFont;
+
+    { Tooltip string, displayed when user hovers the mouse over a control. }
+    property Tooltip: string read GetTooltip write SetTooltip;
 
   {$define read_interface_class}
   {$I auto_generated_persistent_vectors/tcastlecheckbox_persistent_vectors.inc}
@@ -384,6 +389,16 @@ begin
     as then we'd need free notification to nil it.
     It is easier to just get/set FLabelCaption.CustomFont now. }
   FLabelCaption.CustomFont := Value;
+end;
+
+function TCastleCheckbox.GetTooltip: String;
+begin
+  Result := FLabelCaption.Tooltip;
+end;
+
+procedure TCastleCheckbox.SetTooltip(const Value: String);
+begin
+  FLabelCaption.Tooltip := Value;
 end;
 
 {$define read_implementation_methods}
