@@ -180,6 +180,7 @@
           "$Children" : [
             {
               "$$ClassName" : "TCastleUserInterface",
+              "ClipChildren" : true,
               "HeightFraction" : 1.0000000000000000E+000,
               "HorizontalAnchorParent" : "hpMiddle",
               "HorizontalAnchorSelf" : "hpMiddle",
