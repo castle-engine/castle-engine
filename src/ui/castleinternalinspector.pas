@@ -68,22 +68,17 @@ type
 
     var
       { Controls loaded from inspector_ui.castle-user-interface.inc }
-      CheckboxShowEvenInternal: TCastleCheckbox;
       CheckboxUiBatching: TCastleCheckbox;
-      RectOptions, RectProperties, RectLog, RectHierarchy, RectProfiler: TCastleRectangleControl;
-      ButtonHierarchyShow, ButtonHierarchyHide,
+      RectOptions, RectLog, RectProfiler: TCastleRectangleControl;
+      ButtonHierarchyShow,
         ButtonLogShow, ButtonLogHide,
-        ButtonPropertiesShow, ButtonPropertiesHide,
+        ButtonPropertiesShow,
         ButtonProfilerShow, ButtonProfilerHide: TCastleButton;
       HorizontalGroupShow: TCastleUserInterface;
-      HierarchyRowParent: TCastleUserInterface;
-      PropertyRowParent: TCastleUserInterface;
       ScrollLogs: TCastleScrollView;
-      ScrollProperties: TCastleScrollView;
       LogsVerticalGroup: TCastleVerticalGroup;
       LabelEarlierLogsRemoved: TCastleLabel;
       LabelLogHeader: TCastleLabel;
-      LabelPropertiesHeader: TCastleLabel;
       LabelInspectorHelp: TCastleLabel;
       SliderOpacity: TCastleFloatSlider;
       ButtonLogClear: TCastleButton;
@@ -100,6 +95,19 @@ type
       ButtonAutoSelectTransform: TCastleButton;
       SafeBorderContainer: TCastleUserInterface;
       HeaderProfiler, HeaderProfiler2ndRow: TCastleUserInterface;
+
+      { Controls in TCastleComponentProperties }
+      RectProperties: TCastleRectangleControl;
+      PropertyRowParent: TCastleUserInterface;
+      LabelPropertiesHeader: TCastleLabel;
+      ButtonPropertiesHide: TCastleButton;
+      ScrollProperties: TCastleScrollView;
+
+      { Controls in TCastleComponentsHierarchy }
+      RectHierarchy: TCastleRectangleControl;
+      CheckboxShowEvenInternal: TCastleCheckbox;
+      HierarchyRowParent: TCastleUserInterface;
+      ButtonHierarchyHide: TCastleButton;
 
       FOpacity: Single;
       FSelectedComponent: TComponent;
@@ -483,7 +491,7 @@ constructor TCastleInspector.Create(AOwner: TComponent);
   end;
 
 var
-  UiOwner: TComponent;
+  UiOwner, RectHierarchyOwner, RectPropertiesOwner: TComponent;
   Ui: TCastleUserInterface;
   HierarchyRowTemplate: TCastleButton;
   PropertyRowTemplate: TCastleUserInterface;
@@ -499,32 +507,21 @@ begin
     as TCastleUserInterface;
   InsertFront(Ui);
 
-  CheckboxShowEvenInternal := UiOwner.FindRequiredComponent('CheckboxShowEvenInternal') as TCastleCheckbox;
   CheckboxUiBatching := UiOwner.FindRequiredComponent('CheckboxUiBatching') as TCastleCheckbox;
   RectOptions := UiOwner.FindRequiredComponent('RectOptions') as TCastleRectangleControl;
-  RectProperties := UiOwner.FindRequiredComponent('RectProperties') as TCastleRectangleControl;
   RectLog := UiOwner.FindRequiredComponent('RectLog') as TCastleRectangleControl;
-  RectHierarchy := UiOwner.FindRequiredComponent('RectHierarchy') as TCastleRectangleControl;
   RectProfiler := UiOwner.FindRequiredComponent('RectProfiler') as TCastleRectangleControl;
   ButtonHierarchyShow := UiOwner.FindRequiredComponent('ButtonHierarchyShow') as TCastleButton;
-  ButtonHierarchyHide := UiOwner.FindRequiredComponent('ButtonHierarchyHide') as TCastleButton;
   ButtonLogShow := UiOwner.FindRequiredComponent('ButtonLogShow') as TCastleButton;
   ButtonLogHide := UiOwner.FindRequiredComponent('ButtonLogHide') as TCastleButton;
   ButtonPropertiesShow := UiOwner.FindRequiredComponent('ButtonPropertiesShow') as TCastleButton;
-  ButtonPropertiesHide := UiOwner.FindRequiredComponent('ButtonPropertiesHide') as TCastleButton;
   ButtonProfilerShow := UiOwner.FindRequiredComponent('ButtonProfilerShow') as TCastleButton;
   ButtonProfilerHide := UiOwner.FindRequiredComponent('ButtonProfilerHide') as TCastleButton;
   HorizontalGroupShow := UiOwner.FindRequiredComponent('HorizontalGroupShow') as TCastleUserInterface;
-  HierarchyRowTemplate := UiOwner.FindRequiredComponent('HierarchyRowTemplate') as TCastleButton;
-  PropertyRowTemplate := UiOwner.FindRequiredComponent('PropertyRowTemplate') as TCastleUserInterface;
-  HierarchyRowParent := UiOwner.FindRequiredComponent('HierarchyRowParent') as TCastleUserInterface;
-  PropertyRowParent := UiOwner.FindRequiredComponent('PropertyRowParent') as TCastleUserInterface;
   ScrollLogs := UiOwner.FindRequiredComponent('ScrollLogs') as TCastleScrollView;
-  ScrollProperties := UiOwner.FindRequiredComponent('ScrollProperties') as TCastleScrollView;
   LogsVerticalGroup := UiOwner.FindRequiredComponent('LogsVerticalGroup') as TCastleVerticalGroup;
   LabelEarlierLogsRemoved := UiOwner.FindRequiredComponent('LabelEarlierLogsRemoved') as TCastleLabel;
   LabelLogHeader := UiOwner.FindRequiredComponent('LabelLogHeader') as TCastleLabel;
-  LabelPropertiesHeader := UiOwner.FindRequiredComponent('LabelPropertiesHeader') as TCastleLabel;
   LabelInspectorHelp := UiOwner.FindRequiredComponent('LabelInspectorHelp') as TCastleLabel;
   SliderOpacity := UiOwner.FindRequiredComponent('SliderOpacity') as TCastleFloatSlider;
   ButtonLogClear := UiOwner.FindRequiredComponent('ButtonLogClear') as TCastleButton;
@@ -542,6 +539,36 @@ begin
   SafeBorderContainer := UiOwner.FindRequiredComponent('SafeBorderContainer') as TCastleUserInterface;
   HeaderProfiler := UiOwner.FindRequiredComponent('HeaderProfiler') as TCastleUserInterface;
   HeaderProfiler2ndRow := UiOwner.FindRequiredComponent('HeaderProfiler2ndRow') as TCastleUserInterface;
+
+  RectHierarchyOwner := TComponent.Create(Self);
+  RectHierarchy := StringToComponent({$I designs/components_hierarchy.castle-user-interface.inc}, RectHierarchyOwner)
+    as TCastleRectangleControl;
+  RectHierarchy.FullSize := false;
+  RectHierarchy.WidthFraction := 0.25;
+  RectHierarchy.HeightFraction := 0.75;
+  RectHierarchy.Anchor(vpTop);
+  Ui.InsertFront(RectHierarchy);
+
+  HierarchyRowTemplate := RectHierarchyOwner.FindRequiredComponent('HierarchyRowTemplate') as TCastleButton;
+  HierarchyRowParent := RectHierarchyOwner.FindRequiredComponent('HierarchyRowParent') as TCastleUserInterface;
+  CheckboxShowEvenInternal := RectHierarchyOwner.FindRequiredComponent('CheckboxShowEvenInternal') as TCastleCheckbox;
+  ButtonHierarchyHide := RectHierarchyOwner.FindRequiredComponent('ButtonHierarchyHide') as TCastleButton;
+
+  RectPropertiesOwner := TComponent.Create(Self);
+  RectProperties := StringToComponent({$I designs/component_properties.castle-user-interface.inc}, RectPropertiesOwner)
+    as TCastleRectangleControl;
+  RectProperties.FullSize := false;
+  RectProperties.WidthFraction := 0.25;
+  RectProperties.HeightFraction := 0.75;
+  RectProperties.Anchor(hpRight);
+  RectProperties.Anchor(vpTop);
+  Ui.InsertFront(RectProperties);
+
+  ScrollProperties := RectPropertiesOwner.FindRequiredComponent('ScrollProperties') as TCastleScrollView;
+  LabelPropertiesHeader := RectPropertiesOwner.FindRequiredComponent('LabelPropertiesHeader') as TCastleLabel;
+  PropertyRowParent := RectPropertiesOwner.FindRequiredComponent('PropertyRowParent') as TCastleUserInterface;
+  ButtonPropertiesHide := RectPropertiesOwner.FindRequiredComponent('ButtonPropertiesHide') as TCastleButton;
+  PropertyRowTemplate := RectPropertiesOwner.FindRequiredComponent('PropertyRowTemplate') as TCastleUserInterface;
 
   ForceFallbackLook(Ui);
 
@@ -618,10 +645,10 @@ begin
 
   { update PersistentState }
   PersistentState.Opacity := Opacity;
-  PersistentState.RectPropertiesExists := RectProperties.Exists;
-  PersistentState.RectLogExists := RectLog.Exists;
-  PersistentState.RectHierarchyExists := RectHierarchy.Exists;
-  PersistentState.RectProfilerExists := RectProfiler.Exists;
+  PersistentState.RectPropertiesExists := (RectProperties = nil) or RectProperties.Exists;
+  PersistentState.RectLogExists := (RectLog = nil) or RectLog.Exists;
+  PersistentState.RectHierarchyExists := (RectHierarchy = nil) or RectHierarchy.Exists;
+  PersistentState.RectProfilerExists := (RectProfiler = nil) or RectProfiler.Exists;
 
   FrameProfiler.OnSummaryAvailable := nil;
   FrameProfiler.Enabled := false;
