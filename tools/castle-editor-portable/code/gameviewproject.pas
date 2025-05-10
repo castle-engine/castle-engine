@@ -37,7 +37,7 @@ type
     ListOpenExistingView: TCastleVerticalGroup;
     ScrollListOpenExistingView: TCastleUserInterface;
     CheckboxShowHierarchy: TCastleCheckbox;
-    CheckboxShowInspector: TCastleCheckbox;
+    CheckboxShowProperties: TCastleCheckbox;
   private
     { Root of the design, saved/loaded to component file. }
     DesignRoot: TCastleUserInterface;
@@ -45,13 +45,15 @@ type
       Also owner of a temporary viewport for .castle-transform,
       in general this owns everything specific to display currrent design. }
     DesignOwner: TComponent;
-    FInspector: TCastleInspector;
+    Properties: TCastleComponentProperties;
+    Hierarchy: TCastleComponentsHierarchy;
     ListOpenExistingViewStr: TStringList;
     procedure ClickCloseProject(Sender: TObject);
     procedure ClickCloseDesign(Sender: TObject);
     procedure ClickOpenView(Sender: TObject);
     procedure ChangeShowHierarchy(Sender: TObject);
-    procedure ChangeShowInspector(Sender: TObject);
+    procedure ChangeShowProperties(Sender: TObject);
+    procedure HierarchySelect(const Selected: TComponent);
     procedure ListOpenExistingViewAddFile(const FileInfo: TFileInfo;
       var StopSearch: boolean);
     procedure ProposeOpenDesign(const OpenDesignUrl: String);
@@ -74,7 +76,7 @@ type
     { Free and clear DesignRoot, DesignOwner. }
     procedure ClearDesign;
     { Update ContainerLoadedDesignSize size and anchor,
-      depending on visibility of hierarchy / inspector. }
+      depending on visibility of Hierarchy / Properties. }
     procedure UpdateContainerLoadedDesignSize;
   public
     // set before starting the project
@@ -118,16 +120,21 @@ begin
   ButtonCloseProject.OnClick := {$ifdef FPC}@{$endif} ClickCloseProject;
   ButtonCloseDesign.OnClick := {$ifdef FPC}@{$endif} ClickCloseDesign;
   CheckboxShowHierarchy.OnChange := {$ifdef FPC}@{$endif} ChangeShowHierarchy;
-  CheckboxShowInspector.OnChange := {$ifdef FPC}@{$endif} ChangeShowInspector;
+  CheckboxShowProperties.OnChange := {$ifdef FPC}@{$endif} ChangeShowProperties;
 
-  // a bit simplified inspector, to have room for rest
-  TCastleInspector.PersistentState.RectLogExists := false;
-  TCastleInspector.PersistentState.RectProfilerExists := false;
-  // rest RectHierarchyExists, RectPropertiesExists to default
-  TCastleInspector.PersistentState.RectHierarchyExists := true;
-  TCastleInspector.PersistentState.RectPropertiesExists := true;
-  FInspector := TCastleInspector.Create(FreeAtStop);
-  ContainerDesignView.InsertFront(FInspector);
+  Hierarchy := TCastleComponentsHierarchy.Create(FreeAtStop);
+  Hierarchy.ButtonHierarchyHide.Exists := false; // hide, not handled
+  Hierarchy.WidthFraction := 0.25;
+  Hierarchy.HeightFraction := 1;
+  Hierarchy.OnSelect := {$ifdef FPC}@{$endif} HierarchySelect;
+  ContainerDesignView.InsertFront(Hierarchy);
+
+  Properties := TCastleComponentProperties.Create(FreeAtStop);
+  Properties.ButtonPropertiesHide.Exists := false; // hide, not handled
+  Properties.WidthFraction := 0.25;
+  Properties.HeightFraction := 1;
+  Properties.Anchor(hpRight);
+  ContainerDesignView.InsertFront(Properties);
 
   // at the beginning, show UI to choose design
   ButtonCloseDesign.Exists := false;
@@ -399,31 +406,18 @@ begin
 //    TCastleBehavior(C).DesigningEnd;
   C.Free;
 
-  //UpdateDesign; // for now, our inspector doesn't need it in castle-editor-portable
+  //UpdateDesign; // for now, our hierarchy doesn't need it in castle-editor-portable
 end;
 
 procedure TViewProject.ChangeShowHierarchy(Sender: TObject);
 begin
-  // TODO: it's an inefficient hack that we recreate inspector to toggle
-  // visibility of hierarchy. It's inefficient, and it means we lose selection
-  // in inspector that also gets reinitialized.
-  FreeAndNil(FInspector);
-
-  TCastleInspector.PersistentState.RectHierarchyExists := CheckboxShowHierarchy.Checked;
-
-  FInspector := TCastleInspector.Create(FreeAtStop);
-  ContainerDesignView.InsertFront(FInspector);
-
+  Hierarchy.Exists := CheckboxShowHierarchy.Checked;
   UpdateContainerLoadedDesignSize;
 end;
 
-procedure TViewProject.ChangeShowInspector(Sender: TObject);
+procedure TViewProject.ChangeShowProperties(Sender: TObject);
 begin
-  // TODO: this is a hack, see ChangeShowHierarchy
-  FreeAndNil(FInspector);
-  TCastleInspector.PersistentState.RectPropertiesExists := CheckboxShowInspector.Checked;
-  FInspector := TCastleInspector.Create(FreeAtStop);
-  ContainerDesignView.InsertFront(FInspector);
+  Properties.Exists := CheckboxShowProperties.Checked;
   UpdateContainerLoadedDesignSize;
 end;
 
@@ -432,8 +426,8 @@ var
   L, R: Boolean;
   WidthFractionFree: Single;
 begin
-  L := TCastleInspector.PersistentState.RectHierarchyExists;
-  R := TCastleInspector.PersistentState.RectPropertiesExists;
+  L := Hierarchy.Exists;
+  R := Properties.Exists;
 
   WidthFractionFree := 1.0;
   if L then
@@ -470,12 +464,18 @@ begin
 
   if Event.IsKey(keyRightBracket) then
   begin
-    CheckboxShowInspector.Checked := not CheckboxShowInspector.Checked;
+    CheckboxShowProperties.Checked := not CheckboxShowProperties.Checked;
     { Call the OnChange explicitly, because it is not automatically
       called when changing  Checked programmatically. }
-    ChangeShowInspector(nil);
+    ChangeShowProperties(nil);
     Exit(true);
   end;
+end;
+
+procedure TViewProject.HierarchySelect(const Selected: TComponent);
+begin
+  Properties.SelectedComponent := Selected;
+  Hierarchy.SelectComponent(Selected);
 end;
 
 end.
