@@ -111,14 +111,14 @@
             },
             {
               "$$ClassName" : "TCastleCheckbox",
-              "Caption" : "Object Inspector",
+              "Caption" : "Properties",
               "CheckboxColorPersistent" : {
                 "$$ClassName" : "TCastleColorPersistent",
                 "Blue" : 8.9411765336990356E-001,
                 "Red" : 1.0000000000000000E+000
               },
               "Checked" : true,
-              "Name" : "CheckboxShowInspector",
+              "Name" : "CheckboxShowProperties",
               "TextColorPersistent" : {
                 "$$ClassName" : "TCastleColorPersistent",
                 "Blue" : 8.9411765336990356E-001,
@@ -180,6 +180,7 @@
           "$Children" : [
             {
               "$$ClassName" : "TCastleUserInterface",
+              "ClipChildren" : true,
               "HeightFraction" : 1.0000000000000000E+000,
               "HorizontalAnchorParent" : "hpMiddle",
               "HorizontalAnchorSelf" : "hpMiddle",
