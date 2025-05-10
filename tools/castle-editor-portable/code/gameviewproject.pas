@@ -35,6 +35,9 @@ type
     ContainerDesignView, ContainerOpenView, ContainerLoadedDesign: TCastleUserInterface;
     FactoryButtonView: TCastleComponentFactory;
     ListOpenExistingView: TCastleVerticalGroup;
+    ScrollListOpenExistingView: TCastleUserInterface;
+    CheckboxShowHierarchy: TCastleCheckbox;
+    CheckboxShowProperties: TCastleCheckbox;
   private
     { Root of the design, saved/loaded to component file. }
     DesignRoot: TCastleUserInterface;
@@ -42,11 +45,15 @@ type
       Also owner of a temporary viewport for .castle-transform,
       in general this owns everything specific to display currrent design. }
     DesignOwner: TComponent;
-    FInspector: TCastleInspector;
+    Properties: TCastleComponentProperties;
+    Hierarchy: TCastleComponentsHierarchy;
     ListOpenExistingViewStr: TStringList;
     procedure ClickCloseProject(Sender: TObject);
     procedure ClickCloseDesign(Sender: TObject);
     procedure ClickOpenView(Sender: TObject);
+    procedure ChangeShowHierarchy(Sender: TObject);
+    procedure ChangeShowProperties(Sender: TObject);
+    procedure HierarchySelect(const Selected: TComponent);
     procedure ListOpenExistingViewAddFile(const FileInfo: TFileInfo;
       var StopSearch: boolean);
     procedure ProposeOpenDesign(const OpenDesignUrl: String);
@@ -68,6 +75,9 @@ type
     procedure FreeComponentRecursively(const C: TComponent);
     { Free and clear DesignRoot, DesignOwner. }
     procedure ClearDesign;
+    { Update ContainerLoadedDesignSize size and anchor,
+      depending on visibility of Hierarchy / Properties. }
+    procedure UpdateContainerLoadedDesignSize;
   public
     // set before starting the project
     // Absolute project path, as directory name (not URL), ending with path delimiter.
@@ -79,7 +89,9 @@ type
     constructor Create(AOwner: TComponent); override;
     procedure Start; override;
     procedure Stop; override;
+    procedure Resize; override;
     procedure Update(const SecondsPassed: Single; var HandleInput: Boolean); override;
+    function Press(const Event: TInputPressRelease): Boolean; override;
   end;
 
 var
@@ -107,12 +119,22 @@ begin
   inherited;
   ButtonCloseProject.OnClick := {$ifdef FPC}@{$endif} ClickCloseProject;
   ButtonCloseDesign.OnClick := {$ifdef FPC}@{$endif} ClickCloseDesign;
+  CheckboxShowHierarchy.OnChange := {$ifdef FPC}@{$endif} ChangeShowHierarchy;
+  CheckboxShowProperties.OnChange := {$ifdef FPC}@{$endif} ChangeShowProperties;
 
-  // a bit simplified inspector, to have room for rest
-  TCastleInspector.PersistentState.RectLogExists := false;
-  TCastleInspector.PersistentState.RectProfilerExists := false;
-  FInspector := TCastleInspector.Create(FreeAtStop);
-  ContainerDesignView.InsertFront(FInspector);
+  Hierarchy := TCastleComponentsHierarchy.Create(FreeAtStop);
+  Hierarchy.ButtonHierarchyHide.Exists := false; // hide, not handled
+  Hierarchy.WidthFraction := 0.25;
+  Hierarchy.HeightFraction := 1;
+  Hierarchy.OnSelect := {$ifdef FPC}@{$endif} HierarchySelect;
+  ContainerDesignView.InsertFront(Hierarchy);
+
+  Properties := TCastleComponentProperties.Create(FreeAtStop);
+  Properties.ButtonPropertiesHide.Exists := false; // hide, not handled
+  Properties.WidthFraction := 0.25;
+  Properties.HeightFraction := 1;
+  Properties.Anchor(hpRight);
+  ContainerDesignView.InsertFront(Properties);
 
   // at the beginning, show UI to choose design
   ButtonCloseDesign.Exists := false;
@@ -124,8 +146,9 @@ begin
   FreeAndNil(ButtonViewTemplate);
 
   ListOpenExistingViewStr := TStringList.Create;
-
   ListViewsRefresh;
+
+  UpdateContainerLoadedDesignSize;
 
   { override ApplicationData interpretation, and castle-data:/xxx URL,
     while this project is open. }
@@ -148,6 +171,16 @@ end;
 procedure TViewProject.ListOpenExistingViewAddFile(const FileInfo: TFileInfo; var StopSearch: boolean);
 begin
   ListOpenExistingViewStr.Append(FileInfo.AbsoluteName);
+end;
+
+procedure TViewProject.Resize;
+var
+  Ui: TCastleUserInterface;
+begin
+  inherited;
+  // fix size of all children of ListOpenExistingView
+  for Ui in ListOpenExistingView do
+    Ui.Width := ScrollListOpenExistingView.EffectiveWidthForChildren;
 end;
 
 type
@@ -201,6 +234,7 @@ begin
       ButtonView := FactoryButtonView.ComponentLoad(FreeAtStop, ButtonViewDesign) as TCastleButton;
       ButtonView.Tag := I;
       ButtonView.OnClick := {$ifdef FPC}@{$endif} ClickOpenView;
+      ButtonView.Width := ScrollListOpenExistingView.EffectiveWidthForChildren;
       ListOpenExistingView.InsertFront(ButtonView);
 
       ButtonViewDesign.LabelViewName.Caption := ShortDesignName(DesignFileName);
@@ -225,7 +259,6 @@ end;
 
 procedure TViewProject.ClickCloseDesign(Sender: TObject);
 begin
-
   ListViewsRefresh;
   ButtonCloseDesign.Exists := false;
   ContainerDesignView.Exists := false;
@@ -267,8 +300,6 @@ begin
   DesignOwner := NewDesignOwner;
   DesignRoot := NewDesignRoot;
   ContainerLoadedDesign.InsertFront(DesignRoot);
-
-  // TODO: limit inspector to this
 end;
 
 class function TViewProject.Selectable(const Child: TComponent): Boolean;
@@ -375,7 +406,76 @@ begin
 //    TCastleBehavior(C).DesigningEnd;
   C.Free;
 
-  //UpdateDesign; // for now, our inspector doesn't need it in castle-editor-portable
+  //UpdateDesign; // for now, our hierarchy doesn't need it in castle-editor-portable
+end;
+
+procedure TViewProject.ChangeShowHierarchy(Sender: TObject);
+begin
+  Hierarchy.Exists := CheckboxShowHierarchy.Checked;
+  UpdateContainerLoadedDesignSize;
+end;
+
+procedure TViewProject.ChangeShowProperties(Sender: TObject);
+begin
+  Properties.Exists := CheckboxShowProperties.Checked;
+  UpdateContainerLoadedDesignSize;
+end;
+
+procedure TViewProject.UpdateContainerLoadedDesignSize;
+var
+  L, R: Boolean;
+  WidthFractionFree: Single;
+begin
+  L := Hierarchy.Exists;
+  R := Properties.Exists;
+
+  WidthFractionFree := 1.0;
+  if L then
+    WidthFractionFree := WidthFractionFree - 0.25;
+  if R then
+    WidthFractionFree := WidthFractionFree - 0.25;
+  ContainerLoadedDesign.WidthFraction := WidthFractionFree;
+
+  if L and R then
+    ContainerLoadedDesign.Anchor(hpMiddle)
+  else
+  if L then
+    ContainerLoadedDesign.Anchor(hpRight)
+  else
+  if R then
+    ContainerLoadedDesign.Anchor(hpLeft)
+  else
+    // otherwise it doesn't really matter
+    ContainerLoadedDesign.Anchor(hpMiddle);
+end;
+
+function TViewProject.Press(const Event: TInputPressRelease): Boolean;
+begin
+  Result := inherited;
+
+  if Event.IsKey(keyLeftBracket) then
+  begin
+    CheckboxShowHierarchy.Checked := not CheckboxShowHierarchy.Checked;
+    { Call the OnChange explicitly, because it is not automatically
+      called when changing  Checked programmatically. }
+    ChangeShowHierarchy(nil);
+    Exit(true);
+  end;
+
+  if Event.IsKey(keyRightBracket) then
+  begin
+    CheckboxShowProperties.Checked := not CheckboxShowProperties.Checked;
+    { Call the OnChange explicitly, because it is not automatically
+      called when changing  Checked programmatically. }
+    ChangeShowProperties(nil);
+    Exit(true);
+  end;
+end;
+
+procedure TViewProject.HierarchySelect(const Selected: TComponent);
+begin
+  Properties.SelectedComponent := Selected;
+  Hierarchy.SelectComponent(Selected);
 end;
 
 end.
