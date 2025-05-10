@@ -2,10 +2,6 @@
 { DON'T EDIT -- this file was automatically generated from "component_properties.castle-user-interface" }
 '{' + LineEnding +
 '  "$$ClassName" : "TCastleRectangleControl",' + LineEnding +
-'  "Border" : {' + LineEnding +
-'    "$$ClassName" : "TBorder",' + LineEnding +
-'    "AllSides" : 1.0000000000000000E+001' + LineEnding +
-'  },' + LineEnding +
 '  "ColorPersistent" : {' + LineEnding +
 '    "$$ClassName" : "TCastleColorPersistent",' + LineEnding +
 '    "Alpha" : 8.9999997615814209E-001' + LineEnding +
