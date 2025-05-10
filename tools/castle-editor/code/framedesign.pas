@@ -709,6 +709,8 @@ type
     procedure FindNext;
 
     procedure ExportToModel;
+
+    procedure UpdateStyle;
   end;
 
 implementation
@@ -729,7 +731,7 @@ uses
     to register the core CGE components for (de)serialization. }
   Castle2DSceneManager, CastleNotifications, CastleThirdPersonNavigation,
   CastleSoundEngine, CastleBehaviors, CastleLivingBehaviors,
-  CastleFlashEffect,
+  CastleFlashEffect, StyleUtils,
   { Editor units }
   FormProject, CastleComponentEditorDesigner;
 
@@ -4636,6 +4638,7 @@ begin
     It actually should not happen anymore (because we save/restore selection,
     so TransformDesigning should remain the same) but better be secure from it. }
   UpdateSelectedControl;
+  UpdateStyle;
 end;
 
 function TDesignFrame.ValidateHierarchy: Boolean;
@@ -6280,6 +6283,7 @@ begin
     MenuItemChangeClassNonVisual.SetEnabledVisible(true);
 
   MenuTreeView.PopupComponent := ControlsTree; // I'm not sure what it means, something like menu owner?
+  StyleUtils.UpdateMenuStyle(MenuTreeView);
 end;
 
 procedure TDesignFrame.MenuTreeViewItemDuplicateClick(Sender: TObject);
@@ -6680,6 +6684,30 @@ begin
     try
       SaveNode(RootNode, SaveUrl);
     finally FreeAndNil(RootNode) end;
+  end;
+end;
+
+procedure TDesignFrame.UpdateStyle;
+var
+  Insp: TInspectorType;
+begin
+  // Even if parent form just called UpdateStyle, Inspectors are not updating
+  StyleUtils.UpdateControlStyle(Self, false, true);
+
+  // This button doesn't work well with different font sizes
+  // I force its size to the design-time values to make sure it's visible
+  ButtonApiReferenceForCurrent.Width := 38;
+  ButtonApiReferenceForCurrent.Height := 38;
+
+  // Need to set the splitter manually because it gets reset to a low value
+  for Insp in TInspectorType do
+  begin
+    Inspector[Insp].SplitterX := 200;
+    Inspector[Insp].NameFont.Size := CurrentStyle.FontSize;
+    Inspector[Insp].ValueFont.Size := CurrentStyle.FontSize;
+    Inspector[Insp].HighlightFont.Size := CurrentStyle.FontSize;
+    Inspector[Insp].DefaultValueFont.Size := CurrentStyle.FontSize;
+    Inspector[Insp].DefaultItemHeight := 0;
   end;
 end;
 

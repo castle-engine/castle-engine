@@ -96,7 +96,7 @@ implementation
 uses LCLType, IntfGraphics, GraphType, FpImage,
   CastleOpenDocument, CastleStringUtils, CastleConfig, CastleUtils,
   CastleUriUtils, CastleLog, CastleApplicationProperties,
-  EditorUtils;
+  EditorUtils, StyleUtils;
 
 {$R *.lfm}
 
@@ -155,7 +155,17 @@ begin
 end;
 
 procedure TImportSketchfabForm.FormShow(Sender: TObject);
+var
+  NewSize: Integer;
 begin
+  UpdateControlStyle(Self, false, true);
+
+  NewSize := ButtonTokenUrl.Width + ButtonDownloadAndAddViewport.Width + 24;
+  if ClientWidth < NewSize then
+    ClientWidth := NewSize;
+
+  UpdateControlStyle(Self, false, true);
+
   Timer1.Enabled := true;
   EditApiToken.Text := UserConfig.GetValue('sketchfab/api_token', '');
   UpdateEnabled;
