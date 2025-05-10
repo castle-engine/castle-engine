@@ -138,7 +138,7 @@ type
     procedure UpdateLabelStatsMore;
     procedure ChangeUiBatching(Sender: TObject);
     procedure SetSelectedComponent(const Value: TComponent);
-    procedure ClickHierarchyRow(Sender: TObject);
+    procedure HierarchySelect(const Selected: TComponent);
   public
     const
       DefaultOpacity = 0.9;
@@ -273,7 +273,7 @@ begin
   RectHierarchy.WidthFraction := 0.25;
   RectHierarchy.HeightFraction := 0.75;
   RectHierarchy.Anchor(vpTop);
-  RectHierarchy.OnClickRow := {$ifdef FPC}@{$endif} ClickHierarchyRow;
+  RectHierarchy.OnSelect := {$ifdef FPC}@{$endif} HierarchySelect;
   RectHierarchy.Border.AllSides := 10;
   Ui.InsertFront(RectHierarchy);
 
@@ -829,9 +829,9 @@ begin
   LabelEarlierLogsRemoved.Exists := false;
 end;
 
-procedure TCastleInspector.ClickHierarchyRow(Sender: TObject);
+procedure TCastleInspector.HierarchySelect(const Selected: TComponent);
 begin
-  SelectedComponent := TComponent(Pointer((Sender as TCastleButton).Tag));
+  SelectedComponent := Selected;
 end;
 
 procedure TCastleInspector.Resize;

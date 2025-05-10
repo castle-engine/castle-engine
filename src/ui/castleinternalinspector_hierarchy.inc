@@ -17,6 +17,8 @@
 {$ifdef read_interface}
 
 type
+  TComponentEvent = procedure (const Selected: TComponent) of object;
+
   { Display components' hierarchy. }
   TCastleComponentsHierarchy = class(TCastleUserInterface)
   strict private
@@ -35,7 +37,7 @@ type
     // designed components that are just public
     ButtonHierarchyHide: TCastleButton;
 
-    OnClickRow: TNotifyEvent;
+    OnSelect: TComponentEvent;
 
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -252,8 +254,8 @@ end;
 
 procedure TCastleComponentsHierarchy.ClickRow(Sender: TObject);
 begin
-  if Assigned(OnClickRow) then
-    OnClickRow(Sender);
+  if Assigned(OnSelect) then
+    OnSelect(TComponent(Pointer((Sender as TCastleButton).Tag)));
 end;
 
 procedure TCastleComponentsHierarchy.UpdateHierarchy(Sender: TObject);
@@ -268,10 +270,12 @@ var
     and in castle-editor and castle-editor-portable... }
   function Selectable(const C: TComponent): Boolean;
   begin
-    { Never show TCastleInspector,
+    { Never show TCastleInspector or hierarchy/properties,
       this would cause problems as we'll create HierarchyRow to show HierarchyRow
       instances... }
-    if C is TCastleInspector then
+    if (C is TCastleInspector) or
+       (C is TCastleComponentProperties) or
+       (C is TCastleComponentsHierarchy) then
       Exit(false);
 
     Result := (not (csTransient in C.ComponentStyle))
