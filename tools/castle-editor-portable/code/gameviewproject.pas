@@ -299,6 +299,7 @@ begin
   ClearDesign;
   DesignOwner := NewDesignOwner;
   DesignRoot := NewDesignRoot;
+  Hierarchy.Root := DesignRoot;
   ContainerLoadedDesign.InsertFront(DesignRoot);
 end;
 

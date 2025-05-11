@@ -30,9 +30,15 @@ type
     UiOwner: TComponent;
     RowFactory: TCastleComponentFactory;
     Ui: TCastleUserInterface;
+    FRoot: TComponent;
+    FShowEverythingIfRootUnset: Boolean;
+    FRootObserver: TFreeNotificationObserver;
     procedure UpdateHierarchy(Sender: TObject);
     procedure BeforeRenderHierarchyRows(const Sender: TCastleUserInterface);
     procedure ClickRow(Sender: TObject);
+    procedure SetRoot(const Value: TComponent);
+    procedure SetShowEverythingIfRootUnset(const Value: Boolean);
+    procedure RootFreeNotification(const Sender: TFreeNotificationObserver);
   public
     // designed components that are just public
     ButtonHierarchyHide: TCastleButton;
@@ -46,6 +52,15 @@ type
 
     { Show selected component, by highlighting its row in the hierarchy. }
     procedure SelectComponent(const C: TComponent);
+
+    { Show components starting from this root.
+      If @nil (default), then (depending on ShowEverythingIfRootUnset)
+      we either show everything from the container, or nothing. }
+    property Root: TComponent read FRoot write SetRoot;
+
+    { What to show when @link(Root) is @nil. }
+    property ShowEverythingIfRootUnset: Boolean
+      read FShowEverythingIfRootUnset write SetShowEverythingIfRootUnset default false;
   end;
 
 {$endif read_interface}
@@ -211,6 +226,9 @@ begin
   RowFactory := TCastleComponentFactory.Create(nil);
   RowFactory.LoadFromComponent(HierarchyRowTemplate);
   FreeAndNil(HierarchyRowTemplate);
+
+  FRootObserver := TFreeNotificationObserver.Create(Self);
+  FRootObserver.OnFreeNotification := @RootFreeNotification;
 end;
 
 destructor TCastleComponentsHierarchy.Destroy;
@@ -437,6 +455,23 @@ var
     end;
   end;
 
+  { Add given component, and its children.
+    This is a helper function that calls
+    - AddControl
+    - or AddTransform
+    - or AddNonVisualComponent
+    depending on the type of component. }
+  procedure AddAutoDetect(const C: TComponent; const Level: Integer);
+  begin
+    if C is TCastleUserInterface then
+      AddControl(TCastleUserInterface(C), Level)
+    else
+    if C is TCastleTransform then
+      AddTransform(TCastleTransform(C), Level)
+    else
+      AddNonVisualComponent(C, Level)
+  end;
+
 var
   C: TCastleUserInterface;
   I: Integer;
@@ -449,11 +484,23 @@ begin
   RowIndex := 0;
   PreviousLevel := 0;
 
-  for I := 0 to Container.Controls.Count - 1 do
+  if FRoot = nil then
   begin
-    C := Container.Controls[I];
-    if Selectable(C) then
-      AddControl(C, 0);
+    if FShowEverythingIfRootUnset then
+    begin
+      // show everything from the container
+      for I := 0 to Container.Controls.Count - 1 do
+      begin
+        C := Container.Controls[I];
+        if Selectable(C) then
+          AddControl(C, 0);
+      end;
+    end;
+  end else
+  begin
+    // show everything from the root
+    if Selectable(FRoot) then
+      AddAutoDetect(FRoot, 0);
   end;
 
   while HierarchyRowParent.ControlsCount > RowIndex do
@@ -474,6 +521,32 @@ begin
       AnyRowUi.Font.TextWidth(DupeString(' ', LevelWidthInSpaces));
     THierarchyRowLevelDisplay.HierarchyRowHeight :=
       AnyRowUi.EffectiveHeight * AnyRowUi.UIScale;
+  end;
+end;
+
+procedure TCastleComponentsHierarchy.SetRoot(const Value: TComponent);
+begin
+  if FRoot <> Value then
+  begin
+    FRoot := Value;
+    FRootObserver.Observed := Value;
+    UpdateHierarchy(nil);
+  end;
+end;
+
+procedure TCastleComponentsHierarchy.RootFreeNotification(const Sender: TFreeNotificationObserver);
+begin
+  FRoot := nil;
+end;
+
+procedure TCastleComponentsHierarchy.SetShowEverythingIfRootUnset(const Value: Boolean);
+begin
+  if FShowEverythingIfRootUnset <> Value then
+  begin
+    FShowEverythingIfRootUnset := Value;
+    // When FRoot <> nil, then changing this property has no immediate effect.
+    if FRoot = nil then
+      UpdateHierarchy(nil);
   end;
 end;
 
