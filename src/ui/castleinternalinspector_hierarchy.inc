@@ -486,7 +486,7 @@ begin
 
   if FRoot = nil then
   begin
-    if FShowEverythingIfRootUnset then
+    if FShowEverythingIfRootUnset and (Container <> nil) then
     begin
       // show everything from the container
       for I := 0 to Container.Controls.Count - 1 do
