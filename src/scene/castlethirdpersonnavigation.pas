@@ -18,8 +18,6 @@ unit CastleThirdPersonNavigation;
 
 {$I castleconf.inc}
 
-{.$define CASTLE_UNFINISHED_CHANGE_TRANSFORMATION_BY_FORCE}
-
 interface
 
 uses SysUtils, Classes,
@@ -1160,14 +1158,22 @@ var
     IsOnGroundBool: Boolean;
     Vel: TVector3;
     VLength: Single;
-    AvatarBoundingBox: TBox3D;
-    AvatarHeight: Single;
+    AvatarColliderBoundingBox: TBox3D;
+    ColliderHeight: Single;
+    ColliderRadius: Single;
+
+    SphereCastOrigin: TVector3;
+    { Needed when casted sphere is bigger or equal than ColliderHeight / 2 because kraft
+      do not see any bodies that it hit while casting. This can happen when our
+      player gently digs into the ground. }
+    SphereCastOriginUpAdjustment: Single;
+
     MaxHorizontalVelocityChange: Single;
     Acceleration: Single;
     HVelocity: TVector3;
     VVelocity: Single;
     MoveDirection: TVector3;
-    GroundRayCast: TRayCastResult;
+    GroundSphereCast: TRayCastResult;
     DistanceToGround: Single;
     Jump: Single;
     RayOrigin: TVector3;
@@ -1182,93 +1188,60 @@ var
     MaxHorizontalVelocityChange := Acceleration * 60;
     DeltaSpeed := 0;
 
-    { Check player is on ground, we use avatar size multiplied by ten to try
+    { Check player is on ground, we use avatar size multiplied by two to try
       found ground. Distance is used to check we should set animation to fall
-      or we are almost on ground so use default animation.
+      or we are almost on ground so use default animation. }
+    AvatarColliderBoundingBox := Collider.ScaledLocalBoundingBox;
+    ColliderHeight := AvatarColliderBoundingBox.SizeY;
+    { From testing average size is the best here, better than min or max size. }
+    ColliderRadius := (AvatarColliderBoundingBox.SizeX + AvatarColliderBoundingBox.SizeZ) / 2;
+    SphereCastOrigin := Collider.Middle;
 
-      We need add Collider.Translation because sometimes rigid body origin can be
-      under the collider. And ray will be casted under the floor. }
-    AvatarBoundingBox := A.BoundingBox;
-    AvatarHeight := AvatarBoundingBox.SizeY;
-    RayOrigin := A.Translation + Collider.Translation;
+    { Adjust sphere cast origin when radius is equal or bigger than ColliderHeight / 2 }
+    if ColliderRadius - ColliderHeight / 2 > -0.1  then
+    begin
+      SphereCastOriginUpAdjustment := ColliderRadius - ColliderHeight / 2 + 0.1;
+      SphereCastOrigin.Y := SphereCastOrigin.Y + SphereCastOriginUpAdjustment;
+    end;
 
-    { TODO: In the ideal world, the way we check for ground collisions
-      (and determine Ground, IsOnGround)
-      should be independent from ChangeTransformation.
-
-      ChangeTransformation says how we change the transformation.
-
-      We should still have option to use
-
-      - PhysicsRayCast (maybe from TCastleAbstractRootTransform, as it should
-        not require having TCastleRigidBody on avatar) to detect ground
-      - or Height / WorldHeight calls that cooperate with old simple physics.
-
-      And we should update IsOnGround in all ChangeTransformation modes.
-
-      But in practice, now ctDirect forces to do gravity using old physics
-      (because it forbids TCastleRigidBody on avatar),
-      and ctVelocity forces to do gravity using new physics
-      (because it requires TCastleRigidBody on avatar).
-
-      So checking for ground (collisions) is not independent from ChangeTransformation.
-      When ctVelocity, we have to check for ground using real physics (PhysicsRayCast),
-      it would make no sense to use old simple physics. }
-
-    GroundRayCast := RBody.PhysicsRayCast(
-      RayOrigin,
+    { We use Collider.Middle here  because sometimes transform origin can be
+      under the collider. And cast will be casted under the floor. }
+    GroundSphereCast := RBody.PhysicsSphereCast(
+      SphereCastOrigin,
+      ColliderRadius,
       Vector3(0, -1, 0),
-      AvatarHeight * 3
+      ColliderHeight * 2
     );
 
-    { Four more checks - player should slide down when player just
-      on the edge, but sometimes it stay and center ray don't "see" that we are
-      on ground }
-    if not GroundRayCast.Hit then
-      GroundRayCast := RBody.PhysicsRayCast(
-        RayOrigin + Vector3(AvatarBoundingBox.SizeX * 0.49, 0, 0),
-        Vector3(0, -1, 0),
-        AvatarHeight * 3
-      );
-
-    if not GroundRayCast.Hit then
-      GroundRayCast := RBody.PhysicsRayCast(
-        RayOrigin + Vector3(-AvatarBoundingBox.SizeX * 0.49, 0, 0),
-        Vector3(0, -1, 0),
-        AvatarHeight * 3
-      );
-
-    if not GroundRayCast.Hit then
-      GroundRayCast := RBody.PhysicsRayCast(
-        RayOrigin + Vector3(0, 0, AvatarBoundingBox.SizeZ * 0.49),
-        Vector3(0, -1, 0),
-        AvatarHeight * 3
-      );
-
-    if not GroundRayCast.Hit then
-      GroundRayCast := RBody.PhysicsRayCast(
-        RayOrigin + Vector3(0, 0, -AvatarBoundingBox.SizeZ * 0.49),
-        Vector3(0, -1, 0),
-        AvatarHeight * 3
-      );
-
-    if GroundRayCast.Hit then
+    if GroundSphereCast.Hit then
     begin
-      DistanceToGround := GroundRayCast.Distance;
+      DistanceToGround := GroundSphereCast.Distance;
 
-      { When collider has own translation we need substract it from distance
-        becouse distance will be too big }
-      DistanceToGround  := DistanceToGround - Collider.Translation.Y;
+      { Remove half of full collider height and cast adjustment - we cast sphere
+        from middle of collider with adjustment when casted sphere radius
+        is equal or bigger than ColliderHeight / 2 }
+      DistanceToGround  := DistanceToGround - (ColliderHeight / 2 + SphereCastOriginUpAdjustment);
+
+      { When we use sphere cast we also should add its radius.
+        Distance is from cast origin to "moved" casted sphere origin. }
+      DistanceToGround := DistanceToGround + ColliderRadius;
 
       { Sometimes rigid body center point can be under the collider so
-        the distance can be negative }
+        the distance can be negative - mostly when player dig a little in ground }
       if DistanceToGround < 0 then
         DistanceToGround := 0;
 
-      IsOnGroundBool := DistanceToGround < AvatarHeight * 0.1;
+      { We assume that the player is on the ground a little faster to allow
+       smoother control }
+      IsOnGroundBool := DistanceToGround < ColliderHeight * 0.1;
+      {if IsOnGroundBool then
+        WritelnLog('on ground (distance ' + FloatToStr(DistanceToGround) + ')')
+      else
+        WritelnLog('not on ground (distance ' + FloatToStr(DistanceToGround) + ')'); }
     end else
     begin
       IsOnGroundBool := false;
+      {WritelnLog('not on ground');}
       DistanceToGround := -1; // For animation checking
     end;
 
@@ -1416,7 +1389,6 @@ var
     end;
   end;
 
-  {$ifdef CASTLE_UNFINISHED_CHANGE_TRANSFORMATION_BY_FORCE}
   // TODO: Not finished.
   procedure DoForce(var MovingHorizontally, Rotating: Boolean; var IsOnGround: TIsOnGround);
   var
@@ -1481,7 +1453,6 @@ var
       //RBody.ApplyImpulse(MoveDirection * DeltaForce, Collider.Translation);
     end;
   end;
-  {$endif CASTLE_UNFINISHED_CHANGE_TRANSFORMATION_BY_FORCE}
 
   { Make camera follow the A translation (in world-space,
     so also account for parents' translations).
@@ -1655,7 +1626,7 @@ begin
     ctVelocity: DoVelocity(MovingHorizontally, Rotating, IsOnGround);
     {$ifdef CASTLE_UNFINISHED_CHANGE_TRANSFORMATION_BY_FORCE}
     ctForce: DoForce(MovingHorizontally, Rotating, IsOnGround);
-    {$endif CASTLE_UNFINISHED_CHANGE_TRANSFORMATION_BY_FORCE}
+    {$endif}
     {$ifndef COMPILER_CASE_ANALYSIS}
     else raise EInternalError.Create('TCastleThirdPersonNavigation.FTransformation?');
     {$endif}

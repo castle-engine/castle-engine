@@ -1606,6 +1606,11 @@ begin
     FreeAndNil(Res);
     Res := SerializeSet(GetOrdProp(AObject, Info), 3 { manually synchronized with TColorChannel });
   end;
+  if (Info^.PropType^.Kind = tkSet) and (Info^.PropType^.Name = 'TPhysicsLayers')  then
+  begin
+    FreeAndNil(Res);
+    Res := SerializeSet(GetOrdProp(AObject, Info), 19 { manually synchronized with TPhysicsLayers });
+  end;
 end;
 
 function ComponentToJson(const C: TComponent): TJsonObject;

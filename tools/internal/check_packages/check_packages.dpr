@@ -586,6 +586,7 @@ begin
     Package.CheckFiles([
       'src/common_includes/',
       'src/transform/',
+      'src/behaviors/',
       'src/audio/',
       'src/base/',
       'src/base_rendering/',

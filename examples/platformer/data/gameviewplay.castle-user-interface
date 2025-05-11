@@ -2036,6 +2036,7 @@
                   {
                     "$$ClassName" : "TCastleRigidBody",
                     "AngularVelocityDamp" : 0.0000000000000000E+000,
+                    "Layer" : 2,
                     "LinearVelocityDamp" : 0.0000000000000000E+000,
                     "LockRotation" : [
                       0,
@@ -2078,6 +2079,7 @@
                   {
                     "$$ClassName" : "TCastleRigidBody",
                     "AngularVelocityDamp" : 0.0000000000000000E+000,
+                    "Layer" : 2,
                     "LinearVelocityDamp" : 0.0000000000000000E+000,
                     "LockRotation" : [
                       0,
@@ -2120,6 +2122,7 @@
                   {
                     "$$ClassName" : "TCastleRigidBody",
                     "AngularVelocityDamp" : 0.0000000000000000E+000,
+                    "Layer" : 2,
                     "LinearVelocityDamp" : 0.0000000000000000E+000,
                     "LockRotation" : [
                       0,
@@ -2162,6 +2165,7 @@
                   {
                     "$$ClassName" : "TCastleRigidBody",
                     "AngularVelocityDamp" : 0.0000000000000000E+000,
+                    "Layer" : 2,
                     "LinearVelocityDamp" : 0.0000000000000000E+000,
                     "LockRotation" : [
                       0,
@@ -2204,6 +2208,7 @@
                   {
                     "$$ClassName" : "TCastleRigidBody",
                     "AngularVelocityDamp" : 0.0000000000000000E+000,
+                    "Layer" : 2,
                     "LinearVelocityDamp" : 0.0000000000000000E+000,
                     "LockRotation" : [
                       0,
@@ -2246,6 +2251,7 @@
                   {
                     "$$ClassName" : "TCastleRigidBody",
                     "AngularVelocityDamp" : 0.0000000000000000E+000,
+                    "Layer" : 2,
                     "LinearVelocityDamp" : 0.0000000000000000E+000,
                     "LockRotation" : [
                       0,
@@ -2288,6 +2294,7 @@
                   {
                     "$$ClassName" : "TCastleRigidBody",
                     "AngularVelocityDamp" : 0.0000000000000000E+000,
+                    "Layer" : 2,
                     "LinearVelocityDamp" : 0.0000000000000000E+000,
                     "LockRotation" : [
                       0,
@@ -2330,6 +2337,7 @@
                   {
                     "$$ClassName" : "TCastleRigidBody",
                     "AngularVelocityDamp" : 0.0000000000000000E+000,
+                    "Layer" : 2,
                     "LinearVelocityDamp" : 0.0000000000000000E+000,
                     "LockRotation" : [
                       0,
@@ -2372,6 +2380,7 @@
                   {
                     "$$ClassName" : "TCastleRigidBody",
                     "AngularVelocityDamp" : 0.0000000000000000E+000,
+                    "Layer" : 2,
                     "LinearVelocityDamp" : 0.0000000000000000E+000,
                     "LockRotation" : [
                       0,
@@ -2414,6 +2423,7 @@
                   {
                     "$$ClassName" : "TCastleRigidBody",
                     "AngularVelocityDamp" : 0.0000000000000000E+000,
+                    "Layer" : 2,
                     "LinearVelocityDamp" : 0.0000000000000000E+000,
                     "LockRotation" : [
                       0,
@@ -2456,6 +2466,7 @@
                   {
                     "$$ClassName" : "TCastleRigidBody",
                     "AngularVelocityDamp" : 0.0000000000000000E+000,
+                    "Layer" : 2,
                     "LinearVelocityDamp" : 0.0000000000000000E+000,
                     "LockRotation" : [
                       0,
@@ -2498,6 +2509,7 @@
                   {
                     "$$ClassName" : "TCastleRigidBody",
                     "AngularVelocityDamp" : 0.0000000000000000E+000,
+                    "Layer" : 2,
                     "LinearVelocityDamp" : 0.0000000000000000E+000,
                     "LockRotation" : [
                       0,
@@ -2540,6 +2552,7 @@
                   {
                     "$$ClassName" : "TCastleRigidBody",
                     "AngularVelocityDamp" : 0.0000000000000000E+000,
+                    "Layer" : 2,
                     "LinearVelocityDamp" : 0.0000000000000000E+000,
                     "LockRotation" : [
                       0,
@@ -2582,6 +2595,7 @@
                   {
                     "$$ClassName" : "TCastleRigidBody",
                     "AngularVelocityDamp" : 0.0000000000000000E+000,
+                    "Layer" : 2,
                     "LinearVelocityDamp" : 0.0000000000000000E+000,
                     "LockRotation" : [
                       0,
@@ -9257,6 +9271,66 @@
                   "$$ClassName" : "TCastleVector3Persistent",
                   "Y" : -3.0000000000000000E+000
                 }
+              },
+              {
+                "$$ClassName" : "TModularMovement",
+                "ForwardInputAxis" : {
+                  "$$ClassName" : "TCastleInputAxis",
+                  "MouseDrag" : false,
+                  "MouseDragAxis" : "mlaHorizontal",
+                  "MouseDragMultiplier" : 1.0000000000000000E+000,
+                  "MouseLook" : false,
+                  "MouseLookAxis" : "mlaHorizontal",
+                  "MouseLookMultiplier" : 1.0000000000000000E+000,
+                  "Multiplier" : 1.0000000000000000E+000,
+                  "NegativeKey" : "keyNone",
+                  "NegativeWheelDirection" : "mwNone",
+                  "PositiveKey" : "keyNone",
+                  "PositiveWheelDirection" : "mwNone"
+                },
+                "GroundPhysicsLayers" : [
+                  0
+                ],
+                "InputJump" : {
+                  "$$ClassName" : "TInputShortcut",
+                  "DefaultKey1" : "keySpace",
+                  "Key1" : "keyW"
+                },
+                "Name" : "PlayerModularMovement",
+                "SidewayInputAxis" : {
+                  "$$ClassName" : "TCastleInputAxis",
+                  "MouseDrag" : false,
+                  "MouseDragAxis" : "mlaHorizontal",
+                  "MouseDragMultiplier" : 1.0000000000000000E+000,
+                  "MouseLook" : false,
+                  "MouseLookAxis" : "mlaHorizontal",
+                  "MouseLookMultiplier" : 1.0000000000000000E+000,
+                  "Multiplier" : 1.0000000000000000E+000,
+                  "NegativeKey" : "keyA",
+                  "NegativeWheelDirection" : "mwNone",
+                  "PositiveKey" : "keyD",
+                  "PositiveWheelDirection" : "mwNone"
+                }
+              },
+              {
+                "$$ClassName" : "TPlatformer2DWalkSupport",
+                "Name" : "PlayerWalkSupport"
+              },
+              {
+                "$$ClassName" : "TPlatformer2DInAirControl",
+                "HorizontalSpeedChangeInAir" : 1.5000000000000000E+001,
+                "Name" : "PlayerInAirControl"
+              },
+              {
+                "$$ClassName" : "TDoubleJumpSupport",
+                "Exists" : false,
+                "JumpSpeed" : 7.0000000000000000E+002,
+                "Name" : "PlayerDoubleJumpSupport"
+              },
+              {
+                "$$ClassName" : "TAnimationTrigger",
+                "Exists" : false,
+                "Name" : "PlayerAnimationTrigger"
               }
             ]
           },
@@ -11669,8 +11743,8 @@
         },
         "TranslationPersistent" : {
           "$$ClassName" : "TCastleVector3Persistent",
-          "X" : -2.2045683593750000E+003,
-          "Y" : -2.7046801757812500E+002,
+          "X" : -2.3239694824218750E+003,
+          "Y" : 2.6141583251953125E+002,
           "Z" : 5.0000000000000000E+002
         }
       },
@@ -11742,32 +11816,6 @@
           "TranslationPersistent" : {
             "$$ClassName" : "TCastleVector2Persistent",
             "Y" : -1.6799999237060547E+001
-          },
-          "VerticalAnchorParent" : "vpTop",
-          "VerticalAnchorSelf" : "vpTop"
-        },
-        {
-          "$$ClassName" : "TCastleCheckbox",
-          "Caption" : "Advanced Player",
-          "CheckboxColorPersistent" : {
-            "$$ClassName" : "TCastleColorPersistent",
-            "Blue" : 1.1372549086809158E-001,
-            "Green" : 1.1372549086809158E-001,
-            "Red" : 8.5098040103912354E-001
-          },
-          "CheckboxSize" : 2.0000000000000000E+001,
-          "Checked" : true,
-          "FontSize" : 2.0000000000000000E+001,
-          "Name" : "CheckboxAdvancedPlayer",
-          "TextColorPersistent" : {
-            "$$ClassName" : "TCastleColorPersistent",
-            "Blue" : 1.1372549086809158E-001,
-            "Green" : 1.1372549086809158E-001,
-            "Red" : 8.5098040103912354E-001
-          },
-          "TranslationPersistent" : {
-            "$$ClassName" : "TCastleVector2Persistent",
-            "Y" : -3.8799999237060547E+001
           },
           "VerticalAnchorParent" : "vpTop",
           "VerticalAnchorSelf" : "vpTop"

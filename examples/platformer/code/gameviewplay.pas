@@ -1,4 +1,5 @@
-﻿{
+﻿// TODO: merge to master: preserve master's touch input handling for shooting.
+{
   Copyright 2021-2024 Andrzej Kilijański, Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
@@ -22,7 +23,9 @@ uses Classes,
   CastleComponentSerialize, CastleUIControls, CastleControls,
   CastleKeysMouse, CastleViewport, CastleScene, CastleSceneCore, CastleVectors,
   CastleTransform, CastleSoundEngine, X3DNodes,
-  GameEnemy, GameFallingObstacle, GameDeadlyObstacle, GameMovingPlatform;
+  GameEnemy, GameFallingObstacle, GameDeadlyObstacle, GameMovingPlatform, ModularMovement,
+  Platformer2DInAirControl, Platformer2DWalkSupport, DoubleJumpSupport, AnimationTrigger,
+  CastleInputAxis, CastleInputs;
 
 type
   TLevelBounds = class (TComponent)
@@ -56,12 +59,14 @@ type
     ScenePlayer: TCastleScene;
     PlayerRigidBody: TCastleRigidBody;
     CheckboxCameraFollow: TCastleCheckbox;
-    CheckboxAdvancedPlayer: TCastleCheckbox;
     ImageHitPoint4: TCastleImageControl;
     ImageHitPoint3: TCastleImageControl;
     ImageHitPoint2: TCastleImageControl;
     ImageHitPoint1: TCastleImageControl;
     ImageKey: TCastleImageControl;
+    PlayerDoubleJumpSupport: TDoubleJumpSupport;
+    PlayerModularMovement: TModularMovement;
+    PlayerAnimationTrigger: TAnimationTrigger;
     ButtonPause: TCastleButton;
   strict private
     { Checks this is first Update when the InputJump occurred.
@@ -74,7 +79,6 @@ type
 
     { Player abilities }
     PlayerCanDoubleJump: Boolean;
-    WasDoubleJump: Boolean;
     PlayerCanShot: Boolean;
     PlayerCollectedCoins: Integer;
     PlayerHitPoints: Integer;
@@ -114,30 +118,8 @@ type
     procedure PlayerCollisionExit(const CollisionDetails: TPhysicsCollisionDetails);
     procedure ConfigureBulletSpriteScene;
 
-    { Simplest version }
-    procedure UpdatePlayerSimpleDependOnlyVelocity(const SecondsPassed: Single;
-      var HandleInput: Boolean);
-
-    { More advanced version with ray to check "Are we on ground?" }
-    procedure UpdatePlayerByVelocityAndRay(const SecondsPassed: Single;
-      var HandleInput: Boolean);
-
-    { More advanced version with ray to check "Are we on ground?" and
-      double jump }
-    procedure UpdatePlayerByVelocityAndRayWithDblJump(const SecondsPassed: Single;
-      var HandleInput: Boolean);
-
-    { More advanced version with physics ray to check "Are we on ground?" and
-      double jump }
-    procedure UpdatePlayerByVelocityAndPhysicsRayWithDblJump(const SecondsPassed: Single;
-      var HandleInput: Boolean);
-
-    { More advanced version with physics ray to check "Are we on ground?",
-      double jump, shot and move acceleration frame rate independed }
-    procedure UpdatePlayerByVelocityAndPhysicsRayWithDblJumpShot(const SecondsPassed: Single;
-      var HandleInput: Boolean);
-
     procedure Shot(BulletOwner: TComponent; const Origin, Direction: TVector3);
+    procedure AfterPlayerMovementUpdate(Sender: TObject);
 
     { Coins support }
     procedure CollectCoin;
@@ -151,24 +133,30 @@ type
     procedure CollectKey;
     procedure ResetCollectedKeys;
 
+    { Special animation play function to play an animation ant then loop
+      another one (specified in AnimationNameToLoop) }
     procedure PlayAnimationOnceAndLoop(Scene: TCastleScene;
       const AnimationNameToPlayOnce, AnimationNameToLoop: String);
     procedure OnAnimationStop(const Scene: TCastleSceneCore;
       const Animation: TTimeSensorNode);
 
-    { Check pressed keys and mouse/touch, to support both keyboard
+    { Check input for shot via keys and mouse/touch, to support both keyboard
       and mouse and touch (on mobile) navigation. }
-    function InputLeft: Boolean;
-    function InputRight: Boolean;
-    function InputJump: Boolean;
     function InputShot: Boolean;
-
+    { Callback for TCastleInputAxis for moving player on touch screen. }
+    procedure TouchScreenMove(const Sender: TCastleInputAxis; var Value: Single);
+    { Callback for TInputShortcut for player jumping on touch screen. }
+    procedure TouchScreenJump(const Sender: TInputShortcut; var IsPressed: Boolean);
     procedure ClickPause(Sender: TObject);
   public
     constructor Create(AOwner: TComponent); override;
+    { Procedure called after level is loaded }
     procedure Start; override;
+    { Procedure called before level is closed }
     procedure Stop; override;
+    { Procedure called after this view becomes top one }
     procedure Resume; override;
+    { Procedure called on every frame }
     procedure Update(const SecondsPassed: Single; var HandleInput: Boolean); override;
     function Press(const Event: TInputPressRelease): Boolean; override;
 
@@ -253,66 +241,59 @@ begin
   DesignUrl := 'castle-data:/gameviewplay.castle-user-interface';
 end;
 
-function TViewPlay.InputLeft: Boolean;
-var
-  I: Integer;
-begin
-  Result :=
-    Container.Pressed.Items[keyA] or
-    Container.Pressed.Items[keyArrowLeft];
-
-  { Mouse, or any finger, pressing in left-lower part of the screen.
-
-    Note: if we would not need to support multi-touch (and only wanted
-    to check 1st finger) then we would use simpler "Container.MousePosition"
-    instead of "Container.TouchesCount", "Container.Touches[..].Position". }
-
-  if buttonLeft in Container.MousePressed then
-    for I := 0 to Container.TouchesCount - 1 do
-      if (Container.Touches[I].Position.X < Container.PixelsWidth * 0.5) and
-         (Container.Touches[I].Position.Y < Container.PixelsHeight * 0.5) then
-        Exit(true);
-end;
-
-function TViewPlay.InputRight: Boolean;
-var
-  I: Integer;
-begin
-  Result :=
-    Container.Pressed.Items[keyD] or
-    Container.Pressed.Items[keyArrowRight];
-
-  { Mouse, or any finger, pressing in left-lower part of the screen. }
-  if buttonLeft in Container.MousePressed then
-    for I := 0 to Container.TouchesCount - 1 do
-      if (Container.Touches[I].Position.X >= Container.PixelsWidth * 0.5) and
-         (Container.Touches[I].Position.Y < Container.PixelsHeight * 0.5) then
-        Exit(true);
-end;
-
-function TViewPlay.InputJump: Boolean;
-var
-  I: Integer;
-begin
-  Result :=
-    Container.Pressed.Items[keyW] or
-    Container.Pressed.Items[keyArrowUp];
-
-  { Mouse, or any finger, pressing in upper part of the screen. }
-  if buttonLeft in Container.MousePressed then
-    for I := 0 to Container.TouchesCount - 1 do
-      if (Container.Touches[I].Position.Y >= Container.PixelsHeight * 0.5) then
-        Exit(true);
-end;
-
 function TViewPlay.InputShot: Boolean;
 begin
   Result :=
     Container.Pressed.Items[keySpace] or
-    Container.Pressed.Items[keyEnter] or
     { Right mouse button, or 2 fingers, are held. }
     (buttonRight in Container.MousePressed) or
     (Container.TouchesCount >= 2);
+end;
+
+procedure TViewPlay.TouchScreenMove(const Sender: TCastleInputAxis;
+  var Value: Single);
+var
+  LValue, RValue: Single;
+  I: Integer;
+begin
+  { Note: if we would not need to support multi-touch (and only wanted
+    to check 1st finger) then we would use simpler "Container.MousePosition"
+    instead of "Container.TouchesCount", "Container.Touches[..].Position". }
+  LValue := 0;
+  RValue := 0;
+  if buttonLeft in Container.MousePressed then
+  begin
+    for I := 0 to Container.TouchesCount - 1 do
+    begin
+      { Check only the lower part of the screen }
+      if Container.Touches[I].Position.Y < Container.PixelsHeight * 0.5 then
+      begin
+        if Container.Touches[I].Position.X < Container.PixelsWidth * 0.5 then
+          LValue := -1.0
+        else
+        if Container.Touches[I].Position.X >= Container.PixelsWidth * 0.5 then
+          RValue := 1.0;
+      end;
+    end;
+    { When we touch left and right part of the window at the same time there is no
+      movement }
+    Value := LValue + RValue;
+  end;
+end;
+
+procedure TViewPlay.TouchScreenJump(const Sender: TInputShortcut;
+  var IsPressed: Boolean);
+var
+  I: Integer;
+begin
+  { Mouse, or any finger, pressing in upper part of the screen. }
+  if buttonLeft in Container.MousePressed then
+    for I := 0 to Container.TouchesCount - 1 do
+      if (Container.Touches[I].Position.Y >= Container.PixelsHeight * 0.5) then
+      begin
+        IsPressed := true;
+        Exit;
+      end;
 end;
 
 procedure TViewPlay.ConfigurePlayerPhysics(
@@ -333,7 +314,7 @@ end;
 procedure TViewPlay.ConfigurePlayerAbilities(const Player: TCastleScene);
 begin
   PlayerCanDoubleJump := false;
-  WasDoubleJump := false;
+  PlayerDoubleJumpSupport.Exists := false;
   PlayerCanShot := false;
   ResetHitPoints;
 
@@ -355,6 +336,7 @@ begin
     begin
       SoundEngine.Play(NamedSound('PowerUp'));
       PlayerCanDoubleJump := true;
+      PlayerDoubleJumpSupport.Exists := true;
       CollisionDetails.OtherTransform.Exists := false;
     end else
     if Pos('Shot', CollisionDetails.OtherTransform.Name) > 0 then
@@ -398,673 +380,6 @@ begin
   BulletSpriteScene.Scale := Vector3(0.5, 0.5, 0.5);
 end;
 
-procedure TViewPlay.UpdatePlayerSimpleDependOnlyVelocity(
-  const SecondsPassed: Single; var HandleInput: Boolean);
-const
-  JumpVelocity = 700;
-  MaxHorizontalVelocity = 350;
-var
-  DeltaVelocity: TVector3;
-  Vel: TVector3;
-  PlayerOnGround: Boolean;
-begin
-  { This method is executed every frame.}
-
-  { When player is dead, he can't do anything }
-  if IsPlayerDead then
-    Exit;
-
-  DeltaVelocity := Vector3(0, 0, 0);
-  Vel := PlayerRigidBody.LinearVelocity;
-
-  { This is not ideal you can do another jump when Player is
-    on top of the jump you can make next jump, but can be nice mechanic
-    for someone }
-  PlayerOnGround := (Abs(Vel.Y) < 10);
-
-  if InputJump then
-  begin
-    if (not WasInputJump) and PlayerOnGround then
-    begin
-      DeltaVelocity.Y := JumpVelocity;
-      WasInputJump := true;
-    end;
-  end else
-    WasInputJump := false;
-
-
-  if InputRight and PlayerOnGround then
-  begin
-    DeltaVelocity.x := MaxHorizontalVelocity / 2;
-  end;
-
-  if InputLeft and PlayerOnGround then
-  begin
-    DeltaVelocity.x := - MaxHorizontalVelocity / 2;
-  end;
-
-  if Vel.X + DeltaVelocity.X > 0 then
-    Vel.X := Min(Vel.X + DeltaVelocity.X, MaxHorizontalVelocity)
-  else
-    Vel.X := Max(Vel.X + DeltaVelocity.X, -MaxHorizontalVelocity);
-
-  Vel.Y := Vel.Y + DeltaVelocity.Y;
-  Vel.Z := 0;
-
-  { Stop the player without slipping }
-  if PlayerOnGround and (not InputRight) and (not InputLeft) then
-    Vel.X := 0;
-
-  PlayerRigidBody.LinearVelocity := Vel;
-
-  { Set animation }
-
-  { We get here 20 because vertical velocity calculated by physics engine when
-    player is on platform have no 0 but some small values to up and down sometimes
-    It can fail when the player goes uphill (will set jump animation) or down
-    will set fall animation }
-  if Vel.Y > 20 then
-    ScenePlayer.PlayAnimation('jump', true)
-  else
-  if Vel.Y < -20 then
-    ScenePlayer.PlayAnimation('fall', true)
-  else
-    if Abs(Vel.X) > 1 then
-    begin
-      if ScenePlayer.CurrentAnimation.X3DName <> 'walk' then
-        ScenePlayer.PlayAnimation('walk', true);
-    end
-    else
-      ScenePlayer.PlayAnimation('idle', true);
-
-  if Vel.X < -1 then
-    ScenePlayer.Scale := Vector3(-1, 1, 1)
-  else if Vel.X > 1 then
-    ScenePlayer.Scale := Vector3(1, 1, 1);
-end;
-
-procedure TViewPlay.UpdatePlayerByVelocityAndRay(const SecondsPassed: Single;
-  var HandleInput: Boolean);
-const
-  JumpVelocity = 700;
-  MaxHorizontalVelocity = 350;
-var
-  DeltaVelocity: TVector3;
-  Vel: TVector3;
-  PlayerOnGround: Boolean;
-  GroundHit: TRayCastResult;
-begin
-  { This method is executed every frame.}
-
-  { When player is dead, he can't do anything }
-  if IsPlayerDead then
-    Exit;
-
-  DeltaVelocity := Vector3(0, 0, 0);
-  Vel := PlayerRigidBody.LinearVelocity;
-
-  { Check player is on ground }
-  GroundHit := PlayerRigidBody.PhysicsRayCast(ScenePlayer.Translation + Vector3(0, -ScenePlayer.BoundingBox.SizeY / 2, 0), Vector3(0, -1, 0));
-  if GroundHit.Hit then
-  begin
-    // WriteLnLog('Distance ', FloatToStr(Distance));
-    PlayerOnGround := GroundHit.Distance < 2;
-  end else
-    PlayerOnGround := false;
-
-  { Two more checks using physics engine - player should slide down when player is just
-    on the edge.
-    TODO: maybe we can remove this logic after using TCastleCapsule collider for player. }
-  if not PlayerOnGround then
-  begin
-    GroundHit := PlayerRigidBody.PhysicsRayCast(ScenePlayer.Translation + Vector3(-ScenePlayer.BoundingBox.SizeX * 0.30, -ScenePlayer.BoundingBox.SizeY / 2, 0), Vector3(0, -1, 0));
-    if GroundHit.Hit then
-    begin
-      // WriteLnLog('Distance ', FloatToStr(Distance));
-      PlayerOnGround := GroundHit.Distance < 2;
-    end else
-      PlayerOnGround := false;
-  end;
-
-  if not PlayerOnGround then
-  begin
-    GroundHit := PlayerRigidBody.PhysicsRayCast(ScenePlayer.Translation + Vector3(ScenePlayer.BoundingBox.SizeX * 0.30, -ScenePlayer.BoundingBox.SizeY / 2, 0), Vector3(0, -1, 0));
-    if GroundHit.Hit then
-    begin
-      // WriteLnLog('Distance ', FloatToStr(Distance));
-      PlayerOnGround := GroundHit.Distance < 2;
-    end else
-      PlayerOnGround := false;
-  end;
-
-  if InputJump then
-  begin
-    if (not WasInputJump) and PlayerOnGround then
-    begin
-      DeltaVelocity.Y := JumpVelocity;
-      WasInputJump := true;
-    end;
-  end else
-    WasInputJump := false;
-
-
-  if InputRight and PlayerOnGround then
-  begin
-    DeltaVelocity.x := MaxHorizontalVelocity / 2;
-  end;
-
-  if InputLeft and PlayerOnGround then
-  begin
-    DeltaVelocity.x := - MaxHorizontalVelocity / 2;
-  end;
-
-  if Vel.X + DeltaVelocity.X > 0 then
-    Vel.X := Min(Vel.X + DeltaVelocity.X, MaxHorizontalVelocity)
-  else
-    Vel.X := Max(Vel.X + DeltaVelocity.X, -MaxHorizontalVelocity);
-
-  Vel.Y := Vel.Y + DeltaVelocity.Y;
-  Vel.Z := 0;
-
-  { Stop the player without slipping }
-  if PlayerOnGround and (not InputRight) and (not InputLeft) then
-    Vel.X := 0;
-
-  PlayerRigidBody.LinearVelocity := Vel;
-
-  { Set animation }
-
-  { We get here 20 because vertical velocity calculated by physics engine when
-    player is on platform have no 0 but some small values to up and down sometimes
-    It can fail when the player goes uphill (will set jump animation) or down
-    will set fall animation }
-  if Vel.Y > 20 then
-    ScenePlayer.PlayAnimation('jump', true)
-  else
-  if Vel.Y < -20 then
-    ScenePlayer.PlayAnimation('fall', true)
-  else
-    if Abs(Vel.X) > 1 then
-    begin
-      if ScenePlayer.CurrentAnimation.X3DName <> 'walk' then
-        ScenePlayer.PlayAnimation('walk', true);
-    end
-    else
-      ScenePlayer.PlayAnimation('idle', true);
-
-  if Vel.X < -1 then
-    ScenePlayer.Scale := Vector3(-1, 1, 1)
-  else if Vel.X > 1 then
-    ScenePlayer.Scale := Vector3(1, 1, 1);
-end;
-
-procedure TViewPlay.UpdatePlayerByVelocityAndRayWithDblJump(
-  const SecondsPassed: Single; var HandleInput: Boolean);
-const
-  JumpVelocity = 700;
-  MaxHorizontalVelocity = 350;
-var
-  DeltaVelocity: TVector3;
-  Vel: TVector3;
-  PlayerOnGround: Boolean;
-  GroundHit: TRayCastResult;
-  InSecondJump: Boolean;
-begin
-  { This method is executed every frame.}
-
-  { When player is dead, he can't do anything }
-  if IsPlayerDead then
-    Exit;
-
-  InSecondJump := false;
-
-  DeltaVelocity := Vector3(0, 0, 0);
-  Vel := PlayerRigidBody.LinearVelocity;
-
-  { Check player is on ground }
-  GroundHit := PlayerRigidBody.PhysicsRayCast(ScenePlayer.Translation + Vector3(0, -ScenePlayer.BoundingBox.SizeY / 2, 0), Vector3(0, -1, 0));
-  if GroundHit.Hit then
-  begin
-    // WriteLnLog('Distance ', FloatToStr(Distance));
-    PlayerOnGround := GroundHit.Distance < 2;
-  end else
-    PlayerOnGround := false;
-
-  { Two more checks using physics - player should slide down when player just
-    on the edge, maye be can remove that when add Capsule collider }
-  if not PlayerOnGround then
-  begin
-    GroundHit := PlayerRigidBody.PhysicsRayCast(ScenePlayer.Translation + Vector3(-ScenePlayer.BoundingBox.SizeX * 0.30 , -ScenePlayer.BoundingBox.SizeY / 2, 0), Vector3(0, -1, 0));
-    if GroundHit.Hit then
-    begin
-      // WriteLnLog('Distance ', FloatToStr(Distance));
-      PlayerOnGround := GroundHit.Distance < 2;
-    end else
-      PlayerOnGround := false;
-  end;
-
-  if not PlayerOnGround then
-  begin
-    GroundHit := PlayerRigidBody.PhysicsRayCast(ScenePlayer.Translation + Vector3(ScenePlayer.BoundingBox.SizeX * 0.30, -ScenePlayer.BoundingBox.SizeY / 2, 0), Vector3(0, -1, 0));
-    if GroundHit.Hit then
-    begin
-      // WriteLnLog('Distance ', FloatToStr(Distance));
-      PlayerOnGround := GroundHit.Distance < 2;
-    end else
-      PlayerOnGround := false;
-  end;
-
-  if PlayerOnGround then
-    WasDoubleJump := false;
-
-  if InputJump then
-  begin
-    if (not WasInputJump) and (PlayerOnGround or (PlayerCanDoubleJump and (not WasDoubleJump))) then
-    begin
-      if not PlayerOnGround then
-      begin
-        WasDoubleJump := true;
-        InSecondJump := true;
-        { In second jump just add diffrence betwen current Velocity and JumpVelocity }
-        DeltaVelocity.Y := JumpVelocity - Vel.Y;
-      end else
-        DeltaVelocity.Y := JumpVelocity;
-      WasInputJump := true;
-    end;
-  end else
-    WasInputJump := false;
-
-  if InputRight then
-  begin
-    if PlayerOnGround then
-      DeltaVelocity.x := MaxHorizontalVelocity / 2
-    else if InSecondJump then
-      { When key is pressed when you make second jump you can increase
-        horizontal speed }
-      DeltaVelocity.x := MaxHorizontalVelocity / 3
-    else
-      { This add a little control when you in the air during jumping or falling }
-      DeltaVelocity.x := MaxHorizontalVelocity / 20;
-  end;
-
-  if InputLeft then
-  begin
-    if PlayerOnGround then
-      DeltaVelocity.x := - MaxHorizontalVelocity / 2
-    else if InSecondJump then
-      { When key is pressed when you make second jump you can increase
-        horizontal speed }
-      DeltaVelocity.x := - MaxHorizontalVelocity / 3
-    else
-      { This add a little control when you in the air during jumping or falling }
-      DeltaVelocity.x := - MaxHorizontalVelocity / 20;
-  end;
-
-  if Vel.X + DeltaVelocity.X > 0 then
-    Vel.X := Min(Vel.X + DeltaVelocity.X, MaxHorizontalVelocity)
-  else
-    Vel.X := Max(Vel.X + DeltaVelocity.X, -MaxHorizontalVelocity);
-
-  Vel.Y := Vel.Y + DeltaVelocity.Y;
-  Vel.Z := 0;
-
-  { Stop the player without slipping }
-  if PlayerOnGround and (not InputRight) and (not InputLeft) then
-    Vel.X := 0;
-
-  PlayerRigidBody.LinearVelocity := Vel;
-
-  { Set animation }
-
-  { We get here 20 because vertical velocity calculated by physics engine when
-    player is on platform have no 0 but some small values to up and down sometimes
-    It can fail when the player goes uphill (will set jump animation) or down
-    will set fall animation }
-  if (not PlayerOnGround) and (Vel.Y > 20) then
-    ScenePlayer.PlayAnimation('jump', true)
-  else
-  if (not PlayerOnGround) and (Vel.Y < -20) then
-    ScenePlayer.PlayAnimation('fall', true)
-  else
-    if Abs(Vel.X) > 1 then
-    begin
-      if ScenePlayer.CurrentAnimation.X3DName <> 'walk' then
-        ScenePlayer.PlayAnimation('walk', true);
-    end
-    else
-      ScenePlayer.PlayAnimation('idle', true);
-
-  if Vel.X < -1 then
-    ScenePlayer.Scale := Vector3(-1, 1, 1)
-  else if Vel.X > 1 then
-    ScenePlayer.Scale := Vector3(1, 1, 1);
-end;
-
-procedure TViewPlay.UpdatePlayerByVelocityAndPhysicsRayWithDblJump(
-  const SecondsPassed: Single; var HandleInput: Boolean);
-const
-  JumpVelocity = 700;
-  MaxHorizontalVelocity = 350;
-  AirControlFactor = 20;
-var
-  DeltaVelocity: TVector3;
-  Vel: TVector3;
-  PlayerOnGround: Boolean;
-  InSecondJump: Boolean;
-begin
-  { This method is executed every frame.}
-
-  { When player is dead, he can't do anything }
-  if IsPlayerDead then
-    Exit;
-
-  InSecondJump := false;
-
-  DeltaVelocity := Vector3(0, 0, 0);
-  Vel := PlayerRigidBody.LinearVelocity;
-
-  { Check player is on ground }
-  PlayerOnGround := PlayerRigidBody.PhysicsRayCast(ScenePlayer.Translation,
-    Vector3(0, -1, 0), ScenePlayer.BoundingBox.SizeY / 2 + 5).Hit;
-
-  { Two more checks using physics - player should slide down when player just
-    on the edge, but sometimes it stay and center ray dont "see" that we are
-    on ground }
-  if not PlayerOnGround then
-  begin
-    PlayerOnGround := PlayerRigidBody.PhysicsRayCast(ScenePlayer.Translation
-      + Vector3(-ScenePlayer.BoundingBox.SizeX * 0.30, 0, 0),
-      Vector3(0, -1, 0), ScenePlayer.BoundingBox.SizeY / 2 + 5).Hit;
-  end;
-
-  if not PlayerOnGround then
-  begin
-    PlayerOnGround := PlayerRigidBody.PhysicsRayCast(ScenePlayer.Translation
-      + Vector3(ScenePlayer.BoundingBox.SizeX * 0.30, 0, 0),
-      Vector3(0, -1, 0), ScenePlayer.BoundingBox.SizeY / 2 + 5).Hit;
-  end;
-
-  if PlayerOnGround then
-    WasDoubleJump := false;
-
-  if InputJump then
-  begin
-    if (not WasInputJump) and (PlayerOnGround or (PlayerCanDoubleJump and (not WasDoubleJump))) then
-    begin
-      if not PlayerOnGround then
-      begin
-        WasDoubleJump := true;
-        InSecondJump := true;
-        { In second jump just add diffrence betwen current Velocity and JumpVelocity }
-        DeltaVelocity.Y := JumpVelocity - Vel.Y;
-      end else
-        DeltaVelocity.Y := JumpVelocity;
-      WasInputJump := true;
-    end;
-  end else
-    WasInputJump := false;
-
-  if InputRight then
-  begin
-    if PlayerOnGround then
-      DeltaVelocity.x := MaxHorizontalVelocity / 2
-    else if InSecondJump then
-      { When key is pressed when you make second jump you can increase
-        horizontal speed }
-      DeltaVelocity.x := MaxHorizontalVelocity / 3
-    else
-      { This add a little control when you in the air during jumping or falling }
-      DeltaVelocity.x := MaxHorizontalVelocity / 20;
-  end;
-
-  if InputLeft then
-  begin
-    if PlayerOnGround then
-      DeltaVelocity.x := - MaxHorizontalVelocity / 2
-    else if InSecondJump then
-      { When key is pressed when you make second jump you can increase
-        horizontal speed }
-      DeltaVelocity.x := - MaxHorizontalVelocity / 3
-    else
-      { This add a little control when you in the air during jumping or falling }
-      DeltaVelocity.x := - MaxHorizontalVelocity / 20;
-  end;
-
-  if Vel.X + DeltaVelocity.X > 0 then
-    Vel.X := Min(Vel.X + DeltaVelocity.X, MaxHorizontalVelocity)
-  else
-    Vel.X := Max(Vel.X + DeltaVelocity.X, -MaxHorizontalVelocity);
-
-  Vel.Y := Vel.Y + DeltaVelocity.Y;
-  Vel.Z := 0;
-
-  { Stop the player without slipping }
-  if PlayerOnGround and (not InputRight) and (not InputLeft) then
-    Vel.X := 0;
-
-  PlayerRigidBody.LinearVelocity := Vel;
-
-  { Set animation }
-
-  { We get here 20 because vertical velocity calculated by physics engine when
-    player is on platform have no 0 but some small values to up and down sometimes
-    It can fail when the player goes uphill (will set jump animation) or down
-    will set fall animation }
-  if (not PlayerOnGround) and (Vel.Y > 20) then
-    ScenePlayer.PlayAnimation('jump', true)
-  else
-  if (not PlayerOnGround) and (Vel.Y < -20) then
-    ScenePlayer.PlayAnimation('fall', true)
-  else
-    if Abs(Vel.X) > 1 then
-    begin
-      if ScenePlayer.CurrentAnimation.X3DName <> 'walk' then
-        ScenePlayer.PlayAnimation('walk', true);
-    end
-    else
-      ScenePlayer.PlayAnimation('idle', true);
-
-  if Vel.X < -1 then
-    ScenePlayer.Scale := Vector3(-1, 1, 1)
-  else if Vel.X > 1 then
-    ScenePlayer.Scale := Vector3(1, 1, 1);
-end;
-
-procedure TViewPlay.UpdatePlayerByVelocityAndPhysicsRayWithDblJumpShot(
-  const SecondsPassed: Single; var HandleInput: Boolean);
-const
-  JumpVelocity = 680;
-  MaxHorizontalVelocity = 345;
-  { We need multiply any horizontal velocity speed by SecondsPassed.
-    Without that when game will run 120 FPS, player will accelerated
-    twice faster than on 60 FPS.
-    So MaxHorizontalVelocityChange is designed and tested on 60 FPS so we need
-    multiply MaxHorizontalVelocity by 60 to get it.
-
-    It's easy to realize when you know that for 60 FPS:
-
-    MaxHorizontalVelocityChange * SecondsPassed * 60 = 350
-    21000 * (1/60) * 60 = 350
-    21000 * 0.01666 * 60 = 350
-
-    And for 120 FPS:
-    21000 * (1/120) * 60 = 175
-    21000 * 0.008333 * 60 = 175
-    For 120 FPS every frame max speed up will be 175 but you have two times
-    more frames (updates). So 175 * 2 = 350 like in 60 FPS.
-
-    We don't need that for jump because jump is one time event not changed
-    per update. If something depend from update call frequency you need make it
-    depend from time passed in CGE SecondsPassed.
-    }
-  MaxHorizontalVelocityChange = MaxHorizontalVelocity * 60;
-var
-  DeltaVelocity: TVector3;
-  Vel: TVector3;
-  PlayerOnGround: Boolean;
-  InSecondJump: Boolean;
-  GroundScene: TCastleTransform;
-begin
-  { This method is executed every frame.}
-
-  { When player is dead, he can't do anything }
-  if IsPlayerDead then
-    Exit;
-
-  if PlayerRigidBody = nil then
-    Exit;
-
-  DeltaVelocity := Vector3(0, 0, 0);
-  Vel := PlayerRigidBody.LinearVelocity;
-
-  { Check player is on ground }
-  GroundScene := PlayerRigidBody.PhysicsRayCast(ScenePlayer.Translation,
-    Vector3(0, -1, 0), ScenePlayer.BoundingBox.SizeY / 2 + 5).Transform;
-
-  { Two more checks - player should slide down when player just
-    on the edge, but sometimes it stay and center ray don't "see" that we are
-    on ground }
-  if GroundScene = nil then
-  begin
-    GroundScene := PlayerRigidBody.PhysicsRayCast(ScenePlayer.Translation
-      + Vector3(-ScenePlayer.BoundingBox.SizeX * 0.30, 0, 0),
-      Vector3(0, -1, 0), ScenePlayer.BoundingBox.SizeY / 2 + 5).Transform;
-  end;
-
-  if GroundScene = nil then
-  begin
-    GroundScene := PlayerRigidBody.PhysicsRayCast(ScenePlayer.Translation
-      + Vector3(ScenePlayer.BoundingBox.SizeX * 0.30, 0, 0),
-      Vector3(0, -1, 0), ScenePlayer.BoundingBox.SizeY / 2 + 5).Transform;
-  end;
-
-  { Player is on ground when RayCasts hits something }
-  PlayerOnGround := (GroundScene <> nil);
-
-  { Reset DoubleJump flag when player is on ground. }
-  if PlayerOnGround then
-    WasDoubleJump := false;
-
-  { Flag for velocity calculation when second jump starts in this Update }
-  InSecondJump := false;
-  if InputJump then
-  begin
-    { Player can jump when:
-      - is on ground
-      - he can double jump and there was not WasDoubleJump
-      - here we also check if the key has just been pressed (when it is held,
-        the player should not keep jumping) }
-    if (not WasInputJump) and (PlayerOnGround or (PlayerCanDoubleJump and (not WasDoubleJump))) then
-    begin
-      SoundEngine.Play(NamedSound('Jump'));
-      if not PlayerOnGround then
-      begin
-        WasDoubleJump := true;
-        InSecondJump := true;
-        { In second jump just add diffrence between current Velocity and JumpVelocity }
-        DeltaVelocity.Y := JumpVelocity - Vel.Y;
-      end else
-        DeltaVelocity.Y := JumpVelocity;
-      WasInputJump := true;
-    end;
-  end else
-    WasInputJump := false;
-
-  if InputRight then
-  begin
-    if PlayerOnGround then
-      DeltaVelocity.x := MaxHorizontalVelocityChange * SecondsPassed / 2
-    else if InSecondJump then
-      { When key is pressed when you make second jump you can increase
-        horizontal speed }
-      DeltaVelocity.x := MaxHorizontalVelocityChange * SecondsPassed / 3
-    else
-      { This add a little control when you in the air during jumping or falling }
-      DeltaVelocity.x := MaxHorizontalVelocityChange * SecondsPassed / 14;
-  end;
-
-  if InputLeft then
-  begin
-    if PlayerOnGround then
-      DeltaVelocity.x := - MaxHorizontalVelocityChange * SecondsPassed / 2
-    else if InSecondJump then
-      { When key is pressed when you make second jump you can increase
-        horizontal speed }
-      DeltaVelocity.x := - MaxHorizontalVelocityChange * SecondsPassed / 3
-    else
-      { This add a little control when you in the air during jumping or falling }
-      DeltaVelocity.x := - MaxHorizontalVelocityChange * SecondsPassed / 14;
-  end;
-
-  if Vel.X + DeltaVelocity.X > 0 then
-    Vel.X := Min(Vel.X + DeltaVelocity.X, MaxHorizontalVelocity)
-  else
-    Vel.X := Max(Vel.X + DeltaVelocity.X, -MaxHorizontalVelocity);
-
-  Vel.Y := Vel.Y + DeltaVelocity.Y;
-  Vel.Z := 0;
-
-  { Stop the player without slipping }
-  if PlayerOnGround and (not InputRight) and (not InputLeft) then
-    Vel.X := 0;
-
-  { Player can't move when hurt on ground }
-  if PlayerOnGround and (ScenePlayer.CurrentAnimation.X3DName = 'hurt') then
-  begin
-    Vel.X := 0;
-    Vel.Y := 0;
-  end;
-
-  PlayerRigidBody.LinearVelocity := Vel;
-
-  { Set animation }
-
-  { Don't change animation when player are hurt }
-  if ScenePlayer.CurrentAnimation.X3DName <> 'hurt' then
-  begin
-  { We get here 20 because vertical velocity calculated by physics engine when
-    player is on platform have no 0 but some small values to up and down sometimes
-    It can fail when the player goes uphill (will set jump animation) or down
-    will set fall animation }
-  if (not PlayerOnGround) and (Vel.Y > 20) then
-    ScenePlayer.PlayAnimation('jump', true)
-  else
-  if (not PlayerOnGround) and (Vel.Y < -20) then
-    ScenePlayer.PlayAnimation('fall', true)
-  else
-    if Abs(Vel.X) > 1 then
-    begin
-      if ScenePlayer.CurrentAnimation.X3DName <> 'walk' then
-        ScenePlayer.PlayAnimation('walk', true);
-    end
-    else
-      ScenePlayer.PlayAnimation('idle', true);
-  end;
-
-  { Here we use horizontal velocity to change player scene direction to moving
-    direction. }
-  if Vel.X < -1 then
-    ScenePlayer.Scale := Vector3(-1, 1, 1)
-  else if Vel.X > 1 then
-    ScenePlayer.Scale := Vector3(1, 1, 1);
-
-  if PlayerCanShot then
-  begin
-    if InputShot then
-    begin
-      if WasInputShot = false  then
-      begin
-        SoundEngine.Play(NamedSound('Shot'));
-        WasInputShot := true;
-
-        Shot(ScenePlayer, ScenePlayer.LocalToWorld(Vector3(ScenePLayer.BoundingBox.SizeX / 2 + 5, 0, 0)),
-          Vector3(ScenePlayer.Scale.X, 1, 0));
-      end;
-    end else
-      WasInputShot := false;
-  end;
-end;
-
 procedure TViewPlay.Shot(BulletOwner: TComponent; const Origin,
   Direction: TVector3);
 var
@@ -1074,6 +389,62 @@ begin
   Bullet.Translation := Origin;
   Bullet.RBody.LinearVelocity := Direction * Vector3(750, 20, 0);
   MainViewport.Items.Add(Bullet);
+end;
+
+procedure TViewPlay.AfterPlayerMovementUpdate(Sender: TObject);
+var
+  Velocity: TVector3;
+begin
+  { always check is player moving the same direction }
+  Velocity := PlayerRigidBody.LinearVelocity;
+  if Velocity.X < -1 then
+    ScenePlayer.Scale := Vector3(-1, 1, 1)
+  else if Velocity.X > 1 then
+    ScenePlayer.Scale := Vector3(1, 1, 1);
+
+  if PlayerAnimationTrigger.Exists then
+    Exit;
+
+  { Check is there first jump frame }
+  if PlayerModularMovement.IsFirstJumpingFrame then
+  begin
+    SoundEngine.Play(NamedSound('Jump'));
+    if ScenePlayer.CurrentAnimation.X3DName <> 'hurt' then
+    begin
+      if ScenePlayer.CurrentAnimation.X3DName <> 'jump' then
+          ScenePlayer.PlayAnimation('jump', true)
+    end else
+      PlayerAnimationToLoop := 'jump';
+    Exit;
+  end;
+
+  { Don't change animation when player are hurt }
+  if ScenePlayer.CurrentAnimation.X3DName <> 'hurt' then
+  begin
+    if (not PlayerModularMovement.IsPlayerOnGround) and (Velocity.Y > 0) then
+    begin
+      //WritelnLog('jump');
+      if ScenePlayer.CurrentAnimation.X3DName <> 'jump' then
+        ScenePlayer.PlayAnimation('jump', true)
+    end else
+    if (not PlayerModularMovement.IsPlayerOnGround) then
+    begin
+      //WritelnLog('fall');
+      if ScenePlayer.CurrentAnimation.X3DName <> 'fall' then
+        ScenePlayer.PlayAnimation('fall', true)
+    end else
+      if Abs(Velocity.X) > 1 then
+      begin
+        //WritelnLog('walk');
+        if ScenePlayer.CurrentAnimation.X3DName <> 'walk' then
+          ScenePlayer.PlayAnimation('walk', true);
+      end else
+      begin
+        //WritelnLog('idle');
+        if ScenePlayer.CurrentAnimation.X3DName <> 'idle' then
+          ScenePlayer.PlayAnimation('idle', true);
+      end;
+  end;
 end;
 
 procedure TViewPlay.CollectCoin;
@@ -1202,6 +573,7 @@ var
 begin
   inherited;
 
+  { Physics layers are configured in editor but you can also make it in that way. }
   {ScenePlayer.World.PhysicsProperties.LayerCollisons.Collides[0,1] := true; // ground collide with player
   ScenePlayer.World.PhysicsProperties.LayerCollisons.Collides[0,0] := true; // ground collide with ground
   ScenePlayer.World.PhysicsProperties.LayerCollisons.Collides[0,2] := true; // ground collide with enemies
@@ -1240,6 +612,7 @@ begin
     end;
   end;
 
+  { Configure enemies }
   Enemies := TEnemyList.Create(true);
   EnemiesRoot := DesignedComponent('Enemies') as TCastleTransform;
   for I := 0 to EnemiesRoot.Count - 1 do
@@ -1257,6 +630,7 @@ begin
     Enemies.Add(Enemy);
   end;
 
+  { Configure falling obstacles }
   FallingObstacles := TFallingObstaclesList.Create(true);
   FallingObstaclesRoot := DesignedComponent('FallingObstacles') as TCastleTransform;
   for I := 0 to FallingObstaclesRoot.Count - 1 do
@@ -1270,6 +644,7 @@ begin
     FallingObstacles.Add(FallingObstacle);
   end;
 
+  { Configure deadly obstacles }
   DeadlyObstacles := TDeadlyObstaclesList.Create(true);
   DeadlyObstaclesRoot := DesignedComponent('DeadlyObstacles') as TCastleTransform;
   for I := 0 to DeadlyObstaclesRoot.Count - 1 do
@@ -1288,6 +663,13 @@ begin
 
   ConfigurePlayerAbilities(ScenePlayer);
 
+  { Add player after update listener to set animations and sounds }
+  ScenePlayer.AddAfterUpdateListener({$ifdef FPC}@{$endif} AfterPlayerMovementUpdate);
+  { Support for touch screen by TCastleInputAxis and TInputShortcut callbacks }
+  PlayerModularMovement.SidewayInputAxis.OnUpdate := {$ifdef FPC}@{$endif} TouchScreenMove;
+  PlayerModularMovement.InputJump.OnIsPressedCheck := {$ifdef FPC}@{$endif} TouchScreenJump;
+
+  { Preparation of bullet scene }
   ConfigureBulletSpriteScene;
 
   { Play game music }
@@ -1363,6 +745,7 @@ begin
 
   LabelFps.Caption := 'FPS: ' + Container.Fps.ToString;
 
+  { Should we move camera with player }
   if CheckboxCameraFollow.Checked then
   begin
     ViewHeight := MainViewport.Camera.Orthographic.EffectiveRect.Height;
@@ -1372,7 +755,7 @@ begin
     CamPos.X := ScenePlayer.Translation.X;
     CamPos.Y := ScenePlayer.Translation.Y;
 
-    { Camera always stay on level }
+    { Keep the camera inside the level }
     if CamPos.Y - ViewHeight / 2 < LevelBounds.Down then
        CamPos.Y := LevelBounds.Down + ViewHeight / 2;
 
@@ -1388,16 +771,21 @@ begin
     MainViewport.Camera.Translation := CamPos;
   end;
 
-  if Container.FrontView = Self then // do not react to input under ViewPause, ViewControlsHelp
+  { Check player should shot }
+  if PlayerCanShot and ScenePlayer.Exists and PlayerRigidBody.Exists then
   begin
-    if CheckboxAdvancedPlayer.Checked then
-      { uncomment to see less advanced versions }
-      //UpdatePlayerByVelocityAndRay(SecondsPassed, HandleInput)
-      //UpdatePlayerByVelocityAndRayWithDblJump(SecondsPassed, HandleInput)
-      //UpdatePlayerByVelocityAndPhysicsRayWithDblJump(SecondsPassed, HandleInput)
-      UpdatePlayerByVelocityAndPhysicsRayWithDblJumpShot(SecondsPassed, HandleInput)
-    else
-      UpdatePlayerSimpleDependOnlyVelocity(SecondsPassed, HandleInput);
+    if InputShot then
+    begin
+      if WasInputShot = false  then
+      begin
+        SoundEngine.Play(NamedSound('Shot'));
+        WasInputShot := true;
+
+        Shot(ScenePlayer, ScenePlayer.LocalToWorld(Vector3(ScenePLayer.BoundingBox.SizeX / 2 + 5, 0, 0)),
+          Vector3(ScenePlayer.Scale.X, 1, 0));
+      end;
+    end else
+      WasInputShot := false;
   end;
 end;
 
