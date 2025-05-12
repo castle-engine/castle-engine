@@ -70,7 +70,6 @@
 '      "$$ClassName" : "TCastleScrollView",' + LineEnding +
 '      "Border" : {' + LineEnding +
 '        "$$ClassName" : "TBorder",' + LineEnding +
-'        "Bottom" : 3.0000000000000000E+001,' + LineEnding +
 '        "Top" : 3.0000000000000000E+001' + LineEnding +
 '      },' + LineEnding +
 '      "FullSize" : true,' + LineEnding +
@@ -174,6 +173,7 @@
 '        "Green" : 7.5294119119644165E-001,' + LineEnding +
 '        "Red" : 7.5294119119644165E-001' + LineEnding +
 '      },' + LineEnding +
+'      "Exists" : false,' + LineEnding +
 '      "Height" : 3.0000000000000000E+001,' + LineEnding +
 '      "Name" : "HierarchyBottomControls",' + LineEnding +
 '      "WidthFraction" : 1.0000000000000000E+000,' + LineEnding +

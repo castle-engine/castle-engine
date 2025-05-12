@@ -42,6 +42,7 @@ type
   public
     // designed components that are just public
     ButtonHierarchyHide: TCastleButton;
+    HierarchyBottomControls: TCastleUserInterface;
 
     OnSelect: TComponentEvent;
 
@@ -218,8 +219,21 @@ begin
   HierarchyRowParent := UiOwner.FindRequiredComponent('HierarchyRowParent') as TCastleUserInterface;
   CheckboxShowEvenInternal := UiOwner.FindRequiredComponent('CheckboxShowEvenInternal') as TCastleCheckbox;
   ButtonHierarchyHide := UiOwner.FindRequiredComponent('ButtonHierarchyHide') as TCastleButton;
+  HierarchyBottomControls := UiOwner.FindRequiredComponent('HierarchyBottomControls') as TCastleUserInterface;
 
+  { For now, this functionality is hidden, HierarchyBottomControls has
+    Exsist=false in UI (and border of list adjusted to make it look good).
+
+    Reason: this is not really useful for normal
+    engine users, and may have unintended consequences if you modify an
+    internal component.
+
+    Developers: you can uncomment the line to see HierarchyBottomControls
+    and thus CheckboxShowEvenInternal and be able to click on it,
+    to see internal info about your own components. }
+  //HierarchyBottomControls.Exists := true;
   CheckboxShowEvenInternal.OnChange := {$ifdef FPC}@{$endif} UpdateHierarchy;
+
   HierarchyRowParent.OnRender := {$ifdef FPC}@{$endif} BeforeRenderHierarchyRows;
 
   // create factory, remove template that is no longer useful
