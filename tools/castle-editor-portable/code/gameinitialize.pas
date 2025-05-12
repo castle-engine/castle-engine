@@ -23,7 +23,8 @@ interface
 implementation
 
 uses SysUtils,
-  CastleWindow, CastleLog, CastleUIControls, CastleKeysMouse, CastleMessages
+  CastleWindow, CastleLog, CastleUIControls, CastleKeysMouse, CastleMessages,
+  CastleUtils, CastleInternalFileMonitor, CastleUriUtils
   {$region 'Castle Initialization Uses'}
   // The content here may be automatically updated by CGE editor.
   , GameViewProject
@@ -54,7 +55,21 @@ begin
   TCastleContainer.InputInspector.Key := keyNone;
   TCastleContainer.InputInspector.PressFingers := 0;
 
+  { Make MessageOK use TCastleView and thus work on all systems, including iOS and web. }
   MessageOKPushesView := true;
+
+  { Inside CGE editor,
+    - CastleApplicationMode is never appRunning,
+    - so CastleDesignMode is always true. }
+  InternalCastleApplicationMode := appDesign;
+
+  { Inside CGE editor, file monitor is always enabled. }
+  FileMonitor.MakePossiblyEnabled;
+  FileMonitor.Enabled := true;
+
+  { Set InternalCastleDesignData to enable e.g. light components to
+    load gizmos. }
+  InternalCastleDesignData := ResolveCastleDataUrl('castle-data:/');
 
   { Create views (see https://castle-engine.io/views ). }
   {$region 'Castle View Creation'}

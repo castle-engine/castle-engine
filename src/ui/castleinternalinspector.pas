@@ -24,7 +24,7 @@ interface
 uses Classes, Generics.Collections, TypInfo,
   CastleControls, CastleUIControls, CastleColors, CastleRectangles,
   CastleVectors, CastleKeysMouse, CastleComponentSerialize, CastleTimeUtils,
-  CastleTransform, CastleInternalRttiUtils;
+  CastleTransform, CastleInternalRttiUtils, CastleClassUtils;
 
 {$define read_interface}
 {$I castleinternalinspector_properties.inc}
@@ -181,7 +181,7 @@ type
 implementation
 
 uses SysUtils, StrUtils,
-  CastleStringUtils, CastleGLUtils, CastleApplicationProperties, CastleClassUtils,
+  CastleStringUtils, CastleGLUtils, CastleApplicationProperties,
   CastleUtils, CastleLog, CastleGLImages,
   CastleViewport, CastleScene, CastleUriUtils, CastleInternalFileMonitor;
 
@@ -279,6 +279,7 @@ begin
   RectHierarchy.Anchor(vpTop);
   RectHierarchy.OnSelect := {$ifdef FPC}@{$endif} HierarchySelect;
   RectHierarchy.Border.AllSides := 10;
+  RectHierarchy.ShowEverythingIfRootUnset := true;
   Ui.InsertFront(RectHierarchy);
 
   RectProperties := TCastleComponentProperties.Create(Self);
