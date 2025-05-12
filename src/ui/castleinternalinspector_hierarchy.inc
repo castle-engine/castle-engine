@@ -228,7 +228,7 @@ begin
   FreeAndNil(HierarchyRowTemplate);
 
   FRootObserver := TFreeNotificationObserver.Create(Self);
-  FRootObserver.OnFreeNotification := @RootFreeNotification;
+  FRootObserver.OnFreeNotification := {$ifdef FPC}@{$endif} RootFreeNotification;
 end;
 
 destructor TCastleComponentsHierarchy.Destroy;
