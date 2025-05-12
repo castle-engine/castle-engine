@@ -130,8 +130,7 @@ begin
 
     // Open new project using ViewProject
     ViewProject.ProjectPathUrl := UriIncludeSlash(ProjectDirUrl);
-    ViewProject.ProjectPath := UriToFilenameSafe(ViewProject.ProjectPathUrl);
-    ViewProject.ProjectManifestUrl := CombineURI(ViewProject.ProjectPathUrl,
+    ViewProject.ProjectManifestUrl := CombineUri(ViewProject.ProjectPathUrl,
       'CastleEngineManifest.xml');
     Container.View := ViewProject;
 

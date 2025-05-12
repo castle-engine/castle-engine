@@ -80,9 +80,7 @@ type
     procedure UpdateContainerLoadedDesignSize;
   public
     // set before starting the project
-    // Absolute project path, as directory name (not URL), ending with path delimiter.
-    ProjectPath: String;
-    // Absolute project path, as URL, ending with path delimiter.
+    // Absolute project path, as URL, ending with /.
     ProjectPathUrl: String;
     // Full URL to the project manifest, including final filename.
     ProjectManifestUrl: String;
@@ -104,7 +102,7 @@ uses SysUtils,
   CastleInternalPhysicsVisualization, CastleClassUtils, CastleViewport,
   CastleTransform,
   ToolEditorUtils,
-  GameViewChooseProject;
+  GameViewChooseProject, GameViewChooseExistingProject;
 
 { TViewProject ----------------------------------------------------------------- }
 
@@ -150,6 +148,8 @@ begin
 
   UpdateContainerLoadedDesignSize;
 
+  ViewChooseExistingProject.AddRecentProject(ProjectManifestUrl);
+
   { override ApplicationData interpretation, and castle-data:/xxx URL,
     while this project is open. }
   ApplicationDataOverride := CombineUri(ProjectPathUrl, 'data/');
@@ -170,7 +170,7 @@ end;
 
 procedure TViewProject.ListOpenExistingViewAddFile(const FileInfo: TFileInfo; var StopSearch: boolean);
 begin
-  ListOpenExistingViewStr.Append(FileInfo.AbsoluteName);
+  ListOpenExistingViewStr.Append(FileInfo.Url);
 end;
 
 procedure TViewProject.Resize;
@@ -193,14 +193,33 @@ procedure TViewProject.ListViewsRefresh;
 
   function ShortDesignName(const S: String): String;
   begin
-    Result := DeleteFileExt(ExtractFileName(S));
+    Result := DeleteUriExt(ExtractUriName(S));
     Result := PrefixRemove('gameview', Result, true);
     Result := PrefixRemove('gamestate', Result, true);
     Result := SuffixRemove('.castle-user-interface', Result, true);
   end;
 
+  function ExtractRelativeUrl(const BaseUrl, Url: String): String;
+  var
+    BaseFileName, FileName: String;
+  begin
+    { If both BaseUrl and Url are file URLs, then we can use ExtractRelativePath
+      to get the relative path. }
+    BaseFileName := UriToFilenameSafe(BaseUrl);
+    FileName := UriToFilenameSafe(Url);
+    if (BaseFileName <> '') and (FileName <> '') then
+      Exit(ExtractRelativePath(BaseFileName, FileName));
+
+    { Otherwise, simply use PrefixRemove.
+      Don't ignore case, in case it mattered for these URLs. }
+    if IsPrefix(BaseUrl, Url, false) then
+      Result := PrefixRemove(BaseUrl, Url, false)
+    else
+      Result := Url;
+  end;
+
 var
-  DesignFileName, ProjectDataUrl: String;
+  OpenDesignUrl, ProjectDataUrl: String;
   ButtonViewDesign: TButtonViewDesign;
   I: Integer;
   ButtonView: TCastleButton;
@@ -228,7 +247,7 @@ begin
   ListOpenExistingView.ClearControls; // TODO: also free items, use TCastleListBox
   for I := 0 to ListOpenExistingViewStr.Count -1 do
   begin
-    DesignFileName := ListOpenExistingViewStr[I];
+    OpenDesignUrl := ListOpenExistingViewStr[I];
     ButtonViewDesign := TButtonViewDesign.Create;
     try
       ButtonView := FactoryButtonView.ComponentLoad(FreeAtStop, ButtonViewDesign) as TCastleButton;
@@ -237,9 +256,9 @@ begin
       ButtonView.Width := ScrollListOpenExistingView.EffectiveWidthForChildren;
       ListOpenExistingView.InsertFront(ButtonView);
 
-      ButtonViewDesign.LabelViewName.Caption := ShortDesignName(DesignFileName);
-      ButtonViewDesign.LabelViewFile.Caption := ExtractRelativePath(ProjectPath, DesignFileName);
-      ButtonViewDesign.LabelLastModified.Caption := FileDateTimeStr(DesignFileName);
+      ButtonViewDesign.LabelViewName.Caption := ShortDesignName(OpenDesignUrl);
+      ButtonViewDesign.LabelViewFile.Caption := ExtractRelativeUrl(ProjectPathUrl, OpenDesignUrl);
+      ButtonViewDesign.LabelLastModified.Caption := UrlDateTimeStr(OpenDesignUrl);
     finally FreeAndNil(ButtonViewDesign) end;
   end;
 end;
@@ -267,12 +286,11 @@ end;
 
 procedure TViewProject.ClickOpenView(Sender: TObject);
 var
-  DesignFileName, OpenDesignUrl: String;
+  OpenDesignUrl: String;
   ViewIndex: Integer;
 begin
   ViewIndex := (Sender as TComponent).Tag;
-  DesignFileName := ListOpenExistingViewStr[ViewIndex];
-  OpenDesignUrl := FilenameToUriSafe(DesignFileName);
+  OpenDesignUrl := ListOpenExistingViewStr[ViewIndex];
   ProposeOpenDesign(OpenDesignUrl);
 end;
 
