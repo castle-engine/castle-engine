@@ -25,6 +25,7 @@ type
     // designed components
     CheckboxShowEvenInternal: TCastleCheckbox;
     HierarchyRowParent: TCastleUserInterface;
+    HierarchyBottomControls: TCastleUserInterface;
 
     // other fields
     UiOwner: TComponent;
@@ -42,7 +43,6 @@ type
   public
     // designed components that are just public
     ButtonHierarchyHide: TCastleButton;
-    HierarchyBottomControls: TCastleUserInterface;
 
     OnSelect: TComponentEvent;
 
