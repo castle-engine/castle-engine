@@ -31,6 +31,7 @@ type
     LabelFps: TCastleLabel;
     ButtonCloseProject: TCastleButton;
     ButtonCloseDesign: TCastleButton;
+    ButtonSaveDesign: TCastleButton;
     ButtonViewTemplate: TCastleButton;
     ContainerDesignView, ContainerOpenView, ContainerLoadedDesign: TCastleUserInterface;
     FactoryButtonView: TCastleComponentFactory;
@@ -39,8 +40,12 @@ type
     CheckboxShowHierarchy: TCastleCheckbox;
     CheckboxShowProperties: TCastleCheckbox;
   private
-    { Root of the design, saved/loaded to component file. }
+    { Root of the design, saved/loaded to component file.
+      @nil if no design is loaded. }
     DesignRoot: TCastleUserInterface;
+    { URL of the currently open design.
+      Empty if no design is loaded. }
+    CurrentDesignUrl: String;
     { Owner of all components saved/loaded to the design file.
       Also owner of a temporary viewport for .castle-transform,
       in general this owns everything specific to display currrent design. }
@@ -50,6 +55,7 @@ type
     ListOpenExistingViewStr: TStringList;
     procedure ClickCloseProject(Sender: TObject);
     procedure ClickCloseDesign(Sender: TObject);
+    procedure ClickSaveDesign(Sender: TObject);
     procedure ClickOpenView(Sender: TObject);
     procedure ChangeShowHierarchy(Sender: TObject);
     procedure ChangeShowProperties(Sender: TObject);
@@ -78,6 +84,8 @@ type
     { Update ContainerLoadedDesignSize size and anchor,
       depending on visibility of Hierarchy / Properties. }
     procedure UpdateContainerLoadedDesignSize;
+    { Update UI based on whether a design is loaded now (Design <> nil). }
+    procedure DesignExistenceChanged;
   public
     // set before starting the project
     // Absolute project path, as URL, ending with /.
@@ -117,6 +125,7 @@ begin
   inherited;
   ButtonCloseProject.OnClick := {$ifdef FPC}@{$endif} ClickCloseProject;
   ButtonCloseDesign.OnClick := {$ifdef FPC}@{$endif} ClickCloseDesign;
+  ButtonSaveDesign.OnClick := {$ifdef FPC}@{$endif} ClickSaveDesign;
   CheckboxShowHierarchy.OnChange := {$ifdef FPC}@{$endif} ChangeShowHierarchy;
   CheckboxShowProperties.OnChange := {$ifdef FPC}@{$endif} ChangeShowProperties;
 
@@ -134,11 +143,6 @@ begin
   Properties.Anchor(hpRight);
   ContainerDesignView.InsertFront(Properties);
 
-  // at the beginning, show UI to choose design
-  ButtonCloseDesign.Exists := false;
-  ContainerDesignView.Exists := false;
-  ContainerOpenView.Exists := true;
-
   FactoryButtonView.LoadFromComponent(ButtonViewTemplate);
   // note that ButtonViewTemplate children remain existing, doesn't matter
   FreeAndNil(ButtonViewTemplate);
@@ -146,6 +150,7 @@ begin
   ListOpenExistingViewStr := TStringList.Create;
   ListViewsRefresh;
 
+  DesignExistenceChanged;
   UpdateContainerLoadedDesignSize;
 
   ViewChooseExistingProject.AddRecentProject(ProjectManifestUrl);
@@ -278,10 +283,21 @@ end;
 
 procedure TViewProject.ClickCloseDesign(Sender: TObject);
 begin
+  ClearDesign;
   ListViewsRefresh;
-  ButtonCloseDesign.Exists := false;
-  ContainerDesignView.Exists := false;
-  ContainerOpenView.Exists := true;
+  DesignExistenceChanged;
+end;
+
+procedure TViewProject.DesignExistenceChanged;
+begin
+  // ButtonCloseDesign.Exists := Design <> nil;
+  // ButtonSaveDesign.Exists := Design <> nil;
+  // ContainerDesignView.Exists := Design <> nil;
+  // ContainerOpenView.Exists := Design = nil;
+  ButtonCloseDesign.Exists := CurrentDesignUrl <> '';
+  ButtonSaveDesign.Exists := CurrentDesignUrl <> '';
+  ContainerDesignView.Exists := CurrentDesignUrl <> '';
+  ContainerOpenView.Exists := CurrentDesignUrl = '';
 end;
 
 procedure TViewProject.ClickOpenView(Sender: TObject);
@@ -294,11 +310,17 @@ begin
   ProposeOpenDesign(OpenDesignUrl);
 end;
 
+procedure TViewProject.ClickSaveDesign(Sender: TObject);
+begin
+  UserInterfaceSave(DesignRoot, CurrentDesignUrl);
+end;
+
 procedure TViewProject.ClearDesign;
 begin
   DesignRoot := nil;
   // this actually frees everything inside DesignRoot
   FreeAndNil(DesignOwner);
+  CurrentDesignUrl := '';
 end;
 
 procedure TViewProject.ProposeOpenDesign(const OpenDesignUrl: String);
@@ -306,19 +328,21 @@ var
   NewDesignOwner: TComponent;
   NewDesignRoot: TCastleUserInterface;
 begin
-  ButtonCloseDesign.Exists := true;
-  ContainerDesignView.Exists := true;
-  ContainerOpenView.Exists := false;
-
+  { First load new design to local variables.
+    Only if it succeeds, we will do ClearDesign and assign it to fields. }
   NewDesignOwner := TComponent.Create(Self);
   // TODO: allow opening other design types
   NewDesignRoot := UserInterfaceLoad(OpenDesignUrl, NewDesignOwner);
 
   ClearDesign;
+
   DesignOwner := NewDesignOwner;
   DesignRoot := NewDesignRoot;
+  CurrentDesignUrl := OpenDesignUrl;
   Hierarchy.Root := DesignRoot;
   ContainerLoadedDesign.InsertFront(DesignRoot);
+
+  DesignExistenceChanged;
 end;
 
 class function TViewProject.Selectable(const Child: TComponent): Boolean;
