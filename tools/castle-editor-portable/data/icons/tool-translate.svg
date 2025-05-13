@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="32"
+   height="32"
+   viewBox="0 0 24 24"
+   fill="none"
+   stroke="#FFFFFF"
+   stroke-width="1"
+   stroke-linecap="round"
+   stroke-linejoin="round"
+   class="feather feather-move"
+   version="1.1"
+   id="svg14"
+   sodipodi:docname="tool-translate.svg"
+   inkscape:version="1.1.2 (0a00cf5339, 2022-02-04)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs18" />
+  <sodipodi:namedview
+     id="namedview16"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="true"
+     showgrid="false"
+     inkscape:zoom="22.46875"
+     inkscape:cx="15.977747"
+     inkscape:cy="15.977747"
+     inkscape:window-width="1850"
+     inkscape:window-height="1010"
+     inkscape:window-x="70"
+     inkscape:window-y="33"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg14" />
+  <polyline
+     points="5 9 2 12 5 15"
+     id="polyline2"
+     style="stroke:#323232;stroke-opacity:1" />
+  <polyline
+     points="9 5 12 2 15 5"
+     id="polyline4"
+     style="stroke:#323232;stroke-opacity:1" />
+  <polyline
+     points="15 19 12 22 9 19"
+     id="polyline6"
+     style="stroke:#323232;stroke-opacity:1" />
+  <polyline
+     points="19 9 22 12 19 15"
+     id="polyline8"
+     style="stroke:#323232;stroke-opacity:1" />
+  <line
+     x1="2"
+     y1="12"
+     x2="22"
+     y2="12"
+     id="line10"
+     style="stroke:#323232;stroke-opacity:1" />
+  <line
+     x1="12"
+     y1="2"
+     x2="12"
+     y2="22"
+     id="line12"
+     style="stroke:#323232;stroke-opacity:1" />
+</svg>

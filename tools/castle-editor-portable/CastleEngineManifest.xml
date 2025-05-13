@@ -19,4 +19,8 @@ See https://castle-engine.io/project_manifest for documentation of this file.
       <path value="../../src/common_includes/" />
     </search_paths>
   </compiler_options>
+  <package>
+    <!-- SVG in data are only to generate PNG from them. -->
+    <exclude path="*.svg" />
+  </package>
 </project>
