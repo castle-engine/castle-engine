@@ -21,7 +21,7 @@ interface
 uses Classes,
   CastleVectors, CastleComponentSerialize, CastleInternalInspector,
   CastleUIControls, CastleControls, CastleKeysMouse, CastleFindFiles,
-  ToolEditorUtils,
+  ToolEditorUtils, ToolManifest,
   EditorDesign;
 
 type
@@ -43,11 +43,13 @@ type
     CheckboxShowProperties: TCastleCheckbox;
     ToolbarTransformManipulate: TCastleUserInterface;
     ButtonTranslate, ButtonRotate, ButtonScale: TCastleButton;
+    LabelOpenExistingView: TCastleLabel;
   private
     { Loaded design or @nil. }
     Design: TDesign;
     DesignToolbar: TDesignToolbar;
     ProjectViews: TProjectViewList;
+    ProjectManifest: TCastleManifest;
     procedure ClickCloseProject(Sender: TObject);
     procedure ClickCloseDesign(Sender: TObject);
     procedure ClickOpenView(Sender: TObject);
@@ -107,6 +109,8 @@ begin
   // note that ButtonViewTemplate children remain existing, doesn't matter
   FreeAndNil(ButtonViewTemplate);
 
+  ProjectManifest := TCastleManifest.CreateFromUrl(ProjectManifestUrl);
+
   ProjectViews := TProjectViewList.Create;
   ProjectViewsRefresh;
 
@@ -129,6 +133,7 @@ begin
   FreeAndNil(Design);
 
   FreeAndNil(DesignToolbar);
+  FreeAndNil(ProjectManifest);
 
   ApplicationDataOverride := '';
   inherited;
@@ -156,8 +161,13 @@ var
   ButtonViewDesign: TButtonViewDesign;
   I: Integer;
   ButtonView: TCastleButton;
+  MaskSearched: String;
 begin
-  ProjectViews.ScanProject(ProjectPathUrl);
+  ProjectViews.ScanProject(ProjectPathUrl, ProjectManifest.ProposedUnitPrefix,
+    MaskSearched);
+
+  // update LabelOpenExistingView to show mask used for views
+  LabelOpenExistingView.Caption := 'Open Existing View (' + MaskSearched + ') :';
 
   { copy ProjectViews contents -> ListOpenExistingView GUI contents }
   ListOpenExistingView.ClearControls; // TODO: also free items, use TCastleListBox
