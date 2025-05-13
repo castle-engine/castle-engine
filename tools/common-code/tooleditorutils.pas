@@ -21,10 +21,14 @@ interface
 { Show last file modification time as nice string. }
 function FileDateTimeStr(const FileName: String): String;
 
+{ Show last URL modification time as nice string.
+  Returns empty string if URL is not a file. }
+function UrlDateTimeStr(const Url: String): String;
+
 implementation
 
 uses DateUtils, SysUtils, StrUtils,
-  CastleTimeUtils, CastleUtils;
+  CastleTimeUtils, CastleUtils, CastleUriUtils;
 
 function FileDateTimeStr(const FileName: String): String;
 
@@ -60,6 +64,17 @@ begin
     end;
   end else
     Result := 'Unknown';
+end;
+
+function UrlDateTimeStr(const Url: String): String;
+var
+  FileName: String;
+begin
+  FileName := UriToFilenameSafe(Url);
+  if FileName = '' then
+    Result := ''
+  else
+    Result := FileDateTimeStr(FileName);
 end;
 
 end.

@@ -30,6 +30,7 @@ uses SysUtils,
   , GameViewProject
   , GameViewChooseProject
   , GameViewNewProject
+  , GameViewChooseExistingProject
   {$endregion 'Castle Initialization Uses'};
 
 var
@@ -77,6 +78,7 @@ begin
   ViewProject := TViewProject.Create(Application);
   ViewChooseProject := TViewChooseProject.Create(Application);
   ViewNewProject := TViewNewProject.Create(Application);
+  ViewChooseExistingProject := TViewChooseExistingProject.Create(Application);
   {$endregion 'Castle View Creation'}
 
   Window.Container.View := ViewChooseProject;

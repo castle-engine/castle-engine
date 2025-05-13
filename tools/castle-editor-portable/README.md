@@ -19,12 +19,15 @@ Compared to the [real Castle Game Engine editor](https://castle-engine.io/editor
 Features:
 
 - create new project, choosing one of the templates
-- open a project (only from cross-platform writeable space, in `ApplicationConfig('my_projects/')`)
+- open a project (only from cross-platform writeable space, in `ApplicationConfig('my-projects/')`)
+- choosing and displaying a given view in the project
 - displaying components hierarchy
-- adding registered components
 - displaying object inspector (thus, viewing and editing components properties)
-- manipulating in 3D
-- running physics simulation
+- TODO: adding registered components
+- TODO: manipulating TCastleTransform (use CastleTransformManipulate)
+- TODO: manipulating UI (extact functionality from castle-editor?)
+- TODO: running physics simulation
+- TODO: building, running the project
 
 Using [Castle Game Engine](https://castle-engine.io/).
 

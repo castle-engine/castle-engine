@@ -35,6 +35,7 @@ type
     ButtonSupport: TCastleButton;
     ButtonQuit: TCastleButton;
   private
+    ExamplesPath: String;
     procedure ClickNewProject(Sender: TObject);
     procedure ClickOpenProject(Sender: TObject);
     procedure ClickOpenRecent(Sender: TObject);
@@ -44,6 +45,7 @@ type
     procedure ClickQuit(Sender: TObject);
   public
     constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
     procedure Start; override;
   end;
 
@@ -52,9 +54,11 @@ var
 
 implementation
 
-uses CastleFilesUtils, CastleOpenDocument, CastleApplicationProperties,
-  CastleWindow,
-  GameViewNewProject, GameViewProject;
+uses SysUtils,
+  CastleFilesUtils, CastleOpenDocument, CastleApplicationProperties,
+  CastleWindow, CastleLog, CastleUtils, CastleConfig,
+  GameViewNewProject, GameViewProject, GameViewChooseExistingProject,
+  ToolCommonUtils;
 
 { TViewChooseProject ----------------------------------------------------------- }
 
@@ -62,6 +66,14 @@ constructor TViewChooseProject.Create(AOwner: TComponent);
 begin
   inherited;
   DesignUrl := 'castle-data:/gameviewchooseproject.castle-user-interface';
+  UserConfig.Load;
+end;
+
+destructor TViewChooseProject.Destroy;
+begin
+  if UserConfig <> nil then
+    UserConfig.Save;
+  inherited;
 end;
 
 procedure TViewChooseProject.Start;
@@ -69,11 +81,20 @@ begin
   inherited;
   ButtonNewProject.OnClick := {$ifdef FPC}@{$endif} ClickNewProject;
   ButtonOpenProject.OnClick := {$ifdef FPC}@{$endif} ClickOpenProject;
+  ButtonOpenRecent.OnClick := {$ifdef FPC}@{$endif} ClickOpenRecent;
   ButtonOpenExample.OnClick := {$ifdef FPC}@{$endif} ClickOpenExample;
-  ButtonOpenRecent.OnClick := {$ifdef FPC}@{$endif} ClickOpenExample;
   ButtonPreferences.OnClick := {$ifdef FPC}@{$endif} ClickPreferences;
   ButtonSupport.OnClick := {$ifdef FPC}@{$endif} ClickSupport;
   ButtonQuit.OnClick := {$ifdef FPC}@{$endif} ClickQuit;
+
+  if CastleEnginePath <> '' then
+    ExamplesPath  := CastleEnginePath + 'examples' + PathDelim
+  else
+  begin
+    WritelnWarning('Cannot find CGE directory');
+    ExamplesPath := '';
+  end;
+  ButtonOpenExample.Exists := ExamplesPath <> '';
 
   ButtonQuit.Exists := ApplicationProperties.ShowUserInterfaceToQuit;
 end;
@@ -85,17 +106,21 @@ end;
 
 procedure TViewChooseProject.ClickOpenProject(Sender: TObject);
 begin
-  // TODO
+  ViewChooseExistingProject.ProjectsSource := psConfigMyProjects;
+  Container.View := ViewChooseExistingProject;
 end;
 
 procedure TViewChooseProject.ClickOpenRecent(Sender: TObject);
 begin
-  // TODO
+  ViewChooseExistingProject.ProjectsSource := psRecent;
+  Container.View := ViewChooseExistingProject;
 end;
 
 procedure TViewChooseProject.ClickOpenExample(Sender: TObject);
 begin
-  // TODO
+  ViewChooseExistingProject.ProjectsSource := psDirectoryUrl;
+  ViewChooseExistingProject.ProjectsSourceDirectoryUrl := ExamplesPath;
+  Container.View := ViewChooseExistingProject;
 end;
 
 procedure TViewChooseProject.ClickPreferences(Sender: TObject);
