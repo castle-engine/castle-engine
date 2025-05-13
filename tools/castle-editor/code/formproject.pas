@@ -34,7 +34,7 @@ uses
   CastlePropEdits, CastleDialogs, X3DNodes, CastleFindFiles,
   DataModuleIcons, CastleClassUtils,
   EditorUtils, FrameDesign, FrameViewFile, FormNewUnit, ToolManifest,
-  ToolPackageFormat;
+  ToolPackageFormat, ToolEditorUtils;
 
 const
   DockLayoutFileName = 'layout.dock-layout';
@@ -541,7 +541,7 @@ type
       MenuItemSameAsEditorPlatform: TMenuItem;
       CurrentPlatformInfo: Integer; //< Index to PlatformsInfo
       CurrentPackageFormat: TPackageFormat;
-      ListOpenExistingViewStr: TStringList;
+      ProjectViews: TProjectViewList;
       { Anchor docking forms }
       DesignForm: TForm;
       DesignHierarchyForm: TForm;
@@ -553,8 +553,6 @@ type
     procedure BuildToolCall(const Commands: array of String;
       const RestartOnSuccess: Boolean = false);
     procedure BuildToolCallFinished(Sender: TObject);
-    procedure ListOpenExistingViewAddFile(const FileInfo: TFileInfo;
-      var StopSearch: boolean);
     procedure ListOpenExistingViewRefresh;
     procedure MenuItemAddComponentClick(Sender: TObject);
     procedure MenuItemDesignNewCustomRootClick(Sender: TObject);
@@ -654,7 +652,7 @@ uses TypInfo, LCLType, RegExpr, StrUtils, LCLVersion,
   CastleInternalArchitectures,
   FormAbout, FormChooseProject, FormPreferences, FormSpriteSheetEditor,
   FormSystemInformation, FormRestartCustomEditor, FormImportSketchfab,
-  ToolCompilerInfo, ToolCommonUtils, ToolProcess, ToolEditorUtils,
+  ToolCompilerInfo, ToolCommonUtils, ToolProcess,
   ToolFpcVersion;
 
 {$warnings on}
@@ -1955,7 +1953,7 @@ begin
   BuildPlatformsMenu;
   BuildPackageFormatsMenu;
   ApplicationProperties.OnWarning.Add(@WarningNotification);
-  ListOpenExistingViewStr := TStringList.Create;
+  ProjectViews := TProjectViewList.Create;
   if Docking then
   begin
     // Create dockable forms
@@ -2044,7 +2042,7 @@ begin
   FreeAndNil(DesignOutputForm);
   FreeAndNil(DesignWarningsForm);
   FreeAndNil(PlatformsInfo);
-  FreeAndNil(ListOpenExistingViewStr);
+  FreeAndNil(ProjectViews);
   FreeAndNil(Design);
 
   { It is important to reset ApplicationDataOverride
@@ -2173,12 +2171,11 @@ end;
 
 procedure TProjectForm.ListOpenExistingViewDblClick(Sender: TObject);
 var
-  DesignFileName, DesignUrl: String;
+  DesignUrl: String;
 begin
   if ListOpenExistingView.ItemIndex <> -1 then
   begin
-    DesignFileName := ListOpenExistingViewStr[ListOpenExistingView.ItemIndex];
-    DesignUrl := FilenameToUriSafe(DesignFileName);
+    DesignUrl := ProjectViews[ListOpenExistingView.ItemIndex].Url;
     ProposeOpenDesign(DesignUrl);
   end;
 end;
@@ -2514,69 +2511,29 @@ begin
   MenuItemModeDebug.Checked := true;
 end;
 
-procedure TProjectForm.ListOpenExistingViewAddFile(const FileInfo: TFileInfo; var StopSearch: boolean);
-begin
-  ListOpenExistingViewStr.Append(FileInfo.AbsoluteName);
-end;
-
 procedure TProjectForm.ListOpenExistingViewRefresh;
-
-  function ViewUnitPrefix1: String;
-  begin
-    Result := LowerCase(Manifest.ProposedUnitPrefix) + 'view';
-  end;
-
-  // Support also older, deprecate names for "view": "state"
-  function ViewUnitPrefix2: String;
-  begin
-    Result := LowerCase(Manifest.ProposedUnitPrefix) + 'state';
-  end;
-
-  function ShortDesignName(const S: String): String;
-  begin
-    Result := DeleteFileExt(ExtractFileName(S));
-    Result := PrefixRemove(ViewUnitPrefix1, Result, true);
-    Result := PrefixRemove(ViewUnitPrefix2, Result, true);
-    Result := SuffixRemove('.castle-user-interface', Result, true);
-  end;
-
 var
   ListItem: TListItem;
-  DesignFileName, ProjectDataUrl: String;
+  MaskSearched: String;
+  View: TProjectView;
 begin
-  // update LabelOpenExistingView to show mask used for views
-  LabelOpenExistingView.Caption := 'Open Existing View (' + ViewUnitPrefix1 + '*.castle-user-interface) :';
+  ProjectViews.ScanProject(ProjectPathUrl, Manifest.ProposedUnitPrefix, MaskSearched);
 
-  { calculate ListOpenExistingViewStr contents }
-  ListOpenExistingViewStr.Clear;
-  { Search in ProjectDataUrl, not ProjectPathUrl, as all designs should be part of data
-    to be possible to open them at runtime.
-    This also avoids finding stuff in castle-engine-output, which is possible,
-    e.g. after "castle-engine package --target=android" the castle-engine-output contains
-    some temporary data with copies of design files -- and we *do not* want to show them here. }
-  ProjectDataUrl := CombineUri(ProjectPathUrl, 'data/');
-  if UriExists(ProjectDataUrl) <> ueNotExists then
-  begin
-    FindFiles(ProjectDataUrl, ViewUnitPrefix1 + '*.castle-user-interface', false, @ListOpenExistingViewAddFile, [ffRecursive]);
-    FindFiles(ProjectDataUrl, ViewUnitPrefix2 + '*.castle-user-interface', false, @ListOpenExistingViewAddFile, [ffRecursive]);
-  end;
-  { without sorting, the order would be ~random (as FindFiles enumarates).
-    Note that we sort including the subdirectory names, which is good,
-    we want files in the same subdirectory to be together. }
-  ListOpenExistingViewStr.Sort;
+  // update LabelOpenExistingView to show mask used for views
+  LabelOpenExistingView.Caption := 'Open Existing View (' + MaskSearched + ') :';
 
   { TODO: It seems LCL UI always shows as if the "Last Modified" (column 2)
     was sorted, and setting ListOpenExistingView.SortColumn from code
     or LFM doesn't change it. }
 
-  { copy ListOpenExistingViewStr contents -> ListOpenExistingView GUI contents }
+  { copy ProjectViews contents -> ListOpenExistingView GUI contents }
   ListOpenExistingView.Items.Clear;
-  for DesignFileName in ListOpenExistingViewStr do
+  for View in ProjectViews do
   begin
     ListItem := ListOpenExistingView.Items.Add;
-    ListItem.Caption := ShortDesignName(DesignFileName);
-    ListItem.SubItems.Append(ExtractRelativePath(ProjectPath, DesignFileName));
-    ListItem.SubItems.Append(FileDateTimeStr(DesignFileName));
+    ListItem.Caption := View.Name;
+    ListItem.SubItems.Append(View.Path);
+    ListItem.SubItems.Append(View.LastModified);
   end;
 end;
 

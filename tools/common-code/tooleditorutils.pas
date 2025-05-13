@@ -21,6 +21,13 @@ interface
 uses SysUtils, Classes, Generics.Collections,
   CastleFindFiles;
 
+{ Show last file modification time as nice string. }
+function FileDateTimeStr(const FileName: String): String;
+
+{ Show last URL modification time as nice string.
+  Returns empty string if URL is not a file. }
+function UrlDateTimeStr(const Url: String): String;
+
 type
   TProjectView = class
     { Full URL of the view file. }
@@ -41,7 +48,8 @@ type
   public
     constructor Create;
     destructor Destroy; override;
-    procedure ScanProject(const ProjectPathUrl: String);
+    procedure ScanProject(const ProjectPathUrl, ProposedUnitPrefix: String;
+      out MaskSearched: String);
   end;
 
 implementation
@@ -49,7 +57,6 @@ implementation
 uses DateUtils, StrUtils,
   CastleTimeUtils, CastleUtils, CastleUriUtils, CastleStringUtils;
 
-{ Show last file modification time as nice string. }
 function FileDateTimeStr(const FileName: String): String;
 
   function RoundUp(const Val: Double): Int64;
@@ -86,8 +93,6 @@ begin
     Result := 'Unknown';
 end;
 
-{ Show last URL modification time as nice string.
-  Returns empty string if URL is not a file. }
 function UrlDateTimeStr(const Url: String): String;
 var
   FileName: String;
@@ -97,14 +102,6 @@ begin
     Result := ''
   else
     Result := FileDateTimeStr(FileName);
-end;
-
-function ShortDesignName(const S: String): String;
-begin
-  Result := DeleteUriExt(ExtractUriName(S));
-  Result := PrefixRemove('gameview', Result, true);
-  Result := PrefixRemove('gamestate', Result, true);
-  Result := SuffixRemove('.castle-user-interface', Result, true);
 end;
 
 function ExtractRelativeUrl(const BaseUrl, Url: String): String;
@@ -145,13 +142,38 @@ begin
   ViewUrls.Append(FileInfo.Url);
 end;
 
-procedure TProjectViewList.ScanProject(const ProjectPathUrl: String);
+procedure TProjectViewList.ScanProject(
+  const ProjectPathUrl, ProposedUnitPrefix: String;
+  out MaskSearched: String);
+
+  function ViewUnitPrefix1: String;
+  begin
+    Result := LowerCase(ProposedUnitPrefix) + 'view';
+  end;
+
+  // Support also older, deprecated name for "view": "state"
+  function ViewUnitPrefix2: String;
+  begin
+    Result := LowerCase(ProposedUnitPrefix) + 'state';
+  end;
+
+  function ShortDesignName(const S: String): String;
+  begin
+    Result := DeleteFileExt(ExtractFileName(S));
+    Result := PrefixRemove(ViewUnitPrefix1, Result, true);
+    Result := PrefixRemove(ViewUnitPrefix2, Result, true);
+    Result := SuffixRemove('.castle-user-interface', Result, true);
+  end;
+
 var
-  ViewUrl, ProjectDataUrl: String;
+  ViewUrl, ProjectDataUrl, MaskSearched2: String;
   View: TProjectView;
 begin
   { calculate ViewUrls contents }
   ViewUrls.Clear;
+
+  MaskSearched := ViewUnitPrefix1 + '*.castle-user-interface';
+  MaskSearched2 := ViewUnitPrefix2 + '*.castle-user-interface';
 
   { Search in ProjectDataUrl, not ProjectPathUrl, as all designs should be part of data
     to be possible to open them at runtime.
@@ -161,11 +183,10 @@ begin
   ProjectDataUrl := CombineUri(ProjectPathUrl, 'data/');
   if UriExists(ProjectDataUrl) <> ueNotExists then
   begin
-    FindFiles(ProjectDataUrl, 'gameview*.castle-user-interface', false,
-      {$ifdef FPC}@{$endif} AddFile, [ffRecursive]);
-    // support deprecated names
-    FindFiles(ProjectDataUrl, 'gamestate*.castle-user-interface', false,
-      {$ifdef FPC}@{$endif} AddFile, [ffRecursive]);
+    FindFiles(ProjectDataUrl, MaskSearched,
+      false, {$ifdef FPC}@{$endif} AddFile, [ffRecursive]);
+    FindFiles(ProjectDataUrl, MaskSearched2,
+      false, {$ifdef FPC}@{$endif} AddFile, [ffRecursive]);
   end;
 
   { without sorting, the order would be ~random (as FindFiles enumarates).
