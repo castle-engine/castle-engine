@@ -24,7 +24,8 @@ implementation
 
 uses SysUtils,
   CastleWindow, CastleLog, CastleUIControls, CastleKeysMouse, CastleMessages,
-  CastleUtils, CastleInternalFileMonitor, CastleUriUtils
+  CastleUtils, CastleInternalFileMonitor, CastleUriUtils,
+  EditorRegisterAllComponents
   {$region 'Castle Initialization Uses'}
   // The content here may be automatically updated by CGE editor.
   , EditorViewProject
