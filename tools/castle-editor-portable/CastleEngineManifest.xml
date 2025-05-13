@@ -7,7 +7,7 @@ See https://castle-engine.io/project_manifest for documentation of this file.
 
 <project name="castle-editor-portable"
   standalone_source="castle_editor_portable_standalone.dpr"
-  game_units="GameInitialize"
+  game_units="EditorInitialize"
   qualified_name="io.castleengine.editor.portable"
   caption="Castle Game Engine"
 >

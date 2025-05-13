@@ -14,7 +14,7 @@
 }
 
 { Choose one of the existing projects to open. }
-unit GameViewChooseExistingProject;
+unit EditorViewChooseExistingProject;
 
 interface
 
@@ -88,7 +88,7 @@ uses SysUtils,
   CastleConfig, CastleUtils, CastleLog, CastleUriUtils, CastleFilesUtils,
   CastleStringUtils,
   ToolManifest,
-  GameViewProject, GameViewChooseProject;
+  EditorViewProject, EditorViewChooseProject;
 
 const
   ManifestName = 'CastleEngineManifest.xml';
@@ -96,7 +96,7 @@ const
 constructor TViewChooseExistingProject.Create(AOwner: TComponent);
 begin
   inherited;
-  DesignUrl := 'castle-data:/gameviewchooseexistingproject.castle-user-interface';
+  DesignUrl := 'castle-data:/editorviewchooseexistingproject.castle-user-interface';
   RecentProjects := TRecentFiles.Create(Self);
   RecentProjects.LoadFromConfig(UserConfig);
 end;

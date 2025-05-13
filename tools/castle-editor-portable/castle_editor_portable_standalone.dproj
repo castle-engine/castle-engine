@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{E1F6D9BE-C8B3-4E42-B04B-DE1CB7A2C01E}</ProjectGuid>
+        <ProjectGuid>{4B094D25-1A4F-4BE7-AE79-7BD1DF28E954}</ProjectGuid>
         <MainSource>castle_editor_portable_standalone.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>
@@ -549,23 +549,6 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\icons/check.svg" Configuration="Debug" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/icons/</RemoteDir>
-  <RemoteName>check.svg</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/icons/</RemoteDir>
-  <RemoteName>check.svg</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/icons/</RemoteDir>
-  <RemoteName>check.svg</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
 <DeployFile LocalName="data\icons/exported/check_32x32.png" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
   <RemoteDir>./data/icons/exported/</RemoteDir>
@@ -617,6 +600,23 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
+<DeployFile LocalName="data\icons/exported/save_32x32.png" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/icons/exported/</RemoteDir>
+  <RemoteName>save_32x32.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/icons/exported/</RemoteDir>
+  <RemoteName>save_32x32.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/icons/exported/</RemoteDir>
+  <RemoteName>save_32x32.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
 <DeployFile LocalName="data\icons/exported/settings_32x32.png" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
   <RemoteDir>./data/icons/exported/</RemoteDir>
@@ -634,6 +634,91 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
+<DeployFile LocalName="data\icons/exported/tool-interact_32x32.png" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/icons/exported/</RemoteDir>
+  <RemoteName>tool-interact_32x32.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/icons/exported/</RemoteDir>
+  <RemoteName>tool-interact_32x32.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/icons/exported/</RemoteDir>
+  <RemoteName>tool-interact_32x32.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\icons/exported/tool-rotate_32x32.png" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/icons/exported/</RemoteDir>
+  <RemoteName>tool-rotate_32x32.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/icons/exported/</RemoteDir>
+  <RemoteName>tool-rotate_32x32.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/icons/exported/</RemoteDir>
+  <RemoteName>tool-rotate_32x32.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\icons/exported/tool-scale_32x32.png" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/icons/exported/</RemoteDir>
+  <RemoteName>tool-scale_32x32.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/icons/exported/</RemoteDir>
+  <RemoteName>tool-scale_32x32.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/icons/exported/</RemoteDir>
+  <RemoteName>tool-scale_32x32.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\icons/exported/tool-select_32x32.png" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/icons/exported/</RemoteDir>
+  <RemoteName>tool-select_32x32.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/icons/exported/</RemoteDir>
+  <RemoteName>tool-select_32x32.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/icons/exported/</RemoteDir>
+  <RemoteName>tool-select_32x32.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\icons/exported/tool-translate_32x32.png" Configuration="Debug" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/icons/exported/</RemoteDir>
+  <RemoteName>tool-translate_32x32.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/icons/exported/</RemoteDir>
+  <RemoteName>tool-translate_32x32.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/icons/exported/</RemoteDir>
+  <RemoteName>tool-translate_32x32.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
 <DeployFile LocalName="data\icons/exported/x_32x32.png" Configuration="Debug" Class="File">
  <Platform Name="Linux64">
   <RemoteDir>./data/icons/exported/</RemoteDir>
@@ -648,74 +733,6 @@
  <Platform Name="Win64">
   <RemoteDir>./data/icons/exported/</RemoteDir>
   <RemoteName>x_32x32.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\icons/heart-solid.svg" Configuration="Debug" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/icons/</RemoteDir>
-  <RemoteName>heart-solid.svg</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/icons/</RemoteDir>
-  <RemoteName>heart-solid.svg</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/icons/</RemoteDir>
-  <RemoteName>heart-solid.svg</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\icons/log-out.svg" Configuration="Debug" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/icons/</RemoteDir>
-  <RemoteName>log-out.svg</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/icons/</RemoteDir>
-  <RemoteName>log-out.svg</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/icons/</RemoteDir>
-  <RemoteName>log-out.svg</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\icons/settings.svg" Configuration="Debug" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/icons/</RemoteDir>
-  <RemoteName>settings.svg</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/icons/</RemoteDir>
-  <RemoteName>settings.svg</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/icons/</RemoteDir>
-  <RemoteName>settings.svg</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\icons/x.svg" Configuration="Debug" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/icons/</RemoteDir>
-  <RemoteName>x.svg</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/icons/</RemoteDir>
-  <RemoteName>x.svg</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/icons/</RemoteDir>
-  <RemoteName>x.svg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
@@ -4459,23 +4476,6 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
-<DeployFile LocalName="data\icons/check.svg" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/icons/</RemoteDir>
-  <RemoteName>check.svg</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/icons/</RemoteDir>
-  <RemoteName>check.svg</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/icons/</RemoteDir>
-  <RemoteName>check.svg</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
 <DeployFile LocalName="data\icons/exported/check_32x32.png" Configuration="Release" Class="File">
  <Platform Name="Linux64">
   <RemoteDir>./data/icons/exported/</RemoteDir>
@@ -4527,6 +4527,23 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
+<DeployFile LocalName="data\icons/exported/save_32x32.png" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/icons/exported/</RemoteDir>
+  <RemoteName>save_32x32.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/icons/exported/</RemoteDir>
+  <RemoteName>save_32x32.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/icons/exported/</RemoteDir>
+  <RemoteName>save_32x32.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
 <DeployFile LocalName="data\icons/exported/settings_32x32.png" Configuration="Release" Class="File">
  <Platform Name="Linux64">
   <RemoteDir>./data/icons/exported/</RemoteDir>
@@ -4544,6 +4561,91 @@
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>
+<DeployFile LocalName="data\icons/exported/tool-interact_32x32.png" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/icons/exported/</RemoteDir>
+  <RemoteName>tool-interact_32x32.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/icons/exported/</RemoteDir>
+  <RemoteName>tool-interact_32x32.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/icons/exported/</RemoteDir>
+  <RemoteName>tool-interact_32x32.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\icons/exported/tool-rotate_32x32.png" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/icons/exported/</RemoteDir>
+  <RemoteName>tool-rotate_32x32.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/icons/exported/</RemoteDir>
+  <RemoteName>tool-rotate_32x32.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/icons/exported/</RemoteDir>
+  <RemoteName>tool-rotate_32x32.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\icons/exported/tool-scale_32x32.png" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/icons/exported/</RemoteDir>
+  <RemoteName>tool-scale_32x32.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/icons/exported/</RemoteDir>
+  <RemoteName>tool-scale_32x32.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/icons/exported/</RemoteDir>
+  <RemoteName>tool-scale_32x32.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\icons/exported/tool-select_32x32.png" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/icons/exported/</RemoteDir>
+  <RemoteName>tool-select_32x32.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/icons/exported/</RemoteDir>
+  <RemoteName>tool-select_32x32.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/icons/exported/</RemoteDir>
+  <RemoteName>tool-select_32x32.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
+<DeployFile LocalName="data\icons/exported/tool-translate_32x32.png" Configuration="Release" Class="File">
+ <Platform Name="Linux64">
+  <RemoteDir>./data/icons/exported/</RemoteDir>
+  <RemoteName>tool-translate_32x32.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win32">
+  <RemoteDir>./data/icons/exported/</RemoteDir>
+  <RemoteName>tool-translate_32x32.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+ <Platform Name="Win64">
+  <RemoteDir>./data/icons/exported/</RemoteDir>
+  <RemoteName>tool-translate_32x32.png</RemoteName>
+  <Overwrite>true</Overwrite>
+ </Platform>
+</DeployFile>
 <DeployFile LocalName="data\icons/exported/x_32x32.png" Configuration="Release" Class="File">
  <Platform Name="Linux64">
   <RemoteDir>./data/icons/exported/</RemoteDir>
@@ -4558,74 +4660,6 @@
  <Platform Name="Win64">
   <RemoteDir>./data/icons/exported/</RemoteDir>
   <RemoteName>x_32x32.png</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\icons/heart-solid.svg" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/icons/</RemoteDir>
-  <RemoteName>heart-solid.svg</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/icons/</RemoteDir>
-  <RemoteName>heart-solid.svg</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/icons/</RemoteDir>
-  <RemoteName>heart-solid.svg</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\icons/log-out.svg" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/icons/</RemoteDir>
-  <RemoteName>log-out.svg</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/icons/</RemoteDir>
-  <RemoteName>log-out.svg</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/icons/</RemoteDir>
-  <RemoteName>log-out.svg</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\icons/settings.svg" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/icons/</RemoteDir>
-  <RemoteName>settings.svg</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/icons/</RemoteDir>
-  <RemoteName>settings.svg</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/icons/</RemoteDir>
-  <RemoteName>settings.svg</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
-</DeployFile>
-<DeployFile LocalName="data\icons/x.svg" Configuration="Release" Class="File">
- <Platform Name="Linux64">
-  <RemoteDir>./data/icons/</RemoteDir>
-  <RemoteName>x.svg</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win32">
-  <RemoteDir>./data/icons/</RemoteDir>
-  <RemoteName>x.svg</RemoteName>
-  <Overwrite>true</Overwrite>
- </Platform>
- <Platform Name="Win64">
-  <RemoteDir>./data/icons/</RemoteDir>
-  <RemoteName>x.svg</RemoteName>
   <Overwrite>true</Overwrite>
  </Platform>
 </DeployFile>

@@ -14,7 +14,7 @@
 }
 
 { Edit a chosen project. }
-unit GameViewProject;
+unit EditorViewProject;
 
 interface
 
@@ -110,14 +110,14 @@ uses SysUtils,
   CastleInternalPhysicsVisualization, CastleClassUtils, CastleViewport,
   CastleTransform,
   ToolEditorUtils,
-  GameViewChooseProject, GameViewChooseExistingProject;
+  EditorViewChooseProject, EditorViewChooseExistingProject;
 
 { TViewProject ----------------------------------------------------------------- }
 
 constructor TViewProject.Create(AOwner: TComponent);
 begin
   inherited;
-  DesignUrl := 'castle-data:/gameviewproject.castle-user-interface';
+  DesignUrl := 'castle-data:/editorviewproject.castle-user-interface';
 end;
 
 procedure TViewProject.Start;

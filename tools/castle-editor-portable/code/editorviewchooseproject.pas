@@ -14,7 +14,7 @@
 }
 
 { Choose new or existing project. }
-unit GameViewChooseProject;
+unit EditorViewChooseProject;
 
 interface
 
@@ -57,7 +57,7 @@ implementation
 uses SysUtils,
   CastleFilesUtils, CastleOpenDocument, CastleApplicationProperties,
   CastleWindow, CastleLog, CastleUtils, CastleConfig,
-  GameViewNewProject, GameViewProject, GameViewChooseExistingProject,
+  EditorViewNewProject, EditorViewProject, EditorViewChooseExistingProject,
   ToolCommonUtils;
 
 { TViewChooseProject ----------------------------------------------------------- }
@@ -65,7 +65,7 @@ uses SysUtils,
 constructor TViewChooseProject.Create(AOwner: TComponent);
 begin
   inherited;
-  DesignUrl := 'castle-data:/gameviewchooseproject.castle-user-interface';
+  DesignUrl := 'castle-data:/editorviewchooseproject.castle-user-interface';
   UserConfig.Load;
 end;
 

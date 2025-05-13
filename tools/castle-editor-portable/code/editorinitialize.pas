@@ -16,7 +16,7 @@
 { Game initialization.
   This unit is cross-platform.
   It will be used by the platform-specific program or library file. }
-unit GameInitialize;
+unit EditorInitialize;
 
 interface
 
@@ -27,10 +27,10 @@ uses SysUtils,
   CastleUtils, CastleInternalFileMonitor, CastleUriUtils
   {$region 'Castle Initialization Uses'}
   // The content here may be automatically updated by CGE editor.
-  , GameViewProject
-  , GameViewChooseProject
-  , GameViewNewProject
-  , GameViewChooseExistingProject
+  , EditorViewProject
+  , EditorViewChooseProject
+  , EditorViewNewProject
+  , EditorViewChooseExistingProject
   {$endregion 'Castle Initialization Uses'};
 
 var
