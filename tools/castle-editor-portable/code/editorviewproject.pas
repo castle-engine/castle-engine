@@ -42,7 +42,7 @@ type
     CheckboxShowHierarchy: TCastleCheckbox;
     CheckboxShowProperties: TCastleCheckbox;
     ToolbarTransformManipulate: TCastleUserInterface;
-    ButtonTranslate, ButtonRotate, ButtonScale: TCastleButton;
+    ButtonSelect, ButtonTranslate, ButtonRotate, ButtonScale: TCastleButton;
     LabelOpenExistingView: TCastleLabel;
   private
     { Loaded design or @nil. }
@@ -79,7 +79,7 @@ implementation
 uses SysUtils,
   CastleStringUtils, CastleUriUtils, CastleUtils, CastleFilesUtils,
   CastleInternalPhysicsVisualization, CastleClassUtils, CastleViewport,
-  CastleTransform,
+  CastleTransform, CastleLog,
   EditorViewChooseProject, EditorViewChooseExistingProject;
 
 { TViewProject ----------------------------------------------------------------- }
@@ -101,6 +101,7 @@ begin
   DesignToolbar.CheckboxShowHierarchy := CheckboxShowHierarchy;
   DesignToolbar.CheckboxShowProperties := CheckboxShowProperties;
   DesignToolbar.ToolbarTransformManipulate := ToolbarTransformManipulate;
+  DesignToolbar.ButtonSelect := ButtonSelect;
   DesignToolbar.ButtonTranslate := ButtonTranslate;
   DesignToolbar.ButtonRotate := ButtonRotate;
   DesignToolbar.ButtonScale := ButtonScale;
@@ -250,16 +251,20 @@ function TViewProject.Press(const Event: TInputPressRelease): Boolean;
 begin
   Result := inherited;
 
-  if Event.IsKey(keyLeftBracket) and (Design <> nil) then
+  if Event.IsKey(CtrlW) then
   begin
-    Design.PressToggleHierarchy;
+    ClickCloseDesign(nil);
     Exit(true);
   end;
 
-  if Event.IsKey(keyRightBracket) and (Design <> nil) then
+  if (Design <> nil) and
+     (not Container.Focus.Contains(Design)) then
   begin
-    Design.PressToggleProperties;
-    Exit(true);
+    WritelnLog('Passing input to design even though it is not focused: %s', [
+      Event.ToString
+    ]);
+    if Design.Press(Event) then
+      Exit(true);
   end;
 end;
 

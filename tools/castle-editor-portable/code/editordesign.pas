@@ -22,7 +22,8 @@ interface
 
 uses Classes,
   CastleVectors, CastleComponentSerialize, CastleInternalInspector,
-  CastleUIControls, CastleControls, CastleKeysMouse, CastleFindFiles;
+  CastleUIControls, CastleControls, CastleKeysMouse, CastleFindFiles,
+  CastleTransformManipulate, CastleClassUtils;
 
 type
   { Toolbar subset that is handled by TDesign, because it is only
@@ -35,7 +36,7 @@ type
     CheckboxShowHierarchy: TCastleCheckbox;
     CheckboxShowProperties: TCastleCheckbox;
     ToolbarTransformManipulate: TCastleUserInterface;
-    ButtonTranslate, ButtonRotate, ButtonScale: TCastleButton;
+    ButtonSelect, ButtonTranslate, ButtonRotate, ButtonScale: TCastleButton;
   end;
 
   { Edit the "design file" (.castle-user-interface, .castle-transform,
@@ -45,29 +46,40 @@ type
   private
     { Root of the design, saved/loaded to component file. Never @nil. }
     FDesignRoot: TCastleUserInterface;
+
     { URL of the currently open design. Never empty. }
     FCurrentDesignUrl: String;
+
     { Owner of all components saved/loaded to the design file. Never @nil.
       Also owner of a temporary viewport for .castle-transform,
       in general this owns everything specific to display currrent design. }
     FDesignOwner: TComponent;
+
     FToolbar: TDesignToolbar;
 
     // UI inside
     ContainerLoadedDesign: TCastleUserInterface;
     Properties: TCastleComponentProperties;
     Hierarchy: TCastleComponentsHierarchy;
+    TransformHover: TCastleTransformHover;
+    TransformManipulate: TCastleTransformManipulate;
 
     // UI callbacks
     procedure ClickSaveDesign(Sender: TObject);
-    procedure HierarchySelect(const Selected: TComponent);
+    procedure HierarchySelect(Sender: TObject);
     procedure ChangeShowHierarchy(Sender: TObject);
     procedure ChangeShowProperties(Sender: TObject);
+    procedure ClickSelect(Sender: TObject);
+    procedure ClickTranslate(Sender: TObject);
+    procedure ClickRotate(Sender: TObject);
+    procedure ClickScale(Sender: TObject);
 
     { Is Child selectable and visible in hierarchy. }
     class function Selectable(const Child: TComponent): Boolean; static;
+
     { Is Child deletable by user (this implies it is also selectable). }
     function Deletable(const Child: TComponent): Boolean;
+
     { Free component C (which should be part of this designed, owned by DesignOwner)
       and all children.
 
@@ -79,9 +91,31 @@ type
       This does nothing if you try to free some internal component
       (like csTransient) or the design root (which can never be freed). }
     procedure FreeComponentRecursively(const C: TComponent);
+
     { Update ContainerLoadedDesignSize size and anchor,
       depending on visibility of Hierarchy / Properties. }
     procedure UpdateContainerLoadedDesignSize;
+
+    { Set pressed and visibility of buttons based on
+      - TransformManipulate.Mode
+      - and whether a TCastleTransform is selected. }
+    procedure UpdateTransformButtons;
+
+    { UI under given mouse position.
+
+      Note: In most cases, prefer to call HoverComponent.
+      HoverUserInterface *does not* consider transforms within TCastleViewport,
+      it will just return TCastleViewport if mouse is over it.
+
+      @param(EnterNestedDesigns If @true, we enter children loaded by TCastleDesign,
+        in TCastleDesign.Design. This should almost never be used: such children
+        are not selectable, their names may collide with names in main design etc.) }
+    function HoverUserInterface(const AMousePosition: TVector2;
+      const EnterNestedDesigns: Boolean = false): TCastleUserInterface;
+
+    { UI or transform under given mouse position.
+      AMousePosition is like for HoverUserInterface. }
+    function HoverComponent(const AMousePosition: TVector2): TCastleComponent;
 
     property DesignRoot: TCastleUserInterface read FDesignRoot;
     property CurrentDesignUrl: String read FCurrentDesignUrl;
@@ -95,16 +129,16 @@ type
       const NewCurrentDesignUrl: String); reintroduce;
     destructor Destroy; override;
 
-    procedure PressToggleHierarchy;
-    procedure PressToggleProperties;
+    function Press(const Event: TInputPressRelease): Boolean; override;
+    procedure Update(const SecondsPassed: Single; var HandleInput: Boolean); override;
   end;
 
 implementation
 
 uses SysUtils,
   CastleStringUtils, CastleUriUtils, CastleUtils, CastleFilesUtils,
-  CastleInternalPhysicsVisualization, CastleClassUtils, CastleViewport,
-  CastleTransform;
+  CastleInternalPhysicsVisualization, CastleViewport,
+  CastleTransform, CastleLog;
 
 constructor TDesign.Create(
   const AOwner: TComponent;
@@ -143,6 +177,10 @@ begin
   AToolbar.ButtonSaveDesign.OnClick := {$ifdef FPC}@{$endif} ClickSaveDesign;
   AToolbar.CheckboxShowHierarchy.OnChange := {$ifdef FPC}@{$endif} ChangeShowHierarchy;
   AToolbar.CheckboxShowProperties.OnChange := {$ifdef FPC}@{$endif} ChangeShowProperties;
+  AToolbar.ButtonSelect.OnClick := {$ifdef FPC}@{$endif} ClickSelect;
+  AToolbar.ButtonTranslate.OnClick := {$ifdef FPC}@{$endif} ClickTranslate;
+  AToolbar.ButtonRotate.OnClick := {$ifdef FPC}@{$endif} ClickRotate;
+  AToolbar.ButtonScale.OnClick := {$ifdef FPC}@{$endif} ClickScale;
 
   // load the design
   FDesignOwner := NewDesignOwner;
@@ -152,6 +190,13 @@ begin
   Hierarchy.Root := DesignRoot;
 
   UpdateContainerLoadedDesignSize;
+
+  { Tracking hover and manipulated objects }
+  TransformHover := TCastleTransformHover.Create(Self);
+  TransformManipulate := TCastleTransformManipulate.Create(Self);
+  TransformManipulate.Mode := mmTranslate;
+
+  UpdateTransformButtons;
 end;
 
 destructor TDesign.Destroy;
@@ -297,12 +342,6 @@ begin
     ContainerLoadedDesign.Anchor(hpMiddle);
 end;
 
-procedure TDesign.HierarchySelect(const Selected: TComponent);
-begin
-  Properties.SelectedComponent := Selected;
-  Hierarchy.SelectComponent(Selected);
-end;
-
 procedure TDesign.ChangeShowHierarchy(Sender: TObject);
 begin
   Hierarchy.Exists := FToolbar.CheckboxShowHierarchy.Checked;
@@ -315,25 +354,259 @@ begin
   UpdateContainerLoadedDesignSize;
 end;
 
-procedure TDesign.PressToggleHierarchy;
-begin
-  FToolbar.CheckboxShowHierarchy.Checked := not FToolbar.CheckboxShowHierarchy.Checked;
-  { Call the OnChange explicitly, because it is not automatically
-    called when changing  Checked programmatically. }
-  ChangeShowHierarchy(nil);
-end;
-
-procedure TDesign.PressToggleProperties;
-begin
-  FToolbar.CheckboxShowProperties.Checked := not FToolbar.CheckboxShowProperties.Checked;
-  { Call the OnChange explicitly, because it is not automatically
-    called when changing  Checked programmatically. }
-  ChangeShowProperties(nil);
-end;
-
 procedure TDesign.ClickSaveDesign(Sender: TObject);
 begin
   UserInterfaceSave(DesignRoot, CurrentDesignUrl);
+  WritelnLog('Saved design to %s', [CurrentDesignUrl]);
+end;
+
+function TDesign.Press(const Event: TInputPressRelease): Boolean;
+begin
+  Result := inherited;
+  if Result then Exit;
+
+  if Event.IsKey(keyLeftBracket) then
+  begin
+    FToolbar.CheckboxShowHierarchy.Checked := not FToolbar.CheckboxShowHierarchy.Checked;
+    { Call the OnChange explicitly, because it is not automatically
+      called when changing Checked programmatically. }
+    ChangeShowHierarchy(nil);
+    Exit(true);
+  end;
+
+  if Event.IsKey(keyRightBracket) then
+  begin
+    FToolbar.CheckboxShowProperties.Checked := not FToolbar.CheckboxShowProperties.Checked;
+    { Call the OnChange explicitly, because it is not automatically
+      called when changing Checked programmatically. }
+    ChangeShowProperties(nil);
+    Exit(true);
+  end;
+
+  if Event.IsKey(CtrlS) then
+  begin
+    ClickSaveDesign(nil);
+    Exit(true);
+  end;
+
+  if Event.IsMouseButton(buttonLeft) and (TransformHover.Current <> nil) then
+  begin
+    Properties.SelectedComponent := TransformHover.Current;
+    Hierarchy.SelectedComponent := TransformHover.Current;
+    TransformManipulate.SetSelected([TransformHover.Current]);
+    UpdateTransformButtons;
+    Exit(true);
+  end;
+end;
+
+procedure TDesign.HierarchySelect(Sender: TObject);
+begin
+  Properties.SelectedComponent := Hierarchy.SelectedComponent;
+  if Hierarchy.SelectedComponent is TCastleTransform then // also checks its <> nil
+    TransformManipulate.SetSelected([Hierarchy.SelectedComponent])
+  else
+    TransformManipulate.SetSelected([]);
+  UpdateTransformButtons;
+end;
+
+procedure TDesign.Update(const SecondsPassed: Single; var HandleInput: Boolean);
+
+  // Update TransformHover.Current
+  procedure UpdateTransformHover;
+  var
+    HoverC: TComponent;
+  begin
+    HoverC := HoverComponent(Container.MousePosition);
+    if HoverC is TCastleTransform then
+      TransformHover.Current := TCastleTransform(HoverC)
+    else
+      TransformHover.Current := nil;
+  end;
+
+begin
+  inherited;
+  UpdateTransformHover;
+end;
+
+procedure TDesign.UpdateTransformButtons;
+begin
+  FToolbar.ToolbarTransformManipulate.Exists := TransformManipulate.SelectedCount <> 0;
+  FToolbar.ButtonSelect.Pressed := TransformManipulate.Mode = mmSelect;
+  FToolbar.ButtonTranslate.Pressed := TransformManipulate.Mode = mmTranslate;
+  FToolbar.ButtonRotate.Pressed := TransformManipulate.Mode = mmRotate;
+  FToolbar.ButtonScale.Pressed := TransformManipulate.Mode = mmScale;
+end;
+
+procedure TDesign.ClickSelect(Sender: TObject);
+begin
+  TransformManipulate.Mode := mmSelect;
+  UpdateTransformButtons;
+end;
+
+procedure TDesign.ClickTranslate(Sender: TObject);
+begin
+  TransformManipulate.Mode := mmTranslate;
+  UpdateTransformButtons;
+end;
+
+procedure TDesign.ClickRotate(Sender: TObject);
+begin
+  TransformManipulate.Mode := mmRotate;
+  UpdateTransformButtons;
+end;
+
+procedure TDesign.ClickScale(Sender: TObject);
+begin
+  TransformManipulate.Mode := mmScale;
+  UpdateTransformButtons;
+end;
+
+function TDesign.HoverUserInterface(
+  const AMousePosition: TVector2;
+  const EnterNestedDesigns: Boolean): TCastleUserInterface;
+
+  { Like TCastleUserInterface.CapturesEventsAtPosition, but
+    - ignores CapturesEvents
+    - uses RenderRectWithBorder (to be able to drag complete control)
+    - doesn't need "if the control covers the whole Container" hack. }
+  function SimpleCapturesEventsAtPosition(const UI: TCastleUserInterface;
+    const Position: TVector2; const TestWithBorder: Boolean): Boolean;
+  begin
+    if TestWithBorder then
+      Result := UI.RenderRectWithBorder.Contains(Position)
+    else
+      Result := UI.RenderRect.Contains(Position);
+  end;
+
+  { Is C selectable, or we should enter it anyway because of EnterNestedDesigns. }
+  function Enter(const Parent, C: TCastleUserInterface): Boolean;
+  begin
+    Result := Selectable(C) or
+      ( EnterNestedDesigns and
+        (Parent is TCastleDesign) and
+        (TCastleDesign(Parent).InternalDesign = C) );
+  end;
+
+  function ControlUnder(const C: TCastleUserInterface;
+    const MousePos: TVector2; const TestWithBorder: Boolean): TCastleUserInterface;
+  var
+    I: Integer;
+  begin
+    Result := nil;
+
+    { To allow selecting even controls that have bad rectangle (outside
+      of parent, which can happen, e.g. if you enlarge caption of label
+      with AutoSize), do not check C.CapturesEventsAtPosition(MousePos)
+      too early here. So the condition
+
+        and C.CapturesEventsAtPosition(MousePos)
+
+      is not present in "if" below. }
+
+    if C.Exists then
+    begin
+      { First try to find children, with TestWithBorder=false (so it doesn't detect
+        control if we merely point at its border). This allows to find controls
+        places on another control's border. }
+      for I := C.ControlsCount - 1 downto 0 do
+        if Enter(C, C.Controls[I]) then
+        begin
+          Result := ControlUnder(C.Controls[I], MousePos, false);
+          if Result <> nil then Exit;
+        end;
+
+      { Next try to find children, with TestWithBorder=true, so it tries harder
+        to find something. }
+      for I := C.ControlsCount - 1 downto 0 do
+        if Enter(C, C.Controls[I]) then
+        begin
+          Result := ControlUnder(C.Controls[I], MousePos, true);
+          if Result <> nil then Exit;
+        end;
+
+      { Eventually return yourself, C. }
+      //if C.CapturesEventsAtPosition(MousePos) then
+      if SimpleCapturesEventsAtPosition(C, MousePos, TestWithBorder) and
+         C.EditorSelectOnHover then
+        Result := C;
+    end;
+  end;
+
+begin
+  Result := nil;
+  if DesignRoot is TCastleUserInterface then
+    Result := ControlUnder(DesignRoot as TCastleUserInterface, AMousePosition, true)
+  { TODO: prepare for DesignRoot being TCastleTransform.
+  else
+  if DesignRoot is TCastleTransform then
+    Result := FDesignViewportForTransforms};
+end;
+
+function TDesign.HoverComponent(const AMousePosition: TVector2): TCastleComponent;
+
+  function SelectionFromRayHit(const RayHit: TRayCollision): TCastleTransform;
+  var
+    I: Integer;
+  begin
+    // set outer-most TCastleTransformReference, if any, to show selection at TCastleTransformReference
+    for I := RayHit.Count - 1 downto 0 do
+      if (RayHit[I].Item is TCastleTransformReference) and Selectable(RayHit[I].Item) then
+        Exit(RayHit[I].Item);
+
+    { We want the inner-most TCastleTransform hit, but not anything non-selectable
+      (which means csTransient) (to avoid hitting gizmo).
+      Moreover, things that are children of csTransient should always be treated like csTransient
+      too, e.g. GizmoSelect in TInternalCastleEditorGizmo should never be returned by this.
+
+      So if there's anything non-selectable (which just means csTransient),
+      searching from outer (world),
+      then pick the selected transform right above it. }
+
+    for I := RayHit.Count - 1 downto 0 do
+      if not Selectable(RayHit[I].Item) then
+      begin
+        if I + 1 < RayHit.Count then
+          Exit(RayHit[I + 1].Item)
+        else
+          Exit(nil);
+      end;
+
+    { Nothing non-selectable (csTransient) on the list, pick the inner-most transform }
+    if RayHit.Count <> 0 then
+      Result := RayHit[0].Item
+    else
+      Result := nil;
+  end;
+
+var
+  Viewport: TCastleViewport;
+  RayOrigin, RayDirection: TVector3;
+  RayHit: TRayCollision;
+begin
+  { Note: We don't call here CurrentViewport.
+
+    Unlike with CurrentViewport, here we don't try to forcefully select viewport
+    (from hover or selection). If the mouse is over non-viewport, then this
+    should return non-viewport.
+
+    Also, unlike CurrentViewport,
+    we don't want to remember last hovered/selected viewport here,
+    it would be weird for user here.
+
+    Also, unlike CurrentViewport, we don't pass EnterNestedDesigns as
+    UpdateCurrentViewport does. We don't need to look for viewport that aggressive. }
+
+  Result := HoverUserInterface(AMousePosition);
+  if Result is TCastleViewport then // also checks Result <> nil
+  begin
+    Viewport := TCastleViewport(Result);
+    Viewport.PositionToRay(AMousePosition, true, RayOrigin, RayDirection);
+    RayHit := Viewport.Items.WorldRay(RayOrigin, RayDirection);
+    try
+      if RayHit <> nil then
+        Result := SelectionFromRayHit(RayHit);
+    finally FreeAndNil(RayHit) end;
+  end;
 end;
 
 end.

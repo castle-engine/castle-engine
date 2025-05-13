@@ -17,8 +17,6 @@
 {$ifdef read_interface}
 
 type
-  TComponentEvent = procedure (const Selected: TComponent) of object;
-
   { Display components' hierarchy. }
   TCastleComponentsHierarchy = class(TCastleUserInterface)
   strict private
@@ -34,25 +32,26 @@ type
     FRoot: TComponent;
     FShowEverythingIfRootUnset: Boolean;
     FRootObserver: TFreeNotificationObserver;
+    FSelectedComponent: TComponent;
+    FSelectedComponentObserver: TFreeNotificationObserver;
     procedure UpdateHierarchy(Sender: TObject);
     procedure BeforeRenderHierarchyRows(const Sender: TCastleUserInterface);
     procedure ClickRow(Sender: TObject);
     procedure SetRoot(const Value: TComponent);
     procedure SetShowEverythingIfRootUnset(const Value: Boolean);
     procedure RootFreeNotification(const Sender: TFreeNotificationObserver);
+    procedure SelectedComponentFreeNotification(const Sender: TFreeNotificationObserver);
+    procedure SetSelectedComponent(const Value: TComponent);
   public
     // designed components that are just public
     ButtonHierarchyHide: TCastleButton;
 
-    OnSelect: TComponentEvent;
+    OnSelect: TNotifyEvent;
 
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure Resize; override;
     procedure Update(const SecondsPassed: Single; var HandleInput: Boolean); override;
-
-    { Show selected component, by highlighting its row in the hierarchy. }
-    procedure SelectComponent(const C: TComponent);
 
     { Show components starting from this root.
       If @nil (default), then (depending on ShowEverythingIfRootUnset)
@@ -62,6 +61,11 @@ type
     { What to show when @link(Root) is @nil. }
     property ShowEverythingIfRootUnset: Boolean
       read FShowEverythingIfRootUnset write SetShowEverythingIfRootUnset default false;
+
+    { Currently selected component in the hierarchy.
+      Selected component has highlighted row in the hierarchy.
+      OnSelect is called when this changes. }
+    property SelectedComponent: TComponent read FSelectedComponent write SetSelectedComponent;
   end;
 
 {$endif read_interface}
@@ -243,6 +247,10 @@ begin
 
   FRootObserver := TFreeNotificationObserver.Create(Self);
   FRootObserver.OnFreeNotification := {$ifdef FPC}@{$endif} RootFreeNotification;
+
+  FSelectedComponentObserver := TFreeNotificationObserver.Create(Self);
+  FSelectedComponentObserver.OnFreeNotification :=
+    {$ifdef FPC}@{$endif} SelectedComponentFreeNotification;
 end;
 
 destructor TCastleComponentsHierarchy.Destroy;
@@ -265,15 +273,24 @@ begin
     C.Width := EffectiveWidthForChildren;
 end;
 
-procedure TCastleComponentsHierarchy.SelectComponent(const C: TComponent);
+procedure TCastleComponentsHierarchy.SetSelectedComponent(const Value: TComponent);
 var
   HierarchyRow: TCastleUserInterface;
   HierachyRowButton: TCastleButton;
 begin
-  for HierarchyRow in HierarchyRowParent do
+  if FSelectedComponent <> Value then
   begin
-    HierachyRowButton := HierarchyRow as TCastleButton;
-    HierachyRowButton.Pressed := TComponent(Pointer(HierachyRowButton.Tag)) = C;
+    FSelectedComponent := Value;
+    FSelectedComponentObserver.Observed := Value;
+
+    for HierarchyRow in HierarchyRowParent do
+    begin
+      HierachyRowButton := HierarchyRow as TCastleButton;
+      HierachyRowButton.Pressed := TComponent(Pointer(HierachyRowButton.Tag)) = Value;
+    end;
+
+    if Assigned(OnSelect) then
+      OnSelect(Self);
   end;
 end;
 
@@ -286,8 +303,7 @@ end;
 
 procedure TCastleComponentsHierarchy.ClickRow(Sender: TObject);
 begin
-  if Assigned(OnSelect) then
-    OnSelect(TComponent(Pointer((Sender as TCastleButton).Tag)));
+  SelectedComponent := TComponent(Pointer((Sender as TCastleButton).Tag));
 end;
 
 procedure TCastleComponentsHierarchy.UpdateHierarchy(Sender: TObject);
@@ -551,6 +567,11 @@ end;
 procedure TCastleComponentsHierarchy.RootFreeNotification(const Sender: TFreeNotificationObserver);
 begin
   FRoot := nil;
+end;
+
+procedure TCastleComponentsHierarchy.SelectedComponentFreeNotification(const Sender: TFreeNotificationObserver);
+begin
+  FSelectedComponent := nil;
 end;
 
 procedure TCastleComponentsHierarchy.SetShowEverythingIfRootUnset(const Value: Boolean);
