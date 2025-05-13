@@ -40,16 +40,16 @@ type
     ScrollListOpenExistingView: TCastleUserInterface;
     CheckboxShowHierarchy: TCastleCheckbox;
     CheckboxShowProperties: TCastleCheckbox;
+    ToolbarTransformManipulate: TCastleUserInterface;
+    ButtonTranslate, ButtonRotate, ButtonScale: TCastleButton;
   private
     { Loaded design or @nil. }
     Design: TDesign;
+    DesignToolbar: TDesignToolbar;
     ListOpenExistingViewStr: TStringList;
     procedure ClickCloseProject(Sender: TObject);
     procedure ClickCloseDesign(Sender: TObject);
-    procedure ClickSaveDesign(Sender: TObject);
     procedure ClickOpenView(Sender: TObject);
-    procedure ChangeShowHierarchy(Sender: TObject);
-    procedure ChangeShowProperties(Sender: TObject);
     procedure ListOpenExistingViewAddFile(const FileInfo: TFileInfo;
       var StopSearch: boolean);
     procedure ProposeOpenDesign(const OpenDesignUrl: String);
@@ -95,9 +95,15 @@ begin
   inherited;
   ButtonCloseProject.OnClick := {$ifdef FPC}@{$endif} ClickCloseProject;
   ButtonCloseDesign.OnClick := {$ifdef FPC}@{$endif} ClickCloseDesign;
-  ButtonSaveDesign.OnClick := {$ifdef FPC}@{$endif} ClickSaveDesign;
-  CheckboxShowHierarchy.OnChange := {$ifdef FPC}@{$endif} ChangeShowHierarchy;
-  CheckboxShowProperties.OnChange := {$ifdef FPC}@{$endif} ChangeShowProperties;
+
+  DesignToolbar := TDesignToolbar.Create;
+  DesignToolbar.ButtonSaveDesign := ButtonSaveDesign;
+  DesignToolbar.CheckboxShowHierarchy := CheckboxShowHierarchy;
+  DesignToolbar.CheckboxShowProperties := CheckboxShowProperties;
+  DesignToolbar.ToolbarTransformManipulate := ToolbarTransformManipulate;
+  DesignToolbar.ButtonTranslate := ButtonTranslate;
+  DesignToolbar.ButtonRotate := ButtonRotate;
+  DesignToolbar.ButtonScale := ButtonScale;
 
   FactoryButtonView.LoadFromComponent(ButtonViewTemplate);
   // note that ButtonViewTemplate children remain existing, doesn't matter
@@ -123,6 +129,8 @@ begin
     to free things with the same ApplicationDataOverride,
     to make URL notification mechanism happy. }
   FreeAndNil(Design);
+
+  FreeAndNil(DesignToolbar);
 
   ApplicationDataOverride := '';
   inherited;
@@ -260,11 +268,6 @@ begin
   ProposeOpenDesign(OpenDesignUrl);
 end;
 
-procedure TViewProject.ClickSaveDesign(Sender: TObject);
-begin
-  Design.SaveDesign;
-end;
-
 procedure TViewProject.ProposeOpenDesign(const OpenDesignUrl: String);
 var
   NewDesignOwner: TComponent;
@@ -277,21 +280,12 @@ begin
   NewDesignRoot := UserInterfaceLoad(OpenDesignUrl, NewDesignOwner);
 
   FreeAndNil(Design);
-  Design := TDesign.Create(Self, NewDesignOwner, NewDesignRoot, OpenDesignUrl);
+  Design := TDesign.Create(Self, DesignToolbar,
+    NewDesignOwner, NewDesignRoot, OpenDesignUrl);
   Design.FullSize := true;
   ContainerDesignView.InsertFront(Design);
 
   DesignExistenceChanged;
-end;
-
-procedure TViewProject.ChangeShowHierarchy(Sender: TObject);
-begin
-  Design.HierarchyExists := CheckboxShowHierarchy.Checked;
-end;
-
-procedure TViewProject.ChangeShowProperties(Sender: TObject);
-begin
-  Design.PropertiesExists := CheckboxShowProperties.Checked;
 end;
 
 function TViewProject.Press(const Event: TInputPressRelease): Boolean;
@@ -300,19 +294,13 @@ begin
 
   if Event.IsKey(keyLeftBracket) and (Design <> nil) then
   begin
-    CheckboxShowHierarchy.Checked := not CheckboxShowHierarchy.Checked;
-    { Call the OnChange explicitly, because it is not automatically
-      called when changing  Checked programmatically. }
-    ChangeShowHierarchy(nil);
+    Design.PressToggleHierarchy;
     Exit(true);
   end;
 
   if Event.IsKey(keyRightBracket) and (Design <> nil) then
   begin
-    CheckboxShowProperties.Checked := not CheckboxShowProperties.Checked;
-    { Call the OnChange explicitly, because it is not automatically
-      called when changing  Checked programmatically. }
-    ChangeShowProperties(nil);
+    Design.PressToggleProperties;
     Exit(true);
   end;
 end;

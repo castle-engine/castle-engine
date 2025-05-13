@@ -25,6 +25,19 @@ uses Classes,
   CastleUIControls, CastleControls, CastleKeysMouse, CastleFindFiles;
 
 type
+  { Toolbar subset that is handled by TDesign, because it is only
+    useful when the design is loaded.
+    Components of this toolbar are visually created inside
+    editorviewproject.castle-user-interface, but TViewProject
+    doesn't do anything with them, instead it is handled by TDesign. }
+  TDesignToolbar = class
+    ButtonSaveDesign: TCastleButton;
+    CheckboxShowHierarchy: TCastleCheckbox;
+    CheckboxShowProperties: TCastleCheckbox;
+    ToolbarTransformManipulate: TCastleUserInterface;
+    ButtonTranslate, ButtonRotate, ButtonScale: TCastleButton;
+  end;
+
   { Edit the "design file" (.castle-user-interface, .castle-transform,
     .castle-component) in the editor.
     This exists only when the design is loaded. }
@@ -38,13 +51,19 @@ type
       Also owner of a temporary viewport for .castle-transform,
       in general this owns everything specific to display currrent design. }
     FDesignOwner: TComponent;
+    FToolbar: TDesignToolbar;
 
     // UI inside
     ContainerLoadedDesign: TCastleUserInterface;
     Properties: TCastleComponentProperties;
     Hierarchy: TCastleComponentsHierarchy;
 
+    // UI callbacks
+    procedure ClickSaveDesign(Sender: TObject);
     procedure HierarchySelect(const Selected: TComponent);
+    procedure ChangeShowHierarchy(Sender: TObject);
+    procedure ChangeShowProperties(Sender: TObject);
+
     { Is Child selectable and visible in hierarchy. }
     class function Selectable(const Child: TComponent): Boolean; static;
     { Is Child deletable by user (this implies it is also selectable). }
@@ -63,10 +82,6 @@ type
     { Update ContainerLoadedDesignSize size and anchor,
       depending on visibility of Hierarchy / Properties. }
     procedure UpdateContainerLoadedDesignSize;
-    function GetHierarchyExists: Boolean;
-    procedure SetHierarchyExists(const Value: Boolean);
-    function GetPropertiesExists: Boolean;
-    procedure SetPropertiesExists(const Value: Boolean);
 
     property DesignRoot: TCastleUserInterface read FDesignRoot;
     property CurrentDesignUrl: String read FCurrentDesignUrl;
@@ -74,17 +89,14 @@ type
   public
     constructor Create(
       const AOwner: TComponent;
+      const AToolbar: TDesignToolbar;
       const NewDesignOwner: TComponent;
       const NewDesignRoot: TCastleUserInterface;
       const NewCurrentDesignUrl: String); reintroduce;
     destructor Destroy; override;
 
-    property HierarchyExists: Boolean
-      read GetHierarchyExists write SetHierarchyExists default true;
-    property PropertiesExists: Boolean
-      read GetPropertiesExists write SetPropertiesExists default true;
-
-    procedure SaveDesign;
+    procedure PressToggleHierarchy;
+    procedure PressToggleProperties;
   end;
 
 implementation
@@ -96,6 +108,7 @@ uses SysUtils,
 
 constructor TDesign.Create(
   const AOwner: TComponent;
+  const AToolbar: TDesignToolbar;
   const NewDesignOwner: TComponent;
   const NewDesignRoot: TCastleUserInterface;
   const NewCurrentDesignUrl: String);
@@ -124,6 +137,12 @@ begin
   Properties.HeightFraction := 1;
   Properties.Anchor(hpRight);
   InsertFront(Properties);
+
+  // handle toolbar
+  FToolbar := AToolbar;
+  AToolbar.ButtonSaveDesign.OnClick := {$ifdef FPC}@{$endif} ClickSaveDesign;
+  AToolbar.CheckboxShowHierarchy.OnChange := {$ifdef FPC}@{$endif} ChangeShowHierarchy;
+  AToolbar.CheckboxShowProperties.OnChange := {$ifdef FPC}@{$endif} ChangeShowProperties;
 
   // load the design
   FDesignOwner := NewDesignOwner;
@@ -250,28 +269,6 @@ begin
   //UpdateDesign; // for now, our hierarchy doesn't need it in castle-editor-portable
 end;
 
-function TDesign.GetHierarchyExists: Boolean;
-begin
-  Result := Hierarchy.Exists;
-end;
-
-procedure TDesign.SetHierarchyExists(const Value: Boolean);
-begin
-  Hierarchy.Exists := Value;
-  UpdateContainerLoadedDesignSize;
-end;
-
-function TDesign.GetPropertiesExists: Boolean;
-begin
-  Result := Properties.Exists;
-end;
-
-procedure TDesign.SetPropertiesExists(const Value: Boolean);
-begin
-  Properties.Exists := Value;
-  UpdateContainerLoadedDesignSize;
-end;
-
 procedure TDesign.UpdateContainerLoadedDesignSize;
 var
   L, R: Boolean;
@@ -306,7 +303,35 @@ begin
   Hierarchy.SelectComponent(Selected);
 end;
 
-procedure TDesign.SaveDesign;
+procedure TDesign.ChangeShowHierarchy(Sender: TObject);
+begin
+  Hierarchy.Exists := FToolbar.CheckboxShowHierarchy.Checked;
+  UpdateContainerLoadedDesignSize;
+end;
+
+procedure TDesign.ChangeShowProperties(Sender: TObject);
+begin
+  Properties.Exists := FToolbar.CheckboxShowProperties.Checked;
+  UpdateContainerLoadedDesignSize;
+end;
+
+procedure TDesign.PressToggleHierarchy;
+begin
+  FToolbar.CheckboxShowHierarchy.Checked := not FToolbar.CheckboxShowHierarchy.Checked;
+  { Call the OnChange explicitly, because it is not automatically
+    called when changing  Checked programmatically. }
+  ChangeShowHierarchy(nil);
+end;
+
+procedure TDesign.PressToggleProperties;
+begin
+  FToolbar.CheckboxShowProperties.Checked := not FToolbar.CheckboxShowProperties.Checked;
+  { Call the OnChange explicitly, because it is not automatically
+    called when changing  Checked programmatically. }
+  ChangeShowProperties(nil);
+end;
+
+procedure TDesign.ClickSaveDesign(Sender: TObject);
 begin
   UserInterfaceSave(DesignRoot, CurrentDesignUrl);
 end;
