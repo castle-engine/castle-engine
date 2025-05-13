@@ -21,6 +21,7 @@ interface
 uses Classes,
   CastleVectors, CastleComponentSerialize, CastleInternalInspector,
   CastleUIControls, CastleControls, CastleKeysMouse, CastleFindFiles,
+  ToolEditorUtils,
   EditorDesign;
 
 type
@@ -46,14 +47,12 @@ type
     { Loaded design or @nil. }
     Design: TDesign;
     DesignToolbar: TDesignToolbar;
-    ListOpenExistingViewStr: TStringList;
+    ProjectViews: TProjectViewList;
     procedure ClickCloseProject(Sender: TObject);
     procedure ClickCloseDesign(Sender: TObject);
     procedure ClickOpenView(Sender: TObject);
-    procedure ListOpenExistingViewAddFile(const FileInfo: TFileInfo;
-      var StopSearch: boolean);
     procedure ProposeOpenDesign(const OpenDesignUrl: String);
-    procedure ListViewsRefresh;
+    procedure ProjectViewsRefresh;
     { Update UI based on whether a design is loaded now (Design <> nil). }
     procedure DesignExistenceChanged;
   public
@@ -79,7 +78,6 @@ uses SysUtils,
   CastleStringUtils, CastleUriUtils, CastleUtils, CastleFilesUtils,
   CastleInternalPhysicsVisualization, CastleClassUtils, CastleViewport,
   CastleTransform,
-  ToolEditorUtils,
   EditorViewChooseProject, EditorViewChooseExistingProject;
 
 { TViewProject ----------------------------------------------------------------- }
@@ -109,8 +107,8 @@ begin
   // note that ButtonViewTemplate children remain existing, doesn't matter
   FreeAndNil(ButtonViewTemplate);
 
-  ListOpenExistingViewStr := TStringList.Create;
-  ListViewsRefresh;
+  ProjectViews := TProjectViewList.Create;
+  ProjectViewsRefresh;
 
   DesignExistenceChanged;
 
@@ -123,7 +121,7 @@ end;
 
 procedure TViewProject.Stop;
 begin
-  FreeAndNil(ListOpenExistingViewStr);
+  FreeAndNil(ProjectViews);
 
   { Has to be done before ApplicationDataOverride:='', before we want
     to free things with the same ApplicationDataOverride,
@@ -134,11 +132,6 @@ begin
 
   ApplicationDataOverride := '';
   inherited;
-end;
-
-procedure TViewProject.ListOpenExistingViewAddFile(const FileInfo: TFileInfo; var StopSearch: boolean);
-begin
-  ListOpenExistingViewStr.Append(FileInfo.Url);
 end;
 
 procedure TViewProject.Resize;
@@ -157,65 +150,20 @@ type
     LabelViewName, LabelViewFile, LabelLastModified: TCastleLabel;
   end;
 
-procedure TViewProject.ListViewsRefresh;
-
-  function ShortDesignName(const S: String): String;
-  begin
-    Result := DeleteUriExt(ExtractUriName(S));
-    Result := PrefixRemove('gameview', Result, true);
-    Result := PrefixRemove('gamestate', Result, true);
-    Result := SuffixRemove('.castle-user-interface', Result, true);
-  end;
-
-  function ExtractRelativeUrl(const BaseUrl, Url: String): String;
-  var
-    BaseFileName, FileName: String;
-  begin
-    { If both BaseUrl and Url are file URLs, then we can use ExtractRelativePath
-      to get the relative path. }
-    BaseFileName := UriToFilenameSafe(BaseUrl);
-    FileName := UriToFilenameSafe(Url);
-    if (BaseFileName <> '') and (FileName <> '') then
-      Exit(ExtractRelativePath(BaseFileName, FileName));
-
-    { Otherwise, simply use PrefixRemove.
-      Don't ignore case, in case it mattered for these URLs. }
-    if IsPrefix(BaseUrl, Url, false) then
-      Result := PrefixRemove(BaseUrl, Url, false)
-    else
-      Result := Url;
-  end;
-
+procedure TViewProject.ProjectViewsRefresh;
 var
-  OpenDesignUrl, ProjectDataUrl: String;
+  View: TProjectView;
   ButtonViewDesign: TButtonViewDesign;
   I: Integer;
   ButtonView: TCastleButton;
 begin
-  { calculate ListOpenExistingViewStr contents }
-  ListOpenExistingViewStr.Clear;
-  { Search in ProjectDataUrl, not ProjectPathUrl, as all designs should be part of data
-    to be possible to open them at runtime.
-    This also avoids finding stuff in castle-engine-output, which is possible,
-    e.g. after "castle-engine package --target=android" the castle-engine-output contains
-    some temporary data with copies of design files -- and we *do not* want to show them here. }
-  ProjectDataUrl := CombineUri(ProjectPathUrl, 'data/');
-  if UriExists(ProjectDataUrl) <> ueNotExists then
-  begin
-    FindFiles(ProjectDataUrl, 'gameview*.castle-user-interface', false, @ListOpenExistingViewAddFile, [ffRecursive]);
-    // support deprecated names
-    FindFiles(ProjectDataUrl, 'gamestate*.castle-user-interface', false, @ListOpenExistingViewAddFile, [ffRecursive]);
-  end;
-  { without sorting, the order would be ~random (as FindFiles enumarates).
-    Note that we sort including the subdirectory names, which is good,
-    we want files in the same subdirectory to be together. }
-  ListOpenExistingViewStr.Sort;
+  ProjectViews.ScanProject(ProjectPathUrl);
 
-  { copy ListOpenExistingViewStr contents -> ListOpenExistingView GUI contents }
+  { copy ProjectViews contents -> ListOpenExistingView GUI contents }
   ListOpenExistingView.ClearControls; // TODO: also free items, use TCastleListBox
-  for I := 0 to ListOpenExistingViewStr.Count -1 do
+  for I := 0 to ProjectViews.Count -1 do
   begin
-    OpenDesignUrl := ListOpenExistingViewStr[I];
+    View := ProjectViews[I];
     ButtonViewDesign := TButtonViewDesign.Create;
     try
       ButtonView := FactoryButtonView.ComponentLoad(FreeAtStop, ButtonViewDesign) as TCastleButton;
@@ -224,9 +172,9 @@ begin
       ButtonView.Width := ScrollListOpenExistingView.EffectiveWidthForChildren;
       ListOpenExistingView.InsertFront(ButtonView);
 
-      ButtonViewDesign.LabelViewName.Caption := ShortDesignName(OpenDesignUrl);
-      ButtonViewDesign.LabelViewFile.Caption := ExtractRelativeUrl(ProjectPathUrl, OpenDesignUrl);
-      ButtonViewDesign.LabelLastModified.Caption := UrlDateTimeStr(OpenDesignUrl);
+      ButtonViewDesign.LabelViewName.Caption := View.Name;
+      ButtonViewDesign.LabelViewFile.Caption := View.Path;
+      ButtonViewDesign.LabelLastModified.Caption := View.LastModified;
     finally FreeAndNil(ButtonViewDesign) end;
   end;
 end;
@@ -247,7 +195,7 @@ end;
 procedure TViewProject.ClickCloseDesign(Sender: TObject);
 begin
   FreeAndNil(Design);
-  ListViewsRefresh;
+  ProjectViewsRefresh;
   DesignExistenceChanged;
 end;
 
@@ -264,7 +212,7 @@ var
   ViewIndex: Integer;
 begin
   ViewIndex := (Sender as TComponent).Tag;
-  OpenDesignUrl := ListOpenExistingViewStr[ViewIndex];
+  OpenDesignUrl := ProjectViews[ViewIndex].Url;
   ProposeOpenDesign(OpenDesignUrl);
 end;
 
