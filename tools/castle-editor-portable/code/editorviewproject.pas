@@ -20,7 +20,8 @@ interface
 
 uses Classes,
   CastleVectors, CastleComponentSerialize, CastleInternalInspector,
-  CastleUIControls, CastleControls, CastleKeysMouse, CastleFindFiles;
+  CastleUIControls, CastleControls, CastleKeysMouse, CastleFindFiles,
+  EditorDesign;
 
 type
   { Edit a chosen project. }
@@ -33,25 +34,15 @@ type
     ButtonCloseDesign: TCastleButton;
     ButtonSaveDesign: TCastleButton;
     ButtonViewTemplate: TCastleButton;
-    ContainerDesignView, ContainerOpenView, ContainerLoadedDesign: TCastleUserInterface;
+    ContainerDesignView, ContainerOpenView: TCastleUserInterface;
     FactoryButtonView: TCastleComponentFactory;
     ListOpenExistingView: TCastleVerticalGroup;
     ScrollListOpenExistingView: TCastleUserInterface;
     CheckboxShowHierarchy: TCastleCheckbox;
     CheckboxShowProperties: TCastleCheckbox;
   private
-    { Root of the design, saved/loaded to component file.
-      @nil if no design is loaded. }
-    DesignRoot: TCastleUserInterface;
-    { URL of the currently open design.
-      Empty if no design is loaded. }
-    CurrentDesignUrl: String;
-    { Owner of all components saved/loaded to the design file.
-      Also owner of a temporary viewport for .castle-transform,
-      in general this owns everything specific to display currrent design. }
-    DesignOwner: TComponent;
-    Properties: TCastleComponentProperties;
-    Hierarchy: TCastleComponentsHierarchy;
+    { Loaded design or @nil. }
+    Design: TDesign;
     ListOpenExistingViewStr: TStringList;
     procedure ClickCloseProject(Sender: TObject);
     procedure ClickCloseDesign(Sender: TObject);
@@ -59,31 +50,10 @@ type
     procedure ClickOpenView(Sender: TObject);
     procedure ChangeShowHierarchy(Sender: TObject);
     procedure ChangeShowProperties(Sender: TObject);
-    procedure HierarchySelect(const Selected: TComponent);
     procedure ListOpenExistingViewAddFile(const FileInfo: TFileInfo;
       var StopSearch: boolean);
     procedure ProposeOpenDesign(const OpenDesignUrl: String);
     procedure ListViewsRefresh;
-    { Is Child selectable and visible in hierarchy. }
-    class function Selectable(const Child: TComponent): Boolean; static;
-    { Is Child deletable by user (this implies it is also selectable). }
-    function Deletable(const Child: TComponent): Boolean;
-    { Free component C (which should be part of this designed, owned by DesignOwner)
-      and all children.
-
-      We have to delete things recursively, otherwise they would keep existing,
-      taking resources and reserving names in DesignOwner,
-      even though they would not be visible when disconnected from parent
-      hierarchy.
-
-      This does nothing if you try to free some internal component
-      (like csTransient) or the design root (which can never be freed). }
-    procedure FreeComponentRecursively(const C: TComponent);
-    { Free and clear DesignRoot, DesignOwner. }
-    procedure ClearDesign;
-    { Update ContainerLoadedDesignSize size and anchor,
-      depending on visibility of Hierarchy / Properties. }
-    procedure UpdateContainerLoadedDesignSize;
     { Update UI based on whether a design is loaded now (Design <> nil). }
     procedure DesignExistenceChanged;
   public
@@ -129,20 +99,6 @@ begin
   CheckboxShowHierarchy.OnChange := {$ifdef FPC}@{$endif} ChangeShowHierarchy;
   CheckboxShowProperties.OnChange := {$ifdef FPC}@{$endif} ChangeShowProperties;
 
-  Hierarchy := TCastleComponentsHierarchy.Create(FreeAtStop);
-  Hierarchy.ButtonHierarchyHide.Exists := false; // hide, not handled
-  Hierarchy.WidthFraction := 0.25;
-  Hierarchy.HeightFraction := 1;
-  Hierarchy.OnSelect := {$ifdef FPC}@{$endif} HierarchySelect;
-  ContainerDesignView.InsertFront(Hierarchy);
-
-  Properties := TCastleComponentProperties.Create(FreeAtStop);
-  Properties.ButtonPropertiesHide.Exists := false; // hide, not handled
-  Properties.WidthFraction := 0.25;
-  Properties.HeightFraction := 1;
-  Properties.Anchor(hpRight);
-  ContainerDesignView.InsertFront(Properties);
-
   FactoryButtonView.LoadFromComponent(ButtonViewTemplate);
   // note that ButtonViewTemplate children remain existing, doesn't matter
   FreeAndNil(ButtonViewTemplate);
@@ -151,7 +107,6 @@ begin
   ListViewsRefresh;
 
   DesignExistenceChanged;
-  UpdateContainerLoadedDesignSize;
 
   ViewChooseExistingProject.AddRecentProject(ProjectManifestUrl);
 
@@ -167,7 +122,7 @@ begin
   { Has to be done before ApplicationDataOverride:='', before we want
     to free things with the same ApplicationDataOverride,
     to make URL notification mechanism happy. }
-  ClearDesign;
+  FreeAndNil(Design);
 
   ApplicationDataOverride := '';
   inherited;
@@ -283,21 +238,17 @@ end;
 
 procedure TViewProject.ClickCloseDesign(Sender: TObject);
 begin
-  ClearDesign;
+  FreeAndNil(Design);
   ListViewsRefresh;
   DesignExistenceChanged;
 end;
 
 procedure TViewProject.DesignExistenceChanged;
 begin
-  // ButtonCloseDesign.Exists := Design <> nil;
-  // ButtonSaveDesign.Exists := Design <> nil;
-  // ContainerDesignView.Exists := Design <> nil;
-  // ContainerOpenView.Exists := Design = nil;
-  ButtonCloseDesign.Exists := CurrentDesignUrl <> '';
-  ButtonSaveDesign.Exists := CurrentDesignUrl <> '';
-  ContainerDesignView.Exists := CurrentDesignUrl <> '';
-  ContainerOpenView.Exists := CurrentDesignUrl = '';
+  ButtonCloseDesign.Exists := Design <> nil;
+  ButtonSaveDesign.Exists := Design <> nil;
+  ContainerDesignView.Exists := Design <> nil;
+  ContainerOpenView.Exists := Design = nil;
 end;
 
 procedure TViewProject.ClickOpenView(Sender: TObject);
@@ -312,15 +263,7 @@ end;
 
 procedure TViewProject.ClickSaveDesign(Sender: TObject);
 begin
-  UserInterfaceSave(DesignRoot, CurrentDesignUrl);
-end;
-
-procedure TViewProject.ClearDesign;
-begin
-  DesignRoot := nil;
-  // this actually frees everything inside DesignRoot
-  FreeAndNil(DesignOwner);
-  CurrentDesignUrl := '';
+  Design.SaveDesign;
 end;
 
 procedure TViewProject.ProposeOpenDesign(const OpenDesignUrl: String);
@@ -334,162 +277,22 @@ begin
   // TODO: allow opening other design types
   NewDesignRoot := UserInterfaceLoad(OpenDesignUrl, NewDesignOwner);
 
-  ClearDesign;
-
-  DesignOwner := NewDesignOwner;
-  DesignRoot := NewDesignRoot;
-  CurrentDesignUrl := OpenDesignUrl;
-  Hierarchy.Root := DesignRoot;
-  ContainerLoadedDesign.InsertFront(DesignRoot);
+  FreeAndNil(Design);
+  Design := TDesign.Create(Self, NewDesignOwner, NewDesignRoot, OpenDesignUrl);
+  Design.FullSize := true;
+  ContainerDesignView.InsertFront(Design);
 
   DesignExistenceChanged;
 end;
 
-class function TViewProject.Selectable(const Child: TComponent): Boolean;
-begin
-  { Note: When changing conditions here, consider also updating ReasonWhyNotDeletable,
-    that explains to user *why* something is not deletable (not being selectable
-    also makes it not deletable). }
-
-  { csTransient reason:
-
-    Do not show in hierarchy the TCastleDesign loaded hierarchy,
-    as it will not be saved.
-    Same for TCastleCheckbox children.
-    Consequently, do not allow to select stuff inside.
-
-    However, show TCastleToolTransform, even though it is csTransient.
-    We want to allow selecting joint tools.
-  }
-  // Define this to inspect all transformations, including internal (gizmos)
-  {.$define EDITOR_DEBUG_TRANSFORMS}
-  {$ifdef EDITOR_DEBUG_TRANSFORMS}
-  Result := true;
-  {$else}
-  Result := (not (csTransient in Child.ComponentStyle)) or (Child is TCastleToolTransform);
-  {$endif}
-end;
-
-function TViewProject.Deletable(const Child: TComponent): Boolean;
-begin
-  { Note: When changing conditions here, consider also updating ReasonWhyNotDeletable,
-    that explains to user *why* something is not deletable. }
-
-  Result := Selectable(Child) and
-    (not (csSubComponent in Child.ComponentStyle)) and
-    (Child <> DesignRoot) and (not (Child is TCastleToolTransform));
-end;
-
-procedure TViewProject.FreeComponentRecursively(const C: TComponent);
-
-  procedure FreeNonVisualChildren(const C: TCastleComponent);
-  var
-    I: Integer;
-  begin
-    for I := C.NonVisualComponentsCount - 1 downto 0 do
-      if Deletable(C.NonVisualComponents[I]) then
-        FreeComponentRecursively(C.NonVisualComponents[I]);
-  end;
-
-  procedure FreeTransformChildren(const T: TCastleTransform);
-  var
-    I: Integer;
-  begin
-    for I := T.Count - 1 downto 0 do
-      if Deletable(T[I]) then
-        FreeComponentRecursively(T[I]);
-  end;
-
-  procedure FreeBehaviorChildren(const T: TCastleTransform);
-  var
-    I: Integer;
-  begin
-    for I := T.BehaviorsCount - 1 downto 0 do
-      if Deletable(T.Behaviors[I]) then
-        FreeComponentRecursively(T.Behaviors[I]);
-  end;
-
-  procedure FreeUiChildren(const C: TCastleUserInterface);
-  var
-    I: Integer;
-  begin
-    for I := C.ControlsCount - 1 downto 0 do
-      if Deletable(C.Controls[I]) then
-        FreeComponentRecursively(C.Controls[I]);
-  end;
-
-begin
-  if not Deletable(C) then
-    Exit;
-
-  { Check this assertion after Deletable check, as it may be invalid
-    e.g. for gizmos that are csTransient. }
-  Assert(C.Owner = DesignOwner); // for now, castle-editor-portable doesn't have any DesignOwner
-
-  if C is TCastleComponent then
-  begin
-    FreeNonVisualChildren(TCastleComponent(C));
-    if C is TCastleTransform then
-    begin
-      FreeBehaviorChildren(TCastleTransform(C));
-      FreeTransformChildren(TCastleTransform(C));
-    end else
-    if C is TCastleUserInterface then
-    begin
-      FreeUiChildren(TCastleUserInterface(C));
-      if C is TCastleViewport then
-      begin
-        FreeBehaviorChildren(TCastleViewport(C).Items);
-        FreeTransformChildren(TCastleViewport(C).Items);
-      end;
-    end;
-  end;
-  { Remove designing objects before delete behavior }
-//  if C is TCastleBehavior then
-//    TCastleBehavior(C).DesigningEnd;
-  C.Free;
-
-  //UpdateDesign; // for now, our hierarchy doesn't need it in castle-editor-portable
-end;
-
 procedure TViewProject.ChangeShowHierarchy(Sender: TObject);
 begin
-  Hierarchy.Exists := CheckboxShowHierarchy.Checked;
-  UpdateContainerLoadedDesignSize;
+  Design.HierarchyExists := CheckboxShowHierarchy.Checked;
 end;
 
 procedure TViewProject.ChangeShowProperties(Sender: TObject);
 begin
-  Properties.Exists := CheckboxShowProperties.Checked;
-  UpdateContainerLoadedDesignSize;
-end;
-
-procedure TViewProject.UpdateContainerLoadedDesignSize;
-var
-  L, R: Boolean;
-  WidthFractionFree: Single;
-begin
-  L := Hierarchy.Exists;
-  R := Properties.Exists;
-
-  WidthFractionFree := 1.0;
-  if L then
-    WidthFractionFree := WidthFractionFree - 0.25;
-  if R then
-    WidthFractionFree := WidthFractionFree - 0.25;
-  ContainerLoadedDesign.WidthFraction := WidthFractionFree;
-
-  if L and R then
-    ContainerLoadedDesign.Anchor(hpMiddle)
-  else
-  if L then
-    ContainerLoadedDesign.Anchor(hpRight)
-  else
-  if R then
-    ContainerLoadedDesign.Anchor(hpLeft)
-  else
-    // otherwise it doesn't really matter
-    ContainerLoadedDesign.Anchor(hpMiddle);
+  Design.PropertiesExists := CheckboxShowProperties.Checked;
 end;
 
 function TViewProject.Press(const Event: TInputPressRelease): Boolean;
@@ -513,12 +316,6 @@ begin
     ChangeShowProperties(nil);
     Exit(true);
   end;
-end;
-
-procedure TViewProject.HierarchySelect(const Selected: TComponent);
-begin
-  Properties.SelectedComponent := Selected;
-  Hierarchy.SelectComponent(Selected);
 end;
 
 end.
