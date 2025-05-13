@@ -15,6 +15,8 @@ See https://castle-engine.io/project_manifest for documentation of this file.
     <search_paths>
       <path value="code/" />
       <path value="../common-code/" />
+      <!-- Needed to put in LPI the path to castleconf.inc, which is used by ToolManifest -->
+      <path value="../../src/common_includes/" />
     </search_paths>
   </compiler_options>
 </project>
