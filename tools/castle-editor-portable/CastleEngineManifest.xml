@@ -10,6 +10,7 @@ See https://castle-engine.io/project_manifest for documentation of this file.
   game_units="EditorInitialize"
   qualified_name="io.castleengine.editor.portable"
   caption="Castle Game Engine"
+  proposed_unit_prefix="Editor"
 >
   <compiler_options>
     <search_paths>

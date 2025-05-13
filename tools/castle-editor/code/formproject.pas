@@ -2521,11 +2521,22 @@ end;
 
 procedure TProjectForm.ListOpenExistingViewRefresh;
 
+  function ViewUnitPrefix1: String;
+  begin
+    Result := LowerCase(Manifest.ProposedUnitPrefix) + 'view';
+  end;
+
+  // Support also older, deprecate names for "view": "state"
+  function ViewUnitPrefix2: String;
+  begin
+    Result := LowerCase(Manifest.ProposedUnitPrefix) + 'state';
+  end;
+
   function ShortDesignName(const S: String): String;
   begin
     Result := DeleteFileExt(ExtractFileName(S));
-    Result := PrefixRemove('gameview', Result, true);
-    Result := PrefixRemove('gamestate', Result, true);
+    Result := PrefixRemove(ViewUnitPrefix1, Result, true);
+    Result := PrefixRemove(ViewUnitPrefix2, Result, true);
     Result := SuffixRemove('.castle-user-interface', Result, true);
   end;
 
@@ -2533,6 +2544,9 @@ var
   ListItem: TListItem;
   DesignFileName, ProjectDataUrl: String;
 begin
+  // update LabelOpenExistingView to show mask used for views
+  LabelOpenExistingView.Caption := 'Open Existing View (' + ViewUnitPrefix1 + '*.castle-user-interface) :';
+
   { calculate ListOpenExistingViewStr contents }
   ListOpenExistingViewStr.Clear;
   { Search in ProjectDataUrl, not ProjectPathUrl, as all designs should be part of data
@@ -2543,9 +2557,8 @@ begin
   ProjectDataUrl := CombineUri(ProjectPathUrl, 'data/');
   if UriExists(ProjectDataUrl) <> ueNotExists then
   begin
-    FindFiles(ProjectDataUrl, 'gameview*.castle-user-interface', false, @ListOpenExistingViewAddFile, [ffRecursive]);
-    // support deprecated names
-    FindFiles(ProjectDataUrl, 'gamestate*.castle-user-interface', false, @ListOpenExistingViewAddFile, [ffRecursive]);
+    FindFiles(ProjectDataUrl, ViewUnitPrefix1 + '*.castle-user-interface', false, @ListOpenExistingViewAddFile, [ffRecursive]);
+    FindFiles(ProjectDataUrl, ViewUnitPrefix2 + '*.castle-user-interface', false, @ListOpenExistingViewAddFile, [ffRecursive]);
   end;
   { without sorting, the order would be ~random (as FindFiles enumarates).
     Note that we sort including the subdirectory names, which is good,
