@@ -8,6 +8,7 @@ See https://castle-engine.io/project_manifest for documentation of this file.
 <project name="placeholder_names"
   standalone_source="placeholder_names.dpr"
   qualified_name="io.castleengine.placeholder.names"
+  caption="Deprecated: Tool to detect placeholder names in models"
 >
   <data exists="false" />
 </project>

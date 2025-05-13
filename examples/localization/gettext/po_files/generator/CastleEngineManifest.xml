@@ -8,6 +8,7 @@ See https://castle-engine.io/project_manifest for documentation of this file.
 <project name="po_generator"
   standalone_source="po_generator.dpr"
   qualified_name="io.castleengine.po.generator"
+  caption="Generate POT (base for localization) for UI"
 >
   <data exists="false"/>
 </project>
