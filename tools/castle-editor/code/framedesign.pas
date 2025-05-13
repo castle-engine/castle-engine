@@ -722,7 +722,8 @@ uses
   CastleUtils, CastleComponentSerialize, CastleFileFilters, CastleGLUtils, CastleImages,
   CastleLog, CastleProjection, CastleStringUtils, CastleTimeUtils,
   CastleUriUtils, X3DLoad, CastleFilesUtils, CastleInternalPhysicsVisualization,
-  CastleInternalUrlUtils, CastleInternalFileMonitor, X3DNodes,
+  CastleInternalUrlUtils, CastleInternalFileMonitor, X3DNodes, CastleSoundEngine,
+  CastleBehaviors,
   { Editor units }
   EditorRegisterAllComponents,
   FormProject, CastleComponentEditorDesigner;
