@@ -34,7 +34,7 @@ type
     ButtonCloseDesign: TCastleButton;
     ButtonSaveDesign: TCastleButton;
     ButtonViewTemplate: TCastleButton;
-    ContainerDesignView, ContainerOpenView: TCastleUserInterface;
+    ContainerDesignView, ContainerOpenView, ToolbarWhenDesignExists: TCastleUserInterface;
     FactoryButtonView: TCastleComponentFactory;
     ListOpenExistingView: TCastleVerticalGroup;
     ScrollListOpenExistingView: TCastleUserInterface;
@@ -245,8 +245,7 @@ end;
 
 procedure TViewProject.DesignExistenceChanged;
 begin
-  ButtonCloseDesign.Exists := Design <> nil;
-  ButtonSaveDesign.Exists := Design <> nil;
+  ToolbarWhenDesignExists.Exists := Design <> nil;
   ContainerDesignView.Exists := Design <> nil;
   ContainerOpenView.Exists := Design = nil;
 end;
@@ -299,7 +298,7 @@ function TViewProject.Press(const Event: TInputPressRelease): Boolean;
 begin
   Result := inherited;
 
-  if Event.IsKey(keyLeftBracket) then
+  if Event.IsKey(keyLeftBracket) and (Design <> nil) then
   begin
     CheckboxShowHierarchy.Checked := not CheckboxShowHierarchy.Checked;
     { Call the OnChange explicitly, because it is not automatically
@@ -308,7 +307,7 @@ begin
     Exit(true);
   end;
 
-  if Event.IsKey(keyRightBracket) then
+  if Event.IsKey(keyRightBracket) and (Design <> nil) then
   begin
     CheckboxShowProperties.Checked := not CheckboxShowProperties.Checked;
     { Call the OnChange explicitly, because it is not automatically
