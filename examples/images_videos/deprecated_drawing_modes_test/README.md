@@ -3,9 +3,10 @@
 Test drawing one TCastleImage on another (using TCastleImage.DrawFrom)
 with various blending modes.
 
-_It is not advised to use this approach. It may be deprecated in the future._
-It is faster, and more feature-packed, to draw on images using GPU,
-following ../draw_images_on_gpu/ approach.
+**This approach to draw image-on-image is deprecated.** It is faster, and more feature-packed, to draw on images using `TDrawableImage` API. For demos, see:
+
+- ../draw_images_on_gpu/
+- ../image_generate_and_use/
 
 Using [Castle Game Engine](https://castle-engine.io/).
 
