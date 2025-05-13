@@ -21,10 +21,10 @@ Features:
 - Choosing and displaying a given view in the project.
 - Displaying components hierarchy.
 - Displaying object inspector (thus, viewing and editing components properties).
+- Manipulating selected TCastleTransform (translate, rotate, scale).
 
 TODOs:
 
-- Manipulating TCastleTransform.
 - Adding new components to the view.
 - Manipulating UI (extact functionality from castle-editor?).
 - Creating new views.
@@ -37,6 +37,7 @@ TODOs:
 - Bottom pane with Console output.
 - UI scaling: right now editor uses UI scaling and just applies it to the loaded design. Instead: editor UI scaling should be configurable and the loaded design should be scaled following project's settings. Loaded design should also enable zoom and scroll, that's independent feature (and would be nice to have in the real editor too).
 - Import/export project. And ability to just open projects at arbitrary location on platforms where regular filesystem exists (desktops).
+- ... All other functionality of the real editor. Duplicating, all integration with code editors etc.
 
 Using [Castle Game Engine](https://castle-engine.io/).
 
