@@ -1611,9 +1611,7 @@ begin
   begin
     U := ParseUri(Url);
     RelativeToData := PrefixRemove('/', U.Path + U.Document, false);
-    {$warnings off} // don't warn that CastleDataIgnoreCase is experimental
     if CastleDataIgnoreCase and FileNameCaseSensitive then
-    {$warnings on}
       RelativeToData := FixCase(RelativeToData);
     Result := ApplicationDataCore(RelativeToData);
   end else
