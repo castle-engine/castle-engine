@@ -3307,15 +3307,11 @@ begin
       end;
     end;
 
-    { TODO: No need to copy prototypes for now?
-
-      This DeepCopy is used for now by protos expanding.
-      It does not need prototype links (as protos are already expanded when copying,
-      and they don't need anything more).
-
-      for I := 0 to Prototypes.Count - 1 do
-        ...(Prototypes[I]);
-    }
+    if FPrototypes <> nil then
+    begin
+      for I := 0 to FPrototypes.Count - 1 do
+        Result.AddPrototype(FPrototypes[I].DeepCopy(Result, CopyState));
+    end;
 
     Assert(FieldsCount = Result.FieldsCount);
     Assert(EventsCount = Result.EventsCount);
